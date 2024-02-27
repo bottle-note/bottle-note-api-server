@@ -1,0 +1,23 @@
+version: "3.9"
+services:
+  mysql:
+    image: mysql:8.0
+    hostname: bottle-note-mysql
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: mysql_root
+      MYSQL_DATABASE: mysql_test
+      MYSQL_USER: mysql_test
+      MYSQL_PASSWORD: mysql_test
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql-init:/docker-entrypoint-initdb.d
+      - ./mysql-init/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+    network_mode: "bottle-note-network"
+
+networks:
+  default:
+    external:
+      name: bottle-note-network
