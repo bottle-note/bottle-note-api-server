@@ -15,9 +15,3 @@ services:
     volumes:
       - ./mysql-init:/docker-entrypoint-initdb.d
       - ./mysql-init/my.cnf:/etc/mysql/conf.d/my.cnf:ro
-    network_mode: "bottle-note-network"
-
-networks:
-  default:
-    external:
-      name: bottle-note-network
