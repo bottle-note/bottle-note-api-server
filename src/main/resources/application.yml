@@ -1,6 +1,8 @@
 server:
   port: 8080 # to be changed some other port number
   version: 0.0.1
+  path:
+    version: /v1
 
 
 # DB properties
