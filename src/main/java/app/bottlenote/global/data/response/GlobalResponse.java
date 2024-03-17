@@ -2,6 +2,7 @@ package app.bottlenote.global.data.response;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import static java.util.Collections.emptyList;
 
@@ -9,8 +10,9 @@ import static java.util.Collections.emptyList;
  * 전역 응답 객체
  */
 @Getter
+@Slf4j
 public class GlobalResponse {
-	private final SuccessCode success;
+	private final Boolean success;
 	private final Integer code;
 	private final Object data;
 	private final Object errors;
@@ -18,7 +20,7 @@ public class GlobalResponse {
 
 	public static GlobalResponse success(Object data) {
 		return GlobalResponse.builder()
-			.success(SuccessCode.SUCCESS)
+			.success(true)
 			.code(200)
 			.errors(emptyList())
 			.meta(emptyList())
@@ -28,7 +30,7 @@ public class GlobalResponse {
 
 	public static GlobalResponse success(Object data, Object meta) {
 		return GlobalResponse.builder()
-			.success(SuccessCode.SUCCESS)
+			.success(true)
 			.code(200)
 			.errors(emptyList())
 			.meta(meta)
@@ -38,7 +40,7 @@ public class GlobalResponse {
 
 	public static GlobalResponse fail(Integer code, Object errors) {
 		return GlobalResponse.builder()
-			.success(SuccessCode.FAIL)
+			.success(false)
 			.code(code)
 			.data(emptyList())
 			.errors(errors)
@@ -48,7 +50,7 @@ public class GlobalResponse {
 
 	public static GlobalResponse fail(Integer code, Object errors, Object meta) {
 		return GlobalResponse.builder()
-			.success(SuccessCode.FAIL)
+			.success(false)
 			.code(code)
 			.data(emptyList())
 			.errors(errors)
@@ -58,7 +60,7 @@ public class GlobalResponse {
 
 	public static GlobalResponse error(Integer code, Object errors) {
 		return GlobalResponse.builder()
-			.success(SuccessCode.ERROR)
+			.success(false)
 			.code(code)
 			.data(emptyList())
 			.errors(errors)
@@ -67,7 +69,7 @@ public class GlobalResponse {
 	}
 
 	@Builder
-	private GlobalResponse(SuccessCode success, Integer code, Object data, Object errors, Object meta) {
+	private GlobalResponse(Boolean success, Integer code, Object data, Object errors, Object meta) {
 		this.success = success;
 		this.code = code;
 		this.data = data;
