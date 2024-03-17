@@ -4,7 +4,6 @@ services:
     image: mysql:8.0
     hostname: bottle-note-mysql
     container_name: mysql
-    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: mysql_root
       MYSQL_DATABASE: mysql_test

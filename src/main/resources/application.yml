@@ -2,7 +2,22 @@ server:
   port: 8080 # to be changed some other port number
 
 
+# DB properties
+spring:
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:dummy;MODE=MySQL;
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop # validate, update, create, create-drop
+    properties:
+      hibernate:
+        format_sql: true # SQL 출력 포맷
+
 logging:
   level:
-    root: debug # error, warn, info, debug, trace
+    root: info # error, warn, info, debug, trace (default: info)
+
 
