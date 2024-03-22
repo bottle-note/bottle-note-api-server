@@ -1,17 +1,12 @@
 server:
   port: 8080 # to be changed some other port number
-  encoding:
-    charset: UTF-8 # 인코딩 설정
-  version: 0.0.1
-  path:
-    version: /v1
 
 
 # DB properties
 spring:
   datasource:
     driver-class-name: org.h2.Driver
-    url: jdbc:h2:mem:dummy;MODE=MySQL; # h2는 테스트 환경에서만 사용될 예정.
+    url: jdbc:h2:mem:dummy;MODE=MySQL;
     username: sa
     password:
   jpa:
@@ -20,7 +15,6 @@ spring:
     properties:
       hibernate:
         format_sql: true # SQL 출력 포맷
-    open-in-view: false # JPA 영속성 컨텍스트를 View까지 열어두는 옵션 (default: true) - false로 설정할 것
 
 logging:
   level:
