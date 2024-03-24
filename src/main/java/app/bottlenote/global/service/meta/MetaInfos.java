@@ -1,12 +1,15 @@
 package app.bottlenote.global.service.meta;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-
+@EqualsAndHashCode
+@ToString
 @Getter
 public class MetaInfos {
 	private final Map<String, Object> metaInfos;

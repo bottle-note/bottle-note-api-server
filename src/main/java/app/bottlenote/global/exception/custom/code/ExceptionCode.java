@@ -1,7 +1,9 @@
 package app.bottlenote.global.exception.custom.code;
 
-public interface ExceptionCode {
-	String getMessage();
+import org.springframework.http.HttpStatus;
 
-	String getHttpStatus();
+public interface ExceptionCode {
+    String getMessage();
+
+    HttpStatus getHttpStatus();
 }
