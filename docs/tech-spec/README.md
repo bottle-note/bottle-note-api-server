@@ -49,5 +49,5 @@
 
 ---
 
-### 작성 예시
+>작성 예시는 [해당 문서](docs/tech-spec/review/[Sample]review-registry.md)를 확인해주세요.
 
