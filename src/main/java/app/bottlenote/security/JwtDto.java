@@ -1,4 +1,4 @@
-package main.java.app.bottlenote.oauth;
+package main.java.app.bottlenote.security;
 
 public class JwtDto {
     @Getter
