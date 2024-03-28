@@ -1,10 +1,7 @@
 package app.bottlenote.user.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import app.bottlenote.oauth.constant.SocialType;
+import jakarta.persistence.*;
 import org.hibernate.annotations.Comment;
 
 @Entity(name = "users")
@@ -22,6 +19,8 @@ public class Users {
 	private String age;
 	private String imageUrl;
 	private String role;
-	private String socialType;
+
+	@Enumerated(EnumType.STRING)
+	private SocialType socialType;
 	private String refreshToken;
 }
