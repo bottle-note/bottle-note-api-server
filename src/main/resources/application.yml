@@ -21,3 +21,6 @@ logging:
     root: info # error, warn, info, debug, trace (default: info)
 
 
+security:
+  jwt:
+    secret-key: '여기에_당신의_시크릿_키를_넣으세요'

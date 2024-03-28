@@ -36,8 +36,14 @@ dependencies {
     implementation 'com.h2database:h2'
 
     
-    // jwt
-    implementation 'io.jsonwebtoken:jjwt:0.9.1'
+    // JWT를 위한 의존성
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
+    runtime 'io.jsonwebtoken:jjwt-impl:0.11.2'
+    runtime 'io.jsonwebtoken:jjwt-jackson:0.11.2' // Jackson을 사용하는 경우
+
+    // SLF4J 로깅을 위한 의존성
+    implementation 'org.slf4j:slf4j-api:1.7.30'
+    implementation 'org.slf4j:slf4j-simple:1.7.30'
     
 }
 
