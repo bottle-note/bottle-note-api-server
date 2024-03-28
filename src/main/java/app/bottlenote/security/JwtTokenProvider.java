@@ -1,11 +1,17 @@
-package main.java.app.bottlenote.security;
+package app.bottlenote.security;
 
-import java.util.Base64;
+import java.security.Key;
+import java.util.Date;
+
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 
 @Slf4j
 @Component
@@ -23,7 +29,7 @@ public class JwtTokenProvider {
     }
 
     // 엑세스 토큰 코드
-    private String GenerateToken(String userEmail, String role){
+    private JwtDto GenerateToken(String userEmail, String role){
         Claims claims = Jwts.claims().setSubject(userEmail);
 
         claims.put(KEY_ROLES,role);
@@ -33,7 +39,7 @@ public class JwtTokenProvider {
         String accessToken = Jwts.builder()
             .setClaims(claims)
             .setIssuedAt(now)
-            .setExpiration(new Date(now.getTime() + EXPIRE_TIME))
+            .setExpiration(new Date(now.getTime() + ACCESS_TOKEN_EXPIRE_TIME))
             .signWith(secretKey, SignatureAlgorithm.HS512)
             .compact();
 
@@ -41,7 +47,7 @@ public class JwtTokenProvider {
         String refreshToken = Jwts.builder()
             .setClaims(claims)
             .setIssuedAt(now)
-            .setExpiration(new Date(now.getTime() + REFRESH_EXPIRE_TIME))
+            .setExpiration(new Date(now.getTime() + REFRESH_TOKEN_EXPIRE_TIME))
             .signWith(secretKey, SignatureAlgorithm.HS512)
             .compact();
 
