@@ -22,5 +22,5 @@ logging:
 
 
 security:
-  jwt:
-    secret-key: '여기에_당신의_시크릿_키를_넣으세요'
+  jwt: # dummy key
+    secret-key: 'c2VjdXJlU2VjcmV0S2V5MTIzNDU2Nzg5MGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6QWJDRGVGR2hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlrSg=='

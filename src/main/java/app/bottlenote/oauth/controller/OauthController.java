@@ -6,6 +6,7 @@ import app.bottlenote.security.JwtDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,8 +20,9 @@ public class OauthController {
 	private final OauthLoginService oauthLoginService;
 
 
+	@GetMapping("/login")
     public ResponseEntity<JwtDto> OauthLogin(@RequestBody OauthLoginRequest OauthLoginReq){
-		return ResponseEntity.ok(oauthLoginService.OauthLogin(OauthLoginReq));
+		return ResponseEntity.ok(oauthLoginService.oauthLogin(OauthLoginReq));
 	}
 
 }

@@ -3,6 +3,7 @@ package app.bottlenote.security;
 import java.security.Key;
 import java.util.Date;
 
+import app.bottlenote.oauth.constant.UserType;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -24,12 +25,13 @@ public class JwtTokenProvider {
 
 
     public JwtTokenProvider(@Value("${security.jwt.secret-key}") String secret) {
+		log.info("Secret key: {}", secret); // 이 부분을 추가
         byte[] keyBytes = Decoders.BASE64.decode(secret);
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
     }
 
     // 엑세스 토큰 코드
-    private JwtDto GenerateToken(String userEmail, String role){
+    public JwtDto GenerateToken(String userEmail, UserType role){
         Claims claims = Jwts.claims().setSubject(userEmail);
 
         claims.put(KEY_ROLES,role);
@@ -57,6 +59,5 @@ public class JwtTokenProvider {
             .build();
 
     }
-
 
 }
