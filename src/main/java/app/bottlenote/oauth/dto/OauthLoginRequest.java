@@ -7,7 +7,7 @@ import lombok.Getter;
 public class OauthLoginRequest {
 
 	private String email;
-	private String sexType;
+	private String gender;
 	private String age;
 	private SocialType socialType;
 

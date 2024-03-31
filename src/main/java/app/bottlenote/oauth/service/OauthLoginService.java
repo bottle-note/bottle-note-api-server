@@ -27,7 +27,7 @@ public class OauthLoginService {
 		} else {
 			user = oauthSignUp(oauthLoginReq);
 		}
-		return jwtTokenProvider.GenerateToken(user.getEmail(), user.getRole());
+		return jwtTokenProvider.GenerateToken(user.getEmail(), user.getRole(), user.getId());
 	}
 
 	private Users oauthSignUp(OauthLoginRequest request) {
@@ -35,6 +35,8 @@ public class OauthLoginService {
 			.email(request.getEmail())
 			.socialType(request.getSocialType())
 			.role(UserType.ROLE_USER)
+			.gender(request.getGender())
+				.age(request.getAge())
 			.build());
 	}
 }

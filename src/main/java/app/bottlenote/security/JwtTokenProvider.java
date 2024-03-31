@@ -31,10 +31,11 @@ public class JwtTokenProvider {
     }
 
     // 엑세스 토큰 코드
-    public JwtDto GenerateToken(String userEmail, UserType role){
+    public JwtDto GenerateToken(String userEmail, UserType role, Long userId){
         Claims claims = Jwts.claims().setSubject(userEmail);
 
         claims.put(KEY_ROLES,role);
+		claims.put("userId",userId);
 
         Date now = new Date();
 

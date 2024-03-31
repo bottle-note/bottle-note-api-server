@@ -25,7 +25,9 @@ public class Users {
 
 	private String nickName;
 	private String age;
+	private String gender;
 	private String imageUrl;
+	@Enumerated(EnumType.STRING)
 	private UserType role;
 
 	@Enumerated(EnumType.STRING)
@@ -33,11 +35,12 @@ public class Users {
 	private String refreshToken;
 
 	@Builder
-	public Users(String email, String nickName, String age, String imageUrl,
+	public Users(String email, String nickName, String age,String gender ,String imageUrl,
 				 UserType role, SocialType socialType, String refreshToken) {
 		this.email = email;
 		this.nickName = nickName;
 		this.age = age;
+		this.gender = gender;
 		this.imageUrl = imageUrl;
 		this.role = role;
 		this.socialType = socialType;
