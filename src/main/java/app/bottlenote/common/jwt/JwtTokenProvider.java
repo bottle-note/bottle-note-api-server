@@ -1,16 +1,18 @@
-package app.bottlenote.security;
+package app.bottlenote.common.jwt;
 
 import java.security.Key;
 import java.util.Date;
 
-import app.bottlenote.oauth.constant.UserType;
+import app.bottlenote.common.jwt.dto.response.OauthResponse;
+import app.bottlenote.user.constant.UserType;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory
+	.annotation.Value;
 import org.springframework.stereotype.Component;
 
 
@@ -19,8 +21,8 @@ import org.springframework.stereotype.Component;
 public class JwtTokenProvider {
 
     private final Key secretKey;
-    public static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 15;
-    public static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 14;
+    public static final int ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 15;
+    public static final int REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 14;
     public static final String KEY_ROLES = "roles";
 
 
@@ -31,7 +33,7 @@ public class JwtTokenProvider {
     }
 
     // 엑세스 토큰 코드
-    public JwtDto GenerateToken(String userEmail, UserType role, Long userId){
+    public OauthResponse generateToken(String userEmail, UserType role, Long userId){
         Claims claims = Jwts.claims().setSubject(userEmail);
 
         claims.put(KEY_ROLES,role);
@@ -54,7 +56,7 @@ public class JwtTokenProvider {
             .signWith(secretKey, SignatureAlgorithm.HS512)
             .compact();
 
-        return JwtDto.builder()
+        return OauthResponse.builder()
             .accessToken(accessToken)
             .refreshToken(refreshToken)
             .build();

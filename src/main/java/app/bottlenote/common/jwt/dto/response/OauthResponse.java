@@ -1,4 +1,4 @@
-package app.bottlenote.security;
+package app.bottlenote.common.jwt.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class JwtDto {
+public class OauthResponse {
 	private String accessToken;
 	private String refreshToken;
 }

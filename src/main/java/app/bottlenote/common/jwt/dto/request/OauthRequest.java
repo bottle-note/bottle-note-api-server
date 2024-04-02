@@ -1,10 +1,10 @@
-package app.bottlenote.oauth.dto;
+package app.bottlenote.common.jwt.dto.request;
 
-import app.bottlenote.oauth.constant.SocialType;
+import app.bottlenote.user.constant.SocialType;
 import lombok.Getter;
 
 @Getter
-public class OauthLoginRequest {
+public class OauthRequest {
 
 	private String email;
 	private String gender;

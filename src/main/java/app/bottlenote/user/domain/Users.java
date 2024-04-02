@@ -1,7 +1,7 @@
 package app.bottlenote.user.domain;
 
-import app.bottlenote.oauth.constant.SocialType;
-import app.bottlenote.oauth.constant.UserType;
+import app.bottlenote.user.constant.SocialType;
+import app.bottlenote.user.constant.UserType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

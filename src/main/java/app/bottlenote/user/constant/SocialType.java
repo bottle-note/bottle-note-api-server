@@ -1,4 +1,4 @@
-package app.bottlenote.oauth.constant;
+package app.bottlenote.user.constant;
 
 public enum SocialType {
 	KAKAO,
