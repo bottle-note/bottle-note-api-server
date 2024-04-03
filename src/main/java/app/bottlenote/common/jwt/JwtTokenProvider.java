@@ -25,42 +25,52 @@ public class JwtTokenProvider {
     public static final int REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 14;
     public static final String KEY_ROLES = "roles";
 
+	public JwtTokenProvider(@Value("${security.jwt.secret-key}") String secret) {
+		byte[] keyBytes = Decoders.BASE64.decode(secret);
+		this.secretKey = Keys.hmacShaKeyFor(keyBytes);
+	}
 
-    public JwtTokenProvider(@Value("${security.jwt.secret-key}") String secret) {
-		log.info("Secret key: {}", secret); // 이 부분을 추가
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
-        this.secretKey = Keys.hmacShaKeyFor(keyBytes);
-    }
+	// 토큰 생성 메소드
+	public OauthResponse generateToken(String userEmail, UserType role, Long userId){
+		String accessToken = createAccessToken(userEmail, role, userId);
+		String refreshToken = createRefreshToken(userEmail, role, userId);
+		return OauthResponse.builder()
+			.accessToken(accessToken)
+			.refreshToken(refreshToken)
+			.build();
+	}
 
-    // 엑세스 토큰 코드
-    public OauthResponse generateToken(String userEmail, UserType role, Long userId){
-        Claims claims = Jwts.claims().setSubject(userEmail);
+	// 엑세스 토큰 생성 메소드
+	public String createAccessToken(String userEmail, UserType role, Long userId) {
+		Claims claims = createClaims(userEmail, role, userId);
+		Date now = new Date();
+		return Jwts.builder()
+			.setClaims(claims)
+			.setIssuedAt(now)
+			.setExpiration(new Date(now.getTime() + ACCESS_TOKEN_EXPIRE_TIME))
+			.signWith(secretKey, SignatureAlgorithm.HS512)
+			.compact();
+	}
 
-        claims.put(KEY_ROLES,role);
-		claims.put("userId",userId);
+	// 리프레시 토큰 생성 메소드
+	public String createRefreshToken(String userEmail, UserType role, Long userId) {
+		Claims claims = createClaims(userEmail, role, userId);
+		Date now = new Date();
+		return Jwts.builder()
+			.setClaims(claims)
+			.setIssuedAt(now)
+			.setExpiration(new Date(now.getTime() + REFRESH_TOKEN_EXPIRE_TIME))
+			.signWith(secretKey, SignatureAlgorithm.HS512)
+			.compact();
+	}
 
-        Date now = new Date();
+	// Claims 생성을 위한 공통 메소드
+	private Claims createClaims(String userEmail, UserType role, Long userId) {
+		Claims claims = Jwts.claims().setSubject(userEmail);
+		claims.put(KEY_ROLES, role);
+		claims.put("userId", userId);
+		return claims;
+	}
 
-        String accessToken = Jwts.builder()
-            .setClaims(claims)
-            .setIssuedAt(now)
-            .setExpiration(new Date(now.getTime() + ACCESS_TOKEN_EXPIRE_TIME))
-            .signWith(secretKey, SignatureAlgorithm.HS512)
-            .compact();
-
-
-        String refreshToken = Jwts.builder()
-            .setClaims(claims)
-            .setIssuedAt(now)
-            .setExpiration(new Date(now.getTime() + REFRESH_TOKEN_EXPIRE_TIME))
-            .signWith(secretKey, SignatureAlgorithm.HS512)
-            .compact();
-
-        return OauthResponse.builder()
-            .accessToken(accessToken)
-            .refreshToken(refreshToken)
-            .build();
-
-    }
 
 }
