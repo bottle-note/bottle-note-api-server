@@ -45,7 +45,7 @@ public class ReviewImage extends BaseEntity {
 	@Comment("상태")
 	@Column(name = "status")
 	@Enumerated(EnumType.STRING)
-	private Status status;
+	private ImageStatus status;
 
 	@Comment("태그")
 	@Column(name = "tags")
