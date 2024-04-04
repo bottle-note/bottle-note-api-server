@@ -1,0 +1,93 @@
+package app.bottlenote.review.domain;
+
+import app.bottlenote.alcohols.domain.Alcohols;
+import app.bottlenote.common.domain.BaseEntity;
+import app.bottlenote.user.domain.Users;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import lombok.Getter;
+import org.hibernate.annotations.Comment;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Getter
+public class Review extends BaseEntity {
+
+	//CREATE TABLE `리뷰` (
+	//	`review_id`	VARCHAR(255)	NOT NULL,
+	//	`user_id`	VARCHAR(255)	NOT NULL,
+	//	`alcohols_id`	VARCHAR(255)	NOT NULL,
+	//	`content`	VARCHAR(255)	NOT NULL,
+	//	`size_type`	VARCHAR(255)	NULL	COMMENT '잔 : glass , 보틀 : bottle',
+	//	`price`	VARCHAR(255)	NULL,
+	//	`zip_code`	VARCHAR(255)	NULL,
+	//	`address`	VARCHAR(255)	NULL,
+	//	`detail_address`	VARCHAR(255)	NULL,
+	//	`image_url`	VARCHAR(255)	NULL	COMMENT '썸네일 이미지',
+	//	`view_count`	VARCHAR(255)	NULL	COMMENT '조회수',
+	//	`create_at`	VARCHAR(255)	NOT NULL,
+	//	`last_modify_at`	VARCHAR(255)	NOT NULL,
+	//	`create_by`	VARCHAR(255)	NOT NULL,
+	//	`last_modify_by`	VARCHAR(255)	NOT NULL
+	//);
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_id")
+	private Users user;
+
+	@OneToMany(mappedBy = "review" , fetch = FetchType.LAZY)
+	private List<ReviewImage> reviewImages = new ArrayList<>();
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "alcohols")
+	private Alcohols alcohols;
+
+	@Comment("내용")
+	@Column(name = "content", nullable = false)
+	private String content;
+
+	@Comment("용량타입")
+	@Column(name = "size_type", nullable = false)
+	@Enumerated(EnumType.STRING)
+	private SizeType sizeType;
+
+	@Comment("가격")
+	@Column(name = "price", nullable = false)
+	private Long price;
+
+	@Comment("우편번호")
+	@Column(name = "zip_code")
+	private Long zipCode;
+
+	@Comment("주소")
+	@Column(name = "address")
+	private String address;
+
+	@Comment("상세주소")
+	@Column(name = "detail_address")
+	private String detailAddress;
+
+	@Comment("썸네일 이미지")
+	@Column(name = "image_url")
+	private String iamgeUrl;
+
+	@Comment("조회수")
+	@Column(name = "view_count", nullable = false)
+	private Long viewCnt;
+}
+
