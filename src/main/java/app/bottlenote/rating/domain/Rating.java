@@ -22,17 +22,9 @@ import org.hibernate.annotations.Comment;
 @Entity(name = "rating")
 public class Rating extends BaseEntity {
 
-//CREATE TABLE `점수` (
-//	`rating_id`	VARCHAR(255)	NOT NULL,
-//	`alcohol_id`	VARCHAR(255)	NOT NULL,
-//	`user_id`	VARCHAR(255)	NOT NULL,
-//	`rating`	VARCHAR(255)	NOT NULL	DEFAULT 0	COMMENT '0점 : 삭제, 0.5:최저점수, 5:최고점수',
-//);
-
 	@Id
 	@Comment("평가점수 id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "rating_id")
 	private Long id;
 
 	@Comment("평가점수 : 0, 0.5, 1 ... 5 (0점 : 삭제와 같다, 0.5:최저점수, 5:최고점수)")

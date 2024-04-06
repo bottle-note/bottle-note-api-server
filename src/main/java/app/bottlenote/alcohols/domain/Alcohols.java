@@ -11,6 +11,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import lombok.Getter;
@@ -50,28 +51,30 @@ public class Alcohols extends BaseEntity {
 
 	@Comment("국가")
 	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "country_id")
 	private Country country;
 
 	@Comment("증류소")
 	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "distillery_id")
 	private Distillery distillery;
 
 	@Comment("티어")
 	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "tier_id")
 	private Tier tier;
-
 
 	@Comment("캐스트 타입")
 	@Column(name = "cask", nullable = true)
 	private String cask;
 
-	@OneToMany(mappedBy = "alcohol")
+	@OneToMany(mappedBy = "alcohol", fetch = FetchType.LAZY)
 	private List<AlcoholsTastingTags> alcoholsTastingTags = new ArrayList<>();
 
 	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY)
 	private List<Review> reviews = new ArrayList<>();
 
-	@OneToMany(mappedBy = "rating",fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "rating", fetch = FetchType.LAZY)
 	private List<Rating> rating = new ArrayList<>();
 }
 

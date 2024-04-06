@@ -21,13 +21,6 @@ public class Help extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	/*CREATE TABLE `문의` (
-	`user_id`	VARCHAR(255)	NOT NULL	COMMENT '문의자',
-	`help_content`	VARCHAR(255)	NOT NULL	COMMENT '어던 문제를 문의했는지.',
-	`status`	VARCHAR(255)	NOT NULL	DEFAULT waiting	COMMENT '진행상태',
-	`admin_id`	VARCHAR(255)	NULL	COMMENT '처리  어드민',
-	`response_content`	VARCHAR(255)	NULL	COMMENT '처리 결과',
-);*/
 
 	@Comment("문의자")
 	@ManyToOne(fetch = FetchType.LAZY)

@@ -6,7 +6,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import org.hibernate.annotations.Comment;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Comment("증류소")
 @Entity(name = "distillery")
@@ -27,4 +31,7 @@ public class Distillery extends BaseEntity {
 	@Comment("증류소 로고 이미지 경로")
 	@Column(name = "logo_img_path")
 	private String logoImgPath;
+
+	@OneToMany(mappedBy = "distillery")
+	private List<Alcohols> alcohols = new ArrayList<>();
 }

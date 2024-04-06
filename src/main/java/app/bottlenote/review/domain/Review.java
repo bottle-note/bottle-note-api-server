@@ -24,24 +24,6 @@ import java.util.List;
 @Getter
 public class Review extends BaseEntity {
 
-	//CREATE TABLE `리뷰` (
-	//	`review_id`	VARCHAR(255)	NOT NULL,
-	//	`user_id`	VARCHAR(255)	NOT NULL,
-	//	`alcohols_id`	VARCHAR(255)	NOT NULL,
-	//	`content`	VARCHAR(255)	NOT NULL,
-	//	`size_type`	VARCHAR(255)	NULL	COMMENT '잔 : glass , 보틀 : bottle',
-	//	`price`	VARCHAR(255)	NULL,
-	//	`zip_code`	VARCHAR(255)	NULL,
-	//	`address`	VARCHAR(255)	NULL,
-	//	`detail_address`	VARCHAR(255)	NULL,
-	//	`image_url`	VARCHAR(255)	NULL	COMMENT '썸네일 이미지',
-	//	`view_count`	VARCHAR(255)	NULL	COMMENT '조회수',
-	//	`create_at`	VARCHAR(255)	NOT NULL,
-	//	`last_modify_at`	VARCHAR(255)	NOT NULL,
-	//	`create_by`	VARCHAR(255)	NOT NULL,
-	//	`last_modify_by`	VARCHAR(255)	NOT NULL
-	//);
-
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -50,7 +32,7 @@ public class Review extends BaseEntity {
 	@JoinColumn(name = "user_id")
 	private Users user;
 
-	@OneToMany(mappedBy = "review" , fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY)
 	private List<ReviewImage> reviewImages = new ArrayList<>();
 
 	@ManyToOne(fetch = FetchType.LAZY)

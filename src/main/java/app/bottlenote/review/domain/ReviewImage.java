@@ -14,8 +14,8 @@ import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import org.hibernate.annotations.Comment;
 
-@Entity
 @Getter
+@Entity
 public class ReviewImage extends BaseEntity {
 
 	@Id
