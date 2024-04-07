@@ -22,6 +22,10 @@ spring:
         format_sql: true # SQL 출력 포맷
     open-in-view: false # JPA 영속성 컨텍스트를 View까지 열어두는 옵션 (default: true) - false로 설정할 것
 
+  h2:
+    console:
+      enabled: true
+
 logging:
   level:
     root: info # error, warn, info, debug, trace (default: info)
