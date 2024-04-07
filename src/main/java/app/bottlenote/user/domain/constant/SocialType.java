@@ -1,4 +1,4 @@
-package app.bottlenote.user.constant;
+package app.bottlenote.user.domain.constant;
 
 public enum SocialType {
 	KAKAO,

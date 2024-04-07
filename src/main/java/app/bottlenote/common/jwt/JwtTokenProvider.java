@@ -3,8 +3,8 @@ package app.bottlenote.common.jwt;
 import java.security.Key;
 import java.util.Date;
 
-import app.bottlenote.common.jwt.dto.response.OauthResponse;
-import app.bottlenote.user.constant.UserType;
+import app.bottlenote.user.dto.response.OauthResponse;
+import app.bottlenote.user.domain.constant.UserType;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -25,12 +25,27 @@ public class JwtTokenProvider {
     public static final int REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 14;
     public static final String KEY_ROLES = "roles";
 
+
+
+	/**
+	 *  secretKey를 받아 JwtTokenProvider를 생성하는 생성자
+	 *
+	 * @param secret 토큰 생성용 시크릿 키
+	 */
 	public JwtTokenProvider(@Value("${security.jwt.secret-key}") String secret) {
 		byte[] keyBytes = Decoders.BASE64.decode(secret);
 		this.secretKey = Keys.hmacShaKeyFor(keyBytes);
 	}
 
-	// 토큰 생성 메소드
+
+	/**
+	 *  필수적인 파라미터를 받아 엑세스 토큰과 리프레시 토큰을 생성하는 메소드
+	 *
+	 * @param userEmail 토큰 생성용 유저 이메일
+	 * @param role 유저의 권한
+	 * @param userId 유저 고유 아이디
+	 * @return OauthResponse ( 엑세스 토큰과 리프레시 토큰을 담은 객체 )
+	 */
 	public OauthResponse generateToken(String userEmail, UserType role, Long userId){
 		String accessToken = createAccessToken(userEmail, role, userId);
 		String refreshToken = createRefreshToken(userEmail, role, userId);
@@ -40,7 +55,14 @@ public class JwtTokenProvider {
 			.build();
 	}
 
-	// 엑세스 토큰 생성 메소드
+	/**
+	 *  필수적인 파라미터를 받아 엑세스 토큰을 생성하는 메소드
+	 *
+	 * @param userEmail 토큰 생성용 유저 이메일
+	 * @param role 유저의 권한
+	 * @param userId 유저 고유 아이디
+	 * @return access token ( 엑세스 토큰 )
+	*/
 	public String createAccessToken(String userEmail, UserType role, Long userId) {
 		Claims claims = createClaims(userEmail, role, userId);
 		Date now = new Date();
@@ -54,6 +76,7 @@ public class JwtTokenProvider {
 
 	// 리프레시 토큰 생성 메소드
 	public String createRefreshToken(String userEmail, UserType role, Long userId) {
+		// TODO :: null check
 		Claims claims = createClaims(userEmail, role, userId);
 		Date now = new Date();
 		return Jwts.builder()
@@ -64,13 +87,22 @@ public class JwtTokenProvider {
 			.compact();
 	}
 
-	// Claims 생성을 위한 공통 메소드
+	/**
+	 * 필수적인 파라미터를 받아 클레임을 생성하는 메소드
+	 *
+	 * @param userEmail
+	 * @param role
+	 * @param userId
+	 * @return 클레임 객체 ( 토큰에 담을 정보 )
+	 */
 	private Claims createClaims(String userEmail, UserType role, Long userId) {
 		Claims claims = Jwts.claims().setSubject(userEmail);
 		claims.put(KEY_ROLES, role);
 		claims.put("userId", userId);
 		return claims;
 	}
+
+	// TODO :: 재발급 로직 추가하기
 
 
 }
