@@ -1,5 +1,6 @@
 package app.bottlenote.user.service;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -39,7 +40,7 @@ public class NicknameGenerator {
 		Map.entry(12, "D")
 	);
 
-	private final Random random = new Random();
+	private final SecureRandom secureRandom = new SecureRandom();
 
 	public String generateNickname() {
 		LocalDateTime now = LocalDateTime.now();
@@ -55,11 +56,12 @@ public class NicknameGenerator {
 		return shuffleString(generateRandomLetters()) + timeStr;
 	}
 
+
 	private String generateRandomLetters() {
 		return IntStream.range(0, 4)
 			.mapToObj(i -> {
-				char base = random.nextBoolean() ? 'A' : 'a';
-				return (char) (base + random.nextInt(26));
+				char base = secureRandom.nextBoolean() ? 'A' : 'a';
+				return (char) (base + secureRandom.nextInt(26));
 			})
 			.map(String::valueOf)
 			.collect(Collectors.joining());
