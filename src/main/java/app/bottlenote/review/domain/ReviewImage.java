@@ -34,12 +34,15 @@ public class ReviewImage extends BaseEntity {
 	@Column(name = "file_size", nullable = false)
 	private Long fileSize;
 
+	@Comment("리뷰 아이디")
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "review_id")
 	private Review review;
 
+	//기존 order는 예약어
+	// order -> image_order
 	@Comment("이미지 순서")
-	@Column(name = "order", nullable = false)
+	@Column(name = "image_order", nullable = false)
 	private Long order;
 
 	@Comment("상태")
