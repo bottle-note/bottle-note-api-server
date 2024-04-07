@@ -34,6 +34,7 @@ public class OauthService {
 
 		User user;
 
+
 		user = oauthRepository.findByEmailAndSocialType(email, socialType)
 				.orElseGet(() -> oauthSignUp(email, socialType, genderType, age));
 
@@ -50,6 +51,15 @@ public class OauthService {
 
 		NicknameGenerator nicknameGenerator = new NicknameGenerator();
 		String nickName = nicknameGenerator.generateNickname();
+
+		int attempts = 0;
+		while (oauthRepository.findByNickName(nickName).isPresent()) {
+			if (attempts >= 10) {
+				throw new RuntimeException("닉네임 생성에 실패했습니다. 다시 시도해주세요.");
+			}
+			nickName = nicknameGenerator.generateNickname();
+			attempts++;
+		}
 
 		User user = User.builder()
 			.email(email)
