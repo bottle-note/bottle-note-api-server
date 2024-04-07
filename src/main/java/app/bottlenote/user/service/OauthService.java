@@ -15,10 +15,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional // 추후에 로그인, 회원가입 관련 기능 추가시 proxy transactional 분리를 고려해야함.(ex. 로그인은 읽기전용, 회원가입은 쓰기전용.. 등)
 public class OauthService {
 
 	private final OauthRepository oauthRepository;
@@ -31,12 +32,20 @@ public class OauthService {
 		SocialType socialType = oauthReq.getSocialType();
 		GenderType genderType = oauthReq.getGender();
 		int age = oauthReq.getAge();
+//
+		User user; //로그인 & 회원가입 엑세스용 유저
 
-		User user;
+		// 회원가입용 옵셔널 유저필요
+		User optionalUser = oauthRepository.findByEmailAndSocialType(email, socialType).orElse(null);
 
+		if(optionalUser == null) {
+			//회원가입
+			user = oauthSignUp(email, socialType, genderType, age);
+		} else {
+			//로그인
+			user = optionalUser;
+		}
 
-		user = oauthRepository.findByEmailAndSocialType(email, socialType)
-				.orElseGet(() -> oauthSignUp(email, socialType, genderType, age));
 
 		jwtTokenProvider.generateToken(email, UserType.ROLE_USER, user.getId());
 
