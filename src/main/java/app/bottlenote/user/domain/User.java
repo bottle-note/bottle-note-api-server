@@ -70,6 +70,9 @@ public class User {
 	}
 
 	public void updateRefreshToken(String refreshToken) {
+		if (refreshToken == null) {
+			throw new IllegalArgumentException("refreshToken이 null입니다.");
+		}
 		this.refreshToken = refreshToken;
 	}
 

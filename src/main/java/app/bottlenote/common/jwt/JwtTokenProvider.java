@@ -76,7 +76,7 @@ public class JwtTokenProvider {
 
 	// 리프레시 토큰 생성 메소드
 	public String createRefreshToken(String userEmail, UserType role, Long userId) {
-		// TODO :: null check
+
 		Claims claims = createClaims(userEmail, role, userId);
 		Date now = new Date();
 		return Jwts.builder()
@@ -103,6 +103,7 @@ public class JwtTokenProvider {
 	}
 
 	// TODO :: 재발급 로직 추가하기
+	// TODO :: 토큰 검증 로직 추가하기
 
 
 }
