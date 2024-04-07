@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -17,9 +19,11 @@ public class OauthController {
 	private final OauthService oauthService;
 
 	@PostMapping("/login")
-    public ResponseEntity<GlobalResponse> oauthLogin(@RequestBody OauthRequest oauthReq) {
+    public ResponseEntity<GlobalResponse> oauthLogin(@RequestBody @Valid OauthRequest oauthReq) {
+		log.info("Received oauth request: {}", oauthReq); // Log the request for debugging
 		return ResponseEntity.ok(
 			GlobalResponse.success(oauthService.oauthLogin(oauthReq)));
 	}
+
 
 }

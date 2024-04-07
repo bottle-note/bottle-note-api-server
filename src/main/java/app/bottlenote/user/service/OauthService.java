@@ -32,25 +32,23 @@ public class OauthService {
 		SocialType socialType = oauthReq.getSocialType();
 		GenderType genderType = oauthReq.getGender();
 		int age = oauthReq.getAge();
-//
-		User user; //로그인 & 회원가입 엑세스용 유저
+
+		User user;
 
 		// 회원가입용 옵셔널 유저필요
 		User optionalUser = oauthRepository.findByEmailAndSocialType(email, socialType).orElse(null);
 
 		if(optionalUser == null) {
-			//회원가입
 			user = oauthSignUp(email, socialType, genderType, age);
 		} else {
-			//로그인
 			user = optionalUser;
 		}
 
-
 		jwtTokenProvider.generateToken(email, UserType.ROLE_USER, user.getId());
 
-
 		OauthResponse oauthResponse = jwtTokenProvider.generateToken(email, UserType.ROLE_USER, user.getId());
+
+
 		user.updateRefreshToken(oauthResponse.getRefreshToken());
 
 		return oauthResponse;
@@ -58,15 +56,15 @@ public class OauthService {
 
 	public User oauthSignUp(String email, SocialType socialType, GenderType genderType, int age) {
 
-		NicknameGenerator nicknameGenerator = new NicknameGenerator();
-		String nickName = nicknameGenerator.generateNickname();
+		NicknameGenerator nicknameGenerator = NicknameGenerator.getInstance();
+		String nickName = nicknameGenerator.generate();
 
 		int attempts = 0;
 		while (oauthRepository.findByNickName(nickName).isPresent()) {
 			if (attempts >= 10) {
 				throw new RuntimeException("닉네임 생성에 실패했습니다. 다시 시도해주세요.");
 			}
-			nickName = nicknameGenerator.generateNickname();
+			nickName = nicknameGenerator.generate();
 			attempts++;
 		}
 

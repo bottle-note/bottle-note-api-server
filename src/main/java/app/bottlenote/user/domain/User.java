@@ -9,6 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
+import java.util.Objects;
+
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Comment("사용자 정보 테이블")
@@ -70,10 +72,7 @@ public class User {
 	}
 
 	public void updateRefreshToken(String refreshToken) {
-		if (refreshToken == null) {
-			throw new IllegalArgumentException("refreshToken이 null입니다.");
-		}
-		this.refreshToken = refreshToken;
+		this.refreshToken = Objects.requireNonNull(refreshToken, "refreshToken은 null이 될 수 없습니다.");
 	}
 
 }
