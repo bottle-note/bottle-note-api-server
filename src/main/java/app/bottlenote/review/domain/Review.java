@@ -20,8 +20,9 @@ import org.hibernate.annotations.Comment;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity(name = "review")
 @Getter
+@Comment("리뷰 테이블(리뷰, 평점, 이미지, 리뷰 댓글)")
+@Entity(name = "review")
 public class Review extends BaseEntity {
 
 	@Id
@@ -49,6 +50,7 @@ public class Review extends BaseEntity {
 	@Column(name = "price", nullable = false)
 	private Long price;
 
+	// 추후 주소 값으로 @Embedded를 사용하여 객체로 관리할 수 있음 (Address)
 	@Comment("우편번호")
 	@Column(name = "zip_code")
 	private Long zipCode;
@@ -65,11 +67,22 @@ public class Review extends BaseEntity {
 	@Column(name = "image_url")
 	private String iamgeUrl;
 
+	//viewCnt X 축약어를 자제하세요. 좋은 코드는 읽기 쉬워야 합니다.
+	// 기본 값은 0으로 설정한다.
 	@Comment("조회수")
-	@Column(name = "view_count", nullable = false)
-	private Long viewCount; //viewCnt X 축약어를 자제하세요. 좋은 코드는 읽기 쉬워야 합니다.
+	@Column(name = "view_count", nullable = false, columnDefinition = "BIGINT default 0")
+	private Long viewCount;
 
+	// 댓글 목록
+	// review와 reviewReply는 1(review) : N(reviewReply) 관계이다.
+	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY)
+	private List<ReviewReply> reviewReplies = new ArrayList<>();
+
+	// mappedBy: 연관관계의 주인이 아님을 의미한다.
+	// review image와 review는 1(review) : N(reviewImage) 관계이다.
 	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY)
 	private List<ReviewImage> reviewImages = new ArrayList<>();
+
+
 }
 
