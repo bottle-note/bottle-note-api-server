@@ -18,7 +18,7 @@ public class AlcoholsTastingTags {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "alcohols_id", nullable = false)
-	private Alcohols alcohol;
+	private Alcohol alcohol;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "tasting_tag_id", nullable = false)

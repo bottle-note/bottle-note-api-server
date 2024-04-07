@@ -1,6 +1,6 @@
 package app.bottlenote.review.domain;
 
-import app.bottlenote.alcohols.domain.Alcohols;
+import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.user.domain.Users;
 import jakarta.persistence.Column;
@@ -20,7 +20,7 @@ import org.hibernate.annotations.Comment;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
+@Entity(name = "review")
 @Getter
 public class Review extends BaseEntity {
 
@@ -32,12 +32,9 @@ public class Review extends BaseEntity {
 	@JoinColumn(name = "user_id")
 	private Users user;
 
-	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY)
-	private List<ReviewImage> reviewImages = new ArrayList<>();
-
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "alcohols")
-	private Alcohols alcohols;
+	@JoinColumn(name = "alcohols_id")
+	private Alcohol alcohol;
 
 	@Comment("내용")
 	@Column(name = "content", nullable = false)
@@ -70,6 +67,9 @@ public class Review extends BaseEntity {
 
 	@Comment("조회수")
 	@Column(name = "view_count", nullable = false)
-	private Long viewCnt;
+	private Long viewCount; //viewCnt X 축약어를 자제하세요. 좋은 코드는 읽기 쉬워야 합니다.
+
+	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY)
+	private List<ReviewImage> reviewImages = new ArrayList<>();
 }
 

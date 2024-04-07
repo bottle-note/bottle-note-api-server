@@ -1,6 +1,6 @@
 package app.bottlenote.rating.domain;
 
-import app.bottlenote.alcohols.domain.Alcohols;
+import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.user.domain.Users;
 import jakarta.persistence.Column;
@@ -32,7 +32,7 @@ public class Rating extends BaseEntity {
 	private Double rating;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	private Alcohols alcohols;
+	private Alcohol alcohol;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id")

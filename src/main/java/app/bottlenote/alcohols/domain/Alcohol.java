@@ -21,8 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-@Entity(name = "alcohols")
-public class Alcohols extends BaseEntity {
+@Entity(name = "alcohol")
+public class Alcohol extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -68,13 +68,15 @@ public class Alcohols extends BaseEntity {
 	@Column(name = "cask", nullable = true)
 	private String cask;
 
+	// mappedBy: 연관관계의 주인이 아님을 의미한다.
+	// AlcoholsTastingTags가 alcohol의 id를 가지고 있으므로 mappedBy를 사용한다.
 	@OneToMany(mappedBy = "alcohol", fetch = FetchType.LAZY)
 	private List<AlcoholsTastingTags> alcoholsTastingTags = new ArrayList<>();
 
-	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "alcohol", fetch = FetchType.LAZY)
 	private List<Review> reviews = new ArrayList<>();
 
-	@OneToMany(mappedBy = "rating", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "alcohol", fetch = FetchType.LAZY)
 	private List<Rating> rating = new ArrayList<>();
 }
 

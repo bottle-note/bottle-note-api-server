@@ -15,7 +15,7 @@ import lombok.Getter;
 import org.hibernate.annotations.Comment;
 
 @Getter
-@Entity
+@Entity(name = "review_image")
 public class ReviewImage extends BaseEntity {
 
 	@Id

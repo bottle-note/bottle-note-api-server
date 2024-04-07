@@ -33,5 +33,5 @@ public class Distillery extends BaseEntity {
 	private String logoImgPath;
 
 	@OneToMany(mappedBy = "distillery")
-	private List<Alcohols> alcohols = new ArrayList<>();
+	private List<Alcohol> alcohol = new ArrayList<>();
 }
