@@ -18,7 +18,9 @@ import lombok.Getter;
 import org.hibernate.annotations.Comment;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Entity(name = "alcohol")
@@ -68,14 +70,19 @@ public class Alcohol extends BaseEntity {
 	@Column(name = "cask", nullable = true)
 	private String cask;
 
-	// mappedBy: 연관관계의 주인이 아님을 의미한다.
-	// AlcoholsTastingTags가 alcohol의 id를 가지고 있으므로 mappedBy를 사용한다.
-	@OneToMany(mappedBy = "alcohol", fetch = FetchType.LAZY)
-	private List<AlcoholsTastingTags> alcoholsTastingTags = new ArrayList<>();
 
+	// mappedBy: 연관관계의 주인이 아님을 의미한다.
+	// Review가 alcohol의 id를 가지고 있다.
 	@OneToMany(mappedBy = "alcohol", fetch = FetchType.LAZY)
 	private List<Review> reviews = new ArrayList<>();
 
+	// mappedBy: 연관관계의 주인이 아님을 의미한다.
+	// AlcoholsTastingTags가 alcohol의 id를 가지고 있으므로 mappedBy를 사용한다.
+	@OneToMany(mappedBy = "alcohol", fetch = FetchType.LAZY)
+	private Set<AlcoholsTastingTags> alcoholsTastingTags = new HashSet<>();
+
+	// mappedBy: 연관관계의 주인이 아님을 의미한다.
+	// Rating이 alcohol의 id를 가지고 있다.
 	@OneToMany(mappedBy = "alcohol", fetch = FetchType.LAZY)
 	private List<Rating> rating = new ArrayList<>();
 }
