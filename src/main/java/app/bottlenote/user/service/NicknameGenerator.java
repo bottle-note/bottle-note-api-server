@@ -39,26 +39,27 @@ public class NicknameGenerator {
 		Map.entry(11, "N"),
 		Map.entry(12, "D")
 	);
+	private static final int RANDOM_LETTERS_COUNT = 4;
+	private static NicknameGenerator instance;
+	private final SecureRandom secureRandom;
 
-	private final SecureRandom secureRandom = new SecureRandom();
-
-	public String generateNickname() {
-		LocalDateTime now = LocalDateTime.now();
-		int yearLastTwo = now.getYear() % 100;
-		int yearSum = yearLastTwo / 10 + yearLastTwo % 10;
-
-		String monthStr = MONTH_INITIALS.getOrDefault(now.getMonthValue(), "X");
-		String dayStr = String.valueOf(now.getDayOfMonth());
-		String hourStr = String.valueOf(now.getHour());
-		String minuteStr = String.valueOf(now.getMinute());
-		String timeStr = yearSum + monthStr + dayStr + hourStr + minuteStr;
-
-		return shuffleString(generateRandomLetters()) + timeStr;
+	private NicknameGenerator() {
+		secureRandom = new SecureRandom();
 	}
 
+	public static NicknameGenerator getInstance() {
+		if (instance == null) {
+			instance = new NicknameGenerator();
+		}
+		return instance;
+	}
 
-	private String generateRandomLetters() {
-		return IntStream.range(0, 4)
+	public String generate() {
+		return shuffle(generateRandomLetters(RANDOM_LETTERS_COUNT)) + createTimeString();
+	}
+
+	private String generateRandomLetters(int count) {
+		return IntStream.range(0, count)
 			.mapToObj(i -> {
 				char base = secureRandom.nextBoolean() ? 'A' : 'a';
 				return (char) (base + secureRandom.nextInt(26));
@@ -67,9 +68,16 @@ public class NicknameGenerator {
 			.collect(Collectors.joining());
 	}
 
-	private String shuffleString(String string) {
+	private String shuffle(String string) {
 		List<String> letters = Arrays.asList(string.split(""));
 		Collections.shuffle(letters);
 		return String.join("", letters);
+	}
+
+	private String createTimeString() {
+		LocalDateTime now = LocalDateTime.now();
+		int yearSum = (now.getYear() % 100) / 10 + now.getYear() % 10;
+		String monthStr = MONTH_INITIALS.getOrDefault(now.getMonthValue(), "X");
+		return yearSum + monthStr + now.getDayOfMonth() + now.getHour() + now.getMinute();
 	}
 }
