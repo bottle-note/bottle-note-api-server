@@ -21,13 +21,15 @@ spring:
       hibernate:
         format_sql: true # SQL 출력 포맷
     open-in-view: false # JPA 영속성 컨텍스트를 View까지 열어두는 옵션 (default: true) - false로 설정할 것
-
   h2:
     console:
       enabled: true
-
+      path: /h2-console
 logging:
   level:
     root: info # error, warn, info, debug, trace (default: info)
 
 
+security:
+  jwt: # dummy-key : 로그인 개발용으로 만든 더미키 입니다. 실제 서비스에서는 키값도 변경해야하며, 노출되지않는 application.yml에 넣어야 합니다.
+    secret-key: 'c2VjdXJlU2VjcmV0S2V5MTIzNDU2Nzg5MGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6QWJDRGVGR2hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlrSg=='
