@@ -2,7 +2,7 @@ package app.bottlenote.support.help.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.support.report.domain.StatusType;
-import app.bottlenote.user.domain.Users;
+import app.bottlenote.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -24,7 +24,7 @@ public class Help extends BaseEntity {
 
 	@Comment("문의자")
 	@ManyToOne(fetch = FetchType.LAZY)
-	private Users user;
+	private User user;
 
 	@Comment("문의 제목")
 	@Column(name = "title", nullable = false)
