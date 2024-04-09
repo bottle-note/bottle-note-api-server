@@ -27,7 +27,7 @@ public class ReviewReport extends BaseEntity {
 
 	@Comment("신고 사유")
 	@Column(name = "report_content", nullable = false)
-	private String report_content;
+	private String reportContent;
 
 	@Comment("관리자 ID")
 	@Column(name = "admin_id")
@@ -35,5 +35,5 @@ public class ReviewReport extends BaseEntity {
 
 	@Comment("처리 결과")
 	@Column(name = "response_content", nullable = false)
-	private String response_content;
+	private String responseContent;
 }
