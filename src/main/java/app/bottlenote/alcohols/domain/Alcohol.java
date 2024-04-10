@@ -1,5 +1,6 @@
 package app.bottlenote.alcohols.domain;
 
+import app.bottlenote.alcohols.domain.constant.AlcoholType;
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.review.domain.Review;

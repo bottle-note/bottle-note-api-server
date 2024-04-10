@@ -1,4 +1,4 @@
-package app.bottlenote.review.domain;
+package app.bottlenote.review.domain.constant;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

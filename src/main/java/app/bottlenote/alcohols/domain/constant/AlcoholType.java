@@ -1,4 +1,4 @@
-package app.bottlenote.alcohols.domain;
+package app.bottlenote.alcohols.domain.constant;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

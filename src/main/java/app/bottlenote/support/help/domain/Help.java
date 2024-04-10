@@ -1,7 +1,7 @@
 package app.bottlenote.support.help.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
-import app.bottlenote.support.report.domain.StatusType;
+import app.bottlenote.support.constant.StatusType;
 import app.bottlenote.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -1,5 +1,6 @@
 package app.bottlenote.alcohols.domain;
 
+import app.bottlenote.alcohols.domain.constant.AlcoholType;
 import app.bottlenote.common.domain.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -2,6 +2,7 @@ package app.bottlenote.review.domain;
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.common.domain.BaseEntity;
+import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
