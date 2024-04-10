@@ -35,6 +35,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'com.h2database:h2'
 
+    // mysql jdbc
+    runtimeOnly 'com.mysql:mysql-connector-j'
+
 
     // JWT를 위한 의존성
     implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
