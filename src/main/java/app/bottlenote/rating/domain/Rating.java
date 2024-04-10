@@ -29,7 +29,8 @@ public class Rating extends BaseEntity {
 
 	@Comment("평가점수 : 0, 0.5, 1 ... 5 (0점 : 삭제와 같다, 0.5:최저점수, 5:최고점수)")
 	@Column(name = "rating", nullable = true, columnDefinition = "DOUBLE DEFAULT 0")
-	private Double rating;
+	//TODO : 적절한 ENUM 자료형 생성 필요
+	private String rating;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	private Alcohol alcohol;

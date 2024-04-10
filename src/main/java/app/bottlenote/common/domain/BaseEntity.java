@@ -19,11 +19,11 @@ public class BaseEntity extends BaseTimeEntity {
 
 	@Comment("최초 생성자")
 	@CreatedBy
-	@Column(updatable = false, name = "createdBy")
-	private String createdBy;
+	@Column(updatable = false, name = "create_by")
+	private String createBy;
 
 	@Comment("최종 수정자")
 	@LastModifiedBy
-	@Column(name = "lastModifiedBy")
-	private String lastModifiedBy;
+	@Column(name = "last_modify_by")
+	private String lastModifyBy;
 }
