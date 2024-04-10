@@ -33,7 +33,7 @@ public class ReviewImage extends BaseEntity {
 
 	@Comment("파일 크기")
 	@Column(name = "file_size", nullable = false)
-	private Long fileSize;
+	private String fileSize;
 
 	@Comment("리뷰 아이디")
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -44,7 +44,7 @@ public class ReviewImage extends BaseEntity {
 	// order -> image_order
 	@Comment("이미지 순서")
 	@Column(name = "image_order", nullable = false)
-	private Long order;
+	private Long imageOrder;
 
 	@Comment("상태")
 	@Column(name = "status")

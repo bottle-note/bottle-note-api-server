@@ -26,7 +26,6 @@ public class User {
 	@Id
 	@Comment("사용자 id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "user_id")
 	private Long id;
 
 	@Comment("사용자 이메일")

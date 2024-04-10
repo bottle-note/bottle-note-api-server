@@ -25,6 +25,9 @@ public class Help extends BaseEntity {
 	@Comment("문의자")
 	@ManyToOne(fetch = FetchType.LAZY)
 	private User user;
+	@Comment("문의 타입") //TODO : ENUM 클래스 만들어서 변경 필
+	@Column(name = "type", nullable = false)
+	private String type;
 
 	@Comment("문의 제목")
 	@Column(name = "title", nullable = false)
@@ -34,12 +37,18 @@ public class Help extends BaseEntity {
 	@Column(name = "content", nullable = false)
 	private String content;
 
-	@Comment("담당자( 추후 Admin으로 변경)")
-	@Column(name = "admin_id", nullable = true)
-	private Long adminId;
-
 	@Comment("문의글의 처리 상태")
 	@Enumerated(EnumType.STRING)
 	@Column(name = "status")
 	private StatusType status = StatusType.WAITING;
+
+
+	@Comment("담당자( 추후 Admin으로 변경)")
+	@Column(name = "admin_id", nullable = true)
+	private Long adminId;
+
+	@Comment("응답 내용")
+	@Column(name = "response_content", nullable = false)
+	private String responseContent;
+
 }

@@ -54,7 +54,7 @@ public class Review extends BaseEntity {
 	// 추후 주소 값으로 @Embedded를 사용하여 객체로 관리할 수 있음 (Address)
 	@Comment("우편번호")
 	@Column(name = "zip_code")
-	private Long zipCode;
+	private String zipCode;
 
 	@Comment("주소")
 	@Column(name = "address")

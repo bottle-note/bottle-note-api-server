@@ -5,12 +5,25 @@ services:
     hostname: bottle-note-mysql
     container_name: mysql
     environment:
-      MYSQL_ROOT_PASSWORD: mysql_root
-      MYSQL_DATABASE: mysql_test
-      MYSQL_USER: mysql_test
-      MYSQL_PASSWORD: mysql_test
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER_NAME}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
-      - "3306:3306"
+      - "43306:3306"
     volumes:
-      - ./mysql-init:/docker-entrypoint-initdb.d
-      - ./mysql-init/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+      - ./database/mysql/config:/etc/mysql/conf.d
+      - ./database/mysql/init:/docker-entrypoint-initdb.d
+
+  redis:
+    image: redis:6.2.6-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - .database/redis/data:/data
+      - .database/redis/conf/redis.conf:/usr/local/conf/redis.conf
+
+    # 설정파일이 필요하면 추후 각 Local에 아래 경로에 추가해야 합니다.
+    #https://github.com/gingaminga/docker-redis/blob/main/redis.conf
+    #command: redis-server /usr/local/etc/redis/redis.conf
