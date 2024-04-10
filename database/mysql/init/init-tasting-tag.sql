@@ -1,8 +1,8 @@
 CREATE TABLE `tasting_tag`
 (
     `id`             bigint       NOT NULL,
-    `name`           VARCHAR(255) NOT NULL,
-    `Field`          VARCHAR(255) NOT NULL,
+    `kor_name`       VARCHAR(255) NOT NULL,
+    `eng_name`       VARCHAR(255) NOT NULL,
     `icon`           VARCHAR(255) NULL,
     `create_at`      TIMESTAMP    NOT NULL,
     `last_modify_at` TIMESTAMP    NOT NULL,
