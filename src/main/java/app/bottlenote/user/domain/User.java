@@ -2,7 +2,13 @@ package app.bottlenote.user.domain;
 
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.domain.constant.UserType;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -58,8 +64,8 @@ public class User {
 	private String refreshToken;
 
 	@Builder
-	public User(Long id , String email, String nickName, int age,String gender ,String imageUrl,
-				 UserType role, SocialType socialType, String refreshToken) {
+	public User(Long id, String email, String nickName, int age, String gender, String imageUrl,
+				UserType role, SocialType socialType, String refreshToken) {
 		this.id = id;
 		this.email = email;
 		this.nickName = nickName;
@@ -72,7 +78,7 @@ public class User {
 	}
 
 	public void updateRefreshToken(String refreshToken) {
-		this.refreshToken = Objects.requireNonNull(refreshToken, "refreshToken은 null이 될 수 없습니다.");
+		Objects.requireNonNull(refreshToken, "refreshToken은 null이 될 수 없습니다.");
+		this.refreshToken = refreshToken;
 	}
-
 }

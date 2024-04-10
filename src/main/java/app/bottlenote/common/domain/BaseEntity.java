@@ -17,7 +17,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EntityListeners(AuditingEntityListener.class)
 public class BaseEntity extends BaseTimeEntity {
 
-
 	@Comment("최초 생성자")
 	@CreatedBy
 	@Column(updatable = false, name = "createdBy")

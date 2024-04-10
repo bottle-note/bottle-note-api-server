@@ -1,19 +1,20 @@
 package app.bottlenote.user.service;
 
+import app.bottlenote.common.jwt.JwtTokenProvider;
+import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.constant.GenderType;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.domain.constant.UserType;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.OauthResponse;
+import app.bottlenote.user.exception.UserException;
+import app.bottlenote.user.repository.OauthRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import app.bottlenote.user.domain.User;
-import app.bottlenote.user.repository.OauthRepository;
-import app.bottlenote.common.jwt.JwtTokenProvider;
 import org.springframework.transaction.annotation.Transactional;
 
-
+import static app.bottlenote.user.exception.UserExceptionCode.USER_NICKNAME_NOT_VALID;
 
 
 @Slf4j
@@ -38,7 +39,7 @@ public class OauthService {
 		// 회원가입용 옵셔널 유저필요
 		User optionalUser = oauthRepository.findByEmailAndSocialType(email, socialType).orElse(null);
 
-		if(optionalUser == null) {
+		if (optionalUser == null) {
 			user = oauthSignUp(email, socialType, genderType, age);
 		} else {
 			user = optionalUser;
@@ -52,7 +53,7 @@ public class OauthService {
 		user.updateRefreshToken(oauthResponse.getRefreshToken());
 
 		return oauthResponse;
-    }
+	}
 
 	public User oauthSignUp(String email, SocialType socialType, GenderType genderType, int age) {
 
@@ -62,7 +63,7 @@ public class OauthService {
 		int attempts = 0;
 		while (oauthRepository.findByNickName(nickName).isPresent()) {
 			if (attempts >= 10) {
-				throw new RuntimeException("닉네임 생성에 실패했습니다. 다시 시도해주세요.");
+				throw new UserException(USER_NICKNAME_NOT_VALID);
 			}
 			nickName = nicknameGenerator.generate();
 			attempts++;
@@ -77,10 +78,9 @@ public class OauthService {
 			.nickName(nickName)
 			.build();
 
-			return oauthRepository.save(user);
+		return oauthRepository.save(user);
 
 	}
-
 
 
 }
