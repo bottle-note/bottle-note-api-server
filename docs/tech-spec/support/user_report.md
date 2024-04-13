@@ -32,7 +32,7 @@
 {
   "user_id": 1,
   "report_user_id": 3,
-  "type": "spam",
+  "type": "SPAM",  //( SPAM / INAPPROPRIATE_CONTENT / FRAUD / COPYRIGHT_INFRINGEMENT / OTHER )
   "content": "광고입니다."
 }
 ```

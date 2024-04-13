@@ -2,6 +2,7 @@ package app.bottlenote.support.report.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.support.constant.StatusType;
+import app.bottlenote.support.report.domain.constant.UserReportType;
 import app.bottlenote.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -35,9 +36,9 @@ public class UserReports extends BaseEntity {
 	private User reportUser;
 
 	@Comment("유저 신고 타입")
+	@Enumerated(EnumType.STRING)
 	@Column(name = "type", nullable = false)
-	//TODO : 어떤 유형의 신고인지 Enum 클래스 정의 필요
-	private String type;
+	private UserReportType type;
 
 	@Comment("신고내용")
 	@Column(name = "content", nullable = false)
