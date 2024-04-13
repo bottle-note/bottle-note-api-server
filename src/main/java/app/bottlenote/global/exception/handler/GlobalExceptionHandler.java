@@ -49,10 +49,12 @@ public class GlobalExceptionHandler {
 		List<FieldError> fieldErrors = bindingResult.getFieldErrors();
 
 		Map<String, String> errorMessages = new HashMap<>();
+
 		for (FieldError fieldError : fieldErrors) {
 			String fieldName = fieldError.getField();
 			Object rejectedValue = fieldError.getRejectedValue();
-			String errorMessage = getErrorMessage(fieldName, rejectedValue);
+			String defaultMessage = fieldError.getDefaultMessage();
+			String errorMessage = getErrorMessage(rejectedValue,defaultMessage);
 			errorMessages.put(fieldName, errorMessage);
 		}
 
