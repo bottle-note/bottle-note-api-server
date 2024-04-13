@@ -1,7 +1,10 @@
 package app.bottlenote.support.report.domain.constant;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import java.util.stream.Stream;
 
 @Getter
 @AllArgsConstructor
@@ -13,4 +16,15 @@ public enum UserReportType {
 	OTHER("기타");
 
 	private final String status;
+
+	@JsonCreator
+	public static UserReportType parsing(String inputValue) {
+		if (inputValue == null || inputValue.isEmpty()) {
+			return null;
+		}
+		return Stream.of(UserReportType.values())
+			.filter(genderType -> genderType.toString().equals(inputValue.toUpperCase()))
+			.findFirst()
+			.orElse(null);
+	}
 }

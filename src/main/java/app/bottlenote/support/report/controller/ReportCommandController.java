@@ -2,6 +2,7 @@ package app.bottlenote.support.report.controller;
 
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.support.report.dto.request.UserReportRequest;
+import app.bottlenote.support.report.dto.response.UserReportResponse;
 import app.bottlenote.support.report.service.UserReportService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,8 @@ public class ReportCommandController {
 	@PostMapping("/user")
 	public ResponseEntity<GlobalResponse> reportUser(@RequestBody @Valid UserReportRequest userReportRequest) {
 		userReportService.userReport(userReportRequest);
-		return ResponseEntity.ok(GlobalResponse.success("신고 성공"));
+		UserReportResponse response = UserReportResponse.of(1L, "김신고");
+		return ResponseEntity.ok(GlobalResponse.success(response));
 	}
 
 }
