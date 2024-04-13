@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static app.bottlenote.support.report.dto.response.UserReportResponse.UserReportResponseEnum.SAME_USER;
+
 
 @Slf4j
 @RequiredArgsConstructor
@@ -24,9 +26,18 @@ public class ReportCommandController {
 
 	@PostMapping("/user")
 	public ResponseEntity<GlobalResponse> reportUser(@RequestBody @Valid UserReportRequest userReportRequest) {
-		userReportService.userReport(userReportRequest);
-		UserReportResponse response = UserReportResponse.of(1L, "김신고");
-		return ResponseEntity.ok(GlobalResponse.success(response));
+
+		if (userReportRequest.userId().equals(userReportRequest.reportUserId())) {
+			return ResponseEntity.badRequest()
+				.body(GlobalResponse.fail(
+					UserReportResponse.of(SAME_USER, userReportRequest.userId(), null)
+				));
+		}
+
+		return ResponseEntity.ok(
+			GlobalResponse.success(
+				userReportService.userReport(userReportRequest)
+			));
 	}
 
 }

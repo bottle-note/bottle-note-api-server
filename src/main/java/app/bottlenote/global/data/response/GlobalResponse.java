@@ -70,6 +70,22 @@ public class GlobalResponse {
 	/**
 	 * 실패한 경우의 공통 응답 객체를 생성한다.
 	 *
+	 * @param errors 에러 메시지들
+	 * @return the global response
+	 */
+	public static GlobalResponse fail(Object errors) {
+		return GlobalResponse.builder()
+			.success(false)
+			.code(400)
+			.data(emptyList())
+			.errors(errors)
+			.meta(createMetaInfo().getMetaInfos())
+			.build();
+	}
+
+	/**
+	 * 실패한 경우의 공통 응답 객체를 생성한다.
+	 *
 	 * @param code   http 상태값들
 	 * @param errors 에러 메시지들
 	 * @return the global response
