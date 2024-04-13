@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Map;
+
 import static app.bottlenote.global.service.meta.MetaService.createMetaInfo;
 import static java.util.Collections.emptyList;
 
@@ -20,7 +22,16 @@ public class GlobalResponse {
 	private final Integer code;
 	private final Object data;
 	private final Object errors;
-	private final MetaInfos meta;
+	private final Map<String, Object> meta;
+
+	@Builder
+	private GlobalResponse(Boolean success, Integer code, Object data, Object errors, Map<String, Object> meta) {
+		this.success = success;
+		this.code = code;
+		this.data = data;
+		this.errors = errors;
+		this.meta = meta;
+	}
 
 	/**
 	 * 성공한 경우의 공통 응답 객체를 생성한다.
@@ -33,7 +44,7 @@ public class GlobalResponse {
 			.success(true)
 			.code(200)
 			.errors(emptyList())
-			.meta(createMetaInfo())
+			.meta(createMetaInfo().getMetaInfos())
 			.data(data)
 			.build();
 	}
@@ -51,7 +62,7 @@ public class GlobalResponse {
 			.success(true)
 			.code(200)
 			.errors(emptyList())
-			.meta(meta)
+			.meta(meta.getMetaInfos())
 			.data(data)
 			.build();
 	}
@@ -69,7 +80,7 @@ public class GlobalResponse {
 			.code(code)
 			.data(emptyList())
 			.errors(errors)
-			.meta(createMetaInfo())
+			.meta(createMetaInfo().getMetaInfos())
 			.build();
 	}
 
@@ -87,7 +98,7 @@ public class GlobalResponse {
 			.code(code)
 			.data(emptyList())
 			.errors(errors)
-			.meta(meta)
+			.meta(meta.getMetaInfos())
 			.build();
 	}
 
@@ -104,16 +115,7 @@ public class GlobalResponse {
 			.code(code)
 			.data(emptyList())
 			.errors(errors)
-			.meta(createMetaInfo())
+			.meta(createMetaInfo().getMetaInfos())
 			.build();
-	}
-
-	@Builder
-	private GlobalResponse(Boolean success, Integer code, Object data, Object errors, MetaInfos meta) {
-		this.success = success;
-		this.code = code;
-		this.data = data;
-		this.errors = errors;
-		this.meta = meta;
 	}
 }
