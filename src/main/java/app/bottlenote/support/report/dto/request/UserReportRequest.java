@@ -6,10 +6,10 @@ import jakarta.validation.constraints.NotNull;
 
 public record UserReportRequest(
 	@NotBlank(message = "신고자 아이디는 필수입니다.")
-	String user_id,
+	String userId,
 
 	@NotBlank(message = "신고 대상자 아이디는 필수입니다.")
-	String report_user_id,
+	String reportUserId,
 
 	@NotNull(message = "신고 타입이 적절하지 않습니다. ( SPAM , INAPPROPRIATE_CONTENT ,FRAUD ,COPYRIGHT_INFRINGEMENT ,OTHER )")
 	UserReportType type,
