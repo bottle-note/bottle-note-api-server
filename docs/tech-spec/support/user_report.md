@@ -32,7 +32,8 @@
 {
   "user_id": 1,
   "report_user_id": 3,
-  "type": "SPAM",  //( SPAM / INAPPROPRIATE_CONTENT / FRAUD / COPYRIGHT_INFRINGEMENT / OTHER )
+  "type": "SPAM",
+  //( SPAM / INAPPROPRIATE_CONTENT / FRAUD / COPYRIGHT_INFRINGEMENT / OTHER )
   "content": "광고입니다."
 }
 ```
@@ -73,19 +74,20 @@
 ### 체크 해야하는 이슈 사항
 
 - validate
-    - [ ] user_id 는 Long 타입이어야 한다.
-    - [ ] report_user_id 는 Long 타입이어야 한다.
-    - [ ] type 은 spam, inappropriate, harassment 중 하나여야 한다.
-    - [ ] content 는 300자 이내여야 한다.
-    - [ ] report_user_id 와 user_id 가 동일하지 않아야 한다.
+    - [x] user_id 는 Long 타입이어야 한다.
+    - [x] report_user_id 는 Long 타입이어야 한다.
+    - [x] type 은 spam, inappropriate, harassment 중 하나여야 한다.
+    - [x] content 는 300자 이내여야 한다.
+    - [x] 신고 대상 사용자에 대한 신고 타입이 적절한지 확인해야 한다.
+    - [x] report_user_id 와 user_id 가 동일하지 않아야 한다.
 - 비지니스 로직
-    - [ ] 신고 대상 사용자가 존재하는지 확인
-    - [ ] 신고 대상 사용자가 신고자와 동일한 사용자인지 확인
-    - [ ] 신고 대상 사용자가 이미 신고된 사용자인지 확인
-    - [ ] 신고 대상 사용자가 일일 신고 횟수 제한을 초과하는지 확인
-    - [ ] 신고 대상 사용자에 대한 신고 내용이 적절한지 확인 ( ex. 100자 이내 )
-    - [ ] 신고 대상 사용자에 대한 신고 타입이 적절한지 확인
-    - [ ] 신고 대상 사용자에 대한 신고 내용이 중복되는지 확인
+    - [x] 신고 대상 사용자가 존재하는지 확인
+    - [x] 신고 대상 사용자가 신고자와 동일한 사용자인지 확인
+    - [x] 신고 대상 사용자가 이미 신고된 사용자인지 확인
+        - [x] 동일 유저에 대해 일당 최대 한건의 신고만 가능하도록 제한
+    - [X] 신고 대상 사용자가 일일 신고 횟수 제한을 초과하는지 확인 **(5건)**
+    - [x] 신고 대상 사용자에 대한 신고 내용이 적절한지 확인 ( ex. 300자 이내 )
+        - 추후 추가적인 신고 내용 validation 이 필요할 수 있음 (욕설 , 스팸등)
 
 ---------
 
