@@ -14,9 +14,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import lombok.Builder;
 import lombok.Getter;
 import org.hibernate.annotations.Comment;
 
+//필요한 부분만 toString
 @Getter
 @Entity(name = "user_report")
 public class UserReports extends BaseEntity {
@@ -45,7 +47,7 @@ public class UserReports extends BaseEntity {
 	private String content;
 
 	@Comment("문의 처리결과의 답변내용")
-	@Column(name = "response_content", nullable = false)
+	@Column(name = "response_content")
 	private String responseContent;
 
 	@Comment("문의글의 처리 상태 : Wating이 디폴트")
@@ -57,4 +59,18 @@ public class UserReports extends BaseEntity {
 	@Column(name = "admin_id")
 	private Long adminId;
 
+	protected UserReports() {
+	}
+
+
+	@Builder
+	public UserReports(User user, User reportUser, UserReportType type, String content, String responseContent, StatusType status, Long adminId) {
+		this.user = user;
+		this.reportUser = reportUser;
+		this.type = type;
+		this.content = content;
+		this.responseContent = responseContent;
+		this.status = status;
+		this.adminId = adminId;
+	}
 }
