@@ -1,0 +1,12 @@
+[[restdocs-example]]
+=== restdocs 예제
+
+==== request parameters
+
+include::{snippets}/common/rest-docs/http-request.adoc[]
+include::{snippets}/common/rest-docs/request-fields.adoc[]
+
+==== response parameters
+
+include::{snippets}/common/rest-docs/http-response.adoc[]
+include::{snippets}/common/rest-docs/response-fields.adoc[]

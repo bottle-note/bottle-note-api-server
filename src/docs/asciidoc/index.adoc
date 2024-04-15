@@ -1,0 +1,17 @@
+ifndef::snippets[]
+:snippets: ../../build/generated-snippets
+endif::[]
+= Bottle Note API 문서
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 2
+:sectlinks:
+
+
+[[restdocs-example]]
+== rest-docs-example
+
+include::api/restdocs/restdocs-example.adoc[]
+
