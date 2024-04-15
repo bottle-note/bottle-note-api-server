@@ -1,8 +1,9 @@
-package app.bottlenote.restdocs;
+package app.bottlenote.docs.common;
 
 import app.bottlenote.common.controller.CommonController;
 import app.bottlenote.common.dto.request.RestdocsRequest;
 import app.bottlenote.common.service.CommonService;
+import app.bottlenote.docs.AbstractRestDocs;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;

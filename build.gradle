@@ -78,15 +78,13 @@ asciidoctor {
     sources {
         include("**/index.adoc", "**/common/*.adoc")
     }
-
     baseDirFollowsSourceFile()
 }
-
 
 tasks.register('copyRestDocs', Copy) {
     dependsOn asciidoctor
     from file("build/docs/asciidoc/index.html")
-    into 'docs/api'
+    into 'docs'
 }
 build {
     dependsOn copyRestDocs

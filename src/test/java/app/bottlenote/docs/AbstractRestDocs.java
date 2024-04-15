@@ -1,8 +1,8 @@
-package app.bottlenote.restdocs;
+package app.bottlenote.docs;
 
 
+import app.bottlenote.docs.config.RestDocsConfiguration;
 import app.bottlenote.global.exception.handler.GlobalExceptionHandler;
-import app.bottlenote.restdocs.config.RestDocsConfiguration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,7 +11,6 @@ import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.restdocs.operation.preprocess.Preprocessors;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
@@ -32,11 +31,11 @@ public abstract class AbstractRestDocs {
 			.apply(documentationConfiguration(provider)
 				.operationPreprocessors()
 				.withRequestDefaults(Preprocessors.prettyPrint())
-				.withResponseDefaults(Preprocessors.prettyPrint()))
+				.withResponseDefaults(Preprocessors.prettyPrint())
+			)
 
-			.alwaysDo(MockMvcResultHandlers.print())
 			.alwaysDo(print())
-			//.alwaysDo(restDocs)
+
 			.setControllerAdvice(GlobalExceptionHandler.class)
 			.addFilters(new CharacterEncodingFilter("UTF-8", true))
 			.build();
