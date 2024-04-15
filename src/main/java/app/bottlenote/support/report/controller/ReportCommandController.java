@@ -30,7 +30,7 @@ public class ReportCommandController {
 		if (userReportRequest.userId().equals(userReportRequest.reportUserId())) {
 			return ResponseEntity.badRequest()
 				.body(GlobalResponse.fail(
-					UserReportResponse.of(SAME_USER, userReportRequest.userId(), null)
+					UserReportResponse.of(SAME_USER, null, userReportRequest.userId(), null)
 				));
 		}
 

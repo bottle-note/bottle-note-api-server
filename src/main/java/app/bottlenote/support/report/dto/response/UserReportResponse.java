@@ -5,21 +5,24 @@ import lombok.Getter;
 
 @Getter
 public class UserReportResponse {
-	private final String message; //: "신고가 접수되었습니다.",
-	private final Long reportUserId; //: 3,
-	private final String reportUserName; //: "신고 대상 이름"
+	private final String message;
+	private final Long reportId;
+	private final Long reportUserId;
+	private final String reportUserName;
 
-	protected UserReportResponse(String message, Long reportUserId, String reportUserName) {
+	protected UserReportResponse(String message, Long reportId, Long reportUserId, String reportUserName) {
 		this.message = message;
+		this.reportId = reportId;
 		this.reportUserId = reportUserId;
 		this.reportUserName = reportUserName;
 	}
 
 	public static UserReportResponse of(
 		UserReportResponseEnum message
+		, Long reportId
 		, Long reportUserId
 		, String reportUserName) {
-		return new UserReportResponse(message.getMessage(), reportUserId, reportUserName);
+		return new UserReportResponse(message.getMessage(), reportId, reportUserId, reportUserName);
 	}
 
 	@AllArgsConstructor
