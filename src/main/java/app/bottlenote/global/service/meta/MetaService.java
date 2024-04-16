@@ -1,9 +1,6 @@
 package app.bottlenote.global.service.meta;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -13,23 +10,13 @@ import java.time.ZoneId;
  * 추가적인 메타 정보를 생성하고 반환할 수 있습니다.
  */
 @Slf4j
-@Component
 public class MetaService {
 
-	private static String serverVersion;
-	public static String serverPathVersion;
-	private static String serverEncoding;
+	public static final String SERVER_PATH_VERSION = "v1";
+	private static final String SERVER_VERSION = "1.0.0";
+	private static final String SERVER_ENCODING = "UTF-8";
 
-	/**
-	 * appllication.yml 의 설정값을 주입한다.
-	 *
-	 * @param env the env
-	 */
-	@Autowired
-	public void setEnvironment(Environment env) {
-		serverVersion = env.getProperty("server.version");
-		serverPathVersion = env.getProperty("server.path.version");
-		serverEncoding = env.getProperty("server.encoding.charset");
+	protected MetaService() {
 	}
 
 	/**
@@ -42,12 +29,10 @@ public class MetaService {
 	 */
 	public static MetaInfos createMetaInfo() {
 		MetaInfos metaInfos = new MetaInfos();
-
-		metaInfos.add("server_version", serverVersion);
-		metaInfos.add("server_path_version", serverPathVersion);
-		metaInfos.add("server_encoding", serverEncoding);
-		metaInfos.add("server_response_time", LocalDateTime.now(ZoneId.of("Asia/Seoul")).toString());
-
+		metaInfos.add("serverVersion", SERVER_VERSION);
+		metaInfos.add("serverPathVersion", SERVER_PATH_VERSION);
+		metaInfos.add("serverEncoding", SERVER_ENCODING);
+		metaInfos.add("serverResponseTime", LocalDateTime.now(ZoneId.of("Asia/Seoul")).toString());
 		return metaInfos;
 	}
 }

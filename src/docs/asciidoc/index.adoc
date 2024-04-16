@@ -6,12 +6,17 @@ endif::[]
 :icons: font
 :source-highlighter: highlightjs
 :toc: left
-:toclevels: 2
+:toc-title: 목차
+:toclevels: 3
 :sectlinks:
+:sectnums:
 
 
+
+[[resources]]
 [[restdocs-example]]
-== rest-docs-example
+include::api/overview/overview.adoc[]
+
 
 include::api/restdocs/restdocs-example.adoc[]
 

@@ -48,7 +48,6 @@ dependencies {
     // spring rest docs
     asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
-
 }
 
 
@@ -63,7 +62,7 @@ jar {
 // =========================== spring rest docs setting ===========================
 
 ext {
-    snippetsDir = file('build/generated-snippets')
+    snippetsDir = file('build/generated-snippets') as File
 }
 
 test {
@@ -76,7 +75,7 @@ asciidoctor {
     configurations 'asciidoctorExt'
     dependsOn test
     sources {
-        include("**/index.adoc", "**/common/*.adoc")
+        include("**/index.adoc")
     }
     baseDirFollowsSourceFile()
 }
@@ -86,6 +85,7 @@ tasks.register('copyRestDocs', Copy) {
     from file("build/docs/asciidoc/index.html")
     into 'docs'
 }
+
 build {
     dependsOn copyRestDocs
 }

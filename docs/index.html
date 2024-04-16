@@ -445,11 +445,33 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <span id="revnumber">version 0.0.1-SNAPSHOT</span>
 </div>
 <div class="toc2" id="toc">
-<div id="toctitle">Table of Contents</div>
+<div id="toctitle">목차</div>
 <ul class="sectlevel1">
-<li><a href="#restdocs-example">rest-docs-example</a>
+<li><a href="#restdocs-example">1. 개요</a>
 <ul class="sectlevel2">
-<li><a href="#restdocs-example">restdocs 예제</a></li>
+<li><a href="#_api_서버_경로">1.1. API 서버 경로</a></li>
+<li><a href="#_응답형식">1.2. 응답형식</a>
+<ul class="sectlevel3">
+<li><a href="#_정상200_ok">1.2.1. 정상(200, OK)</a></li>
+<li><a href="#_상태코드httpstatus">1.2.2. 상태코드(HttpStatus)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#_문서_자료_예제_restdocs_example">2. 문서 자료 예제 (restdocs example)</a>
+<ul class="sectlevel2">
+<li><a href="#_주문검색">2.1. 주문검색</a>
+<ul class="sectlevel3">
+<li><a href="#_요청_값_request">2.1.1. 요청 값 ( request )</a></li>
+<li><a href="#_응답_값_response">2.1.2. 응답 값 ( response )</a></li>
+</ul>
+</li>
+<li><a href="#_주문생성">2.2. 주문생성</a>
+<ul class="sectlevel3">
+<li><a href="#_요청_값_request_2">2.2.1. 요청 값 ( request )</a></li>
+<li><a href="#_응답_값_response_2">2.2.2. 응답 값 ( response )</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -457,17 +479,245 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="content">
 <div class="sect1">
-<h2 id="restdocs-example"><a class="link" href="#restdocs-example">rest-docs-example</a></h2>
+<h2 id="restdocs-example"><a class="link" href="#restdocs-example">1. 개요</a></h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>이 API문서는 bottle-note 프로젝트의 API를 설명합니다.</p>
+</div>
 <div class="sect2">
-<h3 id="restdocs-example"><a class="link" href="#restdocs-example">restdocs 예제</a></h3>
+<h3 id="_api_서버_경로"><a class="link" href="#_api_서버_경로">1.1. API 서버 경로</a></h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 50%;">
+<col style="width: 30%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">환경</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DNS</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">비고</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">개발(dev)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="">localhost:8080</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">API 문서 제공</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">베타(beta)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a class="bare" href=""></a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">API 문서 제공</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">운영(prod)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a class="bare" href=""></a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">API 문서 미제공</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>해당 프로젝트 API문서는 개발환경까지 노출되는 것을 권장합니다.<br></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>운영환경에 노출될 경우 보안 관련 문제가 발생할 수 있습니다.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_응답형식"><a class="link" href="#_응답형식">1.2. 응답형식</a></h3>
+<div class="paragraph">
+<p>프로젝트는 다음과 같은 응답형식을 제공합니다.</p>
+</div>
 <div class="sect3">
-<h4 id="_request_parameters"><a class="link" href="#_request_parameters">request parameters</a></h4>
+<h4 id="_정상200_ok"><a class="link" href="#_정상200_ok">1.2.1. 정상(200, OK)</a></h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">응답데이터가 없는 경우</th>
+<th class="tableblock halign-left valign-top">응답데이터가 있는 경우</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "success" : true,
+  "code" : 200,
+  "data" : null,
+  "errors" : [ ],
+  "meta" : {
+    "serverEncoding" : null,
+    "serverVersion" : null,
+    "serverPathVersion" : null,
+    "serverResponseTime" : "2024-04-16T16:22:56.561466"
+  }
+}</code></pre>
+</div>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "success" : true,
+  "code" : 200,
+  "data" : {
+    "message" : "RestDocs is running",
+    "responseAt" : [ 2021, 1, 1, 0, 0 ]
+  },
+  "errors" : [ ],
+  "meta" : {
+    "serverEncoding" : null,
+    "serverVersion" : null,
+    "serverPathVersion" : null,
+    "serverResponseTime" : "2024-04-16T16:22:56.561466"
+  }
+}</code></pre>
+</div>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_상태코드httpstatus"><a class="link" href="#_상태코드httpstatus">1.2.2. 상태코드(HttpStatus)</a></h4>
+<div class="paragraph">
+<p>해당 응답 예시는 각 요청에 대해 발생할 수 있는 상태코드를 설명합니다.</p>
+</div>
+<div class="paragraph">
+<p>이 상태코드 값은 아래 각각의 요청 정보에서 상세한 설명을 제공합니다.</p>
+</div>
+<div class="paragraph">
+<p>아래는 첨부 형태 예시를 제공합니다.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 30%;">
+<col style="width: 10%;">
+<col style="width: 30%;">
+<col style="width: 30%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">HttpStatus</th>
+<th class="tableblock halign-left valign-top">코드</th>
+<th class="tableblock halign-left valign-top">메시지</th>
+<th class="tableblock halign-left valign-top">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>OK</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>200</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">"OK"</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">정상 응답</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>INTERNAL_SERVER_ERROR</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>500</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">"알 수 없는 에러가 발생했습니다. 관리자에게 문의하세요."</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서버 내부 오류</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>FORBIDDEN</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>403</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">"[AccessDenied] 잘못된 접근입니다."</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">비인가 접속입니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>BAD_REQUEST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>400</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">"잘못된 요청입니다. 요청내용을 확인하세요."</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">요청값 누락 혹은 잘못된 기입</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NOT_FOUND</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>404</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">"상황에 따라 다름"</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">요청값 누락 혹은 잘못된 기입</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_문서_자료_예제_restdocs_example"><a class="link" href="#_문서_자료_예제_restdocs_example">2. 문서 자료 예제 (restdocs example)</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>◾해당 페이지는 예제 화면입니다 추후 실제 요청으로 변경됩니다.</p>
+</div>
+<div class="paragraph">
+<p>주문을 등록하고 <code>결제(PAID) &#8594; 출하(SHIPPED) &#8594; 배송완료(COMPLETED)</code> 처리를 할 수 있습니다.</p>
+</div>
+<div class="sect2">
+<h3 id="_주문검색"><a class="link" href="#_주문검색">2.1. 주문검색</a></h3>
+<div class="paragraph">
+<p>주문정보를 회원번호(memberNo)과 주문번호(orderNo)를 이용해서 검색할 수 있습니다.
+페이징 처리된 목록을 제공합니다.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">속성</th>
+<th class="tableblock halign-left valign-top">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>memberNo</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">회원번호</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>orderNo</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">주문번호</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>page</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">페이지(0 부터 시작)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>size</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">페이지당 조회건수(최소: 1, 최대: 1000)</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect3">
+<h4 id="_요청_값_request"><a class="link" href="#_요청_값_request">2.1.1. 요청 값 ( request )</a></h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /common/rest-docs/ HTTP/1.1
 Content-Type: application/json;charset=UTF-8
-Content-Length: 67
+Content-Length: 70
 Host: localhost:8080
 
 {
@@ -476,9 +726,7 @@ Host: localhost:8080
 }</code></pre>
 </div>
 </div>
-</div>
-<div class="sect3">
-<h4 id="_request_fields"><a class="link" href="#_request_fields">Request Fields</a></h4>
+<h4 class="discrete" id="_request_fields">Request Fields</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -511,12 +759,12 @@ Host: localhost:8080
 </table>
 </div>
 <div class="sect3">
-<h4 id="_response_parameters"><a class="link" href="#_response_parameters">response parameters</a></h4>
+<h4 id="_응답_값_response"><a class="link" href="#_응답_값_response">2.1.2. 응답 값 ( response )</a></h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json;charset=UTF-8
-Content-Length: 322
+Content-Length: 336
 
 {
   "success" : true,
@@ -527,17 +775,15 @@ Content-Length: 322
   },
   "errors" : [ ],
   "meta" : {
-    "server_encoding" : null,
-    "server_version" : null,
-    "server_path_version" : null,
-    "server_response_time" : "2024-04-16T00:35:15.062122"
+    "serverVersion" : "1.0.0",
+    "serverEncoding" : "UTF-8",
+    "serverResponseTime" : "2024-04-16T21:19:59.378662",
+    "serverPathVersion" : "v1"
   }
 }</code></pre>
 </div>
 </div>
-</div>
-<div class="sect3">
-<h4 id="_response_fields"><a class="link" href="#_response_fields">Response Fields</a></h4>
+<h4 class="discrete" id="_response_fields">Response Fields</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -558,25 +804,207 @@ Content-Length: 322
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
 <td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">RestdocsResponse message</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>code</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">RestdocsResponse responseAt</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 코드(http status code)</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.message</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">RestdocsResponse responseAt</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">메시지 내용</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.responseAt</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
 <td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">RestdocsResponse responseAt</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">메시지 내용 응답 시간</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>errors</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverEncoding</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서버 인코딩 정도</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverVersion</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서버 버전</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverPathVersion</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서버 경로 버전</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverResponseTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서버 응답 시간</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_주문생성"><a class="link" href="#_주문생성">2.2. 주문생성</a></h3>
+<div class="paragraph">
+<p>주문을 새롭게 등록합니다.</p>
+</div>
+<div class="sect3">
+<h4 id="_요청_값_request_2"><a class="link" href="#_요청_값_request_2">2.2.1. 요청 값 ( request )</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /common/rest-docs/ HTTP/1.1
+Content-Type: application/json;charset=UTF-8
+Content-Length: 70
+Host: localhost:8080
+
+{
+  "name" : "Test1",
+  "description" : "테스트용 요청 DTO"
+}</code></pre>
+</div>
+</div>
+<h4 class="discrete" id="_request_fields_2">Request Fields</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">path</th>
+<th class="tableblock halign-left valign-top">type</th>
+<th class="tableblock halign-left valign-top">required</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>name</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">request parameter test name</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>description</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">request parameter test description</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_응답_값_response_2"><a class="link" href="#_응답_값_response_2">2.2.2. 응답 값 ( response )</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
+Content-Type: application/json;charset=UTF-8
+Content-Length: 336
+
+{
+  "success" : true,
+  "code" : 200,
+  "data" : {
+    "message" : "RestDocs is running",
+    "responseAt" : [ 2021, 1, 1, 0, 0 ]
+  },
+  "errors" : [ ],
+  "meta" : {
+    "serverVersion" : "1.0.0",
+    "serverEncoding" : "UTF-8",
+    "serverResponseTime" : "2024-04-16T21:19:59.378662",
+    "serverPathVersion" : "v1"
+  }
+}</code></pre>
+</div>
+</div>
+<h4 class="discrete" id="_response_fields_2">Response Fields</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">path</th>
+<th class="tableblock halign-left valign-top">type</th>
+<th class="tableblock halign-left valign-top">required</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>code</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 코드(http status code)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.message</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">메시지 내용</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.responseAt</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">메시지 내용 응답 시간</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>errors</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverEncoding</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서버 인코딩 정도</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverVersion</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서버 버전</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverPathVersion</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서버 경로 버전</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverResponseTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서버 응답 시간</p></td>
 </tr>
 </tbody>
 </table>
@@ -588,7 +1016,7 @@ Content-Length: 322
 <div id="footer">
 <div id="footer-text">
 Version 0.0.1-SNAPSHOT<br>
-Last updated 2024-04-15 19:41:17 +0900
+Last updated 2024-04-16 20:37:45 +0900
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>

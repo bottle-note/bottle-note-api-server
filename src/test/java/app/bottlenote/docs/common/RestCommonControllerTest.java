@@ -56,15 +56,15 @@ class RestCommonControllerTest extends AbstractRestDocs {
 						fieldWithPath("description").type(JsonFieldType.STRING).description("request parameter test description")
 					),
 					responseFields(
-						fieldWithPath("success").type(JsonFieldType.BOOLEAN).description("RestdocsResponse message"),
-						fieldWithPath("code").type(JsonFieldType.NUMBER).description("RestdocsResponse responseAt"),
-						fieldWithPath("data.message").type(JsonFieldType.STRING).description("RestdocsResponse responseAt"),
-						fieldWithPath("data.responseAt").type(JsonFieldType.ARRAY).description("RestdocsResponse responseAt"),
-						fieldWithPath("errors").ignored(),
-						fieldWithPath("meta.server_encoding").ignored(),
-						fieldWithPath("meta.server_version").ignored(),
-						fieldWithPath("meta.server_path_version").ignored(),
-						fieldWithPath("meta.server_response_time").ignored()
+						fieldWithPath("success").type(JsonFieldType.BOOLEAN).description("응답 성공 여부"),
+						fieldWithPath("code").type(JsonFieldType.NUMBER).description("응답 코드(http status code)"),
+						fieldWithPath("data.message").type(JsonFieldType.STRING).description("메시지 내용"),
+						fieldWithPath("data.responseAt").type(JsonFieldType.ARRAY).description("메시지 내용 응답 시간"),
+						fieldWithPath("errors").type(JsonFieldType.ARRAY).description("응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)"),
+						fieldWithPath("meta.serverEncoding").description("서버 인코딩 정도"),
+						fieldWithPath("meta.serverVersion").description("서버 버전"),
+						fieldWithPath("meta.serverPathVersion").description("서버 경로 버전"),
+						fieldWithPath("meta.serverResponseTime").description("서버 응답 시간")
 					)
 				)
 			);
