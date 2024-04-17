@@ -2,8 +2,15 @@ package app.bottlenote.global.exception.util;
 
 public class ExceptionUtil {
 
-	public static String getErrorMessage(String fieldName, Object rejectedValue) {
-		return "유효하지 않은 파라미터입니다: " + fieldName + " [" + rejectedValue + "]";
+	/**
+	 * 파라미터 유효성 검증 실패 시 에러 메시지 반환
+	 *
+	 * @param rejectedValue  the rejected value
+	 * @param defaultMessage 기본 에러 메시지  @NotNull(message = "필수 값입니다.") 등의 메시지
+	 * @return the error message
+	 */
+	public static String getErrorMessage(Object rejectedValue, String defaultMessage) {
+		return defaultMessage != null ? defaultMessage : "유효하지 않은 파라미터입니다: " + " (" + rejectedValue + ")";
 	}
 
 	public static String getErrorMessage(String errorType, String fieldName, Object rejectedValue) {

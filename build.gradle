@@ -2,6 +2,8 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.1.9'
     id 'io.spring.dependency-management' version '1.1.4'
+
+    id "org.asciidoctor.jvm.convert" version "3.3.2"
 }
 
 group = 'bottlenote'
@@ -14,6 +16,7 @@ java {
     sourceCompatibility = '17'
 }
 configurations {
+    asciidoctorExt
     compileOnly {
         extendsFrom annotationProcessor
     }
@@ -27,35 +30,62 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
 
+    // lombok
     implementation 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    //database h2는 삭제 예정
+    //database
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'com.h2database:h2'
-
-    // mysql jdbc
     runtimeOnly 'com.mysql:mysql-connector-j'
 
-
-    // JWT를 위한 의존성
+    // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.2'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.2' // Jackson을 사용하는 경우
 
-    implementation 'javax.validation:validation-api:2.0.1.Final'
-
+    // spring rest docs
+    asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
+    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
 }
 
 
-tasks.named('test') {
-    useJUnitPlatform()
-}
-
+// =========================== spring boot jar setting ===========================
 bootJar {
     archiveFileName = 'app.jar'
 }
 jar {
     enabled = false
+}
+
+// =========================== spring rest docs setting ===========================
+
+ext {
+    snippetsDir = file('build/generated-snippets') as File
+}
+
+test {
+    outputs.dir snippetsDir
+    useJUnitPlatform()
+}
+
+asciidoctor {
+    inputs.dir snippetsDir
+    configurations 'asciidoctorExt'
+    dependsOn test
+    sources {
+        include("**/index.adoc")
+    }
+    baseDirFollowsSourceFile()
+}
+
+tasks.register('copyRestDocs', Copy) {
+    dependsOn asciidoctor
+    from file("build/docs/asciidoc/index.html")
+    into 'docs'
+}
+
+build {
+    dependsOn copyRestDocs
 }

@@ -4,21 +4,38 @@ import org.junit.jupiter.api.Test;
 
 import static app.bottlenote.global.exception.util.ExceptionUtil.getErrorMessage;
 import static app.bottlenote.global.exception.util.ExceptionUtil.getErrorMessageForTypeMismatch;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ExceptionUtilTest {
 
 	@Test
 	void 에러_메시지를_반환받을수_있다() {
 		// Given
-		String fieldName = "fieldName";
+		String defaultMessage = "fieldName";
 		Object rejectedValue = "rejectedValue";
 
 		// When
-		String result = getErrorMessage(fieldName, rejectedValue);
+		String result = getErrorMessage(rejectedValue, defaultMessage);
 
 		// Then
-		String expected = "유효하지 않은 파라미터입니다: fieldName [rejectedValue]";
-		assert expected.equals(result);
+		// return defaultMessage != null ? defaultMessage : "유효하지 않은 파라미터입니다: " + " (" + rejectedValue + ")";
+		String expected = "fieldName";
+		assertEquals(expected, result);
+	}
+
+	@Test
+	void defaultMessage가_null일_경우_기본값이_반환된다() {
+		// Given
+		String defaultMessage = null;
+		Object rejectedValue = "rejectedValue";
+
+		// When
+		String result = getErrorMessage(rejectedValue, defaultMessage);
+
+		// Then
+		// return defaultMessage != null ? defaultMessage : "유효하지 않은 파라미터입니다: " + " (" + rejectedValue + ")";
+		String expected = "유효하지 않은 파라미터입니다:  (rejectedValue)";
+		assertEquals(expected, result);
 	}
 
 	@Test

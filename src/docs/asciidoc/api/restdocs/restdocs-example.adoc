@@ -1,0 +1,48 @@
+== 문서 자료 예제 (restdocs example)
+
+◾해당 페이지는 예제 화면입니다 추후 실제 요청으로 변경됩니다.
+
+주문을 등록하고 `결제(PAID) -> 출하(SHIPPED) -> 배송완료(COMPLETED)` 처리를 할 수 있습니다.
+
+=== 주문검색
+
+주문정보를 회원번호(memberNo)과 주문번호(orderNo)를 이용해서 검색할 수 있습니다.
+페이징 처리된 목록을 제공합니다.
+
+|====
+|속성 |설명
+
+|`memberNo` |회원번호
+|`orderNo` |주문번호
+|`page` |페이지(0 부터 시작)
+|`size` |페이지당 조회건수(최소: 1, 최대: 1000)
+
+|====
+
+==== 요청 값 ( request )
+
+include::{snippets}/common/rest-docs/http-request.adoc[]
+[discrete]
+include::{snippets}/common/rest-docs/request-fields.adoc[]
+
+==== 응답 값 ( response )
+
+include::{snippets}/common/rest-docs/http-response.adoc[]
+[discrete]
+include::{snippets}/common/rest-docs/response-fields.adoc[]
+
+=== 주문생성
+
+주문을 새롭게 등록합니다.
+
+==== 요청 값 ( request )
+
+include::{snippets}/common/rest-docs/http-request.adoc[]
+[discrete]
+include::{snippets}/common/rest-docs/request-fields.adoc[]
+
+==== 응답 값 ( response )
+
+include::{snippets}/common/rest-docs/http-response.adoc[]
+[discrete]
+include::{snippets}/common/rest-docs/response-fields.adoc[]
