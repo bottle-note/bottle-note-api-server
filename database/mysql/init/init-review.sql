@@ -38,14 +38,14 @@ CREATE TABLE `review_image`
 
 CREATE TABLE `review_reply`
 (
-    `id`              bigint       NOT NULL,
+    `id`              bigint       NOT NULL AUTO_INCREMENT,
     `review_id`       bigint       NOT NULL,
     `user_id`         bigint       NOT NULL,
     `parent_reply_id` bigint       NULL,
     `content`         VARCHAR(255) NOT NULL,
-    `last_modify_at`  TIMESTAMP    NOT NULL,
-    `last_modify_by`  VARCHAR(255) NOT NULL,
-    `create_at`       TIMESTAMP    NOT NULL,
-    `create_by`       VARCHAR(255) NOT NULL,
+    `last_modify_at`  TIMESTAMP    NULL,
+    `last_modify_by`  VARCHAR(255) NULL,
+    `create_at`       TIMESTAMP    NULL,
+    `create_by`       VARCHAR(255) NULL,
     PRIMARY KEY (`id`)
 );

@@ -2,14 +2,13 @@ package app.bottlenote.user.dto.request;
 
 import app.bottlenote.user.domain.constant.GenderType;
 import app.bottlenote.user.domain.constant.SocialType;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.lang.Nullable;
-
-import javax.validation.constraints.Email;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 
 @Getter
 public class OauthRequest {
@@ -21,7 +20,6 @@ public class OauthRequest {
 	@NotNull(message = "로그인 및 회원가입에 필요한 소셜타입이 없습니다.")
 	private final SocialType socialType;
 
-	@Nullable
 	private final GenderType gender;
 
 	@Nullable
