@@ -1,10 +1,8 @@
 package app.bottlenote.global.service.meta;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageRequest;
 
-import java.lang.reflect.Field;
 import java.util.Map;
 
 import static app.bottlenote.global.service.meta.MetaService.createMetaInfo;
@@ -12,24 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class MetaServiceTest {
-
-	@BeforeEach
-	void setUp() throws NoSuchFieldException, IllegalAccessException {
-		// Reflection을 사용하여 private static 필드에 접근
-		Field serverVersionField = MetaService.class.getDeclaredField("serverVersion");
-		Field serverPathVersionField = MetaService.class.getDeclaredField("serverPathVersion");
-		Field serverEncodingField = MetaService.class.getDeclaredField("serverEncoding");
-
-		// private 필드이므로 접근 가능하도록 설정
-		serverVersionField.setAccessible(true);
-		serverPathVersionField.setAccessible(true);
-		serverEncodingField.setAccessible(true);
-
-		// 필드에 값을 할당
-		serverVersionField.set(null, "1.0.0");
-		serverPathVersionField.set(null, "/v1");
-		serverEncodingField.set(null, "UTF-8");
-	}
 
 	@Test
 	void 메타정보를_생성할_수_있다() {
@@ -41,9 +21,9 @@ class MetaServiceTest {
 
 		// then
 		assertNotNull(metaInfos);
-		assertEquals("1.0.0", metaInfos.findByKey("server_version"));
-		assertEquals("/v1", metaInfos.findByKey("server_path_version"));
-		assertEquals("UTF-8", metaInfos.findByKey("server_encoding"));
+		assertEquals("1.0.0", metaInfos.findByKey("serverVersion"));
+		assertEquals("v1", metaInfos.findByKey("serverPathVersion"));
+		assertEquals("UTF-8", metaInfos.findByKey("serverEncoding"));
 	}
 
 	@Test
