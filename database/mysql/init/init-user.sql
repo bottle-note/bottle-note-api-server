@@ -8,7 +8,7 @@ CREATE TABLE `users`
     `gender`         VARCHAR(255) NULL,
     `role`           VARCHAR(255) NOT NULL DEFAULT 'GUEST',
     `social_type`    VARCHAR(255) NOT NULL COMMENT '소셜 타입 (NAVER, GOOGLE, APPLE)',
-    `refresh_token`  VARCHAR(255) NOT NULL COMMENT 'access token 재발급을 위한 토큰',
+    `refresh_token`  VARCHAR(255) NULL COMMENT 'access token 재발급을 위한 토큰',
     `create_at`      TIMESTAMP    NULL,
     `last_modify_at` TIMESTAMP    NULL,
     PRIMARY KEY (`id`)
