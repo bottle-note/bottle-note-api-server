@@ -15,7 +15,7 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     #TODO : 추후 운영환경의 datasource로 수정 필요
-    url: jdbc:mysql://localhost:43306/bottle_note?useSSL=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    url: jdbc:mysql://mysql:3306/bottle_note?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
     username: bottle_note
     password: bottle_note_1234
   jpa:
@@ -24,6 +24,7 @@ spring:
     properties:
       hibernate:
         format_sql: true # SQL 출력 포맷
+        dialect: org.hibernate.dialect.MySQLDialect
     open-in-view: false # JPA 영속성 컨텍스트를 View까지 열어두는 옵션 (default: true) - false로 설정할 것
   h2:
     console:
