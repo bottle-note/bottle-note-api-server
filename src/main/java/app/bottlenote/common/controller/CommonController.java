@@ -24,7 +24,7 @@ public class CommonController {
 	private final CommonService commonService;
 
 	@GetMapping
-	public ResponseEntity<?> getServerInfo() {
+	public ResponseEntity<GlobalResponse> getServerInfo() {
 		return ResponseEntity.ok(GlobalResponse.success(Map.of("message", "Server is running")));
 	}
 
@@ -34,7 +34,7 @@ public class CommonController {
 	 * @return the server error
 	 */
 	@GetMapping("/error")
-	public ResponseEntity<?> getServerError() {
+	public ResponseEntity<GlobalResponse> getServerError() {
 		throw new CustomException(CustomExceptionCode.INTERNAL_SERVER_ERROR);
 	}
 

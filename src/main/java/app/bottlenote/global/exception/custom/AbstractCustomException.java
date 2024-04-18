@@ -9,7 +9,7 @@ import lombok.Getter;
 public abstract class AbstractCustomException extends RuntimeException {
 	private final ExceptionCode exceptionCode;
 
-	public AbstractCustomException(ExceptionCode exceptionCode) {
+	protected AbstractCustomException(ExceptionCode exceptionCode) {
 		super(exceptionCode.getMessage());
 		this.exceptionCode = exceptionCode;
 	}

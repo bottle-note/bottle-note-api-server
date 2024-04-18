@@ -84,7 +84,7 @@ public class UserReportService {
 	 * @throws ReportException the report exception
 	 */
 	@Transactional
-	protected void validateReportRequest(UserReportRequest userReportRequest, List<UserReports> userReportsList, User user, User reportUser) throws ReportException {
+	public void validateReportRequest(UserReportRequest userReportRequest, List<UserReports> userReportsList, User user, User reportUser) throws ReportException {
 		//신고 대상 사용자가 이미 신고된 사용자인지 확인
 		userReportsList.stream()
 			.filter(report -> report.getReportUser().getId().equals(userReportRequest.reportUserId()))
