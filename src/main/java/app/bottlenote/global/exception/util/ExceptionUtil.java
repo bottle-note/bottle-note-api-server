@@ -18,6 +18,7 @@ public class ExceptionUtil {
 	}
 
 	public static String getErrorMessageForTypeMismatch(String fieldName, String rejectedValue, String requiredType) {
-		return String.format("Invalid parameter: %s [%s], required type: %s", fieldName, rejectedValue, requiredType);
+//		return String.format("Invalid parameter: %s [%s], required type: %s", fieldName, rejectedValue, requiredType);
+		return String.format("'%s' 필드는 '%s' 타입이 필요하지만, 잘못된 값 '%s'이(가) 제공되었습니다.", fieldName, requiredType, rejectedValue);
 	}
 }

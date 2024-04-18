@@ -1,9 +1,11 @@
 package app.bottlenote.global.exception.handler;
 
 import app.bottlenote.global.data.response.GlobalResponse;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -54,7 +56,7 @@ public class GlobalExceptionHandler {
 			String fieldName = fieldError.getField();
 			Object rejectedValue = fieldError.getRejectedValue();
 			String defaultMessage = fieldError.getDefaultMessage();
-			String errorMessage = getErrorMessage(rejectedValue,defaultMessage);
+			String errorMessage = getErrorMessage(rejectedValue, defaultMessage);
 			errorMessages.put(fieldName, errorMessage);
 		}
 
@@ -82,4 +84,30 @@ public class GlobalExceptionHandler {
 		return new ResponseEntity<>(GlobalResponse.error(HttpStatus.BAD_REQUEST.value(), message), HttpStatus.BAD_REQUEST);
 	}
 
+	/**
+	 * JSON 파싱에 실패한 경우에 대한 처리
+	 * 잘못된 타입 발견 시 바로 HttpMessageNotReadableException가 반환되기 떄문에 개별적인 오류 메시지만 반환된다.
+	 *
+	 * @param exception the exception
+	 * @return the response entity
+	 */
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<?> handleHttpMessageNotReadableException(HttpMessageNotReadableException exception) {
+		String finallyErrorMessage = "요청 본문을 파싱하는 도중 오류가 발생했습니다. 요청 본문의 형식을 확인해주세요.";
+		Throwable cause = exception.getCause();
+
+		if (cause instanceof JsonMappingException jsonMappingException) {
+			List<JsonMappingException.Reference> path = jsonMappingException.getPath();
+			if (!path.isEmpty()) {
+				JsonMappingException.Reference lastReference = path.get(path.size() - 1);
+				String fieldName = lastReference.getFieldName();
+				String errorDetailMessage = String.format("'%s' 필드의 값이 잘못되었습니다. 해당 필드의 값의 타입을 확인해주세요.", fieldName);
+				Map<String, String> message = Map.of("message", errorDetailMessage);
+				return new ResponseEntity<>(GlobalResponse.error(HttpStatus.BAD_REQUEST.value(), message), HttpStatus.BAD_REQUEST);
+			}
+		}
+
+		Map<String, String> message = Map.of("message", finallyErrorMessage);
+		return new ResponseEntity<>(GlobalResponse.error(HttpStatus.BAD_REQUEST.value(), message), HttpStatus.BAD_REQUEST);
+	}
 }
