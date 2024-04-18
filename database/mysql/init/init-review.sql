@@ -1,6 +1,6 @@
 CREATE TABLE `review`
 (
-    `id`             bigint       NOT NULL,
+    `id`             bigint       NOT NULL AUTO_INCREMENT,
     `user_id`        bigint       NOT NULL,
     `alcohols_id`    bigint       NOT NULL,
     `content`        VARCHAR(255) NOT NULL,
@@ -11,16 +11,16 @@ CREATE TABLE `review`
     `detail_address` VARCHAR(255) NULL,
     `image_url`      VARCHAR(255) NULL COMMENT '썸네일 이미지',
     `view_count`     bigint       NULL COMMENT '조회수',
-    `create_at`      TIMESTAMP    NOT NULL,
-    `last_modify_at` TIMESTAMP    NOT NULL,
-    `create_by`      VARCHAR(255) NOT NULL,
-    `last_modify_by` VARCHAR(255) NOT NULL,
+    `create_at`      TIMESTAMP    NULL,
+    `last_modify_at` TIMESTAMP    NULL,
+    `create_by`      VARCHAR(255) NULL,
+    `last_modify_by` VARCHAR(255) NULL,
     PRIMARY KEY (`id`)
 );
 
 CREATE TABLE `review_image`
 (
-    `id`             bigint       NOT NULL,
+    `id`             bigint       NOT NULL AUTO_INCREMENT,
     `review_id`      bigint       NOT NULL,
     `image_url`      VARCHAR(255) NOT NULL,
     `file_name`      VARCHAR(255) NOT NULL,
@@ -29,10 +29,10 @@ CREATE TABLE `review_image`
     `status`         VARCHAR(255) NULL COMMENT '삭제됨 / 숨김처리됨 / 유효기간이 만료됨 등등',
     `tags`           VARCHAR(255) NULL,
     `description`    VARCHAR(255) NULL,
-    `last_modify_at` TIMESTAMP    NOT NULL,
-    `last_modify_by` VARCHAR(255) NOT NULL,
-    `create_at`      TIMESTAMP    NOT NULL,
-    `create_by`      VARCHAR(255) NOT NULL,
+    `last_modify_at` TIMESTAMP    NULL,
+    `last_modify_by` VARCHAR(255) NULL,
+    `create_at`      TIMESTAMP    NULL,
+    `create_by`      VARCHAR(255) NULL,
     PRIMARY KEY (`id`)
 );
 
