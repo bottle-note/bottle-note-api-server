@@ -458,20 +458,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 </ul>
 </li>
-<li><a href="#_문서_자료_예제_restdocs_example">2. 문서 자료 예제 (restdocs example)</a>
+<li><a href="#restdocs-example">2. 문서 자료 예제 (restdocs example)</a>
 <ul class="sectlevel2">
-<li><a href="#_주문검색">2.1. 주문검색</a>
-<ul class="sectlevel3">
-<li><a href="#_요청_값_request">2.1.1. 요청 값 ( request )</a></li>
-<li><a href="#_응답_값_response">2.1.2. 응답 값 ( response )</a></li>
+<li><a href="#_주문검색">2.1. 주문검색</a></li>
+<li><a href="#_주문생성">2.2. 주문생성</a></li>
 </ul>
 </li>
-<li><a href="#_주문생성">2.2. 주문생성</a>
-<ul class="sectlevel3">
-<li><a href="#_요청_값_request_2">2.2.1. 요청 값 ( request )</a></li>
-<li><a href="#_응답_값_response_2">2.2.2. 응답 값 ( response )</a></li>
-</ul>
-</li>
+<li><a href="#user-report">3. 유저 신고 API ( user report )</a>
+<ul class="sectlevel2">
+<li><a href="#_유저_신고_요청">3.1. 유저 신고 요청</a></li>
 </ul>
 </li>
 </ul>
@@ -667,7 +662,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect1">
-<h2 id="_문서_자료_예제_restdocs_example"><a class="link" href="#_문서_자료_예제_restdocs_example">2. 문서 자료 예제 (restdocs example)</a></h2>
+<h2 id="restdocs-example"><a class="link" href="#restdocs-example">2. 문서 자료 예제 (restdocs example)</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>◾해당 페이지는 예제 화면입니다 추후 실제 요청으로 변경됩니다.</p>
@@ -711,22 +706,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </tr>
 </tbody>
 </table>
-<div class="sect3">
-<h4 id="_요청_값_request"><a class="link" href="#_요청_값_request">2.1.1. 요청 값 ( request )</a></h4>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /common/rest-docs/ HTTP/1.1
-Content-Type: application/json;charset=UTF-8
-Content-Length: 70
-Host: localhost:8080
-
-{
-  "name" : "Test1",
-  "description" : "테스트용 요청 DTO"
-}</code></pre>
-</div>
-</div>
-<h4 class="discrete" id="_request_fields">Request Fields</h4>
+<h4 class="discrete" id="_요청_파라미터_request_fields">요청 파라미터 ( request fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -738,7 +718,7 @@ Host: localhost:8080
 <tr>
 <th class="tableblock halign-left valign-top">path</th>
 <th class="tableblock halign-left valign-top">type</th>
-<th class="tableblock halign-left valign-top">required</th>
+<th class="tableblock halign-left valign-top">optional</th>
 <th class="tableblock halign-left valign-top">description</th>
 </tr>
 </thead>
@@ -757,14 +737,86 @@ Host: localhost:8080
 </tr>
 </tbody>
 </table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /common/rest-docs/ HTTP/1.1
+Content-Type: application/json;charset=UTF-8
+Content-Length: 67
+Host: localhost:8080
+
+{
+  "name" : "Test1",
+  "description" : "테스트용 요청 DTO"
+}</code></pre>
 </div>
-<div class="sect3">
-<h4 id="_응답_값_response"><a class="link" href="#_응답_값_response">2.1.2. 응답 값 ( response )</a></h4>
+</div>
+<h4 class="discrete" id="_응답_파라미터_response_fields">응답 파라미터 ( response fields )</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">path</th>
+<th class="tableblock halign-left valign-top">type</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>code</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 코드(http status code)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.message</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">메시지 내용</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.responseAt</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">메시지 내용 응답 시간</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>errors</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverEncoding</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서버 인코딩 정도</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverVersion</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서버 버전</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverPathVersion</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서버 경로 버전</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverResponseTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서버 응답 시간</p></td>
+</tr>
+</tbody>
+</table>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json;charset=UTF-8
-Content-Length: 336
+Content-Length: 322
 
 {
   "success" : true,
@@ -777,85 +829,11 @@ Content-Length: 336
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-04-16T21:19:59.378662",
+    "serverResponseTime" : "2024-04-18T20:31:39.971427",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
 </div>
-</div>
-<h4 class="discrete" id="_response_fields">Response Fields</h4>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">path</th>
-<th class="tableblock halign-left valign-top">type</th>
-<th class="tableblock halign-left valign-top">required</th>
-<th class="tableblock halign-left valign-top">description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>code</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">응답 코드(http status code)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.message</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">메시지 내용</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.responseAt</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">메시지 내용 응답 시간</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>errors</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverEncoding</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서버 인코딩 정도</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverVersion</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서버 버전</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverPathVersion</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서버 경로 버전</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverResponseTime</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서버 응답 시간</p></td>
-</tr>
-</tbody>
-</table>
 </div>
 </div>
 <div class="sect2">
@@ -863,22 +841,7 @@ Content-Length: 336
 <div class="paragraph">
 <p>주문을 새롭게 등록합니다.</p>
 </div>
-<div class="sect3">
-<h4 id="_요청_값_request_2"><a class="link" href="#_요청_값_request_2">2.2.1. 요청 값 ( request )</a></h4>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /common/rest-docs/ HTTP/1.1
-Content-Type: application/json;charset=UTF-8
-Content-Length: 70
-Host: localhost:8080
-
-{
-  "name" : "Test1",
-  "description" : "테스트용 요청 DTO"
-}</code></pre>
-</div>
-</div>
-<h4 class="discrete" id="_request_fields_2">Request Fields</h4>
+<h4 class="discrete" id="_요청_파라미터_request_fields_2">요청 파라미터 ( request fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -890,7 +853,7 @@ Host: localhost:8080
 <tr>
 <th class="tableblock halign-left valign-top">path</th>
 <th class="tableblock halign-left valign-top">type</th>
-<th class="tableblock halign-left valign-top">required</th>
+<th class="tableblock halign-left valign-top">optional</th>
 <th class="tableblock halign-left valign-top">description</th>
 </tr>
 </thead>
@@ -909,14 +872,86 @@ Host: localhost:8080
 </tr>
 </tbody>
 </table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /common/rest-docs/ HTTP/1.1
+Content-Type: application/json;charset=UTF-8
+Content-Length: 67
+Host: localhost:8080
+
+{
+  "name" : "Test1",
+  "description" : "테스트용 요청 DTO"
+}</code></pre>
 </div>
-<div class="sect3">
-<h4 id="_응답_값_response_2"><a class="link" href="#_응답_값_response_2">2.2.2. 응답 값 ( response )</a></h4>
+</div>
+<h4 class="discrete" id="_응답_파라미터_response_fields_2">응답 파라미터 ( response fields )</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">path</th>
+<th class="tableblock halign-left valign-top">type</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>code</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 코드(http status code)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.message</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">메시지 내용</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.responseAt</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">메시지 내용 응답 시간</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>errors</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverEncoding</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서버 인코딩 정도</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverVersion</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서버 버전</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverPathVersion</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서버 경로 버전</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverResponseTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서버 응답 시간</p></td>
+</tr>
+</tbody>
+</table>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json;charset=UTF-8
-Content-Length: 336
+Content-Length: 322
 
 {
   "success" : true,
@@ -929,13 +964,36 @@ Content-Length: 336
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-04-16T21:19:59.378662",
+    "serverResponseTime" : "2024-04-18T20:31:39.971427",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_response_fields_2">Response Fields</h4>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="user-report"><a class="link" href="#user-report">3. 유저 신고 API ( user report )</a></h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_유저_신고_요청"><a class="link" href="#_유저_신고_요청">3.1. 유저 신고 요청</a></h3>
+<div class="paragraph">
+<p>특정한 사용자가 부적절한 행동을 했을 때, 해당 사용자를 신고할 수 있습니다.</p>
+</div>
+<div class="paragraph">
+<p>user report의 경우 사용자간 신고로,</p>
+</div>
+<div class="paragraph">
+<p>신고자와 피신고자가 모두 사용자인 경우에만 사용할 수 있습니다.</p>
+</div>
+<hr>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/user-report</code></pre>
+</div>
+</div>
+<h4 class="discrete" id="_요청_파라미터_request_fields_3">요청 파라미터 ( request fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -947,7 +1005,58 @@ Content-Length: 336
 <tr>
 <th class="tableblock halign-left valign-top">path</th>
 <th class="tableblock halign-left valign-top">type</th>
-<th class="tableblock halign-left valign-top">required</th>
+<th class="tableblock halign-left valign-top">optional</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>userId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">신고 유저 ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>reportUserId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">신고 대상자 유저 ID(신고를 당하는 유저</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>type</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">신고 타입  ( SPAM , INAPPROPRIATE_CONTENT ,FRAUD ,COPYRIGHT_INFRINGEMENT ,OTHER )</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>content</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">신고 내용</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json">{
+  "userId" : 1,
+  "reportUserId" : 2,
+  "type" : "OTHER",
+  "content" : "신고 내용 쏼라 쏼라 쏼라 "
+}</code></pre>
+</div>
+</div>
+<h4 class="discrete" id="_응답_파라미터_response_fields_3">응답 파라미터 ( response fields )</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">path</th>
+<th class="tableblock halign-left valign-top">type</th>
 <th class="tableblock halign-left valign-top">description</th>
 </tr>
 </thead>
@@ -955,60 +1064,82 @@ Content-Length: 336
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>code</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">응답 코드(http status code)</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.message</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">메시지 내용</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">결과 메시지</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.responseAt</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">메시지 내용 응답 시간</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reportId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">처리된 신고 ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reportUserId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">신고 대상 유저 ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reportUserName</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">신고 대상 유저 이름</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>errors</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverEncoding</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">서버 인코딩 정도</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverVersion</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">서버 버전</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverPathVersion</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">서버 경로 버전</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverResponseTime</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">서버 응답 시간</p></td>
 </tr>
 </tbody>
 </table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json">{
+  "success" : true,
+  "code" : 200,
+  "data" : {
+    "message" : "신고가 성공적으로 접수되었습니다.",
+    "reportId" : 1,
+    "reportUserId" : 2,
+    "reportUserName" : "신고한 유저 이름"
+  },
+  "errors" : [ ],
+  "meta" : {
+    "serverVersion" : "1.0.0",
+    "serverEncoding" : "UTF-8",
+    "serverResponseTime" : "2024-04-18T20:31:40.447966",
+    "serverPathVersion" : "v1"
+  }
+}</code></pre>
 </div>
+</div>
+<hr>
 </div>
 </div>
 </div>
@@ -1016,7 +1147,7 @@ Content-Length: 336
 <div id="footer">
 <div id="footer-text">
 Version 0.0.1-SNAPSHOT<br>
-Last updated 2024-04-16 20:37:45 +0900
+Last updated 2024-04-18 20:15:59 +0900
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>

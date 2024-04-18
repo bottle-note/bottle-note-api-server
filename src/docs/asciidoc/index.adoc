@@ -12,11 +12,12 @@ endif::[]
 :sectnums:
 
 
-
-[[resources]]
 [[restdocs-example]]
 include::api/overview/overview.adoc[]
 
-
+[[restdocs-example]]
 include::api/restdocs/restdocs-example.adoc[]
+
+[[user-report]]
+include::api/support/report/user-report.adoc[]
 

@@ -1,12 +1,12 @@
-==== Request Fields
+==== 요청 파라미터 ( request fields )
 |===
-|path|type|required|description
+|path|type|optional|description
 
 {{#fields}}
 
     |{{#tableCellContent}}`+{{path}}+`{{/tableCellContent}}
     |{{#tableCellContent}}`+{{type}}+`{{/tableCellContent}}
-    |{{#tableCellContent}}{{#required}}O{{/required}}{{/tableCellContent}}
+    |{{#tableCellContent}}{{#optional}}O{{/optional}}{{/tableCellContent}}
     |{{#tableCellContent}}{{description}}{{/tableCellContent}}
 
 {{/fields}}

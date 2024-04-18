@@ -21,8 +21,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.requestF
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-//@WebMvcTest(RestCommonControllerTest.class)
-@DisplayName("restdocs")
+@DisplayName("restdocs 예제용 클래스")
 class RestCommonControllerTest extends AbstractRestDocs {
 	private final CommonService commonService = mock(CommonService.class);
 	@InjectMocks
