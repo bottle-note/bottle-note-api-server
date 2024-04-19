@@ -18,9 +18,6 @@ import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import org.hibernate.annotations.Comment;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Getter
 @Comment("리뷰 테이블(리뷰, 평점, 이미지, 리뷰 댓글)")
 @Entity(name = "review")
@@ -66,7 +63,7 @@ public class Review extends BaseEntity {
 
 	@Comment("썸네일 이미지")
 	@Column(name = "image_url")
-	private String iamgeUrl;
+	private String imageUrl;
 
 	//viewCnt X 축약어를 자제하세요. 좋은 코드는 읽기 쉬워야 합니다.
 	// 기본 값은 0으로 설정한다.
