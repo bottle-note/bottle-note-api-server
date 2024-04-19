@@ -5,7 +5,7 @@ build/
 !**/src/test/**/build/
 
 ### Production application.yml ###
-resource/application-prod.yml
+src/main/resources/application-prod.yml
 
 
 ### STS ###
