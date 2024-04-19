@@ -5,10 +5,10 @@ services:
     hostname: bottle-note-mysql
     container_name: mysql
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER_NAME}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: mysql_root
+      MYSQL_DATABASE: bottle_note
+      MYSQL_USER: bottle_note
+      MYSQL_PASSWORD: bottle_note_1234
     ports:
       - "3306:3306"
     volumes:
