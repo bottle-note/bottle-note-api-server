@@ -8,11 +8,12 @@ user report의 경우 사용자간 신고로,
 
 신고자와 피신고자가 모두 사용자인 경우에만 사용할 수 있습니다.
 
----
+'''
 
-```
+[source]
+----
 POST /api/v1/user-report
-```
+----
 
 [discrete]
 include::{snippets}/support/report/user-report/request-fields.adoc[]
@@ -23,4 +24,31 @@ include::{snippets}/support/report/user-report/request-body.adoc[]
 include::{snippets}/support/report/user-report/response-fields.adoc[]
 include::{snippets}/support/report/user-report/response-body.adoc[]
 
----
+[cols="1,2,3",options="header"]
+|===
+| 코드 |  예외 상황 | 에러 메시지
+
+| 400
+| `content`가 300자를 초과하는 경우
+| "`content`는 300자 이내여야 합니다."
+
+| 400
+| 신고자가 자신을 신고하는 경우
+| "자신을 신고할 수 없습니다."
+
+| 400
+| 동일 유저에 대해 일당 최대 한건의 신고를 초과하는 경우
+| "동일 유저에 대해 일당 최대 한건의 신고만 가능합니다."
+
+| 400
+| 신고 대상 사용자가 일일 신고 횟수 제한을 초과하는 경우
+| "일일 신고 횟수 제한을 초과하였습니다."
+
+| 404
+| 신고 대상 사용자가 존재하지 않는 경우
+| "신고 대상 사용자가 존재하지 않습니다."
+
+|===
+
+** **추가되지 않은 에러 코드는 요청 바랍니다.**
+** **request valid에 대한 내용은 공통 예외를 통해 처리됩니다.**
