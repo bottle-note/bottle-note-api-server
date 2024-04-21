@@ -35,7 +35,7 @@ public class UserReportService {
 	private final UserReportRepository userReportRepository;
 	private final UserRepository userRepository;
 
-	private final static Integer REPORT_LIMIT = 5;
+	private static final Integer REPORT_LIMIT = 5;
 
 	/**
 	 * 사용자의 신고를 등록하는 메소드입니다.
@@ -96,7 +96,6 @@ public class UserReportService {
 	 * @param reportUser        the report user
 	 * @throws ReportException the report exception
 	 */
-	@Transactional
 	public void validateReportRequest(UserReportRequest userReportRequest, List<UserReports> userReportsList, User user, User reportUser) throws ReportException {
 		//신고 대상 사용자가 이미 신고된 사용자인지 확인
 		userReportsList.stream()
