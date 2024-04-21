@@ -64,7 +64,8 @@ public class UserReports extends BaseEntity {
 
 
 	@Builder
-	public UserReports(User user, User reportUser, UserReportType type, String content, String responseContent, StatusType status, Long adminId) {
+	public UserReports(Long id, User user, User reportUser, UserReportType type, String content, String responseContent, StatusType status, Long adminId) {
+		this.id = id;
 		this.user = user;
 		this.reportUser = reportUser;
 		this.type = type;
