@@ -7,14 +7,11 @@ import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.domain.constant.UserType;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.OauthResponse;
-import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.repository.OauthRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static app.bottlenote.user.exception.UserExceptionCode.USER_NICKNAME_NOT_VALID;
 
 
 @Slf4j
@@ -24,6 +21,7 @@ import static app.bottlenote.user.exception.UserExceptionCode.USER_NICKNAME_NOT_
 public class OauthService {
 
 	private final OauthRepository oauthRepository;
+	private final NicknameGenerator nicknameGenerator;
 	private final JwtTokenProvider jwtTokenProvider;
 
 
@@ -45,8 +43,6 @@ public class OauthService {
 			user = optionalUser;
 		}
 
-		jwtTokenProvider.generateToken(email, UserType.ROLE_USER, user.getId());
-
 		OauthResponse oauthResponse = jwtTokenProvider.generateToken(email, UserType.ROLE_USER, user.getId());
 
 
@@ -57,17 +53,9 @@ public class OauthService {
 
 	public User oauthSignUp(String email, SocialType socialType, GenderType genderType, int age) {
 
-		NicknameGenerator nicknameGenerator = NicknameGenerator.getInstance();
-		String nickName = nicknameGenerator.generate();
+		String nickName = nicknameGenerator.generateNickname();
 
-		int attempts = 0;
-		while (oauthRepository.findByNickName(nickName).isPresent()) {
-			if (attempts >= 10) {
-				throw new UserException(USER_NICKNAME_NOT_VALID);
-			}
-			nickName = nicknameGenerator.generate();
-			attempts++;
-		}
+		log.info("nickname is :{}", nickName);
 
 		User user = User.builder()
 			.email(email)
