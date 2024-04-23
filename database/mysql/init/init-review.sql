@@ -49,3 +49,17 @@ CREATE TABLE `review_reply`
     `create_by`       VARCHAR(255) NULL,
     PRIMARY KEY (`id`)
 );
+
+
+CREATE TABLE `like`
+(
+    `id`             bigint       NOT NULL AUTO_INCREMENT,
+    `review_id`      VARCHAR(255) NOT NULL COMMENT '좋아요의 대상 리뷰',
+    `users_id`       VARCHAR(255) NOT NULL COMMENT '좋아요를 누른 사람',
+    `status`         VARCHAR(255) NULL COMMENT '공감, 공감취소',
+    `last_modify_at` VARCHAR(255) NULL,
+    `last_modify_by` VARCHAR(255) NULL,
+    `create_at`      VARCHAR(255) NULL,
+    `create_by`      VARCHAR(255) NULL,
+    PRIMARY KEY (`id`)
+);
