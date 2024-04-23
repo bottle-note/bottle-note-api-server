@@ -22,9 +22,9 @@ services:
     container_name: redis
     ports:
       - "6379:6379"
-    volumes:
-      - ./database/redis/data:/data
-      - ./database/redis/conf/redis.conf:/usr/local/conf/redis.conf
+    #volumes:
+    #  - ./database/redis/data:/data
+    #  - ./database/redis/conf/redis.conf:/usr/local/conf/redis.conf
     networks:
       - network
 
