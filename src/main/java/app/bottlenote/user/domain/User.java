@@ -9,13 +9,12 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
-
-import java.util.Objects;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -63,8 +62,8 @@ public class User {
 	private String refreshToken;
 
 	@Builder
-	public User(Long id, String email, String nickName, int age, String gender, String imageUrl,
-				UserType role, SocialType socialType, String refreshToken) {
+	public User(Long id, String email, String nickName, Integer age, String gender, String imageUrl,
+		UserType role, SocialType socialType, String refreshToken) {
 		this.id = id;
 		this.email = email;
 		this.nickName = nickName;

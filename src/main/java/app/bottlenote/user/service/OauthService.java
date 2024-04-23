@@ -30,7 +30,7 @@ public class OauthService {
 		String email = oauthReq.getEmail();
 		SocialType socialType = oauthReq.getSocialType();
 		GenderType genderType = oauthReq.getGender();
-		int age = oauthReq.getAge();
+		Integer age = oauthReq.getAge();
 
 		User user;
 
@@ -51,7 +51,8 @@ public class OauthService {
 		return oauthResponse;
 	}
 
-	public User oauthSignUp(String email, SocialType socialType, GenderType genderType, int age) {
+	public User oauthSignUp(String email, SocialType socialType, GenderType genderType,
+		Integer age) {
 
 		String nickName = nicknameGenerator.generateNickname();
 
