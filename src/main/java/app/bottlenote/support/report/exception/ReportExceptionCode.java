@@ -9,7 +9,8 @@ public enum ReportExceptionCode implements ExceptionCode {
 	REPORT_CONTENT_NOT_VALID(HttpStatus.BAD_REQUEST, "신고 내용이 유효하지 않습니다."),
 	REPORT_CONTENT_OVERFLOW(HttpStatus.BAD_REQUEST, "신고 내용이 300자를 초과했습니다."),
 	REPORT_TYPE_NOT_VALID(HttpStatus.BAD_REQUEST, "신고 타입이 유효하지 않습니다."),
-	REPORT_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "신고 횟수 제한을 초과했습니다.");
+	REPORT_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "신고 횟수 제한을 초과했습니다."),
+	SELF_REPORT(HttpStatus.BAD_REQUEST, "자신을 신고할 수 없습니다.");
 
 
 	private final HttpStatus httpStatus;

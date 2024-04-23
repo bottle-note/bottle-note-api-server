@@ -18,9 +18,6 @@ public class MetaInfos {
 	}
 
 	public Map<String, Object> add(String key, Object value) {
-		// 테스트시 불편함으로 인행 주석 처리
-		//Objects.requireNonNull(key, "key는 null이 될 수 없습니다.");
-		//Objects.requireNonNull(value, "value 는 null이 될 수 없습니다.");
 
 		metaInfos.put(key, value);
 		return metaInfos;
