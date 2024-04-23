@@ -50,7 +50,7 @@ class ExceptionUtilTest {
 
 		// Then
 		String expected = "errorType: fieldName [rejectedValue]";
-		assert expected.equals(result);
+		assertEquals(expected, result);
 	}
 
 	@Test
@@ -64,7 +64,7 @@ class ExceptionUtilTest {
 		String result = getErrorMessageForTypeMismatch(fieldName, rejectedValue, requiredType);
 
 		// Then
-		String expected = "Invalid parameter: fieldName [rejectedValue], required type: requiredType";
-		assert expected.equals(result);
+		String expected = "'fieldName' 필드는 'requiredType' 타입이 필요하지만, 잘못된 값 'rejectedValue'이(가) 제공되었습니다.";
+		assertEquals(expected, result);
 	}
 }

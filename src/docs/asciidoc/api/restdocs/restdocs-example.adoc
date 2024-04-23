@@ -19,30 +19,23 @@
 
 |====
 
-==== 요청 값 ( request )
-
-include::{snippets}/common/rest-docs/http-request.adoc[]
 [discrete]
 include::{snippets}/common/rest-docs/request-fields.adoc[]
+include::{snippets}/common/rest-docs/http-request.adoc[]
 
-==== 응답 값 ( response )
-
-include::{snippets}/common/rest-docs/http-response.adoc[]
 [discrete]
 include::{snippets}/common/rest-docs/response-fields.adoc[]
+include::{snippets}/common/rest-docs/http-response.adoc[]
 
 === 주문생성
 
 주문을 새롭게 등록합니다.
 
-==== 요청 값 ( request )
-
-include::{snippets}/common/rest-docs/http-request.adoc[]
 [discrete]
 include::{snippets}/common/rest-docs/request-fields.adoc[]
+include::{snippets}/common/rest-docs/http-request.adoc[]
 
-==== 응답 값 ( response )
-
-include::{snippets}/common/rest-docs/http-response.adoc[]
 [discrete]
 include::{snippets}/common/rest-docs/response-fields.adoc[]
+include::{snippets}/common/rest-docs/http-response.adoc[]
+

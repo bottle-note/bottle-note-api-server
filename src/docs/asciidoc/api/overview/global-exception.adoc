@@ -1,0 +1,76 @@
+=== 공통 예외 처리
+
+공통적으로 처리되는 예외를 정리하는 내용입니다.
+
+success 코드가 false인 경우 errors 값을 확인 바랍니다.
+
+공통적인 예외의 종류에는 이런 값들이 있습니다.
+
+** 숫자 값이 필요한데 문자열 값이 들어온 경우
+
+[source]
+----
+POST http://localhost:8080/api/v1/reports/user
+Content-Type: application/json
+
+{
+  "userId": "일", // 숫자 값이 필요한데 문자열 값이 들어온 경우
+  "reportUserId": 0,
+  "type": "SPAM",
+  "content": "내용"
+}
+----
+
+[source,json]
+----
+{
+  "success": false,
+  "code": 400,
+  "data": [],
+  "errors": {
+    "message": "'userId' 필드의 값이 잘못되었습니다. 해당 필드의 값의 타입을 확인해주세요."
+  },
+  "meta": {
+    "serverVersion": "1.0.0",
+    "serverEncoding": "UTF-8",
+    "serverResponseTime": "2024-04-19T22:28:52.428425",
+    "serverPathVersion": "v1"
+  }
+}
+----
+
+** 필수적인 값이 없는 경우
+
+[source]
+----
+POST http://localhost:8080/api/v1/reports/user
+Content-Type: application/json
+
+{
+  "userId": "", // 필수적인 값이 없는 경우
+  "reportUserId": 0,
+  "type": "SPAM",
+  "content": "내용"
+}
+----
+
+[source,json]
+----
+{
+  "success": false,
+  "code": 400,
+  "data": [],
+  "errors": {
+    "userId": "신고자 아이디는 필수입니다."
+  },
+  "meta": {
+    "serverVersion": "1.0.0",
+    "serverEncoding": "UTF-8",
+    "serverResponseTime": "2024-04-19T22:31:48.742731",
+    "serverPathVersion": "v1"
+  }
+}
+----
+
+** **누락된 정보는 서버 백엔드 팀에게 문의해주세요.**
+** **추가되었으면 좋은 정보가 있으면 서버 백엔드 팀에게 문의해주세요.**
