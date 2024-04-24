@@ -12,9 +12,9 @@ public class Populars {
     private final String engName;  // 'glen fi',
     private final Double rating;  // 3.5,
     private final String category;  // 'single molt',
-    private final String imagePath;  // "https://i.imgur.com/TE2nmYV.png"
+    private final String imageUrl;  // "https://i.imgur.com/TE2nmYV.png"
 
-    public static Populars of(Long whiskyId, String korName, String engName, Double rating, String category, String imagePath) {
-        return new Populars(whiskyId, korName, engName, rating, category, imagePath);
+    public static Populars of(Long whiskyId, String korName, String engName, Double rating, String category, String imageUrl) {
+        return new Populars(whiskyId, korName, engName, rating, category, imageUrl);
     }
 }
