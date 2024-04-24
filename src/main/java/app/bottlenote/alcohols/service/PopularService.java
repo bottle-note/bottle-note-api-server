@@ -1,8 +1,10 @@
 package app.bottlenote.alcohols.service;
 
 import app.bottlenote.alcohols.dto.response.Populars;
+import app.bottlenote.alcohols.repository.PopularQueryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -10,6 +12,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PopularService {
 
+	private final PopularQueryRepository popularQueryRepository;
+
+	@Transactional
 	public List<Populars> getPopularOfWeek(Integer top) {
 		List<Populars> populars = List.of(
 			Populars.of("1", "글렌피딕", "glen fi", "3.5", "single molt", "https://i.imgur.com/TE2nmYV.png"),
