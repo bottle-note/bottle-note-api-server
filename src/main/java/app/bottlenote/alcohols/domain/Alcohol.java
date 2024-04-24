@@ -71,6 +71,10 @@ public class Alcohol extends BaseEntity {
 	@Column(name = "cask", nullable = true)
 	private String cask;
 
+	@Comment("썸네일 이미지")
+	@Column(name = "image_url", nullable = true)
+	private String imageUrl;
+
 
 	// mappedBy: 연관관계의 주인이 아님을 의미한다.
 	// Review가 alcohol의 id를 가지고 있다.
