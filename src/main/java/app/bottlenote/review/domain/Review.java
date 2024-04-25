@@ -18,6 +18,7 @@ import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import org.hibernate.annotations.Comment;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,7 +36,7 @@ public class Review extends BaseEntity {
 	private User user;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "alcohols_id")
+	@JoinColumn(name = "alcohol_id")
 	private Alcohol alcohol;
 
 	@Comment("내용")
@@ -49,7 +50,7 @@ public class Review extends BaseEntity {
 
 	@Comment("가격")
 	@Column(name = "price", nullable = false)
-	private Long price;
+	private BigDecimal price;
 
 	// 추후 주소 값으로 @Embedded를 사용하여 객체로 관리할 수 있음 (Address)
 	@Comment("우편번호")
@@ -66,7 +67,7 @@ public class Review extends BaseEntity {
 
 	@Comment("썸네일 이미지")
 	@Column(name = "image_url")
-	private String iamgeUrl;
+	private String imageUrl;
 
 	//viewCnt X 축약어를 자제하세요. 좋은 코드는 읽기 쉬워야 합니다.
 	// 기본 값은 0으로 설정한다.

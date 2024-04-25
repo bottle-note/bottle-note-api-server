@@ -34,7 +34,7 @@ public class UserReports extends BaseEntity {
 
 	@Comment("피신고자")
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "report_user")
+	@JoinColumn(name = "report_user_id")
 	private User reportUser;
 
 	@Comment("유저 신고 타입")
@@ -43,7 +43,7 @@ public class UserReports extends BaseEntity {
 	private UserReportType type;
 
 	@Comment("신고내용")
-	@Column(name = "content", nullable = false)
+	@Column(name = "report_content", nullable = false)
 	private String content;
 
 	@Comment("문의 처리결과의 답변내용")
@@ -61,7 +61,6 @@ public class UserReports extends BaseEntity {
 
 	protected UserReports() {
 	}
-
 
 	@Builder
 	public UserReports(Long id, User user, User reportUser, UserReportType type, String content, String responseContent, StatusType status, Long adminId) {
