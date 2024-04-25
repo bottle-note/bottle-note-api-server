@@ -17,6 +17,26 @@ spring:
     url: jdbc:mysql://localhost:3306/bottle_note?useSSL=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
     username: bottle_note
     password: bottle_note_1234
+  security:
+    oauth2:
+      client:
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+        registration:
+          kakao:
+            client-id: 46a2ada90428bb4f3b487d7672f3438c
+            client-secret: jBa14GLyVVOfcZTrB7lvlhW7Y9snqYQN
+            client-authentication-method: client_secret_post
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            authorization-grant-type: authorization_code
+            client-name: kakao
+            scope:
+              - profile_nickname
+
   jpa:
     hibernate:
       ddl-auto: validate # validate, update, create, create-drop
