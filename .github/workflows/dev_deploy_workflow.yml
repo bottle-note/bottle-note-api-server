@@ -3,23 +3,46 @@ name: Dev Deploy Workflow
 on:
   push:
     branches:
-      - main
-      - dev
+      - pr/49
   pull_request:
+    types: [ closed ]
     branches:
       - main
       - dev
 
 jobs:
   build-and-push:
-
-    if: contains(github.event.head_commit.message, '#cd') || contains(github.event.head_commit.message, '#CD')
+    # PR이 merge되었을 때만 실행
+    #if: github.event.pull_request.merged == true
 
     runs-on: ubuntu-latest  # 워크플로우는 최신 Ubuntu 환경에서 실행됩니다.
     steps:
       # 코드 체크아웃
       - name: Checkout code
         uses: actions/checkout@v4
+
+      # PR 라벨 확인
+      - name: check PR labels
+        id: get-labels
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const githubToken = process.env.GITHUB_TOKEN;
+            const octokit = github.getOctokit(githubToken);
+            const { data: pullRequest } = await octokit.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+            return pullRequest.labels.map(label => label.name);
+
+      # CD 라벨이 있는 경우 배포
+      - name: Deploy if CD label exists
+        if: contains(steps.get-labels.outputs.result, 'Deploy')
+        run: |
+          echo "Deploying because PR has CD label..."
+          # Place your deployment scripts here
 
       ## JDK 17 설정
       - name: Set up JDK 17
