@@ -1,6 +1,5 @@
-version: "3.9"
 services:
-  bottle-note:
+  dev-bottle-note:  # 서비스 이름이 정확해야 합니다.
     build:
       context: .
       dockerfile: Dockerfile

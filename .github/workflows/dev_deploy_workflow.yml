@@ -30,9 +30,9 @@ jobs:
           remote_host: ${{ secrets.DEV_SERVER_IP }}
           remote_user: ubuntu
           remote_key: ${{ secrets.DEV_SSH_KEY }}
-                    
-      ## 개발 도커 실행
-      - name: docker compose up
+
+      ## deploy setup
+      - name: deploy setup and gradle build
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DEV_SERVER_IP }}
@@ -44,7 +44,7 @@ jobs:
             echo "${{ secrets.APPLICATION_DEV }}" | base64 --decode > src/main/resources/application-dev.yml  
             chmod +x gradlew
             ./gradlew build
-                
+
       ## 개발 도커 실행
       - name: docker compose up
         uses: appleboy/ssh-action@master
