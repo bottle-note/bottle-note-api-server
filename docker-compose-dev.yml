@@ -1,0 +1,10 @@
+services:
+  dev-bottle-note:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dev-bottle-note
+    ports:
+      - "15000:15000"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev

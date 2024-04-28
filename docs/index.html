@@ -796,7 +796,7 @@ Content-Type: application/json
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.alcohols[].whiskyId</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">술 ID</p></td>
 </tr>
 <tr>
@@ -811,7 +811,7 @@ Content-Type: application/json
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.alcohols[].rating</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">술 평점</p></td>
 </tr>
 <tr>
@@ -820,7 +820,7 @@ Content-Type: application/json
 <td class="tableblock halign-left valign-top"><p class="tableblock">술 타입</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.alcohols[].imagePath</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.alcohols[].imageUrl</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">술 이미지 URL</p></td>
 </tr>
@@ -859,47 +859,47 @@ Content-Type: application/json
   "data" : {
     "totalCount" : 5,
     "alcohols" : [ {
-      "whiskyId" : "1",
+      "whiskyId" : 1,
       "korName" : "글렌피딕",
       "engName" : "glen fi",
-      "rating" : "3.5",
+      "rating" : 3.5,
       "category" : "single molt",
-      "imagePath" : "https://i.imgur.com/TE2nmYV.png"
+      "imageUrl" : "https://i.imgur.com/TE2nmYV.png"
     }, {
-      "whiskyId" : "2",
+      "whiskyId" : 2,
       "korName" : "맥키토시",
       "engName" : "macintosh",
-      "rating" : "4.5",
+      "rating" : 4.5,
       "category" : "single molt",
-      "imagePath" : "https://i.imgur.com/TE2nmYV.png"
+      "imageUrl" : "https://i.imgur.com/TE2nmYV.png"
     }, {
-      "whiskyId" : "3",
+      "whiskyId" : 3,
       "korName" : "글렌리벳",
       "engName" : "glen rivet",
-      "rating" : "4.0",
+      "rating" : 4.0,
       "category" : "single molt",
-      "imagePath" : "https://i.imgur.com/TE2nmYV.png"
+      "imageUrl" : "https://i.imgur.com/TE2nmYV.png"
     }, {
-      "whiskyId" : "4",
+      "whiskyId" : 4,
       "korName" : "글렌피딕",
       "engName" : "glen fi",
-      "rating" : "3.5",
+      "rating" : 3.5,
       "category" : "single molt",
-      "imagePath" : "https://i.imgur.com/TE2nmYV.png"
+      "imageUrl" : "https://i.imgur.com/TE2nmYV.png"
     }, {
-      "whiskyId" : "5",
+      "whiskyId" : 5,
       "korName" : "맥키토시",
       "engName" : "macintosh",
-      "rating" : "4.5",
+      "rating" : 4.5,
       "category" : "single molt",
-      "imagePath" : "https://i.imgur.com/TE2nmYV.png"
+      "imageUrl" : "https://i.imgur.com/TE2nmYV.png"
     } ]
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-04-24T00:48:38.926238",
+    "serverResponseTime" : "2024-04-26T22:08:45.175409",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1120,7 +1120,7 @@ Content-Type: application/json
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-04-24T00:48:41.033374",
+    "serverResponseTime" : "2024-04-26T22:08:45.874539",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1184,7 +1184,7 @@ Content-Type: application/json
 <div id="footer">
 <div id="footer-text">
 Version 0.0.1-SNAPSHOT<br>
-Last updated 2024-04-24 00:45:43 +0900
+Last updated 2024-04-26 18:23:06 +0900
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>
