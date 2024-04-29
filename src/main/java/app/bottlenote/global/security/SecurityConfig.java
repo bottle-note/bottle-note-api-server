@@ -11,12 +11,11 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
-
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http
@@ -32,11 +31,20 @@ public class SecurityConfig {
 	//  CORS 설정
 	@Bean
 	CorsConfigurationSource corsConfigurationSource() {
-		CorsConfiguration configuration = new CorsConfiguration();
-		configuration.setAllowedOrigins(Arrays.asList("http://bottle-note.com", "http://localhost:3000"));
-		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		source.registerCorsConfiguration("/**", configuration);
+
+		// 기본 CORS 설정
+		CorsConfiguration defaultConfiguration = new CorsConfiguration();
+		defaultConfiguration.setAllowedOrigins(Arrays.asList("http://bottle-note.com", "http://localhost:3000"));
+		defaultConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+		source.registerCorsConfiguration("/api/**", defaultConfiguration);
+
+		// /system/actuator/** 경로에 대한 특정 CORS 설정
+		CorsConfiguration actuatorConfiguration = new CorsConfiguration();
+		actuatorConfiguration.setAllowedOrigins(List.of("*"));
+		actuatorConfiguration.setAllowedMethods(List.of("GET"));
+		source.registerCorsConfiguration("/system/actuator/**", actuatorConfiguration);
+
 		return source;
 	}
 }
