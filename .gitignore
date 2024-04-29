@@ -43,5 +43,4 @@ out/
 
 # Ignore Gradle build output directory
 build
-monitoring.yml
-generated\
+src/main/generated
