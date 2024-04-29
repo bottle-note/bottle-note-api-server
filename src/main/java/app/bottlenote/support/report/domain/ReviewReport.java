@@ -17,7 +17,7 @@ import lombok.Getter;
 import org.hibernate.annotations.Comment;
 
 @Getter
-@Entity
+@Entity(name = "review_report")
 public class ReviewReport extends BaseEntity {
 
 	@Id
@@ -32,9 +32,9 @@ public class ReviewReport extends BaseEntity {
 	@Column(name = "report_content", nullable = false)
 	private String reportContent;
 
+	//TODO : 광고 리뷰인지, 욕설 리뷰인지, Enum 클래스 정의 필요
 	@Comment("리뷰 신고 타입")
 	@Column(name = "type", nullable = false)
-	//TODO : 광고 리뷰인지, 욕설 리뷰인지, Enum 클래스 정의 필요
 	private String type;
 
 	@Comment("문의글의 처리 상태 : Wating이 디폴트")

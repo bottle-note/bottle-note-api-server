@@ -31,16 +31,16 @@ public class Alcohol extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Comment("알코올 영어 이름")
-	@Column(name = "eng_name", nullable = false)
-	private String engName;
-
 	@Comment("알코올 한글 이름")
 	@Column(name = "kor_name", nullable = false)
 	private String korName;
 
+	@Comment("알코올 영어 이름")
+	@Column(name = "eng_name", nullable = false)
+	private String engName;
+
 	@Comment("도수")
-	@Column(name = "abv", nullable = false)
+	@Column(name = "abv", nullable = true)
 	private String abv;
 
 	@Comment("타입")
@@ -48,29 +48,31 @@ public class Alcohol extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private AlcoholType type;
 
-	@Comment("하위 카테고리")
-	@Column(name = "category", nullable = false)
-	private String category;
+	@Comment("하위 카테고리 한글명 ( ex. 위스키, 럼 )")
+	@Column(name = "kor_category", nullable = false)
+	private String korCategory;
+
+	@Comment("하위 카테고리 영문명 ( ex. 위스키, 럼 )")
+	@Column(name = "eng_category", nullable = false)
+	private String engCategory;
 
 	@Comment("국가")
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "country_id")
-	private Country country;
+	@JoinColumn(name = "region_id", nullable = true)
+	private Region region;
 
 	@Comment("증류소")
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "distillery_id")
 	private Distillery distillery;
 
-	@Comment("티어")
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "tier_id")
-	private Tier tier;
-
 	@Comment("캐스트 타입")
 	@Column(name = "cask", nullable = true)
 	private String cask;
 
+	@Comment("썸네일 이미지")
+	@Column(name = "image_url", nullable = true)
+	private String imageUrl;
 
 	// mappedBy: 연관관계의 주인이 아님을 의미한다.
 	// Review가 alcohol의 id를 가지고 있다.

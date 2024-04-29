@@ -31,6 +31,10 @@ public class ReviewImage extends BaseEntity {
 	@Column(name = "file_name", nullable = false)
 	private String fileName;
 
+	@Comment("파일명")
+	@Column(name = "file_org_name", nullable = false)
+	private String fileOrgName;
+
 	@Comment("파일 크기")
 	@Column(name = "file_size", nullable = false)
 	private String fileSize;
@@ -40,11 +44,9 @@ public class ReviewImage extends BaseEntity {
 	@JoinColumn(name = "review_id")
 	private Review review;
 
-	//기존 order는 예약어
-	// order -> image_order
 	@Comment("이미지 순서")
-	@Column(name = "image_order", nullable = false)
-	private Long imageOrder;
+	@Column(name = "order", nullable = false)
+	private Long order;
 
 	@Comment("상태")
 	@Column(name = "status")

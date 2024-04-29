@@ -29,7 +29,7 @@ public class Distillery extends BaseEntity {
 	private String korName;
 
 	@Comment("증류소 로고 이미지 경로")
-	@Column(name = "logo_img_path")
+	@Column(name = "logo_img_url")
 	private String logoImgPath;
 
 	@OneToMany(mappedBy = "distillery")

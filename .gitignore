@@ -5,8 +5,9 @@ build/
 !**/src/test/**/build/
 
 ### Production application.yml ###
+src/main/resources/application-dev.yml
 src/main/resources/application-prod.yml
-
+src/main/resources/secrets/monitoring.yml
 
 ### STS ###
 .apt_generated
@@ -42,3 +43,4 @@ out/
 
 # Ignore Gradle build output directory
 build
+monitoring.yml
