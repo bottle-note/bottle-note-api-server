@@ -8,7 +8,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
-import org.springframework.lang.Nullable;
 
 @Getter
 public class OauthRequest {
@@ -22,7 +21,6 @@ public class OauthRequest {
 
 	private final GenderType gender;
 
-	@Nullable
 	@Min(value = 0, message = "나이가 잘못 입력됐습니다.")
 	private final int age;
 
