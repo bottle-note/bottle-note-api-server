@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -16,9 +15,6 @@ public class RegionService {
 
 	@Transactional(readOnly = true)
 	public List<RegionsResponse> findAll() {
-		return regionQueryRepository.findAll()
-			.stream()
-			.map(region -> RegionsResponse.of(region.getId(), region.getKorName(), region.getEngName(), region.getDescription()))
-			.collect(Collectors.toList());
+		return regionQueryRepository.findAllRegionsResponse();
 	}
 }

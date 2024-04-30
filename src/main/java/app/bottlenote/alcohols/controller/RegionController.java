@@ -16,7 +16,7 @@ public class RegionController {
 	private final RegionService regionService;
 
 	@GetMapping
-	public Object findAll() {
+	public GlobalResponse findAll() {
 		return GlobalResponse.success(regionService.findAll());
 	}
 }
