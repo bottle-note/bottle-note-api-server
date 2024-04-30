@@ -6,8 +6,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import lombok.Getter;
 import org.hibernate.annotations.Comment;
 
+@Getter
 @Entity(name = "region")
 public class Region extends BaseEntity {
 
