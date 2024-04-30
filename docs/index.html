@@ -456,6 +456,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#alcohol">2. 인기 위스키  API ( popular )</a>
 <ul class="sectlevel2">
 <li><a href="#_주간_인기_위스키_조회">2.1. 주간 인기 위스키 조회</a></li>
+<li><a href="#_지역_정보_조회">2.2. 지역 정보 조회</a></li>
 </ul>
 </li>
 <li><a href="#user-report">3. 유저 신고 API ( user report )</a>
@@ -899,7 +900,7 @@ Content-Type: application/json
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-04-29T21:44:31.413880",
+    "serverResponseTime" : "2024-05-01T01:11:06.591150",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -953,9 +954,118 @@ Content-Type: application/json
 <p><strong>추가되지 않은 에러 코드는 요청 바랍니다.</strong></p>
 </li>
 <li>
-<p><strong>request valid에 대한 내용은 공통 예외를 통해 처리됩니다.</strong></p>
+<p><strong>request valid에 대한 내용은 공통 예외를 통해 처리됩니다.</strong>
+== 지역 API ( region ) ==</p>
 </li>
 </ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_지역_정보_조회"><a class="link" href="#_지역_정보_조회">2.2. 지역 정보 조회</a></h3>
+<div class="paragraph">
+<p>검색 조건으로 사용되는 지역 정보를 조회합니다.</p>
+</div>
+<div class="paragraph">
+<p>지역 정보는 서버의 로컬 캐시로 관리되며 일 단위로 갱신됩니다.</p>
+</div>
+<hr>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/regions</code></pre>
+</div>
+</div>
+<h4 class="discrete" id="_응답_파라미터_response_fields_2">응답 파라미터 ( response fields )</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">path</th>
+<th class="tableblock halign-left valign-top">type</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>code</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 코드(http status code)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data[].regionId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">지역 ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data[].korName</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">지역 한글명</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data[].engName</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">지역 이름</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data[].description</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">지역 설명</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>errors</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json">{
+  "success" : true,
+  "code" : 200,
+  "data" : [ {
+    "regionId" : 1,
+    "korName" : "스코틀랜드/로우랜드",
+    "engName" : "Scotland/Lowlands",
+    "description" : "가벼운 맛이 특징인 로우랜드 위스키"
+  }, {
+    "regionId" : 2,
+    "korName" : "스코틀랜드/하이랜드",
+    "engName" : "Scotland/Highlands",
+    "description" : "맛의 다양성이 특징인 하이랜드 위스키, 해안의 짠맛부터 달콤하고 과일 맛까지"
+  }, {
+    "regionId" : 3,
+    "korName" : "스코틀랜드/아일랜드",
+    "engName" : "Scotland/Ireland",
+    "description" : "부드러운 맛이 특징인 아일랜드 위스키"
+  }, {
+    "regionId" : 11,
+    "korName" : "프랑스",
+    "engName" : "France",
+    "description" : "주로 브랜디와 와인 생산지로 유명하지만 위스키도 생산"
+  }, {
+    "regionId" : 12,
+    "korName" : "스웨덴",
+    "engName" : "Sweden",
+    "description" : "실험적인 방법으로 만드는 스웨덴 위스키"
+  } ],
+  "errors" : [ ],
+  "meta" : {
+    "serverVersion" : "1.0.0",
+    "serverEncoding" : "UTF-8",
+    "serverResponseTime" : "2024-05-01T01:11:06.934028",
+    "serverPathVersion" : "v1"
+  }
+}</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -1033,7 +1143,7 @@ Content-Type: application/json
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_응답_파라미터_response_fields_2">응답 파라미터 ( response fields )</h4>
+<h4 class="discrete" id="_응답_파라미터_response_fields_3">응답 파라미터 ( response fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -1120,7 +1230,7 @@ Content-Type: application/json
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-04-29T21:44:31.834825400",
+    "serverResponseTime" : "2024-05-01T01:11:07.413841",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1184,7 +1294,7 @@ Content-Type: application/json
 <div id="footer">
 <div id="footer-text">
 Version 0.0.1-SNAPSHOT<br>
-Last updated 2024-04-29 14:43:09 +0900
+Last updated 2024-05-01 01:30:51 +0900
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>
