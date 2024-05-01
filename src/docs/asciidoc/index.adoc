@@ -18,6 +18,7 @@ include::api/overview/global-exception.adoc[]
 
 [[alcohol]]
 include::api/alcohols/popular.adoc[]
+include::api/alcohols/region.adoc[]
 
 [[user-report]]
 include::api/support/report/user-report.adoc[]
