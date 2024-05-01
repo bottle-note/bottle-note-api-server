@@ -808,7 +808,7 @@ Content-Type: application/json
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.alcohols[].engName</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">술 영문 이름</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">술 영문명</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.alcohols[].rating</code></p></td>
@@ -816,9 +816,14 @@ Content-Type: application/json
 <td class="tableblock halign-left valign-top"><p class="tableblock">술 평점</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.alcohols[].category</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.alcohols[].korCategory</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">술 타입</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">술 카테고리</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.alcohols[].engCategory</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">술 카테고리 영문명</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.alcohols[].imageUrl</code></p></td>
@@ -864,35 +869,40 @@ Content-Type: application/json
       "korName" : "글렌피딕",
       "engName" : "glen fi",
       "rating" : 3.5,
-      "category" : "single molt",
+      "korCategory" : "싱글 몰트",
+      "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png"
     }, {
       "whiskyId" : 2,
       "korName" : "맥키토시",
       "engName" : "macintosh",
       "rating" : 4.5,
-      "category" : "single molt",
+      "korCategory" : "싱글 몰트",
+      "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png"
     }, {
       "whiskyId" : 3,
       "korName" : "글렌리벳",
       "engName" : "glen rivet",
       "rating" : 4.0,
-      "category" : "single molt",
+      "korCategory" : "싱글 몰트",
+      "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png"
     }, {
       "whiskyId" : 4,
       "korName" : "글렌피딕",
       "engName" : "glen fi",
       "rating" : 3.5,
-      "category" : "single molt",
+      "korCategory" : "싱글 몰트",
+      "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png"
     }, {
       "whiskyId" : 5,
       "korName" : "맥키토시",
       "engName" : "macintosh",
       "rating" : 4.5,
-      "category" : "single molt",
+      "korCategory" : "싱글 몰트",
+      "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png"
     } ]
   },
@@ -900,7 +910,7 @@ Content-Type: application/json
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-01T01:11:06.591150",
+    "serverResponseTime" : "2024-05-01T02:14:21.947697",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1061,7 +1071,7 @@ Content-Type: application/json
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-01T01:11:06.934028",
+    "serverResponseTime" : "2024-05-01T02:14:22.433443",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1230,7 +1240,7 @@ Content-Type: application/json
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-01T01:11:07.413841",
+    "serverResponseTime" : "2024-05-01T02:14:22.909244",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1294,7 +1304,7 @@ Content-Type: application/json
 <div id="footer">
 <div id="footer-text">
 Version 0.0.1-SNAPSHOT<br>
-Last updated 2024-05-01 01:30:51 +0900
+Last updated 2024-05-01 02:13:38 +0900
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>
