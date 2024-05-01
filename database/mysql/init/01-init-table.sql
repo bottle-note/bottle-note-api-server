@@ -114,7 +114,6 @@ CREATE TABLE `user_report`
 
 CREATE TABLE `rating`
 (
-    `id`             Bigint       NOT NULL AUTO_INCREMENT COMMENT '술 평점',
     `alcohol_id`     bigint       NOT NULL COMMENT '평가 대상 술',
     `user_id`        bigint       NOT NULL COMMENT '평가자(사용자)',
     `rating`         DOUBLE  NOT NULL DEFAULT 0 COMMENT '0점 : 삭제, 0.5:최저점수, 5:최고점수',
@@ -122,10 +121,7 @@ CREATE TABLE `rating`
     `create_by`      varchar(255) NULL COMMENT '최초 생성자',
     `last_modify_at` timestamp    NULL COMMENT '최종 생성일',
     `last_modify_by` varchar(255) NULL COMMENT '최종 생성자',
-    PRIMARY KEY (`id`),
-    FOREIGN KEY (`alcohol_id`) REFERENCES `alcohol` (`id`),
-    FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-    -- 복합 유니크 UNIQUE KEY `alcohol_id_user_id` (`alcohol_id`, `user_id`)
+    PRIMARY KEY (`alcohol_id`, `user_id`),
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci COMMENT = '술 평점';

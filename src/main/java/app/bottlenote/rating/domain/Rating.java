@@ -5,13 +5,12 @@ import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
+import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MapsId;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,29 +23,30 @@ import org.hibernate.annotations.Comment;
 @Entity(name = "rating")
 public class Rating extends BaseEntity {
 
-	@Id
-	@Comment("평가점수 id")
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	@EmbeddedId
+	private RatingId id;
 
-	@Comment("평가점수 : 0, 0.5, 1 ... 5 (0점 : 삭제와 같다, 0.5:최저점수, 5:최고점수)")
-	@Embedded
-	@Column(name = "rating", nullable = true)
-	private RatingPoint rating;
-
+	@MapsId("alcoholId")
 	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "alcohol_id")
 	private Alcohol alcohol;
 
+	@MapsId("userId")
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id")
 	private User user;
 
+	@Embedded
+	@Comment("평가점수 : 0, 0.5, 1.0 ... 5.0")
+	@Column(name = "rating")
+	private RatingPoint ratingPoint;
+
+
 	@Builder
-	public Rating(Long id, RatingPoint rating, Alcohol alcohol, User user) {
+	public Rating(RatingId id, RatingPoint ratingPoint, Alcohol alcohol, User user) {
 		this.id = id;
-		this.rating = rating;
+		this.ratingPoint = ratingPoint;
 		this.alcohol = alcohol;
 		this.user = user;
 	}
 }
-
