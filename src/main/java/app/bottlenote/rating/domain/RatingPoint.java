@@ -1,7 +1,10 @@
 package app.bottlenote.rating.domain;
 
+import app.bottlenote.rating.exception.RatingException;
 import jakarta.persistence.Embeddable;
 import lombok.Getter;
+
+import static app.bottlenote.rating.exception.RatingExceptionCode.INVALID_RATING_POINT;
 
 @Getter
 @Embeddable
@@ -15,7 +18,7 @@ public class RatingPoint {
 
 	private RatingPoint(double rating) {
 		if (!isValidRating(rating))
-			throw new IllegalArgumentException("숫자 범위가 잘못되었습니다. 0.0 ~ 5.0 사이의 숫자여야 합니다.");
+			throw new RatingException(INVALID_RATING_POINT);
 		this.rating = rating;
 	}
 
