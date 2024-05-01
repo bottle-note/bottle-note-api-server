@@ -12,7 +12,7 @@ parameter가 없을 경우 기본 값은 5입니다.
 
 [source]
 ----
-POST /api/v1/popular/weekly
+POST /api/v1/popular/week
 ----
 
 [discrete]
