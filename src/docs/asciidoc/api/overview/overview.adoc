@@ -1,7 +1,3 @@
-== 개요
-
-이 API문서는 bottle-note 프로젝트의 API를 설명합니다.
-
 === API 서버 경로
 
 [cols="1,3,3"]
@@ -11,6 +7,8 @@
 |개발 (dev)    | link:[http://api.bottle-note.com/] |API 문서 제공
 |운영(prod)   | link:[] |기능 구현 후 AWS ECS 환경 실 배포
 |====
+
+- 개발 (dev) 링크는 디스코드 채널에 공유되어 있습니다.
 
 [NOTE]
 ====
