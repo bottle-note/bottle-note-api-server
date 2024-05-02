@@ -6,6 +6,9 @@ import lombok.Getter;
 
 import static app.bottlenote.rating.exception.RatingExceptionCode.INVALID_RATING_POINT;
 
+/**
+ * 평점을 나타내는 VO입니다.
+ */
 @Getter
 @Embeddable
 public class RatingPoint {
@@ -27,20 +30,26 @@ public class RatingPoint {
 	}
 
 	/**
-	 * 이 VO는 0.0/1.0/1.5/2.0/2.5/3.0/3.5/4.0/4.5/5.0 중 하나의 값을 가질 수 있습니다.
-	 *
-	 * @param rating the rating
-	 * @return the boolean
+	 * 0.0 ~ 5.0 사이의 값인지 확인합니다.
 	 */
 	private boolean isValidRating(double rating) {
-		return rating >= 0.0 && rating <= 5.0 && (rating * 2) % 1 == 0;
+		return isWithinValidRange(rating) && isIncrementOfHalf(rating);
 	}
 
 	/**
-	 * 이 VO는 x.x 형태로 출력됩니다.l
-	 *
-	 * @return the string
+	 * 0.0 ~ 5.0 사이의 값인지 확인합니다.
 	 */
+	private boolean isWithinValidRange(double rating) {
+		return rating >= 0.0 && rating <= 5.0;
+	}
+
+	/**
+	 * 0.5 단위로 증가하는지 확인합니다.
+	 */
+	private boolean isIncrementOfHalf(double rating) {
+		return (rating * 2) % 1 == 0;
+	}
+
 	@Override
 	public String toString() {
 		return String.format("%.1f", rating);
