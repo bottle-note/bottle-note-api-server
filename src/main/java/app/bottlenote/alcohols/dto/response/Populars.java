@@ -7,14 +7,15 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Populars {
-    private final Long whiskyId;  // 1,
-    private final String korName;  // '글렌피딕',
-    private final String engName;  // 'glen fi',
-    private final Double rating;  // 3.5,
-    private final String category;  // 'single molt',
-    private final String imageUrl;  // "https://i.imgur.com/TE2nmYV.png"
+	private final Long whiskyId;
+	private final String korName;
+	private final String engName;
+	private final Double rating;
+	private final String korCategory;
+	private final String engCategory;
+	private final String imageUrl;
 
-    public static Populars of(Long whiskyId, String korName, String engName, Double rating, String category, String imageUrl) {
-        return new Populars(whiskyId, korName, engName, rating, category, imageUrl);
-    }
+	public static Populars of(Long whiskyId, String korName, String engName, Double rating, String korCategory, String engCategory, String imageUrl) {
+		return new Populars(whiskyId, korName, engName, rating, korCategory, engCategory, imageUrl);
+	}
 }

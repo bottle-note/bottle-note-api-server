@@ -11,14 +11,24 @@ endif::[]
 :sectlinks:
 :sectnums:
 
-[[개요]]
+
+
+== 개요 (overview)
+
+- 이 API문서는 bottle-note 프로젝트의 API를 설명합니다.
+- 포함되면 좋을것 같은 내용이나 수정이 필요한 내용은 언제든지 디스코드 채널을 통해 알려주세요.
+
+
 include::api/overview/overview.adoc[]
 include::api/overview/global-response.adoc[]
 include::api/overview/global-exception.adoc[]
 
-[[alcohol]]
+== 술 (alcohols)
+
+include::api/alcohols/region.adoc[]
 include::api/alcohols/popular.adoc[]
 
-[[user-report]]
+== 신고 (report)
+
 include::api/support/report/user-report.adoc[]
 

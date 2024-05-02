@@ -1,6 +1,6 @@
-== 인기 위스키  API ( popular ) ==
+=== 인기 위스키  API ( popular ) ===
 
-=== 주간 인기 위스키 조회 ===
+==== 주간 인기 위스키 조회 ====
 
 주간 인기 위스키를 조회합니다.
 
@@ -12,11 +12,12 @@ parameter가 없을 경우 기본 값은 5입니다.
 
 [source]
 ----
-POST /api/v1/popular/weekly
+POST /api/v1/popular/week
 ----
 
 [discrete]
 ==== 요청 파라미터 ( request parameters ) ====
+
 include::{snippets}/alcohols/populars/week/query-parameters.adoc[]
 
 
@@ -52,7 +53,6 @@ include::{snippets}/alcohols/populars/week/response-body.adoc[]
 | "신고 대상 사용자가 존재하지 않습니다."
 
 |===
-
 
 ** **추가되지 않은 에러 코드는 요청 바랍니다.**
 ** **request valid에 대한 내용은 공통 예외를 통해 처리됩니다.**

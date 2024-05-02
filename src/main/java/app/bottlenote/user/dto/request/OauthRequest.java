@@ -8,25 +8,21 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.springframework.lang.Nullable;
 
 @Getter
-@NoArgsConstructor
 public class OauthRequest {
 
 	@NotBlank(message = "로그인 및 회원가입에 필요한 이메일이 없습니다.")
 	@Email(message = "올바른 이메일형식이 아닙니다.")
-	private String email;
+	private final String email;
 
 	@NotNull(message = "로그인 및 회원가입에 필요한 소셜타입이 없습니다.")
-	private SocialType socialType;
+	private final SocialType socialType;
 
-	private GenderType gender;
+	private final GenderType gender;
 
-	@Nullable
 	@Min(value = 0, message = "나이가 잘못 입력됐습니다.")
-	private Integer age;
+	private final int age;
 
 	@Builder
 	public OauthRequest(String email, GenderType gender, int age, SocialType socialType) {
