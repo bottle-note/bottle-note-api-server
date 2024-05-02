@@ -95,7 +95,6 @@ public class OauthService {
 		User user = oauthRepository.findByRefreshToken(tokenRequest.refreshToken()).orElseThrow(
 			() -> new UserException(INVALID_REFRESH_TOKEN)
 		);
-		log.info("");
 		return jwtTokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
 	}
 
