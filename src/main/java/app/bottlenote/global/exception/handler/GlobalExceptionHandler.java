@@ -27,6 +27,11 @@ public class GlobalExceptionHandler {
 
 	private static final String KEY_MESSAGE = "message";
 
+	private ResponseEntity<GlobalResponse> createResponseEntity(Exception exception, HttpStatus status, Map<String, String> message) {
+		log.warn("예외 발생 : ", exception);
+		return new ResponseEntity<>(GlobalResponse.error(status.value(), message), status);
+	}
+
 	/**
 	 * 하위 타입에 속하지 않은 모든 예외에 대한 처리
 	 *
@@ -36,8 +41,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(value = {Exception.class})
 	public ResponseEntity<GlobalResponse> handleGenericException(Exception exception) {
 		Map<String, String> message = Map.of(KEY_MESSAGE, exception.getMessage());
-		GlobalResponse error = GlobalResponse.error(HttpStatus.BAD_REQUEST.value(), message);
-		return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+		return createResponseEntity(exception, HttpStatus.BAD_REQUEST, message);
 	}
 
 
@@ -62,8 +66,7 @@ public class GlobalExceptionHandler {
 			errorMessages.put(fieldName, errorMessage);
 		}
 
-		GlobalResponse error = GlobalResponse.error(HttpStatus.BAD_REQUEST.value(), errorMessages);
-		return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+		return createResponseEntity(exception, HttpStatus.BAD_REQUEST, errorMessages);
 	}
 
 	/**
@@ -83,7 +86,7 @@ public class GlobalExceptionHandler {
 
 		Map<String, String> message = Map.of(KEY_MESSAGE, errorMessage);
 
-		return new ResponseEntity<>(GlobalResponse.error(HttpStatus.BAD_REQUEST.value(), message), HttpStatus.BAD_REQUEST);
+		return createResponseEntity(exception, HttpStatus.BAD_REQUEST, message);
 	}
 
 	/**
@@ -105,11 +108,11 @@ public class GlobalExceptionHandler {
 				String fieldName = lastReference.getFieldName();
 				String errorDetailMessage = String.format("'%s' 필드의 값이 잘못되었습니다. 해당 필드의 값의 타입을 확인해주세요.", fieldName);
 				Map<String, String> message = Map.of(KEY_MESSAGE, errorDetailMessage);
-				return new ResponseEntity<>(GlobalResponse.error(HttpStatus.BAD_REQUEST.value(), message), HttpStatus.BAD_REQUEST);
+				return createResponseEntity(exception, HttpStatus.BAD_REQUEST, message);
 			}
 		}
 
 		Map<String, String> message = Map.of(KEY_MESSAGE, finallyErrorMessage);
-		return new ResponseEntity<>(GlobalResponse.error(HttpStatus.BAD_REQUEST.value(), message), HttpStatus.BAD_REQUEST);
+		return createResponseEntity(exception, HttpStatus.BAD_REQUEST, message);
 	}
 }
