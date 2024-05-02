@@ -102,8 +102,21 @@ public class JwtTokenProvider {
 		return claims;
 	}
 
-	// TODO :: 재발급 로직 추가하기
-	// TODO :: 토큰 검증 로직 추가하기
+	public boolean validateToken(String token) {
+		try {
+			Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
+			return true;
+		} catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
+			log.debug("잘못된 JWT 서명 입니다.");
+		} catch (ExpiredJwtException e) {
+			log.debug("만료된 JWT 토큰 입니다.");
+		} catch (UnsupportedJwtException e) {
+			log.debug("지원되지 않는 JWT 토큰 입니다.");
+		} catch (IllegalArgumentException e) {
+			log.debug("JWT 토큰이 잘못 되었습니다.");
+		}
+		return false;
+	}
 
 
 }
