@@ -9,8 +9,8 @@ import static app.bottlenote.rating.exception.RatingExceptionCode.INVALID_RATING
 /**
  * 평점을 나타내는 VO입니다.
  */
-@Getter
 @Embeddable
+@Getter
 public class RatingPoint {
 
 	private final Double rating;
@@ -54,4 +54,5 @@ public class RatingPoint {
 	public String toString() {
 		return String.format("%.1f", rating);
 	}
+
 }

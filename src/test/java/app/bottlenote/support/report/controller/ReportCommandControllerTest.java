@@ -28,6 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@DisplayName("신고 커맨드 컨트롤러 테스트")
 @WebMvcTest(ReportCommandController.class)
 @WithMockUser //인증된 사용자로 설정
 class ReportCommandControllerTest {
