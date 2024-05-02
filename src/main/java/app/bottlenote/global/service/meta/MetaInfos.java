@@ -17,13 +17,12 @@ public class MetaInfos {
 		metaInfos = new HashMap<>();
 	}
 
-	public Map<String, Object> add(String key, Object value) {
-
-		metaInfos.put(key, value);
-		return metaInfos;
-	}
-
 	public Object findByKey(String key) {
 		return metaInfos.get(key);
+	}
+
+	public MetaInfos add(String key, Object value) {
+		this.getMetaInfos().put(key, value);
+		return this;
 	}
 }
