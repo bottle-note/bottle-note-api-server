@@ -2,6 +2,7 @@ package app.bottlenote.user.controller;
 
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.user.dto.request.OauthRequest;
+import app.bottlenote.user.dto.request.TokenRequest;
 import app.bottlenote.user.service.OauthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,14 @@ public class OauthController {
 		log.info("Received oauth request: {}", oauthReq); // Log the request for debugging
 		return ResponseEntity.ok(
 			GlobalResponse.success(oauthService.oauthLogin(oauthReq)));
+	}
+
+	@PostMapping("/reissue")
+	public ResponseEntity<GlobalResponse> oauthReissue(
+		@RequestBody @Valid TokenRequest tokenRequest) {
+		return ResponseEntity.ok(
+			GlobalResponse.success(oauthService.refresh(tokenRequest))
+		);
 	}
 
 
