@@ -144,4 +144,15 @@ public class JwtTokenProvider {
 		return new UsernamePasswordAuthenticationToken(principal, "", authorities);
 	}
 
+	private Claims parseClaims(String accessToken) {
+		try {
+			return Jwts.parserBuilder()
+				.setSigningKey(secretKey)
+				.build()
+				.parseClaimsJws(accessToken)
+				.getBody();
+		} catch (ExpiredJwtException e) {
+			return e.getClaims();
+		}
+	}
 }
