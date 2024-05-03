@@ -1,7 +1,5 @@
 package app.bottlenote.global.security;
 
-import static io.jsonwebtoken.lang.Strings.hasText;
-
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
@@ -20,16 +18,15 @@ public class SecurityUtil {
 	private final OauthRepository oauthRepository;
 
 	public Long getCurrentUserId() {
-
+		log.info("Current Authentication: {}",
+			SecurityContextHolder.getContext().getAuthentication());
 		final Authentication authentication = SecurityContextHolder.getContext()
 			.getAuthentication();
 
-		if (authentication == null || !hasText(authentication.getName()) || authentication.getName()
-			.equals("anonymousUser")) {
-			throw new UserException(UserExceptionCode.AUTHORIZE_INFO_NOT_FOUND);
-		}
-		User user = oauthRepository.findByEmail(authentication.getName()).orElseThrow(
-			() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
+		User user = oauthRepository.findByEmail(authentication.getName())
+			.orElseThrow(
+				() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
+		log.info("user's email is : {}", user.getEmail());
 		return user.getId();
 	}
 
