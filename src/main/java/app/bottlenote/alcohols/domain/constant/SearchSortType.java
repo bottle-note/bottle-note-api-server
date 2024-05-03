@@ -10,13 +10,11 @@ import java.util.stream.Stream;
 @AllArgsConstructor
 public enum SearchSortType {
 	POPULAR("인기순"),
-	HIGH_RATING("높은 별점순"),
-	LOW_RATING("낮은 별점순"),
-	LIKE("찜 많은순"),
-	REVIEW("리뷰 많은순");
+	RATING("별점순"),
+	PICK("찜순"),
+	REVIEW("리뷰순");
 
 	private final String name;
-
 
 	@JsonCreator
 	public static SearchSortType parsing(String source) {
@@ -26,6 +24,6 @@ public enum SearchSortType {
 		return Stream.of(SearchSortType.values())
 			.filter(sortType -> sortType.toString().equals(source.toUpperCase()))
 			.findFirst()
-			.orElse(null);
+			.orElse(POPULAR);
 	}
 }
