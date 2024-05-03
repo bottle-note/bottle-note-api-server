@@ -26,7 +26,7 @@ public class OauthController {
 
 	@PostMapping("/login")
 	public ResponseEntity<GlobalResponse> oauthLogin(@RequestBody @Valid OauthRequest oauthReq) {
-		log.info("Received oauth request: {}", oauthReq); // Log the request for debugging
+		log.info("Received oauth request: {}", oauthReq);
 		return ResponseEntity.ok(
 			GlobalResponse.success(oauthService.oauthLogin(oauthReq)));
 	}
