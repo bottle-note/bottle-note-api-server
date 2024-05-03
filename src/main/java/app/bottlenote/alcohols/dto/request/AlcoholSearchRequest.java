@@ -1,18 +1,21 @@
 package app.bottlenote.alcohols.dto.request;
 
 import app.bottlenote.alcohols.domain.constant.SearchSortType;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
+import app.bottlenote.global.service.cursor.SortOrder;
 
 public record AlcoholSearchRequest(
 	String keyword,
-
-	@NotNull(message = "categoryId는 필수값입니다.")
-	@Min(value = 1, message = "categoryId는 1 이상의 값이어야 합니다.")
-	Long categoryId,
-
+	String category,
 	Long regionId,
-
-	@NotNull(message = "정렬 타입은 필수값입니다.")
-	SearchSortType sortType) {
+	SearchSortType sortType,
+	SortOrder sortOrder,
+	Long cursor,
+	Long pageSize
+) {
+	public AlcoholSearchRequest {
+		sortType = sortType != null ? sortType : SearchSortType.POPULAR;
+		sortOrder = sortOrder != null ? sortOrder : SortOrder.DESC;
+		cursor = cursor != null ? cursor : 0L;
+		pageSize = pageSize != null ? pageSize : 10L;
+	}
 }
