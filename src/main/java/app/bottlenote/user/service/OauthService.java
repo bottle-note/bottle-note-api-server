@@ -61,13 +61,6 @@ public class OauthService {
 		//db에 리프레쉬 토큰 저장
 		oauthRepository.save(user);
 
-		Authentication authentication = authenticationManager.authenticate(
-			oauthReq.toUsernamePasswordAuthenticationToken());
-		SecurityContextHolder.getContext().setAuthentication(authentication);
-
-		log.info("Current Authentication: {}",
-			SecurityContextHolder.getContext().getAuthentication());
-
 		return oauthResponse;
 	}
 
