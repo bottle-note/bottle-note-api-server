@@ -8,6 +8,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,6 +36,14 @@ public class OauthController {
 		@RequestBody @Valid TokenRequest tokenRequest) {
 		return ResponseEntity.ok(
 			GlobalResponse.success(oauthService.refresh(tokenRequest))
+		);
+	}
+
+	@GetMapping("/currentUser")
+	public ResponseEntity<GlobalResponse> getCurrentUser() {
+		log.info("info {}", SecurityContextHolder.getContext().getAuthentication());
+		return ResponseEntity.ok(
+			GlobalResponse.success(oauthService.getCurrentUser())
 		);
 	}
 
