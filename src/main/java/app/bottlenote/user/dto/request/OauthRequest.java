@@ -10,6 +10,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -33,5 +34,10 @@ public class OauthRequest {
 		this.gender = gender;
 		this.age = age;
 		this.socialType = socialType;
+	}
+
+	//소셜 로그인이므로 password 정보가 없기 때문에 credential에 null 값을 할당
+	public UsernamePasswordAuthenticationToken toUsernamePasswordAuthenticationToken() {
+		return new UsernamePasswordAuthenticationToken(this.email, null);
 	}
 }

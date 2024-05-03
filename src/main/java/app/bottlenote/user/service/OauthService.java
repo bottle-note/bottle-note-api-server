@@ -3,6 +3,7 @@ package app.bottlenote.user.service;
 import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
 
 import app.bottlenote.common.jwt.JwtTokenProvider;
+import app.bottlenote.global.security.SecurityUtil;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.constant.GenderType;
 import app.bottlenote.user.domain.constant.SocialType;
@@ -14,7 +15,9 @@ import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.repository.OauthRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,8 +29,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class OauthService {
 
 	private final OauthRepository oauthRepository;
+	private final AuthenticationManager authenticationManager;
 	private final NicknameGenerator nicknameGenerator;
 	private final JwtTokenProvider jwtTokenProvider;
+	private final SecurityUtil securityUtil;
 
 
 	public OauthResponse oauthLogin(OauthRequest oauthReq) {
@@ -49,13 +54,19 @@ public class OauthService {
 		} else {
 			user = optionalUser;
 		}
-
 		OauthResponse oauthResponse = jwtTokenProvider.generateToken(email, UserType.ROLE_USER,
 			user.getId());
 
 		user.updateRefreshToken(oauthResponse.getRefreshToken());
 		//db에 리프레쉬 토큰 저장
 		oauthRepository.save(user);
+
+		Authentication authentication = authenticationManager.authenticate(
+			oauthReq.toUsernamePasswordAuthenticationToken());
+		SecurityContextHolder.getContext().setAuthentication(authentication);
+
+		log.info("Current Authentication: {}",
+			SecurityContextHolder.getContext().getAuthentication());
 
 		return oauthResponse;
 	}
@@ -98,4 +109,8 @@ public class OauthService {
 		return jwtTokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
 	}
 
+	public String getCurrentUser() {
+		log.info("info {}", SecurityContextHolder.getContext().getAuthentication());
+		return String.valueOf(securityUtil.getCurrentUserId());
+	}
 }
