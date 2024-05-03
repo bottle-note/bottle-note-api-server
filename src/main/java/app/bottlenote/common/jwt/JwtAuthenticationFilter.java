@@ -34,6 +34,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
 		if (bearerToken != null && !bearerToken.trim().isEmpty() && bearerToken.startsWith(
 			BEARER_PREFIX)) {
+
+			//TODO : 추후 static 메서드로 분리하여 재사용
 			return bearerToken.split(" ")[1].trim();
 		}
 		return null;
