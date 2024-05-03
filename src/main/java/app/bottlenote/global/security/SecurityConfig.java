@@ -1,7 +1,5 @@
 package app.bottlenote.global.security;
 
-import static org.springframework.security.config.Customizer.withDefaults;
-
 import app.bottlenote.common.jwt.JwtAuthenticationFilter;
 import app.bottlenote.common.jwt.JwtTokenProvider;
 import java.util.Arrays;
@@ -42,8 +40,7 @@ public class SecurityConfig {
 				.permitAll()  // 모든 사용자에게 접근 허용
 				.anyRequest().authenticated())
 			.addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
-				UsernamePasswordAuthenticationFilter.class)
-			.httpBasic(withDefaults());
+				UsernamePasswordAuthenticationFilter.class);
 		return http.build();
 	}
 
