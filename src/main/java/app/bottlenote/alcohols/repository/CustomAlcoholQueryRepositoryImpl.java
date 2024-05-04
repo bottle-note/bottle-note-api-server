@@ -81,9 +81,21 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 			.fetch();
 
 
+		// where 조건으로 전체 결과값 카운트
+		Long totalCount = queryFactory
+			.select(alcohol.id.count())
+			.from(alcohol)
+			.where(
+				eqName(criteriaDto.keyword()),
+				eqCategory(criteriaDto.category()),
+				eqRegion(criteriaDto.regionId())
+			)
+			.fetchOne();
+
+
 		CursorPageable pageable = getCursorPageable(criteriaDto, fetch, cursor, pageSize);
 
-		return PageResponse.of(AlcoholSearchResponse.of(fetch.size(), fetch), pageable);
+		return PageResponse.of(AlcoholSearchResponse.of(totalCount, fetch), pageable);
 	}
 
 	/**
