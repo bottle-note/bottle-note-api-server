@@ -1,18 +1,31 @@
 package app.bottlenote.common.jwt;
 
-import java.security.Key;
-import java.util.Date;
+import static app.bottlenote.user.exception.UserExceptionCode.INVALID_TOKEN;
+import static java.util.stream.Collectors.toList;
 
-import app.bottlenote.user.dto.response.OauthResponse;
 import app.bottlenote.user.domain.constant.UserType;
+import app.bottlenote.user.dto.response.OauthResponse;
+import app.bottlenote.user.exception.UserException;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import java.security.Key;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory
-	.annotation.Value;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 
@@ -20,15 +33,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class JwtTokenProvider {
 
-    private final Key secretKey;
-    public static final int ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 15;
-    public static final int REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 14;
-    public static final String KEY_ROLES = "roles";
-
-
+	private final Key secretKey;
+	public static final int ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 15;
+	public static final int REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 14;
+	public static final String KEY_ROLES = "roles";
 
 	/**
-	 *  secretKey를 받아 JwtTokenProvider를 생성하는 생성자
+	 * secretKey를 받아 JwtTokenProvider를 생성하는 생성자
 	 *
 	 * @param secret 토큰 생성용 시크릿 키
 	 */
@@ -97,13 +108,51 @@ public class JwtTokenProvider {
 	 */
 	private Claims createClaims(String userEmail, UserType role, Long userId) {
 		Claims claims = Jwts.claims().setSubject(userEmail);
-		claims.put(KEY_ROLES, role);
+		claims.put(KEY_ROLES, role.name());
 		claims.put("userId", userId);
 		return claims;
 	}
 
-	// TODO :: 재발급 로직 추가하기
-	// TODO :: 토큰 검증 로직 추가하기
+	public boolean validateToken(String token) {
+		try {
+			Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
+			return true;
+		} catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
+			log.debug("잘못된 JWT 서명 입니다.");
+		} catch (ExpiredJwtException e) {
+			log.debug("만료된 JWT 토큰 입니다.");
+		} catch (UnsupportedJwtException e) {
+			log.debug("지원되지 않는 JWT 토큰 입니다.");
+		} catch (IllegalArgumentException e) {
+			log.debug("JWT 토큰이 잘못 되었습니다.");
+		}
+		return false;
+	}
 
+	public Authentication getAuthentication(String accessToken) {
+		Claims claims = parseClaims(accessToken);
+		log.info("클레임 정보 : {}", claims.toString());
+		String rolesStr = claims.get(KEY_ROLES, String.class);
+		if (rolesStr == null) {
+			throw new UserException(INVALID_TOKEN);
+		}
+		List<GrantedAuthority> authorities = Arrays.stream(rolesStr.split(","))
+			.map(String::trim)
+			.map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+			.collect(toList());
+		UserDetails principal = new User(claims.getSubject(), "", authorities);
+		return new UsernamePasswordAuthenticationToken(principal, "", authorities);
+	}
 
+	private Claims parseClaims(String accessToken) {
+		try {
+			return Jwts.parserBuilder()
+				.setSigningKey(secretKey)
+				.build()
+				.parseClaimsJws(accessToken)
+				.getBody();
+		} catch (ExpiredJwtException e) {
+			return e.getClaims();
+		}
+	}
 }

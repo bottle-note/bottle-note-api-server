@@ -1,17 +1,19 @@
 package app.bottlenote.user.dto.response;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class OauthResponse {
-	private String accessToken;
-	private String refreshToken;
+
+	private final String accessToken;
+	private final String refreshToken;
+
+	@Builder
+	public OauthResponse(String accessToken, String refreshToken) {
+		this.accessToken = accessToken;
+		this.refreshToken = refreshToken;
+	}
 }
 
