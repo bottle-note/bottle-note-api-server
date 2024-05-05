@@ -23,6 +23,7 @@ public class AlcoholQueryController {
 
 	private final AlcoholQueryService alcoholQueryService;
 
+
 	/**
 	 * 위스키를 검색하는 API 입니다.
 	 * 사용자가 있을 경우 좋아요 여부도 함께 전달합니다.
@@ -36,13 +37,12 @@ public class AlcoholQueryController {
 		@ModelAttribute @Valid AlcoholSearchRequest request,
 		@RequestHeader(value = "Authorization", required = false) String token
 	) {
-		Long id = 1L; //todo: token 에서 id 추출 로직으로 변경 필요
+		Long id = null;// 1L; //todo: token 에서 id 추출 로직으로 변경 필요
 
 		PageResponse<AlcoholSearchResponse> pageResponse = alcoholQueryService.searchAlcohols(request, id);
 
 		return ResponseEntity.ok(GlobalResponse
 			.success(
-				//details.getContent(),
 				pageResponse.content(),
 				MetaService.createMetaInfo()
 					.add("searchParameters", request)

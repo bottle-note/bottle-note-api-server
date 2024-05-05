@@ -12,7 +12,6 @@ import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.List;
@@ -70,7 +69,7 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 						parameterWithName("pageSize").optional().description("조회 할 페이지 사이즈")
 					),
 					responseFields(
-						fieldWithPath("success").type(JsonFieldType.STRING).description("응답 성공 여부"),
+						fieldWithPath("success").description("응답 성공 여부"),
 						fieldWithPath("code").description("응답 코드(http status code)"),
 						fieldWithPath("data.totalCount").description("전체 술 리스트의 크기"),
 						fieldWithPath("data.alcohols[].alcoholId").description("술 ID"),
