@@ -38,7 +38,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 	 * @return the slice
 	 */
 	@Override
-	public PageResponse<?> searchAlcohols(AlcoholSearchCriteria criteriaDto) {
+	public PageResponse<AlcoholSearchResponse> searchAlcohols(AlcoholSearchCriteria criteriaDto) {
 		Long cursor = criteriaDto.cursor();
 		Long pageSize = criteriaDto.pageSize();
 
