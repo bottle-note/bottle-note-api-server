@@ -2,6 +2,7 @@ package app.bottlenote.alcohols.controller;
 
 
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
+import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
@@ -30,14 +31,14 @@ public class AlcoholQueryController {
 	 * @param token   the token
 	 * @return the response entity
 	 */
-	@GetMapping
+	@GetMapping("/search")
 	public ResponseEntity<GlobalResponse> searchAlcohols(
 		@ModelAttribute @Valid AlcoholSearchRequest request,
 		@RequestHeader(value = "Authorization", required = false) String token
 	) {
 		Long id = 1L; //todo: token 에서 id 추출 로직으로 변경 필요
 
-		PageResponse<?> pageResponse = alcoholQueryService.searchAlcohols(request, id);
+		PageResponse<AlcoholSearchResponse> pageResponse = alcoholQueryService.searchAlcohols(request, id);
 
 		return ResponseEntity.ok(GlobalResponse
 			.success(
@@ -46,7 +47,6 @@ public class AlcoholQueryController {
 				MetaService.createMetaInfo()
 					.add("searchParameters", request)
 					.add("pageable", pageResponse.cursorPageable())
-					.add("token", token) //삭제 예정
 			)
 		);
 	}
