@@ -1,11 +1,10 @@
 package app.bottlenote.global.security;
 
-import app.bottlenote.user.domain.User;
-import app.bottlenote.user.exception.UserException;
-import app.bottlenote.user.exception.UserExceptionCode;
+import app.bottlenote.global.security.customPrincipal.CustomUserContext;
 import app.bottlenote.user.repository.OauthRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -17,17 +16,16 @@ public class SecurityUtil {
 
 	private final OauthRepository oauthRepository;
 
-	public Long getCurrentUserId() {
-		log.info("Current Authentication: {}",
-			SecurityContextHolder.getContext().getAuthentication());
-		final Authentication authentication = SecurityContextHolder.getContext()
-			.getAuthentication();
+	public static Long getCurrentUserId() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		Long userId = null;
 
-		User user = oauthRepository.findByEmail(authentication.getName())
-			.orElseThrow(
-				() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
-		log.info("user's email is : {}", user.getEmail());
-		return user.getId();
+		if (authentication instanceof UsernamePasswordAuthenticationToken) {
+			CustomUserContext customUserContext = (CustomUserContext) authentication.getPrincipal();
+			userId = customUserContext.getId();
+		}
+
+		return userId;
 	}
 
 }
