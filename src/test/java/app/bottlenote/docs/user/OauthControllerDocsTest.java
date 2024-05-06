@@ -6,7 +6,6 @@ import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.docu
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
-import static org.springframework.restdocs.snippet.Attributes.key;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -25,7 +24,7 @@ import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
 @DisplayName("유저 컨트롤러 RestDocs용 테스트")
-class OauthControllerTest extends AbstractRestDocs {
+class OauthControllerDocsTest extends AbstractRestDocs {
 
 	private final OauthService oauthService = mock(OauthService.class);
 
@@ -61,13 +60,11 @@ class OauthControllerTest extends AbstractRestDocs {
 					requestFields(
 						fieldWithPath("email").type(JsonFieldType.STRING).description("이메일"),
 						fieldWithPath("gender").type(JsonFieldType.STRING).description("성별")
-							.attributes(key("constraints")
-								.value("가능한 값: MALE(남성), FEMALE(여성)")),
-						fieldWithPath("age").type(JsonFieldType.NUMBER).description("나이"),
+							.optional(),
+						fieldWithPath("age").type(JsonFieldType.NUMBER).description("나이")
+							.optional(),
 						fieldWithPath("socialType").type(JsonFieldType.STRING)
 							.description("소셜 로그인 타입")
-							.attributes(key("constraints")
-								.value("가능한 값: KAKAO, GOOGLE, NAVER - 각 소셜 미디어 플랫폼에 따라 로그인"))
 					),
 					responseFields(
 						fieldWithPath("success").type(JsonFieldType.BOOLEAN)
