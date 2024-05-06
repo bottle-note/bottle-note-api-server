@@ -7,31 +7,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.bottlenote.common.jwt.JwtTokenProvider;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.dto.request.OauthRequest;
+import app.bottlenote.user.dto.request.TokenRequest;
 import app.bottlenote.user.dto.response.OauthResponse;
 import app.bottlenote.user.service.OauthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.catalina.security.SecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 @DisplayName("유저 로그인 컨트롤러 테스트")
-@WebMvcTest(
-	controllers = {OauthController.class},
-	excludeFilters = {
-		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class)
-	}
-)
+@WebMvcTest(OauthController.class)
 @WithMockUser
 class UserControllerTest {
 
@@ -41,19 +33,14 @@ class UserControllerTest {
 	protected MockMvc mockMvc;
 	@MockBean
 	protected OauthService oauthService;
-	@MockBean
-	protected JwtTokenProvider jwtTokenProvider;
 
 	@Test
 	@DisplayName("유저는 로그인 할 수 있다.")
 	void user_login_test() throws Exception {
 
 		//given
-		OauthRequest oauthRequest = OauthRequest.builder()
-			.email("cdm2883@naver.com")
-			.socialType(SocialType.KAKAO)
-			.age(26)
-			.build();
+		OauthRequest oauthRequest = new OauthRequest("cdm2883@naver.com", SocialType.KAKAO, null,
+			27);
 
 		OauthResponse oauthResponse = new OauthResponse("accessToken", "refreshToken");
 
@@ -69,11 +56,35 @@ class UserControllerTest {
 				.content(mapper.writeValueAsString(oauthRequest)))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value("200"))
-			//.andExpect(jsonPath("$.data.accessToken").value("accessToken"))
+			.andExpect(jsonPath("$.data.accessToken").value("accessToken"))
+			.andExpect(jsonPath("$.data.refreshToken").value("refreshToken"))
 			.andDo(print());
-
-
 	}
 
+	@Test
+	@DisplayName("유저는 토큰을 재발급 받을 수 있다.")
+	void user_reissue_test() throws Exception {
+
+		//given
+		TokenRequest tokenRequest = new TokenRequest("access-token", "refresh-token");
+
+		OauthResponse oauthResponse = new OauthResponse("new-access-token", "new-refresh-token");
+
+		//when
+		when(oauthService.refresh(tokenRequest)).thenReturn(oauthResponse);
+
+		//then
+		mockMvc.perform(post("/api/v1/oauth/reissue")
+				.contentType(MediaType.APPLICATION_JSON)
+				.header("accessToken", tokenRequest.accessToken())
+				.header("refreshToken", tokenRequest.refreshToken())
+				.with(csrf())
+				.content(mapper.writeValueAsString(tokenRequest)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value("200"))
+			.andExpect(jsonPath("$.data.accessToken").value("new-access-token"))
+			.andExpect(jsonPath("$.data.refreshToken").value("new-refresh-token"))
+			.andDo(print());
+	}
 
 }
