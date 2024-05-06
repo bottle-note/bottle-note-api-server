@@ -25,6 +25,7 @@ import app.bottlenote.user.dto.response.OauthResponse;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.repository.OauthRepository;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,7 +37,7 @@ import org.springframework.security.core.Authentication;
 
 @DisplayName("유저 서비스 테스트")
 @ExtendWith(MockitoExtension.class)
-class UserServiceTest {
+class OauthServiceTest {
 
 	@InjectMocks
 	private OauthService oauthService;
@@ -50,25 +51,34 @@ class UserServiceTest {
 	private JwtTokenProvider jwtTokenProvider;
 
 
-	private final OauthRequest request = new OauthRequest("cdm2883@naver.com", SocialType.KAKAO,
-		null, 26);
+	private OauthRequest request;
+	private User user;
+	private OauthResponse oauthResponse;
+	private String nickName;
 
-	private final String nickName = "mockNickname";
+	@BeforeEach
+	void setUp() {
 
-	private final User user = User.builder()
-		.id(1L)
-		.email("cdm2883@naver.com")
-		.gender("남")
-		.socialType(SocialType.KAKAO)
-		.age(26)
-		.nickName(nickName)
-		.role(UserType.ROLE_USER)
-		.build();
+		request = new OauthRequest("cdm2883@naver.com", SocialType.KAKAO,
+			null, 26);
 
-	private final OauthResponse oauthResponse = OauthResponse.builder()
-		.accessToken("mock-accessToken")
-		.refreshToken("mock-refreshToken")
-		.build();
+		String nickName = "mockNickname";
+
+		user = User.builder()
+			.id(1L)
+			.email("cdm2883@naver.com")
+			.gender("남")
+			.socialType(SocialType.KAKAO)
+			.age(26)
+			.nickName(nickName)
+			.role(UserType.ROLE_USER)
+			.build();
+
+		oauthResponse = OauthResponse.builder()
+			.accessToken("mock-accessToken")
+			.refreshToken("mock-refreshToken")
+			.build();
+	}
 
 	@Test
 	@DisplayName("회원가입을 할 수 있다.")
@@ -135,6 +145,7 @@ class UserServiceTest {
 	@DisplayName("로그인 요청 Email이 DB에 존재하면, 회원가입 로직이 실행되지 않는다")
 	void test_Login_Or_CreateAccount_Based_On_Email_Not_Existence() {
 
+		//when
 		when(oauthRepository.findByEmailAndSocialType(any(String.class),
 			any(SocialType.class))).thenReturn(Optional.of(user));
 
