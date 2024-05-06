@@ -12,6 +12,9 @@ import app.bottlenote.global.service.cursor.SortOrder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -20,7 +23,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.List;
+import java.util.stream.Stream;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -28,9 +33,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@WithMockUser()
 @DisplayName("알코올(위스키) 쿼리 컨트롤러 테스트")
 @WebMvcTest(AlcoholQueryController.class)
-@WithMockUser
 class AlcoholQueryControllerTest {
 	@Autowired
 	protected ObjectMapper mapper;
@@ -39,49 +44,133 @@ class AlcoholQueryControllerTest {
 	@MockBean
 	private AlcoholQueryService alcoholQueryService;
 
-	@DisplayName("술 리스트를 조회할 수 있다.")
-	@Test
-	void test_case_1() throws Exception {
+	static Stream<Arguments> testCase1Provider() {
+		return Stream.of(
+			Arguments.of("모든 요청 파라미터가 존재할 때.",
+				AlcoholSearchRequest.builder()
+					.keyword("glen")
+					.category("SINGLE_MOLT")
+					.regionId(1L)
+					.sortType(SearchSortType.REVIEW)
+					.sortOrder(SortOrder.DESC)
+					.cursor(0L)
+					.pageSize(3L)
+					.build()
+			), Arguments.of("키워드가 없을 때.",
+				AlcoholSearchRequest.builder()
+					.keyword("")
+					.category("SINGLE_MOLT")
+					.regionId(1L)
+					.sortType(SearchSortType.REVIEW)
+					.sortOrder(SortOrder.DESC)
+					.cursor(0L)
+					.pageSize(3L)
+					.build()
+			), Arguments.of("카테고리도 없을 때.",
+				AlcoholSearchRequest.builder()
+					.keyword("")
+					.category("")
+					.regionId(1L)
+					.sortType(SearchSortType.REVIEW)
+					.sortOrder(SortOrder.DESC)
+					.cursor(0L)
+					.pageSize(3L)
+					.build()
+			), Arguments.of("지역 아이디도 없을 때.",
+				AlcoholSearchRequest.builder()
+					.keyword("")
+					.category("")
+					.regionId(null)
+					.sortType(SearchSortType.REVIEW)
+					.sortOrder(SortOrder.DESC)
+					.cursor(0L)
+					.pageSize(3L)
+					.build()
+			), Arguments.of("정렬 정보도 없을 때.",
+				AlcoholSearchRequest.builder()
+					.keyword("")
+					.category("")
+					.regionId(null)
+					.sortType(null)
+					.sortOrder(null)
+					.cursor(0L)
+					.pageSize(3L)
+					.build()
+			), Arguments.of("페이지 정보도도 없을 때.",
+				AlcoholSearchRequest.builder()
+					.keyword("")
+					.category("")
+					.regionId(null)
+					.sortType(null)
+					.sortOrder(null)
+					.cursor(null)
+					.pageSize(null)
+					.build()
+			)
+		);
+	}
+
+	@DisplayName("술(위스키) 리스트를 조회할 수 있다.")
+	@ParameterizedTest(name = "[{index}]{0}")
+	@MethodSource("testCase1Provider")
+	void test_case_1(String description, AlcoholSearchRequest searchRequest) throws Exception {
+
 		// given
-		Long userId = null;
-		AlcoholSearchRequest request = getRequest();
 		PageResponse<AlcoholSearchResponse> response = getResponse();
 
 		// when
-		when(alcoholQueryService.searchAlcohols(request, userId)).thenReturn(response);
+		when(alcoholQueryService.searchAlcohols(any(), any())).thenReturn(response);
 
 		// then
 		ResultActions resultActions = mockMvc.perform(get("/api/v1/alcohols/search")
-				.param("keyword", "glen")
-				.param("category", "SINGLE_MOLT")
-				.param("regionId", "1")
-				.param("sortType", "REVIEW")
-				.param("sortOrder", "DESC")
-				.param("cursor", "0")
-				.param("pageSize", "3")
+				.param("keyword", searchRequest.keyword())
+				.param("category", searchRequest.category())
+				.param("regionId", searchRequest.regionId() == null ? null : String.valueOf(searchRequest.regionId()))
+				.param("sortType", searchRequest.sortType().name())
+				.param("sortOrder", searchRequest.sortOrder().name())
+				.param("cursor", String.valueOf(searchRequest.cursor()))
+				.param("pageSize", String.valueOf(searchRequest.pageSize()))
 				.with(csrf())
 			)
 			.andExpect(status().isOk())
 			.andDo(print());
 
-
 		resultActions.andExpect(jsonPath("$.success").value("true"));
 		resultActions.andExpect(jsonPath("$.code").value("200"));
 		resultActions.andExpect(jsonPath("$.data.totalCount").value(5));
 		resultActions.andExpect(jsonPath("$.data.alcohols.size()").value(3));
+		resultActions.andExpect(jsonPath("$.data.alcohols[0].alcoholId").value(5));
+		resultActions.andExpect(jsonPath("$.data.alcohols[0].korName").value("아녹 24년"));
+		resultActions.andExpect(jsonPath("$.data.alcohols[0].engName").value("anCnoc 24-year-old"));
 
 	}
 
-	private AlcoholSearchRequest getRequest() {
-		return AlcoholSearchRequest.builder()
-			.keyword("glen")
-			.category("SINGLE_MOLT")
-			.regionId(1L)
-			.sortType(SearchSortType.REVIEW)
-			.sortOrder(SortOrder.DESC)
-			.cursor(0L)
-			.pageSize(3L)
-			.build();
+	@DisplayName("술(위스키) 리스트를 조회할 수 있다.")
+	@Test
+	void test_case_2() throws Exception {
+
+		// given
+		PageResponse<AlcoholSearchResponse> response = getResponse();
+
+		// when
+		when(alcoholQueryService.searchAlcohols(any(), any())).thenReturn(response);
+
+		// then
+		ResultActions resultActions = mockMvc.perform(get("/api/v1/alcohols/search")
+				.param("keyword", "")
+				.param("category", "")
+				.param("regionId", "")
+				.param("sortType", "RATINGS")
+				.param("sortOrder", "")
+				.param("cursor", "")
+				.param("pageSize", "")
+				.with(csrf())
+			)
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.success").value("false"))
+			.andExpect(jsonPath("$.code").value("400"))
+			.andExpect(jsonPath("$.errors").value("app.bottlenote.alcohols.domain.constant.SearchSortType"))
+			.andDo(print());
 	}
 
 	private PageResponse<AlcoholSearchResponse> getResponse() {

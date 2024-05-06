@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
@@ -44,7 +45,7 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 		PageResponse<AlcoholSearchResponse> response = getResponse();
 
 		// when
-		when(alcoholQueryService.searchAlcohols(request, userId)).thenReturn(response);
+		when(alcoholQueryService.searchAlcohols(any(AlcoholSearchRequest.class), any())).thenReturn(response);
 
 		// then
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/alcohols/search")
