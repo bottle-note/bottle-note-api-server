@@ -35,3 +35,8 @@ include::api/alcohols/popular.adoc[]
 == 신고 (report)
 
 include::api/support/report/user-report.adoc[]
+
+== 회원 (user)
+
+include::api/user/user-login.adoc[]
+include::api/user/user-reissue.adoc[]

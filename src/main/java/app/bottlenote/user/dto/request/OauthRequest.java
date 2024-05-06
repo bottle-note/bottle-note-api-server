@@ -6,40 +6,15 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class OauthRequest {
+public record OauthRequest
+	(@NotBlank(message = "로그인 및 회원가입에 필요한 이메일이 없습니다.")
+	 @Email(message = "올바른 이메일형식이 아닙니다.") String email,
+	 @NotNull(message = "로그인 및 회원가입에 필요한 소셜타입이 없습니다.")
+	 SocialType socialType,
+	 GenderType gender,
+	 @Min(value = 0, message = "나이가 잘못 입력됐습니다.")
+	 Integer age
+	) {
 
-	@NotBlank(message = "로그인 및 회원가입에 필요한 이메일이 없습니다.")
-	@Email(message = "올바른 이메일형식이 아닙니다.")
-	private String email;
-
-	@NotNull(message = "로그인 및 회원가입에 필요한 소셜타입이 없습니다.")
-	private SocialType socialType;
-
-	private GenderType gender;
-
-	@Min(value = 0, message = "나이가 잘못 입력됐습니다.")
-	private Integer age;
-
-	@Builder
-	public OauthRequest(String email, GenderType gender, Integer age, SocialType socialType) {
-		this.email = email;
-		this.gender = gender;
-		this.age = age;
-		this.socialType = socialType;
-	}
-
-	/**
-	 * 소셜 로그인이므로 password 정보가 없기 때문에 credential에 null 값을 할당
-	 */
-	public UsernamePasswordAuthenticationToken toUsernamePasswordAuthenticationToken() {
-		return new UsernamePasswordAuthenticationToken(this.email, null);
-	}
 }

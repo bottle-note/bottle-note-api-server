@@ -3,31 +3,16 @@ package app.bottlenote.global.security.jwt;
 import app.bottlenote.global.security.customPrincipal.CustomUserDetailsService;
 import app.bottlenote.user.domain.constant.UserType;
 import app.bottlenote.user.dto.response.OauthResponse;
-import app.bottlenote.user.exception.UserException;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import java.security.Key;
+import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-
-import java.security.Key;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-
-import static app.bottlenote.user.exception.UserExceptionCode.INVALID_TOKEN;
-import static java.util.stream.Collectors.toList;
 
 
 @Slf4j
@@ -45,13 +30,13 @@ public class JwtTokenProvider {
 	 *
 	 * @param secret 토큰 생성용 시크릿 키
 	 */
-	public JwtTokenProvider(@Value("${security.jwt.secret-key}") String secret, CustomUserDetailsService customUserDetailsService) {
+	public JwtTokenProvider(@Value("${security.jwt.secret-key}") String secret,
+		CustomUserDetailsService customUserDetailsService) {
 		byte[] keyBytes = Decoders.BASE64.decode(secret);
 		this.secretKey = Keys.hmacShaKeyFor(keyBytes);
 		this.customUserDetailsService = customUserDetailsService;
 	}
-
-
+	
 	/**
 	 * 필수적인 파라미터를 받아 엑세스 토큰과 리프레시 토큰을 생성하는 메소드
 	 *
@@ -88,7 +73,6 @@ public class JwtTokenProvider {
 			.compact();
 	}
 
-
 	/**
 	 * 필수적인 파라미터를 받아 리프레시 토큰을 생성하는 메소드
 	 *
@@ -122,70 +106,5 @@ public class JwtTokenProvider {
 		claims.put(KEY_ROLES, role.name());
 		claims.put("userId", userId);
 		return claims;
-	}
-
-	/**
-	 * 토큰의 유효성을 검사하는 메소드
-	 */
-	public boolean validateToken(String token) {
-		try {
-
-			if (token == null || token.trim().isEmpty())
-				return false;
-
-			Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
-
-			return true;
-
-		} catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-			log.debug("잘못된 JWT 서명 입니다.");
-		} catch (ExpiredJwtException e) {
-			log.debug("만료된 JWT 토큰 입니다.");
-		} catch (UnsupportedJwtException e) {
-			log.debug("지원되지 않는 JWT 토큰 입니다.");
-		} catch (IllegalArgumentException e) {
-			log.debug("JWT 토큰이 잘못 되었습니다.");
-		}
-		return false;
-	}
-
-	/**
-	 * 토큰을 받아 클레임을 추출하고 Authentication 객체를 생성하는 메소드
-	 */
-	public Authentication getAuthentication(String accessToken) {
-
-		Claims claims = parseClaims(accessToken);
-
-		log.info("클레임 정보 : {}", claims.toString());
-
-		String rolesStr = claims.get(KEY_ROLES, String.class);
-
-		if (rolesStr == null) {
-			throw new UserException(INVALID_TOKEN);
-		}
-
-		List<GrantedAuthority> authorities = Arrays.stream(rolesStr.split(","))
-			.map(String::trim)
-			.map(SimpleGrantedAuthority::new)
-			.collect(toList());
-
-		UserDetails userDetails = customUserDetailsService.loadUserByUsername(claims.getSubject());
-
-		return new UsernamePasswordAuthenticationToken(userDetails, "", authorities);
-	}
-
-	/**
-	 * 토큰을 받아 클레임을 추출하는 메소드
-	 */
-	private Claims parseClaims(String accessToken) {
-		try {
-			return Jwts.parserBuilder()
-				.setSigningKey(secretKey)
-				.build()
-				.parseClaimsJws(accessToken)
-				.getBody();
-		} catch (ExpiredJwtException e) {
-			return e.getClaims();
-		}
 	}
 }

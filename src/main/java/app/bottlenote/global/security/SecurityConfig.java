@@ -1,7 +1,9 @@
 package app.bottlenote.global.security;
 
 import app.bottlenote.global.security.jwt.JwtAuthenticationFilter;
-import app.bottlenote.global.security.jwt.JwtTokenProvider;
+import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
+import java.util.Arrays;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,27 +17,25 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
-import java.util.List;
-
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-	private final JwtTokenProvider jwtTokenProvider;
+	private final JwtAuthenticationManager jwtAuthenticationManager;
 
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http
 			.cors(cors -> cors.configurationSource(corsConfigurationSource()))
 			.csrf(AbstractHttpConfigurer::disable)
-			.sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+			.sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(
+				SessionCreationPolicy.STATELESS))
 			.formLogin(AbstractHttpConfigurer::disable)
 			.authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/oauth/**")
 				.permitAll()  // 모든 사용자에게 접근 허용
 				.anyRequest().permitAll())
-			.addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
+			.addFilterBefore(new JwtAuthenticationFilter(jwtAuthenticationManager),
 				UsernamePasswordAuthenticationFilter.class);
 		return http.build();
 	}
