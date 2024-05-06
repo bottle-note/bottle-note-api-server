@@ -11,7 +11,6 @@ import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -43,6 +42,41 @@ class AlcoholQueryControllerTest {
 	protected MockMvc mockMvc;
 	@MockBean
 	private AlcoholQueryService alcoholQueryService;
+
+	@DisplayName("술(위스키) 리스트를 조회할 수 있다.")
+	@ParameterizedTest(name = "[{index}]{0}")
+	@MethodSource("testCase1Provider")
+	void test_case_1(String description, AlcoholSearchRequest searchRequest) throws Exception {
+
+		// given
+		PageResponse<AlcoholSearchResponse> response = getResponse();
+
+		// when
+		when(alcoholQueryService.searchAlcohols(any(), any())).thenReturn(response);
+
+		// then
+		ResultActions resultActions = mockMvc.perform(get("/api/v1/alcohols/search")
+				.param("keyword", searchRequest.keyword())
+				.param("category", searchRequest.category())
+				.param("regionId", searchRequest.regionId() == null ? null : String.valueOf(searchRequest.regionId()))
+				.param("sortType", searchRequest.sortType().name())
+				.param("sortOrder", searchRequest.sortOrder().name())
+				.param("cursor", String.valueOf(searchRequest.cursor()))
+				.param("pageSize", String.valueOf(searchRequest.pageSize()))
+				.with(csrf())
+			)
+			.andExpect(status().isOk())
+			.andDo(print());
+
+		resultActions.andExpect(jsonPath("$.success").value("true"));
+		resultActions.andExpect(jsonPath("$.code").value("200"));
+		resultActions.andExpect(jsonPath("$.data.totalCount").value(5));
+		resultActions.andExpect(jsonPath("$.data.alcohols.size()").value(3));
+		resultActions.andExpect(jsonPath("$.data.alcohols[0].alcoholId").value(5));
+		resultActions.andExpect(jsonPath("$.data.alcohols[0].korName").value("아녹 24년"));
+		resultActions.andExpect(jsonPath("$.data.alcohols[0].engName").value("anCnoc 24-year-old"));
+
+	}
 
 	static Stream<Arguments> testCase1Provider() {
 		return Stream.of(
@@ -110,66 +144,77 @@ class AlcoholQueryControllerTest {
 		);
 	}
 
-	@DisplayName("술(위스키) 리스트를 조회할 수 있다.")
-	@ParameterizedTest(name = "[{index}]{0}")
-	@MethodSource("testCase1Provider")
-	void test_case_1(String description, AlcoholSearchRequest searchRequest) throws Exception {
-
-		// given
-		PageResponse<AlcoholSearchResponse> response = getResponse();
-
-		// when
-		when(alcoholQueryService.searchAlcohols(any(), any())).thenReturn(response);
-
-		// then
-		ResultActions resultActions = mockMvc.perform(get("/api/v1/alcohols/search")
-				.param("keyword", searchRequest.keyword())
-				.param("category", searchRequest.category())
-				.param("regionId", searchRequest.regionId() == null ? null : String.valueOf(searchRequest.regionId()))
-				.param("sortType", searchRequest.sortType().name())
-				.param("sortOrder", searchRequest.sortOrder().name())
-				.param("cursor", String.valueOf(searchRequest.cursor()))
-				.param("pageSize", String.valueOf(searchRequest.pageSize()))
-				.with(csrf())
-			)
-			.andExpect(status().isOk())
-			.andDo(print());
-
-		resultActions.andExpect(jsonPath("$.success").value("true"));
-		resultActions.andExpect(jsonPath("$.code").value("200"));
-		resultActions.andExpect(jsonPath("$.data.totalCount").value(5));
-		resultActions.andExpect(jsonPath("$.data.alcohols.size()").value(3));
-		resultActions.andExpect(jsonPath("$.data.alcohols[0].alcoholId").value(5));
-		resultActions.andExpect(jsonPath("$.data.alcohols[0].korName").value("아녹 24년"));
-		resultActions.andExpect(jsonPath("$.data.alcohols[0].engName").value("anCnoc 24-year-old"));
-
+	static Stream<Arguments> sortTypeParameters() {
+		return Stream.of(
+			// 성공 케이스
+			Arguments.of("REVIEW", 200),
+			Arguments.of("POPULAR", 200),
+			Arguments.of("PICK", 200),
+			Arguments.of("REVIEW", 200),
+			// 실패 케이스
+			Arguments.of("RATINGS", 400),
+			Arguments.of("POpu", 400),
+			Arguments.of("PIC", 400),
+			Arguments.of("REVIEWWW", 400)
+		);
 	}
 
-	@DisplayName("술(위스키) 리스트를 조회할 수 있다.")
-	@Test
-	void test_case_2() throws Exception {
+	static Stream<Arguments> sortOrderParameters() {
+		return Stream.of(
+			// 성공 케이스
+			Arguments.of("ASC", 200),
+			Arguments.of("DESC", 200),
+			// 실패 케이스
+			Arguments.of("DESCCC", 400),
+			Arguments.of("ASCC", 400)
+		);
+	}
 
+	@DisplayName("정렬 타입에 대한 검증")
+	@ParameterizedTest(name = "{1} : {0}")
+	@MethodSource("sortTypeParameters")
+	void test_sortType(String sortType, int expectedStatus) throws Exception {
 		// given
 		PageResponse<AlcoholSearchResponse> response = getResponse();
 
 		// when
 		when(alcoholQueryService.searchAlcohols(any(), any())).thenReturn(response);
 
-		// then
-		ResultActions resultActions = mockMvc.perform(get("/api/v1/alcohols/search")
+		mockMvc.perform(get("/api/v1/alcohols/search")
 				.param("keyword", "")
 				.param("category", "")
 				.param("regionId", "")
-				.param("sortType", "RATINGS")
-				.param("sortOrder", "")
+				.param("sortType", sortType)
+				.param("sortOrder", "DESC")
 				.param("cursor", "")
 				.param("pageSize", "")
 				.with(csrf())
 			)
-			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.success").value("false"))
-			.andExpect(jsonPath("$.code").value("400"))
-			.andExpect(jsonPath("$.errors").value("app.bottlenote.alcohols.domain.constant.SearchSortType"))
+			.andExpect(status().is(expectedStatus))
+			.andDo(print());
+	}
+
+	@DisplayName("정렬 방향에 대한 검증")
+	@ParameterizedTest(name = "{1} : {0}")
+	@MethodSource("sortOrderParameters")
+	void test_sortOrder(String sortOrder, int expectedStatus) throws Exception {
+		// given
+		PageResponse<AlcoholSearchResponse> response = getResponse();
+
+		// when
+		when(alcoholQueryService.searchAlcohols(any(), any())).thenReturn(response);
+
+		mockMvc.perform(get("/api/v1/alcohols/search")
+				.param("keyword", "")
+				.param("category", "")
+				.param("regionId", "")
+				.param("sortType", "REVIEW")
+				.param("sortOrder", sortOrder)
+				.param("cursor", "")
+				.param("pageSize", "")
+				.with(csrf())
+			)
+			.andExpect(status().is(expectedStatus))
 			.andDo(print());
 	}
 

@@ -98,10 +98,10 @@ class ReportCommandControllerTest {
 			.andExpect(jsonPath("$.success").value("false"))
 			.andExpect(jsonPath("$.code").value("400"))
 			.andExpect(jsonPath("$.data").isEmpty())
-			.andExpect(jsonPath("$.errors.userId").value("신고자 아이디는 필수입니다."))
-			.andExpect(jsonPath("$.errors.reportUserId").value("신고 대상자 아이디는 필수입니다."))
-			.andExpect(jsonPath("$.errors.type").value("신고 타입이 적절하지 않습니다. ( SPAM , INAPPROPRIATE_CONTENT ,FRAUD ,COPYRIGHT_INFRINGEMENT ,OTHER )"))
-			.andExpect(jsonPath("$.errors.content").value("신고 내용은 필수입니다."))
+			.andExpect(jsonPath("$.errors.reportUserId").value("필드 'reportUserId'의 값 'null'가 유효하지 않습니다: 신고 대상자 아이디는 필수입니다."))
+			.andExpect(jsonPath("$.errors.userId").value("필드 'userId'의 값 'null'가 유효하지 않습니다: 신고자 아이디는 필수입니다."))
+			.andExpect(jsonPath("$.errors.type").value("필드 'type'의 값 'null'가 유효하지 않습니다: 신고 타입이 적절하지 않습니다. ( SPAM , INAPPROPRIATE_CONTENT ,FRAUD ,COPYRIGHT_INFRINGEMENT ,OTHER )"))
+			.andExpect(jsonPath("$.errors.content").value("필드 'content'의 값 'null'가 유효하지 않습니다: 신고 내용은 필수입니다."))
 			.andDo(print());
 	}
 
