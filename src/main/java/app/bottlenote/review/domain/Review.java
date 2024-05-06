@@ -69,11 +69,9 @@ public class Review extends BaseEntity {
 	@Column(name = "image_url")
 	private String imageUrl;
 
-	//viewCnt X 축약어를 자제하세요. 좋은 코드는 읽기 쉬워야 합니다.
-	// 기본 값은 0으로 설정한다.
 	@Comment("조회수")
-	@Column(name = "view_count", nullable = false, columnDefinition = "BIGINT default 0")
-	private Long viewCount;
+	@Column(name = "view_count", nullable = false)
+	private Long viewCount = 0L;
 
 	// 댓글 목록
 	// review와 reviewReply는 1(review) : N(reviewReply) 관계이다.
@@ -87,4 +85,3 @@ public class Review extends BaseEntity {
 
 
 }
-
