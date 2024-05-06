@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import app.bottlenote.user.domain.constant.GenderType;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.request.TokenRequest;
@@ -39,15 +40,14 @@ class UserControllerTest {
 	void user_login_test() throws Exception {
 
 		//given
-		OauthRequest oauthRequest = new OauthRequest("cdm2883@naver.com", SocialType.KAKAO, null,
+		OauthRequest oauthRequest = new OauthRequest("cdm2883@naver.com", SocialType.KAKAO,
+			GenderType.MALE,
 			27);
 
 		OauthResponse oauthResponse = new OauthResponse("accessToken", "refreshToken");
 
 		//when
 		when(oauthService.oauthLogin(oauthRequest)).thenReturn(oauthResponse);
-		OauthResponse response = oauthService.oauthLogin(oauthRequest);
-		System.out.println(response.getAccessToken() + " " + response.getRefreshToken());
 
 		//then
 		mockMvc.perform(post("/api/v1/oauth/login")
