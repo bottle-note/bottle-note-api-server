@@ -88,5 +88,21 @@ public class Alcohol extends BaseEntity {
 	// Rating이 alcohol의 id를 가지고 있다.
 	@OneToMany(mappedBy = "alcohol", fetch = FetchType.LAZY)
 	private List<Rating> rating = new ArrayList<>();
-}
 
+	@Override
+	public String toString() {
+		return "Alcohol{" +
+				"id=" + id +
+				", korName='" + korName + '\'' +
+				", engName='" + engName + '\'' +
+				", abv='" + abv + '\'' +
+				", type=" + type +
+				", korCategory='" + korCategory + '\'' +
+				", engCategory='" + engCategory + '\'' +
+				", region=" + region +
+				", distillery=" + distillery +
+				", cask='" + cask + '\'' +
+				", imageUrl='" + imageUrl + '\'' +
+				'}';
+	}
+}
