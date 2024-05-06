@@ -1,15 +1,14 @@
 package app.bottlenote.global.security;
 
-import app.bottlenote.common.jwt.JwtAuthenticationFilter;
-import app.bottlenote.common.jwt.JwtTokenProvider;
+import app.bottlenote.global.security.jwt.JwtAuthenticationFilter;
+import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -19,14 +18,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
-
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-	private final SocialLoginAuthenticationProvider socialLoginAuthenticationProvider;
 	private final JwtTokenProvider jwtTokenProvider;
 
 	@Bean
@@ -34,19 +30,17 @@ public class SecurityConfig {
 		http
 			.cors(cors -> cors.configurationSource(corsConfigurationSource()))
 			.csrf(AbstractHttpConfigurer::disable)
-			.authenticationProvider(socialLoginAuthenticationProvider)
-			.sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(STATELESS))
+			.sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.formLogin(AbstractHttpConfigurer::disable)
-			.authorizeHttpRequests(auth -> auth
-				.requestMatchers("/api/v1/oauth/**").permitAll()
-				.requestMatchers("/system/**").permitAll()
-				.anyRequest().permitAll()
-			)
+			.authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/oauth/**")
+				.permitAll()  // 모든 사용자에게 접근 허용
+				.anyRequest().permitAll())
 			.addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
 				UsernamePasswordAuthenticationFilter.class);
 		return http.build();
 	}
 
+	//  CORS 설정
 	@Bean
 	CorsConfigurationSource corsConfigurationSource() {
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -66,10 +60,4 @@ public class SecurityConfig {
 		return source;
 	}
 
-	@Bean
-	public AuthenticationManager authenticationManager(
-		AuthenticationConfiguration authenticationConfiguration)
-		throws Exception {
-		return authenticationConfiguration.getAuthenticationManager();
-	}
 }
