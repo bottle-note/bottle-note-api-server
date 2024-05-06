@@ -14,7 +14,6 @@ public record AlcoholSearchCriteria(
 	Long pageSize,
 	Long userId
 ) {
-
 	public static AlcoholSearchCriteria of(AlcoholSearchRequest request, Long userId) {
 		return new AlcoholSearchCriteria(
 			request.keyword(),

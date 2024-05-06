@@ -20,6 +20,8 @@ public class AlcoholQueryService {
 
 		AlcoholSearchCriteria criteria = AlcoholSearchCriteria.of(request, userId);
 
+		log.info("searchAlcohols criteria: {}", criteria);
+
 		return alcoholQueryRepository.searchAlcohols(criteria);
 	}
 }
