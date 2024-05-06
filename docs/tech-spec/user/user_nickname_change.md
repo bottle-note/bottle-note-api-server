@@ -16,16 +16,22 @@
 ---------
 
 ## 계획(Plan)
-- request DTO에 Bean Validation을 적용한다.(특수문자, 공백 등 체크)
-- 해당 필드에 알맞은 message를 작성한다.
-- 닉네임 중복체크는 validation annotation으로 해결할 수 없다.
+- request DTO에 Bean Validation을 적용한다.
+    - nickName : 영어, 한글, 숫자만 가능. 
+        - @Notblank -> message = "아이디는 필수 입력값입니다."
+        - @Pattern(regexp = "^[a-zA-Z가-힣0-9]*$") -> message : 닉네임은 한글, 영문, 숫자만 가능합니다.
+    - userId : @Notnull
 - 닉네임 중복체크를 위한 로직을 만들어야한다.
-    - parameter의 닉네임을 조회한다.
-    - 닉네임이 중복되는지 확인한다.
-    - 존재하는 경우 true, 존재하지 않는 경우 false 리턴
-    - 중복되지 않는다면 닉네임을 변경한다.(update)
-    - 중복된다면 변경불가 메시지를 반환한다.
-- 기능 구현 후 test code를 작성한다.
+  1. parameter의 닉네임을 조회한다.
+  2. 닉네임이 중복되는지 확인한다.
+  3. 존재하는 경우 true, 존재하지 않는 경우 false 리턴
+  4. 중복되지 않는다면 닉네임을 변경한다.(update)
+  5. 중복된다면 변경불가 메시지를 반환한다.
+  6. 닉네임 변경 횟수제한은 없다.
+- 기능 구현 후 test code를 작성한다. junit
+  1. DTO Validation 테스트, nickName과 userId 필드의 유효성 검사를 확인합니다.
+  2. 중복 닉네임 검사 및 닉네임 변경 로직 테스트, 중복검사 후 닉네임변경이 정상적으로 이루어지는지 확인합니다.
+
 ---------
 
 ## API-EndPoint :  `put /api/v1/users/{userId}/nickname`
