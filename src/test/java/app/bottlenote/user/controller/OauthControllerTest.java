@@ -90,7 +90,7 @@ class OauthControllerTest {
 	}
 
 	@Test
-	@DisplayName("유저나이가 유혀하지 않은 값이면 로그인 할 수 없다.")
+	@DisplayName("유저나이가 유효하지 않은 값이면 로그인 할 수 없다.")
 	void user_login_fail_when_gender_is_null() throws Exception {
 
 		//given
