@@ -1,9 +1,7 @@
 package app.bottlenote.user.service;
 
-import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
-
-import app.bottlenote.common.jwt.JwtTokenProvider;
 import app.bottlenote.global.security.SecurityUtil;
+import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.constant.GenderType;
 import app.bottlenote.user.domain.constant.SocialType;
@@ -20,6 +18,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
 
 
 @Slf4j
