@@ -87,11 +87,11 @@ public class OauthService {
 
 	public OauthResponse refresh(TokenRequest tokenRequest) {
 
-		//1. refresh Token 검증
+		//refresh Token 검증
 		if (!JwtTokenValidator.validateToken(tokenRequest.refreshToken())) {
 			throw new UserException(INVALID_REFRESH_TOKEN);
 		}
-		//
+
 		Authentication authentication = jwtAuthenticationManager.getAuthentication(
 			tokenRequest.accessToken());
 
@@ -105,7 +105,7 @@ public class OauthService {
 			user.getRole(), user.getId());
 
 		// DB에 저장된 refresh 토큰을 재발급한 refresh 토큰으로 업데이트
-		oauthRepository.updateUserByRefreshToken(reissuedToken.getRefreshToken(), user.getId());
+		user.updateRefreshToken(reissuedToken.getRefreshToken());
 
 		return reissuedToken;
 	}
