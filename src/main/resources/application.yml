@@ -2,7 +2,7 @@
 
 spring:
   profiles:
-    default: dev
+    default: local
 ---
 spring:
   config:
