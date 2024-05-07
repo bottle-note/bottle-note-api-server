@@ -121,7 +121,7 @@ CREATE TABLE `rating`
     `create_by`      varchar(255) NULL COMMENT '최초 생성자',
     `last_modify_at` timestamp    NULL COMMENT '최종 생성일',
     `last_modify_by` varchar(255) NULL COMMENT '최종 생성자',
-    PRIMARY KEY (`alcohol_id`, `user_id`),
+    PRIMARY KEY (`alcohol_id`, `user_id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci COMMENT = '술 평점';

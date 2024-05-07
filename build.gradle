@@ -75,6 +75,19 @@ dependencies {
     testImplementation 'org.mockito:mockito-inline:3.4.0'
 }
 
+tasks.named('test') {
+    // `gradle test`: integration tag가 붙은 테스트는 제외
+    useJUnitPlatform {
+        excludeTags 'data-jpa-test'
+    }
+}
+
+tasks.register('data-jpa-test', Test) {
+    // `gradle integrationTest`: integration tag가 붙은 테스트만 수행
+    useJUnitPlatform {
+        includeTags 'data-jpa-test'
+    }
+}
 
 // =========================== spring boot jar setting ===========================
 
