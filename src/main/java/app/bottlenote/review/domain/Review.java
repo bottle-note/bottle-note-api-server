@@ -15,6 +15,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import lombok.Builder;
 import lombok.Getter;
 import org.hibernate.annotations.Comment;
 
@@ -83,5 +84,20 @@ public class Review extends BaseEntity {
 	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY)
 	private List<ReviewImage> reviewImages = new ArrayList<>();
 
-
+	@Builder
+	public Review(Long id, User user, Alcohol alcohol, String content, SizeType sizeType, BigDecimal price, String zipCode, String address, String detailAddress, String imageUrl, Long viewCount, List<ReviewReply> reviewReplies, List<ReviewImage> reviewImages) {
+		this.id = id;
+		this.user = user;
+		this.alcohol = alcohol;
+		this.content = content;
+		this.sizeType = sizeType;
+		this.price = price;
+		this.zipCode = zipCode;
+		this.address = address;
+		this.detailAddress = detailAddress;
+		this.imageUrl = imageUrl;
+		this.viewCount = viewCount;
+		this.reviewReplies = reviewReplies;
+		this.reviewImages = reviewImages;
+	}
 }
