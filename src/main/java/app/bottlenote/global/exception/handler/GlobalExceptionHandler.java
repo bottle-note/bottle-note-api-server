@@ -18,9 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static app.bottlenote.global.exception.util.ExceptionUtil.getErrorMessage;
-import static app.bottlenote.global.exception.util.ExceptionUtil.getErrorMessageForTypeMismatch;
-
 @Slf4j(topic = "GlobalExceptionHandler")
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -61,8 +58,8 @@ public class GlobalExceptionHandler {
 		for (FieldError fieldError : fieldErrors) {
 			String fieldName = fieldError.getField();
 			Object rejectedValue = fieldError.getRejectedValue();
-			String defaultMessage = fieldError.getDefaultMessage();
-			String errorMessage = getErrorMessage(rejectedValue, defaultMessage);
+			String defaultMessage = fieldError.getDefaultMessage();   // 한글로 오류 메시지 생성
+		  String errorMessage = String.format("필드 '%s'의 값 '%s'가 유효하지 않습니다: %s", fieldName, rejectedValue, defaultMessage);
 			errorMessages.put(fieldName, errorMessage);
 		}
 
@@ -77,17 +74,18 @@ public class GlobalExceptionHandler {
 	 */
 	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
 	public ResponseEntity<GlobalResponse> handleTypeMismatchException(MethodArgumentTypeMismatchException exception) {
-
 		String fieldName = exception.getName();
 		String rejectedValue = Objects.requireNonNull(exception.getValue()).toString();
 		String requiredType = Objects.requireNonNull(exception.getRequiredType()).getSimpleName();
 
-		String errorMessage = getErrorMessageForTypeMismatch(fieldName, rejectedValue, requiredType);
+		String errorMessage = String.format("'%s' 필드는 '%s' 타입이 필요하지만, 잘못된 값 '%s'가 입력되었습니다.",
+			fieldName, requiredType, rejectedValue);
 
 		Map<String, String> message = Map.of(KEY_MESSAGE, errorMessage);
 
-		return createResponseEntity(exception, HttpStatus.BAD_REQUEST, message);
+		return new ResponseEntity<>(GlobalResponse.error(HttpStatus.BAD_REQUEST.value(), message), HttpStatus.BAD_REQUEST);
 	}
+
 
 	/**
 	 * JSON 파싱에 실패한 경우에 대한 처리
@@ -115,4 +113,5 @@ public class GlobalExceptionHandler {
 		Map<String, String> message = Map.of(KEY_MESSAGE, finallyErrorMessage);
 		return createResponseEntity(exception, HttpStatus.BAD_REQUEST, message);
 	}
+
 }

@@ -1,4 +1,4 @@
-=== 유저 관련   API (로그인, 토큰 재발급, 현재 로그인한 유저 조회) ===
+=== 유저  API  ===
 
 ==== 로그인 ====
 
@@ -31,6 +31,3 @@ include::{snippets}/user/user/request-body.adoc[]
 [discrete]
 include::{snippets}/user/user/response-fields.adoc[]
 include::{snippets}/user/user/http-response.adoc[]
-
-
-

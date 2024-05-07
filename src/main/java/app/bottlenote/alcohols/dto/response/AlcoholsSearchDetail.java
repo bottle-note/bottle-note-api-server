@@ -1,9 +1,11 @@
 package app.bottlenote.alcohols.dto.response;
 
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
+@EqualsAndHashCode
 public class AlcoholsSearchDetail {
 	private Long alcoholId;
 	private String korName;

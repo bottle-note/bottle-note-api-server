@@ -15,6 +15,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import lombok.Builder;
 import lombok.Getter;
 import org.hibernate.annotations.Comment;
 
@@ -69,11 +70,9 @@ public class Review extends BaseEntity {
 	@Column(name = "image_url")
 	private String imageUrl;
 
-	//viewCnt X 축약어를 자제하세요. 좋은 코드는 읽기 쉬워야 합니다.
-	// 기본 값은 0으로 설정한다.
 	@Comment("조회수")
-	@Column(name = "view_count", nullable = false, columnDefinition = "BIGINT default 0")
-	private Long viewCount;
+	@Column(name = "view_count", nullable = false)
+	private Long viewCount = 0L;
 
 	// 댓글 목록
 	// review와 reviewReply는 1(review) : N(reviewReply) 관계이다.
@@ -85,6 +84,20 @@ public class Review extends BaseEntity {
 	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY)
 	private List<ReviewImage> reviewImages = new ArrayList<>();
 
-
+	@Builder
+	public Review(Long id, User user, Alcohol alcohol, String content, SizeType sizeType, BigDecimal price, String zipCode, String address, String detailAddress, String imageUrl, Long viewCount, List<ReviewReply> reviewReplies, List<ReviewImage> reviewImages) {
+		this.id = id;
+		this.user = user;
+		this.alcohol = alcohol;
+		this.content = content;
+		this.sizeType = sizeType;
+		this.price = price;
+		this.zipCode = zipCode;
+		this.address = address;
+		this.detailAddress = detailAddress;
+		this.imageUrl = imageUrl;
+		this.viewCount = viewCount;
+		this.reviewReplies = reviewReplies;
+		this.reviewImages = reviewImages;
+	}
 }
-

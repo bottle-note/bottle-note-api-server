@@ -2,8 +2,10 @@ package app.bottlenote.global.service.cursor;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 
 @Getter
+@ToString(of = {"currentCursor", "cursor", "pageSize", "hasNext"})
 public class CursorPageable {
 	private final Long currentCursor;
 	private final Long cursor;
