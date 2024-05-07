@@ -10,7 +10,7 @@ import app.bottlenote.support.report.repository.UserReportRepository;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
-import app.bottlenote.user.repository.UserRepository;
+import app.bottlenote.user.repository.UserCommandRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,7 +41,7 @@ class UserReportServiceTest {
 	private UserReportRepository userReportRepository;
 
 	@Mock
-	private UserRepository userRepository;
+	private UserCommandRepository userRepository;
 
 	@Test
 	@DisplayName("유저 아이디가 없을 경우  NullPointerException 발생한다.")

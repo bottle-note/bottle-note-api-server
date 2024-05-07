@@ -19,7 +19,7 @@
 - request DTO에 Bean Validation을 적용한다.
     - nickName : 영어, 한글, 숫자만 가능. 
         - @Notblank -> message = "아이디는 필수 입력값입니다."
-        - @Pattern(regexp = "^[a-zA-Z가-힣0-9]*$") -> message : 닉네임은 한글, 영문, 숫자만 가능합니다.
+        - @Pattern(regexp = "^[a-zA-Z가-힣0-9]{2,11}$") -> message : 닉네임은 2~11자의 한글, 영문, 숫자만 가능합니다.
     - userId : @Notnull
 - 닉네임 중복체크를 위한 로직을 만들어야한다.
   1. parameter의 닉네임을 조회한다.
