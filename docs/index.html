@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta content="IE=edge" http-equiv="X-UA-Compatible">
-<meta content="width=device-width, initial-scale=1.0" name="viewport">
-<meta content="Asciidoctor 2.0.18" name="generator">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 2.0.18">
 <title>Bottle Note API 문서</title>
-<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
 /* Uncomment the following line when using as a custom stylesheet */
@@ -435,8 +435,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 #footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/styles/github.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/styles/github.min.css">
 </head>
 <body class="book toc2 toc-left">
 <div id="header">
@@ -444,7 +444,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="details">
 <span id="revnumber">version 0.0.1-SNAPSHOT</span>
 </div>
-<div class="toc2" id="toc">
+<div id="toc" class="toc2">
 <div id="toctitle">목차</div>
 <ul class="sectlevel1">
 <li><a href="#_개요_overview">1. 개요 (overview)</a>
@@ -530,12 +530,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">개발 (dev)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href=""><a class="bare" href="http://api.bottle-note.com/">http://api.bottle-note.com/</a></a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href=""><a href="http://api.bottle-note.com/" class="bare">http://api.bottle-note.com/</a></a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">API 문서 제공</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">운영(prod)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a class="bare" href=""></a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="" class="bare"></a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">기능 구현 후 AWS ECS 환경 실 배포</p></td>
 </tr>
 </tbody>
@@ -581,7 +581,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="paragraph">
 <p>프로젝트는 다음과 같은 응답형식을 제공합니다.</p>
 </div>
-<h4 class="discrete" id="_요청_결과">요청 결과</h4>
+<h4 id="_요청_결과" class="discrete">요청 결과</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -816,7 +816,7 @@ Content-Type: application/json
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/oauth/login</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_request_fields">요청 파라미터 ( request fields )</h4>
+<h4 id="_요청_파라미터_request_fields" class="discrete">요청 파라미터 ( request fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -869,7 +869,7 @@ Content-Type: application/json
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_응답_파라미터_response_fields">응답 파라미터 ( response fields )</h4>
+<h4 id="_응답_파라미터_response_fields" class="discrete">응답 파라미터 ( response fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -948,7 +948,7 @@ Content-Length: 761
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-07T21:35:09.089778",
+    "serverResponseTime" : "2024-05-08T15:11:31.374069",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -996,7 +996,7 @@ Content-Length: 761
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/oauth/reissue</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_request_fields_2">요청 파라미터 ( request fields )</h4>
+<h4 id="_요청_파라미터_request_fields_2" class="discrete">요청 파라미터 ( request fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -1014,42 +1014,28 @@ Content-Length: 761
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>email</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>accessToken</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">이메일</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>gender</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">O</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">성별</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>age</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">O</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">나이</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>socialType</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>refreshToken</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">소셜 로그인 타입</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">성별</p></td>
 </tr>
 </tbody>
 </table>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json">{
-  "email" : "cdm2883@naver.com",
-  "socialType" : "KAKAO",
-  "gender" : "MALE",
-  "age" : 27
+  "accessToken" : "access-token",
+  "refreshToken" : "refresh-token"
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_응답_파라미터_response_fields_2">응답 파라미터 ( response fields )</h4>
+<h4 id="_응답_파라미터_response_fields_2" class="discrete">응답 파라미터 ( response fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -1115,20 +1101,20 @@ Content-Length: 761
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json;charset=UTF-8
-Content-Length: 761
+Content-Length: 324
 
 {
   "success" : true,
   "code" : 200,
   "data" : {
-    "accessToken" : "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNDk3NjUyM30.41SuOBgmX-sd8nrMbC-xm0kH6rbny_SMYCKWE4rNQEZgSrRPS0HvYv0X7E-weo6sHlWWm1OmiQgHl4-uy6-9ig",
-    "refreshToken" : "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNjE4NTIyM30.lvmPueUcOb1erv5Llo4qhEUQ_gtWrpFGbBHDw-Pi94qj8MGojoEI3ugdMo8PwoKgrVQZ_gBwBbytwjxh8XktUg"
+    "accessToken" : "new-access-token",
+    "refreshToken" : "new-refresh-token"
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-07T21:35:09.089778",
+    "serverResponseTime" : "2024-05-08T15:11:31.299616",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1149,7 +1135,7 @@ Content-Length: 761
 <p>검색 조건으로 술(위스키) 정보를 조회합니다.</p>
 </div>
 <hr>
-<h5 class="discrete" id="_request"><em>Request</em></h5>
+<h5 id="_request" class="discrete"><em>Request</em></h5>
 <div class="paragraph">
 <p>요청 파라미터 ( request fields )</p>
 </div>
@@ -1200,8 +1186,8 @@ Content-Length: 761
 </tr>
 </tbody>
 </table>
-<h5 class="discrete" id="_response"><em>Response</em></h5>
-<h4 class="discrete" id="_응답_파라미터_response_fields_3">응답 파라미터 ( response fields )</h4>
+<h5 id="_response" class="discrete"><em>Response</em></h5>
+<h4 id="_응답_파라미터_response_fields_3" class="discrete">응답 파라미터 ( response fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -1397,7 +1383,7 @@ Content-Length: 761
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-07T21:35:07.922382",
+    "serverResponseTime" : "2024-05-08T15:11:30.726446",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 4,
@@ -1419,7 +1405,7 @@ Content-Length: 761
 </div>
 </div>
 <hr>
-<h5 class="discrete" id="_정렬_타입_sorttype"><em>정렬 타입 (sortType)</em></h5>
+<h5 id="_정렬_타입_sorttype" class="discrete"><em>정렬 타입 (sortType)</em></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -1460,7 +1446,7 @@ Content-Length: 761
 </li>
 </ul>
 </div>
-<h5 class="discrete" id="_정렬_방향_sortorder"><em>정렬 방향 (sortOrder)</em></h5>
+<h5 id="_정렬_방향_sortorder" class="discrete"><em>정렬 방향 (sortOrder)</em></h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1534,7 +1520,7 @@ Content-Length: 761
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/regions</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_응답_파라미터_response_fields_4">응답 파라미터 ( response fields )</h4>
+<h4 id="_응답_파라미터_response_fields_4" class="discrete">응답 파라미터 ( response fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -1621,7 +1607,7 @@ Content-Length: 761
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-07T21:35:08.423949",
+    "serverResponseTime" : "2024-05-08T15:11:30.976919",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1648,7 +1634,7 @@ Content-Length: 761
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/popular/week</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_request_parameters">요청 파라미터 ( request parameters )</h4>
+<h4 id="_요청_파라미터_request_parameters" class="discrete">요청 파라미터 ( request parameters )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -1667,7 +1653,7 @@ Content-Length: 761
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_응답_파라미터_response_fields_5">응답 파라미터 ( response fields )</h4>
+<h4 id="_응답_파라미터_response_fields_5" class="discrete">응답 파라미터 ( response fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -1812,13 +1798,13 @@ Content-Length: 761
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-07T21:35:08.275883",
+    "serverResponseTime" : "2024-05-08T15:11:30.890349",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_예외_exceptions">예외 ( exceptions )</h4>
+<h4 id="_예외_exceptions" class="discrete">예외 ( exceptions )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 16.6666%;">
@@ -1933,7 +1919,7 @@ Content-Length: 761
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/user-report</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_request_fields_3">요청 파라미터 ( request fields )</h4>
+<h4 id="_요청_파라미터_request_fields_3" class="discrete">요청 파라미터 ( request fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -1986,7 +1972,7 @@ Content-Length: 761
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_응답_파라미터_response_fields_6">응답 파라미터 ( response fields )</h4>
+<h4 id="_응답_파라미터_response_fields_6" class="discrete">응답 파라미터 ( response fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -2073,7 +2059,7 @@ Content-Length: 761
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-07T21:35:08.835202",
+    "serverResponseTime" : "2024-05-08T15:11:31.209013",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2138,7 +2124,7 @@ Content-Length: 761
 <div id="footer">
 <div id="footer-text">
 Version 0.0.1-SNAPSHOT<br>
-Last updated 2024-05-06 23:19:26 +0900
+Last updated 2024-05-08 10:32:17 +0900
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>
