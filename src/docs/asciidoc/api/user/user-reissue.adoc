@@ -23,12 +23,12 @@ POST /api/v1/oauth/reissue
 ----
 
 [discrete]
-include::{snippets}/user/user/request-fields.adoc[]
-include::{snippets}/user/user/request-body.adoc[]
+include::{snippets}/user/user-reissue/request-fields.adoc[]
+include::{snippets}/user/user-reissue//request-body.adoc[]
 
 [discrete]
-include::{snippets}/user/user/response-fields.adoc[]
-include::{snippets}/user/user/http-response.adoc[]
+include::{snippets}/user/user-reissue//response-fields.adoc[]
+include::{snippets}/user/user-reissue//http-response.adoc[]
 
 
 

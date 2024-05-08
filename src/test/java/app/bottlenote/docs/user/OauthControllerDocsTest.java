@@ -56,7 +56,7 @@ class OauthControllerDocsTest extends AbstractRestDocs {
 			.andExpect(status().isOk())
 
 			.andDo(
-				document("user/user",
+				document("user/user-login",
 					requestFields(
 						fieldWithPath("email").type(JsonFieldType.STRING).description("이메일"),
 						fieldWithPath("gender").type(JsonFieldType.STRING).description("성별")
@@ -106,7 +106,7 @@ class OauthControllerDocsTest extends AbstractRestDocs {
 			.andExpect(status().isOk())
 
 			.andDo(
-				document("user/user",
+				document("user/user-reissue",
 					requestFields(
 						fieldWithPath("accessToken").type(JsonFieldType.STRING).description("이메일"),
 						fieldWithPath("refreshToken").type(JsonFieldType.STRING).description("성별")
