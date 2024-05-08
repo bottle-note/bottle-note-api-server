@@ -300,7 +300,7 @@ CREATE TABLE `notice`
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci COMMENT = '공지사항';
 
-CREATE TABLE `like`
+CREATE TABLE `likes`
 (
     `id`             bigint       NOT NULL AUTO_INCREMENT COMMENT '좋아요',
     `review_id`      bigint       NOT NULL COMMENT '좋아요의 대상 리뷰',
