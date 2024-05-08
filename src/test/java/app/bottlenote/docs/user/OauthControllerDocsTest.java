@@ -108,8 +108,10 @@ class OauthControllerDocsTest extends AbstractRestDocs {
 			.andDo(
 				document("user/user-reissue",
 					requestFields(
-						fieldWithPath("accessToken").type(JsonFieldType.STRING).description("이메일"),
-						fieldWithPath("refreshToken").type(JsonFieldType.STRING).description("성별")
+						fieldWithPath("accessToken").type(JsonFieldType.STRING)
+							.description("액세스 토큰"),
+						fieldWithPath("refreshToken").type(JsonFieldType.STRING)
+							.description("리프레시 토큰")
 					),
 					responseFields(
 						fieldWithPath("success").type(JsonFieldType.BOOLEAN)
