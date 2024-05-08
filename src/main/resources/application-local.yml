@@ -37,6 +37,18 @@ spring:
     redis:
       host: localhost
       port: 6379
+cloud:
+  aws:
+    s3:
+      bucket: bottle-note # {버킷명}
+    credentials:
+      access-key: ${AWS_S3_ACCESS_KEY}
+      secret-key: ${AWS_S3_SECRET_KEY}
+    region:
+      static: ap-northeast-2
+      auto: false
+    stack:
+      auto: false
 
 
 logging:
