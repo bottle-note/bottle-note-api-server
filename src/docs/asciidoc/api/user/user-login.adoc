@@ -25,9 +25,9 @@ POST /api/v1/oauth/login
 ----
 
 [discrete]
-include::{snippets}/user/user/request-fields.adoc[]
-include::{snippets}/user/user/request-body.adoc[]
+include::{snippets}/user/user-login/request-fields.adoc[]
+include::{snippets}/user/user-login/request-body.adoc[]
 
 [discrete]
-include::{snippets}/user/user/response-fields.adoc[]
-include::{snippets}/user/user/http-response.adoc[]
+include::{snippets}/user/user-login/response-fields.adoc[]
+include::{snippets}/user/user-login/http-response.adoc[]
