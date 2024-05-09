@@ -2,6 +2,7 @@ package app.bottlenote.review.domain;
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.common.domain.BaseEntity;
+import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.user.domain.User;
 import jakarta.persistence.Column;
@@ -15,19 +16,19 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
+@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @Getter
 @Comment("리뷰 테이블(리뷰, 평점, 이미지, 리뷰 댓글)")
 @Entity(name = "review")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Review extends BaseEntity {
 
 	@Id
@@ -55,7 +56,11 @@ public class Review extends BaseEntity {
 	@Column(name = "price", nullable = false)
 	private BigDecimal price;
 
-	// 추후 주소 값으로 @Embedded를 사용하여 객체로 관리할 수 있음 (Address)
+	@Comment("공개 상태")
+	@Column(name = "status", nullable = false)
+	@Enumerated(EnumType.STRING)
+	private ReviewStatus status = ReviewStatus.PUBLIC;
+
 	@Comment("우편번호")
 	@Column(name = "zip_code")
 	private String zipCode;
@@ -63,11 +68,6 @@ public class Review extends BaseEntity {
 	@Comment("주소")
 	@Column(name = "address")
 	private String address;
-
-	//TODO : Enum으로 관리예정
-	@Comment("리뷰 상태")
-	@Column(name = "status")
-	private String status;
 
 	@Comment("상세주소")
 	@Column(name = "detail_address")
@@ -92,11 +92,7 @@ public class Review extends BaseEntity {
 	private List<ReviewImage> reviewImages = new ArrayList<>();
 
 	@Builder
-
-	public Review(Long id, User user, Alcohol alcohol, String content, SizeType sizeType,
-		BigDecimal price, String zipCode, String address, String status, String detailAddress,
-		String imageUrl, Long viewCount, List<ReviewReply> reviewReplies,
-		List<ReviewImage> reviewImages) {
+	public Review(Long id, User user, Alcohol alcohol, String content, SizeType sizeType, BigDecimal price, String zipCode, String address, String detailAddress, String imageUrl, Long viewCount, List<ReviewReply> reviewReplies, List<ReviewImage> reviewImages) {
 		this.id = id;
 		this.user = user;
 		this.alcohol = alcohol;
@@ -105,7 +101,6 @@ public class Review extends BaseEntity {
 		this.price = price;
 		this.zipCode = zipCode;
 		this.address = address;
-		this.status = status;
 		this.detailAddress = detailAddress;
 		this.imageUrl = imageUrl;
 		this.viewCount = viewCount;

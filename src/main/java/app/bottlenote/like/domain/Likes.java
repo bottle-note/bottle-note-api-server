@@ -33,7 +33,7 @@ public class Likes extends BaseEntity {
 	private Review review;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "users_id")
+	@JoinColumn(name = "user_id")
 	private User user;
 
 	@Column(nullable = false)
