@@ -1,5 +1,6 @@
 package app.bottlenote.review.repository;
 
+import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -22,6 +23,30 @@ import static app.bottlenote.user.domain.QUser.user;
 public class CustomReviewQueryRepositoryImpl implements CustomReviewQueryRepository {
 	private final JPAQueryFactory queryFactory;
 
+	/**
+	 * 리뷰 조회 select 모듈
+	 */
+	private ConstructorExpression<ReviewOfAlcoholDetail> reviewOfAlcoholDetailExpression(Long userId) {
+		return Projections.constructor(
+			ReviewOfAlcoholDetail.class,
+			user.id.as("userId"),
+			user.imageUrl.as("imageUrl"),
+			user.nickName.as("nickName"),
+			review.id.as("reviewId"),
+			review.content.as("reviewContent"),
+			rating.ratingPoint.rating.coalesce(0.0).as("rating"),
+			review.sizeType.as("sizeType"),
+			review.price.coalesce(BigDecimal.ZERO).as("price"),
+			review.viewCount.coalesce(0L).as("viewCount"),
+			likes.id.count().as("likeCount"),
+			containsUserLike(userId).as("isMyLike"),
+			reviewReply.id.count().as("replyCount"),
+			containsUserReply(userId).as("isMyReply"),
+			review.status.as("status"),
+			review.imageUrl.as("reviewImageUrl"),
+			review.createAt.as("createAt")
+		);
+	}
 
 	/**
 	 * 베스트 리뷰 단건을 조회합니다.
@@ -29,25 +54,7 @@ public class CustomReviewQueryRepositoryImpl implements CustomReviewQueryReposit
 	@Override
 	public List<ReviewOfAlcoholDetail> findBestReviewsForAlcoholDetail(Long alcoholId, Long userId) {
 		return queryFactory
-			.select(Projections.constructor(
-				ReviewOfAlcoholDetail.class,
-				user.id.as("userId"),
-				user.imageUrl.as("imageUrl"),
-				user.nickName.as("nickName"),
-				review.id.as("reviewId"),
-				review.content.as("reviewContent"),
-				rating.ratingPoint.rating.coalesce(0.0).as("rating"),
-				review.sizeType.as("sizeType"),
-				review.price.coalesce(BigDecimal.ZERO).as("price"),
-				review.viewCount.coalesce(0L).as("viewCount"),
-				likes.id.count().as("likeCount"),
-				containsUserLike(userId).as("isMyLike"),
-				reviewReply.id.count().as("replyCount"),
-				containsUserReply(userId).as("isMyReply"),
-				review.status.as("status"),
-				review.imageUrl.as("reviewImageUrl"),
-				review.createAt.as("createAt")
-			))
+			.select(reviewOfAlcoholDetailExpression(userId))
 			.from(review)
 			.join(review.user, user)
 			.leftJoin(review.reviewReplies, reviewReply)
@@ -56,9 +63,9 @@ public class CustomReviewQueryRepositoryImpl implements CustomReviewQueryReposit
 			.where(review.alcohol.id.eq(alcoholId))
 			.groupBy(user.id, user.imageUrl, user.nickName, review.id, review.content, rating.ratingPoint, review.createAt)
 			.orderBy(
-				review.reviewReplies.size().multiply(0.3) // 댓글수
-					.add(likes.id.count().multiply(0.5))  // 좋아요수
-					.add(rating.ratingPoint.rating.coalesce(0.0).multiply(0.2)) // 평점
+				reviewReply.count().coalesce(0L)
+					.add(likes.count().coalesce(0L))
+					.add(rating.ratingPoint.rating.coalesce(0.0).avg())     // Rating
 					.desc()
 			)
 			.limit(1)
@@ -75,25 +82,7 @@ public class CustomReviewQueryRepositoryImpl implements CustomReviewQueryReposit
 		List<Long> ids
 	) {
 		return queryFactory
-			.select(Projections.constructor(
-				ReviewOfAlcoholDetail.class,
-				user.id.as("userId"),
-				user.imageUrl.as("imageUrl"),
-				user.nickName.as("nickName"),
-				review.id.as("reviewId"),
-				review.content.as("reviewContent"),
-				rating.ratingPoint.rating.coalesce(0.0).as("rating"),
-				review.sizeType.as("sizeType"),
-				review.price.coalesce(BigDecimal.ZERO).as("price"),
-				review.viewCount.coalesce(0L).as("viewCount"),
-				likes.id.count().as("likeCount"),
-				containsUserLike(userId).as("isMyLike"),
-				reviewReply.id.count().as("replyCount"),
-				containsUserReply(userId).as("isMyReply"),
-				review.status.as("status"),
-				review.imageUrl.as("reviewImageUrl"),
-				review.createAt.as("createAt")
-			))
+			.select(reviewOfAlcoholDetailExpression(userId))
 			.from(review)
 			.join(review.user, user)
 			.leftJoin(review.reviewReplies, reviewReply)
@@ -117,6 +106,9 @@ public class CustomReviewQueryRepositoryImpl implements CustomReviewQueryReposit
 		return review.id.notIn(ids);
 	}
 
+	/**
+	 * 사용자가 좋아요를 눌렀는지 확인합니다.
+	 */
 	private BooleanExpression containsUserLike(Long userId) {
 		if (userId == null) {
 			return Expressions.FALSE;
@@ -128,6 +120,9 @@ public class CustomReviewQueryRepositoryImpl implements CustomReviewQueryReposit
 			.otherwise(false);
 	}
 
+	/**
+	 * 사용자가 리뷰에 답글을 달았는지 확인합니다.
+	 */
 	private BooleanExpression containsUserReply(Long userId) {
 		if (userId == null) {
 			return Expressions.FALSE;
