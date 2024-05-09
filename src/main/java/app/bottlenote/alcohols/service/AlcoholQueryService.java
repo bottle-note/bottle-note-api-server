@@ -2,18 +2,19 @@ package app.bottlenote.alcohols.service;
 
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
-import app.bottlenote.alcohols.dto.response.AlcoholDetail;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
+import app.bottlenote.alcohols.dto.response.detail.AlcoholDetail;
+import app.bottlenote.alcohols.dto.response.detail.AlcoholDetailInfo;
+import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
 import app.bottlenote.alcohols.repository.AlcoholQueryRepository;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.repository.ReviewQueryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-
-import static app.bottlenote.alcohols.dto.response.AlcoholDetail.ReviewOfAlcoholDetail;
 
 @Slf4j
 @Service
@@ -47,20 +48,24 @@ public class AlcoholQueryService {
 	 * @param userId    the user id
 	 * @return the list
 	 */
+	@Transactional(readOnly = true)
 	public AlcoholDetail findAlcoholDetailById(Long alcoholId, Long userId) {
 
 		// 위스키 상세 조회
+		AlcoholDetailInfo alcoholDetailById = alcoholQueryRepository.findAlcoholDetailById(alcoholId, userId);
 
 		// 팔로워 수 조회
 
-		// 리뷰 조회
-		List<ReviewOfAlcoholDetail> bestReviews = reviewQueryRepository.findBestReviewsForAlcoholDetail(alcoholId, userId);
-		List<Long> bestReviewIds = bestReviews.stream().map(ReviewOfAlcoholDetail::getReviewId).toList();
-		List<ReviewOfAlcoholDetail> reviews = reviewQueryRepository.findReviewsForAlcoholDetail(alcoholId, userId, bestReviewIds);
 
-		return AlcoholDetail.builder()
-			.bestReviews(bestReviews)
-			.reviews(reviews)
+		// 리뷰 조회
+		List<ReviewsDetailInfo.ReviewInfo> bestReviewInfos = reviewQueryRepository.findBestReviewsForAlcoholDetail(alcoholId, userId);
+		List<Long> bestReviewIds = bestReviewInfos.stream().map(ReviewsDetailInfo.ReviewInfo::reviewId).toList();
+		List<ReviewsDetailInfo.ReviewInfo> reviewInfos = reviewQueryRepository.findReviewsForAlcoholDetail(alcoholId, userId, bestReviewIds);
+		ReviewsDetailInfo reviewsDetailInfo = ReviewsDetailInfo.builder()
+			.bestReviewInfos(bestReviewInfos)
+			.recentReviewInfos(reviewInfos)
 			.build();
+
+		return AlcoholDetail.of(alcoholDetailById, null, reviewsDetailInfo);
 	}
 }

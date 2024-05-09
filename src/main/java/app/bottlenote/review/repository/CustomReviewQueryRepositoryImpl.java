@@ -1,5 +1,6 @@
 package app.bottlenote.review.repository;
 
+import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
 import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
@@ -12,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 import java.math.BigDecimal;
 import java.util.List;
 
-import static app.bottlenote.alcohols.dto.response.AlcoholDetail.ReviewOfAlcoholDetail;
+import static app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo.ReviewInfo;
 import static app.bottlenote.like.domain.QLikes.likes;
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
@@ -26,9 +27,9 @@ public class CustomReviewQueryRepositoryImpl implements CustomReviewQueryReposit
 	/**
 	 * 리뷰 조회 select 모듈
 	 */
-	private ConstructorExpression<ReviewOfAlcoholDetail> reviewOfAlcoholDetailExpression(Long userId) {
+	private ConstructorExpression<ReviewsDetailInfo.ReviewInfo> reviewOfAlcoholDetailExpression(Long userId) {
 		return Projections.constructor(
-			ReviewOfAlcoholDetail.class,
+			ReviewsDetailInfo.ReviewInfo.class,
 			user.id.as("userId"),
 			user.imageUrl.as("imageUrl"),
 			user.nickName.as("nickName"),
@@ -52,7 +53,7 @@ public class CustomReviewQueryRepositoryImpl implements CustomReviewQueryReposit
 	 * 베스트 리뷰 단건을 조회합니다.
 	 */
 	@Override
-	public List<ReviewOfAlcoholDetail> findBestReviewsForAlcoholDetail(Long alcoholId, Long userId) {
+	public List<ReviewsDetailInfo.ReviewInfo> findBestReviewsForAlcoholDetail(Long alcoholId, Long userId) {
 		return queryFactory
 			.select(reviewOfAlcoholDetailExpression(userId))
 			.from(review)
@@ -76,7 +77,7 @@ public class CustomReviewQueryRepositoryImpl implements CustomReviewQueryReposit
 	 * 최신순 리뷰 특정 건수 조회
 	 */
 	@Override
-	public List<ReviewOfAlcoholDetail> findReviewsForAlcoholDetail(
+	public List<ReviewInfo> findReviewsForAlcoholDetail(
 		Long alcoholId,
 		Long userId,
 		List<Long> ids

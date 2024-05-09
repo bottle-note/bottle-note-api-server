@@ -1,13 +1,13 @@
 package app.bottlenote.review.repository;
 
 
-import app.bottlenote.alcohols.dto.response.AlcoholDetail;
+import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
 
 import java.util.List;
 
 public interface CustomReviewQueryRepository {
 
-	List<AlcoholDetail.ReviewOfAlcoholDetail> findBestReviewsForAlcoholDetail(Long alcoholId, Long userId);
+	List<ReviewsDetailInfo.ReviewInfo> findBestReviewsForAlcoholDetail(Long alcoholId, Long userId);
 
-	List<AlcoholDetail.ReviewOfAlcoholDetail> findReviewsForAlcoholDetail(Long alcoholId, Long userId, List<Long> ids);
+	List<ReviewsDetailInfo.ReviewInfo> findReviewsForAlcoholDetail(Long alcoholId, Long userId, List<Long> ids);
 }
