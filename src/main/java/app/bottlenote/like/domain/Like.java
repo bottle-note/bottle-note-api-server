@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 import static lombok.AccessLevel.PROTECTED;
 
 @Getter
-@Entity(name = "like")
+@Entity(name = "likes")
 @NoArgsConstructor(access = PROTECTED)
 public class Like extends BaseEntity {
 
@@ -33,7 +33,7 @@ public class Like extends BaseEntity {
 	private Review review;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "users_id")
+	@JoinColumn(name = "user_id")
 	private User user;
 
 	@Column(nullable = false)
