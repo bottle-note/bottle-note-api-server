@@ -17,9 +17,6 @@ public enum UserExceptionCode implements ExceptionCode {
 	INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다");
 
 
-
-
-
 	private final HttpStatus httpStatus;
 	private final String message;
 

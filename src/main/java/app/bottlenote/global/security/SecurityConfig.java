@@ -32,7 +32,7 @@ public class SecurityConfig {
 			.sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(
 				SessionCreationPolicy.STATELESS))
 			.formLogin(AbstractHttpConfigurer::disable)
-			.authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/oauth/**", "/api/v1/users/nickname")
+			.authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/oauth/**")
 				.permitAll()  // 모든 사용자에게 접근 허용
 				.anyRequest().permitAll())
 			.addFilterBefore(new JwtAuthenticationFilter(jwtAuthenticationManager),
