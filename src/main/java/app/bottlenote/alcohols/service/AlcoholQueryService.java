@@ -5,6 +5,7 @@ import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.detail.AlcoholDetail;
 import app.bottlenote.alcohols.dto.response.detail.AlcoholDetailInfo;
+import app.bottlenote.alcohols.dto.response.detail.FriendsDetailInfo;
 import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
 import app.bottlenote.alcohols.repository.AlcoholQueryRepository;
 import app.bottlenote.global.service.cursor.PageResponse;
@@ -55,7 +56,7 @@ public class AlcoholQueryService {
 		AlcoholDetailInfo alcoholDetailById = alcoholQueryRepository.findAlcoholDetailById(alcoholId, userId);
 
 		// 팔로워 수 조회
-
+		FriendsDetailInfo friendsData = getMockFriendsData();
 
 		// 리뷰 조회
 		List<ReviewsDetailInfo.ReviewInfo> bestReviewInfos = reviewQueryRepository.findBestReviewsForAlcoholDetail(alcoholId, userId);
@@ -66,6 +67,25 @@ public class AlcoholQueryService {
 			.recentReviewInfos(reviewInfos)
 			.build();
 
-		return AlcoholDetail.of(alcoholDetailById, null, reviewsDetailInfo);
+		return AlcoholDetail.of(alcoholDetailById, friendsData, reviewsDetailInfo);
+	}
+
+	/**
+	 * 유저의 팔로잉 팔로워 기능이 구현 후 수정이 필요한 기능입니다.
+	 * 현재는 Mock 데이터를 리턴합니다.
+	 * //todo 유저의 팔로잉 팔로워 기능이 구현 후 수정이 필요한 기능입니다.
+	 */
+	private FriendsDetailInfo getMockFriendsData() {
+		String freeRandomImageUrl = "https://picsum.photos/600/600";
+
+		List<FriendsDetailInfo.FriendInfo> friendInfos = List.of(
+			new FriendsDetailInfo.FriendInfo(freeRandomImageUrl, 1L, "늙은코끼리", 4.5),
+			new FriendsDetailInfo.FriendInfo(freeRandomImageUrl, 2L, "나무사자", 1.5),
+			new FriendsDetailInfo.FriendInfo(freeRandomImageUrl, 3L, "피자파인애플", 3.0),
+			new FriendsDetailInfo.FriendInfo(freeRandomImageUrl, 4L, "멘토스", 0.5),
+			new FriendsDetailInfo.FriendInfo(freeRandomImageUrl, 5L, "민트맛치토스", 5.0),
+			new FriendsDetailInfo.FriendInfo(freeRandomImageUrl, 6L, "목데이터", 1.0)
+		);
+		return FriendsDetailInfo.of(6L, friendInfos);
 	}
 }
