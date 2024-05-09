@@ -3,6 +3,7 @@ package app.bottlenote.review.repository;
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.like.domain.QLikes.likes;
 import static app.bottlenote.review.domain.QReview.review;
+import static app.bottlenote.review.domain.QReviewReply.reviewReply;
 
 import app.bottlenote.review.dto.response.ReviewResponse;
 import com.querydsl.core.types.ExpressionUtils;
@@ -34,6 +35,12 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 						.from(likes)
 						.where(likes.review.id.eq(review.id
 						)), "likeCount"
+				),
+				ExpressionUtils.as(
+					JPAExpressions.select(reviewReply.id.count())
+						.from(reviewReply)
+						.where(reviewReply.review.id.eq(review.id)),
+					"replyCount"
 				)
 			))
 			.from(alcohol)
