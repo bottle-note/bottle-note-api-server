@@ -71,7 +71,9 @@
 
 - 비지니스 로직
   - [ ] QueryDSl의 DTO Injection 기능을 사용
-  - [ ] User 엔티티와
+  - [ ] Review 엔티티(Driving) Alcohol 엔티티(Driven) Left Inner Join 하여 알코올 별 리뷰 조회
+  - [ ] Select 절 서브쿼리로 좋아요 수 Count 집계
+  - [ ] 서브 쿼리 불가한 것들은 서비스 비즈니스 로직으로 처리
   - [ ] 커서 방식 Pagination 구현
 
 ---------
