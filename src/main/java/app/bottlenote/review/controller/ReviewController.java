@@ -1,5 +1,7 @@
 package app.bottlenote.review.controller;
 
+import static app.bottlenote.global.data.response.GlobalResponse.success;
+
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.review.service.ReviewService;
 import lombok.RequiredArgsConstructor;
@@ -11,18 +13,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
-@RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/review")
+@RequiredArgsConstructor
+@RequestMapping("/api/v1/reviews")
 public class ReviewController {
 
 	private final ReviewService reviewService;
 
 	@GetMapping("/{alcoholId}")
 	public ResponseEntity<GlobalResponse> getReviews(@PathVariable Long alcoholId) {
-		return ResponseEntity.ok(GlobalResponse.success(
-			reviewService.getReviewsByAlcoholsId(alcoholId)
+		return ResponseEntity.ok(success(
+			reviewService.getReviews(alcoholId)
 		));
 	}
+
 
 }
