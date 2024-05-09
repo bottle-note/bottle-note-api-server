@@ -2,6 +2,7 @@ package app.bottlenote.review.domain;
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.common.domain.BaseEntity;
+import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.user.domain.User;
 import jakarta.persistence.Column;
@@ -17,12 +18,14 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @Getter
 @Comment("리뷰 테이블(리뷰, 평점, 이미지, 리뷰 댓글)")
 @Entity(name = "review")
@@ -53,7 +56,11 @@ public class Review extends BaseEntity {
 	@Column(name = "price", nullable = false)
 	private BigDecimal price;
 
-	// 추후 주소 값으로 @Embedded를 사용하여 객체로 관리할 수 있음 (Address)
+	@Comment("공개 상태")
+	@Column(name = "status", nullable = false)
+	@Enumerated(EnumType.STRING)
+	private ReviewStatus status = ReviewStatus.PUBLIC;
+
 	@Comment("우편번호")
 	@Column(name = "zip_code")
 	private String zipCode;
