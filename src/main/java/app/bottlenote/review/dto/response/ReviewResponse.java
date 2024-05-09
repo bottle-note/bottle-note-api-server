@@ -11,40 +11,45 @@ import lombok.Getter;
 public class ReviewResponse {
 
 	private Long reviewId;
+	private String reviewContent;
 	private BigDecimal price;
 	private SizeType sizeType;
 	private Long likeCount;
 	private Long replyCount;
+	private String thumbnailImage;
 
 	private Long userId;
 	private String userNickname;
 	private String userProfileImage;
 
-	private Boolean myCommentYn;
+	//TODO: ReviewStatus Enum 타입으로 수정예정
 	private String status;
-	private Boolean myLikeYn;
-	private Boolean myReplyYn;
-	private String thumbnailImage;
 
-	@Builder
-	public ReviewResponse(Long reviewId, BigDecimal price, SizeType sizeType, Long likeCount,
-		Long replyCount, Long userId, String userNickname, String userProfileImage,
-		Boolean myCommentYn,
-		String status, Boolean myLikeYn, Boolean myReplyYn, String thumbnailImage) {
+	private Boolean isMyReview;
+	private Boolean isLikedByMe;
+	private Boolean hasCommentedByMe;
+
+	public ReviewResponse(Long reviewId, String reviewContent, BigDecimal price, SizeType sizeType,
+		Long likeCount, Long replyCount, String thumbnailImage, Long userId, String userNickname,
+		String userProfileImage, String status, Boolean isMyReview, Boolean isLikedByMe,
+		Boolean hasCommentedByMe) {
 		this.reviewId = reviewId;
+		this.reviewContent = reviewContent;
 		this.price = price;
 		this.sizeType = sizeType;
 		this.likeCount = likeCount;
 		this.replyCount = replyCount;
+		this.thumbnailImage = thumbnailImage;
 		this.userId = userId;
 		this.userNickname = userNickname;
 		this.userProfileImage = userProfileImage;
-		this.myCommentYn = myCommentYn;
 		this.status = status;
-		this.myLikeYn = myLikeYn;
-		this.myReplyYn = myReplyYn;
-		this.thumbnailImage = thumbnailImage;
+		this.isMyReview = isMyReview;
+		this.isLikedByMe = isLikedByMe;
+		this.hasCommentedByMe = hasCommentedByMe;
 	}
+
+	@Builder
 
 	public ReviewResponse() {
 	}

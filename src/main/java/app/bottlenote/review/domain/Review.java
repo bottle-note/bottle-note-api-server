@@ -15,17 +15,19 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import lombok.Builder;
-import lombok.Getter;
-import org.hibernate.annotations.Comment;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Comment;
 
 @Getter
 @Comment("리뷰 테이블(리뷰, 평점, 이미지, 리뷰 댓글)")
 @Entity(name = "review")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Review extends BaseEntity {
 
 	@Id
@@ -62,6 +64,11 @@ public class Review extends BaseEntity {
 	@Column(name = "address")
 	private String address;
 
+	//TODO : Enum으로 관리예정
+	@Comment("리뷰 상태")
+	@Column(name = "status")
+	private String status;
+
 	@Comment("상세주소")
 	@Column(name = "detail_address")
 	private String detailAddress;
@@ -85,7 +92,11 @@ public class Review extends BaseEntity {
 	private List<ReviewImage> reviewImages = new ArrayList<>();
 
 	@Builder
-	public Review(Long id, User user, Alcohol alcohol, String content, SizeType sizeType, BigDecimal price, String zipCode, String address, String detailAddress, String imageUrl, Long viewCount, List<ReviewReply> reviewReplies, List<ReviewImage> reviewImages) {
+
+	public Review(Long id, User user, Alcohol alcohol, String content, SizeType sizeType,
+		BigDecimal price, String zipCode, String address, String status, String detailAddress,
+		String imageUrl, Long viewCount, List<ReviewReply> reviewReplies,
+		List<ReviewImage> reviewImages) {
 		this.id = id;
 		this.user = user;
 		this.alcohol = alcohol;
@@ -94,6 +105,7 @@ public class Review extends BaseEntity {
 		this.price = price;
 		this.zipCode = zipCode;
 		this.address = address;
+		this.status = status;
 		this.detailAddress = detailAddress;
 		this.imageUrl = imageUrl;
 		this.viewCount = viewCount;
