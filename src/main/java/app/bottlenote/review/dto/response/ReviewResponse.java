@@ -2,6 +2,7 @@ package app.bottlenote.review.dto.response;
 
 import app.bottlenote.review.domain.constant.SizeType;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -17,6 +18,7 @@ public class ReviewResponse {
 	private Long likeCount;
 	private Long replyCount;
 	private String thumbnailImage;
+	private LocalDateTime reviewCreatedAt;
 
 	private Long userId;
 	private String userNickname;
@@ -29,10 +31,12 @@ public class ReviewResponse {
 	private Boolean isLikedByMe;
 	private Boolean hasCommentedByMe;
 
+	@Builder
 	public ReviewResponse(Long reviewId, String reviewContent, BigDecimal price, SizeType sizeType,
-		Long likeCount, Long replyCount, String thumbnailImage, Long userId, String userNickname,
-		String userProfileImage, String status, Boolean isMyReview, Boolean isLikedByMe,
-		Boolean hasCommentedByMe) {
+		Long likeCount, Long replyCount, String thumbnailImage, LocalDateTime reviewCreatedAt,
+		Long userId, String userNickname, String userProfileImage, String status,
+		Boolean isMyReview,
+		Boolean isLikedByMe, Boolean hasCommentedByMe) {
 		this.reviewId = reviewId;
 		this.reviewContent = reviewContent;
 		this.price = price;
@@ -40,6 +44,7 @@ public class ReviewResponse {
 		this.likeCount = likeCount;
 		this.replyCount = replyCount;
 		this.thumbnailImage = thumbnailImage;
+		this.reviewCreatedAt = reviewCreatedAt;
 		this.userId = userId;
 		this.userNickname = userNickname;
 		this.userProfileImage = userProfileImage;
@@ -48,8 +53,6 @@ public class ReviewResponse {
 		this.isLikedByMe = isLikedByMe;
 		this.hasCommentedByMe = hasCommentedByMe;
 	}
-
-	@Builder
 
 	public ReviewResponse() {
 	}
