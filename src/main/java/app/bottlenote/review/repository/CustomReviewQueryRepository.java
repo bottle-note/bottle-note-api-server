@@ -9,5 +9,5 @@ public interface CustomReviewQueryRepository {
 
 	List<AlcoholDetail.ReviewOfAlcoholDetail> findBestReviewsForAlcoholDetail(Long alcoholId, Long userId);
 
-	List<AlcoholDetail.ReviewOfAlcoholDetail> findReviewsForAlcoholDetail(Long alcoholId, Long userId);
+	List<AlcoholDetail.ReviewOfAlcoholDetail> findReviewsForAlcoholDetail(Long alcoholId, Long userId, List<Long> ids);
 }

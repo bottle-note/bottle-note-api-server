@@ -2,6 +2,7 @@ package app.bottlenote.alcohols.service;
 
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
+import app.bottlenote.alcohols.dto.response.AlcoholDetail;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.repository.AlcoholQueryRepository;
 import app.bottlenote.global.service.cursor.PageResponse;
@@ -46,16 +47,20 @@ public class AlcoholQueryService {
 	 * @param userId    the user id
 	 * @return the list
 	 */
-	public List<?> findAlcoholDetailById(Long alcoholId, Long userId) {
+	public AlcoholDetail findAlcoholDetailById(Long alcoholId, Long userId) {
 
 		// 위스키 상세 조회
 
 		// 팔로워 수 조회
 
 		// 리뷰 조회
-		List<ReviewOfAlcoholDetail> bestReviewsForAlcoholDetail = reviewQueryRepository.findBestReviewsForAlcoholDetail(alcoholId, userId);
-		List<ReviewOfAlcoholDetail> reviewsForAlcoholDetail = reviewQueryRepository.findReviewsForAlcoholDetail(alcoholId, userId);
+		List<ReviewOfAlcoholDetail> bestReviews = reviewQueryRepository.findBestReviewsForAlcoholDetail(alcoholId, userId);
+		List<Long> bestReviewIds = bestReviews.stream().map(ReviewOfAlcoholDetail::getReviewId).toList();
+		List<ReviewOfAlcoholDetail> reviews = reviewQueryRepository.findReviewsForAlcoholDetail(alcoholId, userId, bestReviewIds);
 
-		return List.of(bestReviewsForAlcoholDetail, reviewsForAlcoholDetail);
+		return AlcoholDetail.builder()
+			.bestReviews(bestReviews)
+			.reviews(reviews)
+			.build();
 	}
 }
