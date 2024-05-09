@@ -25,11 +25,17 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.select(Projections.fields(
 				ReviewResponse.class,
 				review.id.as("reviewId"),
+				review.content.as("reviewContent"),
 				review.price.as("price"),
 				review.sizeType.as("sizeType"),
+				review.imageUrl.as("thumbnailImage"),
+				review.status.as("status"),
+				review.createAt.as("reviewCreatedAt"),
+
 				review.user.id.as("userId"),
 				review.user.nickName.as("userNickname"),
 				review.user.imageUrl.as("userProfileImage"),
+
 				ExpressionUtils.as(
 					JPAExpressions.select(likes.id.count())
 						.from(likes)
@@ -43,9 +49,10 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 					"replyCount"
 				)
 			))
-			.from(alcohol)
-			.leftJoin(review).on(alcohol.id.eq(review.alcohol.id))
+			.from(review)
+			.leftJoin(alcohol).on(alcohol.id.eq(review.alcohol.id))
 			.where(alcohol.id.eq(alcoholId))
+			.orderBy(review.createAt.asc())
 			.fetch();
 	}
 }
