@@ -2,6 +2,7 @@ package app.bottlenote.user.controller;
 
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
+import app.bottlenote.user.dto.response.NicknameChangeResponse;
 import app.bottlenote.user.service.UserCommandService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,20 +24,8 @@ public class UserCommandController {
 	@PatchMapping("/nickname")
 	public ResponseEntity<GlobalResponse> nicknameChange(@RequestBody @Valid NicknameChangeRequest nicknameChangeRequest) {
 
-		// 파라미터의 닉네임 존재하면 == 중복일때, bad request
-		// 파라미터의 닉네임이 존재하지않으면 update 후 ok
-		if (userCommandService.isExistNickname(nicknameChangeRequest.nickName())) {
-			return ResponseEntity.badRequest()
-				.body(GlobalResponse.fail("이미 존재하는 닉네임입니다."));
-		}
-
-
-
-		String updatedNickname = userCommandService.nicknameChange(nicknameChangeRequest);
-
-		return ResponseEntity.ok(GlobalResponse.success(updatedNickname));
-
+		NicknameChangeResponse response = userCommandService.nicknameChange(nicknameChangeRequest);
+		return ResponseEntity.ok(GlobalResponse.success(response));
 	}
-
 
 }
