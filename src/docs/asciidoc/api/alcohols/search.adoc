@@ -1,0 +1,50 @@
+=== 술(위스키) API ===
+
+==== 술(위스키) 정보 조회 ====
+
+검색 조건으로 술(위스키) 정보를 조회합니다.
+
+'''
+
+
+[discrete]
+===== _Request_ =====
+
+[discrete]
+요청 파라미터 ( request fields )
+
+include::{snippets}/alcohols/search/httpie-request.adoc[]
+include::{snippets}/alcohols/search/query-parameters.adoc[]
+
+[discrete]
+===== _Response_ =====
+
+[discrete]
+include::{snippets}/alcohols/search/response-fields.adoc[]
+include::{snippets}/alcohols/search/response-body.adoc[]
+
+
+'''
+
+[discrete]
+===== _정렬 타입 (sortType)_ =====
+
+[cols="1,1",options="header"]
+|===
+|  |
+| POPULAR
+| 인기순
+| RATING
+| 별점순
+| PICK
+| 찜순
+| REVIEW
+| 리뷰순
+|===
+
+- 해당 값이 없을 경우 기본값은 POPULAR 입니다.
+- 타입이 잘못 전달될 경우 예외가 반환됩니다.
+
+include::../overview/sort-order.adoc[]
+
+'''

@@ -3,8 +3,6 @@ package app.bottlenote.global.service.meta;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageRequest;
 
-import java.util.Map;
-
 import static app.bottlenote.global.service.meta.MetaService.createMetaInfo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -33,12 +31,12 @@ class MetaServiceTest {
 		PageRequest pageRequest = PageRequest.of(0, 10);
 
 		// when
-		Map<String, Object> result = metaInfos.add("page_request", pageRequest);
+		MetaInfos result = metaInfos.add("page_request", pageRequest);
 
 		// then
 		assertNotNull(result);
-		assertEquals(5, result.size());
-		assertEquals(pageRequest, result.get("page_request"));
+		assertEquals(5, result.getMetaInfos().size());
+		assertEquals(pageRequest, result.getMetaInfos().get("page_request"));
 	}
 
 	@Test

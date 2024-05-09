@@ -2,8 +2,10 @@ package app.bottlenote.user.service;
 
 import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
 
-import app.bottlenote.common.jwt.JwtTokenProvider;
 import app.bottlenote.global.security.SecurityUtil;
+import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
+import app.bottlenote.global.security.jwt.JwtTokenProvider;
+import app.bottlenote.global.security.jwt.JwtTokenValidator;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.constant.GenderType;
 import app.bottlenote.user.domain.constant.SocialType;
@@ -15,7 +17,6 @@ import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.repository.OauthRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -29,18 +30,18 @@ import org.springframework.transaction.annotation.Transactional;
 public class OauthService {
 
 	private final OauthRepository oauthRepository;
-	private final AuthenticationManager authenticationManager;
 	private final NicknameGenerator nicknameGenerator;
 	private final JwtTokenProvider jwtTokenProvider;
+	private final JwtAuthenticationManager jwtAuthenticationManager;
 	private final SecurityUtil securityUtil;
 
 
 	public OauthResponse oauthLogin(OauthRequest oauthReq) {
 
-		String email = oauthReq.getEmail();
-		SocialType socialType = oauthReq.getSocialType();
-		GenderType genderType = oauthReq.getGender();
-		Integer age = oauthReq.getAge();
+		String email = oauthReq.email();
+		SocialType socialType = oauthReq.socialType();
+		GenderType genderType = oauthReq.gender();
+		Integer age = oauthReq.age();
 
 		User user;
 
@@ -54,7 +55,8 @@ public class OauthService {
 		} else {
 			user = optionalUser;
 		}
-		OauthResponse oauthResponse = jwtTokenProvider.generateToken(email, UserType.ROLE_USER,
+		OauthResponse oauthResponse = jwtTokenProvider.generateToken(user.getEmail(),
+			user.getRole(),
 			user.getId());
 
 		user.updateRefreshToken(oauthResponse.getRefreshToken());
@@ -85,12 +87,12 @@ public class OauthService {
 
 	public OauthResponse refresh(TokenRequest tokenRequest) {
 
-		//1. refresh Token 검증
-		if (!jwtTokenProvider.validateToken(tokenRequest.refreshToken())) {
+		//refresh Token 검증
+		if (!JwtTokenValidator.validateToken(tokenRequest.refreshToken())) {
 			throw new UserException(INVALID_REFRESH_TOKEN);
 		}
-		//
-		Authentication authentication = jwtTokenProvider.getAuthentication(
+
+		Authentication authentication = jwtAuthenticationManager.getAuthentication(
 			tokenRequest.accessToken());
 
 		log.info("USER ID is : {}", authentication.getName());
@@ -99,7 +101,13 @@ public class OauthService {
 		User user = oauthRepository.findByRefreshToken(tokenRequest.refreshToken()).orElseThrow(
 			() -> new UserException(INVALID_REFRESH_TOKEN)
 		);
-		return jwtTokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
+		OauthResponse reissuedToken = jwtTokenProvider.generateToken(user.getEmail(),
+			user.getRole(), user.getId());
+
+		// DB에 저장된 refresh 토큰을 재발급한 refresh 토큰으로 업데이트
+		user.updateRefreshToken(reissuedToken.getRefreshToken());
+
+		return reissuedToken;
 	}
 
 	public String getCurrentUser() {

@@ -1,0 +1,33 @@
+=== 유저  API  ===
+
+==== 로그인 ====
+
+기본적인 인증은 소셜로그인 API 서버에서 수행됩니다.
+
+보틀노트 서버에서는 닉네임 생성을 한 뒤, AccessToken과 RefreshToken을 발급합니다.
+
+gender는 MALE, FEMALE만 가능합니다.
+
+socialType은 KAKAO, NAVER, GOOGLE만 가능합니다\
+
+|====
+|속성 |설명
+
+|`accessToken` | 액세스 토큰
+|`refreshToken` | 리프레쉬 토큰
+
+
+|====
+
+[source]
+----
+POST /api/v1/oauth/login
+----
+
+[discrete]
+include::{snippets}/user/user-login/request-fields.adoc[]
+include::{snippets}/user/user-login/request-body.adoc[]
+
+[discrete]
+include::{snippets}/user/user-login/response-fields.adoc[]
+include::{snippets}/user/user-login/http-response.adoc[]

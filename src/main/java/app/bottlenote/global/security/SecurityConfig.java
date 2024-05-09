@@ -1,14 +1,12 @@
 package app.bottlenote.global.security;
 
-import app.bottlenote.common.jwt.JwtAuthenticationFilter;
-import app.bottlenote.common.jwt.JwtTokenProvider;
+import app.bottlenote.global.security.jwt.JwtAuthenticationFilter;
+import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
 import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -24,22 +22,20 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-	private final SocialLoginAuthenticationProvider socialLoginAuthenticationProvider;
-	private final JwtTokenProvider jwtTokenProvider;
+	private final JwtAuthenticationManager jwtAuthenticationManager;
 
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http
 			.cors(cors -> cors.configurationSource(corsConfigurationSource()))
 			.csrf(AbstractHttpConfigurer::disable)
-			.authenticationProvider(socialLoginAuthenticationProvider)
-			.sessionManagement(sessionConfig ->
-				sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+			.sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(
+				SessionCreationPolicy.STATELESS))
 			.formLogin(AbstractHttpConfigurer::disable)
 			.authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/oauth/**")
 				.permitAll()  // 모든 사용자에게 접근 허용
-				.anyRequest().authenticated())
-			.addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
+				.anyRequest().permitAll())
+			.addFilterBefore(new JwtAuthenticationFilter(jwtAuthenticationManager),
 				UsernamePasswordAuthenticationFilter.class);
 		return http.build();
 	}
@@ -64,10 +60,4 @@ public class SecurityConfig {
 		return source;
 	}
 
-	@Bean
-	public AuthenticationManager authenticationManager(
-		AuthenticationConfiguration authenticationConfiguration)
-		throws Exception {
-		return authenticationConfiguration.getAuthenticationManager();
-	}
 }
