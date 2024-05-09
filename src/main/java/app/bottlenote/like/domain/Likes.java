@@ -22,7 +22,7 @@ import static lombok.AccessLevel.PROTECTED;
 @Getter
 @Entity(name = "likes")
 @NoArgsConstructor(access = PROTECTED)
-public class Like extends BaseEntity {
+public class Likes extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,7 +42,7 @@ public class Like extends BaseEntity {
 
 
 	@Builder
-	public Like(Long id, Review review, User user, LikeStatus status) {
+	public Likes(Long id, Review review, User user, LikeStatus status) {
 		this.id = id;
 		this.review = review;
 		this.user = user;
