@@ -32,6 +32,16 @@
   1. DTO Validation 테스트, nickName과 userId 필드의 유효성 검사를 확인합니다.
   2. 중복 닉네임 검사 및 닉네임 변경 로직 테스트, 중복검사 후 닉네임변경이 정상적으로 이루어지는지 확인합니다.
 
+-  valid check
+  - nickName : 영어, 한글, 숫자만 가능.
+  - nickName : @Notblank -> message = "아이디는 필수 입력값입니다."
+  - userId : @Notnull
+- 비즈니스 로직
+  - 닉네임 중복체크
+  - 닉네임 변경
+  - 닉네임 변경 불가능 메시지 반환
+  - 닉네임 변경 횟수제한 없음
+  ㅇ
 ---------
 
 ## API-EndPoint :  `put /api/v1/users/{userId}/nickname`
