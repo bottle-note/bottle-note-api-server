@@ -31,6 +31,10 @@ public class ReviewDetail {
 	private Boolean isLikedByMe;
 	private Boolean hasCommentedByMe;
 
+	public void setMyReview(Boolean myReview) {
+		isMyReview = myReview;
+	}
+
 	@Builder
 	public ReviewDetail(Long reviewId, String reviewContent, BigDecimal price, SizeType sizeType,
 		Long likeCount, Long replyCount, String thumbnailImage, LocalDateTime reviewCreatedAt,
