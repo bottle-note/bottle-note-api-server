@@ -1,6 +1,5 @@
 package app.bottlenote.review.service;
 
-import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.response.ReviewResponse;
@@ -22,18 +21,15 @@ public class ReviewService {
 		PageableRequest pageableRequest,
 		Long userId) {
 
-		CursorPageable cursorPageable = CursorPageable.builder()
-			.pageSize(pageableRequest.pageSize())
-			.cursor(pageableRequest.cursor())
-			.build();
-
 		PageResponse<ReviewResponse> reviews = reviewRepository.getReviews(alcoholId,
-			cursorPageable, userId);
+			pageableRequest, userId);
 
+		reviews.content().getReviewList().forEach(review -> {
+			boolean isMyReview = review.getUserId().equals(userId);
+			review.setMyReview(isMyReview);
+		});
 		log.info("review size is : {}", reviews.content());
 
 		return reviews;
 	}
-
-
 }
