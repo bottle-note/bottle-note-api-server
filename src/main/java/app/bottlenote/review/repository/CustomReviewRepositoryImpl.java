@@ -7,10 +7,17 @@ import static app.bottlenote.review.domain.QReviewReply.reviewReply;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.review.domain.constant.ReviewSortType;
+import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.response.ReviewDetail;
 import app.bottlenote.review.dto.response.ReviewResponse;
 import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
@@ -24,7 +31,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 	private final JPAQueryFactory queryFactory;
 
 	@Override
-	public PageResponse<ReviewResponse> getReviews(Long alcoholId, CursorPageable pageable,
+	public PageResponse<ReviewResponse> getReviews(Long alcoholId, PageableRequest pageableRequest,
 		Long userId) {
 
 		List<ReviewDetail> fetch = queryFactory
@@ -41,6 +48,10 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 				review.user.id.as("userId"),
 				review.user.nickName.as("userNickname"),
 				review.user.imageUrl.as("userProfileImage"),
+				likedByMe(userId, review.id).as("isLikedByMe"),
+				//isMyReview(userId).as("isMyReview"),
+
+				hasCommentedByMe(userId, review.id).as("hasCommentedByMe"),
 
 				ExpressionUtils.as(
 					JPAExpressions.select(likes.id.count())
@@ -57,10 +68,12 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			))
 			.from(review)
 			.leftJoin(alcohol).on(alcohol.id.eq(review.alcohol.id))
+			.leftJoin(likes).on(likes.id.eq(review.user.id))
 			.where(alcohol.id.eq(alcoholId))
-			.orderBy(review.createAt.asc())
-			.offset(pageable.getCursor())
-			.limit(pageable.getPageSize() + 1)
+			.groupBy(review.id)
+			.orderBy(sortBy(pageableRequest.sortType(), pageableRequest.sortOrder()))
+			.offset(pageableRequest.cursor())
+			.limit(pageableRequest.pageSize() + 1)
 			.fetch();
 
 		Long totalCount = queryFactory
@@ -69,29 +82,30 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.where(review.alcohol.id.eq(alcoholId))
 			.fetchOne();
 
-		CursorPageable cursorPageable = getCursorPageable(pageable, fetch);
+		CursorPageable cursorPageable = getCursorPageable(pageableRequest, fetch);
 
 		log.info("CURSOR Pageable info :{}", cursorPageable.toString());
 		return PageResponse.of(ReviewResponse.of(totalCount, fetch), cursorPageable);
 	}
 
 
-	private CursorPageable getCursorPageable(CursorPageable pageable, List<ReviewDetail> fetch) {
+	private CursorPageable getCursorPageable(PageableRequest pageableRequest,
+		List<ReviewDetail> fetch) {
 
-		boolean hasNext = isHasNext(pageable, fetch);
+		boolean hasNext = isHasNext(pageableRequest, fetch);
 		return CursorPageable.builder()
-			.cursor(pageable.getCursor() + pageable.getPageSize())
-			.pageSize(pageable.getPageSize())
+			.cursor(pageableRequest.cursor() + pageableRequest.pageSize())
+			.pageSize(pageableRequest.pageSize())
 			.hasNext(hasNext)
-			.currentCursor(pageable.getCursor())
+			.currentCursor(pageableRequest.cursor())
 			.build();
 	}
 
 	/**
 	 * 다음 페이지가 있는지 확인하는 메소드
 	 */
-	private boolean isHasNext(CursorPageable pageable, List<ReviewDetail> fetch) {
-		boolean hasNext = fetch.size() > pageable.getPageSize();
+	private boolean isHasNext(PageableRequest pageableRequest, List<ReviewDetail> fetch) {
+		boolean hasNext = fetch.size() > pageableRequest.pageSize();
 
 		if (hasNext) {
 			fetch.remove(fetch.size() - 1);  // Remove the extra record
@@ -99,5 +113,38 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		return hasNext;
 	}
 
-	//TODO :: ORDER SPECIFIER 구현예정
+	private BooleanExpression likedByMe(Long userId, NumberExpression<Long> reviewId) {
+		if (userId == null) {
+			return Expressions.asBoolean(false);
+		}
+
+		return JPAExpressions
+			.selectOne()
+			.from(likes)
+			.where(likes.user.id.eq(userId)
+				.and(likes.review.id.eq(reviewId)))
+			.exists();
+	}
+
+	private BooleanExpression hasCommentedByMe(Long userId, NumberExpression<Long> reviewId) {
+		if (userId == null) {
+			return Expressions.asBoolean(false);
+		}
+
+		return JPAExpressions
+			.selectOne()
+			.from(reviewReply)
+			.where(reviewReply.user.id.eq(userId)
+				.and(reviewReply.review.id.eq(reviewId)))
+			.exists();
+	}
+
+	private OrderSpecifier<?> sortBy(ReviewSortType reviewSortType, SortOrder sortOrder) {
+		return switch (reviewSortType) {
+			case DATE ->
+				sortOrder == SortOrder.DESC ? review.createAt.desc() : review.createAt.asc();
+			case LIKES -> sortOrder == SortOrder.DESC ? likes.review.id.count().desc()
+				: likes.review.id.count().asc();
+		};
+	}
 }
