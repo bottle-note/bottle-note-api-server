@@ -1,11 +1,11 @@
 package app.bottlenote.review.dto.request;
 
-import app.bottlenote.alcohols.domain.constant.SearchSortType;
 import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.review.domain.constant.ReviewSortType;
 import lombok.Builder;
 
 public record PageableRequest(
-	SearchSortType sortType,
+	ReviewSortType sortType,
 	SortOrder sortOrder,
 	Long cursor,
 	Long pageSize
@@ -13,8 +13,8 @@ public record PageableRequest(
 
 	@Builder
 	public PageableRequest {
-		sortType = sortType != null ? sortType : SearchSortType.POPULAR;
-		sortOrder = sortOrder != null ? sortOrder : SortOrder.DESC;
+		sortType = sortType != null ? sortType : ReviewSortType.DATE;
+		sortOrder = sortOrder != null ? sortOrder : SortOrder.ASC;
 		cursor = cursor != null ? cursor : 0L;
 		pageSize = pageSize != null ? pageSize : 10L;
 	}
