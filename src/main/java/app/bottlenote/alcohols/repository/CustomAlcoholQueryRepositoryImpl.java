@@ -131,7 +131,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 				alcohol.engCategory.as("engCategoryName"),
 				alcohol.imageUrl.as("imageUrl"),
 				rating.ratingPoint.rating.avg().multiply(2).castToNum(Double.class).round().divide(2).coalesce(0.0).as("rating"),
-				rating.id.count().as("ratingCount"),
+				rating.id.countDistinct().as("ratingCount"),
 				review.id.countDistinct().as("reviewCount"),
 				picks.id.countDistinct().as("pickCount"),
 				pickedSubQuery(userId).as("picked")
