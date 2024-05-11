@@ -17,7 +17,7 @@ public record PageableRequest(
 	@Builder
 	public PageableRequest {
 		sortType = sortType != null ? sortType : ReviewSortType.POPULAR;
-		sortOrder = sortOrder != null ? sortOrder : SortOrder.ASC;
+		sortOrder = sortOrder != null ? sortOrder : SortOrder.DESC;
 		cursor = cursor != null ? cursor : 0L;
 		pageSize = pageSize != null ? pageSize : 10L;
 	}
