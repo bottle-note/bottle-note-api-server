@@ -20,10 +20,9 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
-import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.util.StringUtils;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import java.math.BigDecimal;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,7 +62,10 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.from(review)
 			.leftJoin(likes).on(review.id.eq(likes.review.id))
 			.leftJoin(alcohol).on(alcohol.id.eq(review.alcohol.id))
-			.where(alcohol.id.eq(alcoholId))
+			.leftJoin(rating).on(review.user.id.eq(rating.user.id))
+			.where(alcohol.id.eq(alcoholId)
+				, eqCategory(pageableRequest.category())
+				, eqRegion(pageableRequest.regionId()))
 			.groupBy(review.id, review.sizeType)
 			.orderBy(sortBy(pageableRequest.sortType(), pageableRequest.sortOrder()))
 			.offset(pageableRequest.cursor())
@@ -107,6 +109,9 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		return hasNext;
 	}
 
+	/*
+	내가 좋아요를 누른 댓글인지 판별
+	 */
 	private BooleanExpression likedByMe(Long userId, NumberExpression<Long> reviewId) {
 		if (userId == null) {
 			return Expressions.asBoolean(false);
@@ -120,6 +125,9 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.exists();
 	}
 
+	/*
+	리뷰 댓글 개수 카운트 서브쿼리
+	 */
 	private Expression<Long> reviewReplyCountSubQuery() {
 		return ExpressionUtils.as(
 			JPAExpressions.select(reviewReply.id.count())
@@ -129,6 +137,9 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		);
 	}
 
+	/*
+	별점 서브쿼리
+	 */
 	private Expression<Double> ratingSubQuery() {
 		return ExpressionUtils.as(
 			JPAExpressions.select(rating.ratingPoint.rating)
@@ -138,6 +149,9 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		);
 	}
 
+	/*
+	좋아요 개수 서브쿼리
+	 */
 	private Expression<Long> likesCountSubQuery() {
 		return ExpressionUtils.as(
 			JPAExpressions.select(likes.id.count())
@@ -147,6 +161,9 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		);
 	}
 
+	/*
+	내가 작성한 댓글이 있는 리뷰인지 판별
+	 */
 	private BooleanExpression hasCommentedByMe(Long userId, NumberExpression<Long> reviewId) {
 		if (userId == null) {
 			return Expressions.asBoolean(false);
@@ -160,17 +177,52 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.exists();
 	}
 
+	/*
+	카테고리를 검색하는 조건
+	 */
+	private BooleanExpression eqCategory(String category) {
+
+		if (StringUtils.isNullOrEmpty(category)) {
+			return null;
+		}
+
+		return alcohol.korCategory.like("%" + category + "%")
+			.or(alcohol.engCategory.like("%" + category + "%"));
+	}
+
+	/**
+	 * 리전을 검색하는 조건
+	 */
+	private BooleanExpression eqRegion(Long regionId) {
+		if (regionId == null) {
+			return null;
+		}
+
+		return alcohol.region.id.eq(regionId);
+	}
+
+
 	private OrderSpecifier<?> sortBy(ReviewSortType reviewSortType, SortOrder sortOrder) {
 
 		NumberExpression<Long> likesCount = likes.id.count();
-		NumberPath<BigDecimal> price = review.price;
 		return switch (reviewSortType) {
 			//좋아요 높은 순
 			case POPULAR -> sortOrder == SortOrder.DESC ? likesCount.desc() : likesCount.asc();
 			//별 점 높은 순
-			case RATING -> sortOrder == SortOrder.DESC ? likes.review.id.count().desc()
-				: likes.review.id.count().asc();
-			case BOTTLE_PRICE -> sortOrder == SortOrder.DESC ? price.desc() : price.asc();
+			case RATING -> sortOrder == SortOrder.DESC ? rating.ratingPoint.rating.desc()
+				: rating.ratingPoint.rating.asc();
+
+			/*
+				TODO : BOTTLE과 GLASS를 기준으로 나눠서 정렬하려면, order by 조건절이 2개가 들어가야함
+				 현재는  BOTTLE과 GLASS를 기준으로 가격정렬이 아닌, 단순 가격에 대한 정렬만 구현됨. 조건 절 2개 넣는 방법 찾아야함
+			 * ORDER BY review.size_type ASC, review.price ASC;
+			 *
+			 * #size type ASC는 Bottle, price DESC는 bottle 가격 높은 순
+			 * #size type DESC 는 GLASS, price ASC는 GLASS 가격 낮은 순
+			 */
+
+			case BOTTLE_PRICE ->
+				sortOrder == SortOrder.DESC ? review.price.desc() : review.price.asc();
 			case GLASS_PRICE -> null;
 		};
 	}

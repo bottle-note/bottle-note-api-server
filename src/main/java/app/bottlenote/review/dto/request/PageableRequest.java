@@ -5,6 +5,9 @@ import app.bottlenote.review.domain.constant.ReviewSortType;
 import lombok.Builder;
 
 public record PageableRequest(
+
+	String category,
+	Long regionId,
 	ReviewSortType sortType,
 	SortOrder sortOrder,
 	Long cursor,
@@ -13,7 +16,7 @@ public record PageableRequest(
 
 	@Builder
 	public PageableRequest {
-		sortType = sortType != null ? sortType : ReviewSortType.DATE;
+		sortType = sortType != null ? sortType : ReviewSortType.POPULAR;
 		sortOrder = sortOrder != null ? sortOrder : SortOrder.ASC;
 		cursor = cursor != null ? cursor : 0L;
 		pageSize = pageSize != null ? pageSize : 10L;
