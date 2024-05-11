@@ -218,6 +218,13 @@ VALUES (1, 3, 1, '이 위스키는 풍부하고 복잡한 맛이 매력적입니
        (5, 5, 2, '달콤한 캐러멜과 과일 향이 조화를 이루는 맛있습니다.', 'GLASS', 99000, '02878', '서울특별시 중구', '청계천로 234',
         'PUBLIC', 'https://example.com/image05.jpg', NULL, '2024-05-08 16:00:00', NULL, NULL, NULL);
 
+INSERT INTO rating (user_id, alcohol_id, rating, create_at, create_by, last_modify_at,
+                    last_modify_by)
+VALUES (3, 1, 3.0, null, null, null, null),
+       (4, 1, 4.0, null, null, null, null),
+       (1, 1, 2.5, null, null, null, null),
+       (2, 2, 1.5, null, null, null, null),
+       (5, 2, 4.0, null, null, null, null);
 
 INSERT INTO likes (id, review_id, user_id, status, create_at, create_by, last_modify_at,
                    last_modify_by)
