@@ -12,6 +12,7 @@ import app.bottlenote.review.domain.constant.ReviewSortType;
 import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.response.ReviewDetail;
 import app.bottlenote.review.dto.response.ReviewResponse;
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
@@ -48,29 +49,17 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 				review.user.id.as("userId"),
 				review.user.nickName.as("userNickname"),
 				review.user.imageUrl.as("userProfileImage"),
+
 				likedByMe(userId, review.id).as("isLikedByMe"),
-				//isMyReview(userId).as("isMyReview"),
-
 				hasCommentedByMe(userId, review.id).as("hasCommentedByMe"),
+				reviewReplyCountSubQuery(),
+				likesCountSubQuery()
 
-				ExpressionUtils.as(
-					JPAExpressions.select(likes.id.count())
-						.from(likes)
-						.where(likes.review.id.eq(review.id
-						)), "likeCount"
-				),
-				ExpressionUtils.as(
-					JPAExpressions.select(reviewReply.id.count())
-						.from(reviewReply)
-						.where(reviewReply.review.id.eq(review.id)),
-					"replyCount"
-				)
 			))
 			.from(review)
 			.leftJoin(alcohol).on(alcohol.id.eq(review.alcohol.id))
 			.leftJoin(likes).on(likes.id.eq(review.user.id))
 			.where(alcohol.id.eq(alcoholId))
-			.groupBy(review.id)
 			.orderBy(sortBy(pageableRequest.sortType(), pageableRequest.sortOrder()))
 			.offset(pageableRequest.cursor())
 			.limit(pageableRequest.pageSize() + 1)
@@ -126,6 +115,24 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.exists();
 	}
 
+	private Expression<Long> reviewReplyCountSubQuery() {
+		return ExpressionUtils.as(
+			JPAExpressions.select(reviewReply.id.count())
+				.from(reviewReply)
+				.where(reviewReply.review.id.eq(review.id)),
+			"replyCount"
+		);
+	}
+
+	private Expression<Long> likesCountSubQuery() {
+		return ExpressionUtils.as(
+			JPAExpressions.select(likes.id.count())
+				.from(likes)
+				.where(likes.review.id.eq(review.id
+				)), "likeCount"
+		);
+	}
+
 	private BooleanExpression hasCommentedByMe(Long userId, NumberExpression<Long> reviewId) {
 		if (userId == null) {
 			return Expressions.asBoolean(false);
@@ -141,10 +148,12 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 
 	private OrderSpecifier<?> sortBy(ReviewSortType reviewSortType, SortOrder sortOrder) {
 		return switch (reviewSortType) {
-			case DATE ->
+			case POPULAR ->
 				sortOrder == SortOrder.DESC ? review.createAt.desc() : review.createAt.asc();
-			case LIKES -> sortOrder == SortOrder.DESC ? likes.review.id.count().desc()
+			case RATING -> sortOrder == SortOrder.DESC ? likes.review.id.count().desc()
 				: likes.review.id.count().asc();
+			case PICK -> null;
+			case REVIEW -> null;
 		};
 	}
 }
