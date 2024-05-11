@@ -25,4 +25,17 @@ public class Populars {
 		this.imageUrl = imageUrl;
 		this.isPicked = isPicked;
 	}
+
+	public static Populars of(Long whiskyId, String korName, String engName, Double rating, String korCategory, String engCategory, String imageUrl, Boolean isPicked) {
+		return Populars.builder()
+			.whiskyId(whiskyId)
+			.korName(korName)
+			.engName(engName)
+			.rating(rating)
+			.korCategory(korCategory)
+			.engCategory(engCategory)
+			.imageUrl(imageUrl)
+			.isPicked(isPicked)
+			.build();
+	}
 }
