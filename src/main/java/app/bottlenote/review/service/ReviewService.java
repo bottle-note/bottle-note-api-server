@@ -24,10 +24,6 @@ public class ReviewService {
 		PageResponse<ReviewResponse> reviews = reviewRepository.getReviews(alcoholId,
 			pageableRequest, userId);
 
-		reviews.content().getReviewList().forEach(review -> {
-			boolean isMyReview = review.getUserId().equals(userId);
-			review.setMyReview(isMyReview);
-		});
 		log.info("review size is : {}", reviews.content());
 
 		return reviews;
