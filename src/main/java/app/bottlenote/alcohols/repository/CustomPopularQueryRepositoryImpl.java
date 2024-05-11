@@ -31,7 +31,7 @@ public class CustomPopularQueryRepositoryImpl implements CustomPopularQueryRepos
 		return queryFactory
 			.select(Projections.constructor(
 				Populars.class,
-				alcohol.id.as("whiskyId"),
+				alcohol.id.as("alcoholId"),
 				alcohol.korName.as("korName"),
 				alcohol.engName.as("engName"),
 				rating.ratingPoint.rating

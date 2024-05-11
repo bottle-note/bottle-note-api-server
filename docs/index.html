@@ -948,7 +948,7 @@ Content-Length: 761
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-09T17:40:45.511976",
+    "serverResponseTime" : "2024-05-11T21:40:47.485801",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1114,7 +1114,7 @@ Content-Length: 324
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-09T17:40:45.377762",
+    "serverResponseTime" : "2024-05-11T21:40:47.369256",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1383,7 +1383,7 @@ Content-Length: 324
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-09T17:40:44.358362",
+    "serverResponseTime" : "2024-05-11T21:40:46.562760",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 4,
@@ -1607,7 +1607,7 @@ Content-Length: 324
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-09T17:40:44.780920",
+    "serverResponseTime" : "2024-05-11T21:40:46.880703",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1684,7 +1684,12 @@ Content-Length: 324
 <td class="tableblock halign-left valign-top"><p class="tableblock">주간 인기 술 리스트의 크기</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.alcohols[].whiskyId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.alcohols</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">주간 인기 술 리스트</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.alcohols[].alcoholId</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">술 ID</p></td>
 </tr>
@@ -1719,29 +1724,9 @@ Content-Length: 324
 <td class="tableblock halign-left valign-top"><p class="tableblock">술 이미지 URL</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>errors</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverEncoding</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서버 인코딩 정도</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverVersion</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서버 버전</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverPathVersion</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서버 경로 버전</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverResponseTime</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서버 응답 시간</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.alcohols[].isPicked</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">내가 찜했는지 여부</p></td>
 </tr>
 </tbody>
 </table>
@@ -1753,52 +1738,57 @@ Content-Length: 324
   "data" : {
     "totalCount" : 5,
     "alcohols" : [ {
-      "whiskyId" : 1,
+      "alcoholId" : 1,
       "korName" : "글렌피딕",
       "engName" : "glen fi",
       "rating" : 3.5,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
-      "imageUrl" : "https://i.imgur.com/TE2nmYV.png"
+      "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
+      "isPicked" : false
     }, {
-      "whiskyId" : 2,
+      "alcoholId" : 2,
       "korName" : "맥키토시",
       "engName" : "macintosh",
       "rating" : 4.5,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
-      "imageUrl" : "https://i.imgur.com/TE2nmYV.png"
+      "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
+      "isPicked" : false
     }, {
-      "whiskyId" : 3,
+      "alcoholId" : 3,
       "korName" : "글렌리벳",
       "engName" : "glen rivet",
       "rating" : 4.0,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
-      "imageUrl" : "https://i.imgur.com/TE2nmYV.png"
+      "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
+      "isPicked" : false
     }, {
-      "whiskyId" : 4,
+      "alcoholId" : 4,
       "korName" : "글렌피딕",
       "engName" : "glen fi",
       "rating" : 3.5,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
-      "imageUrl" : "https://i.imgur.com/TE2nmYV.png"
+      "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
+      "isPicked" : false
     }, {
-      "whiskyId" : 5,
+      "alcoholId" : 5,
       "korName" : "맥키토시",
       "engName" : "macintosh",
       "rating" : 4.5,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
-      "imageUrl" : "https://i.imgur.com/TE2nmYV.png"
+      "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
+      "isPicked" : false
     } ]
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-09T17:40:44.673258",
+    "serverResponseTime" : "2024-05-11T21:40:46.794631",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2059,7 +2049,7 @@ Content-Length: 324
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-09T17:40:45.241221",
+    "serverResponseTime" : "2024-05-11T21:40:47.161529",
     "serverPathVersion" : "v1"
   }
 }</code></pre>

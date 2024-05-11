@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 public class Populars {
-	private final Long whiskyId;
+	private final Long alcoholId;
 	private final String korName;
 	private final String engName;
 	private final Double rating;
@@ -15,8 +15,8 @@ public class Populars {
 	private final Boolean isPicked;
 
 	@Builder
-	public Populars(Long whiskyId, String korName, String engName, Double rating, String korCategory, String engCategory, String imageUrl, Boolean isPicked) {
-		this.whiskyId = whiskyId;
+	public Populars(Long alcoholId, String korName, String engName, Double rating, String korCategory, String engCategory, String imageUrl, Boolean isPicked) {
+		this.alcoholId = alcoholId;
 		this.korName = korName;
 		this.engName = engName;
 		this.rating = rating;
@@ -26,9 +26,9 @@ public class Populars {
 		this.isPicked = isPicked;
 	}
 
-	public static Populars of(Long whiskyId, String korName, String engName, Double rating, String korCategory, String engCategory, String imageUrl, Boolean isPicked) {
+	public static Populars of(Long alcoholId, String korName, String engName, Double rating, String korCategory, String engCategory, String imageUrl, Boolean isPicked) {
 		return Populars.builder()
-			.whiskyId(whiskyId)
+			.alcoholId(alcoholId)
 			.korName(korName)
 			.engName(engName)
 			.rating(rating)

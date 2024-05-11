@@ -61,7 +61,7 @@ class RestPopularControllerTest extends AbstractRestDocs {
 						fieldWithPath("code").type(JsonFieldType.NUMBER).description("응답 코드(http status code)"),
 						fieldWithPath("data.totalCount").type(JsonFieldType.NUMBER).description("주간 인기 술 리스트의 크기"),
 						fieldWithPath("data.alcohols").type(JsonFieldType.ARRAY).description("주간 인기 술 리스트"),
-						fieldWithPath("data.alcohols[].whiskyId").type(JsonFieldType.NUMBER).description("술 ID (alcohol ID 인대 변동될수도 있습니다.)"),
+						fieldWithPath("data.alcohols[].alcoholId").type(JsonFieldType.NUMBER).description("술 ID"),
 						fieldWithPath("data.alcohols[].korName").type(JsonFieldType.STRING).description("술 이름"),
 						fieldWithPath("data.alcohols[].engName").type(JsonFieldType.STRING).description("술 영문명"),
 						fieldWithPath("data.alcohols[].rating").type(JsonFieldType.NUMBER).description("술 평점"),
