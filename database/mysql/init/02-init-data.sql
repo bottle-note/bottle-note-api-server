@@ -204,21 +204,22 @@ VALUES (1, 'user1@example.com', 'nickname1', 28, 'https://example.com/image01.jp
        (5, 'user5@example.com', 'nickname5', 30, 'https://example.com/image05.jpg', 'MALE',
         'ROLE_USER', 'GOOGLE', NULL, NULL, NULL);
 
-INSERT INTO review (id, user_id, alcohol_id, content, size_type, price, zip_code, address,
-                    detail_address, status, image_url, view_count, create_at, create_by,
-                    last_modify_at, last_modify_by)
+INSERT INTO review
+(id, user_id, alcohol_id, content, size_type, price, zip_code, address, detail_address, status,
+ image_url, view_count, create_at, create_by, last_modify_at, last_modify_by)
 VALUES (1, 3, 1, '이 위스키는 풍부하고 복잡한 맛이 매력적입니다.', 'BOTTLE', 65000, '06084', '서울특별시 강남구', '테헤란로 133',
-        'ACTIVE', 'https://example.com/image01.jpg', NULL, NULL, NULL, NULL, NULL),
+        'PUBLIC', 'https://example.com/image01.jpg', NULL, '2024-05-05 12:00:00', NULL, NULL, NULL),
        (2, 4, 1, '가벼우면서도 깊은 맛이 느껴지는 위스키입니다.', 'GLASS', 45000, '05552', '서울특별시 송파구', '백제고분로 123',
-        'ACTIVE', 'https://example.com/image02.jpg', NULL, NULL, NULL, NULL, NULL),
+        'PUBLIC', 'https://example.com/image02.jpg', NULL, '2024-05-02 13:00:00', NULL, NULL, NULL),
        (3, 1, 1, '향기로운 바닐라 향이 나는 부드러운 위스키입니다.', 'BOTTLE', 77000, '03377', '서울특별시 용산구', '이태원로 47',
-        'ACTIVE', 'https://example.com/image03.jpg', NULL, NULL, NULL, NULL, NULL),
+        'PUBLIC', 'https://example.com/image03.jpg', NULL, '2024-05-16 14:30:00', NULL, NULL, NULL),
        (4, 2, 2, '스모키하고 강한 페트 향이 인상적인 위스키입니다.', 'BOTTLE', 120000, '03051', '서울특별시 종로구', '율곡로 99',
-        'ACTIVE', 'https://example.com/image04.jpg', NULL, NULL, NULL, NULL, NULL),
+        'PUBLIC', 'https://example.com/image04.jpg', NULL, '2024-05-01 15:45:00', NULL, NULL, NULL),
        (5, 5, 2, '달콤한 캐러멜과 과일 향이 조화를 이루는 맛있습니다.', 'GLASS', 99000, '02878', '서울특별시 중구', '청계천로 234',
-        'ACTIVE', 'https://example.com/image05.jpg', NULL, NULL, NULL, NULL, NULL);
+        'PUBLIC', 'https://example.com/image05.jpg', NULL, '2024-05-08 16:00:00', NULL, NULL, NULL);
 
-INSERT INTO likes (id, review_id, users_id, status, create_at, create_by, last_modify_at,
+
+INSERT INTO likes (id, review_id, user_id, status, create_at, create_by, last_modify_at,
                    last_modify_by)
 VALUES (1, 1, 1, 'LIKE', NULL, NULL, NULL, NULL),
        (2, 2, 2, 'LIKE', NULL, NULL, NULL, NULL),
@@ -230,3 +231,20 @@ VALUES (1, 1, 1, 'LIKE', NULL, NULL, NULL, NULL),
        (8, 2, 3, 'LIKE', NULL, NULL, NULL, NULL),
        (9, 3, 4, 'LIKE', NULL, NULL, NULL, NULL),
        (10, 1, 5, 'LIKE', NULL, NULL, NULL, NULL);
+
+INSERT INTO review_reply (review_id, user_id, parent_reply_id, content, create_at, create_by,
+                          last_modify_at, last_modify_by)
+VALUES (1, 1, NULL, '첫 번째 리뷰의 첫 댓글입니다.', NULL, NULL, NULL, NULL),
+       (1, 2, NULL, '첫 번째 리뷰의 두 번째 댓글입니다.', NULL, NULL, NULL, NULL),
+       (1, 3, NULL, '첫 번째 리뷰에 또 다른 반응.', NULL, NULL, NULL, NULL),
+       (1, 4, NULL, '첫 번째 리뷰에 대한 추가 피드백.', NULL, NULL, NULL, NULL),
+       (2, 2, NULL, '두 번째 리뷰에 대한 첫 번째 댓글.', NULL, NULL, NULL, NULL),
+       (2, 5, NULL, '두 번째 리뷰에 대한 또 다른 댓글.', NULL, NULL, NULL, NULL),
+       (3, 3, NULL, '세 번째 리뷰의 유일한 댓글입니다.', NULL, NULL, NULL, NULL),
+       (4, 4, NULL, '네 번째 리뷰의 첫 댓글입니다.', NULL, NULL, NULL, NULL),
+       (5, 5, NULL, '다섯 번째 리뷰의 첫 댓글입니다.', NULL, NULL, NULL, NULL),
+       (5, 1, NULL, '다섯 번째 리뷰에 또 다른 댓글입니다.', NULL, NULL, NULL, NULL),
+       (5, 2, NULL, '다섯 번째 리뷰에 세 번째 댓글입니다.', NULL, NULL, NULL, NULL),
+       (5, 3, NULL, '다섯 번째 리뷰에 또 하나의 댓글을 더합니다.', NULL, NULL, NULL, NULL),
+       (5, 4, NULL, '다섯 번째 리뷰, 댓글 계속 이어집니다.', NULL, NULL, NULL, NULL),
+       (5, 5, NULL, '마지막으로 다섯 번째 리뷰의 최종 댓글입니다.', NULL, NULL, NULL, NULL);
