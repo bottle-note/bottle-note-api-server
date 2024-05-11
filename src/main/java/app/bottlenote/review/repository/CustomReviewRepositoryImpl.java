@@ -2,6 +2,7 @@ package app.bottlenote.review.repository;
 
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.like.domain.QLikes.likes;
+import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
 import static app.bottlenote.review.domain.QReviewReply.reviewReply;
 
@@ -19,8 +20,10 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.math.BigDecimal;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +48,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 				review.imageUrl.as("thumbnailImage"),
 				review.status.as("status"),
 				review.createAt.as("reviewCreatedAt"),
+				ratingSubQuery(),
 
 				review.user.id.as("userId"),
 				review.user.nickName.as("userNickname"),
@@ -57,9 +61,10 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 
 			))
 			.from(review)
+			.leftJoin(likes).on(review.id.eq(likes.review.id))
 			.leftJoin(alcohol).on(alcohol.id.eq(review.alcohol.id))
-			.leftJoin(likes).on(likes.id.eq(review.user.id))
 			.where(alcohol.id.eq(alcoholId))
+			.groupBy(review.id, review.sizeType)
 			.orderBy(sortBy(pageableRequest.sortType(), pageableRequest.sortOrder()))
 			.offset(pageableRequest.cursor())
 			.limit(pageableRequest.pageSize() + 1)
@@ -124,12 +129,21 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		);
 	}
 
+	private Expression<Double> ratingSubQuery() {
+		return ExpressionUtils.as(
+			JPAExpressions.select(rating.ratingPoint.rating)
+				.from(rating)
+				.where(rating.user.id.eq(review.user.id))
+			, "ratingPoint"
+		);
+	}
+
 	private Expression<Long> likesCountSubQuery() {
 		return ExpressionUtils.as(
 			JPAExpressions.select(likes.id.count())
 				.from(likes)
-				.where(likes.review.id.eq(review.id
-				)), "likeCount"
+				.where(likes.review.id.eq(review.id))
+			, "likeCount"
 		);
 	}
 
@@ -147,13 +161,17 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 	}
 
 	private OrderSpecifier<?> sortBy(ReviewSortType reviewSortType, SortOrder sortOrder) {
+
+		NumberExpression<Long> likesCount = likes.id.count();
+		NumberPath<BigDecimal> price = review.price;
 		return switch (reviewSortType) {
-			case POPULAR ->
-				sortOrder == SortOrder.DESC ? review.createAt.desc() : review.createAt.asc();
+			//좋아요 높은 순
+			case POPULAR -> sortOrder == SortOrder.DESC ? likesCount.desc() : likesCount.asc();
+			//별 점 높은 순
 			case RATING -> sortOrder == SortOrder.DESC ? likes.review.id.count().desc()
 				: likes.review.id.count().asc();
-			case PICK -> null;
-			case REVIEW -> null;
+			case BOTTLE_PRICE -> sortOrder == SortOrder.DESC ? price.desc() : price.asc();
+			case GLASS_PRICE -> null;
 		};
 	}
 }

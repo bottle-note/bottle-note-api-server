@@ -24,6 +24,7 @@ public class ReviewDetail {
 	private Long userId;
 	private String userNickname;
 	private String userProfileImage;
+	private Double ratingPoint;
 
 	private ReviewStatus status;
 
@@ -35,12 +36,10 @@ public class ReviewDetail {
 		isMyReview = myReview;
 	}
 
-	@Builder
 	public ReviewDetail(Long reviewId, String reviewContent, BigDecimal price, SizeType sizeType,
 		Long likeCount, Long replyCount, String thumbnailImage, LocalDateTime reviewCreatedAt,
-		Long userId, String userNickname, String userProfileImage, ReviewStatus status,
-		Boolean isMyReview,
-		Boolean isLikedByMe, Boolean hasCommentedByMe) {
+		Long userId, String userNickname, String userProfileImage, Double ratingPoint,
+		ReviewStatus status, Boolean isMyReview, Boolean isLikedByMe, Boolean hasCommentedByMe) {
 		this.reviewId = reviewId;
 		this.reviewContent = reviewContent;
 		this.price = price;
@@ -52,11 +51,14 @@ public class ReviewDetail {
 		this.userId = userId;
 		this.userNickname = userNickname;
 		this.userProfileImage = userProfileImage;
+		this.ratingPoint = ratingPoint;
 		this.status = status;
 		this.isMyReview = isMyReview;
 		this.isLikedByMe = isLikedByMe;
 		this.hasCommentedByMe = hasCommentedByMe;
 	}
+
+	@Builder
 
 	public ReviewDetail() {
 	}
