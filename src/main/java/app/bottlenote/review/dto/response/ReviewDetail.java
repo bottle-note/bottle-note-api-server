@@ -1,5 +1,6 @@
 package app.bottlenote.review.dto.response;
 
+import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -24,8 +25,7 @@ public class ReviewDetail {
 	private String userNickname;
 	private String userProfileImage;
 
-	//TODO: ReviewStatus Enum 타입으로 수정예정
-	private String status;
+	private ReviewStatus status;
 
 	private Boolean isMyReview;
 	private Boolean isLikedByMe;
@@ -38,7 +38,7 @@ public class ReviewDetail {
 	@Builder
 	public ReviewDetail(Long reviewId, String reviewContent, BigDecimal price, SizeType sizeType,
 		Long likeCount, Long replyCount, String thumbnailImage, LocalDateTime reviewCreatedAt,
-		Long userId, String userNickname, String userProfileImage, String status,
+		Long userId, String userNickname, String userProfileImage, ReviewStatus status,
 		Boolean isMyReview,
 		Boolean isLikedByMe, Boolean hasCommentedByMe) {
 		this.reviewId = reviewId;
