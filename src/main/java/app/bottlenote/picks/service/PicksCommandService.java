@@ -25,7 +25,7 @@ public class PicksCommandService {
 	/**
 	 * 유저가 위스키를 찜/찜해제 상태를 지정하는 로직
 	 */
-	public Object updatePicks(PicksUpdateRequest request, Long userId) {
+	public PicksUpdateResponse updatePicks(PicksUpdateRequest request, Long userId) {
 
 		Picks picks = picksRepository.findByAlcohol_IdAndUser_Id(request.alcoholId(), userId)
 			.orElseGet(() -> {
