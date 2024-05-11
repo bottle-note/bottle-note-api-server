@@ -8,7 +8,6 @@ import lombok.Getter;
 public class NicknameChangeResponse {
 
 	private final String message;
-
 	@JsonProperty("userId")
 	private Long userId;
 
