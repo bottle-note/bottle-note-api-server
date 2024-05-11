@@ -52,6 +52,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 				review.user.id.as("userId"),
 				review.user.nickName.as("userNickname"),
 				review.user.imageUrl.as("userProfileImage"),
+				isMyReview(userId).as("isMyReview"),
 
 				likedByMe(userId, review.id).as("isLikedByMe"),
 				hasCommentedByMe(userId, review.id).as("hasCommentedByMe"),
@@ -112,6 +113,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 	/*
 	내가 좋아요를 누른 댓글인지 판별
 	 */
+
 	private BooleanExpression likedByMe(Long userId, NumberExpression<Long> reviewId) {
 		if (userId == null) {
 			return Expressions.asBoolean(false);
@@ -123,6 +125,16 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.where(likes.user.id.eq(userId)
 				.and(likes.review.id.eq(reviewId)))
 			.exists();
+	}
+
+	/*
+	 * 내가 작성한 리뷰인지 판별
+	 */
+	private BooleanExpression isMyReview(Long userId) {
+		if (userId == null) {
+			return Expressions.asBoolean(false);
+		}
+		return review.user.id.eq(userId);
 	}
 
 	/*
