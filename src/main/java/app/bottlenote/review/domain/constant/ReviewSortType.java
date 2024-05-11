@@ -8,8 +8,10 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ReviewSortType {
-	DATE("날짜 순"),
-	LIKES("좋아요 순");
+	POPULAR("인기순"),
+	RATING("별점순"),
+	BOTTLE_PRICE("보틀 가격"),
+	GLASS_PRICE("잔 가격");
 
 	private final String name;
 
@@ -21,7 +23,7 @@ public enum ReviewSortType {
 		return Stream.of(ReviewSortType.values())
 			.filter(sortType -> sortType.toString().equals(source.toUpperCase()))
 			.findFirst()
-			.orElse(DATE);
+			.orElse(POPULAR);
 	}
 
 }
