@@ -8,11 +8,11 @@ import lombok.Getter;
 @Getter
 public class PicksUpdateResponse {
 
-	private final Message message;
+	private final String message;
 	private final PicksStatus status;
 
 	private PicksUpdateResponse(PicksStatus status) {
-		this.message = status.equals(PicksStatus.PICK) ? Message.PICKED : Message.UNPICKED;
+		this.message = status.equals(PicksStatus.PICK) ? Message.PICKED.message : Message.UNPICKED.message;
 		this.status = status;
 	}
 
@@ -26,6 +26,6 @@ public class PicksUpdateResponse {
 		PICKED("정상적으로 찜하기 처리 되었습니다."),
 		UNPICKED("정상적으로 찜하기 취소 처리 되었습니다.");
 
-		private final String description;
+		private final String message;
 	}
 }

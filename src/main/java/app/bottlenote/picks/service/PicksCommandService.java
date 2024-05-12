@@ -33,7 +33,7 @@ public class PicksCommandService {
 					.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
 				Alcohol alcohol = alcoholQueryRepository
 					.findById(request.alcoholId())
-					.orElseThrow(() -> new IllegalArgumentException("해당 술이 존재하지 않습니다."));
+					.orElseThrow(() -> new IllegalArgumentException("해당 술이 존재하지 않습니다.")); //todo Alcohols Exception 생성 필요
 				return Picks.builder()
 					.alcohol(alcohol)
 					.user(user)
