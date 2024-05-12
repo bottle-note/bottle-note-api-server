@@ -24,7 +24,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(UserCommandController.class)
 @WithMockUser
-class NicknameChangeControllerTest {
+class UserNicknameChangeControllerTest {
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -38,7 +38,7 @@ class NicknameChangeControllerTest {
 	@Test
 	void shouldChangeNicknameSuccessfully() throws Exception {
 		NicknameChangeRequest request = new NicknameChangeRequest(1L, "newNickname");
-		NicknameChangeResponse response = NicknameChangeResponse.of(SUCCESS, 1L, "beforeNickname", "changedNickname");
+		NicknameChangeResponse response = NicknameChangeResponse.of(SUCCESS, 1L, "beforeNickname", "newNickname");
 
 		when(nicknameChangeService.nicknameChange(request)).thenReturn(response);
 
@@ -52,7 +52,7 @@ class NicknameChangeControllerTest {
 			.andExpect(jsonPath("$.data.message").value("닉네임이 성공적으로 변경되었습니다."))
 			.andExpect(jsonPath("$.data.userId").value(1))
 			.andExpect(jsonPath("$.data.beforeNickname").value("beforeNickname"))
-			.andExpect(jsonPath("$.data.changedNickname").value("changedNickname"));
+			.andExpect(jsonPath("$.data.changedNickname").value("newNickname"));
 	}
 
 	@DisplayName("유효하지 않은 닉네임으로 변경 시도 시 실패 테스트")
