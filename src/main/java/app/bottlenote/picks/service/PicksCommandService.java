@@ -42,6 +42,9 @@ public class PicksCommandService {
 			});
 
 		PicksStatus picksStatus = picks.updateStatus(request.isPicked()).getStatus();
+
+		picksRepository.save(picks);
+
 		return PicksUpdateResponse.of(picksStatus);
 	}
 }
