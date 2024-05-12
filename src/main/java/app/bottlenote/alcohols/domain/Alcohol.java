@@ -15,6 +15,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import lombok.Builder;
 import lombok.Getter;
 import org.hibernate.annotations.Comment;
 
@@ -88,6 +89,24 @@ public class Alcohol extends BaseEntity {
 	// Rating이 alcohol의 id를 가지고 있다.
 	@OneToMany(mappedBy = "alcohol", fetch = FetchType.LAZY)
 	private List<Rating> rating = new ArrayList<>();
+
+	@Builder
+	public Alcohol(Long id, String korName, String engName, String abv, AlcoholType type, String korCategory, String engCategory, Region region, Distillery distillery, String cask, String imageUrl, List<Review> reviews, Set<AlcoholsTastingTags> alcoholsTastingTags, List<Rating> rating) {
+		this.id = id;
+		this.korName = korName;
+		this.engName = engName;
+		this.abv = abv;
+		this.type = type;
+		this.korCategory = korCategory;
+		this.engCategory = engCategory;
+		this.region = region;
+		this.distillery = distillery;
+		this.cask = cask;
+		this.imageUrl = imageUrl;
+		this.reviews = reviews;
+		this.alcoholsTastingTags = alcoholsTastingTags;
+		this.rating = rating;
+	}
 
 	@Override
 	public String toString() {
