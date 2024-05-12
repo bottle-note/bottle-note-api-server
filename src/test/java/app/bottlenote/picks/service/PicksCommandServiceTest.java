@@ -74,7 +74,7 @@ class PicksCommandServiceTest {
 			Picks picks = Picks.builder()
 				.alcohol(alcohol)
 				.user(user)
-				.status(PicksStatus.UNPICKED)
+				.status(PicksStatus.UNPICK)
 				.build();
 
 			//when
@@ -116,7 +116,7 @@ class PicksCommandServiceTest {
 		void case_1() {
 			// given
 			Long userId = 1L;
-			PicksUpdateRequest pickRequest = new PicksUpdateRequest(alcohol.getId(), PicksStatus.UNPICKED);
+			PicksUpdateRequest pickRequest = new PicksUpdateRequest(alcohol.getId(), PicksStatus.UNPICK);
 
 			// when
 			when(userRepository.findById(userId)).thenReturn(Optional.ofNullable(user));
@@ -124,7 +124,7 @@ class PicksCommandServiceTest {
 
 			PicksUpdateResponse response = picksCommandService.updatePicks(pickRequest, userId);
 			// then
-			assertEquals(response.getStatus(), PicksStatus.UNPICKED);
+			assertEquals(response.getStatus(), PicksStatus.UNPICK);
 			assertEquals(response.getMessage(), PicksUpdateResponse.Message.UNPICKED.getMessage());
 		}
 
@@ -132,7 +132,7 @@ class PicksCommandServiceTest {
 		@DisplayName("UNPICK 된적 있어도 해제할 수 있다.")
 		void case_2() {
 			// given
-			PicksUpdateRequest pickRequest = new PicksUpdateRequest(alcohol.getId(), PicksStatus.UNPICKED);
+			PicksUpdateRequest pickRequest = new PicksUpdateRequest(alcohol.getId(), PicksStatus.UNPICK);
 			Picks picks = Picks.builder()
 				.alcohol(alcohol)
 				.user(user)
@@ -144,7 +144,7 @@ class PicksCommandServiceTest {
 			PicksUpdateResponse response = picksCommandService.updatePicks(pickRequest, user.getId());
 
 			// then
-			assertEquals(response.getStatus(), PicksStatus.UNPICKED);
+			assertEquals(response.getStatus(), PicksStatus.UNPICK);
 			assertEquals(response.getMessage(), PicksUpdateResponse.Message.UNPICKED.getMessage());
 		}
 	}

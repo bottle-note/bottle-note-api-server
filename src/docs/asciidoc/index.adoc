@@ -20,25 +20,29 @@ endif::[]
 
 
 include::api/overview/overview.adoc[]
-
+'''
 include::api/overview/global-response.adoc[]
-
+'''
 include::api/overview/global-exception.adoc[]
 
 == 회원 (user)
 
 include::api/user/user-login.adoc[]
-
+'''
 include::api/user/user-reissue.adoc[]
 
 == 술 (alcohols)
 
+'''
 include::api/alcohols/search.adoc[]
-
+'''
+include::api/alcohols/picks.adoc[]
+'''
 include::api/alcohols/region.adoc[]
-
+'''
 include::api/alcohols/popular.adoc[]
 
 == 신고 (report)
 
 include::api/support/report/user-report.adoc[]
+'''

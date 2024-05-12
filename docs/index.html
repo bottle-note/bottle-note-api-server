@@ -468,7 +468,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel2">
 <li><a href="#_술위스키_api">3.1. 술(위스키) API</a>
 <ul class="sectlevel3">
-<li><a href="#_술위스키_정보_조회">3.1.1. 술(위스키) 정보 조회</a></li>
+<li><a href="#_술위스키_목록_조회">3.1.1. 술(위스키) 목록 조회</a></li>
+<li><a href="#_찜하기_찜하기_해제">3.1.2. 찜하기 /찜하기 해제</a></li>
 </ul>
 </li>
 <li><a href="#_지역_api">3.2. 지역 API</a>
@@ -948,7 +949,7 @@ Content-Length: 761
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-09T17:40:45.511976",
+    "serverResponseTime" : "2024-05-12T19:29:32.786077",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1114,7 +1115,7 @@ Content-Length: 324
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-09T17:40:45.377762",
+    "serverResponseTime" : "2024-05-12T19:29:32.709652",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1130,7 +1131,7 @@ Content-Length: 324
 <div class="sect2">
 <h3 id="_술위스키_api"><a class="link" href="#_술위스키_api">3.1. 술(위스키) API</a></h3>
 <div class="sect3">
-<h4 id="_술위스키_정보_조회"><a class="link" href="#_술위스키_정보_조회">3.1.1. 술(위스키) 정보 조회</a></h4>
+<h4 id="_술위스키_목록_조회"><a class="link" href="#_술위스키_목록_조회">3.1.1. 술(위스키) 목록 조회</a></h4>
 <div class="paragraph">
 <p>검색 조건으로 술(위스키) 정보를 조회합니다.</p>
 </div>
@@ -1383,7 +1384,7 @@ Content-Length: 324
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-09T17:40:44.358362",
+    "serverResponseTime" : "2024-05-12T19:29:31.710038",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 4,
@@ -1503,6 +1504,145 @@ Content-Length: 324
 </div>
 <hr>
 </div>
+<div class="sect3">
+<h4 id="_찜하기_찜하기_해제"><a class="link" href="#_찜하기_찜하기_해제">3.1.2. 찜하기 /찜하기 해제</a></h4>
+<div class="paragraph">
+<p>술(위스키)의 식별자와 조건값을 통해 찜하기/찜하기 해제를 합니다.</p>
+</div>
+<div class="paragraph">
+<p>하단 상수를 통해 찜하기와 찜하기 해제를 구분합니다.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">PUT apv/v1/picks</code></pre>
+</div>
+</div>
+<h5 class="discrete" id="_request_2"><em>Request</em></h5>
+<h4 class="discrete" id="_요청_파라미터_request_fields_3">요청 파라미터 ( request fields )</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">path</th>
+<th class="tableblock halign-left valign-top">type</th>
+<th class="tableblock halign-left valign-top">optional</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>alcoholId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">찜 할 술(위스키)의 식별자</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>isPicked</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">찜 여부 (하단 Picks Status 참조)</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json">{
+  "alcoholId" : 1,
+  "isPicked" : "PICK"
+}</code></pre>
+</div>
+</div>
+<h5 class="discrete" id="_response_2"><em>Response</em></h5>
+<h4 class="discrete" id="_응답_파라미터_response_fields_4">응답 파라미터 ( response fields )</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">path</th>
+<th class="tableblock halign-left valign-top">type</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>code</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 코드(http status code)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.message</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">결과 메시지</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.status</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">업데이트된 찜 상태</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>errors</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json">{
+  "success" : true,
+  "code" : 200,
+  "data" : {
+    "message" : "정상적으로 찜하기 처리 되었습니다.",
+    "status" : "PICK"
+  },
+  "errors" : [ ],
+  "meta" : {
+    "serverVersion" : "1.0.0",
+    "serverEncoding" : "UTF-8",
+    "serverResponseTime" : "2024-05-12T19:29:32.174140",
+    "serverPathVersion" : "v1"
+  }
+}</code></pre>
+</div>
+</div>
+<h4 class="discrete" id="_picks_status">Picks Status</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">코드</th>
+<th class="tableblock halign-left valign-top">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PICK</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">찜 하기</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">UNPICK</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">찜하기 해제</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_지역_api"><a class="link" href="#_지역_api">3.2. 지역 API</a></h3>
@@ -1520,7 +1660,7 @@ Content-Length: 324
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/regions</code></pre>
 </div>
 </div>
-<h4 id="_응답_파라미터_response_fields_4" class="discrete">응답 파라미터 ( response fields )</h4>
+<h4 class="discrete" id="_응답_파라미터_response_fields_5">응답 파라미터 ( response fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -1607,7 +1747,7 @@ Content-Length: 324
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-09T17:40:44.780920",
+    "serverResponseTime" : "2024-05-12T19:29:32.374261",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1653,7 +1793,7 @@ Content-Length: 324
 </tr>
 </tbody>
 </table>
-<h4 id="_응답_파라미터_response_fields_5" class="discrete">응답 파라미터 ( response fields )</h4>
+<h4 class="discrete" id="_응답_파라미터_response_fields_6">응답 파라미터 ( response fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -1798,7 +1938,7 @@ Content-Length: 324
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-09T17:40:44.673258",
+    "serverResponseTime" : "2024-05-12T19:29:32.287509",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1919,7 +2059,7 @@ Content-Length: 324
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/user-report</code></pre>
 </div>
 </div>
-<h4 id="_요청_파라미터_request_fields_3" class="discrete">요청 파라미터 ( request fields )</h4>
+<h4 class="discrete" id="_요청_파라미터_request_fields_4">요청 파라미터 ( request fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -1972,7 +2112,7 @@ Content-Length: 324
 }</code></pre>
 </div>
 </div>
-<h4 id="_응답_파라미터_response_fields_6" class="discrete">응답 파라미터 ( response fields )</h4>
+<h4 class="discrete" id="_응답_파라미터_response_fields_7">응답 파라미터 ( response fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -2059,7 +2199,7 @@ Content-Length: 324
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-09T17:40:45.241221",
+    "serverResponseTime" : "2024-05-12T19:29:32.616558",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2124,7 +2264,7 @@ Content-Length: 324
 <div id="footer">
 <div id="footer-text">
 Version 0.0.1-SNAPSHOT<br>
-Last updated 2024-05-09 04:56:51 +0900
+Last updated 2024-05-12 19:24:34 +0900
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>

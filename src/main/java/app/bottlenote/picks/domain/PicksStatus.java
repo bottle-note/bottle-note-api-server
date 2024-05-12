@@ -8,7 +8,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum PicksStatus {
 	PICK,
-	UNPICKED;
+	UNPICK;
 
 	@JsonCreator
 	public static PicksStatus parsing(String source) {
