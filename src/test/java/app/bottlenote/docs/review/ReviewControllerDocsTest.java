@@ -55,8 +55,6 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 
 		//then
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/reviews/1")
-				.param("category", "SINGLE_MOLT")
-				.param("regionId", "1")
 				.param("sortType", "POPULAR")
 				.param("sortOrder", "DESC")
 				.param("cursor", "0")
@@ -66,10 +64,6 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 			.andDo(
 				document("review/review-read",
 					queryParameters(
-						parameterWithName("category").optional()
-							.description("카테고리 (category API 참조)"),
-						parameterWithName("regionId").optional()
-							.description("지역 ID (region API 참조)"),
 						parameterWithName("sortType").optional()
 							.description("정렬 타입(해당 문서 하단 enum 참조)"),
 						parameterWithName("sortOrder").optional()
