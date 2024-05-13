@@ -1,6 +1,7 @@
 package app.bottlenote.review.repository;
 
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.global.service.cursor.SortOrder.DESC;
 import static app.bottlenote.like.domain.QLikes.likes;
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
@@ -15,6 +16,7 @@ import app.bottlenote.review.dto.response.ReviewDetail;
 import app.bottlenote.review.dto.response.ReviewResponse;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -23,6 +25,8 @@ import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.util.StringUtils;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -68,7 +72,8 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 				, eqCategory(pageableRequest.category())
 				, eqRegion(pageableRequest.regionId()))
 			.groupBy(review.id, review.sizeType)
-			.orderBy(sortBy(pageableRequest.sortType(), pageableRequest.sortOrder()))
+			.orderBy(sortBy(pageableRequest.sortType(), pageableRequest.sortOrder()).toArray(
+				new OrderSpecifier[0]))
 			.offset(pageableRequest.cursor())
 			.limit(pageableRequest.pageSize() + 1)
 			.fetch();
@@ -214,28 +219,45 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 	}
 
 
-	private OrderSpecifier<?> sortBy(ReviewSortType reviewSortType, SortOrder sortOrder) {
+	private List<OrderSpecifier<?>> sortBy(ReviewSortType reviewSortType, SortOrder sortOrder) {
 
 		NumberExpression<Long> likesCount = likes.id.count();
 		return switch (reviewSortType) {
-			//좋아요 높은 순
-			case POPULAR -> sortOrder == SortOrder.DESC ? likesCount.desc() : likesCount.asc();
-			//별 점 높은 순
-			case RATING -> sortOrder == SortOrder.DESC ? rating.ratingPoint.rating.desc()
-				: rating.ratingPoint.rating.asc();
+			//인기순 -> 임시로 좋아요 순으로 구현
+			case POPULAR ->
+				Collections.singletonList(sortOrder == DESC ? likesCount.desc() : likesCount.asc());
+			//좋아요 순
+			case LIKES ->
+				Collections.singletonList(sortOrder == DESC ? likesCount.desc() : likesCount.asc());
+			//별점 순
+			case RATING -> Collections.singletonList(
+				sortOrder == DESC ? rating.ratingPoint.rating.desc()
+					: rating.ratingPoint.rating.asc());
 
-			/*
-				TODO : BOTTLE과 GLASS를 기준으로 나눠서 정렬하려면, order by 조건절이 2개가 들어가야함
-				 현재는  BOTTLE과 GLASS를 기준으로 가격정렬이 아닌, 단순 가격에 대한 정렬만 구현됨. 조건 절 2개 넣는 방법 찾아야함
-			 * ORDER BY review.size_type ASC, review.price ASC;
-			 *
-			 * #size type ASC는 Bottle, price DESC는 bottle 가격 높은 순
-			 * #size type DESC 는 GLASS, price ASC는 GLASS 가격 낮은 순
-			 */
+			//병 기준 가격 순
+			case BOTTLE_PRICE -> {
+				OrderSpecifier<?> sizeOrderSpecifier = new OrderSpecifier<>(
+					Order.ASC, review.sizeType
+				).nullsLast();
 
-			case BOTTLE_PRICE ->
-				sortOrder == SortOrder.DESC ? review.price.desc() : review.price.asc();
-			case GLASS_PRICE -> null;
+				OrderSpecifier<?> priceOrderSpecifier = new OrderSpecifier<>(
+					sortOrder == DESC ? Order.DESC : Order.ASC,
+					review.price
+				);
+				yield Arrays.asList(sizeOrderSpecifier, priceOrderSpecifier);
+			}
+			//잔 기준 가격 순
+			case GLASS_PRICE -> {
+				OrderSpecifier<?> sizeOrderSpecifier = new OrderSpecifier<>(
+					Order.DESC, review.sizeType
+				).nullsLast();
+
+				OrderSpecifier<?> priceOrderSpecifier = new OrderSpecifier<>(
+					sortOrder == DESC ? Order.DESC : Order.ASC,
+					review.price
+				);
+				yield Arrays.asList(sizeOrderSpecifier, priceOrderSpecifier);
+			}
 		};
 	}
 }
