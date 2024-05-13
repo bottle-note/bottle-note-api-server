@@ -22,7 +22,6 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
-import com.querydsl.core.util.StringUtils;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.Arrays;
@@ -68,9 +67,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.leftJoin(likes).on(review.id.eq(likes.review.id))
 			.leftJoin(alcohol).on(alcohol.id.eq(review.alcohol.id))
 			.leftJoin(rating).on(review.user.id.eq(rating.user.id))
-			.where(alcohol.id.eq(alcoholId)
-				, eqCategory(pageableRequest.category())
-				, eqRegion(pageableRequest.regionId()))
+			.where(alcohol.id.eq(alcoholId))
 			.groupBy(review.id, review.sizeType)
 			.orderBy(sortBy(pageableRequest.sortType(), pageableRequest.sortOrder()).toArray(
 				new OrderSpecifier[0]))
@@ -193,31 +190,6 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 				.and(reviewReply.review.id.eq(reviewId)))
 			.exists();
 	}
-
-	/*
-	카테고리를 검색하는 조건
-	 */
-	private BooleanExpression eqCategory(String category) {
-
-		if (StringUtils.isNullOrEmpty(category)) {
-			return null;
-		}
-
-		return alcohol.korCategory.like("%" + category + "%")
-			.or(alcohol.engCategory.like("%" + category + "%"));
-	}
-
-	/**
-	 * 리전을 검색하는 조건
-	 */
-	private BooleanExpression eqRegion(Long regionId) {
-		if (regionId == null) {
-			return null;
-		}
-
-		return alcohol.region.id.eq(regionId);
-	}
-
 
 	private List<OrderSpecifier<?>> sortBy(ReviewSortType reviewSortType, SortOrder sortOrder) {
 

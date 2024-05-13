@@ -122,8 +122,6 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 
 	private PageableRequest getRequest() {
 		return PageableRequest.builder()
-			.category("SINGLE_MALT")
-			.regionId(1L)
 			.sortType(ReviewSortType.POPULAR)
 			.sortOrder(SortOrder.DESC)
 			.cursor(0L)

@@ -60,9 +60,6 @@ class ReviewControllerTest {
 			.thenReturn(response);
 
 		ResultActions resultActions = mockMvc.perform(get("/api/v1/reviews/1")
-				.param("category", pageableRequest.category())
-				.param("regionId", pageableRequest.regionId() == null ? null
-					: String.valueOf(pageableRequest.regionId()))
 				.param("sortType", String.valueOf(pageableRequest.sortType()))
 				.param("sortOrder", pageableRequest.sortOrder().name())
 				.param("cursor", String.valueOf(pageableRequest.cursor()))
@@ -85,38 +82,14 @@ class ReviewControllerTest {
 		return Stream.of(
 			Arguments.of("모든 요청 파라미터가 존재할 때.",
 				PageableRequest.builder()
-					.category("SINGLE_MOLT")
-					.regionId(1L)
 					.sortType(ReviewSortType.POPULAR)
 					.sortOrder(SortOrder.DESC)
 					.cursor(1L)
 					.pageSize(2L)
 					.build()
 			),
-			Arguments.of("카테고리가 없을 때.",
-				PageableRequest.builder()
-					.category("")
-					.regionId(1L)
-					.sortType(ReviewSortType.POPULAR)
-					.sortOrder(SortOrder.DESC)
-					.cursor(0L)
-					.pageSize(3L)
-					.build()
-			),
-			Arguments.of("지역 아이디가 없을 때.",
-				PageableRequest.builder()
-					.category("")
-					.regionId(null)
-					.sortType(ReviewSortType.POPULAR)
-					.sortOrder(SortOrder.DESC)
-					.cursor(0L)
-					.pageSize(3L)
-					.build()
-			),
 			Arguments.of("정렬 정보가 없을 때.",
 				PageableRequest.builder()
-					.category("")
-					.regionId(null)
 					.sortType(null)
 					.sortOrder(null)
 					.cursor(0L)
@@ -125,8 +98,6 @@ class ReviewControllerTest {
 			),
 			Arguments.of("페이지네이션 정보가 없을 때.",
 				PageableRequest.builder()
-					.category("")
-					.regionId(null)
 					.sortType(null)
 					.sortOrder(null)
 					.cursor(null)

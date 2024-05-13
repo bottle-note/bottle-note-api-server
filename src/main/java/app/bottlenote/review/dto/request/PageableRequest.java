@@ -5,9 +5,6 @@ import app.bottlenote.review.domain.constant.ReviewSortType;
 import lombok.Builder;
 
 public record PageableRequest(
-
-	String category,
-	Long regionId,
 	ReviewSortType sortType,
 	SortOrder sortOrder,
 	Long cursor,
