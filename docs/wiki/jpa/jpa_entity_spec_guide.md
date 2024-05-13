@@ -81,9 +81,6 @@ class Review {
 @Entity
 class Users {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<Review> reviews = new ArrayList<>();
+    private List<Review> reviewInfos = new ArrayList<>();
 }
 ```
-
-
-

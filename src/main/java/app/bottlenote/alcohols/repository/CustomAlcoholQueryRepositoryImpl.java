@@ -4,6 +4,7 @@ import app.bottlenote.alcohols.domain.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchDetail;
+import app.bottlenote.alcohols.dto.response.detail.AlcoholDetailInfo;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
@@ -20,6 +21,8 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.alcohols.domain.QDistillery.distillery;
+import static app.bottlenote.alcohols.domain.QRegion.region;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
@@ -28,6 +31,77 @@ import static app.bottlenote.review.domain.QReview.review;
 @RequiredArgsConstructor
 public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepository {
 	private final JPAQueryFactory queryFactory;
+
+
+	/**
+	 * queryDSL을 이용한 알코올 상세 조회
+	 *
+	 * @param alcoholId 조회 대상 알코올 ID
+	 * @param userId    만약 사용자가 로그인한 경우 좋아요 상태를 확인하기 위한 사용자 ID
+	 * @return the alcohol detail info
+	 */
+	@Override
+	public AlcoholDetailInfo findAlcoholDetailById(Long alcoholId, Long userId) {
+		if (userId == null) userId = -1L;
+		List<String> tags = List.of("달달한", "부드러운", "향긋한", "견과류", "후추향의");
+
+		return queryFactory
+			.select(Projections.constructor(
+				AlcoholDetailInfo.class,
+				alcohol.id.as("alcoholId"),
+				alcohol.imageUrl.as("alcoholUrlImg"),
+				alcohol.korName.as("korName"),
+				alcohol.engName.as("engName"),
+				alcohol.korCategory.as("korCategory"),
+				alcohol.engCategory.as("engCategory"),
+				region.korName.as("korRegion"),
+				region.engName.as("engRegion"),
+				alcohol.cask.as("cask"),
+				alcohol.abv.as("avg"),
+				distillery.korName.as("korDistillery"),
+				distillery.engName.as("engDistillery"),
+
+				rating.ratingPoint.rating.avg().multiply(2).castToNum(Double.class).round().divide(2).coalesce(0.0).as("rating"),
+				rating.id.count().as("totalRatings"),
+
+				Expressions.asNumber(
+					JPAExpressions
+						.select(rating.ratingPoint.rating.coalesce(0.0))
+						.from(rating)
+						.where(rating.alcohol.id.eq(alcoholId).and(rating.user.id.eq(userId)))
+				).castToNum(Double.class).as("myRating"),
+
+				Expressions.asBoolean(
+					JPAExpressions
+						.selectOne()
+						.from(picks)
+						.where(picks.alcohol.id.eq(alcoholId).and(picks.user.id.eq(userId)))
+						.exists()
+				).as("isPicked"),
+				Expressions.constant(tags) // 여기서 tags 리스트를 상수로 전달
+			))
+			.from(alcohol)
+			.leftJoin(rating).on(alcohol.id.eq(rating.alcohol.id))
+			.join(region).on(alcohol.region.id.eq(region.id))
+			.join(distillery).on(alcohol.distillery.id.eq(distillery.id))
+			.where(alcohol.id.eq(alcoholId))
+			.groupBy(
+				alcohol.id,
+				alcohol.korCategory,
+				alcohol.engCategory,
+				alcohol.imageUrl,
+				alcohol.korName,
+				alcohol.engName,
+				region.korName,
+				region.engName,
+				alcohol.cask,
+				alcohol.abv,
+				distillery.korName,
+				distillery.engName
+			)
+			.fetchOne();
+	}
+
 
 	/**
 	 * queryDSL을 이용한 알코올 검색
@@ -57,7 +131,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 				alcohol.engCategory.as("engCategoryName"),
 				alcohol.imageUrl.as("imageUrl"),
 				rating.ratingPoint.rating.avg().multiply(2).castToNum(Double.class).round().divide(2).coalesce(0.0).as("rating"),
-				rating.id.count().as("ratingCount"),
+				rating.id.alcoholId.countDistinct().as("ratingCount"),
 				review.id.countDistinct().as("reviewCount"),
 				picks.id.countDistinct().as("pickCount"),
 				pickedSubQuery(userId).as("picked")
@@ -199,5 +273,6 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 
 		return alcohol.region.id.eq(regionId);
 	}
+
 
 }
