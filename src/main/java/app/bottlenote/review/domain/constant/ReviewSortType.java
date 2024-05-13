@@ -9,6 +9,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ReviewSortType {
 	POPULAR("인기순"),
+	LIKES("좋아요순"),
 	RATING("별점순"),
 	BOTTLE_PRICE("보틀 가격"),
 	GLASS_PRICE("잔 가격");
