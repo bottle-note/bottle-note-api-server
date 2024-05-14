@@ -25,7 +25,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(SpringExtension.class)
+@ExtendWith(MockitoExtension.class)
 public class UserCommandServiceTest {
 
 	@InjectMocks
@@ -34,13 +34,8 @@ public class UserCommandServiceTest {
 	@Mock
 	UserCommandRepository userCommandRepository;
 
-	@BeforeEach
-	public void init() {
-		MockitoAnnotations.openMocks(this);
-	}
-
 	@Test
-	@DisplayName("닉네임 변경 성공 테스트")
+	@DisplayName("닉네임을 변경할수 있다.")
 	public void testChangeNickname() {
 		// given
 		User user = User.builder()
@@ -56,7 +51,7 @@ public class UserCommandServiceTest {
 
 	}
 
-	@DisplayName("닉네임 중복 변경 시도 시 실패 테스트")
+	@DisplayName("중복된 닉네임은 변경할 수 없다.")
 	@Test
 	public void testChangeNicknameWithDuplicateNickname() {
 		// given

@@ -1,6 +1,6 @@
 package app.bottlenote.docs.user;
 
-import static app.bottlenote.user.dto.response.NicknameChangeResponse.NicknameChangeResponseEnum.SUCCESS;
+import static app.bottlenote.user.dto.response.NicknameChangeResponse.Message.SUCCESS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
@@ -60,10 +60,10 @@ class RestDocsUserChangeContollerTest extends AbstractRestDocs {
 						fieldWithPath("data.beforeNickname").type(JsonFieldType.STRING).description("이전 닉네임"),
 						fieldWithPath("data.changedNickname").type(JsonFieldType.STRING).description("변경된 닉네임"),
 						fieldWithPath("errors").type(JsonFieldType.ARRAY).description("응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)"),
-						fieldWithPath("meta.serverEncoding").description("서버 인코딩 정도"),
-						fieldWithPath("meta.serverVersion").description("서버 버전"),
-						fieldWithPath("meta.serverPathVersion").description("서버 경로 버전"),
-						fieldWithPath("meta.serverResponseTime").description("서버 응답 시간")
+						fieldWithPath("meta.serverEncoding").ignored(),
+						fieldWithPath("meta.serverVersion").ignored(),
+						fieldWithPath("meta.serverPathVersion").ignored(),
+						fieldWithPath("meta.serverResponseTime").ignored(),
 					)
 				)
 			);

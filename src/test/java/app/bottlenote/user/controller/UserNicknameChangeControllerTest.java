@@ -1,7 +1,7 @@
 package app.bottlenote.user.controller;
 
 
-import static app.bottlenote.user.dto.response.NicknameChangeResponse.NicknameChangeResponseEnum.SUCCESS;
+import static app.bottlenote.user.dto.response.NicknameChangeResponse.Message.SUCCESS;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -34,7 +34,7 @@ class UserNicknameChangeControllerTest {
 	private UserCommandService nicknameChangeService;
 
 
-	@DisplayName("닉네임 변경 성공 테스트")
+	@DisplayName("닉네임을 변경할수 있다.")
 	@Test
 	void shouldChangeNicknameSuccessfully() throws Exception {
 		NicknameChangeRequest request = new NicknameChangeRequest(1L, "newNickname");
@@ -55,7 +55,7 @@ class UserNicknameChangeControllerTest {
 			.andExpect(jsonPath("$.data.changedNickname").value("newNickname"));
 	}
 
-	@DisplayName("유효하지 않은 닉네임으로 변경 시도 시 실패 테스트")
+	@DisplayName("특수문자가 포함된 닉네임은 변경할 수 없다.")
 	@Test
 	void shouldFailWhenInvalidNickname() throws Exception {
 		NicknameChangeRequest request = new NicknameChangeRequest(1L, "#$%#$%#ㅁㅁ");
@@ -70,7 +70,7 @@ class UserNicknameChangeControllerTest {
 			.andExpect(jsonPath("$.errors.nickName").value("필드 'nickName'의 값 '#$%#$%#ㅁㅁ'가 유효하지 않습니다: 닉네임은 2~11자의 한글, 영문, 숫자만 가능합니다."));
 	}
 
-	@DisplayName("닉네임 변경 요청에 파라미터값이 없으면 실패")
+	@DisplayName("닉네임변경은 필수 파라미터없으면 변경할 수 없다.")
 	@Test
 	void shouldFailWhenEmptyParameter() throws Exception {
 		NicknameChangeRequest request = new NicknameChangeRequest(null, null);
@@ -86,7 +86,7 @@ class UserNicknameChangeControllerTest {
 
 	}
 
-	@DisplayName("닉네임 중복 변경 시도 시 실패 테스트")
+	@DisplayName("중복된 닉네임은 변경할 수 없다.")
 	@Test
 	void shouldFailWhenDuplicateNickname() throws Exception {
 		NicknameChangeRequest request = new NicknameChangeRequest(1L, "newNickname");

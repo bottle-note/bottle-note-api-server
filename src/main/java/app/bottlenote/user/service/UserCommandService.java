@@ -20,27 +20,31 @@ public class UserCommandService {
 	private final UserCommandRepository userCommandRepository;
 
 	@Transactional
-	@Modifying(clearAutomatically = true, flushAutomatically = true)
 	public NicknameChangeResponse nicknameChange(NicknameChangeRequest request) {
+
+		if (request.nickName() == null) {
+			throw new UserException(UserExceptionCode.NOT_FOUND_NICKNAME);
+		}
+
 		User user = userCommandRepository.findById(request.userId())
 			.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
 
 		if (isExistNickname(request.nickName())) {
-			throw new UserException(UserExceptionCode.USER_ALREADY_EXISTS); // 닉네임 중복 검사 예외
+			throw new UserException(UserExceptionCode.USER_ALREADY_EXISTS);
 		}
 
 		String beforeNickname = user.getNickName();
 		user.changeNickName(request.nickName());
 
 		return NicknameChangeResponse.of(
-			NicknameChangeResponse.NicknameChangeResponseEnum.SUCCESS,
+			NicknameChangeResponse.Message.SUCCESS,
 			user.getId(),
 			beforeNickname,
 			user.getNickName()
 		);
 	}
 
-
+	// 추 후 비속어 필터링 로직 추가 하면서 메소드명도 ValidateNickname으로 변경
 	private boolean isExistNickname(String nickname) {
 		return userCommandRepository.existsByNickName(nickname);
 	}
