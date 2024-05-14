@@ -29,19 +29,18 @@ public class UserCommandService {
 		User user = userCommandRepository.findById(request.userId())
 			.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
 
-		if (isExistNickname(request.nickName())) {
-			throw new UserException(UserExceptionCode.USER_ALREADY_EXISTS);
-		}
+		beforeNickname = user.getNickName();
 
-		String beforeNickname = user.getNickName();
-		user.changeNickName(request.nickName());
+		user.changeNickName(name);
+		Long updatedUser = user.getId();
+		String newUserNickName = user.getNickName();
 
-		return NicknameChangeResponse.of(
-			NicknameChangeResponse.Message.SUCCESS,
-			user.getId(),
-			beforeNickname,
-			user.getNickName()
-		);
+		return NicknameChangeResponse.builder()
+			.message(NicknameChangeResponse.Message.SUCCESS)
+			.userId(updatedUser)
+			.beforeNickname(beforeNickname)
+			.changedNickname(newUserNickName)
+			.build();
 	}
 
 	// 추 후 비속어 필터링 로직 추가 하면서 메소드명도 ValidateNickname으로 변경

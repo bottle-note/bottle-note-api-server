@@ -14,8 +14,7 @@ public enum UserExceptionCode implements ExceptionCode {
 	AUTHORIZE_INFO_NOT_FOUND(HttpStatus.BAD_REQUEST, "인증 정보를 찾을 수 없습니다."),
 	INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 리프레쉬 토큰입니다."),
 	INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다"),
-	USER_NICKNAME_NOT_VALID(HttpStatus.BAD_REQUEST, "닉네임이 유효하지 않습니다."),
-	NOT_FOUND_NICKNAME(HttpStatus.BAD_REQUEST, "닉네임을 찾을 수 없습니다.");
+	USER_NICKNAME_NOT_VALID(HttpStatus.BAD_REQUEST, "중복된 닉네임입니다.");
 
 	private final HttpStatus httpStatus;
 	private final String message;

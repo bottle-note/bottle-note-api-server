@@ -80,4 +80,9 @@ public class User {
 		this.refreshToken = refreshToken;
 	}
 
+	public void changeNickName(String nickName) {
+		Objects.requireNonNull(nickName, "nickName은 null이 될 수 없습니다.");
+		this.nickName = nickName;
+	}
+
 }
