@@ -1,8 +1,11 @@
 package app.bottlenote.user.dto.request;
 
+import app.bottlenote.user.dto.response.NicknameChangeResponse;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+
+import static app.bottlenote.global.security.SecurityUtil.getCurrentUserId;
 
 public record NicknameChangeRequest (
 

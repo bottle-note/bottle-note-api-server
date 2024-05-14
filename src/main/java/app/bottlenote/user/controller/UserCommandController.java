@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static app.bottlenote.global.security.SecurityUtil.getCurrentUserId;
+
 @Slf4j
 @RequiredArgsConstructor
 @RestController
