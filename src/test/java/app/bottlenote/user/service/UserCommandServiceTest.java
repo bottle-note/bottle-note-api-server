@@ -1,5 +1,6 @@
 package app.bottlenote.user.service;
 
+import app.bottlenote.global.security.SecurityUtil;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
 import app.bottlenote.user.dto.response.NicknameChangeResponse;
@@ -18,6 +19,7 @@ import static app.bottlenote.user.exception.UserExceptionCode.USER_NICKNAME_NOT_
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
