@@ -38,8 +38,12 @@ class UserNicknameChangeControllerTest {
 	@Test
 	void shouldChangeNicknameSuccessfully() throws Exception {
 		NicknameChangeRequest request = new NicknameChangeRequest(1L, "newNickname");
-		NicknameChangeResponse response = NicknameChangeResponse.of(SUCCESS, 1L, "beforeNickname", "newNickname");
-
+		NicknameChangeResponse response = NicknameChangeResponse.builder()
+			.message(SUCCESS)
+			.userId(1L)
+			.beforeNickname("beforeNickname")
+			.changedNickname("newNickname")
+			.build();
 		when(nicknameChangeService.nicknameChange(request)).thenReturn(response);
 
 		mockMvc.perform(patch("/api/v1/users/nickname")

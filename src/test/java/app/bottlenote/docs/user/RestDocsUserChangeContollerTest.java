@@ -36,7 +36,12 @@ class RestDocsUserChangeContollerTest extends AbstractRestDocs {
 	void changeNickname_test() throws Exception {
 		//given
 		NicknameChangeRequest request = new NicknameChangeRequest(1L, "newNickname");
-		NicknameChangeResponse response = NicknameChangeResponse.of(SUCCESS, 1L, "oldNickname", "newNickname");
+		NicknameChangeResponse response = NicknameChangeResponse.builder()
+			.message(SUCCESS)
+			.userId(1L)
+			.beforeNickname("beforeNickname")
+			.changedNickname("newNickname")
+			.build();
 
 		//when
 		when(userCommandService.nicknameChange(request)).thenReturn(response);
@@ -55,7 +60,7 @@ class RestDocsUserChangeContollerTest extends AbstractRestDocs {
 					responseFields(
 						fieldWithPath("success").type(JsonFieldType.BOOLEAN).description("응답 성공 여부"),
 						fieldWithPath("code").type(JsonFieldType.NUMBER).description("응답 코드(http status code)"),
-						fieldWithPath("data.message").type(JsonFieldType.STRING).description("메시지"),
+						fieldWithPath("data.message").type(JsonFieldType.STRING).description("닉네임 변경에 대한 결과 메시지"),
 						fieldWithPath("data.userId").type(JsonFieldType.NUMBER).description("사용자 ID"),
 						fieldWithPath("data.beforeNickname").type(JsonFieldType.STRING).description("이전 닉네임"),
 						fieldWithPath("data.changedNickname").type(JsonFieldType.STRING).description("변경된 닉네임"),
@@ -63,7 +68,7 @@ class RestDocsUserChangeContollerTest extends AbstractRestDocs {
 						fieldWithPath("meta.serverEncoding").ignored(),
 						fieldWithPath("meta.serverVersion").ignored(),
 						fieldWithPath("meta.serverPathVersion").ignored(),
-						fieldWithPath("meta.serverResponseTime").ignored(),
+						fieldWithPath("meta.serverResponseTime").ignored()
 					)
 				)
 			);
