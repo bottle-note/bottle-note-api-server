@@ -31,6 +31,8 @@ include::api/user/user-login.adoc[]
 
 include::api/user/user-reissue.adoc[]
 
+include::api/user/user-nickname-change.adoc[]
+
 == 술 (alcohols)
 
 include::api/alcohols/search.adoc[]

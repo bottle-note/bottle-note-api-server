@@ -20,7 +20,7 @@ import app.bottlenote.review.dto.response.ReviewResponse;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.domain.constant.UserType;
-import app.bottlenote.user.repository.UserRepository;
+import app.bottlenote.user.repository.UserCommandRepository;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.stream.Stream;
@@ -56,7 +56,7 @@ class CustomReviewRepositoryImplTest {
 	private ReviewRepository reviewRepository;
 
 	@Autowired
-	private UserRepository userRepository;
+	private UserCommandRepository userRepository;
 
 
 	static Stream<Arguments> testCase1Provider() {

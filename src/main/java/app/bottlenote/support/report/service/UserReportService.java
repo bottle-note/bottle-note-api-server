@@ -9,7 +9,7 @@ import app.bottlenote.support.report.repository.UserReportRepository;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
-import app.bottlenote.user.repository.UserRepository;
+import app.bottlenote.user.repository.UserCommandRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.repository.Modifying;
@@ -33,7 +33,7 @@ import static app.bottlenote.support.report.exception.ReportExceptionCode.SELF_R
 public class UserReportService {
 
 	private final UserReportRepository userReportRepository;
-	private final UserRepository userRepository;
+	private final UserCommandRepository userRepository;
 
 	private static final Integer REPORT_LIMIT = 5;
 
