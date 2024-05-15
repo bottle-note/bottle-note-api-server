@@ -469,7 +469,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel2">
 <li><a href="#_술위스키_api">3.1. 술(위스키) API</a>
 <ul class="sectlevel3">
-<li><a href="#_술위스키_정보_조회">3.1.1. 술(위스키) 정보 조회</a></li>
+<li><a href="#_술위스키_목록_조회">3.1.1. 술(위스키) 목록 조회</a></li>
+<li><a href="#_찜하기_찜하기_해제">3.1.2. 찜하기 /찜하기 해제</a></li>
 </ul>
 </li>
 <li><a href="#_지역_api">3.2. 지역 API</a>
@@ -484,20 +485,20 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 </ul>
 </li>
-<li><a href="#_신고_report">4. 신고 (report)</a>
+<li><a href="#_리뷰_review">4. 리뷰 (review)</a>
 <ul class="sectlevel2">
-<li><a href="#_유저_신고_api">4.1. 유저 신고 API</a>
+<li><a href="#_리뷰_api">4.1. 리뷰  API</a>
 <ul class="sectlevel3">
-<li><a href="#_유저_신고_요청">4.1.1. 유저 신고 요청</a></li>
+<li><a href="#_리뷰_조회">4.1.1. 리뷰 조회</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#_리뷰_review">5. 리뷰 (review)</a>
+<li><a href="#_신고_report">5. 신고 (report)</a>
 <ul class="sectlevel2">
-<li><a href="#_리뷰_api">5.1. 리뷰  API</a>
+<li><a href="#_유저_신고_api">5.1. 유저 신고 API</a>
 <ul class="sectlevel3">
-<li><a href="#_리뷰_조회">5.1.1. 리뷰 조회</a></li>
+<li><a href="#_유저_신고_요청">5.1.1. 유저 신고 요청</a></li>
 </ul>
 </li>
 </ul>
@@ -585,6 +586,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </tr>
 </table>
 </div>
+<hr>
 </div>
 <div class="sect2">
 <h3 id="_응답형식"><a class="link" href="#_응답형식">1.2. 응답형식</a></h3>
@@ -675,7 +677,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
-<p><strong>누락된 정보는 서버 백엔드 팀에게 문의해주세요.</strong></p>
+<p><strong>누락된 정보는 서버 백엔드 팀에게 문의해주세요.</strong>
+'''</p>
 </li>
 </ul>
 </div>
@@ -958,12 +961,13 @@ Content-Length: 761
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T10:35:53.706075",
+    "serverResponseTime" : "2024-05-15T20:48:01.335438",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
 </div>
 </div>
+<hr>
 </div>
 <div class="sect3">
 <h4 id="_토큰_재발급"><a class="link" href="#_토큰_재발급">2.1.2. 토큰 재발급</a></h4>
@@ -1124,7 +1128,7 @@ Content-Length: 324
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T10:35:53.641933",
+    "serverResponseTime" : "2024-05-15T20:48:01.226999",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1273,7 +1277,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T10:35:53.807592",
+    "serverResponseTime" : "2024-05-15T20:48:01.492480",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1286,10 +1290,11 @@ Content-Length: 411
 <div class="sect1">
 <h2 id="_술_alcohols"><a class="link" href="#_술_alcohols">3. 술 (alcohols)</a></h2>
 <div class="sectionbody">
+<hr>
 <div class="sect2">
 <h3 id="_술위스키_api"><a class="link" href="#_술위스키_api">3.1. 술(위스키) API</a></h3>
 <div class="sect3">
-<h4 id="_술위스키_정보_조회"><a class="link" href="#_술위스키_정보_조회">3.1.1. 술(위스키) 정보 조회</a></h4>
+<h4 id="_술위스키_목록_조회"><a class="link" href="#_술위스키_목록_조회">3.1.1. 술(위스키) 목록 조회</a></h4>
 <div class="paragraph">
 <p>검색 조건으로 술(위스키) 정보를 조회합니다.</p>
 </div>
@@ -1542,7 +1547,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T10:35:52.975948",
+    "serverResponseTime" : "2024-05-15T20:47:59.737002",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 4,
@@ -1661,6 +1666,147 @@ Content-Length: 411
 </ul>
 </div>
 <hr>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="_찜하기_찜하기_해제"><a class="link" href="#_찜하기_찜하기_해제">3.1.2. 찜하기 /찜하기 해제</a></h4>
+<div class="paragraph">
+<p>술(위스키)의 식별자와 조건값을 통해 찜하기/찜하기 해제를 합니다.</p>
+</div>
+<div class="paragraph">
+<p>하단 상수를 통해 찜하기와 찜하기 해제를 구분합니다.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">PUT apv/v1/picks</code></pre>
+</div>
+</div>
+<h5 class="discrete" id="_request_2"><em>Request</em></h5>
+<h4 class="discrete" id="_요청_파라미터_request_fields_4">요청 파라미터 ( request fields )</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">path</th>
+<th class="tableblock halign-left valign-top">type</th>
+<th class="tableblock halign-left valign-top">optional</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>alcoholId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">찜 할 술(위스키)의 식별자</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>isPicked</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">찜 여부 (하단 Picks Status 참조)</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json">{
+  "alcoholId" : 1,
+  "isPicked" : "PICK"
+}</code></pre>
+</div>
+</div>
+<h5 class="discrete" id="_response_2"><em>Response</em></h5>
+<h4 class="discrete" id="_응답_파라미터_response_fields_5">응답 파라미터 ( response fields )</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">path</th>
+<th class="tableblock halign-left valign-top">type</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>code</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 코드(http status code)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.message</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">결과 메시지</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.status</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">업데이트된 찜 상태</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>errors</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json">{
+  "success" : true,
+  "code" : 200,
+  "data" : {
+    "message" : "정상적으로 찜하기 처리 되었습니다.",
+    "status" : "PICK"
+  },
+  "errors" : [ ],
+  "meta" : {
+    "serverVersion" : "1.0.0",
+    "serverEncoding" : "UTF-8",
+    "serverResponseTime" : "2024-05-15T20:48:00.182179",
+    "serverPathVersion" : "v1"
+  }
+}</code></pre>
+</div>
+</div>
+<h4 class="discrete" id="_picks_status">Picks Status</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">코드</th>
+<th class="tableblock halign-left valign-top">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PICK</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">찜 하기</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">UNPICK</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">찜하기 해제</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
 </div>
 </div>
 <div class="sect2">
@@ -1679,7 +1825,7 @@ Content-Length: 411
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/regions</code></pre>
 </div>
 </div>
-<h4 id="_응답_파라미터_response_fields_5" class="discrete">응답 파라미터 ( response fields )</h4>
+<h4 class="discrete" id="_응답_파라미터_response_fields_6">응답 파라미터 ( response fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -1766,12 +1912,13 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T10:35:53.216449",
+    "serverResponseTime" : "2024-05-15T20:48:00.446172",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
 </div>
 </div>
+<hr>
 </div>
 </div>
 <div class="sect2">
@@ -1812,7 +1959,7 @@ Content-Length: 411
 </tr>
 </tbody>
 </table>
-<h4 id="_응답_파라미터_response_fields_6" class="discrete">응답 파라미터 ( response fields )</h4>
+<h4 class="discrete" id="_응답_파라미터_response_fields_7">응답 파라미터 ( response fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -1957,7 +2104,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T10:35:53.136634",
+    "serverResponseTime" : "2024-05-15T20:48:00.327822",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2020,272 +2167,12 @@ Content-Length: 411
 </div>
 </div>
 <div class="sect1">
-<h2 id="_신고_report"><a class="link" href="#_신고_report">4. 신고 (report)</a></h2>
+<h2 id="_리뷰_review"><a class="link" href="#_리뷰_review">4. 리뷰 (review)</a></h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_유저_신고_api"><a class="link" href="#_유저_신고_api">4.1. 유저 신고 API</a></h3>
+<h3 id="_리뷰_api"><a class="link" href="#_리뷰_api">4.1. 리뷰  API</a></h3>
 <div class="sect3">
-<h4 id="_유저_신고_요청"><a class="link" href="#_유저_신고_요청">4.1.1. 유저 신고 요청</a></h4>
-<div class="paragraph">
-<p>특정한 사용자가 부적절한 행동을 했을 때, 해당 사용자를 신고할 수 있습니다.</p>
-</div>
-<div class="paragraph">
-<p>user report의 경우 사용자간 신고로,</p>
-</div>
-<div class="paragraph">
-<p>신고자와 피신고자가 모두 사용자인 경우에만 사용할 수 있습니다.</p>
-</div>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 66.6667%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">신고 유형 코드</th>
-<th class="tableblock halign-left valign-top">설명</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SPAM</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">스팸</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>INAPPROPRIATE_CONTENT</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">부적절한 콘텐츠</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>FRAUD</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">사기</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>COPYRIGHT_INFRINGEMENT</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">저작권 침해</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>OTHER</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">기타</p></td>
-</tr>
-</tbody>
-</table>
-<div class="paragraph">
-<p><em>추가되면 좋을 것 같은 신고 유형이 있으면 요청 바랍니다.</em></p>
-</div>
-<hr>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/user-report</code></pre>
-</div>
-</div>
-<h4 id="_요청_파라미터_request_fields_4" class="discrete">요청 파라미터 ( request fields )</h4>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">path</th>
-<th class="tableblock halign-left valign-top">type</th>
-<th class="tableblock halign-left valign-top">optional</th>
-<th class="tableblock halign-left valign-top">description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>userId</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">신고 유저 ID</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>reportUserId</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">신고 대상자 유저 ID(신고를 당하는 유저</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>type</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">신고 타입  ( SPAM , INAPPROPRIATE_CONTENT ,FRAUD ,COPYRIGHT_INFRINGEMENT ,OTHER )</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>content</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">신고 내용</p></td>
-</tr>
-</tbody>
-</table>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json">{
-  "userId" : 1,
-  "reportUserId" : 2,
-  "type" : "OTHER",
-  "content" : "신고 내용 쏼라 쏼라 쏼라 "
-}</code></pre>
-</div>
-</div>
-<h4 id="_응답_파라미터_response_fields_7" class="discrete">응답 파라미터 ( response fields )</h4>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 33.3333%;">
-<col style="width: 33.3334%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">path</th>
-<th class="tableblock halign-left valign-top">type</th>
-<th class="tableblock halign-left valign-top">description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>code</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">응답 코드(http status code)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.message</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">결과 메시지</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reportId</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">처리된 신고 ID</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reportUserId</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">신고 대상 유저 ID</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reportUserName</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">신고 대상 유저 이름</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>errors</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverEncoding</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서버 인코딩 정도</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverVersion</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서버 버전</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverPathVersion</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서버 경로 버전</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverResponseTime</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서버 응답 시간</p></td>
-</tr>
-</tbody>
-</table>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json">{
-  "success" : true,
-  "code" : 200,
-  "data" : {
-    "message" : "신고가 성공적으로 접수되었습니다.",
-    "reportId" : 1,
-    "reportUserId" : 2,
-    "reportUserName" : "신고한 유저 이름"
-  },
-  "errors" : [ ],
-  "meta" : {
-    "serverVersion" : "1.0.0",
-    "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T10:35:53.546252",
-    "serverPathVersion" : "v1"
-  }
-}</code></pre>
-</div>
-</div>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 16.6666%;">
-<col style="width: 33.3333%;">
-<col style="width: 50.0001%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">코드</th>
-<th class="tableblock halign-left valign-top">예외 상황</th>
-<th class="tableblock halign-left valign-top">에러 메시지</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">400</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">`content`가 300자를 초과하는 경우</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">"`content`는 300자 이내여야 합니다."</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">400</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">신고자가 자신을 신고하는 경우</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">"자신을 신고할 수 없습니다."</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">400</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">동일 유저에 대해 일당 최대 한건의 신고를 초과하는 경우</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">"동일 유저에 대해 일당 최대 한건의 신고만 가능합니다."</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">400</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">신고 대상 사용자가 일일 신고 횟수 제한을 초과하는 경우</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">"일일 신고 횟수 제한을 초과하였습니다."</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">404</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">신고 대상 사용자가 존재하지 않는 경우</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">"신고 대상 사용자가 존재하지 않습니다."</p></td>
-</tr>
-</tbody>
-</table>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>추가되지 않은 에러 코드는 요청 바랍니다.</strong></p>
-</li>
-<li>
-<p><strong>request valid에 대한 내용은 공통 예외를 통해 처리됩니다.</strong></p>
-</li>
-</ul>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_리뷰_review"><a class="link" href="#_리뷰_review">5. 리뷰 (review)</a></h2>
-<div class="sectionbody">
-<div class="sect2">
-<h3 id="_리뷰_api"><a class="link" href="#_리뷰_api">5.1. 리뷰  API</a></h3>
-<div class="sect3">
-<h4 id="_리뷰_조회"><a class="link" href="#_리뷰_조회">5.1.1. 리뷰 조회</a></h4>
+<h4 id="_리뷰_조회"><a class="link" href="#_리뷰_조회">4.1.1. 리뷰 조회</a></h4>
 <div class="paragraph">
 <p>리뷰 조회 기능입니다.
 PathVariable로 alcoholId를 전달합니다.</p>
@@ -2497,7 +2384,7 @@ PathVariable로 alcoholId를 전달합니다.</p>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json;charset=UTF-8
-Content-Length: 1491
+Content-Length: 1489
 
 {
   "success" : true,
@@ -2512,7 +2399,7 @@ Content-Length: 1491
       "likeCount" : 5,
       "replyCount" : 3,
       "thumbnailImage" : "thumbnail_image_1",
-      "reviewCreatedAt" : [ 2024, 5, 15, 10, 35, 53, 377447000 ],
+      "reviewCreatedAt" : [ 2024, 5, 15, 20, 48, 0, 755190000 ],
       "userId" : 1,
       "userNickname" : "test_user_1",
       "userProfileImage" : "user_profile_image_1",
@@ -2529,7 +2416,7 @@ Content-Length: 1491
       "likeCount" : 3,
       "replyCount" : 6,
       "thumbnailImage" : "thumbnail_image_2",
-      "reviewCreatedAt" : [ 2024, 5, 14, 10, 35, 53, 377679000 ],
+      "reviewCreatedAt" : [ 2024, 5, 14, 20, 48, 0, 755372000 ],
       "userId" : 2,
       "userNickname" : "test_user_2",
       "userProfileImage" : "user_profile_image_2",
@@ -2544,7 +2431,7 @@ Content-Length: 1491
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T10:35:53.385435",
+    "serverResponseTime" : "2024-05-15T20:48:00.789413",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 1,
@@ -2657,11 +2544,272 @@ Content-Length: 1491
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_신고_report"><a class="link" href="#_신고_report">5. 신고 (report)</a></h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_유저_신고_api"><a class="link" href="#_유저_신고_api">5.1. 유저 신고 API</a></h3>
+<div class="sect3">
+<h4 id="_유저_신고_요청"><a class="link" href="#_유저_신고_요청">5.1.1. 유저 신고 요청</a></h4>
+<div class="paragraph">
+<p>특정한 사용자가 부적절한 행동을 했을 때, 해당 사용자를 신고할 수 있습니다.</p>
+</div>
+<div class="paragraph">
+<p>user report의 경우 사용자간 신고로,</p>
+</div>
+<div class="paragraph">
+<p>신고자와 피신고자가 모두 사용자인 경우에만 사용할 수 있습니다.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 66.6667%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">신고 유형 코드</th>
+<th class="tableblock halign-left valign-top">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SPAM</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">스팸</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>INAPPROPRIATE_CONTENT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">부적절한 콘텐츠</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>FRAUD</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">사기</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>COPYRIGHT_INFRINGEMENT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">저작권 침해</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>OTHER</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">기타</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p><em>추가되면 좋을 것 같은 신고 유형이 있으면 요청 바랍니다.</em></p>
+</div>
+<hr>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/user-report</code></pre>
+</div>
+</div>
+<h4 class="discrete" id="_요청_파라미터_request_fields_5">요청 파라미터 ( request fields )</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">path</th>
+<th class="tableblock halign-left valign-top">type</th>
+<th class="tableblock halign-left valign-top">optional</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>userId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">신고 유저 ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>reportUserId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">신고 대상자 유저 ID(신고를 당하는 유저</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>type</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">신고 타입  ( SPAM , INAPPROPRIATE_CONTENT ,FRAUD ,COPYRIGHT_INFRINGEMENT ,OTHER )</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>content</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">신고 내용</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json">{
+  "userId" : 1,
+  "reportUserId" : 2,
+  "type" : "OTHER",
+  "content" : "신고 내용 쏼라 쏼라 쏼라 "
+}</code></pre>
+</div>
+</div>
+<h4 class="discrete" id="_응답_파라미터_response_fields_9">응답 파라미터 ( response fields )</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">path</th>
+<th class="tableblock halign-left valign-top">type</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>code</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 코드(http status code)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.message</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">결과 메시지</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reportId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">처리된 신고 ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reportUserId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">신고 대상 유저 ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reportUserName</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">신고 대상 유저 이름</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>errors</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverEncoding</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서버 인코딩 정도</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverVersion</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서버 버전</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverPathVersion</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서버 경로 버전</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverResponseTime</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서버 응답 시간</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json">{
+  "success" : true,
+  "code" : 200,
+  "data" : {
+    "message" : "신고가 성공적으로 접수되었습니다.",
+    "reportId" : 1,
+    "reportUserId" : 2,
+    "reportUserName" : "신고한 유저 이름"
+  },
+  "errors" : [ ],
+  "meta" : {
+    "serverVersion" : "1.0.0",
+    "serverEncoding" : "UTF-8",
+    "serverResponseTime" : "2024-05-15T20:48:01.097469",
+    "serverPathVersion" : "v1"
+  }
+}</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 33.3333%;">
+<col style="width: 50.0001%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">코드</th>
+<th class="tableblock halign-left valign-top">예외 상황</th>
+<th class="tableblock halign-left valign-top">에러 메시지</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">400</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">`content`가 300자를 초과하는 경우</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">"`content`는 300자 이내여야 합니다."</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">400</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">신고자가 자신을 신고하는 경우</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">"자신을 신고할 수 없습니다."</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">400</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">동일 유저에 대해 일당 최대 한건의 신고를 초과하는 경우</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">"동일 유저에 대해 일당 최대 한건의 신고만 가능합니다."</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">400</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">신고 대상 사용자가 일일 신고 횟수 제한을 초과하는 경우</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">"일일 신고 횟수 제한을 초과하였습니다."</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">404</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">신고 대상 사용자가 존재하지 않는 경우</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">"신고 대상 사용자가 존재하지 않습니다."</p></td>
+</tr>
+</tbody>
+</table>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>추가되지 않은 에러 코드는 요청 바랍니다.</strong></p>
+</li>
+<li>
+<p><strong>request valid에 대한 내용은 공통 예외를 통해 처리됩니다.</strong>
+'''</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
 Version 0.0.1-SNAPSHOT<br>
-Last updated 2024-05-15 00:30:40 +0900
+Last updated 2024-05-15 20:50:31 +0900
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>

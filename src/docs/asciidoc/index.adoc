@@ -44,10 +44,11 @@ include::api/alcohols/region.adoc[]
 '''
 include::api/alcohols/popular.adoc[]
 
+== 리뷰 (review)
+
+include::api/review/review-read.adoc[]
+
 == 신고 (report)
 
 include::api/support/report/user-report.adoc[]
 '''
-
-== 리뷰 (review)
-include::api/review/review-read.adoc[]

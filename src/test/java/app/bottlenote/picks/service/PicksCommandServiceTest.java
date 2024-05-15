@@ -8,7 +8,7 @@ import app.bottlenote.picks.dto.request.PicksUpdateRequest;
 import app.bottlenote.picks.dto.response.PicksUpdateResponse;
 import app.bottlenote.picks.repository.PicksRepository;
 import app.bottlenote.user.domain.User;
-import app.bottlenote.user.repository.UserRepository;
+import app.bottlenote.user.repository.UserCommandRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -30,7 +30,7 @@ class PicksCommandServiceTest {
 	private PicksCommandService picksCommandService;
 
 	@Mock
-	private UserRepository userRepository;
+	private UserCommandRepository userRepository;
 	@Mock
 	private AlcoholQueryRepository alcoholQueryRepository;
 	@Mock

@@ -7,8 +7,11 @@ import app.bottlenote.picks.domain.PicksStatus;
 import app.bottlenote.picks.dto.request.PicksUpdateRequest;
 import app.bottlenote.picks.dto.response.PicksUpdateResponse;
 import app.bottlenote.picks.service.PicksCommandService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
@@ -32,6 +35,20 @@ class RestPicksCommandControllerTest extends AbstractRestDocs {
 		return new PicksCommandController(picksCommandService);
 	}
 
+
+	private MockedStatic<SecurityUtil> mockedSecurityUtil;
+
+	@BeforeEach
+	void setup() {
+		mockedSecurityUtil = mockStatic(SecurityUtil.class);
+		when(SecurityUtil.getCurrentUserId()).thenReturn(1L);
+	}
+
+	@AfterEach
+	void tearDown() {
+		mockedSecurityUtil.close();
+	}
+
 	@DisplayName("술을 찜할 수 있다.")
 	@Test
 	void updatePicks() throws Exception {
@@ -40,8 +57,6 @@ class RestPicksCommandControllerTest extends AbstractRestDocs {
 		// when & then
 		PicksUpdateResponse response = PicksUpdateResponse.of(PicksStatus.PICK);
 
-		mockStatic(SecurityUtil.class);
-		when(SecurityUtil.getCurrentUserId()).thenReturn(1L);
 		when(picksCommandService.updatePicks(request, 1L)).thenReturn(response);
 
 		mockMvc.perform(put("/apv/v1/picks")

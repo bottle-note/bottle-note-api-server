@@ -10,7 +10,7 @@ import app.bottlenote.picks.repository.PicksRepository;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
-import app.bottlenote.user.repository.UserRepository;
+import app.bottlenote.user.repository.UserCommandRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class PicksCommandService {
 
-	private final UserRepository userRepository;
+	private final UserCommandRepository userRepository;
 	private final AlcoholQueryRepository alcoholQueryRepository;
 	private final PicksRepository picksRepository;
 
