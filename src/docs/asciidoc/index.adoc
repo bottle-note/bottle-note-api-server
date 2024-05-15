@@ -31,6 +31,8 @@ include::api/user/user-login.adoc[]
 '''
 include::api/user/user-reissue.adoc[]
 
+include::api/user/user-nickname-change.adoc[]
+
 == 술 (alcohols)
 
 '''
@@ -46,3 +48,6 @@ include::api/alcohols/popular.adoc[]
 
 include::api/support/report/user-report.adoc[]
 '''
+
+== 리뷰 (review)
+include::api/review/review-read.adoc[]
