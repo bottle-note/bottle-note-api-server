@@ -2,26 +2,28 @@ package app.bottlenote.user.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 public class NicknameChangeResponse {
 
-	private final String message;
-
+	private String message;
 	private Long userId;
-
 	private String beforeNickname;
-
 	private String changedNickname;
 
-	public static NicknameChangeResponse of(
-		Message message
-		, Long userId
-		, String beforeNickname
-		, String changedNickname) {
-		return new NicknameChangeResponse(message.getMessage(), userId, beforeNickname, changedNickname);
+
+
+	@Builder
+	public NicknameChangeResponse(NicknameChangeResponse.Message message, Long userId, String beforeNickname, String changedNickname) {
+		this.message = message.getMessage();
+		this.userId = userId;
+		this.beforeNickname = beforeNickname;
+		this.changedNickname = changedNickname;
 	}
+
+
 
 	@AllArgsConstructor
 	@Getter

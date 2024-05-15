@@ -23,7 +23,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class UserCommandServiceTest {
+class UserCommandServiceTest {
 
 	@InjectMocks
 	UserCommandService userCommandService;
@@ -41,14 +41,22 @@ public class UserCommandServiceTest {
 		// given
 		User user = User.builder()
 			.id(1L)
-			.nickName("beforeNickname")
+			.nickName(beforeNickname)
 			.build();
+		NicknameChangeRequest request = new NicknameChangeRequest(1L, newNickname);
 
 		// when
-		when(userCommandRepository.findById(any(Long.class))).thenReturn(Optional.of(user));
+		when(userCommandRepository.existsByNickName(newNickname)).thenReturn(false);
+		when(userCommandRepository.findById(any())).thenReturn(Optional.of(user));
+
+
+		NicknameChangeResponse response = userCommandService.nicknameChange(request);
 
 		// then
-		NicknameChangeRequest request = new NicknameChangeRequest(1L, "newNickname");
+		assertEquals(response.getMessage(), NicknameChangeResponse.Message.SUCCESS.getMessage());
+		assertEquals(response.getUserId(), 1L);
+		assertEquals(response.getBeforeNickname(), beforeNickname);
+		assertEquals(response.getChangedNickname(), newNickname );
 
 	}
 

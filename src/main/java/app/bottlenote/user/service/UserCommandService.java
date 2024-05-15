@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import app.bottlenote.user.domain.User;
 
+import java.util.Objects;
+
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -23,8 +25,11 @@ public class UserCommandService {
 	@Transactional
 	public NicknameChangeResponse nicknameChange(NicknameChangeRequest request) {
 
-		if (request.nickName() == null) {
-			throw new UserException(UserExceptionCode.NOT_FOUND_NICKNAME);
+		String name = request.nickName();
+		String beforeNickname;
+
+		if (userCommandRepository.existsByNickName(name)) {
+			throw new UserException(UserExceptionCode.USER_NICKNAME_NOT_VALID);
 		}
 
 		User user = userCommandRepository.findById(request.userId())
@@ -44,8 +49,4 @@ public class UserCommandService {
 			.build();
 	}
 
-	// 추 후 비속어 필터링 로직 추가 하면서 메소드명도 ValidateNickname으로 변경
-	private boolean isExistNickname(String nickname) {
-		return userCommandRepository.existsByNickName(nickname);
-	}
 }
