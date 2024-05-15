@@ -1,0 +1,39 @@
+==== 찜하기 /찜하기 해제 ====
+
+술(위스키)의 식별자와 조건값을 통해 찜하기/찜하기 해제를 합니다.
+
+하단 상수를 통해 찜하기와 찜하기 해제를 구분합니다.
+
+[source]
+----
+PUT apv/v1/picks
+----
+
+[discrete]
+===== _Request_ =====
+
+[discrete]
+include::{snippets}/alcohols/picks/request-fields.adoc[]
+include::{snippets}/alcohols/picks/request-body.adoc[]
+
+[discrete]
+===== _Response_ =====
+
+[discrete]
+include::{snippets}/alcohols/picks/response-fields.adoc[]
+include::{snippets}/alcohols/picks/response-body.adoc[]
+
+[discrete]
+==== Picks Status ====
+
+[cols="1,1",options="header"]
+|===
+| 코드  | 설명
+
+| PICK
+| 찜 하기
+
+| UNPICK
+| 찜하기 해제
+
+|===
