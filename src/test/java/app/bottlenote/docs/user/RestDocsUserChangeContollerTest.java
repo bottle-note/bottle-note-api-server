@@ -54,7 +54,12 @@ class RestDocsUserChangeContollerTest extends AbstractRestDocs {
 
 		//given
 		NicknameChangeRequest request = new NicknameChangeRequest(1L, "newNickname");
-		NicknameChangeResponse response = new NicknameChangeResponse(SUCCESS, 1L, "beforeNickname", "newNickname");
+		NicknameChangeResponse response = NicknameChangeResponse.builder()
+			.message(SUCCESS)
+			.userId(1L)
+			.beforeNickname("beforeNickname")
+			.changedNickname("newNickname")
+			.build();
 
 		// when
 		when(userCommandService.nicknameChange(request)).thenReturn(response);
