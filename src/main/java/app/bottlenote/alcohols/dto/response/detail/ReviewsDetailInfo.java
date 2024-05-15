@@ -40,5 +40,8 @@ public class ReviewsDetailInfo {
 							 ReviewStatus status,
 							 String reviewImageUrl,
 							 LocalDateTime createAt) {
+		@Builder
+		public ReviewInfo {
+		}
 	}
 }

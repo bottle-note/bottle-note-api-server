@@ -1,11 +1,13 @@
 package app.bottlenote.alcohols.dto.response.detail;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
 
 @Getter
+@Builder
 @AllArgsConstructor
 public class AlcoholDetailInfo {
 	private Long alcoholId;

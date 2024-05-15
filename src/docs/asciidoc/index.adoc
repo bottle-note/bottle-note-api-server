@@ -38,6 +38,8 @@ include::api/user/user-nickname-change.adoc[]
 '''
 include::api/alcohols/search.adoc[]
 '''
+include::api/alcohols/detail.adoc[]
+'''
 include::api/alcohols/picks.adoc[]
 '''
 include::api/alcohols/region.adoc[]
