@@ -68,7 +68,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.leftJoin(alcohol).on(alcohol.id.eq(review.alcohol.id))
 			.leftJoin(rating).on(review.user.id.eq(rating.user.id))
 			.where(alcohol.id.eq(alcoholId))
-			.groupBy(review.id, review.sizeType)
+			.groupBy(review.id, review.sizeType, review.user)
 			.orderBy(sortBy(pageableRequest.sortType(), pageableRequest.sortOrder()).toArray(
 				new OrderSpecifier[0]))
 			.offset(pageableRequest.cursor())
@@ -158,7 +158,9 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		return ExpressionUtils.as(
 			JPAExpressions.select(rating.ratingPoint.rating)
 				.from(rating)
-				.where(rating.user.id.eq(review.user.id))
+				.where(
+					rating.user.id.eq(review.user.id)
+						.and(rating.alcohol.id.eq(review.alcohol.id)))
 			, "ratingPoint"
 		);
 	}
