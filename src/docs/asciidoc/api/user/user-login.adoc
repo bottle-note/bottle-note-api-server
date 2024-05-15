@@ -8,7 +8,7 @@
 
 gender는 MALE, FEMALE만 가능합니다.
 
-socialType은 KAKAO, NAVER, GOOGLE만 가능합니다\
+socialType은 KAKAO, NAVER, GOOGLE만 가능합니다.
 
 |====
 |속성 |설명
