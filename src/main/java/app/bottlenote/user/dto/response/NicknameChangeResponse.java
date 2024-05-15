@@ -25,8 +25,6 @@ public class NicknameChangeResponse {
 
 	@AllArgsConstructor
 	@Getter
-	// NicknameChangeResponseEnum
-	// NicknameChangeMessage
 	public enum Message {
 		SUCCESS("닉네임이 성공적으로 변경되었습니다."),
 		FAIL("닉네임 변경에 실패하였습니다.");

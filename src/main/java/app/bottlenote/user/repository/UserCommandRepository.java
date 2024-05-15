@@ -9,7 +9,6 @@ import java.util.Optional;
 @Repository
 public interface UserCommandRepository extends CrudRepository<User, Long> {
 
-
 	boolean existsByNickName(String nickname);
 	Optional<User> findById(Long id);
 }

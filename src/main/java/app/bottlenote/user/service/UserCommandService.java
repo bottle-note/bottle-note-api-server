@@ -19,6 +19,7 @@ public class UserCommandService {
 
 	private final UserCommandRepository userCommandRepository;
 
+
 	@Transactional
 	public NicknameChangeResponse nicknameChange(NicknameChangeRequest request) {
 
