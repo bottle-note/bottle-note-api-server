@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+import static app.bottlenote.global.security.SecurityUtil.getCurrentUserId;
+
 @RestController
 @RequestMapping("/api/v1/popular")
 @RequiredArgsConstructor
@@ -29,10 +31,9 @@ public class PopularController {
      */
     @GetMapping("week")
     public ResponseEntity<GlobalResponse> getPopularOfWeek(@RequestParam(defaultValue = "5") Integer top) {
+		Long userId = getCurrentUserId();
 
-
-        //todo : 주간 인기 술 리스트 조회
-        List<Populars> populars = popularService.getPopularOfWeek(top);
+		List<Populars> populars = popularService.getPopularOfWeek(top,userId);
         PopularsOfWeekResponse response = PopularsOfWeekResponse.of(populars.size(), populars);
 
         return ResponseEntity.ok(GlobalResponse.success(response));

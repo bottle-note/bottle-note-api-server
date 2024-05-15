@@ -961,7 +961,7 @@ Content-Length: 761
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T20:48:01.335438",
+    "serverResponseTime" : "2024-05-15T20:58:31.755511",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1128,7 +1128,7 @@ Content-Length: 324
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T20:48:01.226999",
+    "serverResponseTime" : "2024-05-15T20:58:31.665397",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1277,7 +1277,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T20:48:01.492480",
+    "serverResponseTime" : "2024-05-15T20:58:31.864283",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1547,7 +1547,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T20:47:59.737002",
+    "serverResponseTime" : "2024-05-15T20:58:29.414806",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 4,
@@ -1777,7 +1777,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T20:48:00.182179",
+    "serverResponseTime" : "2024-05-15T20:58:29.892958",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1912,7 +1912,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T20:48:00.446172",
+    "serverResponseTime" : "2024-05-15T20:58:30.752442",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1990,7 +1990,12 @@ Content-Length: 411
 <td class="tableblock halign-left valign-top"><p class="tableblock">주간 인기 술 리스트의 크기</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.alcohols[].whiskyId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.alcohols</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">주간 인기 술 리스트</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.alcohols[].alcoholId</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">술 ID</p></td>
 </tr>
@@ -2025,29 +2030,9 @@ Content-Length: 411
 <td class="tableblock halign-left valign-top"><p class="tableblock">술 이미지 URL</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>errors</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverEncoding</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서버 인코딩 정도</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverVersion</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서버 버전</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverPathVersion</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서버 경로 버전</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverResponseTime</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서버 응답 시간</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.alcohols[].isPicked</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">내가 찜했는지 여부</p></td>
 </tr>
 </tbody>
 </table>
@@ -2059,52 +2044,57 @@ Content-Length: 411
   "data" : {
     "totalCount" : 5,
     "alcohols" : [ {
-      "whiskyId" : 1,
+      "alcoholId" : 1,
       "korName" : "글렌피딕",
       "engName" : "glen fi",
       "rating" : 3.5,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
-      "imageUrl" : "https://i.imgur.com/TE2nmYV.png"
+      "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
+      "isPicked" : false
     }, {
-      "whiskyId" : 2,
+      "alcoholId" : 2,
       "korName" : "맥키토시",
       "engName" : "macintosh",
       "rating" : 4.5,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
-      "imageUrl" : "https://i.imgur.com/TE2nmYV.png"
+      "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
+      "isPicked" : false
     }, {
-      "whiskyId" : 3,
+      "alcoholId" : 3,
       "korName" : "글렌리벳",
       "engName" : "glen rivet",
       "rating" : 4.0,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
-      "imageUrl" : "https://i.imgur.com/TE2nmYV.png"
+      "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
+      "isPicked" : false
     }, {
-      "whiskyId" : 4,
+      "alcoholId" : 4,
       "korName" : "글렌피딕",
       "engName" : "glen fi",
       "rating" : 3.5,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
-      "imageUrl" : "https://i.imgur.com/TE2nmYV.png"
+      "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
+      "isPicked" : false
     }, {
-      "whiskyId" : 5,
+      "alcoholId" : 5,
       "korName" : "맥키토시",
       "engName" : "macintosh",
       "rating" : 4.5,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
-      "imageUrl" : "https://i.imgur.com/TE2nmYV.png"
+      "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
+      "isPicked" : false
     } ]
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T20:48:00.327822",
+    "serverResponseTime" : "2024-05-15T20:58:30.385821",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2399,7 +2389,7 @@ Content-Length: 1489
       "likeCount" : 5,
       "replyCount" : 3,
       "thumbnailImage" : "thumbnail_image_1",
-      "reviewCreatedAt" : [ 2024, 5, 15, 20, 48, 0, 755190000 ],
+      "reviewCreatedAt" : [ 2024, 5, 15, 20, 58, 31, 65761000 ],
       "userId" : 1,
       "userNickname" : "test_user_1",
       "userProfileImage" : "user_profile_image_1",
@@ -2416,7 +2406,7 @@ Content-Length: 1489
       "likeCount" : 3,
       "replyCount" : 6,
       "thumbnailImage" : "thumbnail_image_2",
-      "reviewCreatedAt" : [ 2024, 5, 14, 20, 48, 0, 755372000 ],
+      "reviewCreatedAt" : [ 2024, 5, 14, 20, 58, 31, 65992000 ],
       "userId" : 2,
       "userNickname" : "test_user_2",
       "userProfileImage" : "user_profile_image_2",
@@ -2431,7 +2421,7 @@ Content-Length: 1489
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T20:48:00.789413",
+    "serverResponseTime" : "2024-05-15T20:58:31.093300",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 1,
@@ -2743,7 +2733,7 @@ Content-Length: 1489
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T20:48:01.097469",
+    "serverResponseTime" : "2024-05-15T20:58:31.510552",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2809,7 +2799,7 @@ Content-Length: 1489
 <div id="footer">
 <div id="footer-text">
 Version 0.0.1-SNAPSHOT<br>
-Last updated 2024-05-15 20:50:31 +0900
+Last updated 2024-05-15 20:56:43 +0900
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>

@@ -3,12 +3,13 @@ package app.bottlenote.alcohols.service;
 import app.bottlenote.alcohols.dto.response.Populars;
 import app.bottlenote.alcohols.repository.PopularQueryRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PopularService {
@@ -16,7 +17,8 @@ public class PopularService {
 	private final PopularQueryRepository popularQueryRepository;
 
 	@Transactional
-	public List<Populars> getPopularOfWeek(Integer top) {
-		return popularQueryRepository.getPopularOfWeek(PageRequest.of(0, top));
+	public List<Populars> getPopularOfWeek(Integer top, Long userId) {
+		log.info("service point getPopularOfWeek - top: {}, userId: {}", top, userId);
+		return popularQueryRepository.getPopularOfWeek(top, userId);
 	}
 }
