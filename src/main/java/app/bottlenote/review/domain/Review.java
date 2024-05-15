@@ -16,14 +16,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @Getter
@@ -92,13 +91,17 @@ public class Review extends BaseEntity {
 	private List<ReviewImage> reviewImages = new ArrayList<>();
 
 	@Builder
-	public Review(Long id, User user, Alcohol alcohol, String content, SizeType sizeType, BigDecimal price, String zipCode, String address, String detailAddress, String imageUrl, Long viewCount, List<ReviewReply> reviewReplies, List<ReviewImage> reviewImages) {
+	public Review(Long id, User user, Alcohol alcohol, String content, SizeType sizeType,
+		BigDecimal price, ReviewStatus status, String zipCode, String address, String detailAddress,
+		String imageUrl, Long viewCount, List<ReviewReply> reviewReplies,
+		List<ReviewImage> reviewImages) {
 		this.id = id;
 		this.user = user;
 		this.alcohol = alcohol;
 		this.content = content;
 		this.sizeType = sizeType;
 		this.price = price;
+		this.status = status;
 		this.zipCode = zipCode;
 		this.address = address;
 		this.detailAddress = detailAddress;
