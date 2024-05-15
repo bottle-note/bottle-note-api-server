@@ -11,7 +11,10 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
@@ -36,14 +39,14 @@ class RestPopularControllerTest extends AbstractRestDocs {
 	void getWeeklyPopularAlcoholsTest() throws Exception {
 		// given
 		List<Populars> populars = List.of(
-			Populars.of(1L, "글렌피딕", "glen fi", 3.5, "싱글 몰트","single molt", "https://i.imgur.com/TE2nmYV.png"),
-			Populars.of(2L, "맥키토시", "macintosh", 4.5, "싱글 몰트","single molt", "https://i.imgur.com/TE2nmYV.png"),
-			Populars.of(3L, "글렌리벳", "glen rivet", 4.0, "싱글 몰트","single molt", "https://i.imgur.com/TE2nmYV.png"),
-			Populars.of(4L, "글렌피딕", "glen fi", 3.5, "싱글 몰트","single molt", "https://i.imgur.com/TE2nmYV.png"),
-			Populars.of(5L, "맥키토시", "macintosh", 4.5, "싱글 몰트","single molt", "https://i.imgur.com/TE2nmYV.png")
+			Populars.of(1L, "글렌피딕", "glen fi", 3.5, "싱글 몰트", "single molt", "https://i.imgur.com/TE2nmYV.png", false),
+			Populars.of(2L, "맥키토시", "macintosh", 4.5, "싱글 몰트", "single molt", "https://i.imgur.com/TE2nmYV.png", false),
+			Populars.of(3L, "글렌리벳", "glen rivet", 4.0, "싱글 몰트", "single molt", "https://i.imgur.com/TE2nmYV.png", false),
+			Populars.of(4L, "글렌피딕", "glen fi", 3.5, "싱글 몰트", "single molt", "https://i.imgur.com/TE2nmYV.png", false),
+			Populars.of(5L, "맥키토시", "macintosh", 4.5, "싱글 몰트", "single molt", "https://i.imgur.com/TE2nmYV.png", false)
 		);
 		// when & then
-		when(popularService.getPopularOfWeek(5)).thenReturn(populars);
+		when(popularService.getPopularOfWeek(anyInt(), any())).thenReturn(populars);
 
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/popular/week/")
 				.param("top", "5"))
@@ -57,19 +60,23 @@ class RestPopularControllerTest extends AbstractRestDocs {
 						fieldWithPath("success").type(JsonFieldType.BOOLEAN).description("응답 성공 여부"),
 						fieldWithPath("code").type(JsonFieldType.NUMBER).description("응답 코드(http status code)"),
 						fieldWithPath("data.totalCount").type(JsonFieldType.NUMBER).description("주간 인기 술 리스트의 크기"),
-						fieldWithPath("data.alcohols[].whiskyId").type(JsonFieldType.NUMBER).description("술 ID"),
+						fieldWithPath("data.alcohols").type(JsonFieldType.ARRAY).description("주간 인기 술 리스트"),
+						fieldWithPath("data.alcohols[].alcoholId").type(JsonFieldType.NUMBER).description("술 ID"),
 						fieldWithPath("data.alcohols[].korName").type(JsonFieldType.STRING).description("술 이름"),
 						fieldWithPath("data.alcohols[].engName").type(JsonFieldType.STRING).description("술 영문명"),
 						fieldWithPath("data.alcohols[].rating").type(JsonFieldType.NUMBER).description("술 평점"),
 						fieldWithPath("data.alcohols[].korCategory").type(JsonFieldType.STRING).description("술 카테고리"),
 						fieldWithPath("data.alcohols[].engCategory").type(JsonFieldType.STRING).description("술 카테고리 영문명"),
 						fieldWithPath("data.alcohols[].imageUrl").type(JsonFieldType.STRING).description("술 이미지 URL"),
-						fieldWithPath("errors").type(JsonFieldType.ARRAY).description("응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)"),
-						fieldWithPath("meta.serverEncoding").description("서버 인코딩 정도"),
-						fieldWithPath("meta.serverVersion").description("서버 버전"),
-						fieldWithPath("meta.serverPathVersion").description("서버 경로 버전"),
-						fieldWithPath("meta.serverResponseTime").description("서버 응답 시간")
+						fieldWithPath("data.alcohols[].isPicked").type(JsonFieldType.BOOLEAN).description("내가 찜했는지 여부"),
+						fieldWithPath("errors").ignored(),
+						fieldWithPath("meta.serverEncoding").ignored(),
+						fieldWithPath("meta.serverVersion").ignored(),
+						fieldWithPath("meta.serverPathVersion").ignored(),
+						fieldWithPath("meta.serverResponseTime").ignored()
 					)
 				));
+
+		verify(popularService).getPopularOfWeek(5, null);
 	}
 }

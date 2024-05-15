@@ -15,7 +15,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
 import java.util.ArrayList;
@@ -25,6 +28,7 @@ import java.util.Set;
 
 @Getter
 @Entity(name = "alcohol")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Alcohol extends BaseEntity {
 
 	@Id
@@ -89,20 +93,38 @@ public class Alcohol extends BaseEntity {
 	@OneToMany(mappedBy = "alcohol", fetch = FetchType.LAZY)
 	private List<Rating> rating = new ArrayList<>();
 
+	@Builder
+	public Alcohol(Long id, String korName, String engName, String abv, AlcoholType type, String korCategory, String engCategory, Region region, Distillery distillery, String cask, String imageUrl, List<Review> reviews, Set<AlcoholsTastingTags> alcoholsTastingTags, List<Rating> rating) {
+		this.id = id;
+		this.korName = korName;
+		this.engName = engName;
+		this.abv = abv;
+		this.type = type;
+		this.korCategory = korCategory;
+		this.engCategory = engCategory;
+		this.region = region;
+		this.distillery = distillery;
+		this.cask = cask;
+		this.imageUrl = imageUrl;
+		this.reviews = reviews;
+		this.alcoholsTastingTags = alcoholsTastingTags;
+		this.rating = rating;
+	}
+
 	@Override
 	public String toString() {
 		return "Alcohol{" +
-				"id=" + id +
-				", korName='" + korName + '\'' +
-				", engName='" + engName + '\'' +
-				", abv='" + abv + '\'' +
-				", type=" + type +
-				", korCategory='" + korCategory + '\'' +
-				", engCategory='" + engCategory + '\'' +
-				", region=" + region +
-				", distillery=" + distillery +
-				", cask='" + cask + '\'' +
-				", imageUrl='" + imageUrl + '\'' +
-				'}';
+			"id=" + id +
+			", korName='" + korName + '\'' +
+			", engName='" + engName + '\'' +
+			", abv='" + abv + '\'' +
+			", type=" + type +
+			", korCategory='" + korCategory + '\'' +
+			", engCategory='" + engCategory + '\'' +
+			", region=" + region +
+			", distillery=" + distillery +
+			", cask='" + cask + '\'' +
+			", imageUrl='" + imageUrl + '\'' +
+			'}';
 	}
 }
