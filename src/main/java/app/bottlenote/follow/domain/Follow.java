@@ -29,21 +29,11 @@ public class Follow extends BaseEntity {
 	@JoinColumn(name = "follow_user_id")
 	private User followUser;
 
-	@Comment("팔로우 상태")
-	@Enumerated(EnumType.STRING)
-	private FollowStatus status;
 
 	@Builder
-	public Follow(Long id, User user, User followUser, FollowStatus status) {
-		this.id = id;
+	public Follow(User user, User followUser) {
 		this.user = user;
 		this.followUser = followUser;
-		this.status = status;
-	}
-
-	public Follow updateFollowStatus(FollowStatus follow) {
-		this.status = follow;
-		return this;
 	}
 
 }
