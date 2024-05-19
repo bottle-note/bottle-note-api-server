@@ -246,7 +246,7 @@ class OauthServiceTest {
 	}
 
 	@Test
-	@DisplayName("리프레시 토큰이 만료되었을떄, 토큰 검증 메서드는 false를 반환한다.")
+	@DisplayName("리프레시 토큰이 null일떄, 토큰 검증 메서드는 false를 반환한다.")
 	void test_token_validator_when_refresh_token_is_null() {
 
 		boolean isValid = JwtTokenValidator.validateToken(null);
