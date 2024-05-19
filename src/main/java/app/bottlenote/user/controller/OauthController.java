@@ -28,7 +28,7 @@ public class OauthController {
 
 	private final OauthService oauthService;
 	private static final String REFRESH_TOKEN_HEADER_PREFIX = "refresh-token";
-	private static final int COOKIE_EXPIRE_TIME = 7 * 24 * 60 * 60;
+	private static final int COOKIE_EXPIRE_TIME = 14 * 24 * 60 * 60;
 
 	@PostMapping("/login")
 	public ResponseEntity<GlobalResponse> oauthLogin(@RequestBody @Valid OauthRequest oauthReq,
