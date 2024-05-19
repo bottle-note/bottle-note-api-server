@@ -28,6 +28,7 @@ public class OauthController {
 
 	private final OauthService oauthService;
 	private static final String REFRESH_TOKEN_HEADER_PREFIX = "refresh-token";
+	private static final int COOKIE_EXPIRE_TIME = 7 * 24 * 60 * 60;
 
 	@PostMapping("/login")
 	public ResponseEntity<GlobalResponse> oauthLogin(@RequestBody @Valid OauthRequest oauthReq,
@@ -69,9 +70,9 @@ public class OauthController {
 	private void setRefreshTokenInCookie(HttpServletResponse response, String refreshToken) {
 		Cookie cookie = new Cookie(REFRESH_TOKEN_HEADER_PREFIX, refreshToken);
 		cookie.setHttpOnly(true);
-		cookie.setSecure(true); // HTTPS인 경우에만 전송, 개발 환경에서는 필요에 따라 설정
+		cookie.setSecure(true);
 		cookie.setPath("/");
-		cookie.setMaxAge(7 * 24 * 60 * 60); // 7일 동안 유효
+		cookie.setMaxAge(COOKIE_EXPIRE_TIME);
 		response.addCookie(cookie);
 	}
 
