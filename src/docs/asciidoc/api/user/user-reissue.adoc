@@ -10,7 +10,7 @@
 
 - RefreshToken은 Response Header에 Cookie에 담아 반환됩니다.
 
-- 레프레시 토큰이 null 이면 예외가 발생합니다.
+- 레프레시 토큰이 null이면 토큰 검증 시 IllegalArgumentException이 발생합니다.
 
 
 [source]
