@@ -2,7 +2,6 @@ package app.bottlenote.user.service;
 
 import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
 
-import app.bottlenote.global.security.SecurityUtil;
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import app.bottlenote.global.security.jwt.JwtTokenValidator;
@@ -17,7 +16,6 @@ import app.bottlenote.user.repository.OauthRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -108,10 +106,5 @@ public class OauthService {
 		user.updateRefreshToken(reissuedToken.getRefreshToken());
 
 		return reissuedToken;
-	}
-
-	public String getCurrentUser() {
-		log.info("info {}", SecurityContextHolder.getContext().getAuthentication());
-		return String.valueOf(SecurityUtil.getCurrentUserId());
 	}
 }
