@@ -2,7 +2,7 @@ package app.bottlenote.global.security.jwt;
 
 import app.bottlenote.global.security.customPrincipal.CustomUserDetailsService;
 import app.bottlenote.user.domain.constant.UserType;
-import app.bottlenote.user.dto.response.OauthResponse;
+import app.bottlenote.user.dto.response.TokenDto;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -36,7 +36,7 @@ public class JwtTokenProvider {
 		this.secretKey = Keys.hmacShaKeyFor(keyBytes);
 		this.customUserDetailsService = customUserDetailsService;
 	}
-	
+
 	/**
 	 * 필수적인 파라미터를 받아 엑세스 토큰과 리프레시 토큰을 생성하는 메소드
 	 *
@@ -45,10 +45,10 @@ public class JwtTokenProvider {
 	 * @param userId    유저 고유 아이디
 	 * @return OauthResponse ( 엑세스 토큰과 리프레시 토큰을 담은 객체 )
 	 */
-	public OauthResponse generateToken(String userEmail, UserType role, Long userId) {
+	public TokenDto generateToken(String userEmail, UserType role, Long userId) {
 		String accessToken = createAccessToken(userEmail, role, userId);
 		String refreshToken = createRefreshToken(userEmail, role, userId);
-		return OauthResponse.builder()
+		return TokenDto.builder()
 			.accessToken(accessToken)
 			.refreshToken(refreshToken)
 			.build();
