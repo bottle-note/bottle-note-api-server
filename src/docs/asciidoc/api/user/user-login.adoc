@@ -6,9 +6,13 @@
 
 보틀노트 서버에서는 닉네임 생성을 한 뒤, AccessToken과 RefreshToken을 발급합니다.
 
-gender는 MALE, FEMALE만 가능합니다.
+- AccessToken은 Response Body로 반환됩니다.
 
-socialType은 KAKAO, NAVER, GOOGLE만 가능합니다.
+- RefreshToken은 Response Header에 Cookie에 담아 반환됩니다.
+
+- gender는 MALE, FEMALE만 가능합니다.
+
+- socialType은 KAKAO, NAVER, GOOGLE만 가능합니다.
 
 |====
 |속성 |설명
