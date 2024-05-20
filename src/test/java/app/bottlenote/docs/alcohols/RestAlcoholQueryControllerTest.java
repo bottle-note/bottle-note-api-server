@@ -148,9 +148,9 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 						fieldWithPath("data.alcohols.korDistillery").description("술 제조사의 한국어 이름"),
 						fieldWithPath("data.alcohols.engDistillery").description("술 제조사의 영어 이름"),
 						fieldWithPath("data.alcohols.rating").description("술의 평균 평점"),
-						fieldWithPath("data.alcohols.totalRatingsCount").description("총 평점 수"),
+						fieldWithPath("data.alcohols.totalRatingsCount").description("총 평점 참여자 수"),
 						fieldWithPath("data.alcohols.myRating").description("내가 준 평점"),
-						fieldWithPath("data.alcohols.isPicked").description("내가 좋아요 한 술인지 여부"),
+						fieldWithPath("data.alcohols.isPicked").description("내가 한 좋아요 술인지 여부"),
 						fieldWithPath("data.alcohols.tags").description("술의 태그 목록"),
 
 						fieldWithPath("data.friendsInfo.followerCount").description("팔로워 수"),
@@ -159,7 +159,7 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 						fieldWithPath("data.friendsInfo.friends[].nickName").description("친구의 닉네임"),
 						fieldWithPath("data.friendsInfo.friends[].rating").description("친구의 평점"),
 
-						fieldWithPath("data.reviews.totalReviewCount").description("총 리뷰 수"),
+						fieldWithPath("data.reviews.totalReviewCount").description("해당 술의 총 리뷰 수"),
 						fieldWithPath("data.reviews.bestReviewInfos[].userId").description("베스트 리뷰 작성자 ID"),
 						fieldWithPath("data.reviews.bestReviewInfos[].imageUrl").description("베스트 리뷰 작성자 프로필 이미지 URL"),
 						fieldWithPath("data.reviews.bestReviewInfos[].nickName").description("베스트 리뷰 작성자 닉네임"),
