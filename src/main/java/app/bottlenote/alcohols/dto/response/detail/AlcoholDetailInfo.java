@@ -23,7 +23,7 @@ public class AlcoholDetailInfo {
 	private String korDistillery;
 	private String engDistillery;
 	private Double rating;
-	private Long totalRatings;
+	private Long totalRatingsCount;
 	private Double myRating;
 	private Boolean isPicked;
 	private List<String> tags;
