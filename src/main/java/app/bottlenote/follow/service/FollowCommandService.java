@@ -31,6 +31,9 @@ public class FollowCommandService {
 			throw new FollowException(FollowExceptionCode.CANNOT_FOLLOW_SELF);
 		}
 
+		// TODO :: 내가 차단 한 사용자인지 확인
+		// TODO :: 내가 차단 당한 사용자인지 확인
+
 		// User validation
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
@@ -57,10 +60,6 @@ public class FollowCommandService {
 			followRepository.delete(follow);
 			message = FollowUpdateResponse.Message.UNFOLLOW_SUCCESS;
 		}
-
-		// Debugging information
-		System.out.println("Follow update request: userId = " + userId + ", followUserId = " + followUserId + ", isFollow = " + isFollow);
-		System.out.println("Result message: " + message.getMessage());
 
 		return FollowUpdateResponse.builder()
 			.message(message)
