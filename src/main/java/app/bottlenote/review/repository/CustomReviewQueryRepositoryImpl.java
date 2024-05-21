@@ -74,7 +74,7 @@ public class CustomReviewQueryRepositoryImpl implements CustomReviewQueryReposit
 	}
 
 	/**
-	 * 최신순 리뷰 특정 건수 조회
+	 * 최신순 리뷰 목록을 조회합니다. ( 최대 4개  , 베스트 리뷰 제외)
 	 */
 	@Override
 	public List<ReviewInfo> findReviewsForAlcoholDetail(

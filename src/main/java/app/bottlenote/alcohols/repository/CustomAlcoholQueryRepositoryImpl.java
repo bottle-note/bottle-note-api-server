@@ -62,7 +62,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 				distillery.engName.as("engDistillery"),
 
 				rating.ratingPoint.rating.avg().multiply(2).castToNum(Double.class).round().divide(2).coalesce(0.0).as("rating"),
-				rating.id.count().as("totalRatings"),
+				rating.id.count().as("totalRatingsCount"),
 
 				Expressions.asNumber(
 					JPAExpressions
