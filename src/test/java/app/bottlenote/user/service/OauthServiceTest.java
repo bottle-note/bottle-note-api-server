@@ -2,6 +2,7 @@ package app.bottlenote.user.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -19,6 +20,7 @@ import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.domain.constant.UserType;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.TokenDto;
+import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.repository.OauthRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -196,6 +198,21 @@ class OauthServiceTest {
 			assertThat(response.getRefreshToken()).isEqualTo("newRefreshToken");
 
 			verify(jwtTokenProvider).generateToken(user.getEmail(), user.getRole(), user.getId());
+		}
+	}
+
+	@Test
+	@DisplayName("토큰 검증에 통과하지 못하면 토큰 재발급에 실패한다")
+	void reissue_token_fail() {
+		try (MockedStatic<JwtTokenValidator> mockedValidator = mockStatic(
+			JwtTokenValidator.class)) {
+
+			//when
+			mockedValidator.when(() -> JwtTokenValidator.validateToken(reissueRefreshToken))
+				.thenReturn(false);
+
+			// then
+			assertThrows(UserException.class, () -> oauthService.refresh(reissueRefreshToken));
 		}
 	}
 }
