@@ -454,53 +454,30 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_공통_예외_처리">1.3. 공통 예외 처리</a></li>
 </ul>
 </li>
-<li><a href="#_회원_user">2. 회원 (user)</a>
+<li><a href="#_회원_user_관련_api">2. 회원 (user) 관련 API</a>
 <ul class="sectlevel2">
-<li><a href="#_유저_api">2.1. 유저  API</a>
-<ul class="sectlevel3">
-<li><a href="#_로그인">2.1.1. 로그인</a></li>
-<li><a href="#_토큰_재발급">2.1.2. 토큰 재발급</a></li>
-<li><a href="#_닉네임_변경">2.1.3. 닉네임 변경</a></li>
+<li><a href="#_로그인">2.1. 로그인</a></li>
+<li><a href="#_토큰_재발급">2.2. 토큰 재발급</a></li>
+<li><a href="#_닉네임_변경">2.3. 닉네임 변경</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li><a href="#_술_alcohols">3. 술 (alcohols)</a>
+<li><a href="#_술_alcohol_관련_api">3. 술 (alcohol) 관련 API</a>
 <ul class="sectlevel2">
-<li><a href="#_술위스키_api">3.1. 술(위스키) API</a>
-<ul class="sectlevel3">
-<li><a href="#_술위스키_목록_조회">3.1.1. 술(위스키) 목록 조회</a></li>
-<li><a href="#_술위스키_상세_조회">3.1.2. 술(위스키) 상세 조회</a></li>
+<li><a href="#_술위스키_목록_조회">3.1. 술(위스키) 목록 조회</a></li>
+<li><a href="#_술위스키_상세_조회">3.2. 술(위스키) 상세 조회</a></li>
+<li><a href="#_술위스키_찜하기_찜하기_해제">3.3. 술(위스키)  찜하기 /찜하기 해제</a></li>
+<li><a href="#_지역리전_정보_조회">3.4. 지역(리전) 정보 조회</a></li>
+<li><a href="#_주간_인기_위스키_조회">3.5. 주간 인기 위스키 조회</a></li>
 </ul>
 </li>
-<li><a href="#_지역_api">3.2. 지역 API</a>
-<ul class="sectlevel3">
-<li><a href="#_지역_정보_조회">3.2.1. 지역 정보 조회</a></li>
-</ul>
-</li>
-<li><a href="#_인기_위스키_api">3.3. 인기 위스키  API</a>
-<ul class="sectlevel3">
-<li><a href="#_주간_인기_위스키_조회">3.3.1. 주간 인기 위스키 조회</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#_리뷰_review">4. 리뷰 (review)</a>
+<li><a href="#_리뷰_review_관련_api">4. 리뷰 (review) 관련 API</a>
 <ul class="sectlevel2">
-<li><a href="#_리뷰_api">4.1. 리뷰  API</a>
-<ul class="sectlevel3">
-<li><a href="#_리뷰_조회">4.1.1. 리뷰 조회</a></li>
+<li><a href="#_리뷰_조회">4.1. 리뷰 조회</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li><a href="#_신고_report">5. 신고 (report)</a>
+<li><a href="#_지원_support_관련_api">5. 지원 (support) 관련 API</a>
 <ul class="sectlevel2">
-<li><a href="#_유저_신고_api">5.1. 유저 신고 API</a>
-<ul class="sectlevel3">
-<li><a href="#_유저_신고_요청">5.1.1. 유저 신고 요청</a></li>
-</ul>
-</li>
+<li><a href="#_유저_신고_요청">5.1. 유저 신고 요청</a></li>
 </ul>
 </li>
 </ul>
@@ -677,11 +654,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
-<p><strong>누락된 정보는 서버 백엔드 팀에게 문의해주세요.</strong>
-'''</p>
+<p><strong>누락된 정보는 서버 백엔드 팀에게 문의해주세요.</strong></p>
 </li>
 </ul>
 </div>
+<hr>
 </div>
 <div class="sect2">
 <h3 id="_공통_예외_처리"><a class="link" href="#_공통_예외_처리">1.3. 공통 예외 처리</a></h3>
@@ -784,12 +761,11 @@ Content-Type: application/json
 </div>
 </div>
 <div class="sect1">
-<h2 id="_회원_user"><a class="link" href="#_회원_user">2. 회원 (user)</a></h2>
+<h2 id="_회원_user_관련_api"><a class="link" href="#_회원_user_관련_api">2. 회원 (user) 관련 API</a></h2>
 <div class="sectionbody">
+<hr>
 <div class="sect2">
-<h3 id="_유저_api"><a class="link" href="#_유저_api">2.1. 유저  API</a></h3>
-<div class="sect3">
-<h4 id="_로그인"><a class="link" href="#_로그인">2.1.1. 로그인</a></h4>
+<h3 id="_로그인"><a class="link" href="#_로그인">2.1. 로그인</a></h3>
 <div class="paragraph">
 <p>기본적인 인증은 소셜로그인 API 서버에서 수행됩니다.</p>
 </div>
@@ -829,7 +805,6 @@ Content-Type: application/json
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/oauth/login</code></pre>
 </div>
 </div>
-<h4 id="_요청_파라미터_request_fields" class="discrete">요청 파라미터 ( request fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -882,7 +857,6 @@ Content-Type: application/json
 }</code></pre>
 </div>
 </div>
-<h4 id="_응답_파라미터_response_fields" class="discrete">응답 파라미터 ( response fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -961,7 +935,7 @@ Content-Length: 761
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T22:01:08.205690",
+    "serverResponseTime" : "2024-05-20T22:02:53.080569",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -969,8 +943,8 @@ Content-Length: 761
 </div>
 <hr>
 </div>
-<div class="sect3">
-<h4 id="_토큰_재발급"><a class="link" href="#_토큰_재발급">2.1.2. 토큰 재발급</a></h4>
+<div class="sect2">
+<h3 id="_토큰_재발급"><a class="link" href="#_토큰_재발급">2.2. 토큰 재발급</a></h3>
 <div class="paragraph">
 <p>토큰(액세스토큰, 리프레쉬 토큰)을 재발급합니다.</p>
 </div>
@@ -1010,7 +984,6 @@ Content-Length: 761
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/oauth/reissue</code></pre>
 </div>
 </div>
-<h4 id="_요청_파라미터_request_fields_2" class="discrete">요청 파라미터 ( request fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -1049,7 +1022,6 @@ Content-Length: 761
 }</code></pre>
 </div>
 </div>
-<h4 id="_응답_파라미터_response_fields_2" class="discrete">응답 파라미터 ( response fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -1128,15 +1100,16 @@ Content-Length: 324
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T22:01:08.097350",
+    "serverResponseTime" : "2024-05-20T22:02:53.021467",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
 </div>
 </div>
+<hr>
 </div>
-<div class="sect3">
-<h4 id="_닉네임_변경"><a class="link" href="#_닉네임_변경">2.1.3. 닉네임 변경</a></h4>
+<div class="sect2">
+<h3 id="_닉네임_변경"><a class="link" href="#_닉네임_변경">2.3. 닉네임 변경</a></h3>
 <div class="paragraph">
 <p>닉네임 변경 API는 사용자가 로그인 후 자신의 닉네임을 변경할 수 있게 해줍니다.</p>
 </div>
@@ -1167,7 +1140,6 @@ Content-Length: 324
 <pre class="highlightjs highlight"><code class="language-none hljs">PATCH /api/v1/users/nickname</code></pre>
 </div>
 </div>
-<h4 id="_요청_파라미터_request_fields_3" class="discrete">요청 파라미터 ( request fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -1206,7 +1178,6 @@ Content-Length: 324
 }</code></pre>
 </div>
 </div>
-<h4 id="_응답_파라미터_response_fields_3" class="discrete">응답 파라미터 ( response fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -1277,7 +1248,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T22:01:08.344462",
+    "serverResponseTime" : "2024-05-20T22:02:53.273754",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1286,19 +1257,14 @@ Content-Length: 411
 </div>
 </div>
 </div>
-</div>
 <div class="sect1">
-<h2 id="_술_alcohols"><a class="link" href="#_술_alcohols">3. 술 (alcohols)</a></h2>
+<h2 id="_술_alcohol_관련_api"><a class="link" href="#_술_alcohol_관련_api">3. 술 (alcohol) 관련 API</a></h2>
 <div class="sectionbody">
-<hr>
 <div class="sect2">
-<h3 id="_술위스키_api"><a class="link" href="#_술위스키_api">3.1. 술(위스키) API</a></h3>
-<div class="sect3">
-<h4 id="_술위스키_목록_조회"><a class="link" href="#_술위스키_목록_조회">3.1.1. 술(위스키) 목록 조회</a></h4>
+<h3 id="_술위스키_목록_조회"><a class="link" href="#_술위스키_목록_조회">3.1. 술(위스키) 목록 조회</a></h3>
 <div class="paragraph">
 <p>검색 조건으로 술(위스키) 정보를 조회합니다.</p>
 </div>
-<hr>
 <h5 id="_request" class="discrete"><em>Request</em></h5>
 <div class="paragraph">
 <p>요청 파라미터 ( request fields )</p>
@@ -1351,7 +1317,6 @@ Content-Length: 411
 </tbody>
 </table>
 <h5 id="_response" class="discrete"><em>Response</em></h5>
-<h4 id="_응답_파라미터_response_fields_4" class="discrete">응답 파라미터 ( response fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -1547,7 +1512,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T22:01:06.316778",
+    "serverResponseTime" : "2024-05-20T22:02:51.794627",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 4,
@@ -1568,7 +1533,6 @@ Content-Length: 411
 }</code></pre>
 </div>
 </div>
-<hr>
 <h5 id="_정렬_타입_sorttype" class="discrete"><em>정렬 타입 (sortType)</em></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -1666,10 +1630,9 @@ Content-Length: 411
 </ul>
 </div>
 <hr>
-<hr>
 </div>
-<div class="sect3">
-<h4 id="_술위스키_상세_조회"><a class="link" href="#_술위스키_상세_조회">3.1.2. 술(위스키) 상세 조회</a></h4>
+<div class="sect2">
+<h3 id="_술위스키_상세_조회"><a class="link" href="#_술위스키_상세_조회">3.2. 술(위스키) 상세 조회</a></h3>
 <div class="paragraph">
 <p>검색 조건으로 술(위스키) 정보를 상세 조회합니다.</p>
 </div>
@@ -1679,7 +1642,6 @@ Content-Length: 411
 <div class="paragraph">
 <p>추가적인 정보가 필요하신 경우, 문의해 주시기 바랍니다.</p>
 </div>
-<hr>
 <h5 class="discrete" id="_request_2"><em>Request</em></h5>
 <div class="listingblock">
 <div class="content">
@@ -1694,7 +1656,6 @@ Content-Length: 411
 </ul>
 </div>
 <h5 class="discrete" id="_response_2"><em>Response</em></h5>
-<h4 class="discrete" id="_응답_파라미터_response_fields_5">응답 파라미터 ( response fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -1785,7 +1746,7 @@ Content-Length: 411
 <td class="tableblock halign-left valign-top"><p class="tableblock">술의 평균 평점</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.alcohols.totalRatings</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.alcohols.totalRatingsCount</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">총 평점 수</p></td>
 </tr>
@@ -1828,6 +1789,11 @@ Content-Length: 411
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.friendsInfo.friends[].rating</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">친구의 평점</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.totalReviewCount</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">총 리뷰 수</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.bestReviewInfos[].userId</code></p></td>
@@ -1897,7 +1863,7 @@ Content-Length: 411
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.bestReviewInfos[].status</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">베스트 리뷰 상태 (PUBLIC/PRIVATE)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">리뷰 공개 비공개 여부 (PUBLIC/PRIVATE)</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.bestReviewInfos[].reviewImageUrl</code></p></td>
@@ -1977,7 +1943,7 @@ Content-Length: 411
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.recentReviewInfos[].status</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">최신 리뷰 상태 (PUBLIC/PRIVATE)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">리뷰 공개 비공개 여부 (PUBLIC/PRIVATE)</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.recentReviewInfos[].reviewImageUrl</code></p></td>
@@ -1988,31 +1954,6 @@ Content-Length: 411
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.recentReviewInfos[].createAt</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">최신 리뷰 작성 날짜</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>errors</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">에러 목록</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverVersion</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서버 버전</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverEncoding</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서버 인코딩</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverResponseTime</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서버 응답 시간</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.serverPathVersion</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">서버 경로 버전</p></td>
 </tr>
 </tbody>
 </table>
@@ -2036,7 +1977,7 @@ Content-Length: 411
       "korDistillery" : "글래스고 디스틸러리",
       "engDistillery" : "The Glasgow Distillery Co.",
       "rating" : 3.5,
-      "totalRatings" : 3,
+      "totalRatingsCount" : 3,
       "myRating" : 4.5,
       "isPicked" : true,
       "tags" : [ "달달한", "부드러운", "향긋한", "견과류", "후추향의" ]
@@ -2076,6 +2017,7 @@ Content-Length: 411
       } ]
     },
     "reviews" : {
+      "totalReviewCount" : 10,
       "bestReviewInfos" : [ {
         "userId" : 1,
         "imageUrl" : null,
@@ -2152,7 +2094,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T22:01:06.695665",
+    "serverResponseTime" : "2024-05-20T22:02:52.066439",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2164,12 +2106,14 @@ Content-Length: 411
 <p>pick 여부는 header에 bearer 토큰을 참조해 확인합니다. <code>Authorization: Bearer {token}</code></p>
 </li>
 <li>
-<p>변수명에서 수정이 필요한 경우, 문의해 주시기 바랍니다.
-'''
-==== 찜하기 /찜하기 해제 ====</p>
+<p>변수명에서 수정이 필요한 경우, 문의해 주시기 바랍니다.</p>
 </li>
 </ul>
 </div>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_술위스키_찜하기_찜하기_해제"><a class="link" href="#_술위스키_찜하기_찜하기_해제">3.3. 술(위스키)  찜하기 /찜하기 해제</a></h3>
 <div class="paragraph">
 <p>술(위스키)의 식별자와 조건값을 통해 찜하기/찜하기 해제를 합니다.</p>
 </div>
@@ -2182,7 +2126,6 @@ Content-Length: 411
 </div>
 </div>
 <h5 class="discrete" id="_request_3"><em>Request</em></h5>
-<h4 class="discrete" id="_요청_파라미터_request_fields_4">요청 파라미터 ( request fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -2222,7 +2165,6 @@ Content-Length: 411
 </div>
 </div>
 <h5 class="discrete" id="_response_3"><em>Response</em></h5>
-<h4 class="discrete" id="_응답_파라미터_response_fields_6">응답 파라미터 ( response fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -2277,7 +2219,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T22:01:07.250256",
+    "serverResponseTime" : "2024-05-20T22:02:52.417748",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2308,24 +2250,19 @@ Content-Length: 411
 </table>
 <hr>
 </div>
-</div>
 <div class="sect2">
-<h3 id="_지역_api"><a class="link" href="#_지역_api">3.2. 지역 API</a></h3>
-<div class="sect3">
-<h4 id="_지역_정보_조회"><a class="link" href="#_지역_정보_조회">3.2.1. 지역 정보 조회</a></h4>
+<h3 id="_지역리전_정보_조회"><a class="link" href="#_지역리전_정보_조회">3.4. 지역(리전) 정보 조회</a></h3>
 <div class="paragraph">
 <p>검색 조건으로 사용되는 지역 정보를 조회합니다.</p>
 </div>
 <div class="paragraph">
 <p>지역 정보는 서버의 로컬 캐시로 관리되며 일 단위로 갱신됩니다.</p>
 </div>
-<hr>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/regions</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_응답_파라미터_response_fields_7">응답 파라미터 ( response fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -2412,7 +2349,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T22:01:07.473890",
+    "serverResponseTime" : "2024-05-20T22:02:52.618399",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2420,11 +2357,8 @@ Content-Length: 411
 </div>
 <hr>
 </div>
-</div>
 <div class="sect2">
-<h3 id="_인기_위스키_api"><a class="link" href="#_인기_위스키_api">3.3. 인기 위스키  API</a></h3>
-<div class="sect3">
-<h4 id="_주간_인기_위스키_조회"><a class="link" href="#_주간_인기_위스키_조회">3.3.1. 주간 인기 위스키 조회</a></h4>
+<h3 id="_주간_인기_위스키_조회"><a class="link" href="#_주간_인기_위스키_조회">3.5. 주간 인기 위스키 조회</a></h3>
 <div class="paragraph">
 <p>주간 인기 위스키를 조회합니다.</p>
 </div>
@@ -2434,7 +2368,6 @@ Content-Length: 411
 <div class="paragraph">
 <p>parameter가 없을 경우 기본 값은 5입니다.</p>
 </div>
-<hr>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/popular/week</code></pre>
@@ -2459,7 +2392,6 @@ Content-Length: 411
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_응답_파라미터_response_fields_8">응답 파라미터 ( response fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -2594,7 +2526,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T22:01:07.387319",
+    "serverResponseTime" : "2024-05-20T22:02:52.557291",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2655,14 +2587,11 @@ Content-Length: 411
 </div>
 </div>
 </div>
-</div>
 <div class="sect1">
-<h2 id="_리뷰_review"><a class="link" href="#_리뷰_review">4. 리뷰 (review)</a></h2>
+<h2 id="_리뷰_review_관련_api"><a class="link" href="#_리뷰_review_관련_api">4. 리뷰 (review) 관련 API</a></h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_리뷰_api"><a class="link" href="#_리뷰_api">4.1. 리뷰  API</a></h3>
-<div class="sect3">
-<h4 id="_리뷰_조회"><a class="link" href="#_리뷰_조회">4.1.1. 리뷰 조회</a></h4>
+<h3 id="_리뷰_조회"><a class="link" href="#_리뷰_조회">4.1. 리뷰 조회</a></h3>
 <div class="paragraph">
 <p>리뷰 조회 기능입니다.
 PathVariable로 alcoholId를 전달합니다.</p>
@@ -2693,7 +2622,6 @@ PathVariable로 alcoholId를 전달합니다.</p>
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/reviews/{alcoholId}</code></pre>
 </div>
 </div>
-<hr>
 <div class="paragraph">
 <p>요청 파라미터 ( request fields )</p>
 </div>
@@ -2732,8 +2660,6 @@ PathVariable로 alcoholId를 전달합니다.</p>
 </tr>
 </tbody>
 </table>
-<hr>
-<h4 class="discrete" id="_응답_파라미터_response_fields_9">응답 파라미터 ( response fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -2874,7 +2800,7 @@ PathVariable로 alcoholId를 전달합니다.</p>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json;charset=UTF-8
-Content-Length: 1487
+Content-Length: 1489
 
 {
   "success" : true,
@@ -2889,7 +2815,7 @@ Content-Length: 1487
       "likeCount" : 5,
       "replyCount" : 3,
       "thumbnailImage" : "thumbnail_image_1",
-      "reviewCreatedAt" : [ 2024, 5, 15, 22, 1, 7, 675544000 ],
+      "reviewCreatedAt" : [ 2024, 5, 20, 22, 2, 52, 763319000 ],
       "userId" : 1,
       "userNickname" : "test_user_1",
       "userProfileImage" : "user_profile_image_1",
@@ -2906,7 +2832,7 @@ Content-Length: 1487
       "likeCount" : 3,
       "replyCount" : 6,
       "thumbnailImage" : "thumbnail_image_2",
-      "reviewCreatedAt" : [ 2024, 5, 14, 22, 1, 7, 675590000 ],
+      "reviewCreatedAt" : [ 2024, 5, 19, 22, 2, 52, 763351000 ],
       "userId" : 2,
       "userNickname" : "test_user_2",
       "userProfileImage" : "user_profile_image_2",
@@ -2921,7 +2847,7 @@ Content-Length: 1487
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T22:01:07.692530",
+    "serverResponseTime" : "2024-05-20T22:02:52.775649",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 1,
@@ -2933,7 +2859,6 @@ Content-Length: 1487
 }</code></pre>
 </div>
 </div>
-<hr>
 <h5 id="_정렬_타입_sorttype_2" class="discrete"><em>정렬 타입 (sortType)</em></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -3033,14 +2958,11 @@ Content-Length: 1487
 </div>
 </div>
 </div>
-</div>
 <div class="sect1">
-<h2 id="_신고_report"><a class="link" href="#_신고_report">5. 신고 (report)</a></h2>
+<h2 id="_지원_support_관련_api"><a class="link" href="#_지원_support_관련_api">5. 지원 (support) 관련 API</a></h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_유저_신고_api"><a class="link" href="#_유저_신고_api">5.1. 유저 신고 API</a></h3>
-<div class="sect3">
-<h4 id="_유저_신고_요청"><a class="link" href="#_유저_신고_요청">5.1.1. 유저 신고 요청</a></h4>
+<h3 id="_유저_신고_요청"><a class="link" href="#_유저_신고_요청">5.1. 유저 신고 요청</a></h3>
 <div class="paragraph">
 <p>특정한 사용자가 부적절한 행동을 했을 때, 해당 사용자를 신고할 수 있습니다.</p>
 </div>
@@ -3093,7 +3015,6 @@ Content-Length: 1487
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/user-report</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_request_fields_5">요청 파라미터 ( request fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -3146,7 +3067,6 @@ Content-Length: 1487
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_응답_파라미터_response_fields_10">응답 파라미터 ( response fields )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -3233,7 +3153,7 @@ Content-Length: 1487
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-15T22:01:07.888991",
+    "serverResponseTime" : "2024-05-20T22:02:52.939618",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -3286,11 +3206,9 @@ Content-Length: 1487
 <p><strong>추가되지 않은 에러 코드는 요청 바랍니다.</strong></p>
 </li>
 <li>
-<p><strong>request valid에 대한 내용은 공통 예외를 통해 처리됩니다.</strong>
-'''</p>
+<p><strong>request valid에 대한 내용은 공통 예외를 통해 처리됩니다.</strong></p>
 </li>
 </ul>
-</div>
 </div>
 </div>
 </div>
@@ -3299,7 +3217,7 @@ Content-Length: 1487
 <div id="footer">
 <div id="footer-text">
 Version 0.0.1-SNAPSHOT<br>
-Last updated 2024-05-15 22:08:11 +0900
+Last updated 2024-05-20 22:02:25 +0900
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>

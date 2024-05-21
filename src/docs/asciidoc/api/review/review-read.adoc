@@ -1,6 +1,4 @@
-=== 리뷰  API  ===
-
-==== 리뷰 조회 ====
+=== 리뷰 조회 ===
 
 리뷰 조회 기능입니다.
 PathVariable로 alcoholId를 전달합니다.
@@ -9,8 +7,6 @@ PathVariable로 alcoholId를 전달합니다.
 |PathVariable |설명
 
 |`alcoholId` | 위스키 ID
-
-
 
 |====
 
@@ -21,20 +17,14 @@ API EndPoint
 GET /api/v1/reviews/{alcoholId}
 ----
 
----
-
 요청 파라미터 ( request fields )
 
 include::{snippets}/review/review-read/httpie-request.adoc[]
 include::{snippets}/review/review-read/query-parameters.adoc[]
 
----
 [discrete]
 include::{snippets}/review/review-read/response-fields.adoc[]
 include::{snippets}/review/review-read/http-response.adoc[]
-
-
----
 
 [discrete]
 ===== _정렬 타입 (sortType)_ =====
@@ -56,4 +46,3 @@ include::{snippets}/review/review-read/http-response.adoc[]
 - 타입이 잘못 전달될 경우 예외가 반환됩니다.
 
 include::../overview/sort-order.adoc[]
-

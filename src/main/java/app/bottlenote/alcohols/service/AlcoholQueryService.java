@@ -62,7 +62,10 @@ public class AlcoholQueryService {
 		List<ReviewsDetailInfo.ReviewInfo> bestReviewInfos = reviewQueryRepository.findBestReviewsForAlcoholDetail(alcoholId, userId);
 		List<Long> bestReviewIds = bestReviewInfos.stream().map(ReviewsDetailInfo.ReviewInfo::reviewId).toList();
 		List<ReviewsDetailInfo.ReviewInfo> reviewInfos = reviewQueryRepository.findReviewsForAlcoholDetail(alcoholId, userId, bestReviewIds);
+		Long reviewTotalCount = reviewQueryRepository.countByAlcoholId(alcoholId);
+
 		ReviewsDetailInfo reviewsDetailInfo = ReviewsDetailInfo.builder()
+			.totalReviewCount(reviewTotalCount)
 			.bestReviewInfos(bestReviewInfos)
 			.recentReviewInfos(reviewInfos)
 			.build();

@@ -18,39 +18,45 @@ endif::[]
 - 이 API문서는 bottle-note 프로젝트의 API를 설명합니다.
 - 포함되면 좋을것 같은 내용이나 수정이 필요한 내용은 언제든지 디스코드 채널을 통해 알려주세요.
 
-
 include::api/overview/overview.adoc[]
+
 '''
 include::api/overview/global-response.adoc[]
+
 '''
 include::api/overview/global-exception.adoc[]
 
-== 회원 (user)
+== 회원 (user) 관련 API
 
+'''
 include::api/user/user-login.adoc[]
+
 '''
 include::api/user/user-reissue.adoc[]
 
+'''
 include::api/user/user-nickname-change.adoc[]
 
-== 술 (alcohols)
+== 술 (alcohol) 관련 API
+
+include::api/alcohols/search.adoc[]
 
 '''
-include::api/alcohols/search.adoc[]
-'''
 include::api/alcohols/detail.adoc[]
+
 '''
 include::api/alcohols/picks.adoc[]
+
 '''
 include::api/alcohols/region.adoc[]
+
 '''
 include::api/alcohols/popular.adoc[]
 
-== 리뷰 (review)
+== 리뷰 (review) 관련 API
 
 include::api/review/review-read.adoc[]
 
-== 신고 (report)
+== 지원 (support) 관련 API
 
 include::api/support/report/user-report.adoc[]
-'''

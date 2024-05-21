@@ -1,4 +1,4 @@
-==== 토큰 재발급 ====
+=== 토큰 재발급 ===
 
 토큰(액세스토큰, 리프레쉬 토큰)을 재발급합니다.
 
@@ -29,6 +29,3 @@ include::{snippets}/user/user-reissue//request-body.adoc[]
 [discrete]
 include::{snippets}/user/user-reissue//response-fields.adoc[]
 include::{snippets}/user/user-reissue//http-response.adoc[]
-
-
-
