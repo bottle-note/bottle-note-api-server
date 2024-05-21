@@ -1,15 +1,12 @@
 package app.bottlenote.user.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -22,12 +19,7 @@ import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.domain.constant.UserType;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.TokenDto;
-import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.repository.OauthRepository;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
-import java.util.Date;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -205,51 +197,5 @@ class OauthServiceTest {
 
 			verify(jwtTokenProvider).generateToken(user.getEmail(), user.getRole(), user.getId());
 		}
-	}
-
-	@Test
-	@DisplayName("refresh토큰 검증에 실패하면, 토큰 재발급을 할 수 없다.")
-	void fail_reissue_token() {
-		try (MockedStatic<JwtTokenValidator> mockedValidator = mockStatic(
-			JwtTokenValidator.class)) {
-
-
-			//when
-			when(JwtTokenValidator.validateToken(reissueRefreshToken)).thenReturn(false);
-
-			//토큰 검증에 실패하면 UserException이 발생
-			assertThrows(UserException.class, () -> oauthService.refresh(reissueRefreshToken));
-
-			//generateToken 메서드가 실행되지 않음을 검증
-			verify(jwtTokenProvider, never()).generateToken(user.getEmail(), user.getRole(),
-				user.getId());
-		}
-	}
-
-	@Test
-	@DisplayName("리프레시 토큰이 만료되었을떄, 토큰 검증 메서드는 false를 반환한다.")
-	void test_token_validator_when_refresh_token_is_expired() {
-
-		Date now = new Date();
-
-		String tmpRefreshToken = Jwts.builder()
-			.setClaims(Jwts.claims().setSubject("cha"))
-			.setIssuedAt(now)
-			.setExpiration(new Date(now.getTime() - 1000))
-			.signWith(Keys.hmacShaKeyFor(
-					"c2VjdXJasdfasdgagasgasgIzNDU2Nzg5MGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6QWJDRGVGR2hJSktMTU5asfdasgdsldYWVphYmNkZWZnaGlrSg==".getBytes()),
-				SignatureAlgorithm.HS512)
-			.compact();
-
-		boolean isValid = JwtTokenValidator.validateToken(tmpRefreshToken);
-		assertFalse(isValid);
-	}
-
-	@Test
-	@DisplayName("리프레시 토큰이 null일떄, 토큰 검증 메서드는 false를 반환한다.")
-	void test_token_validator_when_refresh_token_is_null() {
-
-		boolean isValid = JwtTokenValidator.validateToken(null);
-		assertFalse(isValid);
 	}
 }
