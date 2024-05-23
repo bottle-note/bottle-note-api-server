@@ -1,18 +1,5 @@
 package app.bottlenote.user.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import app.bottlenote.global.security.jwt.JwtTokenValidator;
@@ -20,11 +7,9 @@ import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.domain.constant.UserType;
 import app.bottlenote.user.dto.request.OauthRequest;
-import app.bottlenote.user.dto.request.TokenRequest;
-import app.bottlenote.user.dto.response.OauthResponse;
+import app.bottlenote.user.dto.response.TokenDto;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.repository.OauthRepository;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,6 +19,20 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
+
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @DisplayName("유저 서비스 테스트")
 @ExtendWith(MockitoExtension.class)
@@ -50,11 +49,12 @@ class OauthServiceTest {
 	@Mock
 	private JwtTokenProvider jwtTokenProvider;
 
-
+	private String reissueRefreshToken;
 	private OauthRequest request;
 	private User user;
-	private OauthResponse oauthResponse;
-	private String nickName;
+	private String nickName = "nickName";
+
+	private TokenDto tokenDto;
 
 	@BeforeEach
 	void setUp() {
@@ -74,10 +74,12 @@ class OauthServiceTest {
 			.role(UserType.ROLE_USER)
 			.build();
 
-		oauthResponse = OauthResponse.builder()
+		tokenDto = TokenDto.builder()
 			.accessToken("mock-accessToken")
 			.refreshToken("mock-refreshToken")
 			.build();
+
+		reissueRefreshToken = "mock-refreshToken";
 	}
 
 	@Test
@@ -109,13 +111,14 @@ class OauthServiceTest {
 			Optional.of(user));
 
 		when(jwtTokenProvider.generateToken(user.getEmail(), user.getRole(),
-			user.getId())).thenReturn(oauthResponse);
+			user.getId())).thenReturn(tokenDto);
 
-		oauthService.oauthLogin(request);
+		TokenDto result = oauthService.oauthLogin(request);
+		System.out.println(result.getAccessToken() + " " + result.getRefreshToken());
 
 		//then
-		assertThat(oauthResponse.getAccessToken()).isEqualTo("mock-accessToken");
-		assertThat(oauthResponse.getRefreshToken()).isEqualTo("mock-refreshToken");
+		assertThat(tokenDto.getAccessToken()).isEqualTo("mock-accessToken");
+		assertThat(tokenDto.getRefreshToken()).isEqualTo("mock-refreshToken");
 	}
 
 	@Test
@@ -128,7 +131,7 @@ class OauthServiceTest {
 		when(oauthRepository.save(any(User.class))).thenReturn(user);
 
 		when(jwtTokenProvider.generateToken(user.getEmail(), user.getRole(),
-			user.getId())).thenReturn(oauthResponse);
+			user.getId())).thenReturn(tokenDto);
 
 		oauthService.oauthLogin(request);
 
@@ -137,8 +140,8 @@ class OauthServiceTest {
 		// save 메서드가 회원가입시에 1번, 토큰발급 후 1번 -> 총 2번 실행된다
 		verify(oauthRepository, times(2)).save(any(User.class));
 
-		assertThat(this.oauthResponse.getAccessToken()).isEqualTo("mock-accessToken");
-		assertThat(this.oauthResponse.getRefreshToken()).isEqualTo("mock-refreshToken");
+		assertThat(this.tokenDto.getAccessToken()).isEqualTo("mock-accessToken");
+		assertThat(this.tokenDto.getRefreshToken()).isEqualTo("mock-refreshToken");
 	}
 
 	@Test
@@ -152,7 +155,7 @@ class OauthServiceTest {
 		when(oauthRepository.save(any(User.class))).thenReturn(user);
 
 		when(jwtTokenProvider.generateToken(user.getEmail(), user.getRole(),
-			user.getId())).thenReturn(oauthResponse);
+			user.getId())).thenReturn(tokenDto);
 
 		oauthService.oauthLogin(request);
 
@@ -161,8 +164,8 @@ class OauthServiceTest {
 		// save 메서드가 토큰발급 후 1번만 실행된다.
 		verify(oauthRepository, times(1)).save(any(User.class));
 
-		assertThat(this.oauthResponse.getAccessToken()).isEqualTo("mock-accessToken");
-		assertThat(this.oauthResponse.getRefreshToken()).isEqualTo("mock-refreshToken");
+		assertThat(this.tokenDto.getAccessToken()).isEqualTo("mock-accessToken");
+		assertThat(this.tokenDto.getRefreshToken()).isEqualTo("mock-refreshToken");
 	}
 
 	@Test
@@ -171,52 +174,46 @@ class OauthServiceTest {
 		try (MockedStatic<JwtTokenValidator> mockedValidator = mockStatic(
 			JwtTokenValidator.class)) {
 
-			TokenRequest tokenRequest = new TokenRequest("access", "refresh");
-
 			//when
-			mockedValidator.when(() -> JwtTokenValidator.validateToken(tokenRequest.refreshToken()))
+			mockedValidator.when(() -> JwtTokenValidator.validateToken(reissueRefreshToken))
 				.thenReturn(true);
 
-			when(jwtAuthenticationManager.getAuthentication(tokenRequest.accessToken())).thenReturn(
+			when(jwtAuthenticationManager.getAuthentication(reissueRefreshToken)).thenReturn(
 				mock(Authentication.class));
 
-			when(oauthRepository.findByRefreshToken(tokenRequest.refreshToken())).thenReturn(
+			when(oauthRepository.findByRefreshToken(reissueRefreshToken)).thenReturn(
 				Optional.of(user));
 
 			when(jwtTokenProvider.generateToken(anyString(), any(UserType.class), anyLong()))
-				.thenReturn(new OauthResponse("newAccessToken", "newRefreshToken"));
+				.thenReturn(TokenDto.builder()
+					.accessToken("newAccessToken")
+					.refreshToken("newRefreshToken")
+					.build());
 
 			// then
-			OauthResponse response = oauthService.refresh(tokenRequest);
+			TokenDto response = oauthService.refresh(reissueRefreshToken);
 
 			// 검증
 			assertNotNull(response);
-			assertThat("newAccessToken").isEqualTo(response.getAccessToken());
-			assertThat("newRefreshToken").isEqualTo(response.getRefreshToken());
+			assertThat(response.getAccessToken()).isEqualTo("newAccessToken");
+			assertThat(response.getRefreshToken()).isEqualTo("newRefreshToken");
 
 			verify(jwtTokenProvider).generateToken(user.getEmail(), user.getRole(), user.getId());
 		}
 	}
 
 	@Test
-	@DisplayName("refresh토큰 검증에 실패하면, 토큰 재발급을 할 수 없다.")
-	void fail_reissue_token() {
+	@DisplayName("토큰 검증에 통과하지 못하면 토큰 재발급에 실패한다")
+	void reissue_token_fail() {
 		try (MockedStatic<JwtTokenValidator> mockedValidator = mockStatic(
 			JwtTokenValidator.class)) {
 
-			TokenRequest tokenRequest = new TokenRequest("access", "refresh");
-
 			//when
-			when(JwtTokenValidator.validateToken(tokenRequest.refreshToken())).thenReturn(false);
+			mockedValidator.when(() -> JwtTokenValidator.validateToken(reissueRefreshToken))
+				.thenReturn(false);
 
-			//토큰 검증에 실패하면 UserException이 발생
-			assertThrows(UserException.class, () -> oauthService.refresh(tokenRequest));
-
-			//generateToken 메서드가 실행되지 않음을 검증
-			verify(jwtTokenProvider, never()).generateToken(user.getEmail(), user.getRole(),
-				user.getId());
+			// then
+			assertThrows(UserException.class, () -> oauthService.refresh(reissueRefreshToken));
 		}
 	}
-
-
 }

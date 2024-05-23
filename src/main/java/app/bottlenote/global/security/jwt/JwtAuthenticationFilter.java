@@ -5,13 +5,18 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+
+import static java.util.Objects.requireNonNullElse;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -22,6 +27,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 	private final JwtAuthenticationManager jwtAuthenticationManager;
 
+
+	/**
+	 * 내부 필터링 로직을 처리하는 메서드.
+	 *
+	 * @param request     클라이언트의 요청
+	 * @param response    서버의 응답
+	 * @param filterChain 필터 체인
+	 * @throws ServletException 서블릿 예외
+	 * @throws IOException      입출력 예외
+	 */
 	@Override
 	protected void doFilterInternal(
 		@NonNull HttpServletRequest request,
@@ -29,38 +44,55 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		@NonNull FilterChain filterChain
 	) throws ServletException, IOException {
 
-		String token = resolveToken(request);
+		log.info("JWT Filtering....{} , entry point : {} ", request.getServletPath(), request.getRequestURI());
 
-		if (isValidToken(token)) {
-			Authentication authentication = jwtAuthenticationManager.getAuthentication(token);
-			SecurityContextHolder.getContext().setAuthentication(authentication);
+		String token = resolveToken(request).orElse(null);
+
+		if (!JwtTokenValidator.validateToken(token)) {
+			log.warn("토큰이 유효하지 않습니다. : {}", token);
+			request.setAttribute("exception", new RuntimeException("토큰이 유효하지 않습니다."));
+			filterChain.doFilter(request, response);
+			return;
 		}
+		Authentication authentication = jwtAuthenticationManager.getAuthentication(token);
+		SecurityContextHolder.getContext().setAuthentication(authentication);
 
 		filterChain.doFilter(request, response);
 	}
 
-	private String resolveToken(HttpServletRequest request) {
-		String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
+	/**
+	 * Authorization 헤더에서 토큰을 추출하는 메서드.
+	 *
+	 * @param request HttpServletRequest 객체
+	 * @return 토큰이 포함된 Optional 객체. 토큰이 없으면 빈 Optional 반환
+	 */
+	private Optional<String> resolveToken(HttpServletRequest request) {
 
-		//resolveToken 메서드는 request에서 요청을 추출하는 책임만을 갖고 있기 떄문에 기본적인 검사만 수행
-		if (bearerToken != null && bearerToken.startsWith(BEARER_PREFIX)) {
-			return extractToken(bearerToken);
+		String bearerToken = requireNonNullElse(request.getHeader(AUTHORIZATION_HEADER), "");
+
+		if (bearerToken.startsWith(BEARER_PREFIX)) {
+			return Optional.of(bearerToken.substring(BEARER_PREFIX.length()));
 		}
-		return null;
+
+		return Optional.empty();
 	}
 
 	/**
-	 * 추출된 토큰이 실제 유효한 토큰인지 검증.
+	 * 필터 제외 대상 경로를 설정
+	 *
+	 * @param request the request
+	 * @return the boolean
 	 */
-	private boolean isValidToken(String token) {
-		return JwtTokenValidator.validateToken(token);
-	}
+	@Override
+	protected boolean shouldNotFilter(HttpServletRequest request) {
+		String path = request.getRequestURI();
+		List<String> excludePath = List.of(
+			"/users"
+		);
 
-	/**
-	 * 요청에서 토큰만 추출하는 메서드
-	 */
-	public static String extractToken(String request) {
-		return request.substring(BEARER_PREFIX.length()).trim();
+		return excludePath
+			.stream()
+			.anyMatch(path::contains);
 	}
 
 }

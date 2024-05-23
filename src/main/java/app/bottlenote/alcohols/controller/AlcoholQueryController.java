@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static app.bottlenote.global.security.SecurityUtil.getCurrentUserId;
+import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 
 
 @Slf4j
@@ -40,7 +40,7 @@ public class AlcoholQueryController {
 	public ResponseEntity<GlobalResponse> searchAlcohols(
 		@ModelAttribute @Valid AlcoholSearchRequest request
 	) {
-		Long id = getCurrentUserId();
+		Long id = getUserIdByContext().orElse(null);
 
 		PageResponse<AlcoholSearchResponse> pageResponse = alcoholQueryService.searchAlcohols(request, id);
 
@@ -56,7 +56,7 @@ public class AlcoholQueryController {
 
 	@GetMapping("/{alcoholId}")
 	public ResponseEntity<GlobalResponse> findAlcoholDetailById(@PathVariable Long alcoholId) {
-		Long id = getCurrentUserId();
+		Long id = getUserIdByContext().orElse(null);
 		return ResponseEntity.ok(
 			GlobalResponse.success(
 				alcoholQueryService.findAlcoholDetailById(alcoholId, id)));

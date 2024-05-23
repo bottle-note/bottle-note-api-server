@@ -1,13 +1,5 @@
 package app.bottlenote.review.controller;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
@@ -19,10 +11,6 @@ import app.bottlenote.review.dto.response.ReviewDetail;
 import app.bottlenote.review.dto.response.ReviewResponse;
 import app.bottlenote.review.service.ReviewService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -35,6 +23,19 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Stream;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @WithMockUser()
 @DisplayName("리뷰 조회 컨트롤러 테스트")
 @WebMvcTest(ReviewController.class)
@@ -46,6 +47,59 @@ class ReviewControllerTest {
 	protected MockMvc mockMvc;
 	@MockBean
 	private ReviewService reviewService;
+
+	static Stream<Arguments> testCase1Provider() {
+		return Stream.of(
+			Arguments.of("모든 요청 파라미터가 존재할 때.",
+				PageableRequest.builder()
+					.sortType(ReviewSortType.POPULAR)
+					.sortOrder(SortOrder.DESC)
+					.cursor(1L)
+					.pageSize(2L)
+					.build()
+			),
+			Arguments.of("정렬 정보가 없을 때.",
+				PageableRequest.builder()
+					.sortType(null)
+					.sortOrder(null)
+					.cursor(0L)
+					.pageSize(3L)
+					.build()
+			),
+			Arguments.of("페이지네이션 정보가 없을 때.",
+				PageableRequest.builder()
+					.sortType(null)
+					.sortOrder(null)
+					.cursor(null)
+					.pageSize(null)
+					.build()
+			)
+		);
+	}
+
+	static Stream<Arguments> sortOrderParameters() {
+		return Stream.of(
+			// 성공 케이스
+			Arguments.of("ASC", 200),
+			Arguments.of("DESC", 200),
+			// 실패 케이스
+			Arguments.of("DESCCC", 400),
+			Arguments.of("ASCC", 400)
+		);
+	}
+
+	static Stream<Arguments> sortTypeParameters() {
+		return Stream.of(
+			// 성공 케이스
+
+			Arguments.of("POPULAR", 200),
+			Arguments.of("RATING", 200),
+			// 실패 케이스
+
+			Arguments.of("Popular", 400),
+			Arguments.of("Rating", 400)
+		);
+	}
 
 	@DisplayName("리뷰를 조회할 수 있다.")
 	@ParameterizedTest(name = "[{index}]{0}")
@@ -76,35 +130,6 @@ class ReviewControllerTest {
 		resultActions.andExpect(jsonPath("$.data.reviewList[0].reviewContent").value("맛있습니다"));
 		//resultActions.andExpect(jsonPath("$.data.reviewList[0].engName").value("anCnoc 24-year-old"));
 
-	}
-
-	static Stream<Arguments> testCase1Provider() {
-		return Stream.of(
-			Arguments.of("모든 요청 파라미터가 존재할 때.",
-				PageableRequest.builder()
-					.sortType(ReviewSortType.POPULAR)
-					.sortOrder(SortOrder.DESC)
-					.cursor(1L)
-					.pageSize(2L)
-					.build()
-			),
-			Arguments.of("정렬 정보가 없을 때.",
-				PageableRequest.builder()
-					.sortType(null)
-					.sortOrder(null)
-					.cursor(0L)
-					.pageSize(3L)
-					.build()
-			),
-			Arguments.of("페이지네이션 정보가 없을 때.",
-				PageableRequest.builder()
-					.sortType(null)
-					.sortOrder(null)
-					.cursor(null)
-					.pageSize(null)
-					.build()
-			)
-		);
 	}
 
 	private PageResponse<ReviewResponse> getResponse() {
@@ -205,30 +230,6 @@ class ReviewControllerTest {
 			)
 			.andExpect(status().is(expectedStatus))
 			.andDo(print());
-	}
-
-	static Stream<Arguments> sortOrderParameters() {
-		return Stream.of(
-			// 성공 케이스
-			Arguments.of("ASC", 200),
-			Arguments.of("DESC", 200),
-			// 실패 케이스
-			Arguments.of("DESCCC", 400),
-			Arguments.of("ASCC", 400)
-		);
-	}
-
-	static Stream<Arguments> sortTypeParameters() {
-		return Stream.of(
-			// 성공 케이스
-
-			Arguments.of("POPULAR", 200),
-			Arguments.of("RATING", 200),
-			// 실패 케이스
-
-			Arguments.of("Popular", 400),
-			Arguments.of("Rating", 400)
-		);
 	}
 
 
