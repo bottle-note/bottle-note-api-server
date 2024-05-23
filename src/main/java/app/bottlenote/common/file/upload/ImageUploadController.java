@@ -16,7 +16,7 @@ public class ImageUploadController {
 
 	private final ImageUploadService imageUploadService;
 
-	@GetMapping("/pre-sign-url")
+	@GetMapping("/presign-url")
 	public ResponseEntity<?> getPreSignUrl(
 		@ModelAttribute ImageUploadRequest request
 	) {
