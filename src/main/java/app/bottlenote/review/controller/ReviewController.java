@@ -1,9 +1,7 @@
 package app.bottlenote.review.controller;
 
-import static app.bottlenote.global.data.response.GlobalResponse.success;
-
 import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.global.security.SecurityUtil;
+import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.review.dto.request.PageableRequest;
@@ -18,6 +16,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static app.bottlenote.global.data.response.GlobalResponse.success;
+
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -31,14 +31,15 @@ public class ReviewController {
 		@PathVariable Long alcoholId,
 		@ModelAttribute PageableRequest pageableRequest) {
 
-		Long currentUserId = SecurityUtil.getCurrentUserId();
+		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(null);
 
-		log.info("curruntUserId is : {}", currentUserId);
-		log.info("Pageable INFO  : {}", pageableRequest.toString());
+		log.info("currentUserId is : {} \nPageable INFO  : {}", currentUserId, pageableRequest.toString());
 
-		PageResponse<ReviewResponse> pageResponse = reviewService.getReviews(alcoholId,
+		PageResponse<ReviewResponse> pageResponse = reviewService.getReviews(
+			alcoholId,
 			pageableRequest,
-			currentUserId);
+			currentUserId
+		);
 
 		return ResponseEntity.ok(success(
 

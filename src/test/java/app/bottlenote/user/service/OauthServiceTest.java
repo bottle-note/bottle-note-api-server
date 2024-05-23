@@ -1,5 +1,27 @@
 package app.bottlenote.user.service;
 
+import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
+import app.bottlenote.global.security.jwt.JwtTokenProvider;
+import app.bottlenote.global.security.jwt.JwtTokenValidator;
+import app.bottlenote.user.domain.User;
+import app.bottlenote.user.domain.constant.SocialType;
+import app.bottlenote.user.domain.constant.UserType;
+import app.bottlenote.user.dto.request.OauthRequest;
+import app.bottlenote.user.dto.response.TokenDto;
+import app.bottlenote.user.exception.UserException;
+import app.bottlenote.user.repository.OauthRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
+
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -11,27 +33,6 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
-import app.bottlenote.global.security.jwt.JwtTokenProvider;
-import app.bottlenote.global.security.jwt.JwtTokenValidator;
-import app.bottlenote.user.domain.User;
-import app.bottlenote.user.domain.constant.SocialType;
-import app.bottlenote.user.domain.constant.UserType;
-import app.bottlenote.user.dto.request.OauthRequest;
-import app.bottlenote.user.dto.response.TokenDto;
-import app.bottlenote.user.exception.UserException;
-import app.bottlenote.user.repository.OauthRepository;
-import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.Authentication;
 
 @DisplayName("유저 서비스 테스트")
 @ExtendWith(MockitoExtension.class)

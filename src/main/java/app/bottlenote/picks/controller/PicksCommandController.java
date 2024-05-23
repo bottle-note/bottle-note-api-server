@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static app.bottlenote.global.security.SecurityUtil.getCurrentUserId;
+import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 
 @RestController
-@RequestMapping("/apv/v1/picks")
+@RequestMapping("/api/v1/picks")
 @RequiredArgsConstructor
 public class PicksCommandController {
 
@@ -26,9 +26,9 @@ public class PicksCommandController {
 	public ResponseEntity<GlobalResponse> updatePicks(
 		@RequestBody PicksUpdateRequest request
 	) {
-		Long userId = getCurrentUserId();
-		if (userId == null)
-			throw new UserException(UserExceptionCode.REQUIRED_USER_ID);
+
+		Long userId = getUserIdByContext()
+			.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
 
 		return ResponseEntity.ok(
 			GlobalResponse.success(

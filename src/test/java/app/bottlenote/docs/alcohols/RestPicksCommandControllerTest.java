@@ -31,14 +31,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class RestPicksCommandControllerTest extends AbstractRestDocs {
 
 	private final PicksCommandService picksCommandService = mock(PicksCommandService.class);
+	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
 	@Override
 	protected Object initController() {
 		return new PicksCommandController(picksCommandService);
 	}
-
-
-	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
 	@BeforeEach
 	void setup() {

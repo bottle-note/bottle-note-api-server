@@ -14,28 +14,28 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-import static app.bottlenote.global.security.SecurityUtil.getCurrentUserId;
+import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 
 @RestController
 @RequestMapping("/api/v1/popular")
 @RequiredArgsConstructor
 public class PopularController {
 
-    private final PopularService popularService;
+	private final PopularService popularService;
 
-    /**
-     * 주간 인기 위스키 리스트 조회
-     *
-     * @param top 조회할 위스키 목록 개수
-     * @return 조회된 위스키 목록
-     */
-    @GetMapping("week")
-    public ResponseEntity<GlobalResponse> getPopularOfWeek(@RequestParam(defaultValue = "5") Integer top) {
-		Long userId = getCurrentUserId();
+	/**
+	 * 주간 인기 위스키 리스트 조회
+	 *
+	 * @param top 조회할 위스키 목록 개수
+	 * @return 조회된 위스키 목록
+	 */
+	@GetMapping("week")
+	public ResponseEntity<GlobalResponse> getPopularOfWeek(@RequestParam(defaultValue = "5") Integer top) {
+		Long userId = getUserIdByContext().orElse(null);
 
-		List<Populars> populars = popularService.getPopularOfWeek(top,userId);
-        PopularsOfWeekResponse response = PopularsOfWeekResponse.of(populars.size(), populars);
+		List<Populars> populars = popularService.getPopularOfWeek(top, userId);
+		PopularsOfWeekResponse response = PopularsOfWeekResponse.of(populars.size(), populars);
 
-        return ResponseEntity.ok(GlobalResponse.success(response));
-    }
+		return ResponseEntity.ok(GlobalResponse.success(response));
+	}
 }

@@ -54,7 +54,7 @@ class UserCommandServiceTest {
 		assertEquals(response.getMessage(), NicknameChangeResponse.Message.SUCCESS.getMessage());
 		assertEquals(response.getUserId(), 1L);
 		assertEquals(response.getBeforeNickname(), beforeNickname);
-		assertEquals(response.getChangedNickname(), newNickname );
+		assertEquals(response.getChangedNickname(), newNickname);
 
 	}
 

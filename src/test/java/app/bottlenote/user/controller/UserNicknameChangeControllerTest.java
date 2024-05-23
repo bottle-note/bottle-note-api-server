@@ -109,7 +109,7 @@ class UserNicknameChangeControllerTest {
 			.andExpect(jsonPath("$.success").value("false"))
 			.andExpect(jsonPath("$.code").value("400"))
 			.andExpect(jsonPath("$.errors.nickName").value("필드 'nickName'의 값 '#$%#$%#ㅁㅁ'가 유효하지 않습니다: 닉네임은 2~11자의 한글, 영문, 숫자만 가능합니다."))
-		.andDo(print());
+			.andDo(print());
 	}
 
 
