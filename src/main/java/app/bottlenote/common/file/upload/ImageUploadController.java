@@ -11,12 +11,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/pre-sign-url")
+@RequestMapping("/api/v1/s3")
 public class ImageUploadController {
 
 	private final ImageUploadService imageUploadService;
 
-	@GetMapping
+	@GetMapping("/pre-sign-url")
 	public ResponseEntity<?> getPreSignUrl(
 		@ModelAttribute ImageUploadRequest request
 	) {

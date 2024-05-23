@@ -73,12 +73,11 @@ public class ImageUploadService implements PreSignUrlProvider {
 	@Override
 	public String generatePreSignUrl(String imageKey, Long index) {
 		Calendar uploadExpiryTime = getUploadExpiryTime(EXPIRY_TIME);
-		return amazonS3
-			.generatePresignedUrl(
-				ImageBucketName,
-				index + KEY_DELIMITER + imageKey,
-				uploadExpiryTime.getTime(),
-				HttpMethod.PUT
-			).toString();
+		return amazonS3.generatePresignedUrl(
+			ImageBucketName,
+			index + KEY_DELIMITER + imageKey,
+			uploadExpiryTime.getTime(),
+			HttpMethod.PUT
+		).toString();
 	}
 }
