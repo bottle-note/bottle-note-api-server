@@ -26,6 +26,11 @@ include::api/overview/global-response.adoc[]
 '''
 include::api/overview/global-exception.adoc[]
 
+== 공통 (common)  API
+
+'''
+include::api/file/image/upload/presign-url.adoc[]
+
 == 회원 (user) 관련 API
 
 '''

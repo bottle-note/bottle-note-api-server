@@ -5,9 +5,6 @@
 [discrete]
 ===== _Request_ =====
 
-[discrete]
-요청 파라미터 ( request fields )
-
 include::{snippets}/alcohols/search/httpie-request.adoc[]
 include::{snippets}/alcohols/search/query-parameters.adoc[]
 
