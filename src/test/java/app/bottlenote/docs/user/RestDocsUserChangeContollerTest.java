@@ -1,18 +1,7 @@
 package app.bottlenote.docs.user;
 
-import static app.bottlenote.global.security.SecurityUtil.getCurrentUserId;
-import static app.bottlenote.user.dto.response.NicknameChangeResponse.Message.SUCCESS;
-import static org.mockito.Mockito.*;
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
-import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
-import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import app.bottlenote.docs.AbstractRestDocs;
-import app.bottlenote.global.security.SecurityUtil;
+import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.user.controller.UserCommandController;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
 import app.bottlenote.user.dto.response.NicknameChangeResponse;
@@ -25,6 +14,18 @@ import org.mockito.MockedStatic;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
+import static app.bottlenote.user.dto.response.NicknameChangeResponse.Message.SUCCESS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @DisplayName("닉네임 변경 RestDocs용 테스트")
 class RestDocsUserChangeContollerTest extends AbstractRestDocs {
 
@@ -35,11 +36,11 @@ class RestDocsUserChangeContollerTest extends AbstractRestDocs {
 		return new UserCommandController(userCommandService);
 	}
 
-	private MockedStatic<SecurityUtil> mockedSecurityUtil;
+	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 	@BeforeEach
 	void setup() {
-		mockedSecurityUtil = mockStatic(SecurityUtil.class);
-		when(SecurityUtil.getCurrentUserId()).thenReturn(1L);
+		mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
+		when(SecurityContextUtil.getCurrentUserId()).thenReturn(1L);
 	}
 
 	@AfterEach

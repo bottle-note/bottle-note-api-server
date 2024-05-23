@@ -1,7 +1,7 @@
 package app.bottlenote.docs.alcohols;
 
 import app.bottlenote.docs.AbstractRestDocs;
-import app.bottlenote.global.security.SecurityUtil;
+import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.picks.controller.PicksCommandController;
 import app.bottlenote.picks.domain.PicksStatus;
 import app.bottlenote.picks.dto.request.PicksUpdateRequest;
@@ -14,6 +14,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
+
+import java.util.Optional;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -36,12 +38,12 @@ class RestPicksCommandControllerTest extends AbstractRestDocs {
 	}
 
 
-	private MockedStatic<SecurityUtil> mockedSecurityUtil;
+	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
 	@BeforeEach
 	void setup() {
-		mockedSecurityUtil = mockStatic(SecurityUtil.class);
-		when(SecurityUtil.getCurrentUserId()).thenReturn(1L);
+		mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
+		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(1L));
 	}
 
 	@AfterEach
@@ -59,7 +61,7 @@ class RestPicksCommandControllerTest extends AbstractRestDocs {
 
 		when(picksCommandService.updatePicks(request, 1L)).thenReturn(response);
 
-		mockMvc.perform(put("/apv/v1/picks")
+		mockMvc.perform(put("/api/v1/picks")
 
 				.content(objectMapper.writeValueAsString(request))
 				.contentType(MediaType.APPLICATION_JSON))

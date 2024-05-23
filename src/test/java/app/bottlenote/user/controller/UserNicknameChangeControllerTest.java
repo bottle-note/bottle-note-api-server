@@ -1,25 +1,16 @@
 package app.bottlenote.user.controller;
 
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-
-import app.bottlenote.global.security.SecurityUtil;
+import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
 import app.bottlenote.user.dto.response.NicknameChangeResponse;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.service.UserCommandService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -27,6 +18,14 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserCommandController.class)
 @WithMockUser
@@ -39,12 +38,12 @@ class UserNicknameChangeControllerTest {
 	@MockBean
 	private UserCommandService nicknameChangeService;
 
-	private MockedStatic<SecurityUtil> mockedSecurityUtil;
+	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
 	@BeforeEach
 	void setup() {
-		mockedSecurityUtil = mockStatic(SecurityUtil.class);
-		when(SecurityUtil.getCurrentUserId()).thenReturn(1L);
+		mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
+		when(SecurityContextUtil.getCurrentUserId()).thenReturn(1L);
 	}
 
 	@AfterEach
