@@ -10,6 +10,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -20,6 +21,8 @@ import java.util.List;
 @RequiredArgsConstructor
 @Service
 public class ImageUploadService implements PreSignUrlProvider {
+
+	private final ApplicationEventPublisher eventPublisher;
 
 	private final static Integer EXPIRY_TIME = 5;
 	private final AmazonS3 amazonS3;
@@ -43,7 +46,6 @@ public class ImageUploadService implements PreSignUrlProvider {
 		for (long index = 1; index <= uploadSize; index++) {
 			String preSignUrl = generatePreSignUrl(imageKey, index);
 			String viewUrl = generateViewUrl(cloudFrontUrl, imageKey, index);
-
 			keys.add(
 				ImageUploadInfo.builder()
 					.order(index)
@@ -52,6 +54,8 @@ public class ImageUploadService implements PreSignUrlProvider {
 					.build()
 			);
 		}
+
+		eventPublisher.publishEvent(S3RequestEvent.of("s3 Image upload", ImageBucketName, uploadSize));
 
 		return ImageUploadResponse.builder()
 			.bucketName(ImageBucketName)
