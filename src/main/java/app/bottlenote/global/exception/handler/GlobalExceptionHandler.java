@@ -1,6 +1,9 @@
 package app.bottlenote.global.exception.handler;
 
 import app.bottlenote.global.data.response.GlobalResponse;
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.AmazonServiceException;
+import com.amazonaws.SdkClientException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -59,7 +62,7 @@ public class GlobalExceptionHandler {
 			String fieldName = fieldError.getField();
 			Object rejectedValue = fieldError.getRejectedValue();
 			String defaultMessage = fieldError.getDefaultMessage();   // 한글로 오류 메시지 생성
-		  String errorMessage = String.format("필드 '%s'의 값 '%s'가 유효하지 않습니다: %s", fieldName, rejectedValue, defaultMessage);
+			String errorMessage = String.format("필드 '%s'의 값 '%s'가 유효하지 않습니다: %s", fieldName, rejectedValue, defaultMessage);
 			errorMessages.put(fieldName, errorMessage);
 		}
 
@@ -114,4 +117,28 @@ public class GlobalExceptionHandler {
 		return createResponseEntity(exception, HttpStatus.BAD_REQUEST, message);
 	}
 
+	/**
+	 * AWS 관련 예외에 대한 처리
+	 *
+	 * @param exception the exception
+	 * @return the response entity
+	 */
+	@ExceptionHandler(AmazonClientException.class)
+	public ResponseEntity<GlobalResponse> handleAmazonClientException(AmazonClientException exception) {
+		String errorMessage;
+		HttpStatus status;
+
+		if (exception instanceof AmazonServiceException ase) {
+			errorMessage = "AWS 서비스 오류가 발생했습니다: " + ase.getMessage();
+			status = HttpStatus.INTERNAL_SERVER_ERROR;
+		} else if (exception instanceof SdkClientException sce) {
+			errorMessage = "AWS SDK 오류가 발생했습니다: " + sce.getMessage();
+			status = HttpStatus.SERVICE_UNAVAILABLE;
+		} else {
+			errorMessage = "AWS 클라이언트 오류가 발생했습니다: " + exception.getMessage();
+			status = HttpStatus.SERVICE_UNAVAILABLE;
+		}
+
+		return createResponseEntity(exception, status, Map.of(KEY_MESSAGE, errorMessage));
+	}
 }
