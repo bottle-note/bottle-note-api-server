@@ -1,6 +1,7 @@
 package app.bottlenote.global.security.jwt;
 
 
+import io.jsonwebtoken.MalformedJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -50,7 +51,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 		if (!JwtTokenValidator.validateToken(token)) {
 			log.warn("토큰이 유효하지 않습니다. : {}", token);
-			request.setAttribute("exception", new RuntimeException("토큰이 유효하지 않습니다."));
+			request.setAttribute("exception", new MalformedJwtException("토큰이 유효하지 않습니다."));
 			filterChain.doFilter(request, response);
 			return;
 		}

@@ -19,13 +19,12 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
-import static java.time.LocalTime.now;
 
 @Slf4j(topic = "GlobalExceptionHandler")
 @RestControllerAdvice
@@ -131,7 +130,7 @@ public class GlobalExceptionHandler {
 	 */
 	@ExceptionHandler(value = {SignatureException.class, MalformedJwtException.class, ExpiredJwtException.class})
 	public ResponseEntity<GlobalResponse> jwtTokenException() {
-		log.warn("jwt 토큰 예외 발생 : {}", now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+		log.warn("jwt 토큰 예외 발생 : {}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 		GlobalResponse fail = GlobalResponse.fail(403, "올바르지 않은 토큰입니다.");
 		return ResponseEntity
 			.status(org.springframework.http.HttpStatus.UNAUTHORIZED)
