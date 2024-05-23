@@ -1,4 +1,4 @@
-package app.bottlenote.common.file.upload.dto;
+package app.bottlenote.common.file.upload.dto.response;
 
 import lombok.Builder;
 
