@@ -1,2 +1,7 @@
 ### 토큰 없이 이미지 업로드 url 요청시 실패한다.
-GET http://localhost:15000/api/v1/s3/pre-sign-url?rootPath=images&uploadSize=1
+GET  {{host}}/api/v1/s3/pre-sign-url?rootPath=images&uploadSize=1
+
+
+### 토큰을 가지고 이미지 업로드 url 요청시 성공한다.
+GET  {{host}}/api/v1/s3/pre-sign-url?rootPath=images&uploadSize=1
+Authorization: Bearer {{accessToken}}
