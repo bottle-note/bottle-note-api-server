@@ -1,6 +1,7 @@
 package app.bottlenote.follow.service;
 
 import app.bottlenote.follow.domain.Follow;
+import app.bottlenote.follow.domain.constant.FollowStatus;
 import app.bottlenote.follow.dto.FollowUpdateRequest;
 import app.bottlenote.follow.dto.FollowUpdateResponse;
 import app.bottlenote.follow.exception.FollowException;
@@ -22,47 +23,40 @@ public class FollowCommandService {
 	private final FollowCommandRepository followRepository;
 
 	@Transactional
-	public FollowUpdateResponse updateFollow(FollowUpdateRequest request, Long userId) {
+	public FollowUpdateResponse updateFollowStatus(FollowUpdateRequest request, Long userId) {
 		Long followUserId = request.followerUserId();
-		boolean isFollow = request.isFollow();
 
-		// Self-follow check
 		if (userId.equals(followUserId)) {
 			throw new FollowException(FollowExceptionCode.CANNOT_FOLLOW_SELF);
 		}
 
-		// TODO :: 내가 차단 한 사용자인지 확인
-		// TODO :: 내가 차단 당한 사용자인지 확인
+		Follow follow = followRepository.findByUserIdAndFollowUserId(userId, followUserId)
+			.orElseGet(() -> {
 
-		// User validation
-		User user = userRepository.findById(userId)
-			.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
-		User followUser = userRepository.findById(followUserId)
-			.orElseThrow(() -> new FollowException(FollowExceptionCode.FOLLOW_NOT_FOUND));
+				// 유저와 팔로우유저의 관계가 아무것도 없을때, 언팔로우가 오는것을 방지
+				if (request.status() == FollowStatus.UNFOLLOW) {
+					throw new FollowException(FollowExceptionCode.CANNOT_UNFOLLOW);
+				}
 
-		FollowUpdateResponse.Message message;
+				User user = userRepository.findById(userId)
+					.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
+				User followUser = userRepository.findById(followUserId)
+					.orElseThrow(() -> new FollowException(FollowExceptionCode.FOLLOW_NOT_FOUND));
 
-		if (isFollow) {
-			// Follow logic
-			if (followRepository.findByUserIdAndFollowUserId(userId, followUserId).isPresent()) {
-				throw new FollowException(FollowExceptionCode.ALREADY_FOLLOWING);
-			}
-			Follow follow = Follow.builder()
-				.user(user)
-				.followUser(followUser)
-				.build();
-			followRepository.save(follow);
-			message = FollowUpdateResponse.Message.FOLLOW_SUCCESS;
-		} else {
-			// Unfollow logic
-			Follow follow = followRepository.findByUserIdAndFollowUserId(userId, followUserId)
-				.orElseThrow(() -> new FollowException(FollowExceptionCode.ALREADY_UNFOLLOWING));
-			followRepository.delete(follow);
-			message = FollowUpdateResponse.Message.UNFOLLOW_SUCCESS;
-		}
+				return Follow.builder()
+					.user(user)
+					.followUser(followUser)
+					.status(FollowStatus.FOLLOWING)
+					.build();
+			});
+
+		follow.updateStatus(request.status());
+		followRepository.save(follow);
 
 		return FollowUpdateResponse.builder()
-			.message(message)
+			.message(request.status() == FollowStatus.FOLLOWING ?
+				FollowUpdateResponse.Message.FOLLOW_SUCCESS :
+				FollowUpdateResponse.Message.UNFOLLOW_SUCCESS)
 			.followUserId(followUserId)
 			.build();
 	}

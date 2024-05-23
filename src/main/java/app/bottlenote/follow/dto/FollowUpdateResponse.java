@@ -19,7 +19,7 @@ public class FollowUpdateResponse {
 	@Getter
 	public enum Message {
 		FOLLOW_SUCCESS("성공적으로 팔로우 처리했습니다."),
-		UNFOLLOW_SUCCESS("성공적으로 언팔로우 처리했습니다.");
+		UNFOLLOW_SUCCESS("성공적으로 팔로우 해제 처리했습니다.");
 
 		private final String message;
 	}

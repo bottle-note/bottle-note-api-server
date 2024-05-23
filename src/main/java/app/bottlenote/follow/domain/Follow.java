@@ -2,6 +2,8 @@ package app.bottlenote.follow.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.follow.domain.constant.FollowStatus;
+import app.bottlenote.follow.exception.FollowException;
+import app.bottlenote.follow.exception.FollowExceptionCode;
 import app.bottlenote.user.domain.User;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -20,7 +22,6 @@ public class Follow extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id")
 	private User user;
@@ -29,11 +30,25 @@ public class Follow extends BaseEntity {
 	@JoinColumn(name = "follow_user_id")
 	private User followUser;
 
+	@Comment("팔로우 상태")
+	@Enumerated(EnumType.STRING)
+	private FollowStatus status = FollowStatus.FOLLOWING;
 
 	@Builder
-	public Follow(User user, User followUser) {
+	public Follow(Long id, User user, User followUser, FollowStatus status) {
+		this.id = id;
 		this.user = user;
 		this.followUser = followUser;
+		this.status = status;
 	}
 
+	public Follow updateStatus(FollowStatus followStatus) {
+		if (this.status == followStatus) {
+			throw new FollowException(
+				followStatus == FollowStatus.FOLLOWING ?
+					FollowExceptionCode.ALREADY_FOLLOWING : FollowExceptionCode.ALREADY_UNFOLLOWING);
+		}
+		this.status = followStatus;
+		return this;
+	}
 }
