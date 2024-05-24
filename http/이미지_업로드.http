@@ -1,0 +1,7 @@
+### 토큰 없이 이미지 업로드 url 요청시 실패한다.
+GET  {{host}}/api/v1/s3/presign-url?rootPath=images&uploadSize=1
+
+
+### 토큰을 가지고 이미지 업로드 url 요청시 성공한다.
+GET  {{host}}/api/v1/s3/presign-url?rootPath=images&uploadSize=1
+Authorization: Bearer {{accessToken}}

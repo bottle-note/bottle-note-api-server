@@ -1,5 +1,17 @@
 package app.bottlenote.docs.user;
 
+import app.bottlenote.docs.AbstractRestDocs;
+import app.bottlenote.user.controller.OauthController;
+import app.bottlenote.user.domain.constant.GenderType;
+import app.bottlenote.user.domain.constant.SocialType;
+import app.bottlenote.user.dto.request.OauthRequest;
+import app.bottlenote.user.dto.response.TokenDto;
+import app.bottlenote.user.service.OauthService;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
+import org.springframework.restdocs.payload.JsonFieldType;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
@@ -12,18 +24,6 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import app.bottlenote.docs.AbstractRestDocs;
-import app.bottlenote.user.controller.OauthController;
-import app.bottlenote.user.domain.constant.GenderType;
-import app.bottlenote.user.domain.constant.SocialType;
-import app.bottlenote.user.dto.request.OauthRequest;
-import app.bottlenote.user.dto.response.TokenDto;
-import app.bottlenote.user.service.OauthService;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.MediaType;
-import org.springframework.restdocs.payload.JsonFieldType;
 
 @DisplayName("유저 컨트롤러 RestDocs용 테스트")
 class OauthControllerDocsTest extends AbstractRestDocs {

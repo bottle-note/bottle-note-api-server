@@ -1,0 +1,41 @@
+=== 이미지 업로드 경로 요청 ===
+
+이미지를 업로드 하기 위한 업로드 경로를 요청합니다.
+
+이미지 업로드는 인증된 유저만 요청 가능합니다.
+
+*업로드 시에는 S3를 대상으로 진행합니다.*
+
+image::https://i.imgur.com/aFE6gK2.png[width=700]
+
+**조회 시에는 CDN 서비스를 통해 이미지를 제공합니다.**
+
+image::https://i.imgur.com/oHOmiXo.png[width=700]
+
+[discrete]
+===== _Request_ =====
+
+include::{snippets}/file/image/upload/presign-url/http-request.adoc[]
+include::{snippets}/file/image/upload/presign-url/query-parameters.adoc[]
+
+* rootPath : 루트 경로로 부터 이미지 저장 경로를 지정합니다
+** ``rootPath`` 가  ``review`` 일 경우 ``review/파일명.jpg`` 로 시작하는 경로로 이미지가 저장됩니다.
+** ``rootPath``는 하나의 디렉토리라고 생각하고 일관된 상수로 프론트 영역에서 관리합니다 .
+*** ex) ``review``, ``user/profile``,``user/album``, ``product`` 등
+** 문자열 ``rootPath``의 시작과 끝의 ``/``은 무시 됩니다.
+* 최소 한 디렉토리 이상의  ``rootPath`` 를 지정해야 합니다.
+* ``uploadSize``는 업로드할 사진의 크기만큼 요청합니다.
+** ``uploadSize``는 최대 10장 까지 가능합니다.
+* ``uploadSize`` 파라미터를 전달하지 않을 경우 ``1장``이 기본값으로 설정됩니다.
+
+[discrete]
+===== _Response_ =====
+
+include::{snippets}/file/image/upload/presign-url/response-fields.adoc[]
+include::{snippets}/file/image/upload/presign-url/response-body.adoc[]
+
+
+* ``uploadUrl`` 를 이용해 이미지를 성공적으로 업로드 후 `order` 와 `viewUrl` 는 서버로 전달이 필요합니다.
+** 예를 들어 리뷰 등록시 이미지 업로드 처리 후 리뷰 등록 요청시 `order` 와 `viewUrl` 를 함께 전달합니다.
+** 여러장의 이미지 업로드 시 `order`와 `viewUrl` 를 하나의 값으로 묶어서 전달해야합니다.
+* `expiryTime` 은 발급 받은 ``uploadUrl`` 의 만료 시간을 나타냅니다.(단위 : 분)

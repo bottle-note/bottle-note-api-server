@@ -32,8 +32,7 @@ management:
   endpoint:
     health:
       show-details: always
-
 server:
   tomcat:
     mbeanregistry:
-      enabled: true # actuator에 mbean 정보 노출
+      enabled: true
