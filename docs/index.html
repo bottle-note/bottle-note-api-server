@@ -782,7 +782,7 @@ Content-Type: application/json
 </div>
 <div class="imageblock">
 <div class="content">
-<img alt="aFE6gK2" src="https://i.imgur.com/aFE6gK2.png" width="700">
+<img src="https://i.imgur.com/aFE6gK2.png" alt="aFE6gK2" width="700">
 </div>
 </div>
 <div class="paragraph">
@@ -790,10 +790,10 @@ Content-Type: application/json
 </div>
 <div class="imageblock">
 <div class="content">
-<img alt="oHOmiXo" src="https://i.imgur.com/oHOmiXo.png" width="700">
+<img src="https://i.imgur.com/oHOmiXo.png" alt="oHOmiXo" width="700">
 </div>
 </div>
-<h5 class="discrete" id="_request"><em>Request</em></h5>
+<h5 id="_request" class="discrete"><em>Request</em></h5>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/s3/presign-url?rootPath=images&amp;uploadSize=1 HTTP/1.1
@@ -865,7 +865,7 @@ Host: localhost:8080</code></pre>
 </li>
 </ul>
 </div>
-<h5 class="discrete" id="_response"><em>Response</em></h5>
+<h5 id="_response" class="discrete"><em>Response</em></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -941,7 +941,7 @@ Host: localhost:8080</code></pre>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-24T05:38:52.180179",
+    "serverResponseTime" : "2024-05-24T21:23:53.114445",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1136,7 +1136,7 @@ Host: localhost:8080</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
-Set-Cookie: refresh-token=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNjE4NTIyM30.lvmPueUcOb1erv5Llo4qhEUQ_gtWrpFGbBHDw-Pi94qj8MGojoEI3ugdMo8PwoKgrVQZ_gBwBbytwjxh8XktUg; Path=/; Max-Age=1209600; Expires=Thu, 06 Jun 2024 20:38:52 GMT; Secure; HttpOnly
+Set-Cookie: refresh-token=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNjE4NTIyM30.lvmPueUcOb1erv5Llo4qhEUQ_gtWrpFGbBHDw-Pi94qj8MGojoEI3ugdMo8PwoKgrVQZ_gBwBbytwjxh8XktUg; Path=/; Max-Age=1209600; Expires=Fri, 07 Jun 2024 12:23:53 GMT; Secure; HttpOnly
 Content-Type: application/json;charset=UTF-8
 Content-Length: 501
 
@@ -1150,7 +1150,7 @@ Content-Length: 501
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-24T05:38:52.399686",
+    "serverResponseTime" : "2024-05-24T21:23:53.300424",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1187,36 +1187,9 @@ Content-Length: 501
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/oauth/reissue</code></pre>
 </div>
 </div>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">path</th>
-<th class="tableblock halign-left valign-top">type</th>
-<th class="tableblock halign-left valign-top">optional</th>
-<th class="tableblock halign-left valign-top">description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>accessToken</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">액세스 토큰</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>refreshToken</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">리프레시 토큰</p></td>
-</tr>
-</tbody>
-</table>
+<div class="paragraph">
+<p>Unresolved directive in api/user/user-reissue.adoc - include::/Users/user/Desktop/workspace/0_bottle_note/bottle-note-api-server/build/generated-snippets/user/user-reissue/request-fields.adoc[]</p>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json"></code></pre>
@@ -1281,7 +1254,7 @@ Content-Length: 501
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
-Set-Cookie: refresh-token=new-refresh-token; Path=/; Max-Age=1209600; Expires=Thu, 06 Jun 2024 20:38:52 GMT; Secure; HttpOnly
+Set-Cookie: refresh-token=new-refresh-token; Path=/; Max-Age=1209600; Expires=Fri, 07 Jun 2024 12:23:53 GMT; Secure; HttpOnly
 Content-Type: application/json;charset=UTF-8
 Content-Length: 282
 
@@ -1295,7 +1268,7 @@ Content-Length: 282
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-24T05:38:52.296267",
+    "serverResponseTime" : "2024-05-24T21:23:53.218873",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1335,119 +1308,13 @@ Content-Length: 282
 <pre class="highlightjs highlight"><code class="language-none hljs">PATCH /api/v1/users/nickname</code></pre>
 </div>
 </div>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">path</th>
-<th class="tableblock halign-left valign-top">type</th>
-<th class="tableblock halign-left valign-top">optional</th>
-<th class="tableblock halign-left valign-top">description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>userId</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">사용자의 ID</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>nickName</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">변경할 새 닉네임</p></td>
-</tr>
-</tbody>
-</table>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json">{
-  "userId" : 1,
-  "nickName" : "newNickname"
-}</code></pre>
+<div class="paragraph">
+<p>Unresolved directive in api/user/user-nickname-change.adoc - include::/Users/user/Desktop/workspace/0_bottle_note/bottle-note-api-server/build/generated-snippets/user/nickname-change/request-fields.adoc[]
+Unresolved directive in api/user/user-nickname-change.adoc - include::/Users/user/Desktop/workspace/0_bottle_note/bottle-note-api-server/build/generated-snippets/user/nickname-change/request-body.adoc[]</p>
 </div>
-</div>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 33.3333%;">
-<col style="width: 33.3334%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">path</th>
-<th class="tableblock halign-left valign-top">type</th>
-<th class="tableblock halign-left valign-top">description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>code</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">응답 코드(http status code)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.message</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">메시지</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.userId</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">사용자 ID</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.beforeNickname</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">이전 닉네임</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.changedNickname</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">변경된 닉네임</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>errors</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)</p></td>
-</tr>
-</tbody>
-</table>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
-Content-Type: application/json;charset=UTF-8
-Content-Length: 411
-
-{
-  "success" : true,
-  "code" : 200,
-  "data" : {
-    "message" : "닉네임이 성공적으로 변경되었습니다.",
-    "userId" : 1,
-    "beforeNickname" : "beforeNickname",
-    "changedNickname" : "newNickname"
-  },
-  "errors" : [ ],
-  "meta" : {
-    "serverVersion" : "1.0.0",
-    "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-24T05:38:52.518621",
-    "serverPathVersion" : "v1"
-  }
-}</code></pre>
-</div>
+<div class="paragraph">
+<p>Unresolved directive in api/user/user-nickname-change.adoc - include::/Users/user/Desktop/workspace/0_bottle_note/bottle-note-api-server/build/generated-snippets/user/nickname-change/response-fields.adoc[]
+Unresolved directive in api/user/user-nickname-change.adoc - include::/Users/user/Desktop/workspace/0_bottle_note/bottle-note-api-server/build/generated-snippets/user/nickname-change/http-response.adoc[]</p>
 </div>
 </div>
 </div>
@@ -1460,7 +1327,7 @@ Content-Length: 411
 <div class="paragraph">
 <p>검색 조건으로 술(위스키) 정보를 조회합니다.</p>
 </div>
-<h5 class="discrete" id="_request_2"><em>Request</em></h5>
+<h5 id="_request_2" class="discrete"><em>Request</em></h5>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ http GET 'http://localhost:8080/api/v1/alcohols/search?keyword=glen&amp;category=SINGLE_MOLT&amp;regionId=1&amp;sortType=REVIEW&amp;sortOrder=DESC&amp;cursor=0&amp;pageSize=3'</code></pre>
@@ -1508,7 +1375,7 @@ Content-Length: 411
 </tr>
 </tbody>
 </table>
-<h5 class="discrete" id="_response_2"><em>Response</em></h5>
+<h5 id="_response_2" class="discrete"><em>Response</em></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -1704,7 +1571,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-24T05:38:50.489024",
+    "serverResponseTime" : "2024-05-24T21:23:52.304921",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 4,
@@ -1834,7 +1701,7 @@ Content-Length: 411
 <div class="paragraph">
 <p>추가적인 정보가 필요하신 경우, 문의해 주시기 바랍니다.</p>
 </div>
-<h5 class="discrete" id="_request_3"><em>Request</em></h5>
+<h5 id="_request_3" class="discrete"><em>Request</em></h5>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/alcohols/{alcoholsId}</code></pre>
@@ -1847,7 +1714,7 @@ Content-Length: 411
 </li>
 </ul>
 </div>
-<h5 class="discrete" id="_response_3"><em>Response</em></h5>
+<h5 id="_response_3" class="discrete"><em>Response</em></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -2286,7 +2153,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-24T05:38:50.801063",
+    "serverResponseTime" : "2024-05-24T21:23:52.434679",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2317,7 +2184,7 @@ Content-Length: 411
 <pre class="highlightjs highlight"><code class="language-none hljs">PUT apv/v1/picks</code></pre>
 </div>
 </div>
-<h5 class="discrete" id="_request_4"><em>Request</em></h5>
+<h5 id="_request_4" class="discrete"><em>Request</em></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -2356,7 +2223,7 @@ Content-Length: 411
 }</code></pre>
 </div>
 </div>
-<h5 class="discrete" id="_response_4"><em>Response</em></h5>
+<h5 id="_response_4" class="discrete"><em>Response</em></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -2411,13 +2278,13 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-24T05:38:51.285081",
+    "serverResponseTime" : "2024-05-24T21:23:52.669066",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_picks_status">Picks Status</h4>
+<h4 id="_picks_status" class="discrete">Picks Status</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -2541,7 +2408,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-24T05:38:51.702774",
+    "serverResponseTime" : "2024-05-24T21:23:52.824655",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2718,7 +2585,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-24T05:38:51.418595",
+    "serverResponseTime" : "2024-05-24T21:23:52.746068",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2992,7 +2859,7 @@ PathVariable로 alcoholId를 전달합니다.</p>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json;charset=UTF-8
-Content-Length: 1489
+Content-Length: 1491
 
 {
   "success" : true,
@@ -3007,7 +2874,7 @@ Content-Length: 1489
       "likeCount" : 5,
       "replyCount" : 3,
       "thumbnailImage" : "thumbnail_image_1",
-      "reviewCreatedAt" : [ 2024, 5, 24, 5, 38, 51, 853306000 ],
+      "reviewCreatedAt" : [ 2024, 5, 24, 21, 23, 52, 912439000 ],
       "userId" : 1,
       "userNickname" : "test_user_1",
       "userProfileImage" : "user_profile_image_1",
@@ -3024,7 +2891,7 @@ Content-Length: 1489
       "likeCount" : 3,
       "replyCount" : 6,
       "thumbnailImage" : "thumbnail_image_2",
-      "reviewCreatedAt" : [ 2024, 5, 23, 5, 38, 51, 853370000 ],
+      "reviewCreatedAt" : [ 2024, 5, 23, 21, 23, 52, 912483000 ],
       "userId" : 2,
       "userNickname" : "test_user_2",
       "userProfileImage" : "user_profile_image_2",
@@ -3039,7 +2906,7 @@ Content-Length: 1489
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-24T05:38:51.875173",
+    "serverResponseTime" : "2024-05-24T21:23:52.921564",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 1,
@@ -3345,7 +3212,7 @@ Content-Length: 1489
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-05-24T05:38:52.109796",
+    "serverResponseTime" : "2024-05-24T21:23:53.078473",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -3409,7 +3276,7 @@ Content-Length: 1489
 <div id="footer">
 <div id="footer-text">
 Version 0.0.1-SNAPSHOT<br>
-Last updated 2024-05-24 06:06:18 +0900
+Last updated 2024-05-24 21:18:00 +0900
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>
