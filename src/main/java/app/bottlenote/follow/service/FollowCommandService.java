@@ -30,13 +30,10 @@ public class FollowCommandService {
 			throw new FollowException(FollowExceptionCode.CANNOT_FOLLOW_SELF);
 		}
 
-		Follow follow = followRepository.findByUserIdAndFollowUserId(userId, followUserId)
-			.orElseGet(() -> {
+		// TODO :: 팔로우 대상이 나를 차단 했을경우 팔로우 불가능처리
 
-				// 유저와 팔로우유저의 관계가 아무것도 없을때, 언팔로우가 오는것을 방지
-				if (request.status() == FollowStatus.UNFOLLOW) {
-					throw new FollowException(FollowExceptionCode.CANNOT_UNFOLLOW);
-				}
+		Follow follow = followRepository.findByUserIdAndFollowUserIdWithFetch(userId, followUserId)
+			.orElseGet(() -> {
 
 				User user = userRepository.findById(userId)
 					.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
@@ -46,18 +43,20 @@ public class FollowCommandService {
 				return Follow.builder()
 					.user(user)
 					.followUser(followUser)
-					.status(FollowStatus.FOLLOWING)
 					.build();
 			});
+
+		String nickName = follow.getFollowUser().getNickName();
+		String imageUrl = follow.getFollowUser().getImageUrl();
 
 		follow.updateStatus(request.status());
 		followRepository.save(follow);
 
 		return FollowUpdateResponse.builder()
-			.message(request.status() == FollowStatus.FOLLOWING ?
-				FollowUpdateResponse.Message.FOLLOW_SUCCESS :
-				FollowUpdateResponse.Message.UNFOLLOW_SUCCESS)
+			.status(follow.getStatus())
 			.followUserId(followUserId)
+			.nickName(nickName)
+			.imageUrl(imageUrl)
 			.build();
 	}
 }

@@ -1,18 +1,24 @@
 package app.bottlenote.follow.dto;
 
+import app.bottlenote.follow.domain.constant.FollowStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 public class FollowUpdateResponse {
-	private Long followUserId;
-	private String message;
+	private final Long followUserId;
+	private final String nickName;
+	private final String imageUrl;
+	private final String message;
 
 	@Builder
-	public FollowUpdateResponse(Long followUserId, Message message) {
+	public FollowUpdateResponse(Long followUserId, String nickName, String imageUrl, FollowStatus status) {
 		this.followUserId = followUserId;
-		this.message = message.getMessage();
+        this.nickName = nickName;
+        this.imageUrl = imageUrl;
+        this.message = status == FollowStatus.FOLLOWING ?
+			Message.FOLLOW_SUCCESS.getMessage() : Message.UNFOLLOW_SUCCESS.getMessage();
 	}
 
 	@AllArgsConstructor

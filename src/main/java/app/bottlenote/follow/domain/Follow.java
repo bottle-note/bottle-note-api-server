@@ -22,10 +22,12 @@ public class Follow extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	@Comment("로그인 유저")
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id")
 	private User user;
 
+	@Comment("팔로우대상 유저")
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "follow_user_id")
 	private User followUser;
@@ -43,11 +45,7 @@ public class Follow extends BaseEntity {
 	}
 
 	public Follow updateStatus(FollowStatus followStatus) {
-		if (this.status == followStatus) {
-			throw new FollowException(
-				followStatus == FollowStatus.FOLLOWING ?
-					FollowExceptionCode.ALREADY_FOLLOWING : FollowExceptionCode.ALREADY_UNFOLLOWING);
-		}
+
 		this.status = followStatus;
 		return this;
 	}
