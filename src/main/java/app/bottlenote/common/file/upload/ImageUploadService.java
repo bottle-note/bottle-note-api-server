@@ -7,7 +7,6 @@ import app.bottlenote.common.file.upload.dto.response.ImageUploadInfo;
 import app.bottlenote.common.file.upload.dto.response.ImageUploadResponse;
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
@@ -18,18 +17,42 @@ import java.util.Calendar;
 import java.util.List;
 
 @Slf4j
-@RequiredArgsConstructor
 @Service
 public class ImageUploadService implements PreSignUrlProvider {
 
 	private final ApplicationEventPublisher eventPublisher;
+	private final AmazonS3 amazonS3;
 
 	private final static Integer EXPIRY_TIME = 5;
-	private final AmazonS3 amazonS3;
-	@Value("${amazon.aws.bucket}")
-	private String ImageBucketName;
-	@Value("${amazon.aws.cloudFrontUrl}")
-	private String cloudFrontUrl;
+	private final String ImageBucketName;
+	private final String cloudFrontUrl;
+
+	public ImageUploadService(
+		ApplicationEventPublisher eventPublisher,
+		AmazonS3 amazonS3,
+		@Value("${amazon.aws.bucket}")
+		String imageBucketName,
+		@Value("${amazon.aws.cloudFrontUrl}")
+		String cloudFrontUrl
+	) {
+		this.eventPublisher = eventPublisher;
+		this.amazonS3 = amazonS3;
+		this.ImageBucketName = imageBucketName;
+		this.cloudFrontUrl = cloudFrontUrl;
+	}
+
+	public String call(
+		Long index,
+		String imageKey,
+		Calendar uploadExpiryTime
+	) {
+		return amazonS3.generatePresignedUrl(
+			ImageBucketName,
+			index + KEY_DELIMITER + imageKey,
+			uploadExpiryTime.getTime(),
+			HttpMethod.PUT
+		).toString();
+	}
 
 	/**
 	 * 업로드용 인증 URL을 생성한다.
