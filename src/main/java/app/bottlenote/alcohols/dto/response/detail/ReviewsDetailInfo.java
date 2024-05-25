@@ -25,6 +25,7 @@ public class ReviewsDetailInfo {
 		this.recentReviewInfos = recentReviewInfos;
 	}
 
+	@Builder
 	public record ReviewInfo(Long userId,
 							 String imageUrl,
 							 String nickName,
@@ -41,8 +42,5 @@ public class ReviewsDetailInfo {
 							 ReviewStatus status,
 							 String reviewImageUrl,
 							 LocalDateTime createAt) {
-		@Builder
-		public ReviewInfo {
-		}
 	}
 }
