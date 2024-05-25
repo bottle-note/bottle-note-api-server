@@ -48,7 +48,7 @@ class RestDocsUserChangeContollerTest extends AbstractRestDocs {
 		mockedSecurityUtil.close();
 	}
 
-	//@Test
+	@Test
 	@DisplayName("닉네임 변경을 할 수 있다.")
 	void changeNickname_test() throws Exception {
 
