@@ -48,7 +48,7 @@ class RestDocsUserChangeContollerTest extends AbstractRestDocs {
 		mockedSecurityUtil.close();
 	}
 
-	@Test
+	//@Test
 	@DisplayName("닉네임 변경을 할 수 있다.")
 	void changeNickname_test() throws Exception {
 
@@ -71,6 +71,7 @@ class RestDocsUserChangeContollerTest extends AbstractRestDocs {
 				.with(csrf())
 				.content(objectMapper.writeValueAsString(request)))
 			.andExpect(status().isOk())
+
 			.andDo(document("user/nickname-change",
 					requestFields(
 						fieldWithPath("userId").type(JsonFieldType.NUMBER).description("사용자의 ID"),

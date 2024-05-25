@@ -1,0 +1,31 @@
+=== 팔로우 / 언팔로우 업데이트 ===
+
+유저간의 팔로우, 언팔로우를 합니다.
+FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.
+
+|====
+|status |설명
+
+|`FOLLOWING` | 팔로우 상태
+|`UNFOLLOWING` | 언팔로우 상태
+
+|====
+
+API EndPoint
+
+[source]
+----
+POST /api/v1/follow
+----
+
+요청 파라미터 ( request fields )
+
+include::{snippets}/follow/update/curl-request.adoc[]
+include::{snippets}/follow/update/request-fields.adoc[]
+
+[discrete]
+응답 파라미터 ( response fields )
+include::{snippets}/follow/update/response-fields.adoc[]
+
+
+

@@ -1,7 +1,6 @@
 package app.bottlenote.follow.service;
 
 import app.bottlenote.follow.domain.Follow;
-import app.bottlenote.follow.domain.constant.FollowStatus;
 import app.bottlenote.follow.dto.FollowUpdateRequest;
 import app.bottlenote.follow.dto.FollowUpdateResponse;
 import app.bottlenote.follow.exception.FollowException;
@@ -24,13 +23,12 @@ public class FollowCommandService {
 
 	@Transactional
 	public FollowUpdateResponse updateFollowStatus(FollowUpdateRequest request, Long userId) {
-		Long followUserId = request.followerUserId();
+		Long followUserId = request.followUserId();
 
 		if (userId.equals(followUserId)) {
 			throw new FollowException(FollowExceptionCode.CANNOT_FOLLOW_SELF);
 		}
 
-		// TODO :: 팔로우 대상이 나를 차단 했을경우 팔로우 불가능처리
 
 		Follow follow = followRepository.findByUserIdAndFollowUserIdWithFetch(userId, followUserId)
 			.orElseGet(() -> {
