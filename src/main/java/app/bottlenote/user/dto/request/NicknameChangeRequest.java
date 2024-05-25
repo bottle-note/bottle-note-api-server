@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Pattern;
 import static app.bottlenote.global.security.SecurityContextUtil.getCurrentUserId;
 
 public record NicknameChangeRequest (
-	@NotNull(message = "유저 아이디가 업습니다.")
+	@NotNull(message = "유저 아이디가 없습니다.")
 	Long userId,
 
 	@NotBlank(message = "닉네임은 2~11자의 한글, 영문, 숫자만 가능합니다.")

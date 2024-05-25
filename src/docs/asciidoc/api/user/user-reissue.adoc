@@ -18,7 +18,6 @@
 POST /api/v1/oauth/reissue
 ----
 [discrete]
-include::{snippets}/user/user-reissue/request-fields.adoc[]
 include::{snippets}/user/user-reissue//request-body.adoc[]
 
 [discrete]

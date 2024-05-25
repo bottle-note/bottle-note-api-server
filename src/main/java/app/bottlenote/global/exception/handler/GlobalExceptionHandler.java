@@ -1,6 +1,9 @@
 package app.bottlenote.global.exception.handler;
 
 import app.bottlenote.global.data.response.GlobalResponse;
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.AmazonServiceException;
+import com.amazonaws.SdkClientException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -16,13 +19,12 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
-import static java.time.LocalTime.now;
 
 @Slf4j(topic = "GlobalExceptionHandler")
 @RestControllerAdvice
@@ -128,10 +130,34 @@ public class GlobalExceptionHandler {
 	 */
 	@ExceptionHandler(value = {SignatureException.class, MalformedJwtException.class, ExpiredJwtException.class})
 	public ResponseEntity<GlobalResponse> jwtTokenException() {
-		log.warn("jwt 토큰 예외 발생 : {}", now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+		log.warn("jwt 토큰 예외 발생 : {}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 		GlobalResponse fail = GlobalResponse.fail(403, "올바르지 않은 토큰입니다.");
 		return ResponseEntity
 			.status(org.springframework.http.HttpStatus.UNAUTHORIZED)
 			.body(fail);
+	}
+	/**
+	 * AWS 관련 예외에 대한 처리
+	 *
+	 * @param exception the exception
+	 * @return the response entity
+	 */
+	@ExceptionHandler(AmazonClientException.class)
+	public ResponseEntity<GlobalResponse> handleAmazonClientException(AmazonClientException exception) {
+		String errorMessage;
+		HttpStatus status;
+
+		if (exception instanceof AmazonServiceException ase) {
+			errorMessage = "AWS 서비스 오류가 발생했습니다: " + ase.getMessage();
+			status = HttpStatus.INTERNAL_SERVER_ERROR;
+		} else if (exception instanceof SdkClientException sce) {
+			errorMessage = "AWS SDK 오류가 발생했습니다: " + sce.getMessage();
+			status = HttpStatus.SERVICE_UNAVAILABLE;
+		} else {
+			errorMessage = "AWS 클라이언트 오류가 발생했습니다: " + exception.getMessage();
+			status = HttpStatus.SERVICE_UNAVAILABLE;
+		}
+
+		return createResponseEntity(exception, status, Map.of(KEY_MESSAGE, errorMessage));
 	}
 }

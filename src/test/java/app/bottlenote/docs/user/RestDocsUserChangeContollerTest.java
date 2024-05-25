@@ -71,6 +71,7 @@ class RestDocsUserChangeContollerTest extends AbstractRestDocs {
 				.with(csrf())
 				.content(objectMapper.writeValueAsString(request)))
 			.andExpect(status().isOk())
+
 			.andDo(document("user/nickname-change",
 					requestFields(
 						fieldWithPath("userId").type(JsonFieldType.NUMBER).description("사용자의 ID"),

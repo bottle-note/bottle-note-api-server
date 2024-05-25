@@ -1,2 +1,2 @@
 ### 토큰 발급 (일반)
-GET http://127.0.0.1:15000/api/v1/alcohols/search
+GET {{host}}/api/v1/alcohols/search
