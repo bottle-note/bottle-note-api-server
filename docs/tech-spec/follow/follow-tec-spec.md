@@ -34,13 +34,6 @@
 
 ## 모델링
 
-### User Entity
-  - 팔로우한 사용자 목록을 조회할 수 있는 메소드를 추가합니다.
-      - OneToMany 관계를 통해 팔로우한 사용자 목록을 조회합니다.
-      - 중복방지를 위해 팔로우 한 사용자 목록을 HashSet을 사용합니다.
-  - 팔로워 목록을 조회할 수 있는 메소드를 추가합니다.
-      - OneToMany 관계를 통해 팔로워 목록을 조회합니다.
-      - 중복방지를 위해 팔로워 목록을 HashSet을 사용합니다.
 ###  Follow Entity
   - 팔로잉 하는 유저와 팔로잉 대상 유저의 아이디를 가집니다.
   - 팔로우 UserFollow 도메인 이벤트가 추가합니다.
@@ -101,7 +94,6 @@
     {
         "userId": "로그인 유저 ID" (backend token util 에서 사용)
         "followUserId": "팔로우 대상 유저 ID"
-        "action": "FOLLOW" or "UNFOLLOW"
     }
     ~~~
 

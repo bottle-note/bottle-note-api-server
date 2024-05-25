@@ -65,3 +65,7 @@ include::api/review/review-read.adoc[]
 == 지원 (support) 관련 API
 
 include::api/support/report/user-report.adoc[]
+
+== 팔로우 (follow) 관련 API
+
+include::api/follow/follow-update.adoc[]
