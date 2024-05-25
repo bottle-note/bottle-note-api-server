@@ -54,7 +54,6 @@ public class ImageUploadService implements PreSignUrlProvider {
 					.build()
 			);
 		}
-
 		eventPublisher.publishEvent(S3RequestEvent.of("s3 Image upload", ImageBucketName, uploadSize));
 
 		return ImageUploadResponse.builder()
