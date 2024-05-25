@@ -2,6 +2,9 @@ package app.bottlenote.global.exception.handler;
 
 import app.bottlenote.global.data.response.GlobalResponse;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,10 +16,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import static java.time.LocalTime.now;
 
 @Slf4j(topic = "GlobalExceptionHandler")
 @RestControllerAdvice
@@ -59,7 +65,7 @@ public class GlobalExceptionHandler {
 			String fieldName = fieldError.getField();
 			Object rejectedValue = fieldError.getRejectedValue();
 			String defaultMessage = fieldError.getDefaultMessage();   // 한글로 오류 메시지 생성
-		  String errorMessage = String.format("필드 '%s'의 값 '%s'가 유효하지 않습니다: %s", fieldName, rejectedValue, defaultMessage);
+			String errorMessage = String.format("필드 '%s'의 값 '%s'가 유효하지 않습니다: %s", fieldName, rejectedValue, defaultMessage);
 			errorMessages.put(fieldName, errorMessage);
 		}
 
@@ -114,4 +120,18 @@ public class GlobalExceptionHandler {
 		return createResponseEntity(exception, HttpStatus.BAD_REQUEST, message);
 	}
 
+
+	/**
+	 * JWT 토큰 관련 통합 예외 처리
+	 *
+	 * @return the response entity
+	 */
+	@ExceptionHandler(value = {SignatureException.class, MalformedJwtException.class, ExpiredJwtException.class})
+	public ResponseEntity<GlobalResponse> jwtTokenException() {
+		log.warn("jwt 토큰 예외 발생 : {}", now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+		GlobalResponse fail = GlobalResponse.fail(403, "올바르지 않은 토큰입니다.");
+		return ResponseEntity
+			.status(org.springframework.http.HttpStatus.UNAUTHORIZED)
+			.body(fail);
+	}
 }

@@ -1,12 +1,5 @@
 package app.bottlenote.review.repository;
 
-import static app.bottlenote.global.service.cursor.SortOrder.DESC;
-import static app.bottlenote.like.domain.LikeStatus.LIKE;
-import static app.bottlenote.review.domain.constant.ReviewSortType.RATING;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.repository.AlcoholQueryRepository;
 import app.bottlenote.config.TestConfig;
@@ -22,8 +15,6 @@ import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.domain.constant.UserType;
 import app.bottlenote.user.repository.UserCommandRepository;
 import jakarta.persistence.EntityManager;
-import java.util.List;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -37,6 +28,16 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Stream;
+
+import static app.bottlenote.global.service.cursor.SortOrder.DESC;
+import static app.bottlenote.like.domain.LikeStatus.LIKE;
+import static app.bottlenote.review.domain.constant.ReviewSortType.RATING;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Tag(value = "data-jpa-test")
 @DataJpaTest
@@ -132,7 +133,7 @@ class CustomReviewRepositoryImplTest {
 	}
 
 	private void edgeTest(PageableRequest request, String testType, List<ReviewDetail> reviewList,
-		PageResponse<ReviewResponse> response) {
+						  PageResponse<ReviewResponse> response) {
 		switch (testType) {
 			case "sort":
 				System.out.println("test case sort");

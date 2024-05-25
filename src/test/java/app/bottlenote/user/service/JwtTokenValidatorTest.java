@@ -1,21 +1,22 @@
 package app.bottlenote.user.service;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-
 import app.bottlenote.global.security.jwt.JwtTokenValidator;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import java.util.Date;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Date;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 @DisplayName("JwtTokenValidator 테스트")
 @ExtendWith(MockitoExtension.class)
 class JwtTokenValidatorTest {
-	
+
 	@Test
 	@DisplayName("리프레시 토큰이 만료되었을떄, 토큰 검증 메서드는 false를 반환한다.")
 	void test_token_validator_when_refresh_token_is_expired() {
