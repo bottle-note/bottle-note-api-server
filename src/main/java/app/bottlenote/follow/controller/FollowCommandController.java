@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static app.bottlenote.global.security.SecurityContextUtil.getCurrentUserId;
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 
 
@@ -22,12 +21,12 @@ import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByCont
 @RequiredArgsConstructor
 public class FollowCommandController {
 
-    private final FollowCommandService followCommandService;
+	private final FollowCommandService followCommandService;
 
-    @PostMapping
-    public ResponseEntity<GlobalResponse> updateFollowStatus(@RequestBody @Valid FollowUpdateRequest request) {
+	@PostMapping
+	public ResponseEntity<GlobalResponse> updateFollowStatus(@RequestBody @Valid FollowUpdateRequest request) {
 		Long userId = getUserIdByContext()
 			.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
-        return ResponseEntity.ok(GlobalResponse.success(followCommandService.updateFollowStatus(request, userId)));
-    }
+		return ResponseEntity.ok(GlobalResponse.success(followCommandService.updateFollowStatus(request, userId)));
+	}
 }

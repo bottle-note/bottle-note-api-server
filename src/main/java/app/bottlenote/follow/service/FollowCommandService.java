@@ -29,7 +29,6 @@ public class FollowCommandService {
 			throw new FollowException(FollowExceptionCode.CANNOT_FOLLOW_SELF);
 		}
 
-
 		Follow follow = followRepository.findByUserIdAndFollowUserIdWithFetch(userId, followUserId)
 			.orElseGet(() -> {
 
