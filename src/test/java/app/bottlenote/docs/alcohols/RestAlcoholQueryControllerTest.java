@@ -170,9 +170,9 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 						fieldWithPath("data.reviews.bestReviewInfos[].price").description("베스트 리뷰 가격"),
 						fieldWithPath("data.reviews.bestReviewInfos[].viewCount").description("베스트 리뷰 조회수"),
 						fieldWithPath("data.reviews.bestReviewInfos[].likeCount").description("베스트 리뷰 좋아요 수"),
-						fieldWithPath("data.reviews.bestReviewInfos[].isMyLike").description("베스트 리뷰 내가 좋아요를 눌렀는지 여부"),
+						fieldWithPath("data.reviews.bestReviewInfos[].isLikedByMe").description("베스트 리뷰 내가 좋아요를 눌렀는지 여부"),
 						fieldWithPath("data.reviews.bestReviewInfos[].replyCount").description("베스트 리뷰 댓글 수"),
-						fieldWithPath("data.reviews.bestReviewInfos[].isMyReply").description("베스트 리뷰 내가 댓글을 달았는지 여부"),
+						fieldWithPath("data.reviews.bestReviewInfos[].hasReplyByMe").description("베스트 리뷰 내가 댓글을 달았는지 여부"),
 						fieldWithPath("data.reviews.bestReviewInfos[].status").description("리뷰 공개 비공개 여부 (PUBLIC/PRIVATE)"),
 						fieldWithPath("data.reviews.bestReviewInfos[].reviewImageUrl").description("베스트 리뷰 이미지 URL"),
 						fieldWithPath("data.reviews.bestReviewInfos[].createAt").description("베스트 리뷰 작성 날짜"),
@@ -187,9 +187,9 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 						fieldWithPath("data.reviews.recentReviewInfos[].price").description("최신 리뷰 가격"),
 						fieldWithPath("data.reviews.recentReviewInfos[].viewCount").description("최신 리뷰 조회수"),
 						fieldWithPath("data.reviews.recentReviewInfos[].likeCount").description("최신 리뷰 좋아요 수"),
-						fieldWithPath("data.reviews.recentReviewInfos[].isMyLike").description("최신 리뷰 내가 좋아요를 눌렀는지 여부"),
+						fieldWithPath("data.reviews.recentReviewInfos[].isLikedByMe").description("최신 리뷰 내가 좋아요를 눌렀는지 여부"),
 						fieldWithPath("data.reviews.recentReviewInfos[].replyCount").description("최신 리뷰 댓글 수"),
-						fieldWithPath("data.reviews.recentReviewInfos[].isMyReply").description("최신 리뷰 내가 댓글을 달았는지 여부"),
+						fieldWithPath("data.reviews.recentReviewInfos[].hasReplyByMe").description("최신 리뷰 내가 댓글을 달았는지 여부"),
 						fieldWithPath("data.reviews.recentReviewInfos[].status").description("리뷰 공개 비공개 여부 (PUBLIC/PRIVATE)"),
 						fieldWithPath("data.reviews.recentReviewInfos[].reviewImageUrl").description("최신 리뷰 이미지 URL"),
 						fieldWithPath("data.reviews.recentReviewInfos[].createAt").description("최신 리뷰 작성 날짜"),
@@ -245,26 +245,26 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 			ReviewsDetailInfo.ReviewInfo.builder()
 				.userId(1L).imageUrl(null).nickName("3342네임")
 				.reviewId(3L).reviewContent("약간의 스파이시함과 오크의 향을 느낄 수 있는 위스키였어요. 하지만 피니시가 조금 짧은 느낌이었네요. 한 번쯤 시도해볼 만합니다.")
-				.rating(5.0).sizeType(GLASS).price(BigDecimal.valueOf(150000.00)).viewCount(0L).likeCount(0L).isMyLike(false)
-				.replyCount(2L).isMyReply(false).status(null).reviewImageUrl(null).createAt(null).build()
+				.rating(5.0).sizeType(GLASS).price(BigDecimal.valueOf(150000.00)).viewCount(0L).likeCount(0L).isLikedByMe(false)
+				.replyCount(2L).hasReplyByMe(false).status(null).reviewImageUrl(null).createAt(null).build()
 		);
 
 		List<ReviewsDetailInfo.ReviewInfo> recentReviewInfos = List.of(
 			ReviewsDetailInfo.ReviewInfo.builder()
 				.userId(1L).imageUrl(null).nickName("wnrdms123")
 				.reviewId(3L).reviewContent("약간의 스파이시함과 오크의 향을 느낄 수 있는 위스키였어요. 하지만 피니시가 조금 짧은 느낌이었네요. 한 번쯤 시도해볼 만합니다.")
-				.rating(5.0).sizeType(GLASS).price(BigDecimal.valueOf(150000.00)).viewCount(0L).likeCount(0L).isMyLike(false)
-				.replyCount(2L).isMyReply(false).status(null).reviewImageUrl(null).createAt(null).build(),
+				.rating(5.0).sizeType(GLASS).price(BigDecimal.valueOf(150000.00)).viewCount(0L).likeCount(0L).isLikedByMe(false)
+				.replyCount(2L).hasReplyByMe(false).status(null).reviewImageUrl(null).createAt(null).build(),
 			ReviewsDetailInfo.ReviewInfo.builder()
 				.userId(2L).imageUrl(null).nickName("3213dsadsa")
 				.reviewId(5L).reviewContent("맛있어요")
-				.rating(4.5).sizeType(null).price(BigDecimal.valueOf(0.00)).viewCount(0L).likeCount(0L).isMyLike(false)
-				.replyCount(0L).isMyReply(false).status(null).reviewImageUrl(null).createAt(null).build(),
+				.rating(4.5).sizeType(null).price(BigDecimal.valueOf(0.00)).viewCount(0L).likeCount(0L).isLikedByMe(false)
+				.replyCount(0L).hasReplyByMe(false).status(null).reviewImageUrl(null).createAt(null).build(),
 			ReviewsDetailInfo.ReviewInfo.builder()
 				.userId(2L).imageUrl(null).nickName("죽은 공룡")
 				.reviewId(7L).reviewContent("이 위스키는 스파이시한 오크와 달콤한 과일 노트가 절묘하게 어우러져 있어요. 피니시는 길고 부드러워요.")
-				.rating(4.5).sizeType(null).price(BigDecimal.valueOf(0.00)).viewCount(0L).likeCount(0L).isMyLike(false)
-				.replyCount(0L).isMyReply(false).status(null).reviewImageUrl(null).createAt(null).build()
+				.rating(4.5).sizeType(null).price(BigDecimal.valueOf(0.00)).viewCount(0L).likeCount(0L).isLikedByMe(false)
+				.replyCount(0L).hasReplyByMe(false).status(null).reviewImageUrl(null).createAt(null).build()
 		);
 
 		return ReviewsDetailInfo.builder()

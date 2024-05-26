@@ -40,9 +40,9 @@ public class CustomReviewQueryRepositoryImpl implements CustomReviewQueryReposit
 			review.price.coalesce(BigDecimal.ZERO).as("price"),
 			review.viewCount.coalesce(0L).as("viewCount"),
 			likes.id.count().as("likeCount"),
-			containsUserLike(userId).as("isMyLike"),
+			containsUserLike(userId).as("isLikedByMe"),
 			reviewReply.id.count().as("replyCount"),
-			containsUserReply(userId).as("isMyReply"),
+			containsUserReply(userId).as("hasReplyByMe"),
 			review.status.as("status"),
 			review.imageUrl.as("reviewImageUrl"),
 			review.createAt.as("createAt")

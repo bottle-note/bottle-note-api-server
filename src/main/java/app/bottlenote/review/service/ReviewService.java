@@ -17,12 +17,13 @@ public class ReviewService {
 
 	private final ReviewRepository reviewRepository;
 
-	public PageResponse<ReviewResponse> getReviews(Long alcoholId,
+	public PageResponse<ReviewResponse> getReviews(
+		Long alcoholId,
 		PageableRequest pageableRequest,
-		Long userId) {
+		Long userId
+	) {
 
-		PageResponse<ReviewResponse> reviews = reviewRepository.getReviews(alcoholId,
-			pageableRequest, userId);
+		PageResponse<ReviewResponse> reviews = reviewRepository.getReviews(alcoholId, pageableRequest, userId);
 
 		log.info("review size is : {}", reviews.content());
 

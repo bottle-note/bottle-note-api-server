@@ -19,28 +19,34 @@ public class ReviewsDetailInfo {
 	private List<ReviewInfo> recentReviewInfos;
 
 	@Builder
-	public ReviewsDetailInfo(Long totalReviewCount, List<ReviewInfo> bestReviewInfos, List<ReviewInfo> recentReviewInfos) {
+	public ReviewsDetailInfo(
+		Long totalReviewCount,
+		List<ReviewInfo> bestReviewInfos,
+		List<ReviewInfo> recentReviewInfos
+	) {
 		this.totalReviewCount = totalReviewCount;
 		this.bestReviewInfos = bestReviewInfos;
 		this.recentReviewInfos = recentReviewInfos;
 	}
 
 	@Builder
-	public record ReviewInfo(Long userId,
-							 String imageUrl,
-							 String nickName,
-							 Long reviewId,
-							 String reviewContent,
-							 Double rating,
-							 SizeType sizeType,
-							 BigDecimal price,
-							 Long viewCount,
-							 Long likeCount,
-							 Boolean isMyLike,
-							 Long replyCount,
-							 Boolean isMyReply,
-							 ReviewStatus status,
-							 String reviewImageUrl,
-							 LocalDateTime createAt) {
+	public record ReviewInfo(
+		Long userId,
+		String imageUrl,
+		String nickName,
+		Long reviewId,
+		String reviewContent,
+		Double rating,
+		SizeType sizeType,
+		BigDecimal price,
+		Long viewCount,
+		Long likeCount,
+		Boolean isLikedByMe,
+		Long replyCount,
+		Boolean hasReplyByMe,
+		ReviewStatus status,
+		String reviewImageUrl,
+		LocalDateTime createAt
+	) {
 	}
 }

@@ -1,12 +1,5 @@
 package app.bottlenote.review.repository;
 
-import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.global.service.cursor.SortOrder.DESC;
-import static app.bottlenote.like.domain.QLikes.likes;
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.domain.QReview.review;
-import static app.bottlenote.review.domain.QReviewReply.reviewReply;
-
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
@@ -24,11 +17,19 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
+import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.global.service.cursor.SortOrder.DESC;
+import static app.bottlenote.like.domain.QLikes.likes;
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
+import static app.bottlenote.review.domain.QReviewReply.reviewReply;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -38,7 +39,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 
 	@Override
 	public PageResponse<ReviewResponse> getReviews(Long alcoholId, PageableRequest pageableRequest,
-		Long userId) {
+												   Long userId) {
 
 		List<ReviewDetail> fetch = queryFactory
 			.select(Projections.fields(
@@ -47,21 +48,18 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 				review.content.as("reviewContent"),
 				review.price.as("price"),
 				review.sizeType.as("sizeType"),
-				review.imageUrl.as("thumbnailImage"),
+				review.imageUrl.as("reviewImageUrl"),
 				review.status.as("status"),
-				review.createAt.as("reviewCreatedAt"),
+				review.createAt.as("createAt"),
 				ratingSubQuery(),
-
 				review.user.id.as("userId"),
-				review.user.nickName.as("userNickname"),
+				review.user.nickName.as("nickName"),
 				review.user.imageUrl.as("userProfileImage"),
 				isMyReview(userId).as("isMyReview"),
-
 				likedByMe(userId, review.id).as("isLikedByMe"),
-				hasCommentedByMe(userId, review.id).as("hasCommentedByMe"),
+				hasCommentedByMe(userId, review.id).as("hasReplyByMe"),
 				reviewReplyCountSubQuery(),
 				likesCountSubQuery()
-
 			))
 			.from(review)
 			.leftJoin(likes).on(review.id.eq(likes.review.id))
@@ -69,8 +67,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.leftJoin(rating).on(review.user.id.eq(rating.user.id))
 			.where(alcohol.id.eq(alcoholId))
 			.groupBy(review.id, review.sizeType, review.user)
-			.orderBy(sortBy(pageableRequest.sortType(), pageableRequest.sortOrder()).toArray(
-				new OrderSpecifier[0]))
+			.orderBy(sortBy(pageableRequest.sortType(), pageableRequest.sortOrder()).toArray(new OrderSpecifier[0]))
 			.offset(pageableRequest.cursor())
 			.limit(pageableRequest.pageSize() + 1)
 			.fetch();
@@ -88,8 +85,10 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 	}
 
 
-	private CursorPageable getCursorPageable(PageableRequest pageableRequest,
-		List<ReviewDetail> fetch) {
+	private CursorPageable getCursorPageable(
+		PageableRequest pageableRequest,
+		List<ReviewDetail> fetch
+	) {
 
 		boolean hasNext = isHasNext(pageableRequest, fetch);
 		return CursorPageable.builder()
@@ -103,7 +102,10 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 	/**
 	 * 다음 페이지가 있는지 확인하는 메소드
 	 */
-	private boolean isHasNext(PageableRequest pageableRequest, List<ReviewDetail> fetch) {
+	private boolean isHasNext(
+		PageableRequest pageableRequest,
+		List<ReviewDetail> fetch
+	) {
 		boolean hasNext = fetch.size() > pageableRequest.pageSize();
 
 		if (hasNext) {
@@ -198,11 +200,9 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		NumberExpression<Long> likesCount = likes.id.count();
 		return switch (reviewSortType) {
 			//인기순 -> 임시로 좋아요 순으로 구현
-			case POPULAR ->
-				Collections.singletonList(sortOrder == DESC ? likesCount.desc() : likesCount.asc());
+			case POPULAR -> Collections.singletonList(sortOrder == DESC ? likesCount.desc() : likesCount.asc());
 			//좋아요 순
-			case LIKES ->
-				Collections.singletonList(sortOrder == DESC ? likesCount.desc() : likesCount.asc());
+			case LIKES -> Collections.singletonList(sortOrder == DESC ? likesCount.desc() : likesCount.asc());
 			//별점 순
 			case RATING -> Collections.singletonList(
 				sortOrder == DESC ? rating.ratingPoint.rating.desc()
