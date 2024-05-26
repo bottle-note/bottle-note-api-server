@@ -2,14 +2,17 @@ package app.bottlenote.review.dto.response;
 
 import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Getter
 @EqualsAndHashCode
+@NoArgsConstructor
 public class ReviewDetail {
 
 	private Long reviewId;
@@ -18,43 +21,42 @@ public class ReviewDetail {
 	private SizeType sizeType;
 	private Long likeCount;
 	private Long replyCount;
-	private String thumbnailImage;
-	private LocalDateTime reviewCreatedAt;
+	private String reviewImageUrl;
+	private LocalDateTime createAt;
 
 	private Long userId;
-	private String userNickname;
+	private String nickName;
 	private String userProfileImage;
-	private Double ratingPoint;
+	private Double rating;
 
 	private ReviewStatus status;
 
 	private Boolean isMyReview;
 	private Boolean isLikedByMe;
-	private Boolean hasCommentedByMe;
+	private Boolean hasReplyByMe;
 
 	@Builder
-	public ReviewDetail(Long reviewId, String reviewContent, BigDecimal price, SizeType sizeType,
-		Long likeCount, Long replyCount, String thumbnailImage, LocalDateTime reviewCreatedAt,
-		Long userId, String userNickname, String userProfileImage, Double ratingPoint,
-		ReviewStatus status, Boolean isMyReview, Boolean isLikedByMe, Boolean hasCommentedByMe) {
+	public ReviewDetail(
+		Long reviewId, String reviewContent, BigDecimal price, SizeType sizeType,
+		Long likeCount, Long replyCount, String reviewImageUrl, LocalDateTime createAt,
+		Long userId, String nickName, String userProfileImage, Double rating,
+		ReviewStatus status, Boolean isMyReview, Boolean isLikedByMe, Boolean hasReplyByMe
+	) {
 		this.reviewId = reviewId;
 		this.reviewContent = reviewContent;
 		this.price = price;
 		this.sizeType = sizeType;
 		this.likeCount = likeCount;
 		this.replyCount = replyCount;
-		this.thumbnailImage = thumbnailImage;
-		this.reviewCreatedAt = reviewCreatedAt;
+		this.reviewImageUrl = reviewImageUrl;
+		this.createAt = createAt;
 		this.userId = userId;
-		this.userNickname = userNickname;
+		this.nickName = nickName;
 		this.userProfileImage = userProfileImage;
-		this.ratingPoint = ratingPoint;
+		this.rating = rating;
 		this.status = status;
 		this.isMyReview = isMyReview;
 		this.isLikedByMe = isLikedByMe;
-		this.hasCommentedByMe = hasCommentedByMe;
-	}
-
-	public ReviewDetail() {
+		this.hasReplyByMe = hasReplyByMe;
 	}
 }

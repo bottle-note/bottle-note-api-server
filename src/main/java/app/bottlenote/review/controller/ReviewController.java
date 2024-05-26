@@ -29,7 +29,8 @@ public class ReviewController {
 	@GetMapping("/{alcoholId}")
 	public ResponseEntity<GlobalResponse> getReviews(
 		@PathVariable Long alcoholId,
-		@ModelAttribute PageableRequest pageableRequest) {
+		@ModelAttribute PageableRequest pageableRequest
+	) {
 
 		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(null);
 

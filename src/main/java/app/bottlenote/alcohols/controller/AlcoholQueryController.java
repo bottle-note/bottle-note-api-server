@@ -58,7 +58,6 @@ public class AlcoholQueryController {
 	public ResponseEntity<GlobalResponse> findAlcoholDetailById(@PathVariable Long alcoholId) {
 		Long id = getUserIdByContext().orElse(null);
 		return ResponseEntity.ok(
-			GlobalResponse.success(
-				alcoholQueryService.findAlcoholDetailById(alcoholId, id)));
+			GlobalResponse.success(alcoholQueryService.findAlcoholDetailById(alcoholId, id)));
 	}
 }
