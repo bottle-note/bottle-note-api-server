@@ -11,6 +11,12 @@
 
 ---------
 
+## 요구사항 정의
+
+- 로그인 한 유저는 위스키에 대하여 리뷰를 작성할 수 있다.
+  - 로그인 하지 않은 유저는 리뷰를 작성할 수 없음
+- 테이스팅 태그는 최대 12자 총 10건 등록 가능하다.
+
 ## 계획(Plan)
 
 ### 리뷰등록 API 설계
@@ -58,26 +64,13 @@
 
 ------
 
-### 체크 해야하는 이슈 사항
+## 비지니스 로직
 
-- validate
-  - [ ] alcoholsId 는 Null일 수 없다
-  - [ ] userId는 Null일 수 없다
-  - [ ] content는 Null일 수 없다
-  - [ ] Enum @JsonCreator 유효성 검사
-  - [ ] RatingPoint 0.0 ~ 5.0인지
-  - [ ] 테이스팅 태그 최대 12자, 총 개수 10개 이하인지
-
-- 비지니스 로직
-  - [ ] 파라미터로 전달받은 alcoholId로 위스키 조회(존재하지 않는다면 Exception)
-  - [ ] currentUserId로 유저 조회(존재하지 않는다면 Exception)
-  - [ ] ReqestDto로 Review 엔티티 객체 생성
-  - [ ] RequestDto에 ratingPoint가 존재한다면 Rating 엔티티 save
-  - [ ] Review 엔티티 save
-  - [ ] ReviewCreateResponse DTO 반환
+- 위스키 조회 (존재하지 않는다면 예외 발생)
+- 현재 로그인 한 유저 조회(존재하지 않는다면 Exception)
+- 사용자가 입력한 리뷰 작성 정보들을 저장
+- 사용자가 별점을 작성했다면 DB에 저장
+- 성공적으로 리뷰가 DB에 저장되었다면 리뷰 ID 반환
 
 ---------
 
-## 이외 고려 사항들(Other Considerations)
-
-``
