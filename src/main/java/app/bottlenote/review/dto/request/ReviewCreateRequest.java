@@ -21,14 +21,10 @@ public record ReviewCreateRequest(
 
 	BigDecimal price,
 
-	String zipCode,
-
-	String address,
-
-	String detailAddress,
+	LocationInfo locationInfo,
 
 	String imageUrl,
-	
+
 	List<TastingTag> tastingTag
 
 ) {
