@@ -90,7 +90,7 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 						fieldWithPath("data.alcohols[].ratingCount").description("술 평점 개수"),
 						fieldWithPath("data.alcohols[].reviewCount").description("술 리뷰 개수"),
 						fieldWithPath("data.alcohols[].pickCount").description("술 찜 개수"),
-						fieldWithPath("data.alcohols[].picked").description("술 찜 여부"),
+						fieldWithPath("data.alcohols[].isPicked").description("술 찜 여부"),
 						fieldWithPath("errors").ignored(),
 						fieldWithPath("meta.serverEncoding").ignored(),
 						fieldWithPath("meta.serverVersion").ignored(),
@@ -299,7 +299,7 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 			.ratingCount(1L)
 			.reviewCount(0L)
 			.pickCount(1L)
-			.picked(false)
+			.isPicked(false)
 			.build();
 
 		AlcoholsSearchDetail detail_2 = AlcoholsSearchDetail.builder()
@@ -313,7 +313,7 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 			.ratingCount(3L)
 			.reviewCount(1L)
 			.pickCount(1L)
-			.picked(true)
+			.isPicked(true)
 			.build();
 
 		AlcoholsSearchDetail detail_3 = AlcoholsSearchDetail.builder()
@@ -327,7 +327,7 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 			.ratingCount(1L)
 			.reviewCount(0L)
 			.pickCount(1L)
-			.picked(true)
+			.isPicked(true)
 			.build();
 
 
