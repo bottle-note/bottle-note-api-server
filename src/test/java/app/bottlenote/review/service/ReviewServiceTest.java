@@ -1,11 +1,5 @@
 package app.bottlenote.review.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.constant.ReviewStatus;
@@ -14,9 +8,6 @@ import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.response.ReviewDetail;
 import app.bottlenote.review.dto.response.ReviewResponse;
 import app.bottlenote.review.repository.ReviewRepository;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,6 +15,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @DisplayName("리뷰 조회 서비스 레이어 테스트")
 @ExtendWith(MockitoExtension.class)
@@ -74,16 +75,16 @@ public class ReviewServiceTest {
 			.sizeType(SizeType.BOTTLE)
 			.likeCount(5L)
 			.replyCount(3L)
-			.thumbnailImage("thumbnail_image_1")
-			.reviewCreatedAt(LocalDateTime.now())
+			.reviewImageUrl("https://picsum.photos/600/600")
+			.createAt(LocalDateTime.now())
 			.userId(1L)
-			.userNickname("test_user_1")
+			.nickName("test_user_1")
 			.userProfileImage("user_profile_image_1")
-			.ratingPoint(4.0)
+			.rating(4.0)
 			.status(ReviewStatus.PUBLIC)
 			.isMyReview(true)
 			.isLikedByMe(true)
-			.hasCommentedByMe(false)
+			.hasReplyByMe(false)
 			.build();
 
 		ReviewDetail reviewDetail_2 = ReviewDetail.builder()
@@ -93,16 +94,16 @@ public class ReviewServiceTest {
 			.sizeType(SizeType.BOTTLE)
 			.likeCount(3L)
 			.replyCount(6L)
-			.thumbnailImage("thumbnail_image_2")
-			.reviewCreatedAt(LocalDateTime.now().minusDays(1))
+			.reviewImageUrl("https://picsum.photos/600/600")
+			.createAt(LocalDateTime.now().minusDays(1))
 			.userId(2L)
-			.userNickname("test_user_2")
+			.nickName("test_user_2")
 			.userProfileImage("user_profile_image_2")
-			.ratingPoint(4.0)
+			.rating(4.0)
 			.status(ReviewStatus.PUBLIC)
 			.isMyReview(true)
 			.isLikedByMe(true)
-			.hasCommentedByMe(false)
+			.hasReplyByMe(false)
 			.build();
 
 		Long totalCount = 2L;

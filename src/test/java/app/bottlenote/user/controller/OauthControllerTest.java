@@ -1,22 +1,14 @@
 package app.bottlenote.user.controller;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import app.bottlenote.user.domain.constant.GenderType;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.dto.request.OauthRequest;
-import app.bottlenote.user.dto.request.TokenRequest;
-import app.bottlenote.user.dto.response.OauthResponse;
+import app.bottlenote.user.dto.response.TokenDto;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.service.OauthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +18,15 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @DisplayName("유저 로그인 컨트롤러 테스트")
 @WebMvcTest(OauthController.class)
@@ -39,6 +40,17 @@ class OauthControllerTest {
 	@MockBean
 	protected OauthService oauthService;
 
+	private TokenDto tokenDto;
+
+	@BeforeEach
+	void setUp() {
+		tokenDto = TokenDto.builder()
+			.accessToken("access-token")
+			.refreshToken("refresh-token")
+			.build();
+	}
+
+
 	@Test
 	@DisplayName("유저는 로그인 할 수 있다.")
 	void user_login_test() throws Exception {
@@ -48,10 +60,13 @@ class OauthControllerTest {
 			GenderType.MALE,
 			27);
 
-		OauthResponse oauthResponse = new OauthResponse("accessToken", "refreshToken");
+		TokenDto tokenDto = TokenDto.builder()
+			.accessToken("accessToken")
+			.refreshToken("refreshToken")
+			.build();
 
 		//when
-		when(oauthService.oauthLogin(oauthRequest)).thenReturn(oauthResponse);
+		when(oauthService.oauthLogin(oauthRequest)).thenReturn(tokenDto);
 
 		//then
 		mockMvc.perform(post("/api/v1/oauth/login")
@@ -61,7 +76,9 @@ class OauthControllerTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value("200"))
 			.andExpect(jsonPath("$.data.accessToken").value("accessToken"))
-			.andExpect(jsonPath("$.data.refreshToken").value("refreshToken"))
+			.andExpect(cookie().value("refresh-token", "refreshToken"))
+			.andExpect(cookie().httpOnly("refresh-token", true))
+			.andExpect(cookie().secure("refresh-token", true))
 			.andDo(print());
 	}
 
@@ -73,10 +90,9 @@ class OauthControllerTest {
 		OauthRequest oauthRequest = new OauthRequest("cdm2883@naver.com", null,
 			GenderType.MALE, 27);
 
-		OauthResponse oauthResponse = new OauthResponse("accessToken", "refreshToken");
 
 		//when
-		when(oauthService.oauthLogin(oauthRequest)).thenReturn(oauthResponse);
+		when(oauthService.oauthLogin(oauthRequest)).thenReturn(tokenDto);
 
 		//then
 		mockMvc.perform(post("/api/v1/oauth/login")
@@ -97,10 +113,8 @@ class OauthControllerTest {
 		OauthRequest oauthRequest = new OauthRequest("cdm2883@naver.com", SocialType.KAKAO,
 			GenderType.MALE, -10);
 
-		OauthResponse oauthResponse = new OauthResponse("accessToken", "refreshToken");
-
 		//when
-		when(oauthService.oauthLogin(oauthRequest)).thenReturn(oauthResponse);
+		when(oauthService.oauthLogin(oauthRequest)).thenReturn(tokenDto);
 
 		//then
 		mockMvc.perform(post("/api/v1/oauth/login")
@@ -118,50 +132,74 @@ class OauthControllerTest {
 	void user_reissue_test() throws Exception {
 
 		//given
-		TokenRequest tokenRequest = new TokenRequest("access-token", "refresh-token");
+		String reissueRefreshToken = "refresh-token";
 
-		OauthResponse oauthResponse = new OauthResponse("new-access-token", "new-refresh-token");
+		TokenDto newTokenDto = TokenDto.builder()
+			.accessToken("new-access-token")
+			.refreshToken("new-refresh-token")
+			.build();
 
 		//when
-		when(oauthService.refresh(tokenRequest)).thenReturn(oauthResponse);
+		when(oauthService.refresh(reissueRefreshToken)).thenReturn(newTokenDto);
 
 		//then
 		mockMvc.perform(post("/api/v1/oauth/reissue")
 				.contentType(MediaType.APPLICATION_JSON)
-				.header("accessToken", tokenRequest.accessToken())
-				.header("refreshToken", tokenRequest.refreshToken())
+				.header("refresh-token", reissueRefreshToken)
 				.with(csrf())
-				.content(mapper.writeValueAsString(tokenRequest)))
+				.content(mapper.writeValueAsString(reissueRefreshToken)))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.code").value("200"))
 			.andExpect(jsonPath("$.data.accessToken").value("new-access-token"))
-			.andExpect(jsonPath("$.data.refreshToken").value("new-refresh-token"))
+			.andExpect(cookie().value("refresh-token", "new-refresh-token"))
+			.andExpect(cookie().httpOnly("refresh-token", true))
+			.andExpect(cookie().secure("refresh-token", true))
 			.andDo(print());
 	}
 
 	@Test
-	@DisplayName("refresh 토큰이 null이면 토큰을 재발급 받을 수 없다.")
-	void user_reissue_fail_when_refreshToken_is_null() throws Exception {
+	@DisplayName("refresh 토큰이 유효하지 않으면 토큰을 재발급 받을 수 없다.")
+	void user_reissue_fail_when_refreshToken_is_not_invalid() throws Exception {
 
-		//given
-		TokenRequest tokenRequest = new TokenRequest("access-token", null);
+		String reissueRefreshToken = "refresh-tokenxzz";
 
-		OauthResponse oauthResponse = new OauthResponse("new-access-token", "new-refresh-token");
-
+		TokenDto newTokenDto = TokenDto.builder()
+			.accessToken("new-access-token")
+			.refreshToken("new-refresh-token")
+			.build();
 		//when
-		when(oauthService.refresh(tokenRequest)).thenThrow(
+		when(oauthService.refresh(reissueRefreshToken)).thenThrow(
 			new UserException(UserExceptionCode.INVALID_REFRESH_TOKEN));
 
 		//then
 		mockMvc.perform(post("/api/v1/oauth/reissue")
 				.contentType(MediaType.APPLICATION_JSON)
-				.header("accessToken", tokenRequest.accessToken())
-				.with(csrf())
-				.content(mapper.writeValueAsString(tokenRequest)))
+				.header("refresh-token", reissueRefreshToken)
+				.with(csrf()))
 			.andExpect(status().isBadRequest())
 			.andExpect(result -> assertTrue(
-				result.getResolvedException() instanceof MethodArgumentNotValidException))
+				result.getResolvedException() instanceof UserException))
 			.andExpect(jsonPath("$.errors").exists());
 	}
+
+	@Test
+	@DisplayName("헤더의 리프레쉬 토큰이 null이면 토큰을 재발급 받을 수 없다.")
+	void user_reissue_fail_when_refreshToken_is_null() throws Exception {
+		String reissueRefreshToken = null;
+
+		// when
+		when(oauthService.refresh(reissueRefreshToken)).thenThrow(
+			new IllegalArgumentException("Refresh token is missing"));
+
+		// then
+		mockMvc.perform(post("/api/v1/oauth/reissue")
+				.contentType(MediaType.APPLICATION_JSON)
+				.with(csrf()))
+			.andExpect(status().isBadRequest())
+			.andExpect(result -> assertTrue(
+				result.getResolvedException() instanceof IllegalArgumentException))
+			.andExpect(jsonPath("$.errors").exists());
+	}
+
 
 }

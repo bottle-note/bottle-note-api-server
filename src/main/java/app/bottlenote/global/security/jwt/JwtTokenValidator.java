@@ -6,10 +6,11 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import java.security.Key;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.security.Key;
 
 @Slf4j
 @Component
@@ -17,9 +18,11 @@ public class JwtTokenValidator {
 
 	private static Key secretKey;
 
-	public JwtTokenValidator(@Value("${security.jwt.secret-key}") String secret) {
+	public JwtTokenValidator(
+		@Value("${security.jwt.secret-key}") String secret
+	) {
 		byte[] keyBytes = Decoders.BASE64.decode(secret);
-		this.secretKey = Keys.hmacShaKeyFor(keyBytes);
+		secretKey = Keys.hmacShaKeyFor(keyBytes);
 	}
 
 	/**
@@ -29,6 +32,7 @@ public class JwtTokenValidator {
 		try {
 
 			if (token == null || token.trim().isEmpty()) {
+				log.warn("토큰이 존재하지 않습니다.");
 				return false;
 			}
 

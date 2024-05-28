@@ -1,21 +1,25 @@
 package app.bottlenote.global.security;
 
+import app.bottlenote.global.security.jwt.JwtAuthenticationEntryPoint;
 import app.bottlenote.global.security.jwt.JwtAuthenticationFilter;
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
-import java.util.Arrays;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 @Configuration
 @EnableWebSecurity
@@ -23,24 +27,47 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
 	private final JwtAuthenticationManager jwtAuthenticationManager;
+	private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
-	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-		http
-			.cors(cors -> cors.configurationSource(corsConfigurationSource()))
-			.csrf(AbstractHttpConfigurer::disable)
-			.sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(
-				SessionCreationPolicy.STATELESS))
-			.formLogin(AbstractHttpConfigurer::disable)
-			.authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/oauth/**")
-				.permitAll()  // 모든 사용자에게 접근 허용
-				.anyRequest().permitAll())
-			.addFilterBefore(new JwtAuthenticationFilter(jwtAuthenticationManager),
-				UsernamePasswordAuthenticationFilter.class);
-		return http.build();
+	/**
+	 * 세션 메서드 참조를 위한 참조 메서드
+	 *
+	 * @param sessionConfig the session config
+	 */
+	private static void statelessSessionConfig(SessionManagementConfigurer<HttpSecurity> sessionConfig) {
+		sessionConfig.sessionCreationPolicy(STATELESS);
 	}
 
-	//  CORS 설정
+	/**
+	 * 필터 체인 보안 설정
+	 *
+	 * @param http the http
+	 * @return the security filter chain
+	 * @throws Exception the exception
+	 */
+	@Bean
+	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+		return http
+			.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+			.csrf(AbstractHttpConfigurer::disable)
+			.sessionManagement(SecurityConfig::statelessSessionConfig)
+			.formLogin(AbstractHttpConfigurer::disable)
+			.authorizeHttpRequests(auth -> auth
+				.requestMatchers("/api/v1/picks/**").authenticated()
+				.requestMatchers("/api/v1/s3/**").authenticated()
+				.requestMatchers("/api/v1/follow").authenticated()
+				.anyRequest().permitAll()
+			)
+			.addFilterBefore(new JwtAuthenticationFilter(jwtAuthenticationManager), UsernamePasswordAuthenticationFilter.class)
+			.exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint))
+			.build();
+	}
+
+	/**
+	 * Cors 구성 소스 빈 등록
+	 *
+	 * @return the cors configuration source
+	 */
 	@Bean
 	CorsConfigurationSource corsConfigurationSource() {
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

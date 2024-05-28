@@ -70,7 +70,7 @@ class AlcoholQueryServiceTest {
 			.ratingCount(1L)
 			.reviewCount(0L)
 			.pickCount(1L)
-			.picked(false)
+			.isPicked(false)
 			.build();
 
 		AlcoholsSearchDetail detail_2 = AlcoholsSearchDetail.builder()
@@ -84,7 +84,7 @@ class AlcoholQueryServiceTest {
 			.ratingCount(3L)
 			.reviewCount(1L)
 			.pickCount(1L)
-			.picked(false)
+			.isPicked(false)
 			.build();
 
 		AlcoholsSearchDetail detail_3 = AlcoholsSearchDetail.builder()
@@ -98,7 +98,7 @@ class AlcoholQueryServiceTest {
 			.ratingCount(1L)
 			.reviewCount(0L)
 			.pickCount(1L)
-			.picked(false)
+			.isPicked(false)
 			.build();
 
 

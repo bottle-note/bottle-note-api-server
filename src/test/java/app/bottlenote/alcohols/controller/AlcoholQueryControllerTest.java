@@ -43,41 +43,6 @@ class AlcoholQueryControllerTest {
 	@MockBean
 	private AlcoholQueryService alcoholQueryService;
 
-	@DisplayName("술(위스키) 리스트를 조회할 수 있다.")
-	@ParameterizedTest(name = "[{index}]{0}")
-	@MethodSource("testCase1Provider")
-	void test_case_1(String description, AlcoholSearchRequest searchRequest) throws Exception {
-
-		// given
-		PageResponse<AlcoholSearchResponse> response = getResponse();
-
-		// when
-		when(alcoholQueryService.searchAlcohols(any(), any())).thenReturn(response);
-
-		// then
-		ResultActions resultActions = mockMvc.perform(get("/api/v1/alcohols/search")
-				.param("keyword", searchRequest.keyword())
-				.param("category", searchRequest.category())
-				.param("regionId", searchRequest.regionId() == null ? null : String.valueOf(searchRequest.regionId()))
-				.param("sortType", searchRequest.sortType().name())
-				.param("sortOrder", searchRequest.sortOrder().name())
-				.param("cursor", String.valueOf(searchRequest.cursor()))
-				.param("pageSize", String.valueOf(searchRequest.pageSize()))
-				.with(csrf())
-			)
-			.andExpect(status().isOk())
-			.andDo(print());
-
-		resultActions.andExpect(jsonPath("$.success").value("true"));
-		resultActions.andExpect(jsonPath("$.code").value("200"));
-		resultActions.andExpect(jsonPath("$.data.totalCount").value(5));
-		resultActions.andExpect(jsonPath("$.data.alcohols.size()").value(3));
-		resultActions.andExpect(jsonPath("$.data.alcohols[0].alcoholId").value(5));
-		resultActions.andExpect(jsonPath("$.data.alcohols[0].korName").value("아녹 24년"));
-		resultActions.andExpect(jsonPath("$.data.alcohols[0].engName").value("anCnoc 24-year-old"));
-
-	}
-
 	static Stream<Arguments> testCase1Provider() {
 		return Stream.of(
 			Arguments.of("모든 요청 파라미터가 존재할 때.",
@@ -170,6 +135,41 @@ class AlcoholQueryControllerTest {
 		);
 	}
 
+	@DisplayName("술(위스키) 리스트를 조회할 수 있다.")
+	@ParameterizedTest(name = "[{index}]{0}")
+	@MethodSource("testCase1Provider")
+	void test_case_1(String description, AlcoholSearchRequest searchRequest) throws Exception {
+
+		// given
+		PageResponse<AlcoholSearchResponse> response = getResponse();
+
+		// when
+		when(alcoholQueryService.searchAlcohols(any(), any())).thenReturn(response);
+
+		// then
+		ResultActions resultActions = mockMvc.perform(get("/api/v1/alcohols/search")
+				.param("keyword", searchRequest.keyword())
+				.param("category", searchRequest.category())
+				.param("regionId", searchRequest.regionId() == null ? null : String.valueOf(searchRequest.regionId()))
+				.param("sortType", searchRequest.sortType().name())
+				.param("sortOrder", searchRequest.sortOrder().name())
+				.param("cursor", String.valueOf(searchRequest.cursor()))
+				.param("pageSize", String.valueOf(searchRequest.pageSize()))
+				.with(csrf())
+			)
+			.andExpect(status().isOk())
+			.andDo(print());
+
+		resultActions.andExpect(jsonPath("$.success").value("true"));
+		resultActions.andExpect(jsonPath("$.code").value("200"));
+		resultActions.andExpect(jsonPath("$.data.totalCount").value(5));
+		resultActions.andExpect(jsonPath("$.data.alcohols.size()").value(3));
+		resultActions.andExpect(jsonPath("$.data.alcohols[0].alcoholId").value(5));
+		resultActions.andExpect(jsonPath("$.data.alcohols[0].korName").value("아녹 24년"));
+		resultActions.andExpect(jsonPath("$.data.alcohols[0].engName").value("anCnoc 24-year-old"));
+
+	}
+
 	@DisplayName("정렬 타입에 대한 검증")
 	@ParameterizedTest(name = "{1} : {0}")
 	@MethodSource("sortTypeParameters")
@@ -231,7 +231,7 @@ class AlcoholQueryControllerTest {
 			.ratingCount(1L)
 			.reviewCount(0L)
 			.pickCount(1L)
-			.picked(false)
+			.isPicked(false)
 			.build();
 
 		AlcoholsSearchDetail detail_2 = AlcoholsSearchDetail.builder()
@@ -245,7 +245,7 @@ class AlcoholQueryControllerTest {
 			.ratingCount(3L)
 			.reviewCount(1L)
 			.pickCount(1L)
-			.picked(false)
+			.isPicked(false)
 			.build();
 
 		AlcoholsSearchDetail detail_3 = AlcoholsSearchDetail.builder()
@@ -259,7 +259,7 @@ class AlcoholQueryControllerTest {
 			.ratingCount(1L)
 			.reviewCount(0L)
 			.pickCount(1L)
-			.picked(false)
+			.isPicked(false)
 			.build();
 
 

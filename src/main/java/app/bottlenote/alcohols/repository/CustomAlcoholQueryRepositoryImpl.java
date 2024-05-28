@@ -134,7 +134,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 				rating.id.alcoholId.countDistinct().as("ratingCount"),
 				review.id.countDistinct().as("reviewCount"),
 				picks.id.countDistinct().as("pickCount"),
-				pickedSubQuery(userId).as("picked")
+				pickedSubQuery(userId).as("isPicked")
 			))
 			.from(alcohol)
 			.leftJoin(rating).on(alcohol.id.eq(rating.alcohol.id))

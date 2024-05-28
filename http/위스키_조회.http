@@ -1,0 +1,2 @@
+### 토큰 발급 (일반)
+GET {{host}}/api/v1/alcohols/search

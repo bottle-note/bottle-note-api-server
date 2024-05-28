@@ -153,6 +153,7 @@ CREATE TABLE `follow`
     `id`             bigint       NOT NULL AUTO_INCREMENT COMMENT '팔로우',
     `user_id`        bigint       NOT NULL COMMENT '팔로우 하는 사람 아이디',
     `follow_user_id` bigint       NOT NULL COMMENT '팔로우 대상 아이디',
+    `status`         varchar(255) NOT NULL COMMENT '팔로우, 언팔로우',
     `create_at`      timestamp    NULL COMMENT '최초 생성일',
     `create_by`      varchar(255) NULL COMMENT '최초 생성자',
     `last_modify_at` timestamp    NULL COMMENT '최종 생성일',
