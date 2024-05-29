@@ -1,6 +1,7 @@
 package app.bottlenote.global.exception.handler;
 
 import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.global.exception.custom.AbstractCustomException;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.SdkClientException;
@@ -37,6 +38,20 @@ public class GlobalExceptionHandler {
 		return new ResponseEntity<>(GlobalResponse.error(status.value(), message), status);
 	}
 
+
+	/**
+	 * 사용자 정의 예외에 대한 처리
+	 *
+	 * @param exception the exception
+	 * @return the response entity
+	 */
+	@ExceptionHandler(AbstractCustomException.class)
+	public ResponseEntity<GlobalResponse> handleCustomException(AbstractCustomException exception) {
+		String errorMessage = exception.getMessage();
+		Map<String, String> message = Map.of(KEY_MESSAGE, errorMessage);
+		return createResponseEntity(exception, HttpStatus.BAD_REQUEST, message);
+	}
+
 	/**
 	 * 하위 타입에 속하지 않은 모든 예외에 대한 처리
 	 *
@@ -58,9 +73,9 @@ public class GlobalExceptionHandler {
 	 */
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<GlobalResponse> handleValidationException(MethodArgumentNotValidException exception) {
+
 		BindingResult bindingResult = exception.getBindingResult();
 		List<FieldError> fieldErrors = bindingResult.getFieldErrors();
-
 		Map<String, String> errorMessages = new HashMap<>();
 
 		for (FieldError fieldError : fieldErrors) {
@@ -109,10 +124,11 @@ public class GlobalExceptionHandler {
 
 		if (cause instanceof JsonMappingException jsonMappingException) {
 			List<JsonMappingException.Reference> path = jsonMappingException.getPath();
+
 			if (!path.isEmpty()) {
 				JsonMappingException.Reference lastReference = path.get(path.size() - 1);
 				String fieldName = lastReference.getFieldName();
-				String errorDetailMessage = String.format("'%s' 필드의 값이 잘못되었습니다. 해당 필드의 값의 타입을 확인해주세요.", fieldName);
+				String errorDetailMessage = String.format("'%s' 필드의 값이 잘못되었습니다. 해당 필드의 값의 타입을 확인해주세요.: '%s'", fieldName, getRefinedCauseMessage(cause.getMessage()));
 				Map<String, String> message = Map.of(KEY_MESSAGE, errorDetailMessage);
 				return createResponseEntity(exception, HttpStatus.BAD_REQUEST, message);
 			}
@@ -120,6 +136,19 @@ public class GlobalExceptionHandler {
 
 		Map<String, String> message = Map.of(KEY_MESSAGE, finallyErrorMessage);
 		return createResponseEntity(exception, HttpStatus.BAD_REQUEST, message);
+	}
+
+	/**
+	 * 원인 메시지를 더욱 정제된 형태로 반환
+	 *
+	 * @param causeMessage the cause message
+	 * @return the refined cause message
+	 */
+	private String getRefinedCauseMessage(String causeMessage) {
+		if (causeMessage.contains("problem")) {
+			return causeMessage.substring(causeMessage.indexOf("problem"), causeMessage.indexOf("\n"));
+		}
+		return "";
 	}
 
 
@@ -136,6 +165,7 @@ public class GlobalExceptionHandler {
 			.status(org.springframework.http.HttpStatus.UNAUTHORIZED)
 			.body(fail);
 	}
+
 	/**
 	 * AWS 관련 예외에 대한 처리
 	 *
