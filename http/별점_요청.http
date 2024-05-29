@@ -1,0 +1,9 @@
+### 별점을 등록할 수 있다.
+POST  {{host}}/api/v1/rating/register
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "albumId": 1,
+  "rating": 2.5
+}

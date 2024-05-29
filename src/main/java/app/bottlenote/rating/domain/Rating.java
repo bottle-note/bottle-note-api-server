@@ -15,9 +15,11 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.Comment;
 
 @Getter
+@ToString(exclude = {"alcohol", "user"})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Comment("알콜 점수 테이블")
 @Entity(name = "rating")

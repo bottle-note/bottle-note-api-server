@@ -1,18 +1,45 @@
 package app.bottlenote.rating.service;
 
+import app.bottlenote.alcohols.domain.Alcohol;
+import app.bottlenote.alcohols.repository.AlcoholQueryRepository;
 import app.bottlenote.rating.domain.Rating;
+import app.bottlenote.rating.domain.RatingId;
+import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.rating.domain.RatingRepository;
+import app.bottlenote.rating.exception.RatingException;
+import app.bottlenote.rating.exception.RatingExceptionCode;
+import app.bottlenote.user.domain.User;
+import app.bottlenote.user.exception.UserException;
+import app.bottlenote.user.exception.UserExceptionCode;
+import app.bottlenote.user.repository.UserQueryRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class RatingCommandService {
+
 	private final RatingRepository ratingRepository;
+	private final UserQueryRepository userQueryRepository;
+	private final AlcoholQueryRepository alcoholQueryRepository;
 
-	public RatingCommandService(RatingRepository ratingRepository) {
-		this.ratingRepository = ratingRepository;
-	}
+	public Object register(Long alcoholId, Long userId, RatingPoint ratingPoint) {
 
-	public Object register(Rating rating) {
-		return null;
+		User user = userQueryRepository.findById(userId)
+			.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
+
+		Alcohol alcohol = alcoholQueryRepository.findById(alcoholId)
+			.orElseThrow(() -> new RatingException(RatingExceptionCode.ALCOHOL_NOT_FOUND));
+
+		Rating rating = Rating.builder()
+			.id(RatingId.is(alcoholId, userId))
+			.alcohol(alcohol)
+			.user(user)
+			.ratingPoint(ratingPoint)
+			.build();
+
+		Rating save = ratingRepository.save(rating);
+
+		return save.toString();
 	}
 }
