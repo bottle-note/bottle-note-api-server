@@ -11,4 +11,6 @@ public interface RatingRepository {
 	List<Rating> findAll();
 
 	List<Rating> findAllByIdIn(List<RatingId> ids);
+
+	Optional<Rating> findByAlcoholIdAndUserId(Long alcoholId, Long userId);
 }

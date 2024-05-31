@@ -23,7 +23,7 @@ public class RatingCommandService {
 	private final UserQueryRepository userQueryRepository;
 	private final AlcoholQueryRepository alcoholQueryRepository;
 
-	public Object register(Long alcoholId, Long userId, RatingPoint ratingPoint) {
+	public String register(Long alcoholId, Long userId, RatingPoint ratingPoint) {
 
 		User user = userQueryRepository.findById(userId)
 			.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
@@ -31,12 +31,16 @@ public class RatingCommandService {
 		Alcohol alcohol = alcoholQueryRepository.findById(alcoholId)
 			.orElseThrow(() -> new RatingException(RatingExceptionCode.ALCOHOL_NOT_FOUND));
 
-		Rating rating = Rating.builder()
-			.id(RatingId.is(alcoholId, userId))
-			.alcohol(alcohol)
-			.user(user)
-			.ratingPoint(ratingPoint)
-			.build();
+		Rating rating = ratingRepository.findByAlcoholIdAndUserId(alcoholId, userId)
+			.orElseGet(() -> Rating.builder()
+				.id(RatingId.is(userId, alcoholId))
+				.alcohol(alcohol)
+				.user(user)
+				.ratingPoint(ratingPoint)
+				.build()
+			);
+
+		rating.registerRatingPoint(ratingPoint);
 
 		Rating save = ratingRepository.save(rating);
 

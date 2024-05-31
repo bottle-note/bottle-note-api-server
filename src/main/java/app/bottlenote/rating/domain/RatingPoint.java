@@ -21,7 +21,7 @@ public class RatingPoint {
 	}
 
 	private RatingPoint(double rating) {
-		if (!isValidRating(rating))
+		if (isNotValidRating(rating))
 			throw new RatingException(INVALID_RATING_POINT);
 		this.rating = rating;
 	}
@@ -37,23 +37,35 @@ public class RatingPoint {
 	}
 
 	/**
-	 * 0.0 ~ 5.0 사이의 값인지 확인합니다.
+	 * 평점이 유효한지 확인합니다.
+	 *
+	 * @param rating the rating
 	 */
-	private static boolean isValidRating(double rating) {
-		return isWithinValidRange(rating) && isIncrementOfHalf(rating);
+	public void isValidRating(double rating) {
+		if (isNotValidRating(rating))
+			throw new RatingException(INVALID_RATING_POINT);
+	}
+
+	/**
+	 * 0.0 ~ 5.0 사이의 값인지 확인합니다.
+	 * True : 유효한 값
+	 * False : 유효하지 않은 값
+	 */
+	private boolean isNotValidRating(double rating) {
+		return !isWithinValidRange(rating) || !isIncrementOfHalf(rating);
 	}
 
 	/**
 	 * 0.0 ~ 5.0 사이의 값인지 확인합니다.
 	 */
-	private static boolean isWithinValidRange(double rating) {
+	private boolean isWithinValidRange(double rating) {
 		return rating >= 0.0 && rating <= 5.0;
 	}
 
 	/**
 	 * 0.5 단위로 증가하는지 확인합니다.
 	 */
-	private static boolean isIncrementOfHalf(double rating) {
+	private boolean isIncrementOfHalf(double rating) {
 		double multiplied = rating * 2;
 		return multiplied == Math.floor(multiplied);
 	}
@@ -62,4 +74,6 @@ public class RatingPoint {
 	public String toString() {
 		return String.format("%.1f", rating);
 	}
+
+
 }

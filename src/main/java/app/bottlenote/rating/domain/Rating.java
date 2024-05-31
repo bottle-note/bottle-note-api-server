@@ -51,4 +51,9 @@ public class Rating extends BaseEntity {
 		this.alcohol = alcohol;
 		this.user = user;
 	}
+
+	public void registerRatingPoint(RatingPoint ratingPoint) {
+		ratingPoint.isValidRating(ratingPoint.getRating());
+		this.ratingPoint = ratingPoint;
+	}
 }

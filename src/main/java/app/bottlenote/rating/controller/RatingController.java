@@ -35,8 +35,12 @@ public class RatingController {
 		log.info("RatingRegisterRequest: {}", request);
 		Long userId = SecurityContextUtil.getUserIdByContext().orElseThrow(() -> new UserException(UserExceptionCode.REQUIRED_USER_ID));
 
+
 		return ResponseEntity.ok(
-			GlobalResponse.success(request.rating())
+			GlobalResponse.success(
+				commandService.register(request.alcoholId(), userId, request.rating()
+				)
+			)
 		);
 	}
 }

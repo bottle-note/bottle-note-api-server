@@ -1,5 +1,6 @@
 package app.bottlenote.rating.domain;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,11 +12,14 @@ import java.util.Objects;
 import static lombok.AccessLevel.PROTECTED;
 
 @Getter
-@AllArgsConstructor(staticName = "is")
+@AllArgsConstructor
 @NoArgsConstructor(access = PROTECTED)
 @Embeddable
 public class RatingId implements Serializable {
+
+	@Column(name = "user_id")
 	private Long userId;
+	@Column(name = "alcohol_id")
 	private Long alcoholId;
 
 	@Override
@@ -29,5 +33,9 @@ public class RatingId implements Serializable {
 	@Override
 	public int hashCode() {
 		return Objects.hash(userId, alcoholId);
+	}
+
+	public static RatingId is(Long userId, Long alcoholId) {
+		return new RatingId(userId, alcoholId);
 	}
 }
