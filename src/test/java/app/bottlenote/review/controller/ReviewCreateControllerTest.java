@@ -1,0 +1,103 @@
+package app.bottlenote.review.controller;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import app.bottlenote.common.file.upload.dto.response.ImageUploadInfo;
+import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.review.domain.constant.ReviewStatus;
+import app.bottlenote.review.domain.constant.SizeType;
+import app.bottlenote.review.dto.request.LocationInfo;
+import app.bottlenote.review.dto.request.ReviewCreateRequest;
+import app.bottlenote.review.dto.response.ReviewCreateResponse;
+import app.bottlenote.review.service.ReviewService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.MockMvc;
+
+@DisplayName("리뷰 등록 컨트롤러 테스트")
+@WebMvcTest(ReviewController.class)
+@WithMockUser
+class ReviewCreateControllerTest {
+
+	@Autowired
+	protected ObjectMapper mapper;
+	@Autowired
+	protected MockMvc mockMvc;
+	@MockBean
+	private ReviewService reviewService;
+
+	private ReviewCreateRequest reviewCreateRequest;
+	private ReviewCreateResponse response;
+
+	@BeforeEach
+	void setUp() {
+		reviewCreateRequest = new ReviewCreateRequest(
+			1L,
+			ReviewStatus.PUBLIC,
+			"맛있어요",
+			SizeType.GLASS,
+			new BigDecimal("30000.0"),
+			LocationInfo.builder()
+				.zipCode("34222")
+				.address("서울시 영등포구")
+				.detailAddress("aaa 바")
+				.build(),
+			List.of(
+				new ImageUploadInfo(1L, "url1", "uploadUrl1"),
+				new ImageUploadInfo(2L, "url2", "uploadUrl2"),
+				new ImageUploadInfo(3L, "url3", "uploadUrl3")
+			),
+			List.of("테이스팅태그 1", "테이스팅태그 2", "테이스팅태그 3")
+		);
+
+		response = ReviewCreateResponse.builder()
+			.id(1L)
+			.content(reviewCreateRequest.content())
+			.callback(String.valueOf(reviewCreateRequest.alcoholId()))
+			.build();
+	}
+
+
+	@DisplayName("리뷰를 등록할 수 있다.")
+	@Test
+	void create_review_test() throws Exception {
+
+		try (MockedStatic<SecurityContextUtil> mockedValidator = mockStatic(
+			SecurityContextUtil.class)) {
+
+			mockedValidator.when(SecurityContextUtil::getUserIdByContext)
+				.thenReturn(Optional.of(1L));
+
+			when(reviewService.createReviews(any(), anyLong()))
+				.thenReturn(response);
+
+			mockMvc.perform(post("/api/v1/reviews")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(reviewCreateRequest))
+					.with(csrf()))
+				.andExpect(status().isOk())
+				.andDo(print())
+				.andExpect(jsonPath("$.code").value("200"))
+				.andExpect(jsonPath("$.data.content").value("맛있어요"));
+		}
+	}
+}
