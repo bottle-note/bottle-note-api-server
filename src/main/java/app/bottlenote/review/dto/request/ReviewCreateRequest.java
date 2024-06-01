@@ -49,7 +49,7 @@ public record ReviewCreateRequest(
 
 	public ReviewCreateRequest {
 		status = status == null ? ReviewStatus.PUBLIC : status;
-		isValidTasingTagList(tastingTagList);
+		tastingTagList = isValidTasingTagList(tastingTagList);
 		isValidImageInfo(imageUrlList);
 	}
 
