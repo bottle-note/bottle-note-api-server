@@ -1,6 +1,7 @@
 package app.bottlenote.review.controller;
 
 import static app.bottlenote.global.data.response.GlobalResponse.success;
+import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
@@ -11,6 +12,7 @@ import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewResponse;
 import app.bottlenote.review.service.ReviewService;
+import app.bottlenote.user.exception.UserException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +36,8 @@ public class ReviewController {
 	public ResponseEntity<GlobalResponse> createReviews(
 		@RequestBody ReviewCreateRequest reviewCreateRequest
 	) {
-		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(null);
+		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElseThrow(
+			() -> new UserException(USER_NOT_FOUND));
 
 		ReviewCreateResponse createdReview = reviewService.createReviews(reviewCreateRequest,
 			currentUserId);
