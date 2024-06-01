@@ -2,6 +2,7 @@ package app.bottlenote.review.dto.request;
 
 import static app.bottlenote.review.exception.ReviewExceptionCode.INVALID_TASTING_TAG_LENGTH;
 import static app.bottlenote.review.exception.ReviewExceptionCode.INVALID_TASTING_TAG_LIST_SIZE;
+import static app.bottlenote.review.exception.ReviewExceptionCode.IVALID_IMAGE_URL_MAX_SIZE;
 import static java.util.stream.Collectors.toSet;
 
 import app.bottlenote.common.file.upload.dto.response.ImageUploadInfo;
@@ -34,7 +35,6 @@ public record ReviewCreateRequest(
 
 	LocationInfo locationInfo,
 
-	@Size(max = 5, message = "이미지 URL은 최대 5개까지 가능합니다.")
 	List<ImageUploadInfo> imageUrlList,
 
 	List<String> tastingTagList
@@ -44,10 +44,13 @@ public record ReviewCreateRequest(
 	private static final int TASTING_TAG_MAX_LENGTH = 12;
 	private static final int TASTING_TAG_MAX_SIZE = 10;
 
+	private static final int IMAGE_URL_MAX_SIZE = 5;
+
 
 	public ReviewCreateRequest {
 		status = status == null ? ReviewStatus.PUBLIC : status;
-		tastingTagList = isValidTasingTagList(tastingTagList);
+		isValidTasingTagList(tastingTagList);
+		isValidImageInfo(imageUrlList);
 	}
 
 	private List<String> isValidTasingTagList(List<String> tastingTagList) {
@@ -72,5 +75,12 @@ public record ReviewCreateRequest(
 			}
 			return uniqueTastingTagList.stream().toList();
 		}
+	}
+
+	private List<ImageUploadInfo> isValidImageInfo(List<ImageUploadInfo> imageUrlList) {
+		if (imageUrlList.size() > IMAGE_URL_MAX_SIZE) {
+			throw new ReviewException(IVALID_IMAGE_URL_MAX_SIZE);
+		}
+		return imageUrlList;
 	}
 }
