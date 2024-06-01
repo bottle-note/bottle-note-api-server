@@ -17,11 +17,11 @@ public enum AlcoholExceptionCode implements ExceptionCode {
 
 	@Override
 	public String getMessage() {
-		return null;
+		return message;
 	}
 
 	@Override
 	public HttpStatus getHttpStatus() {
-		return null;
+		return httpStatus;
 	}
 }
