@@ -1,6 +1,7 @@
 package app.bottlenote.alcohols.repository;
 
 import app.bottlenote.alcohols.domain.Alcohol;
+import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
@@ -50,8 +51,10 @@ class CustomJpaAlcoholQueryRepositoryImplTest {
 	@Autowired
 	TestEntityManager testEntityManager;
 	EntityManager em;
+
 	@Autowired
-	private JpaAlcoholQueryRepository jpaAlcoholQueryRepository;
+	private AlcoholQueryRepository alcoholQueryRepository;
+
 	@Autowired
 	private UserCommandRepository userRepository;
 
@@ -83,7 +86,7 @@ class CustomJpaAlcoholQueryRepositoryImplTest {
 	void init() {
 		em = testEntityManager.getEntityManager();
 
-		Alcohol alcohol = jpaAlcoholQueryRepository.findById(1L).orElseThrow();
+		Alcohol alcohol = alcoholQueryRepository.findById(1L).orElseThrow();
 		User user = userRepository.save(User.builder().email("test@emai.com").nickName("test").role(UserType.ROLE_USER).socialType(SocialType.GOOGLE).build());
 
 		Review review = Review.builder().alcohol(alcohol).user(user).address("서울시 강남구").content("맛있어요").build();
@@ -109,7 +112,7 @@ class CustomJpaAlcoholQueryRepositoryImplTest {
 		AlcoholSearchCriteria criteria = AlcoholSearchCriteria.of(request, null);
 
 		// when
-		PageResponse<AlcoholSearchResponse> response = jpaAlcoholQueryRepository.searchAlcohols(criteria);
+		PageResponse<AlcoholSearchResponse> response = alcoholQueryRepository.searchAlcohols(criteria);
 
 
 		// then
