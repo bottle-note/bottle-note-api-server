@@ -1,7 +1,7 @@
 package app.bottlenote.picks.service;
 
 import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.repository.AlcoholQueryRepository;
+import app.bottlenote.alcohols.repository.JpaAlcoholQueryRepository;
 import app.bottlenote.picks.domain.Picks;
 import app.bottlenote.picks.domain.PicksStatus;
 import app.bottlenote.picks.dto.request.PicksUpdateRequest;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 public class PicksCommandService {
 
 	private final UserCommandRepository userRepository;
-	private final AlcoholQueryRepository alcoholQueryRepository;
+	private final JpaAlcoholQueryRepository jpaAlcoholQueryRepository;
 	private final PicksRepository picksRepository;
 
 	/**
@@ -31,7 +31,7 @@ public class PicksCommandService {
 			.orElseGet(() -> {
 				User user = userRepository.findById(userId)
 					.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
-				Alcohol alcohol = alcoholQueryRepository
+				Alcohol alcohol = jpaAlcoholQueryRepository
 					.findById(request.alcoholId())
 					.orElseThrow(() -> new IllegalArgumentException("해당 술이 존재하지 않습니다.")); //todo Alcohols Exception 생성 필요
 				return Picks.builder()

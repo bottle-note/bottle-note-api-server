@@ -1,7 +1,7 @@
 package app.bottlenote.picks.service;
 
 import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.repository.AlcoholQueryRepository;
+import app.bottlenote.alcohols.repository.JpaAlcoholQueryRepository;
 import app.bottlenote.picks.domain.Picks;
 import app.bottlenote.picks.domain.PicksStatus;
 import app.bottlenote.picks.dto.request.PicksUpdateRequest;
@@ -32,7 +32,7 @@ class PicksCommandServiceTest {
 	@Mock
 	private UserCommandRepository userRepository;
 	@Mock
-	private AlcoholQueryRepository alcoholQueryRepository;
+	private JpaAlcoholQueryRepository jpaAlcoholQueryRepository;
 	@Mock
 	private PicksRepository picksRepository;
 
@@ -58,7 +58,7 @@ class PicksCommandServiceTest {
 
 			// when
 			when(userRepository.findById(userId)).thenReturn(Optional.ofNullable(user));
-			when(alcoholQueryRepository.findById(alcohol.getId())).thenReturn(Optional.ofNullable(alcohol));
+			when(jpaAlcoholQueryRepository.findById(alcohol.getId())).thenReturn(Optional.ofNullable(alcohol));
 
 			PicksUpdateResponse response = picksCommandService.updatePicks(pickRequest, userId);
 			// then
@@ -120,7 +120,7 @@ class PicksCommandServiceTest {
 
 			// when
 			when(userRepository.findById(userId)).thenReturn(Optional.ofNullable(user));
-			when(alcoholQueryRepository.findById(alcohol.getId())).thenReturn(Optional.ofNullable(alcohol));
+			when(jpaAlcoholQueryRepository.findById(alcohol.getId())).thenReturn(Optional.ofNullable(alcohol));
 
 			PicksUpdateResponse response = picksCommandService.updatePicks(pickRequest, userId);
 			// then

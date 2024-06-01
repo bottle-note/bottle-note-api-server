@@ -45,13 +45,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ActiveProfiles("test")
 @Import(TestConfig.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class CustomAlcoholQueryRepositoryImplTest {
+class CustomJpaAlcoholQueryRepositoryImplTest {
 
 	@Autowired
 	TestEntityManager testEntityManager;
 	EntityManager em;
 	@Autowired
-	private AlcoholQueryRepository alcoholQueryRepository;
+	private JpaAlcoholQueryRepository jpaAlcoholQueryRepository;
 	@Autowired
 	private UserCommandRepository userRepository;
 
@@ -83,7 +83,7 @@ class CustomAlcoholQueryRepositoryImplTest {
 	void init() {
 		em = testEntityManager.getEntityManager();
 
-		Alcohol alcohol = alcoholQueryRepository.findById(1L).orElseThrow();
+		Alcohol alcohol = jpaAlcoholQueryRepository.findById(1L).orElseThrow();
 		User user = userRepository.save(User.builder().email("test@emai.com").nickName("test").role(UserType.ROLE_USER).socialType(SocialType.GOOGLE).build());
 
 		Review review = Review.builder().alcohol(alcohol).user(user).address("서울시 강남구").content("맛있어요").build();
@@ -109,7 +109,7 @@ class CustomAlcoholQueryRepositoryImplTest {
 		AlcoholSearchCriteria criteria = AlcoholSearchCriteria.of(request, null);
 
 		// when
-		PageResponse<AlcoholSearchResponse> response = alcoholQueryRepository.searchAlcohols(criteria);
+		PageResponse<AlcoholSearchResponse> response = jpaAlcoholQueryRepository.searchAlcohols(criteria);
 
 
 		// then

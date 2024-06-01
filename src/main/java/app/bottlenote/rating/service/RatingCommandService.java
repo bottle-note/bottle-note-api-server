@@ -1,7 +1,7 @@
 package app.bottlenote.rating.service;
 
 import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.repository.AlcoholQueryRepository;
+import app.bottlenote.alcohols.repository.JpaAlcoholQueryRepository;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
@@ -11,7 +11,7 @@ import app.bottlenote.rating.exception.RatingExceptionCode;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
-import app.bottlenote.user.repository.UserQueryRepository;
+import app.bottlenote.user.repository.JpaUserQueryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,15 +20,15 @@ import org.springframework.stereotype.Service;
 public class RatingCommandService {
 
 	private final RatingRepository ratingRepository;
-	private final UserQueryRepository userQueryRepository;
-	private final AlcoholQueryRepository alcoholQueryRepository;
+	private final JpaUserQueryRepository jpaUserQueryRepository;
+	private final JpaAlcoholQueryRepository jpaAlcoholQueryRepository;
 
 	public String register(Long alcoholId, Long userId, RatingPoint ratingPoint) {
 
-		User user = userQueryRepository.findById(userId)
+		User user = jpaUserQueryRepository.findById(userId)
 			.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
 
-		Alcohol alcohol = alcoholQueryRepository.findById(alcoholId)
+		Alcohol alcohol = jpaAlcoholQueryRepository.findById(alcoholId)
 			.orElseThrow(() -> new RatingException(RatingExceptionCode.ALCOHOL_NOT_FOUND));
 
 		Rating rating = ratingRepository.findByAlcoholIdAndUserId(alcoholId, userId)

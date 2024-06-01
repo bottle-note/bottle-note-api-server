@@ -7,7 +7,7 @@ import app.bottlenote.alcohols.dto.response.detail.AlcoholDetail;
 import app.bottlenote.alcohols.dto.response.detail.AlcoholDetailInfo;
 import app.bottlenote.alcohols.dto.response.detail.FriendsDetailInfo;
 import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
-import app.bottlenote.alcohols.repository.AlcoholQueryRepository;
+import app.bottlenote.alcohols.repository.JpaAlcoholQueryRepository;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.repository.ReviewQueryRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AlcoholQueryService {
 
-	private final AlcoholQueryRepository alcoholQueryRepository;
+	private final JpaAlcoholQueryRepository jpaAlcoholQueryRepository;
 	private final ReviewQueryRepository reviewQueryRepository;
 
 	/**
@@ -38,7 +38,7 @@ public class AlcoholQueryService {
 
 		log.info("searchAlcohols criteria: {}", criteria);
 
-		return alcoholQueryRepository.searchAlcohols(criteria);
+		return jpaAlcoholQueryRepository.searchAlcohols(criteria);
 	}
 
 
@@ -53,7 +53,7 @@ public class AlcoholQueryService {
 	public AlcoholDetail findAlcoholDetailById(Long alcoholId, Long userId) {
 
 		// 위스키 상세 조회
-		AlcoholDetailInfo alcoholDetailById = alcoholQueryRepository.findAlcoholDetailById(alcoholId, userId);
+		AlcoholDetailInfo alcoholDetailById = jpaAlcoholQueryRepository.findAlcoholDetailById(alcoholId, userId);
 
 		// 팔로워 수 조회
 		FriendsDetailInfo friendsData = getMockFriendsData();
