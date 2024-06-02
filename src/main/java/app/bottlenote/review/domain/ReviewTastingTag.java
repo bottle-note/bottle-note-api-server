@@ -1,6 +1,7 @@
 package app.bottlenote.review.domain;
 
-import app.bottlenote.common.domain.BaseEntity;
+import app.bottlenote.common.domain.BaseTimeEntity;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -18,7 +19,7 @@ import org.hibernate.annotations.Comment;
 @Comment("리뷰 테이스팅 태그 테이블")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity(name = "review_tasting_tag")
-public class ReviewTastingTag extends BaseEntity {
+public class ReviewTastingTag extends BaseTimeEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,6 +30,7 @@ public class ReviewTastingTag extends BaseEntity {
 	private Review review;
 
 	@Comment("테이스팅 태그")
+	@Column(name = "tasting_tag")
 	private String tastingTag;
 
 	@Builder
