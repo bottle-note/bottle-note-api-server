@@ -8,6 +8,7 @@ CREATE TABLE `region`
     `create_at`      timestamp    NULL COMMENT '최초 생성일',
     `create_by`      varchar(255) NULL COMMENT '최초 생성자',
     `last_modify_at` timestamp    NULL COMMENT '최종 생성일',
+    `last_modify_at1` timestamp    NULL COMMENT '최종 생성일',
     `last_modify_by` varchar(255) NULL COMMENT '최종 생성자',
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
