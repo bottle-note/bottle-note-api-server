@@ -38,14 +38,14 @@ public class ReviewService {
 	private final ReviewTastingTagRepository reviewTastingTagRepository;
 
 	@Transactional
-	public ReviewCreateResponse createReviews(ReviewCreateRequest reviewCreateRequest, Long currentUserid) {
+	public ReviewCreateResponse createReviews(ReviewCreateRequest reviewCreateRequest, Long currentUserId) {
 
 		//DB에서 Alcohol 엔티티 조회
 		Alcohol alcohol = alcoholQueryRepository.findById(reviewCreateRequest.alcoholId())
 			.orElseThrow(() -> new AlcoholException(ALCOHOL_NOT_FOUND));
 
 		//현재 로그인 한 user id로 DB에서 User 엔티티 조회
-		User user = userCommandRepository.findById(currentUserid).
+		User user = userCommandRepository.findById(currentUserId).
 			orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
 		Review review = Review.builder()
