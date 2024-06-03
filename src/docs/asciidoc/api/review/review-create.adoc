@@ -1,6 +1,6 @@
-=== 리뷰 조회 ===
+=== 리뷰 등 ===
 
-리뷰 조회 기능입니다.
+리뷰 등록 기능입니다.
 RequestBody로 요청을 전달합니다.
 
 - content는 반드시 존재해야 하며 500자를 넘을 수 없습니다.
@@ -25,3 +25,30 @@ include::{snippets}/review/review-create/request-body.adoc[]
 [discrete]
 include::{snippets}/review/review-create/response-fields.adoc[]
 include::{snippets}/review/review-create/http-response.adoc[]
+
+
+==== ReviewStatus ====
+
+[cols="1,1",options="header"]
+|===
+| 코드  | 설명
+
+| PUBLIC
+| 공개(기본 값)
+
+| PRIVATE
+| 비공개
+|===
+
+==== SizeType ====
+
+[cols="1,1",options="header"]
+|===
+| 코드  | 설명
+
+| GLASS
+| 잔
+
+| BOTTLE
+| 병
+|===

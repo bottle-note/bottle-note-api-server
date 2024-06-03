@@ -1,6 +1,9 @@
 package app.bottlenote.review.domain;
 
+import static app.bottlenote.review.exception.ReviewExceptionCode.INVALID_TASTING_TAG_LENGTH;
+
 import app.bottlenote.common.domain.BaseTimeEntity;
+import app.bottlenote.review.exception.ReviewException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -37,7 +40,17 @@ public class ReviewTastingTag extends BaseTimeEntity {
 	public ReviewTastingTag(Long id, Review review, String tastingTag) {
 		this.id = id;
 		this.review = review;
-		this.tastingTag = tastingTag;
+		this.tastingTag = isValidTasingTag(tastingTag);
+	}
+
+
+	private static final int TASTING_TAG_MAX_LENGTH = 12;
+
+	private String isValidTasingTag(String tastingTag) {
+		if (tastingTag.length() > TASTING_TAG_MAX_LENGTH) {
+			throw new ReviewException(INVALID_TASTING_TAG_LENGTH);
+		}
+		return tastingTag.trim();
 	}
 }
 
