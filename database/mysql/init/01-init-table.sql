@@ -201,7 +201,7 @@ CREATE TABLE `review`
     `id`             bigint         NOT NULL AUTO_INCREMENT COMMENT '술 리뷰',
     `user_id`        bigint         NOT NULL COMMENT '리뷰 작성자',
     `alcohol_id`     bigint         NOT NULL COMMENT '리뷰 대상 술',
-    `content`        varchar(255)   NOT NULL COMMENT '1000글자',
+    `content`        varchar(1000)   NOT NULL COMMENT '1000글자',
     `size_type`      varchar(255)   NULL COMMENT '잔 : GLASS , 보틀 : BOTTLE',
     `price`          DECIMAL(10, 2) NULL COMMENT '가격',
     `zip_code`       varchar(255)   NULL COMMENT '마신 장소 우편번호',
