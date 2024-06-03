@@ -24,49 +24,40 @@ public class ReviewImage extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	@Comment("이미지 순서")
+	@Column(name = "`order`", nullable = false)
+	private Long order;
+
 	@Comment("이미지 경로")
 	@Column(name = "image_url", nullable = false)
 	private String imageUrl;
 
-//	@Comment("파일명")
-//	@Column(name = "file_name", nullable = false)
-//	private String fileName;
-//
-//	@Comment("파일명")
-//	@Column(name = "file_org_name", nullable = false)
-//	private String fileOrgName;
-//
-//	@Comment("파일 크기")
-//	@Column(name = "file_size", nullable = false)
-//	private String fileSize;
+	@Comment("업로드 된 루트 경로(버킷부터 이미지 이름까지)")
+	@Column(name = "image_key", nullable = false)
+	private String imageKey;
+
+	@Comment("저장된 이미지 경로(버킷부터 최종폴더까지)")
+	@Column(name = "image_path", nullable = false)
+	private String imagePath;
+
+	@Comment("생성된 UUID + 확장자 파일명")
+	@Column(name = "image_name", nullable = false)
+	private String imageName;
 
 	@Comment("리뷰 아이디")
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "review_id")
 	private Review review;
 
-	@Comment("이미지 순서")
-	@Column(name = "`order`", nullable = false)
-	private Long order;
-
-//	@Comment("상태")
-//	@Column(name = "status")
-//	@Enumerated(EnumType.STRING)
-//	private ImageStatus status;
-
-//	@Comment("태그")
-//	@Column(name = "tags")
-//	private String tags;
-//
-//	@Comment("주석")
-//	@Column(name = "description")
-//	private String description;
 
 	@Builder
-	public ReviewImage(Long id, String imageUrl, Review review, Long order) {
+	public ReviewImage(Long id, Long order, String imageUrl, String imageKey, String imagePath, String imageName, Review review) {
 		this.id = id;
-		this.imageUrl = imageUrl;
-		this.review = review;
 		this.order = order;
+		this.imageUrl = imageUrl;
+		this.imageKey = imageKey;
+		this.imagePath = imagePath;
+		this.imageName = imageName;
+		this.review = review;
 	}
 }
