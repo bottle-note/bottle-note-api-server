@@ -19,19 +19,16 @@ import static org.springframework.restdocs.request.RequestDocumentation.queryPar
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.bottlenote.common.file.upload.dto.response.ImageUploadInfo;
 import app.bottlenote.docs.AbstractRestDocs;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.review.controller.ReviewController;
-import app.bottlenote.review.domain.constant.ReviewSortType;
 import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.review.dto.request.LocationInfo;
-import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
+import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewDetail;
 import app.bottlenote.review.dto.response.ReviewResponse;
@@ -40,7 +37,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -52,40 +48,9 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 
 	private final ReviewService reviewService = mock(ReviewService.class);
 
-	private ReviewCreateRequest reviewCreateRequest;
-	private ReviewCreateResponse response;
-
 	@Override
 	protected Object initController() {
 		return new ReviewController(reviewService);
-	}
-
-	@BeforeEach
-	void setUp() {
-		reviewCreateRequest = new ReviewCreateRequest(
-			1L,
-			ReviewStatus.PUBLIC,
-			"맛있어요",
-			SizeType.GLASS,
-			new BigDecimal("30000.0"),
-			LocationInfo.builder()
-				.zipCode("34222")
-				.address("서울시 영등포구")
-				.detailAddress("aaa 바")
-				.build(),
-			List.of(
-				new ImageUploadInfo(1L, "url1", "uploadUrl1"),
-				new ImageUploadInfo(2L, "url2", "uploadUrl2"),
-				new ImageUploadInfo(3L, "url3", "uploadUrl3")
-			),
-			List.of("테이스팅태그 1", "테이스팅태그 2", "테이스팅태그 3")
-		);
-
-		response = ReviewCreateResponse.builder()
-			.id(1L)
-			.content(reviewCreateRequest.content())
-			.callback(String.valueOf(reviewCreateRequest.alcoholId()))
-			.build();
 	}
 
 	@Test
@@ -99,11 +64,11 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 				.thenReturn(Optional.of(1L));
 
 			when(reviewService.createReviews(any(), anyLong()))
-				.thenReturn(response);
+				.thenReturn(getReviewCreateResponse());
 
 			mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/reviews")
 					.contentType(MediaType.APPLICATION_JSON)
-					.content(objectMapper.writeValueAsString(reviewCreateRequest))
+					.content(objectMapper.writeValueAsString(getReviewCreateRequest()))
 					.with(csrf()))
 				.andExpect(status().isOk())
 				.andDo(
@@ -121,7 +86,6 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 							fieldWithPath("imageUrlList").type(ARRAY).description("이미지 URL 목록"),
 							fieldWithPath("imageUrlList[].order").type(NUMBER).description("이미지 순서"),
 							fieldWithPath("imageUrlList[].viewUrl").type(STRING).description("이미지 뷰 URL"),
-							fieldWithPath("imageUrlList[].uploadUrl").type(STRING).description("이미지 업로드 URL"),
 							fieldWithPath("tastingTagList[]").type(ARRAY).description("테이스팅 태그 목록")
 						),
 						responseFields(
@@ -152,7 +116,6 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 	void review_read_test() throws Exception {
 
 		//given
-		PageableRequest request = getRequest();
 		PageResponse<ReviewResponse> response = getResponse();
 
 		//when
@@ -210,12 +173,32 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 			);
 	}
 
-	private PageableRequest getRequest() {
-		return PageableRequest.builder()
-			.sortType(ReviewSortType.POPULAR)
-			.sortOrder(SortOrder.DESC)
-			.cursor(0L)
-			.pageSize(2L)
+	private ReviewCreateRequest getReviewCreateRequest() {
+		return new ReviewCreateRequest(
+			1L,
+			ReviewStatus.PUBLIC,
+			"맛있어요",
+			SizeType.GLASS,
+			new BigDecimal("30000.0"),
+			LocationInfo.builder()
+				.zipCode("34222")
+				.address("서울시 영등포구")
+				.detailAddress("aaa 바")
+				.build(),
+			List.of(
+				new ReviewImageInfo(1L, "url1"),
+				new ReviewImageInfo(2L, "url2"),
+				new ReviewImageInfo(3L, "url3")
+			),
+			List.of("테이스팅태그 1", "테이스팅태그 2", "테이스팅태그 3")
+		);
+	}
+
+	private ReviewCreateResponse getReviewCreateResponse() {
+		return ReviewCreateResponse.builder()
+			.id(1L)
+			.content(getReviewCreateRequest().content())
+			.callback(String.valueOf(getReviewCreateRequest().alcoholId()))
 			.build();
 	}
 

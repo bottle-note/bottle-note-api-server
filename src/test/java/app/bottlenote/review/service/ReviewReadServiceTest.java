@@ -27,7 +27,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @DisplayName("리뷰 조회 서비스 레이어 테스트")
 @ExtendWith(MockitoExtension.class)
-class ReviewServiceTest {
+class ReviewReadServiceTest {
 
 	@Mock
 	private ReviewRepository reviewRepository;
@@ -35,13 +35,11 @@ class ReviewServiceTest {
 	@InjectMocks
 	private ReviewService reviewService;
 
-	private Long userId;
 	private PageableRequest request;
 	private PageResponse<ReviewResponse> response;
 
 	@BeforeEach
 	void setUp() {
-		userId = 1L;
 		request = PageableRequest.builder().build();
 		response = getResponse();
 	}
