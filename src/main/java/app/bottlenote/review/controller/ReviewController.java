@@ -33,27 +33,20 @@ public class ReviewController {
 	private final ReviewService reviewService;
 
 	@PostMapping
-	public ResponseEntity<GlobalResponse> createReviews(
-		@RequestBody ReviewCreateRequest reviewCreateRequest
-	) {
-		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElseThrow(
-			() -> new UserException(USER_NOT_FOUND));
+	public ResponseEntity<GlobalResponse> createReviews(@RequestBody ReviewCreateRequest reviewCreateRequest) {
+		Long currentUserId = SecurityContextUtil.getUserIdByContext().
+			orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
-		ReviewCreateResponse createdReview = reviewService.createReviews(reviewCreateRequest,
-			currentUserId);
+		ReviewCreateResponse createdReview = reviewService.createReviews(reviewCreateRequest, currentUserId);
 		return ResponseEntity.ok(success(createdReview));
 	}
 
 	@GetMapping("/{alcoholId}")
-	public ResponseEntity<GlobalResponse> getReviews(
-		@PathVariable Long alcoholId,
-		@ModelAttribute PageableRequest pageableRequest
-	) {
+	public ResponseEntity<GlobalResponse> getReviews(@PathVariable Long alcoholId, @ModelAttribute PageableRequest pageableRequest) {
 
 		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(null);
 
-		log.info("currentUserId is : {} \nPageable INFO  : {}", currentUserId,
-			pageableRequest.toString());
+		log.info("currentUserId is : {} \nPageable INFO  : {}", currentUserId, pageableRequest.toString());
 
 		PageResponse<ReviewResponse> pageResponse = reviewService.getReviews(
 			alcoholId,
@@ -61,12 +54,9 @@ public class ReviewController {
 			currentUserId
 		);
 
-		return ResponseEntity.ok(success(
-
-			pageResponse.content(),
-			MetaService.createMetaInfo()
-				.add("pageable", pageResponse.cursorPageable())
-		));
+		return ResponseEntity.ok(
+			success(pageResponse.content(), MetaService.createMetaInfo().add("pageable", pageResponse.cursorPageable())
+			));
 	}
 
 
