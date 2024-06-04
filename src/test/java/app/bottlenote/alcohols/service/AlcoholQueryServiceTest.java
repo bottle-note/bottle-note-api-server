@@ -4,7 +4,7 @@ import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchDetail;
-import app.bottlenote.alcohols.repository.AlcoholQueryRepository;
+import app.bottlenote.alcohols.repository.JpaAlcoholQueryRepository;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 class AlcoholQueryServiceTest {
 
 	@Mock
-	private AlcoholQueryRepository alcoholQueryRepository;
+	private JpaAlcoholQueryRepository jpaAlcoholQueryRepository;
 
 	@InjectMocks
 	private AlcoholQueryService alcoholQueryService;
@@ -48,13 +48,13 @@ class AlcoholQueryServiceTest {
 	void testSearchAlcohols() {
 		// given
 		// when
-		when(alcoholQueryRepository.searchAlcohols(any(AlcoholSearchCriteria.class))).thenReturn(response);
+		when(jpaAlcoholQueryRepository.searchAlcohols(any(AlcoholSearchCriteria.class))).thenReturn(response);
 		PageResponse<AlcoholSearchResponse> actualResponse = alcoholQueryService.searchAlcohols(request, userId);
 
 		// then
 		assertEquals(response.content(), actualResponse.content());
 		assertEquals(response.cursorPageable(), actualResponse.cursorPageable());
-		verify(alcoholQueryRepository).searchAlcohols(any(AlcoholSearchCriteria.class));
+		verify(jpaAlcoholQueryRepository).searchAlcohols(any(AlcoholSearchCriteria.class));
 	}
 
 	private PageResponse<AlcoholSearchResponse> getResponse() {

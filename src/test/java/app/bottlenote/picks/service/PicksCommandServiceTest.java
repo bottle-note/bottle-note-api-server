@@ -1,7 +1,7 @@
 package app.bottlenote.picks.service;
 
 import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.repository.AlcoholQueryRepository;
+import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.picks.domain.Picks;
 import app.bottlenote.picks.domain.PicksStatus;
 import app.bottlenote.picks.dto.request.PicksUpdateRequest;
@@ -31,8 +31,10 @@ class PicksCommandServiceTest {
 
 	@Mock
 	private UserCommandRepository userRepository;
+
 	@Mock
 	private AlcoholQueryRepository alcoholQueryRepository;
+
 	@Mock
 	private PicksRepository picksRepository;
 

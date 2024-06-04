@@ -1,7 +1,7 @@
 package app.bottlenote.rating.service;
 
 import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.repository.AlcoholQueryRepository;
+import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
@@ -9,9 +9,9 @@ import app.bottlenote.rating.domain.RatingRepository;
 import app.bottlenote.rating.exception.RatingException;
 import app.bottlenote.rating.exception.RatingExceptionCode;
 import app.bottlenote.user.domain.User;
+import app.bottlenote.user.domain.UserQueryRepository;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
-import app.bottlenote.user.repository.UserQueryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
