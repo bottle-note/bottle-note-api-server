@@ -12,13 +12,19 @@
 
 - 레프레시 토큰이 null이면 토큰 검증 시 UserException이 발생합니다.
 
-
 [source]
 ----
 POST /api/v1/oauth/reissue
 ----
+
+[discrete]
+==== 요청 파라미터 ====
+
 [discrete]
 include::{snippets}/user/user-reissue//request-body.adoc[]
+
+[discrete]
+==== 응답 파라미터  ====
 
 [discrete]
 include::{snippets}/user/user-reissue//response-fields.adoc[]

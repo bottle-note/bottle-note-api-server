@@ -1,4 +1,3 @@
-
 === 로그인 ===
 
 기본적인 인증은 소셜로그인 API 서버에서 수행됩니다.
@@ -28,8 +27,14 @@ POST /api/v1/oauth/login
 ----
 
 [discrete]
+==== 요청 파라미터 ====
+
+[discrete]
 include::{snippets}/user/user-login/request-fields.adoc[]
 include::{snippets}/user/user-login/request-body.adoc[]
+
+[discrete]
+==== 응답 파라미터  ====
 
 [discrete]
 include::{snippets}/user/user-login/response-fields.adoc[]

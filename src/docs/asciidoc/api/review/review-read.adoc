@@ -17,10 +17,14 @@ API EndPoint
 GET /api/v1/reviews/{alcoholId}
 ----
 
-요청 파라미터 ( request fields )
+[discrete]
+==== 요청 파라미터 ====
 
 include::{snippets}/review/review-read/httpie-request.adoc[]
 include::{snippets}/review/review-read/query-parameters.adoc[]
+
+[discrete]
+==== 응답 파라미터  ====
 
 [discrete]
 include::{snippets}/review/review-read/response-fields.adoc[]

@@ -1,4 +1,4 @@
-=== 리뷰 등 ===
+=== 리뷰 등록 ===
 
 리뷰 등록 기능입니다.
 RequestBody로 요청을 전달합니다.
@@ -19,14 +19,20 @@ POST /api/v1/reviews
 ----
 
 [discrete]
+==== 요청 파라미터 ====
+
+[discrete]
 include::{snippets}/review/review-create/request-fields.adoc[]
 include::{snippets}/review/review-create/request-body.adoc[]
+
+[discrete]
+==== 응답 파라미터  ====
 
 [discrete]
 include::{snippets}/review/review-create/response-fields.adoc[]
 include::{snippets}/review/review-create/http-response.adoc[]
 
-
+[discrete]
 ==== ReviewStatus ====
 
 [cols="1,1",options="header"]
@@ -40,6 +46,7 @@ include::{snippets}/review/review-create/http-response.adoc[]
 | 비공개
 |===
 
+[discrete]
 ==== SizeType ====
 
 [cols="1,1",options="header"]

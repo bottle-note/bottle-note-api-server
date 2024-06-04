@@ -10,5 +10,8 @@ GET /api/v1/regions
 ----
 
 [discrete]
+==== 응답 파라미터  ====
+
+[discrete]
 include::{snippets}/alcohols/regions/response-fields.adoc[]
 include::{snippets}/alcohols/regions/response-body.adoc[]

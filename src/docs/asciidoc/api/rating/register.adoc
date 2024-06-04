@@ -1,0 +1,28 @@
+=== 별점 등록  ===
+
+별점 등록을 위한 API 입니다.
+
+별점 등록 시 Acsess Token이 필수적으로 필요합니다.
+
+[source]
+----
+POST /api/v1/rating/register
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/rating/register/request-fields.adoc[]
+include::{snippets}/rating/register/request-body.adoc[]
+
+- 별점의 경우 0.5 단위의 값만 요청 가능합니다.
+- 별점의 범위는 0.0 ~ 5.0 입니다.
+- 0.0으로 업데이트 시 이후 조회 에서 반환되는 값은  `null` 반환된다.
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/rating/register/response-fields.adoc[]
+include::{snippets}/rating/register/response-body.adoc[]

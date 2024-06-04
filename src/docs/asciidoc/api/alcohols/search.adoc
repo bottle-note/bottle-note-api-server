@@ -3,13 +3,13 @@
 검색 조건으로 술(위스키) 정보를 조회합니다.
 
 [discrete]
-===== _Request_ =====
+==== 요청 파라미터 ====
 
 include::{snippets}/alcohols/search/httpie-request.adoc[]
 include::{snippets}/alcohols/search/query-parameters.adoc[]
 
 [discrete]
-===== _Response_ =====
+==== 응답 파라미터  ====
 
 [discrete]
 include::{snippets}/alcohols/search/response-fields.adoc[]

@@ -10,14 +10,14 @@ PUT apv/v1/picks
 ----
 
 [discrete]
-===== _Request_ =====
+==== 요청 파라미터 ====
 
 [discrete]
 include::{snippets}/alcohols/picks/request-fields.adoc[]
 include::{snippets}/alcohols/picks/request-body.adoc[]
 
 [discrete]
-===== _Response_ =====
+==== 응답 파라미터  ====
 
 [discrete]
 include::{snippets}/alcohols/picks/response-fields.adoc[]

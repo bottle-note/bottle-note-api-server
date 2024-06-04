@@ -6,8 +6,9 @@
 
 추가적인 정보가 필요하신 경우, 문의해 주시기 바랍니다.
 
+
 [discrete]
-===== _Request_ =====
+==== 요청 파라미터 ====
 
 [discrete]
 [source]
@@ -18,7 +19,7 @@ GET /api/v1/alcohols/{alcoholsId}
 - `alcoholsId` : 조회할 술(위스키)의 ID
 
 [discrete]
-===== _Response_ =====
+==== 응답 파라미터  ====
 
 [discrete]
 include::{snippets}/alcohols/detail/response-fields.adoc[]

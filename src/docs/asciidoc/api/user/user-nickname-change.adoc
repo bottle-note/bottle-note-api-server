@@ -1,4 +1,3 @@
-
 === 닉네임 변경 ===
 
 닉네임 변경 API는 사용자가 로그인 후 자신의 닉네임을 변경할 수 있게 해줍니다.
@@ -17,8 +16,14 @@ PATCH /api/v1/users/nickname
 ----
 
 [discrete]
+==== 요청 파라미터 ====
+
+[discrete]
 include::{snippets}/user/nickname-change/request-fields.adoc[]
 include::{snippets}/user/nickname-change/request-body.adoc[]
+
+[discrete]
+==== 응답 파라미터  ====
 
 [discrete]
 include::{snippets}/user/nickname-change/response-fields.adoc[]
