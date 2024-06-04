@@ -1,2 +1,5 @@
-### 토큰 발급 (일반)
+### 위스키 조회
 GET {{host}}/api/v1/alcohols/search
+
+### 카테고리 조회
+GET {{host}}/api/v1/alcohols/categories
