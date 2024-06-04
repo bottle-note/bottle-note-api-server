@@ -14,6 +14,7 @@ import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.repository.ReviewQueryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -93,6 +94,8 @@ public class AlcoholQueryService {
 		return FriendsDetailInfo.of(6L, friendInfos);
 	}
 
+	@Cacheable(value = "LC-AlcoholCategory")
+	@Transactional(readOnly = true)
 	public List<CategoryResponse> getAlcoholCategory(AlcoholType type) {
 		return alcoholQueryRepository.findAllCategories(type);
 	}
