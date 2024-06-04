@@ -8,7 +8,6 @@ CREATE TABLE `region`
     `create_at`      timestamp    NULL COMMENT '최초 생성일',
     `create_by`      varchar(255) NULL COMMENT '최초 생성자',
     `last_modify_at` timestamp    NULL COMMENT '최종 생성일',
-    `last_modify_at1` timestamp    NULL COMMENT '최종 생성일',
     `last_modify_by` varchar(255) NULL COMMENT '최종 생성자',
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
@@ -117,7 +116,7 @@ CREATE TABLE `rating`
 (
     `alcohol_id`     bigint       NOT NULL COMMENT '평가 대상 술',
     `user_id`        bigint       NOT NULL COMMENT '평가자(사용자)',
-    `rating`         DOUBLE  NOT NULL DEFAULT 0 COMMENT '0점 : 삭제, 0.5:최저점수, 5:최고점수',
+    `rating`         DOUBLE       NOT NULL DEFAULT 0 COMMENT '0점 : 삭제, 0.5:최저점수, 5:최고점수',
     `create_at`      timestamp    NULL COMMENT '최초 생성일',
     `create_by`      varchar(255) NULL COMMENT '최초 생성자',
     `last_modify_at` timestamp    NULL COMMENT '최종 생성일',
@@ -201,7 +200,7 @@ CREATE TABLE `review`
     `id`             bigint         NOT NULL AUTO_INCREMENT COMMENT '술 리뷰',
     `user_id`        bigint         NOT NULL COMMENT '리뷰 작성자',
     `alcohol_id`     bigint         NOT NULL COMMENT '리뷰 대상 술',
-    `content`        varchar(1000)   NOT NULL COMMENT '1000글자',
+    `content`        varchar(1000)  NOT NULL COMMENT '1000글자',
     `size_type`      varchar(255)   NULL COMMENT '잔 : GLASS , 보틀 : BOTTLE',
     `price`          DECIMAL(10, 2) NULL COMMENT '가격',
     `zip_code`       varchar(255)   NULL COMMENT '마신 장소 우편번호',
@@ -264,11 +263,11 @@ CREATE TABLE `review_image`
 
 CREATE TABLE `review_tasting_tag`
 (
-    `id`             bigint       NOT NULL AUTO_INCREMENT COMMENT '리뷰 테이스팅 태그 - 최대 10개',
-    `review_id`      bigint       NOT NULL comment '리뷰 아이디',
-    `tasting_tag`    varchar(12)  NOT NULL COMMENT '테이스팅 태그 - 최대 12자',
-    `create_at`      timestamp    NULL COMMENT '최초 생성일',
-    `last_modify_at` timestamp    NULL COMMENT '최종 생성일',
+    `id`             bigint      NOT NULL AUTO_INCREMENT COMMENT '리뷰 테이스팅 태그 - 최대 10개',
+    `review_id`      bigint      NOT NULL comment '리뷰 아이디',
+    `tasting_tag`    varchar(12) NOT NULL COMMENT '테이스팅 태그 - 최대 12자',
+    `create_at`      timestamp   NULL COMMENT '최초 생성일',
+    `last_modify_at` timestamp   NULL COMMENT '최종 생성일',
     PRIMARY KEY (`id`),
     FOREIGN KEY (`review_id`) REFERENCES `review` (`id`)
 ) ENGINE = InnoDB
@@ -316,7 +315,7 @@ CREATE TABLE `likes`
 (
     `id`             bigint       NOT NULL AUTO_INCREMENT COMMENT '좋아요',
     `review_id`      bigint       NOT NULL COMMENT '좋아요의 대상 리뷰',
-    `user_id`       bigint       NOT NULL COMMENT '좋아요를 누른 사람',
+    `user_id`        bigint       NOT NULL COMMENT '좋아요를 누른 사람',
     `status`         varchar(255) NULL COMMENT '공감, 공감취소',
     `create_at`      timestamp    NULL COMMENT '최초 생성일',
     `create_by`      varchar(255) NULL COMMENT '최초 생성자',
@@ -350,19 +349,19 @@ CREATE TABLE `alcohol_image`
 
 CREATE TABLE `user_history`
 (
-    `id`	         bigint	      NOT NULL	COMMENT '히스토리 id',
-    `user_id`	     bigint	      NOT NULL	COMMENT '사용자 id',
-    `alcohol_id`	 bigint	      NOT NULL	COMMENT '알코올 id',
-    `type`	         varchar(255) NOT NULL	COMMENT 'pick, review, rating',
-    `action`	     varchar(255) NULL	COMMENT 'creat, update, delete',
-    `create_at`	     timestamp    NULL	COMMENT '최초 생성일',
-    `create_by`	     varchar(255) NULL	COMMENT '최초 생성자',
-    `last_modify_at` timestamp	  NULL	COMMENT '최종 생성일',
-    `last_modify_by` varchar(255) NULL	COMMENT '최종 생성자',
+    `id`             bigint       NOT NULL COMMENT '히스토리 id',
+    `user_id`        bigint       NOT NULL COMMENT '사용자 id',
+    `alcohol_id`     bigint       NOT NULL COMMENT '알코올 id',
+    `type`           varchar(255) NOT NULL COMMENT 'pick, review, rating',
+    `action`         varchar(255) NULL COMMENT 'creat, update, delete',
+    `create_at`      timestamp    NULL COMMENT '최초 생성일',
+    `create_by`      varchar(255) NULL COMMENT '최초 생성자',
+    `last_modify_at` timestamp    NULL COMMENT '최종 생성일',
+    `last_modify_by` varchar(255) NULL COMMENT '최종 생성자',
     PRIMARY KEY (`id`),
     FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
     FOREIGN KEY (`alcohol_id`) REFERENCES `alcohol` (`id`)
 )
-  ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci COMMENT = '유저 히스토리';
+    ENGINE = InnoDB
+    DEFAULT CHARSET = utf8mb4
+    COLLATE = utf8mb4_unicode_ci COMMENT = '유저 히스토리';
