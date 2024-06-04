@@ -13,6 +13,7 @@ import org.hibernate.annotations.Comment;
 @Comment("알코올과 테이스팅 태그 연관관계 해소 테이블 ")
 @Entity(name = "alcohol_tasting_tags")
 public class AlcoholsTastingTags extends BaseTimeEntity {
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;

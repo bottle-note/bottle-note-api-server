@@ -1,34 +1,47 @@
 package app.bottlenote.docs.review;
 
-import app.bottlenote.docs.AbstractRestDocs;
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.global.service.cursor.SortOrder;
-import app.bottlenote.review.controller.ReviewController;
-import app.bottlenote.review.domain.constant.ReviewSortType;
-import app.bottlenote.review.domain.constant.ReviewStatus;
-import app.bottlenote.review.domain.constant.SizeType;
-import app.bottlenote.review.dto.request.PageableRequest;
-import app.bottlenote.review.dto.response.ReviewDetail;
-import app.bottlenote.review.dto.response.ReviewResponse;
-import app.bottlenote.review.service.ReviewService;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
-
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.payload.JsonFieldType.ARRAY;
+import static org.springframework.restdocs.payload.JsonFieldType.BOOLEAN;
+import static org.springframework.restdocs.payload.JsonFieldType.NUMBER;
+import static org.springframework.restdocs.payload.JsonFieldType.OBJECT;
+import static org.springframework.restdocs.payload.JsonFieldType.STRING;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import app.bottlenote.docs.AbstractRestDocs;
+import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.global.service.cursor.CursorPageable;
+import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.review.controller.ReviewController;
+import app.bottlenote.review.domain.constant.ReviewStatus;
+import app.bottlenote.review.domain.constant.SizeType;
+import app.bottlenote.review.dto.request.LocationInfo;
+import app.bottlenote.review.dto.request.ReviewCreateRequest;
+import app.bottlenote.review.dto.request.ReviewImageInfo;
+import app.bottlenote.review.dto.response.ReviewCreateResponse;
+import app.bottlenote.review.dto.response.ReviewDetail;
+import app.bottlenote.review.dto.response.ReviewResponse;
+import app.bottlenote.review.service.ReviewService;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 @DisplayName("리뷰 컨트롤러 RestDocs용 테스트")
 class ReviewControllerDocsTest extends AbstractRestDocs {
@@ -41,11 +54,68 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 	}
 
 	@Test
+	@DisplayName("리뷰를 등록할 수 있다.")
+	void review_create_test() throws Exception {
+
+		try (MockedStatic<SecurityContextUtil> mockedValidator = mockStatic(
+			SecurityContextUtil.class)) {
+
+			mockedValidator.when(SecurityContextUtil::getUserIdByContext)
+				.thenReturn(Optional.of(1L));
+
+			when(reviewService.createReviews(any(), anyLong()))
+				.thenReturn(getReviewCreateResponse());
+
+			mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/reviews")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(objectMapper.writeValueAsString(getReviewCreateRequest()))
+					.with(csrf()))
+				.andExpect(status().isOk())
+				.andDo(
+					document("review/review-create",
+						requestFields(
+							fieldWithPath("alcoholId").type(NUMBER).description("술 ID"),
+							fieldWithPath("content").type(STRING).description("리뷰 내용"),
+							fieldWithPath("status").type(STRING).description("리뷰 상태"),
+							fieldWithPath("price").type(NUMBER).description("가격"),
+							fieldWithPath("sizeType").type(STRING).description("술 타입 (잔 or 병"),
+							fieldWithPath("locationInfo").type(OBJECT).description("위치 정보"),
+							fieldWithPath("locationInfo.zipCode").type(STRING).description("우편번호"),
+							fieldWithPath("locationInfo.address").type(STRING).description("주소"),
+							fieldWithPath("locationInfo.detailAddress").type(STRING).description("상세 주소"),
+							fieldWithPath("imageUrlList").type(ARRAY).description("이미지 URL 목록"),
+							fieldWithPath("imageUrlList[].order").type(NUMBER).description("이미지 순서"),
+							fieldWithPath("imageUrlList[].viewUrl").type(STRING).description("이미지 뷰 URL"),
+							fieldWithPath("tastingTagList[]").type(ARRAY).description("테이스팅 태그 목록")
+						),
+						responseFields(
+							fieldWithPath("success").type(BOOLEAN).description("요청 성공 여부"),
+							fieldWithPath("code").type(NUMBER).description("응답 코드"),
+							fieldWithPath("data").type(OBJECT).description("응답 데이터"),
+							fieldWithPath("data.id").type(NUMBER).description("생성된 리뷰 ID"),
+							fieldWithPath("data.content").type(STRING).description("리뷰 내용"),
+							fieldWithPath("data.callback").type(STRING).description("콜백 URL"),
+							fieldWithPath("errors").type(ARRAY).description("에러 목록"),
+							fieldWithPath("meta").type(OBJECT).description("메타 정보"),
+							fieldWithPath("meta.serverVersion").type(STRING).description("서버 버전"),
+							fieldWithPath("meta.serverEncoding").type(STRING).description("서버 인코딩"),
+							fieldWithPath("meta.serverResponseTime").type(STRING).description("서버 응답 시간"),
+							fieldWithPath("meta.serverPathVersion").type(STRING).description("서버 경로 버전")
+						)
+					)
+				);
+
+
+		}
+
+	}
+
+
+	@Test
 	@DisplayName("리뷰를 조회할 수 있다.")
 	void review_read_test() throws Exception {
 
 		//given
-		PageableRequest request = getRequest();
 		PageResponse<ReviewResponse> response = getResponse();
 
 		//when
@@ -103,12 +173,32 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 			);
 	}
 
-	private PageableRequest getRequest() {
-		return PageableRequest.builder()
-			.sortType(ReviewSortType.POPULAR)
-			.sortOrder(SortOrder.DESC)
-			.cursor(0L)
-			.pageSize(2L)
+	private ReviewCreateRequest getReviewCreateRequest() {
+		return new ReviewCreateRequest(
+			1L,
+			ReviewStatus.PUBLIC,
+			"맛있어요",
+			SizeType.GLASS,
+			new BigDecimal("30000.0"),
+			LocationInfo.builder()
+				.zipCode("34222")
+				.address("서울시 영등포구")
+				.detailAddress("aaa 바")
+				.build(),
+			List.of(
+				new ReviewImageInfo(1L, "url1"),
+				new ReviewImageInfo(2L, "url2"),
+				new ReviewImageInfo(3L, "url3")
+			),
+			List.of("테이스팅태그 1", "테이스팅태그 2", "테이스팅태그 3")
+		);
+	}
+
+	private ReviewCreateResponse getReviewCreateResponse() {
+		return ReviewCreateResponse.builder()
+			.id(1L)
+			.content(getReviewCreateRequest().content())
+			.callback(String.valueOf(getReviewCreateRequest().alcoholId()))
 			.build();
 	}
 
