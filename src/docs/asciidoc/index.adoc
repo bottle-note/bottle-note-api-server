@@ -56,6 +56,9 @@ include::api/alcohols/picks.adoc[]
 include::api/alcohols/region.adoc[]
 
 '''
+include::api/alcohols/categories.adoc[]
+
+'''
 include::api/alcohols/popular.adoc[]
 
 == 리뷰 (review) 관련 API
