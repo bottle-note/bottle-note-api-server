@@ -8,6 +8,7 @@ CREATE TABLE `region`
     `create_at`      timestamp    NULL COMMENT '최초 생성일',
     `create_by`      varchar(255) NULL COMMENT '최초 생성자',
     `last_modify_at` timestamp    NULL COMMENT '최종 생성일',
+    `last_modify_at1` timestamp    NULL COMMENT '최종 생성일',
     `last_modify_by` varchar(255) NULL COMMENT '최종 생성자',
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
@@ -200,7 +201,7 @@ CREATE TABLE `review`
     `id`             bigint         NOT NULL AUTO_INCREMENT COMMENT '술 리뷰',
     `user_id`        bigint         NOT NULL COMMENT '리뷰 작성자',
     `alcohol_id`     bigint         NOT NULL COMMENT '리뷰 대상 술',
-    `content`        varchar(255)   NOT NULL COMMENT '1000글자',
+    `content`        varchar(1000)   NOT NULL COMMENT '1000글자',
     `size_type`      varchar(255)   NULL COMMENT '잔 : GLASS , 보틀 : BOTTLE',
     `price`          DECIMAL(10, 2) NULL COMMENT '가격',
     `zip_code`       varchar(255)   NULL COMMENT '마신 장소 우편번호',
@@ -246,14 +247,11 @@ CREATE TABLE `review_image`
 (
     `id`             bigint       NOT NULL AUTO_INCREMENT COMMENT '리뷰-이미지 등록은 최대 5장',
     `review_id`      bigint       NOT NULL comment '리뷰 아이디',
-    `image_url`      varchar(255) NOT NULL COMMENT 'S3 이미지 경로',
-    `file_name`      varchar(255) NOT NULL COMMENT '규칙에 맞게 수정된 이미지 파일 명',
-    `file_org_name`  varchar(255) NOT NULL COMMENT '업로드된 파일 명',
-    `file_size`      varchar(255) NOT NULL COMMENT '업로드된 파일 크기 (최대 사이즈 지정 필요)',
     `order`          bigint       NOT NULL COMMENT '이미지 순서',
-    `status`         varchar(255) NULL COMMENT '삭제됨 / 숨김처리됨 / 유효기간이 만료됨 등등',
-    `tags`           varchar(255) NULL COMMENT '이미지의 태그 S3에서 사용될 값',
-    `description`    varchar(255) NULL COMMENT '이미지 주석 S3에서 사용될 값',
+    `image_url`      varchar(255) NOT NULL COMMENT 'S3 이미지 경로',
+    `image_key`      varchar(255) NOT NULL COMMENT '업로드된 루트 경로(버킷부터 이미지 이름까지)',
+    `image_path`     varchar(255) NOT NULL COMMENT '져장된 이미지의 경로(버킷부터 최종폴더까지)',
+    `image_name`     varchar(255) NOT NULL COMMENT '생성된 UUID + 확장자 파일명',
     `create_at`      timestamp    NULL COMMENT '최초 생성일',
     `create_by`      varchar(255) NULL COMMENT '최초 생성자',
     `last_modify_at` timestamp    NULL COMMENT '최종 생성일',
@@ -263,6 +261,19 @@ CREATE TABLE `review_image`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci COMMENT = '리뷰-이미지 등록은 최대 5장';
+
+CREATE TABLE `review_tasting_tag`
+(
+    `id`             bigint       NOT NULL AUTO_INCREMENT COMMENT '리뷰 테이스팅 태그 - 최대 10개',
+    `review_id`      bigint       NOT NULL comment '리뷰 아이디',
+    `tasting_tag`    varchar(12)  NOT NULL COMMENT '테이스팅 태그 - 최대 12자',
+    `create_at`      timestamp    NULL COMMENT '최초 생성일',
+    `last_modify_at` timestamp    NULL COMMENT '최종 생성일',
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (`review_id`) REFERENCES `review` (`id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '리뷰 테이스팅 태그';
 
 CREATE TABLE `review_reply`
 (
@@ -322,13 +333,11 @@ CREATE TABLE `alcohol_image`
 (
     `id`             bigint       NOT NULL AUTO_INCREMENT COMMENT '술 이미지',
     `alcohol_id`     bigint       NOT NULL COMMENT '술 아이디',
+    `order`          bigint       NOT NULL COMMENT '이미지 순서',
     `image_url`      varchar(255) NOT NULL COMMENT 'S3 이미지 경로',
-    `file_name`      varchar(255) NOT NULL COMMENT '규칙에 맞게 수정된 이미지 파일 명',
-    `file_size`      varchar(255) NULL COMMENT '업로드된 파일 크기 (최대 사이즈 지정 필요)',
-    `order`          varchar(255) NOT NULL COMMENT '이미지 순서',
-    `status`         varchar(255) NULL COMMENT '삭제됨 / 숨김처리됨 / 유효기간이 만료됨 등등',
-    `tags`           varchar(255) NULL COMMENT '이미지의 태그 S3에서 사용될 값',
-    `description`    varchar(255) NULL COMMENT '이미지 주석',
+    `image_key`      varchar(255) NOT NULL COMMENT '업로드된 루트 경로(버킷부터 이미지 이름까지)',
+    `image_path`     varchar(255) NOT NULL COMMENT '져장된 이미지의 경로(버킷부터 최종폴더까지)',
+    `image_name`     varchar(255) NOT NULL COMMENT '생성된 UUID + 확장자 파일명',
     `create_at`      timestamp    NULL COMMENT '최초 생성일',
     `create_by`      varchar(255) NULL COMMENT '최초 생성자',
     `last_modify_at` timestamp    NULL COMMENT '최종 생성일',
@@ -338,3 +347,22 @@ CREATE TABLE `alcohol_image`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci COMMENT = '술 이미지';
+
+CREATE TABLE `user_history`
+(
+    `id`	         bigint	      NOT NULL	COMMENT '히스토리 id',
+    `user_id`	     bigint	      NOT NULL	COMMENT '사용자 id',
+    `alcohol_id`	 bigint	      NOT NULL	COMMENT '알코올 id',
+    `type`	         varchar(255) NOT NULL	COMMENT 'pick, review, rating',
+    `action`	     varchar(255) NULL	COMMENT 'creat, update, delete',
+    `create_at`	     timestamp    NULL	COMMENT '최초 생성일',
+    `create_by`	     varchar(255) NULL	COMMENT '최초 생성자',
+    `last_modify_at` timestamp	  NULL	COMMENT '최종 생성일',
+    `last_modify_by` varchar(255) NULL	COMMENT '최종 생성자',
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+    FOREIGN KEY (`alcohol_id`) REFERENCES `alcohol` (`id`)
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '유저 히스토리';
