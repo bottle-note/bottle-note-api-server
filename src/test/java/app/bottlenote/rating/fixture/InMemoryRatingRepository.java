@@ -15,12 +15,13 @@ public class InMemoryRatingRepository implements RatingRepository {
 
 	@Override
 	public Rating save(Rating rating) {
-		return ratings.put(rating.getId(), rating);
+		ratings.put(rating.getId(), rating);
+		return rating;
 	}
 
 	@Override
 	public Optional<Rating> findById(RatingId ratingId) {
-		return Optional.of(ratings.get(ratingId));
+		return Optional.ofNullable(ratings.get(ratingId));
 	}
 
 	@Override

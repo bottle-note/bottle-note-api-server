@@ -19,7 +19,7 @@ public class InMemoryUserQueryRepository implements UserQueryRepository {
 
 	@Override
 	public Optional<User> findById(Long UserId) {
-		return Optional.of(users.get(UserId));
+		return Optional.ofNullable(users.get(UserId));
 	}
 
 	@Override
