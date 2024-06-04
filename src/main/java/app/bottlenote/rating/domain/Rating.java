@@ -15,9 +15,11 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.Comment;
 
 @Getter
+@ToString(exclude = {"alcohol", "user"})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Comment("알콜 점수 테이블")
 @Entity(name = "rating")
@@ -48,5 +50,10 @@ public class Rating extends BaseEntity {
 		this.ratingPoint = ratingPoint;
 		this.alcohol = alcohol;
 		this.user = user;
+	}
+
+	public void registerRatingPoint(RatingPoint ratingPoint) {
+		ratingPoint.isValidRating(ratingPoint.getRating());
+		this.ratingPoint = ratingPoint;
 	}
 }

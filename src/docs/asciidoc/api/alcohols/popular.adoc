@@ -12,10 +12,12 @@ POST /api/v1/popular/week
 ----
 
 [discrete]
-==== 요청 파라미터 ( request parameters ) ====
+==== 요청 파라미터 ====
 
 include::{snippets}/alcohols/populars/week/query-parameters.adoc[]
 
+[discrete]
+==== 응답 파라미터  ====
 
 [discrete]
 include::{snippets}/alcohols/populars/week/response-fields.adoc[]

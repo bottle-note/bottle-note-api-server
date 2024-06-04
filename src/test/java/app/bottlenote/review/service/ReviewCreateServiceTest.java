@@ -1,19 +1,9 @@
 package app.bottlenote.review.service;
 
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anySet;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import app.bottlenote.alcohols.domain.Alcohol;
+import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.exception.AlcoholException;
-import app.bottlenote.alcohols.repository.AlcoholQueryRepository;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewImage;
 import app.bottlenote.review.domain.ReviewTastingTag;
@@ -30,12 +20,6 @@ import app.bottlenote.review.repository.ReviewTastingTagRepository;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.repository.UserCommandRepository;
-import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,6 +27,23 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @DisplayName("리뷰 등록 서비스 레이어 테스트")
 @ExtendWith(MockitoExtension.class)

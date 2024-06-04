@@ -1,6 +1,7 @@
 package app.bottlenote.rating.domain;
 
 import app.bottlenote.rating.exception.RatingException;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import jakarta.persistence.Embeddable;
 import lombok.Getter;
 
@@ -9,8 +10,8 @@ import static app.bottlenote.rating.exception.RatingExceptionCode.INVALID_RATING
 /**
  * 평점을 나타내는 VO입니다.
  */
-@Embeddable
 @Getter
+@Embeddable
 public class RatingPoint {
 
 	private final Double rating;
@@ -20,20 +21,38 @@ public class RatingPoint {
 	}
 
 	private RatingPoint(double rating) {
-		if (!isValidRating(rating))
+		if (isNotValidRating(rating))
 			throw new RatingException(INVALID_RATING_POINT);
 		this.rating = rating;
 	}
 
-	public static RatingPoint of(double rating) {
+	@JsonCreator
+	public static RatingPoint of(Double rating) {
+		return new RatingPoint(rating);
+	}
+
+	@JsonCreator
+	public static RatingPoint of(Integer rating) {
 		return new RatingPoint(rating);
 	}
 
 	/**
-	 * 0.0 ~ 5.0 사이의 값인지 확인합니다.
+	 * 평점이 유효한지 확인합니다.
+	 *
+	 * @param rating the rating
 	 */
-	private boolean isValidRating(double rating) {
-		return isWithinValidRange(rating) && isIncrementOfHalf(rating);
+	public void isValidRating(double rating) {
+		if (isNotValidRating(rating))
+			throw new RatingException(INVALID_RATING_POINT);
+	}
+
+	/**
+	 * 0.0 ~ 5.0 사이의 값인지 확인합니다.
+	 * True : 유효한 값
+	 * False : 유효하지 않은 값
+	 */
+	private boolean isNotValidRating(double rating) {
+		return !isWithinValidRange(rating) || !isIncrementOfHalf(rating);
 	}
 
 	/**
@@ -47,12 +66,14 @@ public class RatingPoint {
 	 * 0.5 단위로 증가하는지 확인합니다.
 	 */
 	private boolean isIncrementOfHalf(double rating) {
-		return (rating * 2) % 1 == 0;
+		double multiplied = rating * 2;
+		return multiplied == Math.floor(multiplied);
 	}
 
 	@Override
 	public String toString() {
 		return String.format("%.1f", rating);
 	}
+
 
 }

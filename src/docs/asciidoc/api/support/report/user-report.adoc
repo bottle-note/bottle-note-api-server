@@ -36,10 +36,14 @@ POST /api/v1/user-report
 ----
 
 [discrete]
+==== 요청 파라미터 ====
+
+[discrete]
 include::{snippets}/support/report/user-report/request-fields.adoc[]
 include::{snippets}/support/report/user-report/request-body.adoc[]
 
-
+[discrete]
+==== 응답 파라미터  ====
 
 [discrete]
 include::{snippets}/support/report/user-report/response-fields.adoc[]

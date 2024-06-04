@@ -1,0 +1,37 @@
+### 토큰 발급
+POST {{host}}/api/v1/oauth/login
+Content-Type: application/json
+
+{
+  "email": "dev.bottle-note@gmail.com",
+  "socialType": "GOOGLE",
+  "gender": "MALE",
+  "age": 25
+}
+
+> {%
+    //토큰을 전역변수로 저장
+    client.global.set("accessToken", response.body.data.accessToken);
+%}
+
+
+### 별점을 등록할 수 있다.
+## eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJkZXYuYm90dGxlLW5vdGVAZ21haWwuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjExLCJpYXQiOjE3MTcxNDcxNzcsImV4cCI6MTcxNzE0ODA3N30.gEg_HRWpOGK8NqKDxVL2pv_mpapqfXj5cz0n5h6VoDZVPtrFaK4Px06pOa3idbkUDdeQYhwWqzMl0Zx0We80nA
+POST  {{host}}/api/v1/rating/register
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "alcoholId": 2,
+  "rating": 3.5
+}
+
+### 별점은 0.5점 단위로 등록할 수 있다.
+POST  {{host}}/api/v1/rating/register
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "alcoholId": 1,
+  "rating": 0.1
+}

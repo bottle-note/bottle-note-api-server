@@ -16,6 +16,7 @@ public class RatingPointConverter implements Converter<String, RatingPoint> {
 	@Override
 	public RatingPoint convert(@NonNull String source) {
 		try {
+			log.info("별점 변환: {}", source);
 			double rating = Double.parseDouble(source);
 			return RatingPoint.of(rating);
 		} catch (NumberFormatException e) {
@@ -23,6 +24,9 @@ public class RatingPointConverter implements Converter<String, RatingPoint> {
 			throw new RatingException(INPUT_NUMBER_IS_NOT_A_NUMBER);
 		} catch (IllegalArgumentException e) {
 			log.warn("유효하지 않은 별점 값: {}. 별점은 0.0부터 5.0 사이이며, 0.5 단위로 증가해야 합니다.", source);
+			throw new RatingException(INPUT_VALUE_IS_NOT_VALID);
+		} catch (Exception e) {
+			log.warn("별점 변환 중 오류 발생: {}", e.getMessage());
 			throw new RatingException(INPUT_VALUE_IS_NOT_VALID);
 		}
 	}

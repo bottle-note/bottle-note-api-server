@@ -1,7 +1,7 @@
 package app.bottlenote.review.repository;
 
 import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.repository.AlcoholQueryRepository;
+import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.config.TestConfig;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;

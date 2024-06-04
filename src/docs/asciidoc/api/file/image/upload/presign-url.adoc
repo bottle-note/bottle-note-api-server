@@ -13,7 +13,7 @@ image::https://i.imgur.com/aFE6gK2.png[width=700]
 image::https://i.imgur.com/oHOmiXo.png[width=700]
 
 [discrete]
-===== _Request_ =====
+==== 요청 파라미터 ====
 
 include::{snippets}/file/image/upload/presign-url/http-request.adoc[]
 include::{snippets}/file/image/upload/presign-url/query-parameters.adoc[]
@@ -29,7 +29,7 @@ include::{snippets}/file/image/upload/presign-url/query-parameters.adoc[]
 * ``uploadSize`` 파라미터를 전달하지 않을 경우 ``1장``이 기본값으로 설정됩니다.
 
 [discrete]
-===== _Response_ =====
+==== 응답 파라미터  ====
 
 include::{snippets}/file/image/upload/presign-url/response-fields.adoc[]
 include::{snippets}/file/image/upload/presign-url/response-body.adoc[]

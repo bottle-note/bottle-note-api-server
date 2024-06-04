@@ -71,3 +71,7 @@ include::api/support/report/user-report.adoc[]
 == 팔로우 (follow) 관련 API
 
 include::api/follow/follow-update.adoc[]
+
+== 별점 (rating) 관련 API
+
+include::api/rating/register.adoc[]

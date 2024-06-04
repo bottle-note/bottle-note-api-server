@@ -18,14 +18,13 @@ API EndPoint
 POST /api/v1/follow
 ----
 
-요청 파라미터 ( request fields )
+[discrete]
+==== 요청 파라미터 ====
 
 include::{snippets}/follow/update/curl-request.adoc[]
 include::{snippets}/follow/update/request-fields.adoc[]
 
 [discrete]
-응답 파라미터 ( response fields )
+==== 응답 파라미터  ====
+
 include::{snippets}/follow/update/response-fields.adoc[]
-
-
-

@@ -1,6 +1,7 @@
 package app.bottlenote.alcohols.repository;
 
 import app.bottlenote.alcohols.domain.Alcohol;
+import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
@@ -45,13 +46,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ActiveProfiles("test")
 @Import(TestConfig.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class CustomAlcoholQueryRepositoryImplTest {
+class CustomJpaAlcoholQueryRepositoryImplTest {
 
 	@Autowired
 	TestEntityManager testEntityManager;
 	EntityManager em;
+
 	@Autowired
 	private AlcoholQueryRepository alcoholQueryRepository;
+
 	@Autowired
 	private UserCommandRepository userRepository;
 
