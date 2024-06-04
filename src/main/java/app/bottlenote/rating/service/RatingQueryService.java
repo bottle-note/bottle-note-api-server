@@ -3,6 +3,8 @@ package app.bottlenote.rating.service;
 import app.bottlenote.rating.domain.RatingRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class RatingQueryService {
 	private final RatingRepository ratingRepository;
@@ -11,7 +13,7 @@ public class RatingQueryService {
 		this.ratingRepository = ratingRepository;
 	}
 
-	public Object search() {
-		return null;
+	public List<?> getRatingList() {
+		return List.of();
 	}
 }
