@@ -1,13 +1,15 @@
 package app.bottlenote.alcohols.service;
 
+import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
+import app.bottlenote.alcohols.domain.constant.AlcoholType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
+import app.bottlenote.alcohols.dto.response.CategoryResponse;
 import app.bottlenote.alcohols.dto.response.detail.AlcoholDetail;
 import app.bottlenote.alcohols.dto.response.detail.AlcoholDetailInfo;
 import app.bottlenote.alcohols.dto.response.detail.FriendsDetailInfo;
 import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
-import app.bottlenote.alcohols.repository.JpaAlcoholQueryRepository;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.repository.ReviewQueryRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AlcoholQueryService {
 
-	private final JpaAlcoholQueryRepository jpaAlcoholQueryRepository;
+	private final AlcoholQueryRepository alcoholQueryRepository;
 	private final ReviewQueryRepository reviewQueryRepository;
 
 	/**
@@ -38,9 +40,8 @@ public class AlcoholQueryService {
 
 		log.info("searchAlcohols criteria: {}", criteria);
 
-		return jpaAlcoholQueryRepository.searchAlcohols(criteria);
+		return alcoholQueryRepository.searchAlcohols(criteria);
 	}
-
 
 	/**
 	 * 술(위스키) 상세 조회 api
@@ -53,7 +54,7 @@ public class AlcoholQueryService {
 	public AlcoholDetail findAlcoholDetailById(Long alcoholId, Long userId) {
 
 		// 위스키 상세 조회
-		AlcoholDetailInfo alcoholDetailById = jpaAlcoholQueryRepository.findAlcoholDetailById(alcoholId, userId);
+		AlcoholDetailInfo alcoholDetailById = alcoholQueryRepository.findAlcoholDetailById(alcoholId, userId);
 
 		// 팔로워 수 조회
 		FriendsDetailInfo friendsData = getMockFriendsData();
@@ -90,5 +91,9 @@ public class AlcoholQueryService {
 			new FriendsDetailInfo.FriendInfo(freeRandomImageUrl, 6L, "목데이터", 1.0)
 		);
 		return FriendsDetailInfo.of(6L, friendInfos);
+	}
+
+	public List<CategoryResponse> getAlcoholCategory(AlcoholType type) {
+		return alcoholQueryRepository.findAllCategories(type);
 	}
 }

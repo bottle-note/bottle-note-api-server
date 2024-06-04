@@ -1,7 +1,10 @@
 package app.bottlenote.alcohols.domain.constant;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import java.util.stream.Stream;
 
 @Getter
 @AllArgsConstructor
@@ -17,4 +20,15 @@ public enum AlcoholType {
 	ETC("기타");
 
 	private final String type;
+
+	@JsonCreator
+	public static AlcoholType parsing(String source) {
+		if (source == null || source.isEmpty()) {
+			return null;
+		}
+		return Stream.of(AlcoholType.values())
+			.filter(sortType -> sortType.toString().equals(source.toUpperCase()))
+			.findFirst()
+			.orElse(WHISKY);
+	}
 }
