@@ -6,6 +6,7 @@ import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.rating.domain.RatingRepository;
+import app.bottlenote.rating.dto.response.RatingRegisterResponse;
 import app.bottlenote.rating.exception.RatingException;
 import app.bottlenote.rating.exception.RatingExceptionCode;
 import app.bottlenote.user.domain.User;
@@ -15,6 +16,8 @@ import app.bottlenote.user.exception.UserExceptionCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 @Service
 @RequiredArgsConstructor
 public class RatingCommandService {
@@ -23,7 +26,14 @@ public class RatingCommandService {
 	private final UserQueryRepository userQueryRepository;
 	private final AlcoholQueryRepository alcoholQueryRepository;
 
-	public String register(Long alcoholId, Long userId, RatingPoint ratingPoint) {
+	public RatingRegisterResponse register(
+		Long alcoholId,
+		Long userId,
+		RatingPoint ratingPoint
+	) {
+		Objects.requireNonNull(alcoholId, "알코올 ID는 필수 값입니다.");
+		Objects.requireNonNull(userId, "유저 ID는 필수 값입니다.");
+		Objects.requireNonNull(ratingPoint, "별점은 필수 값입니다.");
 
 		User user = userQueryRepository.findById(userId)
 			.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
@@ -41,9 +51,8 @@ public class RatingCommandService {
 			);
 
 		rating.registerRatingPoint(ratingPoint);
-
 		Rating save = ratingRepository.save(rating);
 
-		return save.toString();
+		return RatingRegisterResponse.success(save);
 	}
 }

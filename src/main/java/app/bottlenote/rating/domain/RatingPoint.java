@@ -10,8 +10,8 @@ import static app.bottlenote.rating.exception.RatingExceptionCode.INVALID_RATING
 /**
  * 평점을 나타내는 VO입니다.
  */
-@Embeddable
 @Getter
+@Embeddable
 public class RatingPoint {
 
 	private final Double rating;
