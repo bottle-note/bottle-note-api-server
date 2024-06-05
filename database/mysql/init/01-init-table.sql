@@ -172,6 +172,7 @@ CREATE TABLE `tasting_tag`
     `kor_name`       varchar(255) NOT NULL COMMENT '한글 태그 이름',
     `eng_name`       varchar(255) NOT NULL COMMENT '영문 태그 이름',
     `icon`           varchar(255) NULL COMMENT '앱 출시 후 디벨롭 할 때 사용',
+    `description`    varchar(255) NULL COMMENT '태그 설명',
     `create_at`      timestamp    NULL COMMENT '최초 생성일',
     `create_by`      varchar(255) NULL COMMENT '최초 생성자',
     `last_modify_at` timestamp    NULL COMMENT '최종 생성일',
