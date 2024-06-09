@@ -59,5 +59,17 @@ public class ReviewController {
 			));
 	}
 
+	@GetMapping("/me/{alcoholId}")
+	public ResponseEntity<GlobalResponse> getMyReview(@ModelAttribute PageableRequest pageableRequest, @PathVariable Long alcoholId) {
 
+		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElseThrow(
+			() -> new UserException(USER_NOT_FOUND)
+		);
+
+		PageResponse<ReviewResponse> myReview = reviewService.getMyReview(alcoholId, pageableRequest, currentUserId);
+
+		return ResponseEntity.ok(
+			success(myReview.content(), MetaService.createMetaInfo().add("pageable", myReview.cursorPageable()))
+		);
+	}
 }
