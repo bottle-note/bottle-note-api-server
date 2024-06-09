@@ -1,0 +1,52 @@
+=== 내가 작성한 리뷰 조회 ===
+
+내가 작성한 리뷰 조회 기능입니다.
+PathVariable로 alcoholId를 전달합니다.
+
+|====
+|PathVariable |설명
+
+|`alcoholId` | 위스키 ID
+
+|====
+
+API EndPoint
+
+[source]
+----
+GET /api/v1/reviews/me/{alcoholId}
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+include::{snippets}/review/my-review-read/httpie-request.adoc[]
+include::{snippets}/review/my-review-read/query-parameters.adoc[]
+
+[discrete]
+==== 응답 파라미터  ====
+
+[discrete]
+include::{snippets}/review/my-review-read/response-fields.adoc[]
+include::{snippets}/review/my-review-read/http-response.adoc[]
+
+[discrete]
+===== _정렬 타입 (sortType)_ =====
+
+[cols="1,1",options="header"]
+|===
+|  |
+| POPULAR
+| 인기순
+| RATING
+| 별점순
+| BOTTLE_PRICE
+| 병 가격 순
+| GLASS_PRICE
+| 잔 가격 순
+|===
+
+- 해당 값이 없을 경우 기본값은 POPULAR 입니다.
+- 타입이 잘못 전달될 경우 예외가 반환됩니다.
+
+include::../overview/sort-order.adoc[]
