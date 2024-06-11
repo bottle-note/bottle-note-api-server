@@ -1,12 +1,8 @@
 package app.bottlenote.global.security;
 
-import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
-
 import app.bottlenote.global.security.jwt.JwtAuthenticationEntryPoint;
 import app.bottlenote.global.security.jwt.JwtAuthenticationFilter;
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
-import java.util.Arrays;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +15,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 @Configuration
 @EnableWebSecurity
@@ -70,19 +71,15 @@ public class SecurityConfig {
 	 */
 	@Bean
 	CorsConfigurationSource corsConfigurationSource() {
+
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 
-		// 기본 CORS 설정
-		CorsConfiguration defaultConfiguration = new CorsConfiguration();
-		defaultConfiguration.setAllowedOrigins(Arrays.asList("http://bottle-note.com", "http://localhost:3000"));
-		defaultConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-		source.registerCorsConfiguration("/api/**", defaultConfiguration);
-
-		// /system/actuator/** 경로에 대한 특정 CORS 설정
-		CorsConfiguration actuatorConfiguration = new CorsConfiguration();
-		actuatorConfiguration.setAllowedOrigins(List.of("*"));
-		actuatorConfiguration.setAllowedMethods(List.of("GET"));
-		source.registerCorsConfiguration("/system/actuator/**", actuatorConfiguration);
+		CorsConfiguration configuration = new CorsConfiguration();
+		configuration.setAllowedOrigins(List.of("*")); // 모든 origin 허용
+		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+		configuration.setAllowedHeaders(List.of("*")); // 모든 헤더 허용
+		configuration.setAllowCredentials(false); // credentials 허용하지 않음
+		source.registerCorsConfiguration("/**", configuration); // 모든 경로에 대해 설정 적용
 
 		return source;
 	}
