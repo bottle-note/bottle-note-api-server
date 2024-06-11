@@ -5,20 +5,20 @@ import app.bottlenote.rating.domain.RatingRepository;
 import app.bottlenote.rating.domain.constant.SearchSortType;
 import app.bottlenote.rating.dto.dsl.RatingListFetchCriteria;
 import app.bottlenote.rating.dto.response.RatingListFetchResponse;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest
-@ActiveProfiles("dev")
+/**
+ * 해당 테스트는 실제로 어플리케이션을 띄워 실행 결과를 볼수 있는 예시라고 생각하고 참조하세요.
+ * 테스트를 실행하려면 해당 테스트를 실행할 수 있는 환경이 필요합니다.
+ */
+//@SpringBootTest
+//@ActiveProfiles("dev")
 class CustomRatingQueryRepositoryImplTest {
 
-	@Autowired
+	//@Autowired
 	private RatingRepository ratingRepository;
 
 
-	@Test
+	//@Test
 	void test() {
 		var criteria = new RatingListFetchCriteria(
 			"Yam",
@@ -28,7 +28,7 @@ class CustomRatingQueryRepositoryImplTest {
 			SortOrder.DESC,
 			0L,
 			10L,
-			3L
+			33L
 		);
 
 		var response = ratingRepository.fetchRatingList(criteria);

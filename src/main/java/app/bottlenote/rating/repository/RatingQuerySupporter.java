@@ -98,6 +98,19 @@ public class RatingQuerySupporter {
 	}
 
 	/**
+	 * 내가 별점을 안준 술만 조회
+	 *
+	 * @param userId the user id
+	 * @return the boolean expression
+	 */
+	public BooleanExpression neRatingByMe(Long userId) {
+		if (userId == null)
+			return null;
+
+		return rating.user.id.isNull().or(rating.user.id.ne(userId));
+	}
+
+	/**
 	 * 1차 정렬 조건
 	 * - RANDOM
 	 * - POPULAR
@@ -129,6 +142,5 @@ public class RatingQuerySupporter {
 	protected OrderSpecifier<?> orderByRandom() {
 		return Expressions.numberTemplate(Double.class, "function('rand')").asc();
 	}
-
 
 }

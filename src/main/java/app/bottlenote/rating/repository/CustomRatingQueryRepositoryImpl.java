@@ -51,7 +51,8 @@ public class CustomRatingQueryRepositoryImpl implements CustomRatingQueryReposit
 			.where(
 				querySupporter.eqAlcoholName(criteria.keyword()),
 				querySupporter.eqAlcoholCategory(criteria.category()),
-				querySupporter.eqAlcoholRegion(criteria.regionId())
+				querySupporter.eqAlcoholRegion(criteria.regionId()),
+				querySupporter.neRatingByMe(userId)
 			)
 			.groupBy(
 				alcohol.id,
