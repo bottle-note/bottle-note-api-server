@@ -35,9 +35,9 @@ class CustomRatingQueryRepositoryImplTest {
 
 		RatingListFetchResponse content = response.content();
 
-		content.ratingList().forEach(info ->
+		content.ratings().forEach(info ->
 			System.out.printf("ID: %d\nImage URL: %s\nKorean Name: %s\nEnglish Name: %s\nKorean Category Name: %s\nEnglish Category Name: %s\nIs Picked: %b\n\n",
-				info.id(),
+				info.alcoholId(),
 				info.imageUrl(),
 				info.korName(),
 				info.engName(),

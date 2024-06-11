@@ -4,14 +4,14 @@ import java.util.List;
 
 public record RatingListFetchResponse(
 	Long totalCount,
-	List<Info> ratingList
+	List<Info> ratings
 ) {
 	public static RatingListFetchResponse create(Long totalCount, List<Info> ratingList) {
 		return new RatingListFetchResponse(totalCount, ratingList);
 	}
 
 	public record Info(
-		Long id,
+		Long alcoholId,
 		String imageUrl,
 		String korName,
 		String engName,
