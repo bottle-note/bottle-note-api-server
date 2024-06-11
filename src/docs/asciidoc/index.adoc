@@ -74,4 +74,6 @@ include::api/follow/follow-update.adoc[]
 
 == 별점 (rating) 관련 API
 
+include::api/rating/fetch.adoc[]
+
 include::api/rating/register.adoc[]

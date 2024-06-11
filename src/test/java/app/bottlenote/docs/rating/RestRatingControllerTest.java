@@ -113,7 +113,10 @@ public class RestRatingControllerTest extends AbstractRestDocs {
 	@DisplayName("별점 목록을 조회할 수 있다.")
 	void test_2() throws Exception {
 		// given
-		RatingListFetchRequest request = RatingObjectFixture.ratingListFetchRequest("위스키", "위스키", 1L);
+		RatingListFetchRequest request = RatingObjectFixture.ratingListFetchRequest(
+			"야마자키",
+			"SINGLE MALT",
+			1L);
 		RatingListFetchResponse fetchList = RatingObjectFixture.ratingListFetchResponse();
 		CursorPageable pageable = CursorPageable.builder().currentCursor(0L).cursor(0L).pageSize(10L).hasNext(false).build();
 		PageResponse<RatingListFetchResponse> response = PageResponse.of(fetchList, pageable);
