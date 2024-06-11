@@ -2,6 +2,7 @@ package app.bottlenote.rating.controller;
 
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.rating.dto.request.RatingListFetchRequest;
 import app.bottlenote.rating.dto.request.RatingRegisterRequest;
@@ -17,8 +18,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @Slf4j
 @RestController
@@ -52,16 +51,17 @@ public class RatingController {
 	}
 
 	@GetMapping
-	public ResponseEntity<?> getRatingList(
+	public ResponseEntity<?> fetchRatingList(
 		@RequestBody RatingListFetchRequest request
 	) {
 		Long userId = SecurityContextUtil.getUserIdByContext().orElse(null);
-
-		List<?> ratingList = queryService.getRatingList(request, userId);
-
+		var response = queryService.fetchRatingList(request, userId);
 		return ResponseEntity.ok(
 			GlobalResponse.success(
-				null
+				response.content(),
+				MetaService.createMetaInfo()
+					.add("searchParameters", request)
+					.add("pageable", response.cursorPageable())
 			)
 		);
 	}

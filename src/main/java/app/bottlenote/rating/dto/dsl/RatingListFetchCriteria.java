@@ -2,6 +2,7 @@ package app.bottlenote.rating.dto.dsl;
 
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.rating.domain.constant.SearchSortType;
+import app.bottlenote.rating.dto.request.RatingListFetchRequest;
 
 public record RatingListFetchCriteria(
 	String keyword,
@@ -13,7 +14,7 @@ public record RatingListFetchCriteria(
 	Long pageSize,
 	Long userId
 ) {
-	public static RatingListFetchCriteria of(RatingListFetchCriteria request, Long userId) {
+	public static RatingListFetchCriteria of(RatingListFetchRequest request, Long userId) {
 		return new RatingListFetchCriteria(
 			request.keyword(),
 			request.category(),

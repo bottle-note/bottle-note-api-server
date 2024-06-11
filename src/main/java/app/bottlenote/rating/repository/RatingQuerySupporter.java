@@ -23,6 +23,9 @@ import static app.bottlenote.review.domain.QReview.review;
 public class RatingQuerySupporter {
 
 	protected BooleanExpression subQueryIsPicked(Long userId) {
+		if (userId == null)
+			return Expressions.FALSE;
+
 		return Expressions.asBoolean(
 			JPAExpressions
 				.selectOne()
