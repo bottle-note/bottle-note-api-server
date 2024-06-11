@@ -1,6 +1,7 @@
 package app.bottlenote.rating.service;
 
 import app.bottlenote.rating.domain.RatingRepository;
+import app.bottlenote.rating.dto.request.RatingListFetchRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,7 +14,7 @@ public class RatingQueryService {
 		this.ratingRepository = ratingRepository;
 	}
 
-	public List<?> getRatingList() {
+	public List<?> getRatingList(RatingListFetchRequest request, Long userId) {
 		return List.of();
 	}
 }

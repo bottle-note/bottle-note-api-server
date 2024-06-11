@@ -3,6 +3,7 @@ package app.bottlenote.rating.controller;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.rating.domain.RatingPoint;
+import app.bottlenote.rating.dto.request.RatingListFetchRequest;
 import app.bottlenote.rating.dto.request.RatingRegisterRequest;
 import app.bottlenote.rating.service.RatingCommandService;
 import app.bottlenote.rating.service.RatingQueryService;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -49,10 +52,16 @@ public class RatingController {
 	}
 
 	@GetMapping
-	public ResponseEntity<?> getRatingList() {
+	public ResponseEntity<?> getRatingList(
+		@RequestBody RatingListFetchRequest request
+	) {
+		Long userId = SecurityContextUtil.getUserIdByContext().orElse(null);
+
+		List<?> ratingList = queryService.getRatingList(request, userId);
+
 		return ResponseEntity.ok(
 			GlobalResponse.success(
-				queryService.getRatingList()
+				null
 			)
 		);
 	}
