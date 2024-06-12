@@ -2,6 +2,7 @@ package app.bottlenote.global.exception.handler;
 
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.exception.custom.AbstractCustomException;
+import app.bottlenote.global.security.jwt.JwtExceptionType;
 import app.bottlenote.global.service.meta.MetaService;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
@@ -11,8 +12,6 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.SignatureException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -160,44 +159,39 @@ public class GlobalExceptionHandler {
 	 */
 	@ExceptionHandler(value = {SignatureException.class, MalformedJwtException.class, ExpiredJwtException.class, UnsupportedJwtException.class, IllegalArgumentException.class})
 	public ResponseEntity<GlobalResponse> jwtTokenException(Exception e) {
-		String errorMessage;
-		HttpStatus status;
 
-		if (e instanceof SignatureException) {
-			log.warn("잘못된 JWT 서명: {}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-			errorMessage = "잘못된 JWT 서명입니다.";
-			status = HttpStatus.UNAUTHORIZED;
+		JwtExceptionType exceptionType = getJwtExceptionType(e);
 
-		} else if (e instanceof MalformedJwtException) {
-			log.warn("잘못된 JWT 토큰: {}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-			errorMessage = "잘못된 JWT 토큰입니다.";
-			status = HttpStatus.UNAUTHORIZED;
-
-		} else if (e instanceof ExpiredJwtException) {
-			log.warn("만료된 JWT 토큰: {}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-			errorMessage = "만료된 JWT 토큰입니다.";
-			status = HttpStatus.FORBIDDEN;
-
-		} else if (e instanceof UnsupportedJwtException) {
-			log.warn("지원되지 않는 JWT 토큰: {}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-			errorMessage = "지원되지 않는 JWT 토큰입니다.";
-			status = HttpStatus.UNAUTHORIZED;
-
-		} else if (e instanceof IllegalArgumentException) {
-			log.warn("잘못 된 JWT 토큰: {}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-			errorMessage = "잘못 된 JWT 토큰입니다.";
-			status = HttpStatus.UNAUTHORIZED;
-
-		} else {
-			log.warn("기타 JWT 예외: {}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-			errorMessage = "JWT 처리 중 알 수 없는 오류가 발생했습니다.";
-			status = HttpStatus.UNAUTHORIZED;
-		}
-
-		GlobalResponse fail = GlobalResponse.fail(status.value(), errorMessage, MetaService.createMetaInfo().add("redirect-url", "bottle-note.com/api/v1/oauth/reissue"));
+		GlobalResponse fail = GlobalResponse.fail(
+			exceptionType.getStatus().value(),
+			exceptionType.getMessage(),
+			MetaService.createMetaInfo().add("reissue-url", "api.bottle-note.com/api/v1/oauth/reissue")
+		);
 		return ResponseEntity
-			.status(status)
+			.status(exceptionType.getStatus())
 			.body(fail);
+	}
+
+	/**
+	 * JwtExceptionType을 반환하는 메서드입니다.
+	 *
+	 * @param e Exception
+	 * @return JwtExceptionType
+	 */
+	private JwtExceptionType getJwtExceptionType(Exception e) {
+		if (e instanceof SignatureException) {
+			return JwtExceptionType.INVALID_SIGNATURE;
+		} else if (e instanceof MalformedJwtException) {
+			return JwtExceptionType.MALFORMED_TOKEN;
+		} else if (e instanceof ExpiredJwtException) {
+			return JwtExceptionType.EXPIRED_TOKEN;
+		} else if (e instanceof UnsupportedJwtException) {
+			return JwtExceptionType.UNSUPPORTED_TOKEN;
+		} else if (e instanceof IllegalArgumentException) {
+			return JwtExceptionType.ILLEGAL_ARGUMENT;
+		} else {
+			return JwtExceptionType.UNKNOWN_ERROR;
+		}
 	}
 
 	/**
