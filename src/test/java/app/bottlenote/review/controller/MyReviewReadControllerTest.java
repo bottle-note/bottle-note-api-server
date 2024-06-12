@@ -10,6 +10,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.global.security.jwt.CustomJwtException;
+import app.bottlenote.global.security.jwt.CustomJwtExceptionCode;
+import app.bottlenote.global.security.jwt.JwtExceptionType;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
@@ -22,6 +25,8 @@ import app.bottlenote.review.dto.response.ReviewResponse;
 import app.bottlenote.review.service.ReviewService;
 import app.bottlenote.user.domain.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -172,6 +177,63 @@ class MyReviewReadControllerTest {
 				.with(csrf())
 			)
 			.andExpect(status().isBadRequest())
+			.andDo(print());
+	}
+
+	@Test
+	@DisplayName("Authorization Header가 Null일 경우에는 예외를 반환한다.")
+	void test_fail_when_authorization_header_is_null() throws Exception {
+
+		//when
+		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
+
+		when(reviewService.getMyReview(any(), any(), any()))
+			.thenThrow(new CustomJwtException(CustomJwtExceptionCode.EMPTY_JWT_TOKEN));
+
+		// then
+		mockMvc.perform(get("/api/v1/reviews/me/1")
+				.contentType(MediaType.APPLICATION_JSON)
+				.with(csrf()))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.errors.message").value(CustomJwtExceptionCode.EMPTY_JWT_TOKEN.getMessage()))
+			.andDo(print());
+	}
+
+	@Test
+	@DisplayName("토큰이 잘못된 토큰일 경우 예외를 반환한다.")
+	void test_fail_when_token_is_wrong() throws Exception {
+
+		//when
+		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
+
+		when(reviewService.getMyReview(any(), any(), any()))
+			.thenThrow(new MalformedJwtException(JwtExceptionType.MALFORMED_TOKEN.getMessage()));
+
+		// then
+		mockMvc.perform(get("/api/v1/reviews/me/1")
+				.contentType(MediaType.APPLICATION_JSON)
+				.with(csrf()))
+			.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.errors").value(JwtExceptionType.MALFORMED_TOKEN.getMessage()))
+			.andDo(print());
+	}
+
+	@Test
+	@DisplayName("토큰이 만료 된 토큰일 경우 예외를 반환한다.")
+	void test_fail_when_token_is_expired() throws Exception {
+
+		//when
+		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
+
+		when(reviewService.getMyReview(any(), any(), any()))
+			.thenThrow(new ExpiredJwtException(null, null, JwtExceptionType.EXPIRED_TOKEN.getMessage()));
+
+		// then
+		mockMvc.perform(get("/api/v1/reviews/me/1")
+				.contentType(MediaType.APPLICATION_JSON)
+				.with(csrf()))
+			.andExpect(status().isForbidden())
+			.andExpect(jsonPath("$.errors").value(JwtExceptionType.EXPIRED_TOKEN.getMessage()))
 			.andDo(print());
 	}
 
