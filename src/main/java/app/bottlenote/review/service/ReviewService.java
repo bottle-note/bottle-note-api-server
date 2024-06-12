@@ -8,7 +8,7 @@ import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.exception.AlcoholException;
-import app.bottlenote.global.image.ImageUtil;
+import app.bottlenote.common.image.ImageUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewImage;

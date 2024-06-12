@@ -1,4 +1,4 @@
-package app.bottlenote.global.image;
+package app.bottlenote.common.image;
 
 public class ImageUtil {
 
