@@ -20,13 +20,17 @@ import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.response.ReviewDetail;
 import app.bottlenote.review.dto.response.ReviewResponse;
 import app.bottlenote.review.service.ReviewService;
+import app.bottlenote.user.domain.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -34,6 +38,7 @@ import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -44,12 +49,28 @@ import org.springframework.test.web.servlet.ResultActions;
 @WebMvcTest(ReviewController.class)
 class MyReviewReadControllerTest {
 
+	private final Long userId = 1L;
+	private User user;
+	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
+
 	@Autowired
 	protected ObjectMapper mapper;
 	@Autowired
 	protected MockMvc mockMvc;
 	@MockBean
 	private ReviewService reviewService;
+
+	@BeforeEach
+	void setup() {
+		mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
+
+		user = User.builder().id(userId).build();
+	}
+
+	@AfterEach
+	void tearDown() {
+		mockedSecurityUtil.close();
+	}
 
 	static Stream<Arguments> testCase1Provider() {
 		return Stream.of(
@@ -109,38 +130,49 @@ class MyReviewReadControllerTest {
 	@MethodSource("testCase1Provider")
 	void test_case_1(String description, PageableRequest pageableRequest) throws Exception {
 
-		try (MockedStatic<SecurityContextUtil> mockedValidator = mockStatic(
-			SecurityContextUtil.class)) {
+		//given
+		PageResponse<ReviewResponse> response = getResponse();
 
-			mockedValidator.when(SecurityContextUtil::getUserIdByContext)
-				.thenReturn(Optional.of(1L));
+		//when
+		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
+		when(reviewService.getMyReview(any(), any(), any()))
+			.thenReturn(response);
 
-			//given
-			PageResponse<ReviewResponse> response = getResponse();
+		ResultActions resultActions = mockMvc.perform(get("/api/v1/reviews/me/1")
+				.param("sortType", String.valueOf(pageableRequest.sortType()))
+				.param("sortOrder", pageableRequest.sortOrder().name())
+				.param("cursor", String.valueOf(pageableRequest.cursor()))
+				.param("pageSize", String.valueOf(pageableRequest.pageSize()))
+				.with(csrf())
+			)
+			.andExpect(status().isOk())
+			.andDo(print());
 
-			//when
-			when(reviewService.getMyReview(any(), any(), any()))
-				.thenReturn(response);
+		resultActions.andExpect(jsonPath("$.success").value("true"));
+		resultActions.andExpect(jsonPath("$.code").value("200"));
+		resultActions.andExpect(jsonPath("$.data.totalCount").value(2));
+		resultActions.andExpect(jsonPath("$.data.reviewList[0].reviewId").value(1));
+		resultActions.andExpect(jsonPath("$.data.reviewList[0].reviewContent").value("맛있습니다"));
+	}
 
-			ResultActions resultActions = mockMvc.perform(get("/api/v1/reviews/me/1")
-					.param("sortType", String.valueOf(pageableRequest.sortType()))
-					.param("sortOrder", pageableRequest.sortOrder().name())
-					.param("cursor", String.valueOf(pageableRequest.cursor()))
-					.param("pageSize", String.valueOf(pageableRequest.pageSize()))
-					.with(csrf())
-				)
-				.andExpect(status().isOk())
-				.andDo(print());
+	@Test
+	@DisplayName("유저 정보가 없을 경우에는 예외를 반환한다..")
+	void test_fail_when_no_auth_info() throws Exception {
 
-			resultActions.andExpect(jsonPath("$.success").value("true"));
-			resultActions.andExpect(jsonPath("$.code").value("200"));
-			resultActions.andExpect(jsonPath("$.data.totalCount").value(2));
-			resultActions.andExpect(jsonPath("$.data.reviewList[0].reviewId").value(1));
-			resultActions.andExpect(jsonPath("$.data.reviewList[0].reviewContent").value("맛있습니다"));
-			//resultActions.andExpect(jsonPath("$.data.reviewList[0].engName").value("anCnoc 24-year-old"));
-		}
+		//given
+		PageResponse<ReviewResponse> response = getResponse();
 
+		//when
+		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.empty());
+		when(reviewService.getMyReview(any(), any(), any()))
+			.thenReturn(response);
 
+		mockMvc.perform(get("/api/v1/reviews/me/1")
+				.contentType(MediaType.APPLICATION_JSON)
+				.with(csrf())
+			)
+			.andExpect(status().isBadRequest())
+			.andDo(print());
 	}
 
 	private PageResponse<ReviewResponse> getResponse() {
@@ -201,30 +233,26 @@ class MyReviewReadControllerTest {
 	@MethodSource("sortTypeParameters")
 	void test_sortType(String sortType, int expectedStatus) throws Exception {
 
-		try (MockedStatic<SecurityContextUtil> mockedValidator = mockStatic(
-			SecurityContextUtil.class)) {
+		// given
+		PageResponse<ReviewResponse> response = getResponse();
 
-			mockedValidator.when(SecurityContextUtil::getUserIdByContext)
-				.thenReturn(Optional.of(1L));
-			// given
-			PageResponse<ReviewResponse> response = getResponse();
+		// when
+		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
+		when(reviewService.getMyReview(any(), any(), any())).thenReturn(response);
 
-			// when
-			when(reviewService.getMyReview(any(), any(), any())).thenReturn(response);
+		mockMvc.perform(RestDocumentationRequestBuilders.get("/api/v1/reviews/me/1")
+				.param("keyword", "")
+				.param("category", "")
+				.param("regionId", "")
+				.param("sortType", sortType)
+				.param("sortOrder", "DESC")
+				.param("cursor", "")
+				.param("pageSize", "")
+				.with(csrf())
+			)
+			.andExpect(status().is(expectedStatus))
+			.andDo(print());
 
-			mockMvc.perform(RestDocumentationRequestBuilders.get("/api/v1/reviews/me/1")
-					.param("keyword", "")
-					.param("category", "")
-					.param("regionId", "")
-					.param("sortType", sortType)
-					.param("sortOrder", "DESC")
-					.param("cursor", "")
-					.param("pageSize", "")
-					.with(csrf())
-				)
-				.andExpect(status().is(expectedStatus))
-				.andDo(print());
-		}
 	}
 
 	@DisplayName("정렬 방향에 대한 검증")
@@ -232,28 +260,23 @@ class MyReviewReadControllerTest {
 	@MethodSource("sortOrderParameters")
 	void test_sortOrder(String sortOrder, int expectedStatus) throws Exception {
 
-		try (MockedStatic<SecurityContextUtil> mockedValidator = mockStatic(
-			SecurityContextUtil.class)) {
+		// given
+		PageResponse<ReviewResponse> response = getResponse();
 
-			mockedValidator.when(SecurityContextUtil::getUserIdByContext)
-				.thenReturn(Optional.of(1L));
-			// given
-			PageResponse<ReviewResponse> response = getResponse();
+		// when
+		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
+		when(reviewService.getMyReview(any(), any(), any())).thenReturn(response);
 
-			// when
-			when(reviewService.getMyReview(any(), any(), any())).thenReturn(response);
-
-			mockMvc.perform(RestDocumentationRequestBuilders.get("/api/v1/reviews/me/1")
-					.param("category", "")
-					.param("regionId", "")
-					.param("sortType", "POPULAR")
-					.param("sortOrder", sortOrder)
-					.param("cursor", "")
-					.param("pageSize", "")
-					.with(csrf())
-				)
-				.andExpect(status().is(expectedStatus))
-				.andDo(print());
-		}
+		mockMvc.perform(RestDocumentationRequestBuilders.get("/api/v1/reviews/me/1")
+				.param("category", "")
+				.param("regionId", "")
+				.param("sortType", "POPULAR")
+				.param("sortOrder", sortOrder)
+				.param("cursor", "")
+				.param("pageSize", "")
+				.with(csrf())
+			)
+			.andExpect(status().is(expectedStatus))
+			.andDo(print());
 	}
 }
