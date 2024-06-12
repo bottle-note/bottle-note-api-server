@@ -1,6 +1,7 @@
 package app.bottlenote.review.controller;
 
 import static app.bottlenote.global.data.response.GlobalResponse.success;
+import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
 import app.bottlenote.global.data.response.GlobalResponse;
@@ -63,7 +64,7 @@ public class ReviewController {
 	public ResponseEntity<GlobalResponse> getMyReview(@ModelAttribute PageableRequest pageableRequest, @PathVariable Long alcoholId) {
 
 		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElseThrow(
-			() -> new UserException(USER_NOT_FOUND)
+			() -> new UserException(REQUIRED_USER_ID)
 		);
 
 		PageResponse<ReviewResponse> myReview = reviewService.getMyReview(alcoholId, pageableRequest, currentUserId);
