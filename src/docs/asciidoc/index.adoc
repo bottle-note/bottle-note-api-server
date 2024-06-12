@@ -26,6 +26,9 @@ include::api/overview/global-response.adoc[]
 '''
 include::api/overview/global-exception.adoc[]
 
+'''
+include::api/overview/global-auth.adoc[]
+
 == 공통 (common)  API
 
 '''
@@ -66,6 +69,8 @@ include::api/alcohols/popular.adoc[]
 include::api/review/review-create.adoc[]
 
 include::api/review/review-read.adoc[]
+
+include::api/review/my-review-read.adoc[]
 
 == 지원 (support) 관련 API
 
