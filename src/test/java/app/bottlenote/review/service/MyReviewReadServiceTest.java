@@ -14,6 +14,7 @@ import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.response.ReviewDetail;
 import app.bottlenote.review.dto.response.ReviewResponse;
 import app.bottlenote.review.repository.ReviewRepository;
+import app.bottlenote.user.domain.User;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -37,11 +38,15 @@ class MyReviewReadServiceTest {
 
 	private PageableRequest request;
 	private PageResponse<ReviewResponse> response;
+	private User user;
 
 	@BeforeEach
 	void setUp() {
 		request = PageableRequest.builder().build();
 		response = getResponse();
+		user = User.builder()
+			.id(1L)
+			.build();
 	}
 
 	@Test
@@ -53,7 +58,7 @@ class MyReviewReadServiceTest {
 		when(reviewRepository.getReviewsByMe(anyLong(), any(PageableRequest.class), anyLong()))
 			.thenReturn(response);
 
-		PageResponse<ReviewResponse> actualResponse = reviewService.getMyReview(1L, request, 1L);
+		PageResponse<ReviewResponse> actualResponse = reviewService.getMyReview(1L, request, user.getId());
 
 		//then
 		assertThat(response.content()).isEqualTo(actualResponse.content());
