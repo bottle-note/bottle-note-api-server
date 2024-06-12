@@ -26,6 +26,9 @@ include::api/overview/global-response.adoc[]
 '''
 include::api/overview/global-exception.adoc[]
 
+'''
+include::api/overview/global-auth.adoc[]
+
 == 공통 (common)  API
 
 '''
