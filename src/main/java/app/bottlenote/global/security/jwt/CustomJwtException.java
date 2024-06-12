@@ -4,7 +4,7 @@ import app.bottlenote.global.exception.custom.AbstractCustomException;
 
 public class CustomJwtException extends AbstractCustomException {
 
-	protected CustomJwtException(CustomJwtExceptionCode exceptionCode) {
+	public CustomJwtException(CustomJwtExceptionCode exceptionCode) {
 		super(exceptionCode);
 	}
 }
