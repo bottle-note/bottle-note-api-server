@@ -1,8 +1,11 @@
 package app.bottlenote.rating.fixture;
 
+import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.RatingId;
 import app.bottlenote.rating.domain.RatingRepository;
+import app.bottlenote.rating.dto.dsl.RatingListFetchCriteria;
+import app.bottlenote.rating.dto.response.RatingListFetchResponse;
 
 import java.util.HashMap;
 import java.util.List;
@@ -41,5 +44,10 @@ public class InMemoryRatingRepository implements RatingRepository {
 				rating -> rating.getId().getAlcoholId().equals(alcoholId) &&
 					rating.getId().getUserId().equals(userId))
 			.findFirst();
+	}
+
+	@Override
+	public PageResponse<RatingListFetchResponse> fetchRatingList(RatingListFetchCriteria criteria) {
+		return null;
 	}
 }

@@ -2,7 +2,9 @@ package app.bottlenote.rating.controller;
 
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.rating.domain.RatingPoint;
+import app.bottlenote.rating.dto.request.RatingListFetchRequest;
 import app.bottlenote.rating.dto.request.RatingRegisterRequest;
 import app.bottlenote.rating.service.RatingCommandService;
 import app.bottlenote.rating.service.RatingQueryService;
@@ -11,6 +13,7 @@ import app.bottlenote.user.exception.UserExceptionCode;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,6 +46,22 @@ public class RatingController {
 			GlobalResponse.success(
 				commandService.register(request.alcoholId(), userId, ratingPoint
 				)
+			)
+		);
+	}
+
+	@GetMapping
+	public ResponseEntity<?> fetchRatingList(
+		@RequestBody RatingListFetchRequest request
+	) {
+		Long userId = SecurityContextUtil.getUserIdByContext().orElse(null);
+		var response = queryService.fetchRatingList(request, userId);
+		return ResponseEntity.ok(
+			GlobalResponse.success(
+				response.content(),
+				MetaService.createMetaInfo()
+					.add("searchParameters", request)
+					.add("pageable", response.cursorPageable())
 			)
 		);
 	}

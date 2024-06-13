@@ -75,11 +75,11 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 						fieldWithPath("code").description("응답 코드(http status code)"),
 						fieldWithPath("data.totalCount").description("전체 술 리스트의 크기"),
 						fieldWithPath("data.alcohols[].alcoholId").description("술 ID"),
+						fieldWithPath("data.alcohols[].imageUrl").description("술 이미지 URL"),
 						fieldWithPath("data.alcohols[].korName").description("술 한글 이름"),
 						fieldWithPath("data.alcohols[].engName").description("술 영문 이름"),
 						fieldWithPath("data.alcohols[].korCategoryName").description("술 한글 카테고리 이름"),
 						fieldWithPath("data.alcohols[].engCategoryName").description("술 영문 카테고리 이름"),
-						fieldWithPath("data.alcohols[].imageUrl").description("술 이미지 URL"),
 						fieldWithPath("data.alcohols[].rating").description("술 평점"),
 						fieldWithPath("data.alcohols[].ratingCount").description("술 평점 개수"),
 						fieldWithPath("data.alcohols[].reviewCount").description("술 리뷰 개수"),
@@ -100,7 +100,7 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 						fieldWithPath("meta.searchParameters.regionId").description("검색 시 사용 한 지역 ID"),
 						fieldWithPath("meta.searchParameters.sortType").description("검색 시 사용 한 정렬 타입"),
 						fieldWithPath("meta.searchParameters.sortOrder").description("검색 시 사용 한 정렬 순서"),
-						fieldWithPath("meta.searchParameters.cursor").description("검색 시 사용 한 커서"),
+						fieldWithPath("meta.searchParameters.cursor").description("검색 시 사용 한 커서 기준 "),
 						fieldWithPath("meta.searchParameters.pageSize").description("검색 시 사용 한 페이지 사이즈")
 
 					)
