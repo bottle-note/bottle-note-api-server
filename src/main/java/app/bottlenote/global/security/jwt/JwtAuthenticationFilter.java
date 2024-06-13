@@ -1,23 +1,24 @@
 package app.bottlenote.global.security.jwt;
 
 
+import static java.util.Objects.requireNonNullElse;
+
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
-
-import static java.util.Objects.requireNonNullElse;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -49,14 +50,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 		String token = resolveToken(request).orElse(null);
 
-		if (!JwtTokenValidator.validateToken(token)) {
-			log.warn("토큰이 유효하지 않습니다. : {}", token);
-			request.setAttribute("exception", new MalformedJwtException("토큰이 유효하지 않습니다."));
-			filterChain.doFilter(request, response);
-			return;
+		try {
+			if (!JwtTokenValidator.validateToken(token)) {
+				log.warn("토큰이 유효하지 않습니다. : {}", token);
+				request.setAttribute("exception", new MalformedJwtException("토큰이 유효하지 않습니다."));
+				filterChain.doFilter(request, response);
+				return;
+			}
+			Authentication authentication = jwtAuthenticationManager.getAuthentication(token);
+			SecurityContextHolder.getContext().setAuthentication(authentication);
+
+		} catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
+			log.warn("잘못된 JWT 서명 입니다.");
+			request.setAttribute("exception", e);
+		} catch (ExpiredJwtException e) {
+			log.warn("만료된 JWT 토큰 입니다.");
+			request.setAttribute("exception", e);
+		} catch (UnsupportedJwtException e) {
+			log.warn("지원되지 않는 JWT 토큰 입니다.");
+			request.setAttribute("exception", e);
+		} catch (IllegalArgumentException e) {
+			log.warn("JWT 토큰이 잘못 되었습니다.");
+			request.setAttribute("exception", e);
+		} catch (CustomJwtException e) {
+			log.warn("JWT 토큰이 존재하지 않습니다.");
+			request.setAttribute("exception", e);
 		}
-		Authentication authentication = jwtAuthenticationManager.getAuthentication(token);
-		SecurityContextHolder.getContext().setAuthentication(authentication);
 
 		filterChain.doFilter(request, response);
 	}

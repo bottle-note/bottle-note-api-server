@@ -2,13 +2,20 @@ package app.bottlenote.global.exception.handler;
 
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.exception.custom.AbstractCustomException;
+import app.bottlenote.global.security.jwt.JwtExceptionType;
+import app.bottlenote.global.service.meta.MetaService;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.SdkClientException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.SignatureException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,13 +26,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 @Slf4j(topic = "GlobalExceptionHandler")
 @RestControllerAdvice
@@ -157,13 +157,41 @@ public class GlobalExceptionHandler {
 	 *
 	 * @return the response entity
 	 */
-	@ExceptionHandler(value = {SignatureException.class, MalformedJwtException.class, ExpiredJwtException.class})
-	public ResponseEntity<GlobalResponse> jwtTokenException() {
-		log.warn("jwt 토큰 예외 발생 : {}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-		GlobalResponse fail = GlobalResponse.fail(403, "올바르지 않은 토큰입니다.");
+	@ExceptionHandler(value = {SignatureException.class, MalformedJwtException.class, ExpiredJwtException.class, UnsupportedJwtException.class, IllegalArgumentException.class})
+	public ResponseEntity<GlobalResponse> jwtTokenException(Exception e) {
+
+		JwtExceptionType exceptionType = getJwtExceptionType(e);
+
+		GlobalResponse fail = GlobalResponse.fail(
+			exceptionType.getStatus().value(),
+			exceptionType.getMessage(),
+			MetaService.createMetaInfo().add("reissue-url", "api.bottle-note.com/api/v1/oauth/reissue")
+		);
 		return ResponseEntity
-			.status(org.springframework.http.HttpStatus.UNAUTHORIZED)
+			.status(exceptionType.getStatus())
 			.body(fail);
+	}
+
+	/**
+	 * JwtExceptionType을 반환하는 메서드입니다.
+	 *
+	 * @param e Exception
+	 * @return JwtExceptionType
+	 */
+	private JwtExceptionType getJwtExceptionType(Exception e) {
+		if (e instanceof SignatureException) {
+			return JwtExceptionType.INVALID_SIGNATURE;
+		} else if (e instanceof MalformedJwtException) {
+			return JwtExceptionType.MALFORMED_TOKEN;
+		} else if (e instanceof ExpiredJwtException) {
+			return JwtExceptionType.EXPIRED_TOKEN;
+		} else if (e instanceof UnsupportedJwtException) {
+			return JwtExceptionType.UNSUPPORTED_TOKEN;
+		} else if (e instanceof IllegalArgumentException) {
+			return JwtExceptionType.ILLEGAL_ARGUMENT;
+		} else {
+			return JwtExceptionType.UNKNOWN_ERROR;
+		}
 	}
 
 	/**

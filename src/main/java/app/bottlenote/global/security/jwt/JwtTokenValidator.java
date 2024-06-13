@@ -6,11 +6,10 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import java.security.Key;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.security.Key;
 
 @Slf4j
 @Component
@@ -28,31 +27,22 @@ public class JwtTokenValidator {
 	/**
 	 * 토큰의 유효성을 검사하는 메소드
 	 */
-	public static boolean validateToken(String token) {
-		try {
+	public static boolean validateToken(String token) throws
+		io.jsonwebtoken.security.SecurityException, MalformedJwtException,
+		ExpiredJwtException, UnsupportedJwtException, IllegalArgumentException,
+		CustomJwtException {
 
-			if (token == null || token.trim().isEmpty()) {
-				log.warn("토큰이 존재하지 않습니다.");
-				return false;
-			}
-
-			Jwts.parserBuilder()
-				.setSigningKey(secretKey)
-				.build()
-				.parseClaimsJws(token);
-
-			return true;
-
-		} catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-			log.debug("잘못된 JWT 서명 입니다.");
-		} catch (ExpiredJwtException e) {
-			log.debug("만료된 JWT 토큰 입니다.");
-		} catch (UnsupportedJwtException e) {
-			log.debug("지원되지 않는 JWT 토큰 입니다.");
-		} catch (IllegalArgumentException e) {
-			log.debug("JWT 토큰이 잘못 되었습니다.");
+		if (token == null || token.trim().isEmpty()) {
+			log.warn("토큰이 존재하지 않습니다.");
+			throw new CustomJwtException(CustomJwtExceptionCode.EMPTY_JWT_TOKEN);
 		}
-		return false;
+
+		Jwts.parserBuilder()
+			.setSigningKey(secretKey)
+			.build()
+			.parseClaimsJws(token);
+
+		return true;
 	}
 
 }

@@ -6,6 +6,7 @@ import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -56,7 +57,8 @@ public class SecurityConfig {
 				.requestMatchers("/api/v1/picks/**").authenticated()
 				.requestMatchers("/api/v1/s3/**").authenticated()
 				.requestMatchers("/api/v1/follow").authenticated()
-				.requestMatchers("/api/v1/reviews").authenticated()
+				.requestMatchers(HttpMethod.POST, "/api/v1/reviews").authenticated()
+				.requestMatchers("/api/v1/reviews/me/**").authenticated()
 				.anyRequest().permitAll()
 			)
 			.addFilterBefore(new JwtAuthenticationFilter(jwtAuthenticationManager), UsernamePasswordAuthenticationFilter.class)
