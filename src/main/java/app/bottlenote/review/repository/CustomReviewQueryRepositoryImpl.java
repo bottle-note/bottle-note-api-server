@@ -130,7 +130,7 @@ public class CustomReviewQueryRepositoryImpl implements CustomReviewQueryReposit
 		}
 
 		return new CaseBuilder()
-			.when(reviewReply.user.id.eq(userId))
+			.when(reviewReply.userId.eq(userId))
 			.then(true)
 			.otherwise(false);
 	}
