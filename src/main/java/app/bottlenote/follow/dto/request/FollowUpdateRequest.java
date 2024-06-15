@@ -1,4 +1,4 @@
-package app.bottlenote.follow.dto;
+package app.bottlenote.follow.dto.request;
 
 
 import app.bottlenote.follow.domain.constant.FollowStatus;
