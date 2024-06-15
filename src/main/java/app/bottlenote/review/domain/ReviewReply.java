@@ -1,7 +1,6 @@
 package app.bottlenote.review.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
-import app.bottlenote.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -11,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import lombok.Builder;
 import lombok.Getter;
 import org.hibernate.annotations.Comment;
 
@@ -25,15 +25,14 @@ public class ReviewReply extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Comment("댓글 대상")
+	@Comment("댓글 대상 리뷰")
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "review_id")
 	private Review review;
 
 	@Comment("댓글 작성 유저")
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id")
-	private User user;
+	@Column(name = "user_id")
+	private Long userId;
 
 	@Comment("댓글 내용")
 	@Column(name = "content", nullable = false, length = 1000)
@@ -47,4 +46,17 @@ public class ReviewReply extends BaseEntity {
 	@Comment("대댓글 목록")
 	@OneToMany(mappedBy = "parentReviewReply", fetch = FetchType.LAZY)
 	private List<ReviewReply> replies = new ArrayList<>();
+
+	protected ReviewReply() {
+	}
+
+	@Builder
+	public ReviewReply(Long id, Review review, Long userId, String content, ReviewReply parentReviewReply) {
+		this.id = id;
+		this.review = review;
+		this.userId = userId;
+		this.content = content;
+		this.parentReviewReply = parentReviewReply;
+		this.replies = new ArrayList<>();
+	}
 }

@@ -4,7 +4,9 @@ import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
+import app.bottlenote.review.domain.event.ReviewReplyRegistryEvent;
 import app.bottlenote.user.domain.User;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -16,13 +18,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @Getter
@@ -81,8 +85,9 @@ public class Review extends BaseEntity {
 	private Long viewCount = 0L;
 
 	// 댓글 목록
-	// review와 reviewReply는 1(review) : N(reviewReply) 관계이다.
-	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY)
+	// review와 reviewReply는 1(review) : N(reviewReply) 관계이다. , orphanRemoval = true: review가 삭제되면 reviewReply도 삭제된다.
+	// cascade = CascadeType.ALL: review가 저장될 때 reviewReply도 같이 저장된다.
+	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
 	private List<ReviewReply> reviewReplies = new ArrayList<>();
 
 	// mappedBy: 연관관계의 주인이 아님을 의미한다.
@@ -92,9 +97,9 @@ public class Review extends BaseEntity {
 
 	@Builder
 	public Review(Long id, User user, Alcohol alcohol, String content, SizeType sizeType,
-		BigDecimal price, ReviewStatus status, String zipCode, String address, String detailAddress,
-		String imageUrl, Long viewCount, List<ReviewReply> reviewReplies,
-		List<ReviewImage> reviewImages) {
+				  BigDecimal price, ReviewStatus status, String zipCode, String address, String detailAddress,
+				  String imageUrl, Long viewCount, List<ReviewReply> reviewReplies,
+				  List<ReviewImage> reviewImages) {
 		this.id = id;
 		this.user = user;
 		this.alcohol = alcohol;
@@ -107,7 +112,21 @@ public class Review extends BaseEntity {
 		this.detailAddress = detailAddress;
 		this.imageUrl = imageUrl;
 		this.viewCount = viewCount;
-		this.reviewReplies = reviewReplies;
-		this.reviewImages = reviewImages;
+		this.reviewReplies = new ArrayList<>();
+		this.reviewImages = new ArrayList<>();
+	}
+
+	public void addReply(ReviewReply reply) {
+		this.reviewReplies.add(reply);
+
+		this.registerEvent(
+			new ReviewReplyRegistryEvent(
+				this.alcohol.getId(),
+				reply.getId(),
+				reply.getUserId(),
+				reply.getContent(),
+				Optional.ofNullable(reply.getReview()).map(Review::getId).orElse(null)
+			)
+		);
 	}
 }
