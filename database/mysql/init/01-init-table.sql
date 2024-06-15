@@ -350,7 +350,7 @@ CREATE TABLE `alcohol_image`
 
 CREATE TABLE `user_history`
 (
-    `id`             bigint       NOT NULL COMMENT '히스토리 id',
+    `id`             bigint       NOT NULL auto_increment  COMMENT '히스토리 id',
     `user_id`        bigint       NOT NULL COMMENT '사용자 id',
     `alcohol_id`     bigint       NOT NULL COMMENT '알코올 id',
     `type`           varchar(255) NOT NULL COMMENT 'pick, review, rating',
