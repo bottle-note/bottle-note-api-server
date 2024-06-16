@@ -20,5 +20,5 @@ Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "nickName": "juye123"
+  "nickName": "juye1231"
 }
