@@ -8,11 +8,12 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import java.security.Key;
-import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.security.Key;
+import java.util.Date;
 
 
 @Slf4j
@@ -20,8 +21,8 @@ import org.springframework.stereotype.Component;
 public class JwtTokenProvider {
 
 	private final Key secretKey;
-	public static final int ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 15;
-	public static final int REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 14;
+	public static final int ACCESS_TOKEN_EXPIRE_TIME = 60; // 1분
+	public static final int REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 14; // 14일
 	public static final String KEY_ROLES = "roles";
 	private final CustomUserDetailsService customUserDetailsService;
 
@@ -31,7 +32,7 @@ public class JwtTokenProvider {
 	 * @param secret 토큰 생성용 시크릿 키
 	 */
 	public JwtTokenProvider(@Value("${security.jwt.secret-key}") String secret,
-		CustomUserDetailsService customUserDetailsService) {
+							CustomUserDetailsService customUserDetailsService) {
 		byte[] keyBytes = Decoders.BASE64.decode(secret);
 		this.secretKey = Keys.hmacShaKeyFor(keyBytes);
 		this.customUserDetailsService = customUserDetailsService;
