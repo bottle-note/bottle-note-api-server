@@ -14,23 +14,11 @@ Content-Type: application/json
     client.global.set("accessToken", response.body.data.accessToken);
 %}
 
-
-### 팔로우 요청을 진행한다.
-POST  {{host}}/api/v1/follow
+### 닉네임변경
+PATCH  {{host}}/api/v1/users/nickname
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "followUserId": 1,
-  "status": "following"
-}
-
-### 팔로우 해제를 진행한다.
-POST  {{host}}/api/v1/follow
-Content-Type: application/json
-Authorization: Bearer {{accessToken}}
-
-{
-  "followUserId": 1,
-  "status": "unfollow"
+  "nickName": "juye123"
 }

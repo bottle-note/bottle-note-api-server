@@ -33,26 +33,28 @@ class UserCommandServiceTest {
 	@DisplayName("닉네임을 변경할수 있다.")
 	void testChangeNickname() {
 
+		Long userId = 1L;
+
 		String newNickname = "newNickname";
 		String beforeNickname = "beforeNickname";
 
 		// given
 		User user = User.builder()
-			.id(1L)
+			.id(userId)
 			.nickName(beforeNickname)
 			.build();
-		NicknameChangeRequest request = new NicknameChangeRequest(1L, newNickname);
+		NicknameChangeRequest request = new NicknameChangeRequest(newNickname);
 
 		// when
 		when(userCommandRepository.existsByNickName(newNickname)).thenReturn(false);
 		when(userCommandRepository.findById(any())).thenReturn(Optional.of(user));
 
 
-		NicknameChangeResponse response = userCommandService.nicknameChange(request);
+		NicknameChangeResponse response = userCommandService.nicknameChange(userId, request);
 
 		// then
 		assertEquals(response.getMessage(), NicknameChangeResponse.Message.SUCCESS.getMessage());
-		assertEquals(response.getUserId(), 1L);
+		assertEquals(response.getUserId(), userId);
 		assertEquals(response.getBeforeNickname(), beforeNickname);
 		assertEquals(response.getChangedNickname(), newNickname);
 
@@ -62,13 +64,15 @@ class UserCommandServiceTest {
 	@Test
 	void testChangeNicknameWithDuplicateNickname() {
 
+		Long userId = 1L;
+
 		// given
 		String newNickname = "newNickname";
-		NicknameChangeRequest request = new NicknameChangeRequest(1L, newNickname);
+		NicknameChangeRequest request = new NicknameChangeRequest(newNickname);
 
 		// when
 		when(userCommandRepository.existsByNickName(newNickname)).thenReturn(true);
-		UserException aThrows = assertThrows(UserException.class, () -> userCommandService.nicknameChange(request));
+		UserException aThrows = assertThrows(UserException.class, () -> userCommandService.nicknameChange(userId, request));
 
 		// then
 		assertEquals(aThrows.getExceptionCode(), USER_NICKNAME_NOT_VALID);

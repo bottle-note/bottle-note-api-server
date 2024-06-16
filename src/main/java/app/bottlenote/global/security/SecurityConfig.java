@@ -59,6 +59,7 @@ public class SecurityConfig {
 				.requestMatchers("/api/v1/follow").authenticated()
 				.requestMatchers(HttpMethod.POST, "/api/v1/reviews").authenticated()
 				.requestMatchers("/api/v1/reviews/me/**").authenticated()
+				.requestMatchers("/api/v1/users/nickname").authenticated()
 				.anyRequest().permitAll()
 			)
 			.addFilterBefore(new JwtAuthenticationFilter(jwtAuthenticationManager), UsernamePasswordAuthenticationFilter.class)

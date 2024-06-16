@@ -2,7 +2,6 @@ package app.bottlenote.follow.controller;
 
 import app.bottlenote.follow.dto.request.FollowUpdateRequest;
 import app.bottlenote.follow.dto.request.FollowPageableRequest;
-import app.bottlenote.follow.dto.response.FollowDetail;
 import app.bottlenote.follow.dto.response.FollowSearchResponse;
 import app.bottlenote.follow.service.FollowCommandService;
 import app.bottlenote.global.data.response.GlobalResponse;
@@ -28,8 +27,10 @@ public class FollowCommandController {
 
 	@PostMapping
 	public ResponseEntity<GlobalResponse> updateFollowStatus(@RequestBody @Valid FollowUpdateRequest request) {
+
 		Long userId = getUserIdByContext()
 			.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
+
 		return ResponseEntity.ok(success(followCommandService.updateFollowStatus(request, userId)));
 	}
 

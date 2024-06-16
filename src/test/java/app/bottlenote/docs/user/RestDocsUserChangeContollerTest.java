@@ -14,6 +14,8 @@ import org.mockito.MockedStatic;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
+import java.util.Optional;
+
 import static app.bottlenote.user.dto.response.NicknameChangeResponse.Message.SUCCESS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -40,8 +42,9 @@ class RestDocsUserChangeContollerTest extends AbstractRestDocs {
 	@BeforeEach
 	void setup() {
 		mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
-		when(SecurityContextUtil.getCurrentUserId()).thenReturn(1L);
+		mockedSecurityUtil.when(SecurityContextUtil::getUserIdByContext).thenReturn(Optional.of(1L));
 	}
+
 
 	@AfterEach
 	void tearDown() {
@@ -52,18 +55,19 @@ class RestDocsUserChangeContollerTest extends AbstractRestDocs {
 	@DisplayName("닉네임 변경을 할 수 있다.")
 	void changeNickname_test() throws Exception {
 
+		Long userId = 1L;
 
 		//given
-		NicknameChangeRequest request = new NicknameChangeRequest(1L, "newNickname");
+		NicknameChangeRequest request = new NicknameChangeRequest("newNickname");
 		NicknameChangeResponse response = NicknameChangeResponse.builder()
 			.message(SUCCESS)
-			.userId(1L)
+			.userId(userId)
 			.beforeNickname("beforeNickname")
 			.changedNickname("newNickname")
 			.build();
 
 		// when
-		when(userCommandService.nicknameChange(request)).thenReturn(response);
+		when(userCommandService.nicknameChange(userId, request)).thenReturn(response);
 
 		//then
 		mockMvc.perform(patch("/api/v1/users/nickname")
@@ -74,7 +78,6 @@ class RestDocsUserChangeContollerTest extends AbstractRestDocs {
 
 			.andDo(document("user/nickname-change",
 					requestFields(
-						fieldWithPath("userId").type(JsonFieldType.NUMBER).description("사용자의 ID"),
 						fieldWithPath("nickName").type(JsonFieldType.STRING).description("변경할 새 닉네임")
 					),
 					responseFields(
