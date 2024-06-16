@@ -1,0 +1,36 @@
+### 토큰 발급
+POST {{host}}/api/v1/oauth/login
+Content-Type: application/json
+
+{
+  "email": "juye@gmail.com",
+  "socialType": "GOOGLE",
+  "gender": "FMALE",
+  "age": ""
+}
+
+> {%
+    //토큰을 전역변수로 저장
+    client.global.set("accessToken", response.body.data.accessToken);
+%}
+
+
+### 팔로우 요청을 진행한다.
+POST  {{host}}/api/v1/follows
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "followUserId": 6,
+  "status": "following"
+}
+
+### 팔로우 해제를 진행한다.
+POST  {{host}}/api/v1/follows
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "followUserId": 1,
+  "status": "unfollow"
+}
