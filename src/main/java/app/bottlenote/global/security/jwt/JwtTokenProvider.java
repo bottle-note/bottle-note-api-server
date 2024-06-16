@@ -1,6 +1,5 @@
 package app.bottlenote.global.security.jwt;
 
-import app.bottlenote.global.security.customPrincipal.CustomUserDetailsService;
 import app.bottlenote.user.domain.constant.UserType;
 import app.bottlenote.user.dto.response.TokenDto;
 import io.jsonwebtoken.Claims;
@@ -21,21 +20,20 @@ import java.util.Date;
 public class JwtTokenProvider {
 
 	private final Key secretKey;
-	public static final int ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60; // 1분
-	public static final int REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 14; // 14일
+	public static final int ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60; // 1min
+	public static final int REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 14; // 14days
 	public static final String KEY_ROLES = "roles";
-	private final CustomUserDetailsService customUserDetailsService;
 
 	/**
 	 * secretKey를 받아 JwtTokenProvider를 생성하는 생성자
 	 *
 	 * @param secret 토큰 생성용 시크릿 키
 	 */
-	public JwtTokenProvider(@Value("${security.jwt.secret-key}") String secret,
-							CustomUserDetailsService customUserDetailsService) {
+	public JwtTokenProvider(
+		@Value("${security.jwt.secret-key}") String secret
+	) {
 		byte[] keyBytes = Decoders.BASE64.decode(secret);
 		this.secretKey = Keys.hmacShaKeyFor(keyBytes);
-		this.customUserDetailsService = customUserDetailsService;
 	}
 
 	/**
@@ -83,7 +81,6 @@ public class JwtTokenProvider {
 	 * @return refresh token ( 리프레시 토큰 )
 	 */
 	public String createRefreshToken(String userEmail, UserType role, Long userId) {
-
 		Claims claims = createClaims(userEmail, role, userId);
 		Date now = new Date();
 		return Jwts.builder()
