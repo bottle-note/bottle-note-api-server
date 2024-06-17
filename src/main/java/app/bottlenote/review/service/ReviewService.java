@@ -162,15 +162,13 @@ public class ReviewService {
 		log.info(reviewModifyRequest.toString());
 		review.changeReview(reviewModifyRequest);
 
-		return ReviewDetail.builder()
-			.reviewId(reviewId)
-			.reviewContent(review.getContent())
-			.price(review.getPrice())
-			.sizeType(review.getSizeType())
-			.status(review.getStatus())
-			.zipCode(review.getZipCode())
-			.address(review.getAddress())
-			.detailAddress(review.getDetailAddress())
-			.build();
+		List<ReviewDetail> reviewList = reviewRepository.getReviewsByMe(
+			review.getAlcohol().getId(),
+			new PageableRequest(null, null, null, null),
+			currentUserId).content().getReviewList();
+
+		return reviewList.stream()
+			.filter(reviewDetail -> reviewDetail.getReviewId().equals(review.getId()))
+			.toList().get(0);
 	}
 }
