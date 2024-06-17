@@ -3,6 +3,7 @@ package app.bottlenote.review.service;
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
 import static app.bottlenote.review.exception.ReviewExceptionCode.INVALID_IMAGE_URL_MAX_SIZE;
 import static app.bottlenote.review.exception.ReviewExceptionCode.INVALID_TASTING_TAG_LIST_SIZE;
+import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
 import app.bottlenote.alcohols.domain.Alcohol;
@@ -15,7 +16,9 @@ import app.bottlenote.review.domain.ReviewImage;
 import app.bottlenote.review.domain.ReviewTastingTag;
 import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
+import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
+import app.bottlenote.review.dto.response.ReviewDetail;
 import app.bottlenote.review.dto.response.ReviewResponse;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.repository.ReviewImageRepository;
@@ -144,5 +147,30 @@ public class ReviewService {
 		Long userId) {
 
 		return reviewRepository.getReviewsByMe(alcoholId, pageableRequest, userId);
+	}
+
+	@Transactional
+	public ReviewDetail modifyReviews(
+		ReviewModifyRequest reviewModifyRequest,
+		Long reviewId,
+		Long currentUserId) {
+
+		Review review = reviewRepository.findByIdAndUserId(reviewId, currentUserId).orElseThrow(
+			() -> new ReviewException(REVIEW_NOT_FOUND)
+		);
+
+		log.info(reviewModifyRequest.toString());
+		review.changeReview(reviewModifyRequest);
+
+		return ReviewDetail.builder()
+			.reviewId(reviewId)
+			.reviewContent(review.getContent())
+			.price(review.getPrice())
+			.sizeType(review.getSizeType())
+			.status(review.getStatus())
+			.zipCode(review.getZipCode())
+			.address(review.getAddress())
+			.detailAddress(review.getDetailAddress())
+			.build();
 	}
 }
