@@ -4,6 +4,7 @@ import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
+import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -109,5 +110,32 @@ public class Review extends BaseEntity {
 		this.viewCount = viewCount;
 		this.reviewReplies = reviewReplies;
 		this.reviewImages = reviewImages;
+	}
+
+	public void changeReview(ReviewModifyRequest reviewModifyRequest) {
+		if (reviewModifyRequest.content() != null) {
+			this.content = reviewModifyRequest.content();
+		}
+		if (reviewModifyRequest.price() != null) {
+			this.price = reviewModifyRequest.price();
+		}
+		if (reviewModifyRequest.sizeType() != null) {
+			this.sizeType = reviewModifyRequest.sizeType();
+		}
+		if (reviewModifyRequest.locationInfo() != null) {
+
+			if (reviewModifyRequest.locationInfo().zipCode() != null) {
+				this.zipCode = reviewModifyRequest.locationInfo().zipCode();
+			}
+			if (reviewModifyRequest.locationInfo().address() != null) {
+				this.address = reviewModifyRequest.locationInfo().address();
+			}
+			if (reviewModifyRequest.locationInfo().detailAddress() != null) {
+				this.detailAddress = reviewModifyRequest.locationInfo().detailAddress();
+			}
+		}
+		if (reviewModifyRequest.reviewStatus() != null) {
+			this.status = reviewModifyRequest.reviewStatus();
+		}
 	}
 }
