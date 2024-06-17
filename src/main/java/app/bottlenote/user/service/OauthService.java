@@ -1,7 +1,5 @@
 package app.bottlenote.user.service;
 
-import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
-
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import app.bottlenote.global.security.jwt.JwtTokenValidator;
@@ -18,6 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
 
 
 @Slf4j
@@ -51,9 +51,8 @@ public class OauthService {
 		} else {
 			user = optionalUser;
 		}
-		TokenDto token = jwtTokenProvider.generateToken(user.getEmail(),
-			user.getRole(),
-			user.getId());
+
+		TokenDto token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
 
 		//재 로그인시 발급된 refresh token 업데이트
 		user.updateRefreshToken(token.getRefreshToken());
@@ -65,7 +64,7 @@ public class OauthService {
 	}
 
 	public User oauthSignUp(String email, SocialType socialType, GenderType genderType,
-		Integer age) {
+							Integer age) {
 
 		String nickName = nicknameGenerator.generateNickname();
 
