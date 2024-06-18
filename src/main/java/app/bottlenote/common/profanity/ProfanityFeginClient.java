@@ -3,8 +3,8 @@ package app.bottlenote.common.profanity;
 import app.bottlenote.global.config.FeginConfig;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @FeignClient(
 	name = "profanity",
@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 )
 public interface ProfanityFeginClient {
 
-	@GetMapping("/filter/basic")
-	ResponseEntity<ProfanityResult> callProfanityFilter(@RequestParam("word") String word);
-
+	@PostMapping("/filter/basic")
+	ResponseEntity<ProfanityResult> callProfanityFilter(@RequestBody String word);
 }
