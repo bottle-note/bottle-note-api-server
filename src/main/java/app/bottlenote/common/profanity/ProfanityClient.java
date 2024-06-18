@@ -1,7 +1,5 @@
 package app.bottlenote.common.profanity;
 
-import org.springframework.http.ResponseEntity;
-
 public interface ProfanityClient {
 
 	/**
@@ -10,7 +8,13 @@ public interface ProfanityClient {
 	 * @param text the text
 	 * @return the boolean
 	 */
-	boolean containsProfanity(String text);
+	ProfanityResult containsProfanity(String text);
 
-	ResponseEntity<?> newContainsProfanity(String word);
+	/**
+	 * 욕설이 포함되어 있는지 확인한다.
+	 * 만약 욕설이 포함되어 있다면, 예외를 발생시킨다.
+	 *
+	 * @param text the text
+	 */
+	void validateProfanity(String text);
 }
