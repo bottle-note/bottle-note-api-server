@@ -1,5 +1,7 @@
 package app.bottlenote.common.profanity;
 
+import org.springframework.http.ResponseEntity;
+
 public interface ProfanityClient {
 
 	/**
@@ -9,4 +11,6 @@ public interface ProfanityClient {
 	 * @return the boolean
 	 */
 	boolean containsProfanity(String text);
+
+	ResponseEntity<?> newContainsProfanity(String word);
 }
