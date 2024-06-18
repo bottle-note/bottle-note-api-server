@@ -7,7 +7,6 @@ import app.bottlenote.follow.dto.request.FollowUpdateRequest;
 import app.bottlenote.follow.dto.response.FollowDetail;
 import app.bottlenote.follow.dto.response.FollowSearchResponse;
 import app.bottlenote.follow.dto.response.FollowUpdateResponse;
-import app.bottlenote.follow.service.FollowCommandService;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
@@ -15,17 +14,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockedStatic;
 import org.springframework.http.MediaType;
-import org.springframework.restdocs.operation.preprocess.OperationRequestPreprocessor;
 import org.springframework.restdocs.payload.JsonFieldType;
-import org.springframework.restdocs.request.ParameterDescriptor;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
@@ -41,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("유저 팔로우 RestDocs용 테스트")
 class RestDocsFollowControllerTest extends AbstractRestDocs {
 
-	private final FollowCommandService followCommandService = mock(FollowCommandService.class);
+	private final nonono followCommandService = mock(nonono.class);
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
 	@Override

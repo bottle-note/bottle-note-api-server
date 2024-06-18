@@ -12,7 +12,6 @@ import app.bottlenote.follow.domain.constant.FollowStatus;
 import app.bottlenote.follow.dto.request.FollowPageableRequest;
 import app.bottlenote.follow.dto.response.FollowDetail;
 import app.bottlenote.follow.dto.response.FollowSearchResponse;
-import app.bottlenote.follow.service.FollowCommandService;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,7 +39,7 @@ class FollowCommandControllerTest {
 	@Autowired
 	protected MockMvc mockMvc;
 	@MockBean
-	private FollowCommandService followCommandService;
+	private nonono followCommandService;
 
 	private PageResponse<FollowSearchResponse> getPageResponse() {
 		List<FollowDetail> followDetails = List.of(

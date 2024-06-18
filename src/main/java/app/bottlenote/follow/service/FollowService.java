@@ -7,8 +7,7 @@ import app.bottlenote.follow.dto.response.FollowSearchResponse;
 import app.bottlenote.follow.dto.response.FollowUpdateResponse;
 import app.bottlenote.follow.exception.FollowException;
 import app.bottlenote.follow.exception.FollowExceptionCode;
-import app.bottlenote.follow.repository.FollowCommandRepository;
-import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.follow.repository.follow.FollowRepository;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
@@ -22,12 +21,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class FollowCommandService {
+public class FollowService {
 
+	private final FollowRepository followRepository;
 	private final UserCommandRepository userRepository;
-	private final FollowCommandRepository followRepository;
-
-
 
 	@Transactional
 	public FollowUpdateResponse updateFollowStatus(FollowUpdateRequest request, Long userId) {
@@ -65,16 +62,6 @@ public class FollowCommandService {
 			.build();
 	}
 
-
-	@Transactional(readOnly = true)
-	public PageResponse<FollowSearchResponse> findFollowerList(Long userId, FollowPageableRequest pageableRequest) {
-
-		PageResponse<FollowSearchResponse> followerList = followRepository.findFollowerList(userId, pageableRequest);
-
-		return followerList;
-	}
-
-
 	@Transactional
 	public PageResponse<FollowSearchResponse> findFollowList(Long userId, FollowPageableRequest pageableRequest) {
 
@@ -82,4 +69,5 @@ public class FollowCommandService {
 
 		return followList;
 	}
+
 }

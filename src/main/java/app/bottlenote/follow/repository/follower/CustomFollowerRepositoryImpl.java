@@ -1,4 +1,4 @@
-package app.bottlenote.follow.repository;
+package app.bottlenote.follow.repository.follower;
 
 import app.bottlenote.follow.domain.QFollow;
 import app.bottlenote.follow.domain.constant.FollowStatus;
@@ -16,16 +16,17 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
 import static app.bottlenote.follow.domain.QFollow.follow;
-import static app.bottlenote.review.domain.QReview.review;
 import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
 import static app.bottlenote.user.domain.QUser.user;
 import static com.querydsl.jpa.JPAExpressions.select;
 
 @Slf4j
 @RequiredArgsConstructor
-public class CustomFollowRepositoryImpl implements CustomFollowRepository {
+public class CustomFollowerRepositoryImpl implements CustomFollowerRepository{
 
 	private final JPAQueryFactory queryFactory;
+
 
 	@Override
 	public PageResponse<FollowSearchResponse> findFollowerList(Long userId, FollowPageableRequest pageableRequest) {
@@ -63,48 +64,6 @@ public class CustomFollowRepositoryImpl implements CustomFollowRepository {
 			.select(follow.id.count())
 			.from(follow)
 			.where(follow.followUser.id.eq(userId)
-				.and(follow.status.eq(FollowStatus.FOLLOWING)))
-			.fetchOne();
-
-		log.info("TotalCount: {}", totalCount);
-
-		CursorPageable cursorPageable = getCursorPageable(pageableRequest, followDetails);
-
-		return PageResponse.of(FollowSearchResponse.of(totalCount, followDetails), cursorPageable);
-	}
-
-
-	@Override
-	public PageResponse<FollowSearchResponse> findFollowList(Long userId, FollowPageableRequest pageableRequest) {
-		Long cursor = pageableRequest.cursor();
-		int pageSize = pageableRequest.pageSize().intValue();
-
-		List<FollowDetail> followDetails = queryFactory
-			.select(Projections.constructor(
-				FollowDetail.class,
-				follow.followUser.id.as("followUserId"),
-				follow.user.id.as("userId"),
-				user.nickName.as("nickName"),
-				user.imageUrl.as("userProfileImage"),
-				follow.status.as("status"),
-				ExpressionUtils.as(select(review.count()).from(review).where(review.user.id.eq(follow.followUser.id)), "reviewCount"),
-				ExpressionUtils.as(select(rating.count()).from(rating).where(rating.user.id.eq(follow.followUser.id)), "ratingCount")
-			))
-			.from(follow)
-			.leftJoin(user).on(user.id.eq(follow.followUser.id))
-			.where(follow.user.id.eq(userId)
-				.and(follow.status.eq(FollowStatus.FOLLOWING)))
-			.orderBy(follow.createAt.desc())
-			.offset(cursor)
-			.limit(pageSize + 1)
-			.fetch();
-
-		log.info("FollowDetails: {}", followDetails);
-
-		Long totalCount = queryFactory
-			.select(follow.id.count())
-			.from(follow)
-			.where(follow.user.id.eq(userId)
 				.and(follow.status.eq(FollowStatus.FOLLOWING)))
 			.fetchOne();
 

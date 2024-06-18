@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 class FollowCommandServiceTest {
 
 	@InjectMocks
-	FollowCommandService followCommandService;
+	nonono followCommandService;
 
 	@Mock
 	FollowCommandRepository followCommandRepository;

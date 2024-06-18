@@ -6,7 +6,6 @@ import app.bottlenote.follow.dto.request.FollowUpdateRequest;
 import app.bottlenote.follow.dto.response.FollowUpdateResponse;
 import app.bottlenote.follow.exception.FollowException;
 import app.bottlenote.follow.exception.FollowExceptionCode;
-import app.bottlenote.follow.service.FollowCommandService;
 import app.bottlenote.global.security.SecurityContextUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -42,7 +41,7 @@ class FollowUpdateControllerTest {
 	@Autowired
 	private ObjectMapper mapper;
 	@MockBean
-	private FollowCommandService followCommandService;
+	private nonono followCommandService;
 
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
