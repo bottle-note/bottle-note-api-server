@@ -1,0 +1,79 @@
+=== 리뷰 수정 ===
+
+리뷰 수정 기능입니다. PathVariable로 ReviewId를 전달합니다.
+
+전달한 ReviewId가 존재하지 않으면 ReviewException이 발생합니다.
+
+수정 내용은 RequestBody로 요청을 전달합니다.
+
+content(리뷰 내용)의 길이는 500자로 제한되며, price(가격은)
+0 ~ 1조 범위만 가능합니다.
+
+ReviewStatus와 SizeType은 아래 ENUM을 참고해주세요.
+
+
+
+[source]
+----
+PATCH /api/v1/reviews
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/review/review-modify/request-fields.adoc[]
+
+- Request Body 예시
+
+아래와 같이 수정을 하고자 하는 필드만 json 요청으로 보내면 됩니다.
+
+
+나머지 필드는 자동으로 null로 바인딩 됩니다.
+```json
+{
+  "content" : "맛있습니다."
+}
+```
+```json
+{
+   "locationInfo" : {
+        "zipCode": "12345"
+    }
+}
+```
+
+[discrete]
+==== 응답 파라미터  ====
+
+[discrete]
+include::{snippets}/review/review-modify/response-fields.adoc[]
+include::{snippets}/review/review-modify/http-response.adoc[]
+
+[discrete]
+==== ReviewStatus ====
+
+[cols="1,1",options="header"]
+|===
+| 코드  | 설명
+
+| PUBLIC
+| 공개(기본 값)
+
+| PRIVATE
+| 비공개
+|===
+
+[discrete]
+==== SizeType ====
+
+[cols="1,1",options="header"]
+|===
+| 코드  | 설명
+
+| GLASS
+| 잔
+
+| BOTTLE
+| 병
+|===
