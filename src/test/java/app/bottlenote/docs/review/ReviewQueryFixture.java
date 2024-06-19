@@ -59,6 +59,7 @@ public class ReviewQueryFixture {
 			.isMyReview(true)
 			.isLikedByMe(true)
 			.hasReplyByMe(false)
+			.reviewTastingTag(List.of("xxx맛"))
 			.build();
 
 		Long totalCount = 2L;
