@@ -4,6 +4,7 @@ import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -38,9 +39,11 @@ public class ReviewDetail {
 	private Boolean isLikedByMe;
 	private Boolean hasReplyByMe;
 
+	private List<String> reviewTastingTag;
+
 	@Builder
 	public ReviewDetail(Long reviewId, String reviewContent, BigDecimal price, SizeType sizeType, Long likeCount, Long replyCount, String reviewImageUrl, LocalDateTime createAt, Long userId, String nickName, String userProfileImage,
-		Double rating, String zipCode, String address, String detailAddress, ReviewStatus status, Boolean isMyReview, Boolean isLikedByMe, Boolean hasReplyByMe) {
+		Double rating, String zipCode, String address, String detailAddress, ReviewStatus status, Boolean isMyReview, Boolean isLikedByMe, Boolean hasReplyByMe, List<String> reviewTastingTag) {
 		this.reviewId = reviewId;
 		this.reviewContent = reviewContent;
 		this.price = price;
@@ -60,5 +63,10 @@ public class ReviewDetail {
 		this.isMyReview = isMyReview;
 		this.isLikedByMe = isLikedByMe;
 		this.hasReplyByMe = hasReplyByMe;
+		this.reviewTastingTag = reviewTastingTag;
+	}
+
+	public void updateTastingTagList(List<String> reviewTastingTag) {
+		this.reviewTastingTag = reviewTastingTag;
 	}
 }
