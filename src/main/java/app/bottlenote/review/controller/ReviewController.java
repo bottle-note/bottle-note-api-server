@@ -37,6 +37,7 @@ public class ReviewController {
 
 	@PostMapping
 	public ResponseEntity<GlobalResponse> createReviews(@RequestBody ReviewCreateRequest reviewCreateRequest) {
+		
 		Long currentUserId = SecurityContextUtil.getUserIdByContext().
 			orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
@@ -77,9 +78,8 @@ public class ReviewController {
 	}
 
 	@PatchMapping("/{alcoholId}")
-	public ResponseEntity<GlobalResponse> modifyReviews(
-		@RequestBody ReviewModifyRequest reviewModifyRequest,
-		@PathVariable Long alcoholId) {
+	public ResponseEntity<GlobalResponse> modifyReviews(@RequestBody ReviewModifyRequest reviewModifyRequest, @PathVariable Long alcoholId) {
+
 		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElseThrow(
 			() -> new UserException(REQUIRED_USER_ID)
 		);
