@@ -36,6 +36,42 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 
 	private final JPAQueryFactory queryFactory;
 
+
+	@Override
+	public ReviewDetail getReview(Long reviewId, Long userId) {
+
+		return queryFactory
+			.select(Projections.fields(
+				ReviewDetail.class,
+				review.id.as("reviewId"),
+				review.content.as("reviewContent"),
+				review.price.as("price"),
+				review.sizeType.as("sizeType"),
+				review.imageUrl.as("reviewImageUrl"),
+				review.zipCode.as("zipCode"),
+				review.address.as("address"),
+				review.detailAddress.as("detailAddress"),
+				review.status.as("status"),
+				review.createAt.as("createAt"),
+				ratingSubQuery(),
+				review.user.id.as("userId"),
+				review.user.nickName.as("nickName"),
+				review.user.imageUrl.as("userProfileImage"),
+				isMyReview(userId).as("isMyReview"),
+				likedByMe(userId, review.id).as("isLikedByMe"),
+				hasCommentedByMe(userId, review.id).as("hasReplyByMe"),
+				reviewReplyCountSubQuery(),
+				likesCountSubQuery()
+			))
+			.from(review)
+			.leftJoin(likes).on(review.id.eq(likes.review.id))
+			.leftJoin(alcohol).on(alcohol.id.eq(review.alcohol.id))
+			.leftJoin(rating).on(review.user.id.eq(rating.user.id))
+			.where(review.id.eq(reviewId))
+			.groupBy(review.id, review.sizeType, review.user)
+			.fetchOne();
+	}
+
 	@Override
 	public PageResponse<ReviewResponse> getReviews(
 		Long alcoholId,

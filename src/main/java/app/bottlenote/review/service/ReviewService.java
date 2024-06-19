@@ -162,13 +162,6 @@ public class ReviewService {
 		log.info(reviewModifyRequest.toString());
 		review.changeReview(reviewModifyRequest);
 
-		List<ReviewDetail> reviewList = reviewRepository.getReviewsByMe(
-			review.getAlcohol().getId(),
-			new PageableRequest(null, null, null, null),
-			currentUserId).content().getReviewList();
-
-		return reviewList.stream()
-			.filter(reviewDetail -> reviewDetail.getReviewId().equals(review.getId()))
-			.toList().get(0);
+		return reviewRepository.getReview(reviewId, currentUserId);
 	}
 }
