@@ -4,6 +4,7 @@ import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
+import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.response.ReviewDetail;
 import app.bottlenote.review.dto.response.ReviewResponse;
 import java.math.BigDecimal;
@@ -11,6 +12,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class ReviewQueryFixture {
+
+	public ReviewModifyRequest getReviewModifyRequest() {
+		return new ReviewModifyRequest("맛있습니다.", null, null, null, null, null);
+	}
+
+	public ReviewDetail getReview() {
+		return getReviews().content().getReviewList().get(0);
+	}
 
 	public PageResponse<ReviewResponse> getReviews() {
 		ReviewDetail reviewDetail_1 = ReviewDetail.builder()
@@ -30,6 +39,7 @@ public class ReviewQueryFixture {
 			.isMyReview(true)
 			.isLikedByMe(true)
 			.hasReplyByMe(false)
+			.reviewTastingTag(List.of("달콤한맛"))
 			.build();
 
 		ReviewDetail reviewDetail_2 = ReviewDetail.builder()
