@@ -1,5 +1,6 @@
 package app.bottlenote.review.service;
 
+import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.repository.ReviewRepository;
@@ -12,13 +13,20 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReviewReplyService {
 
 	private final ReviewRepository reviewRepository;
+	private final ProfanityClient profanityClient;
 
-	public ReviewReplyService(ReviewRepository reviewRepository) {
+	public ReviewReplyService(
+		ReviewRepository reviewRepository,
+		ProfanityClient profanityClient
+	) {
 		this.reviewRepository = reviewRepository;
+		this.profanityClient = profanityClient;
 	}
 
 	@Transactional
-	public void saveReviewReply() {
+	public void saveReviewReply(
+
+	) {
 
 		Review review = reviewRepository.findById(1L).get();
 
