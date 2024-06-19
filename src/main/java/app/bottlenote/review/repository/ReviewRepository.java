@@ -8,5 +8,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Long>, CustomReviewRepository {
 
-	Optional<Review> findByIdAndUserId(Long alcoholId, Long userId);
+	Optional<Review> findByIdAndUserId(Long reviewId, Long userId);
 }
