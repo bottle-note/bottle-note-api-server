@@ -23,8 +23,6 @@ public class DefaultProfanityClient implements ProfanityClient {
 
 	@Override
 	public ProfanityResult containsProfanity(String text) {
-		// TODO 비속어 검출 로직 구현 필요
-
 		log.info("검증 요청 대상: {}", text);
 
 		long start = System.currentTimeMillis();  // 요청 시작 시간 측정
