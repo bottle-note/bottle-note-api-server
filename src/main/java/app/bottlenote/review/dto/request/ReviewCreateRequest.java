@@ -5,6 +5,7 @@ import app.bottlenote.review.domain.constant.SizeType;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.util.List;
@@ -12,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public record ReviewCreateRequest(
-	@NotEmpty(message = "alcohol id는 Null일 수 없습니다.")
+	@NotNull(message = "alcohol id는 Null일 수 없습니다.")
 	Long alcoholId,
 
 	ReviewStatus status,
