@@ -4,7 +4,6 @@ import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
-import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,7 +18,9 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -91,11 +92,12 @@ public class Review extends BaseEntity {
 	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY)
 	private List<ReviewImage> reviewImages = new ArrayList<>();
 
+	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY)
+	private Set<ReviewTastingTag> reviewTastingTags = new HashSet<>();
+
 	@Builder
-	public Review(Long id, User user, Alcohol alcohol, String content, SizeType sizeType,
-		BigDecimal price, ReviewStatus status, String zipCode, String address, String detailAddress,
-		String imageUrl, Long viewCount, List<ReviewReply> reviewReplies,
-		List<ReviewImage> reviewImages) {
+	public Review(Long id, User user, Alcohol alcohol, String content, SizeType sizeType, BigDecimal price, ReviewStatus status, String zipCode, String address, String detailAddress, String imageUrl, Long viewCount,
+		List<ReviewReply> reviewReplies, List<ReviewImage> reviewImages, Set<ReviewTastingTag> reviewTastingTags) {
 		this.id = id;
 		this.user = user;
 		this.alcohol = alcohol;
@@ -110,32 +112,21 @@ public class Review extends BaseEntity {
 		this.viewCount = viewCount;
 		this.reviewReplies = reviewReplies;
 		this.reviewImages = reviewImages;
+		this.reviewTastingTags = reviewTastingTags;
 	}
 
-	public void changeReview(ReviewModifyRequest reviewModifyRequest) {
-		if (reviewModifyRequest.content() != null) {
-			this.content = reviewModifyRequest.content();
-		}
-		if (reviewModifyRequest.price() != null) {
-			this.price = reviewModifyRequest.price();
-		}
-		if (reviewModifyRequest.sizeType() != null) {
-			this.sizeType = reviewModifyRequest.sizeType();
-		}
-		if (reviewModifyRequest.locationInfo() != null) {
+	public void modifyReview(ReviewModifyVO reviewModifyVO) {
+		this.status = reviewModifyVO.getReviewStatus();
+		this.content = reviewModifyVO.getContent();
+		this.sizeType = reviewModifyVO.getSizeType();
+		this.price = reviewModifyVO.getPrice();
+		this.zipCode = reviewModifyVO.getZipCode();
+		this.address = reviewModifyVO.getAddress();
+		this.detailAddress = reviewModifyVO.getDetailAddress();
+	}
 
-			if (reviewModifyRequest.locationInfo().zipCode() != null) {
-				this.zipCode = reviewModifyRequest.locationInfo().zipCode();
-			}
-			if (reviewModifyRequest.locationInfo().address() != null) {
-				this.address = reviewModifyRequest.locationInfo().address();
-			}
-			if (reviewModifyRequest.locationInfo().detailAddress() != null) {
-				this.detailAddress = reviewModifyRequest.locationInfo().detailAddress();
-			}
-		}
-		if (reviewModifyRequest.reviewStatus() != null) {
-			this.status = reviewModifyRequest.reviewStatus();
-		}
+	public void updateTastingTags(Set<ReviewTastingTag> updateTastingTags) {
+		this.reviewTastingTags.clear();
+		this.reviewTastingTags.addAll(updateTastingTags);
 	}
 }
