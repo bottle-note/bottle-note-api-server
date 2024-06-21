@@ -42,7 +42,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.http.MediaType;
-import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 @DisplayName("리뷰 컨트롤러 RestDocs용 테스트")
@@ -263,7 +262,7 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 		//when
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
-		when(reviewService.modifyReviews(any(ReviewModifyRequest.class), any(), any())).thenReturn(fixture.getReview());
+		when(reviewService.modifyReviews(any(ReviewModifyRequest.class), any(), any())).thenReturn("성공적으로 완료되었습니다.");
 
 		//then
 		mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/reviews/{reviewId}", reviewId)
@@ -274,39 +273,20 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 			.andDo(
 				document("review/review-modify",
 					requestFields(
-						fieldWithPath("content").type(JsonFieldType.STRING).description("리뷰 내용").optional(),
-						fieldWithPath("reviewStatus").type(JsonFieldType.STRING).description("리뷰 상태").optional(),
-						fieldWithPath("price").type(JsonFieldType.NUMBER).description("가격").optional(),
-						fieldWithPath("sizeType").type(JsonFieldType.STRING).description("술 타입 (잔 or 병)").optional(),
-						fieldWithPath("locationInfo").type(JsonFieldType.OBJECT).description("위치 정보").optional(),
-						fieldWithPath("locationInfo.zipCode").type(JsonFieldType.STRING).description("우편번호").optional(),
-						fieldWithPath("locationInfo.address").type(JsonFieldType.STRING).description("주소").optional(),
-						fieldWithPath("locationInfo.detailAddress").type(JsonFieldType.STRING).description("상세 주소").optional(),
-						fieldWithPath("tastingTagList").type(JsonFieldType.ARRAY).description("테이스팅 태그 목록").optional()
+						fieldWithPath("content").type(STRING).description("리뷰 내용").optional(),
+						fieldWithPath("status").type(STRING).description("리뷰 상태").optional(),
+						fieldWithPath("price").type(NUMBER).description("가격").optional(),
+						fieldWithPath("sizeType").type(STRING).description("술 타입 (잔 or 병)").optional(),
+						fieldWithPath("locationInfo").type(OBJECT).description("위치 정보").optional(),
+						fieldWithPath("locationInfo.zipCode").type(STRING).description("우편번호").optional(),
+						fieldWithPath("locationInfo.address").type(STRING).description("주소").optional(),
+						fieldWithPath("locationInfo.detailAddress").type(STRING).description("상세 주소").optional(),
+						fieldWithPath("tastingTagList").type(ARRAY).description("테이스팅 태그 목록").optional()
 					),
 					responseFields(
 						fieldWithPath("success").description("응답 성공 여부"),
 						fieldWithPath("code").description("응답 코드(http status code)"),
-						fieldWithPath("data.reviewId").description("리뷰 ID"),
-						fieldWithPath("data.reviewContent").description("리뷰 내용"),
-						fieldWithPath("data.price").description("가격"),
-						fieldWithPath("data.sizeType").description("사이즈 타입 (BOTTLE, GLASS)"),
-						fieldWithPath("data.likeCount").description("좋아요 개수"),
-						fieldWithPath("data.replyCount").description("댓글 개수"),
-						fieldWithPath("data.reviewImageUrl").description("리뷰 썸네일 이미지"),
-						fieldWithPath("data.createAt").description("리뷰 등록 일시"),
-						fieldWithPath("data.userId").description("유저 ID"),
-						fieldWithPath("data.nickName").description("유저 닉네임"),
-						fieldWithPath("data.zipCode").description("(업장)우편번호"),
-						fieldWithPath("data.address").description("(업장)주소"),
-						fieldWithPath("data.detailAddress").description("(업장)상세주소"),
-						fieldWithPath("data.userProfileImage").description("유저 프로필 이미지"),
-						fieldWithPath("data.rating").description("리뷰에 등록된 별점"),
-						fieldWithPath("data.status").description("리뷰 공개 상태 (PUBLIC, PRIVATE)"),
-						fieldWithPath("data.isMyReview").description("내가 작성한 리뷰인지 여부"),
-						fieldWithPath("data.isLikedByMe").description("내가 좋아요 누른 리뷰인지 여부"),
-						fieldWithPath("data.hasReplyByMe").description("내가 댓글을 단 리뷰인지 여부"),
-						fieldWithPath("data.reviewTastingTag").description("테이스팅 태그 리스트"),
+						fieldWithPath("data").description("성공 메시지"),
 						fieldWithPath("errors").ignored(),
 						fieldWithPath("meta.serverEncoding").ignored(),
 						fieldWithPath("meta.serverVersion").ignored(),

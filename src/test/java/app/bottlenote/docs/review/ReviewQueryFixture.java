@@ -4,6 +4,7 @@ import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
+import app.bottlenote.review.dto.request.LocationInfo;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.response.ReviewDetail;
 import app.bottlenote.review.dto.response.ReviewResponse;
@@ -14,7 +15,13 @@ import java.util.List;
 public class ReviewQueryFixture {
 
 	public ReviewModifyRequest getReviewModifyRequest() {
-		return new ReviewModifyRequest("맛있습니다.", null, null, null, null, null);
+		return new ReviewModifyRequest(
+			"그저 그래요",
+			ReviewStatus.PUBLIC,
+			BigDecimal.valueOf(10000L),
+			SizeType.GLASS,
+			List.of("달콤한 향", "스파이시한 맛"),
+			new LocationInfo("11111", "서울시 강남구 청담동", "xx빌딩"));
 	}
 
 	public ReviewDetail getReview() {
