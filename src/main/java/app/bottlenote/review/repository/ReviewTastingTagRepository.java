@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ReviewTastingTagRepository extends CrudRepository<ReviewTastingTag, Long> {
-
+	void deleteByReviewId(Long reviewId);
 }
