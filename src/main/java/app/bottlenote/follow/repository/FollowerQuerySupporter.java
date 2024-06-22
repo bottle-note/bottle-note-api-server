@@ -16,9 +16,11 @@ import java.util.List;
 
 
 @Component
-public class FollowQuerySupporter {
+public class FollowerQuerySupporter {
 
-	public Expression<Long> followReviewCountSubQuery(NumberPath<Long> userId) {
+
+
+	public Expression<Long> followerReviewCountSubQuery(NumberPath<Long> userId) {
 		return ExpressionUtils.as(
 			select(review.count())
 				.from(review)
@@ -27,7 +29,7 @@ public class FollowQuerySupporter {
 		);
 	}
 
-	public Expression<Long> followRatingCountSubQuery(NumberPath<Long> userId) {
+	public Expression<Long> followerRatingCountSubQuery(NumberPath<Long> userId) {
 		return ExpressionUtils.as(
 			select(rating.count())
 				.from(rating)
@@ -35,7 +37,6 @@ public class FollowQuerySupporter {
 			"ratingCount"
 		);
 	}
-
 
 	public CursorPageable followCursorPageable(FollowPageableCriteria criteria, List<FollowDetail> followDetails) {
 		boolean hasNext = isHasNext(criteria, followDetails);

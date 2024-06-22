@@ -6,6 +6,7 @@ import app.bottlenote.follow.dto.dsl.FollowPageableCriteria;
 import app.bottlenote.follow.dto.response.FollowDetail;
 import app.bottlenote.follow.dto.response.FollowSearchResponse;
 import app.bottlenote.follow.repository.FollowQuerySupporter;
+import app.bottlenote.follow.repository.FollowerQuerySupporter;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import com.querydsl.core.types.Expression;
@@ -28,7 +29,7 @@ import static com.querydsl.jpa.JPAExpressions.select;
 public class CustomFollowerRepositoryImpl implements CustomFollowerRepository {
 
 	private final JPAQueryFactory queryFactory;
-	private final FollowQuerySupporter followQuerySupporter;
+	private final FollowerQuerySupporter supporter;
 
 	@Override
 	public PageResponse<FollowSearchResponse> followerList(FollowPageableCriteria criteria) {
@@ -48,8 +49,8 @@ public class CustomFollowerRepositoryImpl implements CustomFollowerRepository {
 				user.nickName.as("nickName"),
 				user.imageUrl.as("userProfileImage"),
 				follow1.status.as("status"),
-				followQuerySupporter.followerReviewCountSubQuery(follow.followUser.id),
-				followQuerySupporter.followerRatingCountSubQuery(follow.followUser.id)
+				supporter.followerReviewCountSubQuery(follow.followUser.id),
+				supporter.followerRatingCountSubQuery(follow.followUser.id)
 			))
 			.from(follow)
 			.leftJoin(user).on(user.id.eq(follow.user.id))
@@ -70,7 +71,7 @@ public class CustomFollowerRepositoryImpl implements CustomFollowerRepository {
 
 		log.debug("FollowDetails: {}", followDetails);
 
-		CursorPageable cursorPageable = followQuerySupporter.followCursorPageable(criteria, followDetails);
+		CursorPageable cursorPageable = supporter.followCursorPageable(criteria, followDetails);
 
 		return PageResponse.of(FollowSearchResponse.of(totalCount, followDetails), cursorPageable);
 	}

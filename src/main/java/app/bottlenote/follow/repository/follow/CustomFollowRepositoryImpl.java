@@ -7,8 +7,6 @@ import app.bottlenote.follow.dto.response.FollowSearchResponse;
 import app.bottlenote.follow.repository.FollowQuerySupporter;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
-import com.querydsl.core.types.Expression;
-import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
 import static app.bottlenote.follow.domain.QFollow.follow;
-import static app.bottlenote.review.domain.QReview.review;
-import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.user.domain.QUser.user;
 import static com.querydsl.jpa.JPAExpressions.select;
 
@@ -27,7 +23,7 @@ import static com.querydsl.jpa.JPAExpressions.select;
 public class CustomFollowRepositoryImpl implements CustomFollowRepository {
 
 	private final JPAQueryFactory queryFactory;
-	private final FollowQuerySupporter followQuerySupporter;
+	private final FollowQuerySupporter supporter;
 
 	@Override
 	public PageResponse<FollowSearchResponse> followList(FollowPageableCriteria criteria) {
@@ -44,8 +40,8 @@ public class CustomFollowRepositoryImpl implements CustomFollowRepository {
 				user.nickName.as("nickName"),
 				user.imageUrl.as("userProfileImage"),
 				follow.status.as("status"),
-				followQuerySupporter.followReviewCountSubQuery(follow.followUser.id),
-				followQuerySupporter.followRatingCountSubQuery(follow.followUser.id)
+				supporter.followReviewCountSubQuery(follow.followUser.id),
+				supporter.followRatingCountSubQuery(follow.followUser.id)
 			))
 			.from(follow)
 			.leftJoin(user).on(user.id.eq(follow.followUser.id))
@@ -65,7 +61,7 @@ public class CustomFollowRepositoryImpl implements CustomFollowRepository {
 
 		log.debug("FollowDetails: {}", followDetails);
 
-		CursorPageable cursorPageable = followQuerySupporter.followCursorPageable(criteria, followDetails);
+		CursorPageable cursorPageable = supporter.followCursorPageable(criteria, followDetails);
 
 
 		return PageResponse.of(FollowSearchResponse.of(totalCount, followDetails), cursorPageable);
