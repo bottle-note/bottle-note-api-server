@@ -1,35 +1,26 @@
 package app.bottlenote.review.service;
 
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
-import static app.bottlenote.review.exception.ReviewExceptionCode.INVALID_IMAGE_URL_MAX_SIZE;
+import static app.bottlenote.review.domain.constant.ReviewResponse.MODIFY_SUCCESS;
 import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.exception.AlcoholException;
-import app.bottlenote.common.image.ImageUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.Review;
-import app.bottlenote.review.domain.ReviewDomainService;
-import app.bottlenote.review.domain.ReviewImage;
 import app.bottlenote.review.domain.ReviewModifyVO;
-import app.bottlenote.review.domain.ReviewTastingTag;
 import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewResponse;
 import app.bottlenote.review.exception.ReviewException;
-import app.bottlenote.review.repository.ReviewImageRepository;
 import app.bottlenote.review.repository.ReviewRepository;
-import app.bottlenote.review.repository.ReviewTastingTagRepository;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.repository.UserCommandRepository;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -40,17 +31,11 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ReviewService {
 
-	private final ReviewDomainService reviewDomainService;
-
-	private final ReviewRepository reviewRepository;
 	private final AlcoholQueryRepository alcoholQueryRepository;
 	private final UserCommandRepository userCommandRepository;
-	private final ReviewImageRepository reviewImageRepository;
-	private final ReviewTastingTagRepository reviewTastingTagRepository;
-
-	private static final int REVIEW_IMAGE_MAX_SIZE = 5;
-
-	public static final String REVIEW_MODIFY_RESPONSE = "리뷰 수정이 완료되었습니다";
+	private final ReviewRepository reviewRepository;
+	private final ReviewTastingTagSupportService reviewTastingTagSupportService;
+	private final ReviewImageSupportService reviewImageSupportService;
 
 	@Transactional
 	public ReviewCreateResponse createReviews(ReviewCreateRequest reviewCreateRequest, Long currentUserId) {
@@ -78,41 +63,15 @@ public class ReviewService {
 
 		Review saveReview = reviewRepository.save(review);
 
-		if (!reviewCreateRequest.imageUrlList().isEmpty()) {
+		reviewImageSupportService.saveImages(reviewCreateRequest.imageUrlList(), review);
 
-			List<ReviewImage> reviewImageList = reviewCreateRequest.imageUrlList().stream()
-				.map(image -> ReviewImage.builder()
-					.order(image.order())
-					.imageUrl(image.viewUrl())
-					.imagePath(ImageUtil.getImagePath(image.viewUrl()))
-					.imageKey(ImageUtil.getImageKey(image.viewUrl()))
-					.imageName(ImageUtil.getImageName(image.viewUrl()))
-					.review(review)
-					.build()
-				).toList();
-
-			if (!isValidReviewImageList(reviewImageList)) {
-				throw new ReviewException(INVALID_IMAGE_URL_MAX_SIZE);
-			}
-
-			reviewImageRepository.saveAll(reviewImageList);
-		}
-		if (!Objects.isNull(reviewCreateRequest.tastingTagList())) {
-
-			Set<ReviewTastingTag> reviewTastingTags = reviewDomainService.createValidatedReviewTastingTag(reviewCreateRequest.tastingTagList(), review);
-
-			reviewTastingTagRepository.saveAll(reviewTastingTags);
-		}
+		reviewTastingTagSupportService.saveReviewTastingTag(reviewCreateRequest.tastingTagList(), review);
 
 		return ReviewCreateResponse.builder()
 			.id(saveReview.getId())
 			.content(saveReview.getContent())
 			.callback(String.valueOf(saveReview.getAlcohol().getId()))
 			.build();
-	}
-
-	private boolean isValidReviewImageList(List<ReviewImage> reviewImageList) {
-		return reviewImageList.size() <= REVIEW_IMAGE_MAX_SIZE;
 	}
 
 	@Transactional(readOnly = true)
@@ -144,38 +103,33 @@ public class ReviewService {
 	public String modifyReviews(
 		ReviewModifyRequest reviewModifyRequest,
 		Long reviewId,
-		Long currentUserId) {
+		Long currentUserId
+	) {
 
 		Review review = reviewRepository.findByIdAndUserId(reviewId, currentUserId).orElseThrow(
 			() -> new ReviewException(REVIEW_NOT_FOUND)
 		);
 
-		ReviewModifyVO reviewModifyVO = reviewDomainService.createValidatedReview(reviewModifyRequest);
+		ReviewModifyVO reviewModifyVO = createReviewEntity(reviewModifyRequest);
 
 		review.modifyReview(reviewModifyVO);
 
-		List<String> requestedTastingTag = reviewModifyRequest.tastingTagList();
+		reviewImageSupportService.updateImages(reviewModifyRequest.imageUrlList(), review);
 
-		updateReviewTastingTags(review, requestedTastingTag);
+		reviewTastingTagSupportService.updateReviewTastingTag(reviewModifyRequest.tastingTagList(), review);
 
-		return REVIEW_MODIFY_RESPONSE;
-
+		return MODIFY_SUCCESS.getDescription();
 	}
 
-	private void updateReviewTastingTags(Review review, List<String> requestedTastingTag) {
-
-		if (requestedTastingTag.isEmpty()) {
-
-			reviewTastingTagRepository.deleteByReviewId(review.getId());
-
-		} else {
-
-			Set<ReviewTastingTag> reviewTastingTags = reviewDomainService.createValidatedReviewTastingTag(requestedTastingTag, review);
-
-			reviewTastingTagRepository.deleteByReviewId(review.getId());
-			reviewTastingTagRepository.saveAll(reviewTastingTags);
-
-			review.updateTastingTags(reviewTastingTags);
-		}
+	public ReviewModifyVO createReviewEntity(ReviewModifyRequest reviewModifyRequest) {
+		return ReviewModifyVO.builder()
+			.content(reviewModifyRequest.content())
+			.reviewStatus(reviewModifyRequest.status())
+			.price(reviewModifyRequest.price())
+			.sizeType(reviewModifyRequest.sizeType())
+			.zipCode(reviewModifyRequest.locationInfo().zipCode())
+			.address(reviewModifyRequest.locationInfo().address())
+			.detailAddress(reviewModifyRequest.locationInfo().detailAddress())
+			.build();
 	}
 }
