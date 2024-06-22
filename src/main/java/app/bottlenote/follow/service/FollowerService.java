@@ -19,10 +19,15 @@ public class FollowerService {
 
 	@Transactional(readOnly = true)
 	public PageResponse<FollowSearchResponse> findFollowerList(Long userId, FollowPageableRequest pageableRequest) {
-		// FollowPageableCriteria 생성과 동시에 메소드 호출
-		return followerRepository.followerList(
-			FollowPageableCriteria.of(pageableRequest.cursor(), pageableRequest.pageSize()),
+
+		FollowPageableCriteria criteria = FollowPageableCriteria.of(
+			pageableRequest.cursor(),
+			pageableRequest.pageSize(),
 			userId
 		);
+
+		return followerRepository.followerList(criteria);
+
+
 	}
 }

@@ -47,6 +47,7 @@ public class FollowController {
 	public ResponseEntity<GlobalResponse> updateFollowStatus(@RequestBody @Valid FollowUpdateRequest request) {
 		Long userId = getUserIdByContext()
 			.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
+
 		return ResponseEntity.ok(success(followService.updateFollowStatus(request, userId)));
 	}
 

@@ -66,10 +66,13 @@ public class FollowService {
 	@Transactional(readOnly = true)
 	public PageResponse<FollowSearchResponse> findFollowList(Long userId, FollowPageableRequest pageableRequest) {
 
-		FollowPageableCriteria criteria = FollowPageableCriteria.of
-			(pageableRequest.cursor(), pageableRequest.pageSize());
+		FollowPageableCriteria criteria = FollowPageableCriteria.of(
+			pageableRequest.cursor(),
+			pageableRequest.pageSize(),
+			userId
+		);
 
-		return followRepository.followList(criteria, userId);
+		return followRepository.followList(criteria);
 	}
 
 }

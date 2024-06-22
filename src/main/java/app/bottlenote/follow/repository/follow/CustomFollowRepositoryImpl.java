@@ -30,10 +30,11 @@ public class CustomFollowRepositoryImpl implements CustomFollowRepository {
 	private final FollowQuerySupporter followQuerySupporter;
 
 	@Override
-	public PageResponse<FollowSearchResponse> followList(FollowPageableCriteria criteria, Long userId) {
+	public PageResponse<FollowSearchResponse> followList(FollowPageableCriteria criteria) {
 
 		Long cursor = criteria.cursor();
 		Long pageSize = criteria.pageSize();
+		Long userId = criteria.userId();
 
 		List<FollowDetail> followDetails = queryFactory
 			.select(Projections.constructor(
@@ -43,8 +44,8 @@ public class CustomFollowRepositoryImpl implements CustomFollowRepository {
 				user.nickName.as("nickName"),
 				user.imageUrl.as("userProfileImage"),
 				follow.status.as("status"),
-				reviewCountSubQuery(),
-				ratingCountSubQuery()
+				followQuerySupporter.followReviewCountSubQuery(follow.followUser.id),
+				followQuerySupporter.followRatingCountSubQuery(follow.followUser.id)
 			))
 			.from(follow)
 			.leftJoin(user).on(user.id.eq(follow.followUser.id))
@@ -64,28 +65,10 @@ public class CustomFollowRepositoryImpl implements CustomFollowRepository {
 
 		log.debug("FollowDetails: {}", followDetails);
 
-		CursorPageable cursorPageable = followQuerySupporter.getCursorPageable(criteria, followDetails);
+		CursorPageable cursorPageable = followQuerySupporter.followCursorPageable(criteria, followDetails);
 
 
 		return PageResponse.of(FollowSearchResponse.of(totalCount, followDetails), cursorPageable);
-	}
-
-	private Expression<Long> reviewCountSubQuery() {
-		return ExpressionUtils.as(
-			select(review.count())
-				.from(review)
-				.where(review.user.id.eq(follow.followUser.id)),
-			"reviewCount"
-		);
-	}
-
-	private Expression<Long> ratingCountSubQuery() {
-		return ExpressionUtils.as(
-			select(rating.count())
-				.from(rating)
-				.where(rating.user.id.eq(follow.followUser.id)),
-			"ratingCount"
-		);
 	}
 
 }

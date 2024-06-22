@@ -25,16 +25,17 @@ import static com.querydsl.jpa.JPAExpressions.select;
 
 @Slf4j
 @RequiredArgsConstructor
-public class CustomFollowerRepositoryImpl implements CustomFollowerRepository{
+public class CustomFollowerRepositoryImpl implements CustomFollowerRepository {
 
 	private final JPAQueryFactory queryFactory;
 	private final FollowQuerySupporter followQuerySupporter;
 
 	@Override
-	public PageResponse<FollowSearchResponse> followerList(FollowPageableCriteria criteria, Long userId) {
+	public PageResponse<FollowSearchResponse> followerList(FollowPageableCriteria criteria) {
 
 		Long cursor = criteria.cursor();
 		Long pageSize = criteria.pageSize();
+		Long userId = criteria.userId();
 
 
 		QFollow follow1 = new QFollow("follow1");
@@ -47,8 +48,8 @@ public class CustomFollowerRepositoryImpl implements CustomFollowerRepository{
 				user.nickName.as("nickName"),
 				user.imageUrl.as("userProfileImage"),
 				follow1.status.as("status"),
-				reviewCountSubQuery(),
-				ratingCountSubQuery()
+				followQuerySupporter.followerReviewCountSubQuery(follow.followUser.id),
+				followQuerySupporter.followerRatingCountSubQuery(follow.followUser.id)
 			))
 			.from(follow)
 			.leftJoin(user).on(user.id.eq(follow.user.id))
@@ -69,53 +70,9 @@ public class CustomFollowerRepositoryImpl implements CustomFollowerRepository{
 
 		log.debug("FollowDetails: {}", followDetails);
 
-		CursorPageable cursorPageable = followQuerySupporter.getCursorPageable(criteria, followDetails);
+		CursorPageable cursorPageable = followQuerySupporter.followCursorPageable(criteria, followDetails);
 
 		return PageResponse.of(FollowSearchResponse.of(totalCount, followDetails), cursorPageable);
 	}
 
-
-	private Expression<Long> reviewCountSubQuery() {
-		return ExpressionUtils.as(
-			select(review.count())
-				.from(review)
-				.where(review.user.id.eq(follow.followUser.id)),
-			"reviewCount"
-		);
-	}
-
-	private Expression<Long> ratingCountSubQuery() {
-		return ExpressionUtils.as(
-			select(rating.count())
-				.from(rating)
-				.where(rating.user.id.eq(follow.followUser.id)),
-			"ratingCount"
-		);
-	}
-
-	private CursorPageable getCursorPageable(
-		FollowPageableCriteria criteria,
-		List<FollowDetail> followDetails
-	) {
-		boolean hasNext = isHasNext(criteria, followDetails);
-		return CursorPageable.builder()
-			.cursor(criteria.cursor() + criteria.pageSize())
-			.pageSize(criteria.pageSize())
-			.hasNext(hasNext)
-			.currentCursor(criteria.cursor())
-			.build();
-	}
-
-
-	private boolean isHasNext(
-		FollowPageableCriteria pageableRequest,
-		List<FollowDetail> fetch
-	) {
-		boolean hasNext = fetch.size() > pageableRequest.pageSize();
-
-		if (hasNext) {
-			fetch.remove(fetch.size() - 1);
-		}
-		return hasNext;
-	}
 }
