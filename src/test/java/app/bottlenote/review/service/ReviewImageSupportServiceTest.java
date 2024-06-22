@@ -1,12 +1,10 @@
 package app.bottlenote.review.service;
 
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import app.bottlenote.common.image.ImageUtil;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.exception.ReviewException;
@@ -20,7 +18,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @DisplayName("리뷰 이미지 서포트 서비스 테스트")
@@ -32,8 +29,6 @@ class ReviewImageSupportServiceTest {
 
 	@InjectMocks
 	private ReviewImageSupportService reviewImageSupportService;
-
-	private MockedStatic<ImageUtil> imageUtils = mockStatic(ImageUtil.class);
 
 	private Review review;
 
