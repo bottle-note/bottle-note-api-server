@@ -5,6 +5,7 @@ import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.user.domain.User;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -25,6 +26,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
+import org.springframework.util.CollectionUtils;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @Getter
@@ -89,10 +91,10 @@ public class Review extends BaseEntity {
 
 	// mappedBy: 연관관계의 주인이 아님을 의미한다.
 	// review image와 review는 1(review) : N(reviewImage) 관계이다.
-	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<ReviewImage> reviewImages = new ArrayList<>();
 
-	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private Set<ReviewTastingTag> reviewTastingTags = new HashSet<>();
 
 	@Builder
@@ -126,7 +128,16 @@ public class Review extends BaseEntity {
 	}
 
 	public void updateTastingTags(Set<ReviewTastingTag> updateTastingTags) {
-		this.reviewTastingTags.clear();
+		if (CollectionUtils.isEmpty(updateTastingTags)) {
+			this.reviewTastingTags.clear();
+		}
 		this.reviewTastingTags.addAll(updateTastingTags);
+	}
+
+	public void updateImage(List<ReviewImage> reviewImages) {
+		if (CollectionUtils.isEmpty(reviewImages)) {
+			this.reviewImages.clear();
+		}
+		this.reviewImages.addAll(reviewImages);
 	}
 }
