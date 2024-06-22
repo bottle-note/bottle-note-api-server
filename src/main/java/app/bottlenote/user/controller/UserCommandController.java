@@ -33,7 +33,7 @@ public class UserCommandController {
 
 
 		Long userId = getUserIdByContext()
-			.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
+			.orElseThrow(() -> new UserException(UserExceptionCode.REQUIRED_USER_ID));
 
 
 		NicknameChangeResponse response = userCommandService.nicknameChange(userId ,nicknameChangeRequest);

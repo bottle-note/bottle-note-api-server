@@ -1,5 +1,6 @@
 package app.bottlenote.follow.service;
 
+import app.bottlenote.follow.dto.dsl.FollowPageableCriteria;
 import app.bottlenote.follow.dto.request.FollowPageableRequest;
 import app.bottlenote.follow.dto.response.FollowSearchResponse;
 import app.bottlenote.follow.repository.follower.FollowerRepository;
@@ -14,15 +15,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class FollowerService {
 
-
 	private final FollowerRepository followerRepository;
 
 	@Transactional(readOnly = true)
 	public PageResponse<FollowSearchResponse> findFollowerList(Long userId, FollowPageableRequest pageableRequest) {
-
-		PageResponse<FollowSearchResponse> followerList = followerRepository.findFollowerList(userId, pageableRequest);
-
-		return followerList;
+		// FollowPageableCriteria 생성과 동시에 메소드 호출
+		return followerRepository.followerList(
+			FollowPageableCriteria.of(pageableRequest.cursor(), pageableRequest.pageSize()),
+			userId
+		);
 	}
-
 }

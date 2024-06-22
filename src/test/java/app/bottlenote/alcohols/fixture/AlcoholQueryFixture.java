@@ -18,6 +18,7 @@ import java.util.List;
 import static app.bottlenote.review.domain.constant.SizeType.GLASS;
 
 public class AlcoholQueryFixture {
+	// 응답값반환값
 
 	public AlcoholDetailInfo getAlcoholDetailInfo() {
 		return AlcoholDetailInfo.builder()

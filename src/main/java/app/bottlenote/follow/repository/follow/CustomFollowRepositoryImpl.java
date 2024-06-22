@@ -1,11 +1,13 @@
 package app.bottlenote.follow.repository.follow;
 
 import app.bottlenote.follow.domain.constant.FollowStatus;
-import app.bottlenote.follow.dto.request.FollowPageableRequest;
+import app.bottlenote.follow.dto.dsl.FollowPageableCriteria;
 import app.bottlenote.follow.dto.response.FollowDetail;
 import app.bottlenote.follow.dto.response.FollowSearchResponse;
+import app.bottlenote.follow.repository.FollowQuerySupporter;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -25,12 +27,13 @@ import static com.querydsl.jpa.JPAExpressions.select;
 public class CustomFollowRepositoryImpl implements CustomFollowRepository {
 
 	private final JPAQueryFactory queryFactory;
-
+	private final FollowQuerySupporter followQuerySupporter;
 
 	@Override
-	public PageResponse<FollowSearchResponse> findFollowList(Long userId, FollowPageableRequest pageableRequest) {
-		Long cursor = pageableRequest.cursor();
-		int pageSize = pageableRequest.pageSize().intValue();
+	public PageResponse<FollowSearchResponse> followList(FollowPageableCriteria criteria, Long userId) {
+
+		Long cursor = criteria.cursor();
+		Long pageSize = criteria.pageSize();
 
 		List<FollowDetail> followDetails = queryFactory
 			.select(Projections.constructor(
@@ -40,19 +43,17 @@ public class CustomFollowRepositoryImpl implements CustomFollowRepository {
 				user.nickName.as("nickName"),
 				user.imageUrl.as("userProfileImage"),
 				follow.status.as("status"),
-				ExpressionUtils.as(select(review.count()).from(review).where(review.user.id.eq(follow.followUser.id)), "reviewCount"),
-				ExpressionUtils.as(select(rating.count()).from(rating).where(rating.user.id.eq(follow.followUser.id)), "ratingCount")
+				reviewCountSubQuery(),
+				ratingCountSubQuery()
 			))
 			.from(follow)
 			.leftJoin(user).on(user.id.eq(follow.followUser.id))
 			.where(follow.user.id.eq(userId)
 				.and(follow.status.eq(FollowStatus.FOLLOWING)))
-			.orderBy(follow.createAt.desc())
+			.orderBy(follow.lastModifyAt.desc())
 			.offset(cursor)
 			.limit(pageSize + 1)
 			.fetch();
-
-		log.info("FollowDetails: {}", followDetails);
 
 		Long totalCount = queryFactory
 			.select(follow.id.count())
@@ -61,36 +62,30 @@ public class CustomFollowRepositoryImpl implements CustomFollowRepository {
 				.and(follow.status.eq(FollowStatus.FOLLOWING)))
 			.fetchOne();
 
-		log.info("TotalCount: {}", totalCount);
+		log.debug("FollowDetails: {}", followDetails);
 
-		CursorPageable cursorPageable = getCursorPageable(pageableRequest, followDetails);
+		CursorPageable cursorPageable = followQuerySupporter.getCursorPageable(criteria, followDetails);
+
 
 		return PageResponse.of(FollowSearchResponse.of(totalCount, followDetails), cursorPageable);
 	}
 
-
-	private CursorPageable getCursorPageable(
-		FollowPageableRequest pageableRequest,
-		List<FollowDetail> followDetails
-	) {
-		boolean hasNext = isHasNext(pageableRequest, followDetails);
-		return CursorPageable.builder()
-			.cursor(pageableRequest.cursor() + pageableRequest.pageSize())
-			.pageSize(pageableRequest.pageSize())
-			.hasNext(hasNext)
-			.currentCursor(pageableRequest.cursor())
-			.build();
+	private Expression<Long> reviewCountSubQuery() {
+		return ExpressionUtils.as(
+			select(review.count())
+				.from(review)
+				.where(review.user.id.eq(follow.followUser.id)),
+			"reviewCount"
+		);
 	}
 
-	private boolean isHasNext(
-		FollowPageableRequest pageableRequest,
-		List<FollowDetail> fetch
-	) {
-		boolean hasNext = fetch.size() > pageableRequest.pageSize();
-
-		if (hasNext) {
-			fetch.remove(fetch.size() - 1);
-		}
-		return hasNext;
+	private Expression<Long> ratingCountSubQuery() {
+		return ExpressionUtils.as(
+			select(rating.count())
+				.from(rating)
+				.where(rating.user.id.eq(follow.followUser.id)),
+			"ratingCount"
+		);
 	}
+
 }

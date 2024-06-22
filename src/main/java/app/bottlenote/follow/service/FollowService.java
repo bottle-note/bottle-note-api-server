@@ -1,6 +1,7 @@
 package app.bottlenote.follow.service;
 
 import app.bottlenote.follow.domain.Follow;
+import app.bottlenote.follow.dto.dsl.FollowPageableCriteria;
 import app.bottlenote.follow.dto.request.FollowPageableRequest;
 import app.bottlenote.follow.dto.request.FollowUpdateRequest;
 import app.bottlenote.follow.dto.response.FollowSearchResponse;
@@ -62,12 +63,13 @@ public class FollowService {
 			.build();
 	}
 
-	@Transactional
+	@Transactional(readOnly = true)
 	public PageResponse<FollowSearchResponse> findFollowList(Long userId, FollowPageableRequest pageableRequest) {
 
-		PageResponse<FollowSearchResponse> followList = followRepository.findFollowList(userId, pageableRequest);
+		FollowPageableCriteria criteria = FollowPageableCriteria.of
+			(pageableRequest.cursor(), pageableRequest.pageSize());
 
-		return followList;
+		return followRepository.followList(criteria, userId);
 	}
 
 }

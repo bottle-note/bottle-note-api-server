@@ -6,6 +6,7 @@ import app.bottlenote.follow.dto.request.FollowUpdateRequest;
 import app.bottlenote.follow.dto.response.FollowUpdateResponse;
 import app.bottlenote.follow.exception.FollowException;
 import app.bottlenote.follow.exception.FollowExceptionCode;
+import app.bottlenote.follow.service.FollowService;
 import app.bottlenote.global.security.SecurityContextUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -32,7 +33,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(FollowCommandController.class)
+@WebMvcTest(FollowController.class)
 @WithMockUser
 class FollowUpdateControllerTest {
 
@@ -41,7 +42,7 @@ class FollowUpdateControllerTest {
 	@Autowired
 	private ObjectMapper mapper;
 	@MockBean
-	private nonono followCommandService;
+	private FollowService followService;
 
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
@@ -58,7 +59,7 @@ class FollowUpdateControllerTest {
 
 	@DisplayName("다른 유저를 팔로우 할 수 있다.")
 	@Test
-	void shouldFollowOtherUser() throws Exception {
+	void test_1() throws Exception {
 
 		// given
 		FollowUpdateRequest request = new FollowUpdateRequest(1L, FollowStatus.FOLLOWING);
@@ -70,7 +71,7 @@ class FollowUpdateControllerTest {
 			.build();
 
 		// when
-		when(followCommandService.updateFollowStatus(request, 9L)).thenReturn(response);
+		when(followService.updateFollowStatus(request, 9L)).thenReturn(response);
 
 
 		// then
@@ -93,7 +94,7 @@ class FollowUpdateControllerTest {
 
 	@DisplayName("유저를 언팔로우할 수 있다.")
 	@Test
-	void shouldUnfollowUser() throws Exception {
+	void test_2() throws Exception {
 		// given
 		FollowUpdateRequest request = new FollowUpdateRequest(1L, FollowStatus.UNFOLLOW);
 		FollowUpdateResponse response = FollowUpdateResponse.builder()
@@ -104,7 +105,7 @@ class FollowUpdateControllerTest {
 			.build();
 
 		// when
-		when(followCommandService.updateFollowStatus(request, 9L)).thenReturn(response);
+		when(followService.updateFollowStatus(request, 9L)).thenReturn(response);
 
 		// then
 		ResultActions resultActions = mockMvc.perform(post("/api/v1/follow")
@@ -125,12 +126,12 @@ class FollowUpdateControllerTest {
 
 	@DisplayName("자기 자신을 팔로우할 수 없다.")
 	@Test
-	void shouldNotFollowSelf() throws Exception {
+	void test_3() throws Exception {
 		// given
 		FollowUpdateRequest request = new FollowUpdateRequest(9L, FollowStatus.FOLLOWING);
 
 		// when
-		when(followCommandService.updateFollowStatus(request, 9L))
+		when(followService.updateFollowStatus(request, 9L))
 			.thenThrow(new FollowException(FollowExceptionCode.CANNOT_FOLLOW_SELF));
 
 		// then
@@ -149,12 +150,12 @@ class FollowUpdateControllerTest {
 
 	@DisplayName("팔로우할 유저가 존재하지 않으면 팔로우할 수 없다.")
 	@Test
-	void shouldNotFollowNotFoundUser() throws Exception {
+	void test_4() throws Exception {
 		// given
 		FollowUpdateRequest request = new FollowUpdateRequest(1L, FollowStatus.FOLLOWING);
 
 		// when
-		when(followCommandService.updateFollowStatus(request, 9L))
+		when(followService.updateFollowStatus(request, 9L))
 			.thenThrow(new FollowException(FollowExceptionCode.FOLLOW_NOT_FOUND));
 
 		// then

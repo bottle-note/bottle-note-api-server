@@ -13,9 +13,15 @@
 
 API EndPoint
 
+팔로우 리스트 조회 : 조회 대상 사용자가 팔로우한 유저들을 조회합니다.
 [source]
 ----
-GET /api/v1/follow/{userId}/follow
+GET /api/v1/follow/{userId}
+----
+팔로워 : 조회 대상 사용자를 팔로우한 유저들을 조회합니다.
+[source]
+----
+GET /api/v1/follower/{userId}
 ----
 
 [discrete]
