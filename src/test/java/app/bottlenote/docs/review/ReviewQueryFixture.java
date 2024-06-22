@@ -5,6 +5,7 @@ import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.review.dto.request.LocationInfo;
+import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.response.ReviewDetail;
 import app.bottlenote.review.dto.response.ReviewResponse;
@@ -19,6 +20,7 @@ public class ReviewQueryFixture {
 			"그저 그래요",
 			ReviewStatus.PUBLIC,
 			BigDecimal.valueOf(10000L),
+			List.of(new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")),
 			SizeType.GLASS,
 			List.of("달콤한 향", "스파이시한 맛"),
 			new LocationInfo("11111", "서울시 강남구 청담동", "xx빌딩"));

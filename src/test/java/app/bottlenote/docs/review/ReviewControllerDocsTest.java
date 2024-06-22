@@ -281,6 +281,9 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 						fieldWithPath("locationInfo.zipCode").type(STRING).description("우편번호").optional(),
 						fieldWithPath("locationInfo.address").type(STRING).description("주소").optional(),
 						fieldWithPath("locationInfo.detailAddress").type(STRING).description("상세 주소").optional(),
+						fieldWithPath("imageUrlList").type(ARRAY).description("이미지 URL 목록"),
+						fieldWithPath("imageUrlList[].order").type(NUMBER).description("이미지 순서"),
+						fieldWithPath("imageUrlList[].viewUrl").type(STRING).description("이미지 뷰 URL"),
 						fieldWithPath("tastingTagList").type(ARRAY).description("테이스팅 태그 목록").optional()
 					),
 					responseFields(
@@ -304,11 +307,10 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 			"맛있어요",
 			SizeType.GLASS,
 			new BigDecimal("30000.0"),
-			LocationInfo.builder()
-				.zipCode("34222")
-				.address("서울시 영등포구")
-				.detailAddress("aaa 바")
-				.build(),
+			new LocationInfo(
+				"34222",
+				"서울시 영등포구",
+				"aaa 바"),
 			List.of(
 				new ReviewImageInfo(1L, "url1"),
 				new ReviewImageInfo(2L, "url2"),

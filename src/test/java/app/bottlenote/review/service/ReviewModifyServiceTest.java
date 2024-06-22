@@ -10,24 +10,20 @@ import static org.mockito.Mockito.when;
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.review.domain.Review;
-import app.bottlenote.review.domain.ReviewDomainService;
 import app.bottlenote.review.domain.ReviewModifyVO;
-import app.bottlenote.review.domain.ReviewTastingTag;
 import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.review.dto.request.LocationInfo;
+import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.review.repository.ReviewRepository;
-import app.bottlenote.review.repository.ReviewTastingTagRepository;
 import app.bottlenote.user.domain.User;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,10 +38,12 @@ class ReviewModifyServiceTest {
 
 	@Mock
 	private ReviewRepository reviewRepository;
+
 	@Mock
-	private ReviewTastingTagRepository reviewTastingTagRepository;
+	private ReviewImageSupportService reviewImageSupportService;
+
 	@Mock
-	private ReviewDomainService reviewDomainService;
+	private ReviewTastingTagSupportService reviewTastingTagSupportService;
 
 	@InjectMocks
 	private ReviewService reviewService;
@@ -75,13 +73,14 @@ class ReviewModifyServiceTest {
 
 
 	@Test
-	@DisplayName("리뷰를 수정할 수 있다. - 테이스팅 태그는 수정하지 않는 경우")
+	@DisplayName("리뷰를 수정할 수 있다.")
 	void modify_review_success_when_without_tasting_tag() {
 		//given
 		reviewModifyRequest = new ReviewModifyRequest(
 			"그저 그래요",
 			ReviewStatus.PUBLIC,
 			BigDecimal.valueOf(10000L),
+			List.of(new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")),
 			SizeType.GLASS,
 			List.of(),
 			new LocationInfo("11111", "서울시 강남구 청담동", "xx빌딩"));
@@ -96,56 +95,13 @@ class ReviewModifyServiceTest {
 			.sizeType(reviewModifyRequest.sizeType())
 			.build();
 
+		//when
 		when(reviewRepository.findByIdAndUserId(anyLong(), anyLong())).thenReturn(Optional.of(review));
-
-		when(reviewDomainService.createValidatedReview(reviewModifyRequest)).thenReturn(reviewModifyVO);
 
 		reviewService.modifyReviews(reviewModifyRequest, 1L, 1L);
 
-		verify(reviewDomainService, times(1)).createValidatedReview(any());
-
-		verify(reviewDomainService, never()).createValidatedReviewTastingTag(any(), any());
-	}
-
-	@Test
-	@DisplayName("리뷰를 수정할 수 있다. - 테이스팅 태그도 함께 수정하는 경우")
-	void modify_review_success_with_tasting_tag() {
-		//given
-		reviewModifyRequest = new ReviewModifyRequest(
-			"그저 그래요",
-			ReviewStatus.PUBLIC,
-			BigDecimal.valueOf(10000L),
-			SizeType.GLASS,
-			List.of("달콤"),
-			new LocationInfo("11111", "서울시 강남구 청담동", "xx빌딩"));
-
-		reviewModifyVO = ReviewModifyVO.builder()
-			.content(reviewModifyRequest.content())
-			.price(reviewModifyRequest.price())
-			.reviewStatus(reviewModifyRequest.status())
-			.zipCode(reviewModifyRequest.content())
-			.address(reviewModifyRequest.locationInfo().address())
-			.detailAddress(reviewModifyRequest.locationInfo().detailAddress())
-			.sizeType(reviewModifyRequest.sizeType())
-			.build();
-
-		Set<ReviewTastingTag> tastingTags = reviewModifyRequest.tastingTagList().stream()
-			.map(tag -> ReviewTastingTag.builder()
-				.review(review)
-				.tastingTag(tag)
-				.build())
-			.collect(Collectors.toSet());
-
-		when(reviewRepository.findByIdAndUserId(anyLong(), anyLong())).thenReturn(Optional.of(review));
-
-		when(reviewDomainService.createValidatedReview(reviewModifyRequest)).thenReturn(reviewModifyVO);
-
-		when(reviewDomainService.createValidatedReviewTastingTag(reviewModifyRequest.tastingTagList(), review))
-			.thenReturn(tastingTags);
-
-		reviewService.modifyReviews(reviewModifyRequest, 1L, 1L);
-
-		verify(reviewDomainService, times(1)).createValidatedReviewTastingTag(any(), any());
+		verify(reviewTastingTagSupportService, times(1)).updateReviewTastingTag(any(), any());
+		verify(reviewTastingTagSupportService, never()).saveReviewTastingTag(any(), any());
 	}
 
 	@Test

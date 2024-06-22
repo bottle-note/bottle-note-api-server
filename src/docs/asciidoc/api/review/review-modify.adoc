@@ -26,23 +26,9 @@ include::{snippets}/review/review-modify/request-fields.adoc[]
 
 - Request Body 예시
 
-아래와 같이 수정을 하고자 하는 필드만 json 요청으로 보내면 됩니다.
+수정하지 않으려는 필드는 기존의 값을 유지하고, 수정하려는 필드만 수정된 값으로 채워서 전달합니다.
 
-
-나머지 필드는 자동으로 null로 바인딩 됩니다.
-```json
-{
-  "content" : "맛있습니다."
-}
-```
-```json
-{
-   "locationInfo" : {
-        "zipCode": "12345"
-    }
-}
-```
-
+필드의 값이 NULL인 경우 400 Bad Request가 발생합니다.
 [discrete]
 ==== 응답 파라미터  ====
 

@@ -4,18 +4,13 @@ package app.bottlenote.review.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anySet;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.review.domain.Review;
-import app.bottlenote.review.domain.ReviewDomainService;
 import app.bottlenote.review.domain.ReviewImage;
 import app.bottlenote.review.domain.ReviewTastingTag;
 import app.bottlenote.review.domain.constant.ReviewStatus;
@@ -24,15 +19,11 @@ import app.bottlenote.review.dto.request.LocationInfo;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
-import app.bottlenote.review.exception.ReviewException;
-import app.bottlenote.review.repository.ReviewImageRepository;
 import app.bottlenote.review.repository.ReviewRepository;
-import app.bottlenote.review.repository.ReviewTastingTagRepository;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.repository.UserCommandRepository;
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -55,13 +46,12 @@ class ReviewCreateServiceTest {
 	private AlcoholQueryRepository alcoholQueryRepository;
 	@Mock
 	private UserCommandRepository userCommandRepository;
-	@Mock
-	private ReviewImageRepository reviewImageRepository;
-	@Mock
-	private ReviewTastingTagRepository reviewTastingTagRepository;
-	@Mock
-	private ReviewDomainService reviewDomainService;
 
+	@Mock
+	private ReviewImageSupportService reviewImageSupportService;
+
+	@Mock
+	private ReviewTastingTagSupportService reviewTastingTagSupportService;
 	@InjectMocks
 	private ReviewService reviewService;
 	private ReviewCreateRequest reviewCreateRequest;
@@ -87,12 +77,7 @@ class ReviewCreateServiceTest {
 			"맛있어요",
 			SizeType.GLASS,
 			new BigDecimal("30000.0"),
-			LocationInfo.builder()
-				.zipCode("34222")
-				.address("서울시 영등포구")
-				.detailAddress("aaa 바")
-				.build()
-			,
+			new LocationInfo("11111", "서울시 강남구 청담동", "xx빌딩"),
 			List.of(
 				new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1"),
 				new ReviewImageInfo(2L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/2"),
@@ -142,12 +127,6 @@ class ReviewCreateServiceTest {
 		when(userCommandRepository.findById(anyLong()))
 			.thenReturn(Optional.of(user));
 
-		when(reviewImageRepository.saveAll(anyList()))
-			.thenReturn(reviewImage);
-
-		when(reviewTastingTagRepository.saveAll(anySet()))
-			.thenReturn(reviewTastingTag);
-
 		when(reviewRepository.save(any(Review.class)))
 			.thenReturn(review);
 
@@ -175,84 +154,5 @@ class ReviewCreateServiceTest {
 
 		// when, then
 		assertThrows(UserException.class, () -> reviewService.createReviews(reviewCreateRequest, 1L));
-	}
-
-	@Test
-	@DisplayName("리뷰이미지가 5장 이상일 때 ReviewException이 발생해야 한다.")
-	void review_create_fail_when_review_image_is_more_than_5() {
-
-		// given
-
-		ReviewCreateRequest request = new ReviewCreateRequest(
-			1L,
-			ReviewStatus.PUBLIC,
-			"맛있어요",
-			SizeType.GLASS,
-			new BigDecimal("30000.0"),
-			LocationInfo.builder()
-				.zipCode("34222")
-				.address("서울시 영등포구")
-				.detailAddress("aaa 바")
-				.build()
-			,
-			List.of(
-				new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1"),
-				new ReviewImageInfo(2L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/2"),
-				new ReviewImageInfo(3L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/3"),
-				new ReviewImageInfo(4L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/3"),
-				new ReviewImageInfo(5L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/3"),
-				new ReviewImageInfo(6L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/3")
-			),
-			List.of("테이스팅태그 1", "테이스팅태그 2", "테이스팅태그 3")
-		);
-
-		// when,
-		when(alcoholQueryRepository.findById(anyLong())).thenReturn(Optional.of(alcohol));
-		when(userCommandRepository.findById(anyLong())).thenReturn(Optional.of(user));
-
-		// then
-		assertThrows(ReviewException.class, () -> reviewService.createReviews(request, 1L));
-	}
-
-	@Test
-	@DisplayName("reviewImageInfo가 null이면 리뷰 이미지는 save되지 않는다.")
-	void review_image_does_not_save_when_image_info_is_null() {
-
-		// given
-
-		ReviewCreateRequest request = new ReviewCreateRequest(
-			1L,
-			ReviewStatus.PUBLIC,
-			"맛있어요",
-			SizeType.GLASS,
-			new BigDecimal("30000.0"),
-			LocationInfo.builder()
-				.zipCode("34222")
-				.address("서울시 영등포구")
-				.detailAddress("aaa 바")
-				.build()
-			,
-			Collections.emptyList()
-			,
-			List.of("테이스팅태그1", "테이스팅태그 2", "테이스팅태그 3")
-		);
-
-		ReviewImage reviewImage1 = ReviewImage.builder().build();
-
-		//when
-		when(alcoholQueryRepository.findById(anyLong()))
-			.thenReturn(Optional.of(alcohol));
-
-		when(userCommandRepository.findById(anyLong()))
-			.thenReturn(Optional.of(user));
-
-		when(reviewRepository.save(any(Review.class)))
-			.thenReturn(review);
-
-		// then
-		reviewService.createReviews(request, 1L);
-
-		//imageInfo가 빈 리스트가 들어와서 saveAll 메서드가 호출되지 않음
-		verify(reviewImageRepository, times(0)).saveAll(List.of(reviewImage1));
 	}
 }
