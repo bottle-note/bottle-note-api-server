@@ -1,6 +1,5 @@
 package app.bottlenote.follow.domain.constant;
 
-import app.bottlenote.follow.dto.FollowUpdateResponse;
 import app.bottlenote.follow.exception.FollowException;
 import app.bottlenote.follow.exception.FollowExceptionCode;
 import com.fasterxml.jackson.annotation.JsonCreator;

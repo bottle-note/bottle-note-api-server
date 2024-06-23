@@ -1,4 +1,4 @@
-package app.bottlenote.follow.dto;
+package app.bottlenote.follow.dto.response;
 
 import app.bottlenote.follow.domain.constant.FollowStatus;
 import lombok.AllArgsConstructor;
