@@ -37,12 +37,18 @@ public class ReviewTastingTag extends BaseTimeEntity {
 	private String tastingTag;
 
 	@Builder
-	public ReviewTastingTag(Long id, Review review, String tastingTag) {
+	private ReviewTastingTag(Long id, Review review, String tastingTag) {
 		this.id = id;
 		this.review = review;
 		this.tastingTag = isValidTastingTag(tastingTag);
 	}
 
+	public static ReviewTastingTag create(Review review, String tastingTag) {
+		return ReviewTastingTag.builder()
+			.review(review)
+			.tastingTag(tastingTag)
+			.build();
+	}
 
 	private static final int TASTING_TAG_MAX_LENGTH = 12;
 
@@ -52,5 +58,10 @@ public class ReviewTastingTag extends BaseTimeEntity {
 		}
 		return tastingTag.trim();
 	}
+
+	public void updateReview(Review review) {
+		this.review = review;
+	}
+
 }
 
