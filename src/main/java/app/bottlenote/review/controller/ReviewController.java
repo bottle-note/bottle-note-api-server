@@ -10,15 +10,18 @@ import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
+import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewResponse;
 import app.bottlenote.review.service.ReviewService;
 import app.bottlenote.user.exception.UserException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,7 +37,8 @@ public class ReviewController {
 	private final ReviewService reviewService;
 
 	@PostMapping
-	public ResponseEntity<GlobalResponse> createReviews(@RequestBody ReviewCreateRequest reviewCreateRequest) {
+	public ResponseEntity<GlobalResponse> createReviews(@RequestBody @Valid ReviewCreateRequest reviewCreateRequest) {
+
 		Long currentUserId = SecurityContextUtil.getUserIdByContext().
 			orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
@@ -71,6 +75,18 @@ public class ReviewController {
 
 		return ResponseEntity.ok(
 			success(myReview.content(), MetaService.createMetaInfo().add("pageable", myReview.cursorPageable()))
+		);
+	}
+
+	@PatchMapping("/{reviewId}")
+	public ResponseEntity<GlobalResponse> modifyReviews(@RequestBody @Valid ReviewModifyRequest reviewModifyRequest, @PathVariable Long reviewId) {
+
+		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElseThrow(
+			() -> new UserException(REQUIRED_USER_ID)
+		);
+
+		return ResponseEntity.ok(
+			success(reviewService.modifyReviews(reviewModifyRequest, reviewId, currentUserId))
 		);
 	}
 }

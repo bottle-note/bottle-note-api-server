@@ -4,6 +4,9 @@ import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
+import app.bottlenote.review.dto.request.LocationInfo;
+import app.bottlenote.review.dto.request.ReviewImageInfo;
+import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.response.ReviewDetail;
 import app.bottlenote.review.dto.response.ReviewResponse;
 import java.math.BigDecimal;
@@ -11,6 +14,21 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class ReviewQueryFixture {
+
+	public ReviewModifyRequest getReviewModifyRequest() {
+		return new ReviewModifyRequest(
+			"그저 그래요",
+			ReviewStatus.PUBLIC,
+			BigDecimal.valueOf(10000L),
+			List.of(new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")),
+			SizeType.GLASS,
+			List.of("달콤한 향", "스파이시한 맛"),
+			new LocationInfo("11111", "서울시 강남구 청담동", "xx빌딩"));
+	}
+
+	public ReviewDetail getReview() {
+		return getReviews().content().getReviewList().get(0);
+	}
 
 	public PageResponse<ReviewResponse> getReviews() {
 		ReviewDetail reviewDetail_1 = ReviewDetail.builder()
@@ -30,6 +48,7 @@ public class ReviewQueryFixture {
 			.isMyReview(true)
 			.isLikedByMe(true)
 			.hasReplyByMe(false)
+			.reviewTastingTag(List.of("달콤한맛"))
 			.build();
 
 		ReviewDetail reviewDetail_2 = ReviewDetail.builder()
@@ -49,6 +68,7 @@ public class ReviewQueryFixture {
 			.isMyReview(true)
 			.isLikedByMe(true)
 			.hasReplyByMe(false)
+			.reviewTastingTag(List.of("xxx맛"))
 			.build();
 
 		Long totalCount = 2L;

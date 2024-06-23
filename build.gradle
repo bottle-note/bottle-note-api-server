@@ -94,10 +94,6 @@ tasks.register('data-jpa-test', Test) {
     group = 'verification'
     description = 'Runs the data-jpa tests.'
 }
-// `check` 태스크가 `dataJpaTest` 태스크를 실행하도록 설정
-tasks.named('check') {
-    dependsOn tasks.named('dataJpaTest')
-}
 
 // =========================== spring boot jar setting ===========================
 
