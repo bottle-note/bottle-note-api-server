@@ -1,5 +1,6 @@
 package app.bottlenote.config;
 
+import app.bottlenote.alcohols.repository.AlcoholQuerySupporter;
 import app.bottlenote.follow.repository.FollowQuerySupporter;
 import app.bottlenote.follow.repository.FollowerQuerySupporter;
 import app.bottlenote.rating.repository.RatingQuerySupporter;
@@ -18,6 +19,11 @@ public class ModuleConfig {
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.registerModule(new JavaTimeModule());
 		return objectMapper;
+	}
+
+	@Bean
+	public AlcoholQuerySupporter alcoholQuerySupporter() {
+		return new AlcoholQuerySupporter();
 	}
 
 	@Bean
