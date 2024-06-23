@@ -1,25 +1,31 @@
 package app.bottlenote.follow.service;
 
 import app.bottlenote.follow.domain.Follow;
-import app.bottlenote.follow.dto.FollowUpdateRequest;
-import app.bottlenote.follow.dto.FollowUpdateResponse;
+import app.bottlenote.follow.dto.dsl.FollowPageableCriteria;
+import app.bottlenote.follow.dto.request.FollowPageableRequest;
+import app.bottlenote.follow.dto.request.FollowUpdateRequest;
+import app.bottlenote.follow.dto.response.FollowSearchResponse;
+import app.bottlenote.follow.dto.response.FollowUpdateResponse;
 import app.bottlenote.follow.exception.FollowException;
 import app.bottlenote.follow.exception.FollowExceptionCode;
-import app.bottlenote.follow.repository.FollowCommandRepository;
+import app.bottlenote.follow.repository.follow.FollowRepository;
+import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.repository.UserCommandRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
-public class FollowCommandService {
+public class FollowService {
 
+	private final FollowRepository followRepository;
 	private final UserCommandRepository userRepository;
-	private final FollowCommandRepository followRepository;
 
 	@Transactional
 	public FollowUpdateResponse updateFollowStatus(FollowUpdateRequest request, Long userId) {
@@ -56,4 +62,17 @@ public class FollowCommandService {
 			.imageUrl(imageUrl)
 			.build();
 	}
+
+	@Transactional(readOnly = true)
+	public PageResponse<FollowSearchResponse> findFollowList(Long userId, FollowPageableRequest pageableRequest) {
+
+		FollowPageableCriteria criteria = FollowPageableCriteria.of(
+			pageableRequest.cursor(),
+			pageableRequest.pageSize(),
+			userId
+		);
+
+		return followRepository.followList(criteria);
+	}
+
 }
