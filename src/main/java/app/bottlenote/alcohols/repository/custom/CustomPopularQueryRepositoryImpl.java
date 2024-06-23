@@ -1,4 +1,4 @@
-package app.bottlenote.alcohols.repository;
+package app.bottlenote.alcohols.repository.custom;
 
 import app.bottlenote.alcohols.dto.response.Populars;
 import com.querydsl.core.types.Projections;

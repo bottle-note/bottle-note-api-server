@@ -2,6 +2,7 @@ package app.bottlenote.review.repository;
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
+import app.bottlenote.config.ModuleConfig;
 import app.bottlenote.config.TestConfig;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
@@ -42,7 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Tag(value = "data-jpa-test")
 @DataJpaTest
 @ActiveProfiles("test")
-@Import(TestConfig.class)
+@Import({TestConfig.class, ModuleConfig.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class CustomReviewRepositoryImplTest {
 
