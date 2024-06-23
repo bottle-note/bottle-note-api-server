@@ -26,7 +26,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
-import org.springframework.util.CollectionUtils;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @Getter
@@ -98,8 +97,7 @@ public class Review extends BaseEntity {
 	private Set<ReviewTastingTag> reviewTastingTags = new HashSet<>();
 
 	@Builder
-	public Review(Long id, User user, Alcohol alcohol, String content, SizeType sizeType, BigDecimal price, ReviewStatus status, String zipCode, String address, String detailAddress, String imageUrl, Long viewCount,
-		List<ReviewReply> reviewReplies, List<ReviewImage> reviewImages, Set<ReviewTastingTag> reviewTastingTags) {
+	public Review(Long id, User user, Alcohol alcohol, String content, SizeType sizeType, BigDecimal price, ReviewStatus status, String zipCode, String address, String detailAddress, String imageUrl, Long viewCount) {
 		this.id = id;
 		this.user = user;
 		this.alcohol = alcohol;
@@ -112,9 +110,9 @@ public class Review extends BaseEntity {
 		this.detailAddress = detailAddress;
 		this.imageUrl = imageUrl;
 		this.viewCount = viewCount;
-		this.reviewReplies = reviewReplies;
-		this.reviewImages = reviewImages;
-		this.reviewTastingTags = reviewTastingTags;
+		this.reviewReplies = new ArrayList<>();
+		this.reviewImages = new ArrayList<>();
+		this.reviewTastingTags = new HashSet<>();
 	}
 
 	public void modifyReview(ReviewModifyVO reviewModifyVO) {
@@ -128,16 +126,20 @@ public class Review extends BaseEntity {
 	}
 
 	public void updateTastingTags(Set<ReviewTastingTag> updateTastingTags) {
-		if (CollectionUtils.isEmpty(updateTastingTags)) {
-			this.reviewTastingTags.clear();
-		}
+		this.reviewTastingTags.clear();
 		this.reviewTastingTags.addAll(updateTastingTags);
 	}
 
-	public void updateImage(List<ReviewImage> reviewImages) {
-		if (CollectionUtils.isEmpty(reviewImages)) {
-			this.reviewImages.clear();
-		}
+	public void updateImages(List<ReviewImage> reviewImages) {
+		this.reviewImages.clear();
 		this.reviewImages.addAll(reviewImages);
+	}
+
+	public void saveTastingTag(Set<ReviewTastingTag> reviewTastingTags) {
+		this.reviewTastingTags.addAll(reviewTastingTags);
+	}
+
+	public void saveImages(List<ReviewImage> reviewImageList) {
+		this.reviewImages.addAll(reviewImageList);
 	}
 }
