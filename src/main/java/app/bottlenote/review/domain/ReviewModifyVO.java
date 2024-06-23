@@ -2,8 +2,8 @@ package app.bottlenote.review.domain;
 
 import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
+import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import java.math.BigDecimal;
-import lombok.Builder;
 import lombok.Getter;
 
 @Getter
@@ -23,14 +23,13 @@ public class ReviewModifyVO {
 
 	private final String detailAddress;
 
-	@Builder
-	public ReviewModifyVO(String content, ReviewStatus reviewStatus, BigDecimal price, SizeType sizeType, String zipCode, String address, String detailAddress) {
-		this.content = content;
-		this.reviewStatus = reviewStatus;
-		this.price = price;
-		this.sizeType = sizeType;
-		this.zipCode = zipCode;
-		this.address = address;
-		this.detailAddress = detailAddress;
+	public ReviewModifyVO(ReviewModifyRequest reviewModifyRequest) {
+		this.content = reviewModifyRequest.content();
+		this.reviewStatus = reviewModifyRequest.status();
+		this.price = reviewModifyRequest.price();
+		this.sizeType = reviewModifyRequest.sizeType();
+		this.zipCode = reviewModifyRequest.locationInfo().zipCode();
+		this.address = reviewModifyRequest.locationInfo().address();
+		this.detailAddress = reviewModifyRequest.locationInfo().detailAddress();
 	}
 }
