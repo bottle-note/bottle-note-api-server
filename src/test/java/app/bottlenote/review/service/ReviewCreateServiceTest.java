@@ -48,10 +48,10 @@ class ReviewCreateServiceTest {
 	private UserCommandRepository userCommandRepository;
 
 	@Mock
-	private ReviewImageSupportService reviewImageSupportService;
+	private ReviewImageSupport reviewImageSupport;
 
 	@Mock
-	private ReviewTastingTagSupportService reviewTastingTagSupportService;
+	private ReviewTastingTagSupport reviewTastingTagSupport;
 	@InjectMocks
 	private ReviewService reviewService;
 	private ReviewCreateRequest reviewCreateRequest;

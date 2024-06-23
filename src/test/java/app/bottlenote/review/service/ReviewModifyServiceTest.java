@@ -21,7 +21,6 @@ import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.review.repository.ReviewRepository;
 import app.bottlenote.user.domain.User;
 import java.math.BigDecimal;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,10 +39,10 @@ class ReviewModifyServiceTest {
 	private ReviewRepository reviewRepository;
 
 	@Mock
-	private ReviewImageSupportService reviewImageSupportService;
+	private ReviewImageSupport reviewImageSupport;
 
 	@Mock
-	private ReviewTastingTagSupportService reviewTastingTagSupportService;
+	private ReviewTastingTagSupport reviewTastingTagSupport;
 
 	@InjectMocks
 	private ReviewService reviewService;
@@ -67,7 +66,6 @@ class ReviewModifyServiceTest {
 			.alcohol(alcohol)
 			.user(user)
 			.content("아주 맛있어요")
-			.reviewTastingTags(new HashSet<>())
 			.build();
 	}
 
@@ -85,23 +83,15 @@ class ReviewModifyServiceTest {
 			List.of(),
 			new LocationInfo("11111", "서울시 강남구 청담동", "xx빌딩"));
 
-		reviewModifyVO = ReviewModifyVO.builder()
-			.content(reviewModifyRequest.content())
-			.price(reviewModifyRequest.price())
-			.reviewStatus(reviewModifyRequest.status())
-			.zipCode(reviewModifyRequest.content())
-			.address(reviewModifyRequest.locationInfo().address())
-			.detailAddress(reviewModifyRequest.locationInfo().detailAddress())
-			.sizeType(reviewModifyRequest.sizeType())
-			.build();
+		reviewModifyVO = new ReviewModifyVO(reviewModifyRequest);
 
 		//when
 		when(reviewRepository.findByIdAndUserId(anyLong(), anyLong())).thenReturn(Optional.of(review));
 
 		reviewService.modifyReviews(reviewModifyRequest, 1L, 1L);
 
-		verify(reviewTastingTagSupportService, times(1)).updateReviewTastingTag(any(), any());
-		verify(reviewTastingTagSupportService, never()).saveReviewTastingTag(any(), any());
+		verify(reviewTastingTagSupport, times(1)).updateReviewTastingTag(any(), any());
+		verify(reviewTastingTagSupport, never()).saveReviewTastingTag(any(), any());
 	}
 
 	@Test

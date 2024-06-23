@@ -1,34 +1,25 @@
 package app.bottlenote.review.service;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.exception.ReviewException;
-import app.bottlenote.review.repository.ReviewTastingTagRepository;
 import java.util.Collections;
 import java.util.List;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@DisplayName("리뷰 이미지 서포트 서비스 테스트")
+@DisplayName("리뷰 테이스팅 태그 서포트 서비스 테스트")
 @ExtendWith(MockitoExtension.class)
-class ReviewTastingTagSupportServiceTest {
-
-	@Mock
-	private ReviewTastingTagRepository reviewTastingTagRepository;
+class ReviewTastingTagSupportTest {
 
 	@InjectMocks
-	private ReviewTastingTagSupportService reviewTastingTagSupportService;
+	private ReviewTastingTagSupport reviewTastingTagSupport;
 
 	private Review review;
 
@@ -47,8 +38,8 @@ class ReviewTastingTagSupportServiceTest {
 	@DisplayName("테이스팅 태그가 정상적으로 저장된다.")
 	void success_tasting_tag() {
 
-		reviewTastingTagSupportService.saveReviewTastingTag(tastingTags, review);
-		verify(reviewTastingTagRepository, times(1)).saveAll(any());
+		reviewTastingTagSupport.saveReviewTastingTag(tastingTags, review);
+		assertEquals(tastingTags.size(), review.getReviewTastingTags().size());
 	}
 
 
@@ -57,8 +48,8 @@ class ReviewTastingTagSupportServiceTest {
 	void validate_tasting_tag_list() {
 		List<String> emptyList = Collections.EMPTY_LIST;
 
-		reviewTastingTagSupportService.saveReviewTastingTag(emptyList, review);
-		verify(reviewTastingTagRepository, never()).saveAll(anyList());
+		reviewTastingTagSupport.saveReviewTastingTag(emptyList, review);
+		assertEquals(0, review.getReviewTastingTags().size());
 	}
 
 	@Test
@@ -67,7 +58,7 @@ class ReviewTastingTagSupportServiceTest {
 		List<String> wrongTastingTags = List.of(
 			"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k");
 
-		Assertions.assertThrows(ReviewException.class, () -> reviewTastingTagSupportService.saveReviewTastingTag(wrongTastingTags, review));
+		assertThrows(ReviewException.class, () -> reviewTastingTagSupport.saveReviewTastingTag(wrongTastingTags, review));
 	}
 
 }

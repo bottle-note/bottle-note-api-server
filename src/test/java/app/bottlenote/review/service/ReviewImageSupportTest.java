@@ -1,14 +1,8 @@
 package app.bottlenote.review.service;
 
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.exception.ReviewException;
-import app.bottlenote.review.repository.ReviewImageRepository;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
@@ -17,18 +11,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @DisplayName("리뷰 이미지 서포트 서비스 테스트")
 @ExtendWith(MockitoExtension.class)
-class ReviewImageSupportServiceTest {
-
-	@Mock
-	private ReviewImageRepository reviewImageRepository;
+class ReviewImageSupportTest {
 
 	@InjectMocks
-	private ReviewImageSupportService reviewImageSupportService;
+	private ReviewImageSupport reviewImageSupport;
 
 	private Review review;
 
@@ -50,8 +40,9 @@ class ReviewImageSupportServiceTest {
 	@DisplayName("이미지가 정상적으로 저장된다.")
 	void success_images_save() {
 
-		reviewImageSupportService.saveImages(reviewImageInfoList, review);
-		verify(reviewImageRepository, times(1)).saveAll(anyList());
+		reviewImageSupport.saveImages(reviewImageInfoList, review);
+
+		Assertions.assertEquals(reviewImageInfoList.size(), review.getReviewImages().size());
 	}
 
 
@@ -60,8 +51,10 @@ class ReviewImageSupportServiceTest {
 	void validate__image() {
 		List<ReviewImageInfo> emptyList = Collections.EMPTY_LIST;
 
-		reviewImageSupportService.saveImages(emptyList, review);
-		verify(reviewImageRepository, never()).saveAll(anyList());
+		reviewImageSupport.saveImages(emptyList, review);
+
+		Assertions.assertEquals(0, review.getReviewImages().size());
+
 	}
 
 	@Test
@@ -75,7 +68,7 @@ class ReviewImageSupportServiceTest {
 			new ReviewImageInfo(5L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/5"),
 			new ReviewImageInfo(6L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/6"));
 
-		Assertions.assertThrows(ReviewException.class, () -> reviewImageSupportService.saveImages(wrongReviewImages, review));
+		Assertions.assertThrows(ReviewException.class, () -> reviewImageSupport.saveImages(wrongReviewImages, review));
 	}
 
 }
