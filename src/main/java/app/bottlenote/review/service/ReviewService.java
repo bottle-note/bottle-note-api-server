@@ -34,8 +34,8 @@ public class ReviewService {
 	private final AlcoholQueryRepository alcoholQueryRepository;
 	private final UserCommandRepository userCommandRepository;
 	private final ReviewRepository reviewRepository;
-	private final ReviewTastingTagSupportService reviewTastingTagSupportService;
-	private final ReviewImageSupportService reviewImageSupportService;
+	private final ReviewTastingTagSupport reviewTastingTagSupport;
+	private final ReviewImageSupport reviewImageSupport;
 
 	@Transactional
 	public ReviewCreateResponse createReviews(ReviewCreateRequest reviewCreateRequest, Long currentUserId) {
@@ -63,9 +63,9 @@ public class ReviewService {
 
 		Review saveReview = reviewRepository.save(review);
 
-		reviewImageSupportService.saveImages(reviewCreateRequest.imageUrlList(), review);
+		reviewImageSupport.saveImages(reviewCreateRequest.imageUrlList(), review);
 
-		reviewTastingTagSupportService.saveReviewTastingTag(reviewCreateRequest.tastingTagList(), review);
+		reviewTastingTagSupport.saveReviewTastingTag(reviewCreateRequest.tastingTagList(), review);
 
 		return ReviewCreateResponse.builder()
 			.id(saveReview.getId())
@@ -110,26 +110,14 @@ public class ReviewService {
 			() -> new ReviewException(REVIEW_NOT_FOUND)
 		);
 
-		ReviewModifyVO reviewModifyVO = createReviewEntity(reviewModifyRequest);
+		ReviewModifyVO reviewModifyVO = new ReviewModifyVO(reviewModifyRequest);
 
 		review.modifyReview(reviewModifyVO);
 
-		reviewImageSupportService.updateImages(reviewModifyRequest.imageUrlList(), review);
+		reviewImageSupport.updateImages(reviewModifyRequest.imageUrlList(), review);
 
-		reviewTastingTagSupportService.updateReviewTastingTag(reviewModifyRequest.tastingTagList(), review);
+		reviewTastingTagSupport.updateReviewTastingTag(reviewModifyRequest.tastingTagList(), review);
 
 		return MODIFY_SUCCESS.getDescription();
-	}
-
-	public ReviewModifyVO createReviewEntity(ReviewModifyRequest reviewModifyRequest) {
-		return ReviewModifyVO.builder()
-			.content(reviewModifyRequest.content())
-			.reviewStatus(reviewModifyRequest.status())
-			.price(reviewModifyRequest.price())
-			.sizeType(reviewModifyRequest.sizeType())
-			.zipCode(reviewModifyRequest.locationInfo().zipCode())
-			.address(reviewModifyRequest.locationInfo().address())
-			.detailAddress(reviewModifyRequest.locationInfo().detailAddress())
-			.build();
 	}
 }

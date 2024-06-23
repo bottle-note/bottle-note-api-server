@@ -7,7 +7,7 @@ import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewImage;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.exception.ReviewException;
-import app.bottlenote.review.repository.ReviewImageRepository;
+import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,35 +17,9 @@ import org.springframework.util.CollectionUtils;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ReviewImageSupportService {
-
-	private final ReviewImageRepository reviewImageRepository;
+public class ReviewImageSupport {
 
 	private static final int REVIEW_IMAGE_MAX_SIZE = 5;
-
-	public void updateImages(List<ReviewImageInfo> imageList, Review review) {
-
-		if (CollectionUtils.isEmpty(imageList)) {
-			return;
-		}
-		List<ReviewImage> reviewImageList = imageList.stream()
-			.map(image -> ReviewImage.builder()
-				.order(image.order())
-				.imageUrl(image.viewUrl())
-				.imagePath(ImageUtil.getImagePath(image.viewUrl()))
-				.imageKey(ImageUtil.getImageKey(image.viewUrl()))
-				.imageName(ImageUtil.getImageName(image.viewUrl()))
-				.review(review)
-				.build()
-			).toList();
-
-		if (!isValidReviewImageList(reviewImageList)) {
-			throw new ReviewException(INVALID_IMAGE_URL_MAX_SIZE);
-		}
-
-		review.updateImage(reviewImageList);
-
-	}
 
 	public void saveImages(List<ReviewImageInfo> imageList, Review review) {
 		if (CollectionUtils.isEmpty(imageList)) {
@@ -62,13 +36,37 @@ public class ReviewImageSupportService {
 				.build()
 			).toList();
 
-		if (!isValidReviewImageList(reviewImageList)) {
+		if (!checkImageMaxSize(reviewImageList)) {
 			throw new ReviewException(INVALID_IMAGE_URL_MAX_SIZE);
 		}
-		reviewImageRepository.saveAll(reviewImageList);
+		review.saveImages(reviewImageList);
 	}
 
-	private boolean isValidReviewImageList(List<ReviewImage> reviewImageList) {
+	public void updateImages(List<ReviewImageInfo> imageList, Review review) {
+
+		if (CollectionUtils.isEmpty(imageList)) {
+			review.updateImages(Collections.emptyList());
+		}
+		List<ReviewImage> reviewImageList = imageList.stream()
+			.map(image -> ReviewImage.builder()
+				.order(image.order())
+				.imageUrl(image.viewUrl())
+				.imagePath(ImageUtil.getImagePath(image.viewUrl()))
+				.imageKey(ImageUtil.getImageKey(image.viewUrl()))
+				.imageName(ImageUtil.getImageName(image.viewUrl()))
+				.review(review)
+				.build()
+			).toList();
+
+		if (!checkImageMaxSize(reviewImageList)) {
+			throw new ReviewException(INVALID_IMAGE_URL_MAX_SIZE);
+		}
+
+		review.updateImages(reviewImageList);
+
+	}
+
+	private boolean checkImageMaxSize(List<ReviewImage> reviewImageList) {
 		return reviewImageList.size() <= REVIEW_IMAGE_MAX_SIZE;
 	}
 
