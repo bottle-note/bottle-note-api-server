@@ -54,23 +54,18 @@ public class AlcoholQueryService {
 	@Transactional(readOnly = true)
 	public AlcoholDetail findAlcoholDetailById(Long alcoholId, Long userId) {
 
+		long start = System.nanoTime();
 		// 위스키 상세 조회
+		log.info("위스키 상세 조회 호출 :{}ms", (System.nanoTime() - start) / 1_000_000);
 		AlcoholDetailInfo alcoholDetailById = alcoholQueryRepository.findAlcoholDetailById(alcoholId, userId);
 
 		// 팔로워 수 조회
+		log.info("팔로워 수 조회 호출:{}ms", (System.nanoTime() - start) / 1_000_000);
 		FriendsDetailInfo friendsData = getMockFriendsData();
 
 		// 리뷰 조회
-		List<ReviewsDetailInfo.ReviewInfo> bestReviewInfos = reviewQueryRepository.findBestReviewsForAlcoholDetail(alcoholId, userId);
-		List<Long> bestReviewIds = bestReviewInfos.stream().map(ReviewsDetailInfo.ReviewInfo::reviewId).toList();
-		List<ReviewsDetailInfo.ReviewInfo> reviewInfos = reviewQueryRepository.findReviewsForAlcoholDetail(alcoholId, userId, bestReviewIds);
-		Long reviewTotalCount = reviewQueryRepository.countByAlcoholId(alcoholId);
-
-		ReviewsDetailInfo reviewsDetailInfo = ReviewsDetailInfo.builder()
-			.totalReviewCount(reviewTotalCount)
-			.bestReviewInfos(bestReviewInfos)
-			.recentReviewInfos(reviewInfos)
-			.build();
+		log.info("리뷰 조회 호출:{}ms", (System.nanoTime() - start) / 1_000_000);
+		ReviewsDetailInfo reviewsDetailInfo = reviewQueryRepository.fetchUserReviewsForAlcoholDetail(alcoholId, userId);
 
 		return AlcoholDetail.of(alcoholDetailById, friendsData, reviewsDetailInfo);
 	}

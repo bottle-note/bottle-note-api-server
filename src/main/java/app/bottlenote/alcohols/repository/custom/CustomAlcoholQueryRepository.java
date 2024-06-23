@@ -1,4 +1,4 @@
-package app.bottlenote.alcohols.repository;
+package app.bottlenote.alcohols.repository.custom;
 
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
