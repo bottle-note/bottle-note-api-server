@@ -89,12 +89,16 @@ public class CustomReviewQueryRepositoryImpl implements CustomReviewQueryReposit
 
 	@Override
 	public ReviewsDetailInfo fetchUserReviewsForAlcoholDetail(Long alcoholId, Long userId) {
+		long start = System.nanoTime();
 		List<ReviewsDetailInfo.ReviewInfo> bestReviewInfos = fetchTopReviewByAlcohol(alcoholId, userId);
+		log.info("베스트 리뷰 조회 elapsed time : {}", System.nanoTime() - start);
+		start = System.nanoTime();
 		List<ReviewsDetailInfo.ReviewInfo> reviewInfos = fetchLatestReviewsByAlcoholExcludingIds(alcoholId, userId,
 			bestReviewInfos.
 				stream().
 				map(ReviewsDetailInfo.ReviewInfo::reviewId).toList()
 		);
+		log.info("최신 리뷰 조회 elapsed time : {}", System.nanoTime() - start);
 		Long reviewTotalCount = countByAlcoholId(alcoholId);
 
 		return ReviewsDetailInfo.builder()
