@@ -3,9 +3,7 @@ package app.bottlenote.common.profanity;
 public record ProfanityResult(
 	String status,
 	String message,
-	boolean isProfane
+	boolean isProfane,
+	String filteredText
 ) {
-	public boolean isProfanity() {
-		return isProfane;
-	}
 }

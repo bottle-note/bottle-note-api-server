@@ -1,5 +1,26 @@
+### 토큰 발급
+POST {{host}}/api/v1/oauth/login
+Content-Type: application/json
+
+{
+  "email": "dev.bottle-note@gmail.com",
+  "socialType": "GOOGLE",
+  "gender": "MALE",
+  "age": 25
+}
+
+> {%
+    //토큰을 전역변수로 저장
+    client.global.set("accessToken", response.body.data.accessToken);
+%}
+
 ### 위스키 조회
 GET {{host}}/api/v1/alcohols/search
+Authorization: Bearer {{accessToken}}
 
 ### 카테고리 조회
 GET {{host}}/api/v1/alcohols/categories
+
+### 위스키 조회
+GET {{host}}/api/v1/alcohols/11
+Authorization: Bearer {{accessToken}}

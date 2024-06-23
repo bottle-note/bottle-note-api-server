@@ -41,7 +41,7 @@ public class DefaultProfanityClient implements ProfanityClient {
 	public void validateProfanity(String text) {
 		ProfanityResult result = containsProfanity(text);
 
-		if (result.isProfanity()) {
+		if (result.isProfane()) {
 			throw new CommonException(CommonExceptionCode.CONTAINS_PROFANITY);
 		}
 	}
