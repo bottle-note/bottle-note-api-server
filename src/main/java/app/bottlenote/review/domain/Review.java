@@ -3,6 +3,7 @@ package app.bottlenote.review.domain;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.like.domain.Likes;
+import app.bottlenote.review.domain.constant.ReviewActiveStatus;
 import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.user.domain.User;
@@ -84,6 +85,11 @@ public class Review extends BaseEntity {
 	@Column(name = "view_count", nullable = false)
 	private Long viewCount = 0L;
 
+	@Comment("리뷰 활성 상태")
+	@Column(name = "active_status", nullable = false)
+	@Enumerated(EnumType.STRING)
+	private ReviewActiveStatus activeStatus = ReviewActiveStatus.ACTIVE;
+
 	// 댓글 목록
 	// review와 reviewReply는 1(review) : N(reviewReply) 관계이다.
 	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -101,7 +107,8 @@ public class Review extends BaseEntity {
 	private Set<ReviewTastingTag> reviewTastingTags = new HashSet<>();
 
 	@Builder
-	public Review(Long id, User user, Alcohol alcohol, String content, SizeType sizeType, BigDecimal price, ReviewStatus status, String zipCode, String address, String detailAddress, String imageUrl, Long viewCount) {
+	public Review(Long id, User user, Alcohol alcohol, String content, SizeType sizeType, BigDecimal price, ReviewStatus status, String zipCode, String address, String detailAddress, String imageUrl, Long viewCount,
+		ReviewActiveStatus activeStatus) {
 		this.id = id;
 		this.user = user;
 		this.alcohol = alcohol;
@@ -114,6 +121,7 @@ public class Review extends BaseEntity {
 		this.detailAddress = detailAddress;
 		this.imageUrl = imageUrl;
 		this.viewCount = viewCount;
+		this.activeStatus = ReviewActiveStatus.ACTIVE;
 		this.reviewReplies = new ArrayList<>();
 		this.reviewImages = new ArrayList<>();
 		this.reviewTastingTags = new HashSet<>();
@@ -146,5 +154,9 @@ public class Review extends BaseEntity {
 
 	public void saveImages(List<ReviewImage> reviewImageList) {
 		this.reviewImages.addAll(reviewImageList);
+	}
+
+	public void updateReviewActiveStatus(ReviewActiveStatus activeStatus) {
+		this.activeStatus = activeStatus;
 	}
 }
