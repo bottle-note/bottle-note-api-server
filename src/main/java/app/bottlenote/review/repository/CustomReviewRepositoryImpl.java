@@ -11,6 +11,7 @@ import static app.bottlenote.review.domain.QReviewTastingTag.reviewTastingTag;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.review.domain.constant.ReviewActiveStatus;
 import app.bottlenote.review.domain.constant.ReviewSortType;
 import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.response.ReviewDetail;
@@ -68,7 +69,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.leftJoin(likes).on(review.id.eq(likes.review.id))
 			.leftJoin(alcohol).on(alcohol.id.eq(review.alcohol.id))
 			.leftJoin(rating).on(review.user.id.eq(rating.user.id))
-			.where(review.id.eq(reviewId))
+			.where(review.id.eq(reviewId).and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE)))
 			.groupBy(review.id, review.sizeType, review.user)
 			.fetchOne();
 
@@ -117,7 +118,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.leftJoin(alcohol).on(alcohol.id.eq(review.alcohol.id))
 			.leftJoin(rating).on(review.user.id.eq(rating.user.id))
 			.leftJoin(reviewTastingTag).on(review.id.eq(reviewTastingTag.review.id))
-			.where(alcohol.id.eq(alcoholId))
+			.where(alcohol.id.eq(alcoholId).and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE)))
 			.groupBy(review.id, review.sizeType, review.user)
 			.orderBy(sortBy(pageableRequest.sortType(), pageableRequest.sortOrder()).toArray(new OrderSpecifier[0]))
 			.offset(pageableRequest.cursor())
@@ -178,7 +179,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.leftJoin(likes).on(review.id.eq(likes.review.id))
 			.leftJoin(alcohol).on(alcohol.id.eq(review.alcohol.id))
 			.leftJoin(rating).on(review.user.id.eq(rating.user.id))
-			.where(review.user.id.eq(userId).and(review.alcohol.id.eq(alcoholId)))
+			.where(review.user.id.eq(userId).and(review.alcohol.id.eq(alcoholId)).and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE)))
 			.groupBy(review.id, review.sizeType, review.user)
 			.orderBy(sortBy(pageableRequest.sortType(), pageableRequest.sortOrder()).toArray(new OrderSpecifier[0]))
 			.offset(pageableRequest.cursor())
