@@ -6,6 +6,7 @@ import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchDetail;
+import app.bottlenote.config.ModuleConfig;
 import app.bottlenote.config.TestConfig;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
@@ -44,17 +45,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Tag(value = "data-jpa-test")
 @DataJpaTest
 @ActiveProfiles("test")
-@Import(TestConfig.class)
+@Import({TestConfig.class, ModuleConfig.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class CustomJpaAlcoholQueryRepositoryImplTest {
 
+	private EntityManager em;
 	@Autowired
-	TestEntityManager testEntityManager;
-	EntityManager em;
-
+	private TestEntityManager testEntityManager;
 	@Autowired
 	private AlcoholQueryRepository alcoholQueryRepository;
-
 	@Autowired
 	private UserCommandRepository userRepository;
 
@@ -113,7 +112,6 @@ class CustomJpaAlcoholQueryRepositoryImplTest {
 
 		// when
 		PageResponse<AlcoholSearchResponse> response = alcoholQueryRepository.searchAlcohols(criteria);
-
 
 		// then
 		AlcoholSearchResponse content = response.content();

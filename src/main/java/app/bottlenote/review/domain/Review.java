@@ -2,9 +2,11 @@ package app.bottlenote.review.domain;
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.common.domain.BaseEntity;
+import app.bottlenote.review.domain.constant.ReviewActiveStatus;
 import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.user.domain.User;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -18,7 +20,9 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -80,6 +84,11 @@ public class Review extends BaseEntity {
 	@Column(name = "view_count", nullable = false)
 	private Long viewCount = 0L;
 
+	@Comment("리뷰 활성 상태")
+	@Column(name = "active_status", nullable = false)
+	@Enumerated(EnumType.STRING)
+	private ReviewActiveStatus activeStatus = ReviewActiveStatus.ACTIVE;
+
 	// 댓글 목록
 	// review와 reviewReply는 1(review) : N(reviewReply) 관계이다.
 	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY)
@@ -87,14 +96,14 @@ public class Review extends BaseEntity {
 
 	// mappedBy: 연관관계의 주인이 아님을 의미한다.
 	// review image와 review는 1(review) : N(reviewImage) 관계이다.
-	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<ReviewImage> reviewImages = new ArrayList<>();
 
+	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+	private Set<ReviewTastingTag> reviewTastingTags = new HashSet<>();
+
 	@Builder
-	public Review(Long id, User user, Alcohol alcohol, String content, SizeType sizeType,
-		BigDecimal price, ReviewStatus status, String zipCode, String address, String detailAddress,
-		String imageUrl, Long viewCount, List<ReviewReply> reviewReplies,
-		List<ReviewImage> reviewImages) {
+	public Review(Long id, User user, Alcohol alcohol, String content, SizeType sizeType, BigDecimal price, ReviewStatus status, String zipCode, String address, String detailAddress, String imageUrl, Long viewCount) {
 		this.id = id;
 		this.user = user;
 		this.alcohol = alcohol;
@@ -107,7 +116,36 @@ public class Review extends BaseEntity {
 		this.detailAddress = detailAddress;
 		this.imageUrl = imageUrl;
 		this.viewCount = viewCount;
-		this.reviewReplies = reviewReplies;
-		this.reviewImages = reviewImages;
+		this.reviewReplies = new ArrayList<>();
+		this.reviewImages = new ArrayList<>();
+		this.reviewTastingTags = new HashSet<>();
+	}
+
+	public void modifyReview(ReviewModifyVO reviewModifyVO) {
+		this.status = reviewModifyVO.getReviewStatus();
+		this.content = reviewModifyVO.getContent();
+		this.sizeType = reviewModifyVO.getSizeType();
+		this.price = reviewModifyVO.getPrice();
+		this.zipCode = reviewModifyVO.getZipCode();
+		this.address = reviewModifyVO.getAddress();
+		this.detailAddress = reviewModifyVO.getDetailAddress();
+	}
+
+	public void updateTastingTags(Set<ReviewTastingTag> updateTastingTags) {
+		this.reviewTastingTags.clear();
+		this.reviewTastingTags.addAll(updateTastingTags);
+	}
+
+	public void updateImages(List<ReviewImage> reviewImages) {
+		this.reviewImages.clear();
+		this.reviewImages.addAll(reviewImages);
+	}
+
+	public void saveTastingTag(Set<ReviewTastingTag> reviewTastingTags) {
+		this.reviewTastingTags.addAll(reviewTastingTags);
+	}
+
+	public void saveImages(List<ReviewImage> reviewImageList) {
+		this.reviewImages.addAll(reviewImageList);
 	}
 }

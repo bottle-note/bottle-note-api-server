@@ -2,13 +2,13 @@ package app.bottlenote.review.dto.response;
 
 import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Getter
 @EqualsAndHashCode
@@ -29,19 +29,21 @@ public class ReviewDetail {
 	private String userProfileImage;
 	private Double rating;
 
+	private String zipCode;
+	private String address;
+	private String detailAddress;
+
 	private ReviewStatus status;
 
 	private Boolean isMyReview;
 	private Boolean isLikedByMe;
 	private Boolean hasReplyByMe;
 
+	private List<String> reviewTastingTag;
+
 	@Builder
-	public ReviewDetail(
-		Long reviewId, String reviewContent, BigDecimal price, SizeType sizeType,
-		Long likeCount, Long replyCount, String reviewImageUrl, LocalDateTime createAt,
-		Long userId, String nickName, String userProfileImage, Double rating,
-		ReviewStatus status, Boolean isMyReview, Boolean isLikedByMe, Boolean hasReplyByMe
-	) {
+	public ReviewDetail(Long reviewId, String reviewContent, BigDecimal price, SizeType sizeType, Long likeCount, Long replyCount, String reviewImageUrl, LocalDateTime createAt, Long userId, String nickName, String userProfileImage,
+		Double rating, String zipCode, String address, String detailAddress, ReviewStatus status, Boolean isMyReview, Boolean isLikedByMe, Boolean hasReplyByMe, List<String> reviewTastingTag) {
 		this.reviewId = reviewId;
 		this.reviewContent = reviewContent;
 		this.price = price;
@@ -54,9 +56,17 @@ public class ReviewDetail {
 		this.nickName = nickName;
 		this.userProfileImage = userProfileImage;
 		this.rating = rating;
+		this.zipCode = zipCode;
+		this.address = address;
+		this.detailAddress = detailAddress;
 		this.status = status;
 		this.isMyReview = isMyReview;
 		this.isLikedByMe = isLikedByMe;
 		this.hasReplyByMe = hasReplyByMe;
+		this.reviewTastingTag = reviewTastingTag;
+	}
+
+	public void updateTastingTagList(List<String> reviewTastingTag) {
+		this.reviewTastingTag = reviewTastingTag;
 	}
 }

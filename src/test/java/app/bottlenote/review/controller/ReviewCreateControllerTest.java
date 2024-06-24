@@ -57,11 +57,7 @@ class ReviewCreateControllerTest {
 			"맛있어요",
 			SizeType.GLASS,
 			new BigDecimal("30000.0"),
-			LocationInfo.builder()
-				.zipCode("34222")
-				.address("서울시 영등포구")
-				.detailAddress("aaa 바")
-				.build(),
+			new LocationInfo("11111", "서울시 강남구 청담동", "xx빌딩"),
 			List.of(
 				new ReviewImageInfo(1L, "url1"),
 				new ReviewImageInfo(2L, "url2"),
@@ -111,11 +107,7 @@ class ReviewCreateControllerTest {
 			"맛있어요",
 			null,
 			new BigDecimal("30000.0"),
-			LocationInfo.builder()
-				.zipCode("34222")
-				.address("서울시 영등포구")
-				.detailAddress("aaa 바")
-				.build(),
+			new LocationInfo("11111", "서울시 강남구 청담동", "xx빌딩"),
 			List.of(
 				new ReviewImageInfo(1L, "url1"),
 				new ReviewImageInfo(2L, "url2"),

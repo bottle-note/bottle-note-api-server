@@ -90,6 +90,9 @@ tasks.register('data-jpa-test', Test) {
     useJUnitPlatform {
         includeTags 'data-jpa-test'
     }
+    // `verification` 그룹에 추가
+    group = 'verification'
+    description = 'Runs the data-jpa tests.'
 }
 
 // =========================== spring boot jar setting ===========================
