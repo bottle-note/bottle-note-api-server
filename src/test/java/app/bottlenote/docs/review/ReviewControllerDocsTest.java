@@ -262,7 +262,7 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 		//when
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
-		when(reviewService.modifyReviews(any(ReviewModifyRequest.class), any(), any())).thenReturn("성공적으로 완료되었습니다.");
+		when(reviewService.modifyReviews(any(ReviewModifyRequest.class), any(), any())).thenReturn("리뷰 수정이 성공적으로 완료되었습니다.");
 
 		//then
 		mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/reviews/{reviewId}", reviewId)
@@ -286,6 +286,38 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 						fieldWithPath("imageUrlList[].viewUrl").type(STRING).description("이미지 뷰 URL"),
 						fieldWithPath("tastingTagList").type(ARRAY).description("테이스팅 태그 목록").optional()
 					),
+					responseFields(
+						fieldWithPath("success").description("응답 성공 여부"),
+						fieldWithPath("code").description("응답 코드(http status code)"),
+						fieldWithPath("data").description("성공 메시지"),
+						fieldWithPath("errors").ignored(),
+						fieldWithPath("meta.serverEncoding").ignored(),
+						fieldWithPath("meta.serverVersion").ignored(),
+						fieldWithPath("meta.serverPathVersion").ignored(),
+						fieldWithPath("meta.serverResponseTime").ignored()
+					)
+				)
+			);
+	}
+
+	@Test
+	@DisplayName("리뷰를 삭제할 수 있다.")
+	void review_delete_test() throws Exception {
+
+		Long reviewId = 1L;
+
+		//when
+		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
+
+		when(reviewService.deleteReview(anyLong(), anyLong())).thenReturn("리뷰 삭제가 성공적으로 완료되었습니다.");
+
+		//then
+		mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/reviews/{reviewId}", reviewId)
+				.contentType(MediaType.APPLICATION_JSON)
+				.with(csrf()))
+			.andExpect(status().isOk())
+			.andDo(
+				document("review/review-delete",
 					responseFields(
 						fieldWithPath("success").description("응답 성공 여부"),
 						fieldWithPath("code").description("응답 코드(http status code)"),
