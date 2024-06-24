@@ -1,6 +1,7 @@
 package app.bottlenote.review.service;
 
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
+import static app.bottlenote.review.domain.constant.ReviewResponse.DELETE_SUCCESS;
 import static app.bottlenote.review.domain.constant.ReviewResponse.MODIFY_SUCCESS;
 import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
@@ -119,5 +120,17 @@ public class ReviewService {
 		reviewTastingTagSupport.updateReviewTastingTag(reviewModifyRequest.tastingTagList(), review);
 
 		return MODIFY_SUCCESS.getDescription();
+	}
+
+	@Transactional
+	public String deleteReview(Long reviewId, Long currentUserId) {
+
+		Review review = reviewRepository.findByIdAndUserId(reviewId, currentUserId).orElseThrow(
+			() -> new ReviewException(REVIEW_NOT_FOUND)
+		);
+
+		reviewRepository.deleteById(review.getId());
+
+		return DELETE_SUCCESS.getDescription();
 	}
 }
