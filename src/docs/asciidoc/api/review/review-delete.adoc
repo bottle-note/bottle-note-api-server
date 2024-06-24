@@ -1,0 +1,28 @@
+=== 리뷰 삭제 ===
+
+리뷰 삭제 기능입니다.
+
+로그인한 사용자만 리뷰를 삭제할 수 있습니다.
+
+사용자는 자신이 작성한 리뷰만 삭제할 수 있습니다.
+
+API 엔드포인트에 PathVariable로 ReviewId를 전달합니다.
+
+전달한 ReviewId의 리뷰가 존재하지 않으면(로그인한 유저가 작성한 리뷰가 아님) ReviewException이 발생합니다.
+
+[source]
+----
+DELETE /api/v1/reviews/{reviewId}
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+- PathVariable로 reviewId를 전달합니다.
+
+[discrete]
+==== 응답 파라미터  ====
+
+[discrete]
+include::{snippets}/review/review-delete/response-fields.adoc[]
+include::{snippets}/review/review-delete/http-response.adoc[]
