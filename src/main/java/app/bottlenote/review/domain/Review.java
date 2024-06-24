@@ -2,7 +2,6 @@ package app.bottlenote.review.domain;
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.common.domain.BaseEntity;
-import app.bottlenote.like.domain.Likes;
 import app.bottlenote.review.domain.constant.ReviewActiveStatus;
 import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
@@ -95,9 +94,6 @@ public class Review extends BaseEntity {
 	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<ReviewReply> reviewReplies = new ArrayList<>();
 
-	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<Likes> reviewLikes = new ArrayList<>();
-
 	// mappedBy: 연관관계의 주인이 아님을 의미한다.
 	// review image와 review는 1(review) : N(reviewImage) 관계이다.
 	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -107,8 +103,7 @@ public class Review extends BaseEntity {
 	private Set<ReviewTastingTag> reviewTastingTags = new HashSet<>();
 
 	@Builder
-	public Review(Long id, User user, Alcohol alcohol, String content, SizeType sizeType, BigDecimal price, ReviewStatus status, String zipCode, String address, String detailAddress, String imageUrl, Long viewCount,
-		ReviewActiveStatus activeStatus) {
+	public Review(Long id, User user, Alcohol alcohol, String content, SizeType sizeType, BigDecimal price, ReviewStatus status, String zipCode, String address, String detailAddress, String imageUrl, Long viewCount) {
 		this.id = id;
 		this.user = user;
 		this.alcohol = alcohol;
@@ -121,11 +116,9 @@ public class Review extends BaseEntity {
 		this.detailAddress = detailAddress;
 		this.imageUrl = imageUrl;
 		this.viewCount = viewCount;
-		this.activeStatus = ReviewActiveStatus.ACTIVE;
 		this.reviewReplies = new ArrayList<>();
 		this.reviewImages = new ArrayList<>();
 		this.reviewTastingTags = new HashSet<>();
-		this.reviewLikes = new ArrayList<>();
 	}
 
 	public void modifyReview(ReviewModifyVO reviewModifyVO) {
