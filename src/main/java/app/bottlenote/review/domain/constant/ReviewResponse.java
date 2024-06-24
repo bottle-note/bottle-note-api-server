@@ -5,7 +5,9 @@ import lombok.Getter;
 @Getter
 public enum ReviewResponse {
 
-	MODIFY_SUCCESS("리뷰 수정이 성공적으로 완료되었습니다.");
+	MODIFY_SUCCESS("리뷰 수정이 성공적으로 완료되었습니다."),
+
+	DELETE_SUCCESS("리뷰 삭제가 성공적으로 완료되었습니다.");
 
 	private final String description;
 
