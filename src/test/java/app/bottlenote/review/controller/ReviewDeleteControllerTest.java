@@ -114,7 +114,7 @@ public class ReviewDeleteControllerTest {
 			.andExpect(status().isBadRequest())
 			.andDo(print());
 
-		verify(reviewService, description("modifyReviews 메서드가 정상적으로 호출됨"))
+		verify(reviewService, description("deleteReview 메서드가 정상적으로 호출됨"))
 			.deleteReview(anyLong(), anyLong());
 	}
 }

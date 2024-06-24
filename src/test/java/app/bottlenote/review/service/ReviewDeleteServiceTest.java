@@ -3,17 +3,16 @@ package app.bottlenote.review.service;
 import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.description;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.review.domain.Review;
+import app.bottlenote.review.domain.constant.ReviewActiveStatus;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.repository.ReviewRepository;
 import app.bottlenote.user.domain.User;
 import java.util.Optional;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -65,7 +64,7 @@ class ReviewDeleteServiceTest {
 		reviewService.deleteReview(reviewId, userId);
 
 		//then
-		verify(reviewRepository, description("deleteById 메서드가 정상적으로 실행")).deleteById(anyLong());
+		Assertions.assertEquals(ReviewActiveStatus.DELETED, review.getActiveStatus());
 	}
 
 	@Test
@@ -77,8 +76,5 @@ class ReviewDeleteServiceTest {
 
 		//then
 		assertThrows(ReviewException.class, () -> reviewService.deleteReview(reviewId, userId));
-		
-		//deleteById 메서드가 호출되지 않음
-		verify(reviewRepository, never()).deleteById(anyLong());
 	}
 }
