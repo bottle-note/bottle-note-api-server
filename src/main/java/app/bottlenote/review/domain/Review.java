@@ -2,6 +2,7 @@ package app.bottlenote.review.domain;
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.common.domain.BaseEntity;
+import app.bottlenote.review.domain.constant.ReviewActiveStatus;
 import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.user.domain.User;
@@ -82,6 +83,11 @@ public class Review extends BaseEntity {
 	@Comment("조회수")
 	@Column(name = "view_count", nullable = false)
 	private Long viewCount = 0L;
+
+	@Comment("리뷰 활성 상태")
+	@Column(name = "active_status", nullable = false)
+	@Enumerated(EnumType.STRING)
+	private ReviewActiveStatus activeStatus = ReviewActiveStatus.ACTIVE;
 
 	// 댓글 목록
 	// review와 reviewReply는 1(review) : N(reviewReply) 관계이다.
