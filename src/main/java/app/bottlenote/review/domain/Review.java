@@ -2,6 +2,7 @@ package app.bottlenote.review.domain;
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.common.domain.BaseEntity;
+import app.bottlenote.like.domain.Likes;
 import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.user.domain.User;
@@ -85,8 +86,11 @@ public class Review extends BaseEntity {
 
 	// 댓글 목록
 	// review와 reviewReply는 1(review) : N(reviewReply) 관계이다.
-	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<ReviewReply> reviewReplies = new ArrayList<>();
+
+	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Likes> reviewLikes = new ArrayList<>();
 
 	// mappedBy: 연관관계의 주인이 아님을 의미한다.
 	// review image와 review는 1(review) : N(reviewImage) 관계이다.
@@ -113,6 +117,7 @@ public class Review extends BaseEntity {
 		this.reviewReplies = new ArrayList<>();
 		this.reviewImages = new ArrayList<>();
 		this.reviewTastingTags = new HashSet<>();
+		this.reviewLikes = new ArrayList<>();
 	}
 
 	public void modifyReview(ReviewModifyVO reviewModifyVO) {
