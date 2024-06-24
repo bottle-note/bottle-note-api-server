@@ -2,6 +2,7 @@ package app.bottlenote.review.service;
 
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
 import static app.bottlenote.review.domain.constant.ReviewActiveStatus.DELETED;
+import static app.bottlenote.review.domain.constant.ReviewResponse.ALREADY_DELETED;
 import static app.bottlenote.review.domain.constant.ReviewResponse.DELETE_SUCCESS;
 import static app.bottlenote.review.domain.constant.ReviewResponse.MODIFY_SUCCESS;
 import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
@@ -129,7 +130,9 @@ public class ReviewService {
 		Review review = reviewRepository.findByIdAndUserId(reviewId, currentUserId).orElseThrow(
 			() -> new ReviewException(REVIEW_NOT_FOUND)
 		);
-
+		if (review.getActiveStatus().equals(DELETED)) {
+			return ALREADY_DELETED.getDescription();
+		}
 		review.updateReviewActiveStatus(DELETED);
 
 		return DELETE_SUCCESS.getDescription();
