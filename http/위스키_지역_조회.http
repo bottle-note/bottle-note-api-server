@@ -13,15 +13,8 @@ Content-Type: application/json
     //토큰을 전역변수로 저장
     client.global.set("accessToken", response.body.data.accessToken);
 %}
-
-
 ### 위스키 조회
 
-GET {{host}}/api/v1/alcohols/1
-Content-Type: application/json
-Authorization: Bearer {{accessToken}}
-
-### 카테고리 조회
-GET {{host}}/api/v1/alcohols/categories
+GET {{host}}/api/v1/regions
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}

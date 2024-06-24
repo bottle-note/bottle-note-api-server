@@ -1,0 +1,3 @@
+GET {{host}}/api/v1/alcohols/categories
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
