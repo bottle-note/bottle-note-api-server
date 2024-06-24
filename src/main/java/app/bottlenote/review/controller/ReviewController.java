@@ -19,6 +19,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -87,6 +88,18 @@ public class ReviewController {
 
 		return ResponseEntity.ok(
 			success(reviewService.modifyReviews(reviewModifyRequest, reviewId, currentUserId))
+		);
+	}
+
+	@DeleteMapping("/{reviewId}")
+	public ResponseEntity<GlobalResponse> deleteReview(@PathVariable Long reviewId) {
+
+		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElseThrow(
+			() -> new UserException(REQUIRED_USER_ID)
+		);
+
+		return ResponseEntity.ok(
+			success(reviewService.deleteReview(reviewId, currentUserId))
 		);
 	}
 }
