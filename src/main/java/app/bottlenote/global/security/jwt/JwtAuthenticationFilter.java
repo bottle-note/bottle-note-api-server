@@ -47,38 +47,61 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		@NonNull FilterChain filterChain
 	) throws ServletException, IOException {
 
+		String req = request.getRequestURI();
+		log.info("req : {} ", req);
+
 		log.info("JWT Filtering....{} , entry point : {} ", request.getServletPath(), request.getRequestURI());
 
 		String token = resolveToken(request).orElse(null);
 
-		try {
-			if (!JwtTokenValidator.validateToken(token)) {
-				log.warn("토큰이 유효하지 않습니다. : {}", token);
-				request.setAttribute("exception", new MalformedJwtException("토큰이 유효하지 않습니다."));
-				filterChain.doFilter(request, response);
-				return;
-			}
-			Authentication authentication = jwtAuthenticationManager.getAuthentication(token);
-			SecurityContextHolder.getContext().setAuthentication(authentication);
+		HttpServletRequest skipRequest = (HttpServletRequest) request;
 
-		} catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-			log.warn("잘못된 JWT 서명 입니다.");
-			request.setAttribute("exception", e);
-		} catch (ExpiredJwtException e) {
-			log.warn("만료된 JWT 토큰 입니다.");
-			request.setAttribute("exception", e);
-		} catch (UnsupportedJwtException e) {
-			log.warn("지원되지 않는 JWT 토큰 입니다.");
-			request.setAttribute("exception", e);
-		} catch (IllegalArgumentException e) {
-			log.warn("JWT 토큰이 잘못 되었습니다.");
-			request.setAttribute("exception", e);
-		} catch (CustomJwtException e) {
-			log.warn("JWT 토큰이 존재하지 않습니다.");
-			request.setAttribute("exception", e);
-		}
+
+		if( skipFilter(skipRequest) ) {
+
+			log.info(" 비회원 이용가능 api: {}", skipRequest.getRequestURI());
+//			filterChain.doFilter(request, response);
+//			return;
+
+		} else {
+			filterChain.doFilter(request, response);
+
+			try {
+
+				log.info("다시돌아옴?");
+				log.info("이 아래는 나오면안돼는데..");
+
+				if (!JwtTokenValidator.validateToken(token)) {
+					log.warn("토큰이 유효하지 않습니다. : {}", token);
+					request.setAttribute("exception", new MalformedJwtException("토큰이 유효하지 않습니다."));
+					filterChain.doFilter(request, response);
+					return;
+				}
+
+				Authentication authentication = jwtAuthenticationManager.getAuthentication(token);
+				SecurityContextHolder.getContext().setAuthentication(authentication);
+
+			} catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
+				log.warn("잘못된 JWT 서명 입니다.");
+				request.setAttribute("exception", e);
+			} catch (ExpiredJwtException e) {
+				log.warn("만료된 JWT 토큰 입니다.");
+				request.setAttribute("exception", e);
+			} catch (UnsupportedJwtException e) {
+				log.warn("지원되지 않는 JWT 토큰 입니다.");
+				request.setAttribute("exception", e);
+			} catch (IllegalArgumentException e) {
+				log.warn("JWT 토큰이 잘못 되었습니다.");
+				request.setAttribute("exception", e);
+			} catch (CustomJwtException e) {
+				log.warn("JWT 토큰이 존재하지 않습니다.");
+				request.setAttribute("exception", e);
+			}
+		}// else 끝
 
 		filterChain.doFilter(request, response);
+
+
 	}
 
 	/**
@@ -110,12 +133,34 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		List<String> excludePath = List.of(
 			"/api/v1/alcohols/categories",
 			"/api/v1/regions",
-			"/api/v1/popular/week"
+			"/api/v1/popular/week",
+			"/api/v1/reviews/{alcoholId}"
 		);
 
 		return excludePath
 			.stream()
 			.anyMatch(path::contains);
+	}
+
+	/**
+	 * 필터를 건너뛸지 여부를 판단하는 메서드
+	 *
+	 * @param skipRequest the skip request
+	 * @return the boolean
+	 */
+	private boolean skipFilter(HttpServletRequest skipRequest) {
+		String url = skipRequest.getRequestURI();
+
+		List<String> skipPath = List.of(
+			// 스킵해야할 url들...
+			"/api/v1/reviews/{alcoholId}"
+		);
+
+		log.info(" 비회원 이용가능 api: {}", skipRequest);
+
+		return skipPath
+			.stream()
+			.anyMatch(url::contains);
 	}
 
 }

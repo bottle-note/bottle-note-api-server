@@ -53,6 +53,7 @@ public class SecurityConfig {
 			.sessionManagement(SecurityConfig::statelessSessionConfig)
 			.formLogin(AbstractHttpConfigurer::disable)
 			.authorizeHttpRequests(auth -> auth
+				// 검증대상
 				.requestMatchers("/api/v1/picks/**").authenticated()
 				.requestMatchers("/api/v1/s3/**").authenticated()
 				.requestMatchers("/api/v1/follow").authenticated()
