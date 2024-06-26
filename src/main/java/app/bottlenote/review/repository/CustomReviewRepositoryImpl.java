@@ -1,5 +1,13 @@
 package app.bottlenote.review.repository;
 
+import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.global.service.cursor.SortOrder.DESC;
+import static app.bottlenote.like.domain.QLikes.likes;
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
+import static app.bottlenote.review.domain.QReviewReply.reviewReply;
+import static app.bottlenote.review.domain.QReviewTastingTag.reviewTastingTag;
+
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
@@ -17,19 +25,11 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.global.service.cursor.SortOrder.DESC;
-import static app.bottlenote.like.domain.QLikes.likes;
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.domain.QReview.review;
-import static app.bottlenote.review.domain.QReviewReply.reviewReply;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -37,13 +37,11 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 
 	private final JPAQueryFactory queryFactory;
 
-	@Override
-	public PageResponse<ReviewResponse> getReviews(
-		Long alcoholId,
-		PageableRequest pageableRequest,
-		Long userId) {
 
-		List<ReviewDetail> fetch = queryFactory
+	@Override
+	public ReviewDetail getReview(Long reviewId, Long userId) {
+
+		ReviewDetail fetch = queryFactory
 			.select(Projections.fields(
 				ReviewDetail.class,
 				review.id.as("reviewId"),
@@ -51,6 +49,9 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 				review.price.as("price"),
 				review.sizeType.as("sizeType"),
 				review.imageUrl.as("reviewImageUrl"),
+				review.zipCode.as("zipCode"),
+				review.address.as("address"),
+				review.detailAddress.as("detailAddress"),
 				review.status.as("status"),
 				review.createAt.as("createAt"),
 				ratingSubQuery(),
@@ -67,12 +68,70 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.leftJoin(likes).on(review.id.eq(likes.review.id))
 			.leftJoin(alcohol).on(alcohol.id.eq(review.alcohol.id))
 			.leftJoin(rating).on(review.user.id.eq(rating.user.id))
+			.where(review.id.eq(reviewId))
+			.groupBy(review.id, review.sizeType, review.user)
+			.fetchOne();
+
+		List<String> tastingTagList = queryFactory
+			.select(reviewTastingTag.tastingTag)
+			.from(reviewTastingTag)
+			.where(reviewTastingTag.review.id.eq(reviewId))
+			.fetch();
+
+		fetch.updateTastingTagList(tastingTagList);
+
+		return fetch;
+	}
+
+	@Override
+	public PageResponse<ReviewResponse> getReviews(
+		Long alcoholId,
+		PageableRequest pageableRequest,
+		Long userId) {
+
+		List<ReviewDetail> fetch = queryFactory
+			.select(Projections.fields(
+				ReviewDetail.class,
+				review.id.as("reviewId"),
+				review.content.as("reviewContent"),
+				review.price.as("price"),
+				review.sizeType.as("sizeType"),
+				review.imageUrl.as("reviewImageUrl"),
+				review.zipCode.as("zipCode"),
+				review.address.as("address"),
+				review.detailAddress.as("detailAddress"),
+				review.status.as("status"),
+				review.createAt.as("createAt"),
+				ratingSubQuery(),
+				review.user.id.as("userId"),
+				review.user.nickName.as("nickName"),
+				review.user.imageUrl.as("userProfileImage"),
+				isMyReview(userId).as("isMyReview"),
+				likedByMe(userId, review.id).as("isLikedByMe"),
+				hasCommentedByMe(userId, review.id).as("hasReplyByMe"),
+				reviewReplyCountSubQuery(),
+				likesCountSubQuery()
+			))
+			.from(review)
+			.leftJoin(likes).on(review.id.eq(likes.review.id))
+			.leftJoin(alcohol).on(alcohol.id.eq(review.alcohol.id))
+			.leftJoin(rating).on(review.user.id.eq(rating.user.id))
+			.leftJoin(reviewTastingTag).on(review.id.eq(reviewTastingTag.review.id))
 			.where(alcohol.id.eq(alcoholId))
 			.groupBy(review.id, review.sizeType, review.user)
 			.orderBy(sortBy(pageableRequest.sortType(), pageableRequest.sortOrder()).toArray(new OrderSpecifier[0]))
 			.offset(pageableRequest.cursor())
 			.limit(pageableRequest.pageSize() + 1)
 			.fetch();
+
+		fetch.forEach(reviewDetail -> {
+			List<String> tastingTags = queryFactory
+				.select(reviewTastingTag.tastingTag)
+				.from(reviewTastingTag)
+				.where(reviewTastingTag.review.id.eq(reviewDetail.getReviewId()))
+				.fetch();
+			reviewDetail.updateTastingTagList(tastingTags);
+		});
 
 		Long totalCount = queryFactory
 			.select(review.id.count())
@@ -100,6 +159,9 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 				review.price.as("price"),
 				review.sizeType.as("sizeType"),
 				review.imageUrl.as("reviewImageUrl"),
+				review.zipCode.as("zipCode"),
+				review.address.as("address"),
+				review.detailAddress.as("detailAddress"),
 				review.status.as("status"),
 				review.createAt.as("createAt"),
 				ratingSubQuery(),
@@ -122,6 +184,15 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.offset(pageableRequest.cursor())
 			.limit(pageableRequest.pageSize() + 1)
 			.fetch();
+
+		fetch.forEach(reviewDetail -> {
+			List<String> tastingTags = queryFactory
+				.select(reviewTastingTag.tastingTag)
+				.from(reviewTastingTag)
+				.where(reviewTastingTag.review.id.eq(reviewDetail.getReviewId()))
+				.fetch();
+			reviewDetail.updateTastingTagList(tastingTags);
+		});
 
 		Long totalCount = queryFactory
 			.select(review.id.count())
@@ -242,7 +313,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		return JPAExpressions
 			.selectOne()
 			.from(reviewReply)
-			.where(reviewReply.userId.eq(userId)
+			.where(reviewReply.user.id.eq(userId)
 				.and(reviewReply.review.id.eq(reviewId)))
 			.exists();
 	}

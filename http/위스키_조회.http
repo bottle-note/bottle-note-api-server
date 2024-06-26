@@ -1,4 +1,4 @@
-### 토큰 발급
+### 토큰 발급 (일반)
 POST {{host}}/api/v1/oauth/login
 Content-Type: application/json
 
@@ -14,13 +14,14 @@ Content-Type: application/json
     client.global.set("accessToken", response.body.data.accessToken);
 %}
 
-### 위스키 조회
+
+### 위스키 목록 조회
 GET {{host}}/api/v1/alcohols/search
+Authorization: Bearer {{accessToken}}
+
+### 위스키 조회 상세 조회
+GET {{host}}/api/v1/alcohols/1
 Authorization: Bearer {{accessToken}}
 
 ### 카테고리 조회
 GET {{host}}/api/v1/alcohols/categories
-
-### 위스키 조회
-GET {{host}}/api/v1/alcohols/11
-Authorization: Bearer {{accessToken}}

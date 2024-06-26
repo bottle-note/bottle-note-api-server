@@ -11,6 +11,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -106,9 +107,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	@Override
 	protected boolean shouldNotFilter(HttpServletRequest request) {
 		String path = request.getRequestURI();
-		List<String> excludePath = List.of(
-			"/users","/api/v1/rating/register "
-		);
+		List<String> excludePath = Collections.emptyList();
+
 
 		return excludePath
 			.stream()

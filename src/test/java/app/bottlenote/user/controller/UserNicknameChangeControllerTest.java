@@ -54,15 +54,18 @@ class UserNicknameChangeControllerTest {
 	@DisplayName("닉네임을 성공적으로 변경할 수 있다.")
 	//@Test
 	void shouldChangeNicknameSuccessfully() throws Exception {
-		NicknameChangeRequest request = new NicknameChangeRequest(1L, "newNickname");
+
+		Long userId = 1L;
+
+		NicknameChangeRequest request = new NicknameChangeRequest("newNickname");
 		NicknameChangeResponse response = NicknameChangeResponse.builder()
 			.message(NicknameChangeResponse.Message.SUCCESS)
-			.userId(1L)
+			.userId(userId)
 			.beforeNickname("beforeNickname")
 			.changedNickname("newNickname")
 			.build();
 
-		when(nicknameChangeService.nicknameChange(request)).thenReturn(response);
+		when(nicknameChangeService.nicknameChange(userId,request)).thenReturn(response);
 
 		mockMvc.perform(patch("/api/v1/users/nickname")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -82,7 +85,7 @@ class UserNicknameChangeControllerTest {
 	@DisplayName("닉네임 변경은 변경닉네임이 없으면 변경할 수 없다.")
 	//@Test
 	void shouldFailWhenEmptyParameter() throws Exception {
-		NicknameChangeRequest request = new NicknameChangeRequest(1L, "");
+		NicknameChangeRequest request = new NicknameChangeRequest( "");
 
 		mockMvc.perform(patch("/api/v1/users/nickname")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -99,7 +102,7 @@ class UserNicknameChangeControllerTest {
 	@DisplayName("특수문자가 포함된 닉네임은 변경할 수 없다.")
 	//@Test
 	void shouldFailWhenInvalidNickname() throws Exception {
-		NicknameChangeRequest request = new NicknameChangeRequest(1L, "#$%#$%#ㅁㅁ");
+		NicknameChangeRequest request = new NicknameChangeRequest("#$%#$%#ㅁㅁ");
 
 		mockMvc.perform(patch("/api/v1/users/nickname")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -116,9 +119,10 @@ class UserNicknameChangeControllerTest {
 	@DisplayName("중복된 닉네임은 변경할 수 없다.")
 	//@Test
 	void shouldFailWhenDuplicateNickname() throws Exception {
-		NicknameChangeRequest request = new NicknameChangeRequest(1L, "newNickname");
+		Long userId = 1L;
+		NicknameChangeRequest request = new NicknameChangeRequest("newNickname");
 
-		when(nicknameChangeService.nicknameChange(request)).thenThrow(new UserException(UserExceptionCode.USER_NICKNAME_NOT_VALID));
+		when(nicknameChangeService.nicknameChange(userId, request)).thenThrow(new UserException(UserExceptionCode.USER_NICKNAME_NOT_VALID));
 
 		mockMvc.perform(patch("/api/v1/users/nickname")
 				.contentType(MediaType.APPLICATION_JSON)

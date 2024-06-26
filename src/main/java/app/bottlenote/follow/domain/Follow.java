@@ -2,8 +2,6 @@ package app.bottlenote.follow.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.follow.domain.constant.FollowStatus;
-import app.bottlenote.follow.exception.FollowException;
-import app.bottlenote.follow.exception.FollowExceptionCode;
 import app.bottlenote.user.domain.User;
 import jakarta.persistence.*;
 import lombok.Builder;

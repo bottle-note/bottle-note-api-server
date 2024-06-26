@@ -23,7 +23,10 @@ public class UserCommandService {
 
 
 	@Transactional
-	public NicknameChangeResponse nicknameChange(NicknameChangeRequest request) {
+	public NicknameChangeResponse nicknameChange( Long userId, NicknameChangeRequest request) {
+
+		log.info("userId : {}", userId);
+		log.info("request : {}", request);
 
 		String name = request.nickName();
 		String beforeNickname;
@@ -32,7 +35,7 @@ public class UserCommandService {
 			throw new UserException(UserExceptionCode.USER_NICKNAME_NOT_VALID);
 		}
 
-		User user = userCommandRepository.findById(request.userId())
+		User user = userCommandRepository.findById(userId)
 			.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
 
 		beforeNickname = user.getNickName();

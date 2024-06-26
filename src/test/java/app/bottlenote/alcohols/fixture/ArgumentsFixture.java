@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import java.util.stream.Stream;
 
 public class ArgumentsFixture {
+	// 테스트 케이스 fixture data
 
 	static Stream<Arguments> testCase1Provider() {
 		return Stream.of(

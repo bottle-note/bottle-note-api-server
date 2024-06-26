@@ -28,6 +28,7 @@ import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.review.dto.request.LocationInfo;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
+import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewResponse;
 import app.bottlenote.review.service.ReviewService;
@@ -159,12 +160,16 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 						fieldWithPath("data.reviewList[].createAt").description("리뷰 등록 일시"),
 						fieldWithPath("data.reviewList[].userId").description("유저 ID"),
 						fieldWithPath("data.reviewList[].nickName").description("유저 닉네임"),
+						fieldWithPath("data.reviewList[].zipCode").description("(업장)우편번호"),
+						fieldWithPath("data.reviewList[].address").description("(업장)주소"),
+						fieldWithPath("data.reviewList[].detailAddress").description("(업장)상세주소"),
 						fieldWithPath("data.reviewList[].userProfileImage").description("유저 프로필 이미지"),
 						fieldWithPath("data.reviewList[].rating").description("리뷰에 등록된 별점"),
 						fieldWithPath("data.reviewList[].status").description("리뷰 공개 상태 (PUBLIC, PRIVATE)"),
 						fieldWithPath("data.reviewList[].isMyReview").description("내가 작성한 리뷰인지 여부"),
 						fieldWithPath("data.reviewList[].isLikedByMe").description("내가 좋아요 누른 리뷰인지 여부"),
 						fieldWithPath("data.reviewList[].hasReplyByMe").description("내가 댓글을 단 리뷰인지 여부"),
+						fieldWithPath("data.reviewList[].reviewTastingTag").description("테이스팅 태그 리스트"),
 						fieldWithPath("errors").ignored(),
 						fieldWithPath("meta.serverEncoding").ignored(),
 						fieldWithPath("meta.serverVersion").ignored(),
@@ -223,12 +228,16 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 						fieldWithPath("data.reviewList[].createAt").description("리뷰 등록 일시"),
 						fieldWithPath("data.reviewList[].userId").description("유저 ID"),
 						fieldWithPath("data.reviewList[].nickName").description("유저 닉네임"),
+						fieldWithPath("data.reviewList[].zipCode").description("(업장)우편번호"),
+						fieldWithPath("data.reviewList[].address").description("(업장)주소"),
+						fieldWithPath("data.reviewList[].detailAddress").description("(업장)상세주소"),
 						fieldWithPath("data.reviewList[].userProfileImage").description("유저 프로필 이미지"),
 						fieldWithPath("data.reviewList[].rating").description("리뷰에 등록된 별점"),
 						fieldWithPath("data.reviewList[].status").description("리뷰 공개 상태 (PUBLIC, PRIVATE)"),
 						fieldWithPath("data.reviewList[].isMyReview").description("내가 작성한 리뷰인지 여부"),
 						fieldWithPath("data.reviewList[].isLikedByMe").description("내가 좋아요 누른 리뷰인지 여부"),
 						fieldWithPath("data.reviewList[].hasReplyByMe").description("내가 댓글을 단 리뷰인지 여부"),
+						fieldWithPath("data.reviewList[].reviewTastingTag").description("테이스팅 태그 리스트"),
 						fieldWithPath("errors").ignored(),
 						fieldWithPath("meta.serverEncoding").ignored(),
 						fieldWithPath("meta.serverVersion").ignored(),
@@ -244,6 +253,53 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 			);
 	}
 
+	@Test
+	@DisplayName("리뷰를 수정할 수 있다.")
+	void review_modify_test() throws Exception {
+
+		Long reviewId = 1L;
+
+		//when
+		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
+
+		when(reviewService.modifyReviews(any(ReviewModifyRequest.class), any(), any())).thenReturn("성공적으로 완료되었습니다.");
+
+		//then
+		mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/reviews/{reviewId}", reviewId)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(fixture.getReviewModifyRequest()))
+				.with(csrf()))
+			.andExpect(status().isOk())
+			.andDo(
+				document("review/review-modify",
+					requestFields(
+						fieldWithPath("content").type(STRING).description("리뷰 내용").optional(),
+						fieldWithPath("status").type(STRING).description("리뷰 상태").optional(),
+						fieldWithPath("price").type(NUMBER).description("가격").optional(),
+						fieldWithPath("sizeType").type(STRING).description("술 타입 (잔 or 병)").optional(),
+						fieldWithPath("locationInfo").type(OBJECT).description("위치 정보").optional(),
+						fieldWithPath("locationInfo.zipCode").type(STRING).description("우편번호").optional(),
+						fieldWithPath("locationInfo.address").type(STRING).description("주소").optional(),
+						fieldWithPath("locationInfo.detailAddress").type(STRING).description("상세 주소").optional(),
+						fieldWithPath("imageUrlList").type(ARRAY).description("이미지 URL 목록"),
+						fieldWithPath("imageUrlList[].order").type(NUMBER).description("이미지 순서"),
+						fieldWithPath("imageUrlList[].viewUrl").type(STRING).description("이미지 뷰 URL"),
+						fieldWithPath("tastingTagList").type(ARRAY).description("테이스팅 태그 목록").optional()
+					),
+					responseFields(
+						fieldWithPath("success").description("응답 성공 여부"),
+						fieldWithPath("code").description("응답 코드(http status code)"),
+						fieldWithPath("data").description("성공 메시지"),
+						fieldWithPath("errors").ignored(),
+						fieldWithPath("meta.serverEncoding").ignored(),
+						fieldWithPath("meta.serverVersion").ignored(),
+						fieldWithPath("meta.serverPathVersion").ignored(),
+						fieldWithPath("meta.serverResponseTime").ignored()
+					)
+				)
+			);
+	}
+
 	private ReviewCreateRequest getReviewCreateRequest() {
 		return new ReviewCreateRequest(
 			1L,
@@ -251,11 +307,10 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 			"맛있어요",
 			SizeType.GLASS,
 			new BigDecimal("30000.0"),
-			LocationInfo.builder()
-				.zipCode("34222")
-				.address("서울시 영등포구")
-				.detailAddress("aaa 바")
-				.build(),
+			new LocationInfo(
+				"34222",
+				"서울시 영등포구",
+				"aaa 바"),
 			List.of(
 				new ReviewImageInfo(1L, "url1"),
 				new ReviewImageInfo(2L, "url2"),
