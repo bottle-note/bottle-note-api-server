@@ -46,7 +46,7 @@ public class ReviewQuerySupporter {
 			JPAExpressions
 				.selectOne()
 				.from(reviewReply)
-				.where(reviewReply.review.id.eq(review.id).and(reviewReply.user.id.eq(userId)))
+				.where(reviewReply.review.id.eq(review.id).and(reviewReply.userId.eq(userId)))
 				.exists()
 		).as("hasReplyByMe");
 	}

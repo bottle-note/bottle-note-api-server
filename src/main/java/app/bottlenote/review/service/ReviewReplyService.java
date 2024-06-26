@@ -31,7 +31,6 @@ public class ReviewReplyService {
 		this.userReportRepository = userReportRepository;
 	}
 
-
 	public Object registerReviewReply(
 		Long reviewId,
 		Long userId,
@@ -42,7 +41,7 @@ public class ReviewReplyService {
 		String content = profanityClient.containsProfanity(request.content()).filteredText();
 
 		Review review = reviewRepository.findById(reviewId)
-			.orElseThrow(() -> new ReviewException(ReviewExceptionCode.NOT_FOUND_REVIEW));
+			.orElseThrow(() -> new ReviewException(ReviewExceptionCode.REVIEW_NOT_FOUND));
 
 		ReviewReply reply = ReviewReply.builder()
 			.review(review)
@@ -64,7 +63,6 @@ public class ReviewReplyService {
 
 		review.addReply(reply);
 		reviewRepository.save(review);
-
 	}
 
 }
