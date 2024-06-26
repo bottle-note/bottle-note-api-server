@@ -1,10 +1,11 @@
-package app.bottlenote.review.domain;
+package app.bottlenote.review.dto.vo;
 
 import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
-import java.math.BigDecimal;
 import lombok.Getter;
+
+import java.math.BigDecimal;
 
 @Getter
 public class ReviewModifyVO {

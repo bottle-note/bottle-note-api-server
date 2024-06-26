@@ -80,7 +80,7 @@ public class Alcohol extends BaseEntity {
 
 	// mappedBy: 연관관계의 주인이 아님을 의미한다.
 	// Review가 alcohol의 id를 가지고 있다.
-	@OneToMany(mappedBy = "alcohol", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "alcoholId", fetch = FetchType.LAZY)
 	private List<Review> reviews = new ArrayList<>();
 
 	// mappedBy: 연관관계의 주인이 아님을 의미한다.

@@ -1,4 +1,4 @@
-package app.bottlenote.review.repository;
+package app.bottlenote.review.repository.custom;
 
 
 import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
