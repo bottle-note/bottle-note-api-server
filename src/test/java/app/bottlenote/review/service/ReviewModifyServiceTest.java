@@ -1,13 +1,5 @@
 package app.bottlenote.review.service;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewModifyVO;
@@ -20,9 +12,6 @@ import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.review.repository.ReviewRepository;
 import app.bottlenote.user.domain.User;
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,6 +19,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @DisplayName("리뷰 수정 서비스 레이어 테스트")
 @ExtendWith(MockitoExtension.class)
@@ -63,8 +64,8 @@ class ReviewModifyServiceTest {
 			.build();
 		review = Review.builder()
 			.id(1L)
-			.alcohol(alcohol)
-			.user(user)
+			.alcoholId(alcohol.getId())
+			.userId(user.getId())
 			.content("아주 맛있어요")
 			.build();
 	}

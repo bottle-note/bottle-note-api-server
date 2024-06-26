@@ -1,10 +1,5 @@
 package app.bottlenote.review.service;
 
-import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
-import static app.bottlenote.review.domain.constant.ReviewResponse.MODIFY_SUCCESS;
-import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
-import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
-
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.exception.AlcoholException;
@@ -25,6 +20,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
+import static app.bottlenote.review.domain.constant.ReviewResponse.MODIFY_SUCCESS;
+import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
+import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
 @Slf4j
 @Service
@@ -49,8 +49,8 @@ public class ReviewService {
 			.orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
 		Review review = Review.builder()
-			.alcohol(alcohol)
-			.user(user)
+			.alcoholId(alcohol.getId())
+			.userId(user.getId())
 			.price(reviewCreateRequest.price())
 			.sizeType(reviewCreateRequest.sizeType())
 			.status(reviewCreateRequest.status())
@@ -70,7 +70,7 @@ public class ReviewService {
 		return ReviewCreateResponse.builder()
 			.id(saveReview.getId())
 			.content(saveReview.getContent())
-			.callback(String.valueOf(saveReview.getAlcohol().getId()))
+			.callback(String.valueOf(saveReview.getAlcoholId()))
 			.build();
 	}
 

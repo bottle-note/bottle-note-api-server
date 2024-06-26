@@ -1,13 +1,5 @@
 package app.bottlenote.review.repository;
 
-import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.global.service.cursor.SortOrder.DESC;
-import static app.bottlenote.like.domain.QLikes.likes;
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.domain.QReview.review;
-import static app.bottlenote.review.domain.QReviewReply.reviewReply;
-import static app.bottlenote.review.domain.QReviewTastingTag.reviewTastingTag;
-
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
@@ -25,11 +17,21 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
+import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.global.service.cursor.SortOrder.DESC;
+import static app.bottlenote.like.domain.QLikes.likes;
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
+import static app.bottlenote.review.domain.QReviewReply.reviewReply;
+import static app.bottlenote.review.domain.QReviewTastingTag.reviewTastingTag;
+import static app.bottlenote.user.domain.QUser.user;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -55,9 +57,9 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 				review.status.as("status"),
 				review.createAt.as("createAt"),
 				ratingSubQuery(),
-				review.user.id.as("userId"),
-				review.user.nickName.as("nickName"),
-				review.user.imageUrl.as("userProfileImage"),
+				user.id.as("userId"),
+				user.nickName.as("nickName"),
+				user.imageUrl.as("userProfileImage"),
 				isMyReview(userId).as("isMyReview"),
 				likedByMe(userId, review.id).as("isLikedByMe"),
 				hasCommentedByMe(userId, review.id).as("hasReplyByMe"),
@@ -66,10 +68,11 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			))
 			.from(review)
 			.leftJoin(likes).on(review.id.eq(likes.review.id))
-			.leftJoin(alcohol).on(alcohol.id.eq(review.alcohol.id))
-			.leftJoin(rating).on(review.user.id.eq(rating.user.id))
+			.leftJoin(alcohol).on(alcohol.id.eq(review.alcoholId))
+			.leftJoin(rating).on(review.userId.eq(rating.user.id))
+			.leftJoin(user).on(review.userId.eq(user.id))
 			.where(review.id.eq(reviewId))
-			.groupBy(review.id, review.sizeType, review.user)
+			.groupBy(review.id, review.sizeType, review.userId)
 			.fetchOne();
 
 		List<String> tastingTagList = queryFactory
@@ -103,9 +106,9 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 				review.status.as("status"),
 				review.createAt.as("createAt"),
 				ratingSubQuery(),
-				review.user.id.as("userId"),
-				review.user.nickName.as("nickName"),
-				review.user.imageUrl.as("userProfileImage"),
+				user.id.as("userId"),
+				user.nickName.as("nickName"),
+				user.imageUrl.as("userProfileImage"),
 				isMyReview(userId).as("isMyReview"),
 				likedByMe(userId, review.id).as("isLikedByMe"),
 				hasCommentedByMe(userId, review.id).as("hasReplyByMe"),
@@ -114,11 +117,12 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			))
 			.from(review)
 			.leftJoin(likes).on(review.id.eq(likes.review.id))
-			.leftJoin(alcohol).on(alcohol.id.eq(review.alcohol.id))
-			.leftJoin(rating).on(review.user.id.eq(rating.user.id))
+			.leftJoin(alcohol).on(alcohol.id.eq(review.alcoholId))
+			.leftJoin(rating).on(review.userId.eq(rating.user.id))
 			.leftJoin(reviewTastingTag).on(review.id.eq(reviewTastingTag.review.id))
+			.leftJoin(user).on(review.userId.eq(user.id))
 			.where(alcohol.id.eq(alcoholId))
-			.groupBy(review.id, review.sizeType, review.user)
+			.groupBy(review.id, review.sizeType, review.userId)
 			.orderBy(sortBy(pageableRequest.sortType(), pageableRequest.sortOrder()).toArray(new OrderSpecifier[0]))
 			.offset(pageableRequest.cursor())
 			.limit(pageableRequest.pageSize() + 1)
@@ -136,7 +140,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		Long totalCount = queryFactory
 			.select(review.id.count())
 			.from(review)
-			.where(review.alcohol.id.eq(alcoholId))
+			.where(review.alcoholId.eq(alcoholId))
 			.fetchOne();
 
 		CursorPageable cursorPageable = getCursorPageable(pageableRequest, fetch);
@@ -165,9 +169,9 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 				review.status.as("status"),
 				review.createAt.as("createAt"),
 				ratingSubQuery(),
-				review.user.id.as("userId"),
-				review.user.nickName.as("nickName"),
-				review.user.imageUrl.as("userProfileImage"),
+				user.id.as("userId"),
+				user.nickName.as("nickName"),
+				user.imageUrl.as("userProfileImage"),
 				isMyReview(userId).as("isMyReview"),
 				likedByMe(userId, review.id).as("isLikedByMe"),
 				hasCommentedByMe(userId, review.id).as("hasReplyByMe"),
@@ -176,10 +180,11 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			))
 			.from(review)
 			.leftJoin(likes).on(review.id.eq(likes.review.id))
-			.leftJoin(alcohol).on(alcohol.id.eq(review.alcohol.id))
-			.leftJoin(rating).on(review.user.id.eq(rating.user.id))
-			.where(review.user.id.eq(userId).and(review.alcohol.id.eq(alcoholId)))
-			.groupBy(review.id, review.sizeType, review.user)
+			.leftJoin(alcohol).on(alcohol.id.eq(review.alcoholId))
+			.leftJoin(rating).on(review.userId.eq(rating.user.id))
+			.leftJoin(user).on(review.userId.eq(user.id))
+			.where(review.userId.eq(userId).and(review.alcoholId.eq(alcoholId)))
+			.groupBy(review.id, review.sizeType, review.userId)
 			.orderBy(sortBy(pageableRequest.sortType(), pageableRequest.sortOrder()).toArray(new OrderSpecifier[0]))
 			.offset(pageableRequest.cursor())
 			.limit(pageableRequest.pageSize() + 1)
@@ -197,7 +202,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		Long totalCount = queryFactory
 			.select(review.id.count())
 			.from(review)
-			.where(review.user.id.eq(userId))
+			.where(review.userId.eq(userId))
 			.fetchOne();
 
 		CursorPageable cursorPageable = getCursorPageable(pageableRequest, fetch);
@@ -261,7 +266,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		if (userId == null) {
 			return Expressions.asBoolean(false);
 		}
-		return review.user.id.eq(userId);
+		return review.userId.eq(userId);
 	}
 
 	/*
@@ -284,8 +289,8 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			JPAExpressions.select(rating.ratingPoint.rating)
 				.from(rating)
 				.where(
-					rating.user.id.eq(review.user.id)
-						.and(rating.alcohol.id.eq(review.alcohol.id)))
+					rating.user.id.eq(review.userId)
+						.and(rating.alcohol.id.eq(review.alcoholId)))
 			, "rating"
 		);
 	}

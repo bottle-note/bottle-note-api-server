@@ -130,7 +130,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 			.from(alcohol)
 			.leftJoin(rating).on(alcohol.id.eq(rating.alcohol.id))
 			.leftJoin(picks).on(alcohol.id.eq(picks.alcohol.id))
-			.leftJoin(review).on(alcohol.id.eq(review.alcohol.id))
+			.leftJoin(review).on(alcohol.id.eq(review.alcoholId))
 			.where(
 				supporter.eqName(criteriaDto.keyword()),
 				supporter.eqCategory(criteriaDto.category()),

@@ -47,7 +47,7 @@ public class CustomRatingQueryRepositoryImpl implements CustomRatingQueryReposit
 			).from(alcohol)
 			.leftJoin(rating).on(alcohol.id.eq(rating.alcohol.id))
 			.leftJoin(picks).on(alcohol.id.eq(picks.alcohol.id))
-			.leftJoin(review).on(alcohol.id.eq(review.alcohol.id))
+			.leftJoin(review).on(alcohol.id.eq(review.alcoholId))
 			.where(
 				querySupporter.eqAlcoholName(criteria.keyword()),
 				querySupporter.eqAlcoholCategory(criteria.category()),
