@@ -22,7 +22,7 @@ public class FollowerQuerySupporter {
 		return ExpressionUtils.as(
 			select(review.count())
 				.from(review)
-				.where(review.user.id.eq(userId)),
+				.where(review.userId.eq(userId)),
 			"reviewCount"
 		);
 	}

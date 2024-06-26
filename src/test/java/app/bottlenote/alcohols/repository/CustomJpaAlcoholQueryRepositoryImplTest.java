@@ -88,7 +88,7 @@ class CustomJpaAlcoholQueryRepositoryImplTest {
 		Alcohol alcohol = alcoholQueryRepository.findById(1L).orElseThrow();
 		User user = userRepository.save(User.builder().email("test@emai.com").nickName("test").role(UserType.ROLE_USER).socialType(SocialType.GOOGLE).build());
 
-		Review review = Review.builder().alcohol(alcohol).user(user).address("서울시 강남구").content("맛있어요").build();
+		Review review = Review.builder().alcoholId(alcohol.getId()).userId(user.getId()).address("서울시 강남구").content("맛있어요").build();
 		RatingId ratingId = RatingId.is(alcohol.getId(), user.getId());
 		Rating rating_1 = Rating.builder().id(ratingId).alcohol(alcohol).user(user).ratingPoint(RatingPoint.of(4.5)).build();
 
