@@ -1,6 +1,7 @@
-package app.bottlenote.review.repository;
+package app.bottlenote.review.repository.custom;
 
 import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
+import app.bottlenote.review.repository.ReviewQuerySupporter;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

@@ -4,6 +4,7 @@ import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.review.domain.constant.ReviewActiveStatus;
 import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
+import app.bottlenote.review.dto.vo.ReviewModifyVO;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

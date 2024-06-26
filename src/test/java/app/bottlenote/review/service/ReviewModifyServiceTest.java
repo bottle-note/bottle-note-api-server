@@ -2,12 +2,12 @@ package app.bottlenote.review.service;
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.review.domain.Review;
-import app.bottlenote.review.domain.ReviewModifyVO;
 import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.review.dto.request.LocationInfo;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
+import app.bottlenote.review.dto.vo.ReviewModifyVO;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.review.repository.ReviewRepository;

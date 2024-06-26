@@ -1,4 +1,4 @@
-package app.bottlenote.review.repository;
+package app.bottlenote.review.repository.custom;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
@@ -90,8 +90,8 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 	public PageResponse<ReviewResponse> getReviews(
 		Long alcoholId,
 		PageableRequest pageableRequest,
-		Long userId) {
-
+		Long userId
+	) {
 		List<ReviewDetail> fetch = queryFactory
 			.select(Projections.fields(
 				ReviewDetail.class,
@@ -112,8 +112,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 				isMyReview(userId).as("isMyReview"),
 				likedByMe(userId, review.id).as("isLikedByMe"),
 				hasCommentedByMe(userId, review.id).as("hasReplyByMe"),
-				reviewReplyCountSubQuery(),
-				likesCountSubQuery()
+				reviewReplyCountSubQuery()
 			))
 			.from(review)
 			.leftJoin(likes).on(review.id.eq(likes.review.id))
@@ -145,16 +144,16 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 
 		CursorPageable cursorPageable = getCursorPageable(pageableRequest, fetch);
 
-		log.info("CURSOR Pageable info :{}", cursorPageable.toString());
 		return PageResponse.of(ReviewResponse.of(totalCount, fetch), cursorPageable);
 	}
+
 
 	@Override
 	public PageResponse<ReviewResponse> getReviewsByMe(
 		Long alcoholId,
 		PageableRequest pageableRequest,
-		Long userId) {
-
+		Long userId
+	) {
 		List<ReviewDetail> fetch = queryFactory
 			.select(Projections.fields(
 				ReviewDetail.class,

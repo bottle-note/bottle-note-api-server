@@ -5,12 +5,12 @@ import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.Review;
-import app.bottlenote.review.domain.ReviewModifyVO;
 import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewResponse;
+import app.bottlenote.review.dto.vo.ReviewModifyVO;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.repository.ReviewRepository;
 import app.bottlenote.user.domain.User;
@@ -80,22 +80,15 @@ public class ReviewService {
 		PageableRequest pageableRequest,
 		Long userId
 	) {
-
-		PageResponse<ReviewResponse> reviews = reviewRepository.getReviews(
-			alcoholId,
-			pageableRequest,
-			userId);
-
-		log.info("review size is : {}", reviews.content());
-
-		return reviews;
+		return reviewRepository.getReviews(alcoholId, pageableRequest, userId);
 	}
 
+	@Transactional(readOnly = true)
 	public PageResponse<ReviewResponse> getMyReview(
 		Long alcoholId,
 		PageableRequest pageableRequest,
-		Long userId) {
-
+		Long userId
+	) {
 		return reviewRepository.getReviewsByMe(alcoholId, pageableRequest, userId);
 	}
 
