@@ -317,7 +317,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		return JPAExpressions
 			.selectOne()
 			.from(reviewReply)
-			.where(reviewReply.user.id.eq(userId)
+			.where(reviewReply.userId.eq(userId)
 				.and(reviewReply.review.id.eq(reviewId)))
 			.exists();
 	}
