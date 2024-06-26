@@ -1,5 +1,6 @@
 package app.bottlenote.common.profanity.fegin;
 
+import app.bottlenote.common.profanity.request.ProfanityRequest;
 import app.bottlenote.common.profanity.response.ProfanityResponse;
 import app.bottlenote.global.config.FeginConfig;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -14,5 +15,5 @@ import org.springframework.web.bind.annotation.RequestBody;
 )
 public interface ProfanityFeginClient {
 	@PostMapping("/filter")
-	ResponseEntity<ProfanityResponse> requestVerificationProfanity(@RequestBody String text);
+	ResponseEntity<ProfanityResponse> requestVerificationProfanity(@RequestBody ProfanityRequest text);
 }
