@@ -1,4 +1,4 @@
-package app.bottlenote.review.repository;
+package app.bottlenote.review.repository.custom;
 
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.dto.request.PageableRequest;

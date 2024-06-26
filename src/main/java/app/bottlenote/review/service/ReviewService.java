@@ -1,24 +1,16 @@
 package app.bottlenote.review.service;
 
-import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
-import static app.bottlenote.review.domain.constant.ReviewActiveStatus.DELETED;
-import static app.bottlenote.review.domain.constant.ReviewResponse.ALREADY_DELETED;
-import static app.bottlenote.review.domain.constant.ReviewResponse.DELETE_SUCCESS;
-import static app.bottlenote.review.domain.constant.ReviewResponse.MODIFY_SUCCESS;
-import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
-import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
-
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.Review;
-import app.bottlenote.review.domain.ReviewModifyVO;
 import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewResponse;
+import app.bottlenote.review.dto.vo.ReviewModifyVO;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.repository.ReviewRepository;
 import app.bottlenote.user.domain.User;
@@ -28,6 +20,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
+import static app.bottlenote.review.domain.constant.ReviewResponse.MODIFY_SUCCESS;
+import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
+import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
 @Slf4j
 @Service
@@ -52,8 +49,8 @@ public class ReviewService {
 			.orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
 		Review review = Review.builder()
-			.alcohol(alcohol)
-			.user(user)
+			.alcoholId(alcohol.getId())
+			.userId(user.getId())
 			.price(reviewCreateRequest.price())
 			.sizeType(reviewCreateRequest.sizeType())
 			.status(reviewCreateRequest.status())
@@ -73,7 +70,7 @@ public class ReviewService {
 		return ReviewCreateResponse.builder()
 			.id(saveReview.getId())
 			.content(saveReview.getContent())
-			.callback(String.valueOf(saveReview.getAlcohol().getId()))
+			.callback(String.valueOf(saveReview.getAlcoholId()))
 			.build();
 	}
 
@@ -83,22 +80,15 @@ public class ReviewService {
 		PageableRequest pageableRequest,
 		Long userId
 	) {
-
-		PageResponse<ReviewResponse> reviews = reviewRepository.getReviews(
-			alcoholId,
-			pageableRequest,
-			userId);
-
-		log.info("review size is : {}", reviews.content());
-
-		return reviews;
+		return reviewRepository.getReviews(alcoholId, pageableRequest, userId);
 	}
 
+	@Transactional(readOnly = true)
 	public PageResponse<ReviewResponse> getMyReview(
 		Long alcoholId,
 		PageableRequest pageableRequest,
-		Long userId) {
-
+		Long userId
+	) {
 		return reviewRepository.getReviewsByMe(alcoholId, pageableRequest, userId);
 	}
 

@@ -1,6 +1,7 @@
-package app.bottlenote.review.repository;
+package app.bottlenote.review.repository.custom;
 
 import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
+import app.bottlenote.review.repository.ReviewQuerySupporter;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,15 +38,15 @@ public class CustomReviewQueryRepositoryImpl implements CustomReviewQueryReposit
 		return queryFactory
 			.select(supporter.reviewInfoConstructor(userId))
 			.from(review)
-			.join(review.user, user)
+			.join(user).on(review.userId.eq(user.id))
 			.leftJoin(review.reviewReplies, reviewReply)
-			.leftJoin(rating).on(rating.alcohol.id.eq(review.alcohol.id).and(rating.user.id.eq(user.id)))
+			.leftJoin(rating).on(rating.alcohol.id.eq(review.alcoholId).and(rating.user.id.eq(user.id)))
 			.leftJoin(likes).on(likes.review.id.eq(review.id))
-			.where(review.alcohol.id.eq(alcoholId))
+			.where(review.alcoholId.eq(alcoholId))
 			.groupBy(user.id, user.imageUrl, user.nickName, review.id, review.content, rating.ratingPoint, review.createAt)
 			.orderBy(reviewReply.count().coalesce(0L)
 				.add(likes.count().coalesce(0L))
-				.add(rating.ratingPoint.rating.coalesce(0.0).avg())     // Rating
+				.add(rating.ratingPoint.rating.coalesce(0.0).avg())
 				.desc()
 			)
 			.limit(1)
@@ -66,11 +67,11 @@ public class CustomReviewQueryRepositoryImpl implements CustomReviewQueryReposit
 		return queryFactory
 			.select(supporter.reviewInfoConstructor(userId))
 			.from(review)
-			.join(review.user, user)
+			.leftJoin(user).on(review.userId.eq(user.id))
 			.leftJoin(review.reviewReplies, reviewReply)
-			.leftJoin(rating).on(rating.alcohol.id.eq(review.alcohol.id).and(rating.user.id.eq(user.id)))
+			.leftJoin(rating).on(rating.alcohol.id.eq(review.alcoholId).and(rating.user.id.eq(user.id)))
 			.leftJoin(likes).on(likes.review.id.eq(review.id))
-			.where(review.alcohol.id.eq(alcoholId), review.id.notIn(ids))
+			.where(review.alcoholId.eq(alcoholId), review.id.notIn(ids))
 			.groupBy(user.id, user.imageUrl, user.nickName, review.id, review.content, rating.ratingPoint, review.createAt)
 			.orderBy(review.createAt.desc())
 			.limit(4)
@@ -83,7 +84,7 @@ public class CustomReviewQueryRepositoryImpl implements CustomReviewQueryReposit
 		return queryFactory
 			.select(review.id.count())
 			.from(review)
-			.where(review.alcohol.id.eq(alcoholId))
+			.where(review.alcoholId.eq(alcoholId))
 			.fetchOne();
 	}
 

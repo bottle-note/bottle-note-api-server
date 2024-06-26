@@ -1,7 +1,6 @@
 package app.bottlenote.review.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
-import app.bottlenote.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -31,9 +30,8 @@ public class ReviewReply extends BaseEntity {
 	private Review review;
 
 	@Comment("댓글 작성 유저")
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id")
-	private User user;
+	@Column(name = "user_id")
+	private Long userId;
 
 	@Comment("댓글 내용")
 	@Column(name = "content", nullable = false, length = 1000)
