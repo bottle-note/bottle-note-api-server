@@ -4,15 +4,19 @@ import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
+import app.bottlenote.review.dto.response.ReviewReplyResultResponse;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.review.repository.ReviewRepository;
-import app.bottlenote.support.report.repository.UserReportRepository;
+import app.bottlenote.user.service.domain.UserDomainSupport;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
+
+import static app.bottlenote.review.dto.response.ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY;
 
 @Service
 @Slf4j
@@ -20,49 +24,55 @@ public class ReviewReplyService {
 
 	private final ReviewRepository reviewRepository;
 	private final ProfanityClient profanityClient;
-	private final UserReportRepository userReportRepository;
+	private final UserDomainSupport userDomainSupport;
 
 	public ReviewReplyService(
 		ReviewRepository reviewRepository,
 		ProfanityClient profanityClient,
-		UserReportRepository userReportRepository) {
+		UserDomainSupport userDomainSupport
+	) {
 		this.reviewRepository = reviewRepository;
 		this.profanityClient = profanityClient;
-		this.userReportRepository = userReportRepository;
+		this.userDomainSupport = userDomainSupport;
 	}
 
-	public Object registerReviewReply(
-		Long reviewId,
-		Long userId,
-		ReviewReplyRegisterRequest request
+	@Modifying(flushAutomatically = true, clearAutomatically = true)
+	@Transactional
+	public ReviewReplyResultResponse registerReviewReply(
+		final Long reviewId,
+		final Long userId,
+		final ReviewReplyRegisterRequest request
 	) {
 		Objects.requireNonNull(request.content(), "댓글 내용은 필수 입력값입니다.");
+		Objects.requireNonNull(userId, "유저 식별자는 필수 입력값입니다.");
+		Objects.requireNonNull(reviewId, "리뷰 식별자는 필수 입력값입니다.");
 
-		String content = profanityClient.containsProfanity(request.content()).filteredText();
+		long start = System.nanoTime();
+		userDomainSupport.isValidUserId(userId);
+		log.info("유저 정보 확인 시간 : {}", (System.nanoTime() - start) / 1_000_000 + "ms");
 
-		Review review = reviewRepository.findById(reviewId)
+		long start2 = System.nanoTime();
+		final String content = profanityClient.getFilteredText(request.content());
+		log.info("욕설 필터링 시간 : {}", (System.nanoTime() - start2) / 1_000_000 + "ms");
+
+		final Review review = reviewRepository.findById(reviewId)
 			.orElseThrow(() -> new ReviewException(ReviewExceptionCode.REVIEW_NOT_FOUND));
 
-		ReviewReply reply = ReviewReply.builder()
-			.review(review)
-
-			.build();
-		return null;
-	}
-
-	@Transactional
-	public void saveReviewReply() {
-
-		Review review = reviewRepository.findById(1L).get();
+		Long parentReplyId = reviewRepository.isEligibleParentReply(reviewId, request.parentReplyId());
 
 		ReviewReply reply = ReviewReply.builder()
 			.review(review)
-			.userId(2L)
-			.content("댓글 내용")
+			.userId(userId)
+			.parentReplyId(parentReplyId)
+			.content(content)
 			.build();
 
 		review.addReply(reply);
-		reviewRepository.save(review);
-	}
 
+		log.info("최종 처리 시간 : {}", (System.nanoTime() - start) / 1_000_000 + "ms");
+		return ReviewReplyResultResponse.response(
+			SUCCESS_REGISTER_REPLY,
+			review.getId()
+		);
+	}
 }

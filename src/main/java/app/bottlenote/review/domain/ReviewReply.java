@@ -39,24 +39,23 @@ public class ReviewReply extends BaseEntity {
 	private String content;
 
 	@Comment("대댓글 댓글 대상")
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "parent_reply_id")
-	private ReviewReply parentReviewReply;
+	@Column(name = "parent_reply_id")
+	private Long parentReplyId;
 
 	@Comment("대댓글 목록")
-	@OneToMany(mappedBy = "parentReviewReply", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "parentReplyId", fetch = FetchType.LAZY)
 	private List<ReviewReply> replies = new ArrayList<>();
 
 	protected ReviewReply() {
 	}
 
 	@Builder
-	public ReviewReply(Long id, Review review, Long userId, String content, ReviewReply parentReviewReply) {
+	public ReviewReply(Long id, Review review, Long userId, String content, Long parentReplyId) {
 		this.id = id;
 		this.review = review;
 		this.userId = userId;
 		this.content = content;
-		this.parentReviewReply = parentReviewReply;
+		this.parentReplyId = parentReplyId;
 		this.replies = new ArrayList<>();
 	}
 }

@@ -80,18 +80,16 @@ public class Review extends BaseEntity {
 	@Column(name = "view_count", nullable = false)
 	private Long viewCount = 0L;
 
-	 @Comment("리뷰 활성 상태")
+	@Comment("리뷰 활성 상태")
 	@Column(name = "active_status", nullable = false)
 	@Enumerated(EnumType.STRING)
 	private ReviewActiveStatus activeStatus = ReviewActiveStatus.ACTIVE;
 
 	// 댓글 목록
 	// review와 reviewReply는 1(review) : N(reviewReply) 관계이다.
-	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<ReviewReply> reviewReplies = new ArrayList<>();
 
-	// mappedBy: 연관관계의 주인이 아님을 의미한다.
-	// review image와 review는 1(review) : N(reviewImage) 관계이다.
 	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<ReviewImage> reviewImages = new ArrayList<>();
 
