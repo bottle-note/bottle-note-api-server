@@ -15,4 +15,8 @@ public interface UserQueryRepository {
 	List<User> findAll();
 
 	List<User> findAllByIdIn(List<Long> ids);
+
+    Boolean existsByUserId(Long userId);
+
+	Long countByUsername(String userName);
 }
