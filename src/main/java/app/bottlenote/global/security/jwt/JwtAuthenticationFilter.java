@@ -120,6 +120,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 	/**
 	 * 필터 제외 대상 경로를 설정
+	 * : userId검증이 필요없는 API 경로를 필터링
 	 *
 	 * @param request the request
 	 * @return the boolean
@@ -128,7 +129,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	protected boolean shouldNotFilter(HttpServletRequest request) {
 		String path = request.getRequestURI();
 		List<String> excludePath = List.of(
-			"/api/v1/regions"
+			"/api/v1/regions",
+			"/api/v1/alcohols/categories"
 		);
 
 		return excludePath
@@ -137,7 +139,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	}
 
 	/**
-	 * 필터를 건너뛸지 여부를 판단하는 메서드
+	 * 비회원과 인증된 사용자의 접근 권한을 구분하는 메서드(좀 더 명확한 로그를 위해서 추가된 메소드)
+	 * : 인증 사용자와 비회원이 공용적으로 이용할 수 있는 API 경로를 필터
+	 * : 인증 사용자만 이용할 수 있는 API 경로를 필터
 	 *
 	 * @param url the url
 	 * @return the boolean
@@ -146,7 +150,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 		log.info("Checking skipFilter : {}",method + url); // 로그 추가
 
-		// 비회원 이용가능 리스트
+		// 비회원과 인증된 회원이 사용가능한 api 리스트
 		Set<String> skipPaths = Set.of(
 			"GET:/api/v1/reviews/",
 			"GET:/api/v1/rating",
@@ -154,7 +158,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			"GET:/api/v1/alcohols/"
 		);
 
-		// 비회원 불가능 리스트
+		// 비회원은 사용불가능, 인증된 회원만 사용가능한 api 리스트
 		Set<String> excludePaths = Set.of(
 			"GET:/api/v1/reviews/me/",
 			"PATCH:/api/v1/reviews/",
