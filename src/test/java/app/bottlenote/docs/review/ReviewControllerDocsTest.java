@@ -1,5 +1,6 @@
 package app.bottlenote.docs.review;
 
+import static app.bottlenote.review.dto.response.ReviewResultMessage.DELETE_SUCCESS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
@@ -23,9 +24,9 @@ import app.bottlenote.docs.AbstractRestDocs;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.controller.ReviewController;
-import app.bottlenote.review.domain.constant.ReviewResponseMessage;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.response.ReviewResponse;
+import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
 import app.bottlenote.review.service.ReviewService;
 import java.util.Optional;
@@ -294,7 +295,7 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 		//when
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
-		when(reviewService.deleteReview(anyLong(), anyLong())).thenReturn(ReviewResponseMessage.DELETE_SUCCESS);
+		when(reviewService.deleteReview(anyLong(), anyLong())).thenReturn(ReviewResultResponse.response(DELETE_SUCCESS, reviewId));
 
 		//then
 		mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/reviews/{reviewId}", reviewId)
@@ -306,7 +307,10 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 					responseFields(
 						fieldWithPath("success").description("응답 성공 여부"),
 						fieldWithPath("code").description("응답 코드(http status code)"),
-						fieldWithPath("data").description("성공 메시지"),
+						fieldWithPath("data.codeMessage").description("성공 메시지 코드"),
+						fieldWithPath("data.message").description("성공 메시지"),
+						fieldWithPath("data.reviewId").description("리뷰 아이디"),
+						fieldWithPath("data.responseAt").description("서버 응답 일시"),
 						fieldWithPath("errors").ignored(),
 						fieldWithPath("meta.serverEncoding").ignored(),
 						fieldWithPath("meta.serverVersion").ignored(),

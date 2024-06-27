@@ -12,7 +12,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.review.domain.constant.ReviewResponseMessage;
+import app.bottlenote.review.dto.response.ReviewResultMessage;
+import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.review.service.ReviewService;
@@ -34,7 +35,6 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(ReviewController.class)
 class ReviewDeleteControllerTest {
 
-	private final ReviewResponseMessage response = ReviewResponseMessage.DELETE_SUCCESS;
 
 	@Autowired
 	protected ObjectMapper mapper;
@@ -45,6 +45,7 @@ class ReviewDeleteControllerTest {
 
 	private final Long reviewId = 1L;
 	private final Long userId = 1L;
+	private final ReviewResultResponse response = ReviewResultResponse.response(ReviewResultMessage.DELETE_SUCCESS, reviewId);
 	private final MockedStatic<SecurityContextUtil> mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
 
 	@AfterEach
@@ -55,6 +56,9 @@ class ReviewDeleteControllerTest {
 	@DisplayName("리뷰를 삭제할 수 있다")
 	@Test
 	void delete_review_success() throws Exception {
+
+		String codeMessage = "DELETE_SUCCESS";
+		String message = "리뷰 삭제가 성공적으로 완료되었습니다.";
 
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
@@ -68,7 +72,9 @@ class ReviewDeleteControllerTest {
 			.andDo(print())
 			.andExpect(jsonPath("$.success").value("true"))
 			.andExpect(jsonPath("$.code").value("200"))
-			.andExpect(jsonPath("$.data").value(response.getDescription()));
+			.andExpect(jsonPath("$.data.codeMessage").value(codeMessage))
+			.andExpect(jsonPath("$.data.message").value(message))
+			.andExpect(jsonPath("$.data.reviewId").value(reviewId));
 
 		verify(reviewService, description("deleteReview 메서드가 정상적으로 호출됨"))
 			.deleteReview(anyLong(), anyLong());

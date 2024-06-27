@@ -1,13 +1,13 @@
 package app.bottlenote.review.service;
 
-import static app.bottlenote.review.domain.constant.ReviewResponseMessage.DELETE_SUCCESS;
+import static app.bottlenote.review.dto.response.ReviewResultMessage.DELETE_SUCCESS;
 import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.when;
 
 import app.bottlenote.review.domain.Review;
-import app.bottlenote.review.domain.constant.ReviewResponseMessage;
+import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
 import app.bottlenote.review.repository.ReviewRepository;
@@ -42,10 +42,10 @@ class ReviewDeleteServiceTest {
 		when(reviewRepository.findByIdAndUserId(anyLong(), anyLong())).thenReturn(Optional.of(review));
 
 		//when
-		ReviewResponseMessage reviewResponseMessage = reviewService.deleteReview(reviewId, userId);
+		ReviewResultResponse reviewResultResponse = reviewService.deleteReview(reviewId, userId);
 
 		//then
-		Assertions.assertEquals(DELETE_SUCCESS, reviewResponseMessage);
+		Assertions.assertEquals(DELETE_SUCCESS, reviewResultResponse.codeMessage());
 	}
 
 	@Test
