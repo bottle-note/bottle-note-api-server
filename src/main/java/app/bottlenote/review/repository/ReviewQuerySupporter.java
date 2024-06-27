@@ -73,7 +73,8 @@ public class ReviewQuerySupporter {
 	 */
 	public BooleanExpression hasReplyByMeSubquery(Long userId) {
 
-		BooleanExpression eqUserId = userId == null ? reviewReply.userId.isNull() : reviewReply.userId.eq(userId);
+		BooleanExpression eqUserId = userId == null ?
+			reviewReply.userId.isNull() : reviewReply.userId.eq(userId);
 
 		return Expressions.asBoolean(
 			JPAExpressions
@@ -88,12 +89,10 @@ public class ReviewQuerySupporter {
 	내가 좋아요를 누른 리뷰인지 판별
 	 */
 	public BooleanExpression isLikeByMeSubquery(Long userId) {
-		BooleanExpression eqUserId;
-		if (userId == null) {
-			eqUserId = likes.user.id.isNull();
-		} else {
-			eqUserId = likes.user.id.eq(userId);
-		}
+
+		BooleanExpression eqUserId = userId == null ?
+			likes.user.id.isNull() : likes.user.id.eq(userId);
+		
 		return Expressions.asBoolean(
 			JPAExpressions
 				.selectOne()
