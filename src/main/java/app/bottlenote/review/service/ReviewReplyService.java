@@ -37,6 +37,14 @@ public class ReviewReplyService {
 		this.userDomainSupport = userDomainSupport;
 	}
 
+	/**
+	 * 댓글을 등록합니다.
+	 *
+	 * @param reviewId the review id
+	 * @param userId   the user id
+	 * @param request  the request
+	 * @return the review reply result response
+	 */
 	@Modifying(flushAutomatically = true, clearAutomatically = true)
 	@Transactional
 	public ReviewReplyResultResponse registerReviewReply(
