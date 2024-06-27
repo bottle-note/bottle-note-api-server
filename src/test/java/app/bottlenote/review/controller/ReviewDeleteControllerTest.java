@@ -8,17 +8,17 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.review.domain.constant.ReviewResponseMessage;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.review.service.ReviewService;
-import app.bottlenote.user.domain.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -32,9 +32,9 @@ import org.springframework.test.web.servlet.MockMvc;
 @WithMockUser()
 @DisplayName("리뷰 삭제 컨트롤러 테스트")
 @WebMvcTest(ReviewController.class)
-public class ReviewDeleteControllerTest {
+class ReviewDeleteControllerTest {
 
-	public static final String response = "리뷰 삭제가 성공적으로 완료되었습니다.";
+	private final ReviewResponseMessage response = ReviewResponseMessage.DELETE_SUCCESS;
 
 	@Autowired
 	protected ObjectMapper mapper;
@@ -43,18 +43,9 @@ public class ReviewDeleteControllerTest {
 	@MockBean
 	private ReviewService reviewService;
 
-	private User user;
-
-	private Long reviewId = 1L;
-
-	private Long userId = 1L;
-
-	private MockedStatic<SecurityContextUtil> mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
-
-	@BeforeEach
-	void setup() {
-		user = User.builder().id(userId).build();
-	}
+	private final Long reviewId = 1L;
+	private final Long userId = 1L;
+	private final MockedStatic<SecurityContextUtil> mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
 
 	@AfterEach
 	void tearDown() {
@@ -74,7 +65,10 @@ public class ReviewDeleteControllerTest {
 				.with(csrf())
 			)
 			.andExpect(status().isOk())
-			.andDo(print());
+			.andDo(print())
+			.andExpect(jsonPath("$.success").value("true"))
+			.andExpect(jsonPath("$.code").value("200"))
+			.andExpect(jsonPath("$.data").value(response.getDescription()));
 
 		verify(reviewService, description("deleteReview 메서드가 정상적으로 호출됨"))
 			.deleteReview(anyLong(), anyLong());

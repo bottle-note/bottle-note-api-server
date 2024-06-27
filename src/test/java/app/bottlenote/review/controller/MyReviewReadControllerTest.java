@@ -16,14 +16,13 @@ import app.bottlenote.global.security.jwt.JwtExceptionType;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.ReviewSortType;
-import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.response.ReviewDetail;
 import app.bottlenote.review.dto.response.ReviewResponse;
 import app.bottlenote.review.service.ReviewService;
-import app.bottlenote.user.domain.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -33,7 +32,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -55,8 +53,7 @@ import org.springframework.test.web.servlet.ResultActions;
 class MyReviewReadControllerTest {
 
 	private final Long userId = 1L;
-	private User user;
-	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
+	private final MockedStatic<SecurityContextUtil> mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
 
 	@Autowired
 	protected ObjectMapper mapper;
@@ -64,13 +61,6 @@ class MyReviewReadControllerTest {
 	protected MockMvc mockMvc;
 	@MockBean
 	private ReviewService reviewService;
-
-	@BeforeEach
-	void setup() {
-		mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
-
-		user = User.builder().id(userId).build();
-	}
 
 	@AfterEach
 	void tearDown() {
@@ -252,7 +242,7 @@ class MyReviewReadControllerTest {
 			.nickName("test_user_1")
 			.userProfileImage("user_profile_image_1")
 			.rating(4.0)
-			.status(ReviewStatus.PUBLIC)
+			.status(ReviewDisplayStatus.PUBLIC)
 			.isMyReview(true)
 			.isLikedByMe(true)
 			.hasReplyByMe(false)
@@ -271,7 +261,7 @@ class MyReviewReadControllerTest {
 			.nickName("test_user_2")
 			.userProfileImage("user_profile_image_2")
 			.rating(4.0)
-			.status(ReviewStatus.PUBLIC)
+			.status(ReviewDisplayStatus.PUBLIC)
 			.isMyReview(true)
 			.isLikedByMe(true)
 			.hasReplyByMe(false)

@@ -23,21 +23,13 @@ import app.bottlenote.docs.AbstractRestDocs;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.controller.ReviewController;
-import app.bottlenote.review.domain.constant.ReviewStatus;
-import app.bottlenote.review.domain.constant.SizeType;
-import app.bottlenote.review.dto.request.LocationInfo;
-import app.bottlenote.review.dto.request.ReviewCreateRequest;
-import app.bottlenote.review.dto.request.ReviewImageInfo;
+import app.bottlenote.review.domain.constant.ReviewResponseMessage;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
-import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewResponse;
+import app.bottlenote.review.fixture.ReviewObjectFixture;
 import app.bottlenote.review.service.ReviewService;
-import app.bottlenote.user.domain.User;
-import java.math.BigDecimal;
-import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -48,20 +40,13 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 class ReviewControllerDocsTest extends AbstractRestDocs {
 
 	private final Long userId = 1L;
-	private User user;
-	private final ReviewService reviewService = mock(ReviewService.class);
-	private MockedStatic<SecurityContextUtil> mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
 
-	private final ReviewQueryFixture fixture = new ReviewQueryFixture();
+	private final ReviewService reviewService = mock(ReviewService.class);
+	private final MockedStatic<SecurityContextUtil> mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
 
 	@Override
 	protected Object initController() {
 		return new ReviewController(reviewService);
-	}
-
-	@BeforeEach
-	void setup() {
-		user = User.builder().id(userId).build();
 	}
 
 	@AfterEach
@@ -76,11 +61,11 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
 		when(reviewService.createReviews(any(), anyLong()))
-			.thenReturn(getReviewCreateResponse());
+			.thenReturn(ReviewObjectFixture.getReviewCreateResponse());
 
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/reviews")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(getReviewCreateRequest()))
+				.content(objectMapper.writeValueAsString(ReviewObjectFixture.getReviewCreateRequest()))
 				.with(csrf()))
 			.andExpect(status().isOk())
 			.andDo(
@@ -124,7 +109,7 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 	void review_read_test() throws Exception {
 
 		//given
-		PageResponse<ReviewResponse> response = fixture.getReviews();
+		PageResponse<ReviewResponse> response = ReviewObjectFixture.getReviewListResponse();
 
 		//when
 		when(reviewService.getReviews(any(), any(), any())).thenReturn(
@@ -190,7 +175,7 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 	void my_review_read_test() throws Exception {
 
 		//given
-		PageResponse<ReviewResponse> response = fixture.getReviewsByMe();
+		PageResponse<ReviewResponse> response = ReviewObjectFixture.getReviewListResponse();
 
 		//when
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
@@ -267,7 +252,7 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 		//then
 		mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/reviews/{reviewId}", reviewId)
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(fixture.getReviewModifyRequest()))
+				.content(objectMapper.writeValueAsString(ReviewObjectFixture.getReviewModifyRequest()))
 				.with(csrf()))
 			.andExpect(status().isOk())
 			.andDo(
@@ -309,7 +294,7 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 		//when
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
-		when(reviewService.deleteReview(anyLong(), anyLong())).thenReturn("리뷰 삭제가 성공적으로 완료되었습니다.");
+		when(reviewService.deleteReview(anyLong(), anyLong())).thenReturn(ReviewResponseMessage.DELETE_SUCCESS);
 
 		//then
 		mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/reviews/{reviewId}", reviewId)
@@ -330,33 +315,5 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 					)
 				)
 			);
-	}
-
-	private ReviewCreateRequest getReviewCreateRequest() {
-		return new ReviewCreateRequest(
-			1L,
-			ReviewStatus.PUBLIC,
-			"맛있어요",
-			SizeType.GLASS,
-			new BigDecimal("30000.0"),
-			new LocationInfo(
-				"34222",
-				"서울시 영등포구",
-				"aaa 바"),
-			List.of(
-				new ReviewImageInfo(1L, "url1"),
-				new ReviewImageInfo(2L, "url2"),
-				new ReviewImageInfo(3L, "url3")
-			),
-			List.of("테이스팅태그 1", "테이스팅태그 2", "테이스팅태그 3")
-		);
-	}
-
-	private ReviewCreateResponse getReviewCreateResponse() {
-		return ReviewCreateResponse.builder()
-			.id(1L)
-			.content(getReviewCreateRequest().content())
-			.callback(String.valueOf(getReviewCreateRequest().alcoholId()))
-			.build();
 	}
 }
