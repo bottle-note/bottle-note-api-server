@@ -3,8 +3,8 @@ package app.bottlenote.review.domain;
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.review.domain.constant.ReviewActiveStatus;
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
-import app.bottlenote.review.domain.constant.ReviewResponseMessage;
 import app.bottlenote.review.domain.constant.SizeType;
+import app.bottlenote.review.dto.response.ReviewResultMessage;
 import app.bottlenote.review.dto.vo.ReviewModifyVO;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -145,12 +145,12 @@ public class Review extends BaseEntity {
 		this.reviewImages.addAll(reviewImageList);
 	}
 
-	public ReviewResponseMessage updateReviewActiveStatus(ReviewActiveStatus activeStatus) {
+	public ReviewResultMessage updateReviewActiveStatus(ReviewActiveStatus activeStatus) {
 		this.activeStatus = activeStatus;
 		return switch (activeStatus) {
-			case ACTIVE -> ReviewResponseMessage.ACTIVE_SUCCESS;
-			case DELETED -> ReviewResponseMessage.DELETE_SUCCESS;
-			case DISABLED -> ReviewResponseMessage.BLOCK_SUCCESS;
+			case ACTIVE -> ReviewResultMessage.ACTIVE_SUCCESS;
+			case DELETED -> ReviewResultMessage.DELETE_SUCCESS;
+			case DISABLED -> ReviewResultMessage.BLOCK_SUCCESS;
 		};
 	}
 }

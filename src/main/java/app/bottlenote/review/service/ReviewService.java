@@ -2,7 +2,7 @@ package app.bottlenote.review.service;
 
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
 import static app.bottlenote.review.domain.constant.ReviewActiveStatus.DELETED;
-import static app.bottlenote.review.domain.constant.ReviewResponseMessage.MODIFY_SUCCESS;
+import static app.bottlenote.review.dto.response.ReviewResultMessage.MODIFY_SUCCESS;
 import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
@@ -11,12 +11,13 @@ import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.Review;
-import app.bottlenote.review.domain.constant.ReviewResponseMessage;
 import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewResponse;
+import app.bottlenote.review.dto.response.ReviewResultMessage;
+import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.dto.vo.ReviewModifyVO;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.repository.ReviewRepository;
@@ -117,11 +118,13 @@ public class ReviewService {
 	}
 
 	@Transactional
-	public ReviewResponseMessage deleteReview(Long reviewId, Long currentUserId) {
+	public ReviewResultResponse deleteReview(Long reviewId, Long currentUserId) {
 
 		Review review = reviewRepository.findByIdAndUserId(reviewId, currentUserId).orElseThrow(
 			() -> new ReviewException(REVIEW_NOT_FOUND)
 		);
-		return review.updateReviewActiveStatus(DELETED);
+		ReviewResultMessage reviewResultMessage = review.updateReviewActiveStatus(DELETED);
+
+		return ReviewResultResponse.response(reviewResultMessage, reviewId);
 	}
 }
