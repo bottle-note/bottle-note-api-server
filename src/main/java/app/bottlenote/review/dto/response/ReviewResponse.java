@@ -43,7 +43,7 @@ public class ReviewResponse {
 
 	@Builder
 	public ReviewResponse(Long reviewId, String reviewContent, BigDecimal price, SizeType sizeType, Long likeCount, Long replyCount, String reviewImageUrl, LocalDateTime createAt, Long userId, String nickName, String userProfileImage,
-		Double rating, String zipCode, String address, String detailAddress, ReviewDisplayStatus status, Boolean isMyReview, Boolean isLikedByMe, Boolean hasReplyByMe, List<String> reviewTastingTag) {
+		Double rating, String zipCode, String address, String detailAddress, ReviewDisplayStatus status, Boolean isMyReview, Boolean isLikedByMe, Boolean hasReplyByMe) {
 		this.reviewId = reviewId;
 		this.reviewContent = reviewContent;
 		this.price = price;
@@ -63,7 +63,6 @@ public class ReviewResponse {
 		this.isMyReview = isMyReview;
 		this.isLikedByMe = isLikedByMe;
 		this.hasReplyByMe = hasReplyByMe;
-		this.reviewTastingTag = reviewTastingTag;
 	}
 
 	public void updateTastingTagList(List<String> reviewTastingTag) {
