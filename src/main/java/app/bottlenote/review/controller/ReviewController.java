@@ -38,12 +38,12 @@ public class ReviewController {
 	private final ReviewService reviewService;
 
 	@PostMapping
-	public ResponseEntity<GlobalResponse> createReviews(@RequestBody @Valid ReviewCreateRequest reviewCreateRequest) {
+	public ResponseEntity<GlobalResponse> createReview(@RequestBody @Valid ReviewCreateRequest reviewCreateRequest) {
 
 		Long currentUserId = SecurityContextUtil.getUserIdByContext().
 			orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
-		ReviewCreateResponse createdReview = reviewService.createReviews(reviewCreateRequest, currentUserId);
+		ReviewCreateResponse createdReview = reviewService.createReview(reviewCreateRequest, currentUserId);
 		return ResponseEntity.ok(success(createdReview));
 	}
 
@@ -66,28 +66,28 @@ public class ReviewController {
 	}
 
 	@GetMapping("/me/{alcoholId}")
-	public ResponseEntity<GlobalResponse> getMyReview(@ModelAttribute PageableRequest pageableRequest, @PathVariable Long alcoholId) {
+	public ResponseEntity<GlobalResponse> getMyReviews(@ModelAttribute PageableRequest pageableRequest, @PathVariable Long alcoholId) {
 
 		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElseThrow(
 			() -> new UserException(REQUIRED_USER_ID)
 		);
 
-		PageResponse<ReviewResponse> myReview = reviewService.getMyReview(alcoholId, pageableRequest, currentUserId);
+		PageResponse<ReviewResponse> myReviews = reviewService.getMyReviews(alcoholId, pageableRequest, currentUserId);
 
 		return ResponseEntity.ok(
-			success(myReview.content(), MetaService.createMetaInfo().add("pageable", myReview.cursorPageable()))
+			success(myReviews.content(), MetaService.createMetaInfo().add("pageable", myReviews.cursorPageable()))
 		);
 	}
 
 	@PatchMapping("/{reviewId}")
-	public ResponseEntity<GlobalResponse> modifyReviews(@RequestBody @Valid ReviewModifyRequest reviewModifyRequest, @PathVariable Long reviewId) {
+	public ResponseEntity<GlobalResponse> modifyReview(@RequestBody @Valid ReviewModifyRequest reviewModifyRequest, @PathVariable Long reviewId) {
 
 		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElseThrow(
 			() -> new UserException(REQUIRED_USER_ID)
 		);
 
 		return ResponseEntity.ok(
-			success(reviewService.modifyReviews(reviewModifyRequest, reviewId, currentUserId))
+			success(reviewService.modifyReview(reviewModifyRequest, reviewId, currentUserId))
 		);
 	}
 

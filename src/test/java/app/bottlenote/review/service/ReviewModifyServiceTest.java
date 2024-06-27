@@ -49,10 +49,10 @@ class ReviewModifyServiceTest {
 		//when
 		when(reviewRepository.findByIdAndUserId(anyLong(), anyLong())).thenReturn(Optional.of(review));
 
-		reviewService.modifyReviews(reviewModifyRequest, 1L, 1L);
+		reviewService.modifyReview(reviewModifyRequest, 1L, 1L);
 
 		verify(reviewImageSupport, times(1)).updateImages(anyList(), any());
-		verify(reviewTastingTagSupport, times(1)).updateReviewTastingTag(anyList(), any());
+		verify(reviewTastingTagSupport, times(1)).updateReviewTastingTags(anyList(), any());
 		verify(reviewTastingTagSupport, never()).saveReviewTastingTag(any(), any());
 	}
 
@@ -63,7 +63,7 @@ class ReviewModifyServiceTest {
 			new ReviewException(ReviewExceptionCode.REVIEW_NOT_FOUND)
 		);
 
-		assertThrows(ReviewException.class, () -> reviewService.modifyReviews(reviewModifyRequest, 100L, 1L));
+		assertThrows(ReviewException.class, () -> reviewService.modifyReview(reviewModifyRequest, 100L, 1L));
 	}
 
 }

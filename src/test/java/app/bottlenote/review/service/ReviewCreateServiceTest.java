@@ -67,7 +67,7 @@ class ReviewCreateServiceTest {
 		when(reviewRepository.save(any(Review.class)))
 			.thenReturn(review);
 
-		ReviewCreateResponse response = reviewService.createReviews(reviewCreateRequest, 1L);
+		ReviewCreateResponse response = reviewService.createReview(reviewCreateRequest, 1L);
 
 		verify(reviewImageSupport, times(1)).saveImages(anyList(), any());
 		verify(reviewTastingTagSupport, times(1)).saveReviewTastingTag(anyList(), any());
@@ -82,7 +82,7 @@ class ReviewCreateServiceTest {
 		when(alcoholQueryRepository.findById(anyLong())).thenReturn(Optional.empty());
 
 		// when, then
-		assertThrows(AlcoholException.class, () -> reviewService.createReviews(reviewCreateRequest, 1L));
+		assertThrows(AlcoholException.class, () -> reviewService.createReview(reviewCreateRequest, 1L));
 	}
 
 	@Test
@@ -93,6 +93,6 @@ class ReviewCreateServiceTest {
 		when(userCommandRepository.findById(anyLong())).thenReturn(Optional.empty());
 
 		// when, then
-		assertThrows(UserException.class, () -> reviewService.createReviews(reviewCreateRequest, 1L));
+		assertThrows(UserException.class, () -> reviewService.createReview(reviewCreateRequest, 1L));
 	}
 }

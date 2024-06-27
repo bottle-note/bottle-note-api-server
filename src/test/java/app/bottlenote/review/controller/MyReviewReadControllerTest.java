@@ -130,7 +130,7 @@ class MyReviewReadControllerTest {
 
 		//when
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
-		when(reviewService.getMyReview(any(), any(), any()))
+		when(reviewService.getMyReviews(any(), any(), any()))
 			.thenReturn(response);
 
 		ResultActions resultActions = mockMvc.perform(get("/api/v1/reviews/me/1")
@@ -159,7 +159,7 @@ class MyReviewReadControllerTest {
 
 		//when
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.empty());
-		when(reviewService.getMyReview(any(), any(), any()))
+		when(reviewService.getMyReviews(any(), any(), any()))
 			.thenReturn(response);
 
 		mockMvc.perform(get("/api/v1/reviews/me/1")
@@ -177,7 +177,7 @@ class MyReviewReadControllerTest {
 		//when
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
-		when(reviewService.getMyReview(any(), any(), any()))
+		when(reviewService.getMyReviews(any(), any(), any()))
 			.thenThrow(new CustomJwtException(CustomJwtExceptionCode.EMPTY_JWT_TOKEN));
 
 		// then
@@ -196,7 +196,7 @@ class MyReviewReadControllerTest {
 		//when
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
-		when(reviewService.getMyReview(any(), any(), any()))
+		when(reviewService.getMyReviews(any(), any(), any()))
 			.thenThrow(new MalformedJwtException(JwtExceptionType.MALFORMED_TOKEN.getMessage()));
 
 		// then
@@ -215,7 +215,7 @@ class MyReviewReadControllerTest {
 		//when
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
-		when(reviewService.getMyReview(any(), any(), any()))
+		when(reviewService.getMyReviews(any(), any(), any()))
 			.thenThrow(new ExpiredJwtException(null, null, JwtExceptionType.EXPIRED_TOKEN.getMessage()));
 
 		// then
@@ -290,7 +290,7 @@ class MyReviewReadControllerTest {
 
 		// when
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
-		when(reviewService.getMyReview(any(), any(), any())).thenReturn(response);
+		when(reviewService.getMyReviews(any(), any(), any())).thenReturn(response);
 
 		mockMvc.perform(RestDocumentationRequestBuilders.get("/api/v1/reviews/me/1")
 				.param("keyword", "")
@@ -317,7 +317,7 @@ class MyReviewReadControllerTest {
 
 		// when
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
-		when(reviewService.getMyReview(any(), any(), any())).thenReturn(response);
+		when(reviewService.getMyReviews(any(), any(), any())).thenReturn(response);
 
 		mockMvc.perform(RestDocumentationRequestBuilders.get("/api/v1/reviews/me/1")
 				.param("category", "")

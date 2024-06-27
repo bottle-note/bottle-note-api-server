@@ -40,7 +40,7 @@ public class ReviewService {
 	private final ReviewImageSupport reviewImageSupport;
 
 	@Transactional
-	public ReviewCreateResponse createReviews(ReviewCreateRequest reviewCreateRequest, Long currentUserId) {
+	public ReviewCreateResponse createReview(ReviewCreateRequest reviewCreateRequest, Long currentUserId) {
 
 		//DB에서 Alcohol 엔티티 조회
 		Alcohol alcohol = alcoholQueryRepository.findById(reviewCreateRequest.alcoholId())
@@ -86,7 +86,7 @@ public class ReviewService {
 	}
 
 	@Transactional(readOnly = true)
-	public PageResponse<ReviewResponse> getMyReview(
+	public PageResponse<ReviewResponse> getMyReviews(
 		Long alcoholId,
 		PageableRequest pageableRequest,
 		Long userId
@@ -95,7 +95,7 @@ public class ReviewService {
 	}
 
 	@Transactional
-	public String modifyReviews(
+	public String modifyReview(
 		ReviewModifyRequest reviewModifyRequest,
 		Long reviewId,
 		Long currentUserId
@@ -111,7 +111,7 @@ public class ReviewService {
 
 		reviewImageSupport.updateImages(reviewModifyRequest.imageUrlList(), review);
 
-		reviewTastingTagSupport.updateReviewTastingTag(reviewModifyRequest.tastingTagList(), review);
+		reviewTastingTagSupport.updateReviewTastingTags(reviewModifyRequest.tastingTagList(), review);
 
 		return MODIFY_SUCCESS.getDescription();
 	}

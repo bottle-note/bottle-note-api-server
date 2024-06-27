@@ -58,7 +58,7 @@ class ReviewCreateControllerTest {
 			mockedValidator.when(SecurityContextUtil::getUserIdByContext)
 				.thenReturn(Optional.of(1L));
 
-			when(reviewService.createReviews(any(), anyLong()))
+			when(reviewService.createReview(any(), anyLong()))
 				.thenReturn(response);
 
 			mockMvc.perform(post("/api/v1/reviews")
@@ -100,7 +100,7 @@ class ReviewCreateControllerTest {
 			mockedValidator.when(SecurityContextUtil::getUserIdByContext)
 				.thenReturn(Optional.of(1L));
 
-			when(reviewService.createReviews(any(), anyLong()))
+			when(reviewService.createReview(any(), anyLong()))
 				.thenThrow(HttpMessageNotReadableException.class);
 
 			mockMvc.perform(post("/api/v1/reviews")

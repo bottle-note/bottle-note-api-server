@@ -69,7 +69,7 @@ class ReviewModifyControllerTest {
 
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
-		when(reviewService.modifyReviews(request, reviewId, userId))
+		when(reviewService.modifyReview(request, reviewId, userId))
 			.thenReturn(response);
 
 		mockMvc.perform(patch("/api/v1/reviews/{reviewId}", reviewId)
@@ -81,7 +81,7 @@ class ReviewModifyControllerTest {
 			.andDo(print());
 
 		verify(reviewService, description("modifyReviews 메서드가 정상적으로 호출됨"))
-			.modifyReviews(any(ReviewModifyRequest.class), anyLong(), anyLong());
+			.modifyReview(any(ReviewModifyRequest.class), anyLong(), anyLong());
 
 	}
 
@@ -93,7 +93,7 @@ class ReviewModifyControllerTest {
 
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.empty());
 
-		when(reviewService.modifyReviews(request, reviewId, userId))
+		when(reviewService.modifyReview(request, reviewId, userId))
 			.thenReturn(response);
 
 		mockMvc.perform(patch("/api/v1/reviews/{reviewId}", reviewId)
@@ -105,7 +105,7 @@ class ReviewModifyControllerTest {
 			.andDo(print());
 
 		// modifyReview 메서드가 호출되지 않음
-		verify(reviewService, never()).modifyReviews(any(ReviewModifyRequest.class), anyLong(), anyLong());
+		verify(reviewService, never()).modifyReview(any(ReviewModifyRequest.class), anyLong(), anyLong());
 	}
 
 	@DisplayName("존재하지 않은 리뷰를 수정할 수 없다.")
@@ -116,7 +116,7 @@ class ReviewModifyControllerTest {
 
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
-		when(reviewService.modifyReviews(request, reviewId, userId))
+		when(reviewService.modifyReview(request, reviewId, userId))
 			.thenThrow(new ReviewException(ReviewExceptionCode.REVIEW_NOT_FOUND));
 
 		mockMvc.perform(patch("/api/v1/reviews/{reviewId}", reviewId)
@@ -128,7 +128,7 @@ class ReviewModifyControllerTest {
 			.andDo(print());
 
 		verify(reviewService, description("modifyReviews 메서드가 정상적으로 호출됨"))
-			.modifyReviews(any(ReviewModifyRequest.class), anyLong(), anyLong());
+			.modifyReview(any(ReviewModifyRequest.class), anyLong(), anyLong());
 	}
 
 	@DisplayName("Request Body에 Null인 필드가 포함되면 리뷰를 수정할 수 없다..")
@@ -147,7 +147,7 @@ class ReviewModifyControllerTest {
 
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
-		when(reviewService.modifyReviews(wrongRequest, reviewId, userId))
+		when(reviewService.modifyReview(wrongRequest, reviewId, userId))
 			.thenReturn(response);
 
 		mockMvc.perform(patch("/api/v1/reviews/{reviewId}", reviewId)
@@ -159,6 +159,6 @@ class ReviewModifyControllerTest {
 			.andDo(print());
 
 		verify(reviewService, never())
-			.modifyReviews(any(ReviewModifyRequest.class), anyLong(), anyLong());
+			.modifyReview(any(ReviewModifyRequest.class), anyLong(), anyLong());
 	}
 }

@@ -60,7 +60,7 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
-		when(reviewService.createReviews(any(), anyLong()))
+		when(reviewService.createReview(any(), anyLong()))
 			.thenReturn(ReviewObjectFixture.getReviewCreateResponse());
 
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/reviews")
@@ -180,7 +180,7 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 		//when
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
-		when(reviewService.getMyReview(any(), any(), any())).thenReturn(
+		when(reviewService.getMyReviews(any(), any(), any())).thenReturn(
 			response);
 
 		//then
@@ -247,7 +247,7 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 		//when
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
-		when(reviewService.modifyReviews(any(ReviewModifyRequest.class), any(), any())).thenReturn("리뷰 수정이 성공적으로 완료되었습니다.");
+		when(reviewService.modifyReview(any(ReviewModifyRequest.class), any(), any())).thenReturn("리뷰 수정이 성공적으로 완료되었습니다.");
 
 		//then
 		mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/reviews/{reviewId}", reviewId)

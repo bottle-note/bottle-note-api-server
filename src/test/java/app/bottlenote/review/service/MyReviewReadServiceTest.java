@@ -42,7 +42,7 @@ class MyReviewReadServiceTest {
 		when(reviewRepository.getReviewsByMe(anyLong(), any(PageableRequest.class), anyLong()))
 			.thenReturn(response);
 
-		PageResponse<ReviewResponse> actualResponse = reviewService.getMyReview(1L, request, userId);
+		PageResponse<ReviewResponse> actualResponse = reviewService.getMyReviews(1L, request, userId);
 
 		//then
 		assertThat(response.content()).isEqualTo(actualResponse.content());
