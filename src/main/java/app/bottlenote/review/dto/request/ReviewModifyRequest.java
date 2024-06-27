@@ -1,6 +1,6 @@
 package app.bottlenote.review.dto.request;
 
-import app.bottlenote.review.domain.constant.ReviewStatus;
+import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
@@ -18,7 +18,7 @@ public record ReviewModifyRequest(
 	String content,
 
 	@NotNull
-	ReviewStatus status,
+	ReviewDisplayStatus status,
 
 	@DecimalMin(value = "0.0", message = "가격은 0 이상이어야 합니다.")
 	@DecimalMax(value = "1000000000000", message = "입력할 수 있는 가격의 범위가 아닙니다.")

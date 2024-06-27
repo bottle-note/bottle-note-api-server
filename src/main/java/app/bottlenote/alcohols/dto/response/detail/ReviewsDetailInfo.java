@@ -1,14 +1,13 @@
 package app.bottlenote.alcohols.dto.response.detail;
 
-import app.bottlenote.review.domain.constant.ReviewStatus;
+import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 
 @Getter
@@ -44,7 +43,7 @@ public class ReviewsDetailInfo {
 		Boolean isLikedByMe,
 		Long replyCount,
 		Boolean hasReplyByMe,
-		ReviewStatus status,
+		ReviewDisplayStatus status,
 		String reviewImageUrl,
 		LocalDateTime createAt
 	) {

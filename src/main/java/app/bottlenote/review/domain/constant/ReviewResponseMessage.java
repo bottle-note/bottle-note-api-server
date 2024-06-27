@@ -3,7 +3,7 @@ package app.bottlenote.review.domain.constant;
 import lombok.Getter;
 
 @Getter
-public enum ReviewResponse {
+public enum ReviewResponseMessage {
 
 	MODIFY_SUCCESS("리뷰 수정이 성공적으로 완료되었습니다."),
 
@@ -13,7 +13,7 @@ public enum ReviewResponse {
 
 	private final String description;
 
-	ReviewResponse(String description) {
+	ReviewResponseMessage(String description) {
 		this.description = description;
 	}
 }
