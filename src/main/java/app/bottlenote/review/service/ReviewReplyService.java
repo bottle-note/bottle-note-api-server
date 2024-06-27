@@ -68,7 +68,6 @@ public class ReviewReplyService {
 			.orElseThrow(() -> new ReviewException(ReviewExceptionCode.REVIEW_NOT_FOUND));
 
 		Optional<ReviewReply> parentReply = reviewRepository.isEligibleParentReply(reviewId, request.parentReplyId());
-
 		log.info("상위(최상위) 댓글 확인");
 
 		ReviewReply reply = ReviewReply.builder()
@@ -82,6 +81,9 @@ public class ReviewReplyService {
 		review.addReply(reply);
 
 		log.info("최종 처리 시간 : {}", (System.nanoTime() - start) / 1_000_000 + "ms");
+
+		reviewRepository.save(review);
+
 		return ReviewReplyResultResponse.response(
 			SUCCESS_REGISTER_REPLY,
 			review.getId()

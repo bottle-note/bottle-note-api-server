@@ -4,7 +4,14 @@ public record ReviewReplyRegistryEvent(
 	Long alcoholId,
 	Long reviewId,
 	Long userId,
-	String content,
-	Long parentReplyId
+	String content
 ) {
+	public static ReviewReplyRegistryEvent replyRegistryPublish(
+		Long alcoholId,
+		Long reviewId,
+		Long userId,
+		String content
+	) {
+		return new ReviewReplyRegistryEvent(alcoholId, reviewId, userId, content);
+	}
 }

@@ -1,30 +1,27 @@
-package app.bottlenote.review.service;
+package app.bottlenote.review.service.event;
 
-import app.bottlenote.history.domain.UserHistoryRepository;
 import app.bottlenote.review.domain.event.ReviewReplyRegistryEvent;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-@Slf4j
 @Component
 public class ReviewReplyEventHandler {
+	private static final Logger log = LogManager.getLogger(ReviewReplyEventHandler.class);
 
-	private final UserHistoryRepository userHistoryRepository;
-
-	public ReviewReplyEventHandler(UserHistoryRepository userHistoryRepository) {
-		this.userHistoryRepository = userHistoryRepository;
-	}
-
-	@Async
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
-	@TransactionalEventListener
+	@TransactionalEventListener(
+		value = ReviewReplyRegistryEvent.class,
+		phase = TransactionPhase.AFTER_COMMIT
+	)
 	public void registryReviewReply(
 		ReviewReplyRegistryEvent reply
 	) {
+		System.out.println("이벤트 발행 :: ReviewReplyEventHandler.registryReviewReply :: " + reply);
 		log.info("이벤트 발행 :: ReviewReplyEventHandler.registryReviewReply :: {}", reply);
 	}
 }

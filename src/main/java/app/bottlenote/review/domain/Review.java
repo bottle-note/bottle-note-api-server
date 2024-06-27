@@ -27,6 +27,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static app.bottlenote.review.domain.event.ReviewReplyRegistryEvent.replyRegistryPublish;
+
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @Getter
 @Comment("리뷰 테이블(리뷰, 평점, 이미지, 리뷰 댓글)")
@@ -157,5 +159,6 @@ public class Review extends BaseEntity {
 
 	public void addReply(ReviewReply reply) {
 		this.reviewReplies.add(reply);
+		this.registerEvent(replyRegistryPublish(this.alcoholId, this.id, this.userId, reply.getContent()));
 	}
 }
