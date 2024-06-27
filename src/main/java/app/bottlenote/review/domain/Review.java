@@ -1,11 +1,10 @@
 package app.bottlenote.review.domain;
 
-import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.review.domain.constant.ReviewActiveStatus;
 import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
-import app.bottlenote.user.domain.User;
+import app.bottlenote.review.dto.vo.ReviewModifyVO;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,18 +14,17 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Comment;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Comment;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @Getter
@@ -38,13 +36,11 @@ public class Review extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id")
-	private User user;
+	@Column(name = "user_id")
+	private Long userId;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "alcohol_id")
-	private Alcohol alcohol;
+	@Column(name = "alcohol_id")
+	private Long alcoholId;
 
 	@Comment("내용")
 	@Column(name = "content", nullable = false)
@@ -84,7 +80,7 @@ public class Review extends BaseEntity {
 	@Column(name = "view_count", nullable = false)
 	private Long viewCount = 0L;
 
-	@Comment("리뷰 활성 상태")
+	 @Comment("리뷰 활성 상태")
 	@Column(name = "active_status", nullable = false)
 	@Enumerated(EnumType.STRING)
 	private ReviewActiveStatus activeStatus = ReviewActiveStatus.ACTIVE;
@@ -103,10 +99,10 @@ public class Review extends BaseEntity {
 	private Set<ReviewTastingTag> reviewTastingTags = new HashSet<>();
 
 	@Builder
-	public Review(Long id, User user, Alcohol alcohol, String content, SizeType sizeType, BigDecimal price, ReviewStatus status, String zipCode, String address, String detailAddress, String imageUrl, Long viewCount) {
+	public Review(Long id, Long userId, Long alcoholId, String content, SizeType sizeType, BigDecimal price, ReviewStatus status, String zipCode, String address, String detailAddress, String imageUrl, Long viewCount) {
 		this.id = id;
-		this.user = user;
-		this.alcohol = alcohol;
+		this.userId = userId;
+		this.alcoholId = alcoholId;
 		this.content = content;
 		this.sizeType = sizeType;
 		this.price = price;

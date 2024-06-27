@@ -87,9 +87,9 @@ class CustomReviewRepositoryImplTest {
 			User.builder().email("test2@emai.com").nickName("test2").role(
 				UserType.ROLE_USER).socialType(SocialType.GOOGLE).build());
 
-		Review review = Review.builder().alcohol(alcohol).user(user).address("서울시 강남구 압구정동")
+		Review review = Review.builder().alcoholId(alcohol.getId()).userId(user.getId()).address("서울시 강남구 압구정동")
 			.content("맛있어요").build();
-		Review review2 = Review.builder().alcohol(alcohol).user(user2).address("서울시 강남구 신사동")
+		Review review2 = Review.builder().alcoholId(alcohol.getId()).userId(user2.getId()).address("서울시 강남구 신사동")
 			.content("그저 그래요").build();
 
 		Likes likes = Likes.builder().user(user).review(review).status(LIKE).build();

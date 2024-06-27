@@ -19,7 +19,7 @@ import static app.bottlenote.user.domain.QUser.user;
 @Component
 public class ReviewQuerySupporter {
 
-	protected ConstructorExpression<ReviewsDetailInfo.ReviewInfo> reviewInfoConstructor(Long userId) {
+	public ConstructorExpression<ReviewsDetailInfo.ReviewInfo> reviewInfoConstructor(Long userId) {
 		return Projections.constructor(
 			ReviewsDetailInfo.ReviewInfo.class,
 			user.id.as("userId"),
@@ -41,17 +41,17 @@ public class ReviewQuerySupporter {
 		);
 	}
 
-	protected BooleanExpression hasReplyByMeSubquery(Long userId) {
+	public BooleanExpression hasReplyByMeSubquery(Long userId) {
 		return Expressions.asBoolean(
 			JPAExpressions
 				.selectOne()
 				.from(reviewReply)
-				.where(reviewReply.review.id.eq(review.id).and(reviewReply.user.id.eq(userId)))
+				.where(reviewReply.review.id.eq(review.id).and(reviewReply.userId.eq(userId)))
 				.exists()
 		).as("hasReplyByMe");
 	}
 
-	protected BooleanExpression isLikeByMeSubquery(Long userId) {
+	public BooleanExpression isLikeByMeSubquery(Long userId) {
 		return Expressions.asBoolean(
 			JPAExpressions
 				.selectOne()
