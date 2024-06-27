@@ -99,7 +99,7 @@ public class ReviewController {
 		);
 
 		return ResponseEntity.ok(
-			success(reviewService.deleteReview(reviewId, currentUserId))
+			success(reviewService.deleteReview(reviewId, currentUserId).getDescription())
 		);
 	}
 }
