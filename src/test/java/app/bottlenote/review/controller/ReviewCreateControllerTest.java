@@ -11,18 +11,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.review.domain.constant.ReviewStatus;
-import app.bottlenote.review.domain.constant.SizeType;
+import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.dto.request.LocationInfo;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
+import app.bottlenote.review.fixture.ReviewObjectFixture;
 import app.bottlenote.review.service.ReviewService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -46,32 +45,8 @@ class ReviewCreateControllerTest {
 	@MockBean
 	private ReviewService reviewService;
 
-	private ReviewCreateRequest reviewCreateRequest;
-	private ReviewCreateResponse response;
-
-	@BeforeEach
-	void setUp() {
-		reviewCreateRequest = new ReviewCreateRequest(
-			1L,
-			ReviewStatus.PUBLIC,
-			"맛있어요",
-			SizeType.GLASS,
-			new BigDecimal("30000.0"),
-			new LocationInfo("11111", "서울시 강남구 청담동", "xx빌딩"),
-			List.of(
-				new ReviewImageInfo(1L, "url1"),
-				new ReviewImageInfo(2L, "url2"),
-				new ReviewImageInfo(3L, "url3")
-			),
-			List.of("테이스팅태그 1", "테이스팅태그 2", "테이스팅태그 3")
-		);
-		response = ReviewCreateResponse.builder()
-			.id(1L)
-			.content(reviewCreateRequest.content())
-			.callback(String.valueOf(reviewCreateRequest.alcoholId()))
-			.build();
-	}
-
+	private final ReviewCreateRequest request = ReviewObjectFixture.getReviewCreateRequest();
+	private final ReviewCreateResponse response = ReviewObjectFixture.getReviewCreateResponse();
 
 	@DisplayName("리뷰를 등록할 수 있다.")
 	@Test
@@ -83,12 +58,12 @@ class ReviewCreateControllerTest {
 			mockedValidator.when(SecurityContextUtil::getUserIdByContext)
 				.thenReturn(Optional.of(1L));
 
-			when(reviewService.createReviews(any(), anyLong()))
+			when(reviewService.createReview(any(), anyLong()))
 				.thenReturn(response);
 
 			mockMvc.perform(post("/api/v1/reviews")
 					.contentType(MediaType.APPLICATION_JSON)
-					.content(mapper.writeValueAsString(reviewCreateRequest))
+					.content(mapper.writeValueAsString(request))
 					.with(csrf()))
 				.andExpect(status().isOk())
 				.andDo(print())
@@ -103,7 +78,7 @@ class ReviewCreateControllerTest {
 
 		ReviewCreateRequest wrongRequest = new ReviewCreateRequest(
 			1L,
-			ReviewStatus.PUBLIC,
+			ReviewDisplayStatus.PUBLIC,
 			"맛있어요",
 			null,
 			new BigDecimal("30000.0"),
@@ -125,7 +100,7 @@ class ReviewCreateControllerTest {
 			mockedValidator.when(SecurityContextUtil::getUserIdByContext)
 				.thenReturn(Optional.of(1L));
 
-			when(reviewService.createReviews(any(), anyLong()))
+			when(reviewService.createReview(any(), anyLong()))
 				.thenThrow(HttpMessageNotReadableException.class);
 
 			mockMvc.perform(post("/api/v1/reviews")

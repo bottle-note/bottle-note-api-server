@@ -11,8 +11,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.ReviewSortType;
-import app.bottlenote.review.domain.constant.ReviewStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.response.ReviewDetail;
@@ -146,7 +146,7 @@ class ReviewReadControllerTest {
 			.nickName("test_user_1")
 			.userProfileImage("user_profile_image_1")
 			.rating(4.0)
-			.status(ReviewStatus.PUBLIC)
+			.status(ReviewDisplayStatus.PUBLIC)
 			.isMyReview(true)
 			.isLikedByMe(true)
 			.hasReplyByMe(false)
@@ -165,7 +165,7 @@ class ReviewReadControllerTest {
 			.nickName("test_user_2")
 			.userProfileImage("user_profile_image_2")
 			.rating(4.0)
-			.status(ReviewStatus.PUBLIC)
+			.status(ReviewDisplayStatus.PUBLIC)
 			.isMyReview(true)
 			.isLikedByMe(true)
 			.hasReplyByMe(false)
@@ -230,6 +230,4 @@ class ReviewReadControllerTest {
 			.andExpect(status().is(expectedStatus))
 			.andDo(print());
 	}
-
-
 }

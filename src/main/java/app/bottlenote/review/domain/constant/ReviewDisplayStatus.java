@@ -3,13 +3,15 @@ package app.bottlenote.review.domain.constant;
 import lombok.Getter;
 
 @Getter
-public enum ReviewResponse {
+public enum ReviewDisplayStatus {
 
-	MODIFY_SUCCESS("리뷰 수정이 성공적으로 완료되었습니다.");
+	PUBLIC("공개"),
+	PRIVATE("비공개");
 
 	private final String description;
 
-	ReviewResponse(String description) {
+	ReviewDisplayStatus(String description) {
 		this.description = description;
 	}
+
 }

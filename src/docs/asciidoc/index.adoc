@@ -74,6 +74,8 @@ include::api/review/my-review-read.adoc[]
 
 include::api/review/review-modify.adoc[]
 
+include::api/review/review-delete.adoc[]
+
 == 지원 (support) 관련 API
 
 include::api/support/report/user-report.adoc[]

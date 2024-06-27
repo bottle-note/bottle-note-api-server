@@ -2,8 +2,9 @@ package app.bottlenote.review.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.review.domain.constant.ReviewActiveStatus;
-import app.bottlenote.review.domain.constant.ReviewStatus;
+import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
+import app.bottlenote.review.dto.response.ReviewResultMessage;
 import app.bottlenote.review.dto.vo.ReviewModifyVO;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -15,16 +16,15 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Comment;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Comment;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @Getter
@@ -58,7 +58,7 @@ public class Review extends BaseEntity {
 	@Comment("공개 상태")
 	@Column(name = "status", nullable = false)
 	@Enumerated(EnumType.STRING)
-	private ReviewStatus status = ReviewStatus.PUBLIC;
+	private ReviewDisplayStatus status = ReviewDisplayStatus.PUBLIC;
 
 	@Comment("우편번호")
 	@Column(name = "zip_code")
@@ -90,6 +90,8 @@ public class Review extends BaseEntity {
 	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<ReviewReply> reviewReplies = new ArrayList<>();
 
+	// mappedBy: 연관관계의 주인이 아님을 의미한다.
+	// review image와 review는 1(review) : N(reviewImage) 관계이다.
 	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<ReviewImage> reviewImages = new ArrayList<>();
 
@@ -97,7 +99,7 @@ public class Review extends BaseEntity {
 	private Set<ReviewTastingTag> reviewTastingTags = new HashSet<>();
 
 	@Builder
-	public Review(Long id, Long userId, Long alcoholId, String content, SizeType sizeType, BigDecimal price, ReviewStatus status, String zipCode, String address, String detailAddress, String imageUrl, Long viewCount) {
+	public Review(Long id, Long userId, Long alcoholId, String content, SizeType sizeType, BigDecimal price, ReviewDisplayStatus status, String zipCode, String address, String detailAddress, String imageUrl, Long viewCount) {
 		this.id = id;
 		this.userId = userId;
 		this.alcoholId = alcoholId;
@@ -116,7 +118,7 @@ public class Review extends BaseEntity {
 	}
 
 	public void modifyReview(ReviewModifyVO reviewModifyVO) {
-		this.status = reviewModifyVO.getReviewStatus();
+		this.status = reviewModifyVO.getReviewDisplayStatus();
 		this.content = reviewModifyVO.getContent();
 		this.sizeType = reviewModifyVO.getSizeType();
 		this.price = reviewModifyVO.getPrice();
@@ -143,7 +145,12 @@ public class Review extends BaseEntity {
 		this.reviewImages.addAll(reviewImageList);
 	}
 
-	public void addReply(ReviewReply reply) {
-		this.reviewReplies.add(reply);
+	public ReviewResultMessage updateReviewActiveStatus(ReviewActiveStatus activeStatus) {
+		this.activeStatus = activeStatus;
+		return switch (activeStatus) {
+			case ACTIVE -> ReviewResultMessage.ACTIVE_SUCCESS;
+			case DELETED -> ReviewResultMessage.DELETE_SUCCESS;
+			case DISABLED -> ReviewResultMessage.BLOCK_SUCCESS;
+		};
 	}
 }

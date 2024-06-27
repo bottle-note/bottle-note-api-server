@@ -1,6 +1,6 @@
 package app.bottlenote.review.dto.response;
 
-import app.bottlenote.review.domain.constant.ReviewStatus;
+import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -33,7 +33,7 @@ public class ReviewDetail {
 	private String address;
 	private String detailAddress;
 
-	private ReviewStatus status;
+	private ReviewDisplayStatus status;
 
 	private Boolean isMyReview;
 	private Boolean isLikedByMe;
@@ -43,7 +43,7 @@ public class ReviewDetail {
 
 	@Builder
 	public ReviewDetail(Long reviewId, String reviewContent, BigDecimal price, SizeType sizeType, Long likeCount, Long replyCount, String reviewImageUrl, LocalDateTime createAt, Long userId, String nickName, String userProfileImage,
-		Double rating, String zipCode, String address, String detailAddress, ReviewStatus status, Boolean isMyReview, Boolean isLikedByMe, Boolean hasReplyByMe, List<String> reviewTastingTag) {
+		Double rating, String zipCode, String address, String detailAddress, ReviewDisplayStatus status, Boolean isMyReview, Boolean isLikedByMe, Boolean hasReplyByMe, List<String> reviewTastingTag) {
 		this.reviewId = reviewId;
 		this.reviewContent = reviewContent;
 		this.price = price;
