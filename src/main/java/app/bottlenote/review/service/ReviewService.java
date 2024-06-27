@@ -1,10 +1,17 @@
 package app.bottlenote.review.service;
 
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
+import static app.bottlenote.review.domain.constant.ReviewActiveStatus.DELETED;
+import static app.bottlenote.review.domain.constant.ReviewResponseMessage.MODIFY_SUCCESS;
+import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
+import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
+
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.Review;
+import app.bottlenote.review.domain.constant.ReviewResponseMessage;
 import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
@@ -20,11 +27,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
-import static app.bottlenote.review.domain.constant.ReviewResponse.MODIFY_SUCCESS;
-import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
-import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
 @Slf4j
 @Service
@@ -115,16 +117,11 @@ public class ReviewService {
 	}
 
 	@Transactional
-	public String deleteReview(Long reviewId, Long currentUserId) {
+	public ReviewResponseMessage deleteReview(Long reviewId, Long currentUserId) {
 
 		Review review = reviewRepository.findByIdAndUserId(reviewId, currentUserId).orElseThrow(
 			() -> new ReviewException(REVIEW_NOT_FOUND)
 		);
-		if (review.getActiveStatus().equals(DELETED)) {
-			return ALREADY_DELETED.getDescription();
-		}
-		review.updateReviewActiveStatus(DELETED);
-
-		return DELETE_SUCCESS.getDescription();
+		return review.updateReviewActiveStatus(DELETED);
 	}
 }
