@@ -1,18 +1,17 @@
 package app.bottlenote.review.dto.vo;
 
-import app.bottlenote.review.domain.constant.ReviewStatus;
+import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
-import lombok.Getter;
-
 import java.math.BigDecimal;
+import lombok.Getter;
 
 @Getter
 public class ReviewModifyVO {
 
 	private final String content;
 
-	private final ReviewStatus reviewStatus;
+	private final ReviewDisplayStatus reviewDisplayStatus;
 
 	private final BigDecimal price;
 
@@ -26,7 +25,7 @@ public class ReviewModifyVO {
 
 	public ReviewModifyVO(ReviewModifyRequest reviewModifyRequest) {
 		this.content = reviewModifyRequest.content();
-		this.reviewStatus = reviewModifyRequest.status();
+		this.reviewDisplayStatus = reviewModifyRequest.status();
 		this.price = reviewModifyRequest.price();
 		this.sizeType = reviewModifyRequest.sizeType();
 		this.zipCode = reviewModifyRequest.locationInfo().zipCode();

@@ -3,7 +3,6 @@ package app.bottlenote.review.service;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.exception.ReviewException;
-import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,9 +48,10 @@ class ReviewImageSupportTest {
 	@Test
 	@DisplayName("매개변수로 빈 리스트가 전달되면 메서드가 종료된다.")
 	void validate__image() {
-		List<ReviewImageInfo> emptyList = Collections.EMPTY_LIST;
 
-		reviewImageSupport.saveImages(emptyList, review);
+		List<ReviewImageInfo> empytyList = List.of();
+		
+		reviewImageSupport.saveImages(empytyList, review);
 
 		Assertions.assertEquals(0, review.getReviewImages().size());
 

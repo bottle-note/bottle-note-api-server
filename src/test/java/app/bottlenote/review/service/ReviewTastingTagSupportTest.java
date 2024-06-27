@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.exception.ReviewException;
-import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -46,7 +45,8 @@ class ReviewTastingTagSupportTest {
 	@Test
 	@DisplayName("테이스팅 태그로 빈 리스트가 전달되면 메서드가 종료된다.")
 	void validate_tasting_tag_list() {
-		List<String> emptyList = Collections.EMPTY_LIST;
+		
+		List<String> emptyList = List.of();
 
 		reviewTastingTagSupport.saveReviewTastingTag(emptyList, review);
 		assertEquals(0, review.getReviewTastingTags().size());

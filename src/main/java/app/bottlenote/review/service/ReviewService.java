@@ -1,5 +1,11 @@
 package app.bottlenote.review.service;
 
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
+import static app.bottlenote.review.domain.constant.ReviewActiveStatus.DELETED;
+import static app.bottlenote.review.dto.response.ReviewResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
+import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
+
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.exception.AlcoholException;
@@ -10,6 +16,8 @@ import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewResponse;
+import app.bottlenote.review.dto.response.ReviewResultMessage;
+import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.dto.vo.ReviewModifyVO;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.repository.ReviewRepository;
@@ -20,11 +28,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
-import static app.bottlenote.review.domain.constant.ReviewResponse.MODIFY_SUCCESS;
-import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
-import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
 @Slf4j
 @Service
@@ -38,7 +41,7 @@ public class ReviewService {
 	private final ReviewImageSupport reviewImageSupport;
 
 	@Transactional
-	public ReviewCreateResponse createReviews(ReviewCreateRequest reviewCreateRequest, Long currentUserId) {
+	public ReviewCreateResponse createReview(ReviewCreateRequest reviewCreateRequest, Long currentUserId) {
 
 		//DB에서 Alcohol 엔티티 조회
 		Alcohol alcohol = alcoholQueryRepository.findById(reviewCreateRequest.alcoholId())
@@ -84,7 +87,7 @@ public class ReviewService {
 	}
 
 	@Transactional(readOnly = true)
-	public PageResponse<ReviewResponse> getMyReview(
+	public PageResponse<ReviewResponse> getMyReviews(
 		Long alcoholId,
 		PageableRequest pageableRequest,
 		Long userId
@@ -93,7 +96,7 @@ public class ReviewService {
 	}
 
 	@Transactional
-	public String modifyReviews(
+	public String modifyReview(
 		ReviewModifyRequest reviewModifyRequest,
 		Long reviewId,
 		Long currentUserId
@@ -109,8 +112,19 @@ public class ReviewService {
 
 		reviewImageSupport.updateImages(reviewModifyRequest.imageUrlList(), review);
 
-		reviewTastingTagSupport.updateReviewTastingTag(reviewModifyRequest.tastingTagList(), review);
+		reviewTastingTagSupport.updateReviewTastingTags(reviewModifyRequest.tastingTagList(), review);
 
 		return MODIFY_SUCCESS.getDescription();
+	}
+
+	@Transactional
+	public ReviewResultResponse deleteReview(Long reviewId, Long currentUserId) {
+
+		Review review = reviewRepository.findByIdAndUserId(reviewId, currentUserId).orElseThrow(
+			() -> new ReviewException(REVIEW_NOT_FOUND)
+		);
+		ReviewResultMessage reviewResultMessage = review.updateReviewActiveStatus(DELETED);
+
+		return ReviewResultResponse.response(reviewResultMessage, reviewId);
 	}
 }
