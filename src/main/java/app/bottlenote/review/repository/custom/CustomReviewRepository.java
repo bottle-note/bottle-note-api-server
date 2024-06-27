@@ -2,14 +2,14 @@ package app.bottlenote.review.repository.custom;
 
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.dto.request.PageableRequest;
-import app.bottlenote.review.dto.response.ReviewDetail;
+import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewResponse;
 
 public interface CustomReviewRepository {
 
-	ReviewDetail getReview(Long reviewId, Long userId);
+	ReviewResponse getReview(Long reviewId, Long userId);
 
-	PageResponse<ReviewResponse> getReviews(Long alcoholId, PageableRequest pageableRequest, Long userId);
+	PageResponse<ReviewListResponse> getReviews(Long alcoholId, PageableRequest pageableRequest, Long userId);
 
-	PageResponse<ReviewResponse> getReviewsByMe(Long alcoholId, PageableRequest pageableRequest, Long userId);
+	PageResponse<ReviewListResponse> getReviewsByMe(Long alcoholId, PageableRequest pageableRequest, Long userId);
 }
