@@ -20,8 +20,7 @@ import java.util.Date;
 public class JwtTokenProvider {
 
 	private final Key secretKey;
-	public static final int ACCESS_TOKEN_EXPIRE_TIME =  60 * 1000; // 1min
-//	public static final int ACCESS_TOKEN_EXPIRE_TIME =  24 * 60 * 60 * 1000; // 24hour
+	public static final int ACCESS_TOKEN_EXPIRE_TIME =  15 * 60 * 1000; // 15min
 	public static final int REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 14; // 14days
 	public static final String KEY_ROLES = "roles";
 
