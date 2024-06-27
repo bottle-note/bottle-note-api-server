@@ -3,10 +3,10 @@ POST {{host}}/api/v1/oauth/login
 Content-Type: application/json
 
 {
-  "email": "dev.bottle-note@gmail.com",
+  "email": "juye@gmail.com",
   "socialType": "GOOGLE",
-  "gender": "MALE",
-  "age": 25
+  "gender": "",
+  "age": ""
 }
 
 > {%
@@ -16,7 +16,11 @@ Content-Type: application/json
 
 ### 리뷰조회
 GET {{host}}/api/v1/reviews/1
-Authorization: Bearer ""
+Authorization: Bearer {{accessToken}}
+
+### 리뷰수정(파라미터 미완성)
+PATCH {{host}}/api/v1/reviews/1
+Authorization: Bearer {{accessToken}}
 
 
 ### 나의리뷰조회
@@ -28,9 +32,7 @@ Authorization: Bearer {{accessToken}}
 }
 
 
-### 리뷰수정(파라미터 미완성)
-PATCH {{host}}/api/v1/reviews/1
-Authorization: Bearer {{accessToken}}
+
 
 {
   "alcoholId": 1

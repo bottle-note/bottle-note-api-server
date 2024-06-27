@@ -1,0 +1,24 @@
+### 토큰 발급
+POST {{host}}/api/v1/oauth/login
+Content-Type: application/json
+
+{
+  "email": "juye@gmail.com",
+  "socialType": "GOOGLE",
+  "gender": "",
+  "age": ""
+}
+> {%
+    //토큰을 전역변수로 저장
+    client.global.set("accessToken", response.body.data.accessToken);
+%}
+
+### 위스키  찜하기
+PUT  {{host}}/api/v1/picks
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "alcoholId": 1,
+  "isPicked": "PICK"
+}
