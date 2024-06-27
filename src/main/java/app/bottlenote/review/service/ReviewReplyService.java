@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import static app.bottlenote.review.dto.response.ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY;
 
@@ -58,12 +59,15 @@ public class ReviewReplyService {
 		final Review review = reviewRepository.findById(reviewId)
 			.orElseThrow(() -> new ReviewException(ReviewExceptionCode.REVIEW_NOT_FOUND));
 
-		Long parentReplyId = reviewRepository.isEligibleParentReply(reviewId, request.parentReplyId());
+		Optional<ReviewReply> parentReply = reviewRepository.isEligibleParentReply(reviewId, request.parentReplyId());
+
+		log.info("상위(최상위) 댓글 확인");
 
 		ReviewReply reply = ReviewReply.builder()
 			.review(review)
 			.userId(userId)
-			.parentReplyId(parentReplyId)
+			.parentReviewReply(parentReply.orElse(null))
+			.rootReviewReply(parentReply.map(ReviewReply::getRootReviewReply).orElse(null))
 			.content(content)
 			.build();
 

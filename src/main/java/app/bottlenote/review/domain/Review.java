@@ -16,15 +16,16 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Comment;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Comment;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @Getter
@@ -152,5 +153,9 @@ public class Review extends BaseEntity {
 			case DELETED -> ReviewResultMessage.DELETE_SUCCESS;
 			case DISABLED -> ReviewResultMessage.BLOCK_SUCCESS;
 		};
+	}
+
+	public void addReply(ReviewReply reply) {
+		this.reviewReplies.add(reply);
 	}
 }

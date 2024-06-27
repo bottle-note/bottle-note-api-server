@@ -19,6 +19,6 @@ Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
-  "content": "👍 리뷰에 새로운 댓글을 추가합니다 시발,야발 :)",
-  "parentReplyId": ""
+  "content": "👍👍👍👍",
+  "parentReplyId": "2"
 }
