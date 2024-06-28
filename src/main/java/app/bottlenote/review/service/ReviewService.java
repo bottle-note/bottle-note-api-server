@@ -8,14 +8,19 @@ import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
+import app.bottlenote.alcohols.dto.response.detail.AlcoholDetailInfo;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
+import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
+import app.bottlenote.review.dto.response.AlcoholInfo;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
+import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
+import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.ReviewResultMessage;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.dto.vo.ReviewModifyVO;
@@ -24,6 +29,8 @@ import app.bottlenote.review.repository.ReviewRepository;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.repository.UserCommandRepository;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -84,6 +91,41 @@ public class ReviewService {
 		Long userId
 	) {
 		return reviewRepository.getReviews(alcoholId, pageableRequest, userId);
+	}
+
+	@Transactional(readOnly = true)
+	public ReviewDetailResponse getDetailReview(Long reviewId, Long currentUserId) {
+
+		Review review = reviewRepository.findById(reviewId).orElseThrow(
+			() -> new ReviewException(REVIEW_NOT_FOUND)
+		);
+
+		AlcoholDetailInfo alcoholDetailById = alcoholQueryRepository.findAlcoholDetailById(review.getAlcoholId(), currentUserId);
+
+		AlcoholInfo alcoholInfo = AlcoholInfo.builder()
+			.alcoholId(alcoholDetailById.getAlcoholId())
+			.engName(alcoholDetailById.getEngName())
+			.korName(alcoholDetailById.getKorName())
+			.engCategoryName(alcoholDetailById.getEngCategory())
+			.korCategoryName(alcoholDetailById.getKorCategory())
+			.imageUrl(alcoholDetailById.getAlcoholUrlImg())
+			.isPicked(alcoholDetailById.getIsPicked())
+			.build();
+
+		ReviewDetailResponse reviewDetailResponse = reviewRepository.getReview(reviewId, currentUserId);
+		reviewDetailResponse.updateAlcoholInfo(alcoholInfo);
+
+		List<ReviewImageInfo> reviewImageInfos = new ArrayList<>();
+		review.getReviewImages().forEach(
+			image -> reviewImageInfos.add(ReviewImageInfo.create(image.getOrder(), image.getImageUrl()))
+		);
+
+		List<ReviewReplyInfo> reviewReplies = reviewRepository.getReviewReplies(reviewId);
+
+		reviewDetailResponse.updateReviewReplyList(reviewReplies);
+		reviewDetailResponse.updateReviewImageList(reviewImageInfos);
+
+		return reviewDetailResponse;
 	}
 
 	@Transactional(readOnly = true)

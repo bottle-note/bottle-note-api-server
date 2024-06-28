@@ -1,7 +1,6 @@
 package app.bottlenote.review.controller;
 
 import static app.bottlenote.global.data.response.GlobalResponse.success;
-import static app.bottlenote.review.domain.constant.ReviewActiveStatus.ACTIVE;
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
@@ -72,7 +71,7 @@ public class ReviewController {
 		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(null);
 
 		return ResponseEntity.ok(
-			success(reviewService.getDetailReview(reviewId, currentUserId, ACTIVE))
+			success(reviewService.getDetailReview(reviewId, currentUserId))
 		);
 	}
 
