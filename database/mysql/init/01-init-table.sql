@@ -198,23 +198,23 @@ CREATE TABLE `alcohol_tasting_tags`
 
 CREATE TABLE `review`
 (
-    `id`             bigint        NOT NULL AUTO_INCREMENT COMMENT '술 리뷰',
-    `user_id`        bigint        NOT NULL COMMENT '리뷰 작성자',
-    `alcohol_id`     bigint        NOT NULL COMMENT '리뷰 대상 술',
-    `content`        varchar(1000) NOT NULL COMMENT '1000글자',
-    `size_type`      varchar(255) NULL COMMENT '잔 : GLASS , 보틀 : BOTTLE',
+    `id`             bigint         NOT NULL AUTO_INCREMENT COMMENT '술 리뷰',
+    `user_id`        bigint         NOT NULL COMMENT '리뷰 작성자',
+    `alcohol_id`     bigint         NOT NULL COMMENT '리뷰 대상 술',
+    `content`        varchar(1000)  NOT NULL COMMENT '1000글자',
+    `size_type`      varchar(255)   NULL COMMENT '잔 : GLASS , 보틀 : BOTTLE',
     `price`          DECIMAL(10, 2) NULL COMMENT '가격',
-    `zip_code`       varchar(255) NULL COMMENT '마신 장소 우편번호',
-    `address`        varchar(255) NULL COMMENT '마신 장소 주소',
-    `detail_address` varchar(255) NULL COMMENT '마신 장소 상세 주소',
-    `status`         varchar(255) NULL COMMENT '공개리뷰, 숨김리뷰',
-    `image_url`      varchar(255) NULL COMMENT '썸네일 이미지',
-    `view_count`     bigint NULL COMMENT '조회수',
-    `active_status`  varchar(255) NULL COMMENT '리뷰활성상태 (활성, 삭제, 비활성)',
-    `create_at`      timestamp NULL COMMENT '최초 생성일',
-    `create_by`      varchar(255) NULL COMMENT '최초 생성자',
-    `last_modify_at` timestamp NULL COMMENT '최종 생성일',
-    `last_modify_by` varchar(255) NULL COMMENT '최종 생성자',
+    `zip_code`       varchar(255)   NULL COMMENT '마신 장소 우편번호',
+    `address`        varchar(255)   NULL COMMENT '마신 장소 주소',
+    `detail_address` varchar(255)   NULL COMMENT '마신 장소 상세 주소',
+    `status`         varchar(255)   NULL COMMENT '공개리뷰, 숨김리뷰',
+    `image_url`      varchar(255)   NULL COMMENT '썸네일 이미지',
+    `view_count`     bigint         NULL COMMENT '조회수',
+    `active_status`  varchar(255)   NULL COMMENT '리뷰활성상태 (활성, 삭제, 비활성)',
+    `create_at`      timestamp      NULL COMMENT '최초 생성일',
+    `create_by`      varchar(255)   NULL COMMENT '최초 생성자',
+    `last_modify_at` timestamp      NULL COMMENT '최종 생성일',
+    `last_modify_by` varchar(255)   NULL COMMENT '최종 생성자',
     PRIMARY KEY (`id`),
     FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
     FOREIGN KEY (`alcohol_id`) REFERENCES `alcohol` (`id`)
@@ -281,7 +281,8 @@ CREATE TABLE `review_reply`
     `id`              bigint       NOT NULL AUTO_INCREMENT COMMENT '리뷰 댓글',
     `review_id`       bigint       NOT NULL COMMENT '리뷰 아이디',
     `user_id`         bigint       NOT NULL COMMENT '리뷰 작성자',
-    `parent_reply_id` bigint       NULL comment '부모 댓글 아이디',
+    `root_reply_id`   bigint       NULL comment '최상위 댓글 식별자',
+    `parent_reply_id` bigint       NULL comment '상위 댓글 식별',
     `content`         text         NOT NULL COMMENT '댓글 최대 1000글자',
     `create_at`       timestamp    NULL COMMENT '최초 생성일',
     `create_by`       varchar(255) NULL COMMENT '최초 생성자',
@@ -291,7 +292,6 @@ CREATE TABLE `review_reply`
     FOREIGN KEY (`review_id`) REFERENCES `review` (`id`),
     FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
     FOREIGN KEY (`parent_reply_id`) REFERENCES `review_reply` (`id`)
-    -- 복합 유니크 UNIQUE KEY `review_id_user_id` (`review_id`, `user_id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci COMMENT = '리뷰 댓글';
@@ -351,7 +351,7 @@ CREATE TABLE `alcohol_image`
 
 CREATE TABLE `user_history`
 (
-    `id`             bigint       NOT NULL COMMENT '히스토리 id',
+    `id`             bigint       NOT NULL auto_increment  COMMENT '히스토리 id',
     `user_id`        bigint       NOT NULL COMMENT '사용자 id',
     `alcohol_id`     bigint       NOT NULL COMMENT '알코올 id',
     `type`           varchar(255) NOT NULL COMMENT 'pick, review, rating',
