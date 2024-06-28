@@ -14,13 +14,14 @@ Content-Type: application/json
     client.global.set("accessToken", response.body.data.accessToken);
 %}
 
-
-### 팔로워 조회 진행한다.
-GET  {{host}}/api/v1/follower/1
+### 닉네임변경
+POST  {{host}}/api/v1/reports/user
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "cursor": 0,
-  "pageSize": 50
+  "userId" : 2,
+  "reportUserId" : 2,
+  "type" : "OTHER",
+  "content" : "신고 내용 쏼라 쏼라 쏼라 "
 }

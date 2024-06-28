@@ -16,12 +16,11 @@ Content-Type: application/json
 
 
 ### 팔로우 조회 진행한다.
-GET  {{host}}/api/v1/follow
+GET  {{host}}/api/v1/follow/1
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "userId": 1,
   "cursor": 0,
   "pageSize": 50
 }
