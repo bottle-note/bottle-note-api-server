@@ -1,6 +1,14 @@
 package app.bottlenote.common.profanity;
 
 
+import app.bottlenote.common.exception.CommonException;
+import app.bottlenote.common.exception.CommonExceptionCode;
+import app.bottlenote.common.profanity.fegin.ProfanityFeginClient;
+import app.bottlenote.common.profanity.request.ProfanityRequest;
+import app.bottlenote.common.profanity.response.ProfanityResponse;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 /**
@@ -9,9 +17,48 @@ import org.springframework.stereotype.Component;
 @Component
 public class DefaultProfanityClient implements ProfanityClient {
 
+	private static final Logger log = LogManager.getLogger(DefaultProfanityClient.class);
+	private final ProfanityFeginClient profanityFeginClient;
+
+	public DefaultProfanityClient(ProfanityFeginClient profanityFeginClient) {
+		this.profanityFeginClient = profanityFeginClient;
+	}
+
 	@Override
-	public boolean containsProfanity(String text) {
-		// TODO 비속어 검출 로직 구현 필요
-		return false;
+	public ProfanityResponse requestVerificationProfanity(String text) {
+		log.info("[requestVerificationProfanity] 검증 요청 대상: {}", text);
+
+		long start = System.currentTimeMillis();
+
+		ProfanityRequest request = ProfanityRequest.createFilter(text);
+		ResponseEntity<ProfanityResponse> response = profanityFeginClient.requestVerificationProfanity(request);
+		var responseBody = response.getBody();
+
+		long end = System.currentTimeMillis();
+
+		log.info("응답 시간 : {} ms", end - start);  // 응답 시간 로그 출력
+
+		log.info("검증 완료 : [ Code: {}] ,[Header: {}]  ", response.getStatusCode(), response.getHeaders());
+
+		return responseBody;
+	}
+
+	@Override
+	public String getFilteredText(String text) {
+		log.info("[getFilteredText] 필터링 요청 대상: {}", text);
+		ProfanityResponse response = requestVerificationProfanity(text);
+		if (response.isNotFiltered()) {
+			return text;
+		}
+		return response.filtered();
+	}
+
+	@Override
+	public void validateProfanity(String text) {
+		log.info("[validateProfanity] 검증 요청 대상: {}", text);
+		ProfanityResponse response = requestVerificationProfanity(text);
+		if (response.isProfane()) {
+			throw new CommonException(CommonExceptionCode.CONTAINS_PROFANITY);
+		}
 	}
 }
