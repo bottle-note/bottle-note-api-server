@@ -56,3 +56,7 @@ amazon:
     region: ${AMAZON_AWS_REGION}
     bucket: ${AMAZON_AWS_BUCKET}
     cloudFrontUrl: ${AMAZON_AWS_CLOUDFRONT_URL}
+
+profanity:
+  filter:
+    url: https://api.profanity-filter.run/api/v1
