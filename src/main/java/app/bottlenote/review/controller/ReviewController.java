@@ -12,7 +12,7 @@ import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
-import app.bottlenote.review.dto.response.ReviewResponse;
+import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.service.ReviewService;
 import app.bottlenote.user.exception.UserException;
 import jakarta.validation.Valid;
@@ -54,7 +54,7 @@ public class ReviewController {
 
 		log.info("currentUserId is : {} \nPageable INFO  : {}", currentUserId, pageableRequest.toString());
 
-		PageResponse<ReviewResponse> pageResponse = reviewService.getReviews(
+		PageResponse<ReviewListResponse> pageResponse = reviewService.getReviews(
 			alcoholId,
 			pageableRequest,
 			currentUserId
@@ -72,7 +72,7 @@ public class ReviewController {
 			() -> new UserException(REQUIRED_USER_ID)
 		);
 
-		PageResponse<ReviewResponse> myReviews = reviewService.getMyReviews(alcoholId, pageableRequest, currentUserId);
+		PageResponse<ReviewListResponse> myReviews = reviewService.getMyReviews(alcoholId, pageableRequest, currentUserId);
 
 		return ResponseEntity.ok(
 			success(myReviews.content(), MetaService.createMetaInfo().add("pageable", myReviews.cursorPageable()))

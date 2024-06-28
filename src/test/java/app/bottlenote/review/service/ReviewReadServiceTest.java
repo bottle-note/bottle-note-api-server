@@ -8,7 +8,7 @@ import static org.mockito.Mockito.when;
 
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.dto.request.PageableRequest;
-import app.bottlenote.review.dto.response.ReviewResponse;
+import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
 import app.bottlenote.review.repository.ReviewRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -29,7 +29,7 @@ class ReviewReadServiceTest {
 	private ReviewService reviewService;
 
 	private final PageableRequest request = ReviewObjectFixture.getEmptyPageableRequest();
-	private final PageResponse<ReviewResponse> response = ReviewObjectFixture.getReviewListResponse();
+	private final PageResponse<ReviewListResponse> response = ReviewObjectFixture.getReviewListResponse();
 
 	@Test
 	@DisplayName("리뷰를 조회할 수 있다.")
@@ -40,7 +40,7 @@ class ReviewReadServiceTest {
 		when(reviewRepository.getReviews(
 			anyLong(), any(PageableRequest.class), anyLong()))
 			.thenReturn(response);
-		PageResponse<ReviewResponse> actualResponse = reviewService.getReviews(1L, request, 1L);
+		PageResponse<ReviewListResponse> actualResponse = reviewService.getReviews(1L, request, 1L);
 
 		//then
 		assertThat(response.content()).isEqualTo(actualResponse.content());

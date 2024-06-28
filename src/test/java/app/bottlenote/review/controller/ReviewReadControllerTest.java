@@ -15,7 +15,7 @@ import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.ReviewSortType;
 import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.review.dto.request.PageableRequest;
-import app.bottlenote.review.dto.response.ReviewDetail;
+import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewResponse;
 import app.bottlenote.review.service.ReviewService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -106,7 +106,7 @@ class ReviewReadControllerTest {
 	void test_case_1(String description, PageableRequest pageableRequest) throws Exception {
 
 		//given
-		PageResponse<ReviewResponse> response = getResponse();
+		PageResponse<ReviewListResponse> response = getResponse();
 
 		//when
 		when(reviewService.getReviews(any(), any(), any()))
@@ -131,9 +131,9 @@ class ReviewReadControllerTest {
 
 	}
 
-	private PageResponse<ReviewResponse> getResponse() {
+	private PageResponse<ReviewListResponse> getResponse() {
 
-		ReviewDetail reviewDetail_1 = ReviewDetail.builder()
+		ReviewResponse reviewResponse_1 = ReviewResponse.builder()
 			.reviewId(1L)
 			.reviewContent("맛있습니다")
 			.price(BigDecimal.valueOf(100000L))
@@ -152,7 +152,7 @@ class ReviewReadControllerTest {
 			.hasReplyByMe(false)
 			.build();
 
-		ReviewDetail reviewDetail_2 = ReviewDetail.builder()
+		ReviewResponse reviewResponse_2 = ReviewResponse.builder()
 			.reviewId(2L)
 			.reviewContent("나름 먹을만 하네요")
 			.price(BigDecimal.valueOf(110000L))
@@ -172,7 +172,7 @@ class ReviewReadControllerTest {
 			.build();
 
 		Long totalCount = 2L;
-		List<ReviewDetail> reviewDetails = List.of(reviewDetail_1, reviewDetail_2);
+		List<ReviewResponse> reviewResponses = List.of(reviewResponse_1, reviewResponse_2);
 		CursorPageable cursorPageable = CursorPageable.builder()
 			.currentCursor(0L)
 			.cursor(1L)
@@ -180,7 +180,7 @@ class ReviewReadControllerTest {
 			.hasNext(false)
 			.build();
 
-		ReviewResponse response = ReviewResponse.of(totalCount, reviewDetails);
+		ReviewListResponse response = ReviewListResponse.of(totalCount, reviewResponses);
 		return PageResponse.of(response, cursorPageable);
 	}
 
@@ -189,7 +189,7 @@ class ReviewReadControllerTest {
 	@MethodSource("sortTypeParameters")
 	void test_sortType(String sortType, int expectedStatus) throws Exception {
 		// given
-		PageResponse<ReviewResponse> response = getResponse();
+		PageResponse<ReviewListResponse> response = getResponse();
 
 		// when
 		when(reviewService.getReviews(any(), any(), any())).thenReturn(response);
@@ -213,7 +213,7 @@ class ReviewReadControllerTest {
 	@MethodSource("sortOrderParameters")
 	void test_sortOrder(String sortOrder, int expectedStatus) throws Exception {
 		// given
-		PageResponse<ReviewResponse> response = getResponse();
+		PageResponse<ReviewListResponse> response = getResponse();
 
 		// when
 		when(reviewService.getReviews(any(), any(), any())).thenReturn(response);

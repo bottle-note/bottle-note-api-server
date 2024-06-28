@@ -1,0 +1,39 @@
+### 토큰 발급 (일반)
+POST {{host}}/api/v1/oauth/login
+Content-Type: application/json
+
+{
+  "email": "juye@gmail.com",
+  "socialType": "GOOGLE",
+  "gender": "",
+  "age": ""
+}
+
+> {%
+    //토큰을 전역변수로 저장
+    client.global.set("accessToken", response.body.data.accessToken);
+%}
+
+### 리뷰조회
+GET {{host}}/api/v1/reviews/1
+Authorization: Bearer {{accessToken}}
+
+### 리뷰수정(파라미터 미완성)
+PATCH {{host}}/api/v1/reviews/1
+Authorization: Bearer {{accessToken}}
+
+
+### 나의리뷰조회
+GET {{host}}/api/v1/reviews/me/1
+Authorization: Bearer {{accessToken}}
+
+{
+  "alcoholId": 1
+}
+
+
+
+
+{
+  "alcoholId": 1
+}

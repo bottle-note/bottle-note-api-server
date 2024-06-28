@@ -48,8 +48,9 @@ public class SecurityContextUtil {
 		if (authentication.getPrincipal() instanceof CustomUserContext customUserContext) {
 			return Optional.ofNullable(customUserContext.getId());
 		} else {
-			log.warn("인증된 사용자의 정보가 CustomUserContext의 인스턴스가 아닙니다. 잘못된 인증 정보일 수 있습니다.");
+			log.warn("인증된 사용자의 정보가 CustomUserContext의 인스턴스가 아닙니다. 잘못된 인증 정보일 수 있습니다. 혹은 비회원 사용자일 수 있습니다.");
 			return Optional.empty();
 		}
+
 	}
 }

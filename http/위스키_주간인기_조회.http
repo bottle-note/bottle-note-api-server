@@ -13,14 +13,8 @@ Content-Type: application/json
     //토큰을 전역변수로 저장
     client.global.set("accessToken", response.body.data.accessToken);
 %}
+### 위스키 조회
 
-
-### 팔로워 조회 진행한다.
-GET  {{host}}/api/v1/follower/1
+GET {{host}}/api/v1/popular/week
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
-
-{
-  "cursor": 0,
-  "pageSize": 50
-}
