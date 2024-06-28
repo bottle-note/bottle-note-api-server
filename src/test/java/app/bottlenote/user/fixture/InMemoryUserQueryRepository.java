@@ -31,4 +31,15 @@ public class InMemoryUserQueryRepository implements UserQueryRepository {
 	public List<User> findAllByIdIn(List<Long> ids) {
 		return users.values().stream().filter(User -> ids.contains(User.getId())).toList();
 	}
+
+	@Override
+	public Boolean existsByUserId(Long userId) {
+		return null;
+	}
+
+	@Override
+	public Long countByUsername(String userName) {
+		return null;
+	}
+
 }
