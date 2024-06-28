@@ -5,15 +5,20 @@ import static app.bottlenote.global.service.cursor.SortOrder.DESC;
 import static app.bottlenote.like.domain.QLikes.likes;
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
+import static app.bottlenote.review.domain.QReviewImage.reviewImage;
+import static app.bottlenote.review.domain.QReviewReply.reviewReply;
 import static app.bottlenote.review.domain.QReviewTastingTag.reviewTastingTag;
 import static app.bottlenote.user.domain.QUser.user;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.review.domain.constant.ReviewActiveStatus;
 import app.bottlenote.review.domain.constant.ReviewSortType;
 import app.bottlenote.review.dto.request.PageableRequest;
+import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
+import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.ReviewResponse;
 import app.bottlenote.review.repository.ReviewQuerySupporter;
 import com.querydsl.core.types.Order;
@@ -35,8 +40,42 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 	private final ReviewQuerySupporter supporter;
 
 	@Override
-	public ReviewResponse getReview(Long reviewId, Long userId) {
-		return null;
+	public ReviewDetailResponse getReview(Long reviewId, Long userId) {
+
+		ReviewResponse fetch = queryFactory
+			.select(supporter.reviewResponseConstructor(userId))
+			.from(review)
+			.join(user).on(review.userId.eq(user.id))
+			.leftJoin(likes).on(review.id.eq(likes.review.id))
+			.leftJoin(alcohol).on(alcohol.id.eq(review.alcoholId))
+			.leftJoin(rating).on(review.userId.eq(rating.user.id))
+			.leftJoin(reviewTastingTag).on(review.id.eq(reviewTastingTag.review.id))
+			.leftJoin(reviewImage).on(review.id.eq(reviewImage.review.id))
+			.leftJoin(reviewReply).on(review.id.eq(reviewReply.review.id))
+			.where(review.id.eq(reviewId).and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE)))
+			.groupBy(review.id, review.sizeType, review.userId)
+			.fetchOne();
+
+		List<String> tastingTagList = queryFactory
+			.select(reviewTastingTag.tastingTag)
+			.from(reviewTastingTag)
+			.where(reviewTastingTag.review.id.eq(reviewId))
+			.fetch();
+
+		fetch.updateTastingTagList(tastingTagList);
+
+		return new ReviewDetailResponse(fetch);
+	}
+
+	@Override
+	public List<ReviewReplyInfo> getReviewReplies(Long reviewId) {
+		return queryFactory
+			.select(supporter.reviewReplyInfoConstructor())
+			.from(review)
+			.join(user).on(user.id.eq(review.userId))
+			.leftJoin(reviewReply).on(reviewReply.review.id.eq(review.id))
+			.where(reviewReply.review.id.eq(reviewId))
+			.fetch();
 	}
 
 	@Override

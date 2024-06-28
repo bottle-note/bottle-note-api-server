@@ -7,6 +7,7 @@ import static app.bottlenote.review.domain.QReviewReply.reviewReply;
 import static app.bottlenote.user.domain.QUser.user;
 
 import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
+import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.ReviewResponse;
 import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.Expression;
@@ -68,6 +69,19 @@ public class ReviewQuerySupporter {
 		);
 	}
 
+
+	public ConstructorExpression<ReviewReplyInfo> reviewReplyInfoConstructor() {
+		return Projections.constructor(
+			ReviewReplyInfo.class,
+			user.id.as("userId"),
+			user.imageUrl.as("imageUrl"),
+			user.nickName.as("nickName"),
+			reviewReply.id.as("reviewReplyId"),
+			reviewReply.content.as("reviewReplyContent"),
+			reviewReply.createAt.as("createAt")
+		);
+	}
+
 	/*
 	내가 댓글을 단 리뷰인지 판별
 	 */
@@ -92,7 +106,7 @@ public class ReviewQuerySupporter {
 
 		BooleanExpression eqUserId = userId == null ?
 			likes.user.id.isNull() : likes.user.id.eq(userId);
-		
+
 		return Expressions.asBoolean(
 			JPAExpressions
 				.selectOne()
