@@ -1,6 +1,6 @@
 package app.bottlenote.review.dto.request;
 
-import app.bottlenote.review.domain.constant.ReviewStatus;
+import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -16,7 +16,7 @@ public record ReviewCreateRequest(
 	@NotNull(message = "alcohol id는 Null일 수 없습니다.")
 	Long alcoholId,
 
-	ReviewStatus status,
+	ReviewDisplayStatus status,
 
 	@NotEmpty(message = "리뷰 내용을 입력해주세요")
 	@Size(max = 500)
@@ -36,7 +36,7 @@ public record ReviewCreateRequest(
 
 ) {
 	public ReviewCreateRequest {
-		status = status == null ? ReviewStatus.PUBLIC : status;
+		status = status == null ? ReviewDisplayStatus.PUBLIC : status;
 		imageUrlList = imageUrlList == null ? List.of() : imageUrlList;
 	}
 }

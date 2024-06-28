@@ -37,7 +37,12 @@ public class ReviewReply extends BaseEntity {
 	@Column(name = "content", nullable = false, length = 1000)
 	private String content;
 
-	@Comment("대댓글 댓글 대상")
+	@Comment("최상위 댓글 대상")
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "root_reply_id")
+	private ReviewReply rootReviewReplyId;
+
+	@Comment("상위 댓글 대상")
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "parent_reply_id")
 	private ReviewReply parentReviewReply;

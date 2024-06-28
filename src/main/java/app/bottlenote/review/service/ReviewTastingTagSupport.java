@@ -35,7 +35,7 @@ public class ReviewTastingTagSupport {
 		review.saveTastingTag(reviewTastingTags);
 	}
 
-	public void updateReviewTastingTag(List<String> tastingTags, Review review) {
+	public void updateReviewTastingTags(List<String> tastingTags, Review review) {
 
 		if (CollectionUtils.isEmpty(tastingTags)) {
 			review.updateTastingTags(Collections.emptySet());
