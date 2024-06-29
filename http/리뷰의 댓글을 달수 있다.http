@@ -1,0 +1,24 @@
+### 토큰 발급 (일반)
+POST {{host}}/api/v1/oauth/login
+Content-Type: application/json
+
+{
+  "email": "dev.bottle-note@gmail.com",
+  "socialType": "GOOGLE",
+  "gender": "MALE",
+  "age": 25
+}
+> {%
+    client.global.set("accessToken", response.body.data.accessToken);
+%}
+
+### 리뷰 댓글 작성
+@reviewId = 4
+POST {{host}}/api/v1/review/reply/register/{{reviewId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "content": "👍👍👍👍",
+  "parentReplyId": "4"
+}

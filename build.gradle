@@ -9,6 +9,13 @@ group = 'bottlenote'
 version = '0.0.1-SNAPSHOT'
 ext {
     queryDslVersion = "5.0.0"
+    springCloudVersion = "2022.0.5"
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
 }
 
 compileJava.options.encoding = 'UTF-8'
@@ -76,6 +83,9 @@ dependencies {
 
     //AWS
     implementation 'com.amazonaws:aws-java-sdk-s3:1.12.725'
+
+    //Fegin ( https://spring.io/projects/spring-cloud#overview )
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 }
 
 tasks.named('test') {
@@ -84,17 +94,6 @@ tasks.named('test') {
         excludeTags 'data-jpa-test'
     }
 }
-
-tasks.register('data-jpa-test', Test) {
-    // `gradle integrationTest`: integration tag가 붙은 테스트만 수행
-    useJUnitPlatform {
-        includeTags 'data-jpa-test'
-    }
-    // `verification` 그룹에 추가
-    group = 'verification'
-    description = 'Runs the data-jpa tests.'
-}
-
 // =========================== spring boot jar setting ===========================
 
 bootJar {
