@@ -6,7 +6,7 @@ import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.CategoryResponse;
 import app.bottlenote.alcohols.dto.response.detail.AlcoholDetailInfo;
 import app.bottlenote.global.service.cursor.PageResponse;
-
+import app.bottlenote.review.dto.response.AlcoholInfo;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,6 +26,8 @@ public interface AlcoholQueryRepository {
 	PageResponse<AlcoholSearchResponse> searchAlcohols(AlcoholSearchCriteria criteriaDto);
 
 	AlcoholDetailInfo findAlcoholDetailById(Long alcoholId, Long userId);
+
+	AlcoholInfo findAlcoholById(Long alcoholId, Long userId);
 
 	List<CategoryResponse> findAllCategories(AlcoholType type);
 }
