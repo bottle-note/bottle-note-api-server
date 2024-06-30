@@ -54,7 +54,7 @@ class RestReviewReplyControllerTest extends AbstractRestDocs {
 	@DisplayName("새로운 댓글을 등록 할 수 있다.")
 	void test_1() throws Exception {
 		final Long reviewId = 1L;
-		var request = ReviewObjectFixture.getReviewReplyRegisterRequest();
+		var request = ReviewObjectFixture.getReviewReplyRegisterRequest("이 리뷰는 매우 유익합니다. 추천을 줄만하네요.");
 		var response = ReviewObjectFixture.getReviewReplyResponse();
 
 		mockedSecurityUtil.when(SecurityContextUtil::getUserIdByContext).thenReturn(Optional.of(1L));
