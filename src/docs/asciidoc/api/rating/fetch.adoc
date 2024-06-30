@@ -6,7 +6,7 @@
 
 [source]
 ----
-POST /api/v1/rating
+GET /api/v1/rating
 ----
 
 [discrete]
@@ -15,6 +15,7 @@ POST /api/v1/rating
 [discrete]
 include::{snippets}/rating/fetch/query-parameters.adoc[]
 include::{snippets}/rating/fetch/request-body.adoc[]
+- 요청값의 형태는 parameter 형식으로 요청되면 됩니다.(예시는 표현을 위한 JSON 형태입니다.)
 
 [discrete]
 ==== 응답 파라미터 ====

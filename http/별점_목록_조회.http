@@ -15,19 +15,9 @@ Content-Type: application/json
 %}
 
 ### 별점 목록 조회
-GET http://localhost:8081/api/v1/rating
+GET http://localhost:8081/api/v1/rating?keyword=YAM&category=&regionId=&sortType=RANDOM&sortOrder=DESC&cursor=&pageSize=
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
-
-{
-  "keyword": "YAM",
-  "category": "",
-  "regionId": "",
-  "sortType": "RANDOM",
-  "sortOrder": "DESC",
-  "cursor": "",
-  "pageSize": ""
-}
 
 
 ### 별점 목록 조회
