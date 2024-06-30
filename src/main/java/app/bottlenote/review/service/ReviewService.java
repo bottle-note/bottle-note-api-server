@@ -5,8 +5,8 @@ import static app.bottlenote.review.domain.constant.ReviewActiveStatus.DELETED;
 import static app.bottlenote.review.dto.response.ReviewResultMessage.MODIFY_SUCCESS;
 import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
+import static java.lang.Boolean.FALSE;
 
-import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.service.domain.AlcoholDomainSupport;
 import app.bottlenote.global.service.cursor.PageResponse;
@@ -26,9 +26,8 @@ import app.bottlenote.review.dto.response.ReviewResultMessage;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.dto.vo.ReviewModifyVO;
 import app.bottlenote.review.exception.ReviewException;
-import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
-import app.bottlenote.user.repository.UserCommandRepository;
+import app.bottlenote.user.service.domain.UserDomainSupport;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReviewService {
 
 	private final AlcoholDomainSupport alcoholDomainSupport;
-	private final UserCommandRepository userCommandRepository;
+	private final UserDomainSupport userDomainSupport;
 	private final ReviewRepository reviewRepository;
 	private final ReviewTastingTagSupport reviewTastingTagSupport;
 	private final ReviewImageSupport reviewImageSupport;
@@ -51,14 +50,27 @@ public class ReviewService {
 	public ReviewCreateResponse createReview(ReviewCreateRequest reviewCreateRequest, Long currentUserId) {
 
 		//DB에서 Alcohol 엔티티 조회
-		Alcohol alcohol = alcoholDomainSupport.findById(reviewCreateRequest.alcoholId()).orElseThrow(() -> new AlcoholException(ALCOHOL_NOT_FOUND));
+		if (alcoholDomainSupport.existsByAlcoholId(reviewCreateRequest.alcoholId()).equals(FALSE)) {
+			throw new AlcoholException(ALCOHOL_NOT_FOUND);
+		}
 
 		//현재 로그인 한 user id로 DB에서 User 엔티티 조회
-		User user = userCommandRepository.findById(currentUserId).orElseThrow(() -> new UserException(USER_NOT_FOUND));
+		if (userDomainSupport.existsByUserId(currentUserId).equals(FALSE)) {
+			throw new UserException(USER_NOT_FOUND);
+		}
 
-		Review review = Review.builder().alcoholId(alcohol.getId()).userId(user.getId()).price(reviewCreateRequest.price()).sizeType(reviewCreateRequest.sizeType()).status(reviewCreateRequest.status())
-			.imageUrl(reviewCreateRequest.imageUrlList().isEmpty() ? null : reviewCreateRequest.imageUrlList().get(0).viewUrl()).content(reviewCreateRequest.content()).address(reviewCreateRequest.locationInfo().address())
-			.zipCode(reviewCreateRequest.locationInfo().zipCode()).detailAddress(reviewCreateRequest.locationInfo().detailAddress()).build();
+		Review review = Review.builder()
+			.alcoholId(reviewCreateRequest.alcoholId())
+			.userId(currentUserId)
+			.price(reviewCreateRequest.price())
+			.sizeType(reviewCreateRequest.sizeType())
+			.status(reviewCreateRequest.status())
+			.imageUrl(reviewCreateRequest.imageUrlList().isEmpty() ? null : reviewCreateRequest.imageUrlList().get(0).viewUrl())
+			.content(reviewCreateRequest.content())
+			.address(reviewCreateRequest.locationInfo().address())
+			.zipCode(reviewCreateRequest.locationInfo().zipCode())
+			.detailAddress(reviewCreateRequest.locationInfo().detailAddress())
+			.build();
 
 		Review saveReview = reviewRepository.save(review);
 
@@ -66,7 +78,11 @@ public class ReviewService {
 
 		reviewTastingTagSupport.saveReviewTastingTag(reviewCreateRequest.tastingTagList(), review);
 
-		return ReviewCreateResponse.builder().id(saveReview.getId()).content(saveReview.getContent()).callback(String.valueOf(saveReview.getAlcoholId())).build();
+		return ReviewCreateResponse.builder()
+			.id(saveReview.getId())
+			.content(saveReview.getContent())
+			.callback(String.valueOf(saveReview.getAlcoholId()))
+			.build();
 	}
 
 	@Transactional(readOnly = true)
@@ -77,16 +93,30 @@ public class ReviewService {
 	@Transactional(readOnly = true)
 	public ReviewDetailResponse getDetailReview(Long reviewId, Long currentUserId) {
 
-		Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
+		long start = System.nanoTime();
+		Review review = reviewRepository.findById(reviewId).orElseThrow(
+			() -> new ReviewException(REVIEW_NOT_FOUND)
+		);
+		log.info("리뷰 존재유무 확인 시간 : {}", (System.nanoTime() - start) / 1_000_000 + "ms");
 
-		AlcoholInfo alcoholInfo = alcoholDomainSupport.findAlcoholById(review.getAlcoholId(), currentUserId);
+		long start2 = System.nanoTime();
+		AlcoholInfo alcoholInfo = alcoholDomainSupport.findAlcoholInfoById(review.getAlcoholId(), currentUserId);
+		log.info("알코올 정보 조회 시간 : {}", (System.nanoTime() - start2) / 1_000_000 + "ms");
 
+		long start3 = System.nanoTime();
 		ReviewResponse reviewResponse = reviewRepository.getReview(reviewId, currentUserId);
+		log.info("리뷰 정보 조회 시간 : {}", (System.nanoTime() - start3) / 1_000_000 + "ms");
 
 		List<ReviewImageInfo> reviewImageInfos = new ArrayList<>();
-		review.getReviewImages().forEach(image -> reviewImageInfos.add(ReviewImageInfo.create(image.getOrder(), image.getImageUrl())));
 
+		long start4 = System.nanoTime();
+		review.getReviewImages()
+			.forEach(image -> reviewImageInfos.add(ReviewImageInfo.create(image.getOrder(), image.getImageUrl())));
+		log.info("리뷰 이미지 조회 시간 : {}", (System.nanoTime() - start4) / 1_000_000 + "ms");
+
+		long start5 = System.nanoTime();
 		List<ReviewReplyInfo> reviewReplies = reviewRepository.getReviewReplies(reviewId);
+		log.info("리뷰 댓글 조회 시간 : {}", (System.nanoTime() - start5) / 1_000_000 + "ms");
 
 		return ReviewDetailResponse.create(alcoholInfo, reviewResponse, reviewImageInfos, reviewReplies);
 	}

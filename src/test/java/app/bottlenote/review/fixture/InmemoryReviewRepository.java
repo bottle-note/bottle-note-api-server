@@ -6,8 +6,8 @@ import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.response.ReviewListResponse;
+import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.ReviewResponse;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -50,5 +50,10 @@ public class InmemoryReviewRepository implements ReviewRepository {
 	@Override
 	public Optional<ReviewReply> isEligibleParentReply(Long reviewId, Long parentReplyId) {
 		return Optional.empty();
+	}
+
+	@Override
+	public List<ReviewReplyInfo> getReviewReplies(Long reviewId) {
+		return null;
 	}
 }
