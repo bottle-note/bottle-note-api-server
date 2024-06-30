@@ -25,7 +25,7 @@ import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.controller.ReviewController;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
-import app.bottlenote.review.dto.response.ReviewResponse;
+import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
 import app.bottlenote.review.service.ReviewService;
@@ -110,7 +110,7 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 	void review_read_test() throws Exception {
 
 		//given
-		PageResponse<ReviewResponse> response = ReviewObjectFixture.getReviewListResponse();
+		PageResponse<ReviewListResponse> response = ReviewObjectFixture.getReviewListResponse();
 
 		//when
 		when(reviewService.getReviews(any(), any(), any())).thenReturn(
@@ -176,7 +176,7 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 	void my_review_read_test() throws Exception {
 
 		//given
-		PageResponse<ReviewResponse> response = ReviewObjectFixture.getReviewListResponse();
+		PageResponse<ReviewListResponse> response = ReviewObjectFixture.getReviewListResponse();
 
 		//when
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
