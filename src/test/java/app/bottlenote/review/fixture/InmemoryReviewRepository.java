@@ -7,24 +7,38 @@ import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewResponse;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 public class InmemoryReviewRepository implements ReviewRepository {
+
+	private static final Logger log = LogManager.getLogger(InmemoryReviewRepository.class);
+	Map<Long, Review> database = new HashMap<>();
+
 	@Override
 	public Review save(Review review) {
-		return null;
+		Long id = review.getId();
+		if (Objects.isNull(id)) {
+			id = database.size() + 1L;
+		}
+		database.put(id, review);
+		return review;
 	}
 
 	@Override
 	public Optional<Review> findById(Long id) {
-		return Optional.empty();
+		return Optional.ofNullable(database.get(id));
 	}
 
 	@Override
 	public List<Review> findAll() {
-		return List.of();
+		return List.copyOf(database.values());
 	}
 
 	@Override
@@ -49,6 +63,13 @@ public class InmemoryReviewRepository implements ReviewRepository {
 
 	@Override
 	public Optional<ReviewReply> isEligibleParentReply(Long reviewId, Long parentReplyId) {
-		return Optional.empty();
+		Optional<ReviewReply> first = database.values().stream()
+			.filter(review -> review.getId().equals(reviewId))
+			.flatMap(review -> review.getReviewReplies().stream())
+			.filter(reply -> reply.getId().equals(parentReplyId))
+			.findFirst();
+
+		log.info("[InMemory] isEligibleParentReply(reviewId = {}, parentReplyId = {}) = {}", reviewId, parentReplyId, first);
+		return first;
 	}
 }
