@@ -9,6 +9,9 @@ import org.springframework.http.ResponseEntity;
 
 import static app.bottlenote.common.exception.CommonExceptionCode.CONTAINS_PROFANITY;
 
+/**
+ * ProfanityClient 의 fake 구현체입니다.
+ */
 public class FakeProfanityClient implements ProfanityClient {
 
 	FakeProfanityFeginClient fakeProfanityFeginClient = new FakeProfanityFeginClient();
