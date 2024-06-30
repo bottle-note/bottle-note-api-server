@@ -30,6 +30,8 @@ include::{snippets}/rating/fetch/response-body.adoc[]
 
 [cols="1,1",options="header"]
 |===
+| type
+| description
 | RANDOM
 | 랜덤
 | POPULAR
