@@ -9,6 +9,7 @@ import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.dto.response.AlcoholInfo;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.Query;
 
 /**
  * 알코올 조회 질의에 관한 애그리거트를 정의합니다.
@@ -27,7 +28,11 @@ public interface AlcoholQueryRepository {
 
 	AlcoholDetailInfo findAlcoholDetailById(Long alcoholId, Long userId);
 
-	AlcoholInfo findAlcoholById(Long alcoholId, Long userId);
+	AlcoholInfo findAlcoholInfoById(Long alcoholId, Long userId);
 
 	List<CategoryResponse> findAllCategories(AlcoholType type);
+
+
+	@Query("SELECT COUNT(a) > 0 FROM alcohol a WHERE a.id = :alcoholId")
+	Boolean existsByAlcoholId(Long alcoholId);
 }

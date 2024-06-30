@@ -51,13 +51,17 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
 	}
 
 	@Override
-	public AlcoholInfo findAlcoholById(Long alcoholId, Long userId) {
+	public AlcoholInfo findAlcoholInfoById(Long alcoholId, Long userId) {
 		return null;
 	}
-
 
 	@Override
 	public List<CategoryResponse> findAllCategories(AlcoholType type) {
 		return List.of();
+	}
+
+	@Override
+	public Boolean existsByAlcoholId(Long alcoholId) {
+		return null;
 	}
 }

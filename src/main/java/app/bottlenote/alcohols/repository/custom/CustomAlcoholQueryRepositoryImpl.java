@@ -95,7 +95,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 	}
 
 	@Override
-	public AlcoholInfo findAlcoholById(Long alcoholId, Long userId) {
+	public AlcoholInfo findAlcoholInfoById(Long alcoholId, Long userId) {
 		return queryFactory
 			.select(supporter.alcoholInfoConstructor(alcoholId, userId))
 			.from(alcohol)

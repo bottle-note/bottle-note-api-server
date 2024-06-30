@@ -14,9 +14,15 @@ public class DefaultAlcoholDomainSupport implements AlcoholDomainSupport {
 	private final AlcoholQueryRepository alcoholQueryRepository;
 
 	@Override
-	public AlcoholInfo findAlcoholById(Long alcoholId, Long userId) {
-		return alcoholQueryRepository.findAlcoholById(alcoholId, userId);
+	public AlcoholInfo findAlcoholInfoById(Long alcoholId, Long userId) {
+		return alcoholQueryRepository.findAlcoholInfoById(alcoholId, userId);
 	}
+
+	@Override
+	public Boolean existsByAlcoholId(Long alcoholId) {
+		return alcoholQueryRepository.existsByAlcoholId(alcoholId);
+	}
+
 
 	@Override
 	public Optional<Alcohol> findById(Long alcoholId) {

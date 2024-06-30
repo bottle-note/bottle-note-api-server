@@ -6,8 +6,9 @@ import java.util.Optional;
 
 public interface AlcoholDomainSupport {
 
-	AlcoholInfo findAlcoholById(Long alcoholId, Long userId);
-
 	Optional<Alcohol> findById(Long alcoholId);
 
+	AlcoholInfo findAlcoholInfoById(Long alcoholId, Long currentUserId);
+
+	Boolean existsByAlcoholId(Long alcoholId);
 }

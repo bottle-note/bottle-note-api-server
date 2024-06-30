@@ -12,5 +12,5 @@ public interface CustomAlcoholQueryRepository {
 
 	AlcoholDetailInfo findAlcoholDetailById(Long alcoholId, Long userId);
 
-	AlcoholInfo findAlcoholById(Long alcoholId, Long userId);
+	AlcoholInfo findAlcoholInfoById(Long alcoholId, Long userId);
 }
