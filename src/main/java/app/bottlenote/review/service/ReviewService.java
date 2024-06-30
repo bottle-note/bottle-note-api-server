@@ -6,6 +6,7 @@ import app.bottlenote.alcohols.dto.response.detail.AlcoholDetailInfo;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.Review;
+import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
@@ -19,7 +20,6 @@ import app.bottlenote.review.dto.response.ReviewResultMessage;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.dto.vo.ReviewModifyVO;
 import app.bottlenote.review.exception.ReviewException;
-import app.bottlenote.review.repository.JpaReviewRepository;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.repository.UserCommandRepository;
@@ -43,7 +43,7 @@ public class ReviewService {
 
 	private final AlcoholQueryRepository alcoholQueryRepository;
 	private final UserCommandRepository userCommandRepository;
-	private final JpaReviewRepository jpaReviewRepository;
+	private final ReviewRepository reviewRepository;
 	private final ReviewTastingTagSupport reviewTastingTagSupport;
 	private final ReviewImageSupport reviewImageSupport;
 
@@ -71,7 +71,7 @@ public class ReviewService {
 			.detailAddress(reviewCreateRequest.locationInfo().detailAddress())
 			.build();
 
-		Review saveReview = jpaReviewRepository.save(review);
+		Review saveReview = reviewRepository.save(review);
 
 		reviewImageSupport.saveImages(reviewCreateRequest.imageUrlList(), review);
 
@@ -90,7 +90,7 @@ public class ReviewService {
 		PageableRequest pageableRequest,
 		Long userId
 	) {
-		return jpaReviewRepository.getReviews(alcoholId, pageableRequest, userId);
+		return reviewRepository.getReviews(alcoholId, pageableRequest, userId);
 	}
 
 	@Transactional(readOnly = true)
@@ -134,7 +134,7 @@ public class ReviewService {
 		PageableRequest pageableRequest,
 		Long userId
 	) {
-		return jpaReviewRepository.getReviewsByMe(alcoholId, pageableRequest, userId);
+		return reviewRepository.getReviewsByMe(alcoholId, pageableRequest, userId);
 	}
 
 	@Transactional
@@ -144,7 +144,7 @@ public class ReviewService {
 		Long currentUserId
 	) {
 
-		Review review = jpaReviewRepository.findByIdAndUserId(reviewId, currentUserId).orElseThrow(
+		Review review = reviewRepository.findByIdAndUserId(reviewId, currentUserId).orElseThrow(
 			() -> new ReviewException(REVIEW_NOT_FOUND)
 		);
 
@@ -162,7 +162,7 @@ public class ReviewService {
 	@Transactional
 	public ReviewResultResponse deleteReview(Long reviewId, Long currentUserId) {
 
-		Review review = jpaReviewRepository.findByIdAndUserId(reviewId, currentUserId).orElseThrow(
+		Review review = reviewRepository.findByIdAndUserId(reviewId, currentUserId).orElseThrow(
 			() -> new ReviewException(REVIEW_NOT_FOUND)
 		);
 		ReviewResultMessage reviewResultMessage = review.updateReviewActiveStatus(DELETED);

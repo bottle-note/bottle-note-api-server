@@ -1,20 +1,31 @@
 package app.bottlenote.review.service;
 
+import app.bottlenote.common.profanity.ProfanityClient;
+import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.fixture.FakeProfanityClient;
 import app.bottlenote.review.fixture.FakeUserDomainSupport;
-import org.junit.jupiter.api.BeforeAll;
+import app.bottlenote.review.fixture.InmemoryReviewRepository;
+import app.bottlenote.user.service.domain.UserDomainSupport;
+import org.junit.jupiter.api.BeforeEach;
 
 class ReviewReplyServiceTest {
 
-	//private final JpaReviewRepository reviewRepository;
-	//private final ProfanityClient profanityClient;
-	//private final UserDomainSupport userDomainSupport;
+	private ReviewRepository reviewRepository;
+	private ProfanityClient profanityClient;
+	private UserDomainSupport userDomainSupport;
 
 	private ReviewReplyService reviewReplyService;
 
-	@BeforeAll
-	static void beforeAll() {
-		new FakeUserDomainSupport();
-		new FakeProfanityClient();
+	@BeforeEach
+	void setUp() {
+		reviewRepository = new InmemoryReviewRepository();
+		profanityClient = new FakeProfanityClient();
+		userDomainSupport = new FakeUserDomainSupport();
+
+		reviewReplyService = new ReviewReplyService(
+			reviewRepository,
+			profanityClient,
+			userDomainSupport
+		);
 	}
 }
