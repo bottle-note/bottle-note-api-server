@@ -1,6 +1,26 @@
 package app.bottlenote.review.service;
 
 
+import app.bottlenote.alcohols.domain.Alcohol;
+import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
+import app.bottlenote.alcohols.exception.AlcoholException;
+import app.bottlenote.review.domain.Review;
+import app.bottlenote.review.dto.request.ReviewCreateRequest;
+import app.bottlenote.review.dto.response.ReviewCreateResponse;
+import app.bottlenote.review.fixture.ReviewObjectFixture;
+import app.bottlenote.review.repository.JpaReviewRepository;
+import app.bottlenote.user.domain.User;
+import app.bottlenote.user.exception.UserException;
+import app.bottlenote.user.repository.UserCommandRepository;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -10,31 +30,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
-import app.bottlenote.alcohols.exception.AlcoholException;
-import app.bottlenote.review.domain.Review;
-import app.bottlenote.review.dto.request.ReviewCreateRequest;
-import app.bottlenote.review.dto.response.ReviewCreateResponse;
-import app.bottlenote.review.fixture.ReviewObjectFixture;
-import app.bottlenote.review.repository.ReviewRepository;
-import app.bottlenote.user.domain.User;
-import app.bottlenote.user.exception.UserException;
-import app.bottlenote.user.repository.UserCommandRepository;
-import java.util.Optional;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 @DisplayName("리뷰 등록 서비스 레이어 테스트")
 @ExtendWith(MockitoExtension.class)
 class ReviewCreateServiceTest {
 
 	@Mock
-	private ReviewRepository reviewRepository;
+	private JpaReviewRepository jpaReviewRepository;
 	@Mock
 	private AlcoholQueryRepository alcoholQueryRepository;
 	@Mock
@@ -64,7 +65,7 @@ class ReviewCreateServiceTest {
 		when(userCommandRepository.findById(anyLong()))
 			.thenReturn(Optional.of(user));
 
-		when(reviewRepository.save(any(Review.class)))
+		when(jpaReviewRepository.save(any(Review.class)))
 			.thenReturn(review);
 
 		ReviewCreateResponse response = reviewService.createReview(reviewCreateRequest, 1L);

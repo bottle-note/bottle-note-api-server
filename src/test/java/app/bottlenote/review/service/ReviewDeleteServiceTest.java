@@ -1,17 +1,10 @@
 package app.bottlenote.review.service;
 
-import static app.bottlenote.review.dto.response.ReviewResultMessage.DELETE_SUCCESS;
-import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.when;
-
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
-import app.bottlenote.review.repository.ReviewRepository;
-import java.util.Optional;
+import app.bottlenote.review.repository.JpaReviewRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,12 +13,20 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Optional;
+
+import static app.bottlenote.review.dto.response.ReviewResultMessage.DELETE_SUCCESS;
+import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.when;
+
 @DisplayName("리뷰 삭제 서비스 레이어 테스트")
 @ExtendWith(MockitoExtension.class)
 class ReviewDeleteServiceTest {
 
 	@Mock
-	private ReviewRepository reviewRepository;
+	private JpaReviewRepository jpaReviewRepository;
 
 	@InjectMocks
 	private ReviewService reviewService;
@@ -39,7 +40,7 @@ class ReviewDeleteServiceTest {
 	void delete_review_success() {
 
 		//given
-		when(reviewRepository.findByIdAndUserId(anyLong(), anyLong())).thenReturn(Optional.of(review));
+		when(jpaReviewRepository.findByIdAndUserId(anyLong(), anyLong())).thenReturn(Optional.of(review));
 
 		//when
 		ReviewResultResponse reviewResultResponse = reviewService.deleteReview(reviewId, userId);
@@ -53,7 +54,7 @@ class ReviewDeleteServiceTest {
 	void delete_fail_when_review_is_not_exist() {
 
 		//when
-		when(reviewRepository.findByIdAndUserId(anyLong(), anyLong())).thenThrow(new ReviewException(REVIEW_NOT_FOUND));
+		when(jpaReviewRepository.findByIdAndUserId(anyLong(), anyLong())).thenThrow(new ReviewException(REVIEW_NOT_FOUND));
 
 		//then
 		assertThrows(ReviewException.class, () -> reviewService.deleteReview(reviewId, userId));

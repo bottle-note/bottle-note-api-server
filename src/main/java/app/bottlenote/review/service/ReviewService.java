@@ -1,11 +1,5 @@
 package app.bottlenote.review.service;
 
-import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
-import static app.bottlenote.review.domain.constant.ReviewActiveStatus.DELETED;
-import static app.bottlenote.review.dto.response.ReviewResultMessage.MODIFY_SUCCESS;
-import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
-import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
-
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.response.detail.AlcoholDetailInfo;
@@ -25,7 +19,7 @@ import app.bottlenote.review.dto.response.ReviewResultMessage;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.dto.vo.ReviewModifyVO;
 import app.bottlenote.review.exception.ReviewException;
-import app.bottlenote.review.repository.ReviewRepository;
+import app.bottlenote.review.repository.JpaReviewRepository;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.repository.UserCommandRepository;
@@ -36,6 +30,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
+import static app.bottlenote.review.domain.constant.ReviewActiveStatus.DELETED;
+import static app.bottlenote.review.dto.response.ReviewResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
+import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -43,7 +43,7 @@ public class ReviewService {
 
 	private final AlcoholQueryRepository alcoholQueryRepository;
 	private final UserCommandRepository userCommandRepository;
-	private final ReviewRepository reviewRepository;
+	private final JpaReviewRepository jpaReviewRepository;
 	private final ReviewTastingTagSupport reviewTastingTagSupport;
 	private final ReviewImageSupport reviewImageSupport;
 
@@ -71,7 +71,7 @@ public class ReviewService {
 			.detailAddress(reviewCreateRequest.locationInfo().detailAddress())
 			.build();
 
-		Review saveReview = reviewRepository.save(review);
+		Review saveReview = jpaReviewRepository.save(review);
 
 		reviewImageSupport.saveImages(reviewCreateRequest.imageUrlList(), review);
 
@@ -90,7 +90,7 @@ public class ReviewService {
 		PageableRequest pageableRequest,
 		Long userId
 	) {
-		return reviewRepository.getReviews(alcoholId, pageableRequest, userId);
+		return jpaReviewRepository.getReviews(alcoholId, pageableRequest, userId);
 	}
 
 	@Transactional(readOnly = true)
@@ -134,7 +134,7 @@ public class ReviewService {
 		PageableRequest pageableRequest,
 		Long userId
 	) {
-		return reviewRepository.getReviewsByMe(alcoholId, pageableRequest, userId);
+		return jpaReviewRepository.getReviewsByMe(alcoholId, pageableRequest, userId);
 	}
 
 	@Transactional
@@ -144,7 +144,7 @@ public class ReviewService {
 		Long currentUserId
 	) {
 
-		Review review = reviewRepository.findByIdAndUserId(reviewId, currentUserId).orElseThrow(
+		Review review = jpaReviewRepository.findByIdAndUserId(reviewId, currentUserId).orElseThrow(
 			() -> new ReviewException(REVIEW_NOT_FOUND)
 		);
 
@@ -162,7 +162,7 @@ public class ReviewService {
 	@Transactional
 	public ReviewResultResponse deleteReview(Long reviewId, Long currentUserId) {
 
-		Review review = reviewRepository.findByIdAndUserId(reviewId, currentUserId).orElseThrow(
+		Review review = jpaReviewRepository.findByIdAndUserId(reviewId, currentUserId).orElseThrow(
 			() -> new ReviewException(REVIEW_NOT_FOUND)
 		);
 		ReviewResultMessage reviewResultMessage = review.updateReviewActiveStatus(DELETED);
