@@ -4,10 +4,8 @@ import app.bottlenote.review.dto.request.ReviewImageInfo;
 import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
-@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class ReviewDetailResponse extends ReviewResponse {
 
