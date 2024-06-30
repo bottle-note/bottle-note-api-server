@@ -16,7 +16,6 @@ import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.review.domain.constant.ReviewActiveStatus;
 import app.bottlenote.review.domain.constant.ReviewSortType;
 import app.bottlenote.review.dto.request.PageableRequest;
-import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.ReviewResponse;
@@ -40,7 +39,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 	private final ReviewQuerySupporter supporter;
 
 	@Override
-	public ReviewDetailResponse getReview(Long reviewId, Long userId) {
+	public ReviewResponse getReview(Long reviewId, Long userId) {
 
 		ReviewResponse fetch = queryFactory
 			.select(supporter.reviewResponseConstructor(userId))
@@ -64,7 +63,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 
 		fetch.updateTastingTagList(tastingTagList);
 
-		return new ReviewDetailResponse(fetch);
+		return fetch;
 	}
 
 	@Override

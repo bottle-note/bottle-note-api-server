@@ -1,5 +1,12 @@
 package app.bottlenote.alcohols.repository.custom;
 
+import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.alcohols.domain.QDistillery.distillery;
+import static app.bottlenote.alcohols.domain.QRegion.region;
+import static app.bottlenote.picks.domain.QPicks.picks;
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
+
 import app.bottlenote.alcohols.domain.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
@@ -9,21 +16,14 @@ import app.bottlenote.alcohols.repository.AlcoholQuerySupporter;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.review.dto.response.AlcoholInfo;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.util.List;
 import java.util.Objects;
-
-import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.alcohols.domain.QDistillery.distillery;
-import static app.bottlenote.alcohols.domain.QRegion.region;
-import static app.bottlenote.picks.domain.QPicks.picks;
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.domain.QReview.review;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepository {
@@ -72,6 +72,32 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 				supporter.isPickedSubquery(alcoholId, userId),
 				Expressions.constant(tags) // 여기서 tags 리스트를 상수로 전달
 			))
+			.from(alcohol)
+			.leftJoin(rating).on(alcohol.id.eq(rating.alcohol.id))
+			.join(region).on(alcohol.region.id.eq(region.id))
+			.join(distillery).on(alcohol.distillery.id.eq(distillery.id))
+			.where(alcohol.id.eq(alcoholId))
+			.groupBy(
+				alcohol.id,
+				alcohol.korCategory,
+				alcohol.engCategory,
+				alcohol.imageUrl,
+				alcohol.korName,
+				alcohol.engName,
+				region.korName,
+				region.engName,
+				alcohol.cask,
+				alcohol.abv,
+				distillery.korName,
+				distillery.engName
+			)
+			.fetchOne();
+	}
+
+	@Override
+	public AlcoholInfo findAlcoholById(Long alcoholId, Long userId) {
+		return queryFactory
+			.select(supporter.alcoholInfoConstructor(alcoholId, userId))
 			.from(alcohol)
 			.leftJoin(rating).on(alcohol.id.eq(rating.alcohol.id))
 			.join(region).on(alcohol.region.id.eq(region.id))

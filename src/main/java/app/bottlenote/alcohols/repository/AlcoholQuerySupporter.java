@@ -1,34 +1,60 @@
 package app.bottlenote.alcohols.repository;
 
-import app.bottlenote.alcohols.domain.constant.SearchSortType;
-import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
-import app.bottlenote.alcohols.dto.response.AlcoholsSearchDetail;
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.SortOrder;
-import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.NumberExpression;
-import com.querydsl.core.util.StringUtils;
-import com.querydsl.jpa.JPAExpressions;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
-
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
 
+import app.bottlenote.alcohols.domain.constant.SearchSortType;
+import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
+import app.bottlenote.alcohols.dto.response.AlcoholsSearchDetail;
+import app.bottlenote.global.service.cursor.CursorPageable;
+import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.review.dto.response.AlcoholInfo;
+import com.querydsl.core.types.ConstructorExpression;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.core.util.StringUtils;
+import com.querydsl.jpa.JPAExpressions;
+import java.util.List;
+import org.springframework.stereotype.Component;
+
 @Component
 public class AlcoholQuerySupporter {
 
+	/**
+	 * 리뷰 상세 조회 시 사용되는 AlcoholInfo를 Projection하기 위한 메서드입니다.
+	 *
+	 * @param alcoholId 알코올 ID
+	 * @param userId    유저 ID
+	 * @return AlcoholInfo
+	 */
+	public ConstructorExpression<AlcoholInfo> alcoholInfoConstructor(Long alcoholId, Long userId) {
+		return Projections.constructor(
+			AlcoholInfo.class,
+			alcohol.id.as("alcoholId"),
+			alcohol.korName.as("korName"),
+			alcohol.engName.as("engName"),
+			alcohol.korCategory.as("korCategoryName"),
+			alcohol.engCategory.as("engCategoryName"),
+			alcohol.imageUrl.as("imageUrl"),
+			isPickedSubquery(alcoholId, userId)
+		);
+	}
+
 	public BooleanExpression isPickedSubquery(Long alcoholId, Long userId) {
+
+		BooleanExpression eqUserId = userId == null ?
+			picks.user.id.isNull() : picks.user.id.eq(userId);
+
 		return Expressions.asBoolean(
 			JPAExpressions
 				.selectOne()
 				.from(picks)
-				.where(picks.alcohol.id.eq(alcoholId).and(picks.user.id.eq(userId)))
+				.where(picks.alcohol.id.eq(alcoholId).and(eqUserId))
 				.exists()
 		).as("isPicked");
 	}
