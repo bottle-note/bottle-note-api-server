@@ -15,6 +15,8 @@ import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
+import app.bottlenote.review.dto.response.ReviewReplyResponse;
+import app.bottlenote.review.dto.response.ReviewReplyResultMessage;
 import app.bottlenote.review.dto.response.ReviewResponse;
 import app.bottlenote.user.domain.User;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -55,7 +57,7 @@ public class ReviewObjectFixture {
 	/**
 	 * 리뷰 생성 응답 객체를 반환합니다.
 	 *
-	 * @return the review create response
+	 * @return the review create of
 	 */
 	public static ReviewCreateResponse getReviewCreateResponse() {
 		return ReviewCreateResponse.builder()
@@ -77,7 +79,7 @@ public class ReviewObjectFixture {
 	/**
 	 * 리뷰 리스트 응답 객체를 반환합니다.
 	 *
-	 * @return the review list response
+	 * @return the review list of
 	 */
 	public static PageResponse<ReviewListResponse> getReviewListResponse() {
 
@@ -174,8 +176,17 @@ public class ReviewObjectFixture {
 	 * @param parentReplyId the parent reply id
 	 * @return the review reply register request
 	 */
-	public static ReviewReplyRegisterRequest getReviewReplyRegisterRequest(Long parentReplyId) {
-		return new ReviewReplyRegisterRequest("리뷰 댓글 작성용 fixture request 입니다.", parentReplyId);
+	public static ReviewReplyRegisterRequest getReviewReplyRegisterRequest() {
+		return new ReviewReplyRegisterRequest(RandomStringUtils.randomAlphabetic(100), null);
+	}
+
+	/**
+	 * 리뷰 댓글 응답 객체를 반환합니다.
+	 *
+	 * @return the review reply response
+	 */
+	public static ReviewReplyResponse getReviewReplyResponse() {
+		return ReviewReplyResponse.of(ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY, 1L);
 	}
 
 
