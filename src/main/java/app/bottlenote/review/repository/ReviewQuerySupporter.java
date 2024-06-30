@@ -22,6 +22,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class ReviewQuerySupporter {
 
+	/**
+	 * Alcohol 조회 API에 사용되는 ReviewInfo 클래스의 생성자 Projection 메서드입니다.
+	 *
+	 * @param userId 유저 ID
+	 * @return ReviewInfo
+	 */
+
 	public ConstructorExpression<ReviewsDetailInfo.ReviewInfo> reviewInfoConstructor(Long userId) {
 		return Projections.constructor(
 			ReviewsDetailInfo.ReviewInfo.class,
@@ -43,6 +50,13 @@ public class ReviewQuerySupporter {
 			review.createAt.as("createAt")
 		);
 	}
+
+	/**
+	 * 리뷰 조회 API에 사용되는 생성자 Projection 메서드입니다.
+	 *
+	 * @param userId 유저 ID
+	 * @return ReviewResponse
+	 */
 
 	public ConstructorExpression<ReviewResponse> reviewResponseConstructor(Long userId) {
 		return Projections.constructor(
@@ -69,7 +83,11 @@ public class ReviewQuerySupporter {
 		);
 	}
 
-
+	/**
+	 * 리뷰 댓글 조회 시 사용되는 생성자 Projection 메서드입니다.
+	 *
+	 * @return ReviewReplyInfo
+	 */
 	public ConstructorExpression<ReviewReplyInfo> reviewReplyInfoConstructor() {
 		return Projections.constructor(
 			ReviewReplyInfo.class,
