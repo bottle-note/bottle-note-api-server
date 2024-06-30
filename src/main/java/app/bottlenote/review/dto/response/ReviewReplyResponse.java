@@ -3,17 +3,17 @@ package app.bottlenote.review.dto.response;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public record ReviewReplyResultResponse(
+public record ReviewReplyResponse(
 	ReviewReplyResultMessage codeMessage,
 	String message,
 	Long reviewId,
 	String responseAt
 ) {
-	public static ReviewReplyResultResponse response(
+	public static ReviewReplyResponse of(
 		ReviewReplyResultMessage message,
 		Long reviewId
 	) {
-		return new ReviewReplyResultResponse(
+		return new ReviewReplyResponse(
 			message,
 			message.getMessage(),
 			reviewId,
