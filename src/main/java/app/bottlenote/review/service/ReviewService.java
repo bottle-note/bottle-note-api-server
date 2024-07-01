@@ -7,6 +7,7 @@ import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOU
 import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 import static java.lang.Boolean.FALSE;
 
+import app.bottlenote.alcohols.dto.response.AlcoholInfo;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.service.domain.AlcoholDomainSupport;
 import app.bottlenote.global.service.cursor.PageResponse;
@@ -16,7 +17,6 @@ import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
-import app.bottlenote.review.dto.response.AlcoholInfo;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
@@ -28,7 +28,6 @@ import app.bottlenote.review.dto.vo.ReviewModifyVO;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.service.domain.UserDomainSupport;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -107,11 +106,10 @@ public class ReviewService {
 		ReviewResponse reviewResponse = reviewRepository.getReview(reviewId, currentUserId);
 		log.info("리뷰 정보 조회 시간 : {}", (System.nanoTime() - start3) / 1_000_000 + "ms");
 
-		List<ReviewImageInfo> reviewImageInfos = new ArrayList<>();
-
 		long start4 = System.nanoTime();
-		review.getReviewImages()
-			.forEach(image -> reviewImageInfos.add(ReviewImageInfo.create(image.getOrder(), image.getImageUrl())));
+		List<ReviewImageInfo> reviewImageInfos = review.getReviewImages().stream()
+			.map(image -> ReviewImageInfo.create(image.getOrder(), image.getImageUrl()))
+			.toList();
 		log.info("리뷰 이미지 조회 시간 : {}", (System.nanoTime() - start4) / 1_000_000 + "ms");
 
 		long start5 = System.nanoTime();
@@ -127,9 +125,10 @@ public class ReviewService {
 	}
 
 	@Transactional
-	public String modifyReview(ReviewModifyRequest reviewModifyRequest, Long reviewId, Long currentUserId) {
+	public ReviewResultResponse modifyReview(ReviewModifyRequest reviewModifyRequest, Long reviewId, Long currentUserId) {
 
-		Review review = reviewRepository.findByIdAndUserId(reviewId, currentUserId).orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
+		Review review = reviewRepository.findByIdAndUserId(reviewId, currentUserId)
+			.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
 
 		ReviewModifyVO reviewModifyVO = new ReviewModifyVO(reviewModifyRequest);
 
@@ -139,7 +138,7 @@ public class ReviewService {
 
 		reviewTastingTagSupport.updateReviewTastingTags(reviewModifyRequest.tastingTagList(), review);
 
-		return MODIFY_SUCCESS.getDescription();
+		return ReviewResultResponse.response(MODIFY_SUCCESS, reviewId);
 	}
 
 	@Transactional
