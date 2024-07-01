@@ -4,6 +4,8 @@ import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
 import app.bottlenote.review.service.ReviewReplyService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -18,11 +20,13 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Optional;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @DisplayName("리뷰 댓글 컨트롤러 레이어 테스트")
@@ -41,6 +45,11 @@ class ReviewReplyControllerTest {
 	@BeforeEach
 	void setup() {
 		mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
+	}
+
+	@AfterEach
+	void tearDown() {
+		mockedSecurityUtil.close();
 	}
 
 	@Nested
@@ -62,7 +71,47 @@ class ReviewReplyControllerTest {
 					.with(csrf())
 				)
 				.andDo(print())
-				.andExpect(status().isOk());
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.data.codeMessage").value("SUCCESS_REGISTER_REPLY"))
+				.andExpect(jsonPath("$.data.message").value("성공적으로 댓글을 등록했습니다."))
+				.andExpect(jsonPath("$.data.reviewId").value("1"));
+		}
+
+		@Test
+		@DisplayName("댓글 내용이 없는 경우 예외가 반환된다.")
+		void test_2() throws Exception {
+			final Long reviewId = 1L;
+			var request = ReviewObjectFixture.getReviewReplyRegisterRequest(null, null);
+
+			mockedSecurityUtil.when(SecurityContextUtil::getUserIdByContext).thenReturn(Optional.of(1L));
+
+			mockMvc.perform(post("/api/v1/review/reply/register/{reviewId}", reviewId)
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(request))
+					.with(csrf())
+				)
+				.andDo(print())
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.errors.content", containsString("댓글 내용은 필수 입력값입니다.")));
+
+		}
+
+		@Test
+		@DisplayName("댓글 내용이 500자를 초과하는 경우 예외가 반환된다.")
+		void test_3() throws Exception {
+			final Long reviewId = 1L;
+			var request = ReviewObjectFixture.getReviewReplyRegisterRequest(RandomStringUtils.randomAlphabetic(501), null);
+
+			mockedSecurityUtil.when(SecurityContextUtil::getUserIdByContext).thenReturn(Optional.of(1L));
+
+			mockMvc.perform(post("/api/v1/review/reply/register/{reviewId}", reviewId)
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(request))
+					.with(csrf())
+				)
+				.andDo(print())
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.errors.content", containsString("댓글 내용은 1자 이상 500자 이하로 작성해주세요.")));
 		}
 	}
 }
