@@ -7,10 +7,10 @@ import static app.bottlenote.review.domain.QReview.review;
 
 import app.bottlenote.alcohols.domain.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
+import app.bottlenote.alcohols.dto.response.AlcoholInfo;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchDetail;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.SortOrder;
-import app.bottlenote.review.dto.response.AlcoholInfo;
 import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;

@@ -1,5 +1,6 @@
 package app.bottlenote.review.dto.response;
 
+import app.bottlenote.alcohols.dto.response.AlcoholInfo;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
 import java.util.List;
 

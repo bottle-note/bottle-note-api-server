@@ -9,6 +9,7 @@ import static app.bottlenote.review.domain.QReview.review;
 
 import app.bottlenote.alcohols.domain.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
+import app.bottlenote.alcohols.dto.response.AlcoholInfo;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchDetail;
 import app.bottlenote.alcohols.dto.response.detail.AlcoholDetailInfo;
@@ -16,18 +17,14 @@ import app.bottlenote.alcohols.repository.AlcoholQuerySupporter;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
-import app.bottlenote.review.dto.response.AlcoholInfo;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import java.util.Objects;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 
 public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepository {
-	private static final Logger log = LogManager.getLogger(CustomAlcoholQueryRepositoryImpl.class);
 	private final JPAQueryFactory queryFactory;
 	private final AlcoholQuerySupporter supporter;
 
@@ -94,6 +91,13 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 			.fetchOne();
 	}
 
+	/**
+	 * 리뷰 상세 조회 시 포함 될 술의 정보를 조회합니다.
+	 *
+	 * @param alcoholId 조회 대상 AlcoholId
+	 * @param userId    만약 사용자가 로그인한 경우 좋아요 상태를 확인하기 위한 사용자 ID
+	 * @return AlcoholInfo
+	 */
 	@Override
 	public AlcoholInfo findAlcoholInfoById(Long alcoholId, Long userId) {
 		return queryFactory

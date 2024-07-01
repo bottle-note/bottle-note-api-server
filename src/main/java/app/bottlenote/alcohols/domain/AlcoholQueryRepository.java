@@ -2,11 +2,11 @@ package app.bottlenote.alcohols.domain;
 
 import app.bottlenote.alcohols.domain.constant.AlcoholType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
+import app.bottlenote.alcohols.dto.response.AlcoholInfo;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.CategoryResponse;
 import app.bottlenote.alcohols.dto.response.detail.AlcoholDetailInfo;
 import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.review.dto.response.AlcoholInfo;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.Query;
@@ -31,7 +31,6 @@ public interface AlcoholQueryRepository {
 	AlcoholInfo findAlcoholInfoById(Long alcoholId, Long userId);
 
 	List<CategoryResponse> findAllCategories(AlcoholType type);
-
 
 	@Query("SELECT COUNT(a) > 0 FROM alcohol a WHERE a.id = :alcoholId")
 	Boolean existsByAlcoholId(Long alcoholId);
