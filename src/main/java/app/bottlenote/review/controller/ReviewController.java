@@ -65,6 +65,16 @@ public class ReviewController {
 			));
 	}
 
+	@GetMapping("/detail/{reviewId}")
+	public ResponseEntity<GlobalResponse> getDetailReview(@PathVariable Long reviewId) {
+
+		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(null);
+
+		return ResponseEntity.ok(
+			success(reviewService.getDetailReview(reviewId, currentUserId))
+		);
+	}
+
 	@GetMapping("/me/{alcoholId}")
 	public ResponseEntity<GlobalResponse> getMyReviews(@ModelAttribute PageableRequest pageableRequest, @PathVariable Long alcoholId) {
 

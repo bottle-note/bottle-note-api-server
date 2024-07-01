@@ -1,6 +1,7 @@
 package app.bottlenote.docs.review;
 
 import static app.bottlenote.review.dto.response.ReviewResultMessage.DELETE_SUCCESS;
+import static app.bottlenote.review.dto.response.ReviewResultMessage.MODIFY_SUCCESS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
@@ -248,7 +249,7 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 		//when
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
-		when(reviewService.modifyReview(any(ReviewModifyRequest.class), any(), any())).thenReturn("리뷰 수정이 성공적으로 완료되었습니다.");
+		when(reviewService.modifyReview(any(ReviewModifyRequest.class), any(), any())).thenReturn(ReviewResultResponse.response(MODIFY_SUCCESS, reviewId));
 
 		//then
 		mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/reviews/{reviewId}", reviewId)
@@ -275,7 +276,11 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 					responseFields(
 						fieldWithPath("success").description("응답 성공 여부"),
 						fieldWithPath("code").description("응답 코드(http status code)"),
-						fieldWithPath("data").description("성공 메시지"),
+						fieldWithPath("data").description("응답 데이터"),
+						fieldWithPath("data.codeMessage").description("응답 코드 메시지"),
+						fieldWithPath("data.message").description("응답 메시지"),
+						fieldWithPath("data.reviewId").description("수정된 리뷰의 ID"),
+						fieldWithPath("data.responseAt").description("응답 시간"),
 						fieldWithPath("errors").ignored(),
 						fieldWithPath("meta.serverEncoding").ignored(),
 						fieldWithPath("meta.serverVersion").ignored(),

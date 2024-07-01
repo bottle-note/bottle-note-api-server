@@ -1,34 +1,5 @@
 package app.bottlenote.review.service;
 
-import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
-import app.bottlenote.alcohols.exception.AlcoholException;
-import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.review.domain.Review;
-import app.bottlenote.review.domain.ReviewRepository;
-import app.bottlenote.review.dto.request.PageableRequest;
-import app.bottlenote.review.dto.request.ReviewCreateRequest;
-import app.bottlenote.review.dto.request.ReviewModifyRequest;
-import app.bottlenote.review.dto.response.ReviewCreateResponse;
-import app.bottlenote.review.dto.response.ReviewListResponse;
-import app.bottlenote.review.dto.response.ReviewResultResponse;
-import app.bottlenote.review.exception.ReviewException;
-import app.bottlenote.review.exception.ReviewExceptionCode;
-import app.bottlenote.review.fixture.ReviewObjectFixture;
-import app.bottlenote.user.domain.User;
-import app.bottlenote.user.exception.UserException;
-import app.bottlenote.user.repository.UserCommandRepository;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
-
 import static app.bottlenote.review.dto.response.ReviewResultMessage.DELETE_SUCCESS;
 import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,15 +13,41 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import app.bottlenote.alcohols.exception.AlcoholException;
+import app.bottlenote.alcohols.service.domain.AlcoholDomainSupport;
+import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.review.domain.Review;
+import app.bottlenote.review.domain.ReviewRepository;
+import app.bottlenote.review.dto.request.PageableRequest;
+import app.bottlenote.review.dto.request.ReviewCreateRequest;
+import app.bottlenote.review.dto.request.ReviewModifyRequest;
+import app.bottlenote.review.dto.response.ReviewCreateResponse;
+import app.bottlenote.review.dto.response.ReviewListResponse;
+import app.bottlenote.review.dto.response.ReviewResultResponse;
+import app.bottlenote.review.exception.ReviewException;
+import app.bottlenote.review.exception.ReviewExceptionCode;
+import app.bottlenote.review.fixture.ReviewObjectFixture;
+import app.bottlenote.user.exception.UserException;
+import app.bottlenote.user.service.domain.UserDomainSupport;
+import java.util.Optional;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 @ExtendWith(MockitoExtension.class)
 class ReviewServiceTest {
 
 	@Mock
 	private ReviewRepository reviewRepository;
 	@Mock
-	private AlcoholQueryRepository alcoholQueryRepository;
+	private AlcoholDomainSupport alcoholDomainSupport;
 	@Mock
-	private UserCommandRepository userCommandRepository;
+	private UserDomainSupport userDomainSupport;
 	@Mock
 	private ReviewImageSupport reviewImageSupport;
 	@Mock
@@ -59,8 +56,6 @@ class ReviewServiceTest {
 	@InjectMocks
 	private ReviewService reviewService;
 	private final ReviewCreateRequest reviewCreateRequest = ReviewObjectFixture.getReviewCreateRequest();
-	private final Alcohol alcohol = ReviewObjectFixture.getAlcoholFixture();
-	private final User user = ReviewObjectFixture.getUserFixture();
 	private final Review review = ReviewObjectFixture.getReviewFixture();
 
 	private final PageableRequest request = ReviewObjectFixture.getEmptyPageableRequest();
@@ -80,11 +75,11 @@ class ReviewServiceTest {
 			//given
 
 			//when
-			when(alcoholQueryRepository.findById(anyLong()))
-				.thenReturn(Optional.of(alcohol));
+			when(alcoholDomainSupport.existsByAlcoholId(anyLong()))
+				.thenReturn(Boolean.TRUE);
 
-			when(userCommandRepository.findById(anyLong()))
-				.thenReturn(Optional.of(user));
+			when(userDomainSupport.existsByUserId(anyLong()))
+				.thenReturn(Boolean.TRUE);
 
 			when(reviewRepository.save(any(Review.class)))
 				.thenReturn(review);
@@ -101,7 +96,7 @@ class ReviewServiceTest {
 		@DisplayName("Alcohol이 존재하지 않을 때 AlcoholException이 발생해야 한다.")
 		void review_create_fail_when_alcohol_is_null() {
 			// given
-			when(alcoholQueryRepository.findById(anyLong())).thenReturn(Optional.empty());
+			when(alcoholDomainSupport.existsByAlcoholId(anyLong())).thenReturn(Boolean.FALSE);
 
 			// when, then
 			assertThrows(AlcoholException.class, () -> reviewService.createReview(reviewCreateRequest, 1L));
@@ -111,8 +106,8 @@ class ReviewServiceTest {
 		@DisplayName("유저가 존재하지 않을 때 UserNotFoundException 발생해야 한다.")
 		void review_create_fail_when_user_is_null() {
 			// given
-			when(alcoholQueryRepository.findById(anyLong())).thenReturn(Optional.of(alcohol));
-			when(userCommandRepository.findById(anyLong())).thenReturn(Optional.empty());
+			when(alcoholDomainSupport.existsByAlcoholId(anyLong())).thenReturn(Boolean.TRUE);
+			when(userDomainSupport.existsByUserId(anyLong())).thenReturn(Boolean.FALSE);
 
 			// when, then
 			assertThrows(UserException.class, () -> reviewService.createReview(reviewCreateRequest, 1L));

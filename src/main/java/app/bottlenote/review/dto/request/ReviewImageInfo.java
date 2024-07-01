@@ -10,4 +10,8 @@ public record ReviewImageInfo(
 
 ) {
 
+	public static ReviewImageInfo create(Long order, String viewUrl) {
+		return new ReviewImageInfo(order, viewUrl);
+	}
+
 }

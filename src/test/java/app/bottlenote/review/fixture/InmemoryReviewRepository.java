@@ -6,6 +6,7 @@ import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.response.ReviewListResponse;
+import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.ReviewResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -71,5 +72,10 @@ public class InmemoryReviewRepository implements ReviewRepository {
 
 		log.info("[InMemory] isEligibleParentReply(reviewId = {}, parentReplyId = {}) = {}", reviewId, parentReplyId, first);
 		return first;
+	}
+
+	@Override
+	public List<ReviewReplyInfo> getReviewReplies(Long reviewId) {
+		return null;
 	}
 }
