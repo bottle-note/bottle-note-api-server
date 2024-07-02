@@ -2,6 +2,7 @@ package app.bottlenote.user.domain;
 
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.domain.constant.UserType;
+import app.bottlenote.user.vo.ProfileImageChangeVO;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -47,6 +48,8 @@ public class User {
 	@Column(name = "image_url", nullable = true)
 	private String imageUrl;
 
+
+
 	@Enumerated(EnumType.STRING)
 	@Comment("사용자 권한 (ROLE_USER, ROLE_ADMIN)")
 	@Column(name = "role", nullable = false)
@@ -83,6 +86,10 @@ public class User {
 	public void changeNickName(String nickName) {
 		Objects.requireNonNull(nickName, "nickName은 null이 될 수 없습니다.");
 		this.nickName = nickName;
+	}
+
+	public void changeProfileImage(ProfileImageChangeVO profileImageChangeVO) {
+		this.imageUrl = profileImageChangeVO.getImageUrl();
 	}
 
 }
