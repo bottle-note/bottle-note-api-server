@@ -351,7 +351,7 @@ CREATE TABLE `alcohol_image`
 
 CREATE TABLE `user_history`
 (
-    `id`             bigint       NOT NULL auto_increment  COMMENT '히스토리 id',
+    `id`             bigint       NOT NULL auto_increment COMMENT '히스토리 id',
     `user_id`        bigint       NOT NULL COMMENT '사용자 id',
     `alcohol_id`     bigint       NOT NULL COMMENT '알코올 id',
     `type`           varchar(255) NOT NULL COMMENT 'pick, review, rating',
@@ -367,3 +367,23 @@ CREATE TABLE `user_history`
     ENGINE = InnoDB
     DEFAULT CHARSET = utf8mb4
     COLLATE = utf8mb4_unicode_ci COMMENT = '유저 히스토리';
+
+
+create table notification
+(
+    id             bigint auto_increment primary key,
+    user_id        bigint       not null comment '사용자 id',
+    title          varchar(255) null comment '알림 제목',
+    content        text         null comment '알림 내용',
+    type           varchar(255) null comment '알림 타입',
+    status         varchar(255) null comment '알림 상태',
+    create_at      timestamp    null comment '최초 생성일',
+    create_by      varchar(255) null comment '최초 생성자',
+    last_modify_at timestamp    null comment '최종 생성일',
+    last_modify_by varchar(255) null comment '최종 생성자',
+    constraint notification_users_id_fk
+        foreign key (user_id) references users (id)
+)
+    engine = InnoDB
+    default charset = utf8mb4
+    collate utf8mb4_unicode_ci comment = '사용자 알림';
