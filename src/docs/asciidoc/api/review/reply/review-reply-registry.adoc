@@ -1,0 +1,53 @@
+=== 리뷰 댓글 등록 ===
+
+리뷰의 댓글을 등록 하는 API 문서입니다.
+
+PathVariable로 댓글이 작성되는 대상 리뷰의 식별자를 전달합니다.
+
+* 댓글의 상위는 크게 두가지로 구분됩니다
+** `root reply id` : 최상위 댓글 식별자
+** `parent reply id` : 상위 댓글 식별자
+
+최상위 식별자의 경우 서버에서 파악하기 때문에 상위 댓글 식별자만 전달이 필요합니다.
+
+예를 들어
+
+----
+├── 첫번째 댓글
+└───├── 두번째 댓글
+    └────├─ 세번째 댓글
+         └──── 네번째 댓글
+----
+
+- 첫번쨰 댓글은 상위/최상위 부모가 없는 댓글입니다.
+- 두번째 댓글의 상위 부모이자 최상위 댓글은 첫번째 댓글입니다.
+- 세번째 댓글의 상위 부모는 두번째 댓글이고 최상위 댓글 식별자는 첫번째 댓글의 식별자입니다.
+- 네번째 댓글의 상위 부모는 세번째 댓글이고 최상위 댓글 식별자는 첫번째 댓글의 식별자입니다.
+- 계층 구조는 이해를 쉽게 하기 위한 예시이며 실제 조회시에는 최대 1Depth로 조회됩니다.
+
+[discrete]
+==== API EndPoint ====
+
+----
+POST /api/v1/review/reply/register/{reviewId}
+----
+
+|====
+|PathVariable |설명
+
+|`reviewId` | 리뷰 식별자
+
+|====
+
+[discrete]
+==== 요청 파라미터 ====
+
+include::{snippets}/review/reply/register/request-fields.adoc[]
+include::{snippets}/review/reply/register/request-body.adoc[]
+
+[discrete]
+==== 응답 파라미터  ====
+
+[discrete]
+include::{snippets}/review/reply/register/response-fields.adoc[]
+include::{snippets}/review/reply/register/response-body.adoc[]

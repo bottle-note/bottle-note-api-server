@@ -20,10 +20,12 @@ import java.util.List;
 @Comment("리뷰 댓글 테이블")
 @Entity(name = "review_reply")
 public class ReviewReply extends BaseEntity {
+	@Getter
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	@Getter
 	@Comment("댓글 대상")
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "review_id")
@@ -50,6 +52,7 @@ public class ReviewReply extends BaseEntity {
 	@JoinColumn(name = "parent_reply_id")
 	private ReviewReply parentReviewReply;
 
+	@Getter
 	@Comment("대댓글 목록")
 	@OneToMany(mappedBy = "parentReviewReply", fetch = FetchType.LAZY)
 	private List<ReviewReply> replies = new ArrayList<>();
@@ -77,5 +80,13 @@ public class ReviewReply extends BaseEntity {
 	 */
 	public ReviewReply getRootReviewReply() {
 		return rootReviewReply != null ? rootReviewReply : this;
+	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + "(" +
+			"id = " + id + ", " +
+			"userId = " + userId + ", " +
+			"content = " + content + ")";
 	}
 }

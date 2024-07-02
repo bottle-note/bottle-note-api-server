@@ -1,12 +1,5 @@
 package app.bottlenote.review.repository;
 
-import static app.bottlenote.global.service.cursor.SortOrder.DESC;
-import static app.bottlenote.like.domain.LikeStatus.LIKE;
-import static app.bottlenote.review.domain.constant.ReviewSortType.RATING;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.config.ModuleConfig;
@@ -23,8 +16,6 @@ import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.domain.constant.UserType;
 import app.bottlenote.user.repository.UserCommandRepository;
 import jakarta.persistence.EntityManager;
-import java.util.List;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -39,12 +30,22 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Stream;
+
+import static app.bottlenote.global.service.cursor.SortOrder.DESC;
+import static app.bottlenote.like.domain.LikeStatus.LIKE;
+import static app.bottlenote.review.domain.constant.ReviewSortType.RATING;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 @Tag(value = "data-jpa-test")
 @DataJpaTest
 @ActiveProfiles("test")
 @Import({TestConfig.class, ModuleConfig.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class CustomReviewRepositoryImplTest {
+class CustomJpaReviewRepositoryImplTest {
 
 	@Autowired
 	TestEntityManager testEntityManager;
@@ -54,7 +55,7 @@ class CustomReviewRepositoryImplTest {
 	private AlcoholQueryRepository alcoholQueryRepository;
 
 	@Autowired
-	private ReviewRepository reviewRepository;
+	private JpaReviewRepository jpaReviewRepository;
 
 	@Autowired
 	private UserCommandRepository userRepository;
@@ -118,7 +119,7 @@ class CustomReviewRepositoryImplTest {
 		PageableRequest pageableRequest = PageableRequest.builder().build();
 
 		// when
-		PageResponse<ReviewListResponse> response = reviewRepository.getReviews(1L, pageableRequest,
+		PageResponse<ReviewListResponse> response = jpaReviewRepository.getReviews(1L, pageableRequest,
 			1L);
 
 		// then
