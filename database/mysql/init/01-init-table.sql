@@ -373,14 +373,15 @@ create table notification
 (
     id             bigint auto_increment primary key,
     user_id        bigint       not null comment '사용자 id',
-    title          varchar(255) null comment '알림 제목',
-    content        text         null comment '알림 내용',
-    type           varchar(255) null comment '알림 타입',
-    status         varchar(255) null comment '알림 상태',
+    title          varchar(255) not null comment '알림 제목',
+    content        text         not null comment '알림 내용',
+    type           varchar(255) not null comment '알림 타입 (SYSTEM: 시스템 알림, USER: 사용자 알림, PROMOTION: 프로모션 알림)',
+    status         varchar(255) not null comment '알림 상태 (PENDING: 대기 중, SENT: 전송됨, READ: 읽음, FAILED: 실패)',
+    is_read        boolean      not null comment '읽음 여부',
     create_at      timestamp    null comment '최초 생성일',
     create_by      varchar(255) null comment '최초 생성자',
-    last_modify_at timestamp    null comment '최종 생성일',
-    last_modify_by varchar(255) null comment '최종 생성자',
+    last_modify_at timestamp    null comment '최종 수정일',
+    last_modify_by varchar(255) null comment '최종 수정자',
     constraint notification_users_id_fk
         foreign key (user_id) references users (id)
 )
