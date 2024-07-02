@@ -15,7 +15,7 @@ import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
-import app.bottlenote.review.dto.response.ReviewResponse;
+import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewResultMessage;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.dto.vo.ReviewModifyVO;
@@ -78,7 +78,7 @@ public class ReviewService {
 	}
 
 	@Transactional(readOnly = true)
-	public PageResponse<ReviewResponse> getReviews(
+	public PageResponse<ReviewListResponse> getReviews(
 		Long alcoholId,
 		PageableRequest pageableRequest,
 		Long userId
@@ -87,7 +87,7 @@ public class ReviewService {
 	}
 
 	@Transactional(readOnly = true)
-	public PageResponse<ReviewResponse> getMyReviews(
+	public PageResponse<ReviewListResponse> getMyReviews(
 		Long alcoholId,
 		PageableRequest pageableRequest,
 		Long userId

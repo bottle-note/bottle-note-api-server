@@ -1,5 +1,12 @@
 package app.bottlenote.review.repository;
 
+import static app.bottlenote.global.service.cursor.SortOrder.DESC;
+import static app.bottlenote.like.domain.LikeStatus.LIKE;
+import static app.bottlenote.review.domain.constant.ReviewSortType.RATING;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.config.ModuleConfig;
@@ -9,13 +16,15 @@ import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.like.domain.Likes;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.dto.request.PageableRequest;
-import app.bottlenote.review.dto.response.ReviewDetail;
+import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewResponse;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.domain.constant.UserType;
 import app.bottlenote.user.repository.UserCommandRepository;
 import jakarta.persistence.EntityManager;
+import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -29,16 +38,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Stream;
-
-import static app.bottlenote.global.service.cursor.SortOrder.DESC;
-import static app.bottlenote.like.domain.LikeStatus.LIKE;
-import static app.bottlenote.review.domain.constant.ReviewSortType.RATING;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Tag(value = "data-jpa-test")
 @DataJpaTest
@@ -119,12 +118,12 @@ class CustomReviewRepositoryImplTest {
 		PageableRequest pageableRequest = PageableRequest.builder().build();
 
 		// when
-		PageResponse<ReviewResponse> response = reviewRepository.getReviews(1L, pageableRequest,
+		PageResponse<ReviewListResponse> response = reviewRepository.getReviews(1L, pageableRequest,
 			1L);
 
 		// then
-		ReviewResponse content = response.content();
-		List<ReviewDetail> reviewList = content.getReviewList();
+		ReviewListResponse content = response.content();
+		List<ReviewResponse> reviewList = content.getReviewList();
 		Long totalCount = content.getTotalCount();
 
 		assertNotNull(response);
@@ -133,16 +132,16 @@ class CustomReviewRepositoryImplTest {
 		edgeTest(pageableRequest, testType, reviewList, response);
 	}
 
-	private void edgeTest(PageableRequest request, String testType, List<ReviewDetail> reviewList,
-						  PageResponse<ReviewResponse> response) {
+	private void edgeTest(PageableRequest request, String testType, List<ReviewResponse> reviewList,
+		PageResponse<ReviewListResponse> response) {
 		switch (testType) {
 			case "sort":
 				System.out.println("test case sort");
-				ReviewDetail reviewDetail = reviewList.get(0);
-				ReviewDetail reviewDetail2 = reviewList.get(1);
+				ReviewResponse reviewResponse = reviewList.get(0);
+				ReviewResponse reviewResponse2 = reviewList.get(1);
 
 				//좋아요 순 정렬
-				assertTrue(reviewDetail.getLikeCount() > reviewDetail2.getLikeCount());
+				assertTrue(reviewResponse.getLikeCount() > reviewResponse2.getLikeCount());
 				break;
 
 			case "page":
