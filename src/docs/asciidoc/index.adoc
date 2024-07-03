@@ -76,6 +76,10 @@ include::api/review/review-modify.adoc[]
 
 include::api/review/review-delete.adoc[]
 
+== 리뷰 댓글  (review reply) 관련 API
+
+include::api/review/reply/review-reply-registry.adoc[]
+
 == 지원 (support) 관련 API
 
 include::api/support/report/user-report.adoc[]
