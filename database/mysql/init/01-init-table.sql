@@ -376,6 +376,7 @@ create table notification
     title          varchar(255) not null comment '알림 제목',
     content        text         not null comment '알림 내용',
     type           varchar(255) not null comment '알림 타입 (SYSTEM: 시스템 알림, USER: 사용자 알림, PROMOTION: 프로모션 알림)',
+    category       varchar(255) not null comment '알림의 종류 ( 리뷰, 댓글, 팔로우, 좋아요, 프로모션 )',
     status         varchar(255) not null comment '알림 상태 (PENDING: 대기 중, SENT: 전송됨, READ: 읽음, FAILED: 실패)',
     is_read        boolean      not null comment '읽음 여부',
     create_at      timestamp    null comment '최초 생성일',
