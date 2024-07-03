@@ -48,8 +48,6 @@ public class User {
 	@Column(name = "image_url", nullable = true)
 	private String imageUrl;
 
-
-
 	@Enumerated(EnumType.STRING)
 	@Comment("사용자 권한 (ROLE_USER, ROLE_ADMIN)")
 	@Column(name = "role", nullable = false)

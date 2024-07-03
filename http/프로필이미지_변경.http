@@ -1,0 +1,27 @@
+### 토큰 발급
+POST {{host}}/api/v1/oauth/login
+Content-Type: application/json
+
+{
+  "email": "juye@gmail.com",
+  "socialType": "GOOGLE",
+  "gender": "",
+  "age": ""
+}
+
+> {%
+    //토큰을 전역변수로 저장
+    client.global.set("accessToken", response.body.data.accessToken);
+%}
+
+
+
+### 닉네임변경
+PATCH  {{host}}/api/v1/users/profile-image
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "viewUrl": "http://example.com/new-profile-image.jpg"
+}
+

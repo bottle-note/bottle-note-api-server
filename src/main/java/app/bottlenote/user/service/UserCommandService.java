@@ -26,8 +26,6 @@ public class UserCommandService {
 
 	private final UserCommandRepository userCommandRepository;
 
-	private final UserImageSupport userImageSupport;
-
 	/**
 	 * 닉네임 변경
 	 *
@@ -80,13 +78,17 @@ public class UserCommandService {
 		User user = userCommandRepository.findById(userId)
 			.orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
-		ProfileImageChangeVO profileImageChangeVO = new ProfileImageChangeVO(request.viewUrl());
+		ProfileImageChangeVO profileImageChangeVO = new ProfileImageChangeVO(imageUrl);
 
 		user.changeProfileImage(profileImageChangeVO);
 
 
+		return ProfileImageChangeResponse.builder()
+			.userId(user.getId())
+			.profileImageUrl(user.getImageUrl())
+			.callback("https://bottle-note.com/api/v1/users/info" + userId)// 내정보 조회 페이지
+			.build();
 
-		return ;
 
 	}
 
