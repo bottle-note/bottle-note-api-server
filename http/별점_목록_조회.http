@@ -15,13 +15,13 @@ Content-Type: application/json
 %}
 
 ### 별점 목록 조회
-GET http://localhost:8081/api/v1/rating?keyword=YAM&category=&regionId=&sortType=RANDOM&sortOrder=DESC&cursor=&pageSize=
+GET https://api.bottle-note.com/api/v1/rating?keyword=YAM&category=&regionId=&sortType=RANDOM&sortOrder=DESC&cursor=&pageSize=
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 
 ### 별점 목록 조회
-GET http://localhost:8081/api/v1/rating
+GET https://api.bottle-note.com/api/v1/rating
 Content-Type: application/json
 Authorization: Bearer ""
 

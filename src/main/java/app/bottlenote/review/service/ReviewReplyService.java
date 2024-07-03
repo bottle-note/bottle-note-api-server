@@ -3,11 +3,11 @@ package app.bottlenote.review.service;
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewReply;
+import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
-import app.bottlenote.review.dto.response.ReviewReplyResultResponse;
+import app.bottlenote.review.dto.response.ReviewReplyResponse;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
-import app.bottlenote.review.repository.ReviewRepository;
 import app.bottlenote.user.service.domain.UserDomainSupport;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.repository.Modifying;
@@ -43,11 +43,11 @@ public class ReviewReplyService {
 	 * @param reviewId the review id
 	 * @param userId   the user id
 	 * @param request  the request
-	 * @return the review reply result response
+	 * @return the review reply result of
 	 */
 	@Modifying(flushAutomatically = true, clearAutomatically = true)
 	@Transactional
-	public ReviewReplyResultResponse registerReviewReply(
+	public ReviewReplyResponse registerReviewReply(
 		final Long reviewId,
 		final Long userId,
 		final ReviewReplyRegisterRequest request
@@ -84,7 +84,7 @@ public class ReviewReplyService {
 
 		reviewRepository.save(review);
 
-		return ReviewReplyResultResponse.response(
+		return ReviewReplyResponse.of(
 			SUCCESS_REGISTER_REPLY,
 			review.getId()
 		);
