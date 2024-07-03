@@ -4,7 +4,9 @@ import app.bottlenote.docs.AbstractRestDocs;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.user.controller.UserCommandController;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
+import app.bottlenote.user.dto.request.ProfileImageChangeRequest;
 import app.bottlenote.user.dto.response.NicknameChangeResponse;
+import app.bottlenote.user.dto.response.ProfileImageChangeResponse;
 import app.bottlenote.user.service.UserCommandService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,7 +55,7 @@ class RestDocsUserChangeContollerTest extends AbstractRestDocs {
 
 	@Test
 	@DisplayName("닉네임 변경을 할 수 있다.")
-	void changeNickname_test() throws Exception {
+	void docs_1() throws Exception {
 
 		Long userId = 1L;
 
@@ -95,5 +97,46 @@ class RestDocsUserChangeContollerTest extends AbstractRestDocs {
 					)
 				)
 			);
+	}
+
+	@Test
+	@DisplayName("프로필 이미지를 변경할 수 있다.")
+	void docs_2() throws Exception {
+		Long userId = 1L;
+
+		//given
+		ProfileImageChangeRequest request = new ProfileImageChangeRequest("http://example.com/new-profile-image.jpg");
+		ProfileImageChangeResponse response = ProfileImageChangeResponse.builder()
+			.userId(userId)
+			.profileImageUrl("http://example.com/new-profile-image.jpg")
+			.callback("https://bottle-note.com/api/v1/users/" + userId)
+			.build();
+
+		// when
+		when(userCommandService.profileImageChange(userId, request)).thenReturn(response);
+
+		//then
+		mockMvc.perform(patch("/api/v1/users/profile-image")
+				.contentType(MediaType.APPLICATION_JSON)
+				.with(csrf())
+				.content(objectMapper.writeValueAsString(request)))
+			.andExpect(status().isOk())
+			.andDo(document("user/profile-image-change",
+				requestFields(
+					fieldWithPath("viewUrl").type(JsonFieldType.STRING).description("변경할 프로필 이미지 URL")
+				),
+				responseFields(
+					fieldWithPath("success").type(JsonFieldType.BOOLEAN).description("응답 성공 여부"),
+					fieldWithPath("code").type(JsonFieldType.NUMBER).description("응답 코드(http status code)"),
+					fieldWithPath("data.userId").type(JsonFieldType.NUMBER).description("사용자 ID"),
+					fieldWithPath("data.profileImageUrl").type(JsonFieldType.STRING).description("변경된 프로필 이미지 URL"),
+					fieldWithPath("data.callback").type(JsonFieldType.STRING).description("콜백 URL"),
+					fieldWithPath("errors").type(JsonFieldType.ARRAY).description("응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)"),
+					fieldWithPath("meta.serverEncoding").ignored(),
+					fieldWithPath("meta.serverVersion").ignored(),
+					fieldWithPath("meta.serverPathVersion").ignored(),
+					fieldWithPath("meta.serverResponseTime").ignored()
+				)
+			));
 	}
 }
