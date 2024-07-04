@@ -874,7 +874,24 @@ Host: localhost:8080</code></pre>
 <div class="ulist">
 <ul>
 <li>
-<p><code>rootPath</code> 가  <code>review</code> 일 경우 <code>review/파일명.jpg</code> 로 시작하는 경로로 이미지가 저장됩니다.</p>
+<p><code>rootPath</code> 가  <code>review</code> 일 경우 <code>review/</code> 로 시작하는 경로로 이미지가 저장됩니다.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>rootPath</code> 가  <code>review</code> 일 경우 <strong>서버</strong> 에서는 해당 업로드일과 랜덤한 UUID를 할당한 경로를 생성합니다.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>ex. <code>review/20210101/random-uuid.jpg</code> / <code>user/profile/20210101/random-uuid.jpg</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>이때 이미지의 원본명은 필요 없습니다.(현재로서는)</p>
+</li>
+</ul>
+</div>
 </li>
 <li>
 <p><code>rootPath</code>는 하나의 디렉토리라고 생각하고 일관된 상수로 프론트 영역에서 관리합니다 .</p>
@@ -986,7 +1003,7 @@ Host: localhost:8080</code></pre>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-05T01:49:57.145046",
+    "serverResponseTime" : "2024-07-05T02:05:39.362615",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1183,7 +1200,7 @@ Host: localhost:8080</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
-Set-Cookie: refresh-token=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNjE4NTIyM30.lvmPueUcOb1erv5Llo4qhEUQ_gtWrpFGbBHDw-Pi94qj8MGojoEI3ugdMo8PwoKgrVQZ_gBwBbytwjxh8XktUg; Path=/; Max-Age=1209600; Expires=Thu, 18 Jul 2024 16:49:58 GMT; Secure; HttpOnly
+Set-Cookie: refresh-token=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNjE4NTIyM30.lvmPueUcOb1erv5Llo4qhEUQ_gtWrpFGbBHDw-Pi94qj8MGojoEI3ugdMo8PwoKgrVQZ_gBwBbytwjxh8XktUg; Path=/; Max-Age=1209600; Expires=Thu, 18 Jul 2024 17:05:39 GMT; Secure; HttpOnly
 Content-Type: application/json;charset=UTF-8
 Content-Length: 501
 
@@ -1197,7 +1214,7 @@ Content-Length: 501
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-05T01:49:58.217219",
+    "serverResponseTime" : "2024-07-05T02:05:39.583126",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1300,7 +1317,7 @@ Content-Length: 501
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
-Set-Cookie: refresh-token=new-refresh-token; Path=/; Max-Age=1209600; Expires=Thu, 18 Jul 2024 16:49:57 GMT; Secure; HttpOnly
+Set-Cookie: refresh-token=new-refresh-token; Path=/; Max-Age=1209600; Expires=Thu, 18 Jul 2024 17:05:39 GMT; Secure; HttpOnly
 Content-Type: application/json;charset=UTF-8
 Content-Length: 282
 
@@ -1314,7 +1331,7 @@ Content-Length: 282
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-05T01:49:57.465109",
+    "serverResponseTime" : "2024-07-05T02:05:39.482831",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1457,7 +1474,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-05T01:49:58.610847",
+    "serverResponseTime" : "2024-07-05T02:05:39.675996",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1718,7 +1735,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-05T01:49:53.926609",
+    "serverResponseTime" : "2024-07-05T02:05:36.164450",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 4,
@@ -2295,7 +2312,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-05T01:49:54.178783",
+    "serverResponseTime" : "2024-07-05T02:05:36.466126",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2420,7 +2437,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-05T01:49:54.887822",
+    "serverResponseTime" : "2024-07-05T02:05:37.007012",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2551,7 +2568,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-05T01:49:55.400722",
+    "serverResponseTime" : "2024-07-05T02:05:37.197977",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2654,7 +2671,7 @@ Host: localhost:8080</code></pre>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-05T01:49:54.451023",
+    "serverResponseTime" : "2024-07-05T02:05:36.687438",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2883,7 +2900,7 @@ Host: localhost:8080</code></pre>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-05T01:49:55.285582",
+    "serverResponseTime" : "2024-07-05T02:05:37.101250",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -3197,7 +3214,7 @@ Content-Length: 349
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-05T01:49:56.838206",
+    "serverResponseTime" : "2024-07-05T02:05:39.041079",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -3479,7 +3496,7 @@ PathVariable로 alcoholId를 전달합니다.</p>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json;charset=UTF-8
-Content-Length: 1690
+Content-Length: 1686
 
 {
   "success" : true,
@@ -3494,7 +3511,7 @@ Content-Length: 1690
       "likeCount" : 5,
       "replyCount" : 3,
       "reviewImageUrl" : "https://picsum.photos/600/600",
-      "createAt" : [ 2024, 7, 5, 1, 49, 56, 903925000 ],
+      "createAt" : [ 2024, 7, 5, 2, 5, 39, 84355000 ],
       "userId" : 1,
       "nickName" : "test_user_1",
       "userProfileImage" : "user_profile_image_1",
@@ -3515,7 +3532,7 @@ Content-Length: 1690
       "likeCount" : 3,
       "replyCount" : 6,
       "reviewImageUrl" : "https://picsum.photos/600/600",
-      "createAt" : [ 2024, 7, 4, 1, 49, 56, 903938000 ],
+      "createAt" : [ 2024, 7, 4, 2, 5, 39, 84371000 ],
       "userId" : 2,
       "nickName" : "test_user_2",
       "userProfileImage" : "user_profile_image_2",
@@ -3534,7 +3551,7 @@ Content-Length: 1690
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-05T01:49:56.914809",
+    "serverResponseTime" : "2024-07-05T02:05:39.094273",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 1,
@@ -3869,7 +3886,7 @@ Content-Length: 1690
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json;charset=UTF-8
-Content-Length: 1690
+Content-Length: 1688
 
 {
   "success" : true,
@@ -3884,7 +3901,7 @@ Content-Length: 1690
       "likeCount" : 5,
       "replyCount" : 3,
       "reviewImageUrl" : "https://picsum.photos/600/600",
-      "createAt" : [ 2024, 7, 5, 1, 49, 56, 703204000 ],
+      "createAt" : [ 2024, 7, 5, 2, 5, 38, 866532000 ],
       "userId" : 1,
       "nickName" : "test_user_1",
       "userProfileImage" : "user_profile_image_1",
@@ -3905,7 +3922,7 @@ Content-Length: 1690
       "likeCount" : 3,
       "replyCount" : 6,
       "reviewImageUrl" : "https://picsum.photos/600/600",
-      "createAt" : [ 2024, 7, 4, 1, 49, 56, 703244000 ],
+      "createAt" : [ 2024, 7, 4, 2, 5, 38, 866586000 ],
       "userId" : 2,
       "nickName" : "test_user_2",
       "userProfileImage" : "user_profile_image_2",
@@ -3924,7 +3941,7 @@ Content-Length: 1690
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-05T01:49:56.718271",
+    "serverResponseTime" : "2024-07-05T02:05:38.907991",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 1,
@@ -4201,7 +4218,7 @@ Content-Length: 295
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-05T01:49:56.569395",
+    "serverResponseTime" : "2024-07-05T02:05:38.505366",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -4344,13 +4361,13 @@ Content-Length: 417
     "codeMessage" : "DELETE_SUCCESS",
     "message" : "리뷰 삭제가 성공적으로 완료되었습니다.",
     "reviewId" : 1,
-    "responseAt" : "2024-07-05 01:49:56"
+    "responseAt" : "2024-07-05 02:05:38"
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-05T01:49:56.425061",
+    "serverResponseTime" : "2024-07-05T02:05:38.091975",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -4554,13 +4571,13 @@ Content-Length: 417
     "codeMessage" : "SUCCESS_REGISTER_REPLY",
     "message" : "성공적으로 댓글을 등록했습니다.",
     "reviewId" : 1,
-    "responseAt" : "2024-07-05 01:49:56"
+    "responseAt" : "2024-07-05 02:05:37"
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-05T01:49:56.297438",
+    "serverResponseTime" : "2024-07-05T02:05:37.972673",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -4766,7 +4783,7 @@ Content-Length: 417
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-05T01:49:57.079902",
+    "serverResponseTime" : "2024-07-05T02:05:39.317842",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -4868,7 +4885,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 <h4 class="discrete" id="_요청_파라미터_17">요청 파라미터</h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/v1/follow?_csrf=vI4UfplQi26BK75l4f9xZP4kNzTLsFVVqcft77N43iOqfvPr3-9wTfxhsgqsGtpV1tJFU8hGGlX80TN4mfTUjIJN7EHIR8Xd' -i -X POST \
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/v1/follow?_csrf=08XHLxB06dtJIj0aV7um7bCth02T9cC-8r5w8FJRpXnsAPdQ66ekGXFG2r9kEAUsM5aSiIfIqnWgl_eTwo5Hkmc1nEHVNcU1' -i -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
     -d '{
   "followUserId" : 1,
@@ -5260,7 +5277,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-05T01:49:56.112750",
+    "serverResponseTime" : "2024-07-05T02:05:37.842661",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 0,
@@ -5492,7 +5509,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-05T01:49:56.018275",
+    "serverResponseTime" : "2024-07-05T02:05:37.760493",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
