@@ -4,7 +4,9 @@ import static app.bottlenote.review.dto.response.ReviewResultMessage.DELETE_SUCC
 import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -22,6 +24,7 @@ import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
+import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.exception.ReviewException;
@@ -29,8 +32,8 @@ import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.service.domain.UserDomainSupport;
+import java.util.List;
 import java.util.Optional;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -120,7 +123,7 @@ class ReviewServiceTest {
 
 		@Test
 		@DisplayName("리뷰를 조회할 수 있다.")
-		void testReviewRead() {
+		void test_review_read() {
 			//given
 
 			//when
@@ -137,7 +140,7 @@ class ReviewServiceTest {
 
 		@Test
 		@DisplayName("내가 작성한 리뷰를 조회할 수 있다.")
-		void testMyReviewRead() {
+		void test_my_review_read() {
 			//given
 			Long userId = 1L;
 
@@ -151,6 +154,56 @@ class ReviewServiceTest {
 			assertThat(response.content()).isEqualTo(actualResponse.content());
 			assertThat(response.cursorPageable()).isEqualTo(actualResponse.cursorPageable());
 			verify(reviewRepository).getReviewsByMe(anyLong(), any(PageableRequest.class), anyLong());
+		}
+
+		@DisplayName("리뷰 상세조회를 할 수 있다.")
+		@Test
+		void test_review_detail_reveiw() {
+
+			// when
+			when(reviewRepository.findById(anyLong()))
+				.thenReturn(Optional.of(ReviewObjectFixture.getReviewFixture()));
+
+			when(alcoholDomainSupport.findAlcoholInfoById(anyLong(), anyLong()))
+				.thenReturn(ReviewObjectFixture.getAlcoholInfo());
+
+			when(reviewRepository.getReview(anyLong(), anyLong()))
+				.thenReturn(ReviewObjectFixture.getReviewResponse());
+
+			when(reviewRepository.getReviewReplies(anyLong()))
+				.thenReturn(List.of(ReviewObjectFixture.getReviewReplyInfo()));
+
+			ReviewDetailResponse detailReview = reviewService.getDetailReview(1L, 1L);
+
+			// then
+			assertEquals(1, detailReview.reviewReplyList().size());
+			assertEquals(detailReview.reviewResponse().getReviewId(), review.getId());
+		}
+
+		@DisplayName("리뷰가 존재하지 않으면 조회할 수 없다.")
+		@Test
+		void test_review_read_fail_when_review_not_exist() {
+
+			// when
+			when(reviewRepository.findById(anyLong())).thenThrow(new ReviewException(REVIEW_NOT_FOUND));
+			// then
+			assertThrows(ReviewException.class, () -> reviewService.getDetailReview(1L, 1L));
+		}
+
+		@DisplayName("리뷰 이미지가 존재하지 않아도 리뷰 상세 조회가 가능하다")
+		@Test
+		void test_review_read_success_when_image_is_null() {
+			// given
+
+			when(reviewRepository.findById(anyLong())).thenReturn(Optional.of(review));
+
+			// when
+			ReviewDetailResponse reviewDetail = reviewService.getDetailReview(1L, 1L);
+
+			// then
+			assertNotNull(response);
+
+			assertTrue(reviewDetail.reviewImageList().isEmpty());
 		}
 	}
 
@@ -198,7 +251,7 @@ class ReviewServiceTest {
 			ReviewResultResponse reviewResultResponse = reviewService.deleteReview(reviewId, userId);
 
 			//then
-			Assertions.assertEquals(DELETE_SUCCESS, reviewResultResponse.codeMessage());
+			assertEquals(DELETE_SUCCESS, reviewResultResponse.codeMessage());
 		}
 
 		@Test
