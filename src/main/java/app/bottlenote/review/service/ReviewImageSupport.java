@@ -21,6 +21,12 @@ public class ReviewImageSupport {
 
 	private static final int REVIEW_IMAGE_MAX_SIZE = 5;
 
+	public List<ReviewImageInfo> getReviewImageInfo(Review review) {
+		return review.getReviewImages().stream()
+			.map(image -> ReviewImageInfo.create(image.getOrder(), image.getImageUrl()))
+			.toList();
+	}
+
 	public void saveImages(List<ReviewImageInfo> imageList, Review review) {
 		if (CollectionUtils.isEmpty(imageList)) {
 			return;

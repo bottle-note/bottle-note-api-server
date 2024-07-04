@@ -93,9 +93,8 @@ public class ReviewService {
 	public ReviewDetailResponse getDetailReview(Long reviewId, Long currentUserId) {
 
 		long start = System.nanoTime();
-		Review review = reviewRepository.findById(reviewId).orElseThrow(
-			() -> new ReviewException(REVIEW_NOT_FOUND)
-		);
+		Review review = reviewRepository.findById(reviewId)
+			.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
 		log.info("리뷰 존재유무 확인 시간 : {}", (System.nanoTime() - start) / 1_000_000 + "ms");
 
 		long start2 = System.nanoTime();
@@ -107,9 +106,7 @@ public class ReviewService {
 		log.info("리뷰 정보 조회 시간 : {}", (System.nanoTime() - start3) / 1_000_000 + "ms");
 
 		long start4 = System.nanoTime();
-		List<ReviewImageInfo> reviewImageInfos = review.getReviewImages().stream()
-			.map(image -> ReviewImageInfo.create(image.getOrder(), image.getImageUrl()))
-			.toList();
+		List<ReviewImageInfo> reviewImageInfos = reviewImageSupport.getReviewImageInfo(review);
 		log.info("리뷰 이미지 조회 시간 : {}", (System.nanoTime() - start4) / 1_000_000 + "ms");
 
 		long start5 = System.nanoTime();
