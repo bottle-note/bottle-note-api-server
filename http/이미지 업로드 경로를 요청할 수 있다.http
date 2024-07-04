@@ -1,0 +1,23 @@
+### 토큰 발급 (일반)
+POST {{host}}/api/v1/oauth/login
+Content-Type: application/json
+
+{
+  "email": "dev.bottle-note@gmail.com",
+  "socialType": "GOOGLE",
+  "gender": "MALE",
+  "age": 25
+}
+
+> {%
+    //토큰을 전역변수로 저장
+    client.global.set("accessToken", response.body.data.accessToken);
+%}
+
+### 토큰 없이 이미지 업로드 url 요청시 실패한다.
+GET  {{host}}/api/v1/s3/presign-url?rootPath=review&uploadSize=1
+
+
+### 토큰을 가지고 이미지 업로드 url 요청시 성공한다.
+GET  {{host}}/api/v1/s3/presign-url?rootPath=review&uploadSize=3
+Authorization: Bearer {{accessToken}}
