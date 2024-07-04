@@ -42,7 +42,7 @@ public class ReviewImageSupport {
 				.build()
 			).toList();
 
-		if (!checkImageMaxSize(reviewImageList)) {
+		if (isOverMaxSize(reviewImageList)) {
 			throw new ReviewException(INVALID_IMAGE_URL_MAX_SIZE);
 		}
 		review.saveImages(reviewImageList);
@@ -64,7 +64,7 @@ public class ReviewImageSupport {
 				.build()
 			).toList();
 
-		if (!checkImageMaxSize(reviewImageList)) {
+		if (isOverMaxSize(reviewImageList)) {
 			throw new ReviewException(INVALID_IMAGE_URL_MAX_SIZE);
 		}
 
@@ -72,8 +72,8 @@ public class ReviewImageSupport {
 
 	}
 
-	private boolean checkImageMaxSize(List<ReviewImage> reviewImageList) {
-		return reviewImageList.size() <= REVIEW_IMAGE_MAX_SIZE;
+	private boolean isOverMaxSize(List<ReviewImage> reviewImageList) {
+		return reviewImageList.size() > REVIEW_IMAGE_MAX_SIZE;
 	}
 
 }
