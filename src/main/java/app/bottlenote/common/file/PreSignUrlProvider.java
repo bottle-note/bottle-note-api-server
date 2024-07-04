@@ -20,10 +20,9 @@ public interface PreSignUrlProvider {
 	 * PreSignUrl을 생성한다.
 	 *
 	 * @param imageKey the image key
-	 * @param index    the index
 	 * @return the string
 	 */
-	String generatePreSignUrl(String imageKey, Long index);
+	String generatePreSignUrl(String imageKey);
 
 	/**
 	 * ViewUrl을 생성한다.
@@ -32,10 +31,30 @@ public interface PreSignUrlProvider {
 	 *
 	 * @param cloudFrontUrl 배포 클라우드 프론트 URL
 	 * @param imageKey      s3 오브젝트 루트 경로
-	 * @param index         이미지 순서 번호
 	 * @return the string
 	 */
-	String generateViewUrl(String cloudFrontUrl, String imageKey, Long index);
+	String generateViewUrl(String cloudFrontUrl, String imageKey);
+
+
+	/**
+	 * 루트 경로를 포함한 이미지 키를 생성한다.
+	 * 확장자의 경우 .jpg로 고정한다.
+	 *
+	 * @param rootPath 저장할 루트 경로
+	 * @return 생성된 이미지 키
+	 */
+	default String getImageKey(String rootPath, Long index) {
+		if (rootPath.startsWith(PATH_DELIMITER)) {
+			rootPath = rootPath.substring(1);
+		}
+		if (rootPath.endsWith(PATH_DELIMITER)) {
+			rootPath = rootPath.substring(0, rootPath.length() - 1);
+		}
+		String uploadAt = LocalDate.now().format(ofPattern("yyyyMMdd"));
+		String imageId = index + KEY_DELIMITER + UUID.randomUUID() + "." + EXTENSION;
+
+		return rootPath + PATH_DELIMITER + uploadAt + PATH_DELIMITER + imageId;
+	}
 
 	/**
 	 * 업로드 가능 만료 시간을 계산하여 반환한다.
@@ -54,24 +73,5 @@ public interface PreSignUrlProvider {
 		Calendar expiryTime = Calendar.getInstance();
 		expiryTime.add(Calendar.MINUTE, minutes);
 		return expiryTime;
-	}
-
-	/**
-	 * 루트 경로를 포함한 이미지 키를 생성한다.
-	 * 확장자의 경우 .jpg로 고정한다.
-	 *
-	 * @param rootPath 저장할 루트 경로
-	 * @return 생성된 이미지 키
-	 */
-	default String getImageKey(String rootPath) {
-		if (rootPath.startsWith(PATH_DELIMITER)) {
-			rootPath = rootPath.substring(1);
-		}
-		if (rootPath.endsWith(PATH_DELIMITER)) {
-			rootPath = rootPath.substring(0, rootPath.length() - 1);
-		}
-		String uploadAt = LocalDate.now().format(ofPattern("yyyyMMdd"));
-		String imageId = UUID.randomUUID() + "." + EXTENSION;
-		return rootPath + PATH_DELIMITER + uploadAt + PATH_DELIMITER + imageId;
 	}
 }
