@@ -1,51 +1,50 @@
-# Sample workflow for building and deploying a Jekyll site to GitHub Pages
 name: Deploy Jekyll with GitHub Pages dependencies preinstalled
 
 on:
-  # Runs on pushes targeting the default branch
+  # 기본 분기를 대상으로 하는 푸시에서 실행됩니다.
   push:
-    branches: ["main"]
+    branches: [ "main" ]
 
-  # Allows you to run this workflow manually from the Actions tab
+  # 작업 탭에서 이 워크플로를 수동으로 실행할 수 있습니다.
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+# GitHub 페이지에 배포할 수 있도록 GITHUB_TOKEN의 권한을 설정합니다.
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+# 진행 중인 실행과 최근 대기 중인 실행 사이에 대기 중인 실행을 건너뛰고 동시 배포를 하나만 허용합니다.
+# 그러나 이러한 프로덕션 배포가 완료되도록 하려면 진행 중인 실행을 취소하지 마십시오.
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
-  # Build job
+  # 빌드 작업
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # 최신 우분투 환경에서 실행
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4 # 리포지토리를 체크아웃
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v5 # GitHub Pages 설정
       - name: Build with Jekyll
-        uses: actions/jekyll-build-pages@v1
+        uses: actions/jekyll-build-pages@v1 # Jekyll로 사이트 빌드
         with:
-          source: ./docs
-          destination: ./_site
+          source: ./docs # 소스 폴더 설정
+          destination: ./_site # 빌드된 파일이 저장될 폴더 설정
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v3 # 빌드된 아티팩트를 업로드
 
-  # Deployment job
+  # 배포 작업
   deploy:
     environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
+      name: github-pages # 환경 이름 설정
+      url: ${{ steps.deployment.outputs.page_url }} # 배포된 페이지의 URL 설정
+    runs-on: ubuntu-latest # 최신 우분투 환경에서 실행
+    needs: build # 빌드 작업이 완료되어야 실행
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v4 # GitHub Pages에 배포
