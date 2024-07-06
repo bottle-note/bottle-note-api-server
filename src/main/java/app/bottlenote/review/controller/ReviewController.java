@@ -82,7 +82,7 @@ public class ReviewController {
 			() -> new UserException(REQUIRED_USER_ID)
 		);
 
-		PageResponse<ReviewListResponse> myReviews = reviewService.getMyReviews(alcoholId, pageableRequest, currentUserId);
+		PageResponse<ReviewListResponse> myReviews = reviewService.getMyReviews(pageableRequest, alcoholId, currentUserId);
 
 		return ResponseEntity.ok(
 			success(myReviews.content(), MetaService.createMetaInfo().add("pageable", myReviews.cursorPageable()))
