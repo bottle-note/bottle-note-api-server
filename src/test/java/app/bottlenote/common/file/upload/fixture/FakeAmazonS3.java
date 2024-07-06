@@ -1,4 +1,4 @@
-package app.bottlenote.common.file.upload.fakes;
+package app.bottlenote.common.file.upload.fixture;
 
 import com.amazonaws.HttpMethod;
 import com.amazonaws.SdkClientException;
@@ -9,8 +9,6 @@ import java.net.URL;
 import java.util.Date;
 
 public class FakeAmazonS3 extends AbstractFakeAmazonS3 {
-
-
 	@Override
 	public URL generatePresignedUrl(String bucketName, String key, Date expiration) throws SdkClientException {
 		URL url;
@@ -44,5 +42,4 @@ public class FakeAmazonS3 extends AbstractFakeAmazonS3 {
 		}
 		return url;
 	}
-
 }

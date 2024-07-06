@@ -19,7 +19,10 @@ include::{snippets}/file/image/upload/presign-url/http-request.adoc[]
 include::{snippets}/file/image/upload/presign-url/query-parameters.adoc[]
 
 * rootPath : 루트 경로로 부터 이미지 저장 경로를 지정합니다
-** ``rootPath`` 가  ``review`` 일 경우 ``review/파일명.jpg`` 로 시작하는 경로로 이미지가 저장됩니다.
+** ``rootPath`` 가  ``review`` 일 경우 ``review/`` 로 시작하는 경로로 이미지가 저장됩니다.
+*** ``rootPath`` 가  ``review`` 일 경우 *서버* 에서는 해당 업로드일과 랜덤한 UUID를 할당한 경로를 생성합니다.
+**** ex. ``review/20210101/random-uuid.jpg`` / ``user/profile/20210101/random-uuid.jpg``
+*** 이때 이미지의 원본명은 필요 없습니다.(현재로서는)
 ** ``rootPath``는 하나의 디렉토리라고 생각하고 일관된 상수로 프론트 영역에서 관리합니다 .
 *** ex) ``review``, ``user/profile``,``user/album``, ``product`` 등
 ** 문자열 ``rootPath``의 시작과 끝의 ``/``은 무시 됩니다.
