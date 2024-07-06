@@ -1,16 +1,13 @@
 package app.bottlenote.user.service;
 
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
-import app.bottlenote.user.dto.request.ProfileImageChangeRequest;
 import app.bottlenote.user.dto.response.NicknameChangeResponse;
 import app.bottlenote.user.dto.response.ProfileImageChangeResponse;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.repository.UserCommandRepository;
-import app.bottlenote.user.vo.ProfileImageChangeVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import app.bottlenote.user.domain.User;
@@ -67,25 +64,18 @@ public class UserCommandService {
 	 * 프로필 이미지 변경
 	 *
 	 * @param userId the user id
-	 * @param request the request
+	 * @param viewUrl the view url
 	 * @return the profile image change response
 	 */
 	@Transactional
-	public ProfileImageChangeResponse profileImageChange(Long userId, ProfileImageChangeRequest request) {
+	public ProfileImageChangeResponse profileImageChange(Long userId, String viewUrl) {
 
-		String imageUrl = request.viewUrl();
 
 		User user = userCommandRepository.findById(userId)
 			.orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
-		if (request.status() == DELETE) {
-			user.changeProfileImage(null); // 이미지 URL 삭제
-		} else if (request.status() == UPDATE) {
-			if (request.viewUrl() == null) {
-				throw new UserException(UserExceptionCode.USER_PROFILE_NOT_FOUND);
-			}
-			user.changeProfileImage(request.viewUrl());
-		}
+		user.changeProfileImage(viewUrl);
+
 
 		return ProfileImageChangeResponse.builder()
 			.userId(user.getId())

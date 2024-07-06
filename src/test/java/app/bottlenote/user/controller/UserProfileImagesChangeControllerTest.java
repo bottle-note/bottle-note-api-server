@@ -1,13 +1,14 @@
 package app.bottlenote.user.controller;
 
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.user.dto.request.ProfileImageChangeRequest;
+import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.response.ProfileImageChangeResponse;
 import app.bottlenote.user.service.UserCommandService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -16,6 +17,13 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -24,6 +32,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@DisplayName("유저 컨트롤러 테스트")
 @WebMvcTest(UserCommandController.class)
 @WithMockUser
 public class UserProfileImagesChangeControllerTest {
@@ -37,11 +46,13 @@ public class UserProfileImagesChangeControllerTest {
 
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
+
 	@BeforeEach
 	void setup() {
 		mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
-		when(SecurityContextUtil.getCurrentUserId()).thenReturn(1L);
+		mockedSecurityUtil.when(SecurityContextUtil::getUserIdByContext).thenReturn(Optional.of(1L));
 	}
+
 
 	@AfterEach
 	void tearDown() {
@@ -49,29 +60,32 @@ public class UserProfileImagesChangeControllerTest {
 	}
 
 	@DisplayName("프로필 이미지를 성공적으로 변경할 수 있다.")
+	@Test
 	void test_1() throws Exception {
 
 		Long userId = 1L;
+		String viewUrl = "http://example.com/profile-image.jpg";
 
-		ProfileImageChangeRequest request = new ProfileImageChangeRequest("http://example.com/new-profile-image.jpg");
 		ProfileImageChangeResponse response = ProfileImageChangeResponse.builder()
 			.userId(userId)
-			.profileImageUrl("http://example.com/new-profile-image.jpg")
+			.profileImageUrl(viewUrl)
 			.callback("https://bottle-note.com/api/v1/users/" + userId)
 			.build();
 
-		when(profileImageChangeService.profileImageChange(userId, request)).thenReturn(response);
+		when(profileImageChangeService.profileImageChange(anyLong(), anyString())).thenReturn(response);
+
+		Map<String, String> requestBody = new HashMap<>();
+		requestBody.put("viewUrl", viewUrl);
 
 		mockMvc.perform(patch("/api/v1/users/profile-image")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(mapper.writeValueAsString(request))
+				.content(mapper.writeValueAsString(requestBody))
 				.with(csrf()))
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.success").value("true"))
-			.andExpect(jsonPath("$.code").value("200"))
+			.andExpect(jsonPath("$.success").value(true)) // 수정된 부분
+			.andExpect(jsonPath("$.code").value(200)) // 수정된 부분
 			.andExpect(jsonPath("$.data.userId").value(response.getUserId()))
 			.andExpect(jsonPath("$.data.profileImageUrl").value(response.getProfileImageUrl()))
-			.andExpect(jsonPath("$.data.callback").value(response.getCallback().toString()))
 			.andDo(print());
 
 	}

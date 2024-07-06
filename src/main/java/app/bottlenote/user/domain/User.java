@@ -2,7 +2,6 @@ package app.bottlenote.user.domain;
 
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.domain.constant.UserType;
-import app.bottlenote.user.vo.ProfileImageChangeVO;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -89,8 +88,8 @@ public class User {
 		this.nickName = nickName;
 	}
 
-	public void changeProfileImage(ProfileImageChangeVO profileImageChangeVO) {
-		this.imageUrl = profileImageChangeVO.getImageUrl();
+	public void changeProfileImage(String viewUrl) {
+		this.imageUrl = viewUrl;
 	}
 
 }
