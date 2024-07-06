@@ -1,8 +1,11 @@
 package app.bottlenote.alcohols.service.domain;
 
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
+
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.response.AlcoholInfo;
+import app.bottlenote.alcohols.exception.AlcoholException;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,8 +22,10 @@ public class DefaultAlcoholDomainSupport implements AlcoholDomainSupport {
 	}
 
 	@Override
-	public Boolean existsByAlcoholId(Long alcoholId) {
-		return alcoholQueryRepository.existsByAlcoholId(alcoholId);
+	public void existsByAlcoholId(Long alcoholId) {
+		if (alcoholQueryRepository.existsByAlcoholId(alcoholId).equals(Boolean.FALSE)) {
+			throw new AlcoholException((ALCOHOL_NOT_FOUND));
+		}
 	}
 
 

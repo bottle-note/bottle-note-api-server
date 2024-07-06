@@ -18,9 +18,8 @@ public interface UserDomainSupport {
 	 * 주어진 유저 식별자를 가진 유저가 존재하는지 확인합니다.
 	 *
 	 * @param userId 유저 식별자
-	 * @return 유저가 존재하면 true, 그렇지 않으면 false
 	 */
-	Boolean existsByUserId(Long userId);
+	void existsByUserId(Long userId);
 
 	/**
 	 * 주어진 유저 식별자가 사용 가능한 유효한 유저인지 검증합니다.

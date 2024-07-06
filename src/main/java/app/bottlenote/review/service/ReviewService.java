@@ -1,14 +1,10 @@
 package app.bottlenote.review.service;
 
-import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
 import static app.bottlenote.review.domain.constant.ReviewActiveStatus.DELETED;
 import static app.bottlenote.review.dto.response.ReviewResultMessage.MODIFY_SUCCESS;
 import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
-import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
-import static java.lang.Boolean.FALSE;
 
 import app.bottlenote.alcohols.dto.response.AlcoholInfo;
-import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.service.domain.AlcoholDomainSupport;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.Review;
@@ -26,7 +22,6 @@ import app.bottlenote.review.dto.response.ReviewResultMessage;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.dto.vo.ReviewModifyVO;
 import app.bottlenote.review.exception.ReviewException;
-import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.service.domain.UserDomainSupport;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -49,14 +44,10 @@ public class ReviewService {
 	public ReviewCreateResponse createReview(ReviewCreateRequest reviewCreateRequest, Long currentUserId) {
 
 		//DB에서 Alcohol 엔티티 조회
-		if (alcoholDomainSupport.existsByAlcoholId(reviewCreateRequest.alcoholId()).equals(FALSE)) {
-			throw new AlcoholException(ALCOHOL_NOT_FOUND);
-		}
+		alcoholDomainSupport.existsByAlcoholId(reviewCreateRequest.alcoholId());
 
 		//현재 로그인 한 user id로 DB에서 User 엔티티 조회
-		if (userDomainSupport.existsByUserId(currentUserId).equals(FALSE)) {
-			throw new UserException(USER_NOT_FOUND);
-		}
+		userDomainSupport.existsByUserId(currentUserId);
 
 		Review review = Review.builder()
 			.alcoholId(reviewCreateRequest.alcoholId())

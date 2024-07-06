@@ -10,5 +10,5 @@ public interface AlcoholDomainSupport {
 
 	AlcoholInfo findAlcoholInfoById(Long alcoholId, Long currentUserId);
 
-	Boolean existsByAlcoholId(Long alcoholId);
+	void existsByAlcoholId(Long alcoholId);
 }
