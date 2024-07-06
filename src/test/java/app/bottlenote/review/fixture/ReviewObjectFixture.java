@@ -1,6 +1,7 @@
 package app.bottlenote.review.fixture;
 
 import app.bottlenote.alcohols.domain.Alcohol;
+import app.bottlenote.alcohols.dto.response.AlcoholInfo;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.Review;
@@ -14,17 +15,18 @@ import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
+import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
+import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
 import app.bottlenote.review.dto.response.ReviewReplyResultMessage;
 import app.bottlenote.review.dto.response.ReviewResponse;
 import app.bottlenote.user.domain.User;
-import org.apache.commons.lang3.RandomStringUtils;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
+import org.apache.commons.lang3.RandomStringUtils;
 
 public class ReviewObjectFixture {
 
@@ -134,6 +136,21 @@ public class ReviewObjectFixture {
 		return PageResponse.of(response, cursorPageable);
 	}
 
+	/***
+	 * 단일 리뷰 응답 객체를 반환합니다.
+	 *
+	 * @return ReviewResponse
+	 */
+	public static ReviewResponse getReviewResponse() {
+		return getReviewListResponse().content().getReviewList().get(0);
+	}
+
+	public static ReviewDetailResponse getReviewDetailResponse() {
+		return ReviewDetailResponse.create(getAlcoholInfo(), getReviewResponse(),
+			List.of(new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")),
+			List.of(new ReviewReplyInfo(1L, "imageUrl", "nickName", 1L, content, LocalDateTime.now())));
+	}
+
 	/**
 	 * 리뷰 수정 요청 객체를 반환합니다.
 	 *
@@ -173,7 +190,6 @@ public class ReviewObjectFixture {
 	/**
 	 * 리뷰 댓글 작성 요청 객체를 반환합니다.
 	 *
-	 * @param parentReplyId the parent reply id
 	 * @return the review reply register request
 	 */
 	public static ReviewReplyRegisterRequest getReviewReplyRegisterRequest() {
@@ -189,6 +205,16 @@ public class ReviewObjectFixture {
 		return ReviewReplyResponse.of(ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY, 1L);
 	}
 
+	public static ReviewReplyInfo getReviewReplyInfo() {
+		return ReviewReplyInfo.builder()
+			.userId(1L)
+			.imageUrl("imageUrl")
+			.nickName("nickname")
+			.reviewReplyId(1L)
+			.reviewReplyContent(content)
+			.createAt(LocalDateTime.of(2024, 7, 7, 0, 0, 0))
+			.build();
+	}
 
 	// domain
 
@@ -285,6 +311,11 @@ public class ReviewObjectFixture {
 			.nickName(randomized)
 			.age(age)
 			.build();
+	}
+
+	public static AlcoholInfo getAlcoholInfo() {
+		return new AlcoholInfo(1L, "글래스고 12년산", "1770 Glasgow Single Malt"
+			, "싱글 몰트", "Single Malt", "ImageUrl", false);
 	}
 
 }
