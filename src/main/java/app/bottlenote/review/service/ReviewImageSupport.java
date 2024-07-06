@@ -21,8 +21,8 @@ public class ReviewImageSupport {
 
 	private static final int REVIEW_IMAGE_MAX_SIZE = 5;
 
-	public List<ReviewImageInfo> getReviewImageInfo(Review review) {
-		return review.getReviewImages().stream()
+	public List<ReviewImageInfo> getReviewImageInfo(List<ReviewImage> reviewImages) {
+		return reviewImages.stream()
 			.map(image -> ReviewImageInfo.create(image.getOrder(), image.getImageUrl()))
 			.toList();
 	}

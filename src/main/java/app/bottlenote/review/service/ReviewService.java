@@ -106,7 +106,7 @@ public class ReviewService {
 		log.info("리뷰 정보 조회 시간 : {}", (System.nanoTime() - start3) / 1_000_000 + "ms");
 
 		long start4 = System.nanoTime();
-		List<ReviewImageInfo> reviewImageInfos = reviewImageSupport.getReviewImageInfo(review);
+		List<ReviewImageInfo> reviewImageInfos = reviewImageSupport.getReviewImageInfo(review.getReviewImages());
 		log.info("리뷰 이미지 조회 시간 : {}", (System.nanoTime() - start4) / 1_000_000 + "ms");
 
 		long start5 = System.nanoTime();
