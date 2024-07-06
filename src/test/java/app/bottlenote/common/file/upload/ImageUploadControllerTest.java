@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@DisplayName("이미지 업로드 컨트롤러 테스트")
+@DisplayName("[Mock] 이미지 업로드 컨트롤러 테스트")
 @WebMvcTest(controllers = {ImageUploadController.class})
 class ImageUploadControllerTest {
 	@Autowired
@@ -103,5 +103,4 @@ class ImageUploadControllerTest {
 			.andExpect(status().isUnauthorized())
 			.andDo(print());
 	}
-
 }

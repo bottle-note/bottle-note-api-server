@@ -1,4 +1,4 @@
-package app.bottlenote.common.file.upload.fakes;
+package app.bottlenote.common.file.upload.fixture;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.AmazonWebServiceRequest;
