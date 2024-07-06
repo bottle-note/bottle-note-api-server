@@ -78,17 +78,19 @@ public class UserCommandService {
 		User user = userCommandRepository.findById(userId)
 			.orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
-		ProfileImageChangeVO profileImageChangeVO = new ProfileImageChangeVO(imageUrl);
-
-		user.changeProfileImage(profileImageChangeVO);
-
+		if (request.status() == DELETE) {
+			user.changeProfileImage(null); // 이미지 URL 삭제
+		} else if (request.status() == UPDATE) {
+			if (request.viewUrl() == null) {
+				throw new UserException(UserExceptionCode.USER_PROFILE_NOT_FOUND);
+			}
+			user.changeProfileImage(request.viewUrl());
+		}
 
 		return ProfileImageChangeResponse.builder()
 			.userId(user.getId())
 			.profileImageUrl(user.getImageUrl())
-			.callback("https://bottle-note.com/api/v1/users/info" + userId)// 내정보 조회 페이지
 			.build();
-
 
 	}
 
