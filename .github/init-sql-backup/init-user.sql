@@ -5,8 +5,6 @@ CREATE TABLE `users`
     `nick_name`      VARCHAR(255) NOT NULL COMMENT '사용자 소셜 닉네임 ( 수정 가능 )',
     `age`            integer      NULL COMMENT '사용자 나이',
     `image_url`      VARCHAR(255) NULL COMMENT '사용자 프로필 이미지',
-    `image_key`      VARCHAR(255) NULL COMMENT '업로드된 루트 경로(버킷부터 이미지 이름까지)',
-    `image_path`     VARCHAR(255) NULL COMMENT '저장된 이미지 경로(버킷부터 최종폴더까지)',
     `gender`         VARCHAR(255) NULL,
     `role`           VARCHAR(255) NOT NULL DEFAULT 'GUEST',
     `social_type`    VARCHAR(255) NOT NULL COMMENT '소셜 타입 (NAVER, GOOGLE, APPLE)',
