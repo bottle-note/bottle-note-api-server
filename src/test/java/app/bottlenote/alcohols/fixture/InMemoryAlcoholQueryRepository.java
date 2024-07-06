@@ -4,11 +4,11 @@ import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.domain.constant.AlcoholType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
+import app.bottlenote.alcohols.dto.response.AlcoholInfo;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.CategoryResponse;
 import app.bottlenote.alcohols.dto.response.detail.AlcoholDetailInfo;
 import app.bottlenote.global.service.cursor.PageResponse;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +51,17 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
 	}
 
 	@Override
+	public Optional<AlcoholInfo> findAlcoholInfoById(Long alcoholId, Long userId) {
+		return null;
+	}
+
+	@Override
 	public List<CategoryResponse> findAllCategories(AlcoholType type) {
 		return List.of();
+	}
+
+	@Override
+	public Boolean existsByAlcoholId(Long alcoholId) {
+		return null;
 	}
 }
