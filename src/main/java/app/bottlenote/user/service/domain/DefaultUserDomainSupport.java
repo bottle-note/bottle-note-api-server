@@ -1,7 +1,6 @@
 package app.bottlenote.user.service.domain;
 
 import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
-import static java.lang.Boolean.FALSE;
 
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserQueryRepository;
@@ -26,11 +25,9 @@ public class DefaultUserDomainSupport implements UserDomainSupport {
 	}
 
 	@Override
-	public void existsByUserId(Long userId) {
+	public Boolean existsByUserId(Long userId) {
 		log.info("[domain] existsByUserId : {}", userId);
-		if (userQueryRepository.existsByUserId(userId).equals(FALSE)) {
-			throw new UserException(USER_NOT_FOUND);
-		}
+		return userQueryRepository.existsByUserId(userId);
 	}
 
 	@Override

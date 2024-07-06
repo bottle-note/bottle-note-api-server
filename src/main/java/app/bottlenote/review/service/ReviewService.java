@@ -44,10 +44,10 @@ public class ReviewService {
 	public ReviewCreateResponse createReview(ReviewCreateRequest reviewCreateRequest, Long currentUserId) {
 
 		//DB에서 Alcohol 엔티티 조회
-		alcoholDomainSupport.existsByAlcoholId(reviewCreateRequest.alcoholId());
+		alcoholDomainSupport.isValidAlcoholId(reviewCreateRequest.alcoholId());
 
 		//현재 로그인 한 user id로 DB에서 User 엔티티 조회
-		userDomainSupport.existsByUserId(currentUserId);
+		userDomainSupport.isValidUserId(currentUserId);
 
 		Review review = Review.builder()
 			.alcoholId(reviewCreateRequest.alcoholId())
@@ -89,7 +89,8 @@ public class ReviewService {
 		log.info("리뷰 존재유무 확인 시간 : {}", (System.nanoTime() - start) / 1_000_000 + "ms");
 
 		long start2 = System.nanoTime();
-		AlcoholInfo alcoholInfo = alcoholDomainSupport.findAlcoholInfoById(review.getAlcoholId(), currentUserId);
+		AlcoholInfo alcoholInfo = alcoholDomainSupport.findAlcoholInfoById(review.getAlcoholId(), currentUserId)
+			.orElse(AlcoholInfo.empty());
 		log.info("알코올 정보 조회 시간 : {}", (System.nanoTime() - start2) / 1_000_000 + "ms");
 
 		long start3 = System.nanoTime();

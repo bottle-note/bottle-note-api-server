@@ -19,7 +19,7 @@ public interface UserDomainSupport {
 	 *
 	 * @param userId 유저 식별자
 	 */
-	void existsByUserId(Long userId);
+	Boolean existsByUserId(Long userId);
 
 	/**
 	 * 주어진 유저 식별자가 사용 가능한 유효한 유저인지 검증합니다.

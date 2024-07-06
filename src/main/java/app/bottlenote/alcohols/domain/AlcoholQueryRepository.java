@@ -28,7 +28,7 @@ public interface AlcoholQueryRepository {
 
 	AlcoholDetailInfo findAlcoholDetailById(Long alcoholId, Long userId);
 
-	AlcoholInfo findAlcoholInfoById(Long alcoholId, Long userId);
+	Optional<AlcoholInfo> findAlcoholInfoById(Long alcoholId, Long userId);
 
 	List<CategoryResponse> findAllCategories(AlcoholType type);
 
