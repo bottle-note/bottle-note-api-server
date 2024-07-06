@@ -22,6 +22,7 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 
 public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepository {
@@ -99,8 +100,8 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 	 * @return AlcoholInfo
 	 */
 	@Override
-	public AlcoholInfo findAlcoholInfoById(Long alcoholId, Long userId) {
-		return queryFactory
+	public Optional<AlcoholInfo> findAlcoholInfoById(Long alcoholId, Long userId) {
+		return Optional.ofNullable(queryFactory
 			.select(supporter.alcoholInfoConstructor(alcoholId, userId))
 			.from(alcohol)
 			.leftJoin(rating).on(alcohol.id.eq(rating.alcohol.id))
@@ -121,7 +122,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 				distillery.korName,
 				distillery.engName
 			)
-			.fetchOne();
+			.fetchOne());
 	}
 
 	/**

@@ -5,6 +5,7 @@ import app.bottlenote.alcohols.dto.response.AlcoholInfo;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.detail.AlcoholDetailInfo;
 import app.bottlenote.global.service.cursor.PageResponse;
+import java.util.Optional;
 
 public interface CustomAlcoholQueryRepository {
 
@@ -12,5 +13,5 @@ public interface CustomAlcoholQueryRepository {
 
 	AlcoholDetailInfo findAlcoholDetailById(Long alcoholId, Long userId);
 
-	AlcoholInfo findAlcoholInfoById(Long alcoholId, Long userId);
+	Optional<AlcoholInfo> findAlcoholInfoById(Long alcoholId, Long userId);
 }

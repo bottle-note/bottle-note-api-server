@@ -15,7 +15,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.service.domain.AlcoholDomainSupport;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.Review;
@@ -30,7 +29,6 @@ import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
-import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.service.domain.UserDomainSupport;
 import java.util.List;
 import java.util.Optional;
@@ -78,12 +76,6 @@ class ReviewServiceTest {
 			//given
 
 			//when
-			when(alcoholDomainSupport.existsByAlcoholId(anyLong()))
-				.thenReturn(Boolean.TRUE);
-
-			when(userDomainSupport.existsByUserId(anyLong()))
-				.thenReturn(Boolean.TRUE);
-
 			when(reviewRepository.save(any(Review.class)))
 				.thenReturn(review);
 
@@ -93,27 +85,6 @@ class ReviewServiceTest {
 			verify(reviewTastingTagSupport, times(1)).saveReviewTastingTag(anyList(), any());
 
 			assertEquals(response.getId(), review.getId());
-		}
-
-		@Test
-		@DisplayName("Alcohol이 존재하지 않을 때 AlcoholException이 발생해야 한다.")
-		void review_create_fail_when_alcohol_is_null() {
-			// given
-			when(alcoholDomainSupport.existsByAlcoholId(anyLong())).thenReturn(Boolean.FALSE);
-
-			// when, then
-			assertThrows(AlcoholException.class, () -> reviewService.createReview(reviewCreateRequest, 1L));
-		}
-
-		@Test
-		@DisplayName("유저가 존재하지 않을 때 UserNotFoundException 발생해야 한다.")
-		void review_create_fail_when_user_is_null() {
-			// given
-			when(alcoholDomainSupport.existsByAlcoholId(anyLong())).thenReturn(Boolean.TRUE);
-			when(userDomainSupport.existsByUserId(anyLong())).thenReturn(Boolean.FALSE);
-
-			// when, then
-			assertThrows(UserException.class, () -> reviewService.createReview(reviewCreateRequest, 1L));
 		}
 	}
 
@@ -148,7 +119,7 @@ class ReviewServiceTest {
 			when(reviewRepository.getReviewsByMe(anyLong(), any(PageableRequest.class), anyLong()))
 				.thenReturn(response);
 
-			PageResponse<ReviewListResponse> actualResponse = reviewService.getMyReviews(1L, request, userId);
+			PageResponse<ReviewListResponse> actualResponse = reviewService.getMyReviews(request, 1L, userId);
 
 			//then
 			assertThat(response.content()).isEqualTo(actualResponse.content());
@@ -165,7 +136,7 @@ class ReviewServiceTest {
 				.thenReturn(Optional.of(ReviewObjectFixture.getReviewFixture()));
 
 			when(alcoholDomainSupport.findAlcoholInfoById(anyLong(), anyLong()))
-				.thenReturn(ReviewObjectFixture.getAlcoholInfo());
+				.thenReturn(Optional.of(ReviewObjectFixture.getAlcoholInfo()));
 
 			when(reviewRepository.getReview(anyLong(), anyLong()))
 				.thenReturn(ReviewObjectFixture.getReviewResponse());
