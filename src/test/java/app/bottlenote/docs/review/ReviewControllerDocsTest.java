@@ -26,6 +26,7 @@ import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.controller.ReviewController;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
+import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
@@ -107,7 +108,7 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 
 
 	@Test
-	@DisplayName("리뷰를 조회할 수 있다.")
+	@DisplayName("리뷰 목록을 조회할 수 있다.")
 	void review_read_test() throws Exception {
 
 		//given
@@ -173,6 +174,68 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 	}
 
 	@Test
+	@DisplayName("리뷰를 상세조회할 수 있다.")
+	void review_detail_read_test() throws Exception {
+
+		ReviewDetailResponse reviewDetailResponse = ReviewObjectFixture.getReviewDetailResponse();
+
+		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
+
+		when(reviewService.getDetailReview(anyLong(), anyLong())).thenReturn(reviewDetailResponse);
+
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/reviews/detail/1"))
+			.andExpect(status().isOk())
+			.andDo(
+				document("review/review-detail-read",
+					responseFields(
+						fieldWithPath("success").description("요청 성공 여부"),
+						fieldWithPath("code").description("응답 코드"),
+						fieldWithPath("data.alcoholInfo.alcoholId").description("술 ID"),
+						fieldWithPath("data.alcoholInfo.korName").description("술의 한국어 이름"),
+						fieldWithPath("data.alcoholInfo.engName").description("술의 영어 이름"),
+						fieldWithPath("data.alcoholInfo.korCategoryName").description("술 카테고리의 한국어 이름"),
+						fieldWithPath("data.alcoholInfo.engCategoryName").description("술 카테고리의 영어 이름"),
+						fieldWithPath("data.alcoholInfo.imageUrl").description("술 이미지 URL"),
+						fieldWithPath("data.alcoholInfo.isPicked").description("선택 여부"),
+						fieldWithPath("data.reviewResponse.reviewId").description("리뷰 ID"),
+						fieldWithPath("data.reviewResponse.reviewContent").description("리뷰 내용"),
+						fieldWithPath("data.reviewResponse.price").description("가격"),
+						fieldWithPath("data.reviewResponse.sizeType").description("사이즈 타입"),
+						fieldWithPath("data.reviewResponse.likeCount").description("좋아요 개수"),
+						fieldWithPath("data.reviewResponse.replyCount").description("댓글 개수"),
+						fieldWithPath("data.reviewResponse.reviewImageUrl").description("리뷰 이미지 URL"),
+						fieldWithPath("data.reviewResponse.createAt").description("리뷰 작성 시간"),
+						fieldWithPath("data.reviewResponse.userId").description("사용자 ID"),
+						fieldWithPath("data.reviewResponse.nickName").description("닉네임"),
+						fieldWithPath("data.reviewResponse.userProfileImage").description("사용자 프로필 이미지 URL"),
+						fieldWithPath("data.reviewResponse.rating").description("평점"),
+						fieldWithPath("data.reviewResponse.zipCode").description("우편번호"),
+						fieldWithPath("data.reviewResponse.address").description("주소"),
+						fieldWithPath("data.reviewResponse.detailAddress").description("상세 주소"),
+						fieldWithPath("data.reviewResponse.status").description("리뷰 상태"),
+						fieldWithPath("data.reviewResponse.isMyReview").description("내 리뷰 여부"),
+						fieldWithPath("data.reviewResponse.isLikedByMe").description("내가 좋아요를 눌렀는지 여부"),
+						fieldWithPath("data.reviewResponse.hasReplyByMe").description("내가 댓글을 달았는지 여부"),
+						fieldWithPath("data.reviewResponse.reviewTastingTag").description("리뷰 테이스팅 태그 목록"),
+						fieldWithPath("data.reviewImageList[].order").description("이미지 순서"),
+						fieldWithPath("data.reviewImageList[].viewUrl").description("이미지 URL"),
+						fieldWithPath("data.reviewReplyList[].userId").description("댓글 사용자 ID"),
+						fieldWithPath("data.reviewReplyList[].imageUrl").description("댓글 사용자 이미지 URL"),
+						fieldWithPath("data.reviewReplyList[].nickName").description("댓글 사용자 닉네임"),
+						fieldWithPath("data.reviewReplyList[].reviewReplyId").description("댓글 ID"),
+						fieldWithPath("data.reviewReplyList[].reviewReplyContent").description("댓글 내용"),
+						fieldWithPath("data.reviewReplyList[].createAt").description("댓글 작성 시간"),
+						fieldWithPath("errors").description("에러 목록"),
+						fieldWithPath("meta.serverVersion").description("서버 버전"),
+						fieldWithPath("meta.serverEncoding").description("서버 인코딩"),
+						fieldWithPath("meta.serverResponseTime").description("서버 응답 시간"),
+						fieldWithPath("meta.serverPathVersion").description("서버 패스 버전")
+					)
+				)
+			);
+	}
+
+	@Test
 	@DisplayName("내가 작성한 리뷰를 조회할 수 있다.")
 	void my_review_read_test() throws Exception {
 
@@ -182,8 +245,7 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 		//when
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
-		when(reviewService.getMyReviews(any(), any(), any())).thenReturn(
-			response);
+		when(reviewService.getMyReviews(any(), any(), any())).thenReturn(response);
 
 		//then
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/reviews/me/1")
