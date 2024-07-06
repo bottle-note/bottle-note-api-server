@@ -20,10 +20,9 @@ import java.util.Map;
 import java.util.Optional;
 
 import static app.bottlenote.user.dto.response.NicknameChangeResponse.Message.SUCCESS;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -123,7 +122,7 @@ class RestDocsUserChangeContollerTest extends AbstractRestDocs {
 		mockMvc.perform(patch("/api/v1/users/profile-image")
 				.contentType(MediaType.APPLICATION_JSON)
 				.with(csrf())
-				.content(objectMapper.writeValueAsString(requestBody))) // JSON 문자열로 viewUrl 전달
+				.content(objectMapper.writeValueAsString(requestBody)))
 			.andExpect(status().isOk())
 			.andDo(document("user/profile-image-change",
 				requestFields(
@@ -143,5 +142,4 @@ class RestDocsUserChangeContollerTest extends AbstractRestDocs {
 				)
 			));
 	}
-
 }

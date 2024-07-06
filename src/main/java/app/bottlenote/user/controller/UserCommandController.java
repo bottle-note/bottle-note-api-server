@@ -16,8 +16,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
-
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 
 
@@ -37,7 +35,7 @@ public class UserCommandController {
 			.orElseThrow(() -> new UserException(UserExceptionCode.REQUIRED_USER_ID));
 
 
-		NicknameChangeResponse response = userCommandService.nicknameChange(userId ,nicknameChangeRequest);
+		NicknameChangeResponse response = userCommandService.nicknameChange(userId, nicknameChangeRequest);
 		return ResponseEntity.ok(GlobalResponse.success(response));
 	}
 

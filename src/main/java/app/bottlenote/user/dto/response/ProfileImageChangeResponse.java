@@ -7,8 +7,6 @@ import lombok.Getter;
 
 import java.net.URL;
 
-import static app.bottlenote.review.exception.ReviewExceptionCode.INVALID_CALL_BACK_URL;
-
 @Getter
 public class ProfileImageChangeResponse {
 
