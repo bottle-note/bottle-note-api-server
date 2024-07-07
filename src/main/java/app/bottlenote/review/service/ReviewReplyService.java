@@ -4,6 +4,7 @@ import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewRepository;
+import app.bottlenote.review.dto.request.ReviewReplyPageableRequest;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
 import app.bottlenote.review.exception.ReviewException;
@@ -14,6 +15,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -88,5 +90,19 @@ public class ReviewReplyService {
 			SUCCESS_REGISTER_REPLY,
 			review.getId()
 		);
+	}
+
+
+	/**
+	 * 최상위 리뷰 목록을 조회합니다
+	 * 이때 대댓글 목록은 제외됩니다.
+	 *
+	 * @param reviewId 조회할 리뷰 식별자
+	 * @param pageable 페이징 정보
+	 * @return 최상위 리뷰 목록
+	 */
+	@Transactional(readOnly = true)
+	public List<?> getReviewRootReplys(Long reviewId, ReviewReplyPageableRequest pageable) {
+		return reviewRepository.getReviewRootReplies(reviewId, pageable.cursor(), pageable.pageSize());
 	}
 }
