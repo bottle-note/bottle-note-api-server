@@ -13,6 +13,7 @@ import app.bottlenote.rating.dto.request.RatingListFetchRequest;
 import app.bottlenote.rating.dto.request.RatingRegisterRequest;
 import app.bottlenote.rating.dto.response.RatingListFetchResponse;
 import app.bottlenote.rating.dto.response.RatingRegisterResponse;
+import app.bottlenote.rating.dto.response.UserRatingResponse;
 import app.bottlenote.rating.fixture.RatingObjectFixture;
 import app.bottlenote.rating.service.RatingCommandService;
 import app.bottlenote.rating.service.RatingQueryService;
@@ -23,6 +24,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.http.MediaType;
+import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 
 import java.util.Optional;
 
@@ -37,6 +39,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -168,6 +171,44 @@ public class RestRatingControllerTest extends AbstractRestDocs {
 					fieldWithPath("meta.searchParameters.sortOrder").description("검색 시 사용 한 정렬 순서"),
 					fieldWithPath("meta.searchParameters.cursor").description("검색 시 사용 한 커서 기준 "),
 					fieldWithPath("meta.searchParameters.pageSize").description("검색 시 사용 한 페이지 사이즈")
+				)
+			));
+	}
+
+	@Test
+	@DisplayName("어떤 유저가 어떤 알코올에 준 개별적인 별점을 조회할 수 잇다.")
+	void test_3() throws Exception {
+		// given
+		long alcoholId = 1L;
+		long userId = 3L;
+		var response = UserRatingResponse.create(RatingPoint.of(5), alcoholId, userId);
+
+		// when
+		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
+		when(queryService.fetchUserRating(anyLong(), anyLong())).thenReturn(response);
+
+		// then
+		mockMvc.perform(RestDocumentationRequestBuilders.get("/api/v1/rating/{alcoholId}", alcoholId)
+				.contentType(MediaType.APPLICATION_JSON)
+				.with(csrf())
+			)
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andDo(document("rating/user-rating",
+				pathParameters(
+					parameterWithName("alcoholId").description("별점을 조회할 위스키의 식별자")
+				),
+				responseFields(
+					fieldWithPath("success").description("응답 성공 여부"),
+					fieldWithPath("code").description("응답 코드(http status code)"),
+					fieldWithPath("data.rating").description("등록된 별점"),
+					fieldWithPath("data.alcoholId").description("별점을 준 위스키의 식별자"),
+					fieldWithPath("data.userId").description("별점을 준 유저의 식별자"),
+					fieldWithPath("errors").ignored(),
+					fieldWithPath("meta.serverEncoding").ignored(),
+					fieldWithPath("meta.serverVersion").ignored(),
+					fieldWithPath("meta.serverPathVersion").ignored(),
+					fieldWithPath("meta.serverResponseTime").ignored()
 				)
 			));
 	}

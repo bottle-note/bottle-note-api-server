@@ -1,13 +1,13 @@
 package app.bottlenote.user.service.domain;
 
-import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
-
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserQueryRepository;
 import app.bottlenote.user.exception.UserException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
+
+import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
 @Service
 public class DefaultUserDomainSupport implements UserDomainSupport {

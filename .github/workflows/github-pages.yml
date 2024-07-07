@@ -27,13 +27,25 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4 # 리포지토리를 체크아웃
+
+      - name: Set up Java 17 # Java 17 설정
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'adopt' # OpenJDK 배포판 사용
+
+      - name: Build application # 애플리케이션 빌드
+        run: ./gradlew build # Gradle을 사용한 빌드 예시, Maven 사용 시 "mvn package"로 변경
+
       - name: Setup Pages
         uses: actions/configure-pages@v5 # GitHub Pages 설정
+
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1 # Jekyll로 사이트 빌드
         with:
           source: ./docs # 소스 폴더 설정
           destination: ./_site # 빌드된 파일이 저장될 폴더 설정
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3 # 빌드된 아티팩트를 업로드
 
