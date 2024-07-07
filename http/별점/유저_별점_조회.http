@@ -15,7 +15,6 @@ Content-Type: application/json
 %}
 
 ### 토큰이 없을 경우 발생하는 예외 예제
-@articleId = 1
+@articleId = -1
 GET {{host}}/api/v1/rating/{{articleId}}
 Content-Type: application/json
-Authorization: Bearer {{accessToken}}

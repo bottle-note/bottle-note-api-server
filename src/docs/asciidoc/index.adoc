@@ -94,4 +94,6 @@ include::api/follow/follow-update.adoc[]
 
 include::api/rating/fetch.adoc[]
 
+include::api/rating/user-rating.adoc[]
+
 include::api/rating/register.adoc[]
