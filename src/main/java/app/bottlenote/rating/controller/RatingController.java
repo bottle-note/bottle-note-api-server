@@ -6,6 +6,8 @@ import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.rating.dto.request.RatingListFetchRequest;
 import app.bottlenote.rating.dto.request.RatingRegisterRequest;
+import app.bottlenote.rating.dto.response.UserRatingResponse;
+import app.bottlenote.rating.exception.RatingException;
 import app.bottlenote.rating.service.RatingCommandService;
 import app.bottlenote.rating.service.RatingQueryService;
 import app.bottlenote.user.exception.UserException;
@@ -15,10 +17,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import static app.bottlenote.rating.exception.RatingExceptionCode.REQUEST_USER_ID;
 
 @Slf4j
 @RestController
@@ -66,4 +71,16 @@ public class RatingController {
 			)
 		);
 	}
+
+	@GetMapping("/{alcoholId}")
+	public ResponseEntity<?> fetchRatingPoint(@PathVariable Long alcoholId) {
+
+		Long userId = SecurityContextUtil.getUserIdByContext()
+			.orElseThrow(() -> new RatingException(REQUEST_USER_ID));
+
+		UserRatingResponse response = queryService.fetchUserRating(alcoholId, userId);
+
+		return ResponseEntity.ok(GlobalResponse.success(response));
+	}
+
 }

@@ -21,7 +21,7 @@ Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "alcoholId": 2,
+  "alcoholId": 1,
   "rating": 3.5
 }
 
