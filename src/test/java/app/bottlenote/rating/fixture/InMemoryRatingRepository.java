@@ -6,6 +6,7 @@ import app.bottlenote.rating.domain.RatingId;
 import app.bottlenote.rating.domain.RatingRepository;
 import app.bottlenote.rating.dto.dsl.RatingListFetchCriteria;
 import app.bottlenote.rating.dto.response.RatingListFetchResponse;
+import app.bottlenote.rating.dto.response.UserRatingResponse;
 
 import java.util.HashMap;
 import java.util.List;
@@ -49,5 +50,10 @@ public class InMemoryRatingRepository implements RatingRepository {
 	@Override
 	public PageResponse<RatingListFetchResponse> fetchRatingList(RatingListFetchCriteria criteria) {
 		return null;
+	}
+
+	@Override
+	public Optional<UserRatingResponse> fetchUserRating(Long alcoholId, Long userId) {
+		return Optional.empty();
 	}
 }
