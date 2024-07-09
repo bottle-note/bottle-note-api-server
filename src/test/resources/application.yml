@@ -1,0 +1,39 @@
+spring:
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb;MODE=MYSQL;NON_KEYWORDS=USER;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+  sql:
+    init:
+      mode: always
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+        globally_quoted_identifiers: true
+    show-sql: true
+    generate-ddl: true
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+
+
+# Spring Security
+security:
+  jwt:
+    secret-key: 'c2VjdXJlU2VjcmV0S2V5MTIzNDU2Nzg5MGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6QWJDRGVGR2hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlrSg=='
+
+# AWS S3
+amazon:
+  aws:
+    accessKey: fake-access-key
+    secretKey: fake-secret-key
+    region: ap-northeast-2
+    bucket: fake-bucket
+    cloudFrontUrl: https://fake-cloudfront.net
+
+profanity:
+  filter:
+    url: https://api.profanity-filter.run/api/v1

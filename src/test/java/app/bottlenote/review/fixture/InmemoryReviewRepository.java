@@ -78,4 +78,14 @@ public class InmemoryReviewRepository implements ReviewRepository {
 	public List<ReviewReplyInfo> getReviewReplies(Long reviewId) {
 		return null;
 	}
+
+	@Override
+	public List<Review> getReviewRootReplies(Long reviewId, Long cursor, Long pageSize) {
+		return List.of();
+	}
+
+	@Override
+	public List<?> getReviewChildReplies(Long reviewId, Long parentReplyId, Long cursor, Long pageSize) {
+		return List.of();
+	}
 }
