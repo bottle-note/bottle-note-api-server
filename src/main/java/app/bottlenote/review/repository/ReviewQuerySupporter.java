@@ -7,6 +7,7 @@ import static app.bottlenote.review.domain.QReviewReply.reviewReply;
 import static app.bottlenote.user.domain.QUser.user;
 
 import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
+import app.bottlenote.review.dto.response.ReviewDetailResponse.ReviewDetailInfo;
 import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.ReviewResponse;
 import com.querydsl.core.types.ConstructorExpression;
@@ -17,11 +18,11 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import java.math.BigDecimal;
+import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ReviewQuerySupporter {
-
 	/**
 	 * Alcohol 조회 API에 사용되는 ReviewInfo 클래스의 생성자 Projection 메서드입니다.
 	 *
@@ -73,13 +74,36 @@ public class ReviewQuerySupporter {
 			user.nickName.as("nickName"),
 			user.imageUrl.as("userProfileImage"),
 			ratingSubquery(),
+			review.status.as("status"),
+			isMyReviewSubquery(userId),
+			isLikeByMeSubquery(userId),
+			hasReplyByMeSubquery(userId)
+		);
+	}
+
+	public ConstructorExpression<ReviewDetailInfo> reviewDetailResponseConstructor(Long reviewId, Long bestReviewId, Long userId) {
+		return Projections.constructor(
+			ReviewDetailInfo.class,
+			review.id.as("reviewId"),
+			review.content.as("reviewContent"),
+			review.price.as("price"),
+			review.sizeType.as("sizeType"),
+			likesCountSubquery(),
+			reviewReplyCountSubquery(),
+			review.imageUrl.as("reviewImageUrl"),
+			review.createAt.as("createAt"),
+			user.id.as("userId"),
+			user.nickName.as("nickName"),
+			user.imageUrl.as("userProfileImage"),
+			ratingSubquery(),
 			review.zipCode.as("zipCode"),
 			review.address.as("address"),
 			review.detailAddress.as("detailAddress"),
 			review.status.as("status"),
 			isMyReviewSubquery(userId),
 			isLikeByMeSubquery(userId),
-			hasReplyByMeSubquery(userId)
+			hasReplyByMeSubquery(userId),
+			isBestReviewSubquery(bestReviewId, reviewId)
 		);
 	}
 
@@ -98,6 +122,18 @@ public class ReviewQuerySupporter {
 			reviewReply.content.as("reviewReplyContent"),
 			reviewReply.createAt.as("createAt")
 		);
+	}
+
+
+	/***
+	 * 현재 리뷰가 베스트 리뷰인지 판별하는 서브쿼리
+	 *
+	 * @param bestReviewId
+	 * @param reviewId
+	 * @return Boolean
+	 */
+	public BooleanExpression isBestReviewSubquery(Long bestReviewId, Long reviewId) {
+		return Objects.equals(bestReviewId, reviewId) ? Expressions.asBoolean(true) : Expressions.asBoolean(false);
 	}
 
 	/*

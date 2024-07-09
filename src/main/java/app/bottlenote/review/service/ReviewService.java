@@ -1,7 +1,7 @@
 package app.bottlenote.review.service;
 
 import static app.bottlenote.review.domain.constant.ReviewActiveStatus.DELETED;
-import static app.bottlenote.review.dto.response.ReviewResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.MODIFY_SUCCESS;
 import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 
 import app.bottlenote.alcohols.dto.response.AlcoholInfo;
@@ -15,11 +15,10 @@ import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
+import app.bottlenote.review.dto.response.ReviewDetailResponse.ReviewDetailInfo;
 import app.bottlenote.review.dto.response.ReviewListResponse;
-import app.bottlenote.review.dto.response.ReviewReplyInfo;
-import app.bottlenote.review.dto.response.ReviewResponse;
-import app.bottlenote.review.dto.response.ReviewResultMessage;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
+import app.bottlenote.review.dto.response.constant.ReviewResultMessage;
 import app.bottlenote.review.dto.vo.ReviewModifyVO;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.user.service.domain.UserDomainSupport;
@@ -86,26 +85,26 @@ public class ReviewService {
 		long start = System.nanoTime();
 		Review review = reviewRepository.findById(reviewId)
 			.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
+
 		log.info("리뷰 존재유무 확인 시간 : {}", (System.nanoTime() - start) / 1_000_000 + "ms");
 
 		long start2 = System.nanoTime();
 		AlcoholInfo alcoholInfo = alcoholDomainSupport.findAlcoholInfoById(review.getAlcoholId(), currentUserId)
-			.orElse(AlcoholInfo.empty());
+			.orElseGet(AlcoholInfo::empty);
+
 		log.info("알코올 정보 조회 시간 : {}", (System.nanoTime() - start2) / 1_000_000 + "ms");
 
 		long start3 = System.nanoTime();
-		ReviewResponse reviewResponse = reviewRepository.getReview(reviewId, currentUserId);
+		ReviewDetailInfo reviewResponse = reviewRepository.getReview(reviewId, currentUserId);
+
 		log.info("리뷰 정보 조회 시간 : {}", (System.nanoTime() - start3) / 1_000_000 + "ms");
 
 		long start4 = System.nanoTime();
 		List<ReviewImageInfo> reviewImageInfos = reviewImageSupport.getReviewImageInfo(review.getReviewImages());
+
 		log.info("리뷰 이미지 조회 시간 : {}", (System.nanoTime() - start4) / 1_000_000 + "ms");
 
-		long start5 = System.nanoTime();
-		List<ReviewReplyInfo> reviewReplies = reviewRepository.getReviewReplies(reviewId);
-		log.info("리뷰 댓글 조회 시간 : {}", (System.nanoTime() - start5) / 1_000_000 + "ms");
-
-		return ReviewDetailResponse.create(alcoholInfo, reviewResponse, reviewImageInfos, reviewReplies);
+		return ReviewDetailResponse.create(alcoholInfo, reviewResponse, reviewImageInfos);
 	}
 
 	@Transactional(readOnly = true)

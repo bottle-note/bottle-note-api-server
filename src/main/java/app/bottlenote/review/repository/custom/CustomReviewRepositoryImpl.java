@@ -16,6 +16,7 @@ import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.review.domain.constant.ReviewActiveStatus;
 import app.bottlenote.review.domain.constant.ReviewSortType;
 import app.bottlenote.review.dto.request.PageableRequest;
+import app.bottlenote.review.dto.response.ReviewDetailResponse.ReviewDetailInfo;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.ReviewResponse;
@@ -23,6 +24,7 @@ import app.bottlenote.review.repository.ReviewQuerySupporter;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,10 +41,32 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 	private final ReviewQuerySupporter supporter;
 
 	@Override
-	public ReviewResponse getReview(Long reviewId, Long userId) {
+	public ReviewDetailInfo getReview(Long reviewId, Long userId) {
 
-		ReviewResponse fetch = queryFactory
-			.select(supporter.reviewResponseConstructor(userId))
+		Long bestReviewId = queryFactory
+			.select(review.id)
+			.from(review)
+			.join(user).on(review.userId.eq(user.id))
+			.leftJoin(review.reviewReplies, reviewReply)
+			.leftJoin(rating).on(rating.alcohol.id.eq(review.alcoholId))
+			.leftJoin(likes).on(likes.review.id.eq(review.id))
+			.where(review.alcoholId.eq(
+				JPAExpressions
+					.select(review.alcoholId)
+					.from(review)
+					.where(review.id.eq(reviewId))
+			))
+			.groupBy(user.id, user.imageUrl, user.nickName, review.id, review.content, rating.ratingPoint, review.createAt)
+			.orderBy(reviewReply.count().coalesce(0L)
+				.add(likes.count().coalesce(0L))
+				.add(rating.ratingPoint.rating.coalesce(0.0).avg())
+				.desc()
+			)
+			.limit(1)
+			.fetchOne();
+
+		ReviewDetailInfo fetch = queryFactory
+			.select(supporter.reviewDetailResponseConstructor(reviewId, bestReviewId, userId))
 			.from(review)
 			.join(user).on(review.userId.eq(user.id))
 			.leftJoin(likes).on(review.id.eq(likes.review.id))
@@ -61,7 +85,9 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.where(reviewTastingTag.review.id.eq(reviewId))
 			.fetch();
 
-		fetch.updateTastingTagList(tastingTagList);
+		if (fetch != null) {
+			fetch.updateTastingTagList(tastingTagList);
+		}
 
 		return fetch;
 	}
@@ -98,15 +124,6 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.limit(pageableRequest.pageSize() + 1)
 			.fetch();
 
-		fetch.forEach(reviewDetail -> {
-			List<String> tastingTags = queryFactory
-				.select(reviewTastingTag.tastingTag)
-				.from(reviewTastingTag)
-				.where(reviewTastingTag.review.id.eq(reviewDetail.getReviewId()))
-				.fetch();
-			reviewDetail.updateTastingTagList(tastingTags);
-		});
-
 		Long totalCount = queryFactory
 			.select(review.id.count())
 			.from(review)
@@ -138,15 +155,6 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.offset(pageableRequest.cursor())
 			.limit(pageableRequest.pageSize() + 1)
 			.fetch();
-
-		fetch.forEach(reviewDetail -> {
-			List<String> tastingTags = queryFactory
-				.select(reviewTastingTag.tastingTag)
-				.from(reviewTastingTag)
-				.where(reviewTastingTag.review.id.eq(reviewDetail.getReviewId()))
-				.fetch();
-			reviewDetail.updateTastingTagList(tastingTags);
-		});
 
 		Long totalCount = queryFactory
 			.select(review.id.count())
