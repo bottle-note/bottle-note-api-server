@@ -159,6 +159,6 @@ public class Review extends BaseEntity {
 
 	public void addReply(ReviewReply reply) {
 		this.reviewReplies.add(reply);
-		this.registerEvent(replyRegistryPublish(this.alcoholId, this.id, this.userId, reply.getContent()));
+		this.registerEvent(replyRegistryPublish(this.id, this.userId, reply.getContent()));
 	}
 }

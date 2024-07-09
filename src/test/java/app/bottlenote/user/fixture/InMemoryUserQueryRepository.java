@@ -2,6 +2,7 @@ package app.bottlenote.user.fixture;
 
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserQueryRepository;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -13,8 +14,11 @@ public class InMemoryUserQueryRepository implements UserQueryRepository {
 	private final Map<Long, User> users = new HashMap<>();
 
 	@Override
-	public User save(User User) {
-		return users.put(User.getId(), User);
+	public User save(User user) {
+		long id = users.size() + 1L;
+		users.put(id, user);
+		ReflectionTestUtils.setField(user, "id", id);
+		return user;
 	}
 
 	@Override
