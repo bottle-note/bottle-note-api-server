@@ -1,0 +1,51 @@
+=== 유저의 별점 조회  ===
+
+특정한 사용자가 특정한 위스키에 대해서 준 별점을 조회합니다.
+
+필수적으로 토큰이 필요합니다. 만약 등록된 값이 없을 경우 0.0을 반환합니다.
+
+- 유효하지 않은 위스키 식별자일 경우 예외가 반환됩니다. (아래 예시 경로에 `-1` 를 넣었을 경우)
+
+[source,json]
+----
+{
+  "success": false,
+  "code": 400,
+  "data": [],
+  "errors": {
+    "message": "위스키를 찾을 수 없습니다."
+  }
+}
+----
+
+- 유효하지 않은 사용자 식별자일 경우 예외가 반환됩니다. (아래 예시 경로에 `-1` 를 넣었을 경우)
+
+[source,json]
+----
+{
+  "success": false,
+  "code": 400,
+  "data": [],
+  "errors": {
+    "message": "요청한 유저 ID가 부적절합니다."
+  }
+}
+----
+
+[source]
+----
+GET /api/v1/rating/{{alcoholId}}
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/rating/user-rating/path-parameters.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/rating/user-rating/response-fields.adoc[]
+include::{snippets}/rating/user-rating/response-body.adoc[]

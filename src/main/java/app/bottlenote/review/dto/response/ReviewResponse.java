@@ -8,36 +8,34 @@ import java.util.List;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
 @EqualsAndHashCode
-@NoArgsConstructor
 public class ReviewResponse {
 
-	private Long reviewId;
-	private String reviewContent;
-	private BigDecimal price;
-	private SizeType sizeType;
-	private Long likeCount;
-	private Long replyCount;
-	private String reviewImageUrl;
-	private LocalDateTime createAt;
+	private final Long reviewId;
+	private final String reviewContent;
+	private final BigDecimal price;
+	private final SizeType sizeType;
+	private final Long likeCount;
+	private final Long replyCount;
+	private final String reviewImageUrl;
+	private final LocalDateTime createAt;
 
-	private Long userId;
-	private String nickName;
-	private String userProfileImage;
-	private Double rating;
+	private final Long userId;
+	private final String nickName;
+	private final String userProfileImage;
+	private final Double rating;
 
-	private String zipCode;
-	private String address;
-	private String detailAddress;
+	private final String zipCode;
+	private final String address;
+	private final String detailAddress;
 
-	private ReviewDisplayStatus status;
+	private final ReviewDisplayStatus status;
 
-	private Boolean isMyReview;
-	private Boolean isLikedByMe;
-	private Boolean hasReplyByMe;
+	private final Boolean isMyReview;
+	private final Boolean isLikedByMe;
+	private final Boolean hasReplyByMe;
 
 	private List<String> reviewTastingTag;
 

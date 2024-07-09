@@ -1,9 +1,9 @@
-package app.bottlenote.common.file.upload.fakes;
+package app.bottlenote.common.file.upload.fixture;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 
-public class FakeEventPublisher implements ApplicationEventPublisher {
+public class FakeImageEventPublisher implements ApplicationEventPublisher {
 
 	@Override
 	public void publishEvent(ApplicationEvent event) {

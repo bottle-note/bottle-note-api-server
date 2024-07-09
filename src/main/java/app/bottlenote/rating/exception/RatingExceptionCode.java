@@ -8,6 +8,7 @@ public enum RatingExceptionCode implements ExceptionCode {
 	INPUT_NUMBER_IS_NOT_A_NUMBER(HttpStatus.BAD_REQUEST, "입력된 값이 숫자가 아닙니다: "),
 	INPUT_VALUE_IS_NOT_VALID(HttpStatus.BAD_REQUEST, "유효하지 않은 별점 값"),
 	ALCOHOL_NOT_FOUND(HttpStatus.NOT_FOUND, "리뷰 대상 알콜이 존재하지 않습니다."),
+	REQUEST_USER_ID(HttpStatus.BAD_REQUEST, "요청한 유저 ID가 부적절합니다."),
 	;
 
 	private final HttpStatus httpStatus;

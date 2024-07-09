@@ -76,6 +76,8 @@ include::api/review/review-modify.adoc[]
 
 include::api/review/review-delete.adoc[]
 
+include::api/review/review-detail-read.adoc[]
+
 == 리뷰 댓글  (review reply) 관련 API
 
 include::api/review/reply/review-reply-registry.adoc[]
@@ -91,5 +93,7 @@ include::api/follow/follow-update.adoc[]
 == 별점 (rating) 관련 API
 
 include::api/rating/fetch.adoc[]
+
+include::api/rating/user-rating.adoc[]
 
 include::api/rating/register.adoc[]

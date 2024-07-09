@@ -1,18 +1,18 @@
 package app.bottlenote.user.service;
 
+import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
 import app.bottlenote.user.dto.response.NicknameChangeResponse;
+import app.bottlenote.user.dto.response.ProfileImageChangeResponse;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.repository.UserCommandRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import app.bottlenote.user.domain.User;
 
-import java.util.Objects;
+import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -21,9 +21,15 @@ public class UserCommandService {
 
 	private final UserCommandRepository userCommandRepository;
 
-
+	/**
+	 * 닉네임 변경
+	 *
+	 * @param userId  the user id
+	 * @param request the request
+	 * @return the nickname change response
+	 */
 	@Transactional
-	public NicknameChangeResponse nicknameChange( Long userId, NicknameChangeRequest request) {
+	public NicknameChangeResponse nicknameChange(Long userId, NicknameChangeRequest request) {
 
 		log.info("userId : {}", userId);
 		log.info("request : {}", request);
@@ -36,7 +42,7 @@ public class UserCommandService {
 		}
 
 		User user = userCommandRepository.findById(userId)
-			.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
+			.orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
 		beforeNickname = user.getNickName();
 
@@ -52,4 +58,24 @@ public class UserCommandService {
 			.build();
 	}
 
+	/**
+	 * 프로필 이미지 변경
+	 *
+	 * @param userId  the user id
+	 * @param viewUrl the view url
+	 * @return the profile image change response
+	 */
+	@Transactional
+	public ProfileImageChangeResponse profileImageChange(Long userId, String viewUrl) {
+
+		User user = userCommandRepository.findById(userId)
+			.orElseThrow(() -> new UserException(USER_NOT_FOUND));
+
+		user.changeProfileImage(viewUrl);
+
+		return ProfileImageChangeResponse.builder()
+			.userId(user.getId())
+			.profileImageUrl(user.getImageUrl())
+			.build();
+	}
 }

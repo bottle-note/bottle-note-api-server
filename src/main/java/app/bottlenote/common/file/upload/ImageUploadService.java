@@ -41,19 +41,6 @@ public class ImageUploadService implements PreSignUrlProvider {
 		this.cloudFrontUrl = cloudFrontUrl;
 	}
 
-	public String call(
-		Long index,
-		String imageKey,
-		Calendar uploadExpiryTime
-	) {
-		return amazonS3.generatePresignedUrl(
-			ImageBucketName,
-			index + KEY_DELIMITER + imageKey,
-			uploadExpiryTime.getTime(),
-			HttpMethod.PUT
-		).toString();
-	}
-
 	/**
 	 * 업로드용 인증 URL을 생성한다.
 	 *
@@ -63,12 +50,12 @@ public class ImageUploadService implements PreSignUrlProvider {
 	public ImageUploadResponse getPreSignUrl(ImageUploadRequest request) {
 		String rootPath = request.rootPath();
 		Long uploadSize = request.uploadSize();
-		String imageKey = getImageKey(rootPath);
 		List<ImageUploadInfo> keys = new ArrayList<>();
 
 		for (long index = 1; index <= uploadSize; index++) {
-			String preSignUrl = generatePreSignUrl(imageKey, index);
-			String viewUrl = generateViewUrl(cloudFrontUrl, imageKey, index);
+			String imageKey = getImageKey(rootPath, index);
+			String preSignUrl = generatePreSignUrl(imageKey);
+			String viewUrl = generateViewUrl(cloudFrontUrl, imageKey);
 			keys.add(
 				ImageUploadInfo.builder()
 					.order(index)
@@ -88,20 +75,18 @@ public class ImageUploadService implements PreSignUrlProvider {
 	}
 
 	@Override
-	public String generateViewUrl(String cloudFrontUrl, String imageKey, Long index) {
+	public String generateViewUrl(String cloudFrontUrl, String imageKey) {
 		return cloudFrontUrl
 			+ PATH_DELIMITER
-			+ index
-			+ KEY_DELIMITER
 			+ imageKey;
 	}
 
 	@Override
-	public String generatePreSignUrl(String imageKey, Long index) {
+	public String generatePreSignUrl(String imageKey) {
 		Calendar uploadExpiryTime = getUploadExpiryTime(EXPIRY_TIME);
 		return amazonS3.generatePresignedUrl(
 			ImageBucketName,
-			index + KEY_DELIMITER + imageKey,
+			imageKey,
 			uploadExpiryTime.getTime(),
 			HttpMethod.PUT
 		).toString();

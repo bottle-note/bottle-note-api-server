@@ -65,6 +65,16 @@ public class ReviewController {
 			));
 	}
 
+	@GetMapping("/detail/{reviewId}")
+	public ResponseEntity<GlobalResponse> getDetailReview(@PathVariable Long reviewId) {
+
+		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(null);
+
+		return ResponseEntity.ok(
+			success(reviewService.getDetailReview(reviewId, currentUserId))
+		);
+	}
+
 	@GetMapping("/me/{alcoholId}")
 	public ResponseEntity<GlobalResponse> getMyReviews(@ModelAttribute PageableRequest pageableRequest, @PathVariable Long alcoholId) {
 
@@ -72,7 +82,7 @@ public class ReviewController {
 			() -> new UserException(REQUIRED_USER_ID)
 		);
 
-		PageResponse<ReviewListResponse> myReviews = reviewService.getMyReviews(alcoholId, pageableRequest, currentUserId);
+		PageResponse<ReviewListResponse> myReviews = reviewService.getMyReviews(pageableRequest, alcoholId, currentUserId);
 
 		return ResponseEntity.ok(
 			success(myReviews.content(), MetaService.createMetaInfo().add("pageable", myReviews.cursorPageable()))

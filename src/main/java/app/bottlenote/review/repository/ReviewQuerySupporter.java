@@ -7,6 +7,7 @@ import static app.bottlenote.review.domain.QReviewReply.reviewReply;
 import static app.bottlenote.user.domain.QUser.user;
 
 import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
+import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.ReviewResponse;
 import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.Expression;
@@ -20,6 +21,13 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ReviewQuerySupporter {
+
+	/**
+	 * Alcohol 조회 API에 사용되는 ReviewInfo 클래스의 생성자 Projection 메서드입니다.
+	 *
+	 * @param userId 유저 ID
+	 * @return ReviewInfo
+	 */
 
 	public ConstructorExpression<ReviewsDetailInfo.ReviewInfo> reviewInfoConstructor(Long userId) {
 		return Projections.constructor(
@@ -43,6 +51,13 @@ public class ReviewQuerySupporter {
 		);
 	}
 
+	/**
+	 * 리뷰 조회 API에 사용되는 생성자 Projection 메서드입니다.
+	 *
+	 * @param userId 유저 ID
+	 * @return ReviewResponse
+	 */
+
 	public ConstructorExpression<ReviewResponse> reviewResponseConstructor(Long userId) {
 		return Projections.constructor(
 			ReviewResponse.class,
@@ -65,6 +80,23 @@ public class ReviewQuerySupporter {
 			isMyReviewSubquery(userId),
 			isLikeByMeSubquery(userId),
 			hasReplyByMeSubquery(userId)
+		);
+	}
+
+	/**
+	 * 리뷰 댓글 조회 시 사용되는 생성자 Projection 메서드입니다.
+	 *
+	 * @return ReviewReplyInfo
+	 */
+	public ConstructorExpression<ReviewReplyInfo> reviewReplyInfoConstructor() {
+		return Projections.constructor(
+			ReviewReplyInfo.class,
+			user.id.as("userId"),
+			user.imageUrl.as("imageUrl"),
+			user.nickName.as("nickName"),
+			reviewReply.id.as("reviewReplyId"),
+			reviewReply.content.as("reviewReplyContent"),
+			reviewReply.createAt.as("createAt")
 		);
 	}
 
@@ -92,7 +124,7 @@ public class ReviewQuerySupporter {
 
 		BooleanExpression eqUserId = userId == null ?
 			likes.user.id.isNull() : likes.user.id.eq(userId);
-		
+
 		return Expressions.asBoolean(
 			JPAExpressions
 				.selectOne()
