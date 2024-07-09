@@ -16,11 +16,12 @@ import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
+import app.bottlenote.review.dto.response.ReviewDetailResponse.ReviewDetailInfo;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
-import app.bottlenote.review.dto.response.ReviewReplyResultMessage;
 import app.bottlenote.review.dto.response.ReviewResponse;
+import app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage;
 import app.bottlenote.user.domain.User;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -141,14 +142,15 @@ public class ReviewObjectFixture {
 	 *
 	 * @return ReviewResponse
 	 */
-	public static ReviewResponse getReviewResponse() {
-		return getReviewListResponse().content().getReviewList().get(0);
+	public static ReviewDetailInfo getReviewResponse() {
+		return ReviewDetailInfo.builder()
+			.reviewId(1L)
+			.build();
 	}
 
 	public static ReviewDetailResponse getReviewDetailResponse() {
 		return ReviewDetailResponse.create(getAlcoholInfo(), getReviewResponse(),
-			List.of(new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")),
-			List.of(new ReviewReplyInfo(1L, "imageUrl", "nickName", 1L, content, LocalDateTime.now())));
+			List.of(new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")));
 	}
 
 	/**

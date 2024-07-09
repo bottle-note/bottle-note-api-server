@@ -5,17 +5,16 @@ import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.request.PageableRequest;
+import app.bottlenote.review.dto.response.ReviewDetailResponse.ReviewDetailInfo;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewReplyInfo;
-import app.bottlenote.review.dto.response.ReviewResponse;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class InmemoryReviewRepository implements ReviewRepository {
 
@@ -43,7 +42,7 @@ public class InmemoryReviewRepository implements ReviewRepository {
 	}
 
 	@Override
-	public ReviewResponse getReview(Long reviewId, Long userId) {
+	public ReviewDetailInfo getReview(Long reviewId, Long userId) {
 		return null;
 	}
 
