@@ -29,7 +29,7 @@ public interface ReviewRepository {
 
 	List<ReviewReplyInfo> getReviewReplies(Long reviewId);
 
-	List<?> getReviewRootReplies(Long reviewId, Long cursor, Long pageSize);
+	List<Review> getReviewRootReplies(Long reviewId, Long cursor, Long pageSize);
 
 	List<?> getReviewChildReplies(Long reviewId, Long parentReplyId, Long cursor, Long pageSize);
 }

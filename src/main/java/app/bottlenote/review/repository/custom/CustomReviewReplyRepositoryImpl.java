@@ -1,6 +1,6 @@
 package app.bottlenote.review.repository.custom;
 
-import com.querydsl.core.Tuple;
+import app.bottlenote.review.domain.Review;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,8 +23,7 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
 	public List<?> getReviewRootReplies(Long reviewId, Long cursor, Long pageSize) {
 		long start = System.nanoTime();
 
-		List<Tuple> fetch = queryFactory.select()
-			.from(review)
+		List<Review> fetch = queryFactory.selectFrom(review)
 			.leftJoin(reviewReply).on(review.id.eq(reviewReply.review.id))
 			.where(
 				review.id.eq(reviewId), // 리뷰 ID 일치
@@ -43,8 +42,6 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
 	@Override
 	public List<?> getReviewChildReplies(Long reviewId, Long parentReplyId, Long cursor, Long pageSize) {
 		long start = System.nanoTime();
-
-
 		long end = System.nanoTime();
 		log.debug("대 댓글 목록 조회 시간 : {}", (end - start) / 1_000_000 + "ms");
 		return List.of();

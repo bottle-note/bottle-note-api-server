@@ -103,6 +103,10 @@ public class ReviewReplyService {
 	 */
 	@Transactional(readOnly = true)
 	public List<?> getReviewRootReplys(Long reviewId, ReviewReplyPageableRequest pageable) {
-		return reviewRepository.getReviewRootReplies(reviewId, pageable.cursor(), pageable.pageSize());
+		log.debug("최상위 댓글 목록 조회 {} {}", reviewId, pageable);
+		return reviewRepository.getReviewRootReplies(reviewId, pageable.cursor(), pageable.pageSize())
+			.stream()
+			.map(r -> r.getId() + r.getContent())
+			.toList();
 	}
 }

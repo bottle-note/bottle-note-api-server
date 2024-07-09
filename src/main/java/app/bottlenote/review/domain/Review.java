@@ -161,4 +161,9 @@ public class Review extends BaseEntity {
 		this.reviewReplies.add(reply);
 		this.registerEvent(replyRegistryPublish(this.alcoholId, this.id, this.userId, reply.getContent()));
 	}
+
+	@Override
+	public String toString() {
+		return "Review{" + "id=" + id + ", userId=" + userId + ", alcoholId=" + alcoholId + ", content='" + content + '}';
+	}
 }
