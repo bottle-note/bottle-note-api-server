@@ -1,9 +1,5 @@
 package app.bottlenote.review.controller;
 
-import static app.bottlenote.global.data.response.GlobalResponse.success;
-import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
-import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
-
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
@@ -19,15 +15,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import static app.bottlenote.global.data.response.GlobalResponse.success;
+import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
+import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
 @Slf4j
 @RestController
@@ -50,7 +42,7 @@ public class ReviewController {
 	@GetMapping("/{alcoholId}")
 	public ResponseEntity<GlobalResponse> getReviews(@PathVariable Long alcoholId, @ModelAttribute PageableRequest pageableRequest) {
 
-		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(null);
+		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
 
 		log.info("currentUserId is : {} \nPageable INFO  : {}", currentUserId, pageableRequest.toString());
 
@@ -68,7 +60,7 @@ public class ReviewController {
 	@GetMapping("/detail/{reviewId}")
 	public ResponseEntity<GlobalResponse> getDetailReview(@PathVariable Long reviewId) {
 
-		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(null);
+		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
 
 		return ResponseEntity.ok(
 			success(reviewService.getDetailReview(reviewId, currentUserId))

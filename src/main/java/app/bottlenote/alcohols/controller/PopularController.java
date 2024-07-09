@@ -31,7 +31,7 @@ public class PopularController {
 	 */
 	@GetMapping("week")
 	public ResponseEntity<GlobalResponse> getPopularOfWeek(@RequestParam(defaultValue = "5") Integer top) {
-		Long userId = getUserIdByContext().orElse(null);
+		Long userId = getUserIdByContext().orElse(-1L);
 
 		List<Populars> populars = popularService.getPopularOfWeek(top, userId);
 		PopularsOfWeekResponse response = PopularsOfWeekResponse.of(populars.size(), populars);

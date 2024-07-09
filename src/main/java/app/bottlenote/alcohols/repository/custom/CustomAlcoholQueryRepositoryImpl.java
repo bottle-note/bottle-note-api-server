@@ -1,12 +1,5 @@
 package app.bottlenote.alcohols.repository.custom;
 
-import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.alcohols.domain.QDistillery.distillery;
-import static app.bottlenote.alcohols.domain.QRegion.region;
-import static app.bottlenote.picks.domain.QPicks.picks;
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.domain.QReview.review;
-
 import app.bottlenote.alcohols.domain.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.response.AlcoholInfo;
@@ -20,9 +13,17 @@ import app.bottlenote.global.service.cursor.SortOrder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+
+import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.alcohols.domain.QDistillery.distillery;
+import static app.bottlenote.alcohols.domain.QRegion.region;
+import static app.bottlenote.picks.domain.QPicks.picks;
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
 
 
 public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepository {
@@ -101,6 +102,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 	 */
 	@Override
 	public Optional<AlcoholInfo> findAlcoholInfoById(Long alcoholId, Long userId) {
+
 		return Optional.ofNullable(queryFactory
 			.select(supporter.alcoholInfoConstructor(alcoholId, userId))
 			.from(alcohol)

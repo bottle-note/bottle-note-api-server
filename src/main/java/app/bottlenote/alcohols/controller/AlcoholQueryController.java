@@ -12,12 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 
@@ -42,7 +37,7 @@ public class AlcoholQueryController {
 	public ResponseEntity<GlobalResponse> searchAlcohols(
 		@ModelAttribute @Valid AlcoholSearchRequest request
 	) {
-		Long id = getUserIdByContext().orElse(null);
+		Long id = getUserIdByContext().orElse(-1L);
 
 		PageResponse<AlcoholSearchResponse> pageResponse = alcoholQueryService.searchAlcohols(request, id);
 
@@ -58,7 +53,7 @@ public class AlcoholQueryController {
 
 	@GetMapping("/{alcoholId}")
 	public ResponseEntity<GlobalResponse> findAlcoholDetailById(@PathVariable Long alcoholId) {
-		Long id = getUserIdByContext().orElse(null);
+		Long id = getUserIdByContext().orElse(-1L);
 		return ResponseEntity.ok(
 			GlobalResponse.success(alcoholQueryService.findAlcoholDetailById(alcoholId, id)));
 	}

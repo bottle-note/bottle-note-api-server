@@ -15,13 +15,7 @@ import app.bottlenote.user.exception.UserExceptionCode;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import static app.bottlenote.rating.exception.RatingExceptionCode.REQUEST_USER_ID;
 
@@ -60,7 +54,7 @@ public class RatingController {
 	public ResponseEntity<?> fetchRatingList(
 		@ModelAttribute RatingListFetchRequest request
 	) {
-		Long userId = SecurityContextUtil.getUserIdByContext().orElse(null);
+		Long userId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
 		var response = queryService.fetchRatingList(request, userId);
 		return ResponseEntity.ok(
 			GlobalResponse.success(
