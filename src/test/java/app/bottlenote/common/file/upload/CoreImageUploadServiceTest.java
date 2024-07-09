@@ -16,11 +16,13 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.util.Calendar;
+import java.util.concurrent.TimeUnit;
 
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Tag("unit")
 @Tag("fake")
@@ -118,30 +120,32 @@ class CoreImageUploadServiceTest {
 	@Test
 	@DisplayName("기본 만료 시간은 5분이다.")
 	void test_5() {
-		//given
-		Calendar expiryTime = Calendar.getInstance();
-		expiryTime.add(Calendar.MINUTE, 5);
+		// given
+		Calendar expectedExpiryTime = Calendar.getInstance();
+		expectedExpiryTime.add(Calendar.MINUTE, 5);
 
-		//when
-		Calendar uploadExpiryTime = imageUploadService.getUploadExpiryTime(null);
+		// when
+		Calendar actualExpiryTime = imageUploadService.getUploadExpiryTime(null);
 
-		//then
-		log.info("ExpiryTime: {}", uploadExpiryTime);
-		assertEquals(expiryTime, uploadExpiryTime);
+		// then
+		log.info("ExpiryTime: {}", actualExpiryTime);
+		long diffInMillis = Math.abs(expectedExpiryTime.getTimeInMillis() - actualExpiryTime.getTimeInMillis());
+		assertTrue(diffInMillis < TimeUnit.SECONDS.toMillis(1), "The difference should be less than 1 second");
 	}
 
 	@Test
 	@DisplayName("최대 만료 시간은 10분이다.")
 	void test_6() {
-		//given
-		Calendar expiryTime = Calendar.getInstance();
-		expiryTime.add(Calendar.MINUTE, 10);
+		// given
+		Calendar expectedExpiryTime = Calendar.getInstance();
+		expectedExpiryTime.add(Calendar.MINUTE, 10);
 
-		//when
-		Calendar uploadExpiryTime = imageUploadService.getUploadExpiryTime(10);
+		// when
+		Calendar actualExpiryTime = imageUploadService.getUploadExpiryTime(10);
 
-		//then
-		assertEquals(expiryTime, uploadExpiryTime);
+		// then
+		long diffInMillis = Math.abs(expectedExpiryTime.getTimeInMillis() - actualExpiryTime.getTimeInMillis());
+		assertTrue(diffInMillis < TimeUnit.SECONDS.toMillis(1), "The difference should be less than 1 second");
 		assertThrows(FileException.class, () -> imageUploadService.getUploadExpiryTime(11));
 	}
 }
