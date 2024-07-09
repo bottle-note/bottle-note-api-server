@@ -18,6 +18,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Objects;
 import org.springframework.stereotype.Component;
 
@@ -81,7 +82,7 @@ public class ReviewQuerySupporter {
 		);
 	}
 
-	public ConstructorExpression<ReviewDetailInfo> reviewDetailResponseConstructor(Long reviewId, Long bestReviewId, Long userId) {
+	public ConstructorExpression<ReviewDetailInfo> reviewDetailResponseConstructor(Long reviewId, Long bestReviewId, Long userId, List<String> reviewTastingTags) {
 		return Projections.constructor(
 			ReviewDetailInfo.class,
 			review.id.as("reviewId"),
@@ -103,7 +104,8 @@ public class ReviewQuerySupporter {
 			isMyReviewSubquery(userId),
 			isLikeByMeSubquery(userId),
 			hasReplyByMeSubquery(userId),
-			isBestReviewSubquery(bestReviewId, reviewId)
+			isBestReviewSubquery(bestReviewId, reviewId),
+			Expressions.constant(reviewTastingTags)
 		);
 	}
 

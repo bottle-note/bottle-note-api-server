@@ -65,8 +65,14 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.limit(1)
 			.fetchOne();
 
-		ReviewDetailInfo fetch = queryFactory
-			.select(supporter.reviewDetailResponseConstructor(reviewId, bestReviewId, userId))
+		List<String> tastingTagList = queryFactory
+			.select(reviewTastingTag.tastingTag)
+			.from(reviewTastingTag)
+			.where(reviewTastingTag.review.id.eq(reviewId))
+			.fetch();
+
+		return queryFactory
+			.select(supporter.reviewDetailResponseConstructor(reviewId, bestReviewId, userId, tastingTagList))
 			.from(review)
 			.join(user).on(review.userId.eq(user.id))
 			.leftJoin(likes).on(review.id.eq(likes.review.id))
@@ -78,18 +84,6 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.where(review.id.eq(reviewId).and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE)))
 			.groupBy(review.id, review.sizeType, review.userId)
 			.fetchOne();
-
-		List<String> tastingTagList = queryFactory
-			.select(reviewTastingTag.tastingTag)
-			.from(reviewTastingTag)
-			.where(reviewTastingTag.review.id.eq(reviewId))
-			.fetch();
-
-		if (fetch != null) {
-			fetch.updateTastingTagList(tastingTagList);
-		}
-
-		return fetch;
 	}
 
 	@Override

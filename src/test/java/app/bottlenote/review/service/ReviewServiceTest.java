@@ -143,7 +143,7 @@ class ReviewServiceTest {
 			ReviewDetailResponse detailReview = reviewService.getDetailReview(1L, 1L);
 
 			// then
-			assertEquals(detailReview.reviewResponse().getReviewId(), review.getId());
+			assertEquals(detailReview.reviewResponse().reviewId(), review.getId());
 		}
 
 		@DisplayName("리뷰가 존재하지 않으면 조회할 수 없다.")
