@@ -2,7 +2,7 @@ package app.bottlenote.review.repository.custom;
 
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.dto.request.PageableRequest;
-import app.bottlenote.review.dto.response.ReviewDetailResponse.ReviewDetailInfo;
+import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import java.util.List;
@@ -16,7 +16,7 @@ public interface CustomReviewRepository {
 	 * @param userId 조회하는 사용자 ID
 	 * @return 리뷰 상세 정보
 	 */
-	ReviewDetailInfo getReview(Long reviewId, Long userId);
+	ReviewDetailResponse.ReviewInfo getReview(Long reviewId, Long userId);
 
 
 	/**

@@ -16,10 +16,9 @@ import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.review.domain.constant.ReviewActiveStatus;
 import app.bottlenote.review.domain.constant.ReviewSortType;
 import app.bottlenote.review.dto.request.PageableRequest;
-import app.bottlenote.review.dto.response.ReviewDetailResponse.ReviewDetailInfo;
+import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewReplyInfo;
-import app.bottlenote.review.dto.response.ReviewResponse;
 import app.bottlenote.review.repository.ReviewQuerySupporter;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
@@ -41,7 +40,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 	private final ReviewQuerySupporter supporter;
 
 	@Override
-	public ReviewDetailInfo getReview(Long reviewId, Long userId) {
+	public ReviewDetailResponse.ReviewInfo getReview(Long reviewId, Long userId) {
 
 		Long bestReviewId = queryFactory
 			.select(review.id)
@@ -103,7 +102,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		PageableRequest pageableRequest,
 		Long userId
 	) {
-		List<ReviewResponse> fetch = queryFactory
+		List<ReviewListResponse.ReviewInfo> fetch = queryFactory
 			.select(supporter.reviewResponseConstructor(userId))
 			.from(review)
 			.join(user).on(review.userId.eq(user.id))
@@ -136,7 +135,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		PageableRequest pageableRequest,
 		Long userId
 	) {
-		List<ReviewResponse> fetch = queryFactory
+		List<ReviewListResponse.ReviewInfo> fetch = queryFactory
 			.select(supporter.reviewResponseConstructor(userId))
 			.from(review)
 			.join(user).on(review.userId.eq(user.id))
@@ -166,7 +165,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 
 	private CursorPageable getCursorPageable(
 		PageableRequest pageableRequest,
-		List<ReviewResponse> fetch
+		List<ReviewListResponse.ReviewInfo> fetch
 	) {
 
 		boolean hasNext = isHasNext(pageableRequest, fetch);
@@ -183,7 +182,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 	 */
 	private boolean isHasNext(
 		PageableRequest pageableRequest,
-		List<ReviewResponse> fetch
+		List<ReviewListResponse.ReviewInfo> fetch
 	) {
 		boolean hasNext = fetch.size() > pageableRequest.pageSize();
 

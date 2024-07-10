@@ -13,7 +13,7 @@ import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.review.fixture.FakeProfanityClient;
 import app.bottlenote.review.fixture.FakeUserDomainSupport;
-import app.bottlenote.review.fixture.InmemoryReviewRepository;
+import app.bottlenote.review.fixture.InMemoryReviewRepository;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
@@ -42,7 +42,7 @@ class ReviewReplyServiceTest {
 		Review review1 = ReviewObjectFixture.getReviewFixture(1L, 1L, user1.getId());
 		Review review2 = ReviewObjectFixture.getReviewFixture(2L, 1L, user2.getId());
 
-		reviewRepository = new InmemoryReviewRepository();
+		reviewRepository = new InMemoryReviewRepository();
 		profanityClient = new FakeProfanityClient();
 		userDomainSupport = new FakeUserDomainSupport(user1, user2);
 

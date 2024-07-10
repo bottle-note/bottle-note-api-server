@@ -12,12 +12,13 @@ import lombok.Builder;
 public record ReviewDetailResponse(
 	AlcoholInfo alcoholInfo,
 
-	ReviewDetailInfo reviewResponse,
+	ReviewInfo reviewResponse,
 
 	List<ReviewImageInfo> reviewImageList
 ) {
 
-	public record ReviewDetailInfo(
+	@Builder
+	public record ReviewInfo(
 		Long reviewId,
 		String reviewContent,
 		BigDecimal price,
@@ -45,13 +46,9 @@ public record ReviewDetailResponse(
 		List<String> reviewTastingTag
 
 	) {
-
-		@Builder
-		public ReviewDetailInfo {
-		}
 	}
 
-	public static ReviewDetailResponse create(AlcoholInfo alcoholInfo, ReviewDetailInfo reviewResponse, List<ReviewImageInfo> reviewImageList) {
+	public static ReviewDetailResponse create(AlcoholInfo alcoholInfo, ReviewInfo reviewResponse, List<ReviewImageInfo> reviewImageList) {
 		return new ReviewDetailResponse(alcoholInfo, reviewResponse, reviewImageList);
 	}
 }

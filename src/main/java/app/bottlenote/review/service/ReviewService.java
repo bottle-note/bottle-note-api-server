@@ -15,7 +15,7 @@ import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
-import app.bottlenote.review.dto.response.ReviewDetailResponse.ReviewDetailInfo;
+import app.bottlenote.review.dto.response.ReviewDetailResponse.ReviewInfo;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.dto.response.constant.ReviewResultMessage;
@@ -95,7 +95,7 @@ public class ReviewService {
 		log.info("알코올 정보 조회 시간 : {}", (System.nanoTime() - start2) / 1_000_000 + "ms");
 
 		long start3 = System.nanoTime();
-		ReviewDetailInfo reviewResponse = reviewRepository.getReview(reviewId, currentUserId);
+		ReviewInfo reviewInfo = reviewRepository.getReview(reviewId, currentUserId);
 
 		log.info("리뷰 정보 조회 시간 : {}", (System.nanoTime() - start3) / 1_000_000 + "ms");
 
@@ -104,7 +104,7 @@ public class ReviewService {
 
 		log.info("리뷰 이미지 조회 시간 : {}", (System.nanoTime() - start4) / 1_000_000 + "ms");
 
-		return ReviewDetailResponse.create(alcoholInfo, reviewResponse, reviewImageInfos);
+		return ReviewDetailResponse.create(alcoholInfo, reviewInfo, reviewImageInfos);
 	}
 
 	@Transactional(readOnly = true)
