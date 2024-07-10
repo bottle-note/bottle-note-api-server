@@ -1,15 +1,19 @@
 package app.bottlenote.review.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewRepository;
-import app.bottlenote.review.dto.response.ReviewReplyResultMessage;
+import app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.review.fixture.FakeProfanityClient;
 import app.bottlenote.review.fixture.FakeUserDomainSupport;
-import app.bottlenote.review.fixture.InmemoryReviewRepository;
+import app.bottlenote.review.fixture.InMemoryReviewRepository;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
@@ -21,10 +25,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DisplayName("리뷰 댓글 서비스 테스트")
 class ReviewReplyServiceTest {
@@ -42,7 +42,7 @@ class ReviewReplyServiceTest {
 		Review review1 = ReviewObjectFixture.getReviewFixture(1L, 1L, user1.getId());
 		Review review2 = ReviewObjectFixture.getReviewFixture(2L, 1L, user2.getId());
 
-		reviewRepository = new InmemoryReviewRepository();
+		reviewRepository = new InMemoryReviewRepository();
 		profanityClient = new FakeProfanityClient();
 		userDomainSupport = new FakeUserDomainSupport(user1, user2);
 

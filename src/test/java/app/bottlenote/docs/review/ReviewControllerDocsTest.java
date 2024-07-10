@@ -1,7 +1,7 @@
 package app.bottlenote.docs.review;
 
-import static app.bottlenote.review.dto.response.ReviewResultMessage.DELETE_SUCCESS;
-import static app.bottlenote.review.dto.response.ReviewResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.DELETE_SUCCESS;
+import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.MODIFY_SUCCESS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
@@ -148,16 +148,12 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 						fieldWithPath("data.reviewList[].createAt").description("리뷰 등록 일시"),
 						fieldWithPath("data.reviewList[].userId").description("유저 ID"),
 						fieldWithPath("data.reviewList[].nickName").description("유저 닉네임"),
-						fieldWithPath("data.reviewList[].zipCode").description("(업장)우편번호"),
-						fieldWithPath("data.reviewList[].address").description("(업장)주소"),
-						fieldWithPath("data.reviewList[].detailAddress").description("(업장)상세주소"),
 						fieldWithPath("data.reviewList[].userProfileImage").description("유저 프로필 이미지"),
 						fieldWithPath("data.reviewList[].rating").description("리뷰에 등록된 별점"),
 						fieldWithPath("data.reviewList[].status").description("리뷰 공개 상태 (PUBLIC, PRIVATE)"),
 						fieldWithPath("data.reviewList[].isMyReview").description("내가 작성한 리뷰인지 여부"),
 						fieldWithPath("data.reviewList[].isLikedByMe").description("내가 좋아요 누른 리뷰인지 여부"),
 						fieldWithPath("data.reviewList[].hasReplyByMe").description("내가 댓글을 단 리뷰인지 여부"),
-						fieldWithPath("data.reviewList[].reviewTastingTag").description("테이스팅 태그 리스트"),
 						fieldWithPath("errors").ignored(),
 						fieldWithPath("meta.serverEncoding").ignored(),
 						fieldWithPath("meta.serverVersion").ignored(),
@@ -216,15 +212,10 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 						fieldWithPath("data.reviewResponse.isMyReview").description("내 리뷰 여부"),
 						fieldWithPath("data.reviewResponse.isLikedByMe").description("내가 좋아요를 눌렀는지 여부"),
 						fieldWithPath("data.reviewResponse.hasReplyByMe").description("내가 댓글을 달았는지 여부"),
+						fieldWithPath("data.reviewResponse.isBestReview").description("베스트 댓글인지 여부"),
 						fieldWithPath("data.reviewResponse.reviewTastingTag").description("리뷰 테이스팅 태그 목록"),
 						fieldWithPath("data.reviewImageList[].order").description("이미지 순서"),
 						fieldWithPath("data.reviewImageList[].viewUrl").description("이미지 URL"),
-						fieldWithPath("data.reviewReplyList[].userId").description("댓글 사용자 ID"),
-						fieldWithPath("data.reviewReplyList[].imageUrl").description("댓글 사용자 이미지 URL"),
-						fieldWithPath("data.reviewReplyList[].nickName").description("댓글 사용자 닉네임"),
-						fieldWithPath("data.reviewReplyList[].reviewReplyId").description("댓글 ID"),
-						fieldWithPath("data.reviewReplyList[].reviewReplyContent").description("댓글 내용"),
-						fieldWithPath("data.reviewReplyList[].createAt").description("댓글 작성 시간"),
 						fieldWithPath("errors").description("에러 목록"),
 						fieldWithPath("meta.serverVersion").description("서버 버전"),
 						fieldWithPath("meta.serverEncoding").description("서버 인코딩"),
@@ -277,16 +268,12 @@ class ReviewControllerDocsTest extends AbstractRestDocs {
 						fieldWithPath("data.reviewList[].createAt").description("리뷰 등록 일시"),
 						fieldWithPath("data.reviewList[].userId").description("유저 ID"),
 						fieldWithPath("data.reviewList[].nickName").description("유저 닉네임"),
-						fieldWithPath("data.reviewList[].zipCode").description("(업장)우편번호"),
-						fieldWithPath("data.reviewList[].address").description("(업장)주소"),
-						fieldWithPath("data.reviewList[].detailAddress").description("(업장)상세주소"),
 						fieldWithPath("data.reviewList[].userProfileImage").description("유저 프로필 이미지"),
 						fieldWithPath("data.reviewList[].rating").description("리뷰에 등록된 별점"),
 						fieldWithPath("data.reviewList[].status").description("리뷰 공개 상태 (PUBLIC, PRIVATE)"),
 						fieldWithPath("data.reviewList[].isMyReview").description("내가 작성한 리뷰인지 여부"),
 						fieldWithPath("data.reviewList[].isLikedByMe").description("내가 좋아요 누른 리뷰인지 여부"),
 						fieldWithPath("data.reviewList[].hasReplyByMe").description("내가 댓글을 단 리뷰인지 여부"),
-						fieldWithPath("data.reviewList[].reviewTastingTag").description("테이스팅 태그 리스트"),
 						fieldWithPath("errors").ignored(),
 						fieldWithPath("meta.serverEncoding").ignored(),
 						fieldWithPath("meta.serverVersion").ignored(),

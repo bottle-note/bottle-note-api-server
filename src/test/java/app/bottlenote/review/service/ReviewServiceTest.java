@@ -1,6 +1,6 @@
 package app.bottlenote.review.service;
 
-import static app.bottlenote.review.dto.response.ReviewResultMessage.DELETE_SUCCESS;
+import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.DELETE_SUCCESS;
 import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,7 +30,6 @@ import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
 import app.bottlenote.user.service.domain.UserDomainSupport;
-import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -141,14 +140,10 @@ class ReviewServiceTest {
 			when(reviewRepository.getReview(anyLong(), anyLong()))
 				.thenReturn(ReviewObjectFixture.getReviewResponse());
 
-			when(reviewRepository.getReviewReplies(anyLong()))
-				.thenReturn(List.of(ReviewObjectFixture.getReviewReplyInfo()));
-
 			ReviewDetailResponse detailReview = reviewService.getDetailReview(1L, 1L);
 
 			// then
-			assertEquals(1, detailReview.reviewReplyList().size());
-			assertEquals(detailReview.reviewResponse().getReviewId(), review.getId());
+			assertEquals(detailReview.reviewResponse().reviewId(), review.getId());
 		}
 
 		@DisplayName("리뷰가 존재하지 않으면 조회할 수 없다.")
