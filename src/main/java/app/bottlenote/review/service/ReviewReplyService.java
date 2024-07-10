@@ -1,5 +1,7 @@
 package app.bottlenote.review.service;
 
+import static app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY;
+
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewReply;
@@ -9,15 +11,12 @@ import app.bottlenote.review.dto.response.ReviewReplyResponse;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.user.service.domain.UserDomainSupport;
+import java.util.Objects;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Objects;
-import java.util.Optional;
-
-import static app.bottlenote.review.dto.response.ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY;
 
 @Service
 @Slf4j

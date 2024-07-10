@@ -7,8 +7,9 @@ import static app.bottlenote.review.domain.QReviewReply.reviewReply;
 import static app.bottlenote.user.domain.QUser.user;
 
 import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
+import app.bottlenote.review.dto.response.ReviewDetailResponse;
+import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewReplyInfo;
-import app.bottlenote.review.dto.response.ReviewResponse;
 import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
@@ -17,11 +18,12 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ReviewQuerySupporter {
-
 	/**
 	 * Alcohol 조회 API에 사용되는 ReviewInfo 클래스의 생성자 Projection 메서드입니다.
 	 *
@@ -52,15 +54,47 @@ public class ReviewQuerySupporter {
 	}
 
 	/**
-	 * 리뷰 조회 API에 사용되는 생성자 Projection 메서드입니다.
+	 * 리뷰 목록 조회 API에 사용되는 생성자 Projection 메서드입니다.
 	 *
 	 * @param userId 유저 ID
-	 * @return ReviewResponse
+	 * @return ReviewListResponse.ReviewInfo
 	 */
 
-	public ConstructorExpression<ReviewResponse> reviewResponseConstructor(Long userId) {
+	public ConstructorExpression<ReviewListResponse.ReviewInfo> reviewResponseConstructor(Long userId) {
 		return Projections.constructor(
-			ReviewResponse.class,
+			ReviewListResponse.ReviewInfo.class,
+			review.id.as("reviewId"),
+			review.content.as("reviewContent"),
+			review.price.as("price"),
+			review.sizeType.as("sizeType"),
+			likesCountSubquery(),
+			reviewReplyCountSubquery(),
+			review.imageUrl.as("reviewImageUrl"),
+			review.createAt.as("createAt"),
+			user.id.as("userId"),
+			user.nickName.as("nickName"),
+			user.imageUrl.as("userProfileImage"),
+			ratingSubquery(),
+			review.status.as("status"),
+			isMyReviewSubquery(userId),
+			isLikeByMeSubquery(userId),
+			hasReplyByMeSubquery(userId)
+		);
+	}
+
+	/**
+	 * 리뷰 상세 조회 API에 사용되는 생상자 Projection 메서드입니다.
+	 *
+	 * @param reviewId
+	 * @param bestReviewId
+	 * @param userId
+	 * @param reviewTastingTags
+	 * @return ReviewDetailResponse.ReviewInfo
+	 */
+
+	public ConstructorExpression<ReviewDetailResponse.ReviewInfo> reviewDetailResponseConstructor(Long reviewId, Long bestReviewId, Long userId, List<String> reviewTastingTags) {
+		return Projections.constructor(
+			ReviewDetailResponse.ReviewInfo.class,
 			review.id.as("reviewId"),
 			review.content.as("reviewContent"),
 			review.price.as("price"),
@@ -79,7 +113,9 @@ public class ReviewQuerySupporter {
 			review.status.as("status"),
 			isMyReviewSubquery(userId),
 			isLikeByMeSubquery(userId),
-			hasReplyByMeSubquery(userId)
+			hasReplyByMeSubquery(userId),
+			isBestReviewSubquery(bestReviewId, reviewId),
+			Expressions.constant(reviewTastingTags)
 		);
 	}
 
@@ -98,6 +134,18 @@ public class ReviewQuerySupporter {
 			reviewReply.content.as("reviewReplyContent"),
 			reviewReply.createAt.as("createAt")
 		);
+	}
+
+
+	/***
+	 * 현재 리뷰가 베스트 리뷰인지 판별하는 서브쿼리
+	 *
+	 * @param bestReviewId
+	 * @param reviewId
+	 * @return Boolean
+	 */
+	public BooleanExpression isBestReviewSubquery(Long bestReviewId, Long reviewId) {
+		return Objects.equals(bestReviewId, reviewId) ? Expressions.asBoolean(true) : Expressions.asBoolean(false);
 	}
 
 	/*
