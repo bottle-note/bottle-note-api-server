@@ -25,13 +25,16 @@ public class PopularController {
 
 	/**
 	 * 주간 인기 위스키 리스트 조회
+	 * <p>
+	 * 유저 아이디가 존재하지않을때 userId를 -1L 로 조회 :
+	 * "isPicked": false 값으로만 조회됩니다.
 	 *
 	 * @param top 조회할 위스키 목록 개수
 	 * @return 조회된 위스키 목록
 	 */
 	@GetMapping("week")
 	public ResponseEntity<GlobalResponse> getPopularOfWeek(@RequestParam(defaultValue = "5") Integer top) {
-		Long userId = getUserIdByContext().orElse(null);
+		Long userId = getUserIdByContext().orElse(-1L);
 
 		List<Populars> populars = popularService.getPopularOfWeek(top, userId);
 		PopularsOfWeekResponse response = PopularsOfWeekResponse.of(populars.size(), populars);

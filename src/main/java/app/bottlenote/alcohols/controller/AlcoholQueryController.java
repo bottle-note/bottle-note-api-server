@@ -34,6 +34,9 @@ public class AlcoholQueryController {
 	/**
 	 * 위스키를 검색하는 API 입니다.
 	 * 사용자가 있을 경우 좋아요 여부도 함께 전달합니다.
+	 * <p>
+	 * 유저 아이디가 존재하지않을때 userId를 -1L 로 조회 :
+	 * "isPicked" : false 값으로만 조회됩니다.
 	 *
 	 * @param request the request
 	 * @return the response entity
@@ -42,7 +45,7 @@ public class AlcoholQueryController {
 	public ResponseEntity<GlobalResponse> searchAlcohols(
 		@ModelAttribute @Valid AlcoholSearchRequest request
 	) {
-		Long id = getUserIdByContext().orElse(null);
+		Long id = getUserIdByContext().orElse(-1L);
 
 		PageResponse<AlcoholSearchResponse> pageResponse = alcoholQueryService.searchAlcohols(request, id);
 
@@ -56,9 +59,19 @@ public class AlcoholQueryController {
 		);
 	}
 
+
+	/**
+	 * 위스키의 상세정보 API 입니다.
+	 * <p>
+	 * 유저 아이디가 존재하지않을때 userId를 -1L 로 조회 :
+	 * "myRating": null, "isPicked": false 값으로만 조회됩니다.
+	 *
+	 * @param alcoholId
+	 * @return the response entity
+	 */
 	@GetMapping("/{alcoholId}")
 	public ResponseEntity<GlobalResponse> findAlcoholDetailById(@PathVariable Long alcoholId) {
-		Long id = getUserIdByContext().orElse(null);
+		Long id = getUserIdByContext().orElse(-1L);
 		return ResponseEntity.ok(
 			GlobalResponse.success(alcoholQueryService.findAlcoholDetailById(alcoholId, id)));
 	}
