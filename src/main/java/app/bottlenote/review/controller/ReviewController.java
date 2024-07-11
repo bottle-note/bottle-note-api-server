@@ -1,9 +1,5 @@
 package app.bottlenote.review.controller;
 
-import static app.bottlenote.global.data.response.GlobalResponse.success;
-import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
-import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
-
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
@@ -29,6 +25,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static app.bottlenote.global.data.response.GlobalResponse.success;
+import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
+import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
+
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -50,7 +50,7 @@ public class ReviewController {
 	@GetMapping("/{alcoholId}")
 	public ResponseEntity<GlobalResponse> getReviews(@PathVariable Long alcoholId, @ModelAttribute PageableRequest pageableRequest) {
 
-		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(null);
+		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
 
 		log.info("currentUserId is : {} \nPageable INFO  : {}", currentUserId, pageableRequest.toString());
 
@@ -65,10 +65,22 @@ public class ReviewController {
 			));
 	}
 
+	/**
+	 * 위스키의 리뷰 상세를 조회하는 API 입니다.
+	 * <p>
+	 * 유저 아이디가 존재하지않을때 userId를 -1L 로 조회 :
+	 * "isPicked": false 값으로만 조회됩니다.
+	 * "isMyReview": false 값으로만 조회됩니다.
+	 * "isLikedByMe": false 값으로만 조회됩니다.
+	 * "hasReplyByMe": false 값으로만 조회됩니다.
+	 *
+	 * @param reviewId
+	 * @return
+	 */
 	@GetMapping("/detail/{reviewId}")
 	public ResponseEntity<GlobalResponse> getDetailReview(@PathVariable Long reviewId) {
 
-		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(null);
+		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
 
 		return ResponseEntity.ok(
 			success(reviewService.getDetailReview(reviewId, currentUserId))

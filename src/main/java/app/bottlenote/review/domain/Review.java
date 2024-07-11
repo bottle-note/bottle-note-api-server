@@ -1,10 +1,12 @@
 package app.bottlenote.review.domain;
 
+import static app.bottlenote.review.domain.event.ReviewReplyRegistryEvent.replyRegistryPublish;
+
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.review.domain.constant.ReviewActiveStatus;
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
-import app.bottlenote.review.dto.response.ReviewResultMessage;
+import app.bottlenote.review.dto.response.constant.ReviewResultMessage;
 import app.bottlenote.review.dto.vo.ReviewModifyVO;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -16,18 +18,15 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Comment;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static app.bottlenote.review.domain.event.ReviewReplyRegistryEvent.replyRegistryPublish;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Comment;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @Getter
@@ -159,7 +158,7 @@ public class Review extends BaseEntity {
 
 	public void addReply(ReviewReply reply) {
 		this.reviewReplies.add(reply);
-		this.registerEvent(replyRegistryPublish(this.alcoholId, this.id, this.userId, reply.getContent()));
+		this.registerEvent(replyRegistryPublish(this.id, this.userId, reply.getContent()));
 	}
 
 	@Override

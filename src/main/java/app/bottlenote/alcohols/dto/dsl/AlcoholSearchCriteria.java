@@ -1,12 +1,13 @@
 package app.bottlenote.alcohols.dto.dsl;
 
+import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.domain.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.global.service.cursor.SortOrder;
 
 public record AlcoholSearchCriteria(
 	String keyword,
-	String category,
+	AlcoholCategoryGroup category,
 	Long regionId,
 	SearchSortType sortType,
 	SortOrder sortOrder,

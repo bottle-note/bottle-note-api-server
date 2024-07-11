@@ -36,10 +36,8 @@ public class AlcoholQueryService {
 	 * @return the page response
 	 */
 	public PageResponse<AlcoholSearchResponse> searchAlcohols(AlcoholSearchRequest request, Long userId) {
-
 		AlcoholSearchCriteria criteria = AlcoholSearchCriteria.of(request, userId);
-
-		log.info("searchAlcohols criteria: {}", criteria);
+		log.debug("searchAlcohols criteria: {}", criteria);
 
 		return alcoholQueryRepository.searchAlcohols(criteria);
 	}
@@ -89,6 +87,12 @@ public class AlcoholQueryService {
 		return FriendsDetailInfo.of(6L, friendInfos);
 	}
 
+	/**
+	 * 술 카테고리 조회 api
+	 *
+	 * @param type the type
+	 * @return the alcohol category
+	 */
 	@Cacheable(value = "LC-AlcoholCategory")
 	@Transactional(readOnly = true)
 	public List<CategoryResponse> getAlcoholCategory(AlcoholType type) {

@@ -2,6 +2,7 @@ package app.bottlenote.review.domain;
 
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.dto.request.PageableRequest;
+import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.ReviewResponse;
@@ -17,7 +18,7 @@ public interface ReviewRepository {
 
 	List<Review> findAll();
 
-	ReviewResponse getReview(Long reviewId, Long userId);
+	ReviewDetailResponse.ReviewInfo getReview(Long reviewId, Long userId);
 
 	PageResponse<ReviewListResponse> getReviews(Long alcoholId, PageableRequest pageableRequest, Long userId);
 

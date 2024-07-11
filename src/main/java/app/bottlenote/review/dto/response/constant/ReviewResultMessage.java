@@ -1,4 +1,4 @@
-package app.bottlenote.review.dto.response;
+package app.bottlenote.review.dto.response.constant;
 
 import lombok.Getter;
 
