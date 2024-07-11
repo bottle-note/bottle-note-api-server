@@ -59,7 +59,6 @@ public class AlcoholQueryController {
 		);
 	}
 
-
 	/**
 	 * 위스키의 상세정보 API 입니다.
 	 * <p>

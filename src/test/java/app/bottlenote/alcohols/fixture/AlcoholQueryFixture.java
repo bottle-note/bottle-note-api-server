@@ -15,6 +15,11 @@ import app.bottlenote.global.service.cursor.SortOrder;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup.BLEND;
+import static app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup.BOURBON;
+import static app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup.OTHER;
+import static app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup.RYE;
+import static app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup.SINGLE_MALT;
 import static app.bottlenote.review.domain.constant.SizeType.GLASS;
 
 public class AlcoholQueryFixture {
@@ -161,12 +166,11 @@ public class AlcoholQueryFixture {
 
 	public List<CategoryResponse> categoryResponses() {
 		return List.of(
-			new CategoryResponse("SINGLE_MOLT", "싱글 몰트"),
-			new CategoryResponse("BLENDED", "블렌디드"),
-			new CategoryResponse("GRAIN", "그레인"),
-			new CategoryResponse("BOURBON", "버번"),
-			new CategoryResponse("RYE", "라이"),
-			new CategoryResponse("CANADIAN", "캐나다")
+			new CategoryResponse("SINGLE_MOLT", "싱글 몰트", SINGLE_MALT),
+			new CategoryResponse("BLENDED", "블렌디드", BLEND),
+			new CategoryResponse("BOURBON", "버번", BOURBON),
+			new CategoryResponse("RYE", "라이", RYE),
+			new CategoryResponse("OTHER", "기타", OTHER)
 		);
 	}
 }

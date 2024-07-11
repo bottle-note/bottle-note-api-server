@@ -77,6 +77,6 @@ class RestPopularControllerTest extends AbstractRestDocs {
 					)
 				));
 
-		verify(popularService).getPopularOfWeek(5, null);
+		verify(popularService).getPopularOfWeek(5, -1L);
 	}
 }
