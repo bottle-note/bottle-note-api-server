@@ -15,7 +15,15 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import static app.bottlenote.global.data.response.GlobalResponse.success;
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
@@ -57,6 +65,18 @@ public class ReviewController {
 			));
 	}
 
+	/**
+	 * 위스키의 리뷰 상세를 조회하는 API 입니다.
+	 * <p>
+	 * 유저 아이디가 존재하지않을때 userId를 -1L 로 조회 :
+	 * "isPicked": false 값으로만 조회됩니다.
+	 * "isMyReview": false 값으로만 조회됩니다.
+	 * "isLikedByMe": false 값으로만 조회됩니다.
+	 * "hasReplyByMe": false 값으로만 조회됩니다.
+	 *
+	 * @param reviewId
+	 * @return
+	 */
 	@GetMapping("/detail/{reviewId}")
 	public ResponseEntity<GlobalResponse> getDetailReview(@PathVariable Long reviewId) {
 

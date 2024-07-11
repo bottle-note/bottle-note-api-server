@@ -17,10 +17,10 @@ import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
+import app.bottlenote.review.dto.response.ReviewListResponse.ReviewInfo;
 import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
-import app.bottlenote.review.dto.response.ReviewReplyResultMessage;
-import app.bottlenote.review.dto.response.ReviewResponse;
+import app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage;
 import app.bottlenote.user.domain.User;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -85,7 +85,7 @@ public class ReviewObjectFixture {
 	 */
 	public static PageResponse<ReviewListResponse> getReviewListResponse() {
 
-		ReviewResponse reviewResponse_1 = ReviewResponse.builder()
+		ReviewListResponse.ReviewInfo reviewResponse_1 = ReviewListResponse.ReviewInfo.builder()
 			.reviewId(1L)
 			.reviewContent(content)
 			.price(BigDecimal.valueOf(100000L))
@@ -104,7 +104,7 @@ public class ReviewObjectFixture {
 			.hasReplyByMe(false)
 			.build();
 
-		ReviewResponse reviewResponse_2 = ReviewResponse.builder()
+		ReviewListResponse.ReviewInfo reviewResponse_2 = ReviewListResponse.ReviewInfo.builder()
 			.reviewId(2L)
 			.reviewContent("나름 먹을만 하네요")
 			.price(BigDecimal.valueOf(110000L))
@@ -124,7 +124,7 @@ public class ReviewObjectFixture {
 			.build();
 
 		Long totalCount = 2L;
-		List<ReviewResponse> reviewResponses = List.of(reviewResponse_1, reviewResponse_2);
+		List<ReviewInfo> reviewResponse = List.of(reviewResponse_1, reviewResponse_2);
 		CursorPageable cursorPageable = CursorPageable.builder()
 			.currentCursor(0L)
 			.cursor(1L)
@@ -132,7 +132,7 @@ public class ReviewObjectFixture {
 			.hasNext(false)
 			.build();
 
-		ReviewListResponse response = ReviewListResponse.of(totalCount, reviewResponses);
+		ReviewListResponse response = ReviewListResponse.of(totalCount, reviewResponse);
 		return PageResponse.of(response, cursorPageable);
 	}
 
@@ -141,14 +141,15 @@ public class ReviewObjectFixture {
 	 *
 	 * @return ReviewResponse
 	 */
-	public static ReviewResponse getReviewResponse() {
-		return getReviewListResponse().content().getReviewList().get(0);
+	public static ReviewDetailResponse.ReviewInfo getReviewResponse() {
+		return ReviewDetailResponse.ReviewInfo.builder()
+			.reviewId(1L)
+			.build();
 	}
 
 	public static ReviewDetailResponse getReviewDetailResponse() {
 		return ReviewDetailResponse.create(getAlcoholInfo(), getReviewResponse(),
-			List.of(new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")),
-			List.of(new ReviewReplyInfo(1L, "imageUrl", "nickName", 1L, content, LocalDateTime.now())));
+			List.of(new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")));
 	}
 
 	/**
