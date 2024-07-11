@@ -5,7 +5,6 @@ import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewReplyInfo;
-import app.bottlenote.review.dto.response.ReviewResponse;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,9 +27,7 @@ public interface ReviewRepository {
 
 	Optional<ReviewReply> isEligibleParentReply(Long reviewId, Long parentReplyId);
 
-	List<ReviewReplyInfo> getReviewReplies(Long reviewId);
-
-	List<Review> getReviewRootReplies(Long reviewId, Long cursor, Long pageSize);
+	List<ReviewReplyInfo> getReviewRootReplies(Long reviewId, Long cursor, Long pageSize);
 
 	List<?> getReviewChildReplies(Long reviewId, Long parentReplyId, Long cursor, Long pageSize);
 }

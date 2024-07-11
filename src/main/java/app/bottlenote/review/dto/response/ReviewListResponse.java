@@ -2,19 +2,28 @@ package app.bottlenote.review.dto.response;
 
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
+import lombok.Builder;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
 
-@Getter
-@AllArgsConstructor(staticName = "of")
-public class ReviewListResponse {
+public record ReviewListResponse(
+	Long totalCount,
+	List<ReviewInfo> reviewList
+) {
 
-	private final Long totalCount;
-	private final List<ReviewInfo> reviewList;
+	public static ReviewListResponse of(Long totalCount, List<ReviewInfo> reviewList) {
+		return new ReviewListResponse(totalCount, reviewList);
+	}
+
+	public Long getTotalCount() {
+		return totalCount;
+	}
+
+	public List<ReviewInfo> getReviewList() {
+		return reviewList;
+	}
 
 	@Builder
 	public record ReviewInfo(
@@ -38,8 +47,5 @@ public class ReviewListResponse {
 		Boolean isLikedByMe,
 		Boolean hasReplyByMe
 	) {
-
 	}
-
-
 }

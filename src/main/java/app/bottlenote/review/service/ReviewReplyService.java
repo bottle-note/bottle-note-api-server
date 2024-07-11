@@ -1,19 +1,15 @@
 package app.bottlenote.review.service;
 
-import static app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY;
-
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewRepository;
-import app.bottlenote.review.dto.request.ReviewReplyPageableRequest;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
+import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.user.service.domain.UserDomainSupport;
-import java.util.Objects;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
@@ -23,7 +19,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static app.bottlenote.review.dto.response.ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY;
+import static app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY;
 
 @Service
 @Slf4j
@@ -106,11 +102,11 @@ public class ReviewReplyService {
 	 * @return 최상위 리뷰 목록
 	 */
 	@Transactional(readOnly = true)
-	public List<?> getReviewRootReplys(Long reviewId, ReviewReplyPageableRequest pageable) {
-		log.debug("최상위 댓글 목록 조회 {} {}", reviewId, pageable);
-		return reviewRepository.getReviewRootReplies(reviewId, pageable.cursor(), pageable.pageSize())
-			.stream()
-			.map(r -> r.getId() + r.getContent())
-			.toList();
+	public List<ReviewReplyInfo> getReviewRootReplays(Long reviewId, Long cursor, Long pageSize) {
+		return reviewRepository.getReviewRootReplies(
+			reviewId,
+			cursor,
+			pageSize
+		);
 	}
 }

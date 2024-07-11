@@ -92,11 +92,24 @@ dependencies {
 }
 
 tasks.named('test') {
-    // `gradle test`: integration tag가 붙은 테스트는 제외
-    useJUnitPlatform {
-        excludeTags 'data-jpa-test'
+    useJUnitPlatform() {
+        excludeTags 'data-jpa-test', 'integration'
     }
 }
+
+//integration 테스트
+tasks.register('integrationTest', Test) {
+    useJUnitPlatform {
+        includeTags 'integration'
+    }
+}
+
+tasks.register('dataJpaTest', Test) {
+    useJUnitPlatform {
+        includeTags 'data-jpa-test'
+    }
+}
+
 // =========================== spring boot jar setting ===========================
 
 bootJar {

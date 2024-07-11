@@ -2,7 +2,6 @@ package app.bottlenote.review.controller;
 
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.review.dto.request.ReviewReplyPageableRequest;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
 import app.bottlenote.review.service.ReviewReplyService;
 import app.bottlenote.user.exception.UserException;
@@ -14,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -48,10 +48,12 @@ public class ReviewReplyController {
 
 	@GetMapping("/{reviewId}")
 	public ResponseEntity<?> getReviewReplyList(
-		@PathVariable Long reviewId, @RequestBody ReviewReplyPageableRequest request
+		@PathVariable Long reviewId,
+		@RequestParam(required = false, defaultValue = "0") Long cursor,
+		@RequestParam(required = false, defaultValue = "50") Long pageSize
 	) {
 		return ResponseEntity.ok(
-			GlobalResponse.success(reviewReplyService.getReviewRootReplys(reviewId, request))
+			GlobalResponse.success(reviewReplyService.getReviewRootReplays(reviewId, cursor, pageSize))
 		);
 	}
 }
