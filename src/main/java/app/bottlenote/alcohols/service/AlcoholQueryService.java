@@ -36,10 +36,8 @@ public class AlcoholQueryService {
 	 * @return the page response
 	 */
 	public PageResponse<AlcoholSearchResponse> searchAlcohols(AlcoholSearchRequest request, Long userId) {
-
 		AlcoholSearchCriteria criteria = AlcoholSearchCriteria.of(request, userId);
-
-		log.info("searchAlcohols criteria: {}", criteria);
+		log.debug("searchAlcohols criteria: {}", criteria);
 
 		return alcoholQueryRepository.searchAlcohols(criteria);
 	}

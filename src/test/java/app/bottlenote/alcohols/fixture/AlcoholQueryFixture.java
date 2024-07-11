@@ -98,7 +98,7 @@ public class AlcoholQueryFixture {
 	public AlcoholSearchRequest getRequest() {
 		return AlcoholSearchRequest.builder()
 			.keyword("glen")
-			.category("SINGLE_MOLT")
+			.category(SINGLE_MALT)
 			.regionId(1L)
 			.sortType(SearchSortType.REVIEW)
 			.sortOrder(SortOrder.DESC)

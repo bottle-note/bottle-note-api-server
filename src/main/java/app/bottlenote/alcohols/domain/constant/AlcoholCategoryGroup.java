@@ -25,9 +25,16 @@ public enum AlcoholCategoryGroup {
 
 	@JsonCreator
 	public static AlcoholCategoryGroup fromCategory(String categoryGroup) {
+		if (categoryGroup == null) return null;
+
 		return Arrays.stream(values())
 			.filter(group -> group.toString().equals(categoryGroup.toUpperCase()))
 			.findFirst()
-			.orElse(null);
+			.orElseThrow(() -> new IllegalArgumentException("category group이 적절하지 않습니다. : " + categoryGroup));
+	}
+
+	public Boolean containsCategory(String category) {
+		return Arrays.stream(values())
+			.anyMatch(group -> group.categories.contains(category));
 	}
 }

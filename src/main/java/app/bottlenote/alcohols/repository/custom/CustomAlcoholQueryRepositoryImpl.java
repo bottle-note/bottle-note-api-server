@@ -139,7 +139,6 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 	public PageResponse<AlcoholSearchResponse> searchAlcohols(AlcoholSearchCriteria criteriaDto) {
 		Long cursor = criteriaDto.cursor();
 		Long pageSize = criteriaDto.pageSize();
-
 		SearchSortType sortType = criteriaDto.sortType();
 		SortOrder sortOrder = criteriaDto.sortOrder();
 
@@ -169,7 +168,6 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 				supporter.eqCategory(criteriaDto.category()),
 				supporter.eqRegion(criteriaDto.regionId())
 			)
-
 			.groupBy(alcohol.id, alcohol.korName, alcohol.engName, alcohol.korCategory, alcohol.engCategory, alcohol.imageUrl)
 			.orderBy(supporter.sortBy(sortType, sortOrder))
 			.orderBy(supporter.sortByRandom())

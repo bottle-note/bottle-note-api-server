@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup.SINGLE_MALT;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -51,7 +52,7 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 		// then
 		mockMvc.perform(get("/api/v1/alcohols/search")
 				.param("keyword", "glen")
-				.param("category", "SINGLE_MOLT")
+				.param("category", String.valueOf(SINGLE_MALT))
 				.param("regionId", "1")
 				.param("sortType", "REVIEW")
 				.param("sortOrder", "DESC")

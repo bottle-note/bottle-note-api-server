@@ -2,6 +2,7 @@ package app.bottlenote.alcohols.repository;
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
+import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
@@ -66,7 +67,7 @@ class CustomJpaAlcoholQueryRepositoryImplTest {
 				AlcoholSearchRequest.builder().keyword("아벨라워").build()
 				, "keyword"
 			), Arguments.of("카테고리를 통해 검색 할 수 있다.",
-				AlcoholSearchRequest.builder().category("싱글 몰트").build()
+				AlcoholSearchRequest.builder().category(AlcoholCategoryGroup.BLEND).build()
 				, "category"
 			), Arguments.of("지역을 통해 검색 할 수 있다.",
 				AlcoholSearchRequest.builder().regionId(5L).pageSize(1L).build()
@@ -135,7 +136,7 @@ class CustomJpaAlcoholQueryRepositoryImplTest {
 			case "category":
 				assertTrue(alcohols.stream().allMatch(
 					detail ->
-						detail.getKorCategoryName().contains(request.category()) || detail.getEngCategoryName().contains(request.category())
+						request.category().containsCategory(detail.getEngCategoryName())
 				));
 				break;
 			case "region":

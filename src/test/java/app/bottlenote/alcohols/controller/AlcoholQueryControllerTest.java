@@ -7,6 +7,8 @@ import app.bottlenote.alcohols.fixture.AlcoholQueryFixture;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
 import app.bottlenote.global.service.cursor.PageResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -29,6 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("알코올(위스키) 쿼리 컨트롤러 테스트")
 @WebMvcTest(AlcoholQueryController.class)
 class AlcoholQueryControllerTest {
+	private static final Logger log = LogManager.getLogger(AlcoholQueryControllerTest.class);
+	private final AlcoholQueryFixture fixture = new AlcoholQueryFixture();
 	@Autowired
 	protected ObjectMapper mapper;
 	@Autowired
@@ -36,13 +40,12 @@ class AlcoholQueryControllerTest {
 	@MockBean
 	private AlcoholQueryService alcoholQueryService;
 
-	private final AlcoholQueryFixture fixture = new AlcoholQueryFixture();
 
 	@DisplayName("술(위스키) 리스트를 조회할 수 있다.")
 	@ParameterizedTest(name = "[{index}]{0}")
 	@MethodSource("app.bottlenote.alcohols.fixture.ArgumentsFixture#testCase1Provider")
 	void test_case_1(String description, AlcoholSearchRequest searchRequest) throws Exception {
-
+		log.debug("description test : {}", description);
 		// given
 		PageResponse<AlcoholSearchResponse> response = fixture.getResponse();
 
@@ -52,7 +55,7 @@ class AlcoholQueryControllerTest {
 		// then
 		ResultActions resultActions = mockMvc.perform(get("/api/v1/alcohols/search")
 				.param("keyword", searchRequest.keyword())
-				.param("category", searchRequest.category())
+				.param("category", searchRequest.category() == null ? null : searchRequest.category().name())
 				.param("regionId", searchRequest.regionId() == null ? null : String.valueOf(searchRequest.regionId()))
 				.param("sortType", searchRequest.sortType().name())
 				.param("sortOrder", searchRequest.sortOrder().name())

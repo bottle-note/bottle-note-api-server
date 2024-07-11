@@ -1,5 +1,6 @@
 package app.bottlenote.alcohols.fixture;
 
+import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.domain.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.global.service.cursor.SortOrder;
@@ -15,7 +16,7 @@ public class ArgumentsFixture {
 			Arguments.of("모든 요청 파라미터가 존재할 때.",
 				AlcoholSearchRequest.builder()
 					.keyword("glen")
-					.category("SINGLE_MOLT")
+					.category(AlcoholCategoryGroup.SINGLE_MALT)
 					.regionId(1L)
 					.sortType(SearchSortType.REVIEW)
 					.sortOrder(SortOrder.DESC)
@@ -25,7 +26,7 @@ public class ArgumentsFixture {
 			), Arguments.of("키워드가 없을 때.",
 				AlcoholSearchRequest.builder()
 					.keyword("")
-					.category("SINGLE_MOLT")
+					.category(AlcoholCategoryGroup.SINGLE_MALT)
 					.regionId(1L)
 					.sortType(SearchSortType.REVIEW)
 					.sortOrder(SortOrder.DESC)
@@ -35,7 +36,7 @@ public class ArgumentsFixture {
 			), Arguments.of("카테고리도 없을 때.",
 				AlcoholSearchRequest.builder()
 					.keyword("")
-					.category("")
+					.category(null)
 					.regionId(1L)
 					.sortType(SearchSortType.REVIEW)
 					.sortOrder(SortOrder.DESC)
@@ -45,7 +46,7 @@ public class ArgumentsFixture {
 			), Arguments.of("지역 아이디도 없을 때.",
 				AlcoholSearchRequest.builder()
 					.keyword("")
-					.category("")
+					.category(null)
 					.regionId(null)
 					.sortType(SearchSortType.REVIEW)
 					.sortOrder(SortOrder.DESC)
@@ -55,7 +56,7 @@ public class ArgumentsFixture {
 			), Arguments.of("정렬 정보도 없을 때.",
 				AlcoholSearchRequest.builder()
 					.keyword("")
-					.category("")
+					.category(null)
 					.regionId(null)
 					.sortType(null)
 					.sortOrder(null)
@@ -65,7 +66,7 @@ public class ArgumentsFixture {
 			), Arguments.of("페이지 정보도도 없을 때.",
 				AlcoholSearchRequest.builder()
 					.keyword("")
-					.category("")
+					.category(null)
 					.regionId(null)
 					.sortType(null)
 					.sortOrder(null)
