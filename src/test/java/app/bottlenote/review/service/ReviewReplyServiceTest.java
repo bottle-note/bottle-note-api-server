@@ -1,9 +1,5 @@
 package app.bottlenote.review.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewReply;
@@ -14,7 +10,7 @@ import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.review.fixture.FakeProfanityClient;
 import app.bottlenote.review.fixture.FakeUserDomainSupport;
 import app.bottlenote.review.fixture.InMemoryReviewRepository;
-import app.bottlenote.review.fixture.ReviewObjectFixture;
+import app.bottlenote.review.fixture.ReviewReplyObjectFixture;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
@@ -25,6 +21,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DisplayName("리뷰 댓글 서비스 테스트")
 class ReviewReplyServiceTest {
@@ -37,10 +37,10 @@ class ReviewReplyServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		User user1 = ReviewObjectFixture.getUserFixture(1L);
-		User user2 = ReviewObjectFixture.getUserFixture(2L);
-		Review review1 = ReviewObjectFixture.getReviewFixture(1L, 1L, user1.getId());
-		Review review2 = ReviewObjectFixture.getReviewFixture(2L, 1L, user2.getId());
+		User user1 = ReviewReplyObjectFixture.getUserFixture(1L);
+		User user2 = ReviewReplyObjectFixture.getUserFixture(2L);
+		Review review1 = ReviewReplyObjectFixture.getReviewFixture(1L, 1L, user1.getId());
+		Review review2 = ReviewReplyObjectFixture.getReviewFixture(2L, 1L, user2.getId());
 
 		reviewRepository = new InMemoryReviewRepository();
 		profanityClient = new FakeProfanityClient();
@@ -67,7 +67,7 @@ class ReviewReplyServiceTest {
 			final Long reviewId = 1L;
 			final Long userId = 1L;
 			final String content = "댓글 내용입니다.";
-			var request = ReviewObjectFixture.getReviewReplyRegisterRequest(content);
+			var request = ReviewReplyObjectFixture.getReviewReplyRegisterRequest(content);
 
 			//when
 			var response = reviewReplyService.registerReviewReply(reviewId, userId, request);
@@ -91,7 +91,7 @@ class ReviewReplyServiceTest {
 			final Long userId = 1L;
 			final String content = "댓글 내용입니다. 비속어";
 			final String maskingContent = "댓글 내용입니다. ***";
-			var request = ReviewObjectFixture.getReviewReplyRegisterRequest(content);
+			var request = ReviewReplyObjectFixture.getReviewReplyRegisterRequest(content);
 
 			//when
 			var response = reviewReplyService.registerReviewReply(reviewId, userId, request);
@@ -114,7 +114,7 @@ class ReviewReplyServiceTest {
 			final Long reviewId = 1L;
 			final Long userId = -1L;
 			final String content = "댓글 내용입니다.";
-			var request = ReviewObjectFixture.getReviewReplyRegisterRequest(content);
+			var request = ReviewReplyObjectFixture.getReviewReplyRegisterRequest(content);
 
 			//when
 			//then
@@ -130,7 +130,7 @@ class ReviewReplyServiceTest {
 			final Long reviewId = -1L;
 			final Long userId = 1L;
 			final String content = "댓글 내용입니다.";
-			var request = ReviewObjectFixture.getReviewReplyRegisterRequest(content);
+			var request = ReviewReplyObjectFixture.getReviewReplyRegisterRequest(content);
 
 			//when
 			//then
@@ -148,9 +148,9 @@ class ReviewReplyServiceTest {
 			final String content = "자식 댓글 내용입니다.";
 
 			Review review = reviewRepository.findById(reviewId).get();
-			ReviewReply parentReply = ReviewObjectFixture.getReviewReplyFixture(1L, review);
+			ReviewReply parentReply = ReviewReplyObjectFixture.getReviewReplyFixture(1L, review);
 			review.getReviewReplies().add(parentReply);
-			var request = ReviewObjectFixture.getReviewReplyRegisterRequest(content, parentReply.getId());
+			var request = ReviewReplyObjectFixture.getReviewReplyRegisterRequest(content, parentReply.getId());
 
 			//when
 			var response = reviewReplyService.registerReviewReply(reviewId, userId, request);

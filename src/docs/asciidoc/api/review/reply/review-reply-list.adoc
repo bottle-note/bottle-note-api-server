@@ -1,0 +1,31 @@
+=== 최상위 리뷰 댓글 목록 조회 ===
+
+리뷰의 댓글 목록을 조회 하는 API 문서입니다.
+
+PathVariable로 댓글이 작성되는 대상 리뷰의 식별자를 전달합니다.
+
+최상위 댓글 목록만 조회하는 api입니다.
+
+- 최상위 댓글 : 부모 댓글이 없는 댓글
+
+[discrete]
+==== API EndPoint ====
+
+----
+POST /api/v1/review/reply/{reviewId}
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+include::{snippets}/review/reply/list/path-parameters.adoc[]
+include::{snippets}/review/reply/list/request-body.adoc[]
+
+[discrete]
+==== 응답 파라미터  ====
+
+- 닉네임과 내용은 예시로만 봐주세요 . 랜덤성 문자열로 노출됩니다.
+
+[discrete]
+include::{snippets}/review/reply/list/response-fields.adoc[]
+include::{snippets}/review/reply/list/response-body.adoc[]

@@ -96,10 +96,6 @@ public class ReviewReplyService {
 	/**
 	 * 최상위 리뷰 목록을 조회합니다
 	 * 이때 대댓글 목록은 제외됩니다.
-	 *
-	 * @param reviewId 조회할 리뷰 식별자
-	 * @param pageable 페이징 정보
-	 * @return 최상위 리뷰 목록
 	 */
 	@Transactional(readOnly = true)
 	public List<ReviewReplyInfo> getReviewRootReplays(Long reviewId, Long cursor, Long pageSize) {
