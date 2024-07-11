@@ -15,8 +15,8 @@ public interface JpaAlcoholQueryRepository extends
 	JpaRepository<Alcohol, Long>,
 	CustomAlcoholQueryRepository {
 
-	@Query("Select new app.bottlenote.alcohols.dto.response.CategoryResponse(a.korCategory, a.engCategory) from " +
-            "alcohol a where a.type = :type group by a.korCategory, a.engCategory")
 	@Override
+	@Query("Select new app.bottlenote.alcohols.dto.response.CategoryResponse(a.korCategory, a.engCategory,a.categoryGroup) from " +
+		"alcohol a where a.type = :type group by a.korCategory, a.engCategory,a.categoryGroup order by case when a.categoryGroup = 'OTHER' then 1 else 0 end, a.korCategory")
 	List<CategoryResponse> findAllCategories(AlcoholType type);
 }

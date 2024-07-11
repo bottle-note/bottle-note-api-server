@@ -1,14 +1,4 @@
-POST {{host}}/api/v1/oauth/login
-Content-Type: application/json
+### 카테고리 조회
 
-{
-  "email": "juye@gmail.com",
-  "socialType": "GOOGLE",
-  "gender": "",
-  "age": ""
-}
-
-###
 GET {{host}}/api/v1/alcohols/categories
 Content-Type: application/json
-Authorization: Bearer {{accessToken}}

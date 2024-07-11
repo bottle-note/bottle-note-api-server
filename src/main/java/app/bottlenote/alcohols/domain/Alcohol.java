@@ -1,5 +1,6 @@
 package app.bottlenote.alcohols.domain;
 
+import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.domain.constant.AlcoholType;
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.rating.domain.Rating;
@@ -60,6 +61,11 @@ public class Alcohol extends BaseEntity {
 	@Column(name = "eng_category", nullable = false)
 	private String engCategory;
 
+	@Comment("하위 카테고리 그룹")
+	@Enumerated(EnumType.STRING)
+	@Column(name = "category_group", nullable = false)
+	private AlcoholCategoryGroup categoryGroup;
+
 	@Comment("국가")
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "region_id", nullable = true)
@@ -79,22 +85,22 @@ public class Alcohol extends BaseEntity {
 	private String imageUrl;
 
 	// mappedBy: 연관관계의 주인이 아님을 의미한다.
-	// Review가 alcohol의 id를 가지고 있다.
+// Review가 alcohol의 id를 가지고 있다.
 	@OneToMany(mappedBy = "alcoholId", fetch = FetchType.LAZY)
 	private List<Review> reviews = new ArrayList<>();
 
 	// mappedBy: 연관관계의 주인이 아님을 의미한다.
-	// AlcoholsTastingTags가 alcohol의 id를 가지고 있으므로 mappedBy를 사용한다.
+// AlcoholsTastingTags가 alcohol의 id를 가지고 있으므로 mappedBy를 사용한다.
 	@OneToMany(mappedBy = "alcohol", fetch = FetchType.LAZY)
 	private Set<AlcoholsTastingTags> alcoholsTastingTags = new HashSet<>();
 
 	// mappedBy: 연관관계의 주인이 아님을 의미한다.
-	// Rating이 alcohol의 id를 가지고 있다.
+// Rating이 alcohol의 id를 가지고 있다.
 	@OneToMany(mappedBy = "alcohol", fetch = FetchType.LAZY)
 	private List<Rating> rating = new ArrayList<>();
 
 	@Builder
-	public Alcohol(Long id, String korName, String engName, String abv, AlcoholType type, String korCategory, String engCategory, Region region, Distillery distillery, String cask, String imageUrl, List<Review> reviews, Set<AlcoholsTastingTags> alcoholsTastingTags, List<Rating> rating) {
+	public Alcohol(Long id, String korName, String engName, String abv, AlcoholType type, String korCategory, String engCategory, AlcoholCategoryGroup categoryGroup, Region region, Distillery distillery, String cask, String imageUrl, List<Review> reviews, Set<AlcoholsTastingTags> alcoholsTastingTags, List<Rating> rating) {
 		this.id = id;
 		this.korName = korName;
 		this.engName = engName;
@@ -102,6 +108,7 @@ public class Alcohol extends BaseEntity {
 		this.type = type;
 		this.korCategory = korCategory;
 		this.engCategory = engCategory;
+		this.categoryGroup = categoryGroup;
 		this.region = region;
 		this.distillery = distillery;
 		this.cask = cask;
@@ -113,18 +120,16 @@ public class Alcohol extends BaseEntity {
 
 	@Override
 	public String toString() {
-		return "Alcohol{" +
-			"id=" + id +
-			", korName='" + korName + '\'' +
-			", engName='" + engName + '\'' +
-			", abv='" + abv + '\'' +
-			", type=" + type +
-			", korCategory='" + korCategory + '\'' +
-			", engCategory='" + engCategory + '\'' +
-			", region=" + region +
-			", distillery=" + distillery +
-			", cask='" + cask + '\'' +
-			", imageUrl='" + imageUrl + '\'' +
-			'}';
+		return getClass().getSimpleName() + "(" +
+			"id = " + id + ", " +
+			"korName = " + korName + ", " +
+			"engName = " + engName + ", " +
+			"abv = " + abv + ", " +
+			"type = " + type + ", " +
+			"korCategory = " + korCategory + ", " +
+			"engCategory = " + engCategory + ", " +
+			"categoryGroup = " + categoryGroup + ", " +
+			"cask = " + cask + ", " +
+			"imageUrl = " + imageUrl + ")";
 	}
 }

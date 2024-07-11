@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup.SINGLE_MALT;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -51,7 +52,7 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 		// then
 		mockMvc.perform(get("/api/v1/alcohols/search")
 				.param("keyword", "glen")
-				.param("category", "SINGLE_MOLT")
+				.param("category", String.valueOf(SINGLE_MALT))
 				.param("regionId", "1")
 				.param("sortType", "REVIEW")
 				.param("sortOrder", "DESC")
@@ -206,8 +207,8 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 		when(alcoholQueryService.getAlcoholCategory(any())).thenReturn(responses);
 
 		mockMvc.perform(get("/api/v1/alcohols/categories")
-			.param("type", "WHISKY")
-		)
+				.param("type", "WHISKY")
+			)
 			.andExpect(status().isOk())
 			.andDo(print())
 			.andDo(
@@ -220,6 +221,7 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 						fieldWithPath("code").ignored(),
 						fieldWithPath("data[].korCategory").description("카테고리 한글 이름"),
 						fieldWithPath("data[].engCategory").description("카테고리 영어 이름"),
+						fieldWithPath("data[].categoryGroup").description("카테고리 그룹 (카테고리 검색 조건 사용 시 사용) "),
 						fieldWithPath("errors").ignored(),
 						fieldWithPath("meta.serverVersion").ignored(),
 						fieldWithPath("meta.serverEncoding").ignored(),

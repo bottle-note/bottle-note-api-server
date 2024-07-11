@@ -2,9 +2,12 @@
 
 카테고리 목록을 조회할 수 있습니다.
 
-- 해당 기능은 프론트 개발 시 사용되는 카테고리 값을 검증하는데 사용됩니다.
+해당 기능은 프론트 개발 시 사용되는 카테고리 값을 검증하는데 사용됩니다.
 
-- 해당 서버에서 사용되는 카테고리 조건값은 아래 값을 참고하시기 바랍니다.
+- 검색조건으로 사용되는 카테고리 그룹 정보는 최하단 테이블을 참고하시기 바랍니다.
+- DB 에 저장되어 관리되는 카테고리와 검색 조건으로 관리되는 카테고리는 별도로 관리됩니다.
+- 예를 들어 `Spirit`라는 카테고리 명은 존재 하고 노출도 되지만 검색 조건으로는 `ETC`라는 카테고리 그룹에 포함됩니다.
+- 이는 추후 확장될 여지가 있습니다.
 
 [discrete]
 ==== 요청 파라미터 ====
@@ -19,28 +22,40 @@ include::{snippets}/alcohols/categories/query-parameters.adoc[]
 include::{snippets}/alcohols/categories/response-fields.adoc[]
 include::{snippets}/alcohols/categories/response-body.adoc[]
 
+- 카테고리 그룺은 실제 검색시 사용 되는 조건으로 사용 되는 값 입니다.
+- 알코올의 검색 조건으로 사용되는 조건은 아래의 표를 참조하세요.
+- '_' 기호가 포함된 경우 해당 기호 누락 시 예외가 발생합니다.
+
 [discrete]
-===== _정렬 타입 (sortType)_ =====
+===== _카테고리 검색 조건_ =====
 
 [cols="1,1",options="header"]
 |===
 | 영문 | 한글
-| WHISKY
-| 위스키
-| RUM
-| 럼
-| VODKA
-| 보드카
-| GIN
-| 진
-| TEQUILA
-| 데킬라
-| BRANDY
-| 브랜디
-| BEER
-| 맥주
-| WINE
-| 와인
-| ETC
-| 기타
+| SINGLE_MALT |  싱글몰트 위스키
+| BLEND | 블렌디드 위스키
+| BLENDED_MALT | 블렌디드 몰트 위스키
+| BOURBON | 버번 위스키
+| RYE | 라이 위스키
+| OTHER | 기타 위스키
+|===
+
+- 위스키를 제외한 술의 종류 검색 시 사용되는 조건 값입니다.
+- 현재로서는 위스키만 검색 가능합니다.
+
+[discrete]
+===== _카테고리 그룹 조건_ =====
+
+[cols="1,1",options="header"]
+|===
+| 영문 | 한글
+|WHISKY|위스키 (기본값)
+|RUM|럼
+|VODKA|보드카
+|GIN|진
+|TEQUILA|데킬라
+|BRANDY|브랜디
+|BEER|맥주
+|WINE|와인
+|ETC|기타
 |===
