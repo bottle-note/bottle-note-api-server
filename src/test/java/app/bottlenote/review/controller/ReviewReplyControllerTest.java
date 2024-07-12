@@ -1,7 +1,7 @@
 package app.bottlenote.review.controller;
 
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.review.fixture.ReviewObjectFixture;
+import app.bottlenote.review.fixture.ReviewReplyObjectFixture;
 import app.bottlenote.review.service.ReviewReplyService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -59,8 +59,8 @@ class ReviewReplyControllerTest {
 		@DisplayName("새로운 댓글을 등록 할 수 있다.")
 		void test_1() throws Exception {
 			final Long reviewId = 1L;
-			var request = ReviewObjectFixture.getReviewReplyRegisterRequest();
-			var response = ReviewObjectFixture.getReviewReplyResponse();
+			var request = ReviewReplyObjectFixture.getReviewReplyRegisterRequest();
+			var response = ReviewReplyObjectFixture.getReviewReplyResponse();
 
 			mockedSecurityUtil.when(SecurityContextUtil::getUserIdByContext).thenReturn(Optional.of(1L));
 			when(reviewReplyService.registerReviewReply(1L, 1L, request)).thenReturn(response);
@@ -81,7 +81,7 @@ class ReviewReplyControllerTest {
 		@DisplayName("댓글 내용이 없는 경우 예외가 반환된다.")
 		void test_2() throws Exception {
 			final Long reviewId = 1L;
-			var request = ReviewObjectFixture.getReviewReplyRegisterRequest(null, null);
+			var request = ReviewReplyObjectFixture.getReviewReplyRegisterRequest(null, null);
 
 			mockedSecurityUtil.when(SecurityContextUtil::getUserIdByContext).thenReturn(Optional.of(1L));
 
@@ -100,7 +100,7 @@ class ReviewReplyControllerTest {
 		@DisplayName("댓글 내용이 500자를 초과하는 경우 예외가 반환된다.")
 		void test_3() throws Exception {
 			final Long reviewId = 1L;
-			var request = ReviewObjectFixture.getReviewReplyRegisterRequest(RandomStringUtils.randomAlphabetic(501), null);
+			var request = ReviewReplyObjectFixture.getReviewReplyRegisterRequest(RandomStringUtils.randomAlphabetic(501), null);
 
 			mockedSecurityUtil.when(SecurityContextUtil::getUserIdByContext).thenReturn(Optional.of(1L));
 

@@ -1,22 +1,25 @@
 package app.bottlenote.review.service;
 
-import static app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY;
-
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
+import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.user.service.domain.UserDomainSupport;
-import java.util.Objects;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
+import static app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY;
 
 @Service
 @Slf4j
@@ -86,6 +89,20 @@ public class ReviewReplyService {
 		return ReviewReplyResponse.of(
 			SUCCESS_REGISTER_REPLY,
 			review.getId()
+		);
+	}
+
+
+	/**
+	 * 최상위 리뷰 목록을 조회합니다
+	 * 이때 대댓글 목록은 제외됩니다.
+	 */
+	@Transactional(readOnly = true)
+	public List<ReviewReplyInfo> getReviewRootReplays(Long reviewId, Long cursor, Long pageSize) {
+		return reviewRepository.getReviewRootReplies(
+			reviewId,
+			cursor,
+			pageSize
 		);
 	}
 }

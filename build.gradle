@@ -89,14 +89,33 @@ dependencies {
 
     //apache commons
     implementation 'org.apache.commons:commons-lang3:3.12.0'
+
+    //test containers
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
+    testImplementation 'org.testcontainers:testcontainers:1.19.8'
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.0'
+    testImplementation "org.testcontainers:mysql:1.19.0"
 }
 
 tasks.named('test') {
-    // `gradle test`: integration tag가 붙은 테스트는 제외
-    useJUnitPlatform {
-        excludeTags 'data-jpa-test'
+    useJUnitPlatform() {
+        excludeTags 'data-jpa-test', 'integration'
     }
 }
+
+//integration 테스트
+tasks.register('integrationTest', Test) {
+    useJUnitPlatform {
+        includeTags 'integration'
+    }
+}
+
+tasks.register('dataJpaTest', Test) {
+    useJUnitPlatform {
+        includeTags 'data-jpa-test'
+    }
+}
+
 // =========================== spring boot jar setting ===========================
 
 bootJar {

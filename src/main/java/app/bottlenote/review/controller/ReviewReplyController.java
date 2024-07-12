@@ -8,10 +8,12 @@ import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -41,6 +43,17 @@ public class ReviewReplyController {
 
 		return ResponseEntity.ok(
 			GlobalResponse.success(reviewReplyService.registerReviewReply(reviewId, userId, request))
+		);
+	}
+
+	@GetMapping("/{reviewId}")
+	public ResponseEntity<?> getReviewReplyList(
+		@PathVariable Long reviewId,
+		@RequestParam(required = false, defaultValue = "0") Long cursor,
+		@RequestParam(required = false, defaultValue = "50") Long pageSize
+	) {
+		return ResponseEntity.ok(
+			GlobalResponse.success(reviewReplyService.getReviewRootReplays(reviewId, cursor, pageSize))
 		);
 	}
 }

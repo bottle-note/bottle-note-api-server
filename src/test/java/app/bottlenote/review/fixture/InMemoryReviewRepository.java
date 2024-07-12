@@ -8,13 +8,14 @@ import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewReplyInfo;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class InMemoryReviewRepository implements ReviewRepository {
 
@@ -73,8 +74,14 @@ public class InMemoryReviewRepository implements ReviewRepository {
 		return first;
 	}
 
+
 	@Override
-	public List<ReviewReplyInfo> getReviewReplies(Long reviewId) {
-		return null;
+	public List<ReviewReplyInfo> getReviewRootReplies(Long reviewId, Long cursor, Long pageSize) {
+		return List.of();
+	}
+
+	@Override
+	public List<?> getReviewChildReplies(Long reviewId, Long parentReplyId, Long cursor, Long pageSize) {
+		return List.of();
 	}
 }

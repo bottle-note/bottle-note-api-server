@@ -1,15 +1,8 @@
 package app.bottlenote.review.repository;
 
-import static app.bottlenote.like.domain.QLikes.likes;
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.domain.QReview.review;
-import static app.bottlenote.review.domain.QReviewReply.reviewReply;
-import static app.bottlenote.user.domain.QUser.user;
-
 import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
-import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
@@ -17,10 +10,17 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
+import org.springframework.stereotype.Component;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
-import org.springframework.stereotype.Component;
+
+import static app.bottlenote.like.domain.QLikes.likes;
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
+import static app.bottlenote.review.domain.QReviewReply.reviewReply;
+import static app.bottlenote.user.domain.QUser.user;
 
 @Component
 public class ReviewQuerySupporter {
@@ -118,24 +118,6 @@ public class ReviewQuerySupporter {
 			Expressions.constant(reviewTastingTags)
 		);
 	}
-
-	/**
-	 * 리뷰 댓글 조회 시 사용되는 생성자 Projection 메서드입니다.
-	 *
-	 * @return ReviewReplyInfo
-	 */
-	public ConstructorExpression<ReviewReplyInfo> reviewReplyInfoConstructor() {
-		return Projections.constructor(
-			ReviewReplyInfo.class,
-			user.id.as("userId"),
-			user.imageUrl.as("imageUrl"),
-			user.nickName.as("nickName"),
-			reviewReply.id.as("reviewReplyId"),
-			reviewReply.content.as("reviewReplyContent"),
-			reviewReply.createAt.as("createAt")
-		);
-	}
-
 
 	/***
 	 * 현재 리뷰가 베스트 리뷰인지 판별하는 서브쿼리

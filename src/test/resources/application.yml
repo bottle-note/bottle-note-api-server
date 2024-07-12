@@ -1,22 +1,15 @@
 spring:
   datasource:
-    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
-    url: jdbc:tc:mysql:8.0.32:///bottlenote # ?TC_INITSCRIPT=file:database/mysql/init/schema.sql
-    username: root
-    password: root
-  sql:
-    init:
-      mode: always
-      schema-locations: classpath:init-script/schema.sql
-      # data-locations: classpath:init-script/init-alcohol.sql 각 테스트에서 필요한 데이터를 정의하는게 더 긍정적인것 같아 판단.
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb;MODE=MYSQL;NON_KEYWORDS=USER;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
   jpa:
     properties:
       hibernate:
         format_sql: true
         show_sql: true
         globally_quoted_identifiers: true
-        hbm2ddl:
-          auto: update
     show-sql: true
     generate-ddl: true
     database-platform: org.hibernate.dialect.MySQL8Dialect

@@ -5,7 +5,6 @@ import app.bottlenote.alcohols.dto.response.AlcoholInfo;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.Review;
-import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.review.dto.request.LocationInfo;
@@ -13,7 +12,6 @@ import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
-import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
@@ -22,11 +20,12 @@ import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
 import app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage;
 import app.bottlenote.user.domain.User;
+import org.apache.commons.lang3.RandomStringUtils;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
-import org.apache.commons.lang3.RandomStringUtils;
 
 public class ReviewObjectFixture {
 
@@ -169,35 +168,6 @@ public class ReviewObjectFixture {
 	}
 
 	/**
-	 * 리뷰 댓글 작성 요청 객체를 반환합니다.
-	 *
-	 * @return the review reply register request
-	 */
-	public static ReviewReplyRegisterRequest getReviewReplyRegisterRequest(String content) {
-		return new ReviewReplyRegisterRequest(content, null);
-	}
-
-	/**
-	 * 리뷰 댓글 작성 요청 객체를 반환합니다.
-	 *
-	 * @param content       the content
-	 * @param parentReplyId the parent reply id
-	 * @return the review reply register request
-	 */
-	public static ReviewReplyRegisterRequest getReviewReplyRegisterRequest(String content, Long parentReplyId) {
-		return new ReviewReplyRegisterRequest(content, parentReplyId);
-	}
-
-	/**
-	 * 리뷰 댓글 작성 요청 객체를 반환합니다.
-	 *
-	 * @return the review reply register request
-	 */
-	public static ReviewReplyRegisterRequest getReviewReplyRegisterRequest() {
-		return new ReviewReplyRegisterRequest(RandomStringUtils.randomAlphabetic(100), null);
-	}
-
-	/**
 	 * 리뷰 댓글 응답 객체를 반환합니다.
 	 *
 	 * @return the review reply response
@@ -218,7 +188,6 @@ public class ReviewObjectFixture {
 	}
 
 	// domain
-
 	/**
 	 * 리뷰 엔티티 fixture를 반환합니다.
 	 *
@@ -253,23 +222,6 @@ public class ReviewObjectFixture {
 			.build();
 	}
 
-	/**
-	 * 리뷰 댓글 엔티티 fixture를 반환합니다.
-	 *
-	 * @param id     the id
-	 * @param review the review
-	 * @return the review reply fixture
-	 */
-	public static ReviewReply getReviewReplyFixture(Long id, Review review) {
-		Long userId = 1L;
-		String content = RandomStringUtils.randomAlphabetic(50);
-		return ReviewReply.builder()
-			.id(id)
-			.review(review)
-			.userId(userId)
-			.content(content)
-			.build();
-	}
 
 	/**
 	 * 주류 엔티티 fixture를 반환합니다.

@@ -1,17 +1,18 @@
 package app.bottlenote.user.service;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import app.bottlenote.global.security.jwt.CustomJwtException;
 import app.bottlenote.global.security.jwt.JwtTokenValidator;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import java.util.Date;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Date;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DisplayName("JwtTokenValidator 테스트")
 @ExtendWith(MockitoExtension.class)
@@ -28,7 +29,7 @@ class JwtTokenValidatorTest {
 			.setIssuedAt(now)
 			.setExpiration(new Date(now.getTime() - 3600 * 1000))
 			.signWith(Keys.hmacShaKeyFor(
-					"c2VjdXJasdfasdgagasgasgIzNDU2Nzg5MGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6QWJDRGVGR2hJSktMTU5asfdasgdsldYWVphYmNkZWZnaGlrSg==".getBytes()),
+					"c2VjdXJlU2VjcmV0S2V5MTIzNDU2Nzg5MGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6QWJDRGVGR2hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlrSg==".getBytes()),
 				SignatureAlgorithm.HS512)
 			.compact();
 
