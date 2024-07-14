@@ -1,12 +1,13 @@
 package app.bottlenote.rating.dto.request;
 
+import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.rating.domain.constant.SearchSortType;
 import lombok.Builder;
 
 public record RatingListFetchRequest(
 	String keyword,
-	String category,
+	AlcoholCategoryGroup category,
 	Long regionId,
 
 	SearchSortType sortType,
