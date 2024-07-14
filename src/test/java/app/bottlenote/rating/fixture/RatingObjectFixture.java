@@ -1,5 +1,6 @@
 package app.bottlenote.rating.fixture;
 
+import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
 import app.bottlenote.rating.dto.request.RatingListFetchRequest;
 import app.bottlenote.rating.dto.response.RatingListFetchResponse;
 
@@ -10,7 +11,7 @@ public class RatingObjectFixture {
 
 	public static RatingListFetchRequest ratingListFetchRequest(
 		String keyword,
-		String category,
+		AlcoholCategoryGroup category,
 		Long regionId
 	) {
 		return new RatingListFetchRequest(keyword, category, regionId, null, null, 0L, 10L);
