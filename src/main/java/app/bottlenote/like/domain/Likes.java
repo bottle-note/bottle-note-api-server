@@ -1,7 +1,5 @@
 package app.bottlenote.like.domain;
 
-import static lombok.AccessLevel.PROTECTED;
-
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.user.domain.User;
@@ -18,6 +16,8 @@ import jakarta.persistence.ManyToOne;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import static lombok.AccessLevel.PROTECTED;
 
 @Getter
 @Entity(name = "likes")
@@ -46,6 +46,6 @@ public class Likes extends BaseEntity {
 		this.id = id;
 		this.review = review;
 		this.user = user;
-		this.status = status;
+		this.status = status == null ? LikeStatus.LIKE : status;
 	}
 }
