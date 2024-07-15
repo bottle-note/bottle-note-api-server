@@ -1,6 +1,7 @@
 package app.bottlenote.docs.rating;
 
 import app.bottlenote.alcohols.domain.Alcohol;
+import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
 import app.bottlenote.docs.AbstractRestDocs;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.CursorPageable;
@@ -118,7 +119,7 @@ public class RestRatingControllerTest extends AbstractRestDocs {
 		// given
 		RatingListFetchRequest request = RatingObjectFixture.ratingListFetchRequest(
 			"야마자키",
-			"SINGLE MALT",
+			AlcoholCategoryGroup.SINGLE_MALT,
 			1L);
 		RatingListFetchResponse fetchList = RatingObjectFixture.ratingListFetchResponse();
 		CursorPageable pageable = CursorPageable.builder().currentCursor(0L).cursor(0L).pageSize(10L).hasNext(false).build();

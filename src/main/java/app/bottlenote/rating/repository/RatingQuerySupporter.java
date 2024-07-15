@@ -1,5 +1,6 @@
 package app.bottlenote.rating.repository;
 
+import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.rating.domain.constant.SearchSortType;
@@ -78,13 +79,12 @@ public class RatingQuerySupporter {
 	/**
 	 * 카테고리를 검색하는 조건
 	 */
-	protected BooleanExpression eqAlcoholCategory(String category) {
+	protected BooleanExpression eqAlcoholCategory(AlcoholCategoryGroup category) {
 
-		if (StringUtils.isNullOrEmpty(category))
+		if (Objects.isNull(category))
 			return null;
 
-		return alcohol.korCategory.like("%" + category + "%")
-			.or(alcohol.engCategory.like("%" + category + "%"));
+		return alcohol.categoryGroup.stringValue().like("%" + category + "%");
 	}
 
 	/**

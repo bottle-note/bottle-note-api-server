@@ -15,13 +15,14 @@ Content-Type: application/json
 %}
 
 ### 별점 목록 조회
-GET https://api.bottle-note.com/api/v1/rating?keyword=YAM&category=&regionId=&sortType=RANDOM&sortOrder=DESC&cursor=&pageSize=
-Content-Type: application/json
+GET {{host}}/api/v1/rating?keyword=YAM&category=&regionId=&sortType=RANDOM&sortOrder=DESC&cursor=&
+    pageSize=
+    Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 
 ### 별점 목록 조회
-GET https://api.bottle-note.com/api/v1/rating
+GET {{host}}/api/v1/rating
 Content-Type: application/json
 Authorization: Bearer ""
 
@@ -34,3 +35,14 @@ Authorization: Bearer ""
   "cursor": "",
   "pageSize": ""
 }
+
+### 별점 목록 조회 1
+
+@keyword =
+@category = SINGLE_MALT
+@regionId =
+@cursor = 0
+@pageSize = 10
+
+GET {{host}}/api/v1/rating?keyword={{keyword}}&category={{category}}&regionId={{regionId}}&
+    sortType=RANDOM&sortOrder=DESC&cursor={{cursor}}&pageSize={{pageSize}}
