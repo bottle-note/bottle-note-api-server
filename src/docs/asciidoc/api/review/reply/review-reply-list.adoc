@@ -8,6 +8,14 @@ PathVariable로 댓글이 작성되는 대상 리뷰의 식별자를 전달합�
 
 - 최상위 댓글 : 부모 댓글이 없는 댓글
 
+*구조 예 ).*
+
+image::https://i.imgur.com/a3qNSWs.png[]
+
+* `최상위 리뷰 댓글 목록 조회 API` 를 통해 Root Reply을 조회합니다.
+* `하위 리뷰 댓글 목록 조회 API` 를 통해 Root Reply에 대한 대댓글을 조회합니다.
+
+
 [discrete]
 ==== API EndPoint ====
 
@@ -19,7 +27,7 @@ POST /api/v1/review/reply/{reviewId}
 ==== 요청 파라미터 ====
 
 include::{snippets}/review/reply/list/path-parameters.adoc[]
-include::{snippets}/review/reply/list/request-body.adoc[]
+include::{snippets}/review/reply/list/query-parameters.adoc[]
 
 [discrete]
 ==== 응답 파라미터  ====

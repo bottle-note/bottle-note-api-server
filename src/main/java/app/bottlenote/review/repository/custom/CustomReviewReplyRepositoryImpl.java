@@ -11,9 +11,9 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 
-import static app.bottlenote.review.domain.QReview.review;
 import static app.bottlenote.review.domain.QReviewReply.reviewReply;
 import static app.bottlenote.user.domain.QUser.user;
+import static com.querydsl.core.types.ExpressionUtils.count;
 
 public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyRepository {
 
@@ -27,28 +27,33 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
 	@Override
 	public List<?> getReviewRootReplies(Long reviewId, Long cursor, Long pageSize) {
 		long start = System.nanoTime();
+		QReviewReply subReply = new QReviewReply("subReply");
 
 		List<ReviewReplyInfo> replyInfoList = queryFactory.select(
 				Projections.constructor(
 					ReviewReplyInfo.class,
-					review.userId,
+					reviewReply.userId,
 					user.imageUrl,
 					user.nickName,
 					reviewReply.id,
 					reviewReply.content,
+					queryFactory
+						.select(count(subReply.id))
+						.from(subReply)
+						.where(subReply.rootReviewReply.id.eq(reviewReply.id)),
 					reviewReply.createAt
 				)
 			)
-			.from(review)
-			.join(user).on(review.userId.eq(user.id))
-			.leftJoin(reviewReply).on(review.id.eq(reviewReply.review.id))
+			.from(reviewReply)
+			.join(user).on(reviewReply.userId.eq(user.id))
 			.where(
-				review.id.eq(reviewId), // 리뷰 ID 일치
+				reviewReply.review.id.eq(reviewId), // 리뷰 ID 일치
 				reviewReply.rootReviewReply.isNull() // 최상위 댓글만 조회
 			)
+			.groupBy(reviewReply.id)
 			.orderBy(reviewReply.createAt.desc())
-			.offset(cursor) // 페이지 번호
-			.limit(pageSize) // 페이지 사이즈
+			.offset(cursor)
+			.limit(pageSize)
 			.fetch();
 
 		long end = System.nanoTime();

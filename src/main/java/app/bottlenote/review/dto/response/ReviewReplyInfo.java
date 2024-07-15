@@ -10,6 +10,7 @@ public record ReviewReplyInfo(
 	String nickName,
 	Long reviewReplyId,
 	String reviewReplyContent,
+	Long subReplyCount,
 	LocalDateTime createAt
 ) {
 	@Builder
