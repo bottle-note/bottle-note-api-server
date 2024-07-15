@@ -7,6 +7,7 @@ import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
 import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
+import app.bottlenote.review.dto.response.SubReviewReplyInfo;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.user.service.domain.UserDomainSupport;
@@ -101,6 +102,15 @@ public class ReviewReplyService {
 	public List<ReviewReplyInfo> getReviewRootReplays(Long reviewId, Long cursor, Long pageSize) {
 		return reviewRepository.getReviewRootReplies(
 			reviewId,
+			cursor,
+			pageSize
+		);
+	}
+
+	public List<SubReviewReplyInfo> getSubReviewReplies(Long reviewId, Long rootReplyId, Long cursor, Long pageSize) {
+		return reviewRepository.getSubReviewReplies(
+			reviewId,
+			rootReplyId,
 			cursor,
 			pageSize
 		);

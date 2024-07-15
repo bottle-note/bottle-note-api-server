@@ -17,11 +17,12 @@ public interface CustomReviewReplyRepository {
 	/**
 	 * 특정 최사위 댓글의 대댓글 목록을 조회합니다.
 	 *
-	 * @param reviewId      리뷰 ID
-	 * @param parentReplyId 부모 댓글 ID
-	 * @param cursor        페이지 번호
-	 * @param pageSize      페이지 사이즈
+	 * @param reviewId 리뷰 ID
+	 * @param replyId  부모 댓글 ID
+	 * @param cursor   페이지 번호
+	 * @param pageSize 페이지 사이즈
 	 * @return 댓글 목록
 	 */
-	List<?> getReviewChildReplies(Long reviewId, Long parentReplyId, Long cursor, Long pageSize);
+	List<?> getSubReviewReplies(Long reviewId, Long replyId, Long cursor, Long pageSize);
+
 }

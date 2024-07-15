@@ -56,4 +56,18 @@ public class ReviewReplyController {
 			GlobalResponse.success(reviewReplyService.getReviewRootReplays(reviewId, cursor, pageSize))
 		);
 	}
+
+	@GetMapping("/{reviewId}/sub/{rootReplyId}")
+	public ResponseEntity<?> getSubReviewReplies(
+		@PathVariable Long reviewId,
+		@PathVariable Long rootReplyId,
+		@RequestParam(required = false, defaultValue = "0") Long cursor,
+		@RequestParam(required = false, defaultValue = "50") Long pageSize
+	) {
+		return ResponseEntity.ok(
+			GlobalResponse.success(
+				reviewReplyService.getSubReviewReplies(reviewId, rootReplyId, cursor, pageSize)
+			)
+		);
+	}
 }
