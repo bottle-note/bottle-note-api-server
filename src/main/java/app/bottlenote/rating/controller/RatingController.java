@@ -38,6 +38,12 @@ public class RatingController {
 		this.queryService = queryService;
 	}
 
+	/**
+	 * 별점을 등록하는 API 입니다.
+	 *
+	 * @param request the request
+	 * @return the response entity
+	 */
 	@PostMapping("/register")
 	public ResponseEntity<?> registerRatingPoint(
 		@RequestBody @Valid RatingRegisterRequest request
@@ -58,13 +64,10 @@ public class RatingController {
 
 	/**
 	 * 위스키의 별점을 평가하기위해 목록을 조회하는 API 입니다.
-	 * 해당 리스트는 유저가 별점을 평가하지않은 술 목록만 조회됩니다.
 	 * <p>
-	 * 유저 아이디가 존재하지않을때 userId를 -1L 로 조회 :
-	 * "isPicked": false 값으로만 조회됩니다.
+	 * 해당 리스트는 유저가 별점을 평가하지않은 술 목록만 조회됩니다.
 	 *
-	 * @param request
-	 * @return
+	 * @param request 별점 평가 목록 조회 요청 객체
 	 */
 	@GetMapping
 	public ResponseEntity<?> fetchRatingList(
@@ -82,6 +85,15 @@ public class RatingController {
 		);
 	}
 
+	/**
+	 * 특정한 유저가 어떤 술에 대해 평가한 별점을 조회하는 API 입니다.
+	 * <p>
+	 * 만약 별점을 평가하지 않은 경우에는 빈 응답을
+	 * <p>
+	 * 유저 정보는 필수 값입니다
+	 *
+	 * @param alcoholId 술의 식별자
+	 */
 	@GetMapping("/{alcoholId}")
 	public ResponseEntity<?> fetchRatingPoint(@PathVariable Long alcoholId) {
 
