@@ -1,0 +1,51 @@
+=== 하위 리뷰 댓글 목록 조회 ===
+
+리뷰의 대댓글 목록을 조회하는 API입니다.
+
+경로의 `rootReplyId` 는 최상위 댓글 목록 조회 API 통해 조회한 댓글의 식별자를 전달합니다.
+
+*구조 예 ).*
+
+image::https://i.imgur.com/a3qNSWs.png[]
+
+
+* `최상위 리뷰 댓글 목록 조회 API` 를 통해 Root Reply을 조회합니다.
+* `하위 리뷰 댓글 목록 조회 API` 를 통해 Root Reply에 대한 대댓글을 조회합니다.
+* 2번 댓글의 하위 댓글을 조회 하기 위해 2번 댓글의 식별자를 `pathVariable` 로 전달합니다
+* 댓글의 관계는 `최상위 댓글::하위 댓글` 과 `부모 댓글: 자식 댓글` 관계로 구분됩니다.
+** `최상위 댓글::하위 댓글` :1:N의 관계를 가집니다. +
+최상위 댓글만 대상이 될수 있습니다.
+** `부모 댓글: 자식 댓글` : 1:N의 관계를 가집니다. +
+부모 댓글은 최상위 댓글이 아니여도 대상이 될수 있습니다.
+*** 2-1번 댓글의 상위 댓글과 최상위 댓글은 모두 2번 댓글입니다.
+*** 2-2번 댓글의 상위 댓글은 2-1번 댓글이며 최상위 댓글은 2번 댓글입니다.
+*** 2-3번 댓글의 상위 댓글은 2-1번 댓글이며 최상위 댓글은 2번 댓글입니다.
+*** 2-4번 댓글의 상위 댓글은 2-3번 댓글이며 최상위 댓글은 2번 댓글입니다.
+
+[discrete]
+==== API EndPoint ====
+
+----
+POST /api/v1/review/reply/{reviewId}/sub/{rootReplyId}
+----
+
+* `reviewId` : 리뷰 식별자
+* `rootReplyId` : 최상위 댓글 식별자
+
+[discrete]
+==== 요청 파라미터 ====
+
+include::{snippets}/review/reply/sub-list/path-parameters.adoc[]
+include::{snippets}/review/reply/sub-list/query-parameters.adoc[]
+
+* 정렬은 `최신순` 으로 제공됩니다.
+* `cursor` 와 `pageSize` 의 기본값은 각각 0 , 50 입니다
+
+[discrete]
+==== 응답 파라미터  ====
+
+- 닉네임과 내용은 예시로만 봐주세요 . 랜덤성 문자열로 노출됩니다.
+
+[discrete]
+include::{snippets}/review/reply/sub-list/response-fields.adoc[]
+include::{snippets}/review/reply/sub-list/response-body.adoc[]

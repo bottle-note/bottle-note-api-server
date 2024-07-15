@@ -5,9 +5,11 @@ import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
 import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
+import app.bottlenote.review.dto.response.SubReviewReplyInfo;
 import app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage;
 import app.bottlenote.user.domain.User;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -92,6 +94,29 @@ public class ReviewReplyObjectFixture {
 			.nickName(RandomStringUtils.randomAlphabetic(10))
 			.reviewReplyId(index)
 			.reviewReplyContent(RandomStringUtils.randomAlphabetic(150))
+			.subReplyCount(RandomUtils.nextLong(0, 5))
+			.createAt(LocalDateTime.of(2024, 7, 11, 0, 0, 0))
+			.build();
+	}
+
+	public static SubReviewReplyInfo getSubReviewReplyInfo(
+		Long userId,
+		Long index,
+		Long rootReviewId,
+		Long parentReviewReplyId,
+		String parentReviewReplyAuthor
+	) {
+		return SubReviewReplyInfo.builder()
+			.userId(userId)
+			.imageUrl("https://picsum.photos/500")
+			.nickName(RandomStringUtils.randomAlphabetic(10))
+
+			.rootReviewId(rootReviewId)
+			.parentReviewReplyId(parentReviewReplyId)
+			.parentReviewReplyAuthor(parentReviewReplyAuthor)
+
+			.reviewReplyId(index)
+			.reviewReplyContent(RandomStringUtils.randomAlphabetic(150))
 			.createAt(LocalDateTime.of(2024, 7, 11, 0, 0, 0))
 			.build();
 	}
@@ -103,4 +128,5 @@ public class ReviewReplyObjectFixture {
 		}
 		return list;
 	}
+
 }

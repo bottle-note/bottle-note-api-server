@@ -4,16 +4,19 @@ import lombok.Builder;
 
 import java.time.LocalDateTime;
 
-public record ReviewReplyInfo(
+public record SubReviewReplyInfo(
 	Long userId,
 	String imageUrl,
 	String nickName,
+	Long rootReviewId,
+	Long parentReviewReplyId,
+	String parentReviewReplyAuthor,
 	Long reviewReplyId,
 	String reviewReplyContent,
-	Long subReplyCount,
 	LocalDateTime createAt
 ) {
 	@Builder
-	public ReviewReplyInfo {
+	public SubReviewReplyInfo {
+		parentReviewReplyAuthor = "@" + parentReviewReplyAuthor;
 	}
 }

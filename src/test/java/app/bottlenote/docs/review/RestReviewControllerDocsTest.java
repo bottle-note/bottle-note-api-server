@@ -41,7 +41,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @DisplayName("[restdocs] 리뷰 컨트롤러 RestDocs용 테스트")
-class ReviewControllerDocsTest extends AbstractRestDocs {
+class RestReviewControllerDocsTest extends AbstractRestDocs {
 
 	private final Long userId = 1L;
 

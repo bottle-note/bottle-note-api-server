@@ -84,6 +84,8 @@ include::api/review/reply/review-reply-registry.adoc[]
 
 include::api/review/reply/review-reply-list.adoc[]
 
+include::api/review/reply/sub-review-reply-list.adoc[]
+
 == 지원 (support) 관련 API
 
 include::api/support/report/user-report.adoc[]
