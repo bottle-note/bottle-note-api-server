@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +28,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Tag("unit")
 @WithMockUser()
-@DisplayName("알코올(위스키) 쿼리 컨트롤러 테스트")
+@DisplayName("{unit}{Controller} AlcoholQuery")
 @WebMvcTest(AlcoholQueryController.class)
 class AlcoholQueryControllerTest {
 	private static final Logger log = LogManager.getLogger(AlcoholQueryControllerTest.class);
