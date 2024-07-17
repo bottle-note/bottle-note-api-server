@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Tag("unit")
 @WithMockUser()
-@DisplayName("{unit}{Controller} AlcoholQuery")
+@DisplayName("[unit] [controller] AlcoholQuery")
 @WebMvcTest(AlcoholQueryController.class)
 class AlcoholQueryControllerTest {
 	private static final Logger log = LogManager.getLogger(AlcoholQueryControllerTest.class);
