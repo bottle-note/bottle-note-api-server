@@ -1,4 +1,4 @@
-package app.bottlenote.global.config;
+package app.bottlenote.global.jpa;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
