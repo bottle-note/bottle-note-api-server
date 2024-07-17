@@ -1,4 +1,4 @@
-package app.bottlenote.global.jpa;
+package app.bottlenote.global.config.jpa;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;

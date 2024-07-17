@@ -1,4 +1,4 @@
-package app.bottlenote.global.jpa;
+package app.bottlenote.global.config.jpa;
 
 import java.util.Optional;
 import org.springframework.data.domain.AuditorAware;
