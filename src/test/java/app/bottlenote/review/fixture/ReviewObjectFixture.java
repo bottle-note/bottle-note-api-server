@@ -20,12 +20,11 @@ import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
 import app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage;
 import app.bottlenote.user.domain.User;
-import org.apache.commons.lang3.RandomStringUtils;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
+import org.apache.commons.lang3.RandomStringUtils;
 
 public class ReviewObjectFixture {
 
@@ -47,9 +46,9 @@ public class ReviewObjectFixture {
 			new BigDecimal("30000.0"),
 			new LocationInfo("11111", "서울시 강남구 청담동", "xx빌딩"),
 			List.of(
-				new ReviewImageInfo(1L, "url1"),
-				new ReviewImageInfo(2L, "url2"),
-				new ReviewImageInfo(3L, "url3")
+				new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1"),
+				new ReviewImageInfo(2L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1"),
+				new ReviewImageInfo(3L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")
 			),
 			List.of("테이스팅태그 1", "테이스팅태그 2", "테이스팅태그 3")
 		);
