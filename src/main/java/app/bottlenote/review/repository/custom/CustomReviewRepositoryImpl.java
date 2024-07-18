@@ -130,7 +130,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.leftJoin(likes).on(review.id.eq(likes.review.id))
 			.leftJoin(alcohol).on(alcohol.id.eq(review.alcoholId))
 			.leftJoin(rating).on(review.userId.eq(rating.user.id))
-			.where(review.userId.eq(userId).and(review.alcoholId.eq(alcoholId)))
+			.where(review.userId.eq(userId).and(review.alcoholId.eq(alcoholId)).and(review.activeStatus.eq(ACTIVE)))
 			.groupBy(review.id, review.sizeType, review.userId)
 			.orderBy(sortBy(pageableRequest.sortType(), pageableRequest.sortOrder()).toArray(new OrderSpecifier[0]))
 			.offset(pageableRequest.cursor())
