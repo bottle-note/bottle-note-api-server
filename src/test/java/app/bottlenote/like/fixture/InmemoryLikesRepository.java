@@ -18,9 +18,14 @@ public class InmemoryLikesRepository implements LikesRepository {
 
 	@Override
 	public Likes save(Likes likes) {
-		Long id = database.size() + 1L;
-		database.put(id, likes);
-		ReflectionTestUtils.setField(likes, "id", id);
+		Long id = (Long) ReflectionTestUtils.getField(likes, "id");
+		if (id != null && database.containsKey(id)) {
+			database.put(id, likes);
+		} else {
+			id = database.size() + 1L;
+			database.put(id, likes);
+			ReflectionTestUtils.setField(likes, "id", id);
+		}
 		log.info("[InMemory] likes repository save = {}", likes);
 		return likes;
 	}
@@ -37,8 +42,12 @@ public class InmemoryLikesRepository implements LikesRepository {
 
 	@Override
 	public Optional<Likes> findByReviewIdAndUserId(Long reviewId, Long userId) {
-		return database.values().stream()
+		Optional<Likes> first = database.values().stream()
 			.filter(likes -> likes.getReview().getId().equals(reviewId) && likes.getUserInfo().getUserId().equals(userId))
 			.findFirst();
+
+		log.info("[InMemory] likes repository findByReviewIdAndUserId = {}", first);
+
+		return first;
 	}
 }
