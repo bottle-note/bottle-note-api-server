@@ -2,6 +2,7 @@ package app.bottlenote.user.service.domain;
 
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserQueryRepository;
+import app.bottlenote.user.dto.response.UserProfileInfo;
 import app.bottlenote.user.exception.UserException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,5 +39,13 @@ public class DefaultUserDomainSupport implements UserDomainSupport {
 			.orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
 		log.info("[domain] isValidUserId success : {}", user.getId());
+	}
+
+	@Override
+	public UserProfileInfo getUserProfileInfo(Long userId) {
+		User user = userQueryRepository.findById(userId)
+			.orElseThrow(() -> new UserException(USER_NOT_FOUND));
+
+		return UserProfileInfo.create(user.getId(), user.getNickName(), user.getImageUrl());
 	}
 }

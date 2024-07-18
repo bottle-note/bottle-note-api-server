@@ -10,4 +10,6 @@ public interface LikesRepository {
 	Optional<Likes> findById(Long id);
 
 	List<Likes> findAll();
+
+	Optional<Likes> findByReviewIdAndUserId(Long reviewId, Long userId);
 }

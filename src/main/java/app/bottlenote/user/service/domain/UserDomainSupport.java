@@ -1,5 +1,7 @@
 package app.bottlenote.user.service.domain;
 
+import app.bottlenote.user.dto.response.UserProfileInfo;
+
 /**
  * 유저 도메인 서포트를 위한 인터페이스입니다.
  * 이 인터페이스는 유저 식별자를 기반으로 유저 데이터를 검증하는 메소드를 제공합니다.
@@ -30,4 +32,6 @@ public interface UserDomainSupport {
 	 * @return 유효한 유저 식별자
 	 */
 	void isValidUserId(Long userId);
+
+	UserProfileInfo getUserProfileInfo(Long userId);
 }
