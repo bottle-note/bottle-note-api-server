@@ -51,5 +51,9 @@ public record ReviewDetailResponse(
 	public static ReviewDetailResponse create(AlcoholInfo alcoholInfo, ReviewInfo reviewResponse, List<ReviewImageInfo> reviewImageList) {
 		return new ReviewDetailResponse(alcoholInfo, reviewResponse, reviewImageList);
 	}
+
+	public static ReviewDetailResponse empty() {
+		return new ReviewDetailResponse(null, null, null);
+	}
 }
 
