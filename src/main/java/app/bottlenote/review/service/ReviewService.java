@@ -103,7 +103,10 @@ public class ReviewService {
 		List<ReviewImageInfo> reviewImageInfos = reviewImageSupport.getReviewImageInfo(review.getReviewImages());
 
 		log.info("리뷰 이미지 조회 시간 : {}", (System.nanoTime() - start4) / 1_000_000 + "ms");
-
+		
+		if (reviewImageInfos.isEmpty() || reviewInfo == null) {
+			return ReviewDetailResponse.empty();
+		}
 		return ReviewDetailResponse.create(alcoholInfo, reviewInfo, reviewImageInfos);
 	}
 
