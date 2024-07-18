@@ -4,9 +4,8 @@ import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.DE
 import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -78,12 +77,12 @@ class ReviewServiceTest {
 			when(reviewRepository.save(any(Review.class)))
 				.thenReturn(review);
 
-			ReviewCreateResponse response = reviewService.createReview(reviewCreateRequest, 1L);
+			ReviewCreateResponse reviewCreateResponse = reviewService.createReview(reviewCreateRequest, 1L);
 
 			verify(reviewImageSupport, times(1)).saveImages(anyList(), any());
 			verify(reviewTastingTagSupport, times(1)).saveReviewTastingTag(anyList(), any());
 
-			assertEquals(response.getId(), review.getId());
+			assertEquals(reviewCreateResponse.getId(), review.getId());
 		}
 	}
 
@@ -111,8 +110,6 @@ class ReviewServiceTest {
 		@Test
 		@DisplayName("내가 작성한 리뷰를 조회할 수 있다.")
 		void test_my_review_read() {
-			//given
-			Long userId = 1L;
 
 			//when
 			when(reviewRepository.getReviewsByMe(anyLong(), any(PageableRequest.class), anyLong()))
@@ -128,7 +125,7 @@ class ReviewServiceTest {
 
 		@DisplayName("리뷰 상세조회를 할 수 있다.")
 		@Test
-		void test_review_detail_reveiw() {
+		void test_review_detail_read() {
 
 			// when
 			when(reviewRepository.findById(anyLong()))
@@ -146,6 +143,20 @@ class ReviewServiceTest {
 			assertEquals(detailReview.reviewResponse().reviewId(), review.getId());
 		}
 
+		@DisplayName("삭제 된 리뷰를 상세조회하면 응답객체의 모든 필드가 null로 반환된다")
+		@Test
+		void test_review_detail_if_review_is_not_exist() {
+
+			when(reviewRepository.findById(anyLong())).thenReturn(Optional.of(review));
+			when(reviewRepository.getReview(anyLong(), anyLong())).thenReturn(null);
+
+			ReviewDetailResponse detailReview = reviewService.getDetailReview(1L, 1L);
+
+			assertNull(detailReview.reviewImageList());
+			assertNull(detailReview.alcoholInfo());
+			assertNull(detailReview.reviewResponse());
+		}
+
 		@DisplayName("리뷰가 존재하지 않으면 조회할 수 없다.")
 		@Test
 		void test_review_read_fail_when_review_not_exist() {
@@ -154,22 +165,6 @@ class ReviewServiceTest {
 			when(reviewRepository.findById(anyLong())).thenThrow(new ReviewException(REVIEW_NOT_FOUND));
 			// then
 			assertThrows(ReviewException.class, () -> reviewService.getDetailReview(1L, 1L));
-		}
-
-		@DisplayName("리뷰 이미지가 존재하지 않아도 리뷰 상세 조회가 가능하다")
-		@Test
-		void test_review_read_success_when_image_is_null() {
-			// given
-
-			when(reviewRepository.findById(anyLong())).thenReturn(Optional.of(review));
-
-			// when
-			ReviewDetailResponse reviewDetail = reviewService.getDetailReview(1L, 1L);
-
-			// then
-			assertNotNull(response);
-
-			assertTrue(reviewDetail.reviewImageList().isEmpty());
 		}
 	}
 
