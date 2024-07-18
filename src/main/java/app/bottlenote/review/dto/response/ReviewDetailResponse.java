@@ -49,11 +49,10 @@ public record ReviewDetailResponse(
 	}
 
 	public static ReviewDetailResponse create(AlcoholInfo alcoholInfo, ReviewInfo reviewResponse, List<ReviewImageInfo> reviewImageList) {
+		if (reviewResponse == null) {
+			return new ReviewDetailResponse(null, null, null);
+		}
 		return new ReviewDetailResponse(alcoholInfo, reviewResponse, reviewImageList);
-	}
-
-	public static ReviewDetailResponse empty() {
-		return new ReviewDetailResponse(null, null, null);
 	}
 }
 
