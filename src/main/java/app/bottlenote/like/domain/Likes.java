@@ -53,4 +53,12 @@ public class Likes extends BaseEntity {
 		Objects.requireNonNull(status, "상태값은 null일 수 없습니다.");
 		this.status = status;
 	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + "(" +
+			"id = " + getId() + ", " +
+			"userInfo = " + getUserInfo() + ", " +
+			"status = " + getStatus() + ", ";
+	}
 }

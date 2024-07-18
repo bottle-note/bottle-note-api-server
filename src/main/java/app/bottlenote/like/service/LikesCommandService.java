@@ -56,6 +56,7 @@ public class LikesCommandService {
 		likesRepository.save(likes);
 
 		return LikesUpdateResponse.of(
+			likes.getId(),
 			reviewId,
 			likes.getUserInfo().getUserId(),
 			likes.getUserInfo().getUserNickName(),

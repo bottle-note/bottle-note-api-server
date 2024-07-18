@@ -6,12 +6,14 @@ import lombok.Getter;
 
 public record LikesUpdateResponse(
 	String message,
+	Long likesId,
 	Long reviewId,
 	Long userId,
 	String userNickName,
 	LikeStatus status
 ) {
 	public static LikesUpdateResponse of(
+		Long likesId,
 		Long reviewId,
 		Long userId,
 		String userNickName,
@@ -19,6 +21,7 @@ public record LikesUpdateResponse(
 	) {
 		return new LikesUpdateResponse(
 			status == LikeStatus.LIKE ? Message.LIKED.message : Message.DISLIKE.message,
+			likesId,
 			reviewId,
 			userId,
 			userNickName,
