@@ -1,0 +1,42 @@
+=== 리뷰 좋아요  ===
+
+리뷰에 대해 좋아요 처리 가능한 API 입니다.
+
+업데이트 시 `Acsess Token` 이 필수적으로 필요합니다.
+
+중복된 요청 시에도 예외가 발생하지 않습니다.
+
+* 좋아요 요청 후 다시 좋아요 요청 시 정상 처리 ( 덮어쓰기 )
+
+[source]
+----
+PUT /api/v1/likes
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/review/likes/update/request-fields.adoc[]
+include::{snippets}/review/likes/update/request-body.adoc[]
+
+[discrete]
+==== 좋아요 status enum 상태값 ====
+
+- 상태 요청시 하위 값으로만 요청 가능합니다.
+
+[cols="1,1"]
+|===
+| LIKE
+| 좋아요
+
+| DISLIKE
+| 좋아요 해제
+|===
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/review/likes/update/response-fields.adoc[]
+include::{snippets}/review/likes/update/response-body.adoc[]
