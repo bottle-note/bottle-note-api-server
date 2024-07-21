@@ -43,8 +43,8 @@ class AlcoholQueryControllerTest {
 	private AlcoholQueryService alcoholQueryService;
 
 
-	@DisplayName("술(위스키) 리스트를 조회할 수 있다.")
-	@ParameterizedTest(name = "[{index}]{0}")
+	@DisplayName("술 목록을 조회할 수 있다.")
+	@ParameterizedTest(name = "{0}")
 	@MethodSource("app.bottlenote.alcohols.fixture.ArgumentsFixture#testCase1Provider")
 	void test_case_1(String description, AlcoholSearchRequest searchRequest) throws Exception {
 		log.debug("description test : {}", description);
@@ -78,8 +78,8 @@ class AlcoholQueryControllerTest {
 
 	}
 
-	@DisplayName("정렬 타입에 대한 검증")
-	@ParameterizedTest(name = "{1} : {0}")
+	@DisplayName("다양한 정렬 타입으로 술 목록을 조회할 수 있다.")
+	@ParameterizedTest(name = "{0}")
 	@MethodSource("app.bottlenote.alcohols.fixture.ArgumentsFixture#sortTypeParameters")
 	void test_sortType(String sortType, int expectedStatus) throws Exception {
 		// given
@@ -102,8 +102,8 @@ class AlcoholQueryControllerTest {
 			.andDo(print());
 	}
 
-	@DisplayName("정렬 방향에 대한 검증")
-	@ParameterizedTest(name = "{1} : {0}")
+	@DisplayName("다양한 정렬 방향으로 술 목록을 조회할 수 있다.")
+	@ParameterizedTest(name = "{0}")
 	@MethodSource("app.bottlenote.alcohols.fixture.ArgumentsFixture#sortOrderParameters")
 	void test_sortOrder(String sortOrder, int expectedStatus) throws Exception {
 		// given
