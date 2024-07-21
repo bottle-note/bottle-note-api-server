@@ -78,6 +78,10 @@ include::api/review/review-delete.adoc[]
 
 include::api/review/review-detail-read.adoc[]
 
+== 리뷰 좋아요 (review like) 관련 API
+
+include::api/review/likes/update.adoc[]
+
 == 리뷰 댓글  (review reply) 관련 API
 
 include::api/review/reply/review-reply-registry.adoc[]

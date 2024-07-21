@@ -32,13 +32,14 @@ public class PopularController {
 	 * @param top 조회할 위스키 목록 개수
 	 * @return 조회된 위스키 목록
 	 */
-	@GetMapping("week")
-	public ResponseEntity<GlobalResponse> getPopularOfWeek(@RequestParam(defaultValue = "5") Integer top) {
+	@GetMapping("/week")
+	public ResponseEntity<?> getPopularOfWeek(@RequestParam(defaultValue = "5") Integer top) {
 		Long userId = getUserIdByContext().orElse(-1L);
 
 		List<Populars> populars = popularService.getPopularOfWeek(top, userId);
+
 		PopularsOfWeekResponse response = PopularsOfWeekResponse.of(populars.size(), populars);
 
-		return ResponseEntity.ok(GlobalResponse.success(response));
+		return GlobalResponse.ok(response);
 	}
 }

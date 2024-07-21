@@ -1,9 +1,19 @@
 package app.bottlenote.review.repository.custom;
 
+import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.global.service.cursor.SortOrder.DESC;
+import static app.bottlenote.like.domain.QLikes.likes;
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
+import static app.bottlenote.review.domain.QReviewImage.reviewImage;
+import static app.bottlenote.review.domain.QReviewReply.reviewReply;
+import static app.bottlenote.review.domain.QReviewTastingTag.reviewTastingTag;
+import static app.bottlenote.review.domain.constant.ReviewActiveStatus.ACTIVE;
+import static app.bottlenote.user.domain.QUser.user;
+
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
-import app.bottlenote.review.domain.constant.ReviewActiveStatus;
 import app.bottlenote.review.domain.constant.ReviewSortType;
 import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
@@ -14,22 +24,11 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.global.service.cursor.SortOrder.DESC;
-import static app.bottlenote.like.domain.QLikes.likes;
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.domain.QReview.review;
-import static app.bottlenote.review.domain.QReviewImage.reviewImage;
-import static app.bottlenote.review.domain.QReviewReply.reviewReply;
-import static app.bottlenote.review.domain.QReviewTastingTag.reviewTastingTag;
-import static app.bottlenote.user.domain.QUser.user;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -80,7 +79,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.leftJoin(reviewTastingTag).on(review.id.eq(reviewTastingTag.review.id))
 			.leftJoin(reviewImage).on(review.id.eq(reviewImage.review.id))
 			.leftJoin(reviewReply).on(review.id.eq(reviewReply.review.id))
-			.where(review.id.eq(reviewId).and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE)))
+			.where(review.id.eq(reviewId).and(review.activeStatus.eq(ACTIVE)))
 			.groupBy(review.id, review.sizeType, review.userId)
 			.fetchOne();
 	}
@@ -99,7 +98,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.leftJoin(alcohol).on(alcohol.id.eq(review.alcoholId))
 			.leftJoin(rating).on(review.userId.eq(rating.user.id))
 			.leftJoin(reviewTastingTag).on(review.id.eq(reviewTastingTag.review.id))
-			.where(alcohol.id.eq(alcoholId))
+			.where(alcohol.id.eq(alcoholId).and(review.activeStatus.eq(ACTIVE)))
 			.groupBy(review.id, review.sizeType, review.userId)
 			.orderBy(sortBy(pageableRequest.sortType(), pageableRequest.sortOrder()).toArray(new OrderSpecifier[0]))
 			.offset(pageableRequest.cursor())
@@ -131,7 +130,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.leftJoin(likes).on(review.id.eq(likes.review.id))
 			.leftJoin(alcohol).on(alcohol.id.eq(review.alcoholId))
 			.leftJoin(rating).on(review.userId.eq(rating.user.id))
-			.where(review.userId.eq(userId).and(review.alcoholId.eq(alcoholId)))
+			.where(review.userId.eq(userId).and(review.alcoholId.eq(alcoholId)).and(review.activeStatus.eq(ACTIVE)))
 			.groupBy(review.id, review.sizeType, review.userId)
 			.orderBy(sortBy(pageableRequest.sortType(), pageableRequest.sortOrder()).toArray(new OrderSpecifier[0]))
 			.offset(pageableRequest.cursor())

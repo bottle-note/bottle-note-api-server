@@ -317,7 +317,8 @@ CREATE TABLE `likes`
 (
     `id`             bigint       NOT NULL AUTO_INCREMENT COMMENT '좋아요',
     `review_id`      bigint       NOT NULL COMMENT '좋아요의 대상 리뷰',
-    `user_id`        bigint       NOT NULL COMMENT '좋아요를 누른 사람',
+    `user_id`        bigint       NOT NULL COMMENT '좋아요를 누른 사용자 식별자',
+    `user_nick_name` varchar(255) NOT NULL COMMENT '좋아요를 누른 사용자 닉네임',
     `status`         varchar(255) NULL COMMENT '공감, 공감취소',
     `create_at`      timestamp    NULL COMMENT '최초 생성일',
     `create_by`      varchar(255) NULL COMMENT '최초 생성자',

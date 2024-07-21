@@ -1,11 +1,9 @@
 package app.bottlenote.like.domain;
 
-import static lombok.AccessLevel.PROTECTED;
-
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.review.domain.Review;
-import app.bottlenote.user.domain.User;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -18,6 +16,10 @@ import jakarta.persistence.ManyToOne;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.Objects;
+
+import static lombok.AccessLevel.PROTECTED;
 
 @Getter
 @Entity(name = "likes")
@@ -32,20 +34,31 @@ public class Likes extends BaseEntity {
 	@JoinColumn(name = "review_id")
 	private Review review;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id")
-	private User user;
+	@Embedded
+	private LikeUserInfo userInfo;
 
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
 	private LikeStatus status = LikeStatus.LIKE;
 
-
 	@Builder
-	public Likes(Long id, Review review, User user, LikeStatus status) {
+	public Likes(Long id, Review review, LikeUserInfo userInfo, LikeStatus status) {
 		this.id = id;
 		this.review = review;
-		this.user = user;
+		this.userInfo = userInfo;
 		this.status = status;
+	}
+
+	public void updateStatus(LikeStatus status) {
+		Objects.requireNonNull(status, "상태값은 null일 수 없습니다.");
+		this.status = status;
+	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + "(" +
+			"id = " + getId() + ", " +
+			"userInfo = " + getUserInfo() + ", " +
+			"status = " + getStatus() + ", ";
 	}
 }

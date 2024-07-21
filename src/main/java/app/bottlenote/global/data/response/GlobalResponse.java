@@ -4,6 +4,7 @@ import app.bottlenote.global.service.meta.MetaInfos;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 
 import java.util.Map;
 
@@ -31,6 +32,14 @@ public class GlobalResponse {
 		this.data = data;
 		this.errors = errors;
 		this.meta = meta;
+	}
+
+	public static ResponseEntity<?> ok(Object data) {
+		return ResponseEntity.ok(success(data));
+	}
+
+	public static ResponseEntity<?> ok(Object data, MetaInfos meta) {
+		return ResponseEntity.ok(success(data, meta));
 	}
 
 	/**
