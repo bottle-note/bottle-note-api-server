@@ -28,8 +28,8 @@ public class ReviewModifyVO {
 		this.reviewDisplayStatus = reviewModifyRequest.status();
 		this.price = reviewModifyRequest.price();
 		this.sizeType = reviewModifyRequest.sizeType();
-		this.zipCode = reviewModifyRequest.locationInfo().zipCode();
-		this.address = reviewModifyRequest.locationInfo().address();
-		this.detailAddress = reviewModifyRequest.locationInfo().detailAddress();
+		this.zipCode = reviewModifyRequest.locationInfo() == null ? null : reviewModifyRequest.locationInfo().zipCode();
+		this.address = reviewModifyRequest.locationInfo() == null ? null : reviewModifyRequest.locationInfo().address();
+		this.detailAddress = reviewModifyRequest.locationInfo() == null ? null : reviewModifyRequest.locationInfo().detailAddress();
 	}
 }
