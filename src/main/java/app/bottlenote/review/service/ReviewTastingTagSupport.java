@@ -38,22 +38,25 @@ public class ReviewTastingTagSupport {
 	public void updateReviewTastingTags(List<String> tastingTags, Review review) {
 
 		if (CollectionUtils.isEmpty(tastingTags)) {
+			
 			review.updateTastingTags(Collections.emptySet());
+
+		} else {
+
+			Set<ReviewTastingTag> reviewTastingTags = tastingTags.stream()
+				.distinct() // 중복 제거
+				.map(tastingTag -> ReviewTastingTag.builder()
+					.review(review)
+					.tastingTag(tastingTag)
+					.build())
+				.collect(Collectors.toSet());
+
+			if (!isValidReviewTastingTag(reviewTastingTags)) {
+				throw new ReviewException(INVALID_TASTING_TAG_LIST_SIZE);
+			}
+
+			review.updateTastingTags(reviewTastingTags);
 		}
-
-		Set<ReviewTastingTag> reviewTastingTags = tastingTags.stream()
-			.distinct() // 중복 제거
-			.map(tastingTag -> ReviewTastingTag.builder()
-				.review(review)
-				.tastingTag(tastingTag)
-				.build())
-			.collect(Collectors.toSet());
-
-		if (!isValidReviewTastingTag(reviewTastingTags)) {
-			throw new ReviewException(INVALID_TASTING_TAG_LIST_SIZE);
-		}
-
-		review.updateTastingTags(reviewTastingTags);
 	}
 
 
