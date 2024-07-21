@@ -17,6 +17,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 import static lombok.AccessLevel.PROTECTED;
 
 @Getter
@@ -39,12 +41,24 @@ public class Likes extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private LikeStatus status = LikeStatus.LIKE;
 
-
 	@Builder
 	public Likes(Long id, Review review, LikeUserInfo userInfo, LikeStatus status) {
 		this.id = id;
 		this.review = review;
 		this.userInfo = userInfo;
 		this.status = status;
+	}
+
+	public void updateStatus(LikeStatus status) {
+		Objects.requireNonNull(status, "상태값은 null일 수 없습니다.");
+		this.status = status;
+	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + "(" +
+			"id = " + getId() + ", " +
+			"userInfo = " + getUserInfo() + ", " +
+			"status = " + getStatus() + ", ";
 	}
 }

@@ -11,6 +11,7 @@ import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.SubReviewReplyInfo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -29,7 +30,9 @@ public class InMemoryReviewRepository implements ReviewRepository {
 		if (Objects.isNull(id)) {
 			id = database.size() + 1L;
 		}
+		ReflectionTestUtils.setField(review, "id", id);
 		database.put(id, review);
+		log.info("[InMemory] review repository save = {}", review);
 		return review;
 	}
 

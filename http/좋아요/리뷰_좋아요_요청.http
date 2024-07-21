@@ -1,0 +1,40 @@
+### 토큰 발급 (일반)
+POST {{host}}/api/v1/oauth/login
+Content-Type: application/json
+
+{
+  "email": "dev.bottle-note@gmail.com",
+  "socialType": "GOOGLE",
+  "gender": "MALE",
+  "age": 25
+}
+
+> {%
+    //토큰을 전역변수로 저장
+    client.global.set("accessToken", response.body.data.accessToken);
+%}
+
+
+### 정상적인 위스키 목록 조회
+
+@reviewId = "1"
+@status = "LIKE"
+PUT {{host}}/api/v1/likes
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "reviewId": {{reviewId}},
+  "status": {{status}}
+}
+
+### 리뷰가 없을 경우 에러 발생
+@badReviewId = "-1"
+PUT {{host}}/api/v1/likes
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "reviewId": {{badReviewId}},
+  "status": {{status}}
+}
