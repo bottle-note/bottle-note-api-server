@@ -25,7 +25,6 @@ import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.ReviewSortType;
-import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.review.dto.request.LocationInfo;
 import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
@@ -443,8 +442,6 @@ class ReviewControllerTest {
 		@Test
 		void modify_review_success() throws Exception {
 
-			Long reviewId = 99L;
-
 			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
 			when(reviewService.modifyReview(reviewModifyRequest, reviewId, userId))
@@ -467,8 +464,6 @@ class ReviewControllerTest {
 		@Test
 		void modify_review_fail_unauthorized_user() throws Exception {
 
-			Long reviewId = 1L;
-
 			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.empty());
 
 			when(reviewService.modifyReview(reviewModifyRequest, reviewId, userId))
@@ -490,8 +485,6 @@ class ReviewControllerTest {
 		@Test
 		void modify_review_fail_not_exist_review() throws Exception {
 
-			Long reviewId = 1L;
-
 			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
 			when(reviewService.modifyReview(reviewModifyRequest, reviewId, userId))
@@ -509,19 +502,18 @@ class ReviewControllerTest {
 				.modifyReview(any(ReviewModifyRequest.class), anyLong(), anyLong());
 		}
 
-		@DisplayName("Request Body에 Null인 필드가 포함되면 리뷰를 수정할 수 없다..")
+		@DisplayName("status와 content를 제외한 필드가 null 인 경우 리뷰 수정이 가능하다.")
 		@Test
 		void modify_review_fail_when_request_body_has_null() throws Exception {
 
 			ReviewModifyRequest wrongRequest = new ReviewModifyRequest(
 				"그저 그래요",
 				ReviewDisplayStatus.PUBLIC,
-				BigDecimal.valueOf(10000L),
 				null,
-				SizeType.GLASS,
-				List.of(),
+				null,
+				null,
+				null,
 				new LocationInfo(null, null, null));
-			Long reviewId = 99L;
 
 			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
@@ -533,11 +525,8 @@ class ReviewControllerTest {
 					.content(mapper.writeValueAsString(wrongRequest))
 					.with(csrf())
 				)
-				.andExpect(status().isBadRequest())
+				.andExpect(status().isOk())
 				.andDo(print());
-
-			verify(reviewService, never())
-				.modifyReview(any(ReviewModifyRequest.class), anyLong(), anyLong());
 		}
 	}
 
@@ -593,8 +582,6 @@ class ReviewControllerTest {
 		@DisplayName("존재하지 않은 리뷰를 삭제할 수 없다.")
 		@Test
 		void delete_review_fail_not_exist_review() throws Exception {
-
-			Long reviewId = 1L;
 
 			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
