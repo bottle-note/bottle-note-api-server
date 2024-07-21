@@ -11,6 +11,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.List;
 
+import static app.bottlenote.alcohols.fixture.PopularsObjectFixture.getFixturePopulars;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
@@ -24,7 +25,7 @@ import static org.springframework.restdocs.request.RequestDocumentation.queryPar
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @DisplayName("popular 컨트롤러 RestDocs용 테스트")
-class RestPopularControllerTest extends AbstractRestDocs {
+class RestPopularControllerIntegrationTest extends AbstractRestDocs {
 
 	private final PopularService popularService = mock(PopularService.class);
 
@@ -39,12 +40,14 @@ class RestPopularControllerTest extends AbstractRestDocs {
 	void getWeeklyPopularAlcoholsTest() throws Exception {
 		// given
 		List<Populars> populars = List.of(
-			Populars.of(1L, "글렌피딕", "glen fi", 3.5, "싱글 몰트", "single molt", "https://i.imgur.com/TE2nmYV.png", false),
-			Populars.of(2L, "맥키토시", "macintosh", 4.5, "싱글 몰트", "single molt", "https://i.imgur.com/TE2nmYV.png", false),
-			Populars.of(3L, "글렌리벳", "glen rivet", 4.0, "싱글 몰트", "single molt", "https://i.imgur.com/TE2nmYV.png", false),
-			Populars.of(4L, "글렌피딕", "glen fi", 3.5, "싱글 몰트", "single molt", "https://i.imgur.com/TE2nmYV.png", false),
-			Populars.of(5L, "맥키토시", "macintosh", 4.5, "싱글 몰트", "single molt", "https://i.imgur.com/TE2nmYV.png", false)
+			getFixturePopulars(1L, "글렌피딕", "glen fi"),
+			getFixturePopulars(2L, "맥키토시", "macintosh"),
+			getFixturePopulars(3L, "글렌리벳", "glen rivet"),
+			getFixturePopulars(4L, "글렌피딕", "glen fi"),
+			getFixturePopulars(5L, "맥키토시", "macintosh")
 		);
+
+
 		// when & then
 		when(popularService.getPopularOfWeek(anyInt(), any())).thenReturn(populars);
 
@@ -64,7 +67,8 @@ class RestPopularControllerTest extends AbstractRestDocs {
 						fieldWithPath("data.alcohols[].alcoholId").type(JsonFieldType.NUMBER).description("술 ID"),
 						fieldWithPath("data.alcohols[].korName").type(JsonFieldType.STRING).description("술 이름"),
 						fieldWithPath("data.alcohols[].engName").type(JsonFieldType.STRING).description("술 영문명"),
-						fieldWithPath("data.alcohols[].rating").type(JsonFieldType.NUMBER).description("술 평점"),
+						fieldWithPath("data.alcohols[].rating").description("술의 평균 평점"),
+						fieldWithPath("data.alcohols[].ratingCount").description("술의 평점 참여자 수"),
 						fieldWithPath("data.alcohols[].korCategory").type(JsonFieldType.STRING).description("술 카테고리"),
 						fieldWithPath("data.alcohols[].engCategory").type(JsonFieldType.STRING).description("술 카테고리 영문명"),
 						fieldWithPath("data.alcohols[].imageUrl").type(JsonFieldType.STRING).description("술 이미지 URL"),

@@ -39,6 +39,7 @@ public class CustomPopularQueryRepositoryImpl implements CustomPopularQueryRepos
 					.castToNum(Double.class)
 					.round().divide(2)
 					.coalesce(0.0).as("rating"),
+				rating.ratingPoint.rating.count().as("ratingCount"),
 				alcohol.korCategory.as("korCategory"),
 				alcohol.engCategory.as("engCategory"),
 				alcohol.imageUrl.as("imageUrl"),
@@ -64,7 +65,7 @@ public class CustomPopularQueryRepositoryImpl implements CustomPopularQueryRepos
 	 * 내가 픽 했는지 확인 하는 서브쿼리
 	 */
 	private BooleanExpression isPicked(Long userId) {
-		if (userId == null)
+		if (userId == -1)
 			return FALSE;
 		return JPAExpressions
 			.selectFrom(picks)
