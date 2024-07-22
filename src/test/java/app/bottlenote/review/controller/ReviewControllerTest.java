@@ -81,6 +81,9 @@ class ReviewControllerTest {
 	private final ReviewCreateResponse reviewCreateResponse = ReviewObjectFixture.getReviewCreateResponse();
 
 	private final ReviewModifyRequest reviewModifyRequest = ReviewObjectFixture.getReviewModifyRequest();
+	private final ReviewModifyRequest nullableReviewModifyRequest = ReviewObjectFixture.getNullableReviewModifyRequest();
+	private final ReviewModifyRequest wrongReviewModifyRequest = ReviewObjectFixture.getWrongReviewModifyRequest();
+
 	private final PageResponse<ReviewListResponse> reviewListResponse = ReviewObjectFixture.getReviewListResponse();
 
 	private final ReviewDetailResponse reviewDetailResponse = ReviewObjectFixture.getReviewDetailResponse();
@@ -506,27 +509,39 @@ class ReviewControllerTest {
 		@Test
 		void modify_review_fail_when_request_body_has_null() throws Exception {
 
-			ReviewModifyRequest wrongRequest = new ReviewModifyRequest(
-				"그저 그래요",
-				ReviewDisplayStatus.PUBLIC,
-				null,
-				null,
-				null,
-				null,
-				new LocationInfo(null, null, null));
-
 			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
-			when(reviewService.modifyReview(wrongRequest, reviewId, userId))
+			when(reviewService.modifyReview(nullableReviewModifyRequest, reviewId, userId))
 				.thenReturn(response);
 
 			mockMvc.perform(patch("/api/v1/reviews/{reviewId}", reviewId)
 					.contentType(MediaType.APPLICATION_JSON)
-					.content(mapper.writeValueAsString(wrongRequest))
+					.content(mapper.writeValueAsString(nullableReviewModifyRequest))
 					.with(csrf())
 				)
 				.andExpect(status().isOk())
 				.andDo(print());
+		}
+
+		@DisplayName("Not Null인 필드가 null인 경우 리뷰를 수정할 수 없다.")
+		@Test
+		void modify_review_fail_when_null_in_not_nullable_field() throws Exception {
+			// given
+
+			// when
+			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
+
+			when(reviewService.modifyReview(wrongReviewModifyRequest, reviewId, userId))
+				.thenReturn(response);
+
+			mockMvc.perform(patch("/api/v1/reviews/{reviewId}", reviewId)
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(wrongReviewModifyRequest))
+					.with(csrf())
+				)
+				.andExpect(status().isBadRequest())
+				.andDo(print());
+			// then
 		}
 	}
 
