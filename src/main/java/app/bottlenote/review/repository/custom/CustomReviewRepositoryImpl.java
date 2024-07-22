@@ -108,7 +108,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		Long totalCount = queryFactory
 			.select(review.id.count())
 			.from(review)
-			.where(review.alcoholId.eq(alcoholId))
+			.where(review.alcoholId.eq(alcoholId).and(review.activeStatus.eq(ACTIVE)))
 			.fetchOne();
 
 		CursorPageable cursorPageable = getCursorPageable(pageableRequest, fetch);
