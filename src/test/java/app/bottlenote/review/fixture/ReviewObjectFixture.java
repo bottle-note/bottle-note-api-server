@@ -167,6 +167,40 @@ public class ReviewObjectFixture {
 	}
 
 	/**
+	 * 리뷰 수정 요청 객체 중 Nullable한 필드를 null로 요청하는 객체입니다.
+	 *
+	 * @return the nullable review modify request
+	 */
+	public static ReviewModifyRequest getNullableReviewModifyRequest() {
+		return new ReviewModifyRequest(
+			content,
+			ReviewDisplayStatus.PUBLIC,
+			null,
+			null,
+			null,
+			null,
+			null
+		);
+	}
+
+	/**
+	 * Not Null인 필드를 null로 요청을 보내는 잘못된 리뷰 수정 요청 객체입니다.
+	 *
+	 * @return Wrong review modify request
+	 */
+	public static ReviewModifyRequest getWrongReviewModifyRequest() {
+		return new ReviewModifyRequest(
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null
+		);
+	}
+
+	/**
 	 * 리뷰 댓글 응답 객체를 반환합니다.
 	 *
 	 * @return the review reply response
