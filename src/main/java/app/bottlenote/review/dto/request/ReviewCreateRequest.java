@@ -2,15 +2,15 @@ package app.bottlenote.review.dto.request;
 
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.extern.slf4j.Slf4j;
-
 import java.math.BigDecimal;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public record ReviewCreateRequest(
@@ -29,6 +29,7 @@ public record ReviewCreateRequest(
 	@DecimalMax(value = "1000000000000", message = "입력할 수 있는 가격의 범위가 아닙니다.")
 	BigDecimal price,
 
+	@Valid
 	LocationInfo locationInfo,
 
 	List<ReviewImageInfo> imageUrlList,

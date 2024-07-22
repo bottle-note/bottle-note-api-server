@@ -4,6 +4,7 @@ import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import java.math.BigDecimal;
+import java.util.Objects;
 import lombok.Getter;
 
 @Getter
@@ -28,8 +29,15 @@ public class ReviewModifyVO {
 		this.reviewDisplayStatus = reviewModifyRequest.status();
 		this.price = reviewModifyRequest.price();
 		this.sizeType = reviewModifyRequest.sizeType();
-		this.zipCode = reviewModifyRequest.locationInfo().zipCode();
-		this.address = reviewModifyRequest.locationInfo().address();
-		this.detailAddress = reviewModifyRequest.locationInfo().detailAddress();
+		if (Objects.isNull(reviewModifyRequest.locationInfo())) {
+			this.zipCode = null;
+			this.address = null;
+			this.detailAddress = null;
+		} else {
+			this.zipCode = reviewModifyRequest.locationInfo().zipCode();
+			this.address = reviewModifyRequest.locationInfo().address();
+			this.detailAddress = reviewModifyRequest.locationInfo().detailAddress();
+		}
+
 	}
 }
