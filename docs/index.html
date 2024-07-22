@@ -487,28 +487,33 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_리뷰_상세조회">5.6. 리뷰 상세조회</a></li>
 </ul>
 </li>
-<li><a href="#_리뷰_댓글_review_reply_관련_api">6. 리뷰 댓글  (review reply) 관련 API</a>
+<li><a href="#_리뷰_좋아요_review_like_관련_api">6. 리뷰 좋아요 (review like) 관련 API</a>
 <ul class="sectlevel2">
-<li><a href="#_리뷰_댓글_등록">6.1. 리뷰 댓글 등록</a></li>
-<li><a href="#_최상위_리뷰_댓글_목록_조회">6.2. 최상위 리뷰 댓글 목록 조회</a></li>
-<li><a href="#_하위_리뷰_댓글_목록_조회">6.3. 하위 리뷰 댓글 목록 조회</a></li>
+<li><a href="#_리뷰_좋아요">6.1. 리뷰 좋아요</a></li>
 </ul>
 </li>
-<li><a href="#_지원_support_관련_api">7. 지원 (support) 관련 API</a>
+<li><a href="#_리뷰_댓글_review_reply_관련_api">7. 리뷰 댓글  (review reply) 관련 API</a>
 <ul class="sectlevel2">
-<li><a href="#_유저_신고_요청">7.1. 유저 신고 요청</a></li>
+<li><a href="#_리뷰_댓글_등록">7.1. 리뷰 댓글 등록</a></li>
+<li><a href="#_최상위_리뷰_댓글_목록_조회">7.2. 최상위 리뷰 댓글 목록 조회</a></li>
+<li><a href="#_하위_리뷰_댓글_목록_조회">7.3. 하위 리뷰 댓글 목록 조회</a></li>
 </ul>
 </li>
-<li><a href="#_팔로우_follow_관련_api">8. 팔로우 (follow) 관련 API</a>
+<li><a href="#_지원_support_관련_api">8. 지원 (support) 관련 API</a>
 <ul class="sectlevel2">
-<li><a href="#_팔로우_언팔로우_업데이트">8.1. 팔로우 / 언팔로우 업데이트</a></li>
+<li><a href="#_유저_신고_요청">8.1. 유저 신고 요청</a></li>
 </ul>
 </li>
-<li><a href="#_별점_rating_관련_api">9. 별점 (rating) 관련 API</a>
+<li><a href="#_팔로우_follow_관련_api">9. 팔로우 (follow) 관련 API</a>
 <ul class="sectlevel2">
-<li><a href="#_별점_목록_조회">9.1. 별점 목록 조회</a></li>
-<li><a href="#_유저의_별점_조회">9.2. 유저의 별점 조회</a></li>
-<li><a href="#_별점_등록">9.3. 별점 등록</a></li>
+<li><a href="#_팔로우_언팔로우_업데이트">9.1. 팔로우 / 언팔로우 업데이트</a></li>
+</ul>
+</li>
+<li><a href="#_별점_rating_관련_api">10. 별점 (rating) 관련 API</a>
+<ul class="sectlevel2">
+<li><a href="#_별점_목록_조회">10.1. 별점 목록 조회</a></li>
+<li><a href="#_유저의_별점_조회">10.2. 유저의 별점 조회</a></li>
+<li><a href="#_별점_등록">10.3. 별점 등록</a></li>
 </ul>
 </li>
 </ul>
@@ -1007,7 +1012,7 @@ Host: localhost:8080</code></pre>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-15T23:34:38.290083",
+    "serverResponseTime" : "2024-07-21T15:42:02.483610",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1204,7 +1209,7 @@ Host: localhost:8080</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
-Set-Cookie: refresh-token=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNjE4NTIyM30.lvmPueUcOb1erv5Llo4qhEUQ_gtWrpFGbBHDw-Pi94qj8MGojoEI3ugdMo8PwoKgrVQZ_gBwBbytwjxh8XktUg; Path=/; Max-Age=1209600; Expires=Mon, 29 Jul 2024 14:34:38 GMT; Secure; HttpOnly
+Set-Cookie: refresh-token=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNjE4NTIyM30.lvmPueUcOb1erv5Llo4qhEUQ_gtWrpFGbBHDw-Pi94qj8MGojoEI3ugdMo8PwoKgrVQZ_gBwBbytwjxh8XktUg; Path=/; Max-Age=1209600; Expires=Sun, 04 Aug 2024 06:42:02 GMT; Secure; HttpOnly
 Content-Type: application/json;charset=UTF-8
 Content-Length: 501
 
@@ -1218,7 +1223,7 @@ Content-Length: 501
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-15T23:34:38.434162",
+    "serverResponseTime" : "2024-07-21T15:42:02.655110",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1321,7 +1326,7 @@ Content-Length: 501
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
-Set-Cookie: refresh-token=new-refresh-token; Path=/; Max-Age=1209600; Expires=Mon, 29 Jul 2024 14:34:38 GMT; Secure; HttpOnly
+Set-Cookie: refresh-token=new-refresh-token; Path=/; Max-Age=1209600; Expires=Sun, 04 Aug 2024 06:42:02 GMT; Secure; HttpOnly
 Content-Type: application/json;charset=UTF-8
 Content-Length: 282
 
@@ -1335,7 +1340,7 @@ Content-Length: 282
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-15T23:34:38.375122",
+    "serverResponseTime" : "2024-07-21T15:42:02.584843",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1478,7 +1483,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-15T23:34:38.517696",
+    "serverResponseTime" : "2024-07-21T15:42:02.734290",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1739,7 +1744,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-15T23:34:35.752635",
+    "serverResponseTime" : "2024-07-21T15:41:59.930962",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 4,
@@ -2316,7 +2321,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-15T23:34:35.935035",
+    "serverResponseTime" : "2024-07-21T15:42:00.119454",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2441,7 +2446,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-15T23:34:36.353880",
+    "serverResponseTime" : "2024-07-21T15:42:00.485947",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2572,7 +2577,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-15T23:34:36.486846",
+    "serverResponseTime" : "2024-07-21T15:42:00.630093",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2691,7 +2696,7 @@ Host: localhost:8080</code></pre>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-15T23:34:36.162475",
+    "serverResponseTime" : "2024-07-21T15:42:00.299930",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2900,7 +2905,12 @@ Host: localhost:8080</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.alcohols[].rating</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">술 평점</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">술의 평균 평점</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.alcohols[].ratingCount</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">술의 평점 참여자 수</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.alcohols[].korCategory</code></p></td>
@@ -2935,7 +2945,8 @@ Host: localhost:8080</code></pre>
       "alcoholId" : 1,
       "korName" : "글렌피딕",
       "engName" : "glen fi",
-      "rating" : 3.5,
+      "rating" : 0.5,
+      "ratingCount" : 17,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
@@ -2944,16 +2955,18 @@ Host: localhost:8080</code></pre>
       "alcoholId" : 2,
       "korName" : "맥키토시",
       "engName" : "macintosh",
-      "rating" : 4.5,
+      "rating" : 1.0,
+      "ratingCount" : 83,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
-      "isPicked" : false
+      "isPicked" : true
     }, {
       "alcoholId" : 3,
       "korName" : "글렌리벳",
       "engName" : "glen rivet",
-      "rating" : 4.0,
+      "rating" : 1.0,
+      "ratingCount" : 10,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
@@ -2962,16 +2975,18 @@ Host: localhost:8080</code></pre>
       "alcoholId" : 4,
       "korName" : "글렌피딕",
       "engName" : "glen fi",
-      "rating" : 3.5,
+      "rating" : 1.5,
+      "ratingCount" : 6,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
-      "isPicked" : false
+      "isPicked" : true
     }, {
       "alcoholId" : 5,
       "korName" : "맥키토시",
       "engName" : "macintosh",
-      "rating" : 4.5,
+      "rating" : 1.0,
+      "ratingCount" : 2,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
@@ -2982,7 +2997,7 @@ Host: localhost:8080</code></pre>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-15T23:34:36.421470",
+    "serverResponseTime" : "2024-07-21T15:42:00.560466",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -3189,13 +3204,13 @@ RequestBody로 요청을 전달합니다.</p>
   },
   "imageUrlList" : [ {
     "order" : 1,
-    "viewUrl" : "url1"
+    "viewUrl" : "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1"
   }, {
     "order" : 2,
-    "viewUrl" : "url2"
+    "viewUrl" : "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1"
   }, {
     "order" : 3,
-    "viewUrl" : "url3"
+    "viewUrl" : "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1"
   } ],
   "tastingTagList" : [ "테이스팅태그 1", "테이스팅태그 2", "테이스팅태그 3" ]
 }</code></pre>
@@ -3296,7 +3311,7 @@ Content-Length: 349
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-15T23:34:37.561934",
+    "serverResponseTime" : "2024-07-21T15:42:02.028195",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -3558,7 +3573,7 @@ PathVariable로 alcoholId를 전달합니다.</p>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json;charset=UTF-8
-Content-Length: 1472
+Content-Length: 1470
 
 {
   "success" : true,
@@ -3573,7 +3588,7 @@ Content-Length: 1472
       "likeCount" : 5,
       "replyCount" : 3,
       "reviewImageUrl" : "https://picsum.photos/600/600",
-      "createAt" : [ 2024, 7, 15, 23, 34, 37, 895740000 ],
+      "createAt" : [ 2024, 7, 21, 15, 42, 2, 127306000 ],
       "userId" : 1,
       "nickName" : "test_user_1",
       "userProfileImage" : "user_profile_image_1",
@@ -3590,7 +3605,7 @@ Content-Length: 1472
       "likeCount" : 3,
       "replyCount" : 6,
       "reviewImageUrl" : "https://picsum.photos/600/600",
-      "createAt" : [ 2024, 7, 14, 23, 34, 37, 895766000 ],
+      "createAt" : [ 2024, 7, 20, 15, 42, 2, 127315000 ],
       "userId" : 2,
       "nickName" : "test_user_2",
       "userProfileImage" : "user_profile_image_2",
@@ -3605,7 +3620,7 @@ Content-Length: 1472
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-15T23:34:37.910934",
+    "serverResponseTime" : "2024-07-21T15:42:02.133255",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 1,
@@ -3920,7 +3935,7 @@ Content-Length: 1472
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json;charset=UTF-8
-Content-Length: 1472
+Content-Length: 1470
 
 {
   "success" : true,
@@ -3935,7 +3950,7 @@ Content-Length: 1472
       "likeCount" : 5,
       "replyCount" : 3,
       "reviewImageUrl" : "https://picsum.photos/600/600",
-      "createAt" : [ 2024, 7, 15, 23, 34, 37, 343920000 ],
+      "createAt" : [ 2024, 7, 21, 15, 42, 1, 931315000 ],
       "userId" : 1,
       "nickName" : "test_user_1",
       "userProfileImage" : "user_profile_image_1",
@@ -3952,7 +3967,7 @@ Content-Length: 1472
       "likeCount" : 3,
       "replyCount" : 6,
       "reviewImageUrl" : "https://picsum.photos/600/600",
-      "createAt" : [ 2024, 7, 14, 23, 34, 37, 343948000 ],
+      "createAt" : [ 2024, 7, 20, 15, 42, 1, 931371000 ],
       "userId" : 2,
       "nickName" : "test_user_2",
       "userProfileImage" : "user_profile_image_2",
@@ -3967,7 +3982,7 @@ Content-Length: 1472
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-15T23:34:37.350435",
+    "serverResponseTime" : "2024-07-21T15:42:01.940554",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 1,
@@ -4263,13 +4278,13 @@ Content-Length: 417
     "codeMessage" : "MODIFY_SUCCESS",
     "message" : "리뷰 수정이 성공적으로 완료되었습니다.",
     "reviewId" : 1,
-    "responseAt" : "2024-07-15 23:34:37"
+    "responseAt" : "2024-07-21 15:42:01"
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-15T23:34:37.297561",
+    "serverResponseTime" : "2024-07-21T15:42:01.864354",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -4412,13 +4427,13 @@ Content-Length: 417
     "codeMessage" : "DELETE_SUCCESS",
     "message" : "리뷰 삭제가 성공적으로 완료되었습니다.",
     "reviewId" : 1,
-    "responseAt" : "2024-07-15 23:34:37"
+    "responseAt" : "2024-07-21 15:42:01"
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-15T23:34:37.182639",
+    "serverResponseTime" : "2024-07-21T15:42:01.622158",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -4702,7 +4717,7 @@ Content-Length: 1249
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-15T23:34:37.727664",
+    "serverResponseTime" : "2024-07-21T15:42:02.079215",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -4712,10 +4727,172 @@ Content-Length: 1249
 </div>
 </div>
 <div class="sect1">
-<h2 id="_리뷰_댓글_review_reply_관련_api"><a class="link" href="#_리뷰_댓글_review_reply_관련_api">6. 리뷰 댓글  (review reply) 관련 API</a></h2>
+<h2 id="_리뷰_좋아요_review_like_관련_api"><a class="link" href="#_리뷰_좋아요_review_like_관련_api">6. 리뷰 좋아요 (review like) 관련 API</a></h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_리뷰_댓글_등록"><a class="link" href="#_리뷰_댓글_등록">6.1. 리뷰 댓글 등록</a></h3>
+<h3 id="_리뷰_좋아요"><a class="link" href="#_리뷰_좋아요">6.1. 리뷰 좋아요</a></h3>
+<div class="paragraph">
+<p>리뷰에 대해 좋아요 처리 가능한 API 입니다.</p>
+</div>
+<div class="paragraph">
+<p>업데이트 시 <code>Acsess Token</code> 이 필수적으로 필요합니다.</p>
+</div>
+<div class="paragraph">
+<p>중복된 요청 시에도 예외가 발생하지 않습니다.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>좋아요 요청 후 다시 좋아요 요청 시 정상 처리 ( 덮어쓰기 )</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">PUT /api/v1/likes</code></pre>
+</div>
+</div>
+<h4 class="discrete" id="_요청_파라미터_16">요청 파라미터</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">path</th>
+<th class="tableblock halign-left valign-top">type</th>
+<th class="tableblock halign-left valign-top">optional</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>reviewId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">좋아요 대상 리뷰의 식별자</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>status</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">업데이트 할 상태 값 하단 참조</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json">{
+  "reviewId" : 1,
+  "status" : "LIKE"
+}</code></pre>
+</div>
+</div>
+<h4 class="discrete" id="_좋아요_status_enum_상태값">좋아요 status enum 상태값</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>상태 요청시 하위 값으로만 요청 가능합니다.</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">LIKE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">좋아요</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DISLIKE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">좋아요 해제</p></td>
+</tr>
+</tbody>
+</table>
+<h4 class="discrete" id="_응답_파라미터_17">응답 파라미터</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">path</th>
+<th class="tableblock halign-left valign-top">type</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.message</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">결과 메시지</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.likesId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">좋아요 결과 값 식별자</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">좋아요 대상 리뷰의 식별자</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.userId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">좋아요를 등록한 사용자 식별자</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.userNickName</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">좋아요를 등록한 사용자 닉네임</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.status</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">업데이트 된 좋아요 상태 값</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json">{
+  "success" : true,
+  "code" : 200,
+  "data" : {
+    "message" : "정상적으로 좋아요 처리 되었습니다.",
+    "likesId" : 1,
+    "reviewId" : 1,
+    "userId" : 99,
+    "userNickName" : "하오하오상",
+    "status" : "LIKE"
+  },
+  "errors" : [ ],
+  "meta" : {
+    "serverVersion" : "1.0.0",
+    "serverEncoding" : "UTF-8",
+    "serverResponseTime" : "2024-07-21T15:42:01.022792",
+    "serverPathVersion" : "v1"
+  }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_리뷰_댓글_review_reply_관련_api"><a class="link" href="#_리뷰_댓글_review_reply_관련_api">7. 리뷰 댓글  (review reply) 관련 API</a></h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_리뷰_댓글_등록"><a class="link" href="#_리뷰_댓글_등록">7.1. 리뷰 댓글 등록</a></h3>
 <div class="paragraph">
 <p>리뷰의 댓글을 등록 하는 API 문서입니다.</p>
 </div>
@@ -4796,7 +4973,7 @@ Content-Length: 1249
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_요청_파라미터_16">요청 파라미터</h4>
+<h4 class="discrete" id="_요청_파라미터_17">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -4835,7 +5012,7 @@ Content-Length: 1249
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_응답_파라미터_17">응답 파라미터</h4>
+<h4 class="discrete" id="_응답_파라미터_18">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -4906,13 +5083,13 @@ Content-Length: 1249
     "codeMessage" : "SUCCESS_REGISTER_REPLY",
     "message" : "성공적으로 댓글을 등록했습니다.",
     "reviewId" : 1,
-    "responseAt" : "2024-07-15 23:34:38"
+    "responseAt" : "2024-07-21 15:42:02"
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-15T23:34:38.070522",
+    "serverResponseTime" : "2024-07-21T15:42:02.273525",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -4920,7 +5097,7 @@ Content-Length: 1249
 </div>
 </div>
 <div class="sect2">
-<h3 id="_최상위_리뷰_댓글_목록_조회"><a class="link" href="#_최상위_리뷰_댓글_목록_조회">6.2. 최상위 리뷰 댓글 목록 조회</a></h3>
+<h3 id="_최상위_리뷰_댓글_목록_조회"><a class="link" href="#_최상위_리뷰_댓글_목록_조회">7.2. 최상위 리뷰 댓글 목록 조회</a></h3>
 <div class="paragraph">
 <p>리뷰의 댓글 목록을 조회 하는 API 문서입니다.</p>
 </div>
@@ -4961,7 +5138,7 @@ Content-Length: 1249
 <pre>POST /api/v1/review/reply/{reviewId}</pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_17">요청 파라미터</h4>
+<h4 class="discrete" id="_요청_파라미터_18">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 1. /api/v1/review/reply/{reviewId}</caption>
 <colgroup>
@@ -5003,7 +5180,7 @@ Content-Length: 1249
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_응답_파라미터_18">응답 파라미터</h4>
+<h4 class="discrete" id="_응답_파라미터_19">응답 파라미터</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -5085,41 +5262,41 @@ Content-Length: 1249
   "data" : [ {
     "userId" : 0,
     "imageUrl" : "https://picsum.photos/500",
-    "nickName" : "KJWkQZueKR",
+    "nickName" : "fMgkarHlXH",
     "reviewReplyId" : 0,
-    "reviewReplyContent" : "ZXEtumeQEnDuKKBiZlTZircMuxaIjxXTxQnusQTlzYVSrGFPlhxBRBjceeHCBPazDdBYbBECNadzrmdICHFlOjkXxJylEqWTWmhCDoWFCmuztFcTdptFsSpuerpXBnHayIQRpXEbmHPtGJmgVhFhcu",
+    "reviewReplyContent" : "ALZHlIUQBzZKhwoYlOHhMgwOhgIDlEyzQBUlMhVCgLmXCFmXHVLRmXAvAkngduZWnkrtlkhhtbEQuulDEdDPTjyikWirnzpxkIErnhAyIRRsMxecPIxmAXNZSqyiqbyFzSlKqUpKXjEYKdKtDgbdDi",
     "subReplyCount" : 0,
     "createAt" : [ 2024, 7, 11, 0, 0 ]
   }, {
     "userId" : 1,
     "imageUrl" : "https://picsum.photos/500",
-    "nickName" : "epKLQwMJWc",
+    "nickName" : "tUSuvhMHHq",
     "reviewReplyId" : 1,
-    "reviewReplyContent" : "JtJyqYVdutSmLhReoFRdbrROXCpaFdMPxPwtmbQTqaNemHfzMCaHEWMpXmKneKNidTtfezYbyphDjNOgizlAbLvuQHrLlANfYrqZaZYjujnPiGkAzFsZfVkqDsaCuZeALmOtxImbNkMKzMGfatduXp",
-    "subReplyCount" : 4,
+    "reviewReplyContent" : "ueVWpASnQHVVJeNcBZDUhyEuxvdRXxkLpnbxqsDZSWNjkWkuiJewYxveuchSvEdDoaxRficKsmVTHYRjjIpgklVWlEBLqQJhXkHsFnMhRlYcGWVdxGhzbsFlWnGlOGToHdITJpYZkUvDBvXbsSHilW",
+    "subReplyCount" : 2,
     "createAt" : [ 2024, 7, 11, 0, 0 ]
   }, {
     "userId" : 2,
     "imageUrl" : "https://picsum.photos/500",
-    "nickName" : "cvKvmnERND",
+    "nickName" : "EZbBjxMqPW",
     "reviewReplyId" : 2,
-    "reviewReplyContent" : "bjtgHCigtdYOZNLQAmBHBKRshdkQoWdbeVDGIyumClHuSokFKvEraNzgAOMVfMnABIQTCeJqVimEWluHOwZjCgTYxwVczFQaIvvuhKabKpAOKtwaKBTAiGIFzJTajYSmluKKkrGBxmjeOTTnbhCBBs",
-    "subReplyCount" : 2,
+    "reviewReplyContent" : "uLmjCUQpbtOAAhlqsQuyOUjpyuACrqXjtxHNLBYurIoNFRTPBsxOjaDFQIkcnxkQEdNnyzqFfwLkakkeBAOeMLgoRINzXonMYsznnjFWpxhKTmBKgJfISThhazkWpYeHonUETQGeEnRQhBTKhemoeP",
+    "subReplyCount" : 0,
     "createAt" : [ 2024, 7, 11, 0, 0 ]
   }, {
     "userId" : 3,
     "imageUrl" : "https://picsum.photos/500",
-    "nickName" : "CsmEibQsVo",
+    "nickName" : "TrOTKYgnpA",
     "reviewReplyId" : 3,
-    "reviewReplyContent" : "aFTnuZjsAatcHIoGFELhxpHDWkRkkCIEFITANEEUfVVydVLicTRvUeWIaOFaQWBYvycKMhlkANlmBbDvPGtNUAsabANImwJuAQlsmONowbKvdWStMYKUMytxhkqpvofOkCDzNeVlHpXjpqskJnGJEy",
-    "subReplyCount" : 0,
+    "reviewReplyContent" : "LtDzLurzgAKSwBLXmNKLtnkAftqeTJbEfwecHEEDjVvwaURfqDCkrDQZdrlTYgqEYvwGAmXkOozdNyDBZocQDNFNJOZOSkOoblvSgrZfBPVvwJaJBfdsyVIoUrCkKwqPgRPNHYHCGopWMFhaFpmbJX",
+    "subReplyCount" : 4,
     "createAt" : [ 2024, 7, 11, 0, 0 ]
   }, {
     "userId" : 4,
     "imageUrl" : "https://picsum.photos/500",
-    "nickName" : "sEGCmclzia",
+    "nickName" : "FwdmvJEOme",
     "reviewReplyId" : 4,
-    "reviewReplyContent" : "OwtXFJGEQYFYxFdYdBDDHmshdddrzniQhbzQbFaqvEVNdRJGqJOEKFrUNcrYSuKzmCOIDoLqoMCsaCjOZxvrCjurQVvjwvlISCGrPPeKhxLDJjdwDqdbKScDcODnfbWUPYbtaOhzdOjaMoEpOcVZDG",
+    "reviewReplyContent" : "kYFYbxhmfDTRAnEpTkzwtKQniqxHklrPUHmbuiOBrIdUrOFwGDbWeJmxvvxiDdQMgLuXJulgrOZjfHbrFPlRyqXzbCiEvOgTcBMFMZbixJTHUboLlNZYDwCDzKBXYeJLrHrcffgDzLEDVYlUOyehRV",
     "subReplyCount" : 0,
     "createAt" : [ 2024, 7, 11, 0, 0 ]
   } ],
@@ -5127,7 +5304,7 @@ Content-Length: 1249
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-15T23:34:38.124250",
+    "serverResponseTime" : "2024-07-21T15:42:02.316052",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -5135,7 +5312,7 @@ Content-Length: 1249
 </div>
 </div>
 <div class="sect2">
-<h3 id="_하위_리뷰_댓글_목록_조회"><a class="link" href="#_하위_리뷰_댓글_목록_조회">6.3. 하위 리뷰 댓글 목록 조회</a></h3>
+<h3 id="_하위_리뷰_댓글_목록_조회"><a class="link" href="#_하위_리뷰_댓글_목록_조회">7.3. 하위 리뷰 댓글 목록 조회</a></h3>
 <div class="paragraph">
 <p>리뷰의 대댓글 목록을 조회하는 API입니다.</p>
 </div>
@@ -5210,7 +5387,7 @@ Content-Length: 1249
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_요청_파라미터_18">요청 파라미터</h4>
+<h4 class="discrete" id="_요청_파라미터_19">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 2. /api/v1/review/reply/{reviewId}/sub/{rootReplyId}</caption>
 <colgroup>
@@ -5266,7 +5443,7 @@ Content-Length: 1249
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_응답_파라미터_19">응답 파라미터</h4>
+<h4 class="discrete" id="_응답_파라미터_20">응답 파라미터</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -5363,49 +5540,49 @@ Content-Length: 1249
   "data" : [ {
     "userId" : 123,
     "imageUrl" : "https://picsum.photos/500",
-    "nickName" : "KBCbSomgjP",
+    "nickName" : "WVWAMaIoYx",
     "rootReviewId" : 1,
     "parentReviewReplyId" : 1,
     "parentReviewReplyAuthor" : "@썩어가는망고",
     "reviewReplyId" : 1,
-    "reviewReplyContent" : "xAVxAmIRRDWpkjiXBscRSQOQAvSzyVqwsZcUgHAFLLNSVspQldXiRlrAVzRUnPbRVNRXSWwzyKRwyVdDCMkzXRvizCXwRjLMMxpWDCoNypBYRROAWqUYWLXtPkagqriFFIkuSraplqpGeNNZuILapy",
+    "reviewReplyContent" : "MzqlbMXGzEreuiCNEiKaHlKipWddlqNeaUqkBZzKGfsbQOptJLNiynMwweGEjZOrGyeruuJZMosCodouxEDXlkYJTlfdndNkjBDGDkWhgBjejwDoqbcGAOxjWjynuXXNERiuvioOoCWKYltoDKUAQo",
     "createAt" : [ 2024, 7, 11, 0, 0 ]
   }, {
     "userId" : 123,
     "imageUrl" : "https://picsum.photos/500",
-    "nickName" : "LsWrNkYyzq",
+    "nickName" : "plnziwYzDW",
     "rootReviewId" : 1,
     "parentReviewReplyId" : 1,
     "parentReviewReplyAuthor" : "@신선한반나나",
     "reviewReplyId" : 2,
-    "reviewReplyContent" : "VyGhAtHWegFqXVRHXCKcrVMDEOQntYGALOOWdDfYGQwghxOwJCqWiBAEGaBSPNoqoqpoQdgEWbBdbXmMPYynqrUNFTRSGRNhPFDNctqTknGnzUblWcWhPyKFoklvjCFxaXjBldbWGgBrJQFHRzAmdO",
+    "reviewReplyContent" : "BLoPGUsFzMtLdmRORbAEcMcKJgnbiVXsRHliYhwXRtRMthrsxjmhpLZFHYDpRZpebmJnHixbpCJlsLojWnpQBmYZaVpMWHJuLjcFcRGHGzZyyoLplnTcjtwosbdVejmSbGmzIDGGVuwooNOFYyJqvb",
     "createAt" : [ 2024, 7, 11, 0, 0 ]
   }, {
     "userId" : 123,
     "imageUrl" : "https://picsum.photos/500",
-    "nickName" : "PfweIwtYZd",
+    "nickName" : "dWwSXoisEG",
     "rootReviewId" : 1,
     "parentReviewReplyId" : 1,
     "parentReviewReplyAuthor" : "@신선한반나나",
     "reviewReplyId" : 3,
-    "reviewReplyContent" : "ejtIOuLepKHxyttWaVaZxCDEtTJaOZvJFsFqndquIzjUHzEXXdeGFMHSGclILrQgbfYbaXuptTaJgOqUwhRZQFuWyqCBRKNbQutwoZzlPqBgumLaDZarKpuYwJvzIWdrPQtIukxrsrACbVvbwwwtqH",
+    "reviewReplyContent" : "pXuiKLxEBGMubVHKVbMPwlfIpKmxsYmaDCdFJbhojOWPeLKpoizJOYJpjPiRbxyhQpZktdiadpcOafjDVSTcqbkumRRkAUvLAdrapusQNQOBJUzvXWidjvDWrMXlkpPcwObEOruGybfIRTuIHuBxat",
     "createAt" : [ 2024, 7, 11, 0, 0 ]
   }, {
     "userId" : 123,
     "imageUrl" : "https://picsum.photos/500",
-    "nickName" : "URSiBgxGYE",
+    "nickName" : "INdpterfHb",
     "rootReviewId" : 1,
     "parentReviewReplyId" : 1,
     "parentReviewReplyAuthor" : "@썩어가는망고",
     "reviewReplyId" : 4,
-    "reviewReplyContent" : "HcUaoDTPjfyRPwNbhfkmByxhqJYRXuRvusWGobmRobMEqOWIcWhmCIuzwOqLUzbgUMgkAJtyGMxHoztkSMHNUApJXExEYXnTnUdzUhbbGDGFVDWAITxWfRIZayDvwKQJayoNFsvgYAATXjfAKUzvAO",
+    "reviewReplyContent" : "cNLEKHwqMmhICIeqZubvJNpMeGxVSgoQXyNjXtzGSOmDlcAyYhFsQXvBFYVqufPePDvQrvOUGVXxWiBYxdfJWbrKgEuYmioVPZVnTMiUpoiSaVkXJidBVuKcFRmqtFHwYudbqhYpxlgmScKfZsQPPY",
     "createAt" : [ 2024, 7, 11, 0, 0 ]
   } ],
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-15T23:34:38.155156",
+    "serverResponseTime" : "2024-07-21T15:42:02.353044",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -5415,10 +5592,10 @@ Content-Length: 1249
 </div>
 </div>
 <div class="sect1">
-<h2 id="_지원_support_관련_api"><a class="link" href="#_지원_support_관련_api">7. 지원 (support) 관련 API</a></h2>
+<h2 id="_지원_support_관련_api"><a class="link" href="#_지원_support_관련_api">8. 지원 (support) 관련 API</a></h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_유저_신고_요청"><a class="link" href="#_유저_신고_요청">7.1. 유저 신고 요청</a></h3>
+<h3 id="_유저_신고_요청"><a class="link" href="#_유저_신고_요청">8.1. 유저 신고 요청</a></h3>
 <div class="paragraph">
 <p>특정한 사용자가 부적절한 행동을 했을 때, 해당 사용자를 신고할 수 있습니다.</p>
 </div>
@@ -5471,7 +5648,7 @@ Content-Length: 1249
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/user-report</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_19">요청 파라미터</h4>
+<h4 class="discrete" id="_요청_파라미터_20">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -5524,7 +5701,7 @@ Content-Length: 1249
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_응답_파라미터_20">응답 파라미터</h4>
+<h4 class="discrete" id="_응답_파라미터_21">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -5611,7 +5788,7 @@ Content-Length: 1249
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-15T23:34:38.239602",
+    "serverResponseTime" : "2024-07-21T15:42:02.447935",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -5672,10 +5849,10 @@ Content-Length: 1249
 </div>
 </div>
 <div class="sect1">
-<h2 id="_팔로우_follow_관련_api"><a class="link" href="#_팔로우_follow_관련_api">8. 팔로우 (follow) 관련 API</a></h2>
+<h2 id="_팔로우_follow_관련_api"><a class="link" href="#_팔로우_follow_관련_api">9. 팔로우 (follow) 관련 API</a></h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_팔로우_언팔로우_업데이트"><a class="link" href="#_팔로우_언팔로우_업데이트">8.1. 팔로우 / 언팔로우 업데이트</a></h3>
+<h3 id="_팔로우_언팔로우_업데이트"><a class="link" href="#_팔로우_언팔로우_업데이트">9.1. 팔로우 / 언팔로우 업데이트</a></h3>
 <div class="paragraph">
 <p>유저간의 팔로우, 언팔로우를 합니다.
 FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
@@ -5710,10 +5887,10 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/follow</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_20">요청 파라미터</h4>
+<h4 class="discrete" id="_요청_파라미터_21">요청 파라미터</h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/v1/follow?_csrf=D-TEl7XAqYwp0NfP9QwVOLcnD6gvcNN2ya0Zb3JBcMQ_ryjFPtD39tfym7kEs-T7zSEhCYcWIskZQrJb8JkgWRQlEfcJzRry' -i -X POST \
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/v1/follow?_csrf=1hbTq3Tq4i7iLScaZHI7INerCif96SG2iDQQp4lcl8_7OavutybgnEXahErPFUYqXF8PFO6dJx6Z2kKbsQMkkbk69KvJXJuM' -i -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
     -d '{
   "followUserId" : 1,
@@ -5751,7 +5928,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_응답_파라미터_21">응답 파라미터</h4>
+<h4 class="discrete" id="_응답_파라미터_22">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -5807,10 +5984,10 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_별점_rating_관련_api"><a class="link" href="#_별점_rating_관련_api">9. 별점 (rating) 관련 API</a></h2>
+<h2 id="_별점_rating_관련_api"><a class="link" href="#_별점_rating_관련_api">10. 별점 (rating) 관련 API</a></h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_별점_목록_조회"><a class="link" href="#_별점_목록_조회">9.1. 별점 목록 조회</a></h3>
+<h3 id="_별점_목록_조회"><a class="link" href="#_별점_목록_조회">10.1. 별점 목록 조회</a></h3>
 <div class="paragraph">
 <p>별점 조회를 위한 API 입니다.</p>
 </div>
@@ -5822,7 +5999,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/rating</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_21">요청 파라미터</h4>
+<h4 class="discrete" id="_요청_파라미터_22">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -5885,7 +6062,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_응답_파라미터_22">응답 파라미터</h4>
+<h4 class="discrete" id="_응답_파라미터_23">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -6105,7 +6282,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-15T23:34:36.904545",
+    "serverResponseTime" : "2024-07-21T15:42:01.182650",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 0,
@@ -6223,7 +6400,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_유저의_별점_조회"><a class="link" href="#_유저의_별점_조회">9.2. 유저의 별점 조회</a></h3>
+<h3 id="_유저의_별점_조회"><a class="link" href="#_유저의_별점_조회">10.2. 유저의 별점 조회</a></h3>
 <div class="paragraph">
 <p>특정한 사용자가 특정한 위스키에 대해서 준 별점을 조회합니다.</p>
 </div>
@@ -6273,7 +6450,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/rating/{{alcoholId}}</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_22">요청 파라미터</h4>
+<h4 class="discrete" id="_요청_파라미터_23">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 3. /api/v1/rating/{alcoholId}</caption>
 <colgroup>
@@ -6293,7 +6470,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_응답_파라미터_23">응답 파라미터</h4>
+<h4 class="discrete" id="_응답_파라미터_24">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -6349,7 +6526,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-15T23:34:37.006337",
+    "serverResponseTime" : "2024-07-21T15:42:01.313982",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -6357,7 +6534,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_별점_등록"><a class="link" href="#_별점_등록">9.3. 별점 등록</a></h3>
+<h3 id="_별점_등록"><a class="link" href="#_별점_등록">10.3. 별점 등록</a></h3>
 <div class="paragraph">
 <p>별점 등록을 위한 API 입니다.</p>
 </div>
@@ -6369,7 +6546,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/rating/register</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_23">요청 파라미터</h4>
+<h4 class="discrete" id="_요청_파라미터_24">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -6421,7 +6598,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_응답_파라미터_24">응답 파라미터</h4>
+<h4 class="discrete" id="_응답_파라미터_25">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -6471,7 +6648,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-15T23:34:36.851643",
+    "serverResponseTime" : "2024-07-21T15:42:01.123088",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -6484,7 +6661,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 <div id="footer">
 <div id="footer-text">
 Version 0.0.1-SNAPSHOT<br>
-Last updated 2024-07-15 17:58:14 +0900
+Last updated 2024-07-20 01:10:04 +0900
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>

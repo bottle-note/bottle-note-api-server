@@ -23,4 +23,12 @@ public class LikeUserInfo {
 	public static LikeUserInfo create(Long userId, String userNickName) {
 		return new LikeUserInfo(userId, userNickName);
 	}
+
+	@Override
+	public String toString() {
+		return "LikeUserInfo{" +
+			"userId=" + userId +
+			", userNickName='" + userNickName + '\'' +
+			'}';
+	}
 }

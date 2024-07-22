@@ -11,6 +11,7 @@ import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.repository.UserCommandRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -33,6 +34,7 @@ public class PicksCommandService {
 	/**
 	 * 유저가 위스키를 찜/찜해제 상태를 지정하는 로직
 	 */
+	@Transactional
 	public PicksUpdateResponse updatePicks(PicksUpdateRequest request, Long userId) {
 
 		Picks picks = picksRepository.findByAlcohol_IdAndUser_Id(request.alcoholId(), userId)
