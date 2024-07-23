@@ -20,11 +20,12 @@ import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
 import app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage;
 import app.bottlenote.user.domain.User;
+import org.apache.commons.lang3.RandomStringUtils;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
-import org.apache.commons.lang3.RandomStringUtils;
 
 public class ReviewObjectFixture {
 

@@ -29,7 +29,7 @@ import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.when;
 
 @Tag("unit")
-@DisplayName("[Mock] 이미지 업로드 서비스 테스트")
+@DisplayName("[unit] [service] [mock] CoreImageUpload")
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = org.mockito.quality.Strictness.LENIENT)
 class ImageUploadServiceTest {

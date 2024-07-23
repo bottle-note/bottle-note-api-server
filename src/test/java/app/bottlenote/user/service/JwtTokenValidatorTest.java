@@ -6,6 +6,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -14,7 +15,8 @@ import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@DisplayName("JwtTokenValidator 테스트")
+@Tag("unit")
+@DisplayName("[unit] [service] JwtTokenValidator")
 @ExtendWith(MockitoExtension.class)
 class JwtTokenValidatorTest {
 

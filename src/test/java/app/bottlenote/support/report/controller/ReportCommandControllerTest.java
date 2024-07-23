@@ -6,6 +6,7 @@ import app.bottlenote.support.report.dto.response.UserReportResponse;
 import app.bottlenote.support.report.service.UserReportService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -28,7 +29,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@DisplayName("신고 커맨드 컨트롤러 테스트")
+
+@Tag("unit")
+@DisplayName("[unit] [controller] ReportCommandController")
 @WebMvcTest(ReportCommandController.class)
 @WithMockUser //인증된 사용자로 설정
 class ReportCommandControllerTest {

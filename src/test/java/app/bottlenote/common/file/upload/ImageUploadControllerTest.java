@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Tag("unit")
-@DisplayName("[Mock] 이미지 업로드 컨트롤러 테스트")
+@DisplayName("[unit] [controller] [mock] CoreImageUpload")
 @WebMvcTest(controllers = {ImageUploadController.class})
 class ImageUploadControllerTest {
 	@Autowired

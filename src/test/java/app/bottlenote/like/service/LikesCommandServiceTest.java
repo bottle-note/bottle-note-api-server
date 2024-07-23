@@ -8,6 +8,7 @@ import app.bottlenote.review.fixture.InMemoryReviewRepository;
 import app.bottlenote.user.domain.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,9 @@ import static app.bottlenote.like.fixture.LikesObjectFixture.createFixtureUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+
+@Tag("unit")
+@DisplayName("[unit] [service] LikesCommand")
 class LikesCommandServiceTest {
 
 	private static final Logger log = LoggerFactory.getLogger(LikesCommandServiceTest.class);

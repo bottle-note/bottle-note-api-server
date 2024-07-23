@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Tag("unit")
-@DisplayName("[Fake] 이미지 업로드 서비스 테스트")
+@DisplayName("[unit] [service] [fake] CoreImageUpload")
 class CoreImageUploadServiceTest {
 	private final static String ImageBucketName = "테스트-버킷-이름";
 	private final static String cloudFrontUrl = "https://testUrl.cloudfront.net";
