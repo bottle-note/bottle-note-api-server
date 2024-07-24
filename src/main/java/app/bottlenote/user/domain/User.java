@@ -1,11 +1,29 @@
 package app.bottlenote.user.domain;
 
+import app.bottlenote.follow.domain.Follow;
+import app.bottlenote.like.domain.Likes;
+import app.bottlenote.rating.domain.Rating;
+import app.bottlenote.review.domain.Review;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.domain.constant.UserType;
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.Comment;
 
+import java.util.List;
 import java.util.Objects;
 
 @ToString(of = {"id", "email", "nickName", "age"})
@@ -53,6 +71,22 @@ public class User {
 	@Comment("사용자 리프레시토큰")
 	@Column(name = "refresh_token", nullable = true)
 	private String refreshToken;
+
+	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+	private List<Follow> following;
+
+	@OneToMany(mappedBy = "followUser", fetch = FetchType.LAZY)
+	private List<Follow> followers;
+
+	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+	private List<Likes> likes;
+
+	@OneToMany(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_id")
+	private List<Review> reviews;
+
+	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+	private List<Rating> ratings;
 
 	@Builder
 	public User(Long id, String email, String nickName, Integer age, String gender, String imageUrl,
