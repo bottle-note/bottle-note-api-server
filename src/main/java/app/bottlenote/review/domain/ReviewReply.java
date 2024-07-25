@@ -19,6 +19,7 @@ import org.hibernate.annotations.Comment;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Comment("리뷰 댓글 테이블")
 @Entity(name = "review_reply")
@@ -39,7 +40,6 @@ public class ReviewReply extends BaseEntity {
 	@Column(name = "user_id")
 	private Long userId;
 
-	@Getter
 	@Comment("댓글 내용")
 	@Column(name = "content", nullable = false, length = 1000)
 	private String content;
@@ -73,7 +73,7 @@ public class ReviewReply extends BaseEntity {
 		this.review = review;
 		this.userId = userId;
 		this.content = content;
-		this.status = status;
+		this.status = Objects.isNull(status) ? ReviewReplyStatus.NORMAL : status;
 		this.rootReviewReply = rootReviewReply;
 		this.parentReviewReply = parentReviewReply;
 		this.replies = replies;
@@ -88,6 +88,18 @@ public class ReviewReply extends BaseEntity {
 	 */
 	public ReviewReply getRootReviewReply() {
 		return rootReviewReply != null ? rootReviewReply : this;
+	}
+
+	/**
+	 * 삭제된 메시지의 경우 상태값 메시지를 반환합니다.
+	 *
+	 * @return the content
+	 */
+	public String getContent() {
+		if (!this.status.equals(ReviewReplyStatus.NORMAL)) {
+			return this.status.getMessage();
+		}
+		return content;
 	}
 
 	@Override
