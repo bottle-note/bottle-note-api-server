@@ -103,18 +103,28 @@ tasks.named('test') {
     }
 }
 
-//integration 테스트
 tasks.register('integrationTest', Test) {
     useJUnitPlatform {
         includeTags 'integration'
     }
 }
-
 tasks.register('dataJpaTest', Test) {
     useJUnitPlatform {
         includeTags 'data-jpa-test'
     }
 }
+tasks.register('unitTest', Test) {
+    useJUnitPlatform {
+        includeTags 'unit'
+    }
+}
+
+tasks.register('allTests', Test) {
+    useJUnitPlatform {
+        includeTags 'integration', 'unit'
+    }
+}
+
 
 // =========================== spring boot jar setting ===========================
 

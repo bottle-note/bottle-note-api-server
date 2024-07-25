@@ -12,6 +12,7 @@ import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.repository.OauthRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -34,7 +35,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@DisplayName("유저 서비스 테스트")
+@Tag("unit")
+@DisplayName("[unit] [service] OauthService")
 @ExtendWith(MockitoExtension.class)
 class OauthServiceTest {
 

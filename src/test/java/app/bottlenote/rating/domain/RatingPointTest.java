@@ -2,12 +2,14 @@ package app.bottlenote.rating.domain;
 
 import app.bottlenote.rating.exception.RatingException;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@DisplayName("별점  테스트")
+@Tag("unit")
+@DisplayName("[unit] [domain] RatingPoint")
 class RatingPointTest {
 
 

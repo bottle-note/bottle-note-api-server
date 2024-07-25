@@ -20,6 +20,7 @@ import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -44,6 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Disabled("테스트 컨테이너 도입으로 인한 추후 수정 대상 ")
 @Tag(value = "data-jpa-test")
+@DisplayName("[database] [repository] CustomJpaReviewRepository")
 @DataJpaTest
 @ActiveProfiles("test")
 @Import({TestConfig.class, ModuleConfig.class})

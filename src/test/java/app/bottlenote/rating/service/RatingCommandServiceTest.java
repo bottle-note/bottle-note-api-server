@@ -17,6 +17,7 @@ import app.bottlenote.user.fixture.InMemoryUserQueryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -25,6 +26,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
+@Tag("unit")
+@DisplayName("[unit] [service] RatingCommandService")
 class RatingCommandServiceTest {
 	private final Long userId = 1L;
 	private final Long alcoholId = 1L;

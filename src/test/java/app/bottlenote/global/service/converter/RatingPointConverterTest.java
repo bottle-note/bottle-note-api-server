@@ -3,6 +3,7 @@ package app.bottlenote.global.service.converter;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.rating.exception.RatingException;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -11,7 +12,9 @@ import java.util.Objects;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-@DisplayName(value = "RatingPoint Converter 테스트")
+
+@Tag("unit")
+@DisplayName("[unit] [infra] RatingPointConverter")
 class RatingPointConverterTest {
 
 	RatingPointConverter ratingPointConverter = new RatingPointConverter();

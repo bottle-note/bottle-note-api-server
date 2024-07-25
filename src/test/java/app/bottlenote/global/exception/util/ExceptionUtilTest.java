@@ -1,11 +1,16 @@
 package app.bottlenote.global.exception.util;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import static app.bottlenote.global.exception.util.ExceptionUtil.getErrorMessage;
 import static app.bottlenote.global.exception.util.ExceptionUtil.getErrorMessageForTypeMismatch;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+
+@Tag("unit")
+@DisplayName("[unit] [infra] ExceptionUtil")
 class ExceptionUtilTest {
 
 	@Test
