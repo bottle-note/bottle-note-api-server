@@ -1,5 +1,7 @@
 package app.bottlenote.user.domain;
 
+import app.bottlenote.user.dto.response.MyPageResponse;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -16,7 +18,9 @@ public interface UserQueryRepository {
 
 	List<User> findAllByIdIn(List<Long> ids);
 
-    Boolean existsByUserId(Long userId);
+	Boolean existsByUserId(Long userId);
 
 	Long countByUsername(String userName);
+
+	MyPageResponse getMyPage(Long userId, Long currentUserId);
 }
