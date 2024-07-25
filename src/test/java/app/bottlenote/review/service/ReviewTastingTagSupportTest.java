@@ -1,19 +1,22 @@
 package app.bottlenote.review.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.exception.ReviewException;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@DisplayName("리뷰 테이스팅 태그 서포트 서비스 테스트")
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@Tag("unit")
+@DisplayName("[unit] [service] ReviewTastingTagSupport")
 @ExtendWith(MockitoExtension.class)
 class ReviewTastingTagSupportTest {
 
@@ -45,7 +48,7 @@ class ReviewTastingTagSupportTest {
 	@Test
 	@DisplayName("테이스팅 태그로 빈 리스트가 전달되면 메서드가 종료된다.")
 	void validate_tasting_tag_list() {
-		
+
 		List<String> emptyList = List.of();
 
 		reviewTastingTagSupport.saveReviewTastingTag(emptyList, review);

@@ -1,5 +1,25 @@
 package app.bottlenote.review.integration;
 
+import app.bottlenote.IntegrationTestSupport;
+import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.review.domain.Review;
+import app.bottlenote.review.domain.ReviewRepository;
+import app.bottlenote.review.dto.request.ReviewModifyRequest;
+import app.bottlenote.review.fixture.ReviewObjectFixture;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.jdbc.Sql;
+
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -9,25 +29,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.bottlenote.IntegrationTestSupport;
-import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.review.domain.Review;
-import app.bottlenote.review.domain.ReviewRepository;
-import app.bottlenote.review.dto.request.ReviewModifyRequest;
-import app.bottlenote.review.fixture.ReviewObjectFixture;
-import java.util.Optional;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.jdbc.Sql;
-
-@DisplayName("[Integration] 리뷰 통합 테스트")
+@Tag("integration")
+@DisplayName("[integration] [controller] ReviewReplyController")
 class ReviewIntegerationTest extends IntegrationTestSupport {
 
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;

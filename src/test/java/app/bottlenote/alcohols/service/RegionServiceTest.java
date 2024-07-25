@@ -4,6 +4,7 @@ import app.bottlenote.alcohols.dto.response.RegionsResponse;
 import app.bottlenote.alcohols.repository.RegionQueryRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -14,7 +15,8 @@ import java.util.List;
 
 import static org.mockito.Mockito.when;
 
-@DisplayName("지역 서비스 레이어 테스트")
+@Tag("unit")
+@DisplayName("[unit] [service] RegionService")
 @ExtendWith(MockitoExtension.class)
 class RegionServiceTest {
 

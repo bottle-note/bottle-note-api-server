@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -27,6 +27,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Tag("unit")
+@DisplayName("[unit] [controller] UserNicknameChangeController")
 @WebMvcTest(UserCommandController.class)
 @WithMockUser
 class UserNicknameChangeControllerTest {
@@ -52,7 +54,7 @@ class UserNicknameChangeControllerTest {
 	}
 
 	@DisplayName("닉네임을 성공적으로 변경할 수 있다.")
-	//@Test
+		//@Test
 	void shouldChangeNicknameSuccessfully() throws Exception {
 
 		Long userId = 1L;
@@ -65,7 +67,7 @@ class UserNicknameChangeControllerTest {
 			.changedNickname("newNickname")
 			.build();
 
-		when(nicknameChangeService.nicknameChange(userId,request)).thenReturn(response);
+		when(nicknameChangeService.nicknameChange(userId, request)).thenReturn(response);
 
 		mockMvc.perform(patch("/api/v1/users/nickname")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -83,9 +85,9 @@ class UserNicknameChangeControllerTest {
 
 
 	@DisplayName("닉네임 변경은 변경닉네임이 없으면 변경할 수 없다.")
-	//@Test
+		//@Test
 	void shouldFailWhenEmptyParameter() throws Exception {
-		NicknameChangeRequest request = new NicknameChangeRequest( "");
+		NicknameChangeRequest request = new NicknameChangeRequest("");
 
 		mockMvc.perform(patch("/api/v1/users/nickname")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -100,7 +102,7 @@ class UserNicknameChangeControllerTest {
 	}
 
 	@DisplayName("특수문자가 포함된 닉네임은 변경할 수 없다.")
-	//@Test
+		//@Test
 	void shouldFailWhenInvalidNickname() throws Exception {
 		NicknameChangeRequest request = new NicknameChangeRequest("#$%#$%#ㅁㅁ");
 
@@ -117,7 +119,7 @@ class UserNicknameChangeControllerTest {
 
 
 	@DisplayName("중복된 닉네임은 변경할 수 없다.")
-	//@Test
+		//@Test
 	void shouldFailWhenDuplicateNickname() throws Exception {
 		Long userId = 1L;
 		NicknameChangeRequest request = new NicknameChangeRequest("newNickname");

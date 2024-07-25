@@ -3,6 +3,7 @@ package app.bottlenote.alcohols.integration;
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.global.data.response.GlobalResponse;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
@@ -16,7 +17,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@DisplayName("[Integration] 주간 인기 위스키 조회")
+@Tag("integration")
+@DisplayName("[integration] [controller] Popular")
 class PopularControllerIntegrationTest extends IntegrationTestSupport {
 
 

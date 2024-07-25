@@ -9,6 +9,7 @@ import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.CategoryResponse;
 import app.bottlenote.alcohols.dto.response.detail.AlcoholDetailInfo;
 import app.bottlenote.global.service.cursor.PageResponse;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
