@@ -1,8 +1,11 @@
 package app.bottlenote.review.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
+import app.bottlenote.review.domain.constant.ReviewReplyStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -41,6 +44,10 @@ public class ReviewReply extends BaseEntity {
 	@Column(name = "content", nullable = false, length = 1000)
 	private String content;
 
+	@Enumerated(EnumType.STRING)
+	@Column(name = "status", nullable = false)
+	private ReviewReplyStatus status = ReviewReplyStatus.NORMAL;
+
 	@Comment("최상위 댓글 대상")
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "root_reply_id")
@@ -61,14 +68,15 @@ public class ReviewReply extends BaseEntity {
 	}
 
 	@Builder
-	public ReviewReply(Long id, Review review, Long userId, String content, ReviewReply rootReviewReply, ReviewReply parentReviewReply) {
+	public ReviewReply(Long id, Review review, Long userId, String content, ReviewReplyStatus status, ReviewReply rootReviewReply, ReviewReply parentReviewReply, List<ReviewReply> replies) {
 		this.id = id;
 		this.review = review;
 		this.userId = userId;
 		this.content = content;
+		this.status = status;
 		this.rootReviewReply = rootReviewReply;
 		this.parentReviewReply = parentReviewReply;
-		this.replies = new ArrayList<>();
+		this.replies = replies;
 	}
 
 	/**

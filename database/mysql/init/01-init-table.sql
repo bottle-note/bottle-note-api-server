@@ -280,6 +280,7 @@ CREATE TABLE `review_reply`
     `id`              bigint       NOT NULL AUTO_INCREMENT COMMENT '리뷰 댓글',
     `review_id`       bigint       NOT NULL COMMENT '리뷰 아이디',
     `user_id`         bigint       NOT NULL COMMENT '리뷰 작성자',
+    `status`          varchar(255) NULL COMMENT '리뷰 댓글의 현재 상태',
     `root_reply_id`   bigint       NULL comment '최상위 댓글 식별자',
     `parent_reply_id` bigint       NULL comment '상위 댓글 식별',
     `content`         text         NOT NULL COMMENT '댓글 최대 1000글자',
