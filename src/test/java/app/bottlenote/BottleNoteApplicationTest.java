@@ -1,11 +1,14 @@
 package app.bottlenote;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DisplayName("[Integration] BottleNote 애플리케이션 테스트")
+
+@Tag("integration")
+@DisplayName("[integration] [service] UserCommandService")
 class BottleNoteApplicationTest extends IntegrationTestSupport {
 
 	@Test

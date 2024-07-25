@@ -7,11 +7,15 @@ import app.bottlenote.user.fixture.InMemoryUserQueryRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import static app.bottlenote.user.domain.constant.NotificationCategory.REVIEW;
 import static app.bottlenote.user.domain.constant.NotificationType.USER;
 
+
+@Tag("unit")
+@DisplayName("[unit] [service] UserNotificationService")
 class UserNotificationServiceTest {
 
 	private InMemoryUserQueryRepository userQueryRepository;

@@ -8,12 +8,15 @@ import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@DisplayName("비속어 검증 클라이언트 테스트")
+
+@Tag("unit")
+@DisplayName("[unit] [service] DefaultProfanityClient")
 class DefaultProfanityClientTest {
 
 	private static final Logger log = LogManager.getLogger(DefaultProfanityClientTest.class);

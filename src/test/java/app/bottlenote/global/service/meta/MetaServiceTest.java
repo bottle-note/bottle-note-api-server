@@ -1,5 +1,7 @@
 package app.bottlenote.global.service.meta;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageRequest;
 
@@ -7,6 +9,8 @@ import static app.bottlenote.global.service.meta.MetaService.createMetaInfo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+@Tag("unit")
+@DisplayName("[unit] [service] MetaService")
 class MetaServiceTest {
 
 	@Test

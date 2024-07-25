@@ -20,13 +20,16 @@ import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@DisplayName("리뷰 댓글 서비스 테스트")
+
+@Tag("unit")
+@DisplayName("[unit] [service] ReviewReplyService")
 class ReviewReplyServiceTest {
 
 	private static final Logger log = LogManager.getLogger(ReviewReplyServiceTest.class);

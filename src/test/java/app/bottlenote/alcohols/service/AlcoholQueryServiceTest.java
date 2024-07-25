@@ -9,6 +9,7 @@ import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,7 +23,8 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@DisplayName("술(위스키) 쿼리 서비스 레이어 테스트")
+@Tag("unit")
+@DisplayName("[unit] [service] AlcoholQuery")
 @ExtendWith(MockitoExtension.class)
 class AlcoholQueryServiceTest {
 
