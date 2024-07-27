@@ -47,6 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Disabled("테스트 컨테이너 도입으로 인한 추후 수정 대상 ")
 @Tag(value = "data-jpa-test")
+@DisplayName("[database] [repository] AlcoholQuery")
 @DataJpaTest
 @ActiveProfiles("test")
 @Import({TestConfig.class, ModuleConfig.class})

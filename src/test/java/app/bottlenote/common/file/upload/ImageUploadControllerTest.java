@@ -5,6 +5,7 @@ import app.bottlenote.common.file.upload.dto.response.ImageUploadInfo;
 import app.bottlenote.common.file.upload.dto.response.ImageUploadResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -27,7 +28,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@DisplayName("[Mock] 이미지 업로드 컨트롤러 테스트")
+@Tag("unit")
+@DisplayName("[unit] [controller] [mock] CoreImageUpload")
 @WebMvcTest(controllers = {ImageUploadController.class})
 class ImageUploadControllerTest {
 	@Autowired

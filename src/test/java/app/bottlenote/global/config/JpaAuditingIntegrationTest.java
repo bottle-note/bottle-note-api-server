@@ -1,5 +1,27 @@
 package app.bottlenote.global.config;
 
+import app.bottlenote.IntegrationTestSupport;
+import app.bottlenote.global.customMockUser.WithMockCustomUser;
+import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.review.domain.Review;
+import app.bottlenote.review.domain.ReviewRepository;
+import app.bottlenote.review.dto.request.ReviewCreateRequest;
+import app.bottlenote.review.fixture.ReviewObjectFixture;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MvcResult;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -9,27 +31,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.bottlenote.IntegrationTestSupport;
-import app.bottlenote.global.customMockUser.WithMockCustomUser;
-import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.review.domain.Review;
-import app.bottlenote.review.domain.ReviewRepository;
-import app.bottlenote.review.dto.request.ReviewCreateRequest;
-import app.bottlenote.review.fixture.ReviewObjectFixture;
-import java.nio.charset.StandardCharsets;
-import java.util.Optional;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.web.servlet.MvcResult;
 
-@DisplayName("[Integration] JPA Auditing 통합 테스트")
+@Tag("integration")
+@DisplayName("[integration] [infra] JpaAuditing")
 class JpaAuditingIntegrationTest extends IntegrationTestSupport {
 
 	private ReviewCreateRequest reviewCreateRequest;

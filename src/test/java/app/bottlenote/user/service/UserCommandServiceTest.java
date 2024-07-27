@@ -6,6 +6,7 @@ import app.bottlenote.user.dto.response.NicknameChangeResponse;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.repository.UserCommandRepository;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,6 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+@Tag("unit")
+@DisplayName("[unit] [service] UserCommandService")
 @ExtendWith(MockitoExtension.class)
 class UserCommandServiceTest {
 

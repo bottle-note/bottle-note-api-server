@@ -6,10 +6,15 @@ import app.bottlenote.common.profanity.response.Detected;
 import app.bottlenote.common.profanity.response.ProfanityResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
+
+@Tag("unit")
+@DisplayName("[unit] [service] ProfanityFeginClient")
 public class FakeProfanityFeginClient implements ProfanityFeginClient {
 
 

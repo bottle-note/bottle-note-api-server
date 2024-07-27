@@ -10,20 +10,23 @@ import app.bottlenote.follow.repository.follow.FollowRepository;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.repository.UserCommandRepository;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+
+@Tag("unit")
+@DisplayName("[unit] [service] FollowCommand")
 @ExtendWith(MockitoExtension.class)
 class FollowCommandServiceTest {
 
@@ -76,7 +79,7 @@ class FollowCommandServiceTest {
 		assertEquals(response.getFollowUserId(), followUserId);
 		assertEquals(response.getNickName(), followUser.getNickName());
 		assertEquals(response.getImageUrl(), followUser.getImageUrl());
-		assertEquals(response.getMessage(),FollowUpdateResponse.Message.FOLLOW_SUCCESS.getMessage());
+		assertEquals(response.getMessage(), FollowUpdateResponse.Message.FOLLOW_SUCCESS.getMessage());
 
 
 	}
@@ -136,4 +139,3 @@ class FollowCommandServiceTest {
 	}
 
 }
-

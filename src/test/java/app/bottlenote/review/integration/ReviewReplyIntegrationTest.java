@@ -4,6 +4,7 @@ import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
@@ -18,7 +19,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@DisplayName("[Integration] 리뷰 댓글 통합 테스트")
+
+@Tag("integration")
+@DisplayName("[integration] [controller] ReviewReplyController")
 class ReviewReplyIntegrationTest extends IntegrationTestSupport {
 
 

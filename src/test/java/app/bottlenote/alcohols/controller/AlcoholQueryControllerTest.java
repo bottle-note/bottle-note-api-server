@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +28,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Tag("unit")
 @WithMockUser()
-@DisplayName("알코올(위스키) 쿼리 컨트롤러 테스트")
+@DisplayName("[unit] [controller] AlcoholQuery")
 @WebMvcTest(AlcoholQueryController.class)
 class AlcoholQueryControllerTest {
 	private static final Logger log = LogManager.getLogger(AlcoholQueryControllerTest.class);
@@ -41,8 +43,8 @@ class AlcoholQueryControllerTest {
 	private AlcoholQueryService alcoholQueryService;
 
 
-	@DisplayName("술(위스키) 리스트를 조회할 수 있다.")
-	@ParameterizedTest(name = "[{index}]{0}")
+	@DisplayName("술 목록을 조회할 수 있다.")
+	@ParameterizedTest(name = "{0}")
 	@MethodSource("app.bottlenote.alcohols.fixture.ArgumentsFixture#testCase1Provider")
 	void test_case_1(String description, AlcoholSearchRequest searchRequest) throws Exception {
 		log.debug("description test : {}", description);
@@ -76,8 +78,8 @@ class AlcoholQueryControllerTest {
 
 	}
 
-	@DisplayName("정렬 타입에 대한 검증")
-	@ParameterizedTest(name = "{1} : {0}")
+	@DisplayName("다양한 정렬 타입으로 술 목록을 조회할 수 있다.")
+	@ParameterizedTest(name = "{0}")
 	@MethodSource("app.bottlenote.alcohols.fixture.ArgumentsFixture#sortTypeParameters")
 	void test_sortType(String sortType, int expectedStatus) throws Exception {
 		// given
@@ -100,8 +102,8 @@ class AlcoholQueryControllerTest {
 			.andDo(print());
 	}
 
-	@DisplayName("정렬 방향에 대한 검증")
-	@ParameterizedTest(name = "{1} : {0}")
+	@DisplayName("다양한 정렬 방향으로 술 목록을 조회할 수 있다.")
+	@ParameterizedTest(name = "{0}")
 	@MethodSource("app.bottlenote.alcohols.fixture.ArgumentsFixture#sortOrderParameters")
 	void test_sortOrder(String sortOrder, int expectedStatus) throws Exception {
 		// given

@@ -3,16 +3,20 @@ package app.bottlenote.review.service;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.exception.ReviewException;
-import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@DisplayName("리뷰 이미지 서포트 서비스 테스트")
+import java.util.List;
+
+
+@Tag("unit")
+@DisplayName("[unit] [service] ReviewImageSupport")
 @ExtendWith(MockitoExtension.class)
 class ReviewImageSupportTest {
 
@@ -50,7 +54,7 @@ class ReviewImageSupportTest {
 	void validate__image() {
 
 		List<ReviewImageInfo> empytyList = List.of();
-		
+
 		reviewImageSupport.saveImages(empytyList, review);
 
 		Assertions.assertEquals(0, review.getReviewImages().size());
