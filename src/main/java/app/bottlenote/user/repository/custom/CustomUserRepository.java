@@ -1,4 +1,4 @@
-package app.bottlenote.user.repository;
+package app.bottlenote.user.repository.custom;
 
 import app.bottlenote.user.dto.response.MyPageResponse;
 

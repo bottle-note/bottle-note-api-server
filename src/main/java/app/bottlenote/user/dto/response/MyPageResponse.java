@@ -9,12 +9,12 @@ public record MyPageResponse(
 	String nickName,
 	String imageUrl,
 	Long reviewCount,
-	Long pickCount,
 	Long ratingCount,
+	Long pickCount,
 	Long followerCount,
 	Long followingCount,
-	Boolean isMyPage,
-	Boolean isFollow
+	Boolean isFollow,
+	Boolean isMyPage
 
 
 ) {

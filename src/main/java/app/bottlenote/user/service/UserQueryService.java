@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
+import static app.bottlenote.user.exception.UserExceptionCode.MYPAGE_NOT_ACCESSIBLE;
 
 @RequiredArgsConstructor
 @Service
@@ -25,20 +25,15 @@ public class UserQueryService {
 	@Transactional(readOnly = true)
 	public MyPageResponse getMypage(Long userId, Long currentUserId) {
 
+		System.out.println("userId: " + userId);
+		System.out.println("currentUserId: " + currentUserId);
 
-		// 예쁜 코드..?
-		boolean isExistUser = !userQueryRepository.existsByUserId(userId);
+		boolean isUserNotAccessible = !userQueryRepository.existsByUserId(userId);
 
-		if (isExistUser) {
-			throw new UserException(USER_NOT_FOUND);
+		if (isUserNotAccessible) {
+			throw new UserException(MYPAGE_NOT_ACCESSIBLE);
 		}
 
-
-		// 쿼리 DSL
-		// JpaUserQueryRepository 에서 쿼리 메소드를 사용하여 유저 정보를 조회한다.
-		// CustomUserRepository
-		// (c)CustomUSerRepositoryImpl 쿼리 메소드 필요 (유저 정보 조회)
-		// (C)UserQuerySupporter 쿼리 서포터 필요 (찜하기 수 , 리뷰 수, 평가한 별점 수 , 팔로워 수 , 팔로우 수)
 		return userQueryRepository.getMyPage(userId, currentUserId);
 
 	}
