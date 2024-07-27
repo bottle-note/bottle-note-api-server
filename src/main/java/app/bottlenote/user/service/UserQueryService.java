@@ -25,9 +25,6 @@ public class UserQueryService {
 	@Transactional(readOnly = true)
 	public MyPageResponse getMypage(Long userId, Long currentUserId) {
 
-		System.out.println("userId: " + userId);
-		System.out.println("currentUserId: " + currentUserId);
-
 		boolean isUserNotAccessible = !userQueryRepository.existsByUserId(userId);
 
 		if (isUserNotAccessible) {
