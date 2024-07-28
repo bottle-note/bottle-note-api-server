@@ -94,6 +94,11 @@ public class User {
 		this.nickName = nickName;
 	}
 
+	public void withdrawUser() {
+		this.nickName = "WITHDRAWAL USER";
+		this.status = UserStatus.DELETED;
+	}
+
 	public void changeProfileImage(String viewUrl) {
 		this.imageUrl = viewUrl;
 	}
