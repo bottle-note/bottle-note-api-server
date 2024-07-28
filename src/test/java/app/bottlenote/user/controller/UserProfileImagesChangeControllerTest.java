@@ -46,13 +46,11 @@ public class UserProfileImagesChangeControllerTest {
 
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
-
 	@BeforeEach
 	void setup() {
 		mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
 		mockedSecurityUtil.when(SecurityContextUtil::getUserIdByContext).thenReturn(Optional.of(1L));
 	}
-
 
 	@AfterEach
 	void tearDown() {
