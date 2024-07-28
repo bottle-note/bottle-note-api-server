@@ -102,6 +102,11 @@ public class ReviewReply extends BaseEntity {
 		return content;
 	}
 
+	/**
+	 * string format => ReviewReply(id = 1, userId = 1, content = "content")
+	 *
+	 * @return the string
+	 */
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + "(" +
