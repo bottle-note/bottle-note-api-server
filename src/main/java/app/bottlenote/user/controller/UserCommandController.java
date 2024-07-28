@@ -6,7 +6,7 @@ import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
 import app.bottlenote.user.dto.response.NicknameChangeResponse;
 import app.bottlenote.user.dto.response.ProfileImageChangeResponse;
-import app.bottlenote.user.dto.response.UserWithdrawResponse;
+import app.bottlenote.user.dto.response.UserResultResponse;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.service.UserCommandService;
@@ -59,7 +59,7 @@ public class UserCommandController {
 		Long userId = getUserIdByContext()
 			.orElseThrow(() -> new UserException(UserExceptionCode.REQUIRED_USER_ID));
 
-		UserWithdrawResponse response = userCommandService.withdrawUser(userId);
+		UserResultResponse response = userCommandService.withdrawUser(userId);
 
 		return ResponseEntity.ok(GlobalResponse.success(response));
 	}

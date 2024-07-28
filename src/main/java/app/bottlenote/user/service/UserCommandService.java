@@ -1,18 +1,21 @@
 package app.bottlenote.user.service;
 
+import static app.bottlenote.user.dto.response.constant.UserResultMessage.USER_WITHDRAW_SUCCESS;
+import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
+
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
 import app.bottlenote.user.dto.response.NicknameChangeResponse;
 import app.bottlenote.user.dto.response.ProfileImageChangeResponse;
+import app.bottlenote.user.dto.response.UserResultResponse;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.repository.UserCommandRepository;
+import app.bottlenote.user.service.domain.UserDomainSupport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -20,6 +23,7 @@ import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 public class UserCommandService {
 
 	private final UserCommandRepository userCommandRepository;
+	private final UserDomainSupport userDomainSupport;
 
 	/**
 	 * 닉네임 변경
@@ -77,5 +81,20 @@ public class UserCommandService {
 			.userId(user.getId())
 			.profileImageUrl(user.getImageUrl())
 			.build();
+	}
+
+
+	/**
+	 * 회원 탈퇴
+	 *
+	 * @param userId
+	 * @return UserResultResponse
+	 */
+	@Transactional
+	public UserResultResponse withdrawUser(Long userId) {
+
+		userDomainSupport.withdrawUser(userId);
+
+		return UserResultResponse.response(USER_WITHDRAW_SUCCESS, userId);
 	}
 }
