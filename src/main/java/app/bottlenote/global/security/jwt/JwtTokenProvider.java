@@ -19,8 +19,7 @@ import org.springframework.stereotype.Component;
 public class JwtTokenProvider {
 
 	private final Key secretKey;
-	//public static final int ACCESS_TOKEN_EXPIRE_TIME =  3 * 60 * 60 * 1000; // 3hours
-	public static final int ACCESS_TOKEN_EXPIRE_TIME = 1 * 60 * 1000; // 1 minute
+	public static final int ACCESS_TOKEN_EXPIRE_TIME = 3 * 60 * 60 * 1000; // 3hours
 	public static final int REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 14; // 14days
 	public static final String KEY_ROLES = "roles";
 
