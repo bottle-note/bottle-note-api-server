@@ -1,13 +1,13 @@
 package app.bottlenote.user.service;
 
-import static app.bottlenote.user.dto.response.constant.UserResultMessage.USER_WITHDRAW_SUCCESS;
+import static app.bottlenote.user.dto.response.constant.WithdrawUserResultMessage.USER_WITHDRAW_SUCCESS;
 import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
 import app.bottlenote.user.dto.response.NicknameChangeResponse;
 import app.bottlenote.user.dto.response.ProfileImageChangeResponse;
-import app.bottlenote.user.dto.response.UserResultResponse;
+import app.bottlenote.user.dto.response.WithdrawUserResultResponse;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.repository.UserCommandRepository;
@@ -89,13 +89,13 @@ public class UserCommandService {
 	 * @return UserResultResponse
 	 */
 	@Transactional
-	public UserResultResponse withdrawUser(Long userId) {
+	public WithdrawUserResultResponse withdrawUser(Long userId) {
 
 		User user = userCommandRepository.findById(userId)
 			.orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
 		user.withdrawUser();
 
-		return UserResultResponse.response(USER_WITHDRAW_SUCCESS, userId);
+		return WithdrawUserResultResponse.response(USER_WITHDRAW_SUCCESS, userId);
 	}
 }
