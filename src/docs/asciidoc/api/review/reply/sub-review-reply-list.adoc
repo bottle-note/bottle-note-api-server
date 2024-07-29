@@ -26,7 +26,7 @@ image::https://i.imgur.com/a3qNSWs.png[]
 ==== API EndPoint ====
 
 ----
-POST /api/v1/review/reply/{reviewId}/sub/{rootReplyId}
+GET /api/v1/review/reply/{reviewId}/sub/{rootReplyId}
 ----
 
 * `reviewId` : 리뷰 식별자
