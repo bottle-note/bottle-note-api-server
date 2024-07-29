@@ -1,21 +1,21 @@
 package app.bottlenote.user.dto.response;
 
-import app.bottlenote.user.dto.response.constant.UserResultMessage;
+import app.bottlenote.user.dto.response.constant.WithdrawUserResultMessage;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public record UserResultResponse(
-	UserResultMessage codeMessage,
+public record WithdrawUserResultResponse(
+	WithdrawUserResultMessage codeMessage,
 	String message,
 	Long userId,
 	String responseAt
 ) {
 
-	public static UserResultResponse response(
-		UserResultMessage message,
+	public static WithdrawUserResultResponse response(
+		WithdrawUserResultMessage message,
 		Long userId
 	) {
-		return new UserResultResponse(
+		return new WithdrawUserResultResponse(
 			message,
 			message.getMessage(),
 			userId,
