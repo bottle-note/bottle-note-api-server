@@ -34,12 +34,4 @@ public interface UserDomainSupport {
 	void isValidUserId(Long userId);
 
 	UserProfileInfo getUserProfileInfo(Long userId);
-
-
-	/**
-	 * 매개변수로 넘어온 userId의 유저를 탈퇴처리합니다.
-	 *
-	 * @param userId
-	 */
-	void withdrawUser(Long userId);
 }

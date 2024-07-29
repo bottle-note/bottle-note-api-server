@@ -48,12 +48,4 @@ public class DefaultUserDomainSupport implements UserDomainSupport {
 
 		return UserProfileInfo.create(user.getId(), user.getNickName(), user.getImageUrl());
 	}
-
-	@Override
-	public void withdrawUser(Long userId) {
-		User user = userQueryRepository.findById(userId)
-			.orElseThrow(() -> new UserException(USER_NOT_FOUND));
-
-		user.withdrawUser();
-	}
 }
