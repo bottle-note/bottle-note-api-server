@@ -95,7 +95,6 @@ public class User {
 	}
 
 	public void withdrawUser() {
-		this.nickName = "WITHDRAWAL USER";
 		this.status = UserStatus.DELETED;
 	}
 

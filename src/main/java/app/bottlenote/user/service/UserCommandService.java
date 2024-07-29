@@ -11,7 +11,6 @@ import app.bottlenote.user.dto.response.UserResultResponse;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.repository.UserCommandRepository;
-import app.bottlenote.user.service.domain.UserDomainSupport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserCommandService {
 
 	private final UserCommandRepository userCommandRepository;
-	private final UserDomainSupport userDomainSupport;
 
 	/**
 	 * 닉네임 변경
@@ -93,7 +91,10 @@ public class UserCommandService {
 	@Transactional
 	public UserResultResponse withdrawUser(Long userId) {
 
-		userDomainSupport.withdrawUser(userId);
+		User user = userCommandRepository.findById(userId)
+			.orElseThrow(() -> new UserException(USER_NOT_FOUND));
+
+		user.withdrawUser();
 
 		return UserResultResponse.response(USER_WITHDRAW_SUCCESS, userId);
 	}

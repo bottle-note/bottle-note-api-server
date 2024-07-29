@@ -1,6 +1,7 @@
 package app.bottlenote.user.controller;
 
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
+import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
@@ -8,7 +9,6 @@ import app.bottlenote.user.dto.response.NicknameChangeResponse;
 import app.bottlenote.user.dto.response.ProfileImageChangeResponse;
 import app.bottlenote.user.dto.response.UserResultResponse;
 import app.bottlenote.user.exception.UserException;
-import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.service.UserCommandService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,37 +30,37 @@ public class UserCommandController {
 	private final UserCommandService userCommandService;
 
 	@PatchMapping("/nickname")
-	public ResponseEntity<GlobalResponse> nicknameChange(@RequestBody @Valid NicknameChangeRequest nicknameChangeRequest) {
+	public ResponseEntity<?> nicknameChange(@RequestBody @Valid NicknameChangeRequest nicknameChangeRequest) {
 
 
 		Long userId = getUserIdByContext()
-			.orElseThrow(() -> new UserException(UserExceptionCode.REQUIRED_USER_ID));
+			.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
 
 		NicknameChangeResponse response = userCommandService.nicknameChange(userId, nicknameChangeRequest);
-		return ResponseEntity.ok(GlobalResponse.success(response));
+		return GlobalResponse.ok(response);
 	}
 
 	// 유저 프로필 이미지 변경
 	@PatchMapping("/profile-image")
-	public ResponseEntity<GlobalResponse> profileImageChange(@RequestBody String viewUrl) {
+	public ResponseEntity<?> profileImageChange(@RequestBody String viewUrl) {
 
 		Long userId = getUserIdByContext()
-			.orElseThrow(() -> new UserException(UserExceptionCode.REQUIRED_USER_ID));
+			.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
 		ProfileImageChangeResponse response = userCommandService.profileImageChange(userId, viewUrl);
 
-		return ResponseEntity.ok(GlobalResponse.success(response));
+		return GlobalResponse.ok(response);
 	}
 
 	@DeleteMapping()
-	public ResponseEntity<GlobalResponse> withdrawUser() {
+	public ResponseEntity<?> withdrawUser() {
 
 		Long userId = getUserIdByContext()
-			.orElseThrow(() -> new UserException(UserExceptionCode.REQUIRED_USER_ID));
+			.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
 		UserResultResponse response = userCommandService.withdrawUser(userId);
 
-		return ResponseEntity.ok(GlobalResponse.success(response));
+		return GlobalResponse.ok(response);
 	}
 }
