@@ -3,7 +3,6 @@ package app.bottlenote.user.repository;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.NumberPath;
 import org.springframework.stereotype.Component;
 
@@ -99,10 +98,11 @@ public class UserQuerySupporter {
 	 * @return 팔로우 여부 (true : 팔로우 중, false : 팔로우 중이 아님)
 	 */
 	public BooleanExpression isFollowSubQuery(NumberPath<Long> userId, Long currentUserId) {
-		return new CaseBuilder()
-			.when(follow.user.id.eq(currentUserId).and(follow.followUser.id.eq(userId)))
-			.then(true)
-			.otherwise(false);
+		return select(follow.count())
+			.from(follow)
+			.where(follow.user.id.eq(currentUserId)
+				.and(follow.followUser.id.eq(userId)))
+			.gt(0L);
 	}
 
 	/**

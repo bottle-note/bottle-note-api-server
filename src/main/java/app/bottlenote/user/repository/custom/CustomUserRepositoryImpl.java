@@ -7,7 +7,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import static app.bottlenote.follow.domain.QFollow.follow;
 import static app.bottlenote.user.domain.QUser.user;
 
 @Slf4j
@@ -35,7 +34,6 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 				supporter.isMyPageSubQuery(user.id, currentUserId) // 로그인 사용자가 마이 페이지 사용자인지 여부(나의 마이페이지인지 여부)
 			))
 			.from(user)
-			.leftJoin(follow).on(follow.user.id.eq(user.id))
 			.where(user.id.eq(userId))
 			.fetchOne();
 

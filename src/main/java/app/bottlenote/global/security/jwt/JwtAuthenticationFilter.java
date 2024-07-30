@@ -58,10 +58,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 		try {
 
-			System.out.println("token : " + token);
-			System.out.println("request.getMethod() : " + request.getMethod());
-			System.out.println("request.getServletPath() : " + request.getServletPath());
-
 			if (skipFilter(request.getMethod(), request.getServletPath())) {
 				log.info(" 비회원 이용가능 api: {}", request.getServletPath());
 				filterChain.doFilter(request, response);

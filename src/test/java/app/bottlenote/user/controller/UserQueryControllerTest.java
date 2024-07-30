@@ -59,7 +59,7 @@ public class UserQueryControllerTest {
 	void test_1() throws Exception {
 		// given
 		Long userId = 1L;
-		MyPageResponse myPageUserInfo = mypageQueryFixture.getMyPageInfo();
+		MyPageResponse myPageUserInfo = mypageQueryFixture.getMyPageInfo(1L, "nickname", "test.trl.com", 10L, 10L, 10L, 5L, 3L, true, true);
 
 		// when
 		when(userQueryService.getMypage(any(), any())).thenReturn(myPageUserInfo);
@@ -81,6 +81,5 @@ public class UserQueryControllerTest {
 		resultActions.andExpect(jsonPath("$.body.data.followingCount").value(3));
 		resultActions.andExpect(jsonPath("$.body.data.isFollow").value(true));
 		resultActions.andExpect(jsonPath("$.body.data.isMyPage").value(true));
-
 	}
 }

@@ -4,21 +4,20 @@ import app.bottlenote.user.dto.response.MyPageResponse;
 
 public class UserQueryFixture {
 
-	public MyPageResponse getMyPageInfo() {
+	public MyPageResponse getMyPageInfo(Long userId, String nickName, String imageUrl, Long reviewCount, Long ratingCount, Long pickCount, Long followerCount, Long followingCount, boolean isFollow, boolean isMyPage) {
 
 		return MyPageResponse.builder()
-			.userId(1L)
-			.nickName("nickname")
-			.imageUrl("test.trl.com")
-			.reviewCount(10L)
-			.ratingCount(10L)
-			.pickCount(10L)
-			.followerCount(5L)
-			.followingCount(3L)
-			.isFollow(true)
-			.isMyPage(true)
+			.userId(userId)
+			.nickName(nickName)
+			.imageUrl(imageUrl)
+			.reviewCount(reviewCount)
+			.ratingCount(ratingCount)
+			.pickCount(pickCount)
+			.followerCount(followerCount)
+			.followingCount(followingCount)
+			.isFollow(isFollow)
+			.isMyPage(isMyPage)
 			.build();
 
 	}
-
 }

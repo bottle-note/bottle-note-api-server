@@ -26,7 +26,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@DisplayName("UserQueryController RestDocs 테스트")
+@DisplayName("[restdocs] 마이페이지 컨트롤러 RestDocs용 테스트")
 public class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 
 	private final UserQueryService userQueryService = mock(UserQueryService.class);
@@ -46,9 +46,7 @@ public class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 
 	@AfterEach
 	void tearDown() {
-		if (mockedSecurityUtil != null) {
-			mockedSecurityUtil.close();
-		}
+		mockedSecurityUtil.close();
 	}
 
 	@Test
@@ -56,7 +54,7 @@ public class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 	void test_1() throws Exception {
 		// given
 		Long userId = 1L;
-		MyPageResponse myPageUserInfo = mypageQueryFixture.getMyPageInfo();
+		MyPageResponse myPageUserInfo = mypageQueryFixture.getMyPageInfo(1L, "nickname", "test.trl.com", 10L, 10L, 10L, 5L, 3L, true, true);
 
 		// when
 		when(userQueryService.getMypage(any(), any())).thenReturn(myPageUserInfo);
@@ -81,13 +79,14 @@ public class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 					fieldWithPath("body.data.followingCount").description("팔로잉 수"),
 					fieldWithPath("body.data.isFollow").description("팔로우 여부"),
 					fieldWithPath("body.data.isMyPage").description("본인 여부"),
-					fieldWithPath("body.errors").description("에러 정보"),
-					fieldWithPath("body.meta.serverVersion").description("서버 버전"),
-					fieldWithPath("body.meta.serverEncoding").description("서버 인코딩"),
-					fieldWithPath("body.meta.serverResponseTime").description("서버 응답 시간"),
-					fieldWithPath("body.meta.serverPathVersion").description("서버 경로 버전"),
-					fieldWithPath("statusCodeValue").description("HTTP 상태 코드 값"),
+					fieldWithPath("body.errors").ignored(),
+					fieldWithPath("body.meta.serverVersion").ignored(),
+					fieldWithPath("body.meta.serverEncoding").ignored(),
+					fieldWithPath("body.meta.serverResponseTime").ignored(),
+					fieldWithPath("body.meta.serverPathVersion").ignored(),
+					fieldWithPath("statusCodeValue").ignored(),
 					fieldWithPath("statusCode").description("HTTP 상태 코드")
+
 				)
 			));
 	}
