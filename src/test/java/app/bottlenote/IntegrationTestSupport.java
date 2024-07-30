@@ -1,5 +1,8 @@
 package app.bottlenote;
 
+import app.bottlenote.user.dto.request.OauthRequest;
+import app.bottlenote.user.dto.response.TokenDto;
+import app.bottlenote.user.service.OauthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -40,11 +43,17 @@ public abstract class IntegrationTestSupport {
 	protected MockMvc mockMvc;
 	@Autowired
 	private DataInitializer dataInitializer;
+	@Autowired
+	protected OauthService oauthService;
 
 	@AfterEach
 	void deleteAll() {
 		log.info("데이터 초기화 dataInitializer.deleteAll() 시작");
 		dataInitializer.deleteAll();
 		log.info("데이터 초기화 dataInitializer.deleteAll() 종료");
+	}
+	
+	protected TokenDto getToken(OauthRequest request) {
+		return oauthService.oauthLogin(request);
 	}
 }

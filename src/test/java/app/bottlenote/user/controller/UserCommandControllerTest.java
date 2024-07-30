@@ -30,14 +30,14 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 @Tag("unit")
-@DisplayName("[unit] [controller] UserCommandChangeController")
+@DisplayName("[unit] [controller] UserCommandController")
 @WebMvcTest(UserCommandController.class)
 @WithMockUser
 class UserCommandControllerTest {
 
 	@Autowired
 	private MockMvc mockMvc;
-	
+
 	@MockBean
 	private UserCommandService userCommandService;
 
@@ -74,7 +74,7 @@ class UserCommandControllerTest {
 		// then
 	}
 
-	@DisplayName("회원탈퇴에 실패한다.")
+	@DisplayName("존재하지 않는 회원은 회원탈퇴에 실패한다.")
 	@Test
 	void testWithdrawUserFailedWhenUserNotExist() throws Exception {
 
