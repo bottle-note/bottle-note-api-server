@@ -1,11 +1,14 @@
 package app.bottlenote.global.data.response;
 
 import app.bottlenote.global.service.meta.MetaInfos;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 
+import java.util.List;
 import java.util.Map;
 
 import static app.bottlenote.global.service.meta.MetaService.createMetaInfo;
@@ -27,6 +30,21 @@ public class GlobalResponse {
 
 	@Builder
 	private GlobalResponse(Boolean success, Integer code, Object data, Object errors, Map<String, Object> meta) {
+		this.success = success;
+		this.code = code;
+		this.data = data;
+		this.errors = errors;
+		this.meta = meta;
+	}
+
+	@JsonCreator
+	public GlobalResponse(
+		@JsonProperty("success") boolean success,
+		@JsonProperty("code") int code,
+		@JsonProperty("data") Object data,
+		@JsonProperty("errors") List<String> errors,
+		@JsonProperty("meta") Map<String, Object> meta
+	) {
 		this.success = success;
 		this.code = code;
 		this.data = data;
