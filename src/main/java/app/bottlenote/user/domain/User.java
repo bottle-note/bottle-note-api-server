@@ -1,12 +1,22 @@
 package app.bottlenote.user.domain;
 
 import app.bottlenote.user.domain.constant.SocialType;
+import app.bottlenote.user.domain.constant.UserStatus;
 import app.bottlenote.user.domain.constant.UserType;
-import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.annotations.Comment;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import java.util.Objects;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import org.hibernate.annotations.Comment;
 
 @ToString(of = {"id", "email", "nickName", "age"})
 @Getter
@@ -46,6 +56,11 @@ public class User {
 	private UserType role;
 
 	@Enumerated(EnumType.STRING)
+	@Comment("사용자 상태(ACTIVE, DELETED)")
+	@Column(name = "status", nullable = false)
+	private UserStatus status = UserStatus.ACTIVE;
+
+	@Enumerated(EnumType.STRING)
 	@Comment("사용자 로그인 소셜타입 (GOOGLE, KAKAO, NAVER, APPLE")
 	@Column(name = "social_type", nullable = false)
 	private SocialType socialType;
@@ -56,7 +71,7 @@ public class User {
 
 	@Builder
 	public User(Long id, String email, String nickName, Integer age, String gender, String imageUrl,
-				UserType role, SocialType socialType, String refreshToken) {
+		UserType role, UserStatus status, SocialType socialType, String refreshToken) {
 		this.id = id;
 		this.email = email;
 		this.nickName = nickName;
@@ -64,6 +79,7 @@ public class User {
 		this.gender = gender;
 		this.imageUrl = imageUrl;
 		this.role = role;
+		this.status = status;
 		this.socialType = socialType;
 		this.refreshToken = refreshToken;
 	}
@@ -76,6 +92,10 @@ public class User {
 	public void changeNickName(String nickName) {
 		Objects.requireNonNull(nickName, "nickName은 null이 될 수 없습니다.");
 		this.nickName = nickName;
+	}
+
+	public void withdrawUser() {
+		this.status = UserStatus.DELETED;
 	}
 
 	public void changeProfileImage(String viewUrl) {

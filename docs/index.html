@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta content="IE=edge" http-equiv="X-UA-Compatible">
-<meta content="width=device-width, initial-scale=1.0" name="viewport">
-<meta content="Asciidoctor 2.0.18" name="generator">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 2.0.18">
 <title>Bottle Note API 문서</title>
-<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
 /* Uncomment the following line when using as a custom stylesheet */
@@ -435,8 +435,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 #footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/styles/github.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/styles/github.min.css">
 </head>
 <body class="book toc2 toc-left">
 <div id="header">
@@ -444,7 +444,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="details">
 <span id="revnumber">version 0.0.1-SNAPSHOT</span>
 </div>
-<div class="toc2" id="toc">
+<div id="toc" class="toc2">
 <div id="toctitle">목차</div>
 <ul class="sectlevel1">
 <li><a href="#_개요_overview">1. 개요 (overview)</a>
@@ -554,12 +554,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">개발 (dev)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href=""><a class="bare" href="http://api.bottle-note.com/">http://api.bottle-note.com/</a></a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href=""><a href="http://api.bottle-note.com/" class="bare">http://api.bottle-note.com/</a></a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">API 문서 제공</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">운영(prod)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a class="bare" href=""></a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="" class="bare"></a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">기능 구현 후 AWS ECS 환경 실 배포</p></td>
 </tr>
 </tbody>
@@ -606,7 +606,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="paragraph">
 <p>프로젝트는 다음과 같은 응답형식을 제공합니다.</p>
 </div>
-<h4 class="discrete" id="_요청_결과">요청 결과</h4>
+<h4 id="_요청_결과" class="discrete">요청 결과</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -836,7 +836,7 @@ Content-Type: application/json
 </div>
 <div class="imageblock">
 <div class="content">
-<img alt="aFE6gK2" src="https://i.imgur.com/aFE6gK2.png" width="700">
+<img src="https://i.imgur.com/aFE6gK2.png" alt="aFE6gK2" width="700">
 </div>
 </div>
 <div class="paragraph">
@@ -844,10 +844,10 @@ Content-Type: application/json
 </div>
 <div class="imageblock">
 <div class="content">
-<img alt="oHOmiXo" src="https://i.imgur.com/oHOmiXo.png" width="700">
+<img src="https://i.imgur.com/oHOmiXo.png" alt="oHOmiXo" width="700">
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터">요청 파라미터</h4>
+<h4 id="_요청_파라미터" class="discrete">요청 파라미터</h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/s3/presign-url?rootPath=images&amp;uploadSize=1 HTTP/1.1
@@ -936,7 +936,7 @@ Host: localhost:8080</code></pre>
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_응답_파라미터">응답 파라미터</h4>
+<h4 id="_응답_파라미터" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -1012,7 +1012,7 @@ Host: localhost:8080</code></pre>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-21T15:42:02.483610",
+    "serverResponseTime" : "2024-07-30T19:26:17.165101",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1096,7 +1096,7 @@ Host: localhost:8080</code></pre>
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/oauth/login</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_2">요청 파라미터</h4>
+<h4 id="_요청_파라미터_2" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -1149,7 +1149,7 @@ Host: localhost:8080</code></pre>
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_응답_파라미터_2">응답 파라미터</h4>
+<h4 id="_응답_파라미터_2" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -1209,7 +1209,7 @@ Host: localhost:8080</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
-Set-Cookie: refresh-token=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNjE4NTIyM30.lvmPueUcOb1erv5Llo4qhEUQ_gtWrpFGbBHDw-Pi94qj8MGojoEI3ugdMo8PwoKgrVQZ_gBwBbytwjxh8XktUg; Path=/; Max-Age=1209600; Expires=Sun, 04 Aug 2024 06:42:02 GMT; Secure; HttpOnly
+Set-Cookie: refresh-token=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNjE4NTIyM30.lvmPueUcOb1erv5Llo4qhEUQ_gtWrpFGbBHDw-Pi94qj8MGojoEI3ugdMo8PwoKgrVQZ_gBwBbytwjxh8XktUg; Path=/; Max-Age=1209600; Expires=Tue, 13 Aug 2024 10:26:17 GMT; Secure; HttpOnly
 Content-Type: application/json;charset=UTF-8
 Content-Length: 501
 
@@ -1223,7 +1223,7 @@ Content-Length: 501
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-21T15:42:02.655110",
+    "serverResponseTime" : "2024-07-30T19:26:17.402867",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1260,13 +1260,13 @@ Content-Length: 501
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/oauth/reissue</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_3">요청 파라미터</h4>
+<h4 id="_요청_파라미터_3" class="discrete">요청 파라미터</h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json"></code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_응답_파라미터_3">응답 파라미터</h4>
+<h4 id="_응답_파라미터_3" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -1326,7 +1326,7 @@ Content-Length: 501
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
-Set-Cookie: refresh-token=new-refresh-token; Path=/; Max-Age=1209600; Expires=Sun, 04 Aug 2024 06:42:02 GMT; Secure; HttpOnly
+Set-Cookie: refresh-token=new-refresh-token; Path=/; Max-Age=1209600; Expires=Tue, 13 Aug 2024 10:26:17 GMT; Secure; HttpOnly
 Content-Type: application/json;charset=UTF-8
 Content-Length: 282
 
@@ -1340,7 +1340,7 @@ Content-Length: 282
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-21T15:42:02.584843",
+    "serverResponseTime" : "2024-07-30T19:26:17.322136",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1380,7 +1380,7 @@ Content-Length: 282
 <pre class="highlightjs highlight"><code class="language-none hljs">PATCH /api/v1/users/nickname</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_4">요청 파라미터</h4>
+<h4 id="_요청_파라미터_4" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -1412,7 +1412,7 @@ Content-Length: 282
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_응답_파라미터_4">응답 파라미터</h4>
+<h4 id="_응답_파라미터_4" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -1483,7 +1483,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-21T15:42:02.734290",
+    "serverResponseTime" : "2024-07-30T19:26:17.511854",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1500,7 +1500,7 @@ Content-Length: 411
 <div class="paragraph">
 <p>검색 조건으로 술(위스키) 정보를 조회합니다.</p>
 </div>
-<h4 class="discrete" id="_요청_파라미터_5">요청 파라미터</h4>
+<h4 id="_요청_파라미터_5" class="discrete">요청 파라미터</h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ http GET 'http://localhost:8080/api/v1/alcohols/search?keyword=glen&amp;category=SINGLE_MALT&amp;regionId=1&amp;sortType=REVIEW&amp;sortOrder=DESC&amp;cursor=0&amp;pageSize=3'</code></pre>
@@ -1548,7 +1548,7 @@ Content-Length: 411
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_응답_파라미터_5">응답 파라미터</h4>
+<h4 id="_응답_파라미터_5" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -1744,7 +1744,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-21T15:41:59.930962",
+    "serverResponseTime" : "2024-07-30T19:26:14.525505",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 4,
@@ -1765,7 +1765,7 @@ Content-Length: 411
 }</code></pre>
 </div>
 </div>
-<h5 class="discrete" id="_정렬_타입_sorttype"><em>정렬 타입 (sortType)</em></h5>
+<h5 id="_정렬_타입_sorttype" class="discrete"><em>정렬 타입 (sortType)</em></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -1806,7 +1806,7 @@ Content-Length: 411
 </li>
 </ul>
 </div>
-<h5 class="discrete" id="_정렬_방향_sortorder"><em>정렬 방향 (sortOrder)</em></h5>
+<h5 id="_정렬_방향_sortorder" class="discrete"><em>정렬 방향 (sortOrder)</em></h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1869,7 +1869,7 @@ Content-Length: 411
 <div class="paragraph">
 <p>추가적인 정보가 필요하신 경우, 문의해 주시기 바랍니다.</p>
 </div>
-<h4 class="discrete" id="_요청_파라미터_6">요청 파라미터</h4>
+<h4 id="_요청_파라미터_6" class="discrete">요청 파라미터</h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/alcohols/{alcoholsId}</code></pre>
@@ -1882,7 +1882,7 @@ Content-Length: 411
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_응답_파라미터_6">응답 파라미터</h4>
+<h4 id="_응답_파라미터_6" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -2321,7 +2321,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-21T15:42:00.119454",
+    "serverResponseTime" : "2024-07-30T19:26:14.673722",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2352,7 +2352,7 @@ Content-Length: 411
 <pre class="highlightjs highlight"><code class="language-none hljs">PUT apv/v1/picks</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_7">요청 파라미터</h4>
+<h4 id="_요청_파라미터_7" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -2391,7 +2391,7 @@ Content-Length: 411
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_응답_파라미터_7">응답 파라미터</h4>
+<h4 id="_응답_파라미터_7" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -2446,13 +2446,13 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-21T15:42:00.485947",
+    "serverResponseTime" : "2024-07-30T19:26:14.938086",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_picks_status">Picks Status</h4>
+<h4 id="_picks_status" class="discrete">Picks Status</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -2490,7 +2490,7 @@ Content-Length: 411
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/regions</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_응답_파라미터_8">응답 파라미터</h4>
+<h4 id="_응답_파라미터_8" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -2577,7 +2577,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-21T15:42:00.630093",
+    "serverResponseTime" : "2024-07-30T19:26:15.198525",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2609,7 +2609,7 @@ Content-Length: 411
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_요청_파라미터_8">요청 파라미터</h4>
+<h4 id="_요청_파라미터_8" class="discrete">요청 파라미터</h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/alcohols/categories?type=WHISKY HTTP/1.1
@@ -2634,7 +2634,7 @@ Host: localhost:8080</code></pre>
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_응답_파라미터_9">응답 파라미터</h4>
+<h4 id="_응답_파라미터_9" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -2696,7 +2696,7 @@ Host: localhost:8080</code></pre>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-21T15:42:00.299930",
+    "serverResponseTime" : "2024-07-30T19:26:14.789624",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2715,7 +2715,7 @@ Host: localhost:8080</code></pre>
 </li>
 </ul>
 </div>
-<h5 class="discrete" id="_카테고리_검색_조건"><em>카테고리 검색 조건</em></h5>
+<h5 id="_카테고리_검색_조건" class="discrete"><em>카테고리 검색 조건</em></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -2764,7 +2764,7 @@ Host: localhost:8080</code></pre>
 </li>
 </ul>
 </div>
-<h5 class="discrete" id="_카테고리_그룹_조건"><em>카테고리 그룹 조건</em></h5>
+<h5 id="_카테고리_그룹_조건" class="discrete"><em>카테고리 그룹 조건</em></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -2833,7 +2833,7 @@ Host: localhost:8080</code></pre>
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/popular/week</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_9">요청 파라미터</h4>
+<h4 id="_요청_파라미터_9" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -2852,7 +2852,7 @@ Host: localhost:8080</code></pre>
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_응답_파라미터_10">응답 파라미터</h4>
+<h4 id="_응답_파라미터_10" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -2945,8 +2945,8 @@ Host: localhost:8080</code></pre>
       "alcoholId" : 1,
       "korName" : "글렌피딕",
       "engName" : "glen fi",
-      "rating" : 0.5,
-      "ratingCount" : 17,
+      "rating" : 2.5,
+      "ratingCount" : 5,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
@@ -2955,8 +2955,8 @@ Host: localhost:8080</code></pre>
       "alcoholId" : 2,
       "korName" : "맥키토시",
       "engName" : "macintosh",
-      "rating" : 1.0,
-      "ratingCount" : 83,
+      "rating" : 2.0,
+      "ratingCount" : 9,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
@@ -2966,7 +2966,7 @@ Host: localhost:8080</code></pre>
       "korName" : "글렌리벳",
       "engName" : "glen rivet",
       "rating" : 1.0,
-      "ratingCount" : 10,
+      "ratingCount" : 29,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
@@ -2975,8 +2975,8 @@ Host: localhost:8080</code></pre>
       "alcoholId" : 4,
       "korName" : "글렌피딕",
       "engName" : "glen fi",
-      "rating" : 1.5,
-      "ratingCount" : 6,
+      "rating" : 2.5,
+      "ratingCount" : 37,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
@@ -2985,8 +2985,8 @@ Host: localhost:8080</code></pre>
       "alcoholId" : 5,
       "korName" : "맥키토시",
       "engName" : "macintosh",
-      "rating" : 1.0,
-      "ratingCount" : 2,
+      "rating" : 1.5,
+      "ratingCount" : 41,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
@@ -2997,13 +2997,13 @@ Host: localhost:8080</code></pre>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-21T15:42:00.560466",
+    "serverResponseTime" : "2024-07-30T19:26:15.089317",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_예외_exceptions">예외 ( exceptions )</h4>
+<h4 id="_예외_exceptions" class="discrete">예외 ( exceptions )</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 16.6666%;">
@@ -3092,7 +3092,7 @@ RequestBody로 요청을 전달합니다.</p>
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/reviews</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_10">요청 파라미터</h4>
+<h4 id="_요청_파라미터_10" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -3216,7 +3216,7 @@ RequestBody로 요청을 전달합니다.</p>
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_응답_파라미터_11">응답 파라미터</h4>
+<h4 id="_응답_파라미터_11" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -3311,13 +3311,13 @@ Content-Length: 349
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-21T15:42:02.028195",
+    "serverResponseTime" : "2024-07-30T19:26:16.421383",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_reviewstatus">ReviewStatus</h4>
+<h4 id="_reviewstatus" class="discrete">ReviewStatus</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -3340,7 +3340,7 @@ Content-Length: 349
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_sizetype">SizeType</h4>
+<h4 id="_sizetype" class="discrete">SizeType</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -3396,7 +3396,7 @@ PathVariable로 alcoholId를 전달합니다.</p>
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/reviews/{alcoholId}</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_11">요청 파라미터</h4>
+<h4 id="_요청_파라미터_11" class="discrete">요청 파라미터</h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ http GET 'http://localhost:8080/api/v1/reviews/1?sortType=POPULAR&amp;sortOrder=DESC&amp;cursor=0&amp;pageSize=2'</code></pre>
@@ -3432,7 +3432,7 @@ PathVariable로 alcoholId를 전달합니다.</p>
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_응답_파라미터_12">응답 파라미터</h4>
+<h4 id="_응답_파라미터_12" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -3573,7 +3573,7 @@ PathVariable로 alcoholId를 전달합니다.</p>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json;charset=UTF-8
-Content-Length: 1470
+Content-Length: 1472
 
 {
   "success" : true,
@@ -3588,7 +3588,7 @@ Content-Length: 1470
       "likeCount" : 5,
       "replyCount" : 3,
       "reviewImageUrl" : "https://picsum.photos/600/600",
-      "createAt" : [ 2024, 7, 21, 15, 42, 2, 127306000 ],
+      "createAt" : [ 2024, 7, 30, 19, 26, 16, 563175000 ],
       "userId" : 1,
       "nickName" : "test_user_1",
       "userProfileImage" : "user_profile_image_1",
@@ -3605,7 +3605,7 @@ Content-Length: 1470
       "likeCount" : 3,
       "replyCount" : 6,
       "reviewImageUrl" : "https://picsum.photos/600/600",
-      "createAt" : [ 2024, 7, 20, 15, 42, 2, 127315000 ],
+      "createAt" : [ 2024, 7, 29, 19, 26, 16, 563207000 ],
       "userId" : 2,
       "nickName" : "test_user_2",
       "userProfileImage" : "user_profile_image_2",
@@ -3620,7 +3620,7 @@ Content-Length: 1470
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-21T15:42:02.133255",
+    "serverResponseTime" : "2024-07-30T19:26:16.607968",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 1,
@@ -3632,7 +3632,7 @@ Content-Length: 1470
 }</code></pre>
 </div>
 </div>
-<h5 class="discrete" id="_정렬_타입_sorttype_2"><em>정렬 타입 (sortType)</em></h5>
+<h5 id="_정렬_타입_sorttype_2" class="discrete"><em>정렬 타입 (sortType)</em></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -3673,7 +3673,7 @@ Content-Length: 1470
 </li>
 </ul>
 </div>
-<h5 class="discrete" id="_정렬_방향_sortorder_2"><em>정렬 방향 (sortOrder)</em></h5>
+<h5 id="_정렬_방향_sortorder_2" class="discrete"><em>정렬 방향 (sortOrder)</em></h5>
 <div class="ulist">
 <ul>
 <li>
@@ -3758,7 +3758,7 @@ Content-Length: 1470
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/reviews/me/{alcoholId}</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_12">요청 파라미터</h4>
+<h4 id="_요청_파라미터_12" class="discrete">요청 파라미터</h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ http GET 'http://localhost:8080/api/v1/reviews/me/1?sortType=POPULAR&amp;sortOrder=DESC&amp;cursor=0&amp;pageSize=2'</code></pre>
@@ -3794,7 +3794,7 @@ Content-Length: 1470
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_응답_파라미터_13">응답 파라미터</h4>
+<h4 id="_응답_파라미터_13" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -3935,7 +3935,7 @@ Content-Length: 1470
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json;charset=UTF-8
-Content-Length: 1470
+Content-Length: 1472
 
 {
   "success" : true,
@@ -3950,7 +3950,7 @@ Content-Length: 1470
       "likeCount" : 5,
       "replyCount" : 3,
       "reviewImageUrl" : "https://picsum.photos/600/600",
-      "createAt" : [ 2024, 7, 21, 15, 42, 1, 931315000 ],
+      "createAt" : [ 2024, 7, 30, 19, 26, 16, 319275000 ],
       "userId" : 1,
       "nickName" : "test_user_1",
       "userProfileImage" : "user_profile_image_1",
@@ -3967,7 +3967,7 @@ Content-Length: 1470
       "likeCount" : 3,
       "replyCount" : 6,
       "reviewImageUrl" : "https://picsum.photos/600/600",
-      "createAt" : [ 2024, 7, 20, 15, 42, 1, 931371000 ],
+      "createAt" : [ 2024, 7, 29, 19, 26, 16, 319367000 ],
       "userId" : 2,
       "nickName" : "test_user_2",
       "userProfileImage" : "user_profile_image_2",
@@ -3982,7 +3982,7 @@ Content-Length: 1470
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-21T15:42:01.940554",
+    "serverResponseTime" : "2024-07-30T19:26:16.326302",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 1,
@@ -3994,7 +3994,7 @@ Content-Length: 1470
 }</code></pre>
 </div>
 </div>
-<h5 class="discrete" id="_정렬_타입_sorttype_3"><em>정렬 타입 (sortType)</em></h5>
+<h5 id="_정렬_타입_sorttype_3" class="discrete"><em>정렬 타입 (sortType)</em></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -4035,7 +4035,7 @@ Content-Length: 1470
 </li>
 </ul>
 </div>
-<h5 class="discrete" id="_정렬_방향_sortorder_3"><em>정렬 방향 (sortOrder)</em></h5>
+<h5 id="_정렬_방향_sortorder_3" class="discrete"><em>정렬 방향 (sortOrder)</em></h5>
 <div class="ulist">
 <ul>
 <li>
@@ -4109,7 +4109,7 @@ Content-Length: 1470
 <pre class="highlightjs highlight"><code class="language-none hljs">PATCH /api/v1/reviews</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_13">요청 파라미터</h4>
+<h4 id="_요청_파라미터_13" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -4213,7 +4213,7 @@ Content-Length: 1470
 <div class="paragraph">
 <p>필드의 값이 NULL인 경우 400 Bad Request가 발생합니다.</p>
 </div>
-<h4 class="discrete" id="_응답_파라미터_14">응답 파라미터</h4>
+<h4 id="_응답_파라미터_14" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -4278,19 +4278,19 @@ Content-Length: 417
     "codeMessage" : "MODIFY_SUCCESS",
     "message" : "리뷰 수정이 성공적으로 완료되었습니다.",
     "reviewId" : 1,
-    "responseAt" : "2024-07-21 15:42:01"
+    "responseAt" : "2024-07-30 19:26:16"
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-21T15:42:01.864354",
+    "serverResponseTime" : "2024-07-30T19:26:16.240192",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_reviewstatus_2">ReviewStatus</h4>
+<h4 id="_reviewstatus_2" class="discrete">ReviewStatus</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -4313,7 +4313,7 @@ Content-Length: 417
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_sizetype_2">SizeType</h4>
+<h4 id="_sizetype_2" class="discrete">SizeType</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -4359,7 +4359,7 @@ Content-Length: 417
 <pre class="highlightjs highlight"><code class="language-none hljs">DELETE /api/v1/reviews/{reviewId}</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_14">요청 파라미터</h4>
+<h4 id="_요청_파라미터_14" class="discrete">요청 파라미터</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -4367,7 +4367,7 @@ Content-Length: 417
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_응답_파라미터_15">응답 파라미터</h4>
+<h4 id="_응답_파라미터_15" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -4427,13 +4427,13 @@ Content-Length: 417
     "codeMessage" : "DELETE_SUCCESS",
     "message" : "리뷰 삭제가 성공적으로 완료되었습니다.",
     "reviewId" : 1,
-    "responseAt" : "2024-07-21 15:42:01"
+    "responseAt" : "2024-07-30 19:26:16"
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-21T15:42:01.622158",
+    "serverResponseTime" : "2024-07-30T19:26:16.107687",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -4456,7 +4456,7 @@ Content-Length: 417
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/reviews/detail/{reviewId}</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_15">요청 파라미터</h4>
+<h4 id="_요청_파라미터_15" class="discrete">요청 파라미터</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -4464,7 +4464,7 @@ Content-Length: 417
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_응답_파라미터_16">응답 파라미터</h4>
+<h4 id="_응답_파라미터_16" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -4717,7 +4717,7 @@ Content-Length: 1249
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-21T15:42:02.079215",
+    "serverResponseTime" : "2024-07-30T19:26:16.474398",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -4752,7 +4752,7 @@ Content-Length: 1249
 <pre class="highlightjs highlight"><code class="language-none hljs">PUT /api/v1/likes</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_16">요청 파라미터</h4>
+<h4 id="_요청_파라미터_16" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -4791,7 +4791,7 @@ Content-Length: 1249
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_좋아요_status_enum_상태값">좋아요 status enum 상태값</h4>
+<h4 id="_좋아요_status_enum_상태값" class="discrete">좋아요 status enum 상태값</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -4815,7 +4815,7 @@ Content-Length: 1249
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_응답_파라미터_17">응답 파라미터</h4>
+<h4 id="_응답_파라미터_17" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -4879,7 +4879,7 @@ Content-Length: 1249
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-21T15:42:01.022792",
+    "serverResponseTime" : "2024-07-30T19:26:15.645081",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -4949,7 +4949,7 @@ Content-Length: 1249
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_api_endpoint">API EndPoint</h4>
+<h4 id="_api_endpoint" class="discrete">API EndPoint</h4>
 <div class="listingblock">
 <div class="content">
 <pre>POST /api/v1/review/reply/register/{reviewId}</pre>
@@ -4973,7 +4973,7 @@ Content-Length: 1249
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_요청_파라미터_17">요청 파라미터</h4>
+<h4 id="_요청_파라미터_17" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -5012,7 +5012,7 @@ Content-Length: 1249
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_응답_파라미터_18">응답 파라미터</h4>
+<h4 id="_응답_파라미터_18" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -5083,13 +5083,13 @@ Content-Length: 1249
     "codeMessage" : "SUCCESS_REGISTER_REPLY",
     "message" : "성공적으로 댓글을 등록했습니다.",
     "reviewId" : 1,
-    "responseAt" : "2024-07-21 15:42:02"
+    "responseAt" : "2024-07-30 19:26:16"
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-21T15:42:02.273525",
+    "serverResponseTime" : "2024-07-30T19:26:16.790710",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -5119,7 +5119,7 @@ Content-Length: 1249
 </div>
 <div class="imageblock">
 <div class="content">
-<img alt="a3qNSWs" src="https://i.imgur.com/a3qNSWs.png">
+<img src="https://i.imgur.com/a3qNSWs.png" alt="a3qNSWs">
 </div>
 </div>
 <div class="ulist">
@@ -5132,13 +5132,13 @@ Content-Length: 1249
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_api_endpoint_2">API EndPoint</h4>
+<h4 id="_api_endpoint_2" class="discrete">API EndPoint</h4>
 <div class="listingblock">
 <div class="content">
-<pre>POST /api/v1/review/reply/{reviewId}</pre>
+<pre>GET /api/v1/review/reply/{reviewId}</pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_18">요청 파라미터</h4>
+<h4 id="_요청_파라미터_18" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 1. /api/v1/review/reply/{reviewId}</caption>
 <colgroup>
@@ -5180,7 +5180,7 @@ Content-Length: 1249
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_응답_파라미터_19">응답 파라미터</h4>
+<h4 id="_응답_파라미터_19" class="discrete">응답 파라미터</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -5262,41 +5262,41 @@ Content-Length: 1249
   "data" : [ {
     "userId" : 0,
     "imageUrl" : "https://picsum.photos/500",
-    "nickName" : "fMgkarHlXH",
+    "nickName" : "PRwJhAyJst",
     "reviewReplyId" : 0,
-    "reviewReplyContent" : "ALZHlIUQBzZKhwoYlOHhMgwOhgIDlEyzQBUlMhVCgLmXCFmXHVLRmXAvAkngduZWnkrtlkhhtbEQuulDEdDPTjyikWirnzpxkIErnhAyIRRsMxecPIxmAXNZSqyiqbyFzSlKqUpKXjEYKdKtDgbdDi",
+    "reviewReplyContent" : "kmOTbrNKQSafzDJXBJTMjzIZphezLnrvkYeMCIDZsHwTVcnPAaYOBhqTUahbTnzsOOChynsrVMxzTwUGtcWghiQtfEfvPUvNpdHBaSfDVsFqPeREFxZcHSOHvPUphJBdnEcSPILHFKVvQmQSNXaAlR",
     "subReplyCount" : 0,
     "createAt" : [ 2024, 7, 11, 0, 0 ]
   }, {
     "userId" : 1,
     "imageUrl" : "https://picsum.photos/500",
-    "nickName" : "tUSuvhMHHq",
+    "nickName" : "hzuhuSbYMK",
     "reviewReplyId" : 1,
-    "reviewReplyContent" : "ueVWpASnQHVVJeNcBZDUhyEuxvdRXxkLpnbxqsDZSWNjkWkuiJewYxveuchSvEdDoaxRficKsmVTHYRjjIpgklVWlEBLqQJhXkHsFnMhRlYcGWVdxGhzbsFlWnGlOGToHdITJpYZkUvDBvXbsSHilW",
-    "subReplyCount" : 2,
+    "reviewReplyContent" : "FyoQJROdodyMkMMsIPkiMHMzaxMXuVgaFelXjKGaCFvpAVQvcPQFyEUoTsksAJuQSRjwgIBzFFVRFeJZHzRuAnmigUPgSxXQuMEjGneRhVYOqupckaVxpRrqjLdskdxSSdBrwdtVSZpAsuycdEFaJa",
+    "subReplyCount" : 4,
     "createAt" : [ 2024, 7, 11, 0, 0 ]
   }, {
     "userId" : 2,
     "imageUrl" : "https://picsum.photos/500",
-    "nickName" : "EZbBjxMqPW",
+    "nickName" : "jDDoFEnHhl",
     "reviewReplyId" : 2,
-    "reviewReplyContent" : "uLmjCUQpbtOAAhlqsQuyOUjpyuACrqXjtxHNLBYurIoNFRTPBsxOjaDFQIkcnxkQEdNnyzqFfwLkakkeBAOeMLgoRINzXonMYsznnjFWpxhKTmBKgJfISThhazkWpYeHonUETQGeEnRQhBTKhemoeP",
-    "subReplyCount" : 0,
+    "reviewReplyContent" : "UKjgZRkyKtHGPcHafMKVPxMjfMQYIoMSIOdSuuPgnRMBwlUhejVLxoZdzCRkEVVCtrcGzrflkIUTzDvouNbkDTNgPNulGOwtKaKbDaOpdoeaVMdZioTxYtWyxKwXuPDqtjDpFeJHFkpWDBzhpJnlqI",
+    "subReplyCount" : 1,
     "createAt" : [ 2024, 7, 11, 0, 0 ]
   }, {
     "userId" : 3,
     "imageUrl" : "https://picsum.photos/500",
-    "nickName" : "TrOTKYgnpA",
+    "nickName" : "fzgQTZiLUw",
     "reviewReplyId" : 3,
-    "reviewReplyContent" : "LtDzLurzgAKSwBLXmNKLtnkAftqeTJbEfwecHEEDjVvwaURfqDCkrDQZdrlTYgqEYvwGAmXkOozdNyDBZocQDNFNJOZOSkOoblvSgrZfBPVvwJaJBfdsyVIoUrCkKwqPgRPNHYHCGopWMFhaFpmbJX",
-    "subReplyCount" : 4,
+    "reviewReplyContent" : "kzalsQYyfHuJrSTbiPCiwaODAGYLnUXWKOSJjuPedTRuxorfjWokYmpRihgtxFZhqpwmneidKNoGbFHDEqcBKIeQZfOpOcTeBHMkybzLkHzGXGWfmFmZChYQcweoMeNyNiEIfXgPBvzTnYJhfGzKCS",
+    "subReplyCount" : 2,
     "createAt" : [ 2024, 7, 11, 0, 0 ]
   }, {
     "userId" : 4,
     "imageUrl" : "https://picsum.photos/500",
-    "nickName" : "FwdmvJEOme",
+    "nickName" : "pouJJHFAEW",
     "reviewReplyId" : 4,
-    "reviewReplyContent" : "kYFYbxhmfDTRAnEpTkzwtKQniqxHklrPUHmbuiOBrIdUrOFwGDbWeJmxvvxiDdQMgLuXJulgrOZjfHbrFPlRyqXzbCiEvOgTcBMFMZbixJTHUboLlNZYDwCDzKBXYeJLrHrcffgDzLEDVYlUOyehRV",
+    "reviewReplyContent" : "rkBAKljOCUldFkDXMxCEccHkjGqfKkgFtDLuRTKrxZXttJYLMNdlcZKgvIJxxRZntfcqZfjHqUEWTYGVxsTVddCRbUZpSHNmOCKEGbJLBHvOuKdEDqacjiXClpztapgNShFhewsbHnTFrdbuCWaRCQ",
     "subReplyCount" : 0,
     "createAt" : [ 2024, 7, 11, 0, 0 ]
   } ],
@@ -5304,7 +5304,7 @@ Content-Length: 1249
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-21T15:42:02.316052",
+    "serverResponseTime" : "2024-07-30T19:26:16.875820",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -5324,7 +5324,7 @@ Content-Length: 1249
 </div>
 <div class="imageblock">
 <div class="content">
-<img alt="a3qNSWs" src="https://i.imgur.com/a3qNSWs.png">
+<img src="https://i.imgur.com/a3qNSWs.png" alt="a3qNSWs">
 </div>
 </div>
 <div class="ulist">
@@ -5371,10 +5371,10 @@ Content-Length: 1249
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_api_endpoint_3">API EndPoint</h4>
+<h4 id="_api_endpoint_3" class="discrete">API EndPoint</h4>
 <div class="listingblock">
 <div class="content">
-<pre>POST /api/v1/review/reply/{reviewId}/sub/{rootReplyId}</pre>
+<pre>GET /api/v1/review/reply/{reviewId}/sub/{rootReplyId}</pre>
 </div>
 </div>
 <div class="ulist">
@@ -5387,7 +5387,7 @@ Content-Length: 1249
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_요청_파라미터_19">요청 파라미터</h4>
+<h4 id="_요청_파라미터_19" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 2. /api/v1/review/reply/{reviewId}/sub/{rootReplyId}</caption>
 <colgroup>
@@ -5443,7 +5443,7 @@ Content-Length: 1249
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_응답_파라미터_20">응답 파라미터</h4>
+<h4 id="_응답_파라미터_20" class="discrete">응답 파라미터</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -5540,49 +5540,49 @@ Content-Length: 1249
   "data" : [ {
     "userId" : 123,
     "imageUrl" : "https://picsum.photos/500",
-    "nickName" : "WVWAMaIoYx",
+    "nickName" : "tJuJJNEDJA",
     "rootReviewId" : 1,
     "parentReviewReplyId" : 1,
     "parentReviewReplyAuthor" : "@썩어가는망고",
     "reviewReplyId" : 1,
-    "reviewReplyContent" : "MzqlbMXGzEreuiCNEiKaHlKipWddlqNeaUqkBZzKGfsbQOptJLNiynMwweGEjZOrGyeruuJZMosCodouxEDXlkYJTlfdndNkjBDGDkWhgBjejwDoqbcGAOxjWjynuXXNERiuvioOoCWKYltoDKUAQo",
+    "reviewReplyContent" : "LFrpnaIpVszKNTGbrYaKTBhBVPVbbHGAxGCfZQISoAuBkvLraIswXPzfUcjFPIDwtvseyMsayNvAvLfqwXEuttAQBFDhQORLFxjtPCMaafticpPTqVuOfRxbTfrCjZXZAgEtmWvrdvCifXpuiRkksL",
     "createAt" : [ 2024, 7, 11, 0, 0 ]
   }, {
     "userId" : 123,
     "imageUrl" : "https://picsum.photos/500",
-    "nickName" : "plnziwYzDW",
+    "nickName" : "TYzezqqzBx",
     "rootReviewId" : 1,
     "parentReviewReplyId" : 1,
     "parentReviewReplyAuthor" : "@신선한반나나",
     "reviewReplyId" : 2,
-    "reviewReplyContent" : "BLoPGUsFzMtLdmRORbAEcMcKJgnbiVXsRHliYhwXRtRMthrsxjmhpLZFHYDpRZpebmJnHixbpCJlsLojWnpQBmYZaVpMWHJuLjcFcRGHGzZyyoLplnTcjtwosbdVejmSbGmzIDGGVuwooNOFYyJqvb",
+    "reviewReplyContent" : "WOMWIptdIRAcJdiZZtMKgAZYwSazcsfJbeVbXZAqERqpmRXeItGuYUHbhPHGxSkCRmPezawEkjpcEiRfmlMvuTDbPYdYRYpNcYfkNTsHxbFeOStqlzYubsIkBgjMGOCJONrkqRyisQJfQvQveNgJTl",
     "createAt" : [ 2024, 7, 11, 0, 0 ]
   }, {
     "userId" : 123,
     "imageUrl" : "https://picsum.photos/500",
-    "nickName" : "dWwSXoisEG",
+    "nickName" : "DgvTdlpxJW",
     "rootReviewId" : 1,
     "parentReviewReplyId" : 1,
     "parentReviewReplyAuthor" : "@신선한반나나",
     "reviewReplyId" : 3,
-    "reviewReplyContent" : "pXuiKLxEBGMubVHKVbMPwlfIpKmxsYmaDCdFJbhojOWPeLKpoizJOYJpjPiRbxyhQpZktdiadpcOafjDVSTcqbkumRRkAUvLAdrapusQNQOBJUzvXWidjvDWrMXlkpPcwObEOruGybfIRTuIHuBxat",
+    "reviewReplyContent" : "HgloluMmprOEjecfgOPyFODLXNwikMpwKvtVqqxJAqsyqxIUoetexriGhbOUJcbaqBimrUPBCCfSjIIljPtQCFdbUCMFHgoDbgrPifHrUWvmnmZBnGPxMEwUtvfrCkNAOGQgXmFKbJYiuzLweUlopc",
     "createAt" : [ 2024, 7, 11, 0, 0 ]
   }, {
     "userId" : 123,
     "imageUrl" : "https://picsum.photos/500",
-    "nickName" : "INdpterfHb",
+    "nickName" : "uikwMfWklK",
     "rootReviewId" : 1,
     "parentReviewReplyId" : 1,
     "parentReviewReplyAuthor" : "@썩어가는망고",
     "reviewReplyId" : 4,
-    "reviewReplyContent" : "cNLEKHwqMmhICIeqZubvJNpMeGxVSgoQXyNjXtzGSOmDlcAyYhFsQXvBFYVqufPePDvQrvOUGVXxWiBYxdfJWbrKgEuYmioVPZVnTMiUpoiSaVkXJidBVuKcFRmqtFHwYudbqhYpxlgmScKfZsQPPY",
+    "reviewReplyContent" : "sWvIoNfhdKqMaOJrkETGgyXxvwjdgTlFaPHaLwAHbPPPankIndvUzMEtTppAFZPRzwHNMRoqMZerKaSbQMABWgBrzdexUJeiFlBrOiHoKCpcxZxkjkJAZszjRtoGSNgCaBrbJDRaeAbDmrcdAOdhWD",
     "createAt" : [ 2024, 7, 11, 0, 0 ]
   } ],
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-21T15:42:02.353044",
+    "serverResponseTime" : "2024-07-30T19:26:16.951244",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -5648,7 +5648,7 @@ Content-Length: 1249
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/user-report</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_20">요청 파라미터</h4>
+<h4 id="_요청_파라미터_20" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -5701,7 +5701,7 @@ Content-Length: 1249
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_응답_파라미터_21">응답 파라미터</h4>
+<h4 id="_응답_파라미터_21" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -5788,7 +5788,7 @@ Content-Length: 1249
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-21T15:42:02.447935",
+    "serverResponseTime" : "2024-07-30T19:26:17.106386",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -5887,10 +5887,10 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/follow</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_21">요청 파라미터</h4>
+<h4 id="_요청_파라미터_21" class="discrete">요청 파라미터</h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/v1/follow?_csrf=1hbTq3Tq4i7iLScaZHI7INerCif96SG2iDQQp4lcl8_7OavutybgnEXahErPFUYqXF8PFO6dJx6Z2kKbsQMkkbk69KvJXJuM' -i -X POST \
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/v1/follow?_csrf=wc6_iX1xAQt4iBunv2kL2GAHcgulStpmFJtBLIwD6xjs92L3p_7b7B9BZT5V6ynD3EQ_6lhjX2mXertLcfh3FL8yiSDbwwTD' -i -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
     -d '{
   "followUserId" : 1,
@@ -5928,7 +5928,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_응답_파라미터_22">응답 파라미터</h4>
+<h4 id="_응답_파라미터_22" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -5999,7 +5999,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/rating</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_22">요청 파라미터</h4>
+<h4 id="_요청_파라미터_22" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -6062,7 +6062,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_응답_파라미터_23">응답 파라미터</h4>
+<h4 id="_응답_파라미터_23" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -6282,7 +6282,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-21T15:42:01.182650",
+    "serverResponseTime" : "2024-07-30T19:26:15.812049",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 0,
@@ -6303,7 +6303,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 }</code></pre>
 </div>
 </div>
-<h5 class="discrete" id="_정렬_타입_sorttype_4"><em>정렬 타입 (sortType)</em></h5>
+<h5 id="_정렬_타입_sorttype_4" class="discrete"><em>정렬 타입 (sortType)</em></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -6348,7 +6348,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 </li>
 </ul>
 </div>
-<h5 class="discrete" id="_정렬_방향_sortorder_4"><em>정렬 방향 (sortOrder)</em></h5>
+<h5 id="_정렬_방향_sortorder_4" class="discrete"><em>정렬 방향 (sortOrder)</em></h5>
 <div class="ulist">
 <ul>
 <li>
@@ -6450,7 +6450,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/rating/{{alcoholId}}</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_23">요청 파라미터</h4>
+<h4 id="_요청_파라미터_23" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 3. /api/v1/rating/{alcoholId}</caption>
 <colgroup>
@@ -6470,7 +6470,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_응답_파라미터_24">응답 파라미터</h4>
+<h4 id="_응답_파라미터_24" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -6526,7 +6526,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-21T15:42:01.313982",
+    "serverResponseTime" : "2024-07-30T19:26:15.864248",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -6546,7 +6546,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/rating/register</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_24">요청 파라미터</h4>
+<h4 id="_요청_파라미터_24" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -6598,7 +6598,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_응답_파라미터_25">응답 파라미터</h4>
+<h4 id="_응답_파라미터_25" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -6648,7 +6648,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-07-21T15:42:01.123088",
+    "serverResponseTime" : "2024-07-30T19:26:15.771866",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -6661,7 +6661,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 <div id="footer">
 <div id="footer-text">
 Version 0.0.1-SNAPSHOT<br>
-Last updated 2024-07-20 01:10:04 +0900
+Last updated 2024-07-25 20:53:54 +0900
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>

@@ -1,9 +1,13 @@
 package app.bottlenote.user.service;
 
+import static app.bottlenote.user.dto.response.constant.WithdrawUserResultMessage.USER_WITHDRAW_SUCCESS;
+import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
+
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
 import app.bottlenote.user.dto.response.NicknameChangeResponse;
 import app.bottlenote.user.dto.response.ProfileImageChangeResponse;
+import app.bottlenote.user.dto.response.WithdrawUserResultResponse;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.repository.UserCommandRepository;
@@ -11,8 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -77,5 +79,23 @@ public class UserCommandService {
 			.userId(user.getId())
 			.profileImageUrl(user.getImageUrl())
 			.build();
+	}
+
+
+	/**
+	 * 회원 탈퇴
+	 *
+	 * @param userId
+	 * @return UserResultResponse
+	 */
+	@Transactional
+	public WithdrawUserResultResponse withdrawUser(Long userId) {
+
+		User user = userCommandRepository.findById(userId)
+			.orElseThrow(() -> new UserException(USER_NOT_FOUND));
+
+		user.withdrawUser();
+
+		return WithdrawUserResultResponse.response(USER_WITHDRAW_SUCCESS, userId);
 	}
 }

@@ -7,12 +7,11 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import java.security.Key;
+import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.security.Key;
-import java.util.Date;
 
 
 @Slf4j
@@ -20,7 +19,7 @@ import java.util.Date;
 public class JwtTokenProvider {
 
 	private final Key secretKey;
-	public static final int ACCESS_TOKEN_EXPIRE_TIME =  3 * 60 * 60 * 1000; // 3hours
+	public static final int ACCESS_TOKEN_EXPIRE_TIME = 3 * 60 * 60 * 1000; // 3hours
 	public static final int REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 14; // 14days
 	public static final String KEY_ROLES = "roles";
 

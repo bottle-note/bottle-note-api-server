@@ -1,0 +1,18 @@
+=== 회원 탈퇴 ===
+
+회원탈퇴 API입니다.
+
+- Authorization 헤더에 첨부한 액세스토큰으로, 유저 ID를 조회합니다.
+- 데이터베이스의 `status` 컬럼이 `DELETED` 로 수정됩니다.
+
+[source]
+----
+DELETE /api/v1/users
+----
+
+[discrete]
+==== 응답 파라미터  ====
+
+[discrete]
+include::{snippets}/user/withdraw-user/response-fields.adoc[]
+include::{snippets}/user/withdraw-user/http-response.adoc[]

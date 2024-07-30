@@ -20,7 +20,7 @@ image::https://i.imgur.com/a3qNSWs.png[]
 ==== API EndPoint ====
 
 ----
-POST /api/v1/review/reply/{reviewId}
+GET /api/v1/review/reply/{reviewId}
 ----
 
 [discrete]

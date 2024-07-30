@@ -2,6 +2,7 @@ package app.bottlenote.user.fixture;
 
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserQueryRepository;
+import app.bottlenote.user.dto.response.MyPageResponse;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.HashMap;
@@ -43,6 +44,11 @@ public class InMemoryUserQueryRepository implements UserQueryRepository {
 
 	@Override
 	public Long countByUsername(String userName) {
+		return null;
+	}
+
+	@Override
+	public MyPageResponse getMyPage(Long userId, Long currentUserId) {
 		return null;
 	}
 
