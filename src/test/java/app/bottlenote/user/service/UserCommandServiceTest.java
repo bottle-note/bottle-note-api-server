@@ -39,7 +39,7 @@ class UserCommandServiceTest {
 	void testChangeNickname() {
 
 		Long userId = 1L;
-		User user = UserObjectFixture.getUserObject();
+		User user = UserObjectFixture.getUserFixtureObject();
 
 		String newNickname = "newNickname";
 		String beforeNickname = user.getNickName();
@@ -85,7 +85,7 @@ class UserCommandServiceTest {
 	void testWithdrawUserSuccess() {
 		// given
 		Long userId = 1L;
-		User user = UserObjectFixture.getUserObject();
+		User user = UserObjectFixture.getUserFixtureObject();
 
 		// when
 		when(userCommandRepository.findById(anyLong()))
