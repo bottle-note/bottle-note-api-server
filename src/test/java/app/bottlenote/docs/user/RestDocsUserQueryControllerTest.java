@@ -66,27 +66,24 @@ public class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 			.andExpect(status().isOk())
 			.andDo(document("user/mypage",
 				responseFields(
-					fieldWithPath("headers").description("HTTP 헤더 정보"),
-					fieldWithPath("body.success").description("응답 성공 여부"),
-					fieldWithPath("body.code").description("응답 코드(http status code)"),
-					fieldWithPath("body.data.userId").description("유저 아이디"),
-					fieldWithPath("body.data.nickName").description("유저 닉네임"),
-					fieldWithPath("body.data.imageUrl").description("유저 프로필 이미지 URL"),
-					fieldWithPath("body.data.reviewCount").description("리뷰 수"),
-					fieldWithPath("body.data.ratingCount").description("평점 수"),
-					fieldWithPath("body.data.pickCount").description("찜한 수"),
-					fieldWithPath("body.data.followerCount").description("팔로워 수"),
-					fieldWithPath("body.data.followingCount").description("팔로잉 수"),
-					fieldWithPath("body.data.isFollow").description("팔로우 여부"),
-					fieldWithPath("body.data.isMyPage").description("본인 여부"),
-					fieldWithPath("body.errors").ignored(),
-					fieldWithPath("body.meta.serverVersion").ignored(),
-					fieldWithPath("body.meta.serverEncoding").ignored(),
-					fieldWithPath("body.meta.serverResponseTime").ignored(),
-					fieldWithPath("body.meta.serverPathVersion").ignored(),
-					fieldWithPath("statusCodeValue").ignored(),
-					fieldWithPath("statusCode").description("HTTP 상태 코드")
-
+					fieldWithPath("success").description("응답 성공 여부"),
+					fieldWithPath("code").description("응답 코드"),
+					fieldWithPath("data").description("응답 데이터"),
+					fieldWithPath("data.userId").description("유저 아이디"),
+					fieldWithPath("data.nickName").description("유저 닉네임"),
+					fieldWithPath("data.imageUrl").description("유저 프로필 이미지 URL"),
+					fieldWithPath("data.reviewCount").description("리뷰 수"),
+					fieldWithPath("data.ratingCount").description("평점 수"),
+					fieldWithPath("data.pickCount").description("찜한 수"),
+					fieldWithPath("data.followerCount").description("팔로워 수"),
+					fieldWithPath("data.followingCount").description("팔로잉 수"),
+					fieldWithPath("data.isFollow").description("팔로우 여부"),
+					fieldWithPath("data.isMyPage").description("본인 여부"),
+					fieldWithPath("errors").ignored(),
+					fieldWithPath("meta.serverVersion").ignored(),
+					fieldWithPath("meta.serverEncoding").ignored(),
+					fieldWithPath("meta.serverResponseTime").ignored(),
+					fieldWithPath("meta.serverPathVersion").ignored()
 				)
 			));
 	}
