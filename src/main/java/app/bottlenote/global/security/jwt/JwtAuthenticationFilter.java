@@ -1,8 +1,6 @@
 package app.bottlenote.global.security.jwt;
 
 
-import static java.util.Objects.requireNonNullElse;
-
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
@@ -10,12 +8,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
@@ -23,6 +15,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import static java.util.Objects.requireNonNullElse;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -51,18 +50,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		@NonNull FilterChain filterChain
 	) throws ServletException, IOException {
 
-
 		log.info("JWT Filtering....{} , entry point : {} ", request.getServletPath(), request.getRequestURI());
 
 		String token = resolveToken(request).orElse(null);
 
-
 		request.getServletPath();
-
 
 		try {
 
-			if( skipFilter( request.getMethod(), request.getServletPath() )) {
+			if (skipFilter(request.getMethod(), request.getServletPath())) {
 				log.info(" 비회원 이용가능 api: {}", request.getServletPath());
 				filterChain.doFilter(request, response);
 				return;
@@ -95,9 +91,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			request.setAttribute("exception", e);
 		}
 
-
 		filterChain.doFilter(request, response);
-
 
 	}
 
@@ -148,10 +142,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	 */
 	private boolean skipFilter(String method, String url) {
 
-		log.info("Checking skipFilter : {}",method + url); // 로그 추가
+		log.info("Checking skipFilter : {}", method + url); // 로그 추가
 
 		// 비회원과 인증된 회원이 사용가능한 api 리스트
 		Set<String> skipPaths = Set.of(
+			"GET:/api/v1/mypage/",
 			"GET:/api/v1/reviews/",
 			"GET:/api/v1/rating",
 			"GET:/api/v1/popular/week",
@@ -172,7 +167,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 		// 제외할 URL 패턴인지 확인
 		boolean isExcludePath = excludePaths.stream()
-			.anyMatch(filter -> pathMatcher.matchStart(filter, method+url));
+			.anyMatch(filter -> pathMatcher.matchStart(filter, method + url));
 
 		if (isExcludePath) {
 			return false; // 제외할 URL 패턴인 경우 필터를 건너뛰지 않음
@@ -180,7 +175,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 		// 일반적인 스킵 패스 매칭
 		return skipPaths.stream()
-			.anyMatch(filter -> pathMatcher.matchStart(filter, method+url));
+			.anyMatch(filter -> pathMatcher.matchStart(filter, method + url));
 	}
 
 }
