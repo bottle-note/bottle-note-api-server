@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import java.nio.charset.StandardCharsets;
 
+import static app.bottlenote.user.exception.UserExceptionCode.MYPAGE_NOT_ACCESSIBLE;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -26,8 +27,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("[integration] [controller] UserQueryController")
 class UserQueryIntegrationTest extends IntegrationTestSupport {
 
-	@DisplayName("로그인 후 AccessToken을 반환한다.")
-	@Sql(scripts = {"/init-script/init-user-mypage-query.sql"})
 	private String loginAndGetAccessToken() throws Exception {
 		OauthRequest oauthRequest = new OauthRequest("hyejj19@naver.com", SocialType.KAKAO, null, null);
 
@@ -50,12 +49,10 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 	@Sql(scripts = {"/init-script/init-user-mypage-query.sql"})
 	@Test
 	void test_1() throws Exception {
-
 		String accessToken = loginAndGetAccessToken();
-
 		final Long userId = 2L;
 
-		MvcResult result = mockMvc.perform(get("/api/v1/user/mypage/{userId}", userId)
+		MvcResult result = mockMvc.perform(get("/api/v1/mypage/{userId}", userId)
 				.contentType(MediaType.APPLICATION_JSON)
 				.with(csrf())
 				.header("Authorization", "Bearer " + accessToken))
@@ -77,10 +74,12 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 	@Sql(scripts = {"/init-script/init-user-mypage-query.sql"})
 	@Test
 	void test_2() throws Exception {
+
 		String accessToken = loginAndGetAccessToken();
 
-		final Long userId = 1L;  // 자신의 ID
-		MvcResult result = mockMvc.perform(get("/api/v1/user/mypage/{userId}", userId)
+		final Long userId = 1L;
+
+		MvcResult result = mockMvc.perform(get("/api/v1/mypage/{userId}", userId)
 				.contentType(MediaType.APPLICATION_JSON)
 				.with(csrf())
 				.header("Authorization", "Bearer " + accessToken))
@@ -91,20 +90,16 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 			.andExpect(jsonPath("$.data.userId").value(userId))
 			.andExpect(jsonPath("$.data.isMyPage").value(true))
 			.andReturn();
-
-		// 응답 데이터를 검증하고 로그 출력
-		String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-		GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
-		MyPageResponse myPageResponse = mapper.convertValue(response.getData(), MyPageResponse.class);
-		log.info(myPageResponse.toString());
 	}
 
 	@DisplayName("비회원 유저가 타인의 마이페이지를 조회할 수 있다.")
 	@Sql(scripts = {"/init-script/init-user-mypage-query.sql"})
 	@Test
 	void test_3() throws Exception {
-		final Long userId = 2L;  // 타인의 ID
-		MvcResult result = mockMvc.perform(get("/api/v1/user/mypage/{userId}", userId)
+
+		final Long userId = 2L;
+
+		MvcResult result = mockMvc.perform(get("/api/v1/mypage/{userId}", userId)
 				.contentType(MediaType.APPLICATION_JSON)
 				.with(csrf()))
 			.andDo(print())
@@ -113,12 +108,6 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 			.andExpect(jsonPath("$.data").exists())
 			.andExpect(jsonPath("$.data.userId").value(userId))
 			.andReturn();
-
-		// 응답 데이터를 검증하고 로그 출력
-		String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-		GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
-		MyPageResponse myPageResponse = mapper.convertValue(response.getData(), MyPageResponse.class);
-		log.info(myPageResponse.toString());
 	}
 
 	@DisplayName("마이페이지 유저가 존재하지 않는 경우")
@@ -126,12 +115,14 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 	@Test
 	void test_4() throws Exception {
 		final Long userId = 999L;  // 존재하지 않는 유저 ID
-		mockMvc.perform(get("/api/v1/user/mypage/{userId}", userId)
+		mockMvc.perform(get("/api/v1/mypage/{userId}", userId)
 				.contentType(MediaType.APPLICATION_JSON)
 				.with(csrf()))
 			.andDo(print())
-			.andExpect(status().isNotFound())
-			.andExpect(jsonPath("$.code").value(404))
-			.andExpect(jsonPath("$.message").value("User not found"));
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.code").value(400))
+			.andExpect(jsonPath("$.success").value(false))
+			.andExpect(jsonPath("$.errors.message").value(MYPAGE_NOT_ACCESSIBLE.getMessage()));
+
 	}
 }

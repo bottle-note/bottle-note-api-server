@@ -25,7 +25,7 @@ public class UserQueryController {
 
 		MyPageResponse mypage = userQueryService.getMypage(userId, currentUserId);
 
-		return ResponseEntity.ok(GlobalResponse.ok(mypage));
+		return GlobalResponse.ok(mypage);
 	}
 
 }
