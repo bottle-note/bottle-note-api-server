@@ -69,17 +69,17 @@ public class UserQueryControllerTest {
 			.andExpect(status().isOk())
 			.andDo(print());
 
-		resultActions.andExpect(jsonPath("$.body.success").value("true"));
-		resultActions.andExpect(jsonPath("$.body.code").value("200"));
-		resultActions.andExpect(jsonPath("$.body.data.userId").value(1));
-		resultActions.andExpect(jsonPath("$.body.data.nickName").value("nickname"));
-		resultActions.andExpect(jsonPath("$.body.data.imageUrl").value("test.trl.com"));
-		resultActions.andExpect(jsonPath("$.body.data.reviewCount").value(10));
-		resultActions.andExpect(jsonPath("$.body.data.ratingCount").value(10));
-		resultActions.andExpect(jsonPath("$.body.data.pickCount").value(10));
-		resultActions.andExpect(jsonPath("$.body.data.followerCount").value(5));
-		resultActions.andExpect(jsonPath("$.body.data.followingCount").value(3));
-		resultActions.andExpect(jsonPath("$.body.data.isFollow").value(true));
-		resultActions.andExpect(jsonPath("$.body.data.isMyPage").value(true));
+		resultActions.andExpect(jsonPath("$.success").value("true"));
+		resultActions.andExpect(jsonPath("$.code").value("200"));
+		resultActions.andExpect(jsonPath("$.data.userId").value(1));
+		resultActions.andExpect(jsonPath("$.data.nickName").value("nickname"));
+		resultActions.andExpect(jsonPath("$.data.imageUrl").value("test.trl.com"));
+		resultActions.andExpect(jsonPath("$.data.reviewCount").value(10));
+		resultActions.andExpect(jsonPath("$.data.ratingCount").value(10));
+		resultActions.andExpect(jsonPath("$.data.pickCount").value(10));
+		resultActions.andExpect(jsonPath("$.data.followerCount").value(5));
+		resultActions.andExpect(jsonPath("$.data.followingCount").value(3));
+		resultActions.andExpect(jsonPath("$.data.isFollow").value(true));
+		resultActions.andExpect(jsonPath("$.data.isMyPage").value(true));
 	}
 }
