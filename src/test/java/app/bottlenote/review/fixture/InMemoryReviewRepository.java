@@ -23,6 +23,7 @@ public class InMemoryReviewRepository implements ReviewRepository {
 
 	private static final Logger log = LogManager.getLogger(InMemoryReviewRepository.class);
 	Map<Long, Review> database = new HashMap<>();
+	Map<Long, ReviewReply> reviewReplyDatabase = new HashMap<>();
 
 	@Override
 	public Review save(Review review) {
@@ -44,6 +45,28 @@ public class InMemoryReviewRepository implements ReviewRepository {
 	@Override
 	public List<Review> findAll() {
 		return List.copyOf(database.values());
+	}
+
+	@Override
+	public ReviewReply saveReply(ReviewReply reply) {
+		Long id = reply.getId();
+		if (Objects.isNull(id)) {
+			id = reviewReplyDatabase.size() + 1L;
+		}
+		ReflectionTestUtils.setField(reply, "id", id);
+		reviewReplyDatabase.put(id, reply);
+		log.info("[InMemory] review reply repository save = {}", reply);
+		return reply;
+	}
+
+	@Override
+	public Optional<ReviewReply> findReplyById(Long id) {
+		return Optional.ofNullable(reviewReplyDatabase.get(id));
+	}
+
+	@Override
+	public List<ReviewReply> findAllReply() {
+		return List.copyOf(reviewReplyDatabase.values());
 	}
 
 	@Override
@@ -78,7 +101,6 @@ public class InMemoryReviewRepository implements ReviewRepository {
 		return first;
 	}
 
-
 	@Override
 	public List<ReviewReplyInfo> getReviewRootReplies(Long reviewId, Long cursor, Long pageSize) {
 		return List.of();
@@ -87,5 +109,13 @@ public class InMemoryReviewRepository implements ReviewRepository {
 	@Override
 	public List<SubReviewReplyInfo> getSubReviewReplies(Long reviewId, Long replyId, Long cursor, Long pageSize) {
 		return List.of();
+	}
+
+	@Override
+	public Optional<ReviewReply> findReplyByReviewIdAndReplyId(Long review, Long replyId) {
+		return reviewReplyDatabase.values()
+			.stream()
+			.filter(reply -> reply.getReview().getId().equals(review) && reply.getId().equals(replyId))
+			.findFirst();
 	}
 }
