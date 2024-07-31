@@ -18,6 +18,12 @@ public interface ReviewRepository {
 
 	List<Review> findAll();
 
+	ReviewReply saveReply(ReviewReply reply);
+
+	Optional<ReviewReply> findReplyById(Long id);
+
+	List<ReviewReply> findAllReply();
+
 	ReviewDetailResponse.ReviewInfo getReview(Long reviewId, Long userId);
 
 	PageResponse<ReviewListResponse> getReviews(Long alcoholId, PageableRequest pageableRequest, Long userId);
@@ -31,4 +37,6 @@ public interface ReviewRepository {
 	List<ReviewReplyInfo> getReviewRootReplies(Long reviewId, Long cursor, Long pageSize);
 
 	List<SubReviewReplyInfo> getSubReviewReplies(Long reviewId, Long replyId, Long cursor, Long pageSize);
+
+	Optional<ReviewReply> findReplyByReviewIdAndReplyId(Long reviewId, Long replyId);
 }
