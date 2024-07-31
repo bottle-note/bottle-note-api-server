@@ -18,4 +18,7 @@ public interface JpaReviewRepository extends JpaRepository<Review, Long>, Review
 
 	@Query("select r from review_reply r left join review_reply rr on r.rootReviewReply.id = rr.id where r.review.id = :reviewId and r.id = :parentReplyId")
 	Optional<ReviewReply> isEligibleParentReply(Long reviewId, Long parentReplyId);
+
+	@Query("select r from review_reply r where r.review.id = :review and r.id = :replyId")
+	Optional<ReviewReply> findReplyByReviewIdAndReplyId(Long review, Long replyId);
 }

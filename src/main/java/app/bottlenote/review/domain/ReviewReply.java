@@ -114,4 +114,16 @@ public class ReviewReply extends BaseEntity {
 			"userId = " + userId + ", " +
 			"content = " + content + ")";
 	}
+
+	public Boolean isOwner(Long userId) {
+		if (Objects.isNull(userId)) {
+			return false;
+		}
+		return this.userId.equals(userId);
+	}
+
+	public Boolean delete() {
+		this.status = ReviewReplyStatus.DELETED;
+		return true;
+	}
 }
