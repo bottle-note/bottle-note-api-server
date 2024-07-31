@@ -23,6 +23,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import static app.bottlenote.review.exception.ReviewExceptionCode.NOT_FOUND_REVIEW_REPLY;
+import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -42,21 +44,18 @@ class ReviewReplyServiceTest {
 	void setUp() {
 		User user1 = ReviewReplyObjectFixture.getUserFixture(1L);
 		User user2 = ReviewReplyObjectFixture.getUserFixture(2L);
+		User user3 = ReviewReplyObjectFixture.getUserFixture(99L);
 		Review review1 = ReviewReplyObjectFixture.getReviewFixture(1L, 1L, user1.getId());
 		Review review2 = ReviewReplyObjectFixture.getReviewFixture(2L, 1L, user2.getId());
 
 		reviewRepository = new InMemoryReviewRepository();
 		profanityClient = new FakeProfanityClient();
-		userDomainSupport = new FakeUserDomainSupport(user1, user2);
+		userDomainSupport = new FakeUserDomainSupport(user1, user2, user3);
 
 		reviewRepository.save(review1);
 		reviewRepository.save(review2);
 
-		reviewReplyService = new ReviewReplyService(
-			reviewRepository,
-			profanityClient,
-			userDomainSupport
-		);
+		reviewReplyService = new ReviewReplyService(reviewRepository, profanityClient, userDomainSupport);
 	}
 
 	@Nested
@@ -77,13 +76,18 @@ class ReviewReplyServiceTest {
 
 			//then
 			log.info("response = {}", response);
-			reviewRepository.findById(reviewId).get().getReviewReplies().stream().findFirst().ifPresent(reply -> {
-				assertEquals(reply.getContent(), content);
-				assertEquals(reply.getUserId(), userId);
-			});
-			assertNotNull(response);
-			assertEquals(ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY, response.codeMessage());
-			assertEquals(reviewId, response.reviewId());
+
+			reviewRepository.findById(reviewId)
+				.ifPresent(review -> {
+					review.getReviewReplies().stream().findFirst().ifPresent(reply -> {
+						assertEquals(reply.getContent(), content);
+						assertEquals(reply.getUserId(), userId);
+					});
+
+					assertNotNull(response);
+					assertEquals(ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY, response.codeMessage());
+					assertEquals(reviewId, response.reviewId());
+				});
 		}
 
 		@Test
@@ -100,14 +104,18 @@ class ReviewReplyServiceTest {
 			var response = reviewReplyService.registerReviewReply(reviewId, userId, request);
 
 			//then
-			reviewRepository.findById(reviewId).get().getReviewReplies().stream().findFirst().ifPresent(reply -> {
-				log.info("reply = {}", reply);
-				assertEquals(reply.getContent(), maskingContent);
-				assertEquals(reply.getUserId(), userId);
-			});
-			assertNotNull(response);
-			assertEquals(ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY, response.codeMessage());
-			assertEquals(reviewId, response.reviewId());
+
+			reviewRepository.findById(reviewId)
+				.ifPresent(review -> {
+					review.getReviewReplies().stream().findFirst().ifPresent(reply -> {
+						assertEquals(reply.getContent(), maskingContent);
+						assertEquals(reply.getUserId(), userId);
+					});
+
+					assertNotNull(response);
+					assertEquals(ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY, response.codeMessage());
+					assertEquals(reviewId, response.reviewId());
+				});
 		}
 
 		@Test
@@ -138,7 +146,7 @@ class ReviewReplyServiceTest {
 			//when
 			//then
 			ReviewException aThrows = assertThrows(ReviewException.class, () -> reviewReplyService.registerReviewReply(reviewId, userId, request));
-			assertEquals(ReviewExceptionCode.REVIEW_NOT_FOUND.getMessage(), aThrows.getMessage());
+			assertEquals(REVIEW_NOT_FOUND.getMessage(), aThrows.getMessage());
 			log.debug("aThrows : {}", aThrows.toString());
 		}
 
@@ -150,7 +158,8 @@ class ReviewReplyServiceTest {
 			final Long userId = 1L;
 			final String content = "자식 댓글 내용입니다.";
 
-			Review review = reviewRepository.findById(reviewId).get();
+			Review review = reviewRepository.findById(reviewId)
+				.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
 			ReviewReply parentReply = ReviewReplyObjectFixture.getReviewReplyFixture(1L, review);
 			review.getReviewReplies().add(parentReply);
 			var request = ReviewReplyObjectFixture.getReviewReplyRegisterRequest(content, parentReply.getId());
@@ -172,7 +181,81 @@ class ReviewReplyServiceTest {
 			assertNotNull(response);
 			assertEquals(ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY, response.codeMessage());
 			assertEquals(reviewId, response.reviewId());
+
+
 		}
 	}
 
+	@Nested
+	@DisplayName("댓글 목록을 조회할 수 있다.")
+	class select {
+	}
+
+	@Nested
+	@DisplayName("댓글을 삭제할 수 있다.")
+	class delete {
+
+		@Test
+		@DisplayName("정상적으로 댓글을 삭제할 수 있다.")
+		void test_1() {
+			//given
+			Review review = reviewRepository.findAll().stream().findFirst()
+				.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
+
+			final Long reviewReplyId = 99L;
+			final Long reviewId = review.getId();
+			final Long userId = review.getUserId();
+
+			ReviewReply reviewReplyFixture = ReviewReplyObjectFixture.getReviewReplyFixture(reviewReplyId, review);
+			reviewRepository.saveReply(reviewReplyFixture);
+
+			//when
+			var response = reviewReplyService.deleteReviewReply(reviewId, reviewReplyId, userId);
+
+			//then
+			assertEquals(ReviewReplyResultMessage.SUCCESS_DELETE_REPLY, response.codeMessage());
+			assertEquals(reviewId, response.reviewId());
+			log.info("댓글 삭제 결과 : {}", response);
+		}
+
+		@Test
+		@DisplayName("삭제할 댓글이 존재하지 않는 경우 ReviewException을 발생시킨다.")
+		void test_2() {
+			//given
+			Review review = reviewRepository.findAll().stream().findFirst()
+				.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
+
+			final Long reviewReplyId = 99L;
+			final Long reviewId = review.getId();
+			final Long userId = review.getUserId();
+
+			//when && then
+			ReviewException aThrows = assertThrows(ReviewException.class, () -> reviewReplyService.deleteReviewReply(reviewId, reviewReplyId, userId));
+
+			assertEquals(NOT_FOUND_REVIEW_REPLY, aThrows.getExceptionCode());
+			assertEquals(NOT_FOUND_REVIEW_REPLY.getMessage(), aThrows.getMessage());
+
+		}
+
+		@Test
+		@DisplayName("자신의 댓글이 아닌 경우 ReviewException을 발생시킨다.")
+		void test_3() {
+			//given
+			Review review = reviewRepository.findAll().stream().findFirst()
+				.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
+
+			final Long reviewReplyId = 99L;
+			final Long reviewId = review.getId();
+			final Long userId = 99L;
+
+			ReviewReply reviewReplyFixture = ReviewReplyObjectFixture.getReviewReplyFixture(reviewReplyId, review);
+			reviewRepository.saveReply(reviewReplyFixture);
+
+			//when && then
+			ReviewException aThrows = assertThrows(ReviewException.class, () -> reviewReplyService.deleteReviewReply(reviewId, reviewReplyId, userId));
+
+			assertEquals(ReviewExceptionCode.REPLY_NOT_OWNER.getMessage(), aThrows.getMessage());
+			assertEquals(ReviewExceptionCode.REPLY_NOT_OWNER, aThrows.getExceptionCode());
+		}
+	}
 }
