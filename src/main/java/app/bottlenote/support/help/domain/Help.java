@@ -2,6 +2,7 @@ package app.bottlenote.support.help.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.support.constant.StatusType;
+import app.bottlenote.support.help.domain.constant.HelpStatus;
 import app.bottlenote.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -26,9 +27,9 @@ public class Help extends BaseEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	private User user;
 
-	@Comment("문의 타입") //todo : ENUM 클래스 만들어서 변경 필
+	@Comment("문의 타입")
 	@Column(name = "type", nullable = false)
-	private String type;
+	private HelpStatus type;
 
 	@Comment("문의 제목")
 	@Column(name = "title", nullable = false)
