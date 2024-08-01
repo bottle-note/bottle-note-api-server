@@ -18,8 +18,6 @@ public interface ReviewRepository {
 
 	List<Review> findAll();
 
-	ReviewReply saveReply(ReviewReply reply);
-
 	Optional<ReviewReply> findReplyById(Long id);
 
 	List<ReviewReply> findAllReply();

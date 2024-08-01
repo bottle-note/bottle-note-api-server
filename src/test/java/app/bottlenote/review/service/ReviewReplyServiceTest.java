@@ -207,7 +207,12 @@ class ReviewReplyServiceTest {
 			final Long userId = review.getUserId();
 
 			ReviewReply reviewReplyFixture = ReviewReplyObjectFixture.getReviewReplyFixture(reviewReplyId, review);
-			reviewRepository.saveReply(reviewReplyFixture);
+			reviewRepository.findById(reviewId).ifPresent(r ->
+				{
+					r.getReviewReplies().add(reviewReplyFixture);
+					reviewRepository.save(r);
+				}
+			);
 
 			//when
 			var response = reviewReplyService.deleteReviewReply(reviewId, reviewReplyId, userId);
@@ -249,8 +254,12 @@ class ReviewReplyServiceTest {
 			final Long userId = 99L;
 
 			ReviewReply reviewReplyFixture = ReviewReplyObjectFixture.getReviewReplyFixture(reviewReplyId, review);
-			reviewRepository.saveReply(reviewReplyFixture);
-
+			reviewRepository.findById(reviewId).ifPresent(r ->
+				{
+					r.getReviewReplies().add(reviewReplyFixture);
+					reviewRepository.save(r);
+				}
+			);
 			//when && then
 			ReviewException aThrows = assertThrows(ReviewException.class, () -> reviewReplyService.deleteReviewReply(reviewId, reviewReplyId, userId));
 

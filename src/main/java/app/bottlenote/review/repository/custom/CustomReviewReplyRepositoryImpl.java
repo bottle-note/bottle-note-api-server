@@ -1,10 +1,12 @@
 package app.bottlenote.review.repository.custom;
 
 import app.bottlenote.review.domain.QReviewReply;
+import app.bottlenote.review.domain.constant.ReviewReplyStatus;
 import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.SubReviewReplyInfo;
 import app.bottlenote.user.domain.QUser;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,7 +38,12 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
 					user.imageUrl,
 					user.nickName,
 					reviewReply.id,
-					reviewReply.content,
+
+					new CaseBuilder()
+						.when(reviewReply.status.eq(ReviewReplyStatus.DELETED))
+						.then(ReviewReplyStatus.DELETED.getMessage())
+						.otherwise(reviewReply.content),
+
 					queryFactory
 						.select(count(subReply.id))
 						.from(subReply)
@@ -78,7 +85,12 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
 					reviewReply.parentReviewReply.id,
 					parentUser.nickName,
 					reviewReply.id,
-					reviewReply.content,
+
+					new CaseBuilder()
+						.when(reviewReply.status.eq(ReviewReplyStatus.DELETED))
+						.then(ReviewReplyStatus.DELETED.getMessage())
+						.otherwise(reviewReply.content),
+
 					reviewReply.createAt
 				)
 			).from(reviewReply)
@@ -98,4 +110,5 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
 		log.info("대댓글 목록 조회 시간 : {}", (end - start) / 1_000_000 + "ms");
 		return subReplyInfoList;
 	}
+
 }

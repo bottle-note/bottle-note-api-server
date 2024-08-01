@@ -4,6 +4,7 @@ import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewRepository;
+import app.bottlenote.review.domain.constant.ReviewReplyStatus;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
 import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
@@ -80,6 +81,7 @@ public class ReviewReplyService {
 			.parentReviewReply(parentReply.orElse(null))
 			.rootReviewReply(parentReply.map(ReviewReply::getRootReviewReply).orElse(null))
 			.content(content)
+			.status(ReviewReplyStatus.NORMAL)
 			.build();
 
 		review.addReply(reply);
@@ -143,8 +145,8 @@ public class ReviewReplyService {
 	 * @param userId   삭제 요청자 식별자.
 	 * @return 처리 결과 메시지.
 	 */
+	@Transactional
 	@Modifying(flushAutomatically = true, clearAutomatically = true)
-	@Transactional(readOnly = true)
 	public ReviewReplyResponse deleteReviewReply(
 		Long reviewId,
 		Long replyId,

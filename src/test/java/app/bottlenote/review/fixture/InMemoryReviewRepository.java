@@ -22,6 +22,7 @@ import java.util.Optional;
 public class InMemoryReviewRepository implements ReviewRepository {
 
 	private static final Logger log = LogManager.getLogger(InMemoryReviewRepository.class);
+
 	Map<Long, Review> database = new HashMap<>();
 	Map<Long, ReviewReply> reviewReplyDatabase = new HashMap<>();
 
@@ -34,6 +35,17 @@ public class InMemoryReviewRepository implements ReviewRepository {
 		ReflectionTestUtils.setField(review, "id", id);
 		database.put(id, review);
 		log.info("[InMemory] review repository save = {}", review);
+
+		review.getReviewReplies().forEach(reply -> {
+			Long replyId = reply.getId();
+			if (Objects.isNull(replyId)) {
+				replyId = reviewReplyDatabase.size() + 1L;
+			}
+			ReflectionTestUtils.setField(reply, "id", replyId);
+			reviewReplyDatabase.put(replyId, reply);
+			log.info("[InMemory] review reply repository save = {}", reply);
+		});
+
 		return review;
 	}
 
@@ -45,18 +57,6 @@ public class InMemoryReviewRepository implements ReviewRepository {
 	@Override
 	public List<Review> findAll() {
 		return List.copyOf(database.values());
-	}
-
-	@Override
-	public ReviewReply saveReply(ReviewReply reply) {
-		Long id = reply.getId();
-		if (Objects.isNull(id)) {
-			id = reviewReplyDatabase.size() + 1L;
-		}
-		ReflectionTestUtils.setField(reply, "id", id);
-		reviewReplyDatabase.put(id, reply);
-		log.info("[InMemory] review reply repository save = {}", reply);
-		return reply;
 	}
 
 	@Override
