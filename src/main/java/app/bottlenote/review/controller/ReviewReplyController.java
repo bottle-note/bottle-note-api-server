@@ -8,6 +8,7 @@ import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,9 +42,7 @@ public class ReviewReplyController {
 		Long userId = SecurityContextUtil.getUserIdByContext()
 			.orElseThrow(() -> new UserException(UserExceptionCode.REQUIRED_USER_ID));
 
-		return ResponseEntity.ok(
-			GlobalResponse.success(reviewReplyService.registerReviewReply(reviewId, userId, request))
-		);
+		return GlobalResponse.ok(reviewReplyService.registerReviewReply(reviewId, userId, request));
 	}
 
 	@GetMapping("/{reviewId}")
@@ -52,9 +51,7 @@ public class ReviewReplyController {
 		@RequestParam(required = false, defaultValue = "0") Long cursor,
 		@RequestParam(required = false, defaultValue = "50") Long pageSize
 	) {
-		return ResponseEntity.ok(
-			GlobalResponse.success(reviewReplyService.getReviewRootReplays(reviewId, cursor, pageSize))
-		);
+		return GlobalResponse.ok(reviewReplyService.getReviewRootReplays(reviewId, cursor, pageSize));
 	}
 
 	@GetMapping("/{reviewId}/sub/{rootReplyId}")
@@ -64,10 +61,18 @@ public class ReviewReplyController {
 		@RequestParam(required = false, defaultValue = "0") Long cursor,
 		@RequestParam(required = false, defaultValue = "50") Long pageSize
 	) {
-		return ResponseEntity.ok(
-			GlobalResponse.success(
-				reviewReplyService.getSubReviewReplies(reviewId, rootReplyId, cursor, pageSize)
-			)
-		);
+		return GlobalResponse.ok(reviewReplyService.getSubReviewReplies(reviewId, rootReplyId, cursor, pageSize));
 	}
+
+	@DeleteMapping("/{reviewId}/{replyId}")
+	public ResponseEntity<?> deleteReviewReply(
+		@PathVariable Long reviewId,
+		@PathVariable Long replyId
+	) {
+		Long userId = SecurityContextUtil.getUserIdByContext()
+			.orElseThrow(() -> new UserException(UserExceptionCode.REQUIRED_USER_ID));
+
+		return GlobalResponse.ok(reviewReplyService.deleteReviewReply(reviewId, replyId, userId));
+	}
+
 }
