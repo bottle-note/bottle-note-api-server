@@ -234,7 +234,7 @@ class RestReviewReplyControllerTest extends AbstractRestDocs {
 				.andDo(print())
 				.andExpect(status().isOk())
 				.andDo(
-					document("review/reply/register",
+					document("review/reply/delete",
 						pathParameters(
 							parameterWithName("reviewId").description("댓글을 작성 대상 리뷰의 식별자"),
 							parameterWithName("replyId").description("삭제할 리뷰 식별자.")
