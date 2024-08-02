@@ -1,10 +1,15 @@
 package app.bottlenote.review.controller;
 
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage;
+import app.bottlenote.review.exception.ReviewException;
+import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.review.fixture.ReviewReplyObjectFixture;
 import app.bottlenote.review.service.ReviewReplyService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,9 +26,11 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Optional;
 
+import static app.bottlenote.review.fixture.ReviewReplyObjectFixture.getDeleteReviewReplyResponse;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -36,6 +43,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WithMockUser
 class ReviewReplyControllerTest {
 
+
+	private static final Logger log = LogManager.getLogger(ReviewReplyControllerTest.class);
 	@Autowired
 	private ObjectMapper mapper;
 	@Autowired
@@ -114,6 +123,70 @@ class ReviewReplyControllerTest {
 				.andDo(print())
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.errors.content", containsString("댓글 내용은 1자 이상 500자 이하로 작성해주세요.")));
+		}
+	}
+
+	@Nested
+	@DisplayName("리뷰 댓글을 삭제할 수 있다.")
+	class delete {
+
+		@Test
+		@DisplayName("댓글을 삭제 할 수 있다.")
+		void test_1() throws Exception {
+			final Long reviewId = 1L;
+			final Long replyId = 1L;
+
+			var response = getDeleteReviewReplyResponse(reviewId);
+
+			mockedSecurityUtil.when(SecurityContextUtil::getUserIdByContext).thenReturn(Optional.of(1L));
+
+			when(reviewReplyService.deleteReviewReply(1L, 1L, 1L)).thenReturn(response);
+
+			mockMvc.perform(delete("/api/v1/review/reply/{reviewId}/{replyId}", reviewId, replyId).with(csrf()))
+				.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.success").value(true))
+				.andExpect(jsonPath("$.data.codeMessage").value(ReviewReplyResultMessage.SUCCESS_DELETE_REPLY.name()))
+				.andExpect(jsonPath("$.data.message").value(ReviewReplyResultMessage.SUCCESS_DELETE_REPLY.getMessage()))
+				.andExpect(jsonPath("$.data.reviewId").value(replyId))
+				.andReturn();
+		}
+
+		@Test
+		@DisplayName("본인의 댓글이 아닌 경우 REPLY_NOT_OWNER 예외가 발생한다.")
+		void test_2() throws Exception {
+			final Long reviewId = 1L;
+			final Long replyId = 1L;
+
+			mockedSecurityUtil.when(SecurityContextUtil::getUserIdByContext).thenReturn(Optional.of(999L));
+			when(reviewReplyService.deleteReviewReply(1L, 1L, 999L)).thenThrow(new ReviewException(ReviewExceptionCode.REPLY_NOT_OWNER));
+
+			mockMvc.perform(delete("/api/v1/review/reply/{reviewId}/{replyId}", reviewId, replyId).with(csrf()))
+				.andDo(print())
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.success").value(false))
+				.andExpect(jsonPath("$.code").value("400"))
+				.andExpect(jsonPath("$.errors.message").value(ReviewExceptionCode.REPLY_NOT_OWNER.getMessage()))
+				.andReturn();
+		}
+
+		@Test
+		@DisplayName("존재하지 않는 댓글인 경우 NOT_FOUND_REVIEW_REPLY 예외가 발생한다.")
+		void test_3() throws Exception {
+			final Long reviewId = 1L;
+			final Long replyId = 1L;
+
+			mockedSecurityUtil.when(SecurityContextUtil::getUserIdByContext).thenReturn(Optional.of(1L));
+			when(reviewReplyService.deleteReviewReply(1L, 1L, 1L))
+				.thenThrow(new ReviewException(ReviewExceptionCode.NOT_FOUND_REVIEW_REPLY));
+
+			mockMvc.perform(delete("/api/v1/review/reply/{reviewId}/{replyId}", reviewId, replyId).with(csrf()))
+				.andDo(print())
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.success").value(false))
+				.andExpect(jsonPath("$.code").value("400"))
+				.andExpect(jsonPath("$.errors.message").value(ReviewExceptionCode.NOT_FOUND_REVIEW_REPLY.getMessage()))
+				.andReturn();
 		}
 	}
 }

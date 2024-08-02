@@ -129,4 +129,9 @@ public class ReviewReplyObjectFixture {
 		return list;
 	}
 
+
+	public static ReviewReplyResponse getDeleteReviewReplyResponse(Long reviewId) {
+		return ReviewReplyResponse.of(ReviewReplyResultMessage.SUCCESS_DELETE_REPLY, reviewId);
+	}
+
 }
