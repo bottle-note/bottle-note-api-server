@@ -3,6 +3,8 @@ package app.bottlenote.docs.review;
 import app.bottlenote.docs.AbstractRestDocs;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.review.controller.ReviewReplyController;
+import app.bottlenote.review.dto.response.RootReviewReplyInfo;
+import app.bottlenote.review.dto.response.SubReviewReplyInfo;
 import app.bottlenote.review.service.ReviewReplyService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -64,8 +66,8 @@ class RestReviewReplyControllerTest extends AbstractRestDocs {
 	}
 
 	@Nested
-	@DisplayName("댓글 조회")
-	class select {
+	@DisplayName("댓글 등록")
+	class registry {
 
 		@Test
 		@DisplayName("새로운 댓글을 등록 할 수 있다.")
@@ -111,11 +113,16 @@ class RestReviewReplyControllerTest extends AbstractRestDocs {
 					)
 				);
 		}
+	}
+
+	@Nested
+	@DisplayName("댓글 조회")
+	class select {
 
 		@Test
 		@DisplayName("최상위 댓글 목록을 조회 할 수 있다.")
-		void test_2() throws Exception {
-			var reviewReplyInfoList = getReviewReplyInfoList(5);
+		void test_1() throws Exception {
+			RootReviewReplyInfo reviewReplyInfoList = getReviewReplyInfoList(5);
 
 			when(reviewReplyService.getReviewRootReplays(1L, 0L, 50L)).thenReturn(reviewReplyInfoList);
 
@@ -138,13 +145,14 @@ class RestReviewReplyControllerTest extends AbstractRestDocs {
 							fieldWithPath("success").description("요청 성공 여부"),
 							fieldWithPath("code").description("응답 코드"),
 							fieldWithPath("data").description("응답 데이터"),
-							fieldWithPath("data[].userId").description("댓글 작성자 식별자"),
-							fieldWithPath("data[].imageUrl").description("댓글 작성자 프로필 이미지 URL"),
-							fieldWithPath("data[].nickName").description("댓글 작성자 닉네임"),
-							fieldWithPath("data[].reviewReplyId").description("댓글 자체 식별자"),
-							fieldWithPath("data[].reviewReplyContent").description("댓글 내용"),
-							fieldWithPath("data[].subReplyCount").description("하위 댓글 갯수"),
-							fieldWithPath("data[].createAt").description("댓글 작성 일시"),
+							fieldWithPath("data.totalCount").description("전체 댓글 갯수"),
+							fieldWithPath("data.reviewReplies[].userId").description("댓글 작성자 식별자"),
+							fieldWithPath("data.reviewReplies[].imageUrl").description("댓글 작성자 프로필 이미지 URL"),
+							fieldWithPath("data.reviewReplies[].nickName").description("댓글 작성자 닉네임"),
+							fieldWithPath("data.reviewReplies[].reviewReplyId").description("댓글 자체 식별자"),
+							fieldWithPath("data.reviewReplies[].reviewReplyContent").description("댓글 내용"),
+							fieldWithPath("data.reviewReplies[].subReplyCount").description("하위 댓글 갯수"),
+							fieldWithPath("data.reviewReplies[].createAt").description("댓글 작성 일시"),
 							fieldWithPath("errors").ignored(),
 							fieldWithPath("meta").ignored(),
 							fieldWithPath("meta.serverVersion").ignored(),
@@ -158,7 +166,7 @@ class RestReviewReplyControllerTest extends AbstractRestDocs {
 
 		@Test
 		@DisplayName("대댓글 목록을 조회 할 수 있다.")
-		void test_3() throws Exception {
+		void test_2() throws Exception {
 			long index = 0L;
 			final Long userId = 123L;
 			final String authorName = "썩어가는망고";
@@ -172,8 +180,9 @@ class RestReviewReplyControllerTest extends AbstractRestDocs {
 				getSubReviewReplyInfo(userId, ++index, 1L, index - 2, extraAuthorName),
 				getSubReviewReplyInfo(userId, ++index, 1L, 1L, authorName)
 			);
+			var response = SubReviewReplyInfo.of(4L, reviewReplyInfoList);
 
-			when(reviewReplyService.getSubReviewReplies(1L, 1L, 0L, 50L)).thenReturn(reviewReplyInfoList);
+			when(reviewReplyService.getSubReviewReplies(1L, 1L, 0L, 50L)).thenReturn(response);
 
 			mockMvc.perform(get("/api/v1/review/reply/{reviewId}/sub/{rootReplyId}", reviewId, rootReplyId)
 					.contentType(MediaType.APPLICATION_JSON)
@@ -194,15 +203,16 @@ class RestReviewReplyControllerTest extends AbstractRestDocs {
 							fieldWithPath("success").description("요청 성공 여부"),
 							fieldWithPath("code").description("응답 코드"),
 							fieldWithPath("data").description("응답 데이터"),
-							fieldWithPath("data[].userId").description("댓글 작성자 식별자"),
-							fieldWithPath("data[].imageUrl").description("댓글 작성자 프로필 이미지 URL"),
-							fieldWithPath("data[].nickName").description("댓글 작성자 닉네임"),
-							fieldWithPath("data[].rootReviewId").description("최상위 댓글 식별자"),
-							fieldWithPath("data[].parentReviewReplyId").description("상위 댓글 식별자"),
-							fieldWithPath("data[].parentReviewReplyAuthor").description("상위 댓글 작성자 닉네임 (@ 기호는 제외)"),
-							fieldWithPath("data[].reviewReplyId").description("댓글 자체 식별자"),
-							fieldWithPath("data[].reviewReplyContent").description("댓글 내용"),
-							fieldWithPath("data[].createAt").description("댓글 작성 일시"),
+							fieldWithPath("data.totalCount").description("전체 댓글 갯수"),
+							fieldWithPath("data.reviewReplies[].userId").description("댓글 작성자 식별자"),
+							fieldWithPath("data.reviewReplies[].imageUrl").description("댓글 작성자 프로필 이미지 URL"),
+							fieldWithPath("data.reviewReplies[].nickName").description("댓글 작성자 닉네임"),
+							fieldWithPath("data.reviewReplies[].rootReviewId").description("최상위 댓글 식별자"),
+							fieldWithPath("data.reviewReplies[].parentReviewReplyId").description("상위 댓글 식별자"),
+							fieldWithPath("data.reviewReplies[].parentReviewReplyAuthor").description("상위 댓글 작성자 닉네임 (@ 기호는 제외)"),
+							fieldWithPath("data.reviewReplies[].reviewReplyId").description("댓글 자체 식별자"),
+							fieldWithPath("data.reviewReplies[].reviewReplyContent").description("댓글 내용"),
+							fieldWithPath("data.reviewReplies[].createAt").description("댓글 작성 일시"),
 							fieldWithPath("errors").ignored(),
 							fieldWithPath("meta").description("메타 정보 (해당 응답 값은 별도의 페이지 정보가 제공되지 않습니다.)"),
 							fieldWithPath("meta.serverVersion").ignored(),

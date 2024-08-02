@@ -1,8 +1,6 @@
 package app.bottlenote.review.integration;
 
 import app.bottlenote.IntegrationTestSupport;
-import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -11,7 +9,6 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -52,8 +49,6 @@ class ReviewReplyIntegrationTest extends IntegrationTestSupport {
 			.andReturn();
 
 		String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-		GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
-		List<ReviewReplyInfo> list = mapper.convertValue(response.getData(), mapper.getTypeFactory().constructCollectionType(List.class, ReviewReplyInfo.class));
-		list.forEach(log::info);
+		log.info("responseString : {}", responseString);
 	}
 }

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Date;
 
@@ -17,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Tag("unit")
 @DisplayName("[unit] [service] JwtTokenValidator")
+@ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
 class JwtTokenValidatorTest {
 
@@ -30,8 +32,7 @@ class JwtTokenValidatorTest {
 			.setClaims(Jwts.claims().setSubject("cha"))
 			.setIssuedAt(now)
 			.setExpiration(new Date(now.getTime() - 3600 * 1000))
-			.signWith(Keys.hmacShaKeyFor(
-					"c2VjdXJlU2VjcmV0S2V5MTIzNDU2Nzg5MGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6QWJDRGVGR2hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlrSg==".getBytes()),
+			.signWith(Keys.hmacShaKeyFor("c2VjdXJlU2VjcmV0S2V5MTIzNDU2Nzg5MGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6QWJDRGVGR2hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlrSg==".getBytes()),
 				SignatureAlgorithm.HS512)
 			.compact();
 
