@@ -6,8 +6,8 @@ import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.domain.constant.ReviewReplyStatus;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
-import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
+import app.bottlenote.review.dto.response.RootReviewReplyInfo;
 import app.bottlenote.review.dto.response.SubReviewReplyInfo;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
@@ -17,7 +17,6 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -97,47 +96,6 @@ public class ReviewReplyService {
 	}
 
 	/**
-	 * 최상위 리뷰 목록을 조회합니다
-	 * 이때 대댓글 목록은 제외됩니다.
-	 */
-	@Transactional(readOnly = true)
-	public List<ReviewReplyInfo> getReviewRootReplays(
-		Long reviewId,
-		Long cursor,
-		Long pageSize
-	) {
-		return reviewRepository.getReviewRootReplies(
-			reviewId,
-			cursor,
-			pageSize
-		);
-	}
-
-	/**
-	 * 대댓글 목록을 조회합니다.
-	 *
-	 * @param reviewId    조회 대상 리뷰 식별자.
-	 * @param rootReplyId 조회 대상 최상위 댓글 식별자.
-	 * @param cursor      조회 시작 위치.
-	 * @param pageSize    조회 개수.
-	 * @return the sub review replies
-	 */
-	@Transactional(readOnly = true)
-	public List<SubReviewReplyInfo> getSubReviewReplies(
-		Long reviewId,
-		Long rootReplyId,
-		Long cursor,
-		Long pageSize
-	) {
-		return reviewRepository.getSubReviewReplies(
-			reviewId,
-			rootReplyId,
-			cursor,
-			pageSize
-		);
-	}
-
-	/**
 	 * 리뷰 댓글을 삭제합니다.
 	 *
 	 * @param reviewId 삭제 대상 댓글의 리뷰 식별자.
@@ -168,4 +126,47 @@ public class ReviewReplyService {
 
 		return ReviewReplyResponse.of(SUCCESS_DELETE_REPLY, reviewId);
 	}
+
+	/**
+	 * 최상위 리뷰 목록을 조회합니다
+	 * 이때 대댓글 목록은 제외됩니다.
+	 */
+	@Transactional(readOnly = true)
+	public RootReviewReplyInfo getReviewRootReplays(
+		Long reviewId,
+		Long cursor,
+		Long pageSize
+	) {
+		return reviewRepository.getReviewRootReplies(
+			reviewId,
+			cursor,
+			pageSize
+		);
+	}
+
+	/**
+	 * 대댓글 목록을 조회합니다.
+	 *
+	 * @param reviewId    조회 대상 리뷰 식별자.
+	 * @param rootReplyId 조회 대상 최상위 댓글 식별자.
+	 * @param cursor      조회 시작 위치.
+	 * @param pageSize    조회 개수.
+	 * @return the sub review replies
+	 */
+	@Transactional(readOnly = true)
+	public SubReviewReplyInfo getSubReviewReplies(
+		Long reviewId,
+		Long rootReplyId,
+		Long cursor,
+		Long pageSize
+	) {
+		return reviewRepository.getSubReviewReplies(
+			reviewId,
+			rootReplyId,
+			cursor,
+			pageSize
+		);
+	}
+
+
 }
