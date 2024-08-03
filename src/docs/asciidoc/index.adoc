@@ -45,6 +45,15 @@ include::api/user/user-reissue.adoc[]
 '''
 include::api/user/user-nickname-change.adoc[]
 
+'''
+include::api/user/user-profile-images-change.adoc[]
+
+'''
+include::api/user/user-withdraw.adoc[]
+
+'''
+include::api/user/user-mypage.adoc[]
+
 == 술 (alcohol) 관련 API
 
 include::api/alcohols/search.adoc[]
@@ -97,6 +106,8 @@ include::api/support/report/user-report.adoc[]
 == 팔로우 (follow) 관련 API
 
 include::api/follow/follow-update.adoc[]
+
+include::api/follow/follow-search.adoc[]
 
 == 별점 (rating) 관련 API
 
