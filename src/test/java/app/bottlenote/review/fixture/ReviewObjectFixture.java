@@ -16,8 +16,8 @@ import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse.ReviewInfo;
-import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
+import app.bottlenote.review.dto.response.RootReviewReplyInfo;
 import app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage;
 import app.bottlenote.user.domain.User;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -210,8 +210,8 @@ public class ReviewObjectFixture {
 		return ReviewReplyResponse.of(ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY, 1L);
 	}
 
-	public static ReviewReplyInfo getReviewReplyInfo() {
-		return ReviewReplyInfo.builder()
+	public static RootReviewReplyInfo getReviewReplyInfo() {
+		RootReviewReplyInfo.Info info = RootReviewReplyInfo.Info.builder()
 			.userId(1L)
 			.imageUrl("imageUrl")
 			.nickName("nickname")
@@ -219,9 +219,11 @@ public class ReviewObjectFixture {
 			.reviewReplyContent(content)
 			.createAt(LocalDateTime.of(2024, 7, 7, 0, 0, 0))
 			.build();
+		return RootReviewReplyInfo.of(1L, List.of(info));
 	}
 
 	// domain
+
 	/**
 	 * 리뷰 엔티티 fixture를 반환합니다.
 	 *

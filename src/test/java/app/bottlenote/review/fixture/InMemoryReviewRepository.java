@@ -7,7 +7,7 @@ import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
-import app.bottlenote.review.dto.response.ReviewReplyInfo;
+import app.bottlenote.review.dto.response.RootReviewReplyInfo;
 import app.bottlenote.review.dto.response.SubReviewReplyInfo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,7 +22,9 @@ import java.util.Optional;
 public class InMemoryReviewRepository implements ReviewRepository {
 
 	private static final Logger log = LogManager.getLogger(InMemoryReviewRepository.class);
+
 	Map<Long, Review> database = new HashMap<>();
+	Map<Long, ReviewReply> reviewReplyDatabase = new HashMap<>();
 
 	@Override
 	public Review save(Review review) {
@@ -33,6 +35,17 @@ public class InMemoryReviewRepository implements ReviewRepository {
 		ReflectionTestUtils.setField(review, "id", id);
 		database.put(id, review);
 		log.info("[InMemory] review repository save = {}", review);
+
+		review.getReviewReplies().forEach(reply -> {
+			Long replyId = reply.getId();
+			if (Objects.isNull(replyId)) {
+				replyId = reviewReplyDatabase.size() + 1L;
+			}
+			ReflectionTestUtils.setField(reply, "id", replyId);
+			reviewReplyDatabase.put(replyId, reply);
+			log.info("[InMemory] review reply repository save = {}", reply);
+		});
+
 		return review;
 	}
 
@@ -44,6 +57,16 @@ public class InMemoryReviewRepository implements ReviewRepository {
 	@Override
 	public List<Review> findAll() {
 		return List.copyOf(database.values());
+	}
+
+	@Override
+	public Optional<ReviewReply> findReplyById(Long id) {
+		return Optional.ofNullable(reviewReplyDatabase.get(id));
+	}
+
+	@Override
+	public List<ReviewReply> findAllReply() {
+		return List.copyOf(reviewReplyDatabase.values());
 	}
 
 	@Override
@@ -78,14 +101,21 @@ public class InMemoryReviewRepository implements ReviewRepository {
 		return first;
 	}
 
-
 	@Override
-	public List<ReviewReplyInfo> getReviewRootReplies(Long reviewId, Long cursor, Long pageSize) {
-		return List.of();
+	public RootReviewReplyInfo getReviewRootReplies(Long reviewId, Long cursor, Long pageSize) {
+		return RootReviewReplyInfo.of(0L, List.of());
 	}
 
 	@Override
-	public List<SubReviewReplyInfo> getSubReviewReplies(Long reviewId, Long replyId, Long cursor, Long pageSize) {
-		return List.of();
+	public SubReviewReplyInfo getSubReviewReplies(Long reviewId, Long replyId, Long cursor, Long pageSize) {
+		return SubReviewReplyInfo.of(0L, List.of());
+	}
+
+	@Override
+	public Optional<ReviewReply> findReplyByReviewIdAndReplyId(Long review, Long replyId) {
+		return reviewReplyDatabase.values()
+			.stream()
+			.filter(reply -> reply.getReview().getId().equals(review) && reply.getId().equals(replyId))
+			.findFirst();
 	}
 }

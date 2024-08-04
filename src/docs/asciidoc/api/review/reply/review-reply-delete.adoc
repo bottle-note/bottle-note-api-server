@@ -1,0 +1,28 @@
+=== 리뷰 댓글 삭제 ===
+
+리뷰의 댓글 목록을 삭제 하는 API 문서입니다.
+
+사용자의 인증 토큰이 필수적으로 필요합니다.
+
+삭제된 댓글의 경우 `논리적 삭제`로 삭제된 댓글이 포함된 목록을 조회 시.
+
+`삭제된 댓글입니다` 라는 메시지를 표시합니다.
+
+[discrete]
+==== API EndPoint ====
+
+----
+DELETE /api/v1/review/reply/{reviewId}/{replyId}
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+include::{snippets}/review/reply/delete/path-parameters.adoc[]
+
+[discrete]
+==== 응답 파라미터  ====
+
+[discrete]
+include::{snippets}/review/reply/delete/response-fields.adoc[]
+include::{snippets}/review/reply/delete/response-body.adoc[]
