@@ -3,7 +3,7 @@ name: Deploy Jekyll with GitHub Pages dependencies preinstalled
 on:
   # 기본 분기를 대상으로 하는 푸시에서 실행됩니다.
   push:
-    branches: [ "main" ]
+    branches: [ "main","dev" ]
 
   # 작업 탭에서 이 워크플로를 수동으로 실행할 수 있습니다.
   workflow_dispatch:
