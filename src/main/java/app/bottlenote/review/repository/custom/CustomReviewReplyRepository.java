@@ -1,6 +1,7 @@
 package app.bottlenote.review.repository.custom;
 
-import java.util.List;
+import app.bottlenote.review.dto.response.RootReviewReplyInfo;
+import app.bottlenote.review.dto.response.SubReviewReplyInfo;
 
 public interface CustomReviewReplyRepository {
 	/**
@@ -11,7 +12,7 @@ public interface CustomReviewReplyRepository {
 	 * @param pageSize 페이지 사이즈
 	 * @return 최상위 댓글 목록
 	 */
-	List<?> getReviewRootReplies(Long reviewId, Long cursor, Long pageSize);
+	RootReviewReplyInfo getReviewRootReplies(Long reviewId, Long cursor, Long pageSize);
 
 
 	/**
@@ -23,6 +24,6 @@ public interface CustomReviewReplyRepository {
 	 * @param pageSize 페이지 사이즈
 	 * @return 댓글 목록
 	 */
-	List<?> getSubReviewReplies(Long reviewId, Long replyId, Long cursor, Long pageSize);
+	SubReviewReplyInfo getSubReviewReplies(Long reviewId, Long replyId, Long cursor, Long pageSize);
 
 }

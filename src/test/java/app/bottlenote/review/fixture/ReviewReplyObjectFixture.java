@@ -3,8 +3,8 @@ package app.bottlenote.review.fixture;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
-import app.bottlenote.review.dto.response.ReviewReplyInfo;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
+import app.bottlenote.review.dto.response.RootReviewReplyInfo;
 import app.bottlenote.review.dto.response.SubReviewReplyInfo;
 import app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage;
 import app.bottlenote.user.domain.User;
@@ -87,8 +87,9 @@ public class ReviewReplyObjectFixture {
 			.build();
 	}
 
-	public static ReviewReplyInfo getReviewReplyInfo(Long userId, Long index) {
-		return ReviewReplyInfo.builder()
+	public static RootReviewReplyInfo.Info getReviewReplyInfo(Long userId, Long index) {
+
+		return RootReviewReplyInfo.Info.builder()
 			.userId(userId)
 			.imageUrl("https://picsum.photos/500")
 			.nickName(RandomStringUtils.randomAlphabetic(10))
@@ -99,34 +100,32 @@ public class ReviewReplyObjectFixture {
 			.build();
 	}
 
-	public static SubReviewReplyInfo getSubReviewReplyInfo(
+	public static SubReviewReplyInfo.Info getSubReviewReplyInfo(
 		Long userId,
 		Long index,
 		Long rootReviewId,
 		Long parentReviewReplyId,
 		String parentReviewReplyAuthor
 	) {
-		return SubReviewReplyInfo.builder()
+		return SubReviewReplyInfo.Info.builder()
 			.userId(userId)
 			.imageUrl("https://picsum.photos/500")
 			.nickName(RandomStringUtils.randomAlphabetic(10))
-
 			.rootReviewId(rootReviewId)
 			.parentReviewReplyId(parentReviewReplyId)
 			.parentReviewReplyAuthor(parentReviewReplyAuthor)
-
 			.reviewReplyId(index)
 			.reviewReplyContent(RandomStringUtils.randomAlphabetic(150))
 			.createAt(LocalDateTime.of(2024, 7, 11, 0, 0, 0))
 			.build();
 	}
 
-	public static List<ReviewReplyInfo> getReviewReplyInfoList(long index) {
-		List<ReviewReplyInfo> list = new ArrayList<>();
+	public static RootReviewReplyInfo getReviewReplyInfoList(long index) {
+		List<RootReviewReplyInfo.Info> list = new ArrayList<>();
 		for (long i = 0; i < index; i++) {
 			list.add(getReviewReplyInfo(i, i));
 		}
-		return list;
+		return RootReviewReplyInfo.of((long) list.size(), list);
 	}
 
 

@@ -4,7 +4,7 @@ import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
-import app.bottlenote.review.dto.response.ReviewReplyInfo;
+import app.bottlenote.review.dto.response.RootReviewReplyInfo;
 import app.bottlenote.review.dto.response.SubReviewReplyInfo;
 
 import java.util.List;
@@ -32,9 +32,9 @@ public interface ReviewRepository {
 
 	Optional<ReviewReply> isEligibleParentReply(Long reviewId, Long parentReplyId);
 
-	List<ReviewReplyInfo> getReviewRootReplies(Long reviewId, Long cursor, Long pageSize);
+	RootReviewReplyInfo getReviewRootReplies(Long reviewId, Long cursor, Long pageSize);
 
-	List<SubReviewReplyInfo> getSubReviewReplies(Long reviewId, Long replyId, Long cursor, Long pageSize);
+	SubReviewReplyInfo getSubReviewReplies(Long reviewId, Long replyId, Long cursor, Long pageSize);
 
 	Optional<ReviewReply> findReplyByReviewIdAndReplyId(Long reviewId, Long replyId);
 }

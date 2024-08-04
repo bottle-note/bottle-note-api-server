@@ -45,6 +45,17 @@ public class ReviewReplyController {
 		return GlobalResponse.ok(reviewReplyService.registerReviewReply(reviewId, userId, request));
 	}
 
+	@DeleteMapping("/{reviewId}/{replyId}")
+	public ResponseEntity<?> deleteReviewReply(
+		@PathVariable Long reviewId,
+		@PathVariable Long replyId
+	) {
+		Long userId = SecurityContextUtil.getUserIdByContext()
+			.orElseThrow(() -> new UserException(UserExceptionCode.REQUIRED_USER_ID));
+
+		return GlobalResponse.ok(reviewReplyService.deleteReviewReply(reviewId, replyId, userId));
+	}
+
 	@GetMapping("/{reviewId}")
 	public ResponseEntity<?> getReviewReplyList(
 		@PathVariable Long reviewId,
@@ -62,17 +73,6 @@ public class ReviewReplyController {
 		@RequestParam(required = false, defaultValue = "50") Long pageSize
 	) {
 		return GlobalResponse.ok(reviewReplyService.getSubReviewReplies(reviewId, rootReplyId, cursor, pageSize));
-	}
-
-	@DeleteMapping("/{reviewId}/{replyId}")
-	public ResponseEntity<?> deleteReviewReply(
-		@PathVariable Long reviewId,
-		@PathVariable Long replyId
-	) {
-		Long userId = SecurityContextUtil.getUserIdByContext()
-			.orElseThrow(() -> new UserException(UserExceptionCode.REQUIRED_USER_ID));
-
-		return GlobalResponse.ok(reviewReplyService.deleteReviewReply(reviewId, replyId, userId));
 	}
 
 }
