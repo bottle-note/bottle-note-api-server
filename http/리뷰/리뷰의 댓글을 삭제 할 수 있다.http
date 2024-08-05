@@ -14,11 +14,6 @@ Content-Type: application/json
 
 ### 리뷰 댓글 작성
 @reviewId = 5
-POST {{host}}/api/v1/review/reply/register/{{reviewId}}
+@replyId = 23
+DELETE {{host}}/api/v1/review/reply/{{reviewId}}/{{replyId}}
 Authorization: Bearer {{accessToken}}
-Content-Type: application/json
-
-{
-  "content": "👍👍👍👍",
-  "parentReplyId": "4"
-}
