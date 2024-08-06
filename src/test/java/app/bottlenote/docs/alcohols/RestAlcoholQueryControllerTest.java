@@ -1,19 +1,5 @@
 package app.bottlenote.docs.alcohols;
 
-import app.bottlenote.alcohols.controller.AlcoholQueryController;
-import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
-import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
-import app.bottlenote.alcohols.dto.response.CategoryResponse;
-import app.bottlenote.alcohols.dto.response.detail.AlcoholDetail;
-import app.bottlenote.alcohols.fixture.AlcoholQueryFixture;
-import app.bottlenote.alcohols.service.AlcoholQueryService;
-import app.bottlenote.docs.AbstractRestDocs;
-import app.bottlenote.global.service.cursor.PageResponse;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
 import static app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup.SINGLE_MALT;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -26,6 +12,19 @@ import static org.springframework.restdocs.request.RequestDocumentation.queryPar
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import app.bottlenote.alcohols.controller.AlcoholQueryController;
+import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
+import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
+import app.bottlenote.alcohols.dto.response.CategoryResponse;
+import app.bottlenote.alcohols.dto.response.detail.AlcoholDetail;
+import app.bottlenote.alcohols.fixture.AlcoholQueryFixture;
+import app.bottlenote.alcohols.service.AlcoholQueryService;
+import app.bottlenote.docs.AbstractRestDocs;
+import app.bottlenote.global.service.cursor.PageResponse;
+import java.util.List;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("alcohol 컨트롤러 RestDocs용 테스트")
 class RestAlcoholQueryControllerTest extends AbstractRestDocs {
@@ -154,40 +153,40 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 						fieldWithPath("data.friendsInfo.friends[].nickName").description("친구의 닉네임"),
 						fieldWithPath("data.friendsInfo.friends[].rating").description("친구의 평점"),
 
-						fieldWithPath("data.reviews.totalReviewCount").description("해당 술의 총 리뷰 수"),
-						fieldWithPath("data.reviews.bestReviewInfos[].userId").description("베스트 리뷰 작성자 ID"),
-						fieldWithPath("data.reviews.bestReviewInfos[].imageUrl").description("베스트 리뷰 작성자 프로필 이미지 URL"),
-						fieldWithPath("data.reviews.bestReviewInfos[].nickName").description("베스트 리뷰 작성자 닉네임"),
-						fieldWithPath("data.reviews.bestReviewInfos[].reviewId").description("베스트 리뷰 ID"),
-						fieldWithPath("data.reviews.bestReviewInfos[].reviewContent").description("베스트 리뷰 내용"),
-						fieldWithPath("data.reviews.bestReviewInfos[].rating").description("베스트 리뷰 평점"),
-						fieldWithPath("data.reviews.bestReviewInfos[].sizeType").optional().description("베스트 리뷰 사이즈 타입"),
-						fieldWithPath("data.reviews.bestReviewInfos[].price").description("베스트 리뷰 가격"),
-						fieldWithPath("data.reviews.bestReviewInfos[].viewCount").description("베스트 리뷰 조회수"),
-						fieldWithPath("data.reviews.bestReviewInfos[].likeCount").description("베스트 리뷰 좋아요 수"),
-						fieldWithPath("data.reviews.bestReviewInfos[].isLikedByMe").description("베스트 리뷰 내가 좋아요를 눌렀는지 여부"),
-						fieldWithPath("data.reviews.bestReviewInfos[].replyCount").description("베스트 리뷰 댓글 수"),
-						fieldWithPath("data.reviews.bestReviewInfos[].hasReplyByMe").description("베스트 리뷰 내가 댓글을 달았는지 여부"),
-						fieldWithPath("data.reviews.bestReviewInfos[].status").description("리뷰 공개 비공개 여부 (PUBLIC/PRIVATE)"),
-						fieldWithPath("data.reviews.bestReviewInfos[].reviewImageUrl").description("베스트 리뷰 이미지 URL"),
-						fieldWithPath("data.reviews.bestReviewInfos[].createAt").description("베스트 리뷰 작성 날짜"),
+						fieldWithPath("data.reviewList.totalReviewCount").description("해당 술의 총 리뷰 수"),
+						fieldWithPath("data.reviewList.bestReviewInfos[].userId").description("베스트 리뷰 작성자 ID"),
+						fieldWithPath("data.reviewList.bestReviewInfos[].imageUrl").description("베스트 리뷰 작성자 프로필 이미지 URL"),
+						fieldWithPath("data.reviewList.bestReviewInfos[].nickName").description("베스트 리뷰 작성자 닉네임"),
+						fieldWithPath("data.reviewList.bestReviewInfos[].reviewId").description("베스트 리뷰 ID"),
+						fieldWithPath("data.reviewList.bestReviewInfos[].reviewContent").description("베스트 리뷰 내용"),
+						fieldWithPath("data.reviewList.bestReviewInfos[].rating").description("베스트 리뷰 평점"),
+						fieldWithPath("data.reviewList.bestReviewInfos[].sizeType").optional().description("베스트 리뷰 사이즈 타입"),
+						fieldWithPath("data.reviewList.bestReviewInfos[].price").description("베스트 리뷰 가격"),
+						fieldWithPath("data.reviewList.bestReviewInfos[].viewCount").description("베스트 리뷰 조회수"),
+						fieldWithPath("data.reviewList.bestReviewInfos[].likeCount").description("베스트 리뷰 좋아요 수"),
+						fieldWithPath("data.reviewList.bestReviewInfos[].isLikedByMe").description("베스트 리뷰 내가 좋아요를 눌렀는지 여부"),
+						fieldWithPath("data.reviewList.bestReviewInfos[].replyCount").description("베스트 리뷰 댓글 수"),
+						fieldWithPath("data.reviewList.bestReviewInfos[].hasReplyByMe").description("베스트 리뷰 내가 댓글을 달았는지 여부"),
+						fieldWithPath("data.reviewList.bestReviewInfos[].status").description("리뷰 공개 비공개 여부 (PUBLIC/PRIVATE)"),
+						fieldWithPath("data.reviewList.bestReviewInfos[].reviewImageUrl").description("베스트 리뷰 이미지 URL"),
+						fieldWithPath("data.reviewList.bestReviewInfos[].createAt").description("베스트 리뷰 작성 날짜"),
 
-						fieldWithPath("data.reviews.recentReviewInfos[].userId").description("최신 리뷰 작성자 ID"),
-						fieldWithPath("data.reviews.recentReviewInfos[].imageUrl").description("최신 리뷰 작성자 프로필 이미지 URL"),
-						fieldWithPath("data.reviews.recentReviewInfos[].nickName").description("최신 리뷰 작성자 닉네임"),
-						fieldWithPath("data.reviews.recentReviewInfos[].reviewId").description("최신 리뷰 ID"),
-						fieldWithPath("data.reviews.recentReviewInfos[].reviewContent").description("최신 리뷰 내용"),
-						fieldWithPath("data.reviews.recentReviewInfos[].rating").description("최신 리뷰 평점"),
-						fieldWithPath("data.reviews.recentReviewInfos[].sizeType").optional().description("최신 리뷰 사이즈 타입"),
-						fieldWithPath("data.reviews.recentReviewInfos[].price").description("최신 리뷰 가격"),
-						fieldWithPath("data.reviews.recentReviewInfos[].viewCount").description("최신 리뷰 조회수"),
-						fieldWithPath("data.reviews.recentReviewInfos[].likeCount").description("최신 리뷰 좋아요 수"),
-						fieldWithPath("data.reviews.recentReviewInfos[].isLikedByMe").description("최신 리뷰 내가 좋아요를 눌렀는지 여부"),
-						fieldWithPath("data.reviews.recentReviewInfos[].replyCount").description("최신 리뷰 댓글 수"),
-						fieldWithPath("data.reviews.recentReviewInfos[].hasReplyByMe").description("최신 리뷰 내가 댓글을 달았는지 여부"),
-						fieldWithPath("data.reviews.recentReviewInfos[].status").description("리뷰 공개 비공개 여부 (PUBLIC/PRIVATE)"),
-						fieldWithPath("data.reviews.recentReviewInfos[].reviewImageUrl").description("최신 리뷰 이미지 URL"),
-						fieldWithPath("data.reviews.recentReviewInfos[].createAt").description("최신 리뷰 작성 날짜"),
+						fieldWithPath("data.reviewList.recentReviewInfos[].userId").description("최신 리뷰 작성자 ID"),
+						fieldWithPath("data.reviewList.recentReviewInfos[].imageUrl").description("최신 리뷰 작성자 프로필 이미지 URL"),
+						fieldWithPath("data.reviewList.recentReviewInfos[].nickName").description("최신 리뷰 작성자 닉네임"),
+						fieldWithPath("data.reviewList.recentReviewInfos[].reviewId").description("최신 리뷰 ID"),
+						fieldWithPath("data.reviewList.recentReviewInfos[].reviewContent").description("최신 리뷰 내용"),
+						fieldWithPath("data.reviewList.recentReviewInfos[].rating").description("최신 리뷰 평점"),
+						fieldWithPath("data.reviewList.recentReviewInfos[].sizeType").optional().description("최신 리뷰 사이즈 타입"),
+						fieldWithPath("data.reviewList.recentReviewInfos[].price").description("최신 리뷰 가격"),
+						fieldWithPath("data.reviewList.recentReviewInfos[].viewCount").description("최신 리뷰 조회수"),
+						fieldWithPath("data.reviewList.recentReviewInfos[].likeCount").description("최신 리뷰 좋아요 수"),
+						fieldWithPath("data.reviewList.recentReviewInfos[].isLikedByMe").description("최신 리뷰 내가 좋아요를 눌렀는지 여부"),
+						fieldWithPath("data.reviewList.recentReviewInfos[].replyCount").description("최신 리뷰 댓글 수"),
+						fieldWithPath("data.reviewList.recentReviewInfos[].hasReplyByMe").description("최신 리뷰 내가 댓글을 달았는지 여부"),
+						fieldWithPath("data.reviewList.recentReviewInfos[].status").description("리뷰 공개 비공개 여부 (PUBLIC/PRIVATE)"),
+						fieldWithPath("data.reviewList.recentReviewInfos[].reviewImageUrl").description("최신 리뷰 이미지 URL"),
+						fieldWithPath("data.reviewList.recentReviewInfos[].createAt").description("최신 리뷰 작성 날짜"),
 
 						fieldWithPath("errors").ignored(),
 						fieldWithPath("meta.serverVersion").ignored(),

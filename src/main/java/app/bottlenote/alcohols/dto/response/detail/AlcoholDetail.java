@@ -3,9 +3,10 @@ package app.bottlenote.alcohols.dto.response.detail;
 public record AlcoholDetail(
 	AlcoholDetailInfo alcohols,
 	FriendsDetailInfo friendsInfo,
-	ReviewsDetailInfo reviews
+	ReviewsDetailInfo reviewList
 ) {
-	public static AlcoholDetail of(AlcoholDetailInfo alcohols, FriendsDetailInfo friendsInfo, ReviewsDetailInfo reviews) {
-		return new AlcoholDetail(alcohols, friendsInfo, reviews);
+
+	public static AlcoholDetail of(AlcoholDetailInfo alcohols, FriendsDetailInfo friendsInfo, ReviewsDetailInfo reviewList) {
+		return new AlcoholDetail(alcohols, friendsInfo, reviewList);
 	}
 }
