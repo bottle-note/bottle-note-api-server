@@ -2,11 +2,10 @@ package app.bottlenote.review.dto.response;
 
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
-import lombok.Builder;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import lombok.Builder;
 
 public record ReviewListResponse(
 	Long totalCount,
@@ -45,7 +44,8 @@ public record ReviewListResponse(
 
 		Boolean isMyReview,
 		Boolean isLikedByMe,
-		Boolean hasReplyByMe
+		Boolean hasReplyByMe,
+		Boolean isBestReview
 	) {
 	}
 }
