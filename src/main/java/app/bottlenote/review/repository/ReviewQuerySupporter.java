@@ -1,5 +1,11 @@
 package app.bottlenote.review.repository;
 
+import static app.bottlenote.like.domain.QLikes.likes;
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
+import static app.bottlenote.review.domain.QReviewReply.reviewReply;
+import static app.bottlenote.user.domain.QUser.user;
+
 import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
@@ -9,18 +15,12 @@ import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
-import org.springframework.stereotype.Component;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
-
-import static app.bottlenote.like.domain.QLikes.likes;
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.domain.QReview.review;
-import static app.bottlenote.review.domain.QReviewReply.reviewReply;
-import static app.bottlenote.user.domain.QUser.user;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ReviewQuerySupporter {
@@ -58,7 +58,7 @@ public class ReviewQuerySupporter {
 	 * @param userId 유저 ID
 	 * @return ReviewListResponse.ReviewInfo
 	 */
-	public ConstructorExpression<ReviewListResponse.ReviewInfo> reviewResponseConstructor(Long userId) {
+	public ConstructorExpression<ReviewListResponse.ReviewInfo> reviewResponseConstructor(Long userId, Long bestReviewId) {
 		return Projections.constructor(
 			ReviewListResponse.ReviewInfo.class,
 			review.id.as("reviewId"),
@@ -76,7 +76,8 @@ public class ReviewQuerySupporter {
 			review.status.as("status"),
 			isMyReviewSubquery(userId),
 			isLikeByMeSubquery(userId),
-			hasReplyByMeSubquery(userId)
+			hasReplyByMeSubquery(userId),
+			isBestReviewSubquery(bestReviewId, review.id.longValue())
 		);
 	}
 
@@ -125,6 +126,10 @@ public class ReviewQuerySupporter {
 	 */
 	public BooleanExpression isBestReviewSubquery(Long bestReviewId, Long reviewId) {
 		return Objects.equals(bestReviewId, reviewId) ? Expressions.asBoolean(true) : Expressions.asBoolean(false);
+	}
+
+	public BooleanExpression isBestReviewSubquery(Long bestReviewId, NumberExpression<Long> reviewId) {
+		return reviewId.eq(bestReviewId);
 	}
 
 	/**
