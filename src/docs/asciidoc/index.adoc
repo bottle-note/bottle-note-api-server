@@ -95,6 +95,8 @@ include::api/review/likes/update.adoc[]
 
 include::api/review/reply/review-reply-registry.adoc[]
 
+include::api/review/reply/review-reply-delete.adoc[]
+
 include::api/review/reply/review-reply-list.adoc[]
 
 include::api/review/reply/sub-review-reply-list.adoc[]
