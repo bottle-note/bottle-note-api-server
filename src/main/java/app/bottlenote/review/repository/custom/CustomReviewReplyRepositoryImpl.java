@@ -1,10 +1,12 @@
 package app.bottlenote.review.repository.custom;
 
 import app.bottlenote.review.domain.QReviewReply;
-import app.bottlenote.review.dto.response.ReviewReplyInfo;
+import app.bottlenote.review.domain.constant.ReviewReplyStatus;
+import app.bottlenote.review.dto.response.RootReviewReplyInfo;
 import app.bottlenote.review.dto.response.SubReviewReplyInfo;
 import app.bottlenote.user.domain.QUser;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,18 +27,23 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
 	}
 
 	@Override
-	public List<?> getReviewRootReplies(Long reviewId, Long cursor, Long pageSize) {
+	public RootReviewReplyInfo getReviewRootReplies(Long reviewId, Long cursor, Long pageSize) {
 		long start = System.nanoTime();
 		QReviewReply subReply = new QReviewReply("subReply");
 
-		List<ReviewReplyInfo> replyInfoList = queryFactory.select(
+		List<RootReviewReplyInfo.Info> replyInfoList = queryFactory.select(
 				Projections.constructor(
-					ReviewReplyInfo.class,
+					RootReviewReplyInfo.Info.class,
 					reviewReply.userId,
 					user.imageUrl,
 					user.nickName,
 					reviewReply.id,
-					reviewReply.content,
+
+					new CaseBuilder()
+						.when(reviewReply.status.eq(ReviewReplyStatus.DELETED))
+						.then(ReviewReplyStatus.DELETED.getMessage())
+						.otherwise(reviewReply.content),
+
 					queryFactory
 						.select(count(subReply.id))
 						.from(subReply)
@@ -56,21 +63,31 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
 			.limit(pageSize)
 			.fetch();
 
+
+		Long totalCount = queryFactory.select(count(reviewReply.id))
+			.from(reviewReply)
+			.where(
+				reviewReply.review.id.eq(reviewId),
+				reviewReply.rootReviewReply.isNull()
+			)
+			.fetchOne();
+
 		long end = System.nanoTime();
 		log.debug("최상위 댓글 목록 조회 시간 : {}", (end - start) / 1_000_000 + "ms");
-		return replyInfoList;
+
+		return RootReviewReplyInfo.of(totalCount, replyInfoList);
 	}
 
 	@Override
-	public List<?> getSubReviewReplies(Long reviewId, Long rootReplyId, Long cursor, Long pageSize) {
+	public SubReviewReplyInfo getSubReviewReplies(Long reviewId, Long rootReplyId, Long cursor, Long pageSize) {
 		long start = System.nanoTime();
 
 		var parentReviewReply = new QReviewReply("parentReviewReply");
 		var parentUser = new QUser("parentUser");
 
-		List<SubReviewReplyInfo> subReplyInfoList = queryFactory.select(
+		List<SubReviewReplyInfo.Info> subReplyInfoList = queryFactory.select(
 				Projections.constructor(
-					SubReviewReplyInfo.class,
+					SubReviewReplyInfo.Info.class,
 					user.id,
 					user.imageUrl,
 					user.nickName,
@@ -78,7 +95,12 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
 					reviewReply.parentReviewReply.id,
 					parentUser.nickName,
 					reviewReply.id,
-					reviewReply.content,
+
+					new CaseBuilder()
+						.when(reviewReply.status.eq(ReviewReplyStatus.DELETED))
+						.then(ReviewReplyStatus.DELETED.getMessage())
+						.otherwise(reviewReply.content),
+
 					reviewReply.createAt
 				)
 			).from(reviewReply)
@@ -94,8 +116,17 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
 			.limit(pageSize) // 페이지 사이즈
 			.fetch();
 
+		Long totalCount = queryFactory.select(count(reviewReply.id))
+			.from(reviewReply)
+			.where(
+				reviewReply.review.id.eq(reviewId),
+				reviewReply.rootReviewReply.id.eq(rootReplyId)
+			)
+			.fetchOne();
+
 		long end = System.nanoTime();
 		log.info("대댓글 목록 조회 시간 : {}", (end - start) / 1_000_000 + "ms");
-		return subReplyInfoList;
+		return SubReviewReplyInfo.of(totalCount, subReplyInfoList);
 	}
+
 }
