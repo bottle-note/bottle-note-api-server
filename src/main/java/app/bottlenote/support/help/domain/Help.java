@@ -2,20 +2,24 @@ package app.bottlenote.support.help.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.support.constant.StatusType;
-import app.bottlenote.user.domain.User;
+import app.bottlenote.support.help.domain.constant.HelpType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
 @Comment("문의사항")
 @Entity(name = "help")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Help extends BaseEntity {
 
 	@Id
@@ -23,12 +27,13 @@ public class Help extends BaseEntity {
 	private Long id;
 
 	@Comment("문의자")
-	@ManyToOne(fetch = FetchType.LAZY)
-	private User user;
+	@Column(name = "userId", nullable = false)
+	private Long userId;
 
-	@Comment("문의 타입") //todo : ENUM 클래스 만들어서 변경 필
+	@Comment("문의 타입")
 	@Column(name = "type", nullable = false)
-	private String type;
+	@Enumerated(EnumType.STRING)
+	private HelpType type;
 
 	@Comment("문의 제목")
 	@Column(name = "title", nullable = false)
@@ -51,4 +56,23 @@ public class Help extends BaseEntity {
 	@Column(name = "response_content", nullable = false)
 	private String responseContent;
 
+	@Builder
+	private Help(Long id, Long userId, HelpType type, String title, String content, Long adminId, String responseContent) {
+		this.id = id;
+		this.userId = userId;
+		this.type = type;
+		this.title = title;
+		this.content = content;
+		this.adminId = adminId;
+		this.responseContent = responseContent;
+	}
+
+	public static Help create(Long userId, String title, String content, HelpType helpType) {
+		return Help.builder()
+			.userId(userId)
+			.title(title)
+			.content(content)
+			.type(helpType)
+			.build();
+	}
 }
