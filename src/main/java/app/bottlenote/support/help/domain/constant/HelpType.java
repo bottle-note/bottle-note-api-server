@@ -1,6 +1,6 @@
 package app.bottlenote.support.help.domain.constant;
 
-public enum HelpStatus {
+public enum HelpType {
 	WHISKEY,
 	REVIEW,
 	USER,
