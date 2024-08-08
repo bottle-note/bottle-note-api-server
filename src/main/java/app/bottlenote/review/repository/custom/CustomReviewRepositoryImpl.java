@@ -97,6 +97,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.leftJoin(review.reviewReplies, reviewReply)
 			.leftJoin(rating).on(rating.alcohol.id.eq(review.alcoholId))
 			.leftJoin(likes).on(likes.review.id.eq(review.id))
+			.where(review.alcoholId.eq(alcoholId).and(review.activeStatus.eq(ACTIVE)))
 			.groupBy(user.id, user.imageUrl, user.nickName, review.id, review.content, rating.ratingPoint, review.createAt)
 			.orderBy(reviewReply.count().coalesce(0L)
 				.add(likes.count().coalesce(0L))
@@ -105,6 +106,8 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			)
 			.limit(1)
 			.fetchOne();
+
+		log.info("best review id : {}", bestReviewId);
 
 		List<ReviewListResponse.ReviewInfo> fetch = queryFactory
 			.select(supporter.reviewResponseConstructor(userId, bestReviewId))
@@ -147,6 +150,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.leftJoin(review.reviewReplies, reviewReply)
 			.leftJoin(rating).on(rating.alcohol.id.eq(review.alcoholId))
 			.leftJoin(likes).on(likes.review.id.eq(review.id))
+			.where(alcohol.id.eq(alcoholId).and(review.activeStatus.eq(ACTIVE)))
 			.groupBy(user.id, user.imageUrl, user.nickName, review.id, review.content, rating.ratingPoint, review.createAt)
 			.orderBy(reviewReply.count().coalesce(0L)
 				.add(likes.count().coalesce(0L))
