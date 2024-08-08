@@ -7,6 +7,7 @@ import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.support.help.dto.request.HelpRegisterRequest;
 import app.bottlenote.support.help.service.HelpService;
 import app.bottlenote.user.exception.UserException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,7 +23,7 @@ public class HelpCommandController {
 	private final HelpService helpService;
 
 	@PostMapping
-	public ResponseEntity<?> registerHelp(@RequestBody HelpRegisterRequest helpRegisterRequest) {
+	public ResponseEntity<?> registerHelp(@Valid @RequestBody HelpRegisterRequest helpRegisterRequest) {
 
 		Long currentUserId = SecurityContextUtil.getUserIdByContext().
 			orElseThrow(() -> new UserException(USER_NOT_FOUND));
