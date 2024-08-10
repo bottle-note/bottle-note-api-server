@@ -105,6 +105,9 @@ include::api/review/reply/sub-review-reply-list.adoc[]
 
 include::api/support/report/user-report.adoc[]
 
+include::api/support/help/help-register.adoc[]
+
+
 == 팔로우 (follow) 관련 API
 
 include::api/follow/follow-update.adoc[]
