@@ -14,6 +14,6 @@ public interface HelpRepository {
 	List<Help> findAll();
 
 	List<Help> findAllByUserId(Long userId);
-
-	List<Help> findAllByUserIdAndHelpType(Long userId, HelpType helpType);
+	
+	List<Help> findAllByUserIdAndType(Long userId, HelpType helpType);
 }
