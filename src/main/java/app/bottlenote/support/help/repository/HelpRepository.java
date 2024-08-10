@@ -1,6 +1,7 @@
 package app.bottlenote.support.help.repository;
 
 import app.bottlenote.support.help.domain.Help;
+import app.bottlenote.support.help.domain.constant.HelpType;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,4 +13,7 @@ public interface HelpRepository {
 
 	List<Help> findAll();
 
+	List<Help> findAllByUserId(Long userId);
+
+	List<Help> findAllByUserIdAndHelpType(Long userId, HelpType helpType);
 }
