@@ -3,7 +3,6 @@ package app.bottlenote.user.fixture;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.constant.GenderType;
 import app.bottlenote.user.domain.constant.SocialType;
-import app.bottlenote.user.domain.constant.UserStatus;
 import app.bottlenote.user.domain.constant.UserType;
 
 public class UserObjectFixture {
@@ -17,7 +16,6 @@ public class UserObjectFixture {
 			.role(UserType.ROLE_USER)
 			.imageUrl("profileurl")
 			.nickName("nickname")
-			.status(UserStatus.ACTIVE)
 			.socialType(SocialType.KAKAO)
 			.build();
 	}
@@ -31,7 +29,6 @@ public class UserObjectFixture {
 			.role(UserType.ROLE_USER)
 			.imageUrl("profileurl")
 			.nickName("nickname")
-			.status(UserStatus.ACTIVE)
 			.socialType(SocialType.KAKAO)
 			.build();
 	}
@@ -45,7 +42,6 @@ public class UserObjectFixture {
 			.role(UserType.ROLE_USER)
 			.imageUrl("profileurl")
 			.nickName("nickname")
-			.status(UserStatus.ACTIVE)
 			.socialType(SocialType.KAKAO)
 			.build();
 	}

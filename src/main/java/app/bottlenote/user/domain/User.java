@@ -71,7 +71,7 @@ public class User {
 
 	@Builder
 	public User(Long id, String email, String nickName, Integer age, String gender, String imageUrl,
-		UserType role, UserStatus status, SocialType socialType, String refreshToken) {
+		UserType role, SocialType socialType, String refreshToken) {
 		this.id = id;
 		this.email = email;
 		this.nickName = nickName;
@@ -79,7 +79,6 @@ public class User {
 		this.gender = gender;
 		this.imageUrl = imageUrl;
 		this.role = role;
-		this.status = status;
 		this.socialType = socialType;
 		this.refreshToken = refreshToken;
 	}
