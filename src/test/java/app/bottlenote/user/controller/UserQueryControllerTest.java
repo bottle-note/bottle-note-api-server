@@ -82,4 +82,6 @@ public class UserQueryControllerTest {
 		resultActions.andExpect(jsonPath("$.data.isFollow").value(true));
 		resultActions.andExpect(jsonPath("$.data.isMyPage").value(true));
 	}
+
+
 }
