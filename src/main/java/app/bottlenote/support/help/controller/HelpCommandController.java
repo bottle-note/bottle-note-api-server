@@ -1,6 +1,6 @@
 package app.bottlenote.support.help.controller;
 
-import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
+import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
@@ -26,7 +26,7 @@ public class HelpCommandController {
 	public ResponseEntity<?> registerHelp(@Valid @RequestBody HelpRegisterRequest helpRegisterRequest) {
 
 		Long currentUserId = SecurityContextUtil.getUserIdByContext().
-			orElseThrow(() -> new UserException(USER_NOT_FOUND));
+			orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
 		return GlobalResponse.ok(helpService.registerHelp(helpRegisterRequest, currentUserId));
 	}
