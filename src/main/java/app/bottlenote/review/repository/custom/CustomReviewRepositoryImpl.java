@@ -90,8 +90,27 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		PageableRequest pageableRequest,
 		Long userId
 	) {
+		Long bestReviewId = queryFactory
+			.select(review.id)
+			.from(review)
+			.join(user).on(review.userId.eq(user.id))
+			.leftJoin(review.reviewReplies, reviewReply)
+			.leftJoin(rating).on(rating.alcohol.id.eq(review.alcoholId))
+			.leftJoin(likes).on(likes.review.id.eq(review.id))
+			.where(review.alcoholId.eq(alcoholId).and(review.activeStatus.eq(ACTIVE)))
+			.groupBy(user.id, user.imageUrl, user.nickName, review.id, review.content, rating.ratingPoint, review.createAt)
+			.orderBy(reviewReply.count().coalesce(0L)
+				.add(likes.count().coalesce(0L))
+				.add(rating.ratingPoint.rating.coalesce(0.0).avg())
+				.desc()
+			)
+			.limit(1)
+			.fetchOne();
+
+		log.info("best review id : {}", bestReviewId);
+
 		List<ReviewListResponse.ReviewInfo> fetch = queryFactory
-			.select(supporter.reviewResponseConstructor(userId))
+			.select(supporter.reviewResponseConstructor(userId, bestReviewId))
 			.from(review)
 			.join(user).on(review.userId.eq(user.id))
 			.leftJoin(likes).on(review.id.eq(likes.review.id))
@@ -123,8 +142,26 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		PageableRequest pageableRequest,
 		Long userId
 	) {
+
+		Long bestReviewId = queryFactory
+			.select(review.id)
+			.from(review)
+			.join(user).on(review.userId.eq(user.id))
+			.leftJoin(review.reviewReplies, reviewReply)
+			.leftJoin(rating).on(rating.alcohol.id.eq(review.alcoholId))
+			.leftJoin(likes).on(likes.review.id.eq(review.id))
+			.where(alcohol.id.eq(alcoholId).and(review.activeStatus.eq(ACTIVE)))
+			.groupBy(user.id, user.imageUrl, user.nickName, review.id, review.content, rating.ratingPoint, review.createAt)
+			.orderBy(reviewReply.count().coalesce(0L)
+				.add(likes.count().coalesce(0L))
+				.add(rating.ratingPoint.rating.coalesce(0.0).avg())
+				.desc()
+			)
+			.limit(1)
+			.fetchOne();
+
 		List<ReviewListResponse.ReviewInfo> fetch = queryFactory
-			.select(supporter.reviewResponseConstructor(userId))
+			.select(supporter.reviewResponseConstructor(userId, bestReviewId))
 			.from(review)
 			.join(user).on(review.userId.eq(user.id))
 			.leftJoin(likes).on(review.id.eq(likes.review.id))

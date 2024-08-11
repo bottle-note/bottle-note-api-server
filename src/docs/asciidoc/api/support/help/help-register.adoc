@@ -1,0 +1,48 @@
+=== 문의글 작성 ===
+
+사용자는 시스템 관리자에게 문의글을 등록할 수 있습니다.
+
+문의글 제목은 null이거나 공백("")일 수 없습니다.
+
+문의글 내용은 null이거나 공백("")일 수 없으며, 최대 1000자까지 허용됩니다.
+
+문의글의 타입은 아래 표로 기술했습니다.
+
+[cols="1,2",options="header"]
+|===
+| 문의글 타입 | 설명
+
+| `WHISKEY`
+| 위스키 관련 문의
+
+| `REVIEW`
+| 리뷰 관련 문의
+
+| `USER`
+| 회원 관련 문의
+
+| `ETC`
+| 그 외 모든 문의
+
+|===
+
+'''
+
+[source]
+----
+POST /api/v1/help
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/support/help/help-register/request-fields.adoc[]
+include::{snippets}/support/help/help-register/request-body.adoc[]
+
+[discrete]
+==== 응답 파라미터  ====
+
+[discrete]
+include::{snippets}/support/help/help-register/response-fields.adoc[]
+include::{snippets}/support/help/help-register/response-body.adoc[]
