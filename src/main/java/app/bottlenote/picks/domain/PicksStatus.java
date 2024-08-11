@@ -16,6 +16,5 @@ public enum PicksStatus {
 			return null;
 		}
 		return PicksStatus.valueOf(source.toUpperCase());
-
 	}
 }

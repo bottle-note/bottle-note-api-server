@@ -1,7 +1,9 @@
 package app.bottlenote.global.exception.handler;
 
+import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.exception.custom.AbstractCustomException;
+import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.global.security.jwt.JwtExceptionType;
 import app.bottlenote.global.service.meta.MetaService;
 import com.amazonaws.AmazonClientException;
@@ -12,10 +14,6 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.SignatureException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,13 +25,23 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
 @Slf4j(topic = "GlobalExceptionHandler")
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
 	private static final String KEY_MESSAGE = "message";
 
-	private ResponseEntity<GlobalResponse> createResponseEntity(Exception exception, HttpStatus status, Map<String, String> message) {
+	private ResponseEntity<?> createResponseEntity(
+		Exception exception,
+		HttpStatus status,
+		Map<String, String> message
+	) {
 		log.warn("예외 발생 : ", exception);
 		return new ResponseEntity<>(GlobalResponse.error(status.value(), message), status);
 	}
@@ -46,10 +54,8 @@ public class GlobalExceptionHandler {
 	 * @return the response entity
 	 */
 	@ExceptionHandler(AbstractCustomException.class)
-	public ResponseEntity<GlobalResponse> handleCustomException(AbstractCustomException exception) {
-		String errorMessage = exception.getMessage();
-		Map<String, String> message = Map.of(KEY_MESSAGE, errorMessage);
-		return createResponseEntity(exception, HttpStatus.BAD_REQUEST, message);
+	public ResponseEntity<?> handleCustomException(AbstractCustomException exception) {
+		return GlobalResponse.error(exception);
 	}
 
 	/**
@@ -59,7 +65,7 @@ public class GlobalExceptionHandler {
 	 * @return the response entity
 	 */
 	@ExceptionHandler(value = {Exception.class})
-	public ResponseEntity<GlobalResponse> handleGenericException(Exception exception) {
+	public ResponseEntity<?> handleGenericException(Exception exception) {
 		Map<String, String> message = Map.of(KEY_MESSAGE, exception.getMessage());
 		return createResponseEntity(exception, HttpStatus.BAD_REQUEST, message);
 	}
@@ -72,21 +78,25 @@ public class GlobalExceptionHandler {
 	 * @return the response entity
 	 */
 	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public ResponseEntity<GlobalResponse> handleValidationException(MethodArgumentNotValidException exception) {
+	public ResponseEntity<?> handleValidationException(MethodArgumentNotValidException exception) {
 
 		BindingResult bindingResult = exception.getBindingResult();
+
 		List<FieldError> fieldErrors = bindingResult.getFieldErrors();
-		Map<String, String> errorMessages = new HashMap<>();
+
+		Set<Error> errorSet = new HashSet<>();
 
 		for (FieldError fieldError : fieldErrors) {
-			String fieldName = fieldError.getField();
-			Object rejectedValue = fieldError.getRejectedValue();
-			String defaultMessage = fieldError.getDefaultMessage();   // 한글로 오류 메시지 생성
-			String errorMessage = String.format("필드 '%s'의 값 '%s'가 유효하지 않습니다: %s", fieldName, rejectedValue, defaultMessage);
-			errorMessages.put(fieldName, errorMessage);
+			//String fieldName = fieldError.getField();  // 필드명
+			//Object rejectedValue = fieldError.getRejectedValue(); // 거부된 값
+
+			ValidExceptionCode code = ValidExceptionCode.valueOf(fieldError.getDefaultMessage());
+			Error error = Error.of(code);
+
+			errorSet.add(error);
 		}
 
-		return createResponseEntity(exception, HttpStatus.BAD_REQUEST, errorMessages);
+		return GlobalResponse.error(errorSet);
 	}
 
 	/**
@@ -96,30 +106,31 @@ public class GlobalExceptionHandler {
 	 * @return the response entity
 	 */
 	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
-	public ResponseEntity<GlobalResponse> handleTypeMismatchException(MethodArgumentTypeMismatchException exception) {
+	public ResponseEntity<?> handleTypeMismatchException(MethodArgumentTypeMismatchException exception) {
 		String fieldName = exception.getName();
 		String rejectedValue = Objects.requireNonNull(exception.getValue()).toString();
 		String requiredType = Objects.requireNonNull(exception.getRequiredType()).getSimpleName();
+		String errorMessage = String.format("'%s' 필드는 '%s' 타입이 필요하지만, 잘못된 값 '%s'가 입력되었습니다.", fieldName, requiredType, rejectedValue);
 
-		String errorMessage = String.format("'%s' 필드는 '%s' 타입이 필요하지만, 잘못된 값 '%s'가 입력되었습니다.",
-			fieldName, requiredType, rejectedValue);
-
-		Map<String, String> message = Map.of(KEY_MESSAGE, errorMessage);
-
-		return new ResponseEntity<>(GlobalResponse.error(HttpStatus.BAD_REQUEST.value(), message), HttpStatus.BAD_REQUEST);
+		ValidExceptionCode code = ValidExceptionCode.TYPE_MISMATCH;
+		code.updateMessage(errorMessage);
+		return GlobalResponse.error(Error.of(code));
 	}
 
 
 	/**
-	 * JSON 파싱에 실패한 경우에 대한 처리
-	 * 잘못된 타입 발견 시 바로 HttpMessageNotReadableException가 반환되기 떄문에 개별적인 오류 메시지만 반환된다.
+	 * JSON 파싱에 실패한 경우에 대한 처리<br>
+	 * 잘못된 타입 발견 시 바로 HttpMessageNotReadableException가 <br>
+	 * 반환되기 떄문에 개별적인 오류 메시지만 반환된다. <br>
 	 *
 	 * @param exception the exception
 	 * @return the response entity
 	 */
 	@ExceptionHandler(HttpMessageNotReadableException.class)
-	public ResponseEntity<GlobalResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException exception) {
+	public ResponseEntity<?> handleHttpMessageNotReadableException(HttpMessageNotReadableException exception) {
+
 		String finallyErrorMessage = "요청 본문을 파싱하는 도중 오류가 발생했습니다. 요청 본문의 형식을 확인해주세요.";
+
 		Throwable cause = exception.getCause();
 
 		if (cause instanceof JsonMappingException jsonMappingException) {
@@ -151,14 +162,13 @@ public class GlobalExceptionHandler {
 		return "";
 	}
 
-
 	/**
 	 * JWT 토큰 관련 통합 예외 처리
 	 *
 	 * @return the response entity
 	 */
 	@ExceptionHandler(value = {SignatureException.class, MalformedJwtException.class, ExpiredJwtException.class, UnsupportedJwtException.class, IllegalArgumentException.class})
-	public ResponseEntity<GlobalResponse> jwtTokenException(Exception e) {
+	public ResponseEntity<?> jwtTokenException(Exception e) {
 
 		JwtExceptionType exceptionType = getJwtExceptionType(e);
 
@@ -201,7 +211,7 @@ public class GlobalExceptionHandler {
 	 * @return the response entity
 	 */
 	@ExceptionHandler(AmazonClientException.class)
-	public ResponseEntity<GlobalResponse> handleAmazonClientException(AmazonClientException exception) {
+	public ResponseEntity<?> handleAmazonClientException(AmazonClientException exception) {
 		String errorMessage;
 		HttpStatus status;
 
