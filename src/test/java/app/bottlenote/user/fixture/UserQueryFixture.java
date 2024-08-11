@@ -1,6 +1,10 @@
 package app.bottlenote.user.fixture;
 
+import app.bottlenote.global.service.cursor.CursorPageable;
+import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
+
+import java.util.List;
 
 public class UserQueryFixture {
 
@@ -20,4 +24,15 @@ public class UserQueryFixture {
 			.build();
 
 	}
+
+	public MyBottleResponse getMyBottleResponse(Long userId, boolean isMyPage, List<MyBottleResponse.MyBottleInfo> myBottleList, CursorPageable cursorPageable) {
+		return MyBottleResponse.builder()
+			.userId(userId)
+			.isMyPage(isMyPage)
+			.totalCount((long) myBottleList.size())
+			.myBottleList(myBottleList)
+			.cursorPageable(cursorPageable)
+			.build();
+	}
+
 }
