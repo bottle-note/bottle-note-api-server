@@ -468,6 +468,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_프로필_변경">3.4. 프로필 변경</a></li>
 <li><a href="#_회원_탈퇴">3.5. 회원 탈퇴</a></li>
 <li><a href="#_마이페이지_기본정보_조회">3.6. 마이페이지 기본정보 조회</a></li>
+<li><a href="#_마이보틀_조회">3.7. 마이보틀 조회</a></li>
 </ul>
 </li>
 <li><a href="#_술_alcohol_관련_api">4. 술 (alcohol) 관련 API</a>
@@ -506,6 +507,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_지원_support_관련_api">8. 지원 (support) 관련 API</a>
 <ul class="sectlevel2">
 <li><a href="#_유저_신고_요청">8.1. 유저 신고 요청</a></li>
+<li><a href="#_문의글_작성">8.2. 문의글 작성</a></li>
 </ul>
 </li>
 <li><a href="#_팔로우_follow_관련_api">9. 팔로우 (follow) 관련 API</a>
@@ -1017,7 +1019,7 @@ Host: localhost:8080</code></pre>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:42.192410",
+    "serverResponseTime" : "2024-08-11T16:14:07.813628",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1214,7 +1216,7 @@ Host: localhost:8080</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
-Set-Cookie: refresh-token=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNjE4NTIyM30.lvmPueUcOb1erv5Llo4qhEUQ_gtWrpFGbBHDw-Pi94qj8MGojoEI3ugdMo8PwoKgrVQZ_gBwBbytwjxh8XktUg; Path=/; Max-Age=1209600; Expires=Sun, 18 Aug 2024 04:22:42 GMT; Secure; HttpOnly
+Set-Cookie: refresh-token=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNjE4NTIyM30.lvmPueUcOb1erv5Llo4qhEUQ_gtWrpFGbBHDw-Pi94qj8MGojoEI3ugdMo8PwoKgrVQZ_gBwBbytwjxh8XktUg; Path=/; Max-Age=1209600; Expires=Sun, 25 Aug 2024 07:14:08 GMT; Secure; HttpOnly
 Content-Type: application/json;charset=UTF-8
 Content-Length: 501
 
@@ -1228,7 +1230,7 @@ Content-Length: 501
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:42.616944",
+    "serverResponseTime" : "2024-08-11T16:14:08.251473",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1331,7 +1333,7 @@ Content-Length: 501
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
-Set-Cookie: refresh-token=new-refresh-token; Path=/; Max-Age=1209600; Expires=Sun, 18 Aug 2024 04:22:42 GMT; Secure; HttpOnly
+Set-Cookie: refresh-token=new-refresh-token; Path=/; Max-Age=1209600; Expires=Sun, 25 Aug 2024 07:14:08 GMT; Secure; HttpOnly
 Content-Type: application/json;charset=UTF-8
 Content-Length: 282
 
@@ -1345,7 +1347,7 @@ Content-Length: 282
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:42.532503",
+    "serverResponseTime" : "2024-08-11T16:14:08.183155",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1488,7 +1490,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:42.285517",
+    "serverResponseTime" : "2024-08-11T16:14:07.906312",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1511,7 +1513,7 @@ null일 경우 기본 이미지로 인식합니다.</p>
 <pre class="highlightjs highlight"><code class="language-none hljs">PATCH /api/v1/users/profile-image</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_5">요청 파라미터</h4>
+<h4 id="_요청_파라미터_5" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -1538,7 +1540,7 @@ null일 경우 기본 이미지로 인식합니다.</p>
 </table>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/users/profile-image?_csrf=N3wNeMpW83fQqbfkJFAP_KHpvhFRU7Kx0EOVaVGKTcbatfu9DklpT65nwkD9z9KARX07xJSLkyhlMdGc4CGmUGfsKKDvhMqK HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/users/profile-image?_csrf=u5PmcOUpiqW_f36BoR7BbQPLDGRc30vE6nUvXf9CXs0scr9fjafeSdEa78GSTx_nwDP1DzH6IV1uuXjp2UROac5zPfQUS45q HTTP/1.1
 Content-Type: application/json;charset=UTF-8
 Content-Length: 60
 Host: localhost:8080
@@ -1548,7 +1550,7 @@ Host: localhost:8080
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_응답_파라미터_5">응답 파라미터</h4>
+<h4 id="_응답_파라미터_5" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -1613,7 +1615,7 @@ Content-Length: 387
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:42.326524",
+    "serverResponseTime" : "2024-08-11T16:14:07.945840",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1641,7 +1643,7 @@ Content-Length: 387
 <pre class="highlightjs highlight"><code class="language-none hljs">DELETE /api/v1/users</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_응답_파라미터_6">응답 파라미터</h4>
+<h4 id="_응답_파라미터_6" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -1701,13 +1703,13 @@ Content-Length: 414
     "codeMessage" : "USER_WITHDRAW_SUCCESS",
     "message" : "성공적으로 탈퇴가 완료되었습니다",
     "userId" : 1,
-    "responseAt" : "2024-08-04 13:22:42"
+    "responseAt" : "2024-08-11 16:14:08"
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:42.665094",
+    "serverResponseTime" : "2024-08-11T16:14:08.285446",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1730,7 +1732,7 @@ GET /api/mypage/{userId}
 ---</code></pre>
 </div>
 </div>
-<h3 class="discrete" id="_요청_파라미터_6">요청 파라미터</h3>
+<h3 id="_요청_파라미터_6" class="discrete">요청 파라미터</h3>
 <div class="ulist discrete">
 <ul class="discrete">
 <li>
@@ -1738,7 +1740,7 @@ GET /api/mypage/{userId}
 </li>
 </ul>
 </div>
-<h3 class="discrete" id="_응답_결과">응답 결과</h3>
+<h3 id="_응답_결과" class="discrete">응답 결과</h3>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -1820,6 +1822,197 @@ GET /api/mypage/{userId}
 </tr>
 </tbody>
 </table>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_마이보틀_조회"><a class="link" href="#_마이보틀_조회">3.7. 마이보틀 조회</a></h3>
+<div class="ulist">
+<ul>
+<li>
+<p>마이 보틀 조회 API는 <code>사용자</code> 가 위스키에 액션(찜하기/리뷰/별점)을 조회하는 API입니다.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">---
+GET /api/v1/mypage/{userId}/my-bottle
+---</code></pre>
+</div>
+</div>
+<h3 id="_요청파라미터" class="discrete">요청파라미터</h3>
+<div class="ulist discrete">
+<ul class="discrete">
+<li>
+<p>userId : 사용자 ID (조회대상 사용자)</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Parameter</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>keyword</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">검색 키워드</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>regionId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">지역 ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>tabType</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">탭 유형</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>sortType</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">정렬 타입(해당 문서 하단 enum 참조)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>sortOrder</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">정렬 순서(해당 문서 하단 enum 참조)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>cursor</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">조회 할 시작 기준 위치</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>pageSize</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">조회 할 페이지 사이즈</p></td>
+</tr>
+</tbody>
+</table>
+<h4 id="_응답_파라미터_7" class="discrete">응답 파라미터</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">path</th>
+<th class="tableblock halign-left valign-top">type</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>code</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 코드</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Object</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 데이터</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.userId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">유저 아이디</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.isMyPage</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">본인 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.totalCount</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">전체 보틀 수</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.myBottleList</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">보틀 목록</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.myBottleList[].alcoholId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">알코올 아이디</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.myBottleList[].korName</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">알코올 한글명</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.myBottleList[].engName</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">알코올 영문명</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.myBottleList[].korCategoryName</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">알코올 카테고리명</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.myBottleList[].imageUrl</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">알코올 이미지 URL</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.myBottleList[].isPicked</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">찜 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.myBottleList[].hasReviewByMe</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">리뷰 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.myBottleList[].rating</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">평점</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.cursorPageable</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">커서 페이지 정보</p></td>
+</tr>
+</tbody>
+</table>
+<h5 id="_정렬_타입_sorttype" class="discrete"><em>정렬 타입 (sortType)</em></h5>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">LATEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">최신</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">RATING</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">별점</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REVIEW</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">리뷰</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
 </div>
 </div>
 </div>
@@ -1831,7 +2024,7 @@ GET /api/mypage/{userId}
 <div class="paragraph">
 <p>검색 조건으로 술(위스키) 정보를 조회합니다.</p>
 </div>
-<h4 class="discrete" id="_요청_파라미터_7">요청 파라미터</h4>
+<h4 id="_요청_파라미터_7" class="discrete">요청 파라미터</h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ http GET 'http://localhost:8080/api/v1/alcohols/search?keyword=glen&amp;category=SINGLE_MALT&amp;regionId=1&amp;sortType=REVIEW&amp;sortOrder=DESC&amp;cursor=0&amp;pageSize=3'</code></pre>
@@ -1879,7 +2072,7 @@ GET /api/mypage/{userId}
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_응답_파라미터_7">응답 파라미터</h4>
+<h4 id="_응답_파라미터_8" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -2075,7 +2268,7 @@ GET /api/mypage/{userId}
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:39.068096",
+    "serverResponseTime" : "2024-08-11T16:14:05.630797",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 4,
@@ -2096,7 +2289,7 @@ GET /api/mypage/{userId}
 }</code></pre>
 </div>
 </div>
-<h5 id="_정렬_타입_sorttype" class="discrete"><em>정렬 타입 (sortType)</em></h5>
+<h5 id="_정렬_타입_sorttype_2" class="discrete"><em>정렬 타입 (sortType)</em></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -2200,7 +2393,7 @@ GET /api/mypage/{userId}
 <div class="paragraph">
 <p>추가적인 정보가 필요하신 경우, 문의해 주시기 바랍니다.</p>
 </div>
-<h4 class="discrete" id="_요청_파라미터_8">요청 파라미터</h4>
+<h4 id="_요청_파라미터_8" class="discrete">요청 파라미터</h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/alcohols/{alcoholsId}</code></pre>
@@ -2213,7 +2406,7 @@ GET /api/mypage/{userId}
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_응답_파라미터_8">응답 파라미터</h4>
+<h4 id="_응답_파라미터_9" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -2349,167 +2542,167 @@ GET /api/mypage/{userId}
 <td class="tableblock halign-left valign-top"><p class="tableblock">친구의 평점</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.totalReviewCount</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.totalReviewCount</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">해당 술의 총 리뷰 수</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.bestReviewInfos[].userId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.bestReviewInfos[].userId</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">베스트 리뷰 작성자 ID</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.bestReviewInfos[].imageUrl</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.bestReviewInfos[].imageUrl</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">베스트 리뷰 작성자 프로필 이미지 URL</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.bestReviewInfos[].nickName</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.bestReviewInfos[].nickName</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">베스트 리뷰 작성자 닉네임</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.bestReviewInfos[].reviewId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.bestReviewInfos[].reviewId</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">베스트 리뷰 ID</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.bestReviewInfos[].reviewContent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.bestReviewInfos[].reviewContent</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">베스트 리뷰 내용</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.bestReviewInfos[].rating</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.bestReviewInfos[].rating</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">베스트 리뷰 평점</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.bestReviewInfos[].sizeType</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.bestReviewInfos[].sizeType</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">베스트 리뷰 사이즈 타입</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.bestReviewInfos[].price</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.bestReviewInfos[].price</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">베스트 리뷰 가격</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.bestReviewInfos[].viewCount</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.bestReviewInfos[].viewCount</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">베스트 리뷰 조회수</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.bestReviewInfos[].likeCount</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.bestReviewInfos[].likeCount</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">베스트 리뷰 좋아요 수</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.bestReviewInfos[].isLikedByMe</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.bestReviewInfos[].isLikedByMe</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">베스트 리뷰 내가 좋아요를 눌렀는지 여부</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.bestReviewInfos[].replyCount</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.bestReviewInfos[].replyCount</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">베스트 리뷰 댓글 수</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.bestReviewInfos[].hasReplyByMe</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.bestReviewInfos[].hasReplyByMe</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">베스트 리뷰 내가 댓글을 달았는지 여부</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.bestReviewInfos[].status</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.bestReviewInfos[].status</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">리뷰 공개 비공개 여부 (PUBLIC/PRIVATE)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.bestReviewInfos[].reviewImageUrl</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.bestReviewInfos[].reviewImageUrl</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">베스트 리뷰 이미지 URL</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.bestReviewInfos[].createAt</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.bestReviewInfos[].createAt</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">베스트 리뷰 작성 날짜</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.recentReviewInfos[].userId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.recentReviewInfos[].userId</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">최신 리뷰 작성자 ID</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.recentReviewInfos[].imageUrl</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.recentReviewInfos[].imageUrl</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">최신 리뷰 작성자 프로필 이미지 URL</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.recentReviewInfos[].nickName</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.recentReviewInfos[].nickName</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">최신 리뷰 작성자 닉네임</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.recentReviewInfos[].reviewId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.recentReviewInfos[].reviewId</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">최신 리뷰 ID</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.recentReviewInfos[].reviewContent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.recentReviewInfos[].reviewContent</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">최신 리뷰 내용</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.recentReviewInfos[].rating</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.recentReviewInfos[].rating</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">최신 리뷰 평점</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.recentReviewInfos[].sizeType</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.recentReviewInfos[].sizeType</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">최신 리뷰 사이즈 타입</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.recentReviewInfos[].price</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.recentReviewInfos[].price</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">최신 리뷰 가격</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.recentReviewInfos[].viewCount</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.recentReviewInfos[].viewCount</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">최신 리뷰 조회수</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.recentReviewInfos[].likeCount</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.recentReviewInfos[].likeCount</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">최신 리뷰 좋아요 수</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.recentReviewInfos[].isLikedByMe</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.recentReviewInfos[].isLikedByMe</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">최신 리뷰 내가 좋아요를 눌렀는지 여부</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.recentReviewInfos[].replyCount</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.recentReviewInfos[].replyCount</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">최신 리뷰 댓글 수</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.recentReviewInfos[].hasReplyByMe</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.recentReviewInfos[].hasReplyByMe</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">최신 리뷰 내가 댓글을 달았는지 여부</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.recentReviewInfos[].status</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.recentReviewInfos[].status</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">리뷰 공개 비공개 여부 (PUBLIC/PRIVATE)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.recentReviewInfos[].reviewImageUrl</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.recentReviewInfos[].reviewImageUrl</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">최신 리뷰 이미지 URL</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviews.recentReviewInfos[].createAt</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList.recentReviewInfos[].createAt</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">최신 리뷰 작성 날짜</p></td>
 </tr>
@@ -2574,7 +2767,7 @@ GET /api/mypage/{userId}
         "rating" : 1.0
       } ]
     },
-    "reviews" : {
+    "reviewList" : {
       "totalReviewCount" : 10,
       "bestReviewInfos" : [ {
         "userId" : 1,
@@ -2652,7 +2845,7 @@ GET /api/mypage/{userId}
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:39.340072",
+    "serverResponseTime" : "2024-08-11T16:14:05.768225",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2683,7 +2876,7 @@ GET /api/mypage/{userId}
 <pre class="highlightjs highlight"><code class="language-none hljs">PUT apv/v1/picks</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_9">요청 파라미터</h4>
+<h4 id="_요청_파라미터_9" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -2722,7 +2915,7 @@ GET /api/mypage/{userId}
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_응답_파라미터_9">응답 파라미터</h4>
+<h4 id="_응답_파라미터_10" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -2777,7 +2970,7 @@ GET /api/mypage/{userId}
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:39.794575",
+    "serverResponseTime" : "2024-08-11T16:14:06.073673",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2821,7 +3014,7 @@ GET /api/mypage/{userId}
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/regions</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_응답_파라미터_10">응답 파라미터</h4>
+<h4 id="_응답_파라미터_11" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -2908,7 +3101,7 @@ GET /api/mypage/{userId}
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:39.965860",
+    "serverResponseTime" : "2024-08-11T16:14:06.219223",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2940,7 +3133,7 @@ GET /api/mypage/{userId}
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_요청_파라미터_10">요청 파라미터</h4>
+<h4 id="_요청_파라미터_10" class="discrete">요청 파라미터</h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">GET /api/v1/alcohols/categories?type=WHISKY HTTP/1.1
@@ -2965,7 +3158,7 @@ Host: localhost:8080</code></pre>
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_응답_파라미터_11">응답 파라미터</h4>
+<h4 id="_응답_파라미터_12" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -3027,7 +3220,7 @@ Host: localhost:8080</code></pre>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:39.578711",
+    "serverResponseTime" : "2024-08-11T16:14:05.922822",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -3164,7 +3357,7 @@ Host: localhost:8080</code></pre>
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/popular/week</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_11">요청 파라미터</h4>
+<h4 id="_요청_파라미터_11" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -3183,7 +3376,7 @@ Host: localhost:8080</code></pre>
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_응답_파라미터_12">응답 파라미터</h4>
+<h4 id="_응답_파라미터_13" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -3276,8 +3469,8 @@ Host: localhost:8080</code></pre>
       "alcoholId" : 1,
       "korName" : "글렌피딕",
       "engName" : "glen fi",
-      "rating" : 1.0,
-      "ratingCount" : 92,
+      "rating" : 2.0,
+      "ratingCount" : 40,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
@@ -3286,8 +3479,8 @@ Host: localhost:8080</code></pre>
       "alcoholId" : 2,
       "korName" : "맥키토시",
       "engName" : "macintosh",
-      "rating" : 0.5,
-      "ratingCount" : 60,
+      "rating" : 2.0,
+      "ratingCount" : 22,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
@@ -3296,8 +3489,8 @@ Host: localhost:8080</code></pre>
       "alcoholId" : 3,
       "korName" : "글렌리벳",
       "engName" : "glen rivet",
-      "rating" : 2.5,
-      "ratingCount" : 17,
+      "rating" : 2.0,
+      "ratingCount" : 21,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
@@ -3306,8 +3499,8 @@ Host: localhost:8080</code></pre>
       "alcoholId" : 4,
       "korName" : "글렌피딕",
       "engName" : "glen fi",
-      "rating" : 0.0,
-      "ratingCount" : 23,
+      "rating" : 1.5,
+      "ratingCount" : 31,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
@@ -3316,8 +3509,8 @@ Host: localhost:8080</code></pre>
       "alcoholId" : 5,
       "korName" : "맥키토시",
       "engName" : "macintosh",
-      "rating" : 2.0,
-      "ratingCount" : 22,
+      "rating" : 0.5,
+      "ratingCount" : 8,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
@@ -3328,7 +3521,7 @@ Host: localhost:8080</code></pre>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:39.885119",
+    "serverResponseTime" : "2024-08-11T16:14:06.144388",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -3423,7 +3616,7 @@ RequestBody로 요청을 전달합니다.</p>
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/reviews</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_12">요청 파라미터</h4>
+<h4 id="_요청_파라미터_12" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -3547,7 +3740,7 @@ RequestBody로 요청을 전달합니다.</p>
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_응답_파라미터_13">응답 파라미터</h4>
+<h4 id="_응답_파라미터_14" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -3642,7 +3835,7 @@ Content-Length: 349
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:41.617887",
+    "serverResponseTime" : "2024-08-11T16:14:07.152240",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -3727,7 +3920,7 @@ PathVariable로 alcoholId를 전달합니다.</p>
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/reviews/{alcoholId}</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_13">요청 파라미터</h4>
+<h4 id="_요청_파라미터_13" class="discrete">요청 파라미터</h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ http GET 'http://localhost:8080/api/v1/reviews/1?sortType=POPULAR&amp;sortOrder=DESC&amp;cursor=0&amp;pageSize=2'</code></pre>
@@ -3763,7 +3956,7 @@ PathVariable로 alcoholId를 전달합니다.</p>
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_응답_파라미터_14">응답 파라미터</h4>
+<h4 id="_응답_파라미터_15" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -3874,6 +4067,11 @@ PathVariable로 alcoholId를 전달합니다.</p>
 <td class="tableblock halign-left valign-top"><p class="tableblock">내가 댓글을 단 리뷰인지 여부</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList[].isBestReview</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">베스트 댓글인지 여부</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.pageable</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Object</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">페이징 정보</p></td>
@@ -3904,7 +4102,7 @@ PathVariable로 alcoholId를 전달합니다.</p>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json;charset=UTF-8
-Content-Length: 1470
+Content-Length: 1528
 
 {
   "success" : true,
@@ -3919,7 +4117,7 @@ Content-Length: 1470
       "likeCount" : 5,
       "replyCount" : 3,
       "reviewImageUrl" : "https://picsum.photos/600/600",
-      "createAt" : [ 2024, 8, 4, 13, 22, 41, 698578000 ],
+      "createAt" : [ 2024, 8, 11, 16, 14, 7, 238241000 ],
       "userId" : 1,
       "nickName" : "test_user_1",
       "userProfileImage" : "user_profile_image_1",
@@ -3927,7 +4125,8 @@ Content-Length: 1470
       "status" : "PUBLIC",
       "isMyReview" : true,
       "isLikedByMe" : true,
-      "hasReplyByMe" : false
+      "hasReplyByMe" : false,
+      "isBestReview" : null
     }, {
       "reviewId" : 2,
       "reviewContent" : "나름 먹을만 하네요",
@@ -3936,7 +4135,7 @@ Content-Length: 1470
       "likeCount" : 3,
       "replyCount" : 6,
       "reviewImageUrl" : "https://picsum.photos/600/600",
-      "createAt" : [ 2024, 8, 3, 13, 22, 41, 698625000 ],
+      "createAt" : [ 2024, 8, 10, 16, 14, 7, 238250000 ],
       "userId" : 2,
       "nickName" : "test_user_2",
       "userProfileImage" : "user_profile_image_2",
@@ -3944,14 +4143,15 @@ Content-Length: 1470
       "status" : "PUBLIC",
       "isMyReview" : true,
       "isLikedByMe" : true,
-      "hasReplyByMe" : false
+      "hasReplyByMe" : false,
+      "isBestReview" : null
     } ]
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:41.704313",
+    "serverResponseTime" : "2024-08-11T16:14:07.241621",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 1,
@@ -3963,7 +4163,7 @@ Content-Length: 1470
 }</code></pre>
 </div>
 </div>
-<h5 id="_정렬_타입_sorttype_2" class="discrete"><em>정렬 타입 (sortType)</em></h5>
+<h5 id="_정렬_타입_sorttype_3" class="discrete"><em>정렬 타입 (sortType)</em></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -4089,7 +4289,7 @@ Content-Length: 1470
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/reviews/me/{alcoholId}</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_14">요청 파라미터</h4>
+<h4 id="_요청_파라미터_14" class="discrete">요청 파라미터</h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ http GET 'http://localhost:8080/api/v1/reviews/me/1?sortType=POPULAR&amp;sortOrder=DESC&amp;cursor=0&amp;pageSize=2'</code></pre>
@@ -4125,7 +4325,7 @@ Content-Length: 1470
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_응답_파라미터_15">응답 파라미터</h4>
+<h4 id="_응답_파라미터_16" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -4236,6 +4436,11 @@ Content-Length: 1470
 <td class="tableblock halign-left valign-top"><p class="tableblock">내가 댓글을 단 리뷰인지 여부</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewList[].isBestReview</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">베스트 댓글인지 여부</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.pageable</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Object</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">페이징 정보</p></td>
@@ -4266,7 +4471,7 @@ Content-Length: 1470
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json;charset=UTF-8
-Content-Length: 1470
+Content-Length: 1526
 
 {
   "success" : true,
@@ -4281,7 +4486,7 @@ Content-Length: 1470
       "likeCount" : 5,
       "replyCount" : 3,
       "reviewImageUrl" : "https://picsum.photos/600/600",
-      "createAt" : [ 2024, 8, 4, 13, 22, 41, 523741000 ],
+      "createAt" : [ 2024, 8, 11, 16, 14, 7, 66142000 ],
       "userId" : 1,
       "nickName" : "test_user_1",
       "userProfileImage" : "user_profile_image_1",
@@ -4289,7 +4494,8 @@ Content-Length: 1470
       "status" : "PUBLIC",
       "isMyReview" : true,
       "isLikedByMe" : true,
-      "hasReplyByMe" : false
+      "hasReplyByMe" : false,
+      "isBestReview" : null
     }, {
       "reviewId" : 2,
       "reviewContent" : "나름 먹을만 하네요",
@@ -4298,7 +4504,7 @@ Content-Length: 1470
       "likeCount" : 3,
       "replyCount" : 6,
       "reviewImageUrl" : "https://picsum.photos/600/600",
-      "createAt" : [ 2024, 8, 3, 13, 22, 41, 523767000 ],
+      "createAt" : [ 2024, 8, 10, 16, 14, 7, 66181000 ],
       "userId" : 2,
       "nickName" : "test_user_2",
       "userProfileImage" : "user_profile_image_2",
@@ -4306,14 +4512,15 @@ Content-Length: 1470
       "status" : "PUBLIC",
       "isMyReview" : true,
       "isLikedByMe" : true,
-      "hasReplyByMe" : false
+      "hasReplyByMe" : false,
+      "isBestReview" : null
     } ]
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:41.531983",
+    "serverResponseTime" : "2024-08-11T16:14:07.072770",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 1,
@@ -4325,7 +4532,7 @@ Content-Length: 1470
 }</code></pre>
 </div>
 </div>
-<h5 id="_정렬_타입_sorttype_3" class="discrete"><em>정렬 타입 (sortType)</em></h5>
+<h5 id="_정렬_타입_sorttype_4" class="discrete"><em>정렬 타입 (sortType)</em></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -4440,7 +4647,7 @@ Content-Length: 1470
 <pre class="highlightjs highlight"><code class="language-none hljs">PATCH /api/v1/reviews</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_15">요청 파라미터</h4>
+<h4 id="_요청_파라미터_15" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -4544,7 +4751,7 @@ Content-Length: 1470
 <div class="paragraph">
 <p>필드의 값이 NULL인 경우 400 Bad Request가 발생합니다.</p>
 </div>
-<h4 class="discrete" id="_응답_파라미터_16">응답 파라미터</h4>
+<h4 id="_응답_파라미터_17" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -4609,13 +4816,13 @@ Content-Length: 417
     "codeMessage" : "MODIFY_SUCCESS",
     "message" : "리뷰 수정이 성공적으로 완료되었습니다.",
     "reviewId" : 1,
-    "responseAt" : "2024-08-04 13:22:41"
+    "responseAt" : "2024-08-11 16:14:06"
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:41.482788",
+    "serverResponseTime" : "2024-08-11T16:14:07.028884",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -4690,7 +4897,7 @@ Content-Length: 417
 <pre class="highlightjs highlight"><code class="language-none hljs">DELETE /api/v1/reviews/{reviewId}</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_16">요청 파라미터</h4>
+<h4 id="_요청_파라미터_16" class="discrete">요청 파라미터</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -4698,7 +4905,7 @@ Content-Length: 417
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_응답_파라미터_17">응답 파라미터</h4>
+<h4 id="_응답_파라미터_18" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -4758,13 +4965,13 @@ Content-Length: 417
     "codeMessage" : "DELETE_SUCCESS",
     "message" : "리뷰 삭제가 성공적으로 완료되었습니다.",
     "reviewId" : 1,
-    "responseAt" : "2024-08-04 13:22:41"
+    "responseAt" : "2024-08-11 16:14:06"
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:41.350799",
+    "serverResponseTime" : "2024-08-11T16:14:06.938495",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -4787,7 +4994,7 @@ Content-Length: 417
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/reviews/detail/{reviewId}</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_17">요청 파라미터</h4>
+<h4 id="_요청_파라미터_17" class="discrete">요청 파라미터</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -4795,7 +5002,7 @@ Content-Length: 417
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_응답_파라미터_18">응답 파라미터</h4>
+<h4 id="_응답_파라미터_19" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -5048,7 +5255,7 @@ Content-Length: 1249
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:41.655089",
+    "serverResponseTime" : "2024-08-11T16:14:07.196260",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -5083,7 +5290,7 @@ Content-Length: 1249
 <pre class="highlightjs highlight"><code class="language-none hljs">PUT /api/v1/likes</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_18">요청 파라미터</h4>
+<h4 id="_요청_파라미터_18" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -5146,7 +5353,7 @@ Content-Length: 1249
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_응답_파라미터_19">응답 파라미터</h4>
+<h4 id="_응답_파라미터_20" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -5210,7 +5417,7 @@ Content-Length: 1249
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:40.501938",
+    "serverResponseTime" : "2024-08-11T16:14:06.533816",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -5304,7 +5511,7 @@ Content-Length: 1249
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_요청_파라미터_19">요청 파라미터</h4>
+<h4 id="_요청_파라미터_19" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -5343,7 +5550,7 @@ Content-Length: 1249
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_응답_파라미터_20">응답 파라미터</h4>
+<h4 id="_응답_파라미터_21" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -5414,13 +5621,13 @@ Content-Length: 1249
     "codeMessage" : "SUCCESS_REGISTER_REPLY",
     "message" : "성공적으로 댓글을 등록했습니다.",
     "reviewId" : 1,
-    "responseAt" : "2024-08-04 13:22:42"
+    "responseAt" : "2024-08-11 16:14:07"
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:42.063869",
+    "serverResponseTime" : "2024-08-11T16:14:07.600053",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -5441,13 +5648,13 @@ Content-Length: 1249
 <div class="paragraph">
 <p><code>삭제된 댓글입니다</code> 라는 메시지를 표시합니다.</p>
 </div>
-<h4 class="discrete" id="_api_endpoint_2">API EndPoint</h4>
+<h4 id="_api_endpoint_2" class="discrete">API EndPoint</h4>
 <div class="listingblock">
 <div class="content">
 <pre>DELETE /api/v1/review/reply/{reviewId}/{replyId}</pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_20">요청 파라미터</h4>
+<h4 id="_요청_파라미터_20" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 1. /api/v1/review/reply/{reviewId}/{replyId}</caption>
 <colgroup>
@@ -5471,7 +5678,7 @@ Content-Length: 1249
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_응답_파라미터_21">응답 파라미터</h4>
+<h4 id="_응답_파라미터_22" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -5542,13 +5749,13 @@ Content-Length: 1249
     "codeMessage" : "SUCCESS_DELETE_REPLY",
     "message" : "성공적으로 댓글을 삭제했습니다.",
     "reviewId" : 1,
-    "responseAt" : "2024-08-04 13:22:41"
+    "responseAt" : "2024-08-11 16:14:07"
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:41.809695",
+    "serverResponseTime" : "2024-08-11T16:14:07.335622",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -5591,13 +5798,13 @@ Content-Length: 1249
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_api_endpoint_3">API EndPoint</h4>
+<h4 id="_api_endpoint_3" class="discrete">API EndPoint</h4>
 <div class="listingblock">
 <div class="content">
 <pre>GET /api/v1/review/reply/{reviewId}</pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_21">요청 파라미터</h4>
+<h4 id="_요청_파라미터_21" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 2. /api/v1/review/reply/{reviewId}</caption>
 <colgroup>
@@ -5639,7 +5846,7 @@ Content-Length: 1249
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_응답_파라미터_22">응답 파라미터</h4>
+<h4 id="_응답_파라미터_23" class="discrete">응답 파라미터</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -5728,42 +5935,42 @@ Content-Length: 1249
     "reviewReplies" : [ {
       "userId" : 0,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "SKgqOZWyeH",
+      "nickName" : "mOkOdcDEmy",
       "reviewReplyId" : 0,
-      "reviewReplyContent" : "ikBAVnEfxPXsvvbohdFgYCmKPdtGKKavHVbSyJQTENCdaexOYwmJMOVzSSEdUaipwDYAfXKjqPfqeDPzRLGtfLnLfgLKfxzduuIrpHEcmzKMLQgRyuQDrrnngWSUyCsBMptsWDZDJvKifUsGhhGzgO",
+      "reviewReplyContent" : "afhetAofojCNgftYRfRactxFFCeEWZGLsQMeGBvqanFEbwfmhmUnALpxIOufUquIVwRyFmxeuvDBNTYBXvfGkMAZJIoEIOCxAvfugfLegWuWFcJCAnJPflaclTndrtyXkuOcJApAKFanzwVlMThXca",
       "subReplyCount" : 4,
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     }, {
       "userId" : 1,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "SMobaVLoTN",
+      "nickName" : "pfrVCSzBWY",
       "reviewReplyId" : 1,
-      "reviewReplyContent" : "hulpvbeExNaKjTrQGUiXXXAZmcydHphbWyweMhZZoLFjIWRKXrJWPXqdjKnrFoNwZvSsYoSaDWjfKllpEcRsBvNuAjgIawaDdHCXSTDsTexgmKrLarzlzyKwzDlDDDERXxCMKGhTxXOimWkLOaSCIM",
-      "subReplyCount" : 4,
+      "reviewReplyContent" : "fUJumfJbQDnOtgnPoCkRsejzWjXwWuoJEPFMsVnnBWvqededkHqvOGBmDyRIxWVEQwsliMLUDaIcETuCWhuNSDFPtOFAybjuGvGMkltZrlfBjCCyOkImXejPXCbBhvwlVyDgAJXqXwXlzElxCLIOLm",
+      "subReplyCount" : 3,
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     }, {
       "userId" : 2,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "khjwgHFvNt",
+      "nickName" : "FbPzOiCGzp",
       "reviewReplyId" : 2,
-      "reviewReplyContent" : "oYvafQzRfEWMMIvhlSfnfGUeWbCPkwuISSNFJdsubQliWfEDdmADjbgrzkIWxIsKPkqWrBKEJVayRNIJvazEoWrSMuvGEfOxVSgKZPntJWhQBjViXGhctjQDGDiOaSZEiGetvHHXJZOxxgzezRspSt",
-      "subReplyCount" : 2,
+      "reviewReplyContent" : "PBGkWShwsGLACCavSNEfVgxMJSjQvwBkJHGLViyiomAupeFrStVbSDYgNWgINQzSNJKOuVCkuOoYGWrHeMAuqAoJpnMLrYCgCgMdTxxIjwHBRbpyIgqWSOCgoHkiMFmmtymcUwIhfAhCKfioOPcgoi",
+      "subReplyCount" : 4,
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     }, {
       "userId" : 3,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "MgPBXLZWdS",
+      "nickName" : "QrwzOQzlwt",
       "reviewReplyId" : 3,
-      "reviewReplyContent" : "UEOwWNeFjVxYTOQZXLHGNgHOMoLcqiceMeWYwKQiOnopQKaBCtPkOQmRxdwcJymMMeFLUCRXiZWoSSkSfEunQvdVZOajsnWpzwnXDnABmnexrVmZLqqcZTkVZOEeBstfgcOrncKUeXmAOeIVBOsjeo",
-      "subReplyCount" : 3,
+      "reviewReplyContent" : "ZqGKSArwoNVLzIISARuMxYumaoNhuIfpZjoYPoyqylvEDWQqOJaUAIoVbkbxHdPSbuCbqqHQpeCueUJmzaQMXjRzMkVRTJacOxBgZxFtATpEXfYzOIxBeSTniKEXDaRkAtQJEqIMdDuEmzbaPMdcjp",
+      "subReplyCount" : 4,
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     }, {
       "userId" : 4,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "zSlXUbcuCz",
+      "nickName" : "IzwKKbzPvZ",
       "reviewReplyId" : 4,
-      "reviewReplyContent" : "UthxXzQOmDZQsuOeJypkzTxpWVgGKRjLayuUjsYjCJlmwljFdHpmRyGiyxcGTGEqlzeWGhQSnzOwAOchiAenvxJaUYWpMfkxsLnSdpzHOVUpEKCwWSUGUrFHxrptWJLSIOTxlkkFpNwQjewCGkWeAo",
-      "subReplyCount" : 3,
+      "reviewReplyContent" : "aRPQEjsCrJsmdfjtKmcCbQcGZOCavNaKthnFevscbqbslXtwNujLfSNkwvTjIPCmYCOwxSVXDsnWaxYxjQjCxjiKwWmGZNCabhXucyVlhLeCHGfCxFRTxtFsQoqqRBNaePfUjFXipUdNoRBblsHvVB",
+      "subReplyCount" : 0,
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     } ]
   },
@@ -5771,7 +5978,7 @@ Content-Length: 1249
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:41.954825",
+    "serverResponseTime" : "2024-08-11T16:14:07.495738",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -5838,7 +6045,7 @@ Content-Length: 1249
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_api_endpoint_4">API EndPoint</h4>
+<h4 id="_api_endpoint_4" class="discrete">API EndPoint</h4>
 <div class="listingblock">
 <div class="content">
 <pre>GET /api/v1/review/reply/{reviewId}/sub/{rootReplyId}</pre>
@@ -5854,7 +6061,7 @@ Content-Length: 1249
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_요청_파라미터_22">요청 파라미터</h4>
+<h4 id="_요청_파라미터_22" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 3. /api/v1/review/reply/{reviewId}/sub/{rootReplyId}</caption>
 <colgroup>
@@ -5910,7 +6117,7 @@ Content-Length: 1249
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_응답_파라미터_23">응답 파라미터</h4>
+<h4 id="_응답_파라미터_24" class="discrete">응답 파라미터</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -6014,42 +6221,42 @@ Content-Length: 1249
     "reviewReplies" : [ {
       "userId" : 123,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "ZjCuedUOeZ",
+      "nickName" : "flGlGdUOxF",
       "rootReviewId" : 1,
       "parentReviewReplyId" : 1,
       "parentReviewReplyAuthor" : "@썩어가는망고",
       "reviewReplyId" : 1,
-      "reviewReplyContent" : "vtncgHHEMBIwhiGKstObtbtVPijsqKIgztmVMQDZGxqbRHSUOHhMQIjryxvuVPPcHihPDTHIYFXuKpwWNIYilpBfWrbGuLqOvoyiSGAXElIpAoKYHJzHgixyVKSQgUAIDPCXQgcIQWXhmAVVGtasXK",
+      "reviewReplyContent" : "wxyYoPiERjFaLqDXFTvOrbpaVvLyqyPAVqaZnCXldoCUfnWZiuUrDXkWxawSBIYpblMRGnUDIupCHDgkGkcHXWhUvBRXRqzsDXrqpUrqaXWIewsgLfgsVUCBhgqzTLRaNfUoAEZpmyNkdlbIgShiMh",
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     }, {
       "userId" : 123,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "bKoDbnPjZK",
+      "nickName" : "ThHRmdgdqg",
       "rootReviewId" : 1,
       "parentReviewReplyId" : 1,
       "parentReviewReplyAuthor" : "@신선한반나나",
       "reviewReplyId" : 2,
-      "reviewReplyContent" : "RzvkTivWrhcmjmFzlJcmdHouofumZbVIXmaxxEXRVxCxMKPxqqazcLAAeTILChbqUcRMvFHKwkhBcZxqOQdptyQPcRkaPdPaTOlMomaWRfBPZYDQGDxqJntGiqYGAYvDoiavrujyMsAGYfkeoDBXyp",
+      "reviewReplyContent" : "RBfkIXQHPQnZNxuemOiFMQDIdKfRxCRkrgYTkfuOwzYzlyLqqXVmLlyuLNkNMXzbAbLLuWEfXHukUghqNvUgQGDSEzURynTdmxypRddacqHajwDZAfGrmXCGbHdswSMJSwRYEyyryNAzNPdwCWaQJZ",
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     }, {
       "userId" : 123,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "GdozytPsTU",
+      "nickName" : "vFzBebHEzV",
       "rootReviewId" : 1,
       "parentReviewReplyId" : 1,
       "parentReviewReplyAuthor" : "@신선한반나나",
       "reviewReplyId" : 3,
-      "reviewReplyContent" : "idEPDRImAzwZPNTczSnFIbCCkzYCIbSYfxAKAJgVNkDzUylsAIETbIKLprKmlptHVtIXVEaEgdMofgAGpBsXQrHOXOPbbRIEyDWdjGUFiCaKnPsUqMJajXxuzvPfGAgzmQtPmGZZYCwAZbCnyoOLym",
+      "reviewReplyContent" : "ZRMjYZAlDtHCDALvByFKcbTYnJSbkzfARPkgetHwLSyHsnMntwiJEguFKKdALWBCNJPzdQiuGdUOiUGPbjbMljiYIMgCKWAEJfaYieepQZnqadrKYDXyzDrTRprxPIoLjrrHARRACFTnHhGQVeQCpJ",
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     }, {
       "userId" : 123,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "BOdLGcVqpW",
+      "nickName" : "XgTKGiQxzj",
       "rootReviewId" : 1,
       "parentReviewReplyId" : 1,
       "parentReviewReplyAuthor" : "@썩어가는망고",
       "reviewReplyId" : 4,
-      "reviewReplyContent" : "NtNOHhpJRZzZUOjSQgUaFfbBLVtLMTeUvvqEEaiqedIeJrtaDJAywdxRbzhpxeBuVUoxaEMrNTsaQXahZXZjSKAIrTVfUEshAGOZOfWgSsTvdqrdilZwztNVLBaRcQLLerwQZswgpDsKEjySMUcvPn",
+      "reviewReplyContent" : "joKoizBiItGNeSgNsJQSuLaVwyzQsgkzZRUEBswqiuqDJkypYtTbJVglMlaLuUItgjcAIBoFAbuDFInNIpezLPScmWQzUyGOyaGALtzjUoPDwKMiMpUyDDkWxXizuLCjsxtXjRwICsHsdzxlroKfpq",
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     } ]
   },
@@ -6057,7 +6264,7 @@ Content-Length: 1249
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:42.000394",
+    "serverResponseTime" : "2024-08-11T16:14:07.548023",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -6123,7 +6330,7 @@ Content-Length: 1249
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/user-report</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_23">요청 파라미터</h4>
+<h4 id="_요청_파라미터_23" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -6176,7 +6383,7 @@ Content-Length: 1249
 }</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_응답_파라미터_24">응답 파라미터</h4>
+<h4 id="_응답_파라미터_25" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -6263,7 +6470,7 @@ Content-Length: 1249
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:42.153472",
+    "serverResponseTime" : "2024-08-11T16:14:07.778378",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -6321,6 +6528,171 @@ Content-Length: 1249
 </ul>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_문의글_작성"><a class="link" href="#_문의글_작성">8.2. 문의글 작성</a></h3>
+<div class="paragraph">
+<p>사용자는 시스템 관리자에게 문의글을 등록할 수 있습니다.</p>
+</div>
+<div class="paragraph">
+<p>문의글 제목은 null이거나 공백("")일 수 없습니다.</p>
+</div>
+<div class="paragraph">
+<p>문의글 내용은 null이거나 공백("")일 수 없으며, 최대 1000자까지 허용됩니다.</p>
+</div>
+<div class="paragraph">
+<p>문의글의 타입은 아래 표로 기술했습니다.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 66.6667%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">문의글 타입</th>
+<th class="tableblock halign-left valign-top">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>WHISKEY</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">위스키 관련 문의</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>REVIEW</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">리뷰 관련 문의</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>USER</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">회원 관련 문의</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ETC</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">그 외 모든 문의</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/help</code></pre>
+</div>
+</div>
+<h4 id="_요청_파라미터_24" class="discrete">요청 파라미터</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">path</th>
+<th class="tableblock halign-left valign-top">type</th>
+<th class="tableblock halign-left valign-top">optional</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>title</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의글 제목</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>content</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의글 내용</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>type</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의글 타입  (WHISKEY, REVIEW, USER, ETC)</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json">{
+  "title" : "로그인이 안돼요",
+  "content" : "blah blah blah",
+  "type" : "USER"
+}</code></pre>
+</div>
+</div>
+<h4 id="_응답_파라미터_26" class="discrete">응답 파라미터</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">path</th>
+<th class="tableblock halign-left valign-top">type</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>code</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 코드(http status code)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.codeMessage</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">성공 메시지 코드</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.message</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">성공 메시지</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.helpId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의글 아이디</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.responseAt</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서버 응답 일시</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json">{
+  "success" : true,
+  "code" : 200,
+  "data" : {
+    "codeMessage" : "REGISTER_SUCCESS",
+    "message" : "문의글 등록이 성공적으로 완료되었습니다",
+    "helpId" : 1,
+    "responseAt" : "2024-08-11 16:14:07"
+  },
+  "errors" : [ ],
+  "meta" : {
+    "serverVersion" : "1.0.0",
+    "serverEncoding" : "UTF-8",
+    "serverResponseTime" : "2024-08-11T16:14:07.690646",
+    "serverPathVersion" : "v1"
+  }
+}</code></pre>
+</div>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -6362,10 +6734,10 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/follow</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_24">요청 파라미터</h4>
+<h4 id="_요청_파라미터_25" class="discrete">요청 파라미터</h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/v1/follow?_csrf=r5fVzKciPwDvM7Sx4c8yLrRIGfOsUKwdWElFKHK1x9aBQprkyfbkqsUWCWHCA4WCgOIGHYN8NMqaaJowbX1zTEDW_-a3I6jX' -i -X POST \
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/v1/follow?_csrf=kj46rfZj7VOXdq1kTXXyBtrYdyKATNmGItWKD7YVVCJPGlUm8QkIyMYCjDW6Q5pWKFjGMbzuWhvmfL2rEOy4btQtMBZ5eTQf' -i -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
     -d '{
   "followUserId" : 1,
@@ -6403,7 +6775,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_응답_파라미터_25">응답 파라미터</h4>
+<h4 id="_응답_파라미터_27" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -6502,7 +6874,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/follower/{userId}</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_25">요청 파라미터</h4>
+<h4 id="_요청_파라미터_26" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -6525,7 +6897,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_응답_파라미터_26">응답 파라미터</h4>
+<h4 id="_응답_파라미터_28" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -6654,7 +7026,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:40.161659",
+    "serverResponseTime" : "2024-08-11T16:14:06.379510",
     "pageable" : {
       "currentCursor" : null,
       "cursor" : 0,
@@ -6685,7 +7057,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/rating</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_26">요청 파라미터</h4>
+<h4 id="_요청_파라미터_27" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -6748,7 +7120,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_응답_파라미터_27">응답 파라미터</h4>
+<h4 id="_응답_파라미터_29" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -6968,7 +7340,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:41.069899",
+    "serverResponseTime" : "2024-08-11T16:14:06.780456",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 0,
@@ -6989,7 +7361,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 }</code></pre>
 </div>
 </div>
-<h5 id="_정렬_타입_sorttype_4" class="discrete"><em>정렬 타입 (sortType)</em></h5>
+<h5 id="_정렬_타입_sorttype_5" class="discrete"><em>정렬 타입 (sortType)</em></h5>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -7136,7 +7508,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/rating/{{alcoholId}}</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_27">요청 파라미터</h4>
+<h4 id="_요청_파라미터_28" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 4. /api/v1/rating/{alcoholId}</caption>
 <colgroup>
@@ -7156,7 +7528,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 </tr>
 </tbody>
 </table>
-<h4 class="discrete" id="_응답_파라미터_28">응답 파라미터</h4>
+<h4 id="_응답_파라미터_30" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -7212,7 +7584,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:41.189124",
+    "serverResponseTime" : "2024-08-11T16:14:06.839342",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -7232,7 +7604,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/rating/register</code></pre>
 </div>
 </div>
-<h4 class="discrete" id="_요청_파라미터_28">요청 파라미터</h4>
+<h4 id="_요청_파라미터_29" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -7284,7 +7656,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 </li>
 </ul>
 </div>
-<h4 class="discrete" id="_응답_파라미터_29">응답 파라미터</h4>
+<h4 id="_응답_파라미터_31" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -7334,7 +7706,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:40.868240",
+    "serverResponseTime" : "2024-08-11T16:14:06.704888",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -7347,7 +7719,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 <div id="footer">
 <div id="footer-text">
 Version 0.0.1-SNAPSHOT<br>
-Last updated 2024-08-04 13:21:24 +0900
+Last updated 2024-08-11 16:11:49 +0900
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>
