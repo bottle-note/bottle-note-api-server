@@ -1,14 +1,16 @@
 package app.bottlenote.global.exception.custom.code;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
+@AllArgsConstructor
 @Getter
 public enum ValidExceptionCode implements ExceptionCode {
 
 	//COMMON
-	//String.format("'%s' 필드는 '%s' 타입이 필요하지만, 잘못된 값 '%s'가 입력되었습니다.",String.format("'%s' 필드는 '%s' 타입이 필요하지만, 잘못된 값 '%s'가 입력되었습니다.",
 	TYPE_MISMATCH(HttpStatus.BAD_REQUEST, "잘못된 타입입니다."),
+	JSON_PASSING_FAILED(HttpStatus.BAD_REQUEST, "JSON 파싱에 실패했습니다."),
 
 	//ALCOHOL
 	ALCOHOL_ID_REQUIRED(HttpStatus.BAD_REQUEST, "알코올 식별자는 필수입니다."),
@@ -20,12 +22,8 @@ public enum ValidExceptionCode implements ExceptionCode {
 	private final HttpStatus httpStatus;
 	private String message;
 
-	ValidExceptionCode(HttpStatus httpStatus, String message) {
-		this.httpStatus = httpStatus;
-		this.message = message;
-	}
-
-	public void updateMessage(String errorMessage) {
+	public ValidExceptionCode message(String errorMessage) {
 		this.message = errorMessage;
+		return this;
 	}
 }

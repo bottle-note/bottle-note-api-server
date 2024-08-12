@@ -113,7 +113,7 @@ public class GlobalExceptionHandler {
 		String errorMessage = String.format("'%s' 필드는 '%s' 타입이 필요하지만, 잘못된 값 '%s'가 입력되었습니다.", fieldName, requiredType, rejectedValue);
 
 		ValidExceptionCode code = ValidExceptionCode.TYPE_MISMATCH;
-		code.updateMessage(errorMessage);
+		code.message(errorMessage);
 		return GlobalResponse.error(Error.of(code));
 	}
 
@@ -128,8 +128,7 @@ public class GlobalExceptionHandler {
 	 */
 	@ExceptionHandler(HttpMessageNotReadableException.class)
 	public ResponseEntity<?> handleHttpMessageNotReadableException(HttpMessageNotReadableException exception) {
-
-		String finallyErrorMessage = "요청 본문을 파싱하는 도중 오류가 발생했습니다. 요청 본문의 형식을 확인해주세요.";
+		final String finallyErrorMessage = "요청 본문을 파싱하는 도중 오류가 발생했습니다. 요청 본문의 형식을 확인해주세요.";
 
 		Throwable cause = exception.getCause();
 
@@ -140,13 +139,14 @@ public class GlobalExceptionHandler {
 				JsonMappingException.Reference lastReference = path.get(path.size() - 1);
 				String fieldName = lastReference.getFieldName();
 				String errorDetailMessage = String.format("'%s' 필드의 값이 잘못되었습니다. 해당 필드의 값의 타입을 확인해주세요.: '%s'", fieldName, getRefinedCauseMessage(cause.getMessage()));
-				Map<String, String> message = Map.of(KEY_MESSAGE, errorDetailMessage);
-				return createResponseEntity(exception, HttpStatus.BAD_REQUEST, message);
+
+				Error error = Error.of(ValidExceptionCode.JSON_PASSING_FAILED.message(errorDetailMessage));
+				return GlobalResponse.error(error);
 			}
 		}
 
-		Map<String, String> message = Map.of(KEY_MESSAGE, finallyErrorMessage);
-		return createResponseEntity(exception, HttpStatus.BAD_REQUEST, message);
+		Error error = Error.of(ValidExceptionCode.JSON_PASSING_FAILED.message(finallyErrorMessage));
+		return GlobalResponse.error(error);
 	}
 
 	/**
