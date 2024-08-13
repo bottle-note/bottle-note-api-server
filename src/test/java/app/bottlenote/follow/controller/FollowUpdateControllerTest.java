@@ -165,12 +165,12 @@ class FollowUpdateControllerTest {
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(mapper.writeValueAsString(request))
 				.with(csrf()))
-			.andExpect(status().isBadRequest())
+			.andExpect(status().isNotFound())
 			.andDo(print());
 
 		resultActions.andExpect(jsonPath("$.success").value(false));
-		resultActions.andExpect(jsonPath("$.code").value(400));
-		resultActions.andExpect(jsonPath("$.errors.message").value("팔로우할 대상을 찾을 수 없습니다."));
+		resultActions.andExpect(jsonPath("$.code").value(404));
+		resultActions.andExpect(jsonPath("$.errors[0].message").value("팔로우할 대상을 찾을 수 없습니다."));
 	}
 
 }
