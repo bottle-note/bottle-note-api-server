@@ -29,6 +29,6 @@ Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "alcoholId": "1",
+  "alcoholId": -1,
   "isPicked": "PICK"
 }

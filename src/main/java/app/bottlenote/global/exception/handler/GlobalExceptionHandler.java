@@ -5,7 +5,6 @@ import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.exception.custom.AbstractCustomException;
 import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.global.security.jwt.JwtExceptionType;
-import app.bottlenote.global.service.meta.MetaService;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.SdkClientException;
@@ -15,7 +14,6 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindingResult;
@@ -27,25 +25,14 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+
+import static app.bottlenote.global.exception.custom.code.ValidExceptionCode.UNKNOWN_ERROR;
 
 @Slf4j(topic = "GlobalExceptionHandler")
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
-	private static final String KEY_MESSAGE = "message";
-
-	private ResponseEntity<?> createResponseEntity(
-		Exception exception,
-		HttpStatus status,
-		Map<String, String> message
-	) {
-		log.warn("예외 발생 : ", exception);
-		return new ResponseEntity<>(GlobalResponse.error(status.value(), message), status);
-	}
-
 
 	/**
 	 * 사용자 정의 예외에 대한 처리
@@ -55,6 +42,7 @@ public class GlobalExceptionHandler {
 	 */
 	@ExceptionHandler(AbstractCustomException.class)
 	public ResponseEntity<?> handleCustomException(AbstractCustomException exception) {
+		log.warn("사용자 정의 예외 발생 : ", exception);
 		return GlobalResponse.error(exception);
 	}
 
@@ -66,8 +54,9 @@ public class GlobalExceptionHandler {
 	 */
 	@ExceptionHandler(value = {Exception.class})
 	public ResponseEntity<?> handleGenericException(Exception exception) {
-		Map<String, String> message = Map.of(KEY_MESSAGE, exception.getMessage());
-		return createResponseEntity(exception, HttpStatus.BAD_REQUEST, message);
+		log.error("Exception.class 예외 발생 : ", exception);
+		Error error = Error.of(UNKNOWN_ERROR.message(exception.getMessage()));
+		return GlobalResponse.error(error);
 	}
 
 
@@ -90,7 +79,8 @@ public class GlobalExceptionHandler {
 			//String fieldName = fieldError.getField();  // 필드명
 			//Object rejectedValue = fieldError.getRejectedValue(); // 거부된 값
 
-			ValidExceptionCode code = ValidExceptionCode.valueOf(fieldError.getDefaultMessage());
+			ValidExceptionCode code = ValidExceptionCode.valueOf(fieldError.getDefaultMessage()); //ALCOHOL_ID_REQUIRED
+
 			Error error = Error.of(code);
 
 			errorSet.add(error);
@@ -146,6 +136,7 @@ public class GlobalExceptionHandler {
 		}
 
 		Error error = Error.of(ValidExceptionCode.JSON_PASSING_FAILED.message(finallyErrorMessage));
+
 		return GlobalResponse.error(error);
 	}
 
@@ -172,14 +163,9 @@ public class GlobalExceptionHandler {
 
 		JwtExceptionType exceptionType = getJwtExceptionType(e);
 
-		GlobalResponse fail = GlobalResponse.fail(
-			exceptionType.getStatus().value(),
-			exceptionType.getMessage(),
-			MetaService.createMetaInfo().add("reissue-url", "api.bottle-note.com/api/v1/oauth/reissue")
-		);
-		return ResponseEntity
-			.status(exceptionType.getStatus())
-			.body(fail);
+		log.info(" jwtTokenException 관련 예외 발생 => public ResponseEntity<?> jwtTokenException(Exception e) ");
+
+		return GlobalResponse.error(Error.of(exceptionType));
 	}
 
 	/**
@@ -213,19 +199,16 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(AmazonClientException.class)
 	public ResponseEntity<?> handleAmazonClientException(AmazonClientException exception) {
 		String errorMessage;
-		HttpStatus status;
 
 		if (exception instanceof AmazonServiceException ase) {
 			errorMessage = "AWS 서비스 오류가 발생했습니다: " + ase.getMessage();
-			status = HttpStatus.INTERNAL_SERVER_ERROR;
 		} else if (exception instanceof SdkClientException sce) {
 			errorMessage = "AWS SDK 오류가 발생했습니다: " + sce.getMessage();
-			status = HttpStatus.SERVICE_UNAVAILABLE;
 		} else {
 			errorMessage = "AWS 클라이언트 오류가 발생했습니다: " + exception.getMessage();
-			status = HttpStatus.SERVICE_UNAVAILABLE;
 		}
 
-		return createResponseEntity(exception, status, Map.of(KEY_MESSAGE, errorMessage));
+		Error error = Error.of(ValidExceptionCode.AWS_ERROR.message(errorMessage));
+		return GlobalResponse.error(error);
 	}
 }

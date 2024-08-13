@@ -177,11 +177,14 @@ public class GlobalResponse {
 	}
 
 	public static ResponseEntity<?> error(AbstractCustomException exception) {
+
+		Error error = Error.of(exception.getExceptionCode());
+
 		GlobalResponse response = GlobalResponse.builder()
 			.success(false)
 			.code(exception.getExceptionCode().getHttpStatus().value())
 			.data(emptyList())
-			.errors(List.of(exception.getExceptionCode().getMessage()))
+			.errors(List.of(error))
 			.meta(createMetaInfo().getMetaInfos())
 			.build();
 		return new ResponseEntity<>(response, exception.getExceptionCode().getHttpStatus());
