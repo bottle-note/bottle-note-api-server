@@ -450,9 +450,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_개요_overview">1. 개요 (overview)</a>
 <ul class="sectlevel2">
 <li><a href="#_api_서버_경로">1.1. API 서버 경로</a></li>
-<li><a href="#_응답형식">1.2. 응답형식</a></li>
-<li><a href="#_공통_예외_처리">1.3. 공통 예외 처리</a></li>
-<li><a href="#_공통_인증인가">1.4. 공통 인증/인가</a></li>
+<li><a href="#_api_서버_경로_2">1.2. API 서버 경로</a></li>
+<li><a href="#_응답형식">1.3. 응답형식</a></li>
+<li><a href="#_공통_예외_처리">1.4. 공통 예외 처리</a></li>
+<li><a href="#_공통_인증인가">1.5. 공통 인증/인가</a></li>
 </ul>
 </li>
 <li><a href="#_공통_common_api">2. 공통 (common)  API</a>
@@ -590,6 +591,110 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </tr>
 </table>
 </div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 16.6666%;">
+<col style="width: 58.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Exception Code</th>
+<th class="tableblock halign-left valign-top">HTTP Code</th>
+<th class="tableblock halign-left valign-top">Message</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REVIEW_NOT_FOUND</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">400</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">리뷰를 찾을 수 없습니다</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">INVALID_TASTING_TAG_LENGTH</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">400</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">테이스팅 태그의 길이는 12자 이하로만 작성할 수 있습니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">INVALID_TASTING_TAG_LIST_SIZE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">400</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">테이스팅 태그는 10개까지만 작성할 수 있습니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">INVALID_IMAGE_URL_MAX_SIZE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">400</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">이미지는 최대 5장까지만 업로드 할 수 있습니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">INVALID_CALL_BACK_URL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">400</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">잘못된 콜백 URL입니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NOT_FOUND_REVIEW_REPLY</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">400</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">댓글을 찾을 수 없습니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REPLY_NOT_OWNER</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">400</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">댓글 작성자만 삭제할 수 있습니다.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_api_서버_경로_2"><a class="link" href="#_api_서버_경로_2">1.2. API 서버 경로</a></h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 14.2857%;">
+<col style="width: 42.8571%;">
+<col style="width: 42.8572%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">환경</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DNS</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">비고</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">local (dev)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="">localhost:8080</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">직접 로컬 개발 환경 접속</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">개발 (dev)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href=""><a class="bare" href="http://api.bottle-note.com/">http://api.bottle-note.com/</a></a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">API 문서 제공</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">운영(prod)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a class="bare" href=""></a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">기능 구현 후 AWS ECS 환경 실 배포</p></td>
+</tr>
+</tbody>
+</table>
+<div class="ulist">
+<ul>
+<li>
+<p>개발 (dev) 링크는 디스코드 채널에 공유되어 있습니다.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>해당 프로젝트 API문서는 개발환경까지 노출되는 것을 권장합니다.<br></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 <div class="admonitionblock caution">
 <table>
 <tr>
@@ -607,7 +712,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <hr>
 </div>
 <div class="sect2">
-<h3 id="_응답형식"><a class="link" href="#_응답형식">1.2. 응답형식</a></h3>
+<h3 id="_응답형식"><a class="link" href="#_응답형식">1.3. 응답형식</a></h3>
 <div class="paragraph">
 <p>프로젝트는 다음과 같은 응답형식을 제공합니다.</p>
 </div>
@@ -702,7 +807,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <hr>
 </div>
 <div class="sect2">
-<h3 id="_공통_예외_처리"><a class="link" href="#_공통_예외_처리">1.3. 공통 예외 처리</a></h3>
+<h3 id="_공통_예외_처리"><a class="link" href="#_공통_예외_처리">1.4. 공통 예외 처리</a></h3>
 <div class="paragraph">
 <p>공통적으로 처리되는 예외를 정리하는 내용입니다.</p>
 </div>
@@ -801,7 +906,7 @@ Content-Type: application/json
 <hr>
 </div>
 <div class="sect2">
-<h3 id="_공통_인증인가"><a class="link" href="#_공통_인증인가">1.4. 공통 인증/인가</a></h3>
+<h3 id="_공통_인증인가"><a class="link" href="#_공통_인증인가">1.5. 공통 인증/인가</a></h3>
 <div class="paragraph">
 <p>보틀노트 서비스에서는 인증이 필요한 URL에 접근하기 위해서는 Authorization 헤더에 로그인 시 발급받은 Access Token을 첨부해서 요청을 보내야 합니다.</p>
 </div>
@@ -1017,7 +1122,7 @@ Host: localhost:8080</code></pre>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:42.192410",
+    "serverResponseTime" : "2024-08-11T16:40:47.800976",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1214,7 +1319,7 @@ Host: localhost:8080</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
-Set-Cookie: refresh-token=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNjE4NTIyM30.lvmPueUcOb1erv5Llo4qhEUQ_gtWrpFGbBHDw-Pi94qj8MGojoEI3ugdMo8PwoKgrVQZ_gBwBbytwjxh8XktUg; Path=/; Max-Age=1209600; Expires=Sun, 18 Aug 2024 04:22:42 GMT; Secure; HttpOnly
+Set-Cookie: refresh-token=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNjE4NTIyM30.lvmPueUcOb1erv5Llo4qhEUQ_gtWrpFGbBHDw-Pi94qj8MGojoEI3ugdMo8PwoKgrVQZ_gBwBbytwjxh8XktUg; Path=/; Max-Age=1209600; Expires=Sun, 25 Aug 2024 07:40:48 GMT; Secure; HttpOnly
 Content-Type: application/json;charset=UTF-8
 Content-Length: 501
 
@@ -1228,7 +1333,7 @@ Content-Length: 501
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:42.616944",
+    "serverResponseTime" : "2024-08-11T16:40:48.180602",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1331,7 +1436,7 @@ Content-Length: 501
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
-Set-Cookie: refresh-token=new-refresh-token; Path=/; Max-Age=1209600; Expires=Sun, 18 Aug 2024 04:22:42 GMT; Secure; HttpOnly
+Set-Cookie: refresh-token=new-refresh-token; Path=/; Max-Age=1209600; Expires=Sun, 25 Aug 2024 07:40:48 GMT; Secure; HttpOnly
 Content-Type: application/json;charset=UTF-8
 Content-Length: 282
 
@@ -1345,7 +1450,7 @@ Content-Length: 282
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:42.532503",
+    "serverResponseTime" : "2024-08-11T16:40:48.101545",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1488,7 +1593,7 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:42.285517",
+    "serverResponseTime" : "2024-08-11T16:40:47.879047",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1538,7 +1643,7 @@ null일 경우 기본 이미지로 인식합니다.</p>
 </table>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/users/profile-image?_csrf=N3wNeMpW83fQqbfkJFAP_KHpvhFRU7Kx0EOVaVGKTcbatfu9DklpT65nwkD9z9KARX07xJSLkyhlMdGc4CGmUGfsKKDvhMqK HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/users/profile-image?_csrf=J--tsVxVMt844X3j4PMl51pNyWPMj7hAJy-sB-aB33IJ1sYsF9ybiDgxUesV0kiH0N4RgW905AL7vNxtQx6cYoLivUZt4fYb HTTP/1.1
 Content-Type: application/json;charset=UTF-8
 Content-Length: 60
 Host: localhost:8080
@@ -1613,7 +1718,7 @@ Content-Length: 387
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:42.326524",
+    "serverResponseTime" : "2024-08-11T16:40:47.925414",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1701,13 +1806,13 @@ Content-Length: 414
     "codeMessage" : "USER_WITHDRAW_SUCCESS",
     "message" : "성공적으로 탈퇴가 완료되었습니다",
     "userId" : 1,
-    "responseAt" : "2024-08-04 13:22:42"
+    "responseAt" : "2024-08-11 16:40:48"
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:42.665094",
+    "serverResponseTime" : "2024-08-11T16:40:48.225893",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2075,7 +2180,7 @@ GET /api/mypage/{userId}
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:39.068096",
+    "serverResponseTime" : "2024-08-11T16:40:44.830581",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 4,
@@ -2652,7 +2757,7 @@ GET /api/mypage/{userId}
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:39.340072",
+    "serverResponseTime" : "2024-08-11T16:40:45.111353",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2777,7 +2882,7 @@ GET /api/mypage/{userId}
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:39.794575",
+    "serverResponseTime" : "2024-08-11T16:40:45.518363",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -2908,7 +3013,7 @@ GET /api/mypage/{userId}
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:39.965860",
+    "serverResponseTime" : "2024-08-11T16:40:45.759386",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -3027,7 +3132,7 @@ Host: localhost:8080</code></pre>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:39.578711",
+    "serverResponseTime" : "2024-08-11T16:40:45.298008",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -3276,8 +3381,8 @@ Host: localhost:8080</code></pre>
       "alcoholId" : 1,
       "korName" : "글렌피딕",
       "engName" : "glen fi",
-      "rating" : 1.0,
-      "ratingCount" : 92,
+      "rating" : 2.0,
+      "ratingCount" : 53,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
@@ -3286,8 +3391,8 @@ Host: localhost:8080</code></pre>
       "alcoholId" : 2,
       "korName" : "맥키토시",
       "engName" : "macintosh",
-      "rating" : 0.5,
-      "ratingCount" : 60,
+      "rating" : 2.0,
+      "ratingCount" : 10,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
@@ -3296,8 +3401,8 @@ Host: localhost:8080</code></pre>
       "alcoholId" : 3,
       "korName" : "글렌리벳",
       "engName" : "glen rivet",
-      "rating" : 2.5,
-      "ratingCount" : 17,
+      "rating" : 2.0,
+      "ratingCount" : 9,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
@@ -3306,8 +3411,8 @@ Host: localhost:8080</code></pre>
       "alcoholId" : 4,
       "korName" : "글렌피딕",
       "engName" : "glen fi",
-      "rating" : 0.0,
-      "ratingCount" : 23,
+      "rating" : 0.5,
+      "ratingCount" : 59,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
@@ -3316,8 +3421,8 @@ Host: localhost:8080</code></pre>
       "alcoholId" : 5,
       "korName" : "맥키토시",
       "engName" : "macintosh",
-      "rating" : 2.0,
-      "ratingCount" : 22,
+      "rating" : 0.5,
+      "ratingCount" : 56,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
@@ -3328,7 +3433,7 @@ Host: localhost:8080</code></pre>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:39.885119",
+    "serverResponseTime" : "2024-08-11T16:40:45.663047",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -3642,7 +3747,7 @@ Content-Length: 349
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:41.617887",
+    "serverResponseTime" : "2024-08-11T16:40:47.236638",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -3904,7 +4009,7 @@ PathVariable로 alcoholId를 전달합니다.</p>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json;charset=UTF-8
-Content-Length: 1470
+Content-Length: 1472
 
 {
   "success" : true,
@@ -3919,7 +4024,7 @@ Content-Length: 1470
       "likeCount" : 5,
       "replyCount" : 3,
       "reviewImageUrl" : "https://picsum.photos/600/600",
-      "createAt" : [ 2024, 8, 4, 13, 22, 41, 698578000 ],
+      "createAt" : [ 2024, 8, 11, 16, 40, 47, 324676000 ],
       "userId" : 1,
       "nickName" : "test_user_1",
       "userProfileImage" : "user_profile_image_1",
@@ -3936,7 +4041,7 @@ Content-Length: 1470
       "likeCount" : 3,
       "replyCount" : 6,
       "reviewImageUrl" : "https://picsum.photos/600/600",
-      "createAt" : [ 2024, 8, 3, 13, 22, 41, 698625000 ],
+      "createAt" : [ 2024, 8, 10, 16, 40, 47, 324682000 ],
       "userId" : 2,
       "nickName" : "test_user_2",
       "userProfileImage" : "user_profile_image_2",
@@ -3951,7 +4056,7 @@ Content-Length: 1470
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:41.704313",
+    "serverResponseTime" : "2024-08-11T16:40:47.330920",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 1,
@@ -4266,7 +4371,7 @@ Content-Length: 1470
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json;charset=UTF-8
-Content-Length: 1470
+Content-Length: 1472
 
 {
   "success" : true,
@@ -4281,7 +4386,7 @@ Content-Length: 1470
       "likeCount" : 5,
       "replyCount" : 3,
       "reviewImageUrl" : "https://picsum.photos/600/600",
-      "createAt" : [ 2024, 8, 4, 13, 22, 41, 523741000 ],
+      "createAt" : [ 2024, 8, 11, 16, 40, 47, 143053000 ],
       "userId" : 1,
       "nickName" : "test_user_1",
       "userProfileImage" : "user_profile_image_1",
@@ -4298,7 +4403,7 @@ Content-Length: 1470
       "likeCount" : 3,
       "replyCount" : 6,
       "reviewImageUrl" : "https://picsum.photos/600/600",
-      "createAt" : [ 2024, 8, 3, 13, 22, 41, 523767000 ],
+      "createAt" : [ 2024, 8, 10, 16, 40, 47, 143078000 ],
       "userId" : 2,
       "nickName" : "test_user_2",
       "userProfileImage" : "user_profile_image_2",
@@ -4313,7 +4418,7 @@ Content-Length: 1470
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:41.531983",
+    "serverResponseTime" : "2024-08-11T16:40:47.150777",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 1,
@@ -4609,13 +4714,13 @@ Content-Length: 417
     "codeMessage" : "MODIFY_SUCCESS",
     "message" : "리뷰 수정이 성공적으로 완료되었습니다.",
     "reviewId" : 1,
-    "responseAt" : "2024-08-04 13:22:41"
+    "responseAt" : "2024-08-11 16:40:47"
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:41.482788",
+    "serverResponseTime" : "2024-08-11T16:40:47.086905",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -4758,13 +4863,13 @@ Content-Length: 417
     "codeMessage" : "DELETE_SUCCESS",
     "message" : "리뷰 삭제가 성공적으로 완료되었습니다.",
     "reviewId" : 1,
-    "responseAt" : "2024-08-04 13:22:41"
+    "responseAt" : "2024-08-11 16:40:46"
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:41.350799",
+    "serverResponseTime" : "2024-08-11T16:40:46.965715",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -5048,7 +5153,7 @@ Content-Length: 1249
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:41.655089",
+    "serverResponseTime" : "2024-08-11T16:40:47.278956",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -5210,7 +5315,7 @@ Content-Length: 1249
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:40.501938",
+    "serverResponseTime" : "2024-08-11T16:40:46.365714",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -5414,13 +5519,13 @@ Content-Length: 1249
     "codeMessage" : "SUCCESS_REGISTER_REPLY",
     "message" : "성공적으로 댓글을 등록했습니다.",
     "reviewId" : 1,
-    "responseAt" : "2024-08-04 13:22:42"
+    "responseAt" : "2024-08-11 16:40:47"
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:42.063869",
+    "serverResponseTime" : "2024-08-11T16:40:47.684044",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -5542,13 +5647,13 @@ Content-Length: 1249
     "codeMessage" : "SUCCESS_DELETE_REPLY",
     "message" : "성공적으로 댓글을 삭제했습니다.",
     "reviewId" : 1,
-    "responseAt" : "2024-08-04 13:22:41"
+    "responseAt" : "2024-08-11 16:40:47"
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:41.809695",
+    "serverResponseTime" : "2024-08-11T16:40:47.451025",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -5728,42 +5833,42 @@ Content-Length: 1249
     "reviewReplies" : [ {
       "userId" : 0,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "SKgqOZWyeH",
+      "nickName" : "PwAvFLQWQF",
       "reviewReplyId" : 0,
-      "reviewReplyContent" : "ikBAVnEfxPXsvvbohdFgYCmKPdtGKKavHVbSyJQTENCdaexOYwmJMOVzSSEdUaipwDYAfXKjqPfqeDPzRLGtfLnLfgLKfxzduuIrpHEcmzKMLQgRyuQDrrnngWSUyCsBMptsWDZDJvKifUsGhhGzgO",
-      "subReplyCount" : 4,
+      "reviewReplyContent" : "whAuySyIKdnTSvIDvMJmfsVrUJoPXZBOEJRUtLDXWKZXXbHLteIbsKvbgcOkBpLYrEVjJPzVNLqZwxvkSgzYNLQBuFnrpcVxrjMNfQPPVrUnMwstjMDldrRHFIiIMQsyYeHudsrlQaFSWcYtmTkqyZ",
+      "subReplyCount" : 2,
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     }, {
       "userId" : 1,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "SMobaVLoTN",
+      "nickName" : "tjVIImIxVY",
       "reviewReplyId" : 1,
-      "reviewReplyContent" : "hulpvbeExNaKjTrQGUiXXXAZmcydHphbWyweMhZZoLFjIWRKXrJWPXqdjKnrFoNwZvSsYoSaDWjfKllpEcRsBvNuAjgIawaDdHCXSTDsTexgmKrLarzlzyKwzDlDDDERXxCMKGhTxXOimWkLOaSCIM",
+      "reviewReplyContent" : "rwTKgRapsUxLKAqHtfUnoAYZmSXRRWsAygcyKWxuxahZQPppJeDKGcVaPtzieFQYVnJUCxpRkNTBORnByLDMgEOftZkGAAZheDVcNrLncImETyllKSXrJDOlriKOgrShwJpIBaGKAJfRPIFilxfkJd",
       "subReplyCount" : 4,
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     }, {
       "userId" : 2,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "khjwgHFvNt",
+      "nickName" : "HnqpjsTkEa",
       "reviewReplyId" : 2,
-      "reviewReplyContent" : "oYvafQzRfEWMMIvhlSfnfGUeWbCPkwuISSNFJdsubQliWfEDdmADjbgrzkIWxIsKPkqWrBKEJVayRNIJvazEoWrSMuvGEfOxVSgKZPntJWhQBjViXGhctjQDGDiOaSZEiGetvHHXJZOxxgzezRspSt",
+      "reviewReplyContent" : "blcOYUQksnggyqrZMIdqvtICvIYzPpabTHjwtDxwDbSAbwEGvUiYkpixYsrYqDidLYBGGkMkzjewblAnaBlYFwbbUfOvmoqpleEEsPyqBtcMkXXsPBNZHZaTdcGlrFrlXhPpFKqqvUDZEIzqiolnwz",
       "subReplyCount" : 2,
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     }, {
       "userId" : 3,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "MgPBXLZWdS",
+      "nickName" : "QrzojVLSrP",
       "reviewReplyId" : 3,
-      "reviewReplyContent" : "UEOwWNeFjVxYTOQZXLHGNgHOMoLcqiceMeWYwKQiOnopQKaBCtPkOQmRxdwcJymMMeFLUCRXiZWoSSkSfEunQvdVZOajsnWpzwnXDnABmnexrVmZLqqcZTkVZOEeBstfgcOrncKUeXmAOeIVBOsjeo",
-      "subReplyCount" : 3,
+      "reviewReplyContent" : "HwJczYQCxnJJrAqlzkqmCnsiLKwJsGnZstmoInHeKIpBABPtAlibXYabtttYCLPyCMkKHxIwfsaMZFyblWAGMJmZdZEuPTtUbIeheVkgmLqGNzwBjGduYzgmVsJTYfyDuRLpQLunWefdPzQkxVOzkQ",
+      "subReplyCount" : 2,
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     }, {
       "userId" : 4,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "zSlXUbcuCz",
+      "nickName" : "aEtsjTAvRH",
       "reviewReplyId" : 4,
-      "reviewReplyContent" : "UthxXzQOmDZQsuOeJypkzTxpWVgGKRjLayuUjsYjCJlmwljFdHpmRyGiyxcGTGEqlzeWGhQSnzOwAOchiAenvxJaUYWpMfkxsLnSdpzHOVUpEKCwWSUGUrFHxrptWJLSIOTxlkkFpNwQjewCGkWeAo",
-      "subReplyCount" : 3,
+      "reviewReplyContent" : "BPWfPzyxVxdVclAmahnouffeBxAFiDRkWaGbxisObyScXIgvrrkHWGKFmZRZKYgaQUhshWVrFvpisHkBkQSApllIoRupbpeFqfAlrOdqdOZifUVUUnbXJJVhwXDDFnTZBmzyODoGDdEIHZjiweKVkm",
+      "subReplyCount" : 1,
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     } ]
   },
@@ -5771,7 +5876,7 @@ Content-Length: 1249
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:41.954825",
+    "serverResponseTime" : "2024-08-11T16:40:47.580281",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -6014,42 +6119,42 @@ Content-Length: 1249
     "reviewReplies" : [ {
       "userId" : 123,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "ZjCuedUOeZ",
+      "nickName" : "MKcgJQThAL",
       "rootReviewId" : 1,
       "parentReviewReplyId" : 1,
       "parentReviewReplyAuthor" : "@썩어가는망고",
       "reviewReplyId" : 1,
-      "reviewReplyContent" : "vtncgHHEMBIwhiGKstObtbtVPijsqKIgztmVMQDZGxqbRHSUOHhMQIjryxvuVPPcHihPDTHIYFXuKpwWNIYilpBfWrbGuLqOvoyiSGAXElIpAoKYHJzHgixyVKSQgUAIDPCXQgcIQWXhmAVVGtasXK",
+      "reviewReplyContent" : "LEgcVSIQMLhOckbFaWvYmQnfRfBEJgLdnfqvMjeovLOIBJcEXIFjMyLOSdfxUziOHDmfTxvyitHLcLNdeIFprtYbBAZzQcFzPvCDxxfHlUpTuFfHdfaYAmQEyaHQTtnehzlozAgGCkfzmoiasnYmQH",
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     }, {
       "userId" : 123,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "bKoDbnPjZK",
+      "nickName" : "siufEzsdyd",
       "rootReviewId" : 1,
       "parentReviewReplyId" : 1,
       "parentReviewReplyAuthor" : "@신선한반나나",
       "reviewReplyId" : 2,
-      "reviewReplyContent" : "RzvkTivWrhcmjmFzlJcmdHouofumZbVIXmaxxEXRVxCxMKPxqqazcLAAeTILChbqUcRMvFHKwkhBcZxqOQdptyQPcRkaPdPaTOlMomaWRfBPZYDQGDxqJntGiqYGAYvDoiavrujyMsAGYfkeoDBXyp",
+      "reviewReplyContent" : "GjPiZhAAhaCYjdWkUAcNGbffDpKHxBrBClgRdKIPYdHkKNEZCwWXqNvPPViWzpdOtiNPOqHFPUlXoxEDLHUEWgHLTuRuvqdWsGumXwcmSuTFVRVeCgDwVPBYMyFqRWBxQppDvzYguBjXBuCoJKDkKy",
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     }, {
       "userId" : 123,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "GdozytPsTU",
+      "nickName" : "EPNuSaRCKA",
       "rootReviewId" : 1,
       "parentReviewReplyId" : 1,
       "parentReviewReplyAuthor" : "@신선한반나나",
       "reviewReplyId" : 3,
-      "reviewReplyContent" : "idEPDRImAzwZPNTczSnFIbCCkzYCIbSYfxAKAJgVNkDzUylsAIETbIKLprKmlptHVtIXVEaEgdMofgAGpBsXQrHOXOPbbRIEyDWdjGUFiCaKnPsUqMJajXxuzvPfGAgzmQtPmGZZYCwAZbCnyoOLym",
+      "reviewReplyContent" : "mlVDUsThmpxElZGhordlJjTFLEofKCvPTYvWeqKpTAqXdCnDlNqMiNyRfTTZfHSJvGtuRiCqQVQcnXbdkFXwGjjBYbfIsIqaSeTsvWVDSVsMnGvvyhfShixAlgcixiHVastwbjLfafwKZscwWzCFJa",
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     }, {
       "userId" : 123,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "BOdLGcVqpW",
+      "nickName" : "TpVRMRuGlj",
       "rootReviewId" : 1,
       "parentReviewReplyId" : 1,
       "parentReviewReplyAuthor" : "@썩어가는망고",
       "reviewReplyId" : 4,
-      "reviewReplyContent" : "NtNOHhpJRZzZUOjSQgUaFfbBLVtLMTeUvvqEEaiqedIeJrtaDJAywdxRbzhpxeBuVUoxaEMrNTsaQXahZXZjSKAIrTVfUEshAGOZOfWgSsTvdqrdilZwztNVLBaRcQLLerwQZswgpDsKEjySMUcvPn",
+      "reviewReplyContent" : "gZHpxQBNSJEUDqEUeYpsNPBnIcCtaJIamwtkdSVvGAszAJwXUnFsdUMiSibWZDHxPLcCMsuLRvqRbscUyWLLIKMVKOnVkJTVyBUSjfUxAZMRJUswgYqwXQBpJzpGlYLHlOtNpAuivuoCtxRIZhljtp",
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     } ]
   },
@@ -6057,7 +6162,7 @@ Content-Length: 1249
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:42.000394",
+    "serverResponseTime" : "2024-08-11T16:40:47.621083",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -6263,7 +6368,7 @@ Content-Length: 1249
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:42.153472",
+    "serverResponseTime" : "2024-08-11T16:40:47.768910",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -6365,7 +6470,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 <h4 class="discrete" id="_요청_파라미터_24">요청 파라미터</h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/v1/follow?_csrf=r5fVzKciPwDvM7Sx4c8yLrRIGfOsUKwdWElFKHK1x9aBQprkyfbkqsUWCWHCA4WCgOIGHYN8NMqaaJowbX1zTEDW_-a3I6jX' -i -X POST \
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/v1/follow?_csrf=hkfHCBvom9YFSQFsY4MRwaW6cLgX1BqoN1ItGbs5rdM4Pw9Z536iO3naruYoezMPUK4lp5SNXYEgsniFUWFJKdpcnbAICzs8' -i -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
     -d '{
   "followUserId" : 1,
@@ -6654,7 +6759,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:40.161659",
+    "serverResponseTime" : "2024-08-11T16:40:45.975781",
     "pageable" : {
       "currentCursor" : null,
       "cursor" : 0,
@@ -6968,7 +7073,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:41.069899",
+    "serverResponseTime" : "2024-08-11T16:40:46.791585",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 0,
@@ -7212,7 +7317,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:41.189124",
+    "serverResponseTime" : "2024-08-11T16:40:46.860631",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -7334,7 +7439,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-04T13:22:40.868240",
+    "serverResponseTime" : "2024-08-11T16:40:46.715945",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -7347,7 +7452,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 <div id="footer">
 <div id="footer-text">
 Version 0.0.1-SNAPSHOT<br>
-Last updated 2024-08-04 13:21:24 +0900
+Last updated 2024-08-11 16:40:18 +0900
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>

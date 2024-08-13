@@ -1,15 +1,18 @@
 package app.bottlenote.global.data.response;
 
+import app.bottlenote.global.exception.custom.AbstractCustomException;
 import app.bottlenote.global.service.meta.MetaInfos;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static app.bottlenote.global.service.meta.MetaService.createMetaInfo;
 import static java.util.Collections.emptyList;
@@ -160,5 +163,41 @@ public class GlobalResponse {
 			.errors(errors)
 			.meta(createMetaInfo().getMetaInfos())
 			.build();
+	}
+
+	public static ResponseEntity<?> error(Error error) {
+		GlobalResponse response = GlobalResponse.builder()
+			.success(false)
+			.code(error.code().getHttpStatus().value())
+			.data(emptyList())
+			.errors(error)
+			.meta(createMetaInfo().getMetaInfos())
+			.build();
+		return new ResponseEntity<>(response, error.code().getHttpStatus());
+	}
+
+	public static ResponseEntity<?> error(AbstractCustomException exception) {
+
+		Error error = Error.of(exception.getExceptionCode());
+
+		GlobalResponse response = GlobalResponse.builder()
+			.success(false)
+			.code(exception.getExceptionCode().getHttpStatus().value())
+			.data(emptyList())
+			.errors(List.of(error))
+			.meta(createMetaInfo().getMetaInfos())
+			.build();
+		return new ResponseEntity<>(response, exception.getExceptionCode().getHttpStatus());
+	}
+
+	public static ResponseEntity<?> error(Set<Error> errorSet) {
+		GlobalResponse response = GlobalResponse.builder()
+			.success(false)
+			.code(HttpStatus.BAD_REQUEST.value())
+			.data(emptyList())
+			.errors(errorSet)
+			.meta(createMetaInfo().getMetaInfos())
+			.build();
+		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 	}
 }

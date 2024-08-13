@@ -6,6 +6,7 @@ import app.bottlenote.picks.dto.request.PicksUpdateRequest;
 import app.bottlenote.picks.service.PicksCommandService;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -24,7 +25,7 @@ public class PicksCommandController {
 
 	@PutMapping
 	public ResponseEntity<GlobalResponse> updatePicks(
-		@RequestBody PicksUpdateRequest request
+		@RequestBody @Valid PicksUpdateRequest request
 	) {
 
 		Long userId = getUserIdByContext()

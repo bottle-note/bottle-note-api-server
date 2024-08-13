@@ -3,7 +3,7 @@ package app.bottlenote.review.exception;
 import app.bottlenote.global.exception.custom.code.ExceptionCode;
 import org.springframework.http.HttpStatus;
 
-public enum ReviewExceptionCode implements ExceptionCode {
+public  enum ReviewExceptionCode implements ExceptionCode {
 
 	REVIEW_NOT_FOUND(HttpStatus.BAD_REQUEST, "리뷰를 찾을 수 없습니다"),
 	INVALID_TASTING_TAG_LENGTH(HttpStatus.BAD_REQUEST, "테이스팅 태그의 길이는 12자 이하로만 작성할 수 있습니다."),
@@ -29,6 +29,12 @@ public enum ReviewExceptionCode implements ExceptionCode {
 	@Override
 	public HttpStatus getHttpStatus() {
 		return httpStatus;
+	}
+
+	public static class ReviewException extends RuntimeException {
+		public ReviewException(ReviewExceptionCode code) {
+			super(code.getMessage());
+		}
 	}
 
 }
