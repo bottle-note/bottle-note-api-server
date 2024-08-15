@@ -93,6 +93,6 @@ class UserCommandControllerTest {
 			.andDo(print())
 			.andExpect(jsonPath("$.success").value("false"))
 			.andExpect(jsonPath("$.code").value("400"))
-			.andExpect(jsonPath("$.errors.message").value(REQUIRED_USER_ID.getMessage()));
+			.andExpect(jsonPath("$.errors[0].message").value(REQUIRED_USER_ID.getMessage()));
 	}
 }

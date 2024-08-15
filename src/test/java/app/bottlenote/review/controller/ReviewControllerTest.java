@@ -1,5 +1,22 @@
 package app.bottlenote.review.controller;
 
+import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.description;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.security.jwt.CustomJwtException;
 import app.bottlenote.global.security.jwt.CustomJwtExceptionCode;
@@ -24,6 +41,10 @@ import app.bottlenote.review.service.ReviewService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -43,28 +64,6 @@ import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
-
-import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.description;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Tag("unit")
 @DisplayName("[unit] [controller] ReviewController")
@@ -357,8 +356,8 @@ class ReviewControllerTest {
 			mockMvc.perform(get("/api/v1/reviews/me/1")
 					.contentType(MediaType.APPLICATION_JSON)
 					.with(csrf()))
-				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.errors.message").value(CustomJwtExceptionCode.EMPTY_JWT_TOKEN.getMessage()))
+				.andExpect(status().isUnauthorized())
+				.andExpect(jsonPath("$.errors[0].message").value(CustomJwtExceptionCode.EMPTY_JWT_TOKEN.getMessage()))
 				.andDo(print());
 		}
 
@@ -377,7 +376,7 @@ class ReviewControllerTest {
 					.contentType(MediaType.APPLICATION_JSON)
 					.with(csrf()))
 				.andExpect(status().isUnauthorized())
-				.andExpect(jsonPath("$.errors").value(JwtExceptionType.MALFORMED_TOKEN.getMessage()))
+				.andExpect(jsonPath("$.errors.message").value(JwtExceptionType.MALFORMED_TOKEN.getMessage()))
 				.andDo(print());
 		}
 
@@ -396,8 +395,9 @@ class ReviewControllerTest {
 					.contentType(MediaType.APPLICATION_JSON)
 					.with(csrf()))
 				.andExpect(status().isForbidden())
-				.andExpect(jsonPath("$.errors").value(JwtExceptionType.EXPIRED_TOKEN.getMessage()))
-				.andDo(print());
+				.andDo(print())
+				.andExpect(jsonPath("$.errors.message").value(JwtExceptionType.EXPIRED_TOKEN.getMessage()));
+
 		}
 
 		@DisplayName("리뷰를 상세 조회할 수 있다.")
