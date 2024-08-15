@@ -15,15 +15,15 @@ import java.util.List;
 
 public record ReviewModifyRequest(
 
-	@NotEmpty(message = "리뷰 내용을 입력해주세요")
-	@Size(max = 500)
+	@NotEmpty(message = "REVIEW_CONTENT_REQUIRED")
+	@Size(max = 500, message = "REVIEW_CONTENT_MAXIMUM")
 	String content,
 
-	@NotNull
+	@NotNull(message = "VALUE_REQUIRED")
 	ReviewDisplayStatus status,
 
-	@DecimalMin(value = "0.0", message = "가격은 0 이상이어야 합니다.")
-	@DecimalMax(value = "1000000000000", message = "입력할 수 있는 가격의 범위가 아닙니다.")
+	@DecimalMin(value = "0.0", message = "PRICE_MINIMUM")
+	@DecimalMax(value = "1000000000000", message = "PRICE_MAXIMUM")
 	@JsonInclude()
 	@JsonProperty(required = true)
 	BigDecimal price,
