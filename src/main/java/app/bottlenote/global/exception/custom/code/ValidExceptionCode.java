@@ -33,6 +33,11 @@ public enum ValidExceptionCode implements ExceptionCode {
 	PRICE_MINIMUM(HttpStatus.BAD_REQUEST, "가격은 0원 이상이어야 합니다."),
 	PRICE_MAXIMUM(HttpStatus.BAD_REQUEST, "입력할 수 있는 가격의 범위가 아닙니다."),
 
+	//REVIEW_REPLY
+	REVIEW_REPLY_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, "댓글 내용은 필수입니다"),
+	REVIEW_CONTENT_SIZE_MIN_MAX(HttpStatus.BAD_REQUEST, "댓글 내용은 1자 이상 500자 이하로 작성해주세요."),
+
+
 	//LOCATION INFO
 	ZIPCODE_ONLY_NUMBER(HttpStatus.BAD_REQUEST, "우편번호는 숫자만 가능합니다"),
 	ZIPCODE_FORMAT(HttpStatus.BAD_REQUEST, "우편번호는 5자리의 숫자만 가능합니다");
