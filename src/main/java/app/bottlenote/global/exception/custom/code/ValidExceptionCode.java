@@ -16,6 +16,11 @@ public enum ValidExceptionCode implements ExceptionCode {
 	JWT_TOKEN_EXCEPTION(HttpStatus.UNAUTHORIZED, "JWT 토큰 관련 예외가 발생했습니다."),
 	AWS_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "AWS 관련 오류가 발생했습니다. infra 팀에 문의해주세요."),
 
+	//USER
+	EMAIL_REQUIRED(HttpStatus.BAD_REQUEST, "이메일은 필수입니다."),
+	EMAIL_FORMAT_MISMATCH(HttpStatus.BAD_REQUEST, "올바른 이메일 형식이 아닙니다."),
+	AGE_MINIMUM(HttpStatus.BAD_REQUEST, "나이는 최소 0살 이상이어야 합니다."),
+
 
 	//ALCOHOL
 	ALCOHOL_ID_REQUIRED(HttpStatus.BAD_REQUEST, "알코올 식별자는 필수입니다."),
@@ -37,10 +42,13 @@ public enum ValidExceptionCode implements ExceptionCode {
 	REVIEW_REPLY_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, "댓글 내용은 필수입니다"),
 	REVIEW_CONTENT_SIZE_MIN_MAX(HttpStatus.BAD_REQUEST, "댓글 내용은 1자 이상 500자 이하로 작성해주세요."),
 
-
 	//LOCATION INFO
 	ZIPCODE_ONLY_NUMBER(HttpStatus.BAD_REQUEST, "우편번호는 숫자만 가능합니다"),
-	ZIPCODE_FORMAT(HttpStatus.BAD_REQUEST, "우편번호는 5자리의 숫자만 가능합니다");
+	ZIPCODE_FORMAT(HttpStatus.BAD_REQUEST, "우편번호는 5자리의 숫자만 가능합니다"),
+
+	//HELP
+	HELP_TITLE_REQUIRED(HttpStatus.BAD_REQUEST, "문의글 제목은 필수입니다."),
+	HELP_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, "문의글 내용은 필수입니다.");
 
 
 	private final HttpStatus httpStatus;
