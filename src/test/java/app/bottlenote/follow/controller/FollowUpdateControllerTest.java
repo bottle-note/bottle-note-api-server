@@ -7,6 +7,7 @@ import app.bottlenote.follow.dto.response.FollowUpdateResponse;
 import app.bottlenote.follow.exception.FollowException;
 import app.bottlenote.follow.exception.FollowExceptionCode;
 import app.bottlenote.follow.service.FollowService;
+import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.security.SecurityContextUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -129,6 +130,9 @@ class FollowUpdateControllerTest {
 	@DisplayName("자기 자신을 팔로우할 수 없다.")
 	@Test
 	void test_3() throws Exception {
+
+		Error error = Error.of(FollowExceptionCode.CANNOT_FOLLOW_SELF);
+
 		// given
 		FollowUpdateRequest request = new FollowUpdateRequest(9L, FollowStatus.FOLLOWING);
 
@@ -144,9 +148,9 @@ class FollowUpdateControllerTest {
 			.andExpect(status().isBadRequest())
 			.andDo(print());
 
-		resultActions.andExpect(jsonPath("$.success").value(false));
-		resultActions.andExpect(jsonPath("$.code").value(400));
-		resultActions.andExpect(jsonPath("$.errors.message").value("자기 자신을 팔로우, 언팔로우 할 수 없습니다."));
+		resultActions.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())));
+		resultActions.andExpect(jsonPath("$.errors[0].status").value(error.status().name()));
+		resultActions.andExpect(jsonPath("$.errors[0].message").value(error.message()));
 	}
 
 

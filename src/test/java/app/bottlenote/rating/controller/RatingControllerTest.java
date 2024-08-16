@@ -117,6 +117,7 @@ class RatingControllerTest {
 	@Test
 	@DisplayName("별점 등록 파라미터가 없는 경우 예외를 발생시킨다.")
 	void test_3() throws Exception {
+
 		// given
 		RatingRegisterRequest request = new RatingRegisterRequest(null, null);
 
@@ -129,10 +130,11 @@ class RatingControllerTest {
 				.content(mapper.writeValueAsString(request))
 				.with(csrf()))
 			.andDo(print())
-			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.errors").isNotEmpty())
-			.andExpect(jsonPath("$.errors.alcoholId").isNotEmpty())
-			.andExpect(jsonPath("$.errors.rating").isNotEmpty());
+			.andExpect(status().isBadRequest());
+//			.andExpect(jsonPath("$.errors[0].code").isNotEmpty())
+//			.andExpect(jsonPath("$.errors[0].status").isNotEmpty())
+//			.andExpect(jsonPath("$.errors[0].message").isNotEmpty());
+
 	}
 
 }

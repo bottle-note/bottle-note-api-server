@@ -392,6 +392,8 @@ class ReviewControllerTest {
 		@DisplayName("토큰이 만료 된 토큰일 경우 예외를 반환한다.")
 		void test_fail_when_token_is_expired() throws Exception {
 
+			Error error = Error.of(JwtExceptionType.EXPIRED_TOKEN);
+
 			//when
 			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
@@ -403,7 +405,7 @@ class ReviewControllerTest {
 					.contentType(MediaType.APPLICATION_JSON)
 					.with(csrf()))
 				.andExpect(status().isForbidden())
-				.andExpect(jsonPath("$.errors").value(JwtExceptionType.EXPIRED_TOKEN.getMessage()))
+				.andExpect(jsonPath("$.errors[0].message").value(error.message()))
 				.andDo(print());
 		}
 
