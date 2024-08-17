@@ -157,6 +157,7 @@ class FollowUpdateControllerTest {
 	@DisplayName("팔로우할 유저가 존재하지 않으면 팔로우할 수 없다.")
 	@Test
 	void test_4() throws Exception {
+		Error error = Error.of(FollowExceptionCode.FOLLOW_NOT_FOUND);
 		// given
 		FollowUpdateRequest request = new FollowUpdateRequest(1L, FollowStatus.FOLLOWING);
 
@@ -172,9 +173,9 @@ class FollowUpdateControllerTest {
 			.andExpect(status().isNotFound())
 			.andDo(print());
 
-		resultActions.andExpect(jsonPath("$.success").value(false));
-		resultActions.andExpect(jsonPath("$.code").value(404));
-		resultActions.andExpect(jsonPath("$.errors[0].message").value("팔로우할 대상을 찾을 수 없습니다."));
+		resultActions.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())));
+		resultActions.andExpect(jsonPath("$.errors[0].status").value(error.status().name()));
+		resultActions.andExpect(jsonPath("$.errors[0].message").value(error.message()));
 	}
 
 }

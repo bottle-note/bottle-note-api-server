@@ -16,11 +16,11 @@ import java.util.List;
 
 public record ReviewModifyRequest(
 
-	@NotEmpty(message = "NOT_EMPTY")
+	@NotEmpty(message = "REVIEW_NOT_EMPTY")
 	@Size(max = 500)
 	String content,
 
-	@NotNull(message = "NOT_NULL")
+	@NotNull(message = "REVIEW_DISPLAY_STATUS_NOT_EMPTY")
 	ReviewDisplayStatus status,
 
 	@DecimalMin(value = "0.0", message = "가격은 0 이상이어야 합니다.")

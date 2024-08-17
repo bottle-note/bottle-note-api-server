@@ -195,10 +195,7 @@ class OauthControllerTest {
 			.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
 			.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
 			.andExpect(jsonPath("$.errors[0].message").value(error.message()));
-//		[{"code":"INVALID_REFRESH_TOKEN","status":"UNAUTHORIZED","message":"유효하지 않은 리프레쉬 토큰입니다."}]
-//			.andExpect(result -> assertTrue(
-//				result.getResolvedException() instanceof UserException))
-//			.andExpect(jsonPath("$.errors").exists());
+
 	}
 
 	@Test

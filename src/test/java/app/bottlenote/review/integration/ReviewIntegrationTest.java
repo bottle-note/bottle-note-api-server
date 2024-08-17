@@ -197,8 +197,8 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
 		@DisplayName("Not Null인 필드에 null이 할당되면 리뷰 수정에 실패한다.")
 		@Test
 		void test_3() throws Exception {
-			Error notNullError = Error.of(ValidExceptionCode.NOT_NULL);
-			Error notEmptyError = Error.of(ValidExceptionCode.NOT_EMPTY);
+			Error notNullEmpty = Error.of(ValidExceptionCode.REVIEW_NOT_EMPTY);
+			Error notStatusEmpty = Error.of(ValidExceptionCode.REVIEW_DISPLAY_STATUS_NOT_EMPTY);
 
 			log.info("using port : {}", MY_SQL_CONTAINER.getFirstMappedPort());
 
@@ -212,10 +212,10 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
 				)
 				.andExpect(status().isBadRequest()).andDo(print())
 				.andExpect(jsonPath("$.errors", hasSize(2)))
-				.andExpect(jsonPath("$.errors[?(@.code == 'NOT_NULL')].status").value(notNullError.status().name()))
-				.andExpect(jsonPath("$.errors[?(@.code == 'NOT_NULL')].message").value(notNullError.message()))
-				.andExpect(jsonPath("$.errors[?(@.code == 'NOT_EMPTY')].status").value(notEmptyError.status().name()))
-				.andExpect(jsonPath("$.errors[?(@.code == 'NOT_EMPTY')].message").value(notEmptyError.message()))
+				.andExpect(jsonPath("$.errors[?(@.code == 'REVIEW_NOT_EMPTY')].status").value(notNullEmpty.status().name()))
+				.andExpect(jsonPath("$.errors[?(@.code == 'REVIEW_NOT_EMPTY')].message").value(notNullEmpty.message()))
+				.andExpect(jsonPath("$.errors[?(@.code == 'REVIEW_DISPLAY_STATUS_NOT_EMPTY')].status").value(notStatusEmpty.status().name()))
+				.andExpect(jsonPath("$.errors[?(@.code == 'REVIEW_DISPLAY_STATUS_NOT_EMPTY')].message").value(notStatusEmpty.message()))
 				.andReturn();
 
 		}

@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record OauthRequest
-	(@NotBlank(message = "NOT_BLANK")
+	(@NotBlank(message = "EMAIL_NOT_BLANK")
 	 @Email(message = "EMAIL_PATTERN_NOT_VALID") String email,
 	 @NotNull(message = "SOCIAL_TYPE_REQUIRED")
 	 SocialType socialType,
