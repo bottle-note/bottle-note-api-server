@@ -1,18 +1,12 @@
 package app.bottlenote.review.integration;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.response.detail.AlcoholDetail;
 import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo.ReviewInfo;
+import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
@@ -20,8 +14,6 @@ import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.dto.request.OauthRequest;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,6 +25,18 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
+
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Tag("integration")
 @DisplayName("[integration] [controller] ReviewReplyController")
@@ -193,6 +197,9 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
 		@DisplayName("Not Null인 필드에 null이 할당되면 리뷰 수정에 실패한다.")
 		@Test
 		void test_3() throws Exception {
+			Error notNullError = Error.of(ValidExceptionCode.NOT_NULL);
+			Error notEmptyError = Error.of(ValidExceptionCode.NOT_EMPTY);
+
 			log.info("using port : {}", MY_SQL_CONTAINER.getFirstMappedPort());
 
 			final Long reviewId = 1L;
@@ -203,11 +210,14 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
 					.header("Authorization", "Bearer " + getToken(oauthRequest).getAccessToken())
 					.with(csrf())
 				)
-				.andDo(print())
-				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.code").value(400))
-				.andExpect(jsonPath("$.data").exists())
+				.andExpect(status().isBadRequest()).andDo(print())
+				.andExpect(jsonPath("$.errors", hasSize(2)))
+				.andExpect(jsonPath("$.errors[?(@.code == 'NOT_NULL')].status").value(notNullError.status().name()))
+				.andExpect(jsonPath("$.errors[?(@.code == 'NOT_NULL')].message").value(notNullError.message()))
+				.andExpect(jsonPath("$.errors[?(@.code == 'NOT_EMPTY')].status").value(notEmptyError.status().name()))
+				.andExpect(jsonPath("$.errors[?(@.code == 'NOT_EMPTY')].message").value(notEmptyError.message()))
 				.andReturn();
+
 		}
 	}
 

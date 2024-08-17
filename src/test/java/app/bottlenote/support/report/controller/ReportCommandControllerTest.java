@@ -1,5 +1,7 @@
 package app.bottlenote.support.report.controller;
 
+import app.bottlenote.global.data.response.Error;
+import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.support.report.domain.constant.UserReportType;
 import app.bottlenote.support.report.dto.request.UserReportRequest;
 import app.bottlenote.support.report.dto.response.UserReportResponse;
@@ -21,6 +23,8 @@ import java.util.Map;
 import static app.bottlenote.support.report.dto.response.UserReportResponse.UserReportResponseEnum.SAME_USER;
 import static app.bottlenote.support.report.dto.response.UserReportResponse.UserReportResponseEnum.SUCCESS;
 import static app.bottlenote.support.report.dto.response.UserReportResponse.of;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -89,27 +93,42 @@ class ReportCommandControllerTest {
 	@DisplayName("유저 신고 요청에 파라미터 값이 없으면 실패한다.")
 	@Test
 	void reportUserValidationTest() throws Exception {
+		Error requiredUserIdError = Error.of(ValidExceptionCode.REQUIRED_USER_ID);
+		Error reportTargetUserIdError = Error.of(ValidExceptionCode.REPORT_TARGET_USER_ID_REQUIRED);
+		Error reportTypeError = Error.of(ValidExceptionCode.REPORT_TYPE_NOT_VALID);
+		Error notBlankError = Error.of(ValidExceptionCode.NOT_BLANK);
+
 		// given
 		UserReportRequest request = new UserReportRequest(null, null, null, null);
+
 		// then
 		mockMvc.perform(post("/api/v1/reports/user")
 				.contentType(MediaType.APPLICATION_JSON)
 				.with(csrf())
 				.content(mapper.writeValueAsString(request)))
-			.andExpect(status().isBadRequest())
-//			.andExpect(jsonPath("$.success").value("false"))
-//			.andExpect(jsonPath("$.code").value("400"))
-//			.andExpect(jsonPath("$.data").isEmpty())
-//			.andExpect(jsonPath("$.errors.reportUserId").value("필드 'reportUserId'의 값 'null'가 유효하지 않습니다: 신고 대상자 아이디는 필수입니다."))
-//			.andExpect(jsonPath("$.errors.userId").value("필드 'userId'의 값 'null'가 유효하지 않습니다: 신고자 아이디는 필수입니다."))
-//			.andExpect(jsonPath("$.errors.type").value("필드 'type'의 값 'null'가 유효하지 않습니다: 신고 타입이 적절하지 않습니다. ( SPAM , INAPPROPRIATE_CONTENT ,FRAUD ,COPYRIGHT_INFRINGEMENT ,OTHER )"))
-//			.andExpect(jsonPath("$.errors.content").value("필드 'content'의 값 'null'가 유효하지 않습니다: 신고 내용은 필수입니다."))
-			.andDo(print());
+			.andExpect(status().isBadRequest()).andDo(print())
+			.andExpect(jsonPath("$.errors[?(@.code == '" + requiredUserIdError.code() + "')].status")
+				.value(requiredUserIdError.status().name()))
+			.andExpect(jsonPath("$.errors[?(@.code == '" + requiredUserIdError.code() + "')].message")
+				.value(requiredUserIdError.message()))
+			.andExpect(jsonPath("$.errors[?(@.code == '" + reportTargetUserIdError.code() + "')].status")
+				.value(reportTargetUserIdError.status().name()))
+			.andExpect(jsonPath("$.errors[?(@.code == '" + reportTargetUserIdError.code() + "')].message")
+				.value(reportTargetUserIdError.message()))
+			.andExpect(jsonPath("$.errors[?(@.code == '" + reportTypeError.code() + "')].status")
+				.value(reportTypeError.status().name()))
+			.andExpect(jsonPath("$.errors[?(@.code == '" + reportTypeError.code() + "')].message")
+				.value(reportTypeError.message()))
+			.andExpect(jsonPath("$.errors[?(@.code == '" + notBlankError.code() + "')].status")
+				.value(notBlankError.status().name()))
+			.andExpect(jsonPath("$.errors[?(@.code == '" + notBlankError.code() + "')].message")
+				.value(notBlankError.message()));
 	}
 
-	@DisplayName("유저 신고 요청에 파라미터 타입이 안맞으면 실패한다.")
+	@DisplayName("유저 신고 요청에 파라미터 타입이 안 맞으면 실패한다.")
 	@Test
 	void reportUserValidationTypeTest() throws Exception {
+
 		// given
 		Map<String, Object> request = new HashMap<>();
 		request.put("userId", "숫자가 아닌 어떤 값");
@@ -117,17 +136,15 @@ class ReportCommandControllerTest {
 		request.put("type", 123);
 		request.put("content", 123);
 
-		// then
+		// when & then
 		mockMvc.perform(post("/api/v1/reports/user")
 				.contentType(MediaType.APPLICATION_JSON)
 				.with(csrf())
 				.content(mapper.writeValueAsString(request)))
 			.andExpect(status().isBadRequest())
-//			.andExpect(jsonPath("$.success").value("false"))
-//			.andExpect(jsonPath("$.code").value("400"))
-//			.andExpect(jsonPath("$.data").isEmpty())
-//			.andExpect(jsonPath("$.errors.message", containsString("필드의 값이 잘못되었습니다.")))
-//			.andExpect(jsonPath("$.errors.message", containsString("해당 필드의 값의 타입을 확인해주세요.")))
-			.andDo(print());
+			.andDo(print())
+			.andExpect(jsonPath("$.errors[?(@.code == 'JSON_PASSING_FAILED')].message").value(hasItem(containsString("필드의 값이 잘못되었습니다."))))
+			.andExpect(jsonPath("$.errors[?(@.code == 'JSON_PASSING_FAILED')].message").value(hasItem(containsString("해당 필드의 값의 타입을 확인해주세요."))));
 	}
+
 }

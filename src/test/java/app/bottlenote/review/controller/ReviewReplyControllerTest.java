@@ -1,6 +1,7 @@
 package app.bottlenote.review.controller;
 
 import app.bottlenote.global.data.response.Error;
+import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage;
 import app.bottlenote.review.exception.ReviewException;
@@ -92,6 +93,8 @@ class ReviewReplyControllerTest {
 		@DisplayName("댓글 내용이 없는 경우 예외가 반환된다.")
 		void test_2() throws Exception {
 
+			Error error = Error.of(ValidExceptionCode.REQUIRED_REVIEW_REPLY_CONTENT);
+
 			final Long reviewId = 1L;
 			var request = ReviewReplyObjectFixture.getReviewReplyRegisterRequest(null, null);
 
@@ -103,14 +106,18 @@ class ReviewReplyControllerTest {
 					.with(csrf())
 				)
 				.andDo(print())
-				.andExpect(status().isBadRequest());
-//				.andExpect(jsonPath("$.errors.content", containsString("댓글 내용은 필수 입력값입니다.")));
+				.andExpect(status().isBadRequest()).andDo(print())
+				.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+				.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+				.andExpect(jsonPath("$.errors[0].message").value(error.message()));
 
 		}
 
 		@Test
 		@DisplayName("댓글 내용이 500자를 초과하는 경우 예외가 반환된다.")
 		void test_3() throws Exception {
+
+			Error error = Error.of(ValidExceptionCode.CONTENT_IS_OUT_OF_RANGE);
 			final Long reviewId = 1L;
 			var request = ReviewReplyObjectFixture.getReviewReplyRegisterRequest(RandomStringUtils.randomAlphabetic(501), null);
 
@@ -122,8 +129,10 @@ class ReviewReplyControllerTest {
 					.with(csrf())
 				)
 				.andDo(print())
-				.andExpect(status().isBadRequest());
-//				.andExpect(jsonPath("$.errors.content", containsString("댓글 내용은 1자 이상 500자 이하로 작성해주세요.")));
+				.andExpect(status().isBadRequest()).andDo(print())
+				.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+				.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+				.andExpect(jsonPath("$.errors[0].message").value(error.message()));
 		}
 	}
 

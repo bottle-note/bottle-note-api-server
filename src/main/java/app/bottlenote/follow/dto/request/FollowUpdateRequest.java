@@ -6,10 +6,10 @@ import jakarta.validation.constraints.NotNull;
 
 public record FollowUpdateRequest(
 
-	@NotNull(message = "팔로우 할 유저의 아이디가 없습니다.")
+	@NotNull(message = "IS_NO_USER_ID_TO_FOLLOW")
 	Long followUserId,
 
-	@NotNull(message = "FOLLOWING, UNFOLLOW 중 하나를 선택해주세요.")
+	@NotNull(message = "SELECT_FOLLOWING_OR_UNFOLLOW")
 	FollowStatus status
 
 ) {

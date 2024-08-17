@@ -10,16 +10,17 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
 import java.math.BigDecimal;
 import java.util.List;
 
 public record ReviewModifyRequest(
 
-	@NotEmpty(message = "리뷰 내용을 입력해주세요")
+	@NotEmpty(message = "NOT_EMPTY")
 	@Size(max = 500)
 	String content,
 
-	@NotNull
+	@NotNull(message = "NOT_NULL")
 	ReviewDisplayStatus status,
 
 	@DecimalMin(value = "0.0", message = "가격은 0 이상이어야 합니다.")

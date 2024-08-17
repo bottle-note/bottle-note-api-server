@@ -8,12 +8,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record OauthRequest
-	(@NotBlank(message = "로그인 및 회원가입에 필요한 이메일이 없습니다.")
-	 @Email(message = "올바른 이메일형식이 아닙니다.") String email,
-	 @NotNull(message = "로그인 및 회원가입에 필요한 소셜타입이 없습니다.")
+	(@NotBlank(message = "NOT_BLANK")
+	 @Email(message = "EMAIL_PATTERN_NOT_VALID") String email,
+	 @NotNull(message = "SOCIAL_TYPE_REQUIRED")
 	 SocialType socialType,
 	 GenderType gender,
-	 @Min(value = 0, message = "나이가 잘못 입력됐습니다.")
+	 @Min(value = 0, message = "AGE_MINIMUM")
 	 Integer age
 	) {
 

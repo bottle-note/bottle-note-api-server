@@ -1,6 +1,7 @@
 package app.bottlenote.user.controller;
 
 import app.bottlenote.global.data.response.Error;
+import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.user.domain.constant.GenderType;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.dto.request.OauthRequest;
@@ -89,6 +90,8 @@ class OauthControllerTest {
 	@DisplayName("유저는 SocialType이 null 값이면 로그인 할 수 없다.")
 	void user_login_fail_when_socialType_is_null() throws Exception {
 
+		Error error = Error.of(ValidExceptionCode.SOCIAL_TYPE_REQUIRED);
+
 		//given
 		OauthRequest oauthRequest = new OauthRequest("cdm2883@naver.com", null,
 			GenderType.MALE, 27);
@@ -102,15 +105,16 @@ class OauthControllerTest {
 				.contentType(MediaType.APPLICATION_JSON)
 				.with(csrf())
 				.content(mapper.writeValueAsString(oauthRequest)))
-			.andExpect(status().isBadRequest());
-//			.andExpect(result -> assertTrue(
-//				result.getResolvedException() instanceof MethodArgumentNotValidException))
-//			.andExpect(jsonPath("$.errors").exists());
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+			.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+			.andExpect(jsonPath("$.errors[0].message").value(error.message()));
 	}
 
 	@Test
 	@DisplayName("유저나이가 유효하지 않은 값이면 로그인 할 수 없다.")
 	void user_login_fail_when_gender_is_null() throws Exception {
+		Error error = Error.of(ValidExceptionCode.AGE_MINIMUM);
 
 		//given
 		OauthRequest oauthRequest = new OauthRequest("cdm2883@naver.com", SocialType.KAKAO,
@@ -124,10 +128,10 @@ class OauthControllerTest {
 				.contentType(MediaType.APPLICATION_JSON)
 				.with(csrf())
 				.content(mapper.writeValueAsString(oauthRequest)))
-			.andExpect(status().isBadRequest());
-//			.andExpect(result -> assertTrue(
-//				result.getResolvedException() instanceof MethodArgumentNotValidException))
-//			.andExpect(jsonPath("$.errors").exists());
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+			.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+			.andExpect(jsonPath("$.errors[0].message").value(error.message()));
 	}
 
 	@Test
@@ -187,10 +191,11 @@ class OauthControllerTest {
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("refresh-token", reissueRefreshToken)
 				.with(csrf()))
-			.andExpect(status().isBadRequest())
+			.andExpect(status().isUnauthorized()).andDo(print())
 			.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
-			.andExpect(jsonPath("$.errors[0].status").value(error.status().value()))
+			.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
 			.andExpect(jsonPath("$.errors[0].message").value(error.message()));
+//		[{"code":"INVALID_REFRESH_TOKEN","status":"UNAUTHORIZED","message":"유효하지 않은 리프레쉬 토큰입니다."}]
 //			.andExpect(result -> assertTrue(
 //				result.getResolvedException() instanceof UserException))
 //			.andExpect(jsonPath("$.errors").exists());
