@@ -48,6 +48,8 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
 						.select(count(subReply.id))
 						.from(subReply)
 						.where(subReply.rootReviewReply.id.eq(reviewReply.id)),
+
+					reviewReply.status,
 					reviewReply.createAt
 				)
 			)
@@ -100,7 +102,7 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
 						.when(reviewReply.status.eq(ReviewReplyStatus.DELETED))
 						.then(ReviewReplyStatus.DELETED.getMessage())
 						.otherwise(reviewReply.content),
-
+					reviewReply.status,
 					reviewReply.createAt
 				)
 			).from(reviewReply)

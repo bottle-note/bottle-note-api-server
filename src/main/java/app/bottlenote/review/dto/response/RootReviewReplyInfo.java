@@ -1,5 +1,6 @@
 package app.bottlenote.review.dto.response;
 
+import app.bottlenote.review.domain.constant.ReviewReplyStatus;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -21,6 +22,7 @@ public record RootReviewReplyInfo(
 		Long reviewReplyId,
 		String reviewReplyContent,
 		Long subReplyCount,
+		ReviewReplyStatus status,
 		LocalDateTime createAt
 	) {
 		@Builder
