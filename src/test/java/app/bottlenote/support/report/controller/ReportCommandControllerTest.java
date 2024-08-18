@@ -93,10 +93,10 @@ class ReportCommandControllerTest {
 	@DisplayName("유저 신고 요청에 파라미터 값이 없으면 실패한다.")
 	@Test
 	void reportUserValidationTest() throws Exception {
-		Error requiredUserIdError = Error.of(ValidExceptionCode.REPORT_REQUIRED_USER_ID);
+		Error requiredUserIdError = Error.of(ValidExceptionCode.REQUIRED_USER_ID);
 		Error reportTargetUserIdError = Error.of(ValidExceptionCode.REPORT_TARGET_USER_ID_REQUIRED);
 		Error reportTypeError = Error.of(ValidExceptionCode.REPORT_TYPE_NOT_VALID);
-		Error notBlankError = Error.of(ValidExceptionCode.REPORT_CONTENT_NOT_BLANK);
+		Error notBlankError = Error.of(ValidExceptionCode.CONTENT_NOT_BLANK);
 
 		// given
 		UserReportRequest request = new UserReportRequest(null, null, null, null);

@@ -16,7 +16,7 @@ import java.util.List;
 
 public record ReviewModifyRequest(
 
-	@NotEmpty(message = "REVIEW_NOT_EMPTY")
+	@NotEmpty(message = "CONTENT_NOT_EMPTY")
 	@Size(max = 500)
 	String content,
 

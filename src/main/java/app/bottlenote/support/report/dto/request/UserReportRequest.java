@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record UserReportRequest(
-	@NotNull(message = "REPORT_REQUIRED_USER_ID")
+	@NotNull(message = "REQUIRED_USER_ID")
 	Long userId,
 
 	@NotNull(message = "REPORT_TARGET_USER_ID_REQUIRED")
@@ -15,7 +15,7 @@ public record UserReportRequest(
 	@NotNull(message = "REPORT_TYPE_NOT_VALID")
 	UserReportType type,
 
-	@NotBlank(message = "REPORT_CONTENT_NOT_BLANK")
+	@NotBlank(message = "CONTENT_NOT_BLANK")
 	@Size(max = 300, message = "REPORT_CONTENT_MAX_SIZE")
 	String content) {
 }
