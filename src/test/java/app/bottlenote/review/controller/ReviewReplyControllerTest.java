@@ -1,5 +1,7 @@
 package app.bottlenote.review.controller;
 
+import app.bottlenote.global.data.response.Error;
+import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage;
 import app.bottlenote.review.exception.ReviewException;
@@ -27,7 +29,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.Optional;
 
 import static app.bottlenote.review.fixture.ReviewReplyObjectFixture.getDeleteReviewReplyResponse;
-import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
@@ -91,6 +92,9 @@ class ReviewReplyControllerTest {
 		@Test
 		@DisplayName("댓글 내용이 없는 경우 예외가 반환된다.")
 		void test_2() throws Exception {
+
+			Error error = Error.of(ValidExceptionCode.REQUIRED_REVIEW_REPLY_CONTENT);
+
 			final Long reviewId = 1L;
 			var request = ReviewReplyObjectFixture.getReviewReplyRegisterRequest(null, null);
 
@@ -102,14 +106,18 @@ class ReviewReplyControllerTest {
 					.with(csrf())
 				)
 				.andDo(print())
-				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.errors.content", containsString("댓글 내용은 필수 입력값입니다.")));
+				.andExpect(status().isBadRequest()).andDo(print())
+				.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+				.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+				.andExpect(jsonPath("$.errors[0].message").value(error.message()));
 
 		}
 
 		@Test
 		@DisplayName("댓글 내용이 500자를 초과하는 경우 예외가 반환된다.")
 		void test_3() throws Exception {
+
+			Error error = Error.of(ValidExceptionCode.CONTENT_IS_OUT_OF_RANGE);
 			final Long reviewId = 1L;
 			var request = ReviewReplyObjectFixture.getReviewReplyRegisterRequest(RandomStringUtils.randomAlphabetic(501), null);
 
@@ -121,8 +129,10 @@ class ReviewReplyControllerTest {
 					.with(csrf())
 				)
 				.andDo(print())
-				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.errors.content", containsString("댓글 내용은 1자 이상 500자 이하로 작성해주세요.")));
+				.andExpect(status().isBadRequest()).andDo(print())
+				.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+				.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+				.andExpect(jsonPath("$.errors[0].message").value(error.message()));
 		}
 	}
 
@@ -155,6 +165,9 @@ class ReviewReplyControllerTest {
 		@Test
 		@DisplayName("본인의 댓글이 아닌 경우 REPLY_NOT_OWNER 예외가 발생한다.")
 		void test_2() throws Exception {
+
+			Error error = Error.of(ReviewExceptionCode.REPLY_NOT_OWNER);
+
 			final Long reviewId = 1L;
 			final Long replyId = 1L;
 
@@ -164,15 +177,16 @@ class ReviewReplyControllerTest {
 			mockMvc.perform(delete("/api/v1/review/reply/{reviewId}/{replyId}", reviewId, replyId).with(csrf()))
 				.andDo(print())
 				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.success").value(false))
-				.andExpect(jsonPath("$.code").value("400"))
-				.andExpect(jsonPath("$.errors.message").value(ReviewExceptionCode.REPLY_NOT_OWNER.getMessage()))
+				.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+				.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+				.andExpect(jsonPath("$.errors[0].message").value(error.message()))
 				.andReturn();
 		}
 
 		@Test
 		@DisplayName("존재하지 않는 댓글인 경우 NOT_FOUND_REVIEW_REPLY 예외가 발생한다.")
 		void test_3() throws Exception {
+			Error error = Error.of(ReviewExceptionCode.NOT_FOUND_REVIEW_REPLY);
 			final Long reviewId = 1L;
 			final Long replyId = 1L;
 
@@ -183,9 +197,9 @@ class ReviewReplyControllerTest {
 			mockMvc.perform(delete("/api/v1/review/reply/{reviewId}/{replyId}", reviewId, replyId).with(csrf()))
 				.andDo(print())
 				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.success").value(false))
-				.andExpect(jsonPath("$.code").value("400"))
-				.andExpect(jsonPath("$.errors.message").value(ReviewExceptionCode.NOT_FOUND_REVIEW_REPLY.getMessage()))
+				.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+				.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+				.andExpect(jsonPath("$.errors[0].message").value(error.message()))
 				.andReturn();
 		}
 	}

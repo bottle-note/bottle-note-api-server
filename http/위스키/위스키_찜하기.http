@@ -30,5 +30,15 @@ Authorization: Bearer {{accessToken}}
 
 {
   "alcoholId": -1,
-  "isPicked": "PICK"
+  "isPicked": ""
+}
+
+### 위스키  찜하기 (예외 2개 발생 샘플 케이스)
+PUT  {{host}}/api/v1/picks
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "alcoholId": -1,
+  "isPicked": ""
 }

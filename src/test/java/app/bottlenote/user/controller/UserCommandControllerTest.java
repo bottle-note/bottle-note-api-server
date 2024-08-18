@@ -1,21 +1,9 @@
 package app.bottlenote.user.controller;
 
-import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
-import static app.bottlenote.user.dto.response.WithdrawUserResultResponse.response;
-import static app.bottlenote.user.dto.response.constant.WithdrawUserResultMessage.USER_WITHDRAW_SUCCESS;
-import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.service.UserCommandService;
-import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -28,6 +16,20 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.Optional;
+
+import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
+import static app.bottlenote.user.dto.response.WithdrawUserResultResponse.response;
+import static app.bottlenote.user.dto.response.constant.WithdrawUserResultMessage.USER_WITHDRAW_SUCCESS;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Tag("unit")
 @DisplayName("[unit] [controller] UserCommandController")
@@ -78,8 +80,9 @@ class UserCommandControllerTest {
 	@Test
 	void testWithdrawUserFailedWhenUserNotExist() throws Exception {
 
-		// when
+		Error error = Error.of(UserExceptionCode.REQUIRED_USER_ID);
 
+		// when
 		when(getUserIdByContext()).thenReturn(Optional.empty());
 
 		when(userCommandService.withdrawUser(anyLong()))
@@ -91,8 +94,8 @@ class UserCommandControllerTest {
 				.with(csrf()))
 			.andExpect(status().isBadRequest())
 			.andDo(print())
-			.andExpect(jsonPath("$.success").value("false"))
-			.andExpect(jsonPath("$.code").value("400"))
-			.andExpect(jsonPath("$.errors.message").value(REQUIRED_USER_ID.getMessage()));
+			.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+			.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+			.andExpect(jsonPath("$.errors[0].message").value(error.message()));
 	}
 }
