@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 public enum CustomJwtExceptionCode implements ExceptionCode {
 
 	EMPTY_JWT_TOKEN(HttpStatus.UNAUTHORIZED, "토큰이 존재하지 않습니다");
+
+
 	private final HttpStatus httpStatus;
 	private final String message;
 

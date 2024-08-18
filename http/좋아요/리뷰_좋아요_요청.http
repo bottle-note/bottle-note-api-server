@@ -15,7 +15,7 @@ Content-Type: application/json
 %}
 
 
-### 정상적인 위스키 목록 조회
+### 리뷰 좋아요
 
 @reviewId = "1"
 @status = "LIKE"
@@ -28,7 +28,7 @@ Authorization: Bearer {{accessToken}}
   "status": {{status}}
 }
 
-### 리뷰가 없을 경우 에러 발생
+### 리뷰 싫어요
 @badReviewId = "-1"
 PUT {{host}}/api/v1/likes
 Content-Type: application/json

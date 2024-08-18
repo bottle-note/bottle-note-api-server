@@ -1,11 +1,13 @@
 package app.bottlenote.user.integration;
 
 import app.bottlenote.IntegrationTestSupport;
+import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
+import app.bottlenote.user.exception.UserExceptionCode;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -116,21 +118,20 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 				.andReturn();
 		}
 
-		@DisplayName("마이페이지 유저가 존재하지 않는 경우")
-		@Sql(scripts = {"/init-script/init-user-mypage-query.sql"})
-		@Test
-		void test_4() throws Exception {
-			final Long userId = 999L;  // 존재하지 않는 유저 ID
-			mockMvc.perform(get("/api/v1/mypage/{userId}", userId)
-					.contentType(MediaType.APPLICATION_JSON)
-					.with(csrf()))
-				.andDo(print())
-				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.code").value(400))
-				.andExpect(jsonPath("$.success").value(false))
-				.andExpect(jsonPath("$.errors.message").value(MYPAGE_NOT_ACCESSIBLE.getMessage()));
-
-		}
+	@DisplayName("마이페이지 유저가 존재하지 않는 경우")
+	@Sql(scripts = {"/init-script/init-user-mypage-query.sql"})
+	@Test
+	void test_4() throws Exception {
+		Error error = Error.of(UserExceptionCode.MYPAGE_NOT_ACCESSIBLE);
+		final Long userId = 999L;  // 존재하지 않는 유저 ID
+		mockMvc.perform(get("/api/v1/mypage/{userId}", userId)
+				.contentType(MediaType.APPLICATION_JSON)
+				.with(csrf()))
+			.andDo(print())
+			.andExpect(status().isForbidden())
+			.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+			.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+			.andExpect(jsonPath("$.errors[0].message").value(error.message()));
 	}
 
 	@Nested

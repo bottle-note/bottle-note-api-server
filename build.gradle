@@ -95,6 +95,7 @@ dependencies {
     testImplementation 'org.testcontainers:testcontainers:1.19.8'
     testImplementation 'org.testcontainers:junit-jupiter:1.19.0'
     testImplementation "org.testcontainers:mysql:1.19.0"
+
 }
 
 tasks.named('test') {

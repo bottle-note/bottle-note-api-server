@@ -3,9 +3,9 @@ package app.bottlenote.rating.dto.request;
 import jakarta.validation.constraints.NotNull;
 
 public record RatingRegisterRequest(
-	@NotNull(message = "alcoholId는 필수값입니다.")
+	@NotNull(message = "ALCOHOL_ID_REQUIRED")
 	Long alcoholId,
-	@NotNull(message = "별점은 필수값입니다.")
+	@NotNull(message = "RATING_REQUIRED")
 	Double rating
 ) {
 }
