@@ -111,7 +111,7 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
 				reviewReply.review.id.eq(reviewId), // 리뷰 ID 일치
 				reviewReply.rootReviewReply.id.eq(rootReplyId) // 부모 댓글 ID 일치
 			)
-			.orderBy(reviewReply.createAt.desc()) // 최신순
+			.orderBy(reviewReply.createAt.asc()) // 과거 댓글부터 조회
 			.offset(cursor) // 페이지 번호
 			.limit(pageSize) // 페이지 사이즈
 			.fetch();
