@@ -32,3 +32,13 @@ include::{snippets}/user/mybottle/response-fields.adoc[]
 | REVIEW
 | 리뷰
 |===
+
+===== _에러 메세지_ =====
+
+|===
+|  |
+| REQUIRED_USER_ID
+| 유저 아이디가 필요합니다.
+| MYBOTTLE_NOT_ACCESSIBLE
+| 접근할 수 없는 마이보틀페이지입니다.
+|===
