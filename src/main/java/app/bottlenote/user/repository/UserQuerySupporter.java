@@ -199,6 +199,11 @@ public class UserQuerySupporter {
 	 * 탭 타입 검색조건
 	 */
 	public Predicate eqTabType(MyBottleTabType myBottleTabType, Long userId) {
+
+		if (myBottleTabType == null) {
+			return null;
+		}
+
 		// 타입별로 검색 조건을 미리 정의
 		BooleanExpression pickCondition = JPAExpressions
 			.selectOne()

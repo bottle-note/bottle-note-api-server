@@ -19,7 +19,7 @@ import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/mypage")
+@RequestMapping("/api/v1/my-page")
 public class UserQueryController {
 
 	private final UserQueryService userQueryService;

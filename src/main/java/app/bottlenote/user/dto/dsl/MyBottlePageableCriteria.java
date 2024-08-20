@@ -7,7 +7,7 @@ import app.bottlenote.user.dto.request.MyBottleRequest;
 
 public record MyBottlePageableCriteria(
 	Long userId,
-	String keyword,
+	String keyword, // 알코올 이름 검색 키워드
 	Long regionId,
 	MyBottleTabType tabType,
 	MyBottleSortType sortType,

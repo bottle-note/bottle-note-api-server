@@ -39,6 +39,7 @@ public class UserQueryService {
 
 	}
 
+	@Transactional(readOnly = true)
 	public MyBottleResponse getMyBottle(Long userId, Long currentUserId, MyBottleRequest myBottleRequest) {
 		boolean isUserNotAccessible = !userQueryRepository.existsByUserId(userId);
 

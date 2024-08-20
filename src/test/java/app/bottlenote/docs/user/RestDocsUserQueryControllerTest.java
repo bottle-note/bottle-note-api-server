@@ -12,15 +12,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
@@ -58,13 +57,13 @@ public class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 	void test_1() throws Exception {
 		// given
 		Long userId = 1L;
-		MyPageResponse myPageUserInfo = mypageQueryFixture.getMyPageInfo(1L, "nickname", "test.trl.com", 10L, 10L, 10L, 5L, 3L, true, true);
+		MyPageResponse myPageUserInfo = mypageQueryFixture.getMyPageInfo();
 
 		// when
-		when(userQueryService.getMypage(any(), any())).thenReturn(myPageUserInfo);
+		Mockito.when(userQueryService.getMypage(any(), any())).thenReturn(myPageUserInfo);
 
 		// then
-		mockMvc.perform(get("/api/v1/mypage/{userId}", userId)
+		mockMvc.perform(get("/api/v1/my-page/{userId}", userId)
 				.contentType(MediaType.APPLICATION_JSON)
 				.with(csrf()))
 			.andExpect(status().isOk())
@@ -97,23 +96,13 @@ public class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 	void test_2() throws Exception {
 		// given
 		Long userId = 8L;
-		List<MyBottleResponse.MyBottleInfo> myBottleList = List.of(
-			new MyBottleResponse.MyBottleInfo(
-				1L, "글렌피딕 12년", "Glenfiddich 12 Year Old", "싱글 몰트 위스키",
-				"https://example.com/image1.jpg", true, 4.5, true
-			),
-			new MyBottleResponse.MyBottleInfo(
-				2L, "맥캘란 18년", "Macallan 18 Year Old", "싱글 몰트 위스키",
-				"https://example.com/image2.jpg", false, 0.0, false
-			)
-		);
-		MyBottleResponse myBottleResponse = mypageQueryFixture.getMyBottleResponse(userId, true, myBottleList, null);
+		MyBottleResponse myBottleResponse = mypageQueryFixture.getMyBottleResponse(userId, true, null);
 
 		// when
-		when(userQueryService.getMyBottle(any(), any(), any())).thenReturn(myBottleResponse);
+		Mockito.when(userQueryService.getMyBottle(any(), any(), any())).thenReturn(myBottleResponse);
 
 		// then
-		mockMvc.perform(get("/api/v1/mypage/{userId}/my-bottle", userId)
+		mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle", userId)
 				.param("keyword", "")
 				.param("regionId", "")
 				.param("tabType", "ALL")

@@ -146,7 +146,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 		// 비회원과 인증된 회원이 사용가능한 api 리스트
 		Set<String> skipPaths = Set.of(
-			"GET:/api/v1/mypage/",
+			"GET:/api/v1/my-page/",
 			"GET:/api/v1/reviews/",
 			"GET:/api/v1/rating",
 			"GET:/api/v1/popular/week",

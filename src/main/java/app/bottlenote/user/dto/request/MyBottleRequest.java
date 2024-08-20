@@ -6,7 +6,7 @@ import app.bottlenote.user.domain.constant.MyBottleTabType;
 import lombok.Builder;
 
 public record MyBottleRequest(
-	String keyword,
+	String keyword, // 알코올 이름 검색 키워드
 	Long regionId,
 	MyBottleTabType tabType,
 	MyBottleSortType sortType,

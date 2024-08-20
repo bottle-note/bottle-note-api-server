@@ -87,9 +87,9 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 			.leftJoin(picks).on(picks.user.id.eq(user.id))
 			.where(
 				user.id.eq(request.userId()),
-				request.regionId() != null ? supporter.eqRegion(request.regionId()) : null,
-				request.tabType() != null ? supporter.eqTabType(request.tabType(), request.userId()) : null,
-				request.keyword() != null && !request.keyword().isEmpty() ? supporter.eqName(request.keyword()) : null
+				supporter.eqRegion(request.regionId()),
+				supporter.eqTabType(request.tabType(), request.userId()),
+				supporter.eqName(request.keyword())
 			)
 			.orderBy(supporter.sortBy(request.sortType(), request.sortOrder(), request.userId()))
 			.offset(request.cursor())

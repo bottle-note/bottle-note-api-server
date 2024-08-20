@@ -8,24 +8,37 @@ import java.util.List;
 
 public class UserQueryFixture {
 
-	public MyPageResponse getMyPageInfo(Long userId, String nickName, String imageUrl, Long reviewCount, Long ratingCount, Long pickCount, Long followerCount, Long followingCount, boolean isFollow, boolean isMyPage) {
+	public MyPageResponse getMyPageInfo() {
 
 		return MyPageResponse.builder()
-			.userId(userId)
-			.nickName(nickName)
-			.imageUrl(imageUrl)
-			.reviewCount(reviewCount)
-			.ratingCount(ratingCount)
-			.pickCount(pickCount)
-			.followerCount(followerCount)
-			.followingCount(followingCount)
-			.isFollow(isFollow)
-			.isMyPage(isMyPage)
+			.userId(1L)
+			.nickName("nickname")
+			.imageUrl("imageUrl")
+			.reviewCount(10L)
+			.ratingCount(20L)
+			.pickCount(30L)
+			.followerCount(40L)
+			.followingCount(50L)
+			.isFollow(false)
+			.isMyPage(false)
 			.build();
 
 	}
+	
+	public MyBottleResponse getMyBottleResponse(Long userId, boolean isMyPage, CursorPageable cursorPageable) {
 
-	public MyBottleResponse getMyBottleResponse(Long userId, boolean isMyPage, List<MyBottleResponse.MyBottleInfo> myBottleList, CursorPageable cursorPageable) {
+		MyBottleResponse.MyBottleInfo bottleInfo_1 = new MyBottleResponse.MyBottleInfo(
+			1L, "글렌피딕 12년", "Glenfiddich 12 Year Old", "싱글 몰트 위스키",
+			"https://example.com/image1.jpg", true, 4.5, true
+		);
+
+		MyBottleResponse.MyBottleInfo bottleInfo_2 = new MyBottleResponse.MyBottleInfo(
+			2L, "맥캘란 18년", "Macallan 18 Year Old", "싱글 몰트 위스키",
+			"https://example.com/image2.jpg", false, 0.0, false
+		);
+
+		List<MyBottleResponse.MyBottleInfo> myBottleList = List.of(bottleInfo_1, bottleInfo_2);
+
 		return MyBottleResponse.builder()
 			.userId(userId)
 			.isMyPage(isMyPage)
