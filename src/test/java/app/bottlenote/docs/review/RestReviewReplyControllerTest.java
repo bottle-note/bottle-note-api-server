@@ -153,7 +153,7 @@ class RestReviewReplyControllerTest extends AbstractRestDocs {
 							fieldWithPath("data.reviewReplies[].reviewReplyContent").description("댓글 내용"),
 							fieldWithPath("data.reviewReplies[].subReplyCount").description("하위 댓글 갯수"),
 							fieldWithPath("data.reviewReplies[].createAt").description("댓글 작성 일시"),
-							fieldWithPath("data.reviewReplies[].status").optional().description("댓글 상태 (optional)"),
+							fieldWithPath("data.reviewReplies[].status").description("댓글 상태 "),
 							fieldWithPath("errors").ignored(),
 							fieldWithPath("meta").ignored(),
 							fieldWithPath("meta.serverVersion").ignored(),

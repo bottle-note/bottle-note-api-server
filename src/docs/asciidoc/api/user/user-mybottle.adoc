@@ -33,12 +33,18 @@ include::{snippets}/user/mybottle/response-fields.adoc[]
 | 리뷰
 |===
 
-===== _에러 메세지_ =====
+==== Error code ====
 
+* 해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.
+
+[cols="1,1,1",options="header"]
 |===
-|  |
+| 코드 | 상태 | 설명
 | REQUIRED_USER_ID
+| BAD_REQUEST
 | 유저 아이디가 필요합니다.
+
 | MYBOTTLE_NOT_ACCESSIBLE
+| FORBIDDEN
 | 접근할 수 없는 마이보틀페이지입니다.
 |===
