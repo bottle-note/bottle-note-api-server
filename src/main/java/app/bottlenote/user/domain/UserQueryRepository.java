@@ -1,5 +1,7 @@
 package app.bottlenote.user.domain;
 
+import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
+import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
 
 import java.util.List;
@@ -23,4 +25,6 @@ public interface UserQueryRepository {
 	Long countByUsername(String userName);
 
 	MyPageResponse getMyPage(Long userId, Long currentUserId);
+
+	MyBottleResponse getMyBottle(MyBottlePageableCriteria criteria);
 }

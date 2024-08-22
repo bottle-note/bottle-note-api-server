@@ -7,15 +7,16 @@ import jakarta.validation.constraints.Size;
 
 public record HelpRegisterRequest(
 
-	@NotEmpty(message = "HELP_TITLE_REQUIRED")
+	@NotEmpty(message = "TITLE_NOT_EMPTY")
 	String title,
 
-	@NotEmpty(message = "HELP_CONTENT_REQUIRED")
+	@NotEmpty(message = "CONTENT_NOT_EMPTY")
 	@Size(max = 500)
 	String content,
 
-	@NotNull(message = "VALUE_REQUIRED")
+	@NotNull(message = "REQUIRED_HELP_TYPE")
 	HelpType type
+
 ) {
 
 }

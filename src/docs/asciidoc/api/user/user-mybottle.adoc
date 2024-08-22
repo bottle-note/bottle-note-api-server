@@ -1,0 +1,50 @@
+=== 마이보틀 조회 ===
+
+- 마이 보틀 조회 API는 `사용자` 가 위스키에 액션(찜하기/리뷰/별점)을 조회하는 API입니다.
+
+[source]
+---
+GET /api/v1/mypage/{userId}/my-bottle
+---
+
+[discrete]
+=== 요청파라미터 ===
+
+[discrete]
+- userId : 사용자 ID (조회대상 사용자)
+include::{snippets}/user/mybottle/query-parameters.adoc[]
+
+[discrete]
+==== 응답 파라미터  ====
+
+[discrete]
+include::{snippets}/user/mybottle/response-fields.adoc[]
+
+[discrete]
+===== _정렬 타입 (sortType)_ =====
+
+|===
+|  |
+| LATEST
+| 최신
+| RATING
+| 별점
+| REVIEW
+| 리뷰
+|===
+
+==== Error code ====
+
+* 해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.
+
+[cols="1,1,1",options="header"]
+|===
+| 코드 | 상태 | 설명
+| REQUIRED_USER_ID
+| BAD_REQUEST
+| 유저 아이디가 필요합니다.
+
+| MYBOTTLE_NOT_ACCESSIBLE
+| FORBIDDEN
+| 접근할 수 없는 마이보틀페이지입니다.
+|===

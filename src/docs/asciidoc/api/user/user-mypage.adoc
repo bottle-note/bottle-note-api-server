@@ -20,3 +20,15 @@ GET /api/mypage/{userId}
 
 [discrete]
 include::{snippets}/user/mypage/response-fields.adoc[]
+
+==== Error code ====
+
+* 해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.
+
+[cols="1,1,1",options="header"]
+|===
+| 코드 | 상태 | 설명
+| MYPAGE_NOT_ACCESSIBLE
+| FORBIDDEN
+| 접근할 수 없는 마이페이지입니다.
+|===

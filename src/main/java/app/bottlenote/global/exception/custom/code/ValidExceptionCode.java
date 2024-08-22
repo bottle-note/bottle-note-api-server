@@ -17,6 +17,7 @@ public enum ValidExceptionCode implements ExceptionCode {
 	AWS_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "AWS 관련 오류가 발생했습니다. infra 팀에 문의해주세요."),
 	CONTENT_NOT_BLANK(HttpStatus.BAD_REQUEST, "공백입니다. 내용을 입력해주세요."),
 	CONTENT_NOT_EMPTY(HttpStatus.BAD_REQUEST, "null입니다. 내용을 입력해주세요."),
+	TITLE_NOT_EMPTY(HttpStatus.BAD_REQUEST, "null입니다. 타이틀(제목)을 입력해주세요."),
 
 
 	//ALCOHOL
@@ -32,6 +33,7 @@ public enum ValidExceptionCode implements ExceptionCode {
 	CONTENT_IS_OUT_OF_RANGE(HttpStatus.BAD_REQUEST, "댓글 내용은 1자 이상 500자 이하로 작성해주세요."),
 
 	//REVIEW
+	REQUIRED_REVIEW_ID(HttpStatus.BAD_REQUEST, "리뷰 아이디는 필수입니다."),
 	REVIEW_ID_REQUIRED(HttpStatus.BAD_REQUEST, "reviewId(식별자)는 필수입니다."),
 	REVIEW_DISPLAY_STATUS_NOT_EMPTY(HttpStatus.BAD_REQUEST, "리뷰 공개/비공개상태는 필수입니다."),
 	REVIEW_ID_MINIMUM(HttpStatus.BAD_REQUEST, "리뷰 식별자는 최소 1 이상이어야 합니다."),
@@ -62,8 +64,10 @@ public enum ValidExceptionCode implements ExceptionCode {
 	REPORT_TARGET_USER_ID_REQUIRED(HttpStatus.BAD_REQUEST, "신고 대상자 아이디는 필수입니다."),
 	REPORT_TYPE_NOT_VALID(HttpStatus.BAD_REQUEST, "신고 타입이 적절하지 않습니다. ( SPAM , INAPPROPRIATE_CONTENT " +
 		",FRAUD ,COPYRIGHT_INFRINGEMENT ,OTHER )"),
-	REPORT_CONTENT_MAX_SIZE(HttpStatus.BAD_REQUEST, "신고 내용은 300자 이내로 작성해주세요.");
+	REPORT_CONTENT_MAX_SIZE(HttpStatus.BAD_REQUEST, "신고 내용은 300자 이내로 작성해주세요."),
 
+	// HELP
+	REQUIRED_HELP_TYPE(HttpStatus.BAD_REQUEST, "문의 유형은 필수입니다.(WHISKEY, REVIEW, USER, ETC)");
 
 	private final HttpStatus httpStatus;
 	private String message;

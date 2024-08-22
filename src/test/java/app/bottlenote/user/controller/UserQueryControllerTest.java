@@ -1,6 +1,7 @@
 package app.bottlenote.user.controller;
 
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
 import app.bottlenote.user.fixture.UserQueryFixture;
 import app.bottlenote.user.service.UserQueryService;
@@ -59,13 +60,13 @@ public class UserQueryControllerTest {
 	void test_1() throws Exception {
 		// given
 		Long userId = 1L;
-		MyPageResponse myPageUserInfo = mypageQueryFixture.getMyPageInfo(1L, "nickname", "test.trl.com", 10L, 10L, 10L, 5L, 3L, true, true);
+		MyPageResponse myPageUserInfo = mypageQueryFixture.getMyPageInfo();
 
 		// when
 		when(userQueryService.getMypage(any(), any())).thenReturn(myPageUserInfo);
 
 		// then
-		ResultActions resultActions = mockMvc.perform(get("/api/v1/mypage/{userId}", userId))
+		ResultActions resultActions = mockMvc.perform(get("/api/v1/my-page/{userId}", userId))
 			.andExpect(status().isOk())
 			.andDo(print());
 
@@ -73,13 +74,42 @@ public class UserQueryControllerTest {
 		resultActions.andExpect(jsonPath("$.code").value("200"));
 		resultActions.andExpect(jsonPath("$.data.userId").value(1));
 		resultActions.andExpect(jsonPath("$.data.nickName").value("nickname"));
-		resultActions.andExpect(jsonPath("$.data.imageUrl").value("test.trl.com"));
+		resultActions.andExpect(jsonPath("$.data.imageUrl").value("imageUrl"));
 		resultActions.andExpect(jsonPath("$.data.reviewCount").value(10));
-		resultActions.andExpect(jsonPath("$.data.ratingCount").value(10));
-		resultActions.andExpect(jsonPath("$.data.pickCount").value(10));
-		resultActions.andExpect(jsonPath("$.data.followerCount").value(5));
-		resultActions.andExpect(jsonPath("$.data.followingCount").value(3));
-		resultActions.andExpect(jsonPath("$.data.isFollow").value(true));
+		resultActions.andExpect(jsonPath("$.data.ratingCount").value(20));
+		resultActions.andExpect(jsonPath("$.data.pickCount").value(30));
+		resultActions.andExpect(jsonPath("$.data.followerCount").value(40));
+		resultActions.andExpect(jsonPath("$.data.followingCount").value(50));
+		resultActions.andExpect(jsonPath("$.data.isFollow").value(false));
+		resultActions.andExpect(jsonPath("$.data.isMyPage").value(false));
+	}
+
+	@DisplayName("마이 보틀 정보를 조회할 수 있다.")
+	@Test
+	void test_2() throws Exception {
+		// given
+		Long userId = 8L;
+		MyBottleResponse myBottleResponse = mypageQueryFixture.getMyBottleResponse(userId, true, null);
+
+		// when
+		when(userQueryService.getMyBottle(any(), any(), any())).thenReturn(myBottleResponse);
+
+		// then
+		ResultActions resultActions = mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle", userId)
+				.param("keyword", "")
+				.param("regionId", "")
+				.param("tabType", "ALL")
+				.param("sortType", "LATEST")
+				.param("sortOrder", "DESC")
+				.param("cursor", "0")
+				.param("pageSize", "50"))
+			.andExpect(status().isOk())
+			.andDo(print());
+
+		resultActions.andExpect(jsonPath("$.success").value("true"));
+		resultActions.andExpect(jsonPath("$.code").value("200"));
+		resultActions.andExpect(jsonPath("$.data.userId").value(8));
 		resultActions.andExpect(jsonPath("$.data.isMyPage").value(true));
+		resultActions.andExpect(jsonPath("$.data.totalCount").value(2));
 	}
 }

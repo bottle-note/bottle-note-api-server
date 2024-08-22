@@ -2,6 +2,8 @@ package app.bottlenote.user.fixture;
 
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserQueryRepository;
+import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
+import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -49,6 +51,11 @@ public class InMemoryUserQueryRepository implements UserQueryRepository {
 
 	@Override
 	public MyPageResponse getMyPage(Long userId, Long currentUserId) {
+		return null;
+	}
+
+	@Override
+	public MyBottleResponse getMyBottle(MyBottlePageableCriteria criteria) {
 		return null;
 	}
 

@@ -28,3 +28,23 @@ include::{snippets}/user/nickname-change/request-body.adoc[]
 [discrete]
 include::{snippets}/user/nickname-change/response-fields.adoc[]
 include::{snippets}/user/nickname-change/http-response.adoc[]
+
+==== Error code ====
+
+* 해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.
+
+[cols="1,1,1",options="header"]
+|===
+| 코드 | 상태 | 설명
+| REQUIRED_USER_ID
+| BAD_REQUEST
+| 접근할 수 없는 마이페이지입니다.
+
+| USER_NICKNAME_NOT_VALID
+| BAD_REQUEST
+| 중복된 닉네임입니다.
+
+| USER_NOT_FOUND
+| NOT_FOUND
+| 유저를 찾을 수 없습니다.
+|===
