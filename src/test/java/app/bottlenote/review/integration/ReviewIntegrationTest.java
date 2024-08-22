@@ -1,5 +1,14 @@
 package app.bottlenote.review.integration;
 
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.response.detail.AlcoholDetail;
@@ -14,6 +23,8 @@ import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.dto.request.OauthRequest;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,18 +36,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
-
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Tag("integration")
 @DisplayName("[integration] [controller] ReviewReplyController")
@@ -197,7 +196,7 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
 		@DisplayName("Not Null인 필드에 null이 할당되면 리뷰 수정에 실패한다.")
 		@Test
 		void test_3() throws Exception {
-			Error notNullEmpty = Error.of(ValidExceptionCode.CONTENT_NOT_EMPTY);
+			Error notNullEmpty = Error.of(ValidExceptionCode.REVIEW_CONTENT_REQUIRED);
 			Error notStatusEmpty = Error.of(ValidExceptionCode.REVIEW_DISPLAY_STATUS_NOT_EMPTY);
 
 			log.info("using port : {}", MY_SQL_CONTAINER.getFirstMappedPort());
@@ -212,8 +211,8 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
 				)
 				.andExpect(status().isBadRequest()).andDo(print())
 				.andExpect(jsonPath("$.errors", hasSize(2)))
-				.andExpect(jsonPath("$.errors[?(@.code == 'CONTENT_NOT_EMPTY')].status").value(notNullEmpty.status().name()))
-				.andExpect(jsonPath("$.errors[?(@.code == 'CONTENT_NOT_EMPTY')].message").value(notNullEmpty.message()))
+				.andExpect(jsonPath("$.errors[?(@.code == 'REVIEW_CONTENT_REQUIRED')].status").value(notNullEmpty.status().name()))
+				.andExpect(jsonPath("$.errors[?(@.code == 'REVIEW_CONTENT_REQUIRED')].message").value(notNullEmpty.message()))
 				.andExpect(jsonPath("$.errors[?(@.code == 'REVIEW_DISPLAY_STATUS_NOT_EMPTY')].status").value(notStatusEmpty.status().name()))
 				.andExpect(jsonPath("$.errors[?(@.code == 'REVIEW_DISPLAY_STATUS_NOT_EMPTY')].message").value(notStatusEmpty.message()))
 				.andReturn();
