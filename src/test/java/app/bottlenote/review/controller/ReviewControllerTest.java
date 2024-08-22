@@ -161,6 +161,7 @@ class ReviewControllerTest {
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(wrongRequest))
 					.with(csrf()))
+				.andDo(print())
 				.andExpect(status().isBadRequest());
 		}
 	}

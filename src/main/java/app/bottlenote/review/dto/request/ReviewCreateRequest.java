@@ -5,6 +5,7 @@ import app.bottlenote.review.domain.constant.SizeType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -14,19 +15,20 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public record ReviewCreateRequest(
-	@NotNull(message = "alcohol id는 Null일 수 없습니다.")
+	@Min(value = 1, message = "REVIEW_ID_MINIMUM")
+	@NotNull(message = "REVIEW_ID_REQUIRED")
 	Long alcoholId,
 
 	ReviewDisplayStatus status,
 
-	@NotEmpty(message = "리뷰 내용을 입력해주세요")
-	@Size(max = 500)
+	@NotEmpty(message = "REVIEW_CONTENT_REQUIRED")
+	@Size(max = 500, message = "REVIEW_CONTENT_MAXIMUM")
 	String content,
 
 	SizeType sizeType,
 
-	@DecimalMin(value = "0.0", message = "가격은 0 이상이어야 합니다.")
-	@DecimalMax(value = "1000000000000", message = "입력할 수 있는 가격의 범위가 아닙니다.")
+	@DecimalMin(value = "0.0", message = "PRICE_MINIMUM")
+	@DecimalMax(value = "1000000000000", message = "PRICE_MAXIMUM")
 	BigDecimal price,
 
 	@Valid
