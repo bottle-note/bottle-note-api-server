@@ -3,9 +3,9 @@ package app.bottlenote.review.dto.request;
 import jakarta.validation.constraints.NotNull;
 
 public record ReviewImageInfo(
-	@NotNull(message = "VALUE_REQUIRED")
+	@NotNull(message = "REVIEW_IMAGE_ORDER_REQUIRED")
 	Long order,
-	@NotNull(message = "VALUE_REQUIRED")
+	@NotNull(message = "REVIEW_IMAGE_URL_REQUIRED")
 	String viewUrl
 
 ) {

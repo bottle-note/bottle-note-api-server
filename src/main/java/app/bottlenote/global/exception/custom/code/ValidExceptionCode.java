@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 public enum ValidExceptionCode implements ExceptionCode {
 
 	//COMMON
-	VALUE_REQUIRED(HttpStatus.BAD_REQUEST, "필드의 값이 NULL일 수 없습니다"),
 	TYPE_MISMATCH(HttpStatus.BAD_REQUEST, "잘못된 타입입니다."),
 	JSON_PASSING_FAILED(HttpStatus.BAD_REQUEST, "JSON 파싱에 실패했습니다."),
 	UNKNOWN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "알 수 없는 오류가 추가적인 문의가 필요합니다."),
@@ -37,6 +36,8 @@ public enum ValidExceptionCode implements ExceptionCode {
 	REVIEW_ID_REQUIRED(HttpStatus.BAD_REQUEST, "reviewId(식별자)는 필수입니다."),
 	REVIEW_DISPLAY_STATUS_NOT_EMPTY(HttpStatus.BAD_REQUEST, "리뷰 공개/비공개상태는 필수입니다."),
 	REVIEW_ID_MINIMUM(HttpStatus.BAD_REQUEST, "리뷰 식별자는 최소 1 이상이어야 합니다."),
+	REVIEW_IMAGE_ORDER_REQUIRED(HttpStatus.BAD_REQUEST, "리뷰 이미지 Order 값은 필수입니다"),
+	REVIEW_IMAGE_URL_REQUIRED(HttpStatus.BAD_REQUEST, "리뷰 이미지 URL은 필수입니다"),
 	REVIEW_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, "리뷰 내용은 필수입니다."),
 	REVIEW_CONTENT_MAXIMUM(HttpStatus.BAD_REQUEST, "리뷰 내용의 최대 글자수를 초과했습니다."),
 	PRICE_MINIMUM(HttpStatus.BAD_REQUEST, "가격은 0원 이상이어야 합니다."),
@@ -66,7 +67,13 @@ public enum ValidExceptionCode implements ExceptionCode {
 		",FRAUD ,COPYRIGHT_INFRINGEMENT ,OTHER )"),
 	REPORT_CONTENT_MAX_SIZE(HttpStatus.BAD_REQUEST, "신고 내용은 300자 이내로 작성해주세요."),
 
-	// HELP
+	//LOCATION INFO
+	ZIPCODE_ONLY_NUMBER(HttpStatus.BAD_REQUEST, "우편번호는 숫자만 가능합니다"),
+	ZIPCODE_FORMAT(HttpStatus.BAD_REQUEST, "우편번호는 5자리의 숫자만 가능합니다"),
+
+	//HELP
+	HELP_TITLE_REQUIRED(HttpStatus.BAD_REQUEST, "문의글 제목은 필수입니다."),
+	HELP_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, "문의글 내용은 필수입니다."),
 	REQUIRED_HELP_TYPE(HttpStatus.BAD_REQUEST, "문의 유형은 필수입니다.(WHISKEY, REVIEW, USER, ETC)");
 
 	private final HttpStatus httpStatus;
