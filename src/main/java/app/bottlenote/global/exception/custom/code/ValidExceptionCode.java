@@ -34,6 +34,11 @@ public enum ValidExceptionCode implements ExceptionCode {
 	//REVIEW
 	REVIEW_ID_REQUIRED(HttpStatus.BAD_REQUEST, "reviewId(식별자)는 필수입니다."),
 	REVIEW_DISPLAY_STATUS_NOT_EMPTY(HttpStatus.BAD_REQUEST, "리뷰 공개/비공개상태는 필수입니다."),
+	REVIEW_ID_MINIMUM(HttpStatus.BAD_REQUEST, "리뷰 식별자는 최소 1 이상이어야 합니다."),
+	REVIEW_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, "리뷰 내용은 필수입니다."),
+	REVIEW_CONTENT_MAXIMUM(HttpStatus.BAD_REQUEST, "리뷰 내용의 최대 글자수를 초과했습니다."),
+	PRICE_MINIMUM(HttpStatus.BAD_REQUEST, "가격은 0원 이상이어야 합니다."),
+	PRICE_MAXIMUM(HttpStatus.BAD_REQUEST, "입력할 수 있는 가격의 범위가 아닙니다."),
 
 	// FOLLOW,
 	IS_NO_USER_ID_TO_FOLLOW(HttpStatus.BAD_REQUEST, "팔로우 할 유저의 아이디가 없습니다."),
