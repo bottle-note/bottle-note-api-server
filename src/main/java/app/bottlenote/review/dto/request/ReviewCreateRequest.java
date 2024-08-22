@@ -34,6 +34,7 @@ public record ReviewCreateRequest(
 	@Valid
 	LocationInfo locationInfo,
 
+	@Valid
 	List<ReviewImageInfo> imageUrlList,
 
 	List<String> tastingTagList
