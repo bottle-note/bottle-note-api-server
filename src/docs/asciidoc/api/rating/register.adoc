@@ -26,3 +26,32 @@ include::{snippets}/rating/register/request-body.adoc[]
 [discrete]
 include::{snippets}/rating/register/response-fields.adoc[]
 include::{snippets}/rating/register/response-body.adoc[]
+
+==== Error code ====
+
+* 해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.
+
+[cols="1,1,1",options="header"]
+|===
+| 코드 | 상태 | 설명
+| ALCOHOL_ID_REQUIRED
+| BAD_REQUEST
+| 알코올 식별자는 필수입니다.
+
+| RATING_REQUIRED
+| BAD_REQUEST
+| 별점은 필수입니다.
+
+| REQUIRED_USER_ID
+| BAD_REQUEST
+| 유저 아이디는 필수입니다.
+
+| USER_NOT_FOUND
+| NOT_FOUND
+| 유저를 찾을 수 없습니다.
+
+| ALCOHOL_NOT_FOUND
+| NOT_FOUND
+| 리뷰 대상 알콜이 존재하지 않습니다.
+
+|===

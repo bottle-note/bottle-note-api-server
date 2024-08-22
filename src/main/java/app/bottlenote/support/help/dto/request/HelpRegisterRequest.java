@@ -7,15 +7,16 @@ import jakarta.validation.constraints.Size;
 
 public record HelpRegisterRequest(
 
-	@NotEmpty(message = "제목은 Null이거나 공백일 수 없습니다.")
+	@NotEmpty(message = "TITLE_NOT_EMPTY")
 	String title,
 
-	@NotEmpty(message = "문의 내용을 입력해주세요")
+	@NotEmpty(message = "CONTENT_NOT_EMPTY")
 	@Size(max = 500)
 	String content,
 
-	@NotNull(message = "문의글 타입은 Null일 수 없습니다.")
+	@NotNull(message = "REQUIRED_HELP_TYPE")
 	HelpType type
+
 ) {
 
 }

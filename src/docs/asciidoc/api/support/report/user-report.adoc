@@ -77,3 +77,49 @@ include::{snippets}/support/report/user-report/response-body.adoc[]
 
 ** **추가되지 않은 에러 코드는 요청 바랍니다.**
 ** **request valid에 대한 내용은 공통 예외를 통해 처리됩니다.**
+
+==== Error code ====
+
+* 해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.
+
+[cols="1,1,1",options="header"]
+|===
+| 코드 | 상태 | 설명
+| REQUIRED_USER_ID
+| BAD_REQUEST
+| 유저 아이디는 필수입니다.
+
+| REPORT_TARGET_USER_ID_REQUIRED
+| BAD_REQUEST
+| 신고 대상자 아이디는 필수입니다.
+
+| REPORT_TYPE_NOT_VALID
+| BAD_REQUEST
+| 신고 타입이 적절하지 않습니다. ( SPAM , INAPPROPRIATE_CONTENT " +
+",FRAUD ,COPYRIGHT_INFRINGEMENT ,OTHER )
+
+| CONTENT_NOT_BLANK
+| BAD_REQUEST
+| 공백입니다. 내용을 입력해주세요.
+
+| REPORT_CONTENT_MAX_SIZE
+| BAD_REQUEST
+| 신고 내용은 300자 이내로 작성해주세요.
+
+| IS_NO_USER_ID_TO_FOLLOW
+| BAD_REQUEST
+| 팔로우 할 유저의 아이디가 없습니다.
+
+| SELF_REPORT
+| BAD_REQUEST
+| 자신을 신고할 수 없습니다.
+
+| USER_NOT_FOUND
+| BAD_REQUEST
+| 유저를 찾을 수 없습니다.
+
+| REPORT_USER_NOT_FOUND
+| BAD_REQUEST
+| 신고 대상 유저를 찾을 수 없습니다.
+
+|===

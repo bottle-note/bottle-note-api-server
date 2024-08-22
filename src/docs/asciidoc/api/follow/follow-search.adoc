@@ -1,4 +1,5 @@
 === 팔로우/팔로워 리스트 조회 ===
+
 팔로우 리스트 조회 기능입니다.
 
 요청 경로에 조회할 유저의 식별자가 포함되어야 합니다.
@@ -14,11 +15,14 @@
 API EndPoint
 
 팔로우 리스트 조회 : 조회 대상 사용자가 팔로우한 유저들을 조회합니다.
+
 [source]
 ----
 GET /api/v1/follow/{userId}
 ----
+
 팔로워 : 조회 대상 사용자를 팔로우한 유저들을 조회합니다.
+
 [source]
 ----
 GET /api/v1/follower/{userId}
@@ -26,11 +30,13 @@ GET /api/v1/follower/{userId}
 
 [discrete]
 ==== 요청 파라미터 ====
-include::{snippets}/follow/search/query-parameters.adoc[]
 
+include::{snippets}/follow/search/query-parameters.adoc[]
 
 [discrete]
 ==== 응답 파라미터 ====
+
 include::{snippets}/follow/search/response-fields.adoc[]
 include::{snippets}/follow/search/response-body.adoc[]
+
 

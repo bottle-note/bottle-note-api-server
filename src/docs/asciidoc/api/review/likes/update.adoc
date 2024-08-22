@@ -40,3 +40,28 @@ include::{snippets}/review/likes/update/request-body.adoc[]
 [discrete]
 include::{snippets}/review/likes/update/response-fields.adoc[]
 include::{snippets}/review/likes/update/response-body.adoc[]
+
+==== Error code ====
+
+* 해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.
+
+[cols="1,1,1",options="header"]
+|===
+| 코드 | 상태 | 설명
+| REVIEW_NOT_EMPTY
+| BAD_REQUEST
+| 리뷰 아이디는 필수입니다.
+
+| REVIEW_DISPLAY_STATUS_NOT_EMPTY
+| BAD_REQUEST
+| 리뷰 공개/비공개상태는 필수입니다.
+
+| REQUIRED_USER_ID
+| BAD_REQUEST
+| 유저 아이디는 필수입니다.
+
+| REVIEW_NOT_FOUND
+| BAD_REQUEST
+| 리뷰를 찾을 수 없습니다
+
+|===

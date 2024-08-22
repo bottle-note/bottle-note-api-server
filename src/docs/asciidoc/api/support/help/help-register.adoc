@@ -46,3 +46,27 @@ include::{snippets}/support/help/help-register/request-body.adoc[]
 [discrete]
 include::{snippets}/support/help/help-register/response-fields.adoc[]
 include::{snippets}/support/help/help-register/response-body.adoc[]
+
+==== Error code ====
+
+* 해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.
+
+[cols="1,1,1",options="header"]
+|===
+| 코드 | 상태 | 설명
+| REQUIRED_USER_ID
+| BAD_REQUEST
+| 유저 아이디가 필요합니다.
+
+| TITLE_NOT_EMPTY
+| BAD_REQUEST
+| null입니다. 타이틀(제목)을 입력해주세요.
+
+| CONTENT_NOT_EMPTY
+| BAD_REQUEST
+| null입니다. 내용을 입력해주세요."
+
+| REQUIRED_HELP_TYPE
+| BAD_REQUEST
+| 문의 유형은 필수입니다.(WHISKEY, REVIEW, USER, ETC)
+|===
