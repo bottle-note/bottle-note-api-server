@@ -66,7 +66,13 @@ public enum ValidExceptionCode implements ExceptionCode {
 		",FRAUD ,COPYRIGHT_INFRINGEMENT ,OTHER )"),
 	REPORT_CONTENT_MAX_SIZE(HttpStatus.BAD_REQUEST, "신고 내용은 300자 이내로 작성해주세요."),
 
-	// HELP
+	//LOCATION INFO
+	ZIPCODE_ONLY_NUMBER(HttpStatus.BAD_REQUEST, "우편번호는 숫자만 가능합니다"),
+	ZIPCODE_FORMAT(HttpStatus.BAD_REQUEST, "우편번호는 5자리의 숫자만 가능합니다"),
+
+	//HELP
+	HELP_TITLE_REQUIRED(HttpStatus.BAD_REQUEST, "문의글 제목은 필수입니다."),
+	HELP_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, "문의글 내용은 필수입니다."),
 	REQUIRED_HELP_TYPE(HttpStatus.BAD_REQUEST, "문의 유형은 필수입니다.(WHISKEY, REVIEW, USER, ETC)");
 
 	private final HttpStatus httpStatus;
