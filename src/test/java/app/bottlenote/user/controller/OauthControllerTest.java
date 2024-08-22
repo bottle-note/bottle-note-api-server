@@ -1,14 +1,7 @@
 package app.bottlenote.user.controller;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+import app.bottlenote.global.data.response.Error;
+import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.user.domain.constant.GenderType;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.dto.request.OauthRequest;
@@ -27,7 +20,15 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.bind.MethodArgumentNotValidException;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @Tag("unit")
@@ -89,6 +90,8 @@ class OauthControllerTest {
 	@DisplayName("유저는 SocialType이 null 값이면 로그인 할 수 없다.")
 	void user_login_fail_when_socialType_is_null() throws Exception {
 
+		Error error = Error.of(ValidExceptionCode.SOCIAL_TYPE_REQUIRED);
+
 		//given
 		OauthRequest oauthRequest = new OauthRequest("cdm2883@naver.com", null,
 			GenderType.MALE, 27);
@@ -103,14 +106,15 @@ class OauthControllerTest {
 				.with(csrf())
 				.content(mapper.writeValueAsString(oauthRequest)))
 			.andExpect(status().isBadRequest())
-			.andExpect(result -> assertTrue(
-				result.getResolvedException() instanceof MethodArgumentNotValidException))
-			.andExpect(jsonPath("$.errors").exists());
+			.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+			.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+			.andExpect(jsonPath("$.errors[0].message").value(error.message()));
 	}
 
 	@Test
 	@DisplayName("유저나이가 유효하지 않은 값이면 로그인 할 수 없다.")
 	void user_login_fail_when_gender_is_null() throws Exception {
+		Error error = Error.of(ValidExceptionCode.AGE_MINIMUM);
 
 		//given
 		OauthRequest oauthRequest = new OauthRequest("cdm2883@naver.com", SocialType.KAKAO,
@@ -125,9 +129,9 @@ class OauthControllerTest {
 				.with(csrf())
 				.content(mapper.writeValueAsString(oauthRequest)))
 			.andExpect(status().isBadRequest())
-			.andExpect(result -> assertTrue(
-				result.getResolvedException() instanceof MethodArgumentNotValidException))
-			.andExpect(jsonPath("$.errors").exists());
+			.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+			.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+			.andExpect(jsonPath("$.errors[0].message").value(error.message()));
 	}
 
 	@Test
@@ -164,6 +168,14 @@ class OauthControllerTest {
 	@DisplayName("refresh 토큰이 유효하지 않으면 토큰을 재발급 받을 수 없다.")
 	void user_reissue_fail_when_refreshToken_is_not_invalid() throws Exception {
 
+		Error error = Error.of(UserExceptionCode.INVALID_REFRESH_TOKEN);
+		System.out.println(error);
+		System.out.println(error.code());
+		System.out.println(error.status().name());
+		System.out.println(error.status().value());
+		System.out.println(error.status());
+		System.out.println(error.message());
+
 		String reissueRefreshToken = "refresh-tokenxzz";
 
 		TokenDto newTokenDto = TokenDto.builder()
@@ -179,10 +191,11 @@ class OauthControllerTest {
 				.contentType(MediaType.APPLICATION_JSON)
 				.header("refresh-token", reissueRefreshToken)
 				.with(csrf()))
-			.andExpect(status().isUnauthorized())
-			.andExpect(result -> assertTrue(
-				result.getResolvedException() instanceof UserException))
-			.andExpect(jsonPath("$.errors[0]").exists());
+			.andExpect(status().isUnauthorized()).andDo(print())
+			.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+			.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+			.andExpect(jsonPath("$.errors[0].message").value(error.message()));
+
 	}
 
 	@Test

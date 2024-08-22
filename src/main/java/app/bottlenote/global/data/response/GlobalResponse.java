@@ -170,7 +170,7 @@ public class GlobalResponse {
 			.success(false)
 			.code(error.code().getHttpStatus().value())
 			.data(emptyList())
-			.errors(error)
+			.errors(List.of(error))
 			.meta(createMetaInfo().getMetaInfos())
 			.build();
 		return new ResponseEntity<>(response, error.code().getHttpStatus());
@@ -187,6 +187,7 @@ public class GlobalResponse {
 			.errors(List.of(error))
 			.meta(createMetaInfo().getMetaInfos())
 			.build();
+
 		return new ResponseEntity<>(response, exception.getExceptionCode().getHttpStatus());
 	}
 
@@ -195,7 +196,7 @@ public class GlobalResponse {
 			.success(false)
 			.code(HttpStatus.BAD_REQUEST.value())
 			.data(emptyList())
-			.errors(errorSet)
+			.errors(errorSet.stream().toList())
 			.meta(createMetaInfo().getMetaInfos())
 			.build();
 		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);

@@ -1,6 +1,8 @@
 package app.bottlenote.rating.controller;
 
 import app.bottlenote.alcohols.domain.Alcohol;
+import app.bottlenote.global.data.response.Error;
+import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.RatingId;
@@ -10,6 +12,7 @@ import app.bottlenote.rating.dto.response.RatingRegisterResponse;
 import app.bottlenote.rating.service.RatingCommandService;
 import app.bottlenote.rating.service.RatingQueryService;
 import app.bottlenote.user.domain.User;
+import app.bottlenote.user.exception.UserExceptionCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +29,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Optional;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mockStatic;
@@ -99,6 +103,9 @@ class RatingControllerTest {
 	@Test
 	@DisplayName("등록 시 유저 정보가 없을 경우 예외를 발생시킨다.")
 	void test_2() throws Exception {
+
+		Error error = Error.of(UserExceptionCode.REQUIRED_USER_ID);
+
 		// given
 		RatingRegisterRequest request = new RatingRegisterRequest(alcoholId, 5.0);
 
@@ -111,12 +118,20 @@ class RatingControllerTest {
 				.content(mapper.writeValueAsString(request))
 				.with(csrf()))
 			.andDo(print())
-			.andExpect(status().isBadRequest());
+			.andExpect(status().isBadRequest())
+			.andDo(print())
+			.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+			.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+			.andExpect(jsonPath("$.errors[0].message").value(error.message()));
 	}
 
 	@Test
-	@DisplayName("별점 등록 파라미터가 없는 경우 예외를 발생시킨다.")
+	@DisplayName("별점 등록 시 파라미터가 없는 경우 예외를 발생시킨다.")
 	void test_3() throws Exception {
+		// Expected errors
+		Error ratingError = Error.of(ValidExceptionCode.RATING_REQUIRED);
+		Error alcoholIdError = Error.of(ValidExceptionCode.ALCOHOL_ID_REQUIRED);
+
 		// given
 		RatingRegisterRequest request = new RatingRegisterRequest(null, null);
 
@@ -130,9 +145,12 @@ class RatingControllerTest {
 				.with(csrf()))
 			.andDo(print())
 			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.errors").isNotEmpty())
-			.andExpect(jsonPath("$.errors.alcoholId").isNotEmpty())
-			.andExpect(jsonPath("$.errors.rating").isNotEmpty());
+			.andExpect(jsonPath("$.errors", hasSize(2)))
+			.andExpect(jsonPath("$.errors[?(@.code == 'RATING_REQUIRED')].status").value(ratingError.status().name()))
+			.andExpect(jsonPath("$.errors[?(@.code == 'RATING_REQUIRED')].message").value(ratingError.message()))
+			.andExpect(jsonPath("$.errors[?(@.code == 'ALCOHOL_ID_REQUIRED')].status").value(alcoholIdError.status().name()))
+			.andExpect(jsonPath("$.errors[?(@.code == 'ALCOHOL_ID_REQUIRED')].message").value(alcoholIdError.message()));
 	}
+
 
 }

@@ -7,18 +7,14 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-public record OauthRequest(
+public record OauthRequest
+	(@NotBlank(message = "EMAIL_NOT_BLANK")
+	 @Email(message = "EMAIL_PATTERN_NOT_VALID") String email,
+	 @NotNull(message = "SOCIAL_TYPE_REQUIRED")
+	 SocialType socialType,
+	 GenderType gender,
+	 @Min(value = 0, message = "AGE_MINIMUM")
+	 Integer age
+	) {
 
-	@NotBlank(message = "EMAIL_REQUIRED")
-	@Email(message = "EMAIL_FORMAT_MISMATCH")
-	String email,
-
-	@NotNull(message = "VALUE_REQUIRED")
-	SocialType socialType,
-
-	GenderType gender,
-
-	@Min(value = 0, message = "AGE_MINIMUM")
-	Integer age
-) {
 }

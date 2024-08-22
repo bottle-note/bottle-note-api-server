@@ -48,6 +48,8 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
 						.select(count(subReply.id))
 						.from(subReply)
 						.where(subReply.rootReviewReply.id.eq(reviewReply.id)),
+
+					reviewReply.status,
 					reviewReply.createAt
 				)
 			)
@@ -100,7 +102,7 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
 						.when(reviewReply.status.eq(ReviewReplyStatus.DELETED))
 						.then(ReviewReplyStatus.DELETED.getMessage())
 						.otherwise(reviewReply.content),
-
+					reviewReply.status,
 					reviewReply.createAt
 				)
 			).from(reviewReply)
@@ -111,7 +113,7 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
 				reviewReply.review.id.eq(reviewId), // 리뷰 ID 일치
 				reviewReply.rootReviewReply.id.eq(rootReplyId) // 부모 댓글 ID 일치
 			)
-			.orderBy(reviewReply.createAt.desc()) // 최신순
+			.orderBy(reviewReply.createAt.asc()) // 과거 댓글부터 조회
 			.offset(cursor) // 페이지 번호
 			.limit(pageSize) // 페이지 사이즈
 			.fetch();

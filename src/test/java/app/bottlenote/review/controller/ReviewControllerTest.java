@@ -1,22 +1,6 @@
 package app.bottlenote.review.controller;
 
-import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.description;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.security.jwt.CustomJwtException;
 import app.bottlenote.global.security.jwt.CustomJwtExceptionCode;
@@ -41,10 +25,6 @@ import app.bottlenote.review.service.ReviewService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -64,6 +44,28 @@ import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
+
+import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.description;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Tag("unit")
 @DisplayName("[unit] [controller] ReviewController")
@@ -346,9 +348,11 @@ class ReviewControllerTest {
 		@DisplayName("Authorization Header가 Null일 경우에는 예외를 반환한다.")
 		void test_fail_when_authorization_header_is_null() throws Exception {
 
+			//given
+			Error error = Error.of(CustomJwtExceptionCode.EMPTY_JWT_TOKEN);
+
 			//when
 			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
-
 			when(reviewService.getMyReviews(any(), any(), any()))
 				.thenThrow(new CustomJwtException(CustomJwtExceptionCode.EMPTY_JWT_TOKEN));
 
@@ -357,17 +361,19 @@ class ReviewControllerTest {
 					.contentType(MediaType.APPLICATION_JSON)
 					.with(csrf()))
 				.andExpect(status().isUnauthorized())
-				.andExpect(jsonPath("$.errors[0].message").value(CustomJwtExceptionCode.EMPTY_JWT_TOKEN.getMessage()))
+				.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+				.andExpect(jsonPath("$.errors[0].status").value(error.status().getReasonPhrase().toUpperCase()))
+				.andExpect(jsonPath("$.errors[0].message").value(error.message()))
 				.andDo(print());
 		}
 
 		@Test
 		@DisplayName("토큰이 잘못된 토큰일 경우 예외를 반환한다.")
 		void test_fail_when_token_is_wrong() throws Exception {
+			Error error = Error.of(JwtExceptionType.MALFORMED_TOKEN);
 
 			//when
 			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
-
 			when(reviewService.getMyReviews(any(), any(), any()))
 				.thenThrow(new MalformedJwtException(JwtExceptionType.MALFORMED_TOKEN.getMessage()));
 
@@ -376,13 +382,17 @@ class ReviewControllerTest {
 					.contentType(MediaType.APPLICATION_JSON)
 					.with(csrf()))
 				.andExpect(status().isUnauthorized())
-				.andExpect(jsonPath("$.errors.message").value(JwtExceptionType.MALFORMED_TOKEN.getMessage()))
+				.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+				.andExpect(jsonPath("$.errors[0].status").value(error.status().getReasonPhrase().toUpperCase()))
+				.andExpect(jsonPath("$.errors[0].message").value(error.message()))
 				.andDo(print());
 		}
 
 		@Test
 		@DisplayName("토큰이 만료 된 토큰일 경우 예외를 반환한다.")
 		void test_fail_when_token_is_expired() throws Exception {
+
+			Error error = Error.of(JwtExceptionType.EXPIRED_TOKEN);
 
 			//when
 			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
@@ -395,9 +405,8 @@ class ReviewControllerTest {
 					.contentType(MediaType.APPLICATION_JSON)
 					.with(csrf()))
 				.andExpect(status().isForbidden())
-				.andDo(print())
-				.andExpect(jsonPath("$.errors.message").value(JwtExceptionType.EXPIRED_TOKEN.getMessage()));
-
+				.andExpect(jsonPath("$.errors[0].message").value(error.message()))
+				.andDo(print());
 		}
 
 		@DisplayName("리뷰를 상세 조회할 수 있다.")
