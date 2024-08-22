@@ -59,3 +59,43 @@ include::{snippets}/review/review-create/http-response.adoc[]
 | BOTTLE
 | 병
 |===
+
+==== Error code ====
+
+* 해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.
+
+[cols="1,1,1",options="header"]
+|===
+| 코드 | 상태 | 설명
+| REQUIRED_REVIEW_ID
+| BAD_REQUEST
+| 리뷰 아이디는 필수입니다.
+
+| REVIEW_ID_MINIMUM
+| BAD_REQUEST
+| 리뷰 식별자는 최소 1 이상이어야 합니다.
+
+| REVIEW_CONTENT_REQUIRED
+| BAD_REQUEST
+| 리뷰 내용은 필수입니다.
+
+| REVIEW_CONTENT_MAXIMUM
+| BAD_REQUEST
+| 리뷰 내용의 최대 글자수를 초과했습니다.
+
+| PRICE_MINIMUM
+| BAD_REQUEST
+| 가격은 0원 이상이어야 합니다.
+
+| PRICE_MAXIMUM
+| BAD_REQUEST
+| 입력할 수 있는 가격의 범위가 아닙니다.
+
+| ZIPCODE_ONLY_NUMBER
+| BAD_REQUEST
+| 우편번호는 숫자만 가능합니다
+
+| ZIPCODE_FORMAT
+| BAD_REQUEST
+| 우편번호는 5자리의 숫자만 가능합니다
+|===
