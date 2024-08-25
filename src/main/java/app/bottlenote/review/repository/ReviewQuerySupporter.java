@@ -129,6 +129,9 @@ public class ReviewQuerySupporter {
 	}
 
 	public BooleanExpression isBestReviewSubquery(Long bestReviewId, NumberExpression<Long> reviewId) {
+		if (bestReviewId == null) {
+			return reviewId.isNull();
+		}
 		return reviewId.eq(bestReviewId);
 	}
 
