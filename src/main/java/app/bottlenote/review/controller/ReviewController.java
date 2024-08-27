@@ -1,5 +1,9 @@
 package app.bottlenote.review.controller;
 
+import static app.bottlenote.global.data.response.GlobalResponse.success;
+import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
+import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
+
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
@@ -7,6 +11,7 @@ import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
+import app.bottlenote.review.dto.request.ReviewStatusChangeRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.service.ReviewService;
@@ -24,10 +29,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import static app.bottlenote.global.data.response.GlobalResponse.success;
-import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
-import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
 @Slf4j
 @RestController
@@ -111,6 +112,19 @@ public class ReviewController {
 		return ResponseEntity.ok(
 			success(reviewService.modifyReview(reviewModifyRequest, reviewId, currentUserId))
 		);
+	}
+
+	@PatchMapping("/{reviewId}/display")
+	public ResponseEntity<?> changeStatus(
+		@PathVariable Long reviewId,
+		@RequestBody ReviewStatusChangeRequest status
+	) {
+
+		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElseThrow(
+			() -> new UserException(REQUIRED_USER_ID)
+		);
+
+		return GlobalResponse.ok(reviewService.changeStatus(reviewId, status, currentUserId));
 	}
 
 	@DeleteMapping("/{reviewId}")
