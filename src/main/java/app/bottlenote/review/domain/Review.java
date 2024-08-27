@@ -139,6 +139,10 @@ public class Review extends BaseEntity {
 		this.reviewImages.addAll(reviewImages);
 	}
 
+	public void updateDisplayStatus(ReviewDisplayStatus status) {
+		this.status = status;
+	}
+
 	public void saveTastingTag(Set<ReviewTastingTag> reviewTastingTags) {
 		this.reviewTastingTags.addAll(reviewTastingTags);
 	}
