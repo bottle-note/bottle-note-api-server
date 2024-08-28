@@ -18,7 +18,9 @@ import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewRepository;
+import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
+import app.bottlenote.review.dto.request.ReviewStatusChangeRequest;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
 import app.bottlenote.user.domain.constant.SocialType;
@@ -46,6 +48,8 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
 	private ReviewModifyRequest reviewModifyRequest;
 	private ReviewModifyRequest nullableReviewModifyRequest;
 	private ReviewModifyRequest wrongReviewModifyRequest;
+	private ReviewStatusChangeRequest reviewStatusChangeRequest;
+	private ReviewStatusChangeRequest nullableReviewStatusChangeRequest;
 
 	@Autowired
 	private ReviewRepository reviewRepository;
@@ -55,6 +59,8 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
 		reviewModifyRequest = ReviewObjectFixture.getReviewModifyRequest();
 		nullableReviewModifyRequest = ReviewObjectFixture.getNullableReviewModifyRequest();
 		wrongReviewModifyRequest = ReviewObjectFixture.getWrongReviewModifyRequest();
+		reviewStatusChangeRequest = new ReviewStatusChangeRequest(ReviewDisplayStatus.PRIVATE);
+		nullableReviewStatusChangeRequest = new ReviewStatusChangeRequest(null);
 		oauthRequest = new OauthRequest("chadongmin@naver.com", SocialType.KAKAO, null, null);
 	}
 
@@ -118,6 +124,12 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
 		}
 	}
 
+	@Sql(scripts = {
+		"/init-script/init-alcohol.sql",
+		"/init-script/init-user.sql",
+		"/init-script/init-review.sql",
+		"/init-script/init-review-reply.sql"}
+	)
 	@Nested
 	@DisplayName("[Integration] 리뷰 수정 통합테스트")
 	@WithMockUser
@@ -132,13 +144,6 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
 
 		}
 
-
-		@Sql(scripts = {
-			"/init-script/init-alcohol.sql",
-			"/init-script/init-user.sql",
-			"/init-script/init-review.sql",
-			"/init-script/init-review-reply.sql"}
-		)
 		@DisplayName("리뷰 수정에 성공한다.")
 		@Test
 		void test_1() throws Exception {
@@ -217,6 +222,53 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
 				.andExpect(jsonPath("$.errors[?(@.code == 'REVIEW_DISPLAY_STATUS_NOT_EMPTY')].message").value(notStatusEmpty.message()))
 				.andReturn();
 
+		}
+
+		@DisplayName("리뷰 상태 변경에 성공한다.")
+		@Test
+		void test_4() throws Exception {
+			log.info("using port : {}", MY_SQL_CONTAINER.getFirstMappedPort());
+
+			final Long reviewId = 1L;
+
+			mockMvc.perform(patch("/api/v1/reviews/{reviewId}/display", reviewId)
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(reviewStatusChangeRequest))
+					.header("Authorization", "Bearer " + getToken(oauthRequest).getAccessToken())
+					.with(csrf())
+				)
+				.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.code").value(200))
+				.andExpect(jsonPath("$.data").exists())
+				.andReturn();
+
+			Review savedReview = reviewRepository.findById(reviewId).orElseGet(null);
+
+			assertEquals(ReviewDisplayStatus.PRIVATE, savedReview.getStatus());
+		}
+
+		@DisplayName("Not null인 필드에 null이 할당되면 리뷰 상태 변경에 실패한다.")
+		@Test
+		void test_5() throws Exception {
+
+			log.info("using port : {}", MY_SQL_CONTAINER.getFirstMappedPort());
+			Error notStatusEmpty = Error.of(ValidExceptionCode.REVIEW_DISPLAY_STATUS_NOT_EMPTY);
+
+			final Long reviewId = 1L;
+
+			mockMvc.perform(patch("/api/v1/reviews/{reviewId}/display", reviewId)
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(nullableReviewStatusChangeRequest))
+					.header("Authorization", "Bearer " + getToken(oauthRequest).getAccessToken())
+					.with(csrf())
+				)
+				.andDo(print())
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.success").value("false"))
+				.andExpect(jsonPath("$.errors[?(@.code == 'REVIEW_DISPLAY_STATUS_NOT_EMPTY')].status").value(notStatusEmpty.status().name()))
+				.andExpect(jsonPath("$.errors[?(@.code == 'REVIEW_DISPLAY_STATUS_NOT_EMPTY')].message").value(notStatusEmpty.message()))
+				.andReturn();
 		}
 	}
 
