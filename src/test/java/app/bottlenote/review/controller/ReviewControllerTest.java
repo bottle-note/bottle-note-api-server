@@ -1,5 +1,23 @@
 package app.bottlenote.review.controller;
 
+import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.description;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.security.jwt.CustomJwtException;
@@ -14,6 +32,7 @@ import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
+import app.bottlenote.review.dto.request.ReviewStatusChangeRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
@@ -25,6 +44,10 @@ import app.bottlenote.review.service.ReviewService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -44,28 +67,6 @@ import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
-
-import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.description;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Tag("unit")
 @DisplayName("[unit] [controller] ReviewController")
@@ -91,6 +92,9 @@ class ReviewControllerTest {
 	private final PageResponse<ReviewListResponse> reviewListResponse = ReviewObjectFixture.getReviewListResponse();
 
 	private final ReviewDetailResponse reviewDetailResponse = ReviewObjectFixture.getReviewDetailResponse();
+
+	private final ReviewStatusChangeRequest reviewStatusChangeRequest = new ReviewStatusChangeRequest(ReviewDisplayStatus.PRIVATE);
+	private final ReviewResultResponse reviewStatusChangeResponse = ReviewResultResponse.response(ReviewResultMessage.PRIVATE_SUCCESS, 1L);
 
 	private final Long reviewId = 1L;
 	private final Long userId = 1L;
@@ -430,23 +434,22 @@ class ReviewControllerTest {
 
 			verify(reviewService, description("getDetailReview 메서드가 정상적으로 호출됨")).getDetailReview(reviewId, userId);
 		}
+
+		@DisplayName("리뷰가 존재하지 않으면 상세 조회에 실패한다.")
+		@Test
+		void detail_read_review_fail_when_review_not_exist() throws Exception {
+
+			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
+
+			when(reviewService.getDetailReview(anyLong(), anyLong()))
+				.thenThrow(new ReviewException(REVIEW_NOT_FOUND));
+
+			mockMvc.perform(get("/api/v1/reviews/detail/{reviewId}", reviewId)
+					.contentType(MediaType.APPLICATION_JSON)
+					.with(csrf()))
+				.andExpect(status().isBadRequest());
+		}
 	}
-
-	@DisplayName("리뷰가 존재하지 않으면 상세 조회에 실패한다.")
-	@Test
-	void detail_read_review_fail_when_review_not_exist() throws Exception {
-
-		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
-
-		when(reviewService.getDetailReview(anyLong(), anyLong()))
-			.thenThrow(new ReviewException(REVIEW_NOT_FOUND));
-
-		mockMvc.perform(get("/api/v1/reviews/detail/{reviewId}", reviewId)
-				.contentType(MediaType.APPLICATION_JSON)
-				.with(csrf()))
-			.andExpect(status().isBadRequest());
-	}
-
 
 	@Nested
 	@DisplayName("리뷰 수정 컨트롤러 테스트")
@@ -627,4 +630,89 @@ class ReviewControllerTest {
 				.deleteReview(anyLong(), anyLong());
 		}
 	}
+
+	@Nested
+	@DisplayName("리뷰 상태변경 컨트롤러 테스트")
+	class ReviewStatusChangeControllerTest {
+
+		@DisplayName("리뷰 상태를 변경할 수 있다.")
+		@Test
+		void update_review_status_change() throws Exception {
+
+			// when
+			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
+			when(reviewService.changeStatus(1L, reviewStatusChangeRequest, 1L))
+				.thenReturn(reviewStatusChangeResponse);
+
+			mockMvc.perform(patch("/api/v1/reviews/{reviewId}/display", reviewId)
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(reviewStatusChangeRequest))
+					.with(csrf())
+				)
+				.andExpect(status().isOk())
+				.andDo(print());
+
+			// then
+			verify(reviewService, times(1)).changeStatus(anyLong(), any(), anyLong());
+		}
+
+		@DisplayName("로그인하지 않은 유저는 리뷰의 상태를 바꿀 수 없다.")
+		@Test
+		void fail_when_user_is_unauthorized() throws Exception {
+
+			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.empty());
+
+			when(reviewService.deleteReview(reviewId, userId)).thenReturn(reviewStatusChangeResponse);
+
+			mockMvc.perform(patch("/api/v1/reviews/{reviewId}/display", reviewId)
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(reviewStatusChangeRequest))
+					.with(csrf())
+				)
+				.andExpect(status().isBadRequest())
+				.andDo(print());
+		}
+
+		@DisplayName("리뷰 작성자가 아니면 리뷰 상태를 바꿀 수 없다.")
+		@Test
+		void fail_when_user_is_not_review_owner() throws Exception {
+
+			// given
+			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
+			when(reviewService.changeStatus(1L, reviewStatusChangeRequest, 1L))
+				.thenThrow(new ReviewException(REVIEW_NOT_FOUND));
+
+			// when
+			mockMvc.perform(patch("/api/v1/reviews/{reviewId}/display", reviewId)
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(reviewStatusChangeRequest))
+					.with(csrf())
+				)
+				.andExpect(status().isBadRequest())
+				.andDo(print())
+				.andExpect(jsonPath("$.success").value("false"))
+				.andExpect(jsonPath("$.errors[0].code").value("REVIEW_NOT_FOUND"));
+		}
+
+		@DisplayName("리뷰 상태 변경 요청이 null이면 리뷰 상태를 바꿀 수 없다.")
+		@Test
+		void fail_when_request_is_null() throws Exception {
+
+			// given
+			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
+			when(reviewService.changeStatus(1L, reviewStatusChangeRequest, 1L))
+				.thenReturn(reviewStatusChangeResponse);
+
+			// when
+			mockMvc.perform(patch("/api/v1/reviews/{reviewId}/display", reviewId)
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsBytes(null))
+					.with(csrf())
+				)
+				.andExpect(status().isBadRequest())
+				.andDo(print())
+				.andExpect(jsonPath("$.success").value("false"));
+		}
+	}
+
 }
