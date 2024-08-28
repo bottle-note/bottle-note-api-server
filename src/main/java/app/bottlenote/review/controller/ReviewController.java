@@ -117,7 +117,7 @@ public class ReviewController {
 	@PatchMapping("/{reviewId}/display")
 	public ResponseEntity<?> changeStatus(
 		@PathVariable Long reviewId,
-		@RequestBody ReviewStatusChangeRequest status
+		@Valid @RequestBody ReviewStatusChangeRequest status
 	) {
 
 		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElseThrow(
