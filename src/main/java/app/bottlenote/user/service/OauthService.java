@@ -1,5 +1,7 @@
 package app.bottlenote.user.service;
 
+import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
+
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import app.bottlenote.global.security.jwt.JwtTokenValidator;
@@ -16,8 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
 
 
 @Slf4j
@@ -52,7 +52,7 @@ public class OauthService {
 			user = optionalUser;
 		}
 
-		TokenDto token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
+		TokenDto token = jwtTokenProvider.generateToken(user.getEmail(), user.getSocialType(), user.getRole(), user.getId());
 
 		//재 로그인시 발급된 refresh token 업데이트
 		user.updateRefreshToken(token.getRefreshToken());
@@ -98,8 +98,11 @@ public class OauthService {
 		User user = oauthRepository.findByRefreshToken(refreshToken).orElseThrow(
 			() -> new UserException(INVALID_REFRESH_TOKEN)
 		);
-		TokenDto reissuedToken = jwtTokenProvider.generateToken(user.getEmail(),
-			user.getRole(), user.getId());
+		TokenDto reissuedToken = jwtTokenProvider.generateToken(
+			user.getEmail(),
+			user.getSocialType(),
+			user.getRole(),
+			user.getId());
 
 		// DB에 저장된 refresh 토큰을 재발급한 refresh 토큰으로 업데이트
 		user.updateRefreshToken(reissuedToken.getRefreshToken());
