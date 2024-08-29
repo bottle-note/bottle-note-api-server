@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.global.data.response.Error;
+import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.security.jwt.CustomJwtException;
 import app.bottlenote.global.security.jwt.CustomJwtExceptionCode;
@@ -41,6 +42,7 @@ import app.bottlenote.review.dto.response.constant.ReviewResultMessage;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
 import app.bottlenote.review.service.ReviewService;
+import app.bottlenote.user.exception.UserExceptionCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -660,6 +662,8 @@ class ReviewControllerTest {
 		@Test
 		void fail_when_user_is_unauthorized() throws Exception {
 
+			Error error = Error.of(UserExceptionCode.REQUIRED_USER_ID);
+
 			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.empty());
 
 			when(reviewService.deleteReview(reviewId, userId)).thenReturn(reviewStatusChangeResponse);
@@ -670,13 +674,18 @@ class ReviewControllerTest {
 					.with(csrf())
 				)
 				.andExpect(status().isBadRequest())
-				.andDo(print());
+				.andDo(print())
+				.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+				.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+				.andExpect(jsonPath("$.errors[0].message").value(error.message()));
+			;
 		}
 
 		@DisplayName("리뷰 작성자가 아니면 리뷰 상태를 바꿀 수 없다.")
 		@Test
 		void fail_when_user_is_not_review_owner() throws Exception {
 
+			Error error = Error.of(REVIEW_NOT_FOUND);
 			// given
 			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 			when(reviewService.changeStatus(1L, reviewStatusChangeRequest, 1L))
@@ -691,14 +700,19 @@ class ReviewControllerTest {
 				.andExpect(status().isBadRequest())
 				.andDo(print())
 				.andExpect(jsonPath("$.success").value("false"))
-				.andExpect(jsonPath("$.errors[0].code").value("REVIEW_NOT_FOUND"));
+				.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+				.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+				.andExpect(jsonPath("$.errors[0].message").value(error.message()));
 		}
 
 		@DisplayName("리뷰 상태 변경 요청이 null이면 리뷰 상태를 바꿀 수 없다.")
 		@Test
 		void fail_when_request_is_null() throws Exception {
 
+			Error error = Error.of(ValidExceptionCode.REVIEW_DISPLAY_STATUS_NOT_EMPTY);
 			// given
+			ReviewStatusChangeRequest nullRequest = new ReviewStatusChangeRequest(null);
+
 			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 			when(reviewService.changeStatus(1L, reviewStatusChangeRequest, 1L))
 				.thenReturn(reviewStatusChangeResponse);
@@ -706,12 +720,15 @@ class ReviewControllerTest {
 			// when
 			mockMvc.perform(patch("/api/v1/reviews/{reviewId}/display", reviewId)
 					.contentType(MediaType.APPLICATION_JSON)
-					.content(mapper.writeValueAsBytes(null))
+					.content(mapper.writeValueAsBytes(nullRequest))
 					.with(csrf())
 				)
 				.andExpect(status().isBadRequest())
 				.andDo(print())
-				.andExpect(jsonPath("$.success").value("false"));
+				.andExpect(jsonPath("$.success").value("false"))
+				.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+				.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+				.andExpect(jsonPath("$.errors[0].message").value(error.message()));
 		}
 	}
 
