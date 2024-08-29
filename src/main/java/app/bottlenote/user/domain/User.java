@@ -10,6 +10,9 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,13 +20,14 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.annotations.Comment;
 
-import java.util.Objects;
-
 @ToString(of = {"id", "email", "nickName", "age"})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Comment("사용자 정보 테이블")
 @Entity(name = "users")
+@Table(name = "users", uniqueConstraints = {
+	@UniqueConstraint(columnNames = {"email", "social_type"})
+})
 public class User {
 
 	@Id
@@ -32,7 +36,7 @@ public class User {
 	private Long id;
 
 	@Comment("사용자 이메일")
-	@Column(name = "email", nullable = false, unique = true)
+	@Column(name = "email", nullable = false)
 	private String email;
 
 	@Comment("사용자 닉네임")
