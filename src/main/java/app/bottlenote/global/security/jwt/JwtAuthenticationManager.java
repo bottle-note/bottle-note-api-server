@@ -5,6 +5,7 @@ import static app.bottlenote.user.exception.UserExceptionCode.INVALID_TOKEN;
 import static java.util.stream.Collectors.toList;
 
 import app.bottlenote.global.security.customPrincipal.CustomUserDetailsService;
+import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.exception.UserException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -58,8 +59,10 @@ public class JwtAuthenticationManager {
 			.map(String::trim)
 			.map(SimpleGrantedAuthority::new)
 			.collect(toList());
-
-		UserDetails userDetails = customUserDetailsService.loadUserByUsername(claims.getSubject());
+		
+		UserDetails userDetails = customUserDetailsService.loadUserByUsernameAndSocialType(
+			claims.getSubject(),
+			SocialType.parsing((String) claims.get("socialType")));
 
 		return new UsernamePasswordAuthenticationToken(userDetails, "", authorities);
 	}
