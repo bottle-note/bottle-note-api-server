@@ -1,5 +1,6 @@
 package app.bottlenote.global.security.jwt;
 
+import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.domain.constant.UserType;
 import app.bottlenote.user.dto.response.TokenDto;
 import io.jsonwebtoken.Claims;
@@ -43,9 +44,9 @@ public class JwtTokenProvider {
 	 * @param userId    유저 고유 아이디
 	 * @return OauthResponse ( 엑세스 토큰과 리프레시 토큰을 담은 객체 )
 	 */
-	public TokenDto generateToken(String userEmail, UserType role, Long userId) {
-		String accessToken = createAccessToken(userEmail, role, userId);
-		String refreshToken = createRefreshToken(userEmail, role, userId);
+	public TokenDto generateToken(String userEmail, SocialType socialType, UserType role, Long userId) {
+		String accessToken = createAccessToken(userEmail, socialType, role, userId);
+		String refreshToken = createRefreshToken(userEmail, socialType, role, userId);
 		return TokenDto.builder()
 			.accessToken(accessToken)
 			.refreshToken(refreshToken)
@@ -60,8 +61,8 @@ public class JwtTokenProvider {
 	 * @param userId    유저 고유 아이디
 	 * @return access token ( 엑세스 토큰 )
 	 */
-	public String createAccessToken(String userEmail, UserType role, Long userId) {
-		Claims claims = createClaims(userEmail, role, userId);
+	public String createAccessToken(String userEmail, SocialType socialType, UserType role, Long userId) {
+		Claims claims = createClaims(userEmail, socialType, role, userId);
 		Date now = new Date();
 		return Jwts.builder()
 			.setClaims(claims)
@@ -79,8 +80,8 @@ public class JwtTokenProvider {
 	 * @param userId    유저 고유 아이디
 	 * @return refresh token ( 리프레시 토큰 )
 	 */
-	public String createRefreshToken(String userEmail, UserType role, Long userId) {
-		Claims claims = createClaims(userEmail, role, userId);
+	public String createRefreshToken(String userEmail, SocialType socialType, UserType role, Long userId) {
+		Claims claims = createClaims(userEmail, socialType, role, userId);
 		Date now = new Date();
 		return Jwts.builder()
 			.setClaims(claims)
@@ -98,9 +99,11 @@ public class JwtTokenProvider {
 	 * @param userId    유저 고유 아이디
 	 * @return 클레임 객체 ( 토큰에 담을 정보 )
 	 */
-	private Claims createClaims(String userEmail, UserType role, Long userId) {
-		Claims claims = Jwts.claims().setSubject(userEmail);
+	private Claims createClaims(String userEmail, SocialType socialType, UserType role, Long userId) {
+		Claims claims = Jwts.claims()
+			.setSubject(userEmail);
 		claims.put(KEY_ROLES, role.name());
+		claims.put("socialType", socialType.name());
 		claims.put("userId", userId);
 		return claims;
 	}
