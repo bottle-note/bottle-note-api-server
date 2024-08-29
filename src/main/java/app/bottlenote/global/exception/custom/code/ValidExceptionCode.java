@@ -32,7 +32,6 @@ public enum ValidExceptionCode implements ExceptionCode {
 	CONTENT_IS_OUT_OF_RANGE(HttpStatus.BAD_REQUEST, "댓글 내용은 1자 이상 500자 이하로 작성해주세요."),
 
 	//REVIEW
-	REQUIRED_REVIEW_ID(HttpStatus.BAD_REQUEST, "리뷰 아이디는 필수입니다."),
 	REVIEW_ID_REQUIRED(HttpStatus.BAD_REQUEST, "reviewId(식별자)는 필수입니다."),
 	REVIEW_DISPLAY_STATUS_NOT_EMPTY(HttpStatus.BAD_REQUEST, "리뷰 공개/비공개상태는 필수입니다."),
 	REVIEW_ID_MINIMUM(HttpStatus.BAD_REQUEST, "리뷰 식별자는 최소 1 이상이어야 합니다."),

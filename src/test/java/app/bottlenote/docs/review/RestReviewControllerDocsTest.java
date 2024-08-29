@@ -2,6 +2,7 @@ package app.bottlenote.docs.review;
 
 import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.DELETE_SUCCESS;
 import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.PRIVATE_SUCCESS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
@@ -25,7 +26,9 @@ import app.bottlenote.docs.AbstractRestDocs;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.controller.ReviewController;
+import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
+import app.bottlenote.review.dto.request.ReviewStatusChangeRequest;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
@@ -360,6 +363,46 @@ class RestReviewControllerDocsTest extends AbstractRestDocs {
 			.andExpect(status().isOk())
 			.andDo(
 				document("review/review-delete",
+					responseFields(
+						fieldWithPath("success").description("응답 성공 여부"),
+						fieldWithPath("code").description("응답 코드(http status code)"),
+						fieldWithPath("data.codeMessage").description("성공 메시지 코드"),
+						fieldWithPath("data.message").description("성공 메시지"),
+						fieldWithPath("data.reviewId").description("리뷰 아이디"),
+						fieldWithPath("data.responseAt").description("서버 응답 일시"),
+						fieldWithPath("errors").ignored(),
+						fieldWithPath("meta.serverEncoding").ignored(),
+						fieldWithPath("meta.serverVersion").ignored(),
+						fieldWithPath("meta.serverPathVersion").ignored(),
+						fieldWithPath("meta.serverResponseTime").ignored()
+					)
+				)
+			);
+	}
+
+	@Test
+	@DisplayName("리뷰의 상태를 변경할 수 있다.")
+	void review_status_chagne() throws Exception {
+
+		Long reviewId = 1L;
+
+		//when
+		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
+
+		when(reviewService.changeStatus(anyLong(), any(ReviewStatusChangeRequest.class), anyLong()))
+			.thenReturn(ReviewResultResponse.response(PRIVATE_SUCCESS, reviewId));
+
+		//then
+		mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/reviews/{reviewId}/display", reviewId)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(new ReviewStatusChangeRequest(ReviewDisplayStatus.PRIVATE)))
+				.with(csrf()))
+			.andExpect(status().isOk())
+			.andDo(
+				document("review/review-status-change",
+					requestFields(
+						fieldWithPath("status").type(STRING).description("리뷰 상태")
+					),
 					responseFields(
 						fieldWithPath("success").description("응답 성공 여부"),
 						fieldWithPath("code").description("응답 코드(http status code)"),

@@ -1,35 +1,11 @@
 package app.bottlenote.review.service;
 
-import app.bottlenote.alcohols.service.domain.AlcoholDomainSupport;
-import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.review.domain.Review;
-import app.bottlenote.review.domain.ReviewRepository;
-import app.bottlenote.review.dto.request.PageableRequest;
-import app.bottlenote.review.dto.request.ReviewCreateRequest;
-import app.bottlenote.review.dto.request.ReviewModifyRequest;
-import app.bottlenote.review.dto.response.ReviewCreateResponse;
-import app.bottlenote.review.dto.response.ReviewDetailResponse;
-import app.bottlenote.review.dto.response.ReviewListResponse;
-import app.bottlenote.review.dto.response.ReviewResultResponse;
-import app.bottlenote.review.exception.ReviewException;
-import app.bottlenote.review.exception.ReviewExceptionCode;
-import app.bottlenote.review.fixture.ReviewObjectFixture;
-import app.bottlenote.user.service.domain.UserDomainSupport;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
-
+import static app.bottlenote.review.domain.constant.ReviewDisplayStatus.PRIVATE;
 import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.DELETE_SUCCESS;
 import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -39,6 +15,32 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import app.bottlenote.alcohols.service.domain.AlcoholDomainSupport;
+import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.review.domain.Review;
+import app.bottlenote.review.domain.ReviewRepository;
+import app.bottlenote.review.dto.request.PageableRequest;
+import app.bottlenote.review.dto.request.ReviewCreateRequest;
+import app.bottlenote.review.dto.request.ReviewModifyRequest;
+import app.bottlenote.review.dto.request.ReviewStatusChangeRequest;
+import app.bottlenote.review.dto.response.ReviewCreateResponse;
+import app.bottlenote.review.dto.response.ReviewDetailResponse;
+import app.bottlenote.review.dto.response.ReviewListResponse;
+import app.bottlenote.review.dto.response.ReviewResultResponse;
+import app.bottlenote.review.exception.ReviewException;
+import app.bottlenote.review.exception.ReviewExceptionCode;
+import app.bottlenote.review.fixture.ReviewObjectFixture;
+import app.bottlenote.user.service.domain.UserDomainSupport;
+import java.util.Optional;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 
 @Tag("unit")
@@ -65,6 +67,7 @@ class ReviewServiceTest {
 	private final PageableRequest request = ReviewObjectFixture.getEmptyPageableRequest();
 	private final PageResponse<ReviewListResponse> response = ReviewObjectFixture.getReviewListResponse();
 	private final ReviewModifyRequest reviewModifyRequest = ReviewObjectFixture.getReviewModifyRequest();
+	private final ReviewStatusChangeRequest reviewStatusChangeRequest = new ReviewStatusChangeRequest(PRIVATE);
 
 	private final Long reviewId = 1L;
 	private final Long userId = 1L;
@@ -229,6 +232,42 @@ class ReviewServiceTest {
 
 			//then
 			assertThrows(ReviewException.class, () -> reviewService.deleteReview(reviewId, userId));
+		}
+	}
+
+	@Nested
+	@DisplayName("리뷰 상태 변경 서비스 테스트")
+	class ReviewStatusChangeServiceTest {
+
+		@DisplayName("리뷰의 상태를 변경할 수 있다.")
+		@Test
+		void update_review_status() {
+			// given
+
+			when(reviewRepository.findByIdAndUserId(anyLong(), anyLong()))
+				.thenReturn(Optional.of(review));
+
+			// when
+			reviewService.changeStatus(review.getId(), reviewStatusChangeRequest, review.getUserId());
+
+			// then
+			assertNotNull(review);
+			assertEquals(PRIVATE, review.getStatus());
+		}
+
+		@DisplayName("리뷰의 작성자가 아니면 리뷰의 상태를 변경할 수 없다.")
+		@Test
+		void fail_review_status_change_when_user_is_not_owner() {
+			// given
+			when(reviewRepository.findByIdAndUserId(anyLong(), anyLong()))
+				.thenThrow(new ReviewException(REVIEW_NOT_FOUND));
+
+			// when
+			ReviewException reviewException = assertThrows(ReviewException.class,
+				() -> reviewService.changeStatus(1L, reviewStatusChangeRequest, 1L));
+
+			// then
+			assertEquals(REVIEW_NOT_FOUND, reviewException.getExceptionCode());
 		}
 	}
 }

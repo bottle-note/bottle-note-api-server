@@ -1,7 +1,10 @@
 package app.bottlenote.review.service;
 
 import static app.bottlenote.review.domain.constant.ReviewActiveStatus.DELETED;
+import static app.bottlenote.review.domain.constant.ReviewDisplayStatus.PUBLIC;
 import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.PRIVATE_SUCCESS;
+import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.PUBLIC_SUCCESS;
 import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 
 import app.bottlenote.alcohols.dto.response.AlcoholInfo;
@@ -13,6 +16,7 @@ import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
+import app.bottlenote.review.dto.request.ReviewStatusChangeRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewDetailResponse.ReviewInfo;
@@ -136,5 +140,19 @@ public class ReviewService {
 		ReviewResultMessage reviewResultMessage = review.updateReviewActiveStatus(DELETED);
 
 		return ReviewResultResponse.response(reviewResultMessage, reviewId);
+	}
+
+	@Transactional
+	public ReviewResultResponse changeStatus(Long reviewId, ReviewStatusChangeRequest reviewDisplayStatus, Long curruentUserId) {
+
+		Review review = reviewRepository.findByIdAndUserId(reviewId, curruentUserId).orElseThrow(
+			() -> new ReviewException(REVIEW_NOT_FOUND)
+		);
+
+		review.updateDisplayStatus(reviewDisplayStatus.status());
+
+		return review.getStatus() == PUBLIC ?
+			ReviewResultResponse.response(PUBLIC_SUCCESS, review.getId()) :
+			ReviewResultResponse.response(PRIVATE_SUCCESS, review.getId());
 	}
 }

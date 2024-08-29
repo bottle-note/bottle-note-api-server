@@ -9,6 +9,7 @@ import static app.bottlenote.review.domain.QReviewImage.reviewImage;
 import static app.bottlenote.review.domain.QReviewReply.reviewReply;
 import static app.bottlenote.review.domain.QReviewTastingTag.reviewTastingTag;
 import static app.bottlenote.review.domain.constant.ReviewActiveStatus.ACTIVE;
+import static app.bottlenote.review.domain.constant.ReviewDisplayStatus.PUBLIC;
 import static app.bottlenote.user.domain.QUser.user;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
@@ -79,7 +80,9 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.leftJoin(reviewTastingTag).on(review.id.eq(reviewTastingTag.review.id))
 			.leftJoin(reviewImage).on(review.id.eq(reviewImage.review.id))
 			.leftJoin(reviewReply).on(review.id.eq(reviewReply.review.id))
-			.where(review.id.eq(reviewId).and(review.activeStatus.eq(ACTIVE)))
+			.where(review.id.eq(reviewId)
+				.and(review.activeStatus.eq(ACTIVE))
+				.and(review.status.eq(PUBLIC)))
 			.groupBy(review.id, review.sizeType, review.userId)
 			.fetchOne();
 	}
@@ -97,7 +100,9 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.leftJoin(review.reviewReplies, reviewReply)
 			.leftJoin(rating).on(rating.alcohol.id.eq(review.alcoholId))
 			.leftJoin(likes).on(likes.review.id.eq(review.id))
-			.where(review.alcoholId.eq(alcoholId).and(review.activeStatus.eq(ACTIVE)))
+			.where(review.alcoholId.eq(alcoholId)
+				.and(review.activeStatus.eq(ACTIVE))
+				.and(review.status.eq(PUBLIC)))
 			.groupBy(user.id, user.imageUrl, user.nickName, review.id, review.content, rating.ratingPoint, review.createAt)
 			.orderBy(reviewReply.count().coalesce(0L)
 				.add(likes.count().coalesce(0L))
@@ -117,7 +122,9 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.leftJoin(alcohol).on(alcohol.id.eq(review.alcoholId))
 			.leftJoin(rating).on(review.userId.eq(rating.user.id))
 			.leftJoin(reviewTastingTag).on(review.id.eq(reviewTastingTag.review.id))
-			.where(alcohol.id.eq(alcoholId).and(review.activeStatus.eq(ACTIVE)))
+			.where(alcohol.id.eq(alcoholId)
+				.and(review.activeStatus.eq(ACTIVE))
+				.and(review.status.eq(PUBLIC)))
 			.groupBy(review.id, review.sizeType, review.userId)
 			.orderBy(sortBy(pageableRequest.sortType(), pageableRequest.sortOrder()).toArray(new OrderSpecifier[0]))
 			.offset(pageableRequest.cursor())
@@ -127,7 +134,9 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		Long totalCount = queryFactory
 			.select(review.id.count())
 			.from(review)
-			.where(review.alcoholId.eq(alcoholId).and(review.activeStatus.eq(ACTIVE)))
+			.where(review.alcoholId.eq(alcoholId)
+				.and(review.activeStatus.eq(ACTIVE))
+				.and(review.status.eq(PUBLIC)))
 			.fetchOne();
 
 		CursorPageable cursorPageable = getCursorPageable(pageableRequest, fetch);
@@ -150,7 +159,9 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.leftJoin(review.reviewReplies, reviewReply)
 			.leftJoin(rating).on(rating.alcohol.id.eq(review.alcoholId))
 			.leftJoin(likes).on(likes.review.id.eq(review.id))
-			.where(alcohol.id.eq(alcoholId).and(review.activeStatus.eq(ACTIVE)))
+			.where(alcohol.id.eq(alcoholId)
+				.and(review.activeStatus.eq(ACTIVE))
+				.and(review.status.eq(PUBLIC)))
 			.groupBy(user.id, user.imageUrl, user.nickName, review.id, review.content, rating.ratingPoint, review.createAt)
 			.orderBy(reviewReply.count().coalesce(0L)
 				.add(likes.count().coalesce(0L))
@@ -167,7 +178,9 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.leftJoin(likes).on(review.id.eq(likes.review.id))
 			.leftJoin(alcohol).on(alcohol.id.eq(review.alcoholId))
 			.leftJoin(rating).on(review.userId.eq(rating.user.id))
-			.where(review.userId.eq(userId).and(review.alcoholId.eq(alcoholId)).and(review.activeStatus.eq(ACTIVE)))
+			.where(review.userId.eq(userId)
+				.and(review.alcoholId.eq(alcoholId))
+				.and(review.activeStatus.eq(ACTIVE)))
 			.groupBy(review.id, review.sizeType, review.userId)
 			.orderBy(sortBy(pageableRequest.sortType(), pageableRequest.sortOrder()).toArray(new OrderSpecifier[0]))
 			.offset(pageableRequest.cursor())
