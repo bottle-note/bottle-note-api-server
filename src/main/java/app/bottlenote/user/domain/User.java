@@ -1,15 +1,19 @@
 package app.bottlenote.user.domain;
 
+import app.bottlenote.global.service.converter.JsonArrayConverter;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.domain.constant.UserStatus;
 import app.bottlenote.user.domain.constant.UserType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import java.util.List;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,9 +21,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.annotations.Comment;
 
-import java.util.Objects;
-
-@ToString(of = {"id", "email", "nickName", "age"})
+@ToString(of = {"id", "email", "nickName", "age", "socialType"})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Comment("사용자 정보 테이블")
@@ -61,10 +63,11 @@ public class User {
 	@Column(name = "status", nullable = false)
 	private UserStatus status = UserStatus.ACTIVE;
 
-	@Enumerated(EnumType.STRING)
+
+	@Convert(converter = JsonArrayConverter.class)
 	@Comment("사용자 로그인 소셜타입 (GOOGLE, KAKAO, NAVER, APPLE")
-	@Column(name = "social_type", nullable = false)
-	private SocialType socialType;
+	@Column(name = "social_type", nullable = false, columnDefinition = "json")
+	private List<SocialType> socialType;
 
 	@Comment("사용자 리프레시토큰")
 	@Column(name = "refresh_token", nullable = true)
@@ -72,7 +75,7 @@ public class User {
 
 	@Builder
 	public User(Long id, String email, String nickName, Integer age, String gender, String imageUrl,
-				UserType role, SocialType socialType, String refreshToken) {
+		UserType role, List<SocialType> socialType, String refreshToken) {
 		this.id = id;
 		this.email = email;
 		this.nickName = nickName;
