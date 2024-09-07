@@ -1,8 +1,11 @@
 package app.bottlenote.user.service;
 
+import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
+
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import app.bottlenote.global.security.jwt.JwtTokenValidator;
+import app.bottlenote.global.service.converter.JsonArrayConverter;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.constant.GenderType;
 import app.bottlenote.user.domain.constant.SocialType;
@@ -17,8 +20,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
-
 
 @Slf4j
 @Service
@@ -30,6 +31,7 @@ public class OauthService {
 	private final NicknameGenerator nicknameGenerator;
 	private final JwtTokenProvider jwtTokenProvider;
 	private final JwtAuthenticationManager jwtAuthenticationManager;
+	private JsonArrayConverter converter = new JsonArrayConverter();
 
 
 	public TokenDto oauthLogin(OauthRequest oauthReq) {
@@ -42,24 +44,22 @@ public class OauthService {
 		User user;
 
 		// 회원가입용 옵셔널 유저필요
-		User optionalUser = oauthRepository.findByEmailAndSocialType(email, socialType)
-			.orElse(null);
+		User optionalUser = oauthRepository.findByEmail(email).orElse(null);
 
-		//db에 유저가 존재하지 않는다면 회원가입, 존재한다면 토큰 발급 후 반환
+		//db에 유저가 존재하지 않는다면 회원가입, 존재한다면 소셜 타입을 조회
 		if (optionalUser == null) {
+			log.info("요청으로 들어온 유저가 DB에 존재하지 않음");
 			user = oauthSignUp(email, socialType, genderType, age);
 		} else {
+			log.info("요청으로 들어온 유저가 이미 가입된 유저임");
 			user = optionalUser;
+			user.addSocialType(oauthReq.socialType());
 		}
 
 		TokenDto token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
 
 		//재 로그인시 발급된 refresh token 업데이트
 		user.updateRefreshToken(token.getRefreshToken());
-
-		//db에 user 엔티티 저장
-		oauthRepository.save(user);
-
 		return token;
 	}
 
@@ -69,10 +69,9 @@ public class OauthService {
 		String nickName = nicknameGenerator.generateNickname();
 
 		log.info("nickname is :{}", nickName);
-
 		User user = User.builder()
 			.email(email)
-			.socialType(socialType)
+			.socialType(converter.convertToEntityAttribute(socialType.toString()))
 			.role(UserType.ROLE_USER)
 			.gender(String.valueOf(genderType))
 			.age(age)

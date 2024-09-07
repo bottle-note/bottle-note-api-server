@@ -19,7 +19,8 @@ public enum UserExceptionCode implements ExceptionCode {
 	NOTIFICATION_USER_NOT_FOUND(HttpStatus.NOT_FOUND, "알림 대상 유저를 찾을 수 없습니다."),
 	MYPAGE_NOT_ACCESSIBLE(HttpStatus.FORBIDDEN, "접근할 수 없는 마이페이지입니다."),
 	MYBOTTLE_NOT_ACCESSIBLE(HttpStatus.FORBIDDEN, "접근할 수 없는 마이보틀페이지입니다."),
-	USER_NICKNAME_NOT_VALID(HttpStatus.BAD_REQUEST, "중복된 닉네임입니다.");
+	USER_NICKNAME_NOT_VALID(HttpStatus.BAD_REQUEST, "중복된 닉네임입니다."),
+	JSON_PARSING_EXCEPTION(HttpStatus.BAD_REQUEST, "JSON 처리 중 오류가 발생했습니다");
 
 	private final HttpStatus httpStatus;
 	private final String message;

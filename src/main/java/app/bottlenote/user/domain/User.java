@@ -105,4 +105,8 @@ public class User {
 //		this.imageUrl = (viewUrl == null || viewUrl.trim().isEmpty()) ? "" : viewUrl;
 		this.imageUrl = viewUrl;
 	}
+
+	public void addSocialType(SocialType socialType) {
+		this.socialType.add(socialType);
+	}
 }
