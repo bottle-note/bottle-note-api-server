@@ -12,6 +12,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import lombok.AccessLevel;
@@ -67,7 +68,7 @@ public class User {
 	@Convert(converter = JsonArrayConverter.class)
 	@Comment("사용자 로그인 소셜타입 (GOOGLE, KAKAO, NAVER, APPLE")
 	@Column(name = "social_type", nullable = false, columnDefinition = "json")
-	private List<SocialType> socialType;
+	private List<SocialType> socialType = new ArrayList<>();
 
 	@Comment("사용자 리프레시토큰")
 	@Column(name = "refresh_token", nullable = true)

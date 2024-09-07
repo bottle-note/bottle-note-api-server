@@ -1,5 +1,13 @@
 package app.bottlenote.support.report.service;
 
+import static app.bottlenote.support.constant.StatusType.WAITING;
+import static app.bottlenote.user.domain.constant.SocialType.GOOGLE;
+import static app.bottlenote.user.domain.constant.UserType.ROLE_USER;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import app.bottlenote.support.report.domain.UserReports;
 import app.bottlenote.support.report.domain.constant.UserReportType;
 import app.bottlenote.support.report.dto.request.UserReportRequest;
@@ -11,6 +19,10 @@ import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.repository.UserCommandRepository;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -18,18 +30,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-
-import static app.bottlenote.support.constant.StatusType.WAITING;
-import static app.bottlenote.user.domain.constant.SocialType.GOOGLE;
-import static app.bottlenote.user.domain.constant.UserType.ROLE_USER;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 @Tag("unit")
 @DisplayName("[unit] [service] UserReportService")
@@ -86,8 +86,8 @@ class UserReportServiceTest {
 	@DisplayName("유저를 신고 할 수 있다.")
 	void testUserReport() {
 		// Given
-		User user_1 = User.builder().id(1L).nickName("사용자").email("test_01@test.co.kr").role(ROLE_USER).socialType(GOOGLE).build();
-		User reportUser_1 = User.builder().id(2L).nickName("신고대상자_1").email("report_user_01@test.co.kr").role(ROLE_USER).socialType(GOOGLE).build();
+		User user_1 = User.builder().id(1L).nickName("사용자").email("test_01@test.co.kr").role(ROLE_USER).socialType(new ArrayList<>(List.of(GOOGLE))).build();
+		User reportUser_1 = User.builder().id(2L).nickName("신고대상자_1").email("report_user_01@test.co.kr").role(ROLE_USER).socialType(new ArrayList<>(List.of(GOOGLE))).build();
 		UserReports reports_1 = UserReports.builder().id(1L).user(user_1).reportUser(reportUser_1).content("test_01").status(WAITING).build();
 		List<UserReports> userReportsList = List.of(reports_1);
 
@@ -130,7 +130,7 @@ class UserReportServiceTest {
 		// Given
 		UserReportRequest request = new UserReportRequest(1L, 44L, UserReportType.SPAM, "content_request_content_01");
 
-		User user = User.builder().id(1L).nickName("사용자").email("test_01@test.co.kr").role(ROLE_USER).socialType(GOOGLE).build();
+		User user = User.builder().id(1L).nickName("사용자").email("test_01@test.co.kr").role(ROLE_USER).socialType(new ArrayList<>(List.of(GOOGLE))).build();
 
 		// When
 		when(userRepository.findById(1L)).thenReturn(Optional.of(user)); // 신고자 조회
@@ -149,8 +149,8 @@ class UserReportServiceTest {
 		// Given
 		UserReportRequest request = new UserReportRequest(1L, 44L, UserReportType.SPAM, "content_request_content_01");
 
-		User user = User.builder().id(1L).nickName("사용자").email("test_01@test.co.kr").role(ROLE_USER).socialType(GOOGLE).build();
-		User reportUser = User.builder().id(44L).nickName("신고대상자_1").email("report_user_01@test.co.kr").role(ROLE_USER).socialType(GOOGLE).build();
+		User user = User.builder().id(1L).nickName("사용자").email("test_01@test.co.kr").role(ROLE_USER).socialType(new ArrayList<>(List.of(GOOGLE))).build();
+		User reportUser = User.builder().id(44L).nickName("신고대상자_1").email("report_user_01@test.co.kr").role(ROLE_USER).socialType(new ArrayList<>(List.of(GOOGLE))).build();
 		List<UserReports> userReportsList = List.of(
 			UserReports.builder().id(1L).user(user).reportUser(reportUser).content("test_01").status(WAITING).build(),
 			UserReports.builder().id(2L).user(user).reportUser(reportUser).content("test_02").status(WAITING).build(),
@@ -170,7 +170,7 @@ class UserReportServiceTest {
 	void testUserReportWith_REPORT_LIMIT_EXCEEDED() {
 		// Given
 		UserReportRequest request = new UserReportRequest(1L, 43L, UserReportType.SPAM, "content_request_content_01");
-		User user = User.builder().id(1L).nickName("사용자").email("test_01@test.co.kr").role(ROLE_USER).socialType(GOOGLE).build();
+		User user = User.builder().id(1L).nickName("사용자").email("test_01@test.co.kr").role(ROLE_USER).socialType(new ArrayList<>(List.of(GOOGLE))).build();
 		User reportUser_00 = User.builder().id(43L).nickName("신고대상자_1").email("report01@email.com").build();
 		User reportUser_01 = User.builder().id(44L).nickName("신고대상자_1").email("report01@email.com").build();
 		User reportUser_02 = User.builder().id(44L).nickName("신고대상자_1").email("report02@email.com").build();

@@ -4,6 +4,8 @@ import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.constant.GenderType;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.domain.constant.UserType;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserObjectFixture {
 
@@ -16,7 +18,7 @@ public class UserObjectFixture {
 			.role(UserType.ROLE_USER)
 			.imageUrl("profileurl")
 			.nickName("nickname")
-			.socialType(SocialType.KAKAO)
+			.socialType(new ArrayList<>(List.of(SocialType.KAKAO)))
 			.build();
 	}
 
@@ -29,7 +31,7 @@ public class UserObjectFixture {
 			.role(UserType.ROLE_USER)
 			.imageUrl("profileurl")
 			.nickName("nickname")
-			.socialType(SocialType.KAKAO)
+			.socialType(new ArrayList<>(List.of(SocialType.KAKAO)))
 			.build();
 	}
 
@@ -42,7 +44,7 @@ public class UserObjectFixture {
 			.role(UserType.ROLE_USER)
 			.imageUrl("profileurl")
 			.nickName("nickname")
-			.socialType(SocialType.KAKAO)
+			.socialType(new ArrayList<>(List.of(SocialType.KAKAO)))
 			.build();
 	}
 

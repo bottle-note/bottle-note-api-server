@@ -1,5 +1,18 @@
 package app.bottlenote.user.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import app.bottlenote.global.security.jwt.JwtTokenValidator;
@@ -10,6 +23,9 @@ import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.TokenDto;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.repository.OauthRepository;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -20,20 +36,6 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
-
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @Tag("unit")
 @DisplayName("[unit] [service] OauthService")
@@ -70,7 +72,7 @@ class OauthServiceTest {
 			.id(1L)
 			.email("cdm2883@naver.com")
 			.gender("남")
-			.socialType(SocialType.KAKAO)
+			.socialType(new ArrayList<>(List.of(SocialType.KAKAO)))
 			.age(26)
 			.nickName(nickName)
 			.role(UserType.ROLE_USER)
@@ -108,9 +110,7 @@ class OauthServiceTest {
 		//given
 
 		//when
-		when(oauthRepository.findByEmailAndSocialType(any(String.class),
-			any(SocialType.class))).thenReturn(
-			Optional.of(user));
+		when(oauthRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
 
 		when(jwtTokenProvider.generateToken(user.getEmail(), user.getRole(),
 			user.getId())).thenReturn(tokenDto);
@@ -127,8 +127,7 @@ class OauthServiceTest {
 	@DisplayName("로그인 요청 Email이 DB에 존재하지 않으면 회원가입 로직이 실행된다")
 	void test_Login_Or_CreateAccount_Based_On_EmailExistence() {
 
-		when(oauthRepository.findByEmailAndSocialType(any(String.class),
-			any(SocialType.class))).thenReturn(Optional.empty());
+		when(oauthRepository.findByEmail(anyString())).thenReturn(Optional.empty());
 
 		when(oauthRepository.save(any(User.class))).thenReturn(user);
 
@@ -138,9 +137,7 @@ class OauthServiceTest {
 		oauthService.oauthLogin(request);
 
 		//then
-
-		// save 메서드가 회원가입시에 1번, 토큰발급 후 1번 -> 총 2번 실행된다
-		verify(oauthRepository, times(2)).save(any(User.class));
+		verify(oauthRepository, times(1)).save(any(User.class));
 
 		assertThat(this.tokenDto.getAccessToken()).isEqualTo("mock-accessToken");
 		assertThat(this.tokenDto.getRefreshToken()).isEqualTo("mock-refreshToken");
@@ -151,10 +148,7 @@ class OauthServiceTest {
 	void test_Login_Or_CreateAccount_Based_On_Email_Not_Existence() {
 
 		//when
-		when(oauthRepository.findByEmailAndSocialType(any(String.class),
-			any(SocialType.class))).thenReturn(Optional.of(user));
-
-		when(oauthRepository.save(any(User.class))).thenReturn(user);
+		when(oauthRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
 
 		when(jwtTokenProvider.generateToken(user.getEmail(), user.getRole(),
 			user.getId())).thenReturn(tokenDto);
@@ -163,8 +157,8 @@ class OauthServiceTest {
 
 		//then
 
-		// save 메서드가 토큰발급 후 1번만 실행된다.
-		verify(oauthRepository, times(1)).save(any(User.class));
+		// save 메서드가 실행되지 않는다.
+		verify(oauthRepository, never()).save(any(User.class));
 
 		assertThat(this.tokenDto.getAccessToken()).isEqualTo("mock-accessToken");
 		assertThat(this.tokenDto.getRefreshToken()).isEqualTo("mock-refreshToken");
