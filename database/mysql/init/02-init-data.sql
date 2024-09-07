@@ -111,18 +111,18 @@ VALUES (1, '글래스고 1770 싱글몰트 스카치 위스키', '1770 Glasgow S
 
 
 INSERT INTO users (id, email, nick_name, age, image_url, gender, role, status, social_type,
-                   refresh_token,
-                   create_at, last_modify_at)
+                   refresh_token, create_at, last_modify_at)
 VALUES (1, 'user1@example.com', 'nickname1', 28, 'https://example.com/image01.jpg', 'MALE',
-        'ROLE_USER', 'ACTIVE', 'KAKAO', NULL, NULL, NULL),
+        'ROLE_USER', 'ACTIVE', '["KAKAO"]', NULL, NULL, NULL),
        (2, 'user2@example.com', 'nickname2', 34, 'https://example.com/image02.jpg', 'FEMALE',
-        'ROLE_USER', 'ACTIVE', 'GOOGLE', NULL, NULL, NULL),
+        'ROLE_USER', 'ACTIVE', '["GOOGLE"]', NULL, NULL, NULL),
        (3, 'user3@example.com', 'nickname3', 22, 'https://example.com/image03.jpg', 'MALE',
-        'ROLE_USER', 'ACTIVE', 'NAVER', NULL, NULL, NULL),
+        'ROLE_USER', 'ACTIVE', '["NAVER"]', NULL, NULL, NULL),
        (4, 'user4@example.com', 'nickname4', 27, 'https://example.com/image04.jpg', 'FEMALE',
-        'ROLE_USER', 'ACTIVE', 'KAKAO', NULL, NULL, NULL),
+        'ROLE_USER', 'ACTIVE', '["KAKAO"]', NULL, NULL, NULL),
        (5, 'user5@example.com', 'nickname5', 30, 'https://example.com/image05.jpg', 'MALE',
-        'ROLE_USER', 'ACTIVE', 'GOOGLE', NULL, NULL, NULL);
+        'ROLE_USER', 'ACTIVE', '["GOOGLE"]', NULL, NULL, NULL);
+
 
 INSERT INTO review
 (id, user_id, alcohol_id, content, size_type, price, zip_code, address, detail_address, status,
