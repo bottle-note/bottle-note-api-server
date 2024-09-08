@@ -105,7 +105,6 @@ include::api/user/user-withdraw.adoc[]
 include::api/user/user-mypage.adoc[]
 '''
 include::api/user/user-mybottle.adoc[]
-
 '''
 
 == 술 (alcohol) 관련 API
@@ -162,7 +161,6 @@ include::api/review/reply/sub-review-reply-list.adoc[]
 include::api/support/report/user-report.adoc[]
 
 include::api/support/help/help-register.adoc[]
-
 
 == 팔로우 (follow) 관련 API
 
