@@ -31,7 +31,7 @@ public class OauthService {
 	private final NicknameGenerator nicknameGenerator;
 	private final JwtTokenProvider jwtTokenProvider;
 	private final JwtAuthenticationManager jwtAuthenticationManager;
-	private JsonArrayConverter converter = new JsonArrayConverter();
+	private final JsonArrayConverter converter;
 
 
 	public TokenDto oauthLogin(OauthRequest oauthReq) {

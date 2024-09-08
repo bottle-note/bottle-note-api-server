@@ -16,6 +16,7 @@ import static org.mockito.Mockito.when;
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import app.bottlenote.global.security.jwt.JwtTokenValidator;
+import app.bottlenote.global.service.converter.JsonArrayConverter;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.domain.constant.UserType;
@@ -52,6 +53,8 @@ class OauthServiceTest {
 	private OauthRepository oauthRepository;
 	@Mock
 	private JwtTokenProvider jwtTokenProvider;
+	@Mock
+	private JsonArrayConverter converter;
 
 	private String reissueRefreshToken;
 	private OauthRequest request;

@@ -13,9 +13,11 @@ import jakarta.persistence.Converter;
 import java.util.Collections;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @Converter
+@Component
 public class JsonArrayConverter implements AttributeConverter<List<SocialType>, String> {
 
 	private final ObjectMapper objectMapper = new ObjectMapper();
@@ -43,12 +45,12 @@ public class JsonArrayConverter implements AttributeConverter<List<SocialType>, 
 			// dbData가 JSON 배열 형식인지 확인
 			if (dbData.trim().startsWith("[") && dbData.trim().endsWith("]")) {
 				// JSON 배열 형식이면 그대로 처리
-				return objectMapper.readValue(dbData, new TypeReference<List<SocialType>>() {
+				return objectMapper.readValue(dbData, new TypeReference<>() {
 				});
 			} else {
 				// 단순 문자열일 경우 JSON 배열로 감싸서 변환
 				String jsonArray = "[" + objectMapper.writeValueAsString(dbData) + "]";
-				return objectMapper.readValue(jsonArray, new TypeReference<List<SocialType>>() {
+				return objectMapper.readValue(jsonArray, new TypeReference<>() {
 				});
 			}
 		} catch (JsonProcessingException e) {
