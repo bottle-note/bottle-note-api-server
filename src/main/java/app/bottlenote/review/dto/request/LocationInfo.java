@@ -1,17 +1,22 @@
 package app.bottlenote.review.dto.request;
 
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
 
 public record LocationInfo(
 
-	@Pattern(regexp = "\\d{5}", message = "ZIPCODE_ONLY_NUMBER")
-	@Size(min = 5, max = 5, message = "ZIPCODE_FORMAT")
-	String zipCode,
+	String barName,
 
-	String address,
+	@NotNull(message = "STREET_ADDRESS_REQUIRED")
+	String streetAddress,
 
-	String detailAddress
+	//TODO : Enum으로 관리 필요
+	String category,
+
+	String mapUrl,
+
+	String latitude,
+
+	String longitude
 ) {
 
 }
