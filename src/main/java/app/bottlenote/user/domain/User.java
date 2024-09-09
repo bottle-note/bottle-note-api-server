@@ -108,6 +108,8 @@ public class User {
 	}
 
 	public void addSocialType(SocialType socialType) {
-		this.socialType.add(socialType);
+		if (!getSocialType().contains(socialType)) {
+			this.socialType.add(socialType);
+		}
 	}
 }
