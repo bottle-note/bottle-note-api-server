@@ -105,9 +105,12 @@ public class ReviewQuerySupporter {
 			user.nickName.as("nickName"),
 			user.imageUrl.as("userProfileImage"),
 			ratingSubquery(),
-			review.zipCode.as("zipCode"),
-			review.address.as("address"),
-			review.detailAddress.as("detailAddress"),
+			review.reviewLocation.barName.as("barName"),            // Updated: accessing barName from the embeddable
+			review.reviewLocation.streetAddress.as("streetAddress"), // Updated: accessing streetAddress from the embeddable
+			review.reviewLocation.category.as("category"),          // Updated: accessing category from the embeddable
+			review.reviewLocation.mapUrl.as("mapUrl"),              // Updated: accessing mapUrl from the embeddable
+			review.reviewLocation.latitude.as("latitude"),          // Updated: accessing latitude from the embeddable
+			review.reviewLocation.longitude.as("longitude"),
 			review.status.as("status"),
 			isMyReviewSubquery(userId),
 			isLikeByMeSubquery(userId),
