@@ -146,7 +146,7 @@ class ReviewControllerTest {
 				"맛있어요",
 				null,
 				new BigDecimal("30000.0"),
-				new LocationInfo("11111", "서울시 강남구 청담동", "xx빌딩"),
+				new LocationInfo("xxPub", "서울시 강남구 청담동", "PUB", "xxx@example.com", "111.111", "222.222"),
 				List.of(
 					new ReviewImageInfo(1L, "url1"),
 					new ReviewImageInfo(2L, "url2"),
