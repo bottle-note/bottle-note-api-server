@@ -1,32 +1,24 @@
 package app.bottlenote.review.domain;
 
-import static app.bottlenote.review.domain.event.ReviewReplyRegistryEvent.replyRegistryPublish;
-
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.review.domain.constant.ReviewActiveStatus;
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.review.dto.response.constant.ReviewResultMessage;
 import app.bottlenote.review.dto.vo.ReviewModifyVO;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Comment;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Comment;
+
+import static app.bottlenote.review.domain.event.ReviewReplyRegistryEvent.replyRegistryPublish;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @Getter
@@ -62,17 +54,9 @@ public class Review extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private ReviewDisplayStatus status = ReviewDisplayStatus.PUBLIC;
 
-	@Comment("우편번호")
-	@Column(name = "zip_code")
-	private String zipCode;
-
-	@Comment("주소")
-	@Column(name = "address")
-	private String address;
-
-	@Comment("상세주소")
-	@Column(name = "detail_address")
-	private String detailAddress;
+	@Comment("위치 정보")
+	@Embedded
+	private ReviewLocation reviewLocation;
 
 	@Comment("썸네일 이미지")
 	@Column(name = "image_url")
@@ -101,7 +85,7 @@ public class Review extends BaseEntity {
 	private Set<ReviewTastingTag> reviewTastingTags = new HashSet<>();
 
 	@Builder
-	public Review(Long id, Long userId, Long alcoholId, String content, SizeType sizeType, BigDecimal price, ReviewDisplayStatus status, String zipCode, String address, String detailAddress, String imageUrl, Long viewCount) {
+	public Review(Long id, Long userId, Long alcoholId, String content, SizeType sizeType, BigDecimal price, ReviewDisplayStatus status, ReviewLocation reviewLocation, String imageUrl, Long viewCount) {
 		this.id = id;
 		this.userId = userId;
 		this.alcoholId = alcoholId;
@@ -109,9 +93,7 @@ public class Review extends BaseEntity {
 		this.sizeType = sizeType;
 		this.price = price;
 		this.status = status;
-		this.zipCode = zipCode;
-		this.address = address;
-		this.detailAddress = detailAddress;
+		this.reviewLocation = reviewLocation;
 		this.imageUrl = imageUrl;
 		this.viewCount = viewCount;
 		this.reviewReplies = new ArrayList<>();
@@ -124,9 +106,7 @@ public class Review extends BaseEntity {
 		this.content = reviewModifyVO.getContent();
 		this.sizeType = reviewModifyVO.getSizeType();
 		this.price = reviewModifyVO.getPrice();
-		this.zipCode = reviewModifyVO.getZipCode();
-		this.address = reviewModifyVO.getAddress();
-		this.detailAddress = reviewModifyVO.getDetailAddress();
+		this.reviewLocation.modifyReviewLocation(reviewModifyVO);
 	}
 
 	public void updateTastingTags(Set<ReviewTastingTag> updateTastingTags) {
@@ -170,3 +150,4 @@ public class Review extends BaseEntity {
 		return "Review{" + "id=" + id + ", userId=" + userId + ", alcoholId=" + alcoholId + ", content='" + content + '}';
 	}
 }
+

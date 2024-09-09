@@ -11,6 +11,7 @@ import app.bottlenote.alcohols.dto.response.AlcoholInfo;
 import app.bottlenote.alcohols.service.domain.AlcoholDomainSupport;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.Review;
+import app.bottlenote.review.domain.ReviewLocation;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
@@ -60,10 +61,16 @@ public class ReviewService {
 			.status(reviewCreateRequest.status())
 			.imageUrl(reviewCreateRequest.imageUrlList().isEmpty() ? null : reviewCreateRequest.imageUrlList().get(0).viewUrl())
 			.content(reviewCreateRequest.content())
-			.address(reviewCreateRequest.locationInfo().address())
-			.zipCode(reviewCreateRequest.locationInfo().zipCode())
-			.detailAddress(reviewCreateRequest.locationInfo().detailAddress())
+			.reviewLocation(ReviewLocation.builder()
+				.barName(reviewCreateRequest.locationInfo().barName())
+				.streetAddress(reviewCreateRequest.locationInfo().streetAddress())
+				.category(reviewCreateRequest.locationInfo().category())
+				.mapUrl(reviewCreateRequest.locationInfo().mapUrl())
+				.latitude(reviewCreateRequest.locationInfo().latitude())
+				.longitude(reviewCreateRequest.locationInfo().longitude())
+				.build())
 			.build();
+
 
 		Review saveReview = reviewRepository.save(review);
 
