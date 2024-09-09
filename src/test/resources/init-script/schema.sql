@@ -227,10 +227,13 @@ CREATE TABLE `review`
     `content`        varchar(1000)  NOT NULL COMMENT '1000글자',
     `size_type`      varchar(255)   NULL COMMENT '잔 : GLASS , 보틀 : BOTTLE',
     `price`          decimal(38, 2) NULL COMMENT '가격',
-    `zip_code`       varchar(255)   NULL COMMENT '마신 장소 우편번호',
-    `address`        varchar(255)   NULL COMMENT '마신 장소 주소',
-    `detail_address` varchar(255)   NULL COMMENT '마신 장소 상세 주소',
-    `status`         varchar(255)   NULL COMMENT '공개리뷰, 숨김리뷰',
+    `bar_name`       varchar(255)   NULL COMMENT '상호 명',
+    `street_address` varchar(255)   NULL COMMENT '도로명 주소',
+    `category`       varchar(255)   NULL COMMENT '장소 카테고리',
+    `map_url`        varchar(255)   NULL COMMENT '지도 URL',
+    `latitude`       varchar(255)   NULL COMMENT '위도 (x좌표)',
+    `longitude`      varchar(255)   NULL COMMENT '경도 (y좌표)',
+    `status`         varchar(255)   NULL COMMENT '리뷰 상태',
     `image_url`      varchar(255)   NULL COMMENT '썸네일 이미지',
     `view_count`     bigint         NULL COMMENT '조회수',
     `active_status`  varchar(255)   NULL COMMENT '리뷰활성상태 (활성, 삭제, 비활성)',
@@ -243,9 +246,7 @@ CREATE TABLE `review`
     FOREIGN KEY (`alcohol_id`) REFERENCES `alcohol` (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci
-    COMMENT
-        = '술 리뷰';
+  COLLATE = utf8mb4_unicode_ci COMMENT = '술 리뷰';
 
 CREATE TABLE `review_report`
 (
