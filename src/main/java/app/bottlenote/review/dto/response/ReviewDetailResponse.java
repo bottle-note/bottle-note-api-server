@@ -33,7 +33,7 @@ public record ReviewDetailResponse(
 		String userProfileImage,
 		Double rating,
 
-		String barName,
+		String locationName,
 		String streetAddress,
 		//TODO : Enum으로 관리 필요
 		String category,

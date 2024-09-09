@@ -105,7 +105,7 @@ public class ReviewQuerySupporter {
 			user.nickName.as("nickName"),
 			user.imageUrl.as("userProfileImage"),
 			ratingSubquery(),
-			review.reviewLocation.barName.as("barName"),            // Updated: accessing barName from the embeddable
+			review.reviewLocation.name.as("name"),            // Updated: accessing barName from the embeddable
 			review.reviewLocation.streetAddress.as("streetAddress"), // Updated: accessing streetAddress from the embeddable
 			review.reviewLocation.category.as("category"),          // Updated: accessing category from the embeddable
 			review.reviewLocation.mapUrl.as("mapUrl"),              // Updated: accessing mapUrl from the embeddable

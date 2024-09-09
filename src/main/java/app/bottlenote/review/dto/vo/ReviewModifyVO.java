@@ -18,7 +18,7 @@ public class ReviewModifyVO {
 
 	private final SizeType sizeType;
 
-	private final String barName;
+	private final String locationName;
 
 	private final String streetAddress;
 
@@ -36,14 +36,14 @@ public class ReviewModifyVO {
 		this.price = reviewModifyRequest.price();
 		this.sizeType = reviewModifyRequest.sizeType();
 		if (Objects.isNull(reviewModifyRequest.locationInfo())) {
-			this.barName = null;
+			this.locationName = null;
 			this.streetAddress = null;
 			this.category = null;
 			this.mapUrl = null;
 			this.latitude = null;
 			this.longitude = null;
 		} else {
-			this.barName = reviewModifyRequest.locationInfo().barName();
+			this.locationName = reviewModifyRequest.locationInfo().locationName();
 			this.streetAddress = reviewModifyRequest.locationInfo().streetAddress();
 			this.category = reviewModifyRequest.locationInfo().category();
 			this.mapUrl = reviewModifyRequest.locationInfo().mapUrl();

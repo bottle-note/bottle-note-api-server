@@ -62,7 +62,7 @@ public class ReviewService {
 			.imageUrl(reviewCreateRequest.imageUrlList().isEmpty() ? null : reviewCreateRequest.imageUrlList().get(0).viewUrl())
 			.content(reviewCreateRequest.content())
 			.reviewLocation(ReviewLocation.builder()
-				.barName(reviewCreateRequest.locationInfo().barName())
+				.name(reviewCreateRequest.locationInfo().locationName())
 				.streetAddress(reviewCreateRequest.locationInfo().streetAddress())
 				.category(reviewCreateRequest.locationInfo().category())
 				.mapUrl(reviewCreateRequest.locationInfo().mapUrl())

@@ -205,7 +205,7 @@ CREATE TABLE `review`
     `content`        varchar(1000)  NOT NULL COMMENT '1000글자',
     `size_type`      varchar(255)   NULL COMMENT '잔 : GLASS , 보틀 : BOTTLE',
     `price`          decimal(38, 2) NULL COMMENT '가격',
-    `bar_name`       varchar(255)   NULL COMMENT '상호 명',
+    `location_name`  varchar(255)   NULL COMMENT '상호 명',
     `street_address` varchar(255)   NULL COMMENT '도로명 주소',
     `category`       varchar(255)   NULL COMMENT '장소 카테고리',
     `map_url`        varchar(255)   NULL COMMENT '지도 URL',

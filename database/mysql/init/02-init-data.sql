@@ -125,7 +125,7 @@ VALUES (1, 'user1@example.com', 'nickname1', 28, 'https://example.com/image01.jp
 
 
 INSERT INTO review
-(id, user_id, alcohol_id, content, size_type, price, bar_name, street_address, category, map_url, latitude, longitude, status,
+(id, user_id, alcohol_id, content, size_type, price, location_name, street_address, category, map_url, latitude, longitude, status,
  image_url, view_count, active_status, create_at, create_by, last_modify_at, last_modify_by)
 VALUES (1, 3, 1, '이 위스키는 풍부하고 복잡한 맛이 매력적입니다.', 'BOTTLE', 65000, 'xxPub', '서울시 청담동', 'bar','xxx@example.com','12.123','12.123',
         'PUBLIC', 'https://example.com/image01.jpg', NULL, 'ACTIVE', '2024-05-05 12:00:00', NULL,

@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotNull;
 
 public record LocationInfo(
 
-	String barName,
+	String locationName,
 
 	@NotNull(message = "STREET_ADDRESS_REQUIRED")
 	String streetAddress,

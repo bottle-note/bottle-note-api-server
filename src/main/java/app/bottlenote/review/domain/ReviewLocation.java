@@ -15,8 +15,8 @@ import org.hibernate.annotations.Comment;
 public class ReviewLocation {
 
 	@Comment("상호 명")
-	@Column(name = "bar_name")
-	private String barName;
+	@Column(name = "location_name")
+	private String name;
 
 	@Comment("도로명 주소")
 	@Column(name = "street_address")
@@ -39,8 +39,8 @@ public class ReviewLocation {
 	private String longitude;
 
 	@Builder
-	public ReviewLocation(String barName, String streetAddress, String category, String mapUrl, String latitude, String longitude) {
-		this.barName = barName;
+	public ReviewLocation(String name, String streetAddress, String category, String mapUrl, String latitude, String longitude) {
+		this.name = name;
 		this.streetAddress = streetAddress;
 		this.category = category;
 		this.mapUrl = mapUrl;
@@ -49,7 +49,7 @@ public class ReviewLocation {
 	}
 
 	public void modifyReviewLocation(ReviewModifyVO reviewModifyVO){
-		this.barName = reviewModifyVO.getBarName();
+		this.name = reviewModifyVO.getLocationName();
 		this.streetAddress = reviewModifyVO.getStreetAddress();
 		this.category = reviewModifyVO.getCategory();
 		this.mapUrl = reviewModifyVO.getMapUrl();

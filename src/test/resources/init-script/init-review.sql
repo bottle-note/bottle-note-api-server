@@ -1,4 +1,4 @@
-insert into review (user_id, alcohol_id, content, size_type, price,  bar_name, street_address, category, map_url, latitude, longitude,
+insert into review (user_id, alcohol_id, content, size_type, price,  location_name, street_address, category, map_url, latitude, longitude,
                     status, image_url, view_count, active_status, create_at, create_by, last_modify_at,
                     last_modify_by)
 values (2, 1, '식별자 1번 임의리 리뷰', 'GLASS', 20000.00,'xxPub', '서울시 청담동', 'bar','xxx@example.com','12.123','12.123',
