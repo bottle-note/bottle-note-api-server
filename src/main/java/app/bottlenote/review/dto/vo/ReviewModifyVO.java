@@ -18,11 +18,17 @@ public class ReviewModifyVO {
 
 	private final SizeType sizeType;
 
-	private final String zipCode;
+	private final String locationName;
 
-	private final String address;
+	private final String streetAddress;
 
-	private final String detailAddress;
+	private final String category;
+
+	private final String mapUrl;
+
+	private final String latitude;
+
+	private final String longitude;
 
 	public ReviewModifyVO(ReviewModifyRequest reviewModifyRequest) {
 		this.content = reviewModifyRequest.content();
@@ -30,13 +36,19 @@ public class ReviewModifyVO {
 		this.price = reviewModifyRequest.price();
 		this.sizeType = reviewModifyRequest.sizeType();
 		if (Objects.isNull(reviewModifyRequest.locationInfo())) {
-			this.zipCode = null;
-			this.address = null;
-			this.detailAddress = null;
+			this.locationName = null;
+			this.streetAddress = null;
+			this.category = null;
+			this.mapUrl = null;
+			this.latitude = null;
+			this.longitude = null;
 		} else {
-			this.zipCode = reviewModifyRequest.locationInfo().zipCode();
-			this.address = reviewModifyRequest.locationInfo().address();
-			this.detailAddress = reviewModifyRequest.locationInfo().detailAddress();
+			this.locationName = reviewModifyRequest.locationInfo().locationName();
+			this.streetAddress = reviewModifyRequest.locationInfo().streetAddress();
+			this.category = reviewModifyRequest.locationInfo().category();
+			this.mapUrl = reviewModifyRequest.locationInfo().mapUrl();
+			this.latitude = reviewModifyRequest.locationInfo().latitude();
+			this.longitude = reviewModifyRequest.locationInfo().longitude();
 		}
 
 	}

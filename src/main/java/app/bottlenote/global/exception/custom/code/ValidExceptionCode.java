@@ -67,8 +67,7 @@ public enum ValidExceptionCode implements ExceptionCode {
 	REPORT_CONTENT_MAX_SIZE(HttpStatus.BAD_REQUEST, "신고 내용은 300자 이내로 작성해주세요."),
 
 	//LOCATION INFO
-	ZIPCODE_ONLY_NUMBER(HttpStatus.BAD_REQUEST, "우편번호는 숫자만 가능합니다"),
-	ZIPCODE_FORMAT(HttpStatus.BAD_REQUEST, "우편번호는 5자리의 숫자만 가능합니다"),
+	STREET_ADDRESS_REQUIRED(HttpStatus.BAD_REQUEST, "도로명 주소는 필수입니다"),
 
 	//HELP
 	HELP_TITLE_REQUIRED(HttpStatus.BAD_REQUEST, "문의글 제목은 필수입니다."),
