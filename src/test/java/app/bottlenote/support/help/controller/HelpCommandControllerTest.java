@@ -2,7 +2,7 @@ package app.bottlenote.support.help.controller;
 
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
-import app.bottlenote.support.help.dto.response.HelpRegisterResponse;
+import app.bottlenote.support.help.dto.response.HelpUpsertResponse;
 import app.bottlenote.support.help.fixture.HelpObjectFixture;
 import app.bottlenote.support.help.service.HelpService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,7 +41,7 @@ class HelpCommandControllerTest {
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
 	private HelpUpsertRequest helpUpsertRequest = HelpObjectFixture.getHelpRegisterRequest();
-	private HelpRegisterResponse successResponse = HelpObjectFixture.getSuccessHelpRegisterResponse();
+	private HelpUpsertResponse successResponse = HelpObjectFixture.getSuccessHelpRegisterResponse();
 
 	private final Long userId = 1L;
 

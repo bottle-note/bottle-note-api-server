@@ -4,7 +4,7 @@ import app.bottlenote.docs.AbstractRestDocs;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.support.help.controller.HelpCommandController;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
-import app.bottlenote.support.help.dto.response.HelpRegisterResponse;
+import app.bottlenote.support.help.dto.response.HelpUpsertResponse;
 import app.bottlenote.support.help.fixture.HelpObjectFixture;
 import app.bottlenote.support.help.service.HelpService;
 import org.junit.jupiter.api.AfterEach;
@@ -33,7 +33,7 @@ class RestDocsHelpCommandControllerTest extends AbstractRestDocs {
 	private final MockedStatic<SecurityContextUtil> mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
 
 	private final HelpUpsertRequest helpUpsertRequest = HelpObjectFixture.getHelpRegisterRequest();
-	private final HelpRegisterResponse successResponse = HelpObjectFixture.getSuccessHelpRegisterResponse();
+	private final HelpUpsertResponse successResponse = HelpObjectFixture.getSuccessHelpRegisterResponse();
 
 
 	@Override
