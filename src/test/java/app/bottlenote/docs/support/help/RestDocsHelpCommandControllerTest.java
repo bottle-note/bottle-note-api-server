@@ -1,32 +1,29 @@
 package app.bottlenote.docs.support.help;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
-import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
-import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import app.bottlenote.docs.AbstractRestDocs;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.support.help.controller.HelpCommandController;
-import app.bottlenote.support.help.dto.request.HelpRegisterRequest;
+import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
 import app.bottlenote.support.help.dto.response.HelpRegisterResponse;
 import app.bottlenote.support.help.fixture.HelpObjectFixture;
 import app.bottlenote.support.help.service.HelpService;
-import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
+
+import java.util.Optional;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @DisplayName("문의글 커맨드 컨트롤러 RestDocs용 테스트")
 class RestDocsHelpCommandControllerTest extends AbstractRestDocs {
@@ -35,7 +32,7 @@ class RestDocsHelpCommandControllerTest extends AbstractRestDocs {
 
 	private final MockedStatic<SecurityContextUtil> mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
 
-	private final HelpRegisterRequest helpRegisterRequest = HelpObjectFixture.getHelpRegisterRequest();
+	private final HelpUpsertRequest helpUpsertRequest = HelpObjectFixture.getHelpRegisterRequest();
 	private final HelpRegisterResponse successResponse = HelpObjectFixture.getSuccessHelpRegisterResponse();
 
 
@@ -58,12 +55,12 @@ class RestDocsHelpCommandControllerTest extends AbstractRestDocs {
 		//when
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
-		when(helpService.registerHelp(any(HelpRegisterRequest.class), anyLong()))
+		when(helpService.registerHelp(any(HelpUpsertRequest.class), anyLong()))
 			.thenReturn(successResponse);
 
 		//then
 		mockMvc.perform(post("/api/v1/help")
-				.content(objectMapper.writeValueAsString(helpRegisterRequest))
+				.content(objectMapper.writeValueAsString(helpUpsertRequest))
 				.contentType(MediaType.APPLICATION_JSON)
 				.with(csrf()))
 			.andExpect(status().isOk())

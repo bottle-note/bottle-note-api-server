@@ -1,17 +1,12 @@
 package app.bottlenote.support.help.controller;
 
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.support.help.dto.request.HelpRegisterRequest;
+import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
 import app.bottlenote.support.help.dto.response.HelpRegisterResponse;
 import app.bottlenote.support.help.fixture.HelpObjectFixture;
 import app.bottlenote.support.help.service.HelpService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -45,7 +40,7 @@ class HelpCommandControllerTest {
 	private HelpService helpService;
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
-	private HelpRegisterRequest helpRegisterRequest = HelpObjectFixture.getHelpRegisterRequest();
+	private HelpUpsertRequest helpUpsertRequest = HelpObjectFixture.getHelpRegisterRequest();
 	private HelpRegisterResponse successResponse = HelpObjectFixture.getSuccessHelpRegisterResponse();
 
 	private final Long userId = 1L;
@@ -73,13 +68,13 @@ class HelpCommandControllerTest {
 			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
 			// when
-			when(helpService.registerHelp(helpRegisterRequest, 1L))
+			when(helpService.registerHelp(helpUpsertRequest, 1L))
 				.thenReturn(successResponse);
 
 			// then
 			mockMvc.perform(post("/api/v1/help")
 					.contentType(MediaType.APPLICATION_JSON)
-					.content(mapper.writeValueAsString(helpRegisterRequest))
+					.content(mapper.writeValueAsString(helpUpsertRequest))
 					.with(csrf()))
 				.andExpect(status().isOk())
 				.andDo(print())
@@ -95,13 +90,13 @@ class HelpCommandControllerTest {
 			when(SecurityContextUtil.getUserIdByContext())
 				.thenReturn(Optional.empty());
 
-			when(helpService.registerHelp(helpRegisterRequest, 1L))
+			when(helpService.registerHelp(helpUpsertRequest, 1L))
 				.thenReturn(successResponse);
 
 			// then
 			mockMvc.perform(post("/api/v1/help")
 					.contentType(MediaType.APPLICATION_JSON)
-					.content(mapper.writeValueAsString(helpRegisterRequest))
+					.content(mapper.writeValueAsString(helpUpsertRequest))
 					.with(csrf()))
 				.andExpect(status().isBadRequest())
 				.andDo(print());
@@ -114,7 +109,7 @@ class HelpCommandControllerTest {
 			// when
 			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
-			HelpRegisterRequest wrongTitleRegisterRequest = HelpObjectFixture.getWrongTitleRegisterRequest();
+			HelpUpsertRequest wrongTitleRegisterRequest = HelpObjectFixture.getWrongTitleRegisterRequest();
 
 			when(helpService.registerHelp(wrongTitleRegisterRequest, 1L))
 				.thenReturn(successResponse);

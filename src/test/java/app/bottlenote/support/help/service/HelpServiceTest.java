@@ -1,16 +1,7 @@
 package app.bottlenote.support.help.service;
 
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-
 import app.bottlenote.support.help.domain.Help;
-import app.bottlenote.support.help.dto.request.HelpRegisterRequest;
+import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
 import app.bottlenote.support.help.dto.response.HelpRegisterResponse;
 import app.bottlenote.support.help.fixture.HelpObjectFixture;
 import app.bottlenote.support.help.repository.HelpRepository;
@@ -23,6 +14,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
 
 @Tag("unit")
 @DisplayName("[unit] [service] HelpService")
@@ -43,18 +40,18 @@ class HelpServiceTest {
 	void testUserRegisterHelp_Success() {
 		// given
 
-		HelpRegisterRequest helpRegisterRequest = HelpObjectFixture.getHelpRegisterRequest();
+		HelpUpsertRequest helpUpsertRequest = HelpObjectFixture.getHelpRegisterRequest();
 
 		Help help = Help.create(1L,
-			helpRegisterRequest.title(),
-			helpRegisterRequest.content(),
-			helpRegisterRequest.type()
+			helpUpsertRequest.title(),
+			helpUpsertRequest.content(),
+			helpUpsertRequest.type()
 		);
 
 		//when
 		doNothing().when(userDomainSupport).isValidUserId(anyLong());
 		when(helpRepository.save(any(Help.class))).thenReturn(help);
-		HelpRegisterResponse helpRegisterResponse = helpService.registerHelp(helpRegisterRequest, 1L);
+		HelpRegisterResponse helpRegisterResponse = helpService.registerHelp(helpUpsertRequest, 1L);
 
 		// then
 		assertEquals(REGISTER_SUCCESS, helpRegisterResponse.codeMessage());
@@ -65,13 +62,13 @@ class HelpServiceTest {
 	void testHelpRegister_fail_when_unauthorized_user() {
 
 		// given
-		HelpRegisterRequest helpRegisterRequest = HelpObjectFixture.getHelpRegisterRequest();
+		HelpUpsertRequest helpUpsertRequest = HelpObjectFixture.getHelpRegisterRequest();
 
 		// when
 		doThrow(UserException.class).when(userDomainSupport).isValidUserId(anyLong());
 
 		// then
-		assertThrows(UserException.class, () -> helpService.registerHelp(helpRegisterRequest, 1L));
+		assertThrows(UserException.class, () -> helpService.registerHelp(helpUpsertRequest, 1L));
 	}
 
 
