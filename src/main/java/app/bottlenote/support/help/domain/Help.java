@@ -3,13 +3,7 @@ package app.bottlenote.support.help.domain;
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.support.constant.StatusType;
 import app.bottlenote.support.help.domain.constant.HelpType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -74,5 +68,11 @@ public class Help extends BaseEntity {
 			.content(content)
 			.type(helpType)
 			.build();
+	}
+
+	public void updateHelp(String title, String content, HelpType helpType){
+		this.title = title;
+		this.content = content;
+		this.type = helpType;
 	}
 }

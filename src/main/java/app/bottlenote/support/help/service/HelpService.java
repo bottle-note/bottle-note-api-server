@@ -2,7 +2,8 @@ package app.bottlenote.support.help.service;
 
 import app.bottlenote.support.help.domain.Help;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
-import app.bottlenote.support.help.dto.response.HelpRegisterResponse;
+import app.bottlenote.support.help.dto.response.HelpUpsertResponse;
+import app.bottlenote.support.help.exception.HelpException;
 import app.bottlenote.support.help.repository.HelpRepository;
 import app.bottlenote.user.service.domain.UserDomainSupport;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +11,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.MODIFY_SUCCESS;
 import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
+import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +24,7 @@ public class HelpService {
 	private final HelpRepository helpRepository;
 
 	@Transactional
-	public HelpRegisterResponse registerHelp(HelpUpsertRequest helpUpsertRequest, Long currentUserId) {
+	public HelpUpsertResponse registerHelp(HelpUpsertRequest helpUpsertRequest, Long currentUserId) {
 
 		userDomainSupport.isValidUserId(currentUserId);
 
@@ -34,8 +37,27 @@ public class HelpService {
 
 		Help saveHelp = helpRepository.save(help);
 
-		return HelpRegisterResponse.response(
+		return HelpUpsertResponse.response(
 			REGISTER_SUCCESS,
 			saveHelp.getId());
+	}
+
+	@Transactional
+	public HelpUpsertResponse modifyHelp(
+		HelpUpsertRequest helpUpsertRequest,
+		Long currentUserId,
+		Long helpId) {
+
+		Help help = helpRepository.findByIdAndUserId(helpId, currentUserId)
+			.orElseThrow(() -> new HelpException(HELP_NOT_FOUND));
+
+		help.updateHelp(
+			helpUpsertRequest.title(),
+			helpUpsertRequest.content(),
+			helpUpsertRequest.type());
+
+		return HelpUpsertResponse.response(
+			MODIFY_SUCCESS,
+			help.getId());
 	}
 }

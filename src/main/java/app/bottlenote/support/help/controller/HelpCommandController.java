@@ -28,4 +28,13 @@ public class HelpCommandController {
 		return GlobalResponse.ok(helpService.registerHelp(helpUpsertRequest, currentUserId));
 	}
 
+	@PatchMapping("/{helpId}")
+	public ResponseEntity<?> modifyHelp(@RequestBody HelpUpsertRequest helpUpsertRequest, @PathVariable Long helpId){
+
+		Long currentUserId = SecurityContextUtil.getUserIdByContext().
+			orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+
+		return GlobalResponse.ok(helpService.modifyHelp(helpUpsertRequest, currentUserId, helpId));
+	}
+
 }
