@@ -7,6 +7,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum HelpType {
+
 	WHISKEY("위스키 관련 문의"),
 	REVIEW("리뷰 관련 문의"),
 	USER("회원 관련 문의"),
