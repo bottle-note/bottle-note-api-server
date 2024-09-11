@@ -51,6 +51,9 @@ dependencies {
     implementation 'com.h2database:h2'
     runtimeOnly 'com.mysql:mysql-connector-j'
 
+    //db-json
+    implementation 'io.hypersistence:hypersistence-utils-hibernate-60:3.7.3'
+
     //querydsl 설정 추가
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
     annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"

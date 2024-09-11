@@ -5,6 +5,7 @@ import app.bottlenote.alcohols.dto.response.AlcoholInfo;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.Review;
+import app.bottlenote.review.domain.ReviewLocation;
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.review.dto.request.LocationInfo;
@@ -45,7 +46,7 @@ public class ReviewObjectFixture {
 			content,
 			SizeType.GLASS,
 			new BigDecimal("30000.0"),
-			new LocationInfo("11111", "서울시 강남구 청담동", "xx빌딩"),
+			new LocationInfo("xxPub", "서울시 강남구 청담동", "PUB", "xxx@example.com", "111.111", "222.222"),
 			List.of(
 				new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1"),
 				new ReviewImageInfo(2L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1"),
@@ -164,7 +165,7 @@ public class ReviewObjectFixture {
 			List.of(new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")),
 			SizeType.GLASS,
 			List.of(),
-			new LocationInfo("11111", "서울시 강남구 청담동", "xx빌딩"));
+			new LocationInfo("xxPub", "서울시 강남구 청담동", "PUB", "xxx@example.com", "111.111", "222.222"));
 	}
 
 	/**
@@ -238,6 +239,7 @@ public class ReviewObjectFixture {
 			.alcoholId(alcoholId)
 			.userId(userId)
 			.content(content)
+			.reviewLocation(new ReviewLocation(null, null, null, null, null, null))
 			.build();
 	}
 

@@ -93,9 +93,9 @@ class CustomJpaReviewRepositoryImplTest {
 			User.builder().email("test2@emai.com").nickName("test2").role(
 				UserType.ROLE_USER).socialType(new ArrayList<>(List.of(GOOGLE))).build());
 
-		Review review = Review.builder().alcoholId(alcohol.getId()).userId(user.getId()).address("서울시 강남구 압구정동")
+		Review review = Review.builder().alcoholId(alcohol.getId()).userId(user.getId())
 			.content("맛있어요").build();
-		Review review2 = Review.builder().alcoholId(alcohol.getId()).userId(user2.getId()).address("서울시 강남구 신사동")
+		Review review2 = Review.builder().alcoholId(alcohol.getId()).userId(user2.getId())
 			.content("그저 그래요").build();
 
 		LikeUserInfo likeUserInfo1 = LikeUserInfo.create(user.getId(), user.getNickName());
