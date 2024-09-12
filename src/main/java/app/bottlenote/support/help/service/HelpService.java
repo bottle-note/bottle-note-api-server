@@ -2,7 +2,7 @@ package app.bottlenote.support.help.service;
 
 import app.bottlenote.support.help.domain.Help;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
-import app.bottlenote.support.help.dto.response.HelpUpsertResponse;
+import app.bottlenote.support.help.dto.response.HelpResultResponse;
 import app.bottlenote.support.help.exception.HelpException;
 import app.bottlenote.support.help.repository.HelpRepository;
 import app.bottlenote.user.service.domain.UserDomainSupport;
@@ -24,7 +24,7 @@ public class HelpService {
 	private final HelpRepository helpRepository;
 
 	@Transactional
-	public HelpUpsertResponse registerHelp(HelpUpsertRequest helpUpsertRequest, Long currentUserId) {
+	public HelpResultResponse registerHelp(HelpUpsertRequest helpUpsertRequest, Long currentUserId) {
 
 		userDomainSupport.isValidUserId(currentUserId);
 
@@ -37,13 +37,13 @@ public class HelpService {
 
 		Help saveHelp = helpRepository.save(help);
 
-		return HelpUpsertResponse.response(
+		return HelpResultResponse.response(
 			REGISTER_SUCCESS,
 			saveHelp.getId());
 	}
 
 	@Transactional
-	public HelpUpsertResponse modifyHelp(
+	public HelpResultResponse modifyHelp(
 		HelpUpsertRequest helpUpsertRequest,
 		Long currentUserId,
 		Long helpId) {
@@ -56,7 +56,7 @@ public class HelpService {
 			helpUpsertRequest.content(),
 			helpUpsertRequest.type());
 
-		return HelpUpsertResponse.response(
+		return HelpResultResponse.response(
 			MODIFY_SUCCESS,
 			help.getId());
 	}

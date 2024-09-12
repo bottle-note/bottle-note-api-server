@@ -3,7 +3,7 @@ package app.bottlenote.support.help.service;
 import app.bottlenote.support.help.domain.Help;
 import app.bottlenote.support.help.domain.constant.HelpType;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
-import app.bottlenote.support.help.dto.response.HelpUpsertResponse;
+import app.bottlenote.support.help.dto.response.HelpResultResponse;
 import app.bottlenote.support.help.fixture.HelpObjectFixture;
 import app.bottlenote.support.help.repository.HelpRepository;
 import app.bottlenote.user.exception.UserException;
@@ -52,10 +52,10 @@ class HelpServiceTest {
 		//when
 		doNothing().when(userDomainSupport).isValidUserId(anyLong());
 		when(helpRepository.save(any(Help.class))).thenReturn(help);
-		HelpUpsertResponse helpUpsertResponse = helpService.registerHelp(helpUpsertRequest, 1L);
+		HelpResultResponse helpResultResponse = helpService.registerHelp(helpUpsertRequest, 1L);
 
 		// then
-		assertEquals(REGISTER_SUCCESS, helpUpsertResponse.codeMessage());
+		assertEquals(REGISTER_SUCCESS, helpResultResponse.codeMessage());
 	}
 
 	@DisplayName("로그인 하지 않은 유저는 문의글을 작성할 수 없다.")
@@ -79,7 +79,7 @@ class HelpServiceTest {
 		when(helpRepository.findByIdAndUserId(anyLong(), anyLong()))
 			.thenReturn(Optional.of(help));
 
-		HelpUpsertResponse response = helpService.modifyHelp(updateRequest, 1L, 1L);
+		HelpResultResponse response = helpService.modifyHelp(updateRequest, 1L, 1L);
 
 		// then
 		assertEquals(MODIFY_SUCCESS, response.codeMessage());

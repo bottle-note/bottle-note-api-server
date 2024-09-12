@@ -5,18 +5,18 @@ import app.bottlenote.support.help.dto.response.constant.HelpResultMessage;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public record HelpUpsertResponse(
+public record HelpResultResponse(
 	HelpResultMessage codeMessage,
 	String message,
 	Long helpId,
 	String responseAt
 ) {
 
-	public static HelpUpsertResponse response(
+	public static HelpResultResponse response(
 		HelpResultMessage message,
 		Long helpId
 	) {
-		return new HelpUpsertResponse(
+		return new HelpResultResponse(
 			message,
 			message.getDescription(),
 			helpId,
