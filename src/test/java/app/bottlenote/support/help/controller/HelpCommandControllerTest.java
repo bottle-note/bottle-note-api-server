@@ -40,8 +40,8 @@ class HelpCommandControllerTest {
 	private HelpService helpService;
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
-	private HelpUpsertRequest helpUpsertRequest = HelpObjectFixture.getHelpRegisterRequest();
-	private HelpUpsertResponse successResponse = HelpObjectFixture.getSuccessHelpRegisterResponse();
+	private final HelpUpsertRequest helpUpsertRequest = HelpObjectFixture.getHelpUpsertRequest();
+	private final HelpUpsertResponse successResponse = HelpObjectFixture.getSuccessHelpRegisterResponse();
 
 	private final Long userId = 1L;
 
@@ -122,8 +122,6 @@ class HelpCommandControllerTest {
 				.andExpect(status().isBadRequest())
 				.andDo(print())
 				.andExpect(status().isBadRequest());
-//				.andExpect(jsonPath("$.code").value("400"))
-//				.andExpect(jsonPath("$.success").value("false"));
 		}
 	}
 }

@@ -32,7 +32,7 @@ class RestDocsHelpCommandControllerTest extends AbstractRestDocs {
 
 	private final MockedStatic<SecurityContextUtil> mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
 
-	private final HelpUpsertRequest helpUpsertRequest = HelpObjectFixture.getHelpRegisterRequest();
+	private final HelpUpsertRequest helpUpsertRequest = HelpObjectFixture.getHelpUpsertRequest();
 	private final HelpUpsertResponse successResponse = HelpObjectFixture.getSuccessHelpRegisterResponse();
 
 
