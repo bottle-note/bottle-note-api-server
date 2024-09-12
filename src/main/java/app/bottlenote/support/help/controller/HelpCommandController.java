@@ -8,7 +8,12 @@ import app.bottlenote.user.exception.UserException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
@@ -29,7 +34,7 @@ public class HelpCommandController {
 	}
 
 	@PatchMapping("/{helpId}")
-	public ResponseEntity<?> modifyHelp(@RequestBody HelpUpsertRequest helpUpsertRequest, @PathVariable Long helpId){
+	public ResponseEntity<?> modifyHelp(@Valid @RequestBody HelpUpsertRequest helpUpsertRequest, @PathVariable Long helpId){
 
 		Long currentUserId = SecurityContextUtil.getUserIdByContext().
 			orElseThrow(() -> new UserException(REQUIRED_USER_ID));
