@@ -20,7 +20,7 @@ ReqeuestBody가 null인 경우 Validation에 의해 REVIEW_STATUS_REQUIRED 코�
 PATCH /api/v1/reviews/{reviewId}/display
 ----
 
-=== RequestBody 양식 ===
+RequestBody 양식
 
 [cols="1,1"]
 |===
