@@ -1,16 +1,19 @@
 package app.bottlenote.support.help.service;
 
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
-
 import app.bottlenote.support.help.domain.Help;
-import app.bottlenote.support.help.dto.request.HelpRegisterRequest;
-import app.bottlenote.support.help.dto.response.HelpRegisterResponse;
+import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
+import app.bottlenote.support.help.dto.response.HelpResultResponse;
+import app.bottlenote.support.help.exception.HelpException;
 import app.bottlenote.support.help.repository.HelpRepository;
 import app.bottlenote.user.service.domain.UserDomainSupport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
+import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -21,21 +24,40 @@ public class HelpService {
 	private final HelpRepository helpRepository;
 
 	@Transactional
-	public HelpRegisterResponse registerHelp(HelpRegisterRequest helpRegisterRequest, Long currentUserId) {
+	public HelpResultResponse registerHelp(HelpUpsertRequest helpUpsertRequest, Long currentUserId) {
 
 		userDomainSupport.isValidUserId(currentUserId);
 
 		Help help = Help.create(
 			currentUserId,
-			helpRegisterRequest.title(),
-			helpRegisterRequest.content(),
-			helpRegisterRequest.type()
+			helpUpsertRequest.title(),
+			helpUpsertRequest.content(),
+			helpUpsertRequest.type()
 		);
 
 		Help saveHelp = helpRepository.save(help);
 
-		return HelpRegisterResponse.response(
+		return HelpResultResponse.response(
 			REGISTER_SUCCESS,
 			saveHelp.getId());
+	}
+
+	@Transactional
+	public HelpResultResponse modifyHelp(
+		HelpUpsertRequest helpUpsertRequest,
+		Long currentUserId,
+		Long helpId) {
+
+		Help help = helpRepository.findByIdAndUserId(helpId, currentUserId)
+			.orElseThrow(() -> new HelpException(HELP_NOT_FOUND));
+
+		help.updateHelp(
+			helpUpsertRequest.title(),
+			helpUpsertRequest.content(),
+			helpUpsertRequest.type());
+
+		return HelpResultResponse.response(
+			MODIFY_SUCCESS,
+			help.getId());
 	}
 }

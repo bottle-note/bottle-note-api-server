@@ -16,6 +16,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
+import java.util.Objects;
+
 @Comment("문의사항")
 @Entity(name = "help")
 @Getter
@@ -74,5 +76,14 @@ public class Help extends BaseEntity {
 			.content(content)
 			.type(helpType)
 			.build();
+	}
+
+	public void updateHelp(String title, String content, HelpType helpType){
+		Objects.requireNonNull(title, "title은 필수입니다");
+		Objects.requireNonNull(content, "content는 필수입니다");
+		Objects.requireNonNull(helpType, "helpType은 필수입니다");
+		this.title = title;
+		this.content = content;
+		this.type = helpType;
 	}
 }

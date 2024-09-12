@@ -1,21 +1,22 @@
 package app.bottlenote.support.help.dto.response;
 
 import app.bottlenote.support.help.dto.response.constant.HelpResultMessage;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public record HelpRegisterResponse(
+public record HelpResultResponse(
 	HelpResultMessage codeMessage,
 	String message,
 	Long helpId,
 	String responseAt
 ) {
 
-	public static HelpRegisterResponse response(
+	public static HelpResultResponse response(
 		HelpResultMessage message,
 		Long helpId
 	) {
-		return new HelpRegisterResponse(
+		return new HelpResultResponse(
 			message,
 			message.getDescription(),
 			helpId,

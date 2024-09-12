@@ -1,30 +1,38 @@
 package app.bottlenote.support.help.fixture;
 
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
-
+import app.bottlenote.support.help.domain.Help;
 import app.bottlenote.support.help.domain.constant.HelpType;
-import app.bottlenote.support.help.dto.request.HelpRegisterRequest;
-import app.bottlenote.support.help.dto.response.HelpRegisterResponse;
+import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
+import app.bottlenote.support.help.dto.response.HelpResultResponse;
+import app.bottlenote.support.help.dto.response.constant.HelpResultMessage;
 
 public class HelpObjectFixture {
 
-	public static HelpRegisterRequest getHelpRegisterRequest() {
-		return new HelpRegisterRequest(
+	public static Help getHelpDefaultFixture(){
+		return Help.create(1L, "로그인이 안돼요", "blah blah blah", HelpType.USER);
+	}
+
+	public static Help getHelpFixure(String title, String content, HelpType helpType){
+		return Help.create(1L, title, content, helpType);
+	}
+
+	public static HelpUpsertRequest getHelpUpsertRequest() {
+		return new HelpUpsertRequest(
 			"로그인이 안돼요",
 			"blah blah blah"
 			, HelpType.USER
 		);
 	}
 
-	public static HelpRegisterRequest getWrongTitleRegisterRequest() {
-		return new HelpRegisterRequest(
+	public static HelpUpsertRequest getWrongTitleRegisterRequest() {
+		return new HelpUpsertRequest(
 			null,
 			"test"
 			, HelpType.USER
 		);
 	}
 
-	public static HelpRegisterResponse getSuccessHelpRegisterResponse() {
-		return HelpRegisterResponse.response(REGISTER_SUCCESS, 1L);
+	public static HelpResultResponse getSuccessHelpResponse(HelpResultMessage helpResultMessage) {
+		return HelpResultResponse.response(helpResultMessage, 1L);
 	}
 }
