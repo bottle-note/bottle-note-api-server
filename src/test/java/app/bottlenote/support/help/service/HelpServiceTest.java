@@ -4,6 +4,7 @@ import app.bottlenote.support.help.domain.Help;
 import app.bottlenote.support.help.domain.constant.HelpType;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
 import app.bottlenote.support.help.dto.response.HelpResultResponse;
+import app.bottlenote.support.help.exception.HelpException;
 import app.bottlenote.support.help.fixture.HelpObjectFixture;
 import app.bottlenote.support.help.repository.HelpRepository;
 import app.bottlenote.user.exception.UserException;
@@ -18,8 +19,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
+import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.DELETE_SUCCESS;
 import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.MODIFY_SUCCESS;
 import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
+import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_AUTHORIZED;
+import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -76,7 +80,7 @@ class HelpServiceTest {
 		HelpUpsertRequest updateRequest = new HelpUpsertRequest("수정 후 제목","수정 후 내용", HelpType.USER);
 
 	    // when
-		when(helpRepository.findByIdAndUserId(anyLong(), anyLong()))
+		when(helpRepository.findById(anyLong()))
 			.thenReturn(Optional.of(help));
 
 		HelpResultResponse response = helpService.modifyHelp(updateRequest, 1L, 1L);
@@ -88,14 +92,13 @@ class HelpServiceTest {
 	@DisplayName("유저는 본인이 작성한 문의글만 수정할 수 있다.")
 	@Test
 	void testHelpUpdate_fail_when_user_is_not_owner() {
-	    // given
 
 	    // when
-		when(helpRepository.findByIdAndUserId(anyLong(), anyLong()))
-			.thenThrow(UserException.class);
+		when(helpRepository.findById(anyLong()))
+			.thenThrow(HelpException.class);
 
 	    // then
-		assertThrows(UserException.class,
+		assertThrows(HelpException.class,
 			() -> helpService.modifyHelp(helpUpsertRequest, 1L, 1L));
 	}
 
@@ -106,4 +109,43 @@ class HelpServiceTest {
 		assertThrows(NullPointerException.class,
 			() -> help.updateHelp("title",null,HelpType.USER ));
 	}
+
+	@DisplayName("문의글을 삭제할 수 있다.")
+	@Test
+	void testHelpDelete_success() {
+	    //when
+		when(helpRepository.findById(anyLong()))
+			.thenReturn(Optional.of(help));
+
+		HelpResultResponse helpResultResponse = helpService.deleteHelp(1L, 1L);
+
+		// then
+		assertEquals(DELETE_SUCCESS, helpResultResponse.codeMessage());
+	}
+
+	@DisplayName("유저는 존재하는 문의글만 삭제할 수 있다.")
+	@Test
+	void testHelpDelete_fail_when_help_is_not_exist() {
+		//when
+		when(helpRepository.findById(anyLong()))
+			.thenThrow(new HelpException(HELP_NOT_FOUND));
+
+		// then
+		assertThrows(HelpException.class,
+			() -> helpService.deleteHelp(1L, 1L));
+	}
+
+	@DisplayName("유저는 본인이 작성한 문의글만 삭제할 수 있다.")
+	@Test
+	void testHelpDelete_fail_when_user_is_not_owner() {
+		//when
+		when(helpRepository.findById(anyLong()))
+			.thenThrow(new HelpException(HELP_NOT_AUTHORIZED));
+
+		// then
+		assertThrows(HelpException.class,
+			() -> helpService.deleteHelp(1L, 1L));
+	}
+
+
 }
