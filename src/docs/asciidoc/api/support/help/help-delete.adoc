@@ -1,8 +1,8 @@
-=== 문의글 수정 ===
+=== 문의글 삭제 ===
 
-사용자는 등록한 문의글을 수정할 수 있습니다.
+사용자는 등록한 문의글을 삭제할 수 있습니다.
 
-수정하고자 하는 문의글 `제목`, `내용`, `타입` 은 null일 수 없습니다
+물리적으로 삭제되는 것이 아닌 논리 삭제가 수행되며 status 컬럼이 DELETED로 변경됩니.
 
 PathVariable로 문의글의 id를 전달합니다.
 
@@ -19,17 +19,14 @@ PATCH /api/v1/help/{helpId}
 
 [discrete]
 ==== 요청 파라미터 ====
-
-[discrete]
-include::{snippets}/support/help/help-modify/request-fields.adoc[]
-include::{snippets}/support/help/help-modify/request-body.adoc[]
+- PathVariable로 문의글의 id를 전달합니다.
 
 [discrete]
 ==== 응답 파라미터  ====
 
 [discrete]
-include::{snippets}/support/help/help-modify/response-fields.adoc[]
-include::{snippets}/support/help/help-modify/response-body.adoc[]
+include::{snippets}/support/help/help-delete/response-fields.adoc[]
+include::{snippets}/support/help/help-delete/response-body.adoc[]
 
 ==== Error code ====
 

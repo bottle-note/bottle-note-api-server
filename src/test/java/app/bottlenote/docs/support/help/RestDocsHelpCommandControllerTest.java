@@ -16,6 +16,7 @@ import org.springframework.restdocs.payload.JsonFieldType;
 
 import java.util.Optional;
 
+import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.DELETE_SUCCESS;
 import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.MODIFY_SUCCESS;
 import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
 import static org.mockito.ArgumentMatchers.any;
@@ -28,6 +29,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -42,6 +44,7 @@ class RestDocsHelpCommandControllerTest extends AbstractRestDocs {
 	private final HelpUpsertRequest helpUpsertRequest = HelpObjectFixture.getHelpUpsertRequest();
 	private final HelpResultResponse successRegisterResponse = HelpObjectFixture.getSuccessHelpResponse(REGISTER_SUCCESS);
 	private final HelpResultResponse successModifyResponse = HelpObjectFixture.getSuccessHelpResponse(MODIFY_SUCCESS);
+	private final HelpResultResponse successDeleteResponse = HelpObjectFixture.getSuccessHelpResponse(DELETE_SUCCESS);
 
 
 	@Override
@@ -122,6 +125,43 @@ class RestDocsHelpCommandControllerTest extends AbstractRestDocs {
 						fieldWithPath("content").type(JsonFieldType.STRING).description("문의글 내용"),
 						fieldWithPath("type").type(JsonFieldType.STRING).description("문의글 타입  (WHISKEY, REVIEW, USER, ETC)")
 					),
+					responseFields(
+						fieldWithPath("success").description("응답 성공 여부"),
+						fieldWithPath("code").description("응답 코드(http status code)"),
+						fieldWithPath("data.codeMessage").description("성공 메시지 코드"),
+						fieldWithPath("data.message").description("성공 메시지"),
+						fieldWithPath("data.helpId").description("문의글 아이디"),
+						fieldWithPath("data.responseAt").description("서버 응답 일시"),
+						fieldWithPath("errors").ignored(),
+						fieldWithPath("meta.serverEncoding").ignored(),
+						fieldWithPath("meta.serverVersion").ignored(),
+						fieldWithPath("meta.serverPathVersion").ignored(),
+						fieldWithPath("meta.serverResponseTime").ignored()
+					)
+				)
+			);
+	}
+
+	@Test
+	@DisplayName("문의글을 삭제할 수 있다.")
+	void help_delete_test() throws Exception {
+
+		Long userId = 1L;
+		Long helpId = 1L;
+
+		//when
+		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
+
+		when(helpService.deleteHelp(anyLong(), anyLong()))
+			.thenReturn(successDeleteResponse);
+
+		//then
+		mockMvc.perform(delete("/api/v1/help/{helpId}", helpId)
+				.contentType(MediaType.APPLICATION_JSON)
+				.with(csrf()))
+			.andExpect(status().isOk())
+			.andDo(
+				document("support/help/help-delete",
 					responseFields(
 						fieldWithPath("success").description("응답 성공 여부"),
 						fieldWithPath("code").description("응답 코드(http status code)"),
