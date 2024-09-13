@@ -8,7 +8,8 @@ import lombok.Getter;
 public enum StatusType {
 	WAITING("대기중"),
 	SUCCESS("처리 완료"),
-	REJECT("반려");
+	REJECT("반려"),
+	DELETED("삭제");
 
 	private final String status;
 }

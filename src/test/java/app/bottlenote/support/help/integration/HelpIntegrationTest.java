@@ -25,11 +25,14 @@ import java.nio.charset.StandardCharsets;
 
 import static app.bottlenote.global.exception.custom.code.ValidExceptionCode.CONTENT_NOT_EMPTY;
 import static app.bottlenote.global.exception.custom.code.ValidExceptionCode.TITLE_NOT_EMPTY;
+import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.DELETE_SUCCESS;
 import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.MODIFY_SUCCESS;
 import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
+import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_AUTHORIZED;
 import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -138,9 +141,29 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
 		@DisplayName("유저 본인이 작성한 글이 아니면 문의글을 수정할 수 없다.")
 		@Test
-		void test_22() throws Exception{
+		void test_2() throws Exception{
 			// given when
 			long helpId = 1L;
+			oauthRequest = new OauthRequest("test@naver.com", SocialType.KAKAO, null, null);
+			Error error = Error.of(HELP_NOT_AUTHORIZED);
+
+			mockMvc.perform(patch("/api/v1/help/{helpId}", helpId)
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsBytes(helpUpsertRequest))
+					.header("Authorization", "Bearer " + getToken(oauthRequest).getAccessToken())
+					.with(csrf())
+				)
+				.andDo(print())
+				.andExpect(status().isUnauthorized())
+				.andExpect(jsonPath("$.errors[?(@.code == 'HELP_NOT_AUTHORIZED')].status").value(error.status().name()))
+				.andExpect(jsonPath("$.errors[?(@.code == 'HELP_NOT_AUTHORIZED')].message").value(error.message()));
+		}
+
+		@DisplayName("존재하지 않는 문의글을 수정할 수 없다.")
+		@Test
+		void test_3() throws Exception{
+			// given when
+			long helpId = -1L;
 			oauthRequest = new OauthRequest("test@naver.com", SocialType.KAKAO, null, null);
 			Error error = Error.of(HELP_NOT_FOUND);
 
@@ -152,14 +175,13 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 				)
 				.andDo(print())
 				.andExpect(status().isBadRequest())
-				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.errors[?(@.code == 'HELP_NOT_FOUND')].status").value(error.status().name()))
 				.andExpect(jsonPath("$.errors[?(@.code == 'HELP_NOT_FOUND')].message").value(error.message()));
 		}
 
 		@DisplayName("Not null 필드에 null이 할당되면 예외를 반환한다.")
 		@Test
-		void test_3() throws Exception {
+		void test_4() throws Exception {
 
 			long helpId= 1L;
 			Error error = Error.of(CONTENT_NOT_EMPTY);
@@ -179,4 +201,73 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 		}
 	}
 
+	@Sql(scripts = {
+		"/init-script/init-user.sql",
+		"/init-script/init-help.sql"})
+	@Nested
+	@DisplayName("[Integration] 문의글 수정 통합테스트")
+	class HelpDeleteIntegrationTest extends IntegrationTestSupport {
+
+		@DisplayName("문의글을 삭제할 수 있다.")
+		@Test
+		void test_1() throws Exception {
+			// given when
+			long helpId = 1L;
+			MvcResult result = mockMvc.perform(delete("/api/v1/help/{helpId}", helpId)
+					.contentType(MediaType.APPLICATION_JSON)
+					.header("Authorization", "Bearer " + getToken(oauthRequest).getAccessToken())
+					.with(csrf())
+				)
+				.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.code").value(200))
+				.andExpect(jsonPath("$.data").exists())
+				.andReturn();
+
+			String contentAsString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+			GlobalResponse response = mapper.readValue(contentAsString, GlobalResponse.class);
+			HelpResultResponse helpResultResponse = mapper.convertValue(response.getData(), HelpResultResponse.class);
+
+			//then
+			assertEquals(DELETE_SUCCESS, helpResultResponse.codeMessage());
+		}
+
+		@DisplayName("존재하지 않는 문의글을 삭제할 수 없다.")
+		@Test
+		void test_2() throws Exception{
+			// given when
+			long helpId = -1L;
+			oauthRequest = new OauthRequest("test@naver.com", SocialType.KAKAO, null, null);
+			Error error = Error.of(HELP_NOT_FOUND);
+
+			mockMvc.perform(delete("/api/v1/help/{helpId}", helpId)
+					.contentType(MediaType.APPLICATION_JSON)
+					.header("Authorization", "Bearer " + getToken(oauthRequest).getAccessToken())
+					.with(csrf())
+				)
+				.andDo(print())
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.errors[?(@.code == 'HELP_NOT_FOUND')].status").value(error.status().name()))
+				.andExpect(jsonPath("$.errors[?(@.code == 'HELP_NOT_FOUND')].message").value(error.message()));
+		}
+
+		@DisplayName("유저 본인이 작성한 글이 아니면 문의글을 삭제할 수 없다.")
+		@Test
+		void test_3() throws Exception {
+			// given when
+			long helpId = 1L;
+			oauthRequest = new OauthRequest("test@naver.com", SocialType.KAKAO, null, null);
+			Error error = Error.of(HELP_NOT_AUTHORIZED);
+
+			mockMvc.perform(delete("/api/v1/help/{helpId}", helpId)
+					.contentType(MediaType.APPLICATION_JSON)
+					.header("Authorization", "Bearer " + getToken(oauthRequest).getAccessToken())
+					.with(csrf())
+				)
+				.andDo(print())
+				.andExpect(status().isUnauthorized())
+				.andExpect(jsonPath("$.errors[?(@.code == 'HELP_NOT_AUTHORIZED')].status").value(error.status().name()))
+				.andExpect(jsonPath("$.errors[?(@.code == 'HELP_NOT_AUTHORIZED')].message").value(error.message()));
+		}
+	}
 }

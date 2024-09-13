@@ -164,6 +164,8 @@ include::api/support/help/help-register.adoc[]
 
 include::api/support/help/help-modify.adoc[]
 
+include::api/support/help/help-delete.adoc[]
+
 == 팔로우 (follow) 관련 API
 
 include::api/follow/follow-update.adoc[]
