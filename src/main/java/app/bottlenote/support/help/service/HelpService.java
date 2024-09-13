@@ -60,4 +60,21 @@ public class HelpService {
 			MODIFY_SUCCESS,
 			help.getId());
 	}
+
+	@Transactional
+	public HelpResultResponse deleteHelp(Long helpId, Long currentUserId) {
+
+		Help help = helpRepository.findById(helpId)
+			.orElseThrow(() -> new HelpException(HELP_NOT_FOUND));
+
+		if (!help.getUserId().equals(currentUserId)){
+			throw new HelpException(HELP_NOT_AUTHORIZED);
+		}
+
+		help.deleteHelp();
+
+		return HelpResultResponse.response(
+			DELETE_SUCCESS,
+			help.getId());
+	}
 }

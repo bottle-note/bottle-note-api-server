@@ -8,6 +8,7 @@ import app.bottlenote.user.exception.UserException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,4 +43,12 @@ public class HelpCommandController {
 		return GlobalResponse.ok(helpService.modifyHelp(helpUpsertRequest, currentUserId, helpId));
 	}
 
+	@DeleteMapping("/{helpId}")
+	public ResponseEntity<?> deleteHelp(@PathVariable Long helpId){
+
+		Long currentUserId = SecurityContextUtil.getUserIdByContext().
+			orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+
+		return GlobalResponse.ok(helpService.deleteHelp(helpId, currentUserId));
+	}
 }

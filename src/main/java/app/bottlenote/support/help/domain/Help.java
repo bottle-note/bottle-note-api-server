@@ -86,4 +86,8 @@ public class Help extends BaseEntity {
 		this.content = content;
 		this.type = helpType;
 	}
+
+	public void deleteHelp(){
+		this.status = StatusType.DELETED;
+	}
 }
