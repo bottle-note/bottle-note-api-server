@@ -3,7 +3,6 @@ package app.bottlenote.support.help.domain;
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.support.constant.StatusType;
 import app.bottlenote.support.help.domain.constant.HelpType;
-import app.bottlenote.support.help.exception.HelpException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -18,8 +17,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
 import java.util.Objects;
-
-import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_AUTHORIZED;
 
 @Comment("문의사항")
 @Entity(name = "help")
@@ -94,9 +91,7 @@ public class Help extends BaseEntity {
 		this.status = StatusType.DELETED;
 	}
 
-	public void checkPermission(Long userId) {
-		if (!this.userId.equals(userId)) {
-			throw new HelpException(HELP_NOT_AUTHORIZED);
-		}
+	public boolean isMyHelpPost(Long userId) {
+		return this.userId.equals(userId);
 	}
 }
