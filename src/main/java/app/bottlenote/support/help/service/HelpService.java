@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.DELETE_SUCCESS;
 import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.MODIFY_SUCCESS;
 import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
-import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_AUTHORIZED;
 import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
 
 @Service
@@ -53,9 +52,7 @@ public class HelpService {
 		Help help = helpRepository.findById(helpId)
 			.orElseThrow(() -> new HelpException(HELP_NOT_FOUND));
 
-		if (!help.getUserId().equals(currentUserId)){
-			throw new HelpException(HELP_NOT_AUTHORIZED);
-		}
+		help.checkPermission(currentUserId);
 
 		help.updateHelp(
 			helpUpsertRequest.title(),
@@ -73,9 +70,7 @@ public class HelpService {
 		Help help = helpRepository.findById(helpId)
 			.orElseThrow(() -> new HelpException(HELP_NOT_FOUND));
 
-		if (!help.getUserId().equals(currentUserId)){
-			throw new HelpException(HELP_NOT_AUTHORIZED);
-		}
+		help.checkPermission(currentUserId);
 
 		help.deleteHelp();
 
