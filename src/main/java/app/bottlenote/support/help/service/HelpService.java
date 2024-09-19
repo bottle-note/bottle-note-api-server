@@ -1,7 +1,11 @@
 package app.bottlenote.support.help.service;
 
+import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.support.help.domain.Help;
+import app.bottlenote.support.help.dto.request.HelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
+import app.bottlenote.support.help.dto.response.HelpDetailInfo;
+import app.bottlenote.support.help.dto.response.HelpListResponse;
 import app.bottlenote.support.help.dto.response.HelpResultResponse;
 import app.bottlenote.support.help.exception.HelpException;
 import app.bottlenote.support.help.repository.HelpRepository;
@@ -82,5 +86,19 @@ public class HelpService {
 		return HelpResultResponse.response(
 			DELETE_SUCCESS,
 			help.getId());
+	}
+
+	@Transactional(readOnly = true)
+	public PageResponse<HelpListResponse> getHelpList(HelpPageableRequest helpPageableRequest, Long currentUserId) {
+		return helpRepository.getHelpList(helpPageableRequest, currentUserId);
+	}
+
+	@Transactional(readOnly = true)
+	public HelpDetailInfo getDetailHelp(Long helpId, Long currentUserId) {
+
+		Help help = helpRepository.findByIdAndUserId(helpId, currentUserId)
+			.orElseThrow(() -> new HelpException(HELP_NOT_FOUND));
+
+		return HelpDetailInfo.of(help);
 	}
 }

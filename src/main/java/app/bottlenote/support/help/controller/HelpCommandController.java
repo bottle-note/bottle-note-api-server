@@ -2,13 +2,17 @@ package app.bottlenote.support.help.controller;
 
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.support.help.dto.request.HelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
+import app.bottlenote.support.help.exception.HelpException;
 import app.bottlenote.support.help.service.HelpService;
 import app.bottlenote.user.exception.UserException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,6 +36,24 @@ public class HelpCommandController {
 			orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
 		return GlobalResponse.ok(helpService.registerHelp(helpUpsertRequest, currentUserId));
+	}
+
+	@GetMapping
+	public ResponseEntity<?> getHelpList(@ModelAttribute HelpPageableRequest helpPageableRequest){
+
+		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
+
+		return GlobalResponse.ok(helpService.getHelpList(helpPageableRequest, currentUserId));
+	}
+
+	@GetMapping("/{helpId}")
+	public ResponseEntity<?> getDetailHelp(@PathVariable Long helpId){
+
+		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElseThrow(
+			() -> new HelpException(REQUIRED_USER_ID)
+		);
+
+		return GlobalResponse.ok(helpService.getDetailHelp(helpId, currentUserId));
 	}
 
 	@PatchMapping("/{helpId}")
