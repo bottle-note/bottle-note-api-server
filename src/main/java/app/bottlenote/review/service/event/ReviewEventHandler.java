@@ -17,7 +17,7 @@ import static app.bottlenote.history.domain.constant.EventType.REVIEW_CREATE;
 
 @Component
 public class ReviewEventHandler {
-	
+
 	private final HistoryDomainSupport historyDomainSupport;
 
 	public ReviewEventHandler(HistoryDomainSupport historyDomainSupport) {
