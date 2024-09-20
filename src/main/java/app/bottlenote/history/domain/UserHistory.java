@@ -12,6 +12,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
@@ -60,4 +61,19 @@ public class UserHistory extends BaseEntity {
 
 	@Column(name = "description")
 	private String description;
+
+	@Builder
+	public UserHistory(Long id, Long userId, EventCategory eventCategory, EventType eventType, String redirectUrl, Long alcoholId, String message, Map<String, Object> dynamicMessage, String eventYear, String eventMonth, String description) {
+		this.id = id;
+		this.userId = userId;
+		this.eventCategory = eventCategory;
+		this.eventType = eventType;
+		this.redirectUrl = redirectUrl;
+		this.alcoholId = alcoholId;
+		this.message = message;
+		this.dynamicMessage = dynamicMessage;
+		this.eventYear = eventYear;
+		this.eventMonth = eventMonth;
+		this.description = description;
+	}
 }
