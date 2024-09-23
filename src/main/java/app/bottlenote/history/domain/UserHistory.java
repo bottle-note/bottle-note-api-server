@@ -3,18 +3,14 @@ package app.bottlenote.history.domain;
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.history.domain.constant.EventCategory;
 import app.bottlenote.history.domain.constant.EventType;
-import app.bottlenote.user.domain.User;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -32,9 +28,8 @@ public class UserHistory extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id", nullable = false)
-	private User user;
+	@Column(name = "user_id", nullable = false)
+	private Long userId;
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "event_category", nullable = false)
@@ -47,8 +42,8 @@ public class UserHistory extends BaseEntity {
 	@Column(name = "redirect_url")
 	private String redirectUrl;
 
-	@Column(name = "alcohol_name")
-	private String alcoholName;
+	@Column(name = "alcohol_id")
+	private Long alcoholId;
 
 	@Column(name = "message")
 	private String message;
