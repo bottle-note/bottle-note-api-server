@@ -1,22 +1,15 @@
 package app.bottlenote.review.service;
 
-import static app.bottlenote.review.domain.constant.ReviewActiveStatus.DELETED;
-import static app.bottlenote.review.domain.constant.ReviewDisplayStatus.PUBLIC;
-import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.MODIFY_SUCCESS;
-import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.PRIVATE_SUCCESS;
-import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.PUBLIC_SUCCESS;
-import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
-
 import app.bottlenote.alcohols.dto.response.AlcoholInfo;
 import app.bottlenote.alcohols.service.domain.AlcoholDomainSupport;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewLocation;
 import app.bottlenote.review.domain.ReviewRepository;
-import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
+import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.request.ReviewStatusChangeRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
@@ -27,11 +20,19 @@ import app.bottlenote.review.dto.response.constant.ReviewResultMessage;
 import app.bottlenote.review.dto.vo.ReviewModifyVO;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.user.service.domain.UserDomainSupport;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+import static app.bottlenote.review.domain.constant.ReviewActiveStatus.DELETED;
+import static app.bottlenote.review.domain.constant.ReviewDisplayStatus.PUBLIC;
+import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.PRIVATE_SUCCESS;
+import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.PUBLIC_SUCCESS;
+import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 
 @Slf4j
 @Service
@@ -86,8 +87,8 @@ public class ReviewService {
 	}
 
 	@Transactional(readOnly = true)
-	public PageResponse<ReviewListResponse> getReviews(Long alcoholId, PageableRequest pageableRequest, Long userId) {
-		return reviewRepository.getReviews(alcoholId, pageableRequest, userId);
+	public PageResponse<ReviewListResponse> getReviews(Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId) {
+		return reviewRepository.getReviews(alcoholId, reviewPageableRequest, userId);
 	}
 
 	@Transactional(readOnly = true)
@@ -119,8 +120,8 @@ public class ReviewService {
 	}
 
 	@Transactional(readOnly = true)
-	public PageResponse<ReviewListResponse> getMyReviews(PageableRequest pageableRequest, Long alcoholId, Long userId) {
-		return reviewRepository.getReviewsByMe(alcoholId, pageableRequest, userId);
+	public PageResponse<ReviewListResponse> getMyReviews(ReviewPageableRequest reviewPageableRequest, Long alcoholId, Long userId) {
+		return reviewRepository.getReviewsByMe(alcoholId, reviewPageableRequest, userId);
 	}
 
 	@Transactional

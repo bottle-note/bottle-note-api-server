@@ -1,23 +1,5 @@
 package app.bottlenote.review.controller;
 
-import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.description;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.global.security.SecurityContextUtil;
@@ -29,10 +11,10 @@ import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.ReviewSortType;
 import app.bottlenote.review.dto.request.LocationInfo;
-import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
+import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.request.ReviewStatusChangeRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
@@ -46,10 +28,6 @@ import app.bottlenote.user.exception.UserExceptionCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -69,6 +47,29 @@ import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
+
+import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.description;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Tag("unit")
 @DisplayName("[unit] [controller] ReviewController")
@@ -179,7 +180,7 @@ class ReviewControllerTest {
 		static Stream<Arguments> testCase1Provider() {
 			return Stream.of(
 				Arguments.of("모든 요청 파라미터가 존재할 때.",
-					PageableRequest.builder()
+					ReviewPageableRequest.builder()
 						.sortType(ReviewSortType.POPULAR)
 						.sortOrder(SortOrder.DESC)
 						.cursor(1L)
@@ -187,7 +188,7 @@ class ReviewControllerTest {
 						.build()
 				),
 				Arguments.of("정렬 정보가 없을 때.",
-					PageableRequest.builder()
+					ReviewPageableRequest.builder()
 						.sortType(null)
 						.sortOrder(null)
 						.cursor(0L)
@@ -195,7 +196,7 @@ class ReviewControllerTest {
 						.build()
 				),
 				Arguments.of("페이지네이션 정보가 없을 때.",
-					PageableRequest.builder()
+					ReviewPageableRequest.builder()
 						.sortType(null)
 						.sortOrder(null)
 						.cursor(null)
@@ -232,7 +233,7 @@ class ReviewControllerTest {
 		@DisplayName("리뷰를 조회할 수 있다.")
 		@ParameterizedTest(name = "[{index}]{0}")
 		@MethodSource("testCase1Provider")
-		void test_case_1(String description, PageableRequest pageableRequest) throws Exception {
+		void test_case_1(String description, ReviewPageableRequest reviewPageableRequest) throws Exception {
 
 			//given
 
@@ -241,10 +242,10 @@ class ReviewControllerTest {
 				.thenReturn(reviewListResponse);
 
 			ResultActions resultActions = mockMvc.perform(get("/api/v1/reviews/1")
-					.param("sortType", String.valueOf(pageableRequest.sortType()))
-					.param("sortOrder", pageableRequest.sortOrder().name())
-					.param("cursor", String.valueOf(pageableRequest.cursor()))
-					.param("pageSize", String.valueOf(pageableRequest.pageSize()))
+					.param("sortType", String.valueOf(reviewPageableRequest.sortType()))
+					.param("sortOrder", reviewPageableRequest.sortOrder().name())
+					.param("cursor", String.valueOf(reviewPageableRequest.cursor()))
+					.param("pageSize", String.valueOf(reviewPageableRequest.pageSize()))
 					.with(csrf())
 				)
 				.andExpect(status().isOk())
@@ -306,7 +307,7 @@ class ReviewControllerTest {
 		@DisplayName("리뷰를 조회할 수 있다.")
 		@ParameterizedTest(name = "[{index}]{0}")
 		@MethodSource("testCase1Provider")
-		void my_review_read_success(String description, PageableRequest pageableRequest) throws Exception {
+		void my_review_read_success(String description, ReviewPageableRequest reviewPageableRequest) throws Exception {
 
 			//given
 
@@ -316,10 +317,10 @@ class ReviewControllerTest {
 				.thenReturn(reviewListResponse);
 
 			ResultActions resultActions = mockMvc.perform(get("/api/v1/reviews/me/1")
-					.param("sortType", String.valueOf(pageableRequest.sortType()))
-					.param("sortOrder", pageableRequest.sortOrder().name())
-					.param("cursor", String.valueOf(pageableRequest.cursor()))
-					.param("pageSize", String.valueOf(pageableRequest.pageSize()))
+					.param("sortType", String.valueOf(reviewPageableRequest.sortType()))
+					.param("sortOrder", reviewPageableRequest.sortOrder().name())
+					.param("cursor", String.valueOf(reviewPageableRequest.cursor()))
+					.param("pageSize", String.valueOf(reviewPageableRequest.pageSize()))
 					.with(csrf())
 				)
 				.andExpect(status().isOk())
