@@ -41,7 +41,9 @@ public class HelpCommandController {
 	@GetMapping
 	public ResponseEntity<?> getHelpList(@ModelAttribute HelpPageableRequest helpPageableRequest){
 
-		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
+		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElseThrow(
+			() -> new HelpException(REQUIRED_USER_ID)
+		);
 
 		return GlobalResponse.ok(helpService.getHelpList(helpPageableRequest, currentUserId));
 	}
