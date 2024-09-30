@@ -22,7 +22,8 @@ GET /api/v1/help
 include::{snippets}/support/help/help-read-list/response-fields.adoc[]
 include::{snippets}/support/help/help-read-list/response-body.adoc[]
 
-
+[discrete]
+==== Error Code  ====
 * 해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.
 
 [cols="1,1,1",options="header"]
