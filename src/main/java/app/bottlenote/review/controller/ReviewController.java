@@ -1,16 +1,12 @@
 package app.bottlenote.review.controller;
 
-import static app.bottlenote.global.data.response.GlobalResponse.success;
-import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
-import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
-
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.meta.MetaService;
-import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
+import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.request.ReviewStatusChangeRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
@@ -29,6 +25,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import static app.bottlenote.global.data.response.GlobalResponse.success;
+import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
+import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
 @Slf4j
 @RestController
@@ -49,15 +49,15 @@ public class ReviewController {
 	}
 
 	@GetMapping("/{alcoholId}")
-	public ResponseEntity<GlobalResponse> getReviews(@PathVariable Long alcoholId, @ModelAttribute PageableRequest pageableRequest) {
+	public ResponseEntity<GlobalResponse> getReviews(@PathVariable Long alcoholId, @ModelAttribute ReviewPageableRequest reviewPageableRequest) {
 
 		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
 
-		log.info("currentUserId is : {} \nPageable INFO  : {}", currentUserId, pageableRequest.toString());
+		log.info("currentUserId is : {} \nPageable INFO  : {}", currentUserId, reviewPageableRequest.toString());
 
 		PageResponse<ReviewListResponse> pageResponse = reviewService.getReviews(
 			alcoholId,
-			pageableRequest,
+                reviewPageableRequest,
 			currentUserId
 		);
 
@@ -89,13 +89,13 @@ public class ReviewController {
 	}
 
 	@GetMapping("/me/{alcoholId}")
-	public ResponseEntity<GlobalResponse> getMyReviews(@ModelAttribute PageableRequest pageableRequest, @PathVariable Long alcoholId) {
+	public ResponseEntity<GlobalResponse> getMyReviews(@ModelAttribute ReviewPageableRequest reviewPageableRequest, @PathVariable Long alcoholId) {
 
 		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElseThrow(
 			() -> new UserException(REQUIRED_USER_ID)
 		);
 
-		PageResponse<ReviewListResponse> myReviews = reviewService.getMyReviews(pageableRequest, alcoholId, currentUserId);
+		PageResponse<ReviewListResponse> myReviews = reviewService.getMyReviews(reviewPageableRequest, alcoholId, currentUserId);
 
 		return ResponseEntity.ok(
 			success(myReviews.content(), MetaService.createMetaInfo().add("pageable", myReviews.cursorPageable()))

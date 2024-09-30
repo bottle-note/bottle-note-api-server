@@ -5,6 +5,8 @@ import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.support.help.domain.constant.HelpType;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
+import app.bottlenote.support.help.dto.response.HelpDetailInfo;
+import app.bottlenote.support.help.dto.response.HelpListResponse;
 import app.bottlenote.support.help.dto.response.HelpResultResponse;
 import app.bottlenote.support.help.fixture.HelpObjectFixture;
 import app.bottlenote.support.help.repository.HelpRepository;
@@ -33,6 +35,7 @@ import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_F
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -105,6 +108,60 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.errors[?(@.code == 'TITLE_NOT_EMPTY')].status").value(error.status().name()))
 			.andExpect(jsonPath("$.errors[?(@.code == 'TITLE_NOT_EMPTY')].message").value(error.message()));
+	}
+
+	@Sql(scripts = {
+		"/init-script/init-user.sql",
+		"/init-script/init-help.sql"})
+	@Nested
+	@DisplayName("[Integration] 문의글 조회 통합테스트")
+	class HelpReadIntegrationTest extends IntegrationTestSupport {
+
+		@DisplayName("문의글 목록을 조회할 수 있다.")
+		@Test
+		void test_1() throws Exception {
+		    // given
+
+			MvcResult result = mockMvc.perform(get("/api/v1/help")
+					.contentType(MediaType.APPLICATION_JSON)
+					.header("Authorization", "Bearer " + getToken(oauthRequest).getAccessToken())
+					.with(csrf())
+				)
+				.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.code").value(200))
+				.andExpect(jsonPath("$.data").exists())
+				.andReturn();
+
+			String contentAsString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+			GlobalResponse response = mapper.readValue(contentAsString, GlobalResponse.class);
+			HelpListResponse helpListResponse = mapper.convertValue(response.getData(), HelpListResponse.class);
+
+			assertEquals(1, helpListResponse.totalCount());
+		}
+
+		@DisplayName("문의글 상세 조회할 수 있다.")
+		@Test
+		void test_2() throws Exception {
+			// given
+
+			MvcResult result = mockMvc.perform(get("/api/v1/help/{helpId}", 1L)
+					.contentType(MediaType.APPLICATION_JSON)
+					.header("Authorization", "Bearer " + getToken(oauthRequest).getAccessToken())
+					.with(csrf())
+				)
+				.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.code").value(200))
+				.andExpect(jsonPath("$.data").exists())
+				.andReturn();
+
+			String contentAsString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+			GlobalResponse response = mapper.readValue(contentAsString, GlobalResponse.class);
+			HelpDetailInfo helpDetailInfo = mapper.convertValue(response.getData(), HelpDetailInfo.class);
+
+			assertEquals(HelpType.USER, helpDetailInfo.helpType());
+		}
 	}
 
 	@Sql(scripts = {

@@ -33,7 +33,8 @@ include::{snippets}/user/mybottle/response-fields.adoc[]
 | 리뷰
 |===
 
-==== Error code ====
+[discrete]
+==== Error Code  ====
 
 * 해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.
 

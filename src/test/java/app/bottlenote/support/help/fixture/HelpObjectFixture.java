@@ -1,10 +1,18 @@
 package app.bottlenote.support.help.fixture;
 
+import app.bottlenote.global.service.cursor.CursorPageable;
+import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.support.help.domain.Help;
 import app.bottlenote.support.help.domain.constant.HelpType;
+import app.bottlenote.support.help.dto.request.HelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
+import app.bottlenote.support.help.dto.response.HelpDetailInfo;
+import app.bottlenote.support.help.dto.response.HelpListResponse;
 import app.bottlenote.support.help.dto.response.HelpResultResponse;
 import app.bottlenote.support.help.dto.response.constant.HelpResultMessage;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 public class HelpObjectFixture {
 
@@ -34,5 +42,41 @@ public class HelpObjectFixture {
 
 	public static HelpResultResponse getSuccessHelpResponse(HelpResultMessage helpResultMessage) {
 		return HelpResultResponse.response(helpResultMessage, 1L);
+	}
+
+	public static HelpPageableRequest getEmptyHelpPageableRequest(){
+		return HelpPageableRequest.builder().build();
+	}
+
+	public static PageResponse<HelpListResponse> getHelpListPageResponse(){
+
+		List<HelpListResponse.HelpInfo> helpInfos = List.of(
+			HelpListResponse.HelpInfo.of(1L, "test1", LocalDateTime.now()),
+			HelpListResponse.HelpInfo.of(2L, "test2", LocalDateTime.now())
+		);
+		return PageResponse.of(
+			HelpListResponse.of((long)helpInfos.size(), helpInfos),
+			CursorPageable.builder()
+				.currentCursor(0L)
+				.cursor(1L)
+				.pageSize((long) helpInfos.size())
+				.hasNext(false)
+				.build());
+	}
+
+	public static HelpListResponse getHelpListResponse(List<HelpListResponse.HelpInfo> helpInfoList){
+		return HelpListResponse.of((long) helpInfoList.size(), helpInfoList);
+	}
+
+	public static HelpDetailInfo getDetailHelpInfo(String title, String content, HelpType type){
+		return HelpDetailInfo.builder()
+			.helpId(1L)
+			.responseContent(null)
+			.lastModifyAt(LocalDateTime.now())
+			.createAt(LocalDateTime.now())
+			.title(title)
+			.content(content)
+			.helpType(type)
+			.build();
 	}
 }

@@ -1,5 +1,32 @@
 package app.bottlenote.review.service;
 
+import app.bottlenote.alcohols.service.domain.AlcoholDomainSupport;
+import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.review.domain.Review;
+import app.bottlenote.review.domain.ReviewRepository;
+import app.bottlenote.review.dto.request.ReviewCreateRequest;
+import app.bottlenote.review.dto.request.ReviewModifyRequest;
+import app.bottlenote.review.dto.request.ReviewPageableRequest;
+import app.bottlenote.review.dto.request.ReviewStatusChangeRequest;
+import app.bottlenote.review.dto.response.ReviewCreateResponse;
+import app.bottlenote.review.dto.response.ReviewDetailResponse;
+import app.bottlenote.review.dto.response.ReviewListResponse;
+import app.bottlenote.review.dto.response.ReviewResultResponse;
+import app.bottlenote.review.exception.ReviewException;
+import app.bottlenote.review.exception.ReviewExceptionCode;
+import app.bottlenote.review.fixture.ReviewObjectFixture;
+import app.bottlenote.user.service.domain.UserDomainSupport;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
+
 import static app.bottlenote.review.domain.constant.ReviewDisplayStatus.PRIVATE;
 import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.DELETE_SUCCESS;
 import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
@@ -15,32 +42,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import app.bottlenote.alcohols.service.domain.AlcoholDomainSupport;
-import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.review.domain.Review;
-import app.bottlenote.review.domain.ReviewRepository;
-import app.bottlenote.review.dto.request.PageableRequest;
-import app.bottlenote.review.dto.request.ReviewCreateRequest;
-import app.bottlenote.review.dto.request.ReviewModifyRequest;
-import app.bottlenote.review.dto.request.ReviewStatusChangeRequest;
-import app.bottlenote.review.dto.response.ReviewCreateResponse;
-import app.bottlenote.review.dto.response.ReviewDetailResponse;
-import app.bottlenote.review.dto.response.ReviewListResponse;
-import app.bottlenote.review.dto.response.ReviewResultResponse;
-import app.bottlenote.review.exception.ReviewException;
-import app.bottlenote.review.exception.ReviewExceptionCode;
-import app.bottlenote.review.fixture.ReviewObjectFixture;
-import app.bottlenote.user.service.domain.UserDomainSupport;
-import java.util.Optional;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 
 @Tag("unit")
@@ -64,7 +65,7 @@ class ReviewServiceTest {
 	private final ReviewCreateRequest reviewCreateRequest = ReviewObjectFixture.getReviewCreateRequest();
 	private final Review review = ReviewObjectFixture.getReviewFixture();
 
-	private final PageableRequest request = ReviewObjectFixture.getEmptyPageableRequest();
+	private final ReviewPageableRequest request = ReviewObjectFixture.getEmptyPageableRequest();
 	private final PageResponse<ReviewListResponse> response = ReviewObjectFixture.getReviewListResponse();
 	private final ReviewModifyRequest reviewModifyRequest = ReviewObjectFixture.getReviewModifyRequest();
 	private final ReviewStatusChangeRequest reviewStatusChangeRequest = new ReviewStatusChangeRequest(PRIVATE);
@@ -105,14 +106,14 @@ class ReviewServiceTest {
 
 			//when
 			when(reviewRepository.getReviews(
-				anyLong(), any(PageableRequest.class), anyLong()))
+				anyLong(), any(ReviewPageableRequest.class), anyLong()))
 				.thenReturn(response);
 			PageResponse<ReviewListResponse> actualResponse = reviewService.getReviews(1L, request, 1L);
 
 			//then
 			assertThat(response.content()).isEqualTo(actualResponse.content());
 			assertThat(response.cursorPageable()).isEqualTo(actualResponse.cursorPageable());
-			verify(reviewRepository).getReviews(anyLong(), any(PageableRequest.class), anyLong());
+			verify(reviewRepository).getReviews(anyLong(), any(ReviewPageableRequest.class), anyLong());
 		}
 
 		@Test
@@ -120,7 +121,7 @@ class ReviewServiceTest {
 		void test_my_review_read() {
 
 			//when
-			when(reviewRepository.getReviewsByMe(anyLong(), any(PageableRequest.class), anyLong()))
+			when(reviewRepository.getReviewsByMe(anyLong(), any(ReviewPageableRequest.class), anyLong()))
 				.thenReturn(response);
 
 			PageResponse<ReviewListResponse> actualResponse = reviewService.getMyReviews(request, 1L, userId);
@@ -128,7 +129,7 @@ class ReviewServiceTest {
 			//then
 			assertThat(response.content()).isEqualTo(actualResponse.content());
 			assertThat(response.cursorPageable()).isEqualTo(actualResponse.cursorPageable());
-			verify(reviewRepository).getReviewsByMe(anyLong(), any(PageableRequest.class), anyLong());
+			verify(reviewRepository).getReviewsByMe(anyLong(), any(ReviewPageableRequest.class), anyLong());
 		}
 
 		@DisplayName("리뷰 상세조회를 할 수 있다.")
