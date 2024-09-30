@@ -99,6 +99,15 @@ public class HelpService {
 		Help help = helpRepository.findByIdAndUserId(helpId, currentUserId)
 			.orElseThrow(() -> new HelpException(HELP_NOT_FOUND));
 
-		return HelpDetailInfo.of(help);
+		return HelpDetailInfo.builder()
+			.helpId(help.getId())
+			.title(help.getTitle())
+			.content(help.getContent())
+			.helpType(help.getType())
+			.createAt(help.getCreateAt())
+			.adminId(help.getAdminId())
+			.responseContent(help.getResponseContent())
+			.lastModifyAt(help.getLastModifyAt())
+			.build();
 	}
 }

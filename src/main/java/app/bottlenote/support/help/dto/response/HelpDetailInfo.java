@@ -1,10 +1,11 @@
 package app.bottlenote.support.help.dto.response;
 
-import app.bottlenote.support.help.domain.Help;
 import app.bottlenote.support.help.domain.constant.HelpType;
+import lombok.Builder;
 
 import java.time.LocalDateTime;
 
+@Builder
 public record HelpDetailInfo(
 	Long helpId,
 	String title,
@@ -17,8 +18,4 @@ public record HelpDetailInfo(
 	LocalDateTime lastModifyAt
 ) {
 
-	public static HelpDetailInfo of (Help help) {
-		return new HelpDetailInfo(help.getId(), help.getTitle(), help.getContent(), help.getType(), help.getCreateAt()
-		, help.getAdminId(),help.getResponseContent() , help.getLastModifyAt());
-	}
 }
