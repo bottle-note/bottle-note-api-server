@@ -162,6 +162,10 @@ include::api/support/report/user-report.adoc[]
 
 include::api/support/help/help-register.adoc[]
 
+include::api/support/help/help-read-list.adoc[]
+
+include::api/support/help/help-read-detail.adoc[]
+
 include::api/support/help/help-modify.adoc[]
 
 include::api/support/help/help-delete.adoc[]
