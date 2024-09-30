@@ -2,8 +2,11 @@ package app.bottlenote.support.help.controller;
 
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
+import app.bottlenote.support.help.dto.response.HelpListResponse;
 import app.bottlenote.support.help.exception.HelpException;
 import app.bottlenote.support.help.service.HelpService;
 import app.bottlenote.user.exception.UserException;
@@ -45,7 +48,9 @@ public class HelpCommandController {
 			() -> new HelpException(REQUIRED_USER_ID)
 		);
 
-		return GlobalResponse.ok(helpService.getHelpList(helpPageableRequest, currentUserId));
+		PageResponse<HelpListResponse> pageResponse = helpService.getHelpList(helpPageableRequest, currentUserId);
+
+		return GlobalResponse.ok(pageResponse.content(), MetaService.createMetaInfo().add("pageable", pageResponse.cursorPageable()));
 	}
 
 	@GetMapping("/{helpId}")
