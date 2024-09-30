@@ -6,6 +6,7 @@ import app.bottlenote.support.help.domain.Help;
 import app.bottlenote.support.help.domain.constant.HelpType;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
+import app.bottlenote.support.help.dto.response.HelpDetailInfo;
 import app.bottlenote.support.help.dto.response.HelpListResponse;
 import app.bottlenote.support.help.dto.response.HelpResultResponse;
 import app.bottlenote.support.help.dto.response.constant.HelpResultMessage;
@@ -63,7 +64,19 @@ public class HelpObjectFixture {
 				.build());
 	}
 
-	public HelpListResponse getHelpListResponse(List<HelpListResponse.HelpInfo> helpInfoList){
+	public static HelpListResponse getHelpListResponse(List<HelpListResponse.HelpInfo> helpInfoList){
 		return HelpListResponse.of((long) helpInfoList.size(), helpInfoList);
+	}
+
+	public static HelpDetailInfo getDetailHelpInfo(String title, String content, HelpType type){
+		return HelpDetailInfo.builder()
+			.helpId(1L)
+			.responseContent(null)
+			.lastModifyAt(LocalDateTime.now())
+			.createAt(LocalDateTime.now())
+			.title(title)
+			.content(content)
+			.helpType(type)
+			.build();
 	}
 }
