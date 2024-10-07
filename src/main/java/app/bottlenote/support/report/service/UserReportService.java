@@ -45,8 +45,7 @@ public class UserReportService {
 	 */
 	@Transactional
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
-	public UserReportResponse userReport(UserReportRequest userReportRequest) {
-		Long userId = userReportRequest.userId();
+	public UserReportResponse userReport(Long userId, UserReportRequest userReportRequest) {
 		Long reportUserId = userReportRequest.reportUserId();
 
 		Objects.requireNonNull(userId, "유저 ID는 필수 값입니다.");
