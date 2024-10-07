@@ -7,6 +7,11 @@ on:
       - main
       - dev
 
+# 그러나 이러한 프로덕션 배포가 완료되도록 하려면 진행 중인 실행을 취소하지 마십시오.
+concurrency:
+  group: "dev-deploy"
+  cancel-in-progress: false
+
 jobs:
   build-and-push:
     # PR이 merge되었을 때만 실행

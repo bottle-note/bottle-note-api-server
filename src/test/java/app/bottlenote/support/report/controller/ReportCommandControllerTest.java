@@ -2,14 +2,18 @@ package app.bottlenote.support.report.controller;
 
 import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
+import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.support.report.domain.constant.UserReportType;
 import app.bottlenote.support.report.dto.request.UserReportRequest;
 import app.bottlenote.support.report.dto.response.UserReportResponse;
 import app.bottlenote.support.report.service.UserReportService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -19,12 +23,14 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static app.bottlenote.support.report.dto.response.UserReportResponse.UserReportResponseEnum.SAME_USER;
 import static app.bottlenote.support.report.dto.response.UserReportResponse.UserReportResponseEnum.SUCCESS;
 import static app.bottlenote.support.report.dto.response.UserReportResponse.of;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -46,15 +52,33 @@ class ReportCommandControllerTest {
 	@MockBean
 	private UserReportService userReportService;
 
+	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
+
+	@BeforeEach
+	void setup() {
+		mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
+	}
+
+
+	@AfterEach
+	void tearDown() {
+		mockedSecurityUtil.close();
+	}
+
 	@DisplayName("유저를 신고 할 수 있다.")
 	@Test
 	void reportUserTest() throws Exception {
 		// given
-		UserReportRequest request = new UserReportRequest(1L, 2L, UserReportType.OTHER, "신고 내용 쏼라 쏼라 쏼라 ");
-		UserReportResponse response = of(SUCCESS, 1L, 2L, "신고한 유저 이름");
+
+		final Long currentUserId = 1L;
+		final UserReportRequest request = new UserReportRequest(2L, UserReportType.OTHER, "신고 내용 쏼라 쏼라 쏼라 ");
+		final UserReportResponse response = of(SUCCESS, 1L, 2L, "신고한 유저 이름");
+
+		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(currentUserId));
+
 
 		// when
-		when(userReportService.userReport(request)).thenReturn(response);
+		when(userReportService.userReport(currentUserId, request)).thenReturn(response);
 
 		// then
 		mockMvc.perform(post("/api/v1/reports/user")
@@ -75,8 +99,13 @@ class ReportCommandControllerTest {
 	@Test
 	void cantNotReportMySelf() throws Exception {
 		// given
-		UserReportRequest request = new UserReportRequest(1L, 1L, UserReportType.OTHER, "신고 내용 쏼라 쏼라 쏼라 ");
-		UserReportResponse response = UserReportResponse.of(SAME_USER, null, request.userId(), null);
+		final Long currentUserId = 1L;
+		UserReportRequest request = new UserReportRequest(1L, UserReportType.OTHER, "신고 내용 쏼라 쏼라 쏼라 ");
+		UserReportResponse response = UserReportResponse.of(SAME_USER, null, currentUserId, null);
+
+		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(currentUserId));
+
+
 		// then
 		mockMvc.perform(post("/api/v1/reports/user")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -93,13 +122,12 @@ class ReportCommandControllerTest {
 	@DisplayName("유저 신고 요청에 파라미터 값이 없으면 실패한다.")
 	@Test
 	void reportUserValidationTest() throws Exception {
-		Error requiredUserIdError = Error.of(ValidExceptionCode.REQUIRED_USER_ID);
 		Error reportTargetUserIdError = Error.of(ValidExceptionCode.REPORT_TARGET_USER_ID_REQUIRED);
 		Error reportTypeError = Error.of(ValidExceptionCode.REPORT_TYPE_NOT_VALID);
 		Error notBlankError = Error.of(ValidExceptionCode.CONTENT_NOT_BLANK);
 
 		// given
-		UserReportRequest request = new UserReportRequest(null, null, null, null);
+		UserReportRequest request = new UserReportRequest(null, null, null);
 
 		// then
 		mockMvc.perform(post("/api/v1/reports/user")
@@ -107,10 +135,6 @@ class ReportCommandControllerTest {
 				.with(csrf())
 				.content(mapper.writeValueAsString(request)))
 			.andExpect(status().isBadRequest()).andDo(print())
-			.andExpect(jsonPath("$.errors[?(@.code == '" + requiredUserIdError.code() + "')].status")
-				.value(requiredUserIdError.status().name()))
-			.andExpect(jsonPath("$.errors[?(@.code == '" + requiredUserIdError.code() + "')].message")
-				.value(requiredUserIdError.message()))
 			.andExpect(jsonPath("$.errors[?(@.code == '" + reportTargetUserIdError.code() + "')].status")
 				.value(reportTargetUserIdError.status().name()))
 			.andExpect(jsonPath("$.errors[?(@.code == '" + reportTargetUserIdError.code() + "')].message")
@@ -131,7 +155,6 @@ class ReportCommandControllerTest {
 
 		// given
 		Map<String, Object> request = new HashMap<>();
-		request.put("userId", "숫자가 아닌 어떤 값");
 		request.put("reportUserId", "숫자가 아닌 어떤 값");
 		request.put("type", 123);
 		request.put("content", 123);

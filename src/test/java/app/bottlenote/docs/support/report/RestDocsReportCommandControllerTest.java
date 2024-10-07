@@ -1,18 +1,24 @@
 package app.bottlenote.docs.support.report;
 
 import app.bottlenote.docs.AbstractRestDocs;
+import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.support.report.controller.ReportCommandController;
 import app.bottlenote.support.report.domain.constant.UserReportType;
 import app.bottlenote.support.report.dto.request.UserReportRequest;
 import app.bottlenote.support.report.dto.response.UserReportResponse;
 import app.bottlenote.support.report.service.UserReportService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
+import java.util.Optional;
+
 import static app.bottlenote.support.report.dto.response.UserReportResponse.UserReportResponseEnum.SUCCESS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
@@ -25,21 +31,29 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class RestDocsReportCommandControllerTest extends AbstractRestDocs {
 
 	private final UserReportService userReportService = mock(UserReportService.class);
+	private final MockedStatic<SecurityContextUtil> mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
 
 	@Override
 	protected Object initController() {
 		return new ReportCommandController(userReportService);
 	}
 
-	@DisplayName("유저를 신고 할 수 있다.")
+	@AfterEach
+	void tearDown() {
+		mockedSecurityUtil.close();
+	}
+
+	@DisplayName("[restdocs] 유저를 신고 할 수 있다.")
 	@Test
 	void reportUserTest() throws Exception {
 		// given
-		UserReportRequest request = new UserReportRequest(1L, 2L, UserReportType.OTHER, "신고 내용 쏼라 쏼라 쏼라 ");
-		UserReportResponse response = UserReportResponse.of(SUCCESS, 1L, 2L, "신고한 유저 이름");
+		final Long currentUserId = 1L;
+		final UserReportRequest request = new UserReportRequest(2L, UserReportType.OTHER, "신고 내용 쏼라 쏼라 쏼라 ");
+		final UserReportResponse response = UserReportResponse.of(SUCCESS, 1L, 2L, "신고한 유저 이름");
 
 		// when
-		when(userReportService.userReport(request)).thenReturn(response);
+		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(currentUserId));
+		when(userReportService.userReport(currentUserId, request)).thenReturn(response);
 
 		// then
 		mockMvc.perform(post("/api/v1/reports/user")
@@ -50,7 +64,6 @@ class RestDocsReportCommandControllerTest extends AbstractRestDocs {
 			.andDo(
 				document("support/report/user-report",
 					requestFields(
-						fieldWithPath("userId").type(JsonFieldType.NUMBER).description("신고 유저 ID"),
 						fieldWithPath("reportUserId").type(JsonFieldType.NUMBER).description("신고 대상자 유저 ID(신고를 당하는 유저"),
 						fieldWithPath("type").type(JsonFieldType.STRING).description("신고 타입  ( SPAM , INAPPROPRIATE_CONTENT ,FRAUD ,COPYRIGHT_INFRINGEMENT ,OTHER )"),
 						fieldWithPath("content").type(JsonFieldType.STRING).description("신고 내용")
