@@ -6,6 +6,7 @@ import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewLocation;
 import app.bottlenote.review.domain.ReviewRepository;
+import app.bottlenote.review.dto.payload.ReviewRegistryEvent;
 import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
@@ -18,11 +19,11 @@ import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.dto.response.constant.ReviewResultMessage;
 import app.bottlenote.review.dto.vo.ReviewModifyVO;
+import app.bottlenote.review.event.publisher.ReviewEventPublisher;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.user.service.domain.UserDomainSupport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +31,6 @@ import java.util.List;
 
 import static app.bottlenote.review.domain.constant.ReviewActiveStatus.DELETED;
 import static app.bottlenote.review.domain.constant.ReviewDisplayStatus.PUBLIC;
-import static app.bottlenote.review.domain.event.ReviewRegistryEvent.reviewRegistryPublish;
 import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.MODIFY_SUCCESS;
 import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.PRIVATE_SUCCESS;
 import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.PUBLIC_SUCCESS;
@@ -46,7 +46,7 @@ public class ReviewService {
 	private final ReviewRepository reviewRepository;
 	private final ReviewTastingTagSupport reviewTastingTagSupport;
 	private final ReviewImageSupport reviewImageSupport;
-	private final ApplicationEventPublisher eventPublisher;
+	private final ReviewEventPublisher reviewEventPublisher;
 
 	@Transactional
 	public ReviewCreateResponse createReview(ReviewCreateRequest reviewCreateRequest, Long currentUserId) {
@@ -81,8 +81,10 @@ public class ReviewService {
 		reviewImageSupport.saveImages(reviewCreateRequest.imageUrlList(), review);
 		//테이스팅 태그 저장
 		reviewTastingTagSupport.saveReviewTastingTag(reviewCreateRequest.tastingTagList(), review);
+
 		//이벤트 발행
-		eventPublisher.publishEvent(reviewRegistryPublish(
+		reviewEventPublisher.reviewRegistry(
+			ReviewRegistryEvent.of(
 			saveReview.getId(),
 			saveReview.getAlcoholId() ,
 			saveReview.getUserId(),
