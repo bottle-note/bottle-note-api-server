@@ -19,7 +19,7 @@ import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByCont
 @RestController
 @RequestMapping("/api/v1/popular")
 @RequiredArgsConstructor
-public class PopularController {
+public class PopularQueryController {
 
 	private final PopularService popularService;
 
@@ -34,12 +34,10 @@ public class PopularController {
 	 */
 	@GetMapping("/week")
 	public ResponseEntity<?> getPopularOfWeek(@RequestParam(defaultValue = "5") Integer top) {
-		Long userId = getUserIdByContext().orElse(-1L);
 
+		Long userId = getUserIdByContext().orElse(-1L);
 		List<Populars> populars = popularService.getPopularOfWeek(top, userId);
 
-		PopularsOfWeekResponse response = PopularsOfWeekResponse.of(populars.size(), populars);
-
-		return GlobalResponse.ok(response);
+		return GlobalResponse.ok(PopularsOfWeekResponse.of(populars.size(), populars));
 	}
 }

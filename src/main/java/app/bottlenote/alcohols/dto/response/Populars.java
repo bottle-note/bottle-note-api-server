@@ -2,6 +2,7 @@ package app.bottlenote.alcohols.dto.response;
 
 import lombok.Builder;
 
+@Builder
 public record Populars(
 	Long alcoholId,
 	String korName,
@@ -13,7 +14,4 @@ public record Populars(
 	String imageUrl,
 	Boolean isPicked
 ) {
-	@Builder
-	public Populars {
-	}
 }

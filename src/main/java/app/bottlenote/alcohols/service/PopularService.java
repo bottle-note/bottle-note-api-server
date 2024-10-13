@@ -16,9 +16,9 @@ public class PopularService {
 
 	private final PopularQueryRepository popularQueryRepository;
 
-	@Transactional
+	@Transactional(readOnly = true)
 	public List<Populars> getPopularOfWeek(Integer top, Long userId) {
 		log.info("service point getPopularOfWeek - top: {}, userId: {}", top, userId);
-		return popularQueryRepository.getPopularOfWeek(top, userId);
+		return popularQueryRepository.getPopularOfWeeks(userId, top);
 	}
 }

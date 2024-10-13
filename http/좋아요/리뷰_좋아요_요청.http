@@ -17,7 +17,7 @@ Content-Type: application/json
 
 ### 리뷰 좋아요
 
-@reviewId = "1"
+@reviewId = "12"
 @status = "LIKE"
 PUT {{host}}/api/v1/likes
 Content-Type: application/json
