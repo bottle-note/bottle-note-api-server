@@ -4,6 +4,7 @@ import app.bottlenote.alcohols.dto.response.Populars;
 import app.bottlenote.alcohols.repository.PopularQueryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,8 @@ public class PopularService {
 	@Transactional(readOnly = true)
 	public List<Populars> getPopularOfWeek(Integer top, Long userId) {
 		log.info("service point getPopularOfWeek - top: {}, userId: {}", top, userId);
-		return popularQueryRepository.getPopularOfWeeks(userId, top);
+
+		PageRequest pageRequest = PageRequest.of(0, top);
+		return popularQueryRepository.getPopularOfWeeks(userId, pageRequest);
 	}
 }
