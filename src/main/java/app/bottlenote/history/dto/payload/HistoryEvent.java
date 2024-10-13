@@ -15,4 +15,24 @@ public record HistoryEvent(
 	Map<String, Object> dynamicMessage,
 	String description
 ) {
+	public static HistoryEvent makeHistoryEvent(
+		Long userId,
+		EventCategory eventCategory,
+		EventType eventType,
+		String redirectUrl,
+		Long alcoholId,
+		String message,
+		Map<String, Object> dynamicMessage,
+		String description
+	) {
+		return new HistoryEvent(
+			userId,
+			eventCategory,
+			eventType,
+			redirectUrl,
+			alcoholId,
+			message,
+			dynamicMessage,
+			description);
+	}
 }
