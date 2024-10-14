@@ -18,7 +18,7 @@ import java.util.List;
 @Tag("unit")
 @DisplayName("[unit] [service] ReviewImageSupport")
 @ExtendWith(MockitoExtension.class)
-class ReviewImageSupportTest {
+class HelpImageSupportTest {
 
 	@InjectMocks
 	private ReviewImageSupport reviewImageSupport;

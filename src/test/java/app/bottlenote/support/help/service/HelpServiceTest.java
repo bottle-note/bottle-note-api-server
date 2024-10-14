@@ -3,6 +3,7 @@ package app.bottlenote.support.help.service;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.support.help.domain.Help;
 import app.bottlenote.support.help.domain.constant.HelpType;
+import app.bottlenote.support.help.dto.request.HelpImageInfo;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
 import app.bottlenote.support.help.dto.response.HelpDetailInfo;
@@ -21,6 +22,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 
 import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.DELETE_SUCCESS;
@@ -43,6 +45,9 @@ class HelpServiceTest {
 
 	@InjectMocks
 	private HelpService helpService;
+
+	@Mock
+	private HelpImageSupport helpImageSupport;
 
 	@Mock
 	private HelpRepository helpRepository;
@@ -83,7 +88,7 @@ class HelpServiceTest {
 	@Test
 	void testHelpUpdate_success() {
 	    // given
-		HelpUpsertRequest updateRequest = new HelpUpsertRequest("수정 후 제목","수정 후 내용", HelpType.USER);
+		HelpUpsertRequest updateRequest = new HelpUpsertRequest("수정 후 제목", HelpType.USER, List.of(new HelpImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")));
 
 	    // when
 		when(helpRepository.findById(anyLong()))
@@ -113,7 +118,7 @@ class HelpServiceTest {
 	void testHelpUpdate_fail_when_request_contains_null() {
 
 		assertThrows(NullPointerException.class,
-			() -> help.updateHelp("title",null,HelpType.USER ));
+			() -> help.updateHelp("title",null));
 	}
 
 	@DisplayName("문의글을 삭제할 수 있다.")
