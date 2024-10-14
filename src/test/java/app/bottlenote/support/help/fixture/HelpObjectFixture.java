@@ -2,6 +2,7 @@ package app.bottlenote.support.help.fixture;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.support.constant.StatusType;
 import app.bottlenote.support.help.domain.Help;
 import app.bottlenote.support.help.domain.constant.HelpType;
 import app.bottlenote.support.help.dto.request.HelpImageInfo;
@@ -52,8 +53,8 @@ public class HelpObjectFixture {
 	public static PageResponse<HelpListResponse> getHelpListPageResponse(){
 
 		List<HelpListResponse.HelpInfo> helpInfos = List.of(
-			HelpListResponse.HelpInfo.of(1L, "test1", LocalDateTime.now()),
-			HelpListResponse.HelpInfo.of(2L, "test2", LocalDateTime.now())
+			HelpListResponse.HelpInfo.of(1L, "test1", LocalDateTime.now(), StatusType.WAITING),
+			HelpListResponse.HelpInfo.of(2L, "test2", LocalDateTime.now(), StatusType.WAITING)
 		);
 		return PageResponse.of(
 			HelpListResponse.of((long)helpInfos.size(), helpInfos),

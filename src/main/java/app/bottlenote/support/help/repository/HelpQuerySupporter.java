@@ -20,7 +20,8 @@ public class HelpQuerySupporter {
 			HelpListResponse.HelpInfo.class,
 			help.id.as("helpId"),
 			help.content.as("content"),
-			help.createAt.as("createdAt")
+			help.createAt.as("createdAt"),
+			help.status.as("helpStatus")
 		);
 	}
 }

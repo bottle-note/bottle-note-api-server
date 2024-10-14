@@ -88,9 +88,11 @@ class RestDocsHelpCommandControllerTest extends AbstractRestDocs {
 			.andDo(
 				document("support/help/help-register",
 					requestFields(
-						fieldWithPath("title").type(JsonFieldType.STRING).description("문의글 제목"),
 						fieldWithPath("content").type(JsonFieldType.STRING).description("문의글 내용"),
-						fieldWithPath("type").type(JsonFieldType.STRING).description("문의글 타입  (WHISKEY, REVIEW, USER, ETC)")
+						fieldWithPath("type").type(JsonFieldType.STRING).description("문의글 타입  (WHISKEY, REVIEW, USER, ETC)"),
+						fieldWithPath("imageUrlList").type(JsonFieldType.ARRAY).description("이미지 URL 목록"),
+						fieldWithPath("imageUrlList[].order").type(JsonFieldType.NUMBER).description("이미지 순서"),
+						fieldWithPath("imageUrlList[].viewUrl").type(JsonFieldType.STRING).description("이미지 URL")
 					),
 					responseFields(
 						fieldWithPath("success").description("응답 성공 여부"),
@@ -139,8 +141,9 @@ class RestDocsHelpCommandControllerTest extends AbstractRestDocs {
 						fieldWithPath("code").description("응답 코드(http status code)"),
 						fieldWithPath("data.totalCount").description("성공 메시지 코드"),
 						fieldWithPath("data.helpList[].helpId").description("문의글 ID"),
-						fieldWithPath("data.helpList[].title").description("문의글 제목"),
+						fieldWithPath("data.helpList[].content").description("문의글 내용"),
 						fieldWithPath("data.helpList[].createAt").description("문의글 등록일시"),
+						fieldWithPath("data.helpList[].helpStatus").description("문의글 처리상태"),
 						fieldWithPath("errors").ignored(),
 						fieldWithPath("meta.serverEncoding").ignored(),
 						fieldWithPath("meta.serverVersion").ignored(),
@@ -179,13 +182,14 @@ class RestDocsHelpCommandControllerTest extends AbstractRestDocs {
 							fieldWithPath("success").description("응답 성공 여부"),
 							fieldWithPath("code").description("응답 코드(http status code)"),
 							fieldWithPath("data.helpId").description("문의글 ID"),
-							fieldWithPath("data.title").description("문의글 제목"),
+							fieldWithPath("data.title").description("문의글 제목").optional(),
 							fieldWithPath("data.content").description("문의글 내용"),
 							fieldWithPath("data.helpType").description("문의글 타입"),
 							fieldWithPath("data.createAt").description("문의글 등록일시"),
-							fieldWithPath("data.adminId").description("시스템 관리자 ID"),
-							fieldWithPath("data.responseContent").description("시스템 관리자 답변"),
+							fieldWithPath("data.adminId").description("시스템 관리자 ID").optional(),
+							fieldWithPath("data.responseContent").description("시스템 관리자 답변").optional(),
 							fieldWithPath("data.lastModifyAt").description("최종 수정 일자"),
+							fieldWithPath("data.statusType").description("문의글 상태"),
 							fieldWithPath("errors").ignored(),
 							fieldWithPath("meta.serverEncoding").ignored(),
 							fieldWithPath("meta.serverVersion").ignored(),
@@ -218,9 +222,11 @@ class RestDocsHelpCommandControllerTest extends AbstractRestDocs {
 			.andDo(
 				document("support/help/help-modify",
 					requestFields(
-						fieldWithPath("title").type(JsonFieldType.STRING).description("문의글 제목"),
 						fieldWithPath("content").type(JsonFieldType.STRING).description("문의글 내용"),
-						fieldWithPath("type").type(JsonFieldType.STRING).description("문의글 타입  (WHISKEY, REVIEW, USER, ETC)")
+						fieldWithPath("type").type(JsonFieldType.STRING).description("문의글 타입  (WHISKEY, REVIEW, USER, ETC)"),
+						fieldWithPath("imageUrlList").type(JsonFieldType.ARRAY).description("이미지 URL 목록"),
+						fieldWithPath("imageUrlList[].order").type(JsonFieldType.NUMBER).description("이미지 순서"),
+						fieldWithPath("imageUrlList[].viewUrl").type(JsonFieldType.STRING).description("이미지 URL")
 					),
 					responseFields(
 						fieldWithPath("success").description("응답 성공 여부"),
