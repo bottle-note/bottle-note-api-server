@@ -148,7 +148,6 @@ CREATE TABLE `help`
     `id`               bigint       NOT NULL AUTO_INCREMENT COMMENT '문의',
     `user_id`          bigint       NOT NULL COMMENT '문의자',
     `type`             varchar(255) NOT NULL COMMENT 'ADD , USER... 개발때 enum 추가',
-    `title`            varchar(255) NOT NULL COMMENT '문의 제목',
     `help_content`     text         NOT NULL COMMENT '문의내용 최대 1000글자',
     `status`           varchar(255) NOT NULL DEFAULT 'WAITING' COMMENT '진행상태',
     `admin_id`         bigint       NULL COMMENT '처리  어드민',
@@ -164,6 +163,25 @@ CREATE TABLE `help`
   COLLATE = utf8mb4_unicode_ci
     COMMENT
         = '문의';
+
+CREATE TABLE `help_image`
+(
+    `id`             bigint       NOT NULL AUTO_INCREMENT COMMENT '리뷰-이미지 등록은 최대 5장',
+    `help_id`        bigint       NOT NULL comment '문의글 아이디',
+    `order`          bigint       NOT NULL COMMENT '이미지 순서',
+    `image_url`      varchar(255) NOT NULL COMMENT 'S3 이미지 경로',
+    `image_key`      varchar(255) NOT NULL COMMENT '업로드된 루트 경로(버킷부터 이미지 이름까지)',
+    `image_path`     varchar(255) NOT NULL COMMENT '져장된 이미지의 경로(버킷부터 최종폴더까지)',
+    `image_name`     varchar(255) NOT NULL COMMENT '생성된 UUID + 확장자 파일명',
+    `create_at`      timestamp    NULL COMMENT '최초 생성일',
+    `create_by`      varchar(255) NULL COMMENT '최초 생성자',
+    `last_modify_at` timestamp    NULL COMMENT '최종 생성일',
+    `last_modify_by` varchar(255) NULL COMMENT '최종 생성자',
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (`help_id`) REFERENCES `help` (`id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '문의-이미지 등록은 최대 5장';
 
 CREATE TABLE `follow`
 (
