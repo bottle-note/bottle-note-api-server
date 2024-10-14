@@ -1,22 +1,26 @@
 package app.bottlenote.support.help.dto.request;
 
 import app.bottlenote.support.help.domain.constant.HelpType;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-public record HelpUpsertRequest(
+import java.util.List;
 
-	@NotEmpty(message = "TITLE_NOT_EMPTY")
-	String title,
+public record HelpUpsertRequest(
 
 	@NotEmpty(message = "CONTENT_NOT_EMPTY")
 	@Size(max = 500)
 	String content,
 
 	@NotNull(message = "REQUIRED_HELP_TYPE")
-	HelpType type
+	HelpType type,
 
+	@Valid
+	List<HelpImageInfo> imageUrlList
 ) {
-
+	public HelpUpsertRequest {
+		imageUrlList = imageUrlList == null ? List.of() : imageUrlList;
+	}
 }

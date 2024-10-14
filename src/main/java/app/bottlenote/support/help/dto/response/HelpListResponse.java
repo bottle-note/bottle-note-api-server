@@ -17,12 +17,12 @@ public record HelpListResponse(
 	@Builder
 	public record HelpInfo(
 		Long helpId,
-		String title,
+		String content,
 		LocalDateTime createAt
 	){
 
-		public static HelpInfo of(Long helpId, String title, LocalDateTime createAt){
-			return new HelpInfo(helpId, title, createAt);
+		public static HelpInfo of(Long helpId, String content, LocalDateTime createAt){
+			return new HelpInfo(helpId, content, createAt);
 		}
 	}
 }
