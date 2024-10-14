@@ -19,7 +19,7 @@ public class HelpQuerySupporter {
 		return Projections.constructor(
 			HelpListResponse.HelpInfo.class,
 			help.id.as("helpId"),
-			help.title.as("title"),
+			help.content.as("content"),
 			help.createAt.as("createdAt")
 		);
 	}
