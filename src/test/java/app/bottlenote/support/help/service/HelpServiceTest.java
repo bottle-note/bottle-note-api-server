@@ -1,5 +1,18 @@
 package app.bottlenote.support.help.service;
 
+import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.DELETE_SUCCESS;
+import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
+import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_AUTHORIZED;
+import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.support.help.domain.Help;
 import app.bottlenote.support.help.domain.constant.HelpType;
@@ -14,6 +27,8 @@ import app.bottlenote.support.help.fixture.HelpObjectFixture;
 import app.bottlenote.support.help.repository.HelpRepository;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.service.domain.UserDomainSupport;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -22,22 +37,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
-import java.util.Optional;
-
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.DELETE_SUCCESS;
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.MODIFY_SUCCESS;
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
-import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_AUTHORIZED;
-import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-
 @Tag("unit")
 @DisplayName("[unit] [service] HelpService")
 @ExtendWith(MockitoExtension.class)
@@ -45,9 +44,6 @@ class HelpServiceTest {
 
 	@InjectMocks
 	private HelpService helpService;
-
-	@Mock
-	private HelpImageSupport helpImageSupport;
 
 	@Mock
 	private HelpRepository helpRepository;
