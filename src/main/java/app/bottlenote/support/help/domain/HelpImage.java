@@ -3,12 +3,9 @@ package app.bottlenote.support.help.domain;
 import app.bottlenote.common.domain.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -45,18 +42,17 @@ public class HelpImage extends BaseEntity {
 	private String imageName;
 
 	@Comment("문의글 아이디")
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "help_id")
-	private Help help;
+	@Column(name = "help_id", nullable = false)
+	private Long helpId;
 
 	@Builder
-	public HelpImage(Long id, Long order, String imageUrl, String imageKey, String imagePath, String imageName, app.bottlenote.support.help.domain.Help help) {
+	public HelpImage(Long id, Long order, String imageUrl, String imageKey, String imagePath, String imageName, Long helpId) {
 		this.id = id;
 		this.order = order;
 		this.imageUrl = imageUrl;
 		this.imageKey = imageKey;
 		this.imagePath = imagePath;
 		this.imageName = imageName;
-		this.help = help;
+		this.helpId = helpId;
 	}
 }
