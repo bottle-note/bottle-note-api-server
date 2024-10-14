@@ -82,8 +82,10 @@ public class Help extends BaseEntity {
 			.build();
 	}
 
-	public void saveImage(List<HelpImage> helpImage) {
-		this.helpImages.addAll(helpImage);
+	public void saveImages(List<HelpImage> images) {
+		HelpImageList helpImageList = new HelpImageList(this.helpImages);
+		helpImageList.addImages(images);
+		this.helpImages = helpImageList.getHelpImages();
 	}
 
 	public void updateImages(List<HelpImage> helpImages) {
