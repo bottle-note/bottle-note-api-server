@@ -2,6 +2,7 @@ package app.bottlenote.support.help.domain;
 
 import static app.bottlenote.review.exception.ReviewExceptionCode.INVALID_IMAGE_URL_MAX_SIZE;
 
+import app.bottlenote.common.image.ImageInfo;
 import app.bottlenote.common.image.ImageUtil;
 import app.bottlenote.support.help.dto.request.HelpImageInfo;
 import app.bottlenote.support.help.exception.HelpException;
@@ -43,11 +44,15 @@ public class HelpImageList {
 	public List<HelpImage> makeHelpImageList(List<HelpImageInfo> images, Long helpId) {
 		List<HelpImage> helpImageList = images.stream()
 			.map(image -> HelpImage.builder()
-				.order(image.order())
-				.imageUrl(image.viewUrl())
-				.imagePath(ImageUtil.getImagePath(image.viewUrl()))
-				.imageKey(ImageUtil.getImageKey(image.viewUrl()))
-				.imageName(ImageUtil.getImageName(image.viewUrl()))
+				.helpimageInfo(
+					ImageInfo.builder()
+						.order(image.order())
+						.imageUrl(image.viewUrl())
+						.imagePath(ImageUtil.getImagePath(image.viewUrl()))
+						.imageKey(ImageUtil.getImageKey(image.viewUrl()))
+						.imageName(ImageUtil.getImageName(image.viewUrl()))
+						.build()
+				)
 				.helpId(helpId)
 				.build())
 			.toList();
