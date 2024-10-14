@@ -24,10 +24,11 @@ public interface PopularQueryRepository extends JpaRepository<Alcohol, Long> {
 		               a1_0.korCategory,
 		               a1_0.engCategory,
 		               a1_0.imageUrl,
-                            CASE
-                                WHEN (SELECT COUNT(p) FROM picks p WHERE p.user.id = :userId AND p.alcohol.id = a1_0.id) > 0 THEN true
-                                ELSE false
-                            END
+		                          CASE
+		                              WHEN (SELECT COUNT(p) FROM picks p WHERE p.user.id = :userId AND p.alcohol.id = a1_0.id) > 0 THEN true
+		                              ELSE false
+		                          END,
+		               cast( p1_0.popularScore as double)
 					)
 		        from popular_alcohol p1_0
 		                 join alcohol a1_0 on p1_0.alcoholId = a1_0.id

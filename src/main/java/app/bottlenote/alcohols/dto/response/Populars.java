@@ -12,6 +12,7 @@ public record Populars(
 	String korCategory,
 	String engCategory,
 	String imageUrl,
-	Boolean isPicked
+	Boolean isPicked,
+	Double popularScore
 ) {
 }

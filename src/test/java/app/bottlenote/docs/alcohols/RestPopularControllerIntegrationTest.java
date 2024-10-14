@@ -73,6 +73,8 @@ class RestPopularControllerIntegrationTest extends AbstractRestDocs {
 						fieldWithPath("data.alcohols[].engCategory").type(JsonFieldType.STRING).description("술 카테고리 영문명"),
 						fieldWithPath("data.alcohols[].imageUrl").type(JsonFieldType.STRING).description("술 이미지 URL"),
 						fieldWithPath("data.alcohols[].isPicked").type(JsonFieldType.BOOLEAN).description("내가 찜했는지 여부"),
+						fieldWithPath("data.alcohols[].popularScore").type(JsonFieldType.NUMBER).description("인기도 점수"),
+
 						fieldWithPath("errors").ignored(),
 						fieldWithPath("meta.serverEncoding").ignored(),
 						fieldWithPath("meta.serverVersion").ignored(),

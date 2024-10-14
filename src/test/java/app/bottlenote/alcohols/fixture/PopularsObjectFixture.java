@@ -23,6 +23,7 @@ public class PopularsObjectFixture {
 			.engCategory("single molt")
 			.imageUrl("https://i.imgur.com/TE2nmYV.png")
 			.isPicked(alcoholId % 2 == 0)
+			.popularScore(new Random().nextDouble())
 			.build();
 	}
 }

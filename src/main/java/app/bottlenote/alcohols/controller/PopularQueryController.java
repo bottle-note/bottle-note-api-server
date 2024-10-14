@@ -19,7 +19,8 @@ import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByCont
 @RestController
 @RequestMapping("/api/v1/popular")
 @RequiredArgsConstructor
-public class PopularQueryController {
+public class
+PopularQueryController {
 
 	private final PopularService popularService;
 
