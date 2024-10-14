@@ -1,9 +1,13 @@
 package app.bottlenote.support.help.service;
 
-import app.bottlenote.common.image.ImageUtil;
+import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.DELETE_SUCCESS;
+import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
+import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_AUTHORIZED;
+import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
+
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.support.help.domain.Help;
-import app.bottlenote.support.help.domain.HelpImage;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
 import app.bottlenote.support.help.dto.response.HelpDetailInfo;
@@ -17,21 +21,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.DELETE_SUCCESS;
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.MODIFY_SUCCESS;
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
-import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_AUTHORIZED;
-import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class HelpService {
 
 	private final UserDomainSupport userDomainSupport;
-	private final HelpImageSupport helpImageSupport;
 	private final HelpRepository helpRepository;
 
 	@Transactional
@@ -44,20 +39,11 @@ public class HelpService {
 			helpUpsertRequest.type(),
 			helpUpsertRequest.content());
 
-		List<HelpImage> helpImages = helpUpsertRequest.imageUrlList().stream()
-			.map(image -> HelpImage.builder()
-				.order(image.order())
-				.imageUrl(image.viewUrl())
-				.imagePath(ImageUtil.getImagePath(image.viewUrl()))
-				.imageKey(ImageUtil.getImageKey(image.viewUrl()))
-				.imageName(ImageUtil.getImageName(image.viewUrl()))
-				.help(help)
-				.build()
-			).toList();
-
-		helpImageSupport.saveHelpImages(help, helpImages);
-
+		//문의글 저장
 		Help saveHelp = helpRepository.save(help);
+
+		//문의글 이미지 저장
+		help.saveImages(helpUpsertRequest.imageUrlList(), help.getId());
 
 		return HelpResultResponse.response(
 			REGISTER_SUCCESS,
@@ -76,19 +62,8 @@ public class HelpService {
 		if (!help.isMyHelpPost(currentUserId)){
 			throw new HelpException(HELP_NOT_AUTHORIZED);
 		}
-
-		List<HelpImage> helpImages = helpUpsertRequest.imageUrlList().stream()
-			.map(image -> HelpImage.builder()
-				.order(image.order())
-				.imageUrl(image.viewUrl())
-				.imagePath(ImageUtil.getImagePath(image.viewUrl()))
-				.imageKey(ImageUtil.getImageKey(image.viewUrl()))
-				.imageName(ImageUtil.getImageName(image.viewUrl()))
-				.help(help)
-				.build()
-			).toList();
-
-		helpImageSupport.updateHelpImages(help, helpImages);
+		
+		help.updateImages(helpUpsertRequest.imageUrlList(), help.getId());
 
 		help.updateHelp(
 			helpUpsertRequest.content(),
