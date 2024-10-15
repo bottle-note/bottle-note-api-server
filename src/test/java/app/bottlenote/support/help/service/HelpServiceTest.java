@@ -114,7 +114,7 @@ class HelpServiceTest {
 	void testHelpUpdate_fail_when_request_contains_null() {
 
 		assertThrows(NullPointerException.class,
-			() -> help.updateHelp("title",null));
+			() -> help.updateHelp("title", List.of(), null));
 	}
 
 	@DisplayName("문의글을 삭제할 수 있다.")

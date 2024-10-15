@@ -87,11 +87,12 @@ public class Help extends BaseEntity {
 		helpImageList.addImages(images, helpId);
 	}
 
-	public void updateHelp(String content, HelpType helpType){
+	public void updateHelp(String content, List<HelpImageInfo> images, HelpType helpType) {
 		Objects.requireNonNull(content, "content는 필수입니다");
 		Objects.requireNonNull(helpType, "helpType은 필수입니다");
 		this.content = content;
 		this.type = helpType;
+		updateImages(images, this.id);
 	}
 
 	public void deleteHelp(){

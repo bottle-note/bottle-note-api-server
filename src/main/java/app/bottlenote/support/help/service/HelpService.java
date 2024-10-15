@@ -62,11 +62,10 @@ public class HelpService {
 		if (!help.isMyHelpPost(currentUserId)){
 			throw new HelpException(HELP_NOT_AUTHORIZED);
 		}
-		
-		help.updateImages(helpUpsertRequest.imageUrlList(), help.getId());
 
 		help.updateHelp(
 			helpUpsertRequest.content(),
+			helpUpsertRequest.imageUrlList(),
 			helpUpsertRequest.type());
 
 		return HelpResultResponse.response(
