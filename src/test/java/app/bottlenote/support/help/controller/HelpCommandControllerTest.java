@@ -127,27 +127,6 @@ class HelpCommandControllerTest {
 				.andExpect(status().isBadRequest())
 				.andDo(print());
 		}
-
-		@DisplayName("문의글의 제목은 null일 수 없다.")
-		@Test
-		void test_fail_when_invalidate_request() throws Exception {
-
-			// when
-			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
-
-			HelpUpsertRequest wrongTitleRegisterRequest = HelpObjectFixture.getWrongTitleRegisterRequest();
-
-			when(helpService.registerHelp(wrongTitleRegisterRequest, 1L))
-				.thenReturn(successRegisterResponse);
-
-			// then
-			mockMvc.perform(post("/api/v1/help")
-					.contentType(MediaType.APPLICATION_JSON)
-					.content(mapper.writeValueAsString(wrongTitleRegisterRequest))
-					.with(csrf()))
-				.andExpect(status().isBadRequest())
-				.andDo(print());
-		}
 	}
 
 	@Nested

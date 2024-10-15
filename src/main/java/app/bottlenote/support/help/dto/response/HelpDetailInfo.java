@@ -1,5 +1,6 @@
 package app.bottlenote.support.help.dto.response;
 
+import app.bottlenote.support.constant.StatusType;
 import app.bottlenote.support.help.domain.constant.HelpType;
 import lombok.Builder;
 
@@ -12,6 +13,7 @@ public record HelpDetailInfo(
 	String content,
 	HelpType helpType,
 	LocalDateTime createAt,
+	StatusType statusType,
 
 	Long adminId,
 	String responseContent,

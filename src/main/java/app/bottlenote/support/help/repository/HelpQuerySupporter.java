@@ -19,8 +19,9 @@ public class HelpQuerySupporter {
 		return Projections.constructor(
 			HelpListResponse.HelpInfo.class,
 			help.id.as("helpId"),
-			help.title.as("title"),
-			help.createAt.as("createdAt")
+			help.content.as("content"),
+			help.createAt.as("createdAt"),
+			help.status.as("helpStatus")
 		);
 	}
 }

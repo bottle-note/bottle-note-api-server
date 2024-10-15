@@ -2,6 +2,7 @@ package app.bottlenote.review.service;
 
 import static app.bottlenote.review.exception.ReviewExceptionCode.INVALID_IMAGE_URL_MAX_SIZE;
 
+import app.bottlenote.common.image.ImageInfo;
 import app.bottlenote.common.image.ImageUtil;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewImage;
@@ -23,7 +24,7 @@ public class ReviewImageSupport {
 
 	public List<ReviewImageInfo> getReviewImageInfo(List<ReviewImage> reviewImages) {
 		return reviewImages.stream()
-			.map(image -> ReviewImageInfo.create(image.getOrder(), image.getImageUrl()))
+			.map(image -> ReviewImageInfo.create(image.getReviewImageInfo().getOrder(), image.getReviewImageInfo().getImageUrl()))
 			.toList();
 	}
 
@@ -33,11 +34,15 @@ public class ReviewImageSupport {
 		}
 		List<ReviewImage> reviewImageList = imageList.stream()
 			.map(image -> ReviewImage.builder()
-				.order(image.order())
-				.imageUrl(image.viewUrl())
-				.imagePath(ImageUtil.getImagePath(image.viewUrl()))
-				.imageKey(ImageUtil.getImageKey(image.viewUrl()))
-				.imageName(ImageUtil.getImageName(image.viewUrl()))
+				.reviewImageInfo(
+					ImageInfo.builder()
+						.order(image.order())
+						.imageUrl(image.viewUrl())
+						.imagePath(ImageUtil.getImagePath(image.viewUrl()))
+						.imageKey(ImageUtil.getImageKey(image.viewUrl()))
+						.imageName(ImageUtil.getImageName(image.viewUrl()))
+						.build()
+				)
 				.review(review)
 				.build()
 			).toList();
@@ -57,11 +62,15 @@ public class ReviewImageSupport {
 			
 			List<ReviewImage> reviewImageList = imageList.stream()
 				.map(image -> ReviewImage.builder()
-					.order(image.order())
-					.imageUrl(image.viewUrl())
-					.imagePath(ImageUtil.getImagePath(image.viewUrl()))
-					.imageKey(ImageUtil.getImageKey(image.viewUrl()))
-					.imageName(ImageUtil.getImageName(image.viewUrl()))
+					.reviewImageInfo(
+						ImageInfo.builder()
+							.order(image.order())
+							.imageUrl(image.viewUrl())
+							.imagePath(ImageUtil.getImagePath(image.viewUrl()))
+							.imageKey(ImageUtil.getImageKey(image.viewUrl()))
+							.imageName(ImageUtil.getImageName(image.viewUrl()))
+							.build()
+					)
 					.review(review)
 					.build()
 				).toList();
