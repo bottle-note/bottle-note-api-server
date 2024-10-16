@@ -5,6 +5,7 @@ import java.util.Optional;
 
 public interface AlcoholDomainSupport {
 
+
 	/**
 	 * AlcoholInfo를 반환하는 메서드입니다.
 	 *
