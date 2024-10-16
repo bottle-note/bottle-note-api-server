@@ -14,7 +14,7 @@ Content-Type: application/json
     client.global.set("accessToken", response.body.data.accessToken);
 %}
 
-### 닉네임변경
+### 자신을  신고 할 수 없다.
 POST  {{host}}/api/v1/reports/user
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
@@ -22,6 +22,18 @@ Authorization: Bearer {{accessToken}}
 {
   "userId" : 2,
   "reportUserId" : 2,
+  "type" : "OTHER",
+  "content" : "신고 내용 쏼라 쏼라 쏼라 "
+}
+
+### 사용자 신고
+POST  {{host}}/api/v1/reports/user
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "userId" : 2,
+  "reportUserId" : 3,
   "type" : "OTHER",
   "content" : "신고 내용 쏼라 쏼라 쏼라 "
 }

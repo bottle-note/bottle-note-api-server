@@ -7,10 +7,10 @@ import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewLocation;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.payload.ReviewRegistryEvent;
-import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
+import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.request.ReviewStatusChangeRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
@@ -99,8 +99,8 @@ public class ReviewService {
 	}
 
 	@Transactional(readOnly = true)
-	public PageResponse<ReviewListResponse> getReviews(Long alcoholId, PageableRequest pageableRequest, Long userId) {
-		return reviewRepository.getReviews(alcoholId, pageableRequest, userId);
+	public PageResponse<ReviewListResponse> getReviews(Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId) {
+		return reviewRepository.getReviews(alcoholId, reviewPageableRequest, userId);
 	}
 
 	@Transactional(readOnly = true)
@@ -132,8 +132,8 @@ public class ReviewService {
 	}
 
 	@Transactional(readOnly = true)
-	public PageResponse<ReviewListResponse> getMyReviews(PageableRequest pageableRequest, Long alcoholId, Long userId) {
-		return reviewRepository.getReviewsByMe(alcoholId, pageableRequest, userId);
+	public PageResponse<ReviewListResponse> getMyReviews(ReviewPageableRequest reviewPageableRequest, Long alcoholId, Long userId) {
+		return reviewRepository.getReviewsByMe(alcoholId, reviewPageableRequest, userId);
 	}
 
 	@Transactional

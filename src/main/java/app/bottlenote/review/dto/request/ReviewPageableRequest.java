@@ -4,7 +4,7 @@ import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.review.domain.constant.ReviewSortType;
 import lombok.Builder;
 
-public record PageableRequest(
+public record ReviewPageableRequest(
 	ReviewSortType sortType,
 	SortOrder sortOrder,
 	Long cursor,
@@ -12,7 +12,7 @@ public record PageableRequest(
 ) {
 
 	@Builder
-	public PageableRequest {
+	public ReviewPageableRequest {
 		sortType = sortType != null ? sortType : ReviewSortType.POPULAR;
 		sortOrder = sortOrder != null ? sortOrder : SortOrder.DESC;
 		cursor = cursor != null ? cursor : 0L;

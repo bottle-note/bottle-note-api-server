@@ -9,10 +9,10 @@ import app.bottlenote.review.domain.ReviewLocation;
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.review.dto.request.LocationInfo;
-import app.bottlenote.review.dto.request.PageableRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
+import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
@@ -74,8 +74,8 @@ public class ReviewObjectFixture {
 	 *
 	 * @return the empty pageable request
 	 */
-	public static PageableRequest getEmptyPageableRequest() {
-		return PageableRequest.builder().build();
+	public static ReviewPageableRequest getEmptyPageableRequest() {
+		return ReviewPageableRequest.builder().build();
 	}
 
 	/**

@@ -134,7 +134,6 @@ CREATE TABLE `help`
     `id`               bigint       NOT NULL AUTO_INCREMENT COMMENT '문의',
     `user_id`          bigint       NOT NULL COMMENT '문의자',
     `type`             varchar(255) NOT NULL COMMENT 'ADD , USER... 개발때 enum 추가',
-    `title`            varchar(255) NOT NULL COMMENT '문의 제목',
     `help_content`     text         NOT NULL COMMENT '문의내용 최대 1000글자',
     `status`           varchar(255) NOT NULL DEFAULT 'WAITING' COMMENT '진행상태',
     `admin_id`         bigint       NULL COMMENT '처리  어드민',
@@ -148,6 +147,26 @@ CREATE TABLE `help`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci COMMENT = '문의';
+
+CREATE TABLE `help_image`
+(
+    `id`             bigint       NOT NULL AUTO_INCREMENT COMMENT '리뷰-이미지 등록은 최대 5장',
+    `help_id`        bigint       NOT NULL comment '문의글 아이디',
+    `order`          bigint       NOT NULL COMMENT '이미지 순서',
+    `image_url`      varchar(255) NOT NULL COMMENT 'S3 이미지 경로',
+    `image_key`      varchar(255) NOT NULL COMMENT '업로드된 루트 경로(버킷부터 이미지 이름까지)',
+    `image_path`     varchar(255) NOT NULL COMMENT '져장된 이미지의 경로(버킷부터 최종폴더까지)',
+    `image_name`     varchar(255) NOT NULL COMMENT '생성된 UUID + 확장자 파일명',
+    `create_at`      timestamp    NULL COMMENT '최초 생성일',
+    `create_by`      varchar(255) NULL COMMENT '최초 생성자',
+    `last_modify_at` timestamp    NULL COMMENT '최종 생성일',
+    `last_modify_by` varchar(255) NULL COMMENT '최종 생성자',
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (`help_id`) REFERENCES `help` (`id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '문의-이미지 등록은 최대 5장';
+
 
 CREATE TABLE `follow`
 (
@@ -357,13 +376,14 @@ CREATE TABLE `alcohol_image`
 
 create table user_history
 (
-    id              bigint       not null AUTO_INCREMENT comment '히스토리 id',
+    id              bigint       not null comment '히스토리 id'
+        primary key,
     user_id         bigint       not null comment '사용자 id',
-    alcohol_id      bigint       not null comment '알코올 id',
     event_category  varchar(255) not null comment 'pick, review, rating',
-    event_type      varchar(255) null comment 'isPick, unPick || like, create, review, best || start, modify, delete',
+    event_type      varchar(255) null comment 'isPick,unPick || like, create, review, best || start, modify, delete',
     redirect_url    varchar(255) null comment '발생되는 api의 도메인주소를 뺀 url',
     image_url       varchar(255) null comment '발생되는 api의 도메인주소를 뺀 url',
+    alcohol_id      bigint       null comment '알코올 id',
     message         varchar(255) null comment '이벤트 메세지 enum으로 관리',
     dynamic_message json         null comment '가변데이터(현재는 별점에서만 사용)',
     event_year      varchar(255) null comment '발생 년(YYYY)',
@@ -373,16 +393,13 @@ create table user_history
     create_by       varchar(255) null,
     last_modify_at  timestamp    null comment '최종 생성일',
     last_modify_by  varchar(255) null comment '최종 생성자',
-    PRIMARY KEY (`id`),
     constraint user_history_ibfk_1
-        foreign key (user_id) references users (id),
-    constraint user_history_ibfk_2
-        foreign key (alcohol_id) references alcohol (id)
+        foreign key (user_id) references users (id)
 )
-    engine = InnoDB
-    default charset = utf8mb4
-    collate utf8mb4_unicode_ci
     comment '유저 히스토리';
+
+create index user_id
+    on user_history (user_id);
 
 create table notification
 (

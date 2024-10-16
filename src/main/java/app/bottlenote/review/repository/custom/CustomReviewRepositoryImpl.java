@@ -1,5 +1,25 @@
 package app.bottlenote.review.repository.custom;
 
+import app.bottlenote.global.service.cursor.CursorPageable;
+import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.review.domain.constant.ReviewSortType;
+import app.bottlenote.review.dto.request.ReviewPageableRequest;
+import app.bottlenote.review.dto.response.ReviewDetailResponse;
+import app.bottlenote.review.dto.response.ReviewListResponse;
+import app.bottlenote.review.repository.ReviewQuerySupporter;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.global.service.cursor.SortOrder.DESC;
 import static app.bottlenote.like.domain.QLikes.likes;
@@ -11,25 +31,6 @@ import static app.bottlenote.review.domain.QReviewTastingTag.reviewTastingTag;
 import static app.bottlenote.review.domain.constant.ReviewActiveStatus.ACTIVE;
 import static app.bottlenote.review.domain.constant.ReviewDisplayStatus.PUBLIC;
 import static app.bottlenote.user.domain.QUser.user;
-
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.global.service.cursor.SortOrder;
-import app.bottlenote.review.domain.constant.ReviewSortType;
-import app.bottlenote.review.dto.request.PageableRequest;
-import app.bottlenote.review.dto.response.ReviewDetailResponse;
-import app.bottlenote.review.dto.response.ReviewListResponse;
-import app.bottlenote.review.repository.ReviewQuerySupporter;
-import com.querydsl.core.types.Order;
-import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.dsl.NumberExpression;
-import com.querydsl.jpa.JPAExpressions;
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -90,7 +91,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 	@Override
 	public PageResponse<ReviewListResponse> getReviews(
 		Long alcoholId,
-		PageableRequest pageableRequest,
+		ReviewPageableRequest reviewPageableRequest,
 		Long userId
 	) {
 		Long bestReviewId = queryFactory
@@ -126,9 +127,9 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 				.and(review.activeStatus.eq(ACTIVE))
 				.and(review.status.eq(PUBLIC)))
 			.groupBy(review.id, review.sizeType, review.userId)
-			.orderBy(sortBy(pageableRequest.sortType(), pageableRequest.sortOrder()).toArray(new OrderSpecifier[0]))
-			.offset(pageableRequest.cursor())
-			.limit(pageableRequest.pageSize() + 1)
+			.orderBy(sortBy(reviewPageableRequest.sortType(), reviewPageableRequest.sortOrder()).toArray(new OrderSpecifier[0]))
+			.offset(reviewPageableRequest.cursor())
+			.limit(reviewPageableRequest.pageSize() + 1)
 			.fetch();
 
 		Long totalCount = queryFactory
@@ -139,7 +140,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 				.and(review.status.eq(PUBLIC)))
 			.fetchOne();
 
-		CursorPageable cursorPageable = getCursorPageable(pageableRequest, fetch);
+		CursorPageable cursorPageable = getCursorPageable(reviewPageableRequest, fetch);
 
 		return PageResponse.of(ReviewListResponse.of(totalCount, fetch), cursorPageable);
 	}
@@ -148,7 +149,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 	@Override
 	public PageResponse<ReviewListResponse> getReviewsByMe(
 		Long alcoholId,
-		PageableRequest pageableRequest,
+		ReviewPageableRequest reviewPageableRequest,
 		Long userId
 	) {
 
@@ -182,9 +183,9 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 				.and(review.alcoholId.eq(alcoholId))
 				.and(review.activeStatus.eq(ACTIVE)))
 			.groupBy(review.id, review.sizeType, review.userId)
-			.orderBy(sortBy(pageableRequest.sortType(), pageableRequest.sortOrder()).toArray(new OrderSpecifier[0]))
-			.offset(pageableRequest.cursor())
-			.limit(pageableRequest.pageSize() + 1)
+			.orderBy(sortBy(reviewPageableRequest.sortType(), reviewPageableRequest.sortOrder()).toArray(new OrderSpecifier[0]))
+			.offset(reviewPageableRequest.cursor())
+			.limit(reviewPageableRequest.pageSize() + 1)
 			.fetch();
 
 		Long totalCount = queryFactory
@@ -195,7 +196,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 				.and(review.activeStatus.eq(ACTIVE)))
 			.fetchOne();
 
-		CursorPageable cursorPageable = getCursorPageable(pageableRequest, fetch);
+		CursorPageable cursorPageable = getCursorPageable(reviewPageableRequest, fetch);
 
 		log.info("CURSOR Pageable info :{}", cursorPageable.toString());
 
@@ -204,16 +205,16 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 
 
 	private CursorPageable getCursorPageable(
-		PageableRequest pageableRequest,
+		ReviewPageableRequest reviewPageableRequest,
 		List<ReviewListResponse.ReviewInfo> fetch
 	) {
 
-		boolean hasNext = isHasNext(pageableRequest, fetch);
+		boolean hasNext = isHasNext(reviewPageableRequest, fetch);
 		return CursorPageable.builder()
-			.cursor(pageableRequest.cursor() + pageableRequest.pageSize())
-			.pageSize(pageableRequest.pageSize())
+			.cursor(reviewPageableRequest.cursor() + reviewPageableRequest.pageSize())
+			.pageSize(reviewPageableRequest.pageSize())
 			.hasNext(hasNext)
-			.currentCursor(pageableRequest.cursor())
+			.currentCursor(reviewPageableRequest.cursor())
 			.build();
 	}
 
@@ -221,10 +222,10 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 	 * 다음 페이지가 있는지 확인하는 메소드
 	 */
 	private boolean isHasNext(
-		PageableRequest pageableRequest,
+		ReviewPageableRequest reviewPageableRequest,
 		List<ReviewListResponse.ReviewInfo> fetch
 	) {
-		boolean hasNext = fetch.size() > pageableRequest.pageSize();
+		boolean hasNext = fetch.size() > reviewPageableRequest.pageSize();
 
 		if (hasNext) {
 			fetch.remove(fetch.size() - 1);  // Remove the extra record

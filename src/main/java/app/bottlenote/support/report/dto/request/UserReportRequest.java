@@ -6,9 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record UserReportRequest(
-	@NotNull(message = "REQUIRED_USER_ID")
-	Long userId,
-
 	@NotNull(message = "REPORT_TARGET_USER_ID_REQUIRED")
 	Long reportUserId,
 

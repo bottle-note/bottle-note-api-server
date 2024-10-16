@@ -61,7 +61,7 @@ public class SecurityConfig {
 				.requestMatchers(HttpMethod.GET, "api/v1/reviews/**").permitAll()
 				.requestMatchers("/api/v1/reviews/**").authenticated()
 				.requestMatchers("/api/v1/users/**").authenticated()
-				.requestMatchers(("/api/v1/help/**")).authenticated()
+				.requestMatchers("/api/v1/help/**").authenticated()
 				.requestMatchers("/api/v1/my-page/**").permitAll()
 				.anyRequest().permitAll()
 			)

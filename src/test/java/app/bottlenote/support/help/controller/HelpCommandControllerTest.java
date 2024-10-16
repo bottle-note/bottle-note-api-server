@@ -2,7 +2,11 @@ package app.bottlenote.support.help.controller;
 
 import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.support.help.domain.constant.HelpType;
+import app.bottlenote.support.help.dto.request.HelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
+import app.bottlenote.support.help.dto.response.HelpListResponse;
 import app.bottlenote.support.help.dto.response.HelpResultResponse;
 import app.bottlenote.support.help.exception.HelpException;
 import app.bottlenote.support.help.fixture.HelpObjectFixture;
@@ -21,6 +25,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.Optional;
 
@@ -30,10 +35,13 @@ import static app.bottlenote.support.help.dto.response.constant.HelpResultMessag
 import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_AUTHORIZED;
 import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -55,6 +63,8 @@ class HelpCommandControllerTest {
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
 	private final HelpUpsertRequest helpUpsertRequest = HelpObjectFixture.getHelpUpsertRequest();
+	private final HelpPageableRequest emptyPageableRequest = HelpObjectFixture.getEmptyHelpPageableRequest();
+	private final PageResponse<HelpListResponse> helpPageResponse = HelpObjectFixture.getHelpListPageResponse();
 	private final HelpResultResponse successRegisterResponse = HelpObjectFixture.getSuccessHelpResponse(REGISTER_SUCCESS);
 	private final HelpResultResponse successModifyResponse = HelpObjectFixture.getSuccessHelpResponse(MODIFY_SUCCESS);
 	private final HelpResultResponse successDeleteResponse = HelpObjectFixture.getSuccessHelpResponse(DELETE_SUCCESS);
@@ -117,27 +127,79 @@ class HelpCommandControllerTest {
 				.andExpect(status().isBadRequest())
 				.andDo(print());
 		}
+	}
 
-		@DisplayName("문의글의 제목은 null일 수 없다.")
+	@Nested
+	@DisplayName("문의글 조회 컨트롤러 테스트")
+	class HelpReadControllerTest{
+
+		@DisplayName("문의글 목록을 조회할 수 있다.")
 		@Test
-		void test_fail_when_invalidate_request() throws Exception {
-
-			// when
+		void get_help_list_test() throws Exception {
+		    // given
 			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
-			HelpUpsertRequest wrongTitleRegisterRequest = HelpObjectFixture.getWrongTitleRegisterRequest();
+		    // when
+			when(helpService.getHelpList(any(HelpPageableRequest.class), anyLong()))
+				.thenReturn(helpPageResponse);
 
-			when(helpService.registerHelp(wrongTitleRegisterRequest, 1L))
-				.thenReturn(successRegisterResponse);
+		    // then
+			ResultActions resultActions = mockMvc.perform(get("/api/v1/help")
+					.param("cursor", String.valueOf(emptyPageableRequest.cursor()))
+					.param("pageSize", String.valueOf(emptyPageableRequest.pageSize()))
+					.with(csrf())
+				)
+				.andExpect(status().isOk())
+				.andDo(print());
+
+			resultActions.andExpect(jsonPath("$.success").value("true"));
+			resultActions.andExpect(jsonPath("$.code").value("200"));
+			resultActions.andExpect(jsonPath("$.data.totalCount").value(2));
+		}
+
+		@DisplayName("문의글을 상세 조회할 수 있다.")
+		@Test
+		void get_detail_help_test() throws Exception {
+		    // given
+			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
+
+			// when
+			when(helpService.getDetailHelp(anyLong(), anyLong()))
+				.thenReturn(HelpObjectFixture.getDetailHelpInfo("title","content", HelpType.REVIEW));
 
 			// then
-			mockMvc.perform(post("/api/v1/help")
-					.contentType(MediaType.APPLICATION_JSON)
-					.content(mapper.writeValueAsString(wrongTitleRegisterRequest))
-					.with(csrf()))
+			ResultActions resultActions = mockMvc.perform(get("/api/v1/help/{helpId}", 1L)
+					.param("cursor", String.valueOf(emptyPageableRequest.cursor()))
+					.param("pageSize", String.valueOf(emptyPageableRequest.pageSize()))
+					.with(csrf())
+				)
+				.andExpect(status().isOk())
+				.andDo(print());
+
+			resultActions.andExpect(jsonPath("$.success").value("true"));
+			resultActions.andExpect(jsonPath("$.code").value("200"));
+			resultActions.andExpect(jsonPath("$.data.helpType").value("REVIEW"));
+		}
+
+		@DisplayName("로그인 한 유저만 문의글을 조회할 수 있다.")
+		@Test
+		void get_help_only_authorized_user() throws Exception {
+
+			// when
+			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.empty());
+			when(helpService.getDetailHelp(anyLong(), anyLong()))
+				.thenReturn(HelpObjectFixture.getDetailHelpInfo("title","content", HelpType.REVIEW));
+
+			// then
+			mockMvc.perform(get("/api/v1/help/{helpId}", 1L)
+					.param("cursor", String.valueOf(emptyPageableRequest.cursor()))
+					.param("pageSize", String.valueOf(emptyPageableRequest.pageSize()))
+					.with(csrf())
+				)
 				.andExpect(status().isBadRequest())
 				.andDo(print());
 		}
+
 	}
 	@Nested
 	@DisplayName("문의글 수정 컨트롤러 테스트")

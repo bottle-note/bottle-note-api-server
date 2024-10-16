@@ -32,7 +32,7 @@ _추가되면 좋을 것 같은 신고 유형이 있으면 요청 바랍니다._
 
 [source]
 ----
-POST /api/v1/user-report
+POST /api/v1/reports/user
 ----
 
 [discrete]
