@@ -2,7 +2,6 @@ package app.bottlenote.history.dto.payload;
 
 import app.bottlenote.history.domain.constant.EventCategory;
 import app.bottlenote.history.domain.constant.EventType;
-
 import java.util.Map;
 
 public record HistoryEvent(
@@ -10,6 +9,7 @@ public record HistoryEvent(
 	EventCategory eventCategory,
 	EventType eventType,
 	String redirectUrl,
+	String imageUrl,
 	Long alcoholId,
 	String message,
 	Map<String, Object> dynamicMessage,
@@ -20,6 +20,7 @@ public record HistoryEvent(
 		EventCategory eventCategory,
 		EventType eventType,
 		String redirectUrl,
+		String imageUrl,
 		Long alcoholId,
 		String message,
 		Map<String, Object> dynamicMessage,
@@ -30,6 +31,7 @@ public record HistoryEvent(
 			eventCategory,
 			eventType,
 			redirectUrl,
+			imageUrl,
 			alcoholId,
 			message,
 			dynamicMessage,

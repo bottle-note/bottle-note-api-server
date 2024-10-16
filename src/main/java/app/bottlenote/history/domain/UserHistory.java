@@ -11,14 +11,13 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Getter
 @Entity(name = "user_history")
@@ -43,6 +42,9 @@ public class UserHistory extends BaseEntity {
 	@Column(name = "redirect_url")
 	private String redirectUrl;
 
+	@Column(name = "image_url")
+	private String imageUrl;
+
 	@Column(name = "alcohol_id")
 	private Long alcoholId;
 
@@ -63,12 +65,14 @@ public class UserHistory extends BaseEntity {
 	private String description;
 
 	@Builder
-	public UserHistory(Long id, Long userId, EventCategory eventCategory, EventType eventType, String redirectUrl, Long alcoholId, String message, Map<String, Object> dynamicMessage, String eventYear, String eventMonth, String description) {
+	public UserHistory(Long id, Long userId, EventCategory eventCategory, EventType eventType, String redirectUrl, String imageUrl, Long alcoholId, String message, Map<String, Object> dynamicMessage, String eventYear, String eventMonth,
+		String description) {
 		this.id = id;
 		this.userId = userId;
 		this.eventCategory = eventCategory;
 		this.eventType = eventType;
 		this.redirectUrl = redirectUrl;
+		this.imageUrl = imageUrl;
 		this.alcoholId = alcoholId;
 		this.message = message;
 		this.dynamicMessage = dynamicMessage;

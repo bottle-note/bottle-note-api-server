@@ -1,21 +1,21 @@
 package app.bottlenote.review.event.publisher;
 
+import app.bottlenote.alcohols.service.domain.AlcoholDomainSupport;
 import app.bottlenote.history.domain.constant.EventCategory;
 import app.bottlenote.history.domain.constant.EventType;
 import app.bottlenote.history.dto.payload.HistoryEvent;
 import app.bottlenote.review.dto.payload.ReviewRegistryEvent;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class ReviewEventPublisher {
 	private final ApplicationEventPublisher eventPublisher;
-
-	public ReviewEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
-		this.eventPublisher = applicationEventPublisher;
-	}
+	private final AlcoholDomainSupport alcoholDomainSupport;
 
 	public void reviewRegistry(ReviewRegistryEvent registryEvent) {
 		log.info("ReviewRegistryEvent: {}", registryEvent);
@@ -25,6 +25,7 @@ public class ReviewEventPublisher {
 			EventCategory.REVIEW,
 			EventType.REVIEW_CREATE,
 			"redirectUrl",
+			alcoholDomainSupport.findAlcoholImageUrlById(registryEvent.alcoholId()),
 			registryEvent.alcoholId(),
 			"리뷰 등록",
 			null,
