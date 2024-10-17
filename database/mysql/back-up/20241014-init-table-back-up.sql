@@ -12,9 +12,7 @@ CREATE TABLE `region`
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci
-    COMMENT
-        = '국가';
+  COLLATE = utf8mb4_unicode_ci COMMENT = '국가';
 
 CREATE TABLE `distillery`
 (
@@ -29,9 +27,7 @@ CREATE TABLE `distillery`
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci
-    COMMENT
-        = '증류소';
+  COLLATE = utf8mb4_unicode_ci COMMENT = '증류소';
 
 CREATE TABLE `alcohol`
 (
@@ -57,9 +53,7 @@ CREATE TABLE `alcohol`
     FOREIGN KEY (`distillery_id`) REFERENCES `distillery` (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci
-    COMMENT
-        = '술';
+  COLLATE = utf8mb4_unicode_ci COMMENT = '술';
 
 CREATE TABLE `users`
 (
@@ -80,9 +74,7 @@ CREATE TABLE `users`
     UNIQUE KEY `nick_name` (`nick_name`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci
-    COMMENT
-        = '사용자';
+  COLLATE = utf8mb4_unicode_ci COMMENT = '사용자';
 
 CREATE TABLE `picks`
 (
@@ -97,9 +89,7 @@ CREATE TABLE `picks`
     FOREIGN KEY (`alcohol_id`) REFERENCES `alcohol` (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci
-    COMMENT
-        = '찜하기';
+  COLLATE = utf8mb4_unicode_ci COMMENT = '찜하기';
 
 CREATE TABLE `user_report`
 (
@@ -121,9 +111,7 @@ CREATE TABLE `user_report`
     -- 복합 유니크 UNIQUE KEY `user_id_report_user` (`user_id`, `report_user`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci
-    COMMENT
-        = '유저 신고';
+  COLLATE = utf8mb4_unicode_ci COMMENT = '유저 신고';
 
 CREATE TABLE `rating`
 (
@@ -139,15 +127,14 @@ CREATE TABLE `rating`
     foreign key (`user_id`) references `users` (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci
-    COMMENT
-        = '술 평점';
+  COLLATE = utf8mb4_unicode_ci COMMENT = '술 평점';
 
 CREATE TABLE `help`
 (
     `id`               bigint       NOT NULL AUTO_INCREMENT COMMENT '문의',
     `user_id`          bigint       NOT NULL COMMENT '문의자',
     `type`             varchar(255) NOT NULL COMMENT 'ADD , USER... 개발때 enum 추가',
+    `title`            varchar(255) NOT NULL COMMENT '문의 제목',
     `help_content`     text         NOT NULL COMMENT '문의내용 최대 1000글자',
     `status`           varchar(255) NOT NULL DEFAULT 'WAITING' COMMENT '진행상태',
     `admin_id`         bigint       NULL COMMENT '처리  어드민',
@@ -160,28 +147,7 @@ CREATE TABLE `help`
     FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci
-    COMMENT
-        = '문의';
-
-CREATE TABLE `help_image`
-(
-    `id`             bigint       NOT NULL AUTO_INCREMENT COMMENT '리뷰-이미지 등록은 최대 5장',
-    `help_id`        bigint       NOT NULL comment '문의글 아이디',
-    `order`          bigint       NOT NULL COMMENT '이미지 순서',
-    `image_url`      varchar(255) NOT NULL COMMENT 'S3 이미지 경로',
-    `image_key`      varchar(255) NOT NULL COMMENT '업로드된 루트 경로(버킷부터 이미지 이름까지)',
-    `image_path`     varchar(255) NOT NULL COMMENT '져장된 이미지의 경로(버킷부터 최종폴더까지)',
-    `image_name`     varchar(255) NOT NULL COMMENT '생성된 UUID + 확장자 파일명',
-    `create_at`      timestamp    NULL COMMENT '최초 생성일',
-    `create_by`      varchar(255) NULL COMMENT '최초 생성자',
-    `last_modify_at` timestamp    NULL COMMENT '최종 생성일',
-    `last_modify_by` varchar(255) NULL COMMENT '최종 생성자',
-    PRIMARY KEY (`id`),
-    FOREIGN KEY (`help_id`) REFERENCES `help` (`id`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci COMMENT = '문의-이미지 등록은 최대 5장';
+  COLLATE = utf8mb4_unicode_ci COMMENT = '문의';
 
 CREATE TABLE `follow`
 (
@@ -199,9 +165,7 @@ CREATE TABLE `follow`
 --   복합 유니크 UNIQUE KEY `user_id_follow_user_id` (`user_id`, `follow_user_id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci
-    COMMENT
-        = '팔로우';
+  COLLATE = utf8mb4_unicode_ci COMMENT = '팔로우';
 
 CREATE TABLE `tasting_tag`
 (
@@ -217,9 +181,7 @@ CREATE TABLE `tasting_tag`
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci
-    COMMENT
-        = '테이스팅 태그';
+  COLLATE = utf8mb4_unicode_ci COMMENT = '테이스팅 태그';
 
 CREATE TABLE `alcohol_tasting_tags`
 (
@@ -233,9 +195,7 @@ CREATE TABLE `alcohol_tasting_tags`
     FOREIGN KEY (`tasting_tag_id`) REFERENCES `tasting_tag` (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci
-    COMMENT
-        = '술/테이스팅 태그 연관관계 해소';
+  COLLATE = utf8mb4_unicode_ci COMMENT = '술/테이스팅 태그 연관관계 해소';
 
 CREATE TABLE `review`
 (
@@ -245,7 +205,7 @@ CREATE TABLE `review`
     `content`        varchar(1000)  NOT NULL COMMENT '1000글자',
     `size_type`      varchar(255)   NULL COMMENT '잔 : GLASS , 보틀 : BOTTLE',
     `price`          decimal(38, 2) NULL COMMENT '가격',
-    `location_name`       varchar(255)   NULL COMMENT '상호 명',
+    `location_name`  varchar(255)   NULL COMMENT '상호 명',
     `street_address` varchar(255)   NULL COMMENT '도로명 주소',
     `category`       varchar(255)   NULL COMMENT '장소 카테고리',
     `map_url`        varchar(255)   NULL COMMENT '지도 URL',
@@ -285,9 +245,7 @@ CREATE TABLE `review_report`
     FOREIGN KEY (`review_id`) REFERENCES `review` (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci
-    COMMENT
-        = '리뷰 신고';
+  COLLATE = utf8mb4_unicode_ci COMMENT = '리뷰 신고';
 
 CREATE TABLE `review_image`
 (
@@ -306,9 +264,7 @@ CREATE TABLE `review_image`
     FOREIGN KEY (`review_id`) REFERENCES `review` (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci
-    COMMENT
-        = '리뷰-이미지 등록은 최대 5장';
+  COLLATE = utf8mb4_unicode_ci COMMENT = '리뷰-이미지 등록은 최대 5장';
 
 CREATE TABLE `review_tasting_tag`
 (
@@ -321,9 +277,7 @@ CREATE TABLE `review_tasting_tag`
     FOREIGN KEY (`review_id`) REFERENCES `review` (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci
-    COMMENT
-        = '리뷰 테이스팅 태그';
+  COLLATE = utf8mb4_unicode_ci COMMENT = '리뷰 테이스팅 태그';
 
 CREATE TABLE `review_reply`
 (
@@ -345,9 +299,7 @@ CREATE TABLE `review_reply`
     FOREIGN KEY (`parent_reply_id`) REFERENCES `review_reply` (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci
-    COMMENT
-        = '리뷰 댓글';
+  COLLATE = utf8mb4_unicode_ci COMMENT = '리뷰 댓글';
 
 CREATE TABLE `notice`
 (
@@ -364,9 +316,7 @@ CREATE TABLE `notice`
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci
-    COMMENT
-        = '공지사항';
+  COLLATE = utf8mb4_unicode_ci COMMENT = '공지사항';
 
 CREATE TABLE `likes`
 (
@@ -384,9 +334,7 @@ CREATE TABLE `likes`
     FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci
-    COMMENT
-        = '좋아요';
+  COLLATE = utf8mb4_unicode_ci COMMENT = '좋아요';
 
 CREATE TABLE `alcohol_image`
 (
@@ -405,9 +353,7 @@ CREATE TABLE `alcohol_image`
     FOREIGN KEY (`alcohol_id`) REFERENCES `alcohol` (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci
-    COMMENT
-        = '술 이미지';
+  COLLATE = utf8mb4_unicode_ci COMMENT = '술 이미지';
 
 create table user_history
 (
@@ -433,6 +379,9 @@ create table user_history
 )
     comment '유저 히스토리';
 
+create index user_id
+    on user_history (user_id);
+
 create table notification
 (
     id             bigint auto_increment primary key,
@@ -452,6 +401,4 @@ create table notification
 )
     engine = InnoDB
     default charset = utf8mb4
-    collate utf8mb4_unicode_ci
-    comment
-        = '사용자 알림';
+    collate utf8mb4_unicode_ci comment = '사용자 알림';

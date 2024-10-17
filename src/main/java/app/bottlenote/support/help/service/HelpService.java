@@ -1,5 +1,11 @@
 package app.bottlenote.support.help.service;
 
+import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.DELETE_SUCCESS;
+import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
+import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_AUTHORIZED;
+import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
+
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.support.help.domain.Help;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
@@ -14,12 +20,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.DELETE_SUCCESS;
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.MODIFY_SUCCESS;
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
-import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_AUTHORIZED;
-import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -36,12 +36,14 @@ public class HelpService {
 
 		Help help = Help.create(
 			currentUserId,
-			helpUpsertRequest.title(),
-			helpUpsertRequest.content(),
-			helpUpsertRequest.type()
-		);
+			helpUpsertRequest.type(),
+			helpUpsertRequest.content());
 
+		//문의글 저장
 		Help saveHelp = helpRepository.save(help);
+
+		//문의글 이미지 저장
+		help.saveImages(helpUpsertRequest.imageUrlList(), help.getId());
 
 		return HelpResultResponse.response(
 			REGISTER_SUCCESS,
@@ -62,8 +64,8 @@ public class HelpService {
 		}
 
 		help.updateHelp(
-			helpUpsertRequest.title(),
 			helpUpsertRequest.content(),
+			helpUpsertRequest.imageUrlList(),
 			helpUpsertRequest.type());
 
 		return HelpResultResponse.response(
@@ -101,11 +103,11 @@ public class HelpService {
 
 		return HelpDetailInfo.builder()
 			.helpId(help.getId())
-			.title(help.getTitle())
 			.content(help.getContent())
 			.helpType(help.getType())
 			.createAt(help.getCreateAt())
 			.adminId(help.getAdminId())
+			.statusType(help.getStatus())
 			.responseContent(help.getResponseContent())
 			.lastModifyAt(help.getLastModifyAt())
 			.build();

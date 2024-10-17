@@ -1,15 +1,13 @@
-package app.bottlenote.review.domain;
+package app.bottlenote.support.help.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.common.image.ImageInfo;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,28 +15,27 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
 @Getter
-@Entity(name = "review_image")
+@Entity(name = "help_image")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ReviewImage extends BaseEntity {
+public class HelpImage extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Comment("리뷰 이미지")
 	@Embedded
-	private ImageInfo reviewImageInfo;
+	@Comment("문의글 이미지")
+	private ImageInfo helpimageInfo;
 
-	@Comment("리뷰 아이디")
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "review_id")
-	private Review review;
 
+	@Comment("문의글 아이디")
+	@Column(name = "help_id", nullable = false)
+	private Long helpId;
 
 	@Builder
-	public ReviewImage(Long id, ImageInfo reviewImageInfo, Review review) {
+	public HelpImage(Long id, ImageInfo helpimageInfo, Long helpId) {
 		this.id = id;
-		this.reviewImageInfo = reviewImageInfo;
-		this.review = review;
+		this.helpimageInfo = helpimageInfo;
+		this.helpId = helpId;
 	}
 }

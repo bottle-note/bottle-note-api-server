@@ -1,28 +1,5 @@
 package app.bottlenote.support.help.service;
 
-import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.support.help.domain.Help;
-import app.bottlenote.support.help.domain.constant.HelpType;
-import app.bottlenote.support.help.dto.request.HelpPageableRequest;
-import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
-import app.bottlenote.support.help.dto.response.HelpDetailInfo;
-import app.bottlenote.support.help.dto.response.HelpListResponse;
-import app.bottlenote.support.help.dto.response.HelpResultResponse;
-import app.bottlenote.support.help.exception.HelpException;
-import app.bottlenote.support.help.fixture.HelpObjectFixture;
-import app.bottlenote.support.help.repository.HelpRepository;
-import app.bottlenote.user.exception.UserException;
-import app.bottlenote.user.service.domain.UserDomainSupport;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
-
 import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.DELETE_SUCCESS;
 import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.MODIFY_SUCCESS;
 import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
@@ -35,6 +12,30 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+
+import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.support.help.domain.Help;
+import app.bottlenote.support.help.domain.constant.HelpType;
+import app.bottlenote.support.help.dto.request.HelpImageInfo;
+import app.bottlenote.support.help.dto.request.HelpPageableRequest;
+import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
+import app.bottlenote.support.help.dto.response.HelpDetailInfo;
+import app.bottlenote.support.help.dto.response.HelpListResponse;
+import app.bottlenote.support.help.dto.response.HelpResultResponse;
+import app.bottlenote.support.help.exception.HelpException;
+import app.bottlenote.support.help.fixture.HelpObjectFixture;
+import app.bottlenote.support.help.repository.HelpRepository;
+import app.bottlenote.user.exception.UserException;
+import app.bottlenote.user.service.domain.UserDomainSupport;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @Tag("unit")
 @DisplayName("[unit] [service] HelpService")
@@ -83,7 +84,7 @@ class HelpServiceTest {
 	@Test
 	void testHelpUpdate_success() {
 	    // given
-		HelpUpsertRequest updateRequest = new HelpUpsertRequest("수정 후 제목","수정 후 내용", HelpType.USER);
+		HelpUpsertRequest updateRequest = new HelpUpsertRequest("수정 후 제목", HelpType.USER, List.of(new HelpImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")));
 
 	    // when
 		when(helpRepository.findById(anyLong()))
@@ -113,7 +114,7 @@ class HelpServiceTest {
 	void testHelpUpdate_fail_when_request_contains_null() {
 
 		assertThrows(NullPointerException.class,
-			() -> help.updateHelp("title",null,HelpType.USER ));
+			() -> help.updateHelp("title", List.of(), null));
 	}
 
 	@DisplayName("문의글을 삭제할 수 있다.")

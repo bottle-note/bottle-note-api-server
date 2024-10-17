@@ -1,5 +1,6 @@
 package app.bottlenote.support.help.dto.response;
 
+import app.bottlenote.support.constant.StatusType;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -17,12 +18,13 @@ public record HelpListResponse(
 	@Builder
 	public record HelpInfo(
 		Long helpId,
-		String title,
-		LocalDateTime createAt
+		String content,
+		LocalDateTime createAt,
+		StatusType helpStatus
 	){
 
-		public static HelpInfo of(Long helpId, String title, LocalDateTime createAt){
-			return new HelpInfo(helpId, title, createAt);
+		public static HelpInfo of(Long helpId, String content, LocalDateTime createAt, StatusType statusType){
+			return new HelpInfo(helpId, content, createAt, statusType);
 		}
 	}
 }

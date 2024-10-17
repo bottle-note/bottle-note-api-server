@@ -2,8 +2,10 @@ package app.bottlenote.support.help.fixture;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.support.constant.StatusType;
 import app.bottlenote.support.help.domain.Help;
 import app.bottlenote.support.help.domain.constant.HelpType;
+import app.bottlenote.support.help.dto.request.HelpImageInfo;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
 import app.bottlenote.support.help.dto.response.HelpDetailInfo;
@@ -17,26 +19,26 @@ import java.util.List;
 public class HelpObjectFixture {
 
 	public static Help getHelpDefaultFixture(){
-		return Help.create(1L, "로그인이 안돼요", "blah blah blah", HelpType.USER);
+		return Help.create(1L,HelpType.USER, "blah blah blah");
 	}
 
-	public static Help getHelpFixure(String title, String content, HelpType helpType){
-		return Help.create(1L, title, content, helpType);
+	public static Help getHelpFixure(String content, HelpType helpType){
+		return Help.create(1L, helpType, content);
 	}
 
 	public static HelpUpsertRequest getHelpUpsertRequest() {
 		return new HelpUpsertRequest(
 			"로그인이 안돼요",
-			"blah blah blah"
-			, HelpType.USER
+			HelpType.USER,
+			List.of(new HelpImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1"))
 		);
 	}
 
 	public static HelpUpsertRequest getWrongTitleRegisterRequest() {
 		return new HelpUpsertRequest(
 			null,
-			"test"
-			, HelpType.USER
+			HelpType.USER,
+			List.of(new HelpImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1"))
 		);
 	}
 
@@ -51,8 +53,8 @@ public class HelpObjectFixture {
 	public static PageResponse<HelpListResponse> getHelpListPageResponse(){
 
 		List<HelpListResponse.HelpInfo> helpInfos = List.of(
-			HelpListResponse.HelpInfo.of(1L, "test1", LocalDateTime.now()),
-			HelpListResponse.HelpInfo.of(2L, "test2", LocalDateTime.now())
+			HelpListResponse.HelpInfo.of(1L, "test1", LocalDateTime.now(), StatusType.WAITING),
+			HelpListResponse.HelpInfo.of(2L, "test2", LocalDateTime.now(), StatusType.WAITING)
 		);
 		return PageResponse.of(
 			HelpListResponse.of((long)helpInfos.size(), helpInfos),
