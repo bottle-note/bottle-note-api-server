@@ -456,8 +456,6 @@ create table notification
     comment
         = '사용자 알림';
 
-
-        -- auto-generated definition
 create table popular_alcohol
 (
     id            bigint auto_increment comment '기본 키'
@@ -475,3 +473,15 @@ create table popular_alcohol
         unique (alcohol_id, year, month, day)
 )
     comment '술 인기도 통계 테이블' charset = utf8mb4;
+
+create table popularity_table
+(
+    alcohol_id       int   not null
+        primary key,
+    review_score     float null,
+    rating_score     float null,
+    pick_score       float null,
+    popularity_score float null
+);
+
+
