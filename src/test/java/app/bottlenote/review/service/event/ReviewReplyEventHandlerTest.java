@@ -1,6 +1,7 @@
 package app.bottlenote.review.service.event;
 
-import app.bottlenote.review.domain.event.ReviewReplyRegistryEvent;
+import app.bottlenote.review.dto.payload.ReviewReplyRegistryEvent;
+import app.bottlenote.review.event.listener.ReviewReplyEventHandler;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.fixture.FakeNotificationService;

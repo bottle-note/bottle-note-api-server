@@ -28,4 +28,12 @@ public interface AlcoholDomainSupport {
 	 * @param alcoholId
 	 */
 	void isValidAlcoholId(Long alcoholId);
+
+	/**
+	 * Alcohol의 이미지 URL을 반환하는 메서드입니다.
+	 *
+	 * @param alcoholId
+	 * @return Optional<String>
+	 */
+	String findAlcoholImageUrlById(Long alcoholId);
 }

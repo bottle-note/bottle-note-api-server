@@ -6,6 +6,7 @@ import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewLocation;
 import app.bottlenote.review.domain.ReviewRepository;
+import app.bottlenote.review.dto.payload.ReviewRegistryEvent;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
@@ -18,6 +19,7 @@ import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.dto.response.constant.ReviewResultMessage;
 import app.bottlenote.review.dto.vo.ReviewModifyVO;
+import app.bottlenote.review.event.publisher.ReviewEventPublisher;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.user.service.domain.UserDomainSupport;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +46,7 @@ public class ReviewService {
 	private final ReviewRepository reviewRepository;
 	private final ReviewTastingTagSupport reviewTastingTagSupport;
 	private final ReviewImageSupport reviewImageSupport;
+	private final ReviewEventPublisher reviewEventPublisher;
 
 	@Transactional
 	public ReviewCreateResponse createReview(ReviewCreateRequest reviewCreateRequest, Long currentUserId) {
@@ -72,12 +75,21 @@ public class ReviewService {
 				.build())
 			.build();
 
-
+		//DB에 리뷰 저장
 		Review saveReview = reviewRepository.save(review);
-
+		//이미지 저장
 		reviewImageSupport.saveImages(reviewCreateRequest.imageUrlList(), review);
-
+		//테이스팅 태그 저장
 		reviewTastingTagSupport.saveReviewTastingTag(reviewCreateRequest.tastingTagList(), review);
+
+		//이벤트 발행
+		reviewEventPublisher.reviewRegistry(
+			ReviewRegistryEvent.of(
+			saveReview.getId(),
+			saveReview.getAlcoholId() ,
+			saveReview.getUserId(),
+			saveReview.getContent()
+		));
 
 		return ReviewCreateResponse.builder()
 			.id(saveReview.getId())
