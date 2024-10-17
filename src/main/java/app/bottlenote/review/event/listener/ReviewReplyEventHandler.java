@@ -1,6 +1,6 @@
-package app.bottlenote.review.service.event;
+package app.bottlenote.review.event.listener;
 
-import app.bottlenote.review.domain.event.ReviewReplyRegistryEvent;
+import app.bottlenote.review.dto.payload.ReviewReplyRegistryEvent;
 import app.bottlenote.user.domain.constant.NotificationCategory;
 import app.bottlenote.user.domain.constant.NotificationType;
 import app.bottlenote.user.dto.request.NotificationMessage;
