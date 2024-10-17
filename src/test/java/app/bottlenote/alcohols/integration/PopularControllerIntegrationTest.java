@@ -25,7 +25,8 @@ class PopularControllerIntegrationTest extends IntegrationTestSupport {
 	@DisplayName("주간 인기 위스키를 조회할 수 있습니다.")
 	@Sql(scripts = {
 		"/init-script/init-alcohol.sql",
-		"/init-script/init-user.sql"
+		"/init-script/init-user.sql",
+		"/init-script/init-popular_alcohol.sql"
 	})
 	@Test
 	void test_1() throws Exception {
