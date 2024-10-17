@@ -490,6 +490,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_리뷰_수정">5.4. 리뷰 수정</a></li>
 <li><a href="#_리뷰_삭제">5.5. 리뷰 삭제</a></li>
 <li><a href="#_리뷰_상세조회">5.6. 리뷰 상세조회</a></li>
+<li><a href="#_리뷰_상태_변경">5.7. 리뷰 상태 변경</a></li>
 </ul>
 </li>
 <li><a href="#_리뷰_좋아요_review_like_관련_api">6. 리뷰 좋아요 (review like) 관련 API</a>
@@ -509,6 +510,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel2">
 <li><a href="#_유저_신고_요청">8.1. 유저 신고 요청</a></li>
 <li><a href="#_문의글_작성">8.2. 문의글 작성</a></li>
+<li><a href="#_문의글_목록조회">8.3. 문의글 목록조회</a></li>
+<li><a href="#_문의글_상세조회">8.4. 문의글 상세조회</a></li>
+<li><a href="#_문의글_수정">8.5. 문의글 수정</a></li>
+<li><a href="#_문의글_삭제">8.6. 문의글 삭제</a></li>
 </ul>
 </li>
 <li><a href="#_팔로우_follow_관련_api">9. 팔로우 (follow) 관련 API</a>
@@ -1124,7 +1129,7 @@ Host: localhost:8080</code></pre>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:03.129867",
+    "serverResponseTime" : "2024-10-14T09:38:57.428353",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1321,7 +1326,7 @@ Host: localhost:8080</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
-Set-Cookie: refresh-token=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNjE4NTIyM30.lvmPueUcOb1erv5Llo4qhEUQ_gtWrpFGbBHDw-Pi94qj8MGojoEI3ugdMo8PwoKgrVQZ_gBwBbytwjxh8XktUg; Path=/; Max-Age=1209600; Expires=Tue, 03 Sep 2024 13:11:03 GMT; Secure; HttpOnly
+Set-Cookie: refresh-token=eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNjE4NTIyM30.lvmPueUcOb1erv5Llo4qhEUQ_gtWrpFGbBHDw-Pi94qj8MGojoEI3ugdMo8PwoKgrVQZ_gBwBbytwjxh8XktUg; Path=/; Max-Age=1209600; Expires=Mon, 28 Oct 2024 00:38:57 GMT; Secure; HttpOnly
 Content-Type: application/json;charset=UTF-8
 Content-Length: 501
 
@@ -1335,7 +1340,7 @@ Content-Length: 501
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:03.638995",
+    "serverResponseTime" : "2024-10-14T09:38:57.661293",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1438,7 +1443,7 @@ Content-Length: 501
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
-Set-Cookie: refresh-token=new-refresh-token; Path=/; Max-Age=1209600; Expires=Tue, 03 Sep 2024 13:11:03 GMT; Secure; HttpOnly
+Set-Cookie: refresh-token=new-refresh-token; Path=/; Max-Age=1209600; Expires=Mon, 28 Oct 2024 00:38:57 GMT; Secure; HttpOnly
 Content-Type: application/json;charset=UTF-8
 Content-Length: 282
 
@@ -1452,7 +1457,7 @@ Content-Length: 282
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:03.560187",
+    "serverResponseTime" : "2024-10-14T09:38:57.633693",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1595,12 +1600,51 @@ Content-Length: 411
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:03.239784",
+    "serverResponseTime" : "2024-10-14T09:38:57.478410",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
 </div>
 </div>
+<h4 id="_error_code" class="discrete">Error Code</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">코드</th>
+<th class="tableblock halign-left valign-top">상태</th>
+<th class="tableblock halign-left valign-top">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REQUIRED_USER_ID</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">접근할 수 없는 마이페이지입니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">USER_NICKNAME_NOT_VALID</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">중복된 닉네임입니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">USER_NOT_FOUND</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NOT_FOUND</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">유저를 찾을 수 없습니다.</p></td>
+</tr>
+</tbody>
+</table>
 <hr>
 </div>
 <div class="sect2">
@@ -1612,6 +1656,9 @@ Content-Length: 411
 <p>이미지 url을 받아서 이미지를 업로드합니다.
 이미지 url은 null허용됩니다.
 null일 경우 기본 이미지로 인식합니다.</p>
+</div>
+<div class="paragraph">
+<p>===</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1645,7 +1692,7 @@ null일 경우 기본 이미지로 인식합니다.</p>
 </table>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/users/profile-image?_csrf=lZcVrc4NEdCTJzvc_MxCMfiuO7F22ira2gNTQyg9VxqNm13496Nxmfw1crW-Qw65meF2VZzLFolH7BP36TVkdxlYMS66qD-b HTTP/1.1
+<pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">PATCH /api/v1/users/profile-image?_csrf=OWNQi1S5JjCt8pL_7_fdnN1FYdOKjJR0R8I13xG6-50Q_Sc7XFcxvG3fF1GAlvPLidrpquh3TLLp6fdZf_QBu3fbzP5yzRda HTTP/1.1
 Content-Type: application/json;charset=UTF-8
 Content-Length: 60
 Host: localhost:8080
@@ -1720,12 +1767,41 @@ Content-Length: 387
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:03.287215",
+    "serverResponseTime" : "2024-10-14T09:38:57.493565",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
 </div>
 </div>
+<h4 id="_error_code_2" class="discrete">Error Code</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">코드</th>
+<th class="tableblock halign-left valign-top">상태</th>
+<th class="tableblock halign-left valign-top">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">USER_NOT_FOUND</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NOT_FOUND</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">유저를 찾을 수 없습니다.</p></td>
+</tr>
+</tbody>
+</table>
 <hr>
 </div>
 <div class="sect2">
@@ -1808,13 +1884,13 @@ Content-Length: 414
     "codeMessage" : "USER_WITHDRAW_SUCCESS",
     "message" : "성공적으로 탈퇴가 완료되었습니다",
     "userId" : 1,
-    "responseAt" : "2024-08-20 22:11:03"
+    "responseAt" : "2024-10-14 09:38:57"
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:03.684393",
+    "serverResponseTime" : "2024-10-14T09:38:57.676700",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -1924,6 +2000,35 @@ GET /api/mypage/{userId}
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.isMyPage</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">본인 여부</p></td>
+</tr>
+</tbody>
+</table>
+<h4 id="_error_code_3" class="discrete">Error Code</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">코드</th>
+<th class="tableblock halign-left valign-top">상태</th>
+<th class="tableblock halign-left valign-top">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MYPAGE_NOT_ACCESSIBLE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FORBIDDEN</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">접근할 수 없는 마이페이지입니다.</p></td>
 </tr>
 </tbody>
 </table>
@@ -2114,6 +2219,40 @@ GET /api/v1/mypage/{userId}/my-bottle
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">REVIEW</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">리뷰</p></td>
+</tr>
+</tbody>
+</table>
+<h4 id="_error_code_4" class="discrete">Error Code</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">코드</th>
+<th class="tableblock halign-left valign-top">상태</th>
+<th class="tableblock halign-left valign-top">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REQUIRED_USER_ID</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">유저 아이디가 필요합니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MYBOTTLE_NOT_ACCESSIBLE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FORBIDDEN</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">접근할 수 없는 마이보틀페이지입니다.</p></td>
 </tr>
 </tbody>
 </table>
@@ -2373,7 +2512,7 @@ GET /api/v1/mypage/{userId}/my-bottle
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:00.637412",
+    "serverResponseTime" : "2024-10-14T09:38:55.966320",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 4,
@@ -2950,7 +3089,7 @@ GET /api/v1/mypage/{userId}/my-bottle
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:00.826995",
+    "serverResponseTime" : "2024-10-14T09:38:56.029064",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -3075,7 +3214,7 @@ GET /api/v1/mypage/{userId}/my-bottle
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:01.179013",
+    "serverResponseTime" : "2024-10-14T09:38:56.289668",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -3104,7 +3243,7 @@ GET /api/v1/mypage/{userId}/my-bottle
 </tr>
 </tbody>
 </table>
-<h4 id="_error_code" class="discrete">Error code</h4>
+<h4 id="_error_code_5" class="discrete">Error code</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -3250,7 +3389,7 @@ GET /api/v1/mypage/{userId}/my-bottle
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:01.360174",
+    "serverResponseTime" : "2024-10-14T09:38:56.386978",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -3369,7 +3508,7 @@ Host: localhost:8080</code></pre>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:00.963613",
+    "serverResponseTime" : "2024-10-14T09:38:56.108207",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -3503,7 +3642,7 @@ Host: localhost:8080</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/popular/week</code></pre>
+<pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/popular/week</code></pre>
 </div>
 </div>
 <h4 id="_요청_파라미터_11" class="discrete">요청 파라미터</h4>
@@ -3605,6 +3744,11 @@ Host: localhost:8080</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">내가 찜했는지 여부</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.alcohols[].popularScore</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">인기도 점수</p></td>
+</tr>
 </tbody>
 </table>
 <div class="listingblock">
@@ -3618,59 +3762,64 @@ Host: localhost:8080</code></pre>
       "alcoholId" : 1,
       "korName" : "글렌피딕",
       "engName" : "glen fi",
-      "rating" : 0.5,
-      "ratingCount" : 43,
+      "rating" : 1.0,
+      "ratingCount" : 8,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
-      "isPicked" : false
+      "isPicked" : false,
+      "popularScore" : 0.0
     }, {
       "alcoholId" : 2,
       "korName" : "맥키토시",
       "engName" : "macintosh",
       "rating" : 2.0,
-      "ratingCount" : 50,
+      "ratingCount" : 40,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
-      "isPicked" : true
+      "isPicked" : true,
+      "popularScore" : 0.01
     }, {
       "alcoholId" : 3,
       "korName" : "글렌리벳",
       "engName" : "glen rivet",
-      "rating" : 1.0,
-      "ratingCount" : 16,
+      "rating" : 1.5,
+      "ratingCount" : 32,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
-      "isPicked" : false
+      "isPicked" : false,
+      "popularScore" : 0.01
     }, {
       "alcoholId" : 4,
       "korName" : "글렌피딕",
       "engName" : "glen fi",
       "rating" : 2.0,
-      "ratingCount" : 71,
+      "ratingCount" : 98,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
-      "isPicked" : true
+      "isPicked" : true,
+      "popularScore" : 0.01
     }, {
       "alcoholId" : 5,
       "korName" : "맥키토시",
       "engName" : "macintosh",
-      "rating" : 2.0,
-      "ratingCount" : 58,
+      "rating" : 2.5,
+      "ratingCount" : 20,
       "korCategory" : "싱글 몰트",
       "engCategory" : "single molt",
       "imageUrl" : "https://i.imgur.com/TE2nmYV.png",
-      "isPicked" : false
+      "isPicked" : false,
+      "popularScore" : 0.01
     } ]
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:01.260821",
+    "serverResponseTime" : "2024-10-14T09:38:56.345199",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -3819,22 +3968,40 @@ RequestBody로 요청을 전달합니다.</p>
 <td class="tableblock halign-left valign-top"><p class="tableblock">위치 정보</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>locationInfo.zipCode</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>locationInfo.locationName</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">우편번호</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">O</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">상호 명</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>locationInfo.address</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>locationInfo.streetAddress</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">주소</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">O</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">도로명 주소</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>locationInfo.detailAddress</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>locationInfo.category</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">상세 주소</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">O</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">카테고리</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>locationInfo.mapUrl</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">O</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">지도 URL</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>locationInfo.latitude</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">O</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">위도(x좌표)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>locationInfo.longitude</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">O</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">경도(y좌표)</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>imageUrlList</code></p></td>
@@ -3871,9 +4038,12 @@ RequestBody로 요청을 전달합니다.</p>
   "sizeType" : "GLASS",
   "price" : 30000.0,
   "locationInfo" : {
-    "zipCode" : "11111",
-    "address" : "서울시 강남구 청담동",
-    "detailAddress" : "xx빌딩"
+    "locationName" : "xxPub",
+    "streetAddress" : "서울시 강남구 청담동",
+    "category" : "PUB",
+    "mapUrl" : "xxx@example.com",
+    "latitude" : "111.111",
+    "longitude" : "222.222"
   },
   "imageUrlList" : [ {
     "order" : 1,
@@ -3984,7 +4154,7 @@ Content-Length: 349
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:02.353454",
+    "serverResponseTime" : "2024-10-14T09:38:56.878501",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -4033,6 +4203,70 @@ Content-Length: 349
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">BOTTLE</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">병</p></td>
+</tr>
+</tbody>
+</table>
+<h4 id="_error_code_6" class="discrete">Error Code</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">코드</th>
+<th class="tableblock halign-left valign-top">상태</th>
+<th class="tableblock halign-left valign-top">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REQUIRED_REVIEW_ID</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">리뷰 아이디는 필수입니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REVIEW_ID_MINIMUM</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">리뷰 식별자는 최소 1 이상이어야 합니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REVIEW_CONTENT_REQUIRED</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">리뷰 내용은 필수입니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REVIEW_CONTENT_MAXIMUM</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">리뷰 내용의 최대 글자수를 초과했습니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PRICE_MINIMUM</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">가격은 0원 이상이어야 합니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PRICE_MAXIMUM</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">입력할 수 있는 가격의 범위가 아닙니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ZIPCODE_ONLY_NUMBER</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">우편번호는 숫자만 가능합니다</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ZIPCODE_FORMAT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">우편번호는 5자리의 숫자만 가능합니다</p></td>
 </tr>
 </tbody>
 </table>
@@ -4251,7 +4485,7 @@ PathVariable로 alcoholId를 전달합니다.</p>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json;charset=UTF-8
-Content-Length: 1528
+Content-Length: 1530
 
 {
   "success" : true,
@@ -4266,7 +4500,7 @@ Content-Length: 1528
       "likeCount" : 5,
       "replyCount" : 3,
       "reviewImageUrl" : "https://picsum.photos/600/600",
-      "createAt" : [ 2024, 8, 20, 22, 11, 2, 450378000 ],
+      "createAt" : [ 2024, 10, 14, 9, 38, 56, 929572000 ],
       "userId" : 1,
       "nickName" : "test_user_1",
       "userProfileImage" : "user_profile_image_1",
@@ -4284,7 +4518,7 @@ Content-Length: 1528
       "likeCount" : 3,
       "replyCount" : 6,
       "reviewImageUrl" : "https://picsum.photos/600/600",
-      "createAt" : [ 2024, 8, 19, 22, 11, 2, 450386000 ],
+      "createAt" : [ 2024, 10, 13, 9, 38, 56, 929576000 ],
       "userId" : 2,
       "nickName" : "test_user_2",
       "userProfileImage" : "user_profile_image_2",
@@ -4300,7 +4534,7 @@ Content-Length: 1528
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:02.453096",
+    "serverResponseTime" : "2024-10-14T09:38:56.931330",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 1,
@@ -4620,7 +4854,7 @@ Content-Length: 1528
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json;charset=UTF-8
-Content-Length: 1528
+Content-Length: 1530
 
 {
   "success" : true,
@@ -4635,7 +4869,7 @@ Content-Length: 1528
       "likeCount" : 5,
       "replyCount" : 3,
       "reviewImageUrl" : "https://picsum.photos/600/600",
-      "createAt" : [ 2024, 8, 20, 22, 11, 2, 279313000 ],
+      "createAt" : [ 2024, 10, 14, 9, 38, 56, 811552000 ],
       "userId" : 1,
       "nickName" : "test_user_1",
       "userProfileImage" : "user_profile_image_1",
@@ -4653,7 +4887,7 @@ Content-Length: 1528
       "likeCount" : 3,
       "replyCount" : 6,
       "reviewImageUrl" : "https://picsum.photos/600/600",
-      "createAt" : [ 2024, 8, 19, 22, 11, 2, 279378000 ],
+      "createAt" : [ 2024, 10, 13, 9, 38, 56, 811586000 ],
       "userId" : 2,
       "nickName" : "test_user_2",
       "userProfileImage" : "user_profile_image_2",
@@ -4669,7 +4903,7 @@ Content-Length: 1528
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:02.284691",
+    "serverResponseTime" : "2024-10-14T09:38:56.814568",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 1,
@@ -4844,22 +5078,40 @@ Content-Length: 1528
 <td class="tableblock halign-left valign-top"><p class="tableblock">위치 정보</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>locationInfo.zipCode</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>locationInfo.locationName</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">O</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">우편번호</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">상호 명</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>locationInfo.address</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>locationInfo.streetAddress</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">O</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">주소</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">도로명 주소</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>locationInfo.detailAddress</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>locationInfo.category</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">O</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">상세 주소</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">카테고리</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>locationInfo.mapUrl</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">O</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">지도 URL</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>locationInfo.latitude</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">O</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">위도(x좌표)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>locationInfo.longitude</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">O</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">경도(y좌표)</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>imageUrlList</code></p></td>
@@ -4965,13 +5217,13 @@ Content-Length: 417
     "codeMessage" : "MODIFY_SUCCESS",
     "message" : "리뷰 수정이 성공적으로 완료되었습니다.",
     "reviewId" : 1,
-    "responseAt" : "2024-08-20 22:11:02"
+    "responseAt" : "2024-10-14 09:38:56"
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:02.233092",
+    "serverResponseTime" : "2024-10-14T09:38:56.788691",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -5020,6 +5272,65 @@ Content-Length: 417
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">BOTTLE</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">병</p></td>
+</tr>
+</tbody>
+</table>
+<h4 id="_error_code_7" class="discrete">Error Code</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">코드</th>
+<th class="tableblock halign-left valign-top">상태</th>
+<th class="tableblock halign-left valign-top">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REVIEW_CONTENT_REQUIRED</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">리뷰 내용은 필수입니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REVIEW_CONTENT_MAXIMUM</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">리뷰 내용의 최대 글자수를 초과했습니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PRICE_MINIMUM</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">가격은 0원 이상이어야 합니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PRICE_MAXIMUM</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">입력할 수 있는 가격의 범위가 아닙니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REVIEW_DISPLAY_STATUS_NOT_EMPTY</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">리뷰 공개/비공개상태는 필수입니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ZIPCODE_ONLY_NUMBER</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">우편번호는 숫자만 가능합니다</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ZIPCODE_FORMAT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">우편번호는 5자리의 숫자만 가능합니다</p></td>
 </tr>
 </tbody>
 </table>
@@ -5114,13 +5425,13 @@ Content-Length: 417
     "codeMessage" : "DELETE_SUCCESS",
     "message" : "리뷰 삭제가 성공적으로 완료되었습니다.",
     "reviewId" : 1,
-    "responseAt" : "2024-08-20 22:11:02"
+    "responseAt" : "2024-10-14 09:38:56"
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:02.132364",
+    "serverResponseTime" : "2024-10-14T09:38:56.722716",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -5272,19 +5583,34 @@ Content-Length: 417
 <td class="tableblock halign-left valign-top"><p class="tableblock">평점</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewResponse.zipCode</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewResponse.locationName</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">우편번호</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">상호명</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewResponse.address</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewResponse.streetAddress</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">주소</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">도로명 주소</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewResponse.detailAddress</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewResponse.category</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">상세 주소</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">카테고리</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewResponse.mapUrl</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">지도 URL</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewResponse.latitude</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">위도(x좌표)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewResponse.longitude</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">경도(y좌표)</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewResponse.status</code></p></td>
@@ -5357,7 +5683,7 @@ Content-Length: 417
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-http hljs" data-lang="http">HTTP/1.1 200 OK
 Content-Type: application/json;charset=UTF-8
-Content-Length: 1249
+Content-Length: 1329
 
 {
   "success" : true,
@@ -5385,9 +5711,12 @@ Content-Length: 1249
       "nickName" : null,
       "userProfileImage" : null,
       "rating" : null,
-      "zipCode" : null,
-      "address" : null,
-      "detailAddress" : null,
+      "locationName" : null,
+      "streetAddress" : null,
+      "category" : null,
+      "mapUrl" : null,
+      "latitude" : null,
+      "longitude" : null,
       "status" : null,
       "isMyReview" : null,
       "isLikedByMe" : null,
@@ -5404,12 +5733,215 @@ Content-Length: 1249
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:02.403091",
+    "serverResponseTime" : "2024-10-14T09:38:56.897636",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
 </div>
 </div>
+</div>
+<div class="sect2">
+<h3 id="_리뷰_상태_변경"><a class="link" href="#_리뷰_상태_변경">5.7. 리뷰 상태 변경</a></h3>
+<div class="paragraph">
+<p>리뷰 상태 변경 기능입니다.</p>
+</div>
+<div class="paragraph">
+<p>로그인한 사용자만 리뷰의 상태를 변경할 수 있습니다.</p>
+</div>
+<div class="paragraph">
+<p>사용자는 자신이 작성한 리뷰의 상태만 변경할 수 있습니다.</p>
+</div>
+<div class="paragraph">
+<p>API 엔드포인트에 PathVariable로 ReviewId를 전달합니다.</p>
+</div>
+<div class="paragraph">
+<p>전달한 ReviewId의 리뷰가 존재하지 않으면(로그인한 유저가 작성한 리뷰가 아님) ReviewException이 발생합니다.</p>
+</div>
+<div class="paragraph">
+<p>그리고 RequestBody로 변경할 리뷰의 상태를 전달합니다.
+(PRIVATE, PUBLIC)</p>
+</div>
+<div class="paragraph">
+<p>ReqeuestBody가 null인 경우 Validation에 의해 REVIEW_STATUS_REQUIRED 코드가 출력됩니다.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">PATCH /api/v1/reviews/{reviewId}/display</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>RequestBody 양식</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PUBLIC</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">공개</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PRIVATE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">비공개</p></td>
+</tr>
+</tbody>
+</table>
+<h4 id="_요청_파라미터_18" class="discrete">요청 파라미터</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>PathVariable로 reviewId를 전달합니다.</p>
+</li>
+<li>
+<p>RequestBody로 status를 전달합니다.</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">path</th>
+<th class="tableblock halign-left valign-top">type</th>
+<th class="tableblock halign-left valign-top">optional</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>status</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">리뷰 상태</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json">{
+  "status" : "PRIVATE"
+}</code></pre>
+</div>
+</div>
+<h4 id="_응답_파라미터_20" class="discrete">응답 파라미터</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">path</th>
+<th class="tableblock halign-left valign-top">type</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>code</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 코드(http status code)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.codeMessage</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">성공 메시지 코드</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.message</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">성공 메시지</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">리뷰 아이디</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.responseAt</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서버 응답 일시</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json">{
+  "success" : true,
+  "code" : 200,
+  "data" : {
+    "codeMessage" : "PRIVATE_SUCCESS",
+    "message" : "해당 리뷰가 비공개 처리되었습니다.",
+    "reviewId" : 1,
+    "responseAt" : "2024-10-14 09:38:56"
+  },
+  "errors" : [ ],
+  "meta" : {
+    "serverVersion" : "1.0.0",
+    "serverEncoding" : "UTF-8",
+    "serverResponseTime" : "2024-10-14T09:38:56.916977",
+    "serverPathVersion" : "v1"
+  }
+}</code></pre>
+</div>
+</div>
+<h4 id="_error_code_8" class="discrete">Error Code</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">코드</th>
+<th class="tableblock halign-left valign-top">상태</th>
+<th class="tableblock halign-left valign-top">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REVIEW_NOT_EMPTY</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">리뷰 아이디는 필수입니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REVIEW_DISPLAY_STATUS_NOT_EMPTY</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">리뷰 공개/비공개상태는 필수입니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REQUIRED_USER_ID</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">유저 아이디는 필수입니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REVIEW_NOT_FOUND</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">리뷰를 찾을 수 없습니다</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </div>
@@ -5439,7 +5971,7 @@ Content-Length: 1249
 <pre class="highlightjs highlight"><code class="language-none hljs">PUT /api/v1/likes</code></pre>
 </div>
 </div>
-<h4 id="_요청_파라미터_18" class="discrete">요청 파라미터</h4>
+<h4 id="_요청_파라미터_19" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -5502,7 +6034,7 @@ Content-Length: 1249
 </tr>
 </tbody>
 </table>
-<h4 id="_응답_파라미터_20" class="discrete">응답 파라미터</h4>
+<h4 id="_응답_파라미터_21" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -5566,12 +6098,56 @@ Content-Length: 1249
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:01.754856",
+    "serverResponseTime" : "2024-10-14T09:38:56.533078",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
 </div>
 </div>
+<h4 id="_error_code_9" class="discrete">Error Code</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">코드</th>
+<th class="tableblock halign-left valign-top">상태</th>
+<th class="tableblock halign-left valign-top">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REVIEW_NOT_EMPTY</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">리뷰 아이디는 필수입니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REVIEW_DISPLAY_STATUS_NOT_EMPTY</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">리뷰 공개/비공개상태는 필수입니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REQUIRED_USER_ID</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">유저 아이디는 필수입니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REVIEW_NOT_FOUND</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">리뷰를 찾을 수 없습니다</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </div>
@@ -5660,7 +6236,7 @@ Content-Length: 1249
 </tr>
 </tbody>
 </table>
-<h4 id="_요청_파라미터_19" class="discrete">요청 파라미터</h4>
+<h4 id="_요청_파라미터_20" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -5699,7 +6275,7 @@ Content-Length: 1249
 }</code></pre>
 </div>
 </div>
-<h4 id="_응답_파라미터_21" class="discrete">응답 파라미터</h4>
+<h4 id="_응답_파라미터_22" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -5770,13 +6346,13 @@ Content-Length: 1249
     "codeMessage" : "SUCCESS_REGISTER_REPLY",
     "message" : "성공적으로 댓글을 등록했습니다.",
     "reviewId" : 1,
-    "responseAt" : "2024-08-20 22:11:02"
+    "responseAt" : "2024-10-14 09:38:57"
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:02.856962",
+    "serverResponseTime" : "2024-10-14T09:38:57.076597",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -5803,7 +6379,7 @@ Content-Length: 1249
 <pre>DELETE /api/v1/review/reply/{reviewId}/{replyId}</pre>
 </div>
 </div>
-<h4 id="_요청_파라미터_20" class="discrete">요청 파라미터</h4>
+<h4 id="_요청_파라미터_21" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 1. /api/v1/review/reply/{reviewId}/{replyId}</caption>
 <colgroup>
@@ -5827,7 +6403,7 @@ Content-Length: 1249
 </tr>
 </tbody>
 </table>
-<h4 id="_응답_파라미터_22" class="discrete">응답 파라미터</h4>
+<h4 id="_응답_파라미터_23" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -5898,13 +6474,13 @@ Content-Length: 1249
     "codeMessage" : "SUCCESS_DELETE_REPLY",
     "message" : "성공적으로 댓글을 삭제했습니다.",
     "reviewId" : 1,
-    "responseAt" : "2024-08-20 22:11:02"
+    "responseAt" : "2024-10-14 09:38:56"
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:02.558011",
+    "serverResponseTime" : "2024-10-14T09:38:56.986172",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -5953,7 +6529,7 @@ Content-Length: 1249
 <pre>GET /api/v1/review/reply/{reviewId}</pre>
 </div>
 </div>
-<h4 id="_요청_파라미터_21" class="discrete">요청 파라미터</h4>
+<h4 id="_요청_파라미터_22" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 2. /api/v1/review/reply/{reviewId}</caption>
 <colgroup>
@@ -5995,7 +6571,7 @@ Content-Length: 1249
 </tr>
 </tbody>
 </table>
-<h4 id="_응답_파라미터_23" class="discrete">응답 파라미터</h4>
+<h4 id="_응답_파라미터_24" class="discrete">응답 파라미터</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -6075,7 +6651,7 @@ Content-Length: 1249
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.reviewReplies[].status</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">댓글 상태 (optional)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">댓글 상태</p></td>
 </tr>
 </tbody>
 </table>
@@ -6089,46 +6665,46 @@ Content-Length: 1249
     "reviewReplies" : [ {
       "userId" : 0,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "obfUfmAKmz",
+      "nickName" : "kzkJxglWZd",
       "reviewReplyId" : 0,
-      "reviewReplyContent" : "bMLuOCuIZkpxqPCNDdFKSPCZqLPrxSMKAdNEqHmmpgnLVwrmmzNrZLmdLiEgwfubVtPaZnFuzrSPqYXnqKtOhkjYjFzhZzggzypKnvFIeFbWsYLvXZMoJXCpIQdFplsFQFLOhDDGLtLyGzuKpQlrgy",
-      "subReplyCount" : 1,
+      "reviewReplyContent" : "TGHVZUCjKdVLwDdqFDVRxdBvwzIuqKlyDuTewsGNLAiWwNQZHDCTzCKWeLxKJCbfvCdnqZfttqEyxPsOfurqIVBabSOCFPzlCeOvqVbnBYVSojGisufNUEQzOuAizepvishlXOjdBOJlbCNzbjcsHn",
+      "subReplyCount" : 3,
       "status" : null,
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     }, {
       "userId" : 1,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "XlPedlGHNU",
+      "nickName" : "YqJlaFbVPX",
       "reviewReplyId" : 1,
-      "reviewReplyContent" : "REVMGAPfKSyDXzCRQBjxjYQPnOkDVpFWeEkDRLMYEDFfyGvYUJlTaypXUZttswQLcEWABQQZFXTsoVWTqEKPtObnCUyavNTrhsooHNvOfIaPWIKcQIyXiUjWIIojwQqpMcXdUmSNyMBkDuDfMqSJTQ",
-      "subReplyCount" : 3,
+      "reviewReplyContent" : "svdlgvPEuuynFLqKhZpNNuXfcHyMobpXbRzosenIhewcIiiEDXlJsFStBzHKBLEHVvpGSikOFoHjnmgomjFqxrfcDSEQEfcDsmwaMCwhUBvpSjNyRSZlkpAsdfcdbYaYifSeUabMZiakueZCKCnefp",
+      "subReplyCount" : 1,
       "status" : null,
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     }, {
       "userId" : 2,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "sDjEpmWOPb",
+      "nickName" : "foIlyRHreP",
       "reviewReplyId" : 2,
-      "reviewReplyContent" : "elxLlfXILNTOuTrvlTBEyabvmEqczjhogFXMZemTXwdUenKIDyDLrfxMqYtVOmENXVKJiSImDrqRjWzxomrfpFqdmZINjswVvPBcWhQxazHDotChcdRWkmZKSnhyZfsBvhMdcTNAIItUpIduVhZDdF",
-      "subReplyCount" : 4,
+      "reviewReplyContent" : "ZQOXPwsPTaoMlnevwBaTylxaoJEflPxIxtWYmEvIzTzdjxaFvLhxqBENRtUZfDyMKwSNvbgsAkKVXuKpbJNNaCjnwJUyImNnvrqAzRrqpLkbXMtosjbYnxQNVJzUWOFRschuKmmODpUmltFCGSxvQV",
+      "subReplyCount" : 3,
       "status" : null,
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     }, {
       "userId" : 3,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "dMmHuHbsFx",
+      "nickName" : "swlSLznbrI",
       "reviewReplyId" : 3,
-      "reviewReplyContent" : "OGviwRaXVKuNrXkmCunSeTrwlnCdqIltFJLdxyknNNqcEdjecmnyKMKUJxFQspAyGOHaLwKTBrwWkWEXDehzxTlHsiynFzHjITKBjTFXCzpFQaMDITaLtsPRFHXbUdymTaESAzWjSKnpyaksvUQIJo",
-      "subReplyCount" : 1,
+      "reviewReplyContent" : "hRFtnhjeSTAUvpBJtcfPegTHJKnhoADQjJsiQldrvbNxaAEFnEZLVJozZxwRvPeCzUwfGIkKhLipsJDtulhRQlwEgehHjZzGlBnSkmcmDvaoNCEEJPygCgDpLijPZAAEBGZUJkZSTkMhffVDKpcSCu",
+      "subReplyCount" : 2,
       "status" : null,
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     }, {
       "userId" : 4,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "trIRJSXznW",
+      "nickName" : "MlBRsDuEcR",
       "reviewReplyId" : 4,
-      "reviewReplyContent" : "ICYGbPQmGdDyVrRNBBhbbiVifaazcXecbmGTMJEuaqIjcaivwRTtoaopMalOskwgSeNtSOMhwkrBgReOdGJtenjamRhhIrqFrHBMeMwCVEkvtxFCwVhBmqDHCrmMFxVZVCVLMSgshDTxAvcvvpEhYs",
-      "subReplyCount" : 0,
+      "reviewReplyContent" : "iLxGyYTyFsHHAxswbHGowubKKipBiUpwUJrUMikeLYogaFSHlLYvGMOqMOWmvsMvwmWIdpCQPNaicgLuwsmMDhhJJXUojLetWzKHdBjNwFmWJUkaBYwhmTXULVuGzZujtRkRNhCijGfffOxOMaOFKo",
+      "subReplyCount" : 3,
       "status" : null,
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     } ]
@@ -6137,7 +6713,7 @@ Content-Length: 1249
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:02.735604",
+    "serverResponseTime" : "2024-10-14T09:38:57.035385",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -6220,7 +6796,7 @@ Content-Length: 1249
 </li>
 </ul>
 </div>
-<h4 id="_요청_파라미터_22" class="discrete">요청 파라미터</h4>
+<h4 id="_요청_파라미터_23" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 3. /api/v1/review/reply/{reviewId}/sub/{rootReplyId}</caption>
 <colgroup>
@@ -6276,7 +6852,7 @@ Content-Length: 1249
 </li>
 </ul>
 </div>
-<h4 id="_응답_파라미터_24" class="discrete">응답 파라미터</h4>
+<h4 id="_응답_파라미터_25" class="discrete">응답 파라미터</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -6385,45 +6961,45 @@ Content-Length: 1249
     "reviewReplies" : [ {
       "userId" : 123,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "hLWRJuRscQ",
+      "nickName" : "ZHEQOqzFSI",
       "rootReviewId" : 1,
       "parentReviewReplyId" : 1,
       "parentReviewReplyAuthor" : "@썩어가는망고",
       "reviewReplyId" : 1,
-      "reviewReplyContent" : "XDQADMncbFNpYthAayYfXAVSxADjFlUsFOUplVUNQSirtcDCPPIuzwCulgOmtfGitjIfyjkPpxAgeFeqLHEDZXcFJpjSvJhwpjmdOvReMhRoOGUDUGHKxtevgwHoCeYvsMHWzCMsmvvxEwjCUjAlyU",
+      "reviewReplyContent" : "RfpQOCGAIChDGSwRsKuECCNQhCOuuEAwzsuDWEWCJbiTzozkFXBrglWzzefAfdQTAiVxTzArMfhmIcyJYfRjlQHUesjyLVJhzqVXhvlhhzPLzNbOGgLnfhLXnvpSVMoihAKWXGnUYNgfRVQvIGzRKd",
       "status" : null,
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     }, {
       "userId" : 123,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "XiKCQqyGxy",
+      "nickName" : "xtbQTKlPZr",
       "rootReviewId" : 1,
       "parentReviewReplyId" : 1,
       "parentReviewReplyAuthor" : "@신선한반나나",
       "reviewReplyId" : 2,
-      "reviewReplyContent" : "lXwXXGjUaCXtXcZppyPflNuTzjGmKZLuguWeiXnTOmvtrGAXCTWtqTxZQPUUnqxzQEqeAOFtuHiUypnSGERbDSllFTITsUxdMrTnLyVexHGJeZBtNjSRMBwBvBfHzrLJEYRHPyVjCDdPFyutiBhxmG",
+      "reviewReplyContent" : "dvaqYbxIAOKOmKdRGjNcTOzfjRSQqpUHVXxuGNHDtOHmpJrgavbyOZUxGWQIvEypSQEjfYsyPQguORnBYaLnnHaNhxXikRWjnMFAKbxzTegirufduKCXrKiYYdeOhKjajZvrsaQYrTVsFKxcsLvakZ",
       "status" : null,
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     }, {
       "userId" : 123,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "RtvfduvdYQ",
+      "nickName" : "trBfExKUsS",
       "rootReviewId" : 1,
       "parentReviewReplyId" : 1,
       "parentReviewReplyAuthor" : "@신선한반나나",
       "reviewReplyId" : 3,
-      "reviewReplyContent" : "DozxjbXjUmvJdCfEDjhhegCxhrwoukEmkwgiWTvRhvHkYyzetJdMobuGzyLBrzKGDxgyefszSFLSmvxOBFRjteuJbAmFhnXJRCRZYsooBFYkacMQctnMmtwRDZYECDctkKGTnTkymeVURlkMVttxzc",
+      "reviewReplyContent" : "sUhEBXbQNsCWUnQcACGlwyeRPjSlyZZiUjNknrlFIUqAXbTShkRuppSLtAWJtIOVICXNVCsDPghoTNsGZoSLOqLnETevllhiJXzVQhxVctWSpVvLMdXxtcvpORGhrmScNRRjTjGKFDcKJOUIfHFBZM",
       "status" : null,
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     }, {
       "userId" : 123,
       "imageUrl" : "https://picsum.photos/500",
-      "nickName" : "hJFojtSjJo",
+      "nickName" : "RxyPtydIFS",
       "rootReviewId" : 1,
       "parentReviewReplyId" : 1,
       "parentReviewReplyAuthor" : "@썩어가는망고",
       "reviewReplyId" : 4,
-      "reviewReplyContent" : "tDrYSIufssjiFYRtQqHMxEfcRFBEmADtrdygdanWkAXIceUWYToCDxTyjNSyNphEIBjEemyrndiETfPHdWSpEobyOnXSpMftRouZPikWEqpVfIPfMIgCqMiRjFTxJPmmcWzCkuHQghOwnqEPkzGMxJ",
+      "reviewReplyContent" : "GspyUbmfMlWuLCFUJgTfSFTHNEeQkLikZUHFhqSybIZPiJgZjuhtVkvfbWZUTvwucTYPlkPBkMecKRkVfzGUBzXXwvAOZTdDUnSXUEkbYPjlPJaJdgIyIZSBhykZFtMmyzYZQAmeIZWKRzUudCWlku",
       "status" : null,
       "createAt" : [ 2024, 7, 11, 0, 0 ]
     } ]
@@ -6432,7 +7008,7 @@ Content-Length: 1249
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:02.788284",
+    "serverResponseTime" : "2024-10-14T09:38:57.053242",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -6495,10 +7071,10 @@ Content-Length: 1249
 <hr>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/user-report</code></pre>
+<pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/reports/user</code></pre>
 </div>
 </div>
-<h4 id="_요청_파라미터_23" class="discrete">요청 파라미터</h4>
+<h4 id="_요청_파라미터_24" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -6515,12 +7091,6 @@ Content-Length: 1249
 </tr>
 </thead>
 <tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>userId</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
-<td class="tableblock halign-left valign-top"></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">신고 유저 ID</p></td>
-</tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>reportUserId</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
@@ -6544,14 +7114,13 @@ Content-Length: 1249
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json">{
-  "userId" : 1,
   "reportUserId" : 2,
   "type" : "OTHER",
   "content" : "신고 내용 쏼라 쏼라 쏼라 "
 }</code></pre>
 </div>
 </div>
-<h4 id="_응답_파라미터_25" class="discrete">응답 파라미터</h4>
+<h4 id="_응답_파라미터_26" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -6638,7 +7207,7 @@ Content-Length: 1249
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:03.085591",
+    "serverResponseTime" : "2024-10-14T09:38:57.413564",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -6746,7 +7315,7 @@ Content-Length: 1249
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/help</code></pre>
 </div>
 </div>
-<h4 id="_요청_파라미터_24" class="discrete">요청 파라미터</h4>
+<h4 id="_요청_파라미터_25" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -6792,7 +7361,7 @@ Content-Length: 1249
 }</code></pre>
 </div>
 </div>
-<h4 id="_응답_파라미터_26" class="discrete">응답 파라미터</h4>
+<h4 id="_응답_파라미터_27" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -6848,18 +7417,720 @@ Content-Length: 1249
     "codeMessage" : "REGISTER_SUCCESS",
     "message" : "문의글 등록이 성공적으로 완료되었습니다",
     "helpId" : 1,
-    "responseAt" : "2024-08-20 22:11:02"
+    "responseAt" : "2024-10-14 09:38:57"
   },
   "errors" : [ ],
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:02.969902",
+    "serverResponseTime" : "2024-10-14T09:38:57.143528",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
 </div>
 </div>
+<h4 id="_error_code_10" class="discrete">Error code</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">코드</th>
+<th class="tableblock halign-left valign-top">상태</th>
+<th class="tableblock halign-left valign-top">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REQUIRED_USER_ID</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">유저 아이디가 필요합니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">TITLE_NOT_EMPTY</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">null입니다. 타이틀(제목)을 입력해주세요.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CONTENT_NOT_EMPTY</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">null입니다. 내용을 입력해주세요."</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REQUIRED_HELP_TYPE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의 유형은 필수입니다.(WHISKEY, REVIEW, USER, ETC)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_문의글_목록조회"><a class="link" href="#_문의글_목록조회">8.3. 문의글 목록조회</a></h3>
+<div class="paragraph">
+<p>사용자는 등록한 문의글의 목록을 조회할 수 있습니다.</p>
+</div>
+<div class="paragraph">
+<p>로그인 한 유저만 조회가 가능합니다.</p>
+</div>
+<div class="paragraph">
+<p>QueryParam으로 cursor와 pageSize를 전달하며, default 값은 cursor는 0, pageSize는 10입니다.</p>
+</div>
+<hr>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/help</code></pre>
+</div>
+</div>
+<h4 id="_응답_파라미터_28" class="discrete">응답 파라미터</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">path</th>
+<th class="tableblock halign-left valign-top">type</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>code</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 코드(http status code)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.totalCount</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">성공 메시지 코드</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.helpList[].helpId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의글 ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.helpList[].title</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의글 제목</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.helpList[].createAt</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의글 등록일시</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.pageable</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Object</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">페이징 정보</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.pageable.currentCursor</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">조회 시 기준 커서</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.pageable.cursor</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">다음 페이지 커서</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.pageable.pageSize</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">조회된 페이지 사이즈</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>meta.pageable.hasNext</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">다음 페이지 존재 여부</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json">{
+  "success" : true,
+  "code" : 200,
+  "data" : {
+    "totalCount" : 2,
+    "helpList" : [ {
+      "helpId" : 1,
+      "title" : "test1",
+      "createAt" : [ 2024, 10, 14, 9, 38, 57, 188027000 ]
+    }, {
+      "helpId" : 2,
+      "title" : "test2",
+      "createAt" : [ 2024, 10, 14, 9, 38, 57, 188034000 ]
+    } ]
+  },
+  "errors" : [ ],
+  "meta" : {
+    "serverVersion" : "1.0.0",
+    "serverEncoding" : "UTF-8",
+    "serverResponseTime" : "2024-10-14T09:38:57.201585",
+    "pageable" : {
+      "currentCursor" : 0,
+      "cursor" : 1,
+      "pageSize" : 2,
+      "hasNext" : false
+    },
+    "serverPathVersion" : "v1"
+  }
+}</code></pre>
+</div>
+</div>
+<h4 id="_error_code_11" class="discrete">Error Code</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">코드</th>
+<th class="tableblock halign-left valign-top">상태</th>
+<th class="tableblock halign-left valign-top">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REQUIRED_USER_ID</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">유저 아이디가 필요합니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HELP_NOT_FOUND</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의글을 찾을 수 없습니다.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_문의글_상세조회"><a class="link" href="#_문의글_상세조회">8.4. 문의글 상세조회</a></h3>
+<div class="paragraph">
+<p>사용자는 등록한 문의글 상세조회 할 수 있습니다.</p>
+</div>
+<div class="paragraph">
+<p>PathVariable로 문의글의 id를 전달합니다.</p>
+</div>
+<div class="paragraph">
+<p>로그인 한 유저만 조회가 가능합니다.</p>
+</div>
+<div class="paragraph">
+<p>존재하지 않는 문의글 id로 요청을 보낸 경우 HELP_NOT_FOUND 예외가 발생합니다.</p>
+</div>
+<hr>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/help/{helpId}</code></pre>
+</div>
+</div>
+<h4 id="_요청_파라미터_26" class="discrete">요청 파라미터</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>PathVariable로 문의글의 id를 전달합니다.</p>
+</li>
+</ul>
+</div>
+<h4 id="_응답_파라미터_29" class="discrete">응답 파라미터</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">path</th>
+<th class="tableblock halign-left valign-top">type</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>code</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 코드(http status code)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.helpId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의글 ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.title</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의글 제목</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.content</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의글 내용</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.helpType</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의글 타입</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.createAt</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의글 등록일시</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.adminId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">시스템 관리자 ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.responseContent</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">시스템 관리자 답변</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.lastModifyAt</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Array</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">최종 수정 일자</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json">{
+  "success" : true,
+  "code" : 200,
+  "data" : {
+    "helpId" : 1,
+    "title" : "title",
+    "content" : "content",
+    "helpType" : "USER",
+    "createAt" : [ 2024, 10, 14, 9, 38, 57, 158074000 ],
+    "adminId" : null,
+    "responseContent" : null,
+    "lastModifyAt" : [ 2024, 10, 14, 9, 38, 57, 158073000 ]
+  },
+  "errors" : [ ],
+  "meta" : {
+    "serverVersion" : "1.0.0",
+    "serverEncoding" : "UTF-8",
+    "serverResponseTime" : "2024-10-14T09:38:57.169856",
+    "serverPathVersion" : "v1"
+  }
+}</code></pre>
+</div>
+</div>
+<h4 id="_error_code_12" class="discrete">Error Code</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">코드</th>
+<th class="tableblock halign-left valign-top">상태</th>
+<th class="tableblock halign-left valign-top">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REQUIRED_USER_ID</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">유저 아이디가 필요합니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HELP_NOT_FOUND</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의글을 찾을 수 없습니다.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_문의글_수정"><a class="link" href="#_문의글_수정">8.5. 문의글 수정</a></h3>
+<div class="paragraph">
+<p>사용자는 등록한 문의글을 수정할 수 있습니다.</p>
+</div>
+<div class="paragraph">
+<p>수정하고자 하는 문의글 <code>제목</code>, <code>내용</code>, <code>타입</code> 은 null일 수 없습니다</p>
+</div>
+<div class="paragraph">
+<p>PathVariable로 문의글의 id를 전달합니다.</p>
+</div>
+<div class="paragraph">
+<p>존재하지 않는 문의글 id로 요청을 보낸 경우 HELP_NOT_FOUND 예외가 발생합니다.</p>
+</div>
+<div class="paragraph">
+<p>로그인 한 유저만 요청이 가능하며, 문의글의 작성자가 아닌 경우 HELP_NOT_AUTHORIZED 예외가 발생합니다.</p>
+</div>
+<hr>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">PATCH /api/v1/help/{helpId}</code></pre>
+</div>
+</div>
+<h4 id="_요청_파라미터_27" class="discrete">요청 파라미터</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">path</th>
+<th class="tableblock halign-left valign-top">type</th>
+<th class="tableblock halign-left valign-top">optional</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>title</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의글 제목</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>content</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의글 내용</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>type</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의글 타입  (WHISKEY, REVIEW, USER, ETC)</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json">{
+  "title" : "로그인이 안돼요",
+  "content" : "blah blah blah",
+  "type" : "USER"
+}</code></pre>
+</div>
+</div>
+<h4 id="_응답_파라미터_30" class="discrete">응답 파라미터</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">path</th>
+<th class="tableblock halign-left valign-top">type</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>code</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 코드(http status code)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.codeMessage</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">성공 메시지 코드</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.message</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">성공 메시지</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.helpId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의글 아이디</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.responseAt</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서버 응답 일시</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json">{
+  "success" : true,
+  "code" : 200,
+  "data" : {
+    "codeMessage" : "MODIFY_SUCCESS",
+    "message" : "문의글 수정이 성공적으로 완료되었습니다",
+    "helpId" : 1,
+    "responseAt" : "2024-10-14 09:38:57"
+  },
+  "errors" : [ ],
+  "meta" : {
+    "serverVersion" : "1.0.0",
+    "serverEncoding" : "UTF-8",
+    "serverResponseTime" : "2024-10-14T09:38:57.271394",
+    "serverPathVersion" : "v1"
+  }
+}</code></pre>
+</div>
+</div>
+<h4 id="_error_code_13" class="discrete">Error code</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">코드</th>
+<th class="tableblock halign-left valign-top">상태</th>
+<th class="tableblock halign-left valign-top">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REQUIRED_USER_ID</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">유저 아이디가 필요합니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">TITLE_NOT_EMPTY</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">null입니다. 타이틀(제목)을 입력해주세요.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CONTENT_NOT_EMPTY</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">null입니다. 내용을 입력해주세요."</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REQUIRED_HELP_TYPE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의 유형은 필수입니다.(WHISKEY, REVIEW, USER, ETC)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HELP_NOT_FOUND</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의글을 찾을 수 없습니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HELP_NOT_AUTHORIZED</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">UNAUTHORIZATION</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의글 수정/삭제 권한이 없습니다.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_문의글_삭제"><a class="link" href="#_문의글_삭제">8.6. 문의글 삭제</a></h3>
+<div class="paragraph">
+<p>사용자는 등록한 문의글을 삭제할 수 있습니다.</p>
+</div>
+<div class="paragraph">
+<p>물리적으로 삭제되는 것이 아닌 논리 삭제가 수행되며 status 컬럼이 DELETED로 변경됩니.</p>
+</div>
+<div class="paragraph">
+<p>PathVariable로 문의글의 id를 전달합니다.</p>
+</div>
+<div class="paragraph">
+<p>존재하지 않는 문의글 id로 요청을 보낸 경우 HELP_NOT_FOUND 예외가 발생합니다.</p>
+</div>
+<div class="paragraph">
+<p>로그인 한 유저만 요청이 가능하며, 문의글의 작성자가 아닌 경우 HELP_NOT_AUTHORIZED 예외가 발생합니다.</p>
+</div>
+<hr>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">PATCH /api/v1/help/{helpId}</code></pre>
+</div>
+</div>
+<h4 id="_요청_파라미터_28" class="discrete">요청 파라미터</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>PathVariable로 문의글의 id를 전달합니다.</p>
+</li>
+</ul>
+</div>
+<h4 id="_응답_파라미터_31" class="discrete">응답 파라미터</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">path</th>
+<th class="tableblock halign-left valign-top">type</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>success</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Boolean</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 성공 여부</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>code</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">응답 코드(http status code)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.codeMessage</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">성공 메시지 코드</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.message</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">성공 메시지</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.helpId</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의글 아이디</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>data.responseAt</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>String</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">서버 응답 일시</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-json hljs" data-lang="json">{
+  "success" : true,
+  "code" : 200,
+  "data" : {
+    "codeMessage" : "DELETE_SUCCESS",
+    "message" : "문의글 삭제가 성공적으로 완료되었습니다",
+    "helpId" : 1,
+    "responseAt" : "2024-10-14 09:38:57"
+  },
+  "errors" : [ ],
+  "meta" : {
+    "serverVersion" : "1.0.0",
+    "serverEncoding" : "UTF-8",
+    "serverResponseTime" : "2024-10-14T09:38:57.239786",
+    "serverPathVersion" : "v1"
+  }
+}</code></pre>
+</div>
+</div>
+<h4 id="_error_code_14" class="discrete">Error code</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">코드</th>
+<th class="tableblock halign-left valign-top">상태</th>
+<th class="tableblock halign-left valign-top">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REQUIRED_USER_ID</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">유저 아이디가 필요합니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">TITLE_NOT_EMPTY</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">null입니다. 타이틀(제목)을 입력해주세요.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CONTENT_NOT_EMPTY</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">null입니다. 내용을 입력해주세요."</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REQUIRED_HELP_TYPE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의 유형은 필수입니다.(WHISKEY, REVIEW, USER, ETC)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HELP_NOT_FOUND</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의글을 찾을 수 없습니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HELP_NOT_AUTHORIZED</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">UNAUTHORIZATION</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">문의글 수정/삭제 권한이 없습니다.</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </div>
@@ -6902,10 +8173,10 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/follow</code></pre>
 </div>
 </div>
-<h4 id="_요청_파라미터_25" class="discrete">요청 파라미터</h4>
+<h4 id="_요청_파라미터_29" class="discrete">요청 파라미터</h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/v1/follow?_csrf=sTgnVYdJWXX2PuwCkdLMG6y-Kk99Of1oznXVBJz7LZsbAYvUiQ8eN7N_bk3bDNUzpv_4fcmJBy5FX5lFr0ezMf6aGKJ6M-2y' -i -X POST \
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ curl 'http://localhost:8080/api/v1/follow?_csrf=dEicWpKTr33RpU1ZPOOjn9qqI9kOKnpN7R_FekQNQJ_RUi0HRnCtOfOgl0r8kXU6Cs6X-ruZDuFoSxlgiCbzS3Npd_vpZks1' -i -X POST \
     -H 'Content-Type: application/json;charset=UTF-8' \
     -d '{
   "followUserId" : 1,
@@ -6943,7 +8214,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 </tr>
 </tbody>
 </table>
-<h4 id="_응답_파라미터_27" class="discrete">응답 파라미터</h4>
+<h4 id="_응답_파라미터_32" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -6995,6 +8266,55 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 </tr>
 </tbody>
 </table>
+<h4 id="_error_code_15" class="discrete">Error Code</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">코드</th>
+<th class="tableblock halign-left valign-top">상태</th>
+<th class="tableblock halign-left valign-top">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">IS_NO_USER_ID_TO_FOLLOW</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">팔로우 할 유저의 아이디가 없습니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SELECT_FOLLOWING_OR_UNFOLLOW</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FOLLOWING, UNFOLLOW 중 하나를 선택해주세요.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">USER_NOT_FOUND</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NOT_FOUND</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">유저를 찾을 수 없습니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CANNOT_FOLLOW_SELF</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">자기 자신을 팔로우, 언팔로우 할 수 없습니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FOLLOW_NOT_FOUND</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NOT_FOUND</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">팔로우할 대상을 찾을 수 없습니다.</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="sect2">
 <h3 id="_팔로우팔로워_리스트_조회"><a class="link" href="#_팔로우팔로워_리스트_조회">9.2. 팔로우/팔로워 리스트 조회</a></h3>
@@ -7042,7 +8362,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/follower/{userId}</code></pre>
 </div>
 </div>
-<h4 id="_요청_파라미터_26" class="discrete">요청 파라미터</h4>
+<h4 id="_요청_파라미터_30" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -7065,7 +8385,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 </tr>
 </tbody>
 </table>
-<h4 id="_응답_파라미터_28" class="discrete">응답 파라미터</h4>
+<h4 id="_응답_파라미터_33" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -7194,7 +8514,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:01.535293",
+    "serverResponseTime" : "2024-10-14T09:38:56.460618",
     "pageable" : {
       "currentCursor" : null,
       "cursor" : 0,
@@ -7225,7 +8545,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/rating</code></pre>
 </div>
 </div>
-<h4 id="_요청_파라미터_27" class="discrete">요청 파라미터</h4>
+<h4 id="_요청_파라미터_31" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
@@ -7288,7 +8608,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 </li>
 </ul>
 </div>
-<h4 id="_응답_파라미터_29" class="discrete">응답 파라미터</h4>
+<h4 id="_응답_파라미터_34" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -7508,7 +8828,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:01.954022",
+    "serverResponseTime" : "2024-10-14T09:38:56.632539",
     "pageable" : {
       "currentCursor" : 0,
       "cursor" : 0,
@@ -7624,6 +8944,35 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 </li>
 </ul>
 </div>
+<h4 id="_error_code_16" class="discrete">Error Code</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">코드</th>
+<th class="tableblock halign-left valign-top">상태</th>
+<th class="tableblock halign-left valign-top">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REQUEST_USER_ID</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">요청한 유저 ID가 부적절합니다.</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="sect2">
 <h3 id="_유저의_별점_조회"><a class="link" href="#_유저의_별점_조회">10.2. 유저의 별점 조회</a></h3>
@@ -7676,7 +9025,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 <pre class="highlightjs highlight"><code class="language-none hljs">GET /api/v1/rating/{{alcoholId}}</code></pre>
 </div>
 </div>
-<h4 id="_요청_파라미터_28" class="discrete">요청 파라미터</h4>
+<h4 id="_요청_파라미터_32" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 4. /api/v1/rating/{alcoholId}</caption>
 <colgroup>
@@ -7696,7 +9045,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 </tr>
 </tbody>
 </table>
-<h4 id="_응답_파라미터_30" class="discrete">응답 파라미터</h4>
+<h4 id="_응답_파라미터_35" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -7752,7 +9101,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:02.019589",
+    "serverResponseTime" : "2024-10-14T09:38:56.659047",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
@@ -7772,7 +9121,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 <pre class="highlightjs highlight"><code class="language-none hljs">POST /api/v1/rating/register</code></pre>
 </div>
 </div>
-<h4 id="_요청_파라미터_29" class="discrete">요청 파라미터</h4>
+<h4 id="_요청_파라미터_33" class="discrete">요청 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 25%;">
@@ -7824,7 +9173,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 </li>
 </ul>
 </div>
-<h4 id="_응답_파라미터_31" class="discrete">응답 파라미터</h4>
+<h4 id="_응답_파라미터_36" class="discrete">응답 파라미터</h4>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
@@ -7874,12 +9223,61 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
   "meta" : {
     "serverVersion" : "1.0.0",
     "serverEncoding" : "UTF-8",
-    "serverResponseTime" : "2024-08-20T22:11:01.906004",
+    "serverResponseTime" : "2024-10-14T09:38:56.608928",
     "serverPathVersion" : "v1"
   }
 }</code></pre>
 </div>
 </div>
+<h4 id="_error_code_17" class="discrete">Error Code</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.</p>
+</li>
+</ul>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">코드</th>
+<th class="tableblock halign-left valign-top">상태</th>
+<th class="tableblock halign-left valign-top">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ALCOHOL_ID_REQUIRED</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">알코올 식별자는 필수입니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">RATING_REQUIRED</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">별점은 필수입니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REQUIRED_USER_ID</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BAD_REQUEST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">유저 아이디는 필수입니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">USER_NOT_FOUND</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NOT_FOUND</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">유저를 찾을 수 없습니다.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ALCOHOL_NOT_FOUND</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NOT_FOUND</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">리뷰 대상 알콜이 존재하지 않습니다.</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </div>
@@ -7887,7 +9285,7 @@ FOLLOWING, UNFOLLOWING 상태를 업데이트 합니다.</p>
 <div id="footer">
 <div id="footer-text">
 Version 0.0.1-SNAPSHOT<br>
-Last updated 2024-08-18 14:13:38 +0900
+Last updated 2024-10-11 10:34:08 +0900
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>
