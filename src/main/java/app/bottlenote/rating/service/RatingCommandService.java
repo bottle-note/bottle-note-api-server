@@ -18,8 +18,10 @@ import app.bottlenote.user.exception.UserExceptionCode;
 import jakarta.transaction.Transactional;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RatingCommandService {
@@ -45,15 +47,24 @@ public class RatingCommandService {
 		Alcohol alcohol = alcoholQueryRepository.findById(alcoholId)
 			.orElseThrow(() -> new RatingException(RatingExceptionCode.ALCOHOL_NOT_FOUND));
 
+		boolean isExistPrevRating = false;
+		RatingPoint prevRatingPoint = null;
+
+		// 기존 별점이 있는지 확인
 		Rating rating = ratingRepository.findByAlcoholIdAndUserId(alcoholId, userId)
-			.orElseGet(() -> Rating.builder()
+			.orElse(null);
+
+		if (rating == null) {
+			rating = Rating.builder()
 				.id(RatingId.is(userId, alcoholId))
 				.alcohol(alcohol)
 				.user(user)
 				.ratingPoint(ratingPoint)
-				.build()
-			);
-
+				.build();
+		} else {
+			isExistPrevRating = true;
+			prevRatingPoint = rating.getRatingPoint();
+		}
 		rating.registerRatingPoint(ratingPoint);
 		Rating save = ratingRepository.save(rating);
 
@@ -61,6 +72,7 @@ public class RatingCommandService {
 			RatingRegistryEvent.of(
 				rating.getId().getAlcoholId(),
 				rating.getId().getUserId(),
+				isExistPrevRating ? prevRatingPoint : null,
 				ratingPoint
 			)
 		);

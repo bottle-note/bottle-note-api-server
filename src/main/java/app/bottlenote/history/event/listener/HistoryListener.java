@@ -34,6 +34,7 @@ public class HistoryListener {
 			.eventType(event.eventType())
 			.redirectUrl(event.redirectUrl())
 			.imageUrl(event.imageUrl())
+			.message(event.message())
 			.dynamicMessage(event.dynamicMessage())
 			.eventYear(String.valueOf(LocalDateTime.now().getYear()))
 			.eventMonth(String.valueOf(LocalDateTime.now().getMonth()))
