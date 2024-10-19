@@ -35,10 +35,9 @@ public class DefaultAlcoholDomainSupport implements AlcoholDomainSupport {
 	}
 
 	@Override
-	public String findAlcoholImageUrlById(Long alcoholId) {
+	public Optional<String> findAlcoholImageUrlById(Long alcoholId) {
 		isValidAlcoholId(alcoholId);
 		return alcoholQueryRepository.findById(alcoholId)
-			.map(Alcohol::getImageUrl)
-			.orElseThrow(() -> new AlcoholException(ALCOHOL_NOT_FOUND));
+			.map(Alcohol::getImageUrl);
 	}
 }

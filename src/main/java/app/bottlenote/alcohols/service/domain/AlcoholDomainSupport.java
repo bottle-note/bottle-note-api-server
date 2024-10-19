@@ -36,5 +36,5 @@ public interface AlcoholDomainSupport {
 	 * @param alcoholId
 	 * @return Optional<String>
 	 */
-	String findAlcoholImageUrlById(Long alcoholId);
+	Optional<String> findAlcoholImageUrlById(Long alcoholId);
 }
