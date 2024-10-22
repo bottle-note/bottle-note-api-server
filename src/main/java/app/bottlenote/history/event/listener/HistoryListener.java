@@ -1,9 +1,11 @@
 package app.bottlenote.history.event.listener;
 
+import app.bottlenote.alcohols.service.domain.AlcoholDomainSupport;
 import app.bottlenote.history.domain.UserHistory;
 import app.bottlenote.history.domain.UserHistoryRepository;
 import app.bottlenote.history.dto.payload.HistoryEvent;
 import java.time.LocalDateTime;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -13,27 +15,27 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class HistoryListener {
 
+	private final AlcoholDomainSupport alcoholDomainSupport;
 	private final UserHistoryRepository userHistoryRepository;
-
-	public HistoryListener(UserHistoryRepository userHistoryRepository) {
-		this.userHistoryRepository = userHistoryRepository;
-	}
 
 	@Async
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	@TransactionalEventListener
-	public void registryReview(
+	public void registryUserHistory(
 		HistoryEvent event
 	) {
+		String alcoholImageUrl = alcoholDomainSupport.findAlcoholImageUrlById(event.alcoholId()).orElse(null);
+
 		UserHistory save = userHistoryRepository.save(UserHistory.builder()
 			.userId(event.userId())
 			.alcoholId(event.alcoholId())
 			.eventCategory(event.eventCategory())
 			.eventType(event.eventType())
 			.redirectUrl(event.redirectUrl())
-			.imageUrl(event.imageUrl())
+			.imageUrl(alcoholImageUrl)
 			.message(event.message())
 			.dynamicMessage(event.dynamicMessage())
 			.eventYear(String.valueOf(LocalDateTime.now().getYear()))

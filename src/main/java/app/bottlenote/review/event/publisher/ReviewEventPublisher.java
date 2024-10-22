@@ -1,6 +1,5 @@
 package app.bottlenote.review.event.publisher;
 
-import app.bottlenote.alcohols.service.domain.AlcoholDomainSupport;
 import app.bottlenote.history.domain.constant.EventCategory;
 import app.bottlenote.history.domain.constant.EventType;
 import app.bottlenote.history.dto.payload.HistoryEvent;
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ReviewEventPublisher {
 	private final ApplicationEventPublisher eventPublisher;
-	private final AlcoholDomainSupport alcoholDomainSupport;
 	private static final String REDIRECT_URL = "api/v1/reviews";
 	private static final String MESSAGE_CREATE = "리뷰 등록";
 	private static final String DESCRIPTION_CREATE = "리뷰가 등록되었습니다.";
@@ -28,7 +26,6 @@ public class ReviewEventPublisher {
 			EventCategory.REVIEW,
 			EventType.REVIEW_CREATE,
 			REDIRECT_URL,
-			alcoholDomainSupport.findAlcoholImageUrlById(registryEvent.alcoholId()).orElse(null),
 			registryEvent.alcoholId(),
 			MESSAGE_CREATE,
 			null,

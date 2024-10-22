@@ -1,6 +1,5 @@
 package app.bottlenote.rating.event.publihser;
 
-import app.bottlenote.alcohols.service.domain.AlcoholDomainSupport;
 import app.bottlenote.history.domain.constant.EventCategory;
 import app.bottlenote.history.domain.constant.EventType;
 import app.bottlenote.history.dto.payload.HistoryEvent;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Component;
 public class RatingEventPublisher {
 
 	private final ApplicationEventPublisher eventPublisher;
-	private final AlcoholDomainSupport alcoholDomainSupport;
 
 	private static final String REDIRECT_URL = "api/v1/rating";
 	private static final String MESSAGE = "별점 등록";
@@ -45,7 +43,6 @@ public class RatingEventPublisher {
 			EventCategory.RATING,
 			makeEventType(isUpdate, currentRatingPoint),
 			REDIRECT_URL,
-			alcoholDomainSupport.findAlcoholImageUrlById(ratingRegistryEvent.alcoholId()).orElse(null),
 			ratingRegistryEvent.alcoholId(),
 			MESSAGE,
 			isUpdate ? makeDynamicMessage(currentRatingPoint, prevRatingPoint) : Map.of("currentValue", currentRatingPoint),
