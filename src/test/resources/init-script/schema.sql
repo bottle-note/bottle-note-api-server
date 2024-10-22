@@ -242,6 +242,7 @@ CREATE TABLE `review`
     `id`             bigint         NOT NULL AUTO_INCREMENT COMMENT '술 리뷰',
     `user_id`        bigint         NOT NULL COMMENT '리뷰 작성자',
     `alcohol_id`     bigint         NOT NULL COMMENT '리뷰 대상 술',
+    `is_best`        boolean        NOT NULL DEFAULT FALSE COMMENT '베스트 리뷰 여부',
     `content`        varchar(1000)  NOT NULL COMMENT '1000글자',
     `size_type`      varchar(255)   NULL COMMENT '잔 : GLASS , 보틀 : BOTTLE',
     `price`          decimal(38, 2) NULL COMMENT '가격',
