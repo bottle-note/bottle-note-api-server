@@ -16,7 +16,7 @@ import static org.mockito.Mockito.when;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.support.help.domain.Help;
 import app.bottlenote.support.help.domain.constant.HelpType;
-import app.bottlenote.support.help.dto.request.HelpImageInfo;
+import app.bottlenote.support.help.dto.HelpImageInfo;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
 import app.bottlenote.support.help.dto.response.HelpDetailInfo;

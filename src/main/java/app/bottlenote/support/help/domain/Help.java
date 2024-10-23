@@ -3,7 +3,7 @@ package app.bottlenote.support.help.domain;
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.support.constant.StatusType;
 import app.bottlenote.support.help.domain.constant.HelpType;
-import app.bottlenote.support.help.dto.request.HelpImageInfo;
+import app.bottlenote.support.help.dto.HelpImageInfo;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;

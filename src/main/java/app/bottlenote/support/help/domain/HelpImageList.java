@@ -4,7 +4,7 @@ import static app.bottlenote.review.exception.ReviewExceptionCode.INVALID_IMAGE_
 
 import app.bottlenote.common.image.ImageInfo;
 import app.bottlenote.common.image.ImageUtil;
-import app.bottlenote.support.help.dto.request.HelpImageInfo;
+import app.bottlenote.support.help.dto.HelpImageInfo;
 import app.bottlenote.support.help.exception.HelpException;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Embeddable;
@@ -12,11 +12,13 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.annotations.Comment;
 
 @Embeddable
 @RequiredArgsConstructor
+@Getter
 public class HelpImageList {
 
 	@Comment("문의 이미지")

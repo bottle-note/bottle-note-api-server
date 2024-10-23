@@ -5,14 +5,13 @@ import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.support.constant.StatusType;
 import app.bottlenote.support.help.domain.Help;
 import app.bottlenote.support.help.domain.constant.HelpType;
-import app.bottlenote.support.help.dto.request.HelpImageInfo;
+import app.bottlenote.support.help.dto.HelpImageInfo;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
 import app.bottlenote.support.help.dto.response.HelpDetailInfo;
 import app.bottlenote.support.help.dto.response.HelpListResponse;
 import app.bottlenote.support.help.dto.response.HelpResultResponse;
 import app.bottlenote.support.help.dto.response.constant.HelpResultMessage;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -70,13 +69,17 @@ public class HelpObjectFixture {
 		return HelpListResponse.of((long) helpInfoList.size(), helpInfoList);
 	}
 
-	public static HelpDetailInfo getDetailHelpInfo(String title, String content, HelpType type){
+	public static HelpDetailInfo getDetailHelpInfo(String content, HelpType type) {
 		return HelpDetailInfo.builder()
 			.helpId(1L)
 			.responseContent(null)
+			.imageUrlList(
+				List.of(
+					HelpImageInfo.create(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")
+				)
+			)
 			.lastModifyAt(LocalDateTime.now())
 			.createAt(LocalDateTime.now())
-			.title(title)
 			.content(content)
 			.helpType(type)
 			.build();
