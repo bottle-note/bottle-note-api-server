@@ -5,6 +5,7 @@ import java.util.Optional;
 
 public interface AlcoholDomainSupport {
 
+
 	/**
 	 * AlcoholInfo를 반환하는 메서드입니다.
 	 *
@@ -28,4 +29,12 @@ public interface AlcoholDomainSupport {
 	 * @param alcoholId
 	 */
 	void isValidAlcoholId(Long alcoholId);
+
+	/**
+	 * Alcohol의 이미지 URL을 반환하는 메서드입니다.
+	 *
+	 * @param alcoholId
+	 * @return Optional<String>
+	 */
+	Optional<String> findAlcoholImageUrlById(Long alcoholId);
 }

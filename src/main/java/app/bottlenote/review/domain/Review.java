@@ -28,7 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static app.bottlenote.review.domain.event.ReviewReplyRegistryEvent.replyRegistryPublish;
+import static app.bottlenote.review.dto.payload.ReviewReplyRegistryEvent.replyRegistryPublish;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @Getter
@@ -164,4 +164,3 @@ public class Review extends BaseEntity {
 		return "Review{" + "id=" + id + ", userId=" + userId + ", alcoholId=" + alcoholId + ", content='" + content + '}';
 	}
 }
-

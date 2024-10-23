@@ -6,18 +6,22 @@ import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.rating.domain.RatingRepository;
+import app.bottlenote.rating.dto.payload.RatingRegistryEvent;
 import app.bottlenote.rating.dto.response.RatingRegisterResponse;
+import app.bottlenote.rating.event.publihser.RatingEventPublisher;
 import app.bottlenote.rating.exception.RatingException;
 import app.bottlenote.rating.exception.RatingExceptionCode;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserQueryRepository;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
+import jakarta.transaction.Transactional;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Objects;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RatingCommandService {
@@ -25,7 +29,9 @@ public class RatingCommandService {
 	private final RatingRepository ratingRepository;
 	private final UserQueryRepository userQueryRepository;
 	private final AlcoholQueryRepository alcoholQueryRepository;
+	private final RatingEventPublisher ratingEventPublisher;
 
+	@Transactional
 	public RatingRegisterResponse register(
 		Long alcoholId,
 		Long userId,
@@ -41,17 +47,35 @@ public class RatingCommandService {
 		Alcohol alcohol = alcoholQueryRepository.findById(alcoholId)
 			.orElseThrow(() -> new RatingException(RatingExceptionCode.ALCOHOL_NOT_FOUND));
 
+		boolean isExistPrevRating = false;
+		RatingPoint prevRatingPoint = null;
+
+		// 기존 별점이 있는지 확인
 		Rating rating = ratingRepository.findByAlcoholIdAndUserId(alcoholId, userId)
-			.orElseGet(() -> Rating.builder()
+			.orElse(null);
+
+		if (rating == null) {
+			rating = Rating.builder()
 				.id(RatingId.is(userId, alcoholId))
 				.alcohol(alcohol)
 				.user(user)
 				.ratingPoint(ratingPoint)
-				.build()
-			);
-
+				.build();
+		} else {
+			isExistPrevRating = true;
+			prevRatingPoint = rating.getRatingPoint();
+		}
 		rating.registerRatingPoint(ratingPoint);
 		Rating save = ratingRepository.save(rating);
+
+		ratingEventPublisher.ratingRegistry(
+			RatingRegistryEvent.of(
+				rating.getId().getAlcoholId(),
+				rating.getId().getUserId(),
+				isExistPrevRating ? prevRatingPoint : null,
+				ratingPoint
+			)
+		);
 
 		return RatingRegisterResponse.success(save);
 	}
