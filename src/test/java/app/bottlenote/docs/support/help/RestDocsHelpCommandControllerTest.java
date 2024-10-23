@@ -1,26 +1,5 @@
 package app.bottlenote.docs.support.help;
 
-import app.bottlenote.docs.AbstractRestDocs;
-import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.support.help.controller.HelpCommandController;
-import app.bottlenote.support.help.domain.constant.HelpType;
-import app.bottlenote.support.help.dto.request.HelpPageableRequest;
-import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
-import app.bottlenote.support.help.dto.response.HelpDetailInfo;
-import app.bottlenote.support.help.dto.response.HelpListResponse;
-import app.bottlenote.support.help.dto.response.HelpResultResponse;
-import app.bottlenote.support.help.fixture.HelpObjectFixture;
-import app.bottlenote.support.help.service.HelpService;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.springframework.http.MediaType;
-import org.springframework.restdocs.payload.JsonFieldType;
-
-import java.util.Optional;
-
 import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.DELETE_SUCCESS;
 import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.MODIFY_SUCCESS;
 import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
@@ -42,6 +21,26 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import app.bottlenote.docs.AbstractRestDocs;
+import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.support.help.controller.HelpCommandController;
+import app.bottlenote.support.help.domain.constant.HelpType;
+import app.bottlenote.support.help.dto.request.HelpPageableRequest;
+import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
+import app.bottlenote.support.help.dto.response.HelpDetailInfo;
+import app.bottlenote.support.help.dto.response.HelpListResponse;
+import app.bottlenote.support.help.dto.response.HelpResultResponse;
+import app.bottlenote.support.help.fixture.HelpObjectFixture;
+import app.bottlenote.support.help.service.HelpService;
+import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.springframework.http.MediaType;
+import org.springframework.restdocs.payload.JsonFieldType;
+
 @DisplayName("문의글 커맨드 컨트롤러 RestDocs용 테스트")
 class RestDocsHelpCommandControllerTest extends AbstractRestDocs {
 
@@ -50,7 +49,7 @@ class RestDocsHelpCommandControllerTest extends AbstractRestDocs {
 	private final MockedStatic<SecurityContextUtil> mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
 
 	private final PageResponse<HelpListResponse> helpPageResponse = HelpObjectFixture.getHelpListPageResponse();
-	private final HelpDetailInfo helpDetailInfo = HelpObjectFixture.getDetailHelpInfo("title", "content", HelpType.USER);
+	private final HelpDetailInfo helpDetailInfo = HelpObjectFixture.getDetailHelpInfo("content", HelpType.USER);
 	private final HelpUpsertRequest helpUpsertRequest = HelpObjectFixture.getHelpUpsertRequest();
 	private final HelpResultResponse successRegisterResponse = HelpObjectFixture.getSuccessHelpResponse(REGISTER_SUCCESS);
 	private final HelpResultResponse successModifyResponse = HelpObjectFixture.getSuccessHelpResponse(MODIFY_SUCCESS);
@@ -182,9 +181,10 @@ class RestDocsHelpCommandControllerTest extends AbstractRestDocs {
 							fieldWithPath("success").description("응답 성공 여부"),
 							fieldWithPath("code").description("응답 코드(http status code)"),
 							fieldWithPath("data.helpId").description("문의글 ID"),
-							fieldWithPath("data.title").description("문의글 제목").optional(),
 							fieldWithPath("data.content").description("문의글 내용"),
 							fieldWithPath("data.helpType").description("문의글 타입"),
+							fieldWithPath("data.imageUrlList[].order").type(JsonFieldType.NUMBER).description("이미지 순서"),
+							fieldWithPath("data.imageUrlList[].viewUrl").type(JsonFieldType.STRING).description("이미지 URL"),
 							fieldWithPath("data.createAt").description("문의글 등록일시"),
 							fieldWithPath("data.adminId").description("시스템 관리자 ID").optional(),
 							fieldWithPath("data.responseContent").description("시스템 관리자 답변").optional(),
