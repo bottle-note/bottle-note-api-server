@@ -8,6 +8,7 @@ import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_F
 
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.support.help.domain.Help;
+import app.bottlenote.support.help.dto.HelpImageInfo;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
 import app.bottlenote.support.help.dto.response.HelpDetailInfo;
@@ -105,6 +106,12 @@ public class HelpService {
 			.helpId(help.getId())
 			.content(help.getContent())
 			.helpType(help.getType())
+			.imageUrlList(
+				help.getHelpImageList().getHelpImages().stream()
+					.map(image -> HelpImageInfo.create(
+						image.getHelpimageInfo().getOrder(),
+						image.getHelpimageInfo().getImageUrl()))
+					.toList())
 			.createAt(help.getCreateAt())
 			.adminId(help.getAdminId())
 			.statusType(help.getStatus())

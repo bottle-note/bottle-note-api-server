@@ -1,4 +1,4 @@
-package app.bottlenote.support.help.dto.request;
+package app.bottlenote.support.help.dto;
 
 import jakarta.validation.constraints.NotNull;
 
