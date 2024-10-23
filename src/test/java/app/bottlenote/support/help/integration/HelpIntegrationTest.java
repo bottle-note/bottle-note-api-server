@@ -4,7 +4,7 @@ import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.support.help.domain.constant.HelpType;
-import app.bottlenote.support.help.dto.request.HelpImageInfo;
+import app.bottlenote.support.help.dto.HelpImageInfo;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
 import app.bottlenote.support.help.dto.response.HelpDetailInfo;
 import app.bottlenote.support.help.dto.response.HelpListResponse;
