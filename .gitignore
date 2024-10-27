@@ -45,4 +45,4 @@ out/
 build
 src/main/generated
 /src/test/resources/application-dev.yml
-fcm/
+fcm/service_account_credentials.json
