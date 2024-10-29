@@ -18,9 +18,17 @@ public class ReviewLocation {
 	@Column(name = "location_name")
 	private String name;
 
+	@Comment("우편 번호")
+	@Column(name = "zip_code")
+	private String zipCode;
+
 	@Comment("도로명 주소")
-	@Column(name = "street_address")
-	private String streetAddress;
+	@Column(name = "address")
+	private String address;
+
+	@Comment("상세 주소")
+	@Column(name = "detail_address")
+	private String detailAddress;
 
 	@Comment("카테고리")
 	@Column(name = "category")
@@ -39,9 +47,11 @@ public class ReviewLocation {
 	private String longitude;
 
 	@Builder
-	public ReviewLocation(String name, String streetAddress, String category, String mapUrl, String latitude, String longitude) {
+	public ReviewLocation(String name, String zipCode, String address, String detailAddress, String category, String mapUrl, String latitude, String longitude) {
 		this.name = name;
-		this.streetAddress = streetAddress;
+		this.zipCode = zipCode;
+		this.address = address;
+		this.detailAddress = detailAddress;
 		this.category = category;
 		this.mapUrl = mapUrl;
 		this.latitude = latitude;
@@ -49,12 +59,14 @@ public class ReviewLocation {
 	}
 
 	public void modifyReviewLocation(ReviewModifyVO reviewModifyVO){
-		this.name = reviewModifyVO.getLocationName();
-		this.streetAddress = reviewModifyVO.getStreetAddress();
-		this.category = reviewModifyVO.getCategory();
-		this.mapUrl = reviewModifyVO.getMapUrl();
-		this.latitude = reviewModifyVO.getLatitude();
-		this.longitude = reviewModifyVO.getLongitude();
+		this.name = reviewModifyVO.getLocationInfo().locationName();
+		this.zipCode = reviewModifyVO.getLocationInfo().zipCode();
+		this.address = reviewModifyVO.getLocationInfo().address();
+		this.detailAddress = reviewModifyVO.getLocationInfo().detailAddress();
+		this.category = reviewModifyVO.getLocationInfo().category();
+		this.mapUrl = reviewModifyVO.getLocationInfo().mapUrl();
+		this.latitude = reviewModifyVO.getLocationInfo().latitude();
+		this.longitude = reviewModifyVO.getLocationInfo().longitude();
 	}
 
 }
