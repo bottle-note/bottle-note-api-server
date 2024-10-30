@@ -2,11 +2,14 @@ package app.bottlenote.review.dto.vo;
 
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
+import app.bottlenote.review.dto.request.LocationInfo;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import java.math.BigDecimal;
 import java.util.Objects;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Getter
 public class ReviewModifyVO {
 
@@ -18,17 +21,7 @@ public class ReviewModifyVO {
 
 	private final SizeType sizeType;
 
-	private final String locationName;
-
-	private final String streetAddress;
-
-	private final String category;
-
-	private final String mapUrl;
-
-	private final String latitude;
-
-	private final String longitude;
+	private final LocationInfo locationInfo;
 
 	public ReviewModifyVO(ReviewModifyRequest reviewModifyRequest) {
 		this.content = reviewModifyRequest.content();
@@ -36,20 +29,10 @@ public class ReviewModifyVO {
 		this.price = reviewModifyRequest.price();
 		this.sizeType = reviewModifyRequest.sizeType();
 		if (Objects.isNull(reviewModifyRequest.locationInfo())) {
-			this.locationName = null;
-			this.streetAddress = null;
-			this.category = null;
-			this.mapUrl = null;
-			this.latitude = null;
-			this.longitude = null;
-		} else {
-			this.locationName = reviewModifyRequest.locationInfo().locationName();
-			this.streetAddress = reviewModifyRequest.locationInfo().streetAddress();
-			this.category = reviewModifyRequest.locationInfo().category();
-			this.mapUrl = reviewModifyRequest.locationInfo().mapUrl();
-			this.latitude = reviewModifyRequest.locationInfo().latitude();
-			this.longitude = reviewModifyRequest.locationInfo().longitude();
+			this.locationInfo = new LocationInfo(null, null, null, null, null, null, null, null);
+			return;
 		}
+		this.locationInfo = reviewModifyRequest.locationInfo();
 
 	}
 }

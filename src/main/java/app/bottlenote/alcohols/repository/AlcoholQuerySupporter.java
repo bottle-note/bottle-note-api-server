@@ -1,5 +1,11 @@
 package app.bottlenote.alcohols.repository;
 
+import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.picks.domain.PicksStatus.PICK;
+import static app.bottlenote.picks.domain.QPicks.picks;
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
+
 import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.domain.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
@@ -15,15 +21,9 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.util.StringUtils;
 import com.querydsl.jpa.JPAExpressions;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Objects;
-
-import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.picks.domain.QPicks.picks;
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.domain.QReview.review;
+import org.springframework.stereotype.Component;
 
 @Component
 public class AlcoholQuerySupporter {
@@ -49,15 +49,14 @@ public class AlcoholQuerySupporter {
 	}
 
 	public BooleanExpression isPickedSubquery(Long alcoholId, Long userId) {
-
-		BooleanExpression eqUserId = userId == null ?
-			picks.user.id.isNull() : picks.user.id.eq(userId);
-
+		if (userId == -1) {
+			return Expressions.asBoolean(false);
+		}
 		return Expressions.asBoolean(
 			JPAExpressions
 				.selectOne()
 				.from(picks)
-				.where(picks.alcohol.id.eq(alcoholId).and(eqUserId))
+				.where(picks.alcohol.id.eq(alcoholId).and(picks.user.id.eq(userId)).and(picks.status.eq(PICK)))
 				.exists()
 		).as("isPicked");
 	}

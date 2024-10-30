@@ -5,6 +5,7 @@ import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
 import lombok.Builder;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,8 +35,9 @@ public record ReviewDetailResponse(
 		Double rating,
 
 		String locationName,
-		String streetAddress,
-		//TODO : Enum으로 관리 필요
+		String zipCode,
+		String address,
+		String detailAddress,
 		String category,
 		String mapUrl,
 		String latitude,

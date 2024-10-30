@@ -41,6 +41,7 @@ public enum ValidExceptionCode implements ExceptionCode {
 	REVIEW_CONTENT_MAXIMUM(HttpStatus.BAD_REQUEST, "리뷰 내용의 최대 글자수를 초과했습니다."),
 	PRICE_MINIMUM(HttpStatus.BAD_REQUEST, "가격은 0원 이상이어야 합니다."),
 	PRICE_MAXIMUM(HttpStatus.BAD_REQUEST, "입력할 수 있는 가격의 범위가 아닙니다."),
+	INVALID_ZIP_CODE_PATTERN(HttpStatus.BAD_REQUEST, "우편번호는 숫자 5자리 형식입니다."),
 
 	// FOLLOW,
 	IS_NO_USER_ID_TO_FOLLOW(HttpStatus.BAD_REQUEST, "팔로우 할 유저의 아이디가 없습니다."),

@@ -1,5 +1,12 @@
 package app.bottlenote.review.service;
 
+import static app.bottlenote.review.domain.constant.ReviewActiveStatus.DELETED;
+import static app.bottlenote.review.domain.constant.ReviewDisplayStatus.PUBLIC;
+import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.PRIVATE_SUCCESS;
+import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.PUBLIC_SUCCESS;
+import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
+
 import app.bottlenote.alcohols.dto.response.AlcoholInfo;
 import app.bottlenote.alcohols.service.domain.AlcoholDomainSupport;
 import app.bottlenote.global.service.cursor.PageResponse;
@@ -20,19 +27,11 @@ import app.bottlenote.review.dto.response.constant.ReviewResultMessage;
 import app.bottlenote.review.dto.vo.ReviewModifyVO;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.user.service.domain.UserDomainSupport;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-
-import static app.bottlenote.review.domain.constant.ReviewActiveStatus.DELETED;
-import static app.bottlenote.review.domain.constant.ReviewDisplayStatus.PUBLIC;
-import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.MODIFY_SUCCESS;
-import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.PRIVATE_SUCCESS;
-import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.PUBLIC_SUCCESS;
-import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 
 @Slf4j
 @Service
@@ -64,7 +63,9 @@ public class ReviewService {
 			.content(reviewCreateRequest.content())
 			.reviewLocation(ReviewLocation.builder()
 				.name(reviewCreateRequest.locationInfo().locationName())
-				.streetAddress(reviewCreateRequest.locationInfo().streetAddress())
+				.zipCode(reviewCreateRequest.locationInfo().zipCode())
+				.address(reviewCreateRequest.locationInfo().address())
+				.detailAddress(reviewCreateRequest.locationInfo().detailAddress())
 				.category(reviewCreateRequest.locationInfo().category())
 				.mapUrl(reviewCreateRequest.locationInfo().mapUrl())
 				.latitude(reviewCreateRequest.locationInfo().latitude())
