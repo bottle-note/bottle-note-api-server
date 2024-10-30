@@ -15,16 +15,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class NotificationController {
 
-	private final FcmTriggerService fcmTriggerService;
+	private final PushHandler pushHandler;
 
 	@GetMapping
-	public ResponseEntity<?> getNoti(
-		@RequestParam(value = "fcmToken", defaultValue = "null") String fcmToken,
+	public ResponseEntity<String> getNoti(
 		@RequestParam(value = "message", defaultValue = "푸시 메시지") String message
 	) {
-		String fcmTestTitle = fcmTriggerService.sendMessage(fcmToken, "FCM Test Title", message);
-
-		return ResponseEntity.ok(fcmTestTitle);
+		pushHandler.sendPush(1L, message);
+		return ResponseEntity.ok("Ok");
 	}
 
 }
