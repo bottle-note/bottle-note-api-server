@@ -3,11 +3,12 @@ package app.bottlenote.review.dto.response;
 import app.bottlenote.alcohols.dto.response.AlcoholInfo;
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
+import app.bottlenote.review.dto.request.LocationInfo;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
-import lombok.Builder;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import lombok.Builder;
 
 public record ReviewDetailResponse(
 	AlcoholInfo alcoholInfo,
@@ -33,13 +34,7 @@ public record ReviewDetailResponse(
 		String userProfileImage,
 		Double rating,
 
-		String locationName,
-		String streetAddress,
-		//TODO : Enum으로 관리 필요
-		String category,
-		String mapUrl,
-		String latitude,
-		String longitude,
+		LocationInfo locationInfo,
 
 		ReviewDisplayStatus status,
 

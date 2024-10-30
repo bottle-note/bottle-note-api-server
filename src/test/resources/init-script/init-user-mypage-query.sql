@@ -316,28 +316,30 @@ values ('라이터스 티얼즈 레드 헤드', 'Writers'' Tears Red Head', '46'
         '2024-06-08 05:06:00', 'admin', '2024-06-08 05:06:00', 'admin');
 
 -- review 테이블에 데이터 삽입
-insert into review (user_id, alcohol_id, content, size_type, price,  location_name, street_address, category, map_url, latitude, longitude,
-                    status, image_url, view_count, active_status, create_at, create_by, last_modify_at,
-                    last_modify_by)
-values (2, 1, '식별자 1번 임의리 리뷰', 'GLASS', 20000.00,'xxPub', '서울시 청담동', 'bar','xxx@example.com','12.123','12.123',
-        'PUBLIC','https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1', null, 'ACTIVE', '2024-06-08 16:24:01', null,
-        '2024-06-14 20:44:58', null),
-       (2, 1, '식별자 2번 임의리 리뷰입니다.', 'GLASS', 20000.00, 'xxPub', '서울시 청담동', 'bar','xxx@example.com','12.123','12.123',
-        'PUBLIC','https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1', null, 'ACTIVE', '2024-06-08 16:24:01', null,
-        '2024-06-14 20:44:58', null),
-       (2, 1, '맛있게 잘 먹었습니다. ', 'GLASS', 20000.00, 'xxPub', '서울시 청담동', 'bar','xxx@example.com','12.123','12.123',
-        'PRIVATE','https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1', null, 'ACTIVE', '2024-06-24 00:57:37', null,
-        '2024-06-24 00:54:48', null),
-       (2, 4, '맛있게 잘 먹었습니다.ggg ', 'GLASS', 20000.00, 'xxPub', '서울시 청담동', 'bar','xxx@example.com','12.123','12.123',
-        'PUBLIC','https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1', null, 'ACTIVE', '2024-06-24 23:13:50', null,
-        '2024-06-24 23:13:50', null),
-       (4, 4, '역시 맛났다!!.......', 'BOTTLE', 12000.00,'xxPub', '서울시 청담동', 'bar','xxx@example.com','12.123','12.123',
-        'PUBLIC','https://dzjkrmkt5t4bn.cloudfront.net/review/20240706/1-555b4ba6-7b02-4ecf-8085-b51d307c6113.jpg', null,
-        'DELETED', '2024-07-07 00:41:30', null, '2024-07-11 21:30:57', null),
-       (4, 4, '역시 맛났다!!', 'GLASS', 12000.00,'xxPub', '서울시 청담동', 'bar','xxx@example.com','12.123','12.123',
-        'PUBLIC','https://dzjkrmkt5t4bn.cloudfront.net/review/20240706/1-e4c5ea21-8161-44ab-8dcc-8112b2635342.jpg', null,
-        'DELETED', '2024-07-07 00:42:06', null, '2024-07-11 21:36:43', null); ;
-
+INSERT INTO review
+(id, user_id, alcohol_id, is_best, content, size_type, price, location_name, zip_code, address,
+ detail_address, category, map_url, latitude, longitude, status,
+ image_url, view_count, active_status, create_at, create_by, last_modify_at, last_modify_by)
+VALUES (1, 3, 1, true, '이 위스키는 풍부하고 복잡한 맛이 매력적입니다.', 'BOTTLE', 65000, 'xxPub', '06000',
+        '서울시 강남구 청담동', 'xxPub 청담점', 'bar', 'https://maps.example.com/map1', '12.123', '12.123',
+        'PUBLIC', 'https://example.com/image01.jpg', NULL, 'ACTIVE', '2024-05-05 12:00:00', NULL,
+        NULL, NULL),
+       (2, 4, 1, false, '가벼우면서도 깊은 맛이 느껴지는 위스키입니다.', 'GLASS', 45000, 'xxPub', '06000',
+        '서울시 강남구 청담동', 'xxPub 청담점', 'bar', 'https://maps.example.com/map2', '12.123', '12.123',
+        'PUBLIC', 'https://example.com/image02.jpg', NULL, 'ACTIVE', '2024-05-02 13:00:00', NULL,
+        NULL, NULL),
+       (3, 1, 1, false, '향기로운 바닐라 향이 나는 부드러운 위스키입니다.', 'BOTTLE', 77000, 'xxPub', '06000',
+        '서울시 강남구 청담동', 'xxPub 청담점', 'bar', 'https://maps.example.com/map3', '12.123', '12.123',
+        'PUBLIC', 'https://example.com/image03.jpg', NULL, 'ACTIVE', '2024-05-16 14:30:00', NULL,
+        NULL, NULL),
+       (4, 2, 2, false, '스모키하고 강한 페트 향이 인상적인 위스키입니다.', 'BOTTLE', 120000, 'xxPub', '06000',
+        '서울시 강남구 청담동', 'xxPub 청담점', 'bar', 'https://maps.example.com/map4', '12.123', '12.123',
+        'PUBLIC', 'https://example.com/image04.jpg', NULL, 'ACTIVE', '2024-05-01 15:45:00', NULL,
+        NULL, NULL),
+       (5, 5, 2, false, '달콤한 캐러멜과 과일 향이 조화를 이루는 맛있습니다.', 'GLASS', 99000, 'xxPub', '06000',
+        '서울시 강남구 청담동', 'xxPub 청담점', 'bar', 'https://maps.example.com/map5', '12.123', '12.123',
+        'PUBLIC', 'https://example.com/image05.jpg', NULL, 'ACTIVE', '2024-05-08 16:00:00', NULL,
+        NULL, NULL);
 
 
 insert into follow (user_id, follow_user_id, status, create_at, last_modify_at)
