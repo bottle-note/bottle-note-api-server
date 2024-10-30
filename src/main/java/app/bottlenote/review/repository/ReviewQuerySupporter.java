@@ -1,11 +1,5 @@
 package app.bottlenote.review.repository;
 
-import static app.bottlenote.like.domain.QLikes.likes;
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.domain.QReview.review;
-import static app.bottlenote.review.domain.QReviewReply.reviewReply;
-import static app.bottlenote.user.domain.QUser.user;
-
 import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
@@ -17,10 +11,17 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
+import org.springframework.stereotype.Component;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
-import org.springframework.stereotype.Component;
+
+import static app.bottlenote.like.domain.QLikes.likes;
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
+import static app.bottlenote.review.domain.QReviewReply.reviewReply;
+import static app.bottlenote.user.domain.QUser.user;
 
 @Component
 public class ReviewQuerySupporter {
@@ -105,7 +106,7 @@ public class ReviewQuerySupporter {
 			user.nickName.as("nickName"),
 			user.imageUrl.as("userProfileImage"),
 			ratingSubquery(),
-			review.reviewLocation.name.as("name"),
+			review.reviewLocation.name.as("locationName"),
 			review.reviewLocation.zipCode.as("zipCode"),
 			review.reviewLocation.address.as("address"),
 			review.reviewLocation.detailAddress.as("detailAddress"),
