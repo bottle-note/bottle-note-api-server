@@ -1,5 +1,27 @@
 package app.bottlenote.docs.review;
 
+import app.bottlenote.docs.AbstractRestDocs;
+import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.review.controller.ReviewController;
+import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
+import app.bottlenote.review.dto.request.ReviewModifyRequest;
+import app.bottlenote.review.dto.request.ReviewStatusChangeRequest;
+import app.bottlenote.review.dto.response.ReviewDetailResponse;
+import app.bottlenote.review.dto.response.ReviewListResponse;
+import app.bottlenote.review.dto.response.ReviewResultResponse;
+import app.bottlenote.review.fixture.ReviewObjectFixture;
+import app.bottlenote.review.service.ReviewService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.springframework.http.MediaType;
+import org.springframework.restdocs.payload.JsonFieldType;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+import java.util.Optional;
+
 import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.DELETE_SUCCESS;
 import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.MODIFY_SUCCESS;
 import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.PRIVATE_SUCCESS;
@@ -21,26 +43,6 @@ import static org.springframework.restdocs.request.RequestDocumentation.paramete
 import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import app.bottlenote.docs.AbstractRestDocs;
-import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.review.controller.ReviewController;
-import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
-import app.bottlenote.review.dto.request.ReviewModifyRequest;
-import app.bottlenote.review.dto.request.ReviewStatusChangeRequest;
-import app.bottlenote.review.dto.response.ReviewDetailResponse;
-import app.bottlenote.review.dto.response.ReviewListResponse;
-import app.bottlenote.review.dto.response.ReviewResultResponse;
-import app.bottlenote.review.fixture.ReviewObjectFixture;
-import app.bottlenote.review.service.ReviewService;
-import java.util.Optional;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 @DisplayName("[restdocs] 리뷰 컨트롤러 RestDocs용 테스트")
 class RestReviewControllerDocsTest extends AbstractRestDocs {
@@ -214,14 +216,15 @@ class RestReviewControllerDocsTest extends AbstractRestDocs {
 						fieldWithPath("data.reviewResponse.nickName").description("닉네임"),
 						fieldWithPath("data.reviewResponse.userProfileImage").description("사용자 프로필 이미지 URL"),
 						fieldWithPath("data.reviewResponse.rating").description("평점"),
-						fieldWithPath("data.reviewResponse.locationName").description("상호명 "),
-						fieldWithPath("data.reviewResponse.zipCode").description("우편번호").optional(),
-						fieldWithPath("data.reviewResponse.address").description("주소").optional(),
-						fieldWithPath("data.reviewResponse.detailAddress").description("상세 주소").optional(),
-						fieldWithPath("data.reviewResponse.category").description("카테고리"),
-						fieldWithPath("data.reviewResponse.mapUrl").description("지도 URL"),
-						fieldWithPath("data.reviewResponse.latitude").description("위도(x좌표)"),
-						fieldWithPath("data.reviewResponse.longitude").description("경도(y좌표)"),
+						fieldWithPath("data.reviewResponse.locationInfo").description("리뷰 위치 정보").optional(),
+						fieldWithPath("data.reviewResponse.locationInfo.locationName").type(JsonFieldType.STRING).description("상호명").optional(),
+						fieldWithPath("data.reviewResponse.locationInfo.zipCode").type(JsonFieldType.STRING).description("우편번호").optional(),
+						fieldWithPath("data.reviewResponse.locationInfo.address").type(JsonFieldType.STRING).description("주소").optional(),
+						fieldWithPath("data.reviewResponse.locationInfo.detailAddress").type(JsonFieldType.STRING).description("상세 주소").optional(),
+						fieldWithPath("data.reviewResponse.locationInfo.category").type(JsonFieldType.STRING).description("카테고리").optional(),
+						fieldWithPath("data.reviewResponse.locationInfo.mapUrl").type(JsonFieldType.STRING).description("지도 URL").optional(),
+						fieldWithPath("data.reviewResponse.locationInfo.latitude").type(JsonFieldType.NUMBER).description("위도(x좌표)").optional(),
+						fieldWithPath("data.reviewResponse.locationInfo.longitude").type(JsonFieldType.NUMBER).description("경도(y좌표)").optional(),
 						fieldWithPath("data.reviewResponse.status").description("리뷰 상태"),
 						fieldWithPath("data.reviewResponse.isMyReview").description("내 리뷰 여부"),
 						fieldWithPath("data.reviewResponse.isLikedByMe").description("내가 좋아요를 눌렀는지 여부"),
