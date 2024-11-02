@@ -1,4 +1,4 @@
-package app.external.push;
+package app.external.push.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

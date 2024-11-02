@@ -1,4 +1,4 @@
-package app.external.push;
+package app.external.push.config;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
