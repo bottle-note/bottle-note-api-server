@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -20,6 +21,7 @@ import app.bottlenote.alcohols.service.domain.AlcoholDomainSupport;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewRepository;
+import app.bottlenote.review.dto.payload.ReviewRegistryEvent;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
@@ -28,6 +30,7 @@ import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
+import app.bottlenote.review.event.publisher.ReviewEventPublisher;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
@@ -55,6 +58,8 @@ class ReviewServiceTest {
 	@Mock
 	private UserDomainSupport userDomainSupport;
 	@Mock
+	private ReviewEventPublisher reviewEventPublisher;
+	@Mock
 	private ReviewImageSupport reviewImageSupport;
 	@Mock
 	private ReviewTastingTagSupport reviewTastingTagSupport;
@@ -80,7 +85,8 @@ class ReviewServiceTest {
 		@DisplayName("리뷰를 등록할 수 있다.")
 		void review_create_success() {
 			//given
-
+			doNothing().when(userDomainSupport).isValidUserId(anyLong());
+			doNothing().when(reviewEventPublisher).reviewRegistry(any(ReviewRegistryEvent.class));
 			//when
 			when(reviewRepository.save(any(Review.class)))
 				.thenReturn(review);
@@ -186,8 +192,6 @@ class ReviewServiceTest {
 
 			//when
 			when(reviewRepository.findByIdAndUserId(anyLong(), anyLong())).thenReturn(Optional.of(review));
-
-			System.out.println("reviewModifyRequest = " + reviewModifyRequest.locationInfo());
 
 			reviewService.modifyReview(reviewModifyRequest, 1L, 1L);
 

@@ -1,6 +1,6 @@
 package app.bottlenote.review.domain;
 
-import static app.bottlenote.review.domain.event.ReviewReplyRegistryEvent.replyRegistryPublish;
+import static app.bottlenote.review.dto.payload.ReviewReplyRegistryEvent.replyRegistryPublish;
 
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.review.domain.constant.ReviewActiveStatus;

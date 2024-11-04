@@ -1,8 +1,13 @@
 package app.bottlenote.global.security;
 
+import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
+
 import app.bottlenote.global.security.jwt.JwtAuthenticationEntryPoint;
 import app.bottlenote.global.security.jwt.JwtAuthenticationFilter;
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
+import jakarta.annotation.PostConstruct;
+import java.util.Arrays;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,16 +16,12 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
-import java.util.List;
-
-import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 @Configuration
 @EnableWebSecurity
@@ -29,6 +30,11 @@ public class SecurityConfig {
 
 	private final JwtAuthenticationManager jwtAuthenticationManager;
 	private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
+	@PostConstruct
+	public void setup() {
+		SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
+	}
 
 	/**
 	 * 세션 메서드 참조를 위한 참조 메서드
