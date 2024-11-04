@@ -1,10 +1,17 @@
 package app.bottlenote.review.dto.request;
 
+import jakarta.validation.constraints.Pattern;
+
 public record LocationInfo(
 
 	String locationName,
 
-	String streetAddress,
+	@Pattern(regexp = "^\\d{5}$", message = "INVALID_ZIP_CODE_PATTERN")
+	String zipCode,
+
+	String address,
+
+	String detailAddress,
 
 	String category,
 
