@@ -1,5 +1,13 @@
 package app.bottlenote.rating.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholQueryRepository;
@@ -8,6 +16,7 @@ import app.bottlenote.rating.domain.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.rating.domain.RatingRepository;
 import app.bottlenote.rating.dto.response.RatingRegisterResponse;
+import app.bottlenote.rating.event.publihser.RatingEventPublisher;
 import app.bottlenote.rating.exception.RatingException;
 import app.bottlenote.rating.fixture.InMemoryRatingRepository;
 import app.bottlenote.user.domain.User;
@@ -20,11 +29,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 
 @Tag("unit")
 @DisplayName("[unit] [service] RatingCommandService")
@@ -33,6 +37,7 @@ class RatingCommandServiceTest {
 	private final Long alcoholId = 1L;
 	private RatingRepository ratingRepository;
 	private RatingCommandService ratingCommandService;
+	private RatingEventPublisher ratingEventPublisher;
 	private User user;
 	private Alcohol alcohol;
 
@@ -41,8 +46,9 @@ class RatingCommandServiceTest {
 		this.ratingRepository = new InMemoryRatingRepository();
 		UserQueryRepository userQueryRepository = new InMemoryUserQueryRepository();
 		AlcoholQueryRepository alcoholQueryRepository = new InMemoryAlcoholQueryRepository();
+		ratingEventPublisher = mock(RatingEventPublisher.class);
 
-		this.ratingCommandService = new RatingCommandService(ratingRepository, userQueryRepository, alcoholQueryRepository);
+		this.ratingCommandService = new RatingCommandService(ratingRepository, userQueryRepository, alcoholQueryRepository, ratingEventPublisher);
 
 		user = User.builder().id(userId).build();
 		alcohol = Alcohol.builder().id(alcoholId).build();
@@ -59,6 +65,7 @@ class RatingCommandServiceTest {
 		void test_1() {
 			//given
 			RatingPoint ratingPoint = RatingPoint.of(5);
+			doNothing().when(ratingEventPublisher).ratingRegistry(any());
 			//when
 			RatingRegisterResponse register = ratingCommandService.register(alcoholId, userId, ratingPoint);
 			//then
