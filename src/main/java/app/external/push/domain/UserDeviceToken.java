@@ -59,4 +59,8 @@ public class UserDeviceToken {
 	@Comment("수정일시")
 	@Column(name = "last_modify_at", nullable = false)
 	private LocalDateTime lastModifyAt = LocalDateTime.now();
+
+	public void updateModifiedAt() {
+		this.lastModifyAt = LocalDateTime.now();
+	}
 }
