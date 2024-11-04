@@ -104,7 +104,10 @@ include::api/user/user-withdraw.adoc[]
 '''
 include::api/user/user-mypage.adoc[]
 '''
+
 include::api/user/user-mybottle.adoc[]
+'''
+include::api/external/push/device-token.adoc[]
 '''
 
 == 술 (alcohol) 관련 API
