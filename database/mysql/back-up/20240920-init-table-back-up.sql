@@ -1,8 +1,3 @@
--- 데이터 베이스 기본설정
-ALTER DATABASE dev_bottle_note -- 데이터베이스 이름
-    DEFAULT CHARACTER SET utf8mb4
-    DEFAULT COLLATE utf8mb4_unicode_ci;
-
 CREATE TABLE `region`
 (
     `id`             bigint       NOT NULL AUTO_INCREMENT COMMENT '국가',
@@ -15,7 +10,9 @@ CREATE TABLE `region`
     `last_modify_at` timestamp    NULL COMMENT '최종 생성일',
     `last_modify_by` varchar(255) NULL COMMENT '최종 생성자',
     PRIMARY KEY (`id`)
-) COMMENT = '국가';
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '국가';
 
 CREATE TABLE `distillery`
 (
@@ -28,7 +25,9 @@ CREATE TABLE `distillery`
     `last_modify_at` timestamp    NULL COMMENT '최종 생성일',
     `last_modify_by` varchar(255) NULL COMMENT '최종 생성자',
     PRIMARY KEY (`id`)
-) COMMENT = '증류소';
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '증류소';
 
 CREATE TABLE `alcohol`
 (
@@ -52,7 +51,9 @@ CREATE TABLE `alcohol`
     PRIMARY KEY (`id`),
     FOREIGN KEY (`region_id`) REFERENCES `region` (`id`),
     FOREIGN KEY (`distillery_id`) REFERENCES `distillery` (`id`)
-) COMMENT = '술';
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '술';
 
 CREATE TABLE `users`
 (
@@ -63,15 +64,17 @@ CREATE TABLE `users`
     `image_url`      varchar(255) NULL COMMENT '사용자 프로필 이미지',
     `gender`         varchar(255) NULL COMMENT '사용자 성별',
     `role`           varchar(255) NOT NULL COMMENT '사용자 역할' DEFAULT 'GUEST',
-    `status`         varchar(255) NOT NULL COMMENT '사용자 상태',
-    `social_type`    json         NOT NULL COMMENT '소셜 타입 ( NAVER  ,GOOGLE , APPLE )',
+    `status`      varchar(255) NOT NULL COMMENT '사용자 상태',
+    `social_type` json NOT NULL COMMENT '소셜 타입 ( NAVER  ,GOOGLE , APPLE )',
     `refresh_token`  varchar(255) NULL COMMENT 'access token 재발급을 위한 토큰',
     `create_at`      timestamp    NULL COMMENT '최초 생성일',
     `last_modify_at` timestamp    NULL COMMENT '최종 생성일',
     PRIMARY KEY (`id`),
     UNIQUE KEY `email` (`email`),
     UNIQUE KEY `nick_name` (`nick_name`)
-) COMMENT = '사용자';
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '사용자';
 
 CREATE TABLE `picks`
 (
@@ -84,36 +87,9 @@ CREATE TABLE `picks`
     PRIMARY KEY (`id`),
     FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
     FOREIGN KEY (`alcohol_id`) REFERENCES `alcohol` (`id`)
-) COMMENT = '찜하기';
-
-create table popular_alcohol
-(
-    id            bigint auto_increment comment '기본 키'
-        primary key,
-    alcohol_id    bigint                              not null comment '술 ID',
-    year          smallint                            not null comment '년도',
-    month         tinyint                             not null comment '월',
-    day           tinyint                             not null comment '일',
-    review_score  decimal(5, 2)                       not null comment '리뷰 점수',
-    rating_score  decimal(5, 2)                       not null comment '평점 점수',
-    pick_score    decimal(5, 2)                       not null comment '찜하기 점수',
-    popular_score decimal(5, 2)                       not null comment '인기도 점수',
-    created_at    timestamp default CURRENT_TIMESTAMP null comment '생성일시',
-    constraint uniq_alcohol_year_month
-        unique (alcohol_id, year, month, day)
-)
-    comment '술 인기도 통계 테이블' charset = utf8mb4;
-
-create table popularity_table
-(
-    alcohol_id       int   not null
-        primary key,
-    review_score     float null,
-    rating_score     float null,
-    pick_score       float null,
-    popularity_score float null
-);
-
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '찜하기';
 
 CREATE TABLE `user_report`
 (
@@ -133,7 +109,9 @@ CREATE TABLE `user_report`
     FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
     FOREIGN KEY (`report_user_id`) REFERENCES `users` (`id`)
     -- 복합 유니크 UNIQUE KEY `user_id_report_user` (`user_id`, `report_user`)
-) COMMENT = '유저 신고';
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '유저 신고';
 
 CREATE TABLE `rating`
 (
@@ -147,13 +125,16 @@ CREATE TABLE `rating`
     PRIMARY KEY (`alcohol_id`, `user_id`),
     foreign key (`alcohol_id`) references `alcohol` (`id`),
     foreign key (`user_id`) references `users` (`id`)
-) COMMENT = '술 평점';
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '술 평점';
 
 CREATE TABLE `help`
 (
     `id`               bigint       NOT NULL AUTO_INCREMENT COMMENT '문의',
     `user_id`          bigint       NOT NULL COMMENT '문의자',
     `type`             varchar(255) NOT NULL COMMENT 'ADD , USER... 개발때 enum 추가',
+    `title`            varchar(255) NOT NULL COMMENT '문의 제목',
     `help_content`     text         NOT NULL COMMENT '문의내용 최대 1000글자',
     `status`           varchar(255) NOT NULL DEFAULT 'WAITING' COMMENT '진행상태',
     `admin_id`         bigint       NULL COMMENT '처리  어드민',
@@ -164,25 +145,9 @@ CREATE TABLE `help`
     `last_modify_by`   varchar(255) NULL COMMENT '최종 생성자',
     PRIMARY KEY (`id`),
     FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) COMMENT = '문의';
-
-CREATE TABLE `help_image`
-(
-    `id`             bigint       NOT NULL AUTO_INCREMENT COMMENT '리뷰-이미지 등록은 최대 5장',
-    `help_id`        bigint       NOT NULL comment '문의글 아이디',
-    `order`          bigint       NOT NULL COMMENT '이미지 순서',
-    `image_url`      varchar(255) NOT NULL COMMENT 'S3 이미지 경로',
-    `image_key`      varchar(255) NOT NULL COMMENT '업로드된 루트 경로(버킷부터 이미지 이름까지)',
-    `image_path`     varchar(255) NOT NULL COMMENT '져장된 이미지의 경로(버킷부터 최종폴더까지)',
-    `image_name`     varchar(255) NOT NULL COMMENT '생성된 UUID + 확장자 파일명',
-    `create_at`      timestamp    NULL COMMENT '최초 생성일',
-    `create_by`      varchar(255) NULL COMMENT '최초 생성자',
-    `last_modify_at` timestamp    NULL COMMENT '최종 생성일',
-    `last_modify_by` varchar(255) NULL COMMENT '최종 생성자',
-    PRIMARY KEY (`id`),
-    FOREIGN KEY (`help_id`) REFERENCES `help` (`id`)
-) COMMENT = '문의-이미지 등록은 최대 5장';
-
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '문의';
 
 CREATE TABLE `follow`
 (
@@ -198,7 +163,9 @@ CREATE TABLE `follow`
     FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
     FOREIGN KEY (`follow_user_id`) REFERENCES `users` (`id`)
 --   복합 유니크 UNIQUE KEY `user_id_follow_user_id` (`user_id`, `follow_user_id`)
-) COMMENT = '팔로우';
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '팔로우';
 
 CREATE TABLE `tasting_tag`
 (
@@ -212,7 +179,9 @@ CREATE TABLE `tasting_tag`
     `last_modify_at` timestamp    NULL COMMENT '최종 생성일',
     `last_modify_by` varchar(255) NULL COMMENT '최종 생성자',
     PRIMARY KEY (`id`)
-) COMMENT = '테이스팅 태그';
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '테이스팅 태그';
 
 CREATE TABLE `alcohol_tasting_tags`
 (
@@ -224,21 +193,20 @@ CREATE TABLE `alcohol_tasting_tags`
     PRIMARY KEY (`id`),
     FOREIGN KEY (`alcohol_id`) REFERENCES `alcohol` (`id`),
     FOREIGN KEY (`tasting_tag_id`) REFERENCES `tasting_tag` (`id`)
-) COMMENT = '술/테이스팅 태그 연관관계 해소';
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '술/테이스팅 태그 연관관계 해소';
 
 CREATE TABLE `review`
 (
     `id`             bigint         NOT NULL AUTO_INCREMENT COMMENT '술 리뷰',
     `user_id`        bigint         NOT NULL COMMENT '리뷰 작성자',
     `alcohol_id`     bigint         NOT NULL COMMENT '리뷰 대상 술',
-    `is_best`        boolean        NOT NULL DEFAULT FALSE COMMENT '베스트 리뷰 여부',
     `content`        varchar(1000)  NOT NULL COMMENT '1000글자',
     `size_type`      varchar(255)   NULL COMMENT '잔 : GLASS , 보틀 : BOTTLE',
     `price`          decimal(38, 2) NULL COMMENT '가격',
     `location_name`  varchar(255)   NULL COMMENT '상호 명',
-    `zip_code`       varchar(5)     NULL COMMENT '우편번호',
-    `address`        varchar(255)   NULL COMMENT '주소',
-    `detail_address` varchar(255)   NULL COMMENT '상세주소',
+    `street_address` varchar(255)   NULL COMMENT '도로명 주소',
     `category`       varchar(255)   NULL COMMENT '장소 카테고리',
     `map_url`        varchar(255)   NULL COMMENT '지도 URL',
     `latitude`       varchar(255)   NULL COMMENT '위도 (x좌표)',
@@ -254,7 +222,9 @@ CREATE TABLE `review`
     PRIMARY KEY (`id`),
     FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
     FOREIGN KEY (`alcohol_id`) REFERENCES `alcohol` (`id`)
-) COMMENT = '술 리뷰';
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '술 리뷰';
 
 CREATE TABLE `review_report`
 (
@@ -273,7 +243,9 @@ CREATE TABLE `review_report`
     PRIMARY KEY (`id`),
     FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
     FOREIGN KEY (`review_id`) REFERENCES `review` (`id`)
-) COMMENT = '리뷰 신고';
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '리뷰 신고';
 
 CREATE TABLE `review_image`
 (
@@ -290,7 +262,9 @@ CREATE TABLE `review_image`
     `last_modify_by` varchar(255) NULL COMMENT '최종 생성자',
     PRIMARY KEY (`id`),
     FOREIGN KEY (`review_id`) REFERENCES `review` (`id`)
-) COMMENT = '리뷰-이미지 등록은 최대 5장';
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '리뷰-이미지 등록은 최대 5장';
 
 CREATE TABLE `review_tasting_tag`
 (
@@ -301,7 +275,9 @@ CREATE TABLE `review_tasting_tag`
     `last_modify_at` timestamp   NULL COMMENT '최종 생성일',
     PRIMARY KEY (`id`),
     FOREIGN KEY (`review_id`) REFERENCES `review` (`id`)
-) COMMENT = '리뷰 테이스팅 태그';
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '리뷰 테이스팅 태그';
 
 CREATE TABLE `review_reply`
 (
@@ -321,7 +297,9 @@ CREATE TABLE `review_reply`
     FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
     foreign key (`root_reply_id`) references `review_reply` (`id`),
     FOREIGN KEY (`parent_reply_id`) REFERENCES `review_reply` (`id`)
-) COMMENT = '리뷰 댓글';
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '리뷰 댓글';
 
 CREATE TABLE `notice`
 (
@@ -336,7 +314,9 @@ CREATE TABLE `notice`
     `last_modify_at` timestamp    NULL COMMENT '최종 생성일',
     `last_modify_by` varchar(255) NULL COMMENT '최종 생성자',
     PRIMARY KEY (`id`)
-) COMMENT = '공지사항';
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '공지사항';
 
 CREATE TABLE `likes`
 (
@@ -352,7 +332,9 @@ CREATE TABLE `likes`
     PRIMARY KEY (`id`),
     FOREIGN KEY (`review_id`) REFERENCES `review` (`id`),
     FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) COMMENT = '좋아요';
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '좋아요';
 
 CREATE TABLE `alcohol_image`
 (
@@ -369,18 +351,20 @@ CREATE TABLE `alcohol_image`
     `last_modify_by` varchar(255) NULL COMMENT '최종 생성자',
     PRIMARY KEY (`id`),
     FOREIGN KEY (`alcohol_id`) REFERENCES `alcohol` (`id`)
-) COMMENT = '술 이미지';
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '술 이미지';
 
 create table user_history
 (
-    id        bigint not null AUTO_INCREMENT comment '히스토리 id'
+    id              bigint       not null comment '히스토리 id'
         primary key,
     user_id         bigint       not null comment '사용자 id',
     event_category  varchar(255) not null comment 'pick, review, rating',
     event_type      varchar(255) null comment 'isPick,unPick || like, create, review, best || start, modify, delete',
     redirect_url    varchar(255) null comment '발생되는 api의 도메인주소를 뺀 url',
-    image_url varchar(255) null comment '알코올 이미지 URL',
-    alcohol_id      bigint       null comment '알코올 id',
+    image_url       varchar(255) null comment '발생되는 api의 도메인주소를 뺀 url',
+    alcohol_name    varchar(255) null comment '알코올 이름(한글)',
     message         varchar(255) null comment '이벤트 메세지 enum으로 관리',
     dynamic_message json         null comment '가변데이터(현재는 별점에서만 사용)',
     event_year      varchar(255) null comment '발생 년(YYYY)',
@@ -395,7 +379,6 @@ create table user_history
 )
     comment '유저 히스토리';
 
-
 create index user_id
     on user_history (user_id);
 
@@ -409,24 +392,13 @@ create table notification
     category       varchar(255) not null comment '알림의 종류 ( 리뷰, 댓글, 팔로우, 좋아요, 프로모션 )',
     status         varchar(255) not null comment '알림 상태 (PENDING: 대기 중, SENT: 전송됨, READ: 읽음, FAILED: 실패)',
     is_read        boolean      not null comment '읽음 여부',
-    create_at      timestamp default now() comment '최초 생성일',
+    create_at      timestamp    null comment '최초 생성일',
     create_by      varchar(255) null comment '최초 생성자',
-    last_modify_at timestamp default now() comment '최종 수정일',
+    last_modify_at timestamp    null comment '최종 수정일',
     last_modify_by varchar(255) null comment '최종 수정자',
     constraint notification_users_id_fk
         foreign key (user_id) references users (id)
-) comment = '사용자 알림';
-
-
-CREATE TABLE user_device_token
-(
-    id             BIGINT AUTO_INCREMENT COMMENT '사용자 디바이스 토큰 아이디',
-    user_id        BIGINT COMMENT '사용자 아이디',
-    device_token   VARCHAR(255) COMMENT '디바이스 토큰',
-    platform       VARCHAR(255) DEFAULT 'ANDROID' COMMENT '플랫폼 (ANDROID, IOS)',
-    create_at      TIMESTAMP    DEFAULT NOW() COMMENT '생성일시',
-    last_modify_at TIMESTAMP    DEFAULT NOW() COMMENT '수정일시',
-    FOREIGN KEY (user_id) REFERENCES users (id),
-    UNIQUE (user_id, device_token),
-    PRIMARY KEY (id)
-) COMMENT = '사용자 디바이스 토큰 테이블';
+)
+    engine = InnoDB
+    default charset = utf8mb4
+    collate utf8mb4_unicode_ci comment = '사용자 알림';

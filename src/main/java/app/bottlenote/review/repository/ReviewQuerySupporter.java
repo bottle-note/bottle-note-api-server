@@ -17,10 +17,12 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 
+import static app.bottlenote.like.domain.LikeStatus.LIKE;
 import static app.bottlenote.like.domain.QLikes.likes;
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
 import static app.bottlenote.review.domain.QReviewReply.reviewReply;
+import static app.bottlenote.review.domain.constant.ReviewReplyStatus.NORMAL;
 import static app.bottlenote.user.domain.QUser.user;
 
 @Component
@@ -142,7 +144,7 @@ public class ReviewQuerySupporter {
 	}
 
 	/**
-	내가 댓글을 단 리뷰인지 판별
+	 * 내가 댓글을 단 리뷰인지 판별
 	 */
 	public BooleanExpression hasReplyByMeSubquery(Long userId) {
 
@@ -153,25 +155,29 @@ public class ReviewQuerySupporter {
 			JPAExpressions
 				.selectOne()
 				.from(reviewReply)
-				.where(reviewReply.review.id.eq(review.id).and(eqUserId))
+				.where(reviewReply.review.id.eq(review.id)
+					.and(eqUserId
+						.and(reviewReply.status.eq(NORMAL))))
 				.exists()
 		).as("hasReplyByMe");
 	}
 
 	/***
-	내가 좋아요를 누른 리뷰인지 판별
+	 내가 좋아요를 누른 리뷰인지 판별
 	 */
 	public BooleanExpression isLikeByMeSubquery(Long userId) {
-
-		BooleanExpression eqUserId = 1 > userId ?
-			likes.userInfo.userId.isNull() : likes.userInfo.userId.eq(userId);
-
+		if (userId < 1) {
+			return Expressions.asBoolean(false);
+		}
 		return Expressions.asBoolean(
 			JPAExpressions
 				.selectOne()
 				.from(likes)
-				.where(likes.review.id.eq(review.id).and(eqUserId))
-				.exists()
+				.where(
+					likes.review.id.eq(review.id)
+						.and(likes.userInfo.userId.eq(userId))
+						.and(likes.status.eq(LIKE))
+				).exists()
 		).as("isLikedByMe");
 	}
 
@@ -187,19 +193,19 @@ public class ReviewQuerySupporter {
 	}
 
 	/***
-	좋아요 개수 서브쿼리
+	 좋아요 개수 서브쿼리
 	 */
 	private Expression<Long> likesCountSubquery() {
 		return ExpressionUtils.as(
 			JPAExpressions.select(likes.id.count())
 				.from(likes)
-				.where(likes.review.id.eq(review.id))
+				.where(likes.review.id.eq(review.id).and(likes.status.eq(LIKE)))
 			, "likeCount"
 		);
 	}
 
 	/***
-	별점 서브쿼리
+	 별점 서브쿼리
 	 */
 	private Expression<Double> ratingSubquery() {
 		return ExpressionUtils.as(
@@ -213,13 +219,14 @@ public class ReviewQuerySupporter {
 	}
 
 	/***
-	리뷰 댓글 개수 카운트 서브쿼리
+	 리뷰 댓글 개수 카운트 서브쿼리
 	 */
 	private Expression<Long> reviewReplyCountSubquery() {
 		return ExpressionUtils.as(
 			JPAExpressions.select(reviewReply.id.count())
 				.from(reviewReply)
-				.where(reviewReply.review.id.eq(review.id)),
+				.where(reviewReply.review.id.eq(review.id)
+					.and(reviewReply.status.eq(NORMAL))),
 			"replyCount"
 		);
 	}

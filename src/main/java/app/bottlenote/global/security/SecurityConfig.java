@@ -3,14 +3,15 @@ package app.bottlenote.global.security;
 import app.bottlenote.global.security.jwt.JwtAuthenticationEntryPoint;
 import app.bottlenote.global.security.jwt.JwtAuthenticationFilter;
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -39,6 +40,11 @@ public class SecurityConfig {
 		sessionConfig.sessionCreationPolicy(STATELESS);
 	}
 
+	@PostConstruct
+	public void setup() {
+		SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
+	}
+
 	/**
 	 * 필터 체인 보안 설정
 	 *
@@ -58,11 +64,10 @@ public class SecurityConfig {
 				.requestMatchers("/api/v1/s3/**").authenticated()
 				.requestMatchers("/api/v1/follow").authenticated()
 				.requestMatchers("/api/v1/reviews/me/**").authenticated()
-				.requestMatchers(HttpMethod.GET, "api/v1/reviews/**").permitAll()
 				.requestMatchers("/api/v1/reviews/**").authenticated()
 				.requestMatchers("/api/v1/users/**").authenticated()
 				.requestMatchers("/api/v1/help/**").authenticated()
-				.requestMatchers("/api/v1/my-page/**").permitAll()
+				.requestMatchers("/api/v1/my-page/**").authenticated()
 				.anyRequest().permitAll()
 			)
 			.addFilterBefore(new JwtAuthenticationFilter(jwtAuthenticationManager), UsernamePasswordAuthenticationFilter.class)

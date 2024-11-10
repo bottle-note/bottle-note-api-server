@@ -9,6 +9,8 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
+import java.util.Objects;
+
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Slf4j
@@ -34,6 +36,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 		HttpServletResponse response,
 		AuthenticationException authException
 	) {
+		log.info("JwtAuthenticationEntryPoint.commence : {}", authException.getMessage());
 		// 응답 상태를 401 Unauthorized로 설정합니다.
 		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 		// 응답 콘텐츠 타입을 JSON으로 설정합니다.
@@ -43,8 +46,11 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
 		// 요청 속성에서 예외를 가져옵니다.
 		Exception exception = (Exception) request.getAttribute("exception");
+
+		if (Objects.isNull(exception))
+			exception = authException;
+
 		// 예외를 처리하기 위해 HandlerExceptionResolver를 사용합니다.
 		resolver.resolveException(request, response, null, exception);
 	}
-
 }

@@ -163,7 +163,7 @@ public class GlobalExceptionHandler {
 
 		JwtExceptionType exceptionType = getJwtExceptionType(e);
 
-		log.info(" jwtTokenException 관련 예외 발생 => public ResponseEntity<?> jwtTokenException(Exception e) ");
+		log.info(" jwtTokenException 관련 예외 발생 : {}", exceptionType);
 
 		return GlobalResponse.error(Error.of(exceptionType));
 	}

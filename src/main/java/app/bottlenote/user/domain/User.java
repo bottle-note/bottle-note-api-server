@@ -12,15 +12,16 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.annotations.Comment;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @ToString(of = {"id", "email", "nickName", "age", "socialType"})
 @Getter
@@ -76,7 +77,7 @@ public class User {
 
 	@Builder
 	public User(Long id, String email, String nickName, Integer age, String gender, String imageUrl,
-		UserType role, List<SocialType> socialType, String refreshToken) {
+				UserType role, List<SocialType> socialType, String refreshToken) {
 		this.id = id;
 		this.email = email;
 		this.nickName = nickName;

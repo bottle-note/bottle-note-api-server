@@ -373,23 +373,23 @@ CREATE TABLE `alcohol_image`
 
 create table user_history
 (
-    id              bigint                  not null comment '히스토리 id'
-        primary key,
-    user_id         bigint                  not null comment '사용자 id',
-    event_category  varchar(255)            not null comment 'pick, review, rating',
-    event_type      varchar(255)            null comment 'isPick,unPick || like, create, review, best || start, modify, delete',
-    redirect_url    varchar(255)            null comment '발생되는 api의 도메인주소를 뺀 url',
-    image_url       varchar(255)            null comment '발생되는 api의 도메인주소를 뺀 url',
-    alcohol_id      bigint                  null comment '알코올 id',
-    message         varchar(255)            null comment '이벤트 메세지 enum으로 관리',
-    dynamic_message json                    null comment '가변데이터(현재는 별점에서만 사용)',
-    event_year      varchar(255)            null comment '발생 년(YYYY)',
-    event_month     varchar(255)            null comment '발생 월(MM)',
-    description     varchar(255)            null comment '비고',
-    create_at       timestamp default now() null,
-    create_by       varchar(255)            null,
-    last_modify_at  timestamp default now() comment '최종 수정일',
-    last_modify_by  varchar(255)            null comment '최종 생성자',
+    id              bigint       not null AUTO_INCREMENT comment '히스토리 id',
+    user_id         bigint       not null comment '사용자 id',
+    event_category  varchar(255) not null comment 'pick, review, rating',
+    event_type      varchar(255) null comment 'isPick,unPick || like, create, review, best || start, modify, delete',
+    redirect_url    varchar(255) null comment '발생되는 api의 도메인주소를 뺀 url',
+    image_url       varchar(255) null comment '발생되는 api의 도메인주소를 뺀 url',
+    alcohol_id      bigint       null comment '알코올 이름(한글)',
+    message         varchar(255) null comment '이벤트 메세지 enum으로 관리',
+    dynamic_message json         null comment '가변데이터(현재는 별점에서만 사용)',
+    event_year      varchar(255) null comment '발생 년(YYYY)',
+    event_month     varchar(255) null comment '발생 월(MM)',
+    description     varchar(255) null comment '비고',
+    create_at       timestamp    null,
+    create_by       varchar(255) null,
+    last_modify_at  timestamp    null comment '최종 생성일',
+    last_modify_by  varchar(255) null comment '최종 생성자',
+    PRIMARY KEY (`id`),
     constraint user_history_ibfk_1
         foreign key (user_id) references users (id)
 )

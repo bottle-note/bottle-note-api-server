@@ -6,6 +6,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Component
@@ -45,8 +46,16 @@ public class SecurityContextUtil {
 			return Optional.empty();
 		}
 
-		if (authentication.getPrincipal() instanceof CustomUserContext customUserContext) {
-			return Optional.ofNullable(customUserContext.getId());
+		Object principal = Objects.requireNonNullElse(authentication.getPrincipal(), "");
+		log.info("class type : {}", principal.getClass());
+
+		if (principal instanceof CustomUserContext customUserContext) {
+			Optional<Long> id = Optional.ofNullable(customUserContext.getId());
+			if (id.get().equals(-4L)) {
+				log.warn("익명 사용자 접근 SecurityContextUtil.getUserIdByContext()");
+				return Optional.empty();
+			}
+			return id;
 		} else {
 			log.warn("인증된 사용자의 정보가 CustomUserContext의 인스턴스가 아닙니다. 잘못된 인증 정보일 수 있습니다. 혹은 비회원 사용자일 수 있습니다.");
 			return Optional.empty();
