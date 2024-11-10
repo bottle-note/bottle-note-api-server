@@ -15,61 +15,62 @@ Content-Type: application/json
 
 
 ### 로그인 이용자의 마이 보틀 페이지를 조회한다. (전체 타입, 최신순)
-GET {{host}}/api/v1/mypage/8/my-bottle?keyword=&regionId=&tabType=ALL&sortType=LATEST&sortOrder=DESC&cursor=0&
+GET {{host}}/api/v1/my-page/8/my-bottle?keyword=&regionId=&tabType=ALL&sortType=LATEST&sortOrder=DESC&cursor=0&
     pageSize=50
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 ### 로그인 이용자의 마이 보틀 페이지를 조회한다. (전체 타입, 평점순)
-GET {{host}}/api/v1/mypage/8/my-bottle?keyword=&regionId=&tabType=ALL&sortType=RATING&sortOrder=DESC&cursor=0&
+GET {{host}}/api/v1/my-page/8/my-bottle?keyword=&regionId=&tabType=ALL&sortType=RATING&sortOrder=DESC&cursor=0&
     pageSize=50
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 ### 로그인 이용자의 마이 보틀 페이지를 조회한다. (전체 타입, 리뷰순)
-GET {{host}}/api/v1/mypage/8/my-bottle?keyword=&regionId=&tabType=ALL&sortType=REVIEW&sortOrder=DESC&cursor=0&
+GET {{host}}/api/v1/my-page/8/my-bottle?keyword=&regionId=&tabType=ALL&sortType=REVIEW&sortOrder=DESC&cursor=0&
     pageSize=50
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 ### 로그인 이용자의 마이 보틀 페이지를 타입별로 조회한다. (리뷰)
-GET {{host}}/api/v1/mypage/8/my-bottle?keyword=&regionId=&tabType=REVIEW&sortType=LATEST&sortOrder=DESC&cursor=0&
+GET {{host}}/api/v1/my-page/8/my-bottle?keyword=&regionId=&tabType=REVIEW&sortType=LATEST&sortOrder=DESC&cursor=0&
     pageSize=50
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 ### 로그인 이용자의 마이 보틀 페이지를 타입별로 조회한다. (찜하기)
-GET {{host}}/api/v1/mypage/8/my-bottle?keyword=&regionId=&tabType=PICK&sortType=LATEST&sortOrder=DESC&cursor=0&
+GET {{host}}/api/v1/my-page/8/my-bottle?keyword=&regionId=&tabType=PICK&sortType=LATEST&sortOrder=DESC&cursor=0&
     pageSize=50
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 ### 로그인 이용자의 마이 보틀 페이지를 타입별로 조회한다. (평점)
-GET {{host}}/api/v1/mypage/8/my-bottle?keyword=&regionId=&tabType=RATING&sortType=LATEST&sortOrder=DESC&cursor=0&
+GET {{host}}/api/v1/my-page/8/my-bottle?keyword=&regionId=&tabType=RATING&sortType=LATEST&sortOrder=DESC&cursor=0&
     pageSize=50
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 ### 로그인 이용자의 마이 보틀 페이지를 키워드로 조회한다.
-GET {{host}}/api/v1/mypage/8/my-bottle?keyword=whiskey&regionId=&tabType=ALL&sortType=LATEST&sortOrder=DESC&cursor=0&
+GET {{host}}/api/v1/my-page/8/my-bottle?keyword=whiskey&regionId=&tabType=ALL&sortType=LATEST&sortOrder=DESC&cursor=0&
     pageSize=50
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 ### 로그인 이용자의 마이 보틀 페이지를 지역으로 조회한다.
-GET {{host}}/api/v1/mypage/8/my-bottle?keyword=&regionId=1&tabType=ALL&sortType=LATEST&sortOrder=DESC&cursor=0&
+GET {{host}}/api/v1/my-page/8/my-bottle?keyword=&regionId=1&tabType=ALL&sortType=LATEST&sortOrder=DESC&cursor=0&
     pageSize=50
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 ### 로그인 이용자의 마이 보틀 페이지를 오름차순으로 조회한다.
-GET {{host}}/api/v1/mypage/8/my-bottle?keyword=&regionId=&tabType=ALL&sortType=LATEST&sortOrder=ASC&cursor=0&pageSize=50
+GET {{host}}/api/v1/my-page/8/my-bottle?keyword=&regionId=&tabType=ALL&sortType=LATEST&sortOrder=ASC&cursor=0&
+    pageSize=50
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 
 ### 로그인 이용자의 마이 보틀 페이지를 지역 12와 키워드 '라이'로 조회한다.
-GET {{host}}/api/v1/mypage/8/my-bottle?keyword=라이&regionId=12&tabType=ALL&sortType=LATEST&sortOrder=DESC&cursor=0&
+GET {{host}}/api/v1/my-page/8/my-bottle?keyword=라이&regionId=12&tabType=ALL&sortType=LATEST&sortOrder=DESC&cursor=0&
     pageSize=50
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}

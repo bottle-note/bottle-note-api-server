@@ -258,27 +258,23 @@ public class UserQuerySupporter {
 	/**
 	 * 마이 보틀 정렬 조건
 	 */
-	public OrderSpecifier<?> sortBy(MyBottleSortType myBottleSortType, SortOrder sortOrder, Long userId) {
+	public OrderSpecifier<?> sortBy(MyBottleSortType myBottleSortType, SortOrder sortOrder) {
 
 		myBottleSortType = (myBottleSortType != null) ? myBottleSortType : MyBottleSortType.LATEST;
 
+		// userId 조건을 제거한 Expression 생성
 		Expression<Double> myRating = JPAExpressions
 			.select(rating.ratingPoint.rating.coalesce(0.0))
-			.from(rating)
-			.where(rating.user.id.eq(userId));
+			.from(rating);
 
 		Expression<Long> reviewCount = JPAExpressions
 			.select(review.count())
-			.from(review)
-			.where(review.userId.eq(userId));
+			.from(review);
 
 		Expression<LocalDateTime> latestUpdate = JPAExpressions
 			.select(rating.lastModifyAt.max().coalesce(review.lastModifyAt.max()
 				.coalesce(picks.lastModifyAt.max())))
-			.from(rating, review, picks)
-			.where(rating.user.id.eq(userId)
-				.or(review.userId.eq(userId))
-				.or(picks.user.id.eq(userId)));
+			.from(rating, review, picks);
 
 		// 새로운 switch 표현식을 사용하여 정렬
 		return switch (myBottleSortType) {
@@ -287,4 +283,5 @@ public class UserQuerySupporter {
 			case LATEST -> new OrderSpecifier<>(sortOrder == SortOrder.DESC ? Order.DESC : Order.ASC, latestUpdate);
 		};
 	}
+
 }
