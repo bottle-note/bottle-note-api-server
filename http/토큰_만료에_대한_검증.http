@@ -1,4 +1,5 @@
 @token = Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJoeWVqajE5QG5hdmVyLmNvbSIsInJvbGVzIjoiUk9MRV9VU0VSIiwidXNlcklkIjoxLCJpYXQiOjE3MzEyMDg0NTMsImV4cCI6MTczMTIwODUxM30.sBW0m-3vdIA0wJJkshFjlC2tGNU_ZfjfNwCP1tieL-8v-8LuNcGGu7XPrSZLzf8odVrNAqWyFK_7CeMV8iIIsA
+@broken_token = Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJoeWVqajE5QG5hdmVyLmNvbSIsInJvbGVzIjoiUk9MRV9VU0VSIiwidXNlcklkIjoxLCJpYXQiOjE3MzEyMDg0NTMsImV4cCI6MTczMTIwODUxM30.sBW0m-3vdIA0wJJkshFjlC2tGNU_ZfjfNwCP1tieL-8
 @empty_token = Bearer
 
 
@@ -9,11 +10,17 @@ Content-Type: application/json
 Authorization: {{empty_token}}
 
 
-### 유저 아이디가 만료된 경우.
+### 토큰이 만료된 경우.
 GET {{host}}/api/v1/my-page/8/my-bottle?keyword=&regionId=&tabType=ALL&sortType=LATEST&sortOrder=DESC&cursor=0&
     pageSize=50
 Content-Type: application/json
 Authorization: {{token}}
+
+### 토큰이 고장난 경우.
+GET {{host}}/api/v1/my-page/8/my-bottle?keyword=&regionId=&tabType=ALL&sortType=LATEST&sortOrder=DESC&cursor=0&
+    pageSize=50
+Content-Type: application/json
+Authorization: {{broken_token}}
 
 ### 필수는 아니지만 토큰이 없는 경우
 GET {{host}}/api/v1/popular/week
@@ -21,6 +28,6 @@ Content-Type: application/json
 Authorization: {{empty_token}}
 
 ### 필수가 아니지만 토큰이 만료된 경우
-GET {{host}}/api/v1/popular/week
+GET {{host}}/api/v1/reviews/1
 Content-Type: application/json
 Authorization: {{token}}
