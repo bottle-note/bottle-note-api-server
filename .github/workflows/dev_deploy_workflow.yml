@@ -3,12 +3,10 @@ name: Dev Deploy Workflow
 on:
   push:
     branches:
-      - main
       - dev
   pull_request:
     types: [ closed ]
     branches:
-      - main
       - dev
 
 # 동시에 여러 워크플로우가 실행되지 않도록 설정
@@ -19,7 +17,7 @@ concurrency:
 jobs:
   build-and-push:
     # PR이 merge되었을 때만 실행
-    if: github.event.pull_request.merged == true
+    # if: github.event.pull_request.merged == true
 
     runs-on: ubuntu-latest  # 워크플로우는 최신 Ubuntu 환경에서 실행됩니다.
     steps:
