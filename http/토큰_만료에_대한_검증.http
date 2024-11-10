@@ -7,7 +7,7 @@
 GET {{host}}/api/v1/my-page/8/my-bottle?keyword=&regionId=&tabType=ALL&sortType=LATEST&sortOrder=DESC&cursor=0&
     pageSize=50
 Content-Type: application/json
-Authorization: {{empty_token}}
+Authorization:
 
 
 ### 토큰이 만료된 경우.

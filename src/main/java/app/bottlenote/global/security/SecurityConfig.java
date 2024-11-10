@@ -1,17 +1,12 @@
 package app.bottlenote.global.security;
 
-import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
-
 import app.bottlenote.global.security.jwt.JwtAuthenticationEntryPoint;
 import app.bottlenote.global.security.jwt.JwtAuthenticationFilter;
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
 import jakarta.annotation.PostConstruct;
-import java.util.Arrays;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -23,6 +18,11 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
+import java.util.List;
+
+import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -31,11 +31,6 @@ public class SecurityConfig {
 	private final JwtAuthenticationManager jwtAuthenticationManager;
 	private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
-	@PostConstruct
-	public void setup() {
-		SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
-	}
-
 	/**
 	 * 세션 메서드 참조를 위한 참조 메서드
 	 *
@@ -43,6 +38,11 @@ public class SecurityConfig {
 	 */
 	private static void statelessSessionConfig(SessionManagementConfigurer<HttpSecurity> sessionConfig) {
 		sessionConfig.sessionCreationPolicy(STATELESS);
+	}
+
+	@PostConstruct
+	public void setup() {
+		SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
 	}
 
 	/**
@@ -64,11 +64,10 @@ public class SecurityConfig {
 				.requestMatchers("/api/v1/s3/**").authenticated()
 				.requestMatchers("/api/v1/follow").authenticated()
 				.requestMatchers("/api/v1/reviews/me/**").authenticated()
-				.requestMatchers(HttpMethod.GET, "api/v1/reviews/**").permitAll()
 				.requestMatchers("/api/v1/reviews/**").authenticated()
 				.requestMatchers("/api/v1/users/**").authenticated()
 				.requestMatchers("/api/v1/help/**").authenticated()
-				.requestMatchers("/api/v1/my-page/**").permitAll()
+				.requestMatchers("/api/v1/my-page/**").authenticated()
 				.anyRequest().permitAll()
 			)
 			.addFilterBefore(new JwtAuthenticationFilter(jwtAuthenticationManager), UsernamePasswordAuthenticationFilter.class)
