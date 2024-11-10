@@ -37,6 +37,7 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    testImplementation 'org.testng:testng:7.1.0'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -99,6 +100,9 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter:1.19.0'
     testImplementation "org.testcontainers:mysql:1.19.0"
 
+    //firebase
+    implementation 'com.google.firebase:firebase-admin:8.0.0'
+    //4/0AVG7fiRAI2SWk04XCCDNlXfh-ctQzJk-9bwaQl7H2GaZXGZH2w6R8fP6fPYrH0O-XdPCcA
 }
 
 tasks.named('test') {
