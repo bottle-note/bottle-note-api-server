@@ -1,13 +1,17 @@
 name: Dev Deploy Workflow
 
 on:
+  push:
+    branches:
+      - main
+      - dev
   pull_request:
     types: [ closed ]
     branches:
       - main
       - dev
 
-# 그러나 이러한 프로덕션 배포가 완료되도록 하려면 진행 중인 실행을 취소하지 마십시오.
+# 동시에 여러 워크플로우가 실행되지 않도록 설정
 concurrency:
   group: "dev-deploy"
   cancel-in-progress: false
