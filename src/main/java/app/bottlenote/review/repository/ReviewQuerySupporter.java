@@ -1,7 +1,8 @@
 package app.bottlenote.review.repository;
 
-import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
-import app.bottlenote.review.dto.response.ReviewDetailResponse;
+import app.bottlenote.review.dto.common.CommonReviewInfo;
+import app.bottlenote.review.dto.common.LocationInfo;
+import app.bottlenote.review.dto.common.UserInfo;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.Expression;
@@ -9,13 +10,10 @@ import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
 import java.util.List;
-import java.util.Objects;
 
 import static app.bottlenote.like.domain.LikeStatus.LIKE;
 import static app.bottlenote.like.domain.QLikes.likes;
@@ -33,24 +31,39 @@ public class ReviewQuerySupporter {
 	 * @param userId 유저 ID
 	 * @return ReviewInfo
 	 */
-	public ConstructorExpression<ReviewsDetailInfo.ReviewInfo> reviewInfoConstructor(Long userId) {
+	public ConstructorExpression<CommonReviewInfo> alcoholReviewInfoConstructor(Long userId) {
 		return Projections.constructor(
-			ReviewsDetailInfo.ReviewInfo.class,
-			user.id.as("userId"),
-			user.imageUrl.as("imageUrl"),
-			user.nickName.as("nickName"),
+			CommonReviewInfo.class,
 			review.id.as("reviewId"),
 			review.content.as("reviewContent"),
-			rating.ratingPoint.rating.coalesce(0.0).as("rating"),
+			review.price.as("price"),
 			review.sizeType.as("sizeType"),
-			review.price.coalesce(BigDecimal.ZERO).as("price"),
-			review.viewCount.coalesce(0L).as("viewCount"),
-			likes.id.count().as("likeCount"),
-			isLikeByMeSubquery(userId),
-			reviewReply.id.count().as("replyCount"),
-			hasReplyByMeSubquery(userId),
-			review.status.as("status"),
+			likesCountSubquery(),
+			reviewReplyCountSubquery(),
 			review.imageUrl.as("reviewImageUrl"),
+			Projections.constructor(UserInfo.class,
+				user.id.as("userId"),
+				user.nickName.as("nickName"),
+				user.imageUrl.as("userProfileImage")
+			),
+			ratingSubquery(),
+			review.viewCount.as("viewCount"),
+			Projections.constructor(LocationInfo.class,
+				review.reviewLocation.name.as("locationName"),
+				review.reviewLocation.zipCode.as("zipCode"),
+				review.reviewLocation.address.as("address"),
+				review.reviewLocation.detailAddress.as("detailAddress"),
+				review.reviewLocation.category.as("category"),
+				review.reviewLocation.mapUrl.as("mapUrl"),
+				review.reviewLocation.latitude.as("latitude"),
+				review.reviewLocation.longitude.as("longitude")
+			),
+			review.status.as("status"),
+			isMyReviewSubquery(userId),
+			isLikeByMeSubquery(userId),
+			hasReplyByMeSubquery(userId),
+			Expressions.asBoolean(false).as("isBestReview"),
+			Expressions.constant(List.of()),
 			review.createAt.as("createAt")
 		);
 	}
@@ -61,7 +74,7 @@ public class ReviewQuerySupporter {
 	 * @param userId 유저 ID
 	 * @return ReviewListResponse.ReviewInfo
 	 */
-	public ConstructorExpression<ReviewListResponse.ReviewInfo> reviewResponseConstructor(Long userId, Long bestReviewId) {
+	public ConstructorExpression<ReviewListResponse.ReviewInfo> reviewResponseConstructor(Long userId, Long currentReviewId) {
 		return Projections.constructor(
 			ReviewListResponse.ReviewInfo.class,
 			review.id.as("reviewId"),
@@ -80,7 +93,7 @@ public class ReviewQuerySupporter {
 			isMyReviewSubquery(userId),
 			isLikeByMeSubquery(userId),
 			hasReplyByMeSubquery(userId),
-			isBestReviewSubquery(bestReviewId, review.id.longValue())
+			isBestReviewSubquery(currentReviewId)
 		);
 	}
 
@@ -93,9 +106,9 @@ public class ReviewQuerySupporter {
 	 * @param reviewTastingTags 리뷰 테이스팅 태그
 	 * @return ReviewDetailResponse.ReviewInfo
 	 */
-	public ConstructorExpression<ReviewDetailResponse.ReviewInfo> reviewDetailResponseConstructor(Long reviewId, Long bestReviewId, Long userId, List<String> reviewTastingTags) {
+	public ConstructorExpression<CommonReviewInfo> commonReviewInfoConstructor(Long reviewId, Long bestReviewId, Long userId, List<String> reviewTastingTags) {
 		return Projections.constructor(
-			ReviewDetailResponse.ReviewInfo.class,
+			CommonReviewInfo.class,
 			review.id.as("reviewId"),
 			review.content.as("reviewContent"),
 			review.price.as("price"),
@@ -103,44 +116,38 @@ public class ReviewQuerySupporter {
 			likesCountSubquery(),
 			reviewReplyCountSubquery(),
 			review.imageUrl.as("reviewImageUrl"),
-			review.createAt.as("createAt"),
-			user.id.as("userId"),
-			user.nickName.as("nickName"),
-			user.imageUrl.as("userProfileImage"),
+			Projections.constructor(UserInfo.class,
+				user.id.as("userId"),
+				user.nickName.as("nickName"),
+				user.imageUrl.as("userProfileImage")
+			),
 			ratingSubquery(),
-			review.reviewLocation.name.as("locationName"),
-			review.reviewLocation.zipCode.as("zipCode"),
-			review.reviewLocation.address.as("address"),
-			review.reviewLocation.detailAddress.as("detailAddress"),
-			review.reviewLocation.category.as("category"),
-			review.reviewLocation.mapUrl.as("mapUrl"),
-			review.reviewLocation.latitude.as("latitude"),
-			review.reviewLocation.longitude.as("longitude"),
+			review.viewCount.as("viewCount"),
+			Projections.constructor(LocationInfo.class,
+				review.reviewLocation.name.as("locationName"),
+				review.reviewLocation.zipCode.as("zipCode"),
+				review.reviewLocation.address.as("address"),
+				review.reviewLocation.detailAddress.as("detailAddress"),
+				review.reviewLocation.category.as("category"),
+				review.reviewLocation.mapUrl.as("mapUrl"),
+				review.reviewLocation.latitude.as("latitude"),
+				review.reviewLocation.longitude.as("longitude")
+			),
 			review.status.as("status"),
 			isMyReviewSubquery(userId),
 			isLikeByMeSubquery(userId),
 			hasReplyByMeSubquery(userId),
-			isBestReviewSubquery(bestReviewId, reviewId),
-			Expressions.constant(reviewTastingTags)
+			isBestReviewSubquery(reviewId),
+			Expressions.constant(reviewTastingTags),
+			review.createAt.as("createAt")
 		);
 	}
 
 	/***
 	 * 현재 리뷰가 베스트 리뷰인지 판별하는 서브쿼리
-	 *
-	 * @param bestReviewId 베스트 리뷰 ID
-	 * @param reviewId 현재 리뷰 ID
-	 * @return Boolean
 	 */
-	public BooleanExpression isBestReviewSubquery(Long bestReviewId, Long reviewId) {
-		return Objects.equals(bestReviewId, reviewId) ? Expressions.asBoolean(true) : Expressions.asBoolean(false);
-	}
-
-	public BooleanExpression isBestReviewSubquery(Long bestReviewId, NumberExpression<Long> reviewId) {
-		if (bestReviewId == null) {
-			return reviewId.isNull();
-		}
-		return reviewId.eq(bestReviewId);
+	public BooleanExpression isBestReviewSubquery(Long reviewId) {
+		return review.id.eq(reviewId).and(review.isBest.eq(true));
 	}
 
 	/**

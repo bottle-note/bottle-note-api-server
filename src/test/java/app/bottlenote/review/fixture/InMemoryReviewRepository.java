@@ -4,8 +4,8 @@ import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewRepository;
+import app.bottlenote.review.dto.common.CommonReviewInfo;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
-import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.RootReviewReplyInfo;
 import app.bottlenote.review.dto.response.SubReviewReplyInfo;
@@ -70,7 +70,7 @@ public class InMemoryReviewRepository implements ReviewRepository {
 	}
 
 	@Override
-	public ReviewDetailResponse.ReviewInfo getReview(Long reviewId, Long userId) {
+	public CommonReviewInfo getReview(Long reviewId, Long userId) {
 		return null;
 	}
 

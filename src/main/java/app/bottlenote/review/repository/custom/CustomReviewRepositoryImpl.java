@@ -4,8 +4,8 @@ import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.review.domain.constant.ReviewSortType;
+import app.bottlenote.review.dto.common.CommonReviewInfo;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
-import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.repository.ReviewQuerySupporter;
 import com.querydsl.core.types.Order;
@@ -41,7 +41,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 	private final ReviewQuerySupporter supporter;
 
 	@Override
-	public ReviewDetailResponse.ReviewInfo getReview(Long reviewId, Long userId) {
+	public CommonReviewInfo getReview(Long reviewId, Long userId) {
 
 		Long bestReviewId = queryFactory
 			.select(review.id)
@@ -72,7 +72,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.fetch();
 
 		return queryFactory
-			.select(supporter.reviewDetailResponseConstructor(reviewId, bestReviewId, userId, tastingTagList))
+			.select(supporter.commonReviewInfoConstructor(reviewId, bestReviewId, userId, tastingTagList))
 			.from(review)
 			.join(user).on(review.userId.eq(user.id))
 			.leftJoin(likes).on(review.id.eq(likes.review.id))
@@ -94,29 +94,19 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		ReviewPageableRequest reviewPageableRequest,
 		Long userId
 	) {
-		Long bestReviewId = queryFactory
+		Long currentReviewId = queryFactory
 			.select(review.id)
 			.from(review)
-			.join(user).on(review.userId.eq(user.id))
-			.leftJoin(review.reviewReplies, reviewReply)
-			.leftJoin(rating).on(rating.alcohol.id.eq(review.alcoholId))
-			.leftJoin(likes).on(likes.review.id.eq(review.id))
 			.where(review.alcoholId.eq(alcoholId)
 				.and(review.activeStatus.eq(ACTIVE))
 				.and(review.status.eq(PUBLIC)))
 			.groupBy(user.id, user.imageUrl, user.nickName, review.id, review.content, rating.ratingPoint, review.createAt)
-			.orderBy(reviewReply.count().coalesce(0L)
-				.add(likes.count().coalesce(0L))
-				.add(rating.ratingPoint.rating.coalesce(0.0).avg())
-				.desc()
-			)
 			.limit(1)
 			.fetchOne();
 
-		log.info("best review id : {}", bestReviewId);
 
 		List<ReviewListResponse.ReviewInfo> fetch = queryFactory
-			.select(supporter.reviewResponseConstructor(userId, bestReviewId))
+			.select(supporter.reviewResponseConstructor(userId, currentReviewId))
 			.from(review)
 			.join(user).on(review.userId.eq(user.id))
 			.leftJoin(likes).on(review.id.eq(likes.review.id))

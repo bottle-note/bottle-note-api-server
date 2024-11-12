@@ -1,8 +1,8 @@
 package app.bottlenote.review.repository.custom;
 
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.review.dto.common.CommonReviewInfo;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
-import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 
 public interface CustomReviewRepository {
@@ -14,15 +14,15 @@ public interface CustomReviewRepository {
 	 * @param userId 조회하는 사용자 ID
 	 * @return 리뷰 상세 정보
 	 */
-	ReviewDetailResponse.ReviewInfo getReview(Long reviewId, Long userId);
+	CommonReviewInfo getReview(Long reviewId, Long userId);
 
 
 	/**
 	 * 특정 술에 대한 전체 리뷰 목록을 조회합니다
 	 *
-	 * @param alcoholId       조회 대상 알코올 ID
+	 * @param alcoholId             조회 대상 알코올 ID
 	 * @param reviewPageableRequest 정렬기준, 페이징 처리 기준
-	 * @param userId          조회하는 사용자 ID
+	 * @param userId                조회하는 사용자 ID
 	 * @return 특정 술에 대한 전체 리뷰 목록
 	 */
 
@@ -31,9 +31,9 @@ public interface CustomReviewRepository {
 	/**
 	 * 특정 술에 대해 로그인한 사용자가 작성한 리뷰 목록을 조회합니다.
 	 *
-	 * @param alcoholId       조회 대상 알코올 ID
+	 * @param alcoholId             조회 대상 알코올 ID
 	 * @param reviewPageableRequest 정렬기준, 페이징 처리 기준
-	 * @param userId          조회하는 사용자 ID
+	 * @param userId                조회하는 사용자 ID
 	 * @return 특정 술에 대한 내가 작성한 리뷰 목록
 	 */
 

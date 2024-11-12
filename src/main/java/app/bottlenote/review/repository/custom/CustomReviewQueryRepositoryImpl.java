@@ -1,19 +1,20 @@
 package app.bottlenote.review.repository.custom;
 
-import static app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo.ReviewInfo;
+import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
+import app.bottlenote.review.domain.constant.ReviewActiveStatus;
+import app.bottlenote.review.dto.common.CommonReviewInfo;
+import app.bottlenote.review.repository.ReviewQuerySupporter;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.List;
+
 import static app.bottlenote.like.domain.QLikes.likes;
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
 import static app.bottlenote.review.domain.QReviewReply.reviewReply;
 import static app.bottlenote.user.domain.QUser.user;
-
-import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
-import app.bottlenote.review.domain.constant.ReviewActiveStatus;
-import app.bottlenote.review.repository.ReviewQuerySupporter;
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import java.util.List;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class CustomReviewQueryRepositoryImpl implements CustomReviewQueryRepository {
 
@@ -33,10 +34,10 @@ public class CustomReviewQueryRepositoryImpl implements CustomReviewQueryReposit
 	 * 베스트 리뷰 단건을 조회합니다.
 	 */
 	@Override
-	public List<ReviewsDetailInfo.ReviewInfo> fetchTopReviewByAlcohol(Long alcoholId, Long userId) {
+	public List<CommonReviewInfo> fetchTopReviewByAlcohol(Long alcoholId, Long userId) {
 		userId = userId == null ? -1L : userId;
 		return queryFactory
-			.select(supporter.reviewInfoConstructor(userId))
+			.select(supporter.alcoholReviewInfoConstructor(userId))
 			.from(review)
 			.join(user).on(review.userId.eq(user.id))
 			.leftJoin(review.reviewReplies, reviewReply)
@@ -58,14 +59,14 @@ public class CustomReviewQueryRepositoryImpl implements CustomReviewQueryReposit
 	 * 최신순 리뷰 목록을 조회합니다. ( 최대 4개  , 베스트 리뷰 제외)
 	 */
 	@Override
-	public List<ReviewInfo> fetchLatestReviewsByAlcoholExcludingIds(
+	public List<CommonReviewInfo> fetchLatestReviewsByAlcoholExcludingIds(
 		Long alcoholId,
 		Long userId,
 		List<Long> ids
 	) {
 		userId = userId == null ? -1L : userId;
 		return queryFactory
-			.select(supporter.reviewInfoConstructor(userId))
+			.select(supporter.alcoholReviewInfoConstructor(userId))
 			.from(review)
 			.leftJoin(user).on(review.userId.eq(user.id))
 			.leftJoin(review.reviewReplies, reviewReply)
@@ -94,13 +95,13 @@ public class CustomReviewQueryRepositoryImpl implements CustomReviewQueryReposit
 	@Override
 	public ReviewsDetailInfo fetchUserReviewsForAlcoholDetail(Long alcoholId, Long userId) {
 		long start = System.nanoTime();
-		List<ReviewsDetailInfo.ReviewInfo> bestReviewInfos = fetchTopReviewByAlcohol(alcoholId, userId);
+		List<CommonReviewInfo> bestReviewInfos = fetchTopReviewByAlcohol(alcoholId, userId);
 		log.info("베스트 리뷰 조회 elapsed time : {}", System.nanoTime() - start);
 		start = System.nanoTime();
-		List<ReviewsDetailInfo.ReviewInfo> reviewInfos = fetchLatestReviewsByAlcoholExcludingIds(alcoholId, userId,
+		List<CommonReviewInfo> reviewInfos = fetchLatestReviewsByAlcoholExcludingIds(alcoholId, userId,
 			bestReviewInfos.
 				stream().
-				map(ReviewsDetailInfo.ReviewInfo::reviewId).toList()
+				map(CommonReviewInfo::reviewId).toList()
 		);
 		log.info("최신 리뷰 조회 elapsed time : {}", System.nanoTime() - start);
 		Long reviewTotalCount = countByAlcoholId(alcoholId);
