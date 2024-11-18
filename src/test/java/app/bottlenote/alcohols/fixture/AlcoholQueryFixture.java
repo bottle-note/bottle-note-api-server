@@ -11,8 +11,8 @@ import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
-import app.bottlenote.review.dto.common.CommonReviewInfo;
-import app.bottlenote.review.dto.common.UserInfo;
+import app.bottlenote.review.dto.vo.CommonReviewInfo;
+import app.bottlenote.review.dto.vo.UserInfo;
 
 import java.math.BigDecimal;
 import java.util.List;

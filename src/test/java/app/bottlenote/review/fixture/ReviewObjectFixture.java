@@ -7,8 +7,6 @@ import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
-import app.bottlenote.review.dto.common.CommonReviewInfo;
-import app.bottlenote.review.dto.common.UserInfo;
 import app.bottlenote.review.dto.request.LocationInfo;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
@@ -21,12 +19,15 @@ import app.bottlenote.review.dto.response.ReviewListResponse.ReviewInfo;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
 import app.bottlenote.review.dto.response.RootReviewReplyInfo;
 import app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage;
+import app.bottlenote.review.dto.vo.CommonReviewInfo;
+import app.bottlenote.review.dto.vo.UserInfo;
 import app.bottlenote.user.domain.User;
+import org.apache.commons.lang3.RandomStringUtils;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
-import org.apache.commons.lang3.RandomStringUtils;
 
 public class ReviewObjectFixture {
 
