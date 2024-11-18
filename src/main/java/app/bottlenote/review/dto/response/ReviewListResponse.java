@@ -16,14 +16,6 @@ public record ReviewListResponse(
 		return new ReviewListResponse(totalCount, reviewList);
 	}
 
-	public Long getTotalCount() {
-		return totalCount;
-	}
-
-	public List<ReviewInfo> getReviewList() {
-		return reviewList;
-	}
-
 	@Builder
 	public record ReviewInfo(
 		Long reviewId,

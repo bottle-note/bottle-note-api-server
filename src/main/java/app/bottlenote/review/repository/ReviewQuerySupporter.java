@@ -1,5 +1,13 @@
 package app.bottlenote.review.repository;
 
+import static app.bottlenote.like.domain.LikeStatus.LIKE;
+import static app.bottlenote.like.domain.QLikes.likes;
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
+import static app.bottlenote.review.domain.QReviewReply.reviewReply;
+import static app.bottlenote.review.domain.constant.ReviewReplyStatus.NORMAL;
+import static app.bottlenote.user.domain.QUser.user;
+
 import app.bottlenote.review.dto.common.CommonReviewInfo;
 import app.bottlenote.review.dto.common.LocationInfo;
 import app.bottlenote.review.dto.common.UserInfo;
@@ -11,17 +19,8 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
-
-import static app.bottlenote.like.domain.LikeStatus.LIKE;
-import static app.bottlenote.like.domain.QLikes.likes;
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.domain.QReview.review;
-import static app.bottlenote.review.domain.QReviewReply.reviewReply;
-import static app.bottlenote.review.domain.constant.ReviewReplyStatus.NORMAL;
-import static app.bottlenote.user.domain.QUser.user;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ReviewQuerySupporter {
@@ -101,12 +100,11 @@ public class ReviewQuerySupporter {
 	 * 리뷰 상세 조회 API에 사용되는 생상자 Projection 메서드입니다.
 	 *
 	 * @param reviewId          리뷰 ID
-	 * @param bestReviewId      베스트 리뷰 ID
 	 * @param userId            유저 ID
 	 * @param reviewTastingTags 리뷰 테이스팅 태그
 	 * @return ReviewDetailResponse.ReviewInfo
 	 */
-	public ConstructorExpression<CommonReviewInfo> commonReviewInfoConstructor(Long reviewId, Long bestReviewId, Long userId, List<String> reviewTastingTags) {
+	public ConstructorExpression<CommonReviewInfo> commonReviewInfoConstructor(Long reviewId, Long userId, List<String> reviewTastingTags) {
 		return Projections.constructor(
 			CommonReviewInfo.class,
 			review.id.as("reviewId"),
@@ -147,7 +145,7 @@ public class ReviewQuerySupporter {
 	 * 현재 리뷰가 베스트 리뷰인지 판별하는 서브쿼리
 	 */
 	public BooleanExpression isBestReviewSubquery(Long reviewId) {
-		return review.id.eq(reviewId).and(review.isBest.eq(true));
+		return reviewId != null ? review.id.eq(reviewId) : review.id.isNull().and(review.isBest.eq(true));
 	}
 
 	/**
