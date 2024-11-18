@@ -1,7 +1,5 @@
 package app.bottlenote.user.service;
 
-import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
-
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import app.bottlenote.global.security.jwt.JwtTokenValidator;
@@ -20,43 +18,42 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
+
+import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
+
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional // 추후에 로그인, 회원가입 관련 기능 추가시 proxy transactional 분리를 고려해야함.(ex. 로그인은 읽기전용, 회원가입은 쓰기전용.. 등)
 public class OauthService {
-
 	private final OauthRepository oauthRepository;
 	private final NicknameGenerator nicknameGenerator;
-	private final JwtTokenProvider jwtTokenProvider;
-	private final JwtAuthenticationManager jwtAuthenticationManager;
+	private final JwtTokenProvider tokenProvider;
+	private final JwtAuthenticationManager authenticationManager;
 	private final JsonArrayConverter converter;
 
 
 	public TokenDto oauthLogin(OauthRequest oauthReq) {
-
 		String email = oauthReq.email();
 		SocialType socialType = oauthReq.socialType();
 		GenderType genderType = oauthReq.gender();
 		Integer age = oauthReq.age();
 
 		User user;
-
-		// 회원가입용 옵셔널 유저필요
 		User optionalUser = oauthRepository.findByEmail(email).orElse(null);
 
-		//db에 유저가 존재하지 않는다면 회원가입, 존재한다면 소셜 타입을 조회
-		if (optionalUser == null) {
-			log.info("요청으로 들어온 유저가 DB에 존재하지 않음");
+		if (Objects.isNull(optionalUser)) {
+			log.debug("요청으로 들어온 유저가 DB에 존재하지 않음");
 			user = oauthSignUp(email, socialType, genderType, age);
 		} else {
-			log.info("요청으로 들어온 유저가 이미 가입된 유저임");
+			log.debug("요청으로 들어온 유저가 이미 가입된 유저임");
 			user = optionalUser;
 			user.addSocialType(oauthReq.socialType());
 		}
 
-		TokenDto token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
+		TokenDto token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
 
 		//재 로그인시 발급된 refresh token 업데이트
 		user.updateRefreshToken(token.getRefreshToken());
@@ -88,7 +85,7 @@ public class OauthService {
 			throw new UserException(INVALID_REFRESH_TOKEN);
 		}
 
-		Authentication authentication = jwtAuthenticationManager.getAuthentication(
+		Authentication authentication = authenticationManager.getAuthentication(
 			refreshToken);
 
 		log.info("USER ID is : {}", authentication.getName());
@@ -97,12 +94,23 @@ public class OauthService {
 		User user = oauthRepository.findByRefreshToken(refreshToken).orElseThrow(
 			() -> new UserException(INVALID_REFRESH_TOKEN)
 		);
-		TokenDto reissuedToken = jwtTokenProvider.generateToken(user.getEmail(),
+		TokenDto reissuedToken = tokenProvider.generateToken(user.getEmail(),
 			user.getRole(), user.getId());
 
 		// DB에 저장된 refresh 토큰을 재발급한 refresh 토큰으로 업데이트
 		user.updateRefreshToken(reissuedToken.getRefreshToken());
 
 		return reissuedToken;
+	}
+
+	public TokenDto guestLogin() {
+		User user = User.builder()
+			.email("guest")
+			.nickName("guest")
+			.role(UserType.ROLE_GUEST)
+			.build();
+		TokenDto token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
+		user.updateRefreshToken(token.getRefreshToken());
+		return token;
 	}
 }

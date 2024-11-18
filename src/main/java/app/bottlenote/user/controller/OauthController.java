@@ -24,24 +24,30 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/oauth")
 public class OauthController {
 
-	private final OauthService oauthService;
 	private static final String REFRESH_TOKEN_HEADER_PREFIX = "refresh-token";
 	private static final int COOKIE_EXPIRE_TIME = 14 * 24 * 60 * 60;
+	private final OauthService oauthService;
 
 	@PostMapping("/login")
-	public ResponseEntity<GlobalResponse> oauthLogin(@RequestBody @Valid OauthRequest oauthReq,
-		HttpServletResponse response) {
+	public ResponseEntity<?> oauthLogin(@RequestBody @Valid OauthRequest oauthReq,
+										HttpServletResponse response) {
 
 		TokenDto token = oauthService.oauthLogin(oauthReq);
 
 		setRefreshTokenInCookie(response, token.getRefreshToken());
 
-		return ResponseEntity.ok(
-			GlobalResponse.success(OauthResponse.of(token.getAccessToken())));
+		return GlobalResponse.ok(OauthResponse.of(token.getAccessToken()));
+	}
+
+	@PostMapping("/guest")
+	public ResponseEntity<?> guestLogin(HttpServletResponse response) {
+		TokenDto token = oauthService.guestLogin();
+		setRefreshTokenInCookie(response, token.getRefreshToken());
+		return GlobalResponse.ok(OauthResponse.of(token.getAccessToken()));
 	}
 
 	@PostMapping("/reissue")
-	public ResponseEntity<GlobalResponse> oauthReissue(
+	public ResponseEntity<?> oauthReissue(
 		HttpServletRequest request,
 		HttpServletResponse response) {
 
@@ -52,9 +58,7 @@ public class OauthController {
 
 		setRefreshTokenInCookie(response, token.getRefreshToken());
 
-		return ResponseEntity.ok(
-			GlobalResponse.success(OauthResponse.of(token.getAccessToken()))
-		);
+		return GlobalResponse.ok(OauthResponse.of(token.getAccessToken()));
 	}
 
 	private void setRefreshTokenInCookie(HttpServletResponse response, String refreshToken) {
