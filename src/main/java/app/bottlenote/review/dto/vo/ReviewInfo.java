@@ -1,12 +1,12 @@
 package app.bottlenote.review.dto.vo;
 
+import app.bottlenote.review.domain.ReviewLocation;
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import lombok.Builder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Builder
 public record ReviewInfo(
@@ -16,17 +16,21 @@ public record ReviewInfo(
 	SizeType sizeType,
 	Long likeCount,
 	Long replyCount,
+
 	UserInfo userInfo,
+
 	String reviewImageUrl,
 	Double rating,
 	Long viewCount,
-	LocationInfo locationInfo,
+	ReviewLocation locationInfo,
+
 	ReviewDisplayStatus status,
+
 	Boolean isMyReview,
 	Boolean isLikedByMe,
 	Boolean hasReplyByMe,
 	Boolean isBestReview,
-	List<String> reviewTastingTag,
+	String tastingTagList,
 	LocalDateTime createAt
 ) {
 }

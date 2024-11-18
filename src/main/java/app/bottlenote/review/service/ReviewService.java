@@ -101,7 +101,10 @@ public class ReviewService {
 	}
 
 	@Transactional(readOnly = true)
-	public PageResponse<ReviewListResponse> getReviews(Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId) {
+	public PageResponse<ReviewListResponse> getReviews(
+		Long alcoholId,
+		ReviewPageableRequest reviewPageableRequest,
+		Long userId) {
 		return reviewRepository.getReviews(alcoholId, reviewPageableRequest, userId);
 	}
 

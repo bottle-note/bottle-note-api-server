@@ -16,7 +16,6 @@ public interface CustomReviewRepository {
 	 */
 	ReviewInfo getReview(Long reviewId, Long userId);
 
-
 	/**
 	 * 특정 술에 대한 전체 리뷰 목록을 조회합니다
 	 *
@@ -25,7 +24,6 @@ public interface CustomReviewRepository {
 	 * @param userId                조회하는 사용자 ID
 	 * @return 특정 술에 대한 전체 리뷰 목록
 	 */
-
 	PageResponse<ReviewListResponse> getReviews(Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId);
 
 	/**
@@ -36,6 +34,5 @@ public interface CustomReviewRepository {
 	 * @param userId                조회하는 사용자 ID
 	 * @return 특정 술에 대한 내가 작성한 리뷰 목록
 	 */
-
 	PageResponse<ReviewListResponse> getReviewsByMe(Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId);
 }

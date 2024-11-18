@@ -68,35 +68,6 @@ public class ReviewQuerySupporter {
 	}
 
 	/**
-	 * 리뷰 목록 조회 API에 사용되는 생성자 Projection 메서드입니다.
-	 *
-	 * @param userId 유저 ID
-	 * @return ReviewListResponse.ReviewInfo
-	 */
-	public ConstructorExpression<ReviewInfo> reviewResponseConstructor(Long userId, Long currentReviewId) {
-		return Projections.constructor(
-			ReviewInfo.class,
-			review.id.as("reviewId"),
-			review.content.as("reviewContent"),
-			review.price.as("price"),
-			review.sizeType.as("sizeType"),
-			likesCountSubquery(),
-			reviewReplyCountSubquery(),
-			review.imageUrl.as("reviewImageUrl"),
-			review.createAt.as("createAt"),
-			user.id.as("userId"),
-			user.nickName.as("nickName"),
-			user.imageUrl.as("userProfileImage"),
-			ratingSubquery(),
-			review.status.as("status"),
-			isMyReviewSubquery(userId),
-			isLikeByMeSubquery(userId),
-			hasReplyByMeSubquery(userId),
-			isBestReviewSubquery(currentReviewId)
-		);
-	}
-
-	/**
 	 * 리뷰 상세 조회 API에 사용되는 생상자 Projection 메서드입니다.
 	 *
 	 * @param reviewId          리뷰 ID
@@ -189,7 +160,7 @@ public class ReviewQuerySupporter {
 	/***
 	 * 내가 작성한 리뷰인지 판별
 	 */
-	private BooleanExpression isMyReviewSubquery(Long userId) {
+	public BooleanExpression isMyReviewSubquery(Long userId) {
 		if (1 > userId) {
 			return Expressions.asBoolean(false);
 		}
@@ -200,7 +171,7 @@ public class ReviewQuerySupporter {
 	/***
 	 좋아요 개수 서브쿼리
 	 */
-	private Expression<Long> likesCountSubquery() {
+	public Expression<Long> likesCountSubquery() {
 		return ExpressionUtils.as(
 			JPAExpressions.select(likes.id.count())
 				.from(likes)
@@ -212,7 +183,7 @@ public class ReviewQuerySupporter {
 	/***
 	 별점 서브쿼리
 	 */
-	private Expression<Double> ratingSubquery() {
+	public Expression<Double> ratingSubquery() {
 		return ExpressionUtils.as(
 			JPAExpressions.select(rating.ratingPoint.rating)
 				.from(rating)
@@ -226,7 +197,7 @@ public class ReviewQuerySupporter {
 	/***
 	 리뷰 댓글 개수 카운트 서브쿼리
 	 */
-	private Expression<Long> reviewReplyCountSubquery() {
+	public Expression<Long> reviewReplyCountSubquery() {
 		return ExpressionUtils.as(
 			JPAExpressions.select(reviewReply.id.count())
 				.from(reviewReply)

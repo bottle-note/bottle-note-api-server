@@ -3,14 +3,20 @@ package app.bottlenote.review.repository.custom;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.like.domain.LikeStatus;
 import app.bottlenote.review.domain.constant.ReviewSortType;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.vo.ReviewInfo;
+import app.bottlenote.review.dto.vo.UserInfo;
 import app.bottlenote.review.repository.ReviewQuerySupporter;
+import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +47,6 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 
 	@Override
 	public ReviewInfo getReview(Long reviewId, Long userId) {
-
 		List<String> tastingTagList = queryFactory
 			.select(reviewTastingTag.tastingTag)
 			.from(reviewTastingTag)
@@ -71,24 +76,47 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		ReviewPageableRequest reviewPageableRequest,
 		Long userId
 	) {
-		Long currentReviewId = queryFactory
-			.select(review.id)
-			.from(review)
-			.where(review.alcoholId.eq(alcoholId)
-				.and(review.activeStatus.eq(ACTIVE))
-				.and(review.status.eq(PUBLIC)))
-			.limit(1)
-			.fetchOne();
-
 
 		List<ReviewInfo> fetch = queryFactory
-			.select(supporter.reviewResponseConstructor(userId, currentReviewId))
+			.select(Projections.constructor(
+					ReviewInfo.class,
+					review.id,
+					review.content,
+					review.price,
+					review.sizeType,
+					likes.count(),
+					reviewReply.count(),
+					Projections.constructor(UserInfo.class,
+						user.id.as("userId"),
+						user.nickName.as("nickName"),
+						user.imageUrl.as("userProfileImage")
+					),
+					review.imageUrl,
+					rating.ratingPoint.rating,
+					review.viewCount,
+					review.reviewLocation,
+					review.status,
+					supporter.isMyReviewSubquery(userId),
+					supporter.isLikeByMeSubquery(userId),
+					supporter.hasReplyByMeSubquery(userId),
+					review.isBest,
+					ExpressionUtils.as(
+						JPAExpressions.select(
+								Expressions.stringTemplate("group_concat({0})", reviewTastingTag.tastingTag)
+							)
+							.from(reviewTastingTag)
+							.where(reviewTastingTag.review.id.eq(review.id)),
+						"tastingTag"
+					),
+					review.createAt
+				)
+			)
 			.from(review)
 			.join(user).on(review.userId.eq(user.id))
 			.leftJoin(likes).on(review.id.eq(likes.review.id))
 			.leftJoin(alcohol).on(alcohol.id.eq(review.alcoholId))
 			.leftJoin(rating).on(review.userId.eq(rating.user.id))
-			.leftJoin(reviewTastingTag).on(review.id.eq(reviewTastingTag.review.id))
+			.leftJoin(reviewReply).on(review.id.eq(reviewReply.review.id))
 			.where(alcohol.id.eq(alcoholId)
 				.and(review.activeStatus.eq(ACTIVE))
 				.and(review.status.eq(PUBLIC)))
@@ -107,10 +135,8 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.fetchOne();
 
 		CursorPageable cursorPageable = getCursorPageable(reviewPageableRequest, fetch);
-
 		return PageResponse.of(ReviewListResponse.of(totalCount, fetch), cursorPageable);
 	}
-
 
 	@Override
 	public PageResponse<ReviewListResponse> getReviewsByMe(
@@ -118,33 +144,35 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		ReviewPageableRequest reviewPageableRequest,
 		Long userId
 	) {
-
-		Long bestReviewId = queryFactory
-			.select(review.id)
-			.from(review)
-			.join(user).on(review.userId.eq(user.id))
-			.leftJoin(review.reviewReplies, reviewReply)
-			.leftJoin(rating).on(rating.alcohol.id.eq(review.alcoholId))
-			.leftJoin(likes).on(likes.review.id.eq(review.id))
-			.where(alcohol.id.eq(alcoholId)
-				.and(review.activeStatus.eq(ACTIVE))
-				.and(review.status.eq(PUBLIC)))
-			.groupBy(user.id, user.imageUrl, user.nickName, review.id, review.content, rating.ratingPoint, review.createAt)
-			.orderBy(reviewReply.count().coalesce(0L)
-				.add(likes.count().coalesce(0L))
-				.add(rating.ratingPoint.rating.coalesce(0.0).avg())
-				.desc()
-			)
-			.limit(1)
-			.fetchOne();
-
 		List<ReviewInfo> fetch = queryFactory
-			.select(supporter.reviewResponseConstructor(userId, bestReviewId))
+			.select(Projections.fields(
+					ReviewInfo.class,
+					review.id.as("reviewId"),
+					review.content.as("reviewContent"),
+					review.price.as("price"),
+					review.sizeType.as("sizeType"),
+					likes.count().as("likeCount"),
+					reviewReply.count().as("replyCount"),
+					review.imageUrl.as("reviewImageUrl"),
+					review.createAt.as("createAt"),
+					user.id.as("userId"),
+					user.nickName.as("nickName"),
+					user.imageUrl.as("userProfileImage"),
+					rating.ratingPoint.rating.as("rating"),
+					review.viewCount.as("viewCount"),
+					review.status.as("status"),
+					supporter.isMyReviewSubquery(userId),
+					supporter.isLikeByMeSubquery(userId),
+					supporter.hasReplyByMeSubquery(userId),
+					review.isBest.as("isBestReview")
+				)
+			)
 			.from(review)
 			.join(user).on(review.userId.eq(user.id))
-			.leftJoin(likes).on(review.id.eq(likes.review.id))
+			.leftJoin(likes).on(review.id.eq(likes.review.id).and(likes.status.eq(LikeStatus.LIKE)))
 			.leftJoin(alcohol).on(alcohol.id.eq(review.alcoholId))
-			.leftJoin(rating).on(review.userId.eq(rating.user.id))
+			.leftJoin(rating).on(review.userId.eq(rating.user.id).and(rating.id.alcoholId.eq(review.alcoholId)))
+			.leftJoin(reviewReply).on(review.id.eq(reviewReply.review.id))
 			.where(review.userId.eq(userId)
 				.and(review.alcoholId.eq(alcoholId))
 				.and(review.activeStatus.eq(ACTIVE)))
@@ -163,12 +191,8 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.fetchOne();
 
 		CursorPageable cursorPageable = getCursorPageable(reviewPageableRequest, fetch);
-
-		log.info("CURSOR Pageable info :{}", cursorPageable.toString());
-
 		return PageResponse.of(ReviewListResponse.of(totalCount, fetch), cursorPageable);
 	}
-
 
 	private CursorPageable getCursorPageable(
 		ReviewPageableRequest reviewPageableRequest,
