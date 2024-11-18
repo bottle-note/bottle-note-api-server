@@ -23,10 +23,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-@ToString(of = {"id", "email", "nickName", "age", "socialType"})
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@ToString(of = {"id", "email", "nickName", "age", "socialType"})
 @Comment("사용자 정보 테이블")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity(name = "users")
 public class User {
 
@@ -44,15 +44,15 @@ public class User {
 	private String nickName;
 
 	@Comment("사용자 연령")
-	@Column(name = "age", nullable = true)
+	@Column(name = "age")
 	private Integer age;
 
 	@Comment("사용자 성별")
-	@Column(name = "gender", nullable = true)
+	@Column(name = "gender")
 	private String gender;
 
 	@Comment("사용자 프로필 썸네일")
-	@Column(name = "image_url", nullable = true)
+	@Column(name = "image_url")
 	private String imageUrl;
 
 	@Enumerated(EnumType.STRING)
@@ -64,7 +64,6 @@ public class User {
 	@Comment("사용자 상태(ACTIVE, DELETED)")
 	@Column(name = "status", nullable = false)
 	private UserStatus status = UserStatus.ACTIVE;
-
 
 	@Convert(converter = JsonArrayConverter.class)
 	@Comment("사용자 로그인 소셜타입 (GOOGLE, KAKAO, NAVER, APPLE")
@@ -104,7 +103,6 @@ public class User {
 	}
 
 	public void changeProfileImage(String viewUrl) {
-//		this.imageUrl = (viewUrl == null || viewUrl.trim().isEmpty()) ? "" : viewUrl;
 		this.imageUrl = viewUrl;
 	}
 

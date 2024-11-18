@@ -18,7 +18,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 
 import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
 
@@ -29,71 +31,57 @@ import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TO
 @Transactional // 추후에 로그인, 회원가입 관련 기능 추가시 proxy transactional 분리를 고려해야함.(ex. 로그인은 읽기전용, 회원가입은 쓰기전용.. 등)
 public class OauthService {
 	private final OauthRepository oauthRepository;
-	private final NicknameGenerator nicknameGenerator;
 	private final JwtTokenProvider tokenProvider;
 	private final JwtAuthenticationManager authenticationManager;
 	private final JsonArrayConverter converter;
 
 
 	public TokenDto oauthLogin(OauthRequest oauthReq) {
-		String email = oauthReq.email();
-		SocialType socialType = oauthReq.socialType();
-		GenderType genderType = oauthReq.gender();
-		Integer age = oauthReq.age();
+		final String email = oauthReq.email();
+		final SocialType socialType = oauthReq.socialType();
+		final GenderType genderType = oauthReq.gender();
+		final Integer age = oauthReq.age();
 
-		User user;
-		User optionalUser = oauthRepository.findByEmail(email).orElse(null);
-
-		if (Objects.isNull(optionalUser)) {
-			log.debug("요청으로 들어온 유저가 DB에 존재하지 않음");
-			user = oauthSignUp(email, socialType, genderType, age);
-		} else {
-			log.debug("요청으로 들어온 유저가 이미 가입된 유저임");
-			user = optionalUser;
-			user.addSocialType(oauthReq.socialType());
-		}
-
+		User user = oauthRepository.findByEmail(email).orElseGet(() -> oauthSignUp(email, socialType, genderType, age));
+		user.addSocialType(oauthReq.socialType());
 		TokenDto token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
-
-		//재 로그인시 발급된 refresh token 업데이트
 		user.updateRefreshToken(token.getRefreshToken());
 		return token;
 	}
 
-	public User oauthSignUp(String email, SocialType socialType, GenderType genderType,
-							Integer age) {
+	public User oauthSignUp(
+		String email,
+		SocialType socialType,
+		GenderType genderType,
+		Integer age
+	) {
 
-		String nickName = nicknameGenerator.generateNickname();
-
-		log.info("nickname is :{}", nickName);
 		User user = User.builder()
 			.email(email)
 			.socialType(converter.convertToEntityAttribute(socialType.toString()))
 			.role(UserType.ROLE_USER)
 			.gender(String.valueOf(genderType))
 			.age(age)
-			.nickName(nickName)
+			.nickName(generateNickname())
 			.build();
 
 		return oauthRepository.save(user);
 	}
 
 	public TokenDto refresh(String refreshToken) {
-
 		//refresh Token 검증
 		if (!JwtTokenValidator.validateToken(refreshToken)) {
 			throw new UserException(INVALID_REFRESH_TOKEN);
 		}
 
-		Authentication authentication = authenticationManager.getAuthentication(
-			refreshToken);
-
+		Authentication authentication = authenticationManager.getAuthentication(refreshToken);
 		log.info("USER ID is : {}", authentication.getName());
 
 		//refresh Token DB에 존재하는지 검사
 		User user = oauthRepository.findByRefreshToken(refreshToken).orElseThrow(
 			() -> new UserException(INVALID_REFRESH_TOKEN)
 		);
+
 		TokenDto reissuedToken = tokenProvider.generateToken(user.getEmail(),
 			user.getRole(), user.getId());
 
@@ -104,13 +92,24 @@ public class OauthService {
 	}
 
 	public TokenDto guestLogin() {
-		User user = User.builder()
-			.email("guest")
-			.nickName("guest")
-			.role(UserType.ROLE_GUEST)
-			.build();
-		TokenDto token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
-		user.updateRefreshToken(token.getRefreshToken());
-		return token;
+		User guest = oauthRepository.loadGuestUser()
+			.orElseGet(() -> oauthRepository.save(User.builder()
+				.email("guest@bottlenote.com")
+				.nickName(generateNickname())
+				.role(UserType.ROLE_GUEST)
+				.build()));
+
+		return tokenProvider.generateToken(guest.getEmail(), guest.getRole(), guest.getId());
+	}
+
+	public String generateNickname() {
+		Random random = new Random();
+		List<String> a = Arrays.asList("부드러운", "향기로운", "숙성된", "풍부한", "깊은", "황금빛", "오크향의", "스모키한", "달콤한", "강렬한");
+		List<String> b = Arrays.asList("몰트", "버번", "위스키", "바텐더", "오크통", "싱글몰트", "블렌디드", "아이리시", "스카치", "캐스크");
+		List<String> c = Arrays.asList("글렌피딕", "맥캘란", "라가불린", "탈리스커", "조니워커", "제임슨", "야마자키", "부카나스", "불릿", "잭다니엘스");
+		String key = a.get(random.nextInt(a.size()));
+		if (random.nextInt() % 2 == 0) key += b.get(random.nextInt(b.size()));
+		else key += c.get(random.nextInt(c.size()));
+		return key + oauthRepository.getNextNicknameSequence();
 	}
 }
