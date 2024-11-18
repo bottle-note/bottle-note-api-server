@@ -35,31 +35,48 @@ public class OauthService {
 	private final JwtAuthenticationManager authenticationManager;
 	private final JsonArrayConverter converter;
 
-
 	public TokenDto oauthLogin(OauthRequest oauthReq) {
 		final String email = oauthReq.email();
 		final SocialType socialType = oauthReq.socialType();
 		final GenderType genderType = oauthReq.gender();
 		final Integer age = oauthReq.age();
 
-		User user = oauthRepository.findByEmail(email).orElseGet(() -> oauthSignUp(email, socialType, genderType, age));
+		User user = oauthRepository.findByEmail(email).orElseGet(() -> oauthSignUp(email, socialType, genderType, age, UserType.ROLE_USER));
 		user.addSocialType(oauthReq.socialType());
 		TokenDto token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
 		user.updateRefreshToken(token.getRefreshToken());
 		return token;
 	}
 
+	public TokenDto guestLogin() {
+		User guest = oauthRepository.loadGuestUser()
+			.orElseGet(() -> oauthSignUp("guest@bottlenote.com", SocialType.APPLE, GenderType.MALE, 30, UserType.ROLE_GUEST));
+		return tokenProvider.generateToken(guest.getEmail(), guest.getRole(), guest.getId());
+	}
+
+	public String generateNickname() {
+		Random random = new Random();
+		List<String> a = Arrays.asList("부드러운", "향기로운", "숙성된", "풍부한", "깊은", "황금빛", "오크향의", "스모키한", "달콤한", "강렬한");
+		List<String> b = Arrays.asList("몰트", "버번", "위스키", "바텐더", "오크통", "싱글몰트", "블렌디드", "아이리시", "스카치", "캐스크");
+		List<String> c = Arrays.asList("글렌피딕", "맥캘란", "라가불린", "탈리스커", "조니워커", "제임슨", "야마자키", "부카나스", "불릿", "잭다니엘스");
+		String key = a.get(random.nextInt(a.size()));
+		if (random.nextInt() % 2 == 0) key += b.get(random.nextInt(b.size()));
+		else key += c.get(random.nextInt(c.size()));
+		return key + oauthRepository.getNextNicknameSequence();
+	}
+
 	public User oauthSignUp(
 		String email,
 		SocialType socialType,
 		GenderType genderType,
-		Integer age
+		Integer age,
+		UserType userType
 	) {
 
 		User user = User.builder()
 			.email(email)
 			.socialType(converter.convertToEntityAttribute(socialType.toString()))
-			.role(UserType.ROLE_USER)
+			.role(userType)
 			.gender(String.valueOf(genderType))
 			.age(age)
 			.nickName(generateNickname())
@@ -91,25 +108,4 @@ public class OauthService {
 		return reissuedToken;
 	}
 
-	public TokenDto guestLogin() {
-		User guest = oauthRepository.loadGuestUser()
-			.orElseGet(() -> oauthRepository.save(User.builder()
-				.email("guest@bottlenote.com")
-				.nickName(generateNickname())
-				.role(UserType.ROLE_GUEST)
-				.build()));
-
-		return tokenProvider.generateToken(guest.getEmail(), guest.getRole(), guest.getId());
-	}
-
-	public String generateNickname() {
-		Random random = new Random();
-		List<String> a = Arrays.asList("부드러운", "향기로운", "숙성된", "풍부한", "깊은", "황금빛", "오크향의", "스모키한", "달콤한", "강렬한");
-		List<String> b = Arrays.asList("몰트", "버번", "위스키", "바텐더", "오크통", "싱글몰트", "블렌디드", "아이리시", "스카치", "캐스크");
-		List<String> c = Arrays.asList("글렌피딕", "맥캘란", "라가불린", "탈리스커", "조니워커", "제임슨", "야마자키", "부카나스", "불릿", "잭다니엘스");
-		String key = a.get(random.nextInt(a.size()));
-		if (random.nextInt() % 2 == 0) key += b.get(random.nextInt(b.size()));
-		else key += c.get(random.nextInt(c.size()));
-		return key + oauthRepository.getNextNicknameSequence();
-	}
 }

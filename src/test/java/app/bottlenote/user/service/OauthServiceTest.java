@@ -97,8 +97,7 @@ class OauthServiceTest {
 		//when
 		when(oauthRepository.save(any(User.class))).thenReturn(user);
 		//then
-		User resultUser = oauthService.oauthSignUp(request.email(), request.socialType(),
-			request.gender(), request.age());
+		User resultUser = oauthService.oauthSignUp(request.email(), request.socialType(), request.gender(), request.age(), UserType.ROLE_USER);
 
 		assertThat(resultUser.getAge()).isEqualTo(request.age());
 	}

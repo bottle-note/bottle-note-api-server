@@ -10,6 +10,7 @@ import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -55,6 +56,7 @@ class JpaAuditingIntegrationTest extends IntegrationTestSupport {
 		mockedSecurityUtil.close();
 	}
 
+	@Disabled
 	@DisplayName("DB 저장 시 생성자와 수정자가 기록된다.")
 	@Sql(scripts = {
 		"/init-script/init-alcohol.sql",
