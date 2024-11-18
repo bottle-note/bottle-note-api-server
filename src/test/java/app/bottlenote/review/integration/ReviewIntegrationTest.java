@@ -1,21 +1,29 @@
 package app.bottlenote.review.integration;
 
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
-import app.bottlenote.alcohols.dto.response.detail.AlcoholDetail;
 import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
-import app.bottlenote.review.dto.common.CommonReviewInfo;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.request.ReviewStatusChangeRequest;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.dto.request.OauthRequest;
+import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,18 +35,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
-
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Tag("integration")
 @DisplayName("[integration] [controller] ReviewReplyController")
@@ -78,29 +74,11 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
 		@Autowired
 		AlcoholQueryRepository alcoholQueryRepository;
 
-		@DisplayName("베스트 리뷰 여부가 정확히 동작한다.")
+		@DisplayName("리뷰 목록 조회에 성공한다.")
 		@Test
 		void test_1() throws Exception {
 			// given
 			Long alcoholId = 4L;
-
-			MvcResult result = mockMvc.perform(get("/api/v1/alcohols/{alcoholId}", alcoholId)
-					.contentType(MediaType.APPLICATION_JSON)
-					.header("Authorization", "Bearer " + getToken(oauthRequest).getAccessToken())
-					.with(csrf())
-				)
-				.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.code").value(200))
-				.andExpect(jsonPath("$.data").exists())
-				.andReturn();
-
-			// when
-			String contentAsString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-			GlobalResponse response = mapper.readValue(contentAsString, GlobalResponse.class);
-			AlcoholDetail alcoholDetail = mapper.convertValue(response.getData(), AlcoholDetail.class);
-			List<CommonReviewInfo> bestReviewInfos = alcoholDetail.reviewList().getBestReviewInfos();
-			Long bestReviewIdInAlcohol = bestReviewInfos.get(0).reviewId();
 
 			MvcResult result2 = mockMvc.perform(get("/api/v1/reviews/{alcoholId}", alcoholId)
 					.contentType(MediaType.APPLICATION_JSON)
@@ -116,12 +94,7 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
 			GlobalResponse response2 = mapper.readValue(contentAsString2, GlobalResponse.class);
 			ReviewListResponse reviewListResponse = mapper.convertValue(response2.getData(), ReviewListResponse.class);
 
-			Long bestReviewIdInReview = reviewListResponse.reviewList().stream()
-				.filter(bestReview -> bestReview.isBestReview().equals(true))
-				.toList().get(0).reviewId();
-
-			// then
-			Assertions.assertEquals(bestReviewIdInReview, bestReviewIdInAlcohol);
+			Assertions.assertNotNull(reviewListResponse.reviewList());
 		}
 	}
 

@@ -1,25 +1,5 @@
 package app.bottlenote.review.repository.custom;
 
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.global.service.cursor.SortOrder;
-import app.bottlenote.review.domain.constant.ReviewSortType;
-import app.bottlenote.review.dto.common.CommonReviewInfo;
-import app.bottlenote.review.dto.request.ReviewPageableRequest;
-import app.bottlenote.review.dto.response.ReviewListResponse;
-import app.bottlenote.review.repository.ReviewQuerySupporter;
-import com.querydsl.core.types.Order;
-import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.dsl.NumberExpression;
-import com.querydsl.jpa.JPAExpressions;
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.global.service.cursor.SortOrder.DESC;
 import static app.bottlenote.like.domain.QLikes.likes;
@@ -32,6 +12,24 @@ import static app.bottlenote.review.domain.constant.ReviewActiveStatus.ACTIVE;
 import static app.bottlenote.review.domain.constant.ReviewDisplayStatus.PUBLIC;
 import static app.bottlenote.user.domain.QUser.user;
 
+import app.bottlenote.global.service.cursor.CursorPageable;
+import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.review.domain.constant.ReviewSortType;
+import app.bottlenote.review.dto.common.CommonReviewInfo;
+import app.bottlenote.review.dto.request.ReviewPageableRequest;
+import app.bottlenote.review.dto.response.ReviewListResponse;
+import app.bottlenote.review.repository.ReviewQuerySupporter;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 @Slf4j
 @RequiredArgsConstructor
 public class CustomReviewRepositoryImpl implements CustomReviewRepository {
@@ -43,28 +41,6 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 	@Override
 	public CommonReviewInfo getReview(Long reviewId, Long userId) {
 
-		Long bestReviewId = queryFactory
-			.select(review.id)
-			.from(review)
-			.join(user).on(review.userId.eq(user.id))
-			.leftJoin(review.reviewReplies, reviewReply)
-			.leftJoin(rating).on(rating.alcohol.id.eq(review.alcoholId))
-			.leftJoin(likes).on(likes.review.id.eq(review.id))
-			.where(review.alcoholId.eq(
-				JPAExpressions
-					.select(review.alcoholId)
-					.from(review)
-					.where(review.id.eq(reviewId))
-			))
-			.groupBy(user.id, user.imageUrl, user.nickName, review.id, review.content, rating.ratingPoint, review.createAt)
-			.orderBy(reviewReply.count().coalesce(0L)
-				.add(likes.count().coalesce(0L))
-				.add(rating.ratingPoint.rating.coalesce(0.0).avg())
-				.desc()
-			)
-			.limit(1)
-			.fetchOne();
-
 		List<String> tastingTagList = queryFactory
 			.select(reviewTastingTag.tastingTag)
 			.from(reviewTastingTag)
@@ -72,7 +48,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.fetch();
 
 		return queryFactory
-			.select(supporter.commonReviewInfoConstructor(reviewId, bestReviewId, userId, tastingTagList))
+			.select(supporter.commonReviewInfoConstructor(reviewId, userId, tastingTagList))
 			.from(review)
 			.join(user).on(review.userId.eq(user.id))
 			.leftJoin(likes).on(review.id.eq(likes.review.id))
@@ -100,7 +76,6 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.where(review.alcoholId.eq(alcoholId)
 				.and(review.activeStatus.eq(ACTIVE))
 				.and(review.status.eq(PUBLIC)))
-			.groupBy(user.id, user.imageUrl, user.nickName, review.id, review.content, rating.ratingPoint, review.createAt)
 			.limit(1)
 			.fetchOne();
 
