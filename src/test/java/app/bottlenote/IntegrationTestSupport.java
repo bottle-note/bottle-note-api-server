@@ -33,7 +33,6 @@ public abstract class IntegrationTestSupport {
 			.withDatabaseName("bottlenote")
 			.withUsername("root")
 			.withPassword("root");
-
 		MY_SQL_CONTAINER.start();
 	}
 
@@ -42,9 +41,9 @@ public abstract class IntegrationTestSupport {
 	@Autowired
 	protected MockMvc mockMvc;
 	@Autowired
-	private DataInitializer dataInitializer;
-	@Autowired
 	protected OauthService oauthService;
+	@Autowired
+	private DataInitializer dataInitializer;
 
 	@AfterEach
 	void deleteAll() {
@@ -52,7 +51,7 @@ public abstract class IntegrationTestSupport {
 		dataInitializer.deleteAll();
 		log.info("데이터 초기화 dataInitializer.deleteAll() 종료");
 	}
-	
+
 	protected TokenDto getToken(OauthRequest request) {
 		return oauthService.oauthLogin(request);
 	}
