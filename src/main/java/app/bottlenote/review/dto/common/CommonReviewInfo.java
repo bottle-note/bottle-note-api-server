@@ -2,11 +2,11 @@ package app.bottlenote.review.dto.common;
 
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
-import lombok.Builder;
-
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import lombok.Builder;
 
 public record CommonReviewInfo(
 	Long reviewId,
@@ -28,6 +28,7 @@ public record CommonReviewInfo(
 	Boolean hasReplyByMe,
 	Boolean isBestReview,
 	List<String> reviewTastingTag,
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
 	LocalDateTime createAt
 ) {
 

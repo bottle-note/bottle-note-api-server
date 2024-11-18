@@ -8,6 +8,7 @@ import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.review.dto.common.CommonReviewInfo;
+import app.bottlenote.review.dto.common.UserInfo;
 import app.bottlenote.review.dto.request.LocationInfo;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
@@ -21,12 +22,11 @@ import app.bottlenote.review.dto.response.ReviewReplyResponse;
 import app.bottlenote.review.dto.response.RootReviewReplyInfo;
 import app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage;
 import app.bottlenote.user.domain.User;
-import org.apache.commons.lang3.RandomStringUtils;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
+import org.apache.commons.lang3.RandomStringUtils;
 
 public class ReviewObjectFixture {
 
@@ -144,6 +144,24 @@ public class ReviewObjectFixture {
 	public static CommonReviewInfo getReviewResponse() {
 		return CommonReviewInfo.builder()
 			.reviewId(1L)
+			.reviewContent("This is a sample review")
+			.price(BigDecimal.valueOf(10000L))
+			.sizeType(SizeType.GLASS)
+			.likeCount(10L)
+			.replyCount(2L)
+			.reviewImageUrl("http://example.com/review-image.jpg")
+			.userInfo(new UserInfo(1L, "John Doe", "http://example.com/profile.jpg")
+			)
+			.rating(4.5)
+			.viewCount(null)
+			.locationInfo(null)
+			.status(ReviewDisplayStatus.PUBLIC)
+			.isMyReview(true)
+			.isLikedByMe(false)
+			.hasReplyByMe(true)
+			.isBestReview(false)
+			.reviewTastingTag(List.of("Fruity", "Smooth"))
+			.createAt(LocalDateTime.now())
 			.build();
 	}
 
