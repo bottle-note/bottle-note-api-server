@@ -81,7 +81,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.fetchOne();
 
 
-		List<ReviewListResponse.ReviewInfo> fetch = queryFactory
+		List<ReviewInfo> fetch = queryFactory
 			.select(supporter.reviewResponseConstructor(userId, currentReviewId))
 			.from(review)
 			.join(user).on(review.userId.eq(user.id))
@@ -138,7 +138,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.limit(1)
 			.fetchOne();
 
-		List<ReviewListResponse.ReviewInfo> fetch = queryFactory
+		List<ReviewInfo> fetch = queryFactory
 			.select(supporter.reviewResponseConstructor(userId, bestReviewId))
 			.from(review)
 			.join(user).on(review.userId.eq(user.id))
@@ -172,7 +172,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 
 	private CursorPageable getCursorPageable(
 		ReviewPageableRequest reviewPageableRequest,
-		List<ReviewListResponse.ReviewInfo> fetch
+		List<ReviewInfo> fetch
 	) {
 
 		boolean hasNext = isHasNext(reviewPageableRequest, fetch);
@@ -189,7 +189,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 	 */
 	private boolean isHasNext(
 		ReviewPageableRequest reviewPageableRequest,
-		List<ReviewListResponse.ReviewInfo> fetch
+		List<ReviewInfo> fetch
 	) {
 		boolean hasNext = fetch.size() > reviewPageableRequest.pageSize();
 

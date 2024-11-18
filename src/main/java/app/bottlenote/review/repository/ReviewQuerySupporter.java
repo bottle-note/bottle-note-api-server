@@ -1,6 +1,5 @@
 package app.bottlenote.review.repository;
 
-import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.vo.LocationInfo;
 import app.bottlenote.review.dto.vo.ReviewInfo;
 import app.bottlenote.review.dto.vo.UserInfo;
@@ -74,9 +73,9 @@ public class ReviewQuerySupporter {
 	 * @param userId 유저 ID
 	 * @return ReviewListResponse.ReviewInfo
 	 */
-	public ConstructorExpression<ReviewListResponse.ReviewInfo> reviewResponseConstructor(Long userId, Long currentReviewId) {
+	public ConstructorExpression<ReviewInfo> reviewResponseConstructor(Long userId, Long currentReviewId) {
 		return Projections.constructor(
-			ReviewListResponse.ReviewInfo.class,
+			ReviewInfo.class,
 			review.id.as("reviewId"),
 			review.content.as("reviewContent"),
 			review.price.as("price"),

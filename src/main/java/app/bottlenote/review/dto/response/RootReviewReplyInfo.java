@@ -15,6 +15,7 @@ public record RootReviewReplyInfo(
 		return new RootReviewReplyInfo(totalCount, reviewReplyList);
 	}
 
+	@Builder
 	public record Info(
 		Long userId,
 		String imageUrl,
@@ -25,8 +26,5 @@ public record RootReviewReplyInfo(
 		ReviewReplyStatus status,
 		LocalDateTime createAt
 	) {
-		@Builder
-		public Info {
-		}
 	}
 }
