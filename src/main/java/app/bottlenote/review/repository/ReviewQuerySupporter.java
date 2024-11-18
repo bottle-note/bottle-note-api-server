@@ -1,17 +1,9 @@
 package app.bottlenote.review.repository;
 
-import static app.bottlenote.like.domain.LikeStatus.LIKE;
-import static app.bottlenote.like.domain.QLikes.likes;
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.domain.QReview.review;
-import static app.bottlenote.review.domain.QReviewReply.reviewReply;
-import static app.bottlenote.review.domain.constant.ReviewReplyStatus.NORMAL;
-import static app.bottlenote.user.domain.QUser.user;
-
-import app.bottlenote.review.dto.common.CommonReviewInfo;
-import app.bottlenote.review.dto.common.LocationInfo;
-import app.bottlenote.review.dto.common.UserInfo;
 import app.bottlenote.review.dto.response.ReviewListResponse;
+import app.bottlenote.review.dto.vo.CommonReviewInfo;
+import app.bottlenote.review.dto.vo.LocationInfo;
+import app.bottlenote.review.dto.vo.UserInfo;
 import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
@@ -19,8 +11,17 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
-import java.util.List;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+import static app.bottlenote.like.domain.LikeStatus.LIKE;
+import static app.bottlenote.like.domain.QLikes.likes;
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
+import static app.bottlenote.review.domain.QReviewReply.reviewReply;
+import static app.bottlenote.review.domain.constant.ReviewReplyStatus.NORMAL;
+import static app.bottlenote.user.domain.QUser.user;
 
 @Component
 public class ReviewQuerySupporter {

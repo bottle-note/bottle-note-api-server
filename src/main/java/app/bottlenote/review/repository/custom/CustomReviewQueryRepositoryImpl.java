@@ -2,7 +2,7 @@ package app.bottlenote.review.repository.custom;
 
 import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
 import app.bottlenote.review.domain.constant.ReviewActiveStatus;
-import app.bottlenote.review.dto.common.CommonReviewInfo;
+import app.bottlenote.review.dto.vo.CommonReviewInfo;
 import app.bottlenote.review.repository.ReviewQuerySupporter;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.apache.logging.log4j.LogManager;

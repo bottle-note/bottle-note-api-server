@@ -1,12 +1,13 @@
-package app.bottlenote.review.dto.common;
+package app.bottlenote.review.dto.vo;
 
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Builder;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import lombok.Builder;
 
 public record CommonReviewInfo(
 	Long reviewId,

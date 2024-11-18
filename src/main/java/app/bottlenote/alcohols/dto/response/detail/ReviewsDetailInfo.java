@@ -1,6 +1,6 @@
 package app.bottlenote.alcohols.dto.response.detail;
 
-import app.bottlenote.review.dto.common.CommonReviewInfo;
+import app.bottlenote.review.dto.vo.CommonReviewInfo;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

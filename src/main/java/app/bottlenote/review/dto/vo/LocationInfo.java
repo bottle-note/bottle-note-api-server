@@ -1,4 +1,4 @@
-package app.bottlenote.review.dto.common;
+package app.bottlenote.review.dto.vo;
 
 import jakarta.validation.constraints.Pattern;
 
