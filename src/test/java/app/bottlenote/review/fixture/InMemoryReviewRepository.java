@@ -8,7 +8,7 @@ import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.RootReviewReplyInfo;
 import app.bottlenote.review.dto.response.SubReviewReplyInfo;
-import app.bottlenote.review.dto.vo.CommonReviewInfo;
+import app.bottlenote.review.dto.vo.ReviewInfo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -70,7 +70,7 @@ public class InMemoryReviewRepository implements ReviewRepository {
 	}
 
 	@Override
-	public CommonReviewInfo getReview(Long reviewId, Long userId) {
+	public ReviewInfo getReview(Long reviewId, Long userId) {
 		return null;
 	}
 

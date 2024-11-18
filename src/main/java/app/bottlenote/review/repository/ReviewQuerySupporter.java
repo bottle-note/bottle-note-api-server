@@ -1,8 +1,8 @@
 package app.bottlenote.review.repository;
 
 import app.bottlenote.review.dto.response.ReviewListResponse;
-import app.bottlenote.review.dto.vo.CommonReviewInfo;
 import app.bottlenote.review.dto.vo.LocationInfo;
+import app.bottlenote.review.dto.vo.ReviewInfo;
 import app.bottlenote.review.dto.vo.UserInfo;
 import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.Expression;
@@ -31,9 +31,9 @@ public class ReviewQuerySupporter {
 	 * @param userId 유저 ID
 	 * @return ReviewInfo
 	 */
-	public ConstructorExpression<CommonReviewInfo> alcoholReviewInfoConstructor(Long userId) {
+	public ConstructorExpression<ReviewInfo> alcoholReviewInfoConstructor(Long userId) {
 		return Projections.constructor(
-			CommonReviewInfo.class,
+			ReviewInfo.class,
 			review.id.as("reviewId"),
 			review.content.as("reviewContent"),
 			review.price.as("price"),
@@ -105,9 +105,9 @@ public class ReviewQuerySupporter {
 	 * @param reviewTastingTags 리뷰 테이스팅 태그
 	 * @return ReviewDetailResponse.ReviewInfo
 	 */
-	public ConstructorExpression<CommonReviewInfo> commonReviewInfoConstructor(Long reviewId, Long userId, List<String> reviewTastingTags) {
+	public ConstructorExpression<ReviewInfo> commonReviewInfoConstructor(Long reviewId, Long userId, List<String> reviewTastingTags) {
 		return Projections.constructor(
-			CommonReviewInfo.class,
+			ReviewInfo.class,
 			review.id.as("reviewId"),
 			review.content.as("reviewContent"),
 			review.price.as("price"),

@@ -1,6 +1,6 @@
 package app.bottlenote.alcohols.dto.response.detail;
 
-import app.bottlenote.review.dto.vo.CommonReviewInfo;
+import app.bottlenote.review.dto.vo.ReviewInfo;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,14 +12,14 @@ import java.util.List;
 @NoArgsConstructor
 public class ReviewsDetailInfo {
 	private Long totalReviewCount;
-	private List<CommonReviewInfo> bestReviewInfos;
-	private List<CommonReviewInfo> recentReviewInfos;
+	private List<ReviewInfo> bestReviewInfos;
+	private List<ReviewInfo> recentReviewInfos;
 
 	@Builder
 	public ReviewsDetailInfo(
 		Long totalReviewCount,
-		List<CommonReviewInfo> bestReviewInfos,
-		List<CommonReviewInfo> recentReviewInfos
+		List<ReviewInfo> bestReviewInfos,
+		List<ReviewInfo> recentReviewInfos
 	) {
 		this.totalReviewCount = totalReviewCount;
 		this.bestReviewInfos = bestReviewInfos;

@@ -6,7 +6,7 @@ import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.review.domain.constant.ReviewSortType;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.response.ReviewListResponse;
-import app.bottlenote.review.dto.vo.CommonReviewInfo;
+import app.bottlenote.review.dto.vo.ReviewInfo;
 import app.bottlenote.review.repository.ReviewQuerySupporter;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
@@ -40,7 +40,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 	private final ReviewQuerySupporter supporter;
 
 	@Override
-	public CommonReviewInfo getReview(Long reviewId, Long userId) {
+	public ReviewInfo getReview(Long reviewId, Long userId) {
 
 		List<String> tastingTagList = queryFactory
 			.select(reviewTastingTag.tastingTag)

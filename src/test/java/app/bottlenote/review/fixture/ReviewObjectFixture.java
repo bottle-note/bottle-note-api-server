@@ -15,11 +15,10 @@ import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
-import app.bottlenote.review.dto.response.ReviewListResponse.ReviewInfo;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
 import app.bottlenote.review.dto.response.RootReviewReplyInfo;
 import app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage;
-import app.bottlenote.review.dto.vo.CommonReviewInfo;
+import app.bottlenote.review.dto.vo.ReviewInfo;
 import app.bottlenote.review.dto.vo.UserInfo;
 import app.bottlenote.user.domain.User;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -125,7 +124,7 @@ public class ReviewObjectFixture {
 			.build();
 
 		Long totalCount = 2L;
-		List<ReviewInfo> reviewResponse = List.of(reviewResponse_1, reviewResponse_2);
+		List<ReviewListResponse.ReviewInfo> reviewResponse = List.of(reviewResponse_1, reviewResponse_2);
 		CursorPageable cursorPageable = CursorPageable.builder()
 			.currentCursor(0L)
 			.cursor(1L)
@@ -142,8 +141,8 @@ public class ReviewObjectFixture {
 	 *
 	 * @return ReviewResponse
 	 */
-	public static CommonReviewInfo getReviewResponse() {
-		return CommonReviewInfo.builder()
+	public static ReviewInfo getReviewResponse() {
+		return ReviewInfo.builder()
 			.reviewId(1L)
 			.reviewContent("This is a sample review")
 			.price(BigDecimal.valueOf(10000L))

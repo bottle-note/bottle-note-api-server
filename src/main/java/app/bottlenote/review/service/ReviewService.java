@@ -17,7 +17,7 @@ import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.dto.response.constant.ReviewResultMessage;
-import app.bottlenote.review.dto.vo.CommonReviewInfo;
+import app.bottlenote.review.dto.vo.ReviewInfo;
 import app.bottlenote.review.dto.vo.ReviewModifyVO;
 import app.bottlenote.review.event.publisher.ReviewEventPublisher;
 import app.bottlenote.review.exception.ReviewException;
@@ -121,7 +121,7 @@ public class ReviewService {
 		log.info("알코올 정보 조회 시간 : {}", (System.nanoTime() - start2) / 1_000_000 + "ms");
 
 		long start3 = System.nanoTime();
-		CommonReviewInfo reviewInfo = reviewRepository.getReview(reviewId, currentUserId);
+		ReviewInfo reviewInfo = reviewRepository.getReview(reviewId, currentUserId);
 
 		log.info("리뷰 정보 조회 시간 : {}", (System.nanoTime() - start3) / 1_000_000 + "ms");
 
