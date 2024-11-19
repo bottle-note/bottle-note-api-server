@@ -39,7 +39,7 @@ import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOU
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ReviewService {
+public class ReviewService implements ReviewFacade {
 
 	private final AlcoholDomainSupport alcoholDomainSupport;
 	private final UserDomainSupport userDomainSupport;
@@ -168,9 +168,9 @@ public class ReviewService {
 	}
 
 	@Transactional
-	public ReviewResultResponse changeStatus(Long reviewId, ReviewStatusChangeRequest reviewDisplayStatus, Long curruentUserId) {
+	public ReviewResultResponse changeStatus(Long reviewId, ReviewStatusChangeRequest reviewDisplayStatus, Long currentUserId) {
 
-		Review review = reviewRepository.findByIdAndUserId(reviewId, curruentUserId).orElseThrow(
+		Review review = reviewRepository.findByIdAndUserId(reviewId, currentUserId).orElseThrow(
 			() -> new ReviewException(REVIEW_NOT_FOUND)
 		);
 
@@ -179,5 +179,16 @@ public class ReviewService {
 		return review.getStatus() == PUBLIC ?
 			ReviewResultResponse.response(PUBLIC_SUCCESS, review.getId()) :
 			ReviewResultResponse.response(PRIVATE_SUCCESS, review.getId());
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public ReviewListResponse getReviewInfoList(Long alcoholId, Long userId) {
+		ReviewPageableRequest pageableRequest = ReviewPageableRequest.builder()
+			.cursor(0L)
+			.pageSize(6L)
+			.build();
+		PageResponse<ReviewListResponse> reviews = getReviews(alcoholId, pageableRequest, userId);
+		return reviews.content();
 	}
 }

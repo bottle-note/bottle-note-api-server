@@ -11,7 +11,10 @@ import app.bottlenote.alcohols.dto.response.detail.AlcoholDetailInfo;
 import app.bottlenote.alcohols.dto.response.detail.FriendsDetailInfo;
 import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.review.dto.response.ReviewListResponse;
+import app.bottlenote.review.dto.vo.ReviewInfo;
 import app.bottlenote.review.repository.ReviewQueryRepository;
+import app.bottlenote.review.service.ReviewFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
@@ -27,6 +30,7 @@ public class AlcoholQueryService {
 
 	private final AlcoholQueryRepository alcoholQueryRepository;
 	private final ReviewQueryRepository reviewQueryRepository;
+	private final ReviewFacade reviewFacade;
 
 	/**
 	 * 술(위스키) 리스트 조회 api
@@ -37,8 +41,6 @@ public class AlcoholQueryService {
 	 */
 	public PageResponse<AlcoholSearchResponse> searchAlcohols(AlcoholSearchRequest request, Long userId) {
 		AlcoholSearchCriteria criteria = AlcoholSearchCriteria.of(request, userId);
-		log.debug("searchAlcohols criteria: {}", criteria);
-
 		return alcoholQueryRepository.searchAlcohols(criteria);
 	}
 
@@ -52,18 +54,14 @@ public class AlcoholQueryService {
 	@Transactional(readOnly = true)
 	public AlcoholDetail findAlcoholDetailById(Long alcoholId, Long userId) {
 
-		long start = System.nanoTime();
-		// 위스키 상세 조회
-		log.info("위스키 상세 조회 호출 :{}ms", (System.nanoTime() - start) / 1_000_000);
 		AlcoholDetailInfo alcoholDetailById = alcoholQueryRepository.findAlcoholDetailById(alcoholId, userId);
-
-		// 팔로워 수 조회
-		log.info("팔로워 수 조회 호출:{}ms", (System.nanoTime() - start) / 1_000_000);
 		FriendsDetailInfo friendsData = getMockFriendsData();
 
-		// 리뷰 조회
-		log.info("리뷰 조회 호출:{}ms", (System.nanoTime() - start) / 1_000_000);
+		// 아래 데이터를 삭제예정. List<ReviewInfo>으로 대체
 		ReviewsDetailInfo reviewsDetailInfo = reviewQueryRepository.fetchUserReviewsForAlcoholDetail(alcoholId, userId);
+
+		//totalReviewCount + 리뷰수
+		ReviewListResponse reviews = reviewFacade.getReviewInfoList(alcoholId, userId);
 
 		return AlcoholDetail.of(alcoholDetailById, friendsData, reviewsDetailInfo);
 	}
