@@ -1,6 +1,22 @@
 package app.bottlenote.docs.alcohols;
 
+import app.bottlenote.alcohols.controller.AlcoholQueryController;
+import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
+import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
+import app.bottlenote.alcohols.dto.response.CategoryResponse;
+import app.bottlenote.alcohols.dto.response.detail.AlcoholDetail;
+import app.bottlenote.alcohols.fixture.AlcoholQueryFixture;
+import app.bottlenote.alcohols.service.AlcoholQueryService;
+import app.bottlenote.alcohols.service.AlcoholReferenceService;
+import app.bottlenote.docs.AbstractRestDocs;
+import app.bottlenote.global.service.cursor.PageResponse;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
 import static app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup.SINGLE_MALT;
+import static app.bottlenote.review.fixture.ReviewObjectFixture.getReviewListResponse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -12,22 +28,6 @@ import static org.springframework.restdocs.request.RequestDocumentation.queryPar
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import app.bottlenote.alcohols.controller.AlcoholQueryController;
-import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
-import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
-import app.bottlenote.alcohols.dto.response.CategoryResponse;
-import app.bottlenote.alcohols.dto.response.detail.AlcoholDetail;
-import app.bottlenote.alcohols.fixture.AlcoholQueryFixture;
-import app.bottlenote.alcohols.service.AlcoholQueryService;
-import app.bottlenote.alcohols.service.AlcoholReferenceService;
-import app.bottlenote.docs.AbstractRestDocs;
-import app.bottlenote.global.service.cursor.PageResponse;
-
-import java.util.List;
-
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 
 @DisplayName("alcohol 컨트롤러 RestDocs용 테스트")
 class RestAlcoholQueryControllerTest extends AbstractRestDocs {
@@ -117,11 +117,11 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 	@DisplayName("술의 상세 정보를 조회 할 수 있다.")
 	@Test
 	void docs_2() throws Exception {
-		AlcoholDetail detail = AlcoholDetail.of(
-			fixture.getAlcoholDetailInfo(),
-			fixture.getFriendsDetailInfo(),
-			fixture.getReviewsDetailInfo()
-		);
+		AlcoholDetail detail = AlcoholDetail.builder()
+			.alcohols(fixture.getAlcoholDetailInfo())
+			.friendsInfo(fixture.getFriendsDetailInfo())
+			.reviewInfo(getReviewListResponse(5))
+			.build();
 
 		when(alcoholQueryService.findAlcoholDetailById(any(), any())).thenReturn(detail);
 

@@ -15,9 +15,11 @@ import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.vo.ReviewInfo;
 import app.bottlenote.review.dto.vo.UserInfo;
+import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ReviewObjectFixture {
@@ -53,6 +55,16 @@ public class ReviewObjectFixture {
 			.tastingTagList("과일향,부드러움")
 			.createAt(LocalDateTime.now())
 			.build();
+	}
+
+	public static ReviewListResponse getReviewListResponse(int size) {
+		List<ReviewInfo> reviewInfo = new ArrayList<>();
+
+		for (int i = 0; i < size; i++) {
+			reviewInfo.add(getReviewInfo((long) i, "좋은 리뷰입니다 (" + RandomStringUtils.randomAlphabetic(10) + ")", BigDecimal.valueOf(100000L), SizeType.BOTTLE));
+		}
+
+		return ReviewListResponse.of((long) reviewInfo.size(), reviewInfo);
 	}
 
 	public static PageResponse<ReviewListResponse> getReviewListResponse() {
