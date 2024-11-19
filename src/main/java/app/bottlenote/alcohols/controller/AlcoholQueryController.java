@@ -4,7 +4,6 @@ package app.bottlenote.alcohols.controller;
 import app.bottlenote.alcohols.domain.constant.AlcoholType;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
-import app.bottlenote.alcohols.dto.response.CategoryResponse;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
 import app.bottlenote.alcohols.service.AlcoholReferenceService;
 import app.bottlenote.global.data.response.GlobalResponse;
@@ -20,8 +19,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 
@@ -57,7 +54,6 @@ public class AlcoholQueryController {
 		return ResponseEntity.ok(
 			GlobalResponse.success(alcoholQueryService.findAlcoholDetailById(alcoholId, id)));
 	}
-
 
 	@GetMapping("/categories")
 	public ResponseEntity<?> getAlcoholCategory(

@@ -184,11 +184,8 @@ public class ReviewService implements ReviewFacade {
 	@Override
 	@Transactional(readOnly = true)
 	public ReviewListResponse getReviewInfoList(Long alcoholId, Long userId) {
-		ReviewPageableRequest pageableRequest = ReviewPageableRequest.builder()
-			.cursor(0L)
-			.pageSize(6L)
-			.build();
-		PageResponse<ReviewListResponse> reviews = getReviews(alcoholId, pageableRequest, userId);
+		ReviewPageableRequest pageableRequest = ReviewPageableRequest.builder().cursor(0L).pageSize(6L).build();
+		PageResponse<ReviewListResponse> reviews = reviewRepository.getReviews(alcoholId, pageableRequest, userId);
 		return reviews.content();
 	}
 }

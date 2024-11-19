@@ -1,12 +1,12 @@
 package app.bottlenote.alcohols.dto.response.detail;
 
+import app.bottlenote.review.dto.response.ReviewListResponse;
+import lombok.Builder;
+
+@Builder
 public record AlcoholDetail(
 	AlcoholDetailInfo alcohols,
 	FriendsDetailInfo friendsInfo,
-	ReviewsDetailInfo reviewList
+	ReviewListResponse reviewInfo
 ) {
-
-	public static AlcoholDetail of(AlcoholDetailInfo alcohols, FriendsDetailInfo friendsInfo, ReviewsDetailInfo reviewList) {
-		return new AlcoholDetail(alcohols, friendsInfo, reviewList);
-	}
 }

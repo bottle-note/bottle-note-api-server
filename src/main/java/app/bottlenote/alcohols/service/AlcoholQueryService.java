@@ -1,25 +1,18 @@
 package app.bottlenote.alcohols.service;
 
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
-import app.bottlenote.alcohols.domain.constant.AlcoholType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
-import app.bottlenote.alcohols.dto.response.CategoryResponse;
 import app.bottlenote.alcohols.dto.response.detail.AlcoholDetail;
 import app.bottlenote.alcohols.dto.response.detail.AlcoholDetailInfo;
 import app.bottlenote.alcohols.dto.response.detail.FriendsDetailInfo;
-import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
 import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.review.dto.response.ReviewListResponse;
-import app.bottlenote.review.dto.vo.ReviewInfo;
 import app.bottlenote.review.repository.ReviewQueryRepository;
 import app.bottlenote.review.service.ReviewFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -51,19 +44,13 @@ public class AlcoholQueryService {
 	 * @param userId    the user id
 	 * @return the list
 	 */
-	@Transactional(readOnly = true)
 	public AlcoholDetail findAlcoholDetailById(Long alcoholId, Long userId) {
-
-		AlcoholDetailInfo alcoholDetailById = alcoholQueryRepository.findAlcoholDetailById(alcoholId, userId);
-		FriendsDetailInfo friendsData = getMockFriendsData();
-
-		// 아래 데이터를 삭제예정. List<ReviewInfo>으로 대체
-		ReviewsDetailInfo reviewsDetailInfo = reviewQueryRepository.fetchUserReviewsForAlcoholDetail(alcoholId, userId);
-
-		//totalReviewCount + 리뷰수
-		ReviewListResponse reviews = reviewFacade.getReviewInfoList(alcoholId, userId);
-
-		return AlcoholDetail.of(alcoholDetailById, friendsData, reviewsDetailInfo);
+		AlcoholDetailInfo alcoholDetail = alcoholQueryRepository.findAlcoholDetailById(alcoholId, userId);
+		return AlcoholDetail.builder()
+			.alcohols(alcoholDetail)
+			.friendsInfo(getMockFriendsData())
+			.reviewInfo(reviewFacade.getReviewInfoList(alcoholId, userId))
+			.build();
 	}
 
 	/**
@@ -73,7 +60,6 @@ public class AlcoholQueryService {
 	 */
 	private FriendsDetailInfo getMockFriendsData() {
 		String freeRandomImageUrl = "https://picsum.photos/600/600";
-
 		List<FriendsDetailInfo.FriendInfo> friendInfos = List.of(
 			new FriendsDetailInfo.FriendInfo(freeRandomImageUrl, 1L, "늙은코끼리", 4.5),
 			new FriendsDetailInfo.FriendInfo(freeRandomImageUrl, 2L, "나무사자", 1.5),
