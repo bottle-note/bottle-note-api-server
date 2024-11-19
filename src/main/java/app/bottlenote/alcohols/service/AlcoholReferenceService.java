@@ -1,5 +1,8 @@
 package app.bottlenote.alcohols.service;
 
+import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
+import app.bottlenote.alcohols.domain.constant.AlcoholType;
+import app.bottlenote.alcohols.dto.response.CategoryResponse;
 import app.bottlenote.alcohols.dto.response.RegionsResponse;
 import app.bottlenote.alcohols.repository.RegionQueryRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,16 +15,23 @@ import java.util.List;
 
 import static java.time.LocalDateTime.now;
 
-@Slf4j
 @RequiredArgsConstructor
+@Slf4j
 @Service
-public class RegionService {
+public class AlcoholReferenceService {
 	private final RegionQueryRepository regionQueryRepository;
+	private final AlcoholQueryRepository alcoholQueryRepository;
 
-	@Cacheable(value = "LC-Region")
+	@Cacheable(value = "local_cache_alcohol_region_information")
 	@Transactional(readOnly = true)
-	public List<RegionsResponse> findAll() {
+	public List<RegionsResponse> findAllRegion() {
 		log.info("RegionService.findAll() called , {}", now());
 		return regionQueryRepository.findAllRegionsResponse();
+	}
+
+	@Cacheable(value = "local_cache_alcohol_category_information")
+	@Transactional(readOnly = true)
+	public List<CategoryResponse> getAlcoholCategory(AlcoholType type) {
+		return alcoholQueryRepository.findAllCategories(type);
 	}
 }

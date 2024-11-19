@@ -42,7 +42,6 @@ import static app.bottlenote.user.domain.QUser.user;
 public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 
 	private final JPAQueryFactory queryFactory;
-
 	private final ReviewQuerySupporter supporter;
 
 	@Override
@@ -117,7 +116,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.leftJoin(alcohol).on(alcohol.id.eq(review.alcoholId))
 			.leftJoin(rating).on(review.userId.eq(rating.user.id))
 			.leftJoin(reviewReply).on(review.id.eq(reviewReply.review.id))
-			.where(alcohol.id.eq(alcoholId)
+			.where(review.alcoholId.eq(alcoholId)
 				.and(review.activeStatus.eq(ACTIVE))
 				.and(review.status.eq(PUBLIC)))
 			.groupBy(review.id, review.sizeType, review.userId)
@@ -129,7 +128,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		Long totalCount = queryFactory
 			.select(review.id.count())
 			.from(review)
-			.where(alcohol.id.eq(alcoholId)
+			.where(review.alcoholId.eq(alcoholId)
 				.and(review.activeStatus.eq(ACTIVE))
 				.and(review.status.eq(PUBLIC)))
 			.fetchOne();

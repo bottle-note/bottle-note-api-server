@@ -20,9 +20,12 @@ import app.bottlenote.alcohols.dto.response.CategoryResponse;
 import app.bottlenote.alcohols.dto.response.detail.AlcoholDetail;
 import app.bottlenote.alcohols.fixture.AlcoholQueryFixture;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
+import app.bottlenote.alcohols.service.AlcoholReferenceService;
 import app.bottlenote.docs.AbstractRestDocs;
 import app.bottlenote.global.service.cursor.PageResponse;
+
 import java.util.List;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -30,11 +33,13 @@ import org.junit.jupiter.api.Test;
 class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 
 	private final AlcoholQueryService alcoholQueryService = mock(AlcoholQueryService.class);
+	private final AlcoholReferenceService referenceService = mock(AlcoholReferenceService.class);
+
 	private final AlcoholQueryFixture fixture = new AlcoholQueryFixture();
 
 	@Override
 	protected Object initController() {
-		return new AlcoholQueryController(alcoholQueryService);
+		return new AlcoholQueryController(alcoholQueryService, referenceService);
 	}
 
 	@DisplayName("술 리스트를 조회할 수 있다.")
@@ -214,7 +219,7 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 	void docs_3() throws Exception {
 		List<CategoryResponse> responses = fixture.categoryResponses();
 
-		when(alcoholQueryService.getAlcoholCategory(any())).thenReturn(responses);
+		when(referenceService.getAlcoholCategory(any())).thenReturn(responses);
 
 		mockMvc.perform(get("/api/v1/alcohols/categories")
 				.param("type", "WHISKY")

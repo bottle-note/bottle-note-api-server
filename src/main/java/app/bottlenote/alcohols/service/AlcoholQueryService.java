@@ -86,16 +86,4 @@ public class AlcoholQueryService {
 		);
 		return FriendsDetailInfo.of(6L, friendInfos);
 	}
-
-	/**
-	 * 술 카테고리 조회 api
-	 *
-	 * @param type the type
-	 * @return the alcohol category
-	 */
-	@Cacheable(value = "LC-AlcoholCategory")
-	@Transactional(readOnly = true)
-	public List<CategoryResponse> getAlcoholCategory(AlcoholType type) {
-		return alcoholQueryRepository.findAllCategories(type);
-	}
 }
