@@ -1,5 +1,6 @@
 package app.bottlenote.user.repository;
 
+import app.bottlenote.alcohols.domain.QAlcohol;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.user.domain.constant.MyBottleSortType;
@@ -256,31 +257,35 @@ public class UserQuerySupporter {
 	}
 
 	/**
-	 * 마이 보틀 정렬 조건
+	 * 가장 최근에 수정된 날짜를 기준으로 정렬하는 Expression을 반환.
+	 */
+	private Expression<LocalDateTime> orderByMaxLastModifyAt() {
+		return JPAExpressions.select(
+				rating.lastModifyAt.max().coalesce(review.lastModifyAt.max(), picks.lastModifyAt.max())
+			)
+			.from(rating, review, picks)
+			.where(
+				rating.alcohol.id.eq(QAlcohol.alcohol.id)
+					.or(review.alcoholId.eq(QAlcohol.alcohol.id))
+					.or(picks.alcohol.id.eq(QAlcohol.alcohol.id))
+			);
+	}
+
+	/**
+	 * 마이 보틀 정렬 조건을 반환
 	 */
 	public OrderSpecifier<?> sortBy(MyBottleSortType myBottleSortType, SortOrder sortOrder) {
-
 		myBottleSortType = (myBottleSortType != null) ? myBottleSortType : MyBottleSortType.LATEST;
+		sortOrder = (sortOrder != null) ? sortOrder : SortOrder.DESC; // 기본값은 내림차순
 
-		// userId 조건을 제거한 Expression 생성
-		Expression<Double> myRating = JPAExpressions
-			.select(rating.ratingPoint.rating.coalesce(0.0))
-			.from(rating);
-
-		Expression<Long> reviewCount = JPAExpressions
-			.select(review.count())
-			.from(review);
-
-		Expression<LocalDateTime> latestUpdate = JPAExpressions
-			.select(rating.lastModifyAt.max().coalesce(review.lastModifyAt.max()
-				.coalesce(picks.lastModifyAt.max())))
-			.from(rating, review, picks);
-
-		// 새로운 switch 표현식을 사용하여 정렬
+		// 정렬 기준에 따라 OrderSpecifier 반환
 		return switch (myBottleSortType) {
-			case RATING -> new OrderSpecifier<>(sortOrder == SortOrder.DESC ? Order.DESC : Order.ASC, myRating);
-			case REVIEW -> new OrderSpecifier<>(sortOrder == SortOrder.DESC ? Order.DESC : Order.ASC, reviewCount);
-			case LATEST -> new OrderSpecifier<>(sortOrder == SortOrder.DESC ? Order.DESC : Order.ASC, latestUpdate);
+			case RATING -> new OrderSpecifier<>(sortOrder == SortOrder.DESC ? Order.DESC : Order.ASC,
+				JPAExpressions.select(rating.ratingPoint.rating.coalesce(0.0)).from(rating));
+			case REVIEW -> new OrderSpecifier<>(sortOrder == SortOrder.DESC ? Order.DESC : Order.ASC,
+				JPAExpressions.select(review.count()).from(review));
+			case LATEST ->
+				new OrderSpecifier<>(sortOrder == SortOrder.DESC ? Order.DESC : Order.ASC, orderByMaxLastModifyAt());
 		};
 	}
 

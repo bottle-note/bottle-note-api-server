@@ -3,8 +3,8 @@ POST {{host}}/api/v1/oauth/login
 Content-Type: application/json
 
 {
-  "email": "juye@gmail.com",
-  "socialType": "GOOGLE",
+  "email": "kjy_1615@naver.com",
+  "socialType": "NAVER",
   "gender": "",
   "age": ""
 }
@@ -73,4 +73,4 @@ Authorization: Bearer {{accessToken}}
 GET {{host}}/api/v1/my-page/8/my-bottle?keyword=라이&regionId=12&tabType=ALL&sortType=LATEST&sortOrder=DESC&cursor=0&
     pageSize=50
 Content-Type: application/json
-Authorization: Bearer {{accessToken}}
+Authorization: Bearer {{accessToken}

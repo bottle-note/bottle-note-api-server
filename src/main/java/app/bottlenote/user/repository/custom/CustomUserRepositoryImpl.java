@@ -7,7 +7,6 @@ import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
 import app.bottlenote.user.repository.UserQuerySupporter;
 import com.querydsl.core.types.Projections;
-import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,10 +65,9 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 	 */
 	@Override
 	public MyBottleResponse getMyBottle(MyBottlePageableCriteria request) {
-
 		Long userId = request.userId();
-
 		boolean isMyPage = userId.equals(request.currentUserId());
+
 
 		List<MyBottleResponse.MyBottleInfo> myBottleList = queryFactory
 			.select(Projections.constructor(
@@ -79,35 +77,28 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 				alcohol.engName.as("engName"),
 				alcohol.korCategory.as("korCategoryName"),
 				alcohol.imageUrl.as("imageUrl"),
-				supporter.isPickedSubquery(alcohol.id, userId), // userId 사용
+				supporter.isPickedSubquery(alcohol.id, userId),
 				rating.ratingPoint.rating.coalesce(0.0).as("rating"),
-				supporter.isMyReviewSubquery(alcohol.id, userId), // userId 사용
-				JPAExpressions.select(rating.lastModifyAt.max().coalesce(review.lastModifyAt.max(), picks.lastModifyAt.max()))
-					.from(rating, review, picks)
-					.where(
-						rating.alcohol.id.eq(alcohol.id)
-							.or(review.alcoholId.eq(alcohol.id))
-							.or(picks.alcohol.id.eq(alcohol.id))
-					)
+				supporter.isMyReviewSubquery(alcohol.id, userId),
+				rating.lastModifyAt.coalesce(review.lastModifyAt, picks.lastModifyAt).max().as("lastModifyAt")
 			))
 			.from(alcohol)
 			.leftJoin(picks).on(picks.alcohol.id.eq(alcohol.id).and(picks.user.id.eq(userId)).and(picks.status.eq(PICK)))
 			.leftJoin(review).on(review.alcoholId.eq(alcohol.id).and(review.userId.eq(userId)).and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE)))
 			.leftJoin(rating).on(rating.alcohol.id.eq(alcohol.id).and(rating.user.id.eq(userId)).and(rating.ratingPoint.rating.gt(0.0)))
 			.where(
-				supporter.eqTabType(request.tabType(), userId), // userId 사용
+				supporter.eqTabType(request.tabType(), userId),
 				supporter.eqName(request.keyword())
 			)
-			.groupBy(alcohol.id, alcohol.korName, alcohol.engName, alcohol.korCategory, alcohol.imageUrl)
+			.groupBy(alcohol.id)
 			.orderBy(supporter.sortBy(request.sortType(), request.sortOrder()))
 			.offset(request.cursor())
 			.limit(request.pageSize() + 1)
 			.fetch();
 
 		CursorPageable cursorPageable = supporter.myBottleCursorPageable(request, myBottleList);
-
 		Long totalCount = (long) myBottleList.size();
- 
+
 		return MyBottleResponse.builder()
 			.userId(userId)
 			.isMyPage(isMyPage)
@@ -116,5 +107,6 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 			.cursorPageable(cursorPageable)
 			.build();
 	}
+
 
 }
