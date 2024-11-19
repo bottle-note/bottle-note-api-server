@@ -1,6 +1,5 @@
 package app.bottlenote.review.fixture;
 
-import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.dto.response.AlcoholInfo;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
@@ -11,147 +10,38 @@ import app.bottlenote.review.dto.request.LocationInfo;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
-import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
-import app.bottlenote.review.dto.response.ReviewReplyResponse;
-import app.bottlenote.review.dto.response.RootReviewReplyInfo;
-import app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage;
 import app.bottlenote.review.dto.vo.ReviewInfo;
 import app.bottlenote.review.dto.vo.UserInfo;
-import app.bottlenote.user.domain.User;
-import org.apache.commons.lang3.RandomStringUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Random;
 
 public class ReviewObjectFixture {
 
-	private static final String content = "맛있어요";
-
-	// dto
-
 	/**
-	 * 리뷰 생성 요청 객체를 반환합니다.
-	 *
-	 * @return the review create request
+	 * 기본 ReviewInfo 객체를 생성합니다.
 	 */
-	public static ReviewCreateRequest getReviewCreateRequest() {
-		return new ReviewCreateRequest(
-			1L,
-			ReviewDisplayStatus.PUBLIC,
-			content,
-			SizeType.GLASS,
-			new BigDecimal("30000.0"),
-			new LocationInfo("xxPub", "12345", "서울시 강남구 청담동", "xx빌딩", "PUB", "https://map.naver.com", "111.111", "222.222"),
-			List.of(
-				new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1"),
-				new ReviewImageInfo(2L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1"),
-				new ReviewImageInfo(3L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")
-			),
-			List.of("테이스팅태그 1", "테이스팅태그 2", "테이스팅태그 3")
-		);
+	public static ReviewInfo getReviewInfo() {
+		return getReviewInfo(1L, "이것은 샘플 리뷰입니다.", BigDecimal.valueOf(10000L), SizeType.GLASS);
 	}
 
 	/**
-	 * 리뷰 생성 응답 객체를 반환합니다.
-	 *
-	 * @return the review create of
+	 * 지정된 매개변수로 ReviewInfo 객체를 생성합니다.
 	 */
-	public static ReviewCreateResponse getReviewCreateResponse() {
-		return ReviewCreateResponse.builder()
-			.id(1L)
-			.content(content)
-			.callback(String.valueOf(1L))
-			.build();
-	}
-
-	/**
-	 * 페이징 요청 객체를 반환합니다.
-	 *
-	 * @return the empty pageable request
-	 */
-	public static ReviewPageableRequest getEmptyPageableRequest() {
-		return ReviewPageableRequest.builder().build();
-	}
-
-	/**
-	 * 리뷰 리스트 응답 객체를 반환합니다.
-	 *
-	 * @return the review list of
-	 */
-	public static PageResponse<ReviewListResponse> getReviewListResponse() {
-
-		ReviewListResponse.ReviewInfo reviewResponse_1 = ReviewListResponse.ReviewInfo.builder()
-			.reviewId(1L)
-			.reviewContent(content)
-			.price(BigDecimal.valueOf(100000L))
-			.sizeType(SizeType.BOTTLE)
-			.likeCount(5L)
-			.replyCount(3L)
-			.reviewImageUrl("https://picsum.photos/600/600")
-			.createAt(LocalDateTime.now())
-			.userId(1L)
-			.nickName("test_user_1")
-			.userProfileImage("user_profile_image_1")
-			.rating(4.0)
-			.status(ReviewDisplayStatus.PUBLIC)
-			.isMyReview(true)
-			.isLikedByMe(true)
-			.hasReplyByMe(false)
-			.build();
-
-		ReviewListResponse.ReviewInfo reviewResponse_2 = ReviewListResponse.ReviewInfo.builder()
-			.reviewId(2L)
-			.reviewContent("나름 먹을만 하네요")
-			.price(BigDecimal.valueOf(110000L))
-			.sizeType(SizeType.BOTTLE)
-			.likeCount(3L)
-			.replyCount(6L)
-			.reviewImageUrl("https://picsum.photos/600/600")
-			.createAt(LocalDateTime.now().minusDays(1))
-			.userId(2L)
-			.nickName("test_user_2")
-			.userProfileImage("user_profile_image_2")
-			.rating(4.0)
-			.status(ReviewDisplayStatus.PUBLIC)
-			.isMyReview(true)
-			.isLikedByMe(true)
-			.hasReplyByMe(false)
-			.build();
-
-		Long totalCount = 2L;
-		List<ReviewListResponse.ReviewInfo> reviewResponse = List.of(reviewResponse_1, reviewResponse_2);
-		CursorPageable cursorPageable = CursorPageable.builder()
-			.currentCursor(0L)
-			.cursor(1L)
-			.pageSize(2L)
-			.hasNext(false)
-			.build();
-
-		ReviewListResponse response = ReviewListResponse.of(totalCount, reviewResponse);
-		return PageResponse.of(response, cursorPageable);
-	}
-
-	/***
-	 * 단일 리뷰 응답 객체를 반환합니다.
-	 *
-	 * @return ReviewResponse
-	 */
-	public static ReviewInfo getReviewResponse() {
+	public static ReviewInfo getReviewInfo(Long reviewId, String reviewContent, BigDecimal price, SizeType sizeType) {
 		return ReviewInfo.builder()
-			.reviewId(1L)
-			.reviewContent("This is a sample review")
-			.price(BigDecimal.valueOf(10000L))
-			.sizeType(SizeType.GLASS)
+			.reviewId(reviewId)
+			.reviewContent(reviewContent)
+			.price(price)
+			.sizeType(sizeType)
 			.likeCount(10L)
 			.replyCount(2L)
-			.reviewImageUrl("http://example.com/review-image.jpg")
-			.userInfo(new UserInfo(1L, "John Doe", "http://example.com/profile.jpg")
-			)
+			.reviewImageUrl("https://example.com/review-image.jpg")
+			.userInfo(new UserInfo(1L, "홍길동", "http://example.com/profile.jpg"))
 			.rating(4.5)
 			.viewCount(null)
 			.locationInfo(null)
@@ -160,41 +50,70 @@ public class ReviewObjectFixture {
 			.isLikedByMe(false)
 			.hasReplyByMe(true)
 			.isBestReview(false)
-			.reviewTastingTag(List.of("Fruity", "Smooth"))
+			.tastingTagList("과일향,부드러움")
 			.createAt(LocalDateTime.now())
 			.build();
 	}
 
+	public static PageResponse<ReviewListResponse> getReviewListResponse() {
+		ReviewInfo reviewResponse1 = getReviewInfo(1L, "맛있어요", BigDecimal.valueOf(100000L), SizeType.BOTTLE);
+		ReviewInfo reviewResponse2 = getReviewInfo(2L, "나름 먹을만 하네요", BigDecimal.valueOf(110000L), SizeType.BOTTLE);
+		List<ReviewInfo> reviewResponse = List.of(reviewResponse1, reviewResponse2);
+		CursorPageable cursorPageable = CursorPageable.builder()
+			.currentCursor(0L)
+			.cursor(1L)
+			.pageSize(2L)
+			.hasNext(false)
+			.build();
+		ReviewListResponse response = ReviewListResponse.of((long) reviewResponse.size(), reviewResponse);
+		return PageResponse.of(response, cursorPageable);
+	}
+
 	public static ReviewDetailResponse getReviewDetailResponse() {
-		return ReviewDetailResponse.create(getAlcoholInfo(), getReviewResponse(),
-			List.of(new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")));
+		return ReviewDetailResponse.create(
+			getAlcoholInfo(),
+			getReviewInfo(),
+			List.of(new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1"))
+		);
 	}
 
 	/**
-	 * 리뷰 수정 요청 객체를 반환합니다.
-	 *
-	 * @return the review modify request
+	 * 기본 ReviewModifyRequest 객체를 생성합니다.
 	 */
-	public static ReviewModifyRequest getReviewModifyRequest() {
+	public static ReviewModifyRequest getReviewModifyRequest(ReviewDisplayStatus status) {
 		return new ReviewModifyRequest(
 			"그저 그래요",
+			status,
+			BigDecimal.valueOf(10000L),
+			List.of(new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")),
+			SizeType.GLASS,
+			List.of(),
+			new LocationInfo(
+				"xxPub", "12345", "서울시 강남구 청담동", "xx빌딩", "PUB",
+				"https://map.naver.com", "111.111", "222.222"
+			)
+		);
+	}
+
+	public static ReviewModifyRequest getReviewModifyRequest(String content) {
+		return new ReviewModifyRequest(
+			content,
 			ReviewDisplayStatus.PUBLIC,
 			BigDecimal.valueOf(10000L),
 			List.of(new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")),
 			SizeType.GLASS,
 			List.of(),
-			new LocationInfo("xxPub", "12345", "서울시 강남구 청담동", "xx빌딩", "PUB", "https://map.naver.com", "111.111", "222.222"));
+			new LocationInfo(
+				"xxPub", "12345", "서울시 강남구 청담동", "xx빌딩", "PUB",
+				"https://map.naver.com", "111.111", "222.222"
+			)
+		);
 	}
 
-	/**
-	 * 리뷰 수정 요청 객체 중 Nullable한 필드를 null로 요청하는 객체입니다.
-	 *
-	 * @return the nullable review modify request
-	 */
-	public static ReviewModifyRequest getNullableReviewModifyRequest() {
+	public static ReviewModifyRequest getNullableReviewModifyRequest(ReviewDisplayStatus status) {
 		return new ReviewModifyRequest(
-			content,
-			ReviewDisplayStatus.PUBLIC,
+			"맛있어요",
+			status,
 			null,
 			null,
 			null,
@@ -203,11 +122,6 @@ public class ReviewObjectFixture {
 		);
 	}
 
-	/**
-	 * Not Null인 필드를 null로 요청을 보내는 잘못된 리뷰 수정 요청 객체입니다.
-	 *
-	 * @return Wrong review modify request
-	 */
 	public static ReviewModifyRequest getWrongReviewModifyRequest() {
 		return new ReviewModifyRequest(
 			null,
@@ -221,37 +135,62 @@ public class ReviewObjectFixture {
 	}
 
 	/**
-	 * 리뷰 댓글 응답 객체를 반환합니다.
-	 *
-	 * @return the review reply response
+	 * 기본 ReviewCreateRequest 객체를 생성합니다.
 	 */
-	public static ReviewReplyResponse getReviewReplyResponse() {
-		return ReviewReplyResponse.of(ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY, 1L);
+	public static ReviewCreateRequest getReviewCreateRequest() {
+		return new ReviewCreateRequest(
+			1L,
+			ReviewDisplayStatus.PUBLIC,
+			"맛있어요",
+			SizeType.GLASS,
+			BigDecimal.valueOf(30000L),
+			new LocationInfo(
+				"xxPub", "12345", "서울시 강남구 청담동", "xx빌딩", "PUB",
+				"https://map.naver.com", "111.111", "222.222"
+			),
+			List.of(
+				new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1"),
+				new ReviewImageInfo(2L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/2"),
+				new ReviewImageInfo(3L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/3")
+			),
+			List.of("테이스팅태그1", "테이스팅태그2", "테이스팅태그3")
+		);
 	}
 
-	public static RootReviewReplyInfo getReviewReplyInfo() {
-		RootReviewReplyInfo.Info info = RootReviewReplyInfo.Info.builder()
-			.userId(1L)
-			.imageUrl("imageUrl")
-			.nickName("nickname")
-			.reviewReplyId(1L)
-			.reviewReplyContent(content)
-			.createAt(LocalDateTime.of(2024, 7, 7, 0, 0, 0))
+	public static ReviewCreateRequest getReviewCreateRequest(String content, BigDecimal price) {
+		return new ReviewCreateRequest(
+			1L,
+			ReviewDisplayStatus.PUBLIC,
+			content,
+			SizeType.GLASS,
+			price,
+			new LocationInfo(
+				"xxPub", "12345", "서울시 강남구 청담동", "xx빌딩", "PUB",
+				"https://map.naver.com", "111.111", "222.222"
+			),
+			List.of(
+				new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")
+			),
+			List.of("테이스팅태그1")
+		);
+	}
+
+	public static ReviewCreateResponse getReviewCreateResponse() {
+		return ReviewCreateResponse.builder()
+			.id(1L)
+			.content("맛있어요")
+			.callback("1")
 			.build();
-		return RootReviewReplyInfo.of(1L, List.of(info));
 	}
-
-	// domain
 
 	/**
-	 * 리뷰 엔티티 fixture를 반환합니다.
-	 *
-	 * @return the review fixture
+	 * 기본 Review 도메인 객체를 생성합니다.
 	 */
 	public static Review getReviewFixture() {
-		Long alcoholId = 1L;
-		Long userId = 1L;
+		return getReviewFixture(1L, 1L, "맛있어요");
+	}
 
+	public static Review getReviewFixture(Long alcoholId, Long userId, String content) {
 		return Review.builder()
 			.id(1L)
 			.alcoholId(alcoholId)
@@ -261,70 +200,15 @@ public class ReviewObjectFixture {
 			.build();
 	}
 
-	/**
-	 * 리뷰 엔티티 fixture를 반환합니다.
-	 *
-	 * @param reviewId  the review id
-	 * @param alcoholId the alcohol id
-	 * @param userId    the user id
-	 * @return the review fixture
-	 */
-	public static Review getReviewFixture(Long reviewId, Long alcoholId, Long userId) {
-		return Review.builder()
-			.id(reviewId)
-			.alcoholId(alcoholId)
-			.userId(userId)
-			.content(content)
-			.build();
-	}
-
-
-	/**
-	 * 주류 엔티티 fixture를 반환합니다.
-	 *
-	 * @return the alcohol fixture
-	 */
-	public static Alcohol getAlcoholFixture() {
-		final String randomized = RandomStringUtils.randomAlphabetic(10);
-		return Alcohol.builder()
-			.id(1L)
-			.korName(randomized)
-			.engName(randomized)
-			.build();
-	}
-
-	/**
-	 * 유저 엔티티 fixture를 반환합니다.
-	 *
-	 * @return the user fixture
-	 */
-	public static User getUserFixture() {
-		return User.builder()
-			.id(1L)
-			.build();
-	}
-
-	/**
-	 * 유저 엔티티 fixture를 반환합니다.
-	 *
-	 * @param id the id
-	 * @return the user fixture
-	 */
-	public static User getUserFixture(Long id) {
-		final String randomized = RandomStringUtils.randomAlphabetic(10);
-		final Integer age = new Random().nextInt(40);
-
-		return User.builder()
-			.id(id)
-			.email(randomized + "@gmail.com")
-			.nickName(randomized)
-			.age(age)
-			.build();
-	}
-
 	public static AlcoholInfo getAlcoholInfo() {
-		return new AlcoholInfo(1L, "글래스고 12년산", "1770 Glasgow Single Malt"
-			, "싱글 몰트", "Single Malt", "ImageUrl", false);
+		return new AlcoholInfo(
+			1L,
+			"글래스고 12년산",
+			"1770 글래스고 싱글 몰트",
+			"싱글 몰트",
+			"Single Malt",
+			"ImageUrl",
+			false
+		);
 	}
-
 }

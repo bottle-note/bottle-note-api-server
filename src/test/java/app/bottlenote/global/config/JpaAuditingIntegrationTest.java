@@ -51,7 +51,7 @@ class JpaAuditingIntegrationTest extends IntegrationTestSupport {
 	)
 	@Test
 	void test_1() throws Exception {
-		log.info("using port : {}", MY_SQL_CONTAINER.getFirstMappedPort());
+
 
 		// when
 		MvcResult result = mockMvc.perform(post("/api/v1/reviews")

@@ -118,4 +118,9 @@ public class InMemoryReviewRepository implements ReviewRepository {
 			.filter(reply -> reply.getReview().getId().equals(review) && reply.getId().equals(replyId))
 			.findFirst();
 	}
+
+	@Override
+	public List<Review> findByUserId(Long userId) {
+		return List.of();
+	}
 }

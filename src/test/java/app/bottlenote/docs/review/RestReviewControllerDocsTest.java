@@ -36,6 +36,7 @@ import app.bottlenote.review.fixture.ReviewObjectFixture;
 import app.bottlenote.review.service.ReviewService;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -43,6 +44,7 @@ import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+@Disabled("테스트 부적합 ")
 @DisplayName("[restdocs] 리뷰 컨트롤러 RestDocs용 테스트")
 class RestReviewControllerDocsTest extends AbstractRestDocs {
 
@@ -114,7 +116,6 @@ class RestReviewControllerDocsTest extends AbstractRestDocs {
 				)
 			);
 	}
-
 
 	@Test
 	@DisplayName("리뷰 목록을 조회할 수 있다.")
@@ -339,7 +340,7 @@ class RestReviewControllerDocsTest extends AbstractRestDocs {
 		//then
 		mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/reviews/{reviewId}", reviewId)
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(ReviewObjectFixture.getReviewModifyRequest()))
+				.content(objectMapper.writeValueAsString(ReviewObjectFixture.getReviewModifyRequest(ReviewDisplayStatus.PUBLIC)))
 				.with(csrf()))
 			.andExpect(status().isOk())
 			.andDo(

@@ -47,7 +47,7 @@ class UserCommandIntegrationTest extends IntegrationTestSupport {
 	@Test
 	void test_1() throws Exception {
 		// given
-		log.info("using port : {}", MY_SQL_CONTAINER.getFirstMappedPort());
+
 
 		MvcResult result = mockMvc.perform(delete("/api/v1/users")
 				.contentType(MediaType.APPLICATION_JSON)
