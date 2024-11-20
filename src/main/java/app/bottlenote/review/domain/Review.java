@@ -1,10 +1,13 @@
 package app.bottlenote.review.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
+import app.bottlenote.common.image.ImageInfo;
+import app.bottlenote.common.image.ImageUtil;
 import app.bottlenote.review.domain.constant.ReviewActiveStatus;
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.review.dto.request.LocationInfo;
+import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.dto.response.constant.ReviewResultMessage;
 import app.bottlenote.review.dto.vo.ReviewModifyVO;
 import jakarta.persistence.CascadeType;
@@ -23,10 +26,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.Comment;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -34,6 +39,7 @@ import java.util.Set;
 
 import static app.bottlenote.review.dto.payload.ReviewReplyRegistryEvent.replyRegistryPublish;
 
+@Slf4j
 @Getter
 @Builder
 @ToString(includeFieldNames = false)
@@ -97,12 +103,14 @@ public class Review extends BaseEntity {
 	private ReviewActiveStatus activeStatus = ReviewActiveStatus.ACTIVE;
 
 	@Builder.Default
-	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<ReviewReply> reviewReplies = new ArrayList<>();
+	@Comment("리뷰 이미지 (1급 컬렉션) ")
+	@Embedded
+	private ReviewImages reviewImages = ReviewImages.empty();
 
 	@Builder.Default
 	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<ReviewImage> reviewImages = new ArrayList<>();
+	private List<ReviewReply> reviewReplies = new ArrayList<>();
+
 
 	@Builder.Default
 	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -117,14 +125,41 @@ public class Review extends BaseEntity {
 		Objects.requireNonNullElse(this.reviewLocation, ReviewLocation.empty()).update(locationInfo);
 	}
 
-	public void updateTastingTags(Set<ReviewTastingTag> updateTastingTags) {
-		this.reviewTastingTags.clear();
-		this.reviewTastingTags.addAll(updateTastingTags);
+
+	public void imageInitialization(List<ReviewImageInfo> list) {
+		list = Objects.requireNonNullElse(list, Collections.emptyList());
+		List<ReviewImage> imageList = list.stream()
+			.map(
+				image ->
+					ReviewImage.builder()
+						.reviewImageInfo(
+							ImageInfo.builder()
+								.order(image.order())
+								.imageUrl(image.viewUrl())
+								.imagePath(ImageUtil.getImagePath(image.viewUrl()))
+								.imageKey(ImageUtil.getImageKey(image.viewUrl()))
+								.imageName(ImageUtil.getImageName(image.viewUrl()))
+								.build()
+						)
+						.review(this)
+						.build()
+			).toList();
+
+		if (list.size() > 1) {
+			this.imageUrl = list.get(0).viewUrl();
+		}
+		updateImages(imageList);
+		log.info("review id {} 의 썸네일 이미지 설정 url : {}", this.id, this.imageUrl);
 	}
 
 	public void updateImages(List<ReviewImage> reviewImages) {
-		this.reviewImages.clear();
-		this.reviewImages.addAll(reviewImages);
+		this.reviewImages.update(reviewImages);
+	}
+
+
+	public void updateTastingTags(Set<ReviewTastingTag> updateTastingTags) {
+		this.reviewTastingTags.clear();
+		this.reviewTastingTags.addAll(updateTastingTags);
 	}
 
 	public void updateDisplayStatus(ReviewDisplayStatus status) {
@@ -135,9 +170,6 @@ public class Review extends BaseEntity {
 		this.reviewTastingTags.addAll(reviewTastingTags);
 	}
 
-	public void saveImages(List<ReviewImage> reviewImageList) {
-		this.reviewImages.addAll(reviewImageList);
-	}
 
 	public ReviewResultMessage updateReviewActiveStatus(ReviewActiveStatus activeStatus) {
 		this.activeStatus = activeStatus;

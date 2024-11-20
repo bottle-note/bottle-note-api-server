@@ -24,4 +24,8 @@ public class ReviewModifyVO {
 		this.sizeType = reviewModifyRequest.sizeType();
 		this.locationInfo = Objects.requireNonNullElse(reviewModifyRequest.locationInfo(), LocationInfo.empty());
 	}
+
+	public static ReviewModifyVO create(ReviewModifyRequest reviewModifyRequest) {
+		return new ReviewModifyVO(reviewModifyRequest);
+	}
 }
