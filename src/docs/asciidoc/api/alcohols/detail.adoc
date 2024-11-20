@@ -26,5 +26,5 @@ include::{snippets}/alcohols/detail/response-fields.adoc[]
 include::{snippets}/alcohols/detail/response-body.adoc[]
 
 
-- pick 여부는 header에 bearer 토큰을 참조해 확인합니다. `Authorization: Bearer {token}`
+- Boolean 여부는 header에 bearer 토큰을 참조해 확인합니다. `Authorization: Bearer {token}`
 - 변수명에서 수정이 필요한 경우, 문의해 주시기 바랍니다.
