@@ -371,7 +371,7 @@ create table user_history
     id              bigint       not null AUTO_INCREMENT comment '히스토리 id',
     user_id         bigint       not null comment '사용자 id',
     event_category  varchar(255) not null comment 'pick, review, rating',
-    event_type      varchar(255) null comment 'isPick,unPick || like, create, review, best || start, modify, delete',
+    event_type      varchar(255) null comment 'isPick,unPick || like, create, review, best || start, update, delete',
     redirect_url    varchar(255) null comment '발생되는 api의 도메인주소를 뺀 url',
     image_url       varchar(255) null comment '발생되는 api의 도메인주소를 뺀 url',
     alcohol_id      bigint       null comment '알코올 이름(한글)',

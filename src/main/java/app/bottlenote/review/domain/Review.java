@@ -1,11 +1,10 @@
 package app.bottlenote.review.domain;
 
-import static app.bottlenote.review.dto.payload.ReviewReplyRegistryEvent.replyRegistryPublish;
-
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.review.domain.constant.ReviewActiveStatus;
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
+import app.bottlenote.review.dto.request.LocationInfo;
 import app.bottlenote.review.dto.response.constant.ReviewResultMessage;
 import app.bottlenote.review.dto.vo.ReviewModifyVO;
 import jakarta.persistence.CascadeType;
@@ -19,18 +18,27 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import org.hibernate.annotations.Comment;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Comment;
 
-@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
+import static app.bottlenote.review.dto.payload.ReviewReplyRegistryEvent.replyRegistryPublish;
+
 @Getter
+@Builder
+@ToString(includeFieldNames = false)
+@AllArgsConstructor(access = lombok.AccessLevel.PRIVATE)
+@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @Comment("리뷰 테이블(리뷰, 평점, 이미지, 리뷰 댓글)")
 @Entity(name = "review")
 public class Review extends BaseEntity {
@@ -39,12 +47,13 @@ public class Review extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(name = "user_id")
+	@Column(name = "user_id", nullable = false)
 	private Long userId;
 
-	@Column(name = "alcohol_id")
+	@Column(name = "alcohol_id", nullable = false)
 	private Long alcoholId;
 
+	@Builder.Default
 	@Comment("베스트리뷰 여부")
 	@Column(name = "is_best", nullable = false)
 	private Boolean isBest = false;
@@ -62,6 +71,7 @@ public class Review extends BaseEntity {
 	@Column(name = "price", nullable = false)
 	private BigDecimal price;
 
+	@Builder.Default
 	@Comment("공개 상태")
 	@Column(name = "status", nullable = false)
 	@Enumerated(EnumType.STRING)
@@ -75,54 +85,36 @@ public class Review extends BaseEntity {
 	@Column(name = "image_url")
 	private String imageUrl;
 
+	@Builder.Default
 	@Comment("조회수")
 	@Column(name = "view_count", nullable = false)
 	private Long viewCount = 0L;
 
+	@Builder.Default
 	@Comment("리뷰 활성 상태")
 	@Column(name = "active_status", nullable = false)
 	@Enumerated(EnumType.STRING)
 	private ReviewActiveStatus activeStatus = ReviewActiveStatus.ACTIVE;
 
-	// 댓글 목록
-	// review와 reviewReply는 1(review) : N(reviewReply) 관계이다.
+	@Builder.Default
 	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<ReviewReply> reviewReplies = new ArrayList<>();
 
-	// mappedBy: 연관관계의 주인이 아님을 의미한다.
-	// review image와 review는 1(review) : N(reviewImage) 관계이다.
+	@Builder.Default
 	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<ReviewImage> reviewImages = new ArrayList<>();
 
+	@Builder.Default
 	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private Set<ReviewTastingTag> reviewTastingTags = new HashSet<>();
 
-	@Builder
-	public Review(Long id, Long userId, Long alcoholId, String content, SizeType sizeType, BigDecimal price, ReviewDisplayStatus status, ReviewLocation reviewLocation, String imageUrl, Long viewCount) {
-		this.id = id;
-		this.userId = userId;
-		this.alcoholId = alcoholId;
-		this.content = content;
-		this.sizeType = sizeType;
-		this.price = price;
-		this.status = status;
-		this.reviewLocation = reviewLocation;
-		this.imageUrl = imageUrl;
-		this.viewCount = viewCount;
-		this.reviewReplies = new ArrayList<>();
-		this.reviewImages = new ArrayList<>();
-		this.reviewTastingTags = new HashSet<>();
-	}
-
-	public void modifyReview(ReviewModifyVO reviewModifyVO) {
+	public void update(ReviewModifyVO reviewModifyVO) {
 		this.status = reviewModifyVO.getReviewDisplayStatus();
 		this.content = reviewModifyVO.getContent();
 		this.sizeType = reviewModifyVO.getSizeType();
 		this.price = reviewModifyVO.getPrice();
-		if (this.reviewLocation == null) {
-			this.reviewLocation = new ReviewLocation();
-		}
-		this.reviewLocation.modifyReviewLocation(reviewModifyVO);
+		LocationInfo locationInfo = reviewModifyVO.getLocationInfo();
+		Objects.requireNonNullElse(this.reviewLocation, ReviewLocation.empty()).update(locationInfo);
 	}
 
 	public void updateTastingTags(Set<ReviewTastingTag> updateTastingTags) {
@@ -160,10 +152,4 @@ public class Review extends BaseEntity {
 		this.reviewReplies.add(reply);
 		this.registerEvent(replyRegistryPublish(this.id, this.userId, reply.getContent()));
 	}
-
-	@Override
-	public String toString() {
-		return "Review{" + "id=" + id + ", userId=" + userId + ", alcoholId=" + alcoholId + ", content='" + content + '}';
-	}
 }
-

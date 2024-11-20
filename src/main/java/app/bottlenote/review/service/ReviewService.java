@@ -125,18 +125,18 @@ public class ReviewService implements ReviewFacade {
 	}
 
 	@Transactional
-	public ReviewResultResponse modifyReview(ReviewModifyRequest reviewModifyRequest, Long reviewId, Long currentUserId) {
-
+	public ReviewResultResponse modifyReview(
+		final ReviewModifyRequest request,
+		final Long reviewId,
+		final Long currentUserId
+	) {
 		Review review = reviewRepository.findByIdAndUserId(reviewId, currentUserId)
 			.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
 
-		ReviewModifyVO reviewModifyVO = new ReviewModifyVO(reviewModifyRequest);
-
-		review.modifyReview(reviewModifyVO);
-
-		reviewImageSupport.updateImages(reviewModifyRequest.imageUrlList(), review);
-
-		reviewTastingTagSupport.updateReviewTastingTags(reviewModifyRequest.tastingTagList(), review);
+		ReviewModifyVO reviewModifyVO = new ReviewModifyVO(request);
+		review.update(reviewModifyVO);
+		reviewImageSupport.updateImages(request.imageUrlList(), review);
+		reviewTastingTagSupport.updateReviewTastingTags(request.tastingTagList(), review);
 
 		return ReviewResultResponse.response(MODIFY_SUCCESS, reviewId);
 	}

@@ -364,7 +364,7 @@ class RestReviewControllerDocsTest extends AbstractRestDocs {
 				.with(csrf()))
 			.andExpect(status().isOk())
 			.andDo(
-				document("review/review-modify",
+				document("review/review-update",
 					requestFields(
 						fieldWithPath("content").type(STRING).description("리뷰 내용").optional(),
 						fieldWithPath("status").type(STRING).description("리뷰 상태").optional(),
