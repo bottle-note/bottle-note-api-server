@@ -46,8 +46,6 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 	@Test
 	void docs_1() throws Exception {
 		// given
-		Long userId = 1L;
-		AlcoholSearchRequest request = fixture.getRequest();
 		PageResponse<AlcoholSearchResponse> response = fixture.getResponse();
 
 		// when
@@ -120,7 +118,7 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 		AlcoholDetail detail = AlcoholDetail.builder()
 			.alcohols(fixture.getAlcoholDetailInfo())
 			.friendsInfo(fixture.getFriendsDetailInfo())
-			.reviewInfo(getReviewListResponse(5))
+			.reviewInfo(getReviewListResponse(2))
 			.build();
 
 		when(alcoholQueryService.findAlcoholDetailById(any(), any())).thenReturn(detail);
@@ -134,6 +132,7 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 						fieldWithPath("success").description("응답 성공 여부"),
 						fieldWithPath("code").description("응답 코드(http status code)"),
 
+						// 술 정보
 						fieldWithPath("data.alcohols.alcoholId").description("술 ID"),
 						fieldWithPath("data.alcohols.alcoholUrlImg").description("술 이미지 URL"),
 						fieldWithPath("data.alcohols.korName").description("술의 한국어 이름"),
@@ -152,57 +151,44 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 						fieldWithPath("data.alcohols.isPicked").description("내가 좋아요한 술인지 여부"),
 						fieldWithPath("data.alcohols.tags").description("술의 태그 목록"),
 
+						//친구 정보
 						fieldWithPath("data.friendsInfo.followerCount").description("팔로워 수"),
 						fieldWithPath("data.friendsInfo.friends[].user_image_url").description("친구의 프로필 이미지 URL"),
 						fieldWithPath("data.friendsInfo.friends[].userId").description("친구의 사용자 ID"),
 						fieldWithPath("data.friendsInfo.friends[].nickName").description("친구의 닉네임"),
 						fieldWithPath("data.friendsInfo.friends[].rating").description("친구의 평점"),
 
-						fieldWithPath("data.reviewList.totalReviewCount").description("해당 술의 총 리뷰 수"),
+						//리뷰 정보
+						fieldWithPath("data.reviewInfo.totalCount").description("해당 술의 총 리뷰 수"),
+						fieldWithPath("data.reviewInfo.reviewList[].reviewId").description("리뷰 ID"),
+						fieldWithPath("data.reviewInfo.reviewList[].reviewContent").description("리뷰 내용"),
+						fieldWithPath("data.reviewInfo.reviewList[].price").description("리뷰 가격"),
+						fieldWithPath("data.reviewInfo.reviewList[].sizeType").optional().description("리뷰 사이즈 타입"),
+						fieldWithPath("data.reviewInfo.reviewList[].likeCount").description("리뷰 좋아요 수"),
+						fieldWithPath("data.reviewInfo.reviewList[].replyCount").description("리뷰 댓글 수"),
+						fieldWithPath("data.reviewInfo.reviewList[].reviewImageUrl").description("리뷰 이미지 URL"),
+						fieldWithPath("data.reviewInfo.reviewList[].userInfo.userId").description("리뷰 작성자 ID"),
+						fieldWithPath("data.reviewInfo.reviewList[].userInfo.nickName").description("리뷰 작성자 닉네임"),
+						fieldWithPath("data.reviewInfo.reviewList[].userInfo.userProfileImage").description("리뷰 작성자 프로필 이미지 URL"),
+						fieldWithPath("data.reviewInfo.reviewList[].rating").description("리뷰 평점"),
+						fieldWithPath("data.reviewInfo.reviewList[].viewCount").description("리뷰 조회수"),
+						fieldWithPath("data.reviewInfo.reviewList[].locationInfo").description("리뷰 장소 정보"),
+						fieldWithPath("data.reviewInfo.reviewList[].locationInfo.name").description("리뷰 장소 명"),
+						fieldWithPath("data.reviewInfo.reviewList[].locationInfo.zipCode").description("리뷰 장소 우편번호"),
+						fieldWithPath("data.reviewInfo.reviewList[].locationInfo.address").description("리뷰 장소 주소"),
+						fieldWithPath("data.reviewInfo.reviewList[].locationInfo.detailAddress").description("리뷰 장소 상세 주소"),
+						fieldWithPath("data.reviewInfo.reviewList[].locationInfo.category").description("리뷰 장소 카테고리"),
+						fieldWithPath("data.reviewInfo.reviewList[].locationInfo.mapUrl").description("리뷰 장소 지도 URL"),
+						fieldWithPath("data.reviewInfo.reviewList[].locationInfo.latitude").description("리뷰 장소 위도"),
+						fieldWithPath("data.reviewInfo.reviewList[].locationInfo.longitude").description("리뷰 장소 경도"),
+						fieldWithPath("data.reviewInfo.reviewList[].status").description("리뷰 공개 여부 (PUBLIC/PRIVATE)"),
+						fieldWithPath("data.reviewInfo.reviewList[].isMyReview").description("내가 작성한 리뷰인지 여부"),
+						fieldWithPath("data.reviewInfo.reviewList[].isLikedByMe").description("내가 좋아요를 눌렀는지 여부"),
+						fieldWithPath("data.reviewInfo.reviewList[].hasReplyByMe").description("내가 댓글을 달았는지 여부"),
+						fieldWithPath("data.reviewInfo.reviewList[].isBestReview").description("베스트 리뷰 여부"),
+						fieldWithPath("data.reviewInfo.reviewList[].tastingTagList").description("리뷰 테이스팅 태그 목록"),
+						fieldWithPath("data.reviewInfo.reviewList[].createAt").description("리뷰 작성 날짜 'yyyyMMddHHmm' 포맷"),
 
-						// 베스트 리뷰 정보
-						fieldWithPath("data.reviewList.bestReviewInfos[].reviewId").description("베스트 리뷰 ID"),
-						fieldWithPath("data.reviewList.bestReviewInfos[].reviewContent").description("베스트 리뷰 내용"),
-						fieldWithPath("data.reviewList.bestReviewInfos[].price").description("베스트 리뷰 가격"),
-						fieldWithPath("data.reviewList.bestReviewInfos[].sizeType").optional().description("베스트 리뷰 사이즈 타입"),
-						fieldWithPath("data.reviewList.bestReviewInfos[].likeCount").description("베스트 리뷰 좋아요 수"),
-						fieldWithPath("data.reviewList.bestReviewInfos[].replyCount").description("베스트 리뷰 댓글 수"),
-						fieldWithPath("data.reviewList.bestReviewInfos[].reviewImageUrl").description("베스트 리뷰 이미지 URL"),
-						fieldWithPath("data.reviewList.bestReviewInfos[].userInfo.userId").description("베스트 리뷰 작성자 ID"),
-						fieldWithPath("data.reviewList.bestReviewInfos[].userInfo.nickName").description("베스트 리뷰 작성자 닉네임"),
-						fieldWithPath("data.reviewList.bestReviewInfos[].userInfo.userProfileImage").description("베스트 리뷰 작성자 프로필 이미지 URL"),
-						fieldWithPath("data.reviewList.bestReviewInfos[].rating").description("베스트 리뷰 평점"),
-						fieldWithPath("data.reviewList.bestReviewInfos[].viewCount").description("베스트 리뷰 조회수"),
-						fieldWithPath("data.reviewList.bestReviewInfos[].locationInfo").optional().description("베스트 리뷰 장소 정보"),
-						fieldWithPath("data.reviewList.bestReviewInfos[].status").description("리뷰 공개 여부 (PUBLIC/PRIVATE)"),
-						fieldWithPath("data.reviewList.bestReviewInfos[].isMyReview").description("내가 작성한 리뷰인지 여부"),
-						fieldWithPath("data.reviewList.bestReviewInfos[].isLikedByMe").description("내가 좋아요를 눌렀는지 여부"),
-						fieldWithPath("data.reviewList.bestReviewInfos[].hasReplyByMe").description("내가 댓글을 달았는지 여부"),
-						fieldWithPath("data.reviewList.bestReviewInfos[].isBestReview").description("베스트 리뷰 여부"),
-						fieldWithPath("data.reviewList.bestReviewInfos[].reviewTastingTag").description("베스트 리뷰 테이스팅 태그 목록"),
-						fieldWithPath("data.reviewList.bestReviewInfos[].createAt").description("베스트 리뷰 작성 날짜"),
-
-						// 최신 리뷰 정보
-						fieldWithPath("data.reviewList.recentReviewInfos[].reviewId").description("최신 리뷰 ID"),
-						fieldWithPath("data.reviewList.recentReviewInfos[].reviewContent").description("최신 리뷰 내용"),
-						fieldWithPath("data.reviewList.recentReviewInfos[].price").description("최신 리뷰 가격"),
-						fieldWithPath("data.reviewList.recentReviewInfos[].sizeType").optional().description("최신 리뷰 사이즈 타입"),
-						fieldWithPath("data.reviewList.recentReviewInfos[].likeCount").description("최신 리뷰 좋아요 수"),
-						fieldWithPath("data.reviewList.recentReviewInfos[].replyCount").description("최신 리뷰 댓글 수"),
-						fieldWithPath("data.reviewList.recentReviewInfos[].reviewImageUrl").description("최신 리뷰 이미지 URL"),
-						fieldWithPath("data.reviewList.recentReviewInfos[].userInfo.userId").description("최신 리뷰 작성자 ID"),
-						fieldWithPath("data.reviewList.recentReviewInfos[].userInfo.nickName").description("최신 리뷰 작성자 닉네임"),
-						fieldWithPath("data.reviewList.recentReviewInfos[].userInfo.userProfileImage").description("최신 리뷰 작성자 프로필 이미지 URL"),
-						fieldWithPath("data.reviewList.recentReviewInfos[].rating").description("최신 리뷰 평점"),
-						fieldWithPath("data.reviewList.recentReviewInfos[].viewCount").description("최신 리뷰 조회수"),
-						fieldWithPath("data.reviewList.recentReviewInfos[].locationInfo").optional().description("최신 리뷰 장소 정보"),
-						fieldWithPath("data.reviewList.recentReviewInfos[].status").description("리뷰 공개 여부 (PUBLIC/PRIVATE)"),
-						fieldWithPath("data.reviewList.recentReviewInfos[].isMyReview").description("내가 작성한 리뷰인지 여부"),
-						fieldWithPath("data.reviewList.recentReviewInfos[].isLikedByMe").description("내가 좋아요를 눌렀는지 여부"),
-						fieldWithPath("data.reviewList.recentReviewInfos[].hasReplyByMe").description("내가 댓글을 달았는지 여부"),
-						fieldWithPath("data.reviewList.recentReviewInfos[].isBestReview").description("베스트 리뷰 여부"),
-						fieldWithPath("data.reviewList.recentReviewInfos[].reviewTastingTag").description("최신 리뷰 테이스팅 태그 목록"),
-						fieldWithPath("data.reviewList.recentReviewInfos[].createAt").description("최신 리뷰 작성 날짜"),
 
 						fieldWithPath("errors").ignored(),
 						fieldWithPath("meta.serverVersion").ignored(),
@@ -246,5 +232,4 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 				)
 			);
 	}
-
 }

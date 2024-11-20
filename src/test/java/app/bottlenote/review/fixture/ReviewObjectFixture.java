@@ -4,6 +4,7 @@ import app.bottlenote.alcohols.dto.response.AlcoholInfo;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.Review;
+import app.bottlenote.review.domain.ReviewLocation;
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
 import app.bottlenote.review.dto.request.LocationInfo;
@@ -43,10 +44,10 @@ public class ReviewObjectFixture {
 			.likeCount(10L)
 			.replyCount(2L)
 			.reviewImageUrl("https://example.com/review-image.jpg")
-			.userInfo(new UserInfo(1L, "홍길동", "http://example.com/profile.jpg"))
+			.userInfo(getRandomUserInfo())
 			.rating(4.5)
-			.viewCount(null)
-			.locationInfo(null)
+			.viewCount(0L)
+			.locationInfo(getRandomLocationInfo())
 			.status(ReviewDisplayStatus.PUBLIC)
 			.isMyReview(true)
 			.isLikedByMe(false)
@@ -54,6 +55,22 @@ public class ReviewObjectFixture {
 			.isBestReview(false)
 			.tastingTagList("과일향,부드러움")
 			.createAt(LocalDateTime.now())
+			.build();
+	}
+
+	private static UserInfo getRandomUserInfo() {
+		return new UserInfo(1L, "홍길동", "https://example.com/profile.jpg");
+	}
+
+	private static ReviewLocation getRandomLocationInfo() {
+		return ReviewLocation.builder()
+			.name("도시술")
+			.address("서울 송파구 송파대로 145")
+			.detailAddress("2층 도시술")
+			.category("음식점 > 술집 > 칵테일바")
+			.mapUrl("https://place.map.kakao.com/2088591613")
+			.latitude("37.4835934678036")
+			.longitude("127.122831408454")
 			.build();
 	}
 

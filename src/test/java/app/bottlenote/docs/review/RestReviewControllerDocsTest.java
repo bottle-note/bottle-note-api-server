@@ -44,7 +44,6 @@ import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-@Disabled("테스트 부적합 ")
 @DisplayName("[restdocs] 리뷰 컨트롤러 RestDocs용 테스트")
 class RestReviewControllerDocsTest extends AbstractRestDocs {
 
@@ -147,24 +146,110 @@ class RestReviewControllerDocsTest extends AbstractRestDocs {
 					responseFields(
 						fieldWithPath("success").description("응답 성공 여부"),
 						fieldWithPath("code").description("응답 코드(http status code)"),
-						fieldWithPath("data.totalCount").description("전체 리뷰 리스트의 크기"),
+						fieldWithPath("data.totalCount").description("해당 술의 총 리뷰 수"),
 						fieldWithPath("data.reviewList[].reviewId").description("리뷰 ID"),
 						fieldWithPath("data.reviewList[].reviewContent").description("리뷰 내용"),
-						fieldWithPath("data.reviewList[].price").description("가격"),
-						fieldWithPath("data.reviewList[].sizeType").description("사이즈 타입 (BOTTLE, GLASS)"),
-						fieldWithPath("data.reviewList[].likeCount").description("좋아요 개수"),
-						fieldWithPath("data.reviewList[].replyCount").description("댓글 개수"),
-						fieldWithPath("data.reviewList[].reviewImageUrl").description("리뷰 썸네일 이미지"),
-						fieldWithPath("data.reviewList[].createAt").description("리뷰 등록 일시"),
-						fieldWithPath("data.reviewList[].userId").description("유저 ID"),
-						fieldWithPath("data.reviewList[].nickName").description("유저 닉네임"),
-						fieldWithPath("data.reviewList[].userProfileImage").description("유저 프로필 이미지"),
-						fieldWithPath("data.reviewList[].rating").description("리뷰에 등록된 별점"),
-						fieldWithPath("data.reviewList[].status").description("리뷰 공개 상태 (PUBLIC, PRIVATE)"),
+						fieldWithPath("data.reviewList[].price").description("리뷰 가격"),
+						fieldWithPath("data.reviewList[].sizeType").optional().description("리뷰 사이즈 타입"),
+						fieldWithPath("data.reviewList[].likeCount").description("리뷰 좋아요 수"),
+						fieldWithPath("data.reviewList[].replyCount").description("리뷰 댓글 수"),
+						fieldWithPath("data.reviewList[].reviewImageUrl").description("리뷰 이미지 URL"),
+						fieldWithPath("data.reviewList[].userInfo.userId").description("리뷰 작성자 ID"),
+						fieldWithPath("data.reviewList[].userInfo.nickName").description("리뷰 작성자 닉네임"),
+						fieldWithPath("data.reviewList[].userInfo.userProfileImage").description("리뷰 작성자 프로필 이미지 URL"),
+						fieldWithPath("data.reviewList[].rating").description("리뷰 평점"),
+						fieldWithPath("data.reviewList[].viewCount").description("리뷰 조회수"),
+						fieldWithPath("data.reviewList[].locationInfo").description("리뷰 장소 정보"),
+						fieldWithPath("data.reviewList[].locationInfo.name").description("리뷰 장소 명"),
+						fieldWithPath("data.reviewList[].locationInfo.zipCode").description("리뷰 장소 우편번호"),
+						fieldWithPath("data.reviewList[].locationInfo.address").description("리뷰 장소 주소"),
+						fieldWithPath("data.reviewList[].locationInfo.detailAddress").description("리뷰 장소 상세 주소"),
+						fieldWithPath("data.reviewList[].locationInfo.category").description("리뷰 장소 카테고리"),
+						fieldWithPath("data.reviewList[].locationInfo.mapUrl").description("리뷰 장소 지도 URL"),
+						fieldWithPath("data.reviewList[].locationInfo.latitude").description("리뷰 장소 위도"),
+						fieldWithPath("data.reviewList[].locationInfo.longitude").description("리뷰 장소 경도"),
+						fieldWithPath("data.reviewList[].status").description("리뷰 공개 여부 (PUBLIC/PRIVATE)"),
 						fieldWithPath("data.reviewList[].isMyReview").description("내가 작성한 리뷰인지 여부"),
-						fieldWithPath("data.reviewList[].isLikedByMe").description("내가 좋아요 누른 리뷰인지 여부"),
-						fieldWithPath("data.reviewList[].hasReplyByMe").description("내가 댓글을 단 리뷰인지 여부"),
-						fieldWithPath("data.reviewList[].isBestReview").description("베스트 댓글인지 여부"),
+						fieldWithPath("data.reviewList[].isLikedByMe").description("내가 좋아요를 눌렀는지 여부"),
+						fieldWithPath("data.reviewList[].hasReplyByMe").description("내가 댓글을 달았는지 여부"),
+						fieldWithPath("data.reviewList[].isBestReview").description("베스트 리뷰 여부"),
+						fieldWithPath("data.reviewList[].tastingTagList").description("리뷰 테이스팅 태그 목록"),
+						fieldWithPath("data.reviewList[].createAt").description("리뷰 작성 날짜 'yyyyMMddHHmm' 포맷"),
+						fieldWithPath("errors").ignored(),
+						fieldWithPath("meta.serverEncoding").ignored(),
+						fieldWithPath("meta.serverVersion").ignored(),
+						fieldWithPath("meta.serverPathVersion").ignored(),
+						fieldWithPath("meta.serverResponseTime").ignored(),
+						fieldWithPath("meta.pageable").description("페이징 정보"),
+						fieldWithPath("meta.pageable.currentCursor").description("조회 시 기준 커서"),
+						fieldWithPath("meta.pageable.cursor").description("다음 페이지 커서"),
+						fieldWithPath("meta.pageable.pageSize").description("조회된 페이지 사이즈"),
+						fieldWithPath("meta.pageable.hasNext").description("다음 페이지 존재 여부")
+					)
+				)
+			);
+	}
+
+	@Test
+	@DisplayName("내가 작성한 리뷰를 조회할 수 있다.")
+	void my_review_read_test() throws Exception {
+
+		//given
+		PageResponse<ReviewListResponse> response = ReviewObjectFixture.getReviewListResponse();
+
+		//when
+		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
+
+		when(reviewService.getMyReviews(any(), any(), any())).thenReturn(response);
+
+		//then
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/reviews/me/1")
+				.param("sortType", "POPULAR")
+				.param("sortOrder", "DESC")
+				.param("cursor", "0")
+				.param("pageSize", "2")
+			)
+			.andExpect(status().isOk())
+			.andDo(
+				document("review/my-review-read",
+					queryParameters(
+						parameterWithName("sortType").optional().description("정렬 타입(해당 문서 하단 enum 참조)"),
+						parameterWithName("sortOrder").optional().description("정렬 순서(해당 문서 하단 enum 참조)"),
+						parameterWithName("cursor").optional().description("조회 할 시작 기준 위치"),
+						parameterWithName("pageSize").optional().description("조회 할 페이지 사이즈")
+					),
+					responseFields(
+						fieldWithPath("success").description("응답 성공 여부"),
+						fieldWithPath("code").description("응답 코드(http status code)"),
+						fieldWithPath("data.totalCount").description("해당 술의 총 리뷰 수"),
+						fieldWithPath("data.reviewList[].reviewId").description("리뷰 ID"),
+						fieldWithPath("data.reviewList[].reviewContent").description("리뷰 내용"),
+						fieldWithPath("data.reviewList[].price").description("리뷰 가격"),
+						fieldWithPath("data.reviewList[].sizeType").optional().description("리뷰 사이즈 타입"),
+						fieldWithPath("data.reviewList[].likeCount").description("리뷰 좋아요 수"),
+						fieldWithPath("data.reviewList[].replyCount").description("리뷰 댓글 수"),
+						fieldWithPath("data.reviewList[].reviewImageUrl").description("리뷰 이미지 URL"),
+						fieldWithPath("data.reviewList[].userInfo.userId").description("리뷰 작성자 ID"),
+						fieldWithPath("data.reviewList[].userInfo.nickName").description("리뷰 작성자 닉네임"),
+						fieldWithPath("data.reviewList[].userInfo.userProfileImage").description("리뷰 작성자 프로필 이미지 URL"),
+						fieldWithPath("data.reviewList[].rating").description("리뷰 평점"),
+						fieldWithPath("data.reviewList[].viewCount").description("리뷰 조회수"),
+						fieldWithPath("data.reviewList[].locationInfo").description("리뷰 장소 정보"),
+						fieldWithPath("data.reviewList[].locationInfo.name").description("리뷰 장소 명"),
+						fieldWithPath("data.reviewList[].locationInfo.zipCode").description("리뷰 장소 우편번호"),
+						fieldWithPath("data.reviewList[].locationInfo.address").description("리뷰 장소 주소"),
+						fieldWithPath("data.reviewList[].locationInfo.detailAddress").description("리뷰 장소 상세 주소"),
+						fieldWithPath("data.reviewList[].locationInfo.category").description("리뷰 장소 카테고리"),
+						fieldWithPath("data.reviewList[].locationInfo.mapUrl").description("리뷰 장소 지도 URL"),
+						fieldWithPath("data.reviewList[].locationInfo.latitude").description("리뷰 장소 위도"),
+						fieldWithPath("data.reviewList[].locationInfo.longitude").description("리뷰 장소 경도"),
+						fieldWithPath("data.reviewList[].status").description("리뷰 공개 여부 (PUBLIC/PRIVATE)"),
+						fieldWithPath("data.reviewList[].isMyReview").description("내가 작성한 리뷰인지 여부"),
+						fieldWithPath("data.reviewList[].isLikedByMe").description("내가 좋아요를 눌렀는지 여부"),
+						fieldWithPath("data.reviewList[].hasReplyByMe").description("내가 댓글을 달았는지 여부"),
+						fieldWithPath("data.reviewList[].isBestReview").description("베스트 리뷰 여부"),
+						fieldWithPath("data.reviewList[].tastingTagList").description("리뷰 테이스팅 태그 목록"),
+						fieldWithPath("data.reviewList[].createAt").description("리뷰 작성 날짜 'yyyyMMddHHmm' 포맷"),
 						fieldWithPath("errors").ignored(),
 						fieldWithPath("meta.serverEncoding").ignored(),
 						fieldWithPath("meta.serverVersion").ignored(),
@@ -257,70 +342,6 @@ class RestReviewControllerDocsTest extends AbstractRestDocs {
 						fieldWithPath("meta.serverEncoding").description("서버 인코딩").type(JsonFieldType.STRING),
 						fieldWithPath("meta.serverResponseTime").description("서버 응답 시간").type(JsonFieldType.STRING),
 						fieldWithPath("meta.serverPathVersion").description("서버 패스 버전").type(JsonFieldType.STRING)
-					)
-				)
-			);
-	}
-
-	@Test
-	@DisplayName("내가 작성한 리뷰를 조회할 수 있다.")
-	void my_review_read_test() throws Exception {
-
-		//given
-		PageResponse<ReviewListResponse> response = ReviewObjectFixture.getReviewListResponse();
-
-		//when
-		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
-
-		when(reviewService.getMyReviews(any(), any(), any())).thenReturn(response);
-
-		//then
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/reviews/me/1")
-				.param("sortType", "POPULAR")
-				.param("sortOrder", "DESC")
-				.param("cursor", "0")
-				.param("pageSize", "2")
-			)
-			.andExpect(status().isOk())
-			.andDo(
-				document("review/my-review-read",
-					queryParameters(
-						parameterWithName("sortType").optional().description("정렬 타입(해당 문서 하단 enum 참조)"),
-						parameterWithName("sortOrder").optional().description("정렬 순서(해당 문서 하단 enum 참조)"),
-						parameterWithName("cursor").optional().description("조회 할 시작 기준 위치"),
-						parameterWithName("pageSize").optional().description("조회 할 페이지 사이즈")
-					),
-					responseFields(
-						fieldWithPath("success").description("응답 성공 여부"),
-						fieldWithPath("code").description("응답 코드(http status code)"),
-						fieldWithPath("data.totalCount").description("전체 리뷰 리스트의 크기"),
-						fieldWithPath("data.reviewList[].reviewId").description("리뷰 ID"),
-						fieldWithPath("data.reviewList[].reviewContent").description("리뷰 내용"),
-						fieldWithPath("data.reviewList[].price").description("가격"),
-						fieldWithPath("data.reviewList[].sizeType").description("사이즈 타입 (BOTTLE, GLASS)"),
-						fieldWithPath("data.reviewList[].likeCount").description("좋아요 개수"),
-						fieldWithPath("data.reviewList[].replyCount").description("댓글 개수"),
-						fieldWithPath("data.reviewList[].reviewImageUrl").description("리뷰 썸네일 이미지"),
-						fieldWithPath("data.reviewList[].createAt").description("리뷰 등록 일시"),
-						fieldWithPath("data.reviewList[].userId").description("유저 ID"),
-						fieldWithPath("data.reviewList[].nickName").description("유저 닉네임"),
-						fieldWithPath("data.reviewList[].userProfileImage").description("유저 프로필 이미지"),
-						fieldWithPath("data.reviewList[].rating").description("리뷰에 등록된 별점"),
-						fieldWithPath("data.reviewList[].status").description("리뷰 공개 상태 (PUBLIC, PRIVATE)"),
-						fieldWithPath("data.reviewList[].isMyReview").description("내가 작성한 리뷰인지 여부"),
-						fieldWithPath("data.reviewList[].isLikedByMe").description("내가 좋아요 누른 리뷰인지 여부"),
-						fieldWithPath("data.reviewList[].hasReplyByMe").description("내가 댓글을 단 리뷰인지 여부"),
-						fieldWithPath("data.reviewList[].isBestReview").description("베스트 댓글인지 여부"),
-						fieldWithPath("errors").ignored(),
-						fieldWithPath("meta.serverEncoding").ignored(),
-						fieldWithPath("meta.serverVersion").ignored(),
-						fieldWithPath("meta.serverPathVersion").ignored(),
-						fieldWithPath("meta.serverResponseTime").ignored(),
-						fieldWithPath("meta.pageable").description("페이징 정보"),
-						fieldWithPath("meta.pageable.currentCursor").description("조회 시 기준 커서"),
-						fieldWithPath("meta.pageable.cursor").description("다음 페이지 커서"),
-						fieldWithPath("meta.pageable.pageSize").description("조회된 페이지 사이즈"),
-						fieldWithPath("meta.pageable.hasNext").description("다음 페이지 존재 여부")
 					)
 				)
 			);

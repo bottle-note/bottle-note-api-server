@@ -2,6 +2,8 @@ package app.bottlenote.review.integration;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -74,16 +76,15 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
 				.andExpect(jsonPath("$.code").value(200))
 				.andExpect(jsonPath("$.data").exists())
 				.andReturn();
+
 			String contentAsString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 			GlobalResponse response = mapper.readValue(contentAsString, GlobalResponse.class);
 			ReviewListResponse reviewListResponse = mapper.convertValue(response.getData(), ReviewListResponse.class);
+			List<ReviewInfo> reviewInfos = reviewListResponse.reviewList();
 
 			//when
-			final Long totalCount = reviewListResponse.totalCount();
-			final List<ReviewInfo> reviewInfos = reviewListResponse.reviewList();
-
-			assertTrue(totalCount > 0);
-			assertEquals(totalCount, reviewInfos.size());
+			assertNotNull(reviewListResponse);
+			assertFalse(reviewInfos.isEmpty());
 		}
 	}
 
