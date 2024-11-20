@@ -1,23 +1,5 @@
 package app.bottlenote.review.controller;
 
-import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.description;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.global.security.SecurityContextUtil;
@@ -46,10 +28,6 @@ import app.bottlenote.user.exception.UserExceptionCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -71,12 +49,47 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-@Disabled("통합 테스트 병합을 위한 비활성화")
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
+
+import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.description;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@Disabled
 @Tag("unit")
-@DisplayName("[unit] [controller] ReviewController")
-@WebMvcTest(ReviewController.class)
+@DisplayName("[unit] ReviewController")
 @WithMockUser
+@WebMvcTest(ReviewController.class)
 class ReviewControllerTest {
+
+	private final ReviewCreateRequest reviewCreateRequest = ReviewObjectFixture.getReviewCreateRequest();
+	private final ReviewCreateResponse reviewCreateResponse = ReviewObjectFixture.getReviewCreateResponse();
+	private final ReviewModifyRequest reviewModifyRequest = ReviewObjectFixture.getReviewModifyRequest(ReviewDisplayStatus.PUBLIC);
+	private final ReviewModifyRequest nullableReviewModifyRequest = ReviewObjectFixture.getNullableReviewModifyRequest(ReviewDisplayStatus.PRIVATE);
+	private final ReviewModifyRequest wrongReviewModifyRequest = ReviewObjectFixture.getWrongReviewModifyRequest();
+	private final PageResponse<ReviewListResponse> reviewListResponse = ReviewObjectFixture.getReviewListResponse();
+	private final ReviewDetailResponse reviewDetailResponse = ReviewObjectFixture.getReviewDetailResponse();
+	private final ReviewStatusChangeRequest reviewStatusChangeRequest = new ReviewStatusChangeRequest(ReviewDisplayStatus.PRIVATE);
+	private final ReviewResultResponse reviewStatusChangeResponse = ReviewResultResponse.response(ReviewResultMessage.PRIVATE_SUCCESS, 1L);
+	private final Long reviewId = 1L;
+	private final Long userId = 1L;
 
 	@Autowired
 	protected ObjectMapper mapper;
@@ -84,31 +97,13 @@ class ReviewControllerTest {
 	protected MockMvc mockMvc;
 	@MockBean
 	private ReviewService reviewService;
+
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
-
-	private final ReviewCreateRequest reviewCreateRequest = ReviewObjectFixture.getReviewCreateRequest();
-	private final ReviewCreateResponse reviewCreateResponse = ReviewObjectFixture.getReviewCreateResponse();
-
-	private final ReviewModifyRequest reviewModifyRequest = ReviewObjectFixture.getReviewModifyRequest(ReviewDisplayStatus.PUBLIC);
-	private final ReviewModifyRequest nullableReviewModifyRequest = ReviewObjectFixture.getNullableReviewModifyRequest(ReviewDisplayStatus.PRIVATE);
-	private final ReviewModifyRequest wrongReviewModifyRequest = ReviewObjectFixture.getWrongReviewModifyRequest();
-
-	private final PageResponse<ReviewListResponse> reviewListResponse = ReviewObjectFixture.getReviewListResponse();
-
-	private final ReviewDetailResponse reviewDetailResponse = ReviewObjectFixture.getReviewDetailResponse();
-
-	private final ReviewStatusChangeRequest reviewStatusChangeRequest = new ReviewStatusChangeRequest(ReviewDisplayStatus.PRIVATE);
-	private final ReviewResultResponse reviewStatusChangeResponse = ReviewResultResponse.response(ReviewResultMessage.PRIVATE_SUCCESS, 1L);
-
-	private final Long reviewId = 1L;
-	private final Long userId = 1L;
-
 
 	@BeforeEach
 	void setup() {
 		mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
 	}
-
 
 	@AfterEach
 	void tearDown() {
@@ -732,5 +727,4 @@ class ReviewControllerTest {
 				.andExpect(jsonPath("$.errors[0].message").value(error.message()));
 		}
 	}
-
 }
