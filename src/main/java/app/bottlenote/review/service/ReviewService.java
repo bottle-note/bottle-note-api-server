@@ -111,27 +111,10 @@ public class ReviewService implements ReviewFacade {
 	@Transactional(readOnly = true)
 	public ReviewDetailResponse getDetailReview(Long reviewId, Long currentUserId) {
 
-		long start = System.nanoTime();
-		Review review = reviewRepository.findById(reviewId)
-			.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
-
-		log.info("리뷰 존재유무 확인 시간 : {}", (System.nanoTime() - start) / 1_000_000 + "ms");
-
-		long start2 = System.nanoTime();
-		AlcoholInfo alcoholInfo = alcoholDomainSupport.findAlcoholInfoById(review.getAlcoholId(), currentUserId)
-			.orElseGet(AlcoholInfo::empty);
-
-		log.info("알코올 정보 조회 시간 : {}", (System.nanoTime() - start2) / 1_000_000 + "ms");
-
-		long start3 = System.nanoTime();
+		Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
+		AlcoholInfo alcoholInfo = alcoholDomainSupport.findAlcoholInfoById(review.getAlcoholId(), currentUserId).orElseGet(AlcoholInfo::empty);
 		ReviewInfo reviewInfo = reviewRepository.getReview(reviewId, currentUserId);
-
-		log.info("리뷰 정보 조회 시간 : {}", (System.nanoTime() - start3) / 1_000_000 + "ms");
-
-		long start4 = System.nanoTime();
 		List<ReviewImageInfo> reviewImageInfos = reviewImageSupport.getReviewImageInfo(review.getReviewImages());
-
-		log.info("리뷰 이미지 조회 시간 : {}", (System.nanoTime() - start4) / 1_000_000 + "ms");
 
 		return ReviewDetailResponse.create(alcoholInfo, reviewInfo, reviewImageInfos);
 	}

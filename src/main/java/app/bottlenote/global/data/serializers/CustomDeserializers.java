@@ -10,15 +10,14 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CustomDeserializers {
 	public static class TastingTagListDeserializer extends JsonDeserializer<String> {
 		@Override
 		public String deserialize(JsonParser p, DeserializationContext text) throws IOException {
-			List<String> tags = p.readValueAs(List.class);
-			return tags.stream().collect(Collectors.joining(","));
+			List<String> tags = List.of(p.getText().split(","));
+			return String.join(",", tags);
 		}
 	}
 
