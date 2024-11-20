@@ -68,5 +68,4 @@ public class ReviewLocation {
 		this.latitude = reviewModifyVO.getLocationInfo().latitude();
 		this.longitude = reviewModifyVO.getLocationInfo().longitude();
 	}
-
 }
