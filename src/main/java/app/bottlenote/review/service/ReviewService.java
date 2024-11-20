@@ -1,12 +1,5 @@
 package app.bottlenote.review.service;
 
-import static app.bottlenote.review.domain.constant.ReviewActiveStatus.DELETED;
-import static app.bottlenote.review.domain.constant.ReviewDisplayStatus.PUBLIC;
-import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.MODIFY_SUCCESS;
-import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.PRIVATE_SUCCESS;
-import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.PUBLIC_SUCCESS;
-import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
-
 import app.bottlenote.alcohols.dto.response.AlcoholInfo;
 import app.bottlenote.alcohols.service.domain.AlcoholDomainSupport;
 import app.bottlenote.global.service.cursor.PageResponse;
@@ -21,24 +14,32 @@ import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.request.ReviewStatusChangeRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
-import app.bottlenote.review.dto.response.ReviewDetailResponse.ReviewInfo;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.dto.response.constant.ReviewResultMessage;
+import app.bottlenote.review.dto.vo.ReviewInfo;
 import app.bottlenote.review.dto.vo.ReviewModifyVO;
 import app.bottlenote.review.event.publisher.ReviewEventPublisher;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.user.service.domain.UserDomainSupport;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
+import static app.bottlenote.review.domain.constant.ReviewActiveStatus.DELETED;
+import static app.bottlenote.review.domain.constant.ReviewDisplayStatus.PUBLIC;
+import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.PRIVATE_SUCCESS;
+import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.PUBLIC_SUCCESS;
+import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ReviewService {
+public class ReviewService implements ReviewFacade {
 
 	private final AlcoholDomainSupport alcoholDomainSupport;
 	private final UserDomainSupport userDomainSupport;
@@ -86,11 +87,11 @@ public class ReviewService {
 		//이벤트 발행
 		reviewEventPublisher.reviewRegistry(
 			ReviewRegistryEvent.of(
-			saveReview.getId(),
-			saveReview.getAlcoholId() ,
-			saveReview.getUserId(),
-			saveReview.getContent()
-		));
+				saveReview.getId(),
+				saveReview.getAlcoholId(),
+				saveReview.getUserId(),
+				saveReview.getContent()
+			));
 
 		return ReviewCreateResponse.builder()
 			.id(saveReview.getId())
@@ -100,34 +101,20 @@ public class ReviewService {
 	}
 
 	@Transactional(readOnly = true)
-	public PageResponse<ReviewListResponse> getReviews(Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId) {
+	public PageResponse<ReviewListResponse> getReviews(
+		Long alcoholId,
+		ReviewPageableRequest reviewPageableRequest,
+		Long userId) {
 		return reviewRepository.getReviews(alcoholId, reviewPageableRequest, userId);
 	}
 
 	@Transactional(readOnly = true)
 	public ReviewDetailResponse getDetailReview(Long reviewId, Long currentUserId) {
 
-		long start = System.nanoTime();
-		Review review = reviewRepository.findById(reviewId)
-			.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
-
-		log.info("리뷰 존재유무 확인 시간 : {}", (System.nanoTime() - start) / 1_000_000 + "ms");
-
-		long start2 = System.nanoTime();
-		AlcoholInfo alcoholInfo = alcoholDomainSupport.findAlcoholInfoById(review.getAlcoholId(), currentUserId)
-			.orElseGet(AlcoholInfo::empty);
-
-		log.info("알코올 정보 조회 시간 : {}", (System.nanoTime() - start2) / 1_000_000 + "ms");
-
-		long start3 = System.nanoTime();
+		Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
+		AlcoholInfo alcoholInfo = alcoholDomainSupport.findAlcoholInfoById(review.getAlcoholId(), currentUserId).orElseGet(AlcoholInfo::empty);
 		ReviewInfo reviewInfo = reviewRepository.getReview(reviewId, currentUserId);
-
-		log.info("리뷰 정보 조회 시간 : {}", (System.nanoTime() - start3) / 1_000_000 + "ms");
-
-		long start4 = System.nanoTime();
 		List<ReviewImageInfo> reviewImageInfos = reviewImageSupport.getReviewImageInfo(review.getReviewImages());
-
-		log.info("리뷰 이미지 조회 시간 : {}", (System.nanoTime() - start4) / 1_000_000 + "ms");
 
 		return ReviewDetailResponse.create(alcoholInfo, reviewInfo, reviewImageInfos);
 	}
@@ -164,9 +151,9 @@ public class ReviewService {
 	}
 
 	@Transactional
-	public ReviewResultResponse changeStatus(Long reviewId, ReviewStatusChangeRequest reviewDisplayStatus, Long curruentUserId) {
+	public ReviewResultResponse changeStatus(Long reviewId, ReviewStatusChangeRequest reviewDisplayStatus, Long currentUserId) {
 
-		Review review = reviewRepository.findByIdAndUserId(reviewId, curruentUserId).orElseThrow(
+		Review review = reviewRepository.findByIdAndUserId(reviewId, currentUserId).orElseThrow(
 			() -> new ReviewException(REVIEW_NOT_FOUND)
 		);
 
@@ -175,5 +162,13 @@ public class ReviewService {
 		return review.getStatus() == PUBLIC ?
 			ReviewResultResponse.response(PUBLIC_SUCCESS, review.getId()) :
 			ReviewResultResponse.response(PRIVATE_SUCCESS, review.getId());
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public ReviewListResponse getReviewInfoList(Long alcoholId, Long userId) {
+		ReviewPageableRequest pageableRequest = ReviewPageableRequest.builder().cursor(0L).pageSize(6L).build();
+		PageResponse<ReviewListResponse> reviews = reviewRepository.getReviews(alcoholId, pageableRequest, userId);
+		return reviews.content();
 	}
 }

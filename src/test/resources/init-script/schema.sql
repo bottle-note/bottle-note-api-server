@@ -1,8 +1,3 @@
--- 데이터 베이스 기본설정
-ALTER DATABASE dev_bottle_note -- 데이터베이스 이름
-    DEFAULT CHARACTER SET utf8mb4
-    DEFAULT COLLATE utf8mb4_unicode_ci;
-
 CREATE TABLE `region`
 (
     `id`             bigint       NOT NULL AUTO_INCREMENT COMMENT '국가',

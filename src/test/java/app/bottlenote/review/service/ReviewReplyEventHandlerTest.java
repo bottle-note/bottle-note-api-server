@@ -1,4 +1,4 @@
-package app.bottlenote.review.service.event;
+package app.bottlenote.review.service;
 
 import app.bottlenote.review.dto.payload.ReviewReplyRegistryEvent;
 import app.bottlenote.review.event.listener.ReviewReplyEventHandler;
@@ -22,7 +22,6 @@ class ReviewReplyEventHandlerTest {
 		userQueryRepository = new InMemoryUserQueryRepository();
 		notificationRepository = new InMemoryNotificationRepository();
 		reviewReplyEventHandler = new ReviewReplyEventHandler(new FakeNotificationService(userQueryRepository, notificationRepository));
-
 		userQueryRepository.save(User.builder().id(1L).email("email@test.com").nickName("nickName").build());
 	}
 

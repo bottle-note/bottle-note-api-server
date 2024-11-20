@@ -2,7 +2,7 @@ package app.bottlenote.docs.alcohols;
 
 import app.bottlenote.alcohols.controller.RegionController;
 import app.bottlenote.alcohols.dto.response.RegionsResponse;
-import app.bottlenote.alcohols.service.RegionService;
+import app.bottlenote.alcohols.service.AlcoholReferenceService;
 import app.bottlenote.docs.AbstractRestDocs;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("region 컨트롤러 RestDocs용 테스트")
 class RestRegionControllerTest extends AbstractRestDocs {
 
-	private final RegionService regionService = mock(RegionService.class);
+	private final AlcoholReferenceService regionService = mock(AlcoholReferenceService.class);
 
 	@Override
 	protected Object initController() {
@@ -40,7 +40,7 @@ class RestRegionControllerTest extends AbstractRestDocs {
 			RegionsResponse.of(12L, "스웨덴", "Sweden", "실험적인 방법으로 만드는 스웨덴 위스키")
 		);
 		// when
-		when(regionService.findAll()).thenReturn(response);
+		when(regionService.findAllRegion()).thenReturn(response);
 
 		// then
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/regions/"))

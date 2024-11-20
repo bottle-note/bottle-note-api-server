@@ -11,6 +11,8 @@ import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.review.dto.vo.ReviewInfo;
+import app.bottlenote.review.dto.vo.UserInfo;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -62,27 +64,27 @@ public class AlcoholQueryFixture {
 	}
 
 	public ReviewsDetailInfo getReviewsDetailInfo() {
-		List<ReviewsDetailInfo.ReviewInfo> bestReview = List.of(
-			ReviewsDetailInfo.ReviewInfo.builder()
-				.userId(1L).imageUrl(null).nickName("3342네임")
+		List<ReviewInfo> bestReview = List.of(
+			ReviewInfo.builder()
+				.userInfo(new UserInfo(1L, null, "3342네임"))
 				.reviewId(3L).reviewContent("약간의 스파이시함과 오크의 향을 느낄 수 있는 위스키였어요. 하지만 피니시가 조금 짧은 느낌이었네요. 한 번쯤 시도해볼 만합니다.")
 				.rating(5.0).sizeType(GLASS).price(BigDecimal.valueOf(150000.00)).viewCount(0L).likeCount(0L).isLikedByMe(false)
 				.replyCount(2L).hasReplyByMe(false).status(null).reviewImageUrl(null).createAt(null).build()
 		);
 
-		List<ReviewsDetailInfo.ReviewInfo> recentReviewInfos = List.of(
-			ReviewsDetailInfo.ReviewInfo.builder()
-				.userId(1L).imageUrl(null).nickName("wnrdms123")
+		List<ReviewInfo> recentReviewInfos = List.of(
+			ReviewInfo.builder()
+				.userInfo(new UserInfo(1L, null, "xcvx"))
 				.reviewId(3L).reviewContent("약간의 스파이시함과 오크의 향을 느낄 수 있는 위스키였어요. 하지만 피니시가 조금 짧은 느낌이었네요. 한 번쯤 시도해볼 만합니다.")
 				.rating(5.0).sizeType(GLASS).price(BigDecimal.valueOf(150000.00)).viewCount(0L).likeCount(0L).isLikedByMe(false)
 				.replyCount(2L).hasReplyByMe(false).status(null).reviewImageUrl(null).createAt(null).build(),
-			ReviewsDetailInfo.ReviewInfo.builder()
-				.userId(2L).imageUrl(null).nickName("3213dsadsa")
+			ReviewInfo.builder()
+				.userInfo(new UserInfo(1L, null, "ghjnn"))
 				.reviewId(5L).reviewContent("맛있어요")
 				.rating(4.5).sizeType(null).price(BigDecimal.valueOf(0.00)).viewCount(0L).likeCount(0L).isLikedByMe(false)
 				.replyCount(0L).hasReplyByMe(false).status(null).reviewImageUrl(null).createAt(null).build(),
-			ReviewsDetailInfo.ReviewInfo.builder()
-				.userId(2L).imageUrl(null).nickName("죽은 공룡")
+			ReviewInfo.builder()
+				.userInfo(new UserInfo(1L, null, "asaa"))
 				.reviewId(7L).reviewContent("이 위스키는 스파이시한 오크와 달콤한 과일 노트가 절묘하게 어우러져 있어요. 피니시는 길고 부드러워요.")
 				.rating(4.5).sizeType(null).price(BigDecimal.valueOf(0.00)).viewCount(0L).likeCount(0L).isLikedByMe(false)
 				.replyCount(0L).hasReplyByMe(false).status(null).reviewImageUrl(null).createAt(null).build()

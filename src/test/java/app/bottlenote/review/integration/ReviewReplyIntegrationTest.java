@@ -31,7 +31,7 @@ class ReviewReplyIntegrationTest extends IntegrationTestSupport {
 	)
 	@Test
 	void test_1() throws Exception {
-		log.info("using port : {}", MY_SQL_CONTAINER.getFirstMappedPort());
+
 		// given
 		final Long reviewId = 4L;
 		// when && then

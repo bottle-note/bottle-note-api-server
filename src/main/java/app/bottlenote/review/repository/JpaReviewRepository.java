@@ -38,4 +38,7 @@ public interface JpaReviewRepository extends
 	@Query("select r from review_reply r")
 	List<ReviewReply> findAllReply();
 
+	@Override
+	@Query("select r from review r where r.userId = :userId")
+	List<Review> findByUserId(Long userId);
 }

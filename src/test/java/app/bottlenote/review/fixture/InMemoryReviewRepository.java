@@ -5,10 +5,10 @@ import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
-import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.RootReviewReplyInfo;
 import app.bottlenote.review.dto.response.SubReviewReplyInfo;
+import app.bottlenote.review.dto.vo.ReviewInfo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -70,7 +70,7 @@ public class InMemoryReviewRepository implements ReviewRepository {
 	}
 
 	@Override
-	public ReviewDetailResponse.ReviewInfo getReview(Long reviewId, Long userId) {
+	public ReviewInfo getReview(Long reviewId, Long userId) {
 		return null;
 	}
 
@@ -117,5 +117,10 @@ public class InMemoryReviewRepository implements ReviewRepository {
 			.stream()
 			.filter(reply -> reply.getReview().getId().equals(review) && reply.getId().equals(replyId))
 			.findFirst();
+	}
+
+	@Override
+	public List<Review> findByUserId(Long userId) {
+		return List.of();
 	}
 }

@@ -29,7 +29,7 @@ include::{snippets}/review/my-review-read/query-parameters.adoc[]
 
 [discrete]
 include::{snippets}/review/my-review-read/response-fields.adoc[]
-include::{snippets}/review/my-review-read/http-response.adoc[]
+include::{snippets}/review/my-review-read/response-body.adoc[]
 
 [discrete]
 ===== _정렬 타입 (sortType)_ =====

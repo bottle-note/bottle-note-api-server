@@ -12,51 +12,66 @@ spring:
   config:
     activate:
       on-profile: local
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/bottle_note?useSSL=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
     username: bottle_note
     password: bottle_note_1234
+
   jpa:
-    show-sql: true
     hibernate:
-      ddl-auto: validate # validate, update, create, create-drop
+      ddl-auto: validate
     properties:
       hibernate:
-        format_sql: true # SQL 출력 포맷
-        use_sql_comments: true
         dialect: org.hibernate.dialect.MySQLDialect
-        show_sql: true # 콘솔에 SQL 출력
-    open-in-view: false # JPA 영속성 컨텍스트를 View까지 열어두는 옵션 (default: true) - false로 설정할 것
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+        format_sql: false
+        show_sql: false
+        use_sql_comments: false
+    open-in-view: false
+
   data:
     redis:
       host: localhost
       port: 6379
+  sleuth:
+    jdbc:
+      p6spy:
+        tracing:
+          include-parameter-values: true
+
+
+# p6spy 설정 추가
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: true
+      multiline: true
+      logging: slf4j
+
 
 # Logging
 logging:
   level:
-    root: info # error, warn, info, debug, trace (default: info)
+    root: info
+    org.hibernate.orm.jdbc.bind: trace
 
 # Spring Security
 security:
-  jwt: # dummy-key : 로그인 개발용으로 만든 더미키 입니다. 실제 서비스에서는 키값도 변경해야하며, 노출되지않는 application.yml에 넣어야 합니다.
+  jwt:
     secret-key: 'c2VjdXJlU2VjcmV0S2V5MTIzNDU2Nzg5MGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6QWJDRGVGR2hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlrSg=='
 
 
 # AWS S3
 amazon:
   aws:
-    accessKey: ${AMAZON_AWS_ACCESS_KEY}
-    secretKey: ${AMAZON_AWS_SECRET_KEY}
-    region: ${AMAZON_AWS_REGION}
-    bucket: ${AMAZON_AWS_BUCKET}
-    cloudFrontUrl: ${AMAZON_AWS_CLOUDFRONT_URL}
+    accessKey: ${AMAZON_AWS_ACCESS_KEY:AMAZON_AWS_ACCESS_KEY}
+    secretKey: ${AMAZON_AWS_SECRET_KEY:AMAZON_AWS_SECRET_KEY}
+    region: ${AMAZON_AWS_REGION:AMAZON_AWS_REGION}
+    bucket: ${AMAZON_AWS_BUCKET:AMAZON_AWS_BUCKET}
+    cloudFrontUrl: ${AMAZON_AWS_CLOUDFRONT_URL:AMAZON_AWS_CLOUDFRONT_URL}
 
 profanity:
   filter:
     url: https://api.profanity-filter.run/api/v1
+    key: ${PROFANITY_FILTER_KEY:PROFANITY_FILTER_KEY}

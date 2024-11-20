@@ -16,4 +16,7 @@ public interface OauthRepository extends CrudRepository<User, Long> {
 	Optional<User> findByEmail(String email);
 
 	Optional<User> findByRefreshToken(String refreshToken);
+
+	@Query("select u from users  u order by u.id limit 1")
+	Optional<User> getFirstUser();
 }
