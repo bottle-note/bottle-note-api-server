@@ -28,7 +28,7 @@ include::{snippets}/review/review-read/query-parameters.adoc[]
 
 [discrete]
 include::{snippets}/review/review-read/response-fields.adoc[]
-include::{snippets}/review/review-read/http-response.adoc[]
+include::{snippets}/review/review-read/response-body.adoc[]
 
 [discrete]
 ===== _정렬 타입 (sortType)_ =====

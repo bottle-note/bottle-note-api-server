@@ -1,18 +1,18 @@
 package app.bottlenote.review.dto.response;
 
-import static app.bottlenote.review.exception.ReviewExceptionCode.INVALID_CALL_BACK_URL;
-
 import app.bottlenote.review.exception.ReviewException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import static app.bottlenote.review.exception.ReviewExceptionCode.INVALID_CALL_BACK_URL;
+
 @Getter
 @EqualsAndHashCode
 public class ReviewCreateResponse {
-
 	private final Long id;
 	private final String content;
 	private final URL callback;

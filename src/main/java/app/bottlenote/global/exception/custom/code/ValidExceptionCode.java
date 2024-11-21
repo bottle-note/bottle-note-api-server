@@ -19,6 +19,11 @@ public enum ValidExceptionCode implements ExceptionCode {
 	TITLE_NOT_EMPTY(HttpStatus.BAD_REQUEST, "null입니다. 타이틀(제목)을 입력해주세요."),
 
 
+	//EXTERNAL
+	DEVICE_TOKEN_REQUIRED(HttpStatus.BAD_REQUEST, "디바이스 토큰은 필수입니다."),
+	PLATFORM_REQUIRED(HttpStatus.BAD_REQUEST, "플랫폼은 필수입니다."),
+
+
 	//ALCOHOL
 	ALCOHOL_ID_REQUIRED(HttpStatus.BAD_REQUEST, "알코올 식별자는 필수입니다."),
 	ALCOHOL_ID_MINIMUM(HttpStatus.BAD_REQUEST, "알코올 식별자는 최소 1 이상 이어야 합니다."),

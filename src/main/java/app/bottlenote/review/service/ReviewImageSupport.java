@@ -8,8 +8,10 @@ import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewImage;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.exception.ReviewException;
+
 import java.util.Collections;
 import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -59,7 +61,7 @@ public class ReviewImageSupport {
 			review.updateImages(Collections.emptyList());
 
 		} else {
-			
+
 			List<ReviewImage> reviewImageList = imageList.stream()
 				.map(image -> ReviewImage.builder()
 					.reviewImageInfo(

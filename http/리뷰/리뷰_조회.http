@@ -3,7 +3,7 @@ POST {{host}}/api/v1/oauth/login
 Content-Type: application/json
 
 {
-  "email": "juye@gmail.com",
+  "email": "hyejj19@naver.com",
   "socialType": "GOOGLE",
   "gender": "",
   "age": ""
@@ -18,21 +18,9 @@ Content-Type: application/json
 GET {{host}}/api/v1/reviews/1
 Authorization: Bearer {{accessToken}}
 
-### 리뷰수정(파라미터 미완성)
-PATCH {{host}}/api/v1/reviews/1
-Authorization: Bearer {{accessToken}}
-
-
 ### 나의리뷰조회
 GET {{host}}/api/v1/reviews/me/1
 Authorization: Bearer {{accessToken}}
-
-{
-  "alcoholId": 1
-}
-
-
-
 
 {
   "alcoholId": 1

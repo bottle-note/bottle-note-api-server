@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 class RegionServiceTest {
 
 	@InjectMocks
-	private RegionService regionService;
+	private AlcoholReferenceService regionService;
 
 	@Mock
 	private RegionQueryRepository regionQueryRepository;
@@ -42,7 +42,7 @@ class RegionServiceTest {
 		when(regionQueryRepository.findAllRegionsResponse()).thenReturn(response);
 
 		// Then
-		List<RegionsResponse> regions = regionService.findAll();
+		List<RegionsResponse> regions = regionService.findAllRegion();
 		Assertions.assertEquals(response.size(), regions.size());
 		Assertions.assertEquals(response.get(0).getRegionId(), regions.get(0).getRegionId());
 	}

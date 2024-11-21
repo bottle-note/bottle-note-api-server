@@ -1,35 +1,29 @@
 package app.bottlenote.global.config;
 
-import app.bottlenote.IntegrationTestSupport;
-import app.bottlenote.global.customMockUser.WithMockCustomUser;
-import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.review.domain.Review;
-import app.bottlenote.review.domain.ReviewRepository;
-import app.bottlenote.review.dto.request.ReviewCreateRequest;
-import app.bottlenote.review.fixture.ReviewObjectFixture;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.web.servlet.MvcResult;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import app.bottlenote.IntegrationTestSupport;
+import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.review.domain.Review;
+import app.bottlenote.review.domain.ReviewRepository;
+import app.bottlenote.review.dto.request.ReviewCreateRequest;
+import app.bottlenote.review.fixture.ReviewObjectFixture;
+import app.bottlenote.user.domain.constant.SocialType;
+import app.bottlenote.user.dto.request.OauthRequest;
+import java.nio.charset.StandardCharsets;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MvcResult;
 
 
 @Tag("integration")
@@ -37,22 +31,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class JpaAuditingIntegrationTest extends IntegrationTestSupport {
 
 	private ReviewCreateRequest reviewCreateRequest;
-	private Long userId;
-	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
+	private OauthRequest oauthRequest;
 
 	@Autowired
 	private ReviewRepository reviewRepository;
 
 	@BeforeEach
 	void setUp() {
-		mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
+		oauthRequest = new OauthRequest("chadongmin@naver.com", SocialType.KAKAO, null, null);
 		reviewCreateRequest = ReviewObjectFixture.getReviewCreateRequest();
-		userId = 1L;
-	}
-
-	@AfterEach
-	void tearDown() {
-		mockedSecurityUtil.close();
 	}
 
 	@DisplayName("DB 저장 시 생성자와 수정자가 기록된다.")
@@ -63,16 +50,14 @@ class JpaAuditingIntegrationTest extends IntegrationTestSupport {
 		"/init-script/init-review-reply.sql"}
 	)
 	@Test
-	@WithMockCustomUser(username = "user1")
 	void test_1() throws Exception {
-		log.info("using port : {}", MY_SQL_CONTAINER.getFirstMappedPort());
+
 
 		// when
-		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
-
 		MvcResult result = mockMvc.perform(post("/api/v1/reviews")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(mapper.writeValueAsString(reviewCreateRequest))
+				.header("Authorization", "Bearer " + getToken(oauthRequest).getAccessToken())
 				.with(csrf())
 			)
 			.andDo(print())
@@ -87,7 +72,6 @@ class JpaAuditingIntegrationTest extends IntegrationTestSupport {
 
 		Review savedReview = reviewRepository.findById(review.getId()).orElseGet(null);
 
-		assertEquals("user1", savedReview.getCreateBy());
+		assertEquals(oauthRequest.email(), savedReview.getCreateBy());
 	}
-
 }

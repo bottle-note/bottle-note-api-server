@@ -104,7 +104,10 @@ include::api/user/user-withdraw.adoc[]
 '''
 include::api/user/user-mypage.adoc[]
 '''
+
 include::api/user/user-mybottle.adoc[]
+'''
+include::api/external/push/device-token.adoc[]
 '''
 
 == 술 (alcohol) 관련 API
@@ -141,8 +144,6 @@ include::api/review/review-delete.adoc[]
 include::api/review/review-detail-read.adoc[]
 
 include::api/review/review-status-change.adoc[]
-
-== 리뷰 좋아요 (review like) 관련 API
 
 include::api/review/likes/update.adoc[]
 

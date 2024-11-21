@@ -1,9 +1,10 @@
 package app.bottlenote.alcohols.controller;
 
 
-import app.bottlenote.alcohols.service.RegionService;
+import app.bottlenote.alcohols.service.AlcoholReferenceService;
 import app.bottlenote.global.data.response.GlobalResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,10 +14,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class RegionController {
 
-	private final RegionService regionService;
+	private final AlcoholReferenceService alcoholReferenceService;
 
 	@GetMapping
-	public GlobalResponse findAll() {
-		return GlobalResponse.success(regionService.findAll());
+	public ResponseEntity<?> findAll() {
+		return GlobalResponse.ok(alcoholReferenceService.findAllRegion());
 	}
 }

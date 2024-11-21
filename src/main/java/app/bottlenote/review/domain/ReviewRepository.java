@@ -2,10 +2,10 @@ package app.bottlenote.review.domain;
 
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
-import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.RootReviewReplyInfo;
 import app.bottlenote.review.dto.response.SubReviewReplyInfo;
+import app.bottlenote.review.dto.vo.ReviewInfo;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,7 +22,7 @@ public interface ReviewRepository {
 
 	List<ReviewReply> findAllReply();
 
-	ReviewDetailResponse.ReviewInfo getReview(Long reviewId, Long userId);
+	ReviewInfo getReview(Long reviewId, Long userId);
 
 	PageResponse<ReviewListResponse> getReviews(Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId);
 
@@ -37,4 +37,6 @@ public interface ReviewRepository {
 	SubReviewReplyInfo getSubReviewReplies(Long reviewId, Long replyId, Long cursor, Long pageSize);
 
 	Optional<ReviewReply> findReplyByReviewIdAndReplyId(Long reviewId, Long replyId);
+	
+	List<Review> findByUserId(Long userId);
 }
