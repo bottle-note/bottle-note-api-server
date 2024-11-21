@@ -2,31 +2,17 @@ package app.bottlenote.user.integration;
 
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.global.data.response.Error;
-import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.user.domain.User;
-import app.bottlenote.user.domain.constant.SocialType;
-import app.bottlenote.user.dto.request.OauthRequest;
-import app.bottlenote.user.dto.response.MyBottleResponse;
-import app.bottlenote.user.dto.response.MyPageResponse;
 import app.bottlenote.user.exception.UserExceptionCode;
-import app.bottlenote.user.fixture.InMemoryUserQueryRepository;
-import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.web.servlet.MvcResult;
 
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -35,56 +21,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("[integration] [controller] UserQueryController")
 class UserQueryIntegrationTest extends IntegrationTestSupport {
 
-	private final InMemoryUserQueryRepository userQueryRepository = new InMemoryUserQueryRepository();
-
-
-	private Map<String, Object> loginAndGetAccessToken() throws Exception {
-		// 가장 최근에 저장된 유저 조회
-		Optional<User> mostActiveUser = userQueryRepository.findMostActiveUserNative();
-
-		if (mostActiveUser.isEmpty()) {
-			throw new IllegalStateException("No active user found in the repository.");
-		}
-
-		User activeUser = mostActiveUser.get();
-		OauthRequest oauthRequest = new OauthRequest(activeUser.getEmail(), SocialType.KAKAO, null, null);
-
-		MvcResult loginResult = mockMvc.perform(post("/api/v1/oauth/login")
-				.contentType(MediaType.APPLICATION_JSON)
-				.with(csrf())
-				.content(mapper.writeValueAsString(oauthRequest)))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.code").value("200"))
-			.andExpect(jsonPath("$.data.accessToken").exists())
-			.andReturn();
-
-		String loginResponseString = loginResult.getResponse().getContentAsString(StandardCharsets.UTF_8);
-		JsonNode loginResponseJson = mapper.readTree(loginResponseString);
-
-		String accessToken = loginResponseJson.path("data").path("accessToken").asText();
-
-		// AccessToken과 유저 ID를 맵으로 반환
-		Map<String, Object> result = new HashMap<>();
-		result.put("accessToken", accessToken);
-		result.put("userId", activeUser.getId());
-		return result;
-	}
-
-
 	@Nested
-	@DisplayName("마이페이지 ")
+	@DisplayName("마이페이지")
 	class myPage {
 
 		@DisplayName("로그인 유저가 타인의 마이페이지를 조회할 수 있다.")
 		@Sql(scripts = {"/init-script/init-user-mypage-query.sql"})
 		@Test
 		void test_1() throws Exception {
-			Map<String, Object> loginInfo = loginAndGetAccessToken();
 
-			String accessToken = (String) loginInfo.get("accessToken");
-			Long userId = (Long) loginInfo.get("userId");
+			String accessToken = getToken();
+			Long userId = 2L;
+			Long requestUserId = getTokenUserId();
 
-			MvcResult result = mockMvc.perform(get("/api/v1/my-page/{userId}", userId)
+			mockMvc.perform(get("/api/v1/my-page/{userId}", userId)
 					.contentType(MediaType.APPLICATION_JSON)
 					.with(csrf())
 					.header("Authorization", "Bearer " + accessToken))
@@ -95,11 +45,8 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 				.andExpect(jsonPath("$.data.userId").value(userId))
 				.andReturn();
 
-			// 응답 데이터를 검증하고 로그 출력
-			String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-			GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
-			MyPageResponse myPageResponse = mapper.convertValue(response.getData(), MyPageResponse.class);
-			log.info(myPageResponse.toString());
+			assertNotEquals(userId, requestUserId);
+
 		}
 
 		@DisplayName("로그인 유저가 자신의 마이페이지를 조회할 수 있다.")
@@ -107,12 +54,10 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 		@Test
 		void test_2() throws Exception {
 
-			Map<String, Object> loginInfo = loginAndGetAccessToken();
+			String accessToken = getToken();
+			Long userId = getTokenUserId();
 
-			String accessToken = (String) loginInfo.get("accessToken");
-			Long userId = (Long) loginInfo.get("userId");
-
-			MvcResult result = mockMvc.perform(get("/api/v1/my-page/{userId}", userId)
+			mockMvc.perform(get("/api/v1/my-page/{userId}", userId)
 					.contentType(MediaType.APPLICATION_JSON)
 					.with(csrf())
 					.header("Authorization", "Bearer " + accessToken))
@@ -132,7 +77,7 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 
 			final Long userId = 2L;
 
-			MvcResult result = mockMvc.perform(get("/api/v1/my-page/{userId}", userId)
+			mockMvc.perform(get("/api/v1/my-page/{userId}", userId)
 					.contentType(MediaType.APPLICATION_JSON)
 					.with(csrf()))
 				.andDo(print())
@@ -143,7 +88,7 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 				.andReturn();
 		}
 
-		@DisplayName("마이페이지 유저가 존재하지 않는 경우")
+		@DisplayName("유저가 존재하지 않는 경우 MYPAGE_NOT_ACCESSIBLE 에러를 발생한다.")
 		@Sql(scripts = {"/init-script/init-user-mypage-query.sql"})
 		@Test
 		void test_4() throws Exception {
@@ -168,12 +113,12 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 		@Sql(scripts = {"/init-script/init-user-mybottle-query.sql"})
 		@Test
 		void test_1() throws Exception {
-			Map<String, Object> loginInfo = loginAndGetAccessToken();
 
-			String accessToken = (String) loginInfo.get("accessToken");
-			Long userId = (Long) loginInfo.get("userId");
+			String accessToken = getToken();
+			Long userId = 2L;
+			Long requestUserId = getTokenUserId();
 
-			MvcResult result = mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle", userId)
+			mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle", userId)
 					.param("keyword", "")
 					.param("regionId", "")
 					.param("tabType", "ALL")
@@ -190,23 +135,19 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 				.andExpect(jsonPath("$.data").exists())
 				.andReturn();
 
-			// 응답 데이터 검증 및 로그 출력
-			String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-			GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
-			MyBottleResponse myBottleResponse = mapper.convertValue(response.getData(), MyBottleResponse.class);
-			log.info(myBottleResponse.toString());
+			assertNotEquals(userId, requestUserId);
+
 		}
 
 		@DisplayName("로그인 유저가 자신의 마이보틀을 조회할 수 있다.")
 		@Sql(scripts = {"/init-script/init-user-mybottle-query.sql"})
 		@Test
 		void test_2() throws Exception {
-			Map<String, Object> loginInfo = loginAndGetAccessToken();
 
-			String accessToken = (String) loginInfo.get("accessToken");
-			Long userId = (Long) loginInfo.get("userId");
+			String accessToken = getToken();
+			Long userId = getTokenUserId();
 
-			MvcResult result = mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle", userId)
+			mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle", userId)
 					.param("keyword", "")
 					.param("regionId", "")
 					.param("tabType", "ALL")
@@ -226,10 +167,11 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 				.andReturn();
 		}
 
-		@DisplayName("비회원 유저는 조회하면 예외를 반환한다.")
+		@DisplayName("비회원 유저는 조회하면 BAD_REQUEST 예외를 반환한다.")
 		@Sql(scripts = {"/init-script/init-user-mybottle-query.sql"})
 		@Test
 		void test_3() throws Exception {
+
 			final Long userId = 2L;
 
 			mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle", userId)
@@ -246,7 +188,7 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 				.andExpect(status().isBadRequest()); // 비회원은 접근 불가
 		}
 
-		@DisplayName("마이보틀 유저가 존재하지 않는 경우 예외를 반환한다.")
+		@DisplayName("마이보틀 유저가 존재하지 않는 경우 REQUIRED_USER_ID 예외를 반환한다.")
 		@Sql(scripts = {"/init-script/init-user-mybottle-query.sql"})
 		@Test
 		void test_4() throws Exception {

@@ -7,7 +7,6 @@ import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,13 +61,6 @@ public class InMemoryUserQueryRepository implements UserQueryRepository {
 	@Override
 	public MyBottleResponse getMyBottle(MyBottlePageableCriteria criteria) {
 		return null;
-	}
-
-	@Override
-	public Optional<User> findMostActiveUserNative() {
-		// 가장 최근에 저장된 유저를 반환 (ID 기준으로 정렬)
-		return users.values().stream()
-			.max(Comparator.comparingLong(User::getId));
 	}
 
 }
