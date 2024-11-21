@@ -68,7 +68,6 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 		Long userId = request.userId();
 		boolean isMyPage = userId.equals(request.currentUserId());
 
-
 		List<MyBottleResponse.MyBottleInfo> myBottleList = queryFactory
 			.select(Projections.constructor(
 				MyBottleResponse.MyBottleInfo.class,
@@ -80,7 +79,11 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 				supporter.isPickedSubquery(alcohol.id, userId),
 				rating.ratingPoint.rating.coalesce(0.0).as("rating"),
 				supporter.isMyReviewSubquery(alcohol.id, userId),
-				rating.lastModifyAt.coalesce(review.lastModifyAt, picks.lastModifyAt).max().as("lastModifyAt")
+				rating.lastModifyAt.coalesce(review.lastModifyAt, picks.lastModifyAt).max().as("mostLastModifyAt"),
+				// 리뷰, 찜하기, 평점의 각각의 마지막 수정일자 중 최대값을 가져오는 쿼리 필요
+				rating.lastModifyAt.max().as("ratingLastModifyAt"),
+				review.lastModifyAt.max().as("reviewLastModifyAt"),
+				picks.lastModifyAt.max().as("picksLastModifyAt")
 			))
 			.from(alcohol)
 			.leftJoin(picks).on(picks.alcohol.id.eq(alcohol.id).and(picks.user.id.eq(userId)).and(picks.status.eq(PICK)))
@@ -88,7 +91,8 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 			.leftJoin(rating).on(rating.alcohol.id.eq(alcohol.id).and(rating.user.id.eq(userId)).and(rating.ratingPoint.rating.gt(0.0)))
 			.where(
 				supporter.eqTabType(request.tabType(), userId),
-				supporter.eqName(request.keyword())
+				supporter.eqName(request.keyword()),
+				supporter.eqRegion(request.regionId())
 			)
 			.groupBy(alcohol.id)
 			.orderBy(supporter.sortBy(request.sortType(), request.sortOrder()))

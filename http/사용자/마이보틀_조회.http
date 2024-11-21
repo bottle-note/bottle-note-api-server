@@ -3,8 +3,8 @@ POST {{host}}/api/v1/oauth/login
 Content-Type: application/json
 
 {
-  "email": "kjy_1615@naver.com",
-  "socialType": "NAVER",
+  "email": "juye@gmail.com",
+  "socialType": "GOOGLE",
   "gender": "",
   "age": ""
 }
@@ -50,7 +50,7 @@ GET {{host}}/api/v1/my-page/8/my-bottle?keyword=&regionId=&tabType=RATING&sortTy
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
-### 로그인 이용자의 마이 보틀 페이지를 키워드로 조회한다.
+### 로그인 이용자의 마이 보틀 페이지를 키워드 'whisky'로 조회한다.(조회결과 없을것임)
 GET {{host}}/api/v1/my-page/8/my-bottle?keyword=whiskey&regionId=&tabType=ALL&sortType=LATEST&sortOrder=DESC&cursor=0&
     pageSize=50
 Content-Type: application/json
@@ -73,4 +73,4 @@ Authorization: Bearer {{accessToken}}
 GET {{host}}/api/v1/my-page/8/my-bottle?keyword=라이&regionId=12&tabType=ALL&sortType=LATEST&sortOrder=DESC&cursor=0&
     pageSize=50
 Content-Type: application/json
-Authorization: Bearer {{accessToken}
+Authorization: Bearer {{accessToken}}

@@ -41,7 +41,10 @@ public record MyBottleResponse(
 		Boolean isPicked,
 		Double rating,
 		Boolean hasReviewByMe,
-		LocalDateTime lastModifyAt
+		LocalDateTime mostLastModifyAt,
+		LocalDateTime ratingLastModifyAt,
+		LocalDateTime reviewLastModifyAt,
+		LocalDateTime picksLastModifyAt
 	) {
 	}
 }

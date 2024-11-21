@@ -9,7 +9,6 @@ import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
-import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -280,12 +279,15 @@ public class UserQuerySupporter {
 
 		// 정렬 기준에 따라 OrderSpecifier 반환
 		return switch (myBottleSortType) {
-			case RATING -> new OrderSpecifier<>(sortOrder == SortOrder.DESC ? Order.DESC : Order.ASC,
-				JPAExpressions.select(rating.ratingPoint.rating.coalesce(0.0)).from(rating));
-			case REVIEW -> new OrderSpecifier<>(sortOrder == SortOrder.DESC ? Order.DESC : Order.ASC,
-				JPAExpressions.select(review.count()).from(review));
-			case LATEST ->
-				new OrderSpecifier<>(sortOrder == SortOrder.DESC ? Order.DESC : Order.ASC, orderByMaxLastModifyAt());
+			case RATING -> sortOrder == sortOrder.DESC
+				? rating.ratingPoint.rating.max().desc()
+				: rating.ratingPoint.rating.max().asc();
+			case REVIEW -> sortOrder == sortOrder.DESC
+				? review.createAt.max().desc()
+				: review.createAt.max().asc();
+			default -> sortOrder == sortOrder.DESC
+				? rating.lastModifyAt.coalesce(review.lastModifyAt, picks.lastModifyAt).max().desc()
+				: rating.lastModifyAt.coalesce(review.lastModifyAt, picks.lastModifyAt).max().asc();
 		};
 	}
 
