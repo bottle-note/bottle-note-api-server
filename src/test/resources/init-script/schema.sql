@@ -109,7 +109,6 @@ create table popularity_table
     popularity_score float null
 );
 
-
 CREATE TABLE `user_report`
 (
     `id`               bigint       NOT NULL AUTO_INCREMENT COMMENT '유저 신고',
@@ -178,7 +177,6 @@ CREATE TABLE `help_image`
     FOREIGN KEY (`help_id`) REFERENCES `help` (`id`)
 ) COMMENT = '문의-이미지 등록은 최대 5장';
 
-
 CREATE TABLE `follow`
 (
     `id`             bigint       NOT NULL AUTO_INCREMENT COMMENT '팔로우',
@@ -227,6 +225,7 @@ CREATE TABLE `review`
     `user_id`        bigint         NOT NULL COMMENT '리뷰 작성자',
     `alcohol_id`     bigint         NOT NULL COMMENT '리뷰 대상 술',
     `is_best`        boolean        NOT NULL DEFAULT FALSE COMMENT '베스트 리뷰 여부',
+    `review_rating`  double                  default 0 null comment '0점 : 삭제, 0.5:최저점수, 5:최고점수',
     `content`        varchar(1000)  NOT NULL COMMENT '1000글자',
     `size_type`      varchar(255)   NULL COMMENT '잔 : GLASS , 보틀 : BOTTLE',
     `price`          decimal(38, 2) NULL COMMENT '가격',
@@ -410,7 +409,6 @@ create table notification
     constraint notification_users_id_fk
         foreign key (user_id) references users (id)
 ) comment = '사용자 알림';
-
 
 CREATE TABLE user_device_token
 (

@@ -64,6 +64,7 @@ public class Review extends BaseEntity {
 	@Column(name = "is_best", nullable = false)
 	private Boolean isBest = false;
 
+	@Builder.Default
 	@Comment("리뷰 시점 평점")
 	@Column(name = "review_rating")
 	private Double reviewRating = 0.0;
