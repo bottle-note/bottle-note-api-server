@@ -1,19 +1,6 @@
 package app.bottlenote.review.integration;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import app.bottlenote.IntegrationTestSupport;
-import app.bottlenote.alcohols.service.AlcoholReferenceService;
 import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
@@ -21,28 +8,32 @@ import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
-import app.bottlenote.review.dto.request.ReviewStatusChangeRequest;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.vo.ReviewInfo;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
-import app.bottlenote.user.domain.constant.SocialType;
-import app.bottlenote.user.dto.request.OauthRequest;
-
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
+
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Tag("integration")
 @DisplayName("[integration] ReviewReplyController")
@@ -52,7 +43,7 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
 	private ReviewRepository reviewRepository;
 
 	@Nested
-	@DisplayName("리뷰 목록 조회 통합테스트")
+	@DisplayName("리뷰 목록 조회 테스트")
 	class select {
 		@Sql(scripts = {
 			"/init-script/init-alcohol.sql",
@@ -89,8 +80,18 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
 	}
 
 	@Nested
-	@DisplayName("리뷰 수정 통합테스트")
-	class modify {
+	@DisplayName("리뷰 생성 테스트")
+	class create {
+	}
+
+	@Nested
+	@DisplayName("리뷰 삭제 테스트")
+	class delete {
+	}
+
+	@Nested
+	@DisplayName("리뷰 수정 테스트")
+	class update {
 
 		@BeforeEach
 		void setUp() {
@@ -247,7 +248,10 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
 				.andReturn();
 		}
 	}
-}
 
-//유저가 좋아요를 누르면 isLikedByMe는 true, likeCount는 1 좋아요를 취소하면 isLikedByMe는 false, likeCount는 0이다.
-//유저가 댓글을 달면 hasReplyByMe는 true이고, replyCount는 1 증가한다.
+	@Nested
+	@DisplayName("리뷰 상태 변경")
+	class changeStatus {
+	}
+
+}

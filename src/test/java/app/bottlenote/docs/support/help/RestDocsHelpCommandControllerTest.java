@@ -1,5 +1,26 @@
 package app.bottlenote.docs.support.help;
 
+import app.bottlenote.docs.AbstractRestDocs;
+import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.support.help.controller.HelpCommandController;
+import app.bottlenote.support.help.domain.constant.HelpType;
+import app.bottlenote.support.help.dto.request.HelpPageableRequest;
+import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
+import app.bottlenote.support.help.dto.response.HelpDetailInfo;
+import app.bottlenote.support.help.dto.response.HelpListResponse;
+import app.bottlenote.support.help.dto.response.HelpResultResponse;
+import app.bottlenote.support.help.fixture.HelpObjectFixture;
+import app.bottlenote.support.help.service.HelpService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.springframework.http.MediaType;
+import org.springframework.restdocs.payload.JsonFieldType;
+
+import java.util.Optional;
+
 import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.DELETE_SUCCESS;
 import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.MODIFY_SUCCESS;
 import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
@@ -20,26 +41,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import app.bottlenote.docs.AbstractRestDocs;
-import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.support.help.controller.HelpCommandController;
-import app.bottlenote.support.help.domain.constant.HelpType;
-import app.bottlenote.support.help.dto.request.HelpPageableRequest;
-import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
-import app.bottlenote.support.help.dto.response.HelpDetailInfo;
-import app.bottlenote.support.help.dto.response.HelpListResponse;
-import app.bottlenote.support.help.dto.response.HelpResultResponse;
-import app.bottlenote.support.help.fixture.HelpObjectFixture;
-import app.bottlenote.support.help.service.HelpService;
-import java.util.Optional;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.springframework.http.MediaType;
-import org.springframework.restdocs.payload.JsonFieldType;
 
 @DisplayName("문의글 커맨드 컨트롤러 RestDocs용 테스트")
 class RestDocsHelpCommandControllerTest extends AbstractRestDocs {
@@ -158,46 +159,46 @@ class RestDocsHelpCommandControllerTest extends AbstractRestDocs {
 			);
 	}
 
-		@Test
-		@DisplayName("문의글을 상세 조회할 수 있다.")
-		void help_read_detail_test() throws Exception {
+	@Test
+	@DisplayName("문의글을 상세 조회할 수 있다.")
+	void help_read_detail_test() throws Exception {
 
-			Long userId = 1L;
+		Long userId = 1L;
 
-			//when
-			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
+		//when
+		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
-			when(helpService.getDetailHelp(anyLong(), anyLong()))
-				.thenReturn(helpDetailInfo);
+		when(helpService.getDetailHelp(anyLong(), anyLong()))
+			.thenReturn(helpDetailInfo);
 
-			//then
-			mockMvc.perform(get("/api/v1/help/{helpId}", 1L)
-					.contentType(MediaType.APPLICATION_JSON)
-				)
-				.andExpect(status().isOk())
-				.andDo(
-					document("support/help/help-read-detail",
-						responseFields(
-							fieldWithPath("success").description("응답 성공 여부"),
-							fieldWithPath("code").description("응답 코드(http status code)"),
-							fieldWithPath("data.helpId").description("문의글 ID"),
-							fieldWithPath("data.content").description("문의글 내용"),
-							fieldWithPath("data.helpType").description("문의글 타입"),
-							fieldWithPath("data.imageUrlList[].order").type(JsonFieldType.NUMBER).description("이미지 순서"),
-							fieldWithPath("data.imageUrlList[].viewUrl").type(JsonFieldType.STRING).description("이미지 URL"),
-							fieldWithPath("data.createAt").description("문의글 등록일시"),
-							fieldWithPath("data.adminId").description("시스템 관리자 ID").optional(),
-							fieldWithPath("data.responseContent").description("시스템 관리자 답변").optional(),
-							fieldWithPath("data.lastModifyAt").description("최종 수정 일자"),
-							fieldWithPath("data.statusType").description("문의글 상태"),
-							fieldWithPath("errors").ignored(),
-							fieldWithPath("meta.serverEncoding").ignored(),
-							fieldWithPath("meta.serverVersion").ignored(),
-							fieldWithPath("meta.serverPathVersion").ignored(),
-							fieldWithPath("meta.serverResponseTime").ignored()
-						)
+		//then
+		mockMvc.perform(get("/api/v1/help/{helpId}", 1L)
+				.contentType(MediaType.APPLICATION_JSON)
+			)
+			.andExpect(status().isOk())
+			.andDo(
+				document("support/help/help-read-detail",
+					responseFields(
+						fieldWithPath("success").description("응답 성공 여부"),
+						fieldWithPath("code").description("응답 코드(http status code)"),
+						fieldWithPath("data.helpId").description("문의글 ID"),
+						fieldWithPath("data.content").description("문의글 내용"),
+						fieldWithPath("data.helpType").description("문의글 타입"),
+						fieldWithPath("data.imageUrlList[].order").type(JsonFieldType.NUMBER).description("이미지 순서"),
+						fieldWithPath("data.imageUrlList[].viewUrl").type(JsonFieldType.STRING).description("이미지 URL"),
+						fieldWithPath("data.createAt").description("문의글 등록일시"),
+						fieldWithPath("data.adminId").description("시스템 관리자 ID").optional(),
+						fieldWithPath("data.responseContent").description("시스템 관리자 답변").optional(),
+						fieldWithPath("data.lastModifyAt").description("최종 수정 일자"),
+						fieldWithPath("data.statusType").description("문의글 상태"),
+						fieldWithPath("errors").ignored(),
+						fieldWithPath("meta.serverEncoding").ignored(),
+						fieldWithPath("meta.serverVersion").ignored(),
+						fieldWithPath("meta.serverPathVersion").ignored(),
+						fieldWithPath("meta.serverResponseTime").ignored()
 					)
-				);
+				)
+			);
 	}
 
 	@Test
@@ -220,7 +221,7 @@ class RestDocsHelpCommandControllerTest extends AbstractRestDocs {
 				.with(csrf()))
 			.andExpect(status().isOk())
 			.andDo(
-				document("support/help/help-modify",
+				document("support/help/help-update",
 					requestFields(
 						fieldWithPath("content").type(JsonFieldType.STRING).description("문의글 내용"),
 						fieldWithPath("type").type(JsonFieldType.STRING).description("문의글 타입  (WHISKEY, REVIEW, USER, ETC)"),

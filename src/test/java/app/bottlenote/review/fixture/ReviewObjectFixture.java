@@ -182,7 +182,8 @@ public class ReviewObjectFixture {
 				new ReviewImageInfo(2L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/2"),
 				new ReviewImageInfo(3L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/3")
 			),
-			List.of("테이스팅태그1", "테이스팅태그2", "테이스팅태그3")
+			List.of("테이스팅태그1", "테이스팅태그2", "테이스팅태그3"),
+			0.5
 		);
 	}
 
@@ -200,7 +201,8 @@ public class ReviewObjectFixture {
 			List.of(
 				new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")
 			),
-			List.of("테이스팅태그1")
+			List.of("테이스팅태그1"),
+			0.5
 		);
 	}
 

@@ -8,7 +8,6 @@ import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.request.ReviewStatusChangeRequest;
-import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.service.ReviewService;
 import app.bottlenote.user.exception.UserException;
@@ -27,7 +26,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
-import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
 @Slf4j
 @RestController
@@ -39,12 +37,9 @@ public class ReviewController {
 
 	@PostMapping
 	public ResponseEntity<?> createReview(@RequestBody @Valid ReviewCreateRequest reviewCreateRequest) {
-
 		Long currentUserId = SecurityContextUtil.getUserIdByContext().
-			orElseThrow(() -> new UserException(USER_NOT_FOUND));
-
-		ReviewCreateResponse createdReview = reviewService.createReview(reviewCreateRequest, currentUserId);
-		return GlobalResponse.ok(createdReview);
+			orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+		return GlobalResponse.ok(reviewService.createReview(reviewCreateRequest, currentUserId));
 	}
 
 	@GetMapping("/{alcoholId}")

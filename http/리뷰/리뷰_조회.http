@@ -3,8 +3,8 @@ POST {{host}}/api/v1/oauth/login
 Content-Type: application/json
 
 {
-  "email": "hyejj19@naver.com",
-  "socialType": "GOOGLE",
+  "email": "rkdtkfma@naver.com",
+  "socialType": "KAKAO",
   "gender": "",
   "age": ""
 }
@@ -14,14 +14,12 @@ Content-Type: application/json
     client.global.set("accessToken", response.body.data.accessToken);
 %}
 
+
 ### 리뷰조회
-GET {{host}}/api/v1/reviews/1
+@reviewId=435
+GET {{host}}/api/v1/reviews/{{reviewId}}
 Authorization: Bearer {{accessToken}}
 
 ### 나의리뷰조회
-GET {{host}}/api/v1/reviews/me/1
+GET {{host}}/api/v1/reviews/me/{{reviewId}}
 Authorization: Bearer {{accessToken}}
-
-{
-  "alcoholId": 1
-}

@@ -8,13 +8,13 @@ import java.util.List;
 
 public record ReviewDetailResponse(
 	AlcoholInfo alcoholInfo,
-	ReviewInfo reviewResponse,
+	ReviewInfo reviewInfo,
 	List<ReviewImageInfo> reviewImageList
 ) {
-	public static ReviewDetailResponse create(AlcoholInfo alcoholInfo, ReviewInfo reviewResponse, List<ReviewImageInfo> reviewImageList) {
-		if (reviewResponse == null) {
+	public static ReviewDetailResponse create(AlcoholInfo alcoholInfo, ReviewInfo reviewInfo, List<ReviewImageInfo> reviewImageList) {
+		if (reviewInfo == null) {
 			return new ReviewDetailResponse(null, null, null);
 		}
-		return new ReviewDetailResponse(alcoholInfo, reviewResponse, reviewImageList);
+		return new ReviewDetailResponse(alcoholInfo, reviewInfo, reviewImageList);
 	}
 }

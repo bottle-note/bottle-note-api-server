@@ -37,10 +37,13 @@ public record ReviewCreateRequest(
 
 	@Valid
 	List<ReviewImageInfo> imageUrlList,
-	List<String> tastingTagList
+	List<String> tastingTagList,
+
+	Double rating
 ) {
 	public ReviewCreateRequest {
 		status = status == null ? ReviewDisplayStatus.PUBLIC : status;
 		imageUrlList = imageUrlList == null ? List.of() : imageUrlList;
+		rating = rating == null ? 0.0 : rating;
 	}
 }

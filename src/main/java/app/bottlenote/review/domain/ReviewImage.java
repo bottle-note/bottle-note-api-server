@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,6 +19,8 @@ import org.hibernate.annotations.Comment;
 
 @Getter
 @Entity(name = "review_image")
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ReviewImage extends BaseEntity {
 
@@ -34,11 +37,10 @@ public class ReviewImage extends BaseEntity {
 	@JoinColumn(name = "review_id")
 	private Review review;
 
-
-	@Builder
-	public ReviewImage(Long id, ImageInfo reviewImageInfo, Review review) {
-		this.id = id;
-		this.reviewImageInfo = reviewImageInfo;
-		this.review = review;
+	public static ReviewImage of(ImageInfo reviewImageInfo, Review review) {
+		return ReviewImage.builder()
+			.reviewImageInfo(reviewImageInfo)
+			.review(review)
+			.build();
 	}
 }
