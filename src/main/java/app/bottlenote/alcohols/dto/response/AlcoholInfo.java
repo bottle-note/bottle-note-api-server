@@ -11,7 +11,6 @@ public record AlcoholInfo(
 	String engCategoryName,
 	String imageUrl,
 	Boolean isPicked
-
 ) {
 
 	public static AlcoholInfo empty() {

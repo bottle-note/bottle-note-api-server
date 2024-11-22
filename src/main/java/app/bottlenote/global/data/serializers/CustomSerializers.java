@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CustomSerializers {
 
-	public static class TastingTagListSerializer extends JsonSerializer<String> {
+	public static class TagListSerializer extends JsonSerializer<String> {
 		@Override
 		public void serialize(String value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
 			List<String> tags = Arrays.stream(value.split(","))

@@ -4,7 +4,9 @@ import app.bottlenote.alcohols.repository.AlcoholQuerySupporter;
 import app.bottlenote.follow.repository.FollowQuerySupporter;
 import app.bottlenote.follow.repository.FollowerQuerySupporter;
 import app.bottlenote.global.data.serializers.CustomDeserializers;
+import app.bottlenote.global.data.serializers.CustomDeserializers.TagListDeserializer;
 import app.bottlenote.global.data.serializers.CustomSerializers;
+import app.bottlenote.global.data.serializers.CustomSerializers.TagListSerializer;
 import app.bottlenote.rating.repository.RatingQuerySupporter;
 import app.bottlenote.review.repository.ReviewQuerySupporter;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,8 +31,8 @@ public class ModuleConfig {
 		SimpleModule customModule = new SimpleModule();
 		customModule.addSerializer(LocalDateTime.class, new CustomSerializers.LocalDateTimeSerializer());
 		customModule.addDeserializer(LocalDateTime.class, new CustomDeserializers.LocalDateTimeDeserializer());
-		customModule.addSerializer(String.class, new CustomSerializers.TastingTagListSerializer());
-		customModule.addDeserializer(String.class, new CustomDeserializers.TastingTagListDeserializer());
+		customModule.addSerializer(String.class, new TagListSerializer());
+		customModule.addDeserializer(String.class, new TagListDeserializer());
 		objectMapper.registerModule(customModule);
 		return objectMapper;
 	}

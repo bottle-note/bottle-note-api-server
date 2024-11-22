@@ -11,7 +11,6 @@ import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import java.util.List;
@@ -21,6 +20,7 @@ import java.util.Optional;
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.alcohols.domain.QDistillery.distillery;
 import static app.bottlenote.alcohols.domain.QRegion.region;
+import static app.bottlenote.alcohols.repository.AlcoholQuerySupporter.getTastingTags;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
@@ -43,53 +43,37 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 	 * @return the alcohol detail info
 	 */
 	@Override
-
 	public AlcoholDetailInfo findAlcoholDetailById(Long alcoholId, Long userId) {
-
 		if (Objects.isNull(userId)) userId = -1L;
-
-		List<String> tags = List.of("달달한", "부드러운", "향긋한", "견과류", "후추향의");
 
 		return queryFactory
 			.select(Projections.constructor(
 				AlcoholDetailInfo.class,
-				alcohol.id.as("alcoholId"),
-				alcohol.imageUrl.as("alcoholUrlImg"),
-				alcohol.korName.as("korName"),
-				alcohol.engName.as("engName"),
-				alcohol.korCategory.as("korCategory"),
-				alcohol.engCategory.as("engCategory"),
-				region.korName.as("korRegion"),
-				region.engName.as("engRegion"),
-				alcohol.cask.as("cask"),
-				alcohol.abv.as("avg"),
-				distillery.korName.as("korDistillery"),
-				distillery.engName.as("engDistillery"),
-				rating.ratingPoint.rating.avg().multiply(2).castToNum(Double.class).round().divide(2).coalesce(0.0).as("rating"),
-				rating.id.count().as("totalRatingsCount"),
-				supporter.isMyRatingSubquery(alcoholId, userId),
-				supporter.isPickedSubquery(alcoholId, userId),
-				Expressions.constant(tags) // 여기서 tags 리스트를 상수로 전달
-			))
-			.from(alcohol)
-			.leftJoin(rating).on(alcohol.id.eq(rating.alcohol.id))
-			.join(region).on(alcohol.region.id.eq(region.id))
-			.join(distillery).on(alcohol.distillery.id.eq(distillery.id))
-			.where(alcohol.id.eq(alcoholId))
-			.groupBy(
 				alcohol.id,
-				alcohol.korCategory,
-				alcohol.engCategory,
 				alcohol.imageUrl,
 				alcohol.korName,
 				alcohol.engName,
+				alcohol.korCategory,
+				alcohol.engCategory,
 				region.korName,
 				region.engName,
 				alcohol.cask,
 				alcohol.abv,
 				distillery.korName,
-				distillery.engName
-			)
+				distillery.engName,
+				rating.ratingPoint.rating.avg().multiply(2).castToNum(Double.class).round().divide(2).coalesce(0.0).as("rating"),
+				rating.id.count(),
+				supporter.myRating(alcoholId, userId),
+				supporter.averageReviewRating(alcoholId, userId),
+				supporter.isPickedSubquery(alcoholId, userId),
+				getTastingTags()
+			))
+			.from(alcohol)
+			.leftJoin(rating).on(rating.alcohol.id.eq(alcohol.id))
+			.join(region).on(alcohol.region.id.eq(region.id))
+			.join(distillery).on(alcohol.distillery.id.eq(distillery.id))
+			.where(alcohol.id.eq(alcoholId))
+			.groupBy(alcohol.id, alcohol.imageUrl, alcohol.korName, alcohol.engName, alcohol.korCategory, alcohol.engCategory, region.korName, region.engName, alcohol.cask, alcohol.abv, distillery.korName, distillery.engName)
 			.fetchOne();
 	}
 
@@ -104,7 +88,18 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 	public Optional<AlcoholInfo> findAlcoholInfoById(Long alcoholId, Long userId) {
 
 		return Optional.ofNullable(queryFactory
-			.select(supporter.alcoholInfoConstructor(alcoholId, userId))
+			.select(
+				Projections.constructor(
+					AlcoholInfo.class,
+					alcohol.id.as("alcoholId"),
+					alcohol.korName.as("korName"),
+					alcohol.engName.as("engName"),
+					alcohol.korCategory.as("korCategoryName"),
+					alcohol.engCategory.as("engCategoryName"),
+					alcohol.imageUrl.as("imageUrl"),
+					supporter.isPickedSubquery(alcoholId, userId)
+				)
+			)
 			.from(alcohol)
 			.leftJoin(rating).on(alcohol.id.eq(rating.alcohol.id))
 			.join(region).on(alcohol.region.id.eq(region.id))

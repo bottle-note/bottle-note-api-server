@@ -1,7 +1,7 @@
 package app.bottlenote.review.dto.vo;
 
-import app.bottlenote.global.data.serializers.CustomDeserializers;
-import app.bottlenote.global.data.serializers.CustomSerializers;
+import app.bottlenote.global.data.serializers.CustomDeserializers.TagListDeserializer;
+import app.bottlenote.global.data.serializers.CustomSerializers.TagListSerializer;
 import app.bottlenote.review.domain.ReviewLocation;
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
@@ -43,8 +43,8 @@ public record ReviewInfo(
 
 	// 기타 정보
 	Long viewCount,
-	@JsonSerialize(using = CustomSerializers.TastingTagListSerializer.class)
-	@JsonDeserialize(using = CustomDeserializers.TastingTagListDeserializer.class)
+	@JsonSerialize(using = TagListSerializer.class)
+	@JsonDeserialize(using = TagListDeserializer.class)
 	String tastingTagList
 ) {
 }

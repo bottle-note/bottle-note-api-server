@@ -13,7 +13,10 @@ import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CustomDeserializers {
-	public static class TastingTagListDeserializer extends JsonDeserializer<String> {
+	/**
+	 * DB에서 조회 시 ' , ' 으로 구분된 태그를 List로 변환
+	 */
+	public static class TagListDeserializer extends JsonDeserializer<String> {
 		@Override
 		public String deserialize(JsonParser p, DeserializationContext text) throws IOException {
 			List<String> tags = List.of(p.getText().split(","));

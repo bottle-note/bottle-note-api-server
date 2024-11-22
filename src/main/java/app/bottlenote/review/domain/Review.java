@@ -64,6 +64,10 @@ public class Review extends BaseEntity {
 	@Column(name = "is_best", nullable = false)
 	private Boolean isBest = false;
 
+	@Comment("리뷰 시점 평점")
+	@Column(name = "review_rating")
+	private Double reviewRating = 0.0;
+
 	@Comment("내용")
 	@Column(name = "content", nullable = false)
 	private String content;
@@ -110,7 +114,6 @@ public class Review extends BaseEntity {
 	@Builder.Default
 	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<ReviewReply> reviewReplies = new ArrayList<>();
-
 
 	@Builder.Default
 	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)

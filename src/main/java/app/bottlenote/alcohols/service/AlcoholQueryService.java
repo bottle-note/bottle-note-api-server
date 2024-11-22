@@ -8,7 +8,6 @@ import app.bottlenote.alcohols.dto.response.detail.AlcoholDetail;
 import app.bottlenote.alcohols.dto.response.detail.AlcoholDetailInfo;
 import app.bottlenote.alcohols.dto.response.detail.FriendsDetailInfo;
 import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.review.repository.ReviewQueryRepository;
 import app.bottlenote.review.service.ReviewFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +21,6 @@ import java.util.List;
 public class AlcoholQueryService {
 
 	private final AlcoholQueryRepository alcoholQueryRepository;
-	private final ReviewQueryRepository reviewQueryRepository;
 	private final ReviewFacade reviewFacade;
 
 	/**
