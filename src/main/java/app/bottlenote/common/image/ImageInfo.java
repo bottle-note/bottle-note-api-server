@@ -3,6 +3,7 @@ package app.bottlenote.common.image;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,6 +11,8 @@ import org.hibernate.annotations.Comment;
 
 @Embeddable
 @Getter
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ImageInfo {
 
@@ -32,13 +35,4 @@ public class ImageInfo {
 	@Comment("생성된 UUID + 확장자 파일명")
 	@Column(name = "image_name", nullable = false)
 	private String imageName;
-
-	@Builder
-	public ImageInfo(Long order, String imageUrl, String imageKey, String imagePath, String imageName) {
-		this.order = order;
-		this.imageUrl = imageUrl;
-		this.imageKey = imageKey;
-		this.imagePath = imagePath;
-		this.imageName = imageName;
-	}
 }

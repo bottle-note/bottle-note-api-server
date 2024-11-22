@@ -96,7 +96,9 @@ class RestReviewControllerDocsTest extends AbstractRestDocs {
 						fieldWithPath("imageUrlList").type(ARRAY).description("이미지 URL 목록"),
 						fieldWithPath("imageUrlList[].order").type(NUMBER).description("이미지 순서"),
 						fieldWithPath("imageUrlList[].viewUrl").type(STRING).description("이미지 뷰 URL"),
-						fieldWithPath("tastingTagList[]").type(ARRAY).description("테이스팅 태그 목록")
+						fieldWithPath("tastingTagList[]").type(ARRAY).description("테이스팅 태그 목록"),
+						fieldWithPath("rating").description("리뷰별점 (해당 리뷰를 남길 시점의 별점 )")
+
 					),
 					responseFields(
 						fieldWithPath("success").type(BOOLEAN).description("요청 성공 여부"),
@@ -109,7 +111,7 @@ class RestReviewControllerDocsTest extends AbstractRestDocs {
 						fieldWithPath("meta").type(OBJECT).description("메타 정보"),
 						fieldWithPath("meta.serverVersion").type(STRING).description("서버 버전"),
 						fieldWithPath("meta.serverEncoding").type(STRING).description("서버 인코딩"),
-						fieldWithPath("meta.serverResponseTime").type(STRING).description("서버 응답 시간"),
+						fieldWithPath("meta.serverResponseTime").description("서버 응답 시간"),
 						fieldWithPath("meta.serverPathVersion").type(STRING).description("서버 경로 버전")
 					)
 				)
@@ -154,6 +156,7 @@ class RestReviewControllerDocsTest extends AbstractRestDocs {
 						fieldWithPath("data.reviewList[].likeCount").description("리뷰 좋아요 수"),
 						fieldWithPath("data.reviewList[].replyCount").description("리뷰 댓글 수"),
 						fieldWithPath("data.reviewList[].reviewImageUrl").description("리뷰 이미지 URL"),
+						fieldWithPath("data.reviewList[].totalImageCount").description("리뷰 이미지 총 개수"),
 						fieldWithPath("data.reviewList[].userInfo.userId").description("리뷰 작성자 ID"),
 						fieldWithPath("data.reviewList[].userInfo.nickName").description("리뷰 작성자 닉네임"),
 						fieldWithPath("data.reviewList[].userInfo.userProfileImage").description("리뷰 작성자 프로필 이미지 URL"),
@@ -229,6 +232,7 @@ class RestReviewControllerDocsTest extends AbstractRestDocs {
 						fieldWithPath("data.reviewList[].likeCount").description("리뷰 좋아요 수"),
 						fieldWithPath("data.reviewList[].replyCount").description("리뷰 댓글 수"),
 						fieldWithPath("data.reviewList[].reviewImageUrl").description("리뷰 이미지 URL"),
+						fieldWithPath("data.reviewList[].totalImageCount").description("리뷰 이미지 총 개수"),
 						fieldWithPath("data.reviewList[].userInfo.userId").description("리뷰 작성자 ID"),
 						fieldWithPath("data.reviewList[].userInfo.nickName").description("리뷰 작성자 닉네임"),
 						fieldWithPath("data.reviewList[].userInfo.userProfileImage").description("리뷰 작성자 프로필 이미지 URL"),
@@ -294,40 +298,41 @@ class RestReviewControllerDocsTest extends AbstractRestDocs {
 						fieldWithPath("data.alcoholInfo.isPicked").description("선택 여부").type(JsonFieldType.BOOLEAN),
 
 						// Review Response
-						fieldWithPath("data.reviewResponse.reviewId").description("리뷰 ID").type(JsonFieldType.NUMBER),
-						fieldWithPath("data.reviewResponse.reviewContent").description("리뷰 내용").type(JsonFieldType.STRING),
-						fieldWithPath("data.reviewResponse.price").description("가격").type(JsonFieldType.NUMBER),
-						fieldWithPath("data.reviewResponse.sizeType").description("사이즈 타입").type(JsonFieldType.STRING),
-						fieldWithPath("data.reviewResponse.likeCount").description("좋아요 개수").type(JsonFieldType.NUMBER),
-						fieldWithPath("data.reviewResponse.replyCount").description("댓글 개수").type(JsonFieldType.NUMBER),
-						fieldWithPath("data.reviewResponse.reviewImageUrl").description("리뷰 이미지 URL").type(JsonFieldType.STRING),
+						fieldWithPath("data.reviewInfo.reviewId").description("리뷰 ID").type(JsonFieldType.NUMBER),
+						fieldWithPath("data.reviewInfo.reviewContent").description("리뷰 내용").type(JsonFieldType.STRING),
+						fieldWithPath("data.reviewInfo.price").description("가격").type(JsonFieldType.NUMBER),
+						fieldWithPath("data.reviewInfo.sizeType").description("사이즈 타입").type(JsonFieldType.STRING),
+						fieldWithPath("data.reviewInfo.likeCount").description("좋아요 개수").type(JsonFieldType.NUMBER),
+						fieldWithPath("data.reviewInfo.replyCount").description("댓글 개수").type(JsonFieldType.NUMBER),
+						fieldWithPath("data.reviewInfo.reviewImageUrl").description("리뷰 이미지 URL").type(JsonFieldType.STRING),
+						fieldWithPath("data.reviewInfo.totalImageCount").description("리뷰 이미지 총 개수"),
 
 						// User Info
-						fieldWithPath("data.reviewResponse.userInfo").description("사용자 정보").type(JsonFieldType.OBJECT),
-						fieldWithPath("data.reviewResponse.userInfo.userId").description("사용자 ID").type(JsonFieldType.NUMBER),
-						fieldWithPath("data.reviewResponse.userInfo.nickName").description("닉네임").type(JsonFieldType.STRING),
-						fieldWithPath("data.reviewResponse.userInfo.userProfileImage").description("사용자 프로필 이미지 URL").type(JsonFieldType.STRING),
-						fieldWithPath("data.reviewResponse.rating").description("평점").type(JsonFieldType.NUMBER),
-						fieldWithPath("data.reviewResponse.viewCount").description("조회수"),
+						fieldWithPath("data.reviewInfo.userInfo").description("사용자 정보").type(JsonFieldType.OBJECT),
+						fieldWithPath("data.reviewInfo.userInfo.userId").description("사용자 ID").type(JsonFieldType.NUMBER),
+						fieldWithPath("data.reviewInfo.userInfo.nickName").description("닉네임").type(JsonFieldType.STRING),
+						fieldWithPath("data.reviewInfo.userInfo.userProfileImage").description("사용자 프로필 이미지 URL").type(JsonFieldType.STRING),
+						fieldWithPath("data.reviewInfo.rating").description("평점").type(JsonFieldType.NUMBER),
+						fieldWithPath("data.reviewInfo.viewCount").description("조회수"),
 
 						// Location Info
-						fieldWithPath("data.reviewResponse.locationInfo").description("위치 정보").type(JsonFieldType.OBJECT).optional(),
-						fieldWithPath("data.reviewResponse.locationInfo.name").description("상호 명").type(JsonFieldType.STRING).optional(),
-						fieldWithPath("data.reviewResponse.locationInfo.zipCode").description("우편번호").type(JsonFieldType.STRING).optional(),
-						fieldWithPath("data.reviewResponse.locationInfo.address").description("주소").type(JsonFieldType.STRING).optional(),
-						fieldWithPath("data.reviewResponse.locationInfo.detailAddress").description("상세주소").type(JsonFieldType.STRING).optional(),
-						fieldWithPath("data.reviewResponse.locationInfo.category").description("카테고리").type(JsonFieldType.STRING).optional(),
-						fieldWithPath("data.reviewResponse.locationInfo.mapUrl").description("지도 URL").type(JsonFieldType.STRING).optional(),
-						fieldWithPath("data.reviewResponse.locationInfo.latitude").description("위도").type(JsonFieldType.STRING).optional(),
-						fieldWithPath("data.reviewResponse.locationInfo.longitude").description("경도").type(JsonFieldType.STRING).optional(),
+						fieldWithPath("data.reviewInfo.locationInfo").description("위치 정보").type(JsonFieldType.OBJECT).optional(),
+						fieldWithPath("data.reviewInfo.locationInfo.name").description("상호 명").type(JsonFieldType.STRING).optional(),
+						fieldWithPath("data.reviewInfo.locationInfo.zipCode").description("우편번호").type(JsonFieldType.STRING).optional(),
+						fieldWithPath("data.reviewInfo.locationInfo.address").description("주소").type(JsonFieldType.STRING).optional(),
+						fieldWithPath("data.reviewInfo.locationInfo.detailAddress").description("상세주소").type(JsonFieldType.STRING).optional(),
+						fieldWithPath("data.reviewInfo.locationInfo.category").description("카테고리").type(JsonFieldType.STRING).optional(),
+						fieldWithPath("data.reviewInfo.locationInfo.mapUrl").description("지도 URL").type(JsonFieldType.STRING).optional(),
+						fieldWithPath("data.reviewInfo.locationInfo.latitude").description("위도").type(JsonFieldType.STRING).optional(),
+						fieldWithPath("data.reviewInfo.locationInfo.longitude").description("경도").type(JsonFieldType.STRING).optional(),
 
-						fieldWithPath("data.reviewResponse.status").description("리뷰 상태").type(JsonFieldType.STRING),
-						fieldWithPath("data.reviewResponse.isMyReview").description("내 리뷰 여부").type(JsonFieldType.BOOLEAN),
-						fieldWithPath("data.reviewResponse.isLikedByMe").description("내가 좋아요를 눌렀는지 여부").type(JsonFieldType.BOOLEAN),
-						fieldWithPath("data.reviewResponse.hasReplyByMe").description("내가 댓글을 달았는지 여부").type(JsonFieldType.BOOLEAN),
-						fieldWithPath("data.reviewResponse.isBestReview").description("베스트 리뷰 여부").type(JsonFieldType.BOOLEAN),
-						fieldWithPath("data.reviewResponse.tastingTagList").description("리뷰 테이스팅 태그 목록"),
-						fieldWithPath("data.reviewResponse.createAt").description("리뷰 작성 시간").type(JsonFieldType.STRING),
+						fieldWithPath("data.reviewInfo.status").description("리뷰 상태").type(JsonFieldType.STRING),
+						fieldWithPath("data.reviewInfo.isMyReview").description("내 리뷰 여부").type(JsonFieldType.BOOLEAN),
+						fieldWithPath("data.reviewInfo.isLikedByMe").description("내가 좋아요를 눌렀는지 여부").type(JsonFieldType.BOOLEAN),
+						fieldWithPath("data.reviewInfo.hasReplyByMe").description("내가 댓글을 달았는지 여부").type(JsonFieldType.BOOLEAN),
+						fieldWithPath("data.reviewInfo.isBestReview").description("베스트 리뷰 여부").type(JsonFieldType.BOOLEAN),
+						fieldWithPath("data.reviewInfo.tastingTagList").description("리뷰 테이스팅 태그 목록"),
+						fieldWithPath("data.reviewInfo.createAt").description("리뷰 작성 시간"),
 
 						// Review Image List
 						fieldWithPath("data.reviewImageList").description("리뷰 이미지 목록").type(JsonFieldType.ARRAY),
@@ -337,10 +342,10 @@ class RestReviewControllerDocsTest extends AbstractRestDocs {
 						fieldWithPath("errors").description("에러 목록").type(JsonFieldType.ARRAY),
 
 						// Meta Information
-						fieldWithPath("meta.serverVersion").description("서버 버전").type(JsonFieldType.STRING),
-						fieldWithPath("meta.serverEncoding").description("서버 인코딩").type(JsonFieldType.STRING),
-						fieldWithPath("meta.serverResponseTime").description("서버 응답 시간").type(JsonFieldType.STRING),
-						fieldWithPath("meta.serverPathVersion").description("서버 패스 버전").type(JsonFieldType.STRING)
+						fieldWithPath("meta.serverVersion").ignored(),
+						fieldWithPath("meta.serverEncoding").ignored(),
+						fieldWithPath("meta.serverResponseTime").ignored(),
+						fieldWithPath("meta.serverPathVersion").ignored()
 					)
 				)
 			);
@@ -364,7 +369,7 @@ class RestReviewControllerDocsTest extends AbstractRestDocs {
 				.with(csrf()))
 			.andExpect(status().isOk())
 			.andDo(
-				document("review/review-modify",
+				document("review/review-update",
 					requestFields(
 						fieldWithPath("content").type(STRING).description("리뷰 내용").optional(),
 						fieldWithPath("status").type(STRING).description("리뷰 상태").optional(),

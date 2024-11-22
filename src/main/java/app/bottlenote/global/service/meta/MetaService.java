@@ -32,7 +32,7 @@ public class MetaService {
 		metaInfos.add("serverVersion", SERVER_VERSION);
 		metaInfos.add("serverPathVersion", SERVER_PATH_VERSION);
 		metaInfos.add("serverEncoding", SERVER_ENCODING);
-		metaInfos.add("serverResponseTime", LocalDateTime.now(ZoneId.of("Asia/Seoul")).toString());
+		metaInfos.add("serverResponseTime", LocalDateTime.now(ZoneId.of("Asia/Seoul")));
 		return metaInfos;
 	}
 }
