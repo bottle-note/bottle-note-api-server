@@ -3,6 +3,7 @@ package app.bottlenote.user.dto.response;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import lombok.Builder;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -39,7 +40,11 @@ public record MyBottleResponse(
 		String imageUrl,
 		Boolean isPicked,
 		Double rating,
-		Boolean hasReviewByMe
+		Boolean hasReviewByMe,
+		LocalDateTime mostLastModifyAt,
+		LocalDateTime ratingLastModifyAt,
+		LocalDateTime reviewLastModifyAt,
+		LocalDateTime picksLastModifyAt
 	) {
 	}
 }

@@ -1,13 +1,11 @@
 package app.bottlenote.alcohols.dto.response.detail;
 
-import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
-import app.bottlenote.review.domain.constant.SizeType;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
+import app.bottlenote.review.dto.vo.ReviewInfo;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 
 @Getter
@@ -26,26 +24,5 @@ public class ReviewsDetailInfo {
 		this.totalReviewCount = totalReviewCount;
 		this.bestReviewInfos = bestReviewInfos;
 		this.recentReviewInfos = recentReviewInfos;
-	}
-
-	@Builder
-	public record ReviewInfo(
-		Long userId,
-		String imageUrl,
-		String nickName,
-		Long reviewId,
-		String reviewContent,
-		Double rating,
-		SizeType sizeType,
-		BigDecimal price,
-		Long viewCount,
-		Long likeCount,
-		Boolean isLikedByMe,
-		Long replyCount,
-		Boolean hasReplyByMe,
-		ReviewDisplayStatus status,
-		String reviewImageUrl,
-		LocalDateTime createAt
-	) {
 	}
 }

@@ -27,4 +27,5 @@ public interface UserQueryRepository {
 	MyPageResponse getMyPage(Long userId, Long currentUserId);
 
 	MyBottleResponse getMyBottle(MyBottlePageableCriteria criteria);
+
 }

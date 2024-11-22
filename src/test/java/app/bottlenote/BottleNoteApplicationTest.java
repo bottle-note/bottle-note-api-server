@@ -13,7 +13,7 @@ class BottleNoteApplicationTest extends IntegrationTestSupport {
 
 	@Test
 	@DisplayName("컨텍스트 로드 확인 테스트")
-	public void contextLoads() {
+	void contextLoads() {
 		log.info("using port : {}", MY_SQL_CONTAINER.getFirstMappedPort());
 		boolean running = MY_SQL_CONTAINER.isRunning();
 		assertThat(running).isTrue();

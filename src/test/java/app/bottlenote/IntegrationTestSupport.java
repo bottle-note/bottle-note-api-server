@@ -1,7 +1,10 @@
 package app.bottlenote;
 
+import app.bottlenote.global.security.jwt.JwtTokenProvider;
+import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.TokenDto;
+import app.bottlenote.user.repository.OauthRepository;
 import app.bottlenote.user.service.OauthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
@@ -25,6 +28,7 @@ import org.testcontainers.utility.DockerImageName;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public abstract class IntegrationTestSupport {
+
 	protected static final Logger log = LogManager.getLogger(IntegrationTestSupport.class);
 	protected static MySQLContainer<?> MY_SQL_CONTAINER;
 
@@ -41,9 +45,14 @@ public abstract class IntegrationTestSupport {
 	@Autowired
 	protected MockMvc mockMvc;
 	@Autowired
+	private DataInitializer dataInitializer;
+	@Autowired
 	protected OauthService oauthService;
 	@Autowired
-	private DataInitializer dataInitializer;
+	protected OauthRepository oauthRepository;
+	@Autowired
+	private JwtTokenProvider jwtTokenProvider;
+
 
 	@AfterEach
 	void deleteAll() {
@@ -54,5 +63,16 @@ public abstract class IntegrationTestSupport {
 
 	protected TokenDto getToken(OauthRequest request) {
 		return oauthService.oauthLogin(request);
+	}
+
+	protected String getToken() {
+		User user = oauthRepository.getFirstUser().orElseThrow(() -> new RuntimeException("init 처리된 유저가 없습니다."));
+		TokenDto token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
+		return token.getAccessToken();
+	}
+
+	protected Long getTokenUserId() {
+		User user = oauthRepository.getFirstUser().orElseThrow(() -> new RuntimeException("init 처리된 유저가 없습니다."));
+		return user.getId();
 	}
 }

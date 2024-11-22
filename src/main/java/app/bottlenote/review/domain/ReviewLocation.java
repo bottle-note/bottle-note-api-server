@@ -1,15 +1,18 @@
 package app.bottlenote.review.domain;
 
-import app.bottlenote.review.dto.vo.ReviewModifyVO;
+import app.bottlenote.review.dto.request.LocationInfo;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
 @Getter
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Embeddable
 public class ReviewLocation {
@@ -46,27 +49,18 @@ public class ReviewLocation {
 	@Column(name = "longitude")
 	private String longitude;
 
-	@Builder
-	public ReviewLocation(String name, String zipCode, String address, String detailAddress, String category, String mapUrl, String latitude, String longitude) {
-		this.name = name;
-		this.zipCode = zipCode;
-		this.address = address;
-		this.detailAddress = detailAddress;
-		this.category = category;
-		this.mapUrl = mapUrl;
-		this.latitude = latitude;
-		this.longitude = longitude;
+	public static ReviewLocation empty() {
+		return ReviewLocation.builder().build();
 	}
 
-	public void modifyReviewLocation(ReviewModifyVO reviewModifyVO){
-		this.name = reviewModifyVO.getLocationInfo().locationName();
-		this.zipCode = reviewModifyVO.getLocationInfo().zipCode();
-		this.address = reviewModifyVO.getLocationInfo().address();
-		this.detailAddress = reviewModifyVO.getLocationInfo().detailAddress();
-		this.category = reviewModifyVO.getLocationInfo().category();
-		this.mapUrl = reviewModifyVO.getLocationInfo().mapUrl();
-		this.latitude = reviewModifyVO.getLocationInfo().latitude();
-		this.longitude = reviewModifyVO.getLocationInfo().longitude();
+	public void update(LocationInfo locationInfo) {
+		this.name = locationInfo.locationName();
+		this.zipCode = locationInfo.zipCode();
+		this.address = locationInfo.address();
+		this.detailAddress = locationInfo.detailAddress();
+		this.category = locationInfo.category();
+		this.mapUrl = locationInfo.mapUrl();
+		this.latitude = locationInfo.latitude();
+		this.longitude = locationInfo.longitude();
 	}
-
 }

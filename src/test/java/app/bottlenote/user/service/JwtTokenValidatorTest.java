@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @ExtendWith(MockitoExtension.class)
 class JwtTokenValidatorTest {
 
+	@Disabled("키 주입이 잘못된 문제 발생 해결 전까지 중지.")
 	@Test
 	@Disabled
 	@DisplayName("리프레시 토큰이 만료되었을떄, 토큰 검증 메서드는 IllegalArgumentException을 던진다.")

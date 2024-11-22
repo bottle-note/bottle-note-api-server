@@ -1,22 +1,17 @@
 package app.bottlenote.alcohols.service;
 
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
-import app.bottlenote.alcohols.domain.constant.AlcoholType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
-import app.bottlenote.alcohols.dto.response.CategoryResponse;
 import app.bottlenote.alcohols.dto.response.detail.AlcoholDetail;
 import app.bottlenote.alcohols.dto.response.detail.AlcoholDetailInfo;
 import app.bottlenote.alcohols.dto.response.detail.FriendsDetailInfo;
-import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
 import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.review.repository.ReviewQueryRepository;
+import app.bottlenote.review.service.ReviewFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -26,7 +21,7 @@ import java.util.List;
 public class AlcoholQueryService {
 
 	private final AlcoholQueryRepository alcoholQueryRepository;
-	private final ReviewQueryRepository reviewQueryRepository;
+	private final ReviewFacade reviewFacade;
 
 	/**
 	 * 술(위스키) 리스트 조회 api
@@ -37,8 +32,6 @@ public class AlcoholQueryService {
 	 */
 	public PageResponse<AlcoholSearchResponse> searchAlcohols(AlcoholSearchRequest request, Long userId) {
 		AlcoholSearchCriteria criteria = AlcoholSearchCriteria.of(request, userId);
-		log.debug("searchAlcohols criteria: {}", criteria);
-
 		return alcoholQueryRepository.searchAlcohols(criteria);
 	}
 
@@ -49,23 +42,13 @@ public class AlcoholQueryService {
 	 * @param userId    the user id
 	 * @return the list
 	 */
-	@Transactional(readOnly = true)
 	public AlcoholDetail findAlcoholDetailById(Long alcoholId, Long userId) {
-
-		long start = System.nanoTime();
-		// 위스키 상세 조회
-		log.info("위스키 상세 조회 호출 :{}ms", (System.nanoTime() - start) / 1_000_000);
-		AlcoholDetailInfo alcoholDetailById = alcoholQueryRepository.findAlcoholDetailById(alcoholId, userId);
-
-		// 팔로워 수 조회
-		log.info("팔로워 수 조회 호출:{}ms", (System.nanoTime() - start) / 1_000_000);
-		FriendsDetailInfo friendsData = getMockFriendsData();
-
-		// 리뷰 조회
-		log.info("리뷰 조회 호출:{}ms", (System.nanoTime() - start) / 1_000_000);
-		ReviewsDetailInfo reviewsDetailInfo = reviewQueryRepository.fetchUserReviewsForAlcoholDetail(alcoholId, userId);
-
-		return AlcoholDetail.of(alcoholDetailById, friendsData, reviewsDetailInfo);
+		AlcoholDetailInfo alcoholDetail = alcoholQueryRepository.findAlcoholDetailById(alcoholId, userId);
+		return AlcoholDetail.builder()
+			.alcohols(alcoholDetail)
+			.friendsInfo(getMockFriendsData())
+			.reviewInfo(reviewFacade.getReviewInfoList(alcoholId, userId))
+			.build();
 	}
 
 	/**
@@ -75,7 +58,6 @@ public class AlcoholQueryService {
 	 */
 	private FriendsDetailInfo getMockFriendsData() {
 		String freeRandomImageUrl = "https://picsum.photos/600/600";
-
 		List<FriendsDetailInfo.FriendInfo> friendInfos = List.of(
 			new FriendsDetailInfo.FriendInfo(freeRandomImageUrl, 1L, "늙은코끼리", 4.5),
 			new FriendsDetailInfo.FriendInfo(freeRandomImageUrl, 2L, "나무사자", 1.5),
@@ -85,17 +67,5 @@ public class AlcoholQueryService {
 			new FriendsDetailInfo.FriendInfo(freeRandomImageUrl, 6L, "목데이터", 1.0)
 		);
 		return FriendsDetailInfo.of(6L, friendInfos);
-	}
-
-	/**
-	 * 술 카테고리 조회 api
-	 *
-	 * @param type the type
-	 * @return the alcohol category
-	 */
-	@Cacheable(value = "LC-AlcoholCategory")
-	@Transactional(readOnly = true)
-	public List<CategoryResponse> getAlcoholCategory(AlcoholType type) {
-		return alcoholQueryRepository.findAllCategories(type);
 	}
 }

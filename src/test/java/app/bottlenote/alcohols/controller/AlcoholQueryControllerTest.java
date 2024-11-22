@@ -5,6 +5,7 @@ import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.fixture.AlcoholQueryFixture;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
+import app.bottlenote.alcohols.service.AlcoholReferenceService;
 import app.bottlenote.global.service.cursor.PageResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
@@ -28,8 +29,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@Tag("unit")
 @WithMockUser()
+@Tag("unit")
 @DisplayName("[unit] [controller] AlcoholQuery")
 @WebMvcTest(AlcoholQueryController.class)
 class AlcoholQueryControllerTest {
@@ -41,6 +42,8 @@ class AlcoholQueryControllerTest {
 	protected MockMvc mockMvc;
 	@MockBean
 	private AlcoholQueryService alcoholQueryService;
+	@MockBean
+	private AlcoholReferenceService alcoholReferenceService;
 
 
 	@DisplayName("술 목록을 조회할 수 있다.")

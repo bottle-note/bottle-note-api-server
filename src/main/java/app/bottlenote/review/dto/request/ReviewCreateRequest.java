@@ -9,9 +9,10 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.extern.slf4j.Slf4j;
+
 import java.math.BigDecimal;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public record ReviewCreateRequest(
@@ -36,12 +37,13 @@ public record ReviewCreateRequest(
 
 	@Valid
 	List<ReviewImageInfo> imageUrlList,
+	List<String> tastingTagList,
 
-	List<String> tastingTagList
-
+	Double rating
 ) {
 	public ReviewCreateRequest {
 		status = status == null ? ReviewDisplayStatus.PUBLIC : status;
 		imageUrlList = imageUrlList == null ? List.of() : imageUrlList;
+		rating = rating == null ? 0.0 : rating;
 	}
 }

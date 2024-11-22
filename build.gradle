@@ -52,6 +52,9 @@ dependencies {
     implementation 'com.h2database:h2'
     runtimeOnly 'com.mysql:mysql-connector-j'
 
+    //p6spy
+    implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0'
+
     //db-json
     implementation 'io.hypersistence:hypersistence-utils-hibernate-60:3.7.3'
 

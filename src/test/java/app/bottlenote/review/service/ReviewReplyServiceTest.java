@@ -66,6 +66,9 @@ class ReviewReplyServiceTest {
 		@DisplayName("리뷰에 댓글을 등록 할 수 있다.")
 		void test_1() {
 			//given
+			log.info("init success profanityClient : {}", profanityClient);
+			log.info("init success userDomainSupport : {}", userDomainSupport);
+
 			final Long reviewId = 1L;
 			final Long userId = 1L;
 			final String content = "댓글 내용입니다.";

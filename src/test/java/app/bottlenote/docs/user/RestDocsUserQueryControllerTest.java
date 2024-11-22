@@ -33,8 +33,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 
 	private final UserQueryService userQueryService = mock(UserQueryService.class);
-	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 	private final UserQueryFixture mypageQueryFixture = new UserQueryFixture();
+	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
 	@Override
 	protected Object initController() {
@@ -140,6 +140,10 @@ public class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 					fieldWithPath("data.myBottleList[].isPicked").description("찜 여부"),
 					fieldWithPath("data.myBottleList[].hasReviewByMe").description("리뷰 여부"),
 					fieldWithPath("data.myBottleList[].rating").description("평점"),
+					fieldWithPath("data.myBottleList[].mostLastModifyAt").description("최종 수정일"),
+					fieldWithPath("data.myBottleList[].ratingLastModifyAt").description("별점 마지막 수정일"),
+					fieldWithPath("data.myBottleList[].reviewLastModifyAt").description("리뷰 마지막 수정일"),
+					fieldWithPath("data.myBottleList[].picksLastModifyAt").description("찜 마지막 수정일"),
 					fieldWithPath("data.cursorPageable").description("커서 페이지 정보").optional(),
 					fieldWithPath("errors").ignored(),
 					fieldWithPath("meta.serverVersion").ignored(),

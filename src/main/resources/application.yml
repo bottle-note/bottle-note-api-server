@@ -8,12 +8,6 @@ spring:
   config:
     activate:
       on-profile: local,dev,prod
-  jpa:
-    properties:
-      hibernate:
-        show_sql: true
-        format_sql: true
-        use_sql_comments: true
 logging:
   level:
     org:
@@ -21,6 +15,11 @@ logging:
         type:
           descriptor:
             sql: trace
+
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: false # p6spy 로깅 활성화
 
 ## Spring Boot Actuator 공통 설정
 management:

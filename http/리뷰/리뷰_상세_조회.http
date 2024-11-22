@@ -6,8 +6,9 @@ Content-Type: application/json
   "email": "rkdtkfma@naver.com",
   "socialType": "KAKAO",
   "gender": "",
-  "age":""
+  "age": ""
 }
+
 
 > {%
     //토큰을 전역변수로 저장
