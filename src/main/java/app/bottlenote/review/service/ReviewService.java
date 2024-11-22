@@ -47,7 +47,6 @@ public class ReviewService implements ReviewFacade {
 	private final ReviewTastingTagSupport reviewTastingTagSupport;
 	private final ReviewEventPublisher reviewEventPublisher;
 
-
 	/**
 	 * Read
 	 */
@@ -55,7 +54,8 @@ public class ReviewService implements ReviewFacade {
 	public PageResponse<ReviewListResponse> getReviews(
 		Long alcoholId,
 		ReviewPageableRequest reviewPageableRequest,
-		Long userId) {
+		Long userId
+	) {
 		return reviewRepository.getReviews(alcoholId, reviewPageableRequest, userId);
 	}
 
