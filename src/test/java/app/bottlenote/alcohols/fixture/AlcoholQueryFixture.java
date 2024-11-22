@@ -38,14 +38,15 @@ public class AlcoholQueryFixture {
 			.korRegion("스코틀랜드/하이랜드")
 			.engRegion("Scotland/Highlands")
 			.cask("Marriage of Ex-Bourbon & Virgin Oak Casks")
-			.avg("46")
+			.abv("46")
 			.korDistillery("글래스고 디스틸러리")
 			.engDistillery("The Glasgow Distillery Co.")
 			.rating(3.5)
 			.totalRatingsCount(3L)
 			.myRating(4.5)
+			.myAvgRating(2.5)
 			.isPicked(true)
-			.tags(List.of("달달한", "부드러운", "향긋한", "견과류", "후추향의"))
+			.alcoholsTastingTags("달달한,부드러운,향긋한,견과류,후추향의")
 			.build();
 	}
 
