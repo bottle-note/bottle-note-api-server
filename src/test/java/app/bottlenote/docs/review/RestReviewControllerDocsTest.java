@@ -96,7 +96,9 @@ class RestReviewControllerDocsTest extends AbstractRestDocs {
 						fieldWithPath("imageUrlList").type(ARRAY).description("이미지 URL 목록"),
 						fieldWithPath("imageUrlList[].order").type(NUMBER).description("이미지 순서"),
 						fieldWithPath("imageUrlList[].viewUrl").type(STRING).description("이미지 뷰 URL"),
-						fieldWithPath("tastingTagList[]").type(ARRAY).description("테이스팅 태그 목록")
+						fieldWithPath("tastingTagList[]").type(ARRAY).description("테이스팅 태그 목록"),
+						fieldWithPath("rating").description("리뷰별점 (해당 리뷰를 남길 시점의 별점 )")
+
 					),
 					responseFields(
 						fieldWithPath("success").type(BOOLEAN).description("요청 성공 여부"),

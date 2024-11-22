@@ -152,7 +152,8 @@ class ReviewControllerTest {
 					new ReviewImageInfo(5L, "url5"),
 					new ReviewImageInfo(6L, "url6")
 				),
-				List.of("테이스팅태그", "테이스팅태그 2", "테이스팅태그 3")
+				List.of("테이스팅태그", "테이스팅태그 2", "테이스팅태그 3"),
+				0.5
 			);
 
 			when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(1L));

@@ -3,6 +3,7 @@ package app.bottlenote.review.service;
 import app.bottlenote.alcohols.dto.response.AlcoholInfo;
 import app.bottlenote.alcohols.service.domain.AlcoholDomainSupport;
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewLocation;
 import app.bottlenote.review.domain.ReviewRepository;
@@ -99,9 +100,12 @@ public class ReviewService implements ReviewFacade {
 		alcoholDomainSupport.isValidAlcoholId(reviewCreateRequest.alcoholId());
 		userDomainSupport.isValidUserId(currentUserId);
 
+		RatingPoint point = RatingPoint.of(reviewCreateRequest.rating());
+
 		Review review = Review.builder()
 			.alcoholId(reviewCreateRequest.alcoholId())
 			.userId(currentUserId)
+			.reviewRating(point.getRating())
 			.price(reviewCreateRequest.price())
 			.sizeType(reviewCreateRequest.sizeType())
 			.status(reviewCreateRequest.status())
