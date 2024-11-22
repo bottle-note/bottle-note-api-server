@@ -1,5 +1,6 @@
 package app.bottlenote.user.repository;
 
+import app.bottlenote.alcohols.domain.QAlcohol;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.user.domain.constant.MyBottleSortType;
@@ -8,7 +9,6 @@ import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
-import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -256,35 +256,39 @@ public class UserQuerySupporter {
 	}
 
 	/**
-	 * 마이 보틀 정렬 조건
+	 * 가장 최근에 수정된 날짜를 기준으로 정렬하는 Expression을 반환.
 	 */
-	public OrderSpecifier<?> sortBy(MyBottleSortType myBottleSortType, SortOrder sortOrder, Long userId) {
-
-		myBottleSortType = (myBottleSortType != null) ? myBottleSortType : MyBottleSortType.LATEST;
-
-		Expression<Double> myRating = JPAExpressions
-			.select(rating.ratingPoint.rating.coalesce(0.0))
-			.from(rating)
-			.where(rating.user.id.eq(userId));
-
-		Expression<Long> reviewCount = JPAExpressions
-			.select(review.count())
-			.from(review)
-			.where(review.userId.eq(userId));
-
-		Expression<LocalDateTime> latestUpdate = JPAExpressions
-			.select(rating.lastModifyAt.max().coalesce(review.lastModifyAt.max()
-				.coalesce(picks.lastModifyAt.max())))
+	private Expression<LocalDateTime> orderByMaxLastModifyAt() {
+		return JPAExpressions.select(
+				rating.lastModifyAt.max().coalesce(review.lastModifyAt.max(), picks.lastModifyAt.max())
+			)
 			.from(rating, review, picks)
-			.where(rating.user.id.eq(userId)
-				.or(review.userId.eq(userId))
-				.or(picks.user.id.eq(userId)));
+			.where(
+				rating.alcohol.id.eq(QAlcohol.alcohol.id)
+					.or(review.alcoholId.eq(QAlcohol.alcohol.id))
+					.or(picks.alcohol.id.eq(QAlcohol.alcohol.id))
+			);
+	}
 
-		// 새로운 switch 표현식을 사용하여 정렬
+	/**
+	 * 마이 보틀 정렬 조건을 반환
+	 */
+	public OrderSpecifier<?> sortBy(MyBottleSortType myBottleSortType, SortOrder sortOrder) {
+		myBottleSortType = (myBottleSortType != null) ? myBottleSortType : MyBottleSortType.LATEST;
+		sortOrder = (sortOrder != null) ? sortOrder : SortOrder.DESC; // 기본값은 내림차순
+
+		// 정렬 기준에 따라 OrderSpecifier 반환
 		return switch (myBottleSortType) {
-			case RATING -> new OrderSpecifier<>(sortOrder == SortOrder.DESC ? Order.DESC : Order.ASC, myRating);
-			case REVIEW -> new OrderSpecifier<>(sortOrder == SortOrder.DESC ? Order.DESC : Order.ASC, reviewCount);
-			case LATEST -> new OrderSpecifier<>(sortOrder == SortOrder.DESC ? Order.DESC : Order.ASC, latestUpdate);
+			case RATING -> sortOrder == sortOrder.DESC
+				? rating.ratingPoint.rating.max().desc()
+				: rating.ratingPoint.rating.max().asc();
+			case REVIEW -> sortOrder == sortOrder.DESC
+				? review.createAt.max().desc()
+				: review.createAt.max().asc();
+			default -> sortOrder == sortOrder.DESC
+				? rating.lastModifyAt.coalesce(review.lastModifyAt, picks.lastModifyAt).max().desc()
+				: rating.lastModifyAt.coalesce(review.lastModifyAt, picks.lastModifyAt).max().asc();
 		};
 	}
+
 }

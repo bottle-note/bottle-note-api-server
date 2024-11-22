@@ -1,6 +1,7 @@
 package app.bottlenote.user.repository.custom;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
+import app.bottlenote.review.domain.constant.ReviewActiveStatus;
 import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
@@ -13,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.picks.domain.PicksStatus.PICK;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
@@ -63,9 +65,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 	 */
 	@Override
 	public MyBottleResponse getMyBottle(MyBottlePageableCriteria request) {
-
 		Long userId = request.userId();
-
 		boolean isMyPage = userId.equals(request.currentUserId());
 
 		List<MyBottleResponse.MyBottleInfo> myBottleList = queryFactory
@@ -76,28 +76,31 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 				alcohol.engName.as("engName"),
 				alcohol.korCategory.as("korCategoryName"),
 				alcohol.imageUrl.as("imageUrl"),
-				supporter.isPickedSubquery(alcohol.id, request.userId()),
+				supporter.isPickedSubquery(alcohol.id, userId),
 				rating.ratingPoint.rating.coalesce(0.0).as("rating"),
-				supporter.isMyReviewSubquery(alcohol.id, request.userId())
+				supporter.isMyReviewSubquery(alcohol.id, userId),
+				rating.lastModifyAt.coalesce(review.lastModifyAt, picks.lastModifyAt).max().as("mostLastModifyAt"),
+				// 리뷰, 찜하기, 평점의 각각의 마지막 수정일자 중 최대값을 가져오는 쿼리 필요
+				rating.lastModifyAt.max().as("ratingLastModifyAt"),
+				review.lastModifyAt.max().as("reviewLastModifyAt"),
+				picks.lastModifyAt.max().as("picksLastModifyAt")
 			))
 			.from(alcohol)
-			.leftJoin(user).on(user.id.eq(request.userId()))
-			.leftJoin(review).on(review.userId.eq(user.id))
-			.leftJoin(rating).on(rating.user.id.eq(user.id))
-			.leftJoin(picks).on(picks.user.id.eq(user.id))
+			.leftJoin(picks).on(picks.alcohol.id.eq(alcohol.id).and(picks.user.id.eq(userId)).and(picks.status.eq(PICK)))
+			.leftJoin(review).on(review.alcoholId.eq(alcohol.id).and(review.userId.eq(userId)).and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE)))
+			.leftJoin(rating).on(rating.alcohol.id.eq(alcohol.id).and(rating.user.id.eq(userId)).and(rating.ratingPoint.rating.gt(0.0)))
 			.where(
-				user.id.eq(request.userId()),
-				supporter.eqRegion(request.regionId()),
-				supporter.eqTabType(request.tabType(), request.userId()),
-				supporter.eqName(request.keyword())
+				supporter.eqTabType(request.tabType(), userId),
+				supporter.eqName(request.keyword()),
+				supporter.eqRegion(request.regionId())
 			)
-			.orderBy(supporter.sortBy(request.sortType(), request.sortOrder(), request.userId()))
+			.groupBy(alcohol.id)
+			.orderBy(supporter.sortBy(request.sortType(), request.sortOrder()))
 			.offset(request.cursor())
 			.limit(request.pageSize() + 1)
 			.fetch();
 
 		CursorPageable cursorPageable = supporter.myBottleCursorPageable(request, myBottleList);
-
 		Long totalCount = (long) myBottleList.size();
 
 		return MyBottleResponse.builder()
@@ -108,5 +111,6 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 			.cursorPageable(cursorPageable)
 			.build();
 	}
+
 
 }
