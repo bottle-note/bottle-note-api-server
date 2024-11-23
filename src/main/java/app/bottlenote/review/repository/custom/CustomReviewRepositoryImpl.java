@@ -134,7 +134,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		//특정한 위스키의 내 리뷰만 조회
 		List<ReviewInfo> fetch = queryFactory.select(composeReviewInfoResult(userId))
 			.from(review)
-			.join(alcohol).on(alcohol.id.eq(review.alcoholId))
+			.join(alcohol).on(alcohol.id.eq(review.alcoholId).and(alcohol.id.eq(alcoholId)))
 			.join(user).on(review.userId.eq(user.id))
 			.leftJoin(likes).on(review.id.eq(likes.review.id))
 			.leftJoin(rating).on(rating.alcohol.id.eq(review.alcoholId).and(rating.user.id.eq(review.userId)))
