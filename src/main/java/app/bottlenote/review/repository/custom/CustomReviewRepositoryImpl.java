@@ -131,11 +131,12 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		ReviewPageableRequest reviewPageableRequest,
 		Long userId
 	) {
+		//특정한 위스키의 내 리뷰만 조회
 		List<ReviewInfo> fetch = queryFactory.select(composeReviewInfoResult(userId))
 			.from(review)
+			.join(alcohol).on(alcohol.id.eq(review.alcoholId))
 			.join(user).on(review.userId.eq(user.id))
 			.leftJoin(likes).on(review.id.eq(likes.review.id))
-			.leftJoin(alcohol).on(alcohol.id.eq(review.alcoholId))
 			.leftJoin(rating).on(rating.alcohol.id.eq(review.alcoholId).and(rating.user.id.eq(review.userId)))
 			.leftJoin(reviewReply).on(review.id.eq(reviewReply.review.id))
 			.leftJoin(reviewImage).on(review.id.eq(reviewImage.review.id))
