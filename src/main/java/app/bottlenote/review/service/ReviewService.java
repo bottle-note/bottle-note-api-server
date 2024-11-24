@@ -101,7 +101,6 @@ public class ReviewService implements ReviewFacade {
 		userDomainSupport.isValidUserId(currentUserId);
 
 		RatingPoint point = RatingPoint.of(reviewCreateRequest.rating());
-
 		Review review = Review.builder()
 			.alcoholId(reviewCreateRequest.alcoholId())
 			.userId(currentUserId)

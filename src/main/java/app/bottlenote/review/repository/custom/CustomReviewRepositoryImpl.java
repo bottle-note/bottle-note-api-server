@@ -153,6 +153,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.select(review.id.count())
 			.from(review)
 			.where(review.userId.eq(userId)
+				.and(review.alcoholId.eq(alcoholId))
 				.and(review.activeStatus.eq(ACTIVE))
 				.and(review.status.eq(PUBLIC)))
 			.fetchOne();
