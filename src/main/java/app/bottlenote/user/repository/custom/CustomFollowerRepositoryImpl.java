@@ -1,16 +1,13 @@
-package app.bottlenote.follow.repository.follower;
+package app.bottlenote.user.repository.custom;
 
-import app.bottlenote.follow.domain.QFollow;
-import app.bottlenote.follow.domain.constant.FollowStatus;
-import app.bottlenote.follow.dto.dsl.FollowPageableCriteria;
-import app.bottlenote.follow.dto.response.FollowDetail;
-import app.bottlenote.follow.dto.response.FollowSearchResponse;
-import app.bottlenote.follow.repository.FollowQuerySupporter;
-import app.bottlenote.follow.repository.FollowerQuerySupporter;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
-import com.querydsl.core.types.Expression;
-import com.querydsl.core.types.ExpressionUtils;
+import app.bottlenote.user.domain.QFollow;
+import app.bottlenote.user.domain.constant.FollowStatus;
+import app.bottlenote.user.dto.dsl.FollowPageableCriteria;
+import app.bottlenote.user.dto.response.FollowDetail;
+import app.bottlenote.user.dto.response.FollowSearchResponse;
+import app.bottlenote.user.repository.FollowerQuerySupporter;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -18,11 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
-import static app.bottlenote.follow.domain.QFollow.follow;
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.domain.QReview.review;
+import static app.bottlenote.user.domain.QFollow.follow;
 import static app.bottlenote.user.domain.QUser.user;
-import static com.querydsl.jpa.JPAExpressions.select;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -44,7 +38,7 @@ public class CustomFollowerRepositoryImpl implements CustomFollowerRepository {
 		List<FollowDetail> followDetails = queryFactory
 			.select(Projections.constructor(
 				FollowDetail.class,
-				follow.user.id.as("userId"),
+				follow.userId.as("userId"),
 				follow.followUser.id.as("followUserId"),
 				user.nickName.as("nickName"),
 				user.imageUrl.as("userProfileImage"),
@@ -53,8 +47,8 @@ public class CustomFollowerRepositoryImpl implements CustomFollowerRepository {
 				supporter.followerRatingCountSubQuery(follow.followUser.id)
 			))
 			.from(follow)
-			.leftJoin(user).on(user.id.eq(follow.user.id))
-			.leftJoin(follow1).on(follow1.user.id.eq(userId).and(follow1.followUser.id.eq(follow.user.id)))
+			.leftJoin(user).on(user.id.eq(follow.userId))
+			.leftJoin(follow1).on(follow1.userId.eq(userId).and(follow1.followUser.id.eq(follow.userId)))
 			.where(follow.followUser.id.eq(userId)
 				.and(follow.status.eq(FollowStatus.FOLLOWING)))
 			.orderBy(follow.lastModifyAt.desc())

@@ -1,19 +1,19 @@
-package app.bottlenote.follow.service;
+package app.bottlenote.user.service;
 
-import app.bottlenote.follow.domain.Follow;
-import app.bottlenote.follow.dto.dsl.FollowPageableCriteria;
-import app.bottlenote.follow.dto.request.FollowPageableRequest;
-import app.bottlenote.follow.dto.request.FollowUpdateRequest;
-import app.bottlenote.follow.dto.response.FollowSearchResponse;
-import app.bottlenote.follow.dto.response.FollowUpdateResponse;
-import app.bottlenote.follow.exception.FollowException;
-import app.bottlenote.follow.exception.FollowExceptionCode;
-import app.bottlenote.follow.repository.follow.FollowRepository;
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.user.domain.Follow;
 import app.bottlenote.user.domain.User;
+import app.bottlenote.user.domain.UserQueryRepository;
+import app.bottlenote.user.dto.dsl.FollowPageableCriteria;
+import app.bottlenote.user.dto.request.FollowPageableRequest;
+import app.bottlenote.user.dto.request.FollowUpdateRequest;
+import app.bottlenote.user.dto.response.FollowSearchResponse;
+import app.bottlenote.user.dto.response.FollowUpdateResponse;
+import app.bottlenote.user.exception.FollowException;
+import app.bottlenote.user.exception.FollowExceptionCode;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
-import app.bottlenote.user.repository.UserCommandRepository;
+import app.bottlenote.user.repository.FollowRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,26 +25,26 @@ import org.springframework.transaction.annotation.Transactional;
 public class FollowService {
 
 	private final FollowRepository followRepository;
-	private final UserCommandRepository userRepository;
+	private final UserQueryRepository userQueryRepository;
 
 	@Transactional
-	public FollowUpdateResponse updateFollowStatus(FollowUpdateRequest request, Long userId) {
+	public FollowUpdateResponse updateFollowStatus(FollowUpdateRequest request, Long currentUserId) {
 		Long followUserId = request.followUserId();
 
-		if (userId.equals(followUserId)) {
+		if (currentUserId.equals(followUserId)) {
 			throw new FollowException(FollowExceptionCode.CANNOT_FOLLOW_SELF);
 		}
 
-		Follow follow = followRepository.findByUserIdAndFollowUserIdWithFetch(userId, followUserId)
+		Follow follow = followRepository.findByUserIdAndFollowUserIdWithFetch(currentUserId, followUserId)
 			.orElseGet(() -> {
-
-				User user = userRepository.findById(userId)
+				User user = userQueryRepository.findById(currentUserId)
 					.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
-				User followUser = userRepository.findById(followUserId)
+
+				User followUser = userQueryRepository.findById(followUserId)
 					.orElseThrow(() -> new FollowException(FollowExceptionCode.FOLLOW_NOT_FOUND));
 
 				return Follow.builder()
-					.user(user)
+					.userId(user.getId())
 					.followUser(followUser)
 					.build();
 			});

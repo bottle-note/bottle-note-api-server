@@ -1,10 +1,10 @@
-package app.bottlenote.follow.service;
+package app.bottlenote.user.service;
 
-import app.bottlenote.follow.dto.dsl.FollowPageableCriteria;
-import app.bottlenote.follow.dto.request.FollowPageableRequest;
-import app.bottlenote.follow.dto.response.FollowSearchResponse;
-import app.bottlenote.follow.repository.follower.FollowerRepository;
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.user.dto.dsl.FollowPageableCriteria;
+import app.bottlenote.user.dto.request.FollowPageableRequest;
+import app.bottlenote.user.dto.response.FollowSearchResponse;
+import app.bottlenote.user.repository.FollowerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

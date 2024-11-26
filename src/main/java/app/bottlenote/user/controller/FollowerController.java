@@ -1,11 +1,11 @@
-package app.bottlenote.follow.controller;
+package app.bottlenote.user.controller;
 
-import app.bottlenote.follow.dto.request.FollowPageableRequest;
-import app.bottlenote.follow.dto.response.FollowSearchResponse;
-import app.bottlenote.follow.service.FollowerService;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.meta.MetaService;
+import app.bottlenote.user.dto.request.FollowPageableRequest;
+import app.bottlenote.user.dto.response.FollowSearchResponse;
+import app.bottlenote.user.service.FollowerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

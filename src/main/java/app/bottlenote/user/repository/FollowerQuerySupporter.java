@@ -1,8 +1,8 @@
-package app.bottlenote.follow.repository;
+package app.bottlenote.user.repository;
 
-import app.bottlenote.follow.dto.dsl.FollowPageableCriteria;
-import app.bottlenote.follow.dto.response.FollowDetail;
 import app.bottlenote.global.service.cursor.CursorPageable;
+import app.bottlenote.user.dto.dsl.FollowPageableCriteria;
+import app.bottlenote.user.dto.response.FollowDetail;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.dsl.NumberPath;
@@ -16,9 +16,9 @@ import static com.querydsl.jpa.JPAExpressions.select;
 
 
 @Component
-public class FollowQuerySupporter {
+public class FollowerQuerySupporter {
 
-	public Expression<Long> followReviewCountSubQuery(NumberPath<Long> userId) {
+	public Expression<Long> followerReviewCountSubQuery(NumberPath<Long> userId) {
 		return ExpressionUtils.as(
 			select(review.count())
 				.from(review)
@@ -27,7 +27,7 @@ public class FollowQuerySupporter {
 		);
 	}
 
-	public Expression<Long> followRatingCountSubQuery(NumberPath<Long> userId) {
+	public Expression<Long> followerRatingCountSubQuery(NumberPath<Long> userId) {
 		return ExpressionUtils.as(
 			select(rating.count())
 				.from(rating)
@@ -35,7 +35,6 @@ public class FollowQuerySupporter {
 			"ratingCount"
 		);
 	}
-
 
 	public CursorPageable followCursorPageable(FollowPageableCriteria criteria, List<FollowDetail> followDetails) {
 		boolean hasNext = isHasNext(criteria, followDetails);

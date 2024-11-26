@@ -1,7 +1,7 @@
-package app.bottlenote.follow.domain.constant;
+package app.bottlenote.user.domain.constant;
 
-import app.bottlenote.follow.exception.FollowException;
-import app.bottlenote.follow.exception.FollowExceptionCode;
+import app.bottlenote.user.exception.FollowException;
+import app.bottlenote.user.exception.FollowExceptionCode;
 import com.fasterxml.jackson.annotation.JsonCreator;
 
 import java.util.stream.Stream;

@@ -1,4 +1,4 @@
-package app.bottlenote.follow.dto.response;
+package app.bottlenote.user.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

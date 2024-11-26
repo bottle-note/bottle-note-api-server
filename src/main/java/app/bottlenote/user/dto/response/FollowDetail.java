@@ -1,7 +1,6 @@
-package app.bottlenote.follow.dto.response;
+package app.bottlenote.user.dto.response;
 
-import app.bottlenote.follow.domain.constant.FollowStatus;
-
+import app.bottlenote.user.domain.constant.FollowStatus;
 
 
 public record FollowDetail(
