@@ -1,7 +1,7 @@
 package app.external.push.service;
 
 import app.bottlenote.user.dto.response.UserProfileInfo;
-import app.bottlenote.user.service.domain.UserDomainSupport;
+import app.bottlenote.user.service.domain.UserFacade;
 import app.external.push.domain.PushStatus;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
@@ -20,7 +20,7 @@ import java.util.List;
 public class DefaultPushHandler implements PushHandler {
 
 	private static final String TITLE = "Bottle Note";
-	private final UserDomainSupport userDomainSupport;
+	private final UserFacade userDomainSupport;
 
 	@Override
 	public void sendPush(Long userId, String message) {

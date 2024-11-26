@@ -30,10 +30,10 @@ public class FollowController {
 
 	private final FollowService followService;
 
-	@GetMapping("/{userId}")
+	@GetMapping("/{userId}/relation-list")
 	public ResponseEntity<GlobalResponse> findFollowList(@PathVariable Long userId, @ModelAttribute FollowPageableRequest pageableRequest) {
 
-		PageResponse<FollowSearchResponse> pageResponse = followService.findFollowList(userId, pageableRequest);
+		PageResponse<FollowSearchResponse> pageResponse = followService.getRelationList(userId, pageableRequest);
 
 		return ResponseEntity.ok(
 			GlobalResponse.success(
@@ -50,6 +50,4 @@ public class FollowController {
 
 		return ResponseEntity.ok(success(followService.updateFollowStatus(request, userId)));
 	}
-
-
 }

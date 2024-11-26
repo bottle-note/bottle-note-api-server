@@ -18,7 +18,7 @@ public class FollowUpdateResponse {
 		this.nickName = nickName;
 		this.imageUrl = imageUrl;
 		this.message = status == FollowStatus.FOLLOWING ?
-			Message.FOLLOW_SUCCESS.getMessage() : Message.UNFOLLOW_SUCCESS.getMessage();
+			Message.FOLLOW_SUCCESS.getResponseMessage() : Message.UNFOLLOW_SUCCESS.getResponseMessage();
 	}
 
 	@AllArgsConstructor
@@ -27,6 +27,6 @@ public class FollowUpdateResponse {
 		FOLLOW_SUCCESS("성공적으로 팔로우 처리했습니다."),
 		UNFOLLOW_SUCCESS("성공적으로 팔로우 해제 처리했습니다.");
 
-		private final String message;
+		private final String responseMessage;
 	}
 }

@@ -1,27 +1,28 @@
 package app.bottlenote.user.service;
 
-import static app.bottlenote.user.dto.response.constant.WithdrawUserResultMessage.USER_WITHDRAW_SUCCESS;
-import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
-
 import app.bottlenote.user.domain.User;
+import app.bottlenote.user.domain.UserQueryRepository;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
 import app.bottlenote.user.dto.response.NicknameChangeResponse;
 import app.bottlenote.user.dto.response.ProfileImageChangeResponse;
 import app.bottlenote.user.dto.response.WithdrawUserResultResponse;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
-import app.bottlenote.user.repository.UserCommandRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static app.bottlenote.user.dto.response.constant.WithdrawUserResultMessage.USER_WITHDRAW_SUCCESS;
+import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
+import static java.lang.Boolean.TRUE;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class UserCommandService {
 
-	private final UserCommandRepository userCommandRepository;
+	private final UserQueryRepository userQueryRepository;
 
 	/**
 	 * 닉네임 변경
@@ -39,11 +40,11 @@ public class UserCommandService {
 		String name = request.nickName();
 		String beforeNickname;
 
-		if (userCommandRepository.existsByNickName(name)) {
+		if (TRUE.equals(userQueryRepository.existsByNickName(name))) {
 			throw new UserException(UserExceptionCode.USER_NICKNAME_NOT_VALID);
 		}
 
-		User user = userCommandRepository.findById(userId)
+		User user = userQueryRepository.findById(userId)
 			.orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
 		beforeNickname = user.getNickName();
@@ -70,7 +71,7 @@ public class UserCommandService {
 	@Transactional
 	public ProfileImageChangeResponse profileImageChange(Long userId, String viewUrl) {
 
-		User user = userCommandRepository.findById(userId)
+		User user = userQueryRepository.findById(userId)
 			.orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
 		user.changeProfileImage(viewUrl);
@@ -85,13 +86,13 @@ public class UserCommandService {
 	/**
 	 * 회원 탈퇴
 	 *
-	 * @param userId
+	 * @param userId the user id
 	 * @return UserResultResponse
 	 */
 	@Transactional
 	public WithdrawUserResultResponse withdrawUser(Long userId) {
 
-		User user = userCommandRepository.findById(userId)
+		User user = userQueryRepository.findById(userId)
 			.orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
 		user.withdrawUser();

@@ -1,12 +1,5 @@
 package app.bottlenote.alcohols.repository;
 
-import static app.bottlenote.alcohols.domain.constant.SearchSortType.REVIEW;
-import static app.bottlenote.global.service.cursor.SortOrder.DESC;
-import static app.bottlenote.user.domain.constant.SocialType.GOOGLE;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
@@ -23,12 +16,9 @@ import app.bottlenote.rating.domain.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.user.domain.User;
+import app.bottlenote.user.domain.UserQueryRepository;
 import app.bottlenote.user.domain.constant.UserType;
-import app.bottlenote.user.repository.UserCommandRepository;
 import jakarta.persistence.EntityManager;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -45,6 +35,17 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
+
+import static app.bottlenote.alcohols.domain.constant.SearchSortType.REVIEW;
+import static app.bottlenote.global.service.cursor.SortOrder.DESC;
+import static app.bottlenote.user.domain.constant.SocialType.GOOGLE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 @Disabled("테스트 컨테이너 도입으로 인한 추후 수정 대상 ")
 @Tag(value = "data-jpa-test")
 @DisplayName("[database] [repository] AlcoholQuery")
@@ -60,7 +61,7 @@ class CustomJpaAlcoholQueryRepositoryImplTest {
 	@Autowired
 	private AlcoholQueryRepository alcoholQueryRepository;
 	@Autowired
-	private UserCommandRepository userRepository;
+	private UserQueryRepository userRepository;
 
 	static Stream<Arguments> testCase1Provider() {
 		return Stream.of(

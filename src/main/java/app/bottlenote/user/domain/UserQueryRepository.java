@@ -18,7 +18,7 @@ public interface UserQueryRepository {
 
 	List<User> findAll();
 
-	List<User> findAllByIdIn(List<Long> ids);
+	Boolean existsByNickName(String nickname);
 
 	Boolean existsByUserId(Long userId);
 

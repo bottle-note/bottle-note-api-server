@@ -1,14 +1,15 @@
 package app.bottlenote.follow.service;
 
-import app.bottlenote.follow.domain.Follow;
-import app.bottlenote.follow.domain.constant.FollowStatus;
-import app.bottlenote.follow.dto.request.FollowUpdateRequest;
-import app.bottlenote.follow.dto.response.FollowUpdateResponse;
-import app.bottlenote.follow.exception.FollowException;
-import app.bottlenote.follow.exception.FollowExceptionCode;
-import app.bottlenote.follow.repository.follow.FollowRepository;
+import app.bottlenote.user.domain.Follow;
 import app.bottlenote.user.domain.User;
-import app.bottlenote.user.repository.UserCommandRepository;
+import app.bottlenote.user.domain.constant.FollowStatus;
+import app.bottlenote.user.dto.request.FollowUpdateRequest;
+import app.bottlenote.user.dto.response.FollowUpdateResponse;
+import app.bottlenote.user.exception.FollowException;
+import app.bottlenote.user.exception.FollowExceptionCode;
+import app.bottlenote.user.repository.FollowRepository;
+import app.bottlenote.user.service.FollowService;
+import app.bottlenote.user.service.domain.UserFacade;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,7 @@ class FollowCommandServiceTest {
 	private FollowRepository followRepository;
 
 	@Mock
-	private UserCommandRepository userCommandRepository;
+	private UserFacade userFacade;
 
 	@Test
 	@DisplayName("다른 유저를 팔로우 할 수 있다.")
@@ -49,11 +50,6 @@ class FollowCommandServiceTest {
 		String email = "user@email";
 		FollowUpdateRequest request = new FollowUpdateRequest(followUserId, FollowStatus.FOLLOWING);
 
-		User user = User.builder()
-			.id(userId)
-			.email(email)
-			.nickName("userNickName").build();
-
 		User followUser = User.builder()
 			.id(followUserId)
 			.email(email)
@@ -61,51 +57,7 @@ class FollowCommandServiceTest {
 			.build();
 
 		Follow follow = Follow.builder()
-			.user(user)
-			.followUser(followUser)
-			.status(FollowStatus.FOLLOWING)
-			.build();
-
-		when(userCommandRepository.findById(followUserId)).thenReturn(Optional.of(followUser));
-		when(userCommandRepository.findById(userId)).thenReturn(Optional.of(user));
-		when(followRepository.findByUserIdAndFollowUserIdWithFetch(userId, followUserId)).thenReturn(Optional.empty());
-		when(followRepository.save(any(Follow.class))).thenReturn(follow);
-
-
-		// when
-		FollowUpdateResponse response = followService.updateFollowStatus(request, userId);
-
-		// then
-		assertEquals(response.getFollowUserId(), followUserId);
-		assertEquals(response.getNickName(), followUser.getNickName());
-		assertEquals(response.getImageUrl(), followUser.getImageUrl());
-		assertEquals(response.getMessage(), FollowUpdateResponse.Message.FOLLOW_SUCCESS.getMessage());
-
-
-	}
-
-	@Test
-	@DisplayName("유저를 언팔로우할 수 있다.")
-	void test_2() {
-		// given
-		Long userId = 9L;
-		Long followUserId = 1L;
-		FollowUpdateRequest request = new FollowUpdateRequest(followUserId, FollowStatus.UNFOLLOW);
-
-		User user = User.builder()
-			.id(userId)
-			.email("email")
-			.nickName("userNickName")
-			.build();
-
-		User followUser = User.builder()
-			.id(followUserId)
-			.email("email")
-			.nickName("userNickName")
-			.build();
-
-		Follow follow = Follow.builder()
-			.user(user)
+			.userId(userId)
 			.followUser(followUser)
 			.status(FollowStatus.FOLLOWING)
 			.build();
@@ -120,7 +72,42 @@ class FollowCommandServiceTest {
 		assertEquals(response.getFollowUserId(), followUserId);
 		assertEquals(response.getNickName(), followUser.getNickName());
 		assertEquals(response.getImageUrl(), followUser.getImageUrl());
-		assertEquals(response.getMessage(), FollowUpdateResponse.Message.UNFOLLOW_SUCCESS.getMessage());
+		assertEquals(response.getMessage(), FollowUpdateResponse.Message.FOLLOW_SUCCESS.getResponseMessage());
+
+
+	}
+
+	@Test
+	@DisplayName("유저를 언팔로우할 수 있다.")
+	void test_2() {
+		// given
+		Long userId = 9L;
+		Long followUserId = 1L;
+		FollowUpdateRequest request = new FollowUpdateRequest(followUserId, FollowStatus.UNFOLLOW);
+
+		User followUser = User.builder()
+			.id(followUserId)
+			.email("email")
+			.nickName("userNickName")
+			.build();
+
+		Follow follow = Follow.builder()
+			.userId(userId)
+			.followUser(followUser)
+			.status(FollowStatus.FOLLOWING)
+			.build();
+
+		when(followRepository.findByUserIdAndFollowUserIdWithFetch(userId, followUserId)).thenReturn(Optional.of(follow));
+		when(followRepository.save(any(Follow.class))).thenReturn(follow);
+
+		// when
+		FollowUpdateResponse response = followService.updateFollowStatus(request, userId);
+
+		// then
+		assertEquals(response.getFollowUserId(), followUserId);
+		assertEquals(response.getNickName(), followUser.getNickName());
+		assertEquals(response.getImageUrl(), followUser.getImageUrl());
+		assertEquals(response.getMessage(), FollowUpdateResponse.Message.UNFOLLOW_SUCCESS.getResponseMessage());
 	}
 
 	@Test

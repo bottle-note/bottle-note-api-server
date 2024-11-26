@@ -3,18 +3,20 @@ package app.bottlenote.user.domain.constant;
 import app.bottlenote.user.exception.FollowException;
 import app.bottlenote.user.exception.FollowExceptionCode;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import lombok.Getter;
 
 import java.util.stream.Stream;
 
+@Getter
 public enum FollowStatus {
 
 	FOLLOWING("팔로잉"),
 	UNFOLLOW("언팔로우");
 
-	private final String Description;
+	private final String description;
 
 	FollowStatus(String description) {
-		this.Description = description;
+		this.description = description;
 	}
 
 	@JsonCreator

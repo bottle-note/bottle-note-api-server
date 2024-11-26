@@ -4,7 +4,7 @@ import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.response.UserProfileInfo;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
-import app.bottlenote.user.service.domain.UserDomainSupport;
+import app.bottlenote.user.service.domain.UserFacade;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -12,7 +12,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FakeUserDomainSupport implements UserDomainSupport {
+public class FakeUserDomainSupport implements UserFacade {
 	private static final Logger log = LogManager.getLogger(FakeUserDomainSupport.class);
 	Map<Long, User> dataSource = new HashMap<>();
 

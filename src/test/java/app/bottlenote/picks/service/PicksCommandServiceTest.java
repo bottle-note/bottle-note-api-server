@@ -1,12 +1,5 @@
 package app.bottlenote.picks.service;
 
-import static app.bottlenote.picks.domain.PicksStatus.PICK;
-import static app.bottlenote.picks.domain.PicksStatus.UNPICK;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
-
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.picks.domain.Picks;
@@ -15,8 +8,7 @@ import app.bottlenote.picks.dto.response.PicksUpdateResponse;
 import app.bottlenote.picks.event.PicksEventPublisher;
 import app.bottlenote.picks.repository.PicksRepository;
 import app.bottlenote.user.domain.User;
-import app.bottlenote.user.repository.UserCommandRepository;
-import java.util.Optional;
+import app.bottlenote.user.domain.UserQueryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -26,6 +18,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
+
+import static app.bottlenote.picks.domain.PicksStatus.PICK;
+import static app.bottlenote.picks.domain.PicksStatus.UNPICK;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 
 
 @Tag("unit")
@@ -37,7 +38,7 @@ class PicksCommandServiceTest {
 	private PicksCommandService picksCommandService;
 
 	@Mock
-	private UserCommandRepository userRepository;
+	private UserQueryRepository userRepository;
 
 	@Mock
 	private AlcoholQueryRepository alcoholQueryRepository;

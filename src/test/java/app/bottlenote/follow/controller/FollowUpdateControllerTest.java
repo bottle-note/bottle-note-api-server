@@ -1,14 +1,15 @@
 package app.bottlenote.follow.controller;
 
 
-import app.bottlenote.follow.domain.constant.FollowStatus;
-import app.bottlenote.follow.dto.request.FollowUpdateRequest;
-import app.bottlenote.follow.dto.response.FollowUpdateResponse;
-import app.bottlenote.follow.exception.FollowException;
-import app.bottlenote.follow.exception.FollowExceptionCode;
-import app.bottlenote.follow.service.FollowService;
 import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.user.controller.FollowController;
+import app.bottlenote.user.domain.constant.FollowStatus;
+import app.bottlenote.user.dto.request.FollowUpdateRequest;
+import app.bottlenote.user.dto.response.FollowUpdateResponse;
+import app.bottlenote.user.exception.FollowException;
+import app.bottlenote.user.exception.FollowExceptionCode;
+import app.bottlenote.user.service.FollowService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

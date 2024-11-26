@@ -1,20 +1,12 @@
 package app.bottlenote.user.service;
 
-import static app.bottlenote.user.exception.UserExceptionCode.USER_NICKNAME_NOT_VALID;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
-
 import app.bottlenote.user.domain.User;
+import app.bottlenote.user.domain.UserQueryRepository;
 import app.bottlenote.user.domain.constant.UserStatus;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
 import app.bottlenote.user.dto.response.NicknameChangeResponse;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.fixture.UserObjectFixture;
-import app.bottlenote.user.repository.UserCommandRepository;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -22,6 +14,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
+
+import static app.bottlenote.user.exception.UserExceptionCode.USER_NICKNAME_NOT_VALID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.when;
 
 @Tag("unit")
 @DisplayName("[unit] [service] UserCommandService")
@@ -32,7 +33,7 @@ class UserCommandServiceTest {
 	UserCommandService userCommandService;
 
 	@Mock
-	UserCommandRepository userCommandRepository;
+	UserQueryRepository userQueryRepository;
 
 	@Test
 	@DisplayName("닉네임을 변경할수 있다.")
@@ -48,14 +49,14 @@ class UserCommandServiceTest {
 		NicknameChangeRequest request = new NicknameChangeRequest(newNickname);
 
 		// when
-		when(userCommandRepository.existsByNickName(newNickname)).thenReturn(false);
-		when(userCommandRepository.findById(any())).thenReturn(Optional.of(user));
+		when(userQueryRepository.existsByNickName(newNickname)).thenReturn(false);
+		when(userQueryRepository.findById(any())).thenReturn(Optional.of(user));
 
 
 		NicknameChangeResponse response = userCommandService.nicknameChange(userId, request);
 
 		// then
-		assertEquals(response.getMessage(), NicknameChangeResponse.Message.SUCCESS.getMessage());
+		assertEquals(response.getMessage(), NicknameChangeResponse.Message.SUCCESS.getResponseName());
 		assertEquals(response.getUserId(), userId);
 		assertEquals(response.getBeforeNickname(), beforeNickname);
 		assertEquals(response.getChangedNickname(), newNickname);
@@ -73,7 +74,7 @@ class UserCommandServiceTest {
 		NicknameChangeRequest request = new NicknameChangeRequest(newNickname);
 
 		// when
-		when(userCommandRepository.existsByNickName(newNickname)).thenReturn(true);
+		when(userQueryRepository.existsByNickName(newNickname)).thenReturn(true);
 		UserException aThrows = assertThrows(UserException.class, () -> userCommandService.nicknameChange(userId, request));
 
 		// then
@@ -88,7 +89,7 @@ class UserCommandServiceTest {
 		User user = UserObjectFixture.getUserFixtureObject();
 
 		// when
-		when(userCommandRepository.findById(anyLong()))
+		when(userQueryRepository.findById(anyLong()))
 			.thenReturn(Optional.of(user));
 
 		userCommandService.withdrawUser(userId);
@@ -104,7 +105,7 @@ class UserCommandServiceTest {
 		Long userId = 1L;
 
 		// when
-		when(userCommandRepository.findById(anyLong()))
+		when(userQueryRepository.findById(anyLong()))
 			.thenReturn(Optional.empty());
 
 		// then

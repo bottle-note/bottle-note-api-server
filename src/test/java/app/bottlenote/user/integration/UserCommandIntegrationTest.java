@@ -1,20 +1,11 @@
 package app.bottlenote.user.integration;
 
-import static app.bottlenote.user.domain.constant.UserStatus.DELETED;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.user.domain.UserQueryRepository;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.WithdrawUserResultResponse;
-import app.bottlenote.user.repository.UserCommandRepository;
-import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -25,13 +16,23 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.nio.charset.StandardCharsets;
+
+import static app.bottlenote.user.domain.constant.UserStatus.DELETED;
+import static org.junit.Assert.assertEquals;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @Tag("integration")
 @DisplayName("[integration] [controller] UserCommandController")
 @WithMockUser
 class UserCommandIntegrationTest extends IntegrationTestSupport {
 
 	@Autowired
-	private UserCommandRepository userCommandRepository;
+	private UserQueryRepository userQueryRepository;
 
 	private OauthRequest oauthRequest;
 
@@ -64,7 +65,7 @@ class UserCommandIntegrationTest extends IntegrationTestSupport {
 		GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
 		WithdrawUserResultResponse withdrawUserResultResponse = mapper.convertValue(response.getData(), WithdrawUserResultResponse.class);
 
-		userCommandRepository.findById(withdrawUserResultResponse.userId())
+		userQueryRepository.findById(withdrawUserResultResponse.userId())
 			.ifPresent(withdraw -> assertEquals(DELETED, withdraw.getStatus()));
 	}
 }

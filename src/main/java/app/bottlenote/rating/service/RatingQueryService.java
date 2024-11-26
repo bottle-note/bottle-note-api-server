@@ -7,18 +7,18 @@ import app.bottlenote.rating.dto.dsl.RatingListFetchCriteria;
 import app.bottlenote.rating.dto.request.RatingListFetchRequest;
 import app.bottlenote.rating.dto.response.RatingListFetchResponse;
 import app.bottlenote.rating.dto.response.UserRatingResponse;
-import app.bottlenote.user.service.domain.UserDomainSupport;
+import app.bottlenote.user.service.domain.UserFacade;
 import org.springframework.stereotype.Service;
 
 @Service
 public class RatingQueryService {
 	private final RatingRepository ratingRepository;
-	private final UserDomainSupport userDomainSupport;
+	private final UserFacade userDomainSupport;
 	private final AlcoholDomainSupport alcoholDomainSupport;
 
 	public RatingQueryService(
 		RatingRepository ratingRepository,
-		UserDomainSupport userDomainSupport,
+		UserFacade userDomainSupport,
 		AlcoholDomainSupport alcoholDomainSupport
 	) {
 		this.ratingRepository = ratingRepository;

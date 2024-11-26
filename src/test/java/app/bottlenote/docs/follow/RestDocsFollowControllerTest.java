@@ -1,15 +1,15 @@
 package app.bottlenote.docs.follow;
 
 import app.bottlenote.docs.AbstractRestDocs;
-import app.bottlenote.follow.controller.FollowController;
-import app.bottlenote.follow.domain.constant.FollowStatus;
-import app.bottlenote.follow.dto.request.FollowUpdateRequest;
-import app.bottlenote.follow.dto.response.FollowSearchResponse;
-import app.bottlenote.follow.dto.response.FollowUpdateResponse;
 import app.bottlenote.follow.fixture.FollowQueryFixture;
-import app.bottlenote.follow.service.FollowService;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.user.controller.FollowController;
+import app.bottlenote.user.domain.constant.FollowStatus;
+import app.bottlenote.user.dto.request.FollowUpdateRequest;
+import app.bottlenote.user.dto.response.FollowSearchResponse;
+import app.bottlenote.user.dto.response.FollowUpdateResponse;
+import app.bottlenote.user.service.FollowService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -107,7 +107,7 @@ class RestDocsFollowControllerTest extends AbstractRestDocs {
 		PageResponse<FollowSearchResponse> response = followQueryFixture.getPageResponse();
 
 		// when
-		when(followService.findFollowList(any(), any())).thenReturn(response);
+		when(followService.getRelationList(any(), any())).thenReturn(response);
 
 		// then
 		mockMvc.perform(get("/api/v1/follow/1")
