@@ -1,11 +1,5 @@
 package app.bottlenote.support.help.service;
 
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.DELETE_SUCCESS;
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.MODIFY_SUCCESS;
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
-import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_AUTHORIZED;
-import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
-
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.support.help.domain.Help;
 import app.bottlenote.support.help.dto.HelpImageInfo;
@@ -16,18 +10,24 @@ import app.bottlenote.support.help.dto.response.HelpListResponse;
 import app.bottlenote.support.help.dto.response.HelpResultResponse;
 import app.bottlenote.support.help.exception.HelpException;
 import app.bottlenote.support.help.repository.HelpRepository;
-import app.bottlenote.user.service.domain.UserDomainSupport;
+import app.bottlenote.user.service.domain.UserFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.DELETE_SUCCESS;
+import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
+import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_AUTHORIZED;
+import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class HelpService {
 
-	private final UserDomainSupport userDomainSupport;
+	private final UserFacade userDomainSupport;
 	private final HelpRepository helpRepository;
 
 	@Transactional
@@ -60,7 +60,7 @@ public class HelpService {
 		Help help = helpRepository.findById(helpId)
 			.orElseThrow(() -> new HelpException(HELP_NOT_FOUND));
 
-		if (!help.isMyHelpPost(currentUserId)){
+		if (!help.isMyHelpPost(currentUserId)) {
 			throw new HelpException(HELP_NOT_AUTHORIZED);
 		}
 
@@ -80,7 +80,7 @@ public class HelpService {
 		Help help = helpRepository.findById(helpId)
 			.orElseThrow(() -> new HelpException(HELP_NOT_FOUND));
 
-		if (!help.isMyHelpPost(currentUserId)){
+		if (!help.isMyHelpPost(currentUserId)) {
 			throw new HelpException(HELP_NOT_AUTHORIZED);
 		}
 

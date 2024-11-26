@@ -23,8 +23,8 @@ public class ImageUploadService implements PreSignUrlProvider {
 	private final ApplicationEventPublisher eventPublisher;
 	private final AmazonS3 amazonS3;
 
-	private final static Integer EXPIRY_TIME = 5;
-	private final String ImageBucketName;
+	private static final Integer EXPIRY_TIME = 5;
+	private final String imageBucketName;
 	private final String cloudFrontUrl;
 
 	public ImageUploadService(
@@ -37,7 +37,7 @@ public class ImageUploadService implements PreSignUrlProvider {
 	) {
 		this.eventPublisher = eventPublisher;
 		this.amazonS3 = amazonS3;
-		this.ImageBucketName = imageBucketName;
+		this.imageBucketName = imageBucketName;
 		this.cloudFrontUrl = cloudFrontUrl;
 	}
 
@@ -64,10 +64,10 @@ public class ImageUploadService implements PreSignUrlProvider {
 					.build()
 			);
 		}
-		eventPublisher.publishEvent(S3RequestEvent.of("s3 Image upload", ImageBucketName, uploadSize));
+		eventPublisher.publishEvent(S3RequestEvent.of("s3 Image upload", imageBucketName, uploadSize));
 
 		return ImageUploadResponse.builder()
-			.bucketName(ImageBucketName)
+			.bucketName(imageBucketName)
 			.expiryTime(EXPIRY_TIME)
 			.uploadSize(keys.size())
 			.imageUploadInfo(keys)
@@ -85,7 +85,7 @@ public class ImageUploadService implements PreSignUrlProvider {
 	public String generatePreSignUrl(String imageKey) {
 		Calendar uploadExpiryTime = getUploadExpiryTime(EXPIRY_TIME);
 		return amazonS3.generatePresignedUrl(
-			ImageBucketName,
+			imageBucketName,
 			imageKey,
 			uploadExpiryTime.getTime(),
 			HttpMethod.PUT

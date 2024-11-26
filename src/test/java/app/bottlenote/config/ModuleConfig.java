@@ -1,14 +1,14 @@
 package app.bottlenote.config;
 
 import app.bottlenote.alcohols.repository.AlcoholQuerySupporter;
-import app.bottlenote.follow.repository.FollowQuerySupporter;
-import app.bottlenote.follow.repository.FollowerQuerySupporter;
 import app.bottlenote.global.data.serializers.CustomDeserializers;
 import app.bottlenote.global.data.serializers.CustomDeserializers.TagListDeserializer;
 import app.bottlenote.global.data.serializers.CustomSerializers;
 import app.bottlenote.global.data.serializers.CustomSerializers.TagListSerializer;
 import app.bottlenote.rating.repository.RatingQuerySupporter;
 import app.bottlenote.review.repository.ReviewQuerySupporter;
+import app.bottlenote.user.repository.FollowQuerySupporter;
+import app.bottlenote.user.repository.FollowerQuerySupporter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
