@@ -18,9 +18,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 
 import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
 
@@ -33,7 +33,7 @@ public class OauthService {
 	private final JwtTokenProvider tokenProvider;
 	private final JwtAuthenticationManager authenticationManager;
 	private final JsonArrayConverter converter;
-	private final Random randomValue = new Random();
+	private final SecureRandom randomValue = new SecureRandom();
 
 	@Transactional
 	public TokenDto login(OauthRequest oauthReq) {
