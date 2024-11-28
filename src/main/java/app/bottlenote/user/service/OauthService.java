@@ -28,7 +28,6 @@ import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TO
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class OauthService {
 	private final OauthRepository oauthRepository;
 	private final JwtTokenProvider tokenProvider;
@@ -36,6 +35,7 @@ public class OauthService {
 	private final JsonArrayConverter converter;
 	private final Random randomValue = new Random();
 
+	@Transactional
 	public TokenDto login(OauthRequest oauthReq) {
 		final String email = oauthReq.email();
 		final SocialType socialType = oauthReq.socialType();
@@ -49,6 +49,7 @@ public class OauthService {
 		return token;
 	}
 
+	@Transactional
 	public TokenDto guestLogin() {
 		User guest = oauthRepository.loadGuestUser()
 			.orElseGet(() -> oauthSignUp("guest@bottlenote.com", SocialType.APPLE, GenderType.MALE, 30, UserType.ROLE_GUEST));
@@ -74,6 +75,7 @@ public class OauthService {
 		return oauthRepository.save(user);
 	}
 
+	@Transactional
 	public TokenDto refresh(String refreshToken) {
 		//refresh Token 검증
 		if (!JwtTokenValidator.validateToken(refreshToken)) {
@@ -96,7 +98,6 @@ public class OauthService {
 
 		return reissuedToken;
 	}
-
 
 	public String generateNickname() {
 		List<String> a = Arrays.asList("부드러운", "향기로운", "숙성된", "풍부한", "깊은", "황금빛", "오크향의", "스모키한", "달콤한", "강렬한");
