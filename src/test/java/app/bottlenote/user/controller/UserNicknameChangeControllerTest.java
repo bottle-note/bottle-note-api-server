@@ -5,7 +5,7 @@ import app.bottlenote.user.dto.request.NicknameChangeRequest;
 import app.bottlenote.user.dto.response.NicknameChangeResponse;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
-import app.bottlenote.user.service.UserCommandService;
+import app.bottlenote.user.service.UserBasicService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Tag("unit")
 @DisplayName("[unit] [controller] UserNicknameChangeController")
-@WebMvcTest(UserCommandController.class)
+@WebMvcTest(UserBasicController.class)
 @WithMockUser
 class UserNicknameChangeControllerTest {
 
@@ -38,7 +38,7 @@ class UserNicknameChangeControllerTest {
 	@Autowired
 	private ObjectMapper mapper;
 	@MockBean
-	private UserCommandService nicknameChangeService;
+	private UserBasicService nicknameChangeService;
 
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 

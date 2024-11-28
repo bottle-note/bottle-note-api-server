@@ -32,18 +32,18 @@ public class OauthController {
 	public ResponseEntity<?> oauthLogin(@RequestBody @Valid OauthRequest oauthReq,
 										HttpServletResponse response) {
 
-		TokenDto token = oauthService.oauthLogin(oauthReq);
+		TokenDto token = oauthService.login(oauthReq);
 
-		setRefreshTokenInCookie(response, token.getRefreshToken());
+		setRefreshTokenInCookie(response, token.refreshToken());
 
-		return GlobalResponse.ok(OauthResponse.of(token.getAccessToken()));
+		return GlobalResponse.ok(OauthResponse.of(token.accessToken()));
 	}
 
 	@PostMapping("/guest")
 	public ResponseEntity<?> guestLogin(HttpServletResponse response) {
 		TokenDto token = oauthService.guestLogin();
-		setRefreshTokenInCookie(response, token.getRefreshToken());
-		return GlobalResponse.ok(OauthResponse.of(token.getAccessToken()));
+		setRefreshTokenInCookie(response, token.refreshToken());
+		return GlobalResponse.ok(OauthResponse.of(token.accessToken()));
 	}
 
 	@PostMapping("/reissue")
@@ -56,9 +56,9 @@ public class OauthController {
 
 		TokenDto token = oauthService.refresh(refreshToken);
 
-		setRefreshTokenInCookie(response, token.getRefreshToken());
+		setRefreshTokenInCookie(response, token.refreshToken());
 
-		return GlobalResponse.ok(OauthResponse.of(token.getAccessToken()));
+		return GlobalResponse.ok(OauthResponse.of(token.accessToken()));
 	}
 
 	private void setRefreshTokenInCookie(HttpServletResponse response, String refreshToken) {

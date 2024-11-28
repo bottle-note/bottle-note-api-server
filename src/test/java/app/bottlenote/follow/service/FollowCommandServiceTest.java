@@ -8,7 +8,7 @@ import app.bottlenote.follow.exception.FollowException;
 import app.bottlenote.follow.exception.FollowExceptionCode;
 import app.bottlenote.follow.repository.follow.FollowRepository;
 import app.bottlenote.user.domain.User;
-import app.bottlenote.user.repository.UserCommandRepository;
+import app.bottlenote.user.domain.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -37,7 +37,7 @@ class FollowCommandServiceTest {
 	private FollowRepository followRepository;
 
 	@Mock
-	private UserCommandRepository userCommandRepository;
+	private UserRepository userCommandRepository;
 
 	@Test
 	@DisplayName("다른 유저를 팔로우 할 수 있다.")

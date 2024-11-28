@@ -1,4 +1,4 @@
-package app.bottlenote.user.repository.custom;
+package app.bottlenote.user.repository;
 
 import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
 import app.bottlenote.user.dto.response.MyBottleResponse;

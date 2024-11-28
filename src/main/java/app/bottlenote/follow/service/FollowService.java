@@ -11,9 +11,9 @@ import app.bottlenote.follow.exception.FollowExceptionCode;
 import app.bottlenote.follow.repository.follow.FollowRepository;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.user.domain.User;
+import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
-import app.bottlenote.user.repository.UserCommandRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class FollowService {
 
 	private final FollowRepository followRepository;
-	private final UserCommandRepository userRepository;
+	private final UserRepository userRepository;
 
 	@Transactional
 	public FollowUpdateResponse updateFollowStatus(FollowUpdateRequest request, Long userId) {

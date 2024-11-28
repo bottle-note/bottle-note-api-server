@@ -1,7 +1,5 @@
 package app.bottlenote.picks.service;
 
-import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
-
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.exception.AlcoholException;
@@ -13,20 +11,22 @@ import app.bottlenote.picks.dto.response.PicksUpdateResponse;
 import app.bottlenote.picks.event.PicksEventPublisher;
 import app.bottlenote.picks.repository.PicksRepository;
 import app.bottlenote.user.domain.User;
+import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
-import app.bottlenote.user.repository.UserCommandRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class PicksCommandService {
 
-	private final UserCommandRepository userRepository;
+	private final UserRepository userRepository;
 	private final AlcoholQueryRepository alcoholQueryRepository;
 	private final PicksRepository picksRepository;
 	private final PicksEventPublisher picksEventPublisher;
@@ -56,7 +56,7 @@ public class PicksCommandService {
 
 		log.info("pick.getStatus() : {}", picks.getStatus());
 		log.info("request.isPicked() : {}", request.isPicked());
-		
+
 		if (picks.getStatus() != request.isPicked()) {
 			picksEventPublisher.picksRegistry(
 				PicksRegistryEvent.of(picks.getAlcohol().getId(), picks.getUser().getId(), request.isPicked()));

@@ -45,11 +45,11 @@ public abstract class IntegrationTestSupport {
 	@Autowired
 	protected MockMvc mockMvc;
 	@Autowired
-	private DataInitializer dataInitializer;
-	@Autowired
 	protected OauthService oauthService;
 	@Autowired
 	protected OauthRepository oauthRepository;
+	@Autowired
+	private DataInitializer dataInitializer;
 	@Autowired
 	private JwtTokenProvider jwtTokenProvider;
 
@@ -62,13 +62,13 @@ public abstract class IntegrationTestSupport {
 	}
 
 	protected TokenDto getToken(OauthRequest request) {
-		return oauthService.oauthLogin(request);
+		return oauthService.login(request);
 	}
 
 	protected String getToken() {
 		User user = oauthRepository.getFirstUser().orElseThrow(() -> new RuntimeException("init 처리된 유저가 없습니다."));
 		TokenDto token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
-		return token.getAccessToken();
+		return token.accessToken();
 	}
 
 	protected Long getTokenUserId() {

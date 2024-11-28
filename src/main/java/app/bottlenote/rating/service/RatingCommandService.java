@@ -12,14 +12,15 @@ import app.bottlenote.rating.event.publihser.RatingEventPublisher;
 import app.bottlenote.rating.exception.RatingException;
 import app.bottlenote.rating.exception.RatingExceptionCode;
 import app.bottlenote.user.domain.User;
-import app.bottlenote.user.domain.UserQueryRepository;
+import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import jakarta.transaction.Transactional;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -27,7 +28,7 @@ import org.springframework.stereotype.Service;
 public class RatingCommandService {
 
 	private final RatingRepository ratingRepository;
-	private final UserQueryRepository userQueryRepository;
+	private final UserRepository userRepository;
 	private final AlcoholQueryRepository alcoholQueryRepository;
 	private final RatingEventPublisher ratingEventPublisher;
 
@@ -41,7 +42,7 @@ public class RatingCommandService {
 		Objects.requireNonNull(userId, "유저 ID는 필수 값입니다.");
 		Objects.requireNonNull(ratingPoint, "별점은 필수 값입니다.");
 
-		User user = userQueryRepository.findById(userId)
+		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
 
 		Alcohol alcohol = alcoholQueryRepository.findById(alcoholId)

@@ -2,11 +2,11 @@ package app.bottlenote.docs.user;
 
 import app.bottlenote.docs.AbstractRestDocs;
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.user.controller.UserCommandController;
+import app.bottlenote.user.controller.UserBasicController;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
 import app.bottlenote.user.dto.response.NicknameChangeResponse;
 import app.bottlenote.user.dto.response.ProfileImageChangeResponse;
-import app.bottlenote.user.service.UserCommandService;
+import app.bottlenote.user.service.UserBasicService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -36,12 +36,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("닉네임 변경 RestDocs용 테스트")
 class RestDocsUserChangeContollerTest extends AbstractRestDocs {
 
-	private final UserCommandService userCommandService = mock(UserCommandService.class);
+	private final UserBasicService userCommandService = mock(UserBasicService.class);
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
 	@Override
 	protected Object initController() {
-		return new UserCommandController(userCommandService);
+		return new UserBasicController(userCommandService);
 	}
 
 	@BeforeEach

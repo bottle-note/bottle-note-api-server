@@ -6,7 +6,7 @@ import app.bottlenote.user.controller.UserQueryController;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
 import app.bottlenote.user.fixture.UserQueryFixture;
-import app.bottlenote.user.service.UserQueryService;
+import app.bottlenote.user.service.UserBasicService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("[restdocs] 마이페이지 컨트롤러 RestDocs용 테스트")
 public class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 
-	private final UserQueryService userQueryService = mock(UserQueryService.class);
+	private final UserBasicService userQueryService = mock(UserBasicService.class);
 	private final UserQueryFixture mypageQueryFixture = new UserQueryFixture();
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
@@ -60,7 +60,7 @@ public class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 		MyPageResponse myPageUserInfo = mypageQueryFixture.getMyPageInfo();
 
 		// when
-		Mockito.when(userQueryService.getMypage(any(), any())).thenReturn(myPageUserInfo);
+		Mockito.when(userQueryService.getMyPage(any(), any())).thenReturn(myPageUserInfo);
 
 		// then
 		mockMvc.perform(get("/api/v1/my-page/{userId}", userId)

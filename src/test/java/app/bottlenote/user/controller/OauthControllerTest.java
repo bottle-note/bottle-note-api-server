@@ -70,7 +70,7 @@ class OauthControllerTest {
 			.build();
 
 		//when
-		when(oauthService.oauthLogin(oauthRequest)).thenReturn(tokenDto);
+		when(oauthService.login(oauthRequest)).thenReturn(tokenDto);
 
 		//then
 		mockMvc.perform(post("/api/v1/oauth/login")
@@ -98,7 +98,7 @@ class OauthControllerTest {
 
 
 		//when
-		when(oauthService.oauthLogin(oauthRequest)).thenReturn(tokenDto);
+		when(oauthService.login(oauthRequest)).thenReturn(tokenDto);
 
 		//then
 		mockMvc.perform(post("/api/v1/oauth/login")
@@ -121,7 +121,7 @@ class OauthControllerTest {
 			GenderType.MALE, -10);
 
 		//when
-		when(oauthService.oauthLogin(oauthRequest)).thenReturn(tokenDto);
+		when(oauthService.login(oauthRequest)).thenReturn(tokenDto);
 
 		//then
 		mockMvc.perform(post("/api/v1/oauth/login")

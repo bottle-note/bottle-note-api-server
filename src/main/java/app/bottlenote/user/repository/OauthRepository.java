@@ -9,7 +9,14 @@ import java.util.Optional;
 
 public interface OauthRepository extends CrudRepository<User, Long> {
 
-	@Query(value = "SELECT * FROM users u WHERE u.email = :email AND JSON_CONTAINS(u.social_type, JSON_QUOTE(:socialType), '$')", nativeQuery = true)
+	@Query(value =
+		"""
+			SELECT u.*
+			FROM users u
+			WHERE u.email = :email
+			   AND JSON_CONTAINS(u.social_type, JSON_QUOTE(:socialType), '$')
+			""",
+		nativeQuery = true)
 	Optional<User> findByEmailAndSocialType(@Param("email") String email, @Param("socialType") String socialType);
 
 	Optional<User> findByNickName(String nickName);

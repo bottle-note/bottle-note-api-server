@@ -28,14 +28,15 @@ import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TO
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional // 추후에 로그인, 회원가입 관련 기능 추가시 proxy transactional 분리를 고려해야함.(ex. 로그인은 읽기전용, 회원가입은 쓰기전용.. 등)
+@Transactional
 public class OauthService {
 	private final OauthRepository oauthRepository;
 	private final JwtTokenProvider tokenProvider;
 	private final JwtAuthenticationManager authenticationManager;
 	private final JsonArrayConverter converter;
+	private final Random random = new Random();
 
-	public TokenDto oauthLogin(OauthRequest oauthReq) {
+	public TokenDto login(OauthRequest oauthReq) {
 		final String email = oauthReq.email();
 		final SocialType socialType = oauthReq.socialType();
 		final GenderType genderType = oauthReq.gender();
@@ -44,7 +45,7 @@ public class OauthService {
 		User user = oauthRepository.findByEmail(email).orElseGet(() -> oauthSignUp(email, socialType, genderType, age, UserType.ROLE_USER));
 		user.addSocialType(oauthReq.socialType());
 		TokenDto token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
-		user.updateRefreshToken(token.getRefreshToken());
+		user.updateRefreshToken(token.refreshToken());
 		return token;
 	}
 
@@ -55,7 +56,6 @@ public class OauthService {
 	}
 
 	public String generateNickname() {
-		Random random = new Random();
 		List<String> a = Arrays.asList("부드러운", "향기로운", "숙성된", "풍부한", "깊은", "황금빛", "오크향의", "스모키한", "달콤한", "강렬한");
 		List<String> b = Arrays.asList("몰트", "버번", "위스키", "바텐더", "오크통", "싱글몰트", "블렌디드", "아이리시", "스카치", "캐스크");
 		List<String> c = Arrays.asList("글렌피딕", "맥캘란", "라가불린", "탈리스커", "조니워커", "제임슨", "야마자키", "부카나스", "불릿", "잭다니엘스");
@@ -103,9 +103,8 @@ public class OauthService {
 			user.getRole(), user.getId());
 
 		// DB에 저장된 refresh 토큰을 재발급한 refresh 토큰으로 업데이트
-		user.updateRefreshToken(reissuedToken.getRefreshToken());
+		user.updateRefreshToken(reissuedToken.refreshToken());
 
 		return reissuedToken;
 	}
-
 }
