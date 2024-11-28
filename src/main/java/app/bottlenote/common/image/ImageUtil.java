@@ -1,5 +1,8 @@
 package app.bottlenote.common.image;
 
+import lombok.experimental.UtilityClass;
+
+@UtilityClass
 public class ImageUtil {
 
 	private static String[] splitPath(String imageUrl) {

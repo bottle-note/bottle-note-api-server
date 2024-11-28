@@ -21,10 +21,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.follow.domain.QFollow.follow;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
+import static app.bottlenote.user.domain.QFollow.follow;
 import static com.querydsl.jpa.JPAExpressions.select;
 
 @Component
@@ -85,7 +85,7 @@ public class UserQuerySupporter {
 		return ExpressionUtils.as(
 			select(follow.count())
 				.from(follow)
-				.where(follow.user.id.eq(userId)),
+				.where(follow.userId.eq(userId)),
 			"followCount"
 		);
 	}
@@ -115,7 +115,7 @@ public class UserQuerySupporter {
 	public BooleanExpression isFollowSubQuery(NumberPath<Long> userId, Long currentUserId) {
 		return select(follow.count())
 			.from(follow)
-			.where(follow.user.id.eq(currentUserId)
+			.where(follow.userId.eq(currentUserId)
 				.and(follow.followUser.id.eq(userId)))
 			.gt(0L);
 	}

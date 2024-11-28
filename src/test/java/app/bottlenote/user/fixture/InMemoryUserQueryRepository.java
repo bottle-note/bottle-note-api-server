@@ -15,10 +15,6 @@ import java.util.Optional;
 public class InMemoryUserQueryRepository implements UserRepository {
 
 	private final Map<Long, User> users = new HashMap<>();
-	private final Map<Long, List<String>> picks = new HashMap<>(); // userId -> Picks
-	private final Map<Long, List<String>> reviews = new HashMap<>(); // userId -> Reviews
-	private final Map<Long, List<Double>> ratings = new HashMap<>(); // userId -> Ratings
-
 
 	@Override
 	public User save(User user) {
@@ -36,11 +32,6 @@ public class InMemoryUserQueryRepository implements UserRepository {
 	@Override
 	public List<User> findAll() {
 		return users.values().stream().toList();
-	}
-
-	@Override
-	public List<User> findAllByIdIn(List<Long> ids) {
-		return users.values().stream().filter(User -> ids.contains(User.getId())).toList();
 	}
 
 	@Override

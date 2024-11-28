@@ -1,4 +1,4 @@
-package app.bottlenote.follow.dto.request;
+package app.bottlenote.user.dto.request;
 
 import lombok.Builder;
 

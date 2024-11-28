@@ -1,8 +1,8 @@
-package app.bottlenote.follow.repository;
+package app.bottlenote.user.repository;
 
-import app.bottlenote.follow.dto.dsl.FollowPageableCriteria;
-import app.bottlenote.follow.dto.response.FollowDetail;
 import app.bottlenote.global.service.cursor.CursorPageable;
+import app.bottlenote.user.dto.dsl.FollowPageableCriteria;
+import app.bottlenote.user.dto.response.FollowingDetail;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.dsl.NumberPath;
@@ -37,8 +37,8 @@ public class FollowQuerySupporter {
 	}
 
 
-	public CursorPageable followCursorPageable(FollowPageableCriteria criteria, List<FollowDetail> followDetails) {
-		boolean hasNext = isHasNext(criteria, followDetails);
+	public CursorPageable followCursorPageable(FollowPageableCriteria criteria, List<FollowingDetail> followingDetails) {
+		boolean hasNext = isHasNext(criteria, followingDetails);
 		return CursorPageable.builder()
 			.cursor(criteria.cursor() + criteria.pageSize())
 			.pageSize(criteria.pageSize())
@@ -47,7 +47,7 @@ public class FollowQuerySupporter {
 			.build();
 	}
 
-	private boolean isHasNext(FollowPageableCriteria criteria, List<FollowDetail> fetch) {
+	private boolean isHasNext(FollowPageableCriteria criteria, List<FollowingDetail> fetch) {
 		boolean hasNext = fetch.size() > criteria.pageSize();
 
 		if (hasNext) {

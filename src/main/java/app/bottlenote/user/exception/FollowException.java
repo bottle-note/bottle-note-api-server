@@ -1,4 +1,4 @@
-package app.bottlenote.follow.exception;
+package app.bottlenote.user.exception;
 
 import app.bottlenote.global.exception.custom.AbstractCustomException;
 

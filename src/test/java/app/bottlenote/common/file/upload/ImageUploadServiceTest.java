@@ -46,7 +46,7 @@ class ImageUploadServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		ReflectionTestUtils.setField(imageUploadService, "ImageBucketName", "image-bucket");
+		ReflectionTestUtils.setField(imageUploadService, "imageBucketName", "image-bucket");
 		ReflectionTestUtils.setField(imageUploadService, "cloudFrontUrl", "https://testUrl.cloudfront.net");
 	}
 

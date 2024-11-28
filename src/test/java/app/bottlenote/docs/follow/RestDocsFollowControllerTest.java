@@ -1,15 +1,15 @@
 package app.bottlenote.docs.follow;
 
 import app.bottlenote.docs.AbstractRestDocs;
-import app.bottlenote.follow.controller.FollowController;
-import app.bottlenote.follow.domain.constant.FollowStatus;
-import app.bottlenote.follow.dto.request.FollowUpdateRequest;
-import app.bottlenote.follow.dto.response.FollowSearchResponse;
-import app.bottlenote.follow.dto.response.FollowUpdateResponse;
 import app.bottlenote.follow.fixture.FollowQueryFixture;
-import app.bottlenote.follow.service.FollowService;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.user.controller.FollowController;
+import app.bottlenote.user.domain.constant.FollowStatus;
+import app.bottlenote.user.dto.request.FollowUpdateRequest;
+import app.bottlenote.user.dto.response.FollowSearchResponse;
+import app.bottlenote.user.dto.response.FollowUpdateResponse;
+import app.bottlenote.user.service.FollowService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -107,10 +107,10 @@ class RestDocsFollowControllerTest extends AbstractRestDocs {
 		PageResponse<FollowSearchResponse> response = followQueryFixture.getPageResponse();
 
 		// when
-		when(followService.findFollowList(any(), any())).thenReturn(response);
+		when(followService.getRelationList(any(), any())).thenReturn(response);
 
 		// then
-		mockMvc.perform(get("/api/v1/follow/1")
+		mockMvc.perform(get("/api/v1/follow/1/relation-list")
 				.param("cursor", "0")
 				.param("pageSize", "50")
 				.with(csrf()))
@@ -125,13 +125,22 @@ class RestDocsFollowControllerTest extends AbstractRestDocs {
 					fieldWithPath("success").description("응답 성공 여부"),
 					fieldWithPath("code").description("응답 코드(http status code)"),
 					fieldWithPath("data.totalCount").description("총 팔로우 수"),
-					fieldWithPath("data.followList[].userId").description("팔로우한 유저의 아이디"),
-					fieldWithPath("data.followList[].followUserId").description("팔로우 유저의 아이디"),
-					fieldWithPath("data.followList[].nickName").description("팔로우한 유저의 닉네임"),
-					fieldWithPath("data.followList[].userProfileImage").description("팔로우한 유저의 프로필 이미지 URL"),
-					fieldWithPath("data.followList[].status").description("팔로우 상태"),
-					fieldWithPath("data.followList[].reviewCount").description("리뷰 수"),
-					fieldWithPath("data.followList[].ratingCount").description("평점 수"),
+					// followingList 필드들
+					fieldWithPath("data.followingList[].userId").description("팔로잉한 유저의 아이디"),
+					fieldWithPath("data.followingList[].followUserId").description("팔로우 유저의 아이디"),
+					fieldWithPath("data.followingList[].nickName").description("팔로잉한 유저의 닉네임"),
+					fieldWithPath("data.followingList[].userProfileImage").description("팔로잉한 유저의 프로필 이미지 URL"),
+					fieldWithPath("data.followingList[].status").description("팔로우 상태"),
+					fieldWithPath("data.followingList[].reviewCount").description("리뷰 수"),
+					fieldWithPath("data.followingList[].ratingCount").description("평점 수"),
+					// followerList 필드들
+					fieldWithPath("data.followerList[].userId").description("팔로워 유저의 아이디"),
+					fieldWithPath("data.followerList[].followUserId").description("팔로우 유저의 아이디"),
+					fieldWithPath("data.followerList[].nickName").description("팔로워 유저의 닉네임"),
+					fieldWithPath("data.followerList[].userProfileImage").description("팔로워 유저의 프로필 이미지 URL"),
+					fieldWithPath("data.followerList[].status").description("팔로우 상태"),
+					fieldWithPath("data.followerList[].reviewCount").description("리뷰 수"),
+					fieldWithPath("data.followerList[].ratingCount").description("평점 수"),
 					fieldWithPath("errors").ignored(),
 					fieldWithPath("meta.serverEncoding").ignored(),
 					fieldWithPath("meta.serverVersion").ignored(),
