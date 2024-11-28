@@ -62,7 +62,7 @@ public class SecurityConfig {
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers("/api/v1/picks/**").authenticated()
 				.requestMatchers("/api/v1/s3/**").authenticated()
-				.requestMatchers("/api/v1/follow").authenticated()
+				.requestMatchers("/api/v1/follow/**").authenticated()
 				.requestMatchers("/api/v1/reviews/me/**").authenticated()
 				.requestMatchers("/api/v1/reviews/**").authenticated()
 				.requestMatchers("/api/v1/users/**").authenticated()
