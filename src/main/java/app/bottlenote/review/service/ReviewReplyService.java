@@ -11,7 +11,8 @@ import app.bottlenote.review.dto.response.RootReviewReplyInfo;
 import app.bottlenote.review.dto.response.SubReviewReplyInfo;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
-import app.bottlenote.user.service.domain.UserDomainSupport;
+import app.bottlenote.user.service.UserFacade;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
@@ -23,23 +24,14 @@ import java.util.Optional;
 import static app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage.SUCCESS_DELETE_REPLY;
 import static app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY;
 
-@Service
 @Slf4j
+@Service
+@RequiredArgsConstructor
 public class ReviewReplyService {
 
 	private final ReviewRepository reviewRepository;
 	private final ProfanityClient profanityClient;
-	private final UserDomainSupport userDomainSupport;
-
-	public ReviewReplyService(
-		ReviewRepository reviewRepository,
-		ProfanityClient profanityClient,
-		UserDomainSupport userDomainSupport
-	) {
-		this.reviewRepository = reviewRepository;
-		this.profanityClient = profanityClient;
-		this.userDomainSupport = userDomainSupport;
-	}
+	private final UserFacade userDomainSupport;
 
 	/**
 	 * 댓글을 등록합니다.

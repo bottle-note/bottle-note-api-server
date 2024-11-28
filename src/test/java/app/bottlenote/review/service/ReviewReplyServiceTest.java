@@ -14,7 +14,7 @@ import app.bottlenote.review.fixture.ReviewReplyObjectFixture;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
-import app.bottlenote.user.service.domain.UserDomainSupport;
+import app.bottlenote.user.service.UserFacade;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,7 +37,7 @@ class ReviewReplyServiceTest {
 	private static final Logger log = LogManager.getLogger(ReviewReplyServiceTest.class);
 	private ReviewRepository reviewRepository;
 	private ProfanityClient profanityClient;
-	private UserDomainSupport userDomainSupport;
+	private UserFacade userDomainSupport;
 	private ReviewReplyService reviewReplyService;
 
 	@BeforeEach

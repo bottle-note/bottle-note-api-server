@@ -10,26 +10,21 @@ import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.user.dto.response.UserProfileInfo;
-import app.bottlenote.user.service.domain.UserDomainSupport;
+import app.bottlenote.user.service.UserFacade;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class LikesCommandService {
 
-	private final UserDomainSupport userDomainSupport;
+	private final UserFacade userDomainSupport;
 	private final ReviewRepository reviewRepository;
 	private final LikesRepository likesRepository;
 
-	public LikesCommandService(
-		UserDomainSupport userDomainSupport,
-		ReviewRepository reviewRepository,
-		LikesRepository likesRepository
-	) {
-		this.userDomainSupport = userDomainSupport;
-		this.reviewRepository = reviewRepository;
-		this.likesRepository = likesRepository;
-	}
 
 	@Transactional
 	public LikesUpdateResponse updateLikes(

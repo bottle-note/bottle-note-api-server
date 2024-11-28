@@ -2,7 +2,7 @@ package app.bottlenote.docs.user;
 
 import app.bottlenote.docs.AbstractRestDocs;
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.user.controller.UserQueryController;
+import app.bottlenote.user.controller.UserMyPageController;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
 import app.bottlenote.user.fixture.UserQueryFixture;
@@ -38,7 +38,7 @@ public class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 
 	@Override
 	protected Object initController() {
-		return new UserQueryController(userQueryService);
+		return new UserMyPageController(userQueryService);
 	}
 
 	@BeforeEach

@@ -29,13 +29,12 @@ public class OauthController {
 	private final OauthService oauthService;
 
 	@PostMapping("/login")
-	public ResponseEntity<?> oauthLogin(@RequestBody @Valid OauthRequest oauthReq,
-										HttpServletResponse response) {
-
+	public ResponseEntity<?> oauthLogin(
+		@RequestBody @Valid OauthRequest oauthReq,
+		HttpServletResponse response
+	) {
 		TokenDto token = oauthService.login(oauthReq);
-
 		setRefreshTokenInCookie(response, token.refreshToken());
-
 		return GlobalResponse.ok(OauthResponse.of(token.accessToken()));
 	}
 
@@ -69,6 +68,4 @@ public class OauthController {
 		cookie.setMaxAge(COOKIE_EXPIRE_TIME);
 		response.addCookie(cookie);
 	}
-
-
 }

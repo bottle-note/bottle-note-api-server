@@ -30,11 +30,11 @@ import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TO
 @RequiredArgsConstructor
 @Transactional
 public class OauthService {
+	private final Random random = new Random();
 	private final OauthRepository oauthRepository;
 	private final JwtTokenProvider tokenProvider;
 	private final JwtAuthenticationManager authenticationManager;
 	private final JsonArrayConverter converter;
-	private final Random random = new Random();
 
 	public TokenDto login(OauthRequest oauthReq) {
 		final String email = oauthReq.email();
@@ -72,7 +72,6 @@ public class OauthService {
 		Integer age,
 		UserType userType
 	) {
-
 		User user = User.builder()
 			.email(email)
 			.socialType(converter.convertToEntityAttribute(socialType.toString()))

@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Tag("unit")
 @DisplayName("[unit] [controller] UserQueryController")
-@WebMvcTest(UserQueryController.class)
+@WebMvcTest(UserMyPageController.class)
 @WithMockUser
 class UserQueryControllerTest {
 
