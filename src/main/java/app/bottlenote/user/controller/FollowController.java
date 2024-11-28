@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static app.bottlenote.global.data.response.GlobalResponse.success;
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 
 @RestController
@@ -28,26 +27,24 @@ import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByCont
 @RequiredArgsConstructor
 public class FollowController {
 
-	private final FollowService followService;
+    private final FollowService followService;
 
-	@GetMapping("/{userId}/relation-list")
-	public ResponseEntity<GlobalResponse> findFollowList(@PathVariable Long userId, @ModelAttribute FollowPageableRequest pageableRequest) {
+    @GetMapping("/{userId}/relation-list")
+    public ResponseEntity<?> findFollowList(@PathVariable Long userId, @ModelAttribute FollowPageableRequest pageableRequest) {
 
-		PageResponse<FollowSearchResponse> pageResponse = followService.getRelationList(userId, pageableRequest);
+        PageResponse<FollowSearchResponse> pageResponse = followService.getRelationList(userId, pageableRequest);
 
-		return ResponseEntity.ok(
-			GlobalResponse.success(
-				pageResponse.content(),
-				MetaService.createMetaInfo().add("pageable", pageResponse.cursorPageable())
-			)
-		);
-	}
+        return GlobalResponse.ok(
+                pageResponse.content(),
+                MetaService.createMetaInfo().add("pageable", pageResponse.cursorPageable())
+        );
+    }
 
-	@PostMapping
-	public ResponseEntity<GlobalResponse> updateFollowStatus(@RequestBody @Valid FollowUpdateRequest request) {
-		Long userId = getUserIdByContext()
-			.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
+    @PostMapping
+    public ResponseEntity<?> updateFollowStatus(@RequestBody @Valid FollowUpdateRequest request) {
+        Long userId = getUserIdByContext()
+                .orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
 
-		return ResponseEntity.ok(success(followService.updateFollowStatus(request, userId)));
-	}
+        return GlobalResponse.ok(followService.updateFollowStatus(request, userId));
+    }
 }
