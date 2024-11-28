@@ -30,11 +30,11 @@ import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TO
 @RequiredArgsConstructor
 @Transactional
 public class OauthService {
-	private final Random random = new Random();
 	private final OauthRepository oauthRepository;
 	private final JwtTokenProvider tokenProvider;
 	private final JwtAuthenticationManager authenticationManager;
 	private final JsonArrayConverter converter;
+	private final Random randomValue = new Random();
 
 	public TokenDto login(OauthRequest oauthReq) {
 		final String email = oauthReq.email();
@@ -53,16 +53,6 @@ public class OauthService {
 		User guest = oauthRepository.loadGuestUser()
 			.orElseGet(() -> oauthSignUp("guest@bottlenote.com", SocialType.APPLE, GenderType.MALE, 30, UserType.ROLE_GUEST));
 		return tokenProvider.generateToken(guest.getEmail(), guest.getRole(), guest.getId());
-	}
-
-	public String generateNickname() {
-		List<String> a = Arrays.asList("부드러운", "향기로운", "숙성된", "풍부한", "깊은", "황금빛", "오크향의", "스모키한", "달콤한", "강렬한");
-		List<String> b = Arrays.asList("몰트", "버번", "위스키", "바텐더", "오크통", "싱글몰트", "블렌디드", "아이리시", "스카치", "캐스크");
-		List<String> c = Arrays.asList("글렌피딕", "맥캘란", "라가불린", "탈리스커", "조니워커", "제임슨", "야마자키", "부카나스", "불릿", "잭다니엘스");
-		String key = a.get(random.nextInt(a.size()));
-		if (random.nextInt() % 2 == 0) key += b.get(random.nextInt(b.size()));
-		else key += c.get(random.nextInt(c.size()));
-		return key + oauthRepository.getNextNicknameSequence();
 	}
 
 	public User oauthSignUp(
@@ -105,5 +95,16 @@ public class OauthService {
 		user.updateRefreshToken(reissuedToken.refreshToken());
 
 		return reissuedToken;
+	}
+
+
+	public String generateNickname() {
+		List<String> a = Arrays.asList("부드러운", "향기로운", "숙성된", "풍부한", "깊은", "황금빛", "오크향의", "스모키한", "달콤한", "강렬한");
+		List<String> b = Arrays.asList("몰트", "버번", "위스키", "바텐더", "오크통", "싱글몰트", "블렌디드", "아이리시", "스카치", "캐스크");
+		List<String> c = Arrays.asList("글렌피딕", "맥캘란", "라가불린", "탈리스커", "조니워커", "제임슨", "야마자키", "부카나스", "불릿", "잭다니엘스");
+		String key = a.get(randomValue.nextInt(a.size()));
+		if (randomValue.nextInt() % 2 == 0) key += b.get(randomValue.nextInt(b.size()));
+		else key += c.get(randomValue.nextInt(c.size()));
+		return key + oauthRepository.getNextNicknameSequence();
 	}
 }
