@@ -15,7 +15,7 @@ import java.util.Optional;
 public class InMemoryUserQueryRepository implements UserRepository {
 
 	private final Map<Long, User> users = new HashMap<>();
-	
+
 	@Override
 	public User save(User user) {
 		long id = users.size() + 1L;
@@ -32,11 +32,6 @@ public class InMemoryUserQueryRepository implements UserRepository {
 	@Override
 	public List<User> findAll() {
 		return users.values().stream().toList();
-	}
-
-	@Override
-	public Boolean existsByNickName(String nickname) {
-		return users.values().stream().anyMatch(User -> User.getNickName().equals(nickname));
 	}
 
 	@Override

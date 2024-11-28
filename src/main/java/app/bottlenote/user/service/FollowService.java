@@ -3,7 +3,7 @@ package app.bottlenote.user.service;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.user.domain.Follow;
 import app.bottlenote.user.domain.User;
-import app.bottlenote.user.domain.UserQueryRepository;
+import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.dto.dsl.FollowPageableCriteria;
 import app.bottlenote.user.dto.request.FollowPageableRequest;
 import app.bottlenote.user.dto.request.FollowUpdateRequest;
@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class FollowService {
 
 	private final FollowRepository followRepository;
-	private final UserQueryRepository userQueryRepository;
+	private final UserRepository userRepository;
 
 	@Transactional
 	public FollowUpdateResponse updateFollowStatus(FollowUpdateRequest request, Long currentUserId) {
@@ -37,10 +37,10 @@ public class FollowService {
 
 		Follow follow = followRepository.findByUserIdAndFollowUserIdWithFetch(currentUserId, followUserId)
 			.orElseGet(() -> {
-				User user = userQueryRepository.findById(currentUserId)
+				User user = userRepository.findById(currentUserId)
 					.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
 
-				User followUser = userQueryRepository.findById(followUserId)
+				User followUser = userRepository.findById(followUserId)
 					.orElseThrow(() -> new FollowException(FollowExceptionCode.FOLLOW_NOT_FOUND));
 
 				return Follow.builder()

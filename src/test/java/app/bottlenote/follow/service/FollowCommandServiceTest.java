@@ -9,7 +9,7 @@ import app.bottlenote.user.exception.FollowException;
 import app.bottlenote.user.exception.FollowExceptionCode;
 import app.bottlenote.user.repository.FollowRepository;
 import app.bottlenote.user.service.FollowService;
-import app.bottlenote.user.service.domain.UserFacade;
+import app.bottlenote.user.service.UserFacade;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
