@@ -22,7 +22,7 @@ import app.bottlenote.review.dto.vo.ReviewInfo;
 import app.bottlenote.review.dto.vo.ReviewModifyVO;
 import app.bottlenote.review.event.publisher.ReviewEventPublisher;
 import app.bottlenote.review.exception.ReviewException;
-import app.bottlenote.user.service.domain.UserFacade;
+import app.bottlenote.user.service.UserFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

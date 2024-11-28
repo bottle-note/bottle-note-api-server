@@ -1,13 +1,5 @@
 package app.bottlenote.rating.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholQueryRepository;
@@ -20,7 +12,7 @@ import app.bottlenote.rating.event.publihser.RatingEventPublisher;
 import app.bottlenote.rating.exception.RatingException;
 import app.bottlenote.rating.fixture.InMemoryRatingRepository;
 import app.bottlenote.user.domain.User;
-import app.bottlenote.user.domain.UserQueryRepository;
+import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.fixture.InMemoryUserQueryRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +20,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 
 
 @Tag("unit")
@@ -44,7 +44,7 @@ class RatingCommandServiceTest {
 	@BeforeEach
 	void setup() {
 		this.ratingRepository = new InMemoryRatingRepository();
-		UserQueryRepository userQueryRepository = new InMemoryUserQueryRepository();
+		UserRepository userQueryRepository = new InMemoryUserQueryRepository();
 		AlcoholQueryRepository alcoholQueryRepository = new InMemoryAlcoholQueryRepository();
 		ratingEventPublisher = mock(RatingEventPublisher.class);
 

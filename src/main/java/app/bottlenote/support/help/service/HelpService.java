@@ -10,7 +10,7 @@ import app.bottlenote.support.help.dto.response.HelpListResponse;
 import app.bottlenote.support.help.dto.response.HelpResultResponse;
 import app.bottlenote.support.help.exception.HelpException;
 import app.bottlenote.support.help.repository.HelpRepository;
-import app.bottlenote.user.service.domain.UserFacade;
+import app.bottlenote.user.service.UserFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

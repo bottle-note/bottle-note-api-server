@@ -13,7 +13,7 @@ import app.bottlenote.support.help.exception.HelpException;
 import app.bottlenote.support.help.fixture.HelpObjectFixture;
 import app.bottlenote.support.help.repository.HelpRepository;
 import app.bottlenote.user.exception.UserException;
-import app.bottlenote.user.service.domain.UserFacade;
+import app.bottlenote.user.service.UserFacade;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -43,19 +43,16 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class HelpServiceTest {
 
-	@InjectMocks
-	private HelpService helpService;
-
-	@Mock
-	private HelpRepository helpRepository;
-
-	@Mock
-	private UserFacade userDomainSupport;
-
 	private final HelpUpsertRequest helpUpsertRequest = HelpObjectFixture.getHelpUpsertRequest();
 	private final PageResponse<HelpListResponse> helpPageResponse = HelpObjectFixture.getHelpListPageResponse();
 	private final HelpPageableRequest emptyPageableRequest = HelpObjectFixture.getEmptyHelpPageableRequest();
 	private final Help help = HelpObjectFixture.getHelpDefaultFixture();
+	@InjectMocks
+	private HelpService helpService;
+	@Mock
+	private HelpRepository helpRepository;
+	@Mock
+	private UserFacade userDomainSupport;
 
 	@DisplayName("회원은 문의글을 작성할 수 있다.")
 	@Test

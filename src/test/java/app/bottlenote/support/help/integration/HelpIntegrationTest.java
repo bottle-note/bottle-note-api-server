@@ -63,6 +63,26 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
 	}
 
+	@DisplayName("Not null 필드에 null이 할당되면 예외를 반환한다.")
+	@Test
+	void test_1() throws Exception {
+
+		Error error = Error.of(REQUIRED_HELP_TYPE);
+
+		helpUpsertRequest = new HelpUpsertRequest("로그인이 안돼요", null, List.of(new HelpImageInfo(1L, "https://test.com")));
+		// given when
+		mockMvc.perform(post("/api/v1/help")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsBytes(helpUpsertRequest))
+				.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+				.with(csrf())
+			)
+			.andDo(print())
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.errors[?(@.code == 'REQUIRED_HELP_TYPE')].status").value(error.status().name()))
+			.andExpect(jsonPath("$.errors[?(@.code == 'REQUIRED_HELP_TYPE')].message").value(error.message()));
+	}
+
 	@Nested
 	@DisplayName("[Integration] 문의글 작성 통합테스트")
 	class HelpRegisterControllerIntegrationTest extends IntegrationTestSupport {
@@ -70,11 +90,11 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 		@DisplayName("문의글을 작성할 수 있다.")
 		@Test
 		void test_1() throws Exception {
-		    // given when
+			// given when
 			MvcResult result = mockMvc.perform(post("/api/v1/help")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsBytes(helpUpsertRequest))
-					.header("Authorization", "Bearer " + getToken(oauthRequest).getAccessToken())
+					.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
 					.with(csrf())
 				)
 				.andDo(print())
@@ -92,26 +112,6 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 		}
 	}
 
-	@DisplayName("Not null 필드에 null이 할당되면 예외를 반환한다.")
-	@Test
-	void test_1() throws Exception {
-
-		Error error = Error.of(REQUIRED_HELP_TYPE);
-
-		helpUpsertRequest = new HelpUpsertRequest("로그인이 안돼요", null, List.of(new HelpImageInfo(1L, "https://test.com")));
-		// given when
-		mockMvc.perform(post("/api/v1/help")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(mapper.writeValueAsBytes(helpUpsertRequest))
-				.header("Authorization", "Bearer " + getToken(oauthRequest).getAccessToken())
-				.with(csrf())
-			)
-			.andDo(print())
-			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.errors[?(@.code == 'REQUIRED_HELP_TYPE')].status").value(error.status().name()))
-			.andExpect(jsonPath("$.errors[?(@.code == 'REQUIRED_HELP_TYPE')].message").value(error.message()));
-	}
-
 	@Sql(scripts = {
 		"/init-script/init-user.sql",
 		"/init-script/init-help.sql"})
@@ -122,11 +122,11 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 		@DisplayName("문의글 목록을 조회할 수 있다.")
 		@Test
 		void test_1() throws Exception {
-		    // given
+			// given
 
 			MvcResult result = mockMvc.perform(get("/api/v1/help")
 					.contentType(MediaType.APPLICATION_JSON)
-					.header("Authorization", "Bearer " + getToken(oauthRequest).getAccessToken())
+					.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
 					.with(csrf())
 				)
 				.andDo(print())
@@ -149,7 +149,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
 			MvcResult result = mockMvc.perform(get("/api/v1/help/{helpId}", 1L)
 					.contentType(MediaType.APPLICATION_JSON)
-					.header("Authorization", "Bearer " + getToken(oauthRequest).getAccessToken())
+					.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
 					.with(csrf())
 				)
 				.andDo(print())
@@ -175,13 +175,13 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
 		@DisplayName("문의글을 수정할 수 있다.")
 		@Test
-		void test_1() throws Exception{
+		void test_1() throws Exception {
 			// given when
 			long helpId = 1L;
 			MvcResult result = mockMvc.perform(patch("/api/v1/help/{helpId}", helpId)
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsBytes(helpUpsertRequest))
-					.header("Authorization", "Bearer " + getToken(oauthRequest).getAccessToken())
+					.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
 					.with(csrf())
 				)
 				.andDo(print())
@@ -200,7 +200,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
 		@DisplayName("유저 본인이 작성한 글이 아니면 문의글을 수정할 수 없다.")
 		@Test
-		void test_2() throws Exception{
+		void test_2() throws Exception {
 			// given when
 			long helpId = 1L;
 			oauthRequest = new OauthRequest("test@naver.com", SocialType.KAKAO, null, null);
@@ -209,7 +209,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 			mockMvc.perform(patch("/api/v1/help/{helpId}", helpId)
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsBytes(helpUpsertRequest))
-					.header("Authorization", "Bearer " + getToken(oauthRequest).getAccessToken())
+					.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
 					.with(csrf())
 				)
 				.andDo(print())
@@ -220,7 +220,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
 		@DisplayName("존재하지 않는 문의글을 수정할 수 없다.")
 		@Test
-		void test_3() throws Exception{
+		void test_3() throws Exception {
 			// given when
 			long helpId = -1L;
 			oauthRequest = new OauthRequest("test@naver.com", SocialType.KAKAO, null, null);
@@ -229,7 +229,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 			mockMvc.perform(patch("/api/v1/help/{helpId}", helpId)
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsBytes(helpUpsertRequest))
-					.header("Authorization", "Bearer " + getToken(oauthRequest).getAccessToken())
+					.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
 					.with(csrf())
 				)
 				.andDo(print())
@@ -242,7 +242,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 		@Test
 		void test_4() throws Exception {
 
-			long helpId= 1L;
+			long helpId = 1L;
 			Error error = Error.of(CONTENT_NOT_EMPTY);
 
 			helpUpsertRequest = new HelpUpsertRequest(null, HelpType.USER, List.of(new HelpImageInfo(1L, "https://test.com")));
@@ -250,7 +250,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 			mockMvc.perform(patch("/api/v1/help/{helpId}", helpId)
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsBytes(helpUpsertRequest))
-					.header("Authorization", "Bearer " + getToken(oauthRequest).getAccessToken())
+					.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
 					.with(csrf())
 				)
 				.andDo(print())
@@ -274,7 +274,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 			long helpId = 1L;
 			MvcResult result = mockMvc.perform(delete("/api/v1/help/{helpId}", helpId)
 					.contentType(MediaType.APPLICATION_JSON)
-					.header("Authorization", "Bearer " + getToken(oauthRequest).getAccessToken())
+					.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
 					.with(csrf())
 				)
 				.andDo(print())
@@ -293,7 +293,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
 		@DisplayName("존재하지 않는 문의글을 삭제할 수 없다.")
 		@Test
-		void test_2() throws Exception{
+		void test_2() throws Exception {
 			// given when
 			long helpId = -1L;
 			oauthRequest = new OauthRequest("test@naver.com", SocialType.KAKAO, null, null);
@@ -301,7 +301,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
 			mockMvc.perform(delete("/api/v1/help/{helpId}", helpId)
 					.contentType(MediaType.APPLICATION_JSON)
-					.header("Authorization", "Bearer " + getToken(oauthRequest).getAccessToken())
+					.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
 					.with(csrf())
 				)
 				.andDo(print())
@@ -320,7 +320,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
 			mockMvc.perform(delete("/api/v1/help/{helpId}", helpId)
 					.contentType(MediaType.APPLICATION_JSON)
-					.header("Authorization", "Bearer " + getToken(oauthRequest).getAccessToken())
+					.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
 					.with(csrf())
 				)
 				.andDo(print())

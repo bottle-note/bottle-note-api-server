@@ -2,7 +2,7 @@ package app.bottlenote.user.integration;
 
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.user.domain.UserQueryRepository;
+import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.WithdrawUserResultResponse;
@@ -19,7 +19,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.nio.charset.StandardCharsets;
 
 import static app.bottlenote.user.domain.constant.UserStatus.DELETED;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -27,12 +27,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Tag("integration")
-@DisplayName("[integration] [controller] UserCommandController")
+@DisplayName("[integration] [controller] UserBasicController")
 @WithMockUser
 class UserCommandIntegrationTest extends IntegrationTestSupport {
 
 	@Autowired
-	private UserQueryRepository userQueryRepository;
+	private UserRepository userRepository;
 
 	private OauthRequest oauthRequest;
 
@@ -48,11 +48,9 @@ class UserCommandIntegrationTest extends IntegrationTestSupport {
 	@Test
 	void test_1() throws Exception {
 		// given
-
-
 		MvcResult result = mockMvc.perform(delete("/api/v1/users")
 				.contentType(MediaType.APPLICATION_JSON)
-				.header("Authorization", "Bearer " + getToken(oauthRequest).getAccessToken())
+				.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
 				.with(csrf())
 			)
 			.andDo(print())
@@ -65,7 +63,7 @@ class UserCommandIntegrationTest extends IntegrationTestSupport {
 		GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
 		WithdrawUserResultResponse withdrawUserResultResponse = mapper.convertValue(response.getData(), WithdrawUserResultResponse.class);
 
-		userQueryRepository.findById(withdrawUserResultResponse.userId())
+		userRepository.findById(withdrawUserResultResponse.userId())
 			.ifPresent(withdraw -> assertEquals(DELETED, withdraw.getStatus()));
 	}
 }

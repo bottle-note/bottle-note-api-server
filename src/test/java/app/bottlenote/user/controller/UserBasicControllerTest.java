@@ -3,7 +3,7 @@ package app.bottlenote.user.controller;
 import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.user.exception.UserExceptionCode;
-import app.bottlenote.user.service.UserCommandService;
+import app.bottlenote.user.service.UserBasicService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -32,16 +32,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Tag("unit")
-@DisplayName("[unit] [controller] UserCommandController")
-@WebMvcTest(UserCommandController.class)
+@DisplayName("[unit] [controller] UserBasicController")
+@WebMvcTest(UserBasicController.class)
 @WithMockUser
-class UserCommandControllerTest {
+class UserBasicControllerTest {
 
 	@Autowired
 	private MockMvc mockMvc;
 
 	@MockBean
-	private UserCommandService userCommandService;
+	private UserBasicService userCommandService;
 
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 

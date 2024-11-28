@@ -7,7 +7,7 @@ import app.bottlenote.user.dto.response.NicknameChangeResponse;
 import app.bottlenote.user.dto.response.ProfileImageChangeResponse;
 import app.bottlenote.user.dto.response.WithdrawUserResultResponse;
 import app.bottlenote.user.exception.UserException;
-import app.bottlenote.user.service.UserCommandService;
+import app.bottlenote.user.service.UserBasicService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,9 +26,9 @@ import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/users")
-public class UserCommandController {
+public class UserBasicController {
 
-	private final UserCommandService userCommandService;
+	private final UserBasicService userBasicService;
 
 	@PatchMapping("/nickname")
 	public ResponseEntity<?> nicknameChange(@RequestBody @Valid NicknameChangeRequest nicknameChangeRequest) {
@@ -38,7 +38,7 @@ public class UserCommandController {
 			.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
 
-		NicknameChangeResponse response = userCommandService.nicknameChange(userId, nicknameChangeRequest);
+		NicknameChangeResponse response = userBasicService.nicknameChange(userId, nicknameChangeRequest);
 		return GlobalResponse.ok(response);
 	}
 
@@ -50,21 +50,19 @@ public class UserCommandController {
 			.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
 
-		ProfileImageChangeResponse response = userCommandService.profileImageChange(userId, request.viewUrl());
+		ProfileImageChangeResponse response = userBasicService.profileImageChange(userId, request.viewUrl());
 
 		return GlobalResponse.ok(response);
 	}
 
-	@DeleteMapping()
+	@DeleteMapping
 	public ResponseEntity<?> withdrawUser() {
 
 		Long userId = getUserIdByContext()
 			.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
-		WithdrawUserResultResponse response = userCommandService.withdrawUser(userId);
+		WithdrawUserResultResponse response = userBasicService.withdrawUser(userId);
 
 		return GlobalResponse.ok(response);
 	}
-
-
 }

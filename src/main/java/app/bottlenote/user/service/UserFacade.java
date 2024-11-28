@@ -1,4 +1,4 @@
-package app.bottlenote.user.service.domain;
+package app.bottlenote.user.service;
 
 import app.bottlenote.user.dto.response.UserProfileInfo;
 

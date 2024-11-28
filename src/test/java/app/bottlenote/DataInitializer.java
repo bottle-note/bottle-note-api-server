@@ -12,8 +12,9 @@ import java.util.List;
 
 import static jakarta.transaction.Transactional.TxType.REQUIRES_NEW;
 
-@Component
 @Profile("test")
+@Component
+@SuppressWarnings("unchecked")
 public class DataInitializer {
 
 	private static final String OFF_FOREIGN_CONSTRAINTS = "SET foreign_key_checks = false";

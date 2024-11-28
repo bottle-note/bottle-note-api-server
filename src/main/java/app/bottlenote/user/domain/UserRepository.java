@@ -10,7 +10,7 @@ import java.util.Optional;
 /**
  * 유저 정보에 관한 질의에 대한 애그리거트를 정의합니다.
  */
-public interface UserQueryRepository {
+public interface UserRepository {
 
 	User save(User User);
 
@@ -28,4 +28,5 @@ public interface UserQueryRepository {
 
 	MyBottleResponse getMyBottle(MyBottlePageableCriteria criteria);
 
+	boolean existsByNickName(String nickname);
 }

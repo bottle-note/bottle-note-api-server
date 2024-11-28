@@ -16,7 +16,7 @@ import app.bottlenote.rating.domain.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.user.domain.User;
-import app.bottlenote.user.domain.UserQueryRepository;
+import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.domain.constant.UserType;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.AfterEach;
@@ -61,7 +61,7 @@ class CustomJpaAlcoholQueryRepositoryImplTest {
 	@Autowired
 	private AlcoholQueryRepository alcoholQueryRepository;
 	@Autowired
-	private UserQueryRepository userRepository;
+	private UserRepository userRepository;
 
 	static Stream<Arguments> testCase1Provider() {
 		return Stream.of(

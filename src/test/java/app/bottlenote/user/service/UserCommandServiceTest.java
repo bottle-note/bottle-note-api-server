@@ -1,7 +1,7 @@
 package app.bottlenote.user.service;
 
 import app.bottlenote.user.domain.User;
-import app.bottlenote.user.domain.UserQueryRepository;
+import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.domain.constant.UserStatus;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
 import app.bottlenote.user.dto.response.NicknameChangeResponse;
@@ -30,10 +30,10 @@ import static org.mockito.Mockito.when;
 class UserCommandServiceTest {
 
 	@InjectMocks
-	UserCommandService userCommandService;
+	UserBasicService userCommandService;
 
 	@Mock
-	UserQueryRepository userQueryRepository;
+	UserRepository userCommandRepository;
 
 	@Test
 	@DisplayName("닉네임을 변경할수 있다.")
@@ -49,14 +49,14 @@ class UserCommandServiceTest {
 		NicknameChangeRequest request = new NicknameChangeRequest(newNickname);
 
 		// when
-		when(userQueryRepository.existsByNickName(newNickname)).thenReturn(false);
-		when(userQueryRepository.findById(any())).thenReturn(Optional.of(user));
+		when(userCommandRepository.existsByNickName(newNickname)).thenReturn(false);
+		when(userCommandRepository.findById(any())).thenReturn(Optional.of(user));
 
 
 		NicknameChangeResponse response = userCommandService.nicknameChange(userId, request);
 
 		// then
-		assertEquals(response.getMessage(), NicknameChangeResponse.Message.SUCCESS.getResponseName());
+		assertEquals(response.getMessage(), NicknameChangeResponse.Message.SUCCESS.getMessage());
 		assertEquals(response.getUserId(), userId);
 		assertEquals(response.getBeforeNickname(), beforeNickname);
 		assertEquals(response.getChangedNickname(), newNickname);
@@ -74,7 +74,7 @@ class UserCommandServiceTest {
 		NicknameChangeRequest request = new NicknameChangeRequest(newNickname);
 
 		// when
-		when(userQueryRepository.existsByNickName(newNickname)).thenReturn(true);
+		when(userCommandRepository.existsByNickName(newNickname)).thenReturn(true);
 		UserException aThrows = assertThrows(UserException.class, () -> userCommandService.nicknameChange(userId, request));
 
 		// then
@@ -89,7 +89,7 @@ class UserCommandServiceTest {
 		User user = UserObjectFixture.getUserFixtureObject();
 
 		// when
-		when(userQueryRepository.findById(anyLong()))
+		when(userCommandRepository.findById(anyLong()))
 			.thenReturn(Optional.of(user));
 
 		userCommandService.withdrawUser(userId);
@@ -105,7 +105,7 @@ class UserCommandServiceTest {
 		Long userId = 1L;
 
 		// when
-		when(userQueryRepository.findById(anyLong()))
+		when(userCommandRepository.findById(anyLong()))
 			.thenReturn(Optional.empty());
 
 		// then

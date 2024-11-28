@@ -14,7 +14,7 @@ import app.bottlenote.review.fixture.ReviewReplyObjectFixture;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
-import app.bottlenote.user.service.domain.UserFacade;
+import app.bottlenote.user.service.UserFacade;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;

@@ -11,7 +11,7 @@ import app.bottlenote.picks.dto.response.PicksUpdateResponse;
 import app.bottlenote.picks.event.PicksEventPublisher;
 import app.bottlenote.picks.repository.PicksRepository;
 import app.bottlenote.user.domain.User;
-import app.bottlenote.user.domain.UserQueryRepository;
+import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import jakarta.transaction.Transactional;
@@ -26,7 +26,7 @@ import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT
 @Slf4j
 public class PicksCommandService {
 
-	private final UserQueryRepository userRepository;
+	private final UserRepository userRepository;
 	private final AlcoholQueryRepository alcoholQueryRepository;
 	private final PicksRepository picksRepository;
 	private final PicksEventPublisher picksEventPublisher;

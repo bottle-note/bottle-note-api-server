@@ -1,7 +1,7 @@
 package app.external.push.service;
 
 import app.bottlenote.user.dto.response.UserProfileInfo;
-import app.bottlenote.user.service.domain.UserFacade;
+import app.bottlenote.user.service.UserFacade;
 import app.external.push.domain.PushStatus;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
