@@ -119,11 +119,6 @@ tasks.register('integrationTest', Test) {
         includeTags 'integration'
     }
 }
-tasks.register('dataJpaTest', Test) {
-    useJUnitPlatform {
-        includeTags 'data-jpa-test'
-    }
-}
 tasks.register('unitTest', Test) {
     useJUnitPlatform {
         includeTags 'unit'

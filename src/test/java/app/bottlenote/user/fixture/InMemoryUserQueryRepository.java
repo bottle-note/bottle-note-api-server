@@ -1,7 +1,7 @@
 package app.bottlenote.user.fixture;
 
 import app.bottlenote.user.domain.User;
-import app.bottlenote.user.domain.UserQueryRepository;
+import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class InMemoryUserQueryRepository implements UserQueryRepository {
+public class InMemoryUserQueryRepository implements UserRepository {
 
 	private final Map<Long, User> users = new HashMap<>();
 	private final Map<Long, List<String>> picks = new HashMap<>(); // userId -> Picks
@@ -29,8 +29,8 @@ public class InMemoryUserQueryRepository implements UserQueryRepository {
 	}
 
 	@Override
-	public Optional<User> findById(Long UserId) {
-		return Optional.ofNullable(users.get(UserId));
+	public Optional<User> findById(Long userId) {
+		return Optional.ofNullable(users.get(userId));
 	}
 
 	@Override
@@ -63,4 +63,8 @@ public class InMemoryUserQueryRepository implements UserQueryRepository {
 		return null;
 	}
 
+	@Override
+	public boolean existsByNickName(String nickname) {
+		return users.values().stream().anyMatch(user -> user.getNickName().equals(nickname));
+	}
 }

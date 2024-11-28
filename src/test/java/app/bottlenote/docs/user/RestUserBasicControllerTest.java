@@ -1,5 +1,19 @@
 package app.bottlenote.docs.user;
 
+import app.bottlenote.docs.AbstractRestDocs;
+import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.user.controller.UserBasicController;
+import app.bottlenote.user.service.UserBasicService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+import java.util.Optional;
+
 import static app.bottlenote.user.dto.response.WithdrawUserResultResponse.response;
 import static app.bottlenote.user.dto.response.constant.WithdrawUserResultMessage.USER_WITHDRAW_SUCCESS;
 import static org.mockito.Mockito.mock;
@@ -11,28 +25,15 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.response
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.bottlenote.docs.AbstractRestDocs;
-import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.user.controller.UserCommandController;
-import app.bottlenote.user.service.UserCommandService;
-import java.util.Optional;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
 @DisplayName("유저 Command 컨트롤러 RestDocs용 테스트")
-class RestUserCommandControllerTest extends AbstractRestDocs {
+class RestUserBasicControllerTest extends AbstractRestDocs {
 
-	private final UserCommandService userCommandService = mock(UserCommandService.class);
+	private final UserBasicService userCommandService = mock(UserBasicService.class);
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
 	@Override
 	protected Object initController() {
-		return new UserCommandController(userCommandService);
+		return new UserBasicController(userCommandService);
 	}
 
 	@BeforeEach

@@ -4,7 +4,7 @@ import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
 import app.bottlenote.user.fixture.UserQueryFixture;
-import app.bottlenote.user.service.UserQueryService;
+import app.bottlenote.user.service.UserBasicService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,18 +31,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Tag("unit")
 @DisplayName("[unit] [controller] UserQueryController")
-@WebMvcTest(UserQueryController.class)
+@WebMvcTest(UserMyPageController.class)
 @WithMockUser
-public class UserQueryControllerTest {
+class UserQueryControllerTest {
 
+	private final UserQueryFixture mypageQueryFixture = new UserQueryFixture();
 	@Autowired
 	private MockMvc mockMvc;
 	@Autowired
 	private ObjectMapper mapper;
 	@MockBean
-	private UserQueryService userQueryService;
+	private UserBasicService userQueryService;
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
-	private final UserQueryFixture mypageQueryFixture = new UserQueryFixture();
 
 	@BeforeEach
 	void setup() {
@@ -63,7 +63,7 @@ public class UserQueryControllerTest {
 		MyPageResponse myPageUserInfo = mypageQueryFixture.getMyPageInfo();
 
 		// when
-		when(userQueryService.getMypage(any(), any())).thenReturn(myPageUserInfo);
+		when(userQueryService.getMyPage(any(), any())).thenReturn(myPageUserInfo);
 
 		// then
 		ResultActions resultActions = mockMvc.perform(get("/api/v1/my-page/{userId}", userId))

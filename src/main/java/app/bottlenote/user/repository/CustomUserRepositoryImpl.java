@@ -1,11 +1,10 @@
-package app.bottlenote.user.repository.custom;
+package app.bottlenote.user.repository;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.review.domain.constant.ReviewActiveStatus;
 import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
-import app.bottlenote.user.repository.UserQuerySupporter;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;

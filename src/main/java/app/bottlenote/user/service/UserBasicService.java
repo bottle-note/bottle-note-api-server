@@ -1,49 +1,44 @@
 package app.bottlenote.user.service;
 
-import static app.bottlenote.user.dto.response.constant.WithdrawUserResultMessage.USER_WITHDRAW_SUCCESS;
-import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
-
 import app.bottlenote.user.domain.User;
+import app.bottlenote.user.domain.UserRepository;
+import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
+import app.bottlenote.user.dto.request.MyBottleRequest;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
+import app.bottlenote.user.dto.response.MyBottleResponse;
+import app.bottlenote.user.dto.response.MyPageResponse;
 import app.bottlenote.user.dto.response.NicknameChangeResponse;
 import app.bottlenote.user.dto.response.ProfileImageChangeResponse;
 import app.bottlenote.user.dto.response.WithdrawUserResultResponse;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
-import app.bottlenote.user.repository.UserCommandRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static app.bottlenote.user.dto.response.constant.WithdrawUserResultMessage.USER_WITHDRAW_SUCCESS;
+import static app.bottlenote.user.exception.UserExceptionCode.MYBOTTLE_NOT_ACCESSIBLE;
+import static app.bottlenote.user.exception.UserExceptionCode.MYPAGE_NOT_ACCESSIBLE;
+import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
+
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class UserCommandService {
+public class UserBasicService {
 
-	private final UserCommandRepository userCommandRepository;
+	private final UserRepository userRepository;
 
-	/**
-	 * 닉네임 변경
-	 *
-	 * @param userId  the user id
-	 * @param request the request
-	 * @return the nickname change response
-	 */
 	@Transactional
 	public NicknameChangeResponse nicknameChange(Long userId, NicknameChangeRequest request) {
-
-		log.info("userId : {}", userId);
-		log.info("request : {}", request);
-
 		String name = request.nickName();
 		String beforeNickname;
 
-		if (userCommandRepository.existsByNickName(name)) {
+		if (userRepository.existsByNickName(name)) {
 			throw new UserException(UserExceptionCode.USER_NICKNAME_NOT_VALID);
 		}
 
-		User user = userCommandRepository.findById(userId)
+		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
 		beforeNickname = user.getNickName();
@@ -60,17 +55,10 @@ public class UserCommandService {
 			.build();
 	}
 
-	/**
-	 * 프로필 이미지 변경
-	 *
-	 * @param userId  the user id
-	 * @param viewUrl the view url
-	 * @return the profile image change response
-	 */
 	@Transactional
 	public ProfileImageChangeResponse profileImageChange(Long userId, String viewUrl) {
 
-		User user = userCommandRepository.findById(userId)
+		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
 		user.changeProfileImage(viewUrl);
@@ -81,21 +69,44 @@ public class UserCommandService {
 			.build();
 	}
 
-
-	/**
-	 * 회원 탈퇴
-	 *
-	 * @param userId
-	 * @return UserResultResponse
-	 */
 	@Transactional
 	public WithdrawUserResultResponse withdrawUser(Long userId) {
 
-		User user = userCommandRepository.findById(userId)
+		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
 		user.withdrawUser();
 
 		return WithdrawUserResultResponse.response(USER_WITHDRAW_SUCCESS, userId);
+	}
+
+	@Transactional(readOnly = true)
+	public MyPageResponse getMyPage(Long userId, Long currentUserId) {
+
+		boolean isUserNotAccessible = !userRepository.existsByUserId(userId);
+
+		if (isUserNotAccessible) {
+			throw new UserException(MYPAGE_NOT_ACCESSIBLE);
+		}
+
+		return userRepository.getMyPage(userId, currentUserId);
+
+	}
+
+	@Transactional(readOnly = true)
+	public MyBottleResponse getMyBottle(Long userId, Long currentUserId, MyBottleRequest myBottleRequest) {
+		boolean isUserNotAccessible = !userRepository.existsByUserId(userId);
+
+		if (isUserNotAccessible) {
+			throw new UserException(MYBOTTLE_NOT_ACCESSIBLE);
+		}
+
+		MyBottlePageableCriteria criteria = MyBottlePageableCriteria.of(
+			myBottleRequest,
+			userId,
+			currentUserId
+		);
+
+		return userRepository.getMyBottle(criteria);
 	}
 }

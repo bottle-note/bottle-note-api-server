@@ -2,7 +2,7 @@ package app.bottlenote.user.controller;
 
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.user.dto.response.ProfileImageChangeResponse;
-import app.bottlenote.user.service.UserCommandService;
+import app.bottlenote.user.service.UserBasicService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,16 +33,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Tag("unit")
 @DisplayName("[unit] [controller] UserProfileImagesChangeController")
-@WebMvcTest(UserCommandController.class)
+@WebMvcTest(UserBasicController.class)
 @WithMockUser
-public class UserProfileImagesChangeControllerTest {
+class UserProfileImagesChangeControllerTest {
 
 	@Autowired
 	private MockMvc mockMvc;
 	@Autowired
 	private ObjectMapper mapper;
 	@MockBean
-	private UserCommandService profileImageChangeService;
+	private UserBasicService profileImageChangeService;
 
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
