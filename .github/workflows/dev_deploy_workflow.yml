@@ -33,7 +33,7 @@ jobs:
           distribution: 'temurin'
 
       ## 원격 환경에 코드 복사
-      - name: copy project # ssh key를 이용해 현재 푸시된 소스를 서버에 복사한다.
+      - name: 프로젝트 복사
         uses: burnett01/rsync-deployments@6.0.0
         with:
           switches: -avzr --delete # rsync 명령어 옵션
@@ -44,7 +44,7 @@ jobs:
           remote_key: ${{ secrets.DEV_SSH_KEY }}
 
       ## deploy setup
-      - name: deploy setup and gradle build
+      - name: 설정 배포 및 Gradle 빌드
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DEV_SERVER_IP }}
@@ -59,7 +59,7 @@ jobs:
             ./gradlew build
 
       ## 개발 도커 실행
-      - name: docker compose up
+      - name: 도커 구성
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DEV_SERVER_IP }}
