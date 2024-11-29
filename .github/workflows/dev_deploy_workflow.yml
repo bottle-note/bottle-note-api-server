@@ -56,7 +56,7 @@ jobs:
             touch  /home/ubuntu/app/bottle-note/src/main/resources/application-dev.yml
             echo "${{ secrets.APPLICATION_DEV }}" | base64 --decode > src/main/resources/application-dev.yml  
             chmod +x gradlew
-            ./gradlew build
+            ./gradlew build -x asciidoctor -x copyRestDocs
 
       ## 개발 도커 실행
       - name: 도커 구성
