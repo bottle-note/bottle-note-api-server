@@ -1,7 +1,7 @@
-package app.bottlenote.follow.dto.request;
+package app.bottlenote.user.dto.request;
 
 
-import app.bottlenote.follow.domain.constant.FollowStatus;
+import app.bottlenote.user.domain.constant.FollowStatus;
 import jakarta.validation.constraints.NotNull;
 
 public record FollowUpdateRequest(

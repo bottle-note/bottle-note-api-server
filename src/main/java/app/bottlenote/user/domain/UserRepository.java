@@ -12,21 +12,19 @@ import java.util.Optional;
  */
 public interface UserRepository {
 
-	User save(User User);
+	User save(User user);
 
-	Optional<User> findById(Long UserId);
+	Optional<User> findById(Long usrId);
 
 	List<User> findAll();
 
-	List<User> findAllByIdIn(List<Long> ids);
-
 	Boolean existsByUserId(Long userId);
+
+	boolean existsByNickName(String nickname);
 
 	Long countByUsername(String userName);
 
 	MyPageResponse getMyPage(Long userId, Long currentUserId);
 
 	MyBottleResponse getMyBottle(MyBottlePageableCriteria criteria);
-
-	boolean existsByNickName(String nickname);
 }

@@ -47,7 +47,7 @@ public class DefaultProfanityClient implements ProfanityClient {
 	public String getFilteredText(String text) {
 		log.info("[getFilteredText] 필터링 요청 대상: {}", text);
 		ProfanityResponse response = requestVerificationProfanity(text);
-		if (response.isNotFiltered()) {
+		if (Boolean.TRUE.equals(response.isNotFiltered())) {
 			return text;
 		}
 		return response.filtered();
@@ -57,7 +57,7 @@ public class DefaultProfanityClient implements ProfanityClient {
 	public void validateProfanity(String text) {
 		log.info("[validateProfanity] 검증 요청 대상: {}", text);
 		ProfanityResponse response = requestVerificationProfanity(text);
-		if (response.isProfane()) {
+		if (Boolean.TRUE.equals(response.isProfane())) {
 			throw new CommonException(CommonExceptionCode.CONTAINS_PROFANITY);
 		}
 	}

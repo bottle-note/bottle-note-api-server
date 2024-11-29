@@ -154,7 +154,7 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 
 						//친구 정보
 						fieldWithPath("data.friendsInfo.followerCount").description("팔로워 수"),
-						fieldWithPath("data.friendsInfo.friends[].user_image_url").description("친구의 프로필 이미지 URL"),
+						fieldWithPath("data.friendsInfo.friends[].userImageUrl").description("친구의 프로필 이미지 URL"),
 						fieldWithPath("data.friendsInfo.friends[].userId").description("친구의 사용자 ID"),
 						fieldWithPath("data.friendsInfo.friends[].nickName").description("친구의 닉네임"),
 						fieldWithPath("data.friendsInfo.friends[].rating").description("친구의 평점"),

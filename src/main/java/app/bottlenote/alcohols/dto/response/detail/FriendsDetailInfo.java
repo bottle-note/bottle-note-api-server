@@ -14,12 +14,12 @@ public class FriendsDetailInfo {
 
 
 	public record FriendInfo(
-		String user_image_url,
+		String userImageUrl,
 		Long userId,
 		String nickName,
 		Double rating) {
-		public static FriendInfo of(String user_image_url, Long userId, String nickName, Double rating) {
-			return new FriendInfo(user_image_url, userId, nickName, rating);
+		public static FriendInfo of(String userImageUrl, Long userId, String nickName, Double rating) {
+			return new FriendInfo(userImageUrl, userId, nickName, rating);
 		}
 	}
 }
