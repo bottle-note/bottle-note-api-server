@@ -2,6 +2,7 @@ package app.bottlenote.support.report.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.support.constant.StatusType;
+import app.bottlenote.support.report.domain.constant.ReviewReportType;
 import app.bottlenote.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,11 +14,18 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
 @Getter
 @Entity(name = "review_report")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
 public class ReviewReport extends BaseEntity {
 
 	@Id
@@ -32,14 +40,15 @@ public class ReviewReport extends BaseEntity {
 	@Column(name = "report_content", nullable = false)
 	private String reportContent;
 
-	//TODO : 광고 리뷰인지, 욕설 리뷰인지, Enum 클래스 정의 필요
+	@Enumerated(EnumType.STRING)
 	@Comment("리뷰 신고 타입")
 	@Column(name = "type", nullable = false)
-	private String type;
+	private ReviewReportType type;
 
 	@Comment("문의글의 처리 상태 : Wating이 디폴트")
 	@Enumerated(EnumType.STRING)
 	@Column(name = "status")
+	@Builder.Default
 	private StatusType status = StatusType.WAITING;
 
 	@Comment("관리자 ID")
