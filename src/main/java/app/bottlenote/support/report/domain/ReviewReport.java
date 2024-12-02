@@ -3,17 +3,13 @@ package app.bottlenote.support.report.domain;
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.support.constant.StatusType;
 import app.bottlenote.support.report.domain.constant.ReviewReportType;
-import app.bottlenote.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,9 +28,13 @@ public class ReviewReport extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id")
-	private User user;
+	@Comment("유저 ID")
+	@Column(name = "user_id")
+	private Long userId;
+
+	@Comment("리뷰 ID")
+	@Column(name = "review_id")
+	private Long reviewId;
 
 	@Comment("신고 사유")
 	@Column(name = "report_content", nullable = false)
@@ -58,4 +58,13 @@ public class ReviewReport extends BaseEntity {
 	@Comment("처리 결과")
 	@Column(name = "response_content", nullable = false)
 	private String responseContent;
+
+	public static ReviewReport registerReport(Long userId, Long reviewId, String reportContent, ReviewReportType type) {
+		return ReviewReport.builder()
+			.userId(userId)
+			.reviewId(reviewId)
+			.reportContent(reportContent)
+			.type(type)
+			.build();
+	}
 }

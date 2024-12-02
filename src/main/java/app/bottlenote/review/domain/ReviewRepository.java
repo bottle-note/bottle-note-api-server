@@ -37,6 +37,8 @@ public interface ReviewRepository {
 	SubReviewReplyInfo getSubReviewReplies(Long reviewId, Long replyId, Long cursor, Long pageSize);
 
 	Optional<ReviewReply> findReplyByReviewIdAndReplyId(Long reviewId, Long replyId);
-	
+
 	List<Review> findByUserId(Long userId);
+
+	boolean existsById(Long reviewId);
 }

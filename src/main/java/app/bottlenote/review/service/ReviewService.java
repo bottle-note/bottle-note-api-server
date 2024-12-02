@@ -88,6 +88,11 @@ public class ReviewService implements ReviewFacade {
 		return reviews.content();
 	}
 
+	@Override
+	public boolean isExistReview(Long reviewId) {
+		return reviewRepository.existsById(reviewId);
+	}
+
 	/**
 	 * Create , Update, Delete
 	 */
