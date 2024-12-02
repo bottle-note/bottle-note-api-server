@@ -2,8 +2,10 @@ package app.bottlenote.support.report.controller;
 
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.support.report.dto.request.ReviewReportRequest;
 import app.bottlenote.support.report.dto.request.UserReportRequest;
 import app.bottlenote.support.report.dto.response.UserReportResponse;
+import app.bottlenote.support.report.service.ReviewReportService;
 import app.bottlenote.support.report.service.UserReportService;
 import app.bottlenote.user.exception.UserException;
 import jakarta.validation.Valid;
@@ -26,6 +28,7 @@ import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 public class ReportCommandController {
 
 	private final UserReportService userReportService;
+	private final ReviewReportService reviewReportService;
 
 	@PostMapping("/user")
 	public ResponseEntity<?> reportUser(@RequestBody @Valid UserReportRequest userReportRequest) {
@@ -42,6 +45,16 @@ public class ReportCommandController {
 
 		return GlobalResponse.ok(
 			userReportService.userReport(currentUserId, userReportRequest)
+		);
+	}
+
+	@PostMapping("/review")
+	public ResponseEntity<?> reportReview(@RequestBody @Valid ReviewReportRequest reviewReportRequest) {
+		Long currentUserId = SecurityContextUtil.getUserIdByContext().
+			orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+
+		return GlobalResponse.ok(
+			reviewReportService.reviewReport(currentUserId, reviewReportRequest)
 		);
 	}
 }
