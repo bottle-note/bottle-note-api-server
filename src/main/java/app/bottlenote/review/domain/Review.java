@@ -188,4 +188,12 @@ public class Review extends BaseEntity {
 		this.reviewReplies.add(reply);
 		this.registerEvent(replyRegistryPublish(this.id, this.userId, reply.getContent()));
 	}
+
+	private static final long BLOCK_THRESHOLD = 5L;
+
+	public void blockReview(long count) {
+		if (count >= BLOCK_THRESHOLD) {
+			this.activeStatus = ReviewActiveStatus.DISABLED;
+		}
+	}
 }

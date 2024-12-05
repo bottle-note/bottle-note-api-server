@@ -45,6 +45,10 @@ public class ReviewReport extends BaseEntity {
 	@Column(name = "type", nullable = false)
 	private ReviewReportType type;
 
+	@Comment("신고자 IP주소")
+	@Column(name = "ip_address", nullable = false)
+	private String ipAddress;
+
 	@Comment("문의글의 처리 상태 : Wating이 디폴트")
 	@Enumerated(EnumType.STRING)
 	@Column(name = "status")
@@ -59,12 +63,19 @@ public class ReviewReport extends BaseEntity {
 	@Column(name = "response_content", nullable = false)
 	private String responseContent;
 
-	public static ReviewReport registerReport(Long userId, Long reviewId, String reportContent, ReviewReportType type) {
+	public static ReviewReport registerReport(
+		Long userId,
+		Long reviewId,
+		ReviewReportType type,
+		String reportContent,
+		String ipAddress
+	) {
 		return ReviewReport.builder()
 			.userId(userId)
 			.reviewId(reviewId)
-			.reportContent(reportContent)
 			.type(type)
+			.reportContent(reportContent)
+			.ipAddress(ipAddress)
 			.build();
 	}
 }
