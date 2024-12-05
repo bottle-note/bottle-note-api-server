@@ -258,6 +258,7 @@ CREATE TABLE `review_report`
     `type`             varchar(255) NOT NULL COMMENT '광고 리뷰인지, 욕설 리뷰인지등의 타입',
     `report_content`   varchar(255) NOT NULL COMMENT '어떤 문제로 신고했는지.',
     `status`           varchar(255) NOT NULL DEFAULT 'WAITING' COMMENT '진행상태',
+    `ip_address`       varchar(255) NOT NULL COMMENT '신고자 IP',
     `admin_id`         bigint       NULL COMMENT '처리 어드민',
     `response_content` varchar(255) NULL COMMENT '처리 결과',
     `create_at`        timestamp    NULL COMMENT '최초 생성일',

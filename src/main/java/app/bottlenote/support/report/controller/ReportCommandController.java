@@ -8,6 +8,7 @@ import app.bottlenote.support.report.dto.response.UserReportResponse;
 import app.bottlenote.support.report.service.ReviewReportService;
 import app.bottlenote.support.report.service.UserReportService;
 import app.bottlenote.user.exception.UserException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static app.bottlenote.common.support.HttpClient.getClientIP;
 import static app.bottlenote.support.report.dto.response.UserReportResponse.UserReportResponseEnum.SAME_USER;
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
@@ -49,12 +51,17 @@ public class ReportCommandController {
 	}
 
 	@PostMapping("/review")
-	public ResponseEntity<?> reportReview(@RequestBody @Valid ReviewReportRequest reviewReportRequest) {
+	public ResponseEntity<?> reportReview(
+		@RequestBody @Valid ReviewReportRequest reviewReportRequest,
+		HttpServletRequest request
+	) {
 		Long currentUserId = SecurityContextUtil.getUserIdByContext().
 			orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
+		String clientIP = getClientIP(request);
+
 		return GlobalResponse.ok(
-			reviewReportService.reviewReport(currentUserId, reviewReportRequest)
+			reviewReportService.reviewReport(currentUserId, reviewReportRequest, clientIP)
 		);
 	}
 }
