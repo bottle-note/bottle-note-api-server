@@ -68,9 +68,10 @@ public enum ValidExceptionCode implements ExceptionCode {
 
 	//REPORT,
 	REPORT_TARGET_USER_ID_REQUIRED(HttpStatus.BAD_REQUEST, "신고 대상자 아이디는 필수입니다."),
+	REPORT_TARGET_REVIEW_ID_REQUIRED(HttpStatus.BAD_REQUEST, "신고 대상 리뷰 아이디는 필수입니다."),
 	REPORT_TYPE_NOT_VALID(HttpStatus.BAD_REQUEST, "신고 타입이 적절하지 않습니다. ( SPAM , INAPPROPRIATE_CONTENT " +
 		",FRAUD ,COPYRIGHT_INFRINGEMENT ,OTHER )"),
-	REPORT_CONTENT_MAX_SIZE(HttpStatus.BAD_REQUEST, "신고 내용은 300자 이내로 작성해주세요."),
+	INVALID_REPORT_CONTENT_SIZE(HttpStatus.BAD_REQUEST, "신고 내용은 10자 이상 300자 이내로 작성해주세요."),
 
 	//LOCATION INFO
 	STREET_ADDRESS_REQUIRED(HttpStatus.BAD_REQUEST, "도로명 주소는 필수입니다"),
