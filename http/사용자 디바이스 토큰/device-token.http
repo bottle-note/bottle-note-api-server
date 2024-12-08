@@ -17,10 +17,11 @@ Content-Type: application/json
 
 ### 사용자 디바이스 토큰 등록
 
-POST {{host}}/push/token
+POST {{host}}/api/v1/push/token
 Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
   "deviceToken": "deviceToken",
+  "platform": "ANDROID"
 }
