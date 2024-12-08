@@ -5,6 +5,7 @@ import app.bottlenote.user.exception.UserException;
 import app.external.push.dto.request.TokenSaveRequest;
 import app.external.push.service.PushHandler;
 import app.external.push.service.UserDeviceService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,7 +25,7 @@ public class NotificationController {
 
 	@PostMapping("/token")
 	public ResponseEntity<?> saveUserToken(
-		@RequestBody TokenSaveRequest request
+		@RequestBody @Valid TokenSaveRequest request
 	) {
 		Long userId = getUserIdByContext()
 			.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
