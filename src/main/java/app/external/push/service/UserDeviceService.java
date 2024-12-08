@@ -17,7 +17,11 @@ public class UserDeviceService {
 	private final DeviceTokenRepository deviceTokenRepository;
 	private final UserFacade userDomainSupport;
 
-	public TokenSaveResponse saveUserToken(Long userId, String deviceToken, Platform platform) {
+	public TokenSaveResponse saveUserToken(
+		final Long userId,
+		final String deviceToken,
+		final Platform platform
+	) {
 		deviceTokenRepository.findByUserIdAndDeviceToken(userId, deviceToken)
 			.ifPresentOrElse(
 				userDeviceToken -> {

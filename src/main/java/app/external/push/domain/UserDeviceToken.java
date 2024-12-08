@@ -35,6 +35,7 @@ public class UserDeviceToken {
 	@Comment("사용자 디바이스 토큰 id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+
 	@Comment("사용자 아이디")
 	@Column(name = "user_id", nullable = false)
 	private Long userId;
