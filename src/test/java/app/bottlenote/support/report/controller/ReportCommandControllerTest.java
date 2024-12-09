@@ -1,30 +1,5 @@
 package app.bottlenote.support.report.controller;
 
-import app.bottlenote.global.data.response.Error;
-import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
-import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.support.report.domain.constant.UserReportType;
-import app.bottlenote.support.report.dto.request.UserReportRequest;
-import app.bottlenote.support.report.dto.response.UserReportResponse;
-import app.bottlenote.support.report.service.UserReportService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
 import static app.bottlenote.support.report.dto.response.UserReportResponse.UserReportResponseEnum.SAME_USER;
 import static app.bottlenote.support.report.dto.response.UserReportResponse.UserReportResponseEnum.SUCCESS;
 import static app.bottlenote.support.report.dto.response.UserReportResponse.of;
@@ -37,6 +12,31 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import app.bottlenote.global.data.response.Error;
+import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
+import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.support.report.domain.constant.UserReportType;
+import app.bottlenote.support.report.dto.request.UserReportRequest;
+import app.bottlenote.support.report.dto.response.UserReportResponse;
+import app.bottlenote.support.report.service.ReviewReportService;
+import app.bottlenote.support.report.service.UserReportService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.MockMvc;
 
 
 @Tag("unit")
@@ -51,6 +51,8 @@ class ReportCommandControllerTest {
 	protected MockMvc mockMvc;
 	@MockBean
 	private UserReportService userReportService;
+	@MockBean
+	private ReviewReportService reviewReportService;
 
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 

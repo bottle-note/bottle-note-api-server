@@ -188,4 +188,8 @@ public class Review extends BaseEntity {
 		this.reviewReplies.add(reply);
 		this.registerEvent(replyRegistryPublish(this.id, this.userId, reply.getContent()));
 	}
+
+	public void blockReview() {
+		this.activeStatus = ReviewActiveStatus.DISABLED;
+	}
 }
