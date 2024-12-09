@@ -11,10 +11,12 @@ import java.util.Optional;
 @Repository
 public interface ReviewReportRepository extends JpaRepository<ReviewReport, Long> {
 
-	boolean existsByUserIdAndReviewId(Long currentUserId, Long userId);
+	Optional<Object> findByUserIdAndReviewId(Long currentUserId, Long reportReviewId);
 
-	@Query("SELECT COUNT(DISTINCT r.ipAddress) " +
-		"FROM review_report r " +
-		"WHERE r.reviewId = :reviewId")
+	@Query("""
+		SELECT COUNT(DISTINCT r.ipAddress)
+		FROM review_report r
+		WHERE r.reviewId = :reviewId
+		""")
 	Optional<Long> countUniqueIpReportsByReviewId(@Param("reviewId") Long reviewId);
 }

@@ -1,6 +1,5 @@
 package app.bottlenote.support.report.service;
 
-import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.service.ReviewFacade;
 import app.bottlenote.support.report.domain.ReviewReport;
@@ -9,7 +8,6 @@ import app.bottlenote.support.report.dto.response.ReviewReportResponse;
 import app.bottlenote.support.report.exception.ReportException;
 import app.bottlenote.support.report.repository.ReviewReportRepository;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,45 +22,43 @@ import static app.bottlenote.support.report.exception.ReportExceptionCode.ALREAD
 @Service
 public class ReviewReportService {
 
+	private static final long BLOCK_THRESHOLD = 5L;
 	private final ReviewFacade reviewFacade;
 	private final ReviewReportRepository reviewReportRepository;
 
 	@Transactional
 	public ReviewReportResponse reviewReport(
 		Long currentUserId,
-		@Valid ReviewReportRequest reviewReportRequest,
+		ReviewReportRequest reviewReportRequest,
 		String clientIP
 	) {
-		if (!reviewFacade.isExistReview(reviewReportRequest.reportReviewId())) {
+		final Long reportReviewId = reviewReportRequest.reportReviewId();
+		if (!reviewFacade.isExistReview(reportReviewId)) {
 			throw new ReviewException(REVIEW_NOT_FOUND);
 		}
-		if (reviewReportRepository.existsByUserIdAndReviewId(currentUserId, reviewReportRequest.reportReviewId())) {
-			throw new ReportException(ALREADY_REPORTED_REVIEW);
-		}
-		ReviewReport reviewReport = ReviewReport.registerReport(
-			currentUserId,
-			reviewReportRequest.reportReviewId(),
-			reviewReportRequest.type(),
-			reviewReportRequest.content(),
-			Objects.requireNonNull(clientIP)
-		);
-		try {
-			ReviewReport saved = reviewReportRepository.save(reviewReport);
-			blockReviewIfNecessary(saved.getReviewId());
-
-		} catch (Exception e) {
-
-			log.error("리뷰 신고 등록 중 오류가 발생했습니다. reviewReportRequest: {}", reviewReportRequest, e);
-			return ReviewReportResponse.response(false);
-		}
+		reviewReportRepository.findByUserIdAndReviewId(currentUserId, reportReviewId)
+			.ifPresentOrElse(reviewReport -> {
+					throw new ReportException(ALREADY_REPORTED_REVIEW);
+				}, () -> {
+					final String safeClientIp = Objects.requireNonNull(clientIP);
+					ReviewReport reviewReport = ReviewReport.registerReport(
+						currentUserId,
+						reportReviewId,
+						reviewReportRequest.type(),
+						reviewReportRequest.content(),
+						safeClientIp
+					);
+					ReviewReport saved = reviewReportRepository.save(reviewReport);
+					blockReviewIfNecessary(saved.getReviewId());
+				}
+			);
 		return ReviewReportResponse.response(true);
 	}
 
 	public void blockReviewIfNecessary(Long reviewId) {
 		Long count = reviewReportRepository.countUniqueIpReportsByReviewId(reviewId).orElse(0L);
-
-		log.info("reviewId: {}, count: {}", reviewId, count);
-		Review review = reviewFacade.getReview(reviewId);
-		review.blockReview(count);
+		if (count >= BLOCK_THRESHOLD) {
+			reviewFacade.requestBlockReview(reviewId);
+		}
 	}
 }

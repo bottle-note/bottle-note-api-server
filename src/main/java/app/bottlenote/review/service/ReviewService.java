@@ -94,9 +94,9 @@ public class ReviewService implements ReviewFacade {
 	}
 
 	@Override
-	public Review getReview(Long reviewId) {
-		return reviewRepository.findById(reviewId)
-			.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
+	public void requestBlockReview(Long reviewId) {
+		reviewRepository.findById(reviewId)
+			.ifPresent(Review::blockReview);
 	}
 
 	/**
