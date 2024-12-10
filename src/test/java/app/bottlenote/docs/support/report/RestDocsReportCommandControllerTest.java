@@ -6,6 +6,7 @@ import app.bottlenote.support.report.controller.ReportCommandController;
 import app.bottlenote.support.report.domain.constant.UserReportType;
 import app.bottlenote.support.report.dto.request.UserReportRequest;
 import app.bottlenote.support.report.dto.response.UserReportResponse;
+import app.bottlenote.support.report.service.ReviewReportService;
 import app.bottlenote.support.report.service.UserReportService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,11 +32,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class RestDocsReportCommandControllerTest extends AbstractRestDocs {
 
 	private final UserReportService userReportService = mock(UserReportService.class);
+	private final ReviewReportService reviewReportService = mock(ReviewReportService.class);
 	private final MockedStatic<SecurityContextUtil> mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
 
 	@Override
 	protected Object initController() {
-		return new ReportCommandController(userReportService);
+		return new ReportCommandController(userReportService, reviewReportService);
 	}
 
 	@AfterEach
