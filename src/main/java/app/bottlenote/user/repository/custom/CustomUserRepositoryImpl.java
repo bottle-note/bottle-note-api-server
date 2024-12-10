@@ -2,6 +2,7 @@ package app.bottlenote.user.repository.custom;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.review.domain.constant.ReviewActiveStatus;
+import app.bottlenote.user.domain.constant.MyBottleTabType;
 import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
@@ -76,11 +77,10 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 				alcohol.engName.as("engName"),
 				alcohol.korCategory.as("korCategoryName"),
 				alcohol.imageUrl.as("imageUrl"),
-				supporter.isPickedSubquery(alcohol.id, userId),
+				supporter.isPickedSubquery(alcohol.id, userId).as("isPicked"),
 				rating.ratingPoint.rating.coalesce(0.0).as("rating"),
 				supporter.isMyReviewSubquery(alcohol.id, userId),
 				rating.lastModifyAt.coalesce(review.lastModifyAt, picks.lastModifyAt).max().as("mostLastModifyAt"),
-				// 리뷰, 찜하기, 평점의 각각의 마지막 수정일자 중 최대값을 가져오는 쿼리 필요
 				rating.lastModifyAt.max().as("ratingLastModifyAt"),
 				review.lastModifyAt.max().as("reviewLastModifyAt"),
 				picks.lastModifyAt.max().as("picksLastModifyAt")
@@ -92,7 +92,10 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 			.where(
 				supporter.eqTabType(request.tabType(), userId),
 				supporter.eqName(request.keyword()),
-				supporter.eqRegion(request.regionId())
+				supporter.eqRegion(request.regionId()),
+				request.tabType().equals(MyBottleTabType.PICK)
+					? picks.status.eq(PICK) // PICK 탭일 때 PICK 상태만 필터링
+					: null
 			)
 			.groupBy(alcohol.id)
 			.orderBy(supporter.sortBy(request.sortType(), request.sortOrder()))

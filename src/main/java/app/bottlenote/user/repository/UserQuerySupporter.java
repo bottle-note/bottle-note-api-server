@@ -22,6 +22,7 @@ import java.util.List;
 
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.follow.domain.QFollow.follow;
+import static app.bottlenote.picks.domain.PicksStatus.PICK;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
@@ -142,7 +143,7 @@ public class UserQuerySupporter {
 	public BooleanExpression isPickedSubquery(NumberPath<Long> alcoholId, Long userId) {
 		return select(picks.count())
 			.from(picks)
-			.where(picks.alcohol.id.eq(alcoholId).and(picks.user.id.eq(userId)))
+			.where(picks.alcohol.id.eq(alcoholId).and(picks.user.id.eq(userId).and(picks.status.eq(PICK))))
 			.gt(0L);
 	}
 

@@ -3,8 +3,8 @@ POST {{host}}/api/v1/oauth/login
 Content-Type: application/json
 
 {
-  "email": "juye@gmail.com",
-  "socialType": "GOOGLE",
+  "email": "kjy_1615@naver.com",
+  "socialType": "NAVER",
   "gender": "",
   "age": ""
 }
@@ -39,7 +39,7 @@ Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 ### 로그인 이용자의 마이 보틀 페이지를 타입별로 조회한다. (찜하기)
-GET {{host}}/api/v1/my-page/8/my-bottle?keyword=&regionId=&tabType=PICK&sortType=LATEST&sortOrder=DESC&cursor=0&
+GET {{host}}/api/v1/my-page/336/my-bottle?keyword=&regionId=&tabType=PICK&sortType=LATEST&sortOrder=DESC&cursor=0&
     pageSize=50
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
