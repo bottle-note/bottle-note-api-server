@@ -74,9 +74,9 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 				alcohol.engName.as("engName"),
 				alcohol.korCategory.as("korCategoryName"),
 				alcohol.imageUrl.as("imageUrl"),
-				supporter.isPickedSubquery(alcohol.id, userId),
+				picks.id.isNotNull().as("isPicked"),
 				rating.ratingPoint.rating.coalesce(0.0).as("rating"),
-				supporter.isMyReviewSubquery(alcohol.id, userId),
+				review.id.isNotNull().as("isReviewed"),
 				rating.lastModifyAt.coalesce(review.lastModifyAt, picks.lastModifyAt).max().as("mostLastModifyAt"),
 				rating.lastModifyAt.max().as("ratingLastModifyAt"),
 				review.lastModifyAt.max().as("reviewLastModifyAt"),
@@ -87,18 +87,31 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 			.leftJoin(review).on(review.alcoholId.eq(alcohol.id).and(review.userId.eq(userId)).and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE)))
 			.leftJoin(rating).on(rating.alcohol.id.eq(alcohol.id).and(rating.user.id.eq(userId)).and(rating.ratingPoint.rating.gt(0.0)))
 			.where(
-				supporter.eqTabType(request.tabType(), userId),
+				picks.id.isNotNull().or(rating.id.isNotNull()).or(review.id.isNotNull()),
+				supporter.eqTabType(request.tabType()),
 				supporter.eqName(request.keyword()),
 				supporter.eqRegion(request.regionId())
 			)
-			.groupBy(alcohol.id)
+			.groupBy(alcohol.id, alcohol.korName, alcohol.engName, alcohol.korCategory, alcohol.imageUrl, picks.id, rating.ratingPoint.rating, review.id)
 			.orderBy(supporter.sortBy(request.sortType(), request.sortOrder()))
 			.offset(request.cursor())
 			.limit(request.pageSize() + 1)
 			.fetch();
 
 		CursorPageable cursorPageable = supporter.myBottleCursorPageable(request, myBottleList);
-		Long totalCount = (long) myBottleList.size();
+		Long totalCount = queryFactory
+			.select(alcohol.id.count())
+			.from(alcohol)
+			.leftJoin(picks).on(picks.alcohol.id.eq(alcohol.id).and(picks.user.id.eq(userId)).and(picks.status.eq(PICK)))
+			.leftJoin(review).on(review.alcoholId.eq(alcohol.id).and(review.userId.eq(userId)).and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE)))
+			.leftJoin(rating).on(rating.alcohol.id.eq(alcohol.id).and(rating.user.id.eq(userId)).and(rating.ratingPoint.rating.gt(0.0)))
+			.where(
+				picks.id.isNotNull().or(rating.id.isNotNull()).or(review.id.isNotNull()),
+				supporter.eqTabType(request.tabType()),
+				supporter.eqName(request.keyword()),
+				supporter.eqRegion(request.regionId())
+			)
+			.fetchOne();
 
 		return MyBottleResponse.builder()
 			.userId(userId)
