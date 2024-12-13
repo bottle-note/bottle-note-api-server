@@ -72,6 +72,20 @@ public class JwtTokenProvider {
 			.compact();
 	}
 
+	public String createGuestToken(Long userId, int expireTime) {
+		Claims claims = Jwts.claims();
+		claims.put("userId", userId);
+		claims.put(KEY_ROLES, UserType.ROLE_GUEST.name());
+		Date now = new Date();
+		return Jwts.builder()
+			.setClaims(claims)
+			.setSubject("guest")
+			.setIssuedAt(now)
+			.setExpiration(new Date(now.getTime() + expireTime))
+			.signWith(secretKey, SignatureAlgorithm.HS512)
+			.compact();
+	}
+
 	/**
 	 * 필수적인 파라미터를 받아 리프레시 토큰을 생성하는 메소드
 	 *

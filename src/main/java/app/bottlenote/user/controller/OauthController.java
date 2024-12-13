@@ -39,10 +39,10 @@ public class OauthController {
 	}
 
 	@PostMapping("/guest")
-	public ResponseEntity<?> guestLogin(HttpServletResponse response) {
-		TokenDto token = oauthService.guestLogin();
-		setRefreshTokenInCookie(response, token.refreshToken());
-		return GlobalResponse.ok(OauthResponse.of(token.accessToken()));
+	public ResponseEntity<?> guestLogin() {
+		final String token = oauthService.guestLogin();
+		final OauthResponse oauthResponse = OauthResponse.of(token);
+		return GlobalResponse.ok(oauthResponse);
 	}
 
 	@PostMapping("/reissue")

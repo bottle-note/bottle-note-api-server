@@ -1,0 +1,4 @@
+### 게스트 토큰 발급
+
+POST {{host}}/api/v1/oauth/guest
+Content-Type: application/json
