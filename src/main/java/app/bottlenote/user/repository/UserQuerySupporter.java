@@ -1,6 +1,5 @@
 package app.bottlenote.user.repository;
 
-import app.bottlenote.alcohols.domain.QAlcohol;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.user.domain.constant.MyBottleSortType;
@@ -17,7 +16,6 @@ import com.querydsl.core.util.StringUtils;
 import com.querydsl.jpa.JPAExpressions;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
@@ -255,20 +253,6 @@ public class UserQuerySupporter {
 			.or(alcohol.engName.like("%" + name + "%"));
 	}
 
-	/**
-	 * 가장 최근에 수정된 날짜를 기준으로 정렬하는 Expression을 반환.
-	 */
-	private Expression<LocalDateTime> orderByMaxLastModifyAt() {
-		return JPAExpressions.select(
-				rating.lastModifyAt.max().coalesce(review.lastModifyAt.max(), picks.lastModifyAt.max())
-			)
-			.from(rating, review, picks)
-			.where(
-				rating.alcohol.id.eq(QAlcohol.alcohol.id)
-					.or(review.alcoholId.eq(QAlcohol.alcohol.id))
-					.or(picks.alcohol.id.eq(QAlcohol.alcohol.id))
-			);
-	}
 
 	/**
 	 * 마이 보틀 정렬 조건을 반환
