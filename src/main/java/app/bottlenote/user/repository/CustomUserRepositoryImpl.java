@@ -53,7 +53,6 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 			.from(user)
 			.where(user.id.eq(userId))
 			.fetchOne();
-
 	}
 
 	/**
@@ -79,7 +78,6 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 				rating.ratingPoint.rating.coalesce(0.0).as("rating"),
 				supporter.isMyReviewSubquery(alcohol.id, userId),
 				rating.lastModifyAt.coalesce(review.lastModifyAt, picks.lastModifyAt).max().as("mostLastModifyAt"),
-				// 리뷰, 찜하기, 평점의 각각의 마지막 수정일자 중 최대값을 가져오는 쿼리 필요
 				rating.lastModifyAt.max().as("ratingLastModifyAt"),
 				review.lastModifyAt.max().as("reviewLastModifyAt"),
 				picks.lastModifyAt.max().as("picksLastModifyAt")

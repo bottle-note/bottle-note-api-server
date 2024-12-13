@@ -277,17 +277,11 @@ public class UserQuerySupporter {
 		myBottleSortType = (myBottleSortType != null) ? myBottleSortType : MyBottleSortType.LATEST;
 		sortOrder = (sortOrder != null) ? sortOrder : SortOrder.DESC; // 기본값은 내림차순
 
-		// 정렬 기준에 따라 OrderSpecifier 반환
 		return switch (myBottleSortType) {
-			case RATING -> sortOrder == sortOrder.DESC
-				? rating.ratingPoint.rating.max().desc()
-				: rating.ratingPoint.rating.max().asc();
-			case REVIEW -> sortOrder == sortOrder.DESC
-				? review.createAt.max().desc()
-				: review.createAt.max().asc();
-			default -> sortOrder == sortOrder.DESC
-				? rating.lastModifyAt.coalesce(review.lastModifyAt, picks.lastModifyAt).max().desc()
-				: rating.lastModifyAt.coalesce(review.lastModifyAt, picks.lastModifyAt).max().asc();
+			case RATING -> sortOrder.resolve(rating.ratingPoint.rating.max());
+			case REVIEW -> sortOrder.resolve(review.createAt.max());
+			default -> sortOrder.resolve(rating.lastModifyAt.coalesce(review.lastModifyAt, picks.lastModifyAt).max()
+			);
 		};
 	}
 

@@ -1,6 +1,8 @@
 package app.bottlenote.global.service.cursor;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.ComparableExpressionBase;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -24,5 +26,9 @@ public enum SortOrder {
 			.filter(sort -> sort.toString().equals(source.toUpperCase()))
 			.findFirst()
 			.orElse(DESC);
+	}
+
+	public <T extends Comparable<?>> OrderSpecifier<T> resolve(ComparableExpressionBase<T> expression) {
+		return this == DESC ? expression.desc() : expression.asc();
 	}
 }
