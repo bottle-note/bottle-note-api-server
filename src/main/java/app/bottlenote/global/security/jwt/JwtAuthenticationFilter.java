@@ -135,8 +135,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	protected boolean shouldNotFilter(HttpServletRequest request) {
 		String path = request.getRequestURI();
 		List<String> excludePath = List.of(
-			"/api/v1/regions",
-			"/api/v1/alcohols/categories"
+			"login",
+			"guest-login",
+			"regions",
+			"alcohols/categories"
 		);
 
 		return excludePath
