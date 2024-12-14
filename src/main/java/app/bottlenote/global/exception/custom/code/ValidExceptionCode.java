@@ -60,6 +60,7 @@ public enum ValidExceptionCode implements ExceptionCode {
 
 	//USER,
 	REQUIRED_USER_ID(HttpStatus.BAD_REQUEST, "유저 아이디는 필수입니다."),
+	REQUIRED_GUEST_CODE(HttpStatus.BAD_REQUEST, "게스트 코드는 필수입니다."),
 	NICKNAME_PATTERN_NOT_VALID(HttpStatus.BAD_REQUEST, "닉네임은 2~11자의 한글, 영문, 숫자만 가능합니다."),
 	EMAIL_PATTERN_NOT_VALID(HttpStatus.BAD_REQUEST, "올바른 이메일형식이 아닙니다."),
 	SOCIAL_TYPE_REQUIRED(HttpStatus.BAD_REQUEST, "로그인 및 회원가입에 필요한 소셜타입이 없습니다."),

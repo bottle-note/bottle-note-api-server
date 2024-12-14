@@ -1,9 +1,12 @@
 package app.bottlenote.user.controller;
 
 import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.user.dto.request.GuestCodeRequest;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.OauthResponse;
 import app.bottlenote.user.dto.response.TokenDto;
+import app.bottlenote.user.exception.UserException;
+import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.service.OauthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +19,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Base64;
 
 
 @Slf4j
@@ -38,8 +43,19 @@ public class OauthController {
 		return GlobalResponse.ok(OauthResponse.of(token.accessToken()));
 	}
 
-	@PostMapping("/guest")
-	public ResponseEntity<?> guestLogin() {
+	@PostMapping("/guest-login")
+	public ResponseEntity<?> guestLogin(
+		@RequestBody @Valid GuestCodeRequest guestCode
+	) {
+		final String matchCode = "GUEST-CODE-1928112";
+		final String key = Base64.getEncoder().encodeToString(matchCode.getBytes());
+		final String code = guestCode.code();
+
+		if (!code.equals(key)) {
+			//Qk9UVExFTk9URS1HVUVTVC1DT0RFLTIwMjQ=
+			throw new UserException(UserExceptionCode.NOT_MATCH_GUEST_CODE);
+		}
+
 		final String token = oauthService.guestLogin();
 		final OauthResponse oauthResponse = OauthResponse.of(token);
 		return GlobalResponse.ok(oauthResponse);

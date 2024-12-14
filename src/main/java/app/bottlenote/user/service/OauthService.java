@@ -52,9 +52,16 @@ public class OauthService {
 
 	@Transactional
 	public String guestLogin() {
+		final int expireTime = 1000 * 60 * 60 * 24;
 		User guest = oauthRepository.loadGuestUser()
-			.orElseGet(() -> oauthSignUp("guest" + UUID.randomUUID() + "@bottlenote.com", SocialType.APPLE, GenderType.MALE, 30, UserType.ROLE_GUEST));
-		int expireTime = 1000 * 60 * 60 * 24; // 24시간
+			.orElseGet(() ->
+				oauthSignUp("guest" + UUID.randomUUID() + "@bottlenote.com",
+					SocialType.APPLE,
+					GenderType.MALE,
+					30,
+					UserType.ROLE_GUEST
+				)
+			);
 		return tokenProvider.createGuestToken(
 			guest.getId(),
 			expireTime

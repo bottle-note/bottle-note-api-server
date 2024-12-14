@@ -65,5 +65,4 @@ public class UserBasicController {
 
 		return GlobalResponse.ok(response);
 	}
-
 }
