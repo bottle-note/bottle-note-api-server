@@ -6,14 +6,12 @@ import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.detail.AlcoholDetail;
 import app.bottlenote.alcohols.dto.response.detail.AlcoholDetailInfo;
-import app.bottlenote.alcohols.dto.response.detail.FriendsDetailInfo;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.service.ReviewFacade;
+import app.bottlenote.user.service.FollowFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Slf4j
 @Service
@@ -22,6 +20,7 @@ public class AlcoholQueryService {
 
 	private final AlcoholQueryRepository alcoholQueryRepository;
 	private final ReviewFacade reviewFacade;
+	private final FollowFacade followFacade;
 
 	/**
 	 * 술(위스키) 리스트 조회 api
@@ -46,26 +45,8 @@ public class AlcoholQueryService {
 		AlcoholDetailInfo alcoholDetail = alcoholQueryRepository.findAlcoholDetailById(alcoholId, userId);
 		return AlcoholDetail.builder()
 			.alcohols(alcoholDetail)
-			.friendsInfo(getMockFriendsData())
+			.friendsInfo(followFacade.getTastingFriendsInfoList(alcoholId, userId))
 			.reviewInfo(reviewFacade.getReviewInfoList(alcoholId, userId))
 			.build();
-	}
-
-	/**
-	 * 유저의 팔로잉 팔로워 기능이 구현 후 수정이 필요한 기능입니다.
-	 * 현재는 Mock 데이터를 리턴합니다.
-	 * //todo 유저의 팔로잉 팔로워 기능이 구현 후 수정이 필요한 기능입니다.
-	 */
-	private FriendsDetailInfo getMockFriendsData() {
-		String freeRandomImageUrl = "https://picsum.photos/600/600";
-		List<FriendsDetailInfo.FriendInfo> friendInfos = List.of(
-			new FriendsDetailInfo.FriendInfo(freeRandomImageUrl, 1L, "늙은코끼리", 4.5),
-			new FriendsDetailInfo.FriendInfo(freeRandomImageUrl, 2L, "나무사자", 1.5),
-			new FriendsDetailInfo.FriendInfo(freeRandomImageUrl, 3L, "피자파인애플", 3.0),
-			new FriendsDetailInfo.FriendInfo(freeRandomImageUrl, 4L, "멘토스", 0.5),
-			new FriendsDetailInfo.FriendInfo(freeRandomImageUrl, 5L, "민트맛치토스", 5.0),
-			new FriendsDetailInfo.FriendInfo(freeRandomImageUrl, 6L, "목데이터", 1.0)
-		);
-		return FriendsDetailInfo.of(6L, friendInfos);
 	}
 }

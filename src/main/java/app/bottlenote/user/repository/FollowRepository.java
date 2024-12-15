@@ -1,7 +1,6 @@
 package app.bottlenote.user.repository;
 
 import app.bottlenote.user.domain.Follow;
-import app.bottlenote.user.repository.custom.CustomFollowRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

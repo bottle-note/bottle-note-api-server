@@ -1,5 +1,6 @@
 package app.bottlenote.user.service;
 
+import app.bottlenote.alcohols.dto.response.detail.FriendsDetailInfo;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.user.domain.Follow;
 import app.bottlenote.user.domain.User;
@@ -22,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class FollowService {
+public class FollowService implements FollowFacade {
 
 	private final FollowRepository followRepository;
 	private final UserRepository userRepository;
@@ -74,4 +75,8 @@ public class FollowService {
 		return followRepository.getRelationList(userId, criteria);
 	}
 
+	@Override
+	public FriendsDetailInfo getTastingFriendsInfoList(Long alcoholId, Long userId) {
+		return followRepository.getTastingFriendsInfoList(alcoholId, userId);
+	}
 }

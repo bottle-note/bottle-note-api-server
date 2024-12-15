@@ -6,17 +6,33 @@ import app.bottlenote.user.dto.response.FollowingDetail;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
+import static app.bottlenote.user.domain.QFollow.follow;
 import static com.querydsl.jpa.JPAExpressions.select;
 
 
 @Component
 public class FollowQuerySupporter {
+
+	private final JPAQueryFactory queryFactory;
+
+	public FollowQuerySupporter(JPAQueryFactory queryFactory) {
+		this.queryFactory = queryFactory;
+	}
+
+	public List<Long> getFollowerUserIds(Long userId) {
+		return queryFactory.select(follow.followUser.id)
+			.from(follow)
+			.where(follow.userId.eq(userId))
+			.fetch();
+	}
+
 
 	public Expression<Long> followReviewCountSubQuery(NumberPath<Long> userId) {
 		return ExpressionUtils.as(

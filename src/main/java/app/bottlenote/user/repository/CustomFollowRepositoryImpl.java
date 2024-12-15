@@ -1,5 +1,6 @@
-package app.bottlenote.user.repository.custom;
+package app.bottlenote.user.repository;
 
+import app.bottlenote.alcohols.dto.response.detail.FriendsDetailInfo;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.user.domain.constant.FollowStatus;
@@ -7,7 +8,6 @@ import app.bottlenote.user.dto.dsl.FollowPageableCriteria;
 import app.bottlenote.user.dto.response.FollowSearchResponse;
 import app.bottlenote.user.dto.response.FollowerDetail;
 import app.bottlenote.user.dto.response.FollowingDetail;
-import app.bottlenote.user.repository.FollowQuerySupporter;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
+import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.user.domain.QFollow.follow;
 import static app.bottlenote.user.domain.QUser.user;
 
@@ -46,6 +47,29 @@ public class CustomFollowRepositoryImpl implements CustomFollowRepository {
 		CursorPageable cursorPageable = supporter.followCursorPageable(criteria, followingDetails);
 
 		return PageResponse.of(FollowSearchResponse.of(totalCount, followingDetails, followerDetails), cursorPageable);
+	}
+
+	@Override
+	public FriendsDetailInfo getTastingFriendsInfoList(Long alcoholId, Long userId) {
+		log.info("alcoholId is {}, userId is {}", alcoholId, userId);
+		List<FriendsDetailInfo.FriendInfo> fetch = queryFactory.select(
+				Projections.constructor(
+					FriendsDetailInfo.FriendInfo.class,
+					user.imageUrl.as("userImageUrl"),
+					user.id.as("userId"),
+					user.nickName.as("nickName"),
+					rating.ratingPoint.rating.as("rating")
+				)
+			)
+			.from(user)
+			.innerJoin(rating).on(rating.user.id.eq(user.id))
+			.where(user.id.in(supporter.getFollowerUserIds(userId))
+				.and(rating.alcohol.id.eq(alcoholId)))
+			.limit(FriendsDetailInfo.MAX_FOLLOWER_COUNT)
+			.fetch();
+
+
+		return FriendsDetailInfo.of((long) fetch.size(), fetch);
 	}
 
 	private List<FollowingDetail> getFollowingDetails(Long userId, Long cursor, Long pageSize) {

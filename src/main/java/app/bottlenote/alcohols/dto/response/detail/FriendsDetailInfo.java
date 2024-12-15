@@ -8,10 +8,9 @@ import java.util.List;
 @Getter
 @AllArgsConstructor(staticName = "of")
 public class FriendsDetailInfo {
-
+	public static final Long MAX_FOLLOWER_COUNT = 6L;
 	private final Long followerCount;
 	private final List<FriendInfo> friends;
-
 
 	public record FriendInfo(
 		String userImageUrl,
