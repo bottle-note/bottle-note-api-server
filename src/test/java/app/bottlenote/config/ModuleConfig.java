@@ -12,6 +12,9 @@ import app.bottlenote.user.repository.FollowerQuerySupporter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
@@ -20,6 +23,14 @@ import java.time.LocalDateTime;
 
 @TestConfiguration
 public class ModuleConfig {
+
+	@PersistenceContext
+	private EntityManager entityManager;
+
+	@Bean
+	public JPAQueryFactory jpaQueryFactory() {
+		return new JPAQueryFactory(entityManager);
+	}
 
 	@Bean
 	public ObjectMapper objectMapper() {
@@ -50,7 +61,7 @@ public class ModuleConfig {
 
 	@Bean
 	public FollowQuerySupporter followQuerySupporter() {
-		return new FollowQuerySupporter();
+		return new FollowQuerySupporter(jpaQueryFactory());
 	}
 
 	@Bean
