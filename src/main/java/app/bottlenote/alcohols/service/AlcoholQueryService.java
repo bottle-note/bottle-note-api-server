@@ -6,11 +6,15 @@ import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.detail.AlcoholDetail;
 import app.bottlenote.alcohols.dto.response.detail.AlcoholDetailInfo;
+import app.bottlenote.alcohols.dto.response.detail.FriendInfo;
+import app.bottlenote.alcohols.dto.response.detail.FriendsDetailInfo;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.service.ReviewFacade;
 import app.bottlenote.user.service.FollowFacade;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -18,6 +22,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AlcoholQueryService {
 
+	private static final int MAX_FRIENDS_SIZE = 6;
 	private final AlcoholQueryRepository alcoholQueryRepository;
 	private final ReviewFacade reviewFacade;
 	private final FollowFacade followFacade;
@@ -43,10 +48,24 @@ public class AlcoholQueryService {
 	 */
 	public AlcoholDetail findAlcoholDetailById(Long alcoholId, Long userId) {
 		AlcoholDetailInfo alcoholDetail = alcoholQueryRepository.findAlcoholDetailById(alcoholId, userId);
+		FriendsDetailInfo friendInfos = getFriendInfos(alcoholId, userId);
 		return AlcoholDetail.builder()
 			.alcohols(alcoholDetail)
-			.friendsInfo(followFacade.getTastingFriendsInfoList(alcoholId, userId))
+			.friendsInfo(friendInfos)
 			.reviewInfo(reviewFacade.getReviewInfoList(alcoholId, userId))
 			.build();
+	}
+
+	/**
+	 * 유자가 팔로우 한 사람들 중 해당 술(위스키)를 마셔본 리스트 조회 api
+	 *
+	 * @param alcoholId
+	 * @param userId
+	 * @return FriendsDetailInfo
+	 */
+	protected FriendsDetailInfo getFriendInfos(Long alcoholId, Long userId) {
+		PageRequest pageRequest = PageRequest.of(0, MAX_FRIENDS_SIZE);
+		List<FriendInfo> friendInfos = followFacade.getTastingFriendsInfoList(alcoholId, userId, pageRequest);
+		return FriendsDetailInfo.of((long) friendInfos.size(), friendInfos);
 	}
 }
