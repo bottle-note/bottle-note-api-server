@@ -11,5 +11,5 @@ POST {{host}}/api/v1/oauth/guest-login
 Content-Type: application/json
 
 {
-  "code": "R1VFU1QtQ09ERS0xOTI4MTEy"
+  "code": "aW9zLWd1ZXN0LWNvZGUtNzI5MzE0"
 }

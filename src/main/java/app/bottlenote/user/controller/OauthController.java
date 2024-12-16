@@ -1,6 +1,7 @@
 package app.bottlenote.user.controller;
 
 import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.user.config.OauthConfigProperties;
 import app.bottlenote.user.dto.request.GuestCodeRequest;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.OauthResponse;
@@ -28,10 +29,10 @@ import java.util.Base64;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/oauth")
 public class OauthController {
-
 	private static final String REFRESH_TOKEN_HEADER_PREFIX = "refresh-token";
 	private static final int COOKIE_EXPIRE_TIME = 14 * 24 * 60 * 60;
 	private final OauthService oauthService;
+	private final OauthConfigProperties configProperties;
 
 	@PostMapping("/login")
 	public ResponseEntity<?> oauthLogin(
@@ -47,12 +48,12 @@ public class OauthController {
 	public ResponseEntity<?> guestLogin(
 		@RequestBody @Valid GuestCodeRequest guestCode
 	) {
-		final String matchCode = "GUEST-CODE-1928112";
-		final String key = Base64.getEncoder().encodeToString(matchCode.getBytes());
+		final String key = Base64.getEncoder()
+			.encodeToString(configProperties.getGuestCode()
+				.getBytes());
 		final String code = guestCode.code();
 
 		if (!code.equals(key)) {
-			//Qk9UVExFTk9URS1HVUVTVC1DT0RFLTIwMjQ=
 			throw new UserException(UserExceptionCode.NOT_MATCH_GUEST_CODE);
 		}
 
