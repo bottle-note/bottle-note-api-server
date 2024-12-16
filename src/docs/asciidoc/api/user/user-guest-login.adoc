@@ -1,0 +1,30 @@
+=== 게스트 로그인 ===
+
+게스트 로그인 API
+
+어플리케이션 심사 시 필요한 사용자 정보를 제공하기 위한 API
+
+추후 화면 상에서 특수한 경우 말고는 숨김 처리가 필요.
+
+발급 되는 토큰의 범위는 일반적인 사용자 토큰과 동일하다.
+
+다만 리프레시 토큰의 경우 세팅되지 않는다.
+
+[source]
+----
+POST /api/v1/oauth/guest-login
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/user/guest-login/request-fields.adoc[]
+include::{snippets}/user/guest-login/request-body.adoc[]
+
+[discrete]
+==== 응답 파라미터  ====
+
+[discrete]
+include::{snippets}/user/guest-login/response-fields.adoc[]
+include::{snippets}/user/guest-login/response-body.adoc[]

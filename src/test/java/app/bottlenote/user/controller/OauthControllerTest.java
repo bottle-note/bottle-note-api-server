@@ -2,6 +2,7 @@ package app.bottlenote.user.controller;
 
 import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
+import app.bottlenote.user.config.OauthConfigProperties;
 import app.bottlenote.user.domain.constant.GenderType;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.dto.request.OauthRequest;
@@ -36,13 +37,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(OauthController.class)
 @WithMockUser
 class OauthControllerTest {
-
+	// todo : oauth 관련 integration test 구현 필요 (2024.12.15)
 	@Autowired
 	protected ObjectMapper mapper;
 	@Autowired
 	protected MockMvc mockMvc;
 	@MockBean
 	protected OauthService oauthService;
+	@MockBean
+	private OauthConfigProperties oauthConfigProperties;
 
 	private TokenDto tokenDto;
 
@@ -52,6 +55,7 @@ class OauthControllerTest {
 			.accessToken("access-token")
 			.refreshToken("refresh-token")
 			.build();
+		oauthConfigProperties.printConfigs();
 	}
 
 

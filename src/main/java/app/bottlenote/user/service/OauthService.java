@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
 
@@ -50,10 +51,21 @@ public class OauthService {
 	}
 
 	@Transactional
-	public TokenDto guestLogin() {
+	public String guestLogin() {
+		final int expireTime = 1000 * 60 * 60 * 24;
 		User guest = oauthRepository.loadGuestUser()
-			.orElseGet(() -> oauthSignUp("guest@bottlenote.com", SocialType.APPLE, GenderType.MALE, 30, UserType.ROLE_GUEST));
-		return tokenProvider.generateToken(guest.getEmail(), guest.getRole(), guest.getId());
+			.orElseGet(() ->
+				oauthSignUp("guest" + UUID.randomUUID() + "@bottlenote.com",
+					SocialType.APPLE,
+					GenderType.MALE,
+					30,
+					UserType.ROLE_GUEST
+				)
+			);
+		return tokenProvider.createGuestToken(
+			guest.getId(),
+			expireTime
+		);
 	}
 
 	public User oauthSignUp(

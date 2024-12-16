@@ -90,6 +90,9 @@ include::api/file/image/upload/presign-url.adoc[]
 include::api/user/user-login.adoc[]
 
 '''
+include::api/user/user-guest-login.adoc[]
+
+'''
 include::api/user/user-reissue.adoc[]
 
 '''
