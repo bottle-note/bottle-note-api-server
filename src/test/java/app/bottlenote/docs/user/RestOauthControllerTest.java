@@ -1,17 +1,21 @@
 package app.bottlenote.docs.user;
 
 import app.bottlenote.docs.AbstractRestDocs;
+import app.bottlenote.user.config.OauthConfigProperties;
 import app.bottlenote.user.controller.OauthController;
 import app.bottlenote.user.domain.constant.GenderType;
 import app.bottlenote.user.domain.constant.SocialType;
+import app.bottlenote.user.dto.request.GuestCodeRequest;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.TokenDto;
 import app.bottlenote.user.service.OauthService;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
+import static java.util.Base64.getEncoder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
@@ -25,14 +29,24 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@DisplayName("유저 Auth 컨트롤러 RestDocs용 테스트")
+@Tag("document")
+@DisplayName("유저 Auth 컨트롤러 RestDocs 테스트")
 class RestOauthControllerTest extends AbstractRestDocs {
-
 	private final OauthService oauthService = mock(OauthService.class);
+	private final OauthConfigProperties config;
+
+	public RestOauthControllerTest() {
+		this.config = OauthConfigProperties.builder()
+			.guestCode("TEST_GUEST_CODE")
+			.cookieExpireTime(123456)
+			.refreshTokenHeaderPrefix("refresh-token")
+			.build();
+	}
 
 	@Override
 	protected Object initController() {
-		return new OauthController(oauthService);
+
+		return new OauthController(oauthService, config);
 	}
 
 	@Test
@@ -40,15 +54,10 @@ class RestOauthControllerTest extends AbstractRestDocs {
 	void login_test() throws Exception {
 
 		//given
-		OauthRequest oauthRequest = new OauthRequest("cdm2883@naver.com", SocialType.KAKAO,
-			GenderType.MALE,
-			27);
-
+		OauthRequest oauthRequest = new OauthRequest("cdm2883@naver.com", SocialType.KAKAO, GenderType.MALE, 27);
 		TokenDto tokenDto = TokenDto.builder()
-			.accessToken(
-				"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNDk3NjUyM30.41SuOBgmX-sd8nrMbC-xm0kH6rbny_SMYCKWE4rNQEZgSrRPS0HvYv0X7E-weo6sHlWWm1OmiQgHl4-uy6-9ig")
-			.refreshToken(
-				"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNjE4NTIyM30.lvmPueUcOb1erv5Llo4qhEUQ_gtWrpFGbBHDw-Pi94qj8MGojoEI3ugdMo8PwoKgrVQZ_gBwBbytwjxh8XktUg")
+			.accessToken("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNDk3NjUyM30.41SuOBgmX-sd8nrMbC-xm0kH6rbny_SMYCKWE4rNQEZgSrRPS0HvYv0X7E-weo6sHlWWm1OmiQgHl4-uy6-9ig")
+			.refreshToken("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNjE4NTIyM30.lvmPueUcOb1erv5Llo4qhEUQ_gtWrpFGbBHDw-Pi94qj8MGojoEI3ugdMo8PwoKgrVQZ_gBwBbytwjxh8XktUg")
 			.build();
 
 		//when
@@ -135,6 +144,44 @@ class RestOauthControllerTest extends AbstractRestDocs {
 					),
 					responseHeaders(
 						headerWithName("Set-Cookie").description("리프레쉬 토큰")
+					)
+				)
+			);
+
+
+	}
+
+	@Test
+	@DisplayName("게스트 토큰을 발급 받을수 있다.")
+	void guest_login() throws Exception {
+		//given
+		final String guestCode = config.getGuestCode();
+		final var request = GuestCodeRequest.of(getEncoder().encodeToString(guestCode.getBytes()));
+		final String token = "response-token";
+
+		//when
+		when(oauthService.guestLogin()).thenReturn(token);
+
+		//then
+		mockMvc.perform(post("/api/v1/oauth/guest-login")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(request))
+				.with(csrf()))
+			.andExpect(status().isOk())
+			.andDo(
+				document("user/guest-login",
+					requestFields(
+						fieldWithPath("code").description("게스트 코드")
+					),
+					responseFields(
+						fieldWithPath("success").ignored(),
+						fieldWithPath("code").ignored(),
+						fieldWithPath("errors").ignored(),
+						fieldWithPath("data.accessToken").description("액세스 토큰"),
+						fieldWithPath("meta.serverEncoding").description("서버 인코딩 정도"),
+						fieldWithPath("meta.serverVersion").description("서버 버전"),
+						fieldWithPath("meta.serverPathVersion").description("서버 경로 버전"),
+						fieldWithPath("meta.serverResponseTime").description("서버 응답 시간")
 					)
 				)
 			);

@@ -37,6 +37,7 @@ public class ModuleConfig {
 		return objectMapper;
 	}
 
+
 	@Bean
 	public AlcoholQuerySupporter alcoholQuerySupporter() {
 		return new AlcoholQuerySupporter();
