@@ -22,7 +22,7 @@ PATCH /api/v1/reviews
 ==== 요청 파라미터 ====
 
 [discrete]
-include::{snippets}/review/review-modify/request-fields.adoc[]
+//include::{snippets}/review/review-modify/request-fields.adoc[]
 
 - Request Body 예시
 
@@ -33,8 +33,8 @@ include::{snippets}/review/review-modify/request-fields.adoc[]
 ==== 응답 파라미터  ====
 
 [discrete]
-include::{snippets}/review/review-modify/response-fields.adoc[]
-include::{snippets}/review/review-modify/http-response.adoc[]
+//include::{snippets}/review/review-modify/response-fields.adoc[]
+//include::{snippets}/review/review-modify/http-response.adoc[]
 
 [discrete]
 ==== ReviewStatus ====
