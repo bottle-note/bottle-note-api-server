@@ -1,12 +1,15 @@
 package app.bottlenote.alcohols.dto.response.detail;
 
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Getter
 @AllArgsConstructor(staticName = "of")
+@NoArgsConstructor
 public class FriendsDetailInfo {
-	private final Long followerCount;
-	private final List<FriendInfo> friends;
+	private Long followerCount;
+	private List<FriendInfo> friends;
 }

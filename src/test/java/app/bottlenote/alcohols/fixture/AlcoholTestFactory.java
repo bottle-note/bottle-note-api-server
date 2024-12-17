@@ -1,10 +1,9 @@
 package app.bottlenote.alcohols.fixture;
 
 import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.rating.domain.Rating;
-import app.bottlenote.rating.domain.RatingId;
-import app.bottlenote.rating.domain.RatingPoint;
-import app.bottlenote.rating.domain.RatingRepository;
+import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
+import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
+import app.bottlenote.alcohols.domain.constant.AlcoholType;
 import app.bottlenote.user.domain.Follow;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
@@ -13,10 +12,11 @@ import app.bottlenote.user.domain.constant.GenderType;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.domain.constant.UserType;
 import app.bottlenote.user.repository.FollowRepository;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Component
@@ -27,7 +27,23 @@ public class AlcoholTestFactory {
 	@Autowired
 	private FollowRepository followRepository;
 	@Autowired
-	private RatingRepository ratingRepository;
+	private AlcoholQueryRepository alcoholQueryRepository;
+
+	public Alcohol createAlcohol() {
+		Alcohol alcohol = Alcohol.builder()
+			.id(1L)
+			.korName("명작 위스키")
+			.engName("Masterpiece Whisky")
+			.abv("40%")
+			.type(AlcoholType.WHISKY) // 타입 Enum 값 설정
+			.korCategory("위스키")
+			.engCategory("Whiskey")
+			.categoryGroup(AlcoholCategoryGroup.SINGLE_MALT) // 그룹 Enum 값 설정
+			.cask("American Oak")
+			.imageUrl("https://example.com/image.jpg")
+			.build();
+		return alcoholQueryRepository.save(alcohol);
+	}
 
 	public User createUser(Long id, String email, String nickName) {
 		User user = User.builder()
@@ -42,16 +58,6 @@ public class AlcoholTestFactory {
 		return userRepository.save(user);
 	}
 
-	public void createRating(User user, Alcohol alcohol, int point) {
-		Rating rating = Rating.builder()
-			.id(RatingId.is(user.getId(), alcohol.getId()))
-			.alcohol(alcohol)
-			.user(user)
-			.ratingPoint(RatingPoint.of(point))
-			.build();
-		ratingRepository.save(rating);
-	}
-
 	public void createFollow(User user, User followUser) {
 		Follow follow = Follow.builder()
 			.status(FollowStatus.FOLLOWING)
@@ -60,6 +66,4 @@ public class AlcoholTestFactory {
 			.build();
 		followRepository.save(follow);
 	}
-
-
 }
