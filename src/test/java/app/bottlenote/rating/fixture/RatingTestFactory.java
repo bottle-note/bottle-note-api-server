@@ -14,16 +14,14 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class RatingTestFactory {
 
-	@Autowired
-	private RatingRepository ratingRepository;
+    @Autowired
+    private RatingRepository ratingRepository;
 
-	public void createRating(User user, Alcohol alcohol, int point) {
-		Rating rating = Rating.builder()
-			.id(RatingId.is(user.getId(), alcohol.getId()))
-			.alcohol(alcohol)
-			.user(user)
-			.ratingPoint(RatingPoint.of(point))
-			.build();
-		ratingRepository.save(rating);
-	}
+    public void createRating(User user, Alcohol alcohol, int point) {
+        Rating rating = Rating.builder()
+                .id(RatingId.is(user.getId(), alcohol.getId()))
+                .ratingPoint(RatingPoint.of(point))
+                .build();
+        ratingRepository.save(rating);
+    }
 }

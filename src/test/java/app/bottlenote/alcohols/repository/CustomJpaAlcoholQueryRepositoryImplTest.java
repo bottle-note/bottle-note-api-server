@@ -96,7 +96,7 @@ class CustomJpaAlcoholQueryRepositoryImplTest {
 
 		Review review = Review.builder().alcoholId(alcohol.getId()).userId(user.getId()).content("맛있어요").build();
 		RatingId ratingId = RatingId.is(alcohol.getId(), user.getId());
-		Rating rating_1 = Rating.builder().id(ratingId).alcohol(alcohol).user(user).ratingPoint(RatingPoint.of(4.5)).build();
+		Rating rating_1 = Rating.builder().id(ratingId).ratingPoint(RatingPoint.of(4.5)).build();
 
 		em.persist(review);
 		em.persist(rating_1);

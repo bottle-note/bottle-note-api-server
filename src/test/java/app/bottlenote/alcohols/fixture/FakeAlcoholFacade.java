@@ -18,7 +18,7 @@ public class FakeAlcoholFacade implements AlcoholFacade {
 
 	@Override
 	public Boolean existsByAlcoholId(Long alcoholId) {
-		return true;
+		return alcoholId.equals(1L);
 	}
 
 	@Override

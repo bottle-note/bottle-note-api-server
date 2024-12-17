@@ -1,8 +1,8 @@
 package app.bottlenote.rating.service;
 
 import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
-import app.bottlenote.alcohols.fixture.InMemoryAlcoholQueryRepository;
+import app.bottlenote.alcohols.fixture.FakeAlcoholFacade;
+import app.bottlenote.alcohols.service.domain.AlcoholFacade;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
@@ -12,9 +12,9 @@ import app.bottlenote.rating.event.publihser.RatingEventPublisher;
 import app.bottlenote.rating.exception.RatingException;
 import app.bottlenote.rating.fixture.InMemoryRatingRepository;
 import app.bottlenote.user.domain.User;
-import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.exception.UserException;
-import app.bottlenote.user.fixture.InMemoryUserQueryRepository;
+import app.bottlenote.user.fixture.FakeUserFacade;
+import app.bottlenote.user.service.UserFacade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -28,7 +28,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
-
 
 @Tag("unit")
 @DisplayName("[unit] [service] RatingCommandService")
@@ -44,16 +43,13 @@ class RatingCommandServiceTest {
 	@BeforeEach
 	void setup() {
 		this.ratingRepository = new InMemoryRatingRepository();
-		UserRepository userQueryRepository = new InMemoryUserQueryRepository();
-		AlcoholQueryRepository alcoholQueryRepository = new InMemoryAlcoholQueryRepository();
+		UserFacade userFacade = new FakeUserFacade();
+		AlcoholFacade alcoholFacade = new FakeAlcoholFacade();
 		ratingEventPublisher = mock(RatingEventPublisher.class);
-
-		this.ratingCommandService = new RatingCommandService(ratingRepository, userQueryRepository, alcoholQueryRepository, ratingEventPublisher);
+		this.ratingCommandService = new RatingCommandService(ratingRepository, userFacade, alcoholFacade, ratingEventPublisher);
 
 		user = User.builder().id(userId).build();
 		alcohol = Alcohol.builder().id(alcoholId).build();
-		userQueryRepository.save(user);
-		alcoholQueryRepository.save(alcohol);
 	}
 
 	@Nested
@@ -79,8 +75,6 @@ class RatingCommandServiceTest {
 			//given
 			ratingRepository.save(Rating.builder()
 				.id(RatingId.is(userId, alcoholId))
-				.alcohol(alcohol)
-				.user(user)
 				.ratingPoint(RatingPoint.of(1))
 				.build());
 
