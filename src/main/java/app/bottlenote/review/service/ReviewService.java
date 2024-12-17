@@ -1,7 +1,7 @@
 package app.bottlenote.review.service;
 
 import app.bottlenote.alcohols.dto.response.AlcoholInfo;
-import app.bottlenote.alcohols.service.domain.AlcoholDomainSupport;
+import app.bottlenote.alcohols.service.domain.AlcoholFacade;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.review.domain.Review;
@@ -42,7 +42,7 @@ import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOU
 @RequiredArgsConstructor
 public class ReviewService implements ReviewFacade {
 
-	private final AlcoholDomainSupport alcoholDomainSupport;
+	private final AlcoholFacade alcoholFacade;
 	private final UserFacade userDomainSupport;
 	private final ReviewRepository reviewRepository;
 	private final ReviewTastingTagSupport reviewTastingTagSupport;
@@ -63,7 +63,7 @@ public class ReviewService implements ReviewFacade {
 	@Transactional(readOnly = true)
 	public ReviewDetailResponse getDetailReview(Long reviewId, Long currentUserId) {
 		Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
-		AlcoholInfo alcoholInfo = alcoholDomainSupport.findAlcoholInfoById(review.getAlcoholId(), currentUserId).orElseGet(AlcoholInfo::empty);
+		AlcoholInfo alcoholInfo = alcoholFacade.findAlcoholInfoById(review.getAlcoholId(), currentUserId).orElseGet(AlcoholInfo::empty);
 		ReviewInfo reviewInfo = reviewRepository.getReview(reviewId, currentUserId);
 		return ReviewDetailResponse.create(
 			alcoholInfo,
@@ -108,7 +108,7 @@ public class ReviewService implements ReviewFacade {
 		ReviewCreateRequest reviewCreateRequest,
 		Long currentUserId
 	) {
-		alcoholDomainSupport.isValidAlcoholId(reviewCreateRequest.alcoholId());
+		alcoholFacade.isValidAlcoholId(reviewCreateRequest.alcoholId());
 		userDomainSupport.isValidUserId(currentUserId);
 
 		RatingPoint point = RatingPoint.of(reviewCreateRequest.rating());

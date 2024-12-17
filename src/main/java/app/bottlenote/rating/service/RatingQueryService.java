@@ -1,6 +1,6 @@
 package app.bottlenote.rating.service;
 
-import app.bottlenote.alcohols.service.domain.AlcoholDomainSupport;
+import app.bottlenote.alcohols.service.domain.AlcoholFacade;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.rating.domain.RatingRepository;
 import app.bottlenote.rating.dto.dsl.RatingListFetchCriteria;
@@ -15,8 +15,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class RatingQueryService {
 	private final RatingRepository ratingRepository;
-	private final UserFacade userDomainSupport;
-	private final AlcoholDomainSupport alcoholDomainSupport;
+	private final UserFacade userFacade;
+	private final AlcoholFacade alcoholFacade;
 
 	public PageResponse<RatingListFetchResponse> fetchRatingList(RatingListFetchRequest request, Long userId) {
 		var criteria = RatingListFetchCriteria.of(request, userId);
@@ -24,8 +24,8 @@ public class RatingQueryService {
 	}
 
 	public UserRatingResponse fetchUserRating(Long alcoholId, Long userId) {
-		userDomainSupport.isValidUserId(userId);
-		alcoholDomainSupport.isValidAlcoholId(alcoholId);
+		userFacade.isValidUserId(userId);
+		alcoholFacade.isValidAlcoholId(alcoholId);
 
 		return ratingRepository.fetchUserRating(alcoholId, userId)
 			.orElse(UserRatingResponse.empty(alcoholId, userId));

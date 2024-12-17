@@ -1,14 +1,15 @@
 package app.bottlenote.alcohols.fixture;
 
 import app.bottlenote.alcohols.dto.response.AlcoholInfo;
-import app.bottlenote.alcohols.service.domain.AlcoholDomainSupport;
-import java.util.Optional;
+import app.bottlenote.alcohols.service.domain.AlcoholFacade;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class FakeAlcoholDomainSupport implements AlcoholDomainSupport {
+import java.util.Optional;
 
-	private static final Logger log = LogManager.getLogger(FakeAlcoholDomainSupport.class);
+public class FakeAlcoholFacade implements AlcoholFacade {
+
+	private static final Logger log = LogManager.getLogger(FakeAlcoholFacade.class);
 
 	@Override
 	public Optional<AlcoholInfo> findAlcoholInfoById(Long alcoholId, Long currentUserId) {

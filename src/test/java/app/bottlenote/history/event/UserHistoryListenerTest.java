@@ -1,6 +1,6 @@
 package app.bottlenote.history.event;
 
-import app.bottlenote.alcohols.fixture.FakeAlcoholDomainSupport;
+import app.bottlenote.alcohols.fixture.FakeAlcoholFacade;
 import app.bottlenote.history.domain.constant.EventCategory;
 import app.bottlenote.history.domain.constant.EventType;
 import app.bottlenote.history.dto.payload.HistoryEvent;
@@ -13,14 +13,14 @@ import org.junit.jupiter.api.Test;
 class UserHistoryListenerTest {
 
 	private HistoryListener historyListener;
-	private FakeAlcoholDomainSupport alcoholDomainSupport;
+	private FakeAlcoholFacade alcoholFacade;
 	private InMemoryUserHistoryRepository userHistoryRepository;
 
 	@BeforeEach
 	void setUp() {
-		alcoholDomainSupport = new FakeAlcoholDomainSupport();
+		alcoholFacade = new FakeAlcoholFacade();
 		userHistoryRepository = new InMemoryUserHistoryRepository();
-		historyListener = new HistoryListener(alcoholDomainSupport, userHistoryRepository);
+		historyListener = new HistoryListener(alcoholFacade, userHistoryRepository);
 	}
 
 	@DisplayName("유저 히스토리 이벤트를 저장할 수 있다.")
