@@ -51,7 +51,7 @@ Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 ### 로그인 이용자의 마이 보틀 페이지를 키워드 'whisky'로 조회한다.(조회결과 없을것임)
-GET {{host}}/api/v1/my-page/8/my-bottle?keyword=whiskey&regionId=&tabType=ALL&sortType=LATEST&sortOrder=DESC&cursor=0&
+GET {{host}}/api/v1/my-page/8/my-bottle?keyword=아란&regionId=&tabType=ALL&sortType=LATEST&sortOrder=DESC&cursor=0&
     pageSize=50
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
@@ -67,7 +67,6 @@ GET {{host}}/api/v1/my-page/8/my-bottle?keyword=&regionId=&tabType=ALL&sortType=
     pageSize=50
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
-
 
 ### 로그인 이용자의 마이 보틀 페이지를 지역 12와 키워드 '라이'로 조회한다.
 GET {{host}}/api/v1/my-page/8/my-bottle?keyword=라이&regionId=12&tabType=ALL&sortType=LATEST&sortOrder=DESC&cursor=0&

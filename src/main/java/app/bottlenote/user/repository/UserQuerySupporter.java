@@ -1,6 +1,5 @@
 package app.bottlenote.user.repository;
 
-import app.bottlenote.alcohols.domain.QAlcohol;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.user.domain.constant.MyBottleSortType;
@@ -14,10 +13,8 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.util.StringUtils;
-import com.querydsl.jpa.JPAExpressions;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
@@ -133,20 +130,6 @@ public class UserQuerySupporter {
 	}
 
 	/**
-	 * 로그인 사용자가 해당 술에 대한 찜하기 상태를 조회한다.
-	 *
-	 * @param alcoholId
-	 * @param userId
-	 * @return 찜하기 상태 t/f
-	 */
-	public BooleanExpression isPickedSubquery(NumberPath<Long> alcoholId, Long userId) {
-		return select(picks.count())
-			.from(picks)
-			.where(picks.alcohol.id.eq(alcoholId).and(picks.user.id.eq(userId)))
-			.gt(0L);
-	}
-
-	/**
 	 * 로그인 사용자가 해당 술에 대한 리뷰 작성 여부를 조회한다.
 	 *
 	 * @param alcoholId
@@ -198,77 +181,24 @@ public class UserQuerySupporter {
 	/**
 	 * 탭 타입 검색조건
 	 */
-	public Predicate eqTabType(MyBottleTabType myBottleTabType, Long userId) {
-
-		if (myBottleTabType == null) {
-			return null;
-		}
-
-		// 타입별로 검색 조건을 미리 정의
-		BooleanExpression pickCondition = JPAExpressions
-			.selectOne()
-			.from(picks)
-			.where(picks.user.id.eq(userId).and(picks.alcohol.id.eq(alcohol.id)))
-			.exists();
-
-		BooleanExpression ratingCondition = JPAExpressions
-			.selectOne()
-			.from(rating)
-			.where(rating.user.id.eq(userId)
-				.and(rating.alcohol.id.eq(alcohol.id)
-					.and(rating.ratingPoint.rating.gt(0.0))))
-			.exists();
-
-		BooleanExpression reviewCondition = JPAExpressions
-			.selectOne()
-			.from(review)
-			.where(review.userId.eq(userId).and(review.alcoholId.eq(alcohol.id)))
-			.exists();
-
-		if (myBottleTabType == null || myBottleTabType == MyBottleTabType.ALL) {
-			// 모든 타입에서 활동이 있었는지 검사 (찜하기, 별점, 리뷰)
-			return pickCondition.or(ratingCondition).or(reviewCondition);
-		} else {
-			// 지정된 타입에 따라 검사
-			switch (myBottleTabType) {
-				case PICK:
-					return pickCondition;
-				case RATING:
-					return ratingCondition;
-				case REVIEW:
-					return reviewCondition;
-				default:
-					return null; // 없는 경우는 null 반환
-			}
-		}
+	public Predicate eqTabType(MyBottleTabType myBottleTabType) {
+		return switch (myBottleTabType) {
+			case PICK -> picks.id.isNotNull();
+			case RATING -> rating.id.isNotNull();
+			case REVIEW -> review.id.isNotNull();
+			default -> null;
+		};
 	}
 
 	/**
 	 * 술 이름을 검색하는 조건
 	 */
 	public BooleanExpression eqName(String name) {
-
 		if (StringUtils.isNullOrEmpty(name))
 			return null;
-
-		return alcohol.korName.like("%" + name + "%")
-			.or(alcohol.engName.like("%" + name + "%"));
+		return alcohol.korName.like("%" + name + "%").or(alcohol.engName.like("%" + name + "%"));
 	}
 
-	/**
-	 * 가장 최근에 수정된 날짜를 기준으로 정렬하는 Expression을 반환.
-	 */
-	private Expression<LocalDateTime> orderByMaxLastModifyAt() {
-		return JPAExpressions.select(
-				rating.lastModifyAt.max().coalesce(review.lastModifyAt.max(), picks.lastModifyAt.max())
-			)
-			.from(rating, review, picks)
-			.where(
-				rating.alcohol.id.eq(QAlcohol.alcohol.id)
-					.or(review.alcoholId.eq(QAlcohol.alcohol.id))
-					.or(picks.alcohol.id.eq(QAlcohol.alcohol.id))
-			);
-	}
 
 	/**
 	 * 마이 보틀 정렬 조건을 반환
@@ -277,17 +207,11 @@ public class UserQuerySupporter {
 		myBottleSortType = (myBottleSortType != null) ? myBottleSortType : MyBottleSortType.LATEST;
 		sortOrder = (sortOrder != null) ? sortOrder : SortOrder.DESC; // 기본값은 내림차순
 
-		// 정렬 기준에 따라 OrderSpecifier 반환
 		return switch (myBottleSortType) {
-			case RATING -> sortOrder == sortOrder.DESC
-				? rating.ratingPoint.rating.max().desc()
-				: rating.ratingPoint.rating.max().asc();
-			case REVIEW -> sortOrder == sortOrder.DESC
-				? review.createAt.max().desc()
-				: review.createAt.max().asc();
-			default -> sortOrder == sortOrder.DESC
-				? rating.lastModifyAt.coalesce(review.lastModifyAt, picks.lastModifyAt).max().desc()
-				: rating.lastModifyAt.coalesce(review.lastModifyAt, picks.lastModifyAt).max().asc();
+			case RATING -> sortOrder.resolve(rating.ratingPoint.rating.max());
+			case REVIEW -> sortOrder.resolve(review.createAt.max());
+			default -> sortOrder.resolve(rating.lastModifyAt.coalesce(review.lastModifyAt, picks.lastModifyAt).max()
+			);
 		};
 	}
 
