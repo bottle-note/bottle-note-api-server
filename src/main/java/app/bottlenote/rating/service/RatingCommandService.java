@@ -1,7 +1,6 @@
 package app.bottlenote.rating.service;
 
-import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
+import app.bottlenote.alcohols.service.domain.AlcoholFacade;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
@@ -11,10 +10,9 @@ import app.bottlenote.rating.dto.response.RatingRegisterResponse;
 import app.bottlenote.rating.event.publihser.RatingEventPublisher;
 import app.bottlenote.rating.exception.RatingException;
 import app.bottlenote.rating.exception.RatingExceptionCode;
-import app.bottlenote.user.domain.User;
-import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
+import app.bottlenote.user.service.UserFacade;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,14 +20,16 @@ import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 
+import static java.lang.Boolean.FALSE;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class RatingCommandService {
 
 	private final RatingRepository ratingRepository;
-	private final UserRepository userRepository;
-	private final AlcoholQueryRepository alcoholQueryRepository;
+	private final UserFacade userFacade;
+	private final AlcoholFacade alcoholFacade;
 	private final RatingEventPublisher ratingEventPublisher;
 
 	@Transactional
@@ -42,11 +42,12 @@ public class RatingCommandService {
 		Objects.requireNonNull(userId, "유저 ID는 필수 값입니다.");
 		Objects.requireNonNull(ratingPoint, "별점은 필수 값입니다.");
 
-		User user = userRepository.findById(userId)
-			.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
-
-		Alcohol alcohol = alcoholQueryRepository.findById(alcoholId)
-			.orElseThrow(() -> new RatingException(RatingExceptionCode.ALCOHOL_NOT_FOUND));
+		if (FALSE.equals(alcoholFacade.existsByAlcoholId(alcoholId))) {
+			throw new RatingException(RatingExceptionCode.ALCOHOL_NOT_FOUND);
+		}
+		if (FALSE.equals(userFacade.existsByUserId(userId))) {
+			throw new UserException(UserExceptionCode.USER_NOT_FOUND);
+		}
 
 		boolean isExistPrevRating = false;
 		RatingPoint prevRatingPoint = null;
@@ -58,8 +59,6 @@ public class RatingCommandService {
 		if (rating == null) {
 			rating = Rating.builder()
 				.id(RatingId.is(userId, alcoholId))
-				.alcohol(alcohol)
-				.user(user)
 				.ratingPoint(ratingPoint)
 				.build();
 		} else {

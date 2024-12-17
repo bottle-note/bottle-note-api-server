@@ -85,7 +85,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 			.from(alcohol)
 			.leftJoin(picks).on(picks.alcohol.id.eq(alcohol.id).and(picks.user.id.eq(userId)).and(picks.status.eq(PICK)))
 			.leftJoin(review).on(review.alcoholId.eq(alcohol.id).and(review.userId.eq(userId)).and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE)))
-			.leftJoin(rating).on(rating.alcohol.id.eq(alcohol.id).and(rating.user.id.eq(userId)).and(rating.ratingPoint.rating.gt(0.0)))
+			.leftJoin(rating).on(rating.id.alcoholId.eq(alcohol.id).and(rating.id.userId.eq(userId)).and(rating.ratingPoint.rating.gt(0.0)))
 			.where(
 				picks.id.isNotNull().or(rating.id.isNotNull()).or(review.id.isNotNull()),
 				supporter.eqTabType(request.tabType()),
@@ -104,7 +104,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 			.from(alcohol)
 			.leftJoin(picks).on(picks.alcohol.id.eq(alcohol.id).and(picks.user.id.eq(userId)).and(picks.status.eq(PICK)))
 			.leftJoin(review).on(review.alcoholId.eq(alcohol.id).and(review.userId.eq(userId)).and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE)))
-			.leftJoin(rating).on(rating.alcohol.id.eq(alcohol.id).and(rating.user.id.eq(userId)).and(rating.ratingPoint.rating.gt(0.0)))
+			.leftJoin(rating).on(rating.id.alcoholId.eq(alcohol.id).and(rating.id.userId.eq(userId)).and(rating.ratingPoint.rating.gt(0.0)))
 			.where(
 				picks.id.isNotNull().or(rating.id.isNotNull()).or(review.id.isNotNull()),
 				supporter.eqTabType(request.tabType()),

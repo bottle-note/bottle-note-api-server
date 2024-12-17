@@ -3,7 +3,6 @@ package app.bottlenote.alcohols.domain;
 import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.domain.constant.AlcoholType;
 import app.bottlenote.common.domain.BaseEntity;
-import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.review.domain.Review;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -94,13 +93,8 @@ public class Alcohol extends BaseEntity {
 	@OneToMany(mappedBy = "alcohol", fetch = FetchType.LAZY)
 	private Set<AlcoholsTastingTags> alcoholsTastingTags = new HashSet<>();
 
-	// mappedBy: 연관관계의 주인이 아님을 의미한다.
-// Rating이 alcohol의 id를 가지고 있다.
-	@OneToMany(mappedBy = "alcohol", fetch = FetchType.LAZY)
-	private List<Rating> rating = new ArrayList<>();
-
 	@Builder
-	public Alcohol(Long id, String korName, String engName, String abv, AlcoholType type, String korCategory, String engCategory, AlcoholCategoryGroup categoryGroup, Region region, Distillery distillery, String cask, String imageUrl, List<Review> reviews, Set<AlcoholsTastingTags> alcoholsTastingTags, List<Rating> rating) {
+	public Alcohol(Long id, String korName, String engName, String abv, AlcoholType type, String korCategory, String engCategory, AlcoholCategoryGroup categoryGroup, Region region, Distillery distillery, String cask, String imageUrl, List<Review> reviews, Set<AlcoholsTastingTags> alcoholsTastingTags) {
 		this.id = id;
 		this.korName = korName;
 		this.engName = engName;
@@ -115,7 +109,6 @@ public class Alcohol extends BaseEntity {
 		this.imageUrl = imageUrl;
 		this.reviews = reviews;
 		this.alcoholsTastingTags = alcoholsTastingTags;
-		this.rating = rating;
 	}
 
 	@Override

@@ -107,7 +107,7 @@ public class RatingQuerySupporter {
 		if (userId == null)
 			return null;
 
-		return rating.user.id.isNull().or(rating.user.id.ne(userId));
+		return rating.id.userId.isNull().or(rating.id.userId.ne(userId));
 	}
 
 	/**
