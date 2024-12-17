@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@Converter
+@Converter(autoApply = true)
 @Component
 public class JsonArrayConverter implements AttributeConverter<List<SocialType>, String> {
 
@@ -25,7 +25,7 @@ public class JsonArrayConverter implements AttributeConverter<List<SocialType>, 
 	@Override
 	public String convertToDatabaseColumn(List<SocialType> list) {
 		if (CollectionUtils.isNullOrEmpty(list)) {
-			return "[" + list.toString() + "]";
+			return "[]";
 		}
 		try {
 			return objectMapper.writeValueAsString(list);
@@ -36,23 +36,12 @@ public class JsonArrayConverter implements AttributeConverter<List<SocialType>, 
 
 	@Override
 	public List<SocialType> convertToEntityAttribute(String dbData) {
-
 		if (dbData == null || dbData.isEmpty()) {
 			return Collections.emptyList();
 		}
-
 		try {
-			// dbData가 JSON 배열 형식인지 확인
-			if (dbData.trim().startsWith("[") && dbData.trim().endsWith("]")) {
-				// JSON 배열 형식이면 그대로 처리
-				return objectMapper.readValue(dbData, new TypeReference<>() {
-				});
-			} else {
-				// 단순 문자열일 경우 JSON 배열로 감싸서 변환
-				String jsonArray = "[" + objectMapper.writeValueAsString(dbData) + "]";
-				return objectMapper.readValue(jsonArray, new TypeReference<>() {
-				});
-			}
+			return objectMapper.readValue(dbData, new TypeReference<>() {
+			});
 		} catch (JsonProcessingException e) {
 			log.error("Failed to parse JSON data: {}", dbData, e);
 			throw new UserException(JSON_PARSING_EXCEPTION);

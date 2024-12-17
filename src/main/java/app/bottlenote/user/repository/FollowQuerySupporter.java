@@ -1,23 +1,22 @@
 package app.bottlenote.user.repository;
 
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
+import static com.querydsl.jpa.JPAExpressions.select;
+
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.user.dto.dsl.FollowPageableCriteria;
 import app.bottlenote.user.dto.response.FollowingDetail;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.dsl.NumberPath;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
-
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.domain.QReview.review;
-import static com.querydsl.jpa.JPAExpressions.select;
+import org.springframework.stereotype.Component;
 
 
 @Component
 public class FollowQuerySupporter {
-
+	
 	public Expression<Long> followReviewCountSubQuery(NumberPath<Long> userId) {
 		return ExpressionUtils.as(
 			select(review.count())

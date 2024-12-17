@@ -1,4 +1,7 @@
-package app.bottlenote.user.repository.custom;
+package app.bottlenote.user.repository;
+
+import static app.bottlenote.user.domain.QFollow.follow;
+import static app.bottlenote.user.domain.QUser.user;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
@@ -7,16 +10,11 @@ import app.bottlenote.user.dto.dsl.FollowPageableCriteria;
 import app.bottlenote.user.dto.response.FollowSearchResponse;
 import app.bottlenote.user.dto.response.FollowerDetail;
 import app.bottlenote.user.dto.response.FollowingDetail;
-import app.bottlenote.user.repository.FollowQuerySupporter;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.List;
-
-import static app.bottlenote.user.domain.QFollow.follow;
-import static app.bottlenote.user.domain.QUser.user;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -47,7 +45,7 @@ public class CustomFollowRepositoryImpl implements CustomFollowRepository {
 
 		return PageResponse.of(FollowSearchResponse.of(totalCount, followingDetails, followerDetails), cursorPageable);
 	}
-
+	
 	private List<FollowingDetail> getFollowingDetails(Long userId, Long cursor, Long pageSize) {
 		return queryFactory
 			.select(Projections.constructor(

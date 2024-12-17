@@ -186,3 +186,11 @@ VALUES (1, 1, NULL, '첫 번째 리뷰의 첫 댓글입니다.', NULL, NULL, NUL
        (5, 3, NULL, '다섯 번째 리뷰에 또 하나의 댓글을 더합니다.', NULL, NULL, NULL, NULL),
        (5, 4, NULL, '다섯 번째 리뷰, 댓글 계속 이어집니다.', NULL, NULL, NULL, NULL),
        (5, 5, NULL, '마지막으로 다섯 번째 리뷰의 최종 댓글입니다.', NULL, NULL, NULL, NULL);
+
+INSERT INTO follow (user_id, follow_user_id, status, create_at, create_by, last_modify_at, last_modify_by)
+VALUES (2, 1, 'FOLLOWING', NULL, NULL, NULL, NULL),
+       (3, 1, 'FOLLOWING', NULL, NULL, NULL, NULL),
+       (4, 1, 'FOLLOWING', NULL, NULL, NULL, NULL),
+       (5, 1, 'FOLLOWING', NULL, NULL, NULL, NULL),
+       (1, 3, 'FOLLOWING', NULL, NULL, NULL, NULL),
+       (1, 4, 'FOLLOWING', NULL, NULL, NULL, NULL);

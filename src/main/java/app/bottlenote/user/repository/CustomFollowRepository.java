@@ -1,4 +1,4 @@
-package app.bottlenote.user.repository.custom;
+package app.bottlenote.user.repository;
 
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.user.dto.dsl.FollowPageableCriteria;
