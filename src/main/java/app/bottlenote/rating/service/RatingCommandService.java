@@ -1,5 +1,7 @@
 package app.bottlenote.rating.service;
 
+import static java.lang.Boolean.FALSE;
+
 import app.bottlenote.alcohols.service.domain.AlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.rating.domain.Rating;
@@ -14,13 +16,10 @@ import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.service.UserFacade;
 import jakarta.transaction.Transactional;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.Objects;
-
-import static java.lang.Boolean.FALSE;
 
 @Slf4j
 @Service
