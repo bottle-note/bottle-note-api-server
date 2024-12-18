@@ -1,10 +1,10 @@
 package app.bottlenote.rating.domain;
 
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.dto.dsl.RatingListFetchCriteria;
 import app.bottlenote.rating.dto.response.RatingListFetchResponse;
 import app.bottlenote.rating.dto.response.UserRatingResponse;
-
 import java.util.List;
 import java.util.Optional;
 

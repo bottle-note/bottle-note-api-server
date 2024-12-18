@@ -1,9 +1,14 @@
 package app.bottlenote.rating.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import app.bottlenote.alcohols.fixture.FakeAlcoholFacade;
 import app.bottlenote.alcohols.service.domain.AlcoholFacade;
 import app.bottlenote.rating.domain.Rating;
-import app.bottlenote.rating.domain.RatingId;
+import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.rating.domain.RatingRepository;
 import app.bottlenote.rating.dto.response.RatingRegisterResponse;
@@ -19,11 +24,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Tag("unit")
 @DisplayName("[unit] [service] RatingCommandService")
