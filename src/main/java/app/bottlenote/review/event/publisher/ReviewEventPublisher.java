@@ -3,6 +3,7 @@ package app.bottlenote.review.event.publisher;
 import app.bottlenote.history.domain.constant.EventCategory;
 import app.bottlenote.history.domain.constant.EventType;
 import app.bottlenote.history.dto.payload.HistoryEvent;
+import app.bottlenote.rating.event.publihser.EventPublisher;
 import app.bottlenote.review.dto.payload.ReviewRegistryEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,15 +13,16 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ReviewEventPublisher {
+public class ReviewEventPublisher implements EventPublisher {
 	private final ApplicationEventPublisher eventPublisher;
 	private static final String REDIRECT_URL = "api/v1/reviews";
 	private static final String MESSAGE_CREATE = "리뷰 등록";
 	private static final String DESCRIPTION_CREATE = "리뷰가 등록되었습니다.";
 
-	public void reviewRegistry(ReviewRegistryEvent registryEvent) {
-		log.info("ReviewRegistryEvent: {}", registryEvent);
-
+	@Override
+	public void publishEvent(Object event) {
+		ReviewRegistryEvent registryEvent = (ReviewRegistryEvent) event;
+		
 		HistoryEvent reviewCreateHistoryEvent = HistoryEvent.makeHistoryEvent(
 			registryEvent.userId(),
 			EventCategory.REVIEW,
