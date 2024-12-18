@@ -1,11 +1,11 @@
 package app.bottlenote.rating.fixture;
 
-import app.bottlenote.rating.event.publihser.EventPublisher;
+import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 
-public class FakeRatingEventPublisher implements EventPublisher {
-
+public class FakeRatingEventPublisher implements HistoryEventPublisher {
+	
 	@Override
-	public void publishEvent(Object event) {
+	public void publishHistoryEvent(Object event) {
 		// dummy object
 	}
 }

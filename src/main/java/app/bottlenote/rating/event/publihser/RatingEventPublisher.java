@@ -3,6 +3,7 @@ package app.bottlenote.rating.event.publihser;
 import app.bottlenote.history.domain.constant.EventCategory;
 import app.bottlenote.history.domain.constant.EventType;
 import app.bottlenote.history.dto.payload.HistoryEvent;
+import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.rating.dto.payload.RatingRegistryEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +16,7 @@ import java.util.Objects;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class RatingEventPublisher implements EventPublisher {
+public class RatingEventPublisher implements HistoryEventPublisher {
 
 	private final ApplicationEventPublisher eventPublisher;
 
@@ -28,10 +29,10 @@ public class RatingEventPublisher implements EventPublisher {
 	private Double prevRatingPoint;
 
 	@Override
-	public void publishEvent(Object event) {
+	public void publishHistoryEvent(Object event) {
 		log.info("RatingRegistryEvent: {}", ratingRegistryEvent);
 		ratingRegistryEvent = (RatingRegistryEvent) event;
-		
+
 		// 기존 등록된 별점이 있어서 이벤트 페이로드로 이전 별점 정보를 넘긴 상황 -> 수정
 		boolean isUpdate = !Objects.isNull((ratingRegistryEvent).prevRating());
 

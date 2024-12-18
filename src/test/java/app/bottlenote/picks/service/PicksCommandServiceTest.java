@@ -92,7 +92,7 @@ class PicksCommandServiceTest {
 
 			//when
 			when(picksRepository.findByAlcohol_IdAndUser_Id(alcohol.getId(), user.getId())).thenReturn(Optional.ofNullable(picks));
-			doNothing().when(picksEventPublisher).picksRegistry(any());
+			doNothing().when(picksEventPublisher).publishHistoryEvent(any());
 			PicksUpdateResponse response = picksCommandService.updatePicks(pickRequest, user.getId());
 
 			// then

@@ -3,6 +3,7 @@ package app.bottlenote.review.service;
 import app.bottlenote.alcohols.dto.response.AlcoholInfo;
 import app.bottlenote.alcohols.service.domain.AlcoholFacade;
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewLocation;
@@ -20,7 +21,6 @@ import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.dto.response.constant.ReviewResultMessage;
 import app.bottlenote.review.dto.vo.ReviewInfo;
 import app.bottlenote.review.dto.vo.ReviewModifyVO;
-import app.bottlenote.review.event.publisher.ReviewEventPublisher;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.user.service.UserFacade;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +46,7 @@ public class ReviewService implements ReviewFacade {
 	private final UserFacade userDomainSupport;
 	private final ReviewRepository reviewRepository;
 	private final ReviewTastingTagSupport reviewTastingTagSupport;
-	private final ReviewEventPublisher reviewEventPublisher;
+	private final HistoryEventPublisher reviewEventPublisher;
 
 	/**
 	 * Read
@@ -138,7 +138,7 @@ public class ReviewService implements ReviewFacade {
 		Review saveReview = reviewRepository.save(review);
 
 		ReviewRegistryEvent event = ReviewRegistryEvent.of(saveReview.getId(), saveReview.getAlcoholId(), saveReview.getUserId(), saveReview.getContent());
-		reviewEventPublisher.publishEvent(event);
+		reviewEventPublisher.publishHistoryEvent(event);
 
 		return ReviewCreateResponse.builder()
 			.id(saveReview.getId())

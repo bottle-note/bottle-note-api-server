@@ -1,18 +1,13 @@
 package app.bottlenote.rating.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import app.bottlenote.alcohols.fixture.FakeAlcoholFacade;
 import app.bottlenote.alcohols.service.domain.AlcoholFacade;
+import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.rating.domain.RatingRepository;
 import app.bottlenote.rating.dto.response.RatingRegisterResponse;
-import app.bottlenote.rating.event.publihser.EventPublisher;
 import app.bottlenote.rating.exception.RatingException;
 import app.bottlenote.rating.fixture.FakeRatingEventPublisher;
 import app.bottlenote.rating.fixture.InMemoryRatingRepository;
@@ -25,6 +20,11 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 @Tag("unit")
 @DisplayName("[unit] [service] RatingCommandService")
 class RatingCommandServiceTest {
@@ -32,7 +32,7 @@ class RatingCommandServiceTest {
 	private final Long alcoholId = 1L;
 	private RatingRepository fakeRatingRepository;
 	private RatingCommandService ratingCommandService;
-	private EventPublisher ratingEventPublisher;
+	private HistoryEventPublisher ratingEventPublisher;
 
 	@BeforeEach
 	void setup() {
