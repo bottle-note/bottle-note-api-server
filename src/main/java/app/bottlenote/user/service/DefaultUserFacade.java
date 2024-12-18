@@ -17,12 +17,6 @@ public class DefaultUserFacade implements UserFacade {
 	private final UserRepository userQueryRepository;
 
 	@Override
-	public Long countByUsername(String userName) {
-		log.info("[domain] countByUsername : {}", userName);
-		return userQueryRepository.countByUsername(userName);
-	}
-
-	@Override
 	public Boolean existsByUserId(Long userId) {
 		log.info("[domain] existsByUserId : {}", userId);
 		return userQueryRepository.existsByUserId(userId);
