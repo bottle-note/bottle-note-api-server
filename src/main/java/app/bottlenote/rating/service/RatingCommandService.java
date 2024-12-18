@@ -7,7 +7,7 @@ import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.rating.domain.RatingRepository;
 import app.bottlenote.rating.dto.payload.RatingRegistryEvent;
 import app.bottlenote.rating.dto.response.RatingRegisterResponse;
-import app.bottlenote.rating.event.publihser.RatingEventPublisher;
+import app.bottlenote.rating.event.publihser.EventPublisher;
 import app.bottlenote.rating.exception.RatingException;
 import app.bottlenote.rating.exception.RatingExceptionCode;
 import app.bottlenote.user.exception.UserException;
@@ -30,7 +30,7 @@ public class RatingCommandService {
 	private final RatingRepository ratingRepository;
 	private final UserFacade userFacade;
 	private final AlcoholFacade alcoholFacade;
-	private final RatingEventPublisher ratingEventPublisher;
+	private final EventPublisher ratingEventPublisher;
 
 	@Transactional
 	public RatingRegisterResponse register(
@@ -68,7 +68,7 @@ public class RatingCommandService {
 		rating.registerRatingPoint(ratingPoint);
 		Rating save = ratingRepository.save(rating);
 
-		ratingEventPublisher.ratingRegistry(
+		ratingEventPublisher.publishEvent(
 			RatingRegistryEvent.of(
 				rating.getId().getAlcoholId(),
 				rating.getId().getUserId(),

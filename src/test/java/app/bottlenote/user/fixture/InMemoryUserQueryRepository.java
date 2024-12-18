@@ -35,13 +35,8 @@ public class InMemoryUserQueryRepository implements UserRepository {
 	}
 
 	@Override
-	public Boolean existsByUserId(Long userId) {
-		return null;
-	}
-
-	@Override
-	public Long countByUsername(String userName) {
-		return null;
+	public boolean existsByUserId(Long userId) {
+		return users.containsKey(userId);
 	}
 
 	@Override

@@ -138,7 +138,7 @@ public class ReviewService implements ReviewFacade {
 		Review saveReview = reviewRepository.save(review);
 
 		ReviewRegistryEvent event = ReviewRegistryEvent.of(saveReview.getId(), saveReview.getAlcoholId(), saveReview.getUserId(), saveReview.getContent());
-		reviewEventPublisher.reviewRegistry(event);
+		reviewEventPublisher.publishEvent(event);
 
 		return ReviewCreateResponse.builder()
 			.id(saveReview.getId())

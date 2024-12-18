@@ -1,6 +1,5 @@
 package app.bottlenote.rating.service;
 
-import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.fixture.FakeAlcoholFacade;
 import app.bottlenote.alcohols.service.domain.AlcoholFacade;
 import app.bottlenote.rating.domain.Rating;
@@ -8,10 +7,10 @@ import app.bottlenote.rating.domain.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.rating.domain.RatingRepository;
 import app.bottlenote.rating.dto.response.RatingRegisterResponse;
-import app.bottlenote.rating.event.publihser.RatingEventPublisher;
+import app.bottlenote.rating.event.publihser.EventPublisher;
 import app.bottlenote.rating.exception.RatingException;
+import app.bottlenote.rating.fixture.FakeRatingEventPublisher;
 import app.bottlenote.rating.fixture.InMemoryRatingRepository;
-import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.fixture.FakeUserFacade;
 import app.bottlenote.user.service.UserFacade;
@@ -25,31 +24,23 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
 
 @Tag("unit")
 @DisplayName("[unit] [service] RatingCommandService")
 class RatingCommandServiceTest {
 	private final Long userId = 1L;
 	private final Long alcoholId = 1L;
-	private RatingRepository ratingRepository;
+	private RatingRepository fakeRatingRepository;
 	private RatingCommandService ratingCommandService;
-	private RatingEventPublisher ratingEventPublisher;
-	private User user;
-	private Alcohol alcohol;
+	private EventPublisher ratingEventPublisher;
 
 	@BeforeEach
 	void setup() {
-		this.ratingRepository = new InMemoryRatingRepository();
-		UserFacade userFacade = new FakeUserFacade();
-		AlcoholFacade alcoholFacade = new FakeAlcoholFacade();
-		ratingEventPublisher = mock(RatingEventPublisher.class);
-		this.ratingCommandService = new RatingCommandService(ratingRepository, userFacade, alcoholFacade, ratingEventPublisher);
-
-		user = User.builder().id(userId).build();
-		alcohol = Alcohol.builder().id(alcoholId).build();
+		fakeRatingRepository = new InMemoryRatingRepository();
+		UserFacade fakeUserFacade = new FakeUserFacade();
+		AlcoholFacade fakeAlcoholFacade = new FakeAlcoholFacade();
+		ratingEventPublisher = new FakeRatingEventPublisher();
+		ratingCommandService = new RatingCommandService(fakeRatingRepository, fakeUserFacade, fakeAlcoholFacade, ratingEventPublisher);
 	}
 
 	@Nested
@@ -61,7 +52,6 @@ class RatingCommandServiceTest {
 		void test_1() {
 			//given
 			RatingPoint ratingPoint = RatingPoint.of(5);
-			doNothing().when(ratingEventPublisher).ratingRegistry(any());
 			//when
 			RatingRegisterResponse register = ratingCommandService.register(alcoholId, userId, ratingPoint);
 			//then
@@ -73,7 +63,7 @@ class RatingCommandServiceTest {
 		@DisplayName("기존 별점을 수정 할 수 있다.")
 		void test_2() {
 			//given
-			ratingRepository.save(Rating.builder()
+			fakeRatingRepository.save(Rating.builder()
 				.id(RatingId.is(userId, alcoholId))
 				.ratingPoint(RatingPoint.of(1))
 				.build());
@@ -81,7 +71,7 @@ class RatingCommandServiceTest {
 			RatingPoint ratingPoint = RatingPoint.of(5);
 
 			//when
-			String 변경전_포인트 = ratingRepository.findByAlcoholIdAndUserId(alcoholId, userId).get().getRatingPoint().getRating().toString();
+			String 변경전_포인트 = fakeRatingRepository.findByAlcoholIdAndUserId(alcoholId, userId).get().getRatingPoint().getRating().toString();
 			RatingRegisterResponse register = ratingCommandService.register(alcoholId, userId, ratingPoint);
 			String 변경후_포인트 = register.rating();
 			//then.

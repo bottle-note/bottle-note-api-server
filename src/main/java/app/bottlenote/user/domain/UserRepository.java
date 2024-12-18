@@ -18,11 +18,9 @@ public interface UserRepository {
 
 	List<User> findAll();
 
-	Boolean existsByUserId(Long userId);
+	boolean existsByUserId(Long userId);
 
 	boolean existsByNickName(String nickname);
-
-	Long countByUsername(String userName);
 
 	MyPageResponse getMyPage(Long userId, Long currentUserId);
 

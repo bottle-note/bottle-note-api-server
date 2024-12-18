@@ -9,17 +9,9 @@ import app.bottlenote.user.dto.response.UserProfileInfo;
 public interface UserFacade {
 
 	/**
-	 * 주어진 유저 이름를 가진 유저의 수를 반환합니다.
-	 *
-	 * @param userName 유저 식별자
-	 * @return 유저의 수
-	 */
-	Long countByUsername(String userName);
-
-	/**
 	 * 주어진 유저 식별자를 가진 유저가 존재하는지 확인합니다.
 	 *
-	 * @param userId 유저 식별자
+	 * @ param id 유저 식별자
 	 */
 	Boolean existsByUserId(Long userId);
 
