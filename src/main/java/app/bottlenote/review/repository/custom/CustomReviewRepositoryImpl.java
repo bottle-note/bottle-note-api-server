@@ -78,7 +78,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		return queryFactory.select(composeReviewInfoResult(userId))
 			.from(review)
 			.join(user).on(review.userId.eq(user.id))
-			.leftJoin(likes).on(review.id.eq(likes.review.id))
+			.leftJoin(likes).on(review.id.eq(likes.reviewId))
 			.leftJoin(alcohol).on(alcohol.id.eq(review.alcoholId))
 			.leftJoin(rating).on(rating.alcohol.id.eq(review.alcoholId).and(rating.user.id.eq(review.userId)))
 			.leftJoin(reviewImage).on(review.id.eq(reviewImage.review.id))
@@ -99,7 +99,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		List<ReviewInfo> fetch = queryFactory.select(composeReviewInfoResult(userId))
 			.from(review)
 			.join(user).on(review.userId.eq(user.id))
-			.leftJoin(likes).on(review.id.eq(likes.review.id))
+			.leftJoin(likes).on(review.id.eq(likes.reviewId))
 			.leftJoin(alcohol).on(alcohol.id.eq(review.alcoholId))
 			.leftJoin(rating).on(rating.alcohol.id.eq(review.alcoholId).and(rating.user.id.eq(review.userId)))
 			.leftJoin(reviewReply).on(review.id.eq(reviewReply.review.id))
@@ -136,7 +136,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.from(review)
 			.join(alcohol).on(alcohol.id.eq(review.alcoholId).and(alcohol.id.eq(alcoholId)))
 			.join(user).on(review.userId.eq(user.id))
-			.leftJoin(likes).on(review.id.eq(likes.review.id))
+			.leftJoin(likes).on(review.id.eq(likes.reviewId))
 			.leftJoin(rating).on(rating.alcohol.id.eq(review.alcoholId).and(rating.user.id.eq(review.userId)))
 			.leftJoin(reviewReply).on(review.id.eq(reviewReply.review.id))
 			.leftJoin(reviewImage).on(review.id.eq(reviewImage.review.id))
@@ -161,5 +161,4 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		CursorPageable cursorPageable = getCursorPageable(reviewPageableRequest, fetch);
 		return PageResponse.of(ReviewListResponse.of(totalCount, fetch), cursorPageable);
 	}
-
 }

@@ -1,4 +1,4 @@
-package app.bottlenote.review.fixture;
+package app.bottlenote.user.fixture;
 
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.response.UserProfileInfo;
@@ -12,10 +12,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
-public class FakeUserDomainSupport implements UserFacade {
+public class FakeUserFacade implements UserFacade {
 	Map<Long, User> dataSource = new HashMap<>();
 
-	public FakeUserDomainSupport(User... users) {
+	public FakeUserFacade(User... users) {
 		for (User user : users) {
 			Long userId = user.getId() == null ? dataSource.size() + 1 : user.getId();
 			ReflectionTestUtils.setField(user, "id", userId);

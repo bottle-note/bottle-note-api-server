@@ -43,7 +43,7 @@ public class InmemoryLikesRepository implements LikesRepository {
 	@Override
 	public Optional<Likes> findByReviewIdAndUserId(Long reviewId, Long userId) {
 		Optional<Likes> first = database.values().stream()
-			.filter(likes -> likes.getReview().getId().equals(reviewId) && likes.getUserInfo().getUserId().equals(userId))
+			.filter(likes -> likes.getReviewId().equals(reviewId) && likes.getUserInfo().getUserId().equals(userId))
 			.findFirst();
 
 		log.info("[InMemory] likes repository findByReviewIdAndUserId = {}", first);

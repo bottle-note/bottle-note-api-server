@@ -8,12 +8,12 @@ import app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.review.fixture.FakeProfanityClient;
-import app.bottlenote.review.fixture.FakeUserDomainSupport;
 import app.bottlenote.review.fixture.InMemoryReviewRepository;
 import app.bottlenote.review.fixture.ReviewReplyObjectFixture;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
+import app.bottlenote.user.fixture.FakeUserFacade;
 import app.bottlenote.user.service.UserFacade;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -50,7 +50,7 @@ class ReviewReplyServiceTest {
 
 		reviewRepository = new InMemoryReviewRepository();
 		profanityClient = new FakeProfanityClient();
-		userDomainSupport = new FakeUserDomainSupport(user1, user2, user3);
+		userDomainSupport = new FakeUserFacade(user1, user2, user3);
 
 		reviewRepository.save(review1);
 		reviewRepository.save(review2);

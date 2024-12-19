@@ -1,18 +1,17 @@
 package app.bottlenote.like.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
-import app.bottlenote.review.domain.Review;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,32 +20,41 @@ import java.util.Objects;
 
 import static lombok.AccessLevel.PROTECTED;
 
+@Builder
 @Getter
 @Entity(name = "likes")
 @NoArgsConstructor(access = PROTECTED)
+@AllArgsConstructor(access = PROTECTED)
 public class Likes extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "review_id")
-	private Review review;
+	private Long reviewId;
 
 	@Embedded
 	private LikeUserInfo userInfo;
 
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
+	@Builder.Default
 	private LikeStatus status = LikeStatus.LIKE;
 
-	@Builder
-	public Likes(Long id, Review review, LikeUserInfo userInfo, LikeStatus status) {
-		this.id = id;
-		this.review = review;
-		this.userInfo = userInfo;
-		this.status = status;
+	@Getter
+	@Embeddable
+	@NoArgsConstructor(access = PROTECTED)
+	@AllArgsConstructor(access = PROTECTED)
+	public static class LikeUserInfo {
+		@Column(name = "user_id", nullable = false)
+		private Long userId;
+		@Column(name = "user_nick_name", nullable = false)
+		private String userNickName;
+
+		public static LikeUserInfo create(Long userId, String userNickName) {
+			return new LikeUserInfo(userId, userNickName);
+		}
 	}
 
 	public void updateStatus(LikeStatus status) {
