@@ -11,11 +11,11 @@ import java.util.Optional;
 public interface JpaLikesRepository extends LikesRepository, JpaRepository<Likes, Long> {
 
 	@Query(
-		"select l " +
-			"from likes l " +
-			"join fetch l.review " +
-			"where l.review.id = :reviewId " +
-			"and l.userInfo.userId = :userId"
-	)
+		"""
+			select l
+			from likes l
+			join fetch l.review
+			where l.review.id = :reviewId and l.userInfo.userId = :userId
+			""")
 	Optional<Likes> findByReviewIdAndUserId(@Param("reviewId") Long reviewId, @Param("userId") Long userId);
 }
