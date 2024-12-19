@@ -14,10 +14,9 @@ public class FakePicksRepository implements PicksRepository {
 
 	@Override
 	public Optional<Picks> findByAlcoholIdAndUserId(Long alcoholId, Long userId) {
-		return Optional.of(Picks.builder()
-			.alcoholId(alcoholId)
-			.userId(userId)
-			.build());
+		return picksDatabase.values().stream()
+			.filter(picks -> picks.getAlcoholId().equals(alcoholId) && picks.getUserId().equals(userId))
+			.findFirst();
 	}
 
 	@Override
