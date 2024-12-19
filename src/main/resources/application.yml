@@ -35,3 +35,7 @@ server:
   tomcat:
     mbeanregistry:
       enabled: true
+
+app:
+  thirdParty:
+    firebase-configuration-file: /home/ubuntu/fcm/service_account_credentials.json

@@ -27,8 +27,8 @@ public class PicksEventPublisher implements HistoryEventPublisher {
 
 	@Override
 	public void publishHistoryEvent(Object event) {
+
 		PicksRegistryEvent picksRegistryEvent = (PicksRegistryEvent) event;
-		log.info("PicksRegistryEvent: {}", picksRegistryEvent);
 
 		HistoryEvent picksHistoryEvent = HistoryEvent.makeHistoryEvent(
 			picksRegistryEvent.userId(),
