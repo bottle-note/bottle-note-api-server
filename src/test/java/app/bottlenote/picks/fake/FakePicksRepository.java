@@ -1,4 +1,4 @@
-package app.bottlenote.picks.mock;
+package app.bottlenote.picks.fake;
 
 import app.bottlenote.picks.domain.Picks;
 import app.bottlenote.picks.repository.PicksRepository;
@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public class FakePicksRepository implements PicksRepository {
 
-	private final Map<Long, Picks> picksDatabase = new HashMap<>();
+	protected final Map<Long, Picks> picksDatabase = new HashMap<>();
 
 	@Override
 	public Optional<Picks> findByAlcoholIdAndUserId(Long alcoholId, Long userId) {

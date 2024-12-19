@@ -1,4 +1,4 @@
-package app.bottlenote.picks.mock;
+package app.bottlenote.picks.fake;
 
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 
