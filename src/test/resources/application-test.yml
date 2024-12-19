@@ -41,3 +41,7 @@ amazon:
 profanity:
   filter:
     url: https://api.profanity-filter.run/api/v1
+
+app:
+  thirdParty:
+    firebase-configuration-file: src/test/resources/service_account_credentials.json

@@ -18,6 +18,7 @@ public class FirebaseInitializerConfig {
 	@Value("${app.thirdParty.firebase-configuration-file}")
 	private String path;
 
+
 	@Bean
 	public void initialize() {
 		if (FirebaseApp.getApps().isEmpty()) {
