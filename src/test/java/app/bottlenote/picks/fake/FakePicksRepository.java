@@ -1,6 +1,7 @@
 package app.bottlenote.picks.fake;
 
 import app.bottlenote.picks.domain.Picks;
+import app.bottlenote.picks.domain.PicksStatus;
 import app.bottlenote.picks.repository.PicksRepository;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -11,6 +12,16 @@ import java.util.Optional;
 public class FakePicksRepository implements PicksRepository {
 
 	protected final Map<Long, Picks> picksDatabase = new HashMap<>();
+
+	public FakePicksRepository() {
+		for (long id = 0; id < 5; id++)
+			picksDatabase.put(id, Picks.builder()
+				.id(id)
+				.alcoholId(id)
+				.userId(id)
+				.status(PicksStatus.PICK)
+				.build());
+	}
 
 	@Override
 	public Optional<Picks> findByAlcoholIdAndUserId(Long alcoholId, Long userId) {
