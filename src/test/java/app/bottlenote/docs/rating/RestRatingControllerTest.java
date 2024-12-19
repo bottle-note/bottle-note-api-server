@@ -1,34 +1,5 @@
 package app.bottlenote.docs.rating;
 
-import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
-import app.bottlenote.docs.AbstractRestDocs;
-import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.rating.controller.RatingController;
-import app.bottlenote.rating.domain.Rating;
-import app.bottlenote.rating.domain.RatingId;
-import app.bottlenote.rating.domain.RatingPoint;
-import app.bottlenote.rating.dto.request.RatingListFetchRequest;
-import app.bottlenote.rating.dto.request.RatingRegisterRequest;
-import app.bottlenote.rating.dto.response.RatingListFetchResponse;
-import app.bottlenote.rating.dto.response.RatingRegisterResponse;
-import app.bottlenote.rating.dto.response.UserRatingResponse;
-import app.bottlenote.rating.fixture.RatingObjectFixture;
-import app.bottlenote.rating.service.RatingCommandService;
-import app.bottlenote.rating.service.RatingQueryService;
-import app.bottlenote.user.domain.User;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.springframework.http.MediaType;
-import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
-
-import java.util.Optional;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
@@ -46,6 +17,34 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import app.bottlenote.alcohols.domain.Alcohol;
+import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
+import app.bottlenote.docs.AbstractRestDocs;
+import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.global.service.cursor.CursorPageable;
+import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.rating.controller.RatingController;
+import app.bottlenote.rating.domain.Rating;
+import app.bottlenote.rating.domain.Rating.RatingId;
+import app.bottlenote.rating.domain.RatingPoint;
+import app.bottlenote.rating.dto.request.RatingListFetchRequest;
+import app.bottlenote.rating.dto.request.RatingRegisterRequest;
+import app.bottlenote.rating.dto.response.RatingListFetchResponse;
+import app.bottlenote.rating.dto.response.RatingRegisterResponse;
+import app.bottlenote.rating.dto.response.UserRatingResponse;
+import app.bottlenote.rating.fixture.RatingObjectFixture;
+import app.bottlenote.rating.service.RatingCommandService;
+import app.bottlenote.rating.service.RatingQueryService;
+import app.bottlenote.user.domain.User;
+import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.springframework.http.MediaType;
+import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 
 @DisplayName("별점 RestDocs용 테스트")
 public class RestRatingControllerTest extends AbstractRestDocs {

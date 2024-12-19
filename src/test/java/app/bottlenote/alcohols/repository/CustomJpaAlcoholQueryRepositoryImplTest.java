@@ -1,5 +1,12 @@
 package app.bottlenote.alcohols.repository;
 
+import static app.bottlenote.alcohols.domain.constant.SearchSortType.REVIEW;
+import static app.bottlenote.global.service.cursor.SortOrder.DESC;
+import static app.bottlenote.user.domain.constant.SocialType.GOOGLE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
@@ -12,13 +19,16 @@ import app.bottlenote.config.TestConfig;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.rating.domain.Rating;
-import app.bottlenote.rating.domain.RatingId;
+import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.domain.constant.UserType;
 import jakarta.persistence.EntityManager;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -34,17 +44,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
-
-import static app.bottlenote.alcohols.domain.constant.SearchSortType.REVIEW;
-import static app.bottlenote.global.service.cursor.SortOrder.DESC;
-import static app.bottlenote.user.domain.constant.SocialType.GOOGLE;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Disabled("테스트 컨테이너 도입으로 인한 추후 수정 대상 ")
 @Tag(value = "data-jpa-test")
@@ -96,7 +95,7 @@ class CustomJpaAlcoholQueryRepositoryImplTest {
 
 		Review review = Review.builder().alcoholId(alcohol.getId()).userId(user.getId()).content("맛있어요").build();
 		RatingId ratingId = RatingId.is(alcohol.getId(), user.getId());
-		Rating rating_1 = Rating.builder().id(ratingId).alcohol(alcohol).user(user).ratingPoint(RatingPoint.of(4.5)).build();
+		Rating rating_1 = Rating.builder().id(ratingId).ratingPoint(RatingPoint.of(4.5)).build();
 
 		em.persist(review);
 		em.persist(rating_1);

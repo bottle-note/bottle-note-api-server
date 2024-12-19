@@ -3,18 +3,20 @@ package app.bottlenote.rating.event.publihser;
 import app.bottlenote.history.domain.constant.EventCategory;
 import app.bottlenote.history.domain.constant.EventType;
 import app.bottlenote.history.dto.payload.HistoryEvent;
+import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.rating.dto.payload.RatingRegistryEvent;
-import java.util.Map;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+import java.util.Objects;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class RatingEventPublisher {
+public class RatingEventPublisher implements HistoryEventPublisher {
 
 	private final ApplicationEventPublisher eventPublisher;
 
@@ -23,13 +25,16 @@ public class RatingEventPublisher {
 	private static final String DESCRIPTION_REGISTER = "별점이 등록되었습니다.";
 	private static final String DESCRIPTION_UPDATE = "별점이 수정되었습니다.";
 
+	private RatingRegistryEvent ratingRegistryEvent;
 	private Double prevRatingPoint;
 
-	public void ratingRegistry(RatingRegistryEvent ratingRegistryEvent) {
+	@Override
+	public void publishHistoryEvent(Object event) {
 		log.info("RatingRegistryEvent: {}", ratingRegistryEvent);
+		ratingRegistryEvent = (RatingRegistryEvent) event;
 
 		// 기존 등록된 별점이 있어서 이벤트 페이로드로 이전 별점 정보를 넘긴 상황 -> 수정
-		boolean isUpdate = !Objects.isNull(ratingRegistryEvent.prevRating());
+		boolean isUpdate = !Objects.isNull((ratingRegistryEvent).prevRating());
 
 		if (isUpdate) {
 			prevRatingPoint = ratingRegistryEvent.prevRating().getRating();
@@ -70,5 +75,4 @@ public class RatingEventPublisher {
 			return EventType.START_RATING;
 		}
 	}
-
 }

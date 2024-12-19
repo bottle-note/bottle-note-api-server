@@ -24,11 +24,6 @@ public class FakeUserDomainSupport implements UserFacade {
 	}
 
 	@Override
-	public Long countByUsername(String userName) {
-		return 0L;
-	}
-
-	@Override
 	public Boolean existsByUserId(Long userId) {
 		return null;
 	}

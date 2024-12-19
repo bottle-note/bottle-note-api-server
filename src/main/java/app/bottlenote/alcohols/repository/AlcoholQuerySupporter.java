@@ -75,8 +75,8 @@ public class AlcoholQuerySupporter {
 			JPAExpressions
 				.select(rating.ratingPoint.rating)
 				.from(rating)
-				.where(rating.alcohol.id.eq(alcoholId)
-					.and(rating.user.id.eq(userId)))
+				.where(rating.id.alcoholId.eq(alcoholId)
+					.and(rating.id.userId.eq(userId)))
 				.limit(1)
 		).coalesce(0.0).castToNum(Double.class).as("myRating");
 	}

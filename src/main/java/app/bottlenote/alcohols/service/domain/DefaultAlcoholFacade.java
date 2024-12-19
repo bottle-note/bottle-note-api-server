@@ -1,19 +1,20 @@
 package app.bottlenote.alcohols.service.domain;
 
-import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
-import static java.lang.Boolean.FALSE;
-
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.response.AlcoholInfo;
 import app.bottlenote.alcohols.exception.AlcoholException;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
+import static java.lang.Boolean.FALSE;
+
 @Service
 @RequiredArgsConstructor
-public class DefaultAlcoholDomainSupport implements AlcoholDomainSupport {
+public class DefaultAlcoholFacade implements AlcoholFacade {
 
 	private final AlcoholQueryRepository alcoholQueryRepository;
 

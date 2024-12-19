@@ -1,10 +1,9 @@
 package app.bottlenote.history.event.listener;
 
-import app.bottlenote.alcohols.service.domain.AlcoholDomainSupport;
+import app.bottlenote.alcohols.service.domain.AlcoholFacade;
 import app.bottlenote.history.domain.UserHistory;
 import app.bottlenote.history.domain.UserHistoryRepository;
 import app.bottlenote.history.dto.payload.HistoryEvent;
-import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -13,12 +12,14 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.time.LocalDateTime;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class HistoryListener {
 
-	private final AlcoholDomainSupport alcoholDomainSupport;
+	private final AlcoholFacade alcoholFacade;
 	private final UserHistoryRepository userHistoryRepository;
 
 	@Async
@@ -27,7 +28,7 @@ public class HistoryListener {
 	public void registryUserHistory(
 		HistoryEvent event
 	) {
-		String alcoholImageUrl = alcoholDomainSupport.findAlcoholImageUrlById(event.alcoholId()).orElse(null);
+		String alcoholImageUrl = alcoholFacade.findAlcoholImageUrlById(event.alcoholId()).orElse(null);
 
 		UserHistory save = userHistoryRepository.save(UserHistory.builder()
 			.userId(event.userId())

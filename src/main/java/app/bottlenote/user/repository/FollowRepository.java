@@ -24,13 +24,13 @@ public interface FollowRepository extends JpaRepository<Follow, Long>, CustomFol
 		        r.ratingPoint.rating
 		    )
 		    FROM users u
-		    JOIN rating r ON r.user.id = u.id
+		    JOIN rating r ON r.id.userId = u.id
 		    WHERE u.id IN (
 		        SELECT f.followUser.id
 		        FROM Follow f
 		        WHERE f.userId = :userId
 		    )
-		    AND r.alcohol.id = :alcoholId
+		    AND r.id.alcoholId = :alcoholId
 		""")
 	List<FriendInfo> getTastingFriendsInfoList(@Param("alcoholId") Long alcoholId, @Param("userId") Long userId, PageRequest pageRequest);
 }

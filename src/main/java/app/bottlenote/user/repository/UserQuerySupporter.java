@@ -52,7 +52,7 @@ public class UserQuerySupporter {
 		return ExpressionUtils.as(
 			select(rating.count())
 				.from(rating)
-				.where(rating.user.id.eq(userId)),
+				.where(rating.id.userId.eq(userId)),
 			"ratingCount"
 		);
 	}
