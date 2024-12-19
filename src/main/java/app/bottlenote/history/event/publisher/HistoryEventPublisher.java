@@ -1,6 +1,7 @@
 package app.bottlenote.history.event.publisher;
 
-public interface HistoryEventPublisher {
 
+@FunctionalInterface
+public interface HistoryEventPublisher {
 	void publishHistoryEvent(Object event);
 }
