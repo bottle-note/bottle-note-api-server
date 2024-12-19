@@ -83,7 +83,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 				picks.lastModifyAt.max().as("picksLastModifyAt")
 			))
 			.from(alcohol)
-			.leftJoin(picks).on(picks.alcohol.id.eq(alcohol.id).and(picks.user.id.eq(userId)).and(picks.status.eq(PICK)))
+			.leftJoin(picks).on(picks.alcoholId.eq(alcohol.id).and(picks.userId.eq(userId)).and(picks.status.eq(PICK)))
 			.leftJoin(review).on(review.alcoholId.eq(alcohol.id).and(review.userId.eq(userId)).and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE)))
 			.leftJoin(rating).on(rating.id.alcoholId.eq(alcohol.id).and(rating.id.userId.eq(userId)).and(rating.ratingPoint.rating.gt(0.0)))
 			.where(
@@ -102,7 +102,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 		Long totalCount = queryFactory
 			.select(alcohol.id.count())
 			.from(alcohol)
-			.leftJoin(picks).on(picks.alcohol.id.eq(alcohol.id).and(picks.user.id.eq(userId)).and(picks.status.eq(PICK)))
+			.leftJoin(picks).on(picks.alcoholId.eq(alcohol.id).and(picks.userId.eq(userId)).and(picks.status.eq(PICK)))
 			.leftJoin(review).on(review.alcoholId.eq(alcohol.id).and(review.userId.eq(userId)).and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE)))
 			.leftJoin(rating).on(rating.id.alcoholId.eq(alcohol.id).and(rating.id.userId.eq(userId)).and(rating.ratingPoint.rating.gt(0.0)))
 			.where(

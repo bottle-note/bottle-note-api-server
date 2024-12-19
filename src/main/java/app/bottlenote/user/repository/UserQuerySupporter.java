@@ -67,7 +67,7 @@ public class UserQuerySupporter {
 		return ExpressionUtils.as(
 			select(picks.count())
 				.from(picks)
-				.where(picks.user.id.eq(userId)),
+				.where(picks.userId.eq(userId)),
 			"picksCount"
 		);
 	}
