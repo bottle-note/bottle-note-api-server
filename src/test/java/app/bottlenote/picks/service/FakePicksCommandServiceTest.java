@@ -23,21 +23,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Tag("unit")
 @DisplayName("[unit] [service] PicksCommand")
-class PicksCommandServiceFakeObjectTest {
-
+class FakePicksCommandServiceTest {
 	private PicksCommandService picksCommandService;
-	private UserFacade userFacade;
-	private AlcoholFacade alcoholFacade;
-	private PicksRepository picksRepository;
-	private HistoryEventPublisher picksEventPublisher;
-
 
 	@BeforeEach
 	void setUp() {
-		userFacade = new FakeUserFacade();
-		alcoholFacade = new FakeAlcoholFacade();
-		picksRepository = new FakePicksRepository();
-		picksEventPublisher = new FakePicksEventPublisher();
+		UserFacade userFacade = new FakeUserFacade();
+		AlcoholFacade alcoholFacade = new FakeAlcoholFacade();
+		PicksRepository picksRepository = new FakePicksRepository();
+		HistoryEventPublisher picksEventPublisher = new FakePicksEventPublisher();
 		picksCommandService = new PicksCommandService(
 			userFacade,
 			alcoholFacade,
@@ -60,6 +54,7 @@ class PicksCommandServiceFakeObjectTest {
 
 			// when
 			PicksUpdateResponse response = picksCommandService.updatePicks(pickRequest, userId);
+
 			// then
 			assertEquals(PICK, response.getStatus());
 			assertEquals(response.getMessage(), PicksUpdateResponse.Message.PICKED.getMessage());
