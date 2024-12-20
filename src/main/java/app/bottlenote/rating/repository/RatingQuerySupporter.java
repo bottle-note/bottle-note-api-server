@@ -31,8 +31,8 @@ public class RatingQuerySupporter {
 			JPAExpressions
 				.selectOne()
 				.from(picks)
-				.where(picks.alcohol.id.eq(alcohol.id),
-					picks.user.id.eq(userId))
+				.where(picks.alcoholId.eq(alcohol.id),
+					picks.userId.eq(userId))
 				.exists()
 		);
 	}

@@ -52,8 +52,8 @@ public class AlcoholQuerySupporter {
 		return JPAExpressions
 			.selectOne()
 			.from(picks)
-			.where(picks.alcohol.eq(alcohol),
-				picks.user.id.eq(userId))
+			.where(picks.alcoholId.eq(alcohol.id),
+				picks.userId.eq(userId))
 			.exists();
 	}
 
@@ -65,7 +65,7 @@ public class AlcoholQuerySupporter {
 			JPAExpressions
 				.selectOne()
 				.from(picks)
-				.where(picks.alcohol.id.eq(alcoholId).and(picks.user.id.eq(userId)).and(picks.status.eq(PICK)))
+				.where(picks.alcoholId.eq(alcoholId).and(picks.userId.eq(userId)).and(picks.status.eq(PICK)))
 				.exists()
 		).as("isPicked");
 	}
