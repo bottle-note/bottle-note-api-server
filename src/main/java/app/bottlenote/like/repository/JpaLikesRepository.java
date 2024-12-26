@@ -14,8 +14,8 @@ public interface JpaLikesRepository extends LikesRepository, JpaRepository<Likes
 		"""
 			select l
 			from likes l
-			join fetch l.review
-			where l.review.id = :reviewId and l.userInfo.userId = :userId
+			join fetch l.reviewId
+			where l.reviewId = :reviewId and l.userInfo.userId = :userId
 			""")
 	Optional<Likes> findByReviewIdAndUserId(@Param("reviewId") Long reviewId, @Param("userId") Long userId);
 }

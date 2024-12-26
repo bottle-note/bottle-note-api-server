@@ -8,12 +8,11 @@ import app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.review.fixture.FakeProfanityClient;
-import app.bottlenote.review.fixture.FakeUserDomainSupport;
 import app.bottlenote.review.fixture.InMemoryReviewRepository;
 import app.bottlenote.review.fixture.ReviewReplyObjectFixture;
-import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
+import app.bottlenote.user.fixture.FakeUserFacade;
 import app.bottlenote.user.service.UserFacade;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,25 +36,22 @@ class ReviewReplyServiceTest {
 	private static final Logger log = LogManager.getLogger(ReviewReplyServiceTest.class);
 	private ReviewRepository reviewRepository;
 	private ProfanityClient profanityClient;
-	private UserFacade userDomainSupport;
+	private UserFacade userFacade;
 	private ReviewReplyService reviewReplyService;
 
 	@BeforeEach
 	void setUp() {
-		User user1 = ReviewReplyObjectFixture.getUserFixture(1L);
-		User user2 = ReviewReplyObjectFixture.getUserFixture(2L);
-		User user3 = ReviewReplyObjectFixture.getUserFixture(99L);
-		Review review1 = ReviewReplyObjectFixture.getReviewFixture(1L, 1L, user1.getId());
-		Review review2 = ReviewReplyObjectFixture.getReviewFixture(2L, 1L, user2.getId());
+		Review review1 = ReviewReplyObjectFixture.getReviewFixture(1L, 1L, 1L);
+		Review review2 = ReviewReplyObjectFixture.getReviewFixture(2L, 1L, 2L);
 
 		reviewRepository = new InMemoryReviewRepository();
 		profanityClient = new FakeProfanityClient();
-		userDomainSupport = new FakeUserDomainSupport(user1, user2, user3);
+		userFacade = new FakeUserFacade();
 
 		reviewRepository.save(review1);
 		reviewRepository.save(review2);
 
-		reviewReplyService = new ReviewReplyService(reviewRepository, profanityClient, userDomainSupport);
+		reviewReplyService = new ReviewReplyService(reviewRepository, profanityClient, userFacade);
 	}
 
 	@Nested
@@ -67,7 +63,7 @@ class ReviewReplyServiceTest {
 		void test_1() {
 			//given
 			log.info("init success profanityClient : {}", profanityClient);
-			log.info("init success userDomainSupport : {}", userDomainSupport);
+			log.info("init success userDomainSupport : {}", userFacade);
 
 			final Long reviewId = 1L;
 			final Long userId = 1L;

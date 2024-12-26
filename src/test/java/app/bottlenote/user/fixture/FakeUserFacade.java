@@ -13,7 +13,7 @@ import org.apache.logging.log4j.Logger;
 public class FakeUserFacade implements UserFacade {
 
 	private static final Logger log = LogManager.getLogger(FakeUserFacade.class);
-	
+
 	private final Map<Long, UserProfileInfo> userDatabase = new ConcurrentHashMap<>();
 
 	public FakeUserFacade() {
