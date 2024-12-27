@@ -1,5 +1,12 @@
 package app.bottlenote.review.service;
 
+import static app.bottlenote.review.domain.constant.ReviewActiveStatus.DELETED;
+import static app.bottlenote.review.domain.constant.ReviewDisplayStatus.PUBLIC;
+import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.PRIVATE_SUCCESS;
+import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.PUBLIC_SUCCESS;
+import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
+
 import app.bottlenote.alcohols.dto.response.AlcoholInfo;
 import app.bottlenote.alcohols.service.domain.AlcoholFacade;
 import app.bottlenote.global.service.cursor.PageResponse;
@@ -23,19 +30,11 @@ import app.bottlenote.review.dto.vo.ReviewInfo;
 import app.bottlenote.review.dto.vo.ReviewModifyVO;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.user.service.UserFacade;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-
-import static app.bottlenote.review.domain.constant.ReviewActiveStatus.DELETED;
-import static app.bottlenote.review.domain.constant.ReviewDisplayStatus.PUBLIC;
-import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.MODIFY_SUCCESS;
-import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.PRIVATE_SUCCESS;
-import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.PUBLIC_SUCCESS;
-import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 
 @Slf4j
 @Service
@@ -45,7 +44,6 @@ public class ReviewService implements ReviewFacade {
 	private final AlcoholFacade alcoholFacade;
 	private final UserFacade userDomainSupport;
 	private final ReviewRepository reviewRepository;
-	private final ReviewTastingTagSupport reviewTastingTagSupport;
 	private final HistoryEventPublisher reviewEventPublisher;
 
 	/**
@@ -133,7 +131,7 @@ public class ReviewService implements ReviewFacade {
 			.build();
 
 		review.imageInitialization(reviewCreateRequest.imageUrlList());
-		reviewTastingTagSupport.saveReviewTastingTag(reviewCreateRequest.tastingTagList(), review);
+		review.saveTastingTag(reviewCreateRequest.tastingTagList());
 
 		Review saveReview = reviewRepository.save(review);
 
@@ -161,8 +159,7 @@ public class ReviewService implements ReviewFacade {
 
 		review.update(reviewModifyVO);
 		review.imageInitialization(reviewImageInfos);
-
-		reviewTastingTagSupport.updateReviewTastingTags(request.tastingTagList(), review);
+		review.updateTastingTags(request.tastingTagList());
 		return ReviewResultResponse.response(MODIFY_SUCCESS, reviewId);
 	}
 
