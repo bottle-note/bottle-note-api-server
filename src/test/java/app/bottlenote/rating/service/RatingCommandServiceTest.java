@@ -11,6 +11,7 @@ import app.bottlenote.rating.dto.response.RatingRegisterResponse;
 import app.bottlenote.rating.exception.RatingException;
 import app.bottlenote.rating.fixture.FakeRatingEventPublisher;
 import app.bottlenote.rating.fixture.InMemoryRatingRepository;
+import app.bottlenote.user.dto.response.UserProfileInfo;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.fixture.FakeUserFacade;
 import app.bottlenote.user.service.UserFacade;
@@ -32,14 +33,17 @@ class RatingCommandServiceTest {
 	private final Long alcoholId = 1L;
 	private RatingRepository fakeRatingRepository;
 	private RatingCommandService ratingCommandService;
-	private HistoryEventPublisher ratingEventPublisher;
 
 	@BeforeEach
 	void setup() {
+		UserProfileInfo user1 = UserProfileInfo.create(1L, "user1", "");
+		UserProfileInfo user2 = UserProfileInfo.create(2L, "user2", "");
+		UserProfileInfo user3 = UserProfileInfo.create(3L, "user3", "");
+
 		fakeRatingRepository = new InMemoryRatingRepository();
-		UserFacade fakeUserFacade = new FakeUserFacade();
+		UserFacade fakeUserFacade = new FakeUserFacade(user1, user2, user3);
 		AlcoholFacade fakeAlcoholFacade = new FakeAlcoholFacade();
-		ratingEventPublisher = new FakeRatingEventPublisher();
+		HistoryEventPublisher ratingEventPublisher = new FakeRatingEventPublisher();
 		ratingCommandService = new RatingCommandService(fakeRatingRepository, fakeUserFacade, fakeAlcoholFacade, ratingEventPublisher);
 	}
 

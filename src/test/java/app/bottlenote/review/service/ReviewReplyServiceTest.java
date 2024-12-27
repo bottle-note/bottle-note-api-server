@@ -10,6 +10,7 @@ import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.review.fixture.FakeProfanityClient;
 import app.bottlenote.review.fixture.InMemoryReviewRepository;
 import app.bottlenote.review.fixture.ReviewReplyObjectFixture;
+import app.bottlenote.user.dto.response.UserProfileInfo;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.fixture.FakeUserFacade;
@@ -41,12 +42,15 @@ class ReviewReplyServiceTest {
 
 	@BeforeEach
 	void setUp() {
+		UserProfileInfo user1 = UserProfileInfo.create(1L, "user1", "");
+		UserProfileInfo user2 = UserProfileInfo.create(2L, "user2", "");
+		UserProfileInfo user3 = UserProfileInfo.create(3L, "user3", "");
 		Review review1 = ReviewReplyObjectFixture.getReviewFixture(1L, 1L, 1L);
 		Review review2 = ReviewReplyObjectFixture.getReviewFixture(2L, 1L, 2L);
 
 		reviewRepository = new InMemoryReviewRepository();
 		profanityClient = new FakeProfanityClient();
-		userFacade = new FakeUserFacade();
+		userFacade = new FakeUserFacade(user1, user2, user3);
 
 		reviewRepository.save(review1);
 		reviewRepository.save(review2);
