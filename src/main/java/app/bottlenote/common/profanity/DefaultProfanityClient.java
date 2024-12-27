@@ -3,7 +3,7 @@ package app.bottlenote.common.profanity;
 
 import app.bottlenote.common.exception.CommonException;
 import app.bottlenote.common.exception.CommonExceptionCode;
-import app.bottlenote.common.profanity.fegin.ProfanityFeginClient;
+import app.bottlenote.common.profanity.fegin.ProfanityFeignClient;
 import app.bottlenote.common.profanity.request.ProfanityRequest;
 import app.bottlenote.common.profanity.response.ProfanityResponse;
 import org.apache.logging.log4j.LogManager;
@@ -18,10 +18,10 @@ import org.springframework.stereotype.Component;
 public class DefaultProfanityClient implements ProfanityClient {
 
 	private static final Logger log = LogManager.getLogger(DefaultProfanityClient.class);
-	private final ProfanityFeginClient profanityFeginClient;
+	private final ProfanityFeignClient profanityFeignClient;
 
-	public DefaultProfanityClient(ProfanityFeginClient profanityFeginClient) {
-		this.profanityFeginClient = profanityFeginClient;
+	public DefaultProfanityClient(ProfanityFeignClient profanityFeignClient) {
+		this.profanityFeignClient = profanityFeignClient;
 	}
 
 	@Override
@@ -31,7 +31,7 @@ public class DefaultProfanityClient implements ProfanityClient {
 		long start = System.currentTimeMillis();
 
 		ProfanityRequest request = ProfanityRequest.createFilter(text);
-		ResponseEntity<ProfanityResponse> response = profanityFeginClient.requestVerificationProfanity(request);
+		ResponseEntity<ProfanityResponse> response = profanityFeignClient.requestVerificationProfanity(request);
 		var responseBody = response.getBody();
 
 		long end = System.currentTimeMillis();

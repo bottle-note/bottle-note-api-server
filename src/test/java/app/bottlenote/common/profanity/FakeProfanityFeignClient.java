@@ -1,6 +1,6 @@
 package app.bottlenote.common.profanity;
 
-import app.bottlenote.common.profanity.fegin.ProfanityFeginClient;
+import app.bottlenote.common.profanity.fegin.ProfanityFeignClient;
 import app.bottlenote.common.profanity.request.ProfanityRequest;
 import app.bottlenote.common.profanity.response.Detected;
 import app.bottlenote.common.profanity.response.ProfanityResponse;
@@ -15,12 +15,12 @@ import java.util.List;
 
 @Tag("unit")
 @DisplayName("[unit] [service] ProfanityFeginClient")
-public class FakeProfanityFeginClient implements ProfanityFeginClient {
+public class FakeProfanityFeignClient implements ProfanityFeignClient {
 
 
 	private static final List<String> words = List.of("비속어", "욕설", "개자식");
 	private static final String trackingId = "019054c5-dfb1-777d-b567-95688c87f135";
-	private static final Logger log = LogManager.getLogger(FakeProfanityFeginClient.class);
+	private static final Logger log = LogManager.getLogger(FakeProfanityFeignClient.class);
 
 	private ProfanityResponse createProfanityResponse(final String text) {
 		log.info("[Fake] createProfanityResponse  욕설 검사 결과 : {}", text);
