@@ -24,8 +24,8 @@ class DefaultProfanityClientTest {
 
 	@BeforeEach
 	void setUp() {
-		FakeProfanityFeginClient fakeProfanityFeginClient = new FakeProfanityFeginClient();
-		profanityClient = new DefaultProfanityClient(fakeProfanityFeginClient);
+		FakeProfanityFeignClient fakeProfanityFeignClient = new FakeProfanityFeignClient();
+		profanityClient = new DefaultProfanityClient(fakeProfanityFeignClient);
 	}
 
 	@Test

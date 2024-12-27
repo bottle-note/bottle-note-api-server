@@ -4,35 +4,39 @@ import app.bottlenote.user.dto.response.UserProfileInfo;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.service.UserFacade;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.test.util.ReflectionTestUtils;
+
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class FakeUserFacade implements UserFacade {
 
 	private static final Logger log = LogManager.getLogger(FakeUserFacade.class);
-	
+
 	private final Map<Long, UserProfileInfo> userDatabase = new ConcurrentHashMap<>();
 
-	public FakeUserFacade() {
-		// Initialize with some default data
-		userDatabase.put(1L, new UserProfileInfo(
-			1L,
-			"Kim",
-			"https://bottlenote.app/user/1/image"
-		));
-		userDatabase.put(2L, new UserProfileInfo(
-			2L,
-			"Cha",
-			"https://bottlenote.app/user/2/image"
-		));
-		userDatabase.put(3L, new UserProfileInfo(
-			3L,
-			"Park",
-			"https://bottlenote.app/user/3/image"
-		));
+	public FakeUserFacade(UserProfileInfo... userProfileInfos) {
+		if (userProfileInfos != null && userProfileInfos.length > 0) {
+			for (UserProfileInfo user : userProfileInfos) {
+				if (user != null) {
+					Long userId = user.id();
+					if (userId == null) {
+						userId = (long) (userDatabase.size() + 1);
+						ReflectionTestUtils.setField(user, "id", userId);
+						log.info("Assigned new ID {} to UserProfileInfo: {}", userId, user);
+					}
+					userDatabase.put(userId, user);
+					log.info("Added UserProfileInfo: {}", user);
+				} else {
+					log.warn("Null UserProfileInfo encountered and skipped.");
+				}
+			}
+		} else {
+			log.warn("No UserProfileInfo provided to initialize dataSource.");
+		}
 	}
 
 	/**

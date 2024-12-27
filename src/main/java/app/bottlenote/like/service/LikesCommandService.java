@@ -5,10 +5,8 @@ import app.bottlenote.like.domain.LikeUserInfo;
 import app.bottlenote.like.domain.Likes;
 import app.bottlenote.like.domain.LikesRepository;
 import app.bottlenote.like.dto.response.LikesUpdateResponse;
-import app.bottlenote.review.domain.Review;
-import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.exception.ReviewException;
-import app.bottlenote.review.exception.ReviewExceptionCode;
+import app.bottlenote.review.service.ReviewFacade;
 import app.bottlenote.user.dto.response.UserProfileInfo;
 import app.bottlenote.user.service.UserFacade;
 import jakarta.transaction.Transactional;
@@ -16,15 +14,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class LikesCommandService {
 
-	private final UserFacade userDomainSupport;
-	private final ReviewRepository reviewRepository;
+	private final UserFacade userFacade;
+	private final ReviewFacade reviewFacade;
 	private final LikesRepository likesRepository;
-
 
 	@Transactional
 	public LikesUpdateResponse updateLikes(
@@ -34,14 +33,15 @@ public class LikesCommandService {
 	) {
 		Likes likes = likesRepository.findByReviewIdAndUserId(reviewId, userId)
 			.orElseGet(() -> {
-				Review review = reviewRepository.findById(reviewId)
-					.orElseThrow(() -> new ReviewException(ReviewExceptionCode.REVIEW_NOT_FOUND));
 
-				UserProfileInfo userProfileInfo = userDomainSupport.getUserProfileInfo(userId);
+				if (!reviewFacade.isExistReview(reviewId)) {
+					throw new ReviewException(REVIEW_NOT_FOUND);
+				}
+				UserProfileInfo userProfileInfo = userFacade.getUserProfileInfo(userId);
 				LikeUserInfo userInfo = LikeUserInfo.create(userProfileInfo.id(), userProfileInfo.nickname());
 
 				return Likes.builder()
-					.review(review)
+					.reviewId(reviewId)
 					.userInfo(userInfo)
 					.status(status)
 					.build();

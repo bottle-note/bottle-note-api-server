@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserDeviceService {
 	private final DeviceTokenRepository deviceTokenRepository;
-	private final UserFacade userDomainSupport;
+	private final UserFacade userFacade;
 
 	public TokenSaveResponse saveUserToken(
 		final Long userId,

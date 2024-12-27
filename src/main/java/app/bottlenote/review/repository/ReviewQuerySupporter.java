@@ -84,7 +84,7 @@ public class ReviewQuerySupporter {
 				.selectOne()
 				.from(likes)
 				.where(
-					likes.review.id.eq(review.id)
+					likes.reviewId.eq(review.id)
 						.and(likes.userInfo.userId.eq(userId))
 						.and(likes.status.eq(LIKE))
 				).exists()
