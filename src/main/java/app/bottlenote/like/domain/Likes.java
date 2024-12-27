@@ -2,7 +2,6 @@ package app.bottlenote.like.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
 import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -41,21 +40,6 @@ public class Likes extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	@Builder.Default
 	private LikeStatus status = LikeStatus.LIKE;
-
-	@Getter
-	@Embeddable
-	@NoArgsConstructor(access = PROTECTED)
-	@AllArgsConstructor(access = PROTECTED)
-	public static class LikeUserInfo {
-		@Column(name = "user_id", nullable = false)
-		private Long userId;
-		@Column(name = "user_nick_name", nullable = false)
-		private String userNickName;
-
-		public static LikeUserInfo create(Long userId, String userNickName) {
-			return new LikeUserInfo(userId, userNickName);
-		}
-	}
 
 	public void updateStatus(LikeStatus status) {
 		Objects.requireNonNull(status, "상태값은 null일 수 없습니다.");

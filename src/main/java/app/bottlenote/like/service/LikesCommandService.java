@@ -1,6 +1,7 @@
 package app.bottlenote.like.service;
 
 import app.bottlenote.like.domain.LikeStatus;
+import app.bottlenote.like.domain.LikeUserInfo;
 import app.bottlenote.like.domain.Likes;
 import app.bottlenote.like.domain.LikesRepository;
 import app.bottlenote.like.dto.response.LikesUpdateResponse;
@@ -37,7 +38,7 @@ public class LikesCommandService {
 					throw new ReviewException(REVIEW_NOT_FOUND);
 				}
 				UserProfileInfo userProfileInfo = userFacade.getUserProfileInfo(userId);
-				Likes.LikeUserInfo userInfo = Likes.LikeUserInfo.create(userProfileInfo.id(), userProfileInfo.nickname());
+				LikeUserInfo userInfo = LikeUserInfo.create(userProfileInfo.id(), userProfileInfo.nickname());
 
 				return Likes.builder()
 					.reviewId(reviewId)
