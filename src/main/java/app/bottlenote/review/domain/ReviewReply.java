@@ -13,13 +13,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import lombok.Builder;
-import lombok.Getter;
-import org.hibernate.annotations.Comment;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import lombok.Builder;
+import lombok.Getter;
+import org.hibernate.annotations.Comment;
 
 @Comment("리뷰 댓글 테이블")
 @Entity(name = "review_reply")
@@ -31,9 +30,8 @@ public class ReviewReply extends BaseEntity {
 
 	@Getter
 	@Comment("댓글 대상")
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "review_id")
-	private Review review;
+	@Column(name = "review_id", nullable = false)
+	private Long reviewId;
 
 	@Getter
 	@Comment("댓글 작성 유저")
@@ -68,9 +66,9 @@ public class ReviewReply extends BaseEntity {
 	}
 
 	@Builder
-	public ReviewReply(Long id, Review review, Long userId, String content, ReviewReplyStatus status, ReviewReply rootReviewReply, ReviewReply parentReviewReply, List<ReviewReply> replies) {
+	public ReviewReply(Long id, Long reviewId, Long userId, String content, ReviewReplyStatus status, ReviewReply rootReviewReply, ReviewReply parentReviewReply, List<ReviewReply> replies) {
 		this.id = id;
-		this.review = review;
+		this.reviewId = reviewId;
 		this.userId = userId;
 		this.content = content;
 		this.status = Objects.isNull(status) ? ReviewReplyStatus.NORMAL : status;

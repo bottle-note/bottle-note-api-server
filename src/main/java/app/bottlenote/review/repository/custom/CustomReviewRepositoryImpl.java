@@ -1,19 +1,5 @@
 package app.bottlenote.review.repository.custom;
 
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.review.dto.request.ReviewPageableRequest;
-import app.bottlenote.review.dto.response.ReviewListResponse;
-import app.bottlenote.review.dto.vo.ReviewInfo;
-import com.querydsl.core.types.ConstructorExpression;
-import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.Projections;
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-import java.util.List;
-
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.like.domain.QLikes.likes;
 import static app.bottlenote.rating.domain.QRating.rating;
@@ -30,6 +16,19 @@ import static app.bottlenote.review.repository.ReviewQuerySupporter.isLikeByMeSu
 import static app.bottlenote.review.repository.ReviewQuerySupporter.isMyReview;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.sortBy;
 import static app.bottlenote.user.domain.QUser.user;
+
+import app.bottlenote.global.service.cursor.CursorPageable;
+import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.review.dto.request.ReviewPageableRequest;
+import app.bottlenote.review.dto.response.ReviewListResponse;
+import app.bottlenote.review.dto.vo.ReviewInfo;
+import com.querydsl.core.types.ConstructorExpression;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -82,7 +81,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.leftJoin(alcohol).on(alcohol.id.eq(review.alcoholId))
 			.leftJoin(rating).on(rating.id.alcoholId.eq(review.alcoholId).and(rating.id.userId.eq(review.userId)))
 			.leftJoin(reviewImage).on(review.id.eq(reviewImage.review.id))
-			.leftJoin(reviewReply).on(review.id.eq(reviewReply.review.id))
+			.leftJoin(reviewReply).on(review.id.eq(reviewReply.reviewId))
 			.where(review.id.eq(reviewId)
 				.and(review.activeStatus.eq(ACTIVE))
 				.and(review.status.eq(PUBLIC)))
@@ -102,7 +101,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.leftJoin(likes).on(review.id.eq(likes.reviewId))
 			.leftJoin(alcohol).on(alcohol.id.eq(review.alcoholId))
 			.leftJoin(rating).on(rating.id.alcoholId.eq(review.alcoholId).and(rating.id.userId.eq(review.userId)))
-			.leftJoin(reviewReply).on(review.id.eq(reviewReply.review.id))
+			.leftJoin(reviewReply).on(review.id.eq(reviewReply.reviewId))
 			.leftJoin(reviewImage).on(review.id.eq(reviewImage.review.id))
 			.where(review.alcoholId.eq(alcoholId)
 				.and(review.activeStatus.eq(ACTIVE))
@@ -138,7 +137,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.join(user).on(review.userId.eq(user.id))
 			.leftJoin(likes).on(review.id.eq(likes.reviewId))
 			.leftJoin(rating).on(rating.id.alcoholId.eq(review.alcoholId).and(rating.id.userId.eq(review.userId)))
-			.leftJoin(reviewReply).on(review.id.eq(reviewReply.review.id))
+			.leftJoin(reviewReply).on(review.id.eq(reviewReply.reviewId))
 			.leftJoin(reviewImage).on(review.id.eq(reviewImage.review.id))
 			.where(review.userId.eq(userId)
 				.and(review.activeStatus.eq(ACTIVE))

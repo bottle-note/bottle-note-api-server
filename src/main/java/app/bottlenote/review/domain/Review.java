@@ -1,7 +1,5 @@
 package app.bottlenote.review.domain;
 
-import static app.bottlenote.review.dto.payload.ReviewReplyRegistryEvent.replyRegistryPublish;
-
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.common.image.ImageInfo;
 import app.bottlenote.common.image.ImageUtil;
@@ -12,19 +10,15 @@ import app.bottlenote.review.dto.request.LocationInfo;
 import app.bottlenote.review.dto.request.ReviewImageInfo;
 import app.bottlenote.review.dto.response.constant.ReviewResultMessage;
 import app.bottlenote.review.dto.vo.ReviewModifyVO;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -110,10 +104,6 @@ public class Review extends BaseEntity {
 	private ReviewImages reviewImages = ReviewImages.empty();
 
 	@Builder.Default
-	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<ReviewReply> reviewReplies = new ArrayList<>();
-
-	@Builder.Default
 	@Comment("리뷰 테이스팅 태그 (1급 컬렉션) ")
 	@Embedded
 	private ReviewTastingTags reviewTastingTags = ReviewTastingTags.empty();
@@ -180,11 +170,6 @@ public class Review extends BaseEntity {
 			case DELETED -> ReviewResultMessage.DELETE_SUCCESS;
 			case DISABLED -> ReviewResultMessage.BLOCK_SUCCESS;
 		};
-	}
-
-	public void addReply(ReviewReply reply) {
-		this.reviewReplies.add(reply);
-		this.registerEvent(replyRegistryPublish(this.id, this.userId, reply.getContent()));
 	}
 
 	public void blockReview() {

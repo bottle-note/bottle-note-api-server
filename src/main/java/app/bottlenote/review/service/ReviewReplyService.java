@@ -1,8 +1,12 @@
 package app.bottlenote.review.service;
 
+import static app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage.SUCCESS_DELETE_REPLY;
+import static app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY;
+import static java.lang.Boolean.FALSE;
+
 import app.bottlenote.common.profanity.ProfanityClient;
-import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewReply;
+import app.bottlenote.review.domain.ReviewReplyRepository;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.domain.constant.ReviewReplyStatus;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
@@ -12,26 +16,23 @@ import app.bottlenote.review.dto.response.SubReviewReplyInfo;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.user.service.UserFacade;
+import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
-import java.util.Optional;
-
-import static app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage.SUCCESS_DELETE_REPLY;
-import static app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReviewReplyService {
 
+	private final ReviewReplyRepository reviewReplyRepository;
 	private final ReviewRepository reviewRepository;
 	private final ProfanityClient profanityClient;
-	private final UserFacade userDomainSupport;
+	private final UserFacade userFacade;
 
 	/**
 	 * 댓글을 등록합니다.
@@ -53,21 +54,22 @@ public class ReviewReplyService {
 		Objects.requireNonNull(reviewId, "리뷰 식별자는 필수 입력값입니다.");
 
 		long start = System.nanoTime();
-		userDomainSupport.isValidUserId(userId);
+		userFacade.isValidUserId(userId);
 		log.info("유저 정보 확인 시간 : {}", (System.nanoTime() - start) / 1_000_000 + "ms");
 
 		long start2 = System.nanoTime();
 		final String content = profanityClient.getFilteredText(request.content());
 		log.info("욕설 필터링 시간 : {}", (System.nanoTime() - start2) / 1_000_000 + "ms");
 
-		final Review review = reviewRepository.findById(reviewId)
-			.orElseThrow(() -> new ReviewException(ReviewExceptionCode.REVIEW_NOT_FOUND));
+		if (!reviewRepository.existsById(reviewId)) {
+			throw new ReviewException(ReviewExceptionCode.REVIEW_NOT_FOUND);
+		}
 
-		Optional<ReviewReply> parentReply = reviewRepository.isEligibleParentReply(reviewId, request.parentReplyId());
+		Optional<ReviewReply> parentReply = reviewReplyRepository.isEligibleParentReply(reviewId, request.parentReplyId());
 		log.info("상위(최상위) 댓글 확인");
 
 		ReviewReply reply = ReviewReply.builder()
-			.review(review)
+			.reviewId(reviewId)
 			.userId(userId)
 			.parentReviewReply(parentReply.orElse(null))
 			.rootReviewReply(parentReply.map(ReviewReply::getRootReviewReply).orElse(null))
@@ -75,15 +77,12 @@ public class ReviewReplyService {
 			.status(ReviewReplyStatus.NORMAL)
 			.build();
 
-		review.addReply(reply);
-
 		log.info("최종 처리 시간 : {}", (System.nanoTime() - start) / 1_000_000 + "ms");
-
-		reviewRepository.save(review);
+		reviewReplyRepository.save(reply);
 
 		return ReviewReplyResponse.of(
 			SUCCESS_REGISTER_REPLY,
-			review.getId()
+			reviewId
 		);
 	}
 
@@ -103,10 +102,10 @@ public class ReviewReplyService {
 		Long userId
 	) {
 
-		reviewRepository.findReplyByReviewIdAndReplyId(reviewId, replyId)
+		reviewReplyRepository.findReplyByReviewIdAndReplyId(reviewId, replyId)
 			.ifPresentOrElse(
 				reply -> {
-					if (!reply.isOwner(userId))
+					if (FALSE.equals(reply.isOwner(userId)))
 						throw new ReviewException(ReviewExceptionCode.REPLY_NOT_OWNER);
 
 					reply.delete();
@@ -129,7 +128,7 @@ public class ReviewReplyService {
 		Long cursor,
 		Long pageSize
 	) {
-		return reviewRepository.getReviewRootReplies(
+		return reviewReplyRepository.getReviewRootReplies(
 			reviewId,
 			cursor,
 			pageSize
@@ -152,13 +151,11 @@ public class ReviewReplyService {
 		Long cursor,
 		Long pageSize
 	) {
-		return reviewRepository.getSubReviewReplies(
+		return reviewReplyRepository.getSubReviewReplies(
 			reviewId,
 			rootReplyId,
 			cursor,
 			pageSize
 		);
 	}
-
-
 }
