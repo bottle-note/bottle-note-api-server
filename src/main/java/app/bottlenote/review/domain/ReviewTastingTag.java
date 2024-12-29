@@ -1,9 +1,6 @@
 package app.bottlenote.review.domain;
 
-import static app.bottlenote.review.exception.ReviewExceptionCode.INVALID_TASTING_TAG_LENGTH;
-
 import app.bottlenote.common.domain.BaseTimeEntity;
-import app.bottlenote.review.exception.ReviewException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -13,14 +10,17 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
+@Builder
 @Getter
 @Comment("리뷰 테이스팅 태그 테이블")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Entity(name = "review_tasting_tag")
 public class ReviewTastingTag extends BaseTimeEntity {
 
@@ -36,32 +36,11 @@ public class ReviewTastingTag extends BaseTimeEntity {
 	@Column(name = "tasting_tag")
 	private String tastingTag;
 
-	@Builder
-	private ReviewTastingTag(Long id, Review review, String tastingTag) {
-		this.id = id;
-		this.review = review;
-		this.tastingTag = isValidTastingTag(tastingTag);
-	}
-
 	public static ReviewTastingTag create(Review review, String tastingTag) {
 		return ReviewTastingTag.builder()
 			.review(review)
 			.tastingTag(tastingTag)
 			.build();
 	}
-
-	private static final int TASTING_TAG_MAX_LENGTH = 12;
-
-	private String isValidTastingTag(String tastingTag) {
-		if (tastingTag.length() > TASTING_TAG_MAX_LENGTH) {
-			throw new ReviewException(INVALID_TASTING_TAG_LENGTH);
-		}
-		return tastingTag.trim();
-	}
-
-	public void updateReview(Review review) {
-		this.review = review;
-	}
-
 }
 

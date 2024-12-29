@@ -1,5 +1,7 @@
 package app.bottlenote.review.domain;
 
+import static app.bottlenote.review.dto.payload.ReviewReplyRegistryEvent.replyRegistryPublish;
+
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.common.image.ImageInfo;
 import app.bottlenote.common.image.ImageUtil;
@@ -21,6 +23,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -28,16 +35,6 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.Comment;
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-
-import static app.bottlenote.review.dto.payload.ReviewReplyRegistryEvent.replyRegistryPublish;
 
 @Slf4j
 @Getter
@@ -117,8 +114,10 @@ public class Review extends BaseEntity {
 	private List<ReviewReply> reviewReplies = new ArrayList<>();
 
 	@Builder.Default
-	@OneToMany(mappedBy = "review", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-	private Set<ReviewTastingTag> reviewTastingTags = new HashSet<>();
+	@Comment("리뷰 테이스팅 태그 (1급 컬렉션) ")
+	@Embedded
+	private ReviewTastingTags reviewTastingTags = ReviewTastingTags.empty();
+
 
 	public void update(ReviewModifyVO reviewModifyVO) {
 		this.status = reviewModifyVO.getReviewDisplayStatus();
@@ -161,17 +160,16 @@ public class Review extends BaseEntity {
 	}
 
 
-	public void updateTastingTags(Set<ReviewTastingTag> updateTastingTags) {
-		this.reviewTastingTags.clear();
-		this.reviewTastingTags.addAll(updateTastingTags);
-	}
-
 	public void updateDisplayStatus(ReviewDisplayStatus status) {
 		this.status = status;
 	}
 
-	public void saveTastingTag(Set<ReviewTastingTag> reviewTastingTags) {
-		this.reviewTastingTags.addAll(reviewTastingTags);
+	public void saveTastingTag(List<String> reviewTastingTags) {
+		this.reviewTastingTags.saveReviewTastingTag(reviewTastingTags, this);
+	}
+
+	public void updateTastingTags(List<String> updateTastingTags) {
+		this.reviewTastingTags.updateReviewTastingTags(updateTastingTags, this);
 	}
 
 
