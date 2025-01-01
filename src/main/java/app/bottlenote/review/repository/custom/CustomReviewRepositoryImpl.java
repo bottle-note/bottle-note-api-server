@@ -154,8 +154,8 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.from(review)
 			.where(review.userId.eq(userId)
 				.and(review.alcoholId.eq(alcoholId))
-				.and(review.activeStatus.eq(ACTIVE))
-				.and(review.status.eq(PUBLIC)))
+				.and(review.activeStatus.eq(ACTIVE))) //
+				//.and(review.status.eq(PUBLIC))) // 공개 여부와 상관 없이 모두 조회
 			.fetchOne();
 
 		CursorPageable cursorPageable = getCursorPageable(reviewPageableRequest, fetch);
