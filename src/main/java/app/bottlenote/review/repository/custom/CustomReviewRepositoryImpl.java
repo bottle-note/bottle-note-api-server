@@ -105,8 +105,8 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.leftJoin(reviewReply).on(review.id.eq(reviewReply.review.id))
 			.leftJoin(reviewImage).on(review.id.eq(reviewImage.review.id))
 			.where(review.alcoholId.eq(alcoholId)
-				.and(review.activeStatus.eq(ACTIVE))
-				.and(review.status.eq(PUBLIC)))
+				.and(review.userId.eq(userId).or(review.status.eq(PUBLIC))) // 내 리뷰는 모두 조회 아니면 공개된 리뷰만 조회
+				.and(review.activeStatus.eq(ACTIVE)))
 			.groupBy(review.id, review.isBest, review.sizeType, review.userId)
 			.orderBy(sortBy(reviewPageableRequest.sortType(), reviewPageableRequest.sortOrder()).toArray(new OrderSpecifier[0]))
 			.offset(reviewPageableRequest.cursor())
@@ -117,8 +117,8 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.select(review.id.count())
 			.from(review)
 			.where(review.alcoholId.eq(alcoholId)
-				.and(review.activeStatus.eq(ACTIVE))
-				.and(review.status.eq(PUBLIC)))
+				.and(review.userId.eq(userId).or(review.status.eq(PUBLIC))) // 내 리뷰는 모두 조회 아니면 공개된 리뷰만 조회
+				.and(review.activeStatus.eq(ACTIVE)))
 			.fetchOne();
 
 		CursorPageable cursorPageable = getCursorPageable(reviewPageableRequest, fetch);
@@ -141,8 +141,8 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.leftJoin(reviewReply).on(review.id.eq(reviewReply.review.id))
 			.leftJoin(reviewImage).on(review.id.eq(reviewImage.review.id))
 			.where(review.userId.eq(userId)
-				.and(review.activeStatus.eq(ACTIVE))
-				.and(review.status.eq(PUBLIC)))
+				.and(review.activeStatus.eq(ACTIVE)))
+			//.and(review.status.eq(PUBLIC)))// 공개 여부와 상관 없이 모두 조회
 			.groupBy(review.id, review.isBest, review.sizeType, review.userId)
 			.orderBy(sortBy(reviewPageableRequest.sortType(), reviewPageableRequest.sortOrder()).toArray(new OrderSpecifier[0]))
 			.offset(reviewPageableRequest.cursor())
@@ -155,7 +155,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.where(review.userId.eq(userId)
 				.and(review.alcoholId.eq(alcoholId))
 				.and(review.activeStatus.eq(ACTIVE))) //
-				//.and(review.status.eq(PUBLIC))) // 공개 여부와 상관 없이 모두 조회
+			//.and(review.status.eq(PUBLIC))) // 공개 여부와 상관 없이 모두 조회
 			.fetchOne();
 
 		CursorPageable cursorPageable = getCursorPageable(reviewPageableRequest, fetch);
