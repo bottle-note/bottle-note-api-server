@@ -108,7 +108,6 @@ public class Review extends BaseEntity {
 	@Embedded
 	private ReviewTastingTags reviewTastingTags = ReviewTastingTags.empty();
 
-
 	public void update(ReviewModifyVO reviewModifyVO) {
 		this.status = reviewModifyVO.getReviewDisplayStatus();
 		this.content = reviewModifyVO.getContent();

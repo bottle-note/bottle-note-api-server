@@ -6,6 +6,6 @@ services:
       dockerfile: Dockerfile
     container_name: dev-bottle-note
     ports:
-      - "8081:8081"
+      - "30001:30001"
     environment:
       - SPRING_PROFILES_ACTIVE=dev
