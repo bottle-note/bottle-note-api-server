@@ -8,19 +8,21 @@ import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.dto.dsl.FollowPageableCriteria;
 import app.bottlenote.user.dto.request.FollowPageableRequest;
 import app.bottlenote.user.dto.request.FollowUpdateRequest;
-import app.bottlenote.user.dto.response.FollowSearchResponse;
 import app.bottlenote.user.dto.response.FollowUpdateResponse;
+import app.bottlenote.user.dto.response.FollowerSearchResponse;
+import app.bottlenote.user.dto.response.FollowingSearchResponse;
 import app.bottlenote.user.exception.FollowException;
 import app.bottlenote.user.exception.FollowExceptionCode;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.repository.FollowRepository;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -67,14 +69,25 @@ public class FollowService implements FollowFacade {
 	}
 
 	@Transactional(readOnly = true)
-	public PageResponse<FollowSearchResponse> getRelationList(Long userId, FollowPageableRequest pageableRequest) {
+	public PageResponse<FollowingSearchResponse> getFollowingList(Long userId, FollowPageableRequest pageableRequest) {
 
 		FollowPageableCriteria criteria = FollowPageableCriteria.of(
 			pageableRequest.cursor(),
 			pageableRequest.pageSize()
 		);
 
-		return followRepository.getRelationList(userId, criteria);
+		return followRepository.getFollowingList(userId, criteria);
+	}
+
+	@Transactional(readOnly = true)
+	public PageResponse<FollowerSearchResponse> getFollowerList(Long userId, FollowPageableRequest pageableRequest) {
+
+		FollowPageableCriteria criteria = FollowPageableCriteria.of(
+			pageableRequest.cursor(),
+			pageableRequest.pageSize()
+		);
+
+		return followRepository.getFollowerList(userId, criteria);
 	}
 
 	@Override
