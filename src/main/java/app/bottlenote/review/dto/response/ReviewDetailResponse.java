@@ -13,7 +13,7 @@ public record ReviewDetailResponse(
 ) {
 	public static ReviewDetailResponse create(AlcoholInfo alcoholInfo, ReviewInfo reviewInfo, List<ReviewImageInfo> reviewImageList) {
 		if (reviewInfo == null) {
-			return new ReviewDetailResponse(null, null, null);
+			return new ReviewDetailResponse(alcoholInfo, null, null);
 		}
 		return new ReviewDetailResponse(alcoholInfo, reviewInfo, reviewImageList);
 	}

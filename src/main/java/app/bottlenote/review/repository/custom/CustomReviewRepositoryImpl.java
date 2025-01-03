@@ -84,8 +84,8 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 			.leftJoin(reviewImage).on(review.id.eq(reviewImage.review.id))
 			.leftJoin(reviewReply).on(review.id.eq(reviewReply.review.id))
 			.where(review.id.eq(reviewId)
-				.and(review.activeStatus.eq(ACTIVE))
-				.and(review.status.eq(PUBLIC)))
+				.and(review.userId.eq(userId).or(review.status.eq(PUBLIC)))
+				.and(review.activeStatus.eq(ACTIVE)))
 			.groupBy(review.id, review.isBest, review.sizeType, review.userId)
 			.fetchOne();
 	}

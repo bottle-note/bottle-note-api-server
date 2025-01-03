@@ -17,6 +17,6 @@ Content-Type: application/json
 
 
 ### 리뷰 상세 조회
-@reviewId = 12
+@reviewId = 26
 GET {{host}}/api/v1/reviews/detail/{{reviewId}}
 Authorization: Bearer {{accessToken}}
