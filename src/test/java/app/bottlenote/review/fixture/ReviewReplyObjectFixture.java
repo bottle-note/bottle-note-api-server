@@ -8,13 +8,12 @@ import app.bottlenote.review.dto.response.RootReviewReplyInfo;
 import app.bottlenote.review.dto.response.SubReviewReplyInfo;
 import app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage;
 import app.bottlenote.user.domain.User;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.RandomUtils;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomUtils;
 
 public class ReviewReplyObjectFixture {
 
@@ -49,12 +48,12 @@ public class ReviewReplyObjectFixture {
 	/**
 	 * 리뷰 댓글 엔티티 fixture를 반환합니다.
 	 */
-	public static ReviewReply getReviewReplyFixture(Long id, Review review) {
+	public static ReviewReply getReviewReplyFixture(Long id, Long reviewId) {
 		Long userId = 1L;
 		String content = RandomStringUtils.randomAlphabetic(50);
 		return ReviewReply.builder()
 			.id(id)
-			.review(review)
+			.reviewId(reviewId)
 			.userId(userId)
 			.content(content)
 			.build();

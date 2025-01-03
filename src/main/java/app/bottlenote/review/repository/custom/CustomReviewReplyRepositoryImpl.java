@@ -1,5 +1,9 @@
 package app.bottlenote.review.repository.custom;
 
+import static app.bottlenote.review.domain.QReviewReply.reviewReply;
+import static app.bottlenote.user.domain.QUser.user;
+import static com.querydsl.core.types.ExpressionUtils.count;
+
 import app.bottlenote.review.domain.QReviewReply;
 import app.bottlenote.review.domain.constant.ReviewReplyStatus;
 import app.bottlenote.review.dto.response.RootReviewReplyInfo;
@@ -8,14 +12,9 @@ import app.bottlenote.user.domain.QUser;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.util.List;
-
-import static app.bottlenote.review.domain.QReviewReply.reviewReply;
-import static app.bottlenote.user.domain.QUser.user;
-import static com.querydsl.core.types.ExpressionUtils.count;
 
 public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyRepository {
 
@@ -56,7 +55,7 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
 			.from(reviewReply)
 			.join(user).on(reviewReply.userId.eq(user.id))
 			.where(
-				reviewReply.review.id.eq(reviewId), // 리뷰 ID 일치
+				reviewReply.reviewId.eq(reviewId), // 리뷰 ID 일치
 				reviewReply.rootReviewReply.isNull() // 최상위 댓글만 조회
 			)
 			.groupBy(reviewReply.id)
@@ -69,7 +68,7 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
 		Long totalCount = queryFactory.select(count(reviewReply.id))
 			.from(reviewReply)
 			.where(
-				reviewReply.review.id.eq(reviewId),
+				reviewReply.reviewId.eq(reviewId),
 				reviewReply.rootReviewReply.isNull()
 			)
 			.fetchOne();
@@ -110,7 +109,7 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
 			.join(parentReviewReply).on(reviewReply.parentReviewReply.id.eq(parentReviewReply.id))
 			.join(parentUser).on(reviewReply.parentReviewReply.userId.eq(parentUser.id))
 			.where(
-				reviewReply.review.id.eq(reviewId), // 리뷰 ID 일치
+				reviewReply.reviewId.eq(reviewId), // 리뷰 ID 일치
 				reviewReply.rootReviewReply.id.eq(rootReplyId) // 부모 댓글 ID 일치
 			)
 			.orderBy(reviewReply.createAt.asc()) // 과거 댓글부터 조회
@@ -121,7 +120,7 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
 		Long totalCount = queryFactory.select(count(reviewReply.id))
 			.from(reviewReply)
 			.where(
-				reviewReply.review.id.eq(reviewId),
+				reviewReply.reviewId.eq(reviewId),
 				reviewReply.rootReviewReply.id.eq(rootReplyId)
 			)
 			.fetchOne();
