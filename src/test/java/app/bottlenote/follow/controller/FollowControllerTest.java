@@ -58,7 +58,7 @@ class FollowControllerTest {
 	@DisplayName("팔로우 리스트를 조회할 수 있다.")
 	@ParameterizedTest(name = "[{index}] userId: {0}, cursor: {1}, pageSize: {2}")
 	@MethodSource("testCaseProvider")
-	void testFindFollowList(Long userId, Long cursor, Long pageSize) throws Exception {
+	void testFindFollowingList(Long userId, Long cursor, Long pageSize) throws Exception {
 		// given
 		PageResponse<FollowingSearchResponse> response = followQueryFixture.getFollowingPageResponse();
 		FollowPageableRequest pageableRequest = FollowPageableRequest.builder()
@@ -67,7 +67,7 @@ class FollowControllerTest {
 			.build();
 
 		// when
-		when(followService.getFollowingList(any(), any())).thenReturn(response);
+		when(followService.getFollowingList(any(), any(), any())).thenReturn(response);
 
 		// then
 		ResultActions resultActions = mockMvc.perform(get("/api/v1/follow/{userId}/relation-list", userId)

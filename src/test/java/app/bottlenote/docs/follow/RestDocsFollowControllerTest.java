@@ -108,10 +108,10 @@ class RestDocsFollowControllerTest extends AbstractRestDocs {
 		PageResponse<FollowingSearchResponse> response = followQueryFixture.getFollowingPageResponse();
 
 		// when
-		when(followService.getFollowingList(any(), any())).thenReturn(response);
+		when(followService.getFollowingList(any(), any(), any())).thenReturn(response);
 
 		// then
-		mockMvc.perform(get("/api/v1/follow/1/relation-list")
+		mockMvc.perform(get("/api/v1/follow/1/following-list")
 				.param("type", String.valueOf(FollowQueryType.FOLLOWING))
 				.param("cursor", "0")
 				.param("pageSize", "50")
@@ -157,10 +157,10 @@ class RestDocsFollowControllerTest extends AbstractRestDocs {
 		PageResponse<FollowerSearchResponse> response = followQueryFixture.getFollowerPageResponse();
 
 		// when
-		when(followService.getFollowerList(any(), any())).thenReturn(response);
+		when(followService.getFollowerList(any(), any(), any())).thenReturn(response);
 
 		// then
-		mockMvc.perform(get("/api/v1/follow/1/relation-list")
+		mockMvc.perform(get("/api/v1/follow/1/follower-list")
 				.param("type", String.valueOf(FollowQueryType.FOLLOWER))
 				.param("cursor", "0")
 				.param("pageSize", "50")
@@ -198,6 +198,4 @@ class RestDocsFollowControllerTest extends AbstractRestDocs {
 				)
 			));
 	}
-
-
 }

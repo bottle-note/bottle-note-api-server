@@ -3,17 +3,16 @@ package app.bottlenote.follow.fixture;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.user.domain.constant.FollowStatus;
-import app.bottlenote.user.dto.response.FollowerDetail;
 import app.bottlenote.user.dto.response.FollowerSearchResponse;
-import app.bottlenote.user.dto.response.FollowingDetail;
 import app.bottlenote.user.dto.response.FollowingSearchResponse;
+import app.bottlenote.user.dto.response.RelationUserInfo;
 import java.util.List;
 
 public class FollowQueryFixture {
 
 	public PageResponse<FollowingSearchResponse> getFollowingPageResponse() {
-		List<FollowingDetail> followingDetails = List.of(
-			FollowingDetail.of(
+		List<RelationUserInfo> followingDetails = List.of(
+			RelationUserInfo.of(
 				1L,
 				1L,
 				"nickName1",
@@ -33,8 +32,8 @@ public class FollowQueryFixture {
 	}
 
 	public PageResponse<FollowerSearchResponse> getFollowerPageResponse() {
-		List<FollowerDetail> followerDetails = List.of(
-			FollowerDetail.of(
+		List<RelationUserInfo> followerDetails = List.of(
+			RelationUserInfo.of(
 				1L,
 				1L,
 				"nickName1",

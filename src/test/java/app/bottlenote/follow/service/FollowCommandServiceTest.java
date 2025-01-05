@@ -1,7 +1,13 @@
 package app.bottlenote.follow.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import app.bottlenote.user.domain.Follow;
 import app.bottlenote.user.domain.User;
+import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.domain.constant.FollowStatus;
 import app.bottlenote.user.dto.request.FollowUpdateRequest;
 import app.bottlenote.user.dto.response.FollowUpdateResponse;
@@ -9,7 +15,7 @@ import app.bottlenote.user.exception.FollowException;
 import app.bottlenote.user.exception.FollowExceptionCode;
 import app.bottlenote.user.repository.FollowRepository;
 import app.bottlenote.user.service.FollowService;
-import app.bottlenote.user.service.UserFacade;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -17,13 +23,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 
 @Tag("unit")
@@ -38,7 +37,7 @@ class FollowCommandServiceTest {
 	private FollowRepository followRepository;
 
 	@Mock
-	private UserFacade userFacade;
+	private UserRepository userRepository;
 
 	@Test
 	@DisplayName("다른 유저를 팔로우 할 수 있다.")
@@ -58,18 +57,19 @@ class FollowCommandServiceTest {
 
 		Follow follow = Follow.builder()
 			.userId(userId)
-			.followUser(followUser)
+			.targetUserId(followUserId)
 			.status(FollowStatus.FOLLOWING)
 			.build();
 
-		when(followRepository.findByUserIdAndFollowUserIdWithFetch(userId, followUserId)).thenReturn(Optional.of(follow));
+		when(followRepository.findByUserIdAndFollowUserId(userId, followUserId)).thenReturn(Optional.of(follow));
+		when(userRepository.findById(followUserId)).thenReturn(Optional.of(followUser));
 		when(followRepository.save(any(Follow.class))).thenReturn(follow);
 
 		// when
 		FollowUpdateResponse response = followService.updateFollowStatus(request, userId);
 
 		// then
-		assertEquals(response.getFollowUserId(), followUserId);
+		assertEquals(followUserId, response.getFollowUserId());
 		assertEquals(response.getNickName(), followUser.getNickName());
 		assertEquals(response.getImageUrl(), followUser.getImageUrl());
 		assertEquals(response.getMessage(), FollowUpdateResponse.Message.FOLLOW_SUCCESS.getResponseMessage());
@@ -93,18 +93,19 @@ class FollowCommandServiceTest {
 
 		Follow follow = Follow.builder()
 			.userId(userId)
-			.followUser(followUser)
+			.targetUserId(followUserId)
 			.status(FollowStatus.FOLLOWING)
 			.build();
 
-		when(followRepository.findByUserIdAndFollowUserIdWithFetch(userId, followUserId)).thenReturn(Optional.of(follow));
+		when(followRepository.findByUserIdAndFollowUserId(userId, followUserId)).thenReturn(Optional.of(follow));
+		when(userRepository.findById(followUserId)).thenReturn(Optional.of(followUser));
 		when(followRepository.save(any(Follow.class))).thenReturn(follow);
 
 		// when
 		FollowUpdateResponse response = followService.updateFollowStatus(request, userId);
 
 		// then
-		assertEquals(response.getFollowUserId(), followUserId);
+		assertEquals(followUserId, response.getFollowUserId());
 		assertEquals(response.getNickName(), followUser.getNickName());
 		assertEquals(response.getImageUrl(), followUser.getImageUrl());
 		assertEquals(response.getMessage(), FollowUpdateResponse.Message.UNFOLLOW_SUCCESS.getResponseMessage());
