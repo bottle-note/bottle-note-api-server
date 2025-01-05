@@ -1,5 +1,12 @@
 package app.bottlenote.user.repository;
 
+import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.picks.domain.QPicks.picks;
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
+import static app.bottlenote.user.domain.QFollow.follow;
+import static com.querydsl.jpa.JPAExpressions.select;
+
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.user.domain.constant.MyBottleSortType;
@@ -13,16 +20,8 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.util.StringUtils;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
-
-import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.picks.domain.QPicks.picks;
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.domain.QReview.review;
-import static app.bottlenote.user.domain.QFollow.follow;
-import static com.querydsl.jpa.JPAExpressions.select;
+import org.springframework.stereotype.Component;
 
 @Component
 public class UserQuerySupporter {
@@ -97,7 +96,7 @@ public class UserQuerySupporter {
 		return ExpressionUtils.as(
 			select(follow.count())
 				.from(follow)
-				.where(follow.followUser.id.eq(userId)),
+				.where(follow.targetUserId.eq(userId)),
 			"followerCount"
 		);
 	}
@@ -113,7 +112,7 @@ public class UserQuerySupporter {
 		return select(follow.count())
 			.from(follow)
 			.where(follow.userId.eq(currentUserId)
-				.and(follow.followUser.id.eq(userId)))
+				.and(follow.targetUserId.eq(userId)))
 			.gt(0L);
 	}
 
