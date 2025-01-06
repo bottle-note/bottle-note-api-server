@@ -131,7 +131,7 @@ class RestDocsFollowControllerTest extends AbstractRestDocs {
 					// followingList 필드들
 					fieldWithPath("data.followingList[].userId").description("팔로잉한 유저의 아이디"),
 					fieldWithPath("data.followingList[].followUserId").description("팔로우 유저의 아이디"),
-					fieldWithPath("data.followingList[].nickName").description("팔로잉한 유저의 닉네임"),
+					fieldWithPath("data.followingList[].followUserNickname").description("팔로잉한 유저의 닉네임"),
 					fieldWithPath("data.followingList[].userProfileImage").description("팔로잉한 유저의 프로필 이미지 URL"),
 					fieldWithPath("data.followingList[].status").description("팔로우 상태"),
 					fieldWithPath("data.followingList[].reviewCount").description("리뷰 수"),
@@ -180,7 +180,7 @@ class RestDocsFollowControllerTest extends AbstractRestDocs {
 					// followerList 필드들
 					fieldWithPath("data.followerList[].userId").description("팔로워 유저의 아이디"),
 					fieldWithPath("data.followerList[].followUserId").description("팔로우 유저의 아이디"),
-					fieldWithPath("data.followerList[].nickName").description("팔로워 유저의 닉네임"),
+					fieldWithPath("data.followerList[].followUserNickname").description("팔로워 유저의 닉네임"),
 					fieldWithPath("data.followerList[].userProfileImage").description("팔로워 유저의 프로필 이미지 URL"),
 					fieldWithPath("data.followerList[].status").description("팔로우 상태"),
 					fieldWithPath("data.followerList[].reviewCount").description("리뷰 수"),

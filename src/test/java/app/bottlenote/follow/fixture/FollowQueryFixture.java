@@ -12,15 +12,15 @@ public class FollowQueryFixture {
 
 	public PageResponse<FollowingSearchResponse> getFollowingPageResponse() {
 		List<RelationUserInfo> followingDetails = List.of(
-			RelationUserInfo.of(
-				1L,
-				1L,
-				"nickName1",
-				"imageUrl1",
-				FollowStatus.FOLLOWING,
-				10L,
-				5L
-			)
+			RelationUserInfo.builder()
+				.userId(1L)
+				.followUserId(1L)
+				.followUserNickname("nickName2")
+				.userProfileImage("imageUrl2")
+				.status(FollowStatus.FOLLOWING)
+				.reviewCount(10L)
+				.ratingCount(5L)
+				.build()
 		);
 		FollowingSearchResponse followSearchResponse = FollowingSearchResponse.of(5L, followingDetails);
 
@@ -33,15 +33,16 @@ public class FollowQueryFixture {
 
 	public PageResponse<FollowerSearchResponse> getFollowerPageResponse() {
 		List<RelationUserInfo> followerDetails = List.of(
-			RelationUserInfo.of(
-				1L,
-				1L,
-				"nickName1",
-				"imageUrl1",
-				FollowStatus.FOLLOWING,
-				10L,
-				5L
-			)
+
+			RelationUserInfo.builder()
+				.userId(1L)
+				.followUserId(1L)
+				.followUserNickname("nickName1")
+				.userProfileImage("imageUrl1")
+				.status(FollowStatus.FOLLOWING)
+				.reviewCount(10L)
+				.ratingCount(5L)
+				.build()
 		);
 		FollowerSearchResponse followerSearchResponse = FollowerSearchResponse.of(5L, followerDetails);
 

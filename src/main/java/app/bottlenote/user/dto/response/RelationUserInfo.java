@@ -1,19 +1,16 @@
 package app.bottlenote.user.dto.response;
 
 import app.bottlenote.user.domain.constant.FollowStatus;
+import lombok.Builder;
 
-
+@Builder
 public record RelationUserInfo(
 	Long userId,
 	Long followUserId,
-	String nickName,
+	String followUserNickname,
 	String userProfileImage,
 	FollowStatus status,
 	Long reviewCount,
 	Long ratingCount
 ) {
-
-	public static RelationUserInfo of(Long userId, Long followUserId, String nickName, String userProfileImage, FollowStatus status, Long reviewCount, Long ratingCount) {
-		return new RelationUserInfo(userId, followUserId, nickName, userProfileImage, status, reviewCount, ratingCount);
-	}
 }
