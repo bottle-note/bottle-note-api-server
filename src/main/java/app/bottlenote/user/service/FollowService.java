@@ -8,8 +8,9 @@ import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.dto.dsl.FollowPageableCriteria;
 import app.bottlenote.user.dto.request.FollowPageableRequest;
 import app.bottlenote.user.dto.request.FollowUpdateRequest;
-import app.bottlenote.user.dto.response.FollowSearchResponse;
 import app.bottlenote.user.dto.response.FollowUpdateResponse;
+import app.bottlenote.user.dto.response.FollowerSearchResponse;
+import app.bottlenote.user.dto.response.FollowingSearchResponse;
 import app.bottlenote.user.exception.FollowException;
 import app.bottlenote.user.exception.FollowExceptionCode;
 import app.bottlenote.user.exception.UserException;
@@ -38,22 +39,18 @@ public class FollowService implements FollowFacade {
 			throw new FollowException(FollowExceptionCode.CANNOT_FOLLOW_SELF);
 		}
 
-		Follow follow = followRepository.findByUserIdAndFollowUserIdWithFetch(currentUserId, followUserId)
+		Follow follow = followRepository.findByUserIdAndFollowUserId(currentUserId, followUserId)
 			.orElseGet(() -> {
 				User user = userRepository.findById(currentUserId)
 					.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
 
-				User followUser = userRepository.findById(followUserId)
-					.orElseThrow(() -> new FollowException(FollowExceptionCode.FOLLOW_NOT_FOUND));
-
 				return Follow.builder()
 					.userId(user.getId())
-					.followUser(followUser)
+					.targetUserId(request.followUserId())
 					.build();
 			});
-
-		String nickName = follow.getFollowUser().getNickName();
-		String imageUrl = follow.getFollowUser().getImageUrl();
+		User targetUser = userRepository.findById(followUserId)
+			.orElseThrow(() -> new FollowException(FollowExceptionCode.FOLLOW_NOT_FOUND));
 
 		follow.updateStatus(request.status());
 		followRepository.save(follow);
@@ -61,20 +58,39 @@ public class FollowService implements FollowFacade {
 		return FollowUpdateResponse.builder()
 			.status(follow.getStatus())
 			.followUserId(followUserId)
-			.nickName(nickName)
-			.imageUrl(imageUrl)
+			.nickName(targetUser.getNickName())
+			.imageUrl(targetUser.getImageUrl())
 			.build();
 	}
 
 	@Transactional(readOnly = true)
-	public PageResponse<FollowSearchResponse> getRelationList(Long userId, FollowPageableRequest pageableRequest) {
+	public PageResponse<FollowingSearchResponse> getFollowingList(Long currentUserId, Long userId, FollowPageableRequest pageableRequest) {
+
+		if (!userRepository.existsByUserId(currentUserId)) {
+			throw new UserException(UserExceptionCode.USER_NOT_FOUND);
+		}
 
 		FollowPageableCriteria criteria = FollowPageableCriteria.of(
 			pageableRequest.cursor(),
 			pageableRequest.pageSize()
 		);
 
-		return followRepository.getRelationList(userId, criteria);
+		return followRepository.getFollowingList(userId, criteria);
+	}
+
+	@Transactional(readOnly = true)
+	public PageResponse<FollowerSearchResponse> getFollowerList(Long currentUserId, Long userId, FollowPageableRequest pageableRequest) {
+
+		if (!userRepository.existsByUserId(currentUserId)) {
+			throw new UserException(UserExceptionCode.USER_NOT_FOUND);
+		}
+
+		FollowPageableCriteria criteria = FollowPageableCriteria.of(
+			pageableRequest.cursor(),
+			pageableRequest.pageSize()
+		);
+
+		return followRepository.getFollowerList(userId, criteria);
 	}
 
 	@Override

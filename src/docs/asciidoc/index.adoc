@@ -178,7 +178,9 @@ include::api/support/help/help-delete.adoc[]
 
 include::api/follow/follow-update.adoc[]
 
-include::api/follow/follow-search.adoc[]
+include::api/follow/follow-search-following-list.adoc[]
+
+include::api/follow/follow-search-follower-list.adoc[]
 
 == 별점 (rating) 관련 API
 

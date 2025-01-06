@@ -1,12 +1,21 @@
 package app.bottlenote.follow.controller;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import app.bottlenote.follow.fixture.FollowQueryFixture;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.user.controller.FollowController;
 import app.bottlenote.user.dto.request.FollowPageableRequest;
-import app.bottlenote.user.dto.response.FollowSearchResponse;
+import app.bottlenote.user.dto.response.FollowingSearchResponse;
 import app.bottlenote.user.service.FollowService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -19,16 +28,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-
-import java.util.stream.Stream;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Disabled
 @Tag("unit")
@@ -59,19 +58,20 @@ class FollowControllerTest {
 	@DisplayName("팔로우 리스트를 조회할 수 있다.")
 	@ParameterizedTest(name = "[{index}] userId: {0}, cursor: {1}, pageSize: {2}")
 	@MethodSource("testCaseProvider")
-	void testFindFollowList(Long userId, Long cursor, Long pageSize) throws Exception {
+	void testFindFollowingList(Long userId, Long cursor, Long pageSize) throws Exception {
 		// given
-		PageResponse<FollowSearchResponse> response = followQueryFixture.getPageResponse();
+		PageResponse<FollowingSearchResponse> response = followQueryFixture.getFollowingPageResponse();
 		FollowPageableRequest pageableRequest = FollowPageableRequest.builder()
 			.cursor(cursor)
 			.pageSize(pageSize)
 			.build();
 
 		// when
-		when(followService.getRelationList(any(), any())).thenReturn(response);
+		when(followService.getFollowingList(any(), any(), any())).thenReturn(response);
 
 		// then
 		ResultActions resultActions = mockMvc.perform(get("/api/v1/follow/{userId}/relation-list", userId)
+				.param("type", "FOLLOWING")
 				.param("cursor", pageableRequest.cursor().toString())
 				.param("pageSize", pageableRequest.pageSize().toString())
 				.with(csrf()))

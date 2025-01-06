@@ -12,11 +12,10 @@ import app.bottlenote.user.domain.constant.GenderType;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.domain.constant.UserType;
 import app.bottlenote.user.repository.FollowRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @RequiredArgsConstructor
 @Component
@@ -62,7 +61,7 @@ public class AlcoholTestFactory {
 		Follow follow = Follow.builder()
 			.status(FollowStatus.FOLLOWING)
 			.userId(user.getId())
-			.followUser(followUser)
+			.targetUserId(followUser.getId())
 			.build();
 		followRepository.save(follow);
 	}

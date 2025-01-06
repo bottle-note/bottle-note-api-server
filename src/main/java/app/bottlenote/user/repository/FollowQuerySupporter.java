@@ -1,18 +1,17 @@
 package app.bottlenote.user.repository;
 
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.user.dto.dsl.FollowPageableCriteria;
-import app.bottlenote.user.dto.response.FollowingDetail;
-import com.querydsl.core.types.Expression;
-import com.querydsl.core.types.ExpressionUtils;
-import com.querydsl.core.types.dsl.NumberPath;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
-
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
 import static com.querydsl.jpa.JPAExpressions.select;
+
+import app.bottlenote.global.service.cursor.CursorPageable;
+import app.bottlenote.user.dto.dsl.FollowPageableCriteria;
+import app.bottlenote.user.dto.response.RelationUserInfo;
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.dsl.NumberPath;
+import java.util.List;
+import org.springframework.stereotype.Component;
 
 
 @Component
@@ -37,7 +36,7 @@ public class FollowQuerySupporter {
 	}
 
 
-	public CursorPageable followCursorPageable(FollowPageableCriteria criteria, List<FollowingDetail> followingDetails) {
+	public CursorPageable followingCursorPageable(FollowPageableCriteria criteria, List<RelationUserInfo> followingDetails) {
 		boolean hasNext = isHasNext(criteria, followingDetails);
 		return CursorPageable.builder()
 			.cursor(criteria.cursor() + criteria.pageSize())
@@ -47,7 +46,17 @@ public class FollowQuerySupporter {
 			.build();
 	}
 
-	private boolean isHasNext(FollowPageableCriteria criteria, List<FollowingDetail> fetch) {
+	public CursorPageable followerCursorPageable(FollowPageableCriteria criteria, List<RelationUserInfo> followerDetails) {
+		boolean hasNext = isHasNext(criteria, followerDetails);
+		return CursorPageable.builder()
+			.cursor(criteria.cursor() + criteria.pageSize())
+			.pageSize(criteria.pageSize())
+			.hasNext(hasNext)
+			.currentCursor(criteria.cursor())
+			.build();
+	}
+
+	private boolean isHasNext(FollowPageableCriteria criteria, List<?> fetch) {
 		boolean hasNext = fetch.size() > criteria.pageSize();
 
 		if (hasNext) {
