@@ -1,9 +1,13 @@
 package app.bottlenote.global.security;
 
+import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
+
 import app.bottlenote.global.security.jwt.JwtAuthenticationEntryPoint;
 import app.bottlenote.global.security.jwt.JwtAuthenticationFilter;
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
 import jakarta.annotation.PostConstruct;
+import java.util.Arrays;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,11 +21,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
-import java.util.List;
-
-import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 @Configuration
 @EnableWebSecurity
@@ -70,6 +69,7 @@ public class SecurityConfig {
 				.requestMatchers("/api/v1/my-page/**").authenticated()
 				.requestMatchers("/api/v1/reports/**").authenticated()
 				.requestMatchers("/api/v1/push/**").authenticated()
+				.requestMatchers("/api/v1/history/**").authenticated()
 				.anyRequest().permitAll()
 			)
 			.addFilterBefore(new JwtAuthenticationFilter(jwtAuthenticationManager), UsernamePasswordAuthenticationFilter.class)
