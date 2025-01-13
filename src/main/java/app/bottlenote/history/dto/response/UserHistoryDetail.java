@@ -13,6 +13,7 @@ public record UserHistoryDetail(
 	EventCategory eventCategory,
 	EventType eventType,
 	Long alcoholId,
+	String alcoholName,
 	String imageUrl,
 	String redirectUrl,
 	String description,

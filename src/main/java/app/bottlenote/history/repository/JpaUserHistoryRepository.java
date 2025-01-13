@@ -20,6 +20,7 @@ public interface JpaUserHistoryRepository extends UserHistoryRepository, JpaRepo
 						u.eventCategory,
 						u.eventType,
 						u.alcoholId,
+						a1_0.korName,
 						u.imageUrl,
 						u.redirectUrl,
 						u.description,
