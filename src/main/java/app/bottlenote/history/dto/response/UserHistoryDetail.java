@@ -7,7 +7,6 @@ import lombok.Builder;
 
 @Builder
 public record UserHistoryDetail(
-
 	Long historyId,
 	LocalDateTime createdAt,
 	EventCategory eventCategory,

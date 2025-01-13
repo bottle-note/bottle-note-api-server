@@ -2,7 +2,11 @@ package app.bottlenote.history.repository;
 
 import app.bottlenote.history.domain.UserHistory;
 import app.bottlenote.history.domain.UserHistoryRepository;
+import app.bottlenote.history.dto.request.ReviewFilterType;
 import app.bottlenote.history.dto.response.UserHistoryDetail;
+import app.bottlenote.picks.domain.PicksStatus;
+import app.bottlenote.rating.domain.RatingPoint;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,9 +32,23 @@ public interface JpaUserHistoryRepository extends UserHistoryRepository, JpaRepo
 						u.dynamicMessage
 				)
 				FROM user_history u
-						join alcohol a1_0 on u.alcoholId = a1_0.id
+					 	left join alcohol a1_0 on u.alcoholId = a1_0.id
+						left join rating r1_0 on u.alcoholId = r1_0.id.alcoholId	
+								AND r1_0.id.userId = :userId
+						left join picks p1_0 on u.alcoholId = p1_0.alcoholId
 				WHERE u.userId = :userId
-				ORDER BY u.createAt DESC
+						AND (:reviewFilterType IS NULL OR u.eventType = :reviewFilterType)
+		    			AND (:ratingPoint IS NULL OR r1_0.ratingPoint IN :ratingPoint)
+		    			AND (:picksStatus IS NULL OR p1_0.status = :picksStatus)
+		    			AND (:startDate IS NULL OR u.createAt >= :startDate)
+		    			AND (:endDate IS NULL OR u.createAt <= :endDate)
 		""")
-	List<UserHistoryDetail> findUserHistoryListByUserId(@Param("userId") Long userId, Pageable pageable);
+	List<UserHistoryDetail> findUserHistoryListByUserId(
+		@Param("userId") Long userId,
+		@Param("reviewFilterType") ReviewFilterType reviewFilterType,
+		@Param("ratingPoint") List<RatingPoint> ratingPoint,
+		@Param("picksStatus") PicksStatus picksStatuses,
+		@Param("startDate") LocalDateTime startDate,
+		@Param("endDate") LocalDateTime endDate,
+		Pageable pageable);
 }

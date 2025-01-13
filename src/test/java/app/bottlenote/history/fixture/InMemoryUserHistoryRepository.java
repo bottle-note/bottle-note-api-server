@@ -2,7 +2,11 @@ package app.bottlenote.history.fixture;
 
 import app.bottlenote.history.domain.UserHistory;
 import app.bottlenote.history.domain.UserHistoryRepository;
+import app.bottlenote.history.dto.request.ReviewFilterType;
 import app.bottlenote.history.dto.response.UserHistoryDetail;
+import app.bottlenote.picks.domain.PicksStatus;
+import app.bottlenote.rating.domain.RatingPoint;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +42,15 @@ public class InMemoryUserHistoryRepository implements UserHistoryRepository {
 	}
 
 	@Override
-	public List<UserHistoryDetail> findUserHistoryListByUserId(Long userId, Pageable pageable) {
-		return null;
+	public List<UserHistoryDetail> findUserHistoryListByUserId(
+		Long userId,
+		ReviewFilterType reviewFilterType,
+		List<RatingPoint> ratingPoint,
+		PicksStatus picksStatuses,
+		LocalDateTime startDate,
+		LocalDateTime endDate,
+		Pageable pageable
+	) {
+		return List.of();
 	}
 }

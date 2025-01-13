@@ -4,7 +4,9 @@ import static java.lang.Boolean.FALSE;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.history.domain.UserHistoryRepository;
+import app.bottlenote.history.dto.request.UserHistorySearchRequest;
 import app.bottlenote.history.dto.response.UserHistoryDetail;
 import app.bottlenote.history.dto.response.UserHistorySearchResponse;
 import app.bottlenote.user.exception.UserException;
@@ -15,6 +17,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,14 +30,30 @@ public class UserHistoryQueryService {
 	private final UserFacade userFacade;
 
 	@Transactional(readOnly = true)
-	public PageResponse<UserHistorySearchResponse> findUserHistoryList(Long targetUserId, Integer cursor, Integer pageSize) {
+	public PageResponse<UserHistorySearchResponse> findUserHistoryList(final Long targetUserId, final UserHistorySearchRequest userHistorySearchRequest) {
 		if (FALSE.equals(userFacade.existsByUserId(targetUserId))) {
 			throw new UserException(UserExceptionCode.USER_NOT_FOUND);
 		}
 		LocalDateTime subscriptionDate = userFacade.getSubscriptionDate(targetUserId);
-		List<UserHistoryDetail> userHistoryDetails = userHistoryRepository.findUserHistoryListByUserId(targetUserId, PageRequest.of(cursor, pageSize));
+
+		final int cursor = userHistorySearchRequest.cursor().intValue();
+		final int pageSize = userHistorySearchRequest.pageSize().intValue();
+
+		List<UserHistoryDetail> userHistoryDetails = userHistoryRepository.findUserHistoryListByUserId(
+			targetUserId,
+			userHistorySearchRequest.reviewFilterType(),
+			userHistorySearchRequest.ratingPoint(),
+			userHistorySearchRequest.picksStatus(),
+			userHistorySearchRequest.startDate().atStartOfDay(),
+			userHistorySearchRequest.endDate().plusDays(1).atStartOfDay(),
+			PageRequest.of(cursor, pageSize,
+				Sort.by(userHistorySearchRequest.sortOrder() == SortOrder.DESC ?
+					Sort.Order.desc("createAt") :
+					Sort.Order.asc("createAt"))
+			));
 
 		CursorPageable pageable = getCursorPageable(userHistoryDetails, cursor, pageSize);
+
 		return PageResponse.of(UserHistorySearchResponse.of((long) userHistoryDetails.size(), subscriptionDate, userHistoryDetails), pageable);
 	}
 
