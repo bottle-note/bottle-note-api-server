@@ -16,7 +16,7 @@ Content-Type: application/json
 
 
 ### 팔로우 조회 진행한다.
-GET  {{host}}/api/v1/follow/1
+GET  {{host}}/api/v1/follow/8/relation-list
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 

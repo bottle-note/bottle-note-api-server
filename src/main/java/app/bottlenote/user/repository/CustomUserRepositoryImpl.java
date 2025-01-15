@@ -6,6 +6,7 @@ import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -74,9 +75,17 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 				alcohol.engName.as("engName"),
 				alcohol.korCategory.as("korCategoryName"),
 				alcohol.imageUrl.as("imageUrl"),
-				picks.id.isNotNull().as("isPicked"),
-				rating.ratingPoint.rating.coalesce(0.0).as("rating"),
-				review.id.isNotNull().as("isReviewed"),
+				// CASE WHEN -> 숫자 반환
+				Expressions.booleanTemplate(
+					"case when max(case when {0} is not null then 1 else 0 end) > 0 then true else false end",
+					picks.id
+				).as("isPicked"),
+				rating.ratingPoint.rating.coalesce(0.0).max().as("rating"),
+				// CASE WHEN -> 숫자 반환
+				Expressions.booleanTemplate(
+					"case when max(case when {0} is not null then 1 else 0 end) > 0 then true else false end",
+					review.id
+				).as("hasReviewByMe"),
 				rating.lastModifyAt.coalesce(review.lastModifyAt, picks.lastModifyAt).max().as("mostLastModifyAt"),
 				rating.lastModifyAt.max().as("ratingLastModifyAt"),
 				review.lastModifyAt.max().as("reviewLastModifyAt"),
@@ -92,7 +101,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 				supporter.eqName(request.keyword()),
 				supporter.eqRegion(request.regionId())
 			)
-			.groupBy(alcohol.id, alcohol.korName, alcohol.engName, alcohol.korCategory, alcohol.imageUrl, picks.id, rating.ratingPoint.rating, review.id)
+			.groupBy(alcohol.id, alcohol.korName, alcohol.engName, alcohol.korCategory, alcohol.imageUrl)
 			.orderBy(supporter.sortBy(request.sortType(), request.sortOrder()))
 			.offset(request.cursor())
 			.limit(request.pageSize() + 1)
