@@ -75,15 +75,16 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 				alcohol.engName.as("engName"),
 				alcohol.korCategory.as("korCategoryName"),
 				alcohol.imageUrl.as("imageUrl"),
-				// CASE WHEN -> 숫자 반환
+				// CASE WHEN -> boolean 처리
 				Expressions.booleanTemplate(
-					"case when max(case when {0} is not null then 1 else 0 end) > 0 then true else false end",
+					"max(case when {0} is not null then 1 else 0 end) > 0",
 					picks.id
 				).as("isPicked"),
+				// COALESCE로 최대 평점 계산
 				rating.ratingPoint.rating.coalesce(0.0).max().as("rating"),
-				// CASE WHEN -> 숫자 반환
+				// CASE WHEN -> boolean 처리
 				Expressions.booleanTemplate(
-					"case when max(case when {0} is not null then 1 else 0 end) > 0 then true else false end",
+					"max(case when {0} is not null then 1 else 0 end) > 0",
 					review.id
 				).as("hasReviewByMe"),
 				rating.lastModifyAt.coalesce(review.lastModifyAt, picks.lastModifyAt).max().as("mostLastModifyAt"),
@@ -130,6 +131,5 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 			.cursorPageable(cursorPageable)
 			.build();
 	}
-
 
 }
