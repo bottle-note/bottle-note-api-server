@@ -1,6 +1,6 @@
 package app.bottlenote.history.domain;
 
-import app.bottlenote.history.dto.request.ReviewFilterType;
+import app.bottlenote.history.dto.request.HistoryReviewFilterType;
 import app.bottlenote.history.dto.response.UserHistoryDetail;
 import app.bottlenote.picks.domain.PicksStatus;
 import app.bottlenote.rating.domain.RatingPoint;
@@ -20,7 +20,7 @@ public interface UserHistoryRepository {
 
 	List<UserHistoryDetail> findUserHistoryListByUserId(
 		Long userId,
-		ReviewFilterType reviewFilterType,
+		HistoryReviewFilterType historyReviewFilterType,
 		List<RatingPoint> ratingPoint,
 		PicksStatus picksStatuses,
 		LocalDateTime startDate,

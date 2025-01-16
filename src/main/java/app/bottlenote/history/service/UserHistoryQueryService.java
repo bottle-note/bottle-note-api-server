@@ -41,7 +41,7 @@ public class UserHistoryQueryService {
 
 		List<UserHistoryDetail> userHistoryDetails = userHistoryRepository.findUserHistoryListByUserId(
 			targetUserId,
-			userHistorySearchRequest.reviewFilterType(),
+			userHistorySearchRequest.historyReviewFilterType(),
 			userHistorySearchRequest.ratingPoint(),
 			userHistorySearchRequest.picksStatus(),
 			userHistorySearchRequest.startDate().atStartOfDay(),

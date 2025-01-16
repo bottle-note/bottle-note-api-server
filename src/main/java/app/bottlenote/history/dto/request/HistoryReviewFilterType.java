@@ -1,6 +1,6 @@
 package app.bottlenote.history.dto.request;
 
-public enum ReviewFilterType {
+public enum HistoryReviewFilterType {
 	ALL,
 	BEST_REVIEW,
 	REVIEW_LIKE,

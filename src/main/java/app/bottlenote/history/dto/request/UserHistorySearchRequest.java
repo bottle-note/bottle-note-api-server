@@ -10,7 +10,7 @@ import java.util.List;
 
 public record UserHistorySearchRequest(
 	List<RatingPoint> ratingPoint,
-	ReviewFilterType reviewFilterType,
+	HistoryReviewFilterType historyReviewFilterType,
 	PicksStatus picksStatus,
 	LocalDate startDate,
 	LocalDate endDate,

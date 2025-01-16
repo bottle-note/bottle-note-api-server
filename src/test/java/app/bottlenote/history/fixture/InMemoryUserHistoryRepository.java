@@ -2,7 +2,7 @@ package app.bottlenote.history.fixture;
 
 import app.bottlenote.history.domain.UserHistory;
 import app.bottlenote.history.domain.UserHistoryRepository;
-import app.bottlenote.history.dto.request.ReviewFilterType;
+import app.bottlenote.history.dto.request.HistoryReviewFilterType;
 import app.bottlenote.history.dto.response.UserHistoryDetail;
 import app.bottlenote.picks.domain.PicksStatus;
 import app.bottlenote.rating.domain.RatingPoint;
@@ -44,7 +44,7 @@ public class InMemoryUserHistoryRepository implements UserHistoryRepository {
 	@Override
 	public List<UserHistoryDetail> findUserHistoryListByUserId(
 		Long userId,
-		ReviewFilterType reviewFilterType,
+		HistoryReviewFilterType historyReviewFilterType,
 		List<RatingPoint> ratingPoint,
 		PicksStatus picksStatuses,
 		LocalDateTime startDate,

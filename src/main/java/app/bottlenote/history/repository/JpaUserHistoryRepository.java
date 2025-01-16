@@ -2,7 +2,7 @@ package app.bottlenote.history.repository;
 
 import app.bottlenote.history.domain.UserHistory;
 import app.bottlenote.history.domain.UserHistoryRepository;
-import app.bottlenote.history.dto.request.ReviewFilterType;
+import app.bottlenote.history.dto.request.HistoryReviewFilterType;
 import app.bottlenote.history.dto.response.UserHistoryDetail;
 import app.bottlenote.picks.domain.PicksStatus;
 import app.bottlenote.rating.domain.RatingPoint;
@@ -37,7 +37,7 @@ public interface JpaUserHistoryRepository extends UserHistoryRepository, JpaRepo
 								AND r1_0.id.userId = :userId
 						left join picks p1_0 on u.alcoholId = p1_0.alcoholId
 				WHERE u.userId = :userId
-						AND (:reviewFilterType IS NULL OR u.eventType = :reviewFilterType)
+						AND (:historyReviewFilterType IS NULL OR u.eventType = :historyReviewFilterType)
 		    			AND (:ratingPoint IS NULL OR r1_0.ratingPoint IN :ratingPoint)
 		    			AND (:picksStatus IS NULL OR p1_0.status = :picksStatus)
 		    			AND (:startDate IS NULL OR u.createAt >= :startDate)
@@ -45,7 +45,7 @@ public interface JpaUserHistoryRepository extends UserHistoryRepository, JpaRepo
 		""")
 	List<UserHistoryDetail> findUserHistoryListByUserId(
 		@Param("userId") Long userId,
-		@Param("reviewFilterType") ReviewFilterType reviewFilterType,
+		@Param("historyReviewFilterType") HistoryReviewFilterType historyReviewFilterType,
 		@Param("ratingPoint") List<RatingPoint> ratingPoint,
 		@Param("picksStatus") PicksStatus picksStatuses,
 		@Param("startDate") LocalDateTime startDate,
