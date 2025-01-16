@@ -1,10 +1,7 @@
 package app.bottlenote.history.domain;
 
-import app.bottlenote.history.dto.request.HistoryReviewFilterType;
+import app.bottlenote.history.dto.request.UserHistorySearchRequest;
 import app.bottlenote.history.dto.response.UserHistoryDetail;
-import app.bottlenote.picks.domain.PicksStatus;
-import app.bottlenote.rating.domain.RatingPoint;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
@@ -20,10 +17,11 @@ public interface UserHistoryRepository {
 
 	List<UserHistoryDetail> findUserHistoryListByUserId(
 		Long userId,
-		HistoryReviewFilterType historyReviewFilterType,
-		List<RatingPoint> ratingPoint,
-		PicksStatus picksStatuses,
-		LocalDateTime startDate,
-		LocalDateTime endDate,
+		//HistoryReviewFilterType historyReviewFilterType,
+//		List<RatingPoint> ratingPoint,
+//		PicksStatus picksStatuses,
+//		LocalDateTime startDate,
+//		LocalDateTime endDate,
+		UserHistorySearchRequest userHistorySearchRequest,
 		Pageable pageable);
 }

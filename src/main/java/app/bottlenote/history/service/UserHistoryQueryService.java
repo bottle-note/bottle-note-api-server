@@ -41,11 +41,7 @@ public class UserHistoryQueryService {
 
 		List<UserHistoryDetail> userHistoryDetails = userHistoryRepository.findUserHistoryListByUserId(
 			targetUserId,
-			userHistorySearchRequest.historyReviewFilterType(),
-			userHistorySearchRequest.ratingPoint(),
-			userHistorySearchRequest.picksStatus(),
-			userHistorySearchRequest.startDate().atStartOfDay(),
-			userHistorySearchRequest.endDate().plusDays(1).atStartOfDay(),
+			userHistorySearchRequest,
 			PageRequest.of(cursor, pageSize,
 				Sort.by(userHistorySearchRequest.sortOrder() == SortOrder.DESC ?
 					Sort.Order.desc("createAt") :
@@ -66,7 +62,7 @@ public class UserHistoryQueryService {
 			.hasNext(hasNext)
 			.build();
 	}
-
+	
 	private boolean isHasNext(Integer pageSize, List<UserHistoryDetail> fetch) {
 		boolean hasNext = fetch.size() > pageSize;
 
@@ -75,5 +71,4 @@ public class UserHistoryQueryService {
 		}
 		return hasNext;
 	}
-
 }
