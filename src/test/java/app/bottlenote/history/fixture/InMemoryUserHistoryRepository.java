@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 public class InMemoryUserHistoryRepository implements UserHistoryRepository {
@@ -39,9 +38,7 @@ public class InMemoryUserHistoryRepository implements UserHistoryRepository {
 	}
 
 	@Override
-	public List<UserHistoryDetail> findUserHistoryListByUserId(Long userId, UserHistorySearchRequest userHistorySearchRequest, Pageable pageable) {
+	public List<UserHistoryDetail> findUserHistoryListByUserId(Long userId, UserHistorySearchRequest userHistorySearchRequest) {
 		return List.of();
 	}
-
-
 }

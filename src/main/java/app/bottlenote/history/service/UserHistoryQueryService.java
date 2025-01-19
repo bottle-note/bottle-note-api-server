@@ -4,7 +4,6 @@ import static java.lang.Boolean.FALSE;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.history.domain.UserHistoryRepository;
 import app.bottlenote.history.dto.request.UserHistorySearchRequest;
 import app.bottlenote.history.dto.response.UserHistoryDetail;
@@ -16,8 +15,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,12 +38,8 @@ public class UserHistoryQueryService {
 
 		List<UserHistoryDetail> userHistoryDetails = userHistoryRepository.findUserHistoryListByUserId(
 			targetUserId,
-			userHistorySearchRequest,
-			PageRequest.of(cursor, pageSize,
-				Sort.by(userHistorySearchRequest.sortOrder() == SortOrder.DESC ?
-					Sort.Order.desc("createAt") :
-					Sort.Order.asc("createAt"))
-			));
+			userHistorySearchRequest
+		);
 
 		CursorPageable pageable = getCursorPageable(userHistoryDetails, cursor, pageSize);
 

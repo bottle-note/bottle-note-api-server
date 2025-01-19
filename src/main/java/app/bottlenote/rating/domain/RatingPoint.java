@@ -1,18 +1,19 @@
 package app.bottlenote.rating.domain;
 
+import static app.bottlenote.rating.exception.RatingExceptionCode.INVALID_RATING_POINT;
+
 import app.bottlenote.rating.exception.RatingException;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import jakarta.persistence.Embeddable;
+import java.io.Serializable;
 import lombok.Getter;
-
-import static app.bottlenote.rating.exception.RatingExceptionCode.INVALID_RATING_POINT;
 
 /**
  * 평점을 나타내는 VO입니다.
  */
 @Getter
 @Embeddable
-public class RatingPoint {
+public class RatingPoint implements Serializable {
 
 	private final Double rating;
 
@@ -74,6 +75,4 @@ public class RatingPoint {
 	public String toString() {
 		return String.format("%.1f", rating);
 	}
-
-
 }

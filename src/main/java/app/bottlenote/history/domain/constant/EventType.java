@@ -21,20 +21,4 @@ public enum EventType {
 
 	private final EventCategory eventCategory;
 	private final String description;
-
-
-//- 타입
-//    - 리뷰 :
-//		  - 리뷰 작성
-//        - 리뷰 좋아요
-//        - 리뷰 댓글 작성시
-//        - 베스트 리뷰 선정시
-//    - 찜 :
-//		  - 찜하기 : isPick
-//        - 찜해제 : unPick
-//    - 별점 :
-//		  - 첫 별점
-//        - 별점 수정
-//        - 별점 삭제
-
 }
