@@ -6,7 +6,6 @@ import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -75,11 +74,9 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 				alcohol.engName.as("engName"),
 				alcohol.korCategory.as("korCategoryName"),
 				alcohol.imageUrl.as("imageUrl"),
-
 				picks.id.countDistinct().gt(0).as("isPicked"),
 				rating.ratingPoint.rating.coalesce(0.0).max().as("rating"),
 				review.id.countDistinct().gt(0).as("hasReviewByMe"),
-
 				rating.lastModifyAt.coalesce(review.lastModifyAt, picks.lastModifyAt).max().as("mostLastModifyAt"),
 				rating.lastModifyAt.max().as("ratingLastModifyAt"),
 				review.lastModifyAt.max().as("reviewLastModifyAt"),
