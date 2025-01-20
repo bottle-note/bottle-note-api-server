@@ -1,0 +1,47 @@
+INSERT INTO user_history (id, user_id, event_category, event_type, redirect_url, image_url, alcohol_id,
+                          message, dynamic_message, event_year, event_month, description,
+                          create_at, create_by, last_modify_at, last_modify_by)
+VALUES (1, 1, 'RATING', 'START_RATING', 'api/v1/rating',
+        'https://static.whiskybase.com/storage/whiskies/2/0/8916/404538-big.jpg', 1,
+        '별점 등록', '{
+    "currentValue": "3.0"
+  }', '2025', 'JANUARY', '별점이 등록되었습니다.',
+        '2025-01-01 19:50:26', 'chadongmin@example.com', '2025-01-20 19:50:26', 'chadongmin@example.com'),
+       (2, 1, 'REVIEW', 'REVIEW_CREATE', 'api/v1/reviews',
+        'https://static.whiskybase.com/storage/whiskies/2/0/8916/404538-big.jpg', 1,
+        '리뷰 등록', NULL, '2025', 'JANUARY', '리뷰가 등록되었습니다.',
+        '2025-01-02 19:50:35', 'chadongmin@example.com', '2025-01-20 19:50:35', 'chadongmin@example.com'),
+       (3, 1, 'REVIEW', 'REVIEW_CREATE', 'api/v1/reviews',
+        'https://static.whiskybase.com/storage/whiskies/2/0/8888/404535-big.jpg', 2,
+        '리뷰 등록', NULL, '2025', 'JANUARY', '리뷰가 등록되었습니다.',
+        '2025-01-03 19:50:47', 'chadongmin@example.com', '2025-01-20 19:50:47', 'chadongmin@example.com'),
+       (4, 1, 'REVIEW', 'REVIEW_CREATE', 'api/v1/reviews',
+        'https://static.whiskybase.com/storage/whiskies/2/1/1644/404542-big.jpg', 3,
+        '리뷰 등록', NULL, '2025', 'JANUARY', '리뷰가 등록되었습니다.',
+        '2025-01-04 19:50:56', 'chadongmin@example.com', '2025-01-20 19:50:56', 'chadongmin@example.com'),
+       (5, 1, 'PICK', 'UNPICK', 'api/v1/picks',
+        'https://static.whiskybase.com/storage/whiskies/2/0/8916/404538-big.jpg', 1,
+        '찜 등록', NULL, '2025', 'JANUARY', '찜 해제되었습니다.',
+        '2025-01-05 19:52:07', 'chadongmin@example.com', '2025-01-20 19:52:07', 'chadongmin@example.com'),
+       (6, 1, 'PICK', 'IS_PICK', 'api/v1/picks',
+        'https://static.whiskybase.com/storage/whiskies/2/0/8916/404538-big.jpg', 1,
+        '찜 등록', NULL, '2025', 'JANUARY', '찜 등록되었습니다.',
+        '2025-01-06 19:52:17', 'chadongmin@example.com', '2025-01-20 19:52:17', 'chadongmin@example.com'),
+       (7, 1, 'RATING', 'START_RATING', 'api/v1/rating',
+        'https://static.whiskybase.com/storage/whiskies/2/0/8888/404535-big.jpg', 2,
+        '별점 등록', '{
+         "currentValue": "4.0"
+       }', '2025', 'JANUARY', '별점이 등록되었습니다.',
+        '2025-01-07 19:52:45', 'chadongmin@example.com', '2025-01-20 19:52:45', 'chadongmin@example.com'),
+       (8, 1, 'RATING', 'RATING_MODIFY', 'api/v1/rating',
+        'https://static.whiskybase.com/storage/whiskies/2/0/8888/404535-big.jpg', 2,
+        '별점 등록', '{
+         "prevValue": "4.0",
+         "ratingDiff": "-2.0",
+         "currentValue": "2.0"
+       }', '2025', 'JANUARY', '별점이 수정되었습니다.',
+        '2025-01-08 19:52:59', 'chadongmin@example.com', '2025-01-20 19:52:59', 'chadongmin@example.com'),
+       (9, 1, 'REVIEW', 'BEST_REVIEW_SELECTED', 'api/v1/reviews/1',
+        'https://static.whiskybase.com/storage/whiskies/2/1/1644/404542-big.jpg', 3,
+        '베스트 리뷰 선정', NULL, '2025', 'JANUARY', '베스트 리뷰로 선정되었습니다.',
+        '2025-01-04 19:50:56', 'chadongmin@example.com', '2025-01-20 19:50:56', 'chadongmin@example.com');
