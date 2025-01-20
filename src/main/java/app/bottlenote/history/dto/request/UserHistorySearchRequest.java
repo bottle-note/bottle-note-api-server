@@ -6,15 +6,17 @@ import app.bottlenote.history.exception.UserHistoryException;
 import app.bottlenote.history.exception.UserHistoryExceptionCode;
 import app.bottlenote.picks.domain.PicksStatus;
 import app.bottlenote.rating.domain.RatingPoint;
+
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 public record UserHistorySearchRequest(
 	List<RatingPoint> ratingPoint,
-	HistoryReviewFilterType historyReviewFilterType,
-	PicksStatus picksStatus,
+	List<HistoryReviewFilterType> historyReviewFilterType,
+	List<PicksStatus> picksStatus,
 	LocalDateTime startDate,
 	LocalDateTime endDate,
 	SortOrder sortOrder,
@@ -37,19 +39,33 @@ public record UserHistorySearchRequest(
 	}
 
 	public List<EventType> toEventTypeList() {
-		if (historyReviewFilterType == null) {
+		if (historyReviewFilterType == null || historyReviewFilterType.isEmpty()) {
 			return Collections.emptyList();
 		}
 
-		return switch (historyReviewFilterType) {
-			case ALL -> Arrays.asList(
-				EventType.REVIEW_LIKES,
-				EventType.BEST_REVIEW_SELECTED,
-				EventType.REVIEW_REPLY_CREATE
-			);
-			case BEST_REVIEW -> List.of(EventType.BEST_REVIEW_SELECTED);
-			case REVIEW_LIKE -> List.of(EventType.REVIEW_LIKES);
-			case REVIEW_REPLY -> List.of(EventType.REVIEW_REPLY_CREATE);
-		};
+		List<EventType> eventTypes = new ArrayList<>();
+		for (HistoryReviewFilterType filterType : historyReviewFilterType) {
+			switch (filterType) {
+				case ALL:
+					eventTypes.addAll(Arrays.asList(
+						EventType.REVIEW_LIKES,
+						EventType.BEST_REVIEW_SELECTED,
+						EventType.REVIEW_REPLY_CREATE
+					));
+					break;
+				case BEST_REVIEW:
+					eventTypes.add(EventType.BEST_REVIEW_SELECTED);
+					break;
+				case REVIEW_LIKE:
+					eventTypes.add(EventType.REVIEW_LIKES);
+					break;
+				case REVIEW_REPLY:
+					eventTypes.add(EventType.REVIEW_REPLY_CREATE);
+					break;
+				default:
+					break;
+			}
+		}
+		return eventTypes;
 	}
 }

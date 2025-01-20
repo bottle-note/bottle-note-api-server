@@ -2,26 +2,28 @@ package app.bottlenote.history.dto.response;
 
 import app.bottlenote.history.domain.constant.EventCategory;
 import app.bottlenote.history.domain.constant.EventType;
-import java.time.LocalDateTime;
-import java.util.Map;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-// DTO 수정 예시
+import java.time.LocalDateTime;
+import java.util.Map;
+
 @Getter
+@NoArgsConstructor
 public class UserHistoryDetail {
-	
-	private final Long historyId;
-	private final LocalDateTime createdAt;
-	private final EventCategory eventCategory;
-	private final EventType eventType;
-	private final Long alcoholId;
-	private final String alcoholName;
-	private final String imageUrl;
-	private final String redirectUrl;
-	private final String description;
-	private final String message;
-	private final Map<String, String> dynamicMessage;
+
+	private Long historyId;
+	private LocalDateTime createdAt;
+	private EventCategory eventCategory;
+	private EventType eventType;
+	private Long alcoholId;
+	private String alcoholName;
+	private String imageUrl;
+	private String redirectUrl;
+	private String description;
+	private String message;
+	private Map<String, String> dynamicMessage;
 
 	@Builder
 	public UserHistoryDetail(

@@ -1,18 +1,19 @@
 package app.bottlenote.history.repository;
 
-import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.history.domain.QUserHistory.userHistory;
-import static app.bottlenote.picks.domain.QPicks.picks;
-import static app.bottlenote.rating.domain.QRating.rating;
-
 import app.bottlenote.history.domain.constant.EventType;
 import app.bottlenote.history.dto.request.UserHistorySearchRequest;
 import app.bottlenote.history.dto.response.UserHistoryDetail;
 import app.bottlenote.picks.domain.PicksStatus;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
+
+import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.history.domain.QUserHistory.userHistory;
+import static app.bottlenote.picks.domain.QPicks.picks;
+import static app.bottlenote.rating.domain.QRating.rating;
 
 @Slf4j
 public class CustomUserHistoryRepositoryImpl implements CustomUserHistoryRepository {
@@ -43,19 +44,19 @@ public class CustomUserHistoryRepositoryImpl implements CustomUserHistoryReposit
 				)
 			)
 			.from(userHistory)
-			.leftJoin(alcohol)
-			.on(userHistory.alcoholId.eq(alcohol.id))
-			.leftJoin(rating)
-			.on(userHistory.alcoholId.eq(rating.id.alcoholId)
+			.leftJoin(alcohol).on(userHistory.alcoholId.eq(alcohol.id))
+			.leftJoin(rating).on(userHistory.alcoholId.eq(rating.id.alcoholId)
 				.and(rating.id.userId.eq(userId)))
-			.leftJoin(picks)
-			.on(userHistory.alcoholId.eq(picks.alcoholId))
+			.leftJoin(picks).on(userHistory.alcoholId.eq(picks.alcoholId))
 			.where(
 				userHistory.userId.eq(userId),
 				request.ratingPoint() == null ? null : rating.ratingPoint.in(request.ratingPoint()),
-				request.picksStatus() == null ? null : request.picksStatus().equals(PicksStatus.PICK)
-					? userHistory.eventType.eq(EventType.IS_PICK)
-					: userHistory.eventType.eq(EventType.UNPICK),
+				request.picksStatus() == null ? null :
+					userHistory.eventType.in(
+						request.picksStatus().stream()
+							.map(status -> status == PicksStatus.PICK ? EventType.IS_PICK : EventType.UNPICK)
+							.toList()
+					),
 				request.startDate() == null ? null : userHistory.createAt.goe(request.startDate()),
 				request.endDate() == null ? null : userHistory.createAt.loe(request.endDate()),
 				request.historyReviewFilterType() == null ? null : userHistory.eventType.in(request.toEventTypeList())
