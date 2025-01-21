@@ -6,7 +6,6 @@ import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.dto.response.UserProfileInfo;
 import app.bottlenote.user.exception.UserException;
-import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -39,13 +38,5 @@ public class DefaultUserFacade implements UserFacade {
 			.orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
 		return UserProfileInfo.create(user.getId(), user.getNickName(), user.getImageUrl());
-	}
-
-	@Override
-	public LocalDateTime getSubscriptionDate(Long userId) {
-		User user = userQueryRepository.findById(userId)
-			.orElseThrow(() -> new UserException(USER_NOT_FOUND));
-
-		return user.getCreateAt();
 	}
 }

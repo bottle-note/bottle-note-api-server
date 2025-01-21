@@ -4,7 +4,6 @@ import app.bottlenote.user.dto.response.UserProfileInfo;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.service.UserFacade;
-import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -91,10 +90,5 @@ public class FakeUserFacade implements UserFacade {
 			return userProfileInfo;
 		}
 		throw new UserException(UserExceptionCode.USER_NOT_FOUND);
-	}
-
-	@Override
-	public LocalDateTime getSubscriptionDate(Long userId) {
-		return LocalDateTime.now().minusMonths(3);
 	}
 }

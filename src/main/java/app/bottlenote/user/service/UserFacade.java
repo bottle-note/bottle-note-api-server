@@ -1,7 +1,6 @@
 package app.bottlenote.user.service;
 
 import app.bottlenote.user.dto.response.UserProfileInfo;
-import java.time.LocalDateTime;
 
 /**
  * 유저 도메인 서포트를 위한 인터페이스입니다.
@@ -27,6 +26,4 @@ public interface UserFacade {
 	void isValidUserId(Long userId);
 
 	UserProfileInfo getUserProfileInfo(Long userId);
-
-	LocalDateTime getSubscriptionDate(Long userId);
 }

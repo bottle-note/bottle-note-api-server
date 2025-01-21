@@ -1,9 +1,10 @@
 package app.bottlenote.history.fixture;
 
+import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.history.domain.UserHistory;
 import app.bottlenote.history.domain.UserHistoryRepository;
 import app.bottlenote.history.dto.request.UserHistorySearchRequest;
-import app.bottlenote.history.dto.response.UserHistoryDetail;
+import app.bottlenote.history.dto.response.UserHistorySearchResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +39,7 @@ public class InMemoryUserHistoryRepository implements UserHistoryRepository {
 	}
 
 	@Override
-	public List<UserHistoryDetail> findUserHistoryListByUserId(Long userId, UserHistorySearchRequest userHistorySearchRequest) {
-		return List.of();
+	public PageResponse<UserHistorySearchResponse> findUserHistoryListByUserId(Long userId, UserHistorySearchRequest userHistorySearchRequest) {
+		return null;
 	}
 }

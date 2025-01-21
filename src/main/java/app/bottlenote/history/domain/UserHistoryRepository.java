@@ -1,7 +1,8 @@
 package app.bottlenote.history.domain;
 
+import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.history.dto.request.UserHistorySearchRequest;
-import app.bottlenote.history.dto.response.UserHistoryDetail;
+import app.bottlenote.history.dto.response.UserHistorySearchResponse;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,7 +15,7 @@ public interface UserHistoryRepository {
 
 	void delete(UserHistory userHistory);
 
-	List<UserHistoryDetail> findUserHistoryListByUserId(
+	PageResponse<UserHistorySearchResponse> findUserHistoryListByUserId(
 		Long userId,
 		UserHistorySearchRequest userHistorySearchRequest
 	);

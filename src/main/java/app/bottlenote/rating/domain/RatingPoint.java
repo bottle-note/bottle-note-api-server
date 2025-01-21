@@ -37,6 +37,11 @@ public class RatingPoint implements Serializable {
 		return new RatingPoint(rating);
 	}
 
+	@JsonCreator
+	public static RatingPoint of(String rating) {
+		return new RatingPoint(Integer.parseInt(rating));
+	}
+
 	/**
 	 * 평점이 유효한지 확인합니다.
 	 *
