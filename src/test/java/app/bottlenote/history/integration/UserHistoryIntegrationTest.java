@@ -17,19 +17,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 
-@WithMockUser
 @Tag("integration")
 @DisplayName("[integration] [history] UserHistory")
 class UserHistoryIntegrationTest extends IntegrationTestSupport {
 
-	@Sql(scripts = {
-		"/init-script/init-user.sql",
-		"/init-script/init-alcohol.sql",
-		"/init-script/init-user-history.sql"})
+	@Sql(scripts = {"/init-script/init-user-history.sql"})
 	@DisplayName("파라미터 없이 유저 히스토리를 조회할 수 있다.")
 	@Test
 	void test_1() throws Exception {
@@ -38,6 +33,7 @@ class UserHistoryIntegrationTest extends IntegrationTestSupport {
 
 		MvcResult result = mockMvc.perform(get("/api/v1/history/{targetUserId}", targetUserId)
 			.contentType(MediaType.APPLICATION_JSON)
+			.header("Authorization", "Bearer " + getToken())
 			.with(csrf())
 		).andReturn();
 
@@ -55,10 +51,7 @@ class UserHistoryIntegrationTest extends IntegrationTestSupport {
 		Assertions.assertNotNull(userHistorySearchResponse.userHistories());
 	}
 
-	@Sql(scripts = {
-		"/init-script/init-user.sql",
-		"/init-script/init-alcohol.sql",
-		"/init-script/init-user-history.sql"})
+	@Sql(scripts = {"/init-script/init-user-history.sql"})
 	@DisplayName("유저 히스토리를 정렬해서 조회할 수 있다.")
 	@Test
 	void test_2() throws Exception {
@@ -67,6 +60,7 @@ class UserHistoryIntegrationTest extends IntegrationTestSupport {
 
 		MvcResult result = mockMvc.perform(get("/api/v1/history/{targetUserId}", targetUserId)
 			.contentType(MediaType.APPLICATION_JSON)
+			.header("Authorization", "Bearer " + getToken())
 			.param("sortOrder", SortOrder.DESC.name())
 			.with(csrf())
 		).andReturn();
@@ -94,10 +88,7 @@ class UserHistoryIntegrationTest extends IntegrationTestSupport {
 		Assertions.assertEquals(userHistories.size(), userHistorySearchResponse.totalCount());
 	}
 
-	@Sql(scripts = {
-		"/init-script/init-user.sql",
-		"/init-script/init-alcohol.sql",
-		"/init-script/init-user-history.sql"})
+	@Sql(scripts = {"/init-script/init-user-history.sql"})
 	@DisplayName("날짜 검색조건으로 유저 히스토리를 조회할 수 있다.")
 	@Test
 	void test_3() throws Exception {
@@ -106,6 +97,7 @@ class UserHistoryIntegrationTest extends IntegrationTestSupport {
 
 		MvcResult initialMvcResult = mockMvc.perform(get("/api/v1/history/{targetUserId}", targetUserId)
 			.contentType(MediaType.APPLICATION_JSON)
+			.header("Authorization", "Bearer " + getToken())
 			.with(csrf())
 		).andReturn();
 
@@ -124,6 +116,7 @@ class UserHistoryIntegrationTest extends IntegrationTestSupport {
 
 		MvcResult filteredMvcResult = mockMvc.perform(get("/api/v1/history/{targetUserId}", targetUserId)
 			.contentType(MediaType.APPLICATION_JSON)
+			.header("Authorization", "Bearer " + getToken())
 			.param("startDate", createdAtList.get(0).toString())
 			.param("endDate", createdAtList.get(1).toString())
 			.with(csrf())
@@ -151,10 +144,7 @@ class UserHistoryIntegrationTest extends IntegrationTestSupport {
 		}
 	}
 
-	@Sql(scripts = {
-		"/init-script/init-user.sql",
-		"/init-script/init-alcohol.sql",
-		"/init-script/init-user-history.sql"})
+	@Sql(scripts = {"/init-script/init-user-history.sql"})
 	@DisplayName("별점으로 유저 히스토리 필터링하여 조회할 수 있다.")
 	@Test
 	void test_4() throws Exception {
@@ -163,7 +153,8 @@ class UserHistoryIntegrationTest extends IntegrationTestSupport {
 
 		MvcResult result = mockMvc.perform(get("/api/v1/history/{targetUserId}", targetUserId)
 			.contentType(MediaType.APPLICATION_JSON)
-			.param("rating", "5")
+			.header("Authorization", "Bearer " + getToken())
+			.param("ratingPoint", "5")
 			.with(csrf())
 		).andReturn();
 
@@ -180,10 +171,7 @@ class UserHistoryIntegrationTest extends IntegrationTestSupport {
 		Assertions.assertNotNull(userHistorySearchResponse.userHistories());
 	}
 
-	@Sql(scripts = {
-		"/init-script/init-user.sql",
-		"/init-script/init-alcohol.sql",
-		"/init-script/init-user-history.sql"})
+	@Sql(scripts = {"/init-script/init-user-history.sql"})
 	@DisplayName("찜/찜 해제 검색조건으로 유저 히스토리를 조회할 수 있다.")
 	@Test
 	void test_5() throws Exception {
@@ -192,6 +180,7 @@ class UserHistoryIntegrationTest extends IntegrationTestSupport {
 
 		MvcResult result = mockMvc.perform(get("/api/v1/history/{targetUserId}", targetUserId)
 			.contentType(MediaType.APPLICATION_JSON)
+			.header("Authorization", "Bearer " + getToken())
 			.param("picksStatus", PicksStatus.PICK.name())
 			.param("picksStatus", PicksStatus.UNPICK.name())
 			.with(csrf())
@@ -210,10 +199,7 @@ class UserHistoryIntegrationTest extends IntegrationTestSupport {
 		Assertions.assertNotNull(userHistorySearchResponse.userHistories());
 	}
 
-	@Sql(scripts = {
-		"/init-script/init-user.sql",
-		"/init-script/init-alcohol.sql",
-		"/init-script/init-user-history.sql"})
+	@Sql(scripts = {"/init-script/init-user-history.sql"})
 	@DisplayName("리뷰 필터 조건으로 유저 히스토리를 조회할 수 있다.")
 	@Test
 	void test_6() throws Exception {
@@ -222,6 +208,7 @@ class UserHistoryIntegrationTest extends IntegrationTestSupport {
 
 		MvcResult result = mockMvc.perform(get("/api/v1/history/{targetUserId}", targetUserId)
 			.contentType(MediaType.APPLICATION_JSON)
+			.header("Authorization", "Bearer " + getToken())
 			.param("historyReviewFilterType", "BEST_REVIEW")
 			.param("historyReviewFilterType", "REVIEW_LIKE")
 			.param("historyReviewFilterType", "REVIEW_REPLY")
