@@ -1,0 +1,19 @@
+=== 유저 히스토리 목록 조회 ===
+
+검색 조건으로 유저의 히스토리 정보를 조회합니다.
+
+[discrete]
+==== 요청 파라미터 ====
+
+include::{snippets}/user-history/search/httpie-request.adoc[]
+include::{snippets}/user-history/search/query-parameters.adoc[]
+
+[discrete]
+==== 응답 파라미터  ====
+
+[discrete]
+include::{snippets}/user-history/search/response-fields.adoc[]
+include::{snippets}/user-history/search/response-body.adoc[]
+
+[discrete]
+include::../overview/sort-order.adoc[]

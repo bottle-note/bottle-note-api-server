@@ -189,3 +189,6 @@ include::api/rating/fetch.adoc[]
 include::api/rating/user-rating.adoc[]
 
 include::api/rating/register.adoc[]
+
+== 유저 히스토리(user history) 관련 API
+include::api/user-history/search.adoc[]

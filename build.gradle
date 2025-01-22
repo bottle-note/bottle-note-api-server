@@ -125,12 +125,6 @@ tasks.register('unitTest', Test) {
     }
 }
 
-tasks.register('allTests', Test) {
-    useJUnitPlatform {
-        includeTags 'integration', 'unit'
-    }
-}
-
 
 // =========================== spring boot jar setting ===========================
 

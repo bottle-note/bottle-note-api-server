@@ -56,7 +56,7 @@ public class UserHistory extends BaseEntity {
 
 	@Column(name = "dynamic_message", columnDefinition = "json")
 	@Type(JsonType.class)
-	private Map<String, Object> dynamicMessage = new HashMap<>();
+	private Map<String, String> dynamicMessage = new HashMap<>();
 
 	@Column(name = "event_year")
 	private String eventYear;
@@ -68,7 +68,7 @@ public class UserHistory extends BaseEntity {
 	private String description;
 
 	@Builder
-	public UserHistory(Long id, Long userId, EventCategory eventCategory, EventType eventType, String redirectUrl, String imageUrl, Long alcoholId, String message, Map<String, Object> dynamicMessage, String eventYear, String eventMonth,
+	public UserHistory(Long id, Long userId, EventCategory eventCategory, EventType eventType, String redirectUrl, String imageUrl, Long alcoholId, String message, Map<String, String> dynamicMessage, String eventYear, String eventMonth,
 		String description) {
 		this.id = id;
 		this.userId = userId;
