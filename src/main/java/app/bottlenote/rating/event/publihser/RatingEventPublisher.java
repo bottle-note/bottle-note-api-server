@@ -5,13 +5,12 @@ import app.bottlenote.history.domain.constant.EventType;
 import app.bottlenote.history.dto.payload.HistoryEvent;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.rating.dto.payload.RatingRegistryEvent;
+import java.util.Map;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
-import java.util.Objects;
 
 @Slf4j
 @Component
@@ -50,17 +49,17 @@ public class RatingEventPublisher implements HistoryEventPublisher {
 			REDIRECT_URL,
 			ratingRegistryEvent.alcoholId(),
 			MESSAGE,
-			isUpdate ? makeDynamicMessage(currentRatingPoint, prevRatingPoint) : Map.of("currentValue", currentRatingPoint),
+			isUpdate ? makeDynamicMessage(currentRatingPoint, prevRatingPoint) : Map.of("currentValue", currentRatingPoint.toString()),
 			isUpdate ? DESCRIPTION_UPDATE : DESCRIPTION_REGISTER
 		);
 		eventPublisher.publishEvent(ratingCreateHistoryEvent);
 	}
 
-	public Map<String, Object> makeDynamicMessage(Double currentRating, Double prevRating) {
+	public Map<String, String> makeDynamicMessage(Double currentRating, Double prevRating) {
 		return Map.of(
-			"currentValue", currentRating,
-			"prevValue", prevRating,
-			"ratingDiff", currentRating - prevRating
+			"currentValue", currentRating.toString(),
+			"prevValue", prevRating.toString(),
+			"ratingDiff", Double.toString(currentRating - prevRating)
 		);
 	}
 

@@ -14,7 +14,7 @@ public record HistoryEvent(
 	String redirectUrl,
 	Long alcoholId,
 	String message,
-	Map<String, Object> dynamicMessage,
+	Map<String, String> dynamicMessage,
 	String description
 ) {
 
@@ -38,7 +38,7 @@ public record HistoryEvent(
 		String redirectUrl,
 		Long alcoholId,
 		String message,
-		Map<String, Object> dynamicMessage,
+		Map<String, String> dynamicMessage,
 		String description
 	) {
 		return HistoryEvent.builder()

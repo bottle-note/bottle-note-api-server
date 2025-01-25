@@ -1,5 +1,6 @@
 package app.bottlenote.user.domain;
 
+import app.bottlenote.common.domain.BaseTimeEntity;
 import app.bottlenote.global.service.converter.JsonArrayConverter;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.domain.constant.UserStatus;
@@ -12,6 +13,9 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,16 +23,12 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.annotations.Comment;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
 @Getter
 @ToString(of = {"id", "email", "nickName", "age", "socialType"})
 @Comment("사용자 정보 테이블")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity(name = "users")
-public class User {
+public class User extends BaseTimeEntity {
 
 	@Id
 	@Comment("사용자 id")
