@@ -8,9 +8,11 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
 
 @Getter
 @NoArgsConstructor
+@SuppressWarnings("unchecked")
 public class UserHistoryDetail {
 
 	private Long historyId;
@@ -49,6 +51,8 @@ public class UserHistoryDetail {
 		this.redirectUrl = redirectUrl;
 		this.description = description;
 		this.message = message;
-		this.dynamicMessage = (Map<String, String>) dynamicMessage;
+		this.dynamicMessage = (Map<String, String>) Optional.ofNullable(dynamicMessage)
+			.filter(Map.class::isInstance).orElse(null);
+
 	}
 }
