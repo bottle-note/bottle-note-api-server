@@ -2,7 +2,9 @@ package app.external.push.service;
 
 import app.bottlenote.user.dto.response.UserProfileInfo;
 import app.bottlenote.user.service.UserFacade;
+import app.external.push.domain.DeviceTokenRepository;
 import app.external.push.domain.PushStatus;
+import app.external.push.domain.UserDeviceToken;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
@@ -21,19 +23,26 @@ public class DefaultPushHandler implements PushHandler {
 
 	private static final String TITLE = "Bottle Note";
 	private final UserFacade userDomainSupport;
+	private final DeviceTokenRepository deviceTokenRepository;
 
 	@Override
 	public void sendPush(Long userId, String message) {
 		UserProfileInfo userProfileInfo = userDomainSupport.getUserProfileInfo(userId);
 		String nickname = userProfileInfo.nickname();
+		UserDeviceToken token = deviceTokenRepository.findByUserId(userId)
+			.orElseThrow(() -> new IllegalArgumentException("Token not found"));
 		try {
-			String result = FirebaseMessaging.getInstance().send(Message.builder()
+
+			Message messageContent = Message.builder()
 				.setNotification(Notification.builder()
 					.setTitle(TITLE)
 					.setBody(message)
 					.build())
-				.setToken(nickname)
-				.build());
+				.setToken(token.getDeviceToken())
+				.build();
+
+			String result = FirebaseMessaging.getInstance()
+				.send(messageContent);
 			log.debug("성공적으로 메시지를 보냈습니다: {}", result);
 		} catch (FirebaseMessagingException e) {
 			log.error("Error sending message: {}", e.getMessage());
