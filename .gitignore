@@ -3,6 +3,7 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+docs/index.html
 
 ### Production application.yml ###
 src/main/resources/application-dev.yml
