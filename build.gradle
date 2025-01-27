@@ -18,12 +18,18 @@ dependencyManagement {
     }
 }
 
-compileJava.options.encoding = 'UTF-8'
 compileTestJava.options.encoding = 'UTF-8'
+
 
 java {
     sourceCompatibility = '17'
 }
+
+compileJava {
+    options.compilerArgs += ['-parameters']
+    options.encoding = 'UTF-8'
+}
+
 configurations {
     asciidoctorExt
     compileOnly {
@@ -109,7 +115,7 @@ dependencies {
 }
 
 tasks.named('test') {
-    useJUnitPlatform() {
+    useJUnitPlatform {
         excludeTags 'data-jpa-test', 'integration'
     }
 }
