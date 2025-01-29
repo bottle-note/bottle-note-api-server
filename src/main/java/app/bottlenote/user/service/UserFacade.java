@@ -26,4 +26,6 @@ public interface UserFacade {
 	void isValidUserId(Long userId);
 
 	UserProfileInfo getUserProfileInfo(Long userId);
+
+	boolean canSendPushNow(Long userId);
 }

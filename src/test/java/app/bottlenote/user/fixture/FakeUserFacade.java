@@ -4,12 +4,13 @@ import app.bottlenote.user.dto.response.UserProfileInfo;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.service.UserFacade;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class FakeUserFacade implements UserFacade {
 
@@ -90,5 +91,10 @@ public class FakeUserFacade implements UserFacade {
 			return userProfileInfo;
 		}
 		throw new UserException(UserExceptionCode.USER_NOT_FOUND);
+	}
+
+	@Override
+	public boolean canSendPushNow(Long userId) {
+		return false;
 	}
 }
