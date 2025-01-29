@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -35,5 +37,22 @@ public class UserDeviceService {
 					.build())
 			);
 		return TokenSaveResponse.of(deviceToken, platform, TokenMessage.DEVICE_TOKEN_SAVED);
+	}
+
+	public String loadUserToken(final Long userId) {
+		return
+			deviceTokenRepository.findByUserId(userId)
+				.filter(item -> userFacade.canSendPushNow(item.getUserId()))
+				.map(UserDeviceToken::getDeviceToken)
+				.orElse(null);
+	}
+
+	public List<String> loadUserTokens(final List<String> userIds) {
+		return deviceTokenRepository.findTokensByUserIds(userIds)
+			.stream()
+			.distinct()
+			.filter(item -> userFacade.canSendPushNow(item.getUserId()))
+			.map(UserDeviceToken::getDeviceToken)
+			.toList();
 	}
 }

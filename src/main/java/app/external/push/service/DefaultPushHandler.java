@@ -1,13 +1,10 @@
 package app.external.push.service;
 
-import app.bottlenote.user.dto.response.UserProfileInfo;
-import app.bottlenote.user.service.UserFacade;
-import app.external.push.domain.DeviceTokenRepository;
-import app.external.push.domain.PushStatus;
-import app.external.push.domain.UserDeviceToken;
+import com.google.firebase.messaging.BatchResponse;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.MulticastMessage;
 import com.google.firebase.messaging.Notification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,24 +18,20 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DefaultPushHandler implements PushHandler {
 
-	private static final String TITLE = "Bottle Note";
-	private final UserFacade userDomainSupport;
-	private final DeviceTokenRepository deviceTokenRepository;
+	private static final String DEFAULT_TITLE = "Bottle Note";
+	private final UserDeviceService userDeviceService;
 
 	@Override
 	public void sendPush(Long userId, String message) {
-		UserProfileInfo userProfileInfo = userDomainSupport.getUserProfileInfo(userId);
-		String nickname = userProfileInfo.nickname();
-		UserDeviceToken token = deviceTokenRepository.findByUserId(userId)
-			.orElseThrow(() -> new IllegalArgumentException("Token not found"));
+		final String token = userDeviceService.loadUserToken(userId);
 		try {
 
 			Message messageContent = Message.builder()
 				.setNotification(Notification.builder()
-					.setTitle(TITLE)
+					.setTitle(DEFAULT_TITLE)
 					.setBody(message)
 					.build())
-				.setToken(token.getDeviceToken())
+				.setToken(token)
 				.build();
 
 			String result = FirebaseMessaging.getInstance()
@@ -51,7 +44,21 @@ public class DefaultPushHandler implements PushHandler {
 
 	@Override
 	public void sendPush(List<String> userIds, String message) {
+		List<String> tokens = userDeviceService.loadUserTokens(userIds);
+		MulticastMessage multicastMessage = MulticastMessage.builder()
+			.setNotification(Notification.builder()
+				.setTitle(DEFAULT_TITLE)
+				.setBody(message)
+				.build())
+			.addAllTokens(tokens)
+			.build();
 
+		try {
+			BatchResponse response = FirebaseMessaging.getInstance().sendMulticast(multicastMessage);
+			log.debug("멀티 전송 {}", response.getSuccessCount());
+		} catch (FirebaseMessagingException e) {
+			log.error("Error sending message: {}", e.getMessage());
+		}
 	}
 
 	@Override
@@ -61,41 +68,6 @@ public class DefaultPushHandler implements PushHandler {
 
 	@Override
 	public void schedulePush(List<String> userIds, String message, LocalDateTime scheduledTime) {
-
-	}
-
-	@Override
-	public PushStatus getPushStatus(String pushId) {
-		return null;
-	}
-
-	@Override
-	public void cancelScheduledPush(String pushId) {
-
-	}
-
-	@Override
-	public String getTemplate(String templateId) {
-		return "";
-	}
-
-	@Override
-	public void saveTemplate(String templateId, String templateContent) {
-
-	}
-
-	@Override
-	public void deleteTemplate(String templateId) {
-
-	}
-
-	@Override
-	public void registerToken(Long userId, String token) {
-
-	}
-
-	@Override
-	public void unregisterToken(Long userId) {
 
 	}
 }
