@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.util.Base64;
 
 @Slf4j
@@ -29,10 +28,9 @@ public class FirebaseInitializerConfig {
 				FirebaseOptions options = FirebaseOptions.builder()
 					.setCredentials(GoogleCredentials.fromStream(byteArrayInputStream))
 					.build();
-
 				log.info("Firebase 초기화 성공 : {} ", options);
 				FirebaseApp.initializeApp(options);
-			} catch (IOException e) {
+			} catch (Exception e) {
 				log.error("Firebase 초기화 오류: {}", e.getMessage());
 			}
 		}

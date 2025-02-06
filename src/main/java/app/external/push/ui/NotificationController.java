@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collections;
+
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
@@ -37,7 +39,7 @@ public class NotificationController {
 
 	@GetMapping
 	public ResponseEntity<?> sendPush(@RequestParam @Param("msg") String message) {
-		pushHandler.sendPush(6L, message);
+		pushHandler.sendPush(Collections.singletonList(6L), message);
 		return GlobalResponse.ok("");
 	}
 }

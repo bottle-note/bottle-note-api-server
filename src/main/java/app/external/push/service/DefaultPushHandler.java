@@ -21,7 +21,7 @@ public class DefaultPushHandler implements PushHandler {
 	private static final String DEFAULT_TITLE = "Bottle Note 에서 새로운 소식이 도착했어요!";
 	private final UserFacade tokenService;
 
-	private static void push(MulticastMessage multicastMessage) {
+	private void push(MulticastMessage multicastMessage) {
 		try {
 			BatchResponse response = FirebaseMessaging.getInstance().sendMulticast(multicastMessage);
 			log.debug("전송 {}", response.getSuccessCount());

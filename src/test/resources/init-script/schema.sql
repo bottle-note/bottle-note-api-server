@@ -423,3 +423,15 @@ CREATE TABLE user_device_token
     UNIQUE (user_id, device_token),
     PRIMARY KEY (id)
 ) COMMENT = '사용자 디바이스 토큰 테이블';
+
+
+create table user_push_config
+(
+    user_id   bigint  not null,
+    event     boolean not null,
+    promotion boolean not null,
+    follower  boolean not null,
+    review    boolean not null,
+    night     boolean not null,
+    primary key (user_id)
+) comment '사용자 푸시 설정';
