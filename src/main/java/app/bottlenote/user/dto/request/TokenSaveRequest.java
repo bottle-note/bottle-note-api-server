@@ -1,6 +1,6 @@
-package app.external.push.dto.request;
+package app.bottlenote.user.dto.request;
 
-import app.external.push.domain.Platform;
+import app.bottlenote.user.domain.Platform;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 

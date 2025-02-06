@@ -1,13 +1,14 @@
 package app.external.push.service;
 
+import app.bottlenote.user.service.UserFacade;
 import com.google.firebase.messaging.BatchResponse;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
-import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.MulticastMessage;
 import com.google.firebase.messaging.Notification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -17,34 +18,36 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class DefaultPushHandler implements PushHandler {
+	private static final String DEFAULT_TITLE = "Bottle Note 에서 새로운 소식이 도착했어요!";
+	private final UserFacade tokenService;
 
-	private static final String DEFAULT_TITLE = "Bottle Note";
-	private final UserDeviceService userDeviceService;
-
-	@Override
-	public void sendPush(Long userId, String message) {
-		final String token = userDeviceService.loadUserToken(userId);
+	private static void push(MulticastMessage multicastMessage) {
 		try {
-
-			Message messageContent = Message.builder()
-				.setNotification(Notification.builder()
-					.setTitle(DEFAULT_TITLE)
-					.setBody(message)
-					.build())
-				.setToken(token)
-				.build();
-
-			String result = FirebaseMessaging.getInstance()
-				.send(messageContent);
-			log.debug("성공적으로 메시지를 보냈습니다: {}", result);
+			BatchResponse response = FirebaseMessaging.getInstance().sendMulticast(multicastMessage);
+			log.debug("전송 {}", response.getSuccessCount());
 		} catch (FirebaseMessagingException e) {
 			log.error("Error sending message: {}", e.getMessage());
 		}
 	}
 
 	@Override
-	public void sendPush(List<String> userIds, String message) {
-		List<String> tokens = userDeviceService.loadUserTokens(userIds);
+	public void sendPush(List<Long> userIds, String message) {
+		List<String> tokens = tokenService.getAvailableUserTokens(userIds);
+		MulticastMessage multicastMessage = MulticastMessage.builder()
+			.setNotification(Notification.builder()
+				.setTitle(DEFAULT_TITLE)
+				.setBody(message)
+				.build())
+			.addAllTokens(tokens)
+			.build();
+		push(multicastMessage);
+
+	}
+
+	@Override
+	public void schedulePush(List<Long> userIds, String message, LocalDateTime scheduledTime) {
+
+		List<String> tokens = tokenService.getAvailableUserTokens(userIds);
 		MulticastMessage multicastMessage = MulticastMessage.builder()
 			.setNotification(Notification.builder()
 				.setTitle(DEFAULT_TITLE)
@@ -53,21 +56,27 @@ public class DefaultPushHandler implements PushHandler {
 			.addAllTokens(tokens)
 			.build();
 
-		try {
-			BatchResponse response = FirebaseMessaging.getInstance().sendMulticast(multicastMessage);
-			log.debug("멀티 전송 {}", response.getSuccessCount());
-		} catch (FirebaseMessagingException e) {
-			log.error("Error sending message: {}", e.getMessage());
-		}
+		// Queue에 메시지와 저장시간 발솔 예정 시간 저장
 	}
 
-	@Override
-	public void schedulePush(Long userId, String message, LocalDateTime scheduledTime) {
-
-	}
-
-	@Override
-	public void schedulePush(List<String> userIds, String message, LocalDateTime scheduledTime) {
-
+	@Scheduled(fixedRate = 60000)
+	public void processPendingPushes() {
+		LocalDateTime now = LocalDateTime.now();
+		log.info("메시지 발행 처리 시작: {}", now);
+	/*	List<ScheduledPush> pendingPushes = scheduledPushRepository
+			.findByStatusAndScheduledTimeLessThanEqual("PENDING", now);
+		for (ScheduledPush push : pendingPushes) {
+			try {
+				List<Long> userIds = objectMapper.readValue(push.getUserIds(),
+					new TypeReference<List<Long>>() {
+					});
+				pushHandler.sendPush(userIds, push.getMessage());
+				push.setStatus("SENT");
+				push.setSentAt(LocalDateTime.now());
+			} catch (Exception e) {
+				push.setStatus("FAILED");
+				log.error("Failed to send scheduled push: {}", e.getMessage());
+			}
+			scheduledPushRepository.save(push);*/
 	}
 }

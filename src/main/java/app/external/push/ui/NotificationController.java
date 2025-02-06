@@ -1,10 +1,10 @@
 package app.external.push.ui;
 
 import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.user.dto.request.TokenSaveRequest;
 import app.bottlenote.user.exception.UserException;
-import app.external.push.dto.request.TokenSaveRequest;
+import app.bottlenote.user.service.UserDeviceService;
 import app.external.push.service.PushHandler;
-import app.external.push.service.UserDeviceService;
 import io.lettuce.core.dynamic.annotation.Param;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

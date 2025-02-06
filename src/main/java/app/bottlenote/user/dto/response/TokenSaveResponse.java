@@ -1,6 +1,6 @@
-package app.external.push.dto.response;
+package app.bottlenote.user.dto.response;
 
-import app.external.push.domain.Platform;
+import app.bottlenote.user.domain.Platform;
 import app.external.push.dto.model.TokenMessage;
 
 public record TokenSaveResponse(

@@ -1,4 +1,4 @@
-package app.external.push.domain;
+package app.bottlenote.user.domain;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 

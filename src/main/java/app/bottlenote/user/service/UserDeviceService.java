@@ -1,11 +1,10 @@
-package app.external.push.service;
+package app.bottlenote.user.service;
 
-import app.bottlenote.user.service.UserFacade;
-import app.external.push.domain.DeviceTokenRepository;
-import app.external.push.domain.Platform;
-import app.external.push.domain.UserDeviceToken;
+import app.bottlenote.user.domain.DeviceTokenRepository;
+import app.bottlenote.user.domain.Platform;
+import app.bottlenote.user.domain.UserDeviceToken;
+import app.bottlenote.user.dto.response.TokenSaveResponse;
 import app.external.push.dto.model.TokenMessage;
-import app.external.push.dto.response.TokenSaveResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
