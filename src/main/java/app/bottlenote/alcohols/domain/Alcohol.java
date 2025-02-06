@@ -14,14 +14,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import java.util.HashSet;
-import java.util.Set;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Builder
 @Getter
@@ -81,7 +82,8 @@ public class Alcohol extends BaseEntity {
 	@Comment("썸네일 이미지")
 	@Column(name = "image_url", nullable = true)
 	private String imageUrl;
-	
+
+	@Builder.Default
 	@OneToMany(mappedBy = "alcohol", fetch = FetchType.LAZY)
 	private Set<AlcoholsTastingTags> alcoholsTastingTags = new HashSet<>();
 }

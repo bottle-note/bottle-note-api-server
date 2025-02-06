@@ -121,4 +121,9 @@ public class FakeReviewFacade implements ReviewFacade {
 	public ReviewInfo getReview(Long reviewId) {
 		return fakeDatabase.get(reviewId);
 	}
+
+	@Override
+	public Long getAlcoholIdByReviewId(Long reviewId) {
+		return 0L;
+	}
 }
