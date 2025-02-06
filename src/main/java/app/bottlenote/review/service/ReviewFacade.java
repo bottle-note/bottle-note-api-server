@@ -8,4 +8,6 @@ public interface ReviewFacade {
 	boolean isExistReview(Long reviewId);
 
 	void requestBlockReview(Long reviewId);
+
+	Long getAlcoholIdByReviewId(Long reviewId);
 }
