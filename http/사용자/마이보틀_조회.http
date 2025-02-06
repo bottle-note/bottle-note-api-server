@@ -15,7 +15,7 @@ Content-Type: application/json
 
 
 ### 로그인 이용자의 마이 보틀 페이지를 조회한다. (전체 타입, 최신순)
-GET {{host}}/api/v1/my-page/8/my-bottle?keyword=&regionId=&tabType=ALL&sortType=LATEST&sortOrder=DESC&cursor=0&
+GET {{host}}/api/v1/my-page/2/my-bottle?keyword=&regionId=&tabType=ALL&sortType=LATEST&sortOrder=DESC&cursor=0&
     pageSize=50
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
