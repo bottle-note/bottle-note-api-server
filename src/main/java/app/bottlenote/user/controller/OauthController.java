@@ -4,6 +4,7 @@ import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.user.config.OauthConfigProperties;
 import app.bottlenote.user.dto.request.GuestCodeRequest;
 import app.bottlenote.user.dto.request.OauthRequest;
+import app.bottlenote.user.dto.request.SingleTokenRequest;
 import app.bottlenote.user.dto.response.OauthResponse;
 import app.bottlenote.user.dto.response.TokenDto;
 import app.bottlenote.user.exception.UserException;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -75,6 +77,14 @@ public class OauthController {
 		setRefreshTokenInCookie(response, token.refreshToken());
 
 		return GlobalResponse.ok(OauthResponse.of(token.accessToken()));
+	}
+
+	@PutMapping("/token/verify")
+	public ResponseEntity<?> verifyToken(
+		@RequestBody SingleTokenRequest token
+	) {
+		final String message = oauthService.verifyToken(token.token());
+		return GlobalResponse.ok(message);
 	}
 
 	private void setRefreshTokenInCookie(HttpServletResponse response, String refreshToken) {

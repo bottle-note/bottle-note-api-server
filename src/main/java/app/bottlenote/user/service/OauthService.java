@@ -1,10 +1,7 @@
 package app.bottlenote.user.service;
 
-import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
-
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
-import app.bottlenote.global.security.jwt.JwtTokenValidator;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.constant.GenderType;
 import app.bottlenote.user.domain.constant.SocialType;
@@ -13,15 +10,19 @@ import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.TokenDto;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.repository.OauthRepository;
-import java.security.SecureRandom;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+
+import static app.bottlenote.global.security.jwt.JwtTokenValidator.validateToken;
+import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
 
 
 @Slf4j
@@ -87,7 +88,7 @@ public class OauthService {
 	@Transactional
 	public TokenDto refresh(String refreshToken) {
 		//refresh Token 검증
-		if (!JwtTokenValidator.validateToken(refreshToken)) {
+		if (!validateToken(refreshToken)) {
 			throw new UserException(INVALID_REFRESH_TOKEN);
 		}
 
@@ -116,5 +117,16 @@ public class OauthService {
 		if (randomValue.nextInt() % 2 == 0) key += b.get(randomValue.nextInt(b.size()));
 		else key += c.get(randomValue.nextInt(c.size()));
 		return key + oauthRepository.getNextNicknameSequence();
+	}
+
+	public String verifyToken(String token) {
+		try {
+			boolean validateToken = validateToken(token);
+			return validateToken ? "Token is valid" : "Token is invalid {empty}";
+		} catch (Exception e) {
+			log.error("Token is invalid : {}", e.getMessage());
+			//return "Token is invalid :{}" + e.getMessage();
+			return String.format("Token is invalid {%s}", e.getMessage());
+		}
 	}
 }
