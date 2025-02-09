@@ -5,9 +5,12 @@ import app.bottlenote.user.config.OauthConfigProperties;
 import app.bottlenote.user.controller.OauthController;
 import app.bottlenote.user.domain.constant.GenderType;
 import app.bottlenote.user.domain.constant.SocialType;
+import app.bottlenote.user.dto.request.BasicAccountRequest;
+import app.bottlenote.user.dto.request.BasicLoginRequest;
 import app.bottlenote.user.dto.request.GuestCodeRequest;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.request.SingleTokenRequest;
+import app.bottlenote.user.dto.response.BasicAccountResponse;
 import app.bottlenote.user.dto.response.TokenDto;
 import app.bottlenote.user.service.OauthService;
 import org.junit.jupiter.api.DisplayName;
@@ -225,4 +228,103 @@ class RestOauthControllerTest extends AbstractRestDocs {
 				)
 			);
 	}
+
+	@Test
+	@DisplayName("베이식 회원가입을 할 수 있다.")
+	void basic_signup() throws Exception {
+		//given
+		final String nickName = "부드러운몰트";
+		final BasicAccountRequest request = BasicAccountRequest.builder()
+			.email("test@email.com")
+			.password("test-password")
+			.age(27)
+			.gender(null)
+			.build();
+
+		final BasicAccountResponse response = BasicAccountResponse.builder()
+			.message(nickName + "님 환영합니다!")
+			.email(request.getEmail())
+			.nickname(nickName)
+			.accessToken("access-token")
+			.refreshToken("refresh-token")
+			.build();
+
+		//when
+		when(oauthService.basicSignup(request.getEmail(), request.getPassword(),
+			request.getAge(), request.getGender())).thenReturn(response);
+
+		//then
+		mockMvc.perform(post("/api/v1/oauth/basic/signup")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(request))
+				.with(csrf()))
+			.andExpect(status().isOk())
+			.andDo(
+				document("user/basic-signup",
+					requestFields(
+						fieldWithPath("email").description("이메일"),
+						fieldWithPath("password").description("비밀번호"),
+						fieldWithPath("age").description("나이"),
+						fieldWithPath("gender").description("성별")
+					),
+					responseFields(
+						fieldWithPath("success").ignored(),
+						fieldWithPath("code").ignored(),
+						fieldWithPath("errors").ignored(),
+						fieldWithPath("data").description("결과"),
+						fieldWithPath("data.message").description("결과 메시지"),
+						fieldWithPath("data.email").description("이메일"),
+						fieldWithPath("data.nickname").description("닉네임"),
+						fieldWithPath("data.accessToken").description("accessToken"),
+						fieldWithPath("data.refreshToken").description("refreshToken"),
+						fieldWithPath("meta.serverEncoding").ignored(),
+						fieldWithPath("meta.serverVersion").ignored(),
+						fieldWithPath("meta.serverPathVersion").ignored(),
+						fieldWithPath("meta.serverResponseTime").ignored()
+					)
+				)
+			);
+	}
+
+	@Test
+	@DisplayName("베이식 로그인을 할 수 있다.")
+	void basic_login() throws Exception {
+		//given
+		final String nickName = "부드러운몰트";
+		final BasicLoginRequest request = BasicLoginRequest.builder()
+			.email("test@email.com")
+			.password("test-password")
+			.build();
+
+		final TokenDto response = TokenDto.of("access-token", "refresh-token");
+		//when
+		when(oauthService.basicLogin(request.getEmail(), request.getPassword())).thenReturn(response);
+
+		//then
+		mockMvc.perform(post("/api/v1/oauth/basic/login")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(request))
+				.with(csrf()))
+			.andExpect(status().isOk())
+			.andDo(
+				document("user/basic-login",
+					requestFields(
+						fieldWithPath("email").description("이메일"),
+						fieldWithPath("password").description("비밀번호")
+					),
+					responseFields(
+						fieldWithPath("success").ignored(),
+						fieldWithPath("code").ignored(),
+						fieldWithPath("errors").ignored(),
+						fieldWithPath("data").description("결과"),
+						fieldWithPath("data.accessToken").description("accessToken"),
+						fieldWithPath("meta.serverEncoding").ignored(),
+						fieldWithPath("meta.serverVersion").ignored(),
+						fieldWithPath("meta.serverPathVersion").ignored(),
+						fieldWithPath("meta.serverResponseTime").ignored()
+					)
+				)
+			);
+	}
+
 }

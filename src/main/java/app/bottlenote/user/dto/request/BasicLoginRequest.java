@@ -3,9 +3,13 @@ package app.bottlenote.user.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Builder
 @Getter
+@NoArgsConstructor
 @AllArgsConstructor
 public class BasicLoginRequest {
 	@NotBlank(message = "이메일을 입력해주세요.")
