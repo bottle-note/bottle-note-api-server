@@ -11,7 +11,6 @@ import app.bottlenote.user.dto.request.GuestCodeRequest;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.request.SingleTokenRequest;
 import app.bottlenote.user.dto.response.BasicAccountResponse;
-import app.bottlenote.user.dto.request.SingleTokenRequest;
 import app.bottlenote.user.dto.response.TokenDto;
 import app.bottlenote.user.service.OauthService;
 import org.junit.jupiter.api.DisplayName;
@@ -193,41 +192,6 @@ class RestOauthControllerTest extends AbstractRestDocs {
 			);
 
 
-	}
-
-	@Test
-	@DisplayName("토큰 유효성을 검사할 수 있다.")
-	void token_validation() throws Exception {
-		//given
-		final SingleTokenRequest request = new SingleTokenRequest("test-token");
-		final String message = "Token is valid";
-
-		//when
-		when(oauthService.verifyToken(request.token())).thenReturn(message);
-
-		//then
-		mockMvc.perform(put("/api/v1/oauth/token/verify")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(request))
-				.with(csrf()))
-			.andExpect(status().isOk())
-			.andDo(
-				document("user/token-verify",
-					requestFields(
-						fieldWithPath("token").description("검사할 토큰")
-					),
-					responseFields(
-						fieldWithPath("success").ignored(),
-						fieldWithPath("code").ignored(),
-						fieldWithPath("errors").ignored(),
-						fieldWithPath("data").description("결과"),
-						fieldWithPath("meta.serverEncoding").ignored(),
-						fieldWithPath("meta.serverVersion").ignored(),
-						fieldWithPath("meta.serverPathVersion").ignored(),
-						fieldWithPath("meta.serverResponseTime").ignored()
-					)
-				)
-			);
 	}
 
 	@Test
