@@ -3,6 +3,7 @@ package app.bottlenote.user.controller;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.user.config.OauthConfigProperties;
 import app.bottlenote.user.dto.request.BasicAccountRequest;
+import app.bottlenote.user.dto.request.BasicLoginRequest;
 import app.bottlenote.user.dto.request.GuestCodeRequest;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.request.SingleTokenRequest;
@@ -37,22 +38,22 @@ public class OauthController {
 	private final OauthConfigProperties configProperties;
 
 
-	@PostMapping("/basic/login")
-	public ResponseEntity<?> basicLogin(
-		@RequestBody @Valid BasicAccountRequest request,
-		HttpServletResponse response
-	) {
-		TokenDto token = oauthService.basicLogin(request.getLoginId(),request.getPassword());
-		setRefreshTokenInCookie(response, token.refreshToken());
-		return GlobalResponse.ok(OauthResponse.of(token.accessToken()));
-	}
-
 	@PostMapping("/basic/signup")
 	public ResponseEntity<?> basicSignup(
 		@RequestBody @Valid BasicAccountRequest request,
 		HttpServletResponse response
 	) {
-		TokenDto token = oauthService.basicSignup(request.getLoginId(),request.getPassword());
+		TokenDto token = oauthService.basicSignup(request.getEmail(), request.getPassword(), request.getAge(), request.getGender());
+		setRefreshTokenInCookie(response, token.refreshToken());
+		return GlobalResponse.ok(OauthResponse.of(token.accessToken()));
+	}
+
+	@PostMapping("/basic/login")
+	public ResponseEntity<?> basicLogin(
+		@RequestBody @Valid BasicLoginRequest request,
+		HttpServletResponse response
+	) {
+		TokenDto token = oauthService.basicLogin(request.getEmail(), request.getPassword());
 		setRefreshTokenInCookie(response, token.refreshToken());
 		return GlobalResponse.ok(OauthResponse.of(token.accessToken()));
 	}

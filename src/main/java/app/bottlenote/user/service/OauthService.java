@@ -134,7 +134,7 @@ public class OauthService {
 	}
 
 	@Transactional
-	public TokenDto basicSignup(String email, String password) {
+	public TokenDto basicSignup(String email, String password, Integer age, String gender) {
 		oauthRepository.findByEmail(email).ifPresent(user -> {
 			throw new UserException(UserExceptionCode.USER_ALREADY_EXISTS);
 		});
@@ -146,6 +146,8 @@ public class OauthService {
 			.role(UserType.ROLE_USER)
 			.socialType(List.of(SocialType.BASIC))
 			.nickName(generateNickname())
+			.age(age)
+			.gender(gender)
 			.build());
 
 		TokenDto token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
@@ -155,9 +157,13 @@ public class OauthService {
 	}
 
 	@Transactional
-	public TokenDto basicLogin(String loginId, String password) {
-
-		return new TokenDto("accessToken", "refreshToken");
+	public TokenDto basicLogin(String email, String password) {
+		User user = oauthRepository.findByEmail(email).orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
+		if (!passwordEncoder.matches(password, user.getPassword())) {
+			throw new UserException(UserExceptionCode.INVALID_PASSWORD);
+		}
+		TokenDto token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
+		user.updateRefreshToken(token.refreshToken());
+		return token;
 	}
-
 }
