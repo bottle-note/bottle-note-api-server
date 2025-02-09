@@ -53,6 +53,7 @@ CREATE TABLE `users`
 (
     `id`             bigint       NOT NULL AUTO_INCREMENT COMMENT '사용자',
     `email`          varchar(255) NOT NULL COMMENT '사용자 소셜 이메일',
+    `password`       varchar(255) NULL COMMENT '사용자 비밀번호',
     `nick_name`      varchar(255) NOT NULL COMMENT '사용자 소셜 닉네임 ( 수정 가능 )',
     `age`            Integer      NULL COMMENT '사용자 나이',
     `image_url`      varchar(255) NULL COMMENT '사용자 프로필 이미지',
