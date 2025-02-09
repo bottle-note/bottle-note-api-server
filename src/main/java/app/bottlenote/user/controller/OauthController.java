@@ -7,6 +7,7 @@ import app.bottlenote.user.dto.request.BasicLoginRequest;
 import app.bottlenote.user.dto.request.GuestCodeRequest;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.request.SingleTokenRequest;
+import app.bottlenote.user.dto.response.BasicAccountResponse;
 import app.bottlenote.user.dto.response.OauthResponse;
 import app.bottlenote.user.dto.response.TokenDto;
 import app.bottlenote.user.exception.UserException;
@@ -43,9 +44,9 @@ public class OauthController {
 		@RequestBody @Valid BasicAccountRequest request,
 		HttpServletResponse response
 	) {
-		TokenDto token = oauthService.basicSignup(request.getEmail(), request.getPassword(), request.getAge(), request.getGender());
+		BasicAccountResponse token = oauthService.basicSignup(request.getEmail(), request.getPassword(), request.getAge(), request.getGender());
 		setRefreshTokenInCookie(response, token.refreshToken());
-		return GlobalResponse.ok(OauthResponse.of(token.accessToken()));
+		return GlobalResponse.ok(token);
 	}
 
 	@PostMapping("/basic/login")

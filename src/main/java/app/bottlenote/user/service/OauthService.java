@@ -7,6 +7,7 @@ import app.bottlenote.user.domain.constant.GenderType;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.domain.constant.UserType;
 import app.bottlenote.user.dto.request.OauthRequest;
+import app.bottlenote.user.dto.response.BasicAccountResponse;
 import app.bottlenote.user.dto.response.TokenDto;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
@@ -134,7 +135,7 @@ public class OauthService {
 	}
 
 	@Transactional
-	public TokenDto basicSignup(String email, String password, Integer age, String gender) {
+	public BasicAccountResponse basicSignup(String email, String password, Integer age, String gender) {
 		oauthRepository.findByEmail(email).ifPresent(user -> {
 			throw new UserException(UserExceptionCode.USER_ALREADY_EXISTS);
 		});
@@ -153,7 +154,13 @@ public class OauthService {
 		TokenDto token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
 		user.updateRefreshToken(token.refreshToken());
 
-		return token;
+		return BasicAccountResponse.builder()
+			.message(user.getNickName() + "님 환영합니다!")
+			.email(user.getEmail())
+			.nickname(user.getNickName())
+			.accessToken(token.accessToken())
+			.refreshToken(token.refreshToken())
+			.build();
 	}
 
 	@Transactional

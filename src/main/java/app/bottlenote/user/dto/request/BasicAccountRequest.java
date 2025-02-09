@@ -1,7 +1,7 @@
 package app.bottlenote.user.dto.request;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,11 +13,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BasicAccountRequest {
-	@NotBlank(message = "이메일은 필수 입력 값입니다.")
+	@NotBlank(message = "EMAIL_IS_REQUIRED")
 	private String email;
-	@NotBlank(message = "비밀번호는 필수 입력 값입니다.")
+	@NotBlank(message = "PASSWORD_IS_REQUIRED")
 	private String password;
-	@Size(min = 19, message = "나이는 19세 이상이어야 합니다.")
+	@Min(value = 0, message = "AGE_NEED_OVER_19")
 	private Integer age;
 	private String gender;
 }
