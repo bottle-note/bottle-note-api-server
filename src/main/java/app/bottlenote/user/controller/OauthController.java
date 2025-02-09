@@ -2,6 +2,7 @@ package app.bottlenote.user.controller;
 
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.user.config.OauthConfigProperties;
+import app.bottlenote.user.dto.request.BasicAccountRequest;
 import app.bottlenote.user.dto.request.GuestCodeRequest;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.request.SingleTokenRequest;
@@ -32,9 +33,29 @@ import java.util.Base64;
 @RequestMapping("/api/v1/oauth")
 public class OauthController {
 	private static final String REFRESH_TOKEN_HEADER_PREFIX = "refresh-token";
-	private static final int COOKIE_EXPIRE_TIME = 14 * 24 * 60 * 60;
 	private final OauthService oauthService;
 	private final OauthConfigProperties configProperties;
+
+
+	@PostMapping("/basic/login")
+	public ResponseEntity<?> basicLogin(
+		@RequestBody @Valid BasicAccountRequest request,
+		HttpServletResponse response
+	) {
+		TokenDto token = oauthService.basicLogin(request.getLoginId(),request.getPassword());
+		setRefreshTokenInCookie(response, token.refreshToken());
+		return GlobalResponse.ok(OauthResponse.of(token.accessToken()));
+	}
+
+	@PostMapping("/basic/signup")
+	public ResponseEntity<?> basicSignup(
+		@RequestBody @Valid BasicAccountRequest request,
+		HttpServletResponse response
+	) {
+		TokenDto token = oauthService.basicSignup(request.getLoginId(),request.getPassword());
+		setRefreshTokenInCookie(response, token.refreshToken());
+		return GlobalResponse.ok(OauthResponse.of(token.accessToken()));
+	}
 
 	@PostMapping("/login")
 	public ResponseEntity<?> oauthLogin(
@@ -88,6 +109,9 @@ public class OauthController {
 	}
 
 	private void setRefreshTokenInCookie(HttpServletResponse response, String refreshToken) {
+		final int COOKIE_EXPIRE_TIME = 14 * 24 * 60 * 60;
+		final int cookieExpireTime = configProperties.getCookieExpireTime();
+		log.info("cookie basic expire time : {} properties time :{}", COOKIE_EXPIRE_TIME, cookieExpireTime);
 		Cookie cookie = new Cookie(REFRESH_TOKEN_HEADER_PREFIX, refreshToken);
 		cookie.setHttpOnly(true);
 		cookie.setSecure(true);

@@ -8,7 +8,7 @@ public enum SocialType {
 	KAKAO,
 	NAVER,
 	GOOGLE,
-	APPLE;
+	APPLE, BASIC;
 
 	@JsonCreator
 	public static SocialType parsing(String inputValue) {

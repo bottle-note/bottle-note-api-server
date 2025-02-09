@@ -13,15 +13,16 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.annotations.Comment;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @Getter
 @ToString(of = {"id", "email", "nickName", "age", "socialType"})
@@ -38,6 +39,10 @@ public class User extends BaseTimeEntity {
 	@Comment("사용자 이메일")
 	@Column(name = "email", nullable = false, unique = true)
 	private String email;
+
+	@Comment("사용자 비밀번호")
+	@Column(name = "password")
+	private String password;
 
 	@Comment("사용자 닉네임")
 	@Column(name = "nick_name", nullable = false, unique = true)
@@ -71,12 +76,12 @@ public class User extends BaseTimeEntity {
 	private List<SocialType> socialType = new ArrayList<>();
 
 	@Comment("사용자 리프레시토큰")
-	@Column(name = "refresh_token", nullable = true)
+	@Column(name = "refresh_token")
 	private String refreshToken;
 
 	@Builder
 	public User(Long id, String email, String nickName, Integer age, String gender, String imageUrl,
-				UserType role, List<SocialType> socialType, String refreshToken) {
+				UserType role, List<SocialType> socialType, String refreshToken, String password) {
 		this.id = id;
 		this.email = email;
 		this.nickName = nickName;
@@ -86,6 +91,7 @@ public class User extends BaseTimeEntity {
 		this.role = role;
 		this.socialType = socialType;
 		this.refreshToken = refreshToken;
+		this.password = password;
 	}
 
 	public void updateRefreshToken(String refreshToken) {

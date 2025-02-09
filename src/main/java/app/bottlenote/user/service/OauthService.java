@@ -9,10 +9,12 @@ import app.bottlenote.user.domain.constant.UserType;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.TokenDto;
 import app.bottlenote.user.exception.UserException;
+import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.repository.OauthRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +34,7 @@ public class OauthService {
 	private final OauthRepository oauthRepository;
 	private final JwtTokenProvider tokenProvider;
 	private final JwtAuthenticationManager authenticationManager;
+	private final BCryptPasswordEncoder passwordEncoder;
 	private final SecureRandom randomValue = new SecureRandom();
 
 	@Transactional
@@ -129,4 +132,32 @@ public class OauthService {
 			return String.format("Token is invalid {%s}", e.getMessage());
 		}
 	}
+
+	@Transactional
+	public TokenDto basicSignup(String email, String password) {
+		oauthRepository.findByEmail(email).ifPresent(user -> {
+			throw new UserException(UserExceptionCode.USER_ALREADY_EXISTS);
+		});
+
+		String encodePassword = passwordEncoder.encode(password);
+		User user = oauthRepository.save(User.builder()
+			.email(email)
+			.password(encodePassword)
+			.role(UserType.ROLE_USER)
+			.socialType(List.of(SocialType.BASIC))
+			.nickName(generateNickname())
+			.build());
+
+		TokenDto token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
+		user.updateRefreshToken(token.refreshToken());
+
+		return token;
+	}
+
+	@Transactional
+	public TokenDto basicLogin(String loginId, String password) {
+
+		return new TokenDto("accessToken", "refreshToken");
+	}
+
 }
