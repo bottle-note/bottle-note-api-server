@@ -173,4 +173,15 @@ public class OauthService {
 		user.updateRefreshToken(token.refreshToken());
 		return token;
 	}
+
+	public String verifyToken(String token) {
+		try {
+			boolean validateToken = validateToken(token);
+			return validateToken ? "Token is valid" : "Token is invalid {empty}";
+		} catch (Exception e) {
+			log.error("Token is invalid : {}", e.getMessage());
+			//return "Token is invalid :{}" + e.getMessage();
+			return String.format("Token is invalid {%s}", e.getMessage());
+		}
+	}
 }
