@@ -108,7 +108,9 @@ class RestDocsUserHistoryTest extends AbstractRestDocs {
 					fieldWithPath("data.userHistories[].alcoholId").type(JsonFieldType.NUMBER).optional().description("술 ID (없을 경우 null)"),
 					fieldWithPath("data.userHistories[].alcoholName").type(JsonFieldType.STRING).optional().description("술 이름"),
 					fieldWithPath("data.userHistories[].imageUrl").type(JsonFieldType.STRING).optional().description("이미지 URL"),
-					fieldWithPath("data.userHistories[].redirectUrl").type(JsonFieldType.STRING).optional().description("리다이렉트 URL"),
+					fieldWithPath("data.userHistories[].redirectUrl").type(JsonFieldType.STRING).optional().description("리뷰내용"),
+					fieldWithPath("data.userHistories[].reviewContent").type(JsonFieldType.STRING).optional().description("리뷰댓글내용"),
+					fieldWithPath("data.userHistories[].reviewReplyContent").type(JsonFieldType.STRING).optional().description("리다이렉트 URL"),
 					fieldWithPath("data.userHistories[].description").type(JsonFieldType.STRING).optional().description("이벤트 혹은 히스토리 설명"),
 					fieldWithPath("data.userHistories[].message").type(JsonFieldType.STRING).optional().description("사용자 메시지"),
 					fieldWithPath("data.userHistories[].dynamicMessage").type(JsonFieldType.OBJECT)
