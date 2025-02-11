@@ -2,13 +2,16 @@ package app.bottlenote.review.service;
 
 import static app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage.SUCCESS_DELETE_REPLY;
 import static app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY;
+import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 import static java.lang.Boolean.FALSE;
 
 import app.bottlenote.common.profanity.ProfanityClient;
+import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewReplyRepository;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.domain.constant.ReviewReplyStatus;
+import app.bottlenote.review.dto.payload.ReviewRegistryEvent;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
 import app.bottlenote.review.dto.response.RootReviewReplyInfo;
@@ -33,6 +36,7 @@ public class ReviewReplyService {
 	private final ReviewRepository reviewRepository;
 	private final ProfanityClient profanityClient;
 	private final UserFacade userFacade;
+	private final HistoryEventPublisher reviewReplyEventPublisher;
 
 	/**
 	 * 댓글을 등록합니다.
@@ -79,6 +83,12 @@ public class ReviewReplyService {
 
 		log.info("최종 처리 시간 : {}", (System.nanoTime() - start) / 1_000_000 + "ms");
 		reviewReplyRepository.save(reply);
+
+		final Long alcoholId = reviewRepository.findById(reviewId)
+			.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND)).getAlcoholId();
+
+		ReviewRegistryEvent event = ReviewRegistryEvent.of(reply.getId(), alcoholId, reply.getUserId(), reply.getContent());
+		reviewReplyEventPublisher.publishHistoryEvent(event);
 
 		return ReviewReplyResponse.of(
 			SUCCESS_REGISTER_REPLY,
