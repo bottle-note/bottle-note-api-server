@@ -16,3 +16,28 @@ DELETE /api/v1/users
 [discrete]
 include::{snippets}/user/withdraw-user/response-fields.adoc[]
 include::{snippets}/user/withdraw-user/http-response.adoc[]
+
+=== 회원 복구 ===
+
+회원 탈퇴 후 복구 요청 API입니다.
+
+[source]
+----
+POST /api/v1/oauth/restore
+----
+include::{snippets}/user/restore/curl-request.adoc[]
+
+
+[discrete]
+==== 요청 파라미터  ====
+
+[discrete]
+include::{snippets}/user/restore/request-fields.adoc[]
+include::{snippets}/user/restore/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터  ====
+
+[discrete]
+include::{snippets}/user/restore/response-fields.adoc[]
+include::{snippets}/user/restore/http-response.adoc[]
