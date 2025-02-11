@@ -42,8 +42,7 @@ public class CustomUserHistoryRepositoryImpl implements CustomUserHistoryReposit
 					alcohol.korName,
 					userHistory.imageUrl,
 					userHistory.redirectUrl,
-					userHistory.description,
-					userHistory.message,
+					userHistory.content,
 					userHistory.dynamicMessage
 				)
 			)

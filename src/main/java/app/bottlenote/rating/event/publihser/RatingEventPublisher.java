@@ -1,6 +1,7 @@
 package app.bottlenote.rating.event.publihser;
 
-import app.bottlenote.history.domain.constant.EventCategory;
+import static app.bottlenote.history.domain.constant.EventCategory.RATING;
+
 import app.bottlenote.history.domain.constant.EventType;
 import app.bottlenote.history.dto.payload.HistoryEvent;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
@@ -20,9 +21,6 @@ public class RatingEventPublisher implements HistoryEventPublisher {
 	private final ApplicationEventPublisher eventPublisher;
 
 	private static final String REDIRECT_URL = "api/v1/rating";
-	private static final String MESSAGE = "별점 등록";
-	private static final String DESCRIPTION_REGISTER = "별점이 등록되었습니다.";
-	private static final String DESCRIPTION_UPDATE = "별점이 수정되었습니다.";
 
 	private RatingRegistryEvent ratingRegistryEvent;
 	private Double prevRatingPoint;
@@ -42,16 +40,14 @@ public class RatingEventPublisher implements HistoryEventPublisher {
 
 		log.info("isUpdate : {}", isUpdate);
 
-		HistoryEvent ratingCreateHistoryEvent = HistoryEvent.makeHistoryEvent(
-			ratingRegistryEvent.userId(),
-			EventCategory.RATING,
-			makeEventType(isUpdate, currentRatingPoint),
-			REDIRECT_URL,
-			ratingRegistryEvent.alcoholId(),
-			MESSAGE,
-			isUpdate ? makeDynamicMessage(currentRatingPoint, prevRatingPoint) : Map.of("currentValue", currentRatingPoint.toString()),
-			isUpdate ? DESCRIPTION_UPDATE : DESCRIPTION_REGISTER
-		);
+		HistoryEvent ratingCreateHistoryEvent = HistoryEvent.builder()
+			.userId(ratingRegistryEvent.userId())
+			.eventCategory(RATING)
+			.eventType(makeEventType(isUpdate, currentRatingPoint))
+			.redirectUrl(REDIRECT_URL)
+			.alcoholId(ratingRegistryEvent.alcoholId())
+			.dynamicMessage(isUpdate ? makeDynamicMessage(currentRatingPoint, prevRatingPoint) : Map.of("currentValue", currentRatingPoint.toString()))
+			.build();
 		eventPublisher.publishEvent(ratingCreateHistoryEvent);
 	}
 
