@@ -1,7 +1,8 @@
 package app.bottlenote.review.event.publisher;
 
-import app.bottlenote.history.domain.constant.EventCategory;
-import app.bottlenote.history.domain.constant.EventType;
+import static app.bottlenote.history.domain.constant.EventCategory.REVIEW;
+import static app.bottlenote.history.domain.constant.EventType.REVIEW_REPLY_CREATE;
+
 import app.bottlenote.history.dto.payload.HistoryEvent;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.review.dto.payload.ReviewRegistryEvent;
@@ -24,8 +25,8 @@ public class ReviewReplyEventPublisher implements HistoryEventPublisher {
 
 		HistoryEvent reviewReplyHistoryEvent = HistoryEvent.builder()
 			.userId(registryEvent.userId())
-			.eventCategory(EventCategory.REVIEW)
-			.eventType(EventType.REVIEW_REPLY_CREATE)
+			.eventCategory(REVIEW)
+			.eventType(REVIEW_REPLY_CREATE)
 			.redirectUrl(REDIRECT_URL)
 			.alcoholId(registryEvent.alcoholId())
 			.content(registryEvent.content())

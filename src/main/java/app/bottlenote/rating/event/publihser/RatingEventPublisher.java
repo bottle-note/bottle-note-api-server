@@ -1,6 +1,7 @@
 package app.bottlenote.rating.event.publihser;
 
-import app.bottlenote.history.domain.constant.EventCategory;
+import static app.bottlenote.history.domain.constant.EventCategory.RATING;
+
 import app.bottlenote.history.domain.constant.EventType;
 import app.bottlenote.history.dto.payload.HistoryEvent;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
@@ -41,7 +42,7 @@ public class RatingEventPublisher implements HistoryEventPublisher {
 
 		HistoryEvent ratingCreateHistoryEvent = HistoryEvent.builder()
 			.userId(ratingRegistryEvent.userId())
-			.eventCategory(EventCategory.RATING)
+			.eventCategory(RATING)
 			.eventType(makeEventType(isUpdate, currentRatingPoint))
 			.redirectUrl(REDIRECT_URL)
 			.alcoholId(ratingRegistryEvent.alcoholId())

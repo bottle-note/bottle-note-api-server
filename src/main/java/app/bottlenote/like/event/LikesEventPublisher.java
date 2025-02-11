@@ -1,7 +1,8 @@
 package app.bottlenote.like.event;
 
-import app.bottlenote.history.domain.constant.EventCategory;
-import app.bottlenote.history.domain.constant.EventType;
+import static app.bottlenote.history.domain.constant.EventCategory.REVIEW;
+import static app.bottlenote.history.domain.constant.EventType.REVIEW_LIKES;
+
 import app.bottlenote.history.dto.payload.HistoryEvent;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.like.dto.payload.LikesRegistryEvent;
@@ -29,8 +30,8 @@ public class LikesEventPublisher implements HistoryEventPublisher {
 
 		HistoryEvent likesHistoryEvent = HistoryEvent.builder()
 			.userId(likesRegistryEvent.userId())
-			.eventCategory(EventCategory.REVIEW)
-			.eventType(EventType.REVIEW_LIKES)
+			.eventCategory(REVIEW)
+			.eventType(REVIEW_LIKES)
 			.redirectUrl(REDIRECT_URL)
 			.alcoholId(alcoholId)
 			.build();
