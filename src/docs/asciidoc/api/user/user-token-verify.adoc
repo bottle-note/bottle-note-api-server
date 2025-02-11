@@ -1,0 +1,21 @@
+=== 토큰 유효성 검증 ===
+
+[source]
+----
+PUT /api/v1/oauth/token/verify
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/user/token-verify/curl-request.adoc[]
+include::{snippets}/user/token-verify/request-body.adoc[]
+include::{snippets}/user/token-verify/request-fields.adoc[]
+
+[discrete]
+==== 응답 파라미터  ====
+
+[discrete]
+include::{snippets}/user/token-verify/response-fields.adoc[]
+include::{snippets}/user/token-verify/http-response.adoc[]

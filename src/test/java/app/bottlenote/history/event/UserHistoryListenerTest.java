@@ -28,16 +28,13 @@ class UserHistoryListenerTest {
 	void test() {
 		// given
 		Long userId = 1L;
-		HistoryEvent historyEvent = HistoryEvent.makeHistoryEvent(
-			userId,
-			EventCategory.PICK,
-			EventType.IS_PICK,
-			"type",
-			1L,
-			"message",
-			null,
-			"description"
-		);
+		HistoryEvent historyEvent = HistoryEvent.builder()
+			.userId(userId)
+			.eventCategory(EventCategory.PICK)
+			.eventType(EventType.IS_PICK)
+			.redirectUrl("redirectUrl")
+			.alcoholId(1L)
+			.build();
 		// when
 		historyListener.registryUserHistory(historyEvent);
 

@@ -1,27 +1,31 @@
 package app.bottlenote.user.service;
 
-import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
-
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
-import app.bottlenote.global.security.jwt.JwtTokenValidator;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.constant.GenderType;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.domain.constant.UserType;
 import app.bottlenote.user.dto.request.OauthRequest;
+import app.bottlenote.user.dto.response.BasicAccountResponse;
 import app.bottlenote.user.dto.response.TokenDto;
 import app.bottlenote.user.exception.UserException;
+import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.repository.OauthRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
+import static app.bottlenote.global.security.jwt.JwtTokenValidator.validateToken;
+import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
 
 
 @Slf4j
@@ -31,6 +35,7 @@ public class OauthService {
 	private final OauthRepository oauthRepository;
 	private final JwtTokenProvider tokenProvider;
 	private final JwtAuthenticationManager authenticationManager;
+	private final BCryptPasswordEncoder passwordEncoder;
 	private final SecureRandom randomValue = new SecureRandom();
 
 	@Transactional
@@ -87,7 +92,7 @@ public class OauthService {
 	@Transactional
 	public TokenDto refresh(String refreshToken) {
 		//refresh Token 검증
-		if (!JwtTokenValidator.validateToken(refreshToken)) {
+		if (!validateToken(refreshToken)) {
 			throw new UserException(INVALID_REFRESH_TOKEN);
 		}
 
@@ -116,5 +121,56 @@ public class OauthService {
 		if (randomValue.nextInt() % 2 == 0) key += b.get(randomValue.nextInt(b.size()));
 		else key += c.get(randomValue.nextInt(c.size()));
 		return key + oauthRepository.getNextNicknameSequence();
+	}
+
+	public String verifyToken(String token) {
+		try {
+			boolean validateToken = validateToken(token);
+			return validateToken ? "Token is valid" : "Token is invalid {empty}";
+		} catch (Exception e) {
+			log.error("Token is invalid : {}", e.getMessage());
+			//return "Token is invalid :{}" + e.getMessage();
+			return String.format("Token is invalid {%s}", e.getMessage());
+		}
+	}
+
+	@Transactional
+	public BasicAccountResponse basicSignup(String email, String password, Integer age, String gender) {
+		oauthRepository.findByEmail(email).ifPresent(user -> {
+			throw new UserException(UserExceptionCode.USER_ALREADY_EXISTS);
+		});
+
+		String encodePassword = passwordEncoder.encode(password);
+		User user = oauthRepository.save(User.builder()
+			.email(email)
+			.password(encodePassword)
+			.role(UserType.ROLE_USER)
+			.socialType(List.of(SocialType.BASIC))
+			.nickName(generateNickname())
+			.age(age)
+			.gender(gender)
+			.build());
+
+		TokenDto token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
+		user.updateRefreshToken(token.refreshToken());
+
+		return BasicAccountResponse.builder()
+			.message(user.getNickName() + "님 환영합니다!")
+			.email(user.getEmail())
+			.nickname(user.getNickName())
+			.accessToken(token.accessToken())
+			.refreshToken(token.refreshToken())
+			.build();
+	}
+
+	@Transactional
+	public TokenDto basicLogin(String email, String password) {
+		User user = oauthRepository.findByEmail(email).orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
+		if (!passwordEncoder.matches(password, user.getPassword())) {
+			throw new UserException(UserExceptionCode.INVALID_PASSWORD);
+		}
+		TokenDto token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
+		user.updateRefreshToken(token.refreshToken());
+		return token;
 	}
 }

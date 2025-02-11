@@ -2,19 +2,15 @@ package app.bottlenote.history.dto.response;
 
 import app.bottlenote.history.domain.constant.EventCategory;
 import app.bottlenote.history.domain.constant.EventType;
+import java.time.LocalDateTime;
+import java.util.Map;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.Optional;
-
 @Getter
 @NoArgsConstructor
-@SuppressWarnings("unchecked")
 public class UserHistoryDetail {
-
 	private Long historyId;
 	private LocalDateTime createdAt;
 	private EventCategory eventCategory;
@@ -23,8 +19,7 @@ public class UserHistoryDetail {
 	private String alcoholName;
 	private String imageUrl;
 	private String redirectUrl;
-	private String description;
-	private String message;
+	private String content;
 	private Map<String, String> dynamicMessage;
 
 	@Builder
@@ -37,8 +32,7 @@ public class UserHistoryDetail {
 		String alcoholName,
 		String imageUrl,
 		String redirectUrl,
-		String description,
-		String message,
+		String content,
 		Object dynamicMessage
 	) {
 		this.historyId = historyId;
@@ -49,10 +43,7 @@ public class UserHistoryDetail {
 		this.alcoholName = alcoholName;
 		this.imageUrl = imageUrl;
 		this.redirectUrl = redirectUrl;
-		this.description = description;
-		this.message = message;
-		this.dynamicMessage = (Map<String, String>) Optional.ofNullable(dynamicMessage)
-			.filter(Map.class::isInstance).orElse(null);
-
+		this.content = content;
+		this.dynamicMessage = (Map<String, String>) dynamicMessage;
 	}
 }

@@ -1,9 +1,11 @@
 package app.bottlenote.like.service;
 
+import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.like.domain.LikeStatus;
 import app.bottlenote.like.domain.LikeUserInfo;
 import app.bottlenote.like.domain.Likes;
 import app.bottlenote.like.domain.LikesRepository;
+import app.bottlenote.like.dto.payload.LikesRegistryEvent;
 import app.bottlenote.like.dto.response.LikesUpdateResponse;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.service.ReviewFacade;
@@ -24,6 +26,7 @@ public class LikesCommandService {
 	private final UserFacade userFacade;
 	private final ReviewFacade reviewFacade;
 	private final LikesRepository likesRepository;
+	private final HistoryEventPublisher likesEventPublisher;
 
 	@Transactional
 	public LikesUpdateResponse updateLikes(
@@ -49,6 +52,10 @@ public class LikesCommandService {
 
 		likes.updateStatus(status);
 		likesRepository.save(likes);
+
+		likesEventPublisher.publishHistoryEvent(
+			LikesRegistryEvent.of(likes.getReviewId(), likes.getUserInfo().getUserId())
+		);
 
 		return LikesUpdateResponse.of(
 			likes.getId(),

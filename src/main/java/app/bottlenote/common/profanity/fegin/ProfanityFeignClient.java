@@ -14,6 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 	configuration = FeignConfig.class
 )
 public interface ProfanityFeignClient {
-	@PostMapping("/filter")
+	@PostMapping(value = "/filter", headers = "x-api-key=${profanity.filter.key}")
 	ResponseEntity<ProfanityResponse> requestVerificationProfanity(@RequestBody ProfanityRequest text);
 }

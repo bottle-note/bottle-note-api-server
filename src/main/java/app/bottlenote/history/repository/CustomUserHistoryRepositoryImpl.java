@@ -42,11 +42,11 @@ public class CustomUserHistoryRepositoryImpl implements CustomUserHistoryReposit
 					alcohol.korName,
 					userHistory.imageUrl,
 					userHistory.redirectUrl,
-					userHistory.description,
-					userHistory.message,
+					userHistory.content,
 					userHistory.dynamicMessage
 				)
 			)
+			.distinct()
 			.from(userHistory)
 			.leftJoin(alcohol).on(userHistory.alcoholId.eq(alcohol.id))
 			.leftJoin(rating).on(userHistory.alcoholId.eq(rating.id.alcoholId)
