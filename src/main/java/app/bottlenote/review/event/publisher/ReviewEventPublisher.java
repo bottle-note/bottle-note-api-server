@@ -15,25 +15,20 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ReviewEventPublisher implements HistoryEventPublisher {
 	private static final String REDIRECT_URL = "api/v1/reviews";
-	private static final String MESSAGE_CREATE = "리뷰 등록";
-	private static final String DESCRIPTION_CREATE = "리뷰가 등록되었습니다.";
 	private final ApplicationEventPublisher eventPublisher;
 
 	@Override
 	public void publishHistoryEvent(Object event) {
 		ReviewRegistryEvent registryEvent = (ReviewRegistryEvent) event;
 
-		//todo: 이렇게 객체가 많은 경우 빌더로 어떤 값들인지 가독성을 높혀주기
-		HistoryEvent reviewCreateHistoryEvent = HistoryEvent.makeHistoryEvent(
-			registryEvent.userId(),
-			EventCategory.REVIEW,
-			EventType.REVIEW_CREATE,
-			REDIRECT_URL,
-			registryEvent.alcoholId(),
-			MESSAGE_CREATE,
-			null,
-			DESCRIPTION_CREATE
-		);
+		HistoryEvent reviewCreateHistoryEvent = HistoryEvent.builder()
+			.userId(registryEvent.userId())
+			.eventCategory(EventCategory.REVIEW)
+			.eventType(EventType.REVIEW_CREATE)
+			.redirectUrl(REDIRECT_URL)
+			.alcoholId(registryEvent.alcoholId())
+			.reviewContent(registryEvent.content())
+			.build();
 		eventPublisher.publishEvent(reviewCreateHistoryEvent);
 	}
 }
