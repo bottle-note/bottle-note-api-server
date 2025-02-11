@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import app.bottlenote.common.profanity.ProfanityClient;
+import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewReplyRepository;
@@ -15,6 +16,7 @@ import app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.review.fixture.FakeProfanityClient;
+import app.bottlenote.review.fixture.FakeReviewReplyEventPublisher;
 import app.bottlenote.review.fixture.InMemoryReviewReplyRepository;
 import app.bottlenote.review.fixture.InMemoryReviewRepository;
 import app.bottlenote.review.fixture.ReviewReplyObjectFixture;
@@ -41,6 +43,7 @@ class ReviewReplyServiceTest {
 	private ProfanityClient profanityClient;
 	private UserFacade userFacade;
 	private ReviewReplyService reviewReplyService;
+	private HistoryEventPublisher reviewReplyEventPublisher;
 
 	@BeforeEach
 	void setUp() {
@@ -54,11 +57,12 @@ class ReviewReplyServiceTest {
 		profanityClient = new FakeProfanityClient();
 		reviewReplyRepository = new InMemoryReviewReplyRepository();
 		reviewRepository = new InMemoryReviewRepository();
+		reviewReplyEventPublisher = new FakeReviewReplyEventPublisher();
 
 		reviewRepository.save(review1);
 		reviewRepository.save(review2);
 
-		reviewReplyService = new ReviewReplyService(reviewReplyRepository, reviewRepository, profanityClient, userFacade);
+		reviewReplyService = new ReviewReplyService(reviewReplyRepository, reviewRepository, profanityClient, userFacade, reviewReplyEventPublisher);
 	}
 
 	@Nested

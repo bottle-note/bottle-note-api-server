@@ -20,11 +20,9 @@ public class HistoryQueryFixture {
 			.eventType(EventType.IS_PICK)
 			.alcoholId(1L)
 			.alcoholName("소주")
-			.message("찜 했습니다.")
 			.dynamicMessage(null)
 			.imageUrl("imageUrl")
 			.redirectUrl("redirectUrl")
-			.description("description")
 			.build();
 
 		UserHistoryDetail detail2 = UserHistoryDetail.builder()
@@ -36,8 +34,6 @@ public class HistoryQueryFixture {
 			.alcoholName("소주")
 			.imageUrl("imageUrl")
 			.redirectUrl("redirectUrl")
-			.description("description")
-			.message("찜 했습니다.")
 			.dynamicMessage(Map.of("currentValue", "4.0"))
 			.build();
 

@@ -22,6 +22,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 
+@Builder
 @Getter
 @Entity(name = "user_history")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -51,8 +52,8 @@ public class UserHistory extends BaseEntity {
 	@Column(name = "alcohol_id")
 	private Long alcoholId;
 
-	@Column(name = "message")
-	private String message;
+	@Column(name = "content")
+	private String content;
 
 	@Column(name = "dynamic_message", columnDefinition = "json")
 	@Type(JsonType.class)
@@ -64,24 +65,19 @@ public class UserHistory extends BaseEntity {
 	@Column(name = "event_month")
 	private String eventMonth;
 
-	@Column(name = "description")
-	private String description;
-
-	@Builder
-	public UserHistory(Long id, Long userId, EventCategory eventCategory, EventType eventType, String redirectUrl, String imageUrl, Long alcoholId, String message, Map<String, String> dynamicMessage, String eventYear, String eventMonth,
-		String description) {
+	public UserHistory(Long id, Long userId, EventCategory eventCategory, EventType eventType, String redirectUrl, String imageUrl, Long alcoholId, String content, Map<String, String> dynamicMessage,
+		String eventYear, String eventMonth) {
 		this.id = id;
 		this.userId = userId;
 		this.eventCategory = eventCategory;
 		this.eventType = eventType;
 		this.redirectUrl = redirectUrl;
-		this.imageUrl = validateImageUrl(imageUrl);
+		this.imageUrl = imageUrl;
 		this.alcoholId = alcoholId;
-		this.message = message;
+		this.content = content;
 		this.dynamicMessage = dynamicMessage;
 		this.eventYear = eventYear;
 		this.eventMonth = eventMonth;
-		this.description = description;
 	}
 
 	private String validateImageUrl(String imageUrl) {

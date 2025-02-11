@@ -46,10 +46,33 @@ public class OauthService {
 		final Integer age = oauthReq.age();
 
 		User user = oauthRepository.findByEmail(email).orElseGet(() -> oauthSignUp(email, socialType, genderType, age, UserType.ROLE_USER));
+
+		if (Boolean.FALSE.equals(user.isAlive()))
+			throw new UserException(UserExceptionCode.USER_DELETED);
+
 		user.addSocialType(oauthReq.socialType());
 		TokenDto token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
 		user.updateRefreshToken(token.refreshToken());
 		return token;
+	}
+
+	@Transactional
+	public void restoreUser(String email, String password) {
+		User user = oauthRepository.findByEmail(email)
+			.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
+
+		if (Boolean.TRUE.equals(user.isAlive()))
+			throw new UserException(UserExceptionCode.USER_ALREADY_EXISTS);
+
+
+		if (user.getSocialType().contains(SocialType.BASIC)) {
+			boolean matches = passwordEncoder.matches(password, user.getPassword());
+			if (!matches) {
+				throw new UserException(UserExceptionCode.INVALID_PASSWORD);
+			}
+		}
+
+		user.restore();
 	}
 
 	@Transactional
@@ -113,27 +136,6 @@ public class OauthService {
 		return reissuedToken;
 	}
 
-	public String generateNickname() {
-		List<String> a = Arrays.asList("부드러운", "향기로운", "숙성된", "풍부한", "깊은", "황금빛", "오크향의", "스모키한", "달콤한", "강렬한");
-		List<String> b = Arrays.asList("몰트", "버번", "위스키", "바텐더", "오크통", "싱글몰트", "블렌디드", "아이리시", "스카치", "캐스크");
-		List<String> c = Arrays.asList("글렌피딕", "맥캘란", "라가불린", "탈리스커", "조니워커", "제임슨", "야마자키", "부카나스", "불릿", "잭다니엘스");
-		String key = a.get(randomValue.nextInt(a.size()));
-		if (randomValue.nextInt() % 2 == 0) key += b.get(randomValue.nextInt(b.size()));
-		else key += c.get(randomValue.nextInt(c.size()));
-		return key + oauthRepository.getNextNicknameSequence();
-	}
-
-	public String verifyToken(String token) {
-		try {
-			boolean validateToken = validateToken(token);
-			return validateToken ? "Token is valid" : "Token is invalid {empty}";
-		} catch (Exception e) {
-			log.error("Token is invalid : {}", e.getMessage());
-			//return "Token is invalid :{}" + e.getMessage();
-			return String.format("Token is invalid {%s}", e.getMessage());
-		}
-	}
-
 	@Transactional
 	public BasicAccountResponse basicSignup(String email, String password, Integer age, String gender) {
 		oauthRepository.findByEmail(email).ifPresent(user -> {
@@ -169,8 +171,33 @@ public class OauthService {
 		if (!passwordEncoder.matches(password, user.getPassword())) {
 			throw new UserException(UserExceptionCode.INVALID_PASSWORD);
 		}
+
+		if (Boolean.FALSE.equals(user.isAlive()))
+			throw new UserException(UserExceptionCode.USER_DELETED);
+
 		TokenDto token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
 		user.updateRefreshToken(token.refreshToken());
 		return token;
+	}
+
+	public String generateNickname() {
+		List<String> a = Arrays.asList("부드러운", "향기로운", "숙성된", "풍부한", "깊은", "황금빛", "오크향의", "스모키한", "달콤한", "강렬한");
+		List<String> b = Arrays.asList("몰트", "버번", "위스키", "바텐더", "오크통", "싱글몰트", "블렌디드", "아이리시", "스카치", "캐스크");
+		List<String> c = Arrays.asList("글렌피딕", "맥캘란", "라가불린", "탈리스커", "조니워커", "제임슨", "야마자키", "부카나스", "불릿", "잭다니엘스");
+		String key = a.get(randomValue.nextInt(a.size()));
+		if (randomValue.nextInt() % 2 == 0) key += b.get(randomValue.nextInt(b.size()));
+		else key += c.get(randomValue.nextInt(c.size()));
+		return key + oauthRepository.getNextNicknameSequence();
+	}
+
+	public String verifyToken(String token) {
+		try {
+			boolean validateToken = validateToken(token);
+			return validateToken ? "Token is valid" : "Token is invalid {empty}";
+		} catch (Exception e) {
+			log.error("Token is invalid : {}", e.getMessage());
+			//return "Token is invalid :{}" + e.getMessage();
+			return String.format("Token is invalid {%s}", e.getMessage());
+		}
 	}
 }

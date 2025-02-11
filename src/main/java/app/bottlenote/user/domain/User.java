@@ -117,4 +117,12 @@ public class User extends BaseTimeEntity {
 			this.socialType.add(socialType);
 		}
 	}
+
+	public boolean isAlive() {
+		return this.status == UserStatus.ACTIVE;
+	}
+
+	public void restore() {
+		this.status = UserStatus.ACTIVE;
+	}
 }
