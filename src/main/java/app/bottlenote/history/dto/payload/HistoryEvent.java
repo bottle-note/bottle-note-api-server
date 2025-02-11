@@ -13,9 +13,9 @@ public record HistoryEvent(
 	EventType eventType,
 	String redirectUrl,
 	Long alcoholId,
-	String message,
-	Map<String, String> dynamicMessage,
-	String description
+	String reviewContent,
+	String reviewReplyContent,
+	Map<String, String> dynamicMessage
 ) {
 
 	public HistoryEvent {
@@ -29,27 +29,5 @@ public record HistoryEvent(
 
 	private void validateAlcoholId(Long alcoholId) {
 		Objects.requireNonNull(alcoholId, "alcoholId must not be null");
-	}
-
-	public static HistoryEvent makeHistoryEvent(
-		Long userId,
-		EventCategory eventCategory,
-		EventType eventType,
-		String redirectUrl,
-		Long alcoholId,
-		String message,
-		Map<String, String> dynamicMessage,
-		String description
-	) {
-		return HistoryEvent.builder()
-			.userId(userId)
-			.eventCategory(eventCategory)
-			.eventType(eventType)
-			.redirectUrl(redirectUrl)
-			.alcoholId(alcoholId)
-			.message(message)
-			.dynamicMessage(dynamicMessage)
-			.description(description)
-			.build();
 	}
 }

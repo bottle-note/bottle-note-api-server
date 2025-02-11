@@ -51,8 +51,11 @@ public class UserHistory extends BaseEntity {
 	@Column(name = "alcohol_id")
 	private Long alcoholId;
 
-	@Column(name = "message")
-	private String message;
+	@Column(name = "review_content")
+	private String reviewContent;
+
+	@Column(name = "review_reply_content")
+	private String reviewReplyContent;
 
 	@Column(name = "dynamic_message", columnDefinition = "json")
 	@Type(JsonType.class)
@@ -64,24 +67,21 @@ public class UserHistory extends BaseEntity {
 	@Column(name = "event_month")
 	private String eventMonth;
 
-	@Column(name = "description")
-	private String description;
-
 	@Builder
-	public UserHistory(Long id, Long userId, EventCategory eventCategory, EventType eventType, String redirectUrl, String imageUrl, Long alcoholId, String message, Map<String, String> dynamicMessage, String eventYear, String eventMonth,
-		String description) {
+	public UserHistory(Long id, Long userId, EventCategory eventCategory, EventType eventType, String redirectUrl, String imageUrl, Long alcoholId, String reviewContent, String reviewReplyContent, Map<String, String> dynamicMessage,
+		String eventYear, String eventMonth) {
 		this.id = id;
 		this.userId = userId;
 		this.eventCategory = eventCategory;
 		this.eventType = eventType;
 		this.redirectUrl = redirectUrl;
-		this.imageUrl = validateImageUrl(imageUrl);
+		this.imageUrl = imageUrl;
 		this.alcoholId = alcoholId;
-		this.message = message;
+		this.reviewContent = reviewContent;
+		this.reviewReplyContent = reviewReplyContent;
 		this.dynamicMessage = dynamicMessage;
 		this.eventYear = eventYear;
 		this.eventMonth = eventMonth;
-		this.description = description;
 	}
 
 	private String validateImageUrl(String imageUrl) {

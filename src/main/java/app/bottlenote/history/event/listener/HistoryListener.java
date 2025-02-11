@@ -4,6 +4,7 @@ import app.bottlenote.alcohols.service.domain.AlcoholFacade;
 import app.bottlenote.history.domain.UserHistory;
 import app.bottlenote.history.domain.UserHistoryRepository;
 import app.bottlenote.history.dto.payload.HistoryEvent;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -11,8 +12,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
-
-import java.time.LocalDateTime;
 
 @Slf4j
 @Component
@@ -37,11 +36,11 @@ public class HistoryListener {
 			.eventType(event.eventType())
 			.redirectUrl(event.redirectUrl())
 			.imageUrl(alcoholImageUrl)
-			.message(event.message())
+			.reviewContent(event.reviewContent())
+			.reviewReplyContent(event.reviewReplyContent())
 			.dynamicMessage(event.dynamicMessage())
 			.eventYear(String.valueOf(LocalDateTime.now().getYear()))
 			.eventMonth(String.valueOf(LocalDateTime.now().getMonth()))
-			.description(event.description())
 			.build());
 
 		log.info("History saved: {}", save);
