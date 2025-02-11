@@ -13,8 +13,7 @@ public record HistoryEvent(
 	EventType eventType,
 	String redirectUrl,
 	Long alcoholId,
-	String reviewContent,
-	String reviewReplyContent,
+	String content,
 	Map<String, String> dynamicMessage
 ) {
 

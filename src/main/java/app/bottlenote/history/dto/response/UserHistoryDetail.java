@@ -19,8 +19,7 @@ public class UserHistoryDetail {
 	private String alcoholName;
 	private String imageUrl;
 	private String redirectUrl;
-	private String reviewContent;
-	private String reviewReplyContent;
+	private String content;
 	private Map<String, String> dynamicMessage;
 
 	@Builder
@@ -33,8 +32,7 @@ public class UserHistoryDetail {
 		String alcoholName,
 		String imageUrl,
 		String redirectUrl,
-		String reviewContent,
-		String reviewReplyContent,
+		String content,
 		Object dynamicMessage
 	) {
 		this.historyId = historyId;
@@ -45,8 +43,7 @@ public class UserHistoryDetail {
 		this.alcoholName = alcoholName;
 		this.imageUrl = imageUrl;
 		this.redirectUrl = redirectUrl;
-		this.reviewContent = reviewContent;
-		this.reviewReplyContent = reviewReplyContent;
+		this.content = content;
 		this.dynamicMessage = (Map<String, String>) dynamicMessage;
 	}
 }

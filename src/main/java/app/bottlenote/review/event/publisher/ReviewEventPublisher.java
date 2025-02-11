@@ -27,7 +27,7 @@ public class ReviewEventPublisher implements HistoryEventPublisher {
 			.eventType(EventType.REVIEW_CREATE)
 			.redirectUrl(REDIRECT_URL)
 			.alcoholId(registryEvent.alcoholId())
-			.reviewContent(registryEvent.content())
+			.content(registryEvent.content())
 			.build();
 		eventPublisher.publishEvent(reviewCreateHistoryEvent);
 	}

@@ -475,35 +475,35 @@ values ('라이터스 티얼즈 레드 헤드', 'Writers'' Tears Red Head', '46'
         '2024-06-08 05:06:00', 'admin', '2024-06-08 05:06:00', 'admin');
 
 INSERT INTO user_history (id, user_id, event_category, event_type, redirect_url, image_url, alcohol_id,
-                          review_content, review_reply_content, dynamic_message, event_year,
+                          content, dynamic_message, event_year,
                           event_month,
                           create_at, create_by, last_modify_at, last_modify_by)
 VALUES (1, 1, 'RATING', 'START_RATING', 'api/v1/rating',
         'https://static.whiskybase.com/storage/whiskies/2/0/8916/404538-big.jpg', 1,
-        null, null, null, '2025', '01',
+        null, null, '2025', '01',
         '2025-01-01 19:50:26', 'chadongmin@example.com', '2025-01-20 19:50:26',
         'chadongmin@example.com'),
 
        (2, 1, 'REVIEW', 'REVIEW_CREATE', 'api/v1/reviews',
         'https://static.whiskybase.com/storage/whiskies/2/0/8916/404538-big.jpg', 1,
-        'blah blah', null, null, '2025', '01',
+        'blah blah', null, '2025', '01',
         '2025-01-02 19:50:35', 'chadongmin@example.com', '2025-01-20 19:50:35',
         'chadongmin@example.com'),
 
        (3, 1, 'REVIEW', 'REVIEW_CREATE', 'api/v1/reviews',
         'https://static.whiskybase.com/storage/whiskies/2/0/8888/404535-big.jpg', 2,
-        '리뷰입니다.', null, null, '2025', '01',
+        '리뷰입니다.', null, '2025', '01',
         '2025-01-03 19:50:47', 'chadongmin@example.com', '2025-01-20 19:50:47',
         'chadongmin@example.com'),
 
        (4, 1, 'REVIEW', 'REVIEW_CREATE', 'api/v1/reviews',
         'https://static.whiskybase.com/storage/whiskies/2/1/1644/404542-big.jpg', 3,
-        '리뷰 등록', null, null, '2025', '01',
+        '리뷰 등록', null, '2025', '01',
         '2025-01-04 19:50:56', 'chadongmin@example.com', '2025-01-20 19:50:56',
         'chadongmin@example.com'),
 
        (5, 1, 'PICK', 'UNPICK', 'api/v1/picks',
         'https://static.whiskybase.com/storage/whiskies/2/0/8916/404538-big.jpg', 1,
-        null, null, null, '2025', '01',
+        null, null, '2025', '01',
         '2025-01-05 19:52:07', 'chadongmin@example.com', '2025-01-20 19:52:07',
         'chadongmin@example.com')
