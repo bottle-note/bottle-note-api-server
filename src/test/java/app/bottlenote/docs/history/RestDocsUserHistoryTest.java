@@ -1,26 +1,5 @@
 package app.bottlenote.docs.history;
 
-import app.bottlenote.docs.AbstractRestDocs;
-import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.global.service.cursor.SortOrder;
-import app.bottlenote.history.controller.UserHistoryController;
-import app.bottlenote.history.dto.request.HistoryReviewFilterType;
-import app.bottlenote.history.dto.response.UserHistorySearchResponse;
-import app.bottlenote.history.fixture.HistoryQueryFixture;
-import app.bottlenote.history.service.UserHistoryQueryService;
-import app.bottlenote.picks.domain.PicksStatus;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.springframework.http.MediaType;
-import org.springframework.restdocs.payload.JsonFieldType;
-
-import java.time.LocalDateTime;
-import java.util.Optional;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -32,6 +11,26 @@ import static org.springframework.restdocs.request.RequestDocumentation.paramete
 import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import app.bottlenote.docs.AbstractRestDocs;
+import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.history.controller.UserHistoryController;
+import app.bottlenote.history.dto.request.HistoryReviewFilterType;
+import app.bottlenote.history.dto.response.UserHistorySearchResponse;
+import app.bottlenote.history.fixture.HistoryQueryFixture;
+import app.bottlenote.history.service.UserHistoryQueryService;
+import app.bottlenote.picks.domain.PicksStatus;
+import java.time.LocalDateTime;
+import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.springframework.http.MediaType;
+import org.springframework.restdocs.payload.JsonFieldType;
 
 @DisplayName("UserHistory RestDocs 테스트")
 class RestDocsUserHistoryTest extends AbstractRestDocs {
@@ -71,6 +70,7 @@ class RestDocsUserHistoryTest extends AbstractRestDocs {
 		// then
 		mockMvc.perform(get("/api/v1/history/{targetUserId}", targetUserId)
 				.contentType(MediaType.APPLICATION_JSON)
+				.param("keyword", "글렌피딕")
 				.param("ratingPoint", String.valueOf(5))
 				.param("historyReviewFilterType", HistoryReviewFilterType.ALL.name())
 				.param("picksStatus", PicksStatus.PICK.name())
@@ -83,6 +83,7 @@ class RestDocsUserHistoryTest extends AbstractRestDocs {
 			.andDo(document(
 				"user-history/search",
 				queryParameters(
+					parameterWithName("keyword").description("검색 키워드"),
 					parameterWithName("ratingPoint").description("평점 기준점 (예: 3.0)"),
 					parameterWithName("historyReviewFilterType").description("필터링 유형 (예: ALL, BEST_REVIEW, REVIEW_LIKE, REVIEW_REPLY)"),
 					parameterWithName("picksStatus").description("픽(pick) 상태 (예: PICK, UNPICK 등)"),

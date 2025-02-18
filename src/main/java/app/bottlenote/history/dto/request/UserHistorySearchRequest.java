@@ -6,7 +6,6 @@ import app.bottlenote.history.exception.UserHistoryException;
 import app.bottlenote.history.exception.UserHistoryExceptionCode;
 import app.bottlenote.picks.domain.PicksStatus;
 import app.bottlenote.rating.domain.RatingPoint;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 
 public record UserHistorySearchRequest(
+	String keyword,
 	List<RatingPoint> ratingPoint,
 	List<HistoryReviewFilterType> historyReviewFilterType,
 	List<PicksStatus> picksStatus,
