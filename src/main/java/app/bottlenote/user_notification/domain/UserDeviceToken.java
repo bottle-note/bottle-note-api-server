@@ -1,5 +1,6 @@
-package app.bottlenote.user.domain;
+package app.bottlenote.user_notification.domain;
 
+import app.bottlenote.user_notification.domain.constant.Platform;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

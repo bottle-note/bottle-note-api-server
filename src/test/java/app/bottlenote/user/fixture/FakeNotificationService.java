@@ -1,11 +1,11 @@
 package app.bottlenote.user.fixture;
 
-import app.bottlenote.user.domain.Notification;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.request.NotificationMessage;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.service.NotificationService;
+import app.bottlenote.user_notification.domain.Notification;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;

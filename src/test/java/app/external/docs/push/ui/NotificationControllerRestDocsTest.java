@@ -1,10 +1,10 @@
 package app.external.docs.push.ui;
 
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.user.domain.Platform;
 import app.bottlenote.user.dto.request.TokenSaveRequest;
 import app.bottlenote.user.dto.response.TokenSaveResponse;
 import app.bottlenote.user.service.UserDeviceService;
+import app.bottlenote.user_notification.domain.constant.Platform;
 import app.external.docs.AbstractRestDocs;
 import app.external.push.dto.model.TokenMessage;
 import app.external.push.service.PushHandler;

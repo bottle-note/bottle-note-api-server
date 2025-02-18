@@ -1,9 +1,9 @@
 package app.bottlenote.user.service;
 
-import app.bottlenote.user.domain.DeviceTokenRepository;
-import app.bottlenote.user.domain.Platform;
-import app.bottlenote.user.domain.UserDeviceToken;
 import app.bottlenote.user.dto.response.TokenSaveResponse;
+import app.bottlenote.user_notification.domain.DeviceTokenRepository;
+import app.bottlenote.user_notification.domain.UserDeviceToken;
+import app.bottlenote.user_notification.domain.constant.Platform;
 import app.external.push.dto.model.TokenMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

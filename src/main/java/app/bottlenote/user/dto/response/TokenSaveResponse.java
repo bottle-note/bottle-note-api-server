@@ -1,6 +1,6 @@
 package app.bottlenote.user.dto.response;
 
-import app.bottlenote.user.domain.Platform;
+import app.bottlenote.user_notification.domain.constant.Platform;
 import app.external.push.dto.model.TokenMessage;
 
 public record TokenSaveResponse(

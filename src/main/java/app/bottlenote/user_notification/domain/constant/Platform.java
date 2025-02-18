@@ -1,4 +1,4 @@
-package app.bottlenote.user_notification.domain;
+package app.bottlenote.user_notification.domain.constant;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 

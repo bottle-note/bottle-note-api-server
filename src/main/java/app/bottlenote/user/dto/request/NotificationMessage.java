@@ -1,7 +1,7 @@
 package app.bottlenote.user.dto.request;
 
-import app.bottlenote.user.domain.constant.NotificationCategory;
-import app.bottlenote.user.domain.constant.NotificationType;
+import app.bottlenote.user_notification.domain.constant.NotificationCategory;
+import app.bottlenote.user_notification.domain.constant.NotificationType;
 
 public record NotificationMessage(
 	Long userId, // 알람 대상 사용자 식별자

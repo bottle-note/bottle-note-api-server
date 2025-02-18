@@ -1,9 +1,9 @@
-package app.bottlenote.user.domain;
+package app.bottlenote.user_notification.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
-import app.bottlenote.user.domain.constant.NotificationCategory;
-import app.bottlenote.user.domain.constant.NotificationStatus;
-import app.bottlenote.user.domain.constant.NotificationType;
+import app.bottlenote.user_notification.domain.constant.NotificationCategory;
+import app.bottlenote.user_notification.domain.constant.NotificationStatus;
+import app.bottlenote.user_notification.domain.constant.NotificationType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

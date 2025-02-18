@@ -1,6 +1,6 @@
 package app.bottlenote.user.dto.request;
 
-import app.bottlenote.user.domain.Platform;
+import app.bottlenote.user_notification.domain.constant.Platform;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 

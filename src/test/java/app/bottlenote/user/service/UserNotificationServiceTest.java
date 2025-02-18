@@ -10,8 +10,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import static app.bottlenote.user.domain.constant.NotificationCategory.REVIEW;
-import static app.bottlenote.user.domain.constant.NotificationType.USER;
+import static app.bottlenote.user_notification.domain.constant.NotificationCategory.REVIEW;
+import static app.bottlenote.user_notification.domain.constant.NotificationType.USER;
 
 
 @Tag("unit")

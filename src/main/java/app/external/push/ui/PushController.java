@@ -22,7 +22,7 @@ import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByCont
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
 @RestController
-@RequestMapping("/api/v1/push")
+@RequestMapping("/api/v1/external/push")
 @RequiredArgsConstructor
 public class PushController {
 	private final PushHandler pushHandler;

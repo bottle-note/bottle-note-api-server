@@ -1,12 +1,12 @@
 package app.bottlenote.user.service;
 
-import app.bottlenote.user.domain.Notification;
-import app.bottlenote.user.domain.NotificationRepository;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.dto.request.NotificationMessage;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
+import app.bottlenote.user_notification.domain.Notification;
+import app.bottlenote.user_notification.domain.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

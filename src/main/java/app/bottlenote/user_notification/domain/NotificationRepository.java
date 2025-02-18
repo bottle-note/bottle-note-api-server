@@ -1,4 +1,4 @@
-package app.bottlenote.user.domain;
+package app.bottlenote.user_notification.domain;
 
 import java.util.List;
 import java.util.Optional;

@@ -1,7 +1,7 @@
 package app.bottlenote.user.fixture;
 
-import app.bottlenote.user.domain.Notification;
-import app.bottlenote.user.domain.NotificationRepository;
+import app.bottlenote.user_notification.domain.Notification;
+import app.bottlenote.user_notification.domain.NotificationRepository;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.HashMap;
