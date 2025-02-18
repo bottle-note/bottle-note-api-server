@@ -1,4 +1,4 @@
-package app.bottlenote.user.domain;
+package app.bottlenote.user_notification.domain;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-public interface DeviceTokenRepository extends JpaRepository<UserDeviceToken, Long> {
+public interface UserDeviceTokenRepository extends JpaRepository<UserDeviceToken, Long> {
 
 	@Query("""
 		SELECT udt

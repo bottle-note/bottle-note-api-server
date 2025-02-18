@@ -24,7 +24,7 @@ import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 @RestController
 @RequestMapping("/api/v1/push")
 @RequiredArgsConstructor
-public class NotificationController {
+public class PushController {
 	private final PushHandler pushHandler;
 	private final UserDeviceService deviceService;
 
