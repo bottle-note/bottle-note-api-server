@@ -24,6 +24,7 @@ import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.docu
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
+import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -68,6 +69,9 @@ public class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 				.with(csrf()))
 			.andExpect(status().isOk())
 			.andDo(document("user/mypage",
+				pathParameters(
+					parameterWithName("userId").description("유저 아이디")
+				),
 				responseFields(
 					fieldWithPath("success").description("응답 성공 여부"),
 					fieldWithPath("code").description("응답 코드"),

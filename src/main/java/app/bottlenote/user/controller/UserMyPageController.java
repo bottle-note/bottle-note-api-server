@@ -24,13 +24,13 @@ public class UserMyPageController {
 
 	@GetMapping("/{userId}")
 	public ResponseEntity<?> getMyPage(@PathVariable Long userId) {
-		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
+		final Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
 		return GlobalResponse.ok(userBasicService.getMyPage(userId, currentUserId));
 	}
 
 	@GetMapping("/{userId}/my-bottle")
 	public ResponseEntity<?> getMyBottle(@PathVariable Long userId, @ModelAttribute MyBottleRequest myBottleRequest) {
-		Long currentUserId = SecurityContextUtil.getUserIdByContext()
+		final Long currentUserId = SecurityContextUtil.getUserIdByContext()
 			.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 		return GlobalResponse.ok(userBasicService.getMyBottle(userId, currentUserId, myBottleRequest));
 	}
