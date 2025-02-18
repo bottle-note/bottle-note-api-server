@@ -1,5 +1,7 @@
 package app.bottlenote.user.controller;
 
+import app.bottlenote.global.annotation.AccessPolicy;
+import app.bottlenote.global.annotation.AccessPolicy.AccessType;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.user.dto.request.MyBottleRequest;
@@ -22,17 +24,29 @@ public class UserMyPageController {
 
 	private final UserBasicService userBasicService;
 
+	/**
+	 * 마이 페이지 조회 API
+	 * 모든 유저가 조회 가능
+	 */
+	@AccessPolicy(type = AccessType.ALL)
 	@GetMapping("/{userId}")
 	public ResponseEntity<?> getMyPage(@PathVariable Long userId) {
 		final Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
 		return GlobalResponse.ok(userBasicService.getMyPage(userId, currentUserId));
 	}
 
+	/**
+	 * 마이 보틀 노트 조회 API
+	 * 본인만 조회 가능
+	 */
+	@AccessPolicy(type = AccessType.OWNER)
 	@GetMapping("/{userId}/my-bottle")
-	public ResponseEntity<?> getMyBottle(@PathVariable Long userId, @ModelAttribute MyBottleRequest myBottleRequest) {
+	public ResponseEntity<?> getMyBottle(
+		@PathVariable(name = "userId") Long userId,
+		@ModelAttribute(name = "myBottleRequest") MyBottleRequest myBottleRequest
+	) {
 		final Long currentUserId = SecurityContextUtil.getUserIdByContext()
 			.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 		return GlobalResponse.ok(userBasicService.getMyBottle(userId, currentUserId, myBottleRequest));
 	}
-
 }
