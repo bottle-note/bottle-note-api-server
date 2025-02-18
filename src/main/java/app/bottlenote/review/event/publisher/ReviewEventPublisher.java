@@ -3,6 +3,7 @@ package app.bottlenote.review.event.publisher;
 import static app.bottlenote.history.domain.constant.EventCategory.REVIEW;
 import static app.bottlenote.history.domain.constant.EventType.REVIEW_CREATE;
 
+import app.bottlenote.history.domain.constant.RedirectUrlType;
 import app.bottlenote.history.dto.payload.HistoryEvent;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.review.dto.payload.ReviewRegistryEvent;
@@ -15,18 +16,20 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class ReviewEventPublisher implements HistoryEventPublisher {
-	private static final String REDIRECT_URL = "api/v1/reviews";
+
 	private final ApplicationEventPublisher eventPublisher;
 
 	@Override
 	public void publishHistoryEvent(Object event) {
 		ReviewRegistryEvent registryEvent = (ReviewRegistryEvent) event;
 
+		final Long reviewId = registryEvent.reviewId();
+
 		HistoryEvent reviewCreateHistoryEvent = HistoryEvent.builder()
 			.userId(registryEvent.userId())
 			.eventCategory(REVIEW)
 			.eventType(REVIEW_CREATE)
-			.redirectUrl(REDIRECT_URL)
+			.redirectUrl(RedirectUrlType.REVIEW.getUrl() + "/" + reviewId)
 			.alcoholId(registryEvent.alcoholId())
 			.content(registryEvent.content())
 			.build();

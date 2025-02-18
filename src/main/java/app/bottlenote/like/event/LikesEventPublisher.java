@@ -3,6 +3,7 @@ package app.bottlenote.like.event;
 import static app.bottlenote.history.domain.constant.EventCategory.REVIEW;
 import static app.bottlenote.history.domain.constant.EventType.REVIEW_LIKES;
 
+import app.bottlenote.history.domain.constant.RedirectUrlType;
 import app.bottlenote.history.dto.payload.HistoryEvent;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.like.dto.payload.LikesRegistryEvent;
@@ -20,19 +21,18 @@ public class LikesEventPublisher implements HistoryEventPublisher {
 	private final ReviewFacade reviewFacade;
 	private final ApplicationEventPublisher eventPublisher;
 
-	private static final String REDIRECT_URL = "api/v1/likes";
-
 	@Override
 	public void publishHistoryEvent(Object event) {
 
 		final LikesRegistryEvent likesRegistryEvent = (LikesRegistryEvent) event;
 		final Long alcoholId = reviewFacade.getAlcoholIdByReviewId(likesRegistryEvent.reviewId());
+		final Long reviewId = likesRegistryEvent.reviewId();
 
 		HistoryEvent likesHistoryEvent = HistoryEvent.builder()
 			.userId(likesRegistryEvent.userId())
 			.eventCategory(REVIEW)
 			.eventType(REVIEW_LIKES)
-			.redirectUrl(REDIRECT_URL)
+			.redirectUrl(RedirectUrlType.REVIEW.getUrl() + "/" + reviewId)
 			.alcoholId(alcoholId)
 			.build();
 
