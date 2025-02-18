@@ -33,7 +33,6 @@ public class UserBasicService {
 
 	@Transactional
 	public NicknameChangeResponse nicknameChange(Long userId, NicknameChangeRequest request) {
-
 		return userFilterManager.withActiveUserFilter(ACTIVE,
 			() -> {
 				String name = request.nickName();
@@ -63,7 +62,6 @@ public class UserBasicService {
 
 	@Transactional
 	public ProfileImageChangeResponse profileImageChange(Long userId, String viewUrl) {
-
 		return userFilterManager.withActiveUserFilter(ACTIVE,
 			() -> {
 				User user = userRepository.findById(userId)
@@ -77,7 +75,6 @@ public class UserBasicService {
 
 	@Transactional
 	public WithdrawUserResultResponse withdrawUser(Long userId) {
-
 		return userFilterManager.withActiveUserFilter(ACTIVE,
 			() -> {
 				User user = userRepository.findById(userId)
@@ -89,9 +86,11 @@ public class UserBasicService {
 			});
 	}
 
+	/**
+	 * 해당 사용자의 기본정보를 조회 합니다 (닉네임, 프로필 이미지, 소개글)
+	 */
 	@Transactional(readOnly = true)
 	public MyPageResponse getMyPage(Long userId, Long currentUserId) {
-
 		return userFilterManager.withActiveUserFilter(ACTIVE,
 			() -> {
 				boolean isUserNotAccessible = !userRepository.existsByUserId(userId);
@@ -103,9 +102,11 @@ public class UserBasicService {
 			});
 	}
 
+	/**
+	 * 본인의 마이 보틀을 조회합니다.
+	 */
 	@Transactional(readOnly = true)
 	public MyBottleResponse getMyBottle(Long userId, Long currentUserId, MyBottleRequest myBottleRequest) {
-
 		return userFilterManager.withActiveUserFilter(ACTIVE,
 			() -> {
 				boolean isUserNotAccessible = !userRepository.existsByUserId(userId);
