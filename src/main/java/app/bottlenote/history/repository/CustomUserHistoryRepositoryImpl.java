@@ -1,5 +1,11 @@
 package app.bottlenote.history.repository;
 
+import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.history.domain.QUserHistory.userHistory;
+import static app.bottlenote.picks.domain.QPicks.picks;
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.user.domain.QUser.user;
+
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.history.domain.constant.EventType;
@@ -9,16 +15,9 @@ import app.bottlenote.history.dto.response.UserHistorySearchResponse;
 import app.bottlenote.picks.domain.PicksStatus;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.extern.slf4j.Slf4j;
-
 import java.time.LocalDateTime;
 import java.util.List;
-
-import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.history.domain.QUserHistory.userHistory;
-import static app.bottlenote.picks.domain.QPicks.picks;
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.user.domain.QUser.user;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class CustomUserHistoryRepositoryImpl implements CustomUserHistoryRepository {
@@ -56,6 +55,7 @@ public class CustomUserHistoryRepositoryImpl implements CustomUserHistoryReposit
 				.and(picks.userId.eq(userId)))
 			.where(
 				userHistory.userId.eq(userId),
+				isValidKeyword(request.keyword()) ? alcohol.korName.like("%" + request.keyword() + "%") : null,
 				request.ratingPoint() == null ? null : rating.ratingPoint.in(request.ratingPoint()),
 				request.picksStatus() == null ? null :
 					userHistory.eventType.in(
@@ -69,7 +69,7 @@ public class CustomUserHistoryRepositoryImpl implements CustomUserHistoryReposit
 			)
 			.orderBy(request.sortOrder().resolve(userHistory.createAt))
 			.offset(request.cursor())
-			.limit(request.pageSize())
+			.limit(request.pageSize() + 1)
 			.fetch();
 
 		final Long totalCount = queryFactory
@@ -88,6 +88,10 @@ public class CustomUserHistoryRepositoryImpl implements CustomUserHistoryReposit
 		final CursorPageable pageable = getCursorPageable(fetch, request.cursor(), request.pageSize());
 
 		return PageResponse.of(userHistorySearchResponse, pageable);
+	}
+
+	private boolean isValidKeyword(String keyword) {
+		return keyword != null && !keyword.trim().isEmpty();
 	}
 
 	private CursorPageable getCursorPageable(List<UserHistoryDetail> fetch, Long cursor, Long pageSize) {
