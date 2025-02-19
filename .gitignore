@@ -48,3 +48,4 @@ src/main/generated
 /src/test/resources/application-dev.yml
 /src/main/resources/fcm/service_account_credentials.json
 /src/main/resources/META-INF/additional-spring-configuration-metadata.json
+/docs/index.html

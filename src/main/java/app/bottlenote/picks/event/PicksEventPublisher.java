@@ -5,6 +5,7 @@ import static app.bottlenote.history.domain.constant.EventType.UNPICK;
 import static app.bottlenote.picks.domain.PicksStatus.PICK;
 
 import app.bottlenote.history.domain.constant.EventCategory;
+import app.bottlenote.history.domain.constant.RedirectUrlType;
 import app.bottlenote.history.dto.payload.HistoryEvent;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.picks.dto.payload.PicksRegistryEvent;
@@ -20,18 +21,18 @@ public class PicksEventPublisher implements HistoryEventPublisher {
 
 	private final ApplicationEventPublisher eventPublisher;
 
-	private static final String REDIRECT_URL = "api/v1/picks";
-
 	@Override
 	public void publishHistoryEvent(Object event) {
 
 		PicksRegistryEvent picksRegistryEvent = (PicksRegistryEvent) event;
 
+		final Long alcoholId = picksRegistryEvent.alcoholId();
+
 		HistoryEvent picksHistoryEvent = HistoryEvent.builder()
 			.userId(picksRegistryEvent.userId())
 			.eventCategory(EventCategory.PICK)
 			.eventType(picksRegistryEvent.picksStatus() == PICK ? IS_PICK : UNPICK)
-			.redirectUrl(REDIRECT_URL)
+			.redirectUrl(RedirectUrlType.ALCOHOL.getUrl() + "/" + alcoholId)
 			.alcoholId(picksRegistryEvent.alcoholId())
 			.build();
 		eventPublisher.publishEvent(picksHistoryEvent);

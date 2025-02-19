@@ -51,9 +51,11 @@ public class CustomUserHistoryRepositoryImpl implements CustomUserHistoryReposit
 			.leftJoin(alcohol).on(userHistory.alcoholId.eq(alcohol.id))
 			.leftJoin(rating).on(userHistory.alcoholId.eq(rating.id.alcoholId)
 				.and(rating.id.userId.eq(userId)))
-			.leftJoin(picks).on(userHistory.alcoholId.eq(picks.alcoholId))
+			.leftJoin(picks).on(userHistory.alcoholId.eq(picks.alcoholId)
+				.and(picks.userId.eq(userId)))
 			.where(
 				userHistory.userId.eq(userId),
+				isValidKeyword(request.keyword()) ? alcohol.korName.like("%" + request.keyword() + "%") : null,
 				request.ratingPoint() == null ? null : rating.ratingPoint.in(request.ratingPoint()),
 				request.picksStatus() == null ? null :
 					userHistory.eventType.in(
@@ -67,7 +69,7 @@ public class CustomUserHistoryRepositoryImpl implements CustomUserHistoryReposit
 			)
 			.orderBy(request.sortOrder().resolve(userHistory.createAt))
 			.offset(request.cursor())
-			.limit(request.pageSize())
+			.limit(request.pageSize() + 1)
 			.fetch();
 
 		final Long totalCount = queryFactory
@@ -86,6 +88,10 @@ public class CustomUserHistoryRepositoryImpl implements CustomUserHistoryReposit
 		final CursorPageable pageable = getCursorPageable(fetch, request.cursor(), request.pageSize());
 
 		return PageResponse.of(userHistorySearchResponse, pageable);
+	}
+
+	private boolean isValidKeyword(String keyword) {
+		return keyword != null && !keyword.trim().isEmpty();
 	}
 
 	private CursorPageable getCursorPageable(List<UserHistoryDetail> fetch, Long cursor, Long pageSize) {

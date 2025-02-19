@@ -20,6 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
 import static java.util.Base64.getEncoder;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
@@ -327,4 +328,40 @@ class RestOauthControllerTest extends AbstractRestDocs {
 			);
 	}
 
+	@Test
+	@DisplayName("회원 탈퇴를 복구 할 수 있다.")
+	void restore() throws Exception {
+		//given
+		final String email = "test-email";
+		final String password = "test-password";
+		var request = BasicLoginRequest.builder()
+			.email(email)
+			.password(password)
+			.build();
+
+		doNothing().when(oauthService).restoreUser(email, password);
+
+		mockMvc.perform(post("/api/v1/oauth/restore")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(request))
+				.with(csrf()))
+			.andExpect(status().isOk())
+			.andDo(
+				document("user/restore",
+					requestFields(
+						fieldWithPath("email").description("이메일"),
+						fieldWithPath("password").description("비밀번호")
+					),
+					responseFields(
+						fieldWithPath("success").ignored(),
+						fieldWithPath("code").ignored(),
+						fieldWithPath("errors").ignored(),
+						fieldWithPath("data").description("결과 메시지"),
+						fieldWithPath("meta.serverEncoding").ignored(),
+						fieldWithPath("meta.serverVersion").ignored(),
+						fieldWithPath("meta.serverPathVersion").ignored(),
+						fieldWithPath("meta.serverResponseTime").ignored()
+					)
+				));
+	}
 }
