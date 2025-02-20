@@ -1,8 +1,8 @@
 package app.bottlenote.user.service;
 
 import app.bottlenote.user.dto.response.TokenSaveResponse;
-import app.bottlenote.user_notification.domain.DeviceTokenRepository;
 import app.bottlenote.user_notification.domain.UserDeviceToken;
+import app.bottlenote.user_notification.domain.UserDeviceTokenRepository;
 import app.bottlenote.user_notification.domain.constant.Platform;
 import app.external.push.dto.model.TokenMessage;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class UserDeviceService {
-	private final DeviceTokenRepository deviceTokenRepository;
+	private final UserDeviceTokenRepository deviceTokenRepository;
 
 	public TokenSaveResponse saveUserToken(
 		final Long userId,
