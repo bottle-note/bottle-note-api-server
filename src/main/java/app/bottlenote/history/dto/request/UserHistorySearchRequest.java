@@ -6,6 +6,7 @@ import app.bottlenote.history.exception.UserHistoryException;
 import app.bottlenote.history.exception.UserHistoryExceptionCode;
 import app.bottlenote.picks.domain.PicksStatus;
 import app.bottlenote.rating.domain.RatingPoint;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,6 +50,7 @@ public record UserHistorySearchRequest(
 				case ALL:
 					eventTypes.addAll(Arrays.asList(
 						EventType.REVIEW_LIKES,
+						EventType.REVIEW_CREATE,
 						EventType.BEST_REVIEW_SELECTED,
 						EventType.REVIEW_REPLY_CREATE
 					));
