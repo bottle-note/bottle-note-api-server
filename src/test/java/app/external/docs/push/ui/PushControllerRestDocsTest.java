@@ -1,14 +1,14 @@
 package app.external.docs.push.ui;
 
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.user.dto.request.TokenSaveRequest;
-import app.bottlenote.user.dto.response.TokenSaveResponse;
-import app.bottlenote.user.service.UserDeviceService;
-import app.bottlenote.user_notification.domain.constant.Platform;
 import app.external.docs.AbstractRestDocs;
-import app.external.push.dto.model.TokenMessage;
-import app.external.push.service.PushHandler;
-import app.external.push.ui.PushController;
+import app.external.notification.domain.constant.Platform;
+import app.external.push.application.PushHandler;
+import app.external.push.application.UserDeviceService;
+import app.external.push.data.payload.TokenMessage;
+import app.external.push.data.request.TokenSaveRequest;
+import app.external.push.data.response.TokenSaveResponse;
+import app.external.push.presentation.PushController;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;

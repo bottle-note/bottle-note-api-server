@@ -8,7 +8,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -92,10 +91,5 @@ public class FakeUserFacade implements UserFacade {
 			return userProfileInfo;
 		}
 		throw new UserException(UserExceptionCode.USER_NOT_FOUND);
-	}
-
-	@Override
-	public List<String> getAvailableUserTokens(List<Long> userId) {
-		return List.of();
 	}
 }

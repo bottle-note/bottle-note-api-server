@@ -8,8 +8,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
 @Slf4j
@@ -17,7 +15,6 @@ import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 @RequiredArgsConstructor
 public class DefaultUserFacade implements UserFacade {
 	private final UserRepository userQueryRepository;
-	private final UserDeviceService userDeviceService;
 
 	@Override
 	public Boolean existsByUserId(Long userId) {
@@ -41,10 +38,5 @@ public class DefaultUserFacade implements UserFacade {
 			.orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
 		return UserProfileInfo.create(user.getId(), user.getNickName(), user.getImageUrl());
-	}
-
-	@Override
-	public List<String> getAvailableUserTokens(List<Long> userIds) {
-		return List.of();
 	}
 }
