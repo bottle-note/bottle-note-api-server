@@ -1,3 +1,6 @@
-[submodule "bottle-note-api-server.wiki"]
-	path = bottle-note-api-server.wiki
+[submodule "git.api-server.wiki"]
+	path = git.api-server.wiki
 	url = https://github.com/bottle-note/bottle-note-api-server.wiki.git
+[submodule "git.environment-variables"]
+	path = git.environment-variables
+	url = https://github.com/bottle-note/environment-variables.git
