@@ -5,8 +5,6 @@ plugins {
     id "org.asciidoctor.jvm.convert" version "3.3.2"
 }
 
-group = 'bottlenote'
-version = '0.0.1-SNAPSHOT'
 ext {
     queryDslVersion = "5.0.0"
     springCloudVersion = "2022.0.5"
@@ -17,13 +15,11 @@ dependencyManagement {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
     }
 }
-
 compileTestJava.options.encoding = 'UTF-8'
-
-
 java {
     sourceCompatibility = '17'
 }
+
 
 compileJava {
     options.compilerArgs += ['-parameters']
@@ -37,11 +33,24 @@ configurations {
     }
 }
 
-repositories {
-    mavenCentral()
+allprojects {
+    group = 'bottlenote'
+    version = '0.0.1-SNAPSHOT'
+
+    repositories {
+        mavenCentral()
+    }
+
+    java {
+        sourceCompatibility = '17'
+        targetCompatibility = '17'
+    }
 }
 
 dependencies {
+
+    runtimeOnly project(':bottlenote-batch')
+
     implementation 'org.springframework.boot:spring-boot-starter-web'
     testImplementation 'org.testng:testng:7.1.0'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
@@ -114,12 +123,50 @@ dependencies {
     //4/0AVG7fiRAI2SWk04XCCDNlXfh-ctQzJk-9bwaQl7H2GaZXGZH2w6R8fP6fPYrH0O-XdPCcA
 }
 
+subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+
+    dependencies {
+        // default spring boot dependencies
+        implementation 'org.springframework.boot:spring-boot-starter'
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+        implementation 'org.springframework.boot:spring-boot-configuration-processor'
+
+        // default  utilities
+        implementation 'org.apache.commons:commons-lang3:3.12.0'
+        implementation 'com.google.guava:guava:31.1-jre'
+
+        // default lombok
+        implementation 'org.projectlombok:lombok'
+        annotationProcessor 'org.projectlombok:lombok'
+    }
+
+    bootJar.enabled = false
+    jar.enabled = true
+    tasks.named('test') { useJUnitPlatform() }
+
+    test {
+        outputs.upToDateWhen { false }
+        useJUnitPlatform()
+        testLogging {
+            events "passed", "skipped", "failed"
+            showStandardStreams = true
+            exceptionFormat = 'full'
+            showExceptions = true
+            showCauses = true
+            showStackTraces = true
+        }
+    }
+}
+
 tasks.named('test') {
     useJUnitPlatform {
         excludeTags 'data-jpa-test', 'integration'
     }
 }
-
 tasks.register('integrationTest', Test) {
     useJUnitPlatform {
         includeTags 'integration'
