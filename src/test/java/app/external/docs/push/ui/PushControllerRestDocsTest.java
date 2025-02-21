@@ -8,7 +8,7 @@ import app.bottlenote.user_notification.domain.constant.Platform;
 import app.external.docs.AbstractRestDocs;
 import app.external.push.dto.model.TokenMessage;
 import app.external.push.service.PushHandler;
-import app.external.push.ui.NotificationController;
+import app.external.push.ui.PushController;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -37,14 +37,14 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.response
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class NotificationControllerRestDocsTest extends AbstractRestDocs {
+class PushControllerRestDocsTest extends AbstractRestDocs {
 	private final PushHandler pushHandler = mock(PushHandler.class);
 	private final UserDeviceService deviceService = mock(UserDeviceService.class);
 	private final MockedStatic<SecurityContextUtil> mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
 
 	@Override
 	protected Object initController() {
-		return new NotificationController(pushHandler, deviceService);
+		return new PushController(pushHandler, deviceService);
 	}
 
 	@AfterEach
@@ -70,7 +70,7 @@ class NotificationControllerRestDocsTest extends AbstractRestDocs {
 				.thenReturn(TokenSaveResponse.of(token, platform, TokenMessage.DEVICE_TOKEN_SAVED));
 
 			// when
-			ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/push/token")
+			ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/external/push/token")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(objectMapper.writeValueAsString(request))
 					.with(csrf()))
