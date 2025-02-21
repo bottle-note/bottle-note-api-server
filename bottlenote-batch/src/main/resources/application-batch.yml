@@ -3,11 +3,6 @@ spring:
     job:
       name: simple
     # jdbc.initialize-schema: never
-  thymeleaf:
-    prefix: classpath:/templates/
-    suffix: .html
-    cache: false
-
 batch:
   query:
-    best-review: ${BEST_REVIEW_QUERY:SELECT * FROM review}
+    best-review: ${BEST_REVIEW_QUERY}

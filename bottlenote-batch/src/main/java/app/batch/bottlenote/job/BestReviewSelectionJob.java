@@ -20,6 +20,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 
+/**
+ * 베스트 리뷰 선정 배치 Job
+ */
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
