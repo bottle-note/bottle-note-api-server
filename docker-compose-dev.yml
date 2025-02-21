@@ -8,4 +8,5 @@ services:
     ports:
       - "30001:30001"
     environment:
+      - TZ=Asia/Seoul
       - SPRING_PROFILES_ACTIVE=dev
