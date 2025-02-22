@@ -10,12 +10,15 @@ import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemReader;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.util.FileCopyUtils;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -27,58 +30,47 @@ import java.util.List;
 public class BestReviewSelectionJob {
 	private static final int CHUNK_SIZE = 10;
 	private final JdbcTemplate jdbcTemplate;
-	@Value("${command}")
-	private String command;
-
 
 	@Bean
 	public Job bestReviewSelectedJob(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+		Step step = reviewStep(jobRepository, transactionManager);
+		if (step == null) {
+			return null;
+		}
 		return new JobBuilder("bestReviewSelectedJob", jobRepository)
-			.start(reviewStep(jobRepository, transactionManager))
+			.start(step)
 			.build();
 	}
 
 	@Bean
 	public Step reviewStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+		String query = getQueryByResource();
+		if (query == null) {
+			log.info("베스트 리뷰 선정 리소스 파일을 찾을 수 없습니다 .");
+			return null;
+		}
+
 		return new StepBuilder("bestReviewSelectedStep", jobRepository)
 			.<BestReviewPayload, BestReviewPayload>chunk(CHUNK_SIZE, transactionManager)
-			.reader(new BestReviewReader(jdbcTemplate, decodeQuery()))
+			.reader(new BestReviewReader(jdbcTemplate, query))
 			.processor(item -> item)
 			.writer(this::updateBestReviews)
 			.build();
 	}
 
-	private String decodeQuery() {
-		log.info("command: {}", command);
-		return """
-			SELECT id, alcohol_id, popularityScore, likeCount, unlikeCount, replyCount, imageCount,reviewCount
-			FROM (SELECT r.id,
-			             r.alcohol_id,
-			             (SUM(IF(l.status = 'LIKE', 1, 0)) * 0.6 + COUNT(rr.id) * 0.2 + IF(COUNT(ri.id) > 0, 0.2, 0) -
-			              SUM(IF(l.status = 'DISLIKE', 1, 0)) * 0.1)           AS popularityScore,
-			             SUM(IF(l.status = 'LIKE', 1, 0))                      AS likeCount,
-			             SUM(IF(l.status = 'DISLIKE', 1, 0))                   AS unlikeCount,
-			             COUNT(rr.id)                                          AS replyCount,
-			             COUNT(ri.id)                                          AS imageCount,
-			             ROW_NUMBER() OVER (PARTITION BY r.alcohol_id ORDER BY
-			                 (SUM(IF(l.status = 'LIKE', 1, 0)) * 0.6 + COUNT(rr.id) * 0.2 + IF(COUNT(ri.id) > 0, 0.2, 0) -
-			                  SUM(IF(l.status = 'DISLIKE', 1, 0)) * 0.1) DESC) AS row_num,
-			             COUNT(r.id) OVER (PARTITION BY r.alcohol_id)             AS reviewCount
-			      FROM review r
-			               LEFT JOIN review_reply rr ON r.id = rr.review_id
-			               LEFT JOIN review_image ri ON r.id = ri.review_id
-			               LEFT JOIN likes l ON r.id = l.review_id
-			      GROUP BY r.id, r.alcohol_id) AS ranked_reviews
-			WHERE (ranked_reviews.reviewCount < 10 AND ranked_reviews.row_num <= 1)
-			   OR (ranked_reviews.reviewCount >= 10 AND ranked_reviews.reviewCount < 20 AND ranked_reviews.row_num <= 2)
-			   OR (ranked_reviews.reviewCount >= 20 AND ranked_reviews.row_num <= 3)
-			ORDER BY alcohol_id, popularityScore DESC;
-			""";
+	private String getQueryByResource() {
+		try {
+			// resources 디렉토리 하위의 파일 경로로 접근
+			Resource resource = new ClassPathResource("best-review-selected.sql");
+			return new String(FileCopyUtils.copyToByteArray(resource.getInputStream()));
+		} catch (IOException e) {
+			log.error("cant find best-review-selected.sql files", e);
+			return null;
+		}
 	}
 
 	private void updateBestReviews(Chunk<? extends BestReviewPayload> chunk) {
 		String updateSql = "UPDATE review SET is_best = true WHERE id = ?";
-
 		for (BestReviewPayload item : chunk) {
 			jdbcTemplate.update(updateSql, item.id());
 			log.info("Best review updated: review id: {}", item.id());
