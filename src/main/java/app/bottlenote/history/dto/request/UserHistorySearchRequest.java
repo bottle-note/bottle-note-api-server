@@ -9,7 +9,6 @@ import app.bottlenote.rating.domain.RatingPoint;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -47,25 +46,18 @@ public record UserHistorySearchRequest(
 		List<EventType> eventTypes = new ArrayList<>();
 		for (HistoryReviewFilterType filterType : historyReviewFilterType) {
 			switch (filterType) {
-				case ALL:
-					eventTypes.addAll(Arrays.asList(
-						EventType.REVIEW_LIKES,
+				case ALL -> eventTypes.addAll(
+					List.of(
 						EventType.REVIEW_CREATE,
 						EventType.BEST_REVIEW_SELECTED,
+						EventType.REVIEW_CREATE,
+						EventType.REVIEW_LIKES,
 						EventType.REVIEW_REPLY_CREATE
 					));
-					break;
-				case BEST_REVIEW:
-					eventTypes.add(EventType.BEST_REVIEW_SELECTED);
-					break;
-				case REVIEW_LIKE:
-					eventTypes.add(EventType.REVIEW_LIKES);
-					break;
-				case REVIEW_REPLY:
-					eventTypes.add(EventType.REVIEW_REPLY_CREATE);
-					break;
-				default:
-					break;
+				case BEST_REVIEW -> eventTypes.add(EventType.BEST_REVIEW_SELECTED);
+				case REVIEW_CREATE -> eventTypes.add(EventType.REVIEW_CREATE);
+				case REVIEW_LIKE -> eventTypes.add(EventType.REVIEW_LIKES);
+				case REVIEW_REPLY -> eventTypes.add(EventType.REVIEW_REPLY_CREATE);
 			}
 		}
 		return eventTypes;
