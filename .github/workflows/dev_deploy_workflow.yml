@@ -28,7 +28,6 @@ jobs:
           submodules: true  # 서브모듈 체크아웃 활성화
           token: ${{ secrets.GIT_ACCESS_TOKEN }}  # private 저장소 접근을 위한 토큰
 
-
       # 서브모듈 업데이트 (최신 상태로 동기화)
       - name: Update submodules
         run: |
