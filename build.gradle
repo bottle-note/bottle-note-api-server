@@ -50,6 +50,7 @@ allprojects {
 dependencies {
 
     runtimeOnly project(':bottlenote-batch')
+    testRuntimeOnly project(':bottlenote-batch')
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
     testImplementation 'org.testng:testng:7.1.0'

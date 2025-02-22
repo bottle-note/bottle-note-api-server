@@ -1,8 +1,7 @@
 spring:
   batch:
     job:
-      name: simple
-    # jdbc.initialize-schema: never
-batch:
-  query:
-    best-review: ${BEST_REVIEW_QUERY}
+      enabled: false # 배치 실행 여부
+    jdbc.initialize-schema: never # 배치 실행 시 DB 초기화 여부
+
+command: java -jar /app/bottlenote-batch.jar

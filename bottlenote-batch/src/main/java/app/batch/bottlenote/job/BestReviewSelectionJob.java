@@ -16,8 +16,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.List;
 
 /**
@@ -29,9 +27,9 @@ import java.util.List;
 public class BestReviewSelectionJob {
 	private static final int CHUNK_SIZE = 10;
 	private final JdbcTemplate jdbcTemplate;
+	@Value("${command}")
+	private String command;
 
-	@Value("${batch.query.best-review}")
-	private String bestReviewQuery;
 
 	@Bean
 	public Job bestReviewSelectedJob(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
@@ -51,13 +49,36 @@ public class BestReviewSelectionJob {
 	}
 
 	private String decodeQuery() {
-		String decodedQuery = new String(Base64.getDecoder().decode(bestReviewQuery), StandardCharsets.UTF_8);
-		log.info("decodedQuery : {}", decodedQuery);
-		return decodedQuery;
+		log.info("command: {}", command);
+		return """
+			SELECT id, alcohol_id, popularityScore, likeCount, unlikeCount, replyCount, imageCount,reviewCount
+			FROM (SELECT r.id,
+			             r.alcohol_id,
+			             (SUM(IF(l.status = 'LIKE', 1, 0)) * 0.6 + COUNT(rr.id) * 0.2 + IF(COUNT(ri.id) > 0, 0.2, 0) -
+			              SUM(IF(l.status = 'DISLIKE', 1, 0)) * 0.1)           AS popularityScore,
+			             SUM(IF(l.status = 'LIKE', 1, 0))                      AS likeCount,
+			             SUM(IF(l.status = 'DISLIKE', 1, 0))                   AS unlikeCount,
+			             COUNT(rr.id)                                          AS replyCount,
+			             COUNT(ri.id)                                          AS imageCount,
+			             ROW_NUMBER() OVER (PARTITION BY r.alcohol_id ORDER BY
+			                 (SUM(IF(l.status = 'LIKE', 1, 0)) * 0.6 + COUNT(rr.id) * 0.2 + IF(COUNT(ri.id) > 0, 0.2, 0) -
+			                  SUM(IF(l.status = 'DISLIKE', 1, 0)) * 0.1) DESC) AS row_num,
+			             COUNT(r.id) OVER (PARTITION BY r.alcohol_id)             AS reviewCount
+			      FROM review r
+			               LEFT JOIN review_reply rr ON r.id = rr.review_id
+			               LEFT JOIN review_image ri ON r.id = ri.review_id
+			               LEFT JOIN likes l ON r.id = l.review_id
+			      GROUP BY r.id, r.alcohol_id) AS ranked_reviews
+			WHERE (ranked_reviews.reviewCount < 10 AND ranked_reviews.row_num <= 1)
+			   OR (ranked_reviews.reviewCount >= 10 AND ranked_reviews.reviewCount < 20 AND ranked_reviews.row_num <= 2)
+			   OR (ranked_reviews.reviewCount >= 20 AND ranked_reviews.row_num <= 3)
+			ORDER BY alcohol_id, popularityScore DESC;
+			""";
 	}
 
 	private void updateBestReviews(Chunk<? extends BestReviewPayload> chunk) {
 		String updateSql = "UPDATE review SET is_best = true WHERE id = ?";
+
 		for (BestReviewPayload item : chunk) {
 			jdbcTemplate.update(updateSql, item.id());
 			log.info("Best review updated: review id: {}", item.id());
