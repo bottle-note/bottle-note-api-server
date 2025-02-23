@@ -10,6 +10,7 @@ import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemReader;
+import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -19,6 +20,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.FileCopyUtils;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -28,22 +30,38 @@ import java.util.List;
 @Configuration
 @RequiredArgsConstructor
 public class BestReviewSelectionJob {
+	public static final String BEST_REVIEW_JOB_NAME = "bestReviewSelectedJob";
 	private static final int CHUNK_SIZE = 10;
 	private final JdbcTemplate jdbcTemplate;
 
+
 	@Bean
 	public Job bestReviewSelectedJob(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
-		Step step = reviewStep(jobRepository, transactionManager);
-		if (step == null) {
+		Step resetStep = getBestReviewResetStep(jobRepository, transactionManager);
+
+		Step selectionStep = getBestReviewSelectedStep(jobRepository, transactionManager);
+		if (selectionStep == null) {
 			return null;
 		}
-		return new JobBuilder("bestReviewSelectedJob", jobRepository)
-			.start(step)
+
+		return new JobBuilder(BEST_REVIEW_JOB_NAME, jobRepository)
+			.start(resetStep)
+			.next(selectionStep)
+			.build();
+	}
+
+	private Step getBestReviewResetStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+		return new StepBuilder("resetBestReviewStep", jobRepository)
+			.tasklet((contribution, chunkContext) -> {
+				int count = jdbcTemplate.update("update review set is_best = false");
+				log.info("Best review reset: count: {}", count);
+				return RepeatStatus.FINISHED;
+			}, transactionManager)
 			.build();
 	}
 
 	@Bean
-	public Step reviewStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+	public Step getBestReviewSelectedStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
 		String query = getQueryByResource();
 		if (query == null) {
 			log.info("베스트 리뷰 선정 리소스 파일을 찾을 수 없습니다 .");
@@ -71,11 +89,19 @@ public class BestReviewSelectionJob {
 	}
 
 	private void updateBestReviews(Chunk<? extends BestReviewPayload> chunk) {
-		String updateSql = "UPDATE review SET is_best = true WHERE id = ?";
-		for (BestReviewPayload item : chunk) {
-			jdbcTemplate.update(updateSql, item.id());
-			log.info("Best review updated: review id: {}", item.id());
-		}
+		if (chunk.isEmpty()) return;
+
+		// 배치 업데이트를 위한 SQL 준비
+		String sql = "UPDATE review SET is_best = true WHERE id IN (" +
+			String.join(",", Collections.nCopies(chunk.size(), "?")) + ")";
+
+		// 파라미터 배열 준비
+		Object[] params = chunk.getItems().stream()
+			.map(BestReviewPayload::id)
+			.toArray();
+
+		int updated = jdbcTemplate.update(sql, params);
+		log.info("Batch updated {} best reviews", updated);
 	}
 
 	private static class BestReviewReader implements ItemReader<BestReviewPayload> {

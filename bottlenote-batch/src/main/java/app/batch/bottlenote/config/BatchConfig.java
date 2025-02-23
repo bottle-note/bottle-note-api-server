@@ -6,8 +6,8 @@ import org.springframework.batch.core.configuration.support.JobRegistryBeanPostP
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@EnableBatchProcessing
 @Configuration
+@EnableBatchProcessing
 public class BatchConfig {
 
 	private final JobRegistry jobRegistry;
