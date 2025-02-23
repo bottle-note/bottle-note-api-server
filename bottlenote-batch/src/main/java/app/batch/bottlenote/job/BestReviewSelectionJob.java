@@ -80,7 +80,7 @@ public class BestReviewSelectionJob {
 		try {
 			// resources 디렉토리 하위의 파일 경로로 접근
 			Resource resource = new ClassPathResource("best-review-selected.sql");
-			log.info("best-review-selected.sql file path: {}", resource.getURL().getPath());
+			log.info("best-review-selected.sql file: {}", resource.getFilename());
 			return new String(FileCopyUtils.copyToByteArray(resource.getInputStream()));
 		} catch (IOException e) {
 			log.error("cant find best-review-selected.sql files", e);
