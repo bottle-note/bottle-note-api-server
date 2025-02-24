@@ -22,7 +22,7 @@ public class BatchSchedules {
 	private final JobRegistry jobRegistry;
 	private final JdbcTemplate jdbcTemplate;
 
-	@Scheduled(fixedDelay = 100000) // 10초마다 실행
+	@Scheduled(cron = "0 0 0 * * *")
 	public void bestReviewSelectedJob() {
 		final String jobName = "bestReviewSelectedJob";
 		log.info("start scheduler {} : {}", jobName, now());

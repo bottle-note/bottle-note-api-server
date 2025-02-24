@@ -1,0 +1,154 @@
+package app.batch.bottlenote.job;
+
+import app.batch.bottlenote.data.payload.PopularItemPayload;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.Step;
+import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.item.Chunk;
+import org.springframework.batch.item.ItemReader;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.util.FileCopyUtils;
+
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+/**
+ * 인기 주류 선정 배치 Job
+ */
+@Slf4j
+@Configuration
+@RequiredArgsConstructor
+public class PopularAlcoholJob {
+	public static final String POPULAR_JOB_NAME = "popularAlcoholJob";
+	private static final int CHUNK_SIZE = 100;
+
+	private final JdbcTemplate jdbcTemplate;
+
+	private final JobRepository jobRepository;
+	private final PlatformTransactionManager transactionManager;
+
+	@Bean
+	public Job popularAlcoholJob() {
+		Step popularStep = getPopularAlcoholStep();
+		if (popularStep == null) {
+			log.error("인기 주류 선정 Step을 로드할 수 없습니다.");
+			return null;
+		}
+		return new JobBuilder(POPULAR_JOB_NAME, jobRepository)
+			.start(popularStep)
+			.build();
+	}
+
+	@Bean
+	public Step getPopularAlcoholStep() {
+		String query = getQueryByResource();
+		if (query == null) {
+			log.error("인기 주류 선정 쿼리를 로드할 수 없습니다.");
+			return null;
+		}
+
+		log.info("인기 주류 선정 쿼리 로드 완료");
+
+		return new StepBuilder("popularAlcoholStep", jobRepository)
+			.<PopularItemPayload, PopularItemPayload>chunk(CHUNK_SIZE, transactionManager)
+			.reader(new PopularItemReader(jdbcTemplate, query))
+			.processor(item -> item)
+			.writer(this::savePopularItems)
+			.build();
+	}
+
+	@Bean
+	public String getQueryByResource() {
+		try {
+			Resource resource = new ClassPathResource("popularity.sql");
+			log.info("resource: {}", resource.getFilename());
+			return new String(FileCopyUtils.copyToByteArray(resource.getInputStream()));
+		} catch (IOException e) {
+			log.error("cant find popularity.sql files", e);
+			return null;
+		}
+	}
+
+	private void savePopularItems(Chunk<? extends PopularItemPayload> chunk) {
+		if (chunk.isEmpty()) return;
+
+		// 먼저 오늘 날짜에 해당하는 데이터를 확인하고 있으면 삭제
+		LocalDate today = LocalDate.now();
+		String clearSql = "DELETE FROM popular_alcohol WHERE year = ? AND month = ? AND day = ?";
+		int deleted = jdbcTemplate.update(clearSql, today.getYear(), today.getMonthValue(), today.getDayOfMonth());
+		log.info("기존 인기 주류 데이터 삭제: {}", deleted);
+
+		// 배치 삽입을 위한 SQL 준비
+		String sql = "INSERT INTO popular_alcohol (alcohol_id, year, month, day, review_score, rating_score, pick_score, popular_score, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+		// 각 항목에 대한 배치 업데이트 수행
+		List<Object[]> batchArgs = chunk.getItems().stream()
+			.map(item -> new Object[]{
+				item.alcoholId(),
+				item.year(),
+				item.month(),
+				item.day(),
+				item.reviewScore(),
+				item.ratingScore(),
+				item.pickScore(),
+				item.popularScore(),
+				LocalDateTime.now()
+			})
+			.toList();
+
+		int[] updateCounts = jdbcTemplate.batchUpdate(sql, batchArgs);
+		int totalInserted = 0;
+		for (int count : updateCounts) {
+			totalInserted += count;
+		}
+
+		log.info("인기 주류 데이터 삽입 완료: {}", totalInserted);
+	}
+
+	// 내부 리더 클래스 구현
+	private static class PopularItemReader implements ItemReader<PopularItemPayload> {
+		private final JdbcTemplate jdbcTemplate;
+		private final String query;
+		private List<PopularItemPayload> results;
+		private int currentIndex;
+
+		public PopularItemReader(JdbcTemplate jdbcTemplate, String query) {
+			this.jdbcTemplate = jdbcTemplate;
+			this.query = query;
+		}
+
+		@Override
+		public PopularItemPayload read() {
+			if (results == null) {
+				// 데이터 초기 로드
+				results = jdbcTemplate.query(query, new PopularItemPayload.PopularItemMapper());
+				currentIndex = 0;
+
+				log.info("인기 주류 데이터 로드 완료: {} 건", results.size());
+			}
+
+			PopularItemPayload nextItem = null;
+			if (currentIndex < results.size()) {
+				nextItem = results.get(currentIndex);
+				currentIndex++;
+			}
+
+			if (currentIndex >= results.size()) {
+				results = null; // 다음 read() 호출 시 새로 로드하도록 초기화
+			}
+
+			return nextItem;
+		}
+	}
+}
