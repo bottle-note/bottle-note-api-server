@@ -29,18 +29,14 @@ import java.util.List;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
-public class PopularAlcoholJob {
+public class PopularAlcoholSelectionJob {
 	public static final String POPULAR_JOB_NAME = "popularAlcoholJob";
 	private static final int CHUNK_SIZE = 100;
-
 	private final JdbcTemplate jdbcTemplate;
 
-	private final JobRepository jobRepository;
-	private final PlatformTransactionManager transactionManager;
-
 	@Bean
-	public Job popularAlcoholJob() {
-		Step popularStep = getPopularAlcoholStep();
+	public Job popularAlcoholJob(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+		Step popularStep = getPopularAlcoholStep(jobRepository, transactionManager);
 		if (popularStep == null) {
 			log.error("인기 주류 선정 Step을 로드할 수 없습니다.");
 			return null;
@@ -50,8 +46,7 @@ public class PopularAlcoholJob {
 			.build();
 	}
 
-	@Bean
-	public Step getPopularAlcoholStep() {
+	private Step getPopularAlcoholStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
 		String query = getQueryByResource();
 		if (query == null) {
 			log.error("인기 주류 선정 쿼리를 로드할 수 없습니다.");
@@ -68,8 +63,7 @@ public class PopularAlcoholJob {
 			.build();
 	}
 
-	@Bean
-	public String getQueryByResource() {
+	private String getQueryByResource() {
 		try {
 			Resource resource = new ClassPathResource("popularity.sql");
 			log.info("resource: {}", resource.getFilename());
@@ -112,11 +106,9 @@ public class PopularAlcoholJob {
 		for (int count : updateCounts) {
 			totalInserted += count;
 		}
-
 		log.info("인기 주류 데이터 삽입 완료: {}", totalInserted);
 	}
 
-	// 내부 리더 클래스 구현
 	private static class PopularItemReader implements ItemReader<PopularItemPayload> {
 		private final JdbcTemplate jdbcTemplate;
 		private final String query;
@@ -143,11 +135,6 @@ public class PopularAlcoholJob {
 				nextItem = results.get(currentIndex);
 				currentIndex++;
 			}
-
-			if (currentIndex >= results.size()) {
-				results = null; // 다음 read() 호출 시 새로 로드하도록 초기화
-			}
-
 			return nextItem;
 		}
 	}
