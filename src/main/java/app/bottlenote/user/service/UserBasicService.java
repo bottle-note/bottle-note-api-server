@@ -1,5 +1,10 @@
 package app.bottlenote.user.service;
 
+import static app.bottlenote.user.dto.response.constant.WithdrawUserResultMessage.USER_WITHDRAW_SUCCESS;
+import static app.bottlenote.user.exception.UserExceptionCode.MYBOTTLE_NOT_ACCESSIBLE;
+import static app.bottlenote.user.exception.UserExceptionCode.MYPAGE_NOT_ACCESSIBLE;
+import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
+
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
@@ -16,11 +21,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static app.bottlenote.user.dto.response.constant.WithdrawUserResultMessage.USER_WITHDRAW_SUCCESS;
-import static app.bottlenote.user.exception.UserExceptionCode.MYBOTTLE_NOT_ACCESSIBLE;
-import static app.bottlenote.user.exception.UserExceptionCode.MYPAGE_NOT_ACCESSIBLE;
-import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -63,10 +63,7 @@ public class UserBasicService {
 
 		user.changeProfileImage(viewUrl);
 
-		return ProfileImageChangeResponse.builder()
-			.userId(user.getId())
-			.profileImageUrl(user.getImageUrl())
-			.build();
+		return new ProfileImageChangeResponse(user.getId(), user.getImageUrl());
 	}
 
 	@Transactional

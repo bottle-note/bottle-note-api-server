@@ -2,25 +2,23 @@ package app.bottlenote.user.dto.response;
 
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
-import lombok.Builder;
-import lombok.Getter;
-
+import java.net.MalformedURLException;
 import java.net.URL;
 
-@Getter
-public class ProfileImageChangeResponse {
+public record ProfileImageChangeResponse(
+	Long userId,
+	String profileImageUrl,
+	URL callback
+) {
 
-	private final Long userId;
-	private final String profileImageUrl;
-	private final URL callback;
+	public ProfileImageChangeResponse(Long userId, String profileImageUrl) {
+		this(userId, profileImageUrl, createCallbackUrl(userId));
+	}
 
-	@Builder
-	public ProfileImageChangeResponse(Long userId, String profileImageUrl, String callback) {
-		this.userId = userId;
-		this.profileImageUrl = profileImageUrl;
+	private static URL createCallbackUrl(Long userId) {
 		try {
-			this.callback = new URL("https://bottle-note.com/api/v1/users/" + userId);
-		} catch (Exception e) {
+			return new URL("https://bottle-note.com/api/v1/users/" + userId);
+		} catch (MalformedURLException e) {
 			throw new UserException(UserExceptionCode.INVALID_CALL_BACK_URL);
 		}
 	}

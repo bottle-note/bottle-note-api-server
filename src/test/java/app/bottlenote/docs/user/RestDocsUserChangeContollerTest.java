@@ -1,24 +1,5 @@
 package app.bottlenote.docs.user;
 
-import app.bottlenote.docs.AbstractRestDocs;
-import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.user.controller.UserBasicController;
-import app.bottlenote.user.dto.request.NicknameChangeRequest;
-import app.bottlenote.user.dto.response.NicknameChangeResponse;
-import app.bottlenote.user.dto.response.ProfileImageChangeResponse;
-import app.bottlenote.user.service.UserBasicService;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.springframework.http.MediaType;
-import org.springframework.restdocs.payload.JsonFieldType;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
 import static app.bottlenote.user.dto.response.NicknameChangeResponse.Message.SUCCESS;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -32,6 +13,24 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.response
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import app.bottlenote.docs.AbstractRestDocs;
+import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.user.controller.UserBasicController;
+import app.bottlenote.user.dto.request.NicknameChangeRequest;
+import app.bottlenote.user.dto.response.NicknameChangeResponse;
+import app.bottlenote.user.dto.response.ProfileImageChangeResponse;
+import app.bottlenote.user.service.UserBasicService;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.springframework.http.MediaType;
+import org.springframework.restdocs.payload.JsonFieldType;
 
 @DisplayName("닉네임 변경 RestDocs용 테스트")
 class RestDocsUserChangeContollerTest extends AbstractRestDocs {
@@ -110,11 +109,7 @@ class RestDocsUserChangeContollerTest extends AbstractRestDocs {
 		Long userId = 1L;
 		String viewUrl = "http://example.com/new-profile-image.jpg";
 
-		ProfileImageChangeResponse response = ProfileImageChangeResponse.builder()
-			.userId(userId)
-			.profileImageUrl(viewUrl)
-			.callback("https://bottle-note.com/api/v1/users/" + userId)
-			.build();
+		ProfileImageChangeResponse response = new ProfileImageChangeResponse(userId, viewUrl);
 
 		// when
 		when(userCommandService.profileImageChange(anyLong(), anyString())).thenReturn(response);

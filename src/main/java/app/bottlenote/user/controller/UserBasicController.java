@@ -1,5 +1,8 @@
 package app.bottlenote.user.controller;
 
+import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
+import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
+
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
 import app.bottlenote.user.dto.request.ProfileImageChangeRequest;
@@ -18,9 +21,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
-import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
-
 
 @Slf4j
 @RequiredArgsConstructor
@@ -33,10 +33,8 @@ public class UserBasicController {
 	@PatchMapping("/nickname")
 	public ResponseEntity<?> nicknameChange(@RequestBody @Valid NicknameChangeRequest nicknameChangeRequest) {
 
-
 		Long userId = getUserIdByContext()
 			.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
-
 
 		NicknameChangeResponse response = userBasicService.nicknameChange(userId, nicknameChangeRequest);
 		return GlobalResponse.ok(response);
@@ -48,7 +46,6 @@ public class UserBasicController {
 
 		Long userId = getUserIdByContext()
 			.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
-
 
 		ProfileImageChangeResponse response = userBasicService.profileImageChange(userId, request.viewUrl());
 
