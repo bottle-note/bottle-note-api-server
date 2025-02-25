@@ -10,6 +10,7 @@ import app.bottlenote.user.service.UserBasicService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -21,15 +22,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Tag("rest-docs")
 @DisplayName("[restdocs] 마이페이지 컨트롤러 RestDocs용 테스트")
 public class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 
@@ -118,6 +120,9 @@ public class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 				.with(csrf()))
 			.andExpect(status().isOk())
 			.andDo(document("user/mybottle",
+				pathParameters(
+					parameterWithName("userId").description("유저 아이디")
+				),
 				queryParameters(
 					parameterWithName("keyword").optional().description("검색 키워드"),
 					parameterWithName("regionId").optional().description("지역 ID"),
@@ -157,5 +162,4 @@ public class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 				)
 			));
 	}
-
 }
