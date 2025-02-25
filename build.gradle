@@ -179,7 +179,6 @@ tasks.register('unitTest', Test) {
     }
 }
 
-
 // =========================== spring boot jar setting ===========================
 
 bootJar {
