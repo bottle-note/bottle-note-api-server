@@ -21,10 +21,13 @@ public class BatchSchedules {
 	private final JobLauncher jobLauncher;
 	private final JobRegistry jobRegistry;
 
+	/**
+	 * 베스트 리뷰 선정 배치
+	 */
 	@Scheduled(cron = "0 0 0 * * *")
 	public void bestReviewSelectedJob() {
 		final String jobName = "bestReviewSelectedJob";
-		log.info("start scheduler {} : {}", jobName, now());
+		log.info("start bestReviewSelectedJob scheduler {} : {}", jobName, now());
 
 		try {
 			Job job = jobRegistry.getJob(BEST_REVIEW_JOB_NAME); // job 이름
@@ -38,12 +41,15 @@ public class BatchSchedules {
 		}
 	}
 
+	/**
+	 * 인기 위스키 선정 배치
+	 */
 	@Scheduled(cron = "0 0 0 * * *")
 	public void popularSelectedJob() {
 		final String jobName = "popularReviewSelectedJob";
-		log.info("start scheduler {} : {}", jobName, now());
+		log.info("start popularSelectedJob scheduler {} : {}", jobName, now());
 		try {
-			Job job = jobRegistry.getJob(POPULAR_JOB_NAME); // job 이름
+			Job job = jobRegistry.getJob(POPULAR_JOB_NAME);
 			JobParametersBuilder jobParam =
 				new JobParametersBuilder()
 					.addLocalDateTime("localDateTime", now())
