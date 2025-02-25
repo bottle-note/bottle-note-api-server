@@ -3,9 +3,12 @@
 spring:
   profiles:
     default: local
+    include:
+      - batch
   jackson:
     time-zone: Asia/Seoul
 ---
+
 spring:
   config:
     activate:
@@ -17,7 +20,6 @@ logging:
         type:
           descriptor:
             sql: trace
-
 decorator:
   datasource:
     p6spy:

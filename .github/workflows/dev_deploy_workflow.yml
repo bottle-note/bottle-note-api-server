@@ -24,6 +24,15 @@ jobs:
       # 코드 체크아웃
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: true  # 서브모듈 체크아웃 활성화
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}  # private 저장소 접근을 위한 토큰
+
+      # 서브모듈 업데이트 (최신 상태로 동기화)
+      - name: Update submodules
+        run: |
+          git submodule update --init --recursive
+          git submodule update --remote
 
       ## JDK 17 설정
       - name: Set up JDK 17
@@ -56,7 +65,7 @@ jobs:
             touch  /home/ubuntu/app/bottle-note/src/main/resources/application-dev.yml
             echo "${{ secrets.APPLICATION_DEV }}" | base64 --decode > src/main/resources/application-dev.yml  
             chmod +x gradlew
-            ./gradlew build -x asciidoctor -x copyRestDocs
+            ./gradlew clean build -x asciidoctor -x copyRestDocs
 
       ## 개발 도커 실행
       - name: 도커 구성

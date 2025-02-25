@@ -6,13 +6,15 @@ import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static jakarta.transaction.Transactional.TxType.REQUIRES_NEW;
 
-@Profile("test")
+@Profile({"test", "batch"})
+@ActiveProfiles({"test", "batch"})
 @Component
 @SuppressWarnings("unchecked")
 public class DataInitializer {
