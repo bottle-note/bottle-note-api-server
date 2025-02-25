@@ -145,6 +145,11 @@ subprojects {
         annotationProcessor 'org.projectlombok:lombok'
     }
 
+    java {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
     bootJar.enabled = false
     jar.enabled = true
     tasks.named('test') { useJUnitPlatform() }
