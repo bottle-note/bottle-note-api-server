@@ -2,6 +2,8 @@ package app.bottlenote.alcohols.integration;
 
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.alcohols.domain.Alcohol;
+import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
+import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.detail.AlcoholDetail;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
 import app.bottlenote.global.data.response.GlobalResponse;
@@ -10,19 +12,18 @@ import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.dto.request.OauthRequest;
 import com.fasterxml.jackson.databind.JsonNode;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MvcResult;
-
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MvcResult;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -30,16 +31,68 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 
 @Tag("integration")
 @DisplayName("[integration] [controller] AlcoholQuery")
-class AlcoholQueryControllerIntegrationTest extends IntegrationTestSupport {
+class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
 
+	@Autowired
+	AlcoholQueryRepository alcoholQueryRepository;
 	@Autowired
 	AlcoholTestFactory alcoholTestFactory;
 	@Autowired
 	RatingTestFactory ratingTestFactory;
 
-	@DisplayName("알코올 상세 조회 시 해당 알코올을 마셔본 팔로잉 유저의 정보를 조회할 수 있다.")
+	@Sql(scripts = {
+		"/init-script/init-user.sql",
+		"/init-script/init-alcohol.sql"
+	})
+	@DisplayName("알코올 목록조회를 할 수 있다.")
 	@Test
 	void test_1() throws Exception {
+
+		MvcResult result = mockMvc.perform(get("/api/v1/alcohols/search")
+				.contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", "Bearer " + getToken())
+				.with(csrf())
+			)
+			.andDo(print())
+			.andReturn();
+		String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+		GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
+		AlcoholSearchResponse alcoholSearchResponse = mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
+
+		List<Alcohol> alcohols = alcoholQueryRepository.findAll();
+		assertNotNull(alcoholSearchResponse);
+		assertEquals(alcohols.size(), alcoholSearchResponse.getTotalCount());
+	}
+
+	@Sql(scripts = {
+		"/init-script/init-user.sql",
+		"/init-script/init-alcohol.sql",
+		"/init-script/init-review.sql"
+	})
+	@DisplayName("알코올 상세 조회를 할 수 있다.")
+	@Test
+	void test_2() throws Exception {
+		final Long alcoholId = 1L;
+
+		MvcResult result = mockMvc.perform(get("/api/v1/alcohols/{alcoholId}", alcoholId)
+				.contentType(MediaType.APPLICATION_JSON)
+				.header("Authorization", "Bearer " + getToken())
+				.with(csrf())
+			)
+			.andDo(print())
+			.andReturn();
+		String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+		GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
+		AlcoholDetail alcoholDetail = mapper.convertValue(response.getData(), AlcoholDetail.class);
+
+		assertNotNull(alcoholDetail.alcohols());
+		assertNotNull(alcoholDetail.reviewInfo());
+		assertNotNull(alcoholDetail.friendsInfo());
+	}
+
+	@DisplayName("알코올 상세 조회 시 해당 알코올을 마셔본 팔로잉 유저의 정보를 조회할 수 있다.")
+	@Test
+	void test_3() throws Exception {
 		// given
 		final Long alcoholId = 1L;
 		final String userEmail = "test1@example.com";
