@@ -1,45 +1,48 @@
 package app.bottlenote.support.report.integration;
 
-import static app.bottlenote.review.domain.constant.ReviewActiveStatus.ACTIVE;
-import static app.bottlenote.review.domain.constant.ReviewActiveStatus.DISABLED;
-import static app.bottlenote.support.report.domain.constant.ReviewReportType.ADVERTISEMENT;
-import static app.bottlenote.support.report.exception.ReportExceptionCode.ALREADY_REPORTED_REVIEW;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewRepository;
+import static app.bottlenote.review.domain.constant.ReviewActiveStatus.ACTIVE;
+import static app.bottlenote.review.domain.constant.ReviewActiveStatus.DISABLED;
 import app.bottlenote.support.report.domain.ReviewReport;
+import static app.bottlenote.support.report.domain.constant.ReviewReportType.ADVERTISEMENT;
+import app.bottlenote.support.report.domain.constant.UserReportType;
 import app.bottlenote.support.report.dto.request.ReviewReportRequest;
+import app.bottlenote.support.report.dto.request.UserReportRequest;
 import app.bottlenote.support.report.dto.response.ReviewReportResponse;
+import app.bottlenote.support.report.dto.response.UserReportResponse;
+import static app.bottlenote.support.report.dto.response.UserReportResponse.UserReportResponseEnum.SUCCESS;
+import static app.bottlenote.support.report.exception.ReportExceptionCode.ALREADY_REPORTED_REVIEW;
 import app.bottlenote.support.report.repository.ReviewReportRepository;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.dto.request.OauthRequest;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.IntStream;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Tag("integration")
 @DisplayName("[integration] [controller] HelpController")
 @WithMockUser
-class ReviewReportIntegrationTest extends IntegrationTestSupport {
+class ReportIntegrationTest extends IntegrationTestSupport {
 
 	@Autowired
 	private ReviewReportRepository reviewReportRepository;
@@ -196,6 +199,35 @@ class ReviewReportIntegrationTest extends IntegrationTestSupport {
 		assertNotNull(afterReview);
 		assertEquals(DISABLED, afterReview.getActiveStatus());
 		log.info("누적 신고 5개 이후 리뷰 상태: {}", afterReview.getActiveStatus());
+	}
+
+	@DisplayName("유저를 신고할 수 있다.")
+	@Test
+	@Sql(scripts = {
+		"/init-script/init-user.sql",
+		"/init-script/init-alcohol.sql",
+		"/init-script/init-review.sql"
+	})
+	void test_4() throws Exception {
+		UserReportRequest userReportRequest = new UserReportRequest(2L, UserReportType.FRAUD, "아주 나쁜놈이에요 신고합니다.");
+
+		MvcResult result = mockMvc.perform(post("/api/v1/reports/user")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsString(userReportRequest))
+				.header("Authorization", "Bearer " + getToken())
+				.with(csrf())
+			)
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.code").value(200))
+			.andExpect(jsonPath("$.data").exists())
+			.andReturn();
+
+		String contentAsString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+		GlobalResponse response = mapper.readValue(contentAsString, GlobalResponse.class);
+		UserReportResponse userReportResponse = mapper.convertValue(response.getData(), UserReportResponse.class);
+
+		assertEquals(userReportResponse.getMessage(), SUCCESS.getMessage());
 	}
 
 }
