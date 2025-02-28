@@ -4,11 +4,15 @@ import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.service.domain.AlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.picks.domain.Picks;
+import static app.bottlenote.picks.domain.PicksStatus.PICK;
+import static app.bottlenote.picks.domain.PicksStatus.UNPICK;
 import app.bottlenote.picks.dto.request.PicksUpdateRequest;
 import app.bottlenote.picks.dto.response.PicksUpdateResponse;
 import app.bottlenote.picks.repository.PicksRepository;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.service.UserFacade;
+import java.util.Optional;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -16,19 +20,13 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
-
-import static app.bottlenote.picks.domain.PicksStatus.PICK;
-import static app.bottlenote.picks.domain.PicksStatus.UNPICK;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @Disabled
 @Tag("unit")
@@ -77,8 +75,8 @@ class PicksCommandServiceTest {
 
 			PicksUpdateResponse response = picksCommandService.updatePicks(pickRequest, userId);
 			// then
-			assertEquals(PICK, response.getStatus());
-			assertEquals(response.getMessage(), PicksUpdateResponse.Message.PICKED.getMessage());
+			assertEquals(PICK, response.status());
+			assertEquals(response.message(), PicksUpdateResponse.Message.PICKED.message());
 		}
 
 		@Test
@@ -98,8 +96,8 @@ class PicksCommandServiceTest {
 			PicksUpdateResponse response = picksCommandService.updatePicks(pickRequest, user.getId());
 
 			// then
-			assertEquals(PICK, response.getStatus());
-			assertEquals(response.getMessage(), PicksUpdateResponse.Message.PICKED.getMessage());
+			assertEquals(PICK, response.status());
+			assertEquals(response.message(), PicksUpdateResponse.Message.PICKED.message());
 		}
 
 		@Test
@@ -118,8 +116,8 @@ class PicksCommandServiceTest {
 			PicksUpdateResponse response = picksCommandService.updatePicks(pickRequest, user.getId());
 
 			// then
-			assertEquals(PICK, response.getStatus());
-			assertEquals(response.getMessage(), PicksUpdateResponse.Message.PICKED.getMessage());
+			assertEquals(PICK, response.status());
+			assertEquals(response.message(), PicksUpdateResponse.Message.PICKED.message());
 		}
 	}
 
@@ -140,8 +138,8 @@ class PicksCommandServiceTest {
 
 			PicksUpdateResponse response = picksCommandService.updatePicks(pickRequest, userId);
 			// then
-			assertEquals(UNPICK, response.getStatus());
-			assertEquals(response.getMessage(), PicksUpdateResponse.Message.UNPICKED.getMessage());
+			assertEquals(UNPICK, response.status());
+			assertEquals(response.message(), PicksUpdateResponse.Message.UNPICKED.message());
 		}
 
 		@Test
@@ -160,8 +158,8 @@ class PicksCommandServiceTest {
 			PicksUpdateResponse response = picksCommandService.updatePicks(pickRequest, user.getId());
 
 			// then
-			assertEquals(UNPICK, response.getStatus());
-			assertEquals(response.getMessage(), PicksUpdateResponse.Message.UNPICKED.getMessage());
+			assertEquals(UNPICK, response.status());
+			assertEquals(response.message(), PicksUpdateResponse.Message.UNPICKED.message());
 		}
 	}
 }
