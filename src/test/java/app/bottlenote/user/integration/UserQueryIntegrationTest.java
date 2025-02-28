@@ -2,15 +2,28 @@ package app.bottlenote.user.integration;
 
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.global.data.response.Error;
+import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.user.domain.Follow;
+import app.bottlenote.user.domain.User;
+import app.bottlenote.user.domain.UserRepository;
+import app.bottlenote.user.domain.constant.FollowStatus;
+import app.bottlenote.user.dto.response.FollowerSearchResponse;
+import app.bottlenote.user.dto.response.FollowingSearchResponse;
 import app.bottlenote.user.exception.UserExceptionCode;
+import app.bottlenote.user.repository.FollowRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MvcResult;
 
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -20,6 +33,92 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Tag("integration")
 @DisplayName("[integration] [controller] UserQueryController")
 class UserQueryIntegrationTest extends IntegrationTestSupport {
+
+	@Autowired
+	private FollowRepository followRepository;
+	@Autowired
+	private UserRepository userRepository;
+
+	@Nested
+	@DisplayName("팔로우/팔로잉")
+	class Follower {
+
+		@DisplayName("유저는 자신의 팔로잉 목록을 조회할 수 있다.")
+		@Sql(scripts = {"/init-script/init-user.sql"})
+		@Test
+		void test_1() throws Exception {
+
+			final Long tokenUserId = getTokenUserId();
+
+			List<User> allUsers = userRepository.findAll().stream()
+					.filter(usreId -> !usreId.equals(tokenUserId))
+					.toList();
+
+			allUsers.forEach(u -> {
+				Follow follow = Follow.builder()
+						.userId(tokenUserId)
+						.targetUserId(u.getId())
+						.status(FollowStatus.FOLLOWING)
+						.build();
+				followRepository.save(follow);
+			});
+
+			MvcResult result = mockMvc.perform(get("/api/v1/follow/{userId}/following-list", tokenUserId)
+							.contentType(MediaType.APPLICATION_JSON)
+							.with(csrf())
+							.header("Authorization", "Bearer " + getToken()))
+					.andDo(print())
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$.code").value(200))
+					.andExpect(jsonPath("$.data").exists())
+					.andReturn();
+
+			String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+			GlobalResponse globalResponse = mapper.readValue(responseString, GlobalResponse.class);
+			FollowingSearchResponse followingSearchResponse = mapper.convertValue(globalResponse.getData(), FollowingSearchResponse.class);
+
+			assertNotNull(followingSearchResponse);
+			assertEquals(followingSearchResponse.totalCount(), allUsers.size());
+		}
+
+		@DisplayName("유저는 자신을 팔로우하는 팔로워 목록을 조회할 수 있다.")
+		@Sql(scripts = {"/init-script/init-user.sql"})
+		@Test
+		void test_2() throws Exception {
+
+			final Long tokenUserId = getTokenUserId();
+
+			List<User> allUsers = userRepository.findAll().stream()
+					.filter(usreId -> !usreId.equals(tokenUserId))
+					.toList();
+
+			allUsers.forEach(u -> {
+				Follow follow = Follow.builder()
+						.userId(u.getId())
+						.targetUserId(tokenUserId)
+						.status(FollowStatus.FOLLOWING)
+						.build();
+				followRepository.save(follow);
+			});
+
+			MvcResult result = mockMvc.perform(get("/api/v1/follow/{userId}/follower-list", tokenUserId)
+							.contentType(MediaType.APPLICATION_JSON)
+							.with(csrf())
+							.header("Authorization", "Bearer " + getToken()))
+					.andDo(print())
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$.code").value(200))
+					.andExpect(jsonPath("$.data").exists())
+					.andReturn();
+
+			String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+			GlobalResponse globalResponse = mapper.readValue(responseString, GlobalResponse.class);
+			FollowerSearchResponse followerSearchResponse = mapper.convertValue(globalResponse.getData(), FollowerSearchResponse.class);
+
+			assertNotNull(followerSearchResponse);
+			assertEquals(followerSearchResponse.totalCount(), allUsers.size());
+		}
+	}
 
 	@Nested
 	@DisplayName("마이페이지")
