@@ -3,6 +3,7 @@ package app.bottlenote.user.controller;
 import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.user.exception.UserExceptionCode;
+import app.bottlenote.user.service.DefaultUserFacade;
 import app.bottlenote.user.service.UserBasicService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,6 +43,9 @@ class UserBasicControllerTest {
 
 	@MockBean
 	private UserBasicService userCommandService;
+
+	@MockBean
+	private DefaultUserFacade userFacade;
 
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 

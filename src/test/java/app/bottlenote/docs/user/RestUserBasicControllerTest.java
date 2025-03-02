@@ -3,6 +3,8 @@ package app.bottlenote.docs.user;
 import app.bottlenote.docs.AbstractRestDocs;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.user.controller.UserBasicController;
+import app.bottlenote.user.dto.response.UserProfileInfo;
+import app.bottlenote.user.service.DefaultUserFacade;
 import app.bottlenote.user.service.UserBasicService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,11 +31,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class RestUserBasicControllerTest extends AbstractRestDocs {
 
 	private final UserBasicService userCommandService = mock(UserBasicService.class);
+	private final DefaultUserFacade userFacade = mock(DefaultUserFacade.class);
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
 	@Override
 	protected Object initController() {
-		return new UserBasicController(userCommandService);
+		return new UserBasicController(userCommandService,userFacade);
 	}
 
 	@BeforeEach
@@ -82,4 +85,36 @@ class RestUserBasicControllerTest extends AbstractRestDocs {
 
 	}
 
+	@DisplayName("현재 로그인한 유저 정보를 조회할 수 있다.")
+	@Test
+	void test_get_current_user_info() throws Exception {
+		Long userId = 1L;
+
+		UserProfileInfo response = UserProfileInfo.create(userId, "로그인한_유저_닉네임", "없을수도 잇음");
+		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(1L));
+		when(userFacade.getUserProfileInfo(userId)).thenReturn(response);
+
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/current")
+				.contentType(MediaType.APPLICATION_JSON)
+				.with(csrf()))
+			.andExpect(status().isOk())
+			.andDo(
+				document("user/get-current-user-info",
+					responseFields(
+						fieldWithPath("success").description("응답 성공 여부"),
+						fieldWithPath("code").description("응답 코드(http status code)"),
+
+						fieldWithPath("data.id").description("현재 로그인한 유저 아이디"),
+						fieldWithPath("data.nickname").description("현재 로그인한 유저 닉네임"),
+						fieldWithPath("data.imageUrl").description("현재 로그인한 유저 프로필 이미지 URL"),
+
+						fieldWithPath("errors").ignored(),
+						fieldWithPath("meta.serverEncoding").ignored(),
+						fieldWithPath("meta.serverVersion").ignored(),
+						fieldWithPath("meta.serverPathVersion").ignored(),
+						fieldWithPath("meta.serverResponseTime").ignored()
+					)
+				)
+			);
+	}
 }

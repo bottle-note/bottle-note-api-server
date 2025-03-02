@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.user.dto.response.ProfileImageChangeResponse;
+import app.bottlenote.user.service.DefaultUserFacade;
 import app.bottlenote.user.service.UserBasicService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
@@ -42,6 +43,8 @@ class UserProfileImagesChangeControllerTest {
 	private ObjectMapper mapper;
 	@MockBean
 	private UserBasicService profileImageChangeService;
+	@MockBean
+	private DefaultUserFacade userFacade;
 
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 

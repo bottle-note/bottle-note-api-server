@@ -10,12 +10,14 @@ import app.bottlenote.user.dto.response.NicknameChangeResponse;
 import app.bottlenote.user.dto.response.ProfileImageChangeResponse;
 import app.bottlenote.user.dto.response.WithdrawUserResultResponse;
 import app.bottlenote.user.exception.UserException;
+import app.bottlenote.user.service.DefaultUserFacade;
 import app.bottlenote.user.service.UserBasicService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserBasicController {
 
 	private final UserBasicService userBasicService;
+	private final DefaultUserFacade userFacade;
 
 	@PatchMapping("/nickname")
 	public ResponseEntity<?> nicknameChange(@RequestBody @Valid NicknameChangeRequest nicknameChangeRequest) {
@@ -40,7 +43,6 @@ public class UserBasicController {
 		return GlobalResponse.ok(response);
 	}
 
-	// 유저 프로필 이미지 변경
 	@PatchMapping("/profile-image")
 	public ResponseEntity<?> profileImageChange(@RequestBody ProfileImageChangeRequest request) {
 
@@ -61,5 +63,12 @@ public class UserBasicController {
 		WithdrawUserResultResponse response = userBasicService.withdrawUser(userId);
 
 		return GlobalResponse.ok(response);
+	}
+
+	@GetMapping("/current")
+	public ResponseEntity<?> getCurrentUser() {
+		Long userId = getUserIdByContext()
+			.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+		return GlobalResponse.ok(userFacade.getUserProfileInfo(userId));
 	}
 }

@@ -20,6 +20,7 @@ import app.bottlenote.user.controller.UserBasicController;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
 import app.bottlenote.user.dto.response.NicknameChangeResponse;
 import app.bottlenote.user.dto.response.ProfileImageChangeResponse;
+import app.bottlenote.user.service.DefaultUserFacade;
 import app.bottlenote.user.service.UserBasicService;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,11 +37,12 @@ import org.springframework.restdocs.payload.JsonFieldType;
 class RestDocsUserChangeContollerTest extends AbstractRestDocs {
 
 	private final UserBasicService userCommandService = mock(UserBasicService.class);
+	private final DefaultUserFacade userFacade = mock(DefaultUserFacade.class);
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
 	@Override
 	protected Object initController() {
-		return new UserBasicController(userCommandService);
+		return new UserBasicController(userCommandService,userFacade);
 	}
 
 	@BeforeEach
