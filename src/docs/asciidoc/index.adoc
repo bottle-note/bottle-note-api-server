@@ -99,7 +99,7 @@ include::api/user/user-reissue.adoc[]
 include::api/user/user-nickname-change.adoc[]
 
 '''
-include::api/user/user-profile-images-change.adoc[]
+include::api/user/user-profile.adoc[]
 
 '''
 include::api/user/user-withdraw.adoc[]

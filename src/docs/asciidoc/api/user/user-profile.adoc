@@ -40,3 +40,29 @@ include::{snippets}/user/profile-image-change/http-response.adoc[]
 | 유저를 찾을 수 없습니다.
 
 |===
+
+=== 현재 로그인 사용자 메타 정보 조회 ===
+
+현재 사용자의 메타 정보를 조회한다.
+
+요청 시 추가적인 필요 정보들은 추후 추가 할 수 있다.
+
+===
+
+[source]
+----
+PATCH /api/v1/users/current
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/user/get-current-user-info/curl-request.adoc[]
+
+[discrete]
+==== 응답 파라미터  ====
+
+[discrete]
+include::{snippets}/user/get-current-user-info/response-fields.adoc[]
+include::{snippets}/user/get-current-user-info/http-response.adoc[]
