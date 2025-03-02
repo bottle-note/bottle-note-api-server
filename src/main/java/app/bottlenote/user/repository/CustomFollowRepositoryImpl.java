@@ -1,8 +1,5 @@
 package app.bottlenote.user.repository;
 
-import static app.bottlenote.user.domain.QFollow.follow;
-import static app.bottlenote.user.domain.QUser.user;
-
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.user.domain.constant.FollowStatus;
@@ -12,9 +9,13 @@ import app.bottlenote.user.dto.response.FollowingSearchResponse;
 import app.bottlenote.user.dto.response.RelationUserInfo;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
+
+import static app.bottlenote.user.domain.QFollow.follow;
+import static app.bottlenote.user.domain.QUser.user;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -56,7 +57,7 @@ public class CustomFollowRepositoryImpl implements CustomFollowRepository {
 		Long totalCount = queryFactory
 			.select(follow.id.count())
 			.from(follow)
-			.where(follow.userId.eq(userId)
+			.where(follow.targetUserId.eq(userId)
 				.and(follow.status.eq(FollowStatus.FOLLOWING)))
 			.fetchOne();
 
