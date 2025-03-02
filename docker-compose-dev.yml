@@ -5,8 +5,12 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: dev-bottle-note
+
     ports:
       - "30001:30001"
     environment:
       - TZ=Asia/Seoul
       - SPRING_PROFILES_ACTIVE=dev
+    volumes:
+      - /mnt/newspace/bottle-note-data:/app/data
+    restart: unless-stopped
