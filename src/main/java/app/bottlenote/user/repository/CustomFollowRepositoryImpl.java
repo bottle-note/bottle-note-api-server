@@ -2,20 +2,22 @@ package app.bottlenote.user.repository;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.user.domain.QFollow;
+import static app.bottlenote.user.domain.QFollow.follow;
+import static app.bottlenote.user.domain.QUser.user;
 import app.bottlenote.user.domain.constant.FollowStatus;
 import app.bottlenote.user.dto.dsl.FollowPageableCriteria;
 import app.bottlenote.user.dto.response.FollowerSearchResponse;
 import app.bottlenote.user.dto.response.FollowingSearchResponse;
 import app.bottlenote.user.dto.response.RelationUserInfo;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.List;
-
-import static app.bottlenote.user.domain.QFollow.follow;
-import static app.bottlenote.user.domain.QUser.user;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -91,14 +93,29 @@ public class CustomFollowRepositoryImpl implements CustomFollowRepository {
 	}
 
 	private List<RelationUserInfo> getFollowerDetails(Long userId, Long cursor, Long pageSize) {
+		QFollow f2 = new QFollow("f2");
+
+		BooleanExpression isFollowing = JPAExpressions
+			.selectOne()
+			.from(f2)
+			.where(f2.userId.eq(userId)
+				.and(f2.targetUserId.eq(follow.userId))
+				.and(f2.status.eq(FollowStatus.FOLLOWING)))
+			.exists();
+
 		return queryFactory
 			.select(Projections.constructor(
 				RelationUserInfo.class,
 				follow.userId.as("userId"),
 				follow.targetUserId.as("followUserId"),
-				user.nickName.as("nickName"),
+				user.nickName.as("followUserNickname"),
 				user.imageUrl.as("userProfileImage"),
-				follow.status.as("status"),
+				Expressions.stringTemplate(
+					"CASE WHEN {0} THEN {1} ELSE {2} END",
+					isFollowing,
+					FollowStatus.FOLLOWING.name(),
+					FollowStatus.UNFOLLOW.name()
+				).as("status"),
 				supporter.followReviewCountSubQuery(follow.userId),
 				supporter.followRatingCountSubQuery(follow.userId)
 			))
