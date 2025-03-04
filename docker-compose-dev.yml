@@ -14,3 +14,10 @@ services:
     volumes:
       - /mnt/newspace/bottle-note-data:/app/data
     restart: unless-stopped
+
+    # 로그 제한 설정 추가
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
