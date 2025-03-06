@@ -2,10 +2,9 @@ package app.bottlenote.user.repository;
 
 import app.bottlenote.user.domain.User;
 import feign.Param;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
-
-import java.util.Optional;
 
 public interface OauthRepository extends CrudRepository<User, Long> {
 
@@ -22,6 +21,9 @@ public interface OauthRepository extends CrudRepository<User, Long> {
 	Optional<User> findByNickName(String nickName);
 
 	Optional<User> findByEmail(String email);
+
+	@Query(value = "SELECT * FROM users WHERE email = :email", nativeQuery = true)
+	Optional<User> findByEmailIncludingWithdrawn(@Param("email") String email);
 
 	Optional<User> findByRefreshToken(String refreshToken);
 
