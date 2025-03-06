@@ -13,22 +13,23 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.annotations.Comment;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import org.hibernate.annotations.Where;
 
 @Getter
 @ToString(of = {"id", "email", "nickName", "age", "socialType"})
 @Comment("사용자 정보 테이블")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity(name = "users")
+@Where(clause = "status = 'ACTIVE'")
 public class User extends BaseTimeEntity {
 
 	@Id
