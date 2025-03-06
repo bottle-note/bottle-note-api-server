@@ -1,14 +1,14 @@
 package app.bottlenote.user.repository;
 
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import app.bottlenote.global.service.cursor.CursorPageable;
+import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.picks.domain.PicksStatus;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
 import static app.bottlenote.user.domain.QFollow.follow;
-import static com.querydsl.jpa.JPAExpressions.select;
-
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.user.domain.constant.FollowStatus;
 import app.bottlenote.user.domain.constant.MyBottleSortType;
 import app.bottlenote.user.domain.constant.MyBottleTabType;
 import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
@@ -18,9 +18,12 @@ import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.util.StringUtils;
+import static com.querydsl.jpa.JPAExpressions.select;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -66,28 +69,14 @@ public class UserQuerySupporter {
 		return ExpressionUtils.as(
 			select(picks.count())
 				.from(picks)
-				.where(picks.userId.eq(userId)),
+				.where(picks.userId.eq(userId)
+					.and(picks.status.eq(PicksStatus.PICK))),
 			"picksCount"
 		);
 	}
 
 	/**
-	 * 마이 페이지 사용자가 팔로우 하는 유저 수 를 조회한다.
-	 *
-	 * @param userId
-	 * @return 팔로우 하는 유저 수
-	 */
-	public Expression<Long> followCountSubQuery(NumberPath<Long> userId) {
-		return ExpressionUtils.as(
-			select(follow.count())
-				.from(follow)
-				.where(follow.userId.eq(userId)),
-			"followCount"
-		);
-	}
-
-	/**
-	 * 마이 페이지 사용자를 팔로우 하는 유저 수(팔로워 수)를 조회한다.
+	 * 마이 페이지 사용자의 팔로워 수 를 조회한다.
 	 *
 	 * @param userId
 	 * @return 팔로워 수
@@ -96,7 +85,24 @@ public class UserQuerySupporter {
 		return ExpressionUtils.as(
 			select(follow.count())
 				.from(follow)
-				.where(follow.targetUserId.eq(userId)),
+				.where(follow.userId.eq(userId)
+					.and(follow.status.eq(FollowStatus.FOLLOWING))),
+			"followCount"
+		);
+	}
+
+	/**
+	 * 마이 페이지 사용자가 팔로잉 하는 유저 수를 조회한다.
+	 *
+	 * @param userId
+	 * @return 팔로잉 수
+	 */
+	public Expression<Long> followingCountSubQuery(NumberPath<Long> userId) {
+		return ExpressionUtils.as(
+			select(follow.count())
+				.from(follow)
+				.where(follow.targetUserId.eq(userId)
+					.and(follow.status.eq(FollowStatus.FOLLOWING))),
 			"followerCount"
 		);
 	}
@@ -112,20 +118,20 @@ public class UserQuerySupporter {
 		return select(follow.count())
 			.from(follow)
 			.where(follow.userId.eq(currentUserId)
-				.and(follow.targetUserId.eq(userId)))
+				.and(follow.targetUserId.eq(userId))
+				.and(follow.status.eq(FollowStatus.FOLLOWING)))
 			.gt(0L);
 	}
 
 	/**
-	 * 로그인 사용자가 조회하는 페이지의 사용자인지 여부(나의 마이페이지인지 여부)를 조회한다.
-	 * 해당 조회는 마이보틀 페이지에서도 사용된다.
+	 * 로그인 사용자가 조회하는 페이지의 사용자인지 여부(나의 마이페이지인지 여부)를 조회한다. 해당 조회는 마이보틀 페이지에서도 사용된다.
 	 *
 	 * @param userId
 	 * @param currentUserId
 	 * @return 마이페이지 여부 (true : 나의 마이페이지, false : 나의 마이페이지가 아님)
 	 */
-	public BooleanExpression isMyPageSubQuery(NumberPath<Long> userId, Long currentUserId) {
-		return userId.eq(currentUserId);
+	public BooleanExpression isMyPageSubQuery(Long userId, Long currentUserId) {
+		return Expressions.asBoolean(Objects.equals(userId, currentUserId));
 	}
 
 	/**

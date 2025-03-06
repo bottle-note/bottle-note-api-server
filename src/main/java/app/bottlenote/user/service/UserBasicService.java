@@ -1,10 +1,5 @@
 package app.bottlenote.user.service;
 
-import static app.bottlenote.user.dto.response.constant.WithdrawUserResultMessage.USER_WITHDRAW_SUCCESS;
-import static app.bottlenote.user.exception.UserExceptionCode.MYBOTTLE_NOT_ACCESSIBLE;
-import static app.bottlenote.user.exception.UserExceptionCode.MYPAGE_NOT_ACCESSIBLE;
-import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
-
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
@@ -15,8 +10,12 @@ import app.bottlenote.user.dto.response.MyPageResponse;
 import app.bottlenote.user.dto.response.NicknameChangeResponse;
 import app.bottlenote.user.dto.response.ProfileImageChangeResponse;
 import app.bottlenote.user.dto.response.WithdrawUserResultResponse;
+import static app.bottlenote.user.dto.response.constant.WithdrawUserResultMessage.USER_WITHDRAW_SUCCESS;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
+import static app.bottlenote.user.exception.UserExceptionCode.MYBOTTLE_NOT_ACCESSIBLE;
+import static app.bottlenote.user.exception.UserExceptionCode.MYPAGE_NOT_ACCESSIBLE;
+import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -79,15 +78,12 @@ public class UserBasicService {
 
 	@Transactional(readOnly = true)
 	public MyPageResponse getMyPage(Long userId, Long currentUserId) {
-
 		boolean isUserNotAccessible = !userRepository.existsByUserId(userId);
 
 		if (isUserNotAccessible) {
 			throw new UserException(MYPAGE_NOT_ACCESSIBLE);
 		}
-
 		return userRepository.getMyPage(userId, currentUserId);
-
 	}
 
 	@Transactional(readOnly = true)
