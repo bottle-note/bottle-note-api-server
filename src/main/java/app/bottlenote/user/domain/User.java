@@ -2,6 +2,7 @@ package app.bottlenote.user.domain;
 
 import app.bottlenote.common.domain.BaseTimeEntity;
 import app.bottlenote.global.service.converter.JsonArrayConverter;
+import app.bottlenote.user.domain.constant.GenderType;
 import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.domain.constant.UserStatus;
 import app.bottlenote.user.domain.constant.UserType;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,10 +28,12 @@ import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
 
+@Builder
 @Getter
 @ToString(of = {"id", "email", "nickName", "age", "socialType"})
 @Comment("사용자 정보 테이블")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity(name = "users")
 @FilterDef(
 	name = "statusFilter",
@@ -60,9 +64,10 @@ public class User extends BaseTimeEntity {
 	@Column(name = "age")
 	private Integer age;
 
+	@Enumerated(EnumType.STRING)
 	@Comment("사용자 성별")
 	@Column(name = "gender")
-	private String gender;
+	private GenderType gender;
 
 	@Comment("사용자 프로필 썸네일")
 	@Column(name = "image_url")
@@ -76,6 +81,7 @@ public class User extends BaseTimeEntity {
 	@Enumerated(EnumType.STRING)
 	@Comment("사용자 상태(ACTIVE, DELETED)")
 	@Column(name = "status", nullable = false)
+	@Builder.Default
 	private UserStatus status = UserStatus.ACTIVE;
 
 	@Convert(converter = JsonArrayConverter.class)
@@ -86,22 +92,7 @@ public class User extends BaseTimeEntity {
 	@Comment("사용자 리프레시토큰")
 	@Column(name = "refresh_token")
 	private String refreshToken;
-
-	@Builder
-	public User(Long id, String email, String nickName, Integer age, String gender, String imageUrl,
-				UserType role, List<SocialType> socialType, String refreshToken, String password) {
-		this.id = id;
-		this.email = email;
-		this.nickName = nickName;
-		this.age = age;
-		this.gender = gender;
-		this.imageUrl = imageUrl;
-		this.role = role;
-		this.socialType = socialType;
-		this.refreshToken = refreshToken;
-		this.password = password;
-	}
-
+	
 	public void updateRefreshToken(String refreshToken) {
 		Objects.requireNonNull(refreshToken, "refreshToken은 null이 될 수 없습니다.");
 		this.refreshToken = refreshToken;
