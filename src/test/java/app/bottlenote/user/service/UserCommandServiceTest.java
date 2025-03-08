@@ -1,5 +1,13 @@
 package app.bottlenote.user.service;
 
+import static app.bottlenote.user.exception.UserExceptionCode.USER_NICKNAME_NOT_VALID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.domain.constant.UserStatus;
@@ -7,6 +15,8 @@ import app.bottlenote.user.dto.request.NicknameChangeRequest;
 import app.bottlenote.user.dto.response.NicknameChangeResponse;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.fixture.UserObjectFixture;
+import java.util.Optional;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -15,15 +25,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
-
-import static app.bottlenote.user.exception.UserExceptionCode.USER_NICKNAME_NOT_VALID;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
-
 @Tag("unit")
 @DisplayName("[unit] [service] UserCommandService")
 @ExtendWith(MockitoExtension.class)
@@ -31,6 +32,9 @@ class UserCommandServiceTest {
 
 	@InjectMocks
 	UserBasicService userCommandService;
+
+	@Mock
+	UserFilterManager userFilterManager;
 
 	@Mock
 	UserRepository userCommandRepository;
@@ -52,6 +56,8 @@ class UserCommandServiceTest {
 		when(userCommandRepository.existsByNickName(newNickname)).thenReturn(false);
 		when(userCommandRepository.findById(any())).thenReturn(Optional.of(user));
 
+		when(userFilterManager.withActiveUserFilter(eq(UserStatus.ACTIVE), any(Supplier.class)))
+			.thenAnswer(invocation -> invocation.getArgument(1, Supplier.class).get());
 
 		NicknameChangeResponse response = userCommandService.nicknameChange(userId, request);
 
@@ -75,6 +81,8 @@ class UserCommandServiceTest {
 
 		// when
 		when(userCommandRepository.existsByNickName(newNickname)).thenReturn(true);
+		when(userFilterManager.withActiveUserFilter(eq(UserStatus.ACTIVE), any(Supplier.class)))
+			.thenAnswer(invocation -> invocation.getArgument(1, Supplier.class).get());
 		UserException aThrows = assertThrows(UserException.class, () -> userCommandService.nicknameChange(userId, request));
 
 		// then
@@ -91,6 +99,8 @@ class UserCommandServiceTest {
 		// when
 		when(userCommandRepository.findById(anyLong()))
 			.thenReturn(Optional.of(user));
+		when(userFilterManager.withActiveUserFilter(eq(UserStatus.ACTIVE), any(Supplier.class)))
+			.thenAnswer(invocation -> invocation.getArgument(1, Supplier.class).get());
 
 		userCommandService.withdrawUser(userId);
 
@@ -107,6 +117,8 @@ class UserCommandServiceTest {
 		// when
 		when(userCommandRepository.findById(anyLong()))
 			.thenReturn(Optional.empty());
+		when(userFilterManager.withActiveUserFilter(eq(UserStatus.ACTIVE), any(Supplier.class)))
+			.thenAnswer(invocation -> invocation.getArgument(1, Supplier.class).get());
 
 		// then
 		assertThrows(UserException.class, () -> userCommandService.withdrawUser(userId));

@@ -2,9 +2,8 @@ package app.bottlenote.user.dto.response;
 
 import lombok.Builder;
 
-
+@Builder
 public record MyPageResponse(
-
 	Long userId,
 	String nickName,
 	String imageUrl,
@@ -15,10 +14,5 @@ public record MyPageResponse(
 	Long followingCount,
 	Boolean isFollow,
 	Boolean isMyPage
-
-
 ) {
-	@Builder
-	public MyPageResponse {
-	}
 }

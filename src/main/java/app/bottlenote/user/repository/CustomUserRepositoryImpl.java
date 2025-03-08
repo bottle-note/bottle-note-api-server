@@ -1,23 +1,21 @@
 package app.bottlenote.user.repository;
 
+import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import app.bottlenote.global.service.cursor.CursorPageable;
+import static app.bottlenote.picks.domain.PicksStatus.PICK;
+import static app.bottlenote.picks.domain.QPicks.picks;
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
 import app.bottlenote.review.domain.constant.ReviewActiveStatus;
+import static app.bottlenote.user.domain.QUser.user;
 import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.List;
-
-import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.picks.domain.PicksStatus.PICK;
-import static app.bottlenote.picks.domain.QPicks.picks;
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.domain.QReview.review;
-import static app.bottlenote.user.domain.QUser.user;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -45,10 +43,10 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 				supporter.reviewCountSubQuery(user.id),     // 마이 페이지 사용자의 리뷰 개수
 				supporter.ratingCountSubQuery(user.id),     // 마이 페이지 사용자의 평점 개수
 				supporter.picksCountSubQuery(user.id),      // 마이 페이지 사용자의 찜하기 개수
-				supporter.followCountSubQuery(user.id),     // 마이 페이지 사용자가 팔로우 하는 유저 수
+				supporter.followingCountSubQuery(user.id),     // 마이 페이지 사용자가 팔로우 하는 유저 수
 				supporter.followerCountSubQuery(user.id),   //  마이 페이지 사용자를 팔로우 하는 유저 수
 				supporter.isFollowSubQuery(user.id, currentUserId), // 로그인 사용자가 마이 페이지 사용자를 팔로우 하고 있는지 여부
-				supporter.isMyPageSubQuery(user.id, currentUserId) // 로그인 사용자가 마이 페이지 사용자인지 여부(나의 마이페이지인지 여부)
+				supporter.isMyPageSubQuery(userId, currentUserId) // 로그인 사용자가 마이 페이지 사용자인지 여부(나의 마이페이지인지 여부)
 			))
 			.from(user)
 			.where(user.id.eq(userId))

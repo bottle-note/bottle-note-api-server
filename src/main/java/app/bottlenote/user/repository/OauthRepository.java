@@ -2,10 +2,9 @@ package app.bottlenote.user.repository;
 
 import app.bottlenote.user.domain.User;
 import feign.Param;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
-
-import java.util.Optional;
 
 public interface OauthRepository extends CrudRepository<User, Long> {
 
