@@ -22,14 +22,21 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.annotations.Comment;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
 
 @Getter
 @ToString(of = {"id", "email", "nickName", "age", "socialType"})
 @Comment("사용자 정보 테이블")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity(name = "users")
-@Where(clause = "status = 'ACTIVE'")
+@FilterDef(
+	name = "statusFilter",
+	parameters = @ParamDef(name = "userStatus", type = String.class),
+	defaultCondition = "status = :userStatus"
+)
+@Filter(name = "statusFilter")
 public class User extends BaseTimeEntity {
 
 	@Id

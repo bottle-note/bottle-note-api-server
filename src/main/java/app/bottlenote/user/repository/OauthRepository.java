@@ -22,9 +22,6 @@ public interface OauthRepository extends CrudRepository<User, Long> {
 
 	Optional<User> findByEmail(String email);
 
-	@Query(value = "SELECT * FROM users WHERE email = :email", nativeQuery = true)
-	Optional<User> findByEmailIncludingWithdrawn(@Param("email") String email);
-
 	Optional<User> findByRefreshToken(String refreshToken);
 
 	@Query("select u from users  u order by u.id limit 1")

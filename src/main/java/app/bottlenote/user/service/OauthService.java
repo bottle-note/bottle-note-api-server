@@ -1,8 +1,10 @@
 package app.bottlenote.user.service;
 
+import static app.bottlenote.global.security.jwt.JwtTokenValidator.validateToken;
+import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
+
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
-import static app.bottlenote.global.security.jwt.JwtTokenValidator.validateToken;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.constant.GenderType;
 import app.bottlenote.user.domain.constant.SocialType;
@@ -12,7 +14,6 @@ import app.bottlenote.user.dto.response.BasicAccountResponse;
 import app.bottlenote.user.dto.response.TokenDto;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
-import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
 import app.bottlenote.user.repository.OauthRepository;
 import java.security.SecureRandom;
 import java.util.Arrays;
@@ -43,7 +44,7 @@ public class OauthService {
 		final GenderType genderType = oauthReq.gender();
 		final Integer age = oauthReq.age();
 
-		User user = oauthRepository.findByEmailIncludingWithdrawn(email).orElseGet(() -> oauthSignUp(email, socialType, genderType, age, UserType.ROLE_USER));
+		User user = oauthRepository.findByEmail(email).orElseGet(() -> oauthSignUp(email, socialType, genderType, age, UserType.ROLE_USER));
 
 		if (Boolean.FALSE.equals(user.isAlive()))
 			throw new UserException(UserExceptionCode.USER_DELETED);
@@ -136,7 +137,7 @@ public class OauthService {
 
 	@Transactional
 	public BasicAccountResponse basicSignup(String email, String password, Integer age, String gender) {
-		oauthRepository.findByEmailIncludingWithdrawn(email).ifPresent(user -> {
+		oauthRepository.findByEmail(email).ifPresent(user -> {
 			throw new UserException(UserExceptionCode.USER_ALREADY_EXISTS);
 		});
 
