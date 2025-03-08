@@ -14,7 +14,7 @@ import app.bottlenote.user.domain.constant.UserStatus;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
 import app.bottlenote.user.dto.response.NicknameChangeResponse;
 import app.bottlenote.user.exception.UserException;
-import app.bottlenote.user.fixture.UserObjectFixture;
+import app.bottlenote.user.fixture.UserFixtureMonkey;
 import java.util.Optional;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.DisplayName;
@@ -44,7 +44,7 @@ class UserCommandServiceTest {
 	void testChangeNickname() {
 
 		Long userId = 1L;
-		User user = UserObjectFixture.getUserFixtureObject();
+		User user = UserFixtureMonkey.createUserFixture();
 
 		String newNickname = "newNickname";
 		String beforeNickname = user.getNickName();
@@ -94,7 +94,7 @@ class UserCommandServiceTest {
 	void testWithdrawUserSuccess() {
 		// given
 		Long userId = 1L;
-		User user = UserObjectFixture.getUserFixtureObject();
+		User user = UserFixtureMonkey.createUserFixture();
 
 		// when
 		when(userCommandRepository.findById(anyLong()))
