@@ -49,7 +49,7 @@ public class AlcoholTestFactory {
 			.id(id)
 			.email(email)
 			.age(20)
-			.gender(GenderType.MALE.name())
+			.gender(GenderType.MALE)
 			.nickName(nickName)
 			.socialType(List.of(SocialType.KAKAO))
 			.role(UserType.ROLE_USER)

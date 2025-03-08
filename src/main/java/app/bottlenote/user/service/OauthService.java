@@ -103,7 +103,7 @@ public class OauthService {
 			.email(email)
 			.socialType(List.of(socialType))
 			.role(userType)
-			.gender(String.valueOf(genderType))
+			.gender(genderType)
 			.age(age)
 			.nickName(generateNickname())
 			.build();
@@ -136,7 +136,7 @@ public class OauthService {
 	}
 
 	@Transactional
-	public BasicAccountResponse basicSignup(String email, String password, Integer age, String gender) {
+	public BasicAccountResponse basicSignup(String email, String password, Integer age, GenderType gender) {
 		oauthRepository.findByEmail(email).ifPresent(user -> {
 			throw new UserException(UserExceptionCode.USER_ALREADY_EXISTS);
 		});
