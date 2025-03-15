@@ -1,13 +1,15 @@
 package app.bottlenote.user.repository;
 
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.SortOrder;
-import app.bottlenote.picks.domain.PicksStatus;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
 import static app.bottlenote.user.domain.QFollow.follow;
+import static com.querydsl.jpa.JPAExpressions.select;
+
+import app.bottlenote.global.service.cursor.CursorPageable;
+import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.picks.domain.PicksStatus;
 import app.bottlenote.user.domain.constant.FollowStatus;
 import app.bottlenote.user.domain.constant.MyBottleSortType;
 import app.bottlenote.user.domain.constant.MyBottleTabType;
@@ -21,7 +23,6 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.util.StringUtils;
-import static com.querydsl.jpa.JPAExpressions.select;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.stereotype.Component;
@@ -54,7 +55,8 @@ public class UserQuerySupporter {
 		return ExpressionUtils.as(
 			select(rating.count())
 				.from(rating)
-				.where(rating.id.userId.eq(userId)),
+				.where(rating.id.userId.eq(userId)
+					.and(rating.ratingPoint.rating.gt(0.0))),
 			"ratingCount"
 		);
 	}
