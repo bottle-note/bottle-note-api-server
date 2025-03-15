@@ -10,6 +10,7 @@ import static com.querydsl.jpa.JPAExpressions.select;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.picks.domain.PicksStatus;
+import app.bottlenote.review.domain.constant.ReviewActiveStatus;
 import app.bottlenote.user.domain.constant.FollowStatus;
 import app.bottlenote.user.domain.constant.MyBottleSortType;
 import app.bottlenote.user.domain.constant.MyBottleTabType;
@@ -40,7 +41,8 @@ public class UserQuerySupporter {
 		return ExpressionUtils.as(
 			select(review.count())
 				.from(review)
-				.where(review.userId.eq(userId)),
+				.where(review.userId.eq(userId)
+					.and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE))),
 			"reviewCount"
 		);
 	}
