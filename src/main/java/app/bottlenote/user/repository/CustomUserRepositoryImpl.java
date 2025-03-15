@@ -16,6 +16,7 @@ import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -101,71 +102,51 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 			.fetch();
 
 		CursorPageable cursorPageable = supporter.myBottleCursorPageable(request, myBottleList);
-//		Long totalCount = queryFactory
-//			.select(request.tabType().equals(REVIEW) ? alcohol.id.count() : alcohol.id.countDistinct())
-//			.from(alcohol)
-//			.leftJoin(picks).on(picks.alcoholId.eq(alcohol.id).and(picks.userId.eq(userId)).and(picks.status.eq(PICK)))
-//			.leftJoin(review).on(review.alcoholId.eq(alcohol.id).and(review.userId.eq(userId)).and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE)))
-//			.leftJoin(rating).on(rating.id.alcoholId.eq(alcohol.id).and(rating.id.userId.eq(userId)).and(rating.ratingPoint.rating.gt(0.0)))
-//			.where(
-//				picks.id.isNotNull().or(rating.id.isNotNull()).or(review.id.isNotNull()),
-//				supporter.eqTabType(request.tabType()),
-//				supporter.eqName(request.keyword()),
-//				supporter.eqRegion(request.regionId())
-//			)
-//			.fetchOne();
-
 		Long totalCount;
-		if (request.tabType().equals(ALL)) {
-			Tuple counts = queryFactory
-				.select(
-					review.id.count().as("reviewCount"),
-					rating.id.countDistinct().as("ratingCount"),
-					picks.id.countDistinct().as("pickCount"))
-				.from(alcohol)
-				.leftJoin(picks).on(picks.alcoholId.eq(alcohol.id)
-					.and(picks.userId.eq(userId))
-					.and(picks.status.eq(PICK)))
-				.leftJoin(review).on(review.alcoholId.eq(alcohol.id)
-					.and(review.userId.eq(userId))
-					.and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE)))
-				.leftJoin(rating).on(rating.id.alcoholId.eq(alcohol.id)
-					.and(rating.id.userId.eq(userId))
-					.and(rating.ratingPoint.rating.gt(0.0)))
-				.where(
-					picks.id.isNotNull().or(rating.id.isNotNull()).or(review.id.isNotNull()),
-					supporter.eqTabType(request.tabType()),
-					supporter.eqName(request.keyword()),
-					supporter.eqRegion(request.regionId())
-				)
-				.fetchOne();
+		// 공통 조건을 추출한 베이스 쿼리 생성
+		JPAQuery<?> totalCountBaseQuery = queryFactory
+			.from(alcohol)
+			.leftJoin(picks).on(picks.alcoholId.eq(alcohol.id)
+				.and(picks.userId.eq(userId))
+				.and(picks.status.eq(PICK)))
+			.leftJoin(review).on(review.alcoholId.eq(alcohol.id)
+				.and(review.userId.eq(userId))
+				.and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE)))
+			.leftJoin(rating).on(rating.id.alcoholId.eq(alcohol.id)
+				.and(rating.id.userId.eq(userId))
+				.and(rating.ratingPoint.rating.gt(0.0)))
+			.where(
+				picks.id.isNotNull().or(rating.id.isNotNull()).or(review.id.isNotNull()),
+				supporter.eqTabType(request.tabType()),
+				supporter.eqName(request.keyword()),
+				supporter.eqRegion(request.regionId())
+			);
 
-			Long reviewCount = counts.get(0, Long.class) != null ? counts.get(0, Long.class) : 0L;
-			Long ratingCount = counts.get(1, Long.class) != null ? counts.get(1, Long.class) : 0L;
-			Long pickCount = counts.get(2, Long.class) != null ? counts.get(2, Long.class) : 0L;
-			totalCount = reviewCount + ratingCount + pickCount;
-			
-			log.info("reviewCount : {}, ratingCount : {}, pickCount : {}", reviewCount, ratingCount, pickCount);
+		if (ALL.equals(request.tabType())) {
+			// ALL인 경우는 각 카운트를 개별로 집계한 후 합산
+			Tuple counts = totalCountBaseQuery.select(
+				review.id.count().as("reviewCount"),
+				rating.id.countDistinct().as("ratingCount"),
+				picks.id.countDistinct().as("pickCount")
+			).fetchOne();
+
+			if (counts != null) {
+				final Long reviewCountValue = counts.get(0, Long.class);
+				final Long ratingCountValue = counts.get(1, Long.class);
+				final Long pickCountValue = counts.get(2, Long.class);
+
+				Long reviewCount = reviewCountValue != null ? reviewCountValue : 0L;
+				Long ratingCount = ratingCountValue != null ? ratingCountValue : 0L;
+				Long pickCount = pickCountValue != null ? pickCountValue : 0L;
+				totalCount = reviewCount + ratingCount + pickCount;
+				log.info("reviewCount : {}, ratingCount : {}, pickCount : {}", reviewCount, ratingCount, pickCount);
+			} else {
+				totalCount = 0L;
+			}
 		} else {
-			totalCount = queryFactory
-				.select(request.tabType().equals(REVIEW) ? alcohol.id.count() : alcohol.id.countDistinct())
-				.from(alcohol)
-				.leftJoin(picks).on(picks.alcoholId.eq(alcohol.id)
-					.and(picks.userId.eq(userId))
-					.and(picks.status.eq(PICK)))
-				.leftJoin(review).on(review.alcoholId.eq(alcohol.id)
-					.and(review.userId.eq(userId))
-					.and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE)))
-				.leftJoin(rating).on(rating.id.alcoholId.eq(alcohol.id)
-					.and(rating.id.userId.eq(userId))
-					.and(rating.ratingPoint.rating.gt(0.0)))
-				.where(
-					picks.id.isNotNull().or(rating.id.isNotNull()).or(review.id.isNotNull()),
-					supporter.eqTabType(request.tabType()),
-					supporter.eqName(request.keyword()),
-					supporter.eqRegion(request.regionId())
-				)
-				.fetchOne();
+			totalCount = totalCountBaseQuery.select(
+				request.tabType().equals(REVIEW) ? alcohol.id.count() : alcohol.id.countDistinct()
+			).fetchOne();
 		}
 		return MyBottleResponse.builder()
 			.userId(userId)
@@ -175,5 +156,4 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 			.cursorPageable(cursorPageable)
 			.build();
 	}
-
 }
