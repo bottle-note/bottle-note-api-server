@@ -34,7 +34,7 @@ public class UserQuerySupporter {
 	/**
 	 * 마이 페이지 사용자의 리뷰 개수를 조회한다.
 	 *
-	 * @param userId
+	 * @param userId 마이 페이지 사용자
 	 * @return 리뷰 개수
 	 */
 	public Expression<Long> reviewCountSubQuery(NumberPath<Long> userId) {
@@ -50,7 +50,7 @@ public class UserQuerySupporter {
 	/**
 	 * 마이 페이지 사용자의 평점 개수를 조회한다.
 	 *
-	 * @param userId
+	 * @param userId 마이 페이지 사용자
 	 * @return 평점 개수
 	 */
 	public Expression<Long> ratingCountSubQuery(NumberPath<Long> userId) {
@@ -66,7 +66,7 @@ public class UserQuerySupporter {
 	/**
 	 * 마이 페이지 사용자의 찜하기 개수를 조회한다.
 	 *
-	 * @param userId
+	 * @param userId 마이 페이지 사용자
 	 * @return 찜하기 개수
 	 */
 	public Expression<Long> picksCountSubQuery(NumberPath<Long> userId) {
@@ -82,7 +82,7 @@ public class UserQuerySupporter {
 	/**
 	 * 마이 페이지 사용자의 팔로워 수 를 조회한다.
 	 *
-	 * @param userId
+	 * @param userId 마이 페이지 사용자
 	 * @return 팔로워 수
 	 */
 	public Expression<Long> followerCountSubQuery(NumberPath<Long> userId) {
@@ -98,7 +98,7 @@ public class UserQuerySupporter {
 	/**
 	 * 마이 페이지 사용자가 팔로잉 하는 유저 수를 조회한다.
 	 *
-	 * @param userId
+	 * @param userId 마이 페이지 사용자
 	 * @return 팔로잉 수
 	 */
 	public Expression<Long> followingCountSubQuery(NumberPath<Long> userId) {
@@ -114,8 +114,8 @@ public class UserQuerySupporter {
 	/**
 	 * 로그인 사용자가 마이 페이지 사용자를 팔로우 하고 있는지 상태 여부를 조회한다.
 	 *
-	 * @param userId
-	 * @param currentUserId
+	 * @param userId      마이 페이지 사용자
+	 * @param currentUserId 로그인 사용자
 	 * @return 팔로우 여부 (true : 팔로우 중, false : 팔로우 중이 아님)
 	 */
 	public BooleanExpression isFollowSubQuery(NumberPath<Long> userId, Long currentUserId) {
@@ -130,8 +130,8 @@ public class UserQuerySupporter {
 	/**
 	 * 로그인 사용자가 조회하는 페이지의 사용자인지 여부(나의 마이페이지인지 여부)를 조회한다. 해당 조회는 마이보틀 페이지에서도 사용된다.
 	 *
-	 * @param userId
-	 * @param currentUserId
+	 * @param userId      조회하는 페이지의 사용자
+	 * @param currentUserId 로그인 사용자
 	 * @return 마이페이지 여부 (true : 나의 마이페이지, false : 나의 마이페이지가 아님)
 	 */
 	public BooleanExpression isMyPageSubQuery(Long userId, Long currentUserId) {
@@ -141,8 +141,8 @@ public class UserQuerySupporter {
 	/**
 	 * 로그인 사용자가 해당 술에 대한 리뷰 작성 여부를 조회한다.
 	 *
-	 * @param alcoholId
-	 * @param userId
+	 * @param alcoholId 술 ID
+	 * @param userId   로그인 사용자 ID
 	 * @return 리뷰 작성 여부 t/f
 	 */
 	public BooleanExpression isMyReviewSubquery(NumberPath<Long> alcoholId, Long userId) {
