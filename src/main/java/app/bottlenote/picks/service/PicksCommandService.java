@@ -1,5 +1,9 @@
 package app.bottlenote.picks.service;
 
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
+import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
+import static java.lang.Boolean.FALSE;
+
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.service.domain.AlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
@@ -15,10 +19,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
-import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
-import static java.lang.Boolean.FALSE;
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +44,10 @@ public class PicksCommandService {
 				if (FALSE.equals(alcoholFacade.existsByAlcoholId(request.alcoholId()))) {
 					throw new AlcoholException(ALCOHOL_NOT_FOUND);
 				}
+
+				picksEventPublisher.publishHistoryEvent(
+					PicksRegistryEvent.of(request.alcoholId(), userId, request.isPicked()));
+				
 				return Picks.builder()
 					.alcoholId(request.alcoholId())
 					.userId(userId)
@@ -54,7 +58,7 @@ public class PicksCommandService {
 		log.info("pick.getStatus() : {}", picks.getStatus());
 		log.info("request.isPicked() : {}", request.isPicked());
 
-		if (picks.getStatus() != request.isPicked()) {
+		if (!picks.getStatus().equals(request.isPicked())) {
 			picksEventPublisher.publishHistoryEvent(
 				PicksRegistryEvent.of(picks.getAlcoholId(), picks.getUserId(), request.isPicked()));
 		}
