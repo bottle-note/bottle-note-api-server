@@ -1,8 +1,5 @@
 package app.bottlenote.user.controller;
 
-import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
-import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
-
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
 import app.bottlenote.user.dto.request.ProfileImageChangeRequest;
@@ -22,6 +19,9 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
+import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
 
 @Slf4j
@@ -44,7 +44,7 @@ public class UserBasicController {
 	}
 
 	@PatchMapping("/profile-image")
-	public ResponseEntity<?> profileImageChange(@RequestBody ProfileImageChangeRequest request) {
+	public ResponseEntity<?> profileImageChange(@RequestBody @Valid ProfileImageChangeRequest request) {
 
 		Long userId = getUserIdByContext()
 			.orElseThrow(() -> new UserException(REQUIRED_USER_ID));

@@ -45,7 +45,6 @@ class AlcoholQueryControllerTest {
 	@MockBean
 	private AlcoholReferenceService alcoholReferenceService;
 
-
 	@DisplayName("술 목록을 조회할 수 있다.")
 	@ParameterizedTest(name = "{0}")
 	@MethodSource("app.bottlenote.alcohols.fixture.ArgumentsFixture#testCase1Provider")
@@ -128,5 +127,4 @@ class AlcoholQueryControllerTest {
 			.andExpect(status().is(expectedStatus))
 			.andDo(print());
 	}
-
 }

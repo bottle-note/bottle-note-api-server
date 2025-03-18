@@ -1,5 +1,6 @@
 package app.bottlenote.common.file.upload;
 
+import app.bottlenote.common.file.controller.ImageUploadController;
 import app.bottlenote.common.file.upload.dto.request.ImageUploadRequest;
 import app.bottlenote.common.file.upload.dto.response.ImageUploadInfo;
 import app.bottlenote.common.file.upload.dto.response.ImageUploadResponse;

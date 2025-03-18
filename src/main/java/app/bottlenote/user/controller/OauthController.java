@@ -104,7 +104,7 @@ public class OauthController {
 
 	@PutMapping("/token/verify")
 	public ResponseEntity<?> verifyToken(
-		@RequestBody SingleTokenRequest token
+		@RequestBody @Valid SingleTokenRequest token
 	) {
 		final String message = oauthService.verifyToken(token.token());
 		return GlobalResponse.ok(message);

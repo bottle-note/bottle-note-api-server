@@ -1,5 +1,6 @@
-package app.bottlenote.common.file.upload;
+package app.bottlenote.common.file.controller;
 
+import app.bottlenote.common.file.upload.ImageUploadService;
 import app.bottlenote.common.file.upload.dto.request.ImageUploadRequest;
 import app.bottlenote.global.data.response.GlobalResponse;
 import lombok.RequiredArgsConstructor;
