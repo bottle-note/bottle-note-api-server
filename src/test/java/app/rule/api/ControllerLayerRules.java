@@ -1,16 +1,14 @@
 package app.rule.api;
 
+import app.rule.AbstractRules;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaMethod;
-import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import jakarta.validation.Valid;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -43,14 +41,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
 @Tag("rule")
 @DisplayName("API 컨트롤러 레이어 아키텍처 규칙")
 @SuppressWarnings({"NonAsciiCharacters", "JUnitTestClassNamingConvention"})
-public class ControllerLayerRules {
-	private JavaClasses importedClasses;
-
-	@BeforeEach
-	public void setup() {
-		// 모든 컨트롤러 클래스를 스캔합니다
-		importedClasses = new ClassFileImporter().importPackages("app.bottlenote");//alcohols
-	}
+public class ControllerLayerRules extends AbstractRules {
 
 	/**
 	 * 컨트롤러 클래스 명명 규칙을 검증합니다.
