@@ -1,8 +1,9 @@
 package app.bottlenote.common.file.upload;
 
-import app.bottlenote.common.file.upload.dto.request.ImageUploadRequest;
-import app.bottlenote.common.file.upload.dto.response.ImageUploadInfo;
-import app.bottlenote.common.file.upload.dto.response.ImageUploadResponse;
+import app.bottlenote.common.file.dto.request.ImageUploadRequest;
+import app.bottlenote.common.file.dto.response.ImageUploadInfo;
+import app.bottlenote.common.file.dto.response.ImageUploadResponse;
+import app.bottlenote.common.file.service.ImageUploadService;
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
 import org.apache.logging.log4j.LogManager;

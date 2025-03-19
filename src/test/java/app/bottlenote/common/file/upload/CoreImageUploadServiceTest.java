@@ -1,9 +1,10 @@
 package app.bottlenote.common.file.upload;
 
+import app.bottlenote.common.file.dto.request.ImageUploadRequest;
+import app.bottlenote.common.file.dto.response.ImageUploadInfo;
+import app.bottlenote.common.file.dto.response.ImageUploadResponse;
 import app.bottlenote.common.file.exception.FileException;
-import app.bottlenote.common.file.upload.dto.request.ImageUploadRequest;
-import app.bottlenote.common.file.upload.dto.response.ImageUploadInfo;
-import app.bottlenote.common.file.upload.dto.response.ImageUploadResponse;
+import app.bottlenote.common.file.service.ImageUploadService;
 import app.bottlenote.common.file.upload.fixture.FakeAmazonS3;
 import app.bottlenote.common.file.upload.fixture.FakeImageEventPublisher;
 import org.apache.logging.log4j.LogManager;

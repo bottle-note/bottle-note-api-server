@@ -1,4 +1,4 @@
-package app.bottlenote.common.file.upload.dto.request;
+package app.bottlenote.common.file.dto.request;
 
 public record ImageUploadRequest(
 	String rootPath,

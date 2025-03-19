@@ -1,7 +1,7 @@
 package app.bottlenote.common.file.controller;
 
-import app.bottlenote.common.file.upload.ImageUploadService;
-import app.bottlenote.common.file.upload.dto.request.ImageUploadRequest;
+import app.bottlenote.common.file.dto.request.ImageUploadRequest;
+import app.bottlenote.common.file.service.ImageUploadService;
 import app.bottlenote.global.data.response.GlobalResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

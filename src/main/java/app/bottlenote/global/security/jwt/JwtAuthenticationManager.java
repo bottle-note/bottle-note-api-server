@@ -1,6 +1,6 @@
 package app.bottlenote.global.security.jwt;
 
-import app.bottlenote.global.security.customPrincipal.CustomUserDetailsService;
+import app.bottlenote.global.security.service.CustomUserDetailsService;
 import app.bottlenote.user.exception.UserException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;

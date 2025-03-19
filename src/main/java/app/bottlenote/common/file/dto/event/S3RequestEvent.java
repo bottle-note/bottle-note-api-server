@@ -1,4 +1,4 @@
-package app.bottlenote.common.file.upload;
+package app.bottlenote.common.file.dto.event;
 
 import lombok.Getter;
 import lombok.ToString;

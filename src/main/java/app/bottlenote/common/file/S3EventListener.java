@@ -1,13 +1,13 @@
 package app.bottlenote.common.file;
 
-import app.bottlenote.common.file.upload.S3RequestEvent;
+import app.bottlenote.common.file.dto.event.S3RequestEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 @Slf4j
-@Service
+@Component
 @RequiredArgsConstructor
 public class S3EventListener {
 

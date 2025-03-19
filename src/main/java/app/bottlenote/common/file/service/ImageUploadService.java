@@ -1,10 +1,11 @@
-package app.bottlenote.common.file.upload;
+package app.bottlenote.common.file.service;
 
 
 import app.bottlenote.common.file.PreSignUrlProvider;
-import app.bottlenote.common.file.upload.dto.request.ImageUploadRequest;
-import app.bottlenote.common.file.upload.dto.response.ImageUploadInfo;
-import app.bottlenote.common.file.upload.dto.response.ImageUploadResponse;
+import app.bottlenote.common.file.dto.event.S3RequestEvent;
+import app.bottlenote.common.file.dto.request.ImageUploadRequest;
+import app.bottlenote.common.file.dto.response.ImageUploadInfo;
+import app.bottlenote.common.file.dto.response.ImageUploadResponse;
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
 import lombok.extern.slf4j.Slf4j;
@@ -20,10 +21,9 @@ import java.util.List;
 @Service
 public class ImageUploadService implements PreSignUrlProvider {
 
+	private static final Integer EXPIRY_TIME = 5;
 	private final ApplicationEventPublisher eventPublisher;
 	private final AmazonS3 amazonS3;
-
-	private static final Integer EXPIRY_TIME = 5;
 	private final String imageBucketName;
 	private final String cloudFrontUrl;
 
