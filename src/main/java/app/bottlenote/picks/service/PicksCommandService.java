@@ -1,9 +1,5 @@
 package app.bottlenote.picks.service;
 
-import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
-import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
-import static java.lang.Boolean.FALSE;
-
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.service.domain.AlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
@@ -15,10 +11,14 @@ import app.bottlenote.picks.dto.response.PicksUpdateResponse;
 import app.bottlenote.picks.repository.PicksRepository;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.service.UserFacade;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
+import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
+import static java.lang.Boolean.FALSE;
 
 @Service
 @RequiredArgsConstructor
@@ -47,7 +47,7 @@ public class PicksCommandService {
 
 				picksEventPublisher.publishHistoryEvent(
 					PicksRegistryEvent.of(request.alcoholId(), userId, request.isPicked()));
-				
+
 				return Picks.builder()
 					.alcoholId(request.alcoholId())
 					.userId(userId)

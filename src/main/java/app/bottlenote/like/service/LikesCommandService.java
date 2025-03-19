@@ -11,10 +11,10 @@ import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.service.ReviewFacade;
 import app.bottlenote.user.dto.response.UserProfileInfo;
 import app.bottlenote.user.service.UserFacade;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 

@@ -1,6 +1,7 @@
 package app.bottlenote.common.file.service;
 
 
+import app.bottlenote.common.annotation.ThirdPartyService;
 import app.bottlenote.common.file.PreSignUrlProvider;
 import app.bottlenote.common.file.dto.event.S3RequestEvent;
 import app.bottlenote.common.file.dto.request.ImageUploadRequest;
@@ -11,14 +12,13 @@ import com.amazonaws.services.s3.AmazonS3;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
 @Slf4j
-@Service
+@ThirdPartyService
 public class ImageUploadService implements PreSignUrlProvider {
 
 	private static final Integer EXPIRY_TIME = 5;

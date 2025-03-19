@@ -10,6 +10,7 @@ import app.bottlenote.rating.dto.response.UserRatingResponse;
 import app.bottlenote.user.service.UserFacade;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -18,11 +19,13 @@ public class RatingQueryService {
 	private final UserFacade userFacade;
 	private final AlcoholFacade alcoholFacade;
 
+	@Transactional(readOnly = true)
 	public PageResponse<RatingListFetchResponse> fetchRatingList(RatingListFetchRequest request, Long userId) {
 		var criteria = RatingListFetchCriteria.of(request, userId);
 		return ratingRepository.fetchRatingList(criteria);
 	}
 
+	@Transactional(readOnly = true)
 	public UserRatingResponse fetchUserRating(Long alcoholId, Long userId) {
 		userFacade.isValidUserId(userId);
 		alcoholFacade.isValidAlcoholId(alcoholId);

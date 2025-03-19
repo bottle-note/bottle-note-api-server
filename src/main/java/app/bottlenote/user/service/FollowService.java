@@ -16,12 +16,13 @@ import app.bottlenote.user.exception.FollowExceptionCode;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.repository.FollowRepository;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -94,6 +95,7 @@ public class FollowService implements FollowFacade {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public List<FriendInfo> getTastingFriendsInfoList(Long alcoholId, Long userId, PageRequest pageRequest) {
 		return followRepository.getTastingFriendsInfoList(alcoholId, userId, pageRequest);
 	}

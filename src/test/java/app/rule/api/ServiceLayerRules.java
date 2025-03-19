@@ -1,5 +1,7 @@
 package app.rule.api;
 
+import app.bottlenote.common.annotation.FacadeService;
+import app.bottlenote.common.annotation.ThirdPartyService;
 import app.rule.AbstractRules;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.DisplayName;
@@ -43,6 +45,7 @@ public class ServiceLayerRules extends AbstractRules {
 	public void 서비스_패키지_구조_검증() {
 		ArchRule rule = classes()
 			.that().areAnnotatedWith(Service.class)
+			.and().areNotAnnotations() // 어노테이션 타입 자체는 제외
 			.should().resideInAPackage("..service..")
 			.because("서비스 클래스는 구조적 일관성을 위해 '.service' 패키지에 위치해야 합니다");
 
@@ -71,8 +74,12 @@ public class ServiceLayerRules extends AbstractRules {
 	public void 서비스_public_메서드_트랜잭션_검증() {
 		ArchRule rule = methods()
 			.that().areDeclaredInClassesThat().areAnnotatedWith(Service.class)
+			.and().areDeclaredInClassesThat().areNotAnnotatedWith(FacadeService.class)
+			.and().areDeclaredInClassesThat().areNotAnnotatedWith(ThirdPartyService.class)
 			.and().arePublic()
 			.and().areNotStatic()
+			.and().areNotDeclaredIn(FacadeService.class)
+			.and().areNotDeclaredIn(ThirdPartyService.class)
 			.should().beAnnotatedWith(Transactional.class)
 			.because("서비스의 모든 public 메서드는 트랜잭션 경계를 명확히 하기 위해 @Transactional 애노테이션을 가져야 합니다");
 

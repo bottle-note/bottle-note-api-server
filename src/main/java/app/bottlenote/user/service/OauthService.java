@@ -1,8 +1,5 @@
 package app.bottlenote.user.service;
 
-import static app.bottlenote.global.security.jwt.JwtTokenValidator.validateToken;
-import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
-
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import app.bottlenote.user.domain.User;
@@ -15,16 +12,20 @@ import app.bottlenote.user.dto.response.TokenDto;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.repository.OauthRepository;
-import java.security.SecureRandom;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+
+import static app.bottlenote.global.security.jwt.JwtTokenValidator.validateToken;
+import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
 
 
 @Slf4j
@@ -92,6 +93,7 @@ public class OauthService {
 		);
 	}
 
+	@Transactional
 	public User oauthSignUp(
 		String email,
 		SocialType socialType,
@@ -179,7 +181,7 @@ public class OauthService {
 		return token;
 	}
 
-	public String generateNickname() {
+	protected String generateNickname() {
 		List<String> a = Arrays.asList("부드러운", "향기로운", "숙성된", "풍부한", "깊은", "황금빛", "오크향의", "스모키한", "달콤한", "강렬한");
 		List<String> b = Arrays.asList("몰트", "버번", "위스키", "바텐더", "오크통", "싱글몰트", "블렌디드", "아이리시", "스카치", "캐스크");
 		List<String> c = Arrays.asList("글렌피딕", "맥캘란", "라가불린", "탈리스커", "조니워커", "제임슨", "야마자키", "부카나스", "불릿", "잭다니엘스");
@@ -189,6 +191,7 @@ public class OauthService {
 		return key + oauthRepository.getNextNicknameSequence();
 	}
 
+	@Transactional
 	public String verifyToken(String token) {
 		try {
 			boolean validateToken = validateToken(token);

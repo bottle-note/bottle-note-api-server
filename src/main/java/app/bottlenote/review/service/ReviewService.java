@@ -88,17 +88,14 @@ public class ReviewService implements ReviewFacade {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public boolean isExistReview(Long reviewId) {
 		return reviewRepository.existsById(reviewId);
 	}
 
-	@Override
-	public void requestBlockReview(Long reviewId) {
-		reviewRepository.findById(reviewId)
-			.ifPresent(Review::blockReview);
-	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public Long getAlcoholIdByReviewId(Long reviewId) {
 		return reviewRepository.findById(reviewId)
 			.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND)).getAlcoholId();
@@ -107,6 +104,13 @@ public class ReviewService implements ReviewFacade {
 	/**
 	 * Create , Update, Delete
 	 */
+
+	@Override
+	@Transactional
+	public void requestBlockReview(Long reviewId) {
+		reviewRepository.findById(reviewId)
+			.ifPresent(Review::blockReview);
+	}
 
 	@Transactional
 	public ReviewCreateResponse createReview(
@@ -195,5 +199,4 @@ public class ReviewService implements ReviewFacade {
 			ReviewResultResponse.response(PUBLIC_SUCCESS, review.getId()) :
 			ReviewResultResponse.response(PRIVATE_SUCCESS, review.getId());
 	}
-
 }
