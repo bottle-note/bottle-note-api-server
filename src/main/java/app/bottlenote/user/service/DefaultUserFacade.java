@@ -1,17 +1,17 @@
 package app.bottlenote.user.service;
 
+import app.bottlenote.common.annotation.FacadeService;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.dto.response.UserProfileInfo;
 import app.bottlenote.user.exception.UserException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
 @Slf4j
-@Service
+@FacadeService
 @RequiredArgsConstructor
 public class DefaultUserFacade implements UserFacade {
 	private final UserRepository userQueryRepository;

@@ -4,15 +4,15 @@ import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.response.AlcoholInfo;
 import app.bottlenote.alcohols.exception.AlcoholException;
+import app.bottlenote.common.annotation.FacadeService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
 import static java.lang.Boolean.FALSE;
 
-@Service
+@FacadeService
 @RequiredArgsConstructor
 public class DefaultAlcoholFacade implements AlcoholFacade {
 

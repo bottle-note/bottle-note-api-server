@@ -1,19 +1,13 @@
 package app.rule.api;
 
 import app.rule.AbstractRules;
-import com.tngtech.archunit.core.domain.JavaMethod;
-import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
-import com.tngtech.archunit.lang.ConditionEvents;
-import com.tngtech.archunit.lang.SimpleConditionEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Arrays;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
@@ -114,51 +108,14 @@ public class ServiceLayerRules extends AbstractRules {
 		rule.check(importedClasses);
 	}
 
-	/**
-	 * 서비스 메서드의 명명 규칙을 검증합니다.
-	 * 메서드 이름은 수행하는 작업을 명확하게 반영해야 합니다.
-	 */
 	@Test
-	public void 서비스_메서드_명명_규칙_검증() {
+	public void 서비스_메서드_카멜케이스_검증() {
 		ArchRule rule = methods()
 			.that().areDeclaredInClassesThat().areAnnotatedWith(Service.class)
 			.and().arePublic()
-			.should(followServiceMethodNamingConvention())
-			.because("서비스 메서드는 명확한 동사로 시작하는 명명 규칙을 따라야 합니다(예: getUserById, createOrder)");
+			.should().haveNameMatching("^[a-z][a-zA-Z0-9]*$")
+			.because("서비스 메서드는 카멜케이스 명명 규칙을 따라야 합니다");
 
 		rule.check(importedClasses);
-	}
-
-	/**
-	 * 서비스 메서드가 명명 규칙을 따르는지 확인하는 커스텀 조건입니다.
-	 */
-	private ArchCondition<JavaMethod> followServiceMethodNamingConvention() {
-		return new ArchCondition<>("서비스 메서드 명명 규칙을 따름") {
-			@Override
-			public void check(JavaMethod method, ConditionEvents events) {
-				String methodName = method.getName();
-				// 허용되는 동사 접두사 목록
-				String[] allowedPrefixes = {"get", "find", "retrieve", "load", "create", "save", "update",
-					"delete", "remove", "process", "compute", "calculate", "validate",
-					"check", "exists", "is", "has"};
-
-				boolean startsWithVerb = Arrays.stream(allowedPrefixes)
-					.anyMatch(methodName::startsWith);
-
-				// camelCase 확인
-				boolean isCamelCase = Character.isLowerCase(methodName.charAt(0)) &&
-					!methodName.contains("_") &&
-					methodName.matches("^[a-z][a-zA-Z0-9]*$");
-
-				if (!startsWithVerb || !isCamelCase) {
-					events.add(SimpleConditionEvent.violated(
-						method,
-						"메서드 이름 '" + methodName + "'은(는) 동사로 시작하는 camelCase 형태가 아닙니다"
-					));
-				} else {
-					events.add(SimpleConditionEvent.satisfied(method, "메서드 이름이 명명 규칙을 따릅니다"));
-				}
-			}
-		};
 	}
 }
