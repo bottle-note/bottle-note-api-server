@@ -121,7 +121,7 @@ dependencies {
 
 
     //rule engine
-    testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.0'
 }
 
 subprojects {

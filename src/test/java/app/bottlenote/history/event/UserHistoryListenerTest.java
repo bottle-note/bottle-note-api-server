@@ -36,7 +36,7 @@ class UserHistoryListenerTest {
 			.alcoholId(1L)
 			.build();
 		// when
-		historyListener.registryUserHistory(historyEvent);
+		historyListener.handleUserHistoryRegistry(historyEvent);
 
 		userHistoryRepository.findAll().stream().findFirst().ifPresent(userHistory -> {
 			// then

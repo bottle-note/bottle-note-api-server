@@ -1,14 +1,16 @@
-package app.bottlenote.common.file;
+package app.bottlenote.common.file.event.listener;
 
+import app.bottlenote.common.annotation.DomainEventListener;
 import app.bottlenote.common.file.dto.event.S3RequestEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Component;
+
+import static app.bottlenote.common.annotation.DomainEventListener.ProcessingType.ASYNCHRONOUS;
 
 @Slf4j
-@Component
 @RequiredArgsConstructor
+@DomainEventListener(type = ASYNCHRONOUS)
 public class S3EventListener {
 
 	/**
