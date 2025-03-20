@@ -23,7 +23,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class AlcoholQueryService {
-
 	private static final int MAX_FRIENDS_SIZE = 6;
 	private final AlcoholQueryRepository alcoholQueryRepository;
 	private final ReviewFacade reviewFacade;

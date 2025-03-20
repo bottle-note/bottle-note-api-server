@@ -15,9 +15,9 @@ import java.util.List;
 
 import static java.time.LocalDateTime.now;
 
-@RequiredArgsConstructor
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class AlcoholReferenceService {
 	private final RegionQueryRepository regionQueryRepository;
 	private final AlcoholQueryRepository alcoholQueryRepository;
