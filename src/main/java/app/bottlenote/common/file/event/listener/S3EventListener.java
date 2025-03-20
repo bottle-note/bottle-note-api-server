@@ -1,7 +1,7 @@
 package app.bottlenote.common.file.event.listener;
 
 import app.bottlenote.common.annotation.DomainEventListener;
-import app.bottlenote.common.file.dto.event.S3RequestEvent;
+import app.bottlenote.common.file.event.payload.S3RequestEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

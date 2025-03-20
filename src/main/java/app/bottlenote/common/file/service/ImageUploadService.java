@@ -3,10 +3,10 @@ package app.bottlenote.common.file.service;
 
 import app.bottlenote.common.annotation.ThirdPartyService;
 import app.bottlenote.common.file.PreSignUrlProvider;
-import app.bottlenote.common.file.dto.event.S3RequestEvent;
 import app.bottlenote.common.file.dto.request.ImageUploadRequest;
 import app.bottlenote.common.file.dto.response.ImageUploadInfo;
 import app.bottlenote.common.file.dto.response.ImageUploadResponse;
+import app.bottlenote.common.file.event.payload.S3RequestEvent;
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
 import lombok.extern.slf4j.Slf4j;

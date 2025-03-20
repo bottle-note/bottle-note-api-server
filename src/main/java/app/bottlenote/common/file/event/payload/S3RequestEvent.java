@@ -1,4 +1,4 @@
-package app.bottlenote.common.file.dto.event;
+package app.bottlenote.common.file.event.payload;
 
 import lombok.Getter;
 import lombok.ToString;
