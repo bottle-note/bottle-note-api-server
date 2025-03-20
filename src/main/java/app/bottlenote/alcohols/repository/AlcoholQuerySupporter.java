@@ -1,5 +1,13 @@
 package app.bottlenote.alcohols.repository;
 
+import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.alcohols.domain.QAlcoholsTastingTags.alcoholsTastingTags;
+import static app.bottlenote.alcohols.domain.QTastingTag.tastingTag;
+import static app.bottlenote.picks.domain.PicksStatus.PICK;
+import static app.bottlenote.picks.domain.QPicks.picks;
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
+
 import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.domain.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
@@ -14,19 +22,12 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.util.StringUtils;
 import com.querydsl.jpa.JPAExpressions;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
-import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.alcohols.domain.QAlcoholsTastingTags.alcoholsTastingTags;
-import static app.bottlenote.alcohols.domain.QTastingTag.tastingTag;
-import static app.bottlenote.picks.domain.PicksStatus.PICK;
-import static app.bottlenote.picks.domain.QPicks.picks;
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.domain.QReview.review;
-
+@Slf4j
 @Component
 public class AlcoholQuerySupporter {
 
@@ -46,14 +47,17 @@ public class AlcoholQuerySupporter {
 	 * 토큰값이 유효한 경우 좋아요 상태를 나타내는 서브쿼리
 	 */
 	public BooleanExpression pickedSubQuery(Long userId) {
-		if (userId == null)
+		if (userId == -1)
 			return Expressions.asBoolean(false);
 
 		return JPAExpressions
 			.selectOne()
 			.from(picks)
-			.where(picks.alcoholId.eq(alcohol.id),
-				picks.userId.eq(userId))
+			.where(
+				picks.alcoholId.eq(alcohol.id),
+				picks.userId.eq(userId),
+				picks.status.eq(PICK)
+			)
 			.exists();
 	}
 
