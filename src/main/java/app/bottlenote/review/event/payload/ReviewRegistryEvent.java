@@ -1,4 +1,4 @@
-package app.bottlenote.review.dto.payload;
+package app.bottlenote.review.event.payload;
 
 public record ReviewRegistryEvent(
 	Long reviewId,

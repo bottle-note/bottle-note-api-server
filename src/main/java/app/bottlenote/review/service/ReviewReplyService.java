@@ -1,31 +1,32 @@
 package app.bottlenote.review.service;
 
-import static app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage.SUCCESS_DELETE_REPLY;
-import static app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY;
-import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
-import static java.lang.Boolean.FALSE;
-
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewReplyRepository;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.domain.constant.ReviewReplyStatus;
-import app.bottlenote.review.dto.payload.ReviewRegistryEvent;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
 import app.bottlenote.review.dto.response.RootReviewReplyInfo;
 import app.bottlenote.review.dto.response.SubReviewReplyInfo;
+import app.bottlenote.review.event.payload.ReviewRegistryEvent;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.user.service.UserFacade;
-import java.util.Objects;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Objects;
+import java.util.Optional;
+
+import static app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage.SUCCESS_DELETE_REPLY;
+import static app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY;
+import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
+import static java.lang.Boolean.FALSE;
 
 @Slf4j
 @Service

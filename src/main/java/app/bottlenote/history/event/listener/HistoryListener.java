@@ -4,7 +4,7 @@ import app.bottlenote.alcohols.service.domain.AlcoholFacade;
 import app.bottlenote.common.annotation.DomainEventListener;
 import app.bottlenote.history.domain.UserHistory;
 import app.bottlenote.history.domain.UserHistoryRepository;
-import app.bottlenote.history.dto.payload.HistoryEvent;
+import app.bottlenote.history.event.payload.HistoryEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;

@@ -1,10 +1,11 @@
-package app.bottlenote.history.dto.payload;
+package app.bottlenote.history.event.payload;
 
 import app.bottlenote.history.domain.constant.EventCategory;
 import app.bottlenote.history.domain.constant.EventType;
+import lombok.Builder;
+
 import java.util.Map;
 import java.util.Objects;
-import lombok.Builder;
 
 @Builder
 public record HistoryEvent(

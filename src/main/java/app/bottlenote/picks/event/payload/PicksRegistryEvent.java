@@ -1,4 +1,4 @@
-package app.bottlenote.picks.dto.payload;
+package app.bottlenote.picks.event.payload;
 
 import app.bottlenote.picks.domain.PicksStatus;
 

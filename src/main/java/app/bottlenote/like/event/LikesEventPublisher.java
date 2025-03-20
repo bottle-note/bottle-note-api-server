@@ -1,17 +1,17 @@
 package app.bottlenote.like.event;
 
-import static app.bottlenote.history.domain.constant.EventCategory.REVIEW;
-import static app.bottlenote.history.domain.constant.EventType.REVIEW_LIKES;
-
 import app.bottlenote.history.domain.constant.RedirectUrlType;
-import app.bottlenote.history.dto.payload.HistoryEvent;
+import app.bottlenote.history.event.payload.HistoryEvent;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
-import app.bottlenote.like.dto.payload.LikesRegistryEvent;
+import app.bottlenote.like.event.payload.LikesRegistryEvent;
 import app.bottlenote.review.service.ReviewFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
+
+import static app.bottlenote.history.domain.constant.EventCategory.REVIEW;
+import static app.bottlenote.history.domain.constant.EventType.REVIEW_LIKES;
 
 @Slf4j
 @Component

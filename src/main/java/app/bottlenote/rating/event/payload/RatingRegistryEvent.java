@@ -1,4 +1,4 @@
-package app.bottlenote.rating.dto.payload;
+package app.bottlenote.rating.event.payload;
 
 import app.bottlenote.rating.domain.RatingPoint;
 
