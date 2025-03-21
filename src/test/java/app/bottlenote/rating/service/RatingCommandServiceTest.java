@@ -1,7 +1,7 @@
 package app.bottlenote.rating.service;
 
 import app.bottlenote.alcohols.fixture.FakeAlcoholFacade;
-import app.bottlenote.alcohols.service.domain.AlcoholFacade;
+import app.bottlenote.alcohols.service.AlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;

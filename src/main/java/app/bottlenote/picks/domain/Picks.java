@@ -28,9 +28,11 @@ public class Picks extends BaseTimeEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	@Comment("어느 술을 찜했는지")
 	@JoinColumn(name = "alcohol_id")
 	private Long alcoholId;
 
+	@Comment("누가 찜했는지")
 	@JoinColumn(name = "user_id")
 	private Long userId;
 

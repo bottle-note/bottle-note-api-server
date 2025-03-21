@@ -1,4 +1,4 @@
-package app.bottlenote.alcohols.service.domain;
+package app.bottlenote.alcohols.service;
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;

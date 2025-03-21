@@ -14,6 +14,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Comment;
 
 import java.util.Objects;
 
@@ -27,15 +28,20 @@ import static lombok.AccessLevel.PROTECTED;
 public class Likes extends BaseEntity {
 
 	@Id
+	@Comment("좋아요 식별자")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	@Comment("리뷰 식별자")
 	@JoinColumn(name = "review_id")
 	private Long reviewId;
 
+
+	@Comment("좋아요 사용자 정보")
 	@Embedded
 	private LikeUserInfo userInfo;
 
+	@Comment("좋아요 상태")
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
 	@Builder.Default

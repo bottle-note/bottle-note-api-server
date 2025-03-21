@@ -1,7 +1,7 @@
 package app.bottlenote.picks.service;
 
 import app.bottlenote.alcohols.exception.AlcoholException;
-import app.bottlenote.alcohols.service.domain.AlcoholFacade;
+import app.bottlenote.alcohols.service.AlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.picks.domain.Picks;
 import app.bottlenote.picks.domain.PicksStatus;

@@ -1,21 +1,22 @@
 package app.bottlenote.alcohols.fixture;
 
-import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
-
 import app.bottlenote.alcohols.dto.response.AlcoholInfo;
 import app.bottlenote.alcohols.exception.AlcoholException;
-import app.bottlenote.alcohols.service.domain.AlcoholFacade;
+import app.bottlenote.alcohols.service.AlcoholFacade;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
 
 public class FakeAlcoholFacade implements AlcoholFacade {
 
 	private static final Logger log = LogManager.getLogger(FakeAlcoholFacade.class);
-	
+
 	private final Map<Long, AlcoholInfo> alcoholDatabase = new ConcurrentHashMap<>();
 
 	public FakeAlcoholFacade() {

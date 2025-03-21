@@ -1,7 +1,7 @@
 package app.bottlenote.review.service;
 
 import app.bottlenote.alcohols.dto.response.AlcoholInfo;
-import app.bottlenote.alcohols.service.domain.AlcoholFacade;
+import app.bottlenote.alcohols.service.AlcoholFacade;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.rating.domain.RatingPoint;

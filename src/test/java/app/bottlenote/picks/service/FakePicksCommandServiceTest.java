@@ -1,10 +1,8 @@
 package app.bottlenote.picks.service;
 
 import app.bottlenote.alcohols.fixture.FakeAlcoholFacade;
-import app.bottlenote.alcohols.service.domain.AlcoholFacade;
+import app.bottlenote.alcohols.service.AlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
-import static app.bottlenote.picks.domain.PicksStatus.PICK;
-import static app.bottlenote.picks.domain.PicksStatus.UNPICK;
 import app.bottlenote.picks.dto.request.PicksUpdateRequest;
 import app.bottlenote.picks.dto.response.PicksUpdateResponse;
 import app.bottlenote.picks.fake.FakePicksEventPublisher;
@@ -12,12 +10,15 @@ import app.bottlenote.picks.fake.FakePicksRepository;
 import app.bottlenote.picks.repository.PicksRepository;
 import app.bottlenote.user.fixture.FakeUserFacade;
 import app.bottlenote.user.service.UserFacade;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+
+import static app.bottlenote.picks.domain.PicksStatus.PICK;
+import static app.bottlenote.picks.domain.PicksStatus.UNPICK;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 @Tag("unit")
