@@ -3,9 +3,9 @@ package app.bottlenote.common.profanity;
 
 import app.bottlenote.common.exception.CommonException;
 import app.bottlenote.common.exception.CommonExceptionCode;
+import app.bottlenote.common.profanity.dto.request.ProfanityRequest;
+import app.bottlenote.common.profanity.dto.response.ProfanityResponse;
 import app.bottlenote.common.profanity.fegin.ProfanityFeignClient;
-import app.bottlenote.common.profanity.request.ProfanityRequest;
-import app.bottlenote.common.profanity.response.ProfanityResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

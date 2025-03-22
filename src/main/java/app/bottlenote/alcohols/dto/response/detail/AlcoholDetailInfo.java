@@ -31,7 +31,6 @@ public class AlcoholDetailInfo {
 	private Double myRating;
 	private Double myAvgRating;
 	private Boolean isPicked;
-
 	@JsonSerialize(using = TagListSerializer.class)
 	@JsonDeserialize(using = TagListDeserializer.class)
 	private String alcoholsTastingTags;

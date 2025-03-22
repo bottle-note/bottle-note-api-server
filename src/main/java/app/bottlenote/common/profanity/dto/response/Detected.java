@@ -1,4 +1,4 @@
-package app.bottlenote.common.profanity.response;
+package app.bottlenote.common.profanity.dto.response;
 
 public record Detected(
 	Integer length,

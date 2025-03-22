@@ -10,7 +10,6 @@ import app.bottlenote.picks.repository.PicksRepository;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.service.UserFacade;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -30,7 +29,6 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
-@Disabled
 @Tag("unit")
 @DisplayName("[unit] [service] PicksCommand")
 @ExtendWith(MockitoExtension.class)

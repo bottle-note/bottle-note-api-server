@@ -77,6 +77,6 @@ public class RatingCommandService {
 			)
 		);
 
-		return RatingRegisterResponse.success(save);
+		return RatingRegisterResponse.success(save.getRatingPoint().getRating());
 	}
 }

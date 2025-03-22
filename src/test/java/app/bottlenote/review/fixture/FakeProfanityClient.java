@@ -3,8 +3,8 @@ package app.bottlenote.review.fixture;
 import app.bottlenote.common.exception.CommonException;
 import app.bottlenote.common.profanity.FakeProfanityFeignClient;
 import app.bottlenote.common.profanity.ProfanityClient;
-import app.bottlenote.common.profanity.request.ProfanityRequest;
-import app.bottlenote.common.profanity.response.ProfanityResponse;
+import app.bottlenote.common.profanity.dto.request.ProfanityRequest;
+import app.bottlenote.common.profanity.dto.response.ProfanityResponse;
 import org.springframework.http.ResponseEntity;
 
 import static app.bottlenote.common.exception.CommonExceptionCode.CONTAINS_PROFANITY;
