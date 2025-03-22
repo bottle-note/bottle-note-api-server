@@ -2,7 +2,7 @@ package app.bottlenote.docs.alcohols;
 
 import app.bottlenote.alcohols.controller.AlcoholQueryController;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
-import app.bottlenote.alcohols.dto.response.AlcoholDetail;
+import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.CategoryResponse;
 import app.bottlenote.alcohols.fixture.AlcoholQueryFixture;
@@ -115,7 +115,7 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 	@DisplayName("술의 상세 정보를 조회 할 수 있다.")
 	@Test
 	void docs_2() throws Exception {
-		AlcoholDetail detail = AlcoholDetail.builder()
+		AlcoholDetailResponse detail = AlcoholDetailResponse.builder()
 			.alcohols(fixture.getAlcoholDetailInfo())
 			.friendsInfo(fixture.getFriendsDetailInfo())
 			.reviewInfo(getReviewListResponse(2))

@@ -1,5 +1,6 @@
 package app.bottlenote.alcohols.dto.response;
 
+import app.bottlenote.alcohols.facade.payload.FriendInfo;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

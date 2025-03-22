@@ -4,7 +4,7 @@ import app.bottlenote.review.dto.response.ReviewListResponse;
 import lombok.Builder;
 
 @Builder
-public record AlcoholDetail(
+public record AlcoholDetailResponse(
 	AlcoholDetailInfo alcohols,
 	FriendsDetailInfo friendsInfo,
 	ReviewListResponse reviewInfo

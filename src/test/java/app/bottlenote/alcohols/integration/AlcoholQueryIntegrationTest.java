@@ -3,7 +3,7 @@ package app.bottlenote.alcohols.integration;
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
-import app.bottlenote.alcohols.dto.response.AlcoholDetail;
+import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
 import app.bottlenote.global.data.response.GlobalResponse;
@@ -85,7 +85,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
 			.andReturn();
 		String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 		GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
-		AlcoholDetail alcoholDetail = mapper.convertValue(response.getData(), AlcoholDetail.class);
+		AlcoholDetailResponse alcoholDetail = mapper.convertValue(response.getData(), AlcoholDetailResponse.class);
 
 		assertNotNull(alcoholDetail.alcohols());
 		assertNotNull(alcoholDetail.reviewInfo());
@@ -127,7 +127,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
 			.andReturn();
 		String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 		GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
-		AlcoholDetail alcoholDetail = mapper.convertValue(response.getData(), AlcoholDetail.class);
+		AlcoholDetailResponse alcoholDetail = mapper.convertValue(response.getData(), AlcoholDetailResponse.class);
 
 		// then
 		assertNotNull(alcoholDetail.friendsInfo());

@@ -3,11 +3,11 @@ package app.bottlenote.alcohols.service;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
-import app.bottlenote.alcohols.dto.response.AlcoholDetail;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailInfo;
+import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
-import app.bottlenote.alcohols.dto.response.FriendInfo;
 import app.bottlenote.alcohols.dto.response.FriendsDetailInfo;
+import app.bottlenote.alcohols.facade.payload.FriendInfo;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.service.ReviewFacade;
 import app.bottlenote.user.service.FollowFacade;
@@ -49,10 +49,10 @@ public class AlcoholQueryService {
 	 * @return the list
 	 */
 	@Transactional(readOnly = true)
-	public AlcoholDetail findAlcoholDetailById(Long alcoholId, Long userId) {
+	public AlcoholDetailResponse findAlcoholDetailById(Long alcoholId, Long userId) {
 		AlcoholDetailInfo alcoholDetail = alcoholQueryRepository.findAlcoholDetailById(alcoholId, userId);
 		FriendsDetailInfo friendInfos = getFriendInfos(alcoholId, userId);
-		return AlcoholDetail.builder()
+		return AlcoholDetailResponse.builder()
 			.alcohols(alcoholDetail)
 			.friendsInfo(friendInfos)
 			.reviewInfo(reviewFacade.getReviewInfoList(alcoholId, userId))

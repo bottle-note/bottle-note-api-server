@@ -59,7 +59,7 @@ public class DataTransferObjectRules extends AbstractRules {
 	@Test
 	@Disabled("테스트를 위해 비활성화")
 	public void 액션_용어_표준화_검증() {
-		List<String> standardActions = Arrays.asList("Create", "Update", "Delete", "Search", "List", "Detail");
+		List<String> standardActions = Arrays.asList("Create", "Update", "Upsert", "Delete", "Search", "List", "Detail");
 
 		ArchRule rule = classes()
 			.that().haveSimpleNameEndingWith("Request").or().haveSimpleNameEndingWith("Response")
@@ -79,14 +79,14 @@ public class DataTransferObjectRules extends AbstractRules {
 
 					if (containsStandardAction) {
 						events.add(SimpleConditionEvent.satisfied(javaClass,
-							javaClass.getSimpleName() + " follows standardized action terminology"));
+							javaClass.getSimpleName() + " 표준화 된 행동 용어를 따라야 합니다"));
 					} else {
 						events.add(SimpleConditionEvent.violated(javaClass,
-							javaClass.getSimpleName() + " does not follow standardized action terminology"));
+							javaClass.getSimpleName() + " 표준화 된 행동 용어를 따르지 않습니다"));
 					}
 				}
 			})
-			.because("DTO 클래스 이름은 표준화된 액션 용어(Create, Update, Delete, Search, List, Detail)를 포함해야 합니다");
+			.because("DTO 클래스 이름은 표준화된 액션 용어" + Arrays.toString(standardActions.toArray()) + "를 포함해야 합니다");
 
 		rule.check(importedClasses);
 	}

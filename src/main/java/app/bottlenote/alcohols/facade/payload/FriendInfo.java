@@ -1,4 +1,4 @@
-package app.bottlenote.alcohols.dto.response;
+package app.bottlenote.alcohols.facade.payload;
 
 public record FriendInfo(
 	String userImageUrl,

@@ -1,6 +1,6 @@
 package app.bottlenote.user.service;
 
-import app.bottlenote.alcohols.dto.response.FriendInfo;
+import app.bottlenote.alcohols.facade.payload.FriendInfo;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.user.domain.Follow;
 import app.bottlenote.user.domain.User;
