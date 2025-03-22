@@ -2,18 +2,19 @@ package app.bottlenote.user.repository;
 
 import app.bottlenote.alcohols.dto.response.detail.FriendInfo;
 import app.bottlenote.user.domain.Follow;
-import java.util.List;
-import java.util.Optional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+import java.util.Optional;
+
 @Repository
 public interface FollowRepository extends JpaRepository<Follow, Long>, CustomFollowRepository {
 
-	@Query("SELECT f FROM Follow f WHERE f.userId = :userId AND f.targetUserId = :followUserId")
+	@Query("SELECT f FROM follow f WHERE f.userId = :userId AND f.targetUserId = :followUserId")
 	Optional<Follow> findByUserIdAndFollowUserId(@Param("userId") Long userId, @Param("followUserId") Long followUserId);
 
 	@Query("""
@@ -27,7 +28,7 @@ public interface FollowRepository extends JpaRepository<Follow, Long>, CustomFol
 		    JOIN rating r ON r.id.userId = u.id
 		    WHERE u.id IN (
 		        SELECT f.targetUserId
-		        FROM Follow f
+		        FROM follow f
 		        WHERE f.userId = :userId
 		    )
 		    AND r.id.alcoholId = :alcoholId
