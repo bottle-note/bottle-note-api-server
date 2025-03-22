@@ -1,6 +1,6 @@
 package app.bottlenote.user.repository;
 
-import app.bottlenote.alcohols.dto.response.detail.FriendInfo;
+import app.bottlenote.alcohols.dto.response.FriendInfo;
 import app.bottlenote.user.domain.Follow;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,7 +18,7 @@ public interface FollowRepository extends JpaRepository<Follow, Long>, CustomFol
 	Optional<Follow> findByUserIdAndFollowUserId(@Param("userId") Long userId, @Param("followUserId") Long followUserId);
 
 	@Query("""
-		    SELECT new app.bottlenote.alcohols.dto.response.detail.FriendInfo(
+		    SELECT new app.bottlenote.alcohols.dto.response.FriendInfo(
 		        u.imageUrl,
 		        u.id,
 		        u.nickName,

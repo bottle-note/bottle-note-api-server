@@ -1,8 +1,9 @@
 package app.bottlenote.user.service;
 
-import app.bottlenote.alcohols.dto.response.detail.FriendInfo;
-import java.util.List;
+import app.bottlenote.alcohols.dto.response.FriendInfo;
 import org.springframework.data.domain.PageRequest;
+
+import java.util.List;
 
 public interface FollowFacade {
 

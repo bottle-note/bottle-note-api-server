@@ -2,9 +2,9 @@ package app.bottlenote.docs.alcohols;
 
 import app.bottlenote.alcohols.controller.AlcoholQueryController;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
+import app.bottlenote.alcohols.dto.response.AlcoholDetail;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.CategoryResponse;
-import app.bottlenote.alcohols.dto.response.detail.AlcoholDetail;
 import app.bottlenote.alcohols.fixture.AlcoholQueryFixture;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
 import app.bottlenote.alcohols.service.AlcoholReferenceService;

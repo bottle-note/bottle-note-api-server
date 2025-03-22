@@ -1,4 +1,4 @@
-package app.bottlenote.alcohols.dto.response.detail;
+package app.bottlenote.alcohols.dto.response;
 
 import app.bottlenote.global.data.serializers.CustomDeserializers.TagListDeserializer;
 import app.bottlenote.global.data.serializers.CustomSerializers.TagListSerializer;

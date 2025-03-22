@@ -1,4 +1,4 @@
-package app.bottlenote.alcohols.dto.response.detail;
+package app.bottlenote.alcohols.dto.response;
 
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import lombok.Builder;

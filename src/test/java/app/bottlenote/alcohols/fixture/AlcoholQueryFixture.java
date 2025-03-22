@@ -1,28 +1,29 @@
 package app.bottlenote.alcohols.fixture;
 
+import app.bottlenote.alcohols.domain.constant.SearchSortType;
+import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
+import app.bottlenote.alcohols.dto.response.AlcoholDetailInfo;
+import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
+import app.bottlenote.alcohols.dto.response.AlcoholsSearchDetail;
+import app.bottlenote.alcohols.dto.response.CategoryResponse;
+import app.bottlenote.alcohols.dto.response.FriendInfo;
+import app.bottlenote.alcohols.dto.response.FriendsDetailInfo;
+import app.bottlenote.alcohols.dto.response.ReviewsDetailInfo;
+import app.bottlenote.global.service.cursor.CursorPageable;
+import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.review.dto.vo.ReviewInfo;
+import app.bottlenote.review.dto.vo.UserInfo;
+
+import java.math.BigDecimal;
+import java.util.List;
+
 import static app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup.BLEND;
 import static app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup.BOURBON;
 import static app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup.OTHER;
 import static app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup.RYE;
 import static app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup.SINGLE_MALT;
 import static app.bottlenote.review.domain.constant.SizeType.GLASS;
-
-import app.bottlenote.alcohols.domain.constant.SearchSortType;
-import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
-import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
-import app.bottlenote.alcohols.dto.response.AlcoholsSearchDetail;
-import app.bottlenote.alcohols.dto.response.CategoryResponse;
-import app.bottlenote.alcohols.dto.response.detail.AlcoholDetailInfo;
-import app.bottlenote.alcohols.dto.response.detail.FriendInfo;
-import app.bottlenote.alcohols.dto.response.detail.FriendsDetailInfo;
-import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.global.service.cursor.SortOrder;
-import app.bottlenote.review.dto.vo.ReviewInfo;
-import app.bottlenote.review.dto.vo.UserInfo;
-import java.math.BigDecimal;
-import java.util.List;
 
 public class AlcoholQueryFixture {
 	// 응답값반환값
