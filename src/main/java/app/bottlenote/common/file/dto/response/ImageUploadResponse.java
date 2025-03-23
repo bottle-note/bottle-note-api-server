@@ -9,6 +9,6 @@ public record ImageUploadResponse(
 	String bucketName,
 	int uploadSize,
 	Integer expiryTime,
-	List<ImageUploadItem> imageUploadItem
+	List<ImageUploadItem> imageUploadInfo
 ) {
 }

@@ -430,7 +430,7 @@ class ReviewControllerTest {
 				.andDo(print())
 				.andExpect(jsonPath("$.success").value("true"))
 				.andExpect(jsonPath("$.code").value("200"))
-				.andExpect(jsonPath("$.data.alcoholInfo.alcoholId").value(reviewDetailResponse.alcoholSummaryItem().alcoholId()));
+				.andExpect(jsonPath("$.data.alcoholInfo.alcoholId").value(reviewDetailResponse.alcoholInfo().alcoholId()));
 
 			verify(reviewService, description("getDetailReview 메서드가 정상적으로 호출됨")).getDetailReview(reviewId, userId);
 		}

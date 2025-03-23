@@ -76,8 +76,8 @@ class ImageUploadServiceTest {
 		ImageUploadResponse 실제_반환값 = imageUploadService.getPreSignUrl(요청객체);
 
 		// Then
-		ImageUploadItem 비교_대상 = 응답객체.imageUploadItem().stream().findFirst().get();
-		ImageUploadItem 실제_비교_대상 = 실제_반환값.imageUploadItem().stream().findFirst().get();
+		ImageUploadItem 비교_대상 = 응답객체.imageUploadInfo().stream().findFirst().get();
+		ImageUploadItem 실제_비교_대상 = 실제_반환값.imageUploadInfo().stream().findFirst().get();
 
 		Assertions.assertNotNull(실제_반환값);
 		Assertions.assertEquals(응답객체.bucketName(), 실제_반환값.bucketName());

@@ -39,7 +39,7 @@ class RestImageUploadControllerTest extends AbstractRestDocs {
 		//given
 		ImageUploadRequest request = new ImageUploadRequest("images", 1L);
 		ImageUploadResponse response = ImageUploadResponse.builder()
-			.imageUploadItem(
+			.imageUploadInfo(
 				List.of(ImageUploadItem.builder().order(1L)
 					.uploadUrl("https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")
 					.viewUrl("https://d1d1d1d1.cloudfront.net/images/1")
@@ -71,9 +71,9 @@ class RestImageUploadControllerTest extends AbstractRestDocs {
 						fieldWithPath("data.bucketName").description("버킷 이름"),
 						fieldWithPath("data.uploadSize").description("업로드 파일 사이즈"),
 						fieldWithPath("data.expiryTime").description("업로드 URL 만료 시간(분단위)"),
-						fieldWithPath("data.imageUploadItem[].order").description("이미지 업로드 순서"),
-						fieldWithPath("data.imageUploadItem[].viewUrl").description("이미지 조회 URL"),
-						fieldWithPath("data.imageUploadItem[].uploadUrl").description("이미지 업로드 URL"),
+						fieldWithPath("data.imageUploadInfo[].order").description("이미지 업로드 순서"),
+						fieldWithPath("data.imageUploadInfo[].viewUrl").description("이미지 조회 URL"),
+						fieldWithPath("data.imageUploadInfo[].uploadUrl").description("이미지 업로드 URL"),
 						fieldWithPath("errors").ignored(),
 						fieldWithPath("meta.serverEncoding").ignored(),
 						fieldWithPath("meta.serverVersion").ignored(),

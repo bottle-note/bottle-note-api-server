@@ -70,7 +70,7 @@ public class ImageUploadService implements PreSignUrlProvider {
 			.bucketName(imageBucketName)
 			.expiryTime(EXPIRY_TIME)
 			.uploadSize(keys.size())
-			.imageUploadItem(keys)
+			.imageUploadInfo(keys)
 			.build();
 	}
 

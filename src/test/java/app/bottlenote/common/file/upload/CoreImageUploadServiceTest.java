@@ -80,13 +80,13 @@ class CoreImageUploadServiceTest {
 		assertEquals(request.uploadSize(), preSignUrl.uploadSize());
 		assertEquals(5, preSignUrl.expiryTime());
 
-		for (Long index = 1L; index <= preSignUrl.imageUploadItem().size(); index++) {
+		for (Long index = 1L; index <= preSignUrl.imageUploadInfo().size(); index++) {
 			String imageKey = imageUploadService.getImageKey(request.rootPath(), index);
 
 			String uploadUrlFixture = imageUploadService.generatePreSignUrl(imageKey);
 			String viewUrlFixture = imageUploadService.generateViewUrl(cloudFrontUrl, imageKey);
 
-			ImageUploadItem info = preSignUrl.imageUploadItem().get((int) (index - 1));
+			ImageUploadItem info = preSignUrl.imageUploadInfo().get((int) (index - 1));
 
 			log.info("[{}] ImageUploadItem: {}", index, info);
 			Assertions.assertEquals(index, info.order());

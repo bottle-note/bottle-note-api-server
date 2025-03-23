@@ -15,14 +15,14 @@ public class ReviewModifyVO {
 	private final ReviewDisplayStatus reviewDisplayStatus;
 	private final BigDecimal price;
 	private final SizeType sizeType;
-	private final LocationInfoRequest locationInfoRequest;
+	private final LocationInfoRequest locationInfo;
 
 	public ReviewModifyVO(ReviewModifyRequest reviewModifyRequest) {
 		this.content = reviewModifyRequest.content();
 		this.reviewDisplayStatus = reviewModifyRequest.status();
 		this.price = reviewModifyRequest.price();
 		this.sizeType = reviewModifyRequest.sizeType();
-		this.locationInfoRequest = Objects.requireNonNullElse(reviewModifyRequest.locationInfoRequest(), LocationInfoRequest.empty());
+		this.locationInfo = Objects.requireNonNullElse(reviewModifyRequest.locationInfo(), LocationInfoRequest.empty());
 	}
 
 	public static ReviewModifyVO create(ReviewModifyRequest reviewModifyRequest) {

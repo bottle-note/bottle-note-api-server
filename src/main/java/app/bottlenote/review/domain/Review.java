@@ -116,7 +116,7 @@ public class Review extends BaseEntity {
 		this.content = reviewModifyVO.getContent();
 		this.sizeType = reviewModifyVO.getSizeType();
 		this.price = reviewModifyVO.getPrice();
-		LocationInfoRequest locationInfoRequest = reviewModifyVO.getLocationInfoRequest();
+		LocationInfoRequest locationInfoRequest = reviewModifyVO.getLocationInfo();
 		Objects.requireNonNullElse(this.reviewLocation, ReviewLocation.empty()).update(locationInfoRequest);
 	}
 

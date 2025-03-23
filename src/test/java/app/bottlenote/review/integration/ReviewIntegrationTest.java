@@ -131,7 +131,7 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
 
 			assertNotNull(reviewDetailResponse.reviewInfo());
 			reviewDetailResponse.reviewImageList().forEach(Assertions::assertNotNull);
-			assertNotNull(reviewDetailResponse.alcoholSummaryItem());
+			assertNotNull(reviewDetailResponse.alcoholInfo());
 			assertEquals(reviewCreateRequest.content(), reviewDetailResponse.reviewInfo().reviewContent());
 		}
 

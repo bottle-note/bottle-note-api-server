@@ -44,7 +44,7 @@ public record ReviewModifyRequest(
 	@Valid
 	@JsonInclude()
 	@JsonProperty(required = true)
-    LocationInfoRequest locationInfoRequest
+    LocationInfoRequest locationInfo
 
 ) {
 }

@@ -7,7 +7,7 @@ import app.bottlenote.review.facade.payload.ReviewInfo;
 import java.util.List;
 
 public record ReviewDetailResponse(
-	AlcoholSummaryItem alcoholSummaryItem,
+	AlcoholSummaryItem alcoholInfo,
 	ReviewInfo reviewInfo,
 	List<ReviewImageInfoRequest> reviewImageList
 ) {

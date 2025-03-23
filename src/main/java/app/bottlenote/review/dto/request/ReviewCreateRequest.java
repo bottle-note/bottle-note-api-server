@@ -33,7 +33,7 @@ public record ReviewCreateRequest(
 	BigDecimal price,
 
 	@Valid
-    LocationInfoRequest locationInfoRequest,
+    LocationInfoRequest locationInfo,
 
 	@Valid
 	List<ReviewImageInfoRequest> imageUrlList,

@@ -67,7 +67,7 @@ class ImageUploadControllerTest {
 				.build()
 		);
 		ImageUploadResponse response = ImageUploadResponse.builder()
-			.imageUploadItem(infos)
+			.imageUploadInfo(infos)
 			.uploadSize(size.intValue())
 			.bucketName("image-bucket")
 			.expiryTime(5)
