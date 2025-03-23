@@ -2,8 +2,8 @@ package app.bottlenote.user.repository;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.user.constant.FollowStatus;
 import app.bottlenote.user.domain.QFollow;
-import app.bottlenote.user.domain.constant.FollowStatus;
 import app.bottlenote.user.dto.dsl.FollowPageableCriteria;
 import app.bottlenote.user.dto.response.FollowerSearchResponse;
 import app.bottlenote.user.dto.response.FollowingSearchResponse;

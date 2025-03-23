@@ -1,6 +1,6 @@
 package app.bottlenote.user.dto.response;
 
-import app.bottlenote.user.dto.constant.WithdrawUserResultMessage;
+import app.bottlenote.user.constant.WithdrawUserResultMessage;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

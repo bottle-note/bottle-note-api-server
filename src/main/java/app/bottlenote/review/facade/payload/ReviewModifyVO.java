@@ -1,7 +1,7 @@
 package app.bottlenote.review.facade.payload;
 
-import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
-import app.bottlenote.review.domain.constant.SizeType;
+import app.bottlenote.review.constant.ReviewDisplayStatus;
+import app.bottlenote.review.constant.SizeType;
 import app.bottlenote.review.dto.request.LocationInfoRequest;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import lombok.Getter;

@@ -71,7 +71,6 @@ public class DataTransferObjectRules extends AbstractRules {
 				.should().resideInAPackage("..dto.request..")
 				.orShould().resideInAPackage("..dto.response..")
 				.orShould().resideInAPackage("..dto.dsl..")
-				.orShould().resideInAPackage("..dto.constant..")
 				.because("dto 패키지 아래에는 request, response, dsl 폴더만 존재해야 합니다");
 
 		rule.check(importedClasses);

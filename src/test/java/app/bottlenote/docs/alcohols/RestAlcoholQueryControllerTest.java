@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup.SINGLE_MALT;
+import static app.bottlenote.alcohols.constant.AlcoholCategoryGroup.SINGLE_MALT;
 import static app.bottlenote.review.fixture.ReviewObjectFixture.getReviewListResponse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;

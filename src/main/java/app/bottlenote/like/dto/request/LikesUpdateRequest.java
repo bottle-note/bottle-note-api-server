@@ -1,6 +1,6 @@
 package app.bottlenote.like.dto.request;
 
-import app.bottlenote.like.domain.LikeStatus;
+import app.bottlenote.like.constant.LikeStatus;
 import jakarta.validation.constraints.NotNull;
 
 public record LikesUpdateRequest(

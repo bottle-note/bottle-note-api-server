@@ -17,8 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static app.bottlenote.user.domain.constant.UserStatus.ACTIVE;
-import static app.bottlenote.user.dto.constant.WithdrawUserResultMessage.USER_WITHDRAW_SUCCESS;
+import static app.bottlenote.user.constant.UserStatus.ACTIVE;
+import static app.bottlenote.user.constant.WithdrawUserResultMessage.USER_WITHDRAW_SUCCESS;
 import static app.bottlenote.user.exception.UserExceptionCode.MYBOTTLE_NOT_ACCESSIBLE;
 import static app.bottlenote.user.exception.UserExceptionCode.MYPAGE_NOT_ACCESSIBLE;
 import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;

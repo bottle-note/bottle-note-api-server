@@ -1,7 +1,7 @@
 package app.bottlenote.review.dto.request;
 
 import app.bottlenote.global.service.cursor.SortOrder;
-import app.bottlenote.review.domain.constant.ReviewSortType;
+import app.bottlenote.review.constant.ReviewSortType;
 import lombok.Builder;
 
 public record ReviewPageableRequest(

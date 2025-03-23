@@ -1,7 +1,7 @@
 package app.bottlenote.user.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
-import app.bottlenote.user.domain.constant.FollowStatus;
+import app.bottlenote.user.constant.FollowStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

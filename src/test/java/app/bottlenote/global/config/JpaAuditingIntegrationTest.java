@@ -6,7 +6,7 @@ import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
-import app.bottlenote.user.domain.constant.SocialType;
+import app.bottlenote.user.constant.SocialType;
 import app.bottlenote.user.dto.request.OauthRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

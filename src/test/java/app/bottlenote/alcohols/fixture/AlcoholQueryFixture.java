@@ -1,6 +1,6 @@
 package app.bottlenote.alcohols.fixture;
 
-import app.bottlenote.alcohols.domain.constant.SearchSortType;
+import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
@@ -18,12 +18,12 @@ import app.bottlenote.user.facade.payload.FriendItem;
 import java.math.BigDecimal;
 import java.util.List;
 
-import static app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup.BLEND;
-import static app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup.BOURBON;
-import static app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup.OTHER;
-import static app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup.RYE;
-import static app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup.SINGLE_MALT;
-import static app.bottlenote.review.domain.constant.SizeType.GLASS;
+import static app.bottlenote.alcohols.constant.AlcoholCategoryGroup.BLEND;
+import static app.bottlenote.alcohols.constant.AlcoholCategoryGroup.BOURBON;
+import static app.bottlenote.alcohols.constant.AlcoholCategoryGroup.OTHER;
+import static app.bottlenote.alcohols.constant.AlcoholCategoryGroup.RYE;
+import static app.bottlenote.alcohols.constant.AlcoholCategoryGroup.SINGLE_MALT;
+import static app.bottlenote.review.constant.SizeType.GLASS;
 
 public class AlcoholQueryFixture {
 	// 응답값반환값

@@ -1,7 +1,7 @@
 package app.bottlenote.history.event.payload;
 
-import app.bottlenote.history.domain.constant.EventCategory;
-import app.bottlenote.history.domain.constant.EventType;
+import app.bottlenote.history.constant.EventCategory;
+import app.bottlenote.history.constant.EventType;
 import lombok.Builder;
 
 import java.util.Map;

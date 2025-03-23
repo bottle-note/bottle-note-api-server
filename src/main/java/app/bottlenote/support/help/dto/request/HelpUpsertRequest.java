@@ -1,6 +1,6 @@
 package app.bottlenote.support.help.dto.request;
 
-import app.bottlenote.support.help.domain.constant.HelpType;
+import app.bottlenote.support.help.constant.HelpType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;

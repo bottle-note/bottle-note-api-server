@@ -3,8 +3,8 @@ package app.bottlenote.docs.review;
 import app.bottlenote.docs.AbstractRestDocs;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.controller.ReviewController;
-import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.request.ReviewStatusChangeRequest;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
@@ -22,9 +22,9 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.Optional;
 
-import static app.bottlenote.review.dto.constant.ReviewResultMessage.DELETE_SUCCESS;
-import static app.bottlenote.review.dto.constant.ReviewResultMessage.MODIFY_SUCCESS;
-import static app.bottlenote.review.dto.constant.ReviewResultMessage.PRIVATE_SUCCESS;
+import static app.bottlenote.review.constant.ReviewResultMessage.DELETE_SUCCESS;
+import static app.bottlenote.review.constant.ReviewResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.review.constant.ReviewResultMessage.PRIVATE_SUCCESS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;

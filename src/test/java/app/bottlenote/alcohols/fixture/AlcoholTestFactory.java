@@ -1,21 +1,22 @@
 package app.bottlenote.alcohols.fixture;
 
+import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
+import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
-import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
-import app.bottlenote.alcohols.domain.constant.AlcoholType;
+import app.bottlenote.user.constant.FollowStatus;
+import app.bottlenote.user.constant.GenderType;
+import app.bottlenote.user.constant.SocialType;
+import app.bottlenote.user.constant.UserType;
 import app.bottlenote.user.domain.Follow;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
-import app.bottlenote.user.domain.constant.FollowStatus;
-import app.bottlenote.user.domain.constant.GenderType;
-import app.bottlenote.user.domain.constant.SocialType;
-import app.bottlenote.user.domain.constant.UserType;
 import app.bottlenote.user.repository.FollowRepository;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Component

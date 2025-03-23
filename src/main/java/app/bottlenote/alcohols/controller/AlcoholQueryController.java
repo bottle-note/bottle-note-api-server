@@ -1,7 +1,7 @@
 package app.bottlenote.alcohols.controller;
 
 
-import app.bottlenote.alcohols.domain.constant.AlcoholType;
+import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.service.AlcoholQueryService;

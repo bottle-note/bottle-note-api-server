@@ -1,6 +1,6 @@
 package app.bottlenote.alcohols.domain;
 
-import app.bottlenote.alcohols.domain.constant.AlcoholType;
+import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;

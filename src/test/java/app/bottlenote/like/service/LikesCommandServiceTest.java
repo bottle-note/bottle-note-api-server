@@ -1,6 +1,6 @@
 package app.bottlenote.like.service;
 
-import app.bottlenote.like.domain.LikeStatus;
+import app.bottlenote.like.constant.LikeStatus;
 import app.bottlenote.like.fake.FakeLikesEventPublisher;
 import app.bottlenote.like.fixture.InMemoryLikesRepository;
 import app.bottlenote.review.fixture.FakeReviewFacade;

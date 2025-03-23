@@ -2,9 +2,9 @@ package app.bottlenote.review.facade.payload;
 
 import app.bottlenote.global.data.serializers.CustomDeserializers.TagListDeserializer;
 import app.bottlenote.global.data.serializers.CustomSerializers.TagListSerializer;
+import app.bottlenote.review.constant.ReviewDisplayStatus;
+import app.bottlenote.review.constant.SizeType;
 import app.bottlenote.review.domain.ReviewLocation;
-import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
-import app.bottlenote.review.domain.constant.SizeType;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;

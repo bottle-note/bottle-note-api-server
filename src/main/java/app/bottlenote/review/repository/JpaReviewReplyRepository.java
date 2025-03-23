@@ -3,13 +3,13 @@ package app.bottlenote.review.repository;
 
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewReplyRepository;
-import app.bottlenote.review.repository.custom.CustomReviewReplyRepository;
-import java.util.List;
-import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface JpaReviewReplyRepository extends ReviewReplyRepository, JpaRepository<ReviewReply, Long>, CustomReviewReplyRepository {

@@ -1,6 +1,6 @@
 package app.bottlenote.user.dto.request;
 
-import app.bottlenote.user.domain.constant.GenderType;
+import app.bottlenote.user.constant.GenderType;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

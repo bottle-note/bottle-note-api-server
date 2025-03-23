@@ -16,9 +16,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static app.bottlenote.support.help.dto.constant.HelpResultMessage.DELETE_SUCCESS;
-import static app.bottlenote.support.help.dto.constant.HelpResultMessage.MODIFY_SUCCESS;
-import static app.bottlenote.support.help.dto.constant.HelpResultMessage.REGISTER_SUCCESS;
+import static app.bottlenote.support.help.constant.HelpResultMessage.DELETE_SUCCESS;
+import static app.bottlenote.support.help.constant.HelpResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.support.help.constant.HelpResultMessage.REGISTER_SUCCESS;
 import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_AUTHORIZED;
 import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
 

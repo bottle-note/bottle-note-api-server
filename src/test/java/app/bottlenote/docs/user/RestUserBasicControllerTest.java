@@ -16,7 +16,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.Optional;
 
-import static app.bottlenote.user.dto.constant.WithdrawUserResultMessage.USER_WITHDRAW_SUCCESS;
+import static app.bottlenote.user.constant.WithdrawUserResultMessage.USER_WITHDRAW_SUCCESS;
 import static app.bottlenote.user.dto.response.WithdrawUserResultResponse.response;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;

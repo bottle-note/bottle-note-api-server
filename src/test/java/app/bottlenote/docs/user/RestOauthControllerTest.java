@@ -2,9 +2,9 @@ package app.bottlenote.docs.user;
 
 import app.bottlenote.docs.AbstractRestDocs;
 import app.bottlenote.user.config.OauthConfigProperties;
+import app.bottlenote.user.constant.GenderType;
+import app.bottlenote.user.constant.SocialType;
 import app.bottlenote.user.controller.OauthController;
-import app.bottlenote.user.domain.constant.GenderType;
-import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.dto.request.BasicAccountRequest;
 import app.bottlenote.user.dto.request.BasicLoginRequest;
 import app.bottlenote.user.dto.request.GuestCodeRequest;

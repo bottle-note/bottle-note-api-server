@@ -1,7 +1,7 @@
 package app.bottlenote.support.report.service;
 
 import app.bottlenote.review.exception.ReviewException;
-import app.bottlenote.review.service.ReviewFacade;
+import app.bottlenote.review.facade.ReviewFacade;
 import app.bottlenote.support.report.domain.ReviewReport;
 import app.bottlenote.support.report.dto.request.ReviewReportRequest;
 import app.bottlenote.support.report.dto.response.ReviewReportResponse;

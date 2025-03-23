@@ -1,8 +1,8 @@
 package app.bottlenote.support.help.service;
 
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.support.help.constant.HelpType;
 import app.bottlenote.support.help.domain.Help;
-import app.bottlenote.support.help.domain.constant.HelpType;
 import app.bottlenote.support.help.dto.request.HelpImageItem;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
@@ -25,9 +25,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
 
-import static app.bottlenote.support.help.dto.constant.HelpResultMessage.DELETE_SUCCESS;
-import static app.bottlenote.support.help.dto.constant.HelpResultMessage.MODIFY_SUCCESS;
-import static app.bottlenote.support.help.dto.constant.HelpResultMessage.REGISTER_SUCCESS;
+import static app.bottlenote.support.help.constant.HelpResultMessage.DELETE_SUCCESS;
+import static app.bottlenote.support.help.constant.HelpResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.support.help.constant.HelpResultMessage.REGISTER_SUCCESS;
 import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_AUTHORIZED;
 import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.assertEquals;

@@ -1,6 +1,6 @@
 package app.bottlenote.review.dto.response;
 
-import app.bottlenote.review.dto.constant.ReviewResultMessage;
+import app.bottlenote.review.constant.ReviewResultMessage;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

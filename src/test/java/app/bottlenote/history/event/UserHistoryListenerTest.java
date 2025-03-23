@@ -1,8 +1,8 @@
 package app.bottlenote.history.event;
 
 import app.bottlenote.alcohols.fixture.FakeAlcoholFacade;
-import app.bottlenote.history.domain.constant.EventCategory;
-import app.bottlenote.history.domain.constant.EventType;
+import app.bottlenote.history.constant.EventCategory;
+import app.bottlenote.history.constant.EventType;
 import app.bottlenote.history.event.listener.HistoryListener;
 import app.bottlenote.history.event.payload.HistoryEvent;
 import app.bottlenote.history.fixture.InMemoryUserHistoryRepository;

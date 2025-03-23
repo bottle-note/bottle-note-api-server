@@ -5,7 +5,7 @@ import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.history.dto.response.UserHistoryItem;
 import app.bottlenote.history.dto.response.UserHistorySearchResponse;
-import app.bottlenote.picks.domain.PicksStatus;
+import app.bottlenote.picks.constant.PicksStatus;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

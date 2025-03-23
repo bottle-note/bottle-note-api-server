@@ -1,6 +1,7 @@
 package app.bottlenote.like.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
+import app.bottlenote.like.constant.LikeStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;

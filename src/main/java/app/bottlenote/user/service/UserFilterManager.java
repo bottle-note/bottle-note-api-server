@@ -1,6 +1,6 @@
 package app.bottlenote.user.service;
 
-import app.bottlenote.user.domain.constant.UserStatus;
+import app.bottlenote.user.constant.UserStatus;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Filter;

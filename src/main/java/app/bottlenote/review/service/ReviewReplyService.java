@@ -2,10 +2,10 @@ package app.bottlenote.review.service;
 
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
+import app.bottlenote.review.constant.ReviewReplyStatus;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewReplyRepository;
 import app.bottlenote.review.domain.ReviewRepository;
-import app.bottlenote.review.domain.constant.ReviewReplyStatus;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
 import app.bottlenote.review.dto.response.RootReviewReplyResponse;
@@ -23,8 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Objects;
 import java.util.Optional;
 
-import static app.bottlenote.review.dto.constant.ReviewReplyResultMessage.SUCCESS_DELETE_REPLY;
-import static app.bottlenote.review.dto.constant.ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY;
+import static app.bottlenote.review.constant.ReviewReplyResultMessage.SUCCESS_DELETE_REPLY;
+import static app.bottlenote.review.constant.ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY;
 import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 import static java.lang.Boolean.FALSE;
 

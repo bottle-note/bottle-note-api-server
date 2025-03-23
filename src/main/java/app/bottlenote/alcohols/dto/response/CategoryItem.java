@@ -1,6 +1,6 @@
 package app.bottlenote.alcohols.dto.response;
 
-import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
+import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 
 public record CategoryItem(
 	String korCategory,

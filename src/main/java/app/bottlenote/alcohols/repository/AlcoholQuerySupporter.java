@@ -1,7 +1,7 @@
 package app.bottlenote.alcohols.repository;
 
-import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
-import app.bottlenote.alcohols.domain.constant.SearchSortType;
+import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
+import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.global.service.cursor.CursorPageable;
@@ -23,7 +23,7 @@ import java.util.Objects;
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.alcohols.domain.QAlcoholsTastingTags.alcoholsTastingTags;
 import static app.bottlenote.alcohols.domain.QTastingTag.tastingTag;
-import static app.bottlenote.picks.domain.PicksStatus.PICK;
+import static app.bottlenote.picks.constant.PicksStatus.PICK;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;

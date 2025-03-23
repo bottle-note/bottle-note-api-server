@@ -1,6 +1,33 @@
 package app.bottlenote.user.integration;
 
-import static app.bottlenote.user.domain.constant.UserStatus.DELETED;
+import app.bottlenote.IntegrationTestSupport;
+import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.user.constant.SocialType;
+import app.bottlenote.user.constant.UserStatus;
+import app.bottlenote.user.constant.UserType;
+import app.bottlenote.user.domain.User;
+import app.bottlenote.user.domain.UserRepository;
+import app.bottlenote.user.dto.request.NicknameChangeRequest;
+import app.bottlenote.user.dto.request.OauthRequest;
+import app.bottlenote.user.dto.request.ProfileImageChangeRequest;
+import app.bottlenote.user.dto.response.NicknameChangeResponse;
+import app.bottlenote.user.dto.response.ProfileImageChangeResponse;
+import app.bottlenote.user.dto.response.WithdrawUserResultResponse;
+import app.bottlenote.user.exception.UserExceptionCode;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MvcResult;
+
+import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+import static app.bottlenote.user.constant.UserStatus.DELETED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -10,32 +37,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import app.bottlenote.IntegrationTestSupport;
-import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.user.domain.User;
-import app.bottlenote.user.domain.UserRepository;
-import app.bottlenote.user.domain.constant.SocialType;
-import app.bottlenote.user.domain.constant.UserStatus;
-import app.bottlenote.user.domain.constant.UserType;
-import app.bottlenote.user.dto.request.NicknameChangeRequest;
-import app.bottlenote.user.dto.request.OauthRequest;
-import app.bottlenote.user.dto.request.ProfileImageChangeRequest;
-import app.bottlenote.user.dto.response.NicknameChangeResponse;
-import app.bottlenote.user.dto.response.ProfileImageChangeResponse;
-import app.bottlenote.user.dto.response.WithdrawUserResultResponse;
-import app.bottlenote.user.exception.UserExceptionCode;
-import java.lang.reflect.Field;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.web.servlet.MvcResult;
 
 @Tag("integration")
 @DisplayName("[integration] [controller] UserBasicController")

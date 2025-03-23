@@ -1,7 +1,7 @@
 package app.bottlenote.docs.rating;
 
+import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
 import app.bottlenote.docs.AbstractRestDocs;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.CursorPageable;

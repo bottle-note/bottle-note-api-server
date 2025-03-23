@@ -1,6 +1,6 @@
 package app.bottlenote.rating.fixture;
 
-import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
+import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.rating.dto.request.RatingListFetchRequest;
 import app.bottlenote.rating.dto.response.RatingListFetchResponse;
 

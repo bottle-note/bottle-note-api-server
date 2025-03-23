@@ -2,10 +2,10 @@ package app.bottlenote.review.integration;
 
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.review.constant.ReviewReplyResultMessage;
+import app.bottlenote.review.constant.ReviewReplyStatus;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewReplyRepository;
-import app.bottlenote.review.domain.constant.ReviewReplyStatus;
-import app.bottlenote.review.dto.constant.ReviewReplyResultMessage;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
 import app.bottlenote.review.dto.response.RootReviewReplyResponse;
@@ -21,7 +21,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import java.nio.charset.StandardCharsets;
 
-import static app.bottlenote.review.domain.constant.ReviewReplyStatus.DELETED;
+import static app.bottlenote.review.constant.ReviewReplyStatus.DELETED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;

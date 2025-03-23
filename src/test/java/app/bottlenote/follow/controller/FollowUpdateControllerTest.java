@@ -3,8 +3,8 @@ package app.bottlenote.follow.controller;
 
 import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.user.constant.FollowStatus;
 import app.bottlenote.user.controller.FollowController;
-import app.bottlenote.user.domain.constant.FollowStatus;
 import app.bottlenote.user.dto.request.FollowUpdateRequest;
 import app.bottlenote.user.dto.response.FollowUpdateResponse;
 import app.bottlenote.user.exception.FollowException;

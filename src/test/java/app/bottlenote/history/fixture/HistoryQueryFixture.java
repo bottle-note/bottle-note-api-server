@@ -2,8 +2,8 @@ package app.bottlenote.history.fixture;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.history.domain.constant.EventCategory;
-import app.bottlenote.history.domain.constant.EventType;
+import app.bottlenote.history.constant.EventCategory;
+import app.bottlenote.history.constant.EventType;
 import app.bottlenote.history.dto.response.UserHistoryItem;
 import app.bottlenote.history.dto.response.UserHistorySearchResponse;
 

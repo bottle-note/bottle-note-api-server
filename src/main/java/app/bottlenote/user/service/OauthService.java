@@ -2,10 +2,10 @@ package app.bottlenote.user.service;
 
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
+import app.bottlenote.user.constant.GenderType;
+import app.bottlenote.user.constant.SocialType;
+import app.bottlenote.user.constant.UserType;
 import app.bottlenote.user.domain.User;
-import app.bottlenote.user.domain.constant.GenderType;
-import app.bottlenote.user.domain.constant.SocialType;
-import app.bottlenote.user.domain.constant.UserType;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.BasicAccountResponse;
 import app.bottlenote.user.dto.response.TokenItem;

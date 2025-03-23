@@ -1,7 +1,7 @@
 package app.bottlenote.history.dto.response;
 
-import app.bottlenote.history.domain.constant.EventCategory;
-import app.bottlenote.history.domain.constant.EventType;
+import app.bottlenote.history.constant.EventCategory;
+import app.bottlenote.history.constant.EventType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

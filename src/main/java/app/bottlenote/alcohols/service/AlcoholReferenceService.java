@@ -1,7 +1,7 @@
 package app.bottlenote.alcohols.service;
 
+import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
-import app.bottlenote.alcohols.domain.constant.AlcoholType;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.dto.response.RegionsItem;
 import app.bottlenote.alcohols.repository.RegionQueryRepository;

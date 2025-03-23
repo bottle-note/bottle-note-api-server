@@ -1,6 +1,6 @@
 package app.bottlenote.review.dto.request;
 
-import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
+import app.bottlenote.review.constant.ReviewDisplayStatus;
 import jakarta.validation.constraints.NotNull;
 
 public record ReviewStatusChangeRequest(

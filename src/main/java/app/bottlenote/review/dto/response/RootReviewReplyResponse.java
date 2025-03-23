@@ -1,6 +1,6 @@
 package app.bottlenote.review.dto.response;
 
-import app.bottlenote.review.domain.constant.ReviewReplyStatus;
+import app.bottlenote.review.constant.ReviewReplyStatus;
 import lombok.Builder;
 
 import java.time.LocalDateTime;

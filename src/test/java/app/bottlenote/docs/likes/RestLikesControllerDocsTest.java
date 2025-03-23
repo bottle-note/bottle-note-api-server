@@ -2,8 +2,8 @@ package app.bottlenote.docs.likes;
 
 import app.bottlenote.docs.AbstractRestDocs;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.like.constant.LikeStatus;
 import app.bottlenote.like.controller.LikesCommandController;
-import app.bottlenote.like.domain.LikeStatus;
 import app.bottlenote.like.dto.request.LikesUpdateRequest;
 import app.bottlenote.like.dto.response.LikesUpdateResponse;
 import app.bottlenote.like.service.LikesCommandService;

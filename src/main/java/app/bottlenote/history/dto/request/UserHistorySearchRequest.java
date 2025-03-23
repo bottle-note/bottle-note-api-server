@@ -1,11 +1,11 @@
 package app.bottlenote.history.dto.request;
 
 import app.bottlenote.global.service.cursor.SortOrder;
-import app.bottlenote.history.domain.constant.EventType;
-import app.bottlenote.history.dto.constant.HistoryReviewFilterType;
+import app.bottlenote.history.constant.EventType;
+import app.bottlenote.history.constant.HistoryReviewFilterType;
 import app.bottlenote.history.exception.UserHistoryException;
 import app.bottlenote.history.exception.UserHistoryExceptionCode;
-import app.bottlenote.picks.domain.PicksStatus;
+import app.bottlenote.picks.constant.PicksStatus;
 import app.bottlenote.rating.domain.RatingPoint;
 
 import java.time.LocalDateTime;

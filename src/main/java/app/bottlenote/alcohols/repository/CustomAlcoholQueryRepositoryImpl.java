@@ -1,6 +1,6 @@
 package app.bottlenote.alcohols.repository;
 
-import app.bottlenote.alcohols.domain.constant.SearchSortType;
+import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;

@@ -1,19 +1,12 @@
 package app.bottlenote.user.repository;
 
-import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.picks.domain.QPicks.picks;
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.domain.QReview.review;
-import static app.bottlenote.user.domain.QFollow.follow;
-import static com.querydsl.jpa.JPAExpressions.select;
-
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.SortOrder;
-import app.bottlenote.picks.domain.PicksStatus;
-import app.bottlenote.review.domain.constant.ReviewActiveStatus;
-import app.bottlenote.user.domain.constant.FollowStatus;
-import app.bottlenote.user.domain.constant.MyBottleSortType;
-import app.bottlenote.user.domain.constant.MyBottleTabType;
+import app.bottlenote.picks.constant.PicksStatus;
+import app.bottlenote.review.constant.ReviewActiveStatus;
+import app.bottlenote.user.constant.FollowStatus;
+import app.bottlenote.user.constant.MyBottleSortType;
+import app.bottlenote.user.constant.MyBottleTabType;
 import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import com.querydsl.core.types.Expression;
@@ -24,9 +17,17 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.util.StringUtils;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Objects;
-import org.springframework.stereotype.Component;
+
+import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.picks.domain.QPicks.picks;
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
+import static app.bottlenote.user.domain.QFollow.follow;
+import static com.querydsl.jpa.JPAExpressions.select;
 
 @Component
 public class UserQuerySupporter {

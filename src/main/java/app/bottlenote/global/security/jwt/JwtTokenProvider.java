@@ -1,6 +1,6 @@
 package app.bottlenote.global.security.jwt;
 
-import app.bottlenote.user.domain.constant.UserType;
+import app.bottlenote.user.constant.UserType;
 import app.bottlenote.user.dto.response.TokenItem;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

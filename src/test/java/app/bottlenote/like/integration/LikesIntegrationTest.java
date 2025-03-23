@@ -2,24 +2,26 @@ package app.bottlenote.like.integration;
 
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.like.domain.LikeStatus;
+import app.bottlenote.like.constant.LikeStatus;
 import app.bottlenote.like.domain.Likes;
 import app.bottlenote.like.domain.LikesRepository;
 import app.bottlenote.like.dto.request.LikesUpdateRequest;
 import app.bottlenote.like.dto.response.LikesUpdateResponse;
-import static app.bottlenote.like.dto.response.LikesUpdateResponse.Message.DISLIKE;
-import static app.bottlenote.like.dto.response.LikesUpdateResponse.Message.LIKED;
-import java.nio.charset.StandardCharsets;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
+
+import java.nio.charset.StandardCharsets;
+
+import static app.bottlenote.like.dto.response.LikesUpdateResponse.Message.DISLIKE;
+import static app.bottlenote.like.dto.response.LikesUpdateResponse.Message.LIKED;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;

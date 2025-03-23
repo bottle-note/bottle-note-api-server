@@ -1,6 +1,6 @@
 package app.bottlenote.like.dto.response;
 
-import app.bottlenote.like.domain.LikeStatus;
+import app.bottlenote.like.constant.LikeStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

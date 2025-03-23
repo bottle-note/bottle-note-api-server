@@ -2,6 +2,7 @@ package app.bottlenote.picks.domain;
 
 
 import app.bottlenote.common.domain.BaseTimeEntity;
+import app.bottlenote.picks.constant.PicksStatus;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;

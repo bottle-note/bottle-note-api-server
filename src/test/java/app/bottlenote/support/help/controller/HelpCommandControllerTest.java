@@ -3,7 +3,7 @@ package app.bottlenote.support.help.controller;
 import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.support.help.domain.constant.HelpType;
+import app.bottlenote.support.help.constant.HelpType;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
 import app.bottlenote.support.help.dto.response.HelpListResponse;
@@ -29,9 +29,9 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.Optional;
 
-import static app.bottlenote.support.help.dto.constant.HelpResultMessage.DELETE_SUCCESS;
-import static app.bottlenote.support.help.dto.constant.HelpResultMessage.MODIFY_SUCCESS;
-import static app.bottlenote.support.help.dto.constant.HelpResultMessage.REGISTER_SUCCESS;
+import static app.bottlenote.support.help.constant.HelpResultMessage.DELETE_SUCCESS;
+import static app.bottlenote.support.help.constant.HelpResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.support.help.constant.HelpResultMessage.REGISTER_SUCCESS;
 import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_AUTHORIZED;
 import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;

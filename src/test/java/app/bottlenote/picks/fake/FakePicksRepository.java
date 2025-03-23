@@ -1,7 +1,7 @@
 package app.bottlenote.picks.fake;
 
+import app.bottlenote.picks.constant.PicksStatus;
 import app.bottlenote.picks.domain.Picks;
-import app.bottlenote.picks.domain.PicksStatus;
 import app.bottlenote.picks.repository.PicksRepository;
 import org.springframework.test.util.ReflectionTestUtils;
 
