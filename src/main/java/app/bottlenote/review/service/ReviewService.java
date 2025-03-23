@@ -11,7 +11,7 @@ import app.bottlenote.review.domain.ReviewLocation;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewImageInfoRequest;
-import app.bottlenote.review.dto.request.ReviewModifyRequest;
+import app.bottlenote.review.dto.request.ReviewModifyRequestWrapperItem;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.request.ReviewStatusChangeRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
@@ -22,7 +22,6 @@ import app.bottlenote.review.event.payload.ReviewRegistryEvent;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.facade.ReviewFacade;
 import app.bottlenote.review.facade.payload.ReviewInfo;
-import app.bottlenote.review.facade.payload.ReviewModifyVO;
 import app.bottlenote.user.facade.UserFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -94,7 +93,6 @@ public class ReviewService implements ReviewFacade {
 		return reviewRepository.existsById(reviewId);
 	}
 
-
 	@Override
 	@Transactional(readOnly = true)
 	public Long getAlcoholIdByReviewId(Long reviewId) {
@@ -105,7 +103,6 @@ public class ReviewService implements ReviewFacade {
 	/**
 	 * Create , Update, Delete
 	 */
-
 	@Override
 	@Transactional
 	public void requestBlockReview(Long reviewId) {
@@ -159,17 +156,17 @@ public class ReviewService implements ReviewFacade {
 
 	@Transactional
 	public ReviewResultResponse modifyReview(
-		final ReviewModifyRequest request,
+		final app.bottlenote.review.dto.request.ReviewModifyRequest request,
 		final Long reviewId,
 		final Long currentUserId
 	) {
 		Review review = reviewRepository.findByIdAndUserId(reviewId, currentUserId)
 			.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
 
-		ReviewModifyVO reviewModifyVO = ReviewModifyVO.create(request);
+		ReviewModifyRequestWrapperItem reviewModifyRequestWrapperItem = ReviewModifyRequestWrapperItem.create(request);
 		List<ReviewImageInfoRequest> reviewImageInfoRequests = request.imageUrlList();
 
-		review.update(reviewModifyVO);
+		review.update(reviewModifyRequestWrapperItem);
 		review.imageInitialization(reviewImageInfoRequests);
 		review.updateTastingTags(request.tastingTagList());
 		return ReviewResultResponse.response(MODIFY_SUCCESS, reviewId);

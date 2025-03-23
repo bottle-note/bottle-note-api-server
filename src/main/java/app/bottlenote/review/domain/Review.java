@@ -9,7 +9,7 @@ import app.bottlenote.review.constant.ReviewResultMessage;
 import app.bottlenote.review.constant.SizeType;
 import app.bottlenote.review.dto.request.LocationInfoRequest;
 import app.bottlenote.review.dto.request.ReviewImageInfoRequest;
-import app.bottlenote.review.facade.payload.ReviewModifyVO;
+import app.bottlenote.review.dto.request.ReviewModifyRequestWrapperItem;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -111,12 +111,12 @@ public class Review extends BaseEntity {
 	@Embedded
 	private ReviewTastingTags reviewTastingTags = ReviewTastingTags.empty();
 
-	public void update(ReviewModifyVO reviewModifyVO) {
-		this.status = reviewModifyVO.getReviewDisplayStatus();
-		this.content = reviewModifyVO.getContent();
-		this.sizeType = reviewModifyVO.getSizeType();
-		this.price = reviewModifyVO.getPrice();
-		LocationInfoRequest locationInfoRequest = reviewModifyVO.getLocationInfo();
+	public void update(ReviewModifyRequestWrapperItem reviewModifyRequestWrapperItem) {
+		this.status = reviewModifyRequestWrapperItem.getReviewDisplayStatus();
+		this.content = reviewModifyRequestWrapperItem.getContent();
+		this.sizeType = reviewModifyRequestWrapperItem.getSizeType();
+		this.price = reviewModifyRequestWrapperItem.getPrice();
+		LocationInfoRequest locationInfoRequest = reviewModifyRequestWrapperItem.getLocationInfo();
 		Objects.requireNonNullElse(this.reviewLocation, ReviewLocation.empty()).update(locationInfoRequest);
 	}
 

@@ -108,7 +108,7 @@ public class FacadeObjectRules extends AbstractRules {
 	@Test
 	public void 퍼사드_페이로드_패키지_구조_검증() {
 		ArchRule rule = classes()
-				.that().haveNameMatching(".*Info$|.*VO$|.*Item$")
+				.that().haveNameMatching(".*Info$|.*Item$")
 				.and().areNotEnums()
 				.and().areTopLevelClasses()
 				.and().resideInAPackage("..facade.payload..")
@@ -132,12 +132,12 @@ public class FacadeObjectRules extends AbstractRules {
 					@Override
 					public void check(JavaClass javaClass, ConditionEvents events) {
 						String name = javaClass.getSimpleName();
-						boolean hasValidSuffix = name.endsWith("Info") || name.endsWith("VO") || name.endsWith("Item");
+						boolean hasValidSuffix = name.endsWith("Info") || name.endsWith("Item");
 
 						String message = String.format(
 								"클래스 '%s'는 명명 규칙을 %s",
 								javaClass.getName(),
-								hasValidSuffix ? "준수합니다" : "위반합니다 (Info, VO, Item 중 하나로 끝나야 함)"
+								hasValidSuffix ? "준수합니다" : "위반합니다 (Info, Item 중 하나로 끝나야 함)"
 						);
 
 						if (hasValidSuffix) {

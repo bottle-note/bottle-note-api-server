@@ -107,7 +107,7 @@ public class ReviewObjectFixture {
 	}
 
 	/**
-	 * 기본 ReviewModifyRequest 객체를 생성합니다.
+	 * 기본 ReviewModifyRequestWrapperItem 객체를 생성합니다.
 	 */
 	public static ReviewModifyRequest getReviewModifyRequest(ReviewDisplayStatus status) {
 		return new ReviewModifyRequest(
