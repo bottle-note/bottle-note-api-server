@@ -2,10 +2,10 @@ package app.bottlenote.alcohols.repository.custom;
 
 import app.bottlenote.alcohols.domain.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
-import app.bottlenote.alcohols.dto.response.AlcoholDetailInfo;
-import app.bottlenote.alcohols.dto.response.AlcoholInfo;
+import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
-import app.bottlenote.alcohols.dto.response.AlcoholsSearchDetail;
+import app.bottlenote.alcohols.dto.response.AlcoholSummaryItem;
+import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.alcohols.repository.AlcoholQuerySupporter;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
@@ -43,12 +43,12 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 	 * @return the alcohol detail info
 	 */
 	@Override
-	public AlcoholDetailInfo findAlcoholDetailById(Long alcoholId, Long userId) {
+	public AlcoholDetailItem findAlcoholDetailById(Long alcoholId, Long userId) {
 		if (Objects.isNull(userId)) userId = -1L;
 
 		return queryFactory
 			.select(Projections.constructor(
-				AlcoholDetailInfo.class,
+				AlcoholDetailItem.class,
 				alcohol.id,
 				alcohol.imageUrl,
 				alcohol.korName,
@@ -82,15 +82,15 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 	 *
 	 * @param alcoholId 조회 대상 AlcoholId
 	 * @param userId    만약 사용자가 로그인한 경우 좋아요 상태를 확인하기 위한 사용자 ID
-	 * @return AlcoholInfo
+	 * @return AlcoholSummaryItem
 	 */
 	@Override
-	public Optional<AlcoholInfo> findAlcoholInfoById(Long alcoholId, Long userId) {
+	public Optional<AlcoholSummaryItem> findAlcoholInfoById(Long alcoholId, Long userId) {
 
 		return Optional.ofNullable(queryFactory
 			.select(
 				Projections.constructor(
-					AlcoholInfo.class,
+					AlcoholSummaryItem.class,
 					alcohol.id.as("alcoholId"),
 					alcohol.korName.as("korName"),
 					alcohol.engName.as("engName"),
@@ -139,9 +139,9 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 
 		Long userId = criteriaDto.userId();
 
-		List<AlcoholsSearchDetail> fetch = queryFactory
+		List<AlcoholsSearchItem> fetch = queryFactory
 			.select(Projections.fields(
-				AlcoholsSearchDetail.class,
+				AlcoholsSearchItem.class,
 				alcohol.id.as("alcoholId"),
 				alcohol.korName.as("korName"),
 				alcohol.engName.as("engName"),

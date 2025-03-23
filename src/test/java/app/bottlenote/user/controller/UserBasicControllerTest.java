@@ -21,8 +21,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.Optional;
 
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
+import static app.bottlenote.user.dto.constant.WithdrawUserResultMessage.USER_WITHDRAW_SUCCESS;
 import static app.bottlenote.user.dto.response.WithdrawUserResultResponse.response;
-import static app.bottlenote.user.dto.response.constant.WithdrawUserResultMessage.USER_WITHDRAW_SUCCESS;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;

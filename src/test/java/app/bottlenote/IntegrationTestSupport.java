@@ -3,7 +3,7 @@ package app.bottlenote;
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.request.OauthRequest;
-import app.bottlenote.user.dto.response.TokenDto;
+import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.repository.OauthRepository;
 import app.bottlenote.user.service.OauthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -61,13 +61,13 @@ public abstract class IntegrationTestSupport {
 		log.info("데이터 초기화 dataInitializer.deleteAll() 종료");
 	}
 
-	protected TokenDto getToken(OauthRequest request) {
+	protected TokenItem getToken(OauthRequest request) {
 		return oauthService.login(request);
 	}
 
 	protected String getToken() {
 		User user = oauthRepository.getFirstUser().orElseThrow(() -> new RuntimeException("init 처리된 유저가 없습니다."));
-		TokenDto token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
+		TokenItem token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
 		return token.accessToken();
 	}
 

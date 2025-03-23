@@ -4,7 +4,7 @@ package app.bottlenote.common.file.service;
 import app.bottlenote.common.annotation.ThirdPartyService;
 import app.bottlenote.common.file.PreSignUrlProvider;
 import app.bottlenote.common.file.dto.request.ImageUploadRequest;
-import app.bottlenote.common.file.dto.response.ImageUploadInfo;
+import app.bottlenote.common.file.dto.response.ImageUploadItem;
 import app.bottlenote.common.file.dto.response.ImageUploadResponse;
 import app.bottlenote.common.file.event.payload.S3RequestEvent;
 import com.amazonaws.HttpMethod;
@@ -50,14 +50,14 @@ public class ImageUploadService implements PreSignUrlProvider {
 	public ImageUploadResponse getPreSignUrl(ImageUploadRequest request) {
 		String rootPath = request.rootPath();
 		Long uploadSize = request.uploadSize();
-		List<ImageUploadInfo> keys = new ArrayList<>();
+		List<ImageUploadItem> keys = new ArrayList<>();
 
 		for (long index = 1; index <= uploadSize; index++) {
 			String imageKey = getImageKey(rootPath, index);
 			String preSignUrl = generatePreSignUrl(imageKey);
 			String viewUrl = generateViewUrl(cloudFrontUrl, imageKey);
 			keys.add(
-				ImageUploadInfo.builder()
+				ImageUploadItem.builder()
 					.order(index)
 					.viewUrl(viewUrl)
 					.uploadUrl(preSignUrl)
@@ -70,7 +70,7 @@ public class ImageUploadService implements PreSignUrlProvider {
 			.bucketName(imageBucketName)
 			.expiryTime(EXPIRY_TIME)
 			.uploadSize(keys.size())
-			.imageUploadInfo(keys)
+			.imageUploadItem(keys)
 			.build();
 	}
 

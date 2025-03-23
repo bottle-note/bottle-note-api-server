@@ -3,7 +3,7 @@ package app.bottlenote.user.service;
 import app.bottlenote.common.annotation.FacadeService;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
-import app.bottlenote.user.dto.response.UserProfileInfo;
+import app.bottlenote.user.dto.response.UserProfileItem;
 import app.bottlenote.user.exception.UserException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,10 +33,10 @@ public class DefaultUserFacade implements UserFacade {
 	}
 
 	@Override
-	public UserProfileInfo getUserProfileInfo(Long userId) {
+	public UserProfileItem getUserProfileInfo(Long userId) {
 		User user = userQueryRepository.findById(userId)
 			.orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
-		return UserProfileInfo.create(user.getId(), user.getNickName(), user.getImageUrl());
+		return UserProfileItem.create(user.getId(), user.getNickName(), user.getImageUrl());
 	}
 }

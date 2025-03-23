@@ -2,6 +2,7 @@ package app.bottlenote.history.dto.request;
 
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.history.domain.constant.EventType;
+import app.bottlenote.history.dto.constant.HistoryReviewFilterType;
 import app.bottlenote.history.exception.UserHistoryException;
 import app.bottlenote.history.exception.UserHistoryExceptionCode;
 import app.bottlenote.picks.domain.PicksStatus;

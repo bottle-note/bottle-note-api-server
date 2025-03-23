@@ -1,20 +1,21 @@
 package app.bottlenote.support.help.domain;
 
-import static app.bottlenote.review.exception.ReviewExceptionCode.INVALID_IMAGE_URL_MAX_SIZE;
-
 import app.bottlenote.common.image.ImageInfo;
 import app.bottlenote.common.image.ImageUtil;
-import app.bottlenote.support.help.dto.HelpImageInfo;
+import app.bottlenote.support.help.dto.request.HelpImageItem;
 import app.bottlenote.support.help.exception.HelpException;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.annotations.Comment;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static app.bottlenote.review.exception.ReviewExceptionCode.INVALID_IMAGE_URL_MAX_SIZE;
 
 @Embeddable
 @RequiredArgsConstructor
@@ -35,7 +36,7 @@ public class HelpImageList {
 		}
 	}
 
-	public void addImages(List<HelpImageInfo> images, Long helpId) {
+	public void addImages(List<HelpImageItem> images, Long helpId) {
 		this.helpImages.addAll(makeHelpImageList(images, helpId));
 	}
 
@@ -43,7 +44,7 @@ public class HelpImageList {
 		this.helpImages.clear();
 	}
 
-	public List<HelpImage> makeHelpImageList(List<HelpImageInfo> images, Long helpId) {
+	public List<HelpImage> makeHelpImageList(List<HelpImageItem> images, Long helpId) {
 		List<HelpImage> helpImageList = images.stream()
 			.map(image -> HelpImage.builder()
 				.helpimageInfo(

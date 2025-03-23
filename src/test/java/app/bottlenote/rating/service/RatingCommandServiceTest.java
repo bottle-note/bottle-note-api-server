@@ -11,7 +11,7 @@ import app.bottlenote.rating.dto.response.RatingRegisterResponse;
 import app.bottlenote.rating.exception.RatingException;
 import app.bottlenote.rating.fixture.FakeRatingEventPublisher;
 import app.bottlenote.rating.fixture.InMemoryRatingRepository;
-import app.bottlenote.user.dto.response.UserProfileInfo;
+import app.bottlenote.user.dto.response.UserProfileItem;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.fixture.FakeUserFacade;
 import app.bottlenote.user.service.UserFacade;
@@ -36,9 +36,9 @@ class RatingCommandServiceTest {
 
 	@BeforeEach
 	void setup() {
-		UserProfileInfo user1 = UserProfileInfo.create(1L, "user1", "");
-		UserProfileInfo user2 = UserProfileInfo.create(2L, "user2", "");
-		UserProfileInfo user3 = UserProfileInfo.create(3L, "user3", "");
+		UserProfileItem user1 = UserProfileItem.create(1L, "user1", "");
+		UserProfileItem user2 = UserProfileItem.create(2L, "user2", "");
+		UserProfileItem user3 = UserProfileItem.create(3L, "user3", "");
 
 		fakeRatingRepository = new InMemoryRatingRepository();
 		UserFacade fakeUserFacade = new FakeUserFacade(user1, user2, user3);

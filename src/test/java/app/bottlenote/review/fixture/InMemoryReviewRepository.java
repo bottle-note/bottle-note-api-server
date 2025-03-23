@@ -5,7 +5,7 @@ import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.response.ReviewListResponse;
-import app.bottlenote.review.dto.vo.ReviewInfo;
+import app.bottlenote.review.facade.payload.ReviewInfo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.test.util.ReflectionTestUtils;

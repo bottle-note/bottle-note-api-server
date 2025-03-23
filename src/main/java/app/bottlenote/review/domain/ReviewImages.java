@@ -1,6 +1,6 @@
 package app.bottlenote.review.domain;
 
-import app.bottlenote.review.dto.request.ReviewImageInfo;
+import app.bottlenote.review.dto.request.ReviewImageInfoRequest;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import jakarta.persistence.CascadeType;
@@ -53,11 +53,11 @@ public class ReviewImages {
 		return reviewImageList.size() > REVIEW_IMAGE_MAX_SIZE;
 	}
 
-	public List<ReviewImageInfo> getViewInfo() {
+	public List<ReviewImageInfoRequest> getViewInfo() {
 		return this.images.stream()
 			.map(
 				image ->
-					ReviewImageInfo.create(
+					ReviewImageInfoRequest.create(
 						image.getReviewImageInfo().getOrder(),
 						image.getReviewImageInfo().getImageUrl()))
 			.toList();

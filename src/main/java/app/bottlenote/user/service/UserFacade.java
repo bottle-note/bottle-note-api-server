@@ -1,6 +1,6 @@
 package app.bottlenote.user.service;
 
-import app.bottlenote.user.dto.response.UserProfileInfo;
+import app.bottlenote.user.dto.response.UserProfileItem;
 
 /**
  * 유저 도메인 서포트를 위한 인터페이스입니다.
@@ -25,5 +25,5 @@ public interface UserFacade {
 	 */
 	void isValidUserId(Long userId);
 
-	UserProfileInfo getUserProfileInfo(Long userId);
+	UserProfileItem getUserProfileInfo(Long userId);
 }

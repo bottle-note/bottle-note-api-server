@@ -1,6 +1,6 @@
 package app.bottlenote.alcohols.fixture;
 
-import app.bottlenote.alcohols.dto.response.AlcoholInfo;
+import app.bottlenote.alcohols.dto.response.AlcoholSummaryItem;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.service.AlcoholFacade;
 import org.apache.logging.log4j.LogManager;
@@ -17,10 +17,10 @@ public class FakeAlcoholFacade implements AlcoholFacade {
 
 	private static final Logger log = LogManager.getLogger(FakeAlcoholFacade.class);
 
-	private final Map<Long, AlcoholInfo> alcoholDatabase = new ConcurrentHashMap<>();
+	private final Map<Long, AlcoholSummaryItem> alcoholDatabase = new ConcurrentHashMap<>();
 
 	public FakeAlcoholFacade() {
-		alcoholDatabase.put(1L, new AlcoholInfo(
+		alcoholDatabase.put(1L, new AlcoholSummaryItem(
 			1L,
 			"위스키",
 			"Whiskey",
@@ -29,7 +29,7 @@ public class FakeAlcoholFacade implements AlcoholFacade {
 			"https://bottlenote.app/alcohol/1",
 			false
 		));
-		alcoholDatabase.put(2L, new AlcoholInfo(
+		alcoholDatabase.put(2L, new AlcoholSummaryItem(
 			2L,
 			"럼",
 			"Rum",
@@ -38,7 +38,7 @@ public class FakeAlcoholFacade implements AlcoholFacade {
 			"https://bottlenote.app/alcohol/2",
 			false
 		));
-		alcoholDatabase.put(3L, new AlcoholInfo(
+		alcoholDatabase.put(3L, new AlcoholSummaryItem(
 			3L,
 			"보드카",
 			"Vodka",
@@ -52,12 +52,12 @@ public class FakeAlcoholFacade implements AlcoholFacade {
 	/**
 	 * Utility method to add alcohol data for testing purposes.
 	 *
-	 * @param alcoholInfo Alcohol information to add.
+	 * @param alcoholSummaryItem Alcohol information to add.
 	 */
-	public void addAlcohol(AlcoholInfo alcoholInfo) {
-		Objects.requireNonNull(alcoholInfo, "AlcoholInfo cannot be null");
-		alcoholDatabase.put(alcoholInfo.alcoholId(), alcoholInfo);
-		log.debug("Added alcohol: {}", alcoholInfo);
+	public void addAlcohol(AlcoholSummaryItem alcoholSummaryItem) {
+		Objects.requireNonNull(alcoholSummaryItem, "AlcoholSummaryItem cannot be null");
+		alcoholDatabase.put(alcoholSummaryItem.alcoholId(), alcoholSummaryItem);
+		log.debug("Added alcohol: {}", alcoholSummaryItem);
 	}
 
 	/**
@@ -79,13 +79,13 @@ public class FakeAlcoholFacade implements AlcoholFacade {
 	}
 
 	@Override
-	public Optional<AlcoholInfo> findAlcoholInfoById(Long alcoholId, Long currentUserId) {
-		AlcoholInfo alcoholInfo = alcoholDatabase.get(alcoholId);
-		if (alcoholInfo != null) {
-			log.debug("Found AlcoholInfo for ID {}: {}", alcoholId, alcoholInfo);
-			return Optional.of(alcoholInfo);
+	public Optional<AlcoholSummaryItem> findAlcoholInfoById(Long alcoholId, Long currentUserId) {
+		AlcoholSummaryItem alcoholSummaryItem = alcoholDatabase.get(alcoholId);
+		if (alcoholSummaryItem != null) {
+			log.debug("Found AlcoholSummaryItem for ID {}: {}", alcoholId, alcoholSummaryItem);
+			return Optional.of(alcoholSummaryItem);
 		} else {
-			log.debug("No AlcoholInfo found for ID {}", alcoholId);
+			log.debug("No AlcoholSummaryItem found for ID {}", alcoholId);
 			return Optional.empty();
 		}
 	}
@@ -107,10 +107,10 @@ public class FakeAlcoholFacade implements AlcoholFacade {
 
 	@Override
 	public Optional<String> findAlcoholImageUrlById(Long alcoholId) {
-		AlcoholInfo alcoholInfo = alcoholDatabase.get(alcoholId);
-		if (alcoholInfo != null) {
-			log.debug("Found image URL for Alcohol ID {}: {}", alcoholId, alcoholInfo.imageUrl());
-			return Optional.of(alcoholInfo.imageUrl());
+		AlcoholSummaryItem alcoholSummaryItem = alcoholDatabase.get(alcoholId);
+		if (alcoholSummaryItem != null) {
+			log.debug("Found image URL for Alcohol ID {}: {}", alcoholId, alcoholSummaryItem.imageUrl());
+			return Optional.of(alcoholSummaryItem.imageUrl());
 		} else {
 			log.debug("No image URL found for Alcohol ID {}", alcoholId);
 			return Optional.empty();

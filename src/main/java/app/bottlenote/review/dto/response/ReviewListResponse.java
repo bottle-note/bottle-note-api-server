@@ -1,6 +1,6 @@
 package app.bottlenote.review.dto.response;
 
-import app.bottlenote.review.dto.vo.ReviewInfo;
+import app.bottlenote.review.facade.payload.ReviewInfo;
 
 import java.util.List;
 

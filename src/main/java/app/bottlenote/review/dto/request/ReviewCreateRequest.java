@@ -33,10 +33,10 @@ public record ReviewCreateRequest(
 	BigDecimal price,
 
 	@Valid
-	LocationInfo locationInfo,
+    LocationInfoRequest locationInfoRequest,
 
 	@Valid
-	List<ReviewImageInfo> imageUrlList,
+	List<ReviewImageInfoRequest> imageUrlList,
 	List<String> tastingTagList,
 
 	Double rating

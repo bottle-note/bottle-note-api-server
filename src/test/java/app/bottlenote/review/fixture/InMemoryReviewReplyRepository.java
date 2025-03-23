@@ -2,14 +2,15 @@ package app.bottlenote.review.fixture;
 
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewReplyRepository;
-import app.bottlenote.review.dto.response.RootReviewReplyInfo;
-import app.bottlenote.review.dto.response.SubReviewReplyInfo;
+import app.bottlenote.review.dto.response.RootReviewReplyResponse;
+import app.bottlenote.review.dto.response.SubReviewReplyResponse;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class InMemoryReviewReplyRepository implements ReviewReplyRepository {
 
@@ -39,13 +40,13 @@ public class InMemoryReviewReplyRepository implements ReviewReplyRepository {
 	}
 
 	@Override
-	public RootReviewReplyInfo getReviewRootReplies(Long reviewId, Long cursor, Long pageSize) {
-		return RootReviewReplyInfo.of(0L, List.of());
+	public RootReviewReplyResponse getReviewRootReplies(Long reviewId, Long cursor, Long pageSize) {
+		return RootReviewReplyResponse.of(0L, List.of());
 	}
 
 	@Override
-	public SubReviewReplyInfo getSubReviewReplies(Long reviewId, Long replyId, Long cursor, Long pageSize) {
-		return SubReviewReplyInfo.of(0L, List.of());
+	public SubReviewReplyResponse getSubReviewReplies(Long reviewId, Long replyId, Long cursor, Long pageSize) {
+		return SubReviewReplyResponse.of(0L, List.of());
 	}
 
 	@Override

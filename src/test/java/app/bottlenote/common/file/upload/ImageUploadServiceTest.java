@@ -1,7 +1,7 @@
 package app.bottlenote.common.file.upload;
 
 import app.bottlenote.common.file.dto.request.ImageUploadRequest;
-import app.bottlenote.common.file.dto.response.ImageUploadInfo;
+import app.bottlenote.common.file.dto.response.ImageUploadItem;
 import app.bottlenote.common.file.dto.response.ImageUploadResponse;
 import app.bottlenote.common.file.service.ImageUploadService;
 import com.amazonaws.HttpMethod;
@@ -65,7 +65,7 @@ class ImageUploadServiceTest {
 
 		ImageUploadRequest 요청객체 = new ImageUploadRequest(rootPath, uploadSize); // 요청 사이즈를 2로 수정
 		ImageUploadResponse 응답객체 = new ImageUploadResponse("image-bucket", 1, 5,
-			List.of(new ImageUploadInfo(1L, viewUrl + key1, amazonUrl + key1)/*,new ImageUploadInfo(2L, viewUrl + key2, amazonUrl + key2)*/)
+			List.of(new ImageUploadItem(1L, viewUrl + key1, amazonUrl + key1)/*,new ImageUploadItem(2L, viewUrl + key2, amazonUrl + key2)*/)
 		);
 
 		//when
@@ -76,8 +76,8 @@ class ImageUploadServiceTest {
 		ImageUploadResponse 실제_반환값 = imageUploadService.getPreSignUrl(요청객체);
 
 		// Then
-		ImageUploadInfo 비교_대상 = 응답객체.imageUploadInfo().stream().findFirst().get();
-		ImageUploadInfo 실제_비교_대상 = 실제_반환값.imageUploadInfo().stream().findFirst().get();
+		ImageUploadItem 비교_대상 = 응답객체.imageUploadItem().stream().findFirst().get();
+		ImageUploadItem 실제_비교_대상 = 실제_반환값.imageUploadItem().stream().findFirst().get();
 
 		Assertions.assertNotNull(실제_반환값);
 		Assertions.assertEquals(응답객체.bucketName(), 실제_반환값.bucketName());

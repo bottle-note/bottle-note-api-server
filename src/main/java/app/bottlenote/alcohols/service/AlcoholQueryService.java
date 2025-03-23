@@ -3,10 +3,10 @@ package app.bottlenote.alcohols.service;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
-import app.bottlenote.alcohols.dto.response.AlcoholDetailInfo;
+import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
-import app.bottlenote.alcohols.dto.response.FriendsDetailInfo;
+import app.bottlenote.alcohols.dto.response.FriendsDetailResponse;
 import app.bottlenote.alcohols.facade.payload.FriendInfo;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.service.ReviewFacade;
@@ -50,8 +50,8 @@ public class AlcoholQueryService {
 	 */
 	@Transactional(readOnly = true)
 	public AlcoholDetailResponse findAlcoholDetailById(Long alcoholId, Long userId) {
-		AlcoholDetailInfo alcoholDetail = alcoholQueryRepository.findAlcoholDetailById(alcoholId, userId);
-		FriendsDetailInfo friendInfos = getFriendInfos(alcoholId, userId);
+		AlcoholDetailItem alcoholDetail = alcoholQueryRepository.findAlcoholDetailById(alcoholId, userId);
+		FriendsDetailResponse friendInfos = getFriendInfos(alcoholId, userId);
 		return AlcoholDetailResponse.builder()
 			.alcohols(alcoholDetail)
 			.friendsInfo(friendInfos)
@@ -64,11 +64,11 @@ public class AlcoholQueryService {
 	 *
 	 * @param alcoholId
 	 * @param userId
-	 * @return FriendsDetailInfo
+	 * @return FriendsDetailResponse
 	 */
-	protected FriendsDetailInfo getFriendInfos(Long alcoholId, Long userId) {
+	protected FriendsDetailResponse getFriendInfos(Long alcoholId, Long userId) {
 		PageRequest pageRequest = PageRequest.of(0, MAX_FRIENDS_SIZE);
 		List<FriendInfo> friendInfos = followFacade.getTastingFriendsInfoList(alcoholId, userId, pageRequest);
-		return FriendsDetailInfo.of((long) friendInfos.size(), friendInfos);
+		return FriendsDetailResponse.of((long) friendInfos.size(), friendInfos);
 	}
 }

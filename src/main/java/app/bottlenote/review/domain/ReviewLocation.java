@@ -1,6 +1,6 @@
 package app.bottlenote.review.domain;
 
-import app.bottlenote.review.dto.request.LocationInfo;
+import app.bottlenote.review.dto.request.LocationInfoRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -53,14 +53,14 @@ public class ReviewLocation {
 		return ReviewLocation.builder().build();
 	}
 
-	public void update(LocationInfo locationInfo) {
-		this.name = locationInfo.locationName();
-		this.zipCode = locationInfo.zipCode();
-		this.address = locationInfo.address();
-		this.detailAddress = locationInfo.detailAddress();
-		this.category = locationInfo.category();
-		this.mapUrl = locationInfo.mapUrl();
-		this.latitude = locationInfo.latitude();
-		this.longitude = locationInfo.longitude();
+	public void update(LocationInfoRequest locationInfoRequest) {
+		this.name = locationInfoRequest.locationName();
+		this.zipCode = locationInfoRequest.zipCode();
+		this.address = locationInfoRequest.address();
+		this.detailAddress = locationInfoRequest.detailAddress();
+		this.category = locationInfoRequest.category();
+		this.mapUrl = locationInfoRequest.mapUrl();
+		this.latitude = locationInfoRequest.latitude();
+		this.longitude = locationInfoRequest.longitude();
 	}
 }

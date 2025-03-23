@@ -8,7 +8,7 @@ import app.bottlenote.user.dto.request.GuestCodeRequest;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.BasicAccountResponse;
 import app.bottlenote.user.dto.response.OauthResponse;
-import app.bottlenote.user.dto.response.TokenDto;
+import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.service.OauthService;
@@ -54,7 +54,7 @@ public class OauthController {
 		@RequestBody @Valid BasicLoginRequest request,
 		HttpServletResponse response
 	) {
-		TokenDto token = oauthService.basicLogin(request.getEmail(), request.getPassword());
+		TokenItem token = oauthService.basicLogin(request.getEmail(), request.getPassword());
 		setRefreshTokenInCookie(response, token.refreshToken());
 		return GlobalResponse.ok(OauthResponse.of(token.accessToken()));
 	}
@@ -64,7 +64,7 @@ public class OauthController {
 		@RequestBody @Valid OauthRequest oauthReq,
 		HttpServletResponse response
 	) {
-		TokenDto token = oauthService.login(oauthReq);
+		TokenItem token = oauthService.login(oauthReq);
 		setRefreshTokenInCookie(response, token.refreshToken());
 		return GlobalResponse.ok(OauthResponse.of(token.accessToken()));
 	}
@@ -95,7 +95,7 @@ public class OauthController {
 		String refreshToken = request.getHeader(REFRESH_TOKEN_HEADER_PREFIX);
 		log.info("refresh token in request header : {}", refreshToken);
 
-		TokenDto token = oauthService.refresh(refreshToken);
+		TokenItem token = oauthService.refresh(refreshToken);
 
 		setRefreshTokenInCookie(response, token.refreshToken());
 

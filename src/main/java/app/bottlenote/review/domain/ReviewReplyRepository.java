@@ -1,7 +1,8 @@
 package app.bottlenote.review.domain;
 
-import app.bottlenote.review.dto.response.RootReviewReplyInfo;
-import app.bottlenote.review.dto.response.SubReviewReplyInfo;
+import app.bottlenote.review.dto.response.RootReviewReplyResponse;
+import app.bottlenote.review.dto.response.SubReviewReplyResponse;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -15,9 +16,9 @@ public interface ReviewReplyRepository {
 
 	Optional<ReviewReply> isEligibleParentReply(Long reviewId, Long parentReplyId);
 
-	RootReviewReplyInfo getReviewRootReplies(Long reviewId, Long cursor, Long pageSize);
+	RootReviewReplyResponse getReviewRootReplies(Long reviewId, Long cursor, Long pageSize);
 
-	SubReviewReplyInfo getSubReviewReplies(Long reviewId, Long replyId, Long cursor, Long pageSize);
+	SubReviewReplyResponse getSubReviewReplies(Long reviewId, Long replyId, Long cursor, Long pageSize);
 
 	Optional<ReviewReply> findReplyByReviewIdAndReplyId(Long reviewId, Long replyId);
 

@@ -1,5 +1,23 @@
 package app.bottlenote.history.repository;
 
+import app.bottlenote.global.service.cursor.CursorPageable;
+import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.history.domain.constant.EventType;
+import app.bottlenote.history.dto.request.UserHistorySearchRequest;
+import app.bottlenote.history.dto.response.UserHistoryItem;
+import app.bottlenote.history.dto.response.UserHistorySearchResponse;
+import app.bottlenote.picks.domain.PicksStatus;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.extern.slf4j.Slf4j;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.history.domain.QUserHistory.userHistory;
 import static app.bottlenote.history.domain.constant.EventType.IS_PICK;
@@ -10,23 +28,6 @@ import static app.bottlenote.history.domain.constant.EventType.UNPICK;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.user.domain.QUser.user;
-
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.history.domain.constant.EventType;
-import app.bottlenote.history.dto.request.UserHistorySearchRequest;
-import app.bottlenote.history.dto.response.UserHistoryDetail;
-import app.bottlenote.history.dto.response.UserHistorySearchResponse;
-import app.bottlenote.picks.domain.PicksStatus;
-import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class CustomUserHistoryRepositoryImpl implements CustomUserHistoryRepository {
@@ -89,10 +90,10 @@ public class CustomUserHistoryRepositoryImpl implements CustomUserHistoryReposit
 			condition = condition.and(combinedEventCondition);
 		}
 
-		final List<UserHistoryDetail> fetch = queryFactory
+		final List<UserHistoryItem> fetch = queryFactory
 			.select(
 				Projections.constructor(
-					UserHistoryDetail.class,
+					UserHistoryItem.class,
 					userHistory.id,
 					userHistory.createAt,
 					userHistory.eventCategory,
@@ -146,7 +147,7 @@ public class CustomUserHistoryRepositoryImpl implements CustomUserHistoryReposit
 		return keyword != null && !keyword.trim().isEmpty();
 	}
 
-	private CursorPageable getCursorPageable(List<UserHistoryDetail> fetch, Long cursor, Long pageSize) {
+	private CursorPageable getCursorPageable(List<UserHistoryItem> fetch, Long cursor, Long pageSize) {
 		boolean hasNext = isHasNext(pageSize, fetch);
 		return CursorPageable.builder()
 			.currentCursor(cursor)
@@ -156,7 +157,7 @@ public class CustomUserHistoryRepositoryImpl implements CustomUserHistoryReposit
 			.build();
 	}
 
-	private boolean isHasNext(Long pageSize, List<UserHistoryDetail> fetch) {
+	private boolean isHasNext(Long pageSize, List<UserHistoryItem> fetch) {
 		boolean hasNext = fetch.size() > pageSize;
 
 		if (hasNext) {

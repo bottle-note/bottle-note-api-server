@@ -7,7 +7,7 @@ import app.bottlenote.support.help.controller.HelpCommandController;
 import app.bottlenote.support.help.domain.constant.HelpType;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
-import app.bottlenote.support.help.dto.response.HelpDetailInfo;
+import app.bottlenote.support.help.dto.response.HelpDetailItem;
 import app.bottlenote.support.help.dto.response.HelpListResponse;
 import app.bottlenote.support.help.dto.response.HelpResultResponse;
 import app.bottlenote.support.help.fixture.HelpObjectFixture;
@@ -21,9 +21,9 @@ import org.springframework.restdocs.payload.JsonFieldType;
 
 import java.util.Optional;
 
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.DELETE_SUCCESS;
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.MODIFY_SUCCESS;
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
+import static app.bottlenote.support.help.dto.constant.HelpResultMessage.DELETE_SUCCESS;
+import static app.bottlenote.support.help.dto.constant.HelpResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.support.help.dto.constant.HelpResultMessage.REGISTER_SUCCESS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
@@ -50,7 +50,7 @@ class RestDocsHelpCommandControllerTest extends AbstractRestDocs {
 	private final MockedStatic<SecurityContextUtil> mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
 
 	private final PageResponse<HelpListResponse> helpPageResponse = HelpObjectFixture.getHelpListPageResponse();
-	private final HelpDetailInfo helpDetailInfo = HelpObjectFixture.getDetailHelpInfo("content", HelpType.USER);
+	private final HelpDetailItem helpDetailItem = HelpObjectFixture.getDetailHelpInfo("content", HelpType.USER);
 	private final HelpUpsertRequest helpUpsertRequest = HelpObjectFixture.getHelpUpsertRequest();
 	private final HelpResultResponse successRegisterResponse = HelpObjectFixture.getSuccessHelpResponse(REGISTER_SUCCESS);
 	private final HelpResultResponse successModifyResponse = HelpObjectFixture.getSuccessHelpResponse(MODIFY_SUCCESS);
@@ -169,7 +169,7 @@ class RestDocsHelpCommandControllerTest extends AbstractRestDocs {
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
 
 		when(helpService.getDetailHelp(anyLong(), anyLong()))
-			.thenReturn(helpDetailInfo);
+			.thenReturn(helpDetailItem);
 
 		//then
 		mockMvc.perform(get("/api/v1/help/{helpId}", 1L)

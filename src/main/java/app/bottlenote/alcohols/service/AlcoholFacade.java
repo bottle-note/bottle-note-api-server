@@ -1,6 +1,6 @@
 package app.bottlenote.alcohols.service;
 
-import app.bottlenote.alcohols.dto.response.AlcoholInfo;
+import app.bottlenote.alcohols.dto.response.AlcoholSummaryItem;
 
 import java.util.Optional;
 
@@ -12,9 +12,9 @@ public interface AlcoholFacade {
 	 *
 	 * @param alcoholId
 	 * @param currentUserId
-	 * @return Optional<AlcoholInfo>
+	 * @return Optional<AlcoholSummaryItem>
 	 */
-	Optional<AlcoholInfo> findAlcoholInfoById(Long alcoholId, Long currentUserId);
+	Optional<AlcoholSummaryItem> findAlcoholInfoById(Long alcoholId, Long currentUserId);
 
 	/**
 	 * 데이터베이스에 존재하는 Alcohol인지 검증하는 메서드입니다.

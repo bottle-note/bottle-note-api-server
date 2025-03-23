@@ -1,7 +1,7 @@
 package app.bottlenote.alcohols.controller;
 
 
-import app.bottlenote.alcohols.dto.response.Populars;
+import app.bottlenote.alcohols.dto.response.PopularItem;
 import app.bottlenote.alcohols.dto.response.PopularsOfWeekResponse;
 import app.bottlenote.alcohols.service.PopularService;
 import app.bottlenote.global.data.response.GlobalResponse;
@@ -37,7 +37,7 @@ PopularQueryController {
 	public ResponseEntity<?> getPopularOfWeek(@RequestParam(defaultValue = "5") Integer top) {
 
 		Long userId = getUserIdByContext().orElse(-1L);
-		List<Populars> populars = popularService.getPopularOfWeek(top, userId);
+		List<PopularItem> populars = popularService.getPopularOfWeek(top, userId);
 
 		return GlobalResponse.ok(PopularsOfWeekResponse.of(populars.size(), populars));
 	}

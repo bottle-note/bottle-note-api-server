@@ -4,7 +4,7 @@ import app.bottlenote.alcohols.controller.AlcoholQueryController;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
-import app.bottlenote.alcohols.dto.response.CategoryResponse;
+import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.fixture.AlcoholQueryFixture;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
 import app.bottlenote.alcohols.service.AlcoholReferenceService;
@@ -174,15 +174,15 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 						fieldWithPath("data.reviewInfo.reviewList[].userInfo.userProfileImage").description("리뷰 작성자 프로필 이미지 URL"),
 						fieldWithPath("data.reviewInfo.reviewList[].rating").description("리뷰 평점"),
 						fieldWithPath("data.reviewInfo.reviewList[].viewCount").description("리뷰 조회수"),
-						fieldWithPath("data.reviewInfo.reviewList[].locationInfo").description("리뷰 장소 정보"),
-						fieldWithPath("data.reviewInfo.reviewList[].locationInfo.name").description("리뷰 장소 명"),
-						fieldWithPath("data.reviewInfo.reviewList[].locationInfo.zipCode").description("리뷰 장소 우편번호"),
-						fieldWithPath("data.reviewInfo.reviewList[].locationInfo.address").description("리뷰 장소 주소"),
-						fieldWithPath("data.reviewInfo.reviewList[].locationInfo.detailAddress").description("리뷰 장소 상세 주소"),
-						fieldWithPath("data.reviewInfo.reviewList[].locationInfo.category").description("리뷰 장소 카테고리"),
-						fieldWithPath("data.reviewInfo.reviewList[].locationInfo.mapUrl").description("리뷰 장소 지도 URL"),
-						fieldWithPath("data.reviewInfo.reviewList[].locationInfo.latitude").description("리뷰 장소 위도"),
-						fieldWithPath("data.reviewInfo.reviewList[].locationInfo.longitude").description("리뷰 장소 경도"),
+						fieldWithPath("data.reviewInfo.reviewList[].locationInfoRequest").description("리뷰 장소 정보"),
+						fieldWithPath("data.reviewInfo.reviewList[].locationInfoRequest.name").description("리뷰 장소 명"),
+						fieldWithPath("data.reviewInfo.reviewList[].locationInfoRequest.zipCode").description("리뷰 장소 우편번호"),
+						fieldWithPath("data.reviewInfo.reviewList[].locationInfoRequest.address").description("리뷰 장소 주소"),
+						fieldWithPath("data.reviewInfo.reviewList[].locationInfoRequest.detailAddress").description("리뷰 장소 상세 주소"),
+						fieldWithPath("data.reviewInfo.reviewList[].locationInfoRequest.category").description("리뷰 장소 카테고리"),
+						fieldWithPath("data.reviewInfo.reviewList[].locationInfoRequest.mapUrl").description("리뷰 장소 지도 URL"),
+						fieldWithPath("data.reviewInfo.reviewList[].locationInfoRequest.latitude").description("리뷰 장소 위도"),
+						fieldWithPath("data.reviewInfo.reviewList[].locationInfoRequest.longitude").description("리뷰 장소 경도"),
 						fieldWithPath("data.reviewInfo.reviewList[].status").description("리뷰 공개 여부 (PUBLIC/PRIVATE)"),
 						fieldWithPath("data.reviewInfo.reviewList[].isMyReview").description("내가 작성한 리뷰인지 여부"),
 						fieldWithPath("data.reviewInfo.reviewList[].isLikedByMe").description("내가 좋아요를 눌렀는지 여부"),
@@ -205,7 +205,7 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 	@DisplayName("카테고리 정보를 조회 할 수 있다.")
 	@Test
 	void docs_3() throws Exception {
-		List<CategoryResponse> responses = fixture.categoryResponses();
+		List<CategoryItem> responses = fixture.categoryResponses();
 
 		when(referenceService.getAlcoholCategory(any())).thenReturn(responses);
 

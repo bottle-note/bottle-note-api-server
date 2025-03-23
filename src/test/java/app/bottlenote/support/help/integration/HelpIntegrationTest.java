@@ -4,9 +4,9 @@ import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.support.help.domain.constant.HelpType;
-import app.bottlenote.support.help.dto.HelpImageInfo;
+import app.bottlenote.support.help.dto.request.HelpImageItem;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
-import app.bottlenote.support.help.dto.response.HelpDetailInfo;
+import app.bottlenote.support.help.dto.response.HelpDetailItem;
 import app.bottlenote.support.help.dto.response.HelpListResponse;
 import app.bottlenote.support.help.dto.response.HelpResultResponse;
 import app.bottlenote.support.help.fixture.HelpObjectFixture;
@@ -29,9 +29,9 @@ import java.util.List;
 
 import static app.bottlenote.global.exception.custom.code.ValidExceptionCode.CONTENT_NOT_EMPTY;
 import static app.bottlenote.global.exception.custom.code.ValidExceptionCode.REQUIRED_HELP_TYPE;
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.DELETE_SUCCESS;
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.MODIFY_SUCCESS;
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
+import static app.bottlenote.support.help.dto.constant.HelpResultMessage.DELETE_SUCCESS;
+import static app.bottlenote.support.help.dto.constant.HelpResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.support.help.dto.constant.HelpResultMessage.REGISTER_SUCCESS;
 import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_AUTHORIZED;
 import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -69,7 +69,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
 		Error error = Error.of(REQUIRED_HELP_TYPE);
 
-		helpUpsertRequest = new HelpUpsertRequest("로그인이 안돼요", null, List.of(new HelpImageInfo(1L, "https://test.com")));
+		helpUpsertRequest = new HelpUpsertRequest("로그인이 안돼요", null, List.of(new HelpImageItem(1L, "https://test.com")));
 		// given when
 		mockMvc.perform(post("/api/v1/help")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -160,9 +160,9 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
 			String contentAsString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 			GlobalResponse response = mapper.readValue(contentAsString, GlobalResponse.class);
-			HelpDetailInfo helpDetailInfo = mapper.convertValue(response.getData(), HelpDetailInfo.class);
+			HelpDetailItem helpDetailItem = mapper.convertValue(response.getData(), HelpDetailItem.class);
 
-			assertEquals(HelpType.USER, helpDetailInfo.helpType());
+			assertEquals(HelpType.USER, helpDetailItem.helpType());
 		}
 	}
 
@@ -245,7 +245,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 			long helpId = 1L;
 			Error error = Error.of(CONTENT_NOT_EMPTY);
 
-			helpUpsertRequest = new HelpUpsertRequest(null, HelpType.USER, List.of(new HelpImageInfo(1L, "https://test.com")));
+			helpUpsertRequest = new HelpUpsertRequest(null, HelpType.USER, List.of(new HelpImageItem(1L, "https://test.com")));
 			// given when
 			mockMvc.perform(patch("/api/v1/help/{helpId}", helpId)
 					.contentType(MediaType.APPLICATION_JSON)

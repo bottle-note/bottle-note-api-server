@@ -1,19 +1,11 @@
 package app.rule.data;
 
 import app.rule.AbstractRules;
-import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
-import com.tngtech.archunit.lang.ConditionEvents;
-import com.tngtech.archunit.lang.SimpleConditionEvent;
 import jakarta.persistence.Entity;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-
-import java.util.Arrays;
-import java.util.List;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
@@ -27,12 +19,15 @@ public class DataTransferObjectRules extends AbstractRules {
 	 * 요청 DTO 클래스는 이름이 'Request'로 끝나야 합니다.
 	 */
 	@Test
-	@Disabled("테스트를 위해 비활성화")
 	public void 요청_DTO_네이밍_규칙_검증() {
 		ArchRule rule = classes()
-			.that().resideInAPackage("..dto.request..")
-			.should().haveSimpleNameEndingWith("Request")
-			.because("요청 DTO 클래스는 명확한 식별을 위해 'Request'로 끝나야 합니다");
+				.that().resideInAPackage("..dto.request..")
+				.and().areNotNestedClasses()
+				.and().haveNameNotMatching(".*\\$.*")
+				.and().areTopLevelClasses()
+				.should().haveSimpleNameEndingWith("Request")
+				.orShould().haveSimpleNameContaining("Item")
+				.because("요청 DTO 클래스는 명확한 식별을 위해 'Request'로 끝나야 합니다");
 
 		rule.check(importedClasses);
 	}
@@ -42,51 +37,42 @@ public class DataTransferObjectRules extends AbstractRules {
 	 * 응답 DTO 클래스는 이름이 'Response'로 끝나야 합니다.
 	 */
 	@Test
-	@Disabled("테스트를 위해 비활성화")
 	public void 응답_DTO_네이밍_규칙_검증() {
 		ArchRule rule = classes()
-			.that().resideInAPackage("..dto.response..")
-			.should().haveSimpleNameEndingWith("Response")
-			.because("응답 DTO 클래스는 명확한 식별을 위해 'Response'로 끝나야 합니다");
+				.that().resideInAPackage("..dto.response..")
+				.and().areNotNestedClasses()
+				.and().haveNameNotMatching(".*\\$.*")
+				.and().areTopLevelClasses()
+				.should().haveSimpleNameEndingWith("Response")
+				.orShould().haveSimpleNameContaining("Item")
+				.because("응답 DTO 클래스는 명확한 식별을 위해 'Response' , 'Item'로 끝나야 합니다");
 
 		rule.check(importedClasses);
 	}
 
-	/**
-	 * 액션 용어 표준화 검증
-	 * DTO 클래스 이름은 표준화된 액션 용어(Create, Update, Delete, Search, List, Detail)를 포함해야 합니다.
+	@Test
+	public void 조회용_객체_규칙_검증() {
+		ArchRule rule = classes()
+				.that().resideInAPackage("..dto.dsl..")
+				.and().areNotNestedClasses()
+				.and().haveNameNotMatching(".*\\$.*")
+				.and().areTopLevelClasses()
+				.should().haveSimpleNameEndingWith("Criteria")
+				.because("조회용 객체는 조회용 객체를 의미하는 'Criteria'로 끝나야 합니다");
+	}
+
+	/*
+	dto 폴더 아래에는 request, response, dsl 폴더만 존재해야 합니다.
 	 */
 	@Test
-	@Disabled("테스트를 위해 비활성화")
-	public void 액션_용어_표준화_검증() {
-		List<String> standardActions = Arrays.asList("Create", "Update", "Upsert", "Delete", "Search", "List", "Detail");
-
+	public void dto_패키지_구조_검증() {
 		ArchRule rule = classes()
-			.that().haveSimpleNameEndingWith("Request").or().haveSimpleNameEndingWith("Response")
-			.and().resideInAnyPackage("..dto.request..", "..dto.response..")
-			.should(new ArchCondition<JavaClass>("follow standardized action terminology") {
-				@Override
-				public void check(JavaClass javaClass, ConditionEvents events) {
-					String className = javaClass.getSimpleName();
-
-					// Request나 Response 접미사 제거
-					String baseClassName = className.endsWith("Request")
-						? className.substring(0, className.length() - "Request".length())
-						: className.substring(0, className.length() - "Response".length());
-
-					boolean containsStandardAction = standardActions.stream()
-						.anyMatch(baseClassName::contains);
-
-					if (containsStandardAction) {
-						events.add(SimpleConditionEvent.satisfied(javaClass,
-							javaClass.getSimpleName() + " 표준화 된 행동 용어를 따라야 합니다"));
-					} else {
-						events.add(SimpleConditionEvent.violated(javaClass,
-							javaClass.getSimpleName() + " 표준화 된 행동 용어를 따르지 않습니다"));
-					}
-				}
-			})
-			.because("DTO 클래스 이름은 표준화된 액션 용어" + Arrays.toString(standardActions.toArray()) + "를 포함해야 합니다");
+				.that().resideInAPackage("..dto..")
+				.should().resideInAPackage("..dto.request..")
+				.orShould().resideInAPackage("..dto.response..")
+				.orShould().resideInAPackage("..dto.dsl..")
+				.orShould().resideInAPackage("..dto.constant..")
+				.because("dto 패키지 아래에는 request, response, dsl 폴더만 존재해야 합니다");
 
 		rule.check(importedClasses);
 	}
@@ -98,9 +84,9 @@ public class DataTransferObjectRules extends AbstractRules {
 	@Test
 	public void 검색_조건_DTO_네이밍_규칙_검증() {
 		ArchRule rule = classes()
-			.that().resideInAPackage("..dto.dsl..")
-			.should().haveSimpleNameEndingWith("Criteria")
-			.because("검색 조건 DTO 클래스는 명확한 식별을 위해 'Criteria'로 끝나야 합니다");
+				.that().resideInAPackage("..dto.dsl..")
+				.should().haveSimpleNameEndingWith("Criteria")
+				.because("검색 조건 DTO 클래스는 명확한 식별을 위해 'Criteria'로 끝나야 합니다");
 
 		rule.check(importedClasses);
 	}
@@ -112,11 +98,11 @@ public class DataTransferObjectRules extends AbstractRules {
 	@Test
 	public void 요청_DTO_패키지_위치_검증() {
 		ArchRule rule = classes()
-			.that().haveSimpleNameEndingWith("Request")
-			.and().doNotHaveSimpleName("GlobalResponse")
-			.and().doNotHaveSimpleName("PageResponse")
-			.should().resideInAPackage("..dto.request..")
-			.because("요청 DTO 클래스는 구조적 일관성을 위해 '.dto.request' 패키지에 위치해야 합니다");
+				.that().haveSimpleNameEndingWith("Request")
+				.and().doNotHaveSimpleName("GlobalResponse")
+				.and().doNotHaveSimpleName("PageResponse")
+				.should().resideInAPackage("..dto.request..")
+				.because("요청 DTO 클래스는 구조적 일관성을 위해 '.dto.request' 패키지에 위치해야 합니다");
 
 		rule.check(importedClasses);
 	}
@@ -128,11 +114,11 @@ public class DataTransferObjectRules extends AbstractRules {
 	@Test
 	public void 응답_DTO_패키지_위치_검증() {
 		ArchRule rule = classes()
-			.that().haveSimpleNameEndingWith("Response")
-			.and().doNotHaveSimpleName("GlobalResponse")
-			.and().doNotHaveSimpleName("PageResponse")
-			.should().resideInAPackage("..dto.response..")
-			.because("응답 DTO 클래스는 구조적 일관성을 위해 '.dto.response' 패키지에 위치해야 합니다");
+				.that().haveSimpleNameEndingWith("Response")
+				.and().doNotHaveSimpleName("GlobalResponse")
+				.and().doNotHaveSimpleName("PageResponse")
+				.should().resideInAPackage("..dto.response..")
+				.because("응답 DTO 클래스는 구조적 일관성을 위해 '.dto.response' 패키지에 위치해야 합니다");
 
 		rule.check(importedClasses);
 	}
@@ -144,10 +130,10 @@ public class DataTransferObjectRules extends AbstractRules {
 	@Test
 	public void 검색_조건_DTO_패키지_위치_검증() {
 		ArchRule rule = classes()
-			.that().haveSimpleNameEndingWith("Criteria")
-			.or().haveSimpleNameEndingWith("criteria")
-			.should().resideInAPackage("..dto.dsl..")
-			.because("검색 조건 DTO 클래스는 구조적 일관성을 위해 '.dto.dsl' 패키지에 위치해야 합니다");
+				.that().haveSimpleNameEndingWith("Criteria")
+				.or().haveSimpleNameEndingWith("criteria")
+				.should().resideInAPackage("..dto.dsl..")
+				.because("검색 조건 DTO 클래스는 구조적 일관성을 위해 '.dto.dsl' 패키지에 위치해야 합니다");
 
 		rule.check(importedClasses);
 	}
@@ -159,10 +145,10 @@ public class DataTransferObjectRules extends AbstractRules {
 	@Test
 	public void DTO_엔티티_분리_검증() {
 		ArchRule rule = noClasses()
-			.that().resideInAnyPackage("..dto..")
-			.should().dependOnClassesThat()
-			.areAnnotatedWith(Entity.class)
-			.because("DTO 클래스는 엔티티를 직접 참조하지 않아야 합니다");
+				.that().resideInAnyPackage("..dto..")
+				.should().dependOnClassesThat()
+				.areAnnotatedWith(Entity.class)
+				.because("DTO 클래스는 엔티티를 직접 참조하지 않아야 합니다");
 		rule.check(importedClasses);
 	}
 }

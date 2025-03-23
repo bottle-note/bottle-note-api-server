@@ -1,5 +1,33 @@
 package app.bottlenote.user.service;
 
+import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
+import app.bottlenote.global.security.jwt.JwtTokenProvider;
+import app.bottlenote.global.security.jwt.JwtTokenValidator;
+import app.bottlenote.global.service.converter.JsonArrayConverter;
+import app.bottlenote.user.domain.User;
+import app.bottlenote.user.domain.constant.GenderType;
+import app.bottlenote.user.domain.constant.SocialType;
+import app.bottlenote.user.domain.constant.UserType;
+import app.bottlenote.user.dto.request.OauthRequest;
+import app.bottlenote.user.dto.response.TokenItem;
+import app.bottlenote.user.exception.UserException;
+import app.bottlenote.user.repository.OauthRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -12,33 +40,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
-import app.bottlenote.global.security.jwt.JwtTokenProvider;
-import app.bottlenote.global.security.jwt.JwtTokenValidator;
-import app.bottlenote.global.service.converter.JsonArrayConverter;
-import app.bottlenote.user.domain.User;
-import app.bottlenote.user.domain.constant.GenderType;
-import app.bottlenote.user.domain.constant.SocialType;
-import app.bottlenote.user.domain.constant.UserType;
-import app.bottlenote.user.dto.request.OauthRequest;
-import app.bottlenote.user.dto.response.TokenDto;
-import app.bottlenote.user.exception.UserException;
-import app.bottlenote.user.repository.OauthRepository;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.Authentication;
 
 @Disabled
 @Tag("unit")
@@ -62,7 +63,7 @@ class OauthServiceTest {
 	private User user;
 	private String nickName = "nickName";
 
-	private TokenDto tokenDto;
+	private TokenItem tokenItem;
 
 	@BeforeEach
 	void setUp() {
@@ -82,7 +83,7 @@ class OauthServiceTest {
 			.role(UserType.ROLE_USER)
 			.build();
 
-		tokenDto = TokenDto.builder()
+		tokenItem = TokenItem.builder()
 			.accessToken("mock-accessToken")
 			.refreshToken("mock-refreshToken")
 			.build();
@@ -114,14 +115,14 @@ class OauthServiceTest {
 		when(oauthRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
 
 		when(jwtTokenProvider.generateToken(user.getEmail(), user.getRole(),
-			user.getId())).thenReturn(tokenDto);
+			user.getId())).thenReturn(tokenItem);
 
-		TokenDto result = oauthService.login(request);
+		TokenItem result = oauthService.login(request);
 		System.out.println(result.accessToken() + " " + result.refreshToken());
 
 		//then
-		assertThat(tokenDto.accessToken()).isEqualTo("mock-accessToken");
-		assertThat(tokenDto.refreshToken()).isEqualTo("mock-refreshToken");
+		assertThat(tokenItem.accessToken()).isEqualTo("mock-accessToken");
+		assertThat(tokenItem.refreshToken()).isEqualTo("mock-refreshToken");
 	}
 
 	@Test
@@ -133,15 +134,15 @@ class OauthServiceTest {
 		when(oauthRepository.save(any(User.class))).thenReturn(user);
 
 		when(jwtTokenProvider.generateToken(user.getEmail(), user.getRole(),
-			user.getId())).thenReturn(tokenDto);
+			user.getId())).thenReturn(tokenItem);
 
 		oauthService.login(request);
 
 		//then
 		verify(oauthRepository, times(1)).save(any(User.class));
 
-		assertThat(this.tokenDto.accessToken()).isEqualTo("mock-accessToken");
-		assertThat(this.tokenDto.refreshToken()).isEqualTo("mock-refreshToken");
+		assertThat(this.tokenItem.accessToken()).isEqualTo("mock-accessToken");
+		assertThat(this.tokenItem.refreshToken()).isEqualTo("mock-refreshToken");
 	}
 
 	@Test
@@ -152,7 +153,7 @@ class OauthServiceTest {
 		when(oauthRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
 
 		when(jwtTokenProvider.generateToken(user.getEmail(), user.getRole(),
-			user.getId())).thenReturn(tokenDto);
+			user.getId())).thenReturn(tokenItem);
 
 		oauthService.login(request);
 
@@ -161,8 +162,8 @@ class OauthServiceTest {
 		// save 메서드가 실행되지 않는다.
 		verify(oauthRepository, never()).save(any(User.class));
 
-		assertThat(this.tokenDto.accessToken()).isEqualTo("mock-accessToken");
-		assertThat(this.tokenDto.refreshToken()).isEqualTo("mock-refreshToken");
+		assertThat(this.tokenItem.accessToken()).isEqualTo("mock-accessToken");
+		assertThat(this.tokenItem.refreshToken()).isEqualTo("mock-refreshToken");
 	}
 
 	@Test
@@ -182,13 +183,13 @@ class OauthServiceTest {
 				Optional.of(user));
 
 			when(jwtTokenProvider.generateToken(anyString(), any(UserType.class), anyLong()))
-				.thenReturn(TokenDto.builder()
+				.thenReturn(TokenItem.builder()
 					.accessToken("newAccessToken")
 					.refreshToken("newRefreshToken")
 					.build());
 
 			// then
-			TokenDto response = oauthService.refresh(reissueRefreshToken);
+			TokenItem response = oauthService.refresh(reissueRefreshToken);
 
 			// 검증
 			assertNotNull(response);

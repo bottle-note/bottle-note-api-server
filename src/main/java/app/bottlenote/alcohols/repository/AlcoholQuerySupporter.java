@@ -1,17 +1,9 @@
 package app.bottlenote.alcohols.repository;
 
-import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.alcohols.domain.QAlcoholsTastingTags.alcoholsTastingTags;
-import static app.bottlenote.alcohols.domain.QTastingTag.tastingTag;
-import static app.bottlenote.picks.domain.PicksStatus.PICK;
-import static app.bottlenote.picks.domain.QPicks.picks;
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.domain.QReview.review;
-
 import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.domain.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
-import app.bottlenote.alcohols.dto.response.AlcoholsSearchDetail;
+import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.SortOrder;
 import com.querydsl.core.types.Expression;
@@ -22,10 +14,19 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.util.StringUtils;
 import com.querydsl.jpa.JPAExpressions;
-import java.util.List;
-import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Objects;
+
+import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.alcohols.domain.QAlcoholsTastingTags.alcoholsTastingTags;
+import static app.bottlenote.alcohols.domain.QTastingTag.tastingTag;
+import static app.bottlenote.picks.domain.PicksStatus.PICK;
+import static app.bottlenote.picks.domain.QPicks.picks;
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
 
 @Slf4j
 @Component
@@ -98,7 +99,7 @@ public class AlcoholQuerySupporter {
 		).castToNum(Double.class).as("myAvgRating");
 	}
 
-	public CursorPageable getCursorPageable(AlcoholSearchCriteria criteriaDto, List<AlcoholsSearchDetail> fetch, Long cursor, Long pageSize) {
+	public CursorPageable getCursorPageable(AlcoholSearchCriteria criteriaDto, List<AlcoholsSearchItem> fetch, Long cursor, Long pageSize) {
 		boolean hasNext = isHasNext(criteriaDto, fetch);
 		return CursorPageable.builder()
 			.currentCursor(cursor)
@@ -108,7 +109,7 @@ public class AlcoholQuerySupporter {
 			.build();
 	}
 
-	public boolean isHasNext(AlcoholSearchCriteria criteriaDto, List<AlcoholsSearchDetail> fetch) {
+	public boolean isHasNext(AlcoholSearchCriteria criteriaDto, List<AlcoholsSearchItem> fetch) {
 		boolean hasNext = fetch.size() > criteriaDto.pageSize();
 
 		if (hasNext) {

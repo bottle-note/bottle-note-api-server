@@ -5,14 +5,15 @@ import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.user.domain.constant.FollowStatus;
 import app.bottlenote.user.dto.response.FollowerSearchResponse;
 import app.bottlenote.user.dto.response.FollowingSearchResponse;
-import app.bottlenote.user.dto.response.RelationUserInfo;
+import app.bottlenote.user.dto.response.RelationUserItem;
+
 import java.util.List;
 
 public class FollowQueryFixture {
 
 	public PageResponse<FollowingSearchResponse> getFollowingPageResponse() {
-		List<RelationUserInfo> followingDetails = List.of(
-			RelationUserInfo.builder()
+		List<RelationUserItem> followingDetails = List.of(
+			RelationUserItem.builder()
 				.userId(1L)
 				.followUserId(1L)
 				.followUserNickname("nickName2")
@@ -32,9 +33,9 @@ public class FollowQueryFixture {
 	}
 
 	public PageResponse<FollowerSearchResponse> getFollowerPageResponse() {
-		List<RelationUserInfo> followerDetails = List.of(
+		List<RelationUserItem> followerDetails = List.of(
 
-			RelationUserInfo.builder()
+			RelationUserItem.builder()
 				.userId(1L)
 				.followUserId(1L)
 				.followUserNickname("nickName1")

@@ -1,20 +1,22 @@
 package app.bottlenote.review.repository.custom;
 
-import static app.bottlenote.review.domain.QReviewReply.reviewReply;
-import static app.bottlenote.user.domain.QUser.user;
-import static com.querydsl.core.types.ExpressionUtils.count;
-
 import app.bottlenote.review.domain.QReviewReply;
 import app.bottlenote.review.domain.constant.ReviewReplyStatus;
-import app.bottlenote.review.dto.response.RootReviewReplyInfo;
-import app.bottlenote.review.dto.response.SubReviewReplyInfo;
+import app.bottlenote.review.dto.response.RootReviewReplyResponse;
+import app.bottlenote.review.dto.response.SubReviewReplyResponse;
+import app.bottlenote.review.dto.response.SubReviewReplyResponse.Item;
 import app.bottlenote.user.domain.QUser;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.List;
+
+import static app.bottlenote.review.domain.QReviewReply.reviewReply;
+import static app.bottlenote.user.domain.QUser.user;
+import static com.querydsl.core.types.ExpressionUtils.count;
 
 public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyRepository {
 
@@ -26,13 +28,13 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
 	}
 
 	@Override
-	public RootReviewReplyInfo getReviewRootReplies(Long reviewId, Long cursor, Long pageSize) {
+	public RootReviewReplyResponse getReviewRootReplies(Long reviewId, Long cursor, Long pageSize) {
 		long start = System.nanoTime();
 		QReviewReply subReply = new QReviewReply("subReply");
 
-		List<RootReviewReplyInfo.Info> replyInfoList = queryFactory.select(
+		List<RootReviewReplyResponse.Item> replyItemList = queryFactory.select(
 				Projections.constructor(
-					RootReviewReplyInfo.Info.class,
+					RootReviewReplyResponse.Item.class,
 					reviewReply.userId,
 					user.imageUrl,
 					user.nickName,
@@ -76,19 +78,19 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
 		long end = System.nanoTime();
 		log.debug("최상위 댓글 목록 조회 시간 : {}", (end - start) / 1_000_000 + "ms");
 
-		return RootReviewReplyInfo.of(totalCount, replyInfoList);
+		return RootReviewReplyResponse.of(totalCount, replyItemList);
 	}
 
 	@Override
-	public SubReviewReplyInfo getSubReviewReplies(Long reviewId, Long rootReplyId, Long cursor, Long pageSize) {
+	public SubReviewReplyResponse getSubReviewReplies(Long reviewId, Long rootReplyId, Long cursor, Long pageSize) {
 		long start = System.nanoTime();
 
 		var parentReviewReply = new QReviewReply("parentReviewReply");
 		var parentUser = new QUser("parentUser");
 
-		List<SubReviewReplyInfo.Info> subReplyInfoList = queryFactory.select(
+		List<Item> subReplyItemList = queryFactory.select(
 				Projections.constructor(
-					SubReviewReplyInfo.Info.class,
+					Item.class,
 					user.id,
 					user.imageUrl,
 					user.nickName,
@@ -127,7 +129,7 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
 
 		long end = System.nanoTime();
 		log.info("대댓글 목록 조회 시간 : {}", (end - start) / 1_000_000 + "ms");
-		return SubReviewReplyInfo.of(totalCount, subReplyInfoList);
+		return SubReviewReplyResponse.of(totalCount, subReplyItemList);
 	}
 
 }

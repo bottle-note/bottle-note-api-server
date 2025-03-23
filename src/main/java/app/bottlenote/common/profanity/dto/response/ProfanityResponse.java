@@ -8,7 +8,7 @@ import java.util.List;
 public record ProfanityResponse(
 	String trackingId,
 	Status status,
-	List<Detected> detected,
+	List<DetectedItem> detected,
 	String filtered,
 	String elapsed
 ) {

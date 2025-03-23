@@ -2,7 +2,7 @@ package app.bottlenote.common.file.upload;
 
 import app.bottlenote.common.file.controller.ImageUploadController;
 import app.bottlenote.common.file.dto.request.ImageUploadRequest;
-import app.bottlenote.common.file.dto.response.ImageUploadInfo;
+import app.bottlenote.common.file.dto.response.ImageUploadItem;
 import app.bottlenote.common.file.dto.response.ImageUploadResponse;
 import app.bottlenote.common.file.service.ImageUploadService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -56,18 +56,18 @@ class ImageUploadControllerTest {
 		System.out.println("test -" + description);
 		//given
 		Long size = request.uploadSize();
-		List<ImageUploadInfo> infos = List.of(
-			ImageUploadInfo.builder().order(1L)
+		List<ImageUploadItem> infos = List.of(
+			ImageUploadItem.builder().order(1L)
 				.uploadUrl("https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")
 				.viewUrl("https://d1d1d1d1.cloudfront.net/images/1")
 				.build(),
-			ImageUploadInfo.builder().order(2L)
+			ImageUploadItem.builder().order(2L)
 				.uploadUrl("https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/2")
 				.viewUrl("https://d1d1d1d1.cloudfront.net/images/2")
 				.build()
 		);
 		ImageUploadResponse response = ImageUploadResponse.builder()
-			.imageUploadInfo(infos)
+			.imageUploadItem(infos)
 			.uploadSize(size.intValue())
 			.bucketName("image-bucket")
 			.expiryTime(5)

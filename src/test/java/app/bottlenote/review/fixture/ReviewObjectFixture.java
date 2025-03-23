@@ -1,21 +1,21 @@
 package app.bottlenote.review.fixture;
 
-import app.bottlenote.alcohols.dto.response.AlcoholInfo;
+import app.bottlenote.alcohols.dto.response.AlcoholSummaryItem;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewLocation;
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
-import app.bottlenote.review.dto.request.LocationInfo;
+import app.bottlenote.review.dto.request.LocationInfoRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
-import app.bottlenote.review.dto.request.ReviewImageInfo;
+import app.bottlenote.review.dto.request.ReviewImageInfoRequest;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
-import app.bottlenote.review.dto.vo.ReviewInfo;
-import app.bottlenote.review.dto.vo.UserInfo;
+import app.bottlenote.review.facade.payload.ReviewInfo;
+import app.bottlenote.review.facade.payload.UserInfo;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 
 import java.math.BigDecimal;
@@ -102,7 +102,7 @@ public class ReviewObjectFixture {
 		return ReviewDetailResponse.create(
 			getAlcoholInfo(),
 			getReviewInfo(),
-			List.of(new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1"))
+			List.of(new ReviewImageInfoRequest(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1"))
 		);
 	}
 
@@ -114,10 +114,10 @@ public class ReviewObjectFixture {
 			"그저 그래요",
 			status,
 			BigDecimal.valueOf(10000L),
-			List.of(new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")),
+			List.of(new ReviewImageInfoRequest(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")),
 			SizeType.GLASS,
 			List.of(),
-			new LocationInfo(
+			new LocationInfoRequest(
 				"xxPub", "12345", "서울시 강남구 청담동", "xx빌딩", "PUB",
 				"https://map.naver.com", "111.111", "222.222"
 			)
@@ -129,10 +129,10 @@ public class ReviewObjectFixture {
 			content,
 			ReviewDisplayStatus.PUBLIC,
 			BigDecimal.valueOf(10000L),
-			List.of(new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")),
+			List.of(new ReviewImageInfoRequest(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")),
 			SizeType.GLASS,
 			List.of(),
-			new LocationInfo(
+			new LocationInfoRequest(
 				"xxPub", "12345", "서울시 강남구 청담동", "xx빌딩", "PUB",
 				"https://map.naver.com", "111.111", "222.222"
 			)
@@ -173,14 +173,14 @@ public class ReviewObjectFixture {
 			"맛있어요",
 			SizeType.GLASS,
 			BigDecimal.valueOf(30000L),
-			new LocationInfo(
+			new LocationInfoRequest(
 				"xxPub", "12345", "서울시 강남구 청담동", "xx빌딩", "PUB",
 				"https://map.naver.com", "111.111", "222.222"
 			),
 			List.of(
-				new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1"),
-				new ReviewImageInfo(2L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/2"),
-				new ReviewImageInfo(3L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/3")
+				new ReviewImageInfoRequest(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1"),
+				new ReviewImageInfoRequest(2L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/2"),
+				new ReviewImageInfoRequest(3L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/3")
 			),
 			List.of("테이스팅태그1", "테이스팅태그2", "테이스팅태그3"),
 			0.5
@@ -194,12 +194,12 @@ public class ReviewObjectFixture {
 			content,
 			SizeType.GLASS,
 			price,
-			new LocationInfo(
+			new LocationInfoRequest(
 				"xxPub", "12345", "서울시 강남구 청담동", "xx빌딩", "PUB",
 				"https://map.naver.com", "111.111", "222.222"
 			),
 			List.of(
-				new ReviewImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")
+				new ReviewImageInfoRequest(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")
 			),
 			List.of("테이스팅태그1"),
 			0.5
@@ -231,8 +231,8 @@ public class ReviewObjectFixture {
 			.build();
 	}
 
-	public static AlcoholInfo getAlcoholInfo() {
-		return new AlcoholInfo(
+	public static AlcoholSummaryItem getAlcoholInfo() {
+		return new AlcoholSummaryItem(
 			1L,
 			"글래스고 12년산",
 			"1770 글래스고 싱글 몰트",

@@ -10,6 +10,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -30,7 +31,7 @@ public record ReviewModifyRequest(
 
 	@JsonInclude()
 	@JsonProperty(required = true)
-	List<ReviewImageInfo> imageUrlList,
+	List<ReviewImageInfoRequest> imageUrlList,
 
 	@JsonInclude()
 	@JsonProperty(required = true)
@@ -43,7 +44,7 @@ public record ReviewModifyRequest(
 	@Valid
 	@JsonInclude()
 	@JsonProperty(required = true)
-	LocationInfo locationInfo
+    LocationInfoRequest locationInfoRequest
 
 ) {
 }

@@ -1,5 +1,26 @@
 package app.bottlenote.review.integration;
 
+import app.bottlenote.IntegrationTestSupport;
+import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.review.domain.ReviewReply;
+import app.bottlenote.review.domain.ReviewReplyRepository;
+import app.bottlenote.review.domain.constant.ReviewReplyStatus;
+import app.bottlenote.review.dto.constant.ReviewReplyResultMessage;
+import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
+import app.bottlenote.review.dto.response.ReviewReplyResponse;
+import app.bottlenote.review.dto.response.RootReviewReplyResponse;
+import app.bottlenote.review.dto.response.SubReviewReplyResponse;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MvcResult;
+
+import java.nio.charset.StandardCharsets;
+
 import static app.bottlenote.review.domain.constant.ReviewReplyStatus.DELETED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -9,26 +30,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import app.bottlenote.IntegrationTestSupport;
-import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.review.domain.ReviewReply;
-import app.bottlenote.review.domain.ReviewReplyRepository;
-import app.bottlenote.review.domain.constant.ReviewReplyStatus;
-import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
-import app.bottlenote.review.dto.response.ReviewReplyResponse;
-import app.bottlenote.review.dto.response.RootReviewReplyInfo;
-import app.bottlenote.review.dto.response.SubReviewReplyInfo;
-import app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage;
-import java.nio.charset.StandardCharsets;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.web.servlet.MvcResult;
 
 
 @Tag("integration")
@@ -194,9 +195,9 @@ class ReviewReplyIntegrationTest extends IntegrationTestSupport {
 
 			String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 			GlobalResponse globalResponse = mapper.readValue(responseString, GlobalResponse.class);
-			SubReviewReplyInfo subReviewReplyInfo = mapper.convertValue(globalResponse.getData(), SubReviewReplyInfo.class);
+			SubReviewReplyResponse subReviewReplyResponse = mapper.convertValue(globalResponse.getData(), SubReviewReplyResponse.class);
 
-			assertEquals(count, subReviewReplyInfo.totalCount());
+			assertEquals(count, subReviewReplyResponse.totalCount());
 		}
 	}
 
@@ -245,9 +246,9 @@ class ReviewReplyIntegrationTest extends IntegrationTestSupport {
 
 			String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 			GlobalResponse globalResponse = mapper.readValue(responseString, GlobalResponse.class);
-			RootReviewReplyInfo rootReviewReplyInfo = mapper.convertValue(globalResponse.getData(), RootReviewReplyInfo.class);
+			RootReviewReplyResponse rootReviewReplyResponse = mapper.convertValue(globalResponse.getData(), RootReviewReplyResponse.class);
 
-			assertEquals(rootReviewReplyInfo.reviewReplies().get(0).reviewReplyContent(), DELETED.getMessage());
+			assertEquals(rootReviewReplyResponse.reviewReplies().get(0).reviewReplyContent(), DELETED.getMessage());
 		}
 	}
 }

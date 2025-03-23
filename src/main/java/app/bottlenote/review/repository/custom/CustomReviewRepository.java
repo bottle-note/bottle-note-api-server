@@ -3,7 +3,7 @@ package app.bottlenote.review.repository.custom;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.response.ReviewListResponse;
-import app.bottlenote.review.dto.vo.ReviewInfo;
+import app.bottlenote.review.facade.payload.ReviewInfo;
 
 public interface CustomReviewRepository {
 

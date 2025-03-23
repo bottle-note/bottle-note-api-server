@@ -4,10 +4,10 @@ import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.domain.constant.AlcoholType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
-import app.bottlenote.alcohols.dto.response.AlcoholDetailInfo;
-import app.bottlenote.alcohols.dto.response.AlcoholInfo;
+import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
-import app.bottlenote.alcohols.dto.response.CategoryResponse;
+import app.bottlenote.alcohols.dto.response.AlcoholSummaryItem;
+import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.global.service.cursor.PageResponse;
 
 import java.util.HashMap;
@@ -47,17 +47,17 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
 	}
 
 	@Override
-	public AlcoholDetailInfo findAlcoholDetailById(Long alcoholId, Long AlcoholId) {
+	public AlcoholDetailItem findAlcoholDetailById(Long alcoholId, Long AlcoholId) {
 		return null;
 	}
 
 	@Override
-	public Optional<AlcoholInfo> findAlcoholInfoById(Long alcoholId, Long userId) {
+	public Optional<AlcoholSummaryItem> findAlcoholInfoById(Long alcoholId, Long userId) {
 		return null;
 	}
 
 	@Override
-	public List<CategoryResponse> findAllCategories(AlcoholType type) {
+	public List<CategoryItem> findAllCategories(AlcoholType type) {
 		return List.of();
 	}
 

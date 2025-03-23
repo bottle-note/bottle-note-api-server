@@ -6,10 +6,10 @@ import app.bottlenote.common.image.ImageUtil;
 import app.bottlenote.review.domain.constant.ReviewActiveStatus;
 import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.constant.SizeType;
-import app.bottlenote.review.dto.request.LocationInfo;
-import app.bottlenote.review.dto.request.ReviewImageInfo;
-import app.bottlenote.review.dto.response.constant.ReviewResultMessage;
-import app.bottlenote.review.dto.vo.ReviewModifyVO;
+import app.bottlenote.review.dto.constant.ReviewResultMessage;
+import app.bottlenote.review.dto.request.LocationInfoRequest;
+import app.bottlenote.review.dto.request.ReviewImageInfoRequest;
+import app.bottlenote.review.facade.payload.ReviewModifyVO;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -116,12 +116,12 @@ public class Review extends BaseEntity {
 		this.content = reviewModifyVO.getContent();
 		this.sizeType = reviewModifyVO.getSizeType();
 		this.price = reviewModifyVO.getPrice();
-		LocationInfo locationInfo = reviewModifyVO.getLocationInfo();
-		Objects.requireNonNullElse(this.reviewLocation, ReviewLocation.empty()).update(locationInfo);
+		LocationInfoRequest locationInfoRequest = reviewModifyVO.getLocationInfoRequest();
+		Objects.requireNonNullElse(this.reviewLocation, ReviewLocation.empty()).update(locationInfoRequest);
 	}
 
 
-	public void imageInitialization(List<ReviewImageInfo> list) {
+	public void imageInitialization(List<ReviewImageInfoRequest> list) {
 		list = Objects.requireNonNullElse(list, Collections.emptyList());
 		List<ReviewImage> imageList = list.stream()
 			.map(

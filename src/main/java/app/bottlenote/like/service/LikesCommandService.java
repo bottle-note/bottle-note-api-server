@@ -9,7 +9,7 @@ import app.bottlenote.like.dto.response.LikesUpdateResponse;
 import app.bottlenote.like.event.payload.LikesRegistryEvent;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.service.ReviewFacade;
-import app.bottlenote.user.dto.response.UserProfileInfo;
+import app.bottlenote.user.dto.response.UserProfileItem;
 import app.bottlenote.user.service.UserFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,8 +40,8 @@ public class LikesCommandService {
 				if (!reviewFacade.isExistReview(reviewId)) {
 					throw new ReviewException(REVIEW_NOT_FOUND);
 				}
-				UserProfileInfo userProfileInfo = userFacade.getUserProfileInfo(userId);
-				LikeUserInfo userInfo = LikeUserInfo.create(userProfileInfo.id(), userProfileInfo.nickname());
+				UserProfileItem userProfileItem = userFacade.getUserProfileInfo(userId);
+				LikeUserInfo userInfo = LikeUserInfo.create(userProfileItem.id(), userProfileItem.nickname());
 
 				return Likes.builder()
 					.reviewId(reviewId)

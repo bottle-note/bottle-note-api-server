@@ -8,8 +8,8 @@ import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.domain.constant.ReviewReplyStatus;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
-import app.bottlenote.review.dto.response.RootReviewReplyInfo;
-import app.bottlenote.review.dto.response.SubReviewReplyInfo;
+import app.bottlenote.review.dto.response.RootReviewReplyResponse;
+import app.bottlenote.review.dto.response.SubReviewReplyResponse;
 import app.bottlenote.review.event.payload.ReviewRegistryEvent;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
@@ -23,8 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Objects;
 import java.util.Optional;
 
-import static app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage.SUCCESS_DELETE_REPLY;
-import static app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY;
+import static app.bottlenote.review.dto.constant.ReviewReplyResultMessage.SUCCESS_DELETE_REPLY;
+import static app.bottlenote.review.dto.constant.ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY;
 import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 import static java.lang.Boolean.FALSE;
 
@@ -134,7 +134,7 @@ public class ReviewReplyService {
 	 * 이때 대댓글 목록은 제외됩니다.
 	 */
 	@Transactional(readOnly = true)
-	public RootReviewReplyInfo getReviewRootReplays(
+	public RootReviewReplyResponse getReviewRootReplays(
 		Long reviewId,
 		Long cursor,
 		Long pageSize
@@ -156,7 +156,7 @@ public class ReviewReplyService {
 	 * @return the sub review replies
 	 */
 	@Transactional(readOnly = true)
-	public SubReviewReplyInfo getSubReviewReplies(
+	public SubReviewReplyResponse getSubReviewReplies(
 		Long reviewId,
 		Long rootReplyId,
 		Long cursor,

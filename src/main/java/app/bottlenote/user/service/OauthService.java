@@ -8,7 +8,7 @@ import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.domain.constant.UserType;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.BasicAccountResponse;
-import app.bottlenote.user.dto.response.TokenDto;
+import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.repository.OauthRepository;
@@ -39,7 +39,7 @@ public class OauthService {
 	private final SecureRandom randomValue = new SecureRandom();
 
 	@Transactional
-	public TokenDto login(OauthRequest oauthReq) {
+	public TokenItem login(OauthRequest oauthReq) {
 		final String email = oauthReq.email();
 		final SocialType socialType = oauthReq.socialType();
 		final GenderType genderType = oauthReq.gender();
@@ -51,7 +51,7 @@ public class OauthService {
 			throw new UserException(UserExceptionCode.USER_DELETED);
 
 		user.addSocialType(oauthReq.socialType());
-		TokenDto token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
+		TokenItem token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
 		user.updateRefreshToken(token.refreshToken());
 		return token;
 	}
@@ -114,7 +114,7 @@ public class OauthService {
 	}
 
 	@Transactional
-	public TokenDto refresh(String refreshToken) {
+	public TokenItem refresh(String refreshToken) {
 		//refresh Token 검증
 		if (!validateToken(refreshToken)) {
 			throw new UserException(INVALID_REFRESH_TOKEN);
@@ -128,7 +128,7 @@ public class OauthService {
 			() -> new UserException(INVALID_REFRESH_TOKEN)
 		);
 
-		TokenDto reissuedToken = tokenProvider.generateToken(user.getEmail(),
+		TokenItem reissuedToken = tokenProvider.generateToken(user.getEmail(),
 			user.getRole(), user.getId());
 
 		// DB에 저장된 refresh 토큰을 재발급한 refresh 토큰으로 업데이트
@@ -154,7 +154,7 @@ public class OauthService {
 			.gender(gender)
 			.build());
 
-		TokenDto token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
+		TokenItem token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
 		user.updateRefreshToken(token.refreshToken());
 
 		return BasicAccountResponse.builder()
@@ -167,7 +167,7 @@ public class OauthService {
 	}
 
 	@Transactional
-	public TokenDto basicLogin(String email, String password) {
+	public TokenItem basicLogin(String email, String password) {
 		User user = oauthRepository.findByEmail(email).orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
 		if (!passwordEncoder.matches(password, user.getPassword())) {
 			throw new UserException(UserExceptionCode.INVALID_PASSWORD);
@@ -176,7 +176,7 @@ public class OauthService {
 		if (Boolean.FALSE.equals(user.isAlive()))
 			throw new UserException(UserExceptionCode.USER_DELETED);
 
-		TokenDto token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
+		TokenItem token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
 		user.updateRefreshToken(token.refreshToken());
 		return token;
 	}
