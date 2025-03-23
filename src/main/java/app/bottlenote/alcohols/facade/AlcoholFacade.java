@@ -1,6 +1,6 @@
-package app.bottlenote.alcohols.service;
+package app.bottlenote.alcohols.facade;
 
-import app.bottlenote.alcohols.dto.response.AlcoholSummaryItem;
+import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 
 import java.util.Optional;
 

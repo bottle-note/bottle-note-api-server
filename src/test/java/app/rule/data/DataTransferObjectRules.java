@@ -61,7 +61,7 @@ public class DataTransferObjectRules extends AbstractRules {
 				.because("조회용 객체는 조회용 객체를 의미하는 'Criteria'로 끝나야 합니다");
 	}
 
-	/*
+	/**
 	dto 폴더 아래에는 request, response, dsl 폴더만 존재해야 합니다.
 	 */
 	@Test

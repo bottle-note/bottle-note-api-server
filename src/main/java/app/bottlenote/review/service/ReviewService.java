@@ -1,7 +1,7 @@
 package app.bottlenote.review.service;
 
-import app.bottlenote.alcohols.dto.response.AlcoholSummaryItem;
-import app.bottlenote.alcohols.service.AlcoholFacade;
+import app.bottlenote.alcohols.facade.AlcoholFacade;
+import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.rating.domain.RatingPoint;
@@ -22,7 +22,7 @@ import app.bottlenote.review.event.payload.ReviewRegistryEvent;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 import app.bottlenote.review.facade.payload.ReviewModifyVO;
-import app.bottlenote.user.service.UserFacade;
+import app.bottlenote.user.facade.UserFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

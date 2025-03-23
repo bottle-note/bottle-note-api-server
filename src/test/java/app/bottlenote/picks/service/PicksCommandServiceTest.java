@@ -1,14 +1,14 @@
 package app.bottlenote.picks.service;
 
 import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.service.AlcoholFacade;
+import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.picks.domain.Picks;
 import app.bottlenote.picks.dto.request.PicksUpdateRequest;
 import app.bottlenote.picks.dto.response.PicksUpdateResponse;
 import app.bottlenote.picks.repository.PicksRepository;
 import app.bottlenote.user.domain.User;
-import app.bottlenote.user.service.UserFacade;
+import app.bottlenote.user.facade.UserFacade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

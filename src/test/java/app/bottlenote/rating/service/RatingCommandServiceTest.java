@@ -1,7 +1,7 @@
 package app.bottlenote.rating.service;
 
+import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.alcohols.fixture.FakeAlcoholFacade;
-import app.bottlenote.alcohols.service.AlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;
@@ -11,10 +11,10 @@ import app.bottlenote.rating.dto.response.RatingRegisterResponse;
 import app.bottlenote.rating.exception.RatingException;
 import app.bottlenote.rating.fixture.FakeRatingEventPublisher;
 import app.bottlenote.rating.fixture.InMemoryRatingRepository;
-import app.bottlenote.user.dto.response.UserProfileItem;
 import app.bottlenote.user.exception.UserException;
+import app.bottlenote.user.facade.UserFacade;
+import app.bottlenote.user.facade.payload.UserProfileItem;
 import app.bottlenote.user.fixture.FakeUserFacade;
-import app.bottlenote.user.service.UserFacade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

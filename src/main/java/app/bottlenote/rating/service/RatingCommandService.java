@@ -1,6 +1,6 @@
 package app.bottlenote.rating.service;
 
-import app.bottlenote.alcohols.service.AlcoholFacade;
+import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;
@@ -12,7 +12,7 @@ import app.bottlenote.rating.exception.RatingException;
 import app.bottlenote.rating.exception.RatingExceptionCode;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
-import app.bottlenote.user.service.UserFacade;
+import app.bottlenote.user.facade.UserFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

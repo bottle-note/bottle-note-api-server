@@ -1,8 +1,8 @@
 package app.bottlenote.alcohols.fixture;
 
-import app.bottlenote.alcohols.dto.response.AlcoholSummaryItem;
 import app.bottlenote.alcohols.exception.AlcoholException;
-import app.bottlenote.alcohols.service.AlcoholFacade;
+import app.bottlenote.alcohols.facade.AlcoholFacade;
+import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

@@ -1,4 +1,4 @@
-package app.bottlenote.user.dto.response;
+package app.bottlenote.user.facade.payload;
 
 public record UserProfileItem(
 	Long id,

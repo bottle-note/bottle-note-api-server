@@ -1,7 +1,7 @@
 package app.bottlenote.picks.service;
 
 import app.bottlenote.alcohols.exception.AlcoholException;
-import app.bottlenote.alcohols.service.AlcoholFacade;
+import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.picks.domain.Picks;
 import app.bottlenote.picks.domain.PicksStatus;
@@ -10,7 +10,7 @@ import app.bottlenote.picks.dto.response.PicksUpdateResponse;
 import app.bottlenote.picks.event.payload.PicksRegistryEvent;
 import app.bottlenote.picks.repository.PicksRepository;
 import app.bottlenote.user.exception.UserException;
-import app.bottlenote.user.service.UserFacade;
+import app.bottlenote.user.facade.UserFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

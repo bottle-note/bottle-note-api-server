@@ -1,6 +1,6 @@
-package app.bottlenote.user.service;
+package app.bottlenote.user.facade;
 
-import app.bottlenote.user.dto.response.UserProfileItem;
+import app.bottlenote.user.facade.payload.UserProfileItem;
 
 /**
  * 유저 도메인 서포트를 위한 인터페이스입니다.

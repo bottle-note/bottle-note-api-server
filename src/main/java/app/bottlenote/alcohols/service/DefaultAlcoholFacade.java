@@ -2,8 +2,9 @@ package app.bottlenote.alcohols.service;
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
-import app.bottlenote.alcohols.dto.response.AlcoholSummaryItem;
 import app.bottlenote.alcohols.exception.AlcoholException;
+import app.bottlenote.alcohols.facade.AlcoholFacade;
+import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.common.annotation.FacadeService;
 import lombok.RequiredArgsConstructor;
 
@@ -15,7 +16,6 @@ import static java.lang.Boolean.FALSE;
 @FacadeService
 @RequiredArgsConstructor
 public class DefaultAlcoholFacade implements AlcoholFacade {
-
 	private final AlcoholQueryRepository alcoholQueryRepository;
 
 	@Override
@@ -39,6 +39,6 @@ public class DefaultAlcoholFacade implements AlcoholFacade {
 	public Optional<String> findAlcoholImageUrlById(Long alcoholId) {
 		isValidAlcoholId(alcoholId);
 		return alcoholQueryRepository.findById(alcoholId)
-			.map(Alcohol::getImageUrl);
+				.map(Alcohol::getImageUrl);
 	}
 }

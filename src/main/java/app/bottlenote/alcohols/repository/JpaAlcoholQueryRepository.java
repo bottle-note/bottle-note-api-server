@@ -4,7 +4,6 @@ import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.domain.constant.AlcoholType;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
-import app.bottlenote.alcohols.repository.custom.CustomAlcoholQueryRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

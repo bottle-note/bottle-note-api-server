@@ -3,8 +3,9 @@ package app.bottlenote.user.service;
 import app.bottlenote.common.annotation.FacadeService;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
-import app.bottlenote.user.dto.response.UserProfileItem;
 import app.bottlenote.user.exception.UserException;
+import app.bottlenote.user.facade.UserFacade;
+import app.bottlenote.user.facade.payload.UserProfileItem;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

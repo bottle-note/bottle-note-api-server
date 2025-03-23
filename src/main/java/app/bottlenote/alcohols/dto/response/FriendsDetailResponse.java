@@ -1,6 +1,6 @@
 package app.bottlenote.alcohols.dto.response;
 
-import app.bottlenote.alcohols.facade.payload.FriendInfo;
+import app.bottlenote.user.facade.payload.FriendItem;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,5 +12,5 @@ import java.util.List;
 @NoArgsConstructor
 public class FriendsDetailResponse {
 	private Long followerCount;
-	private List<FriendInfo> friends;
+	private List<FriendItem> friends;
 }

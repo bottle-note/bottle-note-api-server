@@ -13,7 +13,7 @@ import app.bottlenote.support.help.exception.HelpException;
 import app.bottlenote.support.help.fixture.HelpObjectFixture;
 import app.bottlenote.support.help.repository.HelpRepository;
 import app.bottlenote.user.exception.UserException;
-import app.bottlenote.user.service.UserFacade;
+import app.bottlenote.user.facade.UserFacade;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;

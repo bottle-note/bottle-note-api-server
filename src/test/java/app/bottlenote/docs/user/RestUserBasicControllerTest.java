@@ -3,7 +3,7 @@ package app.bottlenote.docs.user;
 import app.bottlenote.docs.AbstractRestDocs;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.user.controller.UserBasicController;
-import app.bottlenote.user.dto.response.UserProfileItem;
+import app.bottlenote.user.facade.payload.UserProfileItem;
 import app.bottlenote.user.service.DefaultUserFacade;
 import app.bottlenote.user.service.UserBasicService;
 import org.junit.jupiter.api.AfterEach;

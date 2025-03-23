@@ -1,7 +1,7 @@
 package app.bottlenote.user.repository;
 
-import app.bottlenote.alcohols.facade.payload.FriendInfo;
 import app.bottlenote.user.domain.Follow;
+import app.bottlenote.user.facade.payload.FriendItem;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -18,7 +18,7 @@ public interface FollowRepository extends JpaRepository<Follow, Long>, CustomFol
 	Optional<Follow> findByUserIdAndFollowUserId(@Param("userId") Long userId, @Param("followUserId") Long followUserId);
 
 	@Query("""
-		    SELECT new app.bottlenote.alcohols.facade.payload.FriendInfo(
+		    SELECT new app.bottlenote.alcohols.facade.payload.FriendItem(
 		        u.imageUrl,
 		        u.id,
 		        u.nickName,
@@ -33,5 +33,5 @@ public interface FollowRepository extends JpaRepository<Follow, Long>, CustomFol
 		    )
 		    AND r.id.alcoholId = :alcoholId
 		""")
-	List<FriendInfo> getTastingFriendsInfoList(@Param("alcoholId") Long alcoholId, @Param("userId") Long userId, PageRequest pageRequest);
+	List<FriendItem> getTastingFriendsInfoList(@Param("alcoholId") Long alcoholId, @Param("userId") Long userId, PageRequest pageRequest);
 }

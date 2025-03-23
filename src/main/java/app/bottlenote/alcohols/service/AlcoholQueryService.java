@@ -7,10 +7,10 @@ import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.FriendsDetailResponse;
-import app.bottlenote.alcohols.facade.payload.FriendInfo;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.service.ReviewFacade;
-import app.bottlenote.user.service.FollowFacade;
+import app.bottlenote.user.facade.FollowFacade;
+import app.bottlenote.user.facade.payload.FriendItem;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -68,7 +68,7 @@ public class AlcoholQueryService {
 	 */
 	protected FriendsDetailResponse getFriendInfos(Long alcoholId, Long userId) {
 		PageRequest pageRequest = PageRequest.of(0, MAX_FRIENDS_SIZE);
-		List<FriendInfo> friendInfos = followFacade.getTastingFriendsInfoList(alcoholId, userId, pageRequest);
-		return FriendsDetailResponse.of((long) friendInfos.size(), friendInfos);
+		List<FriendItem> friendItems = followFacade.getTastingFriendsInfoList(alcoholId, userId, pageRequest);
+		return FriendsDetailResponse.of((long) friendItems.size(), friendItems);
 	}
 }

@@ -1,6 +1,6 @@
 package app.bottlenote.review.dto.response;
 
-import app.bottlenote.alcohols.dto.response.AlcoholSummaryItem;
+import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.review.dto.request.ReviewImageInfoRequest;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 

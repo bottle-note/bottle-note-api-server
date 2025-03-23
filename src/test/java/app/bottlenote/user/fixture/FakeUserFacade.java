@@ -1,9 +1,9 @@
 package app.bottlenote.user.fixture;
 
-import app.bottlenote.user.dto.response.UserProfileItem;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
-import app.bottlenote.user.service.UserFacade;
+import app.bottlenote.user.facade.UserFacade;
+import app.bottlenote.user.facade.payload.UserProfileItem;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.test.util.ReflectionTestUtils;

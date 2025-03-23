@@ -1,6 +1,6 @@
 package app.bottlenote.review.fixture;
 
-import app.bottlenote.alcohols.dto.response.AlcoholSummaryItem;
+import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.Review;

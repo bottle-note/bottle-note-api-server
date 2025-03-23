@@ -8,12 +8,12 @@ import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.dto.response.FriendsDetailResponse;
 import app.bottlenote.alcohols.dto.response.ReviewsDetailResponse;
-import app.bottlenote.alcohols.facade.payload.FriendInfo;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 import app.bottlenote.review.facade.payload.UserInfo;
+import app.bottlenote.user.facade.payload.FriendItem;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -55,12 +55,12 @@ public class AlcoholQueryFixture {
 		return FriendsDetailResponse.of(
 			6L,
 			List.of(
-				FriendInfo.of("https://picsum.photos/600/600", 1L, "늙은코끼리", 4.5),
-				FriendInfo.of("https://picsum.photos/600/600", 2L, "나무사자", 1.5),
-				FriendInfo.of("https://picsum.photos/600/600", 3L, "피자파인애플", 3.0),
-				FriendInfo.of("https://picsum.photos/600/600", 4L, "멘토스", 0.5),
-				FriendInfo.of("https://picsum.photos/600/600", 5L, "민트맛치토스", 5.0),
-				FriendInfo.of("https://picsum.photos/600/600", 6L, "목데이터", 1.0)
+				FriendItem.of("https://picsum.photos/600/600", 1L, "늙은코끼리", 4.5),
+				FriendItem.of("https://picsum.photos/600/600", 2L, "나무사자", 1.5),
+				FriendItem.of("https://picsum.photos/600/600", 3L, "피자파인애플", 3.0),
+				FriendItem.of("https://picsum.photos/600/600", 4L, "멘토스", 0.5),
+				FriendItem.of("https://picsum.photos/600/600", 5L, "민트맛치토스", 5.0),
+				FriendItem.of("https://picsum.photos/600/600", 6L, "목데이터", 1.0)
 			)
 		);
 	}
