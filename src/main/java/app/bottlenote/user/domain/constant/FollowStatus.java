@@ -30,5 +30,4 @@ public enum FollowStatus {
 			.findFirst()
 			.orElseThrow(() -> new FollowException(FollowExceptionCode.STATUS_NOT_FOUND));
 	}
-
 }

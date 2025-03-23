@@ -23,7 +23,9 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -51,7 +53,7 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 			final Long tokenUserId = getTokenUserId();
 
 			List<User> allUsers = userRepository.findAll().stream()
-					.filter(usreId -> !usreId.equals(tokenUserId))
+					.filter(userId -> !userId.getId().equals(tokenUserId))
 					.toList();
 
 			allUsers.forEach(u -> {
@@ -89,7 +91,7 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 			final Long tokenUserId = getTokenUserId();
 
 			List<User> allUsers = userRepository.findAll().stream()
-					.filter(usreId -> !usreId.equals(tokenUserId))
+					.filter(userId -> !userId.getId().equals(tokenUserId))
 					.toList();
 
 			allUsers.forEach(u -> {
@@ -134,15 +136,15 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 			Long requestUserId = getTokenUserId();
 
 			mockMvc.perform(get("/api/v1/my-page/{userId}", userId)
-					.contentType(MediaType.APPLICATION_JSON)
-					.with(csrf())
-					.header("Authorization", "Bearer " + accessToken))
-				.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.code").value(200))
-				.andExpect(jsonPath("$.data").exists())
-				.andExpect(jsonPath("$.data.userId").value(userId))
-				.andReturn();
+							.contentType(MediaType.APPLICATION_JSON)
+							.with(csrf())
+							.header("Authorization", "Bearer " + accessToken))
+					.andDo(print())
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$.code").value(200))
+					.andExpect(jsonPath("$.data").exists())
+					.andExpect(jsonPath("$.data.userId").value(userId))
+					.andReturn();
 
 			assertNotEquals(userId, requestUserId);
 
@@ -157,16 +159,16 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 			Long userId = getTokenUserId();
 
 			mockMvc.perform(get("/api/v1/my-page/{userId}", userId)
-					.contentType(MediaType.APPLICATION_JSON)
-					.with(csrf())
-					.header("Authorization", "Bearer " + accessToken))
-				.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.code").value(200))
-				.andExpect(jsonPath("$.data").exists())
-				.andExpect(jsonPath("$.data.userId").value(userId))
-				.andExpect(jsonPath("$.data.isMyPage").value(true))
-				.andReturn();
+							.contentType(MediaType.APPLICATION_JSON)
+							.with(csrf())
+							.header("Authorization", "Bearer " + accessToken))
+					.andDo(print())
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$.code").value(200))
+					.andExpect(jsonPath("$.data").exists())
+					.andExpect(jsonPath("$.data.userId").value(userId))
+					.andExpect(jsonPath("$.data.isMyPage").value(true))
+					.andReturn();
 		}
 
 		@DisplayName("비회원 유저가 타인의 마이페이지를 조회할 수 있다.")
@@ -177,14 +179,14 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 			final Long userId = 2L;
 
 			mockMvc.perform(get("/api/v1/my-page/{userId}", userId)
-					.contentType(MediaType.APPLICATION_JSON)
-					.with(csrf()))
-				.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.code").value(200))
-				.andExpect(jsonPath("$.data").exists())
-				.andExpect(jsonPath("$.data.userId").value(userId))
-				.andReturn();
+							.contentType(MediaType.APPLICATION_JSON)
+							.with(csrf()))
+					.andDo(print())
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$.code").value(200))
+					.andExpect(jsonPath("$.data").exists())
+					.andExpect(jsonPath("$.data.userId").value(userId))
+					.andReturn();
 		}
 
 		@DisplayName("유저가 존재하지 않는 경우 MYPAGE_NOT_ACCESSIBLE 에러를 발생한다.")
@@ -194,13 +196,13 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 			Error error = Error.of(UserExceptionCode.MYPAGE_NOT_ACCESSIBLE);
 			final Long userId = 999L;  // 존재하지 않는 유저 ID
 			mockMvc.perform(get("/api/v1/my-page/{userId}", userId)
-					.contentType(MediaType.APPLICATION_JSON)
-					.with(csrf()))
-				.andDo(print())
-				.andExpect(status().isForbidden())
-				.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
-				.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
-				.andExpect(jsonPath("$.errors[0].message").value(error.message()));
+							.contentType(MediaType.APPLICATION_JSON)
+							.with(csrf()))
+					.andDo(print())
+					.andExpect(status().isForbidden())
+					.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+					.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+					.andExpect(jsonPath("$.errors[0].message").value(error.message()));
 		}
 	}
 
@@ -218,21 +220,21 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 			Long requestUserId = getTokenUserId();
 
 			mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle", userId)
-					.param("keyword", "")
-					.param("regionId", "")
-					.param("tabType", "ALL")
-					.param("sortType", "LATEST")
-					.param("sortOrder", "DESC")
-					.param("cursor", "0")
-					.param("pageSize", "50")
-					.contentType(MediaType.APPLICATION_JSON)
-					.header("Authorization", "Bearer " + accessToken)
-					.with(csrf()))
-				.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.code").value(200))
-				.andExpect(jsonPath("$.data").exists())
-				.andReturn();
+							.param("keyword", "")
+							.param("regionId", "")
+							.param("tabType", "ALL")
+							.param("sortType", "LATEST")
+							.param("sortOrder", "DESC")
+							.param("cursor", "0")
+							.param("pageSize", "50")
+							.contentType(MediaType.APPLICATION_JSON)
+							.header("Authorization", "Bearer " + accessToken)
+							.with(csrf()))
+					.andDo(print())
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$.code").value(200))
+					.andExpect(jsonPath("$.data").exists())
+					.andReturn();
 
 			assertNotEquals(userId, requestUserId);
 
@@ -247,23 +249,23 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 			Long userId = getTokenUserId();
 
 			mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle", userId)
-					.param("keyword", "")
-					.param("regionId", "")
-					.param("tabType", "ALL")
-					.param("sortType", "LATEST")
-					.param("sortOrder", "DESC")
-					.param("cursor", "0")
-					.param("pageSize", "50")
-					.contentType(MediaType.APPLICATION_JSON)
-					.header("Authorization", "Bearer " + accessToken)
-					.with(csrf()))
-				.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.code").value(200))
-				.andExpect(jsonPath("$.data").exists())
-				.andExpect(jsonPath("$.data.userId").value(userId))
-				.andExpect(jsonPath("$.data.isMyPage").value(true))
-				.andReturn();
+							.param("keyword", "")
+							.param("regionId", "")
+							.param("tabType", "ALL")
+							.param("sortType", "LATEST")
+							.param("sortOrder", "DESC")
+							.param("cursor", "0")
+							.param("pageSize", "50")
+							.contentType(MediaType.APPLICATION_JSON)
+							.header("Authorization", "Bearer " + accessToken)
+							.with(csrf()))
+					.andDo(print())
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$.code").value(200))
+					.andExpect(jsonPath("$.data").exists())
+					.andExpect(jsonPath("$.data.userId").value(userId))
+					.andExpect(jsonPath("$.data.isMyPage").value(true))
+					.andReturn();
 		}
 
 		@DisplayName("비회원 유저는 조회하면 BAD_REQUEST 예외를 반환한다.")
@@ -274,17 +276,17 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 			final Long userId = 2L;
 
 			mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle", userId)
-					.param("keyword", "")
-					.param("regionId", "")
-					.param("tabType", "ALL")
-					.param("sortType", "LATEST")
-					.param("sortOrder", "DESC")
-					.param("cursor", "0")
-					.param("pageSize", "50")
-					.contentType(MediaType.APPLICATION_JSON)
-					.with(csrf()))
-				.andDo(print())
-				.andExpect(status().isBadRequest()); // 비회원은 접근 불가
+							.param("keyword", "")
+							.param("regionId", "")
+							.param("tabType", "ALL")
+							.param("sortType", "LATEST")
+							.param("sortOrder", "DESC")
+							.param("cursor", "0")
+							.param("pageSize", "50")
+							.contentType(MediaType.APPLICATION_JSON)
+							.with(csrf()))
+					.andDo(print())
+					.andExpect(status().isBadRequest()); // 비회원은 접근 불가
 		}
 
 		@DisplayName("마이보틀 유저가 존재하지 않는 경우 REQUIRED_USER_ID 예외를 반환한다.")
@@ -295,20 +297,20 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 			final Long userId = 999L; // 존재하지 않는 유저 ID
 
 			mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle", userId)
-					.param("keyword", "")
-					.param("regionId", "")
-					.param("tabType", "ALL")
-					.param("sortType", "LATEST")
-					.param("sortOrder", "DESC")
-					.param("cursor", "0")
-					.param("pageSize", "50")
-					.contentType(MediaType.APPLICATION_JSON)
-					.with(csrf()))
-				.andDo(print())
-				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
-				.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
-				.andExpect(jsonPath("$.errors[0].message").value(error.message()));
+							.param("keyword", "")
+							.param("regionId", "")
+							.param("tabType", "ALL")
+							.param("sortType", "LATEST")
+							.param("sortOrder", "DESC")
+							.param("cursor", "0")
+							.param("pageSize", "50")
+							.contentType(MediaType.APPLICATION_JSON)
+							.with(csrf()))
+					.andDo(print())
+					.andExpect(status().isBadRequest())
+					.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+					.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+					.andExpect(jsonPath("$.errors[0].message").value(error.message()));
 		}
 
 	}
