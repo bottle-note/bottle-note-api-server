@@ -18,7 +18,7 @@ public interface FollowRepository extends JpaRepository<Follow, Long>, CustomFol
 	Optional<Follow> findByUserIdAndFollowUserId(@Param("userId") Long userId, @Param("followUserId") Long followUserId);
 
 	@Query("""
-		    SELECT new app.bottlenote.alcohols.facade.payload.FriendItem(
+		    SELECT new app.bottlenote.user.facade.payload.FriendItem(
 		        u.imageUrl,
 		        u.id,
 		        u.nickName,
