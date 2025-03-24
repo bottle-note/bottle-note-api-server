@@ -183,6 +183,11 @@ tasks.register('unitTest', Test) {
         includeTags 'unit'
     }
 }
+tasks.register('check rule', Test) {
+	useJUnitPlatform {
+		includeTags 'rule'
+	}
+}
 
 // =========================== spring boot jar setting ===========================
 

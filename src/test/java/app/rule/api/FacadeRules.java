@@ -1,4 +1,4 @@
-package app.rule.data;
+package app.rule.api;
 
 import app.bottlenote.common.annotation.FacadeService;
 import app.rule.AbstractRules;
@@ -9,7 +9,6 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -23,7 +22,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 @Tag("rule")
 @DisplayName("퍼사드 계층 아키텍처 규칙")
 @SuppressWarnings({"NonAsciiCharacters", "JUnitTestClassNamingConvention"})
-public class FacadeObjectRules extends AbstractRules {
+public class FacadeRules extends AbstractRules {
 
 	/**
 	 * 퍼사드 인터페이스 명명 규칙을 검증합니다.
@@ -76,7 +75,6 @@ public class FacadeObjectRules extends AbstractRules {
 	 * 모든 퍼사드 인터페이스는 도메인의 'facade' 패키지에 위치해야 합니다.
 	 */
 	@Test
-	@Disabled
 	public void 퍼사드_패키지_구조_검증() {
 		ArchRule rule = classes()
 				.that().haveSimpleNameEndingWith("Facade")

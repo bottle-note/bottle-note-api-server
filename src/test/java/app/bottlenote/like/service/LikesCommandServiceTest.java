@@ -43,12 +43,12 @@ class LikesCommandServiceTest {
 		log.info("response = {}", response);
 		//then
 		likesRepository.findAll().stream().findFirst().ifPresent(
-			likes -> {
-				log.info("db에 저장된 likes = {}", likes);
-				assertEquals(1L, likes.getReviewId());
-				assertEquals(1L, likes.getUserInfo().getUserId());
-				assertEquals(LikeStatus.LIKE, likes.getStatus());
-			});
+				likes -> {
+					log.info("db에 저장된 likes = {}", likes);
+					assertEquals(1L, likes.getReviewId());
+					assertEquals(1L, likes.getUserInfo().getUserId());
+					assertEquals(LikeStatus.LIKE, likes.getStatus());
+				});
 
 		assertNotNull(response);
 		assertEquals(1L, response.likesId());

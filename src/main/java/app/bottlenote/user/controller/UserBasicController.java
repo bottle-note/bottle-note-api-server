@@ -34,20 +34,20 @@ public class UserBasicController {
 	private final DefaultUserFacade userFacade;
 
 	@PatchMapping("/nickname")
-	public ResponseEntity<?> nicknameChange(@RequestBody @Valid NicknameChangeRequest nicknameChangeRequest) {
+	public ResponseEntity<?> changeNickname(@RequestBody @Valid NicknameChangeRequest nicknameChangeRequest) {
 
 		Long userId = getUserIdByContext()
-			.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+				.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
 		NicknameChangeResponse response = userBasicService.nicknameChange(userId, nicknameChangeRequest);
 		return GlobalResponse.ok(response);
 	}
 
 	@PatchMapping("/profile-image")
-	public ResponseEntity<?> profileImageChange(@RequestBody @Valid ProfileImageChangeRequest request) {
+	public ResponseEntity<?> changeProfileImage(@RequestBody @Valid ProfileImageChangeRequest request) {
 
 		Long userId = getUserIdByContext()
-			.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+				.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
 		ProfileImageChangeResponse response = userBasicService.profileImageChange(userId, request.viewUrl());
 
@@ -58,7 +58,7 @@ public class UserBasicController {
 	public ResponseEntity<?> withdrawUser() {
 
 		Long userId = getUserIdByContext()
-			.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+				.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
 		WithdrawUserResultResponse response = userBasicService.withdrawUser(userId);
 
@@ -68,7 +68,7 @@ public class UserBasicController {
 	@GetMapping("/current")
 	public ResponseEntity<?> getCurrentUser() {
 		Long userId = getUserIdByContext()
-			.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+				.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 		return GlobalResponse.ok(userFacade.getUserProfileInfo(userId));
 	}
 }
