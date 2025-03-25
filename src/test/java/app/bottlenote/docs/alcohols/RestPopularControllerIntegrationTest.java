@@ -1,7 +1,7 @@
 package app.bottlenote.docs.alcohols;
 
 import app.bottlenote.alcohols.controller.PopularQueryController;
-import app.bottlenote.alcohols.dto.response.Populars;
+import app.bottlenote.alcohols.dto.response.PopularItem;
 import app.bottlenote.alcohols.service.PopularService;
 import app.bottlenote.docs.AbstractRestDocs;
 import org.junit.jupiter.api.DisplayName;
@@ -39,7 +39,7 @@ class RestPopularControllerIntegrationTest extends AbstractRestDocs {
 	@Test
 	void getWeeklyPopularAlcoholsTest() throws Exception {
 		// given
-		List<Populars> populars = List.of(
+		List<PopularItem> populars = List.of(
 			getFixturePopulars(1L, "글렌피딕", "glen fi"),
 			getFixturePopulars(2L, "맥키토시", "macintosh"),
 			getFixturePopulars(3L, "글렌리벳", "glen rivet"),

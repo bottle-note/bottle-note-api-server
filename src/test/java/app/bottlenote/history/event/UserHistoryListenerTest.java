@@ -1,10 +1,10 @@
 package app.bottlenote.history.event;
 
 import app.bottlenote.alcohols.fixture.FakeAlcoholFacade;
-import app.bottlenote.history.domain.constant.EventCategory;
-import app.bottlenote.history.domain.constant.EventType;
-import app.bottlenote.history.dto.payload.HistoryEvent;
+import app.bottlenote.history.constant.EventCategory;
+import app.bottlenote.history.constant.EventType;
 import app.bottlenote.history.event.listener.HistoryListener;
+import app.bottlenote.history.event.payload.HistoryEvent;
 import app.bottlenote.history.fixture.InMemoryUserHistoryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -36,7 +36,7 @@ class UserHistoryListenerTest {
 			.alcoholId(1L)
 			.build();
 		// when
-		historyListener.registryUserHistory(historyEvent);
+		historyListener.handleUserHistoryRegistry(historyEvent);
 
 		userHistoryRepository.findAll().stream().findFirst().ifPresent(userHistory -> {
 			// then

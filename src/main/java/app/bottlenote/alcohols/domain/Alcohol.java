@@ -1,7 +1,7 @@
 package app.bottlenote.alcohols.domain;
 
-import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
-import app.bottlenote.alcohols.domain.constant.AlcoholType;
+import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
+import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.common.domain.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -32,6 +32,7 @@ import java.util.Set;
 public class Alcohol extends BaseEntity {
 
 	@Id
+	@Comment("알코올 ID")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
@@ -84,6 +85,7 @@ public class Alcohol extends BaseEntity {
 	private String imageUrl;
 
 	@Builder.Default
+	@Comment("해당 알코올의 테이스팅 태그")
 	@OneToMany(mappedBy = "alcohol", fetch = FetchType.LAZY)
 	private Set<AlcoholsTastingTags> alcoholsTastingTags = new HashSet<>();
 }

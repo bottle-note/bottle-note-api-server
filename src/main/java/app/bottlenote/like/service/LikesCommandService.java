@@ -1,20 +1,20 @@
 package app.bottlenote.like.service;
 
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
-import app.bottlenote.like.domain.LikeStatus;
+import app.bottlenote.like.constant.LikeStatus;
 import app.bottlenote.like.domain.LikeUserInfo;
 import app.bottlenote.like.domain.Likes;
 import app.bottlenote.like.domain.LikesRepository;
-import app.bottlenote.like.dto.payload.LikesRegistryEvent;
 import app.bottlenote.like.dto.response.LikesUpdateResponse;
+import app.bottlenote.like.event.payload.LikesRegistryEvent;
 import app.bottlenote.review.exception.ReviewException;
-import app.bottlenote.review.service.ReviewFacade;
-import app.bottlenote.user.dto.response.UserProfileInfo;
-import app.bottlenote.user.service.UserFacade;
-import jakarta.transaction.Transactional;
+import app.bottlenote.review.facade.ReviewFacade;
+import app.bottlenote.user.facade.UserFacade;
+import app.bottlenote.user.facade.payload.UserProfileItem;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 
@@ -40,8 +40,8 @@ public class LikesCommandService {
 				if (!reviewFacade.isExistReview(reviewId)) {
 					throw new ReviewException(REVIEW_NOT_FOUND);
 				}
-				UserProfileInfo userProfileInfo = userFacade.getUserProfileInfo(userId);
-				LikeUserInfo userInfo = LikeUserInfo.create(userProfileInfo.id(), userProfileInfo.nickname());
+				UserProfileItem userProfileItem = userFacade.getUserProfileInfo(userId);
+				LikeUserInfo userInfo = LikeUserInfo.create(userProfileItem.id(), userProfileItem.nickname());
 
 				return Likes.builder()
 					.reviewId(reviewId)

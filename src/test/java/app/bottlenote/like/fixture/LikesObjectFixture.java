@@ -4,7 +4,7 @@ import app.bottlenote.review.domain.Review;
 import app.bottlenote.user.domain.User;
 import org.apache.commons.lang3.RandomStringUtils;
 
-import static app.bottlenote.review.domain.constant.ReviewDisplayStatus.PUBLIC;
+import static app.bottlenote.review.constant.ReviewDisplayStatus.PUBLIC;
 
 public class LikesObjectFixture {
 

@@ -1,7 +1,7 @@
 package app.bottlenote.review.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
-import app.bottlenote.review.domain.constant.ReviewReplyStatus;
+import app.bottlenote.review.constant.ReviewReplyStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -13,18 +13,19 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 import lombok.Builder;
 import lombok.Getter;
 import org.hibernate.annotations.Comment;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 @Comment("리뷰 댓글 테이블")
 @Entity(name = "review_reply")
 public class ReviewReply extends BaseEntity {
-	@Getter
 	@Id
+	@Getter
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
@@ -42,6 +43,7 @@ public class ReviewReply extends BaseEntity {
 	@Column(name = "content", nullable = false, length = 1000)
 	private String content;
 
+	@Comment("댓글의 노출 상태")
 	@Enumerated(EnumType.STRING)
 	@Column(name = "status", nullable = false)
 	private ReviewReplyStatus status = ReviewReplyStatus.NORMAL;

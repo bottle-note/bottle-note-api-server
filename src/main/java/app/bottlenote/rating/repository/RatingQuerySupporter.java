@@ -1,9 +1,9 @@
 package app.bottlenote.rating.repository;
 
-import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
+import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.SortOrder;
-import app.bottlenote.rating.domain.constant.SearchSortType;
+import app.bottlenote.rating.constant.SearchSortType;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;

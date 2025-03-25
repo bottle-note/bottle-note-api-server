@@ -2,22 +2,24 @@ package app.bottlenote.user.repository;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.user.constant.FollowStatus;
 import app.bottlenote.user.domain.QFollow;
-import static app.bottlenote.user.domain.QFollow.follow;
-import static app.bottlenote.user.domain.QUser.user;
-import app.bottlenote.user.domain.constant.FollowStatus;
 import app.bottlenote.user.dto.dsl.FollowPageableCriteria;
 import app.bottlenote.user.dto.response.FollowerSearchResponse;
 import app.bottlenote.user.dto.response.FollowingSearchResponse;
-import app.bottlenote.user.dto.response.RelationUserInfo;
+import app.bottlenote.user.dto.response.RelationUserItem;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
+
+import static app.bottlenote.user.domain.QFollow.follow;
+import static app.bottlenote.user.domain.QUser.user;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -32,7 +34,7 @@ public class CustomFollowRepositoryImpl implements CustomFollowRepository {
 		Long cursor = criteria.cursor();
 		Long pageSize = criteria.pageSize();
 
-		List<RelationUserInfo> followingDetails = getFollowingDetails(userId, cursor, pageSize);
+		List<RelationUserItem> followingDetails = getFollowingDetails(userId, cursor, pageSize);
 
 		Long totalCount = queryFactory
 			.select(follow.id.count())
@@ -54,7 +56,7 @@ public class CustomFollowRepositoryImpl implements CustomFollowRepository {
 		Long cursor = criteria.cursor();
 		Long pageSize = criteria.pageSize();
 
-		List<RelationUserInfo> followerDetails = getFollowerDetails(userId, cursor, pageSize);
+		List<RelationUserItem> followerDetails = getFollowerDetails(userId, cursor, pageSize);
 
 		Long totalCount = queryFactory
 			.select(follow.id.count())
@@ -70,10 +72,10 @@ public class CustomFollowRepositoryImpl implements CustomFollowRepository {
 		return PageResponse.of(FollowerSearchResponse.of(totalCount, followerDetails), cursorPageable);
 	}
 
-	private List<RelationUserInfo> getFollowingDetails(Long userId, Long cursor, Long pageSize) {
+	private List<RelationUserItem> getFollowingDetails(Long userId, Long cursor, Long pageSize) {
 		return queryFactory
 			.select(Projections.constructor(
-				RelationUserInfo.class,
+				RelationUserItem.class,
 				follow.userId.as("userId"),
 				follow.targetUserId.as("followUserId"),
 				user.nickName.as("nickName"),
@@ -92,7 +94,7 @@ public class CustomFollowRepositoryImpl implements CustomFollowRepository {
 			.fetch();
 	}
 
-	private List<RelationUserInfo> getFollowerDetails(Long userId, Long cursor, Long pageSize) {
+	private List<RelationUserItem> getFollowerDetails(Long userId, Long cursor, Long pageSize) {
 		QFollow f2 = new QFollow("f2");
 
 		BooleanExpression isFollowing = JPAExpressions
@@ -105,7 +107,7 @@ public class CustomFollowRepositoryImpl implements CustomFollowRepository {
 
 		return queryFactory
 			.select(Projections.constructor(
-				RelationUserInfo.class,
+				RelationUserItem.class,
 				follow.userId.as("userId"),
 				follow.targetUserId.as("followUserId"),
 				user.nickName.as("followUserNickname"),

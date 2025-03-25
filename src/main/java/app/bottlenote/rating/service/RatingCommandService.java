@@ -1,22 +1,22 @@
 package app.bottlenote.rating.service;
 
-import app.bottlenote.alcohols.service.domain.AlcoholFacade;
+import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.rating.domain.RatingRepository;
-import app.bottlenote.rating.dto.payload.RatingRegistryEvent;
 import app.bottlenote.rating.dto.response.RatingRegisterResponse;
+import app.bottlenote.rating.event.payload.RatingRegistryEvent;
 import app.bottlenote.rating.exception.RatingException;
 import app.bottlenote.rating.exception.RatingExceptionCode;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
-import app.bottlenote.user.service.UserFacade;
-import jakarta.transaction.Transactional;
+import app.bottlenote.user.facade.UserFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 
@@ -77,6 +77,6 @@ public class RatingCommandService {
 			)
 		);
 
-		return RatingRegisterResponse.success(save);
+		return RatingRegisterResponse.success(save.getRatingPoint().getRating());
 	}
 }

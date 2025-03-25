@@ -1,7 +1,7 @@
 package app.bottlenote.docs.alcohols;
 
 import app.bottlenote.alcohols.controller.RegionController;
-import app.bottlenote.alcohols.dto.response.RegionsResponse;
+import app.bottlenote.alcohols.dto.response.RegionsItem;
 import app.bottlenote.alcohols.service.AlcoholReferenceService;
 import app.bottlenote.docs.AbstractRestDocs;
 import org.junit.jupiter.api.DisplayName;
@@ -32,12 +32,12 @@ class RestRegionControllerTest extends AbstractRestDocs {
 	@DisplayName("지역 리스트를 조회할 수 있다.")
 	void findAllTest() throws Exception {
 		// given
-		List<RegionsResponse> response = List.of(
-			RegionsResponse.of(1L, "스코틀랜드/로우랜드", "Scotland/Lowlands", "가벼운 맛이 특징인 로우랜드 위스키"),
-			RegionsResponse.of(2L, "스코틀랜드/하이랜드", "Scotland/Highlands", "맛의 다양성이 특징인 하이랜드 위스키, 해안의 짠맛부터 달콤하고 과일 맛까지"),
-			RegionsResponse.of(3L, "스코틀랜드/아일랜드", "Scotland/Ireland", "부드러운 맛이 특징인 아일랜드 위스키"),
-			RegionsResponse.of(11L, "프랑스", "France", "주로 브랜디와 와인 생산지로 유명하지만 위스키도 생산"),
-			RegionsResponse.of(12L, "스웨덴", "Sweden", "실험적인 방법으로 만드는 스웨덴 위스키")
+		List<RegionsItem> response = List.of(
+			RegionsItem.of(1L, "스코틀랜드/로우랜드", "Scotland/Lowlands", "가벼운 맛이 특징인 로우랜드 위스키"),
+			RegionsItem.of(2L, "스코틀랜드/하이랜드", "Scotland/Highlands", "맛의 다양성이 특징인 하이랜드 위스키, 해안의 짠맛부터 달콤하고 과일 맛까지"),
+			RegionsItem.of(3L, "스코틀랜드/아일랜드", "Scotland/Ireland", "부드러운 맛이 특징인 아일랜드 위스키"),
+			RegionsItem.of(11L, "프랑스", "France", "주로 브랜디와 와인 생산지로 유명하지만 위스키도 생산"),
+			RegionsItem.of(12L, "스웨덴", "Sweden", "실험적인 방법으로 만드는 스웨덴 위스키")
 		);
 		// when
 		when(regionService.findAllRegion()).thenReturn(response);

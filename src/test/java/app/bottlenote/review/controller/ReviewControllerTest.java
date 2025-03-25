@@ -8,11 +8,12 @@ import app.bottlenote.global.security.jwt.CustomJwtExceptionCode;
 import app.bottlenote.global.security.jwt.JwtExceptionType;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
-import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
-import app.bottlenote.review.domain.constant.ReviewSortType;
-import app.bottlenote.review.dto.request.LocationInfo;
+import app.bottlenote.review.constant.ReviewDisplayStatus;
+import app.bottlenote.review.constant.ReviewResultMessage;
+import app.bottlenote.review.constant.ReviewSortType;
+import app.bottlenote.review.dto.request.LocationInfoRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
-import app.bottlenote.review.dto.request.ReviewImageInfo;
+import app.bottlenote.review.dto.request.ReviewImageInfoRequest;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.request.ReviewStatusChangeRequest;
@@ -20,7 +21,6 @@ import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
-import app.bottlenote.review.dto.response.constant.ReviewResultMessage;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
 import app.bottlenote.review.service.ReviewService;
@@ -143,14 +143,14 @@ class ReviewControllerTest {
 				"맛있어요",
 				null,
 				new BigDecimal("30000.0"),
-				new LocationInfo("xxPub", "12345", "서울시 강남구 청담동", "xx빌딩", "PUB", "https://map.naver.com", "111.111", "222.222"),
+				new LocationInfoRequest("xxPub", "12345", "서울시 강남구 청담동", "xx빌딩", "PUB", "https://map.naver.com", "111.111", "222.222"),
 				List.of(
-					new ReviewImageInfo(1L, "url1"),
-					new ReviewImageInfo(2L, "url2"),
-					new ReviewImageInfo(3L, "url3"),
-					new ReviewImageInfo(4L, "url4"),
-					new ReviewImageInfo(5L, "url5"),
-					new ReviewImageInfo(6L, "url6")
+					new ReviewImageInfoRequest(1L, "url1"),
+					new ReviewImageInfoRequest(2L, "url2"),
+					new ReviewImageInfoRequest(3L, "url3"),
+					new ReviewImageInfoRequest(4L, "url4"),
+					new ReviewImageInfoRequest(5L, "url5"),
+					new ReviewImageInfoRequest(6L, "url6")
 				),
 				List.of("테이스팅태그", "테이스팅태그 2", "테이스팅태그 3"),
 				0.5

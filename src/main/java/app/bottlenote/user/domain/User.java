@@ -2,10 +2,10 @@ package app.bottlenote.user.domain;
 
 import app.bottlenote.common.domain.BaseTimeEntity;
 import app.bottlenote.global.service.converter.JsonArrayConverter;
-import app.bottlenote.user.domain.constant.GenderType;
-import app.bottlenote.user.domain.constant.SocialType;
-import app.bottlenote.user.domain.constant.UserStatus;
-import app.bottlenote.user.domain.constant.UserType;
+import app.bottlenote.user.constant.GenderType;
+import app.bottlenote.user.constant.SocialType;
+import app.bottlenote.user.constant.UserStatus;
+import app.bottlenote.user.constant.UserType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -14,9 +14,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,6 +24,10 @@ import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @Builder
 @Getter
@@ -84,6 +85,7 @@ public class User extends BaseTimeEntity {
 	@Builder.Default
 	private UserStatus status = UserStatus.ACTIVE;
 
+	@Builder.Default
 	@Convert(converter = JsonArrayConverter.class)
 	@Comment("사용자 로그인 소셜타입 (GOOGLE, KAKAO, NAVER, APPLE")
 	@Column(name = "social_type", nullable = false, columnDefinition = "json")
@@ -92,7 +94,7 @@ public class User extends BaseTimeEntity {
 	@Comment("사용자 리프레시토큰")
 	@Column(name = "refresh_token")
 	private String refreshToken;
-	
+
 	public void updateRefreshToken(String refreshToken) {
 		Objects.requireNonNull(refreshToken, "refreshToken은 null이 될 수 없습니다.");
 		this.refreshToken = refreshToken;

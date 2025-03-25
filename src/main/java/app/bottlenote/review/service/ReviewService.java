@@ -1,28 +1,28 @@
 package app.bottlenote.review.service;
 
-import app.bottlenote.alcohols.dto.response.AlcoholInfo;
-import app.bottlenote.alcohols.service.domain.AlcoholFacade;
+import app.bottlenote.alcohols.facade.AlcoholFacade;
+import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.rating.domain.RatingPoint;
+import app.bottlenote.review.constant.ReviewResultMessage;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewLocation;
 import app.bottlenote.review.domain.ReviewRepository;
-import app.bottlenote.review.dto.payload.ReviewRegistryEvent;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
-import app.bottlenote.review.dto.request.ReviewImageInfo;
-import app.bottlenote.review.dto.request.ReviewModifyRequest;
+import app.bottlenote.review.dto.request.ReviewImageInfoRequest;
+import app.bottlenote.review.dto.request.ReviewModifyRequestWrapperItem;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.request.ReviewStatusChangeRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
-import app.bottlenote.review.dto.response.constant.ReviewResultMessage;
-import app.bottlenote.review.dto.vo.ReviewInfo;
-import app.bottlenote.review.dto.vo.ReviewModifyVO;
+import app.bottlenote.review.event.payload.ReviewRegistryEvent;
 import app.bottlenote.review.exception.ReviewException;
-import app.bottlenote.user.service.UserFacade;
+import app.bottlenote.review.facade.ReviewFacade;
+import app.bottlenote.review.facade.payload.ReviewInfo;
+import app.bottlenote.user.facade.UserFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,11 +30,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static app.bottlenote.review.domain.constant.ReviewActiveStatus.DELETED;
-import static app.bottlenote.review.domain.constant.ReviewDisplayStatus.PUBLIC;
-import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.MODIFY_SUCCESS;
-import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.PRIVATE_SUCCESS;
-import static app.bottlenote.review.dto.response.constant.ReviewResultMessage.PUBLIC_SUCCESS;
+import static app.bottlenote.review.constant.ReviewActiveStatus.DELETED;
+import static app.bottlenote.review.constant.ReviewDisplayStatus.PUBLIC;
+import static app.bottlenote.review.constant.ReviewResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.review.constant.ReviewResultMessage.PRIVATE_SUCCESS;
+import static app.bottlenote.review.constant.ReviewResultMessage.PUBLIC_SUCCESS;
 import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 
 @Slf4j
@@ -62,10 +62,10 @@ public class ReviewService implements ReviewFacade {
 	@Transactional(readOnly = true)
 	public ReviewDetailResponse getDetailReview(Long reviewId, Long currentUserId) {
 		Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
-		AlcoholInfo alcoholInfo = alcoholFacade.findAlcoholInfoById(review.getAlcoholId(), currentUserId).orElseGet(AlcoholInfo::empty);
+		AlcoholSummaryItem alcoholSummaryItem = alcoholFacade.findAlcoholInfoById(review.getAlcoholId(), currentUserId).orElseGet(AlcoholSummaryItem::empty);
 		ReviewInfo reviewInfo = reviewRepository.getReview(reviewId, currentUserId);
 		return ReviewDetailResponse.create(
-			alcoholInfo,
+				alcoholSummaryItem,
 			reviewInfo,
 			review.getReviewImages().getViewInfo()
 		);
@@ -88,17 +88,13 @@ public class ReviewService implements ReviewFacade {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public boolean isExistReview(Long reviewId) {
 		return reviewRepository.existsById(reviewId);
 	}
 
 	@Override
-	public void requestBlockReview(Long reviewId) {
-		reviewRepository.findById(reviewId)
-			.ifPresent(Review::blockReview);
-	}
-
-	@Override
+	@Transactional(readOnly = true)
 	public Long getAlcoholIdByReviewId(Long reviewId) {
 		return reviewRepository.findById(reviewId)
 			.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND)).getAlcoholId();
@@ -107,6 +103,12 @@ public class ReviewService implements ReviewFacade {
 	/**
 	 * Create , Update, Delete
 	 */
+	@Override
+	@Transactional
+	public void requestBlockReview(Long reviewId) {
+		reviewRepository.findById(reviewId)
+			.ifPresent(Review::blockReview);
+	}
 
 	@Transactional
 	public ReviewCreateResponse createReview(
@@ -154,18 +156,18 @@ public class ReviewService implements ReviewFacade {
 
 	@Transactional
 	public ReviewResultResponse modifyReview(
-		final ReviewModifyRequest request,
+		final app.bottlenote.review.dto.request.ReviewModifyRequest request,
 		final Long reviewId,
 		final Long currentUserId
 	) {
 		Review review = reviewRepository.findByIdAndUserId(reviewId, currentUserId)
 			.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
 
-		ReviewModifyVO reviewModifyVO = ReviewModifyVO.create(request);
-		List<ReviewImageInfo> reviewImageInfos = request.imageUrlList();
+		ReviewModifyRequestWrapperItem reviewModifyRequestWrapperItem = ReviewModifyRequestWrapperItem.create(request);
+		List<ReviewImageInfoRequest> reviewImageInfoRequests = request.imageUrlList();
 
-		review.update(reviewModifyVO);
-		review.imageInitialization(reviewImageInfos);
+		review.update(reviewModifyRequestWrapperItem);
+		review.imageInitialization(reviewImageInfoRequests);
 		review.updateTastingTags(request.tastingTagList());
 		return ReviewResultResponse.response(MODIFY_SUCCESS, reviewId);
 	}
@@ -195,5 +197,4 @@ public class ReviewService implements ReviewFacade {
 			ReviewResultResponse.response(PUBLIC_SUCCESS, review.getId()) :
 			ReviewResultResponse.response(PRIVATE_SUCCESS, review.getId());
 	}
-
 }

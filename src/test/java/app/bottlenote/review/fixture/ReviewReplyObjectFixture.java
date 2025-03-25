@@ -1,19 +1,20 @@
 package app.bottlenote.review.fixture;
 
+import app.bottlenote.review.constant.ReviewReplyResultMessage;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
-import app.bottlenote.review.dto.response.RootReviewReplyInfo;
-import app.bottlenote.review.dto.response.SubReviewReplyInfo;
-import app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage;
+import app.bottlenote.review.dto.response.RootReviewReplyResponse;
+import app.bottlenote.review.dto.response.SubReviewReplyResponse.Item;
 import app.bottlenote.user.domain.User;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomUtils;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.RandomUtils;
 
 public class ReviewReplyObjectFixture {
 
@@ -86,9 +87,9 @@ public class ReviewReplyObjectFixture {
 			.build();
 	}
 
-	public static RootReviewReplyInfo.Info getReviewReplyInfo(Long userId, Long index) {
+	public static RootReviewReplyResponse.Item getReviewReplyInfo(Long userId, Long index) {
 
-		return RootReviewReplyInfo.Info.builder()
+		return RootReviewReplyResponse.Item.builder()
 			.userId(userId)
 			.imageUrl("https://picsum.photos/500")
 			.nickName(RandomStringUtils.randomAlphabetic(10))
@@ -99,14 +100,14 @@ public class ReviewReplyObjectFixture {
 			.build();
 	}
 
-	public static SubReviewReplyInfo.Info getSubReviewReplyInfo(
+	public static Item getSubReviewReplyInfo(
 		Long userId,
 		Long index,
 		Long rootReviewId,
 		Long parentReviewReplyId,
 		String parentReviewReplyAuthor
 	) {
-		return SubReviewReplyInfo.Info.builder()
+		return Item.builder()
 			.userId(userId)
 			.imageUrl("https://picsum.photos/500")
 			.nickName(RandomStringUtils.randomAlphabetic(10))
@@ -119,12 +120,12 @@ public class ReviewReplyObjectFixture {
 			.build();
 	}
 
-	public static RootReviewReplyInfo getReviewReplyInfoList(long index) {
-		List<RootReviewReplyInfo.Info> list = new ArrayList<>();
+	public static RootReviewReplyResponse getReviewReplyInfoList(long index) {
+		List<RootReviewReplyResponse.Item> list = new ArrayList<>();
 		for (long i = 0; i < index; i++) {
 			list.add(getReviewReplyInfo(i, i));
 		}
-		return RootReviewReplyInfo.of((long) list.size(), list);
+		return RootReviewReplyResponse.of((long) list.size(), list);
 	}
 
 

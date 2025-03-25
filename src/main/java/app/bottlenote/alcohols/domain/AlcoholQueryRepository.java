@@ -1,11 +1,11 @@
 package app.bottlenote.alcohols.domain;
 
-import app.bottlenote.alcohols.domain.constant.AlcoholType;
+import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
-import app.bottlenote.alcohols.dto.response.AlcoholInfo;
+import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
-import app.bottlenote.alcohols.dto.response.CategoryResponse;
-import app.bottlenote.alcohols.dto.response.detail.AlcoholDetailInfo;
+import app.bottlenote.alcohols.dto.response.CategoryItem;
+import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.global.service.cursor.PageResponse;
 
 import java.util.List;
@@ -26,11 +26,11 @@ public interface AlcoholQueryRepository {
 
 	PageResponse<AlcoholSearchResponse> searchAlcohols(AlcoholSearchCriteria criteriaDto);
 
-	AlcoholDetailInfo findAlcoholDetailById(Long alcoholId, Long userId);
+	AlcoholDetailItem findAlcoholDetailById(Long alcoholId, Long userId);
 
-	Optional<AlcoholInfo> findAlcoholInfoById(Long alcoholId, Long userId);
+	Optional<AlcoholSummaryItem> findAlcoholInfoById(Long alcoholId, Long userId);
 
-	List<CategoryResponse> findAllCategories(AlcoholType type);
+	List<CategoryItem> findAllCategories(AlcoholType type);
 
 	Boolean existsByAlcoholId(Long alcoholId);
 }

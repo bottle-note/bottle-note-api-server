@@ -1,8 +1,10 @@
 package app.bottlenote.common.file.upload;
 
-import app.bottlenote.common.file.upload.dto.request.ImageUploadRequest;
-import app.bottlenote.common.file.upload.dto.response.ImageUploadInfo;
-import app.bottlenote.common.file.upload.dto.response.ImageUploadResponse;
+import app.bottlenote.common.file.controller.ImageUploadController;
+import app.bottlenote.common.file.dto.request.ImageUploadRequest;
+import app.bottlenote.common.file.dto.response.ImageUploadItem;
+import app.bottlenote.common.file.dto.response.ImageUploadResponse;
+import app.bottlenote.common.file.service.ImageUploadService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -54,12 +56,12 @@ class ImageUploadControllerTest {
 		System.out.println("test -" + description);
 		//given
 		Long size = request.uploadSize();
-		List<ImageUploadInfo> infos = List.of(
-			ImageUploadInfo.builder().order(1L)
+		List<ImageUploadItem> infos = List.of(
+			ImageUploadItem.builder().order(1L)
 				.uploadUrl("https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")
 				.viewUrl("https://d1d1d1d1.cloudfront.net/images/1")
 				.build(),
-			ImageUploadInfo.builder().order(2L)
+			ImageUploadItem.builder().order(2L)
 				.uploadUrl("https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/2")
 				.viewUrl("https://d1d1d1d1.cloudfront.net/images/2")
 				.build()

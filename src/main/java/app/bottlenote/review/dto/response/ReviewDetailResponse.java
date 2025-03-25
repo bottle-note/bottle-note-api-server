@@ -1,25 +1,25 @@
 package app.bottlenote.review.dto.response;
 
-import app.bottlenote.alcohols.dto.response.AlcoholInfo;
-import app.bottlenote.review.dto.request.ReviewImageInfo;
-import app.bottlenote.review.dto.vo.ReviewInfo;
+import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
+import app.bottlenote.review.dto.request.ReviewImageInfoRequest;
+import app.bottlenote.review.facade.payload.ReviewInfo;
 
 import java.util.List;
 
 public record ReviewDetailResponse(
-	AlcoholInfo alcoholInfo,
+	AlcoholSummaryItem alcoholInfo,
 	ReviewInfo reviewInfo,
-	List<ReviewImageInfo> reviewImageList
+	List<ReviewImageInfoRequest> reviewImageList
 ) {
 	public ReviewDetailResponse {
 		reviewInfo = (reviewInfo != null) ? reviewInfo : ReviewInfo.builder().build();
 		reviewImageList = (reviewImageList != null) ? reviewImageList : List.of();
 	}
 
-	public static ReviewDetailResponse create(AlcoholInfo alcoholInfo, ReviewInfo reviewInfo, List<ReviewImageInfo> reviewImageList) {
+	public static ReviewDetailResponse create(AlcoholSummaryItem alcoholSummaryItem, ReviewInfo reviewInfo, List<ReviewImageInfoRequest> reviewImageList) {
 		if (reviewInfo == null) {
-			return new ReviewDetailResponse(alcoholInfo, ReviewInfo.builder().build(), List.of());
+			return new ReviewDetailResponse(alcoholSummaryItem, ReviewInfo.builder().build(), List.of());
 		}
-		return new ReviewDetailResponse(alcoholInfo, reviewInfo, reviewImageList != null ? reviewImageList : List.of());
+		return new ReviewDetailResponse(alcoholSummaryItem, reviewInfo, reviewImageList != null ? reviewImageList : List.of());
 	}
 }

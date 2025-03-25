@@ -3,13 +3,13 @@ package app.bottlenote.review.domain;
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.common.image.ImageInfo;
 import app.bottlenote.common.image.ImageUtil;
-import app.bottlenote.review.domain.constant.ReviewActiveStatus;
-import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
-import app.bottlenote.review.domain.constant.SizeType;
-import app.bottlenote.review.dto.request.LocationInfo;
-import app.bottlenote.review.dto.request.ReviewImageInfo;
-import app.bottlenote.review.dto.response.constant.ReviewResultMessage;
-import app.bottlenote.review.dto.vo.ReviewModifyVO;
+import app.bottlenote.review.constant.ReviewActiveStatus;
+import app.bottlenote.review.constant.ReviewDisplayStatus;
+import app.bottlenote.review.constant.ReviewResultMessage;
+import app.bottlenote.review.constant.SizeType;
+import app.bottlenote.review.dto.request.LocationInfoRequest;
+import app.bottlenote.review.dto.request.ReviewImageInfoRequest;
+import app.bottlenote.review.dto.request.ReviewModifyRequestWrapperItem;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -18,10 +18,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,6 +25,11 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.Comment;
+
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Getter
@@ -44,9 +45,11 @@ public class Review extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	@Comment("누가 쓴 리뷰인지")
 	@Column(name = "user_id", nullable = false)
 	private Long userId;
 
+	@Comment("어떤 술에 대한 리뷰인지")
 	@Column(name = "alcohol_id", nullable = false)
 	private Long alcoholId;
 
@@ -108,17 +111,17 @@ public class Review extends BaseEntity {
 	@Embedded
 	private ReviewTastingTags reviewTastingTags = ReviewTastingTags.empty();
 
-	public void update(ReviewModifyVO reviewModifyVO) {
-		this.status = reviewModifyVO.getReviewDisplayStatus();
-		this.content = reviewModifyVO.getContent();
-		this.sizeType = reviewModifyVO.getSizeType();
-		this.price = reviewModifyVO.getPrice();
-		LocationInfo locationInfo = reviewModifyVO.getLocationInfo();
-		Objects.requireNonNullElse(this.reviewLocation, ReviewLocation.empty()).update(locationInfo);
+	public void update(ReviewModifyRequestWrapperItem reviewModifyRequestWrapperItem) {
+		this.status = reviewModifyRequestWrapperItem.getReviewDisplayStatus();
+		this.content = reviewModifyRequestWrapperItem.getContent();
+		this.sizeType = reviewModifyRequestWrapperItem.getSizeType();
+		this.price = reviewModifyRequestWrapperItem.getPrice();
+		LocationInfoRequest locationInfoRequest = reviewModifyRequestWrapperItem.getLocationInfo();
+		Objects.requireNonNullElse(this.reviewLocation, ReviewLocation.empty()).update(locationInfoRequest);
 	}
 
 
-	public void imageInitialization(List<ReviewImageInfo> list) {
+	public void imageInitialization(List<ReviewImageInfoRequest> list) {
 		list = Objects.requireNonNullElse(list, Collections.emptyList());
 		List<ReviewImage> imageList = list.stream()
 			.map(

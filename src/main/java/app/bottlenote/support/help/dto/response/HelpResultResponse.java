@@ -1,6 +1,6 @@
 package app.bottlenote.support.help.dto.response;
 
-import app.bottlenote.support.help.dto.response.constant.HelpResultMessage;
+import app.bottlenote.support.help.constant.HelpResultMessage;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

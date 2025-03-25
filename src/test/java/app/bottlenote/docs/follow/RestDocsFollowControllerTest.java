@@ -1,5 +1,27 @@
 package app.bottlenote.docs.follow;
 
+import app.bottlenote.docs.AbstractRestDocs;
+import app.bottlenote.follow.fixture.FollowQueryFixture;
+import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.user.constant.FollowQueryType;
+import app.bottlenote.user.constant.FollowStatus;
+import app.bottlenote.user.controller.FollowController;
+import app.bottlenote.user.dto.request.FollowUpdateRequest;
+import app.bottlenote.user.dto.response.FollowUpdateResponse;
+import app.bottlenote.user.dto.response.FollowerSearchResponse;
+import app.bottlenote.user.dto.response.FollowingSearchResponse;
+import app.bottlenote.user.service.FollowService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.springframework.http.MediaType;
+import org.springframework.restdocs.payload.JsonFieldType;
+
+import java.util.Optional;
+
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -14,27 +36,6 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import app.bottlenote.docs.AbstractRestDocs;
-import app.bottlenote.follow.fixture.FollowQueryFixture;
-import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.user.controller.FollowController;
-import app.bottlenote.user.domain.constant.FollowStatus;
-import app.bottlenote.user.dto.request.FollowUpdateRequest;
-import app.bottlenote.user.dto.response.FollowUpdateResponse;
-import app.bottlenote.user.dto.response.FollowerSearchResponse;
-import app.bottlenote.user.dto.response.FollowingSearchResponse;
-import app.bottlenote.user.dto.response.constant.FollowQueryType;
-import app.bottlenote.user.service.FollowService;
-import java.util.Optional;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.springframework.http.MediaType;
-import org.springframework.restdocs.payload.JsonFieldType;
 
 @DisplayName("FollowController RestDocs 테스트")
 class RestDocsFollowControllerTest extends AbstractRestDocs {

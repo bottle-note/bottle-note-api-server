@@ -1,8 +1,8 @@
 package app.bottlenote.user.dto.dsl;
 
 import app.bottlenote.global.service.cursor.SortOrder;
-import app.bottlenote.user.domain.constant.MyBottleSortType;
-import app.bottlenote.user.domain.constant.MyBottleTabType;
+import app.bottlenote.user.constant.MyBottleSortType;
+import app.bottlenote.user.constant.MyBottleTabType;
 import app.bottlenote.user.dto.request.MyBottleRequest;
 
 public record MyBottlePageableCriteria(

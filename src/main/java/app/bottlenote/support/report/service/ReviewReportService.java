@@ -1,16 +1,16 @@
 package app.bottlenote.support.report.service;
 
 import app.bottlenote.review.exception.ReviewException;
-import app.bottlenote.review.service.ReviewFacade;
+import app.bottlenote.review.facade.ReviewFacade;
 import app.bottlenote.support.report.domain.ReviewReport;
 import app.bottlenote.support.report.dto.request.ReviewReportRequest;
 import app.bottlenote.support.report.dto.response.ReviewReportResponse;
 import app.bottlenote.support.report.exception.ReportException;
 import app.bottlenote.support.report.repository.ReviewReportRepository;
-import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 
@@ -55,6 +55,7 @@ public class ReviewReportService {
 		return ReviewReportResponse.response(true);
 	}
 
+	@Transactional
 	public void blockReviewIfNecessary(Long reviewId) {
 		Long count = reviewReportRepository.countUniqueIpReportsByReviewId(reviewId).orElse(0L);
 		if (count >= BLOCK_THRESHOLD) {

@@ -1,6 +1,6 @@
 package app.bottlenote.support.report.dto.request;
 
-import app.bottlenote.support.report.domain.constant.UserReportType;
+import app.bottlenote.support.report.constant.UserReportType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

@@ -1,18 +1,18 @@
 package app.bottlenote.picks.event;
 
-import static app.bottlenote.history.domain.constant.EventType.IS_PICK;
-import static app.bottlenote.history.domain.constant.EventType.UNPICK;
-import static app.bottlenote.picks.domain.PicksStatus.PICK;
-
-import app.bottlenote.history.domain.constant.EventCategory;
-import app.bottlenote.history.domain.constant.RedirectUrlType;
-import app.bottlenote.history.dto.payload.HistoryEvent;
+import app.bottlenote.history.constant.EventCategory;
+import app.bottlenote.history.constant.RedirectUrlType;
+import app.bottlenote.history.event.payload.HistoryEvent;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
-import app.bottlenote.picks.dto.payload.PicksRegistryEvent;
+import app.bottlenote.picks.event.payload.PicksRegistryEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
+
+import static app.bottlenote.history.constant.EventType.IS_PICK;
+import static app.bottlenote.history.constant.EventType.UNPICK;
+import static app.bottlenote.picks.constant.PicksStatus.PICK;
 
 @Slf4j
 @Component

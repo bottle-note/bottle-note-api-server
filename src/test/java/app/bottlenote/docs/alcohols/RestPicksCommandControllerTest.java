@@ -2,8 +2,8 @@ package app.bottlenote.docs.alcohols;
 
 import app.bottlenote.docs.AbstractRestDocs;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.picks.constant.PicksStatus;
 import app.bottlenote.picks.controller.PicksCommandController;
-import app.bottlenote.picks.domain.PicksStatus;
 import app.bottlenote.picks.dto.request.PicksUpdateRequest;
 import app.bottlenote.picks.dto.response.PicksUpdateResponse;
 import app.bottlenote.picks.service.PicksCommandService;

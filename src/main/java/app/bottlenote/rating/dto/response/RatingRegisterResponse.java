@@ -1,6 +1,5 @@
 package app.bottlenote.rating.dto.response;
 
-import app.bottlenote.rating.domain.Rating;
 import lombok.Getter;
 
 public record RatingRegisterResponse(
@@ -8,9 +7,9 @@ public record RatingRegisterResponse(
 	String message
 ) {
 
-	public static RatingRegisterResponse success(Rating rating) {
+	public static RatingRegisterResponse success(double rating) {
 		return new RatingRegisterResponse(
-			rating.getRatingPoint().getRating().toString(),
+			String.valueOf(rating),
 			Message.SUCCESS.getMessage()
 		);
 	}

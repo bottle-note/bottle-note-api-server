@@ -42,8 +42,8 @@ public class PopularAlcoholSelectionJob {
 			return null;
 		}
 		return new JobBuilder(POPULAR_JOB_NAME, jobRepository)
-			.start(popularStep)
-			.build();
+				.start(popularStep)
+				.build();
 	}
 
 	private Step getPopularAlcoholStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
@@ -56,17 +56,16 @@ public class PopularAlcoholSelectionJob {
 		log.info("인기 주류 선정 쿼리 로드 완료");
 
 		return new StepBuilder("popularAlcoholStep", jobRepository)
-			.<PopularItemPayload, PopularItemPayload>chunk(CHUNK_SIZE, transactionManager)
-			.reader(new PopularItemReader(jdbcTemplate, query))
-			.processor(item -> item)
-			.writer(this::savePopularItems)
-			.build();
+				.<PopularItemPayload, PopularItemPayload>chunk(CHUNK_SIZE, transactionManager)
+				.reader(new PopularItemReader(jdbcTemplate, query))
+				.processor(item -> item)
+				.writer(this::savePopularItems)
+				.build();
 	}
 
 	private String getQueryByResource() {
 		try {
 			Resource resource = new ClassPathResource("popularity.sql");
-			log.info("resource: {}", resource.getFilename());
 			return new String(FileCopyUtils.copyToByteArray(resource.getInputStream()));
 		} catch (IOException e) {
 			log.error("cant find popularity.sql files", e);
@@ -88,18 +87,18 @@ public class PopularAlcoholSelectionJob {
 
 		// 각 항목에 대한 배치 업데이트 수행
 		List<Object[]> batchArgs = chunk.getItems().stream()
-			.map(item -> new Object[]{
-				item.alcoholId(),
-				item.year(),
-				item.month(),
-				item.day(),
-				item.reviewScore(),
-				item.ratingScore(),
-				item.pickScore(),
-				item.popularScore(),
-				LocalDateTime.now()
-			})
-			.toList();
+				.map(item -> new Object[]{
+						item.alcoholId(),
+						item.year(),
+						item.month(),
+						item.day(),
+						item.reviewScore(),
+						item.ratingScore(),
+						item.pickScore(),
+						item.popularScore(),
+						LocalDateTime.now()
+				})
+				.toList();
 
 		int[] updateCounts = jdbcTemplate.batchUpdate(sql, batchArgs);
 		int totalInserted = 0;

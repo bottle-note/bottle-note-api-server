@@ -1,7 +1,7 @@
 package app.bottlenote.alcohols.repository;
 
 import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.dto.response.Populars;
+import app.bottlenote.alcohols.dto.response.PopularItem;
 import feign.Param;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,7 +15,7 @@ public interface PopularQueryRepository extends JpaRepository<Alcohol, Long> {
 
 	@Query("""
 		         SELECT
-		         new app.bottlenote.alcohols.dto.response.Populars(
+		         new app.bottlenote.alcohols.dto.response.PopularItem(
 				        a1_0.id,
 		               a1_0.korName,
 		               a1_0.engName,
@@ -39,5 +39,5 @@ public interface PopularQueryRepository extends JpaRepository<Alcohol, Long> {
 		        group by p1_0.id,p1_0.popularScore
 		        order by p1_0.popularScore desc
 		""")
-	List<Populars> getPopularOfWeeks(@Param("userId") Long userId, Pageable size);
+	List<PopularItem> getPopularOfWeeks(@Param("userId") Long userId, Pageable size);
 }

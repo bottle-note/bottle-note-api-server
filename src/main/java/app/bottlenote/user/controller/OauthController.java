@@ -8,7 +8,7 @@ import app.bottlenote.user.dto.request.GuestCodeRequest;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.BasicAccountResponse;
 import app.bottlenote.user.dto.response.OauthResponse;
-import app.bottlenote.user.dto.response.TokenDto;
+import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.service.OauthService;
@@ -40,9 +40,9 @@ public class OauthController {
 
 
 	@PostMapping("/basic/signup")
-	public ResponseEntity<?> basicSignup(
-		@RequestBody @Valid BasicAccountRequest request,
-		HttpServletResponse response
+	public ResponseEntity<?> executeBasicSignup(
+			@RequestBody @Valid BasicAccountRequest request,
+			HttpServletResponse response
 	) {
 		BasicAccountResponse token = oauthService.basicSignup(request.getEmail(), request.getPassword(), request.getAge(), request.getGender());
 		setRefreshTokenInCookie(response, token.refreshToken());
@@ -50,32 +50,32 @@ public class OauthController {
 	}
 
 	@PostMapping("/basic/login")
-	public ResponseEntity<?> basicLogin(
-		@RequestBody @Valid BasicLoginRequest request,
-		HttpServletResponse response
+	public ResponseEntity<?> executeBasicLogin(
+			@RequestBody @Valid BasicLoginRequest request,
+			HttpServletResponse response
 	) {
-		TokenDto token = oauthService.basicLogin(request.getEmail(), request.getPassword());
+		TokenItem token = oauthService.basicLogin(request.getEmail(), request.getPassword());
 		setRefreshTokenInCookie(response, token.refreshToken());
 		return GlobalResponse.ok(OauthResponse.of(token.accessToken()));
 	}
 
 	@PostMapping("/login")
-	public ResponseEntity<?> oauthLogin(
-		@RequestBody @Valid OauthRequest oauthReq,
-		HttpServletResponse response
+	public ResponseEntity<?> executeOauthLogin(
+			@RequestBody @Valid OauthRequest oauthReq,
+			HttpServletResponse response
 	) {
-		TokenDto token = oauthService.login(oauthReq);
+		TokenItem token = oauthService.login(oauthReq);
 		setRefreshTokenInCookie(response, token.refreshToken());
 		return GlobalResponse.ok(OauthResponse.of(token.accessToken()));
 	}
 
 	@PostMapping("/guest-login")
-	public ResponseEntity<?> guestLogin(
-		@RequestBody @Valid GuestCodeRequest guestCode
+	public ResponseEntity<?> executeGuestLogin(
+			@RequestBody @Valid GuestCodeRequest guestCode
 	) {
 		final String key = Base64.getEncoder()
-			.encodeToString(configProperties.getGuestCode()
-				.getBytes());
+				.encodeToString(configProperties.getGuestCode()
+						.getBytes());
 		final String code = guestCode.code();
 
 		if (!code.equals(key)) {
@@ -88,14 +88,14 @@ public class OauthController {
 	}
 
 	@PostMapping("/reissue")
-	public ResponseEntity<?> oauthReissue(
-		HttpServletRequest request,
-		HttpServletResponse response) {
+	public ResponseEntity<?> reissueOauthToken(
+			HttpServletRequest request,
+			HttpServletResponse response) {
 
 		String refreshToken = request.getHeader(REFRESH_TOKEN_HEADER_PREFIX);
 		log.info("refresh token in request header : {}", refreshToken);
 
-		TokenDto token = oauthService.refresh(refreshToken);
+		TokenItem token = oauthService.refresh(refreshToken);
 
 		setRefreshTokenInCookie(response, token.refreshToken());
 
@@ -104,7 +104,7 @@ public class OauthController {
 
 	@PutMapping("/token/verify")
 	public ResponseEntity<?> verifyToken(
-		@RequestBody SingleTokenRequest token
+			@RequestBody @Valid SingleTokenRequest token
 	) {
 		final String message = oauthService.verifyToken(token.token());
 		return GlobalResponse.ok(message);
@@ -112,7 +112,7 @@ public class OauthController {
 
 	@PostMapping("/restore")
 	public ResponseEntity<?> restoreAccount(
-		@RequestBody @Valid BasicLoginRequest request
+			@RequestBody @Valid BasicLoginRequest request
 	) {
 		oauthService.restoreUser(request.getEmail(), request.getPassword());
 		return GlobalResponse.ok("restore success");

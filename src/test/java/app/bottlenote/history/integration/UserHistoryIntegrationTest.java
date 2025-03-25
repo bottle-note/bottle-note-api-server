@@ -3,9 +3,9 @@ package app.bottlenote.history.integration;
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
-import app.bottlenote.history.dto.response.UserHistoryDetail;
+import app.bottlenote.history.dto.response.UserHistoryItem;
 import app.bottlenote.history.dto.response.UserHistorySearchResponse;
-import app.bottlenote.picks.domain.PicksStatus;
+import app.bottlenote.picks.constant.PicksStatus;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -79,7 +79,7 @@ class UserHistoryIntegrationTest extends IntegrationTestSupport {
 		Assertions.assertNotNull(userHistorySearchResponse.userHistories());
 		Assertions.assertFalse(userHistorySearchResponse.userHistories().isEmpty());
 
-		List<UserHistoryDetail> userHistories = userHistorySearchResponse.userHistories();
+		List<UserHistoryItem> userHistories = userHistorySearchResponse.userHistories();
 		for (int i = 1; i < userHistories.size(); i++) {
 			LocalDateTime current = userHistories.get(i - 1).getCreatedAt();
 			LocalDateTime next = userHistories.get(i).getCreatedAt();
@@ -111,7 +111,7 @@ class UserHistoryIntegrationTest extends IntegrationTestSupport {
 		);
 
 		List<LocalDateTime> createdAtList = initialUserHistoryResponse.userHistories().stream()
-			.map(UserHistoryDetail::getCreatedAt)
+			.map(UserHistoryItem::getCreatedAt)
 			.sorted()
 			.toList();
 
@@ -132,14 +132,14 @@ class UserHistoryIntegrationTest extends IntegrationTestSupport {
 		);
 
 		Assertions.assertNotNull(filteredUserHistoryResponse);
-		List<UserHistoryDetail> userHistoryDetails = filteredUserHistoryResponse.userHistories();
-		Assertions.assertNotNull(userHistoryDetails);
-		Assertions.assertFalse(userHistoryDetails.isEmpty());
+		List<UserHistoryItem> userHistoryItems = filteredUserHistoryResponse.userHistories();
+		Assertions.assertNotNull(userHistoryItems);
+		Assertions.assertFalse(userHistoryItems.isEmpty());
 
 		final LocalDateTime startDate = createdAtList.get(0);
 		final LocalDateTime endDate = createdAtList.get(1);
 
-		for (UserHistoryDetail historyDetail : userHistoryDetails) {
+		for (UserHistoryItem historyDetail : userHistoryItems) {
 			LocalDateTime createdAt = historyDetail.getCreatedAt();
 			Assertions.assertTrue(!createdAt.isBefore(startDate) && !createdAt.isAfter(endDate));
 		}

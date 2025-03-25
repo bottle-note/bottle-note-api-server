@@ -4,10 +4,10 @@ import java.util.List;
 
 public record FollowingSearchResponse(
 	Long totalCount,
-	List<RelationUserInfo> followingList
+	List<RelationUserItem> followingList
 ) {
 
-	public static FollowingSearchResponse of(Long totalCount, List<RelationUserInfo> followingList) {
+	public static FollowingSearchResponse of(Long totalCount, List<RelationUserItem> followingList) {
 		return new FollowingSearchResponse(totalCount, followingList);
 	}
 }

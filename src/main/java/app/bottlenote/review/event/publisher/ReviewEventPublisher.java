@@ -1,16 +1,16 @@
 package app.bottlenote.review.event.publisher;
 
-import static app.bottlenote.history.domain.constant.EventCategory.REVIEW;
-import static app.bottlenote.history.domain.constant.EventType.REVIEW_CREATE;
-
-import app.bottlenote.history.domain.constant.RedirectUrlType;
-import app.bottlenote.history.dto.payload.HistoryEvent;
+import app.bottlenote.history.constant.RedirectUrlType;
+import app.bottlenote.history.event.payload.HistoryEvent;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
-import app.bottlenote.review.dto.payload.ReviewRegistryEvent;
+import app.bottlenote.review.event.payload.ReviewRegistryEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
+
+import static app.bottlenote.history.constant.EventCategory.REVIEW;
+import static app.bottlenote.history.constant.EventType.REVIEW_CREATE;
 
 @Slf4j
 @Component

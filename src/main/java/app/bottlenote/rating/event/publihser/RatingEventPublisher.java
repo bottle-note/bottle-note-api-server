@@ -1,18 +1,19 @@
 package app.bottlenote.rating.event.publihser;
 
-import static app.bottlenote.history.domain.constant.EventCategory.RATING;
-
-import app.bottlenote.history.domain.constant.EventType;
-import app.bottlenote.history.domain.constant.RedirectUrlType;
-import app.bottlenote.history.dto.payload.HistoryEvent;
+import app.bottlenote.history.constant.EventType;
+import app.bottlenote.history.constant.RedirectUrlType;
+import app.bottlenote.history.event.payload.HistoryEvent;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
-import app.bottlenote.rating.dto.payload.RatingRegistryEvent;
-import java.util.Map;
-import java.util.Objects;
+import app.bottlenote.rating.event.payload.RatingRegistryEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
+import java.util.Objects;
+
+import static app.bottlenote.history.constant.EventCategory.RATING;
 
 @Slf4j
 @Component

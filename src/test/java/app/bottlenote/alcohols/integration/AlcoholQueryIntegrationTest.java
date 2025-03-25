@@ -3,27 +3,29 @@ package app.bottlenote.alcohols.integration;
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
+import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
-import app.bottlenote.alcohols.dto.response.detail.AlcoholDetail;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.rating.fixture.RatingTestFactory;
+import app.bottlenote.user.constant.SocialType;
 import app.bottlenote.user.domain.User;
-import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.dto.request.OauthRequest;
 import com.fasterxml.jackson.databind.JsonNode;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
+
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -83,7 +85,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
 			.andReturn();
 		String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 		GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
-		AlcoholDetail alcoholDetail = mapper.convertValue(response.getData(), AlcoholDetail.class);
+		AlcoholDetailResponse alcoholDetail = mapper.convertValue(response.getData(), AlcoholDetailResponse.class);
 
 		assertNotNull(alcoholDetail.alcohols());
 		assertNotNull(alcoholDetail.reviewInfo());
@@ -125,7 +127,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
 			.andReturn();
 		String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 		GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
-		AlcoholDetail alcoholDetail = mapper.convertValue(response.getData(), AlcoholDetail.class);
+		AlcoholDetailResponse alcoholDetail = mapper.convertValue(response.getData(), AlcoholDetailResponse.class);
 
 		// then
 		assertNotNull(alcoholDetail.friendsInfo());

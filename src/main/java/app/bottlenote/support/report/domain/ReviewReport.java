@@ -2,7 +2,7 @@ package app.bottlenote.support.report.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.support.constant.StatusType;
-import app.bottlenote.support.report.domain.constant.ReviewReportType;
+import app.bottlenote.support.report.constant.ReviewReportType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

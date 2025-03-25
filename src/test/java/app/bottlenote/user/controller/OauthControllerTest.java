@@ -3,10 +3,10 @@ package app.bottlenote.user.controller;
 import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.user.config.OauthConfigProperties;
-import app.bottlenote.user.domain.constant.GenderType;
-import app.bottlenote.user.domain.constant.SocialType;
+import app.bottlenote.user.constant.GenderType;
+import app.bottlenote.user.constant.SocialType;
 import app.bottlenote.user.dto.request.OauthRequest;
-import app.bottlenote.user.dto.response.TokenDto;
+import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.service.OauthService;
@@ -47,11 +47,11 @@ class OauthControllerTest {
 	@MockBean
 	private OauthConfigProperties oauthConfigProperties;
 
-	private TokenDto tokenDto;
+	private TokenItem tokenItem;
 
 	@BeforeEach
 	void setUp() {
-		tokenDto = TokenDto.builder()
+		tokenItem = TokenItem.builder()
 			.accessToken("access-token")
 			.refreshToken("refresh-token")
 			.build();
@@ -68,13 +68,13 @@ class OauthControllerTest {
 			GenderType.MALE,
 			27);
 
-		TokenDto tokenDto = TokenDto.builder()
+		TokenItem tokenItem = TokenItem.builder()
 			.accessToken("accessToken")
 			.refreshToken("refreshToken")
 			.build();
 
 		//when
-		when(oauthService.login(oauthRequest)).thenReturn(tokenDto);
+		when(oauthService.login(oauthRequest)).thenReturn(tokenItem);
 
 		//then
 		mockMvc.perform(post("/api/v1/oauth/login")
@@ -102,7 +102,7 @@ class OauthControllerTest {
 
 
 		//when
-		when(oauthService.login(oauthRequest)).thenReturn(tokenDto);
+		when(oauthService.login(oauthRequest)).thenReturn(tokenItem);
 
 		//then
 		mockMvc.perform(post("/api/v1/oauth/login")
@@ -125,7 +125,7 @@ class OauthControllerTest {
 			GenderType.MALE, -10);
 
 		//when
-		when(oauthService.login(oauthRequest)).thenReturn(tokenDto);
+		when(oauthService.login(oauthRequest)).thenReturn(tokenItem);
 
 		//then
 		mockMvc.perform(post("/api/v1/oauth/login")
@@ -145,13 +145,13 @@ class OauthControllerTest {
 		//given
 		String reissueRefreshToken = "refresh-token";
 
-		TokenDto newTokenDto = TokenDto.builder()
+		TokenItem newTokenItem = TokenItem.builder()
 			.accessToken("new-access-token")
 			.refreshToken("new-refresh-token")
 			.build();
 
 		//when
-		when(oauthService.refresh(reissueRefreshToken)).thenReturn(newTokenDto);
+		when(oauthService.refresh(reissueRefreshToken)).thenReturn(newTokenItem);
 
 		//then
 		mockMvc.perform(post("/api/v1/oauth/reissue")
@@ -182,7 +182,7 @@ class OauthControllerTest {
 
 		String reissueRefreshToken = "refresh-tokenxzz";
 
-		TokenDto newTokenDto = TokenDto.builder()
+		TokenItem newTokenItem = TokenItem.builder()
 			.accessToken("new-access-token")
 			.refreshToken("new-refresh-token")
 			.build();

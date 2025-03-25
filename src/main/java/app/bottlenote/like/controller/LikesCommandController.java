@@ -6,6 +6,7 @@ import app.bottlenote.like.dto.response.LikesUpdateResponse;
 import app.bottlenote.like.service.LikesCommandService;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,7 +27,7 @@ public class LikesCommandController {
 
 	@PutMapping
 	public ResponseEntity<?> updateLikes(
-		@RequestBody LikesUpdateRequest request
+		@Valid @RequestBody LikesUpdateRequest request
 	) {
 		Long userId = getUserIdByContext()
 			.orElseThrow(() -> new UserException(UserExceptionCode.REQUIRED_USER_ID));

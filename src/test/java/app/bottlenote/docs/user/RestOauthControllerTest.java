@@ -2,15 +2,15 @@ package app.bottlenote.docs.user;
 
 import app.bottlenote.docs.AbstractRestDocs;
 import app.bottlenote.user.config.OauthConfigProperties;
+import app.bottlenote.user.constant.GenderType;
+import app.bottlenote.user.constant.SocialType;
 import app.bottlenote.user.controller.OauthController;
-import app.bottlenote.user.domain.constant.GenderType;
-import app.bottlenote.user.domain.constant.SocialType;
 import app.bottlenote.user.dto.request.BasicAccountRequest;
 import app.bottlenote.user.dto.request.BasicLoginRequest;
 import app.bottlenote.user.dto.request.GuestCodeRequest;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.BasicAccountResponse;
-import app.bottlenote.user.dto.response.TokenDto;
+import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.service.OauthService;
 import app.external.push.data.request.SingleTokenRequest;
 import org.junit.jupiter.api.DisplayName;
@@ -61,13 +61,13 @@ class RestOauthControllerTest extends AbstractRestDocs {
 
 		//given
 		OauthRequest oauthRequest = new OauthRequest("cdm2883@naver.com", SocialType.KAKAO, GenderType.MALE, 27);
-		TokenDto tokenDto = TokenDto.builder()
+		TokenItem tokenItem = TokenItem.builder()
 			.accessToken("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNDk3NjUyM30.41SuOBgmX-sd8nrMbC-xm0kH6rbny_SMYCKWE4rNQEZgSrRPS0HvYv0X7E-weo6sHlWWm1OmiQgHl4-uy6-9ig")
 			.refreshToken("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNjE4NTIyM30.lvmPueUcOb1erv5Llo4qhEUQ_gtWrpFGbBHDw-Pi94qj8MGojoEI3ugdMo8PwoKgrVQZ_gBwBbytwjxh8XktUg")
 			.build();
 
 		//when
-		when(oauthService.login(oauthRequest)).thenReturn(tokenDto);
+		when(oauthService.login(oauthRequest)).thenReturn(tokenItem);
 
 		//then
 		mockMvc.perform(post("/api/v1/oauth/login")
@@ -116,13 +116,13 @@ class RestOauthControllerTest extends AbstractRestDocs {
 		//given
 		String request = "refresh-token";
 
-		TokenDto newTokenDto = TokenDto.builder()
+		TokenItem newTokenItem = TokenItem.builder()
 			.accessToken("new-access-token")
 			.refreshToken("new-refresh-token")
 			.build();
 
 		//when
-		when(oauthService.refresh(request)).thenReturn(newTokenDto);
+		when(oauthService.refresh(request)).thenReturn(newTokenItem);
 
 		//then
 		mockMvc.perform(post("/api/v1/oauth/reissue")
@@ -297,7 +297,7 @@ class RestOauthControllerTest extends AbstractRestDocs {
 			.password("test-password")
 			.build();
 
-		final TokenDto response = TokenDto.of("access-token", "refresh-token");
+		final TokenItem response = TokenItem.of("access-token", "refresh-token");
 		//when
 		when(oauthService.basicLogin(request.getEmail(), request.getPassword())).thenReturn(response);
 

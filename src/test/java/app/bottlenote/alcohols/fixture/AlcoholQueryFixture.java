@@ -1,34 +1,35 @@
 package app.bottlenote.alcohols.fixture;
 
-import static app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup.BLEND;
-import static app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup.BOURBON;
-import static app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup.OTHER;
-import static app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup.RYE;
-import static app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup.SINGLE_MALT;
-import static app.bottlenote.review.domain.constant.SizeType.GLASS;
-
-import app.bottlenote.alcohols.domain.constant.SearchSortType;
+import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
+import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
-import app.bottlenote.alcohols.dto.response.AlcoholsSearchDetail;
-import app.bottlenote.alcohols.dto.response.CategoryResponse;
-import app.bottlenote.alcohols.dto.response.detail.AlcoholDetailInfo;
-import app.bottlenote.alcohols.dto.response.detail.FriendInfo;
-import app.bottlenote.alcohols.dto.response.detail.FriendsDetailInfo;
-import app.bottlenote.alcohols.dto.response.detail.ReviewsDetailInfo;
+import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
+import app.bottlenote.alcohols.dto.response.CategoryItem;
+import app.bottlenote.alcohols.dto.response.FriendsDetailResponse;
+import app.bottlenote.alcohols.dto.response.ReviewsDetailResponse;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
-import app.bottlenote.review.dto.vo.ReviewInfo;
-import app.bottlenote.review.dto.vo.UserInfo;
+import app.bottlenote.review.facade.payload.ReviewInfo;
+import app.bottlenote.review.facade.payload.UserInfo;
+import app.bottlenote.user.facade.payload.FriendItem;
+
 import java.math.BigDecimal;
 import java.util.List;
+
+import static app.bottlenote.alcohols.constant.AlcoholCategoryGroup.BLEND;
+import static app.bottlenote.alcohols.constant.AlcoholCategoryGroup.BOURBON;
+import static app.bottlenote.alcohols.constant.AlcoholCategoryGroup.OTHER;
+import static app.bottlenote.alcohols.constant.AlcoholCategoryGroup.RYE;
+import static app.bottlenote.alcohols.constant.AlcoholCategoryGroup.SINGLE_MALT;
+import static app.bottlenote.review.constant.SizeType.GLASS;
 
 public class AlcoholQueryFixture {
 	// 응답값반환값
 
-	public AlcoholDetailInfo getAlcoholDetailInfo() {
-		return AlcoholDetailInfo.builder()
+	public AlcoholDetailItem getAlcoholDetailInfo() {
+		return AlcoholDetailItem.builder()
 			.alcoholId(1L)
 			.alcoholUrlImg("https://static.whiskybase.com/storage/whiskies/2/0/8916/404538-big.jpg")
 			.korName("글래스고 1770 싱글몰트 스카치 위스키")
@@ -50,21 +51,21 @@ public class AlcoholQueryFixture {
 			.build();
 	}
 
-	public FriendsDetailInfo getFriendsDetailInfo() {
-		return FriendsDetailInfo.of(
+	public FriendsDetailResponse getFriendsDetailInfo() {
+		return FriendsDetailResponse.of(
 			6L,
 			List.of(
-				FriendInfo.of("https://picsum.photos/600/600", 1L, "늙은코끼리", 4.5),
-				FriendInfo.of("https://picsum.photos/600/600", 2L, "나무사자", 1.5),
-				FriendInfo.of("https://picsum.photos/600/600", 3L, "피자파인애플", 3.0),
-				FriendInfo.of("https://picsum.photos/600/600", 4L, "멘토스", 0.5),
-				FriendInfo.of("https://picsum.photos/600/600", 5L, "민트맛치토스", 5.0),
-				FriendInfo.of("https://picsum.photos/600/600", 6L, "목데이터", 1.0)
+				FriendItem.of("https://picsum.photos/600/600", 1L, "늙은코끼리", 4.5),
+				FriendItem.of("https://picsum.photos/600/600", 2L, "나무사자", 1.5),
+				FriendItem.of("https://picsum.photos/600/600", 3L, "피자파인애플", 3.0),
+				FriendItem.of("https://picsum.photos/600/600", 4L, "멘토스", 0.5),
+				FriendItem.of("https://picsum.photos/600/600", 5L, "민트맛치토스", 5.0),
+				FriendItem.of("https://picsum.photos/600/600", 6L, "목데이터", 1.0)
 			)
 		);
 	}
 
-	public ReviewsDetailInfo getReviewsDetailInfo() {
+	public ReviewsDetailResponse getReviewsDetailInfo() {
 		List<ReviewInfo> bestReview = List.of(
 			ReviewInfo.builder()
 				.userInfo(new UserInfo(1L, null, "3342네임"))
@@ -91,7 +92,7 @@ public class AlcoholQueryFixture {
 				.replyCount(0L).hasReplyByMe(false).status(null).reviewImageUrl(null).createAt(null).build()
 		);
 
-		return ReviewsDetailInfo.builder()
+		return ReviewsDetailResponse.builder()
 			.totalReviewCount(10L)
 			.bestReviewInfos(bestReview)
 			.recentReviewInfos(recentReviewInfos)
@@ -112,7 +113,7 @@ public class AlcoholQueryFixture {
 
 	public PageResponse<AlcoholSearchResponse> getResponse() {
 
-		AlcoholsSearchDetail detail_1 = AlcoholsSearchDetail.builder()
+		AlcoholsSearchItem detail_1 = AlcoholsSearchItem.builder()
 			.alcoholId(5L)
 			.korName("아녹 24년")
 			.engName("anCnoc 24-year-old")
@@ -126,7 +127,7 @@ public class AlcoholQueryFixture {
 			.isPicked(false)
 			.build();
 
-		AlcoholsSearchDetail detail_2 = AlcoholsSearchDetail.builder()
+		AlcoholsSearchItem detail_2 = AlcoholsSearchItem.builder()
 			.alcoholId(1L)
 			.korName("글래스고 1770 싱글몰트 스카치 위스키")
 			.engName("1770 Glasgow Single Malt")
@@ -140,7 +141,7 @@ public class AlcoholQueryFixture {
 			.isPicked(true)
 			.build();
 
-		AlcoholsSearchDetail detail_3 = AlcoholsSearchDetail.builder()
+		AlcoholsSearchItem detail_3 = AlcoholsSearchItem.builder()
 			.alcoholId(2L)
 			.korName("글래스고 1770 싱글몰트 스카치 위스키")
 			.engName("1770 Glasgow Single Malt")
@@ -156,7 +157,7 @@ public class AlcoholQueryFixture {
 
 
 		Long totalCount = 5L;
-		List<AlcoholsSearchDetail> details = List.of(detail_1, detail_2, detail_3);
+		List<AlcoholsSearchItem> details = List.of(detail_1, detail_2, detail_3);
 		CursorPageable cursorPageable = CursorPageable.builder()
 			.currentCursor(0L)
 			.cursor(4L)
@@ -167,13 +168,13 @@ public class AlcoholQueryFixture {
 		return PageResponse.of(response, cursorPageable);
 	}
 
-	public List<CategoryResponse> categoryResponses() {
+	public List<CategoryItem> categoryResponses() {
 		return List.of(
-			new CategoryResponse("SINGLE_MOLT", "싱글 몰트", SINGLE_MALT),
-			new CategoryResponse("BLENDED", "블렌디드", BLEND),
-			new CategoryResponse("BOURBON", "버번", BOURBON),
-			new CategoryResponse("RYE", "라이", RYE),
-			new CategoryResponse("OTHER", "기타", OTHER)
+			new CategoryItem("SINGLE_MOLT", "싱글 몰트", SINGLE_MALT),
+			new CategoryItem("BLENDED", "블렌디드", BLEND),
+			new CategoryItem("BOURBON", "버번", BOURBON),
+			new CategoryItem("RYE", "라이", RYE),
+			new CategoryItem("OTHER", "기타", OTHER)
 		);
 	}
 }

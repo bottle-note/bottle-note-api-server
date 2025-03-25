@@ -1,21 +1,24 @@
 package app.bottlenote.history.event.listener;
 
-import app.bottlenote.alcohols.service.domain.AlcoholFacade;
+import app.bottlenote.alcohols.facade.AlcoholFacade;
+import app.bottlenote.common.annotation.DomainEventListener;
 import app.bottlenote.history.domain.UserHistory;
 import app.bottlenote.history.domain.UserHistoryRepository;
-import app.bottlenote.history.dto.payload.HistoryEvent;
-import java.time.LocalDateTime;
+import app.bottlenote.history.event.payload.HistoryEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.time.LocalDateTime;
+
+import static app.bottlenote.common.annotation.DomainEventListener.ProcessingType.ASYNCHRONOUS;
+
 @Slf4j
-@Component
 @RequiredArgsConstructor
+@DomainEventListener(type = ASYNCHRONOUS)
 public class HistoryListener {
 
 	private final AlcoholFacade alcoholFacade;
@@ -24,7 +27,7 @@ public class HistoryListener {
 	@Async
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	@TransactionalEventListener
-	public void registryUserHistory(
+	public void handleUserHistoryRegistry(
 		HistoryEvent event
 	) {
 		String alcoholImageUrl = alcoholFacade.findAlcoholImageUrlById(event.alcoholId()).orElse(null);
@@ -42,6 +45,6 @@ public class HistoryListener {
 			.eventMonth(String.valueOf(LocalDateTime.now().getMonth()))
 			.build());
 
-		log.info("History saved: {}", save);
+		log.debug("History saved: {}", save);
 	}
 }

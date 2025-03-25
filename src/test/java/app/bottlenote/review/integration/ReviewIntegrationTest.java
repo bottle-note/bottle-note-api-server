@@ -1,5 +1,35 @@
 package app.bottlenote.review.integration;
 
+import app.bottlenote.IntegrationTestSupport;
+import app.bottlenote.global.data.response.Error;
+import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
+import app.bottlenote.review.constant.ReviewDisplayStatus;
+import app.bottlenote.review.constant.ReviewResultMessage;
+import app.bottlenote.review.domain.Review;
+import app.bottlenote.review.domain.ReviewRepository;
+import app.bottlenote.review.dto.request.ReviewCreateRequest;
+import app.bottlenote.review.dto.request.ReviewModifyRequest;
+import app.bottlenote.review.dto.response.ReviewCreateResponse;
+import app.bottlenote.review.dto.response.ReviewDetailResponse;
+import app.bottlenote.review.dto.response.ReviewListResponse;
+import app.bottlenote.review.dto.response.ReviewResultResponse;
+import app.bottlenote.review.facade.payload.ReviewInfo;
+import app.bottlenote.review.fixture.ReviewObjectFixture;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MvcResult;
+
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -13,35 +43,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import app.bottlenote.IntegrationTestSupport;
-import app.bottlenote.global.data.response.Error;
-import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
-import app.bottlenote.review.domain.Review;
-import app.bottlenote.review.domain.ReviewRepository;
-import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
-import app.bottlenote.review.dto.request.ReviewCreateRequest;
-import app.bottlenote.review.dto.request.ReviewModifyRequest;
-import app.bottlenote.review.dto.response.ReviewCreateResponse;
-import app.bottlenote.review.dto.response.ReviewDetailResponse;
-import app.bottlenote.review.dto.response.ReviewListResponse;
-import app.bottlenote.review.dto.response.ReviewResultResponse;
-import app.bottlenote.review.dto.response.constant.ReviewResultMessage;
-import app.bottlenote.review.dto.vo.ReviewInfo;
-import app.bottlenote.review.fixture.ReviewObjectFixture;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.web.servlet.MvcResult;
 
 @Tag("integration")
 @DisplayName("[integration] ReviewReplyController")
@@ -163,7 +164,7 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
 
 			assertNotNull(reviewListResponse.reviewList());
 			assertEquals(reviewList.size(), reviewListResponse.reviewList().size());
-			
+
 			reviewList.forEach(review -> {
 				ReviewInfo reviewInfo = reviewListResponse.reviewList().stream()
 					.filter(info -> info.reviewId().equals(review.getId()))

@@ -3,15 +3,16 @@ package app.bottlenote.support.help.fixture;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.support.constant.StatusType;
+import app.bottlenote.support.help.constant.HelpResultMessage;
+import app.bottlenote.support.help.constant.HelpType;
 import app.bottlenote.support.help.domain.Help;
-import app.bottlenote.support.help.domain.constant.HelpType;
-import app.bottlenote.support.help.dto.HelpImageInfo;
+import app.bottlenote.support.help.dto.request.HelpImageItem;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
-import app.bottlenote.support.help.dto.response.HelpDetailInfo;
+import app.bottlenote.support.help.dto.response.HelpDetailItem;
 import app.bottlenote.support.help.dto.response.HelpListResponse;
 import app.bottlenote.support.help.dto.response.HelpResultResponse;
-import app.bottlenote.support.help.dto.response.constant.HelpResultMessage;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -29,7 +30,7 @@ public class HelpObjectFixture {
 		return new HelpUpsertRequest(
 			"로그인이 안돼요",
 			HelpType.USER,
-			List.of(new HelpImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1"))
+			List.of(new HelpImageItem(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1"))
 		);
 	}
 
@@ -37,7 +38,7 @@ public class HelpObjectFixture {
 		return new HelpUpsertRequest(
 			null,
 			HelpType.USER,
-			List.of(new HelpImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1"))
+			List.of(new HelpImageItem(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1"))
 		);
 	}
 
@@ -69,13 +70,13 @@ public class HelpObjectFixture {
 		return HelpListResponse.of((long) helpInfoList.size(), helpInfoList);
 	}
 
-	public static HelpDetailInfo getDetailHelpInfo(String content, HelpType type) {
-		return HelpDetailInfo.builder()
+	public static HelpDetailItem getDetailHelpInfo(String content, HelpType type) {
+		return HelpDetailItem.builder()
 			.helpId(1L)
 			.responseContent(null)
 			.imageUrlList(
 				List.of(
-					HelpImageInfo.create(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")
+					HelpImageItem.create(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")
 				)
 			)
 			.lastModifyAt(LocalDateTime.now())

@@ -1,8 +1,10 @@
 package app.bottlenote.global.cache.local;
 
+import app.bottlenote.global.annotation.ExcludeRule;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+@ExcludeRule
 @Getter
 @AllArgsConstructor
 public enum LocalCacheType {

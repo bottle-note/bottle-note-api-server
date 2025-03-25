@@ -1,17 +1,18 @@
 package app.bottlenote.user.service;
 
+import app.bottlenote.common.annotation.FacadeService;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
-import app.bottlenote.user.dto.response.UserProfileInfo;
 import app.bottlenote.user.exception.UserException;
+import app.bottlenote.user.facade.UserFacade;
+import app.bottlenote.user.facade.payload.UserProfileItem;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
 @Slf4j
-@Service
+@FacadeService
 @RequiredArgsConstructor
 public class DefaultUserFacade implements UserFacade {
 	private final UserRepository userQueryRepository;
@@ -33,10 +34,10 @@ public class DefaultUserFacade implements UserFacade {
 	}
 
 	@Override
-	public UserProfileInfo getUserProfileInfo(Long userId) {
+	public UserProfileItem getUserProfileInfo(Long userId) {
 		User user = userQueryRepository.findById(userId)
 			.orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
-		return UserProfileInfo.create(user.getId(), user.getNickName(), user.getImageUrl());
+		return UserProfileItem.create(user.getId(), user.getNickName(), user.getImageUrl());
 	}
 }

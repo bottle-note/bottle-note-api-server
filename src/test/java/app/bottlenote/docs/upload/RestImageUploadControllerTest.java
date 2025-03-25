@@ -1,10 +1,10 @@
 package app.bottlenote.docs.upload;
 
-import app.bottlenote.common.file.upload.ImageUploadController;
-import app.bottlenote.common.file.upload.ImageUploadService;
-import app.bottlenote.common.file.upload.dto.request.ImageUploadRequest;
-import app.bottlenote.common.file.upload.dto.response.ImageUploadInfo;
-import app.bottlenote.common.file.upload.dto.response.ImageUploadResponse;
+import app.bottlenote.common.file.controller.ImageUploadController;
+import app.bottlenote.common.file.dto.request.ImageUploadRequest;
+import app.bottlenote.common.file.dto.response.ImageUploadItem;
+import app.bottlenote.common.file.dto.response.ImageUploadResponse;
+import app.bottlenote.common.file.service.ImageUploadService;
 import app.bottlenote.docs.AbstractRestDocs;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,7 +40,7 @@ class RestImageUploadControllerTest extends AbstractRestDocs {
 		ImageUploadRequest request = new ImageUploadRequest("images", 1L);
 		ImageUploadResponse response = ImageUploadResponse.builder()
 			.imageUploadInfo(
-				List.of(ImageUploadInfo.builder().order(1L)
+				List.of(ImageUploadItem.builder().order(1L)
 					.uploadUrl("https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")
 					.viewUrl("https://d1d1d1d1.cloudfront.net/images/1")
 					.build()

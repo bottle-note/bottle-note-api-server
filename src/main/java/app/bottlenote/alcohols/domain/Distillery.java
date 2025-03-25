@@ -7,16 +7,22 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Comment("증류소")
 @Entity(name = "distillery")
 public class Distillery extends BaseEntity {
 
 	@Id
+	@Comment("증류소 ID")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
@@ -32,6 +38,7 @@ public class Distillery extends BaseEntity {
 	@Column(name = "logo_img_url")
 	private String logoImgPath;
 
+	@Comment("증류소 설명")
 	@OneToMany(mappedBy = "distillery")
 	private List<Alcohol> alcohol = new ArrayList<>();
 }

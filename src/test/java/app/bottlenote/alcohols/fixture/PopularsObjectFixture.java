@@ -1,17 +1,17 @@
 package app.bottlenote.alcohols.fixture;
 
-import app.bottlenote.alcohols.dto.response.Populars;
+import app.bottlenote.alcohols.dto.response.PopularItem;
 
 import java.util.Random;
 
 public class PopularsObjectFixture {
 
-	public static Populars getFixturePopulars(
+	public static PopularItem getFixturePopulars(
 		Long alcoholId,
 		String korName,
 		String engName
 	) {
-		return Populars.builder()
+		return PopularItem.builder()
 			.alcoholId(alcoholId)
 			.korName(korName)
 			.engName(engName)

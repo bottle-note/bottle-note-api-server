@@ -1,9 +1,9 @@
 package app.bottlenote.common.profanity;
 
+import app.bottlenote.common.profanity.dto.request.ProfanityRequest;
+import app.bottlenote.common.profanity.dto.response.DetectedItem;
+import app.bottlenote.common.profanity.dto.response.ProfanityResponse;
 import app.bottlenote.common.profanity.fegin.ProfanityFeignClient;
-import app.bottlenote.common.profanity.request.ProfanityRequest;
-import app.bottlenote.common.profanity.response.Detected;
-import app.bottlenote.common.profanity.response.ProfanityResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.DisplayName;
@@ -29,9 +29,9 @@ public class FakeProfanityFeignClient implements ProfanityFeignClient {
 		for (String word : words) {
 			filtered = filtered.replaceAll(word, "*".repeat(word.length()));
 		}
-		List<Detected> list = words.stream()
+		List<DetectedItem> list = words.stream()
 			.filter(text::contains)
-			.map(Detected::create)
+			.map(DetectedItem::create)
 			.toList();
 
 		var status = new ProfanityResponse.Status(2000, "message", "description", "detailDescription");

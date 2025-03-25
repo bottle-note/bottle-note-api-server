@@ -1,6 +1,6 @@
 package app.bottlenote.user.dto.response;
 
-import app.bottlenote.user.domain.constant.FollowStatus;
+import app.bottlenote.user.constant.FollowStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

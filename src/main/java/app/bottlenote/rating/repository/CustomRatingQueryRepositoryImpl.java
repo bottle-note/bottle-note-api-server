@@ -2,7 +2,7 @@ package app.bottlenote.rating.repository;
 
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
-import app.bottlenote.rating.domain.constant.SearchSortType;
+import app.bottlenote.rating.constant.SearchSortType;
 import app.bottlenote.rating.dto.dsl.RatingListFetchCriteria;
 import app.bottlenote.rating.dto.response.RatingListFetchResponse;
 import com.querydsl.core.types.Projections;

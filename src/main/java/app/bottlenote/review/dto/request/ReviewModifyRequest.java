@@ -1,7 +1,7 @@
 package app.bottlenote.review.dto.request;
 
-import app.bottlenote.review.domain.constant.ReviewDisplayStatus;
-import app.bottlenote.review.domain.constant.SizeType;
+import app.bottlenote.review.constant.ReviewDisplayStatus;
+import app.bottlenote.review.constant.SizeType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
@@ -10,6 +10,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -30,7 +31,7 @@ public record ReviewModifyRequest(
 
 	@JsonInclude()
 	@JsonProperty(required = true)
-	List<ReviewImageInfo> imageUrlList,
+	List<ReviewImageInfoRequest> imageUrlList,
 
 	@JsonInclude()
 	@JsonProperty(required = true)
@@ -43,7 +44,7 @@ public record ReviewModifyRequest(
 	@Valid
 	@JsonInclude()
 	@JsonProperty(required = true)
-	LocationInfo locationInfo
+    LocationInfoRequest locationInfo
 
 ) {
 }

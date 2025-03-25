@@ -1,34 +1,34 @@
 package app.bottlenote.picks.service;
 
 import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.service.domain.AlcoholFacade;
+import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.picks.domain.Picks;
-import static app.bottlenote.picks.domain.PicksStatus.PICK;
-import static app.bottlenote.picks.domain.PicksStatus.UNPICK;
 import app.bottlenote.picks.dto.request.PicksUpdateRequest;
 import app.bottlenote.picks.dto.response.PicksUpdateResponse;
 import app.bottlenote.picks.repository.PicksRepository;
 import app.bottlenote.user.domain.User;
-import app.bottlenote.user.service.UserFacade;
-import java.util.Optional;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import app.bottlenote.user.facade.UserFacade;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@Disabled
+import java.util.Optional;
+
+import static app.bottlenote.picks.constant.PicksStatus.PICK;
+import static app.bottlenote.picks.constant.PicksStatus.UNPICK;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
+
 @Tag("unit")
 @DisplayName("[unit] [service] PicksCommand")
 @ExtendWith(MockitoExtension.class)

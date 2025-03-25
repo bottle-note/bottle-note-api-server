@@ -1,8 +1,8 @@
 package app.bottlenote.user.dto.request;
 
 import app.bottlenote.global.service.cursor.SortOrder;
-import app.bottlenote.user.domain.constant.MyBottleSortType;
-import app.bottlenote.user.domain.constant.MyBottleTabType;
+import app.bottlenote.user.constant.MyBottleSortType;
+import app.bottlenote.user.constant.MyBottleTabType;
 import lombok.Builder;
 
 public record MyBottleRequest(

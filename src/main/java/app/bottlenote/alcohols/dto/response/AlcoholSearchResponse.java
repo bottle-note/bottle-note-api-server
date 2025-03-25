@@ -10,5 +10,5 @@ import java.util.List;
 @AllArgsConstructor(staticName = "of")
 public class AlcoholSearchResponse {
 	private final Long totalCount;
-	private final List<AlcoholsSearchDetail> alcohols;
+	private final List<AlcoholsSearchItem> alcohols;
 }

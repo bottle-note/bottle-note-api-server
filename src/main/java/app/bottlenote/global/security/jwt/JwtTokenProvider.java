@@ -1,7 +1,7 @@
 package app.bottlenote.global.security.jwt;
 
-import app.bottlenote.user.domain.constant.UserType;
-import app.bottlenote.user.dto.response.TokenDto;
+import app.bottlenote.user.constant.UserType;
+import app.bottlenote.user.dto.response.TokenItem;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -44,10 +44,10 @@ public class JwtTokenProvider {
 	 * @param userId    유저 고유 아이디
 	 * @return OauthResponse ( 엑세스 토큰과 리프레시 토큰을 담은 객체 )
 	 */
-	public TokenDto generateToken(String userEmail, UserType role, Long userId) {
+	public TokenItem generateToken(String userEmail, UserType role, Long userId) {
 		String accessToken = createAccessToken(userEmail, role, userId);
 		String refreshToken = createRefreshToken(userEmail, role, userId);
-		return TokenDto.builder()
+		return TokenItem.builder()
 			.accessToken(accessToken)
 			.refreshToken(refreshToken)
 			.build();

@@ -1,16 +1,7 @@
 package app.bottlenote.user.repository;
 
-import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.picks.domain.PicksStatus.PICK;
-import static app.bottlenote.picks.domain.QPicks.picks;
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.domain.QReview.review;
-import static app.bottlenote.user.domain.QUser.user;
-import static app.bottlenote.user.domain.constant.MyBottleTabType.ALL;
-import static app.bottlenote.user.domain.constant.MyBottleTabType.REVIEW;
-
 import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.review.domain.constant.ReviewActiveStatus;
+import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
@@ -18,9 +9,19 @@ import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
+
+import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.picks.constant.PicksStatus.PICK;
+import static app.bottlenote.picks.domain.QPicks.picks;
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
+import static app.bottlenote.user.constant.MyBottleTabType.ALL;
+import static app.bottlenote.user.constant.MyBottleTabType.REVIEW;
+import static app.bottlenote.user.domain.QUser.user;
 
 @Slf4j
 @RequiredArgsConstructor

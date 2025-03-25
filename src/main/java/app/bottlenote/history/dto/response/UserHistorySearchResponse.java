@@ -6,10 +6,10 @@ import java.util.List;
 public record UserHistorySearchResponse(
 	Long totalCount,
 	LocalDateTime subscriptionDate,
-	List<UserHistoryDetail> userHistories
+	List<UserHistoryItem> userHistories
 ) {
 
-	public static UserHistorySearchResponse of(Long totalCount, LocalDateTime subscriptionDate, List<UserHistoryDetail> userHistories) {
+	public static UserHistorySearchResponse of(Long totalCount, LocalDateTime subscriptionDate, List<UserHistoryItem> userHistories) {
 		return new UserHistorySearchResponse(totalCount, subscriptionDate, userHistories);
 	}
 

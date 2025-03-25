@@ -1,7 +1,7 @@
 package app.bottlenote.support.report.service;
 
+import app.bottlenote.support.report.constant.UserReportType;
 import app.bottlenote.support.report.domain.UserReports;
-import app.bottlenote.support.report.domain.constant.UserReportType;
 import app.bottlenote.support.report.dto.request.UserReportRequest;
 import app.bottlenote.support.report.dto.response.UserReportResponse;
 import app.bottlenote.support.report.exception.ReportException;
@@ -25,8 +25,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static app.bottlenote.support.constant.StatusType.WAITING;
-import static app.bottlenote.user.domain.constant.SocialType.GOOGLE;
-import static app.bottlenote.user.domain.constant.UserType.ROLE_USER;
+import static app.bottlenote.user.constant.SocialType.GOOGLE;
+import static app.bottlenote.user.constant.UserType.ROLE_USER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;

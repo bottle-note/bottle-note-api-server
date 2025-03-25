@@ -2,10 +2,11 @@ package app.bottlenote.history.fixture;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.history.domain.constant.EventCategory;
-import app.bottlenote.history.domain.constant.EventType;
-import app.bottlenote.history.dto.response.UserHistoryDetail;
+import app.bottlenote.history.constant.EventCategory;
+import app.bottlenote.history.constant.EventType;
+import app.bottlenote.history.dto.response.UserHistoryItem;
 import app.bottlenote.history.dto.response.UserHistorySearchResponse;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +14,7 @@ import java.util.Map;
 public class HistoryQueryFixture {
 
 	public PageResponse<UserHistorySearchResponse> getUserHistorySearchResponse() {
-		UserHistoryDetail detail1 = UserHistoryDetail.builder()
+		UserHistoryItem detail1 = UserHistoryItem.builder()
 			.historyId(1L)
 			.createdAt(LocalDateTime.now())
 			.eventCategory(EventCategory.PICK)
@@ -25,7 +26,7 @@ public class HistoryQueryFixture {
 			.redirectUrl("redirectUrl")
 			.build();
 
-		UserHistoryDetail detail2 = UserHistoryDetail.builder()
+		UserHistoryItem detail2 = UserHistoryItem.builder()
 			.historyId(1L)
 			.createdAt(LocalDateTime.now())
 			.eventCategory(EventCategory.RATING)
@@ -39,7 +40,7 @@ public class HistoryQueryFixture {
 
 		Long total = 5L;
 
-		List<UserHistoryDetail> details = List.of(detail1, detail2);
+		List<UserHistoryItem> details = List.of(detail1, detail2);
 		CursorPageable cursorPageable = CursorPageable.builder()
 			.currentCursor(0L)
 			.cursor(4L)

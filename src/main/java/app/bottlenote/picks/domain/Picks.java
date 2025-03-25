@@ -2,6 +2,7 @@ package app.bottlenote.picks.domain;
 
 
 import app.bottlenote.common.domain.BaseTimeEntity;
+import app.bottlenote.picks.constant.PicksStatus;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -28,9 +29,11 @@ public class Picks extends BaseTimeEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	@Comment("어느 술을 찜했는지")
 	@JoinColumn(name = "alcohol_id")
 	private Long alcoholId;
 
+	@Comment("누가 찜했는지")
 	@JoinColumn(name = "user_id")
 	private Long userId;
 

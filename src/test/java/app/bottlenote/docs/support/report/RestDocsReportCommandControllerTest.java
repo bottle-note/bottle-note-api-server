@@ -2,8 +2,8 @@ package app.bottlenote.docs.support.report;
 
 import app.bottlenote.docs.AbstractRestDocs;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.support.report.constant.UserReportType;
 import app.bottlenote.support.report.controller.ReportCommandController;
-import app.bottlenote.support.report.domain.constant.UserReportType;
 import app.bottlenote.support.report.dto.request.UserReportRequest;
 import app.bottlenote.support.report.dto.response.UserReportResponse;
 import app.bottlenote.support.report.service.ReviewReportService;

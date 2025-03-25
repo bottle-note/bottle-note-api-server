@@ -1,19 +1,19 @@
 package app.bottlenote.support.help.service;
 
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.support.help.constant.HelpType;
 import app.bottlenote.support.help.domain.Help;
-import app.bottlenote.support.help.domain.constant.HelpType;
-import app.bottlenote.support.help.dto.HelpImageInfo;
+import app.bottlenote.support.help.dto.request.HelpImageItem;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
-import app.bottlenote.support.help.dto.response.HelpDetailInfo;
+import app.bottlenote.support.help.dto.response.HelpDetailItem;
 import app.bottlenote.support.help.dto.response.HelpListResponse;
 import app.bottlenote.support.help.dto.response.HelpResultResponse;
 import app.bottlenote.support.help.exception.HelpException;
 import app.bottlenote.support.help.fixture.HelpObjectFixture;
 import app.bottlenote.support.help.repository.HelpRepository;
 import app.bottlenote.user.exception.UserException;
-import app.bottlenote.user.service.UserFacade;
+import app.bottlenote.user.facade.UserFacade;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -25,9 +25,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
 
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.DELETE_SUCCESS;
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.MODIFY_SUCCESS;
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
+import static app.bottlenote.support.help.constant.HelpResultMessage.DELETE_SUCCESS;
+import static app.bottlenote.support.help.constant.HelpResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.support.help.constant.HelpResultMessage.REGISTER_SUCCESS;
 import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_AUTHORIZED;
 import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -82,7 +82,7 @@ class HelpServiceTest {
 	@Test
 	void testHelpUpdate_success() {
 		// given
-		HelpUpsertRequest updateRequest = new HelpUpsertRequest("수정 후 제목", HelpType.USER, List.of(new HelpImageInfo(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")));
+		HelpUpsertRequest updateRequest = new HelpUpsertRequest("수정 후 제목", HelpType.USER, List.of(new HelpImageItem(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")));
 
 		// when
 		when(helpRepository.findById(anyLong()))
@@ -175,7 +175,7 @@ class HelpServiceTest {
 			.thenReturn(Optional.of(help));
 
 		// when
-		HelpDetailInfo detailHelp = helpService.getDetailHelp(1L, 1L);
+		HelpDetailItem detailHelp = helpService.getDetailHelp(1L, 1L);
 
 		// then
 		assertEquals(detailHelp.content(), help.getContent());

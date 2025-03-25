@@ -1,10 +1,7 @@
 package app.bottlenote.user.domain;
 
-import static lombok.AccessLevel.PRIVATE;
-import static lombok.AccessLevel.PROTECTED;
-
 import app.bottlenote.common.domain.BaseEntity;
-import app.bottlenote.user.domain.constant.FollowStatus;
+import app.bottlenote.user.constant.FollowStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -20,9 +17,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
+import static lombok.AccessLevel.PRIVATE;
+import static lombok.AccessLevel.PROTECTED;
+
 @Builder
 @Getter
-@Entity
+@Entity(name = "follow")
 @NoArgsConstructor(access = PROTECTED)
 @AllArgsConstructor(access = PRIVATE)
 @Table(

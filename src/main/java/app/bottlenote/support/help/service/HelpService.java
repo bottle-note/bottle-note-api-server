@@ -2,23 +2,23 @@ package app.bottlenote.support.help.service;
 
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.support.help.domain.Help;
-import app.bottlenote.support.help.dto.HelpImageInfo;
+import app.bottlenote.support.help.dto.request.HelpImageItem;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
-import app.bottlenote.support.help.dto.response.HelpDetailInfo;
+import app.bottlenote.support.help.dto.response.HelpDetailItem;
 import app.bottlenote.support.help.dto.response.HelpListResponse;
 import app.bottlenote.support.help.dto.response.HelpResultResponse;
 import app.bottlenote.support.help.exception.HelpException;
 import app.bottlenote.support.help.repository.HelpRepository;
-import app.bottlenote.user.service.UserFacade;
+import app.bottlenote.user.facade.UserFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.DELETE_SUCCESS;
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.MODIFY_SUCCESS;
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
+import static app.bottlenote.support.help.constant.HelpResultMessage.DELETE_SUCCESS;
+import static app.bottlenote.support.help.constant.HelpResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.support.help.constant.HelpResultMessage.REGISTER_SUCCESS;
 import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_AUTHORIZED;
 import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
 
@@ -97,18 +97,18 @@ public class HelpService {
 	}
 
 	@Transactional(readOnly = true)
-	public HelpDetailInfo getDetailHelp(Long helpId, Long currentUserId) {
+	public HelpDetailItem getDetailHelp(Long helpId, Long currentUserId) {
 
 		Help help = helpRepository.findByIdAndUserId(helpId, currentUserId)
 			.orElseThrow(() -> new HelpException(HELP_NOT_FOUND));
 
-		return HelpDetailInfo.builder()
+		return HelpDetailItem.builder()
 			.helpId(help.getId())
 			.content(help.getContent())
 			.helpType(help.getType())
 			.imageUrlList(
 				help.getHelpImageList().getHelpImages().stream()
-					.map(image -> HelpImageInfo.create(
+					.map(image -> HelpImageItem.create(
 						image.getHelpimageInfo().getOrder(),
 						image.getHelpimageInfo().getImageUrl()))
 					.toList())

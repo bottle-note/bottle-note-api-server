@@ -1,18 +1,12 @@
 package app.bottlenote.review.service;
 
-import static app.bottlenote.review.exception.ReviewExceptionCode.NOT_FOUND_REVIEW_REPLY;
-import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
+import app.bottlenote.review.constant.ReviewReplyResultMessage;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewReplyRepository;
 import app.bottlenote.review.domain.ReviewRepository;
-import app.bottlenote.review.dto.response.constant.ReviewReplyResultMessage;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.review.fixture.FakeProfanityClient;
@@ -20,11 +14,11 @@ import app.bottlenote.review.fixture.FakeReviewReplyEventPublisher;
 import app.bottlenote.review.fixture.InMemoryReviewReplyRepository;
 import app.bottlenote.review.fixture.InMemoryReviewRepository;
 import app.bottlenote.review.fixture.ReviewReplyObjectFixture;
-import app.bottlenote.user.dto.response.UserProfileInfo;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
+import app.bottlenote.user.facade.UserFacade;
+import app.bottlenote.user.facade.payload.UserProfileItem;
 import app.bottlenote.user.fixture.FakeUserFacade;
-import app.bottlenote.user.service.UserFacade;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +26,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+
+import static app.bottlenote.review.exception.ReviewExceptionCode.NOT_FOUND_REVIEW_REPLY;
+import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Tag("unit")
 @DisplayName("[unit] [service] ReviewReplyService")
@@ -47,9 +47,9 @@ class ReviewReplyServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		UserProfileInfo user1 = UserProfileInfo.create(1L, "user1", "");
-		UserProfileInfo user2 = UserProfileInfo.create(2L, "user2", "");
-		UserProfileInfo user3 = UserProfileInfo.create(3L, "user3", "");
+		UserProfileItem user1 = UserProfileItem.create(1L, "user1", "");
+		UserProfileItem user2 = UserProfileItem.create(2L, "user2", "");
+		UserProfileItem user3 = UserProfileItem.create(3L, "user3", "");
 		Review review1 = ReviewReplyObjectFixture.getReviewFixture(1L, 1L, 1L);
 		Review review2 = ReviewReplyObjectFixture.getReviewFixture(2L, 1L, 2L);
 

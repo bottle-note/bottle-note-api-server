@@ -3,7 +3,7 @@ package app.bottlenote.docs.user;
 import app.bottlenote.docs.AbstractRestDocs;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.user.controller.UserBasicController;
-import app.bottlenote.user.dto.response.UserProfileInfo;
+import app.bottlenote.user.facade.payload.UserProfileItem;
 import app.bottlenote.user.service.DefaultUserFacade;
 import app.bottlenote.user.service.UserBasicService;
 import org.junit.jupiter.api.AfterEach;
@@ -16,8 +16,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.Optional;
 
+import static app.bottlenote.user.constant.WithdrawUserResultMessage.USER_WITHDRAW_SUCCESS;
 import static app.bottlenote.user.dto.response.WithdrawUserResultResponse.response;
-import static app.bottlenote.user.dto.response.constant.WithdrawUserResultMessage.USER_WITHDRAW_SUCCESS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -90,7 +90,7 @@ class RestUserBasicControllerTest extends AbstractRestDocs {
 	void test_get_current_user_info() throws Exception {
 		Long userId = 1L;
 
-		UserProfileInfo response = UserProfileInfo.create(userId, "로그인한_유저_닉네임", "없을수도 잇음");
+		UserProfileItem response = UserProfileItem.create(userId, "로그인한_유저_닉네임", "없을수도 잇음");
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(1L));
 		when(userFacade.getUserProfileInfo(userId)).thenReturn(response);
 

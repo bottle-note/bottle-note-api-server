@@ -3,7 +3,7 @@ package app.bottlenote.alcohols.service;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
-import app.bottlenote.alcohols.dto.response.AlcoholsSearchDetail;
+import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.alcohols.repository.JpaAlcoholQueryRepository;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
@@ -61,7 +61,7 @@ class AlcoholQueryServiceTest {
 
 	private PageResponse<AlcoholSearchResponse> getResponse() {
 
-		AlcoholsSearchDetail detail_1 = AlcoholsSearchDetail.builder()
+		AlcoholsSearchItem detail_1 = AlcoholsSearchItem.builder()
 			.alcoholId(5L)
 			.korName("아녹 24년")
 			.engName("anCnoc 24-year-old")
@@ -75,7 +75,7 @@ class AlcoholQueryServiceTest {
 			.isPicked(false)
 			.build();
 
-		AlcoholsSearchDetail detail_2 = AlcoholsSearchDetail.builder()
+		AlcoholsSearchItem detail_2 = AlcoholsSearchItem.builder()
 			.alcoholId(1L)
 			.korName("글래스고 1770 싱글몰트 스카치 위스키")
 			.engName("1770 Glasgow Single Malt")
@@ -89,7 +89,7 @@ class AlcoholQueryServiceTest {
 			.isPicked(false)
 			.build();
 
-		AlcoholsSearchDetail detail_3 = AlcoholsSearchDetail.builder()
+		AlcoholsSearchItem detail_3 = AlcoholsSearchItem.builder()
 			.alcoholId(2L)
 			.korName("글래스고 1770 싱글몰트 스카치 위스키")
 			.engName("1770 Glasgow Single Malt")
@@ -105,7 +105,7 @@ class AlcoholQueryServiceTest {
 
 
 		Long totalCount = 5L;
-		List<AlcoholsSearchDetail> details = List.of(detail_1, detail_2, detail_3);
+		List<AlcoholsSearchItem> details = List.of(detail_1, detail_2, detail_3);
 		CursorPageable cursorPageable = CursorPageable.builder()
 			.currentCursor(0L)
 			.cursor(4L)

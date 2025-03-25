@@ -3,8 +3,8 @@ package app.bottlenote.docs.review;
 import app.bottlenote.docs.AbstractRestDocs;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.review.controller.ReviewReplyController;
-import app.bottlenote.review.dto.response.RootReviewReplyInfo;
-import app.bottlenote.review.dto.response.SubReviewReplyInfo;
+import app.bottlenote.review.dto.response.RootReviewReplyResponse;
+import app.bottlenote.review.dto.response.SubReviewReplyResponse;
 import app.bottlenote.review.service.ReviewReplyService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -122,7 +122,7 @@ class RestReviewReplyControllerTest extends AbstractRestDocs {
 		@Test
 		@DisplayName("최상위 댓글 목록을 조회 할 수 있다.")
 		void test_1() throws Exception {
-			RootReviewReplyInfo reviewReplyInfoList = getReviewReplyInfoList(5);
+			RootReviewReplyResponse reviewReplyInfoList = getReviewReplyInfoList(5);
 
 			when(reviewReplyService.getReviewRootReplays(1L, 0L, 50L)).thenReturn(reviewReplyInfoList);
 
@@ -181,7 +181,7 @@ class RestReviewReplyControllerTest extends AbstractRestDocs {
 				getSubReviewReplyInfo(userId, ++index, 1L, index - 2, extraAuthorName),
 				getSubReviewReplyInfo(userId, ++index, 1L, 1L, authorName)
 			);
-			var response = SubReviewReplyInfo.of(4L, reviewReplyInfoList);
+			var response = SubReviewReplyResponse.of(4L, reviewReplyInfoList);
 
 			when(reviewReplyService.getSubReviewReplies(1L, 1L, 0L, 50L)).thenReturn(response);
 

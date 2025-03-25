@@ -9,5 +9,5 @@ import java.util.List;
 @AllArgsConstructor(staticName = "of")
 public class PopularsOfWeekResponse {
 	private final Integer totalCount;
-	private final List<Populars> alcohols;
+	private final List<PopularItem> alcohols;
 }

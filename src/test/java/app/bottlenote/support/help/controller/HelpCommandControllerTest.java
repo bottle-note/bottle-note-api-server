@@ -1,8 +1,37 @@
 package app.bottlenote.support.help.controller;
 
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.DELETE_SUCCESS;
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.MODIFY_SUCCESS;
-import static app.bottlenote.support.help.dto.response.constant.HelpResultMessage.REGISTER_SUCCESS;
+import app.bottlenote.global.data.response.Error;
+import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.support.help.constant.HelpType;
+import app.bottlenote.support.help.dto.request.HelpPageableRequest;
+import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
+import app.bottlenote.support.help.dto.response.HelpListResponse;
+import app.bottlenote.support.help.dto.response.HelpResultResponse;
+import app.bottlenote.support.help.exception.HelpException;
+import app.bottlenote.support.help.fixture.HelpObjectFixture;
+import app.bottlenote.support.help.service.HelpService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
+
+import java.util.Optional;
+
+import static app.bottlenote.support.help.constant.HelpResultMessage.DELETE_SUCCESS;
+import static app.bottlenote.support.help.constant.HelpResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.support.help.constant.HelpResultMessage.REGISTER_SUCCESS;
 import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_AUTHORIZED;
 import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
@@ -19,47 +48,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.bottlenote.global.data.response.Error;
-import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.support.help.domain.constant.HelpType;
-import app.bottlenote.support.help.dto.request.HelpPageableRequest;
-import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
-import app.bottlenote.support.help.dto.response.HelpListResponse;
-import app.bottlenote.support.help.dto.response.HelpResultResponse;
-import app.bottlenote.support.help.exception.HelpException;
-import app.bottlenote.support.help.fixture.HelpObjectFixture;
-import app.bottlenote.support.help.service.HelpService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Optional;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
-
 @Tag("unit")
 @DisplayName("[unit] [controller] HelpCommandController")
 @WebMvcTest(HelpCommandController.class)
 @WithMockUser
 class HelpCommandControllerTest {
-
-	@Autowired
-	protected ObjectMapper mapper;
-	@Autowired
-	protected MockMvc mockMvc;
-	@MockBean
-	private HelpService helpService;
-	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
 	private final HelpUpsertRequest helpUpsertRequest = HelpObjectFixture.getHelpUpsertRequest();
 	private final HelpPageableRequest emptyPageableRequest = HelpObjectFixture.getEmptyHelpPageableRequest();
@@ -67,8 +60,14 @@ class HelpCommandControllerTest {
 	private final HelpResultResponse successRegisterResponse = HelpObjectFixture.getSuccessHelpResponse(REGISTER_SUCCESS);
 	private final HelpResultResponse successModifyResponse = HelpObjectFixture.getSuccessHelpResponse(MODIFY_SUCCESS);
 	private final HelpResultResponse successDeleteResponse = HelpObjectFixture.getSuccessHelpResponse(DELETE_SUCCESS);
-
 	private final Long userId = 1L;
+	@Autowired
+	protected ObjectMapper mapper;
+	@Autowired
+	protected MockMvc mockMvc;
+	@MockBean
+	private HelpService helpService;
+	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
 	@BeforeEach
 	void setup() {
@@ -79,6 +78,29 @@ class HelpCommandControllerTest {
 	@AfterEach
 	void tearDown() {
 		mockedSecurityUtil.close();
+	}
+
+	@DisplayName("로그인하지 않은 유저는 문의글을 삭제할 수 없다.")
+	@Test
+	void test_fail_when_unauthorized_user() throws Exception {
+		// given
+		Error error = Error.of(REQUIRED_USER_ID);
+		// when
+		when(SecurityContextUtil.getUserIdByContext())
+			.thenReturn(Optional.empty());
+
+		when(helpService.deleteHelp(1L, 1L))
+			.thenReturn(successDeleteResponse);
+
+		// then
+		mockMvc.perform(delete("/api/v1/help/{helpId}",1L)
+				.contentType(MediaType.APPLICATION_JSON)
+				.with(csrf()))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.success").value("false"))
+			.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+			.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+			.andExpect(jsonPath("$.errors[0].message").value(error.message()));
 	}
 
 	@Nested
@@ -200,6 +222,7 @@ class HelpCommandControllerTest {
 		}
 
 	}
+
 	@Nested
 	@DisplayName("문의글 수정 컨트롤러 테스트")
 	class HelpUpdateControllerTest{
@@ -346,28 +369,5 @@ class HelpCommandControllerTest {
 				.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
 				.andExpect(jsonPath("$.errors[0].message").value(error.message()));
 		}
-	}
-
-	@DisplayName("로그인하지 않은 유저는 문의글을 삭제할 수 없다.")
-	@Test
-	void test_fail_when_unauthorized_user() throws Exception {
-		// given
-		Error error = Error.of(REQUIRED_USER_ID);
-		// when
-		when(SecurityContextUtil.getUserIdByContext())
-			.thenReturn(Optional.empty());
-
-		when(helpService.deleteHelp(1L, 1L))
-			.thenReturn(successDeleteResponse);
-
-		// then
-		mockMvc.perform(delete("/api/v1/help/{helpId}",1L)
-				.contentType(MediaType.APPLICATION_JSON)
-				.with(csrf()))
-			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.success").value("false"))
-			.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
-			.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
-			.andExpect(jsonPath("$.errors[0].message").value(error.message()));
 	}
 }

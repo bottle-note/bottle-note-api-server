@@ -1,19 +1,12 @@
 package app.bottlenote.alcohols.repository;
 
-import static app.bottlenote.alcohols.domain.constant.SearchSortType.REVIEW;
-import static app.bottlenote.global.service.cursor.SortOrder.DESC;
-import static app.bottlenote.user.domain.constant.SocialType.GOOGLE;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
+import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
-import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
-import app.bottlenote.alcohols.dto.response.AlcoholsSearchDetail;
+import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.config.ModuleConfig;
 import app.bottlenote.config.TestConfig;
 import app.bottlenote.global.service.cursor.CursorPageable;
@@ -22,13 +15,10 @@ import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.review.domain.Review;
+import app.bottlenote.user.constant.UserType;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
-import app.bottlenote.user.domain.constant.UserType;
 import jakarta.persistence.EntityManager;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -44,6 +34,17 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
+
+import static app.bottlenote.alcohols.constant.SearchSortType.REVIEW;
+import static app.bottlenote.global.service.cursor.SortOrder.DESC;
+import static app.bottlenote.user.constant.SocialType.GOOGLE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Disabled("테스트 컨테이너 도입으로 인한 추후 수정 대상 ")
 @Tag(value = "data-jpa-test")
@@ -121,7 +122,7 @@ class CustomJpaAlcoholQueryRepositoryImplTest {
 
 		// then
 		AlcoholSearchResponse content = response.content();
-		List<AlcoholsSearchDetail> alcohols = content.getAlcohols();
+		List<AlcoholsSearchItem> alcohols = content.getAlcohols();
 		Long totalCount = content.getTotalCount();
 
 		assertNotNull(response);
@@ -130,7 +131,7 @@ class CustomJpaAlcoholQueryRepositoryImplTest {
 		edgeTest(request, testType, alcohols, response);
 	}
 
-	private void edgeTest(AlcoholSearchRequest request, String testType, List<AlcoholsSearchDetail> alcohols, PageResponse<AlcoholSearchResponse> response) {
+	private void edgeTest(AlcoholSearchRequest request, String testType, List<AlcoholsSearchItem> alcohols, PageResponse<AlcoholSearchResponse> response) {
 		switch (testType) {
 			case "keyword":
 				assertTrue(alcohols.stream().allMatch(
@@ -153,8 +154,8 @@ class CustomJpaAlcoholQueryRepositoryImplTest {
 				break;
 			case "sort":
 				System.out.println("test case sort");
-				AlcoholsSearchDetail detail_1 = alcohols.get(0);
-				AlcoholsSearchDetail detail_2 = alcohols.get(1);
+				AlcoholsSearchItem detail_1 = alcohols.get(0);
+				AlcoholsSearchItem detail_2 = alcohols.get(1);
 				assertTrue(detail_1.getReviewCount() > detail_2.getReviewCount());
 				break;
 			case "page":
