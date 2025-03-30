@@ -19,9 +19,9 @@ services:
 
   redis:
     image: redis:6.2.6-alpine
-    container_name: redis
+    container_name: bottle-note-redis
     ports:
-      - "6379:6379"
+      - "16379:6379"
     #volumes:
     #  - ./database/redis/data:/data
     #  - ./database/redis/conf/redis.conf:/usr/local/conf/redis.conf
