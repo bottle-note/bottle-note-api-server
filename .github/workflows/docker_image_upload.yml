@@ -95,7 +95,6 @@ jobs:
               workflow_id: workflowFile,
               ref: branch,
               inputs: {
-                image_tag: '${{ steps.build-image.outputs.image_tag }}',
-                environment: branch === 'prod' ? 'production' : 'development'
+                image_tag: '${{ steps.build-image.outputs.image_tag }}'
               }
             });
