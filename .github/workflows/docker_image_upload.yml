@@ -3,48 +3,33 @@ name: Build and Push to ECR
 on:
   push:
     branches:
-      - feature/279
-  #pull_request:
-  #  types: [ closed ]
-  #  branches:
-  #    - dev
+      - feature/2791
 
-# 동시 실행 방지 설정
 concurrency:
   group: "ecr-upload"
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
-  build-and-push:
+  setup:
     runs-on: ubuntu-latest
+    outputs:
+      region: ${{ steps.set-credentials.outputs.region }}
     steps:
       - name: Checkout code with submodules
         uses: actions/checkout@v4
         with:
           submodules: true
           token: ${{ secrets.GIT_ACCESS_TOKEN }}
-
       - name: Update submodules
         run: |
           git submodule update --init --recursive
           git submodule update --remote
-
-      - name: Read and print ECR settings
+      - name: setup env file
+        run: cp git.environment-variables/deploy/.env .env
+      - name: docker build
         run: |
-          echo "===== ECR 설정 값 출력 ====="
-          cat git.environment-variables/deploy/aws/ecr/properties.yaml
-
-          # YAML 파일에서 변수 추출
-          ECR_REPOSITORY=$(grep "ECR_REPOSITORY:" git.environment-variables/deploy/aws/ecr/properties.yaml | awk '{print $2}')
-          ECR_REGION=$(grep "ECR_REGION:" git.environment-variables/deploy/aws/ecr/properties.yaml | awk '{print $2}')
-          ECR_REGISTRY=$(grep "ECR_REGISTRY:" git.environment-variables/deploy/aws/ecr/properties.yaml | awk '{print $2}')
-
-          # 환경 변수로 설정
-          echo "ECR_REPOSITORY=$ECR_REPOSITORY" >> $GITHUB_ENV
-          echo "ECR_REGION=$ECR_REGION" >> $GITHUB_ENV
-          echo "ECR_REGISTRY=$ECR_REGISTRY" >> $GITHUB_ENV
-
-          echo "===== 변수 확인 ====="
-          echo "ECR_REPOSITORY: $ECR_REPOSITORY"
-          echo "ECR_REGION: $ECR_REGION"
-          echo "ECR_REGISTRY: $ECR_REGISTRY"
+          # Dockerfile 빌드
+          docker build -t bottle-note-api .
+          # 빌드 결과 확인
+          echo "==== 빌드된 이미지 정보 ===="
+          docker images | grep bottle-note-api
