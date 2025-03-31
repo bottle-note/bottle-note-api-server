@@ -12,8 +12,6 @@ concurrency:
 jobs:
   setup:
     runs-on: ubuntu-latest
-    outputs:
-      region: ${{ steps.set-credentials.outputs.region }}
     steps:
       - name: Checkout code with submodules
         uses: actions/checkout@v4
@@ -26,10 +24,35 @@ jobs:
           git submodule update --remote
       - name: setup env file
         run: cp git.environment-variables/deploy/.env .env
-      - name: docker build
+      - name: Set ECR credentials
+        id: set-credentials
         run: |
-          # Dockerfile 빌드
-          docker build -t bottle-note-api .
-          # 빌드 결과 확인
-          echo "==== 빌드된 이미지 정보 ===="
-          docker images | grep bottle-note-api
+          ECR_ACCESS_KEY=$(grep "ECR_ACCESS_KEY:" git.environment-variables/deploy/aws/ecr/properties.yaml | awk '{print $2}')
+          ECR_SECRET_ACCESS_KEY=$(grep "ECR_SECRET_ACCESS_KEY:" git.environment-variables/deploy/aws/ecr/properties.yaml | awk '{print $2}')
+          ECR_REGION=$(grep "ECR_REGION:" git.environment-variables/deploy/aws/ecr/properties.yaml | awk '{print $2}')
+
+          echo "AWS_ACCESS_KEY_ID=$ECR_ACCESS_KEY" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=$ECR_SECRET_ACCESS_KEY" >> $GITHUB_ENV
+          echo "AWS_REGION=$ECR_REGION" >> $GITHUB_ENV
+          echo "region=$ECR_REGION" >> $GITHUB_OUTPUT
+          echo "리전 설정: $ECR_REGION"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ steps.set-credentials.outputs.region }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Build, tag, and push to ECR
+        run: |
+          # 이미지 태그 생성
+          IMAGE_TAG=$(date -u +"%Y%m%dT%H%M%SZ")
+
+          # 이미지 빌드 및 푸시
+          docker build -t ${{ steps.login-ecr.outputs.registry }}/bottle-note-api:$IMAGE_TAG .
+          docker push ${{ steps.login-ecr.outputs.registry }}/bottle-note-api:$IMAGE_TAG
+
+          echo "이미지가 성공적으로 푸시되었습니다: ${{ steps.login-ecr.outputs.registry }}/bottle-note-api:$IMAGE_TAG"
