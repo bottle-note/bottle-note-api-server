@@ -3,7 +3,7 @@ name: Build and Push to ECR
 on:
   push:
     branches:
-      - feature/2791
+      - feature/279
 
 concurrency:
   group: "ecr-upload"
