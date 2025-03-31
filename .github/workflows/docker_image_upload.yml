@@ -29,23 +29,20 @@ jobs:
           git submodule update --init --recursive
           git submodule update --remote
 
-      - name: Install SOPS
-        run: |
-          curl -LO https://github.com/mozilla/sops/releases/download/v3.7.3/sops-v3.7.3.linux.amd64
-          chmod +x sops-v3.7.3.linux.amd64
-          sudo mv sops-v3.7.3.linux.amd64 /usr/local/bin/sops
-
-      - name: Import GPG key
-        run: |
-          echo "${{ secrets.GPG_PRIVATE_KEY }}" | base64 -d | gpg --batch --yes --pinentry-mode loopback --passphrase "${{ secrets.GPG_PASSPHRASE }}" --import
-
-      - name: Decrypt and print SOPS file
+      - name: Read and print ECR settings
         run: |
           echo "===== ECR 설정 값 출력 ====="
-          sops -d git.environment-variables/deploy/aws/ecr/properties.sops.yaml
+          cat git.environment-variables/deploy/aws/ecr/properties.yaml
 
-          # 변수로 내보내기
-          eval $(sops -d git.environment-variables/deploy/aws/ecr/properties.sops.yaml | sed 's/: /=/')
+          # YAML 파일에서 변수 추출
+          ECR_REPOSITORY=$(grep "ECR_REPOSITORY:" git.environment-variables/deploy/aws/ecr/properties.yaml | awk '{print $2}')
+          ECR_REGION=$(grep "ECR_REGION:" git.environment-variables/deploy/aws/ecr/properties.yaml | awk '{print $2}')
+          ECR_REGISTRY=$(grep "ECR_REGISTRY:" git.environment-variables/deploy/aws/ecr/properties.yaml | awk '{print $2}')
+
+          # 환경 변수로 설정
+          echo "ECR_REPOSITORY=$ECR_REPOSITORY" >> $GITHUB_ENV
+          echo "ECR_REGION=$ECR_REGION" >> $GITHUB_ENV
+          echo "ECR_REGISTRY=$ECR_REGISTRY" >> $GITHUB_ENV
 
           echo "===== 변수 확인 ====="
           echo "ECR_REPOSITORY: $ECR_REPOSITORY"
