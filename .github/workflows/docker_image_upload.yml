@@ -17,6 +17,8 @@ concurrency:
 jobs:
   setup:
     runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.build-image.outputs.image_tag }}
     steps:
       - name: Checkout code with submodules
         uses: actions/checkout@v4
@@ -51,7 +53,6 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
-
       - name: Build, tag, and push to ECR
         id: build-image
         run: |
@@ -66,8 +67,8 @@ jobs:
           echo "이미지가 성공적으로 푸시되었습니다: ${{ steps.login-ecr.outputs.registry }}/bottle-note-api:$IMAGE_TAG"
 
   call-workflow:
+    needs: setup
     uses: ./.github/workflows/deploy-to-dev.yml
     with:
-      IMAGE_TAG: ${{ steps.build-image.outputs.image_tag }}
-    secrets:
-      GIT_ACCESS_TOKEN: ${{ secrets.GIT_ACCESS_TOKEN }}
+      IMAGE_TAG: ${{ needs.setup.outputs.image_tag }}
+    secrets: inherit
