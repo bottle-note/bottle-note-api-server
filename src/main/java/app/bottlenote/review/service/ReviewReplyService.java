@@ -88,7 +88,7 @@ public class ReviewReplyService {
 		final Long alcoholId = reviewRepository.findById(reviewId)
 			.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND)).getAlcoholId();
 
-		ReviewRegistryEvent event = ReviewRegistryEvent.of(reply.getId(), alcoholId, reply.getUserId(), reply.getContent());
+		ReviewRegistryEvent event = ReviewRegistryEvent.of(reply.getReviewId(), alcoholId, reply.getUserId(), reply.getContent());
 		reviewReplyEventPublisher.publishHistoryEvent(event);
 
 		return ReviewReplyResponse.of(
