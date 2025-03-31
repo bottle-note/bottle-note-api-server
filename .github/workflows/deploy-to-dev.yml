@@ -1,19 +1,23 @@
 name: Deploy to Dev
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
-      image_tag:
-        description: 'Docker image tag to deploy'
+      IMAGE_TAG:
+        required: true
+        type: string
+    secrets:
+      GIT_ACCESS_TOKEN:
         required: true
 
 jobs:
-  deploy:
+  reusable_workflow_job:
     runs-on: ubuntu-latest
     steps:
       - name: Notification
         run: |
           echo "이것은 개발(dev) 환경 배포 파일입니다."
-          echo "배포할 이미지 태그: ${{ github.event.inputs.image_tag }}"
+          echo "배포할 이미지 태그: ${{ inputs.IMAGE_TAG }}"
+          echo "깃허브 토큰: ${{ secrets.GIT_ACCESS_TOKEN }}"
 
       # 여기에 실제 배포 로직을 추가할 수 있습니다.
