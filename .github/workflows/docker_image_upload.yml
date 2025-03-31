@@ -46,6 +46,17 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Create ECR repository if not exists
+        run: |
+          # ECR 저장소가 존재하는지 확인
+          if ! aws ecr describe-repositories --repository-names bottle-note-api > /dev/null 2>&1; then
+            echo "ECR 저장소 'bottle-note-api'가 존재하지 않습니다. 새로 생성합니다."
+            aws ecr create-repository --repository-name bottle-note-api
+          else
+            echo "ECR 저장소 'bottle-note-api'가 이미 존재합니다."
+          fi
+
       - name: Build, tag, and push to ECR
         run: |
           # 이미지 태그 생성
