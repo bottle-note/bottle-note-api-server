@@ -16,20 +16,19 @@ import static app.bottlenote.history.constant.EventType.REVIEW_LIKES;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class LikesEventPublisher implements HistoryEventPublisher {
+public class LikesEventPublisher implements HistoryEventPublisher<LikesRegistryEvent> {
 
 	private final ReviewFacade reviewFacade;
 	private final ApplicationEventPublisher eventPublisher;
 
 	@Override
-	public void publishHistoryEvent(Object event) {
+	public void publishHistoryEvent(LikesRegistryEvent event) {
 
-		final LikesRegistryEvent likesRegistryEvent = (LikesRegistryEvent) event;
-		final Long alcoholId = reviewFacade.getAlcoholIdByReviewId(likesRegistryEvent.reviewId());
-		final Long reviewId = likesRegistryEvent.reviewId();
+		final Long alcoholId = reviewFacade.getAlcoholIdByReviewId(event.reviewId());
+		final Long reviewId = event.reviewId();
 
 		HistoryEvent likesHistoryEvent = HistoryEvent.builder()
-			.userId(likesRegistryEvent.userId())
+				.userId(event.userId())
 			.eventCategory(REVIEW)
 			.eventType(REVIEW_LIKES)
 			.redirectUrl(RedirectUrlType.REVIEW.getUrl() + "/" + reviewId)

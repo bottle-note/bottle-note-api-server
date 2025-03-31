@@ -15,23 +15,21 @@ import static app.bottlenote.history.constant.EventType.REVIEW_REPLY_CREATE;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ReviewReplyEventPublisher implements HistoryEventPublisher {
+public class ReviewReplyEventPublisher implements HistoryEventPublisher<ReviewRegistryEvent> {
 
 	private final ApplicationEventPublisher eventPublisher;
 
 	@Override
-	public void publishHistoryEvent(Object event) {
-		ReviewRegistryEvent registryEvent = (ReviewRegistryEvent) event;
-
-		final Long reviewId = registryEvent.reviewId();
+	public void publishHistoryEvent(ReviewRegistryEvent event) {
+		final Long reviewId = event.reviewId();
 
 		HistoryEvent reviewReplyHistoryEvent = HistoryEvent.builder()
-			.userId(registryEvent.userId())
+				.userId(event.userId())
 			.eventCategory(REVIEW)
 			.eventType(REVIEW_REPLY_CREATE)
 			.redirectUrl(RedirectUrlType.REVIEW.getUrl() + "/" + reviewId)
-			.alcoholId(registryEvent.alcoholId())
-			.content(registryEvent.content())
+				.alcoholId(event.alcoholId())
+				.content(event.content())
 			.build();
 		eventPublisher.publishEvent(reviewReplyHistoryEvent);
 	}

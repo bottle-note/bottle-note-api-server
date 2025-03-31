@@ -1,12 +1,12 @@
 package app.bottlenote.rating.fixture;
 
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
+import app.bottlenote.rating.event.payload.RatingRegistryEvent;
 
-public class FakeRatingEventPublisher implements HistoryEventPublisher {
+public class FakeRatingEventPublisher implements HistoryEventPublisher<RatingRegistryEvent> {
 
 	@Override
-	public void publishHistoryEvent(Object event) {
-		//todo : 구현 필요
+	public void publishHistoryEvent(RatingRegistryEvent event) {
 		// dummy object
 	}
 }

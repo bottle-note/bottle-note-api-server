@@ -17,23 +17,21 @@ import static app.bottlenote.picks.constant.PicksStatus.PICK;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class PicksEventPublisher implements HistoryEventPublisher {
+public class PicksEventPublisher implements HistoryEventPublisher<PicksRegistryEvent> {
 
 	private final ApplicationEventPublisher eventPublisher;
 
 	@Override
-	public void publishHistoryEvent(Object event) {
+	public void publishHistoryEvent(PicksRegistryEvent event) {
 
-		PicksRegistryEvent picksRegistryEvent = (PicksRegistryEvent) event;
-
-		final Long alcoholId = picksRegistryEvent.alcoholId();
+		final Long alcoholId = event.alcoholId();
 
 		HistoryEvent picksHistoryEvent = HistoryEvent.builder()
-			.userId(picksRegistryEvent.userId())
+				.userId(event.userId())
 			.eventCategory(EventCategory.PICK)
-			.eventType(picksRegistryEvent.picksStatus() == PICK ? IS_PICK : UNPICK)
+				.eventType(event.picksStatus() == PICK ? IS_PICK : UNPICK)
 			.redirectUrl(RedirectUrlType.ALCOHOL.getUrl() + "/" + alcoholId)
-			.alcoholId(picksRegistryEvent.alcoholId())
+				.alcoholId(event.alcoholId())
 			.build();
 		eventPublisher.publishEvent(picksHistoryEvent);
 	}
