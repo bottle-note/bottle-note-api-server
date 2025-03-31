@@ -25,10 +25,10 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN mkdir -p config
 
 # 빌드 스테이지에서 생성된 JAR 파일만 복사
-COPY --from=builder /app/build/libs/*.jar app.jar
+COPY --from=builder /app/build/libs/*.jar /app.jar
 
 # 환경 변수로 프로필 지정 가능하도록 설정
 ENV SPRING_PROFILES_ACTIVE=default
 
 # 실행 명령 (외부 설정 파일 위치 지정)
-ENTRYPOINT ["java", "-jar", "/app/app.jar", "--spring.config.location=classpath:/,file:/app/config/"]
+ENTRYPOINT ["java", "-jar", "/app.jar"]
