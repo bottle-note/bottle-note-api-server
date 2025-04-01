@@ -59,16 +59,6 @@ jobs:
             export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
             export AWS_REGION=$AWS_REGION
 
-            # AWS CLI 설치 여부 확인
-            if ! command -v aws &> /dev/null; then
-              echo "AWS CLI가 설치되어 있지 않습니다. 설치를 진행합니다."
-              curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-              unzip -q awscliv2.zip
-              sudo ./aws/install
-              rm -rf aws awscliv2.zip
-            fi
-
-
             # ECR 로그인
             aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
 
