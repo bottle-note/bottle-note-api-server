@@ -47,8 +47,7 @@ jobs:
           echo "region=$ECR_REGION" >> $GITHUB_OUTPUT
           echo "registry=$ECR_REGISTRY" >> $GITHUB_OUTPUT
 
-
-          ENV_FILE=$(cat git.environment-variables/deploy/.env.dev)
+          ENV_FILE=$(cat git.environment-variables/deploy/.env.dev | base64 -w 0)
           echo "$ENV_FILE" >> $GITHUB_OUTPUT
 
       - name: Deploy ECR Image as Test Container
@@ -59,24 +58,16 @@ jobs:
           username: ubuntu
           key: ${{ secrets.DEV_SSH_KEY }}
           script: |
-            # .env 파일 생성
-            cat > /home/ubuntu/app/bottle-note/.env << EOF
-            ${{ steps.set-credentials.outputs.env_file }}
-            EOF
-
-            # AWS 자격 증명 설정
+            echo "${{ steps.set-credentials.outputs.env_file }}" | base64 -d > /home/ubuntu/app/bottle-note/.env
             export AWS_ACCESS_KEY_ID=${{ env.AWS_ACCESS_KEY_ID }}
             export AWS_SECRET_ACCESS_KEY=${{ env.AWS_SECRET_ACCESS_KEY }}
             export AWS_REGION=${{ steps.set-credentials.outputs.region }}
 
-            # ECR 로그인
             aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${{ steps.set-credentials.outputs.registry }}
 
-            # 기존 테스트 컨테이너가 있다면 정리
             docker stop test-bottle-note || true
             docker rm test-bottle-note || true
 
-            # ECR에서 이미지 가져와 테스트 컨테이너로 실행
             docker run -d \
             --name test-bottle-note \
             -p 30002:30001 \
