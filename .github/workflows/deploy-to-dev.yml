@@ -32,7 +32,7 @@ jobs:
           git submodule update --remote
 
 
-      - name: Set ECR credentials
+      - name: Set ECR credentials and Env file
         id: set-credentials
         run: |
           ECR_ACCESS_KEY=$(grep "ECR_ACCESS_KEY:" git.environment-variables/deploy/aws/ecr/properties.yaml | awk '{print $2}')
@@ -48,6 +48,9 @@ jobs:
           echo "registry=$ECR_REGISTRY" >> $GITHUB_OUTPUT
 
 
+          ENV_FILE=$(cat git.environment-variables/deploy/.env.dev)
+          echo "$ENV_FILE" >> $GITHUB_OUTPUT
+
       - name: Deploy ECR Image as Test Container
         uses: appleboy/ssh-action@master
         with:
@@ -56,6 +59,11 @@ jobs:
           username: ubuntu
           key: ${{ secrets.DEV_SSH_KEY }}
           script: |
+            # .env 파일 생성
+            cat > /home/ubuntu/app/bottle-note/.env << EOF
+            ${{ steps.set-credentials.outputs.env_file }}
+            EOF
+
             # AWS 자격 증명 설정
             export AWS_ACCESS_KEY_ID=${{ env.AWS_ACCESS_KEY_ID }}
             export AWS_SECRET_ACCESS_KEY=${{ env.AWS_SECRET_ACCESS_KEY }}
@@ -68,18 +76,15 @@ jobs:
             docker stop test-bottle-note || true
             docker rm test-bottle-note || true
 
-            # .env 파일 복사
-            scp -i ${{ secrets.DEV_SSH_KEY }} git.environment-variables/deploy/.env.dev ubuntu@${{ secrets.DEV_SERVER_IP }}:/home/ubuntu/app/bottle-note/.env
-
             # ECR에서 이미지 가져와 테스트 컨테이너로 실행
             docker run -d \
-              --name test-bottle-note \
-              -p 30002:30001 \
-              -e TZ=Asia/Seoul \
-              -e SPRING_PROFILES_ACTIVE=dev \
-              --env-file /home/ubuntu/app/bottle-note/.env \
-              --restart unless-stopped \
-              --log-driver json-file \
-              --log-opt max-size=10m \
-              --log-opt max-file=3 \
-              ${{ steps.set-credentials.outputs.registry }}/bottle-note-api:${{ inputs.IMAGE_TAG }}
+            --name test-bottle-note \
+            -p 30002:30001 \
+            -e TZ=Asia/Seoul \
+            -e SPRING_PROFILES_ACTIVE=dev \
+            --env-file /home/ubuntu/app/bottle-note/.env \
+            --restart unless-stopped \
+            --log-driver json-file \
+            --log-opt max-size=10m \
+            --log-opt max-file=3 \
+            ${{ steps.set-credentials.outputs.registry }}/bottle-note-api:${{ inputs.IMAGE_TAG }}
