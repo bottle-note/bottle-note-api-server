@@ -43,10 +43,10 @@ class RestOauthControllerTest extends AbstractRestDocs {
 
 	public RestOauthControllerTest() {
 		this.config = OauthConfigProperties.builder()
-			.guestCode("TEST_GUEST_CODE")
-			.cookieExpireTime(123456)
-			.refreshTokenHeaderPrefix("refresh-token")
-			.build();
+				.guestCode("TEST_GUEST_CODE")
+				.cookieExpireTime(123456)
+				.refreshTokenHeaderPrefix("refresh-token")
+				.build();
 	}
 
 	@Override
@@ -60,53 +60,54 @@ class RestOauthControllerTest extends AbstractRestDocs {
 	void login_test() throws Exception {
 
 		//given
-		OauthRequest oauthRequest = new OauthRequest("cdm2883@naver.com", SocialType.KAKAO, GenderType.MALE, 27);
+		OauthRequest oauthRequest = new OauthRequest("cdm2883@naver.com", "", SocialType.KAKAO, GenderType.MALE, 27);
 		TokenItem tokenItem = TokenItem.builder()
-			.accessToken("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNDk3NjUyM30.41SuOBgmX-sd8nrMbC-xm0kH6rbny_SMYCKWE4rNQEZgSrRPS0HvYv0X7E-weo6sHlWWm1OmiQgHl4-uy6-9ig")
-			.refreshToken("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNjE4NTIyM30.lvmPueUcOb1erv5Llo4qhEUQ_gtWrpFGbBHDw-Pi94qj8MGojoEI3ugdMo8PwoKgrVQZ_gBwBbytwjxh8XktUg")
-			.build();
+				.accessToken("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNDk3NjUyM30.41SuOBgmX-sd8nrMbC-xm0kH6rbny_SMYCKWE4rNQEZgSrRPS0HvYv0X7E-weo6sHlWWm1OmiQgHl4-uy6-9ig")
+				.refreshToken("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNjE4NTIyM30.lvmPueUcOb1erv5Llo4qhEUQ_gtWrpFGbBHDw-Pi94qj8MGojoEI3ugdMo8PwoKgrVQZ_gBwBbytwjxh8XktUg")
+				.build();
 
 		//when
 		when(oauthService.login(oauthRequest)).thenReturn(tokenItem);
 
 		//then
 		mockMvc.perform(post("/api/v1/oauth/login")
-				.contentType(MediaType.APPLICATION_JSON)
-				.with(csrf())
-				.content(objectMapper.writeValueAsString(oauthRequest)))
-			.andExpect(status().isOk())
-			.andExpect(cookie().exists("refresh-token"))
+						.contentType(MediaType.APPLICATION_JSON)
+						.with(csrf())
+						.content(objectMapper.writeValueAsString(oauthRequest)))
+				.andExpect(status().isOk())
+				.andExpect(cookie().exists("refresh-token"))
 
-			.andDo(
-				document("user/user-login",
-					requestFields(
-						fieldWithPath("email").type(JsonFieldType.STRING).description("이메일"),
-						fieldWithPath("gender").type(JsonFieldType.STRING).description("성별")
-							.optional(),
-						fieldWithPath("age").type(JsonFieldType.NUMBER).description("나이")
-							.optional(),
-						fieldWithPath("socialType").type(JsonFieldType.STRING)
-							.description("소셜 로그인 타입")
-					),
-					responseFields(
-						fieldWithPath("success").type(JsonFieldType.BOOLEAN)
-							.description("응답 성공 여부"),
-						fieldWithPath("code").type(JsonFieldType.NUMBER)
-							.description("응답 코드(http status code)"),
-						fieldWithPath("data.accessToken").type(JsonFieldType.STRING)
-							.description("액세스 토큰"),
-						fieldWithPath("errors").type(JsonFieldType.ARRAY)
-							.description("응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)"),
-						fieldWithPath("meta.serverEncoding").description("서버 인코딩 정도"),
-						fieldWithPath("meta.serverVersion").description("서버 버전"),
-						fieldWithPath("meta.serverPathVersion").description("서버 경로 버전"),
-						fieldWithPath("meta.serverResponseTime").description("서버 응답 시간")
-					),
-					responseHeaders(
-						headerWithName("Set-Cookie").description("리프레쉬 토큰")
-					)
-				)
-			);
+				.andDo(
+						document("user/user-login",
+								requestFields(
+										fieldWithPath("email").type(JsonFieldType.STRING).description("이메일"),
+										fieldWithPath("socialUniqueId").type(JsonFieldType.STRING).description("소셜 로그인 제공자의 고유 식별자"),
+										fieldWithPath("gender").type(JsonFieldType.STRING).description("성별")
+												.optional(),
+										fieldWithPath("age").type(JsonFieldType.NUMBER).description("나이")
+												.optional(),
+										fieldWithPath("socialType").type(JsonFieldType.STRING)
+												.description("소셜 로그인 타입")
+								),
+								responseFields(
+										fieldWithPath("success").type(JsonFieldType.BOOLEAN)
+												.description("응답 성공 여부"),
+										fieldWithPath("code").type(JsonFieldType.NUMBER)
+												.description("응답 코드(http status code)"),
+										fieldWithPath("data.accessToken").type(JsonFieldType.STRING)
+												.description("액세스 토큰"),
+										fieldWithPath("errors").type(JsonFieldType.ARRAY)
+												.description("응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)"),
+										fieldWithPath("meta.serverEncoding").description("서버 인코딩 정도"),
+										fieldWithPath("meta.serverVersion").description("서버 버전"),
+										fieldWithPath("meta.serverPathVersion").description("서버 경로 버전"),
+										fieldWithPath("meta.serverResponseTime").description("서버 응답 시간")
+								),
+								responseHeaders(
+										headerWithName("Set-Cookie").description("리프레쉬 토큰")
+								)
+						)
+				);
 	}
 
 	@Test
@@ -117,42 +118,42 @@ class RestOauthControllerTest extends AbstractRestDocs {
 		String request = "refresh-token";
 
 		TokenItem newTokenItem = TokenItem.builder()
-			.accessToken("new-access-token")
-			.refreshToken("new-refresh-token")
-			.build();
+				.accessToken("new-access-token")
+				.refreshToken("new-refresh-token")
+				.build();
 
 		//when
 		when(oauthService.refresh(request)).thenReturn(newTokenItem);
 
 		//then
 		mockMvc.perform(post("/api/v1/oauth/reissue")
-				.header("refresh-token", request)
-				.contentType(MediaType.APPLICATION_JSON)
-				.with(csrf()))
-			.andExpect(status().isOk())
-			.andExpect(cookie().exists("refresh-token"))
+						.header("refresh-token", request)
+						.contentType(MediaType.APPLICATION_JSON)
+						.with(csrf()))
+				.andExpect(status().isOk())
+				.andExpect(cookie().exists("refresh-token"))
 
-			.andDo(
-				document("user/user-reissue",
-					responseFields(
-						fieldWithPath("success").type(JsonFieldType.BOOLEAN)
-							.description("응답 성공 여부"),
-						fieldWithPath("code").type(JsonFieldType.NUMBER)
-							.description("응답 코드(http status code)"),
-						fieldWithPath("data.accessToken").type(JsonFieldType.STRING)
-							.description("액세스 토큰"),
-						fieldWithPath("errors").type(JsonFieldType.ARRAY)
-							.description("응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)"),
-						fieldWithPath("meta.serverEncoding").description("서버 인코딩 정도"),
-						fieldWithPath("meta.serverVersion").description("서버 버전"),
-						fieldWithPath("meta.serverPathVersion").description("서버 경로 버전"),
-						fieldWithPath("meta.serverResponseTime").description("서버 응답 시간")
-					),
-					responseHeaders(
-						headerWithName("Set-Cookie").description("리프레쉬 토큰")
-					)
-				)
-			);
+				.andDo(
+						document("user/user-reissue",
+								responseFields(
+										fieldWithPath("success").type(JsonFieldType.BOOLEAN)
+												.description("응답 성공 여부"),
+										fieldWithPath("code").type(JsonFieldType.NUMBER)
+												.description("응답 코드(http status code)"),
+										fieldWithPath("data.accessToken").type(JsonFieldType.STRING)
+												.description("액세스 토큰"),
+										fieldWithPath("errors").type(JsonFieldType.ARRAY)
+												.description("응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)"),
+										fieldWithPath("meta.serverEncoding").description("서버 인코딩 정도"),
+										fieldWithPath("meta.serverVersion").description("서버 버전"),
+										fieldWithPath("meta.serverPathVersion").description("서버 경로 버전"),
+										fieldWithPath("meta.serverResponseTime").description("서버 응답 시간")
+								),
+								responseHeaders(
+										headerWithName("Set-Cookie").description("리프레쉬 토큰")
+								)
+						)
+				);
 
 
 	}
@@ -170,27 +171,27 @@ class RestOauthControllerTest extends AbstractRestDocs {
 
 		//then
 		mockMvc.perform(post("/api/v1/oauth/guest-login")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(request))
-				.with(csrf()))
-			.andExpect(status().isOk())
-			.andDo(
-				document("user/guest-login",
-					requestFields(
-						fieldWithPath("code").description("게스트 코드")
-					),
-					responseFields(
-						fieldWithPath("success").ignored(),
-						fieldWithPath("code").ignored(),
-						fieldWithPath("errors").ignored(),
-						fieldWithPath("data.accessToken").description("액세스 토큰"),
-						fieldWithPath("meta.serverEncoding").description("서버 인코딩 정도"),
-						fieldWithPath("meta.serverVersion").description("서버 버전"),
-						fieldWithPath("meta.serverPathVersion").description("서버 경로 버전"),
-						fieldWithPath("meta.serverResponseTime").description("서버 응답 시간")
-					)
-				)
-			);
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(request))
+						.with(csrf()))
+				.andExpect(status().isOk())
+				.andDo(
+						document("user/guest-login",
+								requestFields(
+										fieldWithPath("code").description("게스트 코드")
+								),
+								responseFields(
+										fieldWithPath("success").ignored(),
+										fieldWithPath("code").ignored(),
+										fieldWithPath("errors").ignored(),
+										fieldWithPath("data.accessToken").description("액세스 토큰"),
+										fieldWithPath("meta.serverEncoding").description("서버 인코딩 정도"),
+										fieldWithPath("meta.serverVersion").description("서버 버전"),
+										fieldWithPath("meta.serverPathVersion").description("서버 경로 버전"),
+										fieldWithPath("meta.serverResponseTime").description("서버 응답 시간")
+								)
+						)
+				);
 
 
 	}
@@ -207,27 +208,27 @@ class RestOauthControllerTest extends AbstractRestDocs {
 
 		//then
 		mockMvc.perform(put("/api/v1/oauth/token/verify")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(request))
-				.with(csrf()))
-			.andExpect(status().isOk())
-			.andDo(
-				document("user/token-verify",
-					requestFields(
-						fieldWithPath("token").description("검사할 토큰")
-					),
-					responseFields(
-						fieldWithPath("success").ignored(),
-						fieldWithPath("code").ignored(),
-						fieldWithPath("errors").ignored(),
-						fieldWithPath("data").description("결과"),
-						fieldWithPath("meta.serverEncoding").ignored(),
-						fieldWithPath("meta.serverVersion").ignored(),
-						fieldWithPath("meta.serverPathVersion").ignored(),
-						fieldWithPath("meta.serverResponseTime").ignored()
-					)
-				)
-			);
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(request))
+						.with(csrf()))
+				.andExpect(status().isOk())
+				.andDo(
+						document("user/token-verify",
+								requestFields(
+										fieldWithPath("token").description("검사할 토큰")
+								),
+								responseFields(
+										fieldWithPath("success").ignored(),
+										fieldWithPath("code").ignored(),
+										fieldWithPath("errors").ignored(),
+										fieldWithPath("data").description("결과"),
+										fieldWithPath("meta.serverEncoding").ignored(),
+										fieldWithPath("meta.serverVersion").ignored(),
+										fieldWithPath("meta.serverPathVersion").ignored(),
+										fieldWithPath("meta.serverResponseTime").ignored()
+								)
+						)
+				);
 	}
 
 	@Test
@@ -236,55 +237,55 @@ class RestOauthControllerTest extends AbstractRestDocs {
 		//given
 		final String nickName = "부드러운몰트";
 		final BasicAccountRequest request = BasicAccountRequest.builder()
-			.email("test@email.com")
-			.password("test-password")
-			.age(27)
-			.gender(null)
-			.build();
+				.email("test@email.com")
+				.password("test-password")
+				.age(27)
+				.gender(null)
+				.build();
 
 		final BasicAccountResponse response = BasicAccountResponse.builder()
-			.message(nickName + "님 환영합니다!")
-			.email(request.getEmail())
-			.nickname(nickName)
-			.accessToken("access-token")
-			.refreshToken("refresh-token")
-			.build();
+				.message(nickName + "님 환영합니다!")
+				.email(request.getEmail())
+				.nickname(nickName)
+				.accessToken("access-token")
+				.refreshToken("refresh-token")
+				.build();
 
 		//when
 		when(oauthService.basicSignup(request.getEmail(), request.getPassword(),
-			request.getAge(), request.getGender())).thenReturn(response);
+				request.getAge(), request.getGender())).thenReturn(response);
 
 		//then
 		mockMvc.perform(post("/api/v1/oauth/basic/signup")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(request))
-				.with(csrf()))
-			.andExpect(status().isOk())
-			.andDo(
-				document("user/basic-signup",
-					requestFields(
-						fieldWithPath("email").description("이메일"),
-						fieldWithPath("password").description("비밀번호"),
-						fieldWithPath("age").description("나이"),
-						fieldWithPath("gender").description("성별")
-					),
-					responseFields(
-						fieldWithPath("success").ignored(),
-						fieldWithPath("code").ignored(),
-						fieldWithPath("errors").ignored(),
-						fieldWithPath("data").description("결과"),
-						fieldWithPath("data.message").description("결과 메시지"),
-						fieldWithPath("data.email").description("이메일"),
-						fieldWithPath("data.nickname").description("닉네임"),
-						fieldWithPath("data.accessToken").description("accessToken"),
-						fieldWithPath("data.refreshToken").description("refreshToken"),
-						fieldWithPath("meta.serverEncoding").ignored(),
-						fieldWithPath("meta.serverVersion").ignored(),
-						fieldWithPath("meta.serverPathVersion").ignored(),
-						fieldWithPath("meta.serverResponseTime").ignored()
-					)
-				)
-			);
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(request))
+						.with(csrf()))
+				.andExpect(status().isOk())
+				.andDo(
+						document("user/basic-signup",
+								requestFields(
+										fieldWithPath("email").description("이메일"),
+										fieldWithPath("password").description("비밀번호"),
+										fieldWithPath("age").description("나이"),
+										fieldWithPath("gender").description("성별")
+								),
+								responseFields(
+										fieldWithPath("success").ignored(),
+										fieldWithPath("code").ignored(),
+										fieldWithPath("errors").ignored(),
+										fieldWithPath("data").description("결과"),
+										fieldWithPath("data.message").description("결과 메시지"),
+										fieldWithPath("data.email").description("이메일"),
+										fieldWithPath("data.nickname").description("닉네임"),
+										fieldWithPath("data.accessToken").description("accessToken"),
+										fieldWithPath("data.refreshToken").description("refreshToken"),
+										fieldWithPath("meta.serverEncoding").ignored(),
+										fieldWithPath("meta.serverVersion").ignored(),
+										fieldWithPath("meta.serverPathVersion").ignored(),
+										fieldWithPath("meta.serverResponseTime").ignored()
+								)
+						)
+				);
 	}
 
 	@Test
@@ -293,9 +294,9 @@ class RestOauthControllerTest extends AbstractRestDocs {
 		//given
 		final String nickName = "부드러운몰트";
 		final BasicLoginRequest request = BasicLoginRequest.builder()
-			.email("test@email.com")
-			.password("test-password")
-			.build();
+				.email("test@email.com")
+				.password("test-password")
+				.build();
 
 		final TokenItem response = TokenItem.of("access-token", "refresh-token");
 		//when
@@ -303,29 +304,29 @@ class RestOauthControllerTest extends AbstractRestDocs {
 
 		//then
 		mockMvc.perform(post("/api/v1/oauth/basic/login")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(request))
-				.with(csrf()))
-			.andExpect(status().isOk())
-			.andDo(
-				document("user/basic-login",
-					requestFields(
-						fieldWithPath("email").description("이메일"),
-						fieldWithPath("password").description("비밀번호")
-					),
-					responseFields(
-						fieldWithPath("success").ignored(),
-						fieldWithPath("code").ignored(),
-						fieldWithPath("errors").ignored(),
-						fieldWithPath("data").description("결과"),
-						fieldWithPath("data.accessToken").description("accessToken"),
-						fieldWithPath("meta.serverEncoding").ignored(),
-						fieldWithPath("meta.serverVersion").ignored(),
-						fieldWithPath("meta.serverPathVersion").ignored(),
-						fieldWithPath("meta.serverResponseTime").ignored()
-					)
-				)
-			);
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(request))
+						.with(csrf()))
+				.andExpect(status().isOk())
+				.andDo(
+						document("user/basic-login",
+								requestFields(
+										fieldWithPath("email").description("이메일"),
+										fieldWithPath("password").description("비밀번호")
+								),
+								responseFields(
+										fieldWithPath("success").ignored(),
+										fieldWithPath("code").ignored(),
+										fieldWithPath("errors").ignored(),
+										fieldWithPath("data").description("결과"),
+										fieldWithPath("data.accessToken").description("accessToken"),
+										fieldWithPath("meta.serverEncoding").ignored(),
+										fieldWithPath("meta.serverVersion").ignored(),
+										fieldWithPath("meta.serverPathVersion").ignored(),
+										fieldWithPath("meta.serverResponseTime").ignored()
+								)
+						)
+				);
 	}
 
 	@Test
@@ -335,33 +336,33 @@ class RestOauthControllerTest extends AbstractRestDocs {
 		final String email = "test-email";
 		final String password = "test-password";
 		var request = BasicLoginRequest.builder()
-			.email(email)
-			.password(password)
-			.build();
+				.email(email)
+				.password(password)
+				.build();
 
 		doNothing().when(oauthService).restoreUser(email, password);
 
 		mockMvc.perform(post("/api/v1/oauth/restore")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(request))
-				.with(csrf()))
-			.andExpect(status().isOk())
-			.andDo(
-				document("user/restore",
-					requestFields(
-						fieldWithPath("email").description("이메일"),
-						fieldWithPath("password").description("비밀번호")
-					),
-					responseFields(
-						fieldWithPath("success").ignored(),
-						fieldWithPath("code").ignored(),
-						fieldWithPath("errors").ignored(),
-						fieldWithPath("data").description("결과 메시지"),
-						fieldWithPath("meta.serverEncoding").ignored(),
-						fieldWithPath("meta.serverVersion").ignored(),
-						fieldWithPath("meta.serverPathVersion").ignored(),
-						fieldWithPath("meta.serverResponseTime").ignored()
-					)
-				));
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(request))
+						.with(csrf()))
+				.andExpect(status().isOk())
+				.andDo(
+						document("user/restore",
+								requestFields(
+										fieldWithPath("email").description("이메일"),
+										fieldWithPath("password").description("비밀번호")
+								),
+								responseFields(
+										fieldWithPath("success").ignored(),
+										fieldWithPath("code").ignored(),
+										fieldWithPath("errors").ignored(),
+										fieldWithPath("data").description("결과 메시지"),
+										fieldWithPath("meta.serverEncoding").ignored(),
+										fieldWithPath("meta.serverVersion").ignored(),
+										fieldWithPath("meta.serverPathVersion").ignored(),
+										fieldWithPath("meta.serverResponseTime").ignored()
+								)
+						));
 	}
 }

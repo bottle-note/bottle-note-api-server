@@ -39,16 +39,16 @@ class JpaAuditingIntegrationTest extends IntegrationTestSupport {
 
 	@BeforeEach
 	void setUp() {
-		oauthRequest = new OauthRequest("chadongmin@naver.com", SocialType.KAKAO, null, null);
+		oauthRequest = new OauthRequest("chadongmin@naver.com", null, SocialType.KAKAO, null, null);
 		reviewCreateRequest = ReviewObjectFixture.getReviewCreateRequest();
 	}
 
 	@DisplayName("DB 저장 시 생성자와 수정자가 기록된다.")
 	@Sql(scripts = {
-		"/init-script/init-alcohol.sql",
-		"/init-script/init-user.sql",
-		"/init-script/init-review.sql",
-		"/init-script/init-review-reply.sql"}
+			"/init-script/init-alcohol.sql",
+			"/init-script/init-user.sql",
+			"/init-script/init-review.sql",
+			"/init-script/init-review-reply.sql"}
 	)
 	@Test
 	void test_1() throws Exception {
@@ -56,16 +56,16 @@ class JpaAuditingIntegrationTest extends IntegrationTestSupport {
 
 		// when
 		MvcResult result = mockMvc.perform(post("/api/v1/reviews")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(mapper.writeValueAsString(reviewCreateRequest))
-				.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
-				.with(csrf())
-			)
-			.andDo(print())
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.code").value(200))
-			.andExpect(jsonPath("$.data").exists())
-			.andReturn();
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(mapper.writeValueAsString(reviewCreateRequest))
+						.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+						.with(csrf())
+				)
+				.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.code").value(200))
+				.andExpect(jsonPath("$.data").exists())
+				.andReturn();
 
 		String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 		GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);

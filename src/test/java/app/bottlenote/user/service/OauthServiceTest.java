@@ -68,25 +68,25 @@ class OauthServiceTest {
 	@BeforeEach
 	void setUp() {
 
-		request = new OauthRequest("cdm2883@naver.com", SocialType.KAKAO,
-			null, 26);
+		request = new OauthRequest("cdm2883@naver.com", null, SocialType.KAKAO,
+				null, 26);
 
 		String nickName = "mockNickname";
 
 		user = User.builder()
-			.id(1L)
-			.email("cdm2883@naver.com")
-			.gender(GenderType.MALE)
-			.socialType(new ArrayList<>(List.of(SocialType.KAKAO)))
-			.age(26)
-			.nickName(nickName)
-			.role(UserType.ROLE_USER)
-			.build();
+				.id(1L)
+				.email("cdm2883@naver.com")
+				.gender(GenderType.MALE)
+				.socialType(new ArrayList<>(List.of(SocialType.KAKAO)))
+				.age(26)
+				.nickName(nickName)
+				.role(UserType.ROLE_USER)
+				.build();
 
 		tokenItem = TokenItem.builder()
-			.accessToken("mock-accessToken")
-			.refreshToken("mock-refreshToken")
-			.build();
+				.accessToken("mock-accessToken")
+				.refreshToken("mock-refreshToken")
+				.build();
 
 		reissueRefreshToken = "mock-refreshToken";
 	}
@@ -100,7 +100,7 @@ class OauthServiceTest {
 		//when
 		when(oauthRepository.save(any(User.class))).thenReturn(user);
 		//then
-		User resultUser = oauthService.oauthSignUp(request.email(), request.socialType(), request.gender(), request.age(), UserType.ROLE_USER);
+		User resultUser = oauthService.oauthSignUp(request, UserType.ROLE_USER);
 
 		assertThat(resultUser.getAge()).isEqualTo(request.age());
 	}
@@ -115,7 +115,7 @@ class OauthServiceTest {
 		when(oauthRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
 
 		when(jwtTokenProvider.generateToken(user.getEmail(), user.getRole(),
-			user.getId())).thenReturn(tokenItem);
+				user.getId())).thenReturn(tokenItem);
 
 		TokenItem result = oauthService.login(request);
 		System.out.println(result.accessToken() + " " + result.refreshToken());
@@ -134,7 +134,7 @@ class OauthServiceTest {
 		when(oauthRepository.save(any(User.class))).thenReturn(user);
 
 		when(jwtTokenProvider.generateToken(user.getEmail(), user.getRole(),
-			user.getId())).thenReturn(tokenItem);
+				user.getId())).thenReturn(tokenItem);
 
 		oauthService.login(request);
 
@@ -153,7 +153,7 @@ class OauthServiceTest {
 		when(oauthRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
 
 		when(jwtTokenProvider.generateToken(user.getEmail(), user.getRole(),
-			user.getId())).thenReturn(tokenItem);
+				user.getId())).thenReturn(tokenItem);
 
 		oauthService.login(request);
 
@@ -170,23 +170,23 @@ class OauthServiceTest {
 	@DisplayName("토큰 재발급을 할 수 있다.")
 	void reissue_token() {
 		try (MockedStatic<JwtTokenValidator> mockedValidator = mockStatic(
-			JwtTokenValidator.class)) {
+				JwtTokenValidator.class)) {
 
 			//when
 			mockedValidator.when(() -> JwtTokenValidator.validateToken(reissueRefreshToken))
-				.thenReturn(true);
+					.thenReturn(true);
 
 			when(jwtAuthenticationManager.getAuthentication(reissueRefreshToken)).thenReturn(
-				mock(Authentication.class));
+					mock(Authentication.class));
 
 			when(oauthRepository.findByRefreshToken(reissueRefreshToken)).thenReturn(
-				Optional.of(user));
+					Optional.of(user));
 
 			when(jwtTokenProvider.generateToken(anyString(), any(UserType.class), anyLong()))
-				.thenReturn(TokenItem.builder()
-					.accessToken("newAccessToken")
-					.refreshToken("newRefreshToken")
-					.build());
+					.thenReturn(TokenItem.builder()
+							.accessToken("newAccessToken")
+							.refreshToken("newRefreshToken")
+							.build());
 
 			// then
 			TokenItem response = oauthService.refresh(reissueRefreshToken);
@@ -204,11 +204,11 @@ class OauthServiceTest {
 	@DisplayName("토큰 검증에 통과하지 못하면 토큰 재발급에 실패한다")
 	void reissue_token_fail() {
 		try (MockedStatic<JwtTokenValidator> mockedValidator = mockStatic(
-			JwtTokenValidator.class)) {
+				JwtTokenValidator.class)) {
 
 			//when
 			mockedValidator.when(() -> JwtTokenValidator.validateToken(reissueRefreshToken))
-				.thenReturn(false);
+					.thenReturn(false);
 
 			// then
 			assertThrows(UserException.class, () -> oauthService.refresh(reissueRefreshToken));

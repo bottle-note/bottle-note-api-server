@@ -43,20 +43,20 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
 	RatingTestFactory ratingTestFactory;
 
 	@Sql(scripts = {
-		"/init-script/init-user.sql",
-		"/init-script/init-alcohol.sql"
+			"/init-script/init-user.sql",
+			"/init-script/init-alcohol.sql"
 	})
 	@DisplayName("알코올 목록조회를 할 수 있다.")
 	@Test
 	void test_1() throws Exception {
 
 		MvcResult result = mockMvc.perform(get("/api/v1/alcohols/search")
-				.contentType(MediaType.APPLICATION_JSON)
-				.header("Authorization", "Bearer " + getToken())
-				.with(csrf())
-			)
-			.andDo(print())
-			.andReturn();
+						.contentType(MediaType.APPLICATION_JSON)
+						.header("Authorization", "Bearer " + getToken())
+						.with(csrf())
+				)
+				.andDo(print())
+				.andReturn();
 		String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 		GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
 		AlcoholSearchResponse alcoholSearchResponse = mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
@@ -67,9 +67,9 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
 	}
 
 	@Sql(scripts = {
-		"/init-script/init-user.sql",
-		"/init-script/init-alcohol.sql",
-		"/init-script/init-review.sql"
+			"/init-script/init-user.sql",
+			"/init-script/init-alcohol.sql",
+			"/init-script/init-review.sql"
 	})
 	@DisplayName("알코올 상세 조회를 할 수 있다.")
 	@Test
@@ -77,12 +77,12 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
 		final Long alcoholId = 1L;
 
 		MvcResult result = mockMvc.perform(get("/api/v1/alcohols/{alcoholId}", alcoholId)
-				.contentType(MediaType.APPLICATION_JSON)
-				.header("Authorization", "Bearer " + getToken())
-				.with(csrf())
-			)
-			.andDo(print())
-			.andReturn();
+						.contentType(MediaType.APPLICATION_JSON)
+						.header("Authorization", "Bearer " + getToken())
+						.with(csrf())
+				)
+				.andDo(print())
+				.andReturn();
 		String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 		GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
 		AlcoholDetailResponse alcoholDetail = mapper.convertValue(response.getData(), AlcoholDetailResponse.class);
@@ -107,24 +107,24 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
 		ratingTestFactory.createRating(user2, alcohol, 3);
 
 		MvcResult authResult = mockMvc.perform(post("/api/v1/oauth/login")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(mapper.writeValueAsString(new OauthRequest(userEmail, userSocialType.get(0), null, null)))
-				.header("Authorization", "Bearer " + getToken())
-				.with(csrf())
-			)
-			.andReturn();
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(mapper.writeValueAsString(new OauthRequest(userEmail, null, userSocialType.get(0), null, null)))
+						.header("Authorization", "Bearer " + getToken())
+						.with(csrf())
+				)
+				.andReturn();
 		String contentAsString = authResult.getResponse().getContentAsString(StandardCharsets.UTF_8);
 		GlobalResponse tokenResponse = mapper.readValue(contentAsString, GlobalResponse.class);
 		JsonNode dataNode = mapper.convertValue(tokenResponse.getData(), JsonNode.class);
 		String accessToken = dataNode.get("accessToken").asText();
 
 		MvcResult result = mockMvc.perform(get("/api/v1/alcohols/{alcoholId}", alcoholId)
-				.contentType(MediaType.APPLICATION_JSON)
-				.header("Authorization", "Bearer " + accessToken)
-				.with(csrf())
-			)
-			.andDo(print())
-			.andReturn();
+						.contentType(MediaType.APPLICATION_JSON)
+						.header("Authorization", "Bearer " + accessToken)
+						.with(csrf())
+				)
+				.andDo(print())
+				.andReturn();
 		String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 		GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
 		AlcoholDetailResponse alcoholDetail = mapper.convertValue(response.getData(), AlcoholDetailResponse.class);
