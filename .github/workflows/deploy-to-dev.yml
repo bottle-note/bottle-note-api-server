@@ -20,6 +20,7 @@ jobs:
           echo "배포할 이미지 태그: ${{ inputs.IMAGE_TAG }}"
           echo "깃허브 토큰: ${{ secrets.GIT_ACCESS_TOKEN }}"
 
+
       - name: Checkout code with submodules
         uses: actions/checkout@v4
         with:
@@ -29,6 +30,7 @@ jobs:
         run: |
           git submodule update --init --recursive
           git submodule update --remote
+
 
       - name: Set ECR credentials
         id: set-credentials
@@ -45,6 +47,7 @@ jobs:
           echo "region=$ECR_REGION" >> $GITHUB_OUTPUT
           echo "registry=$ECR_REGISTRY" >> $GITHUB_OUTPUT
 
+
       - name: Deploy ECR Image as Test Container
         uses: appleboy/ssh-action@master
         with:
@@ -52,19 +55,21 @@ jobs:
           port: ${{ secrets.DEV_SERVER_PORT }}
           username: ubuntu
           key: ${{ secrets.DEV_SSH_KEY }}
-          envs: AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_REGION,ECR_REGISTRY,IMAGE_TAG
           script: |
             # AWS 자격 증명 설정
-            export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-            export AWS_REGION=$AWS_REGION
+            export AWS_ACCESS_KEY_ID=${{ env.AWS_ACCESS_KEY_ID }}
+            export AWS_SECRET_ACCESS_KEY=${{ env.AWS_SECRET_ACCESS_KEY }}
+            export AWS_REGION=${{ steps.set-credentials.outputs.region }}
 
             # ECR 로그인
-            aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+            aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${{ steps.set-credentials.outputs.registry }}
 
             # 기존 테스트 컨테이너가 있다면 정리
             docker stop test-bottle-note || true
             docker rm test-bottle-note || true
+
+            # .env 파일 복사
+            scp -i ${{ secrets.DEV_SSH_KEY }} git.environment-variables/deploy/.env.dev ubuntu@${{ secrets.DEV_SERVER_IP }}:/home/ubuntu/app/bottle-note/.env
 
             # ECR에서 이미지 가져와 테스트 컨테이너로 실행
             docker run -d \
@@ -72,10 +77,9 @@ jobs:
               -p 30002:30001 \
               -e TZ=Asia/Seoul \
               -e SPRING_PROFILES_ACTIVE=dev \
+              --env-file /home/ubuntu/app/bottle-note/.env \
               --restart unless-stopped \
               --log-driver json-file \
               --log-opt max-size=10m \
               --log-opt max-file=3 \
-              $ECR_REGISTRY/bottle-note-api:$IMAGE_TAG
-
-            echo "테스트 컨테이너 'test-bottle-note'가 포트 30002에서 실행 중입니다."
+              ${{ steps.set-credentials.outputs.registry }}/bottle-note-api:${{ inputs.IMAGE_TAG }}

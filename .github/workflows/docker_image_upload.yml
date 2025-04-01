@@ -25,17 +25,10 @@ jobs:
         with:
           submodules: true
           token: ${{ secrets.GIT_ACCESS_TOKEN }}
-
       - name: Update submodules
         run: |
           git submodule update --init --recursive
           git submodule update --remote
-
-      - name: setup env file
-        run: |
-          cp git.environment-variables/deploy/.env .env
-          cp git.environment-variables/deploy/.env .env.dev
-          cp git.environment-variables/deploy/.env .env.prod
 
       - name: Set ECR credentials
         id: set-credentials

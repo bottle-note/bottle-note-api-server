@@ -8,7 +8,6 @@ COPY gradle gradle
 COPY build.gradle .
 COPY settings.gradle .
 COPY src src
-COPY .env .env
 
 # 애플리케이션 빌드
 RUN ./gradlew build -x test -x asciidoctor -x copyRestDocs
@@ -30,5 +29,5 @@ COPY --from=builder /app/build/libs/*.jar /app.jar
 # 환경 변수로 프로필 지정 가능하도록 설정
 ENV SPRING_PROFILES_ACTIVE=default
 
-# 실행 명령 (외부 설정 파일 위치 지정)
+# 실행 시 .env 파일 로드
 ENTRYPOINT ["java", "-jar", "/app.jar"]
