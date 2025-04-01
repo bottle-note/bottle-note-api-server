@@ -29,5 +29,5 @@ COPY --from=builder /app/build/libs/*.jar /app.jar
 # 환경 변수로 프로필 지정 가능하도록 설정
 ENV SPRING_PROFILES_ACTIVE=default
 
-# 실행 시 .env 파일 로드
+# 실행 시 .env.dev 파일 로드
 ENTRYPOINT ["java", "-jar", "/app.jar"]
