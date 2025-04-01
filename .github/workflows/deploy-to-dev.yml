@@ -57,9 +57,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.DEV_SSH_KEY }}
           port: ${{ secrets.DEV_SERVER_PORT }}
-          source:
-            - bottle-note-image.tar
-            - git.environment-variables/deploy/.env.dev
+          source: "bottle-note-image.tar git.environment-variables/deploy/.env.dev"
           target: /home/ubuntu/app/bottle-note/
 
       - name: Deploy on remote server
