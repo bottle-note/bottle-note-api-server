@@ -27,7 +27,8 @@ public enum UserExceptionCode implements ExceptionCode {
 	USER_NICKNAME_NOT_VALID(HttpStatus.BAD_REQUEST, "중복된 닉네임입니다."),
 	JSON_PARSING_EXCEPTION(HttpStatus.BAD_REQUEST, "JSON 처리 중 오류가 발생했습니다"),
 	NOT_MATCH_GUEST_CODE(HttpStatus.BAD_REQUEST, "게스트 코드가 일치하지 않습니다."),
-	INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다.");
+	INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
+	TEMPORARY_LOGIN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "일시적인 로그인 오류입니다.");
 	private final HttpStatus httpStatus;
 	private final String message;
 

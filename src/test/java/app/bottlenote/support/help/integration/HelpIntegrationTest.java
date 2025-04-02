@@ -58,7 +58,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
 	@BeforeEach
 	void setUp() {
-		oauthRequest = new OauthRequest("chadongmin@naver.com", SocialType.KAKAO, null, null);
+		oauthRequest = new OauthRequest("chadongmin@naver.com", null, SocialType.KAKAO, null, null);
 		helpUpsertRequest = HelpObjectFixture.getHelpUpsertRequest();
 
 	}
@@ -72,15 +72,15 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 		helpUpsertRequest = new HelpUpsertRequest("로그인이 안돼요", null, List.of(new HelpImageItem(1L, "https://test.com")));
 		// given when
 		mockMvc.perform(post("/api/v1/help")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(mapper.writeValueAsBytes(helpUpsertRequest))
-				.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
-				.with(csrf())
-			)
-			.andDo(print())
-			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.errors[?(@.code == 'REQUIRED_HELP_TYPE')].status").value(error.status().name()))
-			.andExpect(jsonPath("$.errors[?(@.code == 'REQUIRED_HELP_TYPE')].message").value(error.message()));
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(mapper.writeValueAsBytes(helpUpsertRequest))
+						.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+						.with(csrf())
+				)
+				.andDo(print())
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.errors[?(@.code == 'REQUIRED_HELP_TYPE')].status").value(error.status().name()))
+				.andExpect(jsonPath("$.errors[?(@.code == 'REQUIRED_HELP_TYPE')].message").value(error.message()));
 	}
 
 	@Nested
@@ -92,16 +92,16 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 		void test_1() throws Exception {
 			// given when
 			MvcResult result = mockMvc.perform(post("/api/v1/help")
-					.contentType(MediaType.APPLICATION_JSON)
-					.content(mapper.writeValueAsBytes(helpUpsertRequest))
-					.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
-					.with(csrf())
-				)
-				.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.code").value(200))
-				.andExpect(jsonPath("$.data").exists())
-				.andReturn();
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(mapper.writeValueAsBytes(helpUpsertRequest))
+							.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+							.with(csrf())
+					)
+					.andDo(print())
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$.code").value(200))
+					.andExpect(jsonPath("$.data").exists())
+					.andReturn();
 
 			String contentAsString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 			GlobalResponse response = mapper.readValue(contentAsString, GlobalResponse.class);
@@ -113,8 +113,8 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 	}
 
 	@Sql(scripts = {
-		"/init-script/init-user.sql",
-		"/init-script/init-help.sql"})
+			"/init-script/init-user.sql",
+			"/init-script/init-help.sql"})
 	@Nested
 	@DisplayName("[Integration] 문의글 조회 통합테스트")
 	class HelpReadIntegrationTest extends IntegrationTestSupport {
@@ -125,15 +125,15 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 			// given
 
 			MvcResult result = mockMvc.perform(get("/api/v1/help")
-					.contentType(MediaType.APPLICATION_JSON)
-					.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
-					.with(csrf())
-				)
-				.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.code").value(200))
-				.andExpect(jsonPath("$.data").exists())
-				.andReturn();
+							.contentType(MediaType.APPLICATION_JSON)
+							.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+							.with(csrf())
+					)
+					.andDo(print())
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$.code").value(200))
+					.andExpect(jsonPath("$.data").exists())
+					.andReturn();
 
 			String contentAsString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 			GlobalResponse response = mapper.readValue(contentAsString, GlobalResponse.class);
@@ -148,15 +148,15 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 			// given
 
 			MvcResult result = mockMvc.perform(get("/api/v1/help/{helpId}", 1L)
-					.contentType(MediaType.APPLICATION_JSON)
-					.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
-					.with(csrf())
-				)
-				.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.code").value(200))
-				.andExpect(jsonPath("$.data").exists())
-				.andReturn();
+							.contentType(MediaType.APPLICATION_JSON)
+							.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+							.with(csrf())
+					)
+					.andDo(print())
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$.code").value(200))
+					.andExpect(jsonPath("$.data").exists())
+					.andReturn();
 
 			String contentAsString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 			GlobalResponse response = mapper.readValue(contentAsString, GlobalResponse.class);
@@ -167,8 +167,8 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 	}
 
 	@Sql(scripts = {
-		"/init-script/init-user.sql",
-		"/init-script/init-help.sql"})
+			"/init-script/init-user.sql",
+			"/init-script/init-help.sql"})
 	@Nested
 	@DisplayName("[Integration] 문의글 수정 통합테스트")
 	class HelpModifyIntegrationTest extends IntegrationTestSupport {
@@ -179,16 +179,16 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 			// given when
 			long helpId = 1L;
 			MvcResult result = mockMvc.perform(patch("/api/v1/help/{helpId}", helpId)
-					.contentType(MediaType.APPLICATION_JSON)
-					.content(mapper.writeValueAsBytes(helpUpsertRequest))
-					.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
-					.with(csrf())
-				)
-				.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.code").value(200))
-				.andExpect(jsonPath("$.data").exists())
-				.andReturn();
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(mapper.writeValueAsBytes(helpUpsertRequest))
+							.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+							.with(csrf())
+					)
+					.andDo(print())
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$.code").value(200))
+					.andExpect(jsonPath("$.data").exists())
+					.andReturn();
 
 			String contentAsString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 			GlobalResponse response = mapper.readValue(contentAsString, GlobalResponse.class);
@@ -203,19 +203,19 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 		void test_2() throws Exception {
 			// given when
 			long helpId = 1L;
-			oauthRequest = new OauthRequest("test@naver.com", SocialType.KAKAO, null, null);
+			oauthRequest = new OauthRequest("test@naver.com", null, SocialType.KAKAO, null, null);
 			Error error = Error.of(HELP_NOT_AUTHORIZED);
 
 			mockMvc.perform(patch("/api/v1/help/{helpId}", helpId)
-					.contentType(MediaType.APPLICATION_JSON)
-					.content(mapper.writeValueAsBytes(helpUpsertRequest))
-					.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
-					.with(csrf())
-				)
-				.andDo(print())
-				.andExpect(status().isUnauthorized())
-				.andExpect(jsonPath("$.errors[?(@.code == 'HELP_NOT_AUTHORIZED')].status").value(error.status().name()))
-				.andExpect(jsonPath("$.errors[?(@.code == 'HELP_NOT_AUTHORIZED')].message").value(error.message()));
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(mapper.writeValueAsBytes(helpUpsertRequest))
+							.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+							.with(csrf())
+					)
+					.andDo(print())
+					.andExpect(status().isUnauthorized())
+					.andExpect(jsonPath("$.errors[?(@.code == 'HELP_NOT_AUTHORIZED')].status").value(error.status().name()))
+					.andExpect(jsonPath("$.errors[?(@.code == 'HELP_NOT_AUTHORIZED')].message").value(error.message()));
 		}
 
 		@DisplayName("존재하지 않는 문의글을 수정할 수 없다.")
@@ -223,19 +223,19 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 		void test_3() throws Exception {
 			// given when
 			long helpId = -1L;
-			oauthRequest = new OauthRequest("test@naver.com", SocialType.KAKAO, null, null);
+			oauthRequest = new OauthRequest("test@naver.com", null, SocialType.KAKAO, null, null);
 			Error error = Error.of(HELP_NOT_FOUND);
 
 			mockMvc.perform(patch("/api/v1/help/{helpId}", helpId)
-					.contentType(MediaType.APPLICATION_JSON)
-					.content(mapper.writeValueAsBytes(helpUpsertRequest))
-					.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
-					.with(csrf())
-				)
-				.andDo(print())
-				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.errors[?(@.code == 'HELP_NOT_FOUND')].status").value(error.status().name()))
-				.andExpect(jsonPath("$.errors[?(@.code == 'HELP_NOT_FOUND')].message").value(error.message()));
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(mapper.writeValueAsBytes(helpUpsertRequest))
+							.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+							.with(csrf())
+					)
+					.andDo(print())
+					.andExpect(status().isBadRequest())
+					.andExpect(jsonPath("$.errors[?(@.code == 'HELP_NOT_FOUND')].status").value(error.status().name()))
+					.andExpect(jsonPath("$.errors[?(@.code == 'HELP_NOT_FOUND')].message").value(error.message()));
 		}
 
 		@DisplayName("Not null 필드에 null이 할당되면 예외를 반환한다.")
@@ -248,21 +248,21 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 			helpUpsertRequest = new HelpUpsertRequest(null, HelpType.USER, List.of(new HelpImageItem(1L, "https://test.com")));
 			// given when
 			mockMvc.perform(patch("/api/v1/help/{helpId}", helpId)
-					.contentType(MediaType.APPLICATION_JSON)
-					.content(mapper.writeValueAsBytes(helpUpsertRequest))
-					.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
-					.with(csrf())
-				)
-				.andDo(print())
-				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.errors[?(@.code == 'CONTENT_NOT_EMPTY')].status").value(error.status().name()))
-				.andExpect(jsonPath("$.errors[?(@.code == 'CONTENT_NOT_EMPTY')].message").value(error.message()));
+							.contentType(MediaType.APPLICATION_JSON)
+							.content(mapper.writeValueAsBytes(helpUpsertRequest))
+							.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+							.with(csrf())
+					)
+					.andDo(print())
+					.andExpect(status().isBadRequest())
+					.andExpect(jsonPath("$.errors[?(@.code == 'CONTENT_NOT_EMPTY')].status").value(error.status().name()))
+					.andExpect(jsonPath("$.errors[?(@.code == 'CONTENT_NOT_EMPTY')].message").value(error.message()));
 		}
 	}
 
 	@Sql(scripts = {
-		"/init-script/init-user.sql",
-		"/init-script/init-help.sql"})
+			"/init-script/init-user.sql",
+			"/init-script/init-help.sql"})
 	@Nested
 	@DisplayName("[Integration] 문의글 수정 통합테스트")
 	class HelpDeleteIntegrationTest extends IntegrationTestSupport {
@@ -273,15 +273,15 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 			// given when
 			long helpId = 1L;
 			MvcResult result = mockMvc.perform(delete("/api/v1/help/{helpId}", helpId)
-					.contentType(MediaType.APPLICATION_JSON)
-					.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
-					.with(csrf())
-				)
-				.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.code").value(200))
-				.andExpect(jsonPath("$.data").exists())
-				.andReturn();
+							.contentType(MediaType.APPLICATION_JSON)
+							.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+							.with(csrf())
+					)
+					.andDo(print())
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$.code").value(200))
+					.andExpect(jsonPath("$.data").exists())
+					.andReturn();
 
 			String contentAsString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 			GlobalResponse response = mapper.readValue(contentAsString, GlobalResponse.class);
@@ -296,18 +296,18 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 		void test_2() throws Exception {
 			// given when
 			long helpId = -1L;
-			oauthRequest = new OauthRequest("test@naver.com", SocialType.KAKAO, null, null);
+			oauthRequest = new OauthRequest("test@naver.com", null, SocialType.KAKAO, null, null);
 			Error error = Error.of(HELP_NOT_FOUND);
 
 			mockMvc.perform(delete("/api/v1/help/{helpId}", helpId)
-					.contentType(MediaType.APPLICATION_JSON)
-					.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
-					.with(csrf())
-				)
-				.andDo(print())
-				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.errors[?(@.code == 'HELP_NOT_FOUND')].status").value(error.status().name()))
-				.andExpect(jsonPath("$.errors[?(@.code == 'HELP_NOT_FOUND')].message").value(error.message()));
+							.contentType(MediaType.APPLICATION_JSON)
+							.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+							.with(csrf())
+					)
+					.andDo(print())
+					.andExpect(status().isBadRequest())
+					.andExpect(jsonPath("$.errors[?(@.code == 'HELP_NOT_FOUND')].status").value(error.status().name()))
+					.andExpect(jsonPath("$.errors[?(@.code == 'HELP_NOT_FOUND')].message").value(error.message()));
 		}
 
 		@DisplayName("유저 본인이 작성한 글이 아니면 문의글을 삭제할 수 없다.")
@@ -315,18 +315,18 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 		void test_3() throws Exception {
 			// given when
 			long helpId = 1L;
-			oauthRequest = new OauthRequest("test@naver.com", SocialType.KAKAO, null, null);
+			oauthRequest = new OauthRequest("test@naver.com", null, SocialType.KAKAO, null, null);
 			Error error = Error.of(HELP_NOT_AUTHORIZED);
 
 			mockMvc.perform(delete("/api/v1/help/{helpId}", helpId)
-					.contentType(MediaType.APPLICATION_JSON)
-					.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
-					.with(csrf())
-				)
-				.andDo(print())
-				.andExpect(status().isUnauthorized())
-				.andExpect(jsonPath("$.errors[?(@.code == 'HELP_NOT_AUTHORIZED')].status").value(error.status().name()))
-				.andExpect(jsonPath("$.errors[?(@.code == 'HELP_NOT_AUTHORIZED')].message").value(error.message()));
+							.contentType(MediaType.APPLICATION_JSON)
+							.header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+							.with(csrf())
+					)
+					.andDo(print())
+					.andExpect(status().isUnauthorized())
+					.andExpect(jsonPath("$.errors[?(@.code == 'HELP_NOT_AUTHORIZED')].status").value(error.status().name()))
+					.andExpect(jsonPath("$.errors[?(@.code == 'HELP_NOT_AUTHORIZED')].message").value(error.message()));
 		}
 	}
 }

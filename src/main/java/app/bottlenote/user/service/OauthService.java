@@ -41,16 +41,51 @@ public class OauthService {
 	@Transactional
 	public TokenItem login(OauthRequest oauthReq) {
 		final String email = oauthReq.email();
+		final String socialUniqueId = oauthReq.socialUniqueId();
 		final SocialType socialType = oauthReq.socialType();
-		final GenderType genderType = oauthReq.gender();
-		final Integer age = oauthReq.age();
 
-		User user = oauthRepository.findByEmail(email).orElseGet(() -> oauthSignUp(email, socialType, genderType, age, UserType.ROLE_USER));
+		switch (socialType) {
+			case APPLE -> {
+				return doAppleLogin(oauthReq, socialUniqueId, email, socialType);
+			}
+			default -> {
+				return doLogin(oauthReq, email, socialType);
+			}
+		}
+	}
 
+	private TokenItem doLogin(OauthRequest oauthReq, String email, SocialType socialType) {
+		User user;
+		user = oauthRepository.findByEmail(email)
+				.orElseGet(() -> oauthSignUp(oauthReq, UserType.ROLE_USER));
+		checkActiveUser(user);
+		return getTokenItem(user, socialType);
+	}
+
+	private TokenItem doAppleLogin(OauthRequest oauthReq, String socialUniqueId, String email, SocialType socialType) {
+		User user;
+		//최초 로그인 (email과 socialUniqueId 모두 존재하는 경우)
+		if (socialUniqueId != null && !socialUniqueId.isBlank() && email != null && !email.isBlank()) {
+			user = oauthSignUp(oauthReq, UserType.ROLE_USER);
+		} else {
+			if (socialUniqueId == null) {
+				log.error("ERROR : socialUniqueId is null");
+				throw new UserException(UserExceptionCode.TEMPORARY_LOGIN_ERROR);
+			}
+			user = oauthRepository.findBySocialUniqueId(socialUniqueId).orElseThrow(
+					() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
+		}
+		checkActiveUser(user);
+		return getTokenItem(user, socialType);
+	}
+
+	private void checkActiveUser(User user) {
 		if (Boolean.FALSE.equals(user.isAlive()))
 			throw new UserException(UserExceptionCode.USER_DELETED);
+	}
 
-		user.addSocialType(oauthReq.socialType());
+	private TokenItem getTokenItem(User user, SocialType socialType) {
+		user.addSocialType(socialType);
 		TokenItem token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
 		user.updateRefreshToken(token.refreshToken());
 		return token;
@@ -59,7 +94,7 @@ public class OauthService {
 	@Transactional
 	public void restoreUser(String email, String password) {
 		User user = oauthRepository.findByEmail(email)
-			.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
+				.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
 
 		if (Boolean.TRUE.equals(user.isAlive()))
 			throw new UserException(UserExceptionCode.USER_ALREADY_EXISTS);
@@ -78,37 +113,30 @@ public class OauthService {
 	@Transactional
 	public String guestLogin() {
 		final int expireTime = 1000 * 60 * 60 * 24;
+		OauthRequest oauthRequest = new OauthRequest(
+				"guest" + UUID.randomUUID() + "@bottlenote.com",
+				"socialUniqueId" + UUID.randomUUID(),
+				SocialType.APPLE,
+				GenderType.MALE,
+				30);
 		User guest = oauthRepository.loadGuestUser()
-			.orElseGet(() ->
-				oauthSignUp("guest" + UUID.randomUUID() + "@bottlenote.com",
-					SocialType.APPLE,
-					GenderType.MALE,
-					30,
-					UserType.ROLE_GUEST
-				)
-			);
+				.orElseGet(() -> oauthSignUp(oauthRequest, UserType.ROLE_GUEST));
 		return tokenProvider.createGuestToken(
-			guest.getId(),
-			expireTime
+				guest.getId(),
+				expireTime
 		);
 	}
 
-	@Transactional
-	public User oauthSignUp(
-		String email,
-		SocialType socialType,
-		GenderType genderType,
-		Integer age,
-		UserType userType
-	) {
+	private User oauthSignUp(OauthRequest oauthRequest, UserType userType) {
 		User user = User.builder()
-			.email(email)
-			.socialType(List.of(socialType))
-			.role(userType)
-			.gender(genderType)
-			.age(age)
-			.nickName(generateNickname())
-			.build();
+				.email(oauthRequest.email())
+				.socialUniqueId(oauthRequest.socialUniqueId())
+				.socialType(List.of(oauthRequest.socialType()))
+				.role(userType)
+				.gender(oauthRequest.gender())
+				.age(oauthRequest.age())
+				.nickName(generateNickname())
+				.build();
 
 		return oauthRepository.save(user);
 	}
@@ -125,11 +153,11 @@ public class OauthService {
 
 		//refresh Token DB에 존재하는지 검사
 		User user = oauthRepository.findByRefreshToken(refreshToken).orElseThrow(
-			() -> new UserException(INVALID_REFRESH_TOKEN)
+				() -> new UserException(INVALID_REFRESH_TOKEN)
 		);
 
 		TokenItem reissuedToken = tokenProvider.generateToken(user.getEmail(),
-			user.getRole(), user.getId());
+				user.getRole(), user.getId());
 
 		// DB에 저장된 refresh 토큰을 재발급한 refresh 토큰으로 업데이트
 		user.updateRefreshToken(reissuedToken.refreshToken());
@@ -145,25 +173,25 @@ public class OauthService {
 
 		String encodePassword = passwordEncoder.encode(password);
 		User user = oauthRepository.save(User.builder()
-			.email(email)
-			.password(encodePassword)
-			.role(UserType.ROLE_USER)
-			.socialType(List.of(SocialType.BASIC))
-			.nickName(generateNickname())
-			.age(age)
-			.gender(gender)
-			.build());
+				.email(email)
+				.password(encodePassword)
+				.role(UserType.ROLE_USER)
+				.socialType(List.of(SocialType.BASIC))
+				.nickName(generateNickname())
+				.age(age)
+				.gender(gender)
+				.build());
 
 		TokenItem token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
 		user.updateRefreshToken(token.refreshToken());
 
 		return BasicAccountResponse.builder()
-			.message(user.getNickName() + "님 환영합니다!")
-			.email(user.getEmail())
-			.nickname(user.getNickName())
-			.accessToken(token.accessToken())
-			.refreshToken(token.refreshToken())
-			.build();
+				.message(user.getNickName() + "님 환영합니다!")
+				.email(user.getEmail())
+				.nickname(user.getNickName())
+				.accessToken(token.accessToken())
+				.refreshToken(token.refreshToken())
+				.build();
 	}
 
 	@Transactional
@@ -173,8 +201,7 @@ public class OauthService {
 			throw new UserException(UserExceptionCode.INVALID_PASSWORD);
 		}
 
-		if (Boolean.FALSE.equals(user.isAlive()))
-			throw new UserException(UserExceptionCode.USER_DELETED);
+		checkActiveUser(user);
 
 		TokenItem token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
 		user.updateRefreshToken(token.refreshToken());
@@ -198,7 +225,6 @@ public class OauthService {
 			return validateToken ? "Token is valid" : "Token is invalid {empty}";
 		} catch (Exception e) {
 			log.error("Token is invalid : {}", e.getMessage());
-			//return "Token is invalid :{}" + e.getMessage();
 			return String.format("Token is invalid {%s}", e.getMessage());
 		}
 	}

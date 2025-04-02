@@ -2,9 +2,10 @@ package app.bottlenote.user.repository;
 
 import app.bottlenote.user.domain.User;
 import feign.Param;
-import java.util.Optional;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+
+import java.util.Optional;
 
 public interface OauthRepository extends CrudRepository<User, Long> {
 
@@ -17,6 +18,8 @@ public interface OauthRepository extends CrudRepository<User, Long> {
 			""",
 		nativeQuery = true)
 	Optional<User> findByEmailAndSocialType(@Param("email") String email, @Param("socialType") String socialType);
+
+	Optional<User> findBySocialUniqueId(String socialUniqueId);
 
 	Optional<User> findByNickName(String nickName);
 

@@ -49,6 +49,10 @@ public class User extends BaseTimeEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	@Comment("소셜 로그인 제공자의 고유 식별자")
+	@Column(name = "social_unique_id", unique = true)
+	private String socialUniqueId;
+
 	@Comment("사용자 이메일")
 	@Column(name = "email", nullable = false, unique = true)
 	private String email;
