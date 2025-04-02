@@ -92,20 +92,6 @@ class OauthServiceTest {
 	}
 
 	@Test
-	@DisplayName("회원가입을 할 수 있다.")
-	void signup_test() {
-
-		//given
-
-		//when
-		when(oauthRepository.save(any(User.class))).thenReturn(user);
-		//then
-		User resultUser = oauthService.oauthSignUp(request, UserType.ROLE_USER);
-
-		assertThat(resultUser.getAge()).isEqualTo(request.age());
-	}
-
-	@Test
 	@DisplayName("로그인을 할 수 있다.")
 	void signin_test() {
 

@@ -43,35 +43,40 @@ public class OauthService {
 		final String email = oauthReq.email();
 		final String socialUniqueId = oauthReq.socialUniqueId();
 		final SocialType socialType = oauthReq.socialType();
-		final GenderType genderType = oauthReq.gender();
-		final Integer age = oauthReq.age();
-
-		User user;
 
 		switch (socialType) {
 			case APPLE -> {
-				//최초 로그인 (email과 socialUniqueId 모두 존재하는 경우)
-				if (socialUniqueId != null && !socialUniqueId.isBlank() && email != null && !email.isBlank()) {
-					user = oauthSignUp(oauthReq, UserType.ROLE_USER);
-					checkActiveUser(user);
-					return getTokenItem(user, socialType);
-				} else {
-					if (socialUniqueId == null) {
-						throw new UserException(UserExceptionCode.TEMPORARY_LOGIN_ERROR);
-					}
-					user = oauthRepository.findBySocialUniqueId(socialUniqueId).orElseThrow(
-							() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
-					checkActiveUser(user);
-					return getTokenItem(user, socialType);
-				}
+				return doAppleLogin(oauthReq, socialUniqueId, email, socialType);
 			}
 			default -> {
-				user = oauthRepository.findByEmail(email)
-						.orElseGet(() -> oauthSignUp(oauthReq, UserType.ROLE_USER));
-				checkActiveUser(user);
-				return getTokenItem(user, socialType);
+				return doLogin(oauthReq, email, socialType);
 			}
 		}
+	}
+
+	private TokenItem doLogin(OauthRequest oauthReq, String email, SocialType socialType) {
+		User user;
+		user = oauthRepository.findByEmail(email)
+				.orElseGet(() -> oauthSignUp(oauthReq, UserType.ROLE_USER));
+		checkActiveUser(user);
+		return getTokenItem(user, socialType);
+	}
+
+	private TokenItem doAppleLogin(OauthRequest oauthReq, String socialUniqueId, String email, SocialType socialType) {
+		User user;
+		//최초 로그인 (email과 socialUniqueId 모두 존재하는 경우)
+		if (socialUniqueId != null && !socialUniqueId.isBlank() && email != null && !email.isBlank()) {
+			user = oauthSignUp(oauthReq, UserType.ROLE_USER);
+		} else {
+			if (socialUniqueId == null) {
+				log.error("ERROR : socialUniqueId is null");
+				throw new UserException(UserExceptionCode.TEMPORARY_LOGIN_ERROR);
+			}
+			user = oauthRepository.findBySocialUniqueId(socialUniqueId).orElseThrow(
+					() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
+		}
+		checkActiveUser(user);
+		return getTokenItem(user, socialType);
 	}
 
 	private void checkActiveUser(User user) {
@@ -122,8 +127,7 @@ public class OauthService {
 		);
 	}
 
-	@Transactional
-	public User oauthSignUp(OauthRequest oauthRequest, UserType userType) {
+	private User oauthSignUp(OauthRequest oauthRequest, UserType userType) {
 		User user = User.builder()
 				.email(oauthRequest.email())
 				.socialUniqueId(oauthRequest.socialUniqueId())
@@ -221,7 +225,6 @@ public class OauthService {
 			return validateToken ? "Token is valid" : "Token is invalid {empty}";
 		} catch (Exception e) {
 			log.error("Token is invalid : {}", e.getMessage());
-			//return "Token is invalid :{}" + e.getMessage();
 			return String.format("Token is invalid {%s}", e.getMessage());
 		}
 	}
