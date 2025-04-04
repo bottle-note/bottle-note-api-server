@@ -1,0 +1,75 @@
+# act workflow_dispatch -W .github/workflows/docker_image_upload.yml --secret-file .secrets --container-architecture linux/arm64
+name: Build and Push to ECR
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [ closed ]
+    branches:
+      - dev
+      - prod
+
+concurrency:
+  group: "ecr-upload"
+  cancel-in-progress: true
+
+jobs:
+  docker-image-upload:
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.build-image.outputs.image_tag }}
+    steps:
+      - name: Checkout code with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+      - name: Configure 1Password Service Account
+        uses: 1password/load-secrets-action/configure@v2
+        with:
+          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+      - name: Load secret
+        uses: 1password/load-secrets-action@v2
+        id: op-load-aws-secret
+        with:
+          export-env: true
+        env:
+          AWS_ACCESS_KEY_ID: "op://vault/ecr iam authentication/access key id"
+          AWS_SECRET_ACCESS_KEY: "op://vault/ecr iam authentication/secret access key"
+          AWS_REGION: "op://vault/ecr iam authentication/region"
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Build, tag, and push to ECR
+        id: build-image
+        run: |
+          # 이미지 태그 생성
+          IMAGE_TAG=$(date -u +"%Y%m%dT%H%M%SZ")
+          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+          # 이미지 빌드 및 푸시
+          docker buildx build --platform linux/amd64,linux/arm64 \
+            --provenance false \
+            -t ${{ steps.login-ecr.outputs.registry }}/ecr-bottle-note-api:$IMAGE_TAG \
+            --push .
+          echo "이미지가 성공적으로 푸시되었습니다: ${{ steps.login-ecr.outputs.registry }}/ecr-bottle-note-api:$IMAGE_TAG"
+
+      - name: echo image tag
+        run: |
+          echo "image_tag=${{ steps.build-image.outputs.image_tag }}" >> $GITHUB_ENV
+
+
+  call-deploy-workflow:
+    needs: docker-image-upload
+    uses: ./.github/workflows/deploy-to-dev.yml
+    with:
+      IMAGE_TAG: ${{ needs.docker-image-upload.outputs.image_tag }}
+    secrets: inherit

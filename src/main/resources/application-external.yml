@@ -1,0 +1,20 @@
+# Profanity Filter
+profanity:
+  filter:
+    url: ${PROFANITY_FILTER_URL:https://api.profanity-filter.run/api/v1}
+    key: ${PROFANITY_FILTER_KEY}
+
+# Firebase
+app:
+  thirdParty:
+    firebase-configuration-file: ${FIREBASE_CONFIG_FILE}
+    base64file: ${FIREBASE_BASE64_FILE}
+
+# AWS S3
+amazon:
+  aws:
+    accessKey: ${AWS_ACCESS_KEY:AMAZON_AWS_ACCESS_KEY}
+    secretKey: ${AWS_SECRET_KEY:AMAZON_AWS_SECRET_KEY}
+    region: ${AWS_REGION:ap-northeast-2}
+    bucket: ${AWS_BUCKET:AMAZON_AWS_BUCKET}
+    cloudFrontUrl: ${AWS_CLOUDFRONT_URL:AMAZON_AWS_CLOUDFRONT_URL}

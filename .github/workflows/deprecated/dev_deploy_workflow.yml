@@ -1,13 +1,8 @@
 name: Dev Deploy Workflow
 
+# 배포 작업 개선으로 인한 기존 워크플로우 비 활성화
 on:
-  push:
-    branches:
-      - dev
-  pull_request:
-    types: [ closed ]
-    branches:
-      - dev
+  workflow_dispatch:
 
 # 동시에 여러 워크플로우가 실행되지 않도록 설정
 concurrency:
@@ -63,7 +58,7 @@ jobs:
           script: |
             cd /home/ubuntu/app/bottle-note
             touch  /home/ubuntu/app/bottle-note/src/main/resources/application-dev.yml
-            echo "${{ secrets.APPLICATION_DEV }}" | base64 --decode > src/main/resources/application-dev.yml  
+            echo "${{ secrets.APPLICATION_DEV }}" | base64 --decode > src/main/resources/application-dev.yml
             chmod +x gradlew
             ./gradlew clean build -x asciidoctor -x copyRestDocs
 

@@ -3,17 +3,16 @@ services:
   dev-bottle-note:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: build.Dockerfile
     container_name: dev-bottle-note
     ports:
       - "30001:30001"
+    env_file:
+      - .env
     environment:
       - TZ=Asia/Seoul
       - SPRING_PROFILES_ACTIVE=dev
-    volumes:
-      - /mnt/newspace/bottle-note-data:/app/data
     restart: unless-stopped
-    # 로그 제한 설정 추가
     logging:
       driver: "json-file"
       options:

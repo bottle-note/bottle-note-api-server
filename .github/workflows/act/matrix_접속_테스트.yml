@@ -1,0 +1,62 @@
+name: Set ENV Variables
+on:
+  workflow_dispatch:
+jobs:
+  set-env-variables:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: [
+          application-alpha,
+          application-bravo,
+          application-charlie
+        ]
+
+    steps:
+      - name: Configure 1Password Service Account
+        uses: 1password/load-secrets-action/configure@v2
+        with:
+          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+
+      - name: Load secret
+        uses: 1password/load-secrets-action@v2
+        id: op-load-aws-secret
+        with:
+          export-env: true
+        env:
+          AWS_ACCESS_KEY_ID: "op://vault/ecr iam authentication/access key id"
+          AWS_SECRET_ACCESS_KEY: "op://vault/ecr iam authentication/secret access key"
+
+      - name: Server host secret setup
+        id: op-load-server-secret
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: true
+          unset-previous: false # AWS 자격증명은 계속 필요하므로 유지
+        env:
+          SERVER_IP: op://vault/${{ matrix.environment }}-server/ip
+          SERVER_PORT: op://vault/${{ matrix.environment }}-server/port
+          SERVER_NAME: op://vault/${{ matrix.environment }}-server/user name
+          SERVER_PASSWORD: op://vault/${{ matrix.environment }}-server/password
+          SSH_KEY: op://vault/${{ matrix.environment }}-server-ssh/private_key?ssh-format=openssh
+
+      - name: 원격 접속 스탭
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.SERVER_IP }}
+          port: ${{ env.SERVER_PORT }}
+          username: ${{ env.SERVER_NAME }}
+          password: ${{ env.SERVER_PASSWORD }}
+          key: ${{ env.SSH_KEY }}
+          script: |
+            LOGDIR="/home/$(whoami)"
+            mkdir -p $LOGDIR
+            LOGFILE="$LOGDIR/${{ matrix.environment }}_connection_$(date '+%Y%m%d_%H%M%S').log"
+            {
+              echo "서버: ${{ matrix.environment }}"
+              echo "접속 시간: $(date '+%Y-%m-%d %H:%M:%S')"
+              echo "GitHub 워크플로우 ID: ${{ github.run_id }}"
+            } > $LOGFILE
+
+# act workflow_dispatch -W .github/workflows/matrix_접속_테스트.yml --secret-file .secrets
+# "op://vault/bravo-server-ssh-key/private_key?ssh-format=openssh"
