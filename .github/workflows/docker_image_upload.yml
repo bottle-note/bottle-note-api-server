@@ -3,6 +3,9 @@ name: Build and Push to ECR
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feature/279
   pull_request:
     types: [ closed ]
     branches:
