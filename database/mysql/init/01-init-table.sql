@@ -52,6 +52,7 @@ CREATE TABLE `alcohol`
 CREATE TABLE `users`
 (
     `id`             bigint       NOT NULL AUTO_INCREMENT COMMENT '사용자',
+	`social_unique_id` VARCHAR(255) NULL COMMENT '소셜 로그인 제공자의 고유 식별자',
     `email`          varchar(255) NOT NULL COMMENT '사용자 소셜 이메일',
     `password`       varchar(255) NULL COMMENT '사용자 비밀번호',
     `nick_name`      varchar(255) NOT NULL COMMENT '사용자 소셜 닉네임 ( 수정 가능 )',
@@ -66,7 +67,8 @@ CREATE TABLE `users`
     `last_modify_at` timestamp    NULL COMMENT '최종 생성일',
     PRIMARY KEY (`id`),
     UNIQUE KEY `email` (`email`),
-    UNIQUE KEY `nick_name` (`nick_name`)
+	UNIQUE KEY `nick_name` (`nick_name`),
+	UNIQUE KEY `social_unique_id` (`social_unique_id`)
 ) COMMENT = '사용자';
 
 CREATE TABLE `picks`

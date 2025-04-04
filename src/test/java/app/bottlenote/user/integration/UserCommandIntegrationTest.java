@@ -47,33 +47,33 @@ class UserCommandIntegrationTest extends IntegrationTestSupport {
 	private UserRepository userRepository;
 
 	@Sql(scripts = {
-		"/init-script/init-user.sql"}
+			"/init-script/init-user.sql"}
 	)
 	@DisplayName("회원탈퇴에 성공한다.")
 	@Test
 	void test_1() throws Exception {
 		// given
 		MvcResult result = mockMvc.perform(delete("/api/v1/users")
-				.contentType(MediaType.APPLICATION_JSON)
-				.header("Authorization", "Bearer " + getToken())
-				.with(csrf())
-			)
-			.andDo(print())
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.code").value(200))
-			.andExpect(jsonPath("$.data").exists())
-			.andReturn();
+						.contentType(MediaType.APPLICATION_JSON)
+						.header("Authorization", "Bearer " + getToken())
+						.with(csrf())
+				)
+				.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.code").value(200))
+				.andExpect(jsonPath("$.data").exists())
+				.andReturn();
 
 		String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 		GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
 		WithdrawUserResultResponse withdrawUserResultResponse = mapper.convertValue(response.getData(), WithdrawUserResultResponse.class);
 
 		userRepository.findById(withdrawUserResultResponse.userId())
-			.ifPresent(withdraw -> assertEquals(DELETED, withdraw.getStatus()));
+				.ifPresent(withdraw -> assertEquals(DELETED, withdraw.getStatus()));
 	}
 
 	@Sql(scripts = {
-		"/init-script/init-user.sql"}
+			"/init-script/init-user.sql"}
 	)
 	@DisplayName("탈퇴한 회원이 다시 탈퇴하는 경우 성공")
 	@Test
@@ -85,18 +85,18 @@ class UserCommandIntegrationTest extends IntegrationTestSupport {
 		statusField.set(firstUser, UserStatus.DELETED);
 
 		mockMvc.perform(delete("/api/v1/users")
-				.contentType(MediaType.APPLICATION_JSON)
-				.header("Authorization", "Bearer " + getToken())
-				.with(csrf())
-			)
-			.andDo(print())
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.code").value(200))
-			.andExpect(jsonPath("$.data").exists());
+						.contentType(MediaType.APPLICATION_JSON)
+						.header("Authorization", "Bearer " + getToken())
+						.with(csrf())
+				)
+				.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.code").value(200))
+				.andExpect(jsonPath("$.data").exists());
 	}
 
 	@Sql(scripts = {
-		"/init-script/init-user.sql"}
+			"/init-script/init-user.sql"}
 	)
 	@DisplayName("탈퇴한 회원이 재로그인 하는 경우 예외가 발생한다.")
 	@Test
@@ -105,47 +105,47 @@ class UserCommandIntegrationTest extends IntegrationTestSupport {
 		final User firstUser = oauthRepository.getFirstUser().get();
 
 		mockMvc.perform(delete("/api/v1/users")
-				.contentType(MediaType.APPLICATION_JSON)
-				.header("Authorization", "Bearer " + getToken())
-				.with(csrf())
-			)
-			.andDo(print())
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.code").value(200))
-			.andExpect(jsonPath("$.data").exists());
+						.contentType(MediaType.APPLICATION_JSON)
+						.header("Authorization", "Bearer " + getToken())
+						.with(csrf())
+				)
+				.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.code").value(200))
+				.andExpect(jsonPath("$.data").exists());
 
 		mockMvc.perform(post("/api/v1/oauth/login")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(mapper.writeValueAsString(new OauthRequest(firstUser.getEmail(), SocialType.KAKAO, null, null)))
-				.with(csrf())
-			)
-			.andDo(print())
-			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.code").value(400))
-			.andExpect(jsonPath("$.errors").isArray())
-			.andExpect(jsonPath("$.errors[0].code").value(UserExceptionCode.USER_DELETED.name()))
-			.andExpect(jsonPath("$.errors[0].message").value(UserExceptionCode.USER_DELETED.getMessage()));
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(mapper.writeValueAsString(new OauthRequest(firstUser.getEmail(), null, SocialType.KAKAO, null, null)))
+						.with(csrf())
+				)
+				.andDo(print())
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.code").value(400))
+				.andExpect(jsonPath("$.errors").isArray())
+				.andExpect(jsonPath("$.errors[0].code").value(UserExceptionCode.USER_DELETED.name()))
+				.andExpect(jsonPath("$.errors[0].message").value(UserExceptionCode.USER_DELETED.getMessage()));
 	}
 
 
 	@Sql(scripts = {
-		"/init-script/init-user.sql"}
+			"/init-script/init-user.sql"}
 	)
 	@DisplayName("닉네임 변경에 성공한다.")
 	@Test
 	void test_4() throws Exception {
 
 		MvcResult result = mockMvc.perform(patch("/api/v1/users/nickname")
-				.contentType(MediaType.APPLICATION_JSON)
-				.header("Authorization", "Bearer " + getToken())
-				.content(mapper.writeValueAsString(new NicknameChangeRequest("newNickname")))
-				.with(csrf())
-			)
-			.andDo(print())
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.code").value(200))
-			.andExpect(jsonPath("$.data").exists())
-			.andReturn();
+						.contentType(MediaType.APPLICATION_JSON)
+						.header("Authorization", "Bearer " + getToken())
+						.content(mapper.writeValueAsString(new NicknameChangeRequest("newNickname")))
+						.with(csrf())
+				)
+				.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.code").value(200))
+				.andExpect(jsonPath("$.data").exists())
+				.andReturn();
 
 		String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 		GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
@@ -161,45 +161,45 @@ class UserCommandIntegrationTest extends IntegrationTestSupport {
 
 		// 중복 닉네임 생성
 		userRepository.save(User.builder()
-			.email("test@email.com")
-			.password("password")
-			.nickName("fail")
-			.role(UserType.ROLE_USER)
-			.socialType(List.of(SocialType.KAKAO))
-			.build());
+				.email("test@email.com")
+				.password("password")
+				.nickName("fail")
+				.role(UserType.ROLE_USER)
+				.socialType(List.of(SocialType.KAKAO))
+				.build());
 
 		mockMvc.perform(patch("/api/v1/users/nickname")
-				.contentType(MediaType.APPLICATION_JSON)
-				.header("Authorization", "Bearer " + getToken())
-				.content(mapper.writeValueAsString(new NicknameChangeRequest("fail")))
-				.with(csrf())
-			)
-			.andDo(print())
-			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.code").value(400))
-			.andExpect(jsonPath("$.errors").isArray())
-			.andExpect(jsonPath("$.errors[0].code").value(UserExceptionCode.USER_NICKNAME_NOT_VALID.name()))
-			.andExpect(jsonPath("$.errors[0].message").value(UserExceptionCode.USER_NICKNAME_NOT_VALID.getMessage()));
+						.contentType(MediaType.APPLICATION_JSON)
+						.header("Authorization", "Bearer " + getToken())
+						.content(mapper.writeValueAsString(new NicknameChangeRequest("fail")))
+						.with(csrf())
+				)
+				.andDo(print())
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.code").value(400))
+				.andExpect(jsonPath("$.errors").isArray())
+				.andExpect(jsonPath("$.errors[0].code").value(UserExceptionCode.USER_NICKNAME_NOT_VALID.name()))
+				.andExpect(jsonPath("$.errors[0].message").value(UserExceptionCode.USER_NICKNAME_NOT_VALID.getMessage()));
 	}
 
 	@Sql(scripts = {
-		"/init-script/init-user.sql"}
+			"/init-script/init-user.sql"}
 	)
 	@DisplayName("프로필 이미지 변경에 성공한다.")
 	@Test
 	void test_6() throws Exception {
 
 		MvcResult result = mockMvc.perform(patch("/api/v1/users/profile-image")
-				.contentType(MediaType.APPLICATION_JSON)
-				.header("Authorization", "Bearer " + getToken())
-				.content(mapper.writeValueAsString(new ProfileImageChangeRequest("newProfileImageUrl")))
-				.with(csrf())
-			)
-			.andDo(print())
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.code").value(200))
-			.andExpect(jsonPath("$.data").exists())
-			.andReturn();
+						.contentType(MediaType.APPLICATION_JSON)
+						.header("Authorization", "Bearer " + getToken())
+						.content(mapper.writeValueAsString(new ProfileImageChangeRequest("newProfileImageUrl")))
+						.with(csrf())
+				)
+				.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.code").value(200))
+				.andExpect(jsonPath("$.data").exists())
+				.andReturn();
 
 		String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 		GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
@@ -209,23 +209,23 @@ class UserCommandIntegrationTest extends IntegrationTestSupport {
 	}
 
 	@Sql(scripts = {
-		"/init-script/init-user.sql"}
+			"/init-script/init-user.sql"}
 	)
 	@DisplayName("프로필 이미지에 null을 넣는 경우 변경에 성공한다.(삭제)")
 	@Test
 	void test_7() throws Exception {
 
 		MvcResult result = mockMvc.perform(patch("/api/v1/users/profile-image")
-				.contentType(MediaType.APPLICATION_JSON)
-				.header("Authorization", "Bearer " + getToken())
-				.content(mapper.writeValueAsString(new ProfileImageChangeRequest(null)))
-				.with(csrf())
-			)
-			.andDo(print())
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.code").value(200))
-			.andExpect(jsonPath("$.data").exists())
-			.andReturn();
+						.contentType(MediaType.APPLICATION_JSON)
+						.header("Authorization", "Bearer " + getToken())
+						.content(mapper.writeValueAsString(new ProfileImageChangeRequest(null)))
+						.with(csrf())
+				)
+				.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.code").value(200))
+				.andExpect(jsonPath("$.data").exists())
+				.andReturn();
 
 		String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 		GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);

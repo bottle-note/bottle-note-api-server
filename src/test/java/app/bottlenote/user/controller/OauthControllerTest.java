@@ -52,9 +52,9 @@ class OauthControllerTest {
 	@BeforeEach
 	void setUp() {
 		tokenItem = TokenItem.builder()
-			.accessToken("access-token")
-			.refreshToken("refresh-token")
-			.build();
+				.accessToken("access-token")
+				.refreshToken("refresh-token")
+				.build();
 		oauthConfigProperties.printConfigs();
 	}
 
@@ -64,30 +64,30 @@ class OauthControllerTest {
 	void user_login_test() throws Exception {
 
 		//given
-		OauthRequest oauthRequest = new OauthRequest("cdm2883@naver.com", SocialType.KAKAO,
-			GenderType.MALE,
-			27);
+		OauthRequest oauthRequest = new OauthRequest("cdm2883@naver.com", null, SocialType.KAKAO,
+				GenderType.MALE,
+				27);
 
 		TokenItem tokenItem = TokenItem.builder()
-			.accessToken("accessToken")
-			.refreshToken("refreshToken")
-			.build();
+				.accessToken("accessToken")
+				.refreshToken("refreshToken")
+				.build();
 
 		//when
 		when(oauthService.login(oauthRequest)).thenReturn(tokenItem);
 
 		//then
 		mockMvc.perform(post("/api/v1/oauth/login")
-				.contentType(MediaType.APPLICATION_JSON)
-				.with(csrf())
-				.content(mapper.writeValueAsString(oauthRequest)))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.code").value("200"))
-			.andExpect(jsonPath("$.data.accessToken").value("accessToken"))
-			.andExpect(cookie().value("refresh-token", "refreshToken"))
-			.andExpect(cookie().httpOnly("refresh-token", true))
-			.andExpect(cookie().secure("refresh-token", true))
-			.andDo(print());
+						.contentType(MediaType.APPLICATION_JSON)
+						.with(csrf())
+						.content(mapper.writeValueAsString(oauthRequest)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.code").value("200"))
+				.andExpect(jsonPath("$.data.accessToken").value("accessToken"))
+				.andExpect(cookie().value("refresh-token", "refreshToken"))
+				.andExpect(cookie().httpOnly("refresh-token", true))
+				.andExpect(cookie().secure("refresh-token", true))
+				.andDo(print());
 	}
 
 	@Test
@@ -97,8 +97,8 @@ class OauthControllerTest {
 		Error error = Error.of(ValidExceptionCode.SOCIAL_TYPE_REQUIRED);
 
 		//given
-		OauthRequest oauthRequest = new OauthRequest("cdm2883@naver.com", null,
-			GenderType.MALE, 27);
+		OauthRequest oauthRequest = new OauthRequest("cdm2883@naver.com", null, null,
+				GenderType.MALE, 27);
 
 
 		//when
@@ -106,13 +106,13 @@ class OauthControllerTest {
 
 		//then
 		mockMvc.perform(post("/api/v1/oauth/login")
-				.contentType(MediaType.APPLICATION_JSON)
-				.with(csrf())
-				.content(mapper.writeValueAsString(oauthRequest)))
-			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
-			.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
-			.andExpect(jsonPath("$.errors[0].message").value(error.message()));
+						.contentType(MediaType.APPLICATION_JSON)
+						.with(csrf())
+						.content(mapper.writeValueAsString(oauthRequest)))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+				.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+				.andExpect(jsonPath("$.errors[0].message").value(error.message()));
 	}
 
 	@Test
@@ -121,21 +121,21 @@ class OauthControllerTest {
 		Error error = Error.of(ValidExceptionCode.AGE_MINIMUM);
 
 		//given
-		OauthRequest oauthRequest = new OauthRequest("cdm2883@naver.com", SocialType.KAKAO,
-			GenderType.MALE, -10);
+		OauthRequest oauthRequest = new OauthRequest("cdm2883@naver.com", null, SocialType.KAKAO,
+				GenderType.MALE, -10);
 
 		//when
 		when(oauthService.login(oauthRequest)).thenReturn(tokenItem);
 
 		//then
 		mockMvc.perform(post("/api/v1/oauth/login")
-				.contentType(MediaType.APPLICATION_JSON)
-				.with(csrf())
-				.content(mapper.writeValueAsString(oauthRequest)))
-			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
-			.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
-			.andExpect(jsonPath("$.errors[0].message").value(error.message()));
+						.contentType(MediaType.APPLICATION_JSON)
+						.with(csrf())
+						.content(mapper.writeValueAsString(oauthRequest)))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+				.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+				.andExpect(jsonPath("$.errors[0].message").value(error.message()));
 	}
 
 	@Test
@@ -146,26 +146,26 @@ class OauthControllerTest {
 		String reissueRefreshToken = "refresh-token";
 
 		TokenItem newTokenItem = TokenItem.builder()
-			.accessToken("new-access-token")
-			.refreshToken("new-refresh-token")
-			.build();
+				.accessToken("new-access-token")
+				.refreshToken("new-refresh-token")
+				.build();
 
 		//when
 		when(oauthService.refresh(reissueRefreshToken)).thenReturn(newTokenItem);
 
 		//then
 		mockMvc.perform(post("/api/v1/oauth/reissue")
-				.contentType(MediaType.APPLICATION_JSON)
-				.header("refresh-token", reissueRefreshToken)
-				.with(csrf())
-				.content(mapper.writeValueAsString(reissueRefreshToken)))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.code").value("200"))
-			.andExpect(jsonPath("$.data.accessToken").value("new-access-token"))
-			.andExpect(cookie().value("refresh-token", "new-refresh-token"))
-			.andExpect(cookie().httpOnly("refresh-token", true))
-			.andExpect(cookie().secure("refresh-token", true))
-			.andDo(print());
+						.contentType(MediaType.APPLICATION_JSON)
+						.header("refresh-token", reissueRefreshToken)
+						.with(csrf())
+						.content(mapper.writeValueAsString(reissueRefreshToken)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.code").value("200"))
+				.andExpect(jsonPath("$.data.accessToken").value("new-access-token"))
+				.andExpect(cookie().value("refresh-token", "new-refresh-token"))
+				.andExpect(cookie().httpOnly("refresh-token", true))
+				.andExpect(cookie().secure("refresh-token", true))
+				.andDo(print());
 	}
 
 	@Test
@@ -183,22 +183,22 @@ class OauthControllerTest {
 		String reissueRefreshToken = "refresh-tokenxzz";
 
 		TokenItem newTokenItem = TokenItem.builder()
-			.accessToken("new-access-token")
-			.refreshToken("new-refresh-token")
-			.build();
+				.accessToken("new-access-token")
+				.refreshToken("new-refresh-token")
+				.build();
 		//when
 		when(oauthService.refresh(reissueRefreshToken)).thenThrow(
-			new UserException(UserExceptionCode.INVALID_REFRESH_TOKEN));
+				new UserException(UserExceptionCode.INVALID_REFRESH_TOKEN));
 
 		//then
 		mockMvc.perform(post("/api/v1/oauth/reissue")
-				.contentType(MediaType.APPLICATION_JSON)
-				.header("refresh-token", reissueRefreshToken)
-				.with(csrf()))
-			.andExpect(status().isUnauthorized()).andDo(print())
-			.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
-			.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
-			.andExpect(jsonPath("$.errors[0].message").value(error.message()));
+						.contentType(MediaType.APPLICATION_JSON)
+						.header("refresh-token", reissueRefreshToken)
+						.with(csrf()))
+				.andExpect(status().isUnauthorized()).andDo(print())
+				.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+				.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+				.andExpect(jsonPath("$.errors[0].message").value(error.message()));
 
 	}
 
@@ -209,16 +209,16 @@ class OauthControllerTest {
 
 		// when
 		when(oauthService.refresh(reissueRefreshToken)).thenThrow(
-			new IllegalArgumentException("Refresh token is missing"));
+				new IllegalArgumentException("Refresh token is missing"));
 
 		// then
 		mockMvc.perform(post("/api/v1/oauth/reissue")
-				.contentType(MediaType.APPLICATION_JSON)
-				.with(csrf()))
-			.andExpect(status().isUnauthorized())
-			.andExpect(result -> assertTrue(
-				result.getResolvedException() instanceof IllegalArgumentException))
-			.andExpect(jsonPath("$.errors").exists());
+						.contentType(MediaType.APPLICATION_JSON)
+						.with(csrf()))
+				.andExpect(status().isUnauthorized())
+				.andExpect(result -> assertTrue(
+						result.getResolvedException() instanceof IllegalArgumentException))
+				.andExpect(jsonPath("$.errors").exists());
 	}
 
 
