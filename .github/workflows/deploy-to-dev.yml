@@ -1,5 +1,5 @@
+# act workflow_dispatch -W .github/workflows/deploy-to-dev.yml --secret-file .secrets --container-architecture linux/arm64
 name: Deploy to Dev
-
 on:
   workflow_call:
     inputs:
@@ -11,73 +11,106 @@ on:
         required: true
 
 jobs:
-  reusable_workflow_job:
+  dev_deploy_workflow_job:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: [
+          application-alpha,
+          application-bravo,
+          application-charlie
+        ]
     steps:
-      - name: Checkout code with submodules
-        uses: actions/checkout@v4
+      - name: Configure 1Password Service Account
+        uses: 1password/load-secrets-action/configure@v2
         with:
-          submodules: true
-          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
-      - name: Update submodules
-        run: |
-          git submodule update --init --recursive
-          git submodule update --remote
-
-
-      - name: Set ECR credentials and Env file
-        id: set-credentials
-        run: |
-          ECR_ACCESS_KEY=$(grep "ECR_ACCESS_KEY:" git.environment-variables/deploy/aws/ecr/properties.yaml | awk '{print $2}')
-          ECR_SECRET_ACCESS_KEY=$(grep "ECR_SECRET_ACCESS_KEY:" git.environment-variables/deploy/aws/ecr/properties.yaml | awk '{print $2}')
-          ECR_REGION=$(grep "ECR_REGION:" git.environment-variables/deploy/aws/ecr/properties.yaml | awk '{print $2}')
-          ECR_REGISTRY=$(grep "ECR_REGISTRY:" git.environment-variables/deploy/aws/ecr/properties.yaml | awk '{print $2}')
-
-          echo "AWS_ACCESS_KEY_ID=$ECR_ACCESS_KEY" >> $GITHUB_ENV
-          echo "AWS_SECRET_ACCESS_KEY=$ECR_SECRET_ACCESS_KEY" >> $GITHUB_ENV
-          echo "AWS_REGION=$ECR_REGION" >> $GITHUB_ENV
-          echo "ECR_REGISTRY=$ECR_REGISTRY" >> $GITHUB_ENV
-          echo "region=$ECR_REGION" >> $GITHUB_OUTPUT
-          echo "registry=$ECR_REGISTRY" >> $GITHUB_OUTPUT
-
-          ENV_FILE=$(cat git.environment-variables/deploy/.env.dev | base64 -w 0)
-          echo "$ENV_FILE" >> $GITHUB_OUTPUT
-
-
-      - name: Save Docker image to tar
-        run: |
-          docker pull ${{ steps.set-credentials.outputs.registry }}/bottle-note-api:${{ inputs.IMAGE_TAG }}
-          docker save ${{ steps.set-credentials.outputs.registry }}/bottle-note-api:${{ inputs.IMAGE_TAG }} > bottle-note-image.tar
-
-      - name: Transfer files to remote server
-        uses: appleboy/scp-action@master
+      - name: Load secret
+        uses: 1password/load-secrets-action@v2
+        id: op-load-aws-secret
         with:
-          host: ${{ secrets.DEV_SERVER_IP }}
-          username: ubuntu
-          key: ${{ secrets.DEV_SSH_KEY }}
-          port: ${{ secrets.DEV_SERVER_PORT }}
-          source: "bottle-note-image.tar git.environment-variables/deploy/.env.dev"
-          target: /home/ubuntu/app/bottle-note/
+          export-env: true
+        env:
+          AWS_ACCESS_KEY_ID: "op://vault/ecr iam authentication/access key id"
+          AWS_SECRET_ACCESS_KEY: "op://vault/ecr iam authentication/secret access key"
+          AWS_REGION: "op://vault/ecr iam authentication/region"
 
-      - name: Deploy on remote server
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Server host secret setup
+        id: op-load-server-secret
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: true
+          unset-previous: false
+        env:
+          SERVER_IP: op://vault/${{ matrix.environment }}-server/ip
+          SERVER_PORT: op://vault/${{ matrix.environment }}-server/port
+          SERVER_NAME: op://vault/${{ matrix.environment }}-server/user name
+          SERVER_PASSWORD: op://vault/${{ matrix.environment }}-server/password
+          SSH_KEY: op://vault/${{ matrix.environment }}-server-ssh/private_key?ssh-format=openssh
+
+      - name: Remote SSH Step
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.DEV_SERVER_IP }}
-          username: ubuntu
-          key: ${{ secrets.DEV_SSH_KEY }}
-          port: ${{ secrets.DEV_SERVER_PORT }}
+          host: ${{ env.SERVER_IP }}
+          port: ${{ env.SERVER_PORT }}
+          username: ${{ env.SERVER_NAME }}
+          password: ${{ env.SERVER_PASSWORD }}
+          key: ${{ env.SSH_KEY }}
           script: |
-            cd /home/ubuntu/app/bottle-note/
-            docker stop test-bottle-note || true
-            docker rm test-bottle-note || true
-            docker load < bottle-note-image.tar
+            # AWS 자격 증명 설정
+            aws configure set aws_access_key_id "${{ env.AWS_ACCESS_KEY_ID }}"
+            aws configure set aws_secret_access_key "${{ env.AWS_SECRET_ACCESS_KEY }}"
+            aws configure set region "${{ env.AWS_REGION }}"
+
+            # ECR 로그인
+            aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+
+            # 이미지 정보 설정
+            IMAGE_TAG="${{ inputs.IMAGE_TAG }}"
+            ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+            ECR_REPOSITORY="ecr-bottle-note-api"
+            FULL_IMAGE_NAME="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+            echo "다운로드할 이미지: $FULL_IMAGE_NAME"
+
+            # 이미지 다운로드
+            docker pull $FULL_IMAGE_NAME
+
+            # 다운로드 확인
+            docker images | grep $ECR_REPOSITORY
+
+            # 환경 변수 파일 설정
+            echo "${{ secrets.DEV_ENV }}" | base64 --decode > .bottlenote.development.ENV
+
+            # 기존 컨테이너 중지 및 삭제 (있는 경우)
+            docker stop bottle-note-api-api-development || true
+            docker rm bottle-note-api-api-development || true
+
             docker run -d \
-              --name test-bottle-note \
-              -p 30002:30001 \
+              --name bottle-note-api-api-development \
+              -p 30001:30001 \
+              --env-file .bottlenote.development.ENV \
               -e TZ=Asia/Seoul \
               -e SPRING_PROFILES_ACTIVE=dev \
-              --env-file .env.dev \
               --restart unless-stopped \
-              ${{ steps.set-credentials.outputs.registry }}/bottle-note-api:${{ inputs.IMAGE_TAG }}
-            rm bottle-note-image.tar
+              --log-driver json-file \
+              --log-opt max-size=10m \
+              --log-opt max-file=3 \
+              $FULL_IMAGE_NAME
+            docker ps | grep bottle-note-api-api-development
+
+            echo "사용하지 않는 모든 Docker 리소스 정리 중..."
+            docker system prune -f
+            docker image prune -a -f --filter "until=24h"
