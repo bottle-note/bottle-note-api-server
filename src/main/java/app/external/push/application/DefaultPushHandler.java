@@ -63,8 +63,8 @@ public class DefaultPushHandler implements PushHandler {
 	@Scheduled(fixedRate = 60000)
 	public void processPendingPushes() {
 		LocalDateTime now = LocalDateTime.now();
-		log.info("메시지 발행 처리 시작: {}", now);
 	/*	List<ScheduledPush> pendingPushes = scheduledPushRepository
+		log.info("메시지 발행 처리 시작: {}", now);
 			.findByStatusAndScheduledTimeLessThanEqual("PENDING", now);
 		for (ScheduledPush push : pendingPushes) {
 			try {

@@ -1,0 +1,32 @@
+# act workflow_dispatch -W .github/workflows/  dsd.yml --secret-file .secrets --container-architecture linux/arm64
+
+name: branch-flag-check
+on:
+  workflow_dispatch:
+jobs:
+  default_tasks:
+    steps:
+      - name: Configure 1Password Service Account
+        uses: 1password/load-secrets-action/configure@v2
+        with:
+          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+      - name: Load secret
+        uses: 1password/load-secrets-action@v2
+        id: op-load-aws-secret
+        with:
+          export-env: true
+        env:
+          AWS_ACCESS_KEY_ID: "op://vault/ecr iam authentication/access key id"
+          AWS_SECRET_ACCESS_KEY: "op://vault/ecr iam authentication/secret access key"
+          AWS_REGION: "op://vault/ecr iam authentication/region"
+
+call-deploy-workflow:
+  needs: default_tasks
+  steps:
+    - name: print now
+      run: |
+        echo "now is $(date)"
+
+#act
+# dev로 pr close 시
+# act pull_request -W .github/workflows/act/작업브랜치_분기_처리.yml --secret-file .secrets --container-architecture linux/arm64

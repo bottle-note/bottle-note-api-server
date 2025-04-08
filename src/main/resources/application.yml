@@ -18,7 +18,14 @@ spring:
     username: ${DB_USERNAME:localhost_bottle_note_username}
     password: ${DB_PASSWORD:localhost_bottle_note_password}
     hikari:
-      maximum-pool-size: 150
+      maximum-pool-size: 50
+      minimum-idle: 10
+      idle-timeout: 300000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      pool-name: HikariPool-BottleNote
+      leak-detection-threshold: 60000
+
   jpa:
     hibernate:
       ddl-auto: validate
