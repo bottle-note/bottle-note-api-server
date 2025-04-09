@@ -110,6 +110,11 @@ public class FakeReviewFacade implements ReviewFacade {
 		}
 	}
 
+	@Override
+	public Long getAlcoholIdByReviewId(Long reviewId) {
+		return -1L;
+	}
+
 	public void addReview(ReviewInfo reviewInfo) {
 		fakeDatabase.put(reviewInfo.reviewId(), reviewInfo);
 	}
