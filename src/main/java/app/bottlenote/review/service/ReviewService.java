@@ -20,7 +20,6 @@ import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.event.payload.ReviewRegistryEvent;
 import app.bottlenote.review.exception.ReviewException;
-import app.bottlenote.review.facade.ReviewFacade;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 import app.bottlenote.user.facade.UserFacade;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +39,7 @@ import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOU
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ReviewService implements ReviewFacade {
+public class ReviewService {
 
 	private final AlcoholFacade alcoholFacade;
 	private final UserFacade userDomainSupport;
@@ -79,36 +78,10 @@ public class ReviewService implements ReviewFacade {
 		return reviewRepository.getReviewsByMe(alcoholId, reviewPageableRequest, userId);
 	}
 
-	@Override
-	@Transactional(readOnly = true)
-	public ReviewListResponse getReviewInfoList(Long alcoholId, Long userId) {
-		ReviewPageableRequest pageableRequest = ReviewPageableRequest.builder().cursor(0L).pageSize(6L).build();
-		PageResponse<ReviewListResponse> reviews = reviewRepository.getReviews(alcoholId, pageableRequest, userId);
-		return reviews.content();
-	}
-
-	@Override
-	@Transactional(readOnly = true)
-	public Long getAlcoholIdByReviewId(Long reviewId) {
-		return reviewRepository.findById(reviewId)
-				.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND)).getAlcoholId();
-	}
-
-	@Override
-	@Transactional(readOnly = true)
-	public boolean isExistReview(Long reviewId) {
-		return reviewRepository.existsById(reviewId);
-	}
-
 	/**
 	 * Create , Update, Delete
 	 */
-	@Override
-	@Transactional
-	public void requestBlockReview(Long reviewId) {
-		reviewRepository.findById(reviewId)
-				.ifPresent(Review::blockReview);
-	}
+
 
 	@Transactional
 	public ReviewCreateResponse createReview(
