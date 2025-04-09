@@ -1,7 +1,7 @@
 package app.bottlenote.like.service;
 
+import app.bottlenote.history.fixture.FakeHistoryEventPublisher;
 import app.bottlenote.like.constant.LikeStatus;
-import app.bottlenote.like.fake.FakeLikesEventPublisher;
 import app.bottlenote.like.fixture.InMemoryLikesRepository;
 import app.bottlenote.review.fixture.FakeReviewFacade;
 import app.bottlenote.user.fixture.FakeUserFacade;
@@ -24,7 +24,7 @@ class LikesCommandServiceTest {
 	private static final Logger log = LoggerFactory.getLogger(LikesCommandServiceTest.class);
 	private LikesCommandService likesCommandService;
 	private InMemoryLikesRepository likesRepository;
-	private FakeLikesEventPublisher likesEventPublisher;
+	private FakeHistoryEventPublisher likesEventPublisher;
 
 	@BeforeEach
 	void setUp() {
@@ -32,6 +32,7 @@ class LikesCommandServiceTest {
 		FakeUserFacade userFacade = new FakeUserFacade();
 		FakeReviewFacade reviewFacade = new FakeReviewFacade();
 		likesRepository = new InMemoryLikesRepository();
+		likesEventPublisher = new FakeHistoryEventPublisher();
 		likesCommandService = new LikesCommandService(userFacade, reviewFacade, likesRepository, likesEventPublisher);
 	}
 

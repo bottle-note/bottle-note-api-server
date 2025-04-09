@@ -85,14 +85,14 @@ class PicksCommandServiceTest {
 			// given
 			PicksUpdateRequest pickRequest = new PicksUpdateRequest(alcohol.getId(), PICK);
 			Picks picks = Picks.builder()
-				.alcoholId(alcohol.getId())
-				.userId(user.getId())
-				.status(UNPICK)
-				.build();
+					.alcoholId(alcohol.getId())
+					.userId(user.getId())
+					.status(UNPICK)
+					.build();
 
 			//when
 			when(picksRepository.findByAlcoholIdAndUserId(alcohol.getId(), user.getId())).thenReturn(Optional.ofNullable(picks));
-			doNothing().when(picksEventPublisher).publishHistoryEvent(any());
+			doNothing().when(picksEventPublisher).publishPicksHistoryEvent(any());
 			PicksUpdateResponse response = picksCommandService.updatePicks(pickRequest, user.getId());
 
 			// then
@@ -106,10 +106,10 @@ class PicksCommandServiceTest {
 			// given
 			PicksUpdateRequest pickRequest = new PicksUpdateRequest(alcohol.getId(), PICK);
 			Picks picks = Picks.builder()
-				.alcoholId(alcohol.getId())
-				.userId(user.getId())
-				.status(PICK)
-				.build();
+					.alcoholId(alcohol.getId())
+					.userId(user.getId())
+					.status(PICK)
+					.build();
 
 			//when
 			when(picksRepository.findByAlcoholIdAndUserId(alcohol.getId(), user.getId())).thenReturn(Optional.ofNullable(picks));
@@ -148,10 +148,10 @@ class PicksCommandServiceTest {
 			// given
 			PicksUpdateRequest pickRequest = new PicksUpdateRequest(alcohol.getId(), UNPICK);
 			Picks picks = Picks.builder()
-				.alcoholId(alcohol.getId())
-				.userId(user.getId())
-				.status(PICK)
-				.build();
+					.alcoholId(alcohol.getId())
+					.userId(user.getId())
+					.status(PICK)
+					.build();
 
 			//when
 			when(picksRepository.findByAlcoholIdAndUserId(alcohol.getId(), user.getId())).thenReturn(Optional.ofNullable(picks));

@@ -30,39 +30,39 @@ public class LikesCommandService {
 
 	@Transactional
 	public LikesUpdateResponse updateLikes(
-		Long userId,
-		Long reviewId,
-		LikeStatus status
+			Long userId,
+			Long reviewId,
+			LikeStatus status
 	) {
 		Likes likes = likesRepository.findByReviewIdAndUserId(reviewId, userId)
-			.orElseGet(() -> {
+				.orElseGet(() -> {
 
-				if (!reviewFacade.isExistReview(reviewId)) {
-					throw new ReviewException(REVIEW_NOT_FOUND);
-				}
-				UserProfileItem userProfileItem = userFacade.getUserProfileInfo(userId);
-				LikeUserInfo userInfo = LikeUserInfo.create(userProfileItem.id(), userProfileItem.nickname());
+					if (!reviewFacade.isExistReview(reviewId)) {
+						throw new ReviewException(REVIEW_NOT_FOUND);
+					}
+					UserProfileItem userProfileItem = userFacade.getUserProfileInfo(userId);
+					LikeUserInfo userInfo = LikeUserInfo.create(userProfileItem.id(), userProfileItem.nickname());
 
-				return Likes.builder()
-					.reviewId(reviewId)
-					.userInfo(userInfo)
-					.status(status)
-					.build();
-			});
+					return Likes.builder()
+							.reviewId(reviewId)
+							.userInfo(userInfo)
+							.status(status)
+							.build();
+				});
 
 		likes.updateStatus(status);
 		likesRepository.save(likes);
 
-		likesEventPublisher.publishHistoryEvent(
-			LikesRegistryEvent.of(likes.getReviewId(), likes.getUserInfo().getUserId())
+		likesEventPublisher.publishLikesHistoryEvent(
+				LikesRegistryEvent.of(likes.getReviewId(), likes.getUserInfo().getUserId())
 		);
 
 		return LikesUpdateResponse.of(
-			likes.getId(),
-			reviewId,
-			likes.getUserInfo().getUserId(),
-			likes.getUserInfo().getUserNickName(),
-			likes.getStatus()
+				likes.getId(),
+				reviewId,
+				likes.getUserInfo().getUserId(),
+				likes.getUserInfo().getUserNickName(),
+				likes.getStatus()
 		);
 	}
 }

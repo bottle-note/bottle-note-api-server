@@ -2,6 +2,7 @@ package app.bottlenote.review.service;
 
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
+import app.bottlenote.history.fixture.FakeHistoryEventPublisher;
 import app.bottlenote.review.constant.ReviewReplyResultMessage;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewReply;
@@ -10,7 +11,6 @@ import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.review.fixture.FakeProfanityClient;
-import app.bottlenote.review.fixture.FakeReviewReplyEventPublisher;
 import app.bottlenote.review.fixture.InMemoryReviewReplyRepository;
 import app.bottlenote.review.fixture.InMemoryReviewRepository;
 import app.bottlenote.review.fixture.ReviewReplyObjectFixture;
@@ -57,7 +57,7 @@ class ReviewReplyServiceTest {
 		profanityClient = new FakeProfanityClient();
 		reviewReplyRepository = new InMemoryReviewReplyRepository();
 		reviewRepository = new InMemoryReviewRepository();
-		reviewReplyEventPublisher = new FakeReviewReplyEventPublisher();
+		reviewReplyEventPublisher = new FakeHistoryEventPublisher();
 
 		reviewRepository.save(review1);
 		reviewRepository.save(review2);
@@ -150,7 +150,7 @@ class ReviewReplyServiceTest {
 			final String content = "자식 댓글 내용입니다.";
 
 			Review review = reviewRepository.findById(reviewId)
-				.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
+					.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
 			ReviewReply parentReply = ReviewReplyObjectFixture.getReviewReplyFixture(1L, review.getId());
 			var request = ReviewReplyObjectFixture.getReviewReplyRegisterRequest(content, parentReply.getId());
 

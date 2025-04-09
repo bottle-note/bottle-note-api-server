@@ -37,30 +37,30 @@ public class PicksCommandService {
 	public PicksUpdateResponse updatePicks(final PicksUpdateRequest request, final Long userId) {
 
 		Picks picks = picksRepository.findByAlcoholIdAndUserId(request.alcoholId(), userId)
-			.orElseGet(() -> {
-				if (FALSE.equals(userFacade.existsByUserId(userId))) {
-					throw new UserException(USER_NOT_FOUND);
-				}
-				if (FALSE.equals(alcoholFacade.existsByAlcoholId(request.alcoholId()))) {
-					throw new AlcoholException(ALCOHOL_NOT_FOUND);
-				}
+				.orElseGet(() -> {
+					if (FALSE.equals(userFacade.existsByUserId(userId))) {
+						throw new UserException(USER_NOT_FOUND);
+					}
+					if (FALSE.equals(alcoholFacade.existsByAlcoholId(request.alcoholId()))) {
+						throw new AlcoholException(ALCOHOL_NOT_FOUND);
+					}
 
-				picksEventPublisher.publishHistoryEvent(
-					PicksRegistryEvent.of(request.alcoholId(), userId, request.isPicked()));
+					picksEventPublisher.publishPicksHistoryEvent(
+							PicksRegistryEvent.of(request.alcoholId(), userId, request.isPicked()));
 
-				return Picks.builder()
-					.alcoholId(request.alcoholId())
-					.userId(userId)
-					.status(request.isPicked())
-					.build();
-			});
+					return Picks.builder()
+							.alcoholId(request.alcoholId())
+							.userId(userId)
+							.status(request.isPicked())
+							.build();
+				});
 
 		log.info("pick.getStatus() : {}", picks.getStatus());
 		log.info("request.isPicked() : {}", request.isPicked());
 
 		if (!picks.getStatus().equals(request.isPicked())) {
-			picksEventPublisher.publishHistoryEvent(
-				PicksRegistryEvent.of(picks.getAlcoholId(), picks.getUserId(), request.isPicked()));
+			picksEventPublisher.publishPicksHistoryEvent(
+					PicksRegistryEvent.of(picks.getAlcoholId(), picks.getUserId(), request.isPicked()));
 		}
 		PicksStatus picksStatus = picks.updateStatus(request.isPicked()).getStatus();
 
