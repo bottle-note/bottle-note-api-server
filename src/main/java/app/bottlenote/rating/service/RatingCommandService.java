@@ -34,9 +34,9 @@ public class RatingCommandService {
 
 	@Transactional
 	public RatingRegisterResponse register(
-		Long alcoholId,
-		Long userId,
-		RatingPoint ratingPoint
+			Long alcoholId,
+			Long userId,
+			RatingPoint ratingPoint
 	) {
 		Objects.requireNonNull(alcoholId, "알코올 ID는 필수 값입니다.");
 		Objects.requireNonNull(userId, "유저 ID는 필수 값입니다.");
@@ -54,13 +54,13 @@ public class RatingCommandService {
 
 		// 기존 별점이 있는지 확인
 		Rating rating = ratingRepository.findByAlcoholIdAndUserId(alcoholId, userId)
-			.orElse(null);
+				.orElse(null);
 
 		if (rating == null) {
 			rating = Rating.builder()
-				.id(new RatingId(userId, alcoholId))
-				.ratingPoint(ratingPoint)
-				.build();
+					.id(new RatingId(userId, alcoholId))
+					.ratingPoint(ratingPoint)
+					.build();
 		} else {
 			isExistPrevRating = true;
 			prevRatingPoint = rating.getRatingPoint();
@@ -68,13 +68,13 @@ public class RatingCommandService {
 		rating.registerRatingPoint(ratingPoint);
 		Rating save = ratingRepository.save(rating);
 
-		ratingEventPublisher.publishHistoryEvent(
-			RatingRegistryEvent.of(
-				rating.getId().getAlcoholId(),
-				rating.getId().getUserId(),
-				isExistPrevRating ? prevRatingPoint : null,
-				ratingPoint
-			)
+		ratingEventPublisher.publishRatingHistoryEvent(
+				RatingRegistryEvent.of(
+						rating.getId().getAlcoholId(),
+						rating.getId().getUserId(),
+						isExistPrevRating ? prevRatingPoint : null,
+						ratingPoint
+				)
 		);
 
 		return RatingRegisterResponse.success(save.getRatingPoint().getRating());

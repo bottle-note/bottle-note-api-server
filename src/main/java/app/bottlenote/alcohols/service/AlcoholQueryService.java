@@ -52,6 +52,7 @@ public class AlcoholQueryService {
 	public AlcoholDetailResponse findAlcoholDetailById(Long alcoholId, Long userId) {
 		AlcoholDetailItem alcoholDetail = alcoholQueryRepository.findAlcoholDetailById(alcoholId, userId);
 		FriendsDetailResponse friendInfos = getFriendInfos(alcoholId, userId);
+
 		return AlcoholDetailResponse.builder()
 			.alcohols(alcoholDetail)
 			.friendsInfo(friendInfos)

@@ -50,9 +50,9 @@ public class ReviewReplyService {
 	@Modifying(flushAutomatically = true, clearAutomatically = true)
 	@Transactional
 	public ReviewReplyResponse registerReviewReply(
-		final Long reviewId,
-		final Long userId,
-		final ReviewReplyRegisterRequest request
+			final Long reviewId,
+			final Long userId,
+			final ReviewReplyRegisterRequest request
 	) {
 		Objects.requireNonNull(request.content(), "댓글 내용은 필수 입력값입니다.");
 		Objects.requireNonNull(userId, "유저 식별자는 필수 입력값입니다.");
@@ -74,26 +74,26 @@ public class ReviewReplyService {
 		log.info("상위(최상위) 댓글 확인");
 
 		ReviewReply reply = ReviewReply.builder()
-			.reviewId(reviewId)
-			.userId(userId)
-			.parentReviewReply(parentReply.orElse(null))
-			.rootReviewReply(parentReply.map(ReviewReply::getRootReviewReply).orElse(null))
-			.content(content)
-			.status(ReviewReplyStatus.NORMAL)
-			.build();
+				.reviewId(reviewId)
+				.userId(userId)
+				.parentReviewReply(parentReply.orElse(null))
+				.rootReviewReply(parentReply.map(ReviewReply::getRootReviewReply).orElse(null))
+				.content(content)
+				.status(ReviewReplyStatus.NORMAL)
+				.build();
 
 		log.info("최종 처리 시간 : {}", (System.nanoTime() - start) / 1_000_000 + "ms");
 		reviewReplyRepository.save(reply);
 
 		final Long alcoholId = reviewRepository.findById(reviewId)
-			.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND)).getAlcoholId();
+				.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND)).getAlcoholId();
 
 		ReviewRegistryEvent event = ReviewRegistryEvent.of(reply.getReviewId(), alcoholId, reply.getUserId(), reply.getContent());
-		reviewReplyEventPublisher.publishHistoryEvent(event);
+		reviewReplyEventPublisher.publishReplyHistoryEvent(event);
 
 		return ReviewReplyResponse.of(
-			SUCCESS_REGISTER_REPLY,
-			reviewId
+				SUCCESS_REGISTER_REPLY,
+				reviewId
 		);
 	}
 
@@ -108,23 +108,23 @@ public class ReviewReplyService {
 	@Transactional
 	@Modifying(flushAutomatically = true, clearAutomatically = true)
 	public ReviewReplyResponse deleteReviewReply(
-		Long reviewId,
-		Long replyId,
-		Long userId
+			Long reviewId,
+			Long replyId,
+			Long userId
 	) {
 
 		reviewReplyRepository.findReplyByReviewIdAndReplyId(reviewId, replyId)
-			.ifPresentOrElse(
-				reply -> {
-					if (FALSE.equals(reply.isOwner(userId)))
-						throw new ReviewException(ReviewExceptionCode.REPLY_NOT_OWNER);
+				.ifPresentOrElse(
+						reply -> {
+							if (FALSE.equals(reply.isOwner(userId)))
+								throw new ReviewException(ReviewExceptionCode.REPLY_NOT_OWNER);
 
-					reply.delete();
-				},
-				() -> {
-					throw new ReviewException(ReviewExceptionCode.NOT_FOUND_REVIEW_REPLY);
-				}
-			);
+							reply.delete();
+						},
+						() -> {
+							throw new ReviewException(ReviewExceptionCode.NOT_FOUND_REVIEW_REPLY);
+						}
+				);
 
 		return ReviewReplyResponse.of(SUCCESS_DELETE_REPLY, reviewId);
 	}
@@ -135,14 +135,14 @@ public class ReviewReplyService {
 	 */
 	@Transactional(readOnly = true)
 	public RootReviewReplyResponse getReviewRootReplays(
-		Long reviewId,
-		Long cursor,
-		Long pageSize
+			Long reviewId,
+			Long cursor,
+			Long pageSize
 	) {
 		return reviewReplyRepository.getReviewRootReplies(
-			reviewId,
-			cursor,
-			pageSize
+				reviewId,
+				cursor,
+				pageSize
 		);
 	}
 
@@ -157,16 +157,16 @@ public class ReviewReplyService {
 	 */
 	@Transactional(readOnly = true)
 	public SubReviewReplyResponse getSubReviewReplies(
-		Long reviewId,
-		Long rootReplyId,
-		Long cursor,
-		Long pageSize
+			Long reviewId,
+			Long rootReplyId,
+			Long cursor,
+			Long pageSize
 	) {
 		return reviewReplyRepository.getSubReviewReplies(
-			reviewId,
-			rootReplyId,
-			cursor,
-			pageSize
+				reviewId,
+				rootReplyId,
+				cursor,
+				pageSize
 		);
 	}
 }

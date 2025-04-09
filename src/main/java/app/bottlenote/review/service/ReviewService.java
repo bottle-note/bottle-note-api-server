@@ -20,7 +20,6 @@ import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.event.payload.ReviewRegistryEvent;
 import app.bottlenote.review.exception.ReviewException;
-import app.bottlenote.review.facade.ReviewFacade;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 import app.bottlenote.user.facade.UserFacade;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +39,7 @@ import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOU
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ReviewService implements ReviewFacade {
+public class ReviewService {
 
 	private final AlcoholFacade alcoholFacade;
 	private final UserFacade userDomainSupport;
@@ -52,9 +51,9 @@ public class ReviewService implements ReviewFacade {
 	 */
 	@Transactional(readOnly = true)
 	public PageResponse<ReviewListResponse> getReviews(
-		Long alcoholId,
-		ReviewPageableRequest reviewPageableRequest,
-		Long userId
+			Long alcoholId,
+			ReviewPageableRequest reviewPageableRequest,
+			Long userId
 	) {
 		return reviewRepository.getReviews(alcoholId, reviewPageableRequest, userId);
 	}
@@ -66,78 +65,52 @@ public class ReviewService implements ReviewFacade {
 		ReviewInfo reviewInfo = reviewRepository.getReview(reviewId, currentUserId);
 		return ReviewDetailResponse.create(
 				alcoholSummaryItem,
-			reviewInfo,
-			review.getReviewImages().getViewInfo()
+				reviewInfo,
+				review.getReviewImages().getViewInfo()
 		);
 	}
 
 	@Transactional(readOnly = true)
 	public PageResponse<ReviewListResponse> getMyReviews(
-		ReviewPageableRequest reviewPageableRequest,
-		Long alcoholId,
-		Long userId) {
+			ReviewPageableRequest reviewPageableRequest,
+			Long alcoholId,
+			Long userId) {
 		return reviewRepository.getReviewsByMe(alcoholId, reviewPageableRequest, userId);
-	}
-
-	@Override
-	@Transactional(readOnly = true)
-	public ReviewListResponse getReviewInfoList(Long alcoholId, Long userId) {
-		ReviewPageableRequest pageableRequest = ReviewPageableRequest.builder().cursor(0L).pageSize(6L).build();
-		PageResponse<ReviewListResponse> reviews = reviewRepository.getReviews(alcoholId, pageableRequest, userId);
-		return reviews.content();
-	}
-
-	@Override
-	@Transactional(readOnly = true)
-	public boolean isExistReview(Long reviewId) {
-		return reviewRepository.existsById(reviewId);
-	}
-
-	@Override
-	@Transactional(readOnly = true)
-	public Long getAlcoholIdByReviewId(Long reviewId) {
-		return reviewRepository.findById(reviewId)
-			.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND)).getAlcoholId();
 	}
 
 	/**
 	 * Create , Update, Delete
 	 */
-	@Override
-	@Transactional
-	public void requestBlockReview(Long reviewId) {
-		reviewRepository.findById(reviewId)
-			.ifPresent(Review::blockReview);
-	}
+
 
 	@Transactional
 	public ReviewCreateResponse createReview(
-		ReviewCreateRequest reviewCreateRequest,
-		Long currentUserId
+			ReviewCreateRequest reviewCreateRequest,
+			Long currentUserId
 	) {
 		alcoholFacade.isValidAlcoholId(reviewCreateRequest.alcoholId());
 		userDomainSupport.isValidUserId(currentUserId);
 
 		RatingPoint point = RatingPoint.of(reviewCreateRequest.rating());
 		Review review = Review.builder()
-			.alcoholId(reviewCreateRequest.alcoholId())
-			.userId(currentUserId)
-			.reviewRating(point.getRating())
-			.price(reviewCreateRequest.price())
-			.sizeType(reviewCreateRequest.sizeType())
-			.status(reviewCreateRequest.status())
-			.content(reviewCreateRequest.content())
-			.reviewLocation(ReviewLocation.builder()
-				.name(reviewCreateRequest.locationInfo().locationName())
-				.zipCode(reviewCreateRequest.locationInfo().zipCode())
-				.address(reviewCreateRequest.locationInfo().address())
-				.detailAddress(reviewCreateRequest.locationInfo().detailAddress())
-				.category(reviewCreateRequest.locationInfo().category())
-				.mapUrl(reviewCreateRequest.locationInfo().mapUrl())
-				.latitude(reviewCreateRequest.locationInfo().latitude())
-				.longitude(reviewCreateRequest.locationInfo().longitude())
-				.build())
-			.build();
+				.alcoholId(reviewCreateRequest.alcoholId())
+				.userId(currentUserId)
+				.reviewRating(point.getRating())
+				.price(reviewCreateRequest.price())
+				.sizeType(reviewCreateRequest.sizeType())
+				.status(reviewCreateRequest.status())
+				.content(reviewCreateRequest.content())
+				.reviewLocation(ReviewLocation.builder()
+						.name(reviewCreateRequest.locationInfo().locationName())
+						.zipCode(reviewCreateRequest.locationInfo().zipCode())
+						.address(reviewCreateRequest.locationInfo().address())
+						.detailAddress(reviewCreateRequest.locationInfo().detailAddress())
+						.category(reviewCreateRequest.locationInfo().category())
+						.mapUrl(reviewCreateRequest.locationInfo().mapUrl())
+						.latitude(reviewCreateRequest.locationInfo().latitude())
+						.longitude(reviewCreateRequest.locationInfo().longitude())
+						.build())
+				.build();
 
 		review.imageInitialization(reviewCreateRequest.imageUrlList());
 		review.saveTastingTag(reviewCreateRequest.tastingTagList());
@@ -145,23 +118,23 @@ public class ReviewService implements ReviewFacade {
 		Review saveReview = reviewRepository.save(review);
 
 		ReviewRegistryEvent event = ReviewRegistryEvent.of(saveReview.getId(), saveReview.getAlcoholId(), saveReview.getUserId(), saveReview.getContent());
-		reviewEventPublisher.publishHistoryEvent(event);
+		reviewEventPublisher.publishReviewHistoryEvent(event);
 
 		return ReviewCreateResponse.builder()
-			.id(saveReview.getId())
-			.content(saveReview.getContent())
-			.callback(String.valueOf(saveReview.getAlcoholId()))
-			.build();
+				.id(saveReview.getId())
+				.content(saveReview.getContent())
+				.callback(String.valueOf(saveReview.getAlcoholId()))
+				.build();
 	}
 
 	@Transactional
 	public ReviewResultResponse modifyReview(
-		final app.bottlenote.review.dto.request.ReviewModifyRequest request,
-		final Long reviewId,
-		final Long currentUserId
+			final app.bottlenote.review.dto.request.ReviewModifyRequest request,
+			final Long reviewId,
+			final Long currentUserId
 	) {
 		Review review = reviewRepository.findByIdAndUserId(reviewId, currentUserId)
-			.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
+				.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
 
 		ReviewModifyRequestWrapperItem reviewModifyRequestWrapperItem = ReviewModifyRequestWrapperItem.create(request);
 		List<ReviewImageInfoRequest> reviewImageInfoRequests = request.imageUrlList();
@@ -183,18 +156,18 @@ public class ReviewService implements ReviewFacade {
 
 	@Transactional
 	public ReviewResultResponse changeStatus(
-		Long reviewId,
-		ReviewStatusChangeRequest reviewDisplayStatus,
-		Long currentUserId) {
+			Long reviewId,
+			ReviewStatusChangeRequest reviewDisplayStatus,
+			Long currentUserId) {
 
 		Review review = reviewRepository.findByIdAndUserId(reviewId, currentUserId).orElseThrow(
-			() -> new ReviewException(REVIEW_NOT_FOUND)
+				() -> new ReviewException(REVIEW_NOT_FOUND)
 		);
 
 		review.updateDisplayStatus(reviewDisplayStatus.status());
 
 		return review.getStatus() == PUBLIC ?
-			ReviewResultResponse.response(PUBLIC_SUCCESS, review.getId()) :
-			ReviewResultResponse.response(PRIVATE_SUCCESS, review.getId());
+				ReviewResultResponse.response(PUBLIC_SUCCESS, review.getId()) :
+				ReviewResultResponse.response(PRIVATE_SUCCESS, review.getId());
 	}
 }

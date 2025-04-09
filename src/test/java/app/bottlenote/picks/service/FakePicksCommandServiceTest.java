@@ -3,9 +3,9 @@ package app.bottlenote.picks.service;
 import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.alcohols.fixture.FakeAlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
+import app.bottlenote.history.fixture.FakeHistoryEventPublisher;
 import app.bottlenote.picks.dto.request.PicksUpdateRequest;
 import app.bottlenote.picks.dto.response.PicksUpdateResponse;
-import app.bottlenote.picks.fake.FakePicksEventPublisher;
 import app.bottlenote.picks.fake.FakePicksRepository;
 import app.bottlenote.picks.repository.PicksRepository;
 import app.bottlenote.user.facade.UserFacade;
@@ -31,12 +31,12 @@ class FakePicksCommandServiceTest {
 		UserFacade userFacade = new FakeUserFacade();
 		AlcoholFacade alcoholFacade = new FakeAlcoholFacade();
 		PicksRepository picksRepository = new FakePicksRepository();
-		HistoryEventPublisher picksEventPublisher = new FakePicksEventPublisher();
+		HistoryEventPublisher picksEventPublisher = new FakeHistoryEventPublisher();
 		picksCommandService = new PicksCommandService(
-			userFacade,
-			alcoholFacade,
-			picksRepository,
-			picksEventPublisher
+				userFacade,
+				alcoholFacade,
+				picksRepository,
+				picksEventPublisher
 		);
 	}
 

@@ -3,13 +3,13 @@ package app.bottlenote.rating.service;
 import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.alcohols.fixture.FakeAlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
+import app.bottlenote.history.fixture.FakeHistoryEventPublisher;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.rating.domain.RatingRepository;
 import app.bottlenote.rating.dto.response.RatingRegisterResponse;
 import app.bottlenote.rating.exception.RatingException;
-import app.bottlenote.rating.fixture.FakeRatingEventPublisher;
 import app.bottlenote.rating.fixture.InMemoryRatingRepository;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.facade.UserFacade;
@@ -43,7 +43,7 @@ class RatingCommandServiceTest {
 		fakeRatingRepository = new InMemoryRatingRepository();
 		UserFacade fakeUserFacade = new FakeUserFacade(user1, user2, user3);
 		AlcoholFacade fakeAlcoholFacade = new FakeAlcoholFacade();
-		HistoryEventPublisher ratingEventPublisher = new FakeRatingEventPublisher();
+		HistoryEventPublisher ratingEventPublisher = new FakeHistoryEventPublisher();
 		ratingCommandService = new RatingCommandService(fakeRatingRepository, fakeUserFacade, fakeAlcoholFacade, ratingEventPublisher);
 	}
 
@@ -68,9 +68,9 @@ class RatingCommandServiceTest {
 		void test_2() {
 			//given
 			fakeRatingRepository.save(Rating.builder()
-				.id(RatingId.is(userId, alcoholId))
-				.ratingPoint(RatingPoint.of(1))
-				.build());
+					.id(RatingId.is(userId, alcoholId))
+					.ratingPoint(RatingPoint.of(1))
+					.build());
 
 			RatingPoint ratingPoint = RatingPoint.of(5);
 
