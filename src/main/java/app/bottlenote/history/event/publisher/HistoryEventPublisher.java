@@ -9,7 +9,7 @@ import app.bottlenote.like.event.payload.LikesRegistryEvent;
 import app.bottlenote.picks.event.payload.PicksRegistryEvent;
 import app.bottlenote.rating.event.payload.RatingRegistryEvent;
 import app.bottlenote.review.event.payload.ReviewRegistryEvent;
-import app.bottlenote.review.facade.ReviewEventFacade;
+import app.bottlenote.review.facade.ReviewFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -33,8 +33,7 @@ import static app.bottlenote.picks.constant.PicksStatus.PICK;
 public class HistoryEventPublisher {
 
 	private final ApplicationEventPublisher eventPublisher;
-	private final ReviewEventFacade reviewEventFacade;
-	private Double prevRatingPoint;
+	private final ReviewFacade reviewFacade;
 
 
 	public void publishReviewHistoryEvent(ReviewRegistryEvent event) {
@@ -67,8 +66,7 @@ public class HistoryEventPublisher {
 	}
 
 	public void publishLikesHistoryEvent(LikesRegistryEvent event) {
-
-		final Long alcoholId = reviewEventFacade.getAlcoholIdByReviewId(event.reviewId());
+		final Long alcoholId = reviewFacade.getAlcoholIdByReviewId(event.reviewId());
 		final Long reviewId = event.reviewId();
 
 		HistoryEvent likesHistoryEvent = HistoryEvent.builder()
@@ -80,7 +78,6 @@ public class HistoryEventPublisher {
 				.build();
 
 		eventPublisher.publishEvent(likesHistoryEvent);
-
 	}
 
 	public void publishPicksHistoryEvent(PicksRegistryEvent event) {
@@ -97,11 +94,9 @@ public class HistoryEventPublisher {
 	}
 
 	public void publishRatingHistoryEvent(RatingRegistryEvent event) {
-		log.info("RatingRegistryEvent: {}", event);
 		final Long alcoholId = event.alcoholId();
-
-		// 기존 등록된 별점이 있어서 이벤트 페이로드로 이전 별점 정보를 넘긴 상황 -> 수정
 		final boolean isUpdate = !Objects.isNull(event.prevRating());
+		double prevRatingPoint = 0.0;
 
 		if (isUpdate) {
 			prevRatingPoint = event.prevRating().getRating();
@@ -141,4 +136,3 @@ public class HistoryEventPublisher {
 		}
 	}
 }
-

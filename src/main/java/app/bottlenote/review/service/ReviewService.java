@@ -88,6 +88,12 @@ public class ReviewService implements ReviewFacade {
 	}
 
 	@Override
+	public Long getAlcoholIdByReviewId(Long reviewId) {
+		return reviewRepository.findById(reviewId)
+				.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND)).getAlcoholId();
+	}
+
+	@Override
 	@Transactional(readOnly = true)
 	public boolean isExistReview(Long reviewId) {
 		return reviewRepository.existsById(reviewId);
