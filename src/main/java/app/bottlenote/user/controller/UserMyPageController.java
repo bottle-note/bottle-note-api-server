@@ -35,18 +35,14 @@ public class UserMyPageController {
 		return GlobalResponse.ok(userBasicService.getMyPage(userId, currentUserId));
 	}
 
-	/**
-	 * 마이 보틀 노트 조회 API
-	 * 본인만 조회 가능
-	 */
 	@AccessPolicy(type = AccessType.OWNER)
-	@GetMapping("/{userId}/my-bottle")
-	public ResponseEntity<?> getMyBottle(
-		@PathVariable(name = "userId") Long userId,
-		@ModelAttribute(name = "myBottleRequest") MyBottleRequest myBottleRequest
+	@GetMapping("/{userId}/my-bottle/review")
+	public ResponseEntity<?> getReviewMyBottle(
+			@PathVariable(name = "userId") Long userId,
+			@ModelAttribute(name = "myBottleRequest") MyBottleRequest myBottleRequest
 	) {
 		final Long currentUserId = SecurityContextUtil.getUserIdByContext()
-			.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
-		return GlobalResponse.ok(userBasicService.getMyBottle(userId, currentUserId, myBottleRequest));
+				.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+		return GlobalResponse.ok(userBasicService.getReviewMyBottle(userId, currentUserId, myBottleRequest));
 	}
 }

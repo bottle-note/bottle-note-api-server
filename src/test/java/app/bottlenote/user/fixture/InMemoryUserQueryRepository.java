@@ -45,7 +45,7 @@ public class InMemoryUserQueryRepository implements UserRepository {
 	}
 
 	@Override
-	public MyBottleResponse getMyBottle(MyBottlePageableCriteria criteria) {
+	public MyBottleResponse getReviewMyBottle(MyBottlePageableCriteria criteria) {
 		return null;
 	}
 

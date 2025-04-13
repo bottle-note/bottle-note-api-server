@@ -34,56 +34,56 @@ public class UserBasicService {
 	@Transactional
 	public NicknameChangeResponse nicknameChange(Long userId, NicknameChangeRequest request) {
 		return userFilterManager.withActiveUserFilter(ACTIVE,
-			() -> {
-				String name = request.nickName();
-				String beforeNickname;
+				() -> {
+					String name = request.nickName();
+					String beforeNickname;
 
-				if (userRepository.existsByNickName(name)) {
-					throw new UserException(UserExceptionCode.USER_NICKNAME_NOT_VALID);
-				}
+					if (userRepository.existsByNickName(name)) {
+						throw new UserException(UserExceptionCode.USER_NICKNAME_NOT_VALID);
+					}
 
-				User user = userRepository.findById(userId)
-					.orElseThrow(() -> new UserException(USER_NOT_FOUND));
+					User user = userRepository.findById(userId)
+							.orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
-				beforeNickname = user.getNickName();
+					beforeNickname = user.getNickName();
 
-				user.changeNickName(name);
-				Long updatedUser = user.getId();
-				String newUserNickName = user.getNickName();
+					user.changeNickName(name);
+					Long updatedUser = user.getId();
+					String newUserNickName = user.getNickName();
 
-				return NicknameChangeResponse.builder()
-					.message(NicknameChangeResponse.Message.SUCCESS)
-					.userId(updatedUser)
-					.beforeNickname(beforeNickname)
-					.changedNickname(newUserNickName)
-					.build();
-			});
+					return NicknameChangeResponse.builder()
+							.message(NicknameChangeResponse.Message.SUCCESS)
+							.userId(updatedUser)
+							.beforeNickname(beforeNickname)
+							.changedNickname(newUserNickName)
+							.build();
+				});
 	}
 
 	@Transactional
 	public ProfileImageChangeResponse profileImageChange(Long userId, String viewUrl) {
 		return userFilterManager.withActiveUserFilter(ACTIVE,
-			() -> {
-				User user = userRepository.findById(userId)
-					.orElseThrow(() -> new UserException(USER_NOT_FOUND));
+				() -> {
+					User user = userRepository.findById(userId)
+							.orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
-				user.changeProfileImage(viewUrl);
+					user.changeProfileImage(viewUrl);
 
-				return new ProfileImageChangeResponse(user.getId(), user.getImageUrl());
-			});
+					return new ProfileImageChangeResponse(user.getId(), user.getImageUrl());
+				});
 	}
 
 	@Transactional
 	public WithdrawUserResultResponse withdrawUser(Long userId) {
 		return userFilterManager.withActiveUserFilter(ACTIVE,
-			() -> {
-				User user = userRepository.findById(userId)
-					.orElseThrow(() -> new UserException(USER_NOT_FOUND));
+				() -> {
+					User user = userRepository.findById(userId)
+							.orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
-				user.withdrawUser();
+					user.withdrawUser();
 
-				return WithdrawUserResultResponse.response(USER_WITHDRAW_SUCCESS, userId);
-			});
+					return WithdrawUserResultResponse.response(USER_WITHDRAW_SUCCESS, userId);
+				});
 	}
 
 	/**
@@ -92,36 +92,33 @@ public class UserBasicService {
 	@Transactional(readOnly = true)
 	public MyPageResponse getMyPage(Long userId, Long currentUserId) {
 		return userFilterManager.withActiveUserFilter(ACTIVE,
-			() -> {
-				boolean isUserNotAccessible = !userRepository.existsByUserId(userId);
+				() -> {
+					boolean isUserNotAccessible = !userRepository.existsByUserId(userId);
 
-				if (isUserNotAccessible) {
-					throw new UserException(MYPAGE_NOT_ACCESSIBLE);
-				}
-				return userRepository.getMyPage(userId, currentUserId);
-			});
+					if (isUserNotAccessible) {
+						throw new UserException(MYPAGE_NOT_ACCESSIBLE);
+					}
+					return userRepository.getMyPage(userId, currentUserId);
+				});
 	}
 
-	/**
-	 * 본인의 마이 보틀을 조회합니다.
-	 */
 	@Transactional(readOnly = true)
-	public MyBottleResponse getMyBottle(Long userId, Long currentUserId, MyBottleRequest myBottleRequest) {
+	public MyBottleResponse getReviewMyBottle(Long userId, Long currentUserId, MyBottleRequest myBottleRequest) {
 		return userFilterManager.withActiveUserFilter(ACTIVE,
-			() -> {
-				boolean isUserNotAccessible = !userRepository.existsByUserId(userId);
+				() -> {
+					boolean isUserNotAccessible = !userRepository.existsByUserId(userId);
 
-				if (isUserNotAccessible) {
-					throw new UserException(MYBOTTLE_NOT_ACCESSIBLE);
-				}
+					if (isUserNotAccessible) {
+						throw new UserException(MYBOTTLE_NOT_ACCESSIBLE);
+					}
 
-				MyBottlePageableCriteria criteria = MyBottlePageableCriteria.of(
-					myBottleRequest,
-					userId,
-					currentUserId
-				);
+					MyBottlePageableCriteria criteria = MyBottlePageableCriteria.of(
+							myBottleRequest,
+							userId,
+							currentUserId
+					);
 
-				return userRepository.getMyBottle(criteria);
-			});
+					return userRepository.getReviewMyBottle(criteria);
+				});
 	}
 }

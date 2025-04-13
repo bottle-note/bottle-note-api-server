@@ -67,8 +67,8 @@ class UserQueryControllerTest {
 
 		// then
 		ResultActions resultActions = mockMvc.perform(get("/api/v1/my-page/{userId}", userId))
-			.andExpect(status().isOk())
-			.andDo(print());
+				.andExpect(status().isOk())
+				.andDo(print());
 
 		resultActions.andExpect(jsonPath("$.success").value("true"));
 		resultActions.andExpect(jsonPath("$.code").value("200"));
@@ -84,27 +84,26 @@ class UserQueryControllerTest {
 		resultActions.andExpect(jsonPath("$.data.isMyPage").value(false));
 	}
 
-	@DisplayName("마이 보틀 정보를 조회할 수 있다.")
+	@DisplayName("마이 보틀(리뷰) 정보를 조회할 수 있다.")
 	@Test
 	void test_2() throws Exception {
 		// given
 		Long userId = 8L;
-		MyBottleResponse myBottleResponse = mypageQueryFixture.getMyBottleResponse(userId, true, null);
+		MyBottleResponse myBottleResponse = mypageQueryFixture.getReviewMyBottleResponse(userId, true, null);
 
 		// when
-		when(userQueryService.getMyBottle(any(), any(), any())).thenReturn(myBottleResponse);
+		when(userQueryService.getReviewMyBottle(any(), any(), any())).thenReturn(myBottleResponse);
 
 		// then
-		ResultActions resultActions = mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle", userId)
-				.param("keyword", "")
-				.param("regionId", "")
-				.param("tabType", "ALL")
-				.param("sortType", "LATEST")
-				.param("sortOrder", "DESC")
-				.param("cursor", "0")
-				.param("pageSize", "50"))
-			.andExpect(status().isOk())
-			.andDo(print());
+		ResultActions resultActions = mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle/review", userId)
+						.param("keyword", "")
+						.param("regionId", "")
+						.param("sortType", "LATEST")
+						.param("sortOrder", "DESC")
+						.param("cursor", "0")
+						.param("pageSize", "50"))
+				.andExpect(status().isOk())
+				.andDo(print());
 
 		resultActions.andExpect(jsonPath("$.success").value("true"));
 		resultActions.andExpect(jsonPath("$.code").value("200"));
