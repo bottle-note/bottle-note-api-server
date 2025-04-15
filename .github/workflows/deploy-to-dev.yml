@@ -97,19 +97,29 @@ jobs:
             # 기존 컨테이너 중지 및 삭제 (있는 경우)
             docker stop bottle-note-api-api-development || true
             docker rm bottle-note-api-api-development || true
+            docker stop bottle-note-api-development || true
+            docker rm bottle-note-api-development || true
 
             docker run -d \
-              --name bottle-note-api-api-development \
+              --name bottle-note-api-development \
               -p 30001:30001 \
               --env-file .bottlenote.development.ENV \
               -e TZ=Asia/Seoul \
               -e SPRING_PROFILES_ACTIVE=dev \
+              -e JAVA_OPTS="-Xms256m -Xmx512m -XX:MaxMetaspaceSize=128m" \
+              -e SERVER_NAME="${{ matrix.environment }}" \
+              -e GIT_BRANCH="${{ github.ref_name }}" \
+              -e GIT_COMMIT="${{ github.sha }}" \
+              -e BUILD_TIME="$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+              --memory=768m \
+              --cpus=1 \
               --restart unless-stopped \
               --log-driver json-file \
               --log-opt max-size=10m \
               --log-opt max-file=3 \
               $FULL_IMAGE_NAME
-            docker ps | grep bottle-note-api-api-development
+
+            docker ps | grep bottle-note-api-development
 
             echo "사용하지 않는 모든 Docker 리소스 정리 중..."
             docker system prune -f

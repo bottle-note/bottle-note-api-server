@@ -28,6 +28,11 @@ jobs:
       GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=2"
 
     steps:
+      - name: echo
+        run: |
+          echo "Branch: ${{ github.event.pull_request.base.ref || github.ref_name }}"
+
+
       - name: Checkout Code (코드 체크아웃)
         uses: actions/checkout@v4
 

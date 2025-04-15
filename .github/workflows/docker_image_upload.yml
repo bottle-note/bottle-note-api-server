@@ -66,9 +66,16 @@ jobs:
         run: |
           echo "image_tag=${{ steps.build-image.outputs.image_tag }}" >> $GITHUB_ENV
 
-
-  call-deploy-workflow:
+  call-prod:
     needs: docker-image-upload
+    if: github.event.pull_request.base.ref == 'prod'
+    uses: ./.github/workflows/deploy-to-production.yml
+    with:
+      IMAGE_TAG: ${{ needs.docker-image-upload.outputs.image_tag }}
+    secrets: inherit
+  call-dev:
+    needs: docker-image-upload
+    if: github.event.pull_request.base.ref == 'dev'
     uses: ./.github/workflows/deploy-to-dev.yml
     with:
       IMAGE_TAG: ${{ needs.docker-image-upload.outputs.image_tag }}

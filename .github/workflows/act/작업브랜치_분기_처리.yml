@@ -1,32 +1,104 @@
-# act workflow_dispatch -W .github/workflows/  dsd.yml --secret-file .secrets --container-architecture linux/arm64
+#act pull_request -W .github/workflows/act/작업브랜치_분기_처리.yml --container-architecture linux/arm64 -e <(echo '{"action":"closed","pull_request":{"merged":true,"base":{"ref":"main"},"head":{"ref":"feature-branch"}}}')
+
+#act pull_request -W .github/workflows/act/작업브랜치_분기_처리.yml --container-architecture linux/arm64 -e <(echo '{"action":"closed","pull_request":{"merged":true,"base":{"ref":"dev"},"head":{"ref":"feature-branch"}}}')
+
+#act pull_request -W .github/workflows/act/작업브랜치_분기_처리.yml --container-architecture linux/arm64 -e <(echo '{"action":"closed","pull_request":{"merged":true,"base":{"ref":"other-branch"},"head":{"ref":"feature-branch"}}}')
+
 
 name: branch-flag-check
 on:
+  pull_request:
+    types: [ closed ]
   workflow_dispatch:
+
 jobs:
   default_tasks:
+    runs-on: ubuntu-latest
     steps:
-      - name: Configure 1Password Service Account
-        uses: 1password/load-secrets-action/configure@v2
-        with:
-          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-      - name: Load secret
-        uses: 1password/load-secrets-action@v2
-        id: op-load-aws-secret
-        with:
-          export-env: true
-        env:
-          AWS_ACCESS_KEY_ID: "op://vault/ecr iam authentication/access key id"
-          AWS_SECRET_ACCESS_KEY: "op://vault/ecr iam authentication/secret access key"
-          AWS_REGION: "op://vault/ecr iam authentication/region"
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-call-deploy-workflow:
-  needs: default_tasks
-  steps:
-    - name: print now
-      run: |
-        echo "now is $(date)"
+      - name: Generate random ID
+        id: random-id
+        run: |
+          # UUID 생성 (Linux/macOS)
+          RANDOM_ID=$(cat /proc/sys/kernel/random/uuid)
+          echo "RANDOM_ID=$RANDOM_ID" >> $GITHUB_ENV
+          echo "Task ID: $RANDOM_ID"
 
-#act
-# dev로 pr close 시
-# act pull_request -W .github/workflows/act/작업브랜치_분기_처리.yml --secret-file .secrets --container-architecture linux/arm64
+  call-deploy-workflow:
+    needs: default_tasks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print current date
+        run: |
+          echo "Now is $(date)"
+          echo "Random ID from previous job: ${{ env.RANDOM_ID }}"
+
+      - name: Detect branch
+        id: detect-branch
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            # PR 이벤트인 경우
+            BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+            HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
+            IS_MERGED="${{ github.event.pull_request.merged }}"
+
+            echo "EVENT_TYPE=pull_request" >> $GITHUB_OUTPUT
+            echo "BASE_BRANCH=$BASE_BRANCH" >> $GITHUB_OUTPUT
+            echo "HEAD_BRANCH=$HEAD_BRANCH" >> $GITHUB_OUTPUT
+            echo "IS_MERGED=$IS_MERGED" >> $GITHUB_OUTPUT
+
+            if [ "$IS_MERGED" = "true" ]; then
+              if [ "$BASE_BRANCH" = "main" ]; then
+                echo "TARGET=production" >> $GITHUB_OUTPUT
+              elif [ "$BASE_BRANCH" = "dev" ]; then
+                echo "TARGET=development" >> $GITHUB_OUTPUT
+              else
+                echo "TARGET=none" >> $GITHUB_OUTPUT
+              fi
+            else
+              echo "TARGET=none" >> $GITHUB_OUTPUT
+            fi
+          else
+            # workflow_dispatch 이벤트인 경우
+            BRANCH="${{ github.ref_name }}"
+
+            echo "EVENT_TYPE=workflow_dispatch" >> $GITHUB_OUTPUT
+            echo "BRANCH=$BRANCH" >> $GITHUB_OUTPUT
+
+            if [ "$BRANCH" = "main" ]; then
+              echo "TARGET=production" >> $GITHUB_OUTPUT
+            elif [ "$BRANCH" = "dev" ]; then
+              echo "TARGET=development" >> $GITHUB_OUTPUT
+            else
+              echo "TARGET=none" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Print branch info
+        run: |
+          echo "Event type: ${{ steps.detect-branch.outputs.EVENT_TYPE }}"
+
+          if [ "${{ steps.detect-branch.outputs.EVENT_TYPE }}" = "pull_request" ]; then
+            echo "Pull request from ${{ steps.detect-branch.outputs.HEAD_BRANCH }} to ${{ steps.detect-branch.outputs.BASE_BRANCH }}"
+            echo "Merged: ${{ steps.detect-branch.outputs.IS_MERGED }}"
+          else
+            echo "Current branch: ${{ steps.detect-branch.outputs.BRANCH }}"
+          fi
+
+          echo "Deployment target: ${{ steps.detect-branch.outputs.TARGET }}"
+
+      - name: Conditional deployment
+        run: |
+          case "${{ steps.detect-branch.outputs.TARGET }}" in
+            production)
+              echo "🚀 Deploying to PRODUCTION environment"
+              ;;
+            development)
+              echo "🚀 Deploying to DEVELOPMENT environment"
+              ;;
+            *)
+              echo "❌ No deployment needed"
+              ;;
+          esac
