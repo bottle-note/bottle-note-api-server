@@ -1,19 +1,125 @@
-name: Deploy to Production
-
+# act workflow_dispatch -W .github/workflows/deploy-to-production.yml --secret-file .secrets --container-architecture linux/arm64
+name: deploy to production.yml
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
-      image_tag:
-        description: 'Docker image tag to deploy'
+      IMAGE_TAG:
         required: true
-
+        type: string
+    secrets:
+      GIT_ACCESS_TOKEN:
+        required: true
 jobs:
-  deploy:
+  dev_deploy_workflow_job:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: [
+          application-alpha,
+          application-bravo,
+          application-charlie
+        ]
     steps:
-      - name: Notification
-        run: |
-          echo "이것은 프로덕션(prod) 환경 배포 파일입니다."
-          echo "배포할 이미지 태그: ${{ github.event.inputs.image_tag }}"
+      - name: Configure 1Password Service Account
+        uses: 1password/load-secrets-action/configure@v2
+        with:
+          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
-      # 여기에 실제 배포 로직을 추가할 수 있습니다.
+      - name: Load secret
+        uses: 1password/load-secrets-action@v2
+        id: op-load-aws-secret
+        with:
+          export-env: true
+        env:
+          AWS_ACCESS_KEY_ID: "op://vault/ecr iam authentication/access key id"
+          AWS_SECRET_ACCESS_KEY: "op://vault/ecr iam authentication/secret access key"
+          AWS_REGION: "op://vault/ecr iam authentication/region"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Server host secret setup
+        id: op-load-server-secret
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: true
+          unset-previous: false
+        env:
+          SERVER_IP: op://vault/${{ matrix.environment }}-server/ip
+          SERVER_PORT: op://vault/${{ matrix.environment }}-server/port
+          SERVER_NAME: op://vault/${{ matrix.environment }}-server/user name
+          SERVER_PASSWORD: op://vault/${{ matrix.environment }}-server/password
+          SSH_KEY: op://vault/${{ matrix.environment }}-server-ssh/private_key?ssh-format=openssh
+
+      - name: Remote SSH Step
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.SERVER_IP }}
+          port: ${{ env.SERVER_PORT }}
+          username: ${{ env.SERVER_NAME }}
+          password: ${{ env.SERVER_PASSWORD }}
+          key: ${{ env.SSH_KEY }}
+          script: |
+            # AWS 자격 증명 설정
+            aws configure set aws_access_key_id "${{ env.AWS_ACCESS_KEY_ID }}"
+            aws configure set aws_secret_access_key "${{ env.AWS_SECRET_ACCESS_KEY }}"
+            aws configure set region "${{ env.AWS_REGION }}"
+
+            # ECR 로그인
+            aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+
+            # 이미지 정보 설정
+            IMAGE_TAG="${{ inputs.IMAGE_TAG }}"
+            ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+            ECR_REPOSITORY="ecr-bottle-note-api"
+            FULL_IMAGE_NAME="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+            echo "다운로드할 이미지: $FULL_IMAGE_NAME"
+
+            # 이미지 다운로드
+            docker pull $FULL_IMAGE_NAME
+
+            # 다운로드 확인
+            docker images | grep $ECR_REPOSITORY
+
+            # 환경 변수 파일 설정
+            echo "${{ secrets.PROD_ENV }}" | base64 --decode > .bottlenote.production.ENV
+
+            # 기존 컨테이너 중지 및 삭제 (있는 경우)
+            docker stop bottle-note-api-production || true
+            docker rm bottle-note-api-production || true
+
+            docker run -d \
+              --name bottle-note-api-production \
+              -p 30001:30001 \
+              --env-file .bottlenote.production.ENV \
+              -e TZ=Asia/Seoul \
+              -e SPRING_PROFILES_ACTIVE=prod \
+              -e JAVA_OPTS="-Xms512m -Xmx2024m -XX:MaxMetaspaceSize=256m" \
+              -e SERVER_NAME="${{ matrix.environment }}" \
+              -e GIT_BRANCH="${{ github.ref_name }}" \
+              -e GIT_COMMIT="${{ github.sha }}" \
+              -e BUILD_TIME="$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+              --memory=1536m \
+              --cpus=2 \
+              --restart always \
+              --log-driver json-file \
+              --log-opt max-size=20m \
+              --log-opt max-file=5 \
+              $FULL_IMAGE_NAME
+
+            # 배포 확인
+            docker ps | grep bottle-note-api-production
+
+            # 사용하지 않는 Docker 리소스 정리
+            echo "사용하지 않는 Docker 리소스 정리 중..."
+            docker system prune -f
+            docker image prune -a -f --filter "until=48h"
