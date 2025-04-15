@@ -94,11 +94,9 @@ jobs:
           case "${{ steps.detect-branch.outputs.TARGET }}" in
             production)
               echo "🚀 Deploying to PRODUCTION environment"
-              # 여기에 프로덕션 배포 로직 추가
               ;;
             development)
               echo "🚀 Deploying to DEVELOPMENT environment"
-              # 여기에 개발 배포 로직 추가
               ;;
             *)
               echo "❌ No deployment needed"
