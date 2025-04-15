@@ -10,7 +10,7 @@ on:
       GIT_ACCESS_TOKEN:
         required: true
 jobs:
-  dev_deploy_workflow_job:
+  production_deploy_workflow_job:
     runs-on: ubuntu-latest
     strategy:
       matrix:
