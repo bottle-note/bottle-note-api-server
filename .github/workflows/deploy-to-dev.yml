@@ -97,9 +97,11 @@ jobs:
             # 기존 컨테이너 중지 및 삭제 (있는 경우)
             docker stop bottle-note-api-api-development || true
             docker rm bottle-note-api-api-development || true
+            docker stop bottle-note-api-development || true
+            docker rm bottle-note-api-development || true
 
             docker run -d \
-              --name bottle-note-api-api-development \
+              --name bottle-note-api-development \
               -p 30001:30001 \
               --env-file .bottlenote.development.ENV \
               -e TZ=Asia/Seoul \
@@ -117,7 +119,7 @@ jobs:
               --log-opt max-file=3 \
               $FULL_IMAGE_NAME
 
-            docker ps | grep bottle-note-api-api-development
+            docker ps | grep bottle-note-api-development
 
             echo "사용하지 않는 모든 Docker 리소스 정리 중..."
             docker system prune -f
