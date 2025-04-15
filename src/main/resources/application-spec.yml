@@ -1,0 +1,39 @@
+# application-spec.yml
+
+--- # Local 환경
+spring:
+  config:
+    activate:
+      on-profile: local
+server:
+  tomcat:
+    threads:
+      max: 15 # 최대 스레드 수
+    max-connections: 20 # 최대 동시 연결 수
+    connection-timeout: 5000 # 5초
+
+--- # 개발 환경
+spring:
+  config:
+    activate:
+      on-profile: dev
+server:
+  tomcat:
+    threads:
+      max: 15 # 최대 스레드 수
+    max-connections: 20 # 최대 동시 연결 수
+    connection-timeout: 5000 # 5초
+
+--- # 운영 환경
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+server:
+  tomcat:
+    threads:
+      max: 200 # 최대 스레드 수
+    max-connections: 2000 # 최대 동시 연결 수
+    connection-timeout: 30000 # 30초
