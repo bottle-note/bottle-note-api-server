@@ -4,6 +4,7 @@ import app.bottlenote.global.annotation.AccessPolicy;
 import app.bottlenote.global.annotation.AccessPolicy.AccessType;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.user.constant.MyBottleType;
 import app.bottlenote.user.dto.request.MyBottleRequest;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.service.UserBasicService;
@@ -43,7 +44,7 @@ public class UserMyPageController {
 	) {
 		final Long currentUserId = SecurityContextUtil.getUserIdByContext()
 				.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
-		return GlobalResponse.ok(userBasicService.getReviewMyBottle(userId, currentUserId, myBottleRequest));
+		return GlobalResponse.ok(userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.REVIEW));
 	}
 
 	@AccessPolicy(type = AccessType.OWNER)
@@ -54,6 +55,17 @@ public class UserMyPageController {
 	) {
 		final Long currentUserId = SecurityContextUtil.getUserIdByContext()
 				.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
-		return GlobalResponse.ok(userBasicService.getRatingMyBottle(userId, currentUserId, myBottleRequest));
+		return GlobalResponse.ok(userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.RATING));
+	}
+
+	@AccessPolicy(type = AccessType.OWNER)
+	@GetMapping("/{userId}/my-bottle/picks")
+	public ResponseEntity<?> getPicksMyBottle(
+			@PathVariable(name = "userId") Long userId,
+			@ModelAttribute(name = "myBottleRequest") MyBottleRequest myBottleRequest
+	) {
+		final Long currentUserId = SecurityContextUtil.getUserIdByContext()
+				.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+		return GlobalResponse.ok(userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.PICK));
 	}
 }

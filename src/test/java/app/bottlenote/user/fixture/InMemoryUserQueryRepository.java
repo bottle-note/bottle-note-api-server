@@ -50,6 +50,16 @@ public class InMemoryUserQueryRepository implements UserRepository {
 	}
 
 	@Override
+	public MyBottleResponse getRatingMyBottle(MyBottlePageableCriteria criteria) {
+		return null;
+	}
+
+	@Override
+	public MyBottleResponse getPicksMyBottle(MyBottlePageableCriteria criteria) {
+		return null;
+	}
+
+	@Override
 	public boolean existsByNickName(String nickname) {
 		return users.values().stream().anyMatch(user -> user.getNickName().equals(nickname));
 	}

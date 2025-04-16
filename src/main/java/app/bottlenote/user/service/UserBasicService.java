@@ -1,5 +1,6 @@
 package app.bottlenote.user.service;
 
+import app.bottlenote.user.constant.MyBottleType;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
@@ -103,44 +104,19 @@ public class UserBasicService {
 	}
 
 	@Transactional(readOnly = true)
-	public MyBottleResponse getReviewMyBottle(Long userId, Long currentUserId, MyBottleRequest myBottleRequest) {
-		return userFilterManager.withActiveUserFilter(ACTIVE,
-				() -> {
-					boolean isUserNotAccessible = !userRepository.existsByUserId(userId);
+	public MyBottleResponse getMyBottle(Long userId, Long currentUserId, MyBottleRequest myBottleRequest, MyBottleType myBottleType) {
+		return userFilterManager.withActiveUserFilter(ACTIVE, () -> {
+			if (!userRepository.existsByUserId(userId)) {
+				throw new UserException(MYBOTTLE_NOT_ACCESSIBLE);
+			}
 
-					if (isUserNotAccessible) {
-						throw new UserException(MYBOTTLE_NOT_ACCESSIBLE);
-					}
+			MyBottlePageableCriteria criteria = MyBottlePageableCriteria.of(myBottleRequest, userId, currentUserId);
 
-					MyBottlePageableCriteria criteria = MyBottlePageableCriteria.of(
-							myBottleRequest,
-							userId,
-							currentUserId
-					);
-
-					return userRepository.getReviewMyBottle(criteria);
-				});
+			return switch (myBottleType) {
+				case REVIEW -> userRepository.getReviewMyBottle(criteria);
+				case RATING -> userRepository.getRatingMyBottle(criteria);
+				case PICK -> userRepository.getPicksMyBottle(criteria);
+			};
+		});
 	}
-
-	@Transactional(readOnly = true)
-	public MyBottleResponse getRatingMyBottle(Long userId, Long currentUserId, MyBottleRequest myBottleRequest) {
-		return userFilterManager.withActiveUserFilter(ACTIVE,
-				() -> {
-					boolean isUserNotAccessible = !userRepository.existsByUserId(userId);
-
-					if (isUserNotAccessible) {
-						throw new UserException(MYBOTTLE_NOT_ACCESSIBLE);
-					}
-
-					MyBottlePageableCriteria criteria = MyBottlePageableCriteria.of(
-							myBottleRequest,
-							userId,
-							currentUserId
-					);
-
-					return userRepository.getRatingMyBottle(criteria);
-				});
-	}
-
-
 }

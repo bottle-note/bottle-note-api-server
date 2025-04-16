@@ -92,7 +92,7 @@ class UserQueryControllerTest {
 		MyBottleResponse myBottleResponse = mypageQueryFixture.getReviewMyBottleResponse(userId, true, null);
 
 		// when
-		when(userQueryService.getReviewMyBottle(any(), any(), any())).thenReturn(myBottleResponse);
+		when(userQueryService.getMyBottle(any(), any(), any(), any())).thenReturn(myBottleResponse);
 
 		// then
 		ResultActions resultActions = mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle/review", userId)

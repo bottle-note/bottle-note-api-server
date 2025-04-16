@@ -12,4 +12,6 @@ public interface CustomUserRepository {
 
 	MyBottleResponse getRatingMyBottle(MyBottlePageableCriteria criteria);
 
+	MyBottleResponse getPicksMyBottle(MyBottlePageableCriteria criteria);
+
 }

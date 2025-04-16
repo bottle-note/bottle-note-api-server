@@ -27,4 +27,6 @@ public interface UserRepository {
 	MyBottleResponse getReviewMyBottle(MyBottlePageableCriteria criteria);
 
 	MyBottleResponse getRatingMyBottle(MyBottlePageableCriteria criteria);
+
+	MyBottleResponse getPicksMyBottle(MyBottlePageableCriteria criteria);
 }

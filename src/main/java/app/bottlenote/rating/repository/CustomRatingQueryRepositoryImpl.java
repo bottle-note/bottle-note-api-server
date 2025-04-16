@@ -2,6 +2,7 @@ package app.bottlenote.rating.repository;
 
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.picks.repository.PicksQuerySupporter;
 import app.bottlenote.rating.constant.SearchSortType;
 import app.bottlenote.rating.dto.dsl.RatingListFetchCriteria;
 import app.bottlenote.rating.dto.response.RatingListFetchResponse;
@@ -17,11 +18,13 @@ import static app.bottlenote.review.domain.QReview.review;
 
 public class CustomRatingQueryRepositoryImpl implements CustomRatingQueryRepository {
 
-	private final RatingQuerySupporter querySupporter;
+	private final RatingQuerySupporter ratingQuerySupporter;
+	private final PicksQuerySupporter picksQuerySupporter;
 	private final JPAQueryFactory queryFactory;
 
-	public CustomRatingQueryRepositoryImpl(RatingQuerySupporter ratingQuerySupporter, JPAQueryFactory queryFactory) {
-		this.querySupporter = ratingQuerySupporter;
+	public CustomRatingQueryRepositoryImpl(RatingQuerySupporter ratingQuerySupporter, PicksQuerySupporter picksQuerySupporter, JPAQueryFactory queryFactory) {
+		this.ratingQuerySupporter = ratingQuerySupporter;
+		this.picksQuerySupporter = picksQuerySupporter;
 		this.queryFactory = queryFactory;
 	}
 
@@ -34,50 +37,50 @@ public class CustomRatingQueryRepositoryImpl implements CustomRatingQueryReposit
 		SortOrder sortOrder = criteria.sortOrder();
 
 		List<RatingListFetchResponse.Info> fetch = queryFactory.select(
-				Projections.constructor(
-					RatingListFetchResponse.Info.class,
-					alcohol.id.as("alcoholId"),
-					alcohol.imageUrl.as("imageUrl"),
-					alcohol.korName.as("korName"),
-					alcohol.engName.as("engName"),
-					alcohol.korCategory.as("korCategoryName"),
-					alcohol.engCategory.as("engCategoryName"),
-					querySupporter.subQueryIsPicked(userId)
+						Projections.constructor(
+								RatingListFetchResponse.Info.class,
+								alcohol.id.as("alcoholId"),
+								alcohol.imageUrl.as("imageUrl"),
+								alcohol.korName.as("korName"),
+								alcohol.engName.as("engName"),
+								alcohol.korCategory.as("korCategoryName"),
+								alcohol.engCategory.as("engCategoryName"),
+								picksQuerySupporter.isPickedSubQuery(userId)
+						)
+				).from(alcohol)
+				.leftJoin(rating).on(alcohol.id.eq(rating.id.alcoholId))
+				.leftJoin(picks).on(alcohol.id.eq(picks.alcoholId))
+				.leftJoin(review).on(alcohol.id.eq(review.alcoholId))
+				.where(
+						ratingQuerySupporter.eqAlcoholName(criteria.keyword()),
+						ratingQuerySupporter.eqAlcoholCategory(criteria.category()),
+						ratingQuerySupporter.eqAlcoholRegion(criteria.regionId()),
+						ratingQuerySupporter.neRatingByMe(userId)
 				)
-			).from(alcohol)
-			.leftJoin(rating).on(alcohol.id.eq(rating.id.alcoholId))
-			.leftJoin(picks).on(alcohol.id.eq(picks.alcoholId))
-			.leftJoin(review).on(alcohol.id.eq(review.alcoholId))
-			.where(
-				querySupporter.eqAlcoholName(criteria.keyword()),
-				querySupporter.eqAlcoholCategory(criteria.category()),
-				querySupporter.eqAlcoholRegion(criteria.regionId()),
-				querySupporter.neRatingByMe(userId)
-			)
-			.groupBy(
-				alcohol.id,
-				alcohol.imageUrl,
-				alcohol.korName,
-				alcohol.engName,
-				alcohol.korCategory,
-				alcohol.engCategory)
-			.orderBy(querySupporter.orderBy(sortType, sortOrder))
-			.orderBy(querySupporter.orderByRandom())
-			.offset(cursor)
-			.limit(pageSize + 1)
-			.fetch();
+				.groupBy(
+						alcohol.id,
+						alcohol.imageUrl,
+						alcohol.korName,
+						alcohol.engName,
+						alcohol.korCategory,
+						alcohol.engCategory)
+				.orderBy(ratingQuerySupporter.orderBy(sortType, sortOrder))
+				.orderBy(ratingQuerySupporter.orderByRandom())
+				.offset(cursor)
+				.limit(pageSize + 1)
+				.fetch();
 
 		Long totalCount = queryFactory
-			.select(alcohol.id.count())
-			.from(alcohol)
-			.where(
-				querySupporter.eqAlcoholName(criteria.keyword()),
-				querySupporter.eqAlcoholCategory(criteria.category()),
-				querySupporter.eqAlcoholRegion(criteria.regionId())
-			)
-			.fetchOne();
+				.select(alcohol.id.count())
+				.from(alcohol)
+				.where(
+						ratingQuerySupporter.eqAlcoholName(criteria.keyword()),
+						ratingQuerySupporter.eqAlcoholCategory(criteria.category()),
+						ratingQuerySupporter.eqAlcoholRegion(criteria.regionId())
+				)
+				.fetchOne();
 
-		var pageable = querySupporter.getCursorPageable(fetch, pageSize, cursor);
+		var pageable = ratingQuerySupporter.getCursorPageable(fetch, pageSize, cursor);
 		var fetchResponse = RatingListFetchResponse.create(totalCount, fetch);
 
 		return PageResponse.of(fetchResponse, pageable);

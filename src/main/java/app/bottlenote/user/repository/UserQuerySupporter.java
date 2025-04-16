@@ -66,7 +66,7 @@ public class UserQuerySupporter {
 
 	public Expression<Double> averageRatingSubQuery(NumberPath<Long> alocholId) {
 		return ExpressionUtils.as(
-				select(rating.ratingPoint.rating.avg())
+				select(rating.ratingPoint.rating.avg().round())
 						.from(rating)
 						.where(rating.id.alcoholId.eq(alocholId)
 								.and(rating.ratingPoint.rating.gt(0.0))),

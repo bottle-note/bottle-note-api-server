@@ -3,6 +3,8 @@ package app.bottlenote.user.fixture;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
+import app.bottlenote.user.dto.response.PicksMyBottleItem;
+import app.bottlenote.user.dto.response.RatingMyBottleItem;
 import app.bottlenote.user.dto.response.ReviewMyBottleItem;
 
 import java.time.LocalDateTime;
@@ -64,6 +66,54 @@ public class UserQueryFixture {
 				isMyPage,
 				(long) reviewList.size(),
 				reviewList,
+				cursorPageable
+		);
+	}
+
+	public MyBottleResponse getRatingMyBottleResponse(Long userId, boolean isMyPage, CursorPageable cursorPageable) {
+
+		RatingMyBottleItem ratingMyBottleItem1 = RatingMyBottleItem.builder()
+				.baseMyBottleInfo(
+						new MyBottleResponse.BaseMyBottleInfo(
+								1L, "글렌피딕 12년", "Glenfiddich 12 Year Old", "싱글 몰트 위스키",
+								"https://example.com/image1.jpg", true
+						)
+				)
+				.myRatingPoint(1.0)
+				.averageRatingCount(3L)
+				.averageRatingPoint(3.0)
+				.ratingModifyAt(LocalDateTime.now())
+				.build();
+
+		List<RatingMyBottleItem> ratingList = List.of(ratingMyBottleItem1);
+
+		return MyBottleResponse.create(
+				userId,
+				isMyPage,
+				(long) ratingList.size(),
+				ratingList,
+				cursorPageable
+		);
+	}
+
+	public MyBottleResponse getPicksMyBottleResponse(Long userId, boolean isMyPage, CursorPageable cursorPageable) {
+
+		PicksMyBottleItem picksMyBottleItem1 = PicksMyBottleItem.builder()
+				.baseMyBottleInfo(new MyBottleResponse.BaseMyBottleInfo(
+						1L, "글렌피딕 12년", "Glenfiddich 12 Year Old", "싱글 몰트 위스키",
+						"https://example.com/image1.jpg", true
+				))
+				.isPicked(true)
+				.totalPicksCount(100L)
+				.build();
+
+		List<PicksMyBottleItem> picksList = List.of(picksMyBottleItem1);
+
+		return MyBottleResponse.create(
+				userId,
+				isMyPage,
+				(long) picksList.size(),
+				picksList,
 				cursorPageable
 		);
 	}

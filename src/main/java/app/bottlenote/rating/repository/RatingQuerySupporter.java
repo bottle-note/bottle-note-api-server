@@ -9,7 +9,6 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.util.StringUtils;
-import com.querydsl.jpa.JPAExpressions;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -22,20 +21,6 @@ import static app.bottlenote.review.domain.QReview.review;
 
 @Component
 public class RatingQuerySupporter {
-
-	protected BooleanExpression subQueryIsPicked(Long userId) {
-		if (userId == null)
-			return Expressions.FALSE;
-
-		return Expressions.asBoolean(
-			JPAExpressions
-				.selectOne()
-				.from(picks)
-				.where(picks.alcoholId.eq(alcohol.id),
-					picks.userId.eq(userId))
-				.exists()
-		);
-	}
 
 	/**
 	 * CursorPageable 생성
@@ -57,11 +42,11 @@ public class RatingQuerySupporter {
 		}
 
 		return CursorPageable.builder()
-			.currentCursor(cursor)
-			.cursor(cursor + pageSize)  // 다음 페이지가 있는 경우 마지막으로 가져온 ID를 다음 커서로 사용
-			.pageSize(pageSize)
-			.hasNext(hasNext)
-			.build();
+				.currentCursor(cursor)
+				.cursor(cursor + pageSize)  // 다음 페이지가 있는 경우 마지막으로 가져온 ID를 다음 커서로 사용
+				.pageSize(pageSize)
+				.hasNext(hasNext)
+				.build();
 	}
 
 	/**
@@ -73,7 +58,7 @@ public class RatingQuerySupporter {
 			return null;
 
 		return alcohol.korName.like("%" + name + "%")
-			.or(alcohol.engName.like("%" + name + "%"));
+				.or(alcohol.engName.like("%" + name + "%"));
 	}
 
 	/**
@@ -119,8 +104,8 @@ public class RatingQuerySupporter {
 	 * - REVIEW
 	 */
 	protected OrderSpecifier<?> orderBy(
-		SearchSortType searchSortType,
-		SortOrder sortOrder
+			SearchSortType searchSortType,
+			SortOrder sortOrder
 	) {
 		NumberExpression<Double> avgRating = rating.ratingPoint.rating.avg();  // 평균 평점 계산
 		NumberExpression<Long> reviewCount = review.id.countDistinct();  // 고유 리뷰 수 계산
@@ -128,7 +113,7 @@ public class RatingQuerySupporter {
 
 		return switch (searchSortType) {
 			case POPULAR ->
-				sortOrder == SortOrder.DESC ? avgRating.add(reviewCount).desc() : avgRating.add(reviewCount).asc();
+					sortOrder == SortOrder.DESC ? avgRating.add(reviewCount).desc() : avgRating.add(reviewCount).asc();
 			case RATING -> sortOrder == SortOrder.DESC ? avgRating.desc() : avgRating.asc();
 			case PICK -> sortOrder == SortOrder.DESC ? pickCount.desc() : pickCount.asc();
 			case REVIEW -> sortOrder == SortOrder.DESC ? reviewCount.desc() : reviewCount.asc();
