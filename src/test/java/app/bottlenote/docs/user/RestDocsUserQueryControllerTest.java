@@ -118,7 +118,7 @@ class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 						.contentType(MediaType.APPLICATION_JSON)
 						.with(csrf()))
 				.andExpect(status().isOk())
-				.andDo(document("user/mybottle",
+				.andDo(document("user/review-mybottle",
 						pathParameters(
 								parameterWithName("userId").description("유저 아이디")
 						),
@@ -182,7 +182,7 @@ class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 						.contentType(MediaType.APPLICATION_JSON)
 						.with(csrf()))
 				.andExpect(status().isOk())
-				.andDo(document("user/mybottle",
+				.andDo(document("user/rating-mybottle",
 						pathParameters(
 								parameterWithName("userId").description("유저 아이디")
 						),
@@ -244,7 +244,7 @@ class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 						.contentType(MediaType.APPLICATION_JSON)
 						.with(csrf()))
 				.andExpect(status().isOk())
-				.andDo(document("user/mybottle",
+				.andDo(document("user/picks-mybottle",
 						pathParameters(
 								parameterWithName("userId").description("유저 아이디")
 						),
@@ -271,9 +271,9 @@ class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 								fieldWithPath("data.myBottleList[].baseMyBottleInfo.korCategoryName").description("알코올 카테고리명"),
 								fieldWithPath("data.myBottleList[].baseMyBottleInfo.imageUrl").description("알코올 이미지 URL"),
 								fieldWithPath("data.myBottleList[].baseMyBottleInfo.isHot5").description("HOT5 여부"),
-								fieldWithPath("data.myBottleList[].isPicked").description("리뷰 ID").optional(),
-								fieldWithPath("data.myBottleList[].totalPicksCount").description("찜 상태"),
-								fieldWithPath("data.cursorPageable").description("전체 찜한 유저 수").optional(),
+								fieldWithPath("data.myBottleList[].isPicked").description("찜 상태").optional(),
+								fieldWithPath("data.myBottleList[].totalPicksCount").description("전체 찜한 유저 수"),
+								fieldWithPath("data.cursorPageable").description("커서 페이지 정보").optional(),
 								fieldWithPath("errors").ignored(),
 								fieldWithPath("meta.serverVersion").ignored(),
 								fieldWithPath("meta.serverEncoding").ignored(),

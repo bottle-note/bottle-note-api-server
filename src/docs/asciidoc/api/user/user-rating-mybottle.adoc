@@ -1,10 +1,10 @@
-=== 마이보틀 조회 ===
+=== 별점 마이보틀 조회 ===
 
-- 마이 보틀 조회 API는 `사용자` 가 위스키에 액션(찜하기/리뷰/별점)을 조회하는 API입니다.
+- 별점 마이 보틀 조회 API는 `사용자` 가 위스키에 단 별점들을 조회하는 API입니다.
 
 [source]
 ---
-GET /api/v1/mypage/{userId}/my-bottle
+GET /api/v1/mypage/{userId}/my-bottle/rating
 ---
 
 [discrete]
@@ -12,13 +12,13 @@ GET /api/v1/mypage/{userId}/my-bottle
 
 [discrete]
 - userId : 사용자 ID (조회대상 사용자)
-include::{snippets}/user/mybottle/query-parameters.adoc[]
+include::{snippets}/user/rating-mybottle/query-parameters.adoc[]
 
 [discrete]
 ==== 응답 파라미터  ====
 
 [discrete]
-include::{snippets}/user/mybottle/response-fields.adoc[]
+include::{snippets}/user/rating-mybottle/response-fields.adoc[]
 
 [discrete]
 ===== _정렬 타입 (sortType)_ =====
@@ -27,10 +27,6 @@ include::{snippets}/user/mybottle/response-fields.adoc[]
 |  |
 | LATEST
 | 최신
-| RATING
-| 별점
-| REVIEW
-| 리뷰
 |===
 
 [discrete]
