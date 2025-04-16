@@ -4,10 +4,13 @@ import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.rating.constant.SearchSortType;
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.util.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +21,7 @@ import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
+import static com.querydsl.jpa.JPAExpressions.select;
 
 @Component
 public class RatingQuerySupporter {
@@ -48,6 +52,43 @@ public class RatingQuerySupporter {
 				.hasNext(hasNext)
 				.build();
 	}
+
+	/**
+	 * 마이 페이지 사용자의 평점 개수를 조회한다.
+	 *
+	 * @param userId 마이 페이지 사용자
+	 * @return 평점 개수
+	 */
+	public Expression<Long> ratingCountSubQuery(Long userId) {
+		return ExpressionUtils.as(
+				select(rating.count())
+						.from(rating)
+						.where(rating.id.userId.eq(userId)
+								.and(rating.ratingPoint.rating.gt(0.0))),
+				"ratingCount"
+		);
+	}
+
+	public Expression<Double> averageRatingSubQuery(NumberPath<Long> alocholId) {
+		return ExpressionUtils.as(
+				select(rating.ratingPoint.rating.avg().round())
+						.from(rating)
+						.where(rating.id.alcoholId.eq(alocholId)
+								.and(rating.ratingPoint.rating.gt(0.0))),
+				"averageRatingPoint"
+		);
+	}
+
+	public Expression<Long> averageRatingCountSubQuery(NumberPath<Long> alocholId) {
+		return ExpressionUtils.as(
+				select(rating.ratingPoint.rating.count())
+						.from(rating)
+						.where(rating.id.alcoholId.eq(alocholId)
+								.and(rating.ratingPoint.rating.gt(0.0))),
+				"averageRatingCount"
+		);
+	}
+
 
 	/**
 	 * 술 이름을 검색하는 조건

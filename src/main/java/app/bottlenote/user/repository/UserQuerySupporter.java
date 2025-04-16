@@ -2,8 +2,6 @@ package app.bottlenote.user.repository;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.SortOrder;
-import app.bottlenote.picks.constant.PicksStatus;
-import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.user.constant.FollowStatus;
 import app.bottlenote.user.constant.MyBottleSortType;
 import app.bottlenote.user.constant.MyBottleType;
@@ -17,12 +15,10 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.util.StringUtils;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.alcohols.domain.QPopularAlcohol.popularAlcohol;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
@@ -31,74 +27,6 @@ import static com.querydsl.jpa.JPAExpressions.select;
 
 @Component
 public class UserQuerySupporter {
-
-	/**
-	 * 마이 페이지 사용자의 리뷰 개수를 조회한다.
-	 *
-	 * @param userId 마이 페이지 사용자
-	 * @return 리뷰 개수
-	 */
-	public Expression<Long> reviewCountSubQuery(NumberPath<Long> userId) {
-		return ExpressionUtils.as(
-				select(review.count())
-						.from(review)
-						.where(review.userId.eq(userId)
-								.and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE))),
-				"reviewCount"
-		);
-	}
-
-	/**
-	 * 마이 페이지 사용자의 평점 개수를 조회한다.
-	 *
-	 * @param userId 마이 페이지 사용자
-	 * @return 평점 개수
-	 */
-	public Expression<Long> ratingCountSubQuery(Long userId) {
-		return ExpressionUtils.as(
-				select(rating.count())
-						.from(rating)
-						.where(rating.id.userId.eq(userId)
-								.and(rating.ratingPoint.rating.gt(0.0))),
-				"ratingCount"
-		);
-	}
-
-	public Expression<Double> averageRatingSubQuery(NumberPath<Long> alocholId) {
-		return ExpressionUtils.as(
-				select(rating.ratingPoint.rating.avg().round())
-						.from(rating)
-						.where(rating.id.alcoholId.eq(alocholId)
-								.and(rating.ratingPoint.rating.gt(0.0))),
-				"averageRatingPoint"
-		);
-	}
-
-	public Expression<Long> averageRatingCountSubQuery(NumberPath<Long> alocholId) {
-		return ExpressionUtils.as(
-				select(rating.ratingPoint.rating.count())
-						.from(rating)
-						.where(rating.id.alcoholId.eq(alocholId)
-								.and(rating.ratingPoint.rating.gt(0.0))),
-				"averageRatingCount"
-		);
-	}
-
-	/**
-	 * 마이 페이지 사용자의 찜하기 개수를 조회한다.
-	 *
-	 * @param userId 마이 페이지 사용자
-	 * @return 찜하기 개수
-	 */
-	public Expression<Long> picksCountSubQuery(NumberPath<Long> userId) {
-		return ExpressionUtils.as(
-				select(picks.count())
-						.from(picks)
-						.where(picks.userId.eq(userId)
-								.and(picks.status.eq(PicksStatus.PICK))),
-				"picksCount"
-		);
-	}
 
 	/**
 	 * 마이 페이지 사용자의 팔로워 수 를 조회한다.
@@ -159,19 +87,6 @@ public class UserQuerySupporter {
 		return Expressions.asBoolean(Objects.equals(userId, currentUserId));
 	}
 
-	/**
-	 * 로그인 사용자가 해당 술에 대한 리뷰 작성 여부를 조회한다.
-	 *
-	 * @param alcoholId 술 ID
-	 * @param userId    로그인 사용자 ID
-	 * @return 리뷰 작성 여부 t/f
-	 */
-	public BooleanExpression isMyReviewSubquery(NumberPath<Long> alcoholId, Long userId) {
-		return select(review.count())
-				.from(review)
-				.where(review.alcoholId.eq(alcoholId).and(review.userId.eq(userId)))
-				.gt(0L);
-	}
 
 	/**
 	 * 마이 보틀 CursorPageable 생성
@@ -234,23 +149,5 @@ public class UserQuerySupporter {
 				case RATING -> sortOrder.resolve(rating.lastModifyAt);
 			};
 		};
-	}
-
-	/**
-	 * 파라미터로 받은 alcoholId가 popularAlcohol에 속하는지 여부
-	 *
-	 * @param id
-	 * @return
-	 */
-	public BooleanExpression isHot5(NumberPath<Long> id) {
-		LocalDateTime now = LocalDateTime.now();
-		return select(popularAlcohol.count())
-				.from(popularAlcohol)
-				.where(popularAlcohol.alcoholId.eq(id),
-						popularAlcohol.year.eq(now.getYear()),
-						popularAlcohol.month.eq(now.getMonthValue()),
-						popularAlcohol.day.eq(now.getDayOfMonth())
-				)
-				.gt(0L);
 	}
 }

@@ -1,11 +1,13 @@
 package app.bottlenote.user.repository;
 
+import app.bottlenote.alcohols.repository.AlcoholQuerySupporter;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.picks.constant.PicksStatus;
 import app.bottlenote.picks.repository.PicksQuerySupporter;
 import app.bottlenote.rating.repository.RatingQuerySupporter;
 import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.review.domain.QReviewTastingTag;
+import app.bottlenote.review.repository.ReviewQuerySupporter;
 import app.bottlenote.user.constant.MyBottleType;
 import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
 import app.bottlenote.user.dto.response.MyBottleResponse;
@@ -36,6 +38,8 @@ import static app.bottlenote.user.domain.QUser.user;
 public class CustomUserRepositoryImpl implements CustomUserRepository {
 
 	private final JPAQueryFactory queryFactory;
+	private final ReviewQuerySupporter reviewQuerySupporter;
+	private final AlcoholQuerySupporter alcoholQuerySupporter;
 	private final UserQuerySupporter userQuerySupporter;
 	private final RatingQuerySupporter ratingQuerySupporter;
 	private final PicksQuerySupporter pickQuerySupporter;
@@ -56,9 +60,9 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 						user.id.as("userId"),
 						user.nickName.as("nickName"),
 						user.imageUrl.as("userProfileImage"),
-						userQuerySupporter.reviewCountSubQuery(user.id),     // 마이 페이지 사용자의 리뷰 개수
-						userQuerySupporter.ratingCountSubQuery(userId),     // 마이 페이지 사용자의 평점 개수
-						userQuerySupporter.picksCountSubQuery(user.id),      // 마이 페이지 사용자의 찜하기 개수
+						reviewQuerySupporter.reviewCountSubQuery(user.id),     // 마이 페이지 사용자의 리뷰 개수
+						ratingQuerySupporter.ratingCountSubQuery(userId),     // 마이 페이지 사용자의 평점 개수
+						pickQuerySupporter.picksCountSubQuery(user.id),      // 마이 페이지 사용자의 찜하기 개수
 						userQuerySupporter.followingCountSubQuery(user.id),     // 마이 페이지 사용자가 팔로우 하는 유저 수
 						userQuerySupporter.followerCountSubQuery(user.id),   //  마이 페이지 사용자를 팔로우 하는 유저 수
 						userQuerySupporter.isFollowSubQuery(user.id, currentUserId), // 로그인 사용자가 마이 페이지 사용자를 팔로우 하고 있는지 여부
@@ -84,7 +88,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 								alcohol.engName.as("alcoholEngName"),
 								alcohol.korCategory.as("korCategoryName"),
 								alcohol.imageUrl.as("imageUrl"),
-								userQuerySupporter.isHot5(alcohol.id).as("isHot5")
+								alcoholQuerySupporter.isHot5(alcohol.id).as("isHot5")
 
 						),
 						review.id.as("reviewId"),
@@ -194,11 +198,11 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 								alcohol.engName.as("alcoholEngName"),
 								alcohol.korCategory.as("korCategoryName"),
 								alcohol.imageUrl.as("imageUrl"),
-								userQuerySupporter.isHot5(alcohol.id).as("isHot5")
+								alcoholQuerySupporter.isHot5(alcohol.id).as("isHot5")
 						),
 						rating.ratingPoint.rating.as("myRatingPoint"),
-						userQuerySupporter.averageRatingSubQuery(alcohol.id),
-						userQuerySupporter.averageRatingCountSubQuery(alcohol.id),
+						ratingQuerySupporter.averageRatingSubQuery(alcohol.id),
+						ratingQuerySupporter.averageRatingCountSubQuery(alcohol.id),
 						rating.lastModifyAt.as("ratingModifyAt")
 				))
 				.from(alcohol)
@@ -258,7 +262,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 								alcohol.engName.as("alcoholEngName"),
 								alcohol.korCategory.as("korCategoryName"),
 								alcohol.imageUrl.as("imageUrl"),
-								userQuerySupporter.isHot5(alcohol.id).as("isHot5")
+								alcoholQuerySupporter.isHot5(alcohol.id).as("isHot5")
 						),
 						pickQuerySupporter.isPickedSubQuery(userId),
 						pickQuerySupporter.totalPicksCountSubQuery(alcohol.id)

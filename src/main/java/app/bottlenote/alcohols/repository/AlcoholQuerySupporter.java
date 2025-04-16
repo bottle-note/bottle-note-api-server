@@ -12,35 +12,57 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.util.StringUtils;
 import com.querydsl.jpa.JPAExpressions;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.alcohols.domain.QAlcoholsTastingTags.alcoholsTastingTags;
+import static app.bottlenote.alcohols.domain.QPopularAlcohol.popularAlcohol;
 import static app.bottlenote.alcohols.domain.QTastingTag.tastingTag;
 import static app.bottlenote.picks.constant.PicksStatus.PICK;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
+import static com.querydsl.jpa.JPAExpressions.select;
 
 @Slf4j
 @Component
 public class AlcoholQuerySupporter {
 
+	/**
+	 * 파라미터로 받은 alcoholId가 popularAlcohol에 속하는지 여부
+	 *
+	 * @param id
+	 * @return
+	 */
+	public BooleanExpression isHot5(NumberPath<Long> id) {
+		LocalDateTime now = LocalDateTime.now();
+		return select(popularAlcohol.count())
+				.from(popularAlcohol)
+				.where(popularAlcohol.alcoholId.eq(id),
+						popularAlcohol.year.eq(now.getYear()),
+						popularAlcohol.month.eq(now.getMonthValue()),
+						popularAlcohol.day.eq(now.getDayOfMonth())
+				)
+				.gt(0L);
+	}
+
 	public static Expression<String> getTastingTags() {
 		return ExpressionUtils.as(
-			JPAExpressions.select(
-					Expressions.stringTemplate("group_concat({0})", tastingTag.korName)
-				)
-				.from(alcoholsTastingTags)
-				.join(tastingTag).on(alcoholsTastingTags.tastingTag.id.eq(tastingTag.id))
-				.where(alcoholsTastingTags.alcohol.id.eq(alcohol.id)),
-			"alcoholsTastingTags"
+				JPAExpressions.select(
+								Expressions.stringTemplate("group_concat({0})", tastingTag.korName)
+						)
+						.from(alcoholsTastingTags)
+						.join(tastingTag).on(alcoholsTastingTags.tastingTag.id.eq(tastingTag.id))
+						.where(alcoholsTastingTags.alcohol.id.eq(alcohol.id)),
+				"alcoholsTastingTags"
 		);
 	}
 
@@ -52,14 +74,14 @@ public class AlcoholQuerySupporter {
 			return Expressions.asBoolean(false);
 
 		return JPAExpressions
-			.selectOne()
-			.from(picks)
-			.where(
-				picks.alcoholId.eq(alcohol.id),
-				picks.userId.eq(userId),
-				picks.status.eq(PICK)
-			)
-			.exists();
+				.selectOne()
+				.from(picks)
+				.where(
+						picks.alcoholId.eq(alcohol.id),
+						picks.userId.eq(userId),
+						picks.status.eq(PICK)
+				)
+				.exists();
 	}
 
 	public BooleanExpression isPickedSubquery(Long alcoholId, Long userId) {
@@ -67,46 +89,46 @@ public class AlcoholQuerySupporter {
 			return Expressions.asBoolean(false);
 		}
 		return Expressions.asBoolean(
-			JPAExpressions
-				.selectOne()
-				.from(picks)
-				.where(picks.alcoholId.eq(alcoholId).and(picks.userId.eq(userId)).and(picks.status.eq(PICK)))
-				.exists()
+				JPAExpressions
+						.selectOne()
+						.from(picks)
+						.where(picks.alcoholId.eq(alcoholId).and(picks.userId.eq(userId)).and(picks.status.eq(PICK)))
+						.exists()
 		).as("isPicked");
 	}
 
 	public NumberExpression<Double> myRating(Long alcoholId, Long userId) {
 		return Expressions.asNumber(
-			JPAExpressions
-				.select(rating.ratingPoint.rating)
-				.from(rating)
-				.where(rating.id.alcoholId.eq(alcoholId)
-					.and(rating.id.userId.eq(userId)))
-				.limit(1)
+				JPAExpressions
+						.select(rating.ratingPoint.rating)
+						.from(rating)
+						.where(rating.id.alcoholId.eq(alcoholId)
+								.and(rating.id.userId.eq(userId)))
+						.limit(1)
 		).coalesce(0.0).castToNum(Double.class).as("myRating");
 	}
 
 	public NumberExpression<Double> averageReviewRating(Long alcoholId, Long userId) {
 		//	0.25 단위로 평균 별점을 조회
 		return Expressions.asNumber(
-			JPAExpressions
-				.select(
-					review.reviewRating.avg().multiply(2).castToNum(Double.class).round().divide(2).coalesce(0.0)
-				)
-				.from(review)
-				.where(review.alcoholId.eq(alcoholId)
-					.and(review.userId.eq(userId)))
+				JPAExpressions
+						.select(
+								review.reviewRating.avg().multiply(2).castToNum(Double.class).round().divide(2).coalesce(0.0)
+						)
+						.from(review)
+						.where(review.alcoholId.eq(alcoholId)
+								.and(review.userId.eq(userId)))
 		).castToNum(Double.class).as("myAvgRating");
 	}
 
 	public CursorPageable getCursorPageable(AlcoholSearchCriteria criteriaDto, List<AlcoholsSearchItem> fetch, Long cursor, Long pageSize) {
 		boolean hasNext = isHasNext(criteriaDto, fetch);
 		return CursorPageable.builder()
-			.currentCursor(cursor)
-			.cursor(cursor + pageSize)  // 다음 페이지가 있는 경우 마지막으로 가져온 ID를 다음 커서로 사용
-			.pageSize(pageSize)
-			.hasNext(hasNext)
-			.build();
+				.currentCursor(cursor)
+				.cursor(cursor + pageSize)  // 다음 페이지가 있는 경우 마지막으로 가져온 ID를 다음 커서로 사용
+				.pageSize(pageSize)
+				.hasNext(hasNext)
+				.build();
 	}
 
 	public boolean isHasNext(AlcoholSearchCriteria criteriaDto, List<AlcoholsSearchItem> fetch) {
@@ -124,7 +146,7 @@ public class AlcoholQuerySupporter {
 		NumberExpression<Long> pickCount = picks.id.countDistinct();  // 고유 좋아요 수 계산
 		return switch (searchSortType) {
 			case POPULAR ->
-				sortOrder == SortOrder.DESC ? avgRating.add(reviewCount).desc() : avgRating.add(reviewCount).asc();
+					sortOrder == SortOrder.DESC ? avgRating.add(reviewCount).desc() : avgRating.add(reviewCount).asc();
 			case RATING -> sortOrder == SortOrder.DESC ? avgRating.desc() : avgRating.asc();
 			case PICK -> sortOrder == SortOrder.DESC ? pickCount.desc() : pickCount.asc();
 			case REVIEW -> sortOrder == SortOrder.DESC ? reviewCount.desc() : reviewCount.asc();
@@ -141,7 +163,7 @@ public class AlcoholQuerySupporter {
 			return null;
 
 		return alcohol.korName.like("%" + name + "%")
-			.or(alcohol.engName.like("%" + name + "%"));
+				.or(alcohol.engName.like("%" + name + "%"));
 	}
 
 	public BooleanExpression eqCategory(AlcoholCategoryGroup category) {
