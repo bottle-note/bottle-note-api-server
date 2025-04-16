@@ -7,6 +7,7 @@ import app.bottlenote.user.constant.MyBottleType;
 import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
+import app.bottlenote.user.dto.response.RatingMyBottleItem;
 import app.bottlenote.user.dto.response.ReviewMyBottleItem;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
@@ -22,7 +23,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.alcohols.domain.QPopularAlcohol.popularAlcohol;
+import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
 import static app.bottlenote.user.domain.QUser.user;
 
@@ -50,7 +51,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 						user.nickName.as("nickName"),
 						user.imageUrl.as("userProfileImage"),
 						supporter.reviewCountSubQuery(user.id),     // 마이 페이지 사용자의 리뷰 개수
-						supporter.ratingCountSubQuery(user.id),     // 마이 페이지 사용자의 평점 개수
+						supporter.ratingCountSubQuery(userId),     // 마이 페이지 사용자의 평점 개수
 						supporter.picksCountSubQuery(user.id),      // 마이 페이지 사용자의 찜하기 개수
 						supporter.followingCountSubQuery(user.id),     // 마이 페이지 사용자가 팔로우 하는 유저 수
 						supporter.followerCountSubQuery(user.id),   //  마이 페이지 사용자를 팔로우 하는 유저 수
@@ -166,8 +167,8 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 						Projections.constructor(
 								MyBottleResponse.BaseMyBottleInfo.class,
 								alcohol.id.as("alcoholId"),
-								alcohol.korName.as("korName"),
-								alcohol.engName.as("engName"),
+								alcohol.korName.as("alcoholKorName"),
+								alcohol.engName.as("alcoholEngName"),
 								alcohol.korCategory.as("korCategoryName"),
 								alcohol.imageUrl.as("imageUrl"),
 								supporter.isHot5(alcohol.id).as("isHot5")
@@ -181,7 +182,6 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 						review.isBest.as("isBestReview")
 				))
 				.from(alcohol)
-				.leftJoin(popularAlcohol).on(popularAlcohol.alcoholId.eq(alcohol.id))
 				.leftJoin(review).on(review.alcoholId.eq(alcohol.id).and(review.userId.eq(userId)).and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE)))
 				.where(
 						supporter.eqName(request.keyword()),
@@ -240,7 +240,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 
 		log.info("mergedReviewMyBottleList : {}", mergedReviewMyBottleList);
 
-		CursorPageable cursorPageable = supporter.myBottleCursorPageable(request, reviewMyBottleList);
+		CursorPageable cursorPageable = supporter.myBottleCursorPageable(request, mergedReviewMyBottleList);
 		Long totalCount;
 		// 공통 조건을 추출한 베이스 쿼리 생성
 		JPAQuery<?> totalCountBaseQuery = queryFactory
@@ -254,11 +254,73 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 				);
 
 		totalCount = totalCountBaseQuery.select(alcohol.id.count()).fetchOne();
-		return MyBottleResponse.createReviewMyBottle(
+		return MyBottleResponse.create(
 				userId,
 				isMyPage,
 				totalCount,
 				mergedReviewMyBottleList,
+				cursorPageable
+		);
+	}
+
+	@Override
+	public MyBottleResponse getRatingMyBottle(MyBottlePageableCriteria request) {
+
+		Long userId = request.userId();
+		boolean isMyPage = userId.equals(request.currentUserId());
+
+		List<RatingMyBottleItem> ratingMyBottleList = queryFactory
+				.select(Projections.constructor(
+						RatingMyBottleItem.class,
+						Projections.constructor(
+								MyBottleResponse.BaseMyBottleInfo.class,
+								alcohol.id.as("alcoholId"),
+								alcohol.korName.as("alcoholKorName"),
+								alcohol.engName.as("alcoholEngName"),
+								alcohol.korCategory.as("korCategoryName"),
+								alcohol.imageUrl.as("imageUrl"),
+								supporter.isHot5(alcohol.id).as("isHot5")
+						),
+						rating.ratingPoint.rating.as("myRatingPoint"),
+						supporter.averageRatingSubQuery(alcohol.id),
+						supporter.averageRatingCountSubQuery(alcohol.id),
+						rating.lastModifyAt.as("ratingModifyAt")
+				))
+				.from(alcohol)
+				.join(rating).on(rating.id.alcoholId.eq(alcohol.id)
+						.and(rating.id.userId.eq(userId)))
+				.where(
+						supporter.eqName(request.keyword()),
+						supporter.eqRegion(request.regionId())
+				)
+				.groupBy(
+						alcohol.id,
+						alcohol.korName,
+						alcohol.engName,
+						alcohol.korCategory,
+						alcohol.imageUrl
+				)
+				.orderBy(supporter.sortBy(MyBottleType.RATING, request.sortType(), request.sortOrder()))
+				.offset(request.cursor())
+				.limit(request.pageSize() + 1)
+				.fetch();
+		CursorPageable cursorPageable = supporter.myBottleCursorPageable(request, ratingMyBottleList);
+		Long totalCount;
+		// 공통 조건을 추출한 베이스 쿼리 생성
+		JPAQuery<?> totalCountBaseQuery = queryFactory
+				.from(alcohol)
+				.leftJoin(rating).on(rating.id.alcoholId.eq(alcohol.id))
+				.where(
+						supporter.eqName(request.keyword()),
+						supporter.eqRegion(request.regionId())
+				);
+
+		totalCount = totalCountBaseQuery.select(alcohol.id.count()).fetchOne();
+		return MyBottleResponse.create(
+				userId,
+				isMyPage,
+				totalCount,
+				ratingMyBottleList,
 				cursorPageable
 		);
 	}

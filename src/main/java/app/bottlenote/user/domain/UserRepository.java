@@ -25,4 +25,6 @@ public interface UserRepository {
 	MyPageResponse getMyPage(Long userId, Long currentUserId);
 
 	MyBottleResponse getReviewMyBottle(MyBottlePageableCriteria criteria);
+
+	MyBottleResponse getRatingMyBottle(MyBottlePageableCriteria criteria);
 }

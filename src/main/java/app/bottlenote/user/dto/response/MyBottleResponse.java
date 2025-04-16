@@ -13,11 +13,11 @@ public record MyBottleResponse(
 		CursorPageable cursorPageable
 ) {
 
-	public static MyBottleResponse createReviewMyBottle(
+	public static MyBottleResponse create(
 			Long userId,
 			Boolean isMyPage,
 			Long totalCount,
-			List<ReviewMyBottleItem> myBottleList,
+			List<?> myBottleList,
 			CursorPageable cursorPageable
 	) {
 		return new MyBottleResponse(
@@ -31,8 +31,8 @@ public record MyBottleResponse(
 
 	public record BaseMyBottleInfo(
 			Long alcoholId,
-			String korName,
-			String engName,
+			String alcoholKorName,
+			String alcoholEngName,
 			String korCategoryName,
 			String imageUrl,
 			Boolean isHot5

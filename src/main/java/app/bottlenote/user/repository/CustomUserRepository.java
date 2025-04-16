@@ -10,4 +10,6 @@ public interface CustomUserRepository {
 
 	MyBottleResponse getReviewMyBottle(MyBottlePageableCriteria criteria);
 
+	MyBottleResponse getRatingMyBottle(MyBottlePageableCriteria criteria);
+
 }

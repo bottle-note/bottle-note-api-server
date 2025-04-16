@@ -45,4 +45,15 @@ public class UserMyPageController {
 				.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 		return GlobalResponse.ok(userBasicService.getReviewMyBottle(userId, currentUserId, myBottleRequest));
 	}
+
+	@AccessPolicy(type = AccessType.OWNER)
+	@GetMapping("/{userId}/my-bottle/rating")
+	public ResponseEntity<?> getRatingMyBottle(
+			@PathVariable(name = "userId") Long userId,
+			@ModelAttribute(name = "myBottleRequest") MyBottleRequest myBottleRequest
+	) {
+		final Long currentUserId = SecurityContextUtil.getUserIdByContext()
+				.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+		return GlobalResponse.ok(userBasicService.getRatingMyBottle(userId, currentUserId, myBottleRequest));
+	}
 }

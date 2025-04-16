@@ -54,13 +54,33 @@ public class UserQuerySupporter {
 	 * @param userId 마이 페이지 사용자
 	 * @return 평점 개수
 	 */
-	public Expression<Long> ratingCountSubQuery(NumberPath<Long> userId) {
+	public Expression<Long> ratingCountSubQuery(Long userId) {
 		return ExpressionUtils.as(
 				select(rating.count())
 						.from(rating)
 						.where(rating.id.userId.eq(userId)
 								.and(rating.ratingPoint.rating.gt(0.0))),
 				"ratingCount"
+		);
+	}
+
+	public Expression<Double> averageRatingSubQuery(NumberPath<Long> alocholId) {
+		return ExpressionUtils.as(
+				select(rating.ratingPoint.rating.avg())
+						.from(rating)
+						.where(rating.id.alcoholId.eq(alocholId)
+								.and(rating.ratingPoint.rating.gt(0.0))),
+				"averageRatingPoint"
+		);
+	}
+
+	public Expression<Long> averageRatingCountSubQuery(NumberPath<Long> alocholId) {
+		return ExpressionUtils.as(
+				select(rating.ratingPoint.rating.count())
+						.from(rating)
+						.where(rating.id.alcoholId.eq(alocholId)
+								.and(rating.ratingPoint.rating.gt(0.0))),
+				"averageRatingCount"
 		);
 	}
 

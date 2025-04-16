@@ -121,4 +121,26 @@ public class UserBasicService {
 					return userRepository.getReviewMyBottle(criteria);
 				});
 	}
+
+	@Transactional(readOnly = true)
+	public MyBottleResponse getRatingMyBottle(Long userId, Long currentUserId, MyBottleRequest myBottleRequest) {
+		return userFilterManager.withActiveUserFilter(ACTIVE,
+				() -> {
+					boolean isUserNotAccessible = !userRepository.existsByUserId(userId);
+
+					if (isUserNotAccessible) {
+						throw new UserException(MYBOTTLE_NOT_ACCESSIBLE);
+					}
+
+					MyBottlePageableCriteria criteria = MyBottlePageableCriteria.of(
+							myBottleRequest,
+							userId,
+							currentUserId
+					);
+
+					return userRepository.getRatingMyBottle(criteria);
+				});
+	}
+
+
 }

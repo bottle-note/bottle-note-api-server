@@ -59,7 +59,7 @@ public class UserQueryFixture {
 
 		List<ReviewMyBottleItem> reviewList = List.of(review1, review2);
 
-		return MyBottleResponse.createReviewMyBottle(
+		return MyBottleResponse.create(
 				userId,
 				isMyPage,
 				(long) reviewList.size(),
