@@ -58,7 +58,7 @@ class UserCommandServiceTest {
 		when(userCommandRepository.findById(any())).thenReturn(Optional.of(user));
 
 		when(userFilterManager.withActiveUserFilter(eq(UserStatus.ACTIVE), any(Supplier.class)))
-			.thenAnswer(invocation -> invocation.getArgument(1, Supplier.class).get());
+				.thenAnswer(invocation -> invocation.getArgument(1, Supplier.class).get());
 
 		NicknameChangeResponse response = userCommandService.nicknameChange(userId, request);
 
@@ -83,7 +83,7 @@ class UserCommandServiceTest {
 		// when
 		when(userCommandRepository.existsByNickName(newNickname)).thenReturn(true);
 		when(userFilterManager.withActiveUserFilter(eq(UserStatus.ACTIVE), any(Supplier.class)))
-			.thenAnswer(invocation -> invocation.getArgument(1, Supplier.class).get());
+				.thenAnswer(invocation -> invocation.getArgument(1, Supplier.class).get());
 		UserException aThrows = assertThrows(UserException.class, () -> userCommandService.nicknameChange(userId, request));
 
 		// then
@@ -99,9 +99,9 @@ class UserCommandServiceTest {
 
 		// when
 		when(userCommandRepository.findById(anyLong()))
-			.thenReturn(Optional.of(user));
+				.thenReturn(Optional.of(user));
 		when(userFilterManager.withActiveUserFilter(eq(UserStatus.ACTIVE), any(Supplier.class)))
-			.thenAnswer(invocation -> invocation.getArgument(1, Supplier.class).get());
+				.thenAnswer(invocation -> invocation.getArgument(1, Supplier.class).get());
 
 		userCommandService.withdrawUser(userId);
 
@@ -117,9 +117,9 @@ class UserCommandServiceTest {
 
 		// when
 		when(userCommandRepository.findById(anyLong()))
-			.thenReturn(Optional.empty());
+				.thenReturn(Optional.empty());
 		when(userFilterManager.withActiveUserFilter(eq(UserStatus.ACTIVE), any(Supplier.class)))
-			.thenAnswer(invocation -> invocation.getArgument(1, Supplier.class).get());
+				.thenAnswer(invocation -> invocation.getArgument(1, Supplier.class).get());
 
 		// then
 		assertThrows(UserException.class, () -> userCommandService.withdrawUser(userId));

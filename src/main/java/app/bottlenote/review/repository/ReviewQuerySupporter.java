@@ -2,6 +2,7 @@ package app.bottlenote.review.repository;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.review.constant.ReviewSortType;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.facade.payload.ReviewInfo;
@@ -15,7 +16,9 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.JPAExpressions;
+import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,25 +34,43 @@ import static app.bottlenote.review.domain.QReview.review;
 import static app.bottlenote.review.domain.QReviewReply.reviewReply;
 import static app.bottlenote.review.domain.QReviewTastingTag.reviewTastingTag;
 import static app.bottlenote.user.domain.QUser.user;
+import static com.querydsl.jpa.JPAExpressions.select;
 
+@Component
 public class ReviewQuerySupporter {
 
 	public static ConstructorExpression<UserInfo> getUserInfo() {
 		return Projections.constructor(UserInfo.class,
-			user.id.as("userId"),
-			user.nickName.as("nickName"),
-			user.imageUrl.as("userProfileImage")
+				user.id.as("userId"),
+				user.nickName.as("nickName"),
+				user.imageUrl.as("userProfileImage")
 		);
 	}
 
 	public static Expression<String> getTastingTag() {
 		return ExpressionUtils.as(
-			JPAExpressions.select(
-					Expressions.stringTemplate("group_concat({0})", reviewTastingTag.tastingTag)
-				)
-				.from(reviewTastingTag)
-				.where(reviewTastingTag.review.id.eq(review.id)),
-			"tastingTag"
+				JPAExpressions.select(
+								Expressions.stringTemplate("group_concat({0})", reviewTastingTag.tastingTag)
+						)
+						.from(reviewTastingTag)
+						.where(reviewTastingTag.review.id.eq(review.id)),
+				"tastingTag"
+		);
+	}
+
+	/**
+	 * 마이 페이지 사용자의 리뷰 개수를 조회한다.
+	 *
+	 * @param userId 마이 페이지 사용자
+	 * @return 리뷰 개수
+	 */
+	public Expression<Long> reviewCountSubQuery(NumberPath<Long> userId) {
+		return ExpressionUtils.as(
+				select(review.count())
+						.from(review)
+						.where(review.userId.eq(userId)
+								.and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE))),
+				"reviewCount"
 		);
 	}
 
@@ -59,16 +80,16 @@ public class ReviewQuerySupporter {
 	public static BooleanExpression hasReplyByMeSubquery(Long userId) {
 
 		BooleanExpression eqUserId = 1 > userId ?
-			reviewReply.userId.isNull() : reviewReply.userId.eq(userId);
+				reviewReply.userId.isNull() : reviewReply.userId.eq(userId);
 
 		return Expressions.asBoolean(
-			JPAExpressions
-				.selectOne()
-				.from(reviewReply)
-				.where(reviewReply.reviewId.eq(review.id)
-					.and(eqUserId
-						.and(reviewReply.status.eq(NORMAL))))
-				.exists()
+				JPAExpressions
+						.selectOne()
+						.from(reviewReply)
+						.where(reviewReply.reviewId.eq(review.id)
+								.and(eqUserId
+										.and(reviewReply.status.eq(NORMAL))))
+						.exists()
 		).as("hasReplyByMe");
 	}
 
@@ -80,14 +101,14 @@ public class ReviewQuerySupporter {
 			return Expressions.asBoolean(false);
 		}
 		return Expressions.asBoolean(
-			JPAExpressions
-				.selectOne()
-				.from(likes)
-				.where(
-					likes.reviewId.eq(review.id)
-						.and(likes.userInfo.userId.eq(userId))
-						.and(likes.status.eq(LIKE))
-				).exists()
+				JPAExpressions
+						.selectOne()
+						.from(likes)
+						.where(
+								likes.reviewId.eq(review.id)
+										.and(likes.userInfo.userId.eq(userId))
+										.and(likes.status.eq(LIKE))
+						).exists()
 		).as("isLikedByMe");
 	}
 
@@ -102,25 +123,25 @@ public class ReviewQuerySupporter {
 	}
 
 	public static CursorPageable getCursorPageable(
-		ReviewPageableRequest reviewPageableRequest,
-		List<ReviewInfo> fetch
+			ReviewPageableRequest reviewPageableRequest,
+			List<ReviewInfo> fetch
 	) {
 
 		boolean hasNext = isHasNext(reviewPageableRequest, fetch);
 		return CursorPageable.builder()
-			.cursor(reviewPageableRequest.cursor() + reviewPageableRequest.pageSize())
-			.pageSize(reviewPageableRequest.pageSize())
-			.hasNext(hasNext)
-			.currentCursor(reviewPageableRequest.cursor())
-			.build();
+				.cursor(reviewPageableRequest.cursor() + reviewPageableRequest.pageSize())
+				.pageSize(reviewPageableRequest.pageSize())
+				.hasNext(hasNext)
+				.currentCursor(reviewPageableRequest.cursor())
+				.build();
 	}
 
 	/**
 	 * 다음 페이지가 있는지 확인하는 메소드
 	 */
 	public static boolean isHasNext(
-		ReviewPageableRequest reviewPageableRequest,
-		List<ReviewInfo> fetch
+			ReviewPageableRequest reviewPageableRequest,
+			List<ReviewInfo> fetch
 	) {
 		boolean hasNext = fetch.size() > reviewPageableRequest.pageSize();
 		if (hasNext) {
@@ -134,26 +155,26 @@ public class ReviewQuerySupporter {
 		return switch (reviewSortType) {
 			//인기순 -> 임시로 좋아요 순으로 구현
 			case POPULAR -> Arrays.asList(
-				new OrderSpecifier<>(sortOrder == DESC ? Order.DESC : Order.ASC, review.isBest).nullsLast(),
-				new OrderSpecifier<>(sortOrder == DESC ? Order.DESC : Order.ASC, likesCount).nullsLast()
+					new OrderSpecifier<>(sortOrder == DESC ? Order.DESC : Order.ASC, review.isBest).nullsLast(),
+					new OrderSpecifier<>(sortOrder == DESC ? Order.DESC : Order.ASC, likesCount).nullsLast()
 			);
 			//좋아요 순
 			case LIKES -> Collections.singletonList(sortOrder == DESC ? likesCount.desc() : likesCount.asc());
 
 			//별점 순
 			case RATING -> Collections.singletonList(
-				sortOrder == DESC ? rating.ratingPoint.rating.desc()
-					: rating.ratingPoint.rating.asc());
+					sortOrder == DESC ? rating.ratingPoint.rating.desc()
+							: rating.ratingPoint.rating.asc());
 
 			//병 기준 가격 순
 			case BOTTLE_PRICE -> {
 				OrderSpecifier<?> sizeOrderSpecifier = new OrderSpecifier<>(
-					Order.ASC, review.sizeType
+						Order.ASC, review.sizeType
 				).nullsLast();
 
 				OrderSpecifier<?> priceOrderSpecifier = new OrderSpecifier<>(
-					sortOrder == DESC ? Order.DESC : Order.ASC,
-					review.price
+						sortOrder == DESC ? Order.DESC : Order.ASC,
+						review.price
 				);
 				yield Arrays.asList(sizeOrderSpecifier, priceOrderSpecifier);
 			}
@@ -161,12 +182,12 @@ public class ReviewQuerySupporter {
 			//잔 기준 가격 순
 			case GLASS_PRICE -> {
 				OrderSpecifier<?> sizeOrderSpecifier = new OrderSpecifier<>(
-					Order.DESC, review.sizeType
+						Order.DESC, review.sizeType
 				).nullsLast();
 
 				OrderSpecifier<?> priceOrderSpecifier = new OrderSpecifier<>(
-					sortOrder == DESC ? Order.DESC : Order.ASC,
-					review.price
+						sortOrder == DESC ? Order.DESC : Order.ASC,
+						review.price
 				);
 				yield Arrays.asList(sizeOrderSpecifier, priceOrderSpecifier);
 			}

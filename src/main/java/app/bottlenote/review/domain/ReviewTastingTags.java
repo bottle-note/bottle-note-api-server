@@ -1,20 +1,21 @@
 package app.bottlenote.review.domain;
 
-import static app.bottlenote.review.exception.ReviewExceptionCode.INVALID_TASTING_TAG_LIST_SIZE;
-
 import app.bottlenote.review.exception.ReviewException;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.util.CollectionUtils;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static app.bottlenote.review.exception.ReviewExceptionCode.INVALID_TASTING_TAG_LIST_SIZE;
 
 @Getter
 @Embeddable
@@ -25,10 +26,10 @@ public class ReviewTastingTags {
 	private static final int TASTING_TAG_MAX_SIZE = 10;
 
 	@OneToMany(
-		mappedBy = "review",
-		fetch = FetchType.LAZY,
-		cascade = CascadeType.ALL,
-		orphanRemoval = true
+			mappedBy = "review",
+			fetch = FetchType.LAZY,
+			cascade = CascadeType.ALL,
+			orphanRemoval = true
 	)
 	private Set<ReviewTastingTag> reviewTastingTagSet = new HashSet<>();
 
@@ -66,11 +67,11 @@ public class ReviewTastingTags {
 
 	private Set<ReviewTastingTag> createTastingTagSet(List<String> reviewTastingTags, Review review) {
 		return reviewTastingTags.stream()
-			.map(String::trim)
-			.filter(tag -> !tag.isEmpty())
-			.distinct()
-			.map(tastingTag -> ReviewTastingTag.create(review, tastingTag))
-			.collect(Collectors.toSet());
+				.map(String::trim)
+				.filter(tag -> !tag.isEmpty())
+				.distinct()
+				.map(tastingTag -> ReviewTastingTag.create(review, tastingTag))
+				.collect(Collectors.toSet());
 	}
 
 	private boolean isInvalidReviewTastingTag(Set<ReviewTastingTag> reviewTastingTags) {
