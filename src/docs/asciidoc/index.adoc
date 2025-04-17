@@ -108,7 +108,11 @@ include::api/user/user-withdraw.adoc[]
 include::api/user/user-mypage.adoc[]
 '''
 
-include::api/user/user-mybottle.adoc[]
+include::api/user/user-review-mybottle.adoc[]
+
+include::api/user/user-rating-mybottle.adoc[]
+
+include::api/user/user-picks-mybottle.adoc[]
 '''
 include::api/external/push/device-token.adoc[]
 '''
@@ -191,4 +195,5 @@ include::api/rating/user-rating.adoc[]
 include::api/rating/register.adoc[]
 
 == 유저 히스토리(user history) 관련 API
+
 include::api/user-history/search.adoc[]

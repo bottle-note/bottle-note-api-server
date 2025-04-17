@@ -4,6 +4,7 @@ import app.bottlenote.global.annotation.AccessPolicy;
 import app.bottlenote.global.annotation.AccessPolicy.AccessType;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.user.constant.MyBottleType;
 import app.bottlenote.user.dto.request.MyBottleRequest;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.service.UserBasicService;
@@ -35,18 +36,36 @@ public class UserMyPageController {
 		return GlobalResponse.ok(userBasicService.getMyPage(userId, currentUserId));
 	}
 
-	/**
-	 * 마이 보틀 노트 조회 API
-	 * 본인만 조회 가능
-	 */
-	@AccessPolicy(type = AccessType.OWNER)
-	@GetMapping("/{userId}/my-bottle")
-	public ResponseEntity<?> getMyBottle(
-		@PathVariable(name = "userId") Long userId,
-		@ModelAttribute(name = "myBottleRequest") MyBottleRequest myBottleRequest
+	@AccessPolicy(type = AccessType.ALL)
+	@GetMapping("/{userId}/my-bottle/reviews")
+	public ResponseEntity<?> getReviewMyBottle(
+			@PathVariable(name = "userId") Long userId,
+			@ModelAttribute(name = "myBottleRequest") MyBottleRequest myBottleRequest
 	) {
 		final Long currentUserId = SecurityContextUtil.getUserIdByContext()
-			.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
-		return GlobalResponse.ok(userBasicService.getMyBottle(userId, currentUserId, myBottleRequest));
+				.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+		return GlobalResponse.ok(userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.REVIEW));
+	}
+
+	@AccessPolicy(type = AccessType.ALL)
+	@GetMapping("/{userId}/my-bottle/ratings")
+	public ResponseEntity<?> getRatingMyBottle(
+			@PathVariable(name = "userId") Long userId,
+			@ModelAttribute(name = "myBottleRequest") MyBottleRequest myBottleRequest
+	) {
+		final Long currentUserId = SecurityContextUtil.getUserIdByContext()
+				.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+		return GlobalResponse.ok(userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.RATING));
+	}
+
+	@AccessPolicy(type = AccessType.ALL)
+	@GetMapping("/{userId}/my-bottle/picks")
+	public ResponseEntity<?> getPicksMyBottle(
+			@PathVariable(name = "userId") Long userId,
+			@ModelAttribute(name = "myBottleRequest") MyBottleRequest myBottleRequest
+	) {
+		final Long currentUserId = SecurityContextUtil.getUserIdByContext()
+				.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+		return GlobalResponse.ok(userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.PICK));
 	}
 }

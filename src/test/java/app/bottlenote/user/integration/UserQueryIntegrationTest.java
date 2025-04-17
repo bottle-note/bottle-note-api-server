@@ -210,7 +210,7 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 	@DisplayName("마이보틀")
 	class myBottle {
 
-		@DisplayName("로그인 유저가 타인의 마이보틀을 조회할 수 있다.")
+		@DisplayName("리뷰 마이보틀을 조회할 수 있다.")
 		@Sql(scripts = {"/init-script/init-user-mybottle-query.sql"})
 		@Test
 		void test_1() throws Exception {
@@ -219,10 +219,9 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 			Long userId = 2L;
 			Long requestUserId = getTokenUserId();
 
-			mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle", userId)
+			mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle/reviews", userId)
 							.param("keyword", "")
 							.param("regionId", "")
-							.param("tabType", "ALL")
 							.param("sortType", "LATEST")
 							.param("sortOrder", "DESC")
 							.param("cursor", "0")
@@ -240,34 +239,6 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 
 		}
 
-		@DisplayName("로그인 유저가 자신의 마이보틀을 조회할 수 있다.")
-		@Sql(scripts = {"/init-script/init-user-mybottle-query.sql"})
-		@Test
-		void test_2() throws Exception {
-
-			String accessToken = getToken();
-			Long userId = getTokenUserId();
-
-			mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle", userId)
-							.param("keyword", "")
-							.param("regionId", "")
-							.param("tabType", "ALL")
-							.param("sortType", "LATEST")
-							.param("sortOrder", "DESC")
-							.param("cursor", "0")
-							.param("pageSize", "50")
-							.contentType(MediaType.APPLICATION_JSON)
-							.header("Authorization", "Bearer " + accessToken)
-							.with(csrf()))
-					.andDo(print())
-					.andExpect(status().isOk())
-					.andExpect(jsonPath("$.code").value(200))
-					.andExpect(jsonPath("$.data").exists())
-					.andExpect(jsonPath("$.data.userId").value(userId))
-					.andExpect(jsonPath("$.data.isMyPage").value(true))
-					.andReturn();
-		}
-
 		@DisplayName("비회원 유저는 조회하면 BAD_REQUEST 예외를 반환한다.")
 		@Sql(scripts = {"/init-script/init-user-mybottle-query.sql"})
 		@Test
@@ -275,10 +246,9 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 
 			final Long userId = 2L;
 
-			mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle", userId)
+			mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle/reviews", userId)
 							.param("keyword", "")
 							.param("regionId", "")
-							.param("tabType", "ALL")
 							.param("sortType", "LATEST")
 							.param("sortOrder", "DESC")
 							.param("cursor", "0")
@@ -296,10 +266,9 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 			Error error = Error.of(UserExceptionCode.REQUIRED_USER_ID);
 			final Long userId = 999L; // 존재하지 않는 유저 ID
 
-			mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle", userId)
+			mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle/reviews", userId)
 							.param("keyword", "")
 							.param("regionId", "")
-							.param("tabType", "ALL")
 							.param("sortType", "LATEST")
 							.param("sortOrder", "DESC")
 							.param("cursor", "0")

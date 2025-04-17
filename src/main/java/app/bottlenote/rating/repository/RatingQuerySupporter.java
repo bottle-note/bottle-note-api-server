@@ -4,12 +4,14 @@ import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.rating.constant.SearchSortType;
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.util.StringUtils;
-import com.querydsl.jpa.JPAExpressions;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -19,23 +21,10 @@ import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
+import static com.querydsl.jpa.JPAExpressions.select;
 
 @Component
 public class RatingQuerySupporter {
-
-	protected BooleanExpression subQueryIsPicked(Long userId) {
-		if (userId == null)
-			return Expressions.FALSE;
-
-		return Expressions.asBoolean(
-			JPAExpressions
-				.selectOne()
-				.from(picks)
-				.where(picks.alcoholId.eq(alcohol.id),
-					picks.userId.eq(userId))
-				.exists()
-		);
-	}
 
 	/**
 	 * CursorPageable 생성
@@ -57,12 +46,49 @@ public class RatingQuerySupporter {
 		}
 
 		return CursorPageable.builder()
-			.currentCursor(cursor)
-			.cursor(cursor + pageSize)  // 다음 페이지가 있는 경우 마지막으로 가져온 ID를 다음 커서로 사용
-			.pageSize(pageSize)
-			.hasNext(hasNext)
-			.build();
+				.currentCursor(cursor)
+				.cursor(cursor + pageSize)  // 다음 페이지가 있는 경우 마지막으로 가져온 ID를 다음 커서로 사용
+				.pageSize(pageSize)
+				.hasNext(hasNext)
+				.build();
 	}
+
+	/**
+	 * 마이 페이지 사용자의 평점 개수를 조회한다.
+	 *
+	 * @param userId 마이 페이지 사용자
+	 * @return 평점 개수
+	 */
+	public Expression<Long> ratingCountSubQuery(Long userId) {
+		return ExpressionUtils.as(
+				select(rating.count())
+						.from(rating)
+						.where(rating.id.userId.eq(userId)
+								.and(rating.ratingPoint.rating.gt(0.0))),
+				"ratingCount"
+		);
+	}
+
+	public Expression<Double> averageRatingSubQuery(NumberPath<Long> alocholId) {
+		return ExpressionUtils.as(
+				select(rating.ratingPoint.rating.avg().round())
+						.from(rating)
+						.where(rating.id.alcoholId.eq(alocholId)
+								.and(rating.ratingPoint.rating.gt(0.0))),
+				"averageRatingPoint"
+		);
+	}
+
+	public Expression<Long> averageRatingCountSubQuery(NumberPath<Long> alocholId) {
+		return ExpressionUtils.as(
+				select(rating.ratingPoint.rating.count())
+						.from(rating)
+						.where(rating.id.alcoholId.eq(alocholId)
+								.and(rating.ratingPoint.rating.gt(0.0))),
+				"averageRatingCount"
+		);
+	}
+
 
 	/**
 	 * 술 이름을 검색하는 조건
@@ -73,7 +99,7 @@ public class RatingQuerySupporter {
 			return null;
 
 		return alcohol.korName.like("%" + name + "%")
-			.or(alcohol.engName.like("%" + name + "%"));
+				.or(alcohol.engName.like("%" + name + "%"));
 	}
 
 	/**
@@ -119,8 +145,8 @@ public class RatingQuerySupporter {
 	 * - REVIEW
 	 */
 	protected OrderSpecifier<?> orderBy(
-		SearchSortType searchSortType,
-		SortOrder sortOrder
+			SearchSortType searchSortType,
+			SortOrder sortOrder
 	) {
 		NumberExpression<Double> avgRating = rating.ratingPoint.rating.avg();  // 평균 평점 계산
 		NumberExpression<Long> reviewCount = review.id.countDistinct();  // 고유 리뷰 수 계산
@@ -128,7 +154,7 @@ public class RatingQuerySupporter {
 
 		return switch (searchSortType) {
 			case POPULAR ->
-				sortOrder == SortOrder.DESC ? avgRating.add(reviewCount).desc() : avgRating.add(reviewCount).asc();
+					sortOrder == SortOrder.DESC ? avgRating.add(reviewCount).desc() : avgRating.add(reviewCount).asc();
 			case RATING -> sortOrder == SortOrder.DESC ? avgRating.desc() : avgRating.asc();
 			case PICK -> sortOrder == SortOrder.DESC ? pickCount.desc() : pickCount.asc();
 			case REVIEW -> sortOrder == SortOrder.DESC ? reviewCount.desc() : reviewCount.asc();
