@@ -4,7 +4,7 @@
 
 [source]
 ---
-GET /api/v1/mypage/{userId}/my-bottle/review
+GET /api/v1/mypage/{userId}/my-bottle/reviews
 ---
 
 [discrete]

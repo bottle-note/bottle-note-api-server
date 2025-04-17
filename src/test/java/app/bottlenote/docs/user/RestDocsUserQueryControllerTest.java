@@ -108,7 +108,7 @@ class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 		Mockito.when(userQueryService.getMyBottle(any(), any(), any(), any())).thenReturn(myBottleResponse);
 
 		// then
-		mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle/review", userId)
+		mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle/reviews", userId)
 						.param("keyword", "")
 						.param("regionId", "")
 						.param("sortType", "LATEST")
@@ -172,7 +172,7 @@ class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 		Mockito.when(userQueryService.getMyBottle(any(), any(), any(), any())).thenReturn(myBottleResponse);
 
 		// then
-		mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle/rating", userId)
+		mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle/ratings", userId)
 						.param("keyword", "")
 						.param("regionId", "")
 						.param("sortType", "LATEST")

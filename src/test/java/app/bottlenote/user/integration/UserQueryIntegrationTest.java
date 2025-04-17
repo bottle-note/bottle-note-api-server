@@ -219,7 +219,7 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 			Long userId = 2L;
 			Long requestUserId = getTokenUserId();
 
-			mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle/review", userId)
+			mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle/reviews", userId)
 							.param("keyword", "")
 							.param("regionId", "")
 							.param("sortType", "LATEST")
@@ -246,7 +246,7 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 
 			final Long userId = 2L;
 
-			mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle/review", userId)
+			mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle/reviews", userId)
 							.param("keyword", "")
 							.param("regionId", "")
 							.param("sortType", "LATEST")
@@ -266,7 +266,7 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 			Error error = Error.of(UserExceptionCode.REQUIRED_USER_ID);
 			final Long userId = 999L; // 존재하지 않는 유저 ID
 
-			mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle/review", userId)
+			mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle/reviews", userId)
 							.param("keyword", "")
 							.param("regionId", "")
 							.param("sortType", "LATEST")

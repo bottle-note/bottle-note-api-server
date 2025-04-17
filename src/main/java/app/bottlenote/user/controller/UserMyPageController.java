@@ -36,8 +36,8 @@ public class UserMyPageController {
 		return GlobalResponse.ok(userBasicService.getMyPage(userId, currentUserId));
 	}
 
-	@AccessPolicy(type = AccessType.OWNER)
-	@GetMapping("/{userId}/my-bottle/review")
+	@AccessPolicy(type = AccessType.ALL)
+	@GetMapping("/{userId}/my-bottle/reviews")
 	public ResponseEntity<?> getReviewMyBottle(
 			@PathVariable(name = "userId") Long userId,
 			@ModelAttribute(name = "myBottleRequest") MyBottleRequest myBottleRequest
@@ -47,8 +47,8 @@ public class UserMyPageController {
 		return GlobalResponse.ok(userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.REVIEW));
 	}
 
-	@AccessPolicy(type = AccessType.OWNER)
-	@GetMapping("/{userId}/my-bottle/rating")
+	@AccessPolicy(type = AccessType.ALL)
+	@GetMapping("/{userId}/my-bottle/ratings")
 	public ResponseEntity<?> getRatingMyBottle(
 			@PathVariable(name = "userId") Long userId,
 			@ModelAttribute(name = "myBottleRequest") MyBottleRequest myBottleRequest
@@ -58,7 +58,7 @@ public class UserMyPageController {
 		return GlobalResponse.ok(userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.RATING));
 	}
 
-	@AccessPolicy(type = AccessType.OWNER)
+	@AccessPolicy(type = AccessType.ALL)
 	@GetMapping("/{userId}/my-bottle/picks")
 	public ResponseEntity<?> getPicksMyBottle(
 			@PathVariable(name = "userId") Long userId,
