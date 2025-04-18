@@ -1,187 +1,187 @@
 plugins {
-    id 'java'
-    id 'org.springframework.boot' version '3.1.9'
-    id 'io.spring.dependency-management' version '1.1.4'
-    id "org.asciidoctor.jvm.convert" version "3.3.2"
+	id 'java'
+	id 'org.springframework.boot' version '3.1.9'
+	id 'io.spring.dependency-management' version '1.1.4'
+	id "org.asciidoctor.jvm.convert" version "3.3.2"
 }
 
 ext {
-    queryDslVersion = "5.0.0"
-    springCloudVersion = "2022.0.5"
+	queryDslVersion = "5.0.0"
+	springCloudVersion = "2022.0.5"
 }
 
 dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-    }
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
 }
 
 compileTestJava.options.encoding = 'UTF-8'
 compileTestJava.options.compilerArgs += ['-parameters']
 
 compileJava {
-    options.compilerArgs += ['-parameters']
-    options.encoding = 'UTF-8'
+	options.compilerArgs += ['-parameters']
+	options.encoding = 'UTF-8'
 }
 
 configurations {
-    asciidoctorExt
-    compileOnly {
-        extendsFrom annotationProcessor
-    }
+	asciidoctorExt
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
 }
 
 allprojects {
-    group = 'bottlenote'
-    version = '0.0.1-SNAPSHOT'
+	group = 'bottlenote'
+	version = '0.0.1-SNAPSHOT'
 
-    repositories {
-        mavenCentral()
-    }
+	repositories {
+		mavenCentral()
+	}
 
-    java {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
+	java {
+		sourceCompatibility = JavaVersion.VERSION_17
+		targetCompatibility = JavaVersion.VERSION_17
+	}
 }
 
 dependencies {
-    runtimeOnly project(':bottlenote-batch')
-    testRuntimeOnly project(':bottlenote-batch')
+	runtimeOnly project(':bottlenote-batch')
+	testRuntimeOnly project(':bottlenote-batch')
 
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    testImplementation 'org.testng:testng:7.1.0'
-    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	testImplementation 'org.testng:testng:7.1.0'
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
-    // lombok
-    implementation 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
+	// lombok
+	implementation 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
 
-    //database
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-    implementation 'com.h2database:h2'
-    runtimeOnly 'com.mysql:mysql-connector-j'
+	//database
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'com.h2database:h2'
+	runtimeOnly 'com.mysql:mysql-connector-j'
 
-    //p6spy
-    implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0'
+	//p6spy
+	implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0'
 
-    //db-json
-    implementation 'io.hypersistence:hypersistence-utils-hibernate-60:3.7.3'
+	//db-json
+	implementation 'io.hypersistence:hypersistence-utils-hibernate-60:3.7.3'
 
-    //querydsl 설정 추가
-    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
-    annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
-    annotationProcessor "jakarta.annotation:jakarta.annotation-api"
-    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+	//querydsl 설정 추가
+	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+	annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
-    // JWT
-    implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.2'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.2'
+	// JWT
+	implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.2'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.2'
 
-    // spring rest docs
-    asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
-    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+	// spring rest docs
+	asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
+	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
 
-    // security
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    testImplementation 'org.springframework.security:spring-security-test'
+	// security
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	testImplementation 'org.springframework.security:spring-security-test'
 
-    // actuator
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
+	// actuator
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'io.micrometer:micrometer-registry-prometheus'
 
-    // Cache
-    implementation 'org.springframework.boot:spring-boot-starter-cache'
-    implementation "com.github.ben-manes.caffeine:caffeine:3.1.8"
+	// Cache
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+	implementation "com.github.ben-manes.caffeine:caffeine:3.1.8"
 
-    //Mockito-inline
-    testImplementation 'org.mockito:mockito-inline:3.4.0'
+	//Mockito-inline
+	testImplementation 'org.mockito:mockito-inline:3.4.0'
 
-    //AWS
-    implementation 'com.amazonaws:aws-java-sdk-s3:1.12.725'
+	//AWS
+	implementation 'com.amazonaws:aws-java-sdk-s3:1.12.725'
 
-    //Fegin ( https://spring.io/projects/spring-cloud#overview )
-    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+	//Fegin ( https://spring.io/projects/spring-cloud#overview )
+	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 
-    //apache commons
-    implementation 'org.apache.commons:commons-lang3:3.12.0'
+	//apache commons
+	implementation 'org.apache.commons:commons-lang3:3.12.0'
 
-    //test containers
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
-    testImplementation 'org.testcontainers:testcontainers:1.19.8'
-    testImplementation 'org.testcontainers:junit-jupiter:1.19.0'
-    testImplementation "org.testcontainers:mysql:1.19.0"
+	//test containers
+	testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
+	testImplementation 'org.testcontainers:testcontainers:1.19.8'
+	testImplementation 'org.testcontainers:junit-jupiter:1.19.0'
+	testImplementation "org.testcontainers:mysql:1.19.0"
 
-    //firebase
-    implementation 'com.google.firebase:firebase-admin:8.0.0'
+	//firebase
+	implementation 'com.google.firebase:firebase-admin:8.0.0'
 
 
-    //rule engine
-    testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.0'
+	//rule engine
+	testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.0'
 }
 
 subprojects {
-    apply plugin: 'java-library'
-    apply plugin: 'org.springframework.boot'
-    apply plugin: 'io.spring.dependency-management'
+	apply plugin: 'java-library'
+	apply plugin: 'org.springframework.boot'
+	apply plugin: 'io.spring.dependency-management'
 
-    dependencies {
-        // default spring boot dependencies
-        implementation 'org.springframework.boot:spring-boot-starter'
-        testImplementation 'org.springframework.boot:spring-boot-starter-test'
-        annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-        implementation 'org.springframework.boot:spring-boot-configuration-processor'
+	dependencies {
+		// default spring boot dependencies
+		implementation 'org.springframework.boot:spring-boot-starter'
+		testImplementation 'org.springframework.boot:spring-boot-starter-test'
+		annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+		implementation 'org.springframework.boot:spring-boot-configuration-processor'
 
-        // default  utilities
-        implementation 'org.apache.commons:commons-lang3:3.12.0'
-        implementation 'com.google.guava:guava:31.1-jre'
+		// default  utilities
+		implementation 'org.apache.commons:commons-lang3:3.12.0'
+		implementation 'com.google.guava:guava:31.1-jre'
 
-        // default lombok
-        implementation 'org.projectlombok:lombok'
-        annotationProcessor 'org.projectlombok:lombok'
-    }
+		// default lombok
+		implementation 'org.projectlombok:lombok'
+		annotationProcessor 'org.projectlombok:lombok'
+	}
 
-    java {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
+	java {
+		sourceCompatibility = JavaVersion.VERSION_17
+		targetCompatibility = JavaVersion.VERSION_17
+	}
 
-    bootJar.enabled = false
-    jar.enabled = true
-    tasks.named('test') { useJUnitPlatform() }
+	bootJar.enabled = false
+	jar.enabled = true
+	tasks.named('test') { useJUnitPlatform() }
 
-    test {
-        outputs.upToDateWhen { false }
-        useJUnitPlatform()
-        testLogging {
-            events "passed", "skipped", "failed"
-            showStandardStreams = true
-            exceptionFormat = 'full'
-            showExceptions = true
-            showCauses = true
-            showStackTraces = true
-        }
-    }
+	test {
+		outputs.upToDateWhen { false }
+		useJUnitPlatform()
+		testLogging {
+			events "passed", "skipped", "failed"
+			showStandardStreams = true
+			exceptionFormat = 'full'
+			showExceptions = true
+			showCauses = true
+			showStackTraces = true
+		}
+	}
 }
 
 tasks.named('test') {
-    useJUnitPlatform {
-        excludeTags 'data-jpa-test', 'integration'
-    }
+	useJUnitPlatform {
+		excludeTags 'data-jpa-test', 'integration'
+	}
 }
 tasks.register('integrationTest', Test) {
-    useJUnitPlatform {
-        includeTags 'integration'
-    }
+	useJUnitPlatform {
+		includeTags 'integration'
+	}
 }
 tasks.register('unitTest', Test) {
-    useJUnitPlatform {
-        includeTags 'unit'
-    }
+	useJUnitPlatform {
+		includeTags 'unit'
+	}
 }
 tasks.register('check rule', Test) {
 	useJUnitPlatform {
@@ -192,41 +192,41 @@ tasks.register('check rule', Test) {
 // =========================== spring boot jar setting ===========================
 
 bootJar {
-    archiveFileName = 'app.jar' // jar 파일명 변경 ( 기본값 : ${project.name}-${project.version}.jar )
+	archiveFileName = 'app.jar' // jar 파일명 변경 ( 기본값 : ${project.name}-${project.version}.jar )
 }
 jar {
-    enabled = false // plain jar 파일 생성 안함
+	enabled = false // plain jar 파일 생성 안함
 }
 
 // =========================== spring rest docs setting ===========================
 
 ext {
-    snippetsDir = file('build/generated-snippets') as File
+	snippetsDir = file('build/generated-snippets') as File
 }
 
 test {
-    outputs.dir snippetsDir
-    useJUnitPlatform()
+	outputs.dir snippetsDir
+	useJUnitPlatform()
 }
 
 asciidoctor {
-    inputs.dir snippetsDir
-    configurations 'asciidoctorExt'
-    dependsOn test
-    sources {
-        include("**/index.adoc")
-    }
-    baseDirFollowsSourceFile()
+	inputs.dir snippetsDir
+	configurations 'asciidoctorExt'
+	dependsOn test
+	sources {
+		include("**/index.adoc")
+	}
+	baseDirFollowsSourceFile()
 }
 
 tasks.register('copyRestDocs', Copy) {
-    dependsOn asciidoctor
-    from file("build/docs/asciidoc/index.html")
-    into 'docs'
+	dependsOn asciidoctor
+	from file("build/docs/asciidoc/index.html")
+	into 'docs'
 }
 
 build {
-    dependsOn copyRestDocs
+	dependsOn copyRestDocs
 }
 
 // =========================== query DSL  ===========================
@@ -236,15 +236,23 @@ def generated = 'src/main/generated'
 
 // querydsl QClass 파일 생성 위치를 지정
 tasks.withType(JavaCompile).configureEach {
-    options.getGeneratedSourceOutputDirectory().set(file(generated))
+	options.getGeneratedSourceOutputDirectory().set(file(generated))
 }
 
 // java source set 에 querydsl QClass 위치 추가
 sourceSets {
-    main.java.srcDirs += [generated]
+	main {
+		java.srcDirs += [generated]
+		resources {
+			srcDirs = [
+					'src/main/resources',
+					'git.environment-variables/springboot'
+			]
+		}
+	}
 }
 
 // gradle clean 시에 QClass 디렉토리 삭제
 clean {
-    delete file(generated)
+	delete file(generated)
 }

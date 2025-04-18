@@ -7,7 +7,7 @@ profanity:
 # Firebase
 app:
   thirdParty:
-    firebase-configuration-file: ${FIREBASE_CONFIG_FILE}
+    firebase-configuration-file: service_account_credentials.json
     base64file: ${FIREBASE_BASE64_FILE}
 
 # AWS S3
