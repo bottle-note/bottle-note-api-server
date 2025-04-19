@@ -5,14 +5,13 @@ spring:
   # Datasource
   datasource:
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
-    url: jdbc:tc:mysql:8.0.32:///bottlenote # ?TC_INITSCRIPT=file:database/mysql/init/schema.sql
+    url: jdbc:tc:mysql:8.0.32:///bottlenote
     username: root
     password: root
   sql:
     init:
       mode: always
-      schema-locations: classpath:init-script/schema.sql
-      # data-locations: classpath:init-script/init-alcohol.sql 각 테스트에서 필요한 데이터를 정의하는게 더 긍정적인것 같아 판단.
+      schema-locations: classpath:mysql/init/01-init-table.sql # 서브모듈에서 참조하도록 수정.
   # JPA
   jpa:
     properties:

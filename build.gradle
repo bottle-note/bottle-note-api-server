@@ -246,7 +246,8 @@ sourceSets {
 		resources {
 			srcDirs = [
 					'src/main/resources',
-					'git.environment-variables/springboot'
+					'git.environment-variables/springboot',
+					'git.environment-variables/storage'
 			]
 		}
 	}

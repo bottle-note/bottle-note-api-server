@@ -18,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
@@ -28,17 +29,13 @@ import org.testcontainers.utility.DockerImageName;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public abstract class IntegrationTestSupport {
-
 	protected static final Logger log = LogManager.getLogger(IntegrationTestSupport.class);
-	protected static MySQLContainer<?> MY_SQL_CONTAINER;
-
-	static {
-		MY_SQL_CONTAINER = new MySQLContainer<>(DockerImageName.parse("mysql:8.0.32"))
+	@Container
+	@SuppressWarnings("resource")
+	protected static MySQLContainer<?> MY_SQL_CONTAINER = new MySQLContainer<>(DockerImageName.parse("mysql:8.0.32"))
 			.withDatabaseName("bottlenote")
 			.withUsername("root")
 			.withPassword("root");
-		MY_SQL_CONTAINER.start();
-	}
 
 	@Autowired
 	protected ObjectMapper mapper;
