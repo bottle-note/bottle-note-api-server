@@ -27,6 +27,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 
 @Testcontainers
@@ -40,6 +41,7 @@ public abstract class IntegrationTestSupport {
 
 	protected static final Logger log = LogManager.getLogger(IntegrationTestSupport.class);
 	private static final Network network = Network.newNetwork();
+
 	@Container
 	protected static MySQLContainer<?> MY_SQL_CONTAINER = new MySQLContainer<>(DockerImageName.parse("mysql:8.0.32"))
 			.withNetwork(network)
@@ -50,8 +52,11 @@ public abstract class IntegrationTestSupport {
 	protected static GenericContainer<?> REDIS_CONTAINER = new GenericContainer<>(DockerImageName.parse("redis:7.0.12"))
 			.withExposedPorts(6379)
 			.withNetworkAliases("redis")
+			.withReuse(true)
 			.withNetwork(network)
-			.waitingFor(Wait.forListeningPort());
+			.withStartupAttempts(5)
+			.waitingFor(Wait.forLogMessage(".*Ready to accept connections.*", 1))
+			.withStartupTimeout(Duration.ofSeconds(30));
 
 	static {
 		CompletableFuture<Void> mysqlFuture = CompletableFuture.runAsync(MY_SQL_CONTAINER::start);
@@ -75,8 +80,8 @@ public abstract class IntegrationTestSupport {
 	@DynamicPropertySource
 	static void redisProperties(DynamicPropertyRegistry registry) {
 		registry.add("spring.data.redis.host", REDIS_CONTAINER::getHost);
-		registry.add("spring.data.redis.port", () -> REDIS_CONTAINER.getMappedPort(6379));
-		registry.add("spring.data.redis.password", () -> "");
+		registry.add("spring.data.redis.port", () -> REDIS_CONTAINER.getMappedPort(6379).toString());
+
 	}
 
 	@AfterEach

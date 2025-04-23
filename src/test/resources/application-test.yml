@@ -5,6 +5,8 @@ spring:
   # Redis 설정
   data:
     redis:
+      repositories:
+        enabled: false
       timeout: 15
       cluster:
         enabled: false
@@ -31,6 +33,7 @@ spring:
     show-sql: true
     generate-ddl: true
     database-platform: org.hibernate.dialect.MySQL8Dialect
+
   quartz:
     job-store-type: jdbc    # 메모리(memory) 또는 데이터베이스(jdbc)
     jdbc:
