@@ -20,6 +20,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.HashMap;
@@ -43,6 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Tag("unit")
 @DisplayName("[unit] [controller] ReportCommandController")
 @WebMvcTest(ReportCommandController.class)
+@ActiveProfiles("test")
 @WithMockUser //인증된 사용자로 설정
 class ReportCommandControllerTest {
 
