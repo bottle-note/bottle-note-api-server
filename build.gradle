@@ -122,6 +122,12 @@ dependencies {
 
 	//rule engine
 	testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.0'
+
+	// Quartz 스케줄러
+	implementation 'org.springframework.boot:spring-boot-starter-quartz'
+
+	// 기타 필요한 라이브러리
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
 }
 
 subprojects {
