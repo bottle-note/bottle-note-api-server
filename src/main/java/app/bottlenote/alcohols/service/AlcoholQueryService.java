@@ -8,6 +8,7 @@ import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.FriendsDetailResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.history.service.AlcoholViewHistoryService;
 import app.bottlenote.review.facade.ReviewFacade;
 import app.bottlenote.user.facade.FollowFacade;
 import app.bottlenote.user.facade.payload.FriendItem;
@@ -25,8 +26,10 @@ import java.util.List;
 public class AlcoholQueryService {
 	private static final int MAX_FRIENDS_SIZE = 6;
 	private final AlcoholQueryRepository alcoholQueryRepository;
+	private final AlcoholViewHistoryService viewHistoryService;
 	private final ReviewFacade reviewFacade;
 	private final FollowFacade followFacade;
+
 
 	/**
 	 * 술(위스키) 리스트 조회 api
@@ -51,13 +54,18 @@ public class AlcoholQueryService {
 	@Transactional(readOnly = true)
 	public AlcoholDetailResponse findAlcoholDetailById(Long alcoholId, Long userId) {
 		AlcoholDetailItem alcoholDetail = alcoholQueryRepository.findAlcoholDetailById(alcoholId, userId);
+
+		// 조회 기록 저장 (게스트 사용자 제외)
+		if (userId > 0)
+			viewHistoryService.recordView(userId, alcoholDetail);
+
 		FriendsDetailResponse friendInfos = getFriendInfos(alcoholId, userId);
 
 		return AlcoholDetailResponse.builder()
-			.alcohols(alcoholDetail)
-			.friendsInfo(friendInfos)
-			.reviewInfo(reviewFacade.getReviewInfoList(alcoholId, userId))
-			.build();
+				.alcohols(alcoholDetail)
+				.friendsInfo(friendInfos)
+				.reviewInfo(reviewFacade.getReviewInfoList(alcoholId, userId))
+				.build();
 	}
 
 	/**
