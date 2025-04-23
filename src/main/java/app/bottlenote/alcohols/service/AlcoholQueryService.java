@@ -30,7 +30,6 @@ public class AlcoholQueryService {
 	private final ReviewFacade reviewFacade;
 	private final FollowFacade followFacade;
 
-
 	/**
 	 * 술(위스키) 리스트 조회 api
 	 *
@@ -56,8 +55,7 @@ public class AlcoholQueryService {
 		AlcoholDetailItem alcoholDetail = alcoholQueryRepository.findAlcoholDetailById(alcoholId, userId);
 
 		// 조회 기록 저장 (게스트 사용자 제외)
-		if (userId > 0)
-			viewHistoryService.recordView(userId, alcoholDetail);
+		if (userId > 0 && alcoholDetail != null) viewHistoryService.recordView(userId, alcoholDetail);
 
 		FriendsDetailResponse friendInfos = getFriendInfos(alcoholId, userId);
 

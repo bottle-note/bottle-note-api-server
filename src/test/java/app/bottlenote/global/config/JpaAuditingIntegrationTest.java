@@ -52,8 +52,6 @@ class JpaAuditingIntegrationTest extends IntegrationTestSupport {
 	)
 	@Test
 	void test_1() throws Exception {
-
-
 		// when
 		MvcResult result = mockMvc.perform(post("/api/v1/reviews")
 						.contentType(MediaType.APPLICATION_JSON)

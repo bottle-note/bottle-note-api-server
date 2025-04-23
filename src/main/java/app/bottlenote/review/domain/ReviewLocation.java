@@ -52,15 +52,4 @@ public class ReviewLocation {
 	public static ReviewLocation empty() {
 		return ReviewLocation.builder().build();
 	}
-
-	public void update(LocationInfoRequest locationInfoRequest) {
-		this.name = locationInfoRequest.locationName();
-		this.zipCode = locationInfoRequest.zipCode();
-		this.address = locationInfoRequest.address();
-		this.detailAddress = locationInfoRequest.detailAddress();
-		this.category = locationInfoRequest.category();
-		this.mapUrl = locationInfoRequest.mapUrl();
-		this.latitude = locationInfoRequest.latitude();
-		this.longitude = locationInfoRequest.longitude();
-	}
 }

@@ -51,9 +51,7 @@ public class AlcoholQueryController {
 	@GetMapping("/{alcoholId}")
 	public ResponseEntity<?> findAlcoholDetailById(@PathVariable Long alcoholId) {
 		Long id = getUserIdByContext().orElse(-1L);
-
-		return
-				GlobalResponse.ok(alcoholQueryService.findAlcoholDetailById(alcoholId, id));
+		return GlobalResponse.ok(alcoholQueryService.findAlcoholDetailById(alcoholId, id));
 	}
 
 	@GetMapping("/categories")

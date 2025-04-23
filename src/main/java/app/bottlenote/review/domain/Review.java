@@ -117,7 +117,18 @@ public class Review extends BaseEntity {
 		this.sizeType = reviewModifyRequestWrapperItem.getSizeType();
 		this.price = reviewModifyRequestWrapperItem.getPrice();
 		LocationInfoRequest locationInfoRequest = reviewModifyRequestWrapperItem.getLocationInfo();
-		Objects.requireNonNullElse(this.reviewLocation, ReviewLocation.empty()).update(locationInfoRequest);
+		if (!Objects.isNull(locationInfoRequest)){
+			this.reviewLocation = ReviewLocation.builder()
+					.name(locationInfoRequest.locationName())
+					.zipCode(locationInfoRequest.zipCode())
+					.address(locationInfoRequest.address())
+					.detailAddress(locationInfoRequest.detailAddress())
+					.category(locationInfoRequest.category())
+					.mapUrl(locationInfoRequest.mapUrl())
+					.latitude(locationInfoRequest.latitude())
+					.longitude(locationInfoRequest.longitude())
+					.build();
+		}
 	}
 
 
