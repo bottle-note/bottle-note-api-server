@@ -21,6 +21,8 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.containers.Network;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
@@ -37,14 +39,19 @@ import java.util.concurrent.CompletableFuture;
 public abstract class IntegrationTestSupport {
 
 	protected static final Logger log = LogManager.getLogger(IntegrationTestSupport.class);
+	private static final Network network = Network.newNetwork();
 	@Container
 	protected static MySQLContainer<?> MY_SQL_CONTAINER = new MySQLContainer<>(DockerImageName.parse("mysql:8.0.32"))
+			.withNetwork(network)
 			.withDatabaseName("bottlenote")
 			.withUsername("root")
 			.withPassword("root");
 	@Container
 	protected static GenericContainer<?> REDIS_CONTAINER = new GenericContainer<>(DockerImageName.parse("redis:7.0.12"))
-			.withExposedPorts(6379);
+			.withExposedPorts(6379)
+			.withNetworkAliases("redis")
+			.withNetwork(network)
+			.waitingFor(Wait.forListeningPort());
 
 	static {
 		CompletableFuture<Void> mysqlFuture = CompletableFuture.runAsync(MY_SQL_CONTAINER::start);
