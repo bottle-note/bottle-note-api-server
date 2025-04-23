@@ -46,34 +46,34 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 		if (Objects.isNull(userId)) userId = -1L;
 
 		return queryFactory
-			.select(Projections.constructor(
-				AlcoholDetailItem.class,
-				alcohol.id,
-				alcohol.imageUrl,
-				alcohol.korName,
-				alcohol.engName,
-				alcohol.korCategory,
-				alcohol.engCategory,
-				region.korName,
-				region.engName,
-				alcohol.cask,
-				alcohol.abv,
-				distillery.korName,
-				distillery.engName,
-				rating.ratingPoint.rating.avg().multiply(2).castToNum(Double.class).round().divide(2).coalesce(0.0).as("rating"),
-				rating.id.count(),
-				supporter.myRating(alcoholId, userId),
-				supporter.averageReviewRating(alcoholId, userId),
-				supporter.isPickedSubquery(alcoholId, userId),
-				getTastingTags()
-			))
-			.from(alcohol)
-			.leftJoin(rating).on(rating.id.alcoholId.eq(alcohol.id))
-			.join(region).on(alcohol.region.id.eq(region.id))
-			.join(distillery).on(alcohol.distillery.id.eq(distillery.id))
-			.where(alcohol.id.eq(alcoholId))
-			.groupBy(alcohol.id, alcohol.imageUrl, alcohol.korName, alcohol.engName, alcohol.korCategory, alcohol.engCategory, region.korName, region.engName, alcohol.cask, alcohol.abv, distillery.korName, distillery.engName)
-			.fetchOne();
+				.select(Projections.constructor(
+						AlcoholDetailItem.class,
+						alcohol.id,
+						alcohol.imageUrl,
+						alcohol.korName,
+						alcohol.engName,
+						alcohol.korCategory,
+						alcohol.engCategory,
+						region.korName,
+						region.engName,
+						alcohol.cask,
+						alcohol.abv,
+						distillery.korName,
+						distillery.engName,
+						rating.ratingPoint.rating.avg().multiply(2).castToNum(Double.class).round().divide(2).coalesce(0.0).as("rating"),
+						rating.id.count(),
+						supporter.myRating(alcoholId, userId),
+						supporter.averageReviewRating(alcoholId, userId),
+						supporter.isPickedSubquery(alcoholId, userId),
+						getTastingTags()
+				))
+				.from(alcohol)
+				.leftJoin(rating).on(rating.id.alcoholId.eq(alcohol.id))
+				.join(region).on(alcohol.region.id.eq(region.id))
+				.join(distillery).on(alcohol.distillery.id.eq(distillery.id))
+				.where(alcohol.id.eq(alcoholId))
+				.groupBy(alcohol.id, alcohol.imageUrl, alcohol.korName, alcohol.engName, alcohol.korCategory, alcohol.engCategory, region.korName, region.engName, alcohol.cask, alcohol.abv, distillery.korName, distillery.engName)
+				.fetchOne();
 	}
 
 	/**
@@ -87,38 +87,38 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 	public Optional<AlcoholSummaryItem> findAlcoholInfoById(Long alcoholId, Long userId) {
 
 		return Optional.ofNullable(queryFactory
-			.select(
-				Projections.constructor(
-					AlcoholSummaryItem.class,
-					alcohol.id.as("alcoholId"),
-					alcohol.korName.as("korName"),
-					alcohol.engName.as("engName"),
-					alcohol.korCategory.as("korCategoryName"),
-					alcohol.engCategory.as("engCategoryName"),
-					alcohol.imageUrl.as("imageUrl"),
-					supporter.isPickedSubquery(alcoholId, userId)
+				.select(
+						Projections.constructor(
+								AlcoholSummaryItem.class,
+								alcohol.id.as("alcoholId"),
+								alcohol.korName.as("korName"),
+								alcohol.engName.as("engName"),
+								alcohol.korCategory.as("korCategoryName"),
+								alcohol.engCategory.as("engCategoryName"),
+								alcohol.imageUrl.as("imageUrl"),
+								supporter.isPickedSubquery(alcoholId, userId)
+						)
 				)
-			)
-			.from(alcohol)
-			.leftJoin(rating).on(alcohol.id.eq(rating.id.alcoholId))
-			.join(region).on(alcohol.region.id.eq(region.id))
-			.join(distillery).on(alcohol.distillery.id.eq(distillery.id))
-			.where(alcohol.id.eq(alcoholId))
-			.groupBy(
-				alcohol.id,
-				alcohol.korCategory,
-				alcohol.engCategory,
-				alcohol.imageUrl,
-				alcohol.korName,
-				alcohol.engName,
-				region.korName,
-				region.engName,
-				alcohol.cask,
-				alcohol.abv,
-				distillery.korName,
-				distillery.engName
-			)
-			.fetchOne());
+				.from(alcohol)
+				.leftJoin(rating).on(alcohol.id.eq(rating.id.alcoholId))
+				.join(region).on(alcohol.region.id.eq(region.id))
+				.join(distillery).on(alcohol.distillery.id.eq(distillery.id))
+				.where(alcohol.id.eq(alcoholId))
+				.groupBy(
+						alcohol.id,
+						alcohol.korCategory,
+						alcohol.engCategory,
+						alcohol.imageUrl,
+						alcohol.korName,
+						alcohol.engName,
+						region.korName,
+						region.engName,
+						alcohol.cask,
+						alcohol.abv,
+						distillery.korName,
+						distillery.engName
+				)
+				.fetchOne());
 	}
 
 	/**
@@ -139,47 +139,47 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 		Long userId = criteriaDto.userId();
 
 		List<AlcoholsSearchItem> fetch = queryFactory
-			.select(Projections.fields(
-				AlcoholsSearchItem.class,
-				alcohol.id.as("alcoholId"),
-				alcohol.korName.as("korName"),
-				alcohol.engName.as("engName"),
-				alcohol.korCategory.as("korCategoryName"),
-				alcohol.engCategory.as("engCategoryName"),
-				alcohol.imageUrl.as("imageUrl"),
-				rating.ratingPoint.rating.avg().multiply(2).castToNum(Double.class).round().divide(2).coalesce(0.0).as("rating"),
-					rating.id.countDistinct().as("ratingCount"),
-				review.id.countDistinct().as("reviewCount"),
-				picks.id.countDistinct().as("pickCount"),
-				supporter.pickedSubQuery(userId).as("isPicked")
-			))
-			.from(alcohol)
-			.leftJoin(rating).on(alcohol.id.eq(rating.id.alcoholId))
-			.leftJoin(picks).on(alcohol.id.eq(picks.alcoholId))
-			.leftJoin(review).on(alcohol.id.eq(review.alcoholId))
-			.where(
-				supporter.eqName(criteriaDto.keyword()),
-				supporter.eqCategory(criteriaDto.category()),
-				supporter.eqRegion(criteriaDto.regionId())
-			)
-			.groupBy(alcohol.id, alcohol.korName, alcohol.engName, alcohol.korCategory, alcohol.engCategory, alcohol.imageUrl)
-			.orderBy(supporter.sortBy(sortType, sortOrder))
-			.orderBy(supporter.sortByRandom())
-			.offset(cursor)
-			.limit(criteriaDto.pageSize() + 1)  // 다음 페이지가 있는지 확인하기 위해 1개 더 가져옴
-			.fetch();
+				.select(Projections.fields(
+						AlcoholsSearchItem.class,
+						alcohol.id.as("alcoholId"),
+						alcohol.korName.as("korName"),
+						alcohol.engName.as("engName"),
+						alcohol.korCategory.as("korCategoryName"),
+						alcohol.engCategory.as("engCategoryName"),
+						alcohol.imageUrl.as("imageUrl"),
+						rating.ratingPoint.rating.avg().multiply(2).castToNum(Double.class).round().divide(2).coalesce(0.0).as("rating"),
+						rating.id.countDistinct().as("ratingCount"),
+						review.id.countDistinct().as("reviewCount"),
+						picks.id.countDistinct().as("pickCount"),
+						supporter.pickedSubQuery(userId).as("isPicked")
+				))
+				.from(alcohol)
+				.leftJoin(rating).on(alcohol.id.eq(rating.id.alcoholId))
+				.leftJoin(picks).on(alcohol.id.eq(picks.alcoholId))
+				.leftJoin(review).on(alcohol.id.eq(review.alcoholId))
+				.where(
+						supporter.eqName(criteriaDto.keyword()),
+						supporter.eqCategory(criteriaDto.category()),
+						supporter.eqRegion(criteriaDto.regionId())
+				)
+				.groupBy(alcohol.id, alcohol.korName, alcohol.engName, alcohol.korCategory, alcohol.engCategory, alcohol.imageUrl)
+				.orderBy(supporter.sortBy(sortType, sortOrder))
+				.orderBy(supporter.sortByRandom())
+				.offset(cursor)
+				.limit(criteriaDto.pageSize() + 1)  // 다음 페이지가 있는지 확인하기 위해 1개 더 가져옴
+				.fetch();
 
 
 		// where 조건으로 전체 결과값 카운트
 		Long totalCount = queryFactory
-			.select(alcohol.id.count())
-			.from(alcohol)
-			.where(
-				supporter.eqName(criteriaDto.keyword()),
-				supporter.eqCategory(criteriaDto.category()),
-				supporter.eqRegion(criteriaDto.regionId())
-			)
-			.fetchOne();
+				.select(alcohol.id.count())
+				.from(alcohol)
+				.where(
+						supporter.eqName(criteriaDto.keyword()),
+						supporter.eqCategory(criteriaDto.category()),
+						supporter.eqRegion(criteriaDto.regionId())
+				)
+				.fetchOne();
 
 
 		CursorPageable pageable = supporter.getCursorPageable(criteriaDto, fetch, cursor, pageSize);

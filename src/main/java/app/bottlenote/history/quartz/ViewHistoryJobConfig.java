@@ -13,22 +13,22 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class ViewHistoryJobConfig {
 
-	@Bean
-	public Trigger viewHistorySyncJobTrigger() {
-		return TriggerBuilder.newTrigger()
-				.forJob(viewHistorySyncJobDetail())
-				.withIdentity("viewHistorySyncTrigger")
-				.withSchedule(CronScheduleBuilder.cronSchedule("0 0 50/10 * * ?"))
-				.build();
-	}
+    @Bean
+    public Trigger viewHistorySyncJobTrigger() {
+        return TriggerBuilder.newTrigger()
+                .forJob(viewHistorySyncJobDetail())
+                .withIdentity("viewHistorySyncTrigger")
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 */1 * * * ?"))
+                .build();
+    }
 
-	@Bean
-	public JobDetail viewHistorySyncJobDetail() {
-		return JobBuilder.newJob(ViewHistorySyncJob.class)
-				.withIdentity("viewHistorySyncJob")
-				.storeDurably()
-				.requestRecovery(true)
-				.build();
-	}
+    @Bean
+    public JobDetail viewHistorySyncJobDetail() {
+        return JobBuilder.newJob(ViewHistorySyncJob.class)
+                .withIdentity("viewHistorySyncJob")
+                .storeDurably()
+                .requestRecovery(true)
+                .build();
+    }
 
 }
