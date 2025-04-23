@@ -52,9 +52,9 @@ public class JwtAuthenticationManager {
 			throw new UserException(INVALID_TOKEN);
 		}
 		List<GrantedAuthority> authorities = Arrays.stream(rolesStr.split(","))
-			.map(String::trim)
-			.map(SimpleGrantedAuthority::new)
-			.collect(toList());
+				.map(String::trim)
+				.map(SimpleGrantedAuthority::new)
+				.collect(toList());
 		UserDetails userDetails = customUserDetailsService.loadUserByUsername(claims.getSubject());
 		return new UsernamePasswordAuthenticationToken(userDetails, "", authorities);
 	}
@@ -63,7 +63,7 @@ public class JwtAuthenticationManager {
 	 * 익명 Authentication 객체를 생성하는 메소드
 	 */
 	public Authentication getAnonymousAuthentication() {
-		log.info("익명 사용자 인증 정보 추출");
+		log.debug("익명 사용자 인증 정보 추출");
 		List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS"));
 		UserDetails userDetails = customUserDetailsService.loadAnonymousUser();
 		return new UsernamePasswordAuthenticationToken(userDetails, "", authorities);
@@ -75,10 +75,10 @@ public class JwtAuthenticationManager {
 	private Claims parseClaims(String accessToken) {
 		try {
 			return Jwts.parserBuilder()
-				.setSigningKey(secretKey)
-				.build()
-				.parseClaimsJws(accessToken)
-				.getBody();
+					.setSigningKey(secretKey)
+					.build()
+					.parseClaimsJws(accessToken)
+					.getBody();
 		} catch (ExpiredJwtException e) {
 			return e.getClaims();
 		}
