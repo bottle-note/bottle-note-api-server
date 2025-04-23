@@ -1,4 +1,4 @@
-package app.bottlenote.global.config;
+package app.bottlenote.global.redis.config;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

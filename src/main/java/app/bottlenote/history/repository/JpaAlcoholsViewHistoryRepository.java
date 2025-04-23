@@ -8,4 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 @JpaRepositoryImpl
 public interface JpaAlcoholsViewHistoryRepository extends AlcoholsViewHistoryRepository, JpaRepository<AlcoholsViewHistory, AlcoholsViewHistoryId> {
+
 }

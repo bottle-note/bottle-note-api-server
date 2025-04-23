@@ -27,10 +27,9 @@ public class AlcoholsViewHistory {
 	@Column(name = "view_at", nullable = false)
 	private LocalDateTime viewAt;
 
-	public static AlcoholsViewHistory recording(Long userId, Long alcoholId) {
+	public static AlcoholsViewHistory of(Long userId, Long alcoholId,LocalDateTime viewAt) {
 		var id = new AlcoholsViewHistoryId(userId, alcoholId);
-		var now = LocalDateTime.now();
-		return new AlcoholsViewHistory(id, now);
+		return new AlcoholsViewHistory(id, viewAt);
 	}
 
 	@Getter
