@@ -60,4 +60,6 @@ public class AlcoholQueryController {
 	) {
 		return GlobalResponse.ok(alcoholReferenceService.getAlcoholCategory(type));
 	}
+
+
 }

@@ -116,6 +116,7 @@ public class DataTransferObjectRules extends AbstractRules {
 				.that().haveSimpleNameEndingWith("Response")
 				.and().doNotHaveSimpleName("GlobalResponse")
 				.and().doNotHaveSimpleName("PageResponse")
+				.and().doNotHaveSimpleName("CollectionResponse")
 				.should().resideInAPackage("..dto.response..")
 				.because("응답 DTO 클래스는 구조적 일관성을 위해 '.dto.response' 패키지에 위치해야 합니다");
 

@@ -16,15 +16,13 @@ import java.util.List;
 import java.util.Map;
 
 public class FakeReviewFacade implements ReviewFacade {
-
 	private static final Logger log = LogManager.getLogger(FakeReviewFacade.class);
-
-	private final Map<Long, ReviewInfo> fakeDatabase = new HashMap<>();
+	public final Map<Long, ReviewInfo> reviewDatabase = new HashMap<>();
 
 	// 생성자에서 초기 데이터 추가
 	public FakeReviewFacade() {
 		// 예시 데이터 추가
-		fakeDatabase.put(1L, ReviewInfo.builder()
+		reviewDatabase.put(1L, ReviewInfo.builder()
 				.reviewId(1L)
 				.reviewContent("정말 맛있는 제품이에요!")
 				.reviewImageUrl("http://example.com/image1.jpg")
@@ -45,7 +43,7 @@ public class FakeReviewFacade implements ReviewFacade {
 				.tastingTagList("fruity,spicy")
 				.build());
 
-		fakeDatabase.put(2L, ReviewInfo.builder()
+		reviewDatabase.put(2L, ReviewInfo.builder()
 				.reviewId(2L)
 				.reviewContent("괜찮은 제품이지만 별로에요.")
 				.reviewImageUrl("http://example.com/image2.jpg")
@@ -66,7 +64,7 @@ public class FakeReviewFacade implements ReviewFacade {
 				.tastingTagList("sweet,creamy")
 				.build());
 
-		fakeDatabase.put(3L, ReviewInfo.builder()
+		reviewDatabase.put(3L, ReviewInfo.builder()
 				.reviewId(3L)
 				.reviewContent("최고의 제품입니다! 다시 구매할게요.")
 				.createAt(LocalDateTime.now().minusDays(1))
@@ -88,7 +86,7 @@ public class FakeReviewFacade implements ReviewFacade {
 
 	@Override
 	public ReviewListResponse getReviewInfoList(Long alcoholId, Long userId) {
-		List<ReviewInfo> filteredReviews = fakeDatabase.values().stream()
+		List<ReviewInfo> filteredReviews = reviewDatabase.values().stream()
 				.filter(review -> (alcoholId == null || review.sizeType().equals(SizeType.valueOf(alcoholId.toString()))) // 예시 필터링 조건
 						&& (userId == null || review.userInfo().userId().equals(userId))).toList();
 
@@ -97,14 +95,14 @@ public class FakeReviewFacade implements ReviewFacade {
 
 	@Override
 	public boolean isExistReview(Long reviewId) {
-		return reviewId != null && fakeDatabase.containsKey(reviewId);
+		return reviewId != null && reviewDatabase.containsKey(reviewId);
 	}
 
 	@Override
 	public void requestBlockReview(Long reviewId) {
 		if (isExistReview(reviewId)) {
 			log.info("리뷰 ID: {}가 블록되었습니다.", reviewId);
-			fakeDatabase.remove(reviewId);
+			reviewDatabase.remove(reviewId);
 		} else {
 			log.info("리뷰 ID: {}는 존재하지 않습니다.", reviewId);
 		}
@@ -116,14 +114,14 @@ public class FakeReviewFacade implements ReviewFacade {
 	}
 
 	public void addReview(ReviewInfo reviewInfo) {
-		fakeDatabase.put(reviewInfo.reviewId(), reviewInfo);
+		reviewDatabase.put(reviewInfo.reviewId(), reviewInfo);
 	}
 
 	public void removeReview(Long reviewId) {
-		fakeDatabase.remove(reviewId);
+		reviewDatabase.remove(reviewId);
 	}
 
 	public ReviewInfo getReview(Long reviewId) {
-		return fakeDatabase.get(reviewId);
+		return reviewDatabase.get(reviewId);
 	}
 }

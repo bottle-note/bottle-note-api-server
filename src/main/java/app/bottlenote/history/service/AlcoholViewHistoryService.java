@@ -2,12 +2,15 @@ package app.bottlenote.history.service;
 
 
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
+import app.bottlenote.alcohols.dto.response.ViewHistoryItem;
+import app.bottlenote.global.data.response.CollectionResponse;
 import app.bottlenote.global.redis.entity.AlcoholViewHistory;
 import app.bottlenote.global.redis.repository.RedisAlcoholViewHistoryRepository;
 import app.bottlenote.history.domain.AlcoholsViewHistory;
 import app.bottlenote.history.domain.AlcoholsViewHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -95,5 +98,13 @@ public class AlcoholViewHistoryService {
 				log.info("Redis에서 {}개 처리된 조회 기록 삭제 완료", keysToDelete.size());
 			}
 		}
+	}
+
+	@Transactional(readOnly = true)
+	public CollectionResponse<ViewHistoryItem> getViewHistory(Long id) {
+		Pageable pageable = Pageable.ofSize(6);
+		var totalCount = historyRepository.countByUserId(id);
+		var allByUserId = historyRepository.findAllByUserId(id, pageable);
+		return CollectionResponse.of(totalCount, allByUserId);
 	}
 }

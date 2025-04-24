@@ -13,10 +13,8 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class FakeUserFacade implements UserFacade {
-
 	private static final Logger log = LogManager.getLogger(FakeUserFacade.class);
-
-	private final Map<Long, UserProfileItem> userDatabase = new ConcurrentHashMap<>();
+	public final Map<Long, UserProfileItem> userDatabase = new ConcurrentHashMap<>();
 
 	public FakeUserFacade(UserProfileItem... userProfileItems) {
 		if (userProfileItems != null && userProfileItems.length > 0) {
