@@ -67,5 +67,5 @@ public interface PopularQueryRepository extends JpaRepository<Alcohol, Long> {
 	List<PopularItem> getSpringItems(
 			@Param("userId") Long userId,
 			@Param("tags") List<Long> tags,
-			@Param("pageable") Pageable size);
+			Pageable size);
 }
