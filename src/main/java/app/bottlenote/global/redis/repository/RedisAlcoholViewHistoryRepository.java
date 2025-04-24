@@ -19,4 +19,5 @@ public interface RedisAlcoholViewHistoryRepository extends CrudRepository<Alcoho
 
 	// 특정 사용자의 모든 조회 기록 삭제
 	void deleteByUserId(Long userId);
+
 }

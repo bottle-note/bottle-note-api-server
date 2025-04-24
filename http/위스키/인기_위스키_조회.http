@@ -1,0 +1,31 @@
+### 토큰 발급
+POST {{host}}/api/v1/oauth/login
+Content-Type: application/json
+
+{
+    "email": "juye@gmail.com",
+    "socialType": "GOOGLE",
+    "gender": "",
+    "age": ""
+}
+
+> {%
+    //토큰을 전역변수로 저장
+    client.global.set("accessToken", response.body.data.accessToken);
+%}
+
+### 주간 인기 위스키 조회
+
+GET {{host}}/api/v1/popular/week
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+> {%
+    //토큰을 전역변수로 저장
+    client.global.set("accessToken", response.body.data.accessToken);
+%}
+
+### 봄에 어울리는 위스키 조회
+GET {{host}}/api/v1/popular/spring
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}

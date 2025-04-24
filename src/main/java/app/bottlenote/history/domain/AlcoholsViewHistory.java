@@ -21,13 +21,13 @@ import java.time.LocalDateTime;
 public class AlcoholsViewHistory {
 
 	@EmbeddedId
-	private AlcoholsViewHistoryId alcoholsViewHistoryId;
+	private AlcoholsViewHistoryId id;
 
 	@Comment("조회 시점")
 	@Column(name = "view_at", nullable = false)
 	private LocalDateTime viewAt;
 
-	public static AlcoholsViewHistory of(Long userId, Long alcoholId,LocalDateTime viewAt) {
+	public static AlcoholsViewHistory of(Long userId, Long alcoholId, LocalDateTime viewAt) {
 		var id = new AlcoholsViewHistoryId(userId, alcoholId);
 		return new AlcoholsViewHistory(id, viewAt);
 	}

@@ -56,27 +56,27 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		return http
-			.cors(cors -> cors.configurationSource(corsConfigurationSource()))
-			.csrf(AbstractHttpConfigurer::disable)
-			.sessionManagement(SecurityConfig::statelessSessionConfig)
-			.formLogin(AbstractHttpConfigurer::disable)
-			.authorizeHttpRequests(auth -> auth
-				.requestMatchers("/api/v1/picks/**").authenticated()
-				.requestMatchers("/api/v1/s3/**").authenticated()
-				.requestMatchers("/api/v1/follow/**").authenticated()
-				.requestMatchers("/api/v1/reviews/me/**").authenticated()
-				.requestMatchers("/api/v1/reviews/**").authenticated()
-				.requestMatchers("/api/v1/users/**").authenticated()
-				.requestMatchers("/api/v1/help/**").authenticated()
-				.requestMatchers("/api/v1/my-page/**").authenticated()
-				.requestMatchers("/api/v1/reports/**").authenticated()
-				.requestMatchers("/api/v1/push/**").authenticated()
-				.requestMatchers("/api/v1/history/**").authenticated()
-				.anyRequest().permitAll()
-			)
-			.addFilterBefore(new JwtAuthenticationFilter(jwtAuthenticationManager), UsernamePasswordAuthenticationFilter.class)
-			.exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint))
-			.build();
+				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+				.csrf(AbstractHttpConfigurer::disable)
+				.sessionManagement(SecurityConfig::statelessSessionConfig)
+				.formLogin(AbstractHttpConfigurer::disable)
+				.authorizeHttpRequests(auth -> auth
+						.requestMatchers("/api/v1/picks/**").authenticated()
+						.requestMatchers("/api/v1/s3/**").authenticated()
+						.requestMatchers("/api/v1/follow/**").authenticated()
+						.requestMatchers("/api/v1/reviews/me/**").authenticated()
+						.requestMatchers("/api/v1/reviews/**").authenticated()
+						.requestMatchers("/api/v1/users/**").authenticated()
+						.requestMatchers("/api/v1/help/**").authenticated()
+						.requestMatchers("/api/v1/my-page/**").authenticated()
+						.requestMatchers("/api/v1/reports/**").authenticated()
+						.requestMatchers("/api/v1/push/**").authenticated()
+						.requestMatchers("/api/v1/history/**").authenticated()
+						.anyRequest().permitAll()
+				)
+				.addFilterBefore(new JwtAuthenticationFilter(jwtAuthenticationManager), UsernamePasswordAuthenticationFilter.class)
+				.exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint))
+				.build();
 	}
 
 	/**

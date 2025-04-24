@@ -1,7 +1,6 @@
 package app.bottlenote.alcohols.controller;
 
 
-import app.bottlenote.alcohols.dto.response.PopularItem;
 import app.bottlenote.alcohols.dto.response.PopularsOfWeekResponse;
 import app.bottlenote.alcohols.service.PopularService;
 import app.bottlenote.global.data.response.GlobalResponse;
@@ -12,15 +11,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 
 @RestController
-@RequestMapping("/api/v1/popular")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
-public class
-PopularQueryController {
+public class PopularQueryController {
 
 	private final PopularService popularService;
 
@@ -33,12 +29,21 @@ PopularQueryController {
 	 * @param top 조회할 위스키 목록 개수
 	 * @return 조회된 위스키 목록
 	 */
-	@GetMapping("/week")
+	@GetMapping("/popular/week")
 	public ResponseEntity<?> getPopularOfWeek(@RequestParam(defaultValue = "5") Integer top) {
-
 		Long userId = getUserIdByContext().orElse(-1L);
-		List<PopularItem> populars = popularService.getPopularOfWeek(top, userId);
+		var populars = popularService.getPopularOfWeek(top, userId);
+		var response = PopularsOfWeekResponse.of(populars.size(), populars);
+		return GlobalResponse.ok(response);
+	}
 
-		return GlobalResponse.ok(PopularsOfWeekResponse.of(populars.size(), populars));
+	/**
+	 * 봄 추천 인기 위스키 리스트 조회
+	 */
+	@GetMapping("/popular/spring")
+	public ResponseEntity<?> getSpringItems() {
+		Long userId = getUserIdByContext().orElse(-1L);
+		var response = popularService.getSpringItems(userId);
+		return GlobalResponse.ok(response);
 	}
 }

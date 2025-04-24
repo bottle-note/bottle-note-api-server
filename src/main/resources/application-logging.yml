@@ -38,8 +38,8 @@ spring:
 logging:
   level:
     root: info
-    org.hibernate.orm.jdbc.bind: trace
-    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: info
+    org.hibernate.SQL: info
 decorator:
   datasource:
     p6spy:

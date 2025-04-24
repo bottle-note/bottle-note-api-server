@@ -3,18 +3,18 @@ POST {{host}}/api/v1/oauth/login
 Content-Type: application/json
 
 {
-  "email": "juye@gmail.com",
-  "socialType": "GOOGLE",
-  "gender": "",
-  "age": ""
+    "email": "rlagusrl928@gmail.com",
+    "socialType": "GOOGLE",
+    "gender": "",
+    "age": ""
 }
 
 > {%
     //토큰을 전역변수로 저장
     client.global.set("accessToken", response.body.data.accessToken);
 %}
-### 위스키 조회
 
-GET {{host}}/api/v1/popular/week
+### 위스키 조회 기록 조회
+GET {{host}}/api/v1/history/view/alcohols
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
