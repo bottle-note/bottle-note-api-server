@@ -197,3 +197,4 @@ include::api/rating/register.adoc[]
 == 히스토리(user history) 관련 API
 
 include::api/history/search.adoc[]
+include::api/history/alcohol-view.adoc[]
