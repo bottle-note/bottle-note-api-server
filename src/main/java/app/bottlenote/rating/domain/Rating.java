@@ -1,15 +1,12 @@
 package app.bottlenote.rating.domain;
 
-import static lombok.AccessLevel.PROTECTED;
-
 import app.bottlenote.common.domain.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import java.io.Serializable;
-import java.util.Objects;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,10 +14,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
+import java.io.Serializable;
+import java.util.Objects;
+
+import static lombok.AccessLevel.PROTECTED;
+
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Comment("알콜 점수 테이블")
 @Entity(name = "rating")
+@Table(name = "ratings")
 public class Rating extends BaseEntity {
 
 	@EmbeddedId
@@ -53,6 +56,10 @@ public class Rating extends BaseEntity {
 		@Column(name = "alcohol_id")
 		private Long alcoholId;
 
+		public static RatingId is(Long userId, Long alcoholId) {
+			return new RatingId(userId, alcoholId);
+		}
+
 		@Override
 		public boolean equals(Object o) {
 			if (this == o) {
@@ -68,10 +75,6 @@ public class Rating extends BaseEntity {
 		@Override
 		public int hashCode() {
 			return Objects.hash(userId, alcoholId);
-		}
-
-		public static RatingId is(Long userId, Long alcoholId) {
-			return new RatingId(userId, alcoholId);
 		}
 	}
 

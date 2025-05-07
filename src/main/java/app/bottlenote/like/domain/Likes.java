@@ -11,10 +11,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.Comment;
 
 import java.util.Objects;
@@ -24,6 +26,8 @@ import static lombok.AccessLevel.PROTECTED;
 @Builder
 @Getter
 @Entity(name = "likes")
+@Table(name = "likes")
+@ToString
 @NoArgsConstructor(access = PROTECTED)
 @AllArgsConstructor(access = PROTECTED)
 public class Likes extends BaseEntity {
@@ -51,13 +55,5 @@ public class Likes extends BaseEntity {
 	public void updateStatus(LikeStatus status) {
 		Objects.requireNonNull(status, "상태값은 null일 수 없습니다.");
 		this.status = status;
-	}
-
-	@Override
-	public String toString() {
-		return getClass().getSimpleName() + "(" +
-			"id = " + getId() + ", " +
-			"userInfo = " + getUserInfo() + ", " +
-			"status = " + getStatus() + ", ";
 	}
 }

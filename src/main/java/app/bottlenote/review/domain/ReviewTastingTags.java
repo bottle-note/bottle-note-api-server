@@ -50,7 +50,6 @@ public class ReviewTastingTags {
 		this.reviewTastingTagSet.addAll(tastingTags);
 	}
 
-
 	public void updateReviewTastingTags(List<String> reviewTastingTags, Review review) {
 		if (CollectionUtils.isEmpty(reviewTastingTags)) {
 			this.reviewTastingTagSet.clear();

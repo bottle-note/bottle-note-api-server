@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.Getter;
 import org.hibernate.annotations.Comment;
@@ -23,6 +24,7 @@ import java.util.Objects;
 
 @Comment("리뷰 댓글 테이블")
 @Entity(name = "review_reply")
+@Table(name = "review_replies")
 public class ReviewReply extends BaseEntity {
 	@Id
 	@Getter
@@ -110,9 +112,9 @@ public class ReviewReply extends BaseEntity {
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + "(" +
-			"id = " + id + ", " +
-			"userId = " + userId + ", " +
-			"content = " + content + ")";
+				"id = " + id + ", " +
+				"userId = " + userId + ", " +
+				"content = " + content + ")";
 	}
 
 	public Boolean isOwner(Long userId) {

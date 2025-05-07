@@ -13,6 +13,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,6 +28,7 @@ import java.util.Objects;
 @Builder
 @Getter
 @Entity(name = "user_history")
+@Table(name = "user_histories")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserHistory extends BaseEntity {
 

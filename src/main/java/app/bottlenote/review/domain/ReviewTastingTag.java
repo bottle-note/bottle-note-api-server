@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,6 +23,7 @@ import org.hibernate.annotations.Comment;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Entity(name = "review_tasting_tag")
+@Table(name = "review_tasting_tags")
 public class ReviewTastingTag extends BaseTimeEntity {
 
 	@Id
@@ -43,4 +45,3 @@ public class ReviewTastingTag extends BaseTimeEntity {
 			.build();
 	}
 }
-

@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Entity(name = "alcohols_view_history")
-@Table(name = "alcohols_view_history")
+@Table(name = "alcohols_view_histories")
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AlcoholsViewHistory {
