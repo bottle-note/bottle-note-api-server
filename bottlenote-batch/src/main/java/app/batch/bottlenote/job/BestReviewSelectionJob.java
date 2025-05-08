@@ -78,8 +78,8 @@ public class BestReviewSelectionJob {
 	private String getQueryByResource() {
 		try {
 			// resources 디렉토리 하위의 파일 경로로 접근
-			Resource resource = new ClassPathResource("best-review-selected.sql");
-			log.info("베스트 리뷰 쿼리 로드 완료");
+			Resource resource = new ClassPathResource("mysql/sql/best-review-selected.sql");
+			log.info("베스트 리뷰 쿼리 로드 완료 {}" , resource.getFile().getAbsolutePath());
 			return new String(FileCopyUtils.copyToByteArray(resource.getInputStream()));
 		} catch (IOException e) {
 			log.error("cant find best-review-selected.sql files", e);

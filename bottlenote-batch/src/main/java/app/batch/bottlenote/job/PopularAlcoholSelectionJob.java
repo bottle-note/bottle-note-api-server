@@ -53,7 +53,6 @@ public class PopularAlcoholSelectionJob {
 			return null;
 		}
 
-		log.info("인기 주류 선정 쿼리 로드 완료");
 
 		return new StepBuilder("popularAlcoholStep", jobRepository)
 				.<PopularItemPayload, PopularItemPayload>chunk(CHUNK_SIZE, transactionManager)
@@ -65,7 +64,8 @@ public class PopularAlcoholSelectionJob {
 
 	private String getQueryByResource() {
 		try {
-			Resource resource = new ClassPathResource("popularity.sql");
+			Resource resource = new ClassPathResource("mysql/sql/popularity.sql");
+		log.info("인기 주류 선정 쿼리 로드 완료 {}" , resource.getFile().getAbsolutePath());
 			return new String(FileCopyUtils.copyToByteArray(resource.getInputStream()));
 		} catch (IOException e) {
 			log.error("cant find popularity.sql files", e);
