@@ -78,7 +78,7 @@ public class PopularAlcoholSelectionJob {
 
 		// 먼저 오늘 날짜에 해당하는 데이터를 확인하고 있으면 삭제
 		LocalDate today = LocalDate.now();
-		String clearSql = "DELETE FROM popular_alcohol WHERE year = ? AND month = ? AND day = ?";
+		String clearSql = "DELETE FROM popular_alcohols WHERE year = ? AND month = ? AND day = ?";
 		int deleted = jdbcTemplate.update(clearSql, today.getYear(), today.getMonthValue(), today.getDayOfMonth());
 		log.info("기존 인기 주류 데이터 삭제: {}", deleted);
 

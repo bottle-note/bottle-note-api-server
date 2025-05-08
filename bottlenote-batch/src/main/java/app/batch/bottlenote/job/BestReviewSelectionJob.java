@@ -52,7 +52,7 @@ public class BestReviewSelectionJob {
     private Step getBestReviewResetStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
         return new StepBuilder("resetBestReviewStep", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
-                    int count = jdbcTemplate.update("update review set is_best = false");
+                    int count = jdbcTemplate.update("UPDATE reviews SET is_best = FALSE");
                     log.info("Best review reset: count: {}", count);
                     return RepeatStatus.FINISHED;
                 }, transactionManager)
@@ -90,7 +90,7 @@ public class BestReviewSelectionJob {
         if (chunk.isEmpty()) return;
 
         // 배치 업데이트를 위한 SQL 준비
-        String sql = "UPDATE review SET is_best = true WHERE id IN (" +
+        String sql = "UPDATE reviews SET is_best = true WHERE id IN (" +
                 String.join(",", Collections.nCopies(chunk.size(), "?")) + ")";
 
         // 파라미터 배열 준비

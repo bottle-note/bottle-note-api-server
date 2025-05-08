@@ -20,7 +20,7 @@ spring:
   sql:
     init:
       mode: always
-      schema-locations: classpath:mysql/init/01-init-table.sql # 서브모듈에서 참조하도록 수정.
+      schema-locations: classpath:mysql/init/01-init-core-table.sql # 서브모듈에서 참조하도록 수정.
   # JPA
   jpa:
     properties:
