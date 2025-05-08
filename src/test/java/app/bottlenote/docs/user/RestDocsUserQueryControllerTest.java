@@ -2,6 +2,7 @@ package app.bottlenote.docs.user;
 
 import app.bottlenote.docs.AbstractRestDocs;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.user.controller.UserMyPageController;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
@@ -102,7 +103,7 @@ class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 	void test_2() throws Exception {
 		// given
 		Long userId = 8L;
-		MyBottleResponse myBottleResponse = mypageQueryFixture.getReviewMyBottleResponse(userId, true, null);
+		PageResponse<MyBottleResponse> myBottleResponse = mypageQueryFixture.getReviewMyBottleResponse(userId, true, null);
 
 		// when
 		Mockito.when(userQueryService.getMyBottle(any(), any(), any(), any())).thenReturn(myBottleResponse);
@@ -151,12 +152,22 @@ class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 								fieldWithPath("data.myBottleList[].reviewContent").description("리뷰 내용").optional(),
 								fieldWithPath("data.myBottleList[].reviewTastingTags").description("리뷰 테이스팅 태그").optional(),
 								fieldWithPath("data.myBottleList[].isBestReview").description("베스트 리뷰 여부"),
-								fieldWithPath("data.cursorPageable").description("커서 페이지 정보").optional(),
 								fieldWithPath("errors").ignored(),
 								fieldWithPath("meta.serverVersion").ignored(),
 								fieldWithPath("meta.serverEncoding").ignored(),
 								fieldWithPath("meta.serverResponseTime").ignored(),
-								fieldWithPath("meta.serverPathVersion").ignored()
+								fieldWithPath("meta.serverPathVersion").ignored(),
+								fieldWithPath("meta.pageable").description("페이징 정보"),
+								fieldWithPath("meta.pageable.currentCursor").description("조회 시 기준 커서"),
+								fieldWithPath("meta.pageable.cursor").description("다음 페이지 커서"),
+								fieldWithPath("meta.pageable.pageSize").description("조회된 페이지 사이즈"),
+								fieldWithPath("meta.pageable.hasNext").description("다음 페이지 존재 여부"),
+								fieldWithPath("meta.searchParameters.keyword").description("검색 시 사용 한 검색어"),
+								fieldWithPath("meta.searchParameters.regionId").description("검색 시 사용 한 지역 ID"),
+								fieldWithPath("meta.searchParameters.sortType").description("검색 시 사용 한 정렬 타입"),
+								fieldWithPath("meta.searchParameters.sortOrder").description("검색 시 사용 한 정렬 순서"),
+								fieldWithPath("meta.searchParameters.cursor").description("검색 시 사용 한 커서 기준 "),
+								fieldWithPath("meta.searchParameters.pageSize").description("검색 시 사용 한 페이지 사이즈")
 						)
 				));
 	}
@@ -166,10 +177,10 @@ class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 	void test_3() throws Exception {
 		// given
 		Long userId = 8L;
-		MyBottleResponse myBottleResponse = mypageQueryFixture.getRatingMyBottleResponse(userId, true, null);
+		PageResponse<MyBottleResponse> ratingMyBottleResponse = mypageQueryFixture.getRatingMyBottleResponse(userId, true, null);
 
 		// when
-		Mockito.when(userQueryService.getMyBottle(any(), any(), any(), any())).thenReturn(myBottleResponse);
+		Mockito.when(userQueryService.getMyBottle(any(), any(), any(), any())).thenReturn(ratingMyBottleResponse);
 
 		// then
 		mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle/ratings", userId)
@@ -213,12 +224,22 @@ class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 								fieldWithPath("data.myBottleList[].averageRatingPoint").description("전체 평균 별점"),
 								fieldWithPath("data.myBottleList[].averageRatingCount").description("전체 평균 별점 참여자 수").optional(),
 								fieldWithPath("data.myBottleList[].ratingModifyAt").description("별점 수정시간").optional(),
-								fieldWithPath("data.cursorPageable").description("커서 페이지 정보").optional(),
 								fieldWithPath("errors").ignored(),
 								fieldWithPath("meta.serverVersion").ignored(),
 								fieldWithPath("meta.serverEncoding").ignored(),
 								fieldWithPath("meta.serverResponseTime").ignored(),
-								fieldWithPath("meta.serverPathVersion").ignored()
+								fieldWithPath("meta.serverPathVersion").ignored(),
+								fieldWithPath("meta.pageable").description("페이징 정보"),
+								fieldWithPath("meta.pageable.currentCursor").description("조회 시 기준 커서"),
+								fieldWithPath("meta.pageable.cursor").description("다음 페이지 커서"),
+								fieldWithPath("meta.pageable.pageSize").description("조회된 페이지 사이즈"),
+								fieldWithPath("meta.pageable.hasNext").description("다음 페이지 존재 여부"),
+								fieldWithPath("meta.searchParameters.keyword").description("검색 시 사용 한 검색어"),
+								fieldWithPath("meta.searchParameters.regionId").description("검색 시 사용 한 지역 ID"),
+								fieldWithPath("meta.searchParameters.sortType").description("검색 시 사용 한 정렬 타입"),
+								fieldWithPath("meta.searchParameters.sortOrder").description("검색 시 사용 한 정렬 순서"),
+								fieldWithPath("meta.searchParameters.cursor").description("검색 시 사용 한 커서 기준 "),
+								fieldWithPath("meta.searchParameters.pageSize").description("검색 시 사용 한 페이지 사이즈")
 						)
 				));
 	}
@@ -228,10 +249,10 @@ class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 	void test_4() throws Exception {
 		// given
 		Long userId = 8L;
-		MyBottleResponse myBottleResponse = mypageQueryFixture.getPicksMyBottleResponse(userId, true, null);
+		PageResponse<MyBottleResponse> picksMyBottleResponse = mypageQueryFixture.getPicksMyBottleResponse(userId, true, null);
 
 		// when
-		Mockito.when(userQueryService.getMyBottle(any(), any(), any(), any())).thenReturn(myBottleResponse);
+		Mockito.when(userQueryService.getMyBottle(any(), any(), any(), any())).thenReturn(picksMyBottleResponse);
 
 		// then
 		mockMvc.perform(get("/api/v1/my-page/{userId}/my-bottle/picks", userId)
@@ -273,12 +294,22 @@ class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 								fieldWithPath("data.myBottleList[].baseMyBottleInfo.isHot5").description("HOT5 여부"),
 								fieldWithPath("data.myBottleList[].isPicked").description("찜 상태").optional(),
 								fieldWithPath("data.myBottleList[].totalPicksCount").description("전체 찜한 유저 수"),
-								fieldWithPath("data.cursorPageable").description("커서 페이지 정보").optional(),
 								fieldWithPath("errors").ignored(),
 								fieldWithPath("meta.serverVersion").ignored(),
 								fieldWithPath("meta.serverEncoding").ignored(),
 								fieldWithPath("meta.serverResponseTime").ignored(),
-								fieldWithPath("meta.serverPathVersion").ignored()
+								fieldWithPath("meta.serverPathVersion").ignored(),
+								fieldWithPath("meta.pageable").description("페이징 정보"),
+								fieldWithPath("meta.pageable.currentCursor").description("조회 시 기준 커서"),
+								fieldWithPath("meta.pageable.cursor").description("다음 페이지 커서"),
+								fieldWithPath("meta.pageable.pageSize").description("조회된 페이지 사이즈"),
+								fieldWithPath("meta.pageable.hasNext").description("다음 페이지 존재 여부"),
+								fieldWithPath("meta.searchParameters.keyword").description("검색 시 사용 한 검색어"),
+								fieldWithPath("meta.searchParameters.regionId").description("검색 시 사용 한 지역 ID"),
+								fieldWithPath("meta.searchParameters.sortType").description("검색 시 사용 한 정렬 타입"),
+								fieldWithPath("meta.searchParameters.sortOrder").description("검색 시 사용 한 정렬 순서"),
+								fieldWithPath("meta.searchParameters.cursor").description("검색 시 사용 한 커서 기준 "),
+								fieldWithPath("meta.searchParameters.pageSize").description("검색 시 사용 한 페이지 사이즈")
 						)
 				));
 	}
