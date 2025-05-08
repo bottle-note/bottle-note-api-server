@@ -8,7 +8,7 @@ import lombok.Getter;
 import org.hibernate.annotations.Comment;
 
 @Getter
-@Table(name = "user_push_config")
+@Table(name = "user_push_configs")
 @Entity(name = "user_push_config")
 public class UserPushConfig {
 	@Id

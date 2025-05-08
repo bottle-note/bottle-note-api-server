@@ -18,6 +18,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -39,6 +40,7 @@ import java.util.Objects;
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @Comment("리뷰 테이블(리뷰, 평점, 이미지, 리뷰 댓글)")
 @Entity(name = "review")
+@Table(name = "reviews")
 public class Review extends BaseEntity {
 
 	@Id
@@ -117,28 +119,39 @@ public class Review extends BaseEntity {
 		this.sizeType = reviewModifyRequestWrapperItem.getSizeType();
 		this.price = reviewModifyRequestWrapperItem.getPrice();
 		LocationInfoRequest locationInfoRequest = reviewModifyRequestWrapperItem.getLocationInfo();
-		Objects.requireNonNullElse(this.reviewLocation, ReviewLocation.empty()).update(locationInfoRequest);
+		if (!Objects.isNull(locationInfoRequest)) {
+			this.reviewLocation = ReviewLocation.builder()
+					.name(locationInfoRequest.locationName())
+					.zipCode(locationInfoRequest.zipCode())
+					.address(locationInfoRequest.address())
+					.detailAddress(locationInfoRequest.detailAddress())
+					.category(locationInfoRequest.category())
+					.mapUrl(locationInfoRequest.mapUrl())
+					.latitude(locationInfoRequest.latitude())
+					.longitude(locationInfoRequest.longitude())
+					.build();
+		}
 	}
 
 
 	public void imageInitialization(List<ReviewImageInfoRequest> list) {
 		list = Objects.requireNonNullElse(list, Collections.emptyList());
 		List<ReviewImage> imageList = list.stream()
-			.map(
-				image ->
-					ReviewImage.builder()
-						.reviewImageInfo(
-							ImageInfo.builder()
-								.order(image.order())
-								.imageUrl(image.viewUrl())
-								.imagePath(ImageUtil.getImagePath(image.viewUrl()))
-								.imageKey(ImageUtil.getImageKey(image.viewUrl()))
-								.imageName(ImageUtil.getImageName(image.viewUrl()))
-								.build()
-						)
-						.review(this)
-						.build()
-			).toList();
+				.map(
+						image ->
+								ReviewImage.builder()
+										.reviewImageInfo(
+												ImageInfo.builder()
+														.order(image.order())
+														.imageUrl(image.viewUrl())
+														.imagePath(ImageUtil.getImagePath(image.viewUrl()))
+														.imageKey(ImageUtil.getImageKey(image.viewUrl()))
+														.imageName(ImageUtil.getImageName(image.viewUrl()))
+														.build()
+										)
+										.review(this)
+										.build()
+				).toList();
 
 		if (list.size() > 1) {
 			this.imageUrl = list.get(0).viewUrl();

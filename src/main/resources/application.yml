@@ -42,11 +42,32 @@ spring:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:16379}
       password: ${REDIS_PASSWORD:}
+      timeout: 15 # 연결 타임아웃 (초)
+      cluster:
+        enabled: false # 클러스터 모드 사용 여부
+        nodes: ${REDIS_CLUSTER_NODES:} # 클러스터 노드 목록 (쉼표로 구분) 192.168.1.100:6379,192.168.1.101:6379,192.168.1.102:6379
+
+  quartz:
+    job-store-type: jdbc    # 메모리(memory) 또는 데이터베이스(jdbc)
+    jdbc:
+      initialize-schema: never    # 스키마 초기화 (always, never, embedded)
+    properties:
+      org:
+        quartz:
+          scheduler:
+            instanceName: bottle_note_quartz_scheduler
+            instanceId: AUTO
+          threadPool:
+            threadCount: 5
+            threadPriority: 5
+          jobStore:
+            isClustered: true
 
 # Spring Security
 security:

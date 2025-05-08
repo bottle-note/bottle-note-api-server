@@ -34,31 +34,32 @@ public class AlcoholQueryController {
 
 	@GetMapping("/search")
 	public ResponseEntity<?> searchAlcohols(
-		@ModelAttribute @Valid AlcoholSearchRequest request
+			@ModelAttribute @Valid AlcoholSearchRequest request
 	) {
 		Long id = getUserIdByContext().orElse(-1L);
 
 		PageResponse<AlcoholSearchResponse> pageResponse = alcoholQueryService.searchAlcohols(request, id);
 
 		return GlobalResponse.ok(
-			pageResponse.content(),
-			MetaService.createMetaInfo()
-				.add("searchParameters", request)
-				.add("pageable", pageResponse.cursorPageable())
+				pageResponse.content(),
+				MetaService.createMetaInfo()
+						.add("searchParameters", request)
+						.add("pageable", pageResponse.cursorPageable())
 		);
 	}
 
 	@GetMapping("/{alcoholId}")
 	public ResponseEntity<?> findAlcoholDetailById(@PathVariable Long alcoholId) {
 		Long id = getUserIdByContext().orElse(-1L);
-		return ResponseEntity.ok(
-			GlobalResponse.success(alcoholQueryService.findAlcoholDetailById(alcoholId, id)));
+		return GlobalResponse.ok(alcoholQueryService.findAlcoholDetailById(alcoholId, id));
 	}
 
 	@GetMapping("/categories")
 	public ResponseEntity<?> getAlcoholCategory(
-		@RequestParam(required = false, defaultValue = "WHISKY") AlcoholType type
+			@RequestParam(required = false, defaultValue = "WHISKY") AlcoholType type
 	) {
 		return GlobalResponse.ok(alcoholReferenceService.getAlcoholCategory(type));
 	}
+
+
 }

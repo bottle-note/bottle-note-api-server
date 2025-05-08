@@ -12,6 +12,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,6 +24,7 @@ import java.util.Objects;
 
 @Comment("문의사항")
 @Entity(name = "help")
+@Table(name = "helps")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Help extends BaseEntity {
@@ -32,7 +34,7 @@ public class Help extends BaseEntity {
 	private Long id;
 
 	@Comment("문의자")
-	@Column(name = "userId", nullable = false)
+	@Column(name = "user_id", nullable = false)
 	private Long userId;
 
 	@Comment("문의 타입")

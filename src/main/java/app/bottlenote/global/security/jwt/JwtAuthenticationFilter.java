@@ -50,7 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		final String path = request.getServletPath();
 		String token = resolveToken(request).orElse(null);
 
-		log.info("Performs filtering inside the JWT. >> {} : {} ", method, path);
+		log.debug("Performs filtering inside the JWT. >> {} : {} ", method, path);
 
 		try {
 			Authentication authentication = jwtAuthenticationManager.getAnonymousAuthentication();
@@ -156,7 +156,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	 * 수정 : 2024-11-10
 	 */
 	private boolean skipFilter(String method, String url) {
-		log.info("Checking skipFilter : {}", method + ":" + url);
 		final String targetPath = method + ":" + url;
 		final Set<String> skipPaths = Set.of(
 			"GET:/api/v1/reviews",

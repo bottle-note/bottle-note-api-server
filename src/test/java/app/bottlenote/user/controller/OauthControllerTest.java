@@ -20,6 +20,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -35,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Tag("unit")
 @DisplayName("[unit] [controller] OauthController")
 @WebMvcTest(OauthController.class)
+@ActiveProfiles("test")
 @WithMockUser
 class OauthControllerTest {
 	// todo : oauth 관련 integration test 구현 필요 (2024.12.15)

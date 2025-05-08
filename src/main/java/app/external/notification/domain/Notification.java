@@ -19,7 +19,7 @@ import org.hibernate.annotations.Comment;
 import java.util.Objects;
 
 @Getter
-@Table(name = "notification")
+@Table(name = "notifications")
 @Entity(name = "notification")
 public class Notification extends BaseEntity {
 	@Id

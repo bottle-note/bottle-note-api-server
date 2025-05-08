@@ -14,13 +14,20 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
-//필요한 부분만 toString
+@Builder
 @Getter
 @Entity(name = "user_report")
+@Table(name = "user_reports")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserReports extends BaseEntity {
 
 	@Id
@@ -58,19 +65,4 @@ public class UserReports extends BaseEntity {
 	@Comment("해당 문의글을 처리한 관리자 아이디")
 	@Column(name = "admin_id")
 	private Long adminId;
-
-	protected UserReports() {
-	}
-
-	@Builder
-	public UserReports(Long id, User user, User reportUser, UserReportType type, String content, String responseContent, StatusType status, Long adminId) {
-		this.id = id;
-		this.user = user;
-		this.reportUser = reportUser;
-		this.type = type;
-		this.content = content;
-		this.responseContent = responseContent;
-		this.status = status;
-		this.adminId = adminId;
-	}
 }

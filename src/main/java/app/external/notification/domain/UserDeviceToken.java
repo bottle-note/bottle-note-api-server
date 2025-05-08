@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 
 @Builder
 @Getter
-@Table(name = "user_device_token",
+@Table(name = "user_device_tokens",
 	uniqueConstraints = {
 		@UniqueConstraint(columnNames = {"user_id", "device_token"})}
 )

@@ -17,7 +17,7 @@ import org.hibernate.annotations.Comment;
 public class ImageInfo {
 
 	@Comment("이미지 순서")
-	@Column(name = "`order`", nullable = false)
+	@Column(name = "orders", nullable = false)
 	private Long order;
 
 	@Comment("이미지 경로")

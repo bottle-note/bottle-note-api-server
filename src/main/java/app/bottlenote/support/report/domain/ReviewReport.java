@@ -10,6 +10,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,6 +20,7 @@ import org.hibernate.annotations.Comment;
 
 @Getter
 @Entity(name = "review_report")
+@Table(name = "review_reports")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
@@ -64,18 +66,18 @@ public class ReviewReport extends BaseEntity {
 	private String responseContent;
 
 	public static ReviewReport registerReport(
-		Long userId,
-		Long reviewId,
-		ReviewReportType type,
-		String reportContent,
-		String ipAddress
+			Long userId,
+			Long reviewId,
+			ReviewReportType type,
+			String reportContent,
+			String ipAddress
 	) {
 		return ReviewReport.builder()
-			.userId(userId)
-			.reviewId(reviewId)
-			.type(type)
-			.reportContent(reportContent)
-			.ipAddress(ipAddress)
-			.build();
+				.userId(userId)
+				.reviewId(reviewId)
+				.type(type)
+				.reportContent(reportContent)
+				.ipAddress(ipAddress)
+				.build();
 	}
 }

@@ -1,0 +1,15 @@
+=== 유저 알코올 조회 히스토리 조회 ===
+
+사용자가 조회한 알코올 목록을 히스토리 형태로 조회합니다.
+
+[discrete]
+==== 요청 파라미터 ====
+
+include::{snippets}/history/view-alcohols/curl-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/history/view-alcohols/response-fields.adoc[]
+include::{snippets}/history/view-alcohols/response-body.adoc[]

@@ -19,7 +19,7 @@ GET {{host}}/api/v1/alcohols/search?category=SINGLE_MALT&cursor=1&pageSize=1
 Authorization: Bearer {{accessToken}}
 
 ### 위스키 조회 상세 조회
-GET {{host}}/api/v1/alcohols/1
+GET {{host}}/api/v1/alcohols/4
 Authorization: Bearer {{accessToken}}
 
 ### 카테고리 조회
