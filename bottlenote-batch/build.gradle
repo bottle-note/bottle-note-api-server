@@ -1,18 +1,19 @@
 //batch-module
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter'
-    implementation 'org.springframework.boot:spring-boot-starter-batch'
-    testImplementation 'org.springframework.batch:spring-batch-test'
+	implementation 'org.springframework.boot:spring-boot-starter'
+	implementation 'org.springframework.boot:spring-boot-starter-batch'
+	testImplementation 'org.springframework.batch:spring-batch-test'
+	implementation 'org.springframework.boot:spring-boot-starter-quartz'
 }
 sourceSets {
-    main {
-        resources {
-            srcDirs = [
-                    'src/main/resources',
-                    '../git.environment-variables/storage/sql'
-            ]
-        }
-    }
+	main {
+		resources {
+			srcDirs = [
+					'src/main/resources',
+					'../git.environment-variables/storage/sql'
+			]
+		}
+	}
 }
 
 tasks.register("prepareKotlinBuildScriptModel") {}
