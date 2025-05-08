@@ -2,6 +2,7 @@ package app.bottlenote.user.repository;
 
 import app.bottlenote.alcohols.repository.AlcoholQuerySupporter;
 import app.bottlenote.global.service.cursor.CursorPageable;
+import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.picks.constant.PicksStatus;
 import app.bottlenote.picks.repository.PicksQuerySupporter;
 import app.bottlenote.rating.repository.RatingQuerySupporter;
@@ -74,7 +75,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 	}
 
 	@Override
-	public MyBottleResponse getReviewMyBottle(MyBottlePageableCriteria request) {
+	public PageResponse<MyBottleResponse> getReviewMyBottle(MyBottlePageableCriteria request) {
 		Long userId = request.userId();
 		boolean isMyPage = userId.equals(request.currentUserId());
 
@@ -173,17 +174,17 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 				)
 				.fetchOne();
 
-		return MyBottleResponse.create(
+		MyBottleResponse myBottleResponse = MyBottleResponse.create(
 				userId,
 				isMyPage,
 				totalCount,
-				mergedReviewMyBottleList,
-				cursorPageable
+				mergedReviewMyBottleList
 		);
+		return PageResponse.of(myBottleResponse, cursorPageable);
 	}
 
 	@Override
-	public MyBottleResponse getRatingMyBottle(MyBottlePageableCriteria request) {
+	public PageResponse<MyBottleResponse> getRatingMyBottle(MyBottlePageableCriteria request) {
 
 		Long userId = request.userId();
 		boolean isMyPage = userId.equals(request.currentUserId());
@@ -238,17 +239,17 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 				)
 				.fetchOne();
 
-		return MyBottleResponse.create(
+		MyBottleResponse myBottleResponse = MyBottleResponse.create(
 				userId,
 				isMyPage,
 				totalCount,
-				ratingMyBottleList,
-				cursorPageable
+				ratingMyBottleList
 		);
+		return PageResponse.of(myBottleResponse, cursorPageable);
 	}
 
 	@Override
-	public MyBottleResponse getPicksMyBottle(MyBottlePageableCriteria request) {
+	public PageResponse<MyBottleResponse> getPicksMyBottle(MyBottlePageableCriteria request) {
 		Long userId = request.userId();
 		boolean isMyPage = userId.equals(request.currentUserId());
 
@@ -302,12 +303,12 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 				)
 				.fetchOne();
 
-		return MyBottleResponse.create(
+		MyBottleResponse myBottleResponse = MyBottleResponse.create(
 				userId,
 				isMyPage,
 				totalCount,
-				picksMyBottleList,
-				cursorPageable
+				picksMyBottleList
 		);
+		return PageResponse.of(myBottleResponse, cursorPageable);
 	}
 }

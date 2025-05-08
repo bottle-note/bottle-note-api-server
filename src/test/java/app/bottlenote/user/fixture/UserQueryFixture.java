@@ -1,6 +1,7 @@
 package app.bottlenote.user.fixture;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
+import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
 import app.bottlenote.user.dto.response.PicksMyBottleItem;
@@ -30,7 +31,7 @@ public class UserQueryFixture {
 
 	}
 
-	public MyBottleResponse getReviewMyBottleResponse(Long userId, boolean isMyPage, CursorPageable cursorPageable) {
+	public PageResponse<MyBottleResponse> getReviewMyBottleResponse(Long userId, boolean isMyPage, CursorPageable cursorPageable) {
 		LocalDateTime now = LocalDateTime.now();
 
 		ReviewMyBottleItem review1 = new ReviewMyBottleItem(
@@ -61,16 +62,16 @@ public class UserQueryFixture {
 
 		List<ReviewMyBottleItem> reviewList = List.of(review1, review2);
 
-		return MyBottleResponse.create(
+		MyBottleResponse myBottleResponse = MyBottleResponse.create(
 				userId,
 				isMyPage,
 				(long) reviewList.size(),
-				reviewList,
-				cursorPageable
+				reviewList
 		);
+		return PageResponse.of(myBottleResponse, CursorPageable.builder().build());
 	}
 
-	public MyBottleResponse getRatingMyBottleResponse(Long userId, boolean isMyPage, CursorPageable cursorPageable) {
+	public PageResponse<MyBottleResponse> getRatingMyBottleResponse(Long userId, boolean isMyPage, CursorPageable cursorPageable) {
 
 		RatingMyBottleItem ratingMyBottleItem1 = RatingMyBottleItem.builder()
 				.baseMyBottleInfo(
@@ -87,16 +88,16 @@ public class UserQueryFixture {
 
 		List<RatingMyBottleItem> ratingList = List.of(ratingMyBottleItem1);
 
-		return MyBottleResponse.create(
+		MyBottleResponse myBottleResponse = MyBottleResponse.create(
 				userId,
 				isMyPage,
 				(long) ratingList.size(),
-				ratingList,
-				cursorPageable
+				ratingList
 		);
+		return PageResponse.of(myBottleResponse, CursorPageable.builder().build());
 	}
 
-	public MyBottleResponse getPicksMyBottleResponse(Long userId, boolean isMyPage, CursorPageable cursorPageable) {
+	public PageResponse<MyBottleResponse> getPicksMyBottleResponse(Long userId, boolean isMyPage, CursorPageable cursorPageable) {
 
 		PicksMyBottleItem picksMyBottleItem1 = PicksMyBottleItem.builder()
 				.baseMyBottleInfo(new MyBottleResponse.BaseMyBottleInfo(
@@ -109,13 +110,13 @@ public class UserQueryFixture {
 
 		List<PicksMyBottleItem> picksList = List.of(picksMyBottleItem1);
 
-		return MyBottleResponse.create(
+		MyBottleResponse myBottleResponse = MyBottleResponse.create(
 				userId,
 				isMyPage,
 				(long) picksList.size(),
-				picksList,
-				cursorPageable
+				picksList
 		);
+		return PageResponse.of(myBottleResponse, CursorPageable.builder().build());
 	}
 
 }

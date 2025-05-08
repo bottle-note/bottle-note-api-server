@@ -1,4 +1,4 @@
-insert into popular_alcohol (alcohol_id, year, month, day, review_score, rating_score, pick_score, popular_score)
+insert into popular_alcohols (alcohol_id, year, month, day, review_score, rating_score, pick_score, popular_score)
 values (1, 2024, 10, 9, 0.15, 0.43, 1.00, 0.49),
        (1, 2024, 10, 17, 0.12, 0.42, 1.00, 0.48),
        (274, 2024, 10, 17, 0.01, 0.91, 0.33, 0.38),

@@ -32,9 +32,8 @@ values ('hyejj19@naver.com', 'WOzU6J8541', null, null, 'FEMALE', 'ROLE_USER', 'A
         'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJya2R0a2ZtYUBuYXZlci5jb20iLCJyb2xlcyI6IlJPTEVfVVNFUiIsInVzZXJJZCI6OSwiaWF0IjoxNzIwNzAzMjExLCJleHAiOjE3MjE5MTI4MTF9.pD-MCIPRxbYBLJ2ZPei_529YCop_a8yVKPCsz-YYlvCjyAM40aVQRPv2rDg2wfCZAr5c3NKyS210LwQXwxf1OQ',
         null, null);
 
-
 -- 지역
-insert into region (kor_name, eng_name, continent, description, create_at, create_by, last_modify_at, last_modify_by)
+insert into regions (kor_name, eng_name, continent, description, create_at, create_by, last_modify_at, last_modify_by)
 values ('호주', 'Australia', null, '오세아니아에 위치한 나라로 다양한 위스키를 생산.', '2024-06-04 17:19:39', 'admin', '2024-06-04 17:19:39',
         'admin'),
        ('핀란드', 'Finland', null, '북유럽에 위치한 나라로 청정한 자연환경을 자랑.', '2024-06-04 17:19:39', 'admin', '2024-06-04 17:19:39',
@@ -86,7 +85,7 @@ values ('호주', 'Australia', null, '오세아니아에 위치한 나라로 다
         '2024-06-04 17:19:39', 'admin');
 
 -- 증류소
-insert into distillery (kor_name, eng_name, logo_img_url, create_at, create_by, last_modify_at, last_modify_by)
+insert into distilleries (kor_name, eng_name, logo_img_url, create_at, create_by, last_modify_at, last_modify_by)
 values ('글래스고', 'The Glasgow Distillery Co.', null, '2024-06-04 17:09:03', 'admin', '2024-06-04 17:09:03', 'admin'),
        ('글렌 그란트', 'Glen Grant', null, '2024-06-04 17:09:03', 'admin', '2024-06-04 17:09:03', 'admin'),
        ('글렌 기어리', 'Glen Garioch', null, '2024-06-04 17:09:03', 'admin', '2024-06-04 17:09:03', 'admin'),
@@ -240,8 +239,9 @@ values ('글래스고', 'The Glasgow Distillery Co.', null, '2024-06-04 17:09:03
        ('휘슬피그', 'WhistlePig', null, '2024-06-04 17:09:03', 'admin', '2024-06-04 17:09:03', 'admin'),
        ('휘슬피거', 'WhistlePager', null, '2024-06-04 17:09:03', 'admin', '2024-06-04 17:09:03', 'admin'),
        ('ETC', 'ETC', null, '2024-06-04 17:09:03', 'admin', '2024-06-04 17:09:03', 'admin');
---알콜
-insert into alcohol (kor_name, eng_name, abv, type, kor_category, eng_category, category_group, region_id,
+
+-- 알콜
+insert into alcohols (kor_name, eng_name, abv, type, kor_category, eng_category, category_group, region_id,
                      distillery_id, age, cask, image_url, create_at, create_by, last_modify_at, last_modify_by)
 values ('라이터스 티얼즈 레드 헤드', 'Writers'' Tears Red Head', '46', 'WHISKY', '싱글 몰트', 'Single Malt', 'SINGLE_MALT', 12, 150,
         null, 'Oloroso Sherry Butts', 'https://static.whiskybase.com/storage/whiskies/1/8/3881/318643-big.jpg',
@@ -316,7 +316,7 @@ values ('라이터스 티얼즈 레드 헤드', 'Writers'' Tears Red Head', '46'
         '2024-06-08 05:06:00', 'admin', '2024-06-08 05:06:00', 'admin');
 
 -- review 테이블에 데이터 삽입
-INSERT INTO review
+INSERT INTO reviews
 (id, user_id, alcohol_id, is_best, content, size_type, price, location_name, zip_code, address,
  detail_address, category, map_url, latitude, longitude, status,
  image_url, view_count, active_status, create_at, create_by, last_modify_at, last_modify_by)
@@ -342,13 +342,13 @@ VALUES (1, 3, 1, true, '이 위스키는 풍부하고 복잡한 맛이 매력적
         NULL, NULL);
 
 
-insert into follow (user_id, follow_user_id, status, create_at, last_modify_at)
+insert into follows (user_id, follow_user_id, status, create_at, last_modify_at)
 values (1, 2, 'FOLLOWING', now(), now()),
        (2, 3, 'FOLLOWING', now(), now()),
        (3, 1, 'FOLLOWING', now(), now());
 
 
-insert into rating (user_id, alcohol_id, rating, create_at, last_modify_at)
+insert into ratings (user_id, alcohol_id, rating, create_at, last_modify_at)
 values (1, 1, 5, now(), now()),
        (2, 1, 4, now(), now()),
        (3, 2, 5, now(), now());
