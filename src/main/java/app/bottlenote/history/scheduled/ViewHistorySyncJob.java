@@ -1,4 +1,4 @@
-package app.bottlenote.history.quartz;
+package app.bottlenote.history.scheduled;
 
 import app.bottlenote.history.service.AlcoholViewHistoryService;
 import lombok.RequiredArgsConstructor;

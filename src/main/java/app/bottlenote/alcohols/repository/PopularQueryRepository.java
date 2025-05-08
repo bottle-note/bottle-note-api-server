@@ -2,15 +2,15 @@ package app.bottlenote.alcohols.repository;
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.dto.response.PopularItem;
+import app.bottlenote.common.annotation.JpaRepositoryImpl;
 import feign.Param;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
+@JpaRepositoryImpl
 public interface PopularQueryRepository extends JpaRepository<Alcohol, Long> {
 
 	@Query("""

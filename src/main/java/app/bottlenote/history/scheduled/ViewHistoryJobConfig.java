@@ -1,4 +1,4 @@
-package app.bottlenote.history.quartz;
+package app.bottlenote.history.scheduled;
 
 import lombok.RequiredArgsConstructor;
 import org.quartz.CronScheduleBuilder;
