@@ -1,4 +1,4 @@
-insert into review_reply (review_id, user_id, root_reply_id, parent_reply_id, content, create_at, create_by,
+insert into review_replies (review_id, user_id, root_reply_id, parent_reply_id, content, create_at, create_by,
                           last_modify_at, last_modify_by)
 values (4, 3, null, null, '1️⃣ Root 댓글', '2024-06-27 23:16:16', null, '2024-06-27 23:16:16', null),
        (4, 3, null, null, '2️⃣2️⃣ Root 댓글', '2024-06-27 23:16:16', null, '2024-06-27 23:16:16', null),

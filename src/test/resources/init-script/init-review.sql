@@ -1,4 +1,4 @@
-INSERT INTO review
+INSERT INTO reviews
 (user_id, alcohol_id, is_best, content, size_type, price, location_name, zip_code, address,
  detail_address, category, map_url, latitude, longitude, status,
  image_url, view_count, active_status, create_at, create_by, last_modify_at, last_modify_by)
@@ -38,5 +38,3 @@ VALUES (1, 1, true, '이 위스키는 풍부하고 복잡한 맛이 매력적입
         '서울시 강남구 역삼동', 'yyPub 역삼점', 'bar', 'https://maps.example.com/map12', '12.124', '12.124',
         'PUBLIC', 'https://example.com/image12.jpg', NULL, 'ACTIVE', '2024-05-13 23:30:00', NULL,
         NULL, NULL);
-
-

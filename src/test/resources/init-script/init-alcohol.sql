@@ -1,4 +1,4 @@
-insert into region (kor_name, eng_name, continent, description)
+insert into regions (kor_name, eng_name, continent, description)
 values ('호주', 'Australia', null, '오세아니아에 위치한 나라로 다양한 위스키를 생산.'),
 	   ('핀란드', 'Finland', null, '북유럽에 위치한 나라로 청정한 자연환경을 자랑.'),
 	   ('프랑스', 'France', null, '와인과 브랜디로 유명한 유럽의 나라.'),
@@ -26,7 +26,7 @@ values ('호주', 'Australia', null, '오세아니아에 위치한 나라로 다
 	   ('덴마크', 'Denmark', null, '북유럽에 위치한 나라로 고유의 위스키를 생산합니다.'),
 	   ('네덜란드', 'Netherlands', null, '맥주와 진으로 유명한 나라로 위스키 생산도 증가하고 있습니다.');
 
-insert into distillery (kor_name, eng_name, logo_img_url)
+insert into distilleries (kor_name, eng_name, logo_img_url)
 values ('글래스고', 'The Glasgow Distillery Co.', null),
 	   ('글렌 그란트', 'Glen Grant', null),
 	   ('글렌 기어리', 'Glen Garioch', null),
@@ -178,7 +178,7 @@ values ('글래스고', 'The Glasgow Distillery Co.', null),
 	   ('휘슬피거', 'WhistlePager', null),
 	   ('ETC', 'ETC', null);
 
-insert into alcohol (kor_name, eng_name, abv, type, kor_category, eng_category, category_group, region_id,
+insert into alcohols (kor_name, eng_name, abv, type, kor_category, eng_category, category_group, region_id,
 					 distillery_id, age, cask, image_url)
 values ('라이터스 티얼즈 레드 헤드', 'Writers'' Tears Red Head', '46', 'WHISKY', '싱글 몰트', 'Single Malt', 'SINGLE_MALT', 12, 150,
 		null, 'Oloroso Sherry Butts', 'https://static.whiskybase.com/storage/whiskies/1/8/3881/318643-big.jpg'),
