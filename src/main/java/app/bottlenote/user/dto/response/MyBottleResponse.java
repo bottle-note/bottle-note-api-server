@@ -1,7 +1,5 @@
 package app.bottlenote.user.dto.response;
 
-import app.bottlenote.global.service.cursor.CursorPageable;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -9,23 +7,20 @@ public record MyBottleResponse(
 		Long userId,
 		Boolean isMyPage,
 		Long totalCount,
-		List<?> myBottleList,
-		CursorPageable cursorPageable
+		List<?> myBottleList
 ) {
 
 	public static MyBottleResponse create(
 			Long userId,
 			Boolean isMyPage,
 			Long totalCount,
-			List<?> myBottleList,
-			CursorPageable cursorPageable
+			List<?> myBottleList
 	) {
 		return new MyBottleResponse(
 				userId,
 				isMyPage,
 				totalCount,
-				myBottleList != null ? myBottleList : Collections.emptyList(),
-				cursorPageable
+				myBottleList != null ? myBottleList : Collections.emptyList()
 		);
 	}
 
