@@ -46,11 +46,13 @@ allprojects {
 }
 
 dependencies {
+	implementation project(':bottlenote-core')
+
 	runtimeOnly project(':bottlenote-batch')
 	testRuntimeOnly project(':bottlenote-batch')
 
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	testImplementation 'org.testng:testng:7.1.0'
+	testImplementation 'org.testng:testng:7.7.0'
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -118,7 +120,6 @@ dependencies {
 
 	//firebase
 	implementation 'com.google.firebase:firebase-admin:8.0.0'
-
 
 	//rule engine
 	testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.0'

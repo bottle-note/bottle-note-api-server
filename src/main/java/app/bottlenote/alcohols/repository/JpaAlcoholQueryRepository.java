@@ -11,13 +11,19 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface JpaAlcoholQueryRepository extends
-	AlcoholQueryRepository,
-	JpaRepository<Alcohol, Long>,
-	CustomAlcoholQueryRepository {
+		AlcoholQueryRepository,
+		JpaRepository<Alcohol, Long>,
+		CustomAlcoholQueryRepository {
 
 	@Override
-	@Query("Select new app.bottlenote.alcohols.dto.response.CategoryItem(a.korCategory, a.engCategory,a.categoryGroup) from " +
-		"alcohol a where a.type = :type group by a.korCategory, a.engCategory,a.categoryGroup order by case when a.categoryGroup = 'OTHER' then 1 else 0 end, a.korCategory")
+	@Query("""
+			        Select new app.bottlenote.alcohols.dto.response.CategoryItem(a.korCategory, a.engCategory,a.categoryGroup)
+			        from alcohol a
+			        where a.type = :type
+			        group by a.korCategory, a.engCategory,a.categoryGroup
+			        order by
+			        	case when a.categoryGroup = app.bottlenote.alcohols.constant.AlcoholCategoryGroup.OTHER then 1 else 0 end,a.korCategory
+			""")
 	List<CategoryItem> findAllCategories(AlcoholType type);
 
 	@Query("SELECT COUNT(a) > 0 FROM alcohol a WHERE a.id = :alcoholId")

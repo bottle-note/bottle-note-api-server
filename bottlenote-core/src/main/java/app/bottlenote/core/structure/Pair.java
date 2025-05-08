@@ -6,6 +6,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public record Pair<L, R>(L first, R second) {
+
 	/**
 	 * 팩토리 메서드: Pair 객체 생성
 	 */
