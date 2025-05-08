@@ -39,7 +39,7 @@ public class DefaultAlcoholFacade implements AlcoholFacade {
 				= alcoholQueryRepository.findAlcoholInfoById(alcoholId - 1, null)
 				.orElse(null);
 
-		return new Pair<>(firstItem, secondItem);
+		return Pair.of(firstItem, secondItem);
 	}
 
 	@Override
