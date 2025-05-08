@@ -47,9 +47,7 @@ values ('hyejj19@naver.com', 'WOzU6J8541', NULL, NULL, NULL, 'ROLE_USER', 'ACTIV
         'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJya2R0a2ZtYUBuYXZlci5jb20iLCJyb2xlcyI6IlJPTEVfVVNFUiIsInVzZXJJZCI6OSwiaWF0IjoxNzIwNzAzMjExLCJleHAiOjE3MjE5MTI4MTF9.pD-MCIPRxbYBLJ2ZPei_529YCop_a8yVKPCsz-YYlvCjyAM40aVQRPv2rDg2wfCZAr5c3NKyS210LwQXwxf1OQ',
         NULL, NULL);
 
-
-
-insert into region (kor_name, eng_name, continent, description, create_at, create_by,
+insert into regions (kor_name, eng_name, continent, description, create_at, create_by,
                     last_modify_at, last_modify_by)
 values ('호주', 'Australia', null, '오세아니아에 위치한 나라로 다양한 위스키를 생산.', '2024-06-04 17:19:39', 'admin',
         '2024-06-04 17:19:39',
@@ -124,7 +122,7 @@ values ('호주', 'Australia', null, '오세아니아에 위치한 나라로 다
         'admin',
         '2024-06-04 17:19:39', 'admin');
 
-insert into distillery (kor_name, eng_name, logo_img_url, create_at, create_by, last_modify_at,
+insert into distilleries (kor_name, eng_name, logo_img_url, create_at, create_by, last_modify_at,
                         last_modify_by)
 values ('글래스고', 'The Glasgow Distillery Co.', null, '2024-06-04 17:09:03', 'admin',
         '2024-06-04 17:09:03', 'admin'),
@@ -356,7 +354,7 @@ values ('글래스고', 'The Glasgow Distillery Co.', null, '2024-06-04 17:09:03
         'admin'),
        ('ETC', 'ETC', null, '2024-06-04 17:09:03', 'admin', '2024-06-04 17:09:03', 'admin');
 
-insert into alcohol (kor_name, eng_name, abv, type, kor_category, eng_category, category_group,
+insert into alcohols (kor_name, eng_name, abv, type, kor_category, eng_category, category_group,
                      region_id,
                      distillery_id, age, cask, image_url, create_at, create_by, last_modify_at,
                      last_modify_by)
@@ -474,7 +472,7 @@ values ('라이터스 티얼즈 레드 헤드', 'Writers'' Tears Red Head', '46'
         'https://static.whiskybase.com/storage/whiskies/2/3/0518/412215-big.jpg',
         '2024-06-08 05:06:00', 'admin', '2024-06-08 05:06:00', 'admin');
 
-INSERT INTO user_history (id, user_id, event_category, event_type, redirect_url, image_url, alcohol_id,
+INSERT INTO user_histories (id, user_id, event_category, event_type, redirect_url, image_url, alcohol_id,
                           content, dynamic_message, event_year,
                           event_month,
                           create_at, create_by, last_modify_at, last_modify_by)

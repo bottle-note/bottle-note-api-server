@@ -29,9 +29,7 @@ values ('hyejj19@naver.com', 'WOzU6J8541', NULL, NULL, NULL, 'ROLE_USER', 'ACTIV
         'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJya2R0a2ZtYUBuYXZlci5jb20iLCJyb2xlcyI6IlJPTEVfVVNFUiIsInVzZXJJZCI6OSwiaWF0IjoxNzIwNzAzMjExLCJleHAiOjE3MjE5MTI4MTF9.pD-MCIPRxbYBLJ2ZPei_529YCop_a8yVKPCsz-YYlvCjyAM40aVQRPv2rDg2wfCZAr5c3NKyS210LwQXwxf1OQ',
         NULL, NULL);
 
-
-
-insert into region (kor_name, eng_name, continent, description, create_at, create_by, last_modify_at, last_modify_by)
+insert into regions (kor_name, eng_name, continent, description, create_at, create_by, last_modify_at, last_modify_by)
 values ('호주', 'Australia', null, '오세아니아에 위치한 나라로 다양한 위스키를 생산.', '2024-06-04 17:19:39', 'admin', '2024-06-04 17:19:39',
         'admin'),
        ('핀란드', 'Finland', null, '북유럽에 위치한 나라로 청정한 자연환경을 자랑.', '2024-06-04 17:19:39', 'admin', '2024-06-04 17:19:39',
@@ -82,7 +80,7 @@ values ('호주', 'Australia', null, '오세아니아에 위치한 나라로 다
        ('네덜란드', 'Netherlands', null, '맥주와 진으로 유명한 나라로 위스키 생산도 증가하고 있습니다.', '2024-06-04 17:19:39', 'admin',
         '2024-06-04 17:19:39', 'admin');
 
-insert into distillery (kor_name, eng_name, logo_img_url, create_at, create_by, last_modify_at, last_modify_by)
+insert into distilleries (kor_name, eng_name, logo_img_url, create_at, create_by, last_modify_at, last_modify_by)
 values ('글래스고', 'The Glasgow Distillery Co.', null, '2024-06-04 17:09:03', 'admin', '2024-06-04 17:09:03', 'admin'),
        ('글렌 그란트', 'Glen Grant', null, '2024-06-04 17:09:03', 'admin', '2024-06-04 17:09:03', 'admin'),
        ('글렌 기어리', 'Glen Garioch', null, '2024-06-04 17:09:03', 'admin', '2024-06-04 17:09:03', 'admin'),
@@ -237,7 +235,7 @@ values ('글래스고', 'The Glasgow Distillery Co.', null, '2024-06-04 17:09:03
        ('휘슬피거', 'WhistlePager', null, '2024-06-04 17:09:03', 'admin', '2024-06-04 17:09:03', 'admin'),
        ('ETC', 'ETC', null, '2024-06-04 17:09:03', 'admin', '2024-06-04 17:09:03', 'admin');
 
-insert into alcohol (kor_name, eng_name, abv, type, kor_category, eng_category, category_group, region_id,
+insert into alcohols (kor_name, eng_name, abv, type, kor_category, eng_category, category_group, region_id,
                      distillery_id, age, cask, image_url, create_at, create_by, last_modify_at, last_modify_by)
 values ('라이터스 티얼즈 레드 헤드', 'Writers'' Tears Red Head', '46', 'WHISKY', '싱글 몰트', 'Single Malt', 'SINGLE_MALT', 12, 150,
         null, 'Oloroso Sherry Butts', 'https://static.whiskybase.com/storage/whiskies/1/8/3881/318643-big.jpg',
@@ -311,8 +309,7 @@ values ('라이터스 티얼즈 레드 헤드', 'Writers'' Tears Red Head', '46'
         'Oloroso Sherry Hogsheads', 'https://static.whiskybase.com/storage/whiskies/2/3/0518/412215-big.jpg',
         '2024-06-08 05:06:00', 'admin', '2024-06-08 05:06:00', 'admin');
 
-
-INSERT INTO follow (id, user_id, follow_user_id, status, create_at, create_by, last_modify_at, last_modify_by)
+INSERT INTO follows (id, user_id, follow_user_id, status, create_at, create_by, last_modify_at, last_modify_by)
 VALUES (1, 8, 1, 'FOLLOWING', '2024-06-14 08:35:59', 'dev.bottle-note@gmail.com', '2024-06-27 22:13:55',
         'dev.bottle-note@gmail.com'),
        (2, 8, 2, 'FOLLOWING', '2024-06-16 19:52:34', 'dev.bottle-note@gmail.com', '2024-06-16 19:52:34',
@@ -321,7 +318,6 @@ VALUES (1, 8, 1, 'FOLLOWING', '2024-06-14 08:35:59', 'dev.bottle-note@gmail.com'
         'dev.bottle-note@gmail.com'),
        (4, 3, 1, 'FOLLOWING', '2024-08-17 13:23:27', 'dev.bottle-note@gmail.com', '2024-08-17 13:23:27',
         'dev.bottle-note@gmail.com');
-
 
 INSERT INTO picks (id, user_id, alcohol_id, status, create_at, last_modify_at)
 VALUES (1, 3, 2, 'PICK', '2024-06-11 02:45:38', '2024-06-11 02:45:38'),
@@ -333,8 +329,7 @@ VALUES (1, 3, 2, 'PICK', '2024-06-11 02:45:38', '2024-06-11 02:45:38'),
        (7, 1, 7, 'PICK', '2024-07-18 22:01:45', '2024-07-18 22:01:45'),
        (8, 1, 8, 'PICK', '2024-07-28 13:46:54', '2024-08-01 21:22:16');
 
-
-INSERT INTO rating (alcohol_id, user_id, rating, create_at, create_by, last_modify_at, last_modify_by)
+INSERT INTO ratings (alcohol_id, user_id, rating, create_at, create_by, last_modify_at, last_modify_by)
 VALUES (1, 3, 3.5, '2024-07-07 19:46:40', NULL, '2024-07-07 19:46:40', NULL),
        (1, 6, 3.5, '2024-08-11 14:12:26', 'rlagusrl928@gmail.com', '2024-08-11 14:12:26', 'rlagusrl928@gmail.com'),
        (2, 3, 3.5, '2024-06-11 02:39:27', NULL, '2024-06-11 02:39:27', NULL),
