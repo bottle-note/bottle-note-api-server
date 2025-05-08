@@ -57,6 +57,7 @@ public class UserReports extends BaseEntity {
 	@Column(name = "response_content")
 	private String responseContent;
 
+	@Builder.Default
 	@Comment("문의글의 처리 상태 : Wating이 디폴트")
 	@Enumerated(EnumType.STRING)
 	@Column(name = "status")

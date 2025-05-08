@@ -10,7 +10,7 @@ COPY settings.gradle .
 COPY src src
 
 # 애플리케이션 빌드
-RUN ./gradlew build -x test -x asciidoctor -x copyRestDocs
+RUN ./gradlew clean build -x test -x asciidoctor -x copyRestDocs
 
 # 실행 스테이지
 FROM eclipse-temurin:17-jre
