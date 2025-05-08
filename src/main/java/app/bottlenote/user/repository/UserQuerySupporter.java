@@ -15,6 +15,7 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.util.StringUtils;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -96,7 +97,14 @@ public class UserQuerySupporter {
 	 * @return CursorPageable
 	 */
 	public CursorPageable myBottleCursorPageable(MyBottlePageableCriteria request, List<?> myBottleList) {
-		boolean hasNext = isHasNext(request, myBottleList);
+
+		List<?> items = new ArrayList<>(myBottleList);
+
+		boolean hasNext = isHasNext(request, items);
+
+		if (hasNext) {
+			items.remove(items.size() - 1);
+		}
 		return CursorPageable.builder()
 				.cursor(request.cursor() + request.pageSize())
 				.pageSize(request.pageSize())
@@ -106,11 +114,7 @@ public class UserQuerySupporter {
 	}
 
 	private boolean isHasNext(MyBottlePageableCriteria request, List<?> myBottleList) {
-		boolean hasNext = myBottleList.size() > request.pageSize();
-		if (hasNext) {
-			myBottleList.remove(myBottleList.size() - 1);
-		}
-		return hasNext;
+		return myBottleList.size() > request.pageSize();
 	}
 
 	/**
