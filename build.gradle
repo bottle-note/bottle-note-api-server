@@ -1,6 +1,7 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.2.3'
+	id 'org.springframework.boot' version '3.1.9'
+//	id 'org.springframework.boot' version '3.2.3'
 	id 'io.spring.dependency-management' version '1.1.4'
 	id "org.asciidoctor.jvm.convert" version "3.3.2"
 }
@@ -47,6 +48,10 @@ allprojects {
 
 dependencies {
 	implementation project(':bottlenote-core')
+	testImplementation project(':bottlenote-core')
+
+	implementation project(':bottlenote-api-client')
+	testImplementation project(':bottlenote-api-client')
 
 	runtimeOnly project(':bottlenote-batch')
 	testRuntimeOnly project(':bottlenote-batch')
