@@ -40,6 +40,15 @@ logging:
     root: info
     org.hibernate.orm.jdbc.bind: info
     org.hibernate.SQL: info
+  file:
+    name: /app/logs/application-dev.log  # 이미 마운트된 볼륨 경로와 일치
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 30
+      total-size-cap: 1GB
 decorator:
   datasource:
     p6spy:
@@ -62,6 +71,15 @@ logging:
   level:
     root: info
     org.hibernate: info
+  file:
+    name: /app/logs/application-prod.log  # 이미 마운트된 볼륨 경로와 일치
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  logback:
+    rollingpolicy:
+      max-file-size: 50MB
+      max-history: 30
+      total-size-cap: 10GB
 decorator:
   datasource:
     p6spy:
