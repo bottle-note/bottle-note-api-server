@@ -111,11 +111,10 @@ jobs:
               -e GIT_BRANCH="${{ github.ref_name }}" \
               -e GIT_COMMIT="${{ github.sha }}" \
               -e BUILD_TIME="$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+              -v /var/log/bottle-note:/app/logs \
               --memory=768m \
-              --cpus=1 \
               --restart unless-stopped \
               --log-driver json-file \
-              --log-opt max-size=10m \
               --log-opt max-file=3 \
               $FULL_IMAGE_NAME
 
