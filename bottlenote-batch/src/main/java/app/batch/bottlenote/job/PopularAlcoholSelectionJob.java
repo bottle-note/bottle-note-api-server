@@ -38,7 +38,6 @@ public class PopularAlcoholSelectionJob {
 	public Job popularAlcoholJob(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
 		Step popularStep = getPopularAlcoholStep(jobRepository, transactionManager);
 		if (popularStep == null) {
-			log.error("인기 주류 선정 Step을 로드할 수 없습니다.");
 			return null;
 		}
 		return new JobBuilder(POPULAR_JOB_NAME, jobRepository)
@@ -65,8 +64,14 @@ public class PopularAlcoholSelectionJob {
 	private String getQueryByResource() {
 		try {
 			Resource resource = new ClassPathResource("mysql/sql/popularity.sql");
-		log.info("인기 주류 선정 쿼리 로드 완료 {}" , resource.getFile().getAbsolutePath());
-			return new String(FileCopyUtils.copyToByteArray(resource.getInputStream()));
+
+			// getFile() 호출 없이 리소스 내용 읽기
+			String query = new String(FileCopyUtils.copyToByteArray(resource.getInputStream()));
+
+			// 로그는 파일 경로가 아닌 리소스 설명으로 대체
+			log.info("인기 주류 선정 쿼리 로드 완료: {}", resource.getDescription());
+
+			return query;
 		} catch (IOException e) {
 			log.error("cant find popularity.sql files", e);
 			return null;

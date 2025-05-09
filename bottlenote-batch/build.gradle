@@ -5,15 +5,5 @@ dependencies {
 	testImplementation 'org.springframework.batch:spring-batch-test'
 	implementation 'org.springframework.boot:spring-boot-starter-quartz'
 }
-sourceSets {
-	main {
-		resources {
-			srcDirs = [
-					'src/main/resources',
-					'../git.environment-variables/storage/sql'
-			]
-		}
-	}
-}
 
 tasks.register("prepareKotlinBuildScriptModel") {}
