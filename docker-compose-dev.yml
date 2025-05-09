@@ -3,7 +3,6 @@ services:
   dev-bottle-note:
     build:
       context: .
-      dockerfile: build.Dockerfile
     container_name: dev-bottle-note
     ports:
       - "30001:30001"

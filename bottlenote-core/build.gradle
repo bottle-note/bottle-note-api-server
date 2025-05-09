@@ -3,15 +3,4 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
-sourceSets {
-	main {
-		resources {
-			srcDirs = [
-					'src/main/resources',
-					'../git.environment-variables'
-			]
-		}
-	}
-}
-
 tasks.register("prepareKotlinBuildScriptModel") {}
