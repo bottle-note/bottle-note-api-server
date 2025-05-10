@@ -34,6 +34,9 @@ public class PopularAlcoholSelectionJob {
 	private static final int CHUNK_SIZE = 100;
 	private final JdbcTemplate jdbcTemplate;
 
+	/**
+	 * 인기 주류 선정 Job을 생성합니다.
+	 */
 	@Bean
 	public Job popularAlcoholJob(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
 		Step popularStep = getPopularAlcoholStep(jobRepository, transactionManager);
@@ -45,6 +48,9 @@ public class PopularAlcoholSelectionJob {
 				.build();
 	}
 
+	/**
+	 * 인기 주류 선정 스텝을 생성합니다.
+	 */
 	private Step getPopularAlcoholStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
 		String query = getQueryByResource();
 		if (query == null) {
@@ -61,6 +67,9 @@ public class PopularAlcoholSelectionJob {
 				.build();
 	}
 
+	/**
+	 * 인기 주류 선정을 위한 SQL 쿼리를 리소스 파일에서 로드합니다.
+	 */
 	private String getQueryByResource() {
 		try {
 			Resource resource = new ClassPathResource("mysql/sql/popularity.sql");
@@ -78,6 +87,9 @@ public class PopularAlcoholSelectionJob {
 		}
 	}
 
+	/**
+	 * 계산된 인기 주류 데이터를 데이터베이스에 저장합니다.
+	 */
 	private void savePopularItems(Chunk<? extends PopularItemPayload> chunk) {
 		if (chunk.isEmpty()) return;
 
@@ -113,6 +125,9 @@ public class PopularAlcoholSelectionJob {
 		log.info("인기 주류 데이터 삽입 완료: {}", totalInserted);
 	}
 
+	/**
+	 * 인기 주류 데이터를 읽는 클래스입니다.
+	 */
 	private static class PopularItemReader implements ItemReader<PopularItemPayload> {
 		private final JdbcTemplate jdbcTemplate;
 		private final String query;
