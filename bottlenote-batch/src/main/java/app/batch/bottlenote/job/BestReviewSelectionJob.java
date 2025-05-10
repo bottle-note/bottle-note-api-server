@@ -34,6 +34,9 @@ public class BestReviewSelectionJob {
 	private static final int CHUNK_SIZE = 10;
 	private final JdbcTemplate jdbcTemplate;
 
+	/**
+	 * 베스트 리뷰 선정 Job을 생성합니다.
+	 */
 	@Bean
 	public Job bestReviewSelectedJob(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
 		Step resetStep = getBestReviewResetStep(jobRepository, transactionManager);
@@ -49,6 +52,9 @@ public class BestReviewSelectionJob {
 				.build();
 	}
 
+	/**
+	 * 모든 리뷰의 베스트 표시를 초기화하는 스텝을 생성합니다.
+	 */
 	private Step getBestReviewResetStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
 		return new StepBuilder("resetBestReviewStep", jobRepository)
 				.tasklet((contribution, chunkContext) -> {
@@ -60,6 +66,9 @@ public class BestReviewSelectionJob {
 				.build();
 	}
 
+	/**
+	 * 새로운 베스트 리뷰를 선정하는 스텝을 생성합니다.
+	 */
 	public Step getBestReviewSelectedStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
 		String query = getQueryByResource();
 		if (query == null) {
@@ -75,6 +84,9 @@ public class BestReviewSelectionJob {
 				.build();
 	}
 
+	/**
+	 * 베스트 리뷰 선정을 위한 SQL 쿼리를 리소스 파일에서 로드합니다.
+	 */
 	private String getQueryByResource() {
 		try {
 			// resources 디렉토리 하위의 파일 경로로 접근
@@ -93,6 +105,9 @@ public class BestReviewSelectionJob {
 		}
 	}
 
+	/**
+	 * 선정된 베스트 리뷰들의 상태를 업데이트합니다.
+	 */
 	private void updateBestReviews(Chunk<? extends BestReviewPayload> chunk) {
 		if (chunk.isEmpty()) return;
 
@@ -109,6 +124,9 @@ public class BestReviewSelectionJob {
 		log.info("Batch updated {} best reviews", updated);
 	}
 
+	/**
+	 * 베스트 리뷰 데이터를 읽는 클래스입니다.
+	 */
 	private static class BestReviewReader implements ItemReader<BestReviewPayload> {
 		private final JdbcTemplate jdbcTemplate;
 		private final String query;
