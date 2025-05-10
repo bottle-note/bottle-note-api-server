@@ -102,7 +102,7 @@ jobs:
 
             docker run -d \
               --name bottle-note-api-production \
-              -p 30303:8080 \
+              -p 30301:30301 \
               --env-file .bottlenote.production.ENV \
               -e TZ=Asia/Seoul \
               -e SPRING_PROFILES_ACTIVE=prod \
