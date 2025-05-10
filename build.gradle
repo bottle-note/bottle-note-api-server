@@ -85,7 +85,8 @@ dependencies {
 	runtimeOnly 'com.mysql:mysql-connector-j'
 
 	//p6spy
-	implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0'
+	//implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0'
+	implementation 'p6spy:p6spy:3.9.1'
 
 	//db-json
 	implementation 'io.hypersistence:hypersistence-utils-hibernate-60:3.7.3'
@@ -273,6 +274,7 @@ sourceSets {
 		resources {
 			srcDirs = [
 					'src/main/resources',
+					'git.environment-variables',
 					'git.environment-variables/springboot',
 					'git.environment-variables/storage'
 			]

@@ -7,7 +7,7 @@ profanity:
 # Firebase
 app:
   thirdParty:
-    firebase-configuration-file: service_account_credentials.json
+    firebase-configuration-file: /application/springboot/service_account_credentials.json
     base64file: ${FIREBASE_BASE64_FILE}
 
 # AWS S3

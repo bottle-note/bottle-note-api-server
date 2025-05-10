@@ -1,0 +1,46 @@
+# application-datasource.yml
+
+# 기본 데이터소스 설정 (공통)
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 10
+      idle-timeout: 300000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      pool-name: HikariPool-BottleNote
+      leak-detection-threshold: 60000
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:16379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 15 # 연결 타임아웃 (초)
+      cluster:
+        enabled: false # 클러스터 모드 사용 여부
+        # 클러스터 노드 목록 (쉼표로 구분) 192.168.1.100:6379,192.168.1.101:6379,192.168.1.102:6379
+        nodes: ${REDIS_CLUSTER_NODES:}
+
+--- # Local 환경
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    driver-class-name: com.p6spy.engine.spy.P6SpyDriver
+    url: jdbc:p6spy:mysql://${DB_HOST:localhost:3306}/${DB_NAME:bottle_note}?useSSL=${DB_USE_SSL:false}&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME:localhost_bottle_note_username}
+    password: ${DB_PASSWORD:localhost_bottle_note_password}
+
+--- # 개발 환경 , 운영 환경
+spring:
+  config:
+    activate:
+      on-profile: "dev,prod"
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${DB_HOST}/${DB_NAME}?useSSL=${DB_USE_SSL}&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
