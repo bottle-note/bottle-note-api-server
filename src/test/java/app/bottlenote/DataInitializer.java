@@ -18,12 +18,11 @@ import static jakarta.transaction.Transactional.TxType.REQUIRES_NEW;
 @Component
 @SuppressWarnings("unchecked")
 public class DataInitializer {
-
 	private static final String OFF_FOREIGN_CONSTRAINTS = "SET foreign_key_checks = false";
 	private static final String ON_FOREIGN_CONSTRAINTS = "SET foreign_key_checks = true";
 	private static final String TRUNCATE_SQL_FORMAT = "TRUNCATE %s";
-
 	private static final List<String> truncationDMLs = new ArrayList<>();
+
 	@PersistenceContext
 	private EntityManager em;
 
@@ -37,16 +36,15 @@ public class DataInitializer {
 		}
 		em.createNativeQuery(OFF_FOREIGN_CONSTRAINTS).executeUpdate();
 		truncationDMLs.stream()
-			.map(em::createNativeQuery)
-			.forEach(Query::executeUpdate);
+				.map(em::createNativeQuery)
+				.forEach(Query::executeUpdate);
 		em.createNativeQuery(ON_FOREIGN_CONSTRAINTS).executeUpdate();
 	}
 
 	private void init() {
 		final List<String> tableNames = em.createNativeQuery("SHOW TABLES ").getResultList();
-
 		tableNames.stream()
-			.map(tableName -> String.format(TRUNCATE_SQL_FORMAT, tableName))
-			.forEach(truncationDMLs::add);
+				.map(tableName -> String.format(TRUNCATE_SQL_FORMAT, tableName))
+				.forEach(truncationDMLs::add);
 	}
 }

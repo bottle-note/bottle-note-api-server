@@ -1,5 +1,6 @@
 package app.bottlenote.user.service;
 
+import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.user.constant.MyBottleType;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
@@ -104,7 +105,7 @@ public class UserBasicService {
 	}
 
 	@Transactional(readOnly = true)
-	public MyBottleResponse getMyBottle(Long userId, Long currentUserId, MyBottleRequest myBottleRequest, MyBottleType myBottleType) {
+	public PageResponse<MyBottleResponse> getMyBottle(Long userId, Long currentUserId, MyBottleRequest myBottleRequest, MyBottleType myBottleType) {
 		return userFilterManager.withActiveUserFilter(ACTIVE, () -> {
 			if (!userRepository.existsByUserId(userId)) {
 				throw new UserException(MYBOTTLE_NOT_ACCESSIBLE);

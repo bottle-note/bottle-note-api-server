@@ -38,7 +38,6 @@ public class PopularAlcoholSelectionJob {
 	public Job popularAlcoholJob(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
 		Step popularStep = getPopularAlcoholStep(jobRepository, transactionManager);
 		if (popularStep == null) {
-			log.error("인기 주류 선정 Step을 로드할 수 없습니다.");
 			return null;
 		}
 		return new JobBuilder(POPULAR_JOB_NAME, jobRepository)
@@ -53,7 +52,6 @@ public class PopularAlcoholSelectionJob {
 			return null;
 		}
 
-		log.info("인기 주류 선정 쿼리 로드 완료");
 
 		return new StepBuilder("popularAlcoholStep", jobRepository)
 				.<PopularItemPayload, PopularItemPayload>chunk(CHUNK_SIZE, transactionManager)
@@ -65,8 +63,15 @@ public class PopularAlcoholSelectionJob {
 
 	private String getQueryByResource() {
 		try {
-			Resource resource = new ClassPathResource("popularity.sql");
-			return new String(FileCopyUtils.copyToByteArray(resource.getInputStream()));
+			Resource resource = new ClassPathResource("mysql/sql/popularity.sql");
+
+			// getFile() 호출 없이 리소스 내용 읽기
+			String query = new String(FileCopyUtils.copyToByteArray(resource.getInputStream()));
+
+			// 로그는 파일 경로가 아닌 리소스 설명으로 대체
+			log.info("인기 주류 선정 쿼리 로드 완료: {}", resource.getDescription());
+
+			return query;
 		} catch (IOException e) {
 			log.error("cant find popularity.sql files", e);
 			return null;
@@ -78,7 +83,7 @@ public class PopularAlcoholSelectionJob {
 
 		// 먼저 오늘 날짜에 해당하는 데이터를 확인하고 있으면 삭제
 		LocalDate today = LocalDate.now();
-		String clearSql = "DELETE FROM popular_alcohol WHERE year = ? AND month = ? AND day = ?";
+		String clearSql = "DELETE FROM popular_alcohols WHERE year = ? AND month = ? AND day = ?";
 		int deleted = jdbcTemplate.update(clearSql, today.getYear(), today.getMonthValue(), today.getDayOfMonth());
 		log.info("기존 인기 주류 데이터 삭제: {}", deleted);
 

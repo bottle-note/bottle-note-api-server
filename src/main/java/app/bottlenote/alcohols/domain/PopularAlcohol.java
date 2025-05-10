@@ -20,12 +20,12 @@ import java.time.LocalDateTime;
 
 @Entity(name = "popular_alcohol")
 @Table(
-	name = "popular_alcohol",
-	uniqueConstraints = {
-		@UniqueConstraint(
-			name = "uniq_alcohol_year_month",
-			columnNames = {"alcohol_id", "year", "month", "day"})
-	})
+		name = "popular_alcohols",
+		uniqueConstraints = {
+				@UniqueConstraint(
+						name = "uniq_alcohol_year_month",
+						columnNames = {"alcohol_id", "year", "month", "day"})
+		})
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

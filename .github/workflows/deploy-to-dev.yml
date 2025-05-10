@@ -94,6 +94,9 @@ jobs:
             # 환경 변수 파일 설정
             echo "${{ secrets.DEV_ENV }}" | base64 --decode > .bottlenote.development.ENV
 
+            # 개발 로그만 삭제 (프로덕션 로그는 유지)
+            rm -f /var/log/bottle-note/application-dev*
+
             # 기존 컨테이너 중지 및 삭제 (있는 경우)
             docker stop bottle-note-api-api-development || true
             docker rm bottle-note-api-api-development || true
@@ -111,11 +114,10 @@ jobs:
               -e GIT_BRANCH="${{ github.ref_name }}" \
               -e GIT_COMMIT="${{ github.sha }}" \
               -e BUILD_TIME="$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+              -v /var/log/bottle-note:/app/logs \
               --memory=768m \
-              --cpus=1 \
               --restart unless-stopped \
               --log-driver json-file \
-              --log-opt max-size=10m \
               --log-opt max-file=3 \
               $FULL_IMAGE_NAME
 

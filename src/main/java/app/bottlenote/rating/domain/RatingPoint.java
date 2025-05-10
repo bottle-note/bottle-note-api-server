@@ -1,12 +1,13 @@
 package app.bottlenote.rating.domain;
 
-import static app.bottlenote.rating.exception.RatingExceptionCode.INVALID_RATING_POINT;
-
 import app.bottlenote.rating.exception.RatingException;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import jakarta.persistence.Embeddable;
-import java.io.Serializable;
 import lombok.Getter;
+
+import java.io.Serializable;
+
+import static app.bottlenote.rating.exception.RatingExceptionCode.INVALID_RATING_POINT;
 
 /**
  * 평점을 나타내는 VO입니다.

@@ -3,14 +3,11 @@ FROM eclipse-temurin:17-jdk AS builder
 WORKDIR /app
 
 # 빌드에 필요한 파일만 복사 (의존성 캐싱 최적화)
-COPY gradlew .
-COPY gradle gradle
-COPY build.gradle .
-COPY settings.gradle .
-COPY src src
+# 프로젝트 전체 복사
+COPY . .
 
 # 애플리케이션 빌드
-RUN ./gradlew build -x test -x asciidoctor -x copyRestDocs
+RUN ./gradlew clean build -x test -x asciidoctor -x copyRestDocs
 
 # 실행 스테이지
 FROM eclipse-temurin:17-jre

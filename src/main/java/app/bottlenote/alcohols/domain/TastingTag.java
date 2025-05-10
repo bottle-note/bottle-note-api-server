@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,6 +19,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity(name = "tasting_tag")
+@Table(name = "tasting_tags")
 public class TastingTag extends BaseEntity {
 	@Id
 	@Comment("태그 ID")
@@ -32,6 +34,7 @@ public class TastingTag extends BaseEntity {
 	@Column(name = "kor_name", nullable = false)
 	private String korName;
 
+	//base64 이미지로 변환해도 될듯
 	@Comment("아이콘")
 	@Column(name = "icon")
 	private String icon;

@@ -4,8 +4,11 @@ import app.bottlenote.global.annotation.AccessPolicy;
 import app.bottlenote.global.annotation.AccessPolicy.AccessType;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.user.constant.MyBottleType;
 import app.bottlenote.user.dto.request.MyBottleRequest;
+import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.service.UserBasicService;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +27,8 @@ import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 public class UserMyPageController {
 
 	private final UserBasicService userBasicService;
+	private static final String SEARCH_PARAMETERS = "searchParameters";
+	private static final String PAGEABLE = "pageable";
 
 	/**
 	 * 마이 페이지 조회 API
@@ -44,7 +49,13 @@ public class UserMyPageController {
 	) {
 		final Long currentUserId = SecurityContextUtil.getUserIdByContext()
 				.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
-		return GlobalResponse.ok(userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.REVIEW));
+
+		PageResponse<MyBottleResponse> pageResponse = userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.REVIEW);
+
+		return GlobalResponse.ok(pageResponse.content(),
+				MetaService.createMetaInfo()
+						.add(SEARCH_PARAMETERS, myBottleRequest)
+						.add(PAGEABLE, pageResponse.cursorPageable()));
 	}
 
 	@AccessPolicy(type = AccessType.ALL)
@@ -55,7 +66,13 @@ public class UserMyPageController {
 	) {
 		final Long currentUserId = SecurityContextUtil.getUserIdByContext()
 				.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
-		return GlobalResponse.ok(userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.RATING));
+
+		PageResponse<MyBottleResponse> pageResponse = userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.RATING);
+
+		return GlobalResponse.ok(pageResponse.content(),
+				MetaService.createMetaInfo()
+						.add(SEARCH_PARAMETERS, myBottleRequest)
+						.add(PAGEABLE, pageResponse.cursorPageable()));
 	}
 
 	@AccessPolicy(type = AccessType.ALL)
@@ -66,6 +83,12 @@ public class UserMyPageController {
 	) {
 		final Long currentUserId = SecurityContextUtil.getUserIdByContext()
 				.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
-		return GlobalResponse.ok(userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.PICK));
+
+		PageResponse<MyBottleResponse> pageResponse = userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.PICK);
+
+		return GlobalResponse.ok(pageResponse.content(),
+				MetaService.createMetaInfo()
+						.add(SEARCH_PARAMETERS, myBottleRequest)
+						.add(PAGEABLE, pageResponse.cursorPageable()));
 	}
 }

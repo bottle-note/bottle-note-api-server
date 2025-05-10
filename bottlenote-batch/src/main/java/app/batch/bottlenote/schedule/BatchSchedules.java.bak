@@ -32,9 +32,9 @@ public class BatchSchedules {
 		try {
 			Job job = jobRegistry.getJob(BEST_REVIEW_JOB_NAME); // job 이름
 			JobParametersBuilder jobParam =
-				new JobParametersBuilder()
-					.addLocalDateTime("localDateTime", now())
-					.addString("jobName", jobName);
+					new JobParametersBuilder()
+							.addLocalDateTime("localDateTime", now())
+							.addString("jobName", jobName);
 			jobLauncher.run(job, jobParam.toJobParameters());
 		} catch (Exception e) {
 			log.error("best review selected job error : {}", e.getMessage());
@@ -51,9 +51,9 @@ public class BatchSchedules {
 		try {
 			Job job = jobRegistry.getJob(POPULAR_JOB_NAME);
 			JobParametersBuilder jobParam =
-				new JobParametersBuilder()
-					.addLocalDateTime("localDateTime", now())
-					.addString("jobName", jobName);
+					new JobParametersBuilder()
+							.addLocalDateTime("localDateTime", now())
+							.addString("jobName", jobName);
 			jobLauncher.run(job, jobParam.toJobParameters());
 		} catch (Exception e) {
 			log.error("popular review selected job error : {}", e.getMessage());

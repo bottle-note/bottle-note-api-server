@@ -14,7 +14,8 @@ class BottleNoteApplicationTest extends IntegrationTestSupport {
 	@Test
 	@DisplayName("컨텍스트 로드 확인 테스트")
 	void contextLoads() {
-		log.info("using port : {}", MY_SQL_CONTAINER.getFirstMappedPort());
+		log.info("MY_SQL_CONTAINER using port : {}", MY_SQL_CONTAINER.getFirstMappedPort());
+		log.info("REDIS_CONTAINER using port : {}", REDIS_CONTAINER.getFirstMappedPort());
 		boolean running = MY_SQL_CONTAINER.isRunning();
 		assertThat(running).isTrue();
 		log.info("Context loaded successfully");

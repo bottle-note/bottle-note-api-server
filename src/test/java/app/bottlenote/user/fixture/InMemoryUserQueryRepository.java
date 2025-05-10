@@ -1,5 +1,6 @@
 package app.bottlenote.user.fixture;
 
+import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
@@ -45,17 +46,17 @@ public class InMemoryUserQueryRepository implements UserRepository {
 	}
 
 	@Override
-	public MyBottleResponse getReviewMyBottle(MyBottlePageableCriteria criteria) {
+	public PageResponse<MyBottleResponse> getReviewMyBottle(MyBottlePageableCriteria criteria) {
 		return null;
 	}
 
 	@Override
-	public MyBottleResponse getRatingMyBottle(MyBottlePageableCriteria criteria) {
+	public PageResponse<MyBottleResponse> getRatingMyBottle(MyBottlePageableCriteria criteria) {
 		return null;
 	}
 
 	@Override
-	public MyBottleResponse getPicksMyBottle(MyBottlePageableCriteria criteria) {
+	public PageResponse<MyBottleResponse> getPicksMyBottle(MyBottlePageableCriteria criteria) {
 		return null;
 	}
 

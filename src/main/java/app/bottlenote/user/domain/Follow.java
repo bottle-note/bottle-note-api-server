@@ -26,7 +26,7 @@ import static lombok.AccessLevel.PROTECTED;
 @NoArgsConstructor(access = PROTECTED)
 @AllArgsConstructor(access = PRIVATE)
 @Table(
-	name = "follow",
+	name = "follows",
 	uniqueConstraints = {
 		@UniqueConstraint(name = "unique_user_followUser", columnNames = {"user_id", "follow_user_id"})
 	}

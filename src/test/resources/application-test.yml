@@ -2,17 +2,28 @@ spring:
   jackson:
     time-zone: Asia/Seoul
 
+  # Redis 설정
+  data:
+    redis:
+      repositories:
+        enabled: false
+      timeout: 15
+      cluster:
+        enabled: false
+
   # Datasource
   datasource:
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
-    url: jdbc:tc:mysql:8.0.32:///bottlenote # ?TC_INITSCRIPT=file:database/mysql/init/schema.sql
+    url: jdbc:tc:mysql:8.0.32:///bottlenote
     username: root
     password: root
   sql:
     init:
       mode: always
-      schema-locations: classpath:init-script/schema.sql
-      # data-locations: classpath:init-script/init-alcohol.sql 각 테스트에서 필요한 데이터를 정의하는게 더 긍정적인것 같아 판단.
+      schema-locations:
+        - classpath:mysql/init/00-init-config-table.sql
+        - classpath:mysql/init/01-init-core-table.sql
+
   # JPA
   jpa:
     properties:
@@ -25,6 +36,17 @@ spring:
     show-sql: true
     generate-ddl: true
     database-platform: org.hibernate.dialect.MySQL8Dialect
+
+  quartz:
+    job-store-type: jdbc    # 메모리(memory) 또는 데이터베이스(jdbc)
+    jdbc:
+      initialize-schema: embedded
+    properties:
+      org:
+        quartz:
+          scheduler:
+            instanceName: bottle_note_quartz_scheduler
+            instanceId: AUTO
 
 # Spring Security
 security:

@@ -8,61 +8,42 @@ spring:
   config:
     activate:
       on-profile: local
-  sleuth:
-    jdbc:
-      p6spy:
-        tracing:
-          include-parameter-values: true
 logging:
   level:
+    org.hibernate.SQL: off           # SQL 쿼리 로깅 비활성화
+    org.hibernate.orm.jdbc.bind: off # 바인딩 파라미터 로깅 비활성화
     root: info
-    org.hibernate.orm.jdbc.bind: trace
-    org.hibernate.SQL: debug
-decorator:
-  datasource:
-    p6spy:
-      enable-logging: true
-      multiline: true
-      logging: slf4j
 
 --- # 개발 환경
 spring:
   config:
     activate:
       on-profile: dev
-  sleuth:
-    jdbc:
-      p6spy:
-        tracing:
-          include-parameter-values: true
 logging:
   level:
     root: info
-    org.hibernate.orm.jdbc.bind: trace
-    org.hibernate.SQL: debug
-decorator:
-  datasource:
-    p6spy:
-      enable-logging: true
-      multiline: true
-      logging: slf4j
-
+    org.hibernate.orm.jdbc.bind: info
+    org.hibernate.SQL: info
+  file:
+    name: /app/logs/application-dev.log
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 30
+      total-size-cap: 500MB
 --- # 운영 환경
 spring:
   config:
     activate:
       on-profile: prod
-  jpa:
-    properties:
-      hibernate:
-        format_sql: false
-        show_sql: false
-        use_sql_comments: false
 logging:
   level:
     root: info
     org.hibernate: info
-decorator:
-  datasource:
-    p6spy:
-      enable-logging: false
+  file:
+    name: /app/logs/application-prod.log
+  logback:
+    rollingpolicy:
+      max-file-size: 50MB
+      max-history: 30
+      total-size-cap: 500MB
