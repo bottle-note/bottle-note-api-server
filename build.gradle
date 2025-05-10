@@ -85,7 +85,8 @@ dependencies {
 	runtimeOnly 'com.mysql:mysql-connector-j'
 
 	//p6spy
-	implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0'
+	//implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0'
+	implementation 'p6spy:p6spy:3.9.1'
 
 	//db-json
 	implementation 'io.hypersistence:hypersistence-utils-hibernate-60:3.7.3'
@@ -146,6 +147,9 @@ dependencies {
 
 	// 기타 필요한 라이브러리
 	implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+	// logback
+	implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
 }
 
 subprojects {
@@ -270,6 +274,7 @@ sourceSets {
 		resources {
 			srcDirs = [
 					'src/main/resources',
+					'git.environment-variables',
 					'git.environment-variables/springboot',
 					'git.environment-variables/storage'
 			]

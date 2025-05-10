@@ -8,7 +8,9 @@ public enum SocialType {
 	KAKAO,
 	NAVER,
 	GOOGLE,
-	APPLE, BASIC;
+	APPLE,
+	BASIC,
+	NONE;
 
 	@JsonCreator
 	public static SocialType parsing(String inputValue) {
@@ -17,8 +19,8 @@ public enum SocialType {
 		}
 
 		return Stream.of(SocialType.values())
-			.filter(socialType -> socialType.name().equals(inputValue.toUpperCase()))
-			.findFirst()
-			.orElseThrow(() -> new IllegalArgumentException("소셜타입이 없습니다. : " + SocialType.class.getCanonicalName() + "." + inputValue));
+				.filter(socialType -> socialType.name().equals(inputValue.toUpperCase()))
+				.findFirst()
+				.orElseThrow(() -> new IllegalArgumentException("소셜타입이 없습니다. : " + SocialType.class.getCanonicalName() + "." + inputValue));
 	}
 }

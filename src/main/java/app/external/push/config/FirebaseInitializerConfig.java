@@ -17,7 +17,6 @@ import java.io.InputStream;
 public class FirebaseInitializerConfig {
 	private final FirebaseProperties firebaseProperties;
 
-
 	@Bean
 	public void initialize() {
 		if (FirebaseApp.getApps().isEmpty()) {

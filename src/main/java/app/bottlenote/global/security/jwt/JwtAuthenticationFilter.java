@@ -56,7 +56,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			Authentication authentication = jwtAuthenticationManager.getAnonymousAuthentication();
 
 			if (skipFilter(method, path)) {
-				log.info("선택적인 인증이 필요한 경우 익명 사용자로 설정합니다.");
+				log.debug("선택적인 인증이 필요한 경우 익명 사용자로 설정합니다.");
 				authentication = jwtAuthenticationManager.getAnonymousAuthentication();
 			}
 
@@ -97,11 +97,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		Authentication authentication = jwtAuthenticationManager.getAnonymousAuthentication();
 
 		if (skipFilter(method, path)) {
-			log.info("선택적인 인증이 필요한 경우 익명 사용자로 설정합니다.");
+			log.debug("선택적인 인증이 필요한 경우 익명 사용자로 설정합니다.");
 			authentication = jwtAuthenticationManager.getAnonymousAuthentication();
 		}
 
-		log.info(" 비회원 이용가능 api: {}", path);
+		log.debug(" 비회원 이용가능 api: {}", path);
 
 		if (token != null && !token.isBlank()) { // 토큰이 존재하는 경우
 			if (!JwtTokenValidator.validateToken(token)) {

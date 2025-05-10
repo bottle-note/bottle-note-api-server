@@ -21,37 +21,22 @@ spring:
       - batch
       - logging
       - external
+      - datasource
       - spec
+
   jackson:
     time-zone: Asia/Seoul
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${DB_HOST:localhost:3306}/${DB_NAME:bottle_note}?useSSL=${DB_USE_SSL:false}&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
-    username: ${DB_USERNAME:localhost_bottle_note_username}
-    password: ${DB_PASSWORD:localhost_bottle_note_password}
-    hikari:
-      maximum-pool-size: 50
-      minimum-idle: 10
-      idle-timeout: 300000
-      max-lifetime: 1800000
-      connection-timeout: 30000
-      pool-name: HikariPool-BottleNote
-      leak-detection-threshold: 60000
 
   jpa:
     hibernate:
       ddl-auto: validate
-    open-in-view: false
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+        open-in-view: false
 
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:16379}
-      password: ${REDIS_PASSWORD:}
-      timeout: 15 # 연결 타임아웃 (초)
-      cluster:
-        enabled: false # 클러스터 모드 사용 여부
-        nodes: ${REDIS_CLUSTER_NODES:} # 클러스터 노드 목록 (쉼표로 구분) 192.168.1.100:6379,192.168.1.101:6379,192.168.1.102:6379
 
   quartz:
     job-store-type: jdbc    # 메모리(memory) 또는 데이터베이스(jdbc)
@@ -80,7 +65,7 @@ management:
     web:
       exposure:
         include: [ "health", "prometheus" ]
-      base-path: ${MANAGEMENT_BASE_PATH:/actuator}
+      base-path: ${PROMETHEUS_BASE_PATH:/actuator}
   endpoint:
     health:
       show-details: always

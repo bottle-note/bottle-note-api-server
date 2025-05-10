@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import static app.bottlenote.global.security.jwt.JwtTokenValidator.validateToken;
@@ -44,34 +45,32 @@ public class OauthService {
 		final String socialUniqueId = oauthReq.socialUniqueId();
 		final SocialType socialType = oauthReq.socialType();
 
-		switch (socialType) {
-			case APPLE -> {
-				return doAppleLogin(oauthReq, socialUniqueId, email, socialType);
-			}
-			default -> {
-				return doLogin(oauthReq, email, socialType);
-			}
+		if (Objects.requireNonNull(socialType) == SocialType.APPLE) {
+			return doAppleLogin(oauthReq, socialUniqueId, email, socialType);
 		}
+
+		return doLogin(oauthReq, email, socialType);
 	}
 
 	private TokenItem doLogin(OauthRequest oauthReq, String email, SocialType socialType) {
-		User user;
-		user = oauthRepository.findByEmail(email)
-				.orElseGet(() -> oauthSignUp(oauthReq, UserType.ROLE_USER));
+		var existingUser = oauthRepository.findByEmail(email);
+		User user = existingUser.orElseGet(() -> oauthSignUp(oauthReq, UserType.ROLE_USER));
 		checkActiveUser(user);
 		return getTokenItem(user, socialType);
 	}
 
 	private TokenItem doAppleLogin(OauthRequest oauthReq, String socialUniqueId, String email, SocialType socialType) {
 		User user;
-		//최초 로그인 (email과 socialUniqueId 모두 존재하는 경우)
+
 		if (socialUniqueId != null && !socialUniqueId.isBlank() && email != null && !email.isBlank()) {
+			log.info("애플 신규 회원가입 시도: email={}, socialUniqueId={}", email, socialUniqueId);
 			user = oauthSignUp(oauthReq, UserType.ROLE_USER);
 		} else {
 			if (socialUniqueId == null) {
-				log.error("ERROR : socialUniqueId is null");
+				log.error("애플 로그인 오류: socialUniqueId is null, email={}", email);
 				throw new UserException(UserExceptionCode.TEMPORARY_LOGIN_ERROR);
 			}
+
 			user = oauthRepository.findBySocialUniqueId(socialUniqueId).orElseThrow(
 					() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
 		}
@@ -80,7 +79,7 @@ public class OauthService {
 	}
 
 	private void checkActiveUser(User user) {
-		if (Boolean.FALSE.equals(user.isAlive()))
+		if (!user.isAlive())
 			throw new UserException(UserExceptionCode.USER_DELETED);
 	}
 
@@ -96,9 +95,8 @@ public class OauthService {
 		User user = oauthRepository.findByEmail(email)
 				.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
 
-		if (Boolean.TRUE.equals(user.isAlive()))
+		if (user.isAlive())
 			throw new UserException(UserExceptionCode.USER_ALREADY_EXISTS);
-
 
 		if (user.getSocialType().contains(SocialType.BASIC)) {
 			boolean matches = passwordEncoder.matches(password, user.getPassword());
@@ -128,17 +126,27 @@ public class OauthService {
 	}
 
 	private User oauthSignUp(OauthRequest oauthRequest, UserType userType) {
+
+		String socialUniqueId = oauthRequest.socialUniqueId();
+		SocialType socialType = Objects.requireNonNullElse(oauthRequest.socialType(), SocialType.NONE);
+		if (socialType != SocialType.APPLE) {
+			socialUniqueId = null;
+		}
+
 		User user = User.builder()
 				.email(oauthRequest.email())
-				.socialUniqueId(oauthRequest.socialUniqueId())
-				.socialType(List.of(oauthRequest.socialType()))
+				.socialUniqueId(socialUniqueId)
+				.socialType(List.of(socialType))
 				.role(userType)
 				.gender(oauthRequest.gender())
 				.age(oauthRequest.age())
 				.nickName(generateNickname())
 				.build();
 
-		return oauthRepository.save(user);
+		User savedUser = oauthRepository.save(user);
+
+		log.info("신규 회원 가입 email {} socialType {}", savedUser.getEmail(), savedUser.getSocialType());
+		return savedUser;
 	}
 
 	@Transactional
@@ -184,6 +192,9 @@ public class OauthService {
 
 		TokenItem token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
 		user.updateRefreshToken(token.refreshToken());
+
+		log.info("기본 회원가입 완료: email={}, userId={}, nickname={}",
+				user.getEmail(), user.getId(), user.getNickName());
 
 		return BasicAccountResponse.builder()
 				.message(user.getNickName() + "님 환영합니다!")
