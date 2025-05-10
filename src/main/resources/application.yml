@@ -14,7 +14,9 @@ server:
   servlet:
     encoding:
       charset: UTF-8
-
+  tomcat:
+    mbeanregistry:
+      enabled: true # 톰캣 MBeanRegistry 활성화
 spring:
   profiles:
     include:
