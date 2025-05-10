@@ -3,7 +3,7 @@
 
 	<!-- JSON 로그 인코딩용 의존성 필요 -->
 	<include resource="org/springframework/boot/logging/logback/defaults.xml"/>
-	<property name="LOG_PATH" value="/var/log/bottle-note"/>
+	<property name="LOG_PATH" value="/app/logs"/>
 
 	<appender name="JSON-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<file>${LOG_PATH}/application-dev.log</file>

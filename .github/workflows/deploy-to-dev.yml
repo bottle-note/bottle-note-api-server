@@ -94,6 +94,9 @@ jobs:
             # 환경 변수 파일 설정
             echo "${{ secrets.DEV_ENV }}" | base64 --decode > .bottlenote.development.ENV
 
+            # 개발 로그만 삭제 (프로덕션 로그는 유지)
+            rm -f /var/log/bottle-note/application-dev*
+
             # 기존 컨테이너 중지 및 삭제 (있는 경우)
             docker stop bottle-note-api-api-development || true
             docker rm bottle-note-api-api-development || true
