@@ -117,8 +117,6 @@ jobs:
               -v /var/log/bottle-note:/app/logs \
               --memory=768m \
               --restart unless-stopped \
-              --log-driver json-file \
-              --log-opt max-file=3 \
               $FULL_IMAGE_NAME
 
             docker ps | grep bottle-note-api-development
