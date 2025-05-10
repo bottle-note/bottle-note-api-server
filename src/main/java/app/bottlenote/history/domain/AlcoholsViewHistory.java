@@ -7,6 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -34,6 +35,7 @@ public class AlcoholsViewHistory {
 
 	@Getter
 	@Embeddable
+	@EqualsAndHashCode
 	@NoArgsConstructor(access = AccessLevel.PROTECTED)
 	@AllArgsConstructor(access = AccessLevel.PRIVATE)
 	public static class AlcoholsViewHistoryId {
