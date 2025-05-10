@@ -80,7 +80,7 @@ management:
     web:
       exposure:
         include: [ "health", "prometheus" ]
-      base-path: ${MANAGEMENT_BASE_PATH:/actuator}
+      base-path: ${PROMETHEUS_BASE_PATH:/actuator}
   endpoint:
     health:
       show-details: always

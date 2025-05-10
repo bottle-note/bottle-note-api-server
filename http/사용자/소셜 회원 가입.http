@@ -1,0 +1,10 @@
+### 토큰 발급 (일반)
+POST {{host}}/api/v1/oauth/login
+Content-Type: application/json
+
+{
+    "email": "dev.bottle-note@gmail.com",
+    "socialType": "KAKAO",
+    "gender": "MALE",
+    "age": 25
+}

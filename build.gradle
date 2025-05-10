@@ -146,6 +146,9 @@ dependencies {
 
 	// 기타 필요한 라이브러리
 	implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+	// logback
+	implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
 }
 
 subprojects {
