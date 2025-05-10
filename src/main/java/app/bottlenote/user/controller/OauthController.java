@@ -69,6 +69,7 @@ public class OauthController {
 		return GlobalResponse.ok(OauthResponse.of(token.accessToken()));
 	}
 
+
 	@PostMapping("/guest-login")
 	public ResponseEntity<?> executeGuestLogin(
 			@RequestBody @Valid GuestCodeRequest guestCode

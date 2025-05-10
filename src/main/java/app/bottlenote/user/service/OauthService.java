@@ -45,77 +45,41 @@ public class OauthService {
 		final String socialUniqueId = oauthReq.socialUniqueId();
 		final SocialType socialType = oauthReq.socialType();
 
-		log.info("소셜 로그인 시도: email={}, socialType={}", email, socialType);
-
 		if (Objects.requireNonNull(socialType) == SocialType.APPLE) {
 			return doAppleLogin(oauthReq, socialUniqueId, email, socialType);
 		}
+
 		return doLogin(oauthReq, email, socialType);
 	}
 
 	private TokenItem doLogin(OauthRequest oauthReq, String email, SocialType socialType) {
-		User user;
-		boolean isNewUser = false;
-
-		// 사용자 조회 전에 로그 추가
-		log.info("일반 소셜 로그인 진행: email={}, socialType={}", email, socialType);
-
-		// 기존 사용자 조회 시도
 		var existingUser = oauthRepository.findByEmail(email);
-		if (existingUser.isEmpty()) {
-			log.info("사용자 없음, 회원가입 진행: email={}, socialType={}", email, socialType);
-			isNewUser = true;
-			user = oauthSignUp(oauthReq, UserType.ROLE_USER);
-		} else {
-			user = existingUser.get();
-		}
-
+		User user = existingUser.orElseGet(() -> oauthSignUp(oauthReq, UserType.ROLE_USER));
 		checkActiveUser(user);
-		TokenItem tokenItem = getTokenItem(user, socialType);
-
-		if (isNewUser) {
-			log.info("회원가입 및 로그인 완료: email={}, socialType={}, userId={}", email, socialType, user.getId());
-		} else {
-			log.info("기존 사용자 로그인 완료: email={}, socialType={}, userId={}", email, socialType, user.getId());
-		}
-
-		return tokenItem;
+		return getTokenItem(user, socialType);
 	}
 
 	private TokenItem doAppleLogin(OauthRequest oauthReq, String socialUniqueId, String email, SocialType socialType) {
 		User user;
-		boolean isNewUser = false;
 
-		log.info("애플 로그인 진행: email={}, socialUniqueId={}", email, socialUniqueId);
-
-		//최초 로그인 (email과 socialUniqueId 모두 존재하는 경우)
 		if (socialUniqueId != null && !socialUniqueId.isBlank() && email != null && !email.isBlank()) {
 			log.info("애플 신규 회원가입 시도: email={}, socialUniqueId={}", email, socialUniqueId);
-			isNewUser = true;
 			user = oauthSignUp(oauthReq, UserType.ROLE_USER);
 		} else {
 			if (socialUniqueId == null) {
 				log.error("애플 로그인 오류: socialUniqueId is null, email={}", email);
 				throw new UserException(UserExceptionCode.TEMPORARY_LOGIN_ERROR);
 			}
-			log.info("기존 애플 사용자 조회: socialUniqueId={}", socialUniqueId);
+
 			user = oauthRepository.findBySocialUniqueId(socialUniqueId).orElseThrow(
 					() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
 		}
 		checkActiveUser(user);
-		TokenItem tokenItem = getTokenItem(user, socialType);
-
-		if (isNewUser) {
-			log.info("애플 회원가입 및 로그인 완료: email={}, userId={}", email, user.getId());
-		} else {
-			log.info("기존 애플 사용자 로그인 완료: email={}, userId={}", user.getEmail(), user.getId());
-		}
-
-		return tokenItem;
+		return getTokenItem(user, socialType);
 	}
 
 	private void checkActiveUser(User user) {
-		if (Boolean.FALSE.equals(user.isAlive()))
+		if (!user.isAlive())
 			throw new UserException(UserExceptionCode.USER_DELETED);
 	}
 
@@ -131,9 +95,8 @@ public class OauthService {
 		User user = oauthRepository.findByEmail(email)
 				.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
 
-		if (Boolean.TRUE.equals(user.isAlive()))
+		if (user.isAlive())
 			throw new UserException(UserExceptionCode.USER_ALREADY_EXISTS);
-
 
 		if (user.getSocialType().contains(SocialType.BASIC)) {
 			boolean matches = passwordEncoder.matches(password, user.getPassword());
@@ -163,22 +126,17 @@ public class OauthService {
 	}
 
 	private User oauthSignUp(OauthRequest oauthRequest, UserType userType) {
-		// 회원가입 정보 로깅
-		log.info("회원가입 시작: email={}, socialType={}, userType={}",
-				oauthRequest.email(), oauthRequest.socialType(), userType);
 
-		// 회원가입 요청 정보 상세 로깅
-		log.info("회원가입 상세 정보: email={}, socialType={}, socialUniqueId={}, gender={}, age={}",
-				oauthRequest.email(),
-				oauthRequest.socialType(),
-				oauthRequest.socialUniqueId(),
-				oauthRequest.gender(),
-				oauthRequest.age());
+		String socialUniqueId = oauthRequest.socialUniqueId();
+		SocialType socialType = Objects.requireNonNullElse(oauthRequest.socialType(), SocialType.NONE);
+		if (socialType != SocialType.APPLE) {
+			socialUniqueId = null;
+		}
 
 		User user = User.builder()
 				.email(oauthRequest.email())
-				.socialUniqueId(oauthRequest.socialUniqueId())
-				.socialType(List.of(oauthRequest.socialType()))
+				.socialUniqueId(socialUniqueId)
+				.socialType(List.of(socialType))
 				.role(userType)
 				.gender(oauthRequest.gender())
 				.age(oauthRequest.age())
@@ -186,9 +144,8 @@ public class OauthService {
 				.build();
 
 		User savedUser = oauthRepository.save(user);
-		log.info("회원가입 완료: email={}, userId={}, nickname={}",
-				savedUser.getEmail(), savedUser.getId(), savedUser.getNickName());
 
+		log.info("신규 회원 가입 email {} socialType {}", savedUser.getEmail(), savedUser.getSocialType());
 		return savedUser;
 	}
 
@@ -218,8 +175,6 @@ public class OauthService {
 
 	@Transactional
 	public BasicAccountResponse basicSignup(String email, String password, Integer age, GenderType gender) {
-		log.info("기본 회원가입 시작: email={}", email);
-
 		oauthRepository.findByEmail(email).ifPresent(user -> {
 			throw new UserException(UserExceptionCode.USER_ALREADY_EXISTS);
 		});
