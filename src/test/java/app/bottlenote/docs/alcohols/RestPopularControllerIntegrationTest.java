@@ -1,6 +1,6 @@
 package app.bottlenote.docs.alcohols;
 
-import app.bottlenote.alcohols.controller.PopularQueryController;
+import app.bottlenote.alcohols.controller.AlcoholPopularQueryController;
 import app.bottlenote.alcohols.dto.response.PopularItem;
 import app.bottlenote.alcohols.service.PopularService;
 import app.bottlenote.docs.AbstractRestDocs;
@@ -32,7 +32,7 @@ class RestPopularControllerIntegrationTest extends AbstractRestDocs {
 
 	@Override
 	protected Object initController() {
-		return new PopularQueryController(popularService);
+		return new AlcoholPopularQueryController(popularService);
 	}
 
 	@Test

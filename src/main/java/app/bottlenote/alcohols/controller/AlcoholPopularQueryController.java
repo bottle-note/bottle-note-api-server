@@ -16,7 +16,7 @@ import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByCont
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
-public class PopularQueryController {
+public class AlcoholPopularQueryController {
 
 	private final PopularService popularService;
 
@@ -46,4 +46,5 @@ public class PopularQueryController {
 		var response = popularService.getSpringItems(userId);
 		return GlobalResponse.ok(response);
 	}
+
 }

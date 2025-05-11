@@ -1,6 +1,6 @@
 package app.bottlenote.docs.alcohols;
 
-import app.bottlenote.alcohols.controller.RegionController;
+import app.bottlenote.alcohols.controller.AlcoholReferenceController;
 import app.bottlenote.alcohols.dto.response.RegionsItem;
 import app.bottlenote.alcohols.service.AlcoholReferenceService;
 import app.bottlenote.docs.AbstractRestDocs;
@@ -25,7 +25,7 @@ class RestRegionControllerTest extends AbstractRestDocs {
 
 	@Override
 	protected Object initController() {
-		return new RegionController(regionService);
+		return new AlcoholReferenceController(regionService);
 	}
 
 	@Test
