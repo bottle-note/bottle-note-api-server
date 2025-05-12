@@ -7,6 +7,7 @@ import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.FriendsDetailResponse;
+import app.bottlenote.core.structure.Pair;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.history.service.AlcoholViewHistoryService;
 import app.bottlenote.review.facade.ReviewFacade;
@@ -77,5 +78,10 @@ public class AlcoholQueryService {
 		PageRequest pageRequest = PageRequest.of(0, MAX_FRIENDS_SIZE);
 		List<FriendItem> friendItems = followFacade.getTastingFriendsInfoList(alcoholId, userId, pageRequest);
 		return FriendsDetailResponse.of((long) friendItems.size(), friendItems);
+	}
+
+	@Transactional(readOnly = true)
+	public Pair<Long, PageResponse<List<AlcoholDetailItem>>> getStandardExplore(Long userId, String keyword, Long cursor, Integer size) {
+		return alcoholQueryRepository.getStandardExplore(userId, keyword, cursor, size);
 	}
 }

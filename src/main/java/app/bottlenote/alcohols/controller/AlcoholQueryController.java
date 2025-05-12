@@ -6,7 +6,6 @@ import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.global.service.meta.MetaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
+import static app.bottlenote.global.service.meta.MetaService.createMetaInfo;
 
 
 @Slf4j
@@ -33,12 +33,10 @@ public class AlcoholQueryController {
 			@ModelAttribute @Valid AlcoholSearchRequest request
 	) {
 		Long id = getUserIdByContext().orElse(-1L);
-
 		PageResponse<AlcoholSearchResponse> pageResponse = alcoholQueryService.searchAlcohols(request, id);
-
 		return GlobalResponse.ok(
 				pageResponse.content(),
-				MetaService.createMetaInfo()
+				createMetaInfo()
 						.add("searchParameters", request)
 						.add("pageable", pageResponse.cursorPageable())
 		);
@@ -49,5 +47,4 @@ public class AlcoholQueryController {
 		Long id = getUserIdByContext().orElse(-1L);
 		return GlobalResponse.ok(alcoholQueryService.findAlcoholDetailById(alcoholId, id));
 	}
-
 }

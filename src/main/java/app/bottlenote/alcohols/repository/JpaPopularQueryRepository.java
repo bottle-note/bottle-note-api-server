@@ -11,7 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 @JpaRepositoryImpl
-public interface PopularQueryRepository extends JpaRepository<Alcohol, Long> {
+public interface JpaPopularQueryRepository extends JpaRepository<Alcohol, Long> {
 
 	@Query("""
 			         SELECT

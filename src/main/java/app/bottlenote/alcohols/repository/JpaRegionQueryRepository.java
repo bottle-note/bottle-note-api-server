@@ -9,7 +9,7 @@ import org.springframework.data.repository.CrudRepository;
 import java.util.List;
 
 @JpaRepositoryImpl
-public interface RegionQueryRepository extends CrudRepository<Region, Long> {
+public interface JpaRegionQueryRepository extends CrudRepository<Region, Long> {
 
 	@Query("""
 			select new app.bottlenote.alcohols.dto.response.RegionsItem(r.id, r.korName, r.engName, r.description)
