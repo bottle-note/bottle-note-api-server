@@ -42,11 +42,11 @@ public class GlobalResponse {
 
 	@JsonCreator
 	public GlobalResponse(
-		@JsonProperty("success") boolean success,
-		@JsonProperty("code") int code,
-		@JsonProperty("data") Object data,
-		@JsonProperty("errors") List<String> errors,
-		@JsonProperty("meta") Map<String, Object> meta
+			@JsonProperty("success") boolean success,
+			@JsonProperty("code") int code,
+			@JsonProperty("data") Object data,
+			@JsonProperty("errors") List<String> errors,
+			@JsonProperty("meta") Map<String, Object> meta
 	) {
 		this.success = success;
 		this.code = code;
@@ -54,6 +54,7 @@ public class GlobalResponse {
 		this.errors = errors;
 		this.meta = meta;
 	}
+
 
 	public static ResponseEntity<?> ok(Object data) {
 		return ResponseEntity.ok(success(data));
@@ -71,12 +72,12 @@ public class GlobalResponse {
 	 */
 	public static GlobalResponse success(Object data) {
 		return GlobalResponse.builder()
-			.success(true)
-			.code(200)
-			.errors(emptyList())
-			.meta(createMetaInfo().getMetaInfos())
-			.data(data)
-			.build();
+				.success(true)
+				.code(200)
+				.errors(emptyList())
+				.meta(createMetaInfo().getMetaInfos())
+				.data(data)
+				.build();
 	}
 
 	/**
@@ -89,12 +90,12 @@ public class GlobalResponse {
 	 */
 	public static GlobalResponse success(Object data, MetaInfos meta) {
 		return GlobalResponse.builder()
-			.success(true)
-			.code(200)
-			.errors(emptyList())
-			.meta(meta.getMetaInfos())
-			.data(data)
-			.build();
+				.success(true)
+				.code(200)
+				.errors(emptyList())
+				.meta(meta.getMetaInfos())
+				.data(data)
+				.build();
 	}
 
 	/**
@@ -105,12 +106,12 @@ public class GlobalResponse {
 	 */
 	public static GlobalResponse fail(Object errors) {
 		return GlobalResponse.builder()
-			.success(false)
-			.code(400)
-			.data(emptyList())
-			.errors(errors)
-			.meta(createMetaInfo().getMetaInfos())
-			.build();
+				.success(false)
+				.code(400)
+				.data(emptyList())
+				.errors(errors)
+				.meta(createMetaInfo().getMetaInfos())
+				.build();
 	}
 
 	/**
@@ -122,12 +123,12 @@ public class GlobalResponse {
 	 */
 	public static GlobalResponse fail(Integer code, Object errors) {
 		return GlobalResponse.builder()
-			.success(false)
-			.code(code)
-			.data(emptyList())
-			.errors(errors)
-			.meta(createMetaInfo().getMetaInfos())
-			.build();
+				.success(false)
+				.code(code)
+				.data(emptyList())
+				.errors(errors)
+				.meta(createMetaInfo().getMetaInfos())
+				.build();
 	}
 
 	/**
@@ -140,12 +141,12 @@ public class GlobalResponse {
 	 */
 	public static GlobalResponse fail(Integer code, Object errors, MetaInfos meta) {
 		return GlobalResponse.builder()
-			.success(false)
-			.code(code)
-			.data(emptyList())
-			.errors(errors)
-			.meta(meta.getMetaInfos())
-			.build();
+				.success(false)
+				.code(code)
+				.data(emptyList())
+				.errors(errors)
+				.meta(meta.getMetaInfos())
+				.build();
 	}
 
 	/**
@@ -157,22 +158,22 @@ public class GlobalResponse {
 	 */
 	public static GlobalResponse error(Integer code, Object errors) {
 		return GlobalResponse.builder()
-			.success(false)
-			.code(code)
-			.data(emptyList())
-			.errors(errors)
-			.meta(createMetaInfo().getMetaInfos())
-			.build();
+				.success(false)
+				.code(code)
+				.data(emptyList())
+				.errors(errors)
+				.meta(createMetaInfo().getMetaInfos())
+				.build();
 	}
 
 	public static ResponseEntity<?> error(Error error) {
 		GlobalResponse response = GlobalResponse.builder()
-			.success(false)
-			.code(error.code().getHttpStatus().value())
-			.data(emptyList())
-			.errors(List.of(error))
-			.meta(createMetaInfo().getMetaInfos())
-			.build();
+				.success(false)
+				.code(error.code().getHttpStatus().value())
+				.data(emptyList())
+				.errors(List.of(error))
+				.meta(createMetaInfo().getMetaInfos())
+				.build();
 		return new ResponseEntity<>(response, error.code().getHttpStatus());
 	}
 
@@ -181,24 +182,24 @@ public class GlobalResponse {
 		Error error = Error.of(exception.getExceptionCode());
 
 		GlobalResponse response = GlobalResponse.builder()
-			.success(false)
-			.code(exception.getExceptionCode().getHttpStatus().value())
-			.data(emptyList())
-			.errors(List.of(error))
-			.meta(createMetaInfo().getMetaInfos())
-			.build();
+				.success(false)
+				.code(exception.getExceptionCode().getHttpStatus().value())
+				.data(emptyList())
+				.errors(List.of(error))
+				.meta(createMetaInfo().getMetaInfos())
+				.build();
 
 		return new ResponseEntity<>(response, exception.getExceptionCode().getHttpStatus());
 	}
 
 	public static ResponseEntity<?> error(Set<Error> errorSet) {
 		GlobalResponse response = GlobalResponse.builder()
-			.success(false)
-			.code(HttpStatus.BAD_REQUEST.value())
-			.data(emptyList())
-			.errors(errorSet.stream().toList())
-			.meta(createMetaInfo().getMetaInfos())
-			.build();
+				.success(false)
+				.code(HttpStatus.BAD_REQUEST.value())
+				.data(emptyList())
+				.errors(errorSet.stream().toList())
+				.meta(createMetaInfo().getMetaInfos())
+				.build();
 		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 	}
 }

@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static app.bottlenote.global.service.meta.MetaService.createMetaInfo;
 
@@ -42,11 +44,15 @@ public class AlcoholExploreController {
 				() -> new UserException(UserExceptionCode.REQUIRED_USER_ID)
 		);
 		Pair<Long, PageResponse<List<AlcoholDetailItem>>> pair = alcoholQueryService.getStandardExplore(userId, keyword, cursor, size);
-		Long first = pair.first();
-		PageResponse<List<AlcoholDetailItem>> second = pair.second();
+
+		// Map을 사용하여 응답 데이터 구성
+		Map<String, Object> responseMap = new HashMap<>();
+		responseMap.put("totalCount", pair.first());
+		responseMap.put("items", pair.second().content());
+
 		return GlobalResponse.ok(
-				Pair.of(first, second.content()),
-				createMetaInfo().add("pageable", second.cursorPageable())
+				responseMap,
+				createMetaInfo().add("pageable", pair.second().cursorPageable())
 		);
 	}
 }
