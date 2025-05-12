@@ -1,4 +1,4 @@
-package app.external.docs;
+package app.docs;
 
 
 import app.bottlenote.global.exception.handler.GlobalExceptionHandler;
@@ -30,7 +30,10 @@ public abstract class AbstractRestDocs {
 
 			.apply(documentationConfiguration(provider)
 				.operationPreprocessors()
-				.withRequestDefaults(Preprocessors.prettyPrint())
+				.withRequestDefaults(
+					Preprocessors.prettyPrint(),
+					Preprocessors.modifyUris().scheme("https").host("api.bottle-note.com").removePort()
+				)
 				.withResponseDefaults(Preprocessors.prettyPrint())
 			)
 

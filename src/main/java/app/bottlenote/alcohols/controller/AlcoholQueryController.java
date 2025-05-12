@@ -4,7 +4,6 @@ package app.bottlenote.alcohols.controller;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
-import app.bottlenote.alcohols.service.AlcoholReferenceService;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.meta.MetaService;
@@ -28,7 +27,6 @@ import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByCont
 public class AlcoholQueryController {
 
 	private final AlcoholQueryService alcoholQueryService;
-	private final AlcoholReferenceService alcoholReferenceService;
 
 	@GetMapping("/search")
 	public ResponseEntity<?> searchAlcohols(
