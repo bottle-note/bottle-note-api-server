@@ -8,6 +8,7 @@ import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
+import app.bottlenote.core.structure.Pair;
 import app.bottlenote.global.service.cursor.PageResponse;
 
 import java.util.HashMap;
@@ -37,8 +38,8 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
 	@Override
 	public List<Alcohol> findAllByIdIn(List<Long> ids) {
 		return alcohols.values().stream()
-			.filter(alcohol -> ids.contains(alcohol.getId()))
-			.toList();
+				.filter(alcohol -> ids.contains(alcohol.getId()))
+				.toList();
 	}
 
 	@Override
@@ -63,6 +64,11 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
 
 	@Override
 	public Boolean existsByAlcoholId(Long alcoholId) {
+		return null;
+	}
+
+	@Override
+	public Pair<Long, PageResponse<List<AlcoholDetailItem>>> getStandardExplore(Long userId, String keyword, Long cursor, Integer size) {
 		return null;
 	}
 }

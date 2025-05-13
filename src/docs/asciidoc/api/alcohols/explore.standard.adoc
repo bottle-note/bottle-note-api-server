@@ -1,0 +1,18 @@
+=== 위스키 둘러보기(standard) API  ===
+
+- 기본형 위스키 둘러보기 API를 정의합니다.
+- 정렬 옵션이 없는 API 입니다 시간순으로 정렬됩니다
+- 키워드는 이름, 카테고리, 지역 , 태그를 대상으로 검색합니다.
+
+[discrete]
+==== 요청 파라미터 ====
+
+include::{snippets}/alcohols/explore/standard/curl-request.adoc[]
+include::{snippets}/alcohols/explore/standard/query-parameters.adoc[]
+
+[discrete]
+==== 응답 파라미터  ====
+
+[discrete]
+include::{snippets}/alcohols/explore/standard/response-fields.adoc[]
+include::{snippets}/alcohols/explore/standard/response-body.adoc[]

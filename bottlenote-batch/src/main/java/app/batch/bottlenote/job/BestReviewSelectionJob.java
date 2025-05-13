@@ -31,7 +31,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BestReviewSelectionJob {
 	public static final String BEST_REVIEW_JOB_NAME = "bestReviewSelectedJob";
-	private static final int CHUNK_SIZE = 10;
+	private static final int CHUNK_SIZE = 100;
 	private final JdbcTemplate jdbcTemplate;
 
 	/**
@@ -39,13 +39,16 @@ public class BestReviewSelectionJob {
 	 */
 	@Bean
 	public Job bestReviewSelectedJob(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+		log.debug("베스트 리뷰 선정 Job 초기화 시작");
 		Step resetStep = getBestReviewResetStep(jobRepository, transactionManager);
 
 		Step selectionStep = getBestReviewSelectedStep(jobRepository, transactionManager);
 		if (selectionStep == null) {
+			log.error("[CRITICAL] 베스트 리뷰 선정 Job 초기화 실패: 필요한 스텝을 생성할 수 없습니다.");
 			return null;
 		}
 
+		log.debug("베스트 리뷰 선정 Job 초기화 완료");
 		return new JobBuilder(BEST_REVIEW_JOB_NAME, jobRepository)
 				.start(resetStep)
 				.next(selectionStep)
@@ -60,7 +63,7 @@ public class BestReviewSelectionJob {
 				.tasklet((contribution, chunkContext) -> {
 					String sql = "UPDATE reviews SET is_best = FALSE";
 					int count = jdbcTemplate.update(sql);
-					log.info("Best review reset: count: {}", count);
+					log.debug("베스트 리뷰 초기화 수행: {} 개 리뷰 처리됨", count);
 					return RepeatStatus.FINISHED;
 				}, transactionManager)
 				.build();
@@ -72,7 +75,7 @@ public class BestReviewSelectionJob {
 	public Step getBestReviewSelectedStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
 		String query = getQueryByResource();
 		if (query == null) {
-			log.info("베스트 리뷰 선정 리소스 파일을 찾을 수 없습니다 .");
+			log.error("[CRITICAL] 베스트 리뷰 선정 리소스 파일을 찾을 수 없어 작업을 중단합니다.");
 			return null;
 		}
 
@@ -96,11 +99,11 @@ public class BestReviewSelectionJob {
 			String query = new String(FileCopyUtils.copyToByteArray(resource.getInputStream()));
 
 			// 로그는 파일 경로가 아닌 리소스 설명으로 대체
-			log.info("베스트 리뷰 쿼리 로드 완료: {}", resource.getDescription());
+			log.debug("베스트 리뷰 쿼리 로드 완료: {}", resource.getDescription());
 
 			return query;
 		} catch (IOException e) {
-			log.error("cant find best-review-selected.sql files", e);
+			log.error("[CRITICAL] 베스트 리뷰 SQL 파일을 찾을 수 없습니다: best-review-selected.sql", e);
 			return null;
 		}
 	}
@@ -121,7 +124,7 @@ public class BestReviewSelectionJob {
 				.toArray();
 
 		int updated = jdbcTemplate.update(sql, params);
-		log.info("Batch updated {} best reviews", updated);
+		log.debug("베스트 리뷰 업데이트 진행: {} 개 리뷰 업데이트됨", updated);
 	}
 
 	/**

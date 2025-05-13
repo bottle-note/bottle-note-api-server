@@ -24,6 +24,12 @@ spring:
         - classpath:mysql/init/00-init-config-table.sql
         - classpath:mysql/init/01-init-core-table.sql
 
+  batch:
+    jdbc:
+      initialize-schema: always
+    job:
+      enabled: false
+
   # JPA
   jpa:
     properties:

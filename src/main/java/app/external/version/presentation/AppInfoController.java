@@ -2,7 +2,6 @@ package app.external.version.presentation;
 
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.external.version.config.AppInfoConfig;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +16,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AppInfoController {
 	private final AppInfoConfig info;
-	private final ObjectMapper objectMapper;
 
 	@GetMapping
 	public ResponseEntity<?> getAppInfo() {
