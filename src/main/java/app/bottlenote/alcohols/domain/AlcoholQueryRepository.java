@@ -35,5 +35,5 @@ public interface AlcoholQueryRepository {
 
 	Boolean existsByAlcoholId(Long alcoholId);
 
-	Pair<Long, PageResponse<List<AlcoholDetailItem>>> getStandardExplore(Long userId,String keyword, Long cursor, Integer size);
+	Pair<Long, PageResponse<List<AlcoholDetailItem>>> getStandardExplore(Long userId, String keyword, Long cursor, Integer size);
 }

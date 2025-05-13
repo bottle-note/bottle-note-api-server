@@ -29,7 +29,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 
 	private final AlcoholQueryService alcoholQueryService = mock(AlcoholQueryService.class);
-
 	private final AlcoholQueryFixture fixture = new AlcoholQueryFixture();
 
 	@Override

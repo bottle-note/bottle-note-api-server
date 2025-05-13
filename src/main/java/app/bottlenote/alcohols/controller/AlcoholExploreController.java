@@ -6,8 +6,6 @@ import app.bottlenote.core.structure.Pair;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.user.exception.UserException;
-import app.bottlenote.user.exception.UserExceptionCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -40,9 +38,7 @@ public class AlcoholExploreController {
 			@RequestParam(required = false, defaultValue = "20") Integer size,
 			@RequestParam(required = false, defaultValue = "0") Long cursor
 	) {
-		Long userId = SecurityContextUtil.getUserIdByContext().orElseThrow(
-				() -> new UserException(UserExceptionCode.REQUIRED_USER_ID)
-		);
+		Long userId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
 		Pair<Long, PageResponse<List<AlcoholDetailItem>>> pair = alcoholQueryService.getStandardExplore(userId, keyword, cursor, size);
 
 		// Map을 사용하여 응답 데이터 구성

@@ -3,9 +3,11 @@ package app.docs.alcohols;
 import app.bottlenote.alcohols.controller.AlcoholPopularQueryController;
 import app.bottlenote.alcohols.dto.response.PopularItem;
 import app.bottlenote.alcohols.service.PopularService;
+import app.bottlenote.global.security.SecurityContextUtil;
 import app.docs.AbstractRestDocs;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.List;
@@ -28,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class RestPopularControllerIntegrationTest extends AbstractRestDocs {
 
 	private final PopularService popularService = mock(PopularService.class);
+	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
 
 	@Override
