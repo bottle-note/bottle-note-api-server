@@ -98,7 +98,7 @@ public class PopularAlcoholSelectionJob {
 		String clearSql = "DELETE FROM popular_alcohols " +
 				"WHERE year = ? AND month = ? AND day = ?";
 		int deleted = jdbcTemplate.update(clearSql, today.getYear(), today.getMonthValue(), today.getDayOfMonth());
-		log.info("기존 인기 주류 데이터 삭제: {}", deleted);
+		log.debug("기존 인기 주류 데이터 삭제: {}", deleted);
 
 		// 배치 삽입을 위한 SQL 준비
 		String sql = "INSERT INTO popular_alcohols (alcohol_id, year, month, day, review_score, rating_score, pick_score, popular_score, created_at) " +
@@ -124,7 +124,7 @@ public class PopularAlcoholSelectionJob {
 		for (int count : updateCounts) {
 			totalInserted += count;
 		}
-		log.info("인기 주류 데이터 삽입 완료: {}", totalInserted);
+		log.debug("인기 주류 데이터 삽입 완료: {}", totalInserted);
 	}
 
 	/**
@@ -148,7 +148,7 @@ public class PopularAlcoholSelectionJob {
 				results = jdbcTemplate.query(query, new PopularItemPayload.PopularItemMapper());
 				currentIndex = 0;
 
-				log.info("인기 주류 데이터 로드 완료: {} 건", results.size());
+				log.debug("인기 주류 데이터 로드 완료: {} 건", results.size());
 			}
 
 			PopularItemPayload nextItem = null;

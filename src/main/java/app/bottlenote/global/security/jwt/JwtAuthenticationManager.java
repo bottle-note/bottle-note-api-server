@@ -45,7 +45,7 @@ public class JwtAuthenticationManager {
 	public Authentication getAuthentication(String accessToken) {
 
 		Claims claims = parseClaims(accessToken);
-		log.info("클레임 정보 : {}", claims.toString());
+		log.debug("클레임 정보 : {}", claims.toString());
 		String rolesStr = claims.get(KEY_ROLES, String.class);
 
 		if (rolesStr == null) {

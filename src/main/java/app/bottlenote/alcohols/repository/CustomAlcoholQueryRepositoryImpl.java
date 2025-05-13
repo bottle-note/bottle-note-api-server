@@ -6,11 +6,13 @@ import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
+import app.bottlenote.core.structure.Pair;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.AllArgsConstructor;
 
 import java.util.List;
 import java.util.Objects;
@@ -24,22 +26,13 @@ import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
 
-
+@AllArgsConstructor
 public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepository {
 	private final JPAQueryFactory queryFactory;
 	private final AlcoholQuerySupporter supporter;
 
-	public CustomAlcoholQueryRepositoryImpl(JPAQueryFactory queryFactory, AlcoholQuerySupporter supporter) {
-		this.queryFactory = queryFactory;
-		this.supporter = supporter;
-	}
-
 	/**
-	 * queryDSL을 이용한 알코올 상세 조회
-	 *
-	 * @param alcoholId 조회 대상 알코올 ID
-	 * @param userId    만약 사용자가 로그인한 경우 좋아요 상태를 확인하기 위한 사용자 ID
-	 * @return the alcohol detail info
+	 * queryDSL  알코올 상세 조회
 	 */
 	@Override
 	public AlcoholDetailItem findAlcoholDetailById(Long alcoholId, Long userId) {
@@ -77,11 +70,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 	}
 
 	/**
-	 * 리뷰 상세 조회 시 포함 될 술의 정보를 조회합니다.
-	 *
-	 * @param alcoholId 조회 대상 AlcoholId
-	 * @param userId    만약 사용자가 로그인한 경우 좋아요 상태를 확인하기 위한 사용자 ID
-	 * @return AlcoholSummaryItem
+	 * queryDSL  리뷰 상세 조회 시 포함 될 술의 정보를 조회합니다.
 	 */
 	@Override
 	public Optional<AlcoholSummaryItem> findAlcoholInfoById(Long alcoholId, Long userId) {
@@ -122,12 +111,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 	}
 
 	/**
-	 * queryDSL을 이용한 알코올 검색
-	 * <p>
-	 * 구현중 2024/05/03
-	 *
-	 * @param criteriaDto the criteria dto
-	 * @return the slice
+	 * queryDSL  알코올 검색
 	 */
 	@Override
 	public PageResponse<AlcoholSearchResponse> searchAlcohols(AlcoholSearchCriteria criteriaDto) {
@@ -182,9 +166,63 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 				.fetchOne();
 
 
-		CursorPageable pageable = supporter.getCursorPageable(criteriaDto, fetch, cursor, pageSize);
+		CursorPageable pageable = CursorPageable.of(fetch, cursor, pageSize);
 		return PageResponse.of(AlcoholSearchResponse.of(totalCount, fetch), pageable);
 	}
 
+	/**
+	 * queryDSL  알코올 둘러보기
+	 */
+	@Override
+	public Pair<Long, PageResponse<List<AlcoholDetailItem>>> getStandardExplore(Long userId, String keyword, Long cursor, Integer pageSize) {
+		int fetchSize = pageSize + 1;
+		List<AlcoholDetailItem> items = queryFactory.select(Projections.constructor(
+						AlcoholDetailItem.class,
+						alcohol.id,
+						alcohol.imageUrl,
+						alcohol.korName,
+						alcohol.engName,
+						alcohol.korCategory,
+						alcohol.engCategory,
+						region.korName,
+						region.engName,
+						alcohol.cask,
+						alcohol.abv,
+						distillery.korName,
+						distillery.engName,
+						rating.ratingPoint.rating.avg().multiply(2).castToNum(Double.class).round().divide(2).coalesce(0.0).as("rating"),
+						rating.id.count(),
+						supporter.myRating(alcohol.id, userId),
+						supporter.averageReviewRating(alcohol.id, userId),
+						supporter.isPickedSubquery(alcohol.id, userId),
+						getTastingTags()
+				))
+				.from(alcohol)
+				.leftJoin(rating).on(rating.id.alcoholId.eq(alcohol.id))
+				.join(region).on(alcohol.region.id.eq(region.id))
+				.join(distillery).on(alcohol.distillery.id.eq(distillery.id))
+				.where(supporter.containsKeywordInAll(keyword))
+				.groupBy(alcohol.id, alcohol.imageUrl, alcohol.korName, alcohol.engName,
+						alcohol.korCategory, alcohol.engCategory, region.korName, region.engName,
+						alcohol.cask, alcohol.abv, distillery.korName, distillery.engName)
+				.orderBy(alcohol.lastModifyAt.desc())
+				.offset(cursor)
+				.limit(fetchSize)
+				.fetch();
 
+		Long total = queryFactory
+				.select(alcohol.id.count())
+				.from(alcohol)
+				.join(region).on(alcohol.region.id.eq(region.id))
+				.join(distillery).on(alcohol.distillery.id.eq(distillery.id))
+				.where(supporter.containsKeywordInAll(keyword))
+				.fetchOne();
+
+		// CursorPageable 생성 (hasNext 계산 및 추가 항목 제거)
+		CursorPageable pageable = CursorPageable.of(items, cursor, pageSize);
+
+		// PageResponse 생성
+		PageResponse<List<AlcoholDetailItem>> list = PageResponse.of(items, pageable);
+		return Pair.of(total, list);
+	}
 }

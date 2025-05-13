@@ -68,6 +68,7 @@ public class UserHistory extends BaseEntity {
 	@Column(name = "content")
 	private String content;
 
+	@Builder.Default
 	@Comment("동적 메시지")
 	@Column(name = "dynamic_message", columnDefinition = "json")
 	@Type(JsonType.class)

@@ -79,11 +79,11 @@ public class Alcohol extends BaseEntity {
 	private Distillery distillery;
 
 	@Comment("캐스트 타입")
-	@Column(name = "cask", nullable = true)
+	@Column(name = "cask")
 	private String cask;
 
 	@Comment("썸네일 이미지")
-	@Column(name = "image_url", nullable = true)
+	@Column(name = "image_url")
 	private String imageUrl;
 
 	@Builder.Default

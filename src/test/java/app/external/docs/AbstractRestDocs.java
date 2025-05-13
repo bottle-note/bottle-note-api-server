@@ -1,8 +1,8 @@
 package app.external.docs;
 
 
-import app.bottlenote.docs.config.RestDocsConfiguration;
 import app.bottlenote.global.exception.handler.GlobalExceptionHandler;
+import app.docs.config.RestDocsConfiguration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;

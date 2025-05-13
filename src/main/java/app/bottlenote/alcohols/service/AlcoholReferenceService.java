@@ -4,7 +4,7 @@ import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.dto.response.RegionsItem;
-import app.bottlenote.alcohols.repository.RegionQueryRepository;
+import app.bottlenote.alcohols.repository.JpaRegionQueryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
@@ -19,7 +19,7 @@ import static java.time.LocalDateTime.now;
 @Service
 @RequiredArgsConstructor
 public class AlcoholReferenceService {
-	private final RegionQueryRepository regionQueryRepository;
+	private final JpaRegionQueryRepository regionQueryRepository;
 	private final AlcoholQueryRepository alcoholQueryRepository;
 
 	@Cacheable(value = "local_cache_alcohol_region_information")
