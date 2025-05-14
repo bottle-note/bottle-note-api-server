@@ -31,10 +31,9 @@ public class AlcoholPopularService {
 	public List<PopularItem> getSpringItems(Long userId) {
 		Pageable pageable = Pageable.ofSize(6);
 		List<Long> tags = List.of(1L, 5L, 8L, 9L, 10L, 11L, 14L, 16L, 17L, 19L,
-				22L, 23L, 29L, 33L, 35L, 42L, 47L, 48L, 49L, 54L, 60L,
+				22L, 23L, 29L, 33L, 35L, 42L, 47L, 48L, 54L, 60L,
 				62L, 66L, 70L, 72L, 73L, 75L, 80L, 88L, 94L);
-		List<Long> excludedTags = List.of(34L, 41L, 45L, 63L, 102L, 105L, 118L, 139L, 140L, 153L, 162L, 167L, 170L, 172L);
-		List<Long> excludedTags = List.of(34L, 41L, 45L, 63L, 102L, 105L, 118L, 139L, 140L, 153L, 162L, 167L, 170L, 172L);
-		return popularQueryRepository.getSpringItems(userId, tags,excludedTags, pageable);
+		List<Long> excludedTags = List.of(34L, 41L, 45L, 49L, 63L, 102L, 105L, 118L, 139L, 140L, 153L, 162L, 167L, 170L, 172L);
+		return popularQueryRepository.getSpringItems(userId, tags, excludedTags, pageable);
 	}
 }
