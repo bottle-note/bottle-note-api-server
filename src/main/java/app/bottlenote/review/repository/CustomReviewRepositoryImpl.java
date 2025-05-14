@@ -2,6 +2,7 @@ package app.bottlenote.review.repository;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.like.constant.LikeStatus;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.facade.payload.ReviewInfo;
@@ -78,7 +79,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		return queryFactory.select(composeReviewInfoResult(userId))
 				.from(review)
 				.join(user).on(review.userId.eq(user.id))
-				.leftJoin(likes).on(review.id.eq(likes.reviewId))
+				.leftJoin(likes).on(review.id.eq(likes.reviewId).and(likes.status.eq(LikeStatus.LIKE)))
 				.leftJoin(alcohol).on(alcohol.id.eq(review.alcoholId))
 				.leftJoin(rating).on(rating.id.alcoholId.eq(review.alcoholId).and(rating.id.userId.eq(review.userId)))
 				.leftJoin(reviewImage).on(review.id.eq(reviewImage.review.id))
@@ -99,7 +100,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 		List<ReviewInfo> fetch = queryFactory.select(composeReviewInfoResult(userId))
 				.from(review)
 				.join(user).on(review.userId.eq(user.id))
-				.leftJoin(likes).on(review.id.eq(likes.reviewId))
+				.leftJoin(likes).on(review.id.eq(likes.reviewId).and(likes.status.eq(LikeStatus.LIKE)))
 				.leftJoin(alcohol).on(alcohol.id.eq(review.alcoholId))
 				.leftJoin(rating).on(rating.id.alcoholId.eq(review.alcoholId).and(rating.id.userId.eq(review.userId)))
 				.leftJoin(reviewReply).on(review.id.eq(reviewReply.reviewId))
@@ -136,7 +137,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 				.from(review)
 				.join(alcohol).on(alcohol.id.eq(review.alcoholId).and(alcohol.id.eq(alcoholId)))
 				.join(user).on(review.userId.eq(user.id))
-				.leftJoin(likes).on(review.id.eq(likes.reviewId))
+				.leftJoin(likes).on(review.id.eq(likes.reviewId).and(likes.status.eq(LikeStatus.LIKE)))
 				.leftJoin(rating).on(rating.id.alcoholId.eq(review.alcoholId).and(rating.id.userId.eq(review.userId)))
 				.leftJoin(reviewReply).on(review.id.eq(reviewReply.reviewId))
 				.leftJoin(reviewImage).on(review.id.eq(reviewImage.review.id))

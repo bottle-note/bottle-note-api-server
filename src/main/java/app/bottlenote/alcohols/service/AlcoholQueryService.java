@@ -67,7 +67,7 @@ public class AlcoholQueryService {
 				.build();
 	}
 
-	/**
+ 	/**
 	 * 유자가 팔로우 한 사람들 중 해당 술(위스키)를 마셔본 리스트 조회 api
 	 *
 	 * @param alcoholId
