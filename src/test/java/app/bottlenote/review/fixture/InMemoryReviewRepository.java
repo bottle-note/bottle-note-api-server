@@ -1,9 +1,12 @@
 package app.bottlenote.review.fixture;
 
+import app.bottlenote.core.structure.Pair;
+import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
+import app.bottlenote.review.dto.response.ReviewExploreItem;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 import org.apache.logging.log4j.LogManager;
@@ -73,5 +76,10 @@ public class InMemoryReviewRepository implements ReviewRepository {
 	@Override
 	public boolean existsById(Long reviewId) {
 		return database.containsKey(reviewId);
+	}
+
+	@Override
+	public Pair<Long, CursorResponse<ReviewExploreItem>> getStandardExplore(Long userId, List<String> keywords, Long cursor, Integer size) {
+		return null;
 	}
 }
