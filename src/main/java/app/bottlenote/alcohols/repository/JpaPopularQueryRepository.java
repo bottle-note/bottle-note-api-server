@@ -55,17 +55,19 @@ public interface JpaPopularQueryRepository extends JpaRepository<Alcohol, Long> 
 			                                       WHEN (SELECT COUNT(p) FROM picks p WHERE p.userId = :userId AND p.alcoholId = a1_0.id) > 0 THEN true
 			                                       ELSE false
 			                                   END,
-			                 COALESCE((SELECT CAST(MAX(pa.popularScore) AS double) FROM popular_alcohol pa WHERE pa.alcoholId = a1_0.id), 0.0)
+			                 		COALESCE((SELECT CAST(MAX(pa.popularScore) AS double) FROM popular_alcohol pa WHERE pa.alcoholId = a1_0.id), 0.0)
 			                  )
 			                 from alcohol a1_0
 			              join alcohol_tasting_tags  at1_0 on a1_0.id = at1_0.alcohol.id
 			              left join rating r1_0 on a1_0.id = r1_0.id.alcoholId
 			                 WHERE at1_0.tastingTag.id in (:tags)
+			                    and at1_0.tastingTag.id not in (:excludedTags)
 			                 GROUP BY a1_0.id, a1_0.korName, a1_0.engName, a1_0.korCategory, a1_0.engCategory, a1_0.imageUrl
 			ORDER BY FUNCTION('RAND')
 			""")
 	List<PopularItem> getSpringItems(
 			@Param("userId") Long userId,
 			@Param("tags") List<Long> tags,
+			@Param("excludedTags") List<Long> excludedTags,
 			Pageable size);
 }
