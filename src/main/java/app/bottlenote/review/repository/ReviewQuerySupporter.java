@@ -27,9 +27,6 @@ import java.util.List;
 import java.util.Objects;
 
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.alcohols.domain.QAlcoholsTastingTags.alcoholsTastingTags;
-import static app.bottlenote.alcohols.domain.QRegion.region;
-import static app.bottlenote.alcohols.domain.QTastingTag.tastingTag;
 import static app.bottlenote.global.service.cursor.SortOrder.DESC;
 import static app.bottlenote.like.constant.LikeStatus.LIKE;
 import static app.bottlenote.like.domain.QLikes.likes;
@@ -184,13 +181,12 @@ public class ReviewQuerySupporter {
 	}
 
 	/**
-	 * 키워드를 이용해 주류 정보와 테이스팅 태그를 모두 검색하는 조건 생성
+	 * 키워드를 이용해 작성자, 주류 정보, 리뷰 콘텐츠, 테이스팅 태그를 모두 검색하는 조건 생성
 	 */
 	public static BooleanExpression containsKeywordInAll(List<String> keywords) {
 		if (keywords == null || keywords.isEmpty()) {
 			return null;
 		}
-
 		BooleanExpression finalCondition = null;
 
 		// 각 키워드에 대해 개별 조건을 생성하고 AND 연산으로 결합
@@ -198,28 +194,28 @@ public class ReviewQuerySupporter {
 			if (StringUtils.isNullOrEmpty(keyword)) {
 				continue; // 빈 키워드는 건너뛰기
 			}
-			// 현재 키워드에 대한 기본 필드 검색 조건
-			BooleanExpression basicCondition = alcohol.korName.likeIgnoreCase("%" + keyword + "%")
-					.or(alcohol.engName.likeIgnoreCase("%" + keyword + "%"))
-					.or(alcohol.korCategory.likeIgnoreCase("%" + keyword + "%"))
-					.or(alcohol.engCategory.likeIgnoreCase("%" + keyword + "%"))
-					.or(region.korName.likeIgnoreCase("%" + keyword + "%"))
-					.or(region.engName.likeIgnoreCase("%" + keyword + "%"));
+			// 현재 키워드에 대한 조건들
+			BooleanExpression keywordCondition =
+					// 작성자 이름 검색
+					user.nickName.likeIgnoreCase("%" + keyword + "%")
+							// 술 정보 검색
+							.or(alcohol.korName.likeIgnoreCase("%" + keyword + "%"))
+							.or(alcohol.engName.likeIgnoreCase("%" + keyword + "%"))
+							// 리뷰 콘텐츠 검색
+							.or(review.content.likeIgnoreCase("%" + keyword + "%"));
 
-			// 현재 키워드에 대한 테이스팅 태그 검색 조건
-			BooleanExpression tastingTagCondition = JPAExpressions
+			// 리뷰 테이스팅 태그 검색 조건
+			BooleanExpression reviewTastingTagCondition = JPAExpressions
 					.selectOne()
-					.from(alcoholsTastingTags)
-					.join(tastingTag).on(alcoholsTastingTags.tastingTag.id.eq(tastingTag.id))
+					.from(reviewTastingTag)
 					.where(
-							alcoholsTastingTags.alcohol.id.eq(alcohol.id),
-							tastingTag.korName.likeIgnoreCase("%" + keyword + "%")
-									.or(tastingTag.engName.likeIgnoreCase("%" + keyword + "%"))
+							reviewTastingTag.review.id.eq(review.id),
+							reviewTastingTag.tastingTag.likeIgnoreCase("%" + keyword + "%")
 					)
 					.exists();
 
-			// 현재 키워드에 대한 조건 (기본 필드 또는 테이스팅 태그)
-			BooleanExpression keywordCondition = basicCondition.or(tastingTagCondition);
+			// 키워드 조건에 리뷰 테이스팅 태그 조건 추가
+			keywordCondition = keywordCondition.or(reviewTastingTagCondition);
 
 			// 결과 조건에 AND로 결합
 			if (finalCondition == null) {
