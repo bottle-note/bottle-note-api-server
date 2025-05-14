@@ -15,5 +15,5 @@ Content-Type: application/json
 %}
 
 ### 위스키 둘러보기
-GET {{host}}/api/v1/alcohols/explore/standard?page=0&size=1
+GET {{host}}/api/v1/alcohols/explore/standard?page=0&size=6&keywords=탈라모어&keywords=사과
 Authorization: Bearer {{accessToken}}

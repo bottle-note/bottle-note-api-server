@@ -7,7 +7,12 @@
 [discrete]
 ==== 요청 파라미터 ====
 
-include::{snippets}/alcohols/explore/standard/curl-request.adoc[]
+[source]
+----
+/api/v1/alcohols/explore/standard?keyword=탈라모어&keyword=글렌피딕
+----
+
+include::{snippets}/alcohols/explore/standard/http-request.adoc[]
 include::{snippets}/alcohols/explore/standard/query-parameters.adoc[]
 
 [discrete]

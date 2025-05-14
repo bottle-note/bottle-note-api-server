@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -30,12 +31,12 @@ public class AlcoholExploreController {
 	 */
 	@GetMapping("/standard")
 	public ResponseEntity<?> getStandardExplore(
-			@RequestParam(required = false) List<String> keyword,
+			@RequestParam(required = false) List<String> keywords,
 			@RequestParam(required = false, defaultValue = "20") Integer size,
 			@RequestParam(required = false, defaultValue = "0") Long cursor
 	) {
 		Long userId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
-		Pair<Long, CursorResponse<AlcoholDetailItem>> pair = alcoholQueryService.getStandardExplore(userId, keyword, cursor, size);
-		return GlobalResponse.ok(pair, keyword);
+		Pair<Long, CursorResponse<AlcoholDetailItem>> pair = alcoholQueryService.getStandardExplore(userId, keywords, cursor, size);
+		return GlobalResponse.ok(pair, Map.of("keywords", keywords));
 	}
 }

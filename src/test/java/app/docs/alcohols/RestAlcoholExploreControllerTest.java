@@ -37,6 +37,7 @@ public class RestAlcoholExploreControllerTest extends AbstractRestDocs {
 	@Test
 	void docs_1() throws Exception {
 		// given
+		List<String> keywords = List.of("keyword1", "keyword2");
 		List<AlcoholDetailItem> alcohols = List.of(
 				AlcoholQueryFixture.getAlcoholDetailInfo(),
 				AlcoholQueryFixture.getAlcoholDetailInfo(),
@@ -56,7 +57,8 @@ public class RestAlcoholExploreControllerTest extends AbstractRestDocs {
 
 		// then
 		mockMvc.perform(get("/api/v1/alcohols/explore/standard")
-						.param("keyword", "키워드 검색어")
+						.param("keywords", keywords.get(0))
+						.param("keywords", keywords.get(1))
 						.param("cursor", "0")
 						.param("size", "10")
 				)
@@ -64,7 +66,7 @@ public class RestAlcoholExploreControllerTest extends AbstractRestDocs {
 				.andDo(
 						document("alcohols/explore/standard",
 								queryParameters(
-										parameterWithName("keyword").optional().description("검색어"),
+										parameterWithName("keywords").optional().description("검색어 목록"),
 										parameterWithName("cursor").optional().description("조회 할 시작 기준 위치"),
 										parameterWithName("size").optional().description("조회 할 페이지 사이즈")
 								),
@@ -95,7 +97,7 @@ public class RestAlcoholExploreControllerTest extends AbstractRestDocs {
 										fieldWithPath("meta.serverVersion").ignored(),
 										fieldWithPath("meta.serverPathVersion").ignored(),
 										fieldWithPath("meta.serverResponseTime").ignored(),
-										fieldWithPath("meta.searchParameters").description("검색어 정보"),
+										fieldWithPath("meta.searchParameters.keywords").description("검색어 정보"),
 										fieldWithPath("meta.pageable").description("페이징 정보"),
 										fieldWithPath("meta.pageable.currentCursor").description("조회 시 기준 커서"),
 										fieldWithPath("meta.pageable.cursor").description("다음 페이지 커서"),

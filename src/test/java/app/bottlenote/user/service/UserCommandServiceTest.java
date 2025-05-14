@@ -29,6 +29,7 @@ import static org.mockito.Mockito.when;
 @Tag("unit")
 @DisplayName("[unit] [service] UserCommandService")
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class UserCommandServiceTest {
 
 	@InjectMocks
