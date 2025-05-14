@@ -1,7 +1,5 @@
 package app.bottlenote.review.dto.response;
 
-import app.bottlenote.review.constant.ReviewDisplayStatus;
-import app.bottlenote.review.domain.ReviewLocation;
 import app.bottlenote.review.facade.payload.UserInfo;
 
 import java.time.LocalDateTime;
@@ -23,15 +21,14 @@ public record ReviewExploreItem(
 		Double reviewRating,
 		List<String> reviewTags,
 		LocalDateTime createAt,
+		LocalDateTime modifiedAt,
 		Long totalImageCount,
 		List<String> reviewImages,
 
-		// 리뷰 상태 및 속성
-		ReviewDisplayStatus status,
-		Boolean isBestReview,
-		ReviewLocation locationInfo,
 
 		// 좋아요 및 댓글 정보
+		// 리뷰 상태 및 속성
+		Boolean isBestReview,
 		Long likeCount,
 		Boolean isLikedByMe,
 		Long replyCount,

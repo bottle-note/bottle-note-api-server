@@ -220,11 +220,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 				.join(distillery).on(alcohol.distillery.id.eq(distillery.id))
 				.where(supporter.containsKeywordInAll(keyword))
 				.fetchOne();
-		CursorPageable pageable = CursorPageable.of(items, cursor, pageSize);
-		//PageResponse<List<AlcoholDetailItem>> list = PageResponse.of(items, pageable);
-
 		CursorResponse<AlcoholDetailItem> list = CursorResponse.of(items, cursor, pageSize);
-
 		return Pair.of(total, list);
 	}
 }

@@ -83,7 +83,7 @@ public class AlcoholQueryService {
 
 	@Transactional(readOnly = true)
 	public Pair<Long, CursorResponse<AlcoholDetailItem>> getStandardExplore(
-			Long userId, List<String> keyword, Long cursor, Integer size) {
-		return alcoholQueryRepository.getStandardExplore(userId, keyword, cursor, size);
+			Long userId, List<String> keywords, Long cursor, Integer size) {
+		return alcoholQueryRepository.getStandardExplore(userId, keywords, cursor, size);
 	}
 }
