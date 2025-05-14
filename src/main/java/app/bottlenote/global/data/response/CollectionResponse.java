@@ -1,28 +1,35 @@
 package app.bottlenote.global.data.response;
 
 
+import app.bottlenote.global.service.cursor.CursorResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 @Getter
 @AllArgsConstructor(staticName = "of")
 public class CollectionResponse<T> {
-	private Integer totalCount;
+	private long totalCount;
 	private Collection<T> items;
 
 	public static <T> CollectionResponse<T> empty() {
 		return new CollectionResponse<>(0, Collections.emptyList());
 	}
 
-	public CollectionResponse<T> items(int totalCount, Collection<T> items) {
-		if (items == null) {
+	public static <T> CollectionResponse<T> of(long totalCount, CursorResponse<T> cursorItem) {
+		if (cursorItem == null) {
 			return empty();
 		}
-		this.totalCount = totalCount;
-		this.items = items;
-		return this;
+		return new CollectionResponse<>(Math.toIntExact(totalCount), cursorItem.items());
+	}
+
+	public static <T> CollectionResponse<T> of(long totalCount, List<T> item) {
+		if (item == null) {
+			return empty();
+		}
+		return new CollectionResponse<>(Math.toIntExact(totalCount), item);
 	}
 }

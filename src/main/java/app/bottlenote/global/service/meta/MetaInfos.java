@@ -7,16 +7,15 @@ import lombok.ToString;
 import java.util.HashMap;
 import java.util.Map;
 
-@EqualsAndHashCode
-@ToString
 @Getter
+@ToString
+@EqualsAndHashCode
 public class MetaInfos {
 	private final Map<String, Object> metaInfos;
 
 	protected MetaInfos() {
 		metaInfos = new HashMap<>();
 	}
-
 	public Object findByKey(String key) {
 		return metaInfos.get(key);
 	}
