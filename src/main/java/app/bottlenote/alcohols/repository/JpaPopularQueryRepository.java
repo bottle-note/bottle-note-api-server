@@ -42,27 +42,27 @@ public interface JpaPopularQueryRepository extends JpaRepository<Alcohol, Long> 
 	List<PopularItem> getPopularOfWeeks(@Param("userId") Long userId, Pageable size);
 
 	@Query("""
-			                  SELECT new app.bottlenote.alcohols.dto.response.PopularItem(
-			                       a1_0.id,
-			                        a1_0.korName,
-			                        a1_0.engName,
-			                        CAST(ROUND(AVG(r1_0.ratingPoint.rating), 2) AS double),
-			                        count(r1_0.ratingPoint.rating),
-			                        a1_0.korCategory,
-			                        a1_0.engCategory,
-			                        a1_0.imageUrl,
-			                                   CASE
-			                                       WHEN (SELECT COUNT(p) FROM picks p WHERE p.userId = :userId AND p.alcoholId = a1_0.id) > 0 THEN true
-			                                       ELSE false
-			                                   END,
-			                 		COALESCE((SELECT CAST(MAX(pa.popularScore) AS double) FROM popular_alcohol pa WHERE pa.alcoholId = a1_0.id), 0.0)
-			                  )
-			                 from alcohol a1_0
-			              join alcohol_tasting_tags  at1_0 on a1_0.id = at1_0.alcohol.id
-			              left join rating r1_0 on a1_0.id = r1_0.id.alcoholId
-			                 WHERE at1_0.tastingTag.id in (:tags)
-			                    and at1_0.tastingTag.id not in (:excludedTags)
-			                 GROUP BY a1_0.id, a1_0.korName, a1_0.engName, a1_0.korCategory, a1_0.engCategory, a1_0.imageUrl
+			SELECT new app.bottlenote.alcohols.dto.response.PopularItem(
+				a1_0.id,
+				a1_0.korName,
+				a1_0.engName,
+				CAST(ROUND(AVG(r1_0.ratingPoint.rating), 2) AS double),
+				count(r1_0.ratingPoint.rating),
+				a1_0.korCategory,
+				a1_0.engCategory,
+				a1_0.imageUrl,
+						   CASE
+							   WHEN (SELECT COUNT(p) FROM picks p WHERE p.userId = :userId AND p.alcoholId = a1_0.id) > 0 THEN true
+							   ELSE false
+						   END,
+				COALESCE((SELECT CAST(MAX(pa.popularScore) AS double) FROM popular_alcohol pa WHERE pa.alcoholId = a1_0.id), 0.0)
+				)
+			from alcohol a1_0
+				join alcohol_tasting_tags  at1_0 on a1_0.id = at1_0.alcohol.id
+				left join rating r1_0 on a1_0.id = r1_0.id.alcoholId
+			WHERE at1_0.tastingTag.id in (:tags)
+				AND at1_0.tastingTag.id not in (:excludedTags)
+			GROUP BY a1_0.id, a1_0.korName, a1_0.engName, a1_0.korCategory, a1_0.engCategory, a1_0.imageUrl
 			ORDER BY FUNCTION('RAND')
 			""")
 	List<PopularItem> getSpringItems(
