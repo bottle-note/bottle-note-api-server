@@ -15,7 +15,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PopularService {
+public class AlcoholPopularService {
 
 	private final JpaPopularQueryRepository popularQueryRepository;
 
