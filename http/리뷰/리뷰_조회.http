@@ -1,4 +1,5 @@
 ### 토큰 발급 (일반)
+# @no-cookie-jar
 POST {{host}}/api/v1/oauth/login
 Content-Type: application/json
 
@@ -16,10 +17,11 @@ Content-Type: application/json
 
 
 ### 리뷰조회
-@reviewId=435
-GET {{host}}/api/v1/reviews/{{reviewId}}
+# @no-cookie-jar
+@alcoholId=209
+GET {{host}}/api/v1/reviews/{{alcoholId}}
 Authorization: Bearer {{accessToken}}
 
 ### 나의리뷰조회
-GET {{host}}/api/v1/reviews/me/{{reviewId}}
+GET {{host}}/api/v1/reviews/me/{{alcoholId}}
 Authorization: Bearer {{accessToken}}

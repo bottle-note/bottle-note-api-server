@@ -1,12 +1,11 @@
+# @no-cookie-jar
 ### 토큰 발급 (일반)
 POST {{host}}/api/v1/oauth/login
 Content-Type: application/json
 
 {
   "email": "rkdtkfma@naver.com",
-  "socialType": "KAKAO",
-  "gender": "",
-  "age": ""
+  "socialType": "KAKAO"
 }
 
 
@@ -17,6 +16,7 @@ Content-Type: application/json
 
 
 ### 리뷰 상세 조회
-@reviewId = 26
+# @no-cookie-jar
+@reviewId = 209
 GET {{host}}/api/v1/reviews/detail/{{reviewId}}
 Authorization: Bearer {{accessToken}}
