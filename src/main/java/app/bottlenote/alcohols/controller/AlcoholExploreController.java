@@ -5,7 +5,7 @@ import app.bottlenote.alcohols.service.AlcoholQueryService;
 import app.bottlenote.core.structure.Pair;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.service.cursor.CursorResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -14,11 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import static app.bottlenote.global.service.meta.MetaService.createMetaInfo;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -34,21 +30,12 @@ public class AlcoholExploreController {
 	 */
 	@GetMapping("/standard")
 	public ResponseEntity<?> getStandardExplore(
-			@RequestParam(required = false) String keyword,
+			@RequestParam(required = false) List<String> keyword,
 			@RequestParam(required = false, defaultValue = "20") Integer size,
 			@RequestParam(required = false, defaultValue = "0") Long cursor
 	) {
 		Long userId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
-		Pair<Long, PageResponse<List<AlcoholDetailItem>>> pair = alcoholQueryService.getStandardExplore(userId, keyword, cursor, size);
-
-		// Map을 사용하여 응답 데이터 구성
-		Map<String, Object> responseMap = new HashMap<>();
-		responseMap.put("totalCount", pair.first());
-		responseMap.put("items", pair.second().content());
-
-		return GlobalResponse.ok(
-				responseMap,
-				createMetaInfo().add("pageable", pair.second().cursorPageable())
-		);
+		Pair<Long, CursorResponse<AlcoholDetailItem>> pair = alcoholQueryService.getStandardExplore(userId, keyword, cursor, size);
+		return GlobalResponse.ok(pair, keyword);
 	}
 }

@@ -8,6 +8,7 @@ import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.core.structure.Pair;
 import app.bottlenote.global.service.cursor.CursorPageable;
+import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
 import com.querydsl.core.types.Projections;
@@ -174,7 +175,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 	 * queryDSL  알코올 둘러보기
 	 */
 	@Override
-	public Pair<Long, PageResponse<List<AlcoholDetailItem>>> getStandardExplore(Long userId, String keyword, Long cursor, Integer pageSize) {
+	public Pair<Long, CursorResponse<AlcoholDetailItem>> getStandardExplore(Long userId, List<String> keyword, Long cursor, Integer pageSize) {
 		int fetchSize = pageSize + 1;
 		List<AlcoholDetailItem> items = queryFactory.select(Projections.constructor(
 						AlcoholDetailItem.class,
@@ -201,7 +202,9 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 				.leftJoin(rating).on(rating.id.alcoholId.eq(alcohol.id))
 				.join(region).on(alcohol.region.id.eq(region.id))
 				.join(distillery).on(alcohol.distillery.id.eq(distillery.id))
-				.where(supporter.containsKeywordInAll(keyword))
+				.where(
+						supporter.containsKeywordInAll(keyword)
+				)
 				.groupBy(alcohol.id, alcohol.imageUrl, alcohol.korName, alcohol.engName,
 						alcohol.korCategory, alcohol.engCategory, region.korName, region.engName,
 						alcohol.cask, alcohol.abv, distillery.korName, distillery.engName)
@@ -217,12 +220,11 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 				.join(distillery).on(alcohol.distillery.id.eq(distillery.id))
 				.where(supporter.containsKeywordInAll(keyword))
 				.fetchOne();
-
-		// CursorPageable 생성 (hasNext 계산 및 추가 항목 제거)
 		CursorPageable pageable = CursorPageable.of(items, cursor, pageSize);
+		//PageResponse<List<AlcoholDetailItem>> list = PageResponse.of(items, pageable);
 
-		// PageResponse 생성
-		PageResponse<List<AlcoholDetailItem>> list = PageResponse.of(items, pageable);
+		CursorResponse<AlcoholDetailItem> list = CursorResponse.of(items, cursor, pageSize);
+
 		return Pair.of(total, list);
 	}
 }

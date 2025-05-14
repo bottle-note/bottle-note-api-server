@@ -8,6 +8,7 @@ import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.FriendsDetailResponse;
 import app.bottlenote.core.structure.Pair;
+import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.history.service.AlcoholViewHistoryService;
 import app.bottlenote.review.facade.ReviewFacade;
@@ -67,7 +68,7 @@ public class AlcoholQueryService {
 				.build();
 	}
 
- 	/**
+	/**
 	 * 유자가 팔로우 한 사람들 중 해당 술(위스키)를 마셔본 리스트 조회 api
 	 *
 	 * @param alcoholId
@@ -81,8 +82,8 @@ public class AlcoholQueryService {
 	}
 
 	@Transactional(readOnly = true)
-	public Pair<Long, PageResponse<List<AlcoholDetailItem>>> getStandardExplore(
-			Long userId, String keyword, Long cursor, Integer size) {
+	public Pair<Long, CursorResponse<AlcoholDetailItem>> getStandardExplore(
+			Long userId, List<String> keyword, Long cursor, Integer size) {
 		return alcoholQueryRepository.getStandardExplore(userId, keyword, cursor, size);
 	}
 }
