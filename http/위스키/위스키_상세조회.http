@@ -1,0 +1,20 @@
+### 토큰 발급
+# @no-cookie-jar
+POST {{host}}/api/v1/oauth/login
+Content-Type: application/json
+
+{
+    "email": "rlagusrl928@gmail.com",
+    "socialType": "GOOGLE"
+}
+
+> {%
+    //토큰을 전역변수로 저장
+    client.global.set("accessToken", response.body.data.accessToken);
+%}
+
+### 위스키 조회 상세 조회
+# @no-cookie-jar
+@alcoholId=209
+GET {{host}}/api/v1/alcohols/{{alcoholId}}
+Authorization: Bearer {{accessToken}}
