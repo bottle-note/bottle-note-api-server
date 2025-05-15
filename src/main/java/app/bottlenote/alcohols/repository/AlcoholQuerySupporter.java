@@ -256,32 +256,49 @@ public class AlcoholQuerySupporter {
 	/**
 	 * 키워드를 이용해 주류 정보와 테이스팅 태그를 모두 검색하는 조건 생성
 	 */
-	public BooleanExpression containsKeywordInAll(String keyword) {
-		if (StringUtils.isNullOrEmpty(keyword)) {
+	public BooleanExpression containsKeywordInAll(List<String> keywords) {
+		if (keywords == null || keywords.isEmpty()) {
 			return null;
 		}
 
-		// 기본 필드(이름, 카테고리, 지역) 검색 조건
-		BooleanExpression basicCondition = alcohol.korName.likeIgnoreCase("%" + keyword + "%")
-				.or(alcohol.engName.likeIgnoreCase("%" + keyword + "%"))
-				.or(alcohol.korCategory.likeIgnoreCase("%" + keyword + "%"))
-				.or(alcohol.engCategory.likeIgnoreCase("%" + keyword + "%"))
-				.or(region.korName.likeIgnoreCase("%" + keyword + "%"))
-				.or(region.engName.likeIgnoreCase("%" + keyword + "%"));
+		BooleanExpression finalCondition = null;
 
-		// 테이스팅 태그 검색 조건
-		BooleanExpression tastingTagCondition = JPAExpressions
-				.selectOne()
-				.from(alcoholsTastingTags)
-				.join(tastingTag).on(alcoholsTastingTags.tastingTag.id.eq(tastingTag.id))
-				.where(
-						alcoholsTastingTags.alcohol.id.eq(alcohol.id),
-						tastingTag.korName.likeIgnoreCase("%" + keyword + "%")
-								.or(tastingTag.engName.likeIgnoreCase("%" + keyword + "%"))
-				)
-				.exists();
+		// 각 키워드에 대해 개별 조건을 생성하고 AND 연산으로 결합
+		for (String keyword : keywords) {
+			if (StringUtils.isNullOrEmpty(keyword)) {
+				continue; // 빈 키워드는 건너뛰기
+			}
+			// 현재 키워드에 대한 기본 필드 검색 조건
+			BooleanExpression basicCondition = alcohol.korName.likeIgnoreCase("%" + keyword + "%")
+					.or(alcohol.engName.likeIgnoreCase("%" + keyword + "%"))
+					.or(alcohol.korCategory.likeIgnoreCase("%" + keyword + "%"))
+					.or(alcohol.engCategory.likeIgnoreCase("%" + keyword + "%"))
+					.or(region.korName.likeIgnoreCase("%" + keyword + "%"))
+					.or(region.engName.likeIgnoreCase("%" + keyword + "%"));
 
-		// 두 조건 결합 (기본 필드 또는 테이스팅 태그에 키워드가 포함)
-		return basicCondition.or(tastingTagCondition);
+			// 현재 키워드에 대한 테이스팅 태그 검색 조건
+			BooleanExpression tastingTagCondition = JPAExpressions
+					.selectOne()
+					.from(alcoholsTastingTags)
+					.join(tastingTag).on(alcoholsTastingTags.tastingTag.id.eq(tastingTag.id))
+					.where(
+							alcoholsTastingTags.alcohol.id.eq(alcohol.id),
+							tastingTag.korName.likeIgnoreCase("%" + keyword + "%")
+									.or(tastingTag.engName.likeIgnoreCase("%" + keyword + "%"))
+					)
+					.exists();
+
+			// 현재 키워드에 대한 조건 (기본 필드 또는 테이스팅 태그)
+			BooleanExpression keywordCondition = basicCondition.or(tastingTagCondition);
+
+			// 결과 조건에 AND로 결합
+			if (finalCondition == null) {
+				finalCondition = keywordCondition;
+			} else {
+				finalCondition = finalCondition.and(keywordCondition);
+			}
+		}
+
+		return finalCondition;
 	}
 }

@@ -2,7 +2,7 @@ package app.bottlenote.alcohols.controller;
 
 
 import app.bottlenote.alcohols.dto.response.PopularsOfWeekResponse;
-import app.bottlenote.alcohols.service.PopularService;
+import app.bottlenote.alcohols.service.AlcoholPopularService;
 import app.bottlenote.global.data.response.GlobalResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +18,7 @@ import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByCont
 @RequiredArgsConstructor
 public class AlcoholPopularQueryController {
 
-	private final PopularService popularService;
+	private final AlcoholPopularService alcoholPopularService;
 
 	/**
 	 * 주간 인기 위스키 리스트 조회
@@ -32,7 +32,7 @@ public class AlcoholPopularQueryController {
 	@GetMapping("/popular/week")
 	public ResponseEntity<?> getPopularOfWeek(@RequestParam(defaultValue = "5") Integer top) {
 		Long userId = getUserIdByContext().orElse(-1L);
-		var populars = popularService.getPopularOfWeek(top, userId);
+		var populars = alcoholPopularService.getPopularOfWeek(top, userId);
 		var response = PopularsOfWeekResponse.of(populars.size(), populars);
 		return GlobalResponse.ok(response);
 	}
@@ -43,7 +43,7 @@ public class AlcoholPopularQueryController {
 	@GetMapping("/popular/spring")
 	public ResponseEntity<?> getSpringItems() {
 		Long userId = getUserIdByContext().orElse(-1L);
-		var response = popularService.getSpringItems(userId);
+		var response = alcoholPopularService.getSpringItems(userId);
 		return GlobalResponse.ok(response);
 	}
 
