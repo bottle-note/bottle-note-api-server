@@ -9,6 +9,7 @@ import app.bottlenote.like.dto.response.LikesUpdateResponse;
 import app.bottlenote.like.event.payload.LikesRegistryEvent;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.facade.ReviewFacade;
+import app.bottlenote.review.facade.payload.ReviewInfo;
 import app.bottlenote.user.facade.UserFacade;
 import app.bottlenote.user.facade.payload.UserProfileItem;
 import lombok.RequiredArgsConstructor;
@@ -53,9 +54,8 @@ public class LikesCommandService {
 		likes.updateStatus(status);
 		likesRepository.save(likes);
 
-		likesEventPublisher.publishLikesHistoryEvent(
-				LikesRegistryEvent.of(likes.getReviewId(), likes.getUserInfo().getUserId())
-		);
+		ReviewInfo reviewInfo = reviewFacade.getReviewInfo(likes.getReviewId(), userId);
+		likesEventPublisher.publishLikesHistoryEvent(LikesRegistryEvent.of(reviewInfo.reviewId(), likes.getUserInfo().getUserId(), reviewInfo.reviewContent()));
 
 		return LikesUpdateResponse.of(
 				likes.getId(),
