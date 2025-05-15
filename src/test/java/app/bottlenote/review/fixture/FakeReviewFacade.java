@@ -117,6 +117,11 @@ public class FakeReviewFacade implements ReviewFacade {
 		reviewDatabase.put(reviewInfo.reviewId(), reviewInfo);
 	}
 
+	@Override
+	public ReviewInfo getReviewInfo(Long reviewId, Long userId) {
+		return reviewDatabase.get(reviewId);
+	}
+
 	public void removeReview(Long reviewId) {
 		reviewDatabase.remove(reviewId);
 	}
