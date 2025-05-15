@@ -1,12 +1,13 @@
 ### 토큰 발급 (일반)
+# @no-cookie-jar
 POST {{host}}/api/v1/oauth/login
 Content-Type: application/json
 
 {
-  "email": "dev.bottle-note@gmail.com",
-  "socialType": "GOOGLE",
-  "gender": "MALE",
-  "age": 25
+    "email": "dev.bottle-note@gmail.com",
+    "socialType": "GOOGLE",
+    "gender": "MALE",
+    "age": 25
 }
 
 > {%
@@ -16,8 +17,8 @@ Content-Type: application/json
 
 
 ### 리뷰 좋아요
-
-@reviewId = "12"
+# @no-cookie-jar
+@reviewId = "9"
 @status = "LIKE"
 PUT {{host}}/api/v1/likes
 Content-Type: application/json

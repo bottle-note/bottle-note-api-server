@@ -1,6 +1,7 @@
 package app.bottlenote.review.facade;
 
 import app.bottlenote.review.dto.response.ReviewListResponse;
+import app.bottlenote.review.facade.payload.ReviewInfo;
 
 public interface ReviewFacade {
 	ReviewListResponse getReviewInfoList(Long alcoholId, Long userId);
@@ -10,4 +11,6 @@ public interface ReviewFacade {
 	boolean isExistReview(Long reviewId);
 
 	void requestBlockReview(Long reviewId);
+
+	ReviewInfo getReviewInfo(Long reviewId, Long userId);
 }

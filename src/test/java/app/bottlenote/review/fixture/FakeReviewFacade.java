@@ -25,7 +25,7 @@ public class FakeReviewFacade implements ReviewFacade {
 		reviewDatabase.put(1L, ReviewInfo.builder()
 				.reviewId(1L)
 				.reviewContent("정말 맛있는 제품이에요!")
-				.reviewImageUrl("http://example.com/image1.jpg")
+				.reviewImageUrl("https://example.com/image1.jpg")
 				.createAt(LocalDateTime.now().minusDays(2))
 				.totalImageCount(3L)
 				.userInfo(new UserInfo(1L, "nickName", "image"))
@@ -46,7 +46,7 @@ public class FakeReviewFacade implements ReviewFacade {
 		reviewDatabase.put(2L, ReviewInfo.builder()
 				.reviewId(2L)
 				.reviewContent("괜찮은 제품이지만 별로에요.")
-				.reviewImageUrl("http://example.com/image2.jpg")
+				.reviewImageUrl("https://example.com/image2.jpg")
 				.createAt(LocalDateTime.now().minusDays(5))
 				.totalImageCount(1L)
 				.userInfo(new UserInfo(1L, "nickName", "image"))
@@ -115,6 +115,15 @@ public class FakeReviewFacade implements ReviewFacade {
 
 	public void addReview(ReviewInfo reviewInfo) {
 		reviewDatabase.put(reviewInfo.reviewId(), reviewInfo);
+	}
+
+	@Override
+	public ReviewInfo getReviewInfo(Long reviewId, Long userId) {
+		return reviewDatabase.values()
+				.stream()
+				.filter(review -> review.reviewId().equals(reviewId) && (userId == null || review.userInfo().userId().equals(userId)))
+				.findFirst()
+				.orElse(null);
 	}
 
 	public void removeReview(Long reviewId) {
