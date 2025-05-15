@@ -10,6 +10,7 @@ import app.bottlenote.review.constant.SizeType;
 import app.bottlenote.review.dto.request.LocationInfoRequest;
 import app.bottlenote.review.dto.request.ReviewImageInfoRequest;
 import app.bottlenote.review.dto.request.ReviewModifyRequestWrapperItem;
+import app.bottlenote.review.facade.payload.ReviewInfo;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
