@@ -80,6 +80,7 @@ public class OauthService {
 	private TokenItem doAppleLogin(OauthRequest oauthReq, String socialUniqueId, String email, SocialType socialType) {
 		User user;
 
+		log.info("애플 로그인 시도: req={}, uniqueId={}, email={}", oauthReq, socialUniqueId, email);
 		if (socialUniqueId != null && !socialUniqueId.isBlank()) {
 			var existingUser = oauthRepository.findBySocialUniqueId(socialUniqueId);
 
