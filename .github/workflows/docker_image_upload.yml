@@ -10,7 +10,7 @@ on:
       - prod
 
 concurrency:
-  group: "ecr-upload"
+  group: "ecr-image-build-${{ github.ref_name || github.ref | replace('/', '-') }}"
   cancel-in-progress: true
 
 jobs:
