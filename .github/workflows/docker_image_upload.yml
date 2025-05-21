@@ -10,7 +10,7 @@ on:
       - prod
 
 concurrency:
-  group: "ecr-upload"
+  group: "ecr-image-build-${{ github.ref }}"
   cancel-in-progress: true
 
 jobs:
