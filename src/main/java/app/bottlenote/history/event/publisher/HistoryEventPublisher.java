@@ -75,6 +75,7 @@ public class HistoryEventPublisher {
 				.eventType(REVIEW_LIKES)
 				.redirectUrl(RedirectUrlType.REVIEW.getUrl() + "/" + reviewId)
 				.alcoholId(alcoholId)
+				.content(event.content())
 				.build();
 
 		eventPublisher.publishEvent(likesHistoryEvent);

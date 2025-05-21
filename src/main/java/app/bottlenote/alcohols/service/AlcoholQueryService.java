@@ -8,6 +8,7 @@ import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.FriendsDetailResponse;
 import app.bottlenote.core.structure.Pair;
+import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.history.service.AlcoholViewHistoryService;
 import app.bottlenote.review.facade.ReviewFacade;
@@ -81,8 +82,8 @@ public class AlcoholQueryService {
 	}
 
 	@Transactional(readOnly = true)
-	public Pair<Long, PageResponse<List<AlcoholDetailItem>>> getStandardExplore(
-			Long userId, String keyword, Long cursor, Integer size) {
-		return alcoholQueryRepository.getStandardExplore(userId, keyword, cursor, size);
+	public Pair<Long, CursorResponse<AlcoholDetailItem>> getStandardExplore(
+			Long userId, List<String> keywords, Long cursor, Integer size) {
+		return alcoholQueryRepository.getStandardExplore(userId, keywords, cursor, size);
 	}
 }

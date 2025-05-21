@@ -6,7 +6,7 @@ import app.bottlenote.alcohols.fixture.AlcoholQueryFixture;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
 import app.bottlenote.core.structure.Pair;
 import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.service.cursor.CursorResponse;
 import app.docs.AbstractRestDocs;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,25 +37,28 @@ public class RestAlcoholExploreControllerTest extends AbstractRestDocs {
 	@Test
 	void docs_1() throws Exception {
 		// given
+		List<String> keywords = List.of("keyword1", "keyword2");
 		List<AlcoholDetailItem> alcohols = List.of(
 				AlcoholQueryFixture.getAlcoholDetailInfo(),
 				AlcoholQueryFixture.getAlcoholDetailInfo(),
 				AlcoholQueryFixture.getAlcoholDetailInfo()
 		);
-		PageResponse<List<AlcoholDetailItem>> items = PageResponse.of(alcohols, CursorPageable.builder()
+		CursorPageable pageable = CursorPageable.builder()
 				.currentCursor(0L)
 				.cursor(0L)
 				.pageSize(10L)
 				.hasNext(true)
-				.build());
-		Pair<Long, PageResponse<List<AlcoholDetailItem>>> response = Pair.of(500L, items);
+				.build();
+		CursorResponse<AlcoholDetailItem> cursorResponse = CursorResponse.of(alcohols, pageable);
+		Pair<Long, CursorResponse<AlcoholDetailItem>> response = Pair.of(500L, cursorResponse);
 
 		// when
 		when(alcoholQueryService.getStandardExplore(any(), any(), any(), any())).thenReturn(response);
 
 		// then
 		mockMvc.perform(get("/api/v1/alcohols/explore/standard")
-						.param("keyword", "glen")
+						.param("keywords", keywords.get(0))
+						.param("keywords", keywords.get(1))
 						.param("cursor", "0")
 						.param("size", "10")
 				)
@@ -63,7 +66,7 @@ public class RestAlcoholExploreControllerTest extends AbstractRestDocs {
 				.andDo(
 						document("alcohols/explore/standard",
 								queryParameters(
-										parameterWithName("keyword").optional().description("검색어"),
+										parameterWithName("keywords").optional().description("검색어 목록"),
 										parameterWithName("cursor").optional().description("조회 할 시작 기준 위치"),
 										parameterWithName("size").optional().description("조회 할 페이지 사이즈")
 								),
@@ -94,6 +97,7 @@ public class RestAlcoholExploreControllerTest extends AbstractRestDocs {
 										fieldWithPath("meta.serverVersion").ignored(),
 										fieldWithPath("meta.serverPathVersion").ignored(),
 										fieldWithPath("meta.serverResponseTime").ignored(),
+										fieldWithPath("meta.searchParameters.keywords").description("검색어 정보"),
 										fieldWithPath("meta.pageable").description("페이징 정보"),
 										fieldWithPath("meta.pageable.currentCursor").description("조회 시 기준 커서"),
 										fieldWithPath("meta.pageable.cursor").description("다음 페이지 커서"),

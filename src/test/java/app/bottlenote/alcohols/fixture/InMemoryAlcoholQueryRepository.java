@@ -9,6 +9,7 @@ import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.core.structure.Pair;
+import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
 
 import java.util.HashMap;
@@ -68,7 +69,7 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
 	}
 
 	@Override
-	public Pair<Long, PageResponse<List<AlcoholDetailItem>>> getStandardExplore(Long userId, String keyword, Long cursor, Integer size) {
+	public Pair<Long, CursorResponse<AlcoholDetailItem>> getStandardExplore(Long userId, List<String> keyword, Long cursor, Integer size) {
 		return null;
 	}
 }

@@ -2,7 +2,7 @@ package app.docs.alcohols;
 
 import app.bottlenote.alcohols.controller.AlcoholPopularQueryController;
 import app.bottlenote.alcohols.dto.response.PopularItem;
-import app.bottlenote.alcohols.service.PopularService;
+import app.bottlenote.alcohols.service.AlcoholPopularService;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.docs.AbstractRestDocs;
 import org.junit.jupiter.api.DisplayName;
@@ -29,13 +29,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("popular 컨트롤러 RestDocs용 테스트")
 class RestPopularControllerIntegrationTest extends AbstractRestDocs {
 
-	private final PopularService popularService = mock(PopularService.class);
+	private final AlcoholPopularService alcoholPopularService = mock(AlcoholPopularService.class);
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
 
 	@Override
 	protected Object initController() {
-		return new AlcoholPopularQueryController(popularService);
+		return new AlcoholPopularQueryController(alcoholPopularService);
 	}
 
 	@Test
@@ -52,7 +52,7 @@ class RestPopularControllerIntegrationTest extends AbstractRestDocs {
 
 
 		// when & then
-		when(popularService.getPopularOfWeek(anyInt(), any())).thenReturn(populars);
+		when(alcoholPopularService.getPopularOfWeek(anyInt(), any())).thenReturn(populars);
 
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/popular/week/")
 						.param("top", "5"))
@@ -86,7 +86,7 @@ class RestPopularControllerIntegrationTest extends AbstractRestDocs {
 								)
 						));
 
-		verify(popularService).getPopularOfWeek(5, -1L);
+		verify(alcoholPopularService).getPopularOfWeek(5, -1L);
 	}
 
 	@Test
@@ -102,7 +102,7 @@ class RestPopularControllerIntegrationTest extends AbstractRestDocs {
 		);
 
 		// when & then
-		when(popularService.getSpringItems(anyLong())).thenReturn(springPopulars);
+		when(alcoholPopularService.getSpringItems(anyLong())).thenReturn(springPopulars);
 
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/popular/spring"))
 				.andExpect(status().isOk())

@@ -3,11 +3,18 @@
 - 기본형 위스키 둘러보기 API를 정의합니다.
 - 정렬 옵션이 없는 API 입니다 시간순으로 정렬됩니다
 - 키워드는 이름, 카테고리, 지역 , 태그를 대상으로 검색합니다.
+- 여러 키워드는 모두 AND 조건으로 검색됩니다 (모든 키워드를 포함하는 항목만 결과에 표시)
+
+[source]
+keywords="keyword1"&keywords="keyword2"
+- 형태로 여러 키워드를 입력할 수 있다.
+
 
 [discrete]
 ==== 요청 파라미터 ====
 
 include::{snippets}/alcohols/explore/standard/curl-request.adoc[]
+include::{snippets}/alcohols/explore/standard/http-request.adoc[]
 include::{snippets}/alcohols/explore/standard/query-parameters.adoc[]
 
 [discrete]

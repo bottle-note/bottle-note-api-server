@@ -120,6 +120,7 @@ include::api/external/push/device-token.adoc[]
 == 둘러보기 (explore) 관련 API
 
 include::api/alcohols/explore.standard.adoc[]
+include::api/review/explore.standard.adoc[]
 
 == 술 (alcohol) 관련 API
 

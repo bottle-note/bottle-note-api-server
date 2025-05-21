@@ -8,6 +8,7 @@ import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.facade.ReviewFacade;
+import app.bottlenote.review.facade.payload.ReviewInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,5 +47,11 @@ public class DefaultReviewFacade implements ReviewFacade {
 	public void requestBlockReview(Long reviewId) {
 		reviewRepository.findById(reviewId)
 				.ifPresent(Review::blockReview);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public ReviewInfo getReviewInfo(Long reviewId, Long userId) {
+		return reviewRepository.getReview(reviewId, userId);
 	}
 }
