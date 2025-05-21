@@ -39,9 +39,9 @@ import java.util.Objects;
 @Entity(name = "users")
 @Table(name = "users")
 @FilterDef(
-	name = "statusFilter",
-	parameters = @ParamDef(name = "userStatus", type = String.class),
-	defaultCondition = "status = :userStatus"
+		name = "statusFilter",
+		parameters = @ParamDef(name = "userStatus", type = String.class),
+		defaultCondition = "status = :userStatus"
 )
 @Filter(name = "statusFilter")
 public class User extends BaseTimeEntity {
@@ -131,5 +131,10 @@ public class User extends BaseTimeEntity {
 
 	public void restore() {
 		this.status = UserStatus.ACTIVE;
+	}
+
+	public void updateSocialUniqueId(String socialUniqueId) {
+		Objects.requireNonNull(socialUniqueId, "socialUniqueId는 null이 될 수 없습니다.");
+		this.socialUniqueId = socialUniqueId;
 	}
 }

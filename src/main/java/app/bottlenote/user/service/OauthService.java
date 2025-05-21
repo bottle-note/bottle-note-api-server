@@ -59,7 +59,7 @@ public class OauthService {
 		return getTokenItem(user, socialType);
 	}
 
-	private TokenItem doAppleLogin(OauthRequest oauthReq, String socialUniqueId, String email, SocialType socialType) {
+	private TokenItem doAppleLoginOld(OauthRequest oauthReq, String socialUniqueId, String email, SocialType socialType) {
 		User user;
 
 		if (socialUniqueId != null && !socialUniqueId.isBlank() && email != null && !email.isBlank()) {
@@ -70,10 +70,52 @@ public class OauthService {
 				log.error("애플 로그인 오류: socialUniqueId is null, email={}", email);
 				throw new UserException(UserExceptionCode.TEMPORARY_LOGIN_ERROR);
 			}
-
 			user = oauthRepository.findBySocialUniqueId(socialUniqueId).orElseThrow(
 					() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
 		}
+		checkActiveUser(user);
+		return getTokenItem(user, socialType);
+	}
+
+	private TokenItem doAppleLogin(OauthRequest oauthReq, String socialUniqueId, String email, SocialType socialType) {
+		User user;
+
+		if (socialUniqueId != null && !socialUniqueId.isBlank()) {
+			var existingUser = oauthRepository.findBySocialUniqueId(socialUniqueId);
+
+			if (existingUser.isPresent()) {
+				// 사용자를 찾은 경우 해당 사용자 반환
+				user = existingUser.get();
+			} else {
+				// socialUniqueId로 사용자를 찾지 못한 경우
+				log.info("애플 로그인: socialUniqueId로 사용자를 찾지 못함, 새 계정 생성 시도, socialUniqueId={}", socialUniqueId);
+				if (email != null && !email.isBlank()) {
+					var userByEmail = oauthRepository.findByEmail(email);
+					if (userByEmail.isPresent()) {
+						log.info("애플 로그인: 이메일로 사용자를 찾음, socialUniqueId 업데이트, email={}", email);
+						user = userByEmail.get();
+						user.updateSocialUniqueId(socialUniqueId);
+					} else {
+						log.info("애플 로그인: 새 계정 생성, email={}, socialUniqueId={}", email, socialUniqueId);
+						user = oauthSignUp(oauthReq, UserType.ROLE_USER);
+					}
+				} else {
+					log.info("애플 로그인: 이메일 없이 후속 로그인, 랜덤 계정 생성, socialUniqueId={}", socialUniqueId);
+					OauthRequest newOauthReq = new OauthRequest(
+							"apple" + UUID.randomUUID() + "@bottlenote.com",  // 랜덤 이메일 생성
+							socialUniqueId,
+							SocialType.APPLE,
+							oauthReq.gender(),
+							oauthReq.age()
+					);
+
+					user = oauthSignUp(newOauthReq, UserType.ROLE_USER);
+				}
+			}
+		} else {
+			throw new UserException(UserExceptionCode.TEMPORARY_LOGIN_ERROR);
+		}
+
 		checkActiveUser(user);
 		return getTokenItem(user, socialType);
 	}
