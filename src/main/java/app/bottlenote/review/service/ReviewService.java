@@ -111,7 +111,7 @@ public class ReviewService {
 				.build();
 
 		review.imageInitialization(reviewCreateRequest.imageUrlList());
-		review.saveTastingTag(reviewCreateRequest.tastingTagList());
+		review.updateTastingTags(reviewCreateRequest.tastingTagList());
 
 		Review saveReview = reviewRepository.save(review);
 
