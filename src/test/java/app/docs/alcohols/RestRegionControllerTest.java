@@ -50,7 +50,7 @@ class RestReferenceControllerTest extends AbstractRestDocs {
 		when(referenceService.findAllRegion()).thenReturn(response);
 
 		// then
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/regions/"))
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/regions"))
 				.andExpect(status().isOk())
 				.andDo(
 						document("alcohols/regions",
