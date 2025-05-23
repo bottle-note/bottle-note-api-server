@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Getter
 @NoArgsConstructor
@@ -25,16 +26,16 @@ public class UserHistoryItem {
 
 	@Builder
 	public UserHistoryItem(
-		Long historyId,
-		LocalDateTime createdAt,
-		EventCategory eventCategory,
-		EventType eventType,
-		Long alcoholId,
-		String alcoholName,
-		String imageUrl,
-		String redirectUrl,
-		String content,
-		Object dynamicMessage
+			Long historyId,
+			LocalDateTime createdAt,
+			EventCategory eventCategory,
+			EventType eventType,
+			Long alcoholId,
+			String alcoholName,
+			String imageUrl,
+			String redirectUrl,
+			String content,
+			Object dynamicMessage
 	) {
 		this.historyId = historyId;
 		this.createdAt = createdAt;
@@ -45,6 +46,15 @@ public class UserHistoryItem {
 		this.imageUrl = imageUrl;
 		this.redirectUrl = redirectUrl;
 		this.content = content;
-		this.dynamicMessage = (Map<String, String>) dynamicMessage;
+		if (dynamicMessage instanceof Map<?, ?> map) {
+			this.dynamicMessage = map.entrySet().stream()
+					.filter(e -> e.getKey() instanceof String && e.getValue() instanceof String)
+					.collect(Collectors.toMap(
+							e -> (String) e.getKey(),
+							e -> (String) e.getValue()
+					));
+		} else {
+			this.dynamicMessage = null; // 또는 Collections.emptyMap()
+		}
 	}
 }
