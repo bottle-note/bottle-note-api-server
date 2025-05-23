@@ -38,7 +38,7 @@ import java.util.Objects;
 @ToString(includeFieldNames = false)
 @AllArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
-@Comment("리뷰 테이블(리뷰, 평점, 이미지, 리뷰 댓글)")
+@Comment(value = "리뷰 테이블(리뷰, 평점, 이미지, 리뷰 댓글)",on = "reviews")
 @Entity(name = "review")
 @Table(name = "reviews")
 public class Review extends BaseEntity {

@@ -18,7 +18,8 @@ public class FirebaseInitializerConfig {
 	private final FirebaseProperties firebaseProperties;
 
 	@Bean
-	public void initialize() {
+	public FirebaseApp initialize() {
+		FirebaseApp firebaseApp = FirebaseApp.getInstance();
 		if (FirebaseApp.getApps().isEmpty()) {
 			try {
 				ClassPathResource resource = new ClassPathResource(firebaseProperties.getFirebaseConfigurationFile());
@@ -27,10 +28,11 @@ public class FirebaseInitializerConfig {
 						.setCredentials(GoogleCredentials.fromStream(serviceAccount))
 						.build();
 				log.info("Firebase 초기화 성공 : {} ", options);
-				FirebaseApp.initializeApp(options);
+				firebaseApp = FirebaseApp.initializeApp(options);
 			} catch (Exception e) {
 				log.error("Firebase 초기화 오류: {}", e.getMessage());
 			}
 		}
+		return firebaseApp;
 	}
 }
