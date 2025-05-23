@@ -167,10 +167,6 @@ public class Review extends BaseEntity {
 		this.status = status;
 	}
 
-	public void saveTastingTag(List<String> reviewTastingTags) {
-		this.reviewTastingTags.saveReviewTastingTag(reviewTastingTags, this);
-	}
-
 	public void updateTastingTags(List<String> updateTastingTags) {
 		this.reviewTastingTags.updateReviewTastingTags(updateTastingTags, this);
 	}
