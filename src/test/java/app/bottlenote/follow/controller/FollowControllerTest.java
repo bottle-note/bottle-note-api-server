@@ -1,13 +1,5 @@
 package app.bottlenote.follow.controller;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import app.bottlenote.follow.fixture.FollowQueryFixture;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.user.controller.FollowController;
@@ -15,7 +7,6 @@ import app.bottlenote.user.dto.request.FollowPageableRequest;
 import app.bottlenote.user.dto.response.FollowingSearchResponse;
 import app.bottlenote.user.service.FollowService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -24,10 +15,20 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+
+import java.util.stream.Stream;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Disabled
 @Tag("unit")
@@ -36,16 +37,13 @@ import org.springframework.test.web.servlet.ResultActions;
 @WebMvcTest(FollowController.class)
 class FollowControllerTest {
 
+	private final FollowQueryFixture followQueryFixture = new FollowQueryFixture();
 	@Autowired
 	protected ObjectMapper mapper;
 	@Autowired
 	protected MockMvc mockMvc;
-
-	@MockBean
+	@MockitoBean
 	private FollowService followService;
-
-	private final FollowQueryFixture followQueryFixture = new FollowQueryFixture();
-
 
 	static Stream<Arguments> testCaseProvider() {
 		return Stream.of(

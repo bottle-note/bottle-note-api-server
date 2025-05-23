@@ -28,7 +28,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("알코올 참조 컨트롤러 RestDocs용 테스트")
 class RestReferenceControllerTest extends AbstractRestDocs {
 
-	private final AlcoholQueryFixture fixture = new AlcoholQueryFixture();
 	private final AlcoholReferenceService referenceService = mock(AlcoholReferenceService.class);
 
 	@Override
@@ -74,7 +73,7 @@ class RestReferenceControllerTest extends AbstractRestDocs {
 	@DisplayName("카테고리 정보를 조회 할 수 있다.")
 	@Test
 	void docs_2() throws Exception {
-		List<CategoryItem> responses = fixture.categoryResponses();
+		List<CategoryItem> responses = AlcoholQueryFixture.categoryResponses();
 
 		when(referenceService.getAlcoholCategory(any())).thenReturn(responses);
 

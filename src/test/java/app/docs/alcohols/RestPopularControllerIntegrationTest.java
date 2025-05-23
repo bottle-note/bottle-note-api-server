@@ -32,7 +32,6 @@ class RestPopularControllerIntegrationTest extends AbstractRestDocs {
 	private final AlcoholPopularService alcoholPopularService = mock(AlcoholPopularService.class);
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
-
 	@Override
 	protected Object initController() {
 		return new AlcoholPopularQueryController(alcoholPopularService);
@@ -54,7 +53,7 @@ class RestPopularControllerIntegrationTest extends AbstractRestDocs {
 		// when & then
 		when(alcoholPopularService.getPopularOfWeek(anyInt(), any())).thenReturn(populars);
 
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/popular/week/")
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/popular/week")
 						.param("top", "5"))
 				.andExpect(status().isOk())
 				.andDo(

@@ -17,10 +17,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.HashMap;
@@ -52,9 +52,9 @@ class ReportCommandControllerTest {
 	protected ObjectMapper mapper;
 	@Autowired
 	protected MockMvc mockMvc;
-	@MockBean
+	@MockitoBean
 	private UserReportService userReportService;
-	@MockBean
+	@MockitoBean
 	private ReviewReportService reviewReportService;
 
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;

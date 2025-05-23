@@ -16,9 +16,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -42,9 +42,9 @@ class AlcoholQueryControllerTest {
 	protected ObjectMapper mapper;
 	@Autowired
 	protected MockMvc mockMvc;
-	@MockBean
+	@MockitoBean
 	private AlcoholQueryService alcoholQueryService;
-	@MockBean
+	@MockitoBean
 	private AlcoholReferenceService alcoholReferenceService;
 
 	@DisplayName("술 목록을 조회할 수 있다.")
@@ -60,17 +60,17 @@ class AlcoholQueryControllerTest {
 
 		// then
 		ResultActions resultActions = mockMvc.perform(get("/api/v1/alcohols/search")
-				.param("keyword", searchRequest.keyword())
-				.param("category", searchRequest.category() == null ? null : searchRequest.category().name())
-				.param("regionId", searchRequest.regionId() == null ? null : String.valueOf(searchRequest.regionId()))
-				.param("sortType", searchRequest.sortType().name())
-				.param("sortOrder", searchRequest.sortOrder().name())
-				.param("cursor", String.valueOf(searchRequest.cursor()))
-				.param("pageSize", String.valueOf(searchRequest.pageSize()))
-				.with(csrf())
-			)
-			.andExpect(status().isOk())
-			.andDo(print());
+						.param("keyword", searchRequest.keyword())
+						.param("category", searchRequest.category() == null ? null : searchRequest.category().name())
+						.param("regionId", searchRequest.regionId() == null ? null : String.valueOf(searchRequest.regionId()))
+						.param("sortType", searchRequest.sortType().name())
+						.param("sortOrder", searchRequest.sortOrder().name())
+						.param("cursor", String.valueOf(searchRequest.cursor()))
+						.param("pageSize", String.valueOf(searchRequest.pageSize()))
+						.with(csrf())
+				)
+				.andExpect(status().isOk())
+				.andDo(print());
 
 		resultActions.andExpect(jsonPath("$.success").value("true"));
 		resultActions.andExpect(jsonPath("$.code").value("200"));
@@ -93,17 +93,17 @@ class AlcoholQueryControllerTest {
 		when(alcoholQueryService.searchAlcohols(any(), any())).thenReturn(response);
 
 		mockMvc.perform(get("/api/v1/alcohols/search")
-				.param("keyword", "")
-				.param("category", "")
-				.param("regionId", "")
-				.param("sortType", sortType)
-				.param("sortOrder", "DESC")
-				.param("cursor", "")
-				.param("pageSize", "")
-				.with(csrf())
-			)
-			.andExpect(status().is(expectedStatus))
-			.andDo(print());
+						.param("keyword", "")
+						.param("category", "")
+						.param("regionId", "")
+						.param("sortType", sortType)
+						.param("sortOrder", "DESC")
+						.param("cursor", "")
+						.param("pageSize", "")
+						.with(csrf())
+				)
+				.andExpect(status().is(expectedStatus))
+				.andDo(print());
 	}
 
 	@DisplayName("다양한 정렬 방향으로 술 목록을 조회할 수 있다.")
@@ -117,16 +117,16 @@ class AlcoholQueryControllerTest {
 		when(alcoholQueryService.searchAlcohols(any(), any())).thenReturn(response);
 
 		mockMvc.perform(get("/api/v1/alcohols/search")
-				.param("keyword", "")
-				.param("category", "")
-				.param("regionId", "")
-				.param("sortType", "REVIEW")
-				.param("sortOrder", sortOrder)
-				.param("cursor", "")
-				.param("pageSize", "")
-				.with(csrf())
-			)
-			.andExpect(status().is(expectedStatus))
-			.andDo(print());
+						.param("keyword", "")
+						.param("category", "")
+						.param("regionId", "")
+						.param("sortType", "REVIEW")
+						.param("sortOrder", sortOrder)
+						.param("cursor", "")
+						.param("pageSize", "")
+						.with(csrf())
+				)
+				.andExpect(status().is(expectedStatus))
+				.andDo(print());
 	}
 }
