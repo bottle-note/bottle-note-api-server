@@ -10,7 +10,6 @@ import app.bottlenote.review.constant.SizeType;
 import app.bottlenote.review.dto.request.LocationInfoRequest;
 import app.bottlenote.review.dto.request.ReviewImageInfoRequest;
 import app.bottlenote.review.dto.request.ReviewModifyRequestWrapperItem;
-import app.bottlenote.review.facade.payload.ReviewInfo;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -134,7 +133,6 @@ public class Review extends BaseEntity {
 		}
 	}
 
-
 	public void imageInitialization(List<ReviewImageInfoRequest> list) {
 		list = Objects.requireNonNullElse(list, Collections.emptyList());
 		List<ReviewImage> imageList = list.stream()
@@ -154,7 +152,7 @@ public class Review extends BaseEntity {
 										.build()
 				).toList();
 
-		if (list.size() > 1) {
+		if (!list.isEmpty()) {
 			this.imageUrl = list.get(0).viewUrl();
 		}
 		updateImages(imageList);
@@ -164,7 +162,6 @@ public class Review extends BaseEntity {
 	public void updateImages(List<ReviewImage> reviewImages) {
 		this.reviewImages.update(reviewImages);
 	}
-
 
 	public void updateDisplayStatus(ReviewDisplayStatus status) {
 		this.status = status;
@@ -177,7 +174,6 @@ public class Review extends BaseEntity {
 	public void updateTastingTags(List<String> updateTastingTags) {
 		this.reviewTastingTags.updateReviewTastingTags(updateTastingTags, this);
 	}
-
 
 	public ReviewResultMessage updateReviewActiveStatus(ReviewActiveStatus activeStatus) {
 		this.activeStatus = activeStatus;
