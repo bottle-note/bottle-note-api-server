@@ -8,6 +8,7 @@ import com.google.firebase.messaging.MulticastMessage;
 import com.google.firebase.messaging.Notification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "app.third-party.firebase-configuration-file")
 public class DefaultPushHandler implements PushHandler {
 	private static final String DEFAULT_TITLE = "Bottle Note 에서 새로운 소식이 도착했어요!";
 	private final UserFacade tokenService;
@@ -35,12 +37,12 @@ public class DefaultPushHandler implements PushHandler {
 	public void sendPush(List<Long> userIds, String message) {
 		List<String> tokens = new ArrayList<>();
 		MulticastMessage multicastMessage = MulticastMessage.builder()
-			.setNotification(Notification.builder()
-				.setTitle(DEFAULT_TITLE)
-				.setBody(message)
-				.build())
-			.addAllTokens(tokens)
-			.build();
+				.setNotification(Notification.builder()
+						.setTitle(DEFAULT_TITLE)
+						.setBody(message)
+						.build())
+				.addAllTokens(tokens)
+				.build();
 		push(multicastMessage);
 
 	}
@@ -50,12 +52,12 @@ public class DefaultPushHandler implements PushHandler {
 
 		List<String> tokens = new ArrayList<>();
 		MulticastMessage multicastMessage = MulticastMessage.builder()
-			.setNotification(Notification.builder()
-				.setTitle(DEFAULT_TITLE)
-				.setBody(message)
-				.build())
-			.addAllTokens(tokens)
-			.build();
+				.setNotification(Notification.builder()
+						.setTitle(DEFAULT_TITLE)
+						.setBody(message)
+						.build())
+				.addAllTokens(tokens)
+				.build();
 
 		// Queue에 메시지와 저장시간 발솔 예정 시간 저장
 	}

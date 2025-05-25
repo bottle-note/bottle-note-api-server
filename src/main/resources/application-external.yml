@@ -4,11 +4,11 @@ profanity:
     url: ${PROFANITY_FILTER_URL:https://api.profanity-filter.run/api/v1}
     key: ${PROFANITY_FILTER_KEY}
 
-# Firebase
+# Firebase (로컬 개발환경에서는 비활성화)
 app:
-  thirdParty:
-    firebase-configuration-file: /application/springboot/service_account_credentials.json
-    base64file: ${FIREBASE_BASE64_FILE}
+  third-party:
+    # firebase-configuration-file: /application/springboot/service_account_credentials.json
+    # base64file: ${FIREBASE_BASE64_FILE}
 
 # AWS S3
 amazon:
