@@ -1,7 +1,7 @@
 # Profanity Filter
 profanity:
   filter:
-    url: ${PROFANITY_FILTER_URL:https://api.profanity-filter.run/api/v1}
+    url: https://api.profanity.kr-filter.com/api/v1
     key: ${PROFANITY_FILTER_KEY}
 
 # Firebase
