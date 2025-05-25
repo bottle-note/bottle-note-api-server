@@ -38,7 +38,6 @@ import java.util.Objects;
 @ToString(includeFieldNames = false)
 @AllArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
-@Comment(value = "리뷰 테이블(리뷰, 평점, 이미지, 리뷰 댓글)",on = "reviews")
 @Entity(name = "review")
 @Table(name = "reviews")
 public class Review extends BaseEntity {
@@ -84,7 +83,6 @@ public class Review extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private ReviewDisplayStatus status = ReviewDisplayStatus.PUBLIC;
 
-	@Comment("위치 정보")
 	@Embedded
 	private ReviewLocation reviewLocation;
 
@@ -104,12 +102,10 @@ public class Review extends BaseEntity {
 	private ReviewActiveStatus activeStatus = ReviewActiveStatus.ACTIVE;
 
 	@Builder.Default
-	@Comment("리뷰 이미지 (1급 컬렉션) ")
 	@Embedded
 	private ReviewImages reviewImages = ReviewImages.empty();
 
 	@Builder.Default
-	@Comment("리뷰 테이스팅 태그 (1급 컬렉션) ")
 	@Embedded
 	private ReviewTastingTags reviewTastingTags = ReviewTastingTags.empty();
 

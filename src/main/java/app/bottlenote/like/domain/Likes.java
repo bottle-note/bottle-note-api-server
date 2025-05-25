@@ -42,7 +42,6 @@ public class Likes extends BaseEntity {
 	private Long reviewId;
 
 
-	@Comment("좋아요 사용자 정보")
 	@Embedded
 	private LikeUserInfo userInfo;
 

@@ -33,7 +33,6 @@ import java.util.Objects;
 @Builder
 @Getter
 @ToString(of = {"id", "email", "nickName", "age", "socialType"})
-@Comment("사용자 정보 테이블")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity(name = "users")

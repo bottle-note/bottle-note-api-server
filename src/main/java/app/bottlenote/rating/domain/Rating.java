@@ -12,7 +12,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Comment;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -21,7 +20,6 @@ import static lombok.AccessLevel.PROTECTED;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Comment("알콜 점수 테이블")
 @Entity(name = "rating")
 @Table(name = "ratings")
 public class Rating extends BaseEntity {
@@ -30,7 +28,6 @@ public class Rating extends BaseEntity {
 	private RatingId id;
 
 	@Embedded
-	@Comment("평가점수 : 0, 0.5, 1.0 ... 5.0")
 	@Column(name = "rating")
 	private RatingPoint ratingPoint = new RatingPoint();
 
