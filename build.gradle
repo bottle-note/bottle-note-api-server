@@ -1,7 +1,6 @@
 plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.1.9'
-//	id 'org.springframework.boot' version '3.2.3'
 	id 'io.spring.dependency-management' version '1.1.4'
 	id "org.asciidoctor.jvm.convert" version "3.3.2"
 }
@@ -41,8 +40,8 @@ allprojects {
 	}
 
 	java {
-		sourceCompatibility = JavaVersion.VERSION_17
-		targetCompatibility = JavaVersion.VERSION_17
+		sourceCompatibility = JavaVersion.VERSION_21
+		targetCompatibility = JavaVersion.VERSION_21
 	}
 
 	sourceSets {
@@ -137,7 +136,7 @@ dependencies {
 	testImplementation "org.testcontainers:mysql:1.19.0"
 
 	//firebase
-	implementation 'com.google.firebase:firebase-admin:8.0.0'
+	implementation 'com.google.firebase:firebase-admin:9.4.3'
 
 	//rule engine
 	testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.0'
@@ -174,8 +173,8 @@ subprojects {
 	}
 
 	java {
-		sourceCompatibility = JavaVersion.VERSION_17
-		targetCompatibility = JavaVersion.VERSION_17
+		sourceCompatibility = JavaVersion.VERSION_21
+		targetCompatibility = JavaVersion.VERSION_21
 	}
 
 	bootJar.enabled = false

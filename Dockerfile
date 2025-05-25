@@ -1,5 +1,5 @@
 # 빌드 스테이지
-FROM eclipse-temurin:17-jdk AS builder
+FROM eclipse-temurin:21-jdk AS builder
 WORKDIR /app
 
 # 빌드에 필요한 파일만 복사 (의존성 캐싱 최적화)
@@ -10,7 +10,7 @@ COPY . .
 RUN ./gradlew clean build -x test -x asciidoctor -x copyRestDocs
 
 # 실행 스테이지
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 # 시간대 설정
