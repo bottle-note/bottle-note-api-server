@@ -290,4 +290,10 @@ sourceSets {
 // gradle clean 시에 QClass 디렉토리 삭제
 clean {
 	delete file(generated)
+	subprojects.each { sub ->
+		clean.dependsOn(sub.tasks.matching { it.name == 'clean' })
+		clean.doFirst {
+			delete file("${sub.projectDir}/src/main/generated")
+		}
+	}
 }
