@@ -1,0 +1,294 @@
+# act workflow_dispatch    -W .github/workflows/deploy_production.yml    -j pre-deploy-health-check    --secret-file .secrets    --container-architecture linux/arm64    --verbose > act-test.log 2>&1
+name: Production Rolling Deployment
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [ closed ]
+    branches:
+      - prod
+
+concurrency:
+  group: "production-deploy-${{ github.event.pull_request.number }}"
+  cancel-in-progress: true
+
+env:
+  ECR_REPOSITORY: "ecr-bottle-note-api"
+  HEALTH_CHECK_TIMEOUT: "30"
+  DEPLOY_TIMEOUT: "300"
+
+jobs:
+  build-and-push-ecr:
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.build-image.outputs.image_tag }}
+      ecr_registry: ${{ steps.login-ecr.outputs.registry }}
+    steps:
+      - name: 코드 체크아웃 (서브모듈 포함)
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+
+      - name: 1Password 서비스 계정 설정
+        uses: 1password/load-secrets-action/configure@v2
+        with:
+          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+
+      - name: AWS 자격증명 로드
+        uses: 1password/load-secrets-action@v2
+        id: op-load-aws-secret
+        with:
+          export-env: true
+        env:
+          AWS_ACCESS_KEY_ID: "op://vault/ecr iam authentication/access key id"
+          AWS_SECRET_ACCESS_KEY: "op://vault/ecr iam authentication/secret access key"
+          AWS_REGION: "op://vault/ecr iam authentication/region"
+
+      - name: AWS 자격증명 구성
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: ECR 로그인
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Docker Buildx 설정 (캐시 지원)
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
+
+      - name: ARM64 최적화 빌드 및 푸시 (GitHub Actions 캐시)
+        id: build-image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/arm64
+          push: true
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          cache-from: type=gha,scope=${{ github.ref_name }}
+          cache-to: type=gha,scope=${{ github.ref_name }},mode=max
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
+
+      - name: 이미지 태그 출력 설정
+        run: |
+          IMAGE_TAG="${GITHUB_SHA:0:7}"
+          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "::notice title=ECR 빌드 완료::이미지 태그: $IMAGE_TAG"
+          echo "::notice title=빌드 플랫폼::linux/arm64 (aarch64 최적화)"
+
+
+  # 배포 전 프로덕션 서버 상태 확인 (HTTP 헬스체크)
+  pre-deploy-health-check:
+    needs: build-and-push-ecr
+    runs-on: ubuntu-latest
+    outputs:
+      overall_status: ${{ steps.final-status.outputs.status }}
+      cluster1_status: ${{ steps.cluster1-check.outputs.status }}
+      cluster2_status: ${{ steps.cluster2-check.outputs.status }}
+    steps:
+      - name: 1Password 서비스 계정 설정
+        uses: 1password/load-secrets-action/configure@v2
+        with:
+          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+
+      - name: 클러스터 정보 로드
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: true
+        env:
+          # 클러스터 1 정보
+          CLUSTER1_IP: "op://vault/product-cluster-1/ip"
+          CLUSTER1_PORT: "op://vault/product-cluster-1/port"
+          # 클러스터 2 정보
+          CLUSTER2_IP: "op://vault/product-cluster-2/ip"
+          CLUSTER2_PORT: "op://vault/product-cluster-2/port"
+
+      - name: 클러스터 1 헬스체크
+        id: cluster1-check
+        run: |
+          echo "🔍 product-cluster-1 헬스체크 시작..."
+
+          # HTTP 헬스체크 엔드포인트 호출
+          HEALTH_URL="http://$CLUSTER1_IP:30301/actuator/health"
+
+          # 서버 응답 확인 (최대 30초 대기)
+          if curl -f -s --max-time 30 --connect-timeout 10 "$HEALTH_URL" > /dev/null 2>&1; then
+            echo "✅ product-cluster-1 HTTP 응답 정상"
+
+            # 헬스체크 상세 정보 확인
+            HEALTH_RESPONSE=$(curl -s --max-time 10 "$HEALTH_URL" 2>/dev/null || echo '{"status":"UNKNOWN"}')
+            echo "헬스체크 응답: $HEALTH_RESPONSE"
+
+            # JSON에서 status 추출
+            STATUS=$(echo "$HEALTH_RESPONSE" | grep -o '"status":"[^"]*"' | cut -d'"' -f4 2>/dev/null || echo "UNKNOWN")
+
+            if [ "$STATUS" = "UP" ]; then
+              echo "✅ product-cluster-1 애플리케이션 상태: UP"
+              echo "status=healthy" >> $GITHUB_OUTPUT
+            else
+              echo "⚠️ product-cluster-1 애플리케이션 상태: $STATUS"
+              echo "status=degraded" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "❌ product-cluster-1 HTTP 응답 없음 또는 오류"
+            echo "- 애플리케이션이 중지되었거나 첫 배포일 수 있습니다"
+            echo "status=down" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 클러스터 2 헬스체크
+        id: cluster2-check
+        run: |
+          echo "🔍 product-cluster-2 헬스체크 시작..."
+
+          # HTTP 헬스체크 엔드포인트 호출
+          HEALTH_URL="http://$CLUSTER2_IP:30301/actuator/health"
+
+          # 서버 응답 확인 (최대 30초 대기)
+          if curl -f -s --max-time 30 --connect-timeout 10 "$HEALTH_URL" > /dev/null 2>&1; then
+            echo "✅ product-cluster-2 HTTP 응답 정상"
+
+            # 헬스체크 상세 정보 확인
+            HEALTH_RESPONSE=$(curl -s --max-time 10 "$HEALTH_URL" 2>/dev/null || echo '{"status":"UNKNOWN"}')
+            echo "헬스체크 응답: $HEALTH_RESPONSE"
+
+            # JSON에서 status 추출
+            STATUS=$(echo "$HEALTH_RESPONSE" | grep -o '"status":"[^"]*"' | cut -d'"' -f4 2>/dev/null || echo "UNKNOWN")
+
+            if [ "$STATUS" = "UP" ]; then
+              echo "✅ product-cluster-2 애플리케이션 상태: UP"
+              echo "status=healthy" >> $GITHUB_OUTPUT
+            else
+              echo "⚠️ product-cluster-2 애플리케이션 상태: $STATUS"
+              echo "status=degraded" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "❌ product-cluster-2 HTTP 응답 없음 또는 오류"
+            echo "- 애플리케이션이 중지되었거나 첫 배포일 수 있습니다"
+            echo "status=down" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 전체 상태 판정
+        id: final-status
+        run: |
+          CLUSTER1_STATUS="${{ steps.cluster1-check.outputs.status }}"
+          CLUSTER2_STATUS="${{ steps.cluster2-check.outputs.status }}"
+
+          echo "📊 헬스체크 요약:"
+          echo "- 클러스터 1: $CLUSTER1_STATUS"
+          echo "- 클러스터 2: $CLUSTER2_STATUS"
+
+          # 배포 진행 조건: 적어도 하나는 정상이거나, 모두 down(첫 배포)인 경우
+          if [ "$CLUSTER1_STATUS" = "healthy" ] || [ "$CLUSTER2_STATUS" = "healthy" ] ||
+             ([ "$CLUSTER1_STATUS" = "down" ] && [ "$CLUSTER2_STATUS" = "down" ]); then
+            echo "✅ 전체 상태: 배포 진행 가능"
+            echo "status=healthy" >> $GITHUB_OUTPUT
+          else
+            echo "❌ 전체 상태: 배포 위험 - 중단"
+            echo "status=unhealthy" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: 헬스체크 완료 알림
+        if: always()
+        run: |
+          if [ "${{ steps.final-status.outputs.status }}" = "healthy" ]; then
+            echo "::notice title=헬스체크 완료::배포 진행 가능 상태입니다. 롤링 배포를 시작합니다."
+          else
+            echo "::error title=헬스체크 실패::두 클러스터 모두 문제가 있어 배포가 중단됩니다."
+          fi
+
+  # 롤링 배포 - 순차적으로 각 클러스터에 배포
+  rolling-deploy:
+    needs: [ build-and-push-ecr, pre-deploy-health-check ]
+    if: needs.pre-deploy-health-check.outputs.overall_status == 'healthy'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cluster: [ 'product-cluster-1', 'product-cluster-2' ]
+      max-parallel: 1  # 순차 배포 (첫 번째 성공 후 두 번째 실행)
+      fail-fast: true  # 하나라도 실패하면 전체 중단
+    outputs:
+      deployment_status: ${{ steps.deploy.outputs.status }}
+      previous_image: ${{ steps.backup-info.outputs.previous_image }}
+    steps:
+      - name: 1Password 인증 설정
+        run: echo "Configure 1Password for ${{ matrix.cluster }}"
+
+      - name: ${{ matrix.cluster }} SSH 자격증명 로드
+        run: echo "Load SSH credentials for ${{ matrix.cluster }}"
+
+      - name: ${{ matrix.cluster }} 배포 시작 알림
+        run: echo "Starting deployment to ${{ matrix.cluster }}"
+
+      - name: 기존 컨테이너 정보 백업 (롤백용)
+        run: echo "Backup current container info for rollback"
+
+      - name: ${{ matrix.cluster }}에 SSH 연결 및 배포
+        run: |
+          echo "SSH to ${{ matrix.cluster }}"
+          echo "- AWS ECR 로그인"
+          echo "- 새 이미지 Pull: ${{ needs.build-and-push-ecr.outputs.image_tag }}"
+          echo "- 기존 컨테이너 Graceful Shutdown"
+          echo "- 새 컨테이너 실행"
+
+
+      - name: ${{ matrix.cluster }} 헬스체크 대기
+        run: |
+          echo "Wait for application health check on ${{ matrix.cluster }}"
+          echo "- HTTP health endpoint 확인"
+          echo "- 컨테이너 상태 확인"
+          echo "- 로그 모니터링"
+
+      - name: ${{ matrix.cluster }} 배포 완료 확인
+        run: echo "Verify deployment success on ${{ matrix.cluster }}"
+
+  # 전체 배포 완료 후 최종 검증
+  post-deploy-verification:
+    needs: [ build-and-push-ecr, rolling-deploy ]
+    if: needs.rolling-deploy.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 전체 클러스터 동시 헬스체크
+        run: echo "Health check both clusters simultaneously"
+      - name: 로드밸런서 상태 확인
+        run: echo "Check load balancer status and traffic distribution"
+      - name: 배포 성공 알림
+        run: |
+          echo "Send deployment success notification"
+          echo "- Slack/Teams 알림"
+          echo "- 배포된 이미지 태그: ${{ needs.build-and-push-ecr.outputs.image_tag }}"
+          echo "- 배포 완료 시간 기록"
+
+
+  # 배포 실패 시 자동 롤백
+  rollback-on-failure:
+    needs: [ build-and-push-ecr, rolling-deploy ]
+    if: failure() && needs.rolling-deploy.result == 'failure'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cluster: [ 'product-cluster-1', 'product-cluster-2' ]
+      max-parallel: 2  # 롤백은 병렬로 빠르게 실행
+    steps:
+      - name: 1Password 인증 설정 (롤백용)
+        run: echo "Configure 1Password for rollback on ${{ matrix.cluster }}"
+      - name: ${{ matrix.cluster }} 롤백 시작
+        run: echo "Starting rollback on ${{ matrix.cluster }}"
+      - name: ${{ matrix.cluster }} 이전 이미지로 복구
+        run: |
+          echo "Rollback to previous image on ${{ matrix.cluster }}"
+          echo "- 실패한 컨테이너 중지"
+          echo "- 이전 이미지로 컨테이너 재시작"
+          echo "- 헬스체크 확인"
+      - name: 롤백 실패 알림
+        run: |
+          echo "Send rollback notification"
+          echo "- 실패 원인 분석"
+          echo "- 긴급 대응 알림"
+          echo "- 롤백 상태 보고"

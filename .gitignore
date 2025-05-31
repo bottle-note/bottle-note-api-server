@@ -85,3 +85,4 @@ src/main/generated
 /git.environment-variables/generated/app/external/notification/domain/QNotification.java
 /git.environment-variables/generated/app/external/notification/domain/QUserDeviceToken.java
 /git.environment-variables/generated/app/external/notification/domain/QUserPushConfig.java
+/.secrets
