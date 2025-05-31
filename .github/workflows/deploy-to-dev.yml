@@ -16,7 +16,6 @@ jobs:
     strategy:
       matrix:
         environment: [
-          application-alpha,
           application-bravo,
           application-charlie
         ]
