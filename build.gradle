@@ -6,7 +6,7 @@ plugins {
 }
 
 ext {
-	queryDslVersion = "5.0.0"
+	queryDslVersion = "6.11"
 	springCloudVersion = "2022.0.5"
 }
 
@@ -91,8 +91,14 @@ dependencies {
 	implementation 'io.hypersistence:hypersistence-utils-hibernate-60:3.7.3'
 
 	//querydsl 설정 추가
-	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
-	annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
+	//implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+	//annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
+	//annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+	//annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+
+	// 안전한 OpenFeign 의존성들
+	implementation "io.github.openfeign.querydsl:querydsl-jpa:${queryDslVersion}"
+	annotationProcessor "io.github.openfeign.querydsl:querydsl-apt:${queryDslVersion}:jakarta"
 	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
 	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
@@ -284,4 +290,10 @@ sourceSets {
 // gradle clean 시에 QClass 디렉토리 삭제
 clean {
 	delete file(generated)
+	subprojects.each { sub ->
+		clean.dependsOn(sub.tasks.matching { it.name == 'clean' })
+		clean.doFirst {
+			delete file("${sub.projectDir}/src/main/generated")
+		}
+	}
 }
