@@ -1,6 +1,7 @@
 package app.bottlenote.alcohols.repository;
 
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
+import app.bottlenote.alcohols.constant.KeywordTagMapping;
 import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
@@ -188,6 +189,7 @@ public class AlcoholQuerySupporter {
 				.or(alcohol.engName.like("%" + name + "%"));
 	}
 
+
 	/**
 	 * 카테고리 일치 여부 조건 생성
 	 */
@@ -254,9 +256,9 @@ public class AlcoholQuerySupporter {
 	}
 
 	/**
-	 * 키워드를 이용해 주류 정보와 테이스팅 태그를 모두 검색하는 조건 생성
+	 * 다수 키워드에 대한 검색 조건 생성
 	 */
-	public BooleanExpression containsKeywordInAll(List<String> keywords) {
+	public BooleanExpression keywordsMatch(List<String> keywords) {
 		if (keywords == null || keywords.isEmpty()) {
 			return null;
 		}
@@ -300,5 +302,49 @@ public class AlcoholQuerySupporter {
 		}
 
 		return finalCondition;
+	}
+
+	/**
+	 * 단건 키워드 검색 조건 생성
+	 */
+	public BooleanExpression keywordMatch(String keyword) {
+		if (StringUtils.isNullOrEmpty(keyword))
+			return null;
+
+		// 기본 검색 조건 (이름, 카테고리)
+		BooleanExpression basicSearch = alcohol.korName.like("%" + keyword + "%")
+				.or(alcohol.engName.like("%" + keyword + "%"))
+				.or(alcohol.korCategory.like("%" + keyword + "%"))
+				.or(alcohol.engCategory.like("%" + keyword + "%"));
+
+		// 특정 키워드에 대한 태그 검색 조건
+		BooleanExpression tagSearch = getTastingTagsExpression(keyword);
+
+		if (tagSearch != null) {
+			return basicSearch.or(tagSearch);
+		}
+
+		return basicSearch;
+	}
+
+
+	public BooleanExpression getTastingTagsExpression(String keyword) {
+		var tagMapping = KeywordTagMapping.findByKeyword(keyword);
+
+		if (tagMapping.isPresent()) {
+			List<Long> tagIds = tagMapping.get().getIncludeTags();
+
+			if (tagIds != null && !tagIds.isEmpty()) {
+				return JPAExpressions
+						.selectOne()
+						.from(alcoholsTastingTags)
+						.where(
+								alcoholsTastingTags.alcohol.id.eq(alcohol.id),
+								alcoholsTastingTags.tastingTag.id.in(tagIds)
+						)
+						.exists();
+			}
+		}
+		return null;
 	}
 }
