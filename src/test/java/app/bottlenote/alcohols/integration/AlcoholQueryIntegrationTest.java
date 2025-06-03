@@ -65,8 +65,8 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
 	@Test
 	@DisplayName("알코올 상세 조회를 할 수 있다.")
 	void test_2() throws Exception {
-		final Long alcoholId = 1L;
-		MvcResult result = mockMvc.perform(get("/api/v1/alcohols/{alcoholId}", alcoholId)
+		Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+		MvcResult result = mockMvc.perform(get("/api/v1/alcohols/{alcoholId}", alcohol.getId())
 						.contentType(APPLICATION_JSON)
 						.header("Authorization", "Bearer " + getToken())
 						.with(csrf())
