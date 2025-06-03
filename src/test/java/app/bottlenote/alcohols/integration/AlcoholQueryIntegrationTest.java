@@ -41,8 +41,6 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
 	private UserTestFactory userTestFactory;
 	@Autowired
 	private RatingTestFactory ratingTestFactory;
-	@Autowired
-	private jakarta.persistence.EntityManager em;
 
 	@Test
 	@DisplayName("알코올 목록조회를 할 수 있다.")

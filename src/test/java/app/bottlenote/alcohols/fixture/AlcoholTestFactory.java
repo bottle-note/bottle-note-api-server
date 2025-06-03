@@ -5,35 +5,23 @@ import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.Distillery;
 import app.bottlenote.alcohols.domain.Region;
-import app.bottlenote.alcohols.repository.JpaAlcoholQueryRepository;
-import app.bottlenote.user.repository.FollowRepository;
-import app.bottlenote.user.repository.JpaUserRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.util.Random;
 
 @RequiredArgsConstructor
 @Component
 public class AlcoholTestFactory {
 
-	private final Random random = new Random();
+	private final Random random = new SecureRandom();
 
 	@Autowired
 	private EntityManager em;
-
-	@Deprecated
-	@Autowired
-	private JpaUserRepository userRepository;
-	@Deprecated
-	@Autowired
-	private FollowRepository followRepository;
-	@Deprecated
-	@Autowired
-	private JpaAlcoholQueryRepository alcoholQueryRepository;
 
 	/**
 	 * 기본 Region 생성 (스코틀랜드)
