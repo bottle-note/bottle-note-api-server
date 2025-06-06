@@ -2,6 +2,7 @@ package app.bottlenote.alcohols.fixture;
 
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.AlcoholType;
+import app.bottlenote.alcohols.constant.KeywordTagMapping;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholsTastingTags;
 import app.bottlenote.alcohols.domain.Distillery;
@@ -371,14 +372,68 @@ public class AlcoholTestFactory {
 	@Transactional
 	public Set<AlcoholsTastingTags> getAlcoholTastingTags(Long alcoholId) {
 		List<AlcoholsTastingTags> result = em.createQuery("""
-                        SELECT att
-                        FROM alcohol_tasting_tags att
-                        JOIN FETCH att.tastingTag
-                        WHERE att.alcohol.id = :alcoholId
-                        """, AlcoholsTastingTags.class)
+						SELECT att
+						FROM alcohol_tasting_tags att
+						JOIN FETCH att.tastingTag
+						WHERE att.alcohol.id = :alcoholId
+						""", AlcoholsTastingTags.class)
 				.setParameter("alcoholId", alcoholId)
 				.getResultList();
 
 		return new HashSet<>(result);
+	}
+
+	/**
+	 * KeywordTagMapping에 따라 알코올에 태그를 설정
+	 * 기존 태그는 모두 삭제하고 새로 설정
+	 */
+	@Transactional
+	public void appendTagsFromKeywordMapping(Long alcoholId, KeywordTagMapping mapping) {
+		// 1. 알코올 조회
+		Alcohol alcohol = em.find(Alcohol.class, alcoholId);
+		if (alcohol == null) {
+			throw new IllegalArgumentException("알코올이 존재하지 않습니다. ID: " + alcoholId);
+		}
+
+		// 2. 기존 태그 매핑 삭제
+		em.createQuery("""
+						DELETE FROM alcohol_tasting_tags att
+						WHERE att.alcohol.id = :alcoholId
+						""")
+				.setParameter("alcoholId", alcoholId)
+				.executeUpdate();
+
+		// 3. includeTags로 태그 생성/조회 후 매핑
+		List<Long> includeTagIds = mapping.getIncludeTags();
+		for (Long tagId : includeTagIds) {
+			// 기존 태그 조회
+			TastingTag tag = em.find(TastingTag.class, tagId);
+			if (tag == null) {
+				// 없으면 특정 ID로 생성
+				String korName = "태그-" + tagId;
+				String engName = "tag-" + tagId;
+
+				// Native Query로 직접 INSERT (ID 지정)
+				em.createNativeQuery("""
+                                INSERT INTO tasting_tags (id, kor_name, eng_name, create_at, last_modify_at)
+                                VALUES (?, ?, ?, NOW(), NOW())
+                                """)
+						.setParameter(1, tagId)
+						.setParameter(2, korName)
+						.setParameter(3, engName)
+						.executeUpdate();
+
+				// 생성된 엔티티 조회해서 할당
+				tag = em.find(TastingTag.class, tagId);
+			}
+
+			AlcoholsTastingTags tastingTags = AlcoholsTastingTags.builder()
+					.alcohol(alcohol)
+					.tastingTag(tag)
+					.build();
+			em.persist(tastingTags);
+		}
+
+		em.flush();
 	}
 }
