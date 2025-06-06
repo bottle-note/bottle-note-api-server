@@ -317,14 +317,28 @@ public class AlcoholQuerySupporter {
 				.or(alcohol.korCategory.like("%" + keyword + "%"))
 				.or(alcohol.engCategory.like("%" + keyword + "%"));
 
-		// 특정 키워드에 대한 태그 검색 조건
-		BooleanExpression tagSearch = getTastingTagsExpression(keyword);
+		// 미리 정의된 태그 검색 조건
+		BooleanExpression predefinedTagSearch = getTastingTagsExpression(keyword);
 
-		if (tagSearch != null) {
-			return basicSearch.or(tagSearch);
+		// **동적 태그 검색 조건 추가** (현재 누락된 부분)
+		BooleanExpression dynamicTagSearch = JPAExpressions
+				.selectOne()
+				.from(alcoholsTastingTags)
+				.join(tastingTag).on(alcoholsTastingTags.tastingTag.id.eq(tastingTag.id))
+				.where(
+						alcoholsTastingTags.alcohol.id.eq(alcohol.id),
+						tastingTag.korName.like("%" + keyword + "%")
+								.or(tastingTag.engName.like("%" + keyword + "%"))
+				)
+				.exists();
+
+		// 모든 조건을 OR로 결합
+		BooleanExpression result = basicSearch.or(dynamicTagSearch);
+		if (predefinedTagSearch != null) {
+			result = result.or(predefinedTagSearch);
 		}
 
-		return basicSearch;
+		return result;
 	}
 
 
