@@ -1,6 +1,7 @@
 package app.bottlenote.alcohols.repository;
 
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
+import app.bottlenote.alcohols.constant.KeywordTagMapping;
 import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
@@ -188,6 +189,7 @@ public class AlcoholQuerySupporter {
 				.or(alcohol.engName.like("%" + name + "%"));
 	}
 
+
 	/**
 	 * 카테고리 일치 여부 조건 생성
 	 */
@@ -254,9 +256,9 @@ public class AlcoholQuerySupporter {
 	}
 
 	/**
-	 * 키워드를 이용해 주류 정보와 테이스팅 태그를 모두 검색하는 조건 생성
+	 * 다수 키워드에 대한 검색 조건 생성
 	 */
-	public BooleanExpression containsKeywordInAll(List<String> keywords) {
+	public BooleanExpression keywordsMatch(List<String> keywords) {
 		if (keywords == null || keywords.isEmpty()) {
 			return null;
 		}
@@ -300,5 +302,63 @@ public class AlcoholQuerySupporter {
 		}
 
 		return finalCondition;
+	}
+
+	/**
+	 * 단건 키워드 검색 조건 생성
+	 */
+	public BooleanExpression keywordMatch(String keyword) {
+		if (StringUtils.isNullOrEmpty(keyword))
+			return null;
+
+		// 기본 검색 조건 (이름, 카테고리)
+		BooleanExpression basicSearch = alcohol.korName.like("%" + keyword + "%")
+				.or(alcohol.engName.like("%" + keyword + "%"))
+				.or(alcohol.korCategory.like("%" + keyword + "%"))
+				.or(alcohol.engCategory.like("%" + keyword + "%"));
+
+		// 미리 정의된 태그 검색 조건
+		BooleanExpression predefinedTagSearch = getTastingTagsExpression(keyword);
+
+		// **동적 태그 검색 조건 추가** (현재 누락된 부분)
+		BooleanExpression dynamicTagSearch = JPAExpressions
+				.selectOne()
+				.from(alcoholsTastingTags)
+				.join(tastingTag).on(alcoholsTastingTags.tastingTag.id.eq(tastingTag.id))
+				.where(
+						alcoholsTastingTags.alcohol.id.eq(alcohol.id),
+						tastingTag.korName.like("%" + keyword + "%")
+								.or(tastingTag.engName.like("%" + keyword + "%"))
+				)
+				.exists();
+
+		// 모든 조건을 OR로 결합
+		BooleanExpression result = basicSearch.or(dynamicTagSearch);
+		if (predefinedTagSearch != null) {
+			result = result.or(predefinedTagSearch);
+		}
+
+		return result;
+	}
+
+
+	public BooleanExpression getTastingTagsExpression(String keyword) {
+		var tagMapping = KeywordTagMapping.findByKeyword(keyword);
+
+		if (tagMapping.isPresent()) {
+			List<Long> tagIds = tagMapping.get().getIncludeTags();
+
+			if (tagIds != null && !tagIds.isEmpty()) {
+				return JPAExpressions
+						.selectOne()
+						.from(alcoholsTastingTags)
+						.where(
+								alcoholsTastingTags.alcohol.id.eq(alcohol.id),
+								alcoholsTastingTags.tastingTag.id.in(tagIds)
+						)
+						.exists();
+			}
+		}
+		return null;
 	}
 }

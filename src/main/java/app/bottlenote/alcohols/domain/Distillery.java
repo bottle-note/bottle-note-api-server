@@ -9,6 +9,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
@@ -17,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Comment("증류소")
 @Entity(name = "distillery")
@@ -40,6 +44,7 @@ public class Distillery extends BaseEntity {
 	@Column(name = "logo_img_url")
 	private String logoImgPath;
 
+	@Builder.Default
 	@Comment("증류소 설명")
 	@OneToMany(mappedBy = "distillery")
 	private List<Alcohol> alcohol = new ArrayList<>();

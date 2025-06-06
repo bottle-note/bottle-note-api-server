@@ -10,11 +10,17 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.Comment;
 
 @Getter
+@ToString(exclude = {"alcohol", "tastingTag"})
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Comment("알코올과 테이스팅 태그 연관관계 해소 테이블 ")
 @Entity(name = "alcohol_tasting_tags")
@@ -35,4 +41,11 @@ public class AlcoholsTastingTags extends BaseTimeEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "tasting_tag_id", nullable = false)
 	private TastingTag tastingTag;
+
+	public static AlcoholsTastingTags of(Alcohol alcohol, TastingTag tastingTag) {
+		return AlcoholsTastingTags.builder()
+				.alcohol(alcohol)
+				.tastingTag(tastingTag)
+				.build();
+	}
 }

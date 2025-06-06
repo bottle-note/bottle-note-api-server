@@ -19,7 +19,7 @@ Content-Type: application/json
 
 ### 위스키 목록 조회
 
-GET {{host}}/api/v1/alcohols/search?category=SINGLE_MALT&cursor=1&pageSize=1
+GET {{host}}/api/v1/alcohols/search?category=SINGLE_MALT&cursor=1&pageSize=1&keyword=초콜릿
 Authorization: Bearer {{accessToken}}
 
 ### 위스키 조회 상세 조회

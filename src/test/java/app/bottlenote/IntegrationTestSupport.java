@@ -1,6 +1,9 @@
 package app.bottlenote;
 
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
+import app.bottlenote.user.constant.GenderType;
+import app.bottlenote.user.constant.SocialType;
+import app.bottlenote.user.constant.UserType;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.TokenItem;
@@ -28,6 +31,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @Testcontainers
@@ -96,13 +101,31 @@ public abstract class IntegrationTestSupport {
 	}
 
 	protected String getToken() {
-		User user = oauthRepository.getFirstUser().orElseThrow(() -> new RuntimeException("init 처리된 유저가 없습니다."));
+		User user = oauthRepository.getFirstUser().orElse(null);
+		if (user == null) {
+			UUID key = UUID.randomUUID();
+			user = oauthRepository.save(User.builder()
+					.email(key + "@example.com")
+					.age(20)
+					.gender(GenderType.MALE)
+					.nickName("testUser" + key)
+					.socialType(List.of(SocialType.KAKAO))
+					.role(UserType.ROLE_USER)
+					.build());
+		}
+
 		TokenItem token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
 		return token.accessToken();
 	}
 
 	protected Long getTokenUserId() {
 		User user = oauthRepository.getFirstUser().orElseThrow(() -> new RuntimeException("init 처리된 유저가 없습니다."));
+		return user.getId();
+	}
+
+	protected Long getTokenUserId(String email) {
+		User user = oauthRepository.findByEmail(email)
+				.orElseThrow(() -> new RuntimeException("해당 이메일의 유저가 없습니다: " + email));
 		return user.getId();
 	}
 }
