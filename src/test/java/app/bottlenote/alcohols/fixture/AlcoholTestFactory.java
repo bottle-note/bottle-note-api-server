@@ -3,8 +3,10 @@ package app.bottlenote.alcohols.fixture;
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.domain.Alcohol;
+import app.bottlenote.alcohols.domain.AlcoholsTastingTags;
 import app.bottlenote.alcohols.domain.Distillery;
 import app.bottlenote.alcohols.domain.Region;
+import app.bottlenote.alcohols.domain.TastingTag;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +14,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @Component
@@ -123,6 +128,12 @@ public class AlcoholTestFactory {
 		return alcohol;
 	}
 
+	@Transactional
+	public List<Alcohol> persistAlcohols(int count) {
+		return java.util.stream.IntStream.range(0, count)
+				.mapToObj(i -> persistAlcohol(AlcoholType.WHISKY))
+				.toList();
+	}
 
 	/**
 	 * 타입별 Alcohol 생성 - 연관 엔티티 자동 생성
@@ -327,4 +338,47 @@ public class AlcoholTestFactory {
 		return builder;
 	}
 
+	@Transactional
+	public Set<AlcoholsTastingTags> appendTastingTag(Alcohol alcohol, TastingTag tag) {
+		if (tag == null) {
+			tag = TastingTag.builder()
+					.korName("테스트 태그-" + generateRandomSuffix())
+					.engName("test-tag-" + generateRandomSuffix())
+					.build();
+		}
+		if (alcohol == null) {
+			alcohol = persistAlcohol();
+		}
+
+		em.persist(tag);
+		em.flush();
+
+		AlcoholsTastingTags tastingTags = AlcoholsTastingTags.builder()
+				.alcohol(alcohol)
+				.tastingTag(tag)
+				.build();
+
+		em.persist(tastingTags);
+
+		// 양방향 연관관계 설정
+		alcohol.getAlcoholsTastingTags().add(tastingTags);
+		em.flush();
+
+		// 새로운 Set을 반환해서 Lazy 문제 회피
+		return new HashSet<>(alcohol.getAlcoholsTastingTags());
+	}
+
+	@Transactional
+	public Set<AlcoholsTastingTags> getAlcoholTastingTags(Long alcoholId) {
+		List<AlcoholsTastingTags> result = em.createQuery("""
+                        SELECT att
+                        FROM alcohol_tasting_tags att
+                        JOIN FETCH att.tastingTag
+                        WHERE att.alcohol.id = :alcoholId
+                        """, AlcoholsTastingTags.class)
+				.setParameter("alcoholId", alcoholId)
+				.getResultList();
+
+		return new HashSet<>(result);
+	}
 }
