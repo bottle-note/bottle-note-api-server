@@ -52,6 +52,22 @@ public class PicksQuerySupporter {
 		);
 	}
 
+	public BooleanExpression isPickedBothSubQuery(Long userId, Long targetUserId) {
+		if (userId == null || targetUserId == null)
+			return Expressions.FALSE;
+		return picks.alcoholId.in(
+						select(picks.alcoholId)
+								.from(picks)
+								.where(picks.userId.eq(userId)
+										.and(picks.status.eq(PicksStatus.PICK))))
+				.and(picks.alcoholId.in(
+						select(picks.alcoholId)
+								.from(picks)
+								.where(picks.userId.eq(targetUserId)
+										.and(picks.status.eq(PicksStatus.PICK)))
+				));
+	}
+
 	/**
 	 * 술의 전체 찜 개수를 조회하는 서브 쿼리
 	 *

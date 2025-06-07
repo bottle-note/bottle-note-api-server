@@ -250,8 +250,9 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 
 	@Override
 	public PageResponse<MyBottleResponse> getPicksMyBottle(MyBottlePageableCriteria request) {
-		Long userId = request.userId();
-		boolean isMyPage = userId.equals(request.currentUserId());
+		final Long currentUserId = request.currentUserId();
+		final Long targetUserId = request.userId();
+		final boolean isMyPage = targetUserId.equals(request.currentUserId());
 
 		List<PicksMyBottleItem> picksMyBottleList = queryFactory
 				.select(Projections.constructor(
@@ -265,12 +266,12 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 								alcohol.imageUrl.as("imageUrl"),
 								alcoholQuerySupporter.isHot5(alcohol.id).as("isHot5")
 						),
-						pickQuerySupporter.isPickedSubQuery(userId),
+						pickQuerySupporter.isPickedBothSubQuery(currentUserId, targetUserId),
 						pickQuerySupporter.totalPicksCountSubQuery(alcohol.id)
 				))
 				.from(alcohol)
 				.join(picks).on(picks.alcoholId.eq(alcohol.id)
-						.and(picks.userId.eq(userId))
+						.and(picks.userId.eq(targetUserId))
 						.and(picks.status.eq(PicksStatus.PICK)))
 				.where(
 						userQuerySupporter.eqName(request.keyword()),
@@ -295,7 +296,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 				.select(alcohol.id.count())
 				.from(alcohol)
 				.join(picks).on(picks.alcoholId.eq(alcohol.id)
-						.and(picks.userId.eq(userId))
+						.and(picks.userId.eq(targetUserId))
 						.and(picks.status.eq(PicksStatus.PICK)))
 				.where(
 						userQuerySupporter.eqName(request.keyword()),
@@ -304,7 +305,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 				.fetchOne();
 
 		MyBottleResponse myBottleResponse = MyBottleResponse.create(
-				userId,
+				targetUserId,
 				isMyPage,
 				totalCount,
 				picksMyBottleList
