@@ -55,17 +55,14 @@ public class PicksQuerySupporter {
 	public BooleanExpression isPickedBothSubQuery(Long userId, Long targetUserId) {
 		if (userId == null || targetUserId == null)
 			return Expressions.FALSE;
-		return picks.alcoholId.in(
-						select(picks.alcoholId)
-								.from(picks)
-								.where(picks.userId.eq(userId)
-										.and(picks.status.eq(PicksStatus.PICK))))
-				.and(picks.alcoholId.in(
-						select(picks.alcoholId)
-								.from(picks)
-								.where(picks.userId.eq(targetUserId)
-										.and(picks.status.eq(PicksStatus.PICK)))
-				));
+
+		return JPAExpressions
+				.selectOne()
+				.from(picks)
+				.where(picks.alcoholId.eq(alcohol.id)
+						.and(picks.userId.eq(userId))
+						.and(picks.status.eq(PicksStatus.PICK)))
+				.exists();
 	}
 
 	/**
