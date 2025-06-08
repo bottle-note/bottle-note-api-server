@@ -127,7 +127,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 				.map(ReviewMyBottleItem::reviewId)
 				.toList();
 
-		log.info("reviewIds : {}", reviewIds);
+		log.debug("reviewIds : {}", reviewIds);
 
 		// 3. 태그 조회
 		QReviewTastingTag rtt = QReviewTastingTag.reviewTastingTag;
@@ -143,7 +143,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 						Collectors.mapping(tuple -> tuple.get(1, String.class), Collectors.toSet())
 				));
 
-		log.info("reviewIdToTagsMap : {}", reviewIdToTagsMap);
+		log.debug("reviewIdToTagsMap : {}", reviewIdToTagsMap);
 
 		// 4. 태그 조립
 		List<ReviewMyBottleItem> mergedReviewMyBottleList = reviewMyBottleList.stream()
@@ -158,7 +158,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 				))
 				.toList();
 
-		log.info("mergedReviewMyBottleList : {}", mergedReviewMyBottleList);
+		log.debug("mergedReviewMyBottleList : {}", mergedReviewMyBottleList);
 
 		CursorPageable cursorPageable = userQuerySupporter.myBottleCursorPageable(request, mergedReviewMyBottleList);
 
