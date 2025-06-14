@@ -18,13 +18,16 @@ Content-Type: application/json
 %}
 
 ### 위스키 목록 조회
-
-GET {{host}}/api/v1/alcohols/search?category=SINGLE_MALT&cursor=1&pageSize=1&keyword=초콜릿
+# @no-cookie-jar
+GET {{host}}/api/v1/alcohols/search?category=SINGLE_MALT&cursor=1&pageSize=10&keyword=비 오늘 날 추천 위스키
 Authorization: Bearer {{accessToken}}
 
+
 ### 위스키 조회 상세 조회
+# @no-cookie-jar
 GET {{host}}/api/v1/alcohols/4
 Authorization: Bearer {{accessToken}}
 
 ### 카테고리 조회
+# @no-cookie-jar
 GET {{host}}/api/v1/alcohols/categories
