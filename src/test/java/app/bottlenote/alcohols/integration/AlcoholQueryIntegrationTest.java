@@ -101,10 +101,6 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
 		Set<AlcoholsTastingTags> alcoholTastingTags = alcoholTestFactory.getAlcoholTastingTags(alcoholId);
 		List<TastingTag> tagList = alcoholTastingTags.stream().map(AlcoholsTastingTags::getTastingTag).toList();
 
-		System.out.println("===========================");
-		System.out.println("조회_위스키 태그 : " + alcoholTastingTags);
-		System.out.println("===========================");
-
 		assertEquals(1, tagList.size());
 		assertTrue(tagList.contains(tag));
 	}
@@ -154,7 +150,6 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
 		assertEquals(expectedTagIds.size(), actualTagIds.size());
 		assertTrue(expectedTagIds.containsAll(actualTagIds));
 	}
-
 
 	@Test
 	@DisplayName("알코올 상세 조회를 할 수 있다.")

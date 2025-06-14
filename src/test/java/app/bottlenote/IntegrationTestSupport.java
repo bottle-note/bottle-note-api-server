@@ -100,6 +100,11 @@ public abstract class IntegrationTestSupport {
 		return oauthService.login(request);
 	}
 
+	protected TokenItem getToken(User user) {
+		OauthRequest req = new OauthRequest(user.getEmail(), null, user.getSocialType().getFirst(), user.getGender(), user.getAge());
+		return oauthService.login(req);
+	}
+
 	protected String getToken() {
 		User user = oauthRepository.getFirstUser().orElse(null);
 		if (user == null) {
@@ -114,6 +119,20 @@ public abstract class IntegrationTestSupport {
 					.build());
 		}
 
+		TokenItem token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
+		return token.accessToken();
+	}
+
+	protected String getRandomToken() {
+		UUID key = UUID.randomUUID();
+		User user = oauthRepository.save(User.builder()
+				.email(key + "@example.com")
+				.age(20)
+				.gender(GenderType.MALE)
+				.nickName("testUser" + key)
+				.socialType(List.of(SocialType.KAKAO))
+				.role(UserType.ROLE_USER)
+				.build());
 		TokenItem token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
 		return token.accessToken();
 	}
