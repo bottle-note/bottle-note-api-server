@@ -26,13 +26,4 @@ public class RootAdmin {
 	@JoinColumn(name = "user_id")
 	@MapsId
 	private User user;
-
-	public RootAdmin(Long userId) {
-		this.userId = userId;
-	}
-
-	public RootAdmin(User user) {
-		this.userId = user.getId();
-		this.user = user;
-	}
 }
