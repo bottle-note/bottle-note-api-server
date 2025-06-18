@@ -216,7 +216,7 @@ tasks.register('unitTest', Test) {
 		includeTags 'unit'
 	}
 }
-tasks.register('check rule', Test) {
+tasks.register('check_rule', Test) {
 	useJUnitPlatform {
 		includeTags 'rule'
 	}
