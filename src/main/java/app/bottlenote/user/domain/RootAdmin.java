@@ -13,7 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@Entity
+@Entity(name = "root_admins")
 @Table(name = "root_admins")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class RootAdmin {
