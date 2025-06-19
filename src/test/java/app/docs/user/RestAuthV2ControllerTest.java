@@ -1,0 +1,80 @@
+package app.docs.user;
+
+import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.user.controller.AuthV2Controller;
+import app.bottlenote.user.service.AuthService;
+import app.docs.AbstractRestDocs;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.springframework.http.MediaType;
+
+import java.util.Optional;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@Tag("document")
+@DisplayName("유저 Auth 컨트롤러 V2x RestDocs 테스트")
+class RestAuthV2ControllerTest extends AbstractRestDocs {
+	private final AuthService authService = mock(AuthService.class);
+	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
+
+	@Override
+	protected Object initController() {
+		return new AuthV2Controller(authService);
+	}
+
+	@BeforeEach
+	void setup() {
+		mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
+	}
+
+
+	@AfterEach
+	void tearDown() {
+		mockedSecurityUtil.close();
+	}
+
+	@Test
+	@DisplayName("루트 어드민 검증을 수행합니다.")
+	void login_test() throws Exception {
+
+		//given
+		final long userId = 1L;
+		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
+
+		//when
+		when(authService.checkAdminStatus(userId)).thenReturn(true);
+
+		//then
+		mockMvc.perform(get("/api/v2/auth/admin/permissions")
+						.contentType(MediaType.APPLICATION_JSON)
+						.with(csrf()))
+				.andExpect(status().isOk())
+				.andDo(
+						document("auth/admin/root-permissions",
+								responseFields(
+										fieldWithPath("success").description("응답 성공 여부"),
+										fieldWithPath("code").description("응답 코드(http status code)"),
+										fieldWithPath("data").description("검증 결과"),
+										fieldWithPath("errors").description("응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)"),
+										fieldWithPath("meta.serverEncoding").description("서버 인코딩 정도"),
+										fieldWithPath("meta.serverVersion").description("서버 버전"),
+										fieldWithPath("meta.serverPathVersion").description("서버 경로 버전"),
+										fieldWithPath("meta.serverResponseTime").description("서버 응답 시간")
+								)
+						)
+				);
+	}
+}

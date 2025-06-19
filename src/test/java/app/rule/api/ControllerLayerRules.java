@@ -341,6 +341,7 @@ public class ControllerLayerRules extends AbstractRules {
 				allowedPrefixesMap.put("restore", "복원하다");
 				allowedPrefixesMap.put("reissue", "재발급하다");
 				allowedPrefixesMap.put("signup", "가입하다");
+				allowedPrefixesMap.put("check", "확인하다");
 
 				boolean startsWithVerb = allowedPrefixesMap.keySet().stream()
 						.anyMatch(methodName::startsWith);

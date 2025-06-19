@@ -84,6 +84,11 @@ include::api/overview/global-auth.adoc[]
 '''
 include::api/file/image/upload/presign-url.adoc[]
 
+== 권한 (auth) 관련 API
+
+'''
+include::api/auth/auth.adoc[]
+
 == 회원 (user) 관련 API
 
 '''

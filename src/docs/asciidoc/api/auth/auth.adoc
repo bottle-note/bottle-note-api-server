@@ -1,0 +1,23 @@
+=== 루트 관리자 권한 검증 ===
+
+- 현재 로그인한 사용자가 루트 관리자 권한을 가지고 있는지 검증합니다.
+- 개발 / 운영 환경이 변경 가능한지 검증하는데 활용 할 수 있습니다.
+
+[source]
+----
+api/v2/auth/admin/permissions
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/auth/admin/root-permissions/curl-request.adoc[]
+include::{snippets}/auth/admin/root-permissions/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터  ====
+
+[discrete]
+include::{snippets}/auth/admin/root-permissions/response-fields.adoc[]
+include::{snippets}/auth/admin/root-permissions/http-response.adoc[]
