@@ -154,6 +154,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	 * 다만 내가 픽했는지 여부등을 파악하기 위해 선택적으로 제공
 	 * <p>
 	 * 수정 : 2024-11-10
+	 * 
+	 * TODO: 현재 하드코딩된 경로 관리 방식을 애노테이션 기반으로 개선 필요
+	 * TODO: @AccessPolicy 또는 @OptionalAuth 애노테이션을 활용하여 컨트롤러에서 선언적으로 관리
+	 * TODO: 경로 추가 시마다 두 곳(SecurityConfig + 여기)을 수정해야 하는 문제 해결 필요
 	 */
 	private boolean skipFilter(String method, String url) {
 		final String targetPath = method + ":" + url;
