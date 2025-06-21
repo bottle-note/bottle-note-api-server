@@ -19,8 +19,8 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
-	public static final int ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24; // 24시간
-	public static final int REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 14; // 14일
+	public static final int ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 2;
+	public static final int REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 14;
 	public static final String KEY_ROLES = "roles";
 	private final Key secretKey;
 
@@ -30,7 +30,7 @@ public class JwtTokenProvider {
 	 * @param secret 토큰 생성용 시크릿 키
 	 */
 	public JwtTokenProvider(
-		@Value("${security.jwt.secret-key}") String secret
+			@Value("${security.jwt.secret-key}") String secret
 	) {
 		byte[] keyBytes = Decoders.BASE64.decode(secret);
 		this.secretKey = Keys.hmacShaKeyFor(keyBytes);
@@ -48,9 +48,9 @@ public class JwtTokenProvider {
 		String accessToken = createAccessToken(userEmail, role, userId);
 		String refreshToken = createRefreshToken(userEmail, role, userId);
 		return TokenItem.builder()
-			.accessToken(accessToken)
-			.refreshToken(refreshToken)
-			.build();
+				.accessToken(accessToken)
+				.refreshToken(refreshToken)
+				.build();
 	}
 
 	/**
@@ -65,11 +65,11 @@ public class JwtTokenProvider {
 		Claims claims = createClaims(userEmail, role, userId);
 		Date now = new Date();
 		return Jwts.builder()
-			.setClaims(claims)
-			.setIssuedAt(now)
-			.setExpiration(new Date(now.getTime() + ACCESS_TOKEN_EXPIRE_TIME))
-			.signWith(secretKey, SignatureAlgorithm.HS512)
-			.compact();
+				.setClaims(claims)
+				.setIssuedAt(now)
+				.setExpiration(new Date(now.getTime() + ACCESS_TOKEN_EXPIRE_TIME))
+				.signWith(secretKey, SignatureAlgorithm.HS512)
+				.compact();
 	}
 
 	public String createGuestToken(Long userId, int expireTime) {
@@ -78,12 +78,12 @@ public class JwtTokenProvider {
 		claims.put(KEY_ROLES, UserType.ROLE_GUEST.name());
 		Date now = new Date();
 		return Jwts.builder()
-			.setClaims(claims)
-			.setSubject("guest")
-			.setIssuedAt(now)
-			.setExpiration(new Date(now.getTime() + expireTime))
-			.signWith(secretKey, SignatureAlgorithm.HS512)
-			.compact();
+				.setClaims(claims)
+				.setSubject("guest")
+				.setIssuedAt(now)
+				.setExpiration(new Date(now.getTime() + expireTime))
+				.signWith(secretKey, SignatureAlgorithm.HS512)
+				.compact();
 	}
 
 	/**
@@ -98,11 +98,11 @@ public class JwtTokenProvider {
 		Claims claims = createClaims(userEmail, role, userId);
 		Date now = new Date();
 		return Jwts.builder()
-			.setClaims(claims)
-			.setIssuedAt(now)
-			.setExpiration(new Date(now.getTime() + REFRESH_TOKEN_EXPIRE_TIME))
-			.signWith(secretKey, SignatureAlgorithm.HS512)
-			.compact();
+				.setClaims(claims)
+				.setIssuedAt(now)
+				.setExpiration(new Date(now.getTime() + REFRESH_TOKEN_EXPIRE_TIME))
+				.signWith(secretKey, SignatureAlgorithm.HS512)
+				.compact();
 	}
 
 	/**
