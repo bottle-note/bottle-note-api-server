@@ -79,11 +79,11 @@ public class BusinessSupportService {
 
 	@Transactional(readOnly = true)
 	public BusinessSupportDetailItem getDetail(Long id, Long userId) {
-		BusinessSupport bs = repository.findByIdAndUserId(id, userId).orElseThrow();
+		BusinessSupport bs = repository.findByIdAndUserId(id, userId).orElseThrow(() -> new HelpException(HELP_NOT_FOUND));
 		return BusinessSupportDetailItem.builder()
 				.id(bs.getId())
 				.content(bs.getContent())
-				.contactWay(bs.getContactWay())
+				.contactWay(bs.getContactWay().name())
 				.createAt(bs.getCreateAt())
 				.status(bs.getStatus())
 				.adminId(bs.getAdminId())

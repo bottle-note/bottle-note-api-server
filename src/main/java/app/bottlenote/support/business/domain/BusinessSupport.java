@@ -1,6 +1,7 @@
 package app.bottlenote.support.business.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
+import app.bottlenote.support.business.constant.ContactType;
 import app.bottlenote.support.constant.StatusType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -36,7 +37,8 @@ public class BusinessSupport extends BaseEntity {
 
 	@Comment("연락 방식")
 	@Column(name = "contact_way")
-	private String contactWay;
+	@Enumerated(EnumType.STRING)
+	private ContactType contactWay;
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "status")
@@ -49,7 +51,7 @@ public class BusinessSupport extends BaseEntity {
 	private String responseContent;
 
 	@Builder
-	private BusinessSupport(Long id, Long userId, String content, String contactWay, Long adminId, String responseContent) {
+	private BusinessSupport(Long id, Long userId, String content, ContactType contactWay, Long adminId, String responseContent) {
 		this.id = id;
 		this.userId = userId;
 		this.content = content;
@@ -58,7 +60,7 @@ public class BusinessSupport extends BaseEntity {
 		this.responseContent = responseContent;
 	}
 
-	public static BusinessSupport create(Long userId, String content, String contactWay) {
+	public static BusinessSupport create(Long userId, String content, ContactType contactWay) {
 		return BusinessSupport.builder()
 				.userId(userId)
 				.content(content)
@@ -66,7 +68,7 @@ public class BusinessSupport extends BaseEntity {
 				.build();
 	}
 
-	public void update(String content, String contactWay) {
+	public void update(String content, ContactType contactWay) {
 		this.content = content;
 		this.contactWay = contactWay;
 	}
