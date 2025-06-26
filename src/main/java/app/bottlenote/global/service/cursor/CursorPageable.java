@@ -43,10 +43,10 @@ public class CursorPageable {
 	public static <T> CursorPageable of(List<T> items, Long currentCursor, Long pageSize) {
 		boolean hasNext = items.size() > pageSize;
 
-		// 다음 페이지가 있는 경우 추가 항목 제거
-		if (hasNext) {
-			items.remove(items.size() - 1);
-		}
+		// 결과 리스트 생성 (원본 리스트를 수정하지 않음)
+		List<T> result = hasNext
+				? items.subList(0, items.size() - 1)
+				: items;
 
 		return CursorPageable.builder()
 				.currentCursor(currentCursor)
