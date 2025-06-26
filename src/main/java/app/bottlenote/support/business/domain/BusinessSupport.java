@@ -42,12 +42,15 @@ public class BusinessSupport extends BaseEntity {
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "status")
+	@Comment("문의 타입")
 	private StatusType status = StatusType.WAITING;
 
 	@Column(name = "admin_id")
+	@Comment("어드민 ID")
 	private Long adminId;
 
 	@Column(name = "response_content")
+	@Comment("문의 답변 내용")
 	private String responseContent;
 
 	@Builder

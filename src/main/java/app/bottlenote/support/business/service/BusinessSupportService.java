@@ -74,7 +74,7 @@ public class BusinessSupportService {
 		List<BusinessSupportListResponse.BusinessInfo> infos = list.stream()
 				.map(b -> BusinessSupportListResponse.BusinessInfo.of(b.getId(), b.getContent(), b.getCreateAt(), b.getStatus()))
 				.toList();
-		return PageResponse.of(BusinessSupportListResponse.of((long) infos.size(), infos), CursorPageable.of(list, req.pageSize(), req.cursor()));
+		return PageResponse.of(BusinessSupportListResponse.of((long) infos.size(), infos), CursorPageable.of(infos, req.pageSize(), req.cursor()));
 	}
 
 	@Transactional(readOnly = true)

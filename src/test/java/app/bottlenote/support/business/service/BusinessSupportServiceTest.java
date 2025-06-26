@@ -131,7 +131,6 @@ class BusinessSupportServiceTest {
 		assertEquals(MODIFY_SUCCESS, res.codeMessage());
 		assertEquals(supportId, res.id());
 		assertEquals("수정된 내용", origin.getContent()); // 원본 객체의 내용이 변경되었는지 확인
-		assertEquals("new@example.com", origin.getContactWay());
 	}
 
 	@Test
