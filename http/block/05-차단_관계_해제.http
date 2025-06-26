@@ -1,0 +1,15 @@
+### 차단 관계 해제 (기존 차단 관계)
+DELETE {{host}}/api/v1/test/block/remove?blockerId=1&blockedId=2
+Content-Type: application/json
+
+### 차단 관계 해제 (또 다른 차단 관계)
+DELETE {{host}}/api/v1/test/block/remove?blockerId=1&blockedId=3
+Content-Type: application/json
+
+### 차단 관계 해제 (존재하지 않는 차단 관계)
+DELETE {{host}}/api/v1/test/block/remove?blockerId=1&blockedId=10
+Content-Type: application/json
+
+### 차단 관계 해제 (반대 방향)
+DELETE {{host}}/api/v1/test/block/remove?blockerId=2&blockedId=1
+Content-Type: application/json

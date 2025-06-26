@@ -1,5 +1,6 @@
 package app.bottlenote.review.controller;
 
+import app.bottlenote.global.annotation.BlockFilter;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
@@ -42,6 +43,7 @@ public class ReviewController {
 		return GlobalResponse.ok(reviewService.createReview(reviewCreateRequest, currentUserId));
 	}
 
+	@BlockFilter(userField = "authorId")
 	@GetMapping("/{alcoholId}")
 	public ResponseEntity<?> getReviews(@PathVariable Long alcoholId, @ModelAttribute ReviewPageableRequest reviewPageableRequest) {
 		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
@@ -54,6 +56,7 @@ public class ReviewController {
 		return GlobalResponse.ok(pageResponse.content(), MetaService.createMetaInfo().add("pageable", pageResponse.cursorPageable()));
 	}
 
+	@BlockFilter(userField = "authorId")
 	@GetMapping("/detail/{reviewId}")
 	public ResponseEntity<?> getDetailReview(@PathVariable Long reviewId) {
 
