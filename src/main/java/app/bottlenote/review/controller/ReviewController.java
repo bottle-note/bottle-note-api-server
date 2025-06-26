@@ -1,6 +1,6 @@
 package app.bottlenote.review.controller;
 
-import app.bottlenote.global.annotation.BlockFilter;
+import app.bottlenote.common.block.annotation.BlockFilter;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.PageResponse;

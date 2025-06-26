@@ -1,0 +1,70 @@
+package app.bottlenote.common.block.controller;
+
+import app.bottlenote.common.block.annotation.BlockFilter;
+import app.bottlenote.global.data.response.GlobalResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 간소화된 차단 기능 테스트 컨트롤러
+ * 핵심 기능: 블러 처리 테스트만 집중
+ */
+@Slf4j
+@RestController
+@RequestMapping("/api/v1/test/block")
+@Profile({"local", "dev", "test", "!prod"})
+public class BlockTestController {
+
+    /**
+     * 블러 처리 테스트용 리뷰 목록 API
+     * 
+     * 차단 관계 (하드코딩):
+     * - 사용자 1 → 사용자 2,3 차단
+     * - 사용자 2 → 사용자 4 차단 
+     * - 사용자 3 → 사용자 1,5 차단
+     */
+    @BlockFilter(
+        userField = "authorId",
+        blurFields = {"reviewContent", "authorNickname", "authorProfileImage"}
+    )
+    @GetMapping("/reviews")
+    public ResponseEntity<?> getTestReviews() {
+        
+        log.info("블러 처리 테스트용 리뷰 목록 조회");
+        
+        List<Map<String, Object>> reviews = List.of(
+            createReview(1L, "정말 맛있는 위스키였습니다!", "위스키러버", "profile1.jpg"),
+            createReview(2L, "첫 시음인데 생각보다 좋네요", "초보위스키", "profile2.jpg"), 
+            createReview(3L, "가격 대비 훌륭합니다", "위스키마니아", "profile3.jpg"),
+            createReview(4L, "오크향이 강해서 호불호가 갈릴듯", "리뷰고수", "profile4.jpg"),
+            createReview(5L, "친구들과 마시기 좋았어요", "소셜드링커", "profile5.jpg")
+        );
+        
+        return GlobalResponse.ok(Map.of(
+            "totalCount", reviews.size(),
+            "reviews", reviews
+        ));
+    }
+    
+    /**
+     * 테스트용 리뷰 데이터 생성
+     */
+    private Map<String, Object> createReview(Long authorId, String content, String nickname, String profileImage) {
+        return Map.of(
+            "reviewId", 1000L + authorId,
+            "authorId", authorId,
+            "reviewContent", content,
+            "authorNickname", nickname,
+            "authorProfileImage", profileImage,
+            "createAt", LocalDateTime.now().minusDays(authorId),
+            "likeCount", (int)(Math.random() * 20),
+            "rating", 4.0 + (Math.random() * 1.0)
+        );
+    }
+}

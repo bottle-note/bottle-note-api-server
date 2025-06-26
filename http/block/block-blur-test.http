@@ -1,0 +1,10 @@
+### 블러 처리 테스트 - 차단 관계가 있는 사용자 1의 경우
+# 사용자 1이 사용자 2,3을 차단했으므로 해당 리뷰들이 블러 처리되어야 함
+GET {{host}}/api/v1/test/block/reviews
+Content-Type: application/json
+
+### 결과 확인:
+# - 사용자 2,3의 reviewContent가 "차단된 사용자의 글입니다"로 변경
+# - 사용자 2,3의 authorNickname이 "차단된 사용자의 글입니다"로 변경  
+# - 사용자 2,3의 authorProfileImage가 null로 변경
+# - 사용자 1,4,5의 리뷰는 정상 표시
