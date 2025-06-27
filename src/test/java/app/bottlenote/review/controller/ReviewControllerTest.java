@@ -24,6 +24,7 @@ import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
 import app.bottlenote.review.service.ReviewService;
+import app.bottlenote.support.block.service.BlockService;
 import app.bottlenote.user.exception.UserExceptionCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -97,12 +98,16 @@ class ReviewControllerTest {
 	protected MockMvc mockMvc;
 	@MockBean
 	private ReviewService reviewService;
+	@MockBean
+	private BlockService blockService;
 
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
 	@BeforeEach
 	void setup() {
 		mockedSecurityUtil = mockStatic(SecurityContextUtil.class);
+		// BlockService mock 설정 - 차단되지 않은 상태로 설정
+		when(blockService.isBlocked(any(), any())).thenReturn(false);
 	}
 
 	@AfterEach

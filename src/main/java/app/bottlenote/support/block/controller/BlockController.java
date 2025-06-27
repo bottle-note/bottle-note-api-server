@@ -2,8 +2,10 @@ package app.bottlenote.support.block.controller;
 
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.support.block.dto.request.BlockCreateRequest;
 import app.bottlenote.support.block.exception.BlockException;
 import app.bottlenote.support.block.service.BlockService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +34,7 @@ public class BlockController {
 	 * 사용자 차단
 	 */
 	@PostMapping("/create")
-	public ResponseEntity<?> createBlock(@RequestBody BlockCreateRequest request) {
+	public ResponseEntity<?> createBlock(@RequestBody @Valid BlockCreateRequest request) {
 		Long currentUserId = SecurityContextUtil.getUserIdByContext()
 				.orElseThrow(() -> new BlockException(REQUIRED_USER_ID));
 
@@ -45,7 +47,7 @@ public class BlockController {
 	 * 차단 해제
 	 */
 	@DeleteMapping("/{blockedUserId}")
-	public ResponseEntity<?> unblockUser(@PathVariable Long blockedUserId) {
+	public ResponseEntity<?> deleteBlock(@PathVariable Long blockedUserId) {
 		Long currentUserId = SecurityContextUtil.getUserIdByContext()
 				.orElseThrow(() -> new BlockException(REQUIRED_USER_ID));
 
@@ -63,11 +65,5 @@ public class BlockController {
 				.orElseThrow(() -> new BlockException(REQUIRED_USER_ID));
 
 		return GlobalResponse.ok(blockService.getBlockedUserIds(currentUserId));
-	}
-
-	/**
-	 * 차단 요청 DTO
-	 */
-	public record BlockCreateRequest(Long blockedUserId) {
 	}
 }

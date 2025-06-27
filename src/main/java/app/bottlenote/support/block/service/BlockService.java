@@ -86,6 +86,7 @@ public class BlockService {
      * @param userId 사용자 ID
      * @return 차단된 사용자 ID 목록
      */
+    @Transactional(readOnly = true)
     @Cacheable(value = "blocked_users", key = "#userId")
     public Set<Long> getBlockedUserIds(Long userId) {
         if (userId == null) {
@@ -102,6 +103,7 @@ public class BlockService {
      * @param blockedId 차단당하는 사용자 ID
      * @return 차단 여부
      */
+    @Transactional(readOnly = true)
     public boolean isBlocked(Long blockerId, Long blockedId) {
         if (blockerId == null || blockedId == null) {
             return false;
@@ -118,6 +120,7 @@ public class BlockService {
      * @param userId2 사용자 2 ID
      * @return 상호 차단 여부
      */
+    @Transactional(readOnly = true)
     public boolean isMutualBlocked(Long userId1, Long userId2) {
         if (userId1 == null || userId2 == null) {
             return false;
@@ -132,6 +135,7 @@ public class BlockService {
      * @param userId 사용자 ID
      * @return 해당 사용자를 차단한 사용자 수
      */
+    @Transactional(readOnly = true)
     public long getBlockedByCount(Long userId) {
         if (userId == null) {
             return 0L;
@@ -146,6 +150,7 @@ public class BlockService {
      * @param userId 사용자 ID
      * @return 해당 사용자가 차단한 사용자 수
      */
+    @Transactional(readOnly = true)
     public long getBlockingCount(Long userId) {
         if (userId == null) {
             return 0L;
