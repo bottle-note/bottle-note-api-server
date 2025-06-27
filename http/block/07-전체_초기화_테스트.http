@@ -1,6 +1,0 @@
-### 전체 차단 관계 초기화 (비활성화된 기능)
-DELETE {{host}}/api/v1/test/block/clear
-Content-Type: application/json
-
-### 참고: 이 기능은 DB 기반으로 변경되어 비활성화되었습니다.
-### 실제로는 개별 차단 해제를 사용해야 합니다.

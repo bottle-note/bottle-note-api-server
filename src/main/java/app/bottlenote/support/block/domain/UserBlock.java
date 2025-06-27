@@ -1,4 +1,4 @@
-package app.bottlenote.user.domain;
+package app.bottlenote.support.block.domain;
 
 import app.bottlenote.common.domain.BaseTimeEntity;
 import jakarta.persistence.Column;
@@ -6,7 +6,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
@@ -28,10 +27,6 @@ import org.hibernate.annotations.Comment;
 						name = "uk_blocker_blocked",
 						columnNames = {"blocker_id", "blocked_id"}
 				)
-		},
-		indexes = {
-				@Index(name = "idx_user_block_blocker", columnList = "blocker_id"),
-				@Index(name = "idx_user_block_blocked", columnList = "blocked_id")
 		}
 )
 public class UserBlock extends BaseTimeEntity {

@@ -1,7 +1,6 @@
-package app.bottlenote.user.repository;
+package app.bottlenote.support.block.repository;
 
-import app.bottlenote.user.domain.UserBlock;
-import app.bottlenote.user.domain.UserBlockRepository;
+import app.bottlenote.support.block.domain.UserBlock;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

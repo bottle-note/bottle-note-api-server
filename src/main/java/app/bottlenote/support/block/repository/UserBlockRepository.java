@@ -1,4 +1,6 @@
-package app.bottlenote.user.domain;
+package app.bottlenote.support.block.repository;
+
+import app.bottlenote.support.block.domain.UserBlock;
 
 import java.util.Optional;
 import java.util.Set;

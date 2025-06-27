@@ -1,5 +1,8 @@
 package app.bottlenote.common.block.annotation;
 
+import com.fasterxml.jackson.annotation.JacksonAnnotationsInside;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -11,14 +14,16 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
+@JacksonAnnotationsInside
+@JsonSerialize(using = app.bottlenote.common.block.serializer.BlockWordSerializer.class)
 public @interface BlockWord {
-    
+
     /**
      * 차단된 사용자 컨텐츠 대체 메시지
      * 기본값: "차단된 사용자의 글입니다"
      */
     String value() default "차단된 사용자의 글입니다";
-    
+
     /**
      * 차단 판단 기준이 되는 사용자 ID 경로
      * 기본값: "userId"

@@ -1,15 +1,14 @@
 package app.bottlenote.common.block.serializer;
 
 import app.bottlenote.common.block.annotation.BlockWord;
-import app.bottlenote.common.block.service.BlockService;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.support.block.service.BlockService;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.ContextualSerializer;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -18,14 +17,18 @@ import java.lang.reflect.Field;
 
 /**
  * @BlockWord 어노테이션이 적용된 필드의 Jackson 커스텀 시리얼라이저
+ * 차단된 사용자의 컨텐츠를 대체 메시지로 변경합니다.
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class BlockWordSerializer extends JsonSerializer<String> implements ContextualSerializer {
 
     private final BlockService blockService;
     private BlockWord blockWordAnnotation;
+
+    public BlockWordSerializer(BlockService blockService) {
+        this.blockService = blockService;
+    }
 
     @Override
     public void serialize(String value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
@@ -74,24 +77,29 @@ public class BlockWordSerializer extends JsonSerializer<String> implements Conte
     }
 
     @Override
-    public JsonSerializer<?> createContextual(SerializerProvider prov, BeanProperty property) 
+    public JsonSerializer<?> createContextual(SerializerProvider prov, BeanProperty property)
             throws JsonMappingException {
-        
+
         if (property != null) {
+            // @BlockWord 어노테이션 찾기
             BlockWord annotation = property.getAnnotation(BlockWord.class);
+            if (annotation == null && property.getMember() != null) {
+                annotation = property.getMember().getAnnotation(BlockWord.class);
+            }
+
             if (annotation != null) {
                 BlockWordSerializer serializer = new BlockWordSerializer(blockService);
                 serializer.blockWordAnnotation = annotation;
                 return serializer;
             }
         }
-        
+
         return this;
     }
 
     /**
      * 지정된 경로로 객체에서 userId 추출
-     * 
+     *
      * @param object 대상 객체
      * @param userIdPath userId 경로 (예: "userId", "userInfo.userId")
      * @return 추출된 userId, 실패시 null
@@ -109,7 +117,6 @@ public class BlockWordSerializer extends JsonSerializer<String> implements Conte
 
                 Field field = findField(currentObject.getClass(), part);
                 if (field == null) {
-                    log.warn("필드를 찾을 수 없습니다: {} in {}", part, currentObject.getClass().getSimpleName());
                     return null;
                 }
 
@@ -117,13 +124,7 @@ public class BlockWordSerializer extends JsonSerializer<String> implements Conte
                 currentObject = field.get(currentObject);
             }
 
-            // 최종 값이 Long 타입인지 확인
-            if (currentObject instanceof Long) {
-                return (Long) currentObject;
-            } else {
-                log.warn("userId 필드가 Long 타입이 아닙니다: {}", currentObject != null ? currentObject.getClass() : "null");
-                return null;
-            }
+            return currentObject instanceof Long ? (Long) currentObject : null;
 
         } catch (Exception e) {
             log.warn("userId 추출 중 오류 발생: {}", e.getMessage());
@@ -136,7 +137,7 @@ public class BlockWordSerializer extends JsonSerializer<String> implements Conte
      */
     private Field findField(Class<?> clazz, String fieldName) {
         Class<?> currentClass = clazz;
-        
+
         while (currentClass != null) {
             try {
                 return currentClass.getDeclaredField(fieldName);
@@ -144,7 +145,7 @@ public class BlockWordSerializer extends JsonSerializer<String> implements Conte
                 currentClass = currentClass.getSuperclass();
             }
         }
-        
+
         return null;
     }
 }
