@@ -29,10 +29,15 @@ public class BlockWordSerializer extends JsonSerializer<String> implements Conte
     public BlockWordSerializer(BlockService blockService) {
         this.blockService = blockService;
     }
+    
+    public BlockWordSerializer() {
+        this.blockService = null;
+    }
 
     @Override
     public void serialize(String value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-        if (blockWordAnnotation == null) {
+        if (blockWordAnnotation == null || blockService == null) {
+            // 어노테이션이 없거나 BlockService가 없는 경우 원본 값 반환 (테스트 환경 등)
             gen.writeString(value);
             return;
         }
@@ -88,7 +93,9 @@ public class BlockWordSerializer extends JsonSerializer<String> implements Conte
             }
 
             if (annotation != null) {
-                BlockWordSerializer serializer = new BlockWordSerializer(blockService);
+                BlockWordSerializer serializer = blockService != null
+                    ? new BlockWordSerializer(blockService)
+                    : new BlockWordSerializer();
                 serializer.blockWordAnnotation = annotation;
                 return serializer;
             }
