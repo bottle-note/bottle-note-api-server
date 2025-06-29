@@ -1,15 +1,13 @@
 package app.bottlenote.support.business.controller;
 
+import app.bottlenote.global.data.response.CollectionResponse;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.support.business.dto.request.BusinessSupportPageableRequest;
 import app.bottlenote.support.business.dto.request.BusinessSupportUpsertRequest;
+import app.bottlenote.support.business.dto.response.BusinessInfoResponse;
 import app.bottlenote.support.business.dto.response.BusinessSupportDetailItem;
-import app.bottlenote.support.business.dto.response.BusinessSupportListResponse;
 import app.bottlenote.support.business.service.BusinessSupportService;
-import app.bottlenote.support.help.exception.HelpException;
 import app.bottlenote.user.exception.UserException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -41,14 +39,14 @@ public class BusinessSupportController {
 
 	@GetMapping
 	public ResponseEntity<?> getAllList(@ModelAttribute BusinessSupportPageableRequest req) {
-		Long userId = SecurityContextUtil.getUserIdByContext().orElseThrow(() -> new HelpException(REQUIRED_USER_ID));
-		PageResponse<BusinessSupportListResponse> page = service.getList(req, userId);
-		return GlobalResponse.ok(page.content(), MetaService.createMetaInfo().add("pageable", page.cursorPageable()));
+		Long userId = SecurityContextUtil.getUserIdByContext().orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+		CollectionResponse<BusinessInfoResponse> collection = service.getList(req, userId);
+		return GlobalResponse.ok(collection);
 	}
 
 	@GetMapping("/{id}")
 	public ResponseEntity<?> getDetail(@PathVariable Long id) {
-		Long userId = SecurityContextUtil.getUserIdByContext().orElseThrow(() -> new HelpException(REQUIRED_USER_ID));
+		Long userId = SecurityContextUtil.getUserIdByContext().orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 		BusinessSupportDetailItem item = service.getDetail(id, userId);
 		return GlobalResponse.ok(item);
 	}

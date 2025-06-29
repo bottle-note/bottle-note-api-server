@@ -1,13 +1,12 @@
 package app.docs.support.business;
 
+import app.bottlenote.global.data.response.CollectionResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.support.business.constant.ContactType;
 import app.bottlenote.support.business.controller.BusinessSupportController;
 import app.bottlenote.support.business.dto.request.BusinessSupportUpsertRequest;
+import app.bottlenote.support.business.dto.response.BusinessInfoResponse;
 import app.bottlenote.support.business.dto.response.BusinessSupportDetailItem;
-import app.bottlenote.support.business.dto.response.BusinessSupportListResponse;
 import app.bottlenote.support.business.dto.response.BusinessSupportResultResponse;
 import app.bottlenote.support.business.service.BusinessSupportService;
 import app.bottlenote.support.constant.StatusType;
@@ -18,7 +17,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
@@ -35,13 +33,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
-import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
-import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.patch;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
@@ -117,16 +115,15 @@ class RestDocsBusinessSupportControllerTest extends AbstractRestDocs {
 	void get_list_success() throws Exception {
 		// given
 		Long userId = 1L;
-		List<BusinessSupportListResponse.BusinessInfo> infos = List.of(
-				new BusinessSupportListResponse.BusinessInfo(2L, "두번째 문의", LocalDateTime.now(), StatusType.WAITING),
-				new BusinessSupportListResponse.BusinessInfo(1L, "첫번째 문의", LocalDateTime.now().minusDays(1), StatusType.SUCCESS)
+		List<BusinessInfoResponse> infos = List.of(
+				BusinessInfoResponse.of(2L, "두번째 문의", LocalDateTime.now(), StatusType.WAITING),
+				BusinessInfoResponse.of(1L, "첫번째 문의", LocalDateTime.now().minusDays(1), StatusType.SUCCESS)
 		);
-		BusinessSupportListResponse listResponse = BusinessSupportListResponse.of((long) infos.size(), infos);
-		PageResponse<BusinessSupportListResponse> pageResponse = PageResponse.of(listResponse, CursorPageable.of(infos, 10L, 10L));
+		CollectionResponse<BusinessInfoResponse> collectionResponse = CollectionResponse.of(infos.size(), infos);
 
 		// when
 		when(SecurityContextUtil.getUserIdByContext()).thenReturn(Optional.of(userId));
-		when(businessSupportService.getList(any(), anyLong())).thenReturn(pageResponse);
+		when(businessSupportService.getList(any(), anyLong())).thenReturn(collectionResponse);
 
 		// then
 		mockMvc.perform(get("/api/v1/business-support")
@@ -143,19 +140,15 @@ class RestDocsBusinessSupportControllerTest extends AbstractRestDocs {
 								fieldWithPath("success").description("응답 성공 여부"),
 								fieldWithPath("code").description("응답 코드"),
 								fieldWithPath("data.totalCount").description("총 문의 개수"),
-								fieldWithPath("data.list[].id").description("문의 ID"),
-								fieldWithPath("data.list[].content").description("문의 내용"),
-								fieldWithPath("data.list[].createAt").description("문의 생성일"),
-								fieldWithPath("data.list[].status").description("문의 상태 (WAITING, ANSWERED 등)"),
+								fieldWithPath("data.items[].id").description("문의 ID"),
+								fieldWithPath("data.items[].content").description("문의 내용"),
+								fieldWithPath("data.items[].createAt").description("문의 생성일"),
+								fieldWithPath("data.items[].status").description("문의 상태 (WAITING, ANSWERED 등)"),
 								fieldWithPath("errors").ignored(),
 								fieldWithPath("meta.serverEncoding").ignored(),
 								fieldWithPath("meta.serverVersion").ignored(),
 								fieldWithPath("meta.serverPathVersion").ignored(),
-								fieldWithPath("meta.serverResponseTime").ignored(),
-								fieldWithPath("meta.pageable.currentCursor").description("현재 커서 위치"),
-								fieldWithPath("meta.pageable.cursor").description("다음 페이지 조회를 위한 커서 정보"),
-								fieldWithPath("meta.pageable.pageSize").description("페이지 크기"),
-								fieldWithPath("meta.pageable.hasNext").description("다음 페이지 존재 여부")
+								fieldWithPath("meta.serverResponseTime").ignored()
 						)
 				));
 	}

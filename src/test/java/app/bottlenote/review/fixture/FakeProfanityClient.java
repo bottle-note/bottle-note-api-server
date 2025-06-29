@@ -36,4 +36,12 @@ public class FakeProfanityClient implements ProfanityClient {
 			throw new CommonException(CONTAINS_PROFANITY);
 		}
 	}
+
+	@Override
+	public String filter(String content) {
+		if (content == null || content.isBlank()) {
+			return "";
+		}
+		return getFilteredText(content);
+	}
 }

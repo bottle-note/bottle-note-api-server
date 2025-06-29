@@ -46,6 +46,14 @@ public class DefaultProfanityClient implements ProfanityClient {
 	}
 
 	@Override
+	public String filter(String content) {
+		if (content == null || content.isBlank()) {
+			return "";
+		}
+		return getFilteredText(content);
+	}
+
+	@Override
 	public void validateProfanity(String text) {
 		log.info("[validateProfanity] 검증 요청 대상: {}", text);
 		ProfanityResponse response = requestVerificationProfanity(text);
