@@ -10,6 +10,9 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.ContextualSerializer;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -21,8 +24,9 @@ import java.lang.reflect.Field;
  */
 @Slf4j
 @Component
-public class BlockWordSerializer extends JsonSerializer<String> implements ContextualSerializer {
+public class BlockWordSerializer extends JsonSerializer<String> implements ContextualSerializer, ApplicationContextAware {
 
+    private static ApplicationContext applicationContext;
     private final BlockService blockService;
     private BlockWord blockWordAnnotation;
 
@@ -35,9 +39,30 @@ public class BlockWordSerializer extends JsonSerializer<String> implements Conte
     }
 
     @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        BlockWordSerializer.applicationContext = applicationContext;
+    }
+
+    @Override
     public void serialize(String value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-        if (blockWordAnnotation == null || blockService == null) {
-            // 어노테이션이 없거나 BlockService가 없는 경우 원본 값 반환 (테스트 환경 등)
+        if (blockWordAnnotation == null) {
+            // 어노테이션이 없는 경우 원본 값 반환
+            gen.writeString(value);
+            return;
+        }
+
+        // BlockService 획득 (의존성 주입된 것이 있으면 사용, 없으면 ApplicationContext에서 가져오기)
+        BlockService currentBlockService = blockService;
+        if (currentBlockService == null && applicationContext != null) {
+            try {
+                currentBlockService = applicationContext.getBean(BlockService.class);
+            } catch (Exception e) {
+                log.warn("ApplicationContext에서 BlockService를 가져오는데 실패: {}", e.getMessage());
+            }
+        }
+        
+        if (currentBlockService == null) {
+            // BlockService를 찾을 수 없는 경우 원본 값 반환 (테스트 환경 등)
             gen.writeString(value);
             return;
         }
@@ -66,7 +91,7 @@ public class BlockWordSerializer extends JsonSerializer<String> implements Conte
             }
 
             // 차단 관계 확인
-            boolean isBlocked = blockService.isBlocked(currentUserId, authorId);
+            boolean isBlocked = currentBlockService.isBlocked(currentUserId, authorId);
             if (isBlocked) {
                 // 차단된 경우 대체 메시지로 변경
                 gen.writeString(blockWordAnnotation.value());
@@ -93,9 +118,17 @@ public class BlockWordSerializer extends JsonSerializer<String> implements Conte
             }
 
             if (annotation != null) {
-                BlockWordSerializer serializer = blockService != null
-                    ? new BlockWordSerializer(blockService)
-                    : new BlockWordSerializer();
+                // ApplicationContext에서 BlockService 가져오기
+                BlockService contextBlockService = null;
+                if (applicationContext != null) {
+                    try {
+                        contextBlockService = applicationContext.getBean(BlockService.class);
+                    } catch (Exception e) {
+                        log.warn("ApplicationContext에서 BlockService 가져오기 실패: {}", e.getMessage());
+                    }
+                }
+                
+                BlockWordSerializer serializer = new BlockWordSerializer(contextBlockService);
                 serializer.blockWordAnnotation = annotation;
                 return serializer;
             }
