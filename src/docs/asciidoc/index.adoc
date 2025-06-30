@@ -176,6 +176,8 @@ include::api/review/reply/sub-review-reply-list.adoc[]
 
 == 지원 (support) 관련 API
 
+include::api/support/block/user-block.adoc[]
+
 include::api/support/report/user-report.adoc[]
 
 include::api/support/help/help-register.adoc[]
