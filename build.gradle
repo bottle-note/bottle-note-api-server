@@ -206,17 +206,17 @@ tasks.named('test') {
 		excludeTags 'data-jpa-test', 'integration'
 	}
 }
-tasks.register('integrationTest', Test) {
+tasks.register('integration_test', Test) {
 	useJUnitPlatform {
 		includeTags 'integration'
 	}
 }
-tasks.register('unitTest', Test) {
+tasks.register('unit_test', Test) {
 	useJUnitPlatform {
 		includeTags 'unit'
 	}
 }
-tasks.register('check_rule', Test) {
+tasks.register('check_rule_test', Test) {
 	useJUnitPlatform {
 		includeTags 'rule'
 	}
