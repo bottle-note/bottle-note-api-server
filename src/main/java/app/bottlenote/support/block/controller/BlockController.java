@@ -1,8 +1,10 @@
 package app.bottlenote.support.block.controller;
 
+import app.bottlenote.global.data.response.CollectionResponse;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.support.block.dto.request.BlockCreateRequest;
+import app.bottlenote.support.block.dto.response.UserBlockItem;
 import app.bottlenote.support.block.exception.BlockException;
 import app.bottlenote.support.block.service.BlockService;
 import jakarta.validation.Valid;
@@ -19,9 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import static app.bottlenote.support.block.exception.BlockExceptionCode.REQUIRED_USER_ID;
 
-/**
- * 차단 관리 API
- */
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -30,40 +29,77 @@ public class BlockController {
 
 	private final BlockService blockService;
 
-	/**
-	 * 사용자 차단
-	 */
-	@PostMapping("/create")
+	@PostMapping
 	public ResponseEntity<?> createBlock(@RequestBody @Valid BlockCreateRequest request) {
 		Long currentUserId = SecurityContextUtil.getUserIdByContext()
 				.orElseThrow(() -> new BlockException(REQUIRED_USER_ID));
 
 		blockService.blockUser(currentUserId, request.blockedUserId());
+		CollectionResponse<UserBlockItem> blockedUsers = blockService.getBlockedUserItems(currentUserId);
 
-		return GlobalResponse.ok("차단이 완료되었습니다.");
+		return GlobalResponse.ok(blockedUsers);
 	}
 
-	/**
-	 * 차단 해제
-	 */
 	@DeleteMapping("/{blockedUserId}")
 	public ResponseEntity<?> deleteBlock(@PathVariable Long blockedUserId) {
 		Long currentUserId = SecurityContextUtil.getUserIdByContext()
 				.orElseThrow(() -> new BlockException(REQUIRED_USER_ID));
 
 		blockService.unblockUser(currentUserId, blockedUserId);
+		CollectionResponse<UserBlockItem> blockedUsers = blockService.getBlockedUserItems(currentUserId);
 
-		return GlobalResponse.ok("차단이 해제되었습니다.");
+		return GlobalResponse.ok(blockedUsers);
 	}
 
-	/**
-	 * 차단 목록 조회
-	 */
 	@GetMapping
 	public ResponseEntity<?> getBlockedUsers() {
 		Long currentUserId = SecurityContextUtil.getUserIdByContext()
 				.orElseThrow(() -> new BlockException(REQUIRED_USER_ID));
 
+		return GlobalResponse.ok(blockService.getBlockedUserItems(currentUserId));
+	}
+
+	@GetMapping("/ids")
+	public ResponseEntity<?> getBlockedUserIds() {
+		Long currentUserId = SecurityContextUtil.getUserIdByContext()
+				.orElseThrow(() -> new BlockException(REQUIRED_USER_ID));
+
 		return GlobalResponse.ok(blockService.getBlockedUserIds(currentUserId));
+	}
+
+	@GetMapping("/check/{targetUserId}")
+	public ResponseEntity<?> checkBlocked(@PathVariable Long targetUserId) {
+		Long currentUserId = SecurityContextUtil.getUserIdByContext()
+				.orElseThrow(() -> new BlockException(REQUIRED_USER_ID));
+
+		boolean isBlocked = blockService.isBlocked(currentUserId, targetUserId);
+		return GlobalResponse.ok(isBlocked);
+	}
+
+	@GetMapping("/mutual-check/{targetUserId}")
+	public ResponseEntity<?> checkMutualBlocked(@PathVariable Long targetUserId) {
+		Long currentUserId = SecurityContextUtil.getUserIdByContext()
+				.orElseThrow(() -> new BlockException(REQUIRED_USER_ID));
+
+		boolean isMutualBlocked = blockService.isMutualBlocked(currentUserId, targetUserId);
+		return GlobalResponse.ok(isMutualBlocked);
+	}
+
+	@GetMapping("/stats/blocked-by-count")
+	public ResponseEntity<?> getBlockedByCount() {
+		Long currentUserId = SecurityContextUtil.getUserIdByContext()
+				.orElseThrow(() -> new BlockException(REQUIRED_USER_ID));
+
+		long count = blockService.getBlockedByCount(currentUserId);
+		return GlobalResponse.ok(count);
+	}
+
+	@GetMapping("/stats/blocking-count")
+	public ResponseEntity<?> getBlockingCount() {
+		Long currentUserId = SecurityContextUtil.getUserIdByContext()
+				.orElseThrow(() -> new BlockException(REQUIRED_USER_ID));
+
+		long count = blockService.getBlockingCount(currentUserId);
+		return GlobalResponse.ok(count);
 	}
 }
