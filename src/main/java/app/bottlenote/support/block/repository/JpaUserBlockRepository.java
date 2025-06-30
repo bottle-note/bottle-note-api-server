@@ -15,7 +15,9 @@ import java.util.Set;
 public interface JpaUserBlockRepository extends UserBlockRepository, JpaRepository<UserBlock, Long> {
 
 	@Override
-	@Query("SELECT ub.blockedId FROM userBlock ub WHERE ub.blockerId = :blockerId")
+	@Query("""
+		SELECT ub.blockedId FROM userBlock ub WHERE ub.blockerId = :blockerId
+		""")
 	Set<Long> findBlockedUserIdsByBlockerId(@Param("blockerId") Long blockerId);
 
 	@Override
@@ -31,14 +33,18 @@ public interface JpaUserBlockRepository extends UserBlockRepository, JpaReposito
 	long countByBlockerId(Long blockerId);
 
 	@Override
-	@Query("SELECT COUNT(ub) = 2 FROM userBlock ub " +
-			"WHERE (ub.blockerId = :userId1 AND ub.blockedId = :userId2) " +
-			"OR (ub.blockerId = :userId2 AND ub.blockedId = :userId1)")
+	@Query("""
+		SELECT COUNT(ub) = 2 FROM userBlock ub 
+		WHERE (ub.blockerId = :userId1 AND ub.blockedId = :userId2) 
+		OR (ub.blockerId = :userId2 AND ub.blockedId = :userId1)
+		""")
 	boolean existsMutualBlock(@Param("userId1") Long userId1, @Param("userId2") Long userId2);
 
 	@Override
-	@Query("SELECT new app.bottlenote.support.block.dto.response.UserBlockItem(u.id, u.nickName, ub.createAt) " +
-			"FROM userBlock ub JOIN users u ON ub.blockedId = u.id " +
-			"WHERE ub.blockerId = :blockerId")
+	@Query("""
+		SELECT new app.bottlenote.support.block.dto.response.UserBlockItem(u.id, u.nickName, ub.createAt) 
+		FROM userBlock ub JOIN users u ON ub.blockedId = u.id 
+		WHERE ub.blockerId = :blockerId
+		""")
 	List<UserBlockItem> findBlockedUserItemsByBlockerId(@Param("blockerId") Long blockerId);
 }
