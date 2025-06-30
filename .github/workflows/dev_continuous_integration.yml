@@ -1,4 +1,4 @@
-name: Dev CI Pipeline
+name: dev ci pipeline
 
 on:
   workflow_dispatch:
@@ -32,19 +32,19 @@ jobs:
         run: |
           echo "Branch: ${{ github.event.pull_request.base.ref || github.ref_name }}"
 
-      - name: Checkout Code (코드 체크아웃)
+      - name: checkout code
         uses: actions/checkout@v4
         with:
           submodules: true
           token: ${{ secrets.GIT_ACCESS_TOKEN }}
 
-      - name: Setup JDK (자바 설정)
+      - name: setup jdk
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Setup Gradle Cache (그래들 캐시 설정)
+      - name: setup gradle cache
         uses: actions/cache@v3
         with:
           path: ~/.gradle/caches
@@ -52,28 +52,29 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Install Dependencies (종속성 설치)
+      - name: install dependencies
         run: ./gradlew dependencies
 
-      - name: Run Integration Tests (통합 테스트 실행)
-        run: ./gradlew clean integrationTest
+      - name: run unit tests
+        run: ./gradlew unit_test
 
-      - name: Run Unit Tests (단위 테스트 실행)
-        run: ./gradlew unitTest
+      - name: run rules tests
+        run: ./gradlew check_rule_test
 
-      - name: Build Project (프로젝트 빌드)
-        run: ./gradlew build
+      - name: run integration tests
+        run: ./gradlew integration_test
 
-      - name: Store Test Results (테스트 결과 저장)
+      - name: build project
+        run: ./gradlew build -x test --build-cache --parallel
+
+      - name: store test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: |
-            build/reports/tests/
-            build/reports/integration-tests/
+          path: build/reports/
 
-      - name: Publish Test Report (테스트 보고서 발행)
+      - name: publish test report
         uses: mikepenz/action-junit-report@v3
         if: always()
         with:
