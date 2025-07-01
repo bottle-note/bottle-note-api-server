@@ -46,6 +46,18 @@ public class SecurityContextUtil {
 		}
 
 		Object principal = authentication.getPrincipal();
+		
+		// 테스트 환경에서 TestingAuthenticationToken 지원
+		if (authentication.getClass().getSimpleName().equals("TestingAuthenticationToken")) {
+			try {
+				Long userId = Long.parseLong(principal.toString());
+				log.debug("테스트 환경에서 사용자 ID 추출: {}", userId);
+				return Optional.of(userId);
+			} catch (NumberFormatException e) {
+				log.warn("테스트 환경에서 사용자 ID 파싱 실패: {}", principal);
+				return Optional.empty();
+			}
+		}
 		if (!(principal instanceof CustomUserContext customUserContext)) {
 			log.debug("인증된 사용자의 정보가 CustomUserContext의 인스턴스가 아닙니다. 비회원 사용자일 수 있습니다.");
 			return Optional.empty();
