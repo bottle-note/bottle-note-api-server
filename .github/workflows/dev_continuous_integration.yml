@@ -65,7 +65,7 @@ jobs:
         run: ./gradlew integration_test
 
       - name: build project
-        run: ./gradlew build -x test --build-cache --parallel
+        run: ./gradlew build -x test -x asciidoctor --build-cache --parallel
 
       - name: store test results
         if: always()
