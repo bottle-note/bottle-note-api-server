@@ -12,6 +12,9 @@ logging:
   level:
     org.hibernate.SQL: off           # SQL 쿼리 로깅 비활성화
     org.hibernate.orm.jdbc.bind: off # 바인딩 파라미터 로깅 비활성화
+    app.bottlenote.common.block.serializer: debug  # BlockWordSerializer 디버그
+    app.bottlenote.common.block.service: debug     # BlockService 디버그  
+    app.bottlenote.common.block.config: debug      # BlockWordConfig 디버그
     root: info
 
 --- # 개발 환경
