@@ -1,0 +1,21 @@
+=== 비지니스 문의 삭제 ===
+
+용자는 등록한 문의글을 삭제할 수 있습니다.
+
+물리적으로 삭제되는 것이 아닌 논리 삭제가 수행되며 status 컬럼이 DELETED로 변경됩니.
+
+PathVariable로 문의글의 id를 전달합니다.
+
+존재하지 않는 문의글 id로 요청을 보낸 경우 HELP_NOT_FOUND 예외가 발생합니다.
+
+로그인 한 유저만 요청이 가능하며, 문의글의 작성자가 아닌 경우 HELP_NOT_AUTHORIZED 예외가 발생합니다.
+
+[source]
+----
+DELETE /api/v1/business-support/{id}
+----
+
+[discrete]
+==== 응답 파라미터 ====
+include::{snippets}/support/business/delete/response-fields.adoc[]
+include::{snippets}/support/business/delete/response-body.adoc[]

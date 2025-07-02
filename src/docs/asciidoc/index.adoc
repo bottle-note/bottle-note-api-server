@@ -190,6 +190,16 @@ include::api/support/help/help-modify.adoc[]
 
 include::api/support/help/help-delete.adoc[]
 
+include::api/support/business/business-register.adoc[]
+
+include::api/support/business/business-read-list.adoc[]
+
+include::api/support/business/business-read-detail.adoc[]
+
+include::api/support/business/business-modify.adoc[]
+
+include::api/support/business/business-delete.adoc[]
+
 == 팔로우 (follow) 관련 API
 
 include::api/follow/follow-update.adoc[]
