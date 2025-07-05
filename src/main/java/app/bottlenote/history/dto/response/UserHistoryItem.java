@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+@SuppressWarnings("unchecked")
 @Getter
 @NoArgsConstructor
 public class UserHistoryItem {
@@ -25,16 +26,16 @@ public class UserHistoryItem {
 
 	@Builder
 	public UserHistoryItem(
-		Long historyId,
-		LocalDateTime createdAt,
-		EventCategory eventCategory,
-		EventType eventType,
-		Long alcoholId,
-		String alcoholName,
-		String imageUrl,
-		String redirectUrl,
-		String content,
-		Object dynamicMessage
+			Long historyId,
+			LocalDateTime createdAt,
+			EventCategory eventCategory,
+			EventType eventType,
+			Long alcoholId,
+			String alcoholName,
+			String imageUrl,
+			String redirectUrl,
+			String content,
+			Object dynamicMessage
 	) {
 		this.historyId = historyId;
 		this.createdAt = createdAt;
@@ -45,6 +46,7 @@ public class UserHistoryItem {
 		this.imageUrl = imageUrl;
 		this.redirectUrl = redirectUrl;
 		this.content = content;
+
 		this.dynamicMessage = (Map<String, String>) dynamicMessage;
 	}
 }
