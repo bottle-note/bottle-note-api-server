@@ -5,10 +5,12 @@ import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.user.config.OauthConfigProperties;
 import app.bottlenote.user.constant.GenderType;
 import app.bottlenote.user.constant.SocialType;
+import app.bottlenote.user.dto.request.AppleLoginRequest;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
+import app.bottlenote.user.service.NonceService;
 import app.bottlenote.user.service.OauthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +26,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -46,6 +51,8 @@ class OauthControllerTest {
 	protected MockMvc mockMvc;
 	@MockBean
 	protected OauthService oauthService;
+	@MockBean
+	protected NonceService nonceService;
 	@MockBean
 	private OauthConfigProperties oauthConfigProperties;
 
@@ -221,6 +228,63 @@ class OauthControllerTest {
 				.andExpect(result -> assertTrue(
 						result.getResolvedException() instanceof IllegalArgumentException))
 				.andExpect(jsonPath("$.errors").exists());
+	}
+
+
+	@Test
+	@DisplayName("유저는 Apple 로그인을 할 수 있다.")
+	void user_apple_login_success() throws Exception {
+		// Given
+		String idToken = "mockIdToken";
+		String nonce = "mockNonce";
+		TokenItem expectedTokenItem = TokenItem.builder()
+				.accessToken("apple-access-token")
+				.refreshToken("apple-refresh-token")
+				.build();
+
+		when(oauthService.loginWithApple(idToken, nonce)).thenReturn(expectedTokenItem);
+
+		// When & Then
+		mockMvc.perform(post("/api/v1/oauth/apple")
+						.contentType(MediaType.APPLICATION_JSON)
+						.with(csrf())
+						.content(mapper.writeValueAsString(new AppleLoginRequest(idToken, nonce))))
+				.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.accessToken").value("apple-access-token"))
+				.andExpect(cookie().value("refresh-token", "apple-refresh-token"))
+				.andExpect(cookie().httpOnly("refresh-token", true))
+				.andExpect(cookie().secure("refresh-token", true))
+				.andExpect(cookie().maxAge("refresh-token", 1209600))
+				.andExpect(cookie().path("refresh-token", "/"));
+
+		verify(oauthService, times(1)).loginWithApple(idToken, nonce);
+	}
+
+	@Test
+	@DisplayName("유저는 Apple 로그인 시 Nonce 검증 실패로 로그인 할 수 없다.")
+	void user_apple_login_invalid_nonce_failure() throws Exception {
+		Error error = Error.of(UserExceptionCode.NONCE_MISMATCH);
+
+		// Given
+		String idToken = "mockIdToken";
+		String invalidNonce = "invalidNonce";
+
+		doThrow(new UserException(UserExceptionCode.NONCE_MISMATCH))
+				.when(oauthService).loginWithApple(idToken, invalidNonce);
+
+		// When & Then
+		mockMvc.perform(post("/api/v1/oauth/apple")
+						.contentType(MediaType.APPLICATION_JSON)
+						.with(csrf())
+						.content(mapper.writeValueAsString(new AppleLoginRequest(idToken, invalidNonce))))
+				.andDo(print())
+				.andExpect(status().isUnauthorized())
+				.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+				.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+				.andExpect(jsonPath("$.errors[0].message").value(error.message()));
+
+		verify(oauthService, times(1)).loginWithApple(idToken, invalidNonce);
 	}
 
 

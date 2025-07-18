@@ -76,3 +76,6 @@ profanity:
 app:
   thirdParty:
     firebase-configuration-file: src/test/resources/service_account_credentials.json
+
+apple:
+  bundle-id: "com.bottlenote.official.app"
