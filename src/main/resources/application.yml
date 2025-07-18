@@ -74,3 +74,6 @@ management:
   endpoint:
     health:
       show-details: always
+
+apple:
+  bundle-id: "com.bottlenote.official.app"
