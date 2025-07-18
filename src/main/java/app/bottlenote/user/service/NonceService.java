@@ -18,6 +18,7 @@ public class NonceService {
 	/**
 	 * 클라이언트에게 전달할 일회성 Nonce 값을 생성하고 캐시에 저장
 	 */
+	@Transactional
 	public String generateNonce() {
 		String nonce = UUID.randomUUID().toString();
 		nonceStore.put(nonce, nonce); // key-value 형태로 저장
@@ -28,6 +29,7 @@ public class NonceService {
 	 * 클라이언트로부터 받은 Nonce가 유효한지 검증
 	 * 유효하다면 캐시에서 즉시 제거하여 재사용 방지
 	 */
+	@Transactional
 	public void validateNonce(String nonce) {
 		if (nonceStore.getIfPresent(nonce) == null) {
 			// 캐시에 nonce가 없으면 유효하지 않거나 만료된 것으로 간주
