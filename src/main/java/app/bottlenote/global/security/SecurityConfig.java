@@ -72,6 +72,7 @@ public class SecurityConfig {
 						.requestMatchers("/api/v1/reports/**").authenticated()
 						.requestMatchers("/api/v1/push/**").authenticated()
 						.requestMatchers("/api/v1/history/**").authenticated()
+						.requestMatchers("/api/v1/blocks/**").authenticated()
 						.anyRequest().permitAll()
 				)
 				.addFilterBefore(new JwtAuthenticationFilter(jwtAuthenticationManager), UsernamePasswordAuthenticationFilter.class)
