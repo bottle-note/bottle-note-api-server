@@ -1,43 +1,54 @@
 package app.bottlenote.user.service;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.util.UUID;
+
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class NonceService {
 
-	// Nonce를 10분 동안만 저장하는 캐시
-	private final Cache<String, String> nonceStore = CacheBuilder.newBuilder()
-			.expireAfterWrite(10, TimeUnit.MINUTES)
-			.build();
+	private static final String NONCE_PREFIX = "auth:nonce:";
+	private static final Duration NONCE_TTL = Duration.ofMinutes(10);
+	
+	private final RedisTemplate<String, Object> redisTemplate;
 
 	/**
-	 * 클라이언트에게 전달할 일회성 Nonce 값을 생성하고 캐시에 저장
+	 * 클라이언트에게 전달할 일회성 Nonce 값을 생성하고 Redis에 저장
 	 */
 	@Transactional
 	public String generateNonce() {
 		String nonce = UUID.randomUUID().toString();
-		nonceStore.put(nonce, nonce); // key-value 형태로 저장
+		String key = NONCE_PREFIX + nonce;
+		
+		redisTemplate.opsForValue().set(key, nonce, NONCE_TTL);
+		log.debug("Nonce 생성 및 저장 완료: {}", nonce);
+		
 		return nonce;
 	}
 
 	/**
 	 * 클라이언트로부터 받은 Nonce가 유효한지 검증
-	 * 유효하다면 캐시에서 즉시 제거하여 재사용 방지
+	 * 유효하다면 Redis에서 즉시 제거하여 재사용 방지
 	 */
 	@Transactional
 	public void validateNonce(String nonce) {
-		if (nonceStore.getIfPresent(nonce) == null) {
-			// 캐시에 nonce가 없으면 유효하지 않거나 만료된 것으로 간주
+		String key = NONCE_PREFIX + nonce;
+		
+		// getAndDelete를 사용하여 원자적으로 값을 가져오고 삭제
+		Object stored = redisTemplate.opsForValue().getAndDelete(key);
+		
+		if (stored == null) {
+			log.warn("유효하지 않은 Nonce 검증 시도: {}", nonce);
 			throw new IllegalArgumentException("유효하지 않은 Nonce 값입니다.");
 		}
-		// 한번 사용한 Nonce는 즉시 무효화
-		nonceStore.invalidate(nonce);
+		
+		log.debug("Nonce 검증 및 제거 완료: {}", nonce);
 	}
 }
