@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class AppleTokenValidator {
+public class AppleTokenValidator implements TokenValidator {
 
 	private static final String APPLE_PUBLIC_KEYS_URL = "https://appleid.apple.com/auth/keys";
 	private static final String APPLE_ISSUER = "https://appleid.apple.com";

@@ -40,32 +40,7 @@ import java.util.Base64;
 public class OauthController {
 	private static final String REFRESH_TOKEN_HEADER_PREFIX = "refresh-token";
 	private final OauthService oauthService;
-	private final NonceService nonceService;
 	private final OauthConfigProperties configProperties;
-
-	/**
-	 * Apple 로그인 전, 클라이언트에게 일회성 Nonce 값을 발급
-	 */
-	@GetMapping("/apple/nonce")
-	public ResponseEntity<NonceResponse> getAppleNonce() {
-		return ResponseEntity.ok(new NonceResponse(nonceService.generateNonce()));
-	}
-
-	/**
-	 * Apple 로그인 v2
-	 */
-	@PostMapping("/apple")
-	public ResponseEntity<?> executeAppleLogin(
-			@RequestBody @Valid AppleLoginRequest appleLoginRequest,
-			HttpServletResponse response
-	) {
-		TokenItem token = oauthService.loginWithApple(
-				appleLoginRequest.idToken(),
-				appleLoginRequest.nonce()
-		);
-		 setRefreshTokenInCookie(response, token.refreshToken());
-		return ResponseEntity.ok(OauthResponse.of(token.accessToken()));
-	}
 
 
 	@PostMapping("/basic/signup")
