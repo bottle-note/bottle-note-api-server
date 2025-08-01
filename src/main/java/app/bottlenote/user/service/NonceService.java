@@ -1,5 +1,7 @@
 package app.bottlenote.user.service;
 
+import app.bottlenote.user.exception.UserException;
+import app.bottlenote.user.exception.UserExceptionCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -46,7 +48,7 @@ public class NonceService {
 		
 		if (stored == null) {
 			log.warn("유효하지 않은 Nonce 검증 시도: {}", nonce);
-			throw new IllegalArgumentException("유효하지 않은 Nonce 값입니다.");
+			throw new UserException(UserExceptionCode.INVALID_NONCE);
 		}
 		
 		log.debug("Nonce 검증 및 제거 완료: {}", nonce);

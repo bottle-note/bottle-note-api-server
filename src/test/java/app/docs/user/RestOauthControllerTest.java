@@ -10,7 +10,6 @@ import app.bottlenote.user.dto.request.GuestCodeRequest;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.BasicAccountResponse;
 import app.bottlenote.user.dto.response.TokenItem;
-import app.bottlenote.user.service.NonceService;
 import app.bottlenote.user.service.OauthService;
 import app.docs.AbstractRestDocs;
 import app.external.push.data.request.SingleTokenRequest;
@@ -40,7 +39,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("유저 Auth 컨트롤러 RestDocs 테스트")
 class RestOauthControllerTest extends AbstractRestDocs {
 	private final OauthService oauthService = mock(OauthService.class);
-	private final NonceService nonceService = mock(NonceService.class);
 	private final OauthConfigProperties config;
 
 	public RestOauthControllerTest() {
@@ -54,7 +52,7 @@ class RestOauthControllerTest extends AbstractRestDocs {
 	@Override
 	protected Object initController() {
 
-		return new OauthController(oauthService,nonceService, config);
+		return new OauthController(oauthService, config);
 	}
 
 	@Test

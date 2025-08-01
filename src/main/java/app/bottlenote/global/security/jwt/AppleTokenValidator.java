@@ -9,6 +9,7 @@ import com.google.common.cache.CacheBuilder;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -36,6 +37,7 @@ public class AppleTokenValidator implements TokenValidator {
 	private final Cache<String, List<Map<String, String>>> publicKeyCache = CacheBuilder.newBuilder()
 		.expireAfterWrite(1, TimeUnit.DAYS)
 		.build();
+
 
 	public Claims validateAndGetClaims(String idToken, String expectedNonce) {
 		String headerOfIdToken = idToken.substring(0, idToken.indexOf('.'));
@@ -107,10 +109,16 @@ public class AppleTokenValidator implements TokenValidator {
 		}
 	}
 
-	public String getAppleSocialUniqueId(Claims claims) {
+	@Override
+	public String getSocialUniqueId(Claims claims) {
 		return claims.getSubject();
 	}
 
+	public String getAppleSocialUniqueId(Claims claims) {
+		return getSocialUniqueId(claims);
+	}
+
+	@Override
 	public String getEmail(Claims claims) {
 		return claims.get("email", String.class);
 	}

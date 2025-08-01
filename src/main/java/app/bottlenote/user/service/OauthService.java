@@ -1,6 +1,6 @@
 package app.bottlenote.user.service;
 
-import app.bottlenote.global.security.jwt.AppleTokenValidator;
+import app.bottlenote.global.security.jwt.TokenValidator;
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import app.bottlenote.user.constant.GenderType;
@@ -39,7 +39,7 @@ public class OauthService {
 	private final JwtTokenProvider tokenProvider;
 	private final JwtAuthenticationManager authenticationManager;
 	private final BCryptPasswordEncoder passwordEncoder;
-	private final AppleTokenValidator appleTokenValidator;
+	private final TokenValidator tokenValidator;
 	private final NonceService nonceService;
 	private final SecureRandom randomValue = new SecureRandom();
 
@@ -293,10 +293,10 @@ public class OauthService {
 		nonceService.validateNonce(nonce);
 
 		// 2. id_token 검증 및 Claims 추출 (nonce 포함)
-		Claims claims = appleTokenValidator.validateAndGetClaims(idToken, nonce);
+		Claims claims = tokenValidator.validateAndGetClaims(idToken, nonce);
 
-		String socialUniqueId = appleTokenValidator.getAppleSocialUniqueId(claims);
-		String email = appleTokenValidator.getEmail(claims);
+		String socialUniqueId = tokenValidator.getSocialUniqueId(claims);
+		String email = tokenValidator.getEmail(claims);
 
 		User user = oauthRepository.findBySocialUniqueId(socialUniqueId)
 				.orElseGet(() -> findByEmailOrCreateUser(email, socialUniqueId));

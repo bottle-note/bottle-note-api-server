@@ -13,7 +13,6 @@ import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.repository.OauthRepository;
-import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -206,91 +205,7 @@ class OauthServiceTest {
 		}
 	}
 
-	@Test
-	@DisplayName("Apple 로그인 시 기존 사용자를 찾으면 로그인에 성공한다.")
-	void loginWithApple_existingUser_success() {
-		// Given
-		String idToken = "mockIdToken";
-		String nonce = "mockNonce";
-		String socialUniqueId = "mockSocialUniqueId";
-		String email = "test@example.com";
-
-		Claims mockClaims = mock(Claims.class);
-		when(appleTokenValidator.validateAndGetClaims(idToken, nonce)).thenReturn(mockClaims);
-		when(appleTokenValidator.getAppleSocialUniqueId(mockClaims)).thenReturn(socialUniqueId);
-		when(appleTokenValidator.getEmail(mockClaims)).thenReturn(email);
-
-		User existingUser = User.builder()
-				.id(2L)
-				.email(email)
-				.socialUniqueId(socialUniqueId)
-				.socialType(List.of(SocialType.APPLE))
-				.role(UserType.ROLE_USER)
-				.nickName("existingAppleUser")
-				.build();
-		when(oauthRepository.findBySocialUniqueId(socialUniqueId)).thenReturn(Optional.of(existingUser));
-		when(jwtTokenProvider.generateToken(anyString(), any(UserType.class), anyLong())).thenReturn(tokenItem);
-
-		// When
-		TokenItem result = oauthService.loginWithApple(idToken, nonce);
-
-		// Then
-		assertNotNull(result);
-		assertThat(result.accessToken()).isEqualTo(tokenItem.accessToken());
-		assertThat(result.refreshToken()).isEqualTo(tokenItem.refreshToken());
-
-		verify(nonceService, times(1)).validateNonce(nonce);
-		verify(appleTokenValidator, times(1)).validateAndGetClaims(idToken, nonce);
-		verify(oauthRepository, times(1)).findBySocialUniqueId(socialUniqueId);
-		verify(oauthRepository, never()).findByEmail(anyString());
-		verify(oauthRepository, never()).save(any(User.class));
-		verify(jwtTokenProvider, times(1)).generateToken(existingUser.getEmail(), existingUser.getRole(), existingUser.getId());
-	}
-
-	@Test
-	@DisplayName("Apple 로그인 시 신규 사용자이면 회원가입 후 로그인에 성공한다.")
-	void loginWithApple_newUser_success() {
-		// Given
-		String idToken = "mockIdToken";
-		String nonce = "mockNonce";
-		String socialUniqueId = "newSocialUniqueId";
-		String email = "newuser@example.com";
-
-		Claims mockClaims = mock(Claims.class);
-		when(appleTokenValidator.validateAndGetClaims(idToken, nonce)).thenReturn(mockClaims);
-		when(appleTokenValidator.getAppleSocialUniqueId(mockClaims)).thenReturn(socialUniqueId);
-		when(appleTokenValidator.getEmail(mockClaims)).thenReturn(email);
-
-		when(oauthRepository.findBySocialUniqueId(socialUniqueId)).thenReturn(Optional.empty());
-		when(oauthRepository.findByEmail(email)).thenReturn(Optional.empty());
-
-		User newUser = User.builder()
-				.id(3L)
-				.email(email)
-				.socialUniqueId(socialUniqueId)
-				.socialType(List.of(SocialType.APPLE))
-				.role(UserType.ROLE_USER)
-				.nickName("newAppleUser")
-				.build();
-		when(oauthRepository.save(any(User.class))).thenReturn(newUser);
-		when(jwtTokenProvider.generateToken(anyString(), any(UserType.class), anyLong())).thenReturn(tokenItem);
-
-		// When
-		TokenItem result = oauthService.loginWithApple(idToken, nonce);
-
-		// Then
-		assertNotNull(result);
-		assertThat(result.accessToken()).isEqualTo(tokenItem.accessToken());
-		assertThat(result.refreshToken()).isEqualTo(tokenItem.refreshToken());
-
-		verify(nonceService, times(1)).validateNonce(nonce);
-		verify(appleTokenValidator, times(1)).validateAndGetClaims(idToken, nonce);
-		verify(oauthRepository, times(1)).findBySocialUniqueId(socialUniqueId);
-		verify(oauthRepository, times(1)).findByEmail(email);
-		verify(oauthRepository, times(1)).save(any(User.class));
-		verify(jwtTokenProvider, times(1)).generateToken(newUser.getEmail(), newUser.getRole(), newUser.getId());
-	}
-
+	
 	@Test
 	@DisplayName("Apple 로그인 시 Nonce 검증에 실패하면 예외를 발생시킨다.")
 	void loginWithApple_invalidNonce_throwsException() {

@@ -34,7 +34,10 @@ public enum UserExceptionCode implements ExceptionCode {
 	NONCE_MISMATCH(HttpStatus.UNAUTHORIZED, "ID Token의 nonce 값이 일치하지 않습니다."),
 	APPLE_PUBLIC_KEY_GENERATION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Apple 공개키 생성 오류"),
 	NO_MATCHING_APPLE_PUBLIC_KEY(HttpStatus.BAD_REQUEST, "일치하는 Apple 공개키 없음"),
-	APPLE_ID_TOKEN_HEADER_PARSING_ERROR(HttpStatus.BAD_REQUEST, "Apple ID Token 헤더 파싱 오류");
+	APPLE_ID_TOKEN_HEADER_PARSING_ERROR(HttpStatus.BAD_REQUEST, "Apple ID Token 헤더 파싱 오류"),
+	INVALID_NONCE(HttpStatus.UNAUTHORIZED, "유효하지 않은 Nonce 값입니다."),
+	NONCE_EXPIRED(HttpStatus.UNAUTHORIZED, "만료된 Nonce 값입니다."),
+	NONCE_ALREADY_USED(HttpStatus.UNAUTHORIZED, "이미 사용된 Nonce 값입니다.");
 	private final HttpStatus httpStatus;
 	private final String message;
 
