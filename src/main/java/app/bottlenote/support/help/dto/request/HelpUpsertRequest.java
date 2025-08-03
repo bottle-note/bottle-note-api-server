@@ -10,6 +10,10 @@ import java.util.List;
 
 public record HelpUpsertRequest(
 
+	@NotEmpty(message = "TITLE_NOT_EMPTY")
+	@Size(max = 100)
+	String title,
+
 	@NotEmpty(message = "CONTENT_NOT_EMPTY")
 	@Size(max = 500)
 	String content,

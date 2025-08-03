@@ -38,6 +38,7 @@ public class HelpService {
 		Help help = Help.create(
 			currentUserId,
 			helpUpsertRequest.type(),
+			helpUpsertRequest.title(),
 			helpUpsertRequest.content());
 
 		//문의글 저장
@@ -65,6 +66,7 @@ public class HelpService {
 		}
 
 		help.updateHelp(
+			helpUpsertRequest.title(),
 			helpUpsertRequest.content(),
 			helpUpsertRequest.imageUrlList(),
 			helpUpsertRequest.type());
@@ -104,6 +106,7 @@ public class HelpService {
 
 		return HelpDetailItem.builder()
 			.helpId(help.getId())
+			.title(help.getTitle())
 			.content(help.getContent())
 			.helpType(help.getType())
 			.imageUrlList(

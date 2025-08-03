@@ -19,15 +19,16 @@ import java.util.List;
 public class HelpObjectFixture {
 
 	public static Help getHelpDefaultFixture(){
-		return Help.create(1L,HelpType.USER, "blah blah blah");
+		return Help.create(1L,HelpType.USER, "기본 제목", "blah blah blah");
 	}
 
 	public static Help getHelpFixure(String content, HelpType helpType){
-		return Help.create(1L, helpType, content);
+		return Help.create(1L, helpType, "테스트 제목", content);
 	}
 
 	public static HelpUpsertRequest getHelpUpsertRequest() {
 		return new HelpUpsertRequest(
+			"문의 제목",
 			"로그인이 안돼요",
 			HelpType.USER,
 			List.of(new HelpImageItem(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1"))
@@ -37,6 +38,7 @@ public class HelpObjectFixture {
 	public static HelpUpsertRequest getWrongTitleRegisterRequest() {
 		return new HelpUpsertRequest(
 			null,
+			"로그인이 안돼요",
 			HelpType.USER,
 			List.of(new HelpImageItem(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1"))
 		);
@@ -53,8 +55,8 @@ public class HelpObjectFixture {
 	public static PageResponse<HelpListResponse> getHelpListPageResponse(){
 
 		List<HelpListResponse.HelpInfo> helpInfos = List.of(
-			HelpListResponse.HelpInfo.of(1L, "test1", LocalDateTime.now(), StatusType.WAITING),
-			HelpListResponse.HelpInfo.of(2L, "test2", LocalDateTime.now(), StatusType.WAITING)
+			HelpListResponse.HelpInfo.of(1L, "제목1", "test1", LocalDateTime.now(), StatusType.WAITING),
+			HelpListResponse.HelpInfo.of(2L, "제목2", "test2", LocalDateTime.now(), StatusType.WAITING)
 		);
 		return PageResponse.of(
 			HelpListResponse.of((long)helpInfos.size(), helpInfos),
@@ -73,6 +75,7 @@ public class HelpObjectFixture {
 	public static HelpDetailItem getDetailHelpInfo(String content, HelpType type) {
 		return HelpDetailItem.builder()
 			.helpId(1L)
+			.title("상세 제목")
 			.responseContent(null)
 			.imageUrlList(
 				List.of(

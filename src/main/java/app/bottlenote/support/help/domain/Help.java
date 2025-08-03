@@ -42,6 +42,10 @@ public class Help extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private HelpType type;
 
+	@Comment("문의 제목")
+	@Column(name = "help_title", nullable = false)
+	private String title;
+
 	@Comment("문의 내용")
 	@Column(name = "help_content", nullable = false)
 	private String content;
@@ -64,21 +68,23 @@ public class Help extends BaseEntity {
 	private String responseContent;
 
 	@Builder
-	public Help(Long id, Long userId, HelpType type, String content, Long adminId, String responseContent) {
+	public Help(Long id, Long userId, HelpType type, String title, String content, Long adminId, String responseContent) {
 		this.id = id;
 		this.userId = userId;
 		this.type = type;
+		this.title = title;
 		this.content = content;
 		this.adminId = adminId;
 		this.responseContent = responseContent;
 	}
 
-	public static Help create(Long userId, HelpType helpType, String content) {
+	public static Help create(Long userId, HelpType helpType, String title, String content) {
 		return Help.builder()
-			.userId(userId)
-			.type(helpType)
-			.content(content)
-			.build();
+				.userId(userId)
+				.type(helpType)
+				.title(title)
+				.content(content)
+				.build();
 	}
 
 	public void saveImages(List<HelpImageItem> images, Long helpId) {
@@ -90,15 +96,17 @@ public class Help extends BaseEntity {
 		helpImageList.addImages(images, helpId);
 	}
 
-	public void updateHelp(String content, List<HelpImageItem> images, HelpType helpType) {
+	public void updateHelp(String title, String content, List<HelpImageItem> images, HelpType helpType) {
+		Objects.requireNonNull(title, "title은 필수입니다");
 		Objects.requireNonNull(content, "content는 필수입니다");
 		Objects.requireNonNull(helpType, "helpType은 필수입니다");
+		this.title = title;
 		this.content = content;
 		this.type = helpType;
 		updateImages(images, this.id);
 	}
 
-	public void deleteHelp(){
+	public void deleteHelp() {
 		this.status = StatusType.DELETED;
 	}
 

@@ -11,6 +11,7 @@ import java.util.List;
 @Builder
 public record HelpDetailItem(
 	Long helpId,
+	String title,
 	String content,
 	HelpType helpType,
 	List<HelpImageItem> imageUrlList,
