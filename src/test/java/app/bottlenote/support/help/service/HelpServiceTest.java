@@ -82,11 +82,11 @@ class HelpServiceTest {
 	@Test
 	void testHelpUpdate_success() {
 		// given
-		HelpUpsertRequest updateRequest = new HelpUpsertRequest("수정 후 제목", HelpType.USER, List.of(new HelpImageItem(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")));
+		HelpUpsertRequest updateRequest = new HelpUpsertRequest("수정 후 제목", "본문", HelpType.USER, List.of(new HelpImageItem(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")));
 
 		// when
 		when(helpRepository.findById(anyLong()))
-			.thenReturn(Optional.of(help));
+				.thenReturn(Optional.of(help));
 
 		HelpResultResponse response = helpService.modifyHelp(updateRequest, 1L, 1L);
 
@@ -100,11 +100,11 @@ class HelpServiceTest {
 
 		// when
 		when(helpRepository.findById(anyLong()))
-			.thenThrow(HelpException.class);
+				.thenThrow(HelpException.class);
 
 		// then
 		assertThrows(HelpException.class,
-			() -> helpService.modifyHelp(helpUpsertRequest, 1L, 1L));
+				() -> helpService.modifyHelp(helpUpsertRequest, 1L, 1L));
 	}
 
 	@DisplayName("수정 요청에 null인 필드는 허용하지 않는다.")
@@ -112,7 +112,7 @@ class HelpServiceTest {
 	void testHelpUpdate_fail_when_request_contains_null() {
 
 		assertThrows(NullPointerException.class,
-			() -> help.updateHelp("title", "content", List.of(), null));
+				() -> help.updateHelp("title", "content", List.of(), null));
 	}
 
 	@DisplayName("문의글을 삭제할 수 있다.")
@@ -120,7 +120,7 @@ class HelpServiceTest {
 	void testHelpDelete_success() {
 		//when
 		when(helpRepository.findById(anyLong()))
-			.thenReturn(Optional.of(help));
+				.thenReturn(Optional.of(help));
 
 		HelpResultResponse helpResultResponse = helpService.deleteHelp(1L, 1L);
 
@@ -133,11 +133,11 @@ class HelpServiceTest {
 	void testHelpDelete_fail_when_help_is_not_exist() {
 		//when
 		when(helpRepository.findById(anyLong()))
-			.thenThrow(new HelpException(HELP_NOT_FOUND));
+				.thenThrow(new HelpException(HELP_NOT_FOUND));
 
 		// then
 		assertThrows(HelpException.class,
-			() -> helpService.deleteHelp(1L, 1L));
+				() -> helpService.deleteHelp(1L, 1L));
 	}
 
 	@DisplayName("유저는 본인이 작성한 문의글만 삭제할 수 있다.")
@@ -145,11 +145,11 @@ class HelpServiceTest {
 	void testHelpDelete_fail_when_user_is_not_owner() {
 		//when
 		when(helpRepository.findById(anyLong()))
-			.thenThrow(new HelpException(HELP_NOT_AUTHORIZED));
+				.thenThrow(new HelpException(HELP_NOT_AUTHORIZED));
 
 		// then
 		assertThrows(HelpException.class,
-			() -> helpService.deleteHelp(1L, 1L));
+				() -> helpService.deleteHelp(1L, 1L));
 	}
 
 	@DisplayName("문의글 작성 목록을 조회할 수 있다.")
@@ -157,7 +157,7 @@ class HelpServiceTest {
 	void testGetHelpList_success() {
 		// given
 		when(helpRepository.getHelpList(any(HelpPageableRequest.class), anyLong()))
-			.thenReturn(helpPageResponse);
+				.thenReturn(helpPageResponse);
 
 		// when
 		PageResponse<HelpListResponse> helpList = helpService.getHelpList(emptyPageableRequest, 1L);
@@ -172,7 +172,7 @@ class HelpServiceTest {
 	void testGetDetailHelp_success() {
 		// given
 		when(helpRepository.findByIdAndUserId(anyLong(), anyLong()))
-			.thenReturn(Optional.of(help));
+				.thenReturn(Optional.of(help));
 
 		// when
 		HelpDetailItem detailHelp = helpService.getDetailHelp(1L, 1L);
@@ -186,11 +186,11 @@ class HelpServiceTest {
 	void testGetHelp_fail_when_user_is_not_owner() {
 		// when
 		when(helpRepository.findByIdAndUserId(anyLong(), anyLong()))
-			.thenThrow(new HelpException(HELP_NOT_FOUND));
+				.thenThrow(new HelpException(HELP_NOT_FOUND));
 
 		// then
 		assertThrows(HelpException.class,
-			() -> helpService.getDetailHelp(1L, 1L));
+				() -> helpService.getDetailHelp(1L, 1L));
 	}
 
 }
