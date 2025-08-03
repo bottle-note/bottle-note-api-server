@@ -1,9 +1,11 @@
 package app.bottlenote.support.business.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
-import app.bottlenote.support.business.constant.ContactType;
+import app.bottlenote.support.business.constant.BusinessSupportType;
+import app.bottlenote.support.business.dto.request.BusinessImageItem;
 import app.bottlenote.support.constant.StatusType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -16,6 +18,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
+
+import java.util.List;
+import java.util.Objects;
 
 @Getter
 @Entity(name = "business_support")
@@ -31,14 +36,26 @@ public class BusinessSupport extends BaseEntity {
 	@Column(name = "user_id", nullable = false)
 	private Long userId;
 
+	@Comment("문의 제목")
+	@Column(name = "title", nullable = false)
+	private String title;
+
 	@Comment("문의 내용")
 	@Column(name = "content", nullable = false)
 	private String content;
 
-	@Comment("연락 방식")
-	@Column(name = "contact_way")
+	@Comment("연락처")
+	@Column(name = "contact", nullable = false)
+	private String contact;
+
+	@Comment("문의 유형")
+	@Column(name = "business_support_type")
 	@Enumerated(EnumType.STRING)
-	private ContactType contactWay;
+	private BusinessSupportType businessSupportType;
+
+	@Embedded
+	@Comment("비즈니스 문의 이미지")
+	private BusinessImageList businessImageList = new BusinessImageList();
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "status")
@@ -54,26 +71,46 @@ public class BusinessSupport extends BaseEntity {
 	private String responseContent;
 
 	@Builder
-	private BusinessSupport(Long id, Long userId, String content, ContactType contactWay, Long adminId, String responseContent) {
+	private BusinessSupport(Long id, Long userId, String title, String content, String contact, BusinessSupportType businessSupportType, Long adminId, String responseContent) {
 		this.id = id;
 		this.userId = userId;
+		this.title = title;
 		this.content = content;
-		this.contactWay = contactWay;
+		this.contact = contact;
+		this.businessSupportType = businessSupportType;
 		this.adminId = adminId;
 		this.responseContent = responseContent;
 	}
 
-	public static BusinessSupport create(Long userId, String content, ContactType contactWay) {
+	public static BusinessSupport create(Long userId, String title, String content, String contact, BusinessSupportType businessSupportType) {
 		return BusinessSupport.builder()
 				.userId(userId)
+				.title(title)
 				.content(content)
-				.contactWay(contactWay)
+				.contact(contact)
+				.businessSupportType(businessSupportType)
 				.build();
 	}
 
-	public void update(String content, ContactType contactWay) {
+	public void saveImages(List<BusinessImageItem> images, Long businessSupportId) {
+		businessImageList.addImages(images, businessSupportId);
+	}
+
+	public void updateImages(List<BusinessImageItem> images, Long businessSupportId) {
+		businessImageList.clear();
+		businessImageList.addImages(images, businessSupportId);
+	}
+
+	public void update(String title, String content, String contact, BusinessSupportType businessSupportType, List<BusinessImageItem> images) {
+		Objects.requireNonNull(title, "title은 필수입니다");
+		Objects.requireNonNull(content, "content는 필수입니다");
+		Objects.requireNonNull(contact, "contact는 필수입니다");
+		Objects.requireNonNull(businessSupportType, "contactType은 필수입니다");
+		this.title = title;
 		this.content = content;
-		this.contactWay = contactWay;
+		this.contact = contact;
+		this.businessSupportType = businessSupportType;
+		updateImages(images, this.id);
 	}
 
 	public void delete() {

@@ -1,6 +1,6 @@
 package app.bottlenote.support.business.fixture;
 
-import app.bottlenote.support.business.constant.ContactType;
+import app.bottlenote.support.business.constant.BusinessSupportType;
 import app.bottlenote.support.business.domain.BusinessSupport;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ public class BusinessSupportTestFactory {
 
 	@Transactional
 	public BusinessSupport persist(Long userId) {
-		BusinessSupport bs = BusinessSupport.create(userId, "문의", ContactType.EMAIL);
+		BusinessSupport bs = BusinessSupport.create(userId, "이벤트 협업 관련 문의드려요", "blah blah", "test@naver.com", BusinessSupportType.EVENT);
 		em.persist(bs);
 		em.flush();
 		return bs;
