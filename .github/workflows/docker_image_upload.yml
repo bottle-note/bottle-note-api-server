@@ -3,6 +3,10 @@ name: Build and Push to ECR
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - dev
+      #- prod
   pull_request:
     types: [ closed ]
     branches:
@@ -10,12 +14,12 @@ on:
       #- prod
 
 concurrency:
-  group: "ecr-upload ${{ github.event.pull_request.number }}"
+  group: "ecr-upload-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}"
   cancel-in-progress: true
 
 jobs:
   docker-image-upload:
-    if: github.event.pull_request.merged == true
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
     outputs:
       image_tag: ${{ steps.build-image.outputs.image_tag }}
@@ -69,14 +73,14 @@ jobs:
 
   call-prod:
     needs: docker-image-upload
-    if: github.event.pull_request.base.ref == 'prod'
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/prod') || (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'prod')
     uses: ./.github/workflows/deploy-to-production.yml
     with:
       IMAGE_TAG: ${{ needs.docker-image-upload.outputs.image_tag }}
     secrets: inherit
   call-dev:
     needs: docker-image-upload
-    if: github.event.pull_request.base.ref == 'dev'
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/dev') || (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'dev')
     uses: ./.github/workflows/deploy-to-dev.yml
     with:
       IMAGE_TAG: ${{ needs.docker-image-upload.outputs.image_tag }}
