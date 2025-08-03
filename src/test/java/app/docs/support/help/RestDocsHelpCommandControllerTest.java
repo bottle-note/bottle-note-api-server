@@ -88,6 +88,7 @@ class RestDocsHelpCommandControllerTest extends AbstractRestDocs {
 			.andDo(
 				document("support/help/help-register",
 					requestFields(
+						fieldWithPath("title").type(JsonFieldType.STRING).description("문의글 제목"),
 						fieldWithPath("content").type(JsonFieldType.STRING).description("문의글 내용"),
 						fieldWithPath("type").type(JsonFieldType.STRING).description("문의글 타입  (WHISKEY, REVIEW, USER, ETC)"),
 						fieldWithPath("imageUrlList").type(JsonFieldType.ARRAY).description("이미지 URL 목록"),
@@ -141,6 +142,7 @@ class RestDocsHelpCommandControllerTest extends AbstractRestDocs {
 						fieldWithPath("code").description("응답 코드(http status code)"),
 						fieldWithPath("data.totalCount").description("성공 메시지 코드"),
 						fieldWithPath("data.helpList[].helpId").description("문의글 ID"),
+						fieldWithPath("data.helpList[].title").description("문의글 제목"),
 						fieldWithPath("data.helpList[].content").description("문의글 내용"),
 						fieldWithPath("data.helpList[].createAt").description("문의글 등록일시"),
 						fieldWithPath("data.helpList[].helpStatus").description("문의글 처리상태"),
@@ -182,6 +184,7 @@ class RestDocsHelpCommandControllerTest extends AbstractRestDocs {
 						fieldWithPath("success").description("응답 성공 여부"),
 						fieldWithPath("code").description("응답 코드(http status code)"),
 						fieldWithPath("data.helpId").description("문의글 ID"),
+						fieldWithPath("data.title").description("문의글 제목"),
 						fieldWithPath("data.content").description("문의글 내용"),
 						fieldWithPath("data.helpType").description("문의글 타입"),
 						fieldWithPath("data.imageUrlList[].order").type(JsonFieldType.NUMBER).description("이미지 순서"),
@@ -223,6 +226,7 @@ class RestDocsHelpCommandControllerTest extends AbstractRestDocs {
 			.andDo(
 				document("support/help/help-update",
 					requestFields(
+						fieldWithPath("title").type(JsonFieldType.STRING).description("문의글 제목"),
 						fieldWithPath("content").type(JsonFieldType.STRING).description("문의글 내용"),
 						fieldWithPath("type").type(JsonFieldType.STRING).description("문의글 타입  (WHISKEY, REVIEW, USER, ETC)"),
 						fieldWithPath("imageUrlList").type(JsonFieldType.ARRAY).description("이미지 URL 목록"),

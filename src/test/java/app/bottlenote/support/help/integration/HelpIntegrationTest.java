@@ -69,7 +69,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
 		Error error = Error.of(REQUIRED_HELP_TYPE);
 
-		helpUpsertRequest = new HelpUpsertRequest("로그인이 안돼요", null, List.of(new HelpImageItem(1L, "https://test.com")));
+		helpUpsertRequest = new HelpUpsertRequest("로그인이 안돼요", "왜 안되는거야", null, List.of(new HelpImageItem(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")));
 		// given when
 		mockMvc.perform(post("/api/v1/help")
 						.contentType(MediaType.APPLICATION_JSON)
@@ -245,7 +245,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 			long helpId = 1L;
 			Error error = Error.of(CONTENT_NOT_EMPTY);
 
-			helpUpsertRequest = new HelpUpsertRequest(null, HelpType.USER, List.of(new HelpImageItem(1L, "https://test.com")));
+			helpUpsertRequest = new HelpUpsertRequest("로그인이 안됨", null, HelpType.USER, List.of(new HelpImageItem(1L, "https://test.com")));
 			// given when
 			mockMvc.perform(patch("/api/v1/help/{helpId}", helpId)
 							.contentType(MediaType.APPLICATION_JSON)
