@@ -30,7 +30,6 @@ public class BlockService {
 	private final UserBlockRepository userBlockRepository;
 
 	@Transactional
-	@CacheEvict(value = "blocked_users", key = "#blockerId")
 	public void blockUser(Long blockerId, Long blockedId, String reason) {
 		validateBlockRequest(blockerId, blockedId);
 
@@ -52,7 +51,6 @@ public class BlockService {
 	}
 
 	@Transactional
-	@CacheEvict(value = "blocked_users", key = "#blockerId")
 	public void unblockUser(Long blockerId, Long blockedId) {
 		validateBlockRequest(blockerId, blockedId);
 
@@ -65,7 +63,6 @@ public class BlockService {
 	}
 
 	@Transactional(readOnly = true)
-	@Cacheable(value = "blocked_users", key = "#userId")
 	public Set<Long> getBlockedUserIds(Long userId) {
 		if (userId == null) {
 			return Set.of();
@@ -74,9 +71,7 @@ public class BlockService {
 		return userBlockRepository.findBlockedUserIdsByBlockerId(userId);
 	}
 
-
 	@Transactional(readOnly = true)
-	@Cacheable(value = "blocked_user_items", key = "#userId")
 	public CollectionResponse<UserBlockItem> getBlockedUserItems(Long userId) {
 		if (userId == null) {
 			return CollectionResponse.of(0L, List.of());
