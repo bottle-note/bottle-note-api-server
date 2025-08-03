@@ -3,8 +3,7 @@ package app.bottlenote.support.business.service;
 import app.bottlenote.common.profanity.FakeProfanityClient;
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.global.data.response.CollectionResponse;
-import app.bottlenote.support.business.constant.ContactType;
-import app.bottlenote.support.business.domain.BusinessSupport;
+import app.bottlenote.support.business.constant.BusinessSupportType;
 import app.bottlenote.support.business.dto.request.BusinessSupportPageableRequest;
 import app.bottlenote.support.business.dto.request.BusinessSupportUpsertRequest;
 import app.bottlenote.support.business.dto.response.BusinessInfoResponse;
@@ -22,6 +21,8 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 import static app.bottlenote.support.business.constant.BusinessResultMessage.DELETE_SUCCESS;
 import static app.bottlenote.support.business.constant.BusinessResultMessage.MODIFY_SUCCESS;
@@ -58,7 +59,7 @@ class BusinessSupportServiceTest {
 	@DisplayName("비지니스 문의 등록")
 	void register() {
 		// given
-		BusinessSupportUpsertRequest req = new BusinessSupportUpsertRequest("hi", null);
+		BusinessSupportUpsertRequest req = new BusinessSupportUpsertRequest("문의 제목", "hi", "test@example.com", BusinessSupportType.EVENT, List.of());
 
 		// when
 		BusinessSupportResultResponse res = service.register(req, 1L);
@@ -68,7 +69,10 @@ class BusinessSupportServiceTest {
 		assertNotNull(res.id());
 
 		repository.findById(res.id()).ifPresent(bs -> {
+			assertEquals("문의 제목", bs.getTitle());
 			assertEquals("hi", bs.getContent());
+			assertEquals("test@example.com", bs.getContact());
+			assertEquals(BusinessSupportType.EVENT, bs.getBusinessSupportType());
 			assertEquals(1L, bs.getUserId());
 		});
 	}
@@ -79,7 +83,7 @@ class BusinessSupportServiceTest {
 		// given
 		Long userId = 1L;
 		String content = "중복 문의 내용";
-		BusinessSupportUpsertRequest req = new BusinessSupportUpsertRequest(content, ContactType.EMAIL);
+		BusinessSupportUpsertRequest req = new BusinessSupportUpsertRequest("제목", content, "test@example.com", BusinessSupportType.EVENT, List.of());
 
 		service.register(req, userId);
 
@@ -93,7 +97,7 @@ class BusinessSupportServiceTest {
 		// given
 		Long userId = 1L;
 		String profanityContent = "욕설 포함된 내용";
-		BusinessSupportUpsertRequest req = new BusinessSupportUpsertRequest(profanityContent, ContactType.EMAIL);
+		BusinessSupportUpsertRequest req = new BusinessSupportUpsertRequest("제목", profanityContent, "test@example.com", BusinessSupportType.EVENT, List.of());
 
 		// when
 		BusinessSupportResultResponse res = service.register(req, userId);
@@ -113,12 +117,12 @@ class BusinessSupportServiceTest {
 		String originalContent = "원본 내용";
 		String modifiedContent = "수정된 내용";
 
-		BusinessSupportUpsertRequest createReq = new BusinessSupportUpsertRequest(originalContent, ContactType.EMAIL);
+		BusinessSupportUpsertRequest createReq = new BusinessSupportUpsertRequest("원본 제목", originalContent, "test@example.com", BusinessSupportType.EVENT, List.of());
 		BusinessSupportResultResponse createRes = service.register(createReq, userId);
 		Long supportId = createRes.id();
 
 		// when
-		BusinessSupportUpsertRequest modifyReq = new BusinessSupportUpsertRequest(modifiedContent, ContactType.EMAIL);
+		BusinessSupportUpsertRequest modifyReq = new BusinessSupportUpsertRequest("수정된 제목", modifiedContent, "modified@example.com", BusinessSupportType.ADVERTISEMENT, List.of());
 		BusinessSupportResultResponse modifyRes = service.modify(supportId, modifyReq, userId);
 
 		// then
@@ -126,7 +130,10 @@ class BusinessSupportServiceTest {
 		assertEquals(supportId, modifyRes.id());
 
 		repository.findById(supportId).ifPresent(bs -> {
+			assertEquals("수정된 제목", bs.getTitle());
 			assertEquals(modifiedContent, bs.getContent());
+			assertEquals("modified@example.com", bs.getContact());
+			assertEquals(BusinessSupportType.ADVERTISEMENT, bs.getBusinessSupportType());
 			assertEquals(userId, bs.getUserId());
 		});
 	}
@@ -138,12 +145,12 @@ class BusinessSupportServiceTest {
 		Long ownerId = 1L;
 		Long requesterId = 2L;
 
-		BusinessSupportUpsertRequest createReq = new BusinessSupportUpsertRequest("원본 내용", ContactType.EMAIL);
+		BusinessSupportUpsertRequest createReq = new BusinessSupportUpsertRequest("원본 제목", "원본 내용", "test@example.com", BusinessSupportType.EVENT, List.of());
 		BusinessSupportResultResponse createRes = service.register(createReq, ownerId);
 		Long supportId = createRes.id();
 
 		// when/then
-		BusinessSupportUpsertRequest modifyReq = new BusinessSupportUpsertRequest("수정 시도", ContactType.EMAIL);
+		BusinessSupportUpsertRequest modifyReq = new BusinessSupportUpsertRequest("수정 제목", "수정 시도", "hacker@example.com", BusinessSupportType.ETC, List.of());
 		assertThrows(BusinessSupportException.class, () -> service.modify(supportId, modifyReq, requesterId));
 	}
 
@@ -153,7 +160,7 @@ class BusinessSupportServiceTest {
 		// given
 		Long userId = 1L;
 
-		BusinessSupportUpsertRequest createReq = new BusinessSupportUpsertRequest("삭제될 내용", ContactType.EMAIL);
+		BusinessSupportUpsertRequest createReq = new BusinessSupportUpsertRequest("삭제될 제목", "삭제될 내용", "test@example.com", BusinessSupportType.EVENT, List.of());
 		BusinessSupportResultResponse createRes = service.register(createReq, userId);
 		Long supportId = createRes.id();
 
@@ -176,7 +183,7 @@ class BusinessSupportServiceTest {
 		Long ownerId = 1L;
 		Long requesterId = 2L;
 
-		BusinessSupportUpsertRequest createReq = new BusinessSupportUpsertRequest("삭제 시도할 내용", ContactType.EMAIL);
+		BusinessSupportUpsertRequest createReq = new BusinessSupportUpsertRequest("삭제 시도할 제목", "삭제 시도할 내용", "test@example.com", BusinessSupportType.EVENT, List.of());
 		BusinessSupportResultResponse createRes = service.register(createReq, ownerId);
 		Long supportId = createRes.id();
 
@@ -190,10 +197,10 @@ class BusinessSupportServiceTest {
 		// given
 		Long userId = 1L;
 
-		service.register(new BusinessSupportUpsertRequest("문의 1", ContactType.EMAIL), userId);
-		service.register(new BusinessSupportUpsertRequest("문의 2", ContactType.EMAIL), userId);
-		service.register(new BusinessSupportUpsertRequest("문의 3", null), userId);
-		service.register(new BusinessSupportUpsertRequest("다른 사용자 문의", ContactType.EMAIL), 2L);
+		service.register(new BusinessSupportUpsertRequest("제목 1", "문의 1", "test1@example.com", BusinessSupportType.EVENT, List.of()), userId);
+		service.register(new BusinessSupportUpsertRequest("제목 2", "문의 2", "test2@example.com", BusinessSupportType.ADVERTISEMENT, List.of()), userId);
+		service.register(new BusinessSupportUpsertRequest("제목 3", "문의 3", "test3@example.com", BusinessSupportType.ETC, List.of()), userId);
+		service.register(new BusinessSupportUpsertRequest("다른 제목", "다른 사용자 문의", "other@example.com", BusinessSupportType.EVENT, List.of()), 2L);
 
 		// when
 		BusinessSupportPageableRequest req = new BusinessSupportPageableRequest(null, null);
@@ -215,53 +222,23 @@ class BusinessSupportServiceTest {
 		// given
 		Long userId = 1L;
 		String content = "상세 조회 문의";
+		String title = "상세 조회 제목";
+		String contact = "detail@example.com";
 
-		BusinessSupportUpsertRequest createReq = new BusinessSupportUpsertRequest(content, ContactType.EMAIL);
+		BusinessSupportUpsertRequest createReq = new BusinessSupportUpsertRequest(title, content, contact, BusinessSupportType.EVENT, List.of());
 		BusinessSupportResultResponse createRes = service.register(createReq, userId);
 		Long supportId = createRes.id();
 
 		// when
-		BusinessSupportDetailItem detail = getDetailWithDebug(supportId, userId);
+		BusinessSupportDetailItem detail = service.getDetail(supportId, userId);
 
 		// then
 		assertNotNull(detail);
 		assertEquals(supportId, detail.id());
+		assertEquals(title, detail.title());
 		assertEquals(content, detail.content());
-		assertEquals("EMAIL", detail.contactWay());
+		assertEquals(contact, detail.contact());
+		assertEquals(BusinessSupportType.EVENT, detail.businessSupportType());
 	}
 
-	private BusinessSupportDetailItem getDetailWithDebug(Long id, Long userId) {
-		try {
-			log.info("getDetailWithDebug - id = {}, userId = {}", id, userId);
-			BusinessSupport bs = repository.findByIdAndUserId(id, userId).orElseThrow(() -> new RuntimeException("Not found"));
-			log.info("getDetailWithDebug - bs = {}", bs);
-
-			if (bs.getCreateAt() == null) {
-				log.info("getDetailWithDebug - createAt is null, setting to now");
-				try {
-					java.lang.reflect.Field field = bs.getClass().getDeclaredField("createAt");
-					field.setAccessible(true);
-					field.set(bs, java.time.LocalDateTime.now());
-				} catch (Exception e) {
-					log.error("getDetailWithDebug - Error setting createAt", e);
-				}
-			}
-
-			BusinessSupportDetailItem detail = BusinessSupportDetailItem.builder()
-					.id(bs.getId())
-					.content(bs.getContent())
-					.contactWay(bs.getContactWay().name())
-					.createAt(bs.getCreateAt())
-					.status(bs.getStatus())
-					.adminId(bs.getAdminId())
-					.responseContent(bs.getResponseContent())
-					.lastModifyAt(bs.getLastModifyAt())
-					.build();
-			log.info("getDetailWithDebug - detail = {}", detail);
-			return detail;
-		} catch (Exception e) {
-			log.error("getDetailWithDebug - Error", e);
-			throw e;
-		}
-	}
 }

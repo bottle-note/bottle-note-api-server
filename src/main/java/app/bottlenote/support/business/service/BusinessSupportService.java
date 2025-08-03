@@ -4,6 +4,7 @@ package app.bottlenote.support.business.service;
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.global.data.response.CollectionResponse;
 import app.bottlenote.support.business.domain.BusinessSupport;
+import app.bottlenote.support.business.dto.request.BusinessImageItem;
 import app.bottlenote.support.business.dto.request.BusinessSupportPageableRequest;
 import app.bottlenote.support.business.dto.request.BusinessSupportUpsertRequest;
 import app.bottlenote.support.business.dto.response.BusinessInfoResponse;
@@ -36,13 +37,18 @@ public class BusinessSupportService {
 	@Transactional
 	public BusinessSupportResultResponse register(BusinessSupportUpsertRequest req, Long userId) {
 		userFacade.isValidUserId(userId);
-		String filtered = profanityClient.filter(req.content());
-		repository.findTopByUserIdAndContentOrderByIdDesc(userId, filtered)
+		String filteredTitle = profanityClient.filter(req.title());
+		String filteredContent = profanityClient.filter(req.content());
+		repository.findTopByUserIdAndContentOrderByIdDesc(userId, filteredContent)
 				.ifPresent(bs -> {
 					throw new BusinessSupportException(BUSINESS_SUPPORT_DUPLICATE);
 				});
-		BusinessSupport bs = BusinessSupport.create(userId, filtered, req.contactWay());
+		BusinessSupport bs = BusinessSupport.create(userId, filteredTitle, filteredContent, req.contact(), req.businessSupportType());
 		BusinessSupport saved = repository.save(bs);
+
+		// 이미지 저장
+		bs.saveImages(req.imageUrlList(), saved.getId());
+
 		return BusinessSupportResultResponse.response(REGISTER_SUCCESS, saved.getId());
 	}
 
@@ -50,7 +56,9 @@ public class BusinessSupportService {
 	public BusinessSupportResultResponse modify(Long id, BusinessSupportUpsertRequest req, Long userId) {
 		BusinessSupport bs = repository.findById(id).orElseThrow(() -> new BusinessSupportException(BUSINESS_SUPPORT_NOT_FOUND));
 		if (!bs.isMyPost(userId)) throw new BusinessSupportException(BUSINESS_SUPPORT_NOT_AUTHORIZED);
-		bs.update(profanityClient.filter(req.content()), req.contactWay());
+		String filteredTitle = profanityClient.filter(req.title());
+		String filteredContent = profanityClient.filter(req.content());
+		bs.update(filteredTitle, filteredContent, req.contact(), req.businessSupportType(), req.imageUrlList());
 		return BusinessSupportResultResponse.response(MODIFY_SUCCESS, bs.getId());
 	}
 
@@ -66,7 +74,7 @@ public class BusinessSupportService {
 	public CollectionResponse<BusinessInfoResponse> getList(BusinessSupportPageableRequest req, Long userId) {
 		List<BusinessSupport> list = repository.findAllByUserId(userId);
 		List<BusinessInfoResponse> infos = list.stream()
-				.map(b -> BusinessInfoResponse.of(b.getId(), b.getContent(), b.getCreateAt(), b.getStatus()))
+				.map(b -> BusinessInfoResponse.of(b.getId(), b.getTitle(), b.getContent(), b.getCreateAt(), b.getStatus()))
 				.toList();
 		return CollectionResponse.of(infos.size(), infos);
 	}
@@ -76,8 +84,16 @@ public class BusinessSupportService {
 		BusinessSupport bs = repository.findByIdAndUserId(id, userId).orElseThrow(() -> new BusinessSupportException(BUSINESS_SUPPORT_NOT_FOUND));
 		return BusinessSupportDetailItem.builder()
 				.id(bs.getId())
+				.title(bs.getTitle())
 				.content(bs.getContent())
-				.contactWay(bs.getContactWay().name())
+				.contact(bs.getContact())
+				.businessSupportType(bs.getBusinessSupportType())
+				.imageUrlList(
+						bs.getBusinessImageList().getBusinessImages().stream()
+								.map(image -> BusinessImageItem.create(
+										image.getBusinessImageInfo().getOrder(),
+										image.getBusinessImageInfo().getImageUrl()))
+								.toList())
 				.createAt(bs.getCreateAt())
 				.status(bs.getStatus())
 				.adminId(bs.getAdminId())

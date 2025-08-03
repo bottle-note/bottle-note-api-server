@@ -2,8 +2,9 @@ package app.docs.support.business;
 
 import app.bottlenote.global.data.response.CollectionResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.support.business.constant.ContactType;
+import app.bottlenote.support.business.constant.BusinessSupportType;
 import app.bottlenote.support.business.controller.BusinessSupportController;
+import app.bottlenote.support.business.dto.request.BusinessImageItem;
 import app.bottlenote.support.business.dto.request.BusinessSupportUpsertRequest;
 import app.bottlenote.support.business.dto.response.BusinessInfoResponse;
 import app.bottlenote.support.business.dto.response.BusinessSupportDetailItem;
@@ -76,7 +77,7 @@ class RestDocsBusinessSupportControllerTest extends AbstractRestDocs {
 	void register_success() throws Exception {
 		// given
 		Long userId = 1L;
-		BusinessSupportUpsertRequest request = new BusinessSupportUpsertRequest("새로운 비즈니스 문의입니다.", ContactType.EMAIL);
+		BusinessSupportUpsertRequest request = new BusinessSupportUpsertRequest("비즈니스 문의 제목", "새로운 비즈니스 문의입니다.", "business@example.com", BusinessSupportType.EVENT, List.of(new BusinessImageItem(1L, "https://example.com/image1.jpg")));
 		BusinessSupportResultResponse response = BusinessSupportResultResponse.response(REGISTER_SUCCESS, 1L);
 
 		// when
@@ -91,8 +92,13 @@ class RestDocsBusinessSupportControllerTest extends AbstractRestDocs {
 				.andExpect(status().isOk())
 				.andDo(document("support/business/register",
 						requestFields(
+								fieldWithPath("title").type(JsonFieldType.STRING).description("문의 제목"),
 								fieldWithPath("content").type(JsonFieldType.STRING).description("문의 내용"),
-								fieldWithPath("contactWay").type(JsonFieldType.STRING).description("연락 방식 (이메일, 전화번호 등)").optional()
+								fieldWithPath("contact").type(JsonFieldType.STRING).description("연락처"),
+								fieldWithPath("businessSupportType").type(JsonFieldType.STRING).description("문의 유형 (EVENT, ADVERTISEMENT, ETC)"),
+								fieldWithPath("imageUrlList").type(JsonFieldType.ARRAY).description("이미지 URL 목록"),
+								fieldWithPath("imageUrlList[].order").type(JsonFieldType.NUMBER).description("이미지 순서"),
+								fieldWithPath("imageUrlList[].viewUrl").type(JsonFieldType.STRING).description("이미지 URL")
 						),
 						responseFields(
 								fieldWithPath("success").description("응답 성공 여부"),
@@ -116,8 +122,8 @@ class RestDocsBusinessSupportControllerTest extends AbstractRestDocs {
 		// given
 		Long userId = 1L;
 		List<BusinessInfoResponse> infos = List.of(
-				BusinessInfoResponse.of(2L, "두번째 문의", LocalDateTime.now(), StatusType.WAITING),
-				BusinessInfoResponse.of(1L, "첫번째 문의", LocalDateTime.now().minusDays(1), StatusType.SUCCESS)
+				BusinessInfoResponse.of(2L, "두번째 문의 제목", "두번째 문의", LocalDateTime.now(), StatusType.WAITING),
+				BusinessInfoResponse.of(1L, "첫번째 문의 제목", "첫번째 문의", LocalDateTime.now().minusDays(1), StatusType.SUCCESS)
 		);
 		CollectionResponse<BusinessInfoResponse> collectionResponse = CollectionResponse.of(infos.size(), infos);
 
@@ -141,6 +147,7 @@ class RestDocsBusinessSupportControllerTest extends AbstractRestDocs {
 								fieldWithPath("code").description("응답 코드"),
 								fieldWithPath("data.totalCount").description("총 문의 개수"),
 								fieldWithPath("data.items[].id").description("문의 ID"),
+								fieldWithPath("data.items[].title").description("문의 제목"),
 								fieldWithPath("data.items[].content").description("문의 내용"),
 								fieldWithPath("data.items[].createAt").description("문의 생성일"),
 								fieldWithPath("data.items[].status").description("문의 상태 (WAITING, ANSWERED 등)"),
@@ -161,8 +168,11 @@ class RestDocsBusinessSupportControllerTest extends AbstractRestDocs {
 		Long supportId = 1L;
 		BusinessSupportDetailItem response = BusinessSupportDetailItem.builder()
 				.id(supportId)
+				.title("문의 상세 제목")
 				.content("문의 상세 내용입니다.")
-				.contactWay("test@example.com")
+				.contact("test@example.com")
+				.businessSupportType(BusinessSupportType.EVENT)
+				.imageUrlList(List.of(new BusinessImageItem(1L, "https://example.com/image1.jpg")))
 				.createAt(LocalDateTime.now().minusDays(1))
 				.status(StatusType.SUCCESS)
 				.adminId(100L)
@@ -186,8 +196,13 @@ class RestDocsBusinessSupportControllerTest extends AbstractRestDocs {
 								fieldWithPath("success").description("응답 성공 여부"),
 								fieldWithPath("code").description("응답 코드"),
 								fieldWithPath("data.id").description("문의 ID"),
+								fieldWithPath("data.title").description("문의 제목"),
 								fieldWithPath("data.content").description("문의 내용"),
-								fieldWithPath("data.contactWay").description("연락 방식"),
+								fieldWithPath("data.contact").description("연락처"),
+								fieldWithPath("data.businessSupportType").description("문의 유형"),
+								fieldWithPath("data.imageUrlList").description("이미지 URL 목록"),
+								fieldWithPath("data.imageUrlList[].order").description("이미지 순서"),
+								fieldWithPath("data.imageUrlList[].viewUrl").description("이미지 URL"),
 								fieldWithPath("data.createAt").description("문의 생성일"),
 								fieldWithPath("data.status").description("문의 상태"),
 								fieldWithPath("data.adminId").description("답변 관리자 ID").optional(),
@@ -209,7 +224,7 @@ class RestDocsBusinessSupportControllerTest extends AbstractRestDocs {
 		// given
 		Long userId = 1L;
 		Long supportId = 1L;
-		BusinessSupportUpsertRequest request = new BusinessSupportUpsertRequest("수정된 내용입니다.", ContactType.EMAIL);
+		BusinessSupportUpsertRequest request = new BusinessSupportUpsertRequest("수정된 제목", "수정된 내용입니다.", "modified@example.com", BusinessSupportType.ADVERTISEMENT, List.of(new BusinessImageItem(1L, "https://example.com/modified.jpg")));
 		BusinessSupportResultResponse response = BusinessSupportResultResponse.response(MODIFY_SUCCESS, supportId);
 
 		// when
@@ -227,8 +242,13 @@ class RestDocsBusinessSupportControllerTest extends AbstractRestDocs {
 								parameterWithName("id").description("수정할 문의 ID")
 						),
 						requestFields(
+								fieldWithPath("title").description("수정할 제목"),
 								fieldWithPath("content").description("수정할 내용"),
-								fieldWithPath("contactWay").description("수정할 연락 방식").optional()
+								fieldWithPath("contact").description("수정할 연락처"),
+								fieldWithPath("businessSupportType").description("수정할 문의 유형"),
+								fieldWithPath("imageUrlList").description("수정할 이미지 URL 목록"),
+								fieldWithPath("imageUrlList[].order").description("이미지 순서"),
+								fieldWithPath("imageUrlList[].viewUrl").description("이미지 URL")
 						),
 						responseFields(
 								fieldWithPath("success").description("응답 성공 여부"),

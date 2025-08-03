@@ -1,7 +1,7 @@
 package app.bottlenote.support.business.integration;
 
 import app.bottlenote.IntegrationTestSupport;
-import app.bottlenote.support.business.constant.ContactType;
+import app.bottlenote.support.business.constant.BusinessSupportType;
 import app.bottlenote.support.business.domain.BusinessSupport;
 import app.bottlenote.support.business.dto.request.BusinessSupportUpsertRequest;
 import app.bottlenote.support.business.fixture.BusinessSupportTestFactory;
@@ -12,6 +12,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -37,7 +39,7 @@ class BusinessSupportIntegrationTest extends IntegrationTestSupport {
 	@Test
 	@DisplayName("비지니스 문의를 등록할 수 있다.")
 	void register() throws Exception {
-		BusinessSupportUpsertRequest req = new BusinessSupportUpsertRequest("문의", ContactType.EMAIL);
+		BusinessSupportUpsertRequest req = new BusinessSupportUpsertRequest("이벤트 협업 관련 문의드려요", "blah blah", "test@naver.com", BusinessSupportType.EVENT, List.of());
 
 		mockMvc.perform(post("/api/v1/business-support")
 						.contentType(APPLICATION_JSON)
@@ -58,13 +60,13 @@ class BusinessSupportIntegrationTest extends IntegrationTestSupport {
 	@DisplayName("인증되지 않은 사용자는 문의를 등록할 수 없다.")
 	void register_fail_unauthorized() throws Exception {
 		// given
-		BusinessSupportUpsertRequest request = new BusinessSupportUpsertRequest("문의", ContactType.EMAIL);
+		BusinessSupportUpsertRequest req = new BusinessSupportUpsertRequest("이벤트 협업 관련 문의드려요", "blah blah", "test@naver.com", BusinessSupportType.EVENT, List.of());
 
 		// when & then
 		mockMvc.perform(post("/api/v1/business-support")
 						.with(csrf())
 						.contentType(APPLICATION_JSON)
-						.content(mapper.writeValueAsString(request)))
+						.content(mapper.writeValueAsString(req)))
 				.andDo(print())
 				.andExpect(status().isBadRequest());
 	}
@@ -75,7 +77,7 @@ class BusinessSupportIntegrationTest extends IntegrationTestSupport {
 		// given
 		User user = userFactory.persistUser();
 		businessFactory.persist(user.getId());
-		
+
 		// when & then
 		mockMvc.perform(get("/api/v1/business-support")
 						.header("Authorization", "Bearer " + getToken()))
@@ -116,14 +118,14 @@ class BusinessSupportIntegrationTest extends IntegrationTestSupport {
 		// given
 		User user = userFactory.persistUser();
 		BusinessSupport support = businessFactory.persist(user.getId());
-		BusinessSupportUpsertRequest request = new BusinessSupportUpsertRequest("수정된 내용입니다.", ContactType.PHONE);
+		BusinessSupportUpsertRequest req = new BusinessSupportUpsertRequest("이벤트 협업 관련 문의드려요", "blah blah", "test@naver.com", BusinessSupportType.EVENT, List.of());
 
 		// when & then
 		mockMvc.perform(patch("/api/v1/business-support/{id}", support.getId())
 						.with(csrf())
 						.header("Authorization", "Bearer " + getToken())
 						.contentType(APPLICATION_JSON)
-						.content(mapper.writeValueAsString(request)))
+						.content(mapper.writeValueAsString(req)))
 				.andDo(print())
 				.andExpect(status().isOk());
 	}
