@@ -69,7 +69,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
 		Error error = Error.of(REQUIRED_HELP_TYPE);
 
-		helpUpsertRequest = new HelpUpsertRequest("로그인이 안돼요", "왜 안되는거야", HelpType.USER, List.of(new HelpImageItem(1L, "https://test.com")));
+		helpUpsertRequest = new HelpUpsertRequest("로그인이 안돼요", "왜 안되는거야", null, List.of(new HelpImageItem(1L, "https://bottlenote.s3.ap-northeast-2.amazonaws.com/images/1")));
 		// given when
 		mockMvc.perform(post("/api/v1/help")
 						.contentType(MediaType.APPLICATION_JSON)
