@@ -58,6 +58,8 @@ spring:
 security:
   jwt:
     secret-key: 'c2VjdXJlU2VjcmV0S2V5MTIzNDU2Nzg5MGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6QWJDRGVGR2hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlrSg=='
+  nonce:
+    salt: 'test-salt-value-2024'
 
 # AWS S3
 amazon:

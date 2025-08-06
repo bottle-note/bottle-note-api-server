@@ -4,6 +4,8 @@ import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,19 +22,23 @@ public class NonceService {
 	private static final Duration NONCE_TTL = Duration.ofMinutes(10);
 	
 	private final RedisTemplate<String, Object> redisTemplate;
+	
+	@Value("${security.nonce.salt}")
+	private String nonceSalt;
 
 	/**
 	 * 클라이언트에게 전달할 일회성 Nonce 값을 생성하고 Redis에 저장
 	 */
 	@Transactional
 	public String generateNonce() {
-		String nonce = UUID.randomUUID().toString();
-		String key = NONCE_PREFIX + nonce;
+		String baseNonce = UUID.randomUUID().toString();
+		String saltedNonce = DigestUtils.sha256Hex(baseNonce + nonceSalt);
+		String key = NONCE_PREFIX + saltedNonce;
 		
-		redisTemplate.opsForValue().set(key, nonce, NONCE_TTL);
-		log.debug("Nonce 생성 및 저장 완료: {}", nonce);
+		redisTemplate.opsForValue().set(key, saltedNonce, NONCE_TTL);
+		log.debug("Salt 적용된 Nonce 생성 및 저장 완료: {}", saltedNonce);
 		
-		return nonce;
+		return saltedNonce;
 	}
 
 	/**
