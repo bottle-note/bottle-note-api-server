@@ -199,7 +199,12 @@ public class OauthService {
 	@Transactional
 	public TokenItem refresh(String refreshToken) {
 		//refresh Token 검증
-		if (!validateToken(refreshToken)) {
+		try {
+			if (!validateToken(refreshToken)) {
+				throw new UserException(INVALID_REFRESH_TOKEN);
+			}
+		} catch (Exception e) {
+			// JWT 관련 예외들을 UserException으로 변환
 			throw new UserException(INVALID_REFRESH_TOKEN);
 		}
 
