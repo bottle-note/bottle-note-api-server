@@ -1,5 +1,6 @@
 package app.bottlenote.user.service;
 
+import app.bottlenote.global.security.jwt.TokenValidator;
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import app.bottlenote.user.constant.GenderType;
@@ -12,6 +13,7 @@ import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.repository.OauthRepository;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -37,6 +39,8 @@ public class OauthService {
 	private final JwtTokenProvider tokenProvider;
 	private final JwtAuthenticationManager authenticationManager;
 	private final BCryptPasswordEncoder passwordEncoder;
+	private final TokenValidator tokenValidator;
+	private final NonceService nonceService;
 	private final SecureRandom randomValue = new SecureRandom();
 
 	@Transactional
@@ -195,7 +199,12 @@ public class OauthService {
 	@Transactional
 	public TokenItem refresh(String refreshToken) {
 		//refresh Token 검증
-		if (!validateToken(refreshToken)) {
+		try {
+			if (!validateToken(refreshToken)) {
+				throw new UserException(INVALID_REFRESH_TOKEN);
+			}
+		} catch (Exception e) {
+			// JWT 관련 예외들을 UserException으로 변환
 			throw new UserException(INVALID_REFRESH_TOKEN);
 		}
 
@@ -281,5 +290,47 @@ public class OauthService {
 			log.error("Token is invalid : {}", e.getMessage());
 			return String.format("Token is invalid {%s}", e.getMessage());
 		}
+	}
+
+	@Transactional
+	public TokenItem loginWithApple(String idToken, String nonce) {
+		// 1. Nonce 검증 (가장 먼저 수행하여 재전송 공격 방어)
+		nonceService.validateNonce(nonce);
+
+		// 2. id_token 검증 및 Claims 추출 (nonce 포함)
+		Claims claims = tokenValidator.validateAndGetClaims(idToken, nonce);
+
+		String socialUniqueId = tokenValidator.getSocialUniqueId(claims);
+		String email = tokenValidator.getEmail(claims);
+
+		User user = oauthRepository.findBySocialUniqueId(socialUniqueId)
+				.orElseGet(() -> findByEmailOrCreateUser(email, socialUniqueId));
+
+		checkActiveUser(user);
+		return getTokenItem(user, SocialType.APPLE);
+	}
+
+	private User findByEmailOrCreateUser(String email, String socialUniqueId) {
+		return oauthRepository.findByEmail(email)
+				.map(existingUser -> {
+					log.info("기존 계정({})에 Apple 계정 연동: socialUniqueId={}", email, socialUniqueId);
+					existingUser.updateSocialUniqueId(socialUniqueId); // 👈 socialUniqueId 업데이트 로직 필요
+					return existingUser;
+				})
+				.orElseGet(() -> {
+					log.info("Apple 신규 회원가입: email={}, socialUniqueId={}", email, socialUniqueId);
+					return signupWithApple(email, socialUniqueId);
+				});
+	}
+
+	private User signupWithApple(String email, String socialUniqueId) {
+		User user = User.builder()
+				.email(email)
+				.socialUniqueId(socialUniqueId)
+				.socialType(List.of(SocialType.APPLE))
+				.role(UserType.ROLE_USER)
+				.nickName(generateNickname())
+				.build();
+		return oauthRepository.save(user);
 	}
 }

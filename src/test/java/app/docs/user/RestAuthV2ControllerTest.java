@@ -1,8 +1,11 @@
 package app.docs.user;
 
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.user.config.OauthConfigProperties;
 import app.bottlenote.user.controller.AuthV2Controller;
 import app.bottlenote.user.service.AuthService;
+import app.bottlenote.user.service.NonceService;
+import app.bottlenote.user.service.OauthService;
 import app.docs.AbstractRestDocs;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,11 +31,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("유저 Auth 컨트롤러 V2x RestDocs 테스트")
 class RestAuthV2ControllerTest extends AbstractRestDocs {
 	private final AuthService authService = mock(AuthService.class);
+	private final NonceService nonceService = mock(NonceService.class);
+	private final OauthService oauthService = mock(OauthService.class);
+	private final OauthConfigProperties config = mock(OauthConfigProperties.class);
+
 	private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
 	@Override
 	protected Object initController() {
-		return new AuthV2Controller(authService);
+		return new AuthV2Controller(authService, nonceService, oauthService, config);
 	}
 
 	@BeforeEach

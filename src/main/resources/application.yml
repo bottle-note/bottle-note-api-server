@@ -62,6 +62,8 @@ security:
     secret-key: ${JWT_SECRET_KEY:c2VjdXJlU2VjcmV0S2V5MTIzNDU2Nzg5MGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6QWJDRGVGR2hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlrSg==}
     access-token-expiration: 86400 # 하루 (24시간)
     refresh-token-expiration: 2592000 # 한 달 (30일)
+  nonce:
+    salt: ${NONCE_SALT:bottle-note-secure-salt-2024}
 
 
 # Actuator 설정
@@ -74,3 +76,6 @@ management:
   endpoint:
     health:
       show-details: always
+
+apple:
+  bundle-id: "com.bottlenote.official.app"

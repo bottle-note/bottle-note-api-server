@@ -9,6 +9,7 @@ import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
+import app.bottlenote.user.service.NonceService;
 import app.bottlenote.user.service.OauthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,6 +47,8 @@ class OauthControllerTest {
 	protected MockMvc mockMvc;
 	@MockBean
 	protected OauthService oauthService;
+	@MockBean
+	protected NonceService nonceService;
 	@MockBean
 	private OauthConfigProperties oauthConfigProperties;
 
@@ -222,6 +225,4 @@ class OauthControllerTest {
 						result.getResolvedException() instanceof IllegalArgumentException))
 				.andExpect(jsonPath("$.errors").exists());
 	}
-
-
 }
