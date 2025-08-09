@@ -1,3 +1,53 @@
+=== Apple 로그인용 Nonce 발급 ===
+
+- Apple 로그인 프로세스에서 사용할 일회성 Nonce 값을 발급합니다.
+- 이 Nonce는 Apple 로그인 시 보안을 위해 사용됩니다.
+
+[source]
+----
+GET /api/v2/auth/apple/nonce
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/auth/apple/nonce/curl-request.adoc[]
+include::{snippets}/auth/apple/nonce/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/auth/apple/nonce/response-fields.adoc[]
+include::{snippets}/auth/apple/nonce/http-response.adoc[]
+
+=== Apple 로그인 ===
+
+- Apple ID를 통한 로그인을 수행합니다.
+- Apple에서 발급받은 ID Token과 이전에 발급받은 Nonce 값이 필요합니다.
+- 성공 시 액세스 토큰을 반환하고, 리프레시 토큰은 HttpOnly 쿠키로 설정됩니다.
+
+[source]
+----
+POST /api/v2/auth/apple
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/auth/apple/login/curl-request.adoc[]
+include::{snippets}/auth/apple/login/http-request.adoc[]
+include::{snippets}/auth/apple/login/request-fields.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/auth/apple/login/response-fields.adoc[]
+include::{snippets}/auth/apple/login/http-response.adoc[]
+
 === 루트 관리자 권한 검증 ===
 
 - 현재 로그인한 사용자가 루트 관리자 권한을 가지고 있는지 검증합니다.
@@ -5,7 +55,7 @@
 
 [source]
 ----
-api/v2/auth/admin/permissions
+GET /api/v2/auth/admin/permissions
 ----
 
 [discrete]
@@ -16,7 +66,7 @@ include::{snippets}/auth/admin/root-permissions/curl-request.adoc[]
 include::{snippets}/auth/admin/root-permissions/http-request.adoc[]
 
 [discrete]
-==== 응답 파라미터  ====
+==== 응답 파라미터 ====
 
 [discrete]
 include::{snippets}/auth/admin/root-permissions/response-fields.adoc[]
