@@ -7,9 +7,6 @@ import org.springframework.data.repository.query.Param;
 
 public interface CustomUserHistoryRepository {
 
-	PageResponse<UserHistorySearchResponse> findUserHistoryListByUserId(
-		@Param("userId") Long userId,
-		@Param("request") UserHistorySearchRequest request
-	);
-
+  PageResponse<UserHistorySearchResponse> findUserHistoryListByUserId(
+      @Param("userId") Long userId, @Param("request") UserHistorySearchRequest request);
 }

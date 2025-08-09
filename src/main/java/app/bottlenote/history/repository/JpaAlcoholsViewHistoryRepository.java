@@ -7,6 +7,6 @@ import app.bottlenote.history.domain.AlcoholsViewHistoryRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 @JpaRepositoryImpl
-public interface JpaAlcoholsViewHistoryRepository extends AlcoholsViewHistoryRepository, JpaRepository<AlcoholsViewHistory, AlcoholsViewHistoryId> {
-
-}
+public interface JpaAlcoholsViewHistoryRepository
+    extends AlcoholsViewHistoryRepository,
+        JpaRepository<AlcoholsViewHistory, AlcoholsViewHistoryId> {}

@@ -9,11 +9,12 @@ import org.springframework.data.repository.query.Param;
 
 public interface JpaLikesRepository extends LikesRepository, JpaRepository<Likes, Long> {
 
-	@Query(
-		"""
+  @Query(
+      """
 			select l
 			from likes l
 			where l.reviewId = :reviewId and l.userInfo.userId = :userId
 			""")
-	Optional<Likes> findByReviewIdAndUserId(@Param("reviewId") Long reviewId, @Param("userId") Long userId);
+  Optional<Likes> findByReviewIdAndUserId(
+      @Param("reviewId") Long reviewId, @Param("userId") Long userId);
 }

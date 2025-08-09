@@ -7,19 +7,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 public record OauthRequest(
-
-		@Email(message = "EMAIL_PATTERN_NOT_VALID")
-		String email,
-
-		String socialUniqueId,
-
-		@NotNull(message = "SOCIAL_TYPE_REQUIRED")
-		SocialType socialType,
-
-		GenderType gender,
-
-		@Min(value = 0, message = "AGE_MINIMUM")
-		Integer age
-) {
-
-}
+    @Email(message = "EMAIL_PATTERN_NOT_VALID") String email,
+    String socialUniqueId,
+    @NotNull(message = "SOCIAL_TYPE_REQUIRED") SocialType socialType,
+    GenderType gender,
+    @Min(value = 0, message = "AGE_MINIMUM") Integer age) {}

@@ -6,9 +6,9 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum RedirectUrlType {
-	REVIEW("/review"),
-	ALCOHOL("/search/all"),
-	;
+  REVIEW("/review"),
+  ALCOHOL("/search/all"),
+  ;
 
-	private final String url;
+  private final String url;
 }

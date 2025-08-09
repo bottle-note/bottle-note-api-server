@@ -12,14 +12,15 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class BusinessSupportTestFactory {
 
-	@Autowired
-	private EntityManager em;
+  @Autowired private EntityManager em;
 
-	@Transactional
-	public BusinessSupport persist(Long userId) {
-		BusinessSupport bs = BusinessSupport.create(userId, "이벤트 협업 관련 문의드려요", "blah blah", "test@naver.com", BusinessSupportType.EVENT);
-		em.persist(bs);
-		em.flush();
-		return bs;
-	}
+  @Transactional
+  public BusinessSupport persist(Long userId) {
+    BusinessSupport bs =
+        BusinessSupport.create(
+            userId, "이벤트 협업 관련 문의드려요", "blah blah", "test@naver.com", BusinessSupportType.EVENT);
+    em.persist(bs);
+    em.flush();
+    return bs;
+  }
 }

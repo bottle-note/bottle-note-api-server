@@ -10,41 +10,20 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
 import java.math.BigDecimal;
 import java.util.List;
 
 public record ReviewModifyRequest(
-
-	@NotEmpty(message = "REVIEW_CONTENT_REQUIRED")
-	@Size(max = 500, message = "REVIEW_CONTENT_MAXIMUM")
-	String content,
-
-	@NotNull(message = "REVIEW_DISPLAY_STATUS_NOT_EMPTY")
-	ReviewDisplayStatus status,
-
-	@DecimalMin(value = "0.0", message = "PRICE_MINIMUM")
-	@DecimalMax(value = "1000000000000", message = "PRICE_MAXIMUM")
-	@JsonInclude()
-	@JsonProperty(required = true)
-	BigDecimal price,
-
-	@JsonInclude()
-	@JsonProperty(required = true)
-	List<ReviewImageInfoRequest> imageUrlList,
-
-	@JsonInclude()
-	@JsonProperty(required = true)
-	SizeType sizeType,
-
-	@JsonInclude()
-	@JsonProperty(required = true)
-	List<String> tastingTagList,
-
-	@Valid
-	@JsonInclude()
-	@JsonProperty(required = true)
-    LocationInfoRequest locationInfo
-
-) {
-}
+    @NotEmpty(message = "REVIEW_CONTENT_REQUIRED")
+        @Size(max = 500, message = "REVIEW_CONTENT_MAXIMUM")
+        String content,
+    @NotNull(message = "REVIEW_DISPLAY_STATUS_NOT_EMPTY") ReviewDisplayStatus status,
+    @DecimalMin(value = "0.0", message = "PRICE_MINIMUM")
+        @DecimalMax(value = "1000000000000", message = "PRICE_MAXIMUM")
+        @JsonInclude()
+        @JsonProperty(required = true)
+        BigDecimal price,
+    @JsonInclude() @JsonProperty(required = true) List<ReviewImageInfoRequest> imageUrlList,
+    @JsonInclude() @JsonProperty(required = true) SizeType sizeType,
+    @JsonInclude() @JsonProperty(required = true) List<String> tastingTagList,
+    @Valid @JsonInclude() @JsonProperty(required = true) LocationInfoRequest locationInfo) {}

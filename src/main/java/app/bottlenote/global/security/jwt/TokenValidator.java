@@ -4,9 +4,9 @@ import io.jsonwebtoken.Claims;
 
 public interface TokenValidator {
 
-    Claims validateAndGetClaims(String idToken, String expectedNonce);
-    
-    String getSocialUniqueId(Claims claims);
+  Claims validateAndGetClaims(String idToken, String expectedNonce);
 
-    String getEmail(Claims claims);
+  String getSocialUniqueId(Claims claims);
+
+  String getEmail(Claims claims);
 }

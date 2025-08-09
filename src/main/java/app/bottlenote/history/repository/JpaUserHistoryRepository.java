@@ -6,8 +6,5 @@ import app.bottlenote.history.domain.UserHistoryRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 @JpaRepositoryImpl
-public interface JpaUserHistoryRepository extends
-		UserHistoryRepository,
-		JpaRepository<UserHistory, Long>,
-		CustomUserHistoryRepository {
-}
+public interface JpaUserHistoryRepository
+    extends UserHistoryRepository, JpaRepository<UserHistory, Long>, CustomUserHistoryRepository {}

@@ -1,33 +1,34 @@
 package app.bottlenote.review.repository;
 
-
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewReplyRepository;
+import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
-
 @Repository
-public interface JpaReviewReplyRepository extends ReviewReplyRepository, JpaRepository<ReviewReply, Long>, CustomReviewReplyRepository {
+public interface JpaReviewReplyRepository
+    extends ReviewReplyRepository, JpaRepository<ReviewReply, Long>, CustomReviewReplyRepository {
 
-	@Override
-	@Query("select r from review_reply r left join review_reply rr on r.rootReviewReply.id = rr.id where r.reviewId = :reviewId and r.id = :parentReplyId")
-	Optional<ReviewReply> isEligibleParentReply(@Param("reviewId") Long reviewId, @Param("parentReplyId") Long parentReplyId);
+  @Override
+  @Query(
+      "select r from review_reply r left join review_reply rr on r.rootReviewReply.id = rr.id where r.reviewId = :reviewId and r.id = :parentReplyId")
+  Optional<ReviewReply> isEligibleParentReply(
+      @Param("reviewId") Long reviewId, @Param("parentReplyId") Long parentReplyId);
 
-	@Override
-	@Query("select r from review_reply r where r.reviewId = :review and r.id = :replyId")
-	Optional<ReviewReply> findReplyByReviewIdAndReplyId(@Param("review") Long review, @Param("replyId") Long replyId);
+  @Override
+  @Query("select r from review_reply r where r.reviewId = :review and r.id = :replyId")
+  Optional<ReviewReply> findReplyByReviewIdAndReplyId(
+      @Param("review") Long review, @Param("replyId") Long replyId);
 
-	@Override
-	@Query("select r from review_reply r where r.id = :id")
-	Optional<ReviewReply> findReplyById(@Param("id") Long id);
+  @Override
+  @Query("select r from review_reply r where r.id = :id")
+  Optional<ReviewReply> findReplyById(@Param("id") Long id);
 
-	@Override
-	@Query("select r from review_reply r")
-	List<ReviewReply> findAllReply();
-
+  @Override
+  @Query("select r from review_reply r")
+  List<ReviewReply> findAllReply();
 }

@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "security.jwt")
 @ConfigurationPropertiesScan
 public class JwtProperties {
-	private String secretKey;
-	private long accessTokenExpiration;
-	private long refreshTokenExpiration;
+  private String secretKey;
+  private long accessTokenExpiration;
+  private long refreshTokenExpiration;
 }

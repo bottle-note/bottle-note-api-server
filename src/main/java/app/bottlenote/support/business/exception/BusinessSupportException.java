@@ -7,7 +7,7 @@ import lombok.Getter;
 @Getter
 public class BusinessSupportException extends AbstractCustomException {
 
-    public BusinessSupportException(ExceptionCode exceptionCode) {
-        super(exceptionCode);
-    }
+  public BusinessSupportException(ExceptionCode exceptionCode) {
+    super(exceptionCode);
+  }
 }

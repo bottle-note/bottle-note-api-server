@@ -7,5 +7,5 @@ import lombok.Getter;
 @AllArgsConstructor(staticName = "of")
 public class OauthResponse {
 
-	private final String accessToken;
+  private final String accessToken;
 }

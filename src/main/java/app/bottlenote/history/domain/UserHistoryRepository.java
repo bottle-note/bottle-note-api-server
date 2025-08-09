@@ -4,22 +4,19 @@ import app.bottlenote.common.annotation.DomainRepository;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.history.dto.request.UserHistorySearchRequest;
 import app.bottlenote.history.dto.response.UserHistorySearchResponse;
-
 import java.util.List;
 import java.util.Optional;
 
 @DomainRepository
 public interface UserHistoryRepository {
-	UserHistory save(UserHistory userHistory);
+  UserHistory save(UserHistory userHistory);
 
-	Optional<UserHistory> findById(Long id);
+  Optional<UserHistory> findById(Long id);
 
-	List<UserHistory> findAll();
+  List<UserHistory> findAll();
 
-	void delete(UserHistory userHistory);
+  void delete(UserHistory userHistory);
 
-	PageResponse<UserHistorySearchResponse> findUserHistoryListByUserId(
-			Long userId,
-			UserHistorySearchRequest userHistorySearchRequest
-	);
+  PageResponse<UserHistorySearchResponse> findUserHistoryListByUserId(
+      Long userId, UserHistorySearchRequest userHistorySearchRequest);
 }

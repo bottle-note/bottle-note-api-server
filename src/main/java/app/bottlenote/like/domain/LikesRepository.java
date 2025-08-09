@@ -5,11 +5,11 @@ import java.util.Optional;
 
 public interface LikesRepository {
 
-	Likes save(Likes likes);
+  Likes save(Likes likes);
 
-	Optional<Likes> findById(Long id);
+  Optional<Likes> findById(Long id);
 
-	List<Likes> findAll();
+  List<Likes> findAll();
 
-	Optional<Likes> findByReviewIdAndUserId(Long reviewId, Long userId);
+  Optional<Likes> findByReviewIdAndUserId(Long reviewId, Long userId);
 }

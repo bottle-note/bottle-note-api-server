@@ -4,7 +4,7 @@ import app.bottlenote.global.exception.custom.AbstractCustomException;
 
 public class BlockException extends AbstractCustomException {
 
-    public BlockException(BlockExceptionCode blockExceptionCode) {
-        super(blockExceptionCode);
-    }
+  public BlockException(BlockExceptionCode blockExceptionCode) {
+    super(blockExceptionCode);
+  }
 }

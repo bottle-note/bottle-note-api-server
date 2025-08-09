@@ -14,24 +14,25 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AlcoholDetailItem {
-	private Long alcoholId;
-	private String alcoholUrlImg;
-	private String korName;
-	private String engName;
-	private String korCategory;
-	private String engCategory;
-	private String korRegion;
-	private String engRegion;
-	private String cask;
-	private String abv;
-	private String korDistillery;
-	private String engDistillery;
-	private Double rating;
-	private Long totalRatingsCount;
-	private Double myRating;
-	private Double myAvgRating;
-	private Boolean isPicked;
-	@JsonSerialize(using = TagListSerializer.class)
-	@JsonDeserialize(using = TagListDeserializer.class)
-	private String alcoholsTastingTags;
+  private Long alcoholId;
+  private String alcoholUrlImg;
+  private String korName;
+  private String engName;
+  private String korCategory;
+  private String engCategory;
+  private String korRegion;
+  private String engRegion;
+  private String cask;
+  private String abv;
+  private String korDistillery;
+  private String engDistillery;
+  private Double rating;
+  private Long totalRatingsCount;
+  private Double myRating;
+  private Double myAvgRating;
+  private Boolean isPicked;
+
+  @JsonSerialize(using = TagListSerializer.class)
+  @JsonDeserialize(using = TagListDeserializer.class)
+  private String alcoholsTastingTags;
 }

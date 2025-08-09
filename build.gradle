@@ -3,11 +3,15 @@ plugins {
 	id 'org.springframework.boot' version '3.1.9'
 	id 'io.spring.dependency-management' version '1.1.4'
 	id "org.asciidoctor.jvm.convert" version "3.3.2"
+	id 'com.diffplug.spotless' version "7.0.2"
+
 }
 
 ext {
 	queryDslVersion = "6.11"
 	springCloudVersion = "2022.0.5"
+	snippetsDir = file('build/generated-snippets') as File
+	generated = 'src/main/generated'
 }
 
 dependencyManagement {
@@ -90,13 +94,7 @@ dependencies {
 	//db-json
 	implementation 'io.hypersistence:hypersistence-utils-hibernate-60:3.7.3'
 
-	//querydsl 설정 추가
-	//implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
-	//annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
-	//annotationProcessor "jakarta.annotation:jakarta.annotation-api"
-	//annotationProcessor "jakarta.persistence:jakarta.persistence-api"
-
-	// 안전한 OpenFeign 의존성들
+	// QueryDSL
 	implementation "io.github.openfeign.querydsl:querydsl-jpa:${queryDslVersion}"
 	annotationProcessor "io.github.openfeign.querydsl:querydsl-apt:${queryDslVersion}:jakarta"
 	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
@@ -131,7 +129,7 @@ dependencies {
 	//AWS
 	implementation 'com.amazonaws:aws-java-sdk-s3:1.12.725'
 
-	//Fegin ( https://spring.io/projects/spring-cloud#overview )
+	//Feign ( https://spring.io/projects/spring-cloud#overview )
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 
 	//apache commons
@@ -170,11 +168,10 @@ subprojects {
 		implementation 'org.springframework.boot:spring-boot-starter'
 		testImplementation 'org.springframework.boot:spring-boot-starter-test'
 		annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-		implementation 'org.springframework.boot:spring-boot-configuration-processor'
 
 		// default  utilities
 		implementation 'org.apache.commons:commons-lang3:3.12.0'
-		implementation 'com.google.guava:guava:31.1-jre'
+		implementation 'com.google.guava:guava:32.1.2-jre'
 
 		// default lombok
 		implementation 'org.projectlombok:lombok'
@@ -236,10 +233,6 @@ jar {
 
 // =========================== spring rest docs setting ===========================
 
-ext {
-	snippetsDir = file('build/generated-snippets') as File
-}
-
 test {
 	outputs.dir snippetsDir
 	useJUnitPlatform()
@@ -266,16 +259,9 @@ build {
 }
 
 // =========================== query DSL  ===========================
-
-// Querydsl 설정부
-def generated = 'src/main/generated'
-
-// querydsl QClass 파일 생성 위치를 지정
 tasks.withType(JavaCompile).configureEach {
 	options.getGeneratedSourceOutputDirectory().set(file(generated))
 }
-
-// java source set 에 querydsl QClass 위치 추가
 sourceSets {
 	main {
 		java.srcDirs += [generated]
@@ -289,8 +275,6 @@ sourceSets {
 		}
 	}
 }
-
-// gradle clean 시에 QClass 디렉토리 삭제
 clean {
 	delete file(generated)
 	subprojects.each { sub ->
@@ -299,4 +283,21 @@ clean {
 			delete file("${sub.projectDir}/src/main/generated")
 		}
 	}
+}
+
+// =========================== spotless  ===========================
+spotless {
+	java {
+		googleJavaFormat('1.27.0')
+		target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
+		targetExclude 'src/main/generated/**'
+	}
+}
+
+tasks.named('build') {
+	dependsOn 'spotlessApply'
+}
+
+tasks.named('spotlessJava') {
+	dependsOn 'compileJava'
 }

@@ -15,6 +15,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,10 +29,6 @@ import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
 @Builder
 @Getter
 @ToString(of = {"id", "email", "nickName", "age", "socialType"})
@@ -39,102 +38,101 @@ import java.util.Objects;
 @Entity(name = "users")
 @Table(name = "users")
 @FilterDef(
-		name = "statusFilter",
-		parameters = @ParamDef(name = "userStatus", type = String.class),
-		defaultCondition = "status = :userStatus"
-)
+    name = "statusFilter",
+    parameters = @ParamDef(name = "userStatus", type = String.class),
+    defaultCondition = "status = :userStatus")
 @Filter(name = "statusFilter")
 public class User extends BaseTimeEntity {
 
-	@Id
-	@Comment("사용자 id")
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+  @Id
+  @Comment("사용자 id")
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-	@Comment("소셜 로그인 제공자의 고유 식별자")
-	@Column(name = "social_unique_id", unique = true)
-	private String socialUniqueId;
+  @Comment("소셜 로그인 제공자의 고유 식별자")
+  @Column(name = "social_unique_id", unique = true)
+  private String socialUniqueId;
 
-	@Comment("사용자 이메일")
-	@Column(name = "email", nullable = false, unique = true)
-	private String email;
+  @Comment("사용자 이메일")
+  @Column(name = "email", nullable = false, unique = true)
+  private String email;
 
-	@Comment("사용자 비밀번호")
-	@Column(name = "password")
-	private String password;
+  @Comment("사용자 비밀번호")
+  @Column(name = "password")
+  private String password;
 
-	@Comment("사용자 닉네임")
-	@Column(name = "nick_name", nullable = false, unique = true)
-	private String nickName;
+  @Comment("사용자 닉네임")
+  @Column(name = "nick_name", nullable = false, unique = true)
+  private String nickName;
 
-	@Comment("사용자 연령")
-	@Column(name = "age")
-	private Integer age;
+  @Comment("사용자 연령")
+  @Column(name = "age")
+  private Integer age;
 
-	@Enumerated(EnumType.STRING)
-	@Comment("사용자 성별")
-	@Column(name = "gender")
-	private GenderType gender;
+  @Enumerated(EnumType.STRING)
+  @Comment("사용자 성별")
+  @Column(name = "gender")
+  private GenderType gender;
 
-	@Comment("사용자 프로필 썸네일")
-	@Column(name = "image_url")
-	private String imageUrl;
+  @Comment("사용자 프로필 썸네일")
+  @Column(name = "image_url")
+  private String imageUrl;
 
-	@Enumerated(EnumType.STRING)
-	@Comment("사용자 권한 (ROLE_USER, ROLE_ADMIN)")
-	@Column(name = "role", nullable = false)
-	private UserType role;
+  @Enumerated(EnumType.STRING)
+  @Comment("사용자 권한 (ROLE_USER, ROLE_ADMIN)")
+  @Column(name = "role", nullable = false)
+  private UserType role;
 
-	@Enumerated(EnumType.STRING)
-	@Comment("사용자 상태(ACTIVE, DELETED)")
-	@Column(name = "status", nullable = false)
-	@Builder.Default
-	private UserStatus status = UserStatus.ACTIVE;
+  @Enumerated(EnumType.STRING)
+  @Comment("사용자 상태(ACTIVE, DELETED)")
+  @Column(name = "status", nullable = false)
+  @Builder.Default
+  private UserStatus status = UserStatus.ACTIVE;
 
-	@Builder.Default
-	@Convert(converter = JsonArrayConverter.class)
-	@Comment("사용자 로그인 소셜타입 (GOOGLE, KAKAO, NAVER, APPLE")
-	@Column(name = "social_type", nullable = false, columnDefinition = "json")
-	private List<SocialType> socialType = new ArrayList<>();
+  @Builder.Default
+  @Convert(converter = JsonArrayConverter.class)
+  @Comment("사용자 로그인 소셜타입 (GOOGLE, KAKAO, NAVER, APPLE")
+  @Column(name = "social_type", nullable = false, columnDefinition = "json")
+  private List<SocialType> socialType = new ArrayList<>();
 
-	@Comment("사용자 리프레시토큰")
-	@Column(name = "refresh_token")
-	private String refreshToken;
+  @Comment("사용자 리프레시토큰")
+  @Column(name = "refresh_token")
+  private String refreshToken;
 
-	public void updateRefreshToken(String refreshToken) {
-		Objects.requireNonNull(refreshToken, "refreshToken은 null이 될 수 없습니다.");
-		this.refreshToken = refreshToken;
-	}
+  public void updateRefreshToken(String refreshToken) {
+    Objects.requireNonNull(refreshToken, "refreshToken은 null이 될 수 없습니다.");
+    this.refreshToken = refreshToken;
+  }
 
-	public void changeNickName(String nickName) {
-		Objects.requireNonNull(nickName, "nickName은 null이 될 수 없습니다.");
-		this.nickName = nickName;
-	}
+  public void changeNickName(String nickName) {
+    Objects.requireNonNull(nickName, "nickName은 null이 될 수 없습니다.");
+    this.nickName = nickName;
+  }
 
-	public void withdrawUser() {
-		this.status = UserStatus.DELETED;
-	}
+  public void withdrawUser() {
+    this.status = UserStatus.DELETED;
+  }
 
-	public void changeProfileImage(String viewUrl) {
-		this.imageUrl = viewUrl;
-	}
+  public void changeProfileImage(String viewUrl) {
+    this.imageUrl = viewUrl;
+  }
 
-	public void addSocialType(SocialType socialType) {
-		if (!getSocialType().contains(socialType)) {
-			this.socialType.add(socialType);
-		}
-	}
+  public void addSocialType(SocialType socialType) {
+    if (!getSocialType().contains(socialType)) {
+      this.socialType.add(socialType);
+    }
+  }
 
-	public boolean isAlive() {
-		return this.status == UserStatus.ACTIVE;
-	}
+  public boolean isAlive() {
+    return this.status == UserStatus.ACTIVE;
+  }
 
-	public void restore() {
-		this.status = UserStatus.ACTIVE;
-	}
+  public void restore() {
+    this.status = UserStatus.ACTIVE;
+  }
 
-	public void updateSocialUniqueId(String socialUniqueId) {
-		Objects.requireNonNull(socialUniqueId, "socialUniqueId는 null이 될 수 없습니다.");
-		this.socialUniqueId = socialUniqueId;
-	}
+  public void updateSocialUniqueId(String socialUniqueId) {
+    Objects.requireNonNull(socialUniqueId, "socialUniqueId는 null이 될 수 없습니다.");
+    this.socialUniqueId = socialUniqueId;
+  }
 }

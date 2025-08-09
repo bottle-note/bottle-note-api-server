@@ -18,12 +18,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class RootAdmin {
 
-	@Id
-	@Column(name = "user_id")
-	private Long userId;
+  @Id
+  @Column(name = "user_id")
+  private Long userId;
 
-	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id")
-	@MapsId
-	private User user;
+  @OneToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "user_id")
+  @MapsId
+  private User user;
 }

@@ -1,5 +1,7 @@
 package app.external.docs;
 
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 import app.bottlenote.global.exception.handler.GlobalExceptionHandler;
 import app.docs.config.RestDocsConfiguration;
@@ -14,33 +16,27 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-
 @Import(RestDocsConfiguration.class)
 @ExtendWith(RestDocumentationExtension.class)
 public abstract class AbstractRestDocs {
 
-	protected MockMvc mockMvc;
-	protected ObjectMapper objectMapper = new ObjectMapper();
+  protected MockMvc mockMvc;
+  protected ObjectMapper objectMapper = new ObjectMapper();
 
-	@BeforeEach
-	void setUp(RestDocumentationContextProvider provider) {
-		this.mockMvc = MockMvcBuilders.standaloneSetup(initController())
+  @BeforeEach
+  void setUp(RestDocumentationContextProvider provider) {
+    this.mockMvc =
+        MockMvcBuilders.standaloneSetup(initController())
+            .apply(
+                documentationConfiguration(provider)
+                    .operationPreprocessors()
+                    .withRequestDefaults(Preprocessors.prettyPrint())
+                    .withResponseDefaults(Preprocessors.prettyPrint()))
+            .alwaysDo(print())
+            .setControllerAdvice(GlobalExceptionHandler.class)
+            .addFilters(new CharacterEncodingFilter("UTF-8", true))
+            .build();
+  }
 
-			.apply(documentationConfiguration(provider)
-				.operationPreprocessors()
-				.withRequestDefaults(Preprocessors.prettyPrint())
-				.withResponseDefaults(Preprocessors.prettyPrint())
-			)
-
-			.alwaysDo(print())
-
-			.setControllerAdvice(GlobalExceptionHandler.class)
-			.addFilters(new CharacterEncodingFilter("UTF-8", true))
-			.build();
-	}
-
-	protected abstract Object initController();
-
+  protected abstract Object initController();
 }

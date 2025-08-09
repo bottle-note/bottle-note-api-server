@@ -1,5 +1,10 @@
 package app.bottlenote.review.service;
 
+import static app.bottlenote.review.constant.ReviewReplyResultMessage.SUCCESS_DELETE_REPLY;
+import static app.bottlenote.review.constant.ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY;
+import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
+import static java.lang.Boolean.FALSE;
+
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.review.constant.ReviewReplyStatus;
@@ -14,159 +19,130 @@ import app.bottlenote.review.event.payload.ReviewRegistryEvent;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.user.facade.UserFacade;
+import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
-import java.util.Optional;
-
-import static app.bottlenote.review.constant.ReviewReplyResultMessage.SUCCESS_DELETE_REPLY;
-import static app.bottlenote.review.constant.ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY;
-import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
-import static java.lang.Boolean.FALSE;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReviewReplyService {
 
-	private final ReviewReplyRepository reviewReplyRepository;
-	private final ReviewRepository reviewRepository;
-	private final ProfanityClient profanityClient;
-	private final UserFacade userFacade;
-	private final HistoryEventPublisher reviewReplyEventPublisher;
+  private final ReviewReplyRepository reviewReplyRepository;
+  private final ReviewRepository reviewRepository;
+  private final ProfanityClient profanityClient;
+  private final UserFacade userFacade;
+  private final HistoryEventPublisher reviewReplyEventPublisher;
 
-	/**
-	 * 댓글을 등록합니다.
-	 *
-	 * @param reviewId the review id
-	 * @param userId   the user id
-	 * @param request  the request
-	 * @return the review reply result of
-	 */
-	@Modifying(flushAutomatically = true, clearAutomatically = true)
-	@Transactional
-	public ReviewReplyResponse registerReviewReply(
-			final Long reviewId,
-			final Long userId,
-			final ReviewReplyRegisterRequest request
-	) {
-		Objects.requireNonNull(request.content(), "댓글 내용은 필수 입력값입니다.");
-		Objects.requireNonNull(userId, "유저 식별자는 필수 입력값입니다.");
-		Objects.requireNonNull(reviewId, "리뷰 식별자는 필수 입력값입니다.");
+  /**
+   * 댓글을 등록합니다.
+   *
+   * @param reviewId the review id
+   * @param userId the user id
+   * @param request the request
+   * @return the review reply result of
+   */
+  @Modifying(flushAutomatically = true, clearAutomatically = true)
+  @Transactional
+  public ReviewReplyResponse registerReviewReply(
+      final Long reviewId, final Long userId, final ReviewReplyRegisterRequest request) {
+    Objects.requireNonNull(request.content(), "댓글 내용은 필수 입력값입니다.");
+    Objects.requireNonNull(userId, "유저 식별자는 필수 입력값입니다.");
+    Objects.requireNonNull(reviewId, "리뷰 식별자는 필수 입력값입니다.");
 
-		long start = System.nanoTime();
-		userFacade.isValidUserId(userId);
-		log.info("유저 정보 확인 시간 : {}", (System.nanoTime() - start) / 1_000_000 + "ms");
+    long start = System.nanoTime();
+    userFacade.isValidUserId(userId);
+    log.info("유저 정보 확인 시간 : {}", (System.nanoTime() - start) / 1_000_000 + "ms");
 
-		long start2 = System.nanoTime();
-		final String content = profanityClient.getFilteredText(request.content());
-		log.info("욕설 필터링 시간 : {}", (System.nanoTime() - start2) / 1_000_000 + "ms");
+    long start2 = System.nanoTime();
+    final String content = profanityClient.getFilteredText(request.content());
+    log.info("욕설 필터링 시간 : {}", (System.nanoTime() - start2) / 1_000_000 + "ms");
 
-		if (!reviewRepository.existsById(reviewId)) {
-			throw new ReviewException(ReviewExceptionCode.REVIEW_NOT_FOUND);
-		}
+    if (!reviewRepository.existsById(reviewId)) {
+      throw new ReviewException(ReviewExceptionCode.REVIEW_NOT_FOUND);
+    }
 
-		Optional<ReviewReply> parentReply = reviewReplyRepository.isEligibleParentReply(reviewId, request.parentReplyId());
-		log.info("상위(최상위) 댓글 확인");
+    Optional<ReviewReply> parentReply =
+        reviewReplyRepository.isEligibleParentReply(reviewId, request.parentReplyId());
+    log.info("상위(최상위) 댓글 확인");
 
-		ReviewReply reply = ReviewReply.builder()
-				.reviewId(reviewId)
-				.userId(userId)
-				.parentReviewReply(parentReply.orElse(null))
-				.rootReviewReply(parentReply.map(ReviewReply::getRootReviewReply).orElse(null))
-				.content(content)
-				.status(ReviewReplyStatus.NORMAL)
-				.build();
+    ReviewReply reply =
+        ReviewReply.builder()
+            .reviewId(reviewId)
+            .userId(userId)
+            .parentReviewReply(parentReply.orElse(null))
+            .rootReviewReply(parentReply.map(ReviewReply::getRootReviewReply).orElse(null))
+            .content(content)
+            .status(ReviewReplyStatus.NORMAL)
+            .build();
 
-		log.info("최종 처리 시간 : {}", (System.nanoTime() - start) / 1_000_000 + "ms");
-		reviewReplyRepository.save(reply);
+    log.info("최종 처리 시간 : {}", (System.nanoTime() - start) / 1_000_000 + "ms");
+    reviewReplyRepository.save(reply);
 
-		final Long alcoholId = reviewRepository.findById(reviewId)
-				.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND)).getAlcoholId();
+    final Long alcoholId =
+        reviewRepository
+            .findById(reviewId)
+            .orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND))
+            .getAlcoholId();
 
-		ReviewRegistryEvent event = ReviewRegistryEvent.of(reply.getReviewId(), alcoholId, reply.getUserId(), reply.getContent());
-		reviewReplyEventPublisher.publishReplyHistoryEvent(event);
+    ReviewRegistryEvent event =
+        ReviewRegistryEvent.of(
+            reply.getReviewId(), alcoholId, reply.getUserId(), reply.getContent());
+    reviewReplyEventPublisher.publishReplyHistoryEvent(event);
 
-		return ReviewReplyResponse.of(
-				SUCCESS_REGISTER_REPLY,
-				reviewId
-		);
-	}
+    return ReviewReplyResponse.of(SUCCESS_REGISTER_REPLY, reviewId);
+  }
 
-	/**
-	 * 리뷰 댓글을 삭제합니다.
-	 *
-	 * @param reviewId 삭제 대상 댓글의 리뷰 식별자.
-	 * @param replyId  삭제 대상 댓글 식별자.
-	 * @param userId   삭제 요청자 식별자.
-	 * @return 처리 결과 메시지.
-	 */
-	@Transactional
-	@Modifying(flushAutomatically = true, clearAutomatically = true)
-	public ReviewReplyResponse deleteReviewReply(
-			Long reviewId,
-			Long replyId,
-			Long userId
-	) {
+  /**
+   * 리뷰 댓글을 삭제합니다.
+   *
+   * @param reviewId 삭제 대상 댓글의 리뷰 식별자.
+   * @param replyId 삭제 대상 댓글 식별자.
+   * @param userId 삭제 요청자 식별자.
+   * @return 처리 결과 메시지.
+   */
+  @Transactional
+  @Modifying(flushAutomatically = true, clearAutomatically = true)
+  public ReviewReplyResponse deleteReviewReply(Long reviewId, Long replyId, Long userId) {
 
-		reviewReplyRepository.findReplyByReviewIdAndReplyId(reviewId, replyId)
-				.ifPresentOrElse(
-						reply -> {
-							if (FALSE.equals(reply.isOwner(userId)))
-								throw new ReviewException(ReviewExceptionCode.REPLY_NOT_OWNER);
+    reviewReplyRepository
+        .findReplyByReviewIdAndReplyId(reviewId, replyId)
+        .ifPresentOrElse(
+            reply -> {
+              if (FALSE.equals(reply.isOwner(userId)))
+                throw new ReviewException(ReviewExceptionCode.REPLY_NOT_OWNER);
 
-							reply.delete();
-						},
-						() -> {
-							throw new ReviewException(ReviewExceptionCode.NOT_FOUND_REVIEW_REPLY);
-						}
-				);
+              reply.delete();
+            },
+            () -> {
+              throw new ReviewException(ReviewExceptionCode.NOT_FOUND_REVIEW_REPLY);
+            });
 
-		return ReviewReplyResponse.of(SUCCESS_DELETE_REPLY, reviewId);
-	}
+    return ReviewReplyResponse.of(SUCCESS_DELETE_REPLY, reviewId);
+  }
 
-	/**
-	 * 최상위 리뷰 목록을 조회합니다
-	 * 이때 대댓글 목록은 제외됩니다.
-	 */
-	@Transactional(readOnly = true)
-	public RootReviewReplyResponse getReviewRootReplays(
-			Long reviewId,
-			Long cursor,
-			Long pageSize
-	) {
-		return reviewReplyRepository.getReviewRootReplies(
-				reviewId,
-				cursor,
-				pageSize
-		);
-	}
+  /** 최상위 리뷰 목록을 조회합니다 이때 대댓글 목록은 제외됩니다. */
+  @Transactional(readOnly = true)
+  public RootReviewReplyResponse getReviewRootReplays(Long reviewId, Long cursor, Long pageSize) {
+    return reviewReplyRepository.getReviewRootReplies(reviewId, cursor, pageSize);
+  }
 
-	/**
-	 * 대댓글 목록을 조회합니다.
-	 *
-	 * @param reviewId    조회 대상 리뷰 식별자.
-	 * @param rootReplyId 조회 대상 최상위 댓글 식별자.
-	 * @param cursor      조회 시작 위치.
-	 * @param pageSize    조회 개수.
-	 * @return the sub review replies
-	 */
-	@Transactional(readOnly = true)
-	public SubReviewReplyResponse getSubReviewReplies(
-			Long reviewId,
-			Long rootReplyId,
-			Long cursor,
-			Long pageSize
-	) {
-		return reviewReplyRepository.getSubReviewReplies(
-				reviewId,
-				rootReplyId,
-				cursor,
-				pageSize
-		);
-	}
+  /**
+   * 대댓글 목록을 조회합니다.
+   *
+   * @param reviewId 조회 대상 리뷰 식별자.
+   * @param rootReplyId 조회 대상 최상위 댓글 식별자.
+   * @param cursor 조회 시작 위치.
+   * @param pageSize 조회 개수.
+   * @return the sub review replies
+   */
+  @Transactional(readOnly = true)
+  public SubReviewReplyResponse getSubReviewReplies(
+      Long reviewId, Long rootReplyId, Long cursor, Long pageSize) {
+    return reviewReplyRepository.getSubReviewReplies(reviewId, rootReplyId, cursor, pageSize);
+  }
 }

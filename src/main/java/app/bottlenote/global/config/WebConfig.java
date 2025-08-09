@@ -9,10 +9,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
-	private final RatingPointConverter ratingPointConverter;
+  private final RatingPointConverter ratingPointConverter;
 
-	@Override
-	public void addFormatters(FormatterRegistry registry) {
-		registry.addConverter(ratingPointConverter);
-	}
+  @Override
+  public void addFormatters(FormatterRegistry registry) {
+    registry.addConverter(ratingPointConverter);
+  }
 }

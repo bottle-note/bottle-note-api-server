@@ -9,32 +9,30 @@ import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.core.structure.Pair;
 import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
-
 import java.util.List;
 import java.util.Optional;
 
-/**
- * 알코올 조회 질의에 관한 애그리거트를 정의합니다.
- */
+/** 알코올 조회 질의에 관한 애그리거트를 정의합니다. */
 public interface AlcoholQueryRepository {
 
-	Alcohol save(Alcohol alcohol);
+  Alcohol save(Alcohol alcohol);
 
-	Optional<Alcohol> findById(Long alcoholId);
+  Optional<Alcohol> findById(Long alcoholId);
 
-	List<Alcohol> findAll();
+  List<Alcohol> findAll();
 
-	List<Alcohol> findAllByIdIn(List<Long> ids);
+  List<Alcohol> findAllByIdIn(List<Long> ids);
 
-	PageResponse<AlcoholSearchResponse> searchAlcohols(AlcoholSearchCriteria criteriaDto);
+  PageResponse<AlcoholSearchResponse> searchAlcohols(AlcoholSearchCriteria criteriaDto);
 
-	AlcoholDetailItem findAlcoholDetailById(Long alcoholId, Long userId);
+  AlcoholDetailItem findAlcoholDetailById(Long alcoholId, Long userId);
 
-	Optional<AlcoholSummaryItem> findAlcoholInfoById(Long alcoholId, Long userId);
+  Optional<AlcoholSummaryItem> findAlcoholInfoById(Long alcoholId, Long userId);
 
-	List<CategoryItem> findAllCategories(AlcoholType type);
+  List<CategoryItem> findAllCategories(AlcoholType type);
 
-	Boolean existsByAlcoholId(Long alcoholId);
+  Boolean existsByAlcoholId(Long alcoholId);
 
-	Pair<Long, CursorResponse<AlcoholDetailItem>> getStandardExplore(Long userId, List<String> keyword, Long cursor, Integer size);
+  Pair<Long, CursorResponse<AlcoholDetailItem>> getStandardExplore(
+      Long userId, List<String> keyword, Long cursor, Integer size);
 }

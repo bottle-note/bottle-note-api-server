@@ -7,7 +7,9 @@ import app.bottlenote.user.dto.response.FollowingSearchResponse;
 
 public interface CustomFollowRepository {
 
-	PageResponse<FollowingSearchResponse> getFollowingList(Long userId, FollowPageableCriteria criteria);
+  PageResponse<FollowingSearchResponse> getFollowingList(
+      Long userId, FollowPageableCriteria criteria);
 
-	PageResponse<FollowerSearchResponse> getFollowerList(Long userId, FollowPageableCriteria criteria);
+  PageResponse<FollowerSearchResponse> getFollowerList(
+      Long userId, FollowPageableCriteria criteria);
 }

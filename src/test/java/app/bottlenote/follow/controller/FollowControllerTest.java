@@ -36,51 +36,45 @@ import org.springframework.test.web.servlet.ResultActions;
 @WebMvcTest(FollowController.class)
 class FollowControllerTest {
 
-	@Autowired
-	protected ObjectMapper mapper;
-	@Autowired
-	protected MockMvc mockMvc;
+  @Autowired protected ObjectMapper mapper;
+  @Autowired protected MockMvc mockMvc;
 
-	@MockBean
-	private FollowService followService;
+  @MockBean private FollowService followService;
 
-	private final FollowQueryFixture followQueryFixture = new FollowQueryFixture();
+  private final FollowQueryFixture followQueryFixture = new FollowQueryFixture();
 
+  static Stream<Arguments> testCaseProvider() {
+    return Stream.of(
+        Arguments.of(1L, 0L, 50L), Arguments.of(2L, 10L, 50L), Arguments.of(3L, 20L, 50L));
+  }
 
-	static Stream<Arguments> testCaseProvider() {
-		return Stream.of(
-			Arguments.of(1L, 0L, 50L),
-			Arguments.of(2L, 10L, 50L),
-			Arguments.of(3L, 20L, 50L)
-		);
-	}
+  @DisplayName("팔로우 리스트를 조회할 수 있다.")
+  @ParameterizedTest(name = "[{index}] userId: {0}, cursor: {1}, pageSize: {2}")
+  @MethodSource("testCaseProvider")
+  void testFindFollowingList(Long userId, Long cursor, Long pageSize) throws Exception {
+    // given
+    PageResponse<FollowingSearchResponse> response = followQueryFixture.getFollowingPageResponse();
+    FollowPageableRequest pageableRequest =
+        FollowPageableRequest.builder().cursor(cursor).pageSize(pageSize).build();
 
-	@DisplayName("팔로우 리스트를 조회할 수 있다.")
-	@ParameterizedTest(name = "[{index}] userId: {0}, cursor: {1}, pageSize: {2}")
-	@MethodSource("testCaseProvider")
-	void testFindFollowingList(Long userId, Long cursor, Long pageSize) throws Exception {
-		// given
-		PageResponse<FollowingSearchResponse> response = followQueryFixture.getFollowingPageResponse();
-		FollowPageableRequest pageableRequest = FollowPageableRequest.builder()
-			.cursor(cursor)
-			.pageSize(pageSize)
-			.build();
+    // when
+    when(followService.getFollowingList(any(), any(), any())).thenReturn(response);
 
-		// when
-		when(followService.getFollowingList(any(), any(), any())).thenReturn(response);
+    // then
+    ResultActions resultActions =
+        mockMvc
+            .perform(
+                get("/api/v1/follow/{userId}/relation-list", userId)
+                    .param("type", "FOLLOWING")
+                    .param("cursor", pageableRequest.cursor().toString())
+                    .param("pageSize", pageableRequest.pageSize().toString())
+                    .with(csrf()))
+            .andExpect(status().isOk())
+            .andDo(print());
 
-		// then
-		ResultActions resultActions = mockMvc.perform(get("/api/v1/follow/{userId}/relation-list", userId)
-				.param("type", "FOLLOWING")
-				.param("cursor", pageableRequest.cursor().toString())
-				.param("pageSize", pageableRequest.pageSize().toString())
-				.with(csrf()))
-			.andExpect(status().isOk())
-			.andDo(print());
-
-		resultActions.andExpect(jsonPath("$.success").value("true"));
-		resultActions.andExpect(jsonPath("$.code").value("200"));
-		resultActions.andExpect(jsonPath("$.data.totalCount").value(5));
-		resultActions.andExpect(jsonPath("$.data.followList.size()").value(3));
-	}
+    resultActions.andExpect(jsonPath("$.success").value("true"));
+    resultActions.andExpect(jsonPath("$.code").value("200"));
+    resultActions.andExpect(jsonPath("$.data.totalCount").value(5));
+    resultActions.andExpect(jsonPath("$.data.followList.size()").value(3));
+  }
 }

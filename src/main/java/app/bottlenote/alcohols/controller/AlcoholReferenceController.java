@@ -1,6 +1,5 @@
 package app.bottlenote.alcohols.controller;
 
-
 import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.service.AlcoholReferenceService;
 import app.bottlenote.global.data.response.GlobalResponse;
@@ -16,18 +15,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AlcoholReferenceController {
 
-	private final AlcoholReferenceService alcoholReferenceService;
+  private final AlcoholReferenceService alcoholReferenceService;
 
-	@GetMapping("/regions")
-	public ResponseEntity<?> findAll() {
-		return GlobalResponse.ok(alcoholReferenceService.findAllRegion());
-	}
+  @GetMapping("/regions")
+  public ResponseEntity<?> findAll() {
+    return GlobalResponse.ok(alcoholReferenceService.findAllRegion());
+  }
 
-	@GetMapping("/alcohols/categories")
-	public ResponseEntity<?> getAlcoholCategory(
-			@RequestParam(required = false, defaultValue = "WHISKY") AlcoholType type
-	) {
-		return GlobalResponse.ok(alcoholReferenceService.getAlcoholCategory(type));
-	}
-
+  @GetMapping("/alcohols/categories")
+  public ResponseEntity<?> getAlcoholCategory(
+      @RequestParam(required = false, defaultValue = "WHISKY") AlcoholType type) {
+    return GlobalResponse.ok(alcoholReferenceService.getAlcoholCategory(type));
+  }
 }

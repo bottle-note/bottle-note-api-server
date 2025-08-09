@@ -14,45 +14,46 @@ import java.util.Optional;
 
 public class InMemoryRatingRepository implements RatingRepository {
 
-	private final Map<RatingId, Rating> ratings = new HashMap<>();
+  private final Map<RatingId, Rating> ratings = new HashMap<>();
 
-	@Override
-	public Rating save(Rating rating) {
-		ratings.put(rating.getId(), rating);
-		return rating;
-	}
+  @Override
+  public Rating save(Rating rating) {
+    ratings.put(rating.getId(), rating);
+    return rating;
+  }
 
-	@Override
-	public Optional<Rating> findById(RatingId ratingId) {
-		return Optional.ofNullable(ratings.get(ratingId));
-	}
+  @Override
+  public Optional<Rating> findById(RatingId ratingId) {
+    return Optional.ofNullable(ratings.get(ratingId));
+  }
 
-	@Override
-	public List<Rating> findAll() {
-		return ratings.values().stream().toList();
-	}
+  @Override
+  public List<Rating> findAll() {
+    return ratings.values().stream().toList();
+  }
 
-	@Override
-	public List<Rating> findAllByIdIn(List<RatingId> ids) {
-		return ratings.values().stream().filter(rating -> ids.contains(rating.getId())).toList();
-	}
+  @Override
+  public List<Rating> findAllByIdIn(List<RatingId> ids) {
+    return ratings.values().stream().filter(rating -> ids.contains(rating.getId())).toList();
+  }
 
-	@Override
-	public Optional<Rating> findByAlcoholIdAndUserId(Long alcoholId, Long userId) {
-		return ratings.values().stream()
-			.filter(
-				rating -> rating.getId().getAlcoholId().equals(alcoholId) &&
-					rating.getId().getUserId().equals(userId))
-			.findFirst();
-	}
+  @Override
+  public Optional<Rating> findByAlcoholIdAndUserId(Long alcoholId, Long userId) {
+    return ratings.values().stream()
+        .filter(
+            rating ->
+                rating.getId().getAlcoholId().equals(alcoholId)
+                    && rating.getId().getUserId().equals(userId))
+        .findFirst();
+  }
 
-	@Override
-	public PageResponse<RatingListFetchResponse> fetchRatingList(RatingListFetchCriteria criteria) {
-		return null;
-	}
+  @Override
+  public PageResponse<RatingListFetchResponse> fetchRatingList(RatingListFetchCriteria criteria) {
+    return null;
+  }
 
-	@Override
-	public Optional<UserRatingResponse> fetchUserRating(Long alcoholId, Long userId) {
-		return Optional.empty();
-	}
+  @Override
+  public Optional<UserRatingResponse> fetchUserRating(Long alcoholId, Long userId) {
+    return Optional.empty();
+  }
 }

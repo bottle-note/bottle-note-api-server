@@ -19,6 +19,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,11 +30,6 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.Comment;
-
-import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
 
 @Slf4j
 @Getter
@@ -43,144 +42,145 @@ import java.util.Objects;
 @Table(name = "reviews")
 public class Review extends BaseEntity {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-	@Comment("누가 쓴 리뷰인지")
-	@Column(name = "user_id", nullable = false)
-	private Long userId;
+  @Comment("누가 쓴 리뷰인지")
+  @Column(name = "user_id", nullable = false)
+  private Long userId;
 
-	@Comment("어떤 술에 대한 리뷰인지")
-	@Column(name = "alcohol_id", nullable = false)
-	private Long alcoholId;
+  @Comment("어떤 술에 대한 리뷰인지")
+  @Column(name = "alcohol_id", nullable = false)
+  private Long alcoholId;
 
-	@Builder.Default
-	@Comment("베스트리뷰 여부")
-	@Column(name = "is_best", nullable = false)
-	private Boolean isBest = false;
+  @Builder.Default
+  @Comment("베스트리뷰 여부")
+  @Column(name = "is_best", nullable = false)
+  private Boolean isBest = false;
 
-	@Builder.Default
-	@Comment("리뷰 시점 평점")
-	@Column(name = "review_rating")
-	private Double reviewRating = 0.0;
+  @Builder.Default
+  @Comment("리뷰 시점 평점")
+  @Column(name = "review_rating")
+  private Double reviewRating = 0.0;
 
-	@Comment("내용")
-	@Column(name = "content", nullable = false)
-	private String content;
+  @Comment("내용")
+  @Column(name = "content", nullable = false)
+  private String content;
 
-	@Comment("용량타입")
-	@Column(name = "size_type", nullable = false)
-	@Enumerated(EnumType.STRING)
-	private SizeType sizeType;
+  @Comment("용량타입")
+  @Column(name = "size_type", nullable = false)
+  @Enumerated(EnumType.STRING)
+  private SizeType sizeType;
 
-	@Comment("가격")
-	@Column(name = "price", nullable = false)
-	private BigDecimal price;
+  @Comment("가격")
+  @Column(name = "price", nullable = false)
+  private BigDecimal price;
 
-	@Builder.Default
-	@Comment("공개 상태")
-	@Column(name = "status", nullable = false)
-	@Enumerated(EnumType.STRING)
-	private ReviewDisplayStatus status = ReviewDisplayStatus.PUBLIC;
+  @Builder.Default
+  @Comment("공개 상태")
+  @Column(name = "status", nullable = false)
+  @Enumerated(EnumType.STRING)
+  private ReviewDisplayStatus status = ReviewDisplayStatus.PUBLIC;
 
-	@Comment("위치 정보")
-	@Embedded
-	private ReviewLocation reviewLocation;
+  @Comment("위치 정보")
+  @Embedded
+  private ReviewLocation reviewLocation;
 
-	@Comment("썸네일 이미지")
-	@Column(name = "image_url")
-	private String imageUrl;
+  @Comment("썸네일 이미지")
+  @Column(name = "image_url")
+  private String imageUrl;
 
-	@Builder.Default
-	@Comment("조회수")
-	@Column(name = "view_count", nullable = false)
-	private Long viewCount = 0L;
+  @Builder.Default
+  @Comment("조회수")
+  @Column(name = "view_count", nullable = false)
+  private Long viewCount = 0L;
 
-	@Builder.Default
-	@Comment("리뷰 활성 상태")
-	@Column(name = "active_status", nullable = false)
-	@Enumerated(EnumType.STRING)
-	private ReviewActiveStatus activeStatus = ReviewActiveStatus.ACTIVE;
+  @Builder.Default
+  @Comment("리뷰 활성 상태")
+  @Column(name = "active_status", nullable = false)
+  @Enumerated(EnumType.STRING)
+  private ReviewActiveStatus activeStatus = ReviewActiveStatus.ACTIVE;
 
-	@Builder.Default
-	@Comment("리뷰 이미지 (1급 컬렉션) ")
-	@Embedded
-	private ReviewImages reviewImages = ReviewImages.empty();
+  @Builder.Default
+  @Comment("리뷰 이미지 (1급 컬렉션) ")
+  @Embedded
+  private ReviewImages reviewImages = ReviewImages.empty();
 
-	@Builder.Default
-	@Comment("리뷰 테이스팅 태그 (1급 컬렉션) ")
-	@Embedded
-	private ReviewTastingTags reviewTastingTags = ReviewTastingTags.empty();
+  @Builder.Default
+  @Comment("리뷰 테이스팅 태그 (1급 컬렉션) ")
+  @Embedded
+  private ReviewTastingTags reviewTastingTags = ReviewTastingTags.empty();
 
-	public void update(ReviewModifyRequestWrapperItem reviewModifyRequestWrapperItem) {
-		this.status = reviewModifyRequestWrapperItem.getReviewDisplayStatus();
-		this.content = reviewModifyRequestWrapperItem.getContent();
-		this.sizeType = reviewModifyRequestWrapperItem.getSizeType();
-		this.price = reviewModifyRequestWrapperItem.getPrice();
-		LocationInfoRequest locationInfoRequest = reviewModifyRequestWrapperItem.getLocationInfo();
-		if (!Objects.isNull(locationInfoRequest)) {
-			this.reviewLocation = ReviewLocation.builder()
-					.name(locationInfoRequest.locationName())
-					.zipCode(locationInfoRequest.zipCode())
-					.address(locationInfoRequest.address())
-					.detailAddress(locationInfoRequest.detailAddress())
-					.category(locationInfoRequest.category())
-					.mapUrl(locationInfoRequest.mapUrl())
-					.latitude(locationInfoRequest.latitude())
-					.longitude(locationInfoRequest.longitude())
-					.build();
-		}
-	}
+  public void update(ReviewModifyRequestWrapperItem reviewModifyRequestWrapperItem) {
+    this.status = reviewModifyRequestWrapperItem.getReviewDisplayStatus();
+    this.content = reviewModifyRequestWrapperItem.getContent();
+    this.sizeType = reviewModifyRequestWrapperItem.getSizeType();
+    this.price = reviewModifyRequestWrapperItem.getPrice();
+    LocationInfoRequest locationInfoRequest = reviewModifyRequestWrapperItem.getLocationInfo();
+    if (!Objects.isNull(locationInfoRequest)) {
+      this.reviewLocation =
+          ReviewLocation.builder()
+              .name(locationInfoRequest.locationName())
+              .zipCode(locationInfoRequest.zipCode())
+              .address(locationInfoRequest.address())
+              .detailAddress(locationInfoRequest.detailAddress())
+              .category(locationInfoRequest.category())
+              .mapUrl(locationInfoRequest.mapUrl())
+              .latitude(locationInfoRequest.latitude())
+              .longitude(locationInfoRequest.longitude())
+              .build();
+    }
+  }
 
-	public void imageInitialization(List<ReviewImageInfoRequest> list) {
-		list = Objects.requireNonNullElse(list, Collections.emptyList());
-		List<ReviewImage> imageList = list.stream()
-				.map(
-						image ->
-								ReviewImage.builder()
-										.reviewImageInfo(
-												ImageInfo.builder()
-														.order(image.order())
-														.imageUrl(image.viewUrl())
-														.imagePath(ImageUtil.getImagePath(image.viewUrl()))
-														.imageKey(ImageUtil.getImageKey(image.viewUrl()))
-														.imageName(ImageUtil.getImageName(image.viewUrl()))
-														.build()
-										)
-										.review(this)
-										.build()
-				).toList();
+  public void imageInitialization(List<ReviewImageInfoRequest> list) {
+    list = Objects.requireNonNullElse(list, Collections.emptyList());
+    List<ReviewImage> imageList =
+        list.stream()
+            .map(
+                image ->
+                    ReviewImage.builder()
+                        .reviewImageInfo(
+                            ImageInfo.builder()
+                                .order(image.order())
+                                .imageUrl(image.viewUrl())
+                                .imagePath(ImageUtil.getImagePath(image.viewUrl()))
+                                .imageKey(ImageUtil.getImageKey(image.viewUrl()))
+                                .imageName(ImageUtil.getImageName(image.viewUrl()))
+                                .build())
+                        .review(this)
+                        .build())
+            .toList();
 
-		if (!list.isEmpty()) {
-			this.imageUrl = list.get(0).viewUrl();
-		}
-		updateImages(imageList);
-		log.info("review id {} 의 썸네일 이미지 설정 url : {}", this.id, this.imageUrl);
-	}
+    if (!list.isEmpty()) {
+      this.imageUrl = list.get(0).viewUrl();
+    }
+    updateImages(imageList);
+    log.info("review id {} 의 썸네일 이미지 설정 url : {}", this.id, this.imageUrl);
+  }
 
-	public void updateImages(List<ReviewImage> reviewImages) {
-		this.reviewImages.update(reviewImages);
-	}
+  public void updateImages(List<ReviewImage> reviewImages) {
+    this.reviewImages.update(reviewImages);
+  }
 
-	public void updateDisplayStatus(ReviewDisplayStatus status) {
-		this.status = status;
-	}
+  public void updateDisplayStatus(ReviewDisplayStatus status) {
+    this.status = status;
+  }
 
-	public void updateTastingTags(List<String> updateTastingTags) {
-		this.reviewTastingTags.updateReviewTastingTags(updateTastingTags, this);
-	}
+  public void updateTastingTags(List<String> updateTastingTags) {
+    this.reviewTastingTags.updateReviewTastingTags(updateTastingTags, this);
+  }
 
-	public ReviewResultMessage updateReviewActiveStatus(ReviewActiveStatus activeStatus) {
-		this.activeStatus = activeStatus;
-		return switch (activeStatus) {
-			case ACTIVE -> ReviewResultMessage.ACTIVE_SUCCESS;
-			case DELETED -> ReviewResultMessage.DELETE_SUCCESS;
-			case DISABLED -> ReviewResultMessage.BLOCK_SUCCESS;
-		};
-	}
+  public ReviewResultMessage updateReviewActiveStatus(ReviewActiveStatus activeStatus) {
+    this.activeStatus = activeStatus;
+    return switch (activeStatus) {
+      case ACTIVE -> ReviewResultMessage.ACTIVE_SUCCESS;
+      case DELETED -> ReviewResultMessage.DELETE_SUCCESS;
+      case DISABLED -> ReviewResultMessage.BLOCK_SUCCESS;
+    };
+  }
 
-	public void blockReview() {
-		this.activeStatus = ReviewActiveStatus.DISABLED;
-	}
+  public void blockReview() {
+    this.activeStatus = ReviewActiveStatus.DISABLED;
+  }
 }

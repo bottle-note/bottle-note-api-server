@@ -26,23 +26,20 @@ import org.hibernate.annotations.Comment;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ReviewImage extends BaseEntity {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-	@Comment("리뷰 이미지")
-	@Embedded
-	private ImageInfo reviewImageInfo;
+  @Comment("리뷰 이미지")
+  @Embedded
+  private ImageInfo reviewImageInfo;
 
-	@Comment("리뷰 아이디")
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "review_id")
-	private Review review;
+  @Comment("리뷰 아이디")
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "review_id")
+  private Review review;
 
-	public static ReviewImage of(ImageInfo reviewImageInfo, Review review) {
-		return ReviewImage.builder()
-			.reviewImageInfo(reviewImageInfo)
-			.review(review)
-			.build();
-	}
+  public static ReviewImage of(ImageInfo reviewImageInfo, Review review) {
+    return ReviewImage.builder().reviewImageInfo(reviewImageInfo).review(review).build();
+  }
 }

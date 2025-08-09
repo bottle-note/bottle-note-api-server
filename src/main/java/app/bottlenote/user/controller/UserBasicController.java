@@ -1,5 +1,8 @@
 package app.bottlenote.user.controller;
 
+import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
+import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
+
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
 import app.bottlenote.user.dto.request.ProfileImageChangeRequest;
@@ -20,55 +23,51 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
-import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
-
-
 @Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/users")
 public class UserBasicController {
 
-	private final UserBasicService userBasicService;
-	private final DefaultUserFacade userFacade;
+  private final UserBasicService userBasicService;
+  private final DefaultUserFacade userFacade;
 
-	@PatchMapping("/nickname")
-	public ResponseEntity<?> changeNickname(@RequestBody @Valid NicknameChangeRequest nicknameChangeRequest) {
+  @PatchMapping("/nickname")
+  public ResponseEntity<?> changeNickname(
+      @RequestBody @Valid NicknameChangeRequest nicknameChangeRequest) {
 
-		Long userId = getUserIdByContext()
-				.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+    Long userId = getUserIdByContext().orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
-		NicknameChangeResponse response = userBasicService.nicknameChange(userId, nicknameChangeRequest);
-		return GlobalResponse.ok(response);
-	}
+    NicknameChangeResponse response =
+        userBasicService.nicknameChange(userId, nicknameChangeRequest);
+    return GlobalResponse.ok(response);
+  }
 
-	@PatchMapping("/profile-image")
-	public ResponseEntity<?> changeProfileImage(@RequestBody @Valid ProfileImageChangeRequest request) {
+  @PatchMapping("/profile-image")
+  public ResponseEntity<?> changeProfileImage(
+      @RequestBody @Valid ProfileImageChangeRequest request) {
 
-		Long userId = getUserIdByContext()
-				.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+    Long userId = getUserIdByContext().orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
-		ProfileImageChangeResponse response = userBasicService.profileImageChange(userId, request.viewUrl());
+    ProfileImageChangeResponse response =
+        userBasicService.profileImageChange(userId, request.viewUrl());
 
-		return GlobalResponse.ok(response);
-	}
+    return GlobalResponse.ok(response);
+  }
 
-	@DeleteMapping
-	public ResponseEntity<?> withdrawUser() {
+  @DeleteMapping
+  public ResponseEntity<?> withdrawUser() {
 
-		Long userId = getUserIdByContext()
-				.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+    Long userId = getUserIdByContext().orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
-		WithdrawUserResultResponse response = userBasicService.withdrawUser(userId);
+    WithdrawUserResultResponse response = userBasicService.withdrawUser(userId);
 
-		return GlobalResponse.ok(response);
-	}
+    return GlobalResponse.ok(response);
+  }
 
-	@GetMapping("/current")
-	public ResponseEntity<?> getCurrentUser() {
-		Long userId = getUserIdByContext()
-				.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
-		return GlobalResponse.ok(userFacade.getUserProfileInfo(userId));
-	}
+  @GetMapping("/current")
+  public ResponseEntity<?> getCurrentUser() {
+    Long userId = getUserIdByContext().orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+    return GlobalResponse.ok(userFacade.getUserProfileInfo(userId));
+  }
 }

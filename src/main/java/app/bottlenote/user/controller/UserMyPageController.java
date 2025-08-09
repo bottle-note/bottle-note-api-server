@@ -1,5 +1,7 @@
 package app.bottlenote.user.controller;
 
+import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
+
 import app.bottlenote.global.annotation.AccessPolicy;
 import app.bottlenote.global.annotation.AccessPolicy.AccessType;
 import app.bottlenote.global.data.response.GlobalResponse;
@@ -19,76 +21,77 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
-
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/my-page")
 public class UserMyPageController {
 
-	private final UserBasicService userBasicService;
-	private static final String SEARCH_PARAMETERS = "searchParameters";
-	private static final String PAGEABLE = "pageable";
+  private final UserBasicService userBasicService;
+  private static final String SEARCH_PARAMETERS = "searchParameters";
+  private static final String PAGEABLE = "pageable";
 
-	/**
-	 * 마이 페이지 조회 API
-	 * 모든 유저가 조회 가능
-	 */
-	@AccessPolicy(type = AccessType.ALL)
-	@GetMapping("/{userId}")
-	public ResponseEntity<?> getMyPage(@PathVariable Long userId) {
-		final Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
-		return GlobalResponse.ok(userBasicService.getMyPage(userId, currentUserId));
-	}
+  /** 마이 페이지 조회 API 모든 유저가 조회 가능 */
+  @AccessPolicy(type = AccessType.ALL)
+  @GetMapping("/{userId}")
+  public ResponseEntity<?> getMyPage(@PathVariable Long userId) {
+    final Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
+    return GlobalResponse.ok(userBasicService.getMyPage(userId, currentUserId));
+  }
 
-	@AccessPolicy(type = AccessType.ALL)
-	@GetMapping("/{userId}/my-bottle/reviews")
-	public ResponseEntity<?> getReviewMyBottle(
-			@PathVariable(name = "userId") Long userId,
-			@ModelAttribute(name = "myBottleRequest") MyBottleRequest myBottleRequest
-	) {
-		final Long currentUserId = SecurityContextUtil.getUserIdByContext()
-				.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+  @AccessPolicy(type = AccessType.ALL)
+  @GetMapping("/{userId}/my-bottle/reviews")
+  public ResponseEntity<?> getReviewMyBottle(
+      @PathVariable(name = "userId") Long userId,
+      @ModelAttribute(name = "myBottleRequest") MyBottleRequest myBottleRequest) {
+    final Long currentUserId =
+        SecurityContextUtil.getUserIdByContext()
+            .orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
-		PageResponse<MyBottleResponse> pageResponse = userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.REVIEW);
+    PageResponse<MyBottleResponse> pageResponse =
+        userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.REVIEW);
 
-		return GlobalResponse.ok(pageResponse.content(),
-				MetaService.createMetaInfo()
-						.add(SEARCH_PARAMETERS, myBottleRequest)
-						.add(PAGEABLE, pageResponse.cursorPageable()));
-	}
+    return GlobalResponse.ok(
+        pageResponse.content(),
+        MetaService.createMetaInfo()
+            .add(SEARCH_PARAMETERS, myBottleRequest)
+            .add(PAGEABLE, pageResponse.cursorPageable()));
+  }
 
-	@AccessPolicy(type = AccessType.ALL)
-	@GetMapping("/{userId}/my-bottle/ratings")
-	public ResponseEntity<?> getRatingMyBottle(
-			@PathVariable(name = "userId") Long userId,
-			@ModelAttribute(name = "myBottleRequest") MyBottleRequest myBottleRequest
-	) {
-		final Long currentUserId = SecurityContextUtil.getUserIdByContext()
-				.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+  @AccessPolicy(type = AccessType.ALL)
+  @GetMapping("/{userId}/my-bottle/ratings")
+  public ResponseEntity<?> getRatingMyBottle(
+      @PathVariable(name = "userId") Long userId,
+      @ModelAttribute(name = "myBottleRequest") MyBottleRequest myBottleRequest) {
+    final Long currentUserId =
+        SecurityContextUtil.getUserIdByContext()
+            .orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
-		PageResponse<MyBottleResponse> pageResponse = userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.RATING);
+    PageResponse<MyBottleResponse> pageResponse =
+        userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.RATING);
 
-		return GlobalResponse.ok(pageResponse.content(),
-				MetaService.createMetaInfo()
-						.add(SEARCH_PARAMETERS, myBottleRequest)
-						.add(PAGEABLE, pageResponse.cursorPageable()));
-	}
+    return GlobalResponse.ok(
+        pageResponse.content(),
+        MetaService.createMetaInfo()
+            .add(SEARCH_PARAMETERS, myBottleRequest)
+            .add(PAGEABLE, pageResponse.cursorPageable()));
+  }
 
-	@AccessPolicy(type = AccessType.ALL)
-	@GetMapping("/{userId}/my-bottle/picks")
-	public ResponseEntity<?> getPicksMyBottle(
-			@PathVariable(name = "userId") Long userId,
-			@ModelAttribute(name = "myBottleRequest") MyBottleRequest myBottleRequest
-	) {
-		final Long currentUserId = SecurityContextUtil.getUserIdByContext()
-				.orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+  @AccessPolicy(type = AccessType.ALL)
+  @GetMapping("/{userId}/my-bottle/picks")
+  public ResponseEntity<?> getPicksMyBottle(
+      @PathVariable(name = "userId") Long userId,
+      @ModelAttribute(name = "myBottleRequest") MyBottleRequest myBottleRequest) {
+    final Long currentUserId =
+        SecurityContextUtil.getUserIdByContext()
+            .orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
-		PageResponse<MyBottleResponse> pageResponse = userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.PICK);
+    PageResponse<MyBottleResponse> pageResponse =
+        userBasicService.getMyBottle(userId, currentUserId, myBottleRequest, MyBottleType.PICK);
 
-		return GlobalResponse.ok(pageResponse.content(),
-				MetaService.createMetaInfo()
-						.add(SEARCH_PARAMETERS, myBottleRequest)
-						.add(PAGEABLE, pageResponse.cursorPageable()));
-	}
+    return GlobalResponse.ok(
+        pageResponse.content(),
+        MetaService.createMetaInfo()
+            .add(SEARCH_PARAMETERS, myBottleRequest)
+            .add(PAGEABLE, pageResponse.cursorPageable()));
+  }
 }

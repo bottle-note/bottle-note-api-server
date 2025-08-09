@@ -7,7 +7,7 @@ import lombok.Getter;
 @Getter
 public class HelpException extends AbstractCustomException {
 
-	public HelpException(ExceptionCode exceptionCode) {
-		super(exceptionCode);
-	}
+  public HelpException(ExceptionCode exceptionCode) {
+    super(exceptionCode);
+  }
 }

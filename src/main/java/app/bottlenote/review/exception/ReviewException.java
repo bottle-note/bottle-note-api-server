@@ -6,7 +6,7 @@ import lombok.Getter;
 @Getter
 public class ReviewException extends AbstractCustomException {
 
-	public ReviewException(ReviewExceptionCode code) {
-		super(code);
-	}
+  public ReviewException(ReviewExceptionCode code) {
+    super(code);
+  }
 }

@@ -16,25 +16,31 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class UserNotificationService implements NotificationService {
-	private final UserRepository userRepository;
-	private final NotificationRepository notificationRepository;
+  private final UserRepository userRepository;
+  private final NotificationRepository notificationRepository;
 
-	@Transactional
-	@Override
-	public void sendNotification(NotificationMessage message) {
-		log.info("[Service] NotificationMessage: {} , thread name : : {}", message, Thread.currentThread().getName());
+  @Transactional
+  @Override
+  public void sendNotification(NotificationMessage message) {
+    log.info(
+        "[Service] NotificationMessage: {} , thread name : : {}",
+        message,
+        Thread.currentThread().getName());
 
-		User notiyTargetUser = userRepository.findById(message.userId())
-			.orElseThrow(() -> new UserException(UserExceptionCode.NOTIFICATION_USER_NOT_FOUND));
+    User notiyTargetUser =
+        userRepository
+            .findById(message.userId())
+            .orElseThrow(() -> new UserException(UserExceptionCode.NOTIFICATION_USER_NOT_FOUND));
 
-		Notification notification = Notification.builder()
-			.userId(notiyTargetUser.getId())
-			.title(message.title())
-			.content(message.content())
-			.type(message.type())
-			.category(message.category())
-			.build();
+    Notification notification =
+        Notification.builder()
+            .userId(notiyTargetUser.getId())
+            .title(message.title())
+            .content(message.content())
+            .type(message.type())
+            .category(message.category())
+            .build();
 
-		notificationRepository.save(notification);
-	}
+    notificationRepository.save(notification);
+  }
 }

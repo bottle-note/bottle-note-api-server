@@ -1,5 +1,9 @@
 package app.bottlenote.picks.service;
 
+import static app.bottlenote.picks.constant.PicksStatus.PICK;
+import static app.bottlenote.picks.constant.PicksStatus.UNPICK;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.alcohols.fixture.FakeAlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
@@ -16,116 +20,107 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import static app.bottlenote.picks.constant.PicksStatus.PICK;
-import static app.bottlenote.picks.constant.PicksStatus.UNPICK;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-
 @Tag("unit")
 @DisplayName("[unit] [service] PicksCommand")
 class FakePicksCommandServiceTest {
-	private PicksCommandService picksCommandService;
+  private PicksCommandService picksCommandService;
 
-	@BeforeEach
-	void setUp() {
-		UserFacade userFacade = new FakeUserFacade();
-		AlcoholFacade alcoholFacade = new FakeAlcoholFacade();
-		PicksRepository picksRepository = new FakePicksRepository();
-		HistoryEventPublisher picksEventPublisher = new FakeHistoryEventPublisher();
-		picksCommandService = new PicksCommandService(
-				userFacade,
-				alcoholFacade,
-				picksRepository,
-				picksEventPublisher
-		);
-	}
+  @BeforeEach
+  void setUp() {
+    UserFacade userFacade = new FakeUserFacade();
+    AlcoholFacade alcoholFacade = new FakeAlcoholFacade();
+    PicksRepository picksRepository = new FakePicksRepository();
+    HistoryEventPublisher picksEventPublisher = new FakeHistoryEventPublisher();
+    picksCommandService =
+        new PicksCommandService(userFacade, alcoholFacade, picksRepository, picksEventPublisher);
+  }
 
-	@Nested
-	@DisplayName("술(위스키)을 찜할 수 있다.")
-	class UpdatePicks {
+  @Nested
+  @DisplayName("술(위스키)을 찜할 수 있다.")
+  class UpdatePicks {
 
-		@Test
-		@DisplayName("Picks 된적 없어도 찜할 수 있다.")
-		void case_1() {
-			// given
-			final Long alcoholId = 1L;
-			final Long userId = 1L;
-			PicksUpdateRequest pickRequest = new PicksUpdateRequest(alcoholId, PICK);
+    @Test
+    @DisplayName("Picks 된적 없어도 찜할 수 있다.")
+    void case_1() {
+      // given
+      final Long alcoholId = 1L;
+      final Long userId = 1L;
+      PicksUpdateRequest pickRequest = new PicksUpdateRequest(alcoholId, PICK);
 
-			// when
-			PicksUpdateResponse response = picksCommandService.updatePicks(pickRequest, userId);
+      // when
+      PicksUpdateResponse response = picksCommandService.updatePicks(pickRequest, userId);
 
-			// then
-			assertEquals(PICK, response.status());
-			assertEquals(response.message(), PicksUpdateResponse.Message.PICKED.message());
-		}
+      // then
+      assertEquals(PICK, response.status());
+      assertEquals(response.message(), PicksUpdateResponse.Message.PICKED.message());
+    }
 
-		@Test
-		@DisplayName("Picks 된적 있어도 찜할 수 있다.")
-		void case_2() {
-			// given
-			final Long alcoholId = 1L;
-			final Long userId = 1L;
-			PicksUpdateRequest pickRequest = new PicksUpdateRequest(alcoholId, PICK);
+    @Test
+    @DisplayName("Picks 된적 있어도 찜할 수 있다.")
+    void case_2() {
+      // given
+      final Long alcoholId = 1L;
+      final Long userId = 1L;
+      PicksUpdateRequest pickRequest = new PicksUpdateRequest(alcoholId, PICK);
 
-			//when
-			PicksUpdateResponse response = picksCommandService.updatePicks(pickRequest, userId);
+      // when
+      PicksUpdateResponse response = picksCommandService.updatePicks(pickRequest, userId);
 
-			// then
-			assertEquals(PICK, response.status());
-			assertEquals(response.message(), PicksUpdateResponse.Message.PICKED.message());
-		}
+      // then
+      assertEquals(PICK, response.status());
+      assertEquals(response.message(), PicksUpdateResponse.Message.PICKED.message());
+    }
 
-		@Test
-		@DisplayName("동일한 상태를 찜해도 찜할 수 있다.")
-		void case_3() {
-			// given
-			final Long alcoholId = 1L;
-			final Long userId = 1L;
-			PicksUpdateRequest pickRequest = new PicksUpdateRequest(alcoholId, PICK);
+    @Test
+    @DisplayName("동일한 상태를 찜해도 찜할 수 있다.")
+    void case_3() {
+      // given
+      final Long alcoholId = 1L;
+      final Long userId = 1L;
+      PicksUpdateRequest pickRequest = new PicksUpdateRequest(alcoholId, PICK);
 
-			//when
-			PicksUpdateResponse response = picksCommandService.updatePicks(pickRequest, userId);
+      // when
+      PicksUpdateResponse response = picksCommandService.updatePicks(pickRequest, userId);
 
-			// then
-			assertEquals(PICK, response.status());
-			assertEquals(response.message(), PicksUpdateResponse.Message.PICKED.message());
-		}
-	}
+      // then
+      assertEquals(PICK, response.status());
+      assertEquals(response.message(), PicksUpdateResponse.Message.PICKED.message());
+    }
+  }
 
-	@Nested
-	@DisplayName("술(위스키)을 찜 해제하는 할 수 있다.")
-	class UpdateUnPicks {
+  @Nested
+  @DisplayName("술(위스키)을 찜 해제하는 할 수 있다.")
+  class UpdateUnPicks {
 
-		@Test
-		@DisplayName("UNPICK 된적 없어도 찜 해제할 수 있다.")
-		void case_1() {
-			// given
-			final Long alcoholId = 1L;
-			final Long userId = 1L;
-			PicksUpdateRequest pickRequest = new PicksUpdateRequest(alcoholId, UNPICK);
+    @Test
+    @DisplayName("UNPICK 된적 없어도 찜 해제할 수 있다.")
+    void case_1() {
+      // given
+      final Long alcoholId = 1L;
+      final Long userId = 1L;
+      PicksUpdateRequest pickRequest = new PicksUpdateRequest(alcoholId, UNPICK);
 
-			// when
-			PicksUpdateResponse response = picksCommandService.updatePicks(pickRequest, userId);
-			// then
-			assertEquals(UNPICK, response.status());
-			assertEquals(response.message(), PicksUpdateResponse.Message.UNPICKED.message());
-		}
+      // when
+      PicksUpdateResponse response = picksCommandService.updatePicks(pickRequest, userId);
+      // then
+      assertEquals(UNPICK, response.status());
+      assertEquals(response.message(), PicksUpdateResponse.Message.UNPICKED.message());
+    }
 
-		@Test
-		@DisplayName("UNPICK 된적 있어도 해제할 수 있다.")
-		void case_2() {
-			// given
-			final Long alcoholId = 1L;
-			final Long userId = 1L;
-			PicksUpdateRequest pickRequest = new PicksUpdateRequest(alcoholId, UNPICK);
+    @Test
+    @DisplayName("UNPICK 된적 있어도 해제할 수 있다.")
+    void case_2() {
+      // given
+      final Long alcoholId = 1L;
+      final Long userId = 1L;
+      PicksUpdateRequest pickRequest = new PicksUpdateRequest(alcoholId, UNPICK);
 
-			//when
-			PicksUpdateResponse response = picksCommandService.updatePicks(pickRequest, userId);
+      // when
+      PicksUpdateResponse response = picksCommandService.updatePicks(pickRequest, userId);
 
-			// then
-			assertEquals(UNPICK, response.status());
-			assertEquals(response.message(), PicksUpdateResponse.Message.UNPICKED.message());
-		}
-	}
+      // then
+      assertEquals(UNPICK, response.status());
+      assertEquals(response.message(), PicksUpdateResponse.Message.UNPICKED.message());
+    }
+  }
 }

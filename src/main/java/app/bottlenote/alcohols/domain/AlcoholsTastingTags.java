@@ -27,25 +27,22 @@ import org.hibernate.annotations.Comment;
 @Table(name = "alcohols_tasting_tags")
 public class AlcoholsTastingTags extends BaseTimeEntity {
 
-	@Id
-	@Comment("알코올 테이스팅 태그 ID")
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+  @Id
+  @Comment("알코올 테이스팅 태그 ID")
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-	@Comment("알코올 ID")
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "alcohol_id", nullable = false)
-	private Alcohol alcohol;
+  @Comment("알코올 ID")
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "alcohol_id", nullable = false)
+  private Alcohol alcohol;
 
-	@Comment("테이스팅 태그 ID")
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "tasting_tag_id", nullable = false)
-	private TastingTag tastingTag;
+  @Comment("테이스팅 태그 ID")
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "tasting_tag_id", nullable = false)
+  private TastingTag tastingTag;
 
-	public static AlcoholsTastingTags of(Alcohol alcohol, TastingTag tastingTag) {
-		return AlcoholsTastingTags.builder()
-				.alcohol(alcohol)
-				.tastingTag(tastingTag)
-				.build();
-	}
+  public static AlcoholsTastingTags of(Alcohol alcohol, TastingTag tastingTag) {
+    return AlcoholsTastingTags.builder().alcohol(alcohol).tastingTag(tastingTag).build();
+  }
 }

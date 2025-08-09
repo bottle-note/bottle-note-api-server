@@ -6,7 +6,7 @@ import lombok.Getter;
 @Getter
 public class AlcoholException extends AbstractCustomException {
 
-	public AlcoholException(AlcoholExceptionCode code) {
-		super(code);
-	}
+  public AlcoholException(AlcoholExceptionCode code) {
+    super(code);
+  }
 }

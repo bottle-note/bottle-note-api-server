@@ -4,16 +4,16 @@ import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.dto.response.PopularItem;
 import app.bottlenote.common.annotation.JpaRepositoryImpl;
 import feign.Param;
+import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import java.util.List;
-
 @JpaRepositoryImpl
 public interface JpaPopularQueryRepository extends JpaRepository<Alcohol, Long> {
 
-	@Query("""
+  @Query(
+      """
 			         SELECT
 			         new app.bottlenote.alcohols.dto.response.PopularItem(
 					        a1_0.id,
@@ -39,9 +39,10 @@ public interface JpaPopularQueryRepository extends JpaRepository<Alcohol, Long> 
 			        group by p1_0.id,p1_0.popularScore
 			        order by p1_0.popularScore desc
 			""")
-	List<PopularItem> getPopularOfWeeks(@Param("userId") Long userId, Pageable size);
+  List<PopularItem> getPopularOfWeeks(@Param("userId") Long userId, Pageable size);
 
-	@Query("""
+  @Query(
+      """
 			SELECT new app.bottlenote.alcohols.dto.response.PopularItem(
 				a1_0.id,
 				a1_0.korName,
@@ -65,9 +66,9 @@ public interface JpaPopularQueryRepository extends JpaRepository<Alcohol, Long> 
 			GROUP BY a1_0.id, a1_0.korName, a1_0.engName, a1_0.korCategory, a1_0.engCategory, a1_0.imageUrl
 			ORDER BY FUNCTION('RAND')
 			""")
-	List<PopularItem> getSpringItems(
-			@Param("userId") Long userId,
-			@Param("tags") List<Long> tags,
-			@Param("excludedTags") List<Long> excludedTags,
-			Pageable size);
+  List<PopularItem> getSpringItems(
+      @Param("userId") Long userId,
+      @Param("tags") List<Long> tags,
+      @Param("excludedTags") List<Long> excludedTags,
+      Pageable size);
 }

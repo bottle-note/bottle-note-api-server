@@ -6,7 +6,7 @@ import lombok.Getter;
 @Getter
 public class UserHistoryException extends AbstractCustomException {
 
-	public UserHistoryException(UserHistoryExceptionCode code) {
-		super(code);
-	}
+  public UserHistoryException(UserHistoryExceptionCode code) {
+    super(code);
+  }
 }

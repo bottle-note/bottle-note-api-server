@@ -15,16 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/s3")
 public class ImageUploadController {
 
-	private final ImageUploadService imageUploadService;
+  private final ImageUploadService imageUploadService;
 
-	@GetMapping("/presign-url")
-	public ResponseEntity<?> getPreSignUrl(
-		@ModelAttribute ImageUploadRequest request
-	) {
-		return ResponseEntity.ok(
-			GlobalResponse.success(
-				imageUploadService.getPreSignUrl(request)
-			)
-		);
-	}
+  @GetMapping("/presign-url")
+  public ResponseEntity<?> getPreSignUrl(@ModelAttribute ImageUploadRequest request) {
+    return ResponseEntity.ok(GlobalResponse.success(imageUploadService.getPreSignUrl(request)));
+  }
 }

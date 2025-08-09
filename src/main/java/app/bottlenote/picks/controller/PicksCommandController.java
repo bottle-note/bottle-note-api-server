@@ -1,6 +1,5 @@
 package app.bottlenote.picks.controller;
 
-
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 
 import app.bottlenote.global.data.response.GlobalResponse;
@@ -21,20 +20,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class PicksCommandController {
 
-	private final PicksCommandService picksCommandService;
+  private final PicksCommandService picksCommandService;
 
-	@PutMapping
-	public ResponseEntity<GlobalResponse> updatePicks(
-		@RequestBody @Valid PicksUpdateRequest request
-	) {
+  @PutMapping
+  public ResponseEntity<GlobalResponse> updatePicks(
+      @RequestBody @Valid PicksUpdateRequest request) {
 
-		Long userId = getUserIdByContext()
-			.orElseThrow(() -> new UserException(UserExceptionCode.REQUIRED_USER_ID));
+    Long userId =
+        getUserIdByContext()
+            .orElseThrow(() -> new UserException(UserExceptionCode.REQUIRED_USER_ID));
 
-		return ResponseEntity.ok(
-			GlobalResponse.success(
-				picksCommandService.updatePicks(request, userId)
-			)
-		);
-	}
+    return ResponseEntity.ok(
+        GlobalResponse.success(picksCommandService.updatePicks(request, userId)));
+  }
 }

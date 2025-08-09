@@ -7,6 +7,4 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/external/notification")
 @RequiredArgsConstructor
-public class NotificationController {
-
-}
+public class NotificationController {}

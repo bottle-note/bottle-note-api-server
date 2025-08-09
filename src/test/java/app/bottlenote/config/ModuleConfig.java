@@ -15,44 +15,44 @@ import java.time.LocalDateTime;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
-
 @TestConfiguration
 public class ModuleConfig {
-	
-	@Bean
-	public ObjectMapper objectMapper() {
-		ObjectMapper objectMapper = new ObjectMapper();
-		// JavaTimeModule 등록 (기존)
-		objectMapper.registerModule(new JavaTimeModule());
 
-		// 커스텀 모듈 등록
-		SimpleModule customModule = new SimpleModule();
-		customModule.addSerializer(LocalDateTime.class, new CustomSerializers.LocalDateTimeSerializer());
-		customModule.addDeserializer(LocalDateTime.class, new CustomDeserializers.LocalDateTimeDeserializer());
-		customModule.addSerializer(String.class, new TagListSerializer());
-		customModule.addDeserializer(String.class, new TagListDeserializer());
-		objectMapper.registerModule(customModule);
-		return objectMapper;
-	}
+  @Bean
+  public ObjectMapper objectMapper() {
+    ObjectMapper objectMapper = new ObjectMapper();
+    // JavaTimeModule 등록 (기존)
+    objectMapper.registerModule(new JavaTimeModule());
 
+    // 커스텀 모듈 등록
+    SimpleModule customModule = new SimpleModule();
+    customModule.addSerializer(
+        LocalDateTime.class, new CustomSerializers.LocalDateTimeSerializer());
+    customModule.addDeserializer(
+        LocalDateTime.class, new CustomDeserializers.LocalDateTimeDeserializer());
+    customModule.addSerializer(String.class, new TagListSerializer());
+    customModule.addDeserializer(String.class, new TagListDeserializer());
+    objectMapper.registerModule(customModule);
+    return objectMapper;
+  }
 
-	@Bean
-	public AlcoholQuerySupporter alcoholQuerySupporter() {
-		return new AlcoholQuerySupporter();
-	}
+  @Bean
+  public AlcoholQuerySupporter alcoholQuerySupporter() {
+    return new AlcoholQuerySupporter();
+  }
 
-	@Bean
-	public FollowQuerySupporter followQuerySupporter() {
-		return new FollowQuerySupporter();
-	}
+  @Bean
+  public FollowQuerySupporter followQuerySupporter() {
+    return new FollowQuerySupporter();
+  }
 
-	@Bean
-	public ReviewQuerySupporter reviewQuerySupporter() {
-		return new ReviewQuerySupporter();
-	}
+  @Bean
+  public ReviewQuerySupporter reviewQuerySupporter() {
+    return new ReviewQuerySupporter();
+  }
 
-	@Bean
-	public RatingQuerySupporter ratingQuerySupporter() {
-		return new RatingQuerySupporter();
-	}
+  @Bean
+  public RatingQuerySupporter ratingQuerySupporter() {
+    return new RatingQuerySupporter();
+  }
 }

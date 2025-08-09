@@ -9,17 +9,17 @@ import java.util.List;
 import java.util.Optional;
 
 public interface RatingRepository {
-	Rating save(Rating rating);
+  Rating save(Rating rating);
 
-	Optional<Rating> findById(RatingId ratingId);
+  Optional<Rating> findById(RatingId ratingId);
 
-	List<Rating> findAll();
+  List<Rating> findAll();
 
-	List<Rating> findAllByIdIn(List<RatingId> ids);
+  List<Rating> findAllByIdIn(List<RatingId> ids);
 
-	Optional<Rating> findByAlcoholIdAndUserId(Long alcoholId, Long userId);
+  Optional<Rating> findByAlcoholIdAndUserId(Long alcoholId, Long userId);
 
-	PageResponse<RatingListFetchResponse> fetchRatingList(RatingListFetchCriteria criteria);
+  PageResponse<RatingListFetchResponse> fetchRatingList(RatingListFetchCriteria criteria);
 
-	Optional<UserRatingResponse> fetchUserRating(Long alcoholId, Long userId);
+  Optional<UserRatingResponse> fetchUserRating(Long alcoholId, Long userId);
 }

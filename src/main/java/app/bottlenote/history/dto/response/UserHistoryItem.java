@@ -2,51 +2,49 @@ package app.bottlenote.history.dto.response;
 
 import app.bottlenote.history.constant.EventCategory;
 import app.bottlenote.history.constant.EventType;
+import java.time.LocalDateTime;
+import java.util.Map;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
-import java.util.Map;
 
 @SuppressWarnings("unchecked")
 @Getter
 @NoArgsConstructor
 public class UserHistoryItem {
-	private Long historyId;
-	private LocalDateTime createdAt;
-	private EventCategory eventCategory;
-	private EventType eventType;
-	private Long alcoholId;
-	private String alcoholName;
-	private String imageUrl;
-	private String redirectUrl;
-	private String content;
-	private Map<String, String> dynamicMessage;
+  private Long historyId;
+  private LocalDateTime createdAt;
+  private EventCategory eventCategory;
+  private EventType eventType;
+  private Long alcoholId;
+  private String alcoholName;
+  private String imageUrl;
+  private String redirectUrl;
+  private String content;
+  private Map<String, String> dynamicMessage;
 
-	@Builder
-	public UserHistoryItem(
-			Long historyId,
-			LocalDateTime createdAt,
-			EventCategory eventCategory,
-			EventType eventType,
-			Long alcoholId,
-			String alcoholName,
-			String imageUrl,
-			String redirectUrl,
-			String content,
-			Object dynamicMessage
-	) {
-		this.historyId = historyId;
-		this.createdAt = createdAt;
-		this.eventCategory = eventCategory;
-		this.eventType = eventType;
-		this.alcoholId = alcoholId;
-		this.alcoholName = alcoholName;
-		this.imageUrl = imageUrl;
-		this.redirectUrl = redirectUrl;
-		this.content = content;
+  @Builder
+  public UserHistoryItem(
+      Long historyId,
+      LocalDateTime createdAt,
+      EventCategory eventCategory,
+      EventType eventType,
+      Long alcoholId,
+      String alcoholName,
+      String imageUrl,
+      String redirectUrl,
+      String content,
+      Object dynamicMessage) {
+    this.historyId = historyId;
+    this.createdAt = createdAt;
+    this.eventCategory = eventCategory;
+    this.eventType = eventType;
+    this.alcoholId = alcoholId;
+    this.alcoholName = alcoholName;
+    this.imageUrl = imageUrl;
+    this.redirectUrl = redirectUrl;
+    this.content = content;
 
-		this.dynamicMessage = (Map<String, String>) dynamicMessage;
-	}
+    this.dynamicMessage = (Map<String, String>) dynamicMessage;
+  }
 }

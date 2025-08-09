@@ -6,7 +6,7 @@ import lombok.Getter;
 @Getter
 public class CommonException extends AbstractCustomException {
 
-	public CommonException(CommonExceptionCode code) {
-		super(code);
-	}
+  public CommonException(CommonExceptionCode code) {
+    super(code);
+  }
 }

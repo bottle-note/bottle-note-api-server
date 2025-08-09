@@ -30,45 +30,43 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class FollowController {
 
-	private final FollowService followService;
+  private final FollowService followService;
 
-	@GetMapping("/{targetUserId}/following-list")
-	public ResponseEntity<?> findFollowingList(
-		@PathVariable Long targetUserId,
-		@ModelAttribute FollowPageableRequest pageableRequest) {
+  @GetMapping("/{targetUserId}/following-list")
+  public ResponseEntity<?> findFollowingList(
+      @PathVariable Long targetUserId, @ModelAttribute FollowPageableRequest pageableRequest) {
 
-		Long currentUserId = SecurityContextUtil.getUserIdByContext().
-			orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+    Long currentUserId =
+        SecurityContextUtil.getUserIdByContext()
+            .orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
-		PageResponse<FollowingSearchResponse> followingPageResponse = followService.getFollowingList(currentUserId, targetUserId, pageableRequest);
-		return GlobalResponse.ok(
-			followingPageResponse.content(),
-			MetaService.createMetaInfo().add("pageable", followingPageResponse.cursorPageable())
-		);
-	}
+    PageResponse<FollowingSearchResponse> followingPageResponse =
+        followService.getFollowingList(currentUserId, targetUserId, pageableRequest);
+    return GlobalResponse.ok(
+        followingPageResponse.content(),
+        MetaService.createMetaInfo().add("pageable", followingPageResponse.cursorPageable()));
+  }
 
-	@GetMapping("/{targetUserId}/follower-list")
-	public ResponseEntity<?> findFollowerList(
-		@PathVariable Long targetUserId,
-		@ModelAttribute FollowPageableRequest pageableRequest) {
+  @GetMapping("/{targetUserId}/follower-list")
+  public ResponseEntity<?> findFollowerList(
+      @PathVariable Long targetUserId, @ModelAttribute FollowPageableRequest pageableRequest) {
 
-		Long currentUserId = SecurityContextUtil.getUserIdByContext().
-			orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+    Long currentUserId =
+        SecurityContextUtil.getUserIdByContext()
+            .orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
-		PageResponse<FollowerSearchResponse> followerPageResponse = followService.getFollowerList(currentUserId, targetUserId, pageableRequest);
-		return GlobalResponse.ok(
-			followerPageResponse.content(),
-			MetaService.createMetaInfo().add("pageable", followerPageResponse.cursorPageable())
-		);
+    PageResponse<FollowerSearchResponse> followerPageResponse =
+        followService.getFollowerList(currentUserId, targetUserId, pageableRequest);
+    return GlobalResponse.ok(
+        followerPageResponse.content(),
+        MetaService.createMetaInfo().add("pageable", followerPageResponse.cursorPageable()));
+  }
 
-	}
+  @PostMapping
+  public ResponseEntity<?> updateFollowStatus(@RequestBody @Valid FollowUpdateRequest request) {
+    Long userId =
+        getUserIdByContext().orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
 
-
-	@PostMapping
-	public ResponseEntity<?> updateFollowStatus(@RequestBody @Valid FollowUpdateRequest request) {
-		Long userId = getUserIdByContext()
-			.orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
-
-		return GlobalResponse.ok(followService.updateFollowStatus(request, userId));
-	}
+    return GlobalResponse.ok(followService.updateFollowStatus(request, userId));
+  }
 }

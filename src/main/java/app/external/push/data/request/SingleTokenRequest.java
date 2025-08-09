@@ -1,6 +1,3 @@
 package app.external.push.data.request;
 
-public record SingleTokenRequest(
-	String token
-) {
-}
+public record SingleTokenRequest(String token) {}

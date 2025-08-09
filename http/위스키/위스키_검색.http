@@ -1,7 +1,5 @@
-# @no-cookie-jar
-
-
 ### 토큰 발급 (일반)
+# @no-cookie-jar
 POST {{host}}/api/v1/oauth/login
 Content-Type: application/json
 
@@ -25,7 +23,8 @@ Authorization: Bearer {{accessToken}}
 
 ### 위스키 조회 상세 조회
 # @no-cookie-jar
-GET {{host}}/api/v1/alcohols/4
+@alcoholId = 4728
+GET {{host}}/api/v1/alcohols/{{alcoholId}}
 Authorization: Bearer {{accessToken}}
 
 ### 카테고리 조회

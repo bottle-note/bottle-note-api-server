@@ -13,24 +13,24 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class UserDeviceService {
-	private final UserDeviceTokenRepository deviceTokenRepository;
-	public TokenSaveResponse saveUserToken(
-		final Long userId,
-		final String deviceToken,
-		final Platform platform
-	) {
-		deviceTokenRepository.findByUserIdAndDeviceToken(userId, deviceToken)
-			.ifPresentOrElse(
-				userDeviceToken -> {
-					userDeviceToken.updateModifiedAt();
-					deviceTokenRepository.save(userDeviceToken);
-				},
-				() -> deviceTokenRepository.save(UserDeviceToken.builder()
-					.userId(userId)
-					.deviceToken(deviceToken)
-					.platform(platform)
-					.build())
-			);
-		return TokenSaveResponse.of(deviceToken, platform, TokenMessage.DEVICE_TOKEN_SAVED);
-	}
+  private final UserDeviceTokenRepository deviceTokenRepository;
+
+  public TokenSaveResponse saveUserToken(
+      final Long userId, final String deviceToken, final Platform platform) {
+    deviceTokenRepository
+        .findByUserIdAndDeviceToken(userId, deviceToken)
+        .ifPresentOrElse(
+            userDeviceToken -> {
+              userDeviceToken.updateModifiedAt();
+              deviceTokenRepository.save(userDeviceToken);
+            },
+            () ->
+                deviceTokenRepository.save(
+                    UserDeviceToken.builder()
+                        .userId(userId)
+                        .deviceToken(deviceToken)
+                        .platform(platform)
+                        .build()));
+    return TokenSaveResponse.of(deviceToken, platform, TokenMessage.DEVICE_TOKEN_SAVED);
+  }
 }

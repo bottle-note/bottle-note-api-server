@@ -14,52 +14,48 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
-/**
- * 사용자 차단 관계를 나타내는 엔티티
- */
+/** 사용자 차단 관계를 나타내는 엔티티 */
 @Getter
 @Entity(name = "userBlock")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
-		name = "user_block",
-		uniqueConstraints = {
-				@UniqueConstraint(
-						name = "uk_blocker_blocked",
-						columnNames = {"blocker_id", "blocked_id"}
-				)
-		}
-)
+    name = "user_block",
+    uniqueConstraints = {
+      @UniqueConstraint(
+          name = "uk_blocker_blocked",
+          columnNames = {"blocker_id", "blocked_id"})
+    })
 public class UserBlock extends BaseTimeEntity {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Comment("차단 관계 ID")
-	private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Comment("차단 관계 ID")
+  private Long id;
 
-	@Column(name = "blocker_id", nullable = false)
-	@Comment("차단한 사용자 ID")
-	private Long blockerId;
+  @Column(name = "blocker_id", nullable = false)
+  @Comment("차단한 사용자 ID")
+  private Long blockerId;
 
-	@Column(name = "blocked_id", nullable = false)
-	@Comment("차단당한 사용자 ID")
-	private Long blockedId;
+  @Column(name = "blocked_id", nullable = false)
+  @Comment("차단당한 사용자 ID")
+  private Long blockedId;
 
-	@Column(name = "block_reason", length = 500)
-	@Comment("차단 사유")
-	private String blockReason;
+  @Column(name = "block_reason", length = 500)
+  @Comment("차단 사유")
+  private String blockReason;
 
-	@Builder
-	public UserBlock(Long blockerId, Long blockedId, String blockReason) {
-		this.blockerId = blockerId;
-		this.blockedId = blockedId;
-		this.blockReason = blockReason;
-	}
+  @Builder
+  public UserBlock(Long blockerId, Long blockedId, String blockReason) {
+    this.blockerId = blockerId;
+    this.blockedId = blockedId;
+    this.blockReason = blockReason;
+  }
 
-	public static UserBlock create(Long blockerId, Long blockedId, String reason) {
-		return UserBlock.builder()
-				.blockerId(blockerId)
-				.blockedId(blockedId)
-				.blockReason(reason)
-				.build();
-	}
+  public static UserBlock create(Long blockerId, Long blockedId, String reason) {
+    return UserBlock.builder()
+        .blockerId(blockerId)
+        .blockedId(blockedId)
+        .blockReason(reason)
+        .build();
+  }
 }

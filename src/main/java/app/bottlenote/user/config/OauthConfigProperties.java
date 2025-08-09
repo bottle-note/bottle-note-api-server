@@ -21,13 +21,13 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationPropertiesScan
 @ConfigurationProperties(prefix = "spring.oauth")
 public class OauthConfigProperties {
-	private String refreshTokenHeaderPrefix;
-	private int cookieExpireTime;
-	private String guestCode;
+  private String refreshTokenHeaderPrefix;
+  private int cookieExpireTime;
+  private String guestCode;
 
-	public void printConfigs() {
-		log.info("refreshTokenHeaderPrefix: {}", refreshTokenHeaderPrefix);
-		log.info("cookieExpireTime: {}", cookieExpireTime);
-		log.info("guestCode: {}", guestCode);
-	}
+  public void printConfigs() {
+    log.info("refreshTokenHeaderPrefix: {}", refreshTokenHeaderPrefix);
+    log.info("cookieExpireTime: {}", cookieExpireTime);
+    log.info("guestCode: {}", guestCode);
+  }
 }

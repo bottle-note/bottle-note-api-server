@@ -26,22 +26,19 @@ import org.hibernate.annotations.Comment;
 @Table(name = "review_tasting_tags")
 public class ReviewTastingTag extends BaseTimeEntity {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  Long id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "review_id")
-	private Review review;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "review_id")
+  private Review review;
 
-	@Comment("테이스팅 태그")
-	@Column(name = "tasting_tag")
-	private String tastingTag;
+  @Comment("테이스팅 태그")
+  @Column(name = "tasting_tag")
+  private String tastingTag;
 
-	public static ReviewTastingTag create(Review review, String tastingTag) {
-		return ReviewTastingTag.builder()
-			.review(review)
-			.tastingTag(tastingTag)
-			.build();
-	}
+  public static ReviewTastingTag create(Review review, String tastingTag) {
+    return ReviewTastingTag.builder().review(review).tastingTag(tastingTag).build();
+  }
 }

@@ -1,5 +1,14 @@
 package app.bottlenote.user.controller;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.user.config.OauthConfigProperties;
@@ -24,205 +33,194 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-
 @Tag("unit")
 @DisplayName("[unit] [controller] OauthController")
 @WebMvcTest(OauthController.class)
 @ActiveProfiles("test")
 @WithMockUser
 class OauthControllerTest {
-	// todo : oauth 관련 integration test 구현 필요 (2024.12.15)
-	@Autowired
-	protected ObjectMapper mapper;
-	@Autowired
-	protected MockMvc mockMvc;
-	@MockBean
-	protected OauthService oauthService;
-	@MockBean
-	protected NonceService nonceService;
-	@MockBean
-	private OauthConfigProperties oauthConfigProperties;
+  // todo : oauth 관련 integration test 구현 필요 (2024.12.15)
+  @Autowired protected ObjectMapper mapper;
+  @Autowired protected MockMvc mockMvc;
+  @MockBean protected OauthService oauthService;
+  @MockBean protected NonceService nonceService;
+  @MockBean private OauthConfigProperties oauthConfigProperties;
 
-	private TokenItem tokenItem;
+  private TokenItem tokenItem;
 
-	@BeforeEach
-	void setUp() {
-		tokenItem = TokenItem.builder()
-				.accessToken("access-token")
-				.refreshToken("refresh-token")
-				.build();
-		oauthConfigProperties.printConfigs();
-	}
+  @BeforeEach
+  void setUp() {
+    tokenItem =
+        TokenItem.builder().accessToken("access-token").refreshToken("refresh-token").build();
+    oauthConfigProperties.printConfigs();
+  }
 
+  @Test
+  @DisplayName("유저는 로그인 할 수 있다.")
+  void user_login_test() throws Exception {
 
-	@Test
-	@DisplayName("유저는 로그인 할 수 있다.")
-	void user_login_test() throws Exception {
+    // given
+    OauthRequest oauthRequest =
+        new OauthRequest("cdm2883@naver.com", null, SocialType.KAKAO, GenderType.MALE, 27);
 
-		//given
-		OauthRequest oauthRequest = new OauthRequest("cdm2883@naver.com", null, SocialType.KAKAO,
-				GenderType.MALE,
-				27);
+    TokenItem tokenItem =
+        TokenItem.builder().accessToken("accessToken").refreshToken("refreshToken").build();
 
-		TokenItem tokenItem = TokenItem.builder()
-				.accessToken("accessToken")
-				.refreshToken("refreshToken")
-				.build();
+    // when
+    when(oauthService.login(oauthRequest)).thenReturn(tokenItem);
 
-		//when
-		when(oauthService.login(oauthRequest)).thenReturn(tokenItem);
+    // then
+    mockMvc
+        .perform(
+            post("/api/v1/oauth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf())
+                .content(mapper.writeValueAsString(oauthRequest)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.code").value("200"))
+        .andExpect(jsonPath("$.data.accessToken").value("accessToken"))
+        .andExpect(cookie().value("refresh-token", "refreshToken"))
+        .andExpect(cookie().httpOnly("refresh-token", true))
+        .andExpect(cookie().secure("refresh-token", true))
+        .andDo(print());
+  }
 
-		//then
-		mockMvc.perform(post("/api/v1/oauth/login")
-						.contentType(MediaType.APPLICATION_JSON)
-						.with(csrf())
-						.content(mapper.writeValueAsString(oauthRequest)))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.code").value("200"))
-				.andExpect(jsonPath("$.data.accessToken").value("accessToken"))
-				.andExpect(cookie().value("refresh-token", "refreshToken"))
-				.andExpect(cookie().httpOnly("refresh-token", true))
-				.andExpect(cookie().secure("refresh-token", true))
-				.andDo(print());
-	}
+  @Test
+  @DisplayName("유저는 SocialType이 null 값이면 로그인 할 수 없다.")
+  void user_login_fail_when_socialType_is_null() throws Exception {
 
-	@Test
-	@DisplayName("유저는 SocialType이 null 값이면 로그인 할 수 없다.")
-	void user_login_fail_when_socialType_is_null() throws Exception {
+    Error error = Error.of(ValidExceptionCode.SOCIAL_TYPE_REQUIRED);
 
-		Error error = Error.of(ValidExceptionCode.SOCIAL_TYPE_REQUIRED);
+    // given
+    OauthRequest oauthRequest =
+        new OauthRequest("cdm2883@naver.com", null, null, GenderType.MALE, 27);
 
-		//given
-		OauthRequest oauthRequest = new OauthRequest("cdm2883@naver.com", null, null,
-				GenderType.MALE, 27);
+    // when
+    when(oauthService.login(oauthRequest)).thenReturn(tokenItem);
 
+    // then
+    mockMvc
+        .perform(
+            post("/api/v1/oauth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf())
+                .content(mapper.writeValueAsString(oauthRequest)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+        .andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+        .andExpect(jsonPath("$.errors[0].message").value(error.message()));
+  }
 
-		//when
-		when(oauthService.login(oauthRequest)).thenReturn(tokenItem);
+  @Test
+  @DisplayName("유저나이가 유효하지 않은 값이면 로그인 할 수 없다.")
+  void user_login_fail_when_gender_is_null() throws Exception {
+    Error error = Error.of(ValidExceptionCode.AGE_MINIMUM);
 
-		//then
-		mockMvc.perform(post("/api/v1/oauth/login")
-						.contentType(MediaType.APPLICATION_JSON)
-						.with(csrf())
-						.content(mapper.writeValueAsString(oauthRequest)))
-				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
-				.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
-				.andExpect(jsonPath("$.errors[0].message").value(error.message()));
-	}
+    // given
+    OauthRequest oauthRequest =
+        new OauthRequest("cdm2883@naver.com", null, SocialType.KAKAO, GenderType.MALE, -10);
 
-	@Test
-	@DisplayName("유저나이가 유효하지 않은 값이면 로그인 할 수 없다.")
-	void user_login_fail_when_gender_is_null() throws Exception {
-		Error error = Error.of(ValidExceptionCode.AGE_MINIMUM);
+    // when
+    when(oauthService.login(oauthRequest)).thenReturn(tokenItem);
 
-		//given
-		OauthRequest oauthRequest = new OauthRequest("cdm2883@naver.com", null, SocialType.KAKAO,
-				GenderType.MALE, -10);
+    // then
+    mockMvc
+        .perform(
+            post("/api/v1/oauth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf())
+                .content(mapper.writeValueAsString(oauthRequest)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+        .andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+        .andExpect(jsonPath("$.errors[0].message").value(error.message()));
+  }
 
-		//when
-		when(oauthService.login(oauthRequest)).thenReturn(tokenItem);
+  @Test
+  @DisplayName("유저는 토큰을 재발급 받을 수 있다.")
+  void user_reissue_test() throws Exception {
 
-		//then
-		mockMvc.perform(post("/api/v1/oauth/login")
-						.contentType(MediaType.APPLICATION_JSON)
-						.with(csrf())
-						.content(mapper.writeValueAsString(oauthRequest)))
-				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
-				.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
-				.andExpect(jsonPath("$.errors[0].message").value(error.message()));
-	}
+    // given
+    String reissueRefreshToken = "refresh-token";
 
-	@Test
-	@DisplayName("유저는 토큰을 재발급 받을 수 있다.")
-	void user_reissue_test() throws Exception {
+    TokenItem newTokenItem =
+        TokenItem.builder()
+            .accessToken("new-access-token")
+            .refreshToken("new-refresh-token")
+            .build();
 
-		//given
-		String reissueRefreshToken = "refresh-token";
+    // when
+    when(oauthService.refresh(reissueRefreshToken)).thenReturn(newTokenItem);
 
-		TokenItem newTokenItem = TokenItem.builder()
-				.accessToken("new-access-token")
-				.refreshToken("new-refresh-token")
-				.build();
+    // then
+    mockMvc
+        .perform(
+            post("/api/v1/oauth/reissue")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("refresh-token", reissueRefreshToken)
+                .with(csrf())
+                .content(mapper.writeValueAsString(reissueRefreshToken)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.code").value("200"))
+        .andExpect(jsonPath("$.data.accessToken").value("new-access-token"))
+        .andExpect(cookie().value("refresh-token", "new-refresh-token"))
+        .andExpect(cookie().httpOnly("refresh-token", true))
+        .andExpect(cookie().secure("refresh-token", true))
+        .andDo(print());
+  }
 
-		//when
-		when(oauthService.refresh(reissueRefreshToken)).thenReturn(newTokenItem);
+  @Test
+  @DisplayName("refresh 토큰이 유효하지 않으면 토큰을 재발급 받을 수 없다.")
+  void user_reissue_fail_when_refreshToken_is_not_invalid() throws Exception {
 
-		//then
-		mockMvc.perform(post("/api/v1/oauth/reissue")
-						.contentType(MediaType.APPLICATION_JSON)
-						.header("refresh-token", reissueRefreshToken)
-						.with(csrf())
-						.content(mapper.writeValueAsString(reissueRefreshToken)))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.code").value("200"))
-				.andExpect(jsonPath("$.data.accessToken").value("new-access-token"))
-				.andExpect(cookie().value("refresh-token", "new-refresh-token"))
-				.andExpect(cookie().httpOnly("refresh-token", true))
-				.andExpect(cookie().secure("refresh-token", true))
-				.andDo(print());
-	}
+    Error error = Error.of(UserExceptionCode.INVALID_REFRESH_TOKEN);
+    System.out.println(error);
+    System.out.println(error.code());
+    System.out.println(error.status().name());
+    System.out.println(error.status().value());
+    System.out.println(error.status());
+    System.out.println(error.message());
 
-	@Test
-	@DisplayName("refresh 토큰이 유효하지 않으면 토큰을 재발급 받을 수 없다.")
-	void user_reissue_fail_when_refreshToken_is_not_invalid() throws Exception {
+    String reissueRefreshToken = "refresh-tokenxzz";
 
-		Error error = Error.of(UserExceptionCode.INVALID_REFRESH_TOKEN);
-		System.out.println(error);
-		System.out.println(error.code());
-		System.out.println(error.status().name());
-		System.out.println(error.status().value());
-		System.out.println(error.status());
-		System.out.println(error.message());
+    TokenItem newTokenItem =
+        TokenItem.builder()
+            .accessToken("new-access-token")
+            .refreshToken("new-refresh-token")
+            .build();
+    // when
+    when(oauthService.refresh(reissueRefreshToken))
+        .thenThrow(new UserException(UserExceptionCode.INVALID_REFRESH_TOKEN));
 
-		String reissueRefreshToken = "refresh-tokenxzz";
+    // then
+    mockMvc
+        .perform(
+            post("/api/v1/oauth/reissue")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("refresh-token", reissueRefreshToken)
+                .with(csrf()))
+        .andExpect(status().isUnauthorized())
+        .andDo(print())
+        .andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
+        .andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
+        .andExpect(jsonPath("$.errors[0].message").value(error.message()));
+  }
 
-		TokenItem newTokenItem = TokenItem.builder()
-				.accessToken("new-access-token")
-				.refreshToken("new-refresh-token")
-				.build();
-		//when
-		when(oauthService.refresh(reissueRefreshToken)).thenThrow(
-				new UserException(UserExceptionCode.INVALID_REFRESH_TOKEN));
+  @Test
+  @DisplayName("헤더의 리프레쉬 토큰이 null이면 토큰을 재발급 받을 수 없다.")
+  void user_reissue_fail_when_refreshToken_is_null() throws Exception {
+    String reissueRefreshToken = null;
 
-		//then
-		mockMvc.perform(post("/api/v1/oauth/reissue")
-						.contentType(MediaType.APPLICATION_JSON)
-						.header("refresh-token", reissueRefreshToken)
-						.with(csrf()))
-				.andExpect(status().isUnauthorized()).andDo(print())
-				.andExpect(jsonPath("$.errors[0].code").value(String.valueOf(error.code())))
-				.andExpect(jsonPath("$.errors[0].status").value(error.status().name()))
-				.andExpect(jsonPath("$.errors[0].message").value(error.message()));
+    // when
+    when(oauthService.refresh(reissueRefreshToken))
+        .thenThrow(new IllegalArgumentException("Refresh token is missing"));
 
-	}
-
-	@Test
-	@DisplayName("헤더의 리프레쉬 토큰이 null이면 토큰을 재발급 받을 수 없다.")
-	void user_reissue_fail_when_refreshToken_is_null() throws Exception {
-		String reissueRefreshToken = null;
-
-		// when
-		when(oauthService.refresh(reissueRefreshToken)).thenThrow(
-				new IllegalArgumentException("Refresh token is missing"));
-
-		// then
-		mockMvc.perform(post("/api/v1/oauth/reissue")
-						.contentType(MediaType.APPLICATION_JSON)
-						.with(csrf()))
-				.andExpect(status().isUnauthorized())
-				.andExpect(result -> assertTrue(
-						result.getResolvedException() instanceof IllegalArgumentException))
-				.andExpect(jsonPath("$.errors").exists());
-	}
+    // then
+    mockMvc
+        .perform(post("/api/v1/oauth/reissue").contentType(MediaType.APPLICATION_JSON).with(csrf()))
+        .andExpect(status().isUnauthorized())
+        .andExpect(
+            result -> assertTrue(result.getResolvedException() instanceof IllegalArgumentException))
+        .andExpect(jsonPath("$.errors").exists());
+  }
 }

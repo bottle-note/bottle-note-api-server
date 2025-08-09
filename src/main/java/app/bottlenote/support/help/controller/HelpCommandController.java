@@ -1,5 +1,7 @@
 package app.bottlenote.support.help.controller;
 
+import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
+
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
@@ -23,61 +25,66 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
-
 @RestController
 @RequestMapping("/api/v1/help")
 @RequiredArgsConstructor
 public class HelpCommandController {
 
-	private final HelpService helpService;
+  private final HelpService helpService;
 
-	@PostMapping
-	public ResponseEntity<?> registerHelp(@Valid @RequestBody HelpUpsertRequest helpUpsertRequest) {
+  @PostMapping
+  public ResponseEntity<?> registerHelp(@Valid @RequestBody HelpUpsertRequest helpUpsertRequest) {
 
-		Long currentUserId = SecurityContextUtil.getUserIdByContext().
-			orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+    Long currentUserId =
+        SecurityContextUtil.getUserIdByContext()
+            .orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
-		return GlobalResponse.ok(helpService.registerHelp(helpUpsertRequest, currentUserId));
-	}
+    return GlobalResponse.ok(helpService.registerHelp(helpUpsertRequest, currentUserId));
+  }
 
-	@GetMapping
-	public ResponseEntity<?> getHelpList(@ModelAttribute HelpPageableRequest helpPageableRequest){
+  @GetMapping
+  public ResponseEntity<?> getHelpList(@ModelAttribute HelpPageableRequest helpPageableRequest) {
 
-		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElseThrow(
-			() -> new HelpException(REQUIRED_USER_ID)
-		);
+    Long currentUserId =
+        SecurityContextUtil.getUserIdByContext()
+            .orElseThrow(() -> new HelpException(REQUIRED_USER_ID));
 
-		PageResponse<HelpListResponse> pageResponse = helpService.getHelpList(helpPageableRequest, currentUserId);
+    PageResponse<HelpListResponse> pageResponse =
+        helpService.getHelpList(helpPageableRequest, currentUserId);
 
-		return GlobalResponse.ok(pageResponse.content(), MetaService.createMetaInfo().add("pageable", pageResponse.cursorPageable()));
-	}
+    return GlobalResponse.ok(
+        pageResponse.content(),
+        MetaService.createMetaInfo().add("pageable", pageResponse.cursorPageable()));
+  }
 
-	@GetMapping("/{helpId}")
-	public ResponseEntity<?> getDetailHelp(@PathVariable Long helpId){
+  @GetMapping("/{helpId}")
+  public ResponseEntity<?> getDetailHelp(@PathVariable Long helpId) {
 
-		Long currentUserId = SecurityContextUtil.getUserIdByContext().orElseThrow(
-			() -> new HelpException(REQUIRED_USER_ID)
-		);
+    Long currentUserId =
+        SecurityContextUtil.getUserIdByContext()
+            .orElseThrow(() -> new HelpException(REQUIRED_USER_ID));
 
-		return GlobalResponse.ok(helpService.getDetailHelp(helpId, currentUserId));
-	}
+    return GlobalResponse.ok(helpService.getDetailHelp(helpId, currentUserId));
+  }
 
-	@PatchMapping("/{helpId}")
-	public ResponseEntity<?> modifyHelp(@Valid @RequestBody HelpUpsertRequest helpUpsertRequest, @PathVariable Long helpId){
+  @PatchMapping("/{helpId}")
+  public ResponseEntity<?> modifyHelp(
+      @Valid @RequestBody HelpUpsertRequest helpUpsertRequest, @PathVariable Long helpId) {
 
-		Long currentUserId = SecurityContextUtil.getUserIdByContext().
-			orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+    Long currentUserId =
+        SecurityContextUtil.getUserIdByContext()
+            .orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
-		return GlobalResponse.ok(helpService.modifyHelp(helpUpsertRequest, currentUserId, helpId));
-	}
+    return GlobalResponse.ok(helpService.modifyHelp(helpUpsertRequest, currentUserId, helpId));
+  }
 
-	@DeleteMapping("/{helpId}")
-	public ResponseEntity<?> deleteHelp(@PathVariable Long helpId){
+  @DeleteMapping("/{helpId}")
+  public ResponseEntity<?> deleteHelp(@PathVariable Long helpId) {
 
-		Long currentUserId = SecurityContextUtil.getUserIdByContext().
-			orElseThrow(() -> new UserException(REQUIRED_USER_ID));
+    Long currentUserId =
+        SecurityContextUtil.getUserIdByContext()
+            .orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
-		return GlobalResponse.ok(helpService.deleteHelp(helpId, currentUserId));
-	}
+    return GlobalResponse.ok(helpService.deleteHelp(helpId, currentUserId));
+  }
 }

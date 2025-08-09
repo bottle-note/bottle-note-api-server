@@ -21,58 +21,54 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/review/reply")
 public class ReviewReplyController {
 
-	private final ReviewReplyService reviewReplyService;
+  private final ReviewReplyService reviewReplyService;
 
-	public ReviewReplyController(ReviewReplyService reviewReplyService) {
-		this.reviewReplyService = reviewReplyService;
-	}
+  public ReviewReplyController(ReviewReplyService reviewReplyService) {
+    this.reviewReplyService = reviewReplyService;
+  }
 
-	/**
-	 * 리뷰를 등록 한다.
-	 *
-	 * @param reviewId 리뷰 ID
-	 * @param request  요청(댓글 내용 String content, Long parentReplyId)
-	 * @return 결과 메시지
-	 */
-	@PostMapping("/register/{reviewId}")
-	public ResponseEntity<?> registerReviewReply(
-		@PathVariable Long reviewId,
-		@RequestBody @Valid ReviewReplyRegisterRequest request
-	) {
-		Long userId = SecurityContextUtil.getUserIdByContext()
-			.orElseThrow(() -> new UserException(UserExceptionCode.REQUIRED_USER_ID));
+  /**
+   * 리뷰를 등록 한다.
+   *
+   * @param reviewId 리뷰 ID
+   * @param request 요청(댓글 내용 String content, Long parentReplyId)
+   * @return 결과 메시지
+   */
+  @PostMapping("/register/{reviewId}")
+  public ResponseEntity<?> registerReviewReply(
+      @PathVariable Long reviewId, @RequestBody @Valid ReviewReplyRegisterRequest request) {
+    Long userId =
+        SecurityContextUtil.getUserIdByContext()
+            .orElseThrow(() -> new UserException(UserExceptionCode.REQUIRED_USER_ID));
 
-		return GlobalResponse.ok(reviewReplyService.registerReviewReply(reviewId, userId, request));
-	}
+    return GlobalResponse.ok(reviewReplyService.registerReviewReply(reviewId, userId, request));
+  }
 
-	@DeleteMapping("/{reviewId}/{replyId}")
-	public ResponseEntity<?> deleteReviewReply(
-		@PathVariable Long reviewId,
-		@PathVariable Long replyId
-	) {
-		Long userId = SecurityContextUtil.getUserIdByContext()
-			.orElseThrow(() -> new UserException(UserExceptionCode.REQUIRED_USER_ID));
+  @DeleteMapping("/{reviewId}/{replyId}")
+  public ResponseEntity<?> deleteReviewReply(
+      @PathVariable Long reviewId, @PathVariable Long replyId) {
+    Long userId =
+        SecurityContextUtil.getUserIdByContext()
+            .orElseThrow(() -> new UserException(UserExceptionCode.REQUIRED_USER_ID));
 
-		return GlobalResponse.ok(reviewReplyService.deleteReviewReply(reviewId, replyId, userId));
-	}
+    return GlobalResponse.ok(reviewReplyService.deleteReviewReply(reviewId, replyId, userId));
+  }
 
-	@GetMapping("/{reviewId}")
-	public ResponseEntity<?> getReviewReplyList(
-		@PathVariable Long reviewId,
-		@RequestParam(required = false, defaultValue = "0") Long cursor,
-		@RequestParam(required = false, defaultValue = "50") Long pageSize
-	) {
-		return GlobalResponse.ok(reviewReplyService.getReviewRootReplays(reviewId, cursor, pageSize));
-	}
+  @GetMapping("/{reviewId}")
+  public ResponseEntity<?> getReviewReplyList(
+      @PathVariable Long reviewId,
+      @RequestParam(required = false, defaultValue = "0") Long cursor,
+      @RequestParam(required = false, defaultValue = "50") Long pageSize) {
+    return GlobalResponse.ok(reviewReplyService.getReviewRootReplays(reviewId, cursor, pageSize));
+  }
 
-	@GetMapping("/{reviewId}/sub/{rootReplyId}")
-	public ResponseEntity<?> getSubReviewReplies(
-		@PathVariable Long reviewId,
-		@PathVariable Long rootReplyId,
-		@RequestParam(required = false, defaultValue = "0") Long cursor,
-		@RequestParam(required = false, defaultValue = "50") Long pageSize
-	) {
-		return GlobalResponse.ok(reviewReplyService.getSubReviewReplies(reviewId, rootReplyId, cursor, pageSize));
-	}
-
+  @GetMapping("/{reviewId}/sub/{rootReplyId}")
+  public ResponseEntity<?> getSubReviewReplies(
+      @PathVariable Long reviewId,
+      @PathVariable Long rootReplyId,
+      @RequestParam(required = false, defaultValue = "0") Long cursor,
+      @RequestParam(required = false, defaultValue = "50") Long pageSize) {
+    return GlobalResponse.ok(
+        reviewReplyService.getSubReviewReplies(reviewId, rootReplyId, cursor, pageSize));
+  }
 }

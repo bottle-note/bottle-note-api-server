@@ -2,13 +2,9 @@ package app.bottlenote.picks.event.payload;
 
 import app.bottlenote.picks.constant.PicksStatus;
 
-public record PicksRegistryEvent(
-	Long alcoholId,
-	Long userId,
-	PicksStatus picksStatus
-) {
+public record PicksRegistryEvent(Long alcoholId, Long userId, PicksStatus picksStatus) {
 
-	public static PicksRegistryEvent of(Long alcoholId, Long userId, PicksStatus picksStatus) {
-		return new PicksRegistryEvent(alcoholId, userId, picksStatus);
-	}
+  public static PicksRegistryEvent of(Long alcoholId, Long userId, PicksStatus picksStatus) {
+    return new PicksRegistryEvent(alcoholId, userId, picksStatus);
+  }
 }

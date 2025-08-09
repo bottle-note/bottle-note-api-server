@@ -17,6 +17,6 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationPropertiesScan
 @ConfigurationProperties(prefix = "app.third-party")
 public class FirebaseProperties {
-	private String firebaseConfigurationFile;
-	private String base64file;
+  private String firebaseConfigurationFile;
+  private String base64file;
 }

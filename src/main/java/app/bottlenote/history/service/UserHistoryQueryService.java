@@ -1,5 +1,7 @@
 package app.bottlenote.history.service;
 
+import static java.lang.Boolean.FALSE;
+
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.history.domain.UserHistoryRepository;
 import app.bottlenote.history.dto.request.UserHistorySearchRequest;
@@ -12,25 +14,22 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static java.lang.Boolean.FALSE;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class UserHistoryQueryService {
 
-	private final UserHistoryRepository userHistoryRepository;
-	private final UserFacade userFacade;
+  private final UserHistoryRepository userHistoryRepository;
+  private final UserFacade userFacade;
 
-	@Transactional(readOnly = true)
-	public PageResponse<UserHistorySearchResponse> findUserHistoryList(final Long targetUserId, final UserHistorySearchRequest userHistorySearchRequest) {
-		if (FALSE.equals(userFacade.existsByUserId(targetUserId))) {
-			throw new UserException(UserExceptionCode.USER_NOT_FOUND);
-		}
+  @Transactional(readOnly = true)
+  public PageResponse<UserHistorySearchResponse> findUserHistoryList(
+      final Long targetUserId, final UserHistorySearchRequest userHistorySearchRequest) {
+    if (FALSE.equals(userFacade.existsByUserId(targetUserId))) {
+      throw new UserException(UserExceptionCode.USER_NOT_FOUND);
+    }
 
-		return userHistoryRepository.findUserHistoryListByUserId(
-			targetUserId,
-			userHistorySearchRequest
-		);
-	}
+    return userHistoryRepository.findUserHistoryListByUserId(
+        targetUserId, userHistorySearchRequest);
+  }
 }

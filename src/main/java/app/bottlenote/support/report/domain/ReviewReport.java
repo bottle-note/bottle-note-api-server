@@ -26,58 +26,53 @@ import org.hibernate.annotations.Comment;
 @Builder
 public class ReviewReport extends BaseEntity {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-	@Comment("유저 ID")
-	@Column(name = "user_id")
-	private Long userId;
+  @Comment("유저 ID")
+  @Column(name = "user_id")
+  private Long userId;
 
-	@Comment("리뷰 ID")
-	@Column(name = "review_id")
-	private Long reviewId;
+  @Comment("리뷰 ID")
+  @Column(name = "review_id")
+  private Long reviewId;
 
-	@Comment("신고 사유")
-	@Column(name = "report_content", nullable = false)
-	private String reportContent;
+  @Comment("신고 사유")
+  @Column(name = "report_content", nullable = false)
+  private String reportContent;
 
-	@Enumerated(EnumType.STRING)
-	@Comment("리뷰 신고 타입")
-	@Column(name = "type", nullable = false)
-	private ReviewReportType type;
+  @Enumerated(EnumType.STRING)
+  @Comment("리뷰 신고 타입")
+  @Column(name = "type", nullable = false)
+  private ReviewReportType type;
 
-	@Comment("신고자 IP주소")
-	@Column(name = "ip_address", nullable = false)
-	private String ipAddress;
+  @Comment("신고자 IP주소")
+  @Column(name = "ip_address", nullable = false)
+  private String ipAddress;
 
-	@Comment("문의글의 처리 상태 : Wating이 디폴트")
-	@Enumerated(EnumType.STRING)
-	@Column(name = "status")
-	@Builder.Default
-	private StatusType status = StatusType.WAITING;
+  @Comment("문의글의 처리 상태 : Wating이 디폴트")
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status")
+  @Builder.Default
+  private StatusType status = StatusType.WAITING;
 
-	@Comment("관리자 ID")
-	@Column(name = "admin_id")
-	private Long adminId;
+  @Comment("관리자 ID")
+  @Column(name = "admin_id")
+  private Long adminId;
 
-	@Comment("처리 결과")
-	@Column(name = "response_content", nullable = false)
-	private String responseContent;
+  @Comment("처리 결과")
+  @Column(name = "response_content", nullable = false)
+  private String responseContent;
 
-	public static ReviewReport registerReport(
-			Long userId,
-			Long reviewId,
-			ReviewReportType type,
-			String reportContent,
-			String ipAddress
-	) {
-		return ReviewReport.builder()
-				.userId(userId)
-				.reviewId(reviewId)
-				.type(type)
-				.reportContent(reportContent)
-				.ipAddress(ipAddress)
-				.build();
-	}
+  public static ReviewReport registerReport(
+      Long userId, Long reviewId, ReviewReportType type, String reportContent, String ipAddress) {
+    return ReviewReport.builder()
+        .userId(userId)
+        .reviewId(reviewId)
+        .type(type)
+        .reportContent(reportContent)
+        .ipAddress(ipAddress)
+        .build();
+  }
 }

@@ -3,22 +3,22 @@ package app.bottlenote.history.domain;
 import app.bottlenote.alcohols.dto.response.ViewHistoryItem;
 import app.bottlenote.common.annotation.DomainRepository;
 import app.bottlenote.history.domain.AlcoholsViewHistory.AlcoholsViewHistoryId;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.Query;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
 
 @DomainRepository
 public interface AlcoholsViewHistoryRepository {
 
-	AlcoholsViewHistory save(AlcoholsViewHistory entity);
+  AlcoholsViewHistory save(AlcoholsViewHistory entity);
 
-	<S extends AlcoholsViewHistory> List<S> saveAll(Iterable<S> entities);
+  <S extends AlcoholsViewHistory> List<S> saveAll(Iterable<S> entities);
 
-	Optional<AlcoholsViewHistory> findById(AlcoholsViewHistoryId id);
+  Optional<AlcoholsViewHistory> findById(AlcoholsViewHistoryId id);
 
-	@Query("""
+  @Query(
+      """
              SELECT
               new app.bottlenote.alcohols.dto.response.ViewHistoryItem(
                  			    a.id.alcoholId,
@@ -43,8 +43,8 @@ public interface AlcoholsViewHistoryRepository {
                  			WHERE a.id.userId = :userId
                  			ORDER BY a.viewAt DESC
             """)
-	List<ViewHistoryItem> findAllByUserId(Long userId, Pageable pageable);
+  List<ViewHistoryItem> findAllByUserId(Long userId, Pageable pageable);
 
-	@Query(" SELECT COUNT(*) FROM alcohols_view_history a WHERE a.id.userId = :userId ")
-	int countByUserId(Long userId);
+  @Query(" SELECT COUNT(*) FROM alcohols_view_history a WHERE a.id.userId = :userId ")
+  int countByUserId(Long userId);
 }

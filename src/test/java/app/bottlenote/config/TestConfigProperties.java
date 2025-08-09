@@ -7,12 +7,12 @@ import org.springframework.context.annotation.Bean;
 @TestConfiguration
 public class TestConfigProperties {
 
-	@Bean
-	public OauthConfigProperties oauthConfigProperties() {
-		return OauthConfigProperties.builder()
-			.guestCode("guest-code-for-test")
-			.cookieExpireTime(100000)
-			.refreshTokenHeaderPrefix("refresh-token")
-			.build();
-	}
+  @Bean
+  public OauthConfigProperties oauthConfigProperties() {
+    return OauthConfigProperties.builder()
+        .guestCode("guest-code-for-test")
+        .cookieExpireTime(100000)
+        .refreshTokenHeaderPrefix("refresh-token")
+        .build();
+  }
 }

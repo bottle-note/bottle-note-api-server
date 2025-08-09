@@ -11,10 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AuthService {
 
-	private final RootAdminRepository rootAdminRepository;
+  private final RootAdminRepository rootAdminRepository;
 
-	@Transactional(readOnly = true)
-	public boolean checkAdminStatus(Long userId) {
-		return rootAdminRepository.existsByUserId(userId);
-	}
+  @Transactional(readOnly = true)
+  public boolean checkAdminStatus(Long userId) {
+    return rootAdminRepository.existsByUserId(userId);
+  }
 }

@@ -1,23 +1,5 @@
 package app.bottlenote.user.service;
 
-import app.bottlenote.user.constant.UserStatus;
-import app.bottlenote.user.domain.User;
-import app.bottlenote.user.domain.UserRepository;
-import app.bottlenote.user.dto.request.NicknameChangeRequest;
-import app.bottlenote.user.dto.response.NicknameChangeResponse;
-import app.bottlenote.user.exception.UserException;
-import app.bottlenote.user.fixture.UserObjectFixture;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
-import java.util.function.Supplier;
-
 import static app.bottlenote.user.exception.UserExceptionCode.USER_NICKNAME_NOT_VALID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -26,104 +8,114 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import app.bottlenote.user.constant.UserStatus;
+import app.bottlenote.user.domain.User;
+import app.bottlenote.user.domain.UserRepository;
+import app.bottlenote.user.dto.request.NicknameChangeRequest;
+import app.bottlenote.user.dto.response.NicknameChangeResponse;
+import app.bottlenote.user.exception.UserException;
+import app.bottlenote.user.fixture.UserObjectFixture;
+import java.util.Optional;
+import java.util.function.Supplier;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 @Tag("unit")
 @DisplayName("[unit] [service] UserCommandService")
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
 class UserCommandServiceTest {
 
-	@InjectMocks
-	UserBasicService userCommandService;
+  @InjectMocks UserBasicService userCommandService;
 
-	@Mock
-	UserFilterManager userFilterManager;
+  @Mock UserFilterManager userFilterManager;
 
-	@Mock
-	UserRepository userCommandRepository;
+  @Mock UserRepository userCommandRepository;
 
-	@Test
-	@DisplayName("닉네임을 변경할수 있다.")
-	void testChangeNickname() {
+  @Test
+  @DisplayName("닉네임을 변경할수 있다.")
+  void testChangeNickname() {
 
-		Long userId = 1L;
-		User user = UserObjectFixture.getUserFixtureObject();
+    Long userId = 1L;
+    User user = UserObjectFixture.getUserFixtureObject();
 
-		String newNickname = "newNickname";
-		String beforeNickname = user.getNickName();
+    String newNickname = "newNickname";
+    String beforeNickname = user.getNickName();
 
+    NicknameChangeRequest request = new NicknameChangeRequest(newNickname);
 
-		NicknameChangeRequest request = new NicknameChangeRequest(newNickname);
+    // when
+    when(userCommandRepository.existsByNickName(newNickname)).thenReturn(false);
+    when(userCommandRepository.findById(any())).thenReturn(Optional.of(user));
 
-		// when
-		when(userCommandRepository.existsByNickName(newNickname)).thenReturn(false);
-		when(userCommandRepository.findById(any())).thenReturn(Optional.of(user));
+    when(userFilterManager.withActiveUserFilter(eq(UserStatus.ACTIVE), any(Supplier.class)))
+        .thenAnswer(invocation -> invocation.getArgument(1, Supplier.class).get());
 
-		when(userFilterManager.withActiveUserFilter(eq(UserStatus.ACTIVE), any(Supplier.class)))
-				.thenAnswer(invocation -> invocation.getArgument(1, Supplier.class).get());
+    NicknameChangeResponse response = userCommandService.nicknameChange(userId, request);
 
-		NicknameChangeResponse response = userCommandService.nicknameChange(userId, request);
+    // then
+    assertEquals(response.getMessage(), NicknameChangeResponse.Message.SUCCESS.getResponseName());
+    assertEquals(userId, response.getUserId());
+    assertEquals(response.getBeforeNickname(), beforeNickname);
+    assertEquals(newNickname, response.getChangedNickname());
+  }
 
-		// then
-		assertEquals(response.getMessage(), NicknameChangeResponse.Message.SUCCESS.getResponseName());
-		assertEquals(userId, response.getUserId());
-		assertEquals(response.getBeforeNickname(), beforeNickname);
-		assertEquals(newNickname, response.getChangedNickname());
+  @DisplayName("중복된 닉네임은 변경할 수 없다.")
+  @Test
+  void testChangeNicknameWithDuplicateNickname() {
 
-	}
+    Long userId = 1L;
 
-	@DisplayName("중복된 닉네임은 변경할 수 없다.")
-	@Test
-	void testChangeNicknameWithDuplicateNickname() {
+    // given
+    String newNickname = "newNickname";
+    NicknameChangeRequest request = new NicknameChangeRequest(newNickname);
 
-		Long userId = 1L;
+    // when
+    when(userCommandRepository.existsByNickName(newNickname)).thenReturn(true);
+    when(userFilterManager.withActiveUserFilter(eq(UserStatus.ACTIVE), any(Supplier.class)))
+        .thenAnswer(invocation -> invocation.getArgument(1, Supplier.class).get());
+    UserException aThrows =
+        assertThrows(UserException.class, () -> userCommandService.nicknameChange(userId, request));
 
-		// given
-		String newNickname = "newNickname";
-		NicknameChangeRequest request = new NicknameChangeRequest(newNickname);
+    // then
+    assertEquals(USER_NICKNAME_NOT_VALID, aThrows.getExceptionCode());
+  }
 
-		// when
-		when(userCommandRepository.existsByNickName(newNickname)).thenReturn(true);
-		when(userFilterManager.withActiveUserFilter(eq(UserStatus.ACTIVE), any(Supplier.class)))
-				.thenAnswer(invocation -> invocation.getArgument(1, Supplier.class).get());
-		UserException aThrows = assertThrows(UserException.class, () -> userCommandService.nicknameChange(userId, request));
+  @DisplayName("회원 탈퇴를 할 수 있다.")
+  @Test
+  void testWithdrawUserSuccess() {
+    // given
+    Long userId = 1L;
+    User user = UserObjectFixture.getUserFixtureObject();
 
-		// then
-		assertEquals(USER_NICKNAME_NOT_VALID, aThrows.getExceptionCode());
-	}
+    // when
+    when(userCommandRepository.findById(anyLong())).thenReturn(Optional.of(user));
+    when(userFilterManager.withActiveUserFilter(eq(UserStatus.ACTIVE), any(Supplier.class)))
+        .thenAnswer(invocation -> invocation.getArgument(1, Supplier.class).get());
 
-	@DisplayName("회원 탈퇴를 할 수 있다.")
-	@Test
-	void testWithdrawUserSuccess() {
-		// given
-		Long userId = 1L;
-		User user = UserObjectFixture.getUserFixtureObject();
+    userCommandService.withdrawUser(userId);
 
-		// when
-		when(userCommandRepository.findById(anyLong()))
-				.thenReturn(Optional.of(user));
-		when(userFilterManager.withActiveUserFilter(eq(UserStatus.ACTIVE), any(Supplier.class)))
-				.thenAnswer(invocation -> invocation.getArgument(1, Supplier.class).get());
+    // then
+    assertEquals(UserStatus.DELETED, user.getStatus());
+  }
 
-		userCommandService.withdrawUser(userId);
+  @DisplayName("존재하지 않는 회원은 탈퇴할 수 없다.")
+  @Test
+  void testWithdrawUserFailedWhenUserNotExist() {
+    // given
+    Long userId = 1L;
 
-		// then
-		assertEquals(UserStatus.DELETED, user.getStatus());
-	}
+    // when
+    when(userCommandRepository.findById(anyLong())).thenReturn(Optional.empty());
+    when(userFilterManager.withActiveUserFilter(eq(UserStatus.ACTIVE), any(Supplier.class)))
+        .thenAnswer(invocation -> invocation.getArgument(1, Supplier.class).get());
 
-	@DisplayName("존재하지 않는 회원은 탈퇴할 수 없다.")
-	@Test
-	void testWithdrawUserFailedWhenUserNotExist() {
-		// given
-		Long userId = 1L;
-
-		// when
-		when(userCommandRepository.findById(anyLong()))
-				.thenReturn(Optional.empty());
-		when(userFilterManager.withActiveUserFilter(eq(UserStatus.ACTIVE), any(Supplier.class)))
-				.thenAnswer(invocation -> invocation.getArgument(1, Supplier.class).get());
-
-		// then
-		assertThrows(UserException.class, () -> userCommandService.withdrawUser(userId));
-	}
-
+    // then
+    assertThrows(UserException.class, () -> userCommandService.withdrawUser(userId));
+  }
 }

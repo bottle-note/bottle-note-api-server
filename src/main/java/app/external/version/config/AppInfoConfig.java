@@ -14,9 +14,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "app.info")
 public class AppInfoConfig {
-	private String serverName;
-	private String environment;
-	private String gitBranch;
-	private String gitCommit;
-	private String gitBuildTime;
+  private String serverName;
+  private String environment;
+  private String gitBranch;
+  private String gitCommit;
+  private String gitBuildTime;
 }

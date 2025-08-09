@@ -7,14 +7,14 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum PicksStatus {
-	PICK,
-	UNPICK;
+  PICK,
+  UNPICK;
 
-	@JsonCreator
-	public static PicksStatus parsing(String source) {
-		if (source == null || source.isEmpty()) {
-			return null;
-		}
-		return PicksStatus.valueOf(source.toUpperCase());
-	}
+  @JsonCreator
+  public static PicksStatus parsing(String source) {
+    if (source == null || source.isEmpty()) {
+      return null;
+    }
+    return PicksStatus.valueOf(source.toUpperCase());
+  }
 }

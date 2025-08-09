@@ -4,10 +4,4 @@ import lombok.Builder;
 
 @Builder
 public record BasicAccountResponse(
-	String message,
-	String email,
-	String nickname,
-	String accessToken,
-	String refreshToken
-) {
-}
+    String message, String email, String nickname, String accessToken, String refreshToken) {}

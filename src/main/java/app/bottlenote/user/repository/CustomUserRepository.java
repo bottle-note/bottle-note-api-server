@@ -7,12 +7,11 @@ import app.bottlenote.user.dto.response.MyPageResponse;
 
 public interface CustomUserRepository {
 
-	MyPageResponse getMyPage(Long userId, Long currentUserId);
+  MyPageResponse getMyPage(Long userId, Long currentUserId);
 
-	PageResponse<MyBottleResponse> getReviewMyBottle(MyBottlePageableCriteria criteria);
+  PageResponse<MyBottleResponse> getReviewMyBottle(MyBottlePageableCriteria criteria);
 
-	PageResponse<MyBottleResponse> getRatingMyBottle(MyBottlePageableCriteria criteria);
+  PageResponse<MyBottleResponse> getRatingMyBottle(MyBottlePageableCriteria criteria);
 
-	PageResponse<MyBottleResponse> getPicksMyBottle(MyBottlePageableCriteria criteria);
-
+  PageResponse<MyBottleResponse> getPicksMyBottle(MyBottlePageableCriteria criteria);
 }
