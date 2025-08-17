@@ -44,7 +44,7 @@ public enum KeywordTagMapping {
           144L, 181L, 197L, 202L, 203L, 208L)),
 
   RAINY_DAY_WHISKEY(
-      "비 오늘 날 추천 위스키",
+      "비 오는 날 추천 위스키",
       List.of(
           24L, 28L, 18L, 19L, 20L, 46L, 50L, 139L, 156L, 164L, 165L, 166L, 167L, 168L, 170L, 171L,
           172L, 188L, 195L, 202L, 203L, 206L),
