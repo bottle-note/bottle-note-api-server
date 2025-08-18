@@ -1,4 +1,6 @@
-package app.bottlenote.common.profanity;
+package app.bottlenote.common.profanity.dto.request;
+
+import app.bottlenote.common.profanity.constant.FilterMode;
 
 import java.util.Objects;
 

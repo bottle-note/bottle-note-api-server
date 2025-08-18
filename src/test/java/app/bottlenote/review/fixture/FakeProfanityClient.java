@@ -5,8 +5,8 @@ import static app.bottlenote.common.exception.CommonExceptionCode.CONTAINS_PROFA
 import app.bottlenote.common.exception.CommonException;
 import app.bottlenote.common.profanity.FakeProfanityFeignClient;
 import app.bottlenote.common.profanity.ProfanityClient;
-import app.bottlenote.common.profanity.ProfanityRequest;
-import app.bottlenote.common.profanity.ProfanityResponse;
+import app.bottlenote.common.profanity.dto.request.ProfanityRequest;
+import app.bottlenote.common.profanity.dto.response.ProfanityResponse;
 import org.springframework.http.ResponseEntity;
 
 /** ProfanityClient 의 fake 구현체입니다. */

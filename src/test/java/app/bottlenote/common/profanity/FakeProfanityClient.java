@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+
+import app.bottlenote.common.profanity.dto.response.ProfanityResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

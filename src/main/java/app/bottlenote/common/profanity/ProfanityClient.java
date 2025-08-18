@@ -1,5 +1,7 @@
 package app.bottlenote.common.profanity;
 
+import app.bottlenote.common.profanity.dto.response.ProfanityResponse;
+
 /** The interface Profanity client. */
 public interface ProfanityClient {
 

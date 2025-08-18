@@ -1,6 +1,8 @@
-package app.bottlenote.common.profanity;
+package app.bottlenote.common.profanity.dto.response;
 
 import java.util.List;
+
+import app.bottlenote.common.profanity.DetectedItem;
 import lombok.Builder;
 
 @Builder

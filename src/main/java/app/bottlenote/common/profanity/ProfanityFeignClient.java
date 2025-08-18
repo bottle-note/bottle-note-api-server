@@ -1,5 +1,7 @@
 package app.bottlenote.common.profanity;
 
+import app.bottlenote.common.profanity.dto.request.ProfanityRequest;
+import app.bottlenote.common.profanity.dto.response.ProfanityResponse;
 import app.bottlenote.global.config.FeignConfig;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
