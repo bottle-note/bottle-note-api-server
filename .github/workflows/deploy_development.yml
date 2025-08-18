@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       image_tag: ${{ steps.build-image.outputs.image_tag }}
-      registry: ${{ steps.login-ecr.outputs.registry }}
+      registry: ${{ steps.build-image.outputs.registry }}
     steps:
       - name: Checkout code with submodules
         uses: actions/checkout@v4
@@ -64,6 +64,7 @@ jobs:
           # 이미지 태그 생성
           IMAGE_TAG="${GITHUB_SHA:0:7}"
           echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "registry=${{ steps.login-ecr.outputs.registry }}" >> $GITHUB_OUTPUT
           
           # 이미지 빌드 및 푸시
           docker buildx build --platform linux/amd64,linux/arm64 \
@@ -136,11 +137,11 @@ jobs:
             aws configure set region "${{ env.AWS_REGION }}"
 
             # ECR 로그인
-            aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+            ECR_REGISTRY="${{ needs.build-and-push.outputs.registry }}"
+            aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_REGISTRY
 
             # 이미지 정보 설정
             IMAGE_TAG="${{ needs.build-and-push.outputs.image_tag }}"
-            ECR_REGISTRY="${{ needs.build-and-push.outputs.registry }}"
             ECR_REPOSITORY="ecr-bottle-note-api"
             FULL_IMAGE_NAME="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
