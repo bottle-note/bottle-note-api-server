@@ -1,4 +1,4 @@
-package app.bottlenote.common.profanity.constant;
+package app.bottlenote.common.profanity;
 
 public enum FilterMode {
   QUICK,

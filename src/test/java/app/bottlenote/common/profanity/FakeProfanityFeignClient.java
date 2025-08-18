@@ -1,9 +1,5 @@
 package app.bottlenote.common.profanity;
 
-import app.bottlenote.common.profanity.dto.request.ProfanityRequest;
-import app.bottlenote.common.profanity.dto.response.DetectedItem;
-import app.bottlenote.common.profanity.dto.response.ProfanityResponse;
-import app.bottlenote.common.profanity.fegin.ProfanityFeignClient;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

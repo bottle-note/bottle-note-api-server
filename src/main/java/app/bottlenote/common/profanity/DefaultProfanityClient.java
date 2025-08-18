@@ -2,9 +2,7 @@ package app.bottlenote.common.profanity;
 
 import app.bottlenote.common.exception.CommonException;
 import app.bottlenote.common.exception.CommonExceptionCode;
-import app.bottlenote.common.profanity.dto.request.ProfanityRequest;
-import app.bottlenote.common.profanity.dto.response.ProfanityResponse;
-import app.bottlenote.common.profanity.fegin.ProfanityFeignClient;
+
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +38,7 @@ public class DefaultProfanityClient implements ProfanityClient {
   public String getFilteredText(String text) {
     log.info("[getFilteredText] 필터링 요청 대상: {}", text);
     ProfanityResponse response = requestVerificationProfanity(text);
-    if (Boolean.TRUE.equals(response.isNotFiltered())) {
+    if (response.isNotFiltered()) {
       return text;
     }
     return response.filtered();
@@ -58,7 +56,7 @@ public class DefaultProfanityClient implements ProfanityClient {
   public void validateProfanity(String text) {
     log.info("[validateProfanity] 검증 요청 대상: {}", text);
     ProfanityResponse response = requestVerificationProfanity(text);
-    if (Boolean.TRUE.equals(response.isProfane())) {
+    if (response.isProfane()) {
       throw new CommonException(CommonExceptionCode.CONTAINS_PROFANITY);
     }
   }

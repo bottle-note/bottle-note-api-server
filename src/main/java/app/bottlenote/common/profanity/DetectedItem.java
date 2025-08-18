@@ -1,4 +1,4 @@
-package app.bottlenote.common.profanity.dto.response;
+package app.bottlenote.common.profanity;
 
 public record DetectedItem(Integer length, String filteredWord) {
   public static DetectedItem create(String filteredWord) {

@@ -2,8 +2,7 @@ package app.bottlenote.common.profanity;
 
 import app.bottlenote.common.exception.CommonException;
 import app.bottlenote.common.exception.CommonExceptionCode;
-import app.bottlenote.common.profanity.dto.response.DetectedItem;
-import app.bottlenote.common.profanity.dto.response.ProfanityResponse;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
