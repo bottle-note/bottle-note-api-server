@@ -136,8 +136,11 @@ jobs:
             aws configure set aws_secret_access_key "${{ env.AWS_SECRET_ACCESS_KEY }}"
             aws configure set region "${{ env.AWS_REGION }}"
 
+            # ECR 레지스트리 URL 가져오기
+            ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+            ECR_REGISTRY="${ACCOUNT_ID}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com"
+            
             # ECR 로그인
-            ECR_REGISTRY="${{ needs.build-and-push.outputs.registry }}"
             aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_REGISTRY
 
             # 이미지 정보 설정
