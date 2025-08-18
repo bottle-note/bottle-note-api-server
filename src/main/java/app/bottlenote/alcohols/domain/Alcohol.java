@@ -77,6 +77,10 @@ public class Alcohol extends BaseEntity {
   @JoinColumn(name = "distillery_id")
   private Distillery distillery;
 
+  @Comment("숙성년도")
+  @Column(name = "age")
+  private String age;
+
   @Comment("캐스트 타입")
   @Column(name = "cask")
   private String cask;
@@ -84,6 +88,14 @@ public class Alcohol extends BaseEntity {
   @Comment("썸네일 이미지")
   @Column(name = "image_url")
   private String imageUrl;
+
+  @Comment("기본 설명")
+  @Column(name = "description", columnDefinition = "TEXT")
+  private String description;
+
+  @Comment("용량")
+  @Column(name = "volume")
+  private String volume;
 
   @Builder.Default
   @Comment("해당 알코올의 테이스팅 태그")

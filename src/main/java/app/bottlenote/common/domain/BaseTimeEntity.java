@@ -19,10 +19,11 @@ public class BaseTimeEntity extends AbstractAggregateRoot<BaseEntity> {
 
   @Comment("최초 생성일")
   @CreatedDate
-  @Column(updatable = false)
+  @Column(updatable = false, name = "create_at")
   private LocalDateTime createAt;
 
   @Comment("최종 수정일")
   @LastModifiedDate
+  @Column(name = "last_modify_at")
   private LocalDateTime lastModifyAt;
 }
