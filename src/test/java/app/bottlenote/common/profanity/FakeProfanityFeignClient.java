@@ -1,9 +1,8 @@
 package app.bottlenote.common.profanity;
 
-import java.util.List;
-
 import app.bottlenote.common.profanity.dto.request.ProfanityRequest;
 import app.bottlenote.common.profanity.dto.response.ProfanityResponse;
+import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.DisplayName;

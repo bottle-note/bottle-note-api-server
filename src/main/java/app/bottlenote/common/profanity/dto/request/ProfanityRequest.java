@@ -1,7 +1,6 @@
 package app.bottlenote.common.profanity.dto.request;
 
 import app.bottlenote.common.profanity.constant.FilterMode;
-
 import java.util.Objects;
 
 public record ProfanityRequest(String text, FilterMode mode) {

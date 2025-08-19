@@ -5,7 +5,6 @@ import app.bottlenote.user.config.OauthConfigProperties;
 import app.bottlenote.user.controller.AuthV2Controller;
 import app.bottlenote.user.service.AuthService;
 import app.bottlenote.user.service.NonceService;
-import app.bottlenote.user.service.OauthService;
 import app.docs.AbstractRestDocs;
 import com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper;
 import com.epages.restdocs.apispec.ResourceDocumentation;
@@ -29,14 +28,13 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 class OpenApiAuthV2ControllerTest extends AbstractRestDocs {
   private final AuthService authService = Mockito.mock(AuthService.class);
   private final NonceService nonceService = Mockito.mock(NonceService.class);
-  private final OauthService oauthService = Mockito.mock(OauthService.class);
   private final OauthConfigProperties config = Mockito.mock(OauthConfigProperties.class);
 
   private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
   @Override
   protected Object initController() {
-    return new AuthV2Controller(authService, nonceService, oauthService, config);
+    return new AuthV2Controller(authService, nonceService, config);
   }
 
   @BeforeEach
