@@ -65,9 +65,6 @@ dependencies {
 	implementation project(':bottlenote-core')
 	testImplementation project(':bottlenote-core')
 
-	implementation project(':bottlenote-api-client')
-	testImplementation project(':bottlenote-api-client')
-
 	runtimeOnly project(':bottlenote-batch')
 	testRuntimeOnly project(':bottlenote-batch')
 
