@@ -37,7 +37,9 @@ public enum UserExceptionCode implements ExceptionCode {
   APPLE_ID_TOKEN_HEADER_PARSING_ERROR(HttpStatus.BAD_REQUEST, "Apple ID Token 헤더 파싱 오류"),
   INVALID_NONCE(HttpStatus.UNAUTHORIZED, "유효하지 않은 Nonce 값입니다."),
   NONCE_EXPIRED(HttpStatus.UNAUTHORIZED, "만료된 Nonce 값입니다."),
-  NONCE_ALREADY_USED(HttpStatus.UNAUTHORIZED, "이미 사용된 Nonce 값입니다.");
+  NONCE_ALREADY_USED(HttpStatus.UNAUTHORIZED, "이미 사용된 Nonce 값입니다."),
+  INVALID_KAKAO_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 카카오 액세스 토큰입니다."),
+  KAKAO_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 API 호출 오류입니다.");
   private final HttpStatus httpStatus;
   private final String message;
 

@@ -1,18 +1,16 @@
 package app.bottlenote.user.controller;
 
-import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
-
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.user.config.OauthConfigProperties;
 import app.bottlenote.user.dto.request.AppleLoginRequest;
+import app.bottlenote.user.dto.request.KakaoLoginRequest;
 import app.bottlenote.user.dto.response.NonceResponse;
 import app.bottlenote.user.dto.response.OauthResponse;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.service.AuthService;
 import app.bottlenote.user.service.NonceService;
-import app.bottlenote.user.service.OauthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -25,6 +23,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
+
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -32,7 +32,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthV2Controller {
   private final AuthService authService;
   private final NonceService nonceService;
-  private final OauthService oauthService;
   private final OauthConfigProperties configProperties;
   private static final String REFRESH_TOKEN_HEADER_PREFIX = "refresh-token";
 
@@ -57,21 +56,29 @@ public class AuthV2Controller {
   public ResponseEntity<?> executeAppleLogin(
       @RequestBody @Valid AppleLoginRequest appleLoginRequest, HttpServletResponse response) {
     TokenItem token =
-        oauthService.loginWithApple(appleLoginRequest.idToken(), appleLoginRequest.nonce());
+        authService.loginWithApple(appleLoginRequest.idToken(), appleLoginRequest.nonce());
+    setRefreshTokenInCookie(response, token.refreshToken());
+    return ResponseEntity.ok(OauthResponse.of(token.accessToken()));
+  }
+
+  /** 카카오 로그인 v2 */
+  @PostMapping("/kakao")
+  public ResponseEntity<?> executeKakaoLogin(
+      @RequestBody @Valid KakaoLoginRequest kakaoLoginRequest, HttpServletResponse response) {
+    TokenItem token = authService.loginWithKakao(kakaoLoginRequest.accessToken());
     setRefreshTokenInCookie(response, token.refreshToken());
     return ResponseEntity.ok(OauthResponse.of(token.accessToken()));
   }
 
   private void setRefreshTokenInCookie(HttpServletResponse response, String refreshToken) {
-    final int COOKIE_EXPIRE_TIME = 14 * 24 * 60 * 60;
     final int cookieExpireTime = configProperties.getCookieExpireTime();
     log.info(
-        "cookie basic expire time : {} properties time :{}", COOKIE_EXPIRE_TIME, cookieExpireTime);
+			"cookie basic expire time : {} properties time :{}", cookieExpireTime, cookieExpireTime);
     Cookie cookie = new Cookie(REFRESH_TOKEN_HEADER_PREFIX, refreshToken);
     cookie.setHttpOnly(true);
     cookie.setSecure(true);
     cookie.setPath("/");
-    cookie.setMaxAge(COOKIE_EXPIRE_TIME);
+	  cookie.setMaxAge(cookieExpireTime);
     response.addCookie(cookie);
   }
 }
