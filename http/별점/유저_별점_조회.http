@@ -1,20 +1,10 @@
-### 토큰 발급 (일반)
-POST {{host}}/api/v1/oauth/login
+### 토큰이 없을 경우 발생하는 예외 예제
+@alcoholId = 209
+GET {{host}}/api/v1/rating/{{alcoholId}}
 Content-Type: application/json
 
-{
-  "email": "dev.bottle-note@gmail.com",
-  "socialType": "GOOGLE",
-  "gender": "MALE",
-  "age": 25
-}
-
-> {%
-    //토큰을 전역변수로 저장
-    client.global.set("accessToken", response.body.data.accessToken);
-%}
 
 ### 토큰이 없을 경우 발생하는 예외 예제
-@articleId = -1
-GET {{host}}/api/v1/rating/{{articleId}}
+GET {{host}}/api/v1/rating/{{alcoholId}}
 Content-Type: application/json
+Authorization: Bearer {{accessToken}}
