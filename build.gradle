@@ -1,40 +1,20 @@
+// 멀티모듈 루트 프로젝트 설정
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.1.9'
-	id 'io.spring.dependency-management' version '1.1.4'
-	id "org.asciidoctor.jvm.convert" version "3.3.2"
-	id 'com.diffplug.spotless' version "7.0.2"
-	id 'com.epages.restdocs-api-spec' version '0.19.2'
+	id 'org.springframework.boot' version '3.1.9' apply false
+	id 'io.spring.dependency-management' version '1.1.4' apply false
+	id "org.asciidoctor.jvm.convert" version "4.0.2" apply false
+	id 'com.diffplug.spotless' version "7.0.2" apply false
+	id 'com.epages.restdocs-api-spec' version '0.19.2' apply false
 }
 
+// 전역 변수 설정
 ext {
 	queryDslVersion = "6.11"
 	springCloudVersion = "2022.0.5"
-	snippetsDir = file('build/generated-snippets') as File
-	generated = 'src/main/generated'
 }
 
-dependencyManagement {
-	imports {
-		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-	}
-}
-
-compileTestJava.options.encoding = 'UTF-8'
-compileTestJava.options.compilerArgs += ['-parameters']
-
-compileJava {
-	options.compilerArgs += ['-parameters']
-	options.encoding = 'UTF-8'
-}
-
-configurations {
-	asciidoctorExt
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
-}
-
+// 전체 프로젝트 공통 설정
 allprojects {
 	group = 'bottlenote'
 	version = '0.0.1-SNAPSHOT'
@@ -47,262 +27,85 @@ allprojects {
 		sourceCompatibility = JavaVersion.VERSION_21
 		targetCompatibility = JavaVersion.VERSION_21
 	}
-
-	sourceSets {
-		main {
-			resources {
-				srcDirs = [
-						'src/main/resources',
-						'../git.environment-variables'
-				]
-			}
-		}
-	}
-
 }
 
-dependencies {
-	implementation project(':bottlenote-core')
-	testImplementation project(':bottlenote-core')
-
-	runtimeOnly project(':bottlenote-batch')
-	testRuntimeOnly project(':bottlenote-batch')
-
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	testImplementation 'org.testng:testng:7.7.0'
-	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
-
-	// lombok
-	implementation 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
-
-	//database
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-	implementation 'com.h2database:h2'
-	runtimeOnly 'com.mysql:mysql-connector-j'
-
-	//p6spy
-	//implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0'
-	implementation 'p6spy:p6spy:3.9.1'
-
-	//db-json
-	implementation 'io.hypersistence:hypersistence-utils-hibernate-60:3.7.3'
-
-	// QueryDSL
-	implementation "io.github.openfeign.querydsl:querydsl-jpa:${queryDslVersion}"
-	annotationProcessor "io.github.openfeign.querydsl:querydsl-apt:${queryDslVersion}:jakarta"
-	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
-	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
-
-	// JWT
-	implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
-	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.2'
-	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.2'
-
-	implementation("com.google.guava:guava:32.1.2-jre") // Nonce 저장을 위한 캐시
-
-	// spring rest docs
-	asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
-	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
-	testImplementation 'com.epages:restdocs-api-spec-mockmvc:0.19.4'
-
-	// security
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	testImplementation 'org.springframework.security:spring-security-test'
-
-	// actuator
-	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	implementation 'io.micrometer:micrometer-registry-prometheus'
-
-	// Cache
-	implementation 'org.springframework.boot:spring-boot-starter-cache'
-	implementation "com.github.ben-manes.caffeine:caffeine:3.1.8"
-
-	//Mockito-inline
-	testImplementation 'org.mockito:mockito-inline:3.4.0'
-
-	//AWS
-	implementation 'com.amazonaws:aws-java-sdk-s3:1.12.725'
-
-	//Feign ( https://spring.io/projects/spring-cloud#overview )
-	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-
-	//apache commons
-	implementation 'org.apache.commons:commons-lang3:3.12.0'
-	implementation 'commons-codec:commons-codec:1.15'
-
-	//test containers
-	testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
-	testImplementation 'org.testcontainers:testcontainers:1.19.8'
-	testImplementation 'org.testcontainers:junit-jupiter:1.19.0'
-	testImplementation "org.testcontainers:mysql:1.19.0"
-
-	//firebase
-	implementation 'com.google.firebase:firebase-admin:9.4.3'
-
-	//rule engine
-	testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.0'
-
-	// Quartz 스케줄러
-	implementation 'org.springframework.boot:spring-boot-starter-quartz'
-
-	// 기타 필요한 라이브러리
-	implementation 'com.fasterxml.jackson.core:jackson-databind'
-
-	// logback
-	implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
-}
-
+// 서브모듈 공통 설정
 subprojects {
 	apply plugin: 'java-library'
 	apply plugin: 'org.springframework.boot'
 	apply plugin: 'io.spring.dependency-management'
 
+	dependencyManagement {
+		imports {
+			mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+		}
+	}
+
 	dependencies {
-		// default spring boot dependencies
+		// 서브모듈 기본 의존성
 		implementation 'org.springframework.boot:spring-boot-starter'
 		testImplementation 'org.springframework.boot:spring-boot-starter-test'
 		annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
-		// default  utilities
-		implementation 'org.apache.commons:commons-lang3:3.12.0'
-		implementation 'com.google.guava:guava:32.1.2-jre'
-
-		// default lombok
+		// 공통 유틸리티
 		implementation 'org.projectlombok:lombok'
 		annotationProcessor 'org.projectlombok:lombok'
+		implementation 'org.apache.commons:commons-lang3:3.12.0'
 	}
 
-	java {
-		sourceCompatibility = JavaVersion.VERSION_21
-		targetCompatibility = JavaVersion.VERSION_21
-	}
-
+	// 서브모듈은 기본적으로 라이브러리 JAR 생성
 	bootJar.enabled = false
 	jar.enabled = true
-	tasks.named('test') { useJUnitPlatform() }
 
+	// 테스트 설정
 	test {
-		outputs.upToDateWhen { false }
 		useJUnitPlatform()
-		testLogging {
-			events "passed", "skipped", "failed"
-			showStandardStreams = true
-			exceptionFormat = 'full'
-			showExceptions = true
-			showCauses = true
-			showStackTraces = true
-		}
 	}
 }
 
-tasks.named('test') {
-	useJUnitPlatform {
-		excludeTags 'data-jpa-test', 'integration'
-	}
-}
-tasks.register('integration_test', Test) {
-	useJUnitPlatform {
-		includeTags 'integration'
-	}
-}
-tasks.register('unit_test', Test) {
-	useJUnitPlatform {
-		includeTags 'unit'
-	}
-}
-tasks.register('check_rule_test', Test) {
-	useJUnitPlatform {
-		includeTags 'rule'
-	}
+// 루트 프로젝트는 실행 가능한 JAR을 생성하지 않음
+
+// 전체 프로젝트 태스크
+task spotlessApply {
+	description = '전체 모듈 Spotless 적용'
+	group = 'formatting'
+	dependsOn subprojects.findAll { it.tasks.findByName('spotlessApply') }.collect { it.tasks.spotlessApply }
 }
 
-// =========================== spring boot jar setting ===========================
-
-bootJar {
-	archiveFileName = 'app.jar' // jar 파일명 변경 ( 기본값 : ${project.name}-${project.version}.jar )
-}
-jar {
-	enabled = false // plain jar 파일 생성 안함
+task spotlessCheck {
+	description = '전체 모듈 Spotless 검증'
+	group = 'formatting'
+	dependsOn subprojects.findAll { it.tasks.findByName('spotlessCheck') }.collect { it.tasks.spotlessCheck }
 }
 
-// =========================== spring rest docs setting ===========================
-
-test {
-	outputs.dir snippetsDir
-	useJUnitPlatform()
+// 전체 프로젝트 테스트 태스크
+task integration_test {
+	description = '전체 모듈 통합 테스트 실행'
+	group = 'verification'
+	dependsOn subprojects.findAll { it.tasks.findByName('integration_test') }.collect { it.tasks.integration_test }
 }
 
-asciidoctor {
-	inputs.dir snippetsDir
-	configurations 'asciidoctorExt'
-	dependsOn test
-	sources {
-		include("**/index.adoc")
-	}
-	baseDirFollowsSourceFile()
+task unit_test {
+	description = '전체 모듈 단위 테스트 실행'
+	group = 'verification'  
+	dependsOn subprojects.findAll { it.tasks.findByName('unit_test') }.collect { it.tasks.unit_test }
 }
 
-tasks.register('copyRestDocs', Copy) {
-	dependsOn asciidoctor
-	from file("build/docs/asciidoc/index.html")
-	into 'docs'
+task check_rule_test {
+	description = '전체 모듈 아키텍처 규칙 테스트 실행'
+	group = 'verification'
+	dependsOn subprojects.findAll { it.tasks.findByName('check_rule_test') }.collect { it.tasks.check_rule_test }
 }
 
-build {
-	dependsOn copyRestDocs
+// Git Hook용 태스크들
+task preCommit {
+	description = 'Git pre-commit용 태스크 (spotless + build)'
+	group = 'git'
+	dependsOn spotlessApply, build
 }
 
-openapi3 {
-	server = 'https://api.bottle-note.com'
-	title = 'Bottle Note API'
-	version = '1.0.0'
-	format = 'yaml'
-}
-
-// =========================== query DSL  ===========================
-tasks.withType(JavaCompile).configureEach {
-	options.getGeneratedSourceOutputDirectory().set(file(generated))
-}
-sourceSets {
-	main {
-		java.srcDirs += [generated]
-		resources {
-			srcDirs = [
-					'src/main/resources',
-					'git.environment-variables',
-					'git.environment-variables/springboot',
-					'git.environment-variables/storage'
-			]
-		}
-	}
-}
-clean {
-	delete file(generated)
-	subprojects.each { sub ->
-		clean.dependsOn(sub.tasks.matching { it.name == 'clean' })
-		clean.doFirst {
-			delete file("${sub.projectDir}/src/main/generated")
-		}
-	}
-}
-
-// =========================== spotless  ===========================
-spotless {
-	java {
-		googleJavaFormat('1.27.0')
-		target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
-		targetExclude 'src/main/generated/**'
-	}
-}
-
-tasks.named('build') {
-	dependsOn 'spotlessApply'
-}
-
-tasks.named('spotlessJava') {
-	dependsOn 'compileJava'
+task format {
+	description = 'Spotless 적용 (git hook 단축어)'
+	group = 'git'
+	dependsOn spotlessApply
 }
