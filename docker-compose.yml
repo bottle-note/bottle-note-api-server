@@ -27,10 +27,10 @@ services:
     #  - ./database/redis/conf/redis.conf:/usr/local/conf/redis.conf
     networks:
       - network
-
     # 설정파일이 필요하면 추후 각 Local에 아래 경로에 추가해야 합니다.
     #https://github.com/gingaminga/docker-redis/blob/main/redis.conf
     #command: redis-server /usr/local/etc/redis/redis.conf
+
 networks:
   network:
     driver: bridge
