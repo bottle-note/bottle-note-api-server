@@ -72,10 +72,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: build/reports/
+          path: |
+            build/reports/
+            */build/reports/
 
       - name: publish test report
         uses: mikepenz/action-junit-report@v3
         if: always()
         with:
-          report_paths: '**/build/test-results/test/TEST-*.xml'
+          report_paths: '**/build/test-results/**/TEST-*.xml'
