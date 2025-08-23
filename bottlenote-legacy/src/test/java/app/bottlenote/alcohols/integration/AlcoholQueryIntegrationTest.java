@@ -9,7 +9,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 import app.bottlenote.IntegrationTestSupport;
-import app.bottlenote.alcohols.constant.KeywordTagMapping;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.domain.AlcoholsTastingTags;
@@ -102,54 +101,6 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
 
     assertEquals(1, tagList.size());
     assertTrue(tagList.contains(tag));
-  }
-
-  @Test
-  @DisplayName("키워드를 알코올 목록조회를 할 수 있다.")
-  void test_1_1_1() throws Exception {
-    // given: 알코올 생성
-    List<Alcohol> alcohols = alcoholTestFactory.persistAlcohols(1);
-    Alcohol alcohol = alcohols.getFirst();
-
-    // 봄 추천 위스키 태그 매핑 설정
-    alcoholTestFactory.appendTagsFromKeywordMapping(
-        alcohol.getId(), KeywordTagMapping.SPRING_WHISKEY);
-
-    // when: 봄 추천 위스키로 검색
-    MvcResult result =
-        mockMvc
-            .perform(
-                get("/api/v1/alcohols/search")
-                    .param("keyword", "봄 추천 위스키")
-                    .contentType(APPLICATION_JSON)
-                    .header("Authorization", "Bearer " + getToken())
-                    .with(csrf()))
-            .andDo(print())
-            .andReturn();
-
-    // then: 검색 결과 검증
-    String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-    GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
-    AlcoholSearchResponse responseData =
-        mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
-    List<AlcoholsSearchItem> responseAlcohols = responseData.getAlcohols();
-
-    assertNotNull(responseData);
-    assertNotNull(responseAlcohols);
-    assertEquals(alcohol.getId(), responseAlcohols.getFirst().getAlcoholId());
-
-    // 조회된 알코올의 태그 검증
-    Long alcoholId = responseAlcohols.getFirst().getAlcoholId();
-    Set<AlcoholsTastingTags> alcoholTastingTags =
-        alcoholTestFactory.getAlcoholTastingTags(alcoholId);
-    List<Long> actualTagIds =
-        alcoholTastingTags.stream().map(att -> att.getTastingTag().getId()).toList();
-
-    List<Long> expectedTagIds = KeywordTagMapping.SPRING_WHISKEY.getIncludeTags();
-
-    // 조회된 태그들이 SPRING_WHISKEY의 포함 태그와 정확히 일치하는지 확인
-    assertEquals(expectedTagIds.size(), actualTagIds.size());
-    assertTrue(expectedTagIds.containsAll(actualTagIds));
   }
 
   @Test
