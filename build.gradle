@@ -34,6 +34,8 @@ subprojects {
 	apply plugin: 'java-library'
 	apply plugin: 'org.springframework.boot'
 	apply plugin: 'io.spring.dependency-management'
+	apply plugin: 'java-test-fixtures'
+	apply plugin: 'maven-publish'
 
 	dependencyManagement {
 		imports {
@@ -87,7 +89,7 @@ task integration_test {
 
 task unit_test {
 	description = '전체 모듈 단위 테스트 실행'
-	group = 'verification'  
+	group = 'verification'
 	dependsOn subprojects.findAll { it.tasks.findByName('unit_test') }.collect { it.tasks.unit_test }
 }
 
@@ -97,15 +99,3 @@ task check_rule_test {
 	dependsOn subprojects.findAll { it.tasks.findByName('check_rule_test') }.collect { it.tasks.check_rule_test }
 }
 
-// Git Hook용 태스크들
-task preCommit {
-	description = 'Git pre-commit용 태스크 (spotless + build)'
-	group = 'git'
-	dependsOn spotlessApply, build
-}
-
-task format {
-	description = 'Spotless 적용 (git hook 단축어)'
-	group = 'git'
-	dependsOn spotlessApply
-}

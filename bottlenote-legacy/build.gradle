@@ -123,7 +123,7 @@ sourceSets {
 		resources {
 			srcDirs = [
 					'src/main/resources',
-					'../../git.environment-variables'
+					'../git.environment-variables'
 			]
 		}
 	}
@@ -183,7 +183,7 @@ bootJar {
 }
 
 jar {
-	enabled = false
+	enabled = true  // 테스트 실행을 위해 jar 태스크 활성화
 }
 
 // Spring REST Docs 설정

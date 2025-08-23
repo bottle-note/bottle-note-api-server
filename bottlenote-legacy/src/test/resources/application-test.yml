@@ -21,8 +21,9 @@ spring:
     init:
       mode: always
       schema-locations:
-        - classpath:mysql/init/00-init-config-table.sql
-        - classpath:mysql/init/01-init-core-table.sql
+        #- classpath:storage/mysql/init/00-init-config-table.sql
+        #- classpath:storage/mysql/init/01-init-core-table.sql
+        - classpath:storage/mysql/init/*.sql
 
   batch:
     jdbc:

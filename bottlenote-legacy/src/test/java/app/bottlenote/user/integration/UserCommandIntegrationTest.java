@@ -44,7 +44,9 @@ class UserCommandIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private UserRepository userRepository;
 
-  @Sql(scripts = {"/init-script/init-user.sql"})
+  @Sql(
+      scripts = {"/init-script/init-user.sql"},
+      executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
   @DisplayName("회원탈퇴에 성공한다.")
   @Test
   void test_1() throws Exception {
@@ -72,7 +74,9 @@ class UserCommandIntegrationTest extends IntegrationTestSupport {
         .ifPresent(withdraw -> assertEquals(DELETED, withdraw.getStatus()));
   }
 
-  @Sql(scripts = {"/init-script/init-user.sql"})
+  @Sql(
+      scripts = {"/init-script/init-user.sql"},
+      executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
   @DisplayName("탈퇴한 회원이 다시 탈퇴하는 경우 성공")
   @Test
   void test_2() throws Exception {
@@ -94,7 +98,9 @@ class UserCommandIntegrationTest extends IntegrationTestSupport {
         .andExpect(jsonPath("$.data").exists());
   }
 
-  @Sql(scripts = {"/init-script/init-user.sql"})
+  @Sql(
+      scripts = {"/init-script/init-user.sql"},
+      executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
   @DisplayName("탈퇴한 회원이 재로그인 하는 경우 예외가 발생한다.")
   @Test
   void test_3() throws Exception {
@@ -129,7 +135,9 @@ class UserCommandIntegrationTest extends IntegrationTestSupport {
             jsonPath("$.errors[0].message").value(UserExceptionCode.USER_DELETED.getMessage()));
   }
 
-  @Sql(scripts = {"/init-script/init-user.sql"})
+  @Sql(
+      scripts = {"/init-script/init-user.sql"},
+      executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
   @DisplayName("닉네임 변경에 성공한다.")
   @Test
   void test_4() throws Exception {
@@ -156,7 +164,9 @@ class UserCommandIntegrationTest extends IntegrationTestSupport {
     assertEquals("newNickname", nicknameChangeResponse.getChangedNickname());
   }
 
-  @Sql(scripts = {"/init-script/init-user.sql"})
+  @Sql(
+      scripts = {"/init-script/init-user.sql"},
+      executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
   @DisplayName("이미 존재하는 닉네임으로 변경할 수 없다.")
   @Test
   void test_5() throws Exception {
@@ -189,7 +199,9 @@ class UserCommandIntegrationTest extends IntegrationTestSupport {
                 .value(UserExceptionCode.USER_NICKNAME_NOT_VALID.getMessage()));
   }
 
-  @Sql(scripts = {"/init-script/init-user.sql"})
+  @Sql(
+      scripts = {"/init-script/init-user.sql"},
+      executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
   @DisplayName("프로필 이미지 변경에 성공한다.")
   @Test
   void test_6() throws Exception {
@@ -218,7 +230,9 @@ class UserCommandIntegrationTest extends IntegrationTestSupport {
     assertEquals("newProfileImageUrl", profileImageChangeResponse.profileImageUrl());
   }
 
-  @Sql(scripts = {"/init-script/init-user.sql"})
+  @Sql(
+      scripts = {"/init-script/init-user.sql"},
+      executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
   @DisplayName("프로필 이미지에 null을 넣는 경우 변경에 성공한다.(삭제)")
   @Test
   void test_7() throws Exception {

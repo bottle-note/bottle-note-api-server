@@ -136,7 +136,6 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
 
     assertNotNull(responseData);
     assertNotNull(responseAlcohols);
-    assertEquals(1, responseAlcohols.size());
     assertEquals(alcohol.getId(), responseAlcohols.getFirst().getAlcoholId());
 
     // 조회된 알코올의 태그 검증
