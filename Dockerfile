@@ -7,7 +7,7 @@ WORKDIR /app
 COPY . .
 
 # 애플리케이션 빌드
-RUN ./gradlew clean build -x test -x asciidoctor -x copyRestDocs
+RUN ./gradlew build -x test -x asciidoctor --build-cache --parallel
 
 # 실행 스테이지
 FROM eclipse-temurin:21-jre
