@@ -10,8 +10,8 @@ on:
       - prod
 
 concurrency:
-  group: "production-deploy-${{ github.event.pull_request.number }}"
-  cancel-in-progress: true
+  group: "production-deploy"
+  cancel-in-progress: false
 
 env:
   ECR_REPOSITORY: "ecr-bottle-note-api"
