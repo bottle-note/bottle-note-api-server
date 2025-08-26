@@ -1,0 +1,205 @@
+plugins {
+	id 'java-library'
+	id 'org.springframework.boot'
+	id 'io.spring.dependency-management'
+	id "org.asciidoctor.jvm.convert"
+	id 'com.diffplug.spotless'
+	id 'com.epages.restdocs-api-spec'
+}
+
+ext {
+	queryDslVersion = "6.11"
+	springCloudVersion = "2022.0.5"
+	snippetsDir = file('build/generated-snippets') as File
+	generated = 'src/main/generated'
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
+}
+
+configurations {
+	asciidoctorExt
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+dependencies {
+	// bottlenote-core 모듈 의존성 추가 (Pair 클래스 등)
+	implementation project(':bottlenote-core')
+	testImplementation project(':bottlenote-core')
+
+	// 기존 프로젝트의 모든 의존성을 복사
+	testImplementation 'org.testng:testng:7.7.0'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+	//database
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'com.h2database:h2'
+	runtimeOnly 'com.mysql:mysql-connector-j'
+
+	//p6spy
+	implementation 'p6spy:p6spy:3.9.1'
+
+	//db-json
+	implementation 'io.hypersistence:hypersistence-utils-hibernate-60:3.7.3'
+
+	// QueryDSL
+	implementation "io.github.openfeign.querydsl:querydsl-jpa:${queryDslVersion}"
+	annotationProcessor "io.github.openfeign.querydsl:querydsl-apt:${queryDslVersion}:jakarta"
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+
+	// JWT
+	implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.2'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.2'
+	implementation("com.google.guava:guava:32.1.2-jre")
+
+	// spring rest docs
+	asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
+	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+	testImplementation 'com.epages:restdocs-api-spec-mockmvc:0.19.4'
+
+	// security
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	testImplementation 'org.springframework.security:spring-security-test'
+
+	// actuator
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'io.micrometer:micrometer-registry-prometheus'
+
+	// Cache
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+	implementation "com.github.ben-manes.caffeine:caffeine:3.1.8"
+
+	//Mockito-inline
+	testImplementation 'org.mockito:mockito-inline:5.2.0'
+
+	//AWS
+	implementation 'com.amazonaws:aws-java-sdk-s3:1.12.725'
+
+	//Feign
+	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+	//test containers
+	testImplementation 'org.testcontainers:testcontainers:1.19.8'
+	testImplementation 'org.testcontainers:junit-jupiter:1.19.0'
+	testImplementation "org.testcontainers:mysql:1.19.0"
+
+	//firebase
+	implementation 'com.google.firebase:firebase-admin:9.4.3'
+
+	//rule engine
+	testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.0'
+
+	// Quartz 스케줄러
+	implementation 'org.springframework.boot:spring-boot-starter-quartz'
+
+
+	// logback
+	implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
+}
+
+// QueryDSL 설정
+tasks.withType(JavaCompile).configureEach {
+	options.getGeneratedSourceOutputDirectory().set(file(generated))
+}
+
+sourceSets {
+	main {
+		java.srcDirs += [generated]
+		resources {
+			srcDirs = [
+					'src/main/resources',
+					'../git.environment-variables'
+			]
+		}
+	}
+}
+
+clean {
+	delete file(generated)
+}
+
+// Spotless 설정
+spotless {
+	java {
+		googleJavaFormat('1.27.0')
+		target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
+		targetExclude 'src/main/generated/**'
+	}
+}
+
+// 테스트 태그별 실행
+test {
+	outputs.upToDateWhen { false }
+	useJUnitPlatform {
+		excludeTags 'data-jpa-test', 'integration'
+	}
+	testLogging {
+		events "passed", "skipped", "failed"
+		showStandardStreams = true
+		exceptionFormat = 'full'
+		showExceptions = true
+		showCauses = true
+		showStackTraces = true
+	}
+}
+
+tasks.register('integration_test', Test) {
+	useJUnitPlatform {
+		includeTags 'integration'
+	}
+}
+
+tasks.register('unit_test', Test) {
+	useJUnitPlatform {
+		includeTags 'unit'
+	}
+}
+
+tasks.register('check_rule_test', Test) {
+	useJUnitPlatform {
+		includeTags 'rule'
+	}
+}
+
+// Spring Boot JAR 설정 (legacy 모듈은 실행 가능한 JAR)
+bootJar {
+	enabled = true
+	archiveFileName = 'bottlenote-legacy-app.jar'
+}
+
+jar {
+	enabled = true  // 테스트 실행을 위해 jar 태스크 활성화
+}
+
+// Spring REST Docs 설정
+asciidoctor {
+	inputs.dir snippetsDir
+	configurations 'asciidoctorExt'
+	dependsOn test
+	sources {
+		include("**/index.adoc")
+	}
+	baseDirFollowsSourceFile()
+}
+
+openapi3 {
+	server = 'https://api.bottle-note.com'
+	title = 'Bottle Note API (Legacy)'
+	version = '1.0.0'
+	format = 'yaml'
+}
