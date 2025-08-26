@@ -12,12 +12,16 @@ on:
       - dev
 
 concurrency:
-  group: "deploy-dev-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}"
+  group: "deploy-development"
   cancel-in-progress: true
 
 jobs:
   build-and-push:
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    # PR 병합 시 push 이벤트와 중복 실행 방지
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && !contains(github.event.head_commit.message, 'Merge pull request')) ||
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
     outputs:
       image_tag: ${{ steps.build-image.outputs.image_tag }}

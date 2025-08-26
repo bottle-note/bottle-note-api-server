@@ -29,10 +29,10 @@ jobs:
           distribution: 'temurin'
 
       - name: Build application
-        run: ./gradlew build -x test
-        
+        run: ./gradlew build
+
       - name: Generate API documentation
-        run: ./gradlew asciidoctor
+        run: ./gradlew :bottlenote-legacy:asciidoctor
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
