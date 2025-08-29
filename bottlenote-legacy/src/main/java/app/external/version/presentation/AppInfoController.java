@@ -1,6 +1,7 @@
 package app.external.version.presentation;
 
 import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.shared.Const;
 import app.external.version.config.AppInfoConfig;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +20,7 @@ public class AppInfoController {
   @GetMapping
   public ResponseEntity<?> getAppInfo() {
     Map<String, Object> infoMap = new HashMap<>();
+    infoMap.put("appName", Const.APP_NAME);
     infoMap.put("serverName", info.getServerName());
     infoMap.put("environment", info.getEnvironment());
     infoMap.put("gitBranch", info.getGitBranch());
