@@ -11,9 +11,11 @@ import java.security.Key;
 import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 @Slf4j
+@Primary // todo : shared module로 이동 후 제거
 @Component
 public class JwtTokenProvider {
 

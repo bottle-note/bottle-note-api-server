@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
 
-@Component
+//@Component
 public class JwtTokenProvider {
 	public static final int ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 2;
 	public static final int REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 14;
