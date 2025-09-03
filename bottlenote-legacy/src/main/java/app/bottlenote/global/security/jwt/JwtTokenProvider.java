@@ -30,6 +30,7 @@ public class JwtTokenProvider {
    * @param secret 토큰 생성용 시크릿 키
    */
   public JwtTokenProvider(@Value("${security.jwt.secret-key}") String secret) {
+    // todo : valude 주입이 아닌 JwtProperties에서 값을 받아오도록 수정 (유효기간과 KEY_ROLES 도 )
     byte[] keyBytes = Decoders.BASE64.decode(secret);
     this.secretKey = Keys.hmacShaKeyFor(keyBytes);
   }

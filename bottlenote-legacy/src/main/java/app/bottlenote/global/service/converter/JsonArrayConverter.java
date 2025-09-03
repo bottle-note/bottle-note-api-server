@@ -20,6 +20,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class JsonArrayConverter implements AttributeConverter<List<SocialType>, String> {
 
+  // todo: shared module로 옮기기
+  // ObjectMapper는 스프링 빈으로 등록하여 재사용하는 것이 좋습니다.
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Override

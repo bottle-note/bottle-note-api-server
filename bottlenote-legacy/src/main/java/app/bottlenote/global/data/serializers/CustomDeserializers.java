@@ -10,6 +10,8 @@ import java.util.List;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+// todo: shared module로 이동.
+
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CustomDeserializers {
   /** DB에서 조회 시 ' , ' 으로 구분된 태그를 List로 변환 */

@@ -8,6 +8,7 @@ import java.util.Locale;
 import org.hibernate.engine.jdbc.internal.FormatStyle;
 import org.springframework.context.annotation.Configuration;
 
+// todo : shared module로 이동
 @Configuration
 public class P6SpyFormater implements MessageFormattingStrategy {
 

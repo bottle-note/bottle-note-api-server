@@ -10,6 +10,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor(staticName = "of")
 public class CollectionResponse<T> {
+  // todo: shared module로 이동.
   private long totalCount;
   private Collection<T> items;
 

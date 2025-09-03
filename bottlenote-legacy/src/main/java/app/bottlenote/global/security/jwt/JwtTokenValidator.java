@@ -18,6 +18,7 @@ public class JwtTokenValidator {
   private static Key secretKey;
 
   public JwtTokenValidator(@Value("${security.jwt.secret-key}") String secret) {
+    // todo: shared module 이동 (JwtProperties에서 값 받아오도록 수정)
     byte[] keyBytes = Decoders.BASE64.decode(secret);
     secretKey = Keys.hmacShaKeyFor(keyBytes);
   }

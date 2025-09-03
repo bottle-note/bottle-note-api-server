@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "security.jwt")
 @ConfigurationPropertiesScan
 public class JwtProperties {
+  // todo :shared module로 이동 후 사용
   private String secretKey;
   private long accessTokenExpiration;
   private long refreshTokenExpiration;

@@ -12,6 +12,8 @@ import java.util.List;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+// todo: shared module로 이동.
+
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CustomSerializers {
 

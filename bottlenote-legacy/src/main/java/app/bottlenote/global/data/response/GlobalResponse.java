@@ -19,14 +19,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-/**
- * 전역 응답 객체 <br>
- * 성공 / 실패 / 에러에 대한 공통 응답 객체를 생성한다. <br>
- * 모든 응답 값은 해당 객체를 통해 생성한다. <br>
- */
-@Getter
 @Slf4j
+@Getter
 public class GlobalResponse {
+  // todo: product-api module로 이동. ( api 레벨에서만 사용하기 때문에 )
   private final Boolean success;
   private final Integer code;
   private final Object data;

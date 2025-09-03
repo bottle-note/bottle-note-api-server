@@ -10,6 +10,7 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 public class MetaInfos {
+  // todo: product-api module로 이동. ( api 레벨에서만 사용하기 때문에 )
   private final Map<String, Object> metaInfos;
 
   protected MetaInfos() {
