@@ -8,7 +8,7 @@ import static app.bottlenote.support.business.exception.BusinessSupportException
 import static app.bottlenote.support.business.exception.BusinessSupportExceptionCode.BUSINESS_SUPPORT_NOT_FOUND;
 
 import app.bottlenote.common.profanity.ProfanityClient;
-import app.bottlenote.global.data.response.CollectionResponse;
+import app.bottlenote.shared.data.response.CollectionResponse;
 import app.bottlenote.support.business.domain.BusinessSupport;
 import app.bottlenote.support.business.dto.request.BusinessImageItem;
 import app.bottlenote.support.business.dto.request.BusinessSupportPageableRequest;

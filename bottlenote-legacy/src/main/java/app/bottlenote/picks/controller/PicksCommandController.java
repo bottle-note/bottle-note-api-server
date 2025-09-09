@@ -2,9 +2,9 @@ package app.bottlenote.picks.controller;
 
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 
-import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.picks.dto.request.PicksUpdateRequest;
 import app.bottlenote.picks.service.PicksCommandService;
+import app.bottlenote.shared.data.response.GlobalResponse;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import jakarta.validation.Valid;

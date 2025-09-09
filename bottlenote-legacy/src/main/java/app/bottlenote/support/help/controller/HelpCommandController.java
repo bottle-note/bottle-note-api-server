@@ -2,10 +2,10 @@ package app.bottlenote.support.help.controller;
 
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
-import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.global.service.meta.MetaService;
+import app.bottlenote.shared.cursor.PageResponse;
+import app.bottlenote.shared.data.response.GlobalResponse;
+import app.bottlenote.shared.meta.MetaService;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
 import app.bottlenote.support.help.dto.response.HelpListResponse;

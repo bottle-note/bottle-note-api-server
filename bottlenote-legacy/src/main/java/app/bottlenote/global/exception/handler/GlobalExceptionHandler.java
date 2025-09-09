@@ -1,12 +1,12 @@
 package app.bottlenote.global.exception.handler;
 
-import static app.bottlenote.global.exception.custom.code.ValidExceptionCode.UNKNOWN_ERROR;
+import static app.bottlenote.shared.exception.custom.code.ValidExceptionCode.UNKNOWN_ERROR;
 
-import app.bottlenote.global.data.response.Error;
-import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.global.exception.custom.AbstractCustomException;
-import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.global.security.jwt.JwtExceptionType;
+import app.bottlenote.shared.data.response.Error;
+import app.bottlenote.shared.data.response.GlobalResponse;
+import app.bottlenote.shared.exception.custom.AbstractCustomException;
+import app.bottlenote.shared.exception.custom.code.ValidExceptionCode;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.SdkClientException;

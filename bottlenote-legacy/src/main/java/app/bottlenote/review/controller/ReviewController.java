@@ -2,16 +2,16 @@ package app.bottlenote.review.controller;
 
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
-import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.request.ReviewStatusChangeRequest;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.service.ReviewService;
+import app.bottlenote.shared.cursor.PageResponse;
+import app.bottlenote.shared.data.response.GlobalResponse;
+import app.bottlenote.shared.meta.MetaService;
 import app.bottlenote.user.exception.UserException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

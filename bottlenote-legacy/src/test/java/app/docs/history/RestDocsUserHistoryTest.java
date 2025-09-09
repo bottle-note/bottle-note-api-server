@@ -13,10 +13,7 @@ import static org.springframework.restdocs.request.RequestDocumentation.queryPar
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.bottlenote.global.data.response.CollectionResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.history.constant.HistoryReviewFilterType;
 import app.bottlenote.history.controller.UserHistoryController;
 import app.bottlenote.history.dto.response.UserHistorySearchResponse;
@@ -24,6 +21,9 @@ import app.bottlenote.history.fixture.HistoryQueryFixture;
 import app.bottlenote.history.service.AlcoholViewHistoryService;
 import app.bottlenote.history.service.UserHistoryQueryService;
 import app.bottlenote.picks.constant.PicksStatus;
+import app.bottlenote.shared.cursor.PageResponse;
+import app.bottlenote.shared.cursor.SortOrder;
+import app.bottlenote.shared.data.response.CollectionResponse;
 import app.docs.AbstractRestDocs;
 import java.time.LocalDateTime;
 import java.util.Optional;

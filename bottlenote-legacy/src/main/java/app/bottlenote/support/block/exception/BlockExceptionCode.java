@@ -1,6 +1,6 @@
 package app.bottlenote.support.block.exception;
 
-import app.bottlenote.global.exception.custom.code.ExceptionCode;
+import app.bottlenote.shared.exception.custom.code.ExceptionCode;
 import org.springframework.http.HttpStatus;
 
 public enum BlockExceptionCode implements ExceptionCode {

@@ -16,6 +16,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import app.bottlenote.shared.token.TokenItem;
 import app.bottlenote.user.config.OauthConfigProperties;
 import app.bottlenote.user.constant.GenderType;
 import app.bottlenote.user.constant.SocialType;
@@ -25,7 +26,6 @@ import app.bottlenote.user.dto.request.BasicLoginRequest;
 import app.bottlenote.user.dto.request.GuestCodeRequest;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.BasicAccountResponse;
-import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.service.OauthService;
 import app.docs.AbstractRestDocs;
 import app.external.push.data.request.SingleTokenRequest;

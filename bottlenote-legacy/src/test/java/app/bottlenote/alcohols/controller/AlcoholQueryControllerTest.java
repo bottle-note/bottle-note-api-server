@@ -13,7 +13,7 @@ import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.fixture.AlcoholQueryFixture;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
 import app.bottlenote.alcohols.service.AlcoholReferenceService;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.shared.cursor.PageResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

@@ -7,9 +7,9 @@ import static app.bottlenote.review.domain.QReview.review;
 import static com.querydsl.jpa.JPAExpressions.select;
 
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.rating.constant.SearchSortType;
+import app.bottlenote.shared.cursor.CursorPageable;
+import app.bottlenote.shared.cursor.SortOrder;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.OrderSpecifier;

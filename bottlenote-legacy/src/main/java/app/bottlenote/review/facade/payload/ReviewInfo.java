@@ -1,11 +1,11 @@
 package app.bottlenote.review.facade.payload;
 
 import app.bottlenote.common.block.annotation.BlockWord;
-import app.bottlenote.global.data.serializers.CustomDeserializers.TagListDeserializer;
-import app.bottlenote.global.data.serializers.CustomSerializers.TagListSerializer;
 import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.constant.SizeType;
 import app.bottlenote.review.domain.ReviewLocation;
+import app.bottlenote.shared.data.serializers.CustomDeserializers.TagListDeserializer;
+import app.bottlenote.shared.data.serializers.CustomSerializers.TagListSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.math.BigDecimal;

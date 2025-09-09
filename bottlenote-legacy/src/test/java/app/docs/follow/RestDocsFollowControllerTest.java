@@ -17,7 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import app.bottlenote.follow.fixture.FollowQueryFixture;
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.user.constant.FollowQueryType;
 import app.bottlenote.user.constant.FollowStatus;
 import app.bottlenote.user.controller.FollowController;

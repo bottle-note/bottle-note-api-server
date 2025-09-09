@@ -1,12 +1,12 @@
 package app.bottlenote.review.domain;
 
 import app.bottlenote.core.structure.Pair;
-import app.bottlenote.global.service.cursor.CursorResponse;
-import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.response.ReviewExploreItem;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.facade.payload.ReviewInfo;
+import app.bottlenote.shared.cursor.CursorResponse;
+import app.bottlenote.shared.cursor.PageResponse;
 import java.util.List;
 import java.util.Optional;
 

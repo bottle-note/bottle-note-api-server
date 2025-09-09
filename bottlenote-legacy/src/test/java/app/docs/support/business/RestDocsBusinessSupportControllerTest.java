@@ -22,8 +22,8 @@ import static org.springframework.restdocs.request.RequestDocumentation.queryPar
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.bottlenote.global.data.response.CollectionResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.shared.data.response.CollectionResponse;
 import app.bottlenote.support.business.constant.BusinessSupportType;
 import app.bottlenote.support.business.controller.BusinessSupportController;
 import app.bottlenote.support.business.dto.request.BusinessImageItem;

@@ -1,6 +1,6 @@
 package app.bottlenote.user.fake;
 
-import app.bottlenote.global.security.jwt.JwtTokenProvider;
+import app.bottlenote.shared.token.JwtTokenProvider;
 
 public class FakeJwtTokenProvider extends JwtTokenProvider {
 

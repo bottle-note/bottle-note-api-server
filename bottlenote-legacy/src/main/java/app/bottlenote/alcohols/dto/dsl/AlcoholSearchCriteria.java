@@ -3,7 +3,7 @@ package app.bottlenote.alcohols.dto.dsl;
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
-import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.shared.cursor.SortOrder;
 
 public record AlcoholSearchCriteria(
     String keyword,

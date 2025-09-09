@@ -1,11 +1,11 @@
 package app.bottlenote.review.controller;
 
 import app.bottlenote.core.structure.Pair;
-import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.review.dto.response.ReviewExploreItem;
 import app.bottlenote.review.service.ReviewExploreService;
+import app.bottlenote.shared.cursor.CursorResponse;
+import app.bottlenote.shared.data.response.GlobalResponse;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;

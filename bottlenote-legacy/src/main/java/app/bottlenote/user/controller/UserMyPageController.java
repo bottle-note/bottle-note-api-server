@@ -4,10 +4,10 @@ import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
 import app.bottlenote.global.annotation.AccessPolicy;
 import app.bottlenote.global.annotation.AccessPolicy.AccessType;
-import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.global.service.meta.MetaService;
+import app.bottlenote.shared.cursor.PageResponse;
+import app.bottlenote.shared.data.response.GlobalResponse;
+import app.bottlenote.shared.meta.MetaService;
 import app.bottlenote.user.constant.MyBottleType;
 import app.bottlenote.user.dto.request.MyBottleRequest;
 import app.bottlenote.user.dto.response.MyBottleResponse;

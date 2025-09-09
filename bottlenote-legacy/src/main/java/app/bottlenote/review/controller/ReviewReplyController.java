@@ -1,9 +1,9 @@
 package app.bottlenote.review.controller;
 
-import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
 import app.bottlenote.review.service.ReviewReplyService;
+import app.bottlenote.shared.data.response.GlobalResponse;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import jakarta.validation.Valid;

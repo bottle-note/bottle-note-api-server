@@ -7,14 +7,14 @@ import static app.bottlenote.review.domain.QReview.review;
 import static app.bottlenote.user.domain.QUser.user;
 
 import app.bottlenote.alcohols.repository.AlcoholQuerySupporter;
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.picks.constant.PicksStatus;
 import app.bottlenote.picks.repository.PicksQuerySupporter;
 import app.bottlenote.rating.repository.RatingQuerySupporter;
 import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.review.domain.QReviewTastingTag;
 import app.bottlenote.review.repository.ReviewQuerySupporter;
+import app.bottlenote.shared.cursor.CursorPageable;
+import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.user.constant.MyBottleType;
 import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
 import app.bottlenote.user.dto.response.MyBottleResponse;

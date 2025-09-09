@@ -1,12 +1,12 @@
 package app.bottlenote.rating.fixture;
 
-import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.domain.RatingRepository;
 import app.bottlenote.rating.dto.dsl.RatingListFetchCriteria;
 import app.bottlenote.rating.dto.response.RatingListFetchResponse;
 import app.bottlenote.rating.dto.response.UserRatingResponse;
+import app.bottlenote.shared.cursor.PageResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

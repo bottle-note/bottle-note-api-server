@@ -1,7 +1,6 @@
 package app.bottlenote.review.repository;
 
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.global.service.cursor.SortOrder.DESC;
 import static app.bottlenote.like.constant.LikeStatus.LIKE;
 import static app.bottlenote.like.domain.QLikes.likes;
 import static app.bottlenote.rating.domain.QRating.rating;
@@ -9,16 +8,17 @@ import static app.bottlenote.review.constant.ReviewReplyStatus.NORMAL;
 import static app.bottlenote.review.domain.QReview.review;
 import static app.bottlenote.review.domain.QReviewReply.reviewReply;
 import static app.bottlenote.review.domain.QReviewTastingTag.reviewTastingTag;
+import static app.bottlenote.shared.cursor.SortOrder.DESC;
 import static app.bottlenote.user.domain.QUser.user;
 import static com.querydsl.jpa.JPAExpressions.select;
 
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.review.constant.ReviewSortType;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 import app.bottlenote.review.facade.payload.UserInfo;
+import app.bottlenote.shared.cursor.CursorPageable;
+import app.bottlenote.shared.cursor.SortOrder;
 import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;

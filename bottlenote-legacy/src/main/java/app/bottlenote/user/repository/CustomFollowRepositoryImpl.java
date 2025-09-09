@@ -3,8 +3,8 @@ package app.bottlenote.user.repository;
 import static app.bottlenote.user.domain.QFollow.follow;
 import static app.bottlenote.user.domain.QUser.user;
 
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.shared.cursor.CursorPageable;
+import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.user.constant.FollowStatus;
 import app.bottlenote.user.domain.QFollow;
 import app.bottlenote.user.dto.dsl.FollowPageableCriteria;

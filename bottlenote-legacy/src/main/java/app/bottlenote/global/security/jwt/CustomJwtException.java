@@ -1,6 +1,6 @@
 package app.bottlenote.global.security.jwt;
 
-import app.bottlenote.global.exception.custom.AbstractCustomException;
+import app.bottlenote.shared.exception.custom.AbstractCustomException;
 
 public class CustomJwtException extends AbstractCustomException {
 

@@ -11,12 +11,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.IntegrationTestSupport;
-import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.like.constant.LikeStatus;
 import app.bottlenote.like.domain.Likes;
 import app.bottlenote.like.domain.LikesRepository;
 import app.bottlenote.like.dto.request.LikesUpdateRequest;
 import app.bottlenote.like.dto.response.LikesUpdateResponse;
+import app.bottlenote.shared.data.response.GlobalResponse;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

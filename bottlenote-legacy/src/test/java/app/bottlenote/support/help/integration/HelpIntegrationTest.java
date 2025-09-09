@@ -1,7 +1,7 @@
 package app.bottlenote.support.help.integration;
 
-import static app.bottlenote.global.exception.custom.code.ValidExceptionCode.CONTENT_NOT_EMPTY;
-import static app.bottlenote.global.exception.custom.code.ValidExceptionCode.REQUIRED_HELP_TYPE;
+import static app.bottlenote.shared.exception.custom.code.ValidExceptionCode.CONTENT_NOT_EMPTY;
+import static app.bottlenote.shared.exception.custom.code.ValidExceptionCode.REQUIRED_HELP_TYPE;
 import static app.bottlenote.support.help.constant.HelpResultMessage.DELETE_SUCCESS;
 import static app.bottlenote.support.help.constant.HelpResultMessage.MODIFY_SUCCESS;
 import static app.bottlenote.support.help.constant.HelpResultMessage.REGISTER_SUCCESS;
@@ -18,8 +18,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.IntegrationTestSupport;
-import app.bottlenote.global.data.response.Error;
-import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.shared.data.response.Error;
+import app.bottlenote.shared.data.response.GlobalResponse;
 import app.bottlenote.support.help.constant.HelpType;
 import app.bottlenote.support.help.dto.request.HelpImageItem;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;

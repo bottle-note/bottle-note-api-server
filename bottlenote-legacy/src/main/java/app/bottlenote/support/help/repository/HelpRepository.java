@@ -1,6 +1,6 @@
 package app.bottlenote.support.help.repository;
 
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.support.help.constant.HelpType;
 import app.bottlenote.support.help.domain.Help;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;

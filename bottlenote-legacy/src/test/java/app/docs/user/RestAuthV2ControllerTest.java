@@ -14,9 +14,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.shared.token.TokenItem;
 import app.bottlenote.user.config.OauthConfigProperties;
 import app.bottlenote.user.controller.AuthV2Controller;
-import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.service.AuthService;
 import app.bottlenote.user.service.NonceService;
 import app.docs.AbstractRestDocs;

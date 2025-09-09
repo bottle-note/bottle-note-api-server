@@ -3,7 +3,7 @@ package app.bottlenote.alcohols.fixture;
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
-import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.shared.cursor.SortOrder;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.provider.Arguments;
 

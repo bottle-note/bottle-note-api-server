@@ -1,9 +1,22 @@
 //shared
 dependencies {
+	// Core module
+	implementation project(':bottlenote-core')
+
 	// JWT token provider
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.2'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.2'
 
+	// Jackson for JSON serialization
+	implementation 'com.fasterxml.jackson.core:jackson-annotations'
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+	// Spring framework for HTTP status
+	implementation 'org.springframework:spring-web'
+
+	// Lombok
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
 }
 tasks.register("prepareKotlinBuildScriptModel") {}

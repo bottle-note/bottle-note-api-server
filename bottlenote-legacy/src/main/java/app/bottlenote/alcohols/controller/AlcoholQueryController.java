@@ -1,13 +1,13 @@
 package app.bottlenote.alcohols.controller;
 
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
-import static app.bottlenote.global.service.meta.MetaService.createMetaInfo;
+import static app.bottlenote.shared.meta.MetaService.createMetaInfo;
 
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
-import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.shared.cursor.PageResponse;
+import app.bottlenote.shared.data.response.GlobalResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

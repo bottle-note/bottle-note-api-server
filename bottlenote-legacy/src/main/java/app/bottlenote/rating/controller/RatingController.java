@@ -2,9 +2,7 @@ package app.bottlenote.rating.controller;
 
 import static app.bottlenote.rating.exception.RatingExceptionCode.REQUEST_USER_ID;
 
-import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.rating.dto.request.RatingListFetchRequest;
 import app.bottlenote.rating.dto.request.RatingRegisterRequest;
@@ -12,6 +10,8 @@ import app.bottlenote.rating.dto.response.UserRatingResponse;
 import app.bottlenote.rating.exception.RatingException;
 import app.bottlenote.rating.service.RatingCommandService;
 import app.bottlenote.rating.service.RatingQueryService;
+import app.bottlenote.shared.data.response.GlobalResponse;
+import app.bottlenote.shared.meta.MetaService;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import jakarta.validation.Valid;

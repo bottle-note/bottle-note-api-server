@@ -22,7 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.support.help.constant.HelpType;
 import app.bottlenote.support.help.controller.HelpCommandController;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;

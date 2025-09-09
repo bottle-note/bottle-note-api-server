@@ -7,8 +7,9 @@ import static app.bottlenote.review.domain.QReview.review;
 import static app.bottlenote.user.domain.QFollow.follow;
 import static com.querydsl.jpa.JPAExpressions.select;
 
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.global.util.SortOrderUtils;
+import app.bottlenote.shared.cursor.CursorPageable;
+import app.bottlenote.shared.cursor.SortOrder;
 import app.bottlenote.user.constant.FollowStatus;
 import app.bottlenote.user.constant.MyBottleSortType;
 import app.bottlenote.user.constant.MyBottleType;
@@ -135,13 +136,13 @@ public class UserQuerySupporter {
     sortOrder = (sortOrder != null) ? sortOrder : SortOrder.DESC; // 기본값은 내림차순
 
     return switch (myBottleSortType) {
-      case RATING -> sortOrder.resolve(rating.ratingPoint.rating.max());
-      case REVIEW -> sortOrder.resolve(review.createAt.max());
+      case RATING -> SortOrderUtils.resolve(sortOrder, rating.ratingPoint.rating.max());
+      case REVIEW -> SortOrderUtils.resolve(sortOrder, review.createAt.max());
       case LATEST ->
           switch (tabType) {
-            case PICK -> sortOrder.resolve(picks.lastModifyAt);
-            case REVIEW -> sortOrder.resolve(review.lastModifyAt);
-            case RATING -> sortOrder.resolve(rating.lastModifyAt);
+            case PICK -> SortOrderUtils.resolve(sortOrder, picks.lastModifyAt);
+            case REVIEW -> SortOrderUtils.resolve(sortOrder, review.lastModifyAt);
+            case RATING -> SortOrderUtils.resolve(sortOrder, rating.lastModifyAt);
           };
     };
   }

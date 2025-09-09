@@ -3,7 +3,7 @@ package app.external.push.presentation;
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
-import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.shared.data.response.GlobalResponse;
 import app.bottlenote.user.exception.UserException;
 import app.external.push.application.PushHandler;
 import app.external.push.application.UserDeviceService;

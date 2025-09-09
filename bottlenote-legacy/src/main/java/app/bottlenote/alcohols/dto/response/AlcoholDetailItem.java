@@ -1,7 +1,7 @@
 package app.bottlenote.alcohols.dto.response;
 
-import app.bottlenote.global.data.serializers.CustomDeserializers.TagListDeserializer;
-import app.bottlenote.global.data.serializers.CustomSerializers.TagListSerializer;
+import app.bottlenote.shared.data.serializers.CustomDeserializers.TagListDeserializer;
+import app.bottlenote.shared.data.serializers.CustomSerializers.TagListSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;

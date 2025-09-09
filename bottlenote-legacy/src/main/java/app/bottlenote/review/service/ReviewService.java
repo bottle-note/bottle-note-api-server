@@ -9,7 +9,6 @@ import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOU
 
 import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
-import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.review.constant.ReviewResultMessage;
@@ -28,6 +27,7 @@ import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.event.payload.ReviewRegistryEvent;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.facade.payload.ReviewInfo;
+import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.user.facade.UserFacade;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

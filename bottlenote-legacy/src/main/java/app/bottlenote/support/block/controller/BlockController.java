@@ -2,9 +2,9 @@ package app.bottlenote.support.block.controller;
 
 import static app.bottlenote.support.block.exception.BlockExceptionCode.REQUIRED_USER_ID;
 
-import app.bottlenote.global.data.response.CollectionResponse;
-import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.shared.data.response.CollectionResponse;
+import app.bottlenote.shared.data.response.GlobalResponse;
 import app.bottlenote.support.block.dto.request.BlockCreateRequest;
 import app.bottlenote.support.block.dto.response.UserBlockItem;
 import app.bottlenote.support.block.exception.BlockException;

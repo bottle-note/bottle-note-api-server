@@ -1,10 +1,10 @@
 package app.bottlenote.rating.repository;
 
-import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.rating.constant.SearchSortType;
 import app.bottlenote.rating.domain.RatingRepository;
 import app.bottlenote.rating.dto.dsl.RatingListFetchCriteria;
 import app.bottlenote.rating.dto.response.RatingListFetchResponse;
+import app.bottlenote.shared.cursor.SortOrder;
 
 /** 해당 테스트는 실제로 어플리케이션을 띄워 실행 결과를 볼수 있는 예시라고 생각하고 참조하세요. 테스트를 실행하려면 해당 테스트를 실행할 수 있는 환경이 필요합니다. */
 // @SpringBootTest

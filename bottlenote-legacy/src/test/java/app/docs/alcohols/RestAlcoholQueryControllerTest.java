@@ -20,7 +20,7 @@ import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.fixture.AlcoholQueryFixture;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.shared.cursor.PageResponse;
 import app.docs.AbstractRestDocs;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

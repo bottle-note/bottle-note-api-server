@@ -23,7 +23,6 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.controller.ReviewController;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
@@ -33,6 +32,7 @@ import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
 import app.bottlenote.review.service.ReviewService;
+import app.bottlenote.shared.cursor.PageResponse;
 import app.docs.AbstractRestDocs;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;

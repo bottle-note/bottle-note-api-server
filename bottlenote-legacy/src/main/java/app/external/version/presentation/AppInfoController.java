@@ -1,7 +1,7 @@
 package app.external.version.presentation;
 
-import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.shared.Const;
+import app.bottlenote.shared.data.response.GlobalResponse;
 import app.external.version.config.AppInfoConfig;
 import java.util.HashMap;
 import java.util.Map;

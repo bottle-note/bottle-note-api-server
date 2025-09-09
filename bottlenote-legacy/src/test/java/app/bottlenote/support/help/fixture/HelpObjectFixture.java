@@ -1,7 +1,7 @@
 package app.bottlenote.support.help.fixture;
 
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.shared.cursor.CursorPageable;
+import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.support.constant.StatusType;
 import app.bottlenote.support.help.constant.HelpResultMessage;
 import app.bottlenote.support.help.constant.HelpType;

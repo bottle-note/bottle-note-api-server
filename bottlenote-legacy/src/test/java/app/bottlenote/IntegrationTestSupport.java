@@ -1,12 +1,12 @@
 package app.bottlenote;
 
-import app.bottlenote.global.security.jwt.JwtTokenProvider;
+import app.bottlenote.shared.token.JwtTokenProvider;
+import app.bottlenote.shared.token.TokenItem;
 import app.bottlenote.user.constant.GenderType;
 import app.bottlenote.user.constant.SocialType;
 import app.bottlenote.user.constant.UserType;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.request.OauthRequest;
-import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.repository.OauthRepository;
 import app.bottlenote.user.service.OauthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -122,7 +122,11 @@ public abstract class IntegrationTestSupport {
                   .build());
     }
 
-    TokenItem token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
+    TokenItem token =
+        jwtTokenProvider.generateToken(
+            user.getEmail(),
+            app.bottlenote.shared.users.UserType.valueOf(user.getRole().name()),
+            user.getId());
     return token.accessToken();
   }
 
@@ -138,7 +142,11 @@ public abstract class IntegrationTestSupport {
                 .socialType(List.of(SocialType.KAKAO))
                 .role(UserType.ROLE_USER)
                 .build());
-    TokenItem token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
+    TokenItem token =
+        jwtTokenProvider.generateToken(
+            user.getEmail(),
+            app.bottlenote.shared.users.UserType.valueOf(user.getRole().name()),
+            user.getId());
     return token.accessToken();
   }
 

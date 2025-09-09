@@ -2,10 +2,10 @@ package app.bottlenote.like.controller;
 
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 
-import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.like.dto.request.LikesUpdateRequest;
 import app.bottlenote.like.dto.response.LikesUpdateResponse;
 import app.bottlenote.like.service.LikesCommandService;
+import app.bottlenote.shared.data.response.GlobalResponse;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import jakarta.validation.Valid;

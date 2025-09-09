@@ -2,14 +2,14 @@ package app.bottlenote.user.controller;
 
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
-import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.shared.data.response.GlobalResponse;
+import app.bottlenote.shared.token.TokenItem;
 import app.bottlenote.user.config.OauthConfigProperties;
 import app.bottlenote.user.dto.request.AppleLoginRequest;
 import app.bottlenote.user.dto.request.KakaoLoginRequest;
 import app.bottlenote.user.dto.response.NonceResponse;
 import app.bottlenote.user.dto.response.OauthResponse;
-import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.service.AuthService;
 import app.bottlenote.user.service.NonceService;

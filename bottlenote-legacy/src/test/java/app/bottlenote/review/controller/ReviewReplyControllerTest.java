@@ -10,14 +10,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.bottlenote.global.data.response.Error;
-import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.review.constant.ReviewReplyResultMessage;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.review.fixture.ReviewReplyObjectFixture;
 import app.bottlenote.review.service.ReviewReplyService;
+import app.bottlenote.shared.data.response.Error;
+import app.bottlenote.shared.exception.custom.code.ValidExceptionCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Optional;
 import org.apache.commons.lang3.RandomStringUtils;
