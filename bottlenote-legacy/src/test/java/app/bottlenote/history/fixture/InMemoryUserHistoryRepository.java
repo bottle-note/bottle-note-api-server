@@ -1,10 +1,10 @@
 package app.bottlenote.history.fixture;
 
-import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.history.domain.UserHistory;
 import app.bottlenote.history.domain.UserHistoryRepository;
 import app.bottlenote.history.dto.request.UserHistorySearchRequest;
 import app.bottlenote.history.dto.response.UserHistorySearchResponse;
+import app.bottlenote.shared.cursor.PageResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

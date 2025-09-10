@@ -4,7 +4,7 @@ import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
 import static com.querydsl.jpa.JPAExpressions.select;
 
-import app.bottlenote.global.service.cursor.CursorPageable;
+import app.bottlenote.shared.cursor.CursorPageable;
 import app.bottlenote.user.dto.dsl.FollowPageableCriteria;
 import app.bottlenote.user.dto.response.RelationUserItem;
 import com.querydsl.core.types.Expression;

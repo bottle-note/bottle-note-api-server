@@ -2,11 +2,11 @@ package app.bottlenote.history.service;
 
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.ViewHistoryItem;
-import app.bottlenote.global.data.response.CollectionResponse;
 import app.bottlenote.global.redis.entity.AlcoholViewHistory;
 import app.bottlenote.global.redis.repository.RedisAlcoholViewHistoryRepository;
 import app.bottlenote.history.domain.AlcoholsViewHistory;
 import app.bottlenote.history.domain.AlcoholsViewHistoryRepository;
+import app.bottlenote.shared.data.response.CollectionResponse;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;

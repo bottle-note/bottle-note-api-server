@@ -1,6 +1,6 @@
 package app.bottlenote.user.service;
 
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.user.domain.Follow;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;

@@ -18,14 +18,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.bottlenote.global.data.response.Error;
-import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.security.jwt.CustomJwtException;
 import app.bottlenote.global.security.jwt.CustomJwtExceptionCode;
 import app.bottlenote.global.security.jwt.JwtExceptionType;
-import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.constant.ReviewResultMessage;
 import app.bottlenote.review.constant.ReviewSortType;
@@ -42,6 +38,10 @@ import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
 import app.bottlenote.review.service.ReviewService;
+import app.bottlenote.shared.cursor.PageResponse;
+import app.bottlenote.shared.cursor.SortOrder;
+import app.bottlenote.shared.data.response.Error;
+import app.bottlenote.shared.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.support.block.service.BlockService;
 import app.bottlenote.user.exception.UserExceptionCode;
 import com.fasterxml.jackson.databind.ObjectMapper;

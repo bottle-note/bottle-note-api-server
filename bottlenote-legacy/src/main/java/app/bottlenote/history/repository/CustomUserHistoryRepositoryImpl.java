@@ -11,13 +11,14 @@ import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.user.domain.QUser.user;
 
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.util.SortOrderUtils;
 import app.bottlenote.history.constant.EventType;
 import app.bottlenote.history.dto.request.UserHistorySearchRequest;
 import app.bottlenote.history.dto.response.UserHistoryItem;
 import app.bottlenote.history.dto.response.UserHistorySearchResponse;
 import app.bottlenote.picks.constant.PicksStatus;
+import app.bottlenote.shared.cursor.CursorPageable;
+import app.bottlenote.shared.cursor.PageResponse;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
@@ -126,7 +127,7 @@ public class CustomUserHistoryRepositoryImpl implements CustomUserHistoryReposit
                 request.startDate() == null ? null : userHistory.createAt.goe(request.startDate()),
                 request.endDate() == null ? null : userHistory.createAt.loe(request.endDate()),
                 eventTypeFilters.isEmpty() ? null : userHistory.eventType.in(eventTypeFilters))
-            .orderBy(request.sortOrder().resolve(userHistory.createAt))
+            .orderBy(SortOrderUtils.resolve(request.sortOrder(), userHistory.createAt))
             .offset(request.cursor())
             .limit(request.pageSize() + 1)
             .fetch();

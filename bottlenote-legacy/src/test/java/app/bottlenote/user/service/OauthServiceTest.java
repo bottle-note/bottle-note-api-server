@@ -5,12 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import app.bottlenote.global.security.jwt.JwtTokenValidator;
+import app.bottlenote.shared.token.TokenItem;
 import app.bottlenote.user.constant.GenderType;
 import app.bottlenote.user.constant.SocialType;
 import app.bottlenote.user.constant.UserType;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.request.OauthRequest;
-import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.fake.FakeAppleTokenValidator;
 import app.bottlenote.user.fake.FakeBCryptPasswordEncoder;
@@ -81,7 +81,10 @@ class OauthServiceTest {
 
     // 실제 JWT 토큰 생성 (검증 가능한 토큰)
     reissueRefreshToken =
-        jwtTokenProvider.createRefreshToken("cdm2883@naver.com", UserType.ROLE_USER, 1L);
+        jwtTokenProvider.createRefreshToken(
+            "cdm2883@naver.com",
+            app.bottlenote.shared.users.UserType.valueOf(UserType.ROLE_USER.name()),
+            1L);
 
     // 각 테스트 전에 Repository 상태 초기화
     oauthRepository.clear();

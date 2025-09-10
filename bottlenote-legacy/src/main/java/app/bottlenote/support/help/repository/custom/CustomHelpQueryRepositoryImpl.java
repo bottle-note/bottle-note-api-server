@@ -2,8 +2,8 @@ package app.bottlenote.support.help.repository.custom;
 
 import static app.bottlenote.support.help.domain.QHelp.help;
 
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.shared.cursor.CursorPageable;
+import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
 import app.bottlenote.support.help.dto.response.HelpListResponse;
 import app.bottlenote.support.help.repository.HelpQuerySupporter;

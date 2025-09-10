@@ -4,8 +4,8 @@ import static app.bottlenote.common.support.HttpClient.getClientIP;
 import static app.bottlenote.support.report.dto.response.UserReportResponse.UserReportResponseEnum.SAME_USER;
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
-import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.shared.data.response.GlobalResponse;
 import app.bottlenote.support.report.dto.request.ReviewReportRequest;
 import app.bottlenote.support.report.dto.request.UserReportRequest;
 import app.bottlenote.support.report.dto.response.UserReportResponse;

@@ -12,7 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.IntegrationTestSupport;
-import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.shared.data.response.GlobalResponse;
 import app.bottlenote.user.constant.SocialType;
 import app.bottlenote.user.constant.UserStatus;
 import app.bottlenote.user.constant.UserType;

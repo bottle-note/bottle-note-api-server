@@ -15,8 +15,8 @@ import static org.springframework.restdocs.request.RequestDocumentation.paramete
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.bottlenote.global.data.response.CollectionResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.shared.data.response.CollectionResponse;
 import app.bottlenote.support.block.controller.BlockController;
 import app.bottlenote.support.block.dto.request.BlockCreateRequest;
 import app.bottlenote.support.block.dto.response.UserBlockItem;

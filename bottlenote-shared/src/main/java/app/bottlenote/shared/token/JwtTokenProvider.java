@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
 
+@Component
 public class JwtTokenProvider {
 	public static final int ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 2;
 	public static final int REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 14;
@@ -40,6 +41,20 @@ public class JwtTokenProvider {
 		Claims claims = createClaims(userEmail, role, userId);
 		Date now = new Date();
 		return Jwts.builder().setClaims(claims).setIssuedAt(now).setExpiration(new Date(now.getTime() + REFRESH_TOKEN_EXPIRE_TIME)).signWith(secretKey, SignatureAlgorithm.HS512).compact();
+	}
+
+	public String createGuestToken(Long userId, int expireTime) {
+		Claims claims = Jwts.claims();
+		claims.put("userId", userId);
+		claims.put(KEY_ROLES, UserType.ROLE_GUEST.name());
+		Date now = new Date();
+		return Jwts.builder()
+			.setClaims(claims)
+			.setSubject("guest")
+			.setIssuedAt(now)
+			.setExpiration(new Date(now.getTime() + expireTime))
+			.signWith(secretKey, SignatureAlgorithm.HS512)
+			.compact();
 	}
 
 	private Claims createClaims(String userEmail, UserType role, Long userId) {

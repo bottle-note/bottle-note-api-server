@@ -1,6 +1,6 @@
 package app.bottlenote.global.security.jwt;
 
-import static app.bottlenote.global.security.jwt.JwtTokenProvider.KEY_ROLES;
+import static app.bottlenote.shared.token.JwtTokenProvider.KEY_ROLES;
 import static app.bottlenote.user.exception.UserExceptionCode.INVALID_TOKEN;
 import static java.util.stream.Collectors.toList;
 

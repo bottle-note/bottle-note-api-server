@@ -5,7 +5,7 @@ import static app.bottlenote.support.block.exception.BlockExceptionCode.REQUIRED
 import static app.bottlenote.support.block.exception.BlockExceptionCode.USER_ALREADY_BLOCKED;
 import static app.bottlenote.support.block.exception.BlockExceptionCode.USER_BLOCK_NOT_FOUND;
 
-import app.bottlenote.global.data.response.CollectionResponse;
+import app.bottlenote.shared.data.response.CollectionResponse;
 import app.bottlenote.support.block.domain.UserBlock;
 import app.bottlenote.support.block.dto.response.UserBlockItem;
 import app.bottlenote.support.block.exception.BlockException;

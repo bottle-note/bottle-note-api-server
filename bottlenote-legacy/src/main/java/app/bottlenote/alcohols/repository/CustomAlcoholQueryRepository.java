@@ -5,8 +5,8 @@ import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.core.structure.Pair;
-import app.bottlenote.global.service.cursor.CursorResponse;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.shared.cursor.CursorResponse;
+import app.bottlenote.shared.cursor.PageResponse;
 import java.util.List;
 import java.util.Optional;
 

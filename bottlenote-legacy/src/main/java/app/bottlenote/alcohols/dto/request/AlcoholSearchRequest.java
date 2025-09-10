@@ -2,7 +2,7 @@ package app.bottlenote.alcohols.dto.request;
 
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
-import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.shared.cursor.SortOrder;
 import lombok.Builder;
 
 public record AlcoholSearchRequest(

@@ -1,6 +1,6 @@
 package app.bottlenote.history.exception;
 
-import app.bottlenote.global.exception.custom.code.ExceptionCode;
+import app.bottlenote.shared.exception.custom.code.ExceptionCode;
 import org.springframework.http.HttpStatus;
 
 public enum UserHistoryExceptionCode implements ExceptionCode {

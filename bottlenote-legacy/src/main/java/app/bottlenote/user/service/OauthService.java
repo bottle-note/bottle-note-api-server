@@ -4,15 +4,15 @@ import static app.bottlenote.global.security.jwt.JwtTokenValidator.validateToken
 import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
 
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
-import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import app.bottlenote.global.security.jwt.TokenValidator;
+import app.bottlenote.shared.token.JwtTokenProvider;
+import app.bottlenote.shared.token.TokenItem;
 import app.bottlenote.user.constant.GenderType;
 import app.bottlenote.user.constant.SocialType;
 import app.bottlenote.user.constant.UserType;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.BasicAccountResponse;
-import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.repository.OauthRepository;
@@ -132,7 +132,11 @@ public class OauthService {
 
   private TokenItem getTokenItem(User user, SocialType socialType) {
     user.addSocialType(socialType);
-    TokenItem token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
+    TokenItem token =
+        tokenProvider.generateToken(
+            user.getEmail(),
+            app.bottlenote.shared.users.UserType.valueOf(user.getRole().name()),
+            user.getId());
     user.updateRefreshToken(token.refreshToken());
     return token;
   }
@@ -220,7 +224,10 @@ public class OauthService {
             .orElseThrow(() -> new UserException(INVALID_REFRESH_TOKEN));
 
     TokenItem reissuedToken =
-        tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
+        tokenProvider.generateToken(
+            user.getEmail(),
+            app.bottlenote.shared.users.UserType.valueOf(user.getRole().name()),
+            user.getId());
 
     // DB에 저장된 refresh 토큰을 재발급한 refresh 토큰으로 업데이트
     user.updateRefreshToken(reissuedToken.refreshToken());
@@ -251,7 +258,11 @@ public class OauthService {
                 .gender(gender)
                 .build());
 
-    TokenItem token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
+    TokenItem token =
+        tokenProvider.generateToken(
+            user.getEmail(),
+            app.bottlenote.shared.users.UserType.valueOf(user.getRole().name()),
+            user.getId());
     user.updateRefreshToken(token.refreshToken());
 
     log.info(
@@ -281,7 +292,11 @@ public class OauthService {
 
     checkActiveUser(user);
 
-    TokenItem token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
+    TokenItem token =
+        tokenProvider.generateToken(
+            user.getEmail(),
+            app.bottlenote.shared.users.UserType.valueOf(user.getRole().name()),
+            user.getId());
     user.updateRefreshToken(token.refreshToken());
     return token;
   }

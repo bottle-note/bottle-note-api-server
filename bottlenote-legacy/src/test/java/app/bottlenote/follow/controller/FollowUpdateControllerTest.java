@@ -8,8 +8,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.shared.data.response.Error;
 import app.bottlenote.user.constant.FollowStatus;
 import app.bottlenote.user.controller.FollowController;
 import app.bottlenote.user.dto.request.FollowUpdateRequest;

@@ -9,13 +9,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.bottlenote.global.data.response.Error;
-import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
+import app.bottlenote.shared.data.response.Error;
+import app.bottlenote.shared.exception.custom.code.ValidExceptionCode;
+import app.bottlenote.shared.token.TokenItem;
 import app.bottlenote.user.config.OauthConfigProperties;
 import app.bottlenote.user.constant.GenderType;
 import app.bottlenote.user.constant.SocialType;
 import app.bottlenote.user.dto.request.OauthRequest;
-import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.service.NonceService;

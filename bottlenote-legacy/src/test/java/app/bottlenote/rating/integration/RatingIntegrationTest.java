@@ -12,7 +12,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
-import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
@@ -22,6 +21,7 @@ import app.bottlenote.rating.dto.response.RatingListFetchResponse;
 import app.bottlenote.rating.dto.response.RatingRegisterResponse;
 import app.bottlenote.rating.dto.response.RatingRegisterResponse.Message;
 import app.bottlenote.rating.dto.response.UserRatingResponse;
+import app.bottlenote.shared.data.response.GlobalResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;

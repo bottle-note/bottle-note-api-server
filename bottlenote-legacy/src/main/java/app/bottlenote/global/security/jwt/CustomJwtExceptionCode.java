@@ -1,6 +1,6 @@
 package app.bottlenote.global.security.jwt;
 
-import app.bottlenote.global.exception.custom.code.ExceptionCode;
+import app.bottlenote.shared.exception.custom.code.ExceptionCode;
 import org.springframework.http.HttpStatus;
 
 public enum CustomJwtExceptionCode implements ExceptionCode {

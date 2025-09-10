@@ -3,14 +3,14 @@ package app.bottlenote.history.controller;
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 
 import app.bottlenote.alcohols.dto.response.ViewHistoryItem;
-import app.bottlenote.global.data.response.CollectionResponse;
-import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.history.dto.request.UserHistorySearchRequest;
 import app.bottlenote.history.dto.response.UserHistorySearchResponse;
 import app.bottlenote.history.service.AlcoholViewHistoryService;
 import app.bottlenote.history.service.UserHistoryQueryService;
+import app.bottlenote.shared.cursor.PageResponse;
+import app.bottlenote.shared.data.response.CollectionResponse;
+import app.bottlenote.shared.data.response.GlobalResponse;
+import app.bottlenote.shared.meta.MetaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

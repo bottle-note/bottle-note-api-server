@@ -1,12 +1,12 @@
 package app.bottlenote.user.service;
 
-import app.bottlenote.global.security.jwt.JwtTokenProvider;
+import app.bottlenote.shared.token.JwtTokenProvider;
+import app.bottlenote.shared.token.TokenItem;
 import app.bottlenote.user.constant.GenderType;
 import app.bottlenote.user.constant.SocialType;
 import app.bottlenote.user.constant.UserType;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.response.KakaoUserResponse;
-import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.repository.OauthRepository;
@@ -154,7 +154,11 @@ public class AuthService {
 
   private TokenItem getTokenItem(User user, SocialType socialType) {
     user.addSocialType(socialType);
-    TokenItem token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
+    TokenItem token =
+        tokenProvider.generateToken(
+            user.getEmail(),
+            app.bottlenote.shared.users.UserType.valueOf(user.getRole().name()),
+            user.getId());
     user.updateRefreshToken(token.refreshToken());
     return token;
   }

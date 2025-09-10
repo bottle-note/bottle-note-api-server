@@ -3,7 +3,6 @@ package app.bottlenote.review.service;
 import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 
 import app.bottlenote.common.annotation.FacadeService;
-import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
@@ -11,6 +10,7 @@ import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.facade.ReviewFacade;
 import app.bottlenote.review.facade.payload.ReviewInfo;
+import app.bottlenote.shared.cursor.PageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;

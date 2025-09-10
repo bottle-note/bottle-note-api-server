@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import app.bottlenote.global.data.response.CollectionResponse;
+import app.bottlenote.shared.data.response.CollectionResponse;
 import app.bottlenote.support.block.dto.response.UserBlockItem;
 import app.bottlenote.support.block.exception.BlockException;
 import app.bottlenote.support.block.fixture.InMemoryUserBlockRepository;

@@ -20,15 +20,15 @@ import static app.bottlenote.review.repository.ReviewQuerySupporter.sortBy;
 import static app.bottlenote.user.domain.QUser.user;
 
 import app.bottlenote.core.structure.Pair;
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.CursorResponse;
-import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.like.constant.LikeStatus;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.response.ReviewExploreItem;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 import app.bottlenote.review.facade.payload.UserInfo;
+import app.bottlenote.shared.cursor.CursorPageable;
+import app.bottlenote.shared.cursor.CursorResponse;
+import app.bottlenote.shared.cursor.PageResponse;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.OrderSpecifier;

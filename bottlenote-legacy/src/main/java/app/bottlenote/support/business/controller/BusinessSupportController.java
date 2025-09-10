@@ -2,9 +2,9 @@ package app.bottlenote.support.business.controller;
 
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
-import app.bottlenote.global.data.response.CollectionResponse;
-import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.shared.data.response.CollectionResponse;
+import app.bottlenote.shared.data.response.GlobalResponse;
 import app.bottlenote.support.business.dto.request.BusinessSupportPageableRequest;
 import app.bottlenote.support.business.dto.request.BusinessSupportUpsertRequest;
 import app.bottlenote.support.business.dto.response.BusinessInfoResponse;

@@ -12,12 +12,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.core.structure.Pair;
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.review.controller.ReviewExploreController;
 import app.bottlenote.review.dto.response.ReviewExploreItem;
 import app.bottlenote.review.facade.payload.UserInfo;
 import app.bottlenote.review.service.ReviewExploreService;
+import app.bottlenote.shared.cursor.CursorPageable;
+import app.bottlenote.shared.cursor.CursorResponse;
 import app.docs.AbstractRestDocs;
 import java.time.LocalDateTime;
 import java.util.ArrayList;

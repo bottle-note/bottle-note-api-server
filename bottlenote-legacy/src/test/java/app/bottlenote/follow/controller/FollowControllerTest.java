@@ -9,7 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.follow.fixture.FollowQueryFixture;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.user.controller.FollowController;
 import app.bottlenote.user.dto.request.FollowPageableRequest;
 import app.bottlenote.user.dto.response.FollowingSearchResponse;

@@ -10,8 +10,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.IntegrationTestSupport;
-import app.bottlenote.global.data.response.Error;
-import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.shared.data.response.Error;
+import app.bottlenote.shared.data.response.GlobalResponse;
 import app.bottlenote.user.constant.FollowStatus;
 import app.bottlenote.user.domain.Follow;
 import app.bottlenote.user.domain.User;

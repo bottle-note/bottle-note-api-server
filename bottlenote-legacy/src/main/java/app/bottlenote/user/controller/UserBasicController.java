@@ -3,7 +3,7 @@ package app.bottlenote.user.controller;
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
-import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.shared.data.response.GlobalResponse;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
 import app.bottlenote.user.dto.request.ProfileImageChangeRequest;
 import app.bottlenote.user.dto.response.NicknameChangeResponse;

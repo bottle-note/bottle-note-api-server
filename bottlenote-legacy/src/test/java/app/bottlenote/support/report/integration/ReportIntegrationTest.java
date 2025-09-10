@@ -15,10 +15,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.IntegrationTestSupport;
-import app.bottlenote.global.data.response.Error;
-import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewRepository;
+import app.bottlenote.shared.data.response.Error;
+import app.bottlenote.shared.data.response.GlobalResponse;
 import app.bottlenote.support.report.constant.UserReportType;
 import app.bottlenote.support.report.domain.ReviewReport;
 import app.bottlenote.support.report.dto.request.ReviewReportRequest;

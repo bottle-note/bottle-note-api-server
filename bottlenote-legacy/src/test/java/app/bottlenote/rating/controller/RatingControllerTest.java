@@ -12,8 +12,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.global.data.response.Error;
-import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;
@@ -22,6 +20,8 @@ import app.bottlenote.rating.dto.request.RatingRegisterRequest;
 import app.bottlenote.rating.dto.response.RatingRegisterResponse;
 import app.bottlenote.rating.service.RatingCommandService;
 import app.bottlenote.rating.service.RatingQueryService;
+import app.bottlenote.shared.data.response.Error;
+import app.bottlenote.shared.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserExceptionCode;
 import com.fasterxml.jackson.databind.ObjectMapper;

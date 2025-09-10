@@ -12,8 +12,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.shared.data.response.Error;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.service.DefaultUserFacade;
 import app.bottlenote.user.service.UserBasicService;

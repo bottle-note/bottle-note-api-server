@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import app.bottlenote.common.profanity.FakeProfanityClient;
 import app.bottlenote.common.profanity.ProfanityClient;
-import app.bottlenote.global.data.response.CollectionResponse;
+import app.bottlenote.shared.data.response.CollectionResponse;
 import app.bottlenote.support.business.constant.BusinessSupportType;
 import app.bottlenote.support.business.dto.request.BusinessSupportPageableRequest;
 import app.bottlenote.support.business.dto.request.BusinessSupportUpsertRequest;

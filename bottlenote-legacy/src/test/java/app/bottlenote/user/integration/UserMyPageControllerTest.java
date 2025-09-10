@@ -10,8 +10,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
-import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.picks.dto.request.PicksUpdateRequest;
+import app.bottlenote.shared.data.response.GlobalResponse;
 import app.bottlenote.user.dto.request.MyBottleRequest;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.PicksMyBottleItem;

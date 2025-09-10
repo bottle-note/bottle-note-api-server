@@ -4,7 +4,7 @@ import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByCont
 
 import app.bottlenote.alcohols.dto.response.PopularsOfWeekResponse;
 import app.bottlenote.alcohols.service.AlcoholPopularService;
-import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.shared.data.response.GlobalResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -6,7 +6,7 @@ import static app.bottlenote.user.exception.UserExceptionCode.MYBOTTLE_NOT_ACCES
 import static app.bottlenote.user.exception.UserExceptionCode.MYPAGE_NOT_ACCESSIBLE;
 import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.user.constant.MyBottleType;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
