@@ -10,6 +10,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
+// todo product api 모듈로 이동 필요
 @Slf4j
 @Component
 public class RatingPointConverter implements Converter<String, RatingPoint> {

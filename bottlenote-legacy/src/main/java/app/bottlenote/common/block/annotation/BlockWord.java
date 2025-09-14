@@ -14,6 +14,8 @@ import java.lang.annotation.Target;
 @JsonSerialize(using = app.bottlenote.common.block.serializer.BlockWordSerializer.class)
 public @interface BlockWord {
 
+  // todo block 하위의 annotation 폴더가 아닌 그냥 annotation 폴더로 이동
+
   /** 차단된 사용자 컨텐츠 대체 메시지 기본값: "차단된 사용자의 글입니다" */
   String value() default "차단된 사용자의 글입니다";
 

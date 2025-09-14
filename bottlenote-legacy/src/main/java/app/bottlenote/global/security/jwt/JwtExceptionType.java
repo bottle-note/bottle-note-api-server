@@ -3,6 +3,7 @@ package app.bottlenote.global.security.jwt;
 import app.bottlenote.shared.exception.custom.code.ExceptionCode;
 import org.springframework.http.HttpStatus;
 
+// todo : shared module로 이동
 public enum JwtExceptionType implements ExceptionCode {
   INVALID_SIGNATURE("잘못된 JWT 서명입니다.", HttpStatus.UNAUTHORIZED),
   MALFORMED_TOKEN("잘못된 JWT 토큰입니다.", HttpStatus.UNAUTHORIZED),

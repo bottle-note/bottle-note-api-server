@@ -5,6 +5,7 @@ import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
+// todo : product-api 모듈로 이동
 @Getter
 public class CustomUserContext extends User {
   private final Long id; // 유저 아이디
