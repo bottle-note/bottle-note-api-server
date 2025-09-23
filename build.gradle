@@ -1,18 +1,14 @@
 // 멀티모듈 루트 프로젝트 설정
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.1.9' apply false
-	id 'io.spring.dependency-management' version '1.1.4' apply false
-	id "org.asciidoctor.jvm.convert" version "4.0.2" apply false
-	id 'com.diffplug.spotless' version "7.0.2" apply false
-	id 'com.epages.restdocs-api-spec' version '0.19.2' apply false
+	alias(libs.plugins.spring.boot) apply false
+	alias(libs.plugins.spring.dependency.management) apply false
+	alias(libs.plugins.asciidoctor) apply false
+	alias(libs.plugins.spotless) apply false
+	alias(libs.plugins.restdocs.api.spec) apply false
 }
 
-// 전역 변수 설정
-ext {
-	queryDslVersion = "6.11"
-	springCloudVersion = "2022.0.5"
-}
+// 전역 변수 설정 (Version Catalog로 이관됨)
 
 // 전체 프로젝트 공통 설정
 allprojects {
@@ -39,22 +35,21 @@ subprojects {
 
 	dependencyManagement {
 		imports {
-			mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+			mavenBom "org.springframework.cloud:spring-cloud-dependencies:${libs.versions.spring.cloud.get()}"
 		}
 	}
 
 	dependencies {
-		// 서브모듈 기본 의존성
-		implementation 'org.springframework.boot:spring-boot-starter'
-		testImplementation 'org.springframework.boot:spring-boot-starter-test'
-		annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-
+		// Spring Boot 기본 번들
+		implementation libs.bundles.spring.boot.default
+		// Lombok
+		compileOnly libs.lombok
+		annotationProcessor libs.lombok
+		testCompileOnly libs.lombok
+		testAnnotationProcessor libs.lombok
 		// 공통 유틸리티
-		implementation 'org.projectlombok:lombok'
-		annotationProcessor 'org.projectlombok:lombok'
-		implementation 'org.apache.commons:commons-lang3:3.12.0'
+		implementation libs.bundles.utilities
 	}
-
 	// 서브모듈은 기본적으로 라이브러리 JAR 생성
 	bootJar.enabled = false
 	jar.enabled = true

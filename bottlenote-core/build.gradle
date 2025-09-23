@@ -1,6 +1,5 @@
 //core
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	// Core는 누구에게도 의존하지 않음 (순수 도메인)
 }
 tasks.register("prepareKotlinBuildScriptModel") {}

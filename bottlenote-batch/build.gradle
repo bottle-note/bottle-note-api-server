@@ -1,9 +1,12 @@
 //batch-module
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter'
-	implementation 'org.springframework.boot:spring-boot-starter-batch'
-	testImplementation 'org.springframework.batch:spring-batch-test'
-	implementation 'org.springframework.boot:spring-boot-starter-quartz'
+	// Spring Boot 기본
+	implementation libs.spring.boot.starter
+
+	// Spring Batch
+	implementation libs.spring.boot.starter.batch
+	implementation libs.spring.boot.starter.quartz
+	testImplementation libs.spring.batch.test
 }
 
 tasks.register("prepareKotlinBuildScriptModel") {}

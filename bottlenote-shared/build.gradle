@@ -1,12 +1,10 @@
 //shared
 dependencies {
-	// Core module
+	// Core 모듈 의존 (Pair, Triple 사용)
 	implementation project(':bottlenote-core')
 
-	// JWT token provider
-	implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
-	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.2'
-	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.2'
+	// JWT 완전 패키지
+	implementation libs.bundles.jwt.complete
 
 	// Jackson for JSON serialization
 	implementation 'com.fasterxml.jackson.core:jackson-annotations'
@@ -16,7 +14,7 @@ dependencies {
 	implementation 'org.springframework:spring-web'
 
 	// Lombok
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
+	compileOnly libs.lombok
+	annotationProcessor libs.lombok
 }
 tasks.register("prepareKotlinBuildScriptModel") {}

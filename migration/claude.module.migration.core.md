@@ -24,7 +24,7 @@ bottlenote-core/
     ├── application/  (비어있음)
     ├── domain/       (비어있음)
     ├── port/         (비어있음)
-    └── structure/    
+    └── structure/   (지울 예정)
         ├── Pair.java
         └── Triple.java
 ```
@@ -254,38 +254,38 @@ dependencies {
 dependencies {
     // Shared 모듈 의존
     implementation project(':bottlenote-shared')
-    
+
     // Spring Boot 기본
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    
+
     // JPA/Hibernate (엔티티 정의용)
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.hibernate:hibernate-core'
     implementation 'jakarta.persistence:jakarta.persistence-api'
-    
+
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
-    
+
     // Jackson (DTO 직렬화)
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-    
+
     // Spring Context (이벤트, DI)
     implementation 'org.springframework:spring-context'
     implementation 'org.springframework:spring-tx'
-    
+
     // Apache Commons (유틸리티)
     implementation 'org.apache.commons:commons-lang3'
     implementation 'org.apache.commons:commons-collections4'
-    
+
     // 테스트
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.assertj:assertj-core'
-    
+
     // 테스트용 H2 DB
     testRuntimeOnly 'com.h2database:h2'
 }
