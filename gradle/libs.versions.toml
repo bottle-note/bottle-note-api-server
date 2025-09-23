@@ -137,71 +137,71 @@ jakarta-persistence-api = { module = "jakarta.persistence:jakarta.persistence-ap
 [bundles]
 # Spring Boot 기본 번들
 spring-boot-default = [
-    "spring-boot-starter",
-    "spring-boot-starter-test",
-    "spring-boot-configuration-processor"
+	"spring-boot-starter",
+	"spring-boot-starter-test",
+	"spring-boot-configuration-processor"
 ]
 
 # Spring Boot Web 애플리케이션
 spring-boot-web = [
-    "spring-boot-starter-web",
-    "spring-boot-starter-validation"
+	"spring-boot-starter-web",
+	"spring-boot-starter-validation"
 ]
 
 # Spring Boot JPA & Database
 spring-boot-jpa = [
-    "spring-boot-starter-data-jpa",
-    "hypersistence-utils"
+	"spring-boot-starter-data-jpa",
+	"hypersistence-utils"
 ]
 
 # Spring Boot Security
 spring-boot-security = [
-    "spring-boot-starter-security",
-    "spring-security-test"
+	"spring-boot-starter-security",
+	"spring-security-test"
 ]
 
 # JWT 전체 패키지
 jwt-complete = [
-    "jsonwebtoken-api",
-    "jsonwebtoken-impl",
-    "jsonwebtoken-jackson"
+	"jsonwebtoken-api",
+	"jsonwebtoken-impl",
+	"jsonwebtoken-jackson"
 ]
 
 # QueryDSL 전체
 querydsl-complete = [
-    "querydsl-jpa"
+	"querydsl-jpa"
 ]
 
 # Testing 패키지
 testing-complete = [
-    "spring-boot-starter-test",
-    "testng",
-    "mockito-inline"
+	"spring-boot-starter-test",
+	"testng",
+	"mockito-inline"
 ]
 
 # TestContainers 패키지
 testcontainers-complete = [
-    "testcontainers",
-    "testcontainers-junit",
-    "testcontainers-mysql"
+	"testcontainers",
+	"testcontainers-junit",
+	"testcontainers-mysql"
 ]
 
 # Spring REST Docs
 restdocs-complete = [
-    "spring-restdocs-mockmvc",
-    "restdocs-api-spec-mockmvc"
+	"spring-restdocs-mockmvc",
+	"restdocs-api-spec-mockmvc"
 ]
 
 # 공통 유틸리티
 utilities = [
-    "commons-lang3"
+	"commons-lang3"
 ]
 
 # Spring Batch 번들
 spring-batch-complete = [
-    "spring-boot-starter-batch",
-    "spring-batch-test",
-    "spring-boot-starter-quartz"
+	"spring-boot-starter-batch",
+	"spring-batch-test",
+	"spring-boot-starter-quartz"
 ]
 
 [plugins]

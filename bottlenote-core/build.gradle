@@ -1,5 +1,4 @@
 //core
 dependencies {
-	// Core는 누구에게도 의존하지 않음 (순수 도메인)
 }
 tasks.register("prepareKotlinBuildScriptModel") {}
