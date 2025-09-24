@@ -1,7 +1,7 @@
 package app.bottlenote.common.block.serializer;
 
-import app.bottlenote.common.block.annotation.BlockWord;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.shared.annotation.BlockWord;
 import app.bottlenote.support.block.service.BlockService;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.BeanProperty;
@@ -9,10 +9,11 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.ContextualSerializer;
+import com.fasterxml.jackson.databind.ser.std.StringSerializer;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeansException;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
@@ -25,85 +26,37 @@ import org.springframework.stereotype.Component;
 public class BlockWordSerializer extends JsonSerializer<String>
     implements ContextualSerializer, ApplicationContextAware {
 
-  private static ApplicationContext applicationContext;
   private final BlockService blockService;
-  private BlockWord blockWordAnnotation;
+  private BlockWord annotation;
+  private static ApplicationContext applicationContext;
 
   public BlockWordSerializer(BlockService blockService) {
     this.blockService = blockService;
   }
 
+  // Jackson이 사용하는 기본 생성자
   public BlockWordSerializer() {
     this.blockService = null;
   }
 
-  @Override
-  public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-    BlockWordSerializer.applicationContext = applicationContext;
+  private BlockWordSerializer(BlockService blockService, BlockWord annotation) {
+    this.blockService = blockService;
+    this.annotation = annotation;
   }
 
   @Override
-  public void serialize(String value, JsonGenerator gen, SerializerProvider serializers)
-      throws IOException {
-    if (blockWordAnnotation == null) {
-      // 어노테이션이 없는 경우 원본 값 반환
-      gen.writeString(value);
-      return;
+  public void setApplicationContext(@NotNull ApplicationContext context) {
+    applicationContext = context;
+  }
+
+  private BlockService getBlockService() {
+    if (blockService != null) {
+      return blockService;
     }
-
-    // BlockService 획득 (의존성 주입된 것이 있으면 사용, 없으면 ApplicationContext에서 가져오기)
-    BlockService currentBlockService = blockService;
-    if (currentBlockService == null && applicationContext != null) {
-      try {
-        currentBlockService = applicationContext.getBean(BlockService.class);
-      } catch (Exception e) {
-        log.warn("ApplicationContext에서 BlockService를 가져오는데 실패: {}", e.getMessage());
-      }
+    if (applicationContext != null) {
+      return applicationContext.getBean(BlockService.class);
     }
-
-    if (currentBlockService == null) {
-      // BlockService를 찾을 수 없는 경우 원본 값 반환 (테스트 환경 등)
-      gen.writeString(value);
-      return;
-    }
-
-    try {
-      // 현재 사용자 ID 획득
-      Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(null);
-      if (currentUserId == null) {
-        // 비로그인 사용자는 필터링 스킵
-        gen.writeString(value);
-        return;
-      }
-
-      // 현재 직렬화 중인 객체 획득
-      Object currentObject = gen.getCurrentValue();
-      if (currentObject == null) {
-        gen.writeString(value);
-        return;
-      }
-
-      // userIdPath로 작성자 ID 추출
-      Long authorId = extractUserIdByPath(currentObject, blockWordAnnotation.userIdPath());
-      if (authorId == null) {
-        gen.writeString(value);
-        return;
-      }
-
-      // 차단 관계 확인
-      boolean isBlocked = currentBlockService.isBlocked(currentUserId, authorId);
-      if (isBlocked) {
-        // 차단된 경우 대체 메시지로 변경
-        gen.writeString(blockWordAnnotation.value());
-      } else {
-        // 정상인 경우 원본 값 사용
-        gen.writeString(value);
-      }
-
-    } catch (Exception e) {
-      log.warn("BlockWordSerializer 처리 중 오류 발생. 원본 값 반환: {}", e.getMessage());
-      gen.writeString(value);
-    }
+    return null;
   }
 
   @Override
@@ -111,30 +64,76 @@ public class BlockWordSerializer extends JsonSerializer<String>
       throws JsonMappingException {
 
     if (property != null) {
-      // @BlockWord 어노테이션 찾기
-      BlockWord annotation = property.getAnnotation(BlockWord.class);
-      if (annotation == null && property.getMember() != null) {
-        annotation = property.getMember().getAnnotation(BlockWord.class);
+      BlockWord ann = property.getAnnotation(BlockWord.class);
+      if (ann != null) {
+        BlockService actualBlockService = getBlockService();
+        if (actualBlockService == null) {
+          log.warn("BlockService를 찾을 수 없어 @BlockWord 어노테이션 무시");
+          return new StringSerializer();
+        }
+        return new BlockWordSerializer(actualBlockService, ann);
       }
 
-      if (annotation != null) {
-        // ApplicationContext에서 BlockService 가져오기
-        BlockService contextBlockService = null;
-        if (applicationContext != null) {
-          try {
-            contextBlockService = applicationContext.getBean(BlockService.class);
-          } catch (Exception e) {
-            log.warn("ApplicationContext에서 BlockService 가져오기 실패: {}", e.getMessage());
+      if (property.getMember() != null) {
+        BlockWord memberAnn = property.getMember().getAnnotation(BlockWord.class);
+        if (memberAnn != null) {
+          BlockService actualBlockService = getBlockService();
+          if (actualBlockService == null) {
+            log.warn("BlockService를 찾을 수 없어 @BlockWord 어노테이션 무시");
+            return new StringSerializer();
           }
+          return new BlockWordSerializer(actualBlockService, memberAnn);
         }
-
-        BlockWordSerializer serializer = new BlockWordSerializer(contextBlockService);
-        serializer.blockWordAnnotation = annotation;
-        return serializer;
       }
     }
+    return new StringSerializer();
+  }
 
-    return this;
+  @Override
+  public void serialize(String value, JsonGenerator gen, SerializerProvider provider)
+      throws IOException {
+
+    if (annotation == null) {
+      gen.writeString(value);
+      return;
+    }
+
+    BlockService actualBlockService = getBlockService();
+    if (actualBlockService == null) {
+      gen.writeString(value);
+      return;
+    }
+
+    try {
+      Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(null);
+      if (currentUserId == null) {
+        gen.writeString(value);
+        return;
+      }
+
+      Object currentObject = gen.getCurrentValue();
+      if (currentObject == null) {
+        gen.writeString(value);
+        return;
+      }
+
+      Long authorId = extractUserIdByPath(currentObject, annotation.userIdPath());
+      if (authorId == null) {
+        gen.writeString(value);
+        return;
+      }
+
+      boolean isBlocked = actualBlockService.isBlocked(currentUserId, authorId);
+      if (isBlocked) {
+        gen.writeString(annotation.value());
+      } else {
+        gen.writeString(value);
+      }
+
+    } catch (Exception e) {
+      log.warn("차단 필터링 중 오류 발생, 원본 값 반환: {}", e.getMessage());
+      gen.writeString(value);
+    }
   }
 
   /**

@@ -15,7 +15,6 @@ public class P6SpyFormater implements MessageFormattingStrategy {
   @PostConstruct
   public void setLogMessageFormat() {
     P6SpyOptions.getActiveInstance().setLogMessageFormat(this.getClass().getName());
-
     System.setProperty("p6spy.config.filter", "true");
     System.setProperty("p6spy.config.exclude", "QRTZ_");
   }

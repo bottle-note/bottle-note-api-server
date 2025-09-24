@@ -1,7 +1,7 @@
 package app.bottlenote.review.facade.payload;
 
-import app.bottlenote.common.block.annotation.BlockWord;
 import app.bottlenote.review.domain.ReviewLocation;
+import app.bottlenote.shared.annotation.BlockWord;
 import app.bottlenote.shared.data.serializers.CustomDeserializers.TagListDeserializer;
 import app.bottlenote.shared.data.serializers.CustomSerializers.TagListSerializer;
 import app.bottlenote.shared.review.constant.ReviewDisplayStatus;

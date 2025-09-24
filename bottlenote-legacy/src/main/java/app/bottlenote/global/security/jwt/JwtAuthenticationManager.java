@@ -59,7 +59,7 @@ public class JwtAuthenticationManager {
 
   /** 익명 Authentication 객체를 생성하는 메소드 */
   public Authentication getAnonymousAuthentication() {
-    log.debug("익명 사용자 인증 정보 추출");
+    // log.debug("익명 사용자 인증 정보 추출");
     List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS"));
     UserDetails userDetails = customUserDetailsService.loadAnonymousUser();
     return new UsernamePasswordAuthenticationToken(userDetails, "", authorities);

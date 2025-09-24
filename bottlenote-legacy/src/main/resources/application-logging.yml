@@ -10,10 +10,10 @@ spring:
       on-profile: local
 logging:
   level:
+    app.bottlenote: debug # 애플리케이션 디버그 로깅 활성화
     org.hibernate.SQL: off           # SQL 쿼리 로깅 비활성화
     org.hibernate.orm.jdbc.bind: off # 바인딩 파라미터 로깅 비활성화
     root: info
-
 --- # 개발 환경
 spring:
   config:
@@ -31,6 +31,7 @@ logging:
       max-file-size: 10MB
       max-history: 30
       total-size-cap: 500MB
+
 --- # 운영 환경
 spring:
   config:

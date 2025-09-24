@@ -4,7 +4,7 @@ Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-    "blockedUserId": 13
+    "blockedUserId": 3
 }
 
 ### 1-1. 차단 목록 조회 (차단이 제대로 되었는지 확인)

@@ -1,6 +1,6 @@
 package app.bottlenote.review.facade.payload;
 
-import app.bottlenote.common.block.annotation.BlockWord;
+import app.bottlenote.shared.annotation.BlockWord;
 
 public record UserInfo(
     Long userId, @BlockWord(value = "차단된 사용자입니다") String nickName, String userProfileImage) {
