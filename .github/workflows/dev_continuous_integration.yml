@@ -97,7 +97,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: unit-test-results
+          name: unit-test-results-${{ github.run_number }}
           path: |
             */build/reports/tests/unit_test/
             */build/test-results/unit_test/
@@ -143,7 +143,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: rule-test-results
+          name: rule-test-results-${{ github.run_number }}
           path: |
             */build/reports/tests/check_rule_test/
             */build/test-results/check_rule_test/
@@ -199,7 +199,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: integration-test-results
+          name: integration-test-results-${{ github.run_number }}
           path: |
             */build/reports/tests/integration_test/
             */build/test-results/integration_test/
@@ -208,6 +208,10 @@ jobs:
     needs: [unit-tests, rule-tests, integration-tests]
     timeout-minutes: 10
     runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
+      pull-requests: write
     steps:
       - name: checkout code
         uses: actions/checkout@v4
@@ -251,4 +255,4 @@ jobs:
         uses: mikepenz/action-junit-report@v3
         if: always()
         with:
-          report_paths: '**/TEST-*.xml'
+          report_paths: '**/build/test-results/**/TEST-*.xml'
