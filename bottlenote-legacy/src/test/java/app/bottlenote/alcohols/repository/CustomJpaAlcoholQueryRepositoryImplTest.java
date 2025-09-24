@@ -1,6 +1,6 @@
 package app.bottlenote.alcohols.repository;
 
-import static app.bottlenote.shared.constant.alcohol.SearchSortType.REVIEW;
+import static app.bottlenote.shared.alcohols.constant.SearchSortType.REVIEW;
 import static app.bottlenote.shared.cursor.SortOrder.DESC;
 import static app.bottlenote.user.constant.SocialType.GOOGLE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,7 +19,7 @@ import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.review.domain.Review;
-import app.bottlenote.shared.constant.alcohol.AlcoholCategoryGroup;
+import app.bottlenote.shared.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.shared.cursor.CursorPageable;
 import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.user.constant.UserType;

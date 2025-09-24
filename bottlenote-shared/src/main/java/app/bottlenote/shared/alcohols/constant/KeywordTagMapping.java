@@ -1,4 +1,4 @@
-package app.bottlenote.shared.constant.alcohol;
+package app.bottlenote.shared.alcohols.constant;
 
 import java.util.Arrays;
 import java.util.List;

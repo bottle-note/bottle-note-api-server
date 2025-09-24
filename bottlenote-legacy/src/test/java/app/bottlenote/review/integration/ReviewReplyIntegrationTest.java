@@ -1,6 +1,6 @@
 package app.bottlenote.review.integration;
 
-import static app.bottlenote.review.constant.ReviewReplyStatus.DELETED;
+import static app.bottlenote.shared.review.constant.ReviewReplyStatus.DELETED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -11,8 +11,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.IntegrationTestSupport;
-import app.bottlenote.review.constant.ReviewReplyResultMessage;
-import app.bottlenote.review.constant.ReviewReplyStatus;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewReplyRepository;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
@@ -20,6 +18,8 @@ import app.bottlenote.review.dto.response.ReviewReplyResponse;
 import app.bottlenote.review.dto.response.RootReviewReplyResponse;
 import app.bottlenote.review.dto.response.SubReviewReplyResponse;
 import app.bottlenote.shared.data.response.GlobalResponse;
+import app.bottlenote.shared.review.constant.ReviewReplyResultMessage;
+import app.bottlenote.shared.review.constant.ReviewReplyStatus;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

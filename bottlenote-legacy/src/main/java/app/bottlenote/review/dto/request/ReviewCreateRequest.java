@@ -1,7 +1,7 @@
 package app.bottlenote.review.dto.request;
 
-import app.bottlenote.review.constant.ReviewDisplayStatus;
-import app.bottlenote.review.constant.SizeType;
+import app.bottlenote.shared.review.constant.ReviewDisplayStatus;
+import app.bottlenote.shared.review.constant.SizeType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;

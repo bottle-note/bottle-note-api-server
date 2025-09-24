@@ -14,7 +14,7 @@ import static org.springframework.restdocs.request.RequestDocumentation.paramete
 import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.bottlenote.alcohols.domain.controller.AlcoholPopularQueryController;
+import app.bottlenote.alcohols.controller.AlcoholPopularQueryController;
 import app.bottlenote.alcohols.dto.response.PopularItem;
 import app.bottlenote.alcohols.service.AlcoholPopularService;
 import app.bottlenote.global.security.SecurityContextUtil;

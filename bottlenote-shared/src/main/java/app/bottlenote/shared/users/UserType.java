@@ -1,4 +1,4 @@
-package app.bottlenote.shared.constant.users;
+package app.bottlenote.shared.users;
 
 
 public enum UserType {

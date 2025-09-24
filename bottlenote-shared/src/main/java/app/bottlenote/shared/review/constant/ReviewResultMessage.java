@@ -1,4 +1,4 @@
-package app.bottlenote.review.constant;
+package app.bottlenote.shared.review.constant;
 
 import lombok.Getter;
 

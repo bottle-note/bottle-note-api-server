@@ -1,12 +1,12 @@
 package app.bottlenote.review.fixture;
 
-import app.bottlenote.review.constant.ReviewReplyResultMessage;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
 import app.bottlenote.review.dto.response.RootReviewReplyResponse;
 import app.bottlenote.review.dto.response.SubReviewReplyResponse.Item;
+import app.bottlenote.shared.review.constant.ReviewReplyResultMessage;
 import app.bottlenote.user.domain.User;
 import java.time.LocalDateTime;
 import java.util.ArrayList;

@@ -1,8 +1,6 @@
 package app.bottlenote.review.fixture;
 
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
-import app.bottlenote.review.constant.ReviewDisplayStatus;
-import app.bottlenote.review.constant.SizeType;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewLocation;
 import app.bottlenote.review.dto.request.LocationInfoRequest;
@@ -16,6 +14,8 @@ import app.bottlenote.review.facade.payload.ReviewInfo;
 import app.bottlenote.review.facade.payload.UserInfo;
 import app.bottlenote.shared.cursor.CursorPageable;
 import app.bottlenote.shared.cursor.PageResponse;
+import app.bottlenote.shared.review.constant.ReviewDisplayStatus;
+import app.bottlenote.shared.review.constant.SizeType;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;

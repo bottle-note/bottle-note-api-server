@@ -1,7 +1,7 @@
 package app.bottlenote.rating.dto.request;
 
 import app.bottlenote.rating.constant.SearchSortType;
-import app.bottlenote.shared.constant.alcohol.AlcoholCategoryGroup;
+import app.bottlenote.shared.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.shared.cursor.SortOrder;
 import lombok.Builder;
 

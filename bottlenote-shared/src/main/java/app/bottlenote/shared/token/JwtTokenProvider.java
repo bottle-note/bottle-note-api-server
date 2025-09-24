@@ -1,6 +1,6 @@
 package app.bottlenote.shared.token;
 
-import app.bottlenote.shared.constant.users.UserType;
+import app.bottlenote.shared.users.UserType;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

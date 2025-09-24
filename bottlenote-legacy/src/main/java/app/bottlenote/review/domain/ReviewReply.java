@@ -1,7 +1,7 @@
 package app.bottlenote.review.domain;
 
 import app.bottlenote.core.common.domain.BaseEntity;
-import app.bottlenote.review.constant.ReviewReplyStatus;
+import app.bottlenote.shared.review.constant.ReviewReplyStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

@@ -3,8 +3,6 @@ package app.bottlenote.review.repository;
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.like.domain.QLikes.likes;
 import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.constant.ReviewActiveStatus.ACTIVE;
-import static app.bottlenote.review.constant.ReviewDisplayStatus.PUBLIC;
 import static app.bottlenote.review.domain.QReview.review;
 import static app.bottlenote.review.domain.QReviewImage.reviewImage;
 import static app.bottlenote.review.domain.QReviewReply.reviewReply;
@@ -17,6 +15,8 @@ import static app.bottlenote.review.repository.ReviewQuerySupporter.hasReplyByMe
 import static app.bottlenote.review.repository.ReviewQuerySupporter.isLikeByMeSubquery;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.isMyReview;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.sortBy;
+import static app.bottlenote.shared.review.constant.ReviewActiveStatus.ACTIVE;
+import static app.bottlenote.shared.review.constant.ReviewDisplayStatus.PUBLIC;
 import static app.bottlenote.user.domain.QUser.user;
 
 import app.bottlenote.like.constant.LikeStatus;

@@ -1,7 +1,7 @@
 package app.bottlenote.support.report.integration;
 
-import static app.bottlenote.review.constant.ReviewActiveStatus.ACTIVE;
-import static app.bottlenote.review.constant.ReviewActiveStatus.DISABLED;
+import static app.bottlenote.shared.review.constant.ReviewActiveStatus.ACTIVE;
+import static app.bottlenote.shared.review.constant.ReviewActiveStatus.DISABLED;
 import static app.bottlenote.support.report.constant.ReviewReportType.ADVERTISEMENT;
 import static app.bottlenote.support.report.dto.response.UserReportResponse.UserReportResponseEnum.SUCCESS;
 import static app.bottlenote.support.report.exception.ReportExceptionCode.ALREADY_REPORTED_REVIEW;

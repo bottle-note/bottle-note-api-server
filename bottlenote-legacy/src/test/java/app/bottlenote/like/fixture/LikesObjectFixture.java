@@ -1,6 +1,6 @@
 package app.bottlenote.like.fixture;
 
-import static app.bottlenote.review.constant.ReviewDisplayStatus.PUBLIC;
+import static app.bottlenote.shared.review.constant.ReviewDisplayStatus.PUBLIC;
 
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.user.domain.User;

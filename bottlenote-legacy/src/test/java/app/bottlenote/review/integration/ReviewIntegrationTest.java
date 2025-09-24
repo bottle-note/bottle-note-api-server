@@ -15,8 +15,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.IntegrationTestSupport;
-import app.bottlenote.review.constant.ReviewDisplayStatus;
-import app.bottlenote.review.constant.ReviewResultMessage;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
@@ -30,6 +28,8 @@ import app.bottlenote.review.fixture.ReviewObjectFixture;
 import app.bottlenote.shared.data.response.Error;
 import app.bottlenote.shared.data.response.GlobalResponse;
 import app.bottlenote.shared.exception.custom.code.ValidExceptionCode;
+import app.bottlenote.shared.review.constant.ReviewDisplayStatus;
+import app.bottlenote.shared.review.constant.ReviewResultMessage;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;

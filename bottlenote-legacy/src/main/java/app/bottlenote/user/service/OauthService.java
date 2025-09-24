@@ -135,7 +135,7 @@ public class OauthService {
     TokenItem token =
         tokenProvider.generateToken(
             user.getEmail(),
-            app.bottlenote.shared.constant.users.UserType.valueOf(user.getRole().name()),
+            app.bottlenote.shared.users.UserType.valueOf(user.getRole().name()),
             user.getId());
     user.updateRefreshToken(token.refreshToken());
     return token;
@@ -226,7 +226,7 @@ public class OauthService {
     TokenItem reissuedToken =
         tokenProvider.generateToken(
             user.getEmail(),
-            app.bottlenote.shared.constant.users.UserType.valueOf(user.getRole().name()),
+            app.bottlenote.shared.users.UserType.valueOf(user.getRole().name()),
             user.getId());
 
     // DB에 저장된 refresh 토큰을 재발급한 refresh 토큰으로 업데이트
@@ -261,7 +261,7 @@ public class OauthService {
     TokenItem token =
         tokenProvider.generateToken(
             user.getEmail(),
-            app.bottlenote.shared.constant.users.UserType.valueOf(user.getRole().name()),
+            app.bottlenote.shared.users.UserType.valueOf(user.getRole().name()),
             user.getId());
     user.updateRefreshToken(token.refreshToken());
 
@@ -295,7 +295,7 @@ public class OauthService {
     TokenItem token =
         tokenProvider.generateToken(
             user.getEmail(),
-            app.bottlenote.shared.constant.users.UserType.valueOf(user.getRole().name()),
+            app.bottlenote.shared.users.UserType.valueOf(user.getRole().name()),
             user.getId());
     user.updateRefreshToken(token.refreshToken());
     return token;

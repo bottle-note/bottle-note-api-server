@@ -1,7 +1,7 @@
-package app.bottlenote.alcohols.domain.controller;
+package app.bottlenote.alcohols.controller;
 
 import app.bottlenote.alcohols.service.AlcoholReferenceService;
-import app.bottlenote.shared.constant.alcohol.AlcoholType;
+import app.bottlenote.shared.alcohols.constant.AlcoholType;
 import app.bottlenote.shared.data.response.GlobalResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

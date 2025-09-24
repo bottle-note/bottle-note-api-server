@@ -1,4 +1,4 @@
-package app.bottlenote.review.constant;
+package app.bottlenote.shared.alcohols.constant;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import java.util.stream.Stream;
@@ -7,21 +7,20 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum ReviewSortType {
+public enum SearchSortType {
   POPULAR("인기순"),
-  LIKES("좋아요순"),
   RATING("별점순"),
-  BOTTLE_PRICE("보틀 가격"),
-  GLASS_PRICE("잔 가격");
+  PICK("찜순"),
+  REVIEW("리뷰순");
 
   private final String name;
 
   @JsonCreator
-  public static ReviewSortType parsing(String source) {
+  public static SearchSortType parsing(String source) {
     if (source == null || source.isEmpty()) {
       return null;
     }
-    return Stream.of(ReviewSortType.values())
+    return Stream.of(SearchSortType.values())
         .filter(sortType -> sortType.toString().equals(source.toUpperCase()))
         .findFirst()
         .orElse(POPULAR);

@@ -32,7 +32,7 @@ import app.bottlenote.rating.dto.response.UserRatingResponse;
 import app.bottlenote.rating.fixture.RatingObjectFixture;
 import app.bottlenote.rating.service.RatingCommandService;
 import app.bottlenote.rating.service.RatingQueryService;
-import app.bottlenote.shared.constant.alcohol.AlcoholCategoryGroup;
+import app.bottlenote.shared.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.shared.cursor.CursorPageable;
 import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.user.domain.User;

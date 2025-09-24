@@ -1,17 +1,16 @@
 package app.bottlenote.review.service;
 
-import static app.bottlenote.review.constant.ReviewActiveStatus.DELETED;
-import static app.bottlenote.review.constant.ReviewDisplayStatus.PUBLIC;
-import static app.bottlenote.review.constant.ReviewResultMessage.MODIFY_SUCCESS;
-import static app.bottlenote.review.constant.ReviewResultMessage.PRIVATE_SUCCESS;
-import static app.bottlenote.review.constant.ReviewResultMessage.PUBLIC_SUCCESS;
 import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
+import static app.bottlenote.shared.review.constant.ReviewActiveStatus.DELETED;
+import static app.bottlenote.shared.review.constant.ReviewDisplayStatus.PUBLIC;
+import static app.bottlenote.shared.review.constant.ReviewResultMessage.MODIFY_SUCCESS;
+import static app.bottlenote.shared.review.constant.ReviewResultMessage.PRIVATE_SUCCESS;
+import static app.bottlenote.shared.review.constant.ReviewResultMessage.PUBLIC_SUCCESS;
 
 import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.rating.domain.RatingPoint;
-import app.bottlenote.review.constant.ReviewResultMessage;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewLocation;
 import app.bottlenote.review.domain.ReviewRepository;
@@ -28,6 +27,7 @@ import app.bottlenote.review.event.payload.ReviewRegistryEvent;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 import app.bottlenote.shared.cursor.PageResponse;
+import app.bottlenote.shared.review.constant.ReviewResultMessage;
 import app.bottlenote.user.facade.UserFacade;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

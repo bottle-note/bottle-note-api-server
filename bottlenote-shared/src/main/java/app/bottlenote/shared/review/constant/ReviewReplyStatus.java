@@ -1,4 +1,4 @@
-package app.bottlenote.review.constant;
+package app.bottlenote.shared.review.constant;
 
 public enum ReviewReplyStatus {
   NORMAL("정상적인 댓글입니다."),

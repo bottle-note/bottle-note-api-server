@@ -12,7 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.bottlenote.alcohols.domain.controller.AlcoholReferenceController;
+import app.bottlenote.alcohols.controller.AlcoholReferenceController;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.dto.response.RegionsItem;
 import app.bottlenote.alcohols.fixture.AlcoholQueryFixture;

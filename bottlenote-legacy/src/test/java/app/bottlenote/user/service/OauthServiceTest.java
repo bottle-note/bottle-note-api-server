@@ -83,7 +83,7 @@ class OauthServiceTest {
     reissueRefreshToken =
         jwtTokenProvider.createRefreshToken(
             "cdm2883@naver.com",
-            app.bottlenote.shared.constant.users.UserType.valueOf(UserType.ROLE_USER.name()),
+            app.bottlenote.shared.users.UserType.valueOf(UserType.ROLE_USER.name()),
             1L);
 
     // 각 테스트 전에 Repository 상태 초기화

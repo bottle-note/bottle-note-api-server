@@ -1,7 +1,7 @@
 package app.bottlenote.review.dto.request;
 
-import app.bottlenote.review.constant.ReviewDisplayStatus;
-import app.bottlenote.review.constant.SizeType;
+import app.bottlenote.shared.review.constant.ReviewDisplayStatus;
+import app.bottlenote.shared.review.constant.SizeType;
 import java.math.BigDecimal;
 import java.util.Objects;
 import lombok.Getter;

@@ -125,7 +125,7 @@ public abstract class IntegrationTestSupport {
     TokenItem token =
         jwtTokenProvider.generateToken(
             user.getEmail(),
-            app.bottlenote.shared.constant.users.UserType.valueOf(user.getRole().name()),
+            app.bottlenote.shared.users.UserType.valueOf(user.getRole().name()),
             user.getId());
     return token.accessToken();
   }
@@ -145,7 +145,7 @@ public abstract class IntegrationTestSupport {
     TokenItem token =
         jwtTokenProvider.generateToken(
             user.getEmail(),
-            app.bottlenote.shared.constant.users.UserType.valueOf(user.getRole().name()),
+            app.bottlenote.shared.users.UserType.valueOf(user.getRole().name()),
             user.getId());
     return token.accessToken();
   }

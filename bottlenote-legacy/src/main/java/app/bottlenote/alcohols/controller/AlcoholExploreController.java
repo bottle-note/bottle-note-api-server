@@ -1,4 +1,4 @@
-package app.bottlenote.alcohols.domain.controller;
+package app.bottlenote.alcohols.controller;
 
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
