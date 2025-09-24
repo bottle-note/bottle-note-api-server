@@ -1,7 +1,7 @@
 package app.bottlenote.support.business.domain;
 
-import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.common.image.ImageInfo;
+import app.bottlenote.core.common.domain.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;

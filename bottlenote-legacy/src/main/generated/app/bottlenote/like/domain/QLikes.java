@@ -25,7 +25,7 @@ public class QLikes extends EntityPathBase<Likes> {
 
     public static final QLikes likes = new QLikes("likes");
 
-    public final app.bottlenote.common.domain.QBaseEntity _super = new app.bottlenote.common.domain.QBaseEntity(this);
+    public final app.bottlenote.core.common.domain.QBaseEntity _super = new app.bottlenote.core.common.domain.QBaseEntity(this);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createAt = _super.createAt;

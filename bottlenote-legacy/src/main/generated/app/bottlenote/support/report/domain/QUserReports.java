@@ -25,7 +25,7 @@ public class QUserReports extends EntityPathBase<UserReports> {
 
     public static final QUserReports userReports = new QUserReports("userReports");
 
-    public final app.bottlenote.common.domain.QBaseEntity _super = new app.bottlenote.common.domain.QBaseEntity(this);
+    public final app.bottlenote.core.common.domain.QBaseEntity _super = new app.bottlenote.core.common.domain.QBaseEntity(this);
 
     public final NumberPath<Long> adminId = createNumber("adminId", Long.class);
 

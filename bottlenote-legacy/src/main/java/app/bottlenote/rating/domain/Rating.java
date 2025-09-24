@@ -2,7 +2,7 @@ package app.bottlenote.rating.domain;
 
 import static lombok.AccessLevel.PROTECTED;
 
-import app.bottlenote.common.domain.BaseEntity;
+import app.bottlenote.core.common.domain.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Embedded;

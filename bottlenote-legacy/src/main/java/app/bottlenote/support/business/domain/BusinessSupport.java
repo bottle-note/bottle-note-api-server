@@ -1,6 +1,6 @@
 package app.bottlenote.support.business.domain;
 
-import app.bottlenote.common.domain.BaseEntity;
+import app.bottlenote.core.common.domain.BaseEntity;
 import app.bottlenote.support.business.constant.BusinessSupportType;
 import app.bottlenote.support.business.dto.request.BusinessImageItem;
 import app.bottlenote.support.constant.StatusType;

@@ -1,6 +1,6 @@
 package app.external.notification.domain;
 
-import app.bottlenote.common.domain.BaseEntity;
+import app.bottlenote.core.common.domain.BaseEntity;
 import app.external.notification.domain.constant.NotificationCategory;
 import app.external.notification.domain.constant.NotificationStatus;
 import app.external.notification.domain.constant.NotificationType;

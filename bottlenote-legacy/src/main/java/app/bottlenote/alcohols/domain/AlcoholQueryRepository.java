@@ -6,11 +6,11 @@ import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
-import app.bottlenote.core.structure.Pair;
 import app.bottlenote.shared.cursor.CursorResponse;
 import app.bottlenote.shared.cursor.PageResponse;
 import java.util.List;
 import java.util.Optional;
+import org.apache.commons.lang3.tuple.Pair;
 
 /** 알코올 조회 질의에 관한 애그리거트를 정의합니다. */
 public interface AlcoholQueryRepository {

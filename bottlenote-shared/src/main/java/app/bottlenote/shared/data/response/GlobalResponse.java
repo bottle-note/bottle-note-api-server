@@ -3,7 +3,6 @@ package app.bottlenote.shared.data.response;
 import static app.bottlenote.shared.meta.MetaService.createMetaInfo;
 import static java.util.Collections.emptyList;
 
-import app.bottlenote.core.structure.Pair;
 import app.bottlenote.shared.exception.custom.AbstractCustomException;
 import app.bottlenote.shared.cursor.CursorResponse;
 import app.bottlenote.shared.meta.MetaInfos;
@@ -16,6 +15,7 @@ import java.util.Set;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -58,8 +58,8 @@ public class GlobalResponse {
 
 	public static <T, P> ResponseEntity<?> ok(
 		Pair<Long, CursorResponse<T>> pair, P searchParameters) {
-		Long totalCount = pair.first();
-		CursorResponse<T> items = pair.second();
+		Long totalCount = pair.getLeft();
+		CursorResponse<T> items = pair.getRight();
 		CollectionResponse<T> response = CollectionResponse.of(totalCount, items);
 		MetaInfos metaInfos = MetaService.createMetaInfo();
 		metaInfos.add("pageable", items.pageable());

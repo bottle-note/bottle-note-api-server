@@ -2,7 +2,7 @@ package app.bottlenote.alcohols.domain;
 
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.AlcoholType;
-import app.bottlenote.common.domain.BaseEntity;
+import app.bottlenote.core.common.domain.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

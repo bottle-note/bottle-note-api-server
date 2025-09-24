@@ -23,7 +23,7 @@ public class QDistillery extends EntityPathBase<Distillery> {
 
     public static final QDistillery distillery = new QDistillery("distillery");
 
-    public final app.bottlenote.common.domain.QBaseEntity _super = new app.bottlenote.common.domain.QBaseEntity(this);
+    public final app.bottlenote.core.common.domain.QBaseEntity _super = new app.bottlenote.core.common.domain.QBaseEntity(this);
 
     public final ListPath<Alcohol, QAlcohol> alcohol = this.<Alcohol, QAlcohol>createList("alcohol", Alcohol.class, QAlcohol.class, PathInits.DIRECT2);
 

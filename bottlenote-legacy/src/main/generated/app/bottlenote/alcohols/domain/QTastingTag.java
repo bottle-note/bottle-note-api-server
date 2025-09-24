@@ -23,7 +23,7 @@ public class QTastingTag extends EntityPathBase<TastingTag> {
 
     public static final QTastingTag tastingTag = new QTastingTag("tastingTag");
 
-    public final app.bottlenote.common.domain.QBaseEntity _super = new app.bottlenote.common.domain.QBaseEntity(this);
+    public final app.bottlenote.core.common.domain.QBaseEntity _super = new app.bottlenote.core.common.domain.QBaseEntity(this);
 
     public final ListPath<AlcoholsTastingTags, QAlcoholsTastingTags> alcoholsTastingTags = this.<AlcoholsTastingTags, QAlcoholsTastingTags>createList("alcoholsTastingTags", AlcoholsTastingTags.class, QAlcoholsTastingTags.class, PathInits.DIRECT2);
 

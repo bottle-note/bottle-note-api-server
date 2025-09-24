@@ -23,7 +23,7 @@ public class QUser extends EntityPathBase<User> {
 
     public static final QUser user = new QUser("user");
 
-    public final app.bottlenote.common.domain.QBaseTimeEntity _super = new app.bottlenote.common.domain.QBaseTimeEntity(this);
+    public final app.bottlenote.core.common.domain.QBaseTimeEntity _super = new app.bottlenote.core.common.domain.QBaseTimeEntity(this);
 
     public final NumberPath<Integer> age = createNumber("age", Integer.class);
 

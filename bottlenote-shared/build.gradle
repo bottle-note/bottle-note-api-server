@@ -1,8 +1,5 @@
 //shared
 dependencies {
-	// Core 모듈 의존 (Pair, Triple 사용)
-	implementation project(':bottlenote-core')
-
 	// JWT 완전 패키지
 	implementation libs.bundles.jwt.complete
 

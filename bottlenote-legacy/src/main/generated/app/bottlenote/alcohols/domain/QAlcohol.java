@@ -25,7 +25,7 @@ public class QAlcohol extends EntityPathBase<Alcohol> {
 
     public static final QAlcohol alcohol = new QAlcohol("alcohol");
 
-    public final app.bottlenote.common.domain.QBaseEntity _super = new app.bottlenote.common.domain.QBaseEntity(this);
+    public final app.bottlenote.core.common.domain.QBaseEntity _super = new app.bottlenote.core.common.domain.QBaseEntity(this);
 
     public final StringPath abv = createString("abv");
 

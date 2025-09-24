@@ -22,7 +22,7 @@ public class QPicks extends EntityPathBase<Picks> {
 
     public static final QPicks picks = new QPicks("picks");
 
-    public final app.bottlenote.common.domain.QBaseTimeEntity _super = new app.bottlenote.common.domain.QBaseTimeEntity(this);
+    public final app.bottlenote.core.common.domain.QBaseTimeEntity _super = new app.bottlenote.core.common.domain.QBaseTimeEntity(this);
 
     public final NumberPath<Long> alcoholId = createNumber("alcoholId", Long.class);
 

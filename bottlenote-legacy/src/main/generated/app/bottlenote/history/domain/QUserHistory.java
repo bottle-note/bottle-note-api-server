@@ -22,7 +22,7 @@ public class QUserHistory extends EntityPathBase<UserHistory> {
 
     public static final QUserHistory userHistory = new QUserHistory("userHistory");
 
-    public final app.bottlenote.common.domain.QBaseEntity _super = new app.bottlenote.common.domain.QBaseEntity(this);
+    public final app.bottlenote.core.common.domain.QBaseEntity _super = new app.bottlenote.core.common.domain.QBaseEntity(this);
 
     public final NumberPath<Long> alcoholId = createNumber("alcoholId", Long.class);
 

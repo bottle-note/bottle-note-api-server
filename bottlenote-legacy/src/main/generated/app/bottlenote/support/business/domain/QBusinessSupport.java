@@ -25,7 +25,7 @@ public class QBusinessSupport extends EntityPathBase<BusinessSupport> {
 
     public static final QBusinessSupport businessSupport = new QBusinessSupport("businessSupport");
 
-    public final app.bottlenote.common.domain.QBaseEntity _super = new app.bottlenote.common.domain.QBaseEntity(this);
+    public final app.bottlenote.core.common.domain.QBaseEntity _super = new app.bottlenote.core.common.domain.QBaseEntity(this);
 
     public final NumberPath<Long> adminId = createNumber("adminId", Long.class);
 

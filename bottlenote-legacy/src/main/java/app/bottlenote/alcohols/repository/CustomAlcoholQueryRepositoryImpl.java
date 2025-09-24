@@ -14,7 +14,6 @@ import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
-import app.bottlenote.core.structure.Pair;
 import app.bottlenote.shared.cursor.CursorPageable;
 import app.bottlenote.shared.cursor.CursorResponse;
 import app.bottlenote.shared.cursor.PageResponse;
@@ -25,6 +24,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
 
 @AllArgsConstructor
 public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepository {

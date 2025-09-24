@@ -1,8 +1,8 @@
 package app.bottlenote.review.domain;
 
-import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.common.image.ImageInfo;
 import app.bottlenote.common.image.ImageUtil;
+import app.bottlenote.core.common.domain.BaseEntity;
 import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.constant.ReviewResultMessage;

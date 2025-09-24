@@ -22,7 +22,7 @@ public class QRegion extends EntityPathBase<Region> {
 
     public static final QRegion region = new QRegion("region");
 
-    public final app.bottlenote.common.domain.QBaseEntity _super = new app.bottlenote.common.domain.QBaseEntity(this);
+    public final app.bottlenote.core.common.domain.QBaseEntity _super = new app.bottlenote.core.common.domain.QBaseEntity(this);
 
     public final StringPath continent = createString("continent");
 

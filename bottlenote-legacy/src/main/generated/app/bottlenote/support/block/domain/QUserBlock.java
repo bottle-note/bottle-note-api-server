@@ -22,7 +22,7 @@ public class QUserBlock extends EntityPathBase<UserBlock> {
 
     public static final QUserBlock userBlock = new QUserBlock("userBlock");
 
-    public final app.bottlenote.common.domain.QBaseTimeEntity _super = new app.bottlenote.common.domain.QBaseTimeEntity(this);
+    public final app.bottlenote.core.common.domain.QBaseTimeEntity _super = new app.bottlenote.core.common.domain.QBaseTimeEntity(this);
 
     public final NumberPath<Long> blockedId = createNumber("blockedId", Long.class);
 

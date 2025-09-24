@@ -1,8 +1,8 @@
 package app.bottlenote.alcohols.facade;
 
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
-import app.bottlenote.core.structure.Pair;
 import java.util.Optional;
+import org.apache.commons.lang3.tuple.Pair;
 
 public interface AlcoholFacade {
 

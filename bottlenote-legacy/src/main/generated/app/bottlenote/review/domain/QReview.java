@@ -25,7 +25,7 @@ public class QReview extends EntityPathBase<Review> {
 
     public static final QReview review = new QReview("review");
 
-    public final app.bottlenote.common.domain.QBaseEntity _super = new app.bottlenote.common.domain.QBaseEntity(this);
+    public final app.bottlenote.core.common.domain.QBaseEntity _super = new app.bottlenote.core.common.domain.QBaseEntity(this);
 
     public final EnumPath<app.bottlenote.review.constant.ReviewActiveStatus> activeStatus = createEnum("activeStatus", app.bottlenote.review.constant.ReviewActiveStatus.class);
 

@@ -1,6 +1,6 @@
 package app.bottlenote.alcohols.domain;
 
-import app.bottlenote.common.domain.BaseTimeEntity;
+import app.bottlenote.core.common.domain.BaseTimeEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;

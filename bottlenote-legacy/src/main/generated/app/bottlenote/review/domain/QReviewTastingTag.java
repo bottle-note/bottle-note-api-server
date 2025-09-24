@@ -25,7 +25,7 @@ public class QReviewTastingTag extends EntityPathBase<ReviewTastingTag> {
 
     public static final QReviewTastingTag reviewTastingTag = new QReviewTastingTag("reviewTastingTag");
 
-    public final app.bottlenote.common.domain.QBaseTimeEntity _super = new app.bottlenote.common.domain.QBaseTimeEntity(this);
+    public final app.bottlenote.core.common.domain.QBaseTimeEntity _super = new app.bottlenote.core.common.domain.QBaseTimeEntity(this);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createAt = _super.createAt;

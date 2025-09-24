@@ -25,7 +25,7 @@ public class QHelp extends EntityPathBase<Help> {
 
     public static final QHelp help = new QHelp("help");
 
-    public final app.bottlenote.common.domain.QBaseEntity _super = new app.bottlenote.common.domain.QBaseEntity(this);
+    public final app.bottlenote.core.common.domain.QBaseEntity _super = new app.bottlenote.core.common.domain.QBaseEntity(this);
 
     public final NumberPath<Long> adminId = createNumber("adminId", Long.class);
 

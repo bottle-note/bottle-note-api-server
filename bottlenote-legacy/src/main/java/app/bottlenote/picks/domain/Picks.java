@@ -2,7 +2,7 @@ package app.bottlenote.picks.domain;
 
 import static lombok.AccessLevel.PROTECTED;
 
-import app.bottlenote.common.domain.BaseTimeEntity;
+import app.bottlenote.core.common.domain.BaseTimeEntity;
 import app.bottlenote.picks.constant.PicksStatus;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

@@ -1,6 +1,6 @@
 package app.bottlenote.review.domain;
 
-import app.bottlenote.common.domain.BaseTimeEntity;
+import app.bottlenote.core.common.domain.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

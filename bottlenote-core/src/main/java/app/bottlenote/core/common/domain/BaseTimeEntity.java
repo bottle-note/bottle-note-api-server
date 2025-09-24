@@ -1,4 +1,4 @@
-package app.bottlenote.common.domain;
+package app.bottlenote.core.common.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

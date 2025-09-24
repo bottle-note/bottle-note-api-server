@@ -2,7 +2,7 @@ package app.bottlenote.like.domain;
 
 import static lombok.AccessLevel.PROTECTED;
 
-import app.bottlenote.common.domain.BaseEntity;
+import app.bottlenote.core.common.domain.BaseEntity;
 import app.bottlenote.like.constant.LikeStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;

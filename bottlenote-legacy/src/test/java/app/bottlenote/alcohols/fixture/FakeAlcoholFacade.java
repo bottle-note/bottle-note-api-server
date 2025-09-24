@@ -5,11 +5,11 @@ import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
-import app.bottlenote.core.structure.Pair;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

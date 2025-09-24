@@ -22,7 +22,7 @@ public class QNotification extends EntityPathBase<Notification> {
 
     public static final QNotification notification = new QNotification("notification");
 
-    public final app.bottlenote.common.domain.QBaseEntity _super = new app.bottlenote.common.domain.QBaseEntity(this);
+    public final app.bottlenote.core.common.domain.QBaseEntity _super = new app.bottlenote.core.common.domain.QBaseEntity(this);
 
     public final EnumPath<app.external.notification.domain.constant.NotificationCategory> category = createEnum("category", app.external.notification.domain.constant.NotificationCategory.class);
 

@@ -25,7 +25,7 @@ public class QReviewReply extends EntityPathBase<ReviewReply> {
 
     public static final QReviewReply reviewReply = new QReviewReply("reviewReply");
 
-    public final app.bottlenote.common.domain.QBaseEntity _super = new app.bottlenote.common.domain.QBaseEntity(this);
+    public final app.bottlenote.core.common.domain.QBaseEntity _super = new app.bottlenote.core.common.domain.QBaseEntity(this);
 
     public final StringPath content = createString("content");
 

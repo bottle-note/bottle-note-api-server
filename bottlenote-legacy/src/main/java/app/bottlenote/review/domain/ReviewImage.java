@@ -1,7 +1,7 @@
 package app.bottlenote.review.domain;
 
-import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.common.image.ImageInfo;
+import app.bottlenote.core.common.domain.BaseEntity;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

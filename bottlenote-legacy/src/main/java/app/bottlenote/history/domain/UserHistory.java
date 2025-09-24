@@ -1,8 +1,8 @@
 package app.bottlenote.history.domain;
 
-import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.common.exception.CommonException;
 import app.bottlenote.common.exception.CommonExceptionCode;
+import app.bottlenote.core.common.domain.BaseEntity;
 import app.bottlenote.history.constant.EventCategory;
 import app.bottlenote.history.constant.EventType;
 import io.hypersistence.utils.hibernate.type.json.JsonType;

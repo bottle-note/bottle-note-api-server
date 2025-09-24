@@ -1,6 +1,6 @@
 package app.bottlenote.user.domain;
 
-import app.bottlenote.common.domain.BaseTimeEntity;
+import app.bottlenote.core.common.domain.BaseTimeEntity;
 import app.bottlenote.global.service.converter.JsonArrayConverter;
 import app.bottlenote.user.constant.GenderType;
 import app.bottlenote.user.constant.SocialType;

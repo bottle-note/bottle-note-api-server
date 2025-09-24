@@ -25,7 +25,7 @@ public class QBusinessImage extends EntityPathBase<BusinessImage> {
 
     public static final QBusinessImage businessImage = new QBusinessImage("businessImage");
 
-    public final app.bottlenote.common.domain.QBaseEntity _super = new app.bottlenote.common.domain.QBaseEntity(this);
+    public final app.bottlenote.core.common.domain.QBaseEntity _super = new app.bottlenote.core.common.domain.QBaseEntity(this);
 
     public final app.bottlenote.common.image.QImageInfo businessImageInfo;
 

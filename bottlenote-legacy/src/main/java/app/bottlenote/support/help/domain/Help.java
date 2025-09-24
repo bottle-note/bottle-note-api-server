@@ -1,6 +1,6 @@
 package app.bottlenote.support.help.domain;
 
-import app.bottlenote.common.domain.BaseEntity;
+import app.bottlenote.core.common.domain.BaseEntity;
 import app.bottlenote.support.constant.StatusType;
 import app.bottlenote.support.help.constant.HelpType;
 import app.bottlenote.support.help.dto.request.HelpImageItem;

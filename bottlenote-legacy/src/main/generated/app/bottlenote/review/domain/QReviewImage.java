@@ -25,7 +25,7 @@ public class QReviewImage extends EntityPathBase<ReviewImage> {
 
     public static final QReviewImage reviewImage = new QReviewImage("reviewImage");
 
-    public final app.bottlenote.common.domain.QBaseEntity _super = new app.bottlenote.common.domain.QBaseEntity(this);
+    public final app.bottlenote.core.common.domain.QBaseEntity _super = new app.bottlenote.core.common.domain.QBaseEntity(this);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createAt = _super.createAt;
