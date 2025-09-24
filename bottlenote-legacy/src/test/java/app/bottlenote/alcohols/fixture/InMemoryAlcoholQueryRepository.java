@@ -8,13 +8,13 @@ import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
-import app.bottlenote.core.structure.Pair;
 import app.bottlenote.shared.cursor.CursorResponse;
 import app.bottlenote.shared.cursor.PageResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.commons.lang3.tuple.Pair;
 
 public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
 

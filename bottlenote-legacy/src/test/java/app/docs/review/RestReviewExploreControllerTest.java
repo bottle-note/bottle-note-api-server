@@ -11,7 +11,6 @@ import static org.springframework.restdocs.request.RequestDocumentation.queryPar
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.bottlenote.core.structure.Pair;
 import app.bottlenote.review.controller.ReviewExploreController;
 import app.bottlenote.review.dto.response.ReviewExploreItem;
 import app.bottlenote.review.facade.payload.UserInfo;
@@ -22,6 +21,7 @@ import app.docs.AbstractRestDocs;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

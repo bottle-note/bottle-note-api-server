@@ -15,11 +15,11 @@ import app.bottlenote.alcohols.controller.AlcoholExploreController;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.fixture.AlcoholQueryFixture;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
-import app.bottlenote.core.structure.Pair;
 import app.bottlenote.shared.cursor.CursorPageable;
 import app.bottlenote.shared.cursor.CursorResponse;
 import app.docs.AbstractRestDocs;
 import java.util.List;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
