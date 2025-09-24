@@ -35,7 +35,7 @@ public class QAlcohol extends EntityPathBase<Alcohol> {
 
     public final StringPath cask = createString("cask");
 
-    public final EnumPath<app.bottlenote.alcohols.constant.AlcoholCategoryGroup> categoryGroup = createEnum("categoryGroup", app.bottlenote.alcohols.constant.AlcoholCategoryGroup.class);
+    public final EnumPath<app.bottlenote.shared.constant.alcohol.AlcoholCategoryGroup> categoryGroup = createEnum("categoryGroup", app.bottlenote.shared.constant.alcohol.AlcoholCategoryGroup.class);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createAt = _super.createAt;
@@ -67,7 +67,7 @@ public class QAlcohol extends EntityPathBase<Alcohol> {
 
     public final QRegion region;
 
-    public final EnumPath<app.bottlenote.alcohols.constant.AlcoholType> type = createEnum("type", app.bottlenote.alcohols.constant.AlcoholType.class);
+    public final EnumPath<app.bottlenote.shared.constant.alcohol.AlcoholType> type = createEnum("type", app.bottlenote.shared.constant.alcohol.AlcoholType.class);
 
     public final StringPath volume = createString("volume");
 

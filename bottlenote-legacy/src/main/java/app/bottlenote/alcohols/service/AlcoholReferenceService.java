@@ -2,11 +2,11 @@ package app.bottlenote.alcohols.service;
 
 import static java.time.LocalDateTime.now;
 
-import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.dto.response.RegionsItem;
 import app.bottlenote.alcohols.repository.JpaRegionQueryRepository;
+import app.bottlenote.shared.constant.alcohol.AlcoholType;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

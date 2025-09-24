@@ -1,8 +1,8 @@
 package app.bottlenote.rating.dto.dsl;
 
-import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.rating.constant.SearchSortType;
 import app.bottlenote.rating.dto.request.RatingListFetchRequest;
+import app.bottlenote.shared.constant.alcohol.AlcoholCategoryGroup;
 import app.bottlenote.shared.cursor.SortOrder;
 
 public record RatingListFetchCriteria(

@@ -18,7 +18,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.rating.controller.RatingController;
@@ -33,6 +32,7 @@ import app.bottlenote.rating.dto.response.UserRatingResponse;
 import app.bottlenote.rating.fixture.RatingObjectFixture;
 import app.bottlenote.rating.service.RatingCommandService;
 import app.bottlenote.rating.service.RatingQueryService;
+import app.bottlenote.shared.constant.alcohol.AlcoholCategoryGroup;
 import app.bottlenote.shared.cursor.CursorPageable;
 import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.user.domain.User;

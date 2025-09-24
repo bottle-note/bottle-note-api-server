@@ -6,8 +6,8 @@ import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
 import static com.querydsl.jpa.JPAExpressions.select;
 
-import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.rating.constant.SearchSortType;
+import app.bottlenote.shared.constant.alcohol.AlcoholCategoryGroup;
 import app.bottlenote.shared.cursor.CursorPageable;
 import app.bottlenote.shared.cursor.SortOrder;
 import com.querydsl.core.types.Expression;

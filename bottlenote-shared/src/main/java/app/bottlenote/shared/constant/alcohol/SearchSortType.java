@@ -1,4 +1,4 @@
-package app.bottlenote.alcohols.constant;
+package app.bottlenote.shared.constant.alcohol;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import java.util.stream.Stream;

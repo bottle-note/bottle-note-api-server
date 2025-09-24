@@ -1,7 +1,7 @@
 package app.docs.alcohols;
 
-import static app.bottlenote.alcohols.constant.AlcoholCategoryGroup.SINGLE_MALT;
 import static app.bottlenote.review.fixture.ReviewObjectFixture.getReviewListResponse;
+import static app.bottlenote.shared.constant.alcohol.AlcoholCategoryGroup.SINGLE_MALT;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -14,7 +14,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.bottlenote.alcohols.controller.AlcoholQueryController;
+import app.bottlenote.alcohols.domain.controller.AlcoholQueryController;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;

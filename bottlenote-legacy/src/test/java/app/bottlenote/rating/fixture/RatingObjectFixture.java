@@ -1,8 +1,8 @@
 package app.bottlenote.rating.fixture;
 
-import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.rating.dto.request.RatingListFetchRequest;
 import app.bottlenote.rating.dto.response.RatingListFetchResponse;
+import app.bottlenote.shared.constant.alcohol.AlcoholCategoryGroup;
 import java.util.ArrayList;
 import java.util.List;
 

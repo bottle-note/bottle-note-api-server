@@ -1,13 +1,12 @@
 package app.bottlenote.alcohols.fixture;
 
-import static app.bottlenote.alcohols.constant.AlcoholCategoryGroup.BLEND;
-import static app.bottlenote.alcohols.constant.AlcoholCategoryGroup.BOURBON;
-import static app.bottlenote.alcohols.constant.AlcoholCategoryGroup.OTHER;
-import static app.bottlenote.alcohols.constant.AlcoholCategoryGroup.RYE;
-import static app.bottlenote.alcohols.constant.AlcoholCategoryGroup.SINGLE_MALT;
 import static app.bottlenote.review.constant.SizeType.GLASS;
+import static app.bottlenote.shared.constant.alcohol.AlcoholCategoryGroup.BLEND;
+import static app.bottlenote.shared.constant.alcohol.AlcoholCategoryGroup.BOURBON;
+import static app.bottlenote.shared.constant.alcohol.AlcoholCategoryGroup.OTHER;
+import static app.bottlenote.shared.constant.alcohol.AlcoholCategoryGroup.RYE;
+import static app.bottlenote.shared.constant.alcohol.AlcoholCategoryGroup.SINGLE_MALT;
 
-import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
@@ -17,6 +16,7 @@ import app.bottlenote.alcohols.dto.response.FriendsDetailResponse;
 import app.bottlenote.alcohols.dto.response.ReviewsDetailResponse;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 import app.bottlenote.review.facade.payload.UserInfo;
+import app.bottlenote.shared.constant.alcohol.SearchSortType;
 import app.bottlenote.shared.cursor.CursorPageable;
 import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.shared.cursor.SortOrder;

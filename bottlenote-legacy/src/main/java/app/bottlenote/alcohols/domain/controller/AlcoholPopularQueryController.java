@@ -1,4 +1,4 @@
-package app.bottlenote.alcohols.controller;
+package app.bottlenote.alcohols.domain.controller;
 
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 

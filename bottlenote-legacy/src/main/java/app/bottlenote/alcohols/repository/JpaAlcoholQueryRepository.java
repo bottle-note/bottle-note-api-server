@@ -1,9 +1,9 @@
 package app.bottlenote.alcohols.repository;
 
-import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
+import app.bottlenote.shared.constant.alcohol.AlcoholType;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -20,7 +20,7 @@ public interface JpaAlcoholQueryRepository
 			        where a.type = :type
 			        group by a.korCategory, a.engCategory,a.categoryGroup
 			        order by
-			        	case when a.categoryGroup = app.bottlenote.alcohols.constant.AlcoholCategoryGroup.OTHER then 1 else 0 end,a.korCategory
+			        	case when a.categoryGroup = app.bottlenote.shared.constant.alcohol.AlcoholCategoryGroup.OTHER then 1 else 0 end,a.korCategory
 			""")
   List<CategoryItem> findAllCategories(AlcoholType type);
 

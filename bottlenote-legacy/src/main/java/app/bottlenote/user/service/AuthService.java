@@ -157,7 +157,7 @@ public class AuthService {
     TokenItem token =
         tokenProvider.generateToken(
             user.getEmail(),
-            app.bottlenote.shared.users.UserType.valueOf(user.getRole().name()),
+            app.bottlenote.shared.constant.users.UserType.valueOf(user.getRole().name()),
             user.getId());
     user.updateRefreshToken(token.refreshToken());
     return token;

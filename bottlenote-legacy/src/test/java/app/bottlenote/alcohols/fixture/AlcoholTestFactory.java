@@ -1,13 +1,13 @@
 package app.bottlenote.alcohols.fixture;
 
-import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
-import app.bottlenote.alcohols.constant.AlcoholType;
-import app.bottlenote.alcohols.constant.KeywordTagMapping;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholsTastingTags;
 import app.bottlenote.alcohols.domain.Distillery;
 import app.bottlenote.alcohols.domain.Region;
 import app.bottlenote.alcohols.domain.TastingTag;
+import app.bottlenote.shared.constant.alcohol.AlcoholCategoryGroup;
+import app.bottlenote.shared.constant.alcohol.AlcoholType;
+import app.bottlenote.shared.constant.alcohol.KeywordTagMapping;
 import jakarta.persistence.EntityManager;
 import java.security.SecureRandom;
 import java.util.HashSet;
