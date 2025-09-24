@@ -7,26 +7,16 @@ on:
       - dev
 
 concurrency:
-  group: "dev-ci"
+  group: "dev-ci-${{ github.ref }}"
   cancel-in-progress: true
 
+env:
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=2"
+
 jobs:
-  dev_ci:
-    timeout-minutes: 30
+  prepare:
+    timeout-minutes: 10
     runs-on: ubuntu-latest
-
-    services:
-      docker:
-        image: docker:24.0
-        options: --privileged
-        ports:
-          - 1234:1234
-        env:
-          DOCKER_TLS_CERTDIR: ""
-
-    env:
-      GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=2"
-
     steps:
       - name: echo
         run: |
@@ -52,32 +42,213 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: install dependencies
-        run: ./gradlew dependencies
+      - name: install dependencies & compile
+        run: |
+          ./gradlew dependencies
+          ./gradlew compileJava compileTestJava
+
+      - name: cache workspace
+        uses: actions/cache@v3
+        with:
+          path: |
+            .gradle
+            build
+            */build
+          key: workspace-${{ github.sha }}
+
+  unit-tests:
+    needs: prepare
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+
+      - name: setup jdk
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: setup gradle cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: restore workspace cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            .gradle
+            build
+            */build
+          key: workspace-${{ github.sha }}
 
       - name: run unit tests
         run: ./gradlew unit_test
 
+      - name: upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: |
+            */build/reports/tests/unit_test/
+            */build/test-results/unit_test/
+
+  rule-tests:
+    needs: prepare
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+
+      - name: setup jdk
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: setup gradle cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: restore workspace cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            .gradle
+            build
+            */build
+          key: workspace-${{ github.sha }}
+
       - name: run rules tests
         run: ./gradlew check_rule_test
+
+      - name: upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rule-test-results
+          path: |
+            */build/reports/tests/check_rule_test/
+            */build/test-results/check_rule_test/
+
+  integration-tests:
+    needs: prepare
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+
+    services:
+      docker:
+        image: docker:24.0
+        options: --privileged
+        ports:
+          - 1234:1234
+        env:
+          DOCKER_TLS_CERTDIR: ""
+
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+
+      - name: setup jdk
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: setup gradle cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: restore workspace cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            .gradle
+            build
+            */build
+          key: workspace-${{ github.sha }}
 
       - name: run integration tests
         run: ./gradlew integration_test
 
-      - name: build project
-        run: ./gradlew build -x test -x asciidoctor --build-cache --parallel
-
-      - name: store test results
+      - name: upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
+          name: integration-test-results
           path: |
-            build/reports/
-            */build/reports/
+            */build/reports/tests/integration_test/
+            */build/test-results/integration_test/
+
+  final-build:
+    needs: [unit-tests, rule-tests, integration-tests]
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+
+      - name: setup jdk
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: setup gradle cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: restore workspace cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            .gradle
+            build
+            */build
+          key: workspace-${{ github.sha }}
+
+      - name: build project
+        run: ./gradlew build -x test -x asciidoctor --build-cache --parallel
+
+      - name: download all test results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*-test-results'
+          merge-multiple: true
 
       - name: publish test report
         uses: mikepenz/action-junit-report@v3
         if: always()
         with:
-          report_paths: '**/build/test-results/**/TEST-*.xml'
+          report_paths: '**/TEST-*.xml'
