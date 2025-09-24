@@ -1,6 +1,6 @@
 package app.bottlenote.review.dto.response;
 
-import app.bottlenote.review.facade.payload.UserInfo;
+import app.bottlenote.shared.review.payload.UserInfo;
 import java.time.LocalDateTime;
 import java.util.List;
 

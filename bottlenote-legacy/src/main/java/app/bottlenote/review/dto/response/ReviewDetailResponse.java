@@ -2,7 +2,7 @@ package app.bottlenote.review.dto.response;
 
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.review.dto.request.ReviewImageInfoRequest;
-import app.bottlenote.review.facade.payload.ReviewInfo;
+import app.bottlenote.shared.review.payload.ReviewInfo;
 import java.util.List;
 
 public record ReviewDetailResponse(

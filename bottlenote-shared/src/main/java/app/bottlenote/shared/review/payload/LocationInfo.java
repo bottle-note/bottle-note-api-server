@@ -1,10 +1,11 @@
-package app.bottlenote.review.facade.payload;
+package app.bottlenote.shared.review.payload;
 
-import jakarta.validation.constraints.Pattern;
+import lombok.Builder;
 
+@Builder
 public record LocationInfo(
     String locationName,
-    @Pattern(regexp = "^\\d{5}$", message = "INVALID_ZIP_CODE_PATTERN") String zipCode,
+    String zipCode,
     String address,
     String detailAddress,
     String category,

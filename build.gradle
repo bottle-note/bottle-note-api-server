@@ -80,6 +80,7 @@ tasks.register('integration_test') {
 	description = '전체 모듈 통합 테스트 실행'
 	group = 'verification'
 	dependsOn subprojects.findAll { it.tasks.findByName('integration_test') }.collect { it.tasks.integration_test }
+			.parallelStream();
 }
 
 tasks.register('unit_test') {

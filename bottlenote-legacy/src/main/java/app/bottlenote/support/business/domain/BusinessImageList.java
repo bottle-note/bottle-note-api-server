@@ -1,6 +1,6 @@
 package app.bottlenote.support.business.domain;
 
-import static app.bottlenote.review.exception.ReviewExceptionCode.INVALID_IMAGE_URL_MAX_SIZE;
+import static app.bottlenote.shared.review.exception.ReviewExceptionCode.INVALID_IMAGE_URL_MAX_SIZE;
 
 import app.bottlenote.common.image.ImageInfo;
 import app.bottlenote.common.image.ImageUtil;

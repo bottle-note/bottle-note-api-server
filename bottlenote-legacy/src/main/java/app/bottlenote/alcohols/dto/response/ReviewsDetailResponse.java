@@ -1,6 +1,6 @@
 package app.bottlenote.alcohols.dto.response;
 
-import app.bottlenote.review.facade.payload.ReviewInfo;
+import app.bottlenote.shared.review.payload.ReviewInfo;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;

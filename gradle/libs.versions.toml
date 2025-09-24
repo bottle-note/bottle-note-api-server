@@ -131,6 +131,13 @@ restdocs-api-spec-mockmvc = { module = "com.epages:restdocs-api-spec-mockmvc", v
 # Logging
 logstash-logback = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstash-logback" }
 
+# Jackson - Spring Boot에서 관리하는 버전 사용
+jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
+
+# Spring Web
+spring-web = { module = "org.springframework:spring-web" }
+
 # Jakarta Annotations
 jakarta-annotation-api = { module = "jakarta.annotation:jakarta.annotation-api" }
 jakarta-persistence-api = { module = "jakarta.persistence:jakarta.persistence-api" }

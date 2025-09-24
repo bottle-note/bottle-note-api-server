@@ -1,4 +1,4 @@
-package app.bottlenote.review.facade.payload;
+package app.bottlenote.shared.review.payload;
 
 import app.bottlenote.shared.annotation.BlockWord;
 

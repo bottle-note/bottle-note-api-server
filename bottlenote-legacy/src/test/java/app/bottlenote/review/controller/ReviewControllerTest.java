@@ -1,6 +1,6 @@
 package app.bottlenote.review.controller;
 
-import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
+import static app.bottlenote.shared.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.description;
@@ -32,7 +32,6 @@ import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
-import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
 import app.bottlenote.review.service.ReviewService;
 import app.bottlenote.shared.cursor.PageResponse;
@@ -42,6 +41,7 @@ import app.bottlenote.shared.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.shared.review.constant.ReviewDisplayStatus;
 import app.bottlenote.shared.review.constant.ReviewResultMessage;
 import app.bottlenote.shared.review.constant.ReviewSortType;
+import app.bottlenote.shared.review.exception.ReviewException;
 import app.bottlenote.support.block.service.BlockService;
 import app.bottlenote.user.exception.UserExceptionCode;
 import com.fasterxml.jackson.databind.ObjectMapper;

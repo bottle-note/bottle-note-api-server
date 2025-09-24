@@ -3,15 +3,14 @@ dependencies {
 	// JWT 완전 패키지
 	implementation libs.bundles.jwt.complete
 
-	// Jackson for JSON serialization
-	implementation 'com.fasterxml.jackson.core:jackson-annotations'
-	implementation 'com.fasterxml.jackson.core:jackson-databind'
-
-	// Spring framework for HTTP status
-	implementation 'org.springframework:spring-web'
+	// Jackson & Spring
+	implementation libs.jackson.annotations
+	implementation libs.jackson.databind
+	implementation libs.spring.web
 
 	// Lombok
 	compileOnly libs.lombok
 	annotationProcessor libs.lombok
+
 }
 tasks.register("prepareKotlinBuildScriptModel") {}

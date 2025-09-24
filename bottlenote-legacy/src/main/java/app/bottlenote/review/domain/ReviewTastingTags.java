@@ -1,8 +1,8 @@
 package app.bottlenote.review.domain;
 
-import static app.bottlenote.review.exception.ReviewExceptionCode.INVALID_TASTING_TAG_LIST_SIZE;
+import static app.bottlenote.shared.review.exception.ReviewExceptionCode.INVALID_TASTING_TAG_LIST_SIZE;
 
-import app.bottlenote.review.exception.ReviewException;
+import app.bottlenote.shared.review.exception.ReviewException;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.FetchType;

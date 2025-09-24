@@ -1,11 +1,11 @@
 package app.bottlenote.review.service;
 
-import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 import static app.bottlenote.shared.review.constant.ReviewActiveStatus.DELETED;
 import static app.bottlenote.shared.review.constant.ReviewDisplayStatus.PUBLIC;
 import static app.bottlenote.shared.review.constant.ReviewResultMessage.MODIFY_SUCCESS;
 import static app.bottlenote.shared.review.constant.ReviewResultMessage.PRIVATE_SUCCESS;
 import static app.bottlenote.shared.review.constant.ReviewResultMessage.PUBLIC_SUCCESS;
+import static app.bottlenote.shared.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 
 import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
@@ -24,10 +24,10 @@ import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.event.payload.ReviewRegistryEvent;
-import app.bottlenote.review.exception.ReviewException;
-import app.bottlenote.review.facade.payload.ReviewInfo;
 import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.shared.review.constant.ReviewResultMessage;
+import app.bottlenote.shared.review.exception.ReviewException;
+import app.bottlenote.shared.review.payload.ReviewInfo;
 import app.bottlenote.user.facade.UserFacade;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

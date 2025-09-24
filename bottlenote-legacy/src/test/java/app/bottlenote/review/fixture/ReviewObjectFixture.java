@@ -10,12 +10,12 @@ import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
 import app.bottlenote.review.dto.response.ReviewDetailResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
-import app.bottlenote.review.facade.payload.ReviewInfo;
-import app.bottlenote.review.facade.payload.UserInfo;
 import app.bottlenote.shared.cursor.CursorPageable;
 import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.shared.review.constant.ReviewDisplayStatus;
 import app.bottlenote.shared.review.constant.SizeType;
+import app.bottlenote.shared.review.payload.ReviewInfo;
+import app.bottlenote.shared.review.payload.UserInfo;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -43,7 +43,7 @@ public class ReviewObjectFixture {
         .userInfo(getRandomUserInfo())
         .rating(4.5)
         .viewCount(0L)
-        .locationInfo(getRandomLocationInfo())
+        .locationInfo(getRandomLocationInfo().toLocationInfo())
         .status(ReviewDisplayStatus.PUBLIC)
         .isMyReview(true)
         .isLikedByMe(false)

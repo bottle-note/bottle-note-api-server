@@ -13,12 +13,12 @@ import static app.bottlenote.user.domain.QUser.user;
 import static com.querydsl.jpa.JPAExpressions.select;
 
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
-import app.bottlenote.review.facade.payload.ReviewInfo;
-import app.bottlenote.review.facade.payload.UserInfo;
 import app.bottlenote.shared.cursor.CursorPageable;
 import app.bottlenote.shared.cursor.SortOrder;
 import app.bottlenote.shared.review.constant.ReviewActiveStatus;
 import app.bottlenote.shared.review.constant.ReviewSortType;
+import app.bottlenote.shared.review.payload.ReviewInfo;
+import app.bottlenote.shared.review.payload.UserInfo;
 import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;

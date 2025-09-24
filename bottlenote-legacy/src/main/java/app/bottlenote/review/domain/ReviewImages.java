@@ -1,8 +1,8 @@
 package app.bottlenote.review.domain;
 
 import app.bottlenote.review.dto.request.ReviewImageInfoRequest;
-import app.bottlenote.review.exception.ReviewException;
-import app.bottlenote.review.exception.ReviewExceptionCode;
+import app.bottlenote.shared.review.exception.ReviewException;
+import app.bottlenote.shared.review.exception.ReviewExceptionCode;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.FetchType;

@@ -1,6 +1,6 @@
 package app.bottlenote.like.service;
 
-import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
+import static app.bottlenote.shared.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.like.constant.LikeStatus;
@@ -9,9 +9,9 @@ import app.bottlenote.like.domain.Likes;
 import app.bottlenote.like.domain.LikesRepository;
 import app.bottlenote.like.dto.response.LikesUpdateResponse;
 import app.bottlenote.like.event.payload.LikesRegistryEvent;
-import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.facade.ReviewFacade;
-import app.bottlenote.review.facade.payload.ReviewInfo;
+import app.bottlenote.shared.review.exception.ReviewException;
+import app.bottlenote.shared.review.payload.ReviewInfo;
 import app.bottlenote.user.facade.UserFacade;
 import app.bottlenote.user.facade.payload.UserProfileItem;
 import lombok.RequiredArgsConstructor;

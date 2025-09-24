@@ -1,9 +1,10 @@
 package app.bottlenote.review.facade;
 
 import app.bottlenote.review.dto.response.ReviewListResponse;
-import app.bottlenote.review.facade.payload.ReviewInfo;
+import app.bottlenote.shared.review.payload.ReviewInfo;
 
 public interface ReviewFacade {
+  // todo : core 모듈로 이동
   ReviewListResponse getReviewInfoList(Long alcoholId, Long userId);
 
   Long getAlcoholIdByReviewId(Long reviewId);

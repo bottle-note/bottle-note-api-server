@@ -1,8 +1,8 @@
 package app.bottlenote.review.service;
 
-import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 import static app.bottlenote.shared.review.constant.ReviewReplyResultMessage.SUCCESS_DELETE_REPLY;
 import static app.bottlenote.shared.review.constant.ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY;
+import static app.bottlenote.shared.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 import static java.lang.Boolean.FALSE;
 
 import app.bottlenote.common.profanity.ProfanityClient;
@@ -15,9 +15,9 @@ import app.bottlenote.review.dto.response.ReviewReplyResponse;
 import app.bottlenote.review.dto.response.RootReviewReplyResponse;
 import app.bottlenote.review.dto.response.SubReviewReplyResponse;
 import app.bottlenote.review.event.payload.ReviewRegistryEvent;
-import app.bottlenote.review.exception.ReviewException;
-import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.shared.review.constant.ReviewReplyStatus;
+import app.bottlenote.shared.review.exception.ReviewException;
+import app.bottlenote.shared.review.exception.ReviewExceptionCode;
 import app.bottlenote.user.facade.UserFacade;
 import java.util.Objects;
 import java.util.Optional;

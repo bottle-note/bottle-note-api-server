@@ -1,6 +1,5 @@
-package app.bottlenote.review.facade.payload;
+package app.bottlenote.shared.review.payload;
 
-import app.bottlenote.review.domain.ReviewLocation;
 import app.bottlenote.shared.annotation.BlockWord;
 import app.bottlenote.shared.data.serializers.CustomDeserializers.TagListDeserializer;
 import app.bottlenote.shared.data.serializers.CustomSerializers.TagListSerializer;
@@ -28,7 +27,7 @@ public record ReviewInfo(
     // 리뷰 상태 및 속성
     ReviewDisplayStatus status,
     Boolean isBestReview,
-    ReviewLocation locationInfo,
+    LocationInfo locationInfo,
     SizeType sizeType,
 
     // 가격 및 평점 정보
@@ -44,5 +43,5 @@ public record ReviewInfo(
     // 기타 정보
     Long viewCount,
     @JsonSerialize(using = TagListSerializer.class)
-        @JsonDeserialize(using = TagListDeserializer.class)
-        String tastingTagList) {}
+	@JsonDeserialize(using = TagListDeserializer.class)
+	String tastingTagList) {}

@@ -2,10 +2,10 @@ package app.bottlenote.review.fixture;
 
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.facade.ReviewFacade;
-import app.bottlenote.review.facade.payload.ReviewInfo;
-import app.bottlenote.review.facade.payload.UserInfo;
 import app.bottlenote.shared.review.constant.ReviewDisplayStatus;
 import app.bottlenote.shared.review.constant.SizeType;
+import app.bottlenote.shared.review.payload.ReviewInfo;
+import app.bottlenote.shared.review.payload.UserInfo;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;

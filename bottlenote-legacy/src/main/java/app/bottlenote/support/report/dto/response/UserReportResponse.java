@@ -2,13 +2,15 @@ package app.bottlenote.support.report.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
 public class UserReportResponse {
-  private final String message;
-  private final Long reportId;
-  private final Long reportUserId;
-  private final String reportUserName;
+  private String message;
+  private Long reportId;
+  private Long reportUserId;
+  private String reportUserName;
 
   protected UserReportResponse(
       String message, Long reportId, Long reportUserId, String reportUserName) {

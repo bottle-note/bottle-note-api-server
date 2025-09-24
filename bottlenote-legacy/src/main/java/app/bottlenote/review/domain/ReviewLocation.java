@@ -1,5 +1,6 @@
 package app.bottlenote.review.domain;
 
+import app.bottlenote.shared.review.payload.LocationInfo;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -50,5 +51,18 @@ public class ReviewLocation {
 
   public static ReviewLocation empty() {
     return ReviewLocation.builder().build();
+  }
+
+  public LocationInfo toLocationInfo() {
+    return LocationInfo.builder()
+        .locationName(name)
+        .zipCode(zipCode)
+        .address(address)
+        .detailAddress(detailAddress)
+        .category(category)
+        .mapUrl(mapUrl)
+        .latitude(latitude)
+        .longitude(longitude)
+        .build();
   }
 }

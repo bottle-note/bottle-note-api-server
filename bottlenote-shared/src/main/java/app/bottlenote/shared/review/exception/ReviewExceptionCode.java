@@ -1,4 +1,4 @@
-package app.bottlenote.review.exception;
+package app.bottlenote.shared.review.exception;
 
 import app.bottlenote.shared.exception.custom.code.ExceptionCode;
 import org.springframework.http.HttpStatus;

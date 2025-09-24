@@ -23,11 +23,12 @@ import app.bottlenote.like.constant.LikeStatus;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.response.ReviewExploreItem;
 import app.bottlenote.review.dto.response.ReviewListResponse;
-import app.bottlenote.review.facade.payload.ReviewInfo;
-import app.bottlenote.review.facade.payload.UserInfo;
 import app.bottlenote.shared.cursor.CursorPageable;
 import app.bottlenote.shared.cursor.CursorResponse;
 import app.bottlenote.shared.cursor.PageResponse;
+import app.bottlenote.shared.review.payload.LocationInfo;
+import app.bottlenote.shared.review.payload.ReviewInfo;
+import app.bottlenote.shared.review.payload.UserInfo;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.OrderSpecifier;
@@ -65,7 +66,17 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
         // 리뷰 상태 및 속성
         review.status,
         review.isBest,
-        review.reviewLocation,
+        // LocationInfo 객체를 QueryDSL로 생성
+        Projections.constructor(
+            LocationInfo.class,
+            review.reviewLocation.name,
+            review.reviewLocation.zipCode,
+            review.reviewLocation.address,
+            review.reviewLocation.detailAddress,
+            review.reviewLocation.category,
+            review.reviewLocation.mapUrl,
+            review.reviewLocation.latitude,
+            review.reviewLocation.longitude),
         review.sizeType,
 
         // 가격 및 평점 정보
