@@ -1,4 +1,13 @@
 //core
 dependencies {
+	implementation project(':bottlenote-shared')
+	implementation libs.bundles.spring.boot.jpa
+
+	// QueryDSL
+	implementation libs.querydsl.jpa
+	annotationProcessor "${libs.querydsl.apt.get()}:jakarta"
+	annotationProcessor libs.jakarta.annotation.api
+	annotationProcessor libs.jakarta.persistence.api
+	testRuntimeOnly libs.h2
 }
 tasks.register("prepareKotlinBuildScriptModel") {}
