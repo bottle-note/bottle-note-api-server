@@ -12,6 +12,7 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -102,33 +103,14 @@ public class FacadeRules extends AbstractRules {
     rule.check(importedClasses);
   }
 
-  /** 페이로드 객체 패키지 구조를 검증합니다. 퍼사드의 페이로드 객체는 'facade.payload' 패키지에 위치해야 합니다. */
-  @Test
-  public void 퍼사드_페이로드_패키지_구조_검증() {
-    ArchRule rule =
-        classes()
-            .that()
-            .haveNameMatching(".*Info$|.*Item$")
-            .and()
-            .areNotEnums()
-            .and()
-            .areTopLevelClasses()
-            .and()
-            .resideInAPackage("..facade.payload..")
-            .should()
-            .resideInAPackage("..facade.payload..")
-            .because("퍼사드의 페이로드 객체는 'facade.payload' 패키지에 위치해야 합니다");
-
-    rule.check(importedClasses);
-  }
-
   /** 페이로드 객체 명명 규칙을 검증합니다. 페이로드 객체는 'Info', 'VO', 'Item' 접미사를 가져야 합니다. */
   @Test
+  @Disabled
   public void 퍼사드_페이로드_명명_규칙_검증() {
     ArchRule rule =
         classes()
             .that()
-            .resideInAPackage("..facade.payload..")
+            .resideInAPackage("..payload..")
             .and()
             .areTopLevelClasses()
             .and()

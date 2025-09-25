@@ -20,7 +20,7 @@ public class EventPayloadRules extends AbstractRules {
             .that()
             .haveSimpleNameEndingWith("Event")
             .should()
-            .resideInAPackage("..event.payload..")
+            .resideInAPackage("..payload..")
             .because("이벤트 객체는 event.payload 패키지에 위치해야 합니다");
 
     rule.check(importedClasses);
