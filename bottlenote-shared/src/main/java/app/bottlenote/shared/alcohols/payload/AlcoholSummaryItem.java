@@ -1,4 +1,4 @@
-package app.bottlenote.alcohols.facade.payload;
+package app.bottlenote.shared.alcohols.payload;
 
 import lombok.extern.slf4j.Slf4j;
 

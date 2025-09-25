@@ -1,6 +1,6 @@
 package app.bottlenote.review.facade;
 
-import app.bottlenote.review.dto.response.ReviewListResponse;
+import app.bottlenote.shared.review.dto.response.ReviewListResponse;
 import app.bottlenote.shared.review.payload.ReviewInfo;
 
 public interface ReviewFacade {

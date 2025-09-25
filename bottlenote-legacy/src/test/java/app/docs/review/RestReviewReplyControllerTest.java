@@ -24,9 +24,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.review.controller.ReviewReplyController;
-import app.bottlenote.review.dto.response.RootReviewReplyResponse;
-import app.bottlenote.review.dto.response.SubReviewReplyResponse;
 import app.bottlenote.review.service.ReviewReplyService;
+import app.bottlenote.shared.review.dto.response.RootReviewReplyResponse;
+import app.bottlenote.shared.review.dto.response.SubReviewReplyResponse;
 import app.docs.AbstractRestDocs;
 import java.util.List;
 import java.util.Optional;

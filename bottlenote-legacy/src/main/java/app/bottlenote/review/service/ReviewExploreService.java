@@ -1,8 +1,8 @@
 package app.bottlenote.review.service;
 
 import app.bottlenote.review.domain.ReviewRepository;
-import app.bottlenote.review.dto.response.ReviewExploreItem;
 import app.bottlenote.shared.cursor.CursorResponse;
+import app.bottlenote.shared.review.dto.response.ReviewExploreItem;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

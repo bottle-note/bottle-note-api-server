@@ -4,7 +4,7 @@ import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT
 
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.facade.AlcoholFacade;
-import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
+import app.bottlenote.shared.alcohols.payload.AlcoholSummaryItem;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;

@@ -1,4 +1,4 @@
-package app.bottlenote.review.dto.request;
+package app.bottlenote.shared.review.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 

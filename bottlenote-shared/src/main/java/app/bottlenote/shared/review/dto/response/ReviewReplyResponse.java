@@ -1,4 +1,4 @@
-package app.bottlenote.review.dto.response;
+package app.bottlenote.shared.review.dto.response;
 
 import app.bottlenote.shared.review.constant.ReviewReplyResultMessage;
 import java.time.LocalDateTime;

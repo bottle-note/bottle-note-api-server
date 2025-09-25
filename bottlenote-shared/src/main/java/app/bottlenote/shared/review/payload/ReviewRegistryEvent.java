@@ -1,4 +1,4 @@
-package app.bottlenote.review.event.payload;
+package app.bottlenote.shared.review.payload;
 
 public record ReviewRegistryEvent(Long reviewId, Long alcoholId, Long userId, String content) {
   public static ReviewRegistryEvent of(Long id, Long alcoholId, Long userId, String content) {

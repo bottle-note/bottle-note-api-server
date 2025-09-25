@@ -4,7 +4,7 @@ import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.like.event.payload.LikesRegistryEvent;
 import app.bottlenote.picks.event.payload.PicksRegistryEvent;
 import app.bottlenote.rating.event.payload.RatingRegistryEvent;
-import app.bottlenote.review.event.payload.ReviewRegistryEvent;
+import app.bottlenote.shared.review.payload.ReviewRegistryEvent;
 import java.util.ArrayList;
 import java.util.List;
 

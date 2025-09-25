@@ -12,5 +12,7 @@ dependencies {
 	compileOnly libs.lombok
 	annotationProcessor libs.lombok
 
+	//jakarta.validation
+	implementation libs.spring.boot.starter.validation
 }
 tasks.register("prepareKotlinBuildScriptModel") {}

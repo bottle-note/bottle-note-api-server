@@ -2,11 +2,11 @@ package app.bottlenote.review.fixture;
 
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewRepository;
-import app.bottlenote.review.dto.request.ReviewPageableRequest;
-import app.bottlenote.review.dto.response.ReviewExploreItem;
-import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.shared.cursor.CursorResponse;
 import app.bottlenote.shared.cursor.PageResponse;
+import app.bottlenote.shared.review.dto.request.ReviewPageableRequest;
+import app.bottlenote.shared.review.dto.response.ReviewExploreItem;
+import app.bottlenote.shared.review.dto.response.ReviewListResponse;
 import app.bottlenote.shared.review.payload.ReviewInfo;
 import java.util.HashMap;
 import java.util.List;

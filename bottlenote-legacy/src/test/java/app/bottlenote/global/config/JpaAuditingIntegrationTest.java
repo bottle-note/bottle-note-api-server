@@ -10,9 +10,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewRepository;
-import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
 import app.bottlenote.shared.data.response.GlobalResponse;
+import app.bottlenote.shared.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.user.constant.SocialType;
 import app.bottlenote.user.dto.request.OauthRequest;
 import java.nio.charset.StandardCharsets;

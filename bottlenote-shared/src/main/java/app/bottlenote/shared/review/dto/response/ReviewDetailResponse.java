@@ -1,7 +1,7 @@
-package app.bottlenote.review.dto.response;
+package app.bottlenote.shared.review.dto.response;
 
-import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
-import app.bottlenote.review.dto.request.ReviewImageInfoRequest;
+import app.bottlenote.shared.alcohols.payload.AlcoholSummaryItem;
+import app.bottlenote.shared.review.dto.request.ReviewImageInfoRequest;
 import app.bottlenote.shared.review.payload.ReviewInfo;
 import java.util.List;
 

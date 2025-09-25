@@ -1,4 +1,4 @@
-package app.bottlenote.review.dto.request;
+package app.bottlenote.shared.review.dto.request;
 
 import app.bottlenote.shared.review.constant.ReviewDisplayStatus;
 import app.bottlenote.shared.review.constant.SizeType;
@@ -15,7 +15,7 @@ public class ReviewModifyRequestWrapperItem {
   private final LocationInfoRequest locationInfo;
 
   public ReviewModifyRequestWrapperItem(
-      app.bottlenote.review.dto.request.ReviewModifyRequest reviewModifyRequest) {
+      ReviewModifyRequest reviewModifyRequest) {
     this.content = reviewModifyRequest.content();
     this.reviewDisplayStatus = reviewModifyRequest.status();
     this.price = reviewModifyRequest.price();
@@ -25,7 +25,7 @@ public class ReviewModifyRequestWrapperItem {
   }
 
   public static ReviewModifyRequestWrapperItem create(
-      app.bottlenote.review.dto.request.ReviewModifyRequest reviewModifyRequest) {
+      ReviewModifyRequest reviewModifyRequest) {
     return new ReviewModifyRequestWrapperItem(reviewModifyRequest);
   }
 }

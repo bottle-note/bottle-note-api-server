@@ -13,13 +13,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewReplyRepository;
-import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
-import app.bottlenote.review.dto.response.ReviewReplyResponse;
-import app.bottlenote.review.dto.response.RootReviewReplyResponse;
-import app.bottlenote.review.dto.response.SubReviewReplyResponse;
 import app.bottlenote.shared.data.response.GlobalResponse;
 import app.bottlenote.shared.review.constant.ReviewReplyResultMessage;
 import app.bottlenote.shared.review.constant.ReviewReplyStatus;
+import app.bottlenote.shared.review.dto.request.ReviewReplyRegisterRequest;
+import app.bottlenote.shared.review.dto.response.ReviewReplyResponse;
+import app.bottlenote.shared.review.dto.response.RootReviewReplyResponse;
+import app.bottlenote.shared.review.dto.response.SubReviewReplyResponse;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

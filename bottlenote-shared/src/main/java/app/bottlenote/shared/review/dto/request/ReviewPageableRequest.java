@@ -1,4 +1,4 @@
-package app.bottlenote.review.dto.request;
+package app.bottlenote.shared.review.dto.request;
 
 import app.bottlenote.shared.cursor.SortOrder;
 import app.bottlenote.shared.review.constant.ReviewSortType;

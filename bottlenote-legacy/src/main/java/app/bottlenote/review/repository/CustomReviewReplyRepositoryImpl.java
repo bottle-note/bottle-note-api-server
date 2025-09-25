@@ -5,10 +5,10 @@ import static app.bottlenote.user.domain.QUser.user;
 import static com.querydsl.core.types.ExpressionUtils.count;
 
 import app.bottlenote.review.domain.QReviewReply;
-import app.bottlenote.review.dto.response.RootReviewReplyResponse;
-import app.bottlenote.review.dto.response.SubReviewReplyResponse;
-import app.bottlenote.review.dto.response.SubReviewReplyResponse.Item;
 import app.bottlenote.shared.review.constant.ReviewReplyStatus;
+import app.bottlenote.shared.review.dto.response.RootReviewReplyResponse;
+import app.bottlenote.shared.review.dto.response.SubReviewReplyResponse;
+import app.bottlenote.shared.review.dto.response.SubReviewReplyResponse.Item;
 import app.bottlenote.user.domain.QUser;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;

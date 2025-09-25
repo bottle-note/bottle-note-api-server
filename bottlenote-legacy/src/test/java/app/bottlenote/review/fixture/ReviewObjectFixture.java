@@ -1,19 +1,19 @@
 package app.bottlenote.review.fixture;
 
-import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewLocation;
-import app.bottlenote.review.dto.request.LocationInfoRequest;
-import app.bottlenote.review.dto.request.ReviewCreateRequest;
-import app.bottlenote.review.dto.request.ReviewImageInfoRequest;
-import app.bottlenote.review.dto.request.ReviewModifyRequest;
-import app.bottlenote.review.dto.response.ReviewCreateResponse;
-import app.bottlenote.review.dto.response.ReviewDetailResponse;
-import app.bottlenote.review.dto.response.ReviewListResponse;
+import app.bottlenote.shared.alcohols.payload.AlcoholSummaryItem;
 import app.bottlenote.shared.cursor.CursorPageable;
 import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.shared.review.constant.ReviewDisplayStatus;
 import app.bottlenote.shared.review.constant.SizeType;
+import app.bottlenote.shared.review.dto.request.LocationInfoRequest;
+import app.bottlenote.shared.review.dto.request.ReviewCreateRequest;
+import app.bottlenote.shared.review.dto.request.ReviewImageInfoRequest;
+import app.bottlenote.shared.review.dto.request.ReviewModifyRequest;
+import app.bottlenote.shared.review.dto.response.ReviewCreateResponse;
+import app.bottlenote.shared.review.dto.response.ReviewDetailResponse;
+import app.bottlenote.shared.review.dto.response.ReviewListResponse;
 import app.bottlenote.shared.review.payload.ReviewInfo;
 import app.bottlenote.shared.review.payload.UserInfo;
 import java.math.BigDecimal;

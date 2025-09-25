@@ -1,7 +1,7 @@
 package app.bottlenote.review.domain;
 
-import app.bottlenote.review.dto.response.RootReviewReplyResponse;
-import app.bottlenote.review.dto.response.SubReviewReplyResponse;
+import app.bottlenote.shared.review.dto.response.RootReviewReplyResponse;
+import app.bottlenote.shared.review.dto.response.SubReviewReplyResponse;
 import java.util.List;
 import java.util.Optional;
 

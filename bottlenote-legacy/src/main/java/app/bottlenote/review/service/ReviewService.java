@@ -8,26 +8,27 @@ import static app.bottlenote.shared.review.constant.ReviewResultMessage.PUBLIC_S
 import static app.bottlenote.shared.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 
 import app.bottlenote.alcohols.facade.AlcoholFacade;
-import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewLocation;
 import app.bottlenote.review.domain.ReviewRepository;
-import app.bottlenote.review.dto.request.ReviewCreateRequest;
-import app.bottlenote.review.dto.request.ReviewImageInfoRequest;
-import app.bottlenote.review.dto.request.ReviewModifyRequestWrapperItem;
-import app.bottlenote.review.dto.request.ReviewPageableRequest;
-import app.bottlenote.review.dto.request.ReviewStatusChangeRequest;
-import app.bottlenote.review.dto.response.ReviewCreateResponse;
-import app.bottlenote.review.dto.response.ReviewDetailResponse;
-import app.bottlenote.review.dto.response.ReviewListResponse;
-import app.bottlenote.review.dto.response.ReviewResultResponse;
-import app.bottlenote.review.event.payload.ReviewRegistryEvent;
+import app.bottlenote.shared.alcohols.payload.AlcoholSummaryItem;
 import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.shared.review.constant.ReviewResultMessage;
+import app.bottlenote.shared.review.dto.request.ReviewCreateRequest;
+import app.bottlenote.shared.review.dto.request.ReviewImageInfoRequest;
+import app.bottlenote.shared.review.dto.request.ReviewModifyRequest;
+import app.bottlenote.shared.review.dto.request.ReviewModifyRequestWrapperItem;
+import app.bottlenote.shared.review.dto.request.ReviewPageableRequest;
+import app.bottlenote.shared.review.dto.request.ReviewStatusChangeRequest;
+import app.bottlenote.shared.review.dto.response.ReviewCreateResponse;
+import app.bottlenote.shared.review.dto.response.ReviewDetailResponse;
+import app.bottlenote.shared.review.dto.response.ReviewListResponse;
+import app.bottlenote.shared.review.dto.response.ReviewResultResponse;
 import app.bottlenote.shared.review.exception.ReviewException;
 import app.bottlenote.shared.review.payload.ReviewInfo;
+import app.bottlenote.shared.review.payload.ReviewRegistryEvent;
 import app.bottlenote.user.facade.UserFacade;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -125,9 +126,7 @@ public class ReviewService {
 
   @Transactional
   public ReviewResultResponse modifyReview(
-      final app.bottlenote.review.dto.request.ReviewModifyRequest request,
-      final Long reviewId,
-      final Long currentUserId) {
+      final ReviewModifyRequest request, final Long reviewId, final Long currentUserId) {
     Review review =
         reviewRepository
             .findByIdAndUserId(reviewId, currentUserId)

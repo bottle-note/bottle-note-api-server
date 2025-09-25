@@ -1,4 +1,4 @@
-package app.bottlenote.review.dto.response;
+package app.bottlenote.shared.review.dto.response;
 
 import static app.bottlenote.shared.review.exception.ReviewExceptionCode.INVALID_CALL_BACK_URL;
 

@@ -5,10 +5,10 @@ import static app.bottlenote.shared.review.exception.ReviewExceptionCode.REVIEW_
 import app.bottlenote.common.annotation.FacadeService;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewRepository;
-import app.bottlenote.review.dto.request.ReviewPageableRequest;
-import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.facade.ReviewFacade;
 import app.bottlenote.shared.cursor.PageResponse;
+import app.bottlenote.shared.review.dto.request.ReviewPageableRequest;
+import app.bottlenote.shared.review.dto.response.ReviewListResponse;
 import app.bottlenote.shared.review.exception.ReviewException;
 import app.bottlenote.shared.review.payload.ReviewInfo;
 import lombok.RequiredArgsConstructor;

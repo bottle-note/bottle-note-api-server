@@ -1,7 +1,7 @@
 package app.bottlenote.review.repository;
 
-import app.bottlenote.review.dto.response.RootReviewReplyResponse;
-import app.bottlenote.review.dto.response.SubReviewReplyResponse;
+import app.bottlenote.shared.review.dto.response.RootReviewReplyResponse;
+import app.bottlenote.shared.review.dto.response.SubReviewReplyResponse;
 
 public interface CustomReviewReplyRepository {
   /**

@@ -1,10 +1,10 @@
 package app.bottlenote.review.repository;
 
-import app.bottlenote.review.dto.request.ReviewPageableRequest;
-import app.bottlenote.review.dto.response.ReviewExploreItem;
-import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.shared.cursor.CursorResponse;
 import app.bottlenote.shared.cursor.PageResponse;
+import app.bottlenote.shared.review.dto.request.ReviewPageableRequest;
+import app.bottlenote.shared.review.dto.response.ReviewExploreItem;
+import app.bottlenote.shared.review.dto.response.ReviewListResponse;
 import app.bottlenote.shared.review.payload.ReviewInfo;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
