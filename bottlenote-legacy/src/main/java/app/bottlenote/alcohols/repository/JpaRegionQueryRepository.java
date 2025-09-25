@@ -1,8 +1,8 @@
 package app.bottlenote.alcohols.repository;
 
 import app.bottlenote.alcohols.domain.Region;
-import app.bottlenote.alcohols.dto.response.RegionsItem;
 import app.bottlenote.common.annotation.JpaRepositoryImpl;
+import app.bottlenote.shared.alcohols.dto.response.RegionsItem;
 import java.util.List;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;

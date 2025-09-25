@@ -5,11 +5,11 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
-import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
-import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
-import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.alcohols.repository.JpaAlcoholQueryRepository;
+import app.bottlenote.shared.alcohols.dto.dsl.AlcoholSearchCriteria;
+import app.bottlenote.shared.alcohols.dto.request.AlcoholSearchRequest;
+import app.bottlenote.shared.alcohols.dto.response.AlcoholSearchResponse;
+import app.bottlenote.shared.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.shared.cursor.CursorPageable;
 import app.bottlenote.shared.cursor.PageResponse;
 import java.util.List;

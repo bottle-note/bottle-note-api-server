@@ -8,11 +8,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
-import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.fixture.AlcoholQueryFixture;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
 import app.bottlenote.alcohols.service.AlcoholReferenceService;
+import app.bottlenote.shared.alcohols.dto.request.AlcoholSearchRequest;
+import app.bottlenote.shared.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.shared.cursor.PageResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;

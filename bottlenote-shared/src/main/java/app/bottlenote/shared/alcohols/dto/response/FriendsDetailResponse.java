@@ -1,6 +1,6 @@
-package app.bottlenote.alcohols.dto.response;
+package app.bottlenote.shared.alcohols.dto.response;
 
-import app.bottlenote.user.facade.payload.FriendItem;
+import app.bottlenote.shared.users.payload.FriendItem;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

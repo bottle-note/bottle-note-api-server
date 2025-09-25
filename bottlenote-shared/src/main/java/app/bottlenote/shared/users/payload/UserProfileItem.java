@@ -1,4 +1,4 @@
-package app.bottlenote.user.facade.payload;
+package app.bottlenote.shared.users.payload;
 
 public record UserProfileItem(Long id, String nickname, String imageUrl) {
   public static UserProfileItem create(Long id, String nickname, String imageUrl) {

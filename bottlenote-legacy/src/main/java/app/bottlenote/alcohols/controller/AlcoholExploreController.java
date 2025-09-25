@@ -1,8 +1,8 @@
 package app.bottlenote.alcohols.controller;
 
-import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.shared.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.shared.cursor.CursorResponse;
 import app.bottlenote.shared.data.response.GlobalResponse;
 import java.util.List;

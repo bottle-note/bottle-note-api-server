@@ -1,8 +1,8 @@
-package app.bottlenote.alcohols.dto.dsl;
+package app.bottlenote.shared.alcohols.dto.dsl;
 
-import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.shared.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.shared.alcohols.constant.SearchSortType;
+import app.bottlenote.shared.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.shared.cursor.SortOrder;
 
 public record AlcoholSearchCriteria(

@@ -2,8 +2,8 @@ package app.bottlenote.alcohols.controller;
 
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 
-import app.bottlenote.alcohols.dto.response.PopularsOfWeekResponse;
 import app.bottlenote.alcohols.service.AlcoholPopularService;
+import app.bottlenote.shared.alcohols.dto.response.PopularsOfWeekResponse;
 import app.bottlenote.shared.data.response.GlobalResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

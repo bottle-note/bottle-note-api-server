@@ -2,8 +2,8 @@ package app.bottlenote.alcohols.repository;
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
-import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.shared.alcohols.constant.AlcoholType;
+import app.bottlenote.shared.alcohols.dto.response.CategoryItem;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

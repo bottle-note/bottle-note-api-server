@@ -1,6 +1,6 @@
 package app.bottlenote.alcohols.fixture;
 
-import app.bottlenote.alcohols.dto.response.PopularItem;
+import app.bottlenote.shared.alcohols.dto.response.PopularItem;
 import java.util.Random;
 
 public class PopularsObjectFixture {

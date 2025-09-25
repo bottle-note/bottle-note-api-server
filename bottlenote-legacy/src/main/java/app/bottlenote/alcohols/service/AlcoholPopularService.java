@@ -1,7 +1,7 @@
 package app.bottlenote.alcohols.service;
 
-import app.bottlenote.alcohols.dto.response.PopularItem;
 import app.bottlenote.alcohols.repository.JpaPopularQueryRepository;
+import app.bottlenote.shared.alcohols.dto.response.PopularItem;
 import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

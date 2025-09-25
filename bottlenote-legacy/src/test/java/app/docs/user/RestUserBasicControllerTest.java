@@ -12,8 +12,8 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.shared.users.payload.UserProfileItem;
 import app.bottlenote.user.controller.UserBasicController;
-import app.bottlenote.user.facade.payload.UserProfileItem;
 import app.bottlenote.user.service.DefaultUserFacade;
 import app.bottlenote.user.service.UserBasicService;
 import app.docs.AbstractRestDocs;

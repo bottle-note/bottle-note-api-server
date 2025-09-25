@@ -1,6 +1,6 @@
 package app.bottlenote.user.facade;
 
-import app.bottlenote.user.facade.payload.FriendItem;
+import app.bottlenote.shared.users.payload.FriendItem;
 import java.util.List;
 import org.springframework.data.domain.PageRequest;
 

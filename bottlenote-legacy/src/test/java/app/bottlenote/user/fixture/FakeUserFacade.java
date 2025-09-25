@@ -1,9 +1,9 @@
 package app.bottlenote.user.fixture;
 
+import app.bottlenote.shared.users.payload.UserProfileItem;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.facade.UserFacade;
-import app.bottlenote.user.facade.payload.UserProfileItem;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;

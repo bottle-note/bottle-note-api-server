@@ -2,11 +2,11 @@ package app.bottlenote.alcohols.fixture;
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
-import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
-import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
-import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
-import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.shared.alcohols.constant.AlcoholType;
+import app.bottlenote.shared.alcohols.dto.dsl.AlcoholSearchCriteria;
+import app.bottlenote.shared.alcohols.dto.response.AlcoholDetailItem;
+import app.bottlenote.shared.alcohols.dto.response.AlcoholSearchResponse;
+import app.bottlenote.shared.alcohols.dto.response.CategoryItem;
 import app.bottlenote.shared.alcohols.payload.AlcoholSummaryItem;
 import app.bottlenote.shared.cursor.CursorResponse;
 import app.bottlenote.shared.cursor.PageResponse;

@@ -12,9 +12,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.alcohols.controller.AlcoholExploreController;
-import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.fixture.AlcoholQueryFixture;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
+import app.bottlenote.shared.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.shared.cursor.CursorPageable;
 import app.bottlenote.shared.cursor.CursorResponse;
 import app.docs.AbstractRestDocs;

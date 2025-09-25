@@ -1,8 +1,8 @@
 package app.bottlenote.history.domain;
 
-import app.bottlenote.alcohols.dto.response.ViewHistoryItem;
 import app.bottlenote.common.annotation.DomainRepository;
 import app.bottlenote.history.domain.AlcoholsViewHistory.AlcoholsViewHistoryId;
+import app.bottlenote.shared.alcohols.dto.response.ViewHistoryItem;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;

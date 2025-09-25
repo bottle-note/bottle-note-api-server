@@ -13,10 +13,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.alcohols.controller.AlcoholReferenceController;
-import app.bottlenote.alcohols.dto.response.CategoryItem;
-import app.bottlenote.alcohols.dto.response.RegionsItem;
 import app.bottlenote.alcohols.fixture.AlcoholQueryFixture;
 import app.bottlenote.alcohols.service.AlcoholReferenceService;
+import app.bottlenote.shared.alcohols.dto.response.CategoryItem;
+import app.bottlenote.shared.alcohols.dto.response.RegionsItem;
 import app.docs.AbstractRestDocs;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;

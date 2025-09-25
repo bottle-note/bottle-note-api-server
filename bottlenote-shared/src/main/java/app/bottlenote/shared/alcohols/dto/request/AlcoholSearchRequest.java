@@ -1,4 +1,4 @@
-package app.bottlenote.alcohols.dto.request;
+package app.bottlenote.shared.alcohols.dto.request;
 
 import app.bottlenote.shared.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.shared.alcohols.constant.SearchSortType;

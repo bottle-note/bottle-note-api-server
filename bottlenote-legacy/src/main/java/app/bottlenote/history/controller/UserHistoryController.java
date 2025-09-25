@@ -2,11 +2,11 @@ package app.bottlenote.history.controller;
 
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 
-import app.bottlenote.alcohols.dto.response.ViewHistoryItem;
 import app.bottlenote.history.dto.request.UserHistorySearchRequest;
 import app.bottlenote.history.dto.response.UserHistorySearchResponse;
 import app.bottlenote.history.service.AlcoholViewHistoryService;
 import app.bottlenote.history.service.UserHistoryQueryService;
+import app.bottlenote.shared.alcohols.dto.response.ViewHistoryItem;
 import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.shared.data.response.CollectionResponse;
 import app.bottlenote.shared.data.response.GlobalResponse;

@@ -1,7 +1,7 @@
 package app.bottlenote.user.repository;
 
+import app.bottlenote.shared.users.payload.FriendItem;
 import app.bottlenote.user.domain.Follow;
-import app.bottlenote.user.facade.payload.FriendItem;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.PageRequest;

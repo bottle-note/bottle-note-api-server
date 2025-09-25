@@ -1,4 +1,4 @@
-package app.bottlenote.user.facade.payload;
+package app.bottlenote.shared.users.payload;
 
 public record FriendItem(String userImageUrl, Long userId, String nickName, Double rating) {
 

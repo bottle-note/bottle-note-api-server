@@ -15,9 +15,9 @@ import static org.springframework.restdocs.request.RequestDocumentation.queryPar
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.alcohols.controller.AlcoholPopularQueryController;
-import app.bottlenote.alcohols.dto.response.PopularItem;
 import app.bottlenote.alcohols.service.AlcoholPopularService;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.shared.alcohols.dto.response.PopularItem;
 import app.docs.AbstractRestDocs;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;

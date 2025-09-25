@@ -7,7 +7,7 @@ import app.bottlenote.history.fixture.FakeHistoryEventPublisher;
 import app.bottlenote.like.constant.LikeStatus;
 import app.bottlenote.like.fixture.InMemoryLikesRepository;
 import app.bottlenote.review.fixture.FakeReviewFacade;
-import app.bottlenote.user.facade.payload.UserProfileItem;
+import app.bottlenote.shared.users.payload.UserProfileItem;
 import app.bottlenote.user.fixture.FakeUserFacade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

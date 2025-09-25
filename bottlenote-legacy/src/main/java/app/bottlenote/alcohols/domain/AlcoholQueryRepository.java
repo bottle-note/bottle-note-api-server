@@ -1,10 +1,10 @@
 package app.bottlenote.alcohols.domain;
 
-import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
-import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
-import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
-import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.shared.alcohols.constant.AlcoholType;
+import app.bottlenote.shared.alcohols.dto.dsl.AlcoholSearchCriteria;
+import app.bottlenote.shared.alcohols.dto.response.AlcoholDetailItem;
+import app.bottlenote.shared.alcohols.dto.response.AlcoholSearchResponse;
+import app.bottlenote.shared.alcohols.dto.response.CategoryItem;
 import app.bottlenote.shared.alcohols.payload.AlcoholSummaryItem;
 import app.bottlenote.shared.cursor.CursorResponse;
 import app.bottlenote.shared.cursor.PageResponse;
