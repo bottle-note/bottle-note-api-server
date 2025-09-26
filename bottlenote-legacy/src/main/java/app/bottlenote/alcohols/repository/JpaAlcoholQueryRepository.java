@@ -15,7 +15,7 @@ public interface JpaAlcoholQueryRepository
   @Override
   @Query(
       """
-			          Select new app.bottlenote.alcohols.dto.response.CategoryItem(a.korCategory, a.engCategory,a.categoryGroup)
+			          Select new app.bottlenote.shared.alcohols.dto.response.CategoryItem(a.korCategory, a.engCategory,a.categoryGroup)
 			          from alcohol a
 			          where a.type = :type
 			          group by a.korCategory, a.engCategory,a.categoryGroup

@@ -19,7 +19,7 @@ public interface FollowRepository extends JpaRepository<Follow, Long>, CustomFol
 
   @Query(
       """
-		    SELECT new app.bottlenote.user.facade.payload.FriendItem(
+		    SELECT new app.bottlenote.shared.users.payload.FriendItem(
 		        u.imageUrl,
 		        u.id,
 		        u.nickName,

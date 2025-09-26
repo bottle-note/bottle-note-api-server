@@ -20,7 +20,7 @@ public interface AlcoholsViewHistoryRepository {
   @Query(
       """
              SELECT
-              new app.bottlenote.alcohols.dto.response.ViewHistoryItem(
+              new app.bottlenote.shared.alcohols.dto.response.ViewHistoryItem(
                  			    a.id.alcoholId,
                  			    al.korName,
                  			    al.engName,

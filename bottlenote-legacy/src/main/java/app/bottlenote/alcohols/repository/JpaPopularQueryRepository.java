@@ -15,7 +15,7 @@ public interface JpaPopularQueryRepository extends JpaRepository<Alcohol, Long> 
   @Query(
       """
 			         SELECT
-			         new app.bottlenote.alcohols.dto.response.PopularItem(
+			         new app.bottlenote.shared.alcohols.dto.response.PopularItem(
 					        a1_0.id,
 			               a1_0.korName,
 			               a1_0.engName,
@@ -43,7 +43,7 @@ public interface JpaPopularQueryRepository extends JpaRepository<Alcohol, Long> 
 
   @Query(
       """
-			SELECT new app.bottlenote.alcohols.dto.response.PopularItem(
+			SELECT new app.bottlenote.shared.alcohols.dto.response.PopularItem(
 				a1_0.id,
 				a1_0.korName,
 				a1_0.engName,

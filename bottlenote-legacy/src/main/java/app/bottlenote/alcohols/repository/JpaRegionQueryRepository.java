@@ -12,7 +12,7 @@ public interface JpaRegionQueryRepository extends CrudRepository<Region, Long> {
 
   @Query(
       """
-			select new app.bottlenote.alcohols.dto.response.RegionsItem(r.id, r.korName, r.engName, r.description)
+			select new app.bottlenote.shared.alcohols.dto.response.RegionsItem(r.id, r.korName, r.engName, r.description)
 			from region r order by r.id asc
 			""")
   List<RegionsItem> findAllRegionsResponse();
