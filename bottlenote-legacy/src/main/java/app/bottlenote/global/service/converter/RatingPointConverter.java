@@ -1,10 +1,10 @@
 package app.bottlenote.global.service.converter;
 
-import static app.bottlenote.rating.exception.RatingExceptionCode.INPUT_NUMBER_IS_NOT_A_NUMBER;
-import static app.bottlenote.rating.exception.RatingExceptionCode.INPUT_VALUE_IS_NOT_VALID;
+import static app.bottlenote.shared.rating.exception.RatingExceptionCode.INPUT_NUMBER_IS_NOT_A_NUMBER;
+import static app.bottlenote.shared.rating.exception.RatingExceptionCode.INPUT_VALUE_IS_NOT_VALID;
 
 import app.bottlenote.rating.domain.RatingPoint;
-import app.bottlenote.rating.exception.RatingException;
+import app.bottlenote.shared.rating.exception.RatingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.lang.NonNull;

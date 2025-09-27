@@ -4,7 +4,7 @@ import static app.bottlenote.core.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static com.querydsl.jpa.JPAExpressions.select;
 
-import app.bottlenote.picks.constant.PicksStatus;
+import app.bottlenote.shared.picks.constant.PicksStatus;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.dsl.BooleanExpression;

@@ -1,4 +1,4 @@
-package app.bottlenote.rating.constant;
+package app.bottlenote.shared.rating.constant;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import java.util.stream.Stream;

@@ -1,4 +1,4 @@
-package app.bottlenote.rating.exception;
+package app.bottlenote.shared.rating.exception;
 
 import app.bottlenote.shared.exception.custom.AbstractCustomException;
 import lombok.Getter;

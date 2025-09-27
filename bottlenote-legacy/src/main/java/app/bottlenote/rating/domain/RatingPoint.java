@@ -1,14 +1,13 @@
 package app.bottlenote.rating.domain;
 
-import static app.bottlenote.rating.exception.RatingExceptionCode.INVALID_RATING_POINT;
+import static app.bottlenote.shared.rating.exception.RatingExceptionCode.INVALID_RATING_POINT;
 
-import app.bottlenote.rating.exception.RatingException;
+import app.bottlenote.shared.rating.exception.RatingException;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
 import lombok.Getter;
 
-/** 평점을 나타내는 VO입니다. */
 @Getter
 @Embeddable
 public class RatingPoint implements Serializable {

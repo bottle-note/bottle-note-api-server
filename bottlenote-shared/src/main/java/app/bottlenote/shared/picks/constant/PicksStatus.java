@@ -1,4 +1,4 @@
-package app.bottlenote.picks.constant;
+package app.bottlenote.shared.picks.constant;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.AllArgsConstructor;

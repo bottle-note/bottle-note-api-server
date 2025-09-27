@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import app.bottlenote.rating.domain.RatingPoint;
-import app.bottlenote.rating.exception.RatingException;
+import app.bottlenote.shared.rating.exception.RatingException;
 import java.util.Objects;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

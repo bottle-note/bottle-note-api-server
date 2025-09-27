@@ -1,8 +1,8 @@
 package app.bottlenote.rating.dto.request;
 
-import app.bottlenote.rating.constant.SearchSortType;
 import app.bottlenote.shared.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.shared.cursor.SortOrder;
+import app.bottlenote.shared.rating.constant.SearchSortType;
 import lombok.Builder;
 
 public record RatingListFetchRequest(

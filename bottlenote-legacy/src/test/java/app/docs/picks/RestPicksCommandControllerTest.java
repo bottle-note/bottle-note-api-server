@@ -11,11 +11,11 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.response
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.picks.constant.PicksStatus;
 import app.bottlenote.picks.controller.PicksCommandController;
 import app.bottlenote.picks.dto.request.PicksUpdateRequest;
 import app.bottlenote.picks.dto.response.PicksUpdateResponse;
 import app.bottlenote.picks.service.PicksCommandService;
+import app.bottlenote.shared.picks.constant.PicksStatus;
 import app.docs.AbstractRestDocs;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;

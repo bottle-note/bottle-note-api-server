@@ -34,7 +34,7 @@ public class QPicks extends EntityPathBase<Picks> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> lastModifyAt = _super.lastModifyAt;
 
-    public final EnumPath<app.bottlenote.picks.constant.PicksStatus> status = createEnum("status", app.bottlenote.picks.constant.PicksStatus.class);
+    public final EnumPath<app.bottlenote.shared.picks.constant.PicksStatus> status = createEnum("status", app.bottlenote.shared.picks.constant.PicksStatus.class);
 
     public final NumberPath<Long> userId = createNumber("userId", Long.class);
 

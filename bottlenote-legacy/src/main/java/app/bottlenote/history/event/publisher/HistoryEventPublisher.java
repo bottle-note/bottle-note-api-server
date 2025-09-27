@@ -1,6 +1,5 @@
 package app.bottlenote.history.event.publisher;
 
-import static app.bottlenote.picks.constant.PicksStatus.PICK;
 import static app.bottlenote.shared.history.constant.EventCategory.RATING;
 import static app.bottlenote.shared.history.constant.EventCategory.REVIEW;
 import static app.bottlenote.shared.history.constant.EventType.IS_PICK;
@@ -8,6 +7,7 @@ import static app.bottlenote.shared.history.constant.EventType.REVIEW_CREATE;
 import static app.bottlenote.shared.history.constant.EventType.REVIEW_LIKES;
 import static app.bottlenote.shared.history.constant.EventType.REVIEW_REPLY_CREATE;
 import static app.bottlenote.shared.history.constant.EventType.UNPICK;
+import static app.bottlenote.shared.picks.constant.PicksStatus.PICK;
 
 import app.bottlenote.core.review.application.ReviewFacade;
 import app.bottlenote.history.event.payload.HistoryEvent;

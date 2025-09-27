@@ -1,6 +1,6 @@
 package app.bottlenote.picks.dto.request;
 
-import app.bottlenote.picks.constant.PicksStatus;
+import app.bottlenote.shared.picks.constant.PicksStatus;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 

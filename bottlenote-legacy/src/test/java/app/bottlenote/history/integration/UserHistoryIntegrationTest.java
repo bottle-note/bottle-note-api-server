@@ -6,9 +6,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.history.dto.response.UserHistoryItem;
 import app.bottlenote.history.dto.response.UserHistorySearchResponse;
-import app.bottlenote.picks.constant.PicksStatus;
 import app.bottlenote.shared.cursor.SortOrder;
 import app.bottlenote.shared.data.response.GlobalResponse;
+import app.bottlenote.shared.picks.constant.PicksStatus;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;

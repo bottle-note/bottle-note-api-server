@@ -6,11 +6,11 @@ import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
 
 import app.bottlenote.picks.repository.PicksQuerySupporter;
-import app.bottlenote.rating.constant.SearchSortType;
 import app.bottlenote.rating.dto.dsl.RatingListFetchCriteria;
 import app.bottlenote.rating.dto.response.RatingListFetchResponse;
 import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.shared.cursor.SortOrder;
+import app.bottlenote.shared.rating.constant.SearchSortType;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;

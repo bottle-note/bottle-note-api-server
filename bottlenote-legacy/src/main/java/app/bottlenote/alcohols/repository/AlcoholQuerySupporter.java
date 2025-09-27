@@ -5,10 +5,10 @@ import static app.bottlenote.core.alcohols.domain.QAlcoholsTastingTags.alcoholsT
 import static app.bottlenote.core.alcohols.domain.QPopularAlcohol.popularAlcohol;
 import static app.bottlenote.core.alcohols.domain.QRegion.region;
 import static app.bottlenote.core.alcohols.domain.QTastingTag.tastingTag;
-import static app.bottlenote.picks.constant.PicksStatus.PICK;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
+import static app.bottlenote.shared.picks.constant.PicksStatus.PICK;
 import static com.querydsl.jpa.JPAExpressions.select;
 
 import app.bottlenote.shared.alcohols.constant.AlcoholCategoryGroup;

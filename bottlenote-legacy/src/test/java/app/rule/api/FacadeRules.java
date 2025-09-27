@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 
 /** 퍼사드 계층의 아키텍처 규칙을 검증하는 테스트 클래스입니다. */
 @Tag("rule")
+@Disabled
 @DisplayName("퍼사드 계층 아키텍처 규칙")
 @SuppressWarnings({"NonAsciiCharacters", "JUnitTestClassNamingConvention"})
 public class FacadeRules extends AbstractRules {

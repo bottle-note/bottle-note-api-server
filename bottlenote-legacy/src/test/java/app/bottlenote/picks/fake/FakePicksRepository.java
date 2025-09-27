@@ -1,8 +1,8 @@
 package app.bottlenote.picks.fake;
 
-import app.bottlenote.picks.constant.PicksStatus;
 import app.bottlenote.picks.domain.Picks;
 import app.bottlenote.picks.repository.PicksRepository;
+import app.bottlenote.shared.picks.constant.PicksStatus;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;

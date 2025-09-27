@@ -3,7 +3,7 @@ package app.bottlenote.rating.domain;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import app.bottlenote.rating.exception.RatingException;
+import app.bottlenote.shared.rating.exception.RatingException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;

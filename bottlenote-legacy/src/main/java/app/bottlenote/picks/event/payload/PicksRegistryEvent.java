@@ -1,6 +1,6 @@
 package app.bottlenote.picks.event.payload;
 
-import app.bottlenote.picks.constant.PicksStatus;
+import app.bottlenote.shared.picks.constant.PicksStatus;
 
 public record PicksRegistryEvent(Long alcoholId, Long userId, PicksStatus picksStatus) {
 

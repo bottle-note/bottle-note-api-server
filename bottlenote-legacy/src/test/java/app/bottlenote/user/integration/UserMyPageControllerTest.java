@@ -1,6 +1,6 @@
 package app.bottlenote.user.integration;
 
-import static app.bottlenote.picks.constant.PicksStatus.PICK;
+import static app.bottlenote.shared.picks.constant.PicksStatus.PICK;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;

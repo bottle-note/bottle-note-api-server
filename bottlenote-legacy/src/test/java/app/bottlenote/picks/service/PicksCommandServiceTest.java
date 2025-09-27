@@ -1,7 +1,7 @@
 package app.bottlenote.picks.service;
 
-import static app.bottlenote.picks.constant.PicksStatus.PICK;
-import static app.bottlenote.picks.constant.PicksStatus.UNPICK;
+import static app.bottlenote.shared.picks.constant.PicksStatus.PICK;
+import static app.bottlenote.shared.picks.constant.PicksStatus.UNPICK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;

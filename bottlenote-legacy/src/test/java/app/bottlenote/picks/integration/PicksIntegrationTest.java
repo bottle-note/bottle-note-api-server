@@ -1,9 +1,9 @@
 package app.bottlenote.picks.integration;
 
-import static app.bottlenote.picks.constant.PicksStatus.PICK;
-import static app.bottlenote.picks.constant.PicksStatus.UNPICK;
 import static app.bottlenote.picks.dto.response.PicksUpdateResponse.Message.PICKED;
 import static app.bottlenote.picks.dto.response.PicksUpdateResponse.Message.UNPICKED;
+import static app.bottlenote.shared.picks.constant.PicksStatus.PICK;
+import static app.bottlenote.shared.picks.constant.PicksStatus.UNPICK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
