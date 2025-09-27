@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.alcohols.fixture.FakeAlcoholFacade;
+import app.bottlenote.alcohols.service.AlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.history.fixture.FakeHistoryEventPublisher;
 import app.bottlenote.rating.domain.Rating;

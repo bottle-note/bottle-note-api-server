@@ -1,13 +1,12 @@
 package app.bottlenote.alcohols.service;
 
-import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
+import static app.bottlenote.shared.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
 import static java.lang.Boolean.FALSE;
 
 import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.exception.AlcoholException;
-import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.alcohols.repository.AlcoholQueryRepository;
 import app.bottlenote.common.annotation.FacadeService;
+import app.bottlenote.shared.alcohols.exception.AlcoholException;
 import app.bottlenote.shared.alcohols.payload.AlcoholSummaryItem;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;

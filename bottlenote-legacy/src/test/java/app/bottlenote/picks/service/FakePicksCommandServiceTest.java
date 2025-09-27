@@ -4,8 +4,8 @@ import static app.bottlenote.picks.constant.PicksStatus.PICK;
 import static app.bottlenote.picks.constant.PicksStatus.UNPICK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.alcohols.fixture.FakeAlcoholFacade;
+import app.bottlenote.alcohols.service.AlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.history.fixture.FakeHistoryEventPublisher;
 import app.bottlenote.picks.dto.request.PicksUpdateRequest;

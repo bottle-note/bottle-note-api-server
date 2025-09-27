@@ -1,11 +1,10 @@
 package app.bottlenote.picks.service;
 
-import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
+import static app.bottlenote.shared.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
 import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 import static java.lang.Boolean.FALSE;
 
-import app.bottlenote.alcohols.exception.AlcoholException;
-import app.bottlenote.alcohols.facade.AlcoholFacade;
+import app.bottlenote.alcohols.service.AlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.picks.constant.PicksStatus;
 import app.bottlenote.picks.domain.Picks;
@@ -13,6 +12,7 @@ import app.bottlenote.picks.dto.request.PicksUpdateRequest;
 import app.bottlenote.picks.dto.response.PicksUpdateResponse;
 import app.bottlenote.picks.event.payload.PicksRegistryEvent;
 import app.bottlenote.picks.repository.PicksRepository;
+import app.bottlenote.shared.alcohols.exception.AlcoholException;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.facade.UserFacade;
 import lombok.RequiredArgsConstructor;

@@ -1,6 +1,6 @@
 package app.bottlenote.rating.service;
 
-import app.bottlenote.alcohols.facade.AlcoholFacade;
+import app.bottlenote.alcohols.service.AlcoholFacade;
 import app.bottlenote.rating.domain.RatingRepository;
 import app.bottlenote.rating.dto.dsl.RatingListFetchCriteria;
 import app.bottlenote.rating.dto.request.RatingListFetchRequest;

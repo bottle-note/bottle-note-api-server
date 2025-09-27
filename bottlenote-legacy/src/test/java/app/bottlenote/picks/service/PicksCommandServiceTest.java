@@ -9,7 +9,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.facade.AlcoholFacade;
+import app.bottlenote.alcohols.service.AlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.picks.domain.Picks;
 import app.bottlenote.picks.dto.request.PicksUpdateRequest;

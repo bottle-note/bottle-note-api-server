@@ -1,6 +1,6 @@
 package app.bottlenote.alcohols.service;
 
-import app.bottlenote.alcohols.repository.JpaPopularQueryRepository;
+import app.bottlenote.alcohols.repository.PopularQueryRepository;
 import app.bottlenote.shared.alcohols.dto.response.PopularItem;
 import java.util.Collections;
 import java.util.List;
@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AlcoholPopularService {
 
-  private final JpaPopularQueryRepository popularQueryRepository;
+  private final PopularQueryRepository popularQueryRepository;
 
   @Transactional(readOnly = true)
   public List<PopularItem> getPopularOfWeek(Integer top, Long userId) {

@@ -2,7 +2,7 @@ package app.bottlenote.history.event.listener;
 
 import static app.bottlenote.common.annotation.DomainEventListener.ProcessingType.ASYNCHRONOUS;
 
-import app.bottlenote.alcohols.facade.AlcoholFacade;
+import app.bottlenote.alcohols.service.AlcoholFacade;
 import app.bottlenote.common.annotation.DomainEventListener;
 import app.bottlenote.history.domain.UserHistory;
 import app.bottlenote.history.domain.UserHistoryRepository;

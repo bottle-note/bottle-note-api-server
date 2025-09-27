@@ -1,4 +1,4 @@
-package app.bottlenote.alcohols.facade;
+package app.bottlenote.alcohols.service;
 
 import app.bottlenote.shared.alcohols.payload.AlcoholSummaryItem;
 import java.util.Optional;

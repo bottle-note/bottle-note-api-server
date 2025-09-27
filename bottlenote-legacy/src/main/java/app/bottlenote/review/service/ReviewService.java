@@ -7,7 +7,7 @@ import static app.bottlenote.shared.review.constant.ReviewResultMessage.PRIVATE_
 import static app.bottlenote.shared.review.constant.ReviewResultMessage.PUBLIC_SUCCESS;
 import static app.bottlenote.shared.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 
-import app.bottlenote.alcohols.facade.AlcoholFacade;
+import app.bottlenote.alcohols.service.AlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.review.domain.Review;

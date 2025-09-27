@@ -2,7 +2,7 @@ package app.bottlenote.rating.service;
 
 import static java.lang.Boolean.FALSE;
 
-import app.bottlenote.alcohols.facade.AlcoholFacade;
+import app.bottlenote.alcohols.service.AlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;

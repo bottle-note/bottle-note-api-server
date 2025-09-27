@@ -1,4 +1,4 @@
-package app.bottlenote.alcohols.exception;
+package app.bottlenote.shared.alcohols.exception;
 
 import app.bottlenote.shared.exception.custom.code.ExceptionCode;
 import org.springframework.http.HttpStatus;

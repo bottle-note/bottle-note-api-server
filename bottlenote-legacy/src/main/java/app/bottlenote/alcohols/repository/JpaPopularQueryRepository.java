@@ -10,8 +10,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 @JpaRepositoryImpl
-public interface JpaPopularQueryRepository extends JpaRepository<Alcohol, Long> {
+public interface JpaPopularQueryRepository
+    extends PopularQueryRepository, JpaRepository<Alcohol, Long> {
 
+  @Override
   @Query(
       """
 			         SELECT
@@ -41,6 +43,7 @@ public interface JpaPopularQueryRepository extends JpaRepository<Alcohol, Long> 
 			""")
   List<PopularItem> getPopularOfWeeks(@Param("userId") Long userId, Pageable size);
 
+  @Override
   @Query(
       """
 			SELECT new app.bottlenote.shared.alcohols.dto.response.PopularItem(
