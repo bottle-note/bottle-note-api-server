@@ -1,6 +1,6 @@
 package app.bottlenote.alcohols.service;
 
-import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
+import app.bottlenote.alcohols.repository.AlcoholQueryRepository;
 import app.bottlenote.history.service.AlcoholViewHistoryService;
 import app.bottlenote.review.facade.ReviewFacade;
 import app.bottlenote.shared.alcohols.dto.dsl.AlcoholSearchCriteria;

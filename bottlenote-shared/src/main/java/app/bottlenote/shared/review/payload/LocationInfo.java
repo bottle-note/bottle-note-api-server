@@ -4,7 +4,7 @@ import lombok.Builder;
 
 @Builder
 public record LocationInfo(
-    String locationName,
+    String name,
     String zipCode,
     String address,
     String detailAddress,

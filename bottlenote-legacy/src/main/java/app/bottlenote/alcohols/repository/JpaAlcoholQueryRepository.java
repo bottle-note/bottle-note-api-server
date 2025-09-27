@@ -1,7 +1,6 @@
 package app.bottlenote.alcohols.repository;
 
 import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.shared.alcohols.constant.AlcoholType;
 import app.bottlenote.shared.alcohols.dto.response.CategoryItem;
 import java.util.List;

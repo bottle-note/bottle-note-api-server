@@ -1,7 +1,7 @@
 package app.bottlenote.alcohols.fixture;
 
 import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
+import app.bottlenote.alcohols.repository.AlcoholQueryRepository;
 import app.bottlenote.shared.alcohols.constant.AlcoholType;
 import app.bottlenote.shared.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.shared.alcohols.dto.response.AlcoholDetailItem;

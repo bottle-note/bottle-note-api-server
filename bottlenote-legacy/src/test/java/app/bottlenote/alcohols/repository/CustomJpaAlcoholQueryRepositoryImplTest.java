@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.config.ModuleConfig;
 import app.bottlenote.config.TestConfig;
 import app.bottlenote.rating.domain.Rating;

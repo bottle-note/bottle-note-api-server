@@ -2,7 +2,7 @@ package app.bottlenote.alcohols.service;
 
 import static java.time.LocalDateTime.now;
 
-import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
+import app.bottlenote.alcohols.repository.AlcoholQueryRepository;
 import app.bottlenote.alcohols.repository.JpaRegionQueryRepository;
 import app.bottlenote.shared.alcohols.constant.AlcoholType;
 import app.bottlenote.shared.alcohols.dto.response.CategoryItem;

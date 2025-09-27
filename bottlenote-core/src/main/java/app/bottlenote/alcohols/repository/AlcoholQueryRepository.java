@@ -1,5 +1,6 @@
-package app.bottlenote.alcohols.domain;
+package app.bottlenote.alcohols.repository;
 
+import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.shared.alcohols.constant.AlcoholType;
 import app.bottlenote.shared.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.shared.alcohols.dto.response.AlcoholDetailItem;

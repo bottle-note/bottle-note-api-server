@@ -55,7 +55,7 @@ public class ReviewLocation {
 
   public LocationInfo toLocationInfo() {
     return LocationInfo.builder()
-        .locationName(name)
+        .name(name)
         .zipCode(zipCode)
         .address(address)
         .detailAddress(detailAddress)
