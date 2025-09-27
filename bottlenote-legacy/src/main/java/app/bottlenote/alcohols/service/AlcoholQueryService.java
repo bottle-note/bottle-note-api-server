@@ -1,8 +1,9 @@
 package app.bottlenote.alcohols.service;
 
-import app.bottlenote.alcohols.repository.AlcoholQueryRepository;
+import app.bottlenote.core.alcohols.repository.AlcoholQueryRepository;
+import app.bottlenote.core.review.application.ReviewFacade;
+import app.bottlenote.core.users.application.FollowFacade;
 import app.bottlenote.history.service.AlcoholViewHistoryService;
-import app.bottlenote.review.facade.ReviewFacade;
 import app.bottlenote.shared.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.shared.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.shared.alcohols.dto.response.AlcoholDetailItem;
@@ -12,7 +13,6 @@ import app.bottlenote.shared.alcohols.dto.response.FriendsDetailResponse;
 import app.bottlenote.shared.cursor.CursorResponse;
 import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.shared.users.payload.FriendItem;
-import app.bottlenote.user.facade.FollowFacade;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

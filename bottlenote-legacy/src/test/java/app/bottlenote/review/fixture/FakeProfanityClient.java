@@ -1,12 +1,12 @@
 package app.bottlenote.review.fixture;
 
-import static app.bottlenote.common.exception.CommonExceptionCode.CONTAINS_PROFANITY;
+import static app.bottlenote.shared.common.exception.CommonExceptionCode.CONTAINS_PROFANITY;
 
-import app.bottlenote.common.exception.CommonException;
 import app.bottlenote.common.profanity.FakeProfanityFeignClient;
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.common.profanity.dto.request.ProfanityRequest;
 import app.bottlenote.common.profanity.dto.response.ProfanityResponse;
+import app.bottlenote.shared.common.exception.CommonException;
 import org.springframework.http.ResponseEntity;
 
 /** ProfanityClient 의 fake 구현체입니다. */

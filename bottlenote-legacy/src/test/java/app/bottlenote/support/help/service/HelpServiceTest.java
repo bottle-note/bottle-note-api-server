@@ -13,6 +13,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
+import app.bottlenote.core.users.application.UserFacade;
 import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.support.help.constant.HelpType;
 import app.bottlenote.support.help.domain.Help;
@@ -26,7 +27,6 @@ import app.bottlenote.support.help.exception.HelpException;
 import app.bottlenote.support.help.fixture.HelpObjectFixture;
 import app.bottlenote.support.help.repository.HelpRepository;
 import app.bottlenote.user.exception.UserException;
-import app.bottlenote.user.facade.UserFacade;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;

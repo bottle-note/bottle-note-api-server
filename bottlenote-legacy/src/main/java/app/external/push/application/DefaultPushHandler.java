@@ -1,6 +1,6 @@
 package app.external.push.application;
 
-import app.bottlenote.user.facade.UserFacade;
+import app.bottlenote.core.users.application.UserFacade;
 import com.google.firebase.messaging.BatchResponse;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;

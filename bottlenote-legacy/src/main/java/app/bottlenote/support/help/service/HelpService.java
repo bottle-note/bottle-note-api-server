@@ -6,6 +6,7 @@ import static app.bottlenote.support.help.constant.HelpResultMessage.REGISTER_SU
 import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_AUTHORIZED;
 import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
 
+import app.bottlenote.core.users.application.UserFacade;
 import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.support.help.domain.Help;
 import app.bottlenote.support.help.dto.request.HelpImageItem;
@@ -16,7 +17,6 @@ import app.bottlenote.support.help.dto.response.HelpListResponse;
 import app.bottlenote.support.help.dto.response.HelpResultResponse;
 import app.bottlenote.support.help.exception.HelpException;
 import app.bottlenote.support.help.repository.HelpRepository;
-import app.bottlenote.user.facade.UserFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

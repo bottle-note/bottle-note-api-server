@@ -7,7 +7,8 @@ import static app.bottlenote.shared.review.constant.ReviewResultMessage.PRIVATE_
 import static app.bottlenote.shared.review.constant.ReviewResultMessage.PUBLIC_SUCCESS;
 import static app.bottlenote.shared.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 
-import app.bottlenote.alcohols.service.AlcoholFacade;
+import app.bottlenote.core.alcohols.application.AlcoholFacade;
+import app.bottlenote.core.users.application.UserFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.review.domain.Review;
@@ -29,7 +30,6 @@ import app.bottlenote.shared.review.dto.response.ReviewResultResponse;
 import app.bottlenote.shared.review.exception.ReviewException;
 import app.bottlenote.shared.review.payload.ReviewInfo;
 import app.bottlenote.shared.review.payload.ReviewRegistryEvent;
-import app.bottlenote.user.facade.UserFacade;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

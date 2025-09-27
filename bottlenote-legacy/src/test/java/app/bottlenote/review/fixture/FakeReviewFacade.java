@@ -1,6 +1,6 @@
 package app.bottlenote.review.fixture;
 
-import app.bottlenote.review.facade.ReviewFacade;
+import app.bottlenote.core.review.application.ReviewFacade;
 import app.bottlenote.shared.review.constant.ReviewDisplayStatus;
 import app.bottlenote.shared.review.constant.SizeType;
 import app.bottlenote.shared.review.dto.response.ReviewListResponse;

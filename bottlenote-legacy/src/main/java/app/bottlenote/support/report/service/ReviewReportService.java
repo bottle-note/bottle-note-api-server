@@ -3,7 +3,7 @@ package app.bottlenote.support.report.service;
 import static app.bottlenote.shared.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 import static app.bottlenote.support.report.exception.ReportExceptionCode.ALREADY_REPORTED_REVIEW;
 
-import app.bottlenote.review.facade.ReviewFacade;
+import app.bottlenote.core.review.application.ReviewFacade;
 import app.bottlenote.shared.review.exception.ReviewException;
 import app.bottlenote.support.report.domain.ReviewReport;
 import app.bottlenote.support.report.dto.request.ReviewReportRequest;

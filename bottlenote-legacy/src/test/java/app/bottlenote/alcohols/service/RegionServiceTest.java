@@ -3,6 +3,7 @@ package app.bottlenote.alcohols.service;
 import static org.mockito.Mockito.when;
 
 import app.bottlenote.alcohols.repository.JpaRegionQueryRepository;
+import app.bottlenote.core.alcohols.application.AlcoholReferenceService;
 import app.bottlenote.shared.alcohols.dto.response.RegionsItem;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;

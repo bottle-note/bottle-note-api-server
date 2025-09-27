@@ -1,24 +1,24 @@
 package app.bottlenote.history.repository;
 
-import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.history.constant.EventType.IS_PICK;
-import static app.bottlenote.history.constant.EventType.RATING_DELETE;
-import static app.bottlenote.history.constant.EventType.RATING_MODIFY;
-import static app.bottlenote.history.constant.EventType.START_RATING;
-import static app.bottlenote.history.constant.EventType.UNPICK;
+import static app.bottlenote.core.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.history.domain.QUserHistory.userHistory;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.shared.history.constant.EventType.IS_PICK;
+import static app.bottlenote.shared.history.constant.EventType.RATING_DELETE;
+import static app.bottlenote.shared.history.constant.EventType.RATING_MODIFY;
+import static app.bottlenote.shared.history.constant.EventType.START_RATING;
+import static app.bottlenote.shared.history.constant.EventType.UNPICK;
 import static app.bottlenote.user.domain.QUser.user;
 
 import app.bottlenote.global.util.SortOrderUtils;
-import app.bottlenote.history.constant.EventType;
 import app.bottlenote.history.dto.request.UserHistorySearchRequest;
 import app.bottlenote.history.dto.response.UserHistoryItem;
 import app.bottlenote.history.dto.response.UserHistorySearchResponse;
 import app.bottlenote.picks.constant.PicksStatus;
 import app.bottlenote.shared.cursor.CursorPageable;
 import app.bottlenote.shared.cursor.PageResponse;
+import app.bottlenote.shared.history.constant.EventType;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;

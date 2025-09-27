@@ -1,12 +1,12 @@
 package app.bottlenote.history.fixture;
 
-import app.bottlenote.history.constant.EventCategory;
-import app.bottlenote.history.constant.EventType;
 import app.bottlenote.history.dto.response.UserHistoryItem;
 import app.bottlenote.history.dto.response.UserHistorySearchResponse;
 import app.bottlenote.shared.alcohols.dto.response.ViewHistoryItem;
 import app.bottlenote.shared.cursor.CursorPageable;
 import app.bottlenote.shared.cursor.PageResponse;
+import app.bottlenote.shared.history.constant.EventCategory;
+import app.bottlenote.shared.history.constant.EventType;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;

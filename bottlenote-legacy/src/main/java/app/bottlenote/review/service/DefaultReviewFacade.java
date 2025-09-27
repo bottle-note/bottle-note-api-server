@@ -2,10 +2,10 @@ package app.bottlenote.review.service;
 
 import static app.bottlenote.shared.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 
-import app.bottlenote.common.annotation.FacadeService;
+import app.bottlenote.core.review.application.ReviewFacade;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewRepository;
-import app.bottlenote.review.facade.ReviewFacade;
+import app.bottlenote.shared.annotation.FacadeService;
 import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.shared.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.shared.review.dto.response.ReviewListResponse;

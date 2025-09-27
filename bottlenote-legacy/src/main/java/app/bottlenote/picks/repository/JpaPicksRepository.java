@@ -1,7 +1,7 @@
 package app.bottlenote.picks.repository;
 
-import app.bottlenote.common.annotation.JpaRepositoryImpl;
 import app.bottlenote.picks.domain.Picks;
+import app.bottlenote.shared.annotation.JpaRepositoryImpl;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 

@@ -1,7 +1,7 @@
 package app.bottlenote.history.dto.response;
 
-import app.bottlenote.history.constant.EventCategory;
-import app.bottlenote.history.constant.EventType;
+import app.bottlenote.shared.history.constant.EventCategory;
+import app.bottlenote.shared.history.constant.EventType;
 import java.time.LocalDateTime;
 import java.util.Map;
 import lombok.Builder;

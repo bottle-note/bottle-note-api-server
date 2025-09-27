@@ -1,12 +1,12 @@
 package app.bottlenote.history.event.listener;
 
-import static app.bottlenote.common.annotation.DomainEventListener.ProcessingType.ASYNCHRONOUS;
+import static app.bottlenote.shared.annotation.DomainEventListener.ProcessingType.ASYNCHRONOUS;
 
-import app.bottlenote.alcohols.service.AlcoholFacade;
-import app.bottlenote.common.annotation.DomainEventListener;
+import app.bottlenote.core.alcohols.application.AlcoholFacade;
 import app.bottlenote.history.domain.UserHistory;
 import app.bottlenote.history.domain.UserHistoryRepository;
 import app.bottlenote.history.event.payload.HistoryEvent;
+import app.bottlenote.shared.annotation.DomainEventListener;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

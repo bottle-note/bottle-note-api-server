@@ -2,7 +2,7 @@ package app.bottlenote.alcohols.fixture;
 
 import static app.bottlenote.shared.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
 
-import app.bottlenote.alcohols.service.AlcoholFacade;
+import app.bottlenote.core.alcohols.application.AlcoholFacade;
 import app.bottlenote.shared.alcohols.exception.AlcoholException;
 import app.bottlenote.shared.alcohols.payload.AlcoholSummaryItem;
 import java.util.Map;

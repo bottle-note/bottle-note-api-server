@@ -9,11 +9,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 import app.bottlenote.IntegrationTestSupport;
-import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.domain.AlcoholsTastingTags;
-import app.bottlenote.alcohols.domain.TastingTag;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
-import app.bottlenote.alcohols.repository.AlcoholQueryRepository;
+import app.bottlenote.core.alcohols.domain.Alcohol;
+import app.bottlenote.core.alcohols.domain.AlcoholsTastingTags;
+import app.bottlenote.core.alcohols.domain.TastingTag;
+import app.bottlenote.core.alcohols.repository.AlcoholQueryRepository;
 import app.bottlenote.rating.fixture.RatingTestFactory;
 import app.bottlenote.shared.alcohols.dto.response.AlcoholDetailResponse;
 import app.bottlenote.shared.alcohols.dto.response.AlcoholSearchResponse;

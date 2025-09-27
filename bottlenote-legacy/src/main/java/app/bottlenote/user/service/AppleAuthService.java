@@ -1,7 +1,7 @@
 package app.bottlenote.user.service;
 
-import app.bottlenote.common.annotation.ThirdPartyService;
 import app.bottlenote.global.security.jwt.TokenValidator;
+import app.bottlenote.shared.annotation.ThirdPartyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;

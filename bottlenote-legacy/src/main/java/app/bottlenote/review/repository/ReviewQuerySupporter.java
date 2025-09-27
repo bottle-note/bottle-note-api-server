@@ -1,6 +1,6 @@
 package app.bottlenote.review.repository;
 
-import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.core.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.like.constant.LikeStatus.LIKE;
 import static app.bottlenote.like.domain.QLikes.likes;
 import static app.bottlenote.rating.domain.QRating.rating;

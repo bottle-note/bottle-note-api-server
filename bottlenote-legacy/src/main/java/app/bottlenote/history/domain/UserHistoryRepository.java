@@ -1,8 +1,8 @@
 package app.bottlenote.history.domain;
 
-import app.bottlenote.common.annotation.DomainRepository;
 import app.bottlenote.history.dto.request.UserHistorySearchRequest;
 import app.bottlenote.history.dto.response.UserHistorySearchResponse;
+import app.bottlenote.shared.annotation.DomainRepository;
 import app.bottlenote.shared.cursor.PageResponse;
 import java.util.List;
 import java.util.Optional;

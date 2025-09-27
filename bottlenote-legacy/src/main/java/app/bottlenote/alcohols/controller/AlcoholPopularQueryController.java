@@ -2,7 +2,7 @@ package app.bottlenote.alcohols.controller;
 
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 
-import app.bottlenote.alcohols.service.AlcoholPopularService;
+import app.bottlenote.core.alcohols.application.AlcoholPopularService;
 import app.bottlenote.shared.alcohols.dto.response.PopularsOfWeekResponse;
 import app.bottlenote.shared.data.response.GlobalResponse;
 import lombok.RequiredArgsConstructor;

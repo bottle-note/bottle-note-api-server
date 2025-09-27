@@ -10,7 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import app.bottlenote.alcohols.fixture.AlcoholQueryFixture;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
-import app.bottlenote.alcohols.service.AlcoholReferenceService;
+import app.bottlenote.core.alcohols.application.AlcoholReferenceService;
 import app.bottlenote.shared.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.shared.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.shared.cursor.PageResponse;

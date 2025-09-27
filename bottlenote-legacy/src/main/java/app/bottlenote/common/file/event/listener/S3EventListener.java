@@ -1,9 +1,9 @@
 package app.bottlenote.common.file.event.listener;
 
-import static app.bottlenote.common.annotation.DomainEventListener.ProcessingType.ASYNCHRONOUS;
+import static app.bottlenote.shared.annotation.DomainEventListener.ProcessingType.ASYNCHRONOUS;
 
-import app.bottlenote.common.annotation.DomainEventListener;
 import app.bottlenote.common.file.event.payload.S3RequestEvent;
+import app.bottlenote.shared.annotation.DomainEventListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

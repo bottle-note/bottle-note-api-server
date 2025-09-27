@@ -1,10 +1,10 @@
 package app.bottlenote.alcohols.fixture;
 
-import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.domain.AlcoholsTastingTags;
-import app.bottlenote.alcohols.domain.Distillery;
-import app.bottlenote.alcohols.domain.Region;
-import app.bottlenote.alcohols.domain.TastingTag;
+import app.bottlenote.core.alcohols.domain.Alcohol;
+import app.bottlenote.core.alcohols.domain.AlcoholsTastingTags;
+import app.bottlenote.core.alcohols.domain.Distillery;
+import app.bottlenote.core.alcohols.domain.Region;
+import app.bottlenote.core.alcohols.domain.TastingTag;
 import app.bottlenote.shared.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.shared.alcohols.constant.AlcoholType;
 import app.bottlenote.shared.alcohols.constant.KeywordTagMapping;

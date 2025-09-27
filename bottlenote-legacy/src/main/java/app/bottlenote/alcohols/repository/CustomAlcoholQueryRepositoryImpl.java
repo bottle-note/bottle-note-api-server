@@ -1,9 +1,9 @@
 package app.bottlenote.alcohols.repository;
 
-import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.alcohols.domain.QDistillery.distillery;
-import static app.bottlenote.alcohols.domain.QRegion.region;
 import static app.bottlenote.alcohols.repository.AlcoholQuerySupporter.getTastingTags;
+import static app.bottlenote.core.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.core.alcohols.domain.QDistillery.distillery;
+import static app.bottlenote.core.alcohols.domain.QRegion.region;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;

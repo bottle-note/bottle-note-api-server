@@ -1,6 +1,6 @@
 package app.bottlenote.rating.fixture;
 
-import app.bottlenote.alcohols.domain.Alcohol;
+import app.bottlenote.core.alcohols.domain.Alcohol;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;

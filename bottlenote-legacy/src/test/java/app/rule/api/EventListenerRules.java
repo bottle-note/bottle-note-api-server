@@ -3,7 +3,7 @@ package app.rule.api;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 
-import app.bottlenote.common.annotation.DomainEventListener;
+import app.bottlenote.shared.annotation.DomainEventListener;
 import app.rule.AbstractRules;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;

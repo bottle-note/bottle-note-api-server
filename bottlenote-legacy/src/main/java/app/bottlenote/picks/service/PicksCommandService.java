@@ -4,7 +4,8 @@ import static app.bottlenote.shared.alcohols.exception.AlcoholExceptionCode.ALCO
 import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 import static java.lang.Boolean.FALSE;
 
-import app.bottlenote.alcohols.service.AlcoholFacade;
+import app.bottlenote.core.alcohols.application.AlcoholFacade;
+import app.bottlenote.core.users.application.UserFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.picks.constant.PicksStatus;
 import app.bottlenote.picks.domain.Picks;
@@ -14,7 +15,6 @@ import app.bottlenote.picks.event.payload.PicksRegistryEvent;
 import app.bottlenote.picks.repository.PicksRepository;
 import app.bottlenote.shared.alcohols.exception.AlcoholException;
 import app.bottlenote.user.exception.UserException;
-import app.bottlenote.user.facade.UserFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

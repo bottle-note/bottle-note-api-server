@@ -1,11 +1,11 @@
 package app.bottlenote.history.event;
 
 import app.bottlenote.alcohols.fixture.FakeAlcoholFacade;
-import app.bottlenote.history.constant.EventCategory;
-import app.bottlenote.history.constant.EventType;
 import app.bottlenote.history.event.listener.HistoryListener;
 import app.bottlenote.history.event.payload.HistoryEvent;
 import app.bottlenote.history.fixture.InMemoryUserHistoryRepository;
+import app.bottlenote.shared.history.constant.EventCategory;
+import app.bottlenote.shared.history.constant.EventType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

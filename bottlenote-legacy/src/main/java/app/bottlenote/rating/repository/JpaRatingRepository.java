@@ -1,10 +1,10 @@
 package app.bottlenote.rating.repository;
 
-import app.bottlenote.common.annotation.JpaRepositoryImpl;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.domain.RatingRepository;
 import app.bottlenote.rating.dto.response.UserRatingResponse;
+import app.bottlenote.shared.annotation.JpaRepositoryImpl;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

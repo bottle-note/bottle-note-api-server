@@ -1,6 +1,6 @@
 package app.bottlenote.user.service;
 
-import app.bottlenote.common.annotation.ThirdPartyService;
+import app.bottlenote.shared.annotation.ThirdPartyService;
 import app.bottlenote.user.client.KakaoFeignClient;
 import app.bottlenote.user.dto.response.KakaoUserResponse;
 import app.bottlenote.user.exception.UserException;

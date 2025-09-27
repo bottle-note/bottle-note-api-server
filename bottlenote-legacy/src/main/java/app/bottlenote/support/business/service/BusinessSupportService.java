@@ -8,6 +8,7 @@ import static app.bottlenote.support.business.exception.BusinessSupportException
 import static app.bottlenote.support.business.exception.BusinessSupportExceptionCode.BUSINESS_SUPPORT_NOT_FOUND;
 
 import app.bottlenote.common.profanity.ProfanityClient;
+import app.bottlenote.core.users.application.UserFacade;
 import app.bottlenote.shared.data.response.CollectionResponse;
 import app.bottlenote.support.business.domain.BusinessSupport;
 import app.bottlenote.support.business.dto.request.BusinessImageItem;
@@ -18,7 +19,6 @@ import app.bottlenote.support.business.dto.response.BusinessSupportDetailItem;
 import app.bottlenote.support.business.dto.response.BusinessSupportResultResponse;
 import app.bottlenote.support.business.exception.BusinessSupportException;
 import app.bottlenote.support.business.repository.BusinessSupportRepository;
-import app.bottlenote.user.facade.UserFacade;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

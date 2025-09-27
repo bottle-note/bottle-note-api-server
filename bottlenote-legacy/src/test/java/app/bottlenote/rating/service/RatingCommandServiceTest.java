@@ -6,7 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import app.bottlenote.alcohols.fixture.FakeAlcoholFacade;
-import app.bottlenote.alcohols.service.AlcoholFacade;
+import app.bottlenote.core.alcohols.application.AlcoholFacade;
+import app.bottlenote.core.users.application.UserFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.history.fixture.FakeHistoryEventPublisher;
 import app.bottlenote.rating.domain.Rating;
@@ -18,7 +19,6 @@ import app.bottlenote.rating.exception.RatingException;
 import app.bottlenote.rating.fixture.InMemoryRatingRepository;
 import app.bottlenote.shared.users.payload.UserProfileItem;
 import app.bottlenote.user.exception.UserException;
-import app.bottlenote.user.facade.UserFacade;
 import app.bottlenote.user.fixture.FakeUserFacade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

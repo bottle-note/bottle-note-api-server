@@ -14,7 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import app.bottlenote.alcohols.controller.AlcoholReferenceController;
 import app.bottlenote.alcohols.fixture.AlcoholQueryFixture;
-import app.bottlenote.alcohols.service.AlcoholReferenceService;
+import app.bottlenote.core.alcohols.application.AlcoholReferenceService;
 import app.bottlenote.shared.alcohols.dto.response.CategoryItem;
 import app.bottlenote.shared.alcohols.dto.response.RegionsItem;
 import app.docs.AbstractRestDocs;

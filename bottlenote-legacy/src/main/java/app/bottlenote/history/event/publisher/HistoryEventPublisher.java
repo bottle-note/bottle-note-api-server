@@ -1,22 +1,22 @@
 package app.bottlenote.history.event.publisher;
 
-import static app.bottlenote.history.constant.EventCategory.RATING;
-import static app.bottlenote.history.constant.EventCategory.REVIEW;
-import static app.bottlenote.history.constant.EventType.IS_PICK;
-import static app.bottlenote.history.constant.EventType.REVIEW_CREATE;
-import static app.bottlenote.history.constant.EventType.REVIEW_LIKES;
-import static app.bottlenote.history.constant.EventType.REVIEW_REPLY_CREATE;
-import static app.bottlenote.history.constant.EventType.UNPICK;
 import static app.bottlenote.picks.constant.PicksStatus.PICK;
+import static app.bottlenote.shared.history.constant.EventCategory.RATING;
+import static app.bottlenote.shared.history.constant.EventCategory.REVIEW;
+import static app.bottlenote.shared.history.constant.EventType.IS_PICK;
+import static app.bottlenote.shared.history.constant.EventType.REVIEW_CREATE;
+import static app.bottlenote.shared.history.constant.EventType.REVIEW_LIKES;
+import static app.bottlenote.shared.history.constant.EventType.REVIEW_REPLY_CREATE;
+import static app.bottlenote.shared.history.constant.EventType.UNPICK;
 
-import app.bottlenote.history.constant.EventCategory;
-import app.bottlenote.history.constant.EventType;
-import app.bottlenote.history.constant.RedirectUrlType;
+import app.bottlenote.core.review.application.ReviewFacade;
 import app.bottlenote.history.event.payload.HistoryEvent;
 import app.bottlenote.like.event.payload.LikesRegistryEvent;
 import app.bottlenote.picks.event.payload.PicksRegistryEvent;
 import app.bottlenote.rating.event.payload.RatingRegistryEvent;
-import app.bottlenote.review.facade.ReviewFacade;
+import app.bottlenote.shared.history.constant.EventCategory;
+import app.bottlenote.shared.history.constant.EventType;
+import app.bottlenote.shared.history.constant.RedirectUrlType;
 import app.bottlenote.shared.review.payload.ReviewRegistryEvent;
 import java.util.Map;
 import java.util.Objects;

@@ -1,10 +1,10 @@
 package app.bottlenote.history.domain;
 
-import app.bottlenote.common.exception.CommonException;
-import app.bottlenote.common.exception.CommonExceptionCode;
 import app.bottlenote.core.common.domain.BaseEntity;
-import app.bottlenote.history.constant.EventCategory;
-import app.bottlenote.history.constant.EventType;
+import app.bottlenote.shared.common.exception.CommonException;
+import app.bottlenote.shared.common.exception.CommonExceptionCode;
+import app.bottlenote.shared.history.constant.EventCategory;
+import app.bottlenote.shared.history.constant.EventType;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

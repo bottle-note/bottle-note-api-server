@@ -5,8 +5,8 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
 
-import app.bottlenote.common.annotation.FacadeService;
-import app.bottlenote.common.annotation.ThirdPartyService;
+import app.bottlenote.shared.annotation.FacadeService;
+import app.bottlenote.shared.annotation.ThirdPartyService;
 import app.rule.AbstractRules;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;

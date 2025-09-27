@@ -1,9 +1,9 @@
 package app.bottlenote.common.profanity;
 
-import app.bottlenote.common.exception.CommonException;
-import app.bottlenote.common.exception.CommonExceptionCode;
 import app.bottlenote.common.profanity.dto.request.ProfanityRequest;
 import app.bottlenote.common.profanity.dto.response.ProfanityResponse;
+import app.bottlenote.shared.common.exception.CommonException;
+import app.bottlenote.shared.common.exception.CommonExceptionCode;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

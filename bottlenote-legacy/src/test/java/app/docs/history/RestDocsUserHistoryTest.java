@@ -14,7 +14,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.history.constant.HistoryReviewFilterType;
 import app.bottlenote.history.controller.UserHistoryController;
 import app.bottlenote.history.dto.response.UserHistorySearchResponse;
 import app.bottlenote.history.fixture.HistoryQueryFixture;
@@ -24,6 +23,7 @@ import app.bottlenote.picks.constant.PicksStatus;
 import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.shared.cursor.SortOrder;
 import app.bottlenote.shared.data.response.CollectionResponse;
+import app.bottlenote.shared.history.constant.HistoryReviewFilterType;
 import app.docs.AbstractRestDocs;
 import java.time.LocalDateTime;
 import java.util.Optional;

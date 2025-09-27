@@ -36,11 +36,11 @@ public class QUserHistory extends EntityPathBase<UserHistory> {
 
     public final MapPath<String, String, StringPath> dynamicMessage = this.<String, String, StringPath>createMap("dynamicMessage", String.class, String.class, StringPath.class);
 
-    public final EnumPath<app.bottlenote.history.constant.EventCategory> eventCategory = createEnum("eventCategory", app.bottlenote.history.constant.EventCategory.class);
+    public final EnumPath<app.bottlenote.shared.history.constant.EventCategory> eventCategory = createEnum("eventCategory", app.bottlenote.shared.history.constant.EventCategory.class);
 
     public final StringPath eventMonth = createString("eventMonth");
 
-    public final EnumPath<app.bottlenote.history.constant.EventType> eventType = createEnum("eventType", app.bottlenote.history.constant.EventType.class);
+    public final EnumPath<app.bottlenote.shared.history.constant.EventType> eventType = createEnum("eventType", app.bottlenote.shared.history.constant.EventType.class);
 
     public final StringPath eventYear = createString("eventYear");
 

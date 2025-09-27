@@ -8,15 +8,15 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
-import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.service.AlcoholFacade;
+import app.bottlenote.core.alcohols.application.AlcoholFacade;
+import app.bottlenote.core.alcohols.domain.Alcohol;
+import app.bottlenote.core.users.application.UserFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.picks.domain.Picks;
 import app.bottlenote.picks.dto.request.PicksUpdateRequest;
 import app.bottlenote.picks.dto.response.PicksUpdateResponse;
 import app.bottlenote.picks.repository.PicksRepository;
 import app.bottlenote.user.domain.User;
-import app.bottlenote.user.facade.UserFacade;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

@@ -1,10 +1,10 @@
 package app.bottlenote.alcohols.repository;
 
-import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.alcohols.domain.QAlcoholsTastingTags.alcoholsTastingTags;
-import static app.bottlenote.alcohols.domain.QPopularAlcohol.popularAlcohol;
-import static app.bottlenote.alcohols.domain.QRegion.region;
-import static app.bottlenote.alcohols.domain.QTastingTag.tastingTag;
+import static app.bottlenote.core.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.core.alcohols.domain.QAlcoholsTastingTags.alcoholsTastingTags;
+import static app.bottlenote.core.alcohols.domain.QPopularAlcohol.popularAlcohol;
+import static app.bottlenote.core.alcohols.domain.QRegion.region;
+import static app.bottlenote.core.alcohols.domain.QTastingTag.tastingTag;
 import static app.bottlenote.picks.constant.PicksStatus.PICK;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;

@@ -3,9 +3,9 @@ package app.bottlenote.common.profanity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import app.bottlenote.common.exception.CommonException;
-import app.bottlenote.common.exception.CommonExceptionCode;
 import app.bottlenote.common.profanity.dto.response.ProfanityResponse;
+import app.bottlenote.shared.common.exception.CommonException;
+import app.bottlenote.shared.common.exception.CommonExceptionCode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Assertions;

@@ -1,8 +1,9 @@
 package app.bottlenote.alcohols.repository;
 
-import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.common.annotation.JpaRepositoryImpl;
+import app.bottlenote.core.alcohols.domain.Alcohol;
+import app.bottlenote.core.alcohols.repository.PopularQueryRepository;
 import app.bottlenote.shared.alcohols.dto.response.PopularItem;
+import app.bottlenote.shared.annotation.JpaRepositoryImpl;
 import feign.Param;
 import java.util.List;
 import org.springframework.data.domain.Pageable;

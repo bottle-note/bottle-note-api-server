@@ -2,7 +2,8 @@ package app.bottlenote.rating.service;
 
 import static java.lang.Boolean.FALSE;
 
-import app.bottlenote.alcohols.service.AlcoholFacade;
+import app.bottlenote.core.alcohols.application.AlcoholFacade;
+import app.bottlenote.core.users.application.UserFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;
@@ -14,7 +15,6 @@ import app.bottlenote.rating.exception.RatingException;
 import app.bottlenote.rating.exception.RatingExceptionCode;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
-import app.bottlenote.user.facade.UserFacade;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

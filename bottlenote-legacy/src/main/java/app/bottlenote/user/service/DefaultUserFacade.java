@@ -2,12 +2,12 @@ package app.bottlenote.user.service;
 
 import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
-import app.bottlenote.common.annotation.FacadeService;
+import app.bottlenote.core.users.application.UserFacade;
+import app.bottlenote.shared.annotation.FacadeService;
 import app.bottlenote.shared.users.payload.UserProfileItem;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.exception.UserException;
-import app.bottlenote.user.facade.UserFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

@@ -6,6 +6,7 @@ import static app.bottlenote.shared.review.exception.ReviewExceptionCode.REVIEW_
 import static java.lang.Boolean.FALSE;
 
 import app.bottlenote.common.profanity.ProfanityClient;
+import app.bottlenote.core.users.application.UserFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewReplyRepository;
@@ -18,7 +19,6 @@ import app.bottlenote.shared.review.dto.response.SubReviewReplyResponse;
 import app.bottlenote.shared.review.exception.ReviewException;
 import app.bottlenote.shared.review.exception.ReviewExceptionCode;
 import app.bottlenote.shared.review.payload.ReviewRegistryEvent;
-import app.bottlenote.user.facade.UserFacade;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;

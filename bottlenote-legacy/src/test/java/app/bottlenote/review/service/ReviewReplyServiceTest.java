@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import app.bottlenote.common.profanity.ProfanityClient;
+import app.bottlenote.core.users.application.UserFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.history.fixture.FakeHistoryEventPublisher;
 import app.bottlenote.review.domain.Review;
@@ -23,7 +24,6 @@ import app.bottlenote.shared.review.exception.ReviewExceptionCode;
 import app.bottlenote.shared.users.payload.UserProfileItem;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
-import app.bottlenote.user.facade.UserFacade;
 import app.bottlenote.user.fixture.FakeUserFacade;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

@@ -18,7 +18,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.bottlenote.alcohols.domain.Alcohol;
+import app.bottlenote.core.alcohols.domain.Alcohol;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.rating.controller.RatingController;
 import app.bottlenote.rating.domain.Rating;

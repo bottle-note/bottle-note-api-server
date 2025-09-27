@@ -2,13 +2,13 @@ package app.bottlenote.history.service;
 
 import static java.lang.Boolean.FALSE;
 
+import app.bottlenote.core.users.application.UserFacade;
 import app.bottlenote.history.domain.UserHistoryRepository;
 import app.bottlenote.history.dto.request.UserHistorySearchRequest;
 import app.bottlenote.history.dto.response.UserHistorySearchResponse;
 import app.bottlenote.shared.cursor.PageResponse;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
-import app.bottlenote.user.facade.UserFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

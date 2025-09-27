@@ -1,6 +1,6 @@
 package app.bottlenote.picks.repository;
 
-import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.core.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.picks.domain.QPicks.picks;
 import static com.querydsl.jpa.JPAExpressions.select;
 

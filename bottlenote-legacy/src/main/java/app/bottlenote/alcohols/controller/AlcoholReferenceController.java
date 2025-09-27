@@ -1,6 +1,6 @@
 package app.bottlenote.alcohols.controller;
 
-import app.bottlenote.alcohols.service.AlcoholReferenceService;
+import app.bottlenote.core.alcohols.application.AlcoholReferenceService;
 import app.bottlenote.shared.alcohols.constant.AlcoholType;
 import app.bottlenote.shared.data.response.GlobalResponse;
 import lombok.RequiredArgsConstructor;
