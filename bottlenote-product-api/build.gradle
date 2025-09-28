@@ -1,13 +1,44 @@
 //bottlenote-product-api
+plugins {
+	id "org.asciidoctor.jvm.convert"
+	id 'com.epages.restdocs-api-spec'
+}
+
+ext {
+	snippetsDir = file('build/generated-snippets')
+}
+
+configurations {
+	asciidoctorExt
+}
+
 dependencies {
 	implementation project(':bottlenote-mono')
 
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-}
 
-tasks.register("prepareKotlinBuildScriptModel") {}
+	// 추가할 테스트 의존성들
+
+	// Spring REST Docs
+	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+	testImplementation 'com.epages:restdocs-api-spec-mockmvc:0.19.4'
+
+	// Spring Security Test
+	testImplementation 'org.springframework.security:spring-security-test'
+
+	// Mockito Inline
+	testImplementation 'org.mockito:mockito-inline:5.2.0'
+
+	// TestContainers
+	testImplementation 'org.testcontainers:testcontainers:1.19.8'
+	testImplementation 'org.testcontainers:junit-jupiter:1.19.0'
+	testImplementation 'org.testcontainers:mysql:1.19.0'
+
+	// ArchUnit (아키텍처 규칙 테스트)
+	testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.0'
+}
 
 bootJar {
 	enabled = true
@@ -15,5 +46,42 @@ bootJar {
 }
 
 jar {
-	enabled = true  // 테스트 실행을 위해 jar 태스크 활성화
+	enabled = true
+}
+
+tasks.register("prepareKotlinBuildScriptModel") {}
+
+tasks.register('integration_test', Test) {
+	useJUnitPlatform {
+		includeTags 'integration'
+	}
+}
+
+tasks.register('unit_test', Test) {
+	useJUnitPlatform {
+		includeTags 'unit'
+	}
+}
+
+tasks.register('check_rule_test', Test) {
+	useJUnitPlatform {
+		includeTags 'rule'
+	}
+}
+
+asciidoctor {
+	inputs.dir snippetsDir
+	configurations 'asciidoctorExt'
+	dependsOn test
+	sources {
+		include("**/index.adoc")
+	}
+	baseDirFollowsSourceFile()
+}
+
+openapi3 {
+	server = 'https://api.bottle-note.com'
+	title = 'Bottle Note API (Legacy)'
+	version = '1.0.0'
+	format = 'yaml'
 }
