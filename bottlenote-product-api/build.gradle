@@ -1,0 +1,5 @@
+//bottlenote-product-api
+dependencies {
+}
+
+tasks.register("prepareKotlinBuildScriptModel") {}
