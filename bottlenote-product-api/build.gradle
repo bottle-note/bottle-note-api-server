@@ -1,5 +1,19 @@
 //bottlenote-product-api
 dependencies {
+	implementation project(':bottlenote-mono')
+
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 tasks.register("prepareKotlinBuildScriptModel") {}
+
+bootJar {
+	enabled = true
+	archiveFileName = 'bottlenote-product-api.jar'
+}
+
+jar {
+	enabled = true  // 테스트 실행을 위해 jar 태스크 활성화
+}

@@ -20,8 +20,8 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 # 설정 파일 디렉토리 생성
 RUN mkdir -p config
 
-# 빌드 스테이지에서 생성된 JAR 파일만 복사 (mono 모듈의 실행 가능한 JAR)
-COPY --from=builder /app/bottlenote-mono/build/libs/bottlenote-mono-app.jar /app.jar
+# 빌드 스테이지에서 생성된 JAR 파일만 복사 (product-api 모듈의 실행 가능한 JAR)
+COPY --from=builder /app/bottlenote-product-api/build/libs/bottlenote-product-api.jar /app.jar
 
 # 환경 변수로 프로필 지정 가능하도록 설정
 ENV SPRING_PROFILES_ACTIVE=default
