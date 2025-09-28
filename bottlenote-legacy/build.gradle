@@ -32,9 +32,7 @@ configurations {
 }
 
 dependencies {
-	// bottlenote-core 모듈 의존성 추가 (Pair 클래스 등)
-	implementation project(':bottlenote-core')
-	testImplementation project(':bottlenote-core')
+	// bottlenote-core
 
 	// 기존 프로젝트의 모든 의존성을 복사
 	testImplementation 'org.testng:testng:7.7.0'

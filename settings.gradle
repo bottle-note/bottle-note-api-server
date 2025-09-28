@@ -1,4 +1,3 @@
 rootProject.name = 'bottle-note-api-server'
 include('bottlenote-legacy')
 include('bottlenote-batch')
-include('bottlenote-core')
