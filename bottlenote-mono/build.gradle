@@ -174,10 +174,10 @@ tasks.register('check_rule_test', Test) {
 	}
 }
 
-// Spring Boot JAR 설정 (legacy 모듈은 실행 가능한 JAR)
+// Spring Boot JAR 설정 (mono 모듈은 실행 가능한 JAR)
 bootJar {
 	enabled = true
-	archiveFileName = 'bottlenote-legacy-app.jar'
+	archiveFileName = 'bottlenote-mono-app.jar'
 }
 
 jar {
