@@ -195,3 +195,6 @@ jar {
 ---
 
 작성일: 2025-09-28
+기준 커밋: 460c25f1 (fix: enhance API documentation generation in GitHub Actions workflow)
+브랜치: restore-legacy-module-base
+상태: 계획 단계
