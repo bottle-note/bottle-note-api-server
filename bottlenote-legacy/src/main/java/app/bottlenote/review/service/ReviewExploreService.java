@@ -1,12 +1,12 @@
 package app.bottlenote.review.service;
 
-import app.bottlenote.core.structure.Pair;
 import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.response.ReviewExploreItem;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

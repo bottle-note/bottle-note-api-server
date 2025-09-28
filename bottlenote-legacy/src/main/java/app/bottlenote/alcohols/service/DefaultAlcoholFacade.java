@@ -9,9 +9,9 @@ import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.common.annotation.FacadeService;
-import app.bottlenote.core.structure.Pair;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
 
 @FacadeService
 @RequiredArgsConstructor
@@ -31,7 +31,7 @@ public class DefaultAlcoholFacade implements AlcoholFacade {
         alcoholQueryRepository.findAlcoholInfoById(alcoholId, null).orElse(null);
 
     if (firstItem == null) {
-      return new Pair<>(null, null);
+      return Pair.of(null, null);
     }
 
     AlcoholSummaryItem secondItem =

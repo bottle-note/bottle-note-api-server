@@ -1,6 +1,5 @@
 package app.bottlenote.review.domain;
 
-import app.bottlenote.core.structure.Pair;
 import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
@@ -9,6 +8,7 @@ import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 import java.util.List;
 import java.util.Optional;
+import org.apache.commons.lang3.tuple.Pair;
 
 public interface ReviewRepository {
 
