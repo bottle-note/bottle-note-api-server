@@ -33,9 +33,9 @@ jobs:
 
       - name: Generate API documentation
         run: |
-          ./gradlew :bottlenote-mono:asciidoctor
+          ./gradlew :bottlenote-product-api:asciidoctor
           mkdir -p docs
-          cp -r bottlenote-mono/build/docs/asciidoc/* docs/
+          cp -r bottlenote-product-api/build/docs/asciidoc/* docs/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
