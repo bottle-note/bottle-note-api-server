@@ -65,37 +65,32 @@ subprojects {
 	}
 }
 
-// 루트 프로젝트는 실행 가능한 JAR을 생성하지 않음
-
-// 전체 프로젝트 태스크
-task spotlessApply {
+tasks.register('spotlessApply') {
 	description = '전체 모듈 Spotless 적용'
 	group = 'formatting'
 	dependsOn subprojects.findAll { it.tasks.findByName('spotlessApply') }.collect { it.tasks.spotlessApply }
 }
 
-task spotlessCheck {
+tasks.register('spotlessCheck') {
 	description = '전체 모듈 Spotless 검증'
 	group = 'formatting'
 	dependsOn subprojects.findAll { it.tasks.findByName('spotlessCheck') }.collect { it.tasks.spotlessCheck }
 }
 
-// 전체 프로젝트 테스트 태스크
-task integration_test {
+tasks.register('integration_test') {
 	description = '전체 모듈 통합 테스트 실행'
 	group = 'verification'
 	dependsOn subprojects.findAll { it.tasks.findByName('integration_test') }.collect { it.tasks.integration_test }
 }
 
-task unit_test {
+tasks.register('unit_test') {
 	description = '전체 모듈 단위 테스트 실행'
 	group = 'verification'
 	dependsOn subprojects.findAll { it.tasks.findByName('unit_test') }.collect { it.tasks.unit_test }
 }
 
-task check_rule_test {
+tasks.register('check_rule_test') {
 	description = '전체 모듈 아키텍처 규칙 테스트 실행'
 	group = 'verification'
 	dependsOn subprojects.findAll { it.tasks.findByName('check_rule_test') }.collect { it.tasks.check_rule_test }
 }
-
