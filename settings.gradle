@@ -1,3 +1,4 @@
 rootProject.name = 'bottle-note-api-server'
+include('bottlenote-product-api')
 include('bottlenote-mono')
 include('bottlenote-batch')

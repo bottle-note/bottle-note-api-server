@@ -83,7 +83,6 @@ jobs:
     strategy:
       matrix:
         environment: [
-          application-bravo,
           application-charlie
         ]
     steps:

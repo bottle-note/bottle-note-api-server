@@ -49,6 +49,7 @@ public abstract class IntegrationTestSupport {
   @Container
   protected static MySQLContainer<?> MY_SQL_CONTAINER =
       new MySQLContainer<>(DockerImageName.parse("mysql:8.0.32"))
+          .withReuse(true)
           .withNetwork(network)
           .withDatabaseName("bottlenote")
           .withUsername("root")
@@ -59,10 +60,10 @@ public abstract class IntegrationTestSupport {
       new GenericContainer<>(DockerImageName.parse("redis:7.0.12"))
           .withExposedPorts(6379)
           .withNetworkAliases("redis")
-          .withReuse(true)
           .withNetwork(network)
           .withStartupAttempts(5)
           .waitingFor(Wait.forLogMessage(".*Ready to accept connections.*", 1))
+          .withReuse(true)
           .withStartupTimeout(Duration.ofSeconds(30));
 
   static {

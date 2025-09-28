@@ -1,0 +1,147 @@
+//bottlenote-product-api
+
+plugins {
+	id "org.asciidoctor.jvm.convert"
+	id 'com.epages.restdocs-api-spec'
+	id 'com.diffplug.spotless'  // 추가 필요
+}
+
+ext {
+	snippetsDir = file('build/generated-snippets')
+	generated = 'src/main/generated'  // QueryDSL용
+}
+
+configurations {
+	asciidoctorExt
+}
+
+sourceSets {
+	main {
+		java.srcDirs += [generated]
+		resources {
+			srcDirs = [
+					'src/main/resources',
+					'../git.environment-variables'
+			]
+		}
+	}
+}
+
+dependencies {
+	implementation project(':bottlenote-mono')
+
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+	// 추가할 테스트 의존성들
+
+
+	// Spring Security Test
+	testImplementation 'org.springframework.security:spring-security-test'
+
+	// Mockito Inline
+	testImplementation 'org.mockito:mockito-inline:5.2.0'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	testImplementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	testImplementation 'com.h2database:h2'
+	testImplementation 'io.hypersistence:hypersistence-utils-hibernate-60:3.7.3'
+	testImplementation 'com.mysql:mysql-connector-j'
+
+	testImplementation "io.github.openfeign.querydsl:querydsl-jpa:${queryDslVersion}"
+	annotationProcessor "io.github.openfeign.querydsl:querydsl-apt:${queryDslVersion}:jakarta"
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+
+	testImplementation 'io.jsonwebtoken:jjwt-api:0.11.2'
+	testImplementation 'io.jsonwebtoken:jjwt-impl:0.11.2'
+	testImplementation 'io.jsonwebtoken:jjwt-jackson:0.11.2'
+	testImplementation "com.google.guava:guava:32.1.2-jre"
+
+	// TestContainers
+	testImplementation 'org.testcontainers:testcontainers:1.19.8'
+	testImplementation 'org.testcontainers:junit-jupiter:1.19.0'
+	testImplementation 'org.testcontainers:mysql:1.19.0'
+
+	// ArchUnit (아키텍처 규칙 테스트)
+	testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.0'
+
+	// spring rest docs
+	asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
+	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+	testImplementation 'com.epages:restdocs-api-spec-mockmvc:0.19.4'
+
+	// security test
+	testImplementation 'org.springframework.security:spring-security-test'
+
+	//AWS
+	testImplementation 'com.amazonaws:aws-java-sdk-s3:1.12.725'
+
+	//Feign
+	testImplementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+
+}
+
+bootJar {
+	enabled = true
+	archiveFileName = 'bottlenote-product-api.jar'
+}
+
+jar {
+	enabled = true
+}
+
+tasks.register("prepareKotlinBuildScriptModel") {}
+
+test {
+	outputs.upToDateWhen { false }
+	useJUnitPlatform {
+		excludeTags 'data-jpa-test', 'integration'
+	}
+	testLogging {
+		events "passed", "skipped", "failed"
+		showStandardStreams = true
+		exceptionFormat = 'full'
+		showExceptions = true
+		showCauses = true
+		showStackTraces = true
+	}
+}
+
+tasks.register('integration_test', Test) {
+	useJUnitPlatform {
+		includeTags 'integration'
+	}
+}
+
+tasks.register('unit_test', Test) {
+	useJUnitPlatform {
+		includeTags 'unit'
+	}
+}
+
+tasks.register('check_rule_test', Test) {
+	useJUnitPlatform {
+		includeTags 'rule'
+	}
+}
+
+asciidoctor {
+	inputs.dir snippetsDir
+	configurations 'asciidoctorExt'
+	dependsOn test
+	sources {
+		include("**/index.adoc")
+	}
+	baseDirFollowsSourceFile()
+}
+
+openapi3 {
+	server = 'https://api.bottle-note.com'
+	title = 'Bottle Note API (Legacy)'
+	version = '1.0.0'
+	format = 'yaml'
+}

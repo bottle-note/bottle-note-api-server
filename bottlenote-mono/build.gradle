@@ -174,10 +174,9 @@ tasks.register('check_rule_test', Test) {
 	}
 }
 
-// Spring Boot JAR 설정 (mono 모듈은 실행 가능한 JAR)
+// Spring Boot JAR 설정 (mono 모듈은 라이브러리 JAR만 생성)
 bootJar {
-	enabled = true
-	archiveFileName = 'bottlenote-mono-app.jar'
+	enabled = false  // 메인 클래스 없으므로 bootJar 비활성화
 }
 
 jar {
