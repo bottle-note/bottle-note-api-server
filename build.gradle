@@ -9,7 +9,6 @@ plugins {
 
 // 전역 변수 설정
 ext {
-	snippetsDir = file('build/generated-snippets')
 	generated = 'src/main/generated'
 }
 
