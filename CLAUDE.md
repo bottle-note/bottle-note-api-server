@@ -30,18 +30,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 ./gradlew build                 # 전체 빌드
-./gradlew test                  # 단위 테스트
-./gradlew integration_test      # 통합 테스트
-./gradlew check_rule_test       # 아키텍처 규칙 테스트
-./gradlew bootRun               # 애플리케이션 실행
+./gradlew test                  # 기본 테스트 (integration, data-jpa-test 제외)
+./gradlew unit_test             # 단위 테스트 (@Tag("unit"))
+./gradlew integration_test      # 통합 테스트 (@Tag("integration"))
+./gradlew check_rule_test       # 아키텍처 규칙 테스트 (@Tag("rule"))
 ./gradlew asciidoctor           # API 문서 생성
+./gradlew bootRun               # 애플리케이션 실행
 ```
 
 ## 코드 작성 규칙
 
 ### 아키텍처 패턴
 
-- **계층 구조**: Controller → Facade → Service → Repository → Domain
+- **계층 구조**: Controller → Facade <-> Service → Repository → Domain
 - **도메인별 패키지**: constant, controller, domain, dto, repository, service, facade, exception, event
 
 ### 네이밍 컨벤션

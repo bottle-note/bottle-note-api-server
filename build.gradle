@@ -1,17 +1,16 @@
 // 멀티모듈 루트 프로젝트 설정
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.1.9' apply false
-	id 'io.spring.dependency-management' version '1.1.4' apply false
-	id "org.asciidoctor.jvm.convert" version "4.0.2" apply false
-	id 'com.diffplug.spotless' version "7.0.2" apply false
-	id 'com.epages.restdocs-api-spec' version '0.19.2' apply false
+	alias(libs.plugins.spring.boot) apply false
+	alias(libs.plugins.spring.dependency.management) apply false
+	alias(libs.plugins.asciidoctor) apply false
+	alias(libs.plugins.spotless) apply false
+	alias(libs.plugins.restdocs.api.spec) apply false
 }
 
 // 전역 변수 설정
 ext {
-	queryDslVersion = "6.11"
-	springCloudVersion = "2022.0.5"
+	snippetsDir = file('build/generated-snippets')
+	generated = 'src/main/generated'
 }
 
 // 전체 프로젝트 공통 설정
@@ -21,11 +20,6 @@ allprojects {
 
 	repositories {
 		mavenCentral()
-	}
-
-	java {
-		sourceCompatibility = JavaVersion.VERSION_21
-		targetCompatibility = JavaVersion.VERSION_21
 	}
 }
 
@@ -37,22 +31,69 @@ subprojects {
 	apply plugin: 'java-test-fixtures'
 	apply plugin: 'maven-publish'
 
+	java {
+		sourceCompatibility = JavaVersion.VERSION_21
+		targetCompatibility = JavaVersion.VERSION_21
+	}
+
 	dependencyManagement {
 		imports {
-			mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+			mavenBom "org.springframework.cloud:spring-cloud-dependencies:${libs.versions.spring.cloud.get()}"
 		}
 	}
 
 	dependencies {
 		// 서브모듈 기본 의존성
-		implementation 'org.springframework.boot:spring-boot-starter'
-		testImplementation 'org.springframework.boot:spring-boot-starter-test'
-		annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+		implementation libs.spring.boot.starter
+		testImplementation libs.spring.boot.starter.test
+		annotationProcessor libs.spring.boot.configuration.processor
 
 		// 공통 유틸리티
-		implementation 'org.projectlombok:lombok'
-		annotationProcessor 'org.projectlombok:lombok'
-		implementation 'org.apache.commons:commons-lang3:3.12.0'
+		implementation libs.lombok
+		annotationProcessor libs.lombok
+		implementation libs.commons.lang3
+	}
+
+	// QueryDSL 설정 (mono, product-api에서 사용)
+	if (project.name in ['bottlenote-mono', 'bottlenote-product-api']) {
+		tasks.withType(JavaCompile).configureEach {
+			options.getGeneratedSourceOutputDirectory().set(file(generated))
+		}
+
+		sourceSets {
+			main {
+				java.srcDirs += [generated]
+			}
+		}
+
+		clean {
+			delete file(generated)
+		}
+	}
+
+	// 공통 소스 경로 설정
+	sourceSets {
+		main {
+			resources {
+				srcDirs = [
+					'src/main/resources',
+					'../git.environment-variables'
+				]
+			}
+		}
+	}
+
+	// Spotless 설정 (mono, product-api에서 사용)
+	if (project.name in ['bottlenote-mono', 'bottlenote-product-api']) {
+		apply plugin: 'com.diffplug.spotless'
+
+		spotless {
+			java {
+				googleJavaFormat('1.27.0')
+				target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
+				targetExclude 'src/main/generated/**'
+			}
+		}
 	}
 
 	// 서브모듈은 기본적으로 라이브러리 JAR 생성
@@ -61,10 +102,41 @@ subprojects {
 
 	// 테스트 설정
 	test {
-		useJUnitPlatform()
+		outputs.upToDateWhen { false }
+		useJUnitPlatform {
+			excludeTags 'data-jpa-test', 'integration'
+		}
+		testLogging {
+			events "passed", "skipped", "failed"
+			showStandardStreams = true
+			exceptionFormat = 'full'
+			showExceptions = true
+			showCauses = true
+			showStackTraces = true
+		}
+	}
+
+	// 공통 테스트 태스크 정의
+	tasks.register('integration_test', Test) {
+		useJUnitPlatform {
+			includeTags 'integration'
+		}
+	}
+
+	tasks.register('unit_test', Test) {
+		useJUnitPlatform {
+			includeTags 'unit'
+		}
+	}
+
+	tasks.register('check_rule_test', Test) {
+		useJUnitPlatform {
+			includeTags 'rule'
+		}
 	}
 }
 
+// 루트 프로젝트 태스크
 tasks.register('spotlessApply') {
 	description = '전체 모듈 Spotless 적용'
 	group = 'formatting'
