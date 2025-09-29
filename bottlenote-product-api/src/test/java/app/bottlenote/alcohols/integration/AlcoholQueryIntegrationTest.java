@@ -161,4 +161,125 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
     assertEquals(1, alcoholDetail.friendsInfo().getFollowerCount());
     assertEquals(follower.getId(), alcoholDetail.friendsInfo().getFriends().getFirst().userId());
   }
+
+  @Test
+  @DisplayName("띄어쓰기가 있는 알코올 이름을 띄어쓰기 없이 검색할 수 있다.")
+  void test_4() throws Exception {
+    // given - 띄어쓰기가 있는 알코올 생성
+    Alcohol alcohol = alcoholTestFactory.persistAlcoholWithName("럼 릭", "Rum Rick");
+
+    // when - 띄어쓰기 없이 검색
+    MvcResult result =
+        mockMvc
+            .perform(
+                get("/api/v1/alcohols/search")
+                    .param("keyword", "럼릭")
+                    .contentType(APPLICATION_JSON)
+                    .header("Authorization", "Bearer " + getToken())
+                    .with(csrf()))
+            .andDo(print())
+            .andReturn();
+
+    // then
+    String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+    GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
+    AlcoholSearchResponse responseData =
+        mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
+
+    assertNotNull(responseData);
+    assertEquals(1, responseData.getTotalCount());
+    assertEquals(alcohol.getId(), responseData.getAlcohols().getFirst().getAlcoholId());
+    assertEquals("럼 릭", responseData.getAlcohols().getFirst().getKorName());
+  }
+
+  @Test
+  @DisplayName("띄어쓰기가 없는 알코올 이름을 띄어쓰기와 함께 검색할 수 있다.")
+  void test_5() throws Exception {
+    // given - 띄어쓰기가 없는 알코올 생성
+    Alcohol alcohol = alcoholTestFactory.persistAlcoholWithName("럼릭", "RumRick");
+
+    // when - 띄어쓰기와 함께 검색
+    MvcResult result =
+        mockMvc
+            .perform(
+                get("/api/v1/alcohols/search")
+                    .param("keyword", "럼 릭")
+                    .contentType(APPLICATION_JSON)
+                    .header("Authorization", "Bearer " + getToken())
+                    .with(csrf()))
+            .andDo(print())
+            .andReturn();
+
+    // then
+    String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+    GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
+    AlcoholSearchResponse responseData =
+        mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
+
+    assertNotNull(responseData);
+    assertEquals(1, responseData.getTotalCount());
+    assertEquals(alcohol.getId(), responseData.getAlcohols().getFirst().getAlcoholId());
+    assertEquals("럼릭", responseData.getAlcohols().getFirst().getKorName());
+  }
+
+  @Test
+  @DisplayName("영어 알코올 이름도 띄어쓰기 무시 검색이 가능하다.")
+  void test_6() throws Exception {
+    // given - 영어 이름에 띄어쓰기가 있는 알코올 생성
+    Alcohol alcohol = alcoholTestFactory.persistAlcoholWithName("위스키", "Jack Daniels");
+
+    // when - 띄어쓰기 없이 영어로 검색
+    MvcResult result =
+        mockMvc
+            .perform(
+                get("/api/v1/alcohols/search")
+                    .param("keyword", "JackDaniels")
+                    .contentType(APPLICATION_JSON)
+                    .header("Authorization", "Bearer " + getToken())
+                    .with(csrf()))
+            .andDo(print())
+            .andReturn();
+
+    // then
+    String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+    GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
+    AlcoholSearchResponse responseData =
+        mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
+
+    assertNotNull(responseData);
+    assertEquals(1, responseData.getTotalCount());
+    assertEquals(alcohol.getId(), responseData.getAlcohols().getFirst().getAlcoholId());
+    assertEquals("Jack Daniels", responseData.getAlcohols().getFirst().getEngName());
+  }
+
+  @Test
+  @DisplayName("테이스팅 태그도 띄어쓰기 무시 검색이 가능하다.")
+  void test_7() throws Exception {
+    // given - 띄어쓰기가 있는 테이스팅 태그를 가진 알코올 생성
+    Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+    TastingTag tag = TastingTag.builder().korName("과일 향").engName("fruity aroma").build();
+    alcoholTestFactory.appendTastingTag(alcohol, tag);
+
+    // when - 띄어쓰기 없이 태그로 검색
+    MvcResult result =
+        mockMvc
+            .perform(
+                get("/api/v1/alcohols/search")
+                    .param("keyword", "과일향")
+                    .contentType(APPLICATION_JSON)
+                    .header("Authorization", "Bearer " + getToken())
+                    .with(csrf()))
+            .andDo(print())
+            .andReturn();
+
+    // then
+    String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+    GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
+    AlcoholSearchResponse responseData =
+        mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
+
+    assertNotNull(responseData);
+    assertEquals(1, responseData.getTotalCount());
+    assertEquals(alcohol.getId(), responseData.getAlcohols().getFirst().getAlcoholId());
+  }
 }

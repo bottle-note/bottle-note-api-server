@@ -290,6 +290,9 @@ public class AlcoholQuerySupporter {
   public BooleanExpression keywordMatch(String keyword) {
     if (StringUtils.isNullOrEmpty(keyword)) return null;
 
+    // 띄어쓰기를 제거한 키워드로도 검색
+    String keywordWithoutSpaces = keyword.replaceAll("\\s+", "");
+
     // 기본 검색 조건 (이름, 카테고리)
     BooleanExpression basicSearch =
         alcohol
@@ -298,6 +301,13 @@ public class AlcoholQuerySupporter {
             .or(alcohol.engName.like("%" + keyword + "%"))
             .or(alcohol.korCategory.like("%" + keyword + "%"))
             .or(alcohol.engCategory.like("%" + keyword + "%"));
+
+    // 띄어쓰기 제거된 검색 조건 추가
+    BooleanExpression noSpaceSearch =
+        Expressions.stringTemplate("replace({0}, ' ', '')", alcohol.korName).like("%" + keywordWithoutSpaces + "%")
+        .or(Expressions.stringTemplate("replace({0}, ' ', '')", alcohol.engName).like("%" + keywordWithoutSpaces + "%"))
+        .or(Expressions.stringTemplate("replace({0}, ' ', '')", alcohol.korCategory).like("%" + keywordWithoutSpaces + "%"))
+        .or(Expressions.stringTemplate("replace({0}, ' ', '')", alcohol.engCategory).like("%" + keywordWithoutSpaces + "%"));
 
     // 미리 정의된 태그 검색 조건
     BooleanExpression predefinedTagSearch = getTastingTagsExpression(keyword);
@@ -313,11 +323,13 @@ public class AlcoholQuerySupporter {
                 tastingTag
                     .korName
                     .like("%" + keyword + "%")
-                    .or(tastingTag.engName.like("%" + keyword + "%")))
+                    .or(tastingTag.engName.like("%" + keyword + "%"))
+                    .or(Expressions.stringTemplate("replace({0}, ' ', '')", tastingTag.korName).like("%" + keywordWithoutSpaces + "%"))
+                    .or(Expressions.stringTemplate("replace({0}, ' ', '')", tastingTag.engName).like("%" + keywordWithoutSpaces + "%")))
             .exists();
 
     // 모든 조건을 OR로 결합
-    BooleanExpression result = basicSearch.or(dynamicTagSearch);
+    BooleanExpression result = basicSearch.or(noSpaceSearch).or(dynamicTagSearch);
     if (predefinedTagSearch != null) {
       result = result.or(predefinedTagSearch);
     }
