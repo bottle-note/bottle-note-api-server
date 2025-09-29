@@ -58,26 +58,22 @@ subprojects {
 		tasks.withType(JavaCompile).configureEach {
 			options.getGeneratedSourceOutputDirectory().set(file(generated))
 		}
-
-		sourceSets {
-			main {
-				java.srcDirs += [generated]
-			}
-		}
-
 		clean {
 			delete file(generated)
 		}
 	}
 
-	// 공통 소스 경로 설정
 	sourceSets {
 		main {
 			resources {
-				srcDirs = [
-					'src/main/resources',
-					'../git.environment-variables'
-				]
+				srcDirs = ['src/main/resources',
+						   '../git.environment-variables']
+			}
+		}
+		test {
+			resources {
+				srcDirs = ['src/test/resources',
+						   '../git.environment-variables']
 			}
 		}
 	}
