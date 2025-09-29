@@ -26,6 +26,33 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **아키텍처**: 도메인 주도 설계(DDD) 기반 멀티모듈 구조
 - **주요 도메인**: alcohols, user, review, rating, support, history, picks, like
 
+## 모듈 구조
+
+### bottlenote-mono
+- **역할**: 레거시 모놀리식 모듈 (핵심 비즈니스 로직)
+- **특징**:
+  - 모든 도메인 엔티티와 비즈니스 로직 포함
+  - JPA, QueryDSL, Redis 등 데이터 접근 계층
+  - 보안, 인증, 외부 서비스 연동 로직
+  - 라이브러리 JAR로 빌드 (실행 불가)
+
+### bottlenote-product-api
+- **역할**: API 서버 모듈
+- **특징**:
+  - bottlenote-mono 모듈 의존
+  - REST API 컨트롤러 계층
+  - API 문서화 (REST Docs, OpenAPI)
+  - 실행 가능한 Spring Boot JAR로 빌드
+  - 테스트 환경 구성 (단위, 통합, 아키텍처 규칙)
+  - 클라이언트 사용자들의 요구사항을 처리하는 api 서버
+
+### bottlenote-batch
+- **역할**: 배치 처리 모듈
+- **특징**:
+  - Spring Batch 기반 배치 작업
+  - Quartz 스케줄러 통합
+  - 정기적인 데이터 처리 작업
+
 ## 빌드 및 실행
 
 ```bash
