@@ -33,9 +33,10 @@ jobs:
 
       - name: Generate API documentation
         run: |
+          mkdir -p bottlenote-product-api/build/generated-snippets
           ./gradlew :bottlenote-product-api:asciidoctor
           mkdir -p docs
-          cp -r bottlenote-product-api/build/docs/asciidoc/* docs/
+          cp -r bottlenote-product-api/build/docs/asciidoc/* docs/ 2>/dev/null || echo "No docs to copy"
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
