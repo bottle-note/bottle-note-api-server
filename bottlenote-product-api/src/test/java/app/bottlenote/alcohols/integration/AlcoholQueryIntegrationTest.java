@@ -377,7 +377,8 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
   @DisplayName("일부 단어만 입력해도 검색할 수 있다")
   void test_11() throws Exception {
     // given - "조니 워커 블랙 라벨" 알코올 생성
-    Alcohol alcohol = alcoholTestFactory.persistAlcoholWithName("조니 워커 블랙 라벨", "Johnny Walker Black Label");
+    Alcohol alcohol =
+        alcoholTestFactory.persistAlcoholWithName("조니 워커 블랙 라벨", "Johnny Walker Black Label");
 
     // when - "조니 블랙"으로만 검색 (워커, 라벨 생략)
     MvcResult result =

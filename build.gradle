@@ -34,6 +34,11 @@ subprojects {
 		sourceCompatibility = JavaVersion.VERSION_21
 		targetCompatibility = JavaVersion.VERSION_21
 	}
+	plugins.withId('com.diffplug.spotless') {
+		tasks.named('compileJava').configure {
+			dependsOn 'spotlessApply'
+		}
+	}
 
 	dependencyManagement {
 		imports {
