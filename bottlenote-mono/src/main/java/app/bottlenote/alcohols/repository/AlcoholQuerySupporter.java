@@ -290,6 +290,61 @@ public class AlcoholQuerySupporter {
   public BooleanExpression keywordMatch(String keyword) {
     if (StringUtils.isNullOrEmpty(keyword)) return null;
 
+    // 띄어쓰기로 분리하여 단어별 검색
+    String[] words = keyword.trim().split("\\s+");
+
+    // 단어가 여러 개인 경우 각 단어를 개별적으로 매칭 (순서 무관)
+    if (words.length > 1) {
+      return multiWordSearch(words);
+    }
+
+    // 단일 단어인 경우 기존 로직 사용
+    return singleWordSearch(keyword);
+  }
+
+  /** 여러 단어 검색 - 각 단어가 모두 포함되어야 함 (순서 무관) */
+  private BooleanExpression multiWordSearch(String[] words) {
+    BooleanExpression condition = null;
+
+    for (String word : words) {
+      if (StringUtils.isNullOrEmpty(word)) continue;
+
+      // 각 단어에 대한 검색 조건 (OR)
+      BooleanExpression wordCondition =
+          alcohol.korName.like("%" + word + "%")
+              .or(alcohol.engName.like("%" + word + "%"))
+              .or(alcohol.korCategory.like("%" + word + "%"))
+              .or(alcohol.engCategory.like("%" + word + "%"));
+
+      // 동적 태그 검색 조건 추가
+      BooleanExpression tagSearch =
+          JPAExpressions.selectOne()
+              .from(alcoholsTastingTags)
+              .join(tastingTag)
+              .on(alcoholsTastingTags.tastingTag.id.eq(tastingTag.id))
+              .where(
+                  alcoholsTastingTags.alcohol.id.eq(alcohol.id),
+                  tastingTag.korName.like("%" + word + "%")
+                      .or(tastingTag.engName.like("%" + word + "%")))
+              .exists();
+
+      wordCondition = wordCondition.or(tagSearch);
+
+      // 미리 정의된 태그 검색 조건
+      BooleanExpression predefinedTagSearch = getTastingTagsExpression(word);
+      if (predefinedTagSearch != null) {
+        wordCondition = wordCondition.or(predefinedTagSearch);
+      }
+
+      // 각 단어 조건을 AND로 결합
+      condition = (condition == null) ? wordCondition : condition.and(wordCondition);
+    }
+
+    return condition;
+  }
+
+  /** 단일 단어 검색 - 띄어쓰기 무시 검색 포함 */
+  private BooleanExpression singleWordSearch(String keyword) {
     // 띄어쓰기를 제거한 키워드로도 검색
     String keywordWithoutSpaces = keyword.replaceAll("\\s+", "");
 
@@ -312,7 +367,7 @@ public class AlcoholQuerySupporter {
     // 미리 정의된 태그 검색 조건
     BooleanExpression predefinedTagSearch = getTastingTagsExpression(keyword);
 
-    // **동적 태그 검색 조건 추가** (현재 누락된 부분)
+    // 동적 태그 검색 조건 추가
     BooleanExpression dynamicTagSearch =
         JPAExpressions.selectOne()
             .from(alcoholsTastingTags)
