@@ -15,6 +15,7 @@ configurations {
 
 dependencies {
 	implementation project(':bottlenote-mono')
+	implementation project(':bottlenote-batch')
 
 	// Spring Boot Web
 	implementation libs.spring.boot.starter.web
@@ -66,6 +67,21 @@ bootJar {
 
 jar {
 	enabled = true
+}
+
+sourceSets {
+	main {
+		resources {
+			srcDirs = ['src/main/resources',
+					   "${rootProject.projectDir}/git.environment-variables"]
+		}
+	}
+	test {
+		resources {
+			srcDirs = ['src/test/resources',
+					   "${rootProject.projectDir}/git.environment-variables"]
+		}
+	}
 }
 
 tasks.register("prepareKotlinBuildScriptModel") {}

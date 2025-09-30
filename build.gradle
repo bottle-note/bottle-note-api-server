@@ -68,21 +68,6 @@ subprojects {
 		}
 	}
 
-	sourceSets {
-		main {
-			resources {
-				srcDirs = ['src/main/resources',
-						   '../git.environment-variables']
-			}
-		}
-		test {
-			resources {
-				srcDirs = ['src/test/resources',
-						   '../git.environment-variables']
-			}
-		}
-	}
-
 	// Spotless 설정 (mono, product-api에서 사용)
 	if (project.name in ['bottlenote-mono', 'bottlenote-product-api']) {
 		apply plugin: 'com.diffplug.spotless'

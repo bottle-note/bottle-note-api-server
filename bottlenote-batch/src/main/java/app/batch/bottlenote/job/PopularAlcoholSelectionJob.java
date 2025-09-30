@@ -1,6 +1,10 @@
 package app.batch.bottlenote.job;
 
 import app.batch.bottlenote.data.payload.PopularItemPayload;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -17,11 +21,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.FileCopyUtils;
-
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * 인기 주류 선정 배치 Job
@@ -72,7 +71,7 @@ public class PopularAlcoholSelectionJob {
 	 */
 	private String getQueryByResource() {
 		try {
-			Resource resource = new ClassPathResource("mysql/sql/popularity.sql");
+			Resource resource = new ClassPathResource("storage/mysql/sql/popularity.sql");
 
 			// getFile() 호출 없이 리소스 내용 읽기
 			String query = new String(FileCopyUtils.copyToByteArray(resource.getInputStream()));
