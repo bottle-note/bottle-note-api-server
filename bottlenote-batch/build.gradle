@@ -1,5 +1,7 @@
 // batch-module
 dependencies {
+	implementation project(':bottlenote-mono')
+
 	implementation libs.spring.boot.starter.batch
 	testImplementation libs.spring.batch.test
 	implementation libs.spring.boot.starter.quartz

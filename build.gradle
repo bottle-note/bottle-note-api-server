@@ -34,6 +34,11 @@ subprojects {
 		sourceCompatibility = JavaVersion.VERSION_21
 		targetCompatibility = JavaVersion.VERSION_21
 	}
+	plugins.withId('com.diffplug.spotless') {
+		tasks.named('compileJava').configure {
+			dependsOn 'spotlessApply'
+		}
+	}
 
 	dependencyManagement {
 		imports {
@@ -60,21 +65,6 @@ subprojects {
 		}
 		clean {
 			delete file(generated)
-		}
-	}
-
-	sourceSets {
-		main {
-			resources {
-				srcDirs = ['src/main/resources',
-						   '../git.environment-variables']
-			}
-		}
-		test {
-			resources {
-				srcDirs = ['src/test/resources',
-						   '../git.environment-variables']
-			}
 		}
 	}
 
