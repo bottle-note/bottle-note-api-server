@@ -1,15 +1,13 @@
 package app.batch.bottlenote.config;
 
-import jakarta.annotation.PostConstruct;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 인기 주류 설정을 위한 Properties 클래스
@@ -27,7 +25,6 @@ public class PopularAlcoholProperties {
 	private Scoring scoring = new Scoring();
 	private Thresholds thresholds = new Thresholds();
 
-	@PostConstruct
 	public void init() {
 		log.info("=".repeat(80));
 		log.info("🚀 인기 주류 설정 로드 완료");

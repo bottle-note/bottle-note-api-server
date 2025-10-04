@@ -1,0 +1,105 @@
+// bottlenote-product-api
+
+plugins {
+	alias(libs.plugins.asciidoctor)
+	alias(libs.plugins.restdocs.api.spec)
+}
+
+ext {
+	snippetsDir = file('build/generated-snippets')
+}
+
+configurations {
+	asciidoctorExt
+}
+
+dependencies {
+	implementation project(':bottlenote-mono')
+	implementation project(':bottlenote-batch')
+
+	// Spring Boot Web
+	implementation libs.spring.boot.starter.web
+	implementation libs.spring.boot.starter.validation
+
+	// Test Dependencies
+	testImplementation libs.spring.security.test
+	testImplementation libs.mockito.inline
+
+	// Test - Database
+	testImplementation libs.spring.boot.starter.data.jpa
+	testImplementation libs.spring.boot.starter.data.redis
+	testImplementation libs.h2
+	testImplementation libs.hypersistence.utils
+	testImplementation libs.mysql.connector.j
+
+	// Test - QueryDSL
+	testImplementation libs.querydsl.jpa
+	annotationProcessor "io.github.openfeign.querydsl:querydsl-apt:${libs.versions.querydsl.get()}:jakarta"
+	annotationProcessor libs.jakarta.annotation.api
+	annotationProcessor libs.jakarta.persistence.api
+
+	// Test - JWT
+	testImplementation libs.bundles.jwt.complete
+	testImplementation libs.google.guava
+
+	// Test - TestContainers
+	testImplementation libs.bundles.testcontainers.complete
+
+	// Test - ArchUnit
+	testImplementation libs.archunit
+
+	// Test - Spring REST Docs
+	asciidoctorExt libs.spring.restdocs.asciidoctor
+	testImplementation libs.spring.restdocs.mockmvc
+	testImplementation libs.restdocs.api.spec.mockmvc
+
+	// Test - AWS
+	testImplementation libs.aws.s3
+
+	// Test - Feign
+	testImplementation libs.spring.cloud.starter.openfeign
+}
+
+bootJar {
+	enabled = true
+	archiveFileName = 'bottlenote-product-api.jar'
+}
+
+jar {
+	enabled = true
+}
+
+sourceSets {
+	main {
+		resources {
+			srcDirs = ['src/main/resources',
+					   "${rootProject.projectDir}/git.environment-variables"]
+		}
+	}
+	test {
+		resources {
+			srcDirs = ['src/test/resources',
+					   "${rootProject.projectDir}/git.environment-variables"]
+		}
+	}
+}
+
+tasks.register("prepareKotlinBuildScriptModel") {}
+
+// Spring REST Docs 설정
+asciidoctor {
+	inputs.dir snippetsDir
+	configurations 'asciidoctorExt'
+	dependsOn test
+	sources {
+		include("**/index.adoc")
+	}
+	baseDirFollowsSourceFile()
+}
+
+openapi3 {
+	server = 'https://api.bottle-note.com'
+	title = 'Bottle Note API (Legacy)'
+	version = '1.0.0'
+	format = 'yaml'
+}

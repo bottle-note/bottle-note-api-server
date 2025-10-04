@@ -36,7 +36,6 @@ import org.springframework.test.web.servlet.ResultActions;
 @WebMvcTest(AlcoholQueryController.class)
 class AlcoholQueryControllerTest {
   private static final Logger log = LogManager.getLogger(AlcoholQueryControllerTest.class);
-  private final AlcoholQueryFixture fixture = new AlcoholQueryFixture();
   @Autowired protected ObjectMapper mapper;
   @Autowired protected MockMvc mockMvc;
   @MockBean private AlcoholQueryService alcoholQueryService;
@@ -48,7 +47,7 @@ class AlcoholQueryControllerTest {
   void test_case_1(String description, AlcoholSearchRequest searchRequest) throws Exception {
     log.debug("description test : {}", description);
     // given
-    PageResponse<AlcoholSearchResponse> response = fixture.getResponse();
+    PageResponse<AlcoholSearchResponse> response = AlcoholQueryFixture.getResponse();
 
     // when
     when(alcoholQueryService.searchAlcohols(any(), any())).thenReturn(response);
@@ -89,7 +88,7 @@ class AlcoholQueryControllerTest {
   @MethodSource("app.bottlenote.alcohols.fixture.ArgumentsFixture#sortTypeParameters")
   void test_sortType(String sortType, int expectedStatus) throws Exception {
     // given
-    PageResponse<AlcoholSearchResponse> response = fixture.getResponse();
+    PageResponse<AlcoholSearchResponse> response = AlcoholQueryFixture.getResponse();
 
     // when
     when(alcoholQueryService.searchAlcohols(any(), any())).thenReturn(response);
@@ -114,7 +113,7 @@ class AlcoholQueryControllerTest {
   @MethodSource("app.bottlenote.alcohols.fixture.ArgumentsFixture#sortOrderParameters")
   void test_sortOrder(String sortOrder, int expectedStatus) throws Exception {
     // given
-    PageResponse<AlcoholSearchResponse> response = fixture.getResponse();
+    PageResponse<AlcoholSearchResponse> response = AlcoholQueryFixture.getResponse();
 
     // when
     when(alcoholQueryService.searchAlcohols(any(), any())).thenReturn(response);
