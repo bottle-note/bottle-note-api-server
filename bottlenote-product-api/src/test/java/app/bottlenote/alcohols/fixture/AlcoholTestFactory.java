@@ -175,6 +175,31 @@ public class AlcoholTestFactory {
     return alcohol;
   }
 
+  /** 정확한 이름으로 Alcohol 생성 (접미사 없음) - 연관 엔티티 자동 생성 */
+  @Transactional
+  public Alcohol persistAlcoholWithName(String korName, String engName) {
+    // 연관 엔티티 자동 생성
+    Region region = persistRegionInternal();
+    Distillery distillery = persistDistilleryInternal();
+
+    Alcohol alcohol =
+        Alcohol.builder()
+            .korName(korName)
+            .engName(engName)
+            .abv("40%")
+            .type(AlcoholType.WHISKY)
+            .korCategory("위스키")
+            .engCategory("Whiskey")
+            .categoryGroup(AlcoholCategoryGroup.SINGLE_MALT)
+            .region(region)
+            .distillery(distillery)
+            .cask("Oak")
+            .imageUrl("https://example.com/custom.jpg")
+            .build();
+    em.persist(alcohol);
+    return alcohol;
+  }
+
   /** 연관 엔티티와 함께 Alcohol 생성 */
   @Transactional
   public Alcohol persistAlcohol(AlcoholType type, Region region, Distillery distillery) {

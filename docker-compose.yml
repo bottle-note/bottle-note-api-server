@@ -16,7 +16,6 @@ services:
       - ./database/mysql/init:/docker-entrypoint-initdb.d
     networks:
       - network
-
   redis:
     image: redis:6.2.6-alpine
     container_name: bottle-note-redis

@@ -1,6 +1,9 @@
 package app.batch.bottlenote.job;
 
 import app.batch.bottlenote.data.payload.BestReviewPayload;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -18,10 +21,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.FileCopyUtils;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * 베스트 리뷰 선정 배치 Job
@@ -93,7 +92,7 @@ public class BestReviewSelectionJob {
 	private String getQueryByResource() {
 		try {
 			// resources 디렉토리 하위의 파일 경로로 접근
-			Resource resource = new ClassPathResource("mysql/sql/best-review-selected.sql");
+			Resource resource = new ClassPathResource("storage/mysql/sql/best-review-selected.sql");
 
 			// getFile() 호출 없이 리소스 내용 읽기
 			String query = new String(FileCopyUtils.copyToByteArray(resource.getInputStream()));

@@ -1,9 +1,10 @@
-//batch-module
+// batch-module
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter'
-	implementation 'org.springframework.boot:spring-boot-starter-batch'
-	testImplementation 'org.springframework.batch:spring-batch-test'
-	implementation 'org.springframework.boot:spring-boot-starter-quartz'
+	implementation project(':bottlenote-mono')
+
+	implementation libs.spring.boot.starter.batch
+	testImplementation libs.spring.batch.test
+	implementation libs.spring.boot.starter.quartz
 }
 
 tasks.register("prepareKotlinBuildScriptModel") {}
