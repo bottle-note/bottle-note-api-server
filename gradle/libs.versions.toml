@@ -55,6 +55,9 @@ logstash-logback = "7.4"
 # Code Quality
 spotless = "7.0.2"
 
+# Kotlin
+kotlin = "1.9.23"
+
 [libraries]
 # Spring Boot Core
 spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "spring-boot" }
@@ -220,3 +223,5 @@ spring-dependency-management = { id = "io.spring.dependency-management", version
 asciidoctor = { id = "org.asciidoctor.jvm.convert", version = "4.0.2" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 restdocs-api-spec = { id = "com.epages.restdocs-api-spec", version.ref = "restdocs-api-spec" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
