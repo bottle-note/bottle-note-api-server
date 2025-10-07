@@ -2,26 +2,72 @@
 <html lang="ko">
 <head>
 	<meta charset="UTF-8">
-	<title>API 문서</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Bottle Note API 문서</title>
+	<link href="https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/static/woff2/SUIT.css" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
 	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+
+		body {
+			font-family: 'SUIT', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+			background: #f8f9fa;
+		}
+
+		code, pre {
+			font-family: 'Fira Code', 'Consolas', monospace;
+		}
+
 		.tabs {
 			display: flex;
-			border-bottom: 1px solid #ccc;
+			background: white;
+			border-bottom: 1px solid #e0e0e0;
 			justify-content: center;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+			position: sticky;
+			top: 0;
+			z-index: 100;
 		}
 
 		.tab {
-			padding: 10px 20px;
+			padding: 16px 32px;
 			cursor: pointer;
+			font-weight: 500;
+			font-size: 15px;
+			color: #666;
+			transition: all 0.2s ease;
+			border-bottom: 3px solid transparent;
+		}
+
+		.tab:hover {
+			color: #007bff;
+			background: #f8f9fa;
 		}
 
 		.tab.active {
-			font-weight: bold;
-			border-bottom: 2px solid #007bff;
+			color: #007bff;
+			font-weight: 600;
+			border-bottom: 3px solid #007bff;
+			background: white;
 		}
 
 		.tab-content {
-			padding: 20px;
+			max-width: 1400px;
+			margin: 0 auto;
+			background: white;
+			min-height: calc(100vh - 60px);
+		}
+
+		.tab-content iframe {
+			border: none;
+			width: 100%;
+			height: calc(100vh - 60px);
 		}
 	</style>
 	<script>
@@ -34,7 +80,6 @@
 						document.getElementById('tab-content').innerHTML = html;
 					});
 		}
-
 		window.onload = function () {
 			loadTab('product-api.html', document.getElementById('tab-product'));
 		}
@@ -42,8 +87,8 @@
 </head>
 <body>
 <div class="tabs">
-	<div class="tab active" id="tab-product" onclick="loadTab('product-api.html', this)">product-api</div>
-	<div class="tab" id="tab-admin" onclick="loadTab('admin-api.html', this)">admin-api</div>
+	<div class="tab active" id="tab-product" onclick="loadTab('product-api.html', this)">Product API</div>
+	<div class="tab" id="tab-admin" onclick="loadTab('admin-api.html', this)">Admin API</div>
 </div>
 <div class="tab-content" id="tab-content">
 	<!-- 탭 내용이 여기에 동적으로 로드됩니다 -->

@@ -436,7 +436,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/styles/github.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/styles/atom-one-dark.min.css">
 </head>
 <body class="book toc2 toc-left">
 <div id="header">
@@ -450,6 +450,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_개요_overview">1. 개요 (overview)</a>
 <ul class="sectlevel2">
 <li><a href="#_api_서버_경로">1.1. API 서버 경로</a></li>
+<li><a href="#_응답형식">1.2. 응답형식</a></li>
+<li><a href="#_공통_예외_처리">1.3. 공통 예외 처리</a></li>
 </ul>
 </li>
 <li><a href="#_sample_api">2. Sample API</a>
@@ -464,44 +466,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect1">
 <h2 id="_개요_overview"><a class="link" href="#_개요_overview">1. 개요 (overview)</a></h2>
 <div class="sectionbody">
-<div class="ulist">
-<ul>
-<li>
-<p>Bottle Note Admin API는 Bottle Note 서비스의 관리자 기능을 제공하는 RESTful API입니다.</p>
-</li>
-<li>
-<p>이 문서는 Bottle Note Admin API의 사용법과 각 엔드포인트에 대한 설명을 포함하고 있습니다.</p>
-</li>
-</ul>
-</div>
-<div class="sect2">
-<h3 id="_api_서버_경로"><a class="link" href="#_api_서버_경로">1.1. API 서버 경로</a></h3>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 14.2857%;">
-<col style="width: 42.8571%;">
-<col style="width: 42.8572%;">
-</colgroup>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">환경</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">DNS</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">개발 (dev)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href=""><a href="https://api.admin.development.bottle-note.com/" class="bare">https://api.admin.development.bottle-note.com/</a></a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">운영(prod)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href=""><a href="https://api.admin.product.bottle-note.com/" class="bare">https://api.admin.product.bottle-note.com/</a></a></p></td>
-</tr>
-</tbody>
-</table>
-<div class="ulist">
-<ul>
-<li>
-<p>개발 (dev) 링크는 디스코드 채널에 공유되어 있습니다.</p>
-</li>
-</ul>
-</div>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -510,11 +474,229 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </td>
 <td class="content">
 <div class="paragraph">
-<p>해당 프로젝트 API문서는 개발환경까지 노출되는 것을 권장합니다.</p>
+<p>해당 프로젝트 API문서는 개발환경까지 노출되는 것을 권장합니다.<br>
+이 API문서는 bottle-note 관리자 프로젝트의 API를 설명합니다.<br>
+포함되면 좋을것 같은 내용이나 수정이 필요한 내용은 언제든지 디스코드 채널을 통해 알려주세요.</p>
 </div>
 </td>
 </tr>
 </table>
+</div>
+<div class="sect2">
+<h3 id="_api_서버_경로"><a class="link" href="#_api_서버_경로">1.1. API 서버 경로</a></h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">환경</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DNS</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">개발 (dev)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href=""><a href="https://api.admin.development.bottle-note.com/" class="bare">https://api.admin.development.bottle-note.com/</a></a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">운영(prod)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href=""><a href="https://api.admin.product.bottle-note.com/" class="bare">https://api.admin.product.bottle-note.com/</a></a></p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_응답형식"><a class="link" href="#_응답형식">1.2. 응답형식</a></h3>
+<div class="paragraph">
+<p>프로젝트는 다음과 같은 응답형식을 제공합니다.</p>
+</div>
+<h4 id="_요청_결과" class="discrete">요청 결과</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">요청이 성공한 경우 ( "success" : true )</th>
+<th class="tableblock halign-left valign-top">요청이 실패한 경우( "success" : false )</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "success" : true,
+  "code" : 200,
+  "data" : {
+    "value1" : "value1",
+    "value2" : {
+            "value2-1" : "value2-1",
+            "value2-2" : "value2-2"
+    }
+  },
+  "errors" : {},
+  "meta" : {
+    "serverEncoding" : "UTF-8",
+    "serverVersion" : "0.0.1",
+    "serverPathVersion" : "v1",
+    "serverResponseTime" : "2024-04-16T16:22:56.561466"
+  }
+}</code></pre>
+</div>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "success" : false,
+  "code" : 400,
+  "data" : {},
+  "errors" : {
+    "user_id": "사용자 아이디는 필수입니다.",
+    "user_pw": "사용자 비밀번호는 필수입니다.",
+    "type": "사용자 타입은 필수입니다."
+  },
+  "meta" : {
+    "serverEncoding" : "UTF-8",
+    "serverVersion" : "0.0.1",
+    "serverPathVersion" : "v1",
+    "serverResponseTime" : "2024-04-16T16:22:56.561466"
+  }
+}</code></pre>
+</div>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+<div class="ulist">
+<ul>
+<li>
+<p>기본적으로 success , code , data , errors , meta 로 구성되어 있습니다.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>success : 요청 성공 여부</p>
+</li>
+<li>
+<p>code : 요청 결과 코드 (http status code 와 동일합니다.)</p>
+</li>
+<li>
+<p>data : 요청 결과 데이터 ( success가 true인 경우 )</p>
+</li>
+<li>
+<p>errors : 요청 결과 에러 ( success가 false인 경우 )</p>
+</li>
+<li>
+<p>meta : 요청 결과 메타정보 ( 서버 응답 정보, 기존 검색 정보 , page 정보 등)</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>누락된 정보는 서버 백엔드 팀에게 문의해주세요.</strong></p>
+</li>
+</ul>
+</div>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_공통_예외_처리"><a class="link" href="#_공통_예외_처리">1.3. 공통 예외 처리</a></h3>
+<div class="paragraph">
+<p>공통적으로 처리되는 예외를 정리하는 내용입니다.</p>
+</div>
+<div class="paragraph">
+<p>success 코드가 false인 경우 errors 값을 확인 바랍니다.</p>
+</div>
+<div class="paragraph">
+<p>공통적인 예외의 종류에는 이런 값들이 있습니다.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>숫자 값이 필요한데 문자열 값이 들어온 경우</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">POST http://localhost:8080/admin/api/v1/example
+Content-Type: application/json
+
+{
+  "userId": "일", // 숫자 값이 필요한데 문자열 값이 들어온 경우
+  "targetId": 0,
+  "type": "EXAMPLE",
+  "content": "내용"
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "success": false,
+  "code": 400,
+  "data": [],
+  "errors": {
+    "message": "'userId' 필드의 값이 잘못되었습니다. 해당 필드의 값의 타입을 확인해주세요."
+  },
+  "meta": {
+    "serverVersion": "1.0.0",
+    "serverEncoding": "UTF-8",
+    "serverResponseTime": "2024-04-19T22:28:52.428425",
+    "serverPathVersion": "v1"
+  }
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>필수적인 값이 없는 경우</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">POST http://localhost:8080/admin/api/v1/example
+Content-Type: application/json
+
+{
+  "userId": "", // 필수적인 값이 없는 경우
+  "targetId": 0,
+  "type": "EXAMPLE",
+  "content": "내용"
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "success": false,
+  "code": 400,
+  "data": [],
+  "errors": {
+    "userId": "사용자 아이디는 필수입니다."
+  },
+  "meta": {
+    "serverVersion": "1.0.0",
+    "serverEncoding": "UTF-8",
+    "serverResponseTime": "2024-04-19T22:31:48.742731",
+    "serverPathVersion": "v1"
+  }
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>누락된 정보는 서버 백엔드 팀에게 문의해주세요.</strong></p>
+</li>
+<li>
+<p><strong>추가되었으면 좋은 정보가 있으면 서버 백엔드 팀에게 문의해주세요.</strong></p>
+</li>
+</ul>
 </div>
 <hr>
 </div>
@@ -625,7 +807,7 @@ Host: localhost:8080</code></pre>
 Content-Type: application/json
 Content-Length: 206
 
-{"success":true,"code":200,"data":{"message":"Hello World!"},"errors":[],"meta":{"serverVersion":"1.0.0","serverEncoding":"UTF-8","serverResponseTime":"2025-10-08T01:13:16.304354","serverPathVersion":"v1"}}</code></pre>
+{"success":true,"code":200,"data":{"message":"Hello World!"},"errors":[],"meta":{"serverVersion":"1.0.0","serverEncoding":"UTF-8","serverResponseTime":"2025-10-08T01:41:34.556368","serverPathVersion":"v1"}}</code></pre>
 </div>
 </div>
 </div>
@@ -635,10 +817,12 @@ Content-Length: 206
 <div id="footer">
 <div id="footer-text">
 Version 0.0.1-SNAPSHOT<br>
-Last updated 2025-10-08 01:13:02 +0900
+Last updated 2025-10-08 01:33:39 +0900
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/languages/java.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/languages/kotlin.min.js"></script>
 <script>
 if (!hljs.initHighlighting.called) {
   hljs.initHighlighting.called = true
