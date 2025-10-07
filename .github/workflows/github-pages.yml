@@ -4,9 +4,13 @@ on:
   push:
     branches: [ "main","dev" ]
     paths:
-      - 'bottlenote-product-api/**'
-      - 'bottlenote-admin-api/**'
-      - 'docs/index.html'
+      - 'bottlenote-product-api/src/main/**'
+      - 'bottlenote-product-api/src/docs/**'
+      - 'bottlenote-product-api/build.gradle'
+      - 'bottlenote-admin-api/src/main/**'
+      - 'bottlenote-admin-api/src/docs/**'
+      - 'bottlenote-admin-api/build.gradle.kts'
+      - 'docs/**'
       - '.github/workflows/github-pages.yml'
   workflow_dispatch:
 
@@ -30,6 +34,10 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
       - name: Build application
         run: ./gradlew build
 
@@ -37,7 +45,7 @@ jobs:
         run: |
           mkdir -p bottlenote-product-api/build/generated-snippets
           mkdir -p docs
-          ./gradlew :bottlenote-product-api:asciidoctor || echo "Product API docs generation failed"
+          ./gradlew :bottlenote-product-api:asciidoctor
           if [ -f "bottlenote-product-api/build/docs/asciidoc/product-api.html" ]; then
             cp bottlenote-product-api/build/docs/asciidoc/product-api.html docs/
             echo "Product API documentation copied"
@@ -47,7 +55,7 @@ jobs:
         run: |
           mkdir -p bottlenote-admin-api/build/generated-snippets
           mkdir -p docs
-          ./gradlew :bottlenote-admin-api:asciidoctor || echo "Admin API docs generation failed"
+          ./gradlew :bottlenote-admin-api:asciidoctor
           if [ -f "bottlenote-admin-api/build/docs/asciidoc/admin-api.html" ]; then
             cp bottlenote-admin-api/build/docs/asciidoc/admin-api.html docs/
             echo "Admin API documentation copied"

@@ -1,5 +1,4 @@
 // bottlenote-product-api
-
 plugins {
 	alias(libs.plugins.asciidoctor)
 	alias(libs.plugins.restdocs.api.spec)
