@@ -3,7 +3,7 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-docs/index.html
+docs/product-api.html
 
 ### Production application.yml ###
 src/main/resources/application-dev.yml
@@ -47,7 +47,7 @@ build
 /src/test/resources/application-dev.yml
 /src/main/resources/fcm/service_account_credentials.json
 /src/main/resources/META-INF/additional-spring-configuration-metadata.json
-/docs/index.html
+/docs/product-api.html
 /logs/
 # QueryDSL generated files
 **/src/main/generated/

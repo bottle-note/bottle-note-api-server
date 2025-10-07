@@ -31,12 +31,25 @@ jobs:
       - name: Build application
         run: ./gradlew build
 
-      - name: Generate API documentation
+      - name: Generate Product API documentation
         run: |
           mkdir -p bottlenote-product-api/build/generated-snippets
-          ./gradlew :bottlenote-product-api:asciidoctor
           mkdir -p docs
-          cp -r bottlenote-product-api/build/docs/asciidoc/* docs/ 2>/dev/null || echo "No docs to copy"
+          ./gradlew :bottlenote-product-api:asciidoctor || echo "Product API docs generation failed"
+          if [ -f "bottlenote-product-api/build/docs/asciidoc/product-api.html" ]; then
+            cp bottlenote-product-api/build/docs/asciidoc/product-api.html docs/
+            echo "Product API documentation copied"
+          fi
+
+      - name: Generate Admin API documentation
+        run: |
+          mkdir -p bottlenote-admin-api/build/generated-snippets
+          mkdir -p docs
+          ./gradlew :bottlenote-admin-api:asciidoctor || echo "Admin API docs generation failed"
+          if [ -f "bottlenote-admin-api/build/docs/asciidoc/admin-api.html" ]; then
+            cp bottlenote-admin-api/build/docs/asciidoc/admin-api.html docs/
+            echo "Admin API documentation copied"
+          fi
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

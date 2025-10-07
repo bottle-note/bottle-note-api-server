@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="UTF-8">
+	<title>API 문서</title>
+	<style>
+		.tabs {
+			display: flex;
+			border-bottom: 1px solid #ccc;
+			justify-content: center;
+		}
+
+		.tab {
+			padding: 10px 20px;
+			cursor: pointer;
+		}
+
+		.tab.active {
+			font-weight: bold;
+			border-bottom: 2px solid #007bff;
+		}
+
+		.tab-content {
+			padding: 20px;
+		}
+	</style>
+	<script>
+		function loadTab(tabName, el) {
+			document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+			el.classList.add('active');
+			fetch(tabName)
+					.then(res => res.text())
+					.then(html => {
+						document.getElementById('tab-content').innerHTML = html;
+					});
+		}
+
+		window.onload = function () {
+			loadTab('product-api.html', document.getElementById('tab-product'));
+		}
+	</script>
+</head>
+<body>
+<div class="tabs">
+	<div class="tab active" id="tab-product" onclick="loadTab('product-api.html', this)">프로덕트 API</div>
+	<div class="tab" id="tab-admin" onclick="loadTab('admin-api.html', this)">어드민 API</div>
+</div>
+<div class="tab-content" id="tab-content">
+	<!-- 탭 내용이 여기에 동적으로 로드됩니다 -->
+</div>
+</body>
+</html>

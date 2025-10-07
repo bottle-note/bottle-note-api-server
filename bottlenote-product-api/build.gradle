@@ -92,7 +92,7 @@ asciidoctor {
 	configurations 'asciidoctorExt'
 	dependsOn test
 	sources {
-		include("**/index.adoc")
+		include("**/product-api.adoc")
 	}
 	baseDirFollowsSourceFile()
 }

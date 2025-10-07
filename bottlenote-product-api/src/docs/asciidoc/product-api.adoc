@@ -1,0 +1,224 @@
+ifndef::snippets[]
+:snippets: ../../build/generated-snippets
+endif::[]
+= Bottle Note API 문서
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toc-title: 목차
+:toclevels: 3
+:sectlinks:
+:sectnums:
+
+
+
+== 개요 (overview)
+
+- 이 API문서는 bottle-note 프로젝트의 API를 설명합니다.
+- 포함되면 좋을것 같은 내용이나 수정이 필요한 내용은 언제든지 디스코드 채널을 통해 알려주세요.
+
+=== API 서버 경로
+
+[cols="1,3,3"]
+|====
+|환경         |DNS |비고
+|local (dev)    | link:[localhost:8080] | 직접 로컬 개발 환경 접속
+|개발 (dev)    | link:[http://api.bottle-note.com/] |API 문서 제공
+|운영(prod)   | link:[] |기능 구현 후 AWS ECS 환경 실 배포
+|====
+
+- 개발 (dev) 링크는 디스코드 채널에 공유되어 있습니다.
+
+[NOTE]
+====
+해당 프로젝트 API문서는 개발환경까지 노출되는 것을 권장합니다. +
+====
+
+[cols="3,2,7"]
+|===
+| Exception Code | HTTP Code | Message
+
+| REVIEW_NOT_FOUND
+| 400
+| 리뷰를 찾을 수 없습니다
+
+| INVALID_TASTING_TAG_LENGTH
+| 400
+| 테이스팅 태그의 길이는 12자 이하로만 작성할 수 있습니다.
+
+| INVALID_TASTING_TAG_LIST_SIZE
+| 400
+| 테이스팅 태그는 10개까지만 작성할 수 있습니다.
+
+| INVALID_IMAGE_URL_MAX_SIZE
+| 400
+| 이미지는 최대 5장까지만 업로드 할 수 있습니다.
+
+| INVALID_CALL_BACK_URL
+| 400
+| 잘못된 콜백 URL입니다.
+
+| NOT_FOUND_REVIEW_REPLY
+| 400
+| 댓글을 찾을 수 없습니다.
+
+| REPLY_NOT_OWNER
+| 400
+| 댓글 작성자만 삭제할 수 있습니다.
+|===
+
+include::api/overview/overview.adoc[]
+
+'''
+include::api/overview/global-response.adoc[]
+
+'''
+include::api/overview/global-exception.adoc[]
+
+'''
+include::api/overview/global-auth.adoc[]
+
+== 공통 (common)  API
+
+'''
+include::api/file/image/upload/presign-url.adoc[]
+
+== 권한 (auth) 관련 API
+
+=== 인증 관련 API(v2)
+
+'''
+include::api/auth/auth.adoc[]
+
+== 회원 (user) 관련 API
+
+'''
+include::api/user/user-login.adoc[]
+
+'''
+include::api/user/user-guest-login.adoc[]
+
+'''
+include::api/user/user-reissue.adoc[]
+
+'''
+include::api/user/user-nickname-change.adoc[]
+
+'''
+include::api/user/user-profile.adoc[]
+
+'''
+include::api/user/user-withdraw.adoc[]
+
+'''
+include::api/user/user-mypage.adoc[]
+'''
+
+include::api/user/user-review-mybottle.adoc[]
+
+include::api/user/user-rating-mybottle.adoc[]
+
+include::api/user/user-picks-mybottle.adoc[]
+'''
+include::api/external/push/device-token.adoc[]
+'''
+
+== 둘러보기 (explore) 관련 API
+
+include::api/alcohols/explore.standard.adoc[]
+include::api/review/explore.standard.adoc[]
+
+== 술 (alcohol) 관련 API
+
+include::api/alcohols/search.adoc[]
+
+'''
+include::api/alcohols/detail.adoc[]
+
+'''
+include::api/alcohols/picks.adoc[]
+
+'''
+include::api/alcohols/region.adoc[]
+
+'''
+include::api/alcohols/categories.adoc[]
+
+'''
+include::api/alcohols/popular.adoc[]
+
+== 리뷰 (review) 관련 API
+
+include::api/review/review-create.adoc[]
+
+include::api/review/review-read.adoc[]
+
+include::api/review/my-review-read.adoc[]
+
+include::api/review/review-modify.adoc[]
+
+include::api/review/review-delete.adoc[]
+
+include::api/review/review-detail-read.adoc[]
+
+include::api/review/review-status-change.adoc[]
+
+include::api/review/likes/update.adoc[]
+
+== 리뷰 댓글  (review reply) 관련 API
+
+include::api/review/reply/review-reply-registry.adoc[]
+
+include::api/review/reply/review-reply-delete.adoc[]
+
+include::api/review/reply/review-reply-list.adoc[]
+
+include::api/review/reply/sub-review-reply-list.adoc[]
+
+== 지원 (support) 관련 API
+
+include::api/support/block/user-block.adoc[]
+
+include::api/support/report/user-report.adoc[]
+
+include::api/support/help/help-register.adoc[]
+
+include::api/support/help/help-read-list.adoc[]
+
+include::api/support/help/help-read-detail.adoc[]
+
+include::api/support/help/help-modify.adoc[]
+
+include::api/support/help/help-delete.adoc[]
+
+include::api/support/business/business-register.adoc[]
+
+include::api/support/business/business-read-list.adoc[]
+
+include::api/support/business/business-read-detail.adoc[]
+
+include::api/support/business/business-modify.adoc[]
+
+include::api/support/business/business-delete.adoc[]
+
+== 팔로우 (follow) 관련 API
+
+include::api/follow/follow-update.adoc[]
+
+include::api/follow/follow-search-following-list.adoc[]
+
+include::api/follow/follow-search-follower-list.adoc[]
+
+== 별점 (rating) 관련 API
+
+include::api/rating/fetch.adoc[]
+
+include::api/rating/user-rating.adoc[]
+
+include::api/rating/register.adoc[]
+
+== 히스토리(user history) 관련 API
+
+include::api/history/search.adoc[]
+include::api/history/alcohol-view.adoc[]
