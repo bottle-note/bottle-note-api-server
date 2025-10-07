@@ -5,6 +5,9 @@ plugins {
 	alias(libs.plugins.asciidoctor)
 	alias(libs.plugins.restdocs.api.spec)
 }
+// snippetsDir 정의
+val snippetsDir by extra { file("build/generated-snippets") }
+val asciidoctorExt: Configuration by configurations.creating
 
 dependencies {
 	implementation(project(":bottlenote-mono"))
@@ -12,6 +15,11 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
+
+	// Test - Spring REST Docs
+	add("asciidoctorExt", libs.spring.restdocs.asciidoctor)
+	testImplementation(libs.spring.restdocs.mockmvc)
+	testImplementation(libs.restdocs.api.spec.mockmvc)
 }
 
 tasks.bootJar {
@@ -21,4 +29,14 @@ tasks.bootJar {
 
 tasks.jar {
 	enabled = true
+}
+
+tasks.asciidoctor {
+	inputs.dir(snippetsDir)
+	configurations(asciidoctorExt.name)
+	dependsOn(tasks.test)
+	sources {
+		include("**/admin-api.adoc")
+	}
+	baseDirFollowsSourceFile()
 }
