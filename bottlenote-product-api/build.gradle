@@ -96,10 +96,3 @@ asciidoctor {
 	}
 	baseDirFollowsSourceFile()
 }
-
-openapi3 {
-	server = 'https://api.bottle-note.com'
-	title = 'Bottle Note API (Legacy)'
-	version = '1.0.0'
-	format = 'yaml'
-}
