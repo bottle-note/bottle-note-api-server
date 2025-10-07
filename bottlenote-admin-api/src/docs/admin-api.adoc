@@ -4,7 +4,9 @@ endif::[]
 = Bottle Note Admin API 문서
 :doctype: book
 :icons: font
-:source-highlighter: highlightjs
+:source-highlighter: highlight.js
+:highlightjs-theme: atom-one-dark
+:highlightjs-languages: java, kotlin
 :toc: left
 :toc-title: 목차
 :toclevels: 3
@@ -12,25 +14,18 @@ endif::[]
 :sectnums:
 
 
-
 == 개요 (overview)
 
-- Bottle Note Admin API는 Bottle Note 서비스의 관리자 기능을 제공하는 RESTful API입니다.
-- 이 문서는 Bottle Note Admin API의 사용법과 각 엔드포인트에 대한 설명을 포함하고 있습니다.
+include::asciidoc/api/overview/overview.adoc[]
 
+'''
+include::asciidoc/api/overview/global-response.adoc[]
 
-=== API 서버 경로
+'''
+include::asciidoc/api/overview/global-exception.adoc[]
 
-[cols="1,3,3"]
-|====
-|환경         |DNS
-|개발 (dev)    | link:[https://api.admin.development.bottle-note.com/]
-|운영(prod)   | link:[https://api.admin.product.bottle-note.com/]
-|====
+'''
 
-- 개발 (dev) 링크는 디스코드 채널에 공유되어 있습니다.
+== Sample API
 
-[NOTE]
-====
-해당 프로젝트 API문서는 개발환경까지 노출되는 것을 권장합니다.
-====
+include::asciidoc/api/sample-hello/hello.adoc[]

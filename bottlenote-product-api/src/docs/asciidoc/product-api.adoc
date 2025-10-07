@@ -11,59 +11,7 @@ endif::[]
 :sectlinks:
 :sectnums:
 
-
-
 == 개요 (overview)
-
-- 이 API문서는 bottle-note 프로젝트의 API를 설명합니다.
-- 포함되면 좋을것 같은 내용이나 수정이 필요한 내용은 언제든지 디스코드 채널을 통해 알려주세요.
-
-=== API 서버 경로
-
-[cols="1,3,3"]
-|====
-|환경         |DNS
-|개발 (dev)    | link:[https://api.development.bottle-note.com/]
-|운영(prod)   | link:[https://api.product.bottle-note.com/]
-|====
-
-[NOTE]
-====
-해당 프로젝트 API문서는 개발환경까지 노출되는 것을 권장합니다. +
-====
-
-[cols="3,2,7"]
-|===
-| Exception Code | HTTP Code | Message
-
-= | REVIEW_NOT_FOUND
-| 400
-| 리뷰를 찾을 수 없습니다
-
-| INVALID_TASTING_TAG_LENGTH
-| 400
-| 테이스팅 태그의 길이는 12자 이하로만 작성할 수 있습니다.
-
-| INVALID_TASTING_TAG_LIST_SIZE
-| 400
-| 테이스팅 태그는 10개까지만 작성할 수 있습니다.
-
-| INVALID_IMAGE_URL_MAX_SIZE
-| 400
-| 이미지는 최대 5장까지만 업로드 할 수 있습니다.
-
-| INVALID_CALL_BACK_URL
-| 400
-| 잘못된 콜백 URL입니다.
-
-| NOT_FOUND_REVIEW_REPLY
-| 400
-| 댓글을 찾을 수 없습니다.
-
-| REPLY_NOT_OWNER
-| 400
-| 댓글 작성자만 삭제할 수 있습니다.
-|===
 
 include::api/overview/overview.adoc[]
 

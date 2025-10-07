@@ -93,21 +93,3 @@ bootJar {
 jar {
 	enabled = true
 }
-
-// Spring REST Docs 설정
-asciidoctor {
-	inputs.dir snippetsDir
-	configurations 'asciidoctorExt'
-	dependsOn test
-	sources {
-		include("**/index.adoc")
-	}
-	baseDirFollowsSourceFile()
-}
-
-openapi3 {
-	server = 'https://api.bottle-note.com'
-	title = 'Bottle Note API (Legacy)'
-	version = '1.0.0'
-	format = 'yaml'
-}
