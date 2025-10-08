@@ -156,13 +156,13 @@ PATCH /api/v1/help/{helpId}
 
 ===== 요청 파라미터
 
-include::{snippets}/support/help/help-modify/request-fields.adoc[]
-include::{snippets}/support/help/help-modify/request-body.adoc[]
+include::{snippets}/support/help/help-update/request-fields.adoc[]
+include::{snippets}/support/help/help-update/request-body.adoc[]
 
 ===== 응답 파라미터
 
-include::{snippets}/support/help/help-modify/response-fields.adoc[]
-include::{snippets}/support/help/help-modify/response-body.adoc[]
+include::{snippets}/support/help/help-update/response-fields.adoc[]
+include::{snippets}/support/help/help-update/response-body.adoc[]
 
 ===== Error code
 

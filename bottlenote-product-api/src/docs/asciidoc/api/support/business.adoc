@@ -34,8 +34,8 @@ GET /api/v1/business-support
 
 ===== 응답 파라미터
 
-include::{snippets}/support/business/list/response-fields.adoc[]
-include::{snippets}/support/business/list/response-body.adoc[]
+include::{snippets}/support/business/read-list/response-fields.adoc[]
+include::{snippets}/support/business/read-list/response-body.adoc[]
 
 ==== 비즈니스 문의 상세 조회
 
@@ -54,12 +54,12 @@ GET /api/v1/business-support/{id}
 
 ===== 요청 파라미터
 
-- PathVariable로 문의글의 id를 전달합니다.
+- PathVariable id : 문의 아이디
 
 ===== 응답 파라미터
 
-include::{snippets}/support/business/detail/response-fields.adoc[]
-include::{snippets}/support/business/detail/response-body.adoc[]
+include::{snippets}/support/business/read-detail/response-fields.adoc[]
+include::{snippets}/support/business/read-detail/response-body.adoc[]
 
 ==== 비즈니스 문의 수정
 
