@@ -2,6 +2,9 @@ package app.external.version.presentation;
 
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.external.version.config.AppInfoConfig;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +26,17 @@ public class AppInfoController {
     infoMap.put("environment", info.getEnvironment());
     infoMap.put("gitBranch", info.getGitBranch());
     infoMap.put("gitCommit", info.getGitCommit());
-    infoMap.put("gitBuildTime", info.getGitBuildTime());
+
+    String buildTime = info.getGitBuildTime();
+    try {
+      buildTime =
+          ZonedDateTime.parse(buildTime)
+              .withZoneSameInstant(ZoneId.of("Asia/Seoul"))
+              .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    } catch (Exception ignored) {
+    }
+    infoMap.put("gitBuildTime", buildTime);
+
     return GlobalResponse.ok(infoMap);
   }
 }
