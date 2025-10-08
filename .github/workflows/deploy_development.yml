@@ -117,7 +117,6 @@ jobs:
         with:
           submodules: true
           token: ${{ secrets.GIT_ACCESS_TOKEN }}
-
       - name: Oracle 인스턴스 환경변수 로드
         env:
           ENV_FILE: ${{ env.ORACLE_ENV_FILE }}
@@ -218,16 +217,24 @@ jobs:
           aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
-
       - name: 애플리케이션 환경변수 파일 준비
         id: prepare-app-env
         run: |
           APP_ENV_CONTENT=$(cat "${{ env.APP_ENV_FILE }}" | base64 -w 0)
           echo "content=$APP_ENV_CONTENT" >> $GITHUB_OUTPUT
+
+      - name: Copy compose file to server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ env.INSTANCE_NETWORK_PUBLIC_IP }}
+          port: ${{ env.INSTANCE_NETWORK_PORT }}
+          username: ${{ env.INSTANCE_HOST_USERNAME }}
+          key: ${{ env.SSH_PRIVATE_KEY }}
+          source: "compose/product-api.dev.yml"
+          target: "~/"
 
       - name: Deploy to Dev Server
         uses: appleboy/ssh-action@master
@@ -265,7 +272,7 @@ jobs:
             # 환경 변수 파일 설정 (서브모듈에서 가져옴)
             echo "${{ steps.prepare-app-env.outputs.content }}" | base64 -d > .bottlenote.development.ENV
 
-            # 개발 로그 삭제
+            # 개발 로그 삭제지
             sudo rm -f /var/log/bottle-note/application-dev*
 
             # 환경변수 export (docker-compose에서 사용)
@@ -275,10 +282,10 @@ jobs:
             export BUILD_TIME="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 
             # docker-compose로 배포 (자동으로 기존 컨테이너 교체)
-            docker-compose -f compose/product-api.dev.yml up -d --force-recreate
+            docker-compose -f ~/compose/product-api.dev.yml up -d --force-recreate
 
             # 컨테이너 실행 확인
-            docker-compose -f compose/product-api.dev.yml ps
+            docker-compose -f ~/compose/product-api.dev.yml ps
 
             echo "사용하지 않는 모든 Docker 리소스 정리 중..."
             docker system prune -f
