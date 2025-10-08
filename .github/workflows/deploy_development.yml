@@ -303,7 +303,7 @@ jobs:
               echo "$BODY" | jq '.'
 
               # 배포된 커밋 검증
-              DEPLOYED_COMMIT=$(echo "$BODY" | jq -r '.data.gitCommit')
+              DEPLOYED_COMMIT=$(echo "$BODY" | jq -r '.data.gitCommitFullHash')
               EXPECTED_COMMIT="${{ github.sha }}"
 
               if [ "$DEPLOYED_COMMIT" = "$EXPECTED_COMMIT" ]; then
