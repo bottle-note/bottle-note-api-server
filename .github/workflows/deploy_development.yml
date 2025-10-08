@@ -20,10 +20,9 @@ env:
 
 jobs:
   build-and-push:
-    # PR 병합 시 push 이벤트와 중복 실행 방지
+    # PR 병합 시에만 실행
     if: |
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' && !contains(github.event.head_commit.message, 'Merge pull request')) ||
       (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
     outputs:
@@ -211,15 +210,6 @@ jobs:
 
           echo "✅ AWS ECR 환경변수 로드 완료"
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
       - name: 애플리케이션 환경변수 파일 준비
         id: prepare-app-env
         run: |
@@ -272,7 +262,7 @@ jobs:
             # 환경 변수 파일 설정 (서브모듈에서 가져옴)
             echo "${{ steps.prepare-app-env.outputs.content }}" | base64 -d > .bottlenote.development.ENV
 
-            # 개발 로그 삭제지
+            # 개발 로그 삭제
             sudo rm -f /var/log/bottle-note/application-dev*
 
             # 환경변수 export (docker-compose에서 사용)
