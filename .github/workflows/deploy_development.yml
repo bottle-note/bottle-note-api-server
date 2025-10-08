@@ -102,34 +102,26 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Build Docker Image
+      - name: Build and push to ECR
         id: build-image
         run: |
           # 이미지 태그 생성
           IMAGE_TAG="${GITHUB_SHA:0:7}"
-          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
-          echo "registry=${{ steps.login-ecr.outputs.registry }}" >> $GITHUB_OUTPUT
+          REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+          IMAGE_NAME="$REGISTRY/ecr-bottle-note-api"
 
-          # 이미지명 설정
-          FULL_IMAGE_NAME="${{ steps.login-ecr.outputs.registry }}/ecr-bottle-note-api:$IMAGE_TAG"
-
-          # Docker 이미지 빌드 (레이어 캐싱 포함)
+          # Docker 이미지 빌드 및 푸시 (레이어 캐싱 포함)
           docker buildx build --platform linux/arm64 \
             --provenance false \
-            --cache-from type=registry,ref=${{ steps.login-ecr.outputs.registry }}/ecr-bottle-note-api:latest \
+            --cache-from type=registry,ref=$IMAGE_NAME:latest \
             --cache-to type=inline \
-            -t $FULL_IMAGE_NAME \
-            --load .
-          echo "✅ 이미지 빌드 완료: $FULL_IMAGE_NAME"
+            -t $IMAGE_NAME:$IMAGE_TAG \
+            -t $IMAGE_NAME:latest \
+            --push .
 
-      - name: Push to ECR
-        run: |
-          IMAGE_TAG="${{ steps.build-image.outputs.image_tag }}"
-          FULL_IMAGE_NAME="${{ steps.build-image.outputs.registry }}/ecr-bottle-note-api:$IMAGE_TAG"
-
-          # ECR로 이미지 푸시
-          docker push $FULL_IMAGE_NAME
-          echo "✅ 이미지가 ECR에 푸시되었습니다: $FULL_IMAGE_NAME"
+          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "registry=$REGISTRY" >> $GITHUB_OUTPUT
+          echo "✅ 이미지가 ECR에 빌드 및 푸시되었습니다: $IMAGE_NAME:$IMAGE_TAG, $IMAGE_NAME:latest"
 
   deploy-to-servers:
     needs: build-and-push
