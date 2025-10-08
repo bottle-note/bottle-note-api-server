@@ -1,6 +1,5 @@
-package app.bottlenote.global.security.service;
+package app.bottlenote.global.security;
 
-import app.bottlenote.global.security.customPrincipal.CustomUserContext;
 import app.bottlenote.user.constant.UserType;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.repository.OauthRepository;

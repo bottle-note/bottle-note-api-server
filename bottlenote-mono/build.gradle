@@ -1,18 +1,5 @@
 plugins {
 	id 'java-library'
-	alias(libs.plugins.asciidoctor)
-	alias(libs.plugins.restdocs.api.spec)
-}
-
-ext {
-	snippetsDir = file('build/generated-snippets')
-}
-
-configurations {
-	asciidoctorExt
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
 }
 
 dependencies {
@@ -41,11 +28,6 @@ dependencies {
 	// JWT
 	implementation libs.bundles.jwt.complete
 	implementation libs.google.guava
-
-	// Spring REST Docs
-	asciidoctorExt libs.spring.restdocs.asciidoctor
-	testImplementation libs.spring.restdocs.mockmvc
-	testImplementation libs.restdocs.api.spec.mockmvc
 
 	// Security
 	implementation libs.spring.boot.starter.security
