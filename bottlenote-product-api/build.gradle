@@ -16,7 +16,7 @@ dependencies {
 	implementation project(':bottlenote-mono')
 	implementation project(':bottlenote-batch')
 
-	// Spring Boot Web
+	// ===== Spring Boot Web  =====
 	implementation libs.spring.boot.starter.web
 	implementation libs.spring.boot.starter.validation
 

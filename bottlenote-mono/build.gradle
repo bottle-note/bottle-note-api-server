@@ -1,73 +1,56 @@
-plugins {
-	id 'java-library'
-}
-
 dependencies {
-	// Spring Boot Web
+	// ===== Platform/BOM =====
+	implementation platform(libs.netty.bom)
+
+	// ===== Core =====
 	implementation libs.spring.boot.starter.web
 	implementation libs.spring.boot.starter.validation
 
-	// Database
+	// ===== Database =====
 	implementation libs.spring.boot.starter.data.jpa
 	implementation libs.spring.boot.starter.data.redis
 	implementation libs.h2
 	runtimeOnly libs.mysql.connector.j
-
-	// P6Spy
 	implementation libs.p6spy
-
-	// DB JSON Support
 	implementation libs.hypersistence.utils
-
-	// QueryDSL
 	implementation libs.querydsl.jpa
 	annotationProcessor "io.github.openfeign.querydsl:querydsl-apt:${libs.versions.querydsl.get()}:jakarta"
 	annotationProcessor libs.jakarta.annotation.api
 	annotationProcessor libs.jakarta.persistence.api
 
-	// JWT
-	implementation libs.bundles.jwt.complete
-	implementation libs.google.guava
-
-	// Security
-	implementation libs.spring.boot.starter.security
-	testImplementation libs.spring.security.test
-
-	// Actuator & Monitoring
-	implementation libs.spring.boot.starter.actuator
-	implementation libs.micrometer.prometheus
-
-	// Cache
+	// ===== Cache =====
 	implementation libs.spring.boot.starter.cache
 	implementation libs.caffeine
 
-	// Testing
-	testImplementation libs.testng
-	testImplementation libs.mockito.inline
+	// ===== Security =====
+	implementation libs.spring.boot.starter.security
+	testImplementation libs.spring.security.test
+	implementation libs.bundles.jwt.complete
+	implementation libs.google.guava
 
-	// AWS
+
+	// ===== Monitoring =====
+	implementation libs.spring.boot.starter.actuator
+	implementation libs.micrometer.prometheus
+
+	// ===== External Services =====
 	implementation libs.aws.s3
-
-	// Feign
 	implementation libs.spring.cloud.starter.openfeign
-
-	// TestContainers
-	testImplementation libs.bundles.testcontainers.complete
-
-	// Firebase
 	implementation libs.firebase.admin
 
-	// ArchUnit
-	testImplementation libs.archunit
-
-	// Quartz
+	// ===== Batch =====
 	implementation libs.spring.boot.starter.quartz
 
-	// Logging
+	// ===== Logging =====
 	implementation libs.logstash.logback
+
+	// ===== Testing =====
+	testImplementation libs.testng
+	testImplementation libs.mockito.inline
+	testImplementation libs.bundles.testcontainers.complete
+	testImplementation libs.archunit
 }
 
-// Spring Boot JAR 설정 (mono 모듈은 라이브러리 JAR만 생성)
 bootJar {
 	enabled = false
 }

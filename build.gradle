@@ -36,6 +36,11 @@ subprojects {
 		sourceCompatibility = JavaVersion.VERSION_21
 		targetCompatibility = JavaVersion.VERSION_21
 	}
+
+	// Spring Boot 3.2+ 필수: 파라미터 이름 보존
+	tasks.withType(JavaCompile).configureEach {
+		options.compilerArgs << '-parameters'
+	}
 	plugins.withId('com.diffplug.spotless') {
 		tasks.named('compileJava').configure {
 			dependsOn 'spotlessApply'
