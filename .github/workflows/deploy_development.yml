@@ -105,16 +105,14 @@ jobs:
       - name: build and push to ecr
         id: build-image
         run: |
-          # 이미지 태그 생성
           IMAGE_TAG="${GITHUB_SHA:0:7}"
           REGISTRY="${{ steps.login-ecr.outputs.registry }}"
           IMAGE_NAME="$REGISTRY/ecr-bottle-note-api"
 
-          # Docker 이미지 빌드 및 푸시 (레이어 캐싱 포함)
           docker buildx build --platform linux/arm64 \
             --provenance false \
-            --cache-from type=registry,ref=$IMAGE_NAME:latest \
-            --cache-to type=inline \
+            --cache-from type=registry,ref=$IMAGE_NAME:cache \
+            --cache-to type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=$IMAGE_NAME:cache \
             -t $IMAGE_NAME:$IMAGE_TAG \
             -t $IMAGE_NAME:latest \
             --push .
