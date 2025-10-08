@@ -12,6 +12,12 @@ concurrency:
   group: "deploy-development"
   cancel-in-progress: true
 
+env:
+  ORACLE_ENV_FILE: git.environment-variables/deploy/oracle/application-node-1.env
+  ORACLE_SSH_KEY_FILE: git.environment-variables/deploy/oracle/keys/node-1.pem
+  AWS_ECR_ENV_FILE: git.environment-variables/deploy/aws/ecr-properties.env
+  APP_ENV_FILE: git.environment-variables/application.springboot/.env.dev
+
 jobs:
   build-and-push:
     # PR 병합 시 push 이벤트와 중복 실행 방지
@@ -30,20 +36,48 @@ jobs:
           submodules: true
           token: ${{ secrets.GIT_ACCESS_TOKEN }}
 
-      - name: Configure 1Password Service Account
-        uses: 1password/load-secrets-action/configure@v2
-        with:
-          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-
-      - name: Load AWS secrets
-        uses: 1password/load-secrets-action@v2
-        id: op-load-aws-secret
-        with:
-          export-env: true
+      - name: AWS ECR 환경변수 로드
         env:
-          AWS_ACCESS_KEY_ID: "op://vault/ecr iam authentication/access key id"
-          AWS_SECRET_ACCESS_KEY: "op://vault/ecr iam authentication/secret access key"
-          AWS_REGION: "op://vault/ecr iam authentication/region"
+          ENV_FILE: ${{ env.AWS_ECR_ENV_FILE }}
+        run: |
+          echo "📄 AWS ECR 환경변수 파일 로드 중..."
+          if [ ! -f "$ENV_FILE" ]; then
+            echo "❌ 환경변수 파일을 찾을 수 없습니다: $ENV_FILE"
+            exit 1
+          fi
+
+          while IFS='=' read -r key value || [ -n "$key" ]; do
+            [[ -z "$key" || "$key" == \#* ]] && continue
+
+            # 공백 제거
+            key=$(echo "$key" | xargs)
+            value=$(echo "$value" | xargs)
+
+            # 마스킹
+            echo "::add-mask::${value}"
+
+            # 변수명 매핑
+            case "$key" in
+              ECR_ACCESS_KEY)
+                echo "AWS_ACCESS_KEY_ID=${value}" >> $GITHUB_ENV
+                echo "  ✅ AWS_ACCESS_KEY_ID 로드됨"
+                ;;
+              ECR_SECRET_ACCESS_KEY)
+                echo "AWS_SECRET_ACCESS_KEY=${value}" >> $GITHUB_ENV
+                echo "  ✅ AWS_SECRET_ACCESS_KEY 로드됨"
+                ;;
+              ECR_REGION)
+                echo "AWS_REGION=${value}" >> $GITHUB_ENV
+                echo "  ✅ AWS_REGION 로드됨"
+                ;;
+              ECR_REGISTRY)
+                echo "ECR_REGISTRY=${value}" >> $GITHUB_ENV
+                echo "  ✅ ECR_REGISTRY 로드됨"
+                ;;
+            esac
+          done < "$ENV_FILE"
+
+          echo "✅ AWS ECR 환경변수 로드 완료"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -68,7 +102,7 @@ jobs:
           echo "registry=${{ steps.login-ecr.outputs.registry }}" >> $GITHUB_OUTPUT
 
           # 이미지 빌드 및 푸시
-          docker buildx build --platform linux/amd64,linux/arm64 \
+          docker buildx build --platform linux/arm64 \
             --provenance false \
             -t ${{ steps.login-ecr.outputs.registry }}/ecr-bottle-note-api:$IMAGE_TAG \
             --push .
@@ -77,26 +111,106 @@ jobs:
   deploy-to-servers:
     needs: build-and-push
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        environment: [
-          application-charlie
-        ]
     steps:
-      - name: Configure 1Password Service Account
-        uses: 1password/load-secrets-action/configure@v2
+      - name: Checkout code with submodules
+        uses: actions/checkout@v4
         with:
-          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
 
-      - name: Load AWS secrets
-        uses: 1password/load-secrets-action@v2
-        id: op-load-aws-secret
-        with:
-          export-env: true
+      - name: Oracle 인스턴스 환경변수 로드
         env:
-          AWS_ACCESS_KEY_ID: "op://vault/ecr iam authentication/access key id"
-          AWS_SECRET_ACCESS_KEY: "op://vault/ecr iam authentication/secret access key"
-          AWS_REGION: "op://vault/ecr iam authentication/region"
+          ENV_FILE: ${{ env.ORACLE_ENV_FILE }}
+        run: |
+          echo "📄 Oracle 인스턴스 환경변수 파일 로드 중..."
+          if [ ! -f "$ENV_FILE" ]; then
+            echo "❌ 환경변수 파일을 찾을 수 없습니다: $ENV_FILE"
+            exit 1
+          fi
+
+          while IFS='=' read -r key value || [ -n "$key" ]; do
+            [[ -z "$key" || "$key" == \#* ]] && continue
+
+            # 마스킹
+            echo "::add-mask::${value}"
+
+            # GitHub 환경변수로 설정
+            echo "${key}=${value}" >> $GITHUB_ENV
+            echo "  ✅ $key 로드됨"
+          done < "$ENV_FILE"
+
+          echo "✅ Oracle 인스턴스 환경변수 로드 완료"
+
+      - name: SSH 개인키 파일 로드
+        env:
+          KEY_FILE: ${{ env.ORACLE_SSH_KEY_FILE }}
+        run: |
+          echo "🔑 SSH 개인키 파일 로드 중..."
+
+          if [ ! -f "$KEY_FILE" ]; then
+            echo "❌ SSH 키 파일을 찾을 수 없습니다: $KEY_FILE"
+            exit 1
+          fi
+
+          # SSH 키 전체 내용을 환경변수로 저장
+          SSH_KEY=$(cat "$KEY_FILE")
+
+          # SSH 키의 각 줄 마스킹
+          echo "$SSH_KEY" | while IFS= read -r line; do
+            [ -n "$line" ] && echo "::add-mask::${line}"
+          done
+
+          # 멀티라인 환경변수로 설정
+          {
+            echo "SSH_PRIVATE_KEY<<EOF_SSH_KEY"
+            cat "$KEY_FILE"
+            echo "EOF_SSH_KEY"
+          } >> $GITHUB_ENV
+
+          echo "✅ SSH 개인키 로드 완료"
+
+      - name: AWS ECR 환경변수 로드
+        env:
+          ENV_FILE: ${{ env.AWS_ECR_ENV_FILE }}
+        run: |
+          echo "📄 AWS ECR 환경변수 파일 로드 중..."
+          if [ ! -f "$ENV_FILE" ]; then
+            echo "❌ 환경변수 파일을 찾을 수 없습니다: $ENV_FILE"
+            exit 1
+          fi
+
+          while IFS='=' read -r key value || [ -n "$key" ]; do
+            [[ -z "$key" || "$key" == \#* ]] && continue
+
+            # 공백 제거
+            key=$(echo "$key" | xargs)
+            value=$(echo "$value" | xargs)
+
+            # 마스킹
+            echo "::add-mask::${value}"
+
+            # 변수명 매핑
+            case "$key" in
+              ECR_ACCESS_KEY)
+                echo "AWS_ACCESS_KEY_ID=${value}" >> $GITHUB_ENV
+                echo "  ✅ AWS_ACCESS_KEY_ID 로드됨"
+                ;;
+              ECR_SECRET_ACCESS_KEY)
+                echo "AWS_SECRET_ACCESS_KEY=${value}" >> $GITHUB_ENV
+                echo "  ✅ AWS_SECRET_ACCESS_KEY 로드됨"
+                ;;
+              ECR_REGION)
+                echo "AWS_REGION=${value}" >> $GITHUB_ENV
+                echo "  ✅ AWS_REGION 로드됨"
+                ;;
+              ECR_REGISTRY)
+                echo "ECR_REGISTRY=${value}" >> $GITHUB_ENV
+                echo "  ✅ ECR_REGISTRY 로드됨"
+                ;;
+            esac
+          done < "$ENV_FILE"
+
+          echo "✅ AWS ECR 환경변수 로드 완료"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -109,27 +223,19 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Server host secret setup
-        id: op-load-server-secret
-        uses: 1password/load-secrets-action@v2
-        with:
-          export-env: true
-          unset-previous: false
-        env:
-          SERVER_IP: op://vault/${{ matrix.environment }}-server/ip
-          SERVER_PORT: op://vault/${{ matrix.environment }}-server/port
-          SERVER_NAME: op://vault/${{ matrix.environment }}-server/user name
-          SERVER_PASSWORD: op://vault/${{ matrix.environment }}-server/password
-          SSH_KEY: op://vault/${{ matrix.environment }}-server-ssh/private_key?ssh-format=openssh
+      - name: 애플리케이션 환경변수 파일 준비
+        id: prepare-app-env
+        run: |
+          APP_ENV_CONTENT=$(cat "${{ env.APP_ENV_FILE }}" | base64 -w 0)
+          echo "content=$APP_ENV_CONTENT" >> $GITHUB_OUTPUT
 
       - name: Deploy to Dev Server
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ env.SERVER_IP }}
-          port: ${{ env.SERVER_PORT }}
-          username: ${{ env.SERVER_NAME }}
-          password: ${{ env.SERVER_PASSWORD }}
-          key: ${{ env.SSH_KEY }}
+          host: ${{ env.INSTANCE_NETWORK_PUBLIC_IP }}
+          port: ${{ env.INSTANCE_NETWORK_PORT }}
+          username: ${{ env.INSTANCE_HOST_USERNAME }}
+          key: ${{ env.SSH_PRIVATE_KEY }}
           script: |
             # AWS 자격 증명 설정
             aws configure set aws_access_key_id "${{ env.AWS_ACCESS_KEY_ID }}"
@@ -156,8 +262,8 @@ jobs:
             # 다운로드 확인
             docker images | grep $ECR_REPOSITORY
 
-            # 환경 변수 파일 설정
-            echo "${{ secrets.DEV_ENV }}" | base64 --decode > .bottlenote.development.ENV
+            # 환경 변수 파일 설정 (서브모듈에서 가져옴)
+            echo "${{ steps.prepare-app-env.outputs.content }}" | base64 -d > .bottlenote.development.ENV
 
             # 개발 로그 삭제
             sudo rm -f /var/log/bottle-note/application-dev*
@@ -175,7 +281,7 @@ jobs:
               -e TZ=Asia/Seoul \
               -e SPRING_PROFILES_ACTIVE=dev \
               -e JAVA_OPTS="-Xms256m -Xmx512m -XX:MaxMetaspaceSize=128m" \
-              -e SERVER_NAME="${{ matrix.environment }}" \
+              -e SERVER_NAME="oracle-node-1" \
               -e GIT_BRANCH="${{ github.ref_name }}" \
               -e GIT_COMMIT="${{ github.sha }}" \
               -e BUILD_TIME="$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
