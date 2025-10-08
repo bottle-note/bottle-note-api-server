@@ -1,4 +1,4 @@
-package app.bottlenote.global.security.customPrincipal;
+package app.bottlenote.global.security;
 
 import java.util.List;
 import lombok.Getter;

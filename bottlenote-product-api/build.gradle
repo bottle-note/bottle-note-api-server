@@ -1,5 +1,4 @@
 // bottlenote-product-api
-
 plugins {
 	alias(libs.plugins.asciidoctor)
 	alias(libs.plugins.restdocs.api.spec)
@@ -15,20 +14,15 @@ configurations {
 
 dependencies {
 	implementation project(':bottlenote-mono')
-	implementation project(':bottlenote-batch')
+	/*implementation project(':bottlenote-batch')*/
 
-	// Spring Boot Web
+	// ===== Spring Boot Web  =====
 	implementation libs.spring.boot.starter.web
 	implementation libs.spring.boot.starter.validation
-
-	// Test Dependencies
-	testImplementation libs.spring.security.test
-	testImplementation libs.mockito.inline
 
 	// Test - Database
 	testImplementation libs.spring.boot.starter.data.jpa
 	testImplementation libs.spring.boot.starter.data.redis
-	testImplementation libs.h2
 	testImplementation libs.hypersistence.utils
 	testImplementation libs.mysql.connector.j
 
@@ -38,9 +32,15 @@ dependencies {
 	annotationProcessor libs.jakarta.annotation.api
 	annotationProcessor libs.jakarta.persistence.api
 
-	// Test - JWT
-	testImplementation libs.bundles.jwt.complete
-	testImplementation libs.google.guava
+	// JWT
+	implementation libs.bundles.jwt.complete
+	implementation libs.google.guava
+
+	// Security
+	implementation libs.spring.boot.starter.security
+	implementation libs.spring.security.test
+	testImplementation libs.spring.security.test
+	testImplementation libs.mockito.inline
 
 	// Test - TestContainers
 	testImplementation libs.bundles.testcontainers.complete
@@ -92,14 +92,7 @@ asciidoctor {
 	configurations 'asciidoctorExt'
 	dependsOn test
 	sources {
-		include("**/index.adoc")
+		include("**/product-api.adoc")
 	}
 	baseDirFollowsSourceFile()
-}
-
-openapi3 {
-	server = 'https://api.bottle-note.com'
-	title = 'Bottle Note API (Legacy)'
-	version = '1.0.0'
-	format = 'yaml'
 }

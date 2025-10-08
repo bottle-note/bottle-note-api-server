@@ -1,0 +1,239 @@
+=== 문의 관리 (help)
+
+==== 문의글 작성
+
+사용자는 시스템 관리자에게 문의글을 등록할 수 있습니다.
+
+문의글 제목은 null이거나 공백("")일 수 없습니다.
+
+문의글 내용은 null이거나 공백("")일 수 없으며, 최대 1000자까지 허용됩니다.
+
+문의글의 타입은 아래 표로 기술했습니다.
+
+[cols="1,2",options="header"]
+|===
+| 문의글 타입 | 설명
+
+| `WHISKEY`
+| 위스키 관련 문의
+
+| `REVIEW`
+| 리뷰 관련 문의
+
+| `USER`
+| 회원 관련 문의
+
+| `ETC`
+| 그 외 모든 문의
+
+|===
+
+[source]
+----
+POST /api/v1/help
+----
+
+===== 요청 파라미터
+
+include::{snippets}/support/help/help-register/request-fields.adoc[]
+include::{snippets}/support/help/help-register/request-body.adoc[]
+
+===== 응답 파라미터
+
+include::{snippets}/support/help/help-register/response-fields.adoc[]
+include::{snippets}/support/help/help-register/response-body.adoc[]
+
+===== Error code
+
+* 해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.
+
+[cols="1,1,1",options="header"]
+|===
+| 코드 | 상태 | 설명
+| REQUIRED_USER_ID
+| BAD_REQUEST
+| 유저 아이디가 필요합니다.
+
+| TITLE_NOT_EMPTY
+| BAD_REQUEST
+| null입니다. 타이틀(제목)을 입력해주세요.
+
+| CONTENT_NOT_EMPTY
+| BAD_REQUEST
+| null입니다. 내용을 입력해주세요."
+
+| REQUIRED_HELP_TYPE
+| BAD_REQUEST
+| 문의 유형은 필수입니다.(WHISKEY, REVIEW, USER, ETC)
+|===
+
+==== 문의글 목록조회
+
+사용자는 등록한 문의글의 목록을 조회할 수 있습니다.
+
+로그인 한 유저만 조회가 가능합니다.
+
+QueryParam으로 cursor와 pageSize를 전달하며, default 값은 cursor는 0, pageSize는 10입니다.
+
+[source]
+----
+GET /api/v1/help
+----
+
+===== 응답 파라미터
+
+include::{snippets}/support/help/help-read-list/response-fields.adoc[]
+include::{snippets}/support/help/help-read-list/response-body.adoc[]
+
+===== Error Code
+
+* 해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.
+
+[cols="1,1,1",options="header"]
+|===
+| 코드 | 상태 | 설명
+| REQUIRED_USER_ID
+| BAD_REQUEST
+| 유저 아이디가 필요합니다.
+|===
+
+==== 문의글 상세조회
+
+사용자는 등록한 문의글 상세조회 할 수 있습니다.
+
+PathVariable로 문의글의 id를 전달합니다.
+
+로그인 한 유저만 조회가 가능합니다.
+
+존재하지 않는 문의글 id로 요청을 보낸 경우 HELP_NOT_FOUND 예외가 발생합니다.
+
+[source]
+----
+GET /api/v1/help/{helpId}
+----
+
+===== 요청 파라미터
+
+- PathVariable로 문의글의 id를 전달합니다.
+
+===== 응답 파라미터
+
+include::{snippets}/support/help/help-read-detail/response-fields.adoc[]
+include::{snippets}/support/help/help-read-detail/response-body.adoc[]
+
+===== Error Code
+
+* 해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.
+
+[cols="1,1,1",options="header"]
+|===
+| 코드 | 상태 | 설명
+| REQUIRED_USER_ID
+| BAD_REQUEST
+| 유저 아이디가 필요합니다.
+
+| HELP_NOT_FOUND
+| NOT_FOUND
+| 문의글을 찾을 수 없습니다.
+|===
+
+==== 문의글 수정
+
+사용자는 등록한 문의글을 수정할 수 있습니다.
+
+수정하고자 하는 문의글 `제목`, `내용`, `타입` 은 null일 수 없습니다
+
+PathVariable로 문의글의 id를 전달합니다.
+
+존재하지 않는 문의글 id로 요청을 보낸 경우 HELP_NOT_FOUND 예외가 발생합니다.
+
+로그인 한 유저만 요청이 가능하며, 문의글의 작성자가 아닌 경우 HELP_NOT_AUTHORIZED 예외가 발생합니다.
+
+[source]
+----
+PATCH /api/v1/help/{helpId}
+----
+
+===== 요청 파라미터
+
+include::{snippets}/support/help/help-update/request-fields.adoc[]
+include::{snippets}/support/help/help-update/request-body.adoc[]
+
+===== 응답 파라미터
+
+include::{snippets}/support/help/help-update/response-fields.adoc[]
+include::{snippets}/support/help/help-update/response-body.adoc[]
+
+===== Error code
+
+* 해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.
+
+[cols="1,1,1",options="header"]
+|===
+| 코드 | 상태 | 설명
+| REQUIRED_USER_ID
+| BAD_REQUEST
+| 유저 아이디가 필요합니다.
+
+| TITLE_NOT_EMPTY
+| BAD_REQUEST
+| null입니다. 타이틀(제목)을 입력해주세요.
+
+| CONTENT_NOT_EMPTY
+| BAD_REQUEST
+| null입니다. 내용을 입력해주세요."
+
+| REQUIRED_HELP_TYPE
+| BAD_REQUEST
+| 문의 유형은 필수입니다.(WHISKEY, REVIEW, USER, ETC)
+
+| HELP_NOT_FOUND
+| NOT_FOUND
+| 문의글을 찾을 수 없습니다.
+
+| HELP_NOT_AUTHORIZED
+| FORBIDDEN
+| 문의글 수정 권한이 없습니다.
+|===
+
+==== 문의글 삭제
+
+사용자는 등록한 문의글을 삭제할 수 있습니다.
+
+물리적으로 삭제되는 것이 아닌 논리 삭제가 수행되며 status 컬럼이 DELETED로 변경됩니.
+
+PathVariable로 문의글의 id를 전달합니다.
+
+존재하지 않는 문의글 id로 요청을 보낸 경우 HELP_NOT_FOUND 예외가 발생합니다.
+
+로그인 한 유저만 요청이 가능하며, 문의글의 작성자가 아닌 경우 HELP_NOT_AUTHORIZED 예외가 발생합니다.
+
+[source]
+----
+PATCH /api/v1/help/{helpId}
+----
+
+===== 응답 파라미터
+
+include::{snippets}/support/help/help-delete/response-fields.adoc[]
+include::{snippets}/support/help/help-delete/response-body.adoc[]
+
+===== Error code
+
+* 해당 API 요청 시 발생할 수 있는 예외를 설명 합니다.
+
+[cols="1,1,1",options="header"]
+|===
+| 코드 | 상태 | 설명
+| REQUIRED_USER_ID
+| BAD_REQUEST
+| 유저 아이디가 필요합니다.
+
+| HELP_NOT_FOUND
+| NOT_FOUND
+| 문의글을 찾을 수 없습니다.
+
+| HELP_NOT_AUTHORIZED
+| FORBIDDEN
+| 문의글 삭제 권한이 없습니다.
+|===

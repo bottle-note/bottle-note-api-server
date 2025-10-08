@@ -1,6 +1,5 @@
 package app.bottlenote.global.security;
 
-import app.bottlenote.global.security.customPrincipal.CustomUserContext;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;

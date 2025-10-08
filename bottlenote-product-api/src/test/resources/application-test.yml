@@ -37,11 +37,11 @@ spring:
       hibernate:
         format_sql: false
         show_sql: false
-        globally_quoted_identifiers: true # 테이블명, 컬럼명을 따옴표로 감싸서 사용
+        globally_quoted_identifiers: false # Hibernate 6.6에서 타입까지 백틱으로 감싸는 버그로 인해 비활성화
         hbm2ddl:
-          auto: update
+          auto: validate # SQL 스크립트로 스키마 생성하므로 검증만 수행
     show-sql: true
-    generate-ddl: true
+    generate-ddl: false # SQL 스크립트로 스키마 생성
     database-platform: org.hibernate.dialect.MySQL8Dialect
 
   quartz:

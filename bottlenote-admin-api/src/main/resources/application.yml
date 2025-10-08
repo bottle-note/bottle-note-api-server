@@ -1,0 +1,45 @@
+# 기본 서버 설정
+
+app: # 애플리케이션 및 배포 정보
+  info:
+    server-name: ${SERVER_NAME:unknown}
+    environment: ${SPRING_PROFILES_ACTIVE:local}
+    git-branch: ${GIT_BRANCH:unknown}
+    git-commit: ${GIT_COMMIT:unknown}
+    git-build-time: ${BUILD_TIME:unknown}
+
+server:
+  port: ${SERVER_PORT:8080}
+
+  servlet:
+    encoding:
+      charset: UTF-8
+  tomcat:
+    mbeanregistry:
+      enabled: true # 톰캣 MBeanRegistry 활성화
+spring:
+  profiles:
+    include:
+      - datasource
+  jackson:
+    time-zone: Asia/Seoul
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+        open-in-view: false
+
+# Spring Security
+security:
+  jwt:
+    secret-key: ${JWT_SECRET_KEY:c2VjdXJlU2VjcmV0S2V5MTIzNDU2Nzg5MGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6QWJDRGVGR2hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlrSg==}
+    access-token-expiration: 86400 # 하루 (24시간)
+    refresh-token-expiration: 2592000 # 한 달 (30일)
+  nonce:
+    salt: ${NONCE_SALT:bottle-note-secure-salt-2024}
+apple:
+  bundle-id: "com.bottlenote.official.app"

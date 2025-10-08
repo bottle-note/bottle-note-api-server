@@ -1,0 +1,31 @@
+# ⚠️ 검증 필요: 실제 운영 환경에 맞게 설정값 확인 후 사용하세요
+# - 포트 번호
+# - 메모리 제한
+# - 환경변수 파일 경로
+# - 컨테이너 이름
+
+version: '3.8'
+
+services:
+  api:
+    image: ${FULL_IMAGE_NAME}
+    container_name: bottle-note-api-production
+    ports:
+      - "40001:40001"
+    env_file:
+      - .bottlenote.production.ENV
+    environment:
+      TZ: Asia/Seoul
+      SPRING_PROFILES_ACTIVE: prod
+      JAVA_OPTS: "-Xms512m -Xmx2g -XX:MaxMetaspaceSize=256m"
+      SERVER_NAME: oracle-node-prod
+      GIT_BRANCH: ${GIT_BRANCH}
+      GIT_COMMIT: ${GIT_COMMIT}
+      BUILD_TIME: ${BUILD_TIME}
+    volumes:
+      - /var/log/bottle-note:/app/logs
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+    restart: unless-stopped

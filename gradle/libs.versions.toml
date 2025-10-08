@@ -1,18 +1,21 @@
 [versions]
 # Spring Framework
-spring-boot = "3.1.9"
-spring-cloud = "2022.0.5"
+spring-boot = "3.3.13"
+spring-cloud = "2023.0.6"
 
 # Database & ORM
 querydsl = "6.11"
-mysql-connector = "8.0.33"
+mysql-connector = "8.3.0"
 h2 = "2.2.224"
 p6spy = "3.9.1"
 hypersistence-utils = "3.7.3"
 
 # Security & Authentication
 jsonwebtoken = "0.11.2"
-spring-security = "6.1.5"
+spring-security = "6.3.10"
+
+# Network
+netty = "4.1.108.Final"
 
 # Development Tools
 lombok = "1.18.30"
@@ -54,6 +57,9 @@ logstash-logback = "7.4"
 
 # Code Quality
 spotless = "7.0.2"
+
+# Kotlin
+kotlin = "1.9.23"
 
 [libraries]
 # Spring Boot Core
@@ -114,6 +120,9 @@ firebase-admin = { module = "com.google.firebase:firebase-admin", version.ref = 
 
 # Monitoring
 micrometer-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometer-prometheus" }
+
+# Network
+netty-bom = { module = "io.netty:netty-bom", version.ref = "netty" }
 
 # Testing
 testng = { module = "org.testng:testng", version.ref = "testng" }
@@ -220,3 +229,5 @@ spring-dependency-management = { id = "io.spring.dependency-management", version
 asciidoctor = { id = "org.asciidoctor.jvm.convert", version = "4.0.2" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 restdocs-api-spec = { id = "com.epages.restdocs-api-spec", version.ref = "restdocs-api-spec" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
