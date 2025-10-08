@@ -9,7 +9,6 @@ dependencies {
 	// ===== Database =====
 	implementation libs.spring.boot.starter.data.jpa
 	implementation libs.spring.boot.starter.data.redis
-	implementation libs.h2
 	runtimeOnly libs.mysql.connector.j
 	implementation libs.p6spy
 	implementation libs.hypersistence.utils
