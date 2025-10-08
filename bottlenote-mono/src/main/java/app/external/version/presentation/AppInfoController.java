@@ -37,8 +37,8 @@ public class AppInfoController {
           ZonedDateTime.parse(buildTime)
               .withZoneSameInstant(ZoneId.of("Asia/Seoul"))
               .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-    } catch (Exception ignored) {
-      log.warn("deploy time parse error but not critical");
+    } catch (Exception e) {
+      log.warn("deploy time parse error for value '{}': {}", buildTime, e.getMessage(), e);
     }
     infoMap.put("gitBuildTime", buildTime);
 
