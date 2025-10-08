@@ -21,7 +21,7 @@ env:
 jobs:
   build-and-push-ecr:
     if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     outputs:
       image_tag: ${{ steps.build-image.outputs.image_tag }}
       ecr_registry: ${{ steps.login-ecr.outputs.registry }}
