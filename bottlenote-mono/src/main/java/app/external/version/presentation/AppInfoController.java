@@ -27,8 +27,9 @@ public class AppInfoController {
     infoMap.put("serverName", info.getServerName());
     infoMap.put("environment", info.getEnvironment());
     infoMap.put("gitBranch", info.getGitBranch());
-    infoMap.put("gitCommitHash", info.getGitCommit().substring(0, 7));
-    infoMap.put("gitCommitFullHash", info.getGitCommit());
+    String gitCommit = info.getGitCommit();
+    infoMap.put("gitCommitHash", gitCommit.length() >= 7 ? gitCommit.substring(0, 7) : gitCommit);
+    infoMap.put("gitCommitFullHash", gitCommit);
 
     String buildTime = info.getGitBuildTime();
     try {
