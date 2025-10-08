@@ -2,12 +2,24 @@
 FROM eclipse-temurin:21-jdk AS builder
 WORKDIR /app
 
-# 빌드에 필요한 파일만 복사 (의존성 캐싱 최적화)
-# 프로젝트 전체 복사
+# Gradle wrapper 및 설정 파일 복사 (의존성 캐싱 최적화)
+COPY gradlew gradlew.bat gradle.properties settings.gradle build.gradle ./
+COPY gradle ./gradle
+
+# 각 모듈의 build.gradle 복사
+COPY bottlenote-mono/build.gradle bottlenote-mono/
+COPY bottlenote-product-api/build.gradle bottlenote-product-api/
+COPY bottlenote-admin-api/build.gradle.kts bottlenote-admin-api/
+COPY bottlenote-batch/build.gradle bottlenote-batch/
+
+# 의존성만 다운로드 (이 레이어가 캐시됨!)
+RUN ./gradlew dependencies --no-daemon || true
+
+# 소스 코드 복사
 COPY . .
 
 # 애플리케이션 빌드
-RUN ./gradlew build -x test -x asciidoctor --build-cache --parallel
+RUN ./gradlew build -x test -x asciidoctor --build-cache
 
 # 실행 스테이지
 FROM eclipse-temurin:21-jre
