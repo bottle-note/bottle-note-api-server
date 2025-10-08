@@ -256,8 +256,8 @@ jobs:
 
             IMAGE_TAG="${{ needs.build-and-push.outputs.image_tag }}"
             ECR_REPOSITORY="ecr-bottle-note-api"
-            FULL_IMAGE_NAME="$ECR_REGISTRY/$ECR_REPOSITORY:development_$IMAGE_TAG"
-            echo "다운로드할 이미지: $FULL_IMAGE_NAME"
+            FULL_IMAGE_NAME="$ECR_REGISTRY/$ECR_REPOSITORY:development_latest"
+            echo "다운로드할 이미지: $FULL_IMAGE_NAME (commit: $IMAGE_TAG)"
             docker pull $FULL_IMAGE_NAME
             docker images | grep $ECR_REPOSITORY
 
