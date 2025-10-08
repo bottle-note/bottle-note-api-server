@@ -29,13 +29,13 @@ jobs:
       image_tag: ${{ steps.build-image.outputs.image_tag }}
       registry: ${{ steps.build-image.outputs.registry }}
     steps:
-      - name: Checkout code with submodules
+      - name: checkout code with submodules
         uses: actions/checkout@v4
         with:
           submodules: true
           token: ${{ secrets.GIT_ACCESS_TOKEN }}
 
-      - name: Gradle 캐싱 설정
+      - name: setup gradle cache
         uses: actions/cache@v3
         with:
           path: |
@@ -45,7 +45,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: AWS ECR 환경변수 로드
+      - name: load aws ecr environment variables
         env:
           ENV_FILE: ${{ env.AWS_ECR_ENV_FILE }}
         run: |
@@ -88,21 +88,21 @@ jobs:
 
           echo "✅ AWS ECR 환경변수 로드 완료"
 
-      - name: Configure AWS credentials
+      - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Login to Amazon ECR
+      - name: login to amazon ecr
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Set up Docker Buildx
+      - name: setup docker buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Build and push to ECR
+      - name: build and push to ecr
         id: build-image
         run: |
           # 이미지 태그 생성
@@ -127,12 +127,12 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code with submodules
+      - name: checkout code with submodules
         uses: actions/checkout@v4
         with:
           submodules: true
           token: ${{ secrets.GIT_ACCESS_TOKEN }}
-      - name: Oracle 인스턴스 환경변수 로드
+      - name: load oracle instance environment variables
         env:
           ENV_FILE: ${{ env.ORACLE_ENV_FILE }}
         run: |
@@ -155,7 +155,7 @@ jobs:
 
           echo "✅ Oracle 인스턴스 환경변수 로드 완료"
 
-      - name: SSH 개인키 파일 로드
+      - name: load ssh private key
         env:
           KEY_FILE: ${{ env.ORACLE_SSH_KEY_FILE }}
         run: |
@@ -183,7 +183,7 @@ jobs:
 
           echo "✅ SSH 개인키 로드 완료"
 
-      - name: AWS ECR 환경변수 로드
+      - name: load aws ecr environment variables
         env:
           ENV_FILE: ${{ env.AWS_ECR_ENV_FILE }}
         run: |
@@ -226,13 +226,13 @@ jobs:
 
           echo "✅ AWS ECR 환경변수 로드 완료"
 
-      - name: 애플리케이션 환경변수 파일 준비
+      - name: prepare application environment file
         id: prepare-app-env
         run: |
           APP_ENV_CONTENT=$(cat "${{ env.APP_ENV_FILE }}" | base64 -w 0)
           echo "content=$APP_ENV_CONTENT" >> $GITHUB_OUTPUT
 
-      - name: Copy compose file to server
+      - name: copy compose file to server
         uses: appleboy/scp-action@master
         with:
           host: ${{ env.INSTANCE_NETWORK_PUBLIC_IP }}
@@ -242,7 +242,7 @@ jobs:
           source: "compose/product-api.dev.yml"
           target: "~/"
 
-      - name: Deploy to Dev Server
+      - name: deploy to development server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ env.INSTANCE_NETWORK_PUBLIC_IP }}
