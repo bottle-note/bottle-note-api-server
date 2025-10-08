@@ -17,10 +17,10 @@ env:
   ORACLE_SSH_KEY_FILE: git.environment-variables/deploy/oracle/keys/node-1.pem
   AWS_ECR_ENV_FILE: git.environment-variables/deploy/aws/ecr-properties.env
   APP_ENV_FILE: git.environment-variables/application.springboot/.env.dev
+  ECR_REPOSITORY: ecr-bottle-note-api
 
 jobs:
   build-and-push:
-
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
@@ -34,7 +34,6 @@ jobs:
         with:
           submodules: true
           token: ${{ secrets.GIT_ACCESS_TOKEN }}
-
       - name: setup gradle cache
         uses: actions/cache@v3
         with:
@@ -94,32 +93,32 @@ jobs:
           aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-
       - name: login to amazon ecr
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
-
-      - name: setup docker buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: build and push to ecr
+      - name: setup docker buildx for dev
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
+      - name: build and push dev image to ecr
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/arm64
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:development_${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:development_latest
+          cache-from: type=gha,scope=development
+          cache-to: type=gha,scope=development,mode=max
+      - name: set image tag output for dev
         id: build-image
         run: |
           IMAGE_TAG="${GITHUB_SHA:0:7}"
           REGISTRY="${{ steps.login-ecr.outputs.registry }}"
-          IMAGE_NAME="$REGISTRY/ecr-bottle-note-api"
-
-          docker buildx build --platform linux/arm64 \
-            --provenance false \
-            --cache-from type=registry,ref=$IMAGE_NAME:cache \
-            --cache-to type=registry,mode=max,image-manifest=true,oci-mediatypes=true,ref=$IMAGE_NAME:cache \
-            -t $IMAGE_NAME:$IMAGE_TAG \
-            -t $IMAGE_NAME:latest \
-            --push .
-
           echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
           echo "registry=$REGISTRY" >> $GITHUB_OUTPUT
-          echo "✅ 이미지가 ECR에 빌드 및 푸시되었습니다: $IMAGE_NAME:$IMAGE_TAG, $IMAGE_NAME:latest"
+          echo "✅ 이미지가 ECR에 빌드 및 푸시되었습니다: $REGISTRY/${{ env.ECR_REPOSITORY }}:development_$IMAGE_TAG, development_latest"
 
   deploy-to-servers:
     needs: build-and-push
@@ -257,7 +256,7 @@ jobs:
 
             IMAGE_TAG="${{ needs.build-and-push.outputs.image_tag }}"
             ECR_REPOSITORY="ecr-bottle-note-api"
-            FULL_IMAGE_NAME="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+            FULL_IMAGE_NAME="$ECR_REGISTRY/$ECR_REPOSITORY:development_$IMAGE_TAG"
             echo "다운로드할 이미지: $FULL_IMAGE_NAME"
             docker pull $FULL_IMAGE_NAME
             docker images | grep $ECR_REPOSITORY
