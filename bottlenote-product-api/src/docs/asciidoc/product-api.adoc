@@ -129,25 +129,9 @@ include::api/support/block/user-block.adoc[]
 
 include::api/support/report/user-report.adoc[]
 
-include::api/support/help/help-register.adoc[]
+include::api/support/help.adoc[]
 
-include::api/support/help/help-read-list.adoc[]
-
-include::api/support/help/help-read-detail.adoc[]
-
-include::api/support/help/help-modify.adoc[]
-
-include::api/support/help/help-delete.adoc[]
-
-include::api/support/business/business-register.adoc[]
-
-include::api/support/business/business-read-list.adoc[]
-
-include::api/support/business/business-read-detail.adoc[]
-
-include::api/support/business/business-modify.adoc[]
-
-include::api/support/business/business-delete.adoc[]
+include::api/support/business.adoc[]
 
 == 팔로우 (follow) 관련 API
 

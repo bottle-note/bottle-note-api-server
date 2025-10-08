@@ -14,7 +14,7 @@ configurations {
 
 dependencies {
 	implementation project(':bottlenote-mono')
-	implementation project(':bottlenote-batch')
+	/*implementation project(':bottlenote-batch')*/
 
 	// ===== Spring Boot Web  =====
 	implementation libs.spring.boot.starter.web
@@ -23,7 +23,6 @@ dependencies {
 	// Test - Database
 	testImplementation libs.spring.boot.starter.data.jpa
 	testImplementation libs.spring.boot.starter.data.redis
-	testImplementation libs.h2
 	testImplementation libs.hypersistence.utils
 	testImplementation libs.mysql.connector.j
 
