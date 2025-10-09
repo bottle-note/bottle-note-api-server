@@ -1,5 +1,5 @@
 # 전체 워크플로우 테스트 (콘솔 + 파일)
-#act workflow_dispatch -W .github/workflows/deploy_production.yml --secret-file .secrets --container-architecture linux/arm64
+#act workflow_dispatch -W .github/workflows/deploy_production.yml --secret-file .secrets
 name: Production Rolling Deployment
 
 on:
@@ -11,10 +11,14 @@ on:
 
 concurrency:
   group: "production-deploy"
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 env:
-  ECR_REPOSITORY: "ecr-bottle-note-api"
+  ORACLE_ENV_FILE: git.environment-variables/deploy/oracle/application-node-1.env
+  ORACLE_SSH_KEY_FILE: git.environment-variables/deploy/oracle/keys/node-1.pem
+  AWS_ECR_ENV_FILE: git.environment-variables/deploy/aws/ecr-properties.env
+  APP_ENV_FILE: git.environment-variables/application.springboot/.env.dev
+  ECR_REPOSITORY: ecr-bottle-note-api
   HEALTH_CHECK_TIMEOUT: "30"
   DEPLOY_TIMEOUT: "300"
 
