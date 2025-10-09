@@ -1,5 +1,4 @@
-# 전체 워크플로우 테스트 (콘솔 + 파일)
-#act workflow_dispatch -W .github/workflows/deploy_production.yml --secret-file .secrets --container-architecture linux/arm64
+# act workflow_dispatch -W .github/workflows/deploy_production.yml --secret-file .secrets
 name: Production Rolling Deployment
 
 on:
@@ -11,12 +10,13 @@ on:
 
 concurrency:
   group: "production-deploy"
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 env:
-  ECR_REPOSITORY: "ecr-bottle-note-api"
-  HEALTH_CHECK_TIMEOUT: "30"
-  DEPLOY_TIMEOUT: "300"
+  ORACLE_SSH_KEY_FILE: git.environment-variables/deploy/oracle/keys/product-cluster-ssh-key.pem
+  AWS_ECR_ENV_FILE: git.environment-variables/deploy/aws/ecr-properties.env
+  APP_ENV_FILE: git.environment-variables/application.springboot/.env.prod
+  ECR_REPOSITORY: ecr-bottle-note-api
 
 jobs:
   build-and-push-ecr:
@@ -26,62 +26,98 @@ jobs:
       image_tag: ${{ steps.build-image.outputs.image_tag }}
       ecr_registry: ${{ steps.login-ecr.outputs.registry }}
     steps:
-      - name: 코드 체크아웃 (서브모듈 포함)
+      - name: checkout code with submodules
         uses: actions/checkout@v4
         with:
           submodules: true
           token: ${{ secrets.GIT_ACCESS_TOKEN }}
 
-      - name: 1Password 서비스 계정 설정
-        uses: 1password/load-secrets-action/configure@v2
+      - name: setup gradle cache
+        uses: actions/cache@v3
         with:
-          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
-      - name: AWS 자격증명 로드
-        uses: 1password/load-secrets-action@v2
-        id: op-load-aws-secret
-        with:
-          export-env: true
+      - name: load aws ecr environment variables
         env:
-          AWS_ACCESS_KEY_ID: "op://vault/ecr iam authentication/access key id"
-          AWS_SECRET_ACCESS_KEY: "op://vault/ecr iam authentication/secret access key"
-          AWS_REGION: "op://vault/ecr iam authentication/region"
+          ENV_FILE: ${{ env.AWS_ECR_ENV_FILE }}
+        run: |
+          echo "📄 AWS ECR 환경변수 파일 로드 중..."
+          if [ ! -f "$ENV_FILE" ]; then
+            echo "❌ 환경변수 파일을 찾을 수 없습니다: $ENV_FILE"
+            exit 1
+          fi
 
-      - name: AWS 자격증명 구성
+          while IFS='=' read -r key value || [ -n "$key" ]; do
+            [[ -z "$key" || "$key" == \#* ]] && continue
+
+            key=$(echo "$key" | xargs)
+            value=$(echo "$value" | xargs)
+
+            echo "::add-mask::${value}"
+
+            case "$key" in
+              ECR_ACCESS_KEY)
+                echo "AWS_ACCESS_KEY_ID=${value}" >> $GITHUB_ENV
+                echo "  ✅ AWS_ACCESS_KEY_ID 로드됨"
+                ;;
+              ECR_SECRET_ACCESS_KEY)
+                echo "AWS_SECRET_ACCESS_KEY=${value}" >> $GITHUB_ENV
+                echo "  ✅ AWS_SECRET_ACCESS_KEY 로드됨"
+                ;;
+              ECR_REGION)
+                echo "AWS_REGION=${value}" >> $GITHUB_ENV
+                echo "  ✅ AWS_REGION 로드됨"
+                ;;
+              ECR_REGISTRY)
+                echo "ECR_REGISTRY=${value}" >> $GITHUB_ENV
+                echo "  ✅ ECR_REGISTRY 로드됨"
+                ;;
+            esac
+          done < "$ENV_FILE"
+
+          echo "✅ AWS ECR 환경변수 로드 완료"
+
+      - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: ECR 로그인
+      - name: login to amazon ecr
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Docker Buildx 설정 (캐시 지원)
+      - name: setup docker buildx for prod (cache support)
         uses: docker/setup-buildx-action@v3
         with:
           driver: docker-container
 
-      - name: ARM64 최적화 빌드 및 푸시 (GitHub Actions 캐시)
-        id: build-image
+      - name: build and push prod image to ecr (github actions cache)
         uses: docker/build-push-action@v6
         with:
           context: .
           platforms: linux/arm64
           push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
-          cache-from: type=gha,scope=${{ github.ref_name }}
-          cache-to: type=gha,scope=${{ github.ref_name }},mode=max
-          build-args: |
-            BUILDKIT_INLINE_CACHE=1
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:production_${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:production_latest
+          cache-from: type=gha,scope=production
+          cache-to: type=gha,scope=production,mode=max
 
-      - name: 이미지 태그 출력 설정
+      - name: set image tag output for prod
+        id: build-image
         run: |
           IMAGE_TAG="${GITHUB_SHA:0:7}"
+          REGISTRY="${{ steps.login-ecr.outputs.registry }}"
           echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
-          echo "::notice title=ECR 빌드 완료::이미지 태그: $IMAGE_TAG"
-          echo "::notice title=빌드 플랫폼::linux/arm64 (aarch64 최적화)"
+          echo "registry=$REGISTRY" >> $GITHUB_OUTPUT
+          echo "✅ Image built and pushed to ECR: $REGISTRY/${{ env.ECR_REPOSITORY }}:production_$IMAGE_TAG, production_latest"
 
   rolling-deploy:
     needs: [ build-and-push-ecr ]
@@ -89,211 +125,214 @@ jobs:
     strategy:
       matrix:
         cluster: [ 'product-cluster-1' , 'product-cluster-2' ]
-      max-parallel: 1  # 순차 배포 (첫 번째 성공 후 두 번째 실행)
-      fail-fast: true  # 하나라도 실패하면 전체 중단
-    outputs:
-      deployment_status: ${{ steps.deploy.outputs.status }}
-      previous_image: ${{ steps.backup-info.outputs.previous_image }}
+      max-parallel: 1
+      fail-fast: true
     steps:
-      - name: 1Password 인증 설정
-        uses: 1password/load-secrets-action/configure@v2
+      - name: checkout code with submodules
+        uses: actions/checkout@v4
         with:
-          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
 
-      - name: AWS 자격증명 로드
-        uses: 1password/load-secrets-action@v2
-        id: op-load-aws-secret
-        with:
-          export-env: true
+      - name: load cluster environment variables
         env:
-          AWS_ACCESS_KEY_ID: "op://vault/ecr iam authentication/access key id"
-          AWS_SECRET_ACCESS_KEY: "op://vault/ecr iam authentication/secret access key"
-          AWS_REGION: "op://vault/ecr iam authentication/region"
+          ENV_FILE: git.environment-variables/deploy/oracle/${{ matrix.cluster }}.env
+        run: |
+          echo "📄 Cluster 환경변수 파일 로드 중..."
+          if [ ! -f "$ENV_FILE" ]; then
+            echo "❌ 환경변수 파일을 찾을 수 없습니다: $ENV_FILE"
+            exit 1
+          fi
 
-      - name: AWS 자격증명 구성
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          while IFS='=' read -r key value || [ -n "$key" ]; do
+            [[ -z "$key" || "$key" == \#* ]] && continue
 
-      - name: ECR 로그인
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+            echo "::add-mask::${value}"
+            echo "${key}=${value}" >> $GITHUB_ENV
+            echo "  ✅ $key 로드됨"
+          done < "$ENV_FILE"
 
-      - name: ${{ matrix.cluster }} SSH 자격증명 및 환경변수 로드
-        uses: 1password/load-secrets-action@v2
-        id: op-load-server-secret
-        with:
-          export-env: true
-          unset-previous: false
+          echo "✅ Cluster 환경변수 로드 완료"
+
+      - name: load ssh private key
         env:
-          SERVER_IP: op://vault/${{ matrix.cluster }}/ip
-          SERVER_PORT: op://vault/${{ matrix.cluster }}/port
-          SERVER_NAME: op://vault/${{ matrix.cluster }}/user name
-          SSH_KEY: op://vault/product-cluster-ssh-key/private_key?ssh-format=openssh
-          PROD_ENV: op://vault/.env.prod/.env.prod
+          KEY_FILE: ${{ env.ORACLE_SSH_KEY_FILE }}
+        run: |
+          echo "🔑 SSH 개인키 파일 로드 중..."
 
-      - name: 기존 컨테이너 정보 백업 (롤백용)
+          if [ ! -f "$KEY_FILE" ]; then
+            echo "❌ SSH 키 파일을 찾을 수 없습니다: $KEY_FILE"
+            exit 1
+          fi
+
+          SSH_KEY=$(cat "$KEY_FILE")
+
+          echo "$SSH_KEY" | while IFS= read -r line; do
+            [ -n "$line" ] && echo "::add-mask::${line}"
+          done
+
+          {
+            echo "SSH_PRIVATE_KEY<<EOF_SSH_KEY"
+            cat "$KEY_FILE"
+            echo "EOF_SSH_KEY"
+          } >> $GITHUB_ENV
+
+          echo "✅ SSH 개인키 로드 완료"
+
+      - name: load aws ecr environment variables
+        env:
+          ENV_FILE: ${{ env.AWS_ECR_ENV_FILE }}
+        run: |
+          echo "📄 AWS ECR 환경변수 파일 로드 중..."
+          if [ ! -f "$ENV_FILE" ]; then
+            echo "❌ 환경변수 파일을 찾을 수 없습니다: $ENV_FILE"
+            exit 1
+          fi
+
+          while IFS='=' read -r key value || [ -n "$key" ]; do
+            [[ -z "$key" || "$key" == \#* ]] && continue
+
+            key=$(echo "$key" | xargs)
+            value=$(echo "$value" | xargs)
+
+            echo "::add-mask::${value}"
+
+            case "$key" in
+              ECR_ACCESS_KEY)
+                echo "AWS_ACCESS_KEY_ID=${value}" >> $GITHUB_ENV
+                echo "  ✅ AWS_ACCESS_KEY_ID 로드됨"
+                ;;
+              ECR_SECRET_ACCESS_KEY)
+                echo "AWS_SECRET_ACCESS_KEY=${value}" >> $GITHUB_ENV
+                echo "  ✅ AWS_SECRET_ACCESS_KEY 로드됨"
+                ;;
+              ECR_REGION)
+                echo "AWS_REGION=${value}" >> $GITHUB_ENV
+                echo "  ✅ AWS_REGION 로드됨"
+                ;;
+              ECR_REGISTRY)
+                echo "ECR_REGISTRY=${value}" >> $GITHUB_ENV
+                echo "  ✅ ECR_REGISTRY 로드됨"
+                ;;
+            esac
+          done < "$ENV_FILE"
+
+          echo "✅ AWS ECR 환경변수 로드 완료"
+
+      - name: prepare application environment file
+        id: prepare-app-env
+        run: |
+          APP_ENV_CONTENT=$(cat "${{ env.APP_ENV_FILE }}" | base64 -w 0)
+          echo "content=$APP_ENV_CONTENT" >> $GITHUB_OUTPUT
+
+      - name: copy compose file to server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ env.INSTANCE_NETWORK_PUBLIC_IP }}
+          port: ${{ env.INSTANCE_NETWORK_PORT }}
+          username: ${{ env.INSTANCE_HOST_USERNAME }}
+          key: ${{ env.SSH_PRIVATE_KEY }}
+          source: "compose/product-api.prod.yml"
+          target: "~/"
+
+      - name: backup current container info for rollback
         id: backup-info
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ env.SERVER_IP }}
-          port: ${{ env.SERVER_PORT }}
-          username: ${{ env.SERVER_NAME }}
-          key: ${{ env.SSH_KEY }}
+          host: ${{ env.INSTANCE_NETWORK_PUBLIC_IP }}
+          port: ${{ env.INSTANCE_NETWORK_PORT }}
+          username: ${{ env.INSTANCE_HOST_USERNAME }}
+          key: ${{ env.SSH_PRIVATE_KEY }}
           script: |
-            # 현재 실행 중인 컨테이너 정보 백업
             CURRENT_CONTAINER=$(docker ps --filter "name=bottle-note-api-production" --format "{{.Image}}" | head -n 1)
             echo "PREVIOUS_IMAGE=$CURRENT_CONTAINER" >> backup_info.txt
-            echo "현재 컨테이너 정보: $CURRENT_CONTAINER"
+            echo "Current container info: $CURRENT_CONTAINER"
 
-      - name: ${{ matrix.cluster }}에 SSH 연결 및 배포
+      - name: deploy to ${{ matrix.cluster }}
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ env.SERVER_IP }}
-          port: ${{ env.SERVER_PORT }}
-          username: ${{ env.SERVER_NAME }}
-          key: ${{ env.SSH_KEY }}
+          host: ${{ env.INSTANCE_NETWORK_PUBLIC_IP }}
+          port: ${{ env.INSTANCE_NETWORK_PORT }}
+          username: ${{ env.INSTANCE_HOST_USERNAME }}
+          key: ${{ env.SSH_PRIVATE_KEY }}
           script: |
-            # AWS 자격 증명 설정
             aws configure set aws_access_key_id "${{ env.AWS_ACCESS_KEY_ID }}"
             aws configure set aws_secret_access_key "${{ env.AWS_SECRET_ACCESS_KEY }}"
             aws configure set region "${{ env.AWS_REGION }}"
 
-            # ECR 로그인
-            aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+            ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+            ECR_REGISTRY="${ACCOUNT_ID}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com"
+            aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_REGISTRY
 
-            # 이미지 정보 설정
             IMAGE_TAG="${{ needs.build-and-push-ecr.outputs.image_tag }}"
-            ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
-            ECR_REPOSITORY="${{ env.ECR_REPOSITORY }}"
-            FULL_IMAGE_NAME="$ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}"
-
-            echo "다운로드할 이미지: $FULL_IMAGE_NAME"
-
-            # 이미지 다운로드
+            ECR_REPOSITORY="ecr-bottle-note-api"
+            FULL_IMAGE_NAME="$ECR_REGISTRY/$ECR_REPOSITORY:production_latest"
+            echo "Image to download: $FULL_IMAGE_NAME (commit: $IMAGE_TAG)"
             docker pull $FULL_IMAGE_NAME
-
-            # 다운로드 확인
             docker images | grep $ECR_REPOSITORY
 
-            # 환경 변수 파일 설정 (1Password에서 직접 로드된 내용 사용)
-            echo "${{ env.PROD_ENV }}" > .bottlenote.production.ENV
+            echo "${{ steps.prepare-app-env.outputs.content }}" | base64 -d > ~/compose/.bottlenote.production.ENV
+            sudo rm -f /var/log/bottle-note/application-prod* 2>/dev/null || true
 
-            # 개발 로그만 삭제 (프로덕션 로그는 유지)
-            sudo rm -f /var/log/bottle-note/application-prod*
+            export FULL_IMAGE_NAME="$FULL_IMAGE_NAME"
+            export SERVER_NAME="${{ matrix.cluster }}"
+            export GIT_BRANCH="${{ github.ref_name }}"
+            export GIT_COMMIT="${{ github.sha }}"
+            export BUILD_TIME="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 
-            # 기존 컨테이너 Graceful Shutdown
-            docker stop bottle-note-api-production || true
-            docker rm bottle-note-api-production || true
+            docker stop bottle-note-api-production 2>/dev/null || true
+            docker rm bottle-note-api-production 2>/dev/null || true
+            docker compose -f ~/compose/product-api.prod.yml down 2>/dev/null || true
 
-            # 새 컨테이너 실행
-            docker run -d \
-              --name bottle-note-api-production \
-              -p 30301:30301 \
-              --env-file .bottlenote.production.ENV \
-              -e TZ=Asia/Seoul \
-              -e SPRING_PROFILES_ACTIVE=prod \
-              -e JAVA_OPTS="-Xms512m -Xmx2024m -XX:MaxMetaspaceSize=256m" \
-              -e SERVER_NAME="${{ matrix.cluster }}" \
-              -e GIT_BRANCH="${{ github.ref_name }}" \
-              -e GIT_COMMIT="${{ github.sha }}" \
-              -e BUILD_TIME="$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
-              -v /var/log/bottle-note:/app/logs \
-              --memory=1536m \
-              --restart always \
-              $FULL_IMAGE_NAME
+            docker compose -f ~/compose/product-api.prod.yml up -d
+            docker compose -f ~/compose/product-api.prod.yml ps
 
-            # 배포 확인
-            docker ps | grep bottle-note-api-production
-
-            # 사용하지 않는 Docker 리소스 정리
-            echo "사용하지 않는 Docker 리소스 정리 중..."
+            echo "Cleaning up unused Docker resources..."
             docker system prune -f
             docker image prune -a -f --filter "until=48h"
 
-  post-deploy-verification:
-    needs: [ build-and-push-ecr, rolling-deploy ]
-    if: needs.rolling-deploy.result == 'success'
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        cluster: [ 'product-cluster-1' , 'product-cluster-2' ]
-      max-parallel: 2
-    steps:
-      - name: ${{ matrix.cluster }} 서버 정보 로드
-        uses: 1password/load-secrets-action/configure@v2
-        with:
-          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-
-      - name: ${{ matrix.cluster }} IP 로드
-        uses: 1password/load-secrets-action@v2
-        id: op-load-cluster-info
-        with:
-          export-env: true
-        env:
-          CLUSTER_IP: op://vault/${{ matrix.cluster }}/ip
-
-      - name: ${{ matrix.cluster }} 헬스체크 및 Git 해시 검증
-        id: health-check
+      - name: health check for ${{ matrix.cluster }}
         run: |
-          CLUSTER_IP="${{ env.CLUSTER_IP }}"
-          EXPECTED_COMMIT="${{ github.sha }}"
-          APP_INFO_URL="${CLUSTER_IP}:30301/api/v1/app-info"
+          echo "⏳ 컨테이너 시작 대기 중..."
+          sleep 15
 
-          echo "=== ${{ matrix.cluster }} 헬스체크 시작 ==="
-          echo "대상 URL: $APP_INFO_URL"
-          echo "예상 Git Commit: $EXPECTED_COMMIT"
+          MAX_RETRY=5
+          RETRY_COUNT=0
+          SUCCESS=false
+          CLUSTER_IP="${{ env.INSTANCE_NETWORK_PUBLIC_IP }}"
 
-          # 최대 30번 시도 (30초 * 30 = 15분)
-          MAX_ATTEMPTS=30
-          ATTEMPT=1
+          while [ $RETRY_COUNT -lt $MAX_RETRY ]; do
+            echo "🔍 API 상태 확인 시도 $((RETRY_COUNT + 1))/$MAX_RETRY..."
 
-          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-            echo "시도 $ATTEMPT/$MAX_ATTEMPTS..."
-
-            # API 호출 및 응답 확인
-            RESPONSE=$(curl -s -w "%{http_code}" -o response.json "$APP_INFO_URL" || echo "000")
-            HTTP_CODE="${RESPONSE: -3}"
+            RESPONSE=$(curl -s -w "\n%{http_code}" http://${CLUSTER_IP}:30301/api/v1/app-info)
+            HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+            BODY=$(echo "$RESPONSE" | sed '$d')
 
             if [ "$HTTP_CODE" = "200" ]; then
-              # Git 커밋 해시 확인 (data 경로로 수정)
-              ACTUAL_COMMIT=$(cat response.json | jq -r '.data.gitCommit // empty')
-              SERVER_NAME=$(cat response.json | jq -r '.data.serverName // empty')
+              echo "📋 배포된 애플리케이션 정보:"
+              echo "$BODY" | jq '.'
 
-              echo "HTTP 응답: 200 OK"
-              echo "서버명: $SERVER_NAME"
-              echo "실제 Git Commit: $ACTUAL_COMMIT"
+              DEPLOYED_COMMIT=$(echo "$BODY" | jq -r '.data.gitCommitFullHash')
+              EXPECTED_COMMIT="${{ github.sha }}"
 
-              if [ "$ACTUAL_COMMIT" = "$EXPECTED_COMMIT" ]; then
-                echo "✅ ${{ matrix.cluster }} 배포 검증 성공!"
-                echo "Git 커밋 해시가 일치합니다."
-                echo "deployment_status=success" >> $GITHUB_OUTPUT
-                exit 0
+              if [ "$DEPLOYED_COMMIT" = "$EXPECTED_COMMIT" ]; then
+                echo "✅ 배포 검증 성공: 커밋 일치"
+                SUCCESS=true
+                break
               else
-                echo "⚠️  Git 커밋 해시 불일치"
-                echo "예상: $EXPECTED_COMMIT"
-                echo "실제: $ACTUAL_COMMIT"
+                echo "⚠️  커밋 불일치 - 재시도 중..."
+                echo "  예상: $EXPECTED_COMMIT"
+                echo "  실제: $DEPLOYED_COMMIT"
               fi
             else
-              echo "HTTP 응답 코드: $HTTP_CODE"
+              echo "⚠️  HTTP $HTTP_CODE - 재시도 중..."
             fi
 
-            echo "30초 대기 후 재시도..."
-            sleep 30
-            ATTEMPT=$((ATTEMPT + 1))
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            [ $RETRY_COUNT -lt $MAX_RETRY ] && sleep 10
           done
 
-          echo "❌ ${{ matrix.cluster }} 헬스체크 실패 (최대 시도 횟수 초과)"
-          echo "deployment_status=failed" >> $GITHUB_OUTPUT
-          exit 1
-
-
-      - name: ${{ matrix.cluster }} 검증 결과 출력
-        run: |
-          if [ "${{ steps.health-check.outputs.deployment_status }}" = "success" ]; then
-            echo "::notice title=${{ matrix.cluster }} 배포 완료::Git 해시 검증 성공 - ${{ github.sha }}"
-          else
-            echo "::error title=${{ matrix.cluster }} 배포 실패::헬스체크 또는 Git 해시 검증 실패"
+          if [ "$SUCCESS" = false ]; then
+            echo "❌ ${{ matrix.cluster }} 배포 검증 실패"
+            exit 1
           fi
