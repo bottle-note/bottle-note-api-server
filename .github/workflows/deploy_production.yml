@@ -292,47 +292,52 @@ jobs:
             docker image prune -a -f --filter "until=48h"
 
       - name: health check for ${{ matrix.cluster }}
-        run: |
-          echo "⏳ 컨테이너 시작 대기 중..."
-          sleep 15
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.INSTANCE_NETWORK_PUBLIC_IP }}
+          port: ${{ env.INSTANCE_NETWORK_PORT }}
+          username: ${{ env.INSTANCE_HOST_USERNAME }}
+          key: ${{ env.SSH_PRIVATE_KEY }}
+          script: |
+            echo "⏳ 컨테이너 시작 대기 중..."
+            sleep 15
 
-          MAX_RETRY=5
-          RETRY_COUNT=0
-          SUCCESS=false
-          CLUSTER_IP="${{ env.INSTANCE_NETWORK_PUBLIC_IP }}"
+            MAX_RETRY=5
+            RETRY_COUNT=0
+            SUCCESS=false
+            EXPECTED_COMMIT="${{ github.sha }}"
 
-          while [ $RETRY_COUNT -lt $MAX_RETRY ]; do
-            echo "🔍 API 상태 확인 시도 $((RETRY_COUNT + 1))/$MAX_RETRY..."
+            while [ $RETRY_COUNT -lt $MAX_RETRY ]; do
+              echo "🔍 API 상태 확인 시도 $((RETRY_COUNT + 1))/$MAX_RETRY..."
 
-            RESPONSE=$(curl -s -w "\n%{http_code}" http://${CLUSTER_IP}:30301/api/v1/app-info)
-            HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
-            BODY=$(echo "$RESPONSE" | sed '$d')
+              RESPONSE=$(curl -s -w "\n%{http_code}" http://localhost:30301/api/v1/app-info)
+              HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+              BODY=$(echo "$RESPONSE" | sed '$d')
 
-            if [ "$HTTP_CODE" = "200" ]; then
-              echo "📋 배포된 애플리케이션 정보:"
-              echo "$BODY" | jq '.'
+              if [ "$HTTP_CODE" = "200" ]; then
+                echo "📋 배포된 애플리케이션 정보:"
+                echo "$BODY" | jq '.'
 
-              DEPLOYED_COMMIT=$(echo "$BODY" | jq -r '.data.gitCommitFullHash')
-              EXPECTED_COMMIT="${{ github.sha }}"
+                DEPLOYED_COMMIT=$(echo "$BODY" | jq -r '.data.gitCommitFullHash')
 
-              if [ "$DEPLOYED_COMMIT" = "$EXPECTED_COMMIT" ]; then
-                echo "✅ 배포 검증 성공: 커밋 일치"
-                SUCCESS=true
-                break
+                if [ "$DEPLOYED_COMMIT" = "$EXPECTED_COMMIT" ]; then
+                  echo "✅ 배포 검증 성공: 커밋 일치"
+                  SUCCESS=true
+                  break
+                else
+                  echo "⚠️  커밋 불일치 - 재시도 중..."
+                  echo "  예상: $EXPECTED_COMMIT"
+                  echo "  실제: $DEPLOYED_COMMIT"
+                fi
               else
-                echo "⚠️  커밋 불일치 - 재시도 중..."
-                echo "  예상: $EXPECTED_COMMIT"
-                echo "  실제: $DEPLOYED_COMMIT"
+                echo "⚠️  HTTP $HTTP_CODE - 재시도 중..."
               fi
-            else
-              echo "⚠️  HTTP $HTTP_CODE - 재시도 중..."
+
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              [ $RETRY_COUNT -lt $MAX_RETRY ] && sleep 10
+            done
+
+            if [ "$SUCCESS" = false ]; then
+              echo "❌ ${{ matrix.cluster }} 배포 검증 실패"
+              exit 1
             fi
-
-            RETRY_COUNT=$((RETRY_COUNT + 1))
-            [ $RETRY_COUNT -lt $MAX_RETRY ] && sleep 10
-          done
-
-          if [ "$SUCCESS" = false ]; then
-            echo "❌ ${{ matrix.cluster }} 배포 검증 실패"
-            exit 1
-          fi
