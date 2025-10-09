@@ -1,0 +1,32 @@
+# ⚠️ 검증 필요: 실제 개발 환경에 맞게 설정값 확인 후 사용하세요
+# - 포트 번호
+# - 메모리 제한
+# - 환경변수 파일 경로
+# - 컨테이너 이름
+# - 어드민 API 서버가 필요한지 확인
+
+version: '3.8'
+
+services:
+  api:
+    image: ${FULL_IMAGE_NAME}
+    container_name: bottle-note-admin-api-development
+    ports:
+      - "30002:30002"
+    env_file:
+      - .bottlenote.admin.development.ENV
+    environment:
+      TZ: Asia/Seoul
+      SPRING_PROFILES_ACTIVE: dev
+      JAVA_OPTS: "-Xms256m -Xmx512m -XX:MaxMetaspaceSize=128m"
+      SERVER_NAME: oracle-node-1-admin
+      GIT_BRANCH: ${GIT_BRANCH}
+      GIT_COMMIT: ${GIT_COMMIT}
+      BUILD_TIME: ${BUILD_TIME}
+    volumes:
+      - /var/log/bottle-note:/app/logs
+    deploy:
+      resources:
+        limits:
+          memory: 768m
+    restart: unless-stopped

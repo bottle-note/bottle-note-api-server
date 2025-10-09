@@ -1,4 +1,4 @@
-package app.bottlenote.global.security;
+package app.global.security;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 

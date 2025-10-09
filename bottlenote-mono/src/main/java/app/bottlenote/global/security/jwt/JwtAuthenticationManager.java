@@ -4,7 +4,7 @@ import static app.bottlenote.global.security.jwt.JwtTokenProvider.KEY_ROLES;
 import static app.bottlenote.user.exception.UserExceptionCode.INVALID_TOKEN;
 import static java.util.stream.Collectors.toList;
 
-import app.bottlenote.global.security.service.CustomUserDetailsService;
+import app.bottlenote.global.security.CustomUserDetailsService;
 import app.bottlenote.user.exception.UserException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;

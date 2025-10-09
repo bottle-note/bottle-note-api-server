@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Bottle Note API 문서</title>
+	<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+
+		body {
+			font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+			background: #f8f9fa;
+		}
+
+		code, pre {
+			font-family: 'Fira Code', 'Consolas', monospace;
+		}
+
+		.header {
+			background: white;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+			position: sticky;
+			top: 0;
+			z-index: 100;
+			border-bottom: 1px solid #e0e0e0;
+			position: relative;
+		}
+
+		.tabs {
+			display: flex;
+			background: white;
+			justify-content: center;
+		}
+
+		.tab {
+			padding: 16px 32px;
+			cursor: pointer;
+			font-weight: 500;
+			font-size: 15px;
+			color: #666;
+			transition: all 0.2s ease;
+			border-bottom: 3px solid transparent;
+		}
+
+		.tab:hover {
+			color: #007bff;
+			background: #f8f9fa;
+		}
+
+		.tab.active {
+			color: #007bff;
+			font-weight: 600;
+			border-bottom: 3px solid #007bff;
+			background: white;
+		}
+
+		.search-container {
+			position: absolute;
+			right: 20px;
+			top: 50%;
+			transform: translateY(-50%);
+			display: flex;
+			align-items: center;
+			gap: 10px;
+		}
+
+		.search-input {
+			width: 300px;
+			padding: 8px 12px;
+			border: 2px solid #e0e0e0;
+			border-radius: 6px;
+			font-size: 13px;
+			font-family: inherit;
+			transition: all 0.2s ease;
+		}
+
+		.search-input:focus {
+			outline: none;
+			border-color: #007bff;
+			box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+		}
+
+		.search-input::placeholder {
+			color: #999;
+		}
+
+		.search-count {
+			font-size: 12px;
+			color: #666;
+			min-width: 80px;
+			text-align: right;
+		}
+
+		.tab-content {
+			max-width: 1400px;
+			margin: 0 auto;
+			background: white;
+			zoom: 0.85;
+			min-height: calc(100vh - 60px);
+		}
+
+		.tab-content iframe {
+			border: none;
+			width: 100%;
+			height: calc(100vh - 60px);
+		}
+
+		mark.search-highlight {
+			background-color: #ffeb3b;
+			padding: 2px 0;
+			border-radius: 2px;
+		}
+
+		mark.search-highlight.current {
+			background-color: #ff9800;
+		}
+
+		.hidden {
+			display: none !important;
+		}
+	</style>
+	<script>
+		let currentSearchIndex = 0;
+		let searchMatches = [];
+
+		function loadTab(tabName, el) {
+			document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+			el.classList.add('active');
+			fetch(tabName)
+					.then(res => res.text())
+					.then(html => {
+						document.getElementById('tab-content').innerHTML = html;
+						// 탭 로드 후 검색어가 있으면 다시 검색
+						const searchInput = document.getElementById('search-input');
+						if (searchInput && searchInput.value.trim()) {
+							performSearch(searchInput.value);
+						}
+					});
+		}
+
+		function performSearch(searchTerm) {
+			const content = document.getElementById('tab-content');
+			const searchCount = document.getElementById('search-count');
+
+			// 이전 하이라이트 제거
+			removeHighlights(content);
+			searchMatches = [];
+			currentSearchIndex = 0;
+
+			if (!searchTerm || searchTerm.trim() === '') {
+				searchCount.textContent = '';
+				return;
+			}
+
+			// 검색 수행
+			const regex = new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+			highlightText(content, regex);
+
+			// 결과 표시
+			if (searchMatches.length > 0) {
+				searchCount.textContent = `${searchMatches.length}개 결과`;
+				searchMatches[0].classList.add('current');
+				searchMatches[0].scrollIntoView({behavior: 'smooth', block: 'center'});
+			} else {
+				searchCount.textContent = '결과 없음';
+			}
+		}
+
+		function highlightText(element, regex) {
+			const walker = document.createTreeWalker(
+					element,
+					NodeFilter.SHOW_TEXT,
+					{
+						acceptNode: function (node) {
+							// script, style 태그 제외
+							if (node.parentElement.tagName === 'SCRIPT' ||
+									node.parentElement.tagName === 'STYLE') {
+								return NodeFilter.FILTER_REJECT;
+							}
+							// 이미 하이라이트된 요소 제외
+							if (node.parentElement.tagName === 'MARK') {
+								return NodeFilter.FILTER_REJECT;
+							}
+							return NodeFilter.FILTER_ACCEPT;
+						}
+					}
+			);
+
+			const nodesToReplace = [];
+			let currentNode;
+
+			while (currentNode = walker.nextNode()) {
+				if (regex.test(currentNode.textContent)) {
+					nodesToReplace.push(currentNode);
+				}
+			}
+
+			nodesToReplace.forEach(node => {
+				const parent = node.parentNode;
+				const text = node.textContent;
+				const fragment = document.createDocumentFragment();
+				let lastIndex = 0;
+				let match;
+
+				regex.lastIndex = 0;
+				while ((match = regex.exec(text)) !== null) {
+					// 매칭 전 텍스트
+					if (match.index > lastIndex) {
+						fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+					}
+
+					// 하이라이트된 텍스트
+					const mark = document.createElement('mark');
+					mark.className = 'search-highlight';
+					mark.textContent = match[0];
+					fragment.appendChild(mark);
+					searchMatches.push(mark);
+
+					lastIndex = match.index + match[0].length;
+				}
+
+				// 매칭 후 남은 텍스트
+				if (lastIndex < text.length) {
+					fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+				}
+
+				parent.replaceChild(fragment, node);
+			});
+		}
+
+		function removeHighlights(element) {
+			const highlights = element.querySelectorAll('mark.search-highlight');
+			highlights.forEach(mark => {
+				const parent = mark.parentNode;
+				parent.replaceChild(document.createTextNode(mark.textContent), mark);
+				parent.normalize();
+			});
+		}
+
+		function navigateSearch(direction) {
+			if (searchMatches.length === 0) return;
+
+			searchMatches[currentSearchIndex].classList.remove('current');
+
+			if (direction === 'next') {
+				currentSearchIndex = (currentSearchIndex + 1) % searchMatches.length;
+			} else {
+				currentSearchIndex = (currentSearchIndex - 1 + searchMatches.length) % searchMatches.length;
+			}
+
+			searchMatches[currentSearchIndex].classList.add('current');
+			searchMatches[currentSearchIndex].scrollIntoView({behavior: 'smooth', block: 'center'});
+
+			document.getElementById('search-count').textContent =
+					`${currentSearchIndex + 1} / ${searchMatches.length}`;
+		}
+
+		window.onload = function () {
+			loadTab('product-api.html', document.getElementById('tab-product'));
+
+			// 검색 입력 이벤트
+			const searchInput = document.getElementById('search-input');
+			let searchTimeout;
+			searchInput.addEventListener('input', function (e) {
+				clearTimeout(searchTimeout);
+				searchTimeout = setTimeout(() => {
+					performSearch(e.target.value);
+				}, 300);
+			});
+
+			// Enter 키로 다음 검색 결과로 이동
+			searchInput.addEventListener('keydown', function (e) {
+				if (e.key === 'Enter') {
+					e.preventDefault();
+					navigateSearch(e.shiftKey ? 'prev' : 'next');
+				}
+			});
+		}
+	</script>
+</head>
+<body>
+<div class="header">
+	<div class="tabs">
+		<div class="tab active" id="tab-product" onclick="loadTab('product-api.html', this)">Product API</div>
+		<div class="tab" id="tab-admin" onclick="loadTab('admin-api.html', this)">Admin API</div>
+	</div>
+	<div class="search-container">
+		<label for="search-input"></label><input
+			type="text"
+			id="search-input"
+			class="search-input"
+			placeholder="API 검색"
+	/>
+		<span id="search-count" class="search-count"></span>
+	</div>
+</div>
+<div class="tab-content" id="tab-content">
+	<!-- 탭 내용이 여기에 동적으로 로드됩니다 -->
+</div>
+</body>
+</html>

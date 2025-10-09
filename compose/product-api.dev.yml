@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  api:
+    image: ${FULL_IMAGE_NAME}
+    container_name: bottle-note-api-development
+    ports:
+      - "30001:30001"
+    env_file:
+      - .bottlenote.development.ENV
+    environment:
+      TZ: Asia/Seoul
+      SPRING_PROFILES_ACTIVE: dev
+      JAVA_OPTS: "-Xms256m -Xmx512m -XX:MaxMetaspaceSize=128m"
+      SERVER_NAME: oracle-node-1
+      GIT_BRANCH: ${GIT_BRANCH}
+      GIT_COMMIT: ${GIT_COMMIT}
+      BUILD_TIME: ${BUILD_TIME}
+    volumes:
+      - /var/log/bottle-note:/app/logs
+    deploy:
+      resources:
+        limits:
+          memory: 768m
+    restart: unless-stopped

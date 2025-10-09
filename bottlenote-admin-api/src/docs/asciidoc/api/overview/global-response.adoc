@@ -1,0 +1,64 @@
+=== 응답형식
+
+프로젝트는 다음과 같은 응답형식을 제공합니다.
+
+[discrete]
+==== 요청 결과
+
+|====
+|요청이 성공한 경우 ( "success" : true )|요청이 실패한 경우( "success" : false )
+
+a|
+[source,json]
+----
+{
+  "success" : true,
+  "code" : 200,
+  "data" : {
+    "value1" : "value1",
+    "value2" : {
+            "value2-1" : "value2-1",
+            "value2-2" : "value2-2"
+    }
+  },
+  "errors" : {},
+  "meta" : {
+    "serverEncoding" : "UTF-8",
+    "serverVersion" : "0.0.1",
+    "serverPathVersion" : "v1",
+    "serverResponseTime" : "2024-04-16T16:22:56.561466"
+  }
+}
+----
+
+a|
+[source,json]
+----
+{
+  "success" : false,
+  "code" : 400,
+  "data" : {},
+  "errors" : {
+    "user_id": "사용자 아이디는 필수입니다.",
+    "user_pw": "사용자 비밀번호는 필수입니다.",
+    "type": "사용자 타입은 필수입니다."
+  },
+  "meta" : {
+    "serverEncoding" : "UTF-8",
+    "serverVersion" : "0.0.1",
+    "serverPathVersion" : "v1",
+    "serverResponseTime" : "2024-04-16T16:22:56.561466"
+  }
+}
+----
+|====
+
+** 기본적으로 success , code , data , errors , meta 로 구성되어 있습니다.
+*** success : 요청 성공 여부
+*** code : 요청 결과 코드 (http status code 와 동일합니다.)
+*** data : 요청 결과 데이터 ( success가 true인 경우 )
+*** errors : 요청 결과 에러 ( success가 false인 경우 )
+*** meta : 요청 결과 메타정보 ( 서버 응답 정보, 기존 검색 정보 , page 정보 등)
+
+
+** **누락된 정보는 서버 백엔드 팀에게 문의해주세요.**

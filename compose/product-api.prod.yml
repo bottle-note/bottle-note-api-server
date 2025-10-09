@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  api:
+    image: ${FULL_IMAGE_NAME}
+    container_name: bottle-note-api-production
+    ports:
+      - "30301:30301"
+    env_file:
+      - .bottlenote.production.ENV
+    environment:
+      TZ: Asia/Seoul
+      SPRING_PROFILES_ACTIVE: prod
+      JAVA_OPTS: "-Xms512m -Xmx2g -XX:MaxMetaspaceSize=256m"
+      SERVER_NAME: ${SERVER_NAME}
+      GIT_BRANCH: ${GIT_BRANCH}
+      GIT_COMMIT: ${GIT_COMMIT}
+      BUILD_TIME: ${BUILD_TIME}
+    volumes:
+      - /var/log/bottle-note:/app/logs
+    deploy:
+      resources:
+        limits:
+          memory: 3g
+    restart: always

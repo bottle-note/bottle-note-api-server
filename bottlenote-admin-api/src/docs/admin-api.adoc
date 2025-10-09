@@ -1,0 +1,31 @@
+ifndef::snippets[]
+:snippets: ../../build/generated-snippets
+endif::[]
+= Bottle Note Admin API 문서
+:doctype: book
+:icons: font
+:source-highlighter: highlight.js
+:highlightjs-theme: atom-one-dark
+:highlightjs-languages: java, kotlin
+:toc: left
+:toc-title: 목차
+:toclevels: 3
+:sectlinks:
+:sectnums:
+
+
+== 개요 (overview)
+
+include::asciidoc/api/overview/overview.adoc[]
+
+'''
+include::asciidoc/api/overview/global-response.adoc[]
+
+'''
+include::asciidoc/api/overview/global-exception.adoc[]
+
+'''
+
+== Sample API
+
+include::asciidoc/api/sample-hello/hello.adoc[]

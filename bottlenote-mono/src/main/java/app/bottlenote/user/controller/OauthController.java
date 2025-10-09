@@ -106,7 +106,7 @@ public class OauthController {
   private void setRefreshTokenInCookie(HttpServletResponse response, String refreshToken) {
     final int COOKIE_EXPIRE_TIME = 14 * 24 * 60 * 60;
     final int cookieExpireTime = configProperties.getCookieExpireTime();
-    log.info(
+    log.debug(
         "cookie basic expire time : {} properties time :{}", COOKIE_EXPIRE_TIME, cookieExpireTime);
     Cookie cookie = new Cookie(REFRESH_TOKEN_HEADER_PREFIX, refreshToken);
     cookie.setHttpOnly(true);
