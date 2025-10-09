@@ -271,10 +271,10 @@ jobs:
 
             docker stop bottle-note-api-development 2>/dev/null || true
             docker rm bottle-note-api-development 2>/dev/null || true
-            docker-compose -f ~/compose/product-api.dev.yml down 2>/dev/null || true
+            docker compose -f ~/compose/product-api.dev.yml down 2>/dev/null || true
 
-            docker-compose -f ~/compose/product-api.dev.yml up -d
-            docker-compose -f ~/compose/product-api.dev.yml ps
+            docker compose -f ~/compose/product-api.dev.yml up -d
+            docker compose -f ~/compose/product-api.dev.yml ps
 
             echo "사용하지 않는 모든 Docker 리소스 정리 중..."
             docker system prune -f

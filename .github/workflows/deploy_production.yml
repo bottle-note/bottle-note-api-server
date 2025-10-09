@@ -1,4 +1,4 @@
-#act workflow_dispatch -W .github/workflows/deploy_production.yml --secret-file .secrets
+# act workflow_dispatch -W .github/workflows/deploy_production.yml --secret-file .secrets
 name: Production Rolling Deployment
 
 on:
@@ -282,10 +282,10 @@ jobs:
 
             docker stop bottle-note-api-production 2>/dev/null || true
             docker rm bottle-note-api-production 2>/dev/null || true
-            docker-compose -f ~/compose/product-api.prod.yml down 2>/dev/null || true
+            docker compose -f ~/compose/product-api.prod.yml down 2>/dev/null || true
 
-            docker-compose -f ~/compose/product-api.prod.yml up -d
-            docker-compose -f ~/compose/product-api.prod.yml ps
+            docker compose -f ~/compose/product-api.prod.yml up -d
+            docker compose -f ~/compose/product-api.prod.yml ps
 
             echo "Cleaning up unused Docker resources..."
             docker system prune -f
