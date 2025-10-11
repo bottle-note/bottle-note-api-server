@@ -263,7 +263,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                 alcohol.abv,
                 distillery.korName,
                 distillery.engName)
-            .orderBy(alcohol.lastModifyAt.desc())
+            .orderBy(supporter.sortByRandom())
             .offset(cursor)
             .limit(fetchSize)
             .fetch();
