@@ -205,11 +205,13 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
             .fetchOne());
   }
 
-  /** queryDSL 알코올 둘러보기 */
+  /** queryDSL 알코올 둘러보기 - 성능 최적화 버전 */
   @Override
   public Pair<Long, CursorResponse<AlcoholDetailItem>> getStandardExplore(
       Long userId, List<String> keyword, Long cursor, Integer pageSize) {
     int fetchSize = pageSize + 1;
+
+    // 메인 쿼리 - 최적화된 랜덤 정렬 사용
     List<AlcoholDetailItem> items =
         queryFactory
             .select(
@@ -263,21 +265,20 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                 alcohol.abv,
                 distillery.korName,
                 distillery.engName)
-            .orderBy(supporter.sortByRandom())
+            .orderBy(supporter.sortByOptimizedRandom(cursor))
+            .orderBy(alcohol.id.asc()) // 2차 정렬로 안정성 보장
             .offset(cursor)
             .limit(fetchSize)
             .fetch();
 
+    // 전체 개수 조회 - 간소화된 쿼리 (JOIN 최소화)
     Long total =
         queryFactory
             .select(alcohol.id.count())
             .from(alcohol)
-            .join(region)
-            .on(alcohol.region.id.eq(region.id))
-            .join(distillery)
-            .on(alcohol.distillery.id.eq(distillery.id))
             .where(supporter.keywordsMatch(keyword))
             .fetchOne();
+
     CursorResponse<AlcoholDetailItem> list = CursorResponse.of(items, cursor, pageSize);
     return Pair.of(total, list);
   }

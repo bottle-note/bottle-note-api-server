@@ -165,6 +165,23 @@ public class AlcoholQuerySupporter {
     return Expressions.numberTemplate(Double.class, "function('rand')").asc();
   }
 
+  /**
+   * 성능 최적화된 랜덤 정렬 조건 생성 cursor 기반 시드를 사용하여 일관성 있는 랜덤성 제공 RAND() 대신 ID 기반 모듈로 연산을 사용하여 성능 향상
+   *
+   * @param cursor 페이지 커서 (시드로 사용)
+   * @return 랜덤 정렬 조건
+   */
+  public OrderSpecifier<?> sortByOptimizedRandom(Long cursor) {
+    // cursor를 기반으로 시드 생성 (0이면 기본값 사용)
+    long seed = (cursor == null || cursor == 0) ? 42 : cursor;
+
+    // (alcohol.id * seed) % 10000을 사용하여 pseudo-random 정렬
+    // 이 방식은 RAND()보다 훨씬 빠르며, 같은 cursor에서는 일관된 결과를 제공
+    NumberExpression<Long> pseudoRandom = alcohol.id.multiply(seed).mod(10000L);
+
+    return pseudoRandom.asc();
+  }
+
   /** 이름 포함 여부 조건 생성 */
   public BooleanExpression eqName(String name) {
     if (StringUtils.isNullOrEmpty(name)) return null;
