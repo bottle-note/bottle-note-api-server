@@ -91,4 +91,39 @@ public class QuartzConfig {
 				.withSchedule(CronScheduleBuilder.cronSchedule("0 0 0 * * ?"))
 				.build();
 	}
+
+	/**
+	 * 일일 데이터 리포트 작업을 위한 JobDetail을 정의합니다.
+	 * <p>
+	 * JobDetail은 Quartz가 실행할 Job의 인스턴스와 관련 정보를 정의합니다.
+	 * 해당 Job의 유형과 식별자를 지정하고, storeDurably() 메소드를 통해
+	 * 트리거가 없어도 스케줄러가 종료되지 않도록 설정합니다.
+	 *
+	 * @return 일일 데이터 리포트 작업을 위한 JobDetail 객체
+	 */
+	@Bean
+	public JobDetail dailyDataReportJobDetail() {
+		return JobBuilder.newJob(DailyDataReportQuartzJob.class)
+				.withIdentity("dailyDataReportJob")
+				.storeDurably()
+				.build();
+	}
+
+	/**
+	 * 일일 데이터 리포트 작업을 위한 Trigger를 정의합니다.
+	 * <p>
+	 * Trigger는 작업이 언제 실행되어야 하는지를 정의합니다.
+	 * 이 트리거는 매일 오전 10시(10시 0분 0초)에 실행되도록 cron 표현식을 사용하여 설정합니다.
+	 * "0 0 10 * * ?" 표현식은 매일 오전 10시에 실행을 의미합니다.
+	 *
+	 * @return 일일 데이터 리포트 작업을 위한 Trigger 객체
+	 */
+	@Bean
+	public Trigger dailyDataReportJobTrigger() {
+		return TriggerBuilder.newTrigger()
+				.forJob(dailyDataReportJobDetail())
+				.withIdentity("dailyDataReportTrigger")
+				.withSchedule(CronScheduleBuilder.cronSchedule("0 0 10 * * ?"))
+				.build();
+	}
 }
