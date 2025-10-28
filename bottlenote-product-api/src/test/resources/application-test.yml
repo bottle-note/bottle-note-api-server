@@ -1,4 +1,9 @@
 spring:
+  main:
+    allow-bean-definition-overriding: true
+  test:
+    database:
+      replace: none
   jackson:
     time-zone: Asia/Seoul
 
