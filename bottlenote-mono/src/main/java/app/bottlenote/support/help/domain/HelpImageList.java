@@ -21,7 +21,6 @@ import org.hibernate.annotations.Comment;
 @Getter
 public class HelpImageList {
 
-  @Comment("문의 이미지")
   @OneToMany(
       mappedBy = "helpId",
       fetch = FetchType.LAZY,

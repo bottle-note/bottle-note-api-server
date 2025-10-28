@@ -50,7 +50,6 @@ public class TastingTag extends BaseEntity {
   private String description;
 
   @Builder.Default
-  @Comment("태그를 가진 위스키들")
   @OneToMany(mappedBy = "tastingTag")
   private List<AlcoholsTastingTags> alcoholsTastingTags = new ArrayList<>();
 

@@ -32,12 +32,10 @@ public class AlcoholsTastingTags extends BaseTimeEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Comment("알코올 ID")
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "alcohol_id", nullable = false)
   private Alcohol alcohol;
 
-  @Comment("테이스팅 태그 ID")
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "tasting_tag_id", nullable = false)
   private TastingTag tastingTag;
