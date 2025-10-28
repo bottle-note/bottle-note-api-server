@@ -42,9 +42,6 @@ testcontainers-mysql = "1.19.0"
 mockito-inline = "5.2.0"
 archunit = "1.4.0"
 
-# Monitoring & Observability
-micrometer-prometheus = "1.11.5"
-
 # Documentation
 spring-restdocs = "3.0.1"
 restdocs-api-spec = "0.19.4"
@@ -52,8 +49,10 @@ restdocs-api-spec = "0.19.4"
 # Scheduling
 quartz = "2.3.2"
 
-# Logging
-logstash-logback = "7.4"
+# Monitoring & Observability
+opentelemetry = "1.34.1"
+opentelemetry-instrumentation = "2.1.0-alpha"  # logback appender용
+loki-logback-appender = "1.5.2"
 
 # Code Quality
 spotless = "7.0.2"
@@ -70,6 +69,7 @@ spring-boot-starter-data-redis = { module = "org.springframework.boot:spring-boo
 spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation", version.ref = "spring-boot" }
 spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security", version.ref = "spring-boot" }
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator", version.ref = "spring-boot" }
+spring-boot-starter-aop = { module = "org.springframework.boot:spring-boot-starter-aop", version.ref = "spring-boot" }
 spring-boot-starter-cache = { module = "org.springframework.boot:spring-boot-starter-cache", version.ref = "spring-boot" }
 spring-boot-starter-batch = { module = "org.springframework.boot:spring-boot-starter-batch", version.ref = "spring-boot" }
 spring-boot-starter-quartz = { module = "org.springframework.boot:spring-boot-starter-quartz", version.ref = "spring-boot" }
@@ -118,8 +118,17 @@ aws-s3 = { module = "com.amazonaws:aws-java-sdk-s3", version.ref = "aws-java-sdk
 # Firebase
 firebase-admin = { module = "com.google.firebase:firebase-admin", version.ref = "firebase-admin" }
 
-# Monitoring
-micrometer-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometer-prometheus" }
+# Monitoring & Observability
+opentelemetry-bom = { module = "io.opentelemetry:opentelemetry-bom", version.ref = "opentelemetry" }
+opentelemetry-api = { module = "io.opentelemetry:opentelemetry-api" }
+opentelemetry-sdk = { module = "io.opentelemetry:opentelemetry-sdk" }
+opentelemetry-exporter-otlp = { module = "io.opentelemetry:opentelemetry-exporter-otlp" }
+opentelemetry-logback-appender = { module = "io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0", version.ref = "opentelemetry-instrumentation" }
+micrometer-core = { module = "io.micrometer:micrometer-core" }
+micrometer-tracing = { module = "io.micrometer:micrometer-tracing" }
+micrometer-tracing-bridge-otel = { module = "io.micrometer:micrometer-tracing-bridge-otel" }
+micrometer-registry-otlp = { module = "io.micrometer:micrometer-registry-otlp" }
+loki-logback-appender = { module = "com.github.loki4j:loki-logback-appender", version.ref = "loki-logback-appender" }
 
 # Network
 netty-bom = { module = "io.netty:netty-bom", version.ref = "netty" }
@@ -136,9 +145,6 @@ archunit = { module = "com.tngtech.archunit:archunit-junit5", version.ref = "arc
 spring-restdocs-asciidoctor = { module = "org.springframework.restdocs:spring-restdocs-asciidoctor", version.ref = "spring-restdocs" }
 spring-restdocs-mockmvc = { module = "org.springframework.restdocs:spring-restdocs-mockmvc", version.ref = "spring-restdocs" }
 restdocs-api-spec-mockmvc = { module = "com.epages:restdocs-api-spec-mockmvc", version.ref = "restdocs-api-spec" }
-
-# Logging
-logstash-logback = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstash-logback" }
 
 # Jackson - Spring Boot에서 관리하는 버전 사용
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations" }

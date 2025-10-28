@@ -1,0 +1,52 @@
+# application-logging.yml
+logging:
+  level:
+    root: info
+
+--- # Local 환경
+spring:
+  config:
+    activate:
+      on-profile: local
+logging:
+  level:
+    org.hibernate.SQL: off           # SQL 쿼리 로깅 비활성화
+    org.hibernate.orm.jdbc.bind: off # 바인딩 파라미터 로깅 비활성화
+    app.bottlenote.common.block.serializer: debug  # BlockWordSerializer 디버그
+    app.bottlenote.common.block.service: debug     # BlockService 디버그  
+    app.bottlenote.common.block.config: debug      # BlockWordConfig 디버그
+    root: info
+
+--- # 개발 환경
+spring:
+  config:
+    activate:
+      on-profile: dev
+logging:
+  level:
+    root: info
+    org.hibernate.orm.jdbc.bind: info
+    org.hibernate.SQL: info
+  file:
+    name: /app/logs/application-dev.log
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 30
+      total-size-cap: 500MB
+--- # 운영 환경
+spring:
+  config:
+    activate:
+      on-profile: prod
+logging:
+  level:
+    root: info
+    org.hibernate: info
+  file:
+    name: /app/logs/application-prod.log
+  logback:
+    rollingpolicy:
+      max-file-size: 50MB
+      max-history: 30
+      total-size-cap: 500MB
