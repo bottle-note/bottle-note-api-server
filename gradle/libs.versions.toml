@@ -1,7 +1,7 @@
 [versions]
 # Spring Framework
-spring-boot = "3.3.13"
-spring-cloud = "2023.0.6"
+spring-boot = "3.4.11"
+spring-cloud = "2024.0.1"
 
 # Database & ORM
 querydsl = "6.11"

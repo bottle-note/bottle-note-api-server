@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
@@ -42,9 +42,9 @@ class OauthControllerTest {
   // todo : oauth 관련 integration test 구현 필요 (2024.12.15)
   @Autowired protected ObjectMapper mapper;
   @Autowired protected MockMvc mockMvc;
-  @MockBean protected OauthService oauthService;
-  @MockBean protected NonceService nonceService;
-  @MockBean private OauthConfigProperties oauthConfigProperties;
+  @MockitoBean protected OauthService oauthService;
+  @MockitoBean protected NonceService nonceService;
+  @MockitoBean private OauthConfigProperties oauthConfigProperties;
 
   private TokenItem tokenItem;
 
