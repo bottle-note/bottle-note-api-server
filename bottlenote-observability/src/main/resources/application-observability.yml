@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: bottle-note
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: [ "health", "info", "metrics", "prometheus", "tracing" ]
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+
+  # OpenTelemetry 트레이싱
+  tracing:
+    disabled: ${OTEL_TRACING_DISABLED:false}  # false = 트레이싱 활성화
+    sampling:
+      probability: ${OTEL_TRACE_SAMPLING:1.0}
+
+  # OTLP 설정
+  otlp:
+    # Traces 설정 (Tempo)
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://193.123.252.37:30318/v1/traces}
+      timeout: ${OTEL_EXPORTER_OTLP_TIMEOUT:10s}
+    # Metrics 설정 (Prometheus)
+    metrics:
+      export:
+        enabled: true
+        url: ${OTEL_EXPORTER_OTLP_METRICS_ENDPOINT:http://193.123.252.37:30318/v1/metrics}
+    # Logs 설정 (Loki) - Spring Boot 3.4.0 이상에서 사용 가능
+#    logging:
+#      endpoint: ${OTEL_EXPORTER_OTLP_LOGS_ENDPOINT:http://193.123.252.37:30318/v1/logs}
+#      compression: gzip
+#      timeout: 10s
+
+  # 메트릭스
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+
+  prometheus:
+    metrics:
+      export:
+        enabled: ${PROMETHEUS_ENABLED:true}

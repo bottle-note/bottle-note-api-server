@@ -21,10 +21,10 @@ spring:
   profiles:
     include:
       - batch
-      - logging
       - external
       - datasource
       - spec
+      - observability
 
   jackson:
     time-zone: Asia/Seoul
@@ -64,18 +64,6 @@ security:
     refresh-token-expiration: 2592000 # 한 달 (30일)
   nonce:
     salt: ${NONCE_SALT:bottle-note-secure-salt-2024}
-
-
-# Actuator 설정
-management:
-  endpoints:
-    web:
-      exposure:
-        include: [ "health", "prometheus" ]
-      base-path: ${PROMETHEUS_BASE_PATH:/actuator}
-  endpoint:
-    health:
-      show-details: always
 
 apple:
   bundle-id: "com.bottlenote.official.app"
