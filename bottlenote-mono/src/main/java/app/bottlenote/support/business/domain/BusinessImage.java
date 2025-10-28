@@ -26,7 +26,6 @@ public class BusinessImage extends BaseEntity {
   private Long id;
 
   @Embedded
-  @Comment("비즈니스 문의 이미지")
   private ImageInfo businessImageInfo;
 
   @Comment("비즈니스 문의 아이디")

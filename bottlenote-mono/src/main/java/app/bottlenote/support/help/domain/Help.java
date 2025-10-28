@@ -50,7 +50,6 @@ public class Help extends BaseEntity {
   private String content;
 
   @Embedded
-  @Comment("문의글 이미지")
   private HelpImageList helpImageList = new HelpImageList();
 
   @Comment("문의글의 처리 상태")

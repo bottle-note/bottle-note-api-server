@@ -37,10 +37,9 @@ public class Likes extends BaseEntity {
   private Long id;
 
   @Comment("리뷰 식별자")
-  @JoinColumn(name = "review_id")
+  @Column(name = "review_id")
   private Long reviewId;
 
-  @Comment("좋아요 사용자 정보")
   @Embedded
   private LikeUserInfo userInfo;
 

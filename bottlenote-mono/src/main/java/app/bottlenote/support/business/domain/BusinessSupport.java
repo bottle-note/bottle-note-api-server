@@ -53,7 +53,6 @@ public class BusinessSupport extends BaseEntity {
   private BusinessSupportType businessSupportType;
 
   @Embedded
-  @Comment("비즈니스 문의 이미지")
   private BusinessImageList businessImageList = new BusinessImageList();
 
   @Enumerated(EnumType.STRING)

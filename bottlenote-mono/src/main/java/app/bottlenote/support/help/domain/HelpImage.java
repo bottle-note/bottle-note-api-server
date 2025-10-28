@@ -26,7 +26,6 @@ public class HelpImage extends BaseEntity {
   private Long id;
 
   @Embedded
-  @Comment("문의글 이미지")
   private ImageInfo helpimageInfo;
 
   @Comment("문의글 아이디")
