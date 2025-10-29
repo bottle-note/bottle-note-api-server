@@ -44,7 +44,6 @@ public class Distillery extends BaseEntity {
   private String logoImgPath;
 
   @Builder.Default
-  @Comment("증류소 설명")
   @OneToMany(mappedBy = "distillery")
   private List<Alcohol> alcohol = new ArrayList<>();
 }

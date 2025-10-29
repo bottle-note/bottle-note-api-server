@@ -14,14 +14,12 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.annotations.Comment;
 
 @Embeddable
 @RequiredArgsConstructor
 @Getter
 public class HelpImageList {
 
-  @Comment("문의 이미지")
   @OneToMany(
       mappedBy = "helpId",
       fetch = FetchType.LAZY,

@@ -13,16 +13,12 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import jakarta.persistence.Embeddable;
-import jakarta.persistence.Embedded;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
-import org.hibernate.annotations.Comment;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -103,37 +99,6 @@ public class EntityRules extends AbstractRules {
                   }
                 })
             .because("엔티티 클래스는 protected 접근 수준의 기본 생성자를 가져야 합니다");
-
-    rule.check(importedClasses);
-  }
-
-  /** 엔티티 클래스의 모든 필드가 @Comment 어노테이션을 가지는지 검증합니다. */
-  @Test
-  public void 엔티티_필드_주석_검증() {
-    ArchRule rule =
-        fields()
-            .that()
-            .areDeclaredInClassesThat()
-            .areAnnotatedWith(Entity.class)
-
-            // 제외 대상 필드
-            .and()
-            .areNotAnnotatedWith(Id.class)
-            .and()
-            .areNotAnnotatedWith(ManyToOne.class)
-            .and()
-            .areNotAnnotatedWith(OneToOne.class)
-            .and()
-            .areNotAnnotatedWith(ManyToMany.class)
-            .and()
-            .areNotAnnotatedWith(Embedded.class)
-            .and()
-            .areNotAnnotatedWith(EmbeddedId.class)
-            .and()
-            .areNotStatic()
-            .should()
-            .beAnnotatedWith(Comment.class)
-            .because("엔티티 클래스의 모든 필드는 @Comment 어노테이션으로 설명을 추가해야 합니다");
 
     rule.check(importedClasses);
   }

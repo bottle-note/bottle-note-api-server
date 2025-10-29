@@ -25,9 +25,7 @@ public class HelpImage extends BaseEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Embedded
-  @Comment("문의글 이미지")
-  private ImageInfo helpimageInfo;
+  @Embedded private ImageInfo helpimageInfo;
 
   @Comment("문의글 아이디")
   @Column(name = "help_id", nullable = false)

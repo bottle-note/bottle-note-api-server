@@ -34,12 +34,10 @@ public class UserReports extends BaseEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Comment("신고자")
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id")
   private User user;
 
-  @Comment("피신고자")
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "report_user_id")
   private User reportUser;

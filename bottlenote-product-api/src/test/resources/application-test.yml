@@ -1,4 +1,9 @@
 spring:
+  main:
+    allow-bean-definition-overriding: true
+  test:
+    database:
+      replace: none
   jackson:
     time-zone: Asia/Seoul
 
@@ -38,8 +43,9 @@ spring:
         format_sql: false
         show_sql: false
         globally_quoted_identifiers: false # Hibernate 6.6에서 타입까지 백틱으로 감싸는 버그로 인해 비활성화
+        use_sql_comments: false # SQL 쿼리 주석 불필요
         hbm2ddl:
-          auto: validate # SQL 스크립트로 스키마 생성하므로 검증만 수행
+          auto: validate # 스키마 검증 필수
     show-sql: true
     generate-ddl: false # SQL 스크립트로 스키마 생성
     database-platform: org.hibernate.dialect.MySQL8Dialect

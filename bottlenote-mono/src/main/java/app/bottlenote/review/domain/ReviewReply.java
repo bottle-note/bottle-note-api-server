@@ -49,19 +49,16 @@ public class ReviewReply extends BaseEntity {
   @Column(name = "status", nullable = false)
   private ReviewReplyStatus status = ReviewReplyStatus.NORMAL;
 
-  @Comment("최상위 댓글 대상")
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "root_reply_id")
   private ReviewReply rootReviewReply;
 
   @Getter
-  @Comment("상위 댓글 대상")
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "parent_reply_id")
   private ReviewReply parentReviewReply;
 
   @Getter
-  @Comment("대댓글 목록")
   @OneToMany(mappedBy = "parentReviewReply", fetch = FetchType.LAZY)
   private List<ReviewReply> replies = new ArrayList<>();
 

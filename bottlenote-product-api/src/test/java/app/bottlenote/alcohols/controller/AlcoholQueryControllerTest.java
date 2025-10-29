@@ -23,9 +23,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -38,8 +38,8 @@ class AlcoholQueryControllerTest {
   private static final Logger log = LogManager.getLogger(AlcoholQueryControllerTest.class);
   @Autowired protected ObjectMapper mapper;
   @Autowired protected MockMvc mockMvc;
-  @MockBean private AlcoholQueryService alcoholQueryService;
-  @MockBean private AlcoholReferenceService alcoholReferenceService;
+  @MockitoBean private AlcoholQueryService alcoholQueryService;
+  @MockitoBean private AlcoholReferenceService alcoholReferenceService;
 
   @DisplayName("술 목록을 조회할 수 있다.")
   @ParameterizedTest(name = "{0}")
