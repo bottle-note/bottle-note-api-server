@@ -49,8 +49,7 @@ public class Help extends BaseEntity {
   @Column(name = "help_content", nullable = false)
   private String content;
 
-  @Embedded
-  private HelpImageList helpImageList = new HelpImageList();
+  @Embedded private HelpImageList helpImageList = new HelpImageList();
 
   @Comment("문의글의 처리 상태")
   @Enumerated(EnumType.STRING)

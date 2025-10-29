@@ -27,8 +27,7 @@ public class Rating extends BaseEntity {
 
   @EmbeddedId private RatingId id;
 
-  @Embedded
-  private RatingPoint ratingPoint = new RatingPoint();
+  @Embedded private RatingPoint ratingPoint = new RatingPoint();
 
   @Builder
   public Rating(RatingId id, RatingPoint ratingPoint) {

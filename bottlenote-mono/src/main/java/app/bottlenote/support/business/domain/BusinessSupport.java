@@ -52,8 +52,7 @@ public class BusinessSupport extends BaseEntity {
   @Enumerated(EnumType.STRING)
   private BusinessSupportType businessSupportType;
 
-  @Embedded
-  private BusinessImageList businessImageList = new BusinessImageList();
+  @Embedded private BusinessImageList businessImageList = new BusinessImageList();
 
   @Enumerated(EnumType.STRING)
   @Column(name = "status")

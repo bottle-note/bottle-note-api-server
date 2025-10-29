@@ -25,8 +25,7 @@ public class BusinessImage extends BaseEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Embedded
-  private ImageInfo businessImageInfo;
+  @Embedded private ImageInfo businessImageInfo;
 
   @Comment("비즈니스 문의 아이디")
   @Column(name = "business_support_id", nullable = false)
