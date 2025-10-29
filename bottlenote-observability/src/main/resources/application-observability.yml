@@ -22,16 +22,16 @@ management:
   otlp:
     # Traces 설정 (Tempo)
     tracing:
-      endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:30318/v1/traces}
+      endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:3018/v1/traces}
       timeout: ${OTEL_EXPORTER_OTLP_TIMEOUT:10s}
     # Metrics 설정 (Prometheus)
     metrics:
       export:
         enabled: true
-        url: ${OTEL_EXPORTER_OTLP_METRICS_ENDPOINT:http://localhost:30318/v1/metrics}
+        url: ${OTEL_EXPORTER_OTLP_METRICS_ENDPOINT:http://localhost:3018/v1/metrics}
     # Logs 설정 (Loki) - Spring Boot 3.4.0 이상에서 사용 가능
     logging:
-      endpoint: ${OTEL_EXPORTER_OTLP_LOGS_ENDPOINT:http://localhost:30318/v1/logs}
+      endpoint: ${OTEL_EXPORTER_OTLP_LOGS_ENDPOINT:http://localhost:3018/v1/logs}
       compression: gzip
       timeout: 10s
 
