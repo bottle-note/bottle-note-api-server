@@ -1,6 +1,8 @@
 package app.bottlenote.support.report.service;
 
 import app.bottlenote.support.report.dto.DailyDataReportDto;
+import app.bottlenote.support.report.exception.ReportException;
+import app.bottlenote.support.report.exception.ReportExceptionCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -9,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -22,8 +25,12 @@ import org.springframework.web.client.RestTemplate;
 public class DailyDataReportService {
 
   private final JdbcTemplate jdbcTemplate;
-  private final RestTemplate restTemplate = new RestTemplate();
-  private final ObjectMapper objectMapper = new ObjectMapper();
+
+  @Qualifier("webhookRestTemplate")
+  private final RestTemplate restTemplate;
+
+  @Qualifier("webhookObjectMapper")
+  private final ObjectMapper objectMapper;
 
   /**
    * 지정된 날짜의 데이터를 수집하고 웹훅으로 전송합니다.
@@ -49,24 +56,29 @@ public class DailyDataReportService {
   private DailyDataReportDto collectDailyData(LocalDate targetDate) {
     log.info("일일 데이터 리포트 수집 시작: {}", targetDate);
 
-    LocalDateTime startOfDay = targetDate.atStartOfDay();
-    LocalDateTime endOfDay = targetDate.plusDays(1).atStartOfDay();
+    try {
+      LocalDateTime startOfDay = targetDate.atStartOfDay();
+      LocalDateTime endOfDay = targetDate.plusDays(1).atStartOfDay();
 
-    Long newUsersCount = countNewUsers(startOfDay, endOfDay);
-    Long newReviewsCount = countNewReviews(startOfDay, endOfDay);
-    Long newRepliesCount = countNewReplies(startOfDay, endOfDay);
-    Long newLikesCount = countNewLikes(startOfDay, endOfDay);
+      Long newUsersCount = countNewUsers(startOfDay, endOfDay);
+      Long newReviewsCount = countNewReviews(startOfDay, endOfDay);
+      Long newRepliesCount = countNewReplies(startOfDay, endOfDay);
+      Long newLikesCount = countNewLikes(startOfDay, endOfDay);
 
-    log.info(
-        "일일 데이터 리포트 수집 완료: {} - 유저: {}, 리뷰: {}, 댓글: {}, 좋아요: {}",
-        targetDate,
-        newUsersCount,
-        newReviewsCount,
-        newRepliesCount,
-        newLikesCount);
+      log.info(
+          "일일 데이터 리포트 수집 완료: {} - 유저: {}, 리뷰: {}, 댓글: {}, 좋아요: {}",
+          targetDate,
+          newUsersCount,
+          newReviewsCount,
+          newRepliesCount,
+          newLikesCount);
 
-    return new DailyDataReportDto(
-        targetDate, newUsersCount, newReviewsCount, newRepliesCount, newLikesCount);
+      return new DailyDataReportDto(
+          targetDate, newUsersCount, newReviewsCount, newRepliesCount, newLikesCount);
+    } catch (Exception e) {
+      log.error("일일 데이터 수집 실패: targetDate={}, error={}", targetDate, e.getMessage(), e);
+      throw new ReportException(ReportExceptionCode.DATA_COLLECTION_FAILED);
+    }
   }
 
   /**
@@ -95,8 +107,9 @@ public class DailyDataReportService {
       restTemplate.postForEntity(webhookUrl, request, String.class);
       log.info("Discord 웹훅 전송 완료: reportDate={}", report.reportDate());
     } catch (Exception e) {
-      log.error("Discord 웹훅 전송 실패: reportDate={}, error={}", report.reportDate(), e.getMessage(), e);
-      throw new RuntimeException("Discord 웹훅 전송 실패", e);
+      log.error(
+          "Discord 웹훅 전송 실패: reportDate={}, error={}", report.reportDate(), e.getMessage(), e);
+      throw new ReportException(ReportExceptionCode.WEBHOOK_SEND_FAILED);
     }
   }
 
@@ -124,7 +137,7 @@ public class DailyDataReportService {
   }
 
   private Long countNewReplies(LocalDateTime start, LocalDateTime end) {
-    String sql = "SELECT COUNT(*) FROM review_reply WHERE create_at >= ? AND create_at < ?";
+    String sql = "SELECT COUNT(*) FROM review_replies WHERE create_at >= ? AND create_at < ?";
     return jdbcTemplate.queryForObject(sql, Long.class, start, end);
   }
 
