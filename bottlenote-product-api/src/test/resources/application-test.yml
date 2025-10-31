@@ -52,16 +52,6 @@ spring:
     generate-ddl: false # SQL 스크립트로 스키마 생성
     database-platform: org.hibernate.dialect.MySQL8Dialect
 
-  quartz:
-    job-store-type: jdbc    # 메모리(memory) 또는 데이터베이스(jdbc)
-    jdbc:
-      initialize-schema: embedded
-    properties:
-      org:
-        quartz:
-          scheduler:
-            instanceName: bottle_note_quartz_scheduler
-            instanceId: AUTO
 
 # Spring Security
 security:
