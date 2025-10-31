@@ -1,6 +1,6 @@
 spring:
   application:
-    name: bottle-note
+    name: ${OTEL_SERVICE_NAME:UNKNOWN_SERVICE}
 
 management:
   endpoints:
@@ -14,6 +14,9 @@ management:
 
   # OpenTelemetry 트레이싱
   tracing:
+    propagation:
+      consume: W3C, B3, B3_MULTI
+      produce: W3C
     disabled: ${OTEL_TRACING_DISABLED:false}  # false = 트레이싱 활성화
     sampling:
       probability: ${OTEL_TRACE_SAMPLING:1.0}
