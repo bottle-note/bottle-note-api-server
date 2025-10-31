@@ -16,7 +16,7 @@ env:
   ORACLE_ENV_FILE: git.environment-variables/deploy/oracle/application-node-1.env
   ORACLE_SSH_KEY_FILE: git.environment-variables/deploy/oracle/keys/node-1.pem
   AWS_ECR_ENV_FILE: git.environment-variables/deploy/aws/ecr-properties.env
-  APP_ENV_FILE: git.environment-variables/application.springboot/.env.dev
+  APP_ENV_FILE: git.environment-variables/application.springboot/dev.env
   ECR_REPOSITORY: ecr-bottle-note-api
 
 jobs:

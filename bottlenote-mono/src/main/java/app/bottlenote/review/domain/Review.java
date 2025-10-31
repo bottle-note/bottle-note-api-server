@@ -83,9 +83,7 @@ public class Review extends BaseEntity {
   @Enumerated(EnumType.STRING)
   private ReviewDisplayStatus status = ReviewDisplayStatus.PUBLIC;
 
-  @Comment("위치 정보")
-  @Embedded
-  private ReviewLocation reviewLocation;
+  @Embedded private ReviewLocation reviewLocation;
 
   @Comment("썸네일 이미지")
   @Column(name = "image_url")
@@ -102,14 +100,9 @@ public class Review extends BaseEntity {
   @Enumerated(EnumType.STRING)
   private ReviewActiveStatus activeStatus = ReviewActiveStatus.ACTIVE;
 
-  @Builder.Default
-  @Comment("리뷰 이미지 (1급 컬렉션) ")
-  @Embedded
-  private ReviewImages reviewImages = ReviewImages.empty();
+  @Builder.Default @Embedded private ReviewImages reviewImages = ReviewImages.empty();
 
-  @Builder.Default
-  @Comment("리뷰 테이스팅 태그 (1급 컬렉션) ")
-  @Embedded
+  @Builder.Default @Embedded
   private ReviewTastingTags reviewTastingTags = ReviewTastingTags.empty();
 
   public void update(ReviewModifyRequestWrapperItem reviewModifyRequestWrapperItem) {
