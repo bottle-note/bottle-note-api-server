@@ -1,6 +1,8 @@
 spring:
   main:
     allow-bean-definition-overriding: true
+  application:
+    name: bottle-note-test
   test:
     database:
       replace: none
@@ -88,3 +90,17 @@ app:
 
 apple:
   bundle-id: "com.bottlenote.official.app"
+
+# Observability 비활성화 (테스트 환경)
+management:
+  tracing:
+    disabled: true
+  otlp:
+    tracing:
+      endpoint: http://localhost:4318/v1/traces
+    metrics:
+      export:
+        enabled: false
+        url: http://localhost:4318/v1/metrics
+    logging:
+      endpoint: http://localhost:4318/v1/logs
