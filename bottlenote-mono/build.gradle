@@ -27,11 +27,6 @@ dependencies {
 	implementation libs.bundles.jwt.complete
 	implementation libs.google.guava
 
-
-	// ===== Monitoring =====
-	implementation libs.spring.boot.starter.actuator
-	implementation libs.micrometer.prometheus
-
 	// ===== External Services =====
 	implementation libs.aws.s3
 	implementation libs.spring.cloud.starter.openfeign
@@ -39,9 +34,6 @@ dependencies {
 
 	// ===== Batch =====
 	implementation libs.spring.boot.starter.quartz
-
-	// ===== Logging =====
-	implementation libs.logstash.logback
 
 	// ===== Testing =====
 	testImplementation libs.testng

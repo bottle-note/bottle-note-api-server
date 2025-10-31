@@ -1,0 +1,36 @@
+plugins {
+	id 'java-library'
+}
+
+dependencies {
+	// BOM (Bill of Materials) - 버전 일관성 관리
+	api platform(libs.opentelemetry.bom)
+
+	// Spring Boot
+	api libs.spring.boot.starter.actuator
+	api libs.spring.boot.starter.aop
+
+	// OpenTelemetry
+	api libs.opentelemetry.api
+	api libs.opentelemetry.sdk
+	api libs.opentelemetry.exporter.otlp
+	api libs.opentelemetry.logback.appender
+
+	// Micrometer
+	api libs.micrometer.core
+	api libs.micrometer.tracing
+	api libs.micrometer.tracing.bridge.otel
+	api libs.micrometer.registry.otlp
+
+	// Lombok
+	compileOnly libs.lombok
+	annotationProcessor libs.lombok
+}
+
+bootJar {
+	enabled = false
+}
+
+jar {
+	enabled = true
+}

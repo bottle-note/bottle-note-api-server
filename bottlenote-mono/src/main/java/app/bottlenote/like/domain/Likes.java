@@ -12,7 +12,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
@@ -37,12 +36,10 @@ public class Likes extends BaseEntity {
   private Long id;
 
   @Comment("리뷰 식별자")
-  @JoinColumn(name = "review_id")
+  @Column(name = "review_id")
   private Long reviewId;
 
-  @Comment("좋아요 사용자 정보")
-  @Embedded
-  private LikeUserInfo userInfo;
+  @Embedded private LikeUserInfo userInfo;
 
   @Comment("좋아요 상태")
   @Column(nullable = false)
