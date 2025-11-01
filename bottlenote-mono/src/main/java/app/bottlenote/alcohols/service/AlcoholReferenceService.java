@@ -42,26 +42,14 @@ public class AlcoholReferenceService {
 
   @Transactional(readOnly = true)
   public CursorResponse<CurationKeywordDto> searchCurationKeywords(
-      CurationKeywordSearchRequest request
-  ) {
+      CurationKeywordSearchRequest request) {
     return curationKeywordRepository.searchCurationKeywords(
-        request.keyword(),
-        request.alcoholId(),
-        request.cursor(),
-        request.pageSize().intValue()
-    );
+        request.keyword(), request.alcoholId(), request.cursor(), request.pageSize().intValue());
   }
 
   @Transactional(readOnly = true)
   public CursorResponse<AlcoholsSearchItem> getCurationAlcohols(
-      Long curationId,
-      Long cursor,
-      Long pageSize
-  ) {
-    return curationKeywordRepository.getCurationAlcohols(
-        curationId,
-        cursor,
-        pageSize.intValue()
-    );
+      Long curationId, Long cursor, Long pageSize) {
+    return curationKeywordRepository.getCurationAlcohols(curationId, cursor, pageSize.intValue());
   }
 }

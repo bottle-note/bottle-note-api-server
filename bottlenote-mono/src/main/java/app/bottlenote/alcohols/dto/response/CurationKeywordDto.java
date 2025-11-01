@@ -10,9 +10,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CurationKeywordDto {
-	private Long id;
-	private String name;
-	private String description;
-	private Integer alcoholCount;
-	private Integer displayOrder;
+  private Long id;
+  private String name;
+  private String description;
+  private Integer alcoholCount;
+  private Integer displayOrder;
 }

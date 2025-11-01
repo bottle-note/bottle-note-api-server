@@ -36,8 +36,7 @@ public class AlcoholReferenceController {
 
   @GetMapping("/curations")
   public ResponseEntity<?> searchCurationKeywords(
-      @ModelAttribute CurationKeywordSearchRequest request
-  ) {
+      @ModelAttribute CurationKeywordSearchRequest request) {
     CursorResponse<CurationKeywordDto> response =
         alcoholReferenceService.searchCurationKeywords(request);
     return GlobalResponse.ok(response);
@@ -47,8 +46,7 @@ public class AlcoholReferenceController {
   public ResponseEntity<?> getCurationAlcohols(
       @PathVariable Long curationId,
       @RequestParam(required = false, defaultValue = "0") Long cursor,
-      @RequestParam(required = false, defaultValue = "10") Long pageSize
-  ) {
+      @RequestParam(required = false, defaultValue = "10") Long pageSize) {
     CursorResponse<AlcoholsSearchItem> response =
         alcoholReferenceService.getCurationAlcohols(curationId, cursor, pageSize);
     return GlobalResponse.ok(response);
