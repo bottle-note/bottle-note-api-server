@@ -55,7 +55,7 @@ class RestReferenceControllerTest extends AbstractRestDocs {
 
     // then
     mockMvc
-        .perform(MockMvcRequestBuilders.get("/api/v1/regions/"))
+        .perform(MockMvcRequestBuilders.get("/api/v1/regions"))
         .andExpect(status().isOk())
         .andDo(
             document(

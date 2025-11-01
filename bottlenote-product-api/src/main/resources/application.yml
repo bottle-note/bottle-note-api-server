@@ -10,51 +10,25 @@ app: # 애플리케이션 및 배포 정보
 
 server:
   port: ${SERVER_PORT:8080}
-
   servlet:
     encoding:
       charset: UTF-8
   tomcat:
-    mbeanregistry:
-      enabled: true # 톰캣 MBeanRegistry 활성화
+    threads:
+      max: 15
+    max-connections: 20
+    connection-timeout: 5000
+
 spring:
   profiles:
     include:
-      - batch
-      - external
       - datasource
-      - spec
+      - external
       - observability
+      - batch
 
   jackson:
     time-zone: Asia/Seoul
-
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    show-sql: false
-    properties:
-      hibernate:
-        format_sql: false
-        use_sql_comments: false
-        open-in-view: false
-
-
-  quartz:
-    job-store-type: jdbc    # 메모리(memory) 또는 데이터베이스(jdbc)
-    jdbc:
-      initialize-schema: never    # 스키마 초기화 (always, never, embedded)
-    properties:
-      org:
-        quartz:
-          scheduler:
-            instanceName: bottle_note_quartz_scheduler
-            instanceId: AUTO
-          threadPool:
-            threadCount: 5
-            threadPriority: 5
-          jobStore:
-            isClustered: true
 
 # Spring Security
 security:
@@ -67,3 +41,84 @@ security:
 
 apple:
   bundle-id: "com.bottlenote.official.app"
+
+# 기본 로깅 설정
+logging:
+  level:
+    root: info
+
+--- # default/local 프로파일 (동일 설정)
+spring:
+  config:
+    activate:
+      on-profile: default,local
+
+logging:
+  level:
+    root: info
+    app.bottlenote: info
+
+server:
+  tomcat:
+    threads:
+      max: 15
+    max-connections: 20
+    connection-timeout: 5000
+
+--- # debug 프로파일 (디버그 로그만, SQL 로깅 없음)
+spring:
+  config:
+    activate:
+      on-profile: debug
+
+logging:
+  level:
+    root: debug
+    app.bottlenote: debug
+    org.springframework: debug
+    # SQL 로깅 비활성화
+    org.hibernate.SQL: off
+    org.hibernate.orm.jdbc.bind: off
+
+server:
+  tomcat:
+    threads:
+      max: 15
+    max-connections: 20
+    connection-timeout: 5000
+
+--- # dev 프로파일 (개발 서버)
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+logging:
+  level:
+    root: info
+    app.bottlenote: info
+
+server:
+  tomcat:
+    threads:
+      max: 15
+    max-connections: 20
+    connection-timeout: 5000
+
+--- # prod 프로파일 (운영 서버)
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+logging:
+  level:
+    root: info
+    app.bottlenote: warn
+
+server:
+  tomcat:
+    threads:
+      max: 200
+    max-connections: 2000
+    connection-timeout: 30000

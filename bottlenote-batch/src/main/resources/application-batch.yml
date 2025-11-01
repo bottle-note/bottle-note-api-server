@@ -4,3 +4,19 @@ spring:
     job:
       enabled: false # 배치 실행 여부
     jdbc.initialize-schema: never # 배치 실행 시 DB 초기화 여부
+
+  quartz:
+    job-store-type: jdbc # 메모리(memory) 또는 데이터베이스(jdbc)
+    jdbc:
+      initialize-schema: never # 스키마 초기화 (always, never, embedded)
+    properties:
+      org:
+        quartz:
+          scheduler:
+            instanceName: bottle_note_quartz_scheduler
+            instanceId: AUTO
+          threadPool:
+            threadCount: 5
+            threadPriority: 5
+          jobStore:
+            isClustered: true
