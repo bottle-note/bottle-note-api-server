@@ -13,9 +13,7 @@ import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.CursorResponse;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -119,7 +117,7 @@ public class CustomCurationKeywordRepositoryImpl implements CustomCurationKeywor
                 alcohol.korCategory,
                 alcohol.engCategory,
                 alcohol.imageUrl)
-            .orderBy(createOrderByField(alcoholIdsList).asc())
+            // .orderBy()
             .limit(pageSize + 1)
             .fetch();
 
@@ -147,13 +145,5 @@ public class CustomCurationKeywordRepositoryImpl implements CustomCurationKeywor
             alcoholId,
             curationKeyword.alcoholIds)
         .eq(1L);
-  }
-
-  private NumberExpression<Integer> createOrderByField(List<Long> alcoholIds) {
-    CaseBuilder caseBuilder = new CaseBuilder();
-    for (int i = 0; i < alcoholIds.size(); i++) {
-      caseBuilder.when(alcohol.id.eq(alcoholIds.get(i))).then(i);
-    }
-    return caseBuilder.otherwise(alcoholIds.size());
   }
 }
