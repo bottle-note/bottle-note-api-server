@@ -19,20 +19,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/**
- * 생성 쿼리
- *
- * <p>CREATE TABLE IF NOT EXISTS curation_keyword ( id bigint auto_increment comment '큐레이션 키워드'
- * primary key, name varchar(255) not null comment '큐레이션 키워드명', description text null comment '큐레이션
- * 설명', is_active tinyint(1) default 1 not null comment '활성화 여부', display_order int default 0 not
- * null comment '노출 순서', create_at timestamp default CURRENT_TIMESTAMP null comment '최초 생성일',
- * create_by varchar(255) null comment '최초 생성자', last_modify_at timestamp default CURRENT_TIMESTAMP
- * null comment '최종 생성일', last_modify_by varchar(255) null comment '최종 생성자' ) comment '큐레이션 키워드';
- *
- * <p>CREATE TABLE IF NOT EXISTS curation_keyword_alcohol_ids ( curation_keyword_id bigint not null
- * comment '큐레이션 키워드 ID', alcohol_ids bigint not null comment '위스키 ID', KEY curation_keyword_id
- * (curation_keyword_id) ) comment '큐레이션-위스키 매핑';
- */
 @Entity
 @Table(name = "curation_keyword")
 @Getter
