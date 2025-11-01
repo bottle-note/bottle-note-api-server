@@ -6,5 +6,4 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface JpaCurationKeywordRepository
-	extends JpaRepository<CurationKeyword, Long>, CustomCurationKeywordRepository {
-}
+    extends JpaRepository<CurationKeyword, Long>, CustomCurationKeywordRepository {}
