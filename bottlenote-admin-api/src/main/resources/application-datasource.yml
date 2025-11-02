@@ -12,6 +12,16 @@ spring:
       pool-name: HikariPool-BottleNote
       leak-detection-threshold: 60000
 
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+        open-in-view: false
+
   data:
     redis:
       host: ${REDIS_HOST:localhost}
@@ -23,7 +33,7 @@ spring:
         # 클러스터 노드 목록 (쉼표로 구분) 192.168.1.100:6379,192.168.1.101:6379,192.168.1.102:6379
         nodes: ${REDIS_CLUSTER_NODES:}
 
---- # Local 환경
+--- # default/local 환경
 spring:
   config:
     activate:
@@ -31,6 +41,17 @@ spring:
   datasource:
     driver-class-name: com.p6spy.engine.spy.P6SpyDriver
     url: jdbc:p6spy:mysql://${DB_HOST:localhost:3306}/${DB_NAME:bottle_note}?useSSL=${DB_USE_SSL:false}&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME:localhost_bottle_note_username}
+    password: ${DB_PASSWORD:localhost_bottle_note_password}
+
+--- # debug 환경 (디버그 로그만, SQL 로깅은 P6Spy 제거)
+spring:
+  config:
+    activate:
+      on-profile: debug
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${DB_HOST:localhost:3306}/${DB_NAME:bottle_note}?useSSL=${DB_USE_SSL:false}&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
     username: ${DB_USERNAME:localhost_bottle_note_username}
     password: ${DB_PASSWORD:localhost_bottle_note_password}
 
