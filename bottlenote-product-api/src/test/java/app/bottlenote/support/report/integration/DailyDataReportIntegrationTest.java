@@ -109,6 +109,9 @@ class DailyDataReportIntegrationTest {
     jdbcTemplate.execute("DELETE FROM likes WHERE create_at >= CURDATE() - INTERVAL 1 DAY");
     jdbcTemplate.execute(
         "DELETE FROM review_replies WHERE create_at >= CURDATE() - INTERVAL 1 DAY");
+    jdbcTemplate.execute("DELETE FROM review_reports WHERE status IN ('WAITING', 'PENDING')");
+    jdbcTemplate.execute("DELETE FROM user_reports WHERE status IN ('WAITING', 'PENDING')");
+    jdbcTemplate.execute("DELETE FROM business_supports WHERE status IN ('WAITING', 'PENDING')");
     jdbcTemplate.execute("DELETE FROM reviews WHERE create_at >= CURDATE() - INTERVAL 1 DAY");
     jdbcTemplate.execute(
         "DELETE FROM users WHERE email LIKE '%test.com' AND create_at >= CURDATE() - INTERVAL 1 DAY");
@@ -180,14 +183,9 @@ class DailyDataReportIntegrationTest {
     assertThat(body).contains("❤️ **신규 좋아요**: 5개");
   }
 
-  @DisplayName("시나리오2: 데이터가 없는 날도 정상적으로 0건으로 리포트된다")
+  @DisplayName("시나리오2: 데이터가 없는 날은 웹훅을 전송하지 않는다")
   @Test
-  void 데이터가_없는_날은_모든_집계가_0으로_리포트된다() {
-    // given - Mock 응답 설정
-    doReturn(ResponseEntity.ok("Success"))
-        .when(webhookRestTemplate)
-        .postForEntity(anyString(), any(HttpEntity.class), eq(String.class));
-
+  void 데이터가_없는_날은_웹훅을_전송하지_않는다() {
     // given - 과거 날짜로 데이터가 전혀 없는 상황
     LocalDate emptyDate = LocalDate.now().minusDays(10);
 
@@ -195,23 +193,9 @@ class DailyDataReportIntegrationTest {
     String webhookUrl = "https://discord.com/api/webhooks/test";
     dailyDataReportService.collectAndSendDailyReport(emptyDate, webhookUrl);
 
-    // then - 웹훅 호출 검증
-    verify(webhookRestTemplate, times(1))
+    // then - 신규 데이터가 없으므로 웹훅이 호출되지 않음
+    verify(webhookRestTemplate, times(0))
         .postForEntity(anyString(), any(HttpEntity.class), eq(String.class));
-
-    org.mockito.ArgumentCaptor<HttpEntity> entityCaptor =
-        org.mockito.ArgumentCaptor.forClass(HttpEntity.class);
-    verify(webhookRestTemplate)
-        .postForEntity(anyString(), entityCaptor.capture(), eq(String.class));
-
-    String body = entityCaptor.getValue().getBody().toString();
-    assertNotNull(body);
-
-    // 모든 집계가 0으로 표시됨
-    assertThat(body).contains("👥 **신규 유저**: 0명");
-    assertThat(body).contains("✍️ **신규 리뷰**: 0개");
-    assertThat(body).contains("💬 **신규 댓글**: 0개");
-    assertThat(body).contains("❤️ **신규 좋아요**: 0개");
   }
 
   @DisplayName("시나리오3: 시간 경계값 - 자정 직전과 직후 데이터 구분")
@@ -322,6 +306,81 @@ class DailyDataReportIntegrationTest {
     assertThat(body).contains("❤️ **신규 좋아요**: 40개");
   }
 
+  @DisplayName("시나리오6: 신고와 문의 데이터가 포함된 리포트 생성")
+  @Test
+  @Sql(scripts = {"/init-script/init-user.sql", "/init-script/init-alcohol.sql"})
+  @Transactional
+  void 신고와_문의_데이터가_포함된_리포트가_생성된다() {
+    // given - Mock 응답 설정
+    doReturn(ResponseEntity.ok("Success"))
+        .when(webhookRestTemplate)
+        .postForEntity(anyString(), any(HttpEntity.class), eq(String.class));
+
+    // given - 신고 및 문의 데이터 생성
+    createReviewReport(1L, 1L, "WAITING");
+    createReviewReport(1L, 2L, "PENDING");
+    createUserReport(1L, 2L, "WAITING");
+    createBusinessSupport(1L, "WAITING");
+    createBusinessSupport(2L, "PENDING");
+
+    LocalDateTime today = testDate.atStartOfDay();
+    createUser(today, "user1@test.com");
+
+    // when - 리포트 수집
+    String webhookUrl = "https://discord.com/api/webhooks/test";
+    dailyDataReportService.collectAndSendDailyReport(testDate, webhookUrl);
+
+    // then - 웹훅 호출 검증
+    org.mockito.ArgumentCaptor<HttpEntity> entityCaptor =
+        org.mockito.ArgumentCaptor.forClass(HttpEntity.class);
+    verify(webhookRestTemplate)
+        .postForEntity(anyString(), entityCaptor.capture(), eq(String.class));
+
+    String body = entityCaptor.getValue().getBody().toString();
+    assertNotNull(body);
+
+    // 신고 및 문의 데이터 검증 (리뷰 신고 2건 + 유저 신고 1건 = 3건)
+    assertThat(body).contains("🚨 **미처리 신고**: 3건");
+    assertThat(body).contains("📧 **미처리 문의**: 2건");
+    assertThat(body).contains("👥 **신규 유저**: 1명");
+  }
+
+  @DisplayName("시나리오7: 0건인 항목은 리포트에서 제외된다")
+  @Test
+  @Sql(scripts = {"/init-script/init-user.sql"})
+  @Transactional
+  void 값이_0인_항목은_메시지에_포함되지_않는다() {
+    // given - Mock 응답 설정
+    doReturn(ResponseEntity.ok("Success"))
+        .when(webhookRestTemplate)
+        .postForEntity(anyString(), any(HttpEntity.class), eq(String.class));
+
+    // given - 신규 유저 1명만 생성 (다른 데이터는 0)
+    LocalDateTime today = testDate.atStartOfDay();
+    createUser(today, "onlyuser@test.com");
+
+    // when - 리포트 수집
+    String webhookUrl = "https://discord.com/api/webhooks/test";
+    dailyDataReportService.collectAndSendDailyReport(testDate, webhookUrl);
+
+    // then - 웹훅 호출 검증
+    org.mockito.ArgumentCaptor<HttpEntity> entityCaptor =
+        org.mockito.ArgumentCaptor.forClass(HttpEntity.class);
+    verify(webhookRestTemplate)
+        .postForEntity(anyString(), entityCaptor.capture(), eq(String.class));
+
+    String body = entityCaptor.getValue().getBody().toString();
+    assertNotNull(body);
+
+    // 신규 유저만 포함되고 나머지는 제외
+    assertThat(body).contains("👥 **신규 유저**: 1명");
+    assertThat(body).doesNotContain("**신규 리뷰**");
+    assertThat(body).doesNotContain("**신규 댓글**");
+    assertThat(body).doesNotContain("**신규 좋아요**");
+    assertThat(body).doesNotContain("**미처리 신고**");
+    assertThat(body).doesNotContain("**미처리 문의**");
+  }
+
   // Helper methods - 직접 SQL 사용
   private void createUser(LocalDateTime createDate, String email) {
     jdbcTemplate.update(
@@ -365,5 +424,31 @@ class DailyDataReportIntegrationTest {
         userId,
         createDate,
         createDate);
+  }
+
+  private void createReviewReport(Long userId, Long reviewId, String status) {
+    jdbcTemplate.update(
+        "INSERT INTO review_reports (user_id, review_id, type, report_content, status, ip_address, create_at, last_modify_at) "
+            + "VALUES (?, ?, 'SPAM', 'Test report', ?, '127.0.0.1', NOW(), NOW())",
+        userId,
+        reviewId,
+        status);
+  }
+
+  private void createUserReport(Long userId, Long reportUserId, String status) {
+    jdbcTemplate.update(
+        "INSERT INTO user_reports (user_id, report_user_id, type, report_content, status, create_at, last_modify_at) "
+            + "VALUES (?, ?, 'SPAM', 'Test report', ?, NOW(), NOW())",
+        userId,
+        reportUserId,
+        status);
+  }
+
+  private void createBusinessSupport(Long userId, String status) {
+    jdbcTemplate.update(
+        "INSERT INTO business_supports (user_id, title, content, contact, status, create_at, last_modify_at) "
+            + "VALUES (?, 'Test Business Support', 'Test content', 'test@test.com', ?, NOW(), NOW())",
+        userId,
+        status);
   }
 }

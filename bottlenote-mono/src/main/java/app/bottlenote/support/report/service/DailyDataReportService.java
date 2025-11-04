@@ -6,10 +6,8 @@ import app.bottlenote.support.report.exception.ReportExceptionCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
@@ -21,16 +19,20 @@ import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class DailyDataReportService {
 
   private final JdbcTemplate jdbcTemplate;
-
-  @Qualifier("webhookRestTemplate")
   private final RestTemplate restTemplate;
-
-  @Qualifier("webhookObjectMapper")
   private final ObjectMapper objectMapper;
+
+  public DailyDataReportService(
+      JdbcTemplate jdbcTemplate,
+      @Qualifier("webhookRestTemplate") RestTemplate restTemplate,
+      @Qualifier("webhookObjectMapper") ObjectMapper objectMapper) {
+    this.jdbcTemplate = jdbcTemplate;
+    this.restTemplate = restTemplate;
+    this.objectMapper = objectMapper;
+  }
 
   /**
    * 지정된 날짜의 데이터를 수집하고 웹훅으로 전송합니다.
@@ -42,6 +44,12 @@ public class DailyDataReportService {
     log.info("일일 데이터 리포트 수집 및 전송 시작: {}", targetDate);
 
     DailyDataReportDto report = collectDailyData(targetDate);
+
+    if (!report.hasNewData()) {
+      log.info("신규 데이터가 없어 리포트 전송을 건너뜁니다: {}", targetDate);
+      return;
+    }
+
     sendWebhook(report, webhookUrl);
 
     log.info("일일 데이터 리포트 수집 및 전송 완료: {}", targetDate);
@@ -64,17 +72,27 @@ public class DailyDataReportService {
       Long newReviewsCount = countNewReviews(startOfDay, endOfDay);
       Long newRepliesCount = countNewReplies(startOfDay, endOfDay);
       Long newLikesCount = countNewLikes(startOfDay, endOfDay);
+      Long newReportsCount = countUnprocessedReports();
+      Long newInquiriesCount = countUnprocessedInquiries();
 
       log.info(
-          "일일 데이터 리포트 수집 완료: {} - 유저: {}, 리뷰: {}, 댓글: {}, 좋아요: {}",
+          "일일 데이터 리포트 수집 완료: {} - 유저: {}, 리뷰: {}, 댓글: {}, 좋아요: {}, 미처리 신고: {}, 미처리 문의: {}",
           targetDate,
           newUsersCount,
           newReviewsCount,
           newRepliesCount,
-          newLikesCount);
+          newLikesCount,
+          newReportsCount,
+          newInquiriesCount);
 
       return new DailyDataReportDto(
-          targetDate, newUsersCount, newReviewsCount, newRepliesCount, newLikesCount);
+          targetDate,
+          newUsersCount,
+          newReviewsCount,
+          newRepliesCount,
+          newLikesCount,
+          newReportsCount,
+          newInquiriesCount);
     } catch (Exception e) {
       log.error("일일 데이터 수집 실패: targetDate={}, error={}", targetDate, e.getMessage(), e);
       throw new ReportException(ReportExceptionCode.DATA_COLLECTION_FAILED);
@@ -114,16 +132,7 @@ public class DailyDataReportService {
   }
 
   private String buildDiscordMessage(DailyDataReportDto report) {
-    String dateStr = report.reportDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
-    StringBuilder sb = new StringBuilder();
-    sb.append("📊 **일일 데이터 리포트** - ").append(dateStr).append("\n\n");
-    sb.append("👥 **신규 유저**: ").append(report.newUsersCount()).append("명\n");
-    sb.append("✍️ **신규 리뷰**: ").append(report.newReviewsCount()).append("개\n");
-    sb.append("💬 **신규 댓글**: ").append(report.newRepliesCount()).append("개\n");
-    sb.append("❤️ **신규 좋아요**: ").append(report.newLikesCount()).append("개\n");
-
-    return sb.toString();
+    return report.toDiscordMessage();
   }
 
   private Long countNewUsers(LocalDateTime start, LocalDateTime end) {
@@ -144,5 +153,25 @@ public class DailyDataReportService {
   private Long countNewLikes(LocalDateTime start, LocalDateTime end) {
     String sql = "SELECT COUNT(*) FROM likes WHERE create_at >= ? AND create_at < ?";
     return jdbcTemplate.queryForObject(sql, Long.class, start, end);
+  }
+
+  private Long countUnprocessedReports() {
+    String reviewReportsSql =
+        "SELECT COUNT(*) FROM review_reports WHERE status = 'WAITING' OR status = 'PENDING'";
+    String userReportsSql =
+        "SELECT COUNT(*) FROM user_reports WHERE status = 'WAITING' OR status = 'PENDING'";
+
+    Long reviewReportsCount = jdbcTemplate.queryForObject(reviewReportsSql, Long.class);
+    Long userReportsCount = jdbcTemplate.queryForObject(userReportsSql, Long.class);
+
+    return (reviewReportsCount != null ? reviewReportsCount : 0L)
+        + (userReportsCount != null ? userReportsCount : 0L);
+  }
+
+  private Long countUnprocessedInquiries() {
+    String businessSupportsSql =
+        "SELECT COUNT(*) FROM business_supports WHERE status = 'WAITING' OR status = 'PENDING'";
+    Long count = jdbcTemplate.queryForObject(businessSupportsSql, Long.class);
+    return count != null ? count : 0L;
   }
 }
