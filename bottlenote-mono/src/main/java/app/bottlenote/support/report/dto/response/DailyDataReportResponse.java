@@ -1,9 +1,9 @@
-package app.bottlenote.support.report.dto;
+package app.bottlenote.support.report.dto.response;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-public record DailyDataReportDto(
+public record DailyDataReportResponse(
     LocalDate reportDate,
     Long newUsersCount,
     Long newReviewsCount,

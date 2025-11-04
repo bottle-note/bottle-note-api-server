@@ -1,6 +1,5 @@
 package app.external.webhook.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -18,10 +17,5 @@ public class WebhookConfig {
         .setConnectTimeout(Duration.ofSeconds(5))
         .setReadTimeout(Duration.ofSeconds(10))
         .build();
-  }
-
-  @Bean
-  public ObjectMapper webhookObjectMapper() {
-    return new ObjectMapper();
   }
 }
