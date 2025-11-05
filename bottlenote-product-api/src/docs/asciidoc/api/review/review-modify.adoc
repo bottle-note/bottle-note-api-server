@@ -6,7 +6,7 @@
 
 수정 내용은 RequestBody로 요청을 전달합니다.
 
-content(리뷰 내용)의 길이는 500자로 제한되며, price(가격은)
+content(리뷰 내용)의 길이는 700자로 제한되며, price(가격은)
 0 ~ 1조 범위만 가능합니다.
 
 ReviewStatus와 SizeType은 아래 ENUM을 참고해주세요.

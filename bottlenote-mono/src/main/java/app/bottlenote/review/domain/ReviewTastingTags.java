@@ -22,7 +22,7 @@ import org.springframework.util.CollectionUtils;
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 public class ReviewTastingTags {
 
-  private static final int TASTING_TAG_MAX_SIZE = 10;
+  private static final int TASTING_TAG_MAX_SIZE = 15;
 
   @OneToMany(
       mappedBy = "review",

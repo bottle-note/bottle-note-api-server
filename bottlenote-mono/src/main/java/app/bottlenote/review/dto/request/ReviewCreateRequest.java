@@ -19,7 +19,7 @@ public record ReviewCreateRequest(
         Long alcoholId,
     ReviewDisplayStatus status,
     @NotEmpty(message = "REVIEW_CONTENT_REQUIRED")
-        @Size(max = 500, message = "REVIEW_CONTENT_MAXIMUM")
+        @Size(max = 700, message = "REVIEW_CONTENT_MAXIMUM")
         String content,
     SizeType sizeType,
     @DecimalMin(value = "0.0", message = "PRICE_MINIMUM")
