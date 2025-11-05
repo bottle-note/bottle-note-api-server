@@ -10,117 +10,56 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.support.report.service.DailyDataReportService;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.concurrent.CompletableFuture;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.containers.Network;
-import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 @Tag("integration")
 @DisplayName("[integration] [service] DailyDataReportService - TestContainers 실제 데이터 통합 테스트")
-@Testcontainers
-@ActiveProfiles({"test"})
-@AutoConfigureMockMvc
-@SpringBootTest(
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    properties = {
-      "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration"
-    })
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SuppressWarnings("resource")
-class DailyDataReportIntegrationTest {
+class DailyDataReportIntegrationTest extends IntegrationTestSupport {
 
-  private static final Network network = Network.newNetwork();
-
-  @Container
-  protected static MySQLContainer<?> MY_SQL_CONTAINER =
-      new MySQLContainer<>(DockerImageName.parse("mysql:8.0.32"))
-          .withReuse(true)
-          .withNetwork(network)
-          .withDatabaseName("bottlenote")
-          .withUsername("root")
-          .withPassword("root");
-
-  @Container
-  protected static GenericContainer<?> REDIS_CONTAINER =
-      new GenericContainer<>(DockerImageName.parse("redis:7.0.12"))
-          .withExposedPorts(6379)
-          .withNetworkAliases("redis")
-          .withNetwork(network)
-          .withStartupAttempts(5)
-          .waitingFor(Wait.forLogMessage(".*Ready to accept connections.*", 1))
-          .withReuse(true)
-          .withStartupTimeout(Duration.ofSeconds(30));
-
-  static {
-    CompletableFuture<Void> mysqlFuture = CompletableFuture.runAsync(MY_SQL_CONTAINER::start);
-    CompletableFuture<Void> redisFuture = CompletableFuture.runAsync(REDIS_CONTAINER::start);
-    CompletableFuture.allOf(mysqlFuture, redisFuture).join();
-  }
-
-  @DynamicPropertySource
-  static void redisProperties(DynamicPropertyRegistry registry) {
-    registry.add("spring.data.redis.host", REDIS_CONTAINER::getHost);
-    registry.add("spring.data.redis.port", () -> REDIS_CONTAINER.getMappedPort(6379).toString());
+  @TestConfiguration
+  static class TestConfig {
+    @Bean
+    @Primary
+    RestTemplate webhookRestTemplate() {
+      return Mockito.mock(RestTemplate.class);
+    }
   }
 
   @Autowired private DailyDataReportService dailyDataReportService;
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
-  @SpyBean private RestTemplate webhookRestTemplate;
+  @Autowired private RestTemplate webhookRestTemplate;
 
   private LocalDate testDate;
 
   @BeforeEach
   void setUp() {
     testDate = LocalDate.now();
-  }
-
-  @AfterEach
-  void tearDown() {
-    // 테스트 데이터 정리 (외래 키 순서 고려)
-    jdbcTemplate.execute("DELETE FROM likes WHERE create_at >= CURDATE() - INTERVAL 1 DAY");
-    jdbcTemplate.execute(
-        "DELETE FROM review_replies WHERE create_at >= CURDATE() - INTERVAL 1 DAY");
-    jdbcTemplate.execute("DELETE FROM review_reports WHERE status IN ('WAITING', 'PENDING')");
-    jdbcTemplate.execute("DELETE FROM user_reports WHERE status IN ('WAITING', 'PENDING')");
-    jdbcTemplate.execute("DELETE FROM business_supports WHERE status IN ('WAITING', 'PENDING')");
-    jdbcTemplate.execute("DELETE FROM reviews WHERE create_at >= CURDATE() - INTERVAL 1 DAY");
-    jdbcTemplate.execute(
-        "DELETE FROM users WHERE email LIKE '%test.com' AND create_at >= CURDATE() - INTERVAL 1 DAY");
+    Mockito.reset(webhookRestTemplate);
   }
 
   @DisplayName("시나리오1: 실제 데이터로 일일 리포트를 생성하고 집계가 정확한지 검증")
   @Test
   @Sql(scripts = {"/init-script/init-user.sql", "/init-script/init-alcohol.sql"})
-  @Transactional
   void 실제_데이터를_사용하여_일일_리포트가_정확하게_집계된다() {
     // given - Mock 응답 설정
     doReturn(ResponseEntity.ok("Success"))
@@ -201,7 +140,6 @@ class DailyDataReportIntegrationTest {
   @DisplayName("시나리오3: 시간 경계값 - 자정 직전과 직후 데이터 구분")
   @Test
   @Sql(scripts = {"/init-script/init-user.sql", "/init-script/init-alcohol.sql"})
-  @Transactional
   void 자정을_기준으로_데이터가_정확하게_구분된다() {
     // given - Mock 응답 설정
     doReturn(ResponseEntity.ok("Success"))
@@ -241,7 +179,6 @@ class DailyDataReportIntegrationTest {
   @DisplayName("시나리오4: 웹훅 URL이 없으면 데이터 수집만 하고 전송하지 않는다")
   @Test
   @Sql(scripts = {"/init-script/init-user.sql"})
-  @Transactional
   void 웹훅URL이_없으면_전송하지_않고_정상_처리된다() {
     // given - 실제 데이터 생성
     LocalDateTime today = testDate.atStartOfDay();
@@ -258,7 +195,6 @@ class DailyDataReportIntegrationTest {
   @DisplayName("시나리오5: 대량 데이터 집계 성능 테스트")
   @Test
   @Sql(scripts = {"/init-script/init-user.sql", "/init-script/init-alcohol.sql"})
-  @Transactional
   void 대량의_데이터도_정상적으로_집계된다() {
     // given - Mock 응답 설정
     doReturn(ResponseEntity.ok("Success"))
@@ -309,7 +245,6 @@ class DailyDataReportIntegrationTest {
   @DisplayName("시나리오6: 신고와 문의 데이터가 포함된 리포트 생성")
   @Test
   @Sql(scripts = {"/init-script/init-user.sql", "/init-script/init-alcohol.sql"})
-  @Transactional
   void 신고와_문의_데이터가_포함된_리포트가_생성된다() {
     // given - Mock 응답 설정
     doReturn(ResponseEntity.ok("Success"))
@@ -348,7 +283,6 @@ class DailyDataReportIntegrationTest {
   @DisplayName("시나리오7: 0건인 항목은 리포트에서 제외된다")
   @Test
   @Sql(scripts = {"/init-script/init-user.sql"})
-  @Transactional
   void 값이_0인_항목은_메시지에_포함되지_않는다() {
     // given - Mock 응답 설정
     doReturn(ResponseEntity.ok("Success"))
