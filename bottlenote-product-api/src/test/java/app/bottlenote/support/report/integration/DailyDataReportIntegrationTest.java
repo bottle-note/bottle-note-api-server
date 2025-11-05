@@ -26,7 +26,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.web.client.RestTemplate;
 
 @Tag("integration")
@@ -58,7 +57,6 @@ class DailyDataReportIntegrationTest extends IntegrationTestSupport {
 
   @DisplayName("시나리오1: 실제 데이터로 일일 리포트를 생성하고 집계가 정확한지 검증")
   @Test
-  @Sql(scripts = {"/init-script/init-user.sql", "/init-script/init-alcohol.sql"})
   void 실제_데이터를_사용하여_일일_리포트가_정확하게_집계된다() {
     // given - Mock 응답 설정
     doReturn(ResponseEntity.ok("Success"))
@@ -138,7 +136,6 @@ class DailyDataReportIntegrationTest extends IntegrationTestSupport {
 
   @DisplayName("시나리오3: 시간 경계값 - 자정 직전과 직후 데이터 구분")
   @Test
-  @Sql(scripts = {"/init-script/init-user.sql", "/init-script/init-alcohol.sql"})
   void 자정을_기준으로_데이터가_정확하게_구분된다() {
     // given - Mock 응답 설정
     doReturn(ResponseEntity.ok("Success"))
@@ -177,7 +174,6 @@ class DailyDataReportIntegrationTest extends IntegrationTestSupport {
 
   @DisplayName("시나리오4: 웹훅 URL이 없으면 데이터 수집만 하고 전송하지 않는다")
   @Test
-  @Sql(scripts = {"/init-script/init-user.sql"})
   void 웹훅URL이_없으면_전송하지_않고_정상_처리된다() {
     // given - 실제 데이터 생성
     LocalDateTime today = testDate.atStartOfDay();
@@ -193,7 +189,6 @@ class DailyDataReportIntegrationTest extends IntegrationTestSupport {
 
   @DisplayName("시나리오5: 대량 데이터 집계 성능 테스트")
   @Test
-  @Sql(scripts = {"/init-script/init-user.sql", "/init-script/init-alcohol.sql"})
   void 대량의_데이터도_정상적으로_집계된다() {
     // given - Mock 응답 설정
     doReturn(ResponseEntity.ok("Success"))
@@ -243,7 +238,6 @@ class DailyDataReportIntegrationTest extends IntegrationTestSupport {
 
   @DisplayName("시나리오6: 신고와 문의 데이터가 포함된 리포트 생성")
   @Test
-  @Sql(scripts = {"/init-script/init-user.sql", "/init-script/init-alcohol.sql"})
   void 신고와_문의_데이터가_포함된_리포트가_생성된다() {
     // given - Mock 응답 설정
     doReturn(ResponseEntity.ok("Success"))
@@ -281,7 +275,6 @@ class DailyDataReportIntegrationTest extends IntegrationTestSupport {
 
   @DisplayName("시나리오7: 0건인 항목은 리포트에서 제외된다")
   @Test
-  @Sql(scripts = {"/init-script/init-user.sql"})
   void 값이_0인_항목은_메시지에_포함되지_않는다() {
     // given - Mock 응답 설정
     doReturn(ResponseEntity.ok("Success"))
