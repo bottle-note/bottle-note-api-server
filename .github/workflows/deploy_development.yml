@@ -262,7 +262,6 @@ jobs:
             docker images | grep $ECR_REPOSITORY
 
             echo "${{ steps.prepare-app-env.outputs.content }}" | base64 -d > ~/compose/.bottlenote.development.ENV
-            sudo rm -f /var/log/bottle-note/application-dev* 2>/dev/null || true
 
             export FULL_IMAGE_NAME="$FULL_IMAGE_NAME"
             export GIT_BRANCH="${{ github.ref_name }}"
