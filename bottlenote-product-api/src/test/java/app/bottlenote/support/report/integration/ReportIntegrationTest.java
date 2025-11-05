@@ -56,8 +56,9 @@ class ReportIntegrationTest extends IntegrationTestSupport {
       })
   void test_1() throws Exception {
     // given
+    Review review = reviewRepository.findAll().getFirst();
     ReviewReportRequest reviewReportRequest =
-        new ReviewReportRequest(1L, ADVERTISEMENT, "이 리뷰는 광고 리뷰입니다.");
+        new ReviewReportRequest(review.getId(), ADVERTISEMENT, "이 리뷰는 광고 리뷰입니다.");
 
     final Long reviewReportId = 1L;
     MvcResult result =
