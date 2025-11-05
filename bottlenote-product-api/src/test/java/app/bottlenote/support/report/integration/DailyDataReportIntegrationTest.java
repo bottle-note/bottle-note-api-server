@@ -31,7 +31,6 @@ import org.springframework.web.client.RestTemplate;
 
 @Tag("integration")
 @DisplayName("[integration] [service] DailyDataReportService - TestContainers 실제 데이터 통합 테스트")
-@SuppressWarnings("resource")
 class DailyDataReportIntegrationTest extends IntegrationTestSupport {
 
   @TestConfiguration
