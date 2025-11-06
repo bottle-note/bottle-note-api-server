@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.payload.JsonFieldType.ARRAY;
 import static org.springframework.restdocs.payload.JsonFieldType.BOOLEAN;
 import static org.springframework.restdocs.payload.JsonFieldType.NUMBER;
@@ -18,7 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import app.bottlenote.alcohols.dto.request.CurationKeywordSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
-import app.bottlenote.alcohols.dto.response.CurationKeywordDto;
+import app.bottlenote.alcohols.dto.response.CurationKeywordResponse;
 import app.bottlenote.alcohols.service.AlcoholReferenceService;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.CursorResponse;
@@ -28,7 +29,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 @Tag("rest-docs")
 @DisplayName("큐레이션 키워드 API 문서화 테스트")
@@ -46,8 +46,8 @@ class AlcoholReferenceControllerRestDocsTest extends AbstractRestDocs {
   @DisplayName("큐레이션 키워드 목록을 조회할 수 있다")
   void searchCurationKeywords() throws Exception {
     // given
-    CurationKeywordDto dto1 =
-        CurationKeywordDto.builder()
+    CurationKeywordResponse dto1 =
+        CurationKeywordResponse.builder()
             .id(1L)
             .name("봄 추천 위스키")
             .description("봄에 어울리는 위스키 모음")
@@ -55,8 +55,8 @@ class AlcoholReferenceControllerRestDocsTest extends AbstractRestDocs {
             .displayOrder(1)
             .build();
 
-    CurationKeywordDto dto2 =
-        CurationKeywordDto.builder()
+    CurationKeywordResponse dto2 =
+        CurationKeywordResponse.builder()
             .id(2L)
             .name("여름 추천 위스키")
             .description("여름에 어울리는 위스키 모음")
@@ -67,7 +67,8 @@ class AlcoholReferenceControllerRestDocsTest extends AbstractRestDocs {
     CursorPageable pageable =
         CursorPageable.builder().currentCursor(0L).cursor(10L).pageSize(10L).hasNext(false).build();
 
-    CursorResponse<CurationKeywordDto> response = CursorResponse.of(List.of(dto1, dto2), pageable);
+    CursorResponse<CurationKeywordResponse> response =
+        CursorResponse.of(List.of(dto1, dto2), pageable);
 
     when(alcoholReferenceService.searchCurationKeywords(any(CurationKeywordSearchRequest.class)))
         .thenReturn(response);
@@ -75,7 +76,7 @@ class AlcoholReferenceControllerRestDocsTest extends AbstractRestDocs {
     // when
     ResultActions resultActions =
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/v1/curations")
+            get("/api/v1/curations")
                 .param("keyword", "봄")
                 .param("cursor", "0")
                 .param("pageSize", "10"));
@@ -95,6 +96,7 @@ class AlcoholReferenceControllerRestDocsTest extends AbstractRestDocs {
                     parameterWithName("cursor").description("커서 페이징 (기본값: 0)").optional(),
                     parameterWithName("pageSize").description("페이지 크기 (기본값: 10)").optional()),
                 responseFields(
+                    fieldWithPath("success").type(BOOLEAN).description("성공 여부"),
                     fieldWithPath("code").type(NUMBER).description("응답 코드"),
                     fieldWithPath("data").type(OBJECT).description("응답 데이터"),
                     fieldWithPath("data.items").type(ARRAY).description("큐레이션 키워드 목록"),
@@ -112,6 +114,11 @@ class AlcoholReferenceControllerRestDocsTest extends AbstractRestDocs {
                     fieldWithPath("data.pageable.hasNext")
                         .type(BOOLEAN)
                         .description("다음 페이지 존재 여부"),
+                    fieldWithPath("meta").type(OBJECT).description("메타 정보"),
+                    fieldWithPath("meta.serverVersion").type(STRING).description("서버 버전"),
+                    fieldWithPath("meta.serverEncoding").type(STRING).description("서버 인코딩"),
+                    fieldWithPath("meta.serverResponseTime").type(ARRAY).description("응답 시간"),
+                    fieldWithPath("meta.serverPathVersion").type(STRING).description("API 경로 버전"),
                     fieldWithPath("errors").description("에러 정보").optional())));
   }
 
@@ -144,7 +151,7 @@ class AlcoholReferenceControllerRestDocsTest extends AbstractRestDocs {
     // when
     ResultActions resultActions =
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/v1/curations/{curationId}/alcohols", 1L)
+            get("/api/v1/curations/{curationId}/alcohols", 1L)
                 .param("cursor", "0")
                 .param("pageSize", "10"));
 
@@ -159,6 +166,7 @@ class AlcoholReferenceControllerRestDocsTest extends AbstractRestDocs {
                     parameterWithName("cursor").description("커서 페이징 (기본값: 0)").optional(),
                     parameterWithName("pageSize").description("페이지 크기 (기본값: 10)").optional()),
                 responseFields(
+                    fieldWithPath("success").type(BOOLEAN).description("성공 여부"),
                     fieldWithPath("code").type(NUMBER).description("응답 코드"),
                     fieldWithPath("data").type(OBJECT).description("응답 데이터"),
                     fieldWithPath("data.items").type(ARRAY).description("위스키 목록"),
@@ -184,6 +192,11 @@ class AlcoholReferenceControllerRestDocsTest extends AbstractRestDocs {
                     fieldWithPath("data.pageable.hasNext")
                         .type(BOOLEAN)
                         .description("다음 페이지 존재 여부"),
+                    fieldWithPath("meta").type(OBJECT).description("메타 정보"),
+                    fieldWithPath("meta.serverVersion").type(STRING).description("서버 버전"),
+                    fieldWithPath("meta.serverEncoding").type(STRING).description("서버 인코딩"),
+                    fieldWithPath("meta.serverResponseTime").type(ARRAY).description("응답 시간"),
+                    fieldWithPath("meta.serverPathVersion").type(STRING).description("API 경로 버전"),
                     fieldWithPath("errors").description("에러 정보").optional())));
   }
 }

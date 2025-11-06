@@ -1,6 +1,7 @@
 package app.bottlenote.config;
 
 import app.bottlenote.alcohols.repository.AlcoholQuerySupporter;
+import app.bottlenote.alcohols.repository.JpaCurationKeywordRepository;
 import app.bottlenote.global.data.serializers.CustomDeserializers;
 import app.bottlenote.global.data.serializers.CustomDeserializers.TagListDeserializer;
 import app.bottlenote.global.data.serializers.CustomSerializers;
@@ -37,8 +38,9 @@ public class ModuleConfig {
   }
 
   @Bean
-  public AlcoholQuerySupporter alcoholQuerySupporter() {
-    return new AlcoholQuerySupporter();
+  public AlcoholQuerySupporter alcoholQuerySupporter(
+      JpaCurationKeywordRepository curationKeywordRepository) {
+    return new AlcoholQuerySupporter(curationKeywordRepository);
   }
 
   @Bean

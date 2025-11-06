@@ -1,7 +1,7 @@
 package app.bottlenote.alcohols.repository;
 
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
-import app.bottlenote.alcohols.dto.response.CurationKeywordDto;
+import app.bottlenote.alcohols.dto.response.CurationKeywordResponse;
 import app.bottlenote.global.service.cursor.CursorResponse;
 
 public interface CustomCurationKeywordRepository {
@@ -15,7 +15,7 @@ public interface CustomCurationKeywordRepository {
    * @param pageSize 페이지 크기
    * @return 큐레이션 키워드 목록
    */
-  CursorResponse<CurationKeywordDto> searchCurationKeywords(
+  CursorResponse<CurationKeywordResponse> searchCurationKeywords(
       String keyword, Long alcoholId, Long cursor, Integer pageSize);
 
   /**

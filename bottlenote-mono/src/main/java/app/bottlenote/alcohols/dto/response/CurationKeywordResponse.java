@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CurationKeywordDto {
+public class CurationKeywordResponse {
   private Long id;
   private String name;
   private String description;

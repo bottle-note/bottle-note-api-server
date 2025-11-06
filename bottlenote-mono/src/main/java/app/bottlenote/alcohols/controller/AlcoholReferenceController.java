@@ -3,7 +3,7 @@ package app.bottlenote.alcohols.controller;
 import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.dto.request.CurationKeywordSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
-import app.bottlenote.alcohols.dto.response.CurationKeywordDto;
+import app.bottlenote.alcohols.dto.response.CurationKeywordResponse;
 import app.bottlenote.alcohols.service.AlcoholReferenceService;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.service.cursor.CursorResponse;
@@ -37,7 +37,7 @@ public class AlcoholReferenceController {
   @GetMapping("/curations")
   public ResponseEntity<?> searchCurationKeywords(
       @ModelAttribute CurationKeywordSearchRequest request) {
-    CursorResponse<CurationKeywordDto> response =
+    CursorResponse<CurationKeywordResponse> response =
         alcoholReferenceService.searchCurationKeywords(request);
     return GlobalResponse.ok(response);
   }

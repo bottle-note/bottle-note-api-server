@@ -8,7 +8,7 @@ import static app.bottlenote.review.domain.QReview.review;
 
 import app.bottlenote.alcohols.domain.CurationKeyword;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
-import app.bottlenote.alcohols.dto.response.CurationKeywordDto;
+import app.bottlenote.alcohols.dto.response.CurationKeywordResponse;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.CursorResponse;
 import com.querydsl.core.types.Projections;
@@ -26,13 +26,13 @@ public class CustomCurationKeywordRepositoryImpl implements CustomCurationKeywor
   private final JPAQueryFactory queryFactory;
 
   @Override
-  public CursorResponse<CurationKeywordDto> searchCurationKeywords(
+  public CursorResponse<CurationKeywordResponse> searchCurationKeywords(
       String keyword, Long alcoholId, Long cursor, Integer pageSize) {
-    List<CurationKeywordDto> results =
+    List<CurationKeywordResponse> results =
         queryFactory
             .select(
                 Projections.fields(
-                    CurationKeywordDto.class,
+                    CurationKeywordResponse.class,
                     curationKeyword.id.as("id"),
                     curationKeyword.name.as("name"),
                     curationKeyword.description.as("description"),
@@ -49,7 +49,7 @@ public class CustomCurationKeywordRepositoryImpl implements CustomCurationKeywor
             .fetch();
 
     CursorPageable pageable = CursorPageable.of(results, cursor, pageSize);
-    List<CurationKeywordDto> content =
+    List<CurationKeywordResponse> content =
         results.size() > pageSize ? results.subList(0, pageSize) : results;
 
     return CursorResponse.of(content, pageable);

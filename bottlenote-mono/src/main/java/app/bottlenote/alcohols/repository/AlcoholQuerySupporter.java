@@ -12,7 +12,6 @@ import static app.bottlenote.review.domain.QReview.review;
 import static com.querydsl.jpa.JPAExpressions.select;
 
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
-import app.bottlenote.alcohols.constant.KeywordTagMapping;
 import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
@@ -30,12 +29,17 @@ import com.querydsl.jpa.JPAExpressions;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class AlcoholQuerySupporter {
+
+  private final JpaCurationKeywordRepository curationKeywordRepository;
 
   /** 주류에 연결된 테이스팅 태그 목록을 문자열로 조회 */
   public static Expression<String> getTastingTags() {
@@ -415,18 +419,13 @@ public class AlcoholQuerySupporter {
   }
 
   public BooleanExpression getTastingTagsExpression(String keyword) {
-    var tagMapping = KeywordTagMapping.findByKeyword(keyword);
+    var curationKeyword = curationKeywordRepository.findByNameContainingAndIsActiveTrue(keyword);
 
-    if (tagMapping.isPresent()) {
-      List<Long> tagIds = tagMapping.get().getIncludeTags();
+    if (curationKeyword.isPresent()) {
+      Set<Long> alcoholIds = curationKeyword.get().getAlcoholIds();
 
-      if (tagIds != null && !tagIds.isEmpty()) {
-        return JPAExpressions.selectOne()
-            .from(alcoholsTastingTags)
-            .where(
-                alcoholsTastingTags.alcohol.id.eq(alcohol.id),
-                alcoholsTastingTags.tastingTag.id.in(tagIds))
-            .exists();
+      if (alcoholIds != null && !alcoholIds.isEmpty()) {
+        return alcohol.id.in(alcoholIds);
       }
     }
     return null;

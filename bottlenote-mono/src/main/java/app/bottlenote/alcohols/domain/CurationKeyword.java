@@ -19,7 +19,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Entity
+@Entity(name = "curation_keyword")
 @Table(name = "curation_keyword")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

@@ -7,7 +7,7 @@ import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.request.CurationKeywordSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
-import app.bottlenote.alcohols.dto.response.CurationKeywordDto;
+import app.bottlenote.alcohols.dto.response.CurationKeywordResponse;
 import app.bottlenote.alcohols.dto.response.RegionsItem;
 import app.bottlenote.alcohols.repository.JpaCurationKeywordRepository;
 import app.bottlenote.alcohols.repository.JpaRegionQueryRepository;
@@ -41,7 +41,7 @@ public class AlcoholReferenceService {
   }
 
   @Transactional(readOnly = true)
-  public CursorResponse<CurationKeywordDto> searchCurationKeywords(
+  public CursorResponse<CurationKeywordResponse> searchCurationKeywords(
       CurationKeywordSearchRequest request) {
     return curationKeywordRepository.searchCurationKeywords(
         request.keyword(), request.alcoholId(), request.cursor(), request.pageSize().intValue());
