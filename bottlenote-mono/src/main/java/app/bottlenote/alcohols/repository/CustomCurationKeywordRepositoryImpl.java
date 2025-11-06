@@ -128,6 +128,22 @@ public class CustomCurationKeywordRepositoryImpl implements CustomCurationKeywor
     return CursorResponse.of(content, pageable);
   }
 
+  @Override
+  public java.util.Optional<java.util.Set<Long>> findAlcoholIdsByKeyword(String keyword) {
+    if (keyword == null || keyword.isBlank()) {
+      return java.util.Optional.empty();
+    }
+
+    CurationKeyword result =
+        queryFactory
+            .selectFrom(curationKeyword)
+            .where(
+                curationKeyword.isActive.isTrue(), curationKeyword.name.containsIgnoreCase(keyword))
+            .fetchFirst();
+
+    return java.util.Optional.ofNullable(result).map(CurationKeyword::getAlcoholIds);
+  }
+
   private BooleanExpression keywordContains(String keyword) {
     return keyword != null && !keyword.isBlank()
         ? curationKeyword.name.containsIgnoreCase(keyword)

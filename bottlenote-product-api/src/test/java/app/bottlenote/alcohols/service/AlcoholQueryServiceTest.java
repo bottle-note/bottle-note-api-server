@@ -29,6 +29,8 @@ class AlcoholQueryServiceTest {
 
   @Mock private JpaAlcoholQueryRepository jpaAlcoholQueryRepository;
 
+  @Mock private AlcoholReferenceService alcoholReferenceService;
+
   @InjectMocks private AlcoholQueryService alcoholQueryService;
 
   private Long userId;
@@ -46,6 +48,9 @@ class AlcoholQueryServiceTest {
   @DisplayName("위스키 검색 할 수 있다.")
   void testSearchAlcohols() {
     // given
+    when(alcoholReferenceService.getCurationAlcoholIds(any()))
+        .thenReturn(java.util.Optional.empty());
+
     // when
     when(jpaAlcoholQueryRepository.searchAlcohols(any(AlcoholSearchCriteria.class)))
         .thenReturn(response);

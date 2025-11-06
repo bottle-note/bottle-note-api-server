@@ -14,6 +14,7 @@ import app.bottlenote.review.facade.ReviewFacade;
 import app.bottlenote.user.facade.FollowFacade;
 import app.bottlenote.user.facade.payload.FriendItem;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -30,6 +31,7 @@ public class AlcoholQueryService {
   private final AlcoholViewHistoryService viewHistoryService;
   private final ReviewFacade reviewFacade;
   private final FollowFacade followFacade;
+  private final AlcoholReferenceService alcoholReferenceService;
 
   /**
    * 술(위스키) 리스트 조회 api
@@ -41,7 +43,9 @@ public class AlcoholQueryService {
   @Transactional(readOnly = true)
   public PageResponse<AlcoholSearchResponse> searchAlcohols(
       AlcoholSearchRequest request, Long userId) {
-    AlcoholSearchCriteria criteria = AlcoholSearchCriteria.of(request, userId);
+    Set<Long> alcoholIds =
+        alcoholReferenceService.getCurationAlcoholIds(request.keyword()).orElse(null);
+    AlcoholSearchCriteria criteria = AlcoholSearchCriteria.of(request, userId, alcoholIds);
     return alcoholQueryRepository.searchAlcohols(criteria);
   }
 
