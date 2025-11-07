@@ -6,8 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.alcohols.domain.Alcohol;
@@ -22,7 +20,6 @@ import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.rating.fixture.RatingTestFactory;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.fixture.UserTestFactory;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
@@ -30,7 +27,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
 @Tag("integration")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -47,16 +44,17 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
   void test_1() throws Exception {
     alcoholTestFactory.persistAlcohols(10);
 
-    MvcResult result =
-        mockMvc
-            .perform(
-                get("/api/v1/alcohols/search")
-                    .contentType(APPLICATION_JSON)
-                    .header("Authorization", "Bearer " + getToken())
-                    .with(csrf()))
-            .andDo(print())
-            .andReturn();
-    String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/alcohols/search")
+            .contentType(APPLICATION_JSON)
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
+
+    result.assertThat().hasStatusOk();
+    String responseString = result.bodyText();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholSearchResponse alcoholSearchResponse =
         mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
@@ -74,18 +72,18 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
     TastingTag tag = TastingTag.builder().korName("테스트 태그").engName("test-tag").build();
     alcoholTestFactory.appendTastingTag(alcohol, tag);
 
-    MvcResult result =
-        mockMvc
-            .perform(
-                get("/api/v1/alcohols/search")
-                    .param("keyword", "테스트 태그")
-                    .contentType(APPLICATION_JSON)
-                    .header("Authorization", "Bearer " + getToken())
-                    .with(csrf()))
-            .andDo(print())
-            .andReturn();
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/alcohols/search")
+            .param("keyword", "테스트 태그")
+            .contentType(APPLICATION_JSON)
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
 
-    String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+    result.assertThat().hasStatusOk();
+    String responseString = result.bodyText();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholSearchResponse responseData =
         mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
@@ -108,16 +106,17 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
   @DisplayName("알코올 상세 조회를 할 수 있다.")
   void test_2() throws Exception {
     Alcohol alcohol = alcoholTestFactory.persistAlcohol();
-    MvcResult result =
-        mockMvc
-            .perform(
-                get("/api/v1/alcohols/{alcoholId}", alcohol.getId())
-                    .contentType(APPLICATION_JSON)
-                    .header("Authorization", "Bearer " + getToken())
-                    .with(csrf()))
-            .andDo(print())
-            .andReturn();
-    String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/alcohols/{alcoholId}", alcohol.getId())
+            .contentType(APPLICATION_JSON)
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
+
+    result.assertThat().hasStatusOk();
+    String responseString = result.bodyText();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholDetailResponse alcoholDetail =
         mapper.convertValue(response.getData(), AlcoholDetailResponse.class);
@@ -143,16 +142,17 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
     ratingTestFactory.persistRating(currentUserId, alcohol.getId(), 3);
     ratingTestFactory.persistRating(follower.getId(), alcohol.getId(), 4);
 
-    MvcResult result =
-        mockMvc
-            .perform(
-                get("/api/v1/alcohols/{alcoholId}", alcoholId)
-                    .contentType(APPLICATION_JSON)
-                    .header("Authorization", "Bearer " + tokenString)
-                    .with(csrf()))
-            .andDo(print())
-            .andReturn();
-    String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/alcohols/{alcoholId}", alcoholId)
+            .contentType(APPLICATION_JSON)
+            .header("Authorization", "Bearer " + tokenString)
+            .with(csrf())
+            .exchange();
+
+    result.assertThat().hasStatusOk();
+    String responseString = result.bodyText();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholDetailResponse alcoholDetail =
         mapper.convertValue(response.getData(), AlcoholDetailResponse.class);
@@ -170,19 +170,19 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
     Alcohol alcohol = alcoholTestFactory.persistAlcoholWithName("럼 릭", "Rum Rick");
 
     // when - 띄어쓰기 없이 검색
-    MvcResult result =
-        mockMvc
-            .perform(
-                get("/api/v1/alcohols/search")
-                    .param("keyword", "럼릭")
-                    .contentType(APPLICATION_JSON)
-                    .header("Authorization", "Bearer " + getToken())
-                    .with(csrf()))
-            .andDo(print())
-            .andReturn();
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/alcohols/search")
+            .param("keyword", "럼릭")
+            .contentType(APPLICATION_JSON)
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
 
     // then
-    String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+    result.assertThat().hasStatusOk();
+    String responseString = result.bodyText();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholSearchResponse responseData =
         mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
@@ -200,19 +200,19 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
     Alcohol alcohol = alcoholTestFactory.persistAlcoholWithName("럼릭", "RumRick");
 
     // when - 띄어쓰기와 함께 검색
-    MvcResult result =
-        mockMvc
-            .perform(
-                get("/api/v1/alcohols/search")
-                    .param("keyword", "럼 릭")
-                    .contentType(APPLICATION_JSON)
-                    .header("Authorization", "Bearer " + getToken())
-                    .with(csrf()))
-            .andDo(print())
-            .andReturn();
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/alcohols/search")
+            .param("keyword", "럼 릭")
+            .contentType(APPLICATION_JSON)
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
 
     // then
-    String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+    result.assertThat().hasStatusOk();
+    String responseString = result.bodyText();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholSearchResponse responseData =
         mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
@@ -230,19 +230,19 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
     Alcohol alcohol = alcoholTestFactory.persistAlcoholWithName("위스키", "Jack Daniels");
 
     // when - 띄어쓰기 없이 영어로 검색
-    MvcResult result =
-        mockMvc
-            .perform(
-                get("/api/v1/alcohols/search")
-                    .param("keyword", "JackDaniels")
-                    .contentType(APPLICATION_JSON)
-                    .header("Authorization", "Bearer " + getToken())
-                    .with(csrf()))
-            .andDo(print())
-            .andReturn();
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/alcohols/search")
+            .param("keyword", "JackDaniels")
+            .contentType(APPLICATION_JSON)
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
 
     // then
-    String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+    result.assertThat().hasStatusOk();
+    String responseString = result.bodyText();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholSearchResponse responseData =
         mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
@@ -262,19 +262,19 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
     alcoholTestFactory.appendTastingTag(alcohol, tag);
 
     // when - 띄어쓰기 없이 태그로 검색
-    MvcResult result =
-        mockMvc
-            .perform(
-                get("/api/v1/alcohols/search")
-                    .param("keyword", "과일향")
-                    .contentType(APPLICATION_JSON)
-                    .header("Authorization", "Bearer " + getToken())
-                    .with(csrf()))
-            .andDo(print())
-            .andReturn();
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/alcohols/search")
+            .param("keyword", "과일향")
+            .contentType(APPLICATION_JSON)
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
 
     // then
-    String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+    result.assertThat().hasStatusOk();
+    String responseString = result.bodyText();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholSearchResponse responseData =
         mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
@@ -291,19 +291,19 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
     Alcohol alcohol = alcoholTestFactory.persistAlcoholWithName("글래드스톤 엑스", "Gladstone X");
 
     // when - 순서를 바꿔서 "엑스 글래드스톤"으로 검색
-    MvcResult result =
-        mockMvc
-            .perform(
-                get("/api/v1/alcohols/search")
-                    .param("keyword", "엑스 글래드스톤")
-                    .contentType(APPLICATION_JSON)
-                    .header("Authorization", "Bearer " + getToken())
-                    .with(csrf()))
-            .andDo(print())
-            .andReturn();
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/alcohols/search")
+            .param("keyword", "엑스 글래드스톤")
+            .contentType(APPLICATION_JSON)
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
 
     // then
-    String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+    result.assertThat().hasStatusOk();
+    String responseString = result.bodyText();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholSearchResponse responseData =
         mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
@@ -321,19 +321,19 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
     Alcohol alcohol = alcoholTestFactory.persistAlcoholWithName("잭 다니엘스", "Jack Daniels");
 
     // when - 순서를 바꿔서 "Daniels Jack"으로 검색
-    MvcResult result =
-        mockMvc
-            .perform(
-                get("/api/v1/alcohols/search")
-                    .param("keyword", "Daniels Jack")
-                    .contentType(APPLICATION_JSON)
-                    .header("Authorization", "Bearer " + getToken())
-                    .with(csrf()))
-            .andDo(print())
-            .andReturn();
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/alcohols/search")
+            .param("keyword", "Daniels Jack")
+            .contentType(APPLICATION_JSON)
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
 
     // then
-    String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+    result.assertThat().hasStatusOk();
+    String responseString = result.bodyText();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholSearchResponse responseData =
         mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
@@ -351,19 +351,19 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
     Alcohol alcohol = alcoholTestFactory.persistAlcoholWithName("조니 워커 블랙", "Johnny Walker Black");
 
     // when - 순서를 바꿔서 검색
-    MvcResult result =
-        mockMvc
-            .perform(
-                get("/api/v1/alcohols/search")
-                    .param("keyword", "블랙 조니 워커")
-                    .contentType(APPLICATION_JSON)
-                    .header("Authorization", "Bearer " + getToken())
-                    .with(csrf()))
-            .andDo(print())
-            .andReturn();
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/alcohols/search")
+            .param("keyword", "블랙 조니 워커")
+            .contentType(APPLICATION_JSON)
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
 
     // then
-    String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+    result.assertThat().hasStatusOk();
+    String responseString = result.bodyText();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholSearchResponse responseData =
         mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
@@ -382,19 +382,19 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
         alcoholTestFactory.persistAlcoholWithName("조니 워커 블랙 라벨", "Johnny Walker Black Label");
 
     // when - "조니 블랙"으로만 검색 (워커, 라벨 생략)
-    MvcResult result =
-        mockMvc
-            .perform(
-                get("/api/v1/alcohols/search")
-                    .param("keyword", "조니 블랙")
-                    .contentType(APPLICATION_JSON)
-                    .header("Authorization", "Bearer " + getToken())
-                    .with(csrf()))
-            .andDo(print())
-            .andReturn();
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/alcohols/search")
+            .param("keyword", "조니 블랙")
+            .contentType(APPLICATION_JSON)
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
 
     // then
-    String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+    result.assertThat().hasStatusOk();
+    String responseString = result.bodyText();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholSearchResponse responseData =
         mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
@@ -419,19 +419,19 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
         alcoholTestFactory.persistCurationKeyword("봄 추천 위스키", List.of(alcohol1, alcohol2));
 
     // when - 큐레이션 ID로 검색
-    MvcResult result =
-        mockMvc
-            .perform(
-                get("/api/v1/alcohols/search")
-                    .param("curationId", String.valueOf(curation.getId()))
-                    .contentType(APPLICATION_JSON)
-                    .header("Authorization", "Bearer " + getToken())
-                    .with(csrf()))
-            .andDo(print())
-            .andReturn();
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/alcohols/search")
+            .param("curationId", String.valueOf(curation.getId()))
+            .contentType(APPLICATION_JSON)
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
 
     // then
-    String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+    result.assertThat().hasStatusOk();
+    String responseString = result.bodyText();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholSearchResponse responseData =
         mapper.convertValue(response.getData(), AlcoholSearchResponse.class);

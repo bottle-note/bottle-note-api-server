@@ -26,6 +26,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.containers.Network;
@@ -74,6 +75,7 @@ public abstract class IntegrationTestSupport {
 
   @Autowired protected ObjectMapper mapper;
   @Autowired protected MockMvc mockMvc;
+  @Autowired protected MockMvcTester mockMvcTester;
   @Autowired protected OauthService oauthService;
   @Autowired protected OauthRepository oauthRepository;
   @Autowired private DataInitializer dataInitializer;
