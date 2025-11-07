@@ -8,7 +8,6 @@ import java.util.Set;
 
 public record AlcoholSearchCriteria(
     String keyword,
-    Long curationId,
     AlcoholCategoryGroup category,
     Long regionId,
     SearchSortType sortType,
@@ -20,7 +19,6 @@ public record AlcoholSearchCriteria(
   public static AlcoholSearchCriteria of(AlcoholSearchRequest request, Long userId) {
     return new AlcoholSearchCriteria(
         request.keyword(),
-        request.curationId(),
         request.category(),
         request.regionId(),
         request.sortType(),
@@ -35,7 +33,6 @@ public record AlcoholSearchCriteria(
       AlcoholSearchRequest request, Long userId, Set<Long> alcoholIds) {
     return new AlcoholSearchCriteria(
         request.keyword(),
-        request.curationId(),
         request.category(),
         request.regionId(),
         request.sortType(),

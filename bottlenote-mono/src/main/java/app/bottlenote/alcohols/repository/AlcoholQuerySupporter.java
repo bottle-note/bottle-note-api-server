@@ -2,7 +2,6 @@ package app.bottlenote.alcohols.repository;
 
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.alcohols.domain.QAlcoholsTastingTags.alcoholsTastingTags;
-import static app.bottlenote.alcohols.domain.QCurationKeyword.curationKeyword;
 import static app.bottlenote.alcohols.domain.QPopularAlcohol.popularAlcohol;
 import static app.bottlenote.alcohols.domain.QRegion.region;
 import static app.bottlenote.alcohols.domain.QTastingTag.tastingTag;
@@ -432,20 +431,5 @@ public class AlcoholQuerySupporter {
       return alcohol.id.in(alcoholIds);
     }
     return null;
-  }
-
-  /**
-   * 큐레이션 ID로 필터링 조건 생성
-   *
-   * @param curationId 큐레이션 ID
-   * @return 큐레이션 필터링 조건
-   */
-  public BooleanExpression eqCurationId(Long curationId) {
-    if (curationId == null) return null;
-
-    return JPAExpressions.selectOne()
-        .from(curationKeyword)
-        .where(curationKeyword.id.eq(curationId), curationKeyword.alcoholIds.contains(alcohol.id))
-        .exists();
   }
 }
