@@ -4,7 +4,6 @@ import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.global.service.cursor.SortOrder;
-import java.util.Set;
 
 public record AlcoholSearchCriteria(
     String keyword,

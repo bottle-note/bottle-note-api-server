@@ -3,8 +3,6 @@ package app.bottlenote.alcohols.repository;
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.alcohols.domain.QAlcoholsTastingTags.alcoholsTastingTags;
 import static app.bottlenote.alcohols.domain.QPopularAlcohol.popularAlcohol;
-
-import app.bottlenote.alcohols.domain.CurationKeywordRepository;
 import static app.bottlenote.alcohols.domain.QRegion.region;
 import static app.bottlenote.alcohols.domain.QTastingTag.tastingTag;
 import static app.bottlenote.picks.constant.PicksStatus.PICK;
@@ -15,6 +13,7 @@ import static com.querydsl.jpa.JPAExpressions.select;
 
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
+import app.bottlenote.alcohols.domain.CurationKeywordRepository;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.global.service.cursor.CursorPageable;
