@@ -62,16 +62,40 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
             document(
                 "alcohols/search",
                 queryParameters(
-                    parameterWithName("keyword").optional().description("검색어"),
-                    parameterWithName("curationId").optional().description("큐레이션 ID"),
-                    parameterWithName("category").optional().description("카테고리 (category API 참조)"),
-                    parameterWithName("regionId").optional().description("지역 ID (region API 참조)"),
-                    parameterWithName("sortType").optional().description("정렬 타입(해당 문서 하단 enum 참조)"),
+                    parameterWithName("keyword")
+                        .optional()
+                        .description(
+                            "검색어 (알코올 이름, 카테고리, 태스팅 태그로 검색)\n"
+                                + "- 여러 단어 입력 시 띄어쓰기로 구분하여 AND 검색\n"
+                                + "- 예: '조니 블랙' → '조니'와 '블랙' 모두 포함된 결과"),
+                    parameterWithName("curationId")
+                        .optional()
+                        .description(
+                            "큐레이션 ID (특정 큐레이션에 포함된 알코올만 필터링)\n"
+                                + "- keyword와 함께 사용 시 curationId가 우선 적용\n"
+                                + "- 큐레이션 목록은 /api/v1/alcohols/curation-keywords API에서 조회 가능"),
+                    parameterWithName("category")
+                        .optional()
+                        .description("카테고리 필터 (category API 참조)\n" + "- 예: SINGLE_MALT, BLEND 등"),
+                    parameterWithName("regionId")
+                        .optional()
+                        .description("지역 ID 필터 (region API 참조)\n" + "- 예: 1=스코틀랜드, 2=아일랜드 등"),
+                    parameterWithName("sortType")
+                        .optional()
+                        .description(
+                            "정렬 타입 (기본값: POPULAR)\n"
+                                + "- POPULAR: 인기순\n"
+                                + "- REVIEW: 리뷰 많은 순\n"
+                                + "- RATING: 평점 높은 순"),
                     parameterWithName("sortOrder")
                         .optional()
-                        .description("정렬 순서(해당 문서 하단 enum 참조)"),
-                    parameterWithName("cursor").optional().description("조회 할 시작 기준 위치"),
-                    parameterWithName("pageSize").optional().description("조회 할 페이지 사이즈")),
+                        .description("정렬 순서 (기본값: DESC)\n" + "- DESC: 내림차순\n" + "- ASC: 오름차순"),
+                    parameterWithName("cursor")
+                        .optional()
+                        .description("커서 페이지네이션 시작 위치 (기본값: 0)\n" + "- 다음 페이지 조회 시 이전 응답의 cursor 값 사용"),
+                    parameterWithName("pageSize")
+                        .optional()
+                        .description("페이지 크기 (기본값: 10)\n" + "- 한 번에 조회할 아이템 개수")),
                 responseFields(
                     fieldWithPath("success").description("응답 성공 여부"),
                     fieldWithPath("code").description("응답 코드(http status code)"),
@@ -97,17 +121,23 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
                     fieldWithPath("meta.pageable.cursor").description("다음 페이지 커서"),
                     fieldWithPath("meta.pageable.pageSize").description("조회된 페이지 사이즈"),
                     fieldWithPath("meta.pageable.hasNext").description("다음 페이지 존재 여부"),
-                    fieldWithPath("meta.searchParameters.keyword").description("검색 시 사용 한 검색어"),
+                    fieldWithPath("meta.searchParameters.keyword")
+                        .description("검색 시 사용된 검색어 (입력값 그대로 반환)"),
                     fieldWithPath("meta.searchParameters.curationId")
                         .optional()
-                        .description("검색 시 사용 한 큐레이션 ID"),
-                    fieldWithPath("meta.searchParameters.category").description("검색 시 사용 한 카테고리"),
-                    fieldWithPath("meta.searchParameters.regionId").description("검색 시 사용 한 지역 ID"),
-                    fieldWithPath("meta.searchParameters.sortType").description("검색 시 사용 한 정렬 타입"),
-                    fieldWithPath("meta.searchParameters.sortOrder").description("검색 시 사용 한 정렬 순서"),
-                    fieldWithPath("meta.searchParameters.cursor").description("검색 시 사용 한 커서 기준 "),
+                        .description("검색 시 사용된 큐레이션 ID (입력값 그대로 반환)"),
+                    fieldWithPath("meta.searchParameters.category")
+                        .description("검색 시 사용된 카테고리 필터"),
+                    fieldWithPath("meta.searchParameters.regionId")
+                        .description("검색 시 사용된 지역 ID 필터"),
+                    fieldWithPath("meta.searchParameters.sortType")
+                        .description("검색 시 사용된 정렬 타입"),
+                    fieldWithPath("meta.searchParameters.sortOrder")
+                        .description("검색 시 사용된 정렬 순서"),
+                    fieldWithPath("meta.searchParameters.cursor")
+                        .description("검색 시 사용된 커서 위치"),
                     fieldWithPath("meta.searchParameters.pageSize")
-                        .description("검색 시 사용 한 페이지 사이즈"))));
+                        .description("검색 시 사용된 페이지 크기"))));
   }
 
   @DisplayName("술의 상세 정보를 조회 할 수 있다.")
