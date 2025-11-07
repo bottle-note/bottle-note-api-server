@@ -294,7 +294,10 @@ public class AlcoholQuerySupporter {
    * @return 검색 조건
    */
   public BooleanExpression keywordMatch(String keyword, Set<Long> curationAlcoholIds) {
-    if (StringUtils.isNullOrEmpty(keyword)) return null;
+    // keyword가 없고 curationAlcoholIds만 있는 경우
+    if (StringUtils.isNullOrEmpty(keyword)) {
+      return getCurationExpression(curationAlcoholIds);
+    }
 
     // 띄어쓰기로 분리하여 단어별 검색
     String[] words = keyword.trim().split("\\s+");
