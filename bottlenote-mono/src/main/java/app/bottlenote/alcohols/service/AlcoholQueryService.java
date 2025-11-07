@@ -43,8 +43,10 @@ public class AlcoholQueryService {
   @Transactional(readOnly = true)
   public PageResponse<AlcoholSearchResponse> searchAlcohols(
       AlcoholSearchRequest request, Long userId) {
-    Set<Long> alcoholIds =
-        alcoholReferenceService.getCurationAlcoholIds(request.keyword()).orElse(null);
+    Set<Long> alcoholIds = null;
+    if (request.keyword() != null) {
+      alcoholIds = alcoholReferenceService.getCurationAlcoholIds(request.keyword()).orElse(null);
+    }
     AlcoholSearchCriteria criteria = AlcoholSearchCriteria.of(request, userId, alcoholIds);
     return alcoholQueryRepository.searchAlcohols(criteria);
   }

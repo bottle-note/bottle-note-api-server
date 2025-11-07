@@ -432,4 +432,20 @@ public class AlcoholQuerySupporter {
     }
     return null;
   }
+
+  /**
+   * 큐레이션 ID로 필터링 조건 생성 (JOIN 방식)
+   *
+   * @param curationId 큐레이션 ID
+   * @return 큐레이션 필터링 조건
+   */
+  public BooleanExpression eqCurationId(Long curationId) {
+    if (curationId == null) return null;
+
+    return Expressions.booleanTemplate(
+        "exists (select 1 from curation_keyword_alcohol_ids ck "
+            + "where ck.alcohol_ids = {0} and ck.curation_keyword_id = {1})",
+        alcohol.id,
+        curationId);
+  }
 }

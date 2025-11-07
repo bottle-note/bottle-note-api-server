@@ -76,7 +76,8 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
             .where(
                 supporter.keywordMatch(criteriaDto.keyword(), criteriaDto.alcoholIds()),
                 supporter.eqCategory(criteriaDto.category()),
-                supporter.eqRegion(criteriaDto.regionId()))
+                supporter.eqRegion(criteriaDto.regionId()),
+                supporter.eqCurationId(criteriaDto.curationId()))
             .groupBy(
                 alcohol.id,
                 alcohol.korName,
@@ -98,7 +99,8 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
             .where(
                 supporter.keywordMatch(criteriaDto.keyword(), criteriaDto.alcoholIds()),
                 supporter.eqCategory(criteriaDto.category()),
-                supporter.eqRegion(criteriaDto.regionId()))
+                supporter.eqRegion(criteriaDto.regionId()),
+                supporter.eqCurationId(criteriaDto.curationId()))
             .fetchOne();
 
     CursorPageable pageable = CursorPageable.of(fetch, cursor, pageSize);
