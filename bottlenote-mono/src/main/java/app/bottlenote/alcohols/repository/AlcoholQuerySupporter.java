@@ -445,7 +445,6 @@ public class AlcoholQuerySupporter {
     return Expressions.booleanTemplate(
         "exists (select 1 from curation_keyword_alcohol_ids ck "
             + "where ck.alcohol_ids = {0} and ck.curation_keyword_id = {1})",
-        alcohol.id,
-        curationId);
+        alcohol.id, curationId);
   }
 }

@@ -98,7 +98,8 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
                     fieldWithPath("meta.pageable.pageSize").description("조회된 페이지 사이즈"),
                     fieldWithPath("meta.pageable.hasNext").description("다음 페이지 존재 여부"),
                     fieldWithPath("meta.searchParameters.keyword").description("검색 시 사용 한 검색어"),
-                    fieldWithPath("meta.searchParameters.curationId").description("검색 시 사용 한 큐레이션 ID"),
+                    fieldWithPath("meta.searchParameters.curationId")
+                        .description("검색 시 사용 한 큐레이션 ID"),
                     fieldWithPath("meta.searchParameters.category").description("검색 시 사용 한 카테고리"),
                     fieldWithPath("meta.searchParameters.regionId").description("검색 시 사용 한 지역 ID"),
                     fieldWithPath("meta.searchParameters.sortType").description("검색 시 사용 한 정렬 타입"),
