@@ -1,0 +1,106 @@
+=== 큐레이션 키워드 조회 ===
+
+큐레이션 키워드는 특정 주제나 상황에 맞는 위스키를 모아놓은 컬렉션입니다.
+
+예를 들어 "봄 추천 위스키"라는 큐레이션은 봄철에 어울리는 위스키들을 미리 선정해둔 목록이며,
+"비 오는 날 추천 위스키"는 비오는 날 분위기에 맞는 위스키들을 모아놓은 컬렉션입니다.
+
+기존에는 시즌별 추천 키워드(봄/여름/가을/겨울/비오는날)가 코드에 고정되어 있었지만,
+이제는 데이터베이스에서 동적으로 관리되어 새로운 큐레이션을 자유롭게 추가하거나 수정할 수 있습니다.
+
+[source]
+----
+GET /api/v1/curations
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+include::{snippets}/curation-keywords-search/query-parameters.adoc[]
+
+[discrete]
+==== 응답 파라미터  ====
+
+include::{snippets}/curation-keywords-search/response-fields.adoc[]
+
+[discrete]
+==== 응답 예시  ====
+
+include::{snippets}/curation-keywords-search/response-body.adoc[]
+
+[discrete]
+==== 사용 예시 ====
+
+* *전체 큐레이션 목록 조회*
++
+[source]
+----
+GET /api/v1/curations?cursor=0&pageSize=10
+----
++
+봄/여름/가을/겨울 추천 위스키 등 모든 큐레이션 목록을 조회합니다.
+
+* *특정 키워드로 검색*
++
+[source]
+----
+GET /api/v1/curations?keyword=봄&cursor=0&pageSize=10
+----
++
+"봄"이라는 키워드가 포함된 큐레이션만 필터링하여 조회합니다.
+
+* *특정 위스키가 포함된 큐레이션 검색*
++
+[source]
+----
+GET /api/v1/curations?alcoholId=123&cursor=0&pageSize=10
+----
++
+ID가 123인 위스키가 포함된 모든 큐레이션을 조회합니다.
+예를 들어 "글렌피딕 15년"이 "봄 추천 위스키"와 "비오는 날 추천 위스키"에 모두 포함되어 있다면 두 큐레이션이 모두 반환됩니다.
+
+'''
+
+=== 큐레이션 위스키 목록 조회 ===
+
+특정 큐레이션에 포함된 위스키 목록을 조회합니다.
+
+큐레이션 목록 조회 API에서 받은 큐레이션 ID를 사용하여
+해당 큐레이션에 속한 위스키들의 상세 정보(평점, 리뷰 수, 찜 횟수 등)를 함께 조회할 수 있습니다.
+
+[source]
+----
+GET /api/v1/curations/{curationId}/alcohols
+----
+
+[discrete]
+==== 경로 파라미터 ====
+
+include::{snippets}/curation-alcohols-get/path-parameters.adoc[]
+
+[discrete]
+==== 요청 파라미터 ====
+
+include::{snippets}/curation-alcohols-get/query-parameters.adoc[]
+
+[discrete]
+==== 응답 파라미터  ====
+
+include::{snippets}/curation-alcohols-get/response-fields.adoc[]
+
+[discrete]
+==== 응답 예시  ====
+
+include::{snippets}/curation-alcohols-get/response-body.adoc[]
+
+[discrete]
+==== 사용 예시 ====
+
+"봄 추천 위스키" 큐레이션의 ID가 1번이라면 다음과 같이 요청할 수 있습니다:
+
+[source]
+----
+GET /api/v1/curations/1/alcohols?cursor=0&pageSize=10
+----
+
+이 요청은 봄철에 어울리는 위스키 목록과 함께 각 위스키의 평점, 리뷰 수, 찜 횟수 등의 정보를 반환합니다.
