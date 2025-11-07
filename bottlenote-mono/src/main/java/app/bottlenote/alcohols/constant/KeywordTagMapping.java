@@ -6,7 +6,14 @@ import java.util.Optional;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-/** 특정 키워드에 대한 태그 필터링 규칙 정의 */
+/**
+ * 특정 키워드에 대한 태그 필터링 규칙 정의
+ *
+ * @deprecated CurationKeyword 엔티티 및 테이블로 대체되었습니다. 더 이상 사용되지 않으며, 향후 버전에서 제거될 예정입니다.
+ * @see app.bottlenote.alcohols.domain.CurationKeyword
+ * @see app.bottlenote.alcohols.repository.JpaCurationKeywordRepository
+ */
+@Deprecated(since = "2025-01", forRemoval = true)
 @Getter
 @RequiredArgsConstructor
 public enum KeywordTagMapping {

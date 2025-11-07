@@ -383,7 +383,12 @@ public class AlcoholTestFactory {
     return new HashSet<>(result);
   }
 
-  /** KeywordTagMapping에 따라 알코올에 태그를 설정 기존 태그는 모두 삭제하고 새로 설정 */
+  /**
+   * KeywordTagMapping에 따라 알코올에 태그를 설정 기존 태그는 모두 삭제하고 새로 설정
+   *
+   * @deprecated CurationKeyword 엔티티로 대체되었습니다. 향후 제거될 예정입니다.
+   */
+  @Deprecated(since = "2025-01", forRemoval = true)
   @Transactional
   public void appendTagsFromKeywordMapping(Long alcoholId, KeywordTagMapping mapping) {
     // 1. 알코올 조회

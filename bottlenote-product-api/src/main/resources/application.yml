@@ -42,6 +42,11 @@ security:
 apple:
   bundle-id: "com.bottlenote.official.app"
 
+# Webhook 설정
+webhook:
+  discord:
+    url: ${DISCORD_WEBHOOK_URL:}
+
 # 기본 로깅 설정
 logging:
   level:
