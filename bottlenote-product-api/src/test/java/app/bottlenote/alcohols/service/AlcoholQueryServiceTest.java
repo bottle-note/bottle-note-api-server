@@ -2,6 +2,8 @@ package app.bottlenote.alcohols.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -48,7 +50,9 @@ class AlcoholQueryServiceTest {
   @DisplayName("위스키 검색 할 수 있다.")
   void testSearchAlcohols() {
     // given
-    when(alcoholReferenceService.getCurationAlcoholIds(any()))
+    when(alcoholReferenceService.getCurationAlcoholIds(anyLong()))
+        .thenReturn(java.util.Optional.empty());
+    when(alcoholReferenceService.getCurationAlcoholIds(anyString()))
         .thenReturn(java.util.Optional.empty());
 
     // when
