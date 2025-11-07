@@ -74,7 +74,8 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
             .leftJoin(review)
             .on(alcohol.id.eq(review.alcoholId))
             .where(
-                supporter.keywordMatch(criteriaDto.keyword(), criteriaDto.alcoholIds()),
+                supporter.keywordMatch(criteriaDto.keyword()),
+                supporter.eqCurationId(criteriaDto.curationId()),
                 supporter.eqCategory(criteriaDto.category()),
                 supporter.eqRegion(criteriaDto.regionId()))
             .groupBy(
@@ -96,7 +97,8 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
             .select(alcohol.id.count())
             .from(alcohol)
             .where(
-                supporter.keywordMatch(criteriaDto.keyword(), criteriaDto.alcoholIds()),
+                supporter.keywordMatch(criteriaDto.keyword()),
+                supporter.eqCurationId(criteriaDto.curationId()),
                 supporter.eqCategory(criteriaDto.category()),
                 supporter.eqRegion(criteriaDto.regionId()))
             .fetchOne();

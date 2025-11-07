@@ -59,4 +59,9 @@ public class AlcoholReferenceService {
   public Optional<Set<Long>> getCurationAlcoholIds(String keyword) {
     return curationKeywordRepository.findAlcoholIdsByKeyword(keyword);
   }
+
+  @Transactional(readOnly = true)
+  public Optional<Set<Long>> getCurationAlcoholIds(Long curationId) {
+    return curationKeywordRepository.findById(curationId).map(curation -> curation.getAlcoholIds());
+  }
 }

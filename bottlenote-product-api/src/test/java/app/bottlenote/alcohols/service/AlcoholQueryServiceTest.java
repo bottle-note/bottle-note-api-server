@@ -48,12 +48,10 @@ class AlcoholQueryServiceTest {
   @DisplayName("위스키 검색 할 수 있다.")
   void testSearchAlcohols() {
     // given
-    when(alcoholReferenceService.getCurationAlcoholIds(any()))
-        .thenReturn(java.util.Optional.empty());
-
-    // when
     when(jpaAlcoholQueryRepository.searchAlcohols(any(AlcoholSearchCriteria.class)))
         .thenReturn(response);
+
+    // when
     PageResponse<AlcoholSearchResponse> actualResponse =
         alcoholQueryService.searchAlcohols(request, userId);
 

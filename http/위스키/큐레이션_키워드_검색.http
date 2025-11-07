@@ -1,0 +1,51 @@
+### 토큰 발급 (일반)
+# @no-cookie-jar
+POST {{host}}/api/v1/oauth/login
+Content-Type: application/json
+
+{
+  "email": "dev.bottle-note@gmail.com",
+  "socialType": "GOOGLE",
+  "gender": "MALE",
+  "age": 25
+}
+
+> {%
+  //토큰을 전역변수로 저장
+  client.global.set("accessToken", response.body.data.accessToken);
+%}
+
+### 1. 큐레이션 키워드 전체 조회
+# @no-cookie-jar
+# 활성화된 모든 큐레이션 키워드 조회
+GET {{host}}/api/v1/curations
+Authorization: Bearer {{accessToken}}
+
+### 2. 큐레이션 키워드 검색 (키워드로)
+# @no-cookie-jar
+# 큐레이션 이름에 특정 키워드가 포함된 큐레이션 검색
+GET {{host}}/api/v1/curations?keyword=추천
+Authorization: Bearer {{accessToken}}
+
+### 3. 큐레이션 키워드 검색 (알코올 ID로)
+# @no-cookie-jar
+# 특정 알코올이 포함된 큐레이션 검색
+GET {{host}}/api/v1/curations?alcoholId=4728
+Authorization: Bearer {{accessToken}}
+
+### 4. 큐레이션 키워드 검색 (커서 페이지네이션)
+# @no-cookie-jar
+GET {{host}}/api/v1/curations?cursor=0&pageSize=10
+Authorization: Bearer {{accessToken}}
+
+### 5. 특정 큐레이션에 포함된 알코올 조회
+# @no-cookie-jar
+@curationId = 1
+GET {{host}}/api/v1/curations/{{curationId}}/alcohols
+Authorization: Bearer {{accessToken}}
+
+### 6. 특정 큐레이션에 포함된 알코올 조회 (페이지네이션)
+# @no-cookie-jar
+@curationId = 1
+GET {{host}}/api/v1/curations/{{curationId}}/alcohols?cursor=0&pageSize=10
+Authorization: Bearer {{accessToken}}

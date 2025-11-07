@@ -2,6 +2,7 @@ package app.bottlenote.alcohols.repository;
 
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.alcohols.domain.QAlcoholsTastingTags.alcoholsTastingTags;
+import static app.bottlenote.alcohols.domain.QCurationKeyword.curationKeyword;
 import static app.bottlenote.alcohols.domain.QPopularAlcohol.popularAlcohol;
 import static app.bottlenote.alcohols.domain.QRegion.region;
 import static app.bottlenote.alcohols.domain.QTastingTag.tastingTag;
@@ -29,7 +30,6 @@ import com.querydsl.jpa.JPAExpressions;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -287,29 +287,47 @@ public class AlcoholQuerySupporter {
   }
 
   /**
-   * 단건 키워드 검색 조건 생성
+   * 키워드 검색 조건 생성
    *
    * @param keyword 검색 키워드
-   * @param curationAlcoholIds 큐레이션에 포함된 위스키 ID 목록 (선택)
    * @return 검색 조건
    */
-  public BooleanExpression keywordMatch(String keyword, Set<Long> curationAlcoholIds) {
-    if (StringUtils.isNullOrEmpty(keyword)) return null;
+  public BooleanExpression keywordMatch(String keyword) {
+    if (StringUtils.isNullOrEmpty(keyword)) {
+      return null;
+    }
 
     // 띄어쓰기로 분리하여 단어별 검색
     String[] words = keyword.trim().split("\\s+");
 
     // 단어가 여러 개인 경우 각 단어를 개별적으로 매칭 (순서 무관)
     if (words.length > 1) {
-      return multiWordSearch(words, curationAlcoholIds);
+      return multiWordSearch(words);
     }
 
     // 단일 단어인 경우 기존 로직 사용
-    return singleWordSearch(keyword, curationAlcoholIds);
+    return singleWordSearch(keyword);
+  }
+
+  /**
+   * 큐레이션 ID로 알코올 검색 조건 생성
+   *
+   * @param curationId 큐레이션 ID
+   * @return 검색 조건
+   */
+  public BooleanExpression eqCurationId(Long curationId) {
+    if (curationId == null) {
+      return null;
+    }
+
+    return JPAExpressions.selectOne()
+        .from(curationKeyword)
+        .where(curationKeyword.id.eq(curationId), curationKeyword.alcoholIds.contains(alcohol.id))
+        .exists();
   }
 
   /** 여러 단어 검색 - 각 단어가 모두 포함되어야 함 (순서 무관) */
-  private BooleanExpression multiWordSearch(String[] words, Set<Long> curationAlcoholIds) {
+  private BooleanExpression multiWordSearch(String[] words) {
     BooleanExpression condition = null;
 
     for (String word : words) {
@@ -340,12 +358,6 @@ public class AlcoholQuerySupporter {
 
       wordCondition = wordCondition.or(tagSearch);
 
-      // 큐레이션 키워드 검색 조건
-      BooleanExpression curationSearch = getCurationExpression(curationAlcoholIds);
-      if (curationSearch != null) {
-        wordCondition = wordCondition.or(curationSearch);
-      }
-
       // 각 단어 조건을 AND로 결합
       condition = (condition == null) ? wordCondition : condition.and(wordCondition);
     }
@@ -354,7 +366,7 @@ public class AlcoholQuerySupporter {
   }
 
   /** 단일 단어 검색 */
-  private BooleanExpression singleWordSearch(String keyword, Set<Long> curationAlcoholIds) {
+  private BooleanExpression singleWordSearch(String keyword) {
     String keywordWithoutSpaces = keyword.replaceAll("\\s+", "");
 
     // 띄어쓰기 제거한 키워드로 각 문자 사이에 공백이 0개 이상 올 수 있는 패턴 생성
@@ -378,9 +390,6 @@ public class AlcoholQuerySupporter {
             .or(alcohol.korCategory.likeIgnoreCase("%" + flexiblePattern + "%"))
             .or(alcohol.engCategory.likeIgnoreCase("%" + flexiblePattern + "%"));
 
-    // 큐레이션 키워드 검색 조건
-    BooleanExpression curationSearch = getCurationExpression(curationAlcoholIds);
-
     // 동적 태그 검색 조건 추가
     BooleanExpression dynamicTagSearch =
         JPAExpressions.selectOne()
@@ -398,12 +407,7 @@ public class AlcoholQuerySupporter {
             .exists();
 
     // 모든 조건을 OR로 결합
-    BooleanExpression result = basicSearch.or(flexibleSearch).or(dynamicTagSearch);
-    if (curationSearch != null) {
-      result = result.or(curationSearch);
-    }
-
-    return result;
+    return basicSearch.or(flexibleSearch).or(dynamicTagSearch);
   }
 
   /** 띄어쓰기를 무시한 유연한 패턴 생성 (각 문자 사이에 공백 허용) */
@@ -418,18 +422,5 @@ public class AlcoholQuerySupporter {
       }
     }
     return pattern.toString();
-  }
-
-  /**
-   * 큐레이션 키워드에 해당하는 위스키 ID 목록으로 검색 조건 생성
-   *
-   * @param alcoholIds 큐레이션에 포함된 위스키 ID 목록
-   * @return 위스키 ID 검색 조건
-   */
-  public BooleanExpression getCurationExpression(Set<Long> alcoholIds) {
-    if (alcoholIds != null && !alcoholIds.isEmpty()) {
-      return alcohol.id.in(alcoholIds);
-    }
-    return null;
   }
 }
