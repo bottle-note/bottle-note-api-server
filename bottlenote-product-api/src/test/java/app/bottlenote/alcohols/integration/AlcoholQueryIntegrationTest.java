@@ -16,7 +16,6 @@ import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
-import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.rating.fixture.RatingTestFactory;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.fixture.UserTestFactory;
@@ -53,11 +52,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
             .with(csrf())
             .exchange();
 
-    result.assertThat().hasStatusOk();
-    String responseString = result.getResponse().getContentAsString();
-    GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
-    AlcoholSearchResponse alcoholSearchResponse =
-        mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
+    AlcoholSearchResponse alcoholSearchResponse = extractData(result, AlcoholSearchResponse.class);
 
     List<Alcohol> alcohols = alcoholQueryRepository.findAll();
     assertNotNull(alcoholSearchResponse);
@@ -82,11 +77,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
             .with(csrf())
             .exchange();
 
-    result.assertThat().hasStatusOk();
-    String responseString = result.getResponse().getContentAsString();
-    GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
-    AlcoholSearchResponse responseData =
-        mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
+    AlcoholSearchResponse responseData = extractData(result, AlcoholSearchResponse.class);
     List<AlcoholsSearchItem> responseAlcohols = responseData.getAlcohols();
 
     assertNotNull(responseData);
@@ -115,11 +106,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
             .with(csrf())
             .exchange();
 
-    result.assertThat().hasStatusOk();
-    String responseString = result.getResponse().getContentAsString();
-    GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
-    AlcoholDetailResponse alcoholDetail =
-        mapper.convertValue(response.getData(), AlcoholDetailResponse.class);
+    AlcoholDetailResponse alcoholDetail = extractData(result, AlcoholDetailResponse.class);
 
     assertNotNull(alcoholDetail.alcohols());
     assertNotNull(alcoholDetail.reviewInfo());
@@ -151,11 +138,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
             .with(csrf())
             .exchange();
 
-    result.assertThat().hasStatusOk();
-    String responseString = result.getResponse().getContentAsString();
-    GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
-    AlcoholDetailResponse alcoholDetail =
-        mapper.convertValue(response.getData(), AlcoholDetailResponse.class);
+    AlcoholDetailResponse alcoholDetail = extractData(result, AlcoholDetailResponse.class);
 
     // then
     assertNotNull(alcoholDetail.friendsInfo());
@@ -181,11 +164,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
             .exchange();
 
     // then
-    result.assertThat().hasStatusOk();
-    String responseString = result.getResponse().getContentAsString();
-    GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
-    AlcoholSearchResponse responseData =
-        mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
+    AlcoholSearchResponse responseData = extractData(result, AlcoholSearchResponse.class);
 
     assertNotNull(responseData);
     assertEquals(1, responseData.getTotalCount());
@@ -211,11 +190,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
             .exchange();
 
     // then
-    result.assertThat().hasStatusOk();
-    String responseString = result.getResponse().getContentAsString();
-    GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
-    AlcoholSearchResponse responseData =
-        mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
+    AlcoholSearchResponse responseData = extractData(result, AlcoholSearchResponse.class);
 
     assertNotNull(responseData);
     assertEquals(1, responseData.getTotalCount());
@@ -241,11 +216,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
             .exchange();
 
     // then
-    result.assertThat().hasStatusOk();
-    String responseString = result.getResponse().getContentAsString();
-    GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
-    AlcoholSearchResponse responseData =
-        mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
+    AlcoholSearchResponse responseData = extractData(result, AlcoholSearchResponse.class);
 
     assertNotNull(responseData);
     assertEquals(1, responseData.getTotalCount());
@@ -273,11 +244,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
             .exchange();
 
     // then
-    result.assertThat().hasStatusOk();
-    String responseString = result.getResponse().getContentAsString();
-    GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
-    AlcoholSearchResponse responseData =
-        mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
+    AlcoholSearchResponse responseData = extractData(result, AlcoholSearchResponse.class);
 
     assertNotNull(responseData);
     assertEquals(1, responseData.getTotalCount());
@@ -302,11 +269,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
             .exchange();
 
     // then
-    result.assertThat().hasStatusOk();
-    String responseString = result.getResponse().getContentAsString();
-    GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
-    AlcoholSearchResponse responseData =
-        mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
+    AlcoholSearchResponse responseData = extractData(result, AlcoholSearchResponse.class);
 
     assertNotNull(responseData);
     assertEquals(1, responseData.getTotalCount());
@@ -332,11 +295,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
             .exchange();
 
     // then
-    result.assertThat().hasStatusOk();
-    String responseString = result.getResponse().getContentAsString();
-    GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
-    AlcoholSearchResponse responseData =
-        mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
+    AlcoholSearchResponse responseData = extractData(result, AlcoholSearchResponse.class);
 
     assertNotNull(responseData);
     assertEquals(1, responseData.getTotalCount());
@@ -362,11 +321,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
             .exchange();
 
     // then
-    result.assertThat().hasStatusOk();
-    String responseString = result.getResponse().getContentAsString();
-    GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
-    AlcoholSearchResponse responseData =
-        mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
+    AlcoholSearchResponse responseData = extractData(result, AlcoholSearchResponse.class);
 
     assertNotNull(responseData);
     assertEquals(1, responseData.getTotalCount());
@@ -393,11 +348,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
             .exchange();
 
     // then
-    result.assertThat().hasStatusOk();
-    String responseString = result.getResponse().getContentAsString();
-    GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
-    AlcoholSearchResponse responseData =
-        mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
+    AlcoholSearchResponse responseData = extractData(result, AlcoholSearchResponse.class);
 
     assertNotNull(responseData);
     assertEquals(1, responseData.getTotalCount());
@@ -430,11 +381,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
             .exchange();
 
     // then
-    result.assertThat().hasStatusOk();
-    String responseString = result.getResponse().getContentAsString();
-    GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
-    AlcoholSearchResponse responseData =
-        mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
+    AlcoholSearchResponse responseData = extractData(result, AlcoholSearchResponse.class);
 
     assertNotNull(responseData);
     assertEquals(2, responseData.getTotalCount()); // 큐레이션에 포함된 2개만
