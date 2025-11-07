@@ -43,18 +43,7 @@ public class AlcoholQueryService {
   @Transactional(readOnly = true)
   public PageResponse<AlcoholSearchResponse> searchAlcohols(
       AlcoholSearchRequest request, Long userId) {
-    Set<Long> alcoholIds = null;
-
-    // 큐레이션 ID로 알코올 ID 조회 (우선순위 1)
-    if (request.curationId() != null) {
-      alcoholIds = alcoholReferenceService.getCurationAlcoholIds(request.curationId()).orElse(null);
-    }
-    // 키워드로 큐레이션 알코올 ID 조회 (우선순위 2)
-    else if (request.keyword() != null) {
-      alcoholIds = alcoholReferenceService.getCurationAlcoholIds(request.keyword()).orElse(null);
-    }
-
-    AlcoholSearchCriteria criteria = AlcoholSearchCriteria.of(request, userId, alcoholIds);
+    AlcoholSearchCriteria criteria = AlcoholSearchCriteria.of(request, userId);
     return alcoholQueryRepository.searchAlcohols(criteria);
   }
 

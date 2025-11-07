@@ -3,6 +3,8 @@ package app.bottlenote.alcohols.repository;
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.alcohols.domain.QAlcoholsTastingTags.alcoholsTastingTags;
 import static app.bottlenote.alcohols.domain.QPopularAlcohol.popularAlcohol;
+
+import app.bottlenote.alcohols.domain.CurationKeywordRepository;
 import static app.bottlenote.alcohols.domain.QRegion.region;
 import static app.bottlenote.alcohols.domain.QTastingTag.tastingTag;
 import static app.bottlenote.picks.constant.PicksStatus.PICK;
@@ -36,6 +38,12 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class AlcoholQuerySupporter {
+
+  private final CurationKeywordRepository curationKeywordRepository;
+
+  public AlcoholQuerySupporter(CurationKeywordRepository curationKeywordRepository) {
+    this.curationKeywordRepository = curationKeywordRepository;
+  }
 
   /** 주류에 연결된 테이스팅 태그 목록을 문자열로 조회 */
   public static Expression<String> getTastingTags() {
@@ -290,10 +298,13 @@ public class AlcoholQuerySupporter {
    * 단건 키워드 검색 조건 생성
    *
    * @param keyword 검색 키워드
-   * @param curationAlcoholIds 큐레이션에 포함된 위스키 ID 목록 (선택)
+   * @param curationId 큐레이션 ID (선택)
    * @return 검색 조건
    */
-  public BooleanExpression keywordMatch(String keyword, Set<Long> curationAlcoholIds) {
+  public BooleanExpression keywordMatch(String keyword, Long curationId) {
+    // 큐레이션 알코올 ID 조회 (우선순위: curationId > keyword)
+    Set<Long> curationAlcoholIds = getCurationAlcoholIds(keyword, curationId);
+
     // keyword가 없고 curationAlcoholIds만 있는 경우
     if (StringUtils.isNullOrEmpty(keyword)) {
       return getCurationExpression(curationAlcoholIds);
@@ -309,6 +320,30 @@ public class AlcoholQuerySupporter {
 
     // 단일 단어인 경우 기존 로직 사용
     return singleWordSearch(keyword, curationAlcoholIds);
+  }
+
+  /**
+   * 큐레이션 알코올 ID 목록 조회
+   *
+   * @param keyword 검색 키워드
+   * @param curationId 큐레이션 ID
+   * @return 큐레이션에 포함된 알코올 ID 목록
+   */
+  private Set<Long> getCurationAlcoholIds(String keyword, Long curationId) {
+    // 큐레이션 ID로 조회 (우선순위 1)
+    if (curationId != null) {
+      return curationKeywordRepository
+          .findById(curationId)
+          .map(curation -> curation.getAlcoholIds())
+          .orElse(null);
+    }
+
+    // 키워드로 큐레이션 조회 (우선순위 2)
+    if (keyword != null) {
+      return curationKeywordRepository.findAlcoholIdsByKeyword(keyword).orElse(null);
+    }
+
+    return null;
   }
 
   /** 여러 단어 검색 - 각 단어가 모두 포함되어야 함 (순서 무관) */
