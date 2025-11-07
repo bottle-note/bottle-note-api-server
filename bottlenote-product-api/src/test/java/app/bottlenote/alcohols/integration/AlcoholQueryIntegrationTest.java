@@ -411,7 +411,8 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
     // given - 알코올 3개 생성
     Alcohol alcohol1 = alcoholTestFactory.persistAlcoholWithName("맥캘란 12년", "Macallan 12");
     Alcohol alcohol2 = alcoholTestFactory.persistAlcoholWithName("글렌피딕 15년", "Glenfiddich 15");
-    Alcohol alcohol3 = alcoholTestFactory.persistAlcoholWithName("조니 워커 블랙", "Johnnie Walker Black");
+    Alcohol alcohol3 =
+        alcoholTestFactory.persistAlcoholWithName("조니 워커 블랙", "Johnnie Walker Black");
 
     // 큐레이션 생성 (알코올 1, 2만 포함)
     var curation =
@@ -441,7 +442,10 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
     assertEquals(2, alcohols.size());
 
     // 큐레이션에 포함된 알코올만 검색되었는지 확인
-    Set<Long> resultIds = alcohols.stream().map(AlcoholsSearchItem::getAlcoholId).collect(java.util.stream.Collectors.toSet());
+    Set<Long> resultIds =
+        alcohols.stream()
+            .map(AlcoholsSearchItem::getAlcoholId)
+            .collect(java.util.stream.Collectors.toSet());
     assertTrue(resultIds.contains(alcohol1.getId()));
     assertTrue(resultIds.contains(alcohol2.getId()));
     assertFalse(resultIds.contains(alcohol3.getId())); // alcohol3은 큐레이션에 없음

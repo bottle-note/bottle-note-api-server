@@ -458,7 +458,8 @@ public class AlcoholTestFactory {
 
   /** 알코올 ID 목록과 함께 CurationKeyword 생성 */
   @Transactional
-  public CurationKeyword persistCurationKeyword(String name, String description, Set<Long> alcoholIds) {
+  public CurationKeyword persistCurationKeyword(
+      String name, String description, Set<Long> alcoholIds) {
     CurationKeyword curation =
         CurationKeyword.builder()
             .name(name)
