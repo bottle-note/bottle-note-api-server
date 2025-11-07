@@ -54,7 +54,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
             .exchange();
 
     result.assertThat().hasStatusOk();
-    String responseString = result.bodyText();
+    String responseString = result.getResponse().getContentAsString();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholSearchResponse alcoholSearchResponse =
         mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
@@ -83,7 +83,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
             .exchange();
 
     result.assertThat().hasStatusOk();
-    String responseString = result.bodyText();
+    String responseString = result.getResponse().getContentAsString();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholSearchResponse responseData =
         mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
@@ -116,7 +116,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
             .exchange();
 
     result.assertThat().hasStatusOk();
-    String responseString = result.bodyText();
+    String responseString = result.getResponse().getContentAsString();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholDetailResponse alcoholDetail =
         mapper.convertValue(response.getData(), AlcoholDetailResponse.class);
@@ -152,7 +152,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
             .exchange();
 
     result.assertThat().hasStatusOk();
-    String responseString = result.bodyText();
+    String responseString = result.getResponse().getContentAsString();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholDetailResponse alcoholDetail =
         mapper.convertValue(response.getData(), AlcoholDetailResponse.class);
@@ -182,7 +182,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
 
     // then
     result.assertThat().hasStatusOk();
-    String responseString = result.bodyText();
+    String responseString = result.getResponse().getContentAsString();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholSearchResponse responseData =
         mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
@@ -212,7 +212,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
 
     // then
     result.assertThat().hasStatusOk();
-    String responseString = result.bodyText();
+    String responseString = result.getResponse().getContentAsString();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholSearchResponse responseData =
         mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
@@ -242,7 +242,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
 
     // then
     result.assertThat().hasStatusOk();
-    String responseString = result.bodyText();
+    String responseString = result.getResponse().getContentAsString();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholSearchResponse responseData =
         mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
@@ -274,7 +274,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
 
     // then
     result.assertThat().hasStatusOk();
-    String responseString = result.bodyText();
+    String responseString = result.getResponse().getContentAsString();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholSearchResponse responseData =
         mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
@@ -303,7 +303,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
 
     // then
     result.assertThat().hasStatusOk();
-    String responseString = result.bodyText();
+    String responseString = result.getResponse().getContentAsString();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholSearchResponse responseData =
         mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
@@ -333,7 +333,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
 
     // then
     result.assertThat().hasStatusOk();
-    String responseString = result.bodyText();
+    String responseString = result.getResponse().getContentAsString();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholSearchResponse responseData =
         mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
@@ -363,7 +363,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
 
     // then
     result.assertThat().hasStatusOk();
-    String responseString = result.bodyText();
+    String responseString = result.getResponse().getContentAsString();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholSearchResponse responseData =
         mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
@@ -394,7 +394,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
 
     // then
     result.assertThat().hasStatusOk();
-    String responseString = result.bodyText();
+    String responseString = result.getResponse().getContentAsString();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholSearchResponse responseData =
         mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
@@ -431,7 +431,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
 
     // then
     result.assertThat().hasStatusOk();
-    String responseString = result.bodyText();
+    String responseString = result.getResponse().getContentAsString();
     GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     AlcoholSearchResponse responseData =
         mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
