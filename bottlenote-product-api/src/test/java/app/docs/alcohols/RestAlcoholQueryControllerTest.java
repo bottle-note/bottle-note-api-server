@@ -92,7 +92,8 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
                         .description("정렬 순서 (기본값: DESC)\n" + "- DESC: 내림차순\n" + "- ASC: 오름차순"),
                     parameterWithName("cursor")
                         .optional()
-                        .description("커서 페이지네이션 시작 위치 (기본값: 0)\n" + "- 다음 페이지 조회 시 이전 응답의 cursor 값 사용"),
+                        .description(
+                            "커서 페이지네이션 시작 위치 (기본값: 0)\n" + "- 다음 페이지 조회 시 이전 응답의 cursor 값 사용"),
                     parameterWithName("pageSize")
                         .optional()
                         .description("페이지 크기 (기본값: 10)\n" + "- 한 번에 조회할 아이템 개수")),
@@ -126,16 +127,12 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
                     fieldWithPath("meta.searchParameters.curationId")
                         .optional()
                         .description("검색 시 사용된 큐레이션 ID (입력값 그대로 반환)"),
-                    fieldWithPath("meta.searchParameters.category")
-                        .description("검색 시 사용된 카테고리 필터"),
+                    fieldWithPath("meta.searchParameters.category").description("검색 시 사용된 카테고리 필터"),
                     fieldWithPath("meta.searchParameters.regionId")
                         .description("검색 시 사용된 지역 ID 필터"),
-                    fieldWithPath("meta.searchParameters.sortType")
-                        .description("검색 시 사용된 정렬 타입"),
-                    fieldWithPath("meta.searchParameters.sortOrder")
-                        .description("검색 시 사용된 정렬 순서"),
-                    fieldWithPath("meta.searchParameters.cursor")
-                        .description("검색 시 사용된 커서 위치"),
+                    fieldWithPath("meta.searchParameters.sortType").description("검색 시 사용된 정렬 타입"),
+                    fieldWithPath("meta.searchParameters.sortOrder").description("검색 시 사용된 정렬 순서"),
+                    fieldWithPath("meta.searchParameters.cursor").description("검색 시 사용된 커서 위치"),
                     fieldWithPath("meta.searchParameters.pageSize")
                         .description("검색 시 사용된 페이지 크기"))));
   }
