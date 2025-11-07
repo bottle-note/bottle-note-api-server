@@ -5,6 +5,7 @@ import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.constant.KeywordTagMapping;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholsTastingTags;
+import app.bottlenote.alcohols.domain.CurationKeyword;
 import app.bottlenote.alcohols.domain.Distillery;
 import app.bottlenote.alcohols.domain.Region;
 import app.bottlenote.alcohols.domain.TastingTag;
@@ -437,5 +438,58 @@ public class AlcoholTestFactory {
     }
 
     em.flush();
+  }
+
+  /** 기본 CurationKeyword 생성 */
+  @Transactional
+  public CurationKeyword persistCurationKeyword() {
+    CurationKeyword curation =
+        CurationKeyword.builder()
+            .name("테스트 큐레이션-" + generateRandomSuffix())
+            .description("테스트용 큐레이션 설명")
+            .isActive(true)
+            .displayOrder(0)
+            .alcoholIds(new HashSet<>())
+            .build();
+    em.persist(curation);
+    em.flush();
+    return curation;
+  }
+
+  /** 알코올 ID 목록과 함께 CurationKeyword 생성 */
+  @Transactional
+  public CurationKeyword persistCurationKeyword(String name, String description, Set<Long> alcoholIds) {
+    CurationKeyword curation =
+        CurationKeyword.builder()
+            .name(name)
+            .description(description)
+            .isActive(true)
+            .displayOrder(0)
+            .alcoholIds(alcoholIds != null ? new HashSet<>(alcoholIds) : new HashSet<>())
+            .build();
+    em.persist(curation);
+    em.flush();
+    return curation;
+  }
+
+  /** 알코올 리스트와 함께 CurationKeyword 생성 */
+  @Transactional
+  public CurationKeyword persistCurationKeyword(String name, List<Alcohol> alcohols) {
+    Set<Long> alcoholIds = new HashSet<>();
+    if (alcohols != null) {
+      alcohols.forEach(alcohol -> alcoholIds.add(alcohol.getId()));
+    }
+
+    CurationKeyword curation =
+        CurationKeyword.builder()
+            .name(name)
+            .description(name + " 설명")
+            .isActive(true)
+            .displayOrder(0)
+            .alcoholIds(alcoholIds)
+            .build();
+    em.persist(curation);
+    em.flush();
+    return curation;
   }
 }

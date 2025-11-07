@@ -1,6 +1,7 @@
 package app.bottlenote.alcohols.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -402,5 +403,47 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
     assertEquals(1, responseData.getTotalCount());
     assertEquals(alcohol.getId(), responseData.getAlcohols().getFirst().getAlcoholId());
     assertEquals("조니 워커 블랙 라벨", responseData.getAlcohols().getFirst().getKorName());
+  }
+
+  @Test
+  @DisplayName("큐레이션 ID로 알코올을 검색할 수 있다.")
+  void test_12() throws Exception {
+    // given - 알코올 3개 생성
+    Alcohol alcohol1 = alcoholTestFactory.persistAlcoholWithName("맥캘란 12년", "Macallan 12");
+    Alcohol alcohol2 = alcoholTestFactory.persistAlcoholWithName("글렌피딕 15년", "Glenfiddich 15");
+    Alcohol alcohol3 = alcoholTestFactory.persistAlcoholWithName("조니 워커 블랙", "Johnnie Walker Black");
+
+    // 큐레이션 생성 (알코올 1, 2만 포함)
+    var curation =
+        alcoholTestFactory.persistCurationKeyword("봄 추천 위스키", List.of(alcohol1, alcohol2));
+
+    // when - 큐레이션 ID로 검색
+    MvcResult result =
+        mockMvc
+            .perform(
+                get("/api/v1/alcohols/search")
+                    .param("curationId", String.valueOf(curation.getId()))
+                    .contentType(APPLICATION_JSON)
+                    .header("Authorization", "Bearer " + getToken())
+                    .with(csrf()))
+            .andDo(print())
+            .andReturn();
+
+    // then
+    String responseString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+    GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
+    AlcoholSearchResponse responseData =
+        mapper.convertValue(response.getData(), AlcoholSearchResponse.class);
+
+    assertNotNull(responseData);
+    assertEquals(2, responseData.getTotalCount()); // 큐레이션에 포함된 2개만
+    List<AlcoholsSearchItem> alcohols = responseData.getAlcohols();
+    assertEquals(2, alcohols.size());
+
+    // 큐레이션에 포함된 알코올만 검색되었는지 확인
+    Set<Long> resultIds = alcohols.stream().map(AlcoholsSearchItem::getAlcoholId).collect(java.util.stream.Collectors.toSet());
+    assertTrue(resultIds.contains(alcohol1.getId()));
+    assertTrue(resultIds.contains(alcohol2.getId()));
+    assertFalse(resultIds.contains(alcohol3.getId())); // alcohol3은 큐레이션에 없음
   }
 }
