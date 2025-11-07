@@ -14,7 +14,6 @@ import static com.querydsl.jpa.JPAExpressions.select;
 
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
-import app.bottlenote.alcohols.domain.CurationKeywordRepository;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.global.service.cursor.CursorPageable;
@@ -31,7 +30,6 @@ import com.querydsl.jpa.JPAExpressions;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -324,9 +322,7 @@ public class AlcoholQuerySupporter {
 
     return JPAExpressions.selectOne()
         .from(curationKeyword)
-        .where(
-            curationKeyword.id.eq(curationId),
-            curationKeyword.alcoholIds.contains(alcohol.id))
+        .where(curationKeyword.id.eq(curationId), curationKeyword.alcoholIds.contains(alcohol.id))
         .exists();
   }
 
@@ -427,5 +423,4 @@ public class AlcoholQuerySupporter {
     }
     return pattern.toString();
   }
-
 }
