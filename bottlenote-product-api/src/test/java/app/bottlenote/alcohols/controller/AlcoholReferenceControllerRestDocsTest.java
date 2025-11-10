@@ -51,6 +51,7 @@ class AlcoholReferenceControllerRestDocsTest extends AbstractRestDocs {
             .id(1L)
             .name("봄 추천 위스키")
             .description("봄에 어울리는 위스키 모음")
+            .coverImageUrl("https://example.com/spring-whisky.jpg")
             .alcoholCount(10)
             .displayOrder(1)
             .build();
@@ -60,6 +61,7 @@ class AlcoholReferenceControllerRestDocsTest extends AbstractRestDocs {
             .id(2L)
             .name("여름 추천 위스키")
             .description("여름에 어울리는 위스키 모음")
+            .coverImageUrl("https://example.com/summer-whisky.jpg")
             .alcoholCount(8)
             .displayOrder(2)
             .build();
@@ -103,6 +105,7 @@ class AlcoholReferenceControllerRestDocsTest extends AbstractRestDocs {
                     fieldWithPath("data.items[].id").type(NUMBER).description("큐레이션 ID"),
                     fieldWithPath("data.items[].name").type(STRING).description("큐레이션 이름"),
                     fieldWithPath("data.items[].description").type(STRING).description("큐레이션 설명"),
+                    fieldWithPath("data.items[].coverImageUrl").type(STRING).description("큐레이션 커버 이미지 URL"),
                     fieldWithPath("data.items[].alcoholCount")
                         .type(NUMBER)
                         .description("포함된 위스키 개수"),
