@@ -13,6 +13,7 @@ public class CurationKeywordResponse {
   private Long id;
   private String name;
   private String description;
+  private String coverImageUrl;
   private Integer alcoholCount;
   private Integer displayOrder;
 }
