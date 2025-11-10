@@ -111,16 +111,16 @@ bottlenote-product-api/src/test/java/app/bottlenote/
 │   └── utils/                                 # 테스트 유틸리티 (플랫)
 │       ├── TestContainersConfig.java
 │       ├── TestAuthenticationSupport.java
-│       ├── TestDataCleaner.java
-│       └── TestResponseHelper.java
+│       └── TestDataCleaner.java
 ├── DataInitializer.java                       # 기존 유지, 개선
-└── IntegrationTestSupport.java                # 게이트웨이 역할만 수행
+└── IntegrationTestSupport.java                # 게이트웨이 + 응답 파싱 헬퍼 내장
 ```
 
 **구조 설명:**
 - `operation/verify/`: 컴포넌트 안정성 검증 테스트 (플랫 구조)
-- `operation/utils/`: 테스트 지원 유틸리티 컴포넌트 (플랫 구조)
-- 플랫 구조로 파일 탐색 용이, 과도한 폴더링 방지
+- `operation/utils/`: 상태 관리가 필요한 테스트 유틸리티만 분리 (플랫 구조)
+- `IntegrationTestSupport`: 응답 파싱 등 단순 헬퍼 메서드는 내장 유지
+- 플랫 구조로 파일 탐색 용이, 과도한 분리 방지
 
 ### 3.3 각 컴포넌트의 책임
 
@@ -253,40 +253,7 @@ public class TestDataCleaner {
 - 필요한 경우 부분 삭제 지원
 - DataInitializer와의 역할 분리 명확화
 
-#### 3.2.4 TestResponseHelper
-
-**책임:**
-- HTTP 응답 파싱
-- GlobalResponse 데이터 추출
-- 응답 검증 헬퍼
-
-**주요 메서드:**
-```java
-@Component
-public class TestResponseHelper {
-    private final ObjectMapper objectMapper;
-
-    // GlobalResponse 파싱 및 data 추출 (MvcTestResult)
-    public <T> T extractData(MvcTestResult result, Class<T> dataType) { ... }
-
-    // GlobalResponse 파싱 및 data 추출 (MvcResult)
-    public <T> T extractData(MvcResult result, Class<T> dataType) { ... }
-
-    // GlobalResponse만 파싱
-    public GlobalResponse parseResponse(MvcTestResult result) { ... }
-    public GlobalResponse parseResponse(MvcResult result) { ... }
-
-    // 에러 응답 파싱
-    public List<Error> extractErrors(MvcResult result) { ... }
-}
-```
-
-**개선 포인트:**
-- 응답 파싱 로직을 독립적으로 관리
-- JSON 변환 로직 중앙화
-- 다양한 응답 형식에 대한 유연한 처리
-
-#### 3.3.5 IntegrationTestSupport (리팩토링 후)
+#### 3.3.4 IntegrationTestSupport (리팩토링 후)
 
 **책임:**
 - 각 컴포넌트를 조합하는 게이트웨이 역할
@@ -306,7 +273,6 @@ public abstract class IntegrationTestSupport {
     // 1. 컴포넌트 주입 (컨테이너 관련 코드 완전 제거!)
     @Autowired protected TestAuthenticationSupport authSupport;
     @Autowired protected TestDataCleaner dataCleaner;
-    @Autowired protected TestResponseHelper responseHelper;
     @Autowired protected ObjectMapper mapper;
     @Autowired protected MockMvc mockMvc;
     @Autowired protected MockMvcTester mockMvcTester;
@@ -317,7 +283,7 @@ public abstract class IntegrationTestSupport {
         dataCleaner.cleanAll();
     }
 
-    // 3. 편의 메서드 (위임)
+    // 3. 편의 메서드 (인증 - 위임)
     protected String getToken() {
         return authSupport.getToken();
     }
@@ -330,12 +296,29 @@ public abstract class IntegrationTestSupport {
         return authSupport.getTokenUserId();
     }
 
+    // 4. 응답 파싱 헬퍼 (내장)
     protected <T> T extractData(MvcTestResult result, Class<T> dataType) throws Exception {
-        return responseHelper.extractData(result, dataType);
+        result.assertThat().hasStatusOk();
+        String responseString = result.getResponse().getContentAsString();
+        GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
+        return mapper.convertValue(response.getData(), dataType);
+    }
+
+    protected <T> T extractData(MvcResult result, Class<T> dataType) throws Exception {
+        String responseString = result.getResponse().getContentAsString();
+        GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
+        return mapper.convertValue(response.getData(), dataType);
     }
 
     protected GlobalResponse parseResponse(MvcTestResult result) throws Exception {
-        return responseHelper.parseResponse(result);
+        result.assertThat().hasStatusOk();
+        String responseString = result.getResponse().getContentAsString();
+        return mapper.readValue(responseString, GlobalResponse.class);
+    }
+
+    protected GlobalResponse parseResponse(MvcResult result) throws Exception {
+        String responseString = result.getResponse().getContentAsString();
+        return mapper.readValue(responseString, GlobalResponse.class);
     }
 }
 ```
@@ -359,10 +342,15 @@ public abstract class IntegrationTestSupport {
    - 상속 체인 오염 없음
    - 다른 설정 클래스와 조합 가능
 
+5. **응답 파싱 메서드 내장 유지**
+   - extractData(), parseResponse() 메서드를 별도 클래스로 분리하지 않음
+   - 단순 헬퍼 메서드는 IntegrationTestSupport에 내장
+   - 과도한 분리 방지
+
 **개선 효과:**
 - IntegrationTestSupport가 순수 게이트웨이로 전환
 - 컨테이너 관련 코드가 완전히 분리됨
-- 각 컴포넌트로 위임하여 결합도 감소
+- 상태 관리가 필요한 컴포넌트만 분리하여 결합도 감소
 - 테스트 코드 작성자는 기존과 동일한 방식으로 사용 가능 (하위 호환)
 
 ---
@@ -400,17 +388,13 @@ public abstract class IntegrationTestSupport {
    - 향후 확장을 위한 인터페이스 준비
    - 경로: `app/bottlenote/operation/utils/TestDataCleaner.java`
 
-5. **TestResponseHelper 생성**
-   - 응답 파싱 메서드 이동 (extractData, parseResponse)
-   - ObjectMapper 의존성 주입
-   - 경로: `app/bottlenote/operation/utils/TestResponseHelper.java`
-
-6. **IntegrationTestSupport 컴포넌트 통합**
+5. **IntegrationTestSupport 컴포넌트 통합**
    - 각 컴포넌트를 @Autowired로 주입
-   - 편의 메서드는 그대로 유지 (하위 호환)
-   - 위임 패턴 적용
+   - 인증 관련 편의 메서드는 위임 패턴 적용
+   - 응답 파싱 메서드는 내장 유지
+   - 기존 테스트 코드 하위 호환성 유지
 
-7. **검증 테스트 작성** 🆕
+6. **검증 테스트 작성** 🆕
    - TestContainersConfigTest: 컨테이너 Bean 생성 및 @ServiceConnection 동작 확인
    - DataInitializerCachingTest: 캐싱 최적화 및 시스템 테이블 제외 확인
    - TestDataCleanerTest: 위임 패턴 및 선택적 삭제 기능 확인
@@ -438,12 +422,7 @@ public abstract class IntegrationTestSupport {
    - 도메인별 데이터 삭제 기능 추가
    - 데이터 초기화 전략 인터페이스 정의
 
-3. **TestResponseHelper 개선**
-   - 에러 응답 파싱 기능 추가
-   - 페이징 응답 파싱 헬퍼 추가
-   - 커스텀 응답 검증 메서드 추가
-
-4. **DataInitializer 개선** (캐싱 최적화)
+3. **DataInitializer 개선** (캐싱 최적화)
    - 시스템 테이블 제외 (flyway_, databasechangelog 등)
    - Thread-safe 초기화 (synchronized 추가)
    - 성능 측정 로깅 추가
