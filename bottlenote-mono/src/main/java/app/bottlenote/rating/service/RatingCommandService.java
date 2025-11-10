@@ -73,9 +73,14 @@ public class RatingCommandService {
     // 평점 등록 이벤트 로깅
     String traceId = tracingService.map(TracingService::getCurrentTraceId).orElse("N/A");
     String action = isExistPrevRating ? "수정" : "등록";
-    log.info("평점 {} - userId: {}, alcoholId: {}, rating: {}, prevRating: {}, traceId: {}",
-        action, userId, alcoholId, ratingPoint.getRating(),
-        isExistPrevRating ? prevRatingPoint.getRating() : "N/A", traceId);
+    log.info(
+        "평점 {} - userId: {}, alcoholId: {}, rating: {}, prevRating: {}, traceId: {}",
+        action,
+        userId,
+        alcoholId,
+        ratingPoint.getRating(),
+        isExistPrevRating ? prevRatingPoint.getRating() : "N/A",
+        traceId);
 
     return RatingRegisterResponse.success(save.getRatingPoint().getRating());
   }

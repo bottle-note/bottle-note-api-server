@@ -57,8 +57,12 @@ public class ImageUploadService implements PreSignUrlProvider {
     eventPublisher.publishEvent(S3RequestEvent.of("s3 Image upload", imageBucketName, uploadSize));
 
     // PreSignedURL 생성 완료 로깅
-    log.info("S3 PreSignedURL 생성 완료 - rootPath: {}, uploadSize: {}, bucket: {}, expiryTime: {}분",
-        rootPath, uploadSize, imageBucketName, EXPIRY_TIME);
+    log.info(
+        "S3 PreSignedURL 생성 완료 - rootPath: {}, uploadSize: {}, bucket: {}, expiryTime: {}분",
+        rootPath,
+        uploadSize,
+        imageBucketName,
+        EXPIRY_TIME);
 
     return ImageUploadResponse.builder()
         .bucketName(imageBucketName)

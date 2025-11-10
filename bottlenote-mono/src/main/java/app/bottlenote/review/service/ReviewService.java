@@ -121,9 +121,14 @@ public class ReviewService {
 
     // 리뷰 생성 이벤트 로깅
     String traceId = tracingService.map(TracingService::getCurrentTraceId).orElse("N/A");
-    log.info("리뷰 생성 - reviewId: {}, userId: {}, alcoholId: {}, rating: {}, status: {}, traceId: {}",
-        saveReview.getId(), currentUserId, saveReview.getAlcoholId(),
-        saveReview.getReviewRating(), saveReview.getStatus(), traceId);
+    log.info(
+        "리뷰 생성 - reviewId: {}, userId: {}, alcoholId: {}, rating: {}, status: {}, traceId: {}",
+        saveReview.getId(),
+        currentUserId,
+        saveReview.getAlcoholId(),
+        saveReview.getReviewRating(),
+        saveReview.getStatus(),
+        traceId);
 
     return ReviewCreateResponse.builder()
         .id(saveReview.getId())
@@ -163,8 +168,12 @@ public class ReviewService {
 
     // 리뷰 삭제 이벤트 로깅
     String traceId = tracingService.map(TracingService::getCurrentTraceId).orElse("N/A");
-    log.info("리뷰 삭제 - reviewId: {}, userId: {}, alcoholId: {}, traceId: {}",
-        reviewId, currentUserId, review.getAlcoholId(), traceId);
+    log.info(
+        "리뷰 삭제 - reviewId: {}, userId: {}, alcoholId: {}, traceId: {}",
+        reviewId,
+        currentUserId,
+        review.getAlcoholId(),
+        traceId);
 
     return ReviewResultResponse.response(reviewResultMessage, reviewId);
   }

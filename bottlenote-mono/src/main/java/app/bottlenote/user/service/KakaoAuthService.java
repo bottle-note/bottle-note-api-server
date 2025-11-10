@@ -22,7 +22,8 @@ public class KakaoAuthService {
       KakaoUserResponse kakaoUser = kakaoFeignClient.getUserInfo("Bearer " + accessToken).getBody();
 
       if (kakaoUser == null) {
-        log.warn("카카오 API 응답 null - accessToken 길이: {}", accessToken != null ? accessToken.length() : 0);
+        log.warn(
+            "카카오 API 응답 null - accessToken 길이: {}", accessToken != null ? accessToken.length() : 0);
         throw new UserException(UserExceptionCode.INVALID_KAKAO_ACCESS_TOKEN);
       }
 
