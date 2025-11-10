@@ -11,6 +11,7 @@ import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
+import app.bottlenote.observability.service.TracingService;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.review.constant.ReviewResultMessage;
 import app.bottlenote.review.domain.Review;
@@ -30,6 +31,7 @@ import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 import app.bottlenote.user.facade.UserFacade;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -44,6 +46,7 @@ public class ReviewService {
   private final UserFacade userDomainSupport;
   private final ReviewRepository reviewRepository;
   private final HistoryEventPublisher reviewEventPublisher;
+  private final Optional<TracingService> tracingService;
 
   /** Read */
   @Transactional(readOnly = true)
@@ -116,6 +119,12 @@ public class ReviewService {
             saveReview.getContent());
     reviewEventPublisher.publishReviewHistoryEvent(event);
 
+    // 리뷰 생성 이벤트 로깅
+    String traceId = tracingService.map(TracingService::getCurrentTraceId).orElse("N/A");
+    log.info("리뷰 생성 - reviewId: {}, userId: {}, alcoholId: {}, rating: {}, status: {}, traceId: {}",
+        saveReview.getId(), currentUserId, saveReview.getAlcoholId(),
+        saveReview.getReviewRating(), saveReview.getStatus(), traceId);
+
     return ReviewCreateResponse.builder()
         .id(saveReview.getId())
         .content(saveReview.getContent())
@@ -151,6 +160,11 @@ public class ReviewService {
             .findByIdAndUserId(reviewId, currentUserId)
             .orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
     ReviewResultMessage reviewResultMessage = review.updateReviewActiveStatus(DELETED);
+
+    // 리뷰 삭제 이벤트 로깅
+    String traceId = tracingService.map(TracingService::getCurrentTraceId).orElse("N/A");
+    log.info("리뷰 삭제 - reviewId: {}, userId: {}, alcoholId: {}, traceId: {}",
+        reviewId, currentUserId, review.getAlcoholId(), traceId);
 
     return ReviewResultResponse.response(reviewResultMessage, reviewId);
   }

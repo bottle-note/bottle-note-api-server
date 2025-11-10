@@ -4,6 +4,7 @@ import static java.lang.Boolean.FALSE;
 
 import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
+import app.bottlenote.observability.service.TracingService;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
@@ -16,6 +17,7 @@ import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.facade.UserFacade;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,7 @@ public class RatingCommandService {
   private final UserFacade userFacade;
   private final AlcoholFacade alcoholFacade;
   private final HistoryEventPublisher ratingEventPublisher;
+  private final Optional<TracingService> tracingService;
 
   @Transactional
   public RatingRegisterResponse register(Long alcoholId, Long userId, RatingPoint ratingPoint) {
@@ -66,6 +69,13 @@ public class RatingCommandService {
             rating.getId().getUserId(),
             isExistPrevRating ? prevRatingPoint : null,
             ratingPoint));
+
+    // 평점 등록 이벤트 로깅
+    String traceId = tracingService.map(TracingService::getCurrentTraceId).orElse("N/A");
+    String action = isExistPrevRating ? "수정" : "등록";
+    log.info("평점 {} - userId: {}, alcoholId: {}, rating: {}, prevRating: {}, traceId: {}",
+        action, userId, alcoholId, ratingPoint.getRating(),
+        isExistPrevRating ? prevRatingPoint.getRating() : "N/A", traceId);
 
     return RatingRegisterResponse.success(save.getRatingPoint().getRating());
   }
