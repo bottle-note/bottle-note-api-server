@@ -1,0 +1,66 @@
+name: Validate PR Source Branch
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - dev
+      - prod
+      - 'release/**'
+      - 'release-*'
+
+jobs:
+  validate-source-branch:
+    name: Validate PR is from main branch
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Check PR source branch
+        id: check-branch
+        run: |
+          echo "::group::PR Information"
+          echo "Source branch (head): ${{ github.head_ref }}"
+          echo "Target branch (base): ${{ github.base_ref }}"
+          echo "::endgroup::"
+
+          if [ "${{ github.head_ref }}" != "main" ]; then
+            echo "::error::PR must be created from 'main' branch"
+            echo "::error::Current source branch: ${{ github.head_ref }}"
+            echo "::error::Expected source branch: main"
+            exit 1
+          fi
+
+          echo "✅ PR source branch validation passed"
+          echo "Source branch is 'main'"
+
+      - name: Add success comment
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ **Branch validation passed**\n\nPR source branch is `main` - validation successful!'
+            })
+
+      - name: Add failure comment
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `❌ **Branch validation failed**\n\n` +
+                    `This PR must be created from the \`main\` branch.\n\n` +
+                    `**Current source branch:** \`${{ github.head_ref }}\`\n` +
+                    `**Expected source branch:** \`main\`\n\n` +
+                    `Please create a new PR from the \`main\` branch to target \`${{ github.base_ref }}\`.`
+            })
