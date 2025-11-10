@@ -148,13 +148,17 @@ public class TestContainersConfig {
 
     @Bean
     @ServiceConnection
-    GenericContainer<?> redisContainer() {
-        return new GenericContainer<>(DockerImageName.parse("redis:7.0.12"))
-            .withExposedPorts(6379)
+    RedisContainer redisContainer() {  // GenericContainer → RedisContainer
+        return new RedisContainer(DockerImageName.parse("redis:7.0.12"))
             .withReuse(true);
     }
 }
 ```
+
+**⚠️ 중요: Redis 컨테이너 타입**
+- Spring Boot 3.4는 `RedisContainer` 타입을 명시적으로 지원
+- `GenericContainer` 사용 시 @ServiceConnection이 자동 인식하지 못함
+- Testcontainers에서 제공하는 `org.testcontainers.containers.GenericContainer` 대신 `RedisContainer` 사용 필수
 
 **핵심 개선 포인트:**
 
@@ -357,6 +361,54 @@ public abstract class IntegrationTestSupport {
 
 ## 4. 구현 단계
 
+### Phase 0: 사전 준비 (Prerequisites) ⚠️
+
+**실행 전 필수 확인 사항:**
+
+#### 4.0.1 의존성 추가
+
+**build.gradle에 spring-boot-testcontainers 추가 필요:**
+```gradle
+// bottlenote-product-api/build.gradle
+dependencies {
+    // 기존 의존성...
+
+    // @ServiceConnection 지원을 위해 필수
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+}
+```
+
+**이유:**
+- Spring Boot 3.1+의 `@ServiceConnection` 기능을 사용하려면 필수
+- 없으면 컨테이너 자동 연결이 동작하지 않음
+
+#### 4.0.2 Testcontainers 버전 통일
+
+**libs.versions.toml 수정:**
+```toml
+[versions]
+testcontainers = "1.19.8"
+testcontainers-junit = "1.19.8"   # 1.19.0 → 1.19.8 변경
+testcontainers-mysql = "1.19.8"   # 1.19.0 → 1.19.8 변경
+```
+
+**이유:**
+- 현재 testcontainers 코어는 1.19.8이지만 junit/mysql은 1.19.0으로 버전 불일치
+- 버전 불일치 시 예상치 못한 호환성 문제 발생 가능
+- 모든 testcontainers 모듈을 동일 버전으로 통일 권장
+
+#### 4.0.3 Redis 컨테이너 의존성 확인
+
+**RedisContainer를 사용하려면:**
+```gradle
+// build.gradle에 이미 포함되어 있는지 확인
+testImplementation 'org.testcontainers:testcontainers'
+```
+
+RedisContainer는 testcontainers 코어 모듈에 포함되어 있어 별도 추가 불필요.
+
+---
+
 ### Phase 1: 컴포넌트 분리 (기존 기능 유지)
 
 **목표:** 기존 IntegrationTestSupport의 기능을 유지하면서 컴포넌트 분리
@@ -395,11 +447,31 @@ public abstract class IntegrationTestSupport {
    - 기존 테스트 코드 하위 호환성 유지
 
 6. **검증 테스트 작성** 🆕
-   - TestContainersConfigTest: 컨테이너 Bean 생성 및 @ServiceConnection 동작 확인
-   - DataInitializerCachingTest: 캐싱 최적화 및 시스템 테이블 제외 확인
-   - TestDataCleanerTest: 위임 패턴 및 선택적 삭제 기능 확인
-   - ContainerReuseIntegrationTest: 전체 통합 시나리오 확인
-   - 경로: `app/bottlenote/operation/verify/`
+
+   **6.1 TestContainersConfigTest**
+   - 컨테이너 Bean이 정상 생성되는지 확인
+   - @ServiceConnection이 MySQL, Redis에 자동 적용되는지 확인
+   - DataSource, RedisConnectionFactory가 컨테이너를 바라보는지 확인
+   - 경로: `app/bottlenote/operation/verify/TestContainersConfigTest.java`
+
+   **6.2 DataInitializerCachingTest**
+   - volatile 키워드로 Thread-safe가 보장되는지 확인
+   - Double-checked locking이 정상 동작하는지 확인
+   - 시스템 테이블(flyway_, databasechangelog 등)이 제외되는지 확인
+   - 최초 1회만 테이블 목록 조회가 이루어지는지 확인
+   - 경로: `app/bottlenote/operation/verify/DataInitializerCachingTest.java`
+
+   **6.3 TestDataCleanerTest**
+   - DataInitializer로 위임이 정상 동작하는지 확인
+   - cleanAll() 메서드가 전체 삭제를 수행하는지 확인
+   - 향후 선택적 삭제 기능 확장 가능성 검증
+   - 경로: `app/bottlenote/operation/verify/TestDataCleanerTest.java`
+
+   **6.4 ContainerReuseIntegrationTest**
+   - 여러 테스트 클래스에서 컨테이너 재사용이 동작하는지 확인
+   - @Import를 통한 컴포지션 패턴이 정상 작동하는지 확인
+   - IntegrationTestSupport 상속 시나리오 검증
+   - 경로: `app/bottlenote/operation/verify/ContainerReuseIntegrationTest.java`
 
 **검증:**
 - 기존 통합 테스트가 모두 통과하는지 확인
@@ -423,11 +495,82 @@ public abstract class IntegrationTestSupport {
    - 데이터 초기화 전략 인터페이스 정의
 
 3. **DataInitializer 개선** (캐싱 최적화)
-   - 시스템 테이블 제외 (flyway_, databasechangelog 등)
-   - Thread-safe 초기화 (synchronized 추가)
-   - 성능 측정 로깅 추가
-   - 캐시 워밍업 메서드 제공
-   - DELETE vs TRUNCATE 전략 비교 (선택적)
+
+   **현재 문제:**
+   - Thread-safe하지 않음 (volatile, synchronized 미사용)
+   - 시스템 테이블도 TRUNCATE 대상에 포함됨
+   - 초기화 여부 플래그 없음
+
+   **개선 코드:**
+   ```java
+   @Profile({"test", "batch"})
+   @ActiveProfiles({"test", "batch"})
+   @Component
+   @SuppressWarnings("unchecked")
+   public class DataInitializer {
+       private static final String OFF_FOREIGN_CONSTRAINTS = "SET foreign_key_checks = false";
+       private static final String ON_FOREIGN_CONSTRAINTS = "SET foreign_key_checks = true";
+       private static final String TRUNCATE_SQL_FORMAT = "TRUNCATE %s";
+       private static final List<String> truncationDMLs = new ArrayList<>();
+
+       // Thread-safe를 위한 volatile 키워드 필수
+       private static volatile boolean initialized = false;
+
+       // 시스템 테이블 제외 목록
+       private static final Set<String> SYSTEM_TABLE_PREFIXES = Set.of(
+           "flyway_",
+           "databasechangelog",
+           "schema_version"
+       );
+
+       @PersistenceContext
+       private EntityManager em;
+
+       @Transactional(value = REQUIRES_NEW)
+       public void deleteAll() {
+           if (!initialized) {
+               initCache();
+           }
+           em.createNativeQuery(OFF_FOREIGN_CONSTRAINTS).executeUpdate();
+           truncationDMLs.stream()
+               .map(em::createNativeQuery)
+               .forEach(Query::executeUpdate);
+           em.createNativeQuery(ON_FOREIGN_CONSTRAINTS).executeUpdate();
+       }
+
+       // Double-checked locking with volatile
+       private void initCache() {
+           if (!initialized) {
+               synchronized (truncationDMLs) {
+                   if (!initialized) {
+                       init();
+                       initialized = true;
+                   }
+               }
+           }
+       }
+
+       private void init() {
+           final List<String> tableNames = em.createNativeQuery("SHOW TABLES").getResultList();
+           tableNames.stream()
+               .filter(tableName -> !isSystemTable((String) tableName))
+               .map(tableName -> String.format(TRUNCATE_SQL_FORMAT, tableName))
+               .forEach(truncationDMLs::add);
+       }
+
+       private boolean isSystemTable(String tableName) {
+           return SYSTEM_TABLE_PREFIXES.stream()
+               .anyMatch(prefix -> tableName.startsWith(prefix));
+       }
+   }
+   ```
+
+   **개선 포인트:**
+   - ✅ volatile 키워드로 메모리 가시성 보장
+   - ✅ Double-checked locking으로 Thread-safe 보장
+   - ✅ 시스템 테이블 제외로 불필요한 TRUNCATE 방지
+   - ✅ initialized 플래그로 중복 초기화 방지
+   - ✅ 성능 향상: 테이블 목록 조회를 최초 1회만 수행
 
 **검증:**
 - 신규 기능이 기존 테스트에 영향 없는지 확인
@@ -495,15 +638,13 @@ void cleanup() {
 }
 ```
 
-**3) 확장 가능한 응답 검증**
+**3) 응답 파싱은 IntegrationTestSupport에 내장 유지**
 ```java
-// Before
+// 계속 동일하게 사용 (별도 분리 없음)
 GlobalResponse response = parseResponse(result);
-ReviewResponse data = mapper.convertValue(response.getData(), ReviewResponse.class);
+ReviewResponse data = extractData(result, ReviewResponse.class);
 
-// After
-ReviewResponse data = responseHelper.extractData(result, ReviewResponse.class);
-List<Error> errors = responseHelper.extractErrors(errorResult);
+// 이유: 단순 헬퍼 메서드는 분리하지 않음 (과도한 분리 방지)
 ```
 
 ### 5.3 유지보수성 향상
@@ -607,13 +748,19 @@ User testUser = authSupport.createTestUser();
 
 ## 9. 다음 단계
 
-### 9.1 즉시 실행 (Phase 1)
+### 9.1 즉시 실행 (Phase 0 + Phase 1)
 
-1. `TestContainersConfiguration` 클래스 생성
-2. `TestAuthenticationSupport` 클래스 생성
-3. `TestDataCleaner` 클래스 생성
-4. `TestResponseHelper` 클래스 생성
-5. `IntegrationTestSupport` 리팩토링
+**Phase 0: Prerequisites**
+1. `spring-boot-testcontainers` 의존성 추가 (build.gradle)
+2. Testcontainers 버전 통일 (libs.versions.toml)
+3. 의존성 확인 및 프로젝트 빌드 검증
+
+**Phase 1: 컴포넌트 분리**
+1. `TestContainersConfig` 클래스 생성 (operation/utils/)
+2. `TestAuthenticationSupport` 클래스 생성 (operation/utils/)
+3. `TestDataCleaner` 클래스 생성 (operation/utils/)
+4. `IntegrationTestSupport` 리팩토링 (응답 파싱 메서드는 내장 유지)
+5. 검증 테스트 작성 (operation/verify/)
 6. 모든 통합 테스트 실행 및 검증
 
 ### 9.2 후속 작업 (Phase 2-3)
