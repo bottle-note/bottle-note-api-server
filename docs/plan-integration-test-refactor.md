@@ -90,57 +90,91 @@ void deleteAll() {
 
 ## 3. 리팩토링 설계
 
-### 3.1 새로운 컴포넌트 구조
+### 3.1 기술 스택 및 버전
+
+- **Spring Boot**: 3.4.11
+- **Testcontainers**: 1.19.8
+- **Java**: 21
+
+Spring Boot 3.1+부터 도입된 `@ServiceConnection` 기능을 활용하여 모던한 방식으로 리팩토링합니다.
+
+### 3.2 새로운 컴포넌트 구조
 
 ```
 bottlenote-product-api/src/test/java/app/bottlenote/support/
 ├── containers/
-│   ├── TestContainersConfiguration.java        # TestContainers 설정 전담
-│   └── DatabaseContainer.java                   # DB 컨테이너 래퍼 (옵션)
+│   └── TestContainersConfig.java              # TestContainers 설정 전담 (@TestConfiguration)
 ├── auth/
-│   ├── TestAuthenticationSupport.java          # 인증/토큰 관리 전담
-│   └── TestTokenGenerator.java                 # 토큰 생성 로직 (옵션)
+│   └── TestAuthenticationSupport.java         # 인증/토큰 관리 전담
 ├── data/
-│   ├── TestDataCleaner.java                    # 데이터 초기화 전담
-│   └── DataInitializer.java                    # 기존 유지, 개선
+│   ├── TestDataCleaner.java                   # 데이터 초기화 전담
+│   └── DataInitializer.java                   # 기존 유지, 개선
 └── http/
-    └── TestResponseHelper.java                 # HTTP 응답 파싱 전담
+    └── TestResponseHelper.java                # HTTP 응답 파싱 전담
 
-IntegrationTestSupport.java                      # 게이트웨이 역할만 수행
+IntegrationTestSupport.java                     # 게이트웨이 역할만 수행
 ```
 
-### 3.2 각 컴포넌트의 책임
+### 3.3 각 컴포넌트의 책임
 
-#### 3.2.1 TestContainersConfiguration
+#### 3.3.1 TestContainersConfig (최우선 구현)
 
 **책임:**
-- MySQL, Redis 컨테이너 생성 및 관리
-- 컨테이너 재사용 설정
-- DynamicPropertySource 설정
+- MySQL, Redis 컨테이너를 Spring Bean으로 관리
+- `@ServiceConnection`을 통한 자동 연결 설정
+- 컨테이너 재사용(reuse) 설정
 
-**주요 메서드:**
+**구현 방식:**
 ```java
-public class TestContainersConfiguration {
-    private static final MySQLContainer<?> MYSQL;
-    private static final GenericContainer<?> REDIS;
+@TestConfiguration(proxyBeanMethods = false)
+public class TestContainersConfig {
 
-    static {
-        // 컨테이너 초기화 및 병렬 시작
+    @Bean
+    @ServiceConnection
+    MySQLContainer<?> mysqlContainer() {
+        return new MySQLContainer<>(DockerImageName.parse("mysql:8.0.32"))
+            .withReuse(true)
+            .withDatabaseName("bottlenote")
+            .withUsername("root")
+            .withPassword("root");
     }
 
-    public static void configureDynamicProperties(DynamicPropertyRegistry registry) {
-        // Redis, MySQL 연결 정보 설정
+    @Bean
+    @ServiceConnection
+    GenericContainer<?> redisContainer() {
+        return new GenericContainer<>(DockerImageName.parse("redis:7.0.12"))
+            .withExposedPorts(6379)
+            .withReuse(true);
     }
-
-    public static MySQLContainer<?> getMysqlContainer() { ... }
-    public static GenericContainer<?> getRedisContainer() { ... }
 }
 ```
 
-**개선 포인트:**
-- 컨테이너 설정을 외부로 분리하여 재사용성 향상
-- 다른 테스트 클래스에서도 동일한 컨테이너 설정 사용 가능
-- 컨테이너별 설정 변경이 용이
+**핵심 개선 포인트:**
+
+1. **Spring Bean 기반 관리**
+   - Spring이 컨테이너 라이프사이클 자동 관리
+   - 컨테이너 빈은 다른 빈보다 먼저 생성/시작
+   - 컨테이너 빈은 다른 빈 종료 후에 종료
+   - TestContext Framework가 application context당 한 번만 생성
+
+2. **@ServiceConnection 자동 설정**
+   - `DynamicPropertySource` 수동 설정 불필요
+   - Spring Boot가 자동으로 ConnectionDetails 빈 생성
+   - MySQL, Redis 연결 정보 자동 주입
+
+3. **재사용 가능한 구조**
+   - 다른 테스트 클래스에서 `@Import(TestContainersConfig.class)`만 추가
+   - 상속 체인 오염 없음
+   - 필요시 컨테이너를 `@Autowired`로 주입 가능
+
+4. **병렬 시작 제거**
+   - 기존 CompletableFuture 병렬 시작 코드 제거
+   - Spring의 Bean 초기화 순서에 의존
+   - 코드 단순화 및 유지보수성 향상
+
+**Spring Boot 3.1+ Best Practice 적용:**
+- 2024년 공식 권장 방식
+- Spring 공식 문서 및 커뮤니티 Best Practice 반영
 
 #### 3.2.2 TestAuthenticationSupport
 
@@ -245,7 +279,7 @@ public class TestResponseHelper {
 - JSON 변환 로직 중앙화
 - 다양한 응답 형식에 대한 유연한 처리
 
-#### 3.2.5 IntegrationTestSupport (리팩토링 후)
+#### 3.3.5 IntegrationTestSupport (리팩토링 후)
 
 **책임:**
 - 각 컴포넌트를 조합하는 게이트웨이 역할
@@ -254,29 +288,15 @@ public class TestResponseHelper {
 
 **리팩토링 후 구조:**
 ```java
-@Testcontainers
 @ActiveProfiles({"test", "batch"})
 @Tag("integration")
 @AutoConfigureMockMvc
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import(TestContainersConfig.class)  // 컨테이너 설정 임포트
 public abstract class IntegrationTestSupport {
 
-    // 1. 컨테이너 설정 위임
-    @Container
-    protected static MySQLContainer<?> MY_SQL_CONTAINER =
-        TestContainersConfiguration.getMysqlContainer();
-
-    @Container
-    protected static GenericContainer<?> REDIS_CONTAINER =
-        TestContainersConfiguration.getRedisContainer();
-
-    @DynamicPropertySource
-    static void configureDynamicProperties(DynamicPropertyRegistry registry) {
-        TestContainersConfiguration.configureDynamicProperties(registry);
-    }
-
-    // 2. 컴포넌트 주입
+    // 1. 컴포넌트 주입 (컨테이너 관련 코드 완전 제거!)
     @Autowired protected TestAuthenticationSupport authSupport;
     @Autowired protected TestDataCleaner dataCleaner;
     @Autowired protected TestResponseHelper responseHelper;
@@ -284,13 +304,13 @@ public abstract class IntegrationTestSupport {
     @Autowired protected MockMvc mockMvc;
     @Autowired protected MockMvcTester mockMvcTester;
 
-    // 3. 데이터 정리
+    // 2. 데이터 정리
     @AfterEach
     void cleanUpAfterEach() {
         dataCleaner.cleanAll();
     }
 
-    // 4. 편의 메서드 (위임)
+    // 3. 편의 메서드 (위임)
     protected String getToken() {
         return authSupport.getToken();
     }
@@ -313,8 +333,28 @@ public abstract class IntegrationTestSupport {
 }
 ```
 
-**개선 포인트:**
-- 순수 조합/게이트웨이 역할만 수행
+**핵심 변경 사항:**
+
+1. **@Testcontainers 어노테이션 제거**
+   - Spring Bean 기반 컨테이너 관리로 전환
+   - JUnit의 @Testcontainers 확장 불필요
+
+2. **@Container 필드 완전 제거**
+   - 컨테이너 선언 코드 0줄
+   - IntegrationTestSupport가 컨테이너에 대해 전혀 모름
+
+3. **@DynamicPropertySource 제거**
+   - @ServiceConnection이 자동 처리
+   - 수동 속성 설정 불필요
+
+4. **@Import(TestContainersConfig.class)**
+   - 컴포지션 방식으로 컨테이너 설정 임포트
+   - 상속 체인 오염 없음
+   - 다른 설정 클래스와 조합 가능
+
+**개선 효과:**
+- IntegrationTestSupport가 순수 게이트웨이로 전환
+- 컨테이너 관련 코드가 완전히 분리됨
 - 각 컴포넌트로 위임하여 결합도 감소
 - 테스트 코드 작성자는 기존과 동일한 방식으로 사용 가능 (하위 호환)
 
@@ -326,33 +366,48 @@ public abstract class IntegrationTestSupport {
 
 **목표:** 기존 IntegrationTestSupport의 기능을 유지하면서 컴포넌트 분리
 
-1. **TestContainersConfiguration 생성**
-   - MySQL, Redis 컨테이너 설정 이동
-   - DynamicPropertySource 로직 이동
-   - 정적 초기화 블록 유지
+1. **TestContainersConfig 생성 (최우선)** ⭐
+   - `@TestConfiguration(proxyBeanMethods = false)` 클래스 생성
+   - MySQL, Redis 컨테이너를 `@Bean` 메서드로 정의
+   - `@ServiceConnection` 어노테이션 추가 (자동 연결)
+   - `withReuse(true)` 설정으로 컨테이너 재사용
+   - 기존 CompletableFuture 병렬 시작 코드 제거
+   - 경로: `app/bottlenote/support/containers/TestContainersConfig.java`
 
-2. **TestAuthenticationSupport 생성**
+2. **IntegrationTestSupport 리팩토링**
+   - `@Testcontainers` 어노테이션 제거
+   - `@Container` 필드 모두 제거
+   - `@DynamicPropertySource` 메서드 제거
+   - `@Import(TestContainersConfig.class)` 추가
+   - 나머지 로직은 그대로 유지
+
+3. **TestAuthenticationSupport 생성**
    - 토큰 생성 메서드 이동 (getToken, getRandomToken 등)
    - OauthRepository, JwtTokenProvider 의존성 주입
    - @Component로 등록하여 스프링 빈으로 관리
+   - 경로: `app/bottlenote/support/auth/TestAuthenticationSupport.java`
 
-3. **TestDataCleaner 생성**
+4. **TestDataCleaner 생성**
    - DataInitializer 래핑
    - cleanAll() 메서드로 deleteAll() 위임
    - 향후 확장을 위한 인터페이스 준비
+   - 경로: `app/bottlenote/support/data/TestDataCleaner.java`
 
-4. **TestResponseHelper 생성**
+5. **TestResponseHelper 생성**
    - 응답 파싱 메서드 이동 (extractData, parseResponse)
    - ObjectMapper 의존성 주입
+   - 경로: `app/bottlenote/support/http/TestResponseHelper.java`
 
-5. **IntegrationTestSupport 리팩토링**
-   - 각 컴포넌트로 위임하도록 수정
+6. **IntegrationTestSupport 컴포넌트 통합**
+   - 각 컴포넌트를 @Autowired로 주입
    - 편의 메서드는 그대로 유지 (하위 호환)
-   - @Autowired로 컴포넌트 주입
+   - 위임 패턴 적용
 
 **검증:**
 - 기존 통합 테스트가 모두 통과하는지 확인
-- 테스트 동작 방식 변경 없음 (리팩토링만)
+- 테스트 실행 시간 비교 (병렬 시작 제거 영향 측정)
+- 컨테이너 재사용이 정상 동작하는지 확인
+- @ServiceConnection 자동 설정 동작 확인
 
 ### Phase 2: 컴포넌트 개선 및 확장
 
