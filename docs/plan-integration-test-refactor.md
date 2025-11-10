@@ -101,19 +101,26 @@ Spring Boot 3.1+부터 도입된 `@ServiceConnection` 기능을 활용하여 모
 ### 3.2 새로운 컴포넌트 구조
 
 ```
-bottlenote-product-api/src/test/java/app/bottlenote/support/
-├── containers/
-│   └── TestContainersConfig.java              # TestContainers 설정 전담 (@TestConfiguration)
-├── auth/
-│   └── TestAuthenticationSupport.java         # 인증/토큰 관리 전담
-├── data/
-│   ├── TestDataCleaner.java                   # 데이터 초기화 전담
-│   └── DataInitializer.java                   # 기존 유지, 개선
-└── http/
-    └── TestResponseHelper.java                # HTTP 응답 파싱 전담
-
-IntegrationTestSupport.java                     # 게이트웨이 역할만 수행
+bottlenote-product-api/src/test/java/app/bottlenote/
+├── operation/                                  # 운영 테스트 관련
+│   ├── verify/                                # 검증 테스트 (플랫)
+│   │   ├── TestContainersConfigTest.java
+│   │   ├── DataInitializerCachingTest.java
+│   │   ├── TestDataCleanerTest.java
+│   │   └── ContainerReuseIntegrationTest.java
+│   └── utils/                                 # 테스트 유틸리티 (플랫)
+│       ├── TestContainersConfig.java
+│       ├── TestAuthenticationSupport.java
+│       ├── TestDataCleaner.java
+│       └── TestResponseHelper.java
+├── DataInitializer.java                       # 기존 유지, 개선
+└── IntegrationTestSupport.java                # 게이트웨이 역할만 수행
 ```
+
+**구조 설명:**
+- `operation/verify/`: 컴포넌트 안정성 검증 테스트 (플랫 구조)
+- `operation/utils/`: 테스트 지원 유틸리티 컴포넌트 (플랫 구조)
+- 플랫 구조로 파일 탐색 용이, 과도한 폴더링 방지
 
 ### 3.3 각 컴포넌트의 책임
 
@@ -372,7 +379,7 @@ public abstract class IntegrationTestSupport {
    - `@ServiceConnection` 어노테이션 추가 (자동 연결)
    - `withReuse(true)` 설정으로 컨테이너 재사용
    - 기존 CompletableFuture 병렬 시작 코드 제거
-   - 경로: `app/bottlenote/support/containers/TestContainersConfig.java`
+   - 경로: `app/bottlenote/operation/utils/TestContainersConfig.java`
 
 2. **IntegrationTestSupport 리팩토링**
    - `@Testcontainers` 어노테이션 제거
@@ -385,26 +392,34 @@ public abstract class IntegrationTestSupport {
    - 토큰 생성 메서드 이동 (getToken, getRandomToken 등)
    - OauthRepository, JwtTokenProvider 의존성 주입
    - @Component로 등록하여 스프링 빈으로 관리
-   - 경로: `app/bottlenote/support/auth/TestAuthenticationSupport.java`
+   - 경로: `app/bottlenote/operation/utils/TestAuthenticationSupport.java`
 
 4. **TestDataCleaner 생성**
    - DataInitializer 래핑
    - cleanAll() 메서드로 deleteAll() 위임
    - 향후 확장을 위한 인터페이스 준비
-   - 경로: `app/bottlenote/support/data/TestDataCleaner.java`
+   - 경로: `app/bottlenote/operation/utils/TestDataCleaner.java`
 
 5. **TestResponseHelper 생성**
    - 응답 파싱 메서드 이동 (extractData, parseResponse)
    - ObjectMapper 의존성 주입
-   - 경로: `app/bottlenote/support/http/TestResponseHelper.java`
+   - 경로: `app/bottlenote/operation/utils/TestResponseHelper.java`
 
 6. **IntegrationTestSupport 컴포넌트 통합**
    - 각 컴포넌트를 @Autowired로 주입
    - 편의 메서드는 그대로 유지 (하위 호환)
    - 위임 패턴 적용
 
+7. **검증 테스트 작성** 🆕
+   - TestContainersConfigTest: 컨테이너 Bean 생성 및 @ServiceConnection 동작 확인
+   - DataInitializerCachingTest: 캐싱 최적화 및 시스템 테이블 제외 확인
+   - TestDataCleanerTest: 위임 패턴 및 선택적 삭제 기능 확인
+   - ContainerReuseIntegrationTest: 전체 통합 시나리오 확인
+   - 경로: `app/bottlenote/operation/verify/`
+
 **검증:**
 - 기존 통합 테스트가 모두 통과하는지 확인
+- operation/verify 테스트 모두 통과 확인 ⭐
 - 테스트 실행 시간 비교 (병렬 시작 제거 영향 측정)
 - 컨테이너 재사용이 정상 동작하는지 확인
 - @ServiceConnection 자동 설정 동작 확인
@@ -428,10 +443,12 @@ public abstract class IntegrationTestSupport {
    - 페이징 응답 파싱 헬퍼 추가
    - 커스텀 응답 검증 메서드 추가
 
-4. **DataInitializer 개선**
-   - 성능 최적화 (캐싱 등)
-   - 로깅 개선
-   - 에러 처리 강화
+4. **DataInitializer 개선** (캐싱 최적화)
+   - 시스템 테이블 제외 (flyway_, databasechangelog 등)
+   - Thread-safe 초기화 (synchronized 추가)
+   - 성능 측정 로깅 추가
+   - 캐시 워밍업 메서드 제공
+   - DELETE vs TRUNCATE 전략 비교 (선택적)
 
 **검증:**
 - 신규 기능이 기존 테스트에 영향 없는지 확인
