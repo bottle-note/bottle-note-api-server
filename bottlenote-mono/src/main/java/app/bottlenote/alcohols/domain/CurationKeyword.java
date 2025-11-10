@@ -55,7 +55,11 @@ public class CurationKeyword extends BaseEntity {
   private Set<Long> alcoholIds = new HashSet<>();
 
   public static CurationKeyword create(
-      String name, String description, String coverImageUrl, Integer displayOrder, Set<Long> alcoholIds) {
+      String name,
+      String description,
+      String coverImageUrl,
+      Integer displayOrder,
+      Set<Long> alcoholIds) {
     return CurationKeyword.builder()
         .name(name)
         .description(description)

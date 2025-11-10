@@ -105,7 +105,9 @@ class AlcoholReferenceControllerRestDocsTest extends AbstractRestDocs {
                     fieldWithPath("data.items[].id").type(NUMBER).description("큐레이션 ID"),
                     fieldWithPath("data.items[].name").type(STRING).description("큐레이션 이름"),
                     fieldWithPath("data.items[].description").type(STRING).description("큐레이션 설명"),
-                    fieldWithPath("data.items[].coverImageUrl").type(STRING).description("큐레이션 커버 이미지 URL"),
+                    fieldWithPath("data.items[].coverImageUrl")
+                        .type(STRING)
+                        .description("큐레이션 커버 이미지 URL"),
                     fieldWithPath("data.items[].alcoholCount")
                         .type(NUMBER)
                         .description("포함된 위스키 개수"),
