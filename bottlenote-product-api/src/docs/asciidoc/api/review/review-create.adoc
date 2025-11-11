@@ -3,13 +3,13 @@
 리뷰 등록 기능입니다.
 RequestBody로 요청을 전달합니다.
 
-- content는 반드시 존재해야 하며 500자를 넘을 수 없습니다.
+- content는 반드시 존재해야 하며 700자를 넘을 수 없습니다.
 
 - status의 기본값은 PUBLIC으로 설정됩니다.
 
 - locationInfo와 imageUrlList는 NULL일 수 있습니다.
 이미지는 최대 5장까지 업로드가 허용됩니다.
-- tastingTagList는 10개까지 허용되며, 각 tastingTag는 최대 12자 길이로 제한됩니다.
+- tastingTagList는 15개까지 허용되며, 각 tastingTag는 최대 12자 길이로 제한됩니다.
 
 리뷰 등록이 성공적으로 수행되면, 저장된 리뷰의 ID와 리뷰 내용, 그리고 리뷰를 작성한 위스키의 리뷰 조회 URL이 반환됩니다.
 

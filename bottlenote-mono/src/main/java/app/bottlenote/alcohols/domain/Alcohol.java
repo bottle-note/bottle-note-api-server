@@ -67,12 +67,10 @@ public class Alcohol extends BaseEntity {
   @Column(name = "category_group", nullable = false)
   private AlcoholCategoryGroup categoryGroup;
 
-  @Comment("국가")
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "region_id")
   private Region region;
 
-  @Comment("증류소")
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "distillery_id")
   private Distillery distillery;
@@ -98,7 +96,6 @@ public class Alcohol extends BaseEntity {
   private String volume;
 
   @Builder.Default
-  @Comment("해당 알코올의 테이스팅 태그")
   @OneToMany(mappedBy = "alcohol", fetch = FetchType.LAZY)
   private Set<AlcoholsTastingTags> alcoholsTastingTags = new HashSet<>();
 }

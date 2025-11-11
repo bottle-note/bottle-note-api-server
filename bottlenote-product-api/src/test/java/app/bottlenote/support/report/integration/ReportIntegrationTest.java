@@ -56,10 +56,10 @@ class ReportIntegrationTest extends IntegrationTestSupport {
       })
   void test_1() throws Exception {
     // given
+    Review review = reviewRepository.findAll().getFirst();
     ReviewReportRequest reviewReportRequest =
-        new ReviewReportRequest(1L, ADVERTISEMENT, "이 리뷰는 광고 리뷰입니다.");
+        new ReviewReportRequest(review.getId(), ADVERTISEMENT, "이 리뷰는 광고 리뷰입니다.");
 
-    final Long reviewReportId = 1L;
     MvcResult result =
         mockMvc
             .perform(
@@ -74,8 +74,9 @@ class ReportIntegrationTest extends IntegrationTestSupport {
             .andExpect(jsonPath("$.data").exists())
             .andReturn();
 
-    ReviewReport saved = reviewReportRepository.findById(reviewReportId).orElse(null);
+    ReviewReport saved = reviewReportRepository.findAll().getFirst();
     assertNotNull(saved);
+    assertEquals(review.getId(), saved.getReviewId());
 
     String contentAsString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
     GlobalResponse response = mapper.readValue(contentAsString, GlobalResponse.class);
@@ -95,8 +96,9 @@ class ReportIntegrationTest extends IntegrationTestSupport {
       })
   void test_2() throws Exception {
     // given
+    Review review = reviewRepository.findAll().getFirst();
     ReviewReportRequest reviewReportRequest =
-        new ReviewReportRequest(1L, ADVERTISEMENT, "이 리뷰는 광고 리뷰입니다.");
+        new ReviewReportRequest(review.getId(), ADVERTISEMENT, "이 리뷰는 광고 리뷰입니다.");
 
     MvcResult result =
         mockMvc
@@ -153,8 +155,9 @@ class ReportIntegrationTest extends IntegrationTestSupport {
       })
   void test_3() throws Exception {
     // given
+    Review review = reviewRepository.findAll().getFirst();
     ReviewReportRequest reviewReportRequest =
-        new ReviewReportRequest(1L, ADVERTISEMENT, "이 리뷰는 광고 리뷰입니다.");
+        new ReviewReportRequest(review.getId(), ADVERTISEMENT, "이 리뷰는 광고 리뷰입니다.");
 
     IntStream.range(1, 5)
         .forEach(

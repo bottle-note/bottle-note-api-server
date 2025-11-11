@@ -30,6 +30,7 @@ public class AlcoholQueryService {
   private final AlcoholViewHistoryService viewHistoryService;
   private final ReviewFacade reviewFacade;
   private final FollowFacade followFacade;
+  private final AlcoholReferenceService alcoholReferenceService;
 
   /**
    * 술(위스키) 리스트 조회 api

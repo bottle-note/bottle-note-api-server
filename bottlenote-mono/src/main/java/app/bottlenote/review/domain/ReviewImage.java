@@ -34,7 +34,6 @@ public class ReviewImage extends BaseEntity {
   @Embedded
   private ImageInfo reviewImageInfo;
 
-  @Comment("리뷰 아이디")
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "review_id")
   private Review review;

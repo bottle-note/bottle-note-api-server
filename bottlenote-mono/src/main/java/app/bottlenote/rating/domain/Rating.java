@@ -27,10 +27,7 @@ public class Rating extends BaseEntity {
 
   @EmbeddedId private RatingId id;
 
-  @Embedded
-  @Comment("평가점수 : 0, 0.5, 1.0 ... 5.0")
-  @Column(name = "rating")
-  private RatingPoint ratingPoint = new RatingPoint();
+  @Embedded private RatingPoint ratingPoint = new RatingPoint();
 
   @Builder
   public Rating(RatingId id, RatingPoint ratingPoint) {

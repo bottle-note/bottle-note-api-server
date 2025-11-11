@@ -52,7 +52,7 @@ class RestPopularControllerIntegrationTest extends AbstractRestDocs {
     when(alcoholPopularService.getPopularOfWeek(anyInt(), any())).thenReturn(populars);
 
     mockMvc
-        .perform(MockMvcRequestBuilders.get("/api/v1/popular/week/").param("top", "5"))
+        .perform(MockMvcRequestBuilders.get("/api/v1/popular/week").param("top", "5"))
         .andExpect(status().isOk())
         .andDo(
             document(

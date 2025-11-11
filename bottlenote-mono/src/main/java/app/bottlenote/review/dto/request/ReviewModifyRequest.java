@@ -15,7 +15,7 @@ import java.util.List;
 
 public record ReviewModifyRequest(
     @NotEmpty(message = "REVIEW_CONTENT_REQUIRED")
-        @Size(max = 500, message = "REVIEW_CONTENT_MAXIMUM")
+        @Size(max = 700, message = "REVIEW_CONTENT_MAXIMUM")
         String content,
     @NotNull(message = "REVIEW_DISPLAY_STATUS_NOT_EMPTY") ReviewDisplayStatus status,
     @DecimalMin(value = "0.0", message = "PRICE_MINIMUM")

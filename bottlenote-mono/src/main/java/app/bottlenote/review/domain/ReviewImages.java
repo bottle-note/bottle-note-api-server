@@ -13,7 +13,6 @@ import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Comment;
 
 @Getter
 @Embeddable
@@ -22,7 +21,6 @@ import org.hibernate.annotations.Comment;
 public class ReviewImages {
   private static final int REVIEW_IMAGE_MAX_SIZE = 5;
 
-  @Comment("리뷰 이미지 목록")
   @OneToMany(
       mappedBy = "review",
       fetch = FetchType.LAZY,

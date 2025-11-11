@@ -4,13 +4,13 @@ import static lombok.AccessLevel.PROTECTED;
 
 import app.bottlenote.common.domain.BaseTimeEntity;
 import app.bottlenote.picks.constant.PicksStatus;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,11 +31,11 @@ public class Picks extends BaseTimeEntity {
   private Long id;
 
   @Comment("어느 술을 찜했는지")
-  @JoinColumn(name = "alcohol_id")
+  @Column(name = "alcohol_id")
   private Long alcoholId;
 
   @Comment("누가 찜했는지")
-  @JoinColumn(name = "user_id")
+  @Column(name = "user_id")
   private Long userId;
 
   @Comment("찜하기 상태")

@@ -84,7 +84,7 @@ class RestReviewControllerDocsTest extends AbstractRestDocs {
                 "review/review-create",
                 requestFields(
                     fieldWithPath("alcoholId").type(NUMBER).description("술 ID"),
-                    fieldWithPath("content").type(STRING).description("리뷰 내용"),
+                    fieldWithPath("content").type(STRING).description("리뷰 내용 (최대 700자)"),
                     fieldWithPath("status").type(STRING).description("리뷰 상태"),
                     fieldWithPath("price").type(NUMBER).description("가격"),
                     fieldWithPath("sizeType").type(STRING).description("술 타입 (잔 or 병"),
@@ -121,7 +121,9 @@ class RestReviewControllerDocsTest extends AbstractRestDocs {
                     fieldWithPath("imageUrlList").type(ARRAY).description("이미지 URL 목록"),
                     fieldWithPath("imageUrlList[].order").type(NUMBER).description("이미지 순서"),
                     fieldWithPath("imageUrlList[].viewUrl").type(STRING).description("이미지 뷰 URL"),
-                    fieldWithPath("tastingTagList[]").type(ARRAY).description("테이스팅 태그 목록"),
+                    fieldWithPath("tastingTagList[]")
+                        .type(ARRAY)
+                        .description("테이스팅 태그 목록 (최대 15개)"),
                     fieldWithPath("rating").description("리뷰별점 (해당 리뷰를 남길 시점의 별점 )")),
                 responseFields(
                     fieldWithPath("success").type(BOOLEAN).description("요청 성공 여부"),
@@ -493,7 +495,7 @@ class RestReviewControllerDocsTest extends AbstractRestDocs {
             document(
                 "review/review-update",
                 requestFields(
-                    fieldWithPath("content").type(STRING).description("리뷰 내용").optional(),
+                    fieldWithPath("content").type(STRING).description("리뷰 내용 (최대 700자)").optional(),
                     fieldWithPath("status").type(STRING).description("리뷰 상태").optional(),
                     fieldWithPath("price").type(NUMBER).description("가격").optional(),
                     fieldWithPath("sizeType").type(STRING).description("술 타입 (잔 or 병)").optional(),
@@ -530,7 +532,7 @@ class RestReviewControllerDocsTest extends AbstractRestDocs {
                     fieldWithPath("imageUrlList").type(ARRAY).description("이미지 URL 목록"),
                     fieldWithPath("imageUrlList[].order").type(NUMBER).description("이미지 순서"),
                     fieldWithPath("imageUrlList[].viewUrl").type(STRING).description("이미지 뷰 URL"),
-                    fieldWithPath("tastingTagList").description("테이스팅 태그 목록").optional()),
+                    fieldWithPath("tastingTagList").description("테이스팅 태그 목록 (최대 15개)").optional()),
                 responseFields(
                     fieldWithPath("success").description("응답 성공 여부"),
                     fieldWithPath("code").description("응답 코드(http status code)"),

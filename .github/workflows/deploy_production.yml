@@ -15,7 +15,7 @@ concurrency:
 env:
   ORACLE_SSH_KEY_FILE: git.environment-variables/deploy/oracle/keys/product-cluster-ssh-key.pem
   AWS_ECR_ENV_FILE: git.environment-variables/deploy/aws/ecr-properties.env
-  APP_ENV_FILE: git.environment-variables/application.springboot/.env.prod
+  APP_ENV_FILE: git.environment-variables/application.springboot/prod.env
   ECR_REPOSITORY: ecr-bottle-note-api
 
 jobs:
