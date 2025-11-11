@@ -70,7 +70,6 @@ public class RatingCommandService {
             isExistPrevRating ? prevRatingPoint : null,
             ratingPoint));
 
-    // 평점 등록 이벤트 로깅
     String traceId = tracingService.map(TracingService::getCurrentTraceId).orElse("N/A");
     String action = isExistPrevRating ? "수정" : "등록";
     log.info(

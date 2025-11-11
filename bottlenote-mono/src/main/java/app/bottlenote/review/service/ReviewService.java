@@ -119,7 +119,6 @@ public class ReviewService {
             saveReview.getContent());
     reviewEventPublisher.publishReviewHistoryEvent(event);
 
-    // 리뷰 생성 이벤트 로깅
     String traceId = tracingService.map(TracingService::getCurrentTraceId).orElse("N/A");
     log.info(
         "리뷰 생성 - reviewId: {}, userId: {}, alcoholId: {}, rating: {}, status: {}, traceId: {}",
@@ -166,7 +165,6 @@ public class ReviewService {
             .orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
     ReviewResultMessage reviewResultMessage = review.updateReviewActiveStatus(DELETED);
 
-    // 리뷰 삭제 이벤트 로깅
     String traceId = tracingService.map(TracingService::getCurrentTraceId).orElse("N/A");
     log.info(
         "리뷰 삭제 - reviewId: {}, userId: {}, alcoholId: {}, traceId: {}",

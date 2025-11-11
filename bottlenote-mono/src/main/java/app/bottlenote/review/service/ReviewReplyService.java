@@ -96,7 +96,6 @@ public class ReviewReplyService {
             reply.getReviewId(), alcoholId, reply.getUserId(), reply.getContent());
     reviewReplyEventPublisher.publishReplyHistoryEvent(event);
 
-    // 댓글 생성 이벤트 로깅
     String traceId = tracingService.map(TracingService::getCurrentTraceId).orElse("N/A");
     log.info(
         "댓글 생성 - replyId: {}, reviewId: {}, userId: {}, alcoholId: {}, isSubReply: {}, traceId: {}",
@@ -127,7 +126,6 @@ public class ReviewReplyService {
         .ifPresentOrElse(
             reply -> {
               if (FALSE.equals(reply.isOwner(userId))) {
-                // 댓글 삭제 권한 없음 경고 로깅
                 String traceId =
                     tracingService.map(TracingService::getCurrentTraceId).orElse("N/A");
                 log.warn(
@@ -142,7 +140,6 @@ public class ReviewReplyService {
 
               reply.delete();
 
-              // 댓글 삭제 이벤트 로깅
               String traceId = tracingService.map(TracingService::getCurrentTraceId).orElse("N/A");
               log.info(
                   "댓글 삭제 - replyId: {}, reviewId: {}, userId: {}, traceId: {}",
