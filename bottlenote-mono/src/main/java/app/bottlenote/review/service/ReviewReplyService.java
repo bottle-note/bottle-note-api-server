@@ -7,6 +7,7 @@ import static java.lang.Boolean.FALSE;
 
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
+import app.bottlenote.observability.service.TracingService;
 import app.bottlenote.review.constant.ReviewReplyStatus;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewReplyRepository;
@@ -37,6 +38,7 @@ public class ReviewReplyService {
   private final ProfanityClient profanityClient;
   private final UserFacade userFacade;
   private final HistoryEventPublisher reviewReplyEventPublisher;
+  private final Optional<TracingService> tracingService;
 
   /**
    * 댓글을 등록합니다.
@@ -94,6 +96,11 @@ public class ReviewReplyService {
             reply.getReviewId(), alcoholId, reply.getUserId(), reply.getContent());
     reviewReplyEventPublisher.publishReplyHistoryEvent(event);
 
+    // 댓글 생성 이벤트 로깅
+    String traceId = tracingService.map(TracingService::getCurrentTraceId).orElse("N/A");
+    log.info("댓글 생성 - replyId: {}, reviewId: {}, userId: {}, alcoholId: {}, isSubReply: {}, traceId: {}",
+        reply.getId(), reviewId, userId, alcoholId, parentReply.isPresent(), traceId);
+
     return ReviewReplyResponse.of(SUCCESS_REGISTER_REPLY, reviewId);
   }
 
@@ -113,10 +120,20 @@ public class ReviewReplyService {
         .findReplyByReviewIdAndReplyId(reviewId, replyId)
         .ifPresentOrElse(
             reply -> {
-              if (FALSE.equals(reply.isOwner(userId)))
+              if (FALSE.equals(reply.isOwner(userId))) {
+                // 댓글 삭제 권한 없음 경고 로깅
+                String traceId = tracingService.map(TracingService::getCurrentTraceId).orElse("N/A");
+                log.warn("댓글 삭제 권한 없음 - replyId: {}, reviewId: {}, requestUserId: {}, ownerId: {}, traceId: {}",
+                    replyId, reviewId, userId, reply.getUserId(), traceId);
                 throw new ReviewException(ReviewExceptionCode.REPLY_NOT_OWNER);
+              }
 
               reply.delete();
+
+              // 댓글 삭제 이벤트 로깅
+              String traceId = tracingService.map(TracingService::getCurrentTraceId).orElse("N/A");
+              log.info("댓글 삭제 - replyId: {}, reviewId: {}, userId: {}, traceId: {}",
+                  replyId, reviewId, userId, traceId);
             },
             () -> {
               throw new ReviewException(ReviewExceptionCode.NOT_FOUND_REVIEW_REPLY);
