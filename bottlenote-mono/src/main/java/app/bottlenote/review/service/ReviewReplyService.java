@@ -98,8 +98,14 @@ public class ReviewReplyService {
 
     // 댓글 생성 이벤트 로깅
     String traceId = tracingService.map(TracingService::getCurrentTraceId).orElse("N/A");
-    log.info("댓글 생성 - replyId: {}, reviewId: {}, userId: {}, alcoholId: {}, isSubReply: {}, traceId: {}",
-        reply.getId(), reviewId, userId, alcoholId, parentReply.isPresent(), traceId);
+    log.info(
+        "댓글 생성 - replyId: {}, reviewId: {}, userId: {}, alcoholId: {}, isSubReply: {}, traceId: {}",
+        reply.getId(),
+        reviewId,
+        userId,
+        alcoholId,
+        parentReply.isPresent(),
+        traceId);
 
     return ReviewReplyResponse.of(SUCCESS_REGISTER_REPLY, reviewId);
   }
@@ -122,9 +128,15 @@ public class ReviewReplyService {
             reply -> {
               if (FALSE.equals(reply.isOwner(userId))) {
                 // 댓글 삭제 권한 없음 경고 로깅
-                String traceId = tracingService.map(TracingService::getCurrentTraceId).orElse("N/A");
-                log.warn("댓글 삭제 권한 없음 - replyId: {}, reviewId: {}, requestUserId: {}, ownerId: {}, traceId: {}",
-                    replyId, reviewId, userId, reply.getUserId(), traceId);
+                String traceId =
+                    tracingService.map(TracingService::getCurrentTraceId).orElse("N/A");
+                log.warn(
+                    "댓글 삭제 권한 없음 - replyId: {}, reviewId: {}, requestUserId: {}, ownerId: {}, traceId: {}",
+                    replyId,
+                    reviewId,
+                    userId,
+                    reply.getUserId(),
+                    traceId);
                 throw new ReviewException(ReviewExceptionCode.REPLY_NOT_OWNER);
               }
 
@@ -132,8 +144,12 @@ public class ReviewReplyService {
 
               // 댓글 삭제 이벤트 로깅
               String traceId = tracingService.map(TracingService::getCurrentTraceId).orElse("N/A");
-              log.info("댓글 삭제 - replyId: {}, reviewId: {}, userId: {}, traceId: {}",
-                  replyId, reviewId, userId, traceId);
+              log.info(
+                  "댓글 삭제 - replyId: {}, reviewId: {}, userId: {}, traceId: {}",
+                  replyId,
+                  reviewId,
+                  userId,
+                  traceId);
             },
             () -> {
               throw new ReviewException(ReviewExceptionCode.NOT_FOUND_REVIEW_REPLY);
