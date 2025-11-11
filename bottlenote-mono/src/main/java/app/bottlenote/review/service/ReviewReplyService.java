@@ -98,10 +98,7 @@ public class ReviewReplyService {
     reviewReplyEventPublisher.publishReplyHistoryEvent(event);
 
     String traceId =
-        tracingService.stream()
-            .map(TracingService::getCurrentTraceId)
-            .findFirst()
-            .orElse("N/A");
+        tracingService.stream().map(TracingService::getCurrentTraceId).findFirst().orElse("N/A");
     log.info(
         "댓글 생성 - replyId: {}, reviewId: {}, userId: {}, alcoholId: {}, isSubReply: {}, traceId: {}",
         reply.getId(),

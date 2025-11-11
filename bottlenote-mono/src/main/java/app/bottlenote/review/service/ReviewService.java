@@ -120,10 +120,7 @@ public class ReviewService {
     reviewEventPublisher.publishReviewHistoryEvent(event);
 
     String traceId =
-        tracingService.stream()
-            .map(TracingService::getCurrentTraceId)
-            .findFirst()
-            .orElse("N/A");
+        tracingService.stream().map(TracingService::getCurrentTraceId).findFirst().orElse("N/A");
     log.info(
         "리뷰 생성 - reviewId: {}, userId: {}, alcoholId: {}, rating: {}, status: {}, traceId: {}",
         saveReview.getId(),
@@ -170,10 +167,7 @@ public class ReviewService {
     ReviewResultMessage reviewResultMessage = review.updateReviewActiveStatus(DELETED);
 
     String traceId =
-        tracingService.stream()
-            .map(TracingService::getCurrentTraceId)
-            .findFirst()
-            .orElse("N/A");
+        tracingService.stream().map(TracingService::getCurrentTraceId).findFirst().orElse("N/A");
     log.info(
         "리뷰 삭제 - reviewId: {}, userId: {}, alcoholId: {}, traceId: {}",
         reviewId,

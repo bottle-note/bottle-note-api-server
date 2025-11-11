@@ -71,10 +71,7 @@ public class RatingCommandService {
             ratingPoint));
 
     String traceId =
-        tracingService.stream()
-            .map(TracingService::getCurrentTraceId)
-            .findFirst()
-            .orElse("N/A");
+        tracingService.stream().map(TracingService::getCurrentTraceId).findFirst().orElse("N/A");
     String action = isExistPrevRating ? "수정" : "등록";
     log.info(
         "평점 {} - userId: {}, alcoholId: {}, rating: {}, prevRating: {}, traceId: {}",
