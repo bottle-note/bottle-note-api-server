@@ -293,27 +293,27 @@ User inactiveUser = userTestFactory.persistUser(
 ### 4.1 단계별 전환 전략 (Big Picture)
 
 ```
-Phase 0: 준비                   [1주]
+Phase 0: 준비
   └─ TestDataLoader 설계 및 구현
 
-Phase 1: 고빈도 파일 마이그레이션  [2주]
+Phase 1: 고빈도 파일 마이그레이션
   ├─ init-user.sql
   ├─ init-alcohol.sql (대용량)
   └─ init-review.sql
 
-Phase 2: 중빈도 파일 마이그레이션  [1주]
+Phase 2: 중빈도 파일 마이그레이션
   ├─ init-review-reply.sql
   ├─ init-help.sql
   └─ init-user-history.sql
 
-Phase 3: 복합 파일 마이그레이션   [1주]
+Phase 3: 복합 파일 마이그레이션
   ├─ init-user-mypage-query.sql
   └─ init-user-mybottle-query.sql
 
-Phase 4: 저빈도 파일 마이그레이션  [1주]
+Phase 4: 저빈도 파일 마이그레이션
   └─ init-popular_alcohol.sql
 
-Phase 5: 정리 및 검증          [1주]
+Phase 5: 정리 및 검증
   ├─ SQL 파일 삭제
   ├─ 문서화
   └─ 최종 검증
@@ -716,7 +716,7 @@ void 특정_상태의_리뷰만_조회된다() throws Exception {
 
 ## 6. 구현 계획 (단계별)
 
-### Phase 0: 준비 단계 (1주)
+### Phase 0: 준비 단계
 
 #### 목표
 - TestDataLoader 인프라 구축
@@ -751,9 +751,9 @@ mkdir -p bottlenote-product-api/src/test/java/app/bottlenote/operation/loader
 
 ---
 
-### Phase 1: 고빈도 파일 마이그레이션 (2주)
+### Phase 1: 고빈도 파일 마이그레이션
 
-#### Phase 1-1: init-user.sql 마이그레이션 (3일)
+#### Phase 1-1: init-user.sql 마이그레이션
 
 **영향받는 테스트 파일 (7개):**
 1. `UserCommandIntegrationTest` (7개 메서드)
@@ -766,7 +766,7 @@ mkdir -p bottlenote-product-api/src/test/java/app/bottlenote/operation/loader
 
 **마이그레이션 순서:**
 ```
-Day 1: UserCommandIntegrationTest (7개 메서드)
+1. UserCommandIntegrationTest (7개 메서드)
   ├─ test_1: 회원탈퇴
   ├─ test_2: 탈퇴한 회원 재탈퇴
   ├─ test_3: 닉네임 변경
@@ -775,14 +775,14 @@ Day 1: UserCommandIntegrationTest (7개 메서드)
   ├─ test_6: 프로필 이미지 변경
   └─ test_7: 로그인 테스트
 
-Day 2: UserQueryIntegrationTest (5개 메서드)
+2. UserQueryIntegrationTest (5개 메서드)
   ├─ test_1: 사용자 정보 조회
   ├─ test_2: 마이페이지 조회
   ├─ test_3: 사용자 검색
   ├─ test_4: 팔로워 목록 조회
   └─ test_5: 팔로잉 목록 조회
 
-Day 3: 나머지 테스트 파일 (5개) + 검증
+3. 나머지 테스트 파일 (5개) + 검증
 ```
 
 **작업 방법:**
@@ -816,7 +816,7 @@ void 회원탈퇴에_성공한다() throws Exception {
 
 ---
 
-#### Phase 1-2: init-review.sql 마이그레이션 (2일)
+#### Phase 1-2: init-review.sql 마이그레이션
 
 **영향받는 테스트 파일:**
 - `ReviewIntegrationTest` (2개 메서드)
@@ -852,7 +852,7 @@ public class ReviewDataLoader {
 
 ---
 
-#### Phase 1-3: init-alcohol.sql 마이그레이션 (5일) ⚠️
+#### Phase 1-3: init-alcohol.sql 마이그레이션 ⚠️
 
 **난이도: 높음**
 - 227개 데이터 (지역 27 + 증류소 179 + 주류 21)
@@ -888,43 +888,43 @@ void 전체_주류_페이징_조회() {
 
 ---
 
-### Phase 2: 중빈도 파일 마이그레이션 (1주)
+### Phase 2: 중빈도 파일 마이그레이션
 
-#### Phase 2-1: init-review-reply.sql (1일)
+#### Phase 2-1: init-review-reply.sql
 - `ReviewReplyDataLoader` 구현
 - 댓글/대댓글 계층 구조 지원
 
-#### Phase 2-2: init-help.sql (1일)
+#### Phase 2-2: init-help.sql
 - `HelpDataLoader` 구현
 - 단순 구조이므로 빠른 마이그레이션 가능
 
-#### Phase 2-3: init-user-history.sql (1일)
+#### Phase 2-3: init-user-history.sql
 - `UserHistoryDataLoader` 구현
 - 5개 히스토리 레코드 생성
 
 ---
 
-### Phase 3: 복합 파일 마이그레이션 (1주)
+### Phase 3: 복합 파일 마이그레이션
 
-#### Phase 3-1: init-user-mypage-query.sql (3일)
+#### Phase 3-1: init-user-mypage-query.sql
 - `CompositeDataLoader.loadMyPageTestData()` 구현
 - User + Alcohol + Review + Follow + Rating 조합
 
-#### Phase 3-2: init-user-mybottle-query.sql (2일)
+#### Phase 3-2: init-user-mybottle-query.sql
 - `CompositeDataLoader.loadMyBottleTestData()` 구현
 - User + Alcohol + Review + Pick 조합
 
 ---
 
-### Phase 4: 저빈도 파일 마이그레이션 (1주)
+### Phase 4: 저빈도 파일 마이그레이션
 
-#### init-popular_alcohol.sql (2일)
+#### init-popular_alcohol.sql
 - `PopularAlcoholDataLoader` 구현
 - 26개 인기 주류 통계 데이터
 
 ---
 
-### Phase 5: 정리 및 검증 (1주)
+### Phase 5: 정리 및 검증
 
 #### 작업 내용:
 1. **SQL 파일 삭제**
@@ -1305,14 +1305,14 @@ void 단순_조회_테스트() {
 ## 11. 다음 단계
 
 ### 즉시 실행
-1. **Phase 0 시작** (1주)
+1. **Phase 0 시작**
    - TestDataLoader 인프라 구축
    - UserDataLoader 구현
    - 파일럿 테스트 (1개 메서드)
 
 ### 후속 작업
-1. Phase 1-5 순차적 실행 (6주)
-2. 주간 진행 상황 리뷰
+1. Phase 1-5 순차적 실행
+2. 진행 상황 리뷰
 3. 이슈 발생 시 즉시 대응
 
 ### 장기 계획
