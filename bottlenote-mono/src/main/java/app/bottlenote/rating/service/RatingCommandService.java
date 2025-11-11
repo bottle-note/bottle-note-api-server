@@ -19,7 +19,6 @@ import app.bottlenote.user.facade.UserFacade;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,7 +31,7 @@ public class RatingCommandService {
   private final UserFacade userFacade;
   private final AlcoholFacade alcoholFacade;
   private final HistoryEventPublisher ratingEventPublisher;
-  private final ObjectProvider<TracingService> tracingService;
+  private final TracingService tracingService;
 
   @Transactional
   public RatingRegisterResponse register(Long alcoholId, Long userId, RatingPoint ratingPoint) {
@@ -70,8 +69,6 @@ public class RatingCommandService {
             isExistPrevRating ? prevRatingPoint : null,
             ratingPoint));
 
-    String traceId =
-        tracingService.stream().map(TracingService::getCurrentTraceId).findFirst().orElse("N/A");
     String action = isExistPrevRating ? "수정" : "등록";
     log.info(
         "평점 {} - userId: {}, alcoholId: {}, rating: {}, prevRating: {}, traceId: {}",
@@ -80,7 +77,7 @@ public class RatingCommandService {
         alcoholId,
         ratingPoint.getRating(),
         isExistPrevRating ? prevRatingPoint.getRating() : "N/A",
-        traceId);
+        tracingService.getCurrentTraceId());
 
     return RatingRegisterResponse.success(save.getRatingPoint().getRating());
   }

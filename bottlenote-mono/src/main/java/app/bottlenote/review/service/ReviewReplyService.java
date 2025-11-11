@@ -24,7 +24,6 @@ import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,7 +38,7 @@ public class ReviewReplyService {
   private final ProfanityClient profanityClient;
   private final UserFacade userFacade;
   private final HistoryEventPublisher reviewReplyEventPublisher;
-  private final ObjectProvider<TracingService> tracingService;
+  private final TracingService tracingService;
 
   /**
    * 댓글을 등록합니다.
@@ -97,8 +96,6 @@ public class ReviewReplyService {
             reply.getReviewId(), alcoholId, reply.getUserId(), reply.getContent());
     reviewReplyEventPublisher.publishReplyHistoryEvent(event);
 
-    String traceId =
-        tracingService.stream().map(TracingService::getCurrentTraceId).findFirst().orElse("N/A");
     log.info(
         "댓글 생성 - replyId: {}, reviewId: {}, userId: {}, alcoholId: {}, isSubReply: {}, traceId: {}",
         reply.getId(),
@@ -106,7 +103,7 @@ public class ReviewReplyService {
         userId,
         alcoholId,
         parentReply.isPresent(),
-        traceId);
+        tracingService.getCurrentTraceId());
 
     return ReviewReplyResponse.of(SUCCESS_REGISTER_REPLY, reviewId);
   }
@@ -128,34 +125,24 @@ public class ReviewReplyService {
         .ifPresentOrElse(
             reply -> {
               if (FALSE.equals(reply.isOwner(userId))) {
-                String traceId =
-                    tracingService.stream()
-                        .map(TracingService::getCurrentTraceId)
-                        .findFirst()
-                        .orElse("N/A");
                 log.warn(
                     "댓글 삭제 권한 없음 - replyId: {}, reviewId: {}, requestUserId: {}, ownerId: {}, traceId: {}",
                     replyId,
                     reviewId,
                     userId,
                     reply.getUserId(),
-                    traceId);
+                    tracingService.getCurrentTraceId());
                 throw new ReviewException(ReviewExceptionCode.REPLY_NOT_OWNER);
               }
 
               reply.delete();
 
-              String traceId =
-                  tracingService.stream()
-                      .map(TracingService::getCurrentTraceId)
-                      .findFirst()
-                      .orElse("N/A");
               log.info(
                   "댓글 삭제 - replyId: {}, reviewId: {}, userId: {}, traceId: {}",
                   replyId,
                   reviewId,
                   userId,
-                  traceId);
+                  tracingService.getCurrentTraceId());
             },
             () -> {
               throw new ReviewException(ReviewExceptionCode.NOT_FOUND_REVIEW_REPLY);

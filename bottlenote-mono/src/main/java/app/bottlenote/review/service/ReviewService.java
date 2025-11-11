@@ -33,7 +33,6 @@ import app.bottlenote.user.facade.UserFacade;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,7 +45,7 @@ public class ReviewService {
   private final UserFacade userDomainSupport;
   private final ReviewRepository reviewRepository;
   private final HistoryEventPublisher reviewEventPublisher;
-  private final ObjectProvider<TracingService> tracingService;
+  private final TracingService tracingService;
 
   /** Read */
   @Transactional(readOnly = true)
@@ -119,8 +118,6 @@ public class ReviewService {
             saveReview.getContent());
     reviewEventPublisher.publishReviewHistoryEvent(event);
 
-    String traceId =
-        tracingService.stream().map(TracingService::getCurrentTraceId).findFirst().orElse("N/A");
     log.info(
         "리뷰 생성 - reviewId: {}, userId: {}, alcoholId: {}, rating: {}, status: {}, traceId: {}",
         saveReview.getId(),
@@ -128,7 +125,7 @@ public class ReviewService {
         saveReview.getAlcoholId(),
         saveReview.getReviewRating(),
         saveReview.getStatus(),
-        traceId);
+        tracingService.getCurrentTraceId());
 
     return ReviewCreateResponse.builder()
         .id(saveReview.getId())
@@ -166,14 +163,12 @@ public class ReviewService {
             .orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
     ReviewResultMessage reviewResultMessage = review.updateReviewActiveStatus(DELETED);
 
-    String traceId =
-        tracingService.stream().map(TracingService::getCurrentTraceId).findFirst().orElse("N/A");
     log.info(
         "리뷰 삭제 - reviewId: {}, userId: {}, alcoholId: {}, traceId: {}",
         reviewId,
         currentUserId,
         review.getAlcoholId(),
-        traceId);
+        tracingService.getCurrentTraceId());
 
     return ReviewResultResponse.response(reviewResultMessage, reviewId);
   }

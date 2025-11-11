@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.history.fixture.FakeHistoryEventPublisher;
-import app.bottlenote.observability.service.TracingService;
+import app.bottlenote.observability.service.LocalTracingService;
 import app.bottlenote.review.constant.ReviewReplyResultMessage;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewReply;
@@ -26,8 +26,6 @@ import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.facade.UserFacade;
 import app.bottlenote.user.facade.payload.UserProfileItem;
 import app.bottlenote.user.fixture.FakeUserFacade;
-import java.util.Iterator;
-import java.util.stream.Stream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,8 +33,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.ObjectProvider;
 
 @Tag("unit")
 @DisplayName("[unit] [service] ReviewReplyService")
@@ -67,39 +63,6 @@ class ReviewReplyServiceTest {
     reviewRepository.save(review1);
     reviewRepository.save(review2);
 
-    ObjectProvider<TracingService> emptyTracingService =
-        new ObjectProvider<TracingService>() {
-          @Override
-          public TracingService getObject() throws BeansException {
-            return null;
-          }
-
-          @Override
-          public TracingService getObject(Object... args) throws BeansException {
-            return null;
-          }
-
-          @Override
-          public TracingService getIfAvailable() throws BeansException {
-            return null;
-          }
-
-          @Override
-          public TracingService getIfUnique() throws BeansException {
-            return null;
-          }
-
-          @Override
-          public Stream<TracingService> stream() {
-            return Stream.empty();
-          }
-
-          @Override
-          public Iterator<TracingService> iterator() {
-            return Stream.<TracingService>empty().iterator();
-          }
-        };
-
     reviewReplyService =
         new ReviewReplyService(
             reviewReplyRepository,
@@ -107,7 +70,7 @@ class ReviewReplyServiceTest {
             profanityClient,
             userFacade,
             reviewReplyEventPublisher,
-            emptyTracingService);
+            new LocalTracingService());
   }
 
   @Nested
