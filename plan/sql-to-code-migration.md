@@ -358,91 +358,81 @@ Phase 5: 정리 및 검증
 
 ---
 
-## 5. 개선된 설계: TestFactory 확장 및 공통 픽스처
+## 5. 개선된 설계: TestFactory 확장 (기존 위치 유지)
 
 ### 5.1 설계 철학
 
-**기존 TestFactory 개념 제거 이유:**
-- 기존 TestFactory와 역할 중복
-- 불필요한 계층 추가로 복잡도 증가
-- TestFactory로 충분히 구현 가능
+**핵심 원칙:**
+- ✅ **기존 TestFactory는 이동하지 않음** (bottlenote-product-api에 유지)
+- ✅ **기존 테스트를 깨뜨리지 않음** (import 경로 유지)
+- ✅ **점진적 마이그레이션** (한 번에 하나씩)
 
-**새로운 접근 방식:**
-1. **기존 TestFactory 확장**: SQL 대체 메서드를 TestFactory에 직접 추가
-2. **공통 픽스처 분리**: bottlenote-mono에 Java Test Fixtures 플러그인 활용
-3. **모듈 간 재사용**: bottlenote-batch, bottlenote-product-api 모두에서 공통 픽스처 활용
+**채택하지 않은 방안과 이유:**
 
-### 5.2 bottlenote-mono에 Test Fixtures 구성
+**❌ 방안 1: bottlenote-mono/testFixtures에 TestFactory 배치**
+- `java-test-fixtures`는 **순수 Java 라이브러리**
+- `@Component`, `@Autowired`, `@Transactional` **사용 불가**
+- EntityManager 주입 불가 → 실현 불가능
 
-#### 5.2.1 Gradle 설정
+**❌ 방안 2: bottlenote-test-support 모듈 생성**
+- 새로운 Spring Boot 모듈 추가
+- 구조 복잡도 증가
+- 유지보수 비용 증가
 
-**bottlenote-mono/build.gradle 수정:**
-```gradle
-plugins {
-    id 'java-library'
-    id 'java-test-fixtures'  // 추가
-}
+**✅ 채택한 방안: 기존 TestFactory 확장 (bottlenote-product-api 유지)**
+- 기존 위치 그대로 유지
+- SQL 대체 메서드만 추가
+- 기존 테스트 호환성 100% 유지
 
-dependencies {
-    // 기존 의존성...
+### 5.2 디렉토리 구조 (변경 없음)
 
-    // Test Fixtures용 의존성
-    testFixturesImplementation libs.spring.boot.starter.data.jpa
-    testFixturesImplementation libs.spring.boot.starter.test
-    testFixturesImplementation libs.lombok
-    testFixturesAnnotationProcessor libs.lombok
-}
+**기존 구조 유지:**
 ```
-
-**bottlenote-product-api/build.gradle 수정:**
-```gradle
-dependencies {
-    implementation project(':bottlenote-mono')
-
-    // Test Fixtures 사용
-    testImplementation testFixtures(project(':bottlenote-mono'))
-
-    // 기존 의존성...
-}
-```
-
-#### 5.2.2 디렉토리 구조
-
-```
-bottlenote-mono/
-├── src/
-│   ├── main/java/
-│   │   └── app/bottlenote/
-│   │       ├── user/domain/User.java
-│   │       ├── alcohols/domain/Alcohol.java
-│   │       └── ...
-│   └── testFixtures/java/                    # 새로 생성
-│       └── app/bottlenote/fixture/           # 공통 픽스처
-│           ├── UserTestFactory.java         # 이동
-│           ├── AlcoholTestFactory.java      # 이동
-│           ├── ReviewTestFactory.java       # 이동
-│           ├── RatingTestFactory.java       # 이동
-│           └── support/                      # 지원 클래스
-│               ├── StandardUsers.java        # DTO
-│               ├── StandardAlcohols.java     # DTO
-│               └── TestDataBuilder.java      # 빌더 유틸
-│
 bottlenote-product-api/
 └── src/test/java/
     └── app/bottlenote/
-        ├── IntegrationTestSupport.java       # 기존 유지
-        └── {domain}/integration/             # 통합 테스트
+        ├── IntegrationTestSupport.java
+        └── {domain}/fixture/                 # TestFactory 위치 (유지)
+            ├── UserTestFactory.java         ✅ 기존 위치 유지
+            ├── AlcoholTestFactory.java      ✅ 기존 위치 유지
+            ├── ReviewTestFactory.java       ✅ 기존 위치 유지
+            └── ...
 ```
 
-**장점:**
-- ✅ bottlenote-mono에서 TestFactory를 한 번만 정의
-- ✅ bottlenote-product-api, bottlenote-batch 모두에서 재사용
-- ✅ 도메인 엔티티와 테스트 픽스처가 같은 모듈에 위치 (응집도 향상)
-- ✅ Gradle의 표준 기능 활용 (java-test-fixtures 플러그인)
+**변경사항: 없음**
+- TestFactory를 이동하지 않음
+- import 경로 변경 없음
+- 모든 기존 테스트가 그대로 작동
+
+**선택적 개선: bottlenote-mono/testFixtures (나중에 고려)**
+
+현재는 구현하지 않지만, 향후 필요 시 다음과 같이 구성 가능:
+
+```
+bottlenote-mono/
+└── src/testFixtures/java/              # 선택적
+    └── app/bottlenote/fixture/
+        ├── UserFixture.java            # 순수 빌더만 (Spring 없음)
+        ├── AlcoholFixture.java         # 순수 빌더만
+        └── support/
+            ├── StandardUsers.java      # DTO
+            └── StandardAlcohols.java   # DTO
+```
+
+**⚠️ 주의: testFixtures는 Spring Bean 사용 불가**
+- `@Component`, `@Autowired`, `@Transactional` 사용 불가
+- EntityManager 주입 불가
+- **순수 빌더 패턴만 가능**
+
+**현재 계획: testFixtures 사용 안 함**
+- Phase 0~5에서 testFixtures 구성 작업 제외
+- 기존 TestFactory만 확장
 
 ### 5.3 UserTestFactory 확장 (SQL 대체 메서드 추가)
 
-**위치:** `bottlenote-mono/src/testFixtures/java/app/bottlenote/fixture/UserTestFactory.java`
+**위치:** `bottlenote-product-api/src/test/java/app/bottlenote/user/fixture/UserTestFactory.java`
+
+**기존 파일 수정 (이동 없음)**
 
 ```java
 @Component
@@ -553,7 +543,9 @@ public record StandardUsers(
 
 ### 5.4 AlcoholTestFactory 확장 (대용량 데이터 처리)
 
-**위치:** `bottlenote-mono/src/testFixtures/java/app/bottlenote/fixture/AlcoholTestFactory.java`
+**위치:** `bottlenote-product-api/src/test/java/app/bottlenote/alcohols/fixture/AlcoholTestFactory.java`
+
+**기존 파일 수정 (이동 없음)**
 
 **특수성:**
 - init-alcohol.sql은 231줄, 227개 데이터 (지역 27 + 증류소 179 + 주류 21)
@@ -621,11 +613,11 @@ public class AlcoholTestFactory {
     /**
      * 표준 지역 27개 생성 (init-alcohol.sql 기준)
      */
-    private List<Region> loadStandardRegions() {
+    private List<Region> persistStandardRegions() {
         return List.of(
-            alcoholTestFactory.persistRegion("호주", "Australia"),
-            alcoholTestFactory.persistRegion("핀란드", "Finland"),
-            alcoholTestFactory.persistRegion("프랑스", "France"),
+            persistRegion("호주", "Australia"),
+            persistRegion("핀란드", "Finland"),
+            persistRegion("프랑스", "France"),
             // ... 나머지 24개
         );
     }
@@ -634,16 +626,21 @@ public class AlcoholTestFactory {
      * 표준 증류소 179개 생성 (배치 처리)
      * ⚠️ 성능 최적화: JDBC Batch Insert 고려
      */
-    private List<Distillery> loadStandardDistilleries() {
+    private List<Distillery> persistStandardDistilleries() {
         // TODO: JDBC Batch Insert로 성능 최적화 가능
         return List.of(
-            alcoholTestFactory.persistDistillery("글래스고", "The Glasgow Distillery Co."),
-            alcoholTestFactory.persistDistillery("글렌 그란트", "Glen Grant"),
+            persistDistillery("글래스고", "The Glasgow Distillery Co."),
+            persistDistillery("글렌 그란트", "Glen Grant"),
             // ... 나머지 177개
         );
     }
 }
 ```
+
+**핵심 변경:**
+- ✅ 기존 위치 유지 (bottlenote-product-api)
+- ✅ SQL 대체 메서드 추가 (persistStandardAlcohols, persistLightweightAlcohols)
+- ✅ 기존 메서드 재사용 (persistRegion, persistDistillery, persistAlcohol)
 
 #### StandardAlcohols / LightweightAlcohols DTO
 ```java
@@ -713,20 +710,24 @@ void 리뷰_목록을_조회할_수_있다() throws Exception {
 }
 ```
 
-#### After (TO-BE) - 옵션 1: 경량 데이터
+#### After (TO-BE) - TestFactory 직접 사용
 ```java
-@Autowired private 복합 데이터 여러 TestFactory;
+@Autowired private UserTestFactory userTestFactory;
+@Autowired private AlcoholTestFactory alcoholTestFactory;
+@Autowired private ReviewTestFactory reviewTestFactory;
 
 @Test
 void 리뷰_목록을_조회할_수_있다() throws Exception {
-    // Given: 명확한 데이터 준비 (경량)
-    ReviewFeatureTestData testData = 여러 TestFactory.loadReviewFeatureTestData();
+    // Given: 명확한 데이터 준비
+    User user = userTestFactory.persistUser();
+    Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+    Review review = reviewTestFactory.persistReview(user, alcohol);
 
     // When & Then
     mockMvc.perform(get("/api/v1/reviews")
-        .param("alcoholId", String.valueOf(testData.alcohol().getId())))
+        .param("alcoholId", String.valueOf(alcohol.getId())))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.content[0].userId").value(testData.reviewer().getId()));
+        .andExpect(jsonPath("$.data.content[0].userId").value(user.getId()));
 }
 ```
 
@@ -774,40 +775,53 @@ void 특정_상태의_리뷰만_조회된다() throws Exception {
 ### Phase 0: 준비 단계
 
 #### 목표
-- TestFactory 인프라 구축
-- 기존 TestFactory 검증 및 보완
+- 기존 TestFactory에 SQL 대체 메서드 추가
+- 파일럿 테스트를 통한 마이그레이션 방식 검증
 
 #### 작업 내용
 
-**1) bottlenote-mono에 Test Fixtures 디렉토리 생성**
-```bash
-mkdir -p bottlenote-mono/src/testFixtures/java/app/bottlenote/fixture
-mkdir -p bottlenote-mono/src/testFixtures/java/app/bottlenote/fixture/support
-```
-
-**2) Gradle 설정 추가**
-- bottlenote-mono/build.gradle에 `java-test-fixtures` 플러그인 추가
-- testFixtures 의존성 추가 (JPA, Lombok 등)
-- bottlenote-product-api/build.gradle에 `testImplementation testFixtures(project(':bottlenote-mono'))` 추가
-
-**3) 기존 TestFactory를 bottlenote-mono로 이동**
-- bottlenote-product-api의 UserTestFactory → bottlenote-mono/testFixtures로 이동
-- AlcoholTestFactory, ReviewTestFactory 등도 함께 이동
-
-**4) UserTestFactory에 SQL 대체 메서드 추가**
+**1) UserTestFactory 보강** (bottlenote-product-api/src/test/java/app/bottlenote/user/fixture/UserTestFactory.java)
 - `persistStandardUsers()`: init-user.sql 대체 (표준 8명 사용자 생성)
 - `persistUsers(int count)`: N명 사용자 생성
-- `StandardUsers` DTO 정의
+- `StandardUsers` record 정의 (생성된 8명의 사용자 참조)
 
-**5) 파일럿 테스트**
+**예시:**
+```java
+@Component
+@RequiredArgsConstructor
+public class UserTestFactory {
+
+    @Autowired private EntityManager em;
+
+    // 기존 메서드들...
+
+    /**
+     * init-user.sql과 동일한 8명의 표준 사용자 생성
+     */
+    @Transactional
+    public StandardUsers persistStandardUsers() {
+        User user1 = persistUser("test1@test.com", "테스터1");
+        User user2 = persistUser("test2@test.com", "테스터2");
+        // ... 8명 생성
+        return new StandardUsers(user1, user2, ...);
+    }
+
+    public record StandardUsers(
+        User user1, User user2, User user3, User user4,
+        User user5, User user6, User user7, User user8
+    ) {}
+}
+```
+
+**2) 파일럿 테스트**
 - UserCommandIntegrationTest 중 1개 메서드만 마이그레이션
-- 기존 @Sql 방식과 새 방식 비교
-- 성능 측정 (데이터 로딩 시간)
+- 기존 @Sql 방식과 새 방식 성능 비교
 
 **검증 기준:**
 - ✅ UserTestFactory로 생성한 데이터가 init-user.sql과 동일한 구조
 - ✅ 파일럿 테스트가 성공적으로 통과
 - ✅ 성능 차이 10% 이내
+- ✅ 기존 다른 테스트들은 영향받지 않음 (TestFactory를 이동하지 않았으므로)
 
 ---
 
@@ -876,43 +890,7 @@ void 회원탈퇴에_성공한다() throws Exception {
 
 ---
 
-#### Phase 1-2: init-review.sql 마이그레이션
-
-**영향받는 테스트 파일:**
-- `ReviewIntegrationTest` (2개 메서드)
-- `ReviewReplyIntegrationTest` (2개 메서드)
-
-**작업 내용:**
-1. `ReviewTestFactory` 구현
-2. `loadStandardReviews()` 메서드 (8개 리뷰)
-3. `persistReview()` 메서드
-
-**예시:**
-```java
-@Component
-@RequiredArgsConstructor
-public class ReviewTestFactory {
-
-    private final ReviewTestFactory reviewTestFactory;
-
-    @Transactional
-    public Review persistReview(User user, Alcohol alcohol) {
-        return reviewTestFactory.persistReview(
-            Review.builder()
-                .user(user)
-                .alcohol(alcohol)
-                .content("테스트 리뷰 내용")
-                .status(ReviewStatus.PUBLIC)
-                .sizeType(SizeType.BOTTLE)
-                .price(65000L)
-        );
-    }
-}
-```
-
----
-
-#### Phase 1-3: init-alcohol.sql 마이그레이션 ⚠️
+#### Phase 1-2: init-alcohol.sql 마이그레이션 ⚠️
 
 **난이도: 높음**
 - 227개 데이터 (지역 27 + 증류소 179 + 주류 21)
@@ -948,18 +926,55 @@ void 전체_주류_페이징_조회() {
 
 ---
 
+#### Phase 1-3: init-review.sql 마이그레이션
+
+**영향받는 테스트 파일:**
+- `ReviewIntegrationTest` (2개 메서드)
+- `ReviewReplyIntegrationTest` (2개 메서드)
+
+**작업 내용:**
+1. `ReviewTestFactory` 구현
+2. `persistStandardReviews()` 메서드 (8개 리뷰)
+3. `persistReview()` 메서드
+
+**예시:**
+```java
+@Component
+@RequiredArgsConstructor
+public class ReviewTestFactory {
+
+    @Autowired private EntityManager em;
+
+    @Transactional
+    public Review persistReview(User user, Alcohol alcohol) {
+        Review review = Review.builder()
+            .user(user)
+            .alcohol(alcohol)
+            .content("테스트 리뷰 내용")
+            .status(ReviewStatus.PUBLIC)
+            .sizeType(SizeType.BOTTLE)
+            .price(65000L)
+            .build();
+        em.persist(review);
+        return review;
+    }
+}
+```
+
+---
+
 ### Phase 2: 중빈도 파일 마이그레이션
 
 #### Phase 2-1: init-review-reply.sql
-- `ReviewReplyDataLoader` 구현
+- `ReviewReplyTestFactory`에 `persistStandardReplies()` 메서드 추가
 - 댓글/대댓글 계층 구조 지원
 
 #### Phase 2-2: init-help.sql
-- `HelpDataLoader` 구현
+- `HelpTestFactory`에 `persistStandardHelps()` 메서드 추가
 - 단순 구조이므로 빠른 마이그레이션 가능
 
 #### Phase 2-3: init-user-history.sql
-- `UserHistoryDataLoader` 구현
+- `UserHistoryTestFactory`에 `persistStandardHistories()` 메서드 추가
 - 5개 히스토리 레코드 생성
 
 ---
@@ -967,19 +982,21 @@ void 전체_주류_페이징_조회() {
 ### Phase 3: 복합 파일 마이그레이션
 
 #### Phase 3-1: init-user-mypage-query.sql
-- `복합 데이터.loadMyPageTestData()` 구현
+- 여러 TestFactory를 조합하여 데이터 생성
 - User + Alcohol + Review + Follow + Rating 조합
+- 예: `userTestFactory`, `alcoholTestFactory`, `reviewTestFactory` 함께 사용
 
 #### Phase 3-2: init-user-mybottle-query.sql
-- `복합 데이터.loadMyBottleTestData()` 구현
+- 여러 TestFactory를 조합하여 데이터 생성
 - User + Alcohol + Review + Pick 조합
+- 예: `userTestFactory`, `alcoholTestFactory`, `pickTestFactory` 함께 사용
 
 ---
 
 ### Phase 4: 저빈도 파일 마이그레이션
 
 #### init-popular_alcohol.sql
-- `PopularAlcoholDataLoader` 구현
+- `AlcoholTestFactory`에 `persistPopularAlcohols()` 메서드 추가
 - 26개 인기 주류 통계 데이터
 
 ---
@@ -1071,27 +1088,7 @@ void 리뷰_수정에_성공한다() throws Exception {
 }
 ```
 
-#### After (옵션 1: 복합 데이터 사용)
-```java
-@Autowired private 복합 데이터 여러 TestFactory;
-
-@Test
-void 리뷰_수정에_성공한다() throws Exception {
-    // Given: 필요한 데이터 조합 로드
-    ReviewFeatureTestData testData = 여러 TestFactory.loadReviewFeatureTestData();
-    String token = authSupport.getToken(testData.reviewer());
-
-    // When & Then
-    mockMvc.perform(patch("/api/v1/reviews/" + testData.review().getId())
-        .contentType(MediaType.APPLICATION_JSON)
-        .header("Authorization", "Bearer " + token)
-        .content("{\"content\":\"수정된 내용\"}"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.reviewId").value(testData.review().getId()));
-}
-```
-
-#### After (옵션 2: 완전 커스텀)
+#### After
 ```java
 @Autowired private UserTestFactory userTestFactory;
 @Autowired private AlcoholTestFactory alcoholTestFactory;
@@ -1235,7 +1232,7 @@ void test() {
 @Test
 void test() {
     User user = userTestFactory.persistUser();
-    List<Review> reviews = reviewTestFactory.loadReviews(user, 5);  // ✅ 명시적 로딩
+    List<Review> reviews = reviewTestFactory.persistReviews(user, 5);  // ✅ 명시적 로딩
 }
 ```
 
@@ -1280,7 +1277,7 @@ void 단순_조회_테스트() {
 // ✅ 필요한 만큼만 생성
 @Test
 void 단순_조회_테스트() {
-    Alcohol alcohol = alcoholTestFactory.loadSingleAlcohol();  // 1개
+    Alcohol alcohol = alcoholTestFactory.persistAlcohol();  // 1개
 }
 ```
 
