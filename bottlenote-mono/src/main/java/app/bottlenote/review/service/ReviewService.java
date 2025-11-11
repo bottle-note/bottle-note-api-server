@@ -31,9 +31,9 @@ import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 import app.bottlenote.user.facade.UserFacade;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,7 +46,7 @@ public class ReviewService {
   private final UserFacade userDomainSupport;
   private final ReviewRepository reviewRepository;
   private final HistoryEventPublisher reviewEventPublisher;
-  private final Optional<TracingService> tracingService;
+  private final ObjectProvider<TracingService> tracingService;
 
   /** Read */
   @Transactional(readOnly = true)
@@ -119,7 +119,11 @@ public class ReviewService {
             saveReview.getContent());
     reviewEventPublisher.publishReviewHistoryEvent(event);
 
-    String traceId = tracingService.map(TracingService::getCurrentTraceId).orElse("N/A");
+    String traceId =
+        tracingService.stream()
+            .map(TracingService::getCurrentTraceId)
+            .findFirst()
+            .orElse("N/A");
     log.info(
         "리뷰 생성 - reviewId: {}, userId: {}, alcoholId: {}, rating: {}, status: {}, traceId: {}",
         saveReview.getId(),
@@ -165,7 +169,11 @@ public class ReviewService {
             .orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
     ReviewResultMessage reviewResultMessage = review.updateReviewActiveStatus(DELETED);
 
-    String traceId = tracingService.map(TracingService::getCurrentTraceId).orElse("N/A");
+    String traceId =
+        tracingService.stream()
+            .map(TracingService::getCurrentTraceId)
+            .findFirst()
+            .orElse("N/A");
     log.info(
         "리뷰 삭제 - reviewId: {}, userId: {}, alcoholId: {}, traceId: {}",
         reviewId,

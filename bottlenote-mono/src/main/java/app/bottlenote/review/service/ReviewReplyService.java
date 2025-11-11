@@ -24,6 +24,7 @@ import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,7 +39,7 @@ public class ReviewReplyService {
   private final ProfanityClient profanityClient;
   private final UserFacade userFacade;
   private final HistoryEventPublisher reviewReplyEventPublisher;
-  private final Optional<TracingService> tracingService;
+  private final ObjectProvider<TracingService> tracingService;
 
   /**
    * 댓글을 등록합니다.
@@ -96,7 +97,11 @@ public class ReviewReplyService {
             reply.getReviewId(), alcoholId, reply.getUserId(), reply.getContent());
     reviewReplyEventPublisher.publishReplyHistoryEvent(event);
 
-    String traceId = tracingService.map(TracingService::getCurrentTraceId).orElse("N/A");
+    String traceId =
+        tracingService.stream()
+            .map(TracingService::getCurrentTraceId)
+            .findFirst()
+            .orElse("N/A");
     log.info(
         "댓글 생성 - replyId: {}, reviewId: {}, userId: {}, alcoholId: {}, isSubReply: {}, traceId: {}",
         reply.getId(),
@@ -127,7 +132,10 @@ public class ReviewReplyService {
             reply -> {
               if (FALSE.equals(reply.isOwner(userId))) {
                 String traceId =
-                    tracingService.map(TracingService::getCurrentTraceId).orElse("N/A");
+                    tracingService.stream()
+                        .map(TracingService::getCurrentTraceId)
+                        .findFirst()
+                        .orElse("N/A");
                 log.warn(
                     "댓글 삭제 권한 없음 - replyId: {}, reviewId: {}, requestUserId: {}, ownerId: {}, traceId: {}",
                     replyId,
@@ -140,7 +148,11 @@ public class ReviewReplyService {
 
               reply.delete();
 
-              String traceId = tracingService.map(TracingService::getCurrentTraceId).orElse("N/A");
+              String traceId =
+                  tracingService.stream()
+                      .map(TracingService::getCurrentTraceId)
+                      .findFirst()
+                      .orElse("N/A");
               log.info(
                   "댓글 삭제 - replyId: {}, reviewId: {}, userId: {}, traceId: {}",
                   replyId,
