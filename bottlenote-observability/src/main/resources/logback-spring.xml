@@ -37,4 +37,7 @@
   <logger name="io.opentelemetry.instrumentation.logback" level="DEBUG"/>
   <logger name="io.opentelemetry.sdk" level="DEBUG"/>
 
+  <!-- B3 Propagator 불필요한 로그 억제 (B3 헤더가 없을 때 발생) -->
+  <logger name="io.opentelemetry.extension.trace.propagation.B3" level="INFO"/>
+
 </configuration>
