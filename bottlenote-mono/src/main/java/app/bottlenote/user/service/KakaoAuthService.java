@@ -35,7 +35,7 @@ public class KakaoAuthService {
       log.warn("카카오 토큰 검증 실패 (401) - status: {}, message: {}", e.status(), e.getMessage());
       throw new UserException(UserExceptionCode.INVALID_KAKAO_ACCESS_TOKEN);
     } catch (feign.FeignException.TooManyRequests e) {
-      log.warn("카카오 API Rate Limit 도달 - status: {}, retryAfter: {}초", e.status(), e.retryAfter());
+      log.warn("카카오 API Rate Limit 도달 - status: {}", e.status());
       throw new UserException(UserExceptionCode.KAKAO_API_ERROR);
     } catch (feign.FeignException e) {
       log.warn("카카오 API 호출 실패 - status: {}, message: {}", e.status(), e.getMessage());
