@@ -294,7 +294,7 @@ User inactiveUser = userTestFactory.persistUser(
 
 ```
 Phase 0: 준비
-  └─ TestDataLoader 설계 및 구현
+  └─ TestFactory 설계 및 구현
 
 Phase 1: 고빈도 파일 마이그레이션
   ├─ init-user.sql
@@ -358,87 +358,162 @@ Phase 5: 정리 및 검증
 
 ---
 
-## 5. 신규 컴포넌트 설계: TestDataLoader
+## 5. 개선된 설계: TestFactory 확장 및 공통 픽스처
 
-### 5.1 TestDataLoader 개념
+### 5.1 설계 철학
 
-**목적:**
-- SQL 스크립트의 "사전 정의된 데이터 세트" 개념을 코드로 전환
-- 복잡한 데이터 조합을 재사용 가능한 형태로 제공
+**기존 TestFactory 개념 제거 이유:**
+- 기존 TestFactory와 역할 중복
+- 불필요한 계층 추가로 복잡도 증가
+- TestFactory로 충분히 구현 가능
 
-**위치:**
+**새로운 접근 방식:**
+1. **기존 TestFactory 확장**: SQL 대체 메서드를 TestFactory에 직접 추가
+2. **공통 픽스처 분리**: bottlenote-mono에 Java Test Fixtures 플러그인 활용
+3. **모듈 간 재사용**: bottlenote-batch, bottlenote-product-api 모두에서 공통 픽스처 활용
+
+### 5.2 bottlenote-mono에 Test Fixtures 구성
+
+#### 5.2.1 Gradle 설정
+
+**bottlenote-mono/build.gradle 수정:**
+```gradle
+plugins {
+    id 'java-library'
+    id 'java-test-fixtures'  // 추가
+}
+
+dependencies {
+    // 기존 의존성...
+
+    // Test Fixtures용 의존성
+    testFixturesImplementation libs.spring.boot.starter.data.jpa
+    testFixturesImplementation libs.spring.boot.starter.test
+    testFixturesImplementation libs.lombok
+    testFixturesAnnotationProcessor libs.lombok
+}
 ```
-bottlenote-product-api/src/test/java/app/bottlenote/
-└── operation/
-    └── loader/
-        ├── UserDataLoader.java
-        ├── AlcoholDataLoader.java
-        ├── ReviewDataLoader.java
-        └── CompositeDataLoader.java
+
+**bottlenote-product-api/build.gradle 수정:**
+```gradle
+dependencies {
+    implementation project(':bottlenote-mono')
+
+    // Test Fixtures 사용
+    testImplementation testFixtures(project(':bottlenote-mono'))
+
+    // 기존 의존성...
+}
 ```
 
-### 5.2 TestDataLoader 설계
+#### 5.2.2 디렉토리 구조
 
-#### 기본 구조
+```
+bottlenote-mono/
+├── src/
+│   ├── main/java/
+│   │   └── app/bottlenote/
+│   │       ├── user/domain/User.java
+│   │       ├── alcohols/domain/Alcohol.java
+│   │       └── ...
+│   └── testFixtures/java/                    # 새로 생성
+│       └── app/bottlenote/fixture/           # 공통 픽스처
+│           ├── UserTestFactory.java         # 이동
+│           ├── AlcoholTestFactory.java      # 이동
+│           ├── ReviewTestFactory.java       # 이동
+│           ├── RatingTestFactory.java       # 이동
+│           └── support/                      # 지원 클래스
+│               ├── StandardUsers.java        # DTO
+│               ├── StandardAlcohols.java     # DTO
+│               └── TestDataBuilder.java      # 빌더 유틸
+│
+bottlenote-product-api/
+└── src/test/java/
+    └── app/bottlenote/
+        ├── IntegrationTestSupport.java       # 기존 유지
+        └── {domain}/integration/             # 통합 테스트
+```
+
+**장점:**
+- ✅ bottlenote-mono에서 TestFactory를 한 번만 정의
+- ✅ bottlenote-product-api, bottlenote-batch 모두에서 재사용
+- ✅ 도메인 엔티티와 테스트 픽스처가 같은 모듈에 위치 (응집도 향상)
+- ✅ Gradle의 표준 기능 활용 (java-test-fixtures 플러그인)
+
+### 5.3 UserTestFactory 확장 (SQL 대체 메서드 추가)
+
+**위치:** `bottlenote-mono/src/testFixtures/java/app/bottlenote/fixture/UserTestFactory.java`
+
 ```java
 @Component
 @RequiredArgsConstructor
-public class UserDataLoader {
+public class UserTestFactory {
 
-    private final UserTestFactory userTestFactory;
+    private final Random random = new SecureRandom();
+    @Autowired private EntityManager em;
+
+    // ========== 기존 메서드들 (유지) ==========
+
+    /** 기본 User 생성 */
+    @Transactional
+    public User persistUser() { /* 기존 코드 */ }
+
+    /** 이메일과 닉네임으로 User 생성 */
+    @Transactional
+    public User persistUser(String email, String nickName) { /* 기존 코드 */ }
+
+    /** 빌더를 통한 User 생성 */
+    @Transactional
+    public User persistUser(User.UserBuilder builder) { /* 기존 코드 */ }
+
+    // ========== 새로 추가: SQL 대체 메서드들 ==========
 
     /**
      * init-user.sql을 대체하는 표준 사용자 8명 생성
      * 기존 SQL과 동일한 데이터 구조 제공
      */
     @Transactional
-    public StandardUsers loadStandardUsers() {
-        User user1 = userTestFactory.persistUser(
-            User.builder()
-                .email("hyejj19@naver.com")
-                .nickName("WOzU6J8541")
-                .gender(GenderType.FEMALE)
-                .socialType(List.of(SocialType.KAKAO))
-        );
+    public StandardUsers persistStandardUsers() {
+        User user1 = persistUser(User.builder()
+            .email("hyejj19@naver.com")
+            .nickName("WOzU6J8541")
+            .gender(GenderType.FEMALE)
+            .socialType(List.of(SocialType.KAKAO)));
 
-        User user2 = userTestFactory.persistUser(
-            User.builder()
-                .email("chadongmin@naver.com")
-                .nickName("xIFo6J8726")
-                .gender(GenderType.MALE)
-                .socialType(List.of(SocialType.KAKAO))
-        );
+        User user2 = persistUser(User.builder()
+            .email("chadongmin@naver.com")
+            .nickName("xIFo6J8726")
+            .gender(GenderType.MALE)
+            .socialType(List.of(SocialType.KAKAO)));
 
-        // ... 나머지 6명
+        User user3 = persistUser(User.builder()
+            .email("dev.bottle-note@gmail.com")
+            .nickName("PARC6J8814")
+            .age(25)
+            .gender(GenderType.MALE)
+            .socialType(List.of(SocialType.GOOGLE)));
+
+        // ... 나머지 5명
 
         return new StandardUsers(user1, user2, user3, user4, user5, user6, user7, user8);
     }
 
     /**
-     * 단순 사용자 1명만 필요한 경우
+     * 사용자 N명 일괄 생성
      */
     @Transactional
-    public User loadSingleUser() {
-        return userTestFactory.persistUser(
-            User.builder()
-                .email("test@example.com")
-                .nickName("테스터")
-                .gender(GenderType.MALE)
-                .socialType(List.of(SocialType.KAKAO))
-        );
-    }
-
-    /**
-     * 커스텀 사용자 N명 생성
-     */
-    @Transactional
-    public List<User> loadUsers(int count) {
+    public List<User> persistUsers(int count) {
         return IntStream.range(0, count)
-            .mapToObj(i -> userTestFactory.persistUser())
+            .mapToObj(i -> persistUser())
             .toList();
     }
 }
 ```
+
+**핵심 변경:**
+- ✅ TestFactory 제거 → UserTestFactory에 통합
+- ✅ `persistStandardUsers()` → `persistStandardUsers()`로 일관성 유지
+- ✅ 기존 메서드와 신규 메서드가 한 곳에 공존
 
 #### StandardUsers DTO
 ```java
@@ -476,7 +551,9 @@ public record StandardUsers(
 }
 ```
 
-### 5.3 AlcoholDataLoader 설계 (대용량 데이터 처리)
+### 5.4 AlcoholTestFactory 확장 (대용량 데이터 처리)
+
+**위치:** `bottlenote-mono/src/testFixtures/java/app/bottlenote/fixture/AlcoholTestFactory.java`
 
 **특수성:**
 - init-alcohol.sql은 231줄, 227개 데이터 (지역 27 + 증류소 179 + 주류 21)
@@ -485,24 +562,33 @@ public record StandardUsers(
 ```java
 @Component
 @RequiredArgsConstructor
-public class AlcoholDataLoader {
+public class AlcoholTestFactory {
 
-    private final AlcoholTestFactory alcoholTestFactory;
+    private final Random random = new SecureRandom();
+    @Autowired private EntityManager em;
+
+    // ========== 기존 메서드들 (유지) ==========
+
+    /** 기본 Alcohol 생성 */
+    @Transactional
+    public Alcohol persistAlcohol() { /* 기존 코드 */ }
+
+    // ========== 새로 추가: SQL 대체 메서드들 ==========
 
     /**
-     * 전체 표준 데이터 로드 (init-alcohol.sql 전체)
+     * init-alcohol.sql 전체 대체: 표준 데이터 생성
      * ⚠️ 성능 고려: 필요한 경우에만 사용
      */
     @Transactional
-    public StandardAlcohols loadFullStandardData() {
+    public StandardAlcohols persistStandardAlcohols() {
         // 1. 지역 27개 생성
-        List<Region> regions = loadStandardRegions();
+        List<Region> regions = persistStandardRegions();
 
         // 2. 증류소 179개 생성 (배치 처리)
-        List<Distillery> distilleries = loadStandardDistilleries();
+        List<Distillery> distilleries = persistStandardDistilleries();
 
         // 3. 주류 21개 생성
-        List<Alcohol> alcohols = loadStandardAlcohols(regions, distilleries);
+        List<Alcohol> alcohols = persistStandardAlcoholList(regions, distilleries);
 
         return new StandardAlcohols(regions, distilleries, alcohols);
     }
@@ -512,32 +598,24 @@ public class AlcoholDataLoader {
      * 대부분의 테스트에서 사용 권장
      */
     @Transactional
-    public LightweightAlcohols loadLightweightData() {
-        Region region1 = alcoholTestFactory.persistRegion("스코틀랜드", "Scotland");
-        Region region2 = alcoholTestFactory.persistRegion("일본", "Japan");
-        Region region3 = alcoholTestFactory.persistRegion("미국", "United States");
+    public LightweightAlcohols persistLightweightAlcohols() {
+        Region region1 = persistRegion("스코틀랜드", "Scotland");
+        Region region2 = persistRegion("일본", "Japan");
+        Region region3 = persistRegion("미국", "United States");
 
-        Distillery distillery1 = alcoholTestFactory.persistDistillery("맥캘란", "Macallan");
-        Distillery distillery2 = alcoholTestFactory.persistDistillery("글렌피딕", "Glenfiddich");
-        Distillery distillery3 = alcoholTestFactory.persistDistillery("야마자키", "Yamazaki");
+        Distillery distillery1 = persistDistillery("맥캘란", "Macallan");
+        Distillery distillery2 = persistDistillery("글렌피딕", "Glenfiddich");
+        Distillery distillery3 = persistDistillery("야마자키", "Yamazaki");
 
-        Alcohol alcohol1 = alcoholTestFactory.persistAlcohol(AlcoholType.WHISKY, region1, distillery1);
-        Alcohol alcohol2 = alcoholTestFactory.persistAlcohol(AlcoholType.WHISKY, region2, distillery2);
-        Alcohol alcohol3 = alcoholTestFactory.persistAlcohol(AlcoholType.WHISKY, region3, distillery3);
+        Alcohol alcohol1 = persistAlcohol(AlcoholType.WHISKY, region1, distillery1);
+        Alcohol alcohol2 = persistAlcohol(AlcoholType.WHISKY, region2, distillery2);
+        Alcohol alcohol3 = persistAlcohol(AlcoholType.WHISKY, region3, distillery3);
 
         return new LightweightAlcohols(
             List.of(region1, region2, region3),
             List.of(distillery1, distillery2, distillery3),
             List.of(alcohol1, alcohol2, alcohol3)
         );
-    }
-
-    /**
-     * 주류 데이터만 필요한 경우 (최소 데이터)
-     */
-    @Transactional
-    public Alcohol loadSingleAlcohol() {
-        return alcoholTestFactory.persistAlcohol();  // 연관 엔티티 자동 생성
     }
 
     /**
@@ -593,58 +671,35 @@ public record LightweightAlcohols(
 }
 ```
 
-### 5.4 CompositeDataLoader 설계
+### 5.5 복합 데이터 처리 방식
 
-**목적:**
-- 여러 도메인의 데이터를 조합해서 한 번에 로드
-- init-user-mypage-query.sql, init-user-mybottle-query.sql 등 복합 SQL 대체
+**복합 데이터 없이 TestFactory 직접 조합:**
 
+복합 SQL 파일(init-user-mypage-query.sql 등)은 별도의 Composite 클래스 없이 각 TestFactory를 테스트 메서드에서 직접 조합하여 사용합니다.
+
+**장점:**
+- ✅ 추가 계층 없이 명확하고 간단
+- ✅ 테스트 코드에서 필요한 데이터만 정확히 생성
+- ✅ 불필요한 중간 DTO(MyPageTestData 등) 제거
+
+**예시:**
 ```java
-@Component
-@RequiredArgsConstructor
-public class CompositeDataLoader {
+@Test
+void 마이페이지_조회_테스트() {
+    // Given: 각 TestFactory를 직접 조합
+    StandardUsers users = userTestFactory.persistStandardUsers();
+    LightweightAlcohols alcohols = alcoholTestFactory.persistLightweightAlcohols();
+    Review review1 = reviewTestFactory.persistReview(users.user1(), alcohols.getFirstAlcohol());
+    Review review2 = reviewTestFactory.persistReview(users.user1(), alcohols.alcohols().get(1));
 
-    private final UserDataLoader userDataLoader;
-    private final AlcoholDataLoader alcoholDataLoader;
-    private final ReviewDataLoader reviewDataLoader;
-
-    /**
-     * 마이페이지 테스트용 전체 데이터 로드
-     * (init-user-mypage-query.sql 대체)
-     */
-    @Transactional
-    public MyPageTestData loadMyPageTestData() {
-        // 1. 사용자 로드
-        StandardUsers users = userDataLoader.loadStandardUsers();
-
-        // 2. 경량 주류 데이터 로드
-        LightweightAlcohols alcohols = alcoholDataLoader.loadLightweightData();
-
-        // 3. 리뷰 데이터 로드
-        List<Review> reviews = reviewDataLoader.loadReviews(users.user1(), alcohols.getFirstAlcohol(), 5);
-
-        // 4. 팔로우 관계 설정
-        // ...
-
-        return new MyPageTestData(users, alcohols, reviews);
-    }
-
-    /**
-     * 리뷰 전체 기능 테스트용 데이터
-     * (init-user.sql + init-alcohol.sql + init-review.sql 조합 대체)
-     */
-    @Transactional
-    public ReviewFeatureTestData loadReviewFeatureTestData() {
-        User reviewer = userDataLoader.loadSingleUser();
-        Alcohol alcohol = alcoholDataLoader.loadSingleAlcohol();
-        Review review = reviewDataLoader.loadSingleReview(reviewer, alcohol);
-
-        return new ReviewFeatureTestData(reviewer, alcohol, review);
-    }
+    // When & Then
+    mockMvc.perform(get("/api/v1/users/" + users.user1().getId() + "/mypage"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.reviewCount").value(2));
 }
 ```
 
-### 5.5 TestDataLoader 사용 예시
+### 5.6 TestFactory 사용 예시
 
 #### Before (AS-IS)
 ```java
@@ -660,12 +715,12 @@ void 리뷰_목록을_조회할_수_있다() throws Exception {
 
 #### After (TO-BE) - 옵션 1: 경량 데이터
 ```java
-@Autowired private CompositeDataLoader compositeDataLoader;
+@Autowired private 복합 데이터 여러 TestFactory;
 
 @Test
 void 리뷰_목록을_조회할_수_있다() throws Exception {
     // Given: 명확한 데이터 준비 (경량)
-    ReviewFeatureTestData testData = compositeDataLoader.loadReviewFeatureTestData();
+    ReviewFeatureTestData testData = 여러 TestFactory.loadReviewFeatureTestData();
 
     // When & Then
     mockMvc.perform(get("/api/v1/reviews")
@@ -719,33 +774,38 @@ void 특정_상태의_리뷰만_조회된다() throws Exception {
 ### Phase 0: 준비 단계
 
 #### 목표
-- TestDataLoader 인프라 구축
+- TestFactory 인프라 구축
 - 기존 TestFactory 검증 및 보완
 
 #### 작업 내용
 
-**1) TestDataLoader 디렉토리 구조 생성**
+**1) bottlenote-mono에 Test Fixtures 디렉토리 생성**
 ```bash
-mkdir -p bottlenote-product-api/src/test/java/app/bottlenote/operation/loader
+mkdir -p bottlenote-mono/src/testFixtures/java/app/bottlenote/fixture
+mkdir -p bottlenote-mono/src/testFixtures/java/app/bottlenote/fixture/support
 ```
 
-**2) UserDataLoader 구현**
-- `loadStandardUsers()`: 표준 8명 사용자 생성
-- `loadSingleUser()`: 단일 사용자 생성
+**2) Gradle 설정 추가**
+- bottlenote-mono/build.gradle에 `java-test-fixtures` 플러그인 추가
+- testFixtures 의존성 추가 (JPA, Lombok 등)
+- bottlenote-product-api/build.gradle에 `testImplementation testFixtures(project(':bottlenote-mono'))` 추가
+
+**3) 기존 TestFactory를 bottlenote-mono로 이동**
+- bottlenote-product-api의 UserTestFactory → bottlenote-mono/testFixtures로 이동
+- AlcoholTestFactory, ReviewTestFactory 등도 함께 이동
+
+**4) UserTestFactory에 SQL 대체 메서드 추가**
+- `persistStandardUsers()`: init-user.sql 대체 (표준 8명 사용자 생성)
+- `persistUsers(int count)`: N명 사용자 생성
 - `StandardUsers` DTO 정의
 
-**3) 기존 TestFactory 검증**
-- UserTestFactory의 메서드 검토
-- 누락된 기능 추가 (예: 특정 상태 사용자 생성)
-- 문서화 주석 추가
-
-**4) 파일럿 테스트**
+**5) 파일럿 테스트**
 - UserCommandIntegrationTest 중 1개 메서드만 마이그레이션
 - 기존 @Sql 방식과 새 방식 비교
 - 성능 측정 (데이터 로딩 시간)
 
 **검증 기준:**
-- ✅ UserDataLoader로 생성한 데이터가 init-user.sql과 동일한 구조
+- ✅ UserTestFactory로 생성한 데이터가 init-user.sql과 동일한 구조
 - ✅ 파일럿 테스트가 성공적으로 통과
 - ✅ 성능 차이 10% 이내
 
@@ -791,14 +851,14 @@ mkdir -p bottlenote-product-api/src/test/java/app/bottlenote/operation/loader
 - @Sql(scripts = {"/init-script/init-user.sql"})
 + // @Sql(scripts = {"/init-script/init-user.sql"})  // 주석 처리 (롤백 대비)
 
-// 2단계: TestDataLoader 주입
-@Autowired private UserDataLoader userDataLoader;
+// 2단계: TestFactory 주입
+@Autowired private UserTestFactory userTestFactory;
 
 // 3단계: Given 절에 데이터 로딩 추가
 @Test
 void 회원탈퇴에_성공한다() throws Exception {
     // Given
-+   User user = userDataLoader.loadSingleUser();
++   User user = userTestFactory.persistUser();
 
     // When & Then
     mockMvc.perform(delete("/api/v1/users")
@@ -823,20 +883,20 @@ void 회원탈퇴에_성공한다() throws Exception {
 - `ReviewReplyIntegrationTest` (2개 메서드)
 
 **작업 내용:**
-1. `ReviewDataLoader` 구현
+1. `ReviewTestFactory` 구현
 2. `loadStandardReviews()` 메서드 (8개 리뷰)
-3. `loadSingleReview()` 메서드
+3. `persistReview()` 메서드
 
 **예시:**
 ```java
 @Component
 @RequiredArgsConstructor
-public class ReviewDataLoader {
+public class ReviewTestFactory {
 
     private final ReviewTestFactory reviewTestFactory;
 
     @Transactional
-    public Review loadSingleReview(User user, Alcohol alcohol) {
+    public Review persistReview(User user, Alcohol alcohol) {
         return reviewTestFactory.persistReview(
             Review.builder()
                 .user(user)
@@ -859,9 +919,9 @@ public class ReviewDataLoader {
 - 대용량 데이터 처리 전략 필요
 
 **작업 내용:**
-1. `AlcoholDataLoader` 구현
-2. 경량 데이터 제공: `loadLightweightData()` (각 3개씩)
-3. 전체 데이터 제공: `loadFullStandardData()` (227개 전체)
+1. `AlcoholTestFactory` 구현
+2. 경량 데이터 제공: `persistLightweightAlcohols()` (각 3개씩)
+3. 전체 데이터 제공: `persistStandardAlcohols()` (227개 전체)
 4. 성능 최적화: JDBC Batch Insert 적용 고려
 
 **마이그레이션 전략:**
@@ -869,14 +929,14 @@ public class ReviewDataLoader {
 // 대부분의 테스트: 경량 데이터 사용
 @Test
 void 주류_목록_조회() {
-    LightweightAlcohols alcohols = alcoholDataLoader.loadLightweightData();
+    LightweightAlcohols alcohols = alcoholTestFactory.persistLightweightAlcohols();
     // 3개 주류만 사용
 }
 
 // 대용량 데이터가 필요한 테스트만: 전체 데이터
 @Test
 void 전체_주류_페이징_조회() {
-    StandardAlcohols alcohols = alcoholDataLoader.loadFullStandardData();
+    StandardAlcohols alcohols = alcoholTestFactory.persistStandardAlcohols();
     // 227개 전체 사용
 }
 ```
@@ -907,11 +967,11 @@ void 전체_주류_페이징_조회() {
 ### Phase 3: 복합 파일 마이그레이션
 
 #### Phase 3-1: init-user-mypage-query.sql
-- `CompositeDataLoader.loadMyPageTestData()` 구현
+- `복합 데이터.loadMyPageTestData()` 구현
 - User + Alcohol + Review + Follow + Rating 조합
 
 #### Phase 3-2: init-user-mybottle-query.sql
-- `CompositeDataLoader.loadMyBottleTestData()` 구현
+- `복합 데이터.loadMyBottleTestData()` 구현
 - User + Alcohol + Review + Pick 조합
 
 ---
@@ -932,7 +992,7 @@ void 전체_주류_페이징_조회() {
    - 사용하지 않는 @Sql import 제거
 
 2. **문서화**
-   - TestDataLoader 사용 가이드 작성
+   - TestFactory 사용 가이드 작성
    - 마이그레이션 전후 비교 문서
    - Best Practices 문서
 
@@ -967,12 +1027,12 @@ void 회원탈퇴에_성공한다() throws Exception {
 
 #### After
 ```java
-@Autowired private UserDataLoader userDataLoader;
+@Autowired private UserTestFactory userTestFactory;
 
 @Test
 void 회원탈퇴에_성공한다() throws Exception {
     // Given: 명확한 사용자 생성
-    User user = userDataLoader.loadSingleUser();
+    User user = userTestFactory.persistUser();
     String token = authSupport.getToken(user);
 
     // When & Then
@@ -1011,14 +1071,14 @@ void 리뷰_수정에_성공한다() throws Exception {
 }
 ```
 
-#### After (옵션 1: CompositeDataLoader 사용)
+#### After (옵션 1: 복합 데이터 사용)
 ```java
-@Autowired private CompositeDataLoader compositeDataLoader;
+@Autowired private 복합 데이터 여러 TestFactory;
 
 @Test
 void 리뷰_수정에_성공한다() throws Exception {
     // Given: 필요한 데이터 조합 로드
-    ReviewFeatureTestData testData = compositeDataLoader.loadReviewFeatureTestData();
+    ReviewFeatureTestData testData = 여러 TestFactory.loadReviewFeatureTestData();
     String token = authSupport.getToken(testData.reviewer());
 
     // When & Then
@@ -1132,12 +1192,12 @@ void 주류_3개만_조회_테스트() throws Exception {
 
 #### After
 ```java
-@Autowired private AlcoholDataLoader alcoholDataLoader;
+@Autowired private AlcoholTestFactory alcoholTestFactory;
 
 @Test
 void 주류_3개만_조회_테스트() throws Exception {
     // Given: 필요한 만큼만 생성 (227개 → 3개)
-    LightweightAlcohols alcohols = alcoholDataLoader.loadLightweightData();
+    LightweightAlcohols alcohols = alcoholTestFactory.persistLightweightAlcohols();
 
     // When & Then
     mockMvc.perform(get("/api/v1/alcohols")
@@ -1184,7 +1244,7 @@ void test() {
 // ❌ 잘못된 예: 하드코딩된 ID
 @Test
 void test() {
-    userDataLoader.loadStandardUsers();
+    userTestFactory.persistStandardUsers();
 
     mockMvc.perform(get("/api/v1/users/1"))  // ❌ ID=1이라는 보장 없음
 }
@@ -1192,7 +1252,7 @@ void test() {
 // ✅ 올바른 예: 생성된 객체의 ID 사용
 @Test
 void test() {
-    User user = userDataLoader.loadSingleUser();
+    User user = userTestFactory.persistUser();
 
     mockMvc.perform(get("/api/v1/users/" + user.getId()))  // ✅ 실제 ID 사용
 }
@@ -1213,14 +1273,14 @@ void cleanUpAfterEach() {
 // ❌ 불필요한 대용량 데이터 생성
 @Test
 void 단순_조회_테스트() {
-    StandardAlcohols alcohols = alcoholDataLoader.loadFullStandardData();  // 227개
+    StandardAlcohols alcohols = alcoholTestFactory.persistStandardAlcohols();  // 227개
     // 실제로는 1개만 필요
 }
 
 // ✅ 필요한 만큼만 생성
 @Test
 void 단순_조회_테스트() {
-    Alcohol alcohol = alcoholDataLoader.loadSingleAlcohol();  // 1개
+    Alcohol alcohol = alcoholTestFactory.loadSingleAlcohol();  // 1개
 }
 ```
 
@@ -1228,7 +1288,7 @@ void 단순_조회_테스트() {
 
 **테스트 파일별 체크리스트:**
 - [ ] @Sql 어노테이션 제거됨
-- [ ] TestDataLoader 또는 TestFactory 주입됨
+- [ ] TestFactory 또는 TestFactory 주입됨
 - [ ] Given 절에 데이터 생성 코드 추가됨
 - [ ] 매직 넘버가 객체 참조로 교체됨
 - [ ] 테스트가 성공적으로 통과함
@@ -1306,8 +1366,8 @@ void 단순_조회_테스트() {
 
 ### 즉시 실행
 1. **Phase 0 시작**
-   - TestDataLoader 인프라 구축
-   - UserDataLoader 구현
+   - TestFactory 인프라 구축
+   - UserTestFactory 구현
    - 파일럿 테스트 (1개 메서드)
 
 ### 후속 작업
@@ -1317,7 +1377,7 @@ void 단순_조회_테스트() {
 
 ### 장기 계획
 1. 다른 모듈(batch 등)에도 적용
-2. TestDataLoader 패턴을 팀 표준으로 확립
+2. TestFactory 패턴을 팀 표준으로 확립
 3. 신규 개발자 온보딩 자료에 포함
 
 ---
