@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.history.fixture.FakeHistoryEventPublisher;
+import app.bottlenote.observability.service.LocalTracingService;
 import app.bottlenote.review.constant.ReviewReplyResultMessage;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewReply;
@@ -68,7 +69,8 @@ class ReviewReplyServiceTest {
             reviewRepository,
             profanityClient,
             userFacade,
-            reviewReplyEventPublisher);
+            reviewReplyEventPublisher,
+            new LocalTracingService());
   }
 
   @Nested
