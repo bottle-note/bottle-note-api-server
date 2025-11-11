@@ -145,8 +145,12 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
                     fieldWithPath("nonce").description("이전에 발급받은 Nonce 값")),
                 responseFields(
                     fieldWithPath("accessToken").description("발급된 액세스 토큰"),
-                    fieldWithPath("isFirstLogin").description("최초 로그인 여부 (nullable)"),
-                    fieldWithPath("nickname").description("사용자 닉네임 (nullable)"))));
+                    fieldWithPath("isFirstLogin")
+                        .description("최초 로그인 여부 (true: 최초 로그인, false: 기존 사용자)")
+                        .optional(),
+                    fieldWithPath("nickname")
+                        .description("사용자 닉네임 (최초 로그인 시 자동 생성된 닉네임)")
+                        .optional())));
   }
 
   @Test
@@ -182,7 +186,11 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
                 requestFields(fieldWithPath("accessToken").description("카카오에서 발급받은 액세스 토큰")),
                 responseFields(
                     fieldWithPath("accessToken").description("발급된 액세스 토큰"),
-                    fieldWithPath("isFirstLogin").description("최초 로그인 여부 (nullable)"),
-                    fieldWithPath("nickname").description("사용자 닉네임 (nullable)"))));
+                    fieldWithPath("isFirstLogin")
+                        .description("최초 로그인 여부 (true: 최초 로그인, false: 기존 사용자)")
+                        .optional(),
+                    fieldWithPath("nickname")
+                        .description("사용자 닉네임 (최초 로그인 시 자동 생성된 닉네임)")
+                        .optional())));
   }
 }

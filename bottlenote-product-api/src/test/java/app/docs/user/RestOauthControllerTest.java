@@ -104,6 +104,14 @@ class RestOauthControllerTest extends AbstractRestDocs {
                     fieldWithPath("data.accessToken")
                         .type(JsonFieldType.STRING)
                         .description("액세스 토큰"),
+                    fieldWithPath("data.isFirstLogin")
+                        .type(JsonFieldType.BOOLEAN)
+                        .description("최초 로그인 여부 (true: 최초 로그인, false: 기존 사용자)")
+                        .optional(),
+                    fieldWithPath("data.nickname")
+                        .type(JsonFieldType.STRING)
+                        .description("사용자 닉네임 (최초 로그인 시 자동 생성된 닉네임)")
+                        .optional(),
                     fieldWithPath("errors")
                         .type(JsonFieldType.ARRAY)
                         .description("응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)"),
@@ -150,6 +158,14 @@ class RestOauthControllerTest extends AbstractRestDocs {
                     fieldWithPath("data.accessToken")
                         .type(JsonFieldType.STRING)
                         .description("액세스 토큰"),
+                    fieldWithPath("data.isFirstLogin")
+                        .type(JsonFieldType.BOOLEAN)
+                        .description("최초 로그인 여부 (true: 최초 로그인, false: 기존 사용자)")
+                        .optional(),
+                    fieldWithPath("data.nickname")
+                        .type(JsonFieldType.STRING)
+                        .description("사용자 닉네임 (최초 로그인 시 자동 생성된 닉네임)")
+                        .optional(),
                     fieldWithPath("errors")
                         .type(JsonFieldType.ARRAY)
                         .description("응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)"),
@@ -188,6 +204,14 @@ class RestOauthControllerTest extends AbstractRestDocs {
                     fieldWithPath("code").ignored(),
                     fieldWithPath("errors").ignored(),
                     fieldWithPath("data.accessToken").description("액세스 토큰"),
+                    fieldWithPath("data.isFirstLogin")
+                        .type(JsonFieldType.BOOLEAN)
+                        .description("최초 로그인 여부 (true: 최초 로그인, false: 기존 사용자)")
+                        .optional(),
+                    fieldWithPath("data.nickname")
+                        .type(JsonFieldType.STRING)
+                        .description("사용자 닉네임 (최초 로그인 시 자동 생성된 닉네임)")
+                        .optional(),
                     fieldWithPath("meta.serverEncoding").description("서버 인코딩 정도"),
                     fieldWithPath("meta.serverVersion").description("서버 버전"),
                     fieldWithPath("meta.serverPathVersion").description("서버 경로 버전"),
@@ -318,6 +342,14 @@ class RestOauthControllerTest extends AbstractRestDocs {
                     fieldWithPath("errors").ignored(),
                     fieldWithPath("data").description("결과"),
                     fieldWithPath("data.accessToken").description("accessToken"),
+                    fieldWithPath("data.isFirstLogin")
+                        .type(JsonFieldType.BOOLEAN)
+                        .description("최초 로그인 여부 (true: 최초 로그인, false: 기존 사용자)")
+                        .optional(),
+                    fieldWithPath("data.nickname")
+                        .type(JsonFieldType.STRING)
+                        .description("사용자 닉네임 (최초 로그인 시 자동 생성된 닉네임)")
+                        .optional(),
                     fieldWithPath("meta.serverEncoding").ignored(),
                     fieldWithPath("meta.serverVersion").ignored(),
                     fieldWithPath("meta.serverPathVersion").ignored(),
