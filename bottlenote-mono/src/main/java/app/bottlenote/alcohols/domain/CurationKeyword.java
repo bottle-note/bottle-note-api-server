@@ -37,6 +37,9 @@ public class CurationKeyword extends BaseEntity {
   @Column(name = "description", columnDefinition = "TEXT")
   private String description;
 
+  @Column(name = "cover_image_url")
+  private String coverImageUrl;
+
   @Column(name = "is_active", nullable = false)
   private Boolean isActive;
 
@@ -52,10 +55,15 @@ public class CurationKeyword extends BaseEntity {
   private Set<Long> alcoholIds = new HashSet<>();
 
   public static CurationKeyword create(
-      String name, String description, Integer displayOrder, Set<Long> alcoholIds) {
+      String name,
+      String description,
+      String coverImageUrl,
+      Integer displayOrder,
+      Set<Long> alcoholIds) {
     return CurationKeyword.builder()
         .name(name)
         .description(description)
+        .coverImageUrl(coverImageUrl)
         .isActive(true)
         .displayOrder(displayOrder != null ? displayOrder : 0)
         .alcoholIds(alcoholIds != null ? new HashSet<>(alcoholIds) : new HashSet<>())

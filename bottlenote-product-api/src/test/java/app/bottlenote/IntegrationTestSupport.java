@@ -1,5 +1,6 @@
 package app.bottlenote;
 
+import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import app.bottlenote.user.constant.GenderType;
 import app.bottlenote.user.constant.SocialType;
@@ -26,6 +27,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.assertj.MockMvcTester;
+import org.springframework.test.web.servlet.assertj.MvcTestResult;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.containers.Network;
@@ -74,6 +78,7 @@ public abstract class IntegrationTestSupport {
 
   @Autowired protected ObjectMapper mapper;
   @Autowired protected MockMvc mockMvc;
+  @Autowired protected MockMvcTester mockMvcTester;
   @Autowired protected OauthService oauthService;
   @Autowired protected OauthRepository oauthRepository;
   @Autowired private DataInitializer dataInitializer;
@@ -157,5 +162,61 @@ public abstract class IntegrationTestSupport {
             .findByEmail(email)
             .orElseThrow(() -> new RuntimeException("해당 이메일의 유저가 없습니다: " + email));
     return user.getId();
+  }
+
+  /**
+   * MvcTestResult에서 GlobalResponse를 파싱하고 data 필드를 지정된 타입으로 변환
+   *
+   * @param result MvcTestResult (MockMvcTester.exchange()의 결과)
+   * @param dataType 변환할 data 필드의 타입
+   * @param <T> 반환 타입
+   * @return GlobalResponse의 data를 지정된 타입으로 변환한 객체
+   * @throws Exception JSON 파싱 실패 시
+   */
+  protected <T> T extractData(MvcTestResult result, Class<T> dataType) throws Exception {
+    result.assertThat().hasStatusOk();
+    String responseString = result.getResponse().getContentAsString();
+    GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
+    return mapper.convertValue(response.getData(), dataType);
+  }
+
+  /**
+   * MvcResult에서 GlobalResponse를 파싱하고 data 필드를 지정된 타입으로 변환 (레거시 MockMvc 지원)
+   *
+   * @param result MvcResult (MockMvc.perform().andReturn()의 결과)
+   * @param dataType 변환할 data 필드의 타입
+   * @param <T> 반환 타입
+   * @return GlobalResponse의 data를 지정된 타입으로 변환한 객체
+   * @throws Exception JSON 파싱 실패 시
+   */
+  protected <T> T extractData(MvcResult result, Class<T> dataType) throws Exception {
+    String responseString = result.getResponse().getContentAsString();
+    GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
+    return mapper.convertValue(response.getData(), dataType);
+  }
+
+  /**
+   * MvcTestResult에서 GlobalResponse만 파싱 (data 변환 없이)
+   *
+   * @param result MvcTestResult (MockMvcTester.exchange()의 결과)
+   * @return GlobalResponse 객체
+   * @throws Exception JSON 파싱 실패 시
+   */
+  protected GlobalResponse parseResponse(MvcTestResult result) throws Exception {
+    result.assertThat().hasStatusOk();
+    String responseString = result.getResponse().getContentAsString();
+    return mapper.readValue(responseString, GlobalResponse.class);
+  }
+
+  /**
+   * MvcResult에서 GlobalResponse만 파싱 (레거시 MockMvc 지원)
+   *
+   * @param result MvcResult (MockMvc.perform().andReturn()의 결과)
+   * @return GlobalResponse 객체
+   * @throws Exception JSON 파싱 실패 시
+   */
+  protected GlobalResponse parseResponse(MvcResult result) throws Exception {
+    String responseString = result.getResponse().getContentAsString();
+    return mapper.readValue(responseString, GlobalResponse.class);
   }
 }

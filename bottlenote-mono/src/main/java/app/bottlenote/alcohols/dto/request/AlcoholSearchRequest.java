@@ -7,6 +7,7 @@ import lombok.Builder;
 
 public record AlcoholSearchRequest(
     String keyword,
+    Long curationId,
     AlcoholCategoryGroup category,
     Long regionId,
     SearchSortType sortType,

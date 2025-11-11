@@ -36,6 +36,7 @@ public class CustomCurationKeywordRepositoryImpl implements CustomCurationKeywor
                     curationKeyword.id.as("id"),
                     curationKeyword.name.as("name"),
                     curationKeyword.description.as("description"),
+                    curationKeyword.coverImageUrl.as("coverImageUrl"),
                     curationKeyword.alcoholIds.size().as("alcoholCount"),
                     curationKeyword.displayOrder.as("displayOrder")))
             .from(curationKeyword)
