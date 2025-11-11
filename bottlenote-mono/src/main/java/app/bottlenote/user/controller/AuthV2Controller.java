@@ -7,9 +7,9 @@ import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.user.config.OauthConfigProperties;
 import app.bottlenote.user.dto.request.AppleLoginRequest;
 import app.bottlenote.user.dto.request.KakaoLoginRequest;
+import app.bottlenote.user.dto.response.AuthResponse;
 import app.bottlenote.user.dto.response.NonceResponse;
 import app.bottlenote.user.dto.response.OauthResponse;
-import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.service.AuthService;
 import app.bottlenote.user.service.NonceService;
@@ -55,19 +55,21 @@ public class AuthV2Controller {
   @PostMapping("/apple")
   public ResponseEntity<?> executeAppleLogin(
       @RequestBody @Valid AppleLoginRequest appleLoginRequest, HttpServletResponse response) {
-    TokenItem token =
+    AuthResponse result =
         authService.loginWithApple(appleLoginRequest.idToken(), appleLoginRequest.nonce());
-    setRefreshTokenInCookie(response, token.refreshToken());
-    return ResponseEntity.ok(OauthResponse.of(token.accessToken()));
+    setRefreshTokenInCookie(response, result.token().refreshToken());
+    return ResponseEntity.ok(
+        OauthResponse.of(result.token().accessToken(), result.isFirstLogin(), result.nickname()));
   }
 
   /** 카카오 로그인 v2 */
   @PostMapping("/kakao")
   public ResponseEntity<?> executeKakaoLogin(
       @RequestBody @Valid KakaoLoginRequest kakaoLoginRequest, HttpServletResponse response) {
-    TokenItem token = authService.loginWithKakao(kakaoLoginRequest.accessToken());
-    setRefreshTokenInCookie(response, token.refreshToken());
-    return ResponseEntity.ok(OauthResponse.of(token.accessToken()));
+    AuthResponse result = authService.loginWithKakao(kakaoLoginRequest.accessToken());
+    setRefreshTokenInCookie(response, result.token().refreshToken());
+    return ResponseEntity.ok(
+        OauthResponse.of(result.token().accessToken(), result.isFirstLogin(), result.nickname()));
   }
 
   private void setRefreshTokenInCookie(HttpServletResponse response, String refreshToken) {
