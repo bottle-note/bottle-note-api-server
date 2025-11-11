@@ -2,7 +2,6 @@
 <configuration>
   <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
   <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
-
   <appender name="OpenTelemetry"
             class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender"/>
 
@@ -20,4 +19,6 @@
   <logger name="io.opentelemetry.exporter" level="INFO"/>
   <logger name="io.opentelemetry.exporter.otlp" level="INFO"/>
   <logger name="io.opentelemetry.instrumentation.logback" level="INFO"/>
-  <logger name="io.opentelemetry.sdk" level="INFO"/></configuration>
+  <logger name="io.opentelemetry.sdk" level="INFO"/>
+
+</configuration>
