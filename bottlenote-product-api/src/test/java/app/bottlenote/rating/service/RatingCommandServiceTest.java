@@ -9,6 +9,7 @@ import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.alcohols.fixture.FakeAlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.history.fixture.FakeHistoryEventPublisher;
+import app.bottlenote.observability.service.TracingService;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
@@ -20,11 +21,15 @@ import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.facade.UserFacade;
 import app.bottlenote.user.facade.payload.UserProfileItem;
 import app.bottlenote.user.fixture.FakeUserFacade;
+import java.util.Iterator;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.ObjectProvider;
 
 @Tag("unit")
 @DisplayName("[unit] [service] RatingCommandService")
@@ -44,9 +49,45 @@ class RatingCommandServiceTest {
     UserFacade fakeUserFacade = new FakeUserFacade(user1, user2, user3);
     AlcoholFacade fakeAlcoholFacade = new FakeAlcoholFacade();
     HistoryEventPublisher ratingEventPublisher = new FakeHistoryEventPublisher();
+    ObjectProvider<TracingService> emptyTracingService =
+        new ObjectProvider<TracingService>() {
+          @Override
+          public TracingService getObject() throws BeansException {
+            return null;
+          }
+
+          @Override
+          public TracingService getObject(Object... args) throws BeansException {
+            return null;
+          }
+
+          @Override
+          public TracingService getIfAvailable() throws BeansException {
+            return null;
+          }
+
+          @Override
+          public TracingService getIfUnique() throws BeansException {
+            return null;
+          }
+
+          @Override
+          public Stream<TracingService> stream() {
+            return Stream.empty();
+          }
+
+          @Override
+          public Iterator<TracingService> iterator() {
+            return Stream.<TracingService>empty().iterator();
+          }
+        };
     ratingCommandService =
         new RatingCommandService(
-            fakeRatingRepository, fakeUserFacade, fakeAlcoholFacade, ratingEventPublisher);
+            fakeRatingRepository,
+            fakeUserFacade,
+            fakeAlcoholFacade,
+            ratingEventPublisher,
+            emptyTracingService);
   }
 
   @Nested
