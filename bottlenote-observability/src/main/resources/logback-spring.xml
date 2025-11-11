@@ -3,6 +3,21 @@
   <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
   <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
 
+  <!--
+    OpenTelemetry Appender (OTLP Collector로 로그 전송 → Loki)
+
+    이 appender는 TracingConfiguration에서 OpenTelemetryAppender.install(openTelemetry)를 통해 초기화됩니다.
+    기본값이 application-observability.yml에 설정되어 있으므로 환경변수 없이도 작동합니다.
+
+    기본 OTLP 엔드포인트: http://grafana.dead-whale.org:30318
+
+    선택적 환경변수 (기본값 오버라이드):
+    - OTEL_EXPORTER_OTLP_ENDPOINT=http://grafana.dead-whale.org:30318
+    - OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://grafana.dead-whale.org:30318/v1/logs
+    - OTEL_SERVICE_NAME=bottle-note
+    - OTEL_LOGS_EXPORTER=otlp
+    - OTEL_RESOURCE_ATTRIBUTES=service.name=bottle-note,service.version=1.0.0
+  -->
   <appender name="OpenTelemetry"
             class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender"/>
 
@@ -16,8 +31,10 @@
   <logger name="org.hibernate" level="INFO"/>
 
   <!-- OpenTelemetry DEBUG 로깅 -->
-  <logger name="io.opentelemetry" level="INFO"/>
-  <logger name="io.opentelemetry.exporter" level="INFO"/>
-  <logger name="io.opentelemetry.exporter.otlp" level="INFO"/>
-  <logger name="io.opentelemetry.instrumentation.logback" level="INFO"/>
-  <logger name="io.opentelemetry.sdk" level="INFO"/></configuration>
+  <logger name="io.opentelemetry" level="DEBUG"/>
+  <logger name="io.opentelemetry.exporter" level="DEBUG"/>
+  <logger name="io.opentelemetry.exporter.otlp" level="DEBUG"/>
+  <logger name="io.opentelemetry.instrumentation.logback" level="DEBUG"/>
+  <logger name="io.opentelemetry.sdk" level="DEBUG"/>
+
+</configuration>
