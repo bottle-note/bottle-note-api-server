@@ -13,6 +13,7 @@ import org.testcontainers.utility.DockerImageName;
  * TestContainers 설정을 관리하는 Spring Bean 기반 Configuration
  *
  * <p>Spring Boot 3.1+ @ServiceConnection을 활용하여 컨테이너 자동 연결
+ *
  * <p>Redis는 GenericContainer 사용으로 @DynamicPropertySource로 수동 연결
  */
 @TestConfiguration(proxyBeanMethods = false)
