@@ -138,6 +138,7 @@ testng = { module = "org.testng:testng", version.ref = "testng" }
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
 testcontainers-junit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers-junit" }
 testcontainers-mysql = { module = "org.testcontainers:mysql", version.ref = "testcontainers-mysql" }
+spring-boot-testcontainers = { module = "org.springframework.boot:spring-boot-testcontainers", version.ref = "spring-boot" }
 mockito-inline = { module = "org.mockito:mockito-inline", version.ref = "mockito-inline" }
 archunit = { module = "com.tngtech.archunit:archunit-junit5", version.ref = "archunit" }
 
@@ -207,7 +208,8 @@ testing-complete = [
 testcontainers-complete = [
 	"testcontainers",
 	"testcontainers-junit",
-	"testcontainers-mysql"
+	"testcontainers-mysql",
+	"spring-boot-testcontainers"
 ]
 
 # Spring REST Docs
