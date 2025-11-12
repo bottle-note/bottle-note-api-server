@@ -13,6 +13,7 @@ import org.testcontainers.utility.DockerImageName;
  * <p>Spring Boot 3.1+ @ServiceConnection을 활용하여 컨테이너 자동 연결
  */
 @TestConfiguration(proxyBeanMethods = false)
+@SuppressWarnings("resource")
 public class TestContainersConfig {
 
   /** MySQL 컨테이너를 Spring Bean으로 등록 @ServiceConnection이 자동으로 DataSource 설정을 처리 */
