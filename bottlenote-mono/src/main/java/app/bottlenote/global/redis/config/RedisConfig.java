@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.data.redis.RedisConnectionDetails;
-import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
@@ -31,10 +30,12 @@ import org.springframework.util.StringUtils;
 public class RedisConfig {
 
   private final RedisConnectionDetails redisConnectionDetails;
-  private final RedisProperties redisProperties;
 
   @Value("${spring.data.redis.mode:standalone}")
   private String redisMode;
+
+  @Value("${spring.data.redis.timeout:15s}")
+  private Duration redisTimeout;
 
   /** 애플리케이션 시작 시 Redis 설정 정보를 로그로 출력합니다. */
   @PostConstruct
@@ -79,22 +80,14 @@ public class RedisConfig {
   private LettuceClientConfiguration createLettuceClientConfiguration() {
     SocketOptions socketOptions =
         SocketOptions.builder()
-            .connectTimeout(
-                Duration.ofSeconds(
-                    redisProperties.getTimeout() != null
-                        ? redisProperties.getTimeout().getSeconds()
-                        : 15))
+            .connectTimeout(redisTimeout)
             .build();
 
     ClientOptions clientOptions = ClientOptions.builder().socketOptions(socketOptions).build();
 
     return LettuceClientConfiguration.builder()
         .clientOptions(clientOptions)
-        .commandTimeout(
-            Duration.ofSeconds(
-                redisProperties.getTimeout() != null
-                    ? redisProperties.getTimeout().getSeconds()
-                    : 15))
+        .commandTimeout(redisTimeout)
         .build();
   }
 
