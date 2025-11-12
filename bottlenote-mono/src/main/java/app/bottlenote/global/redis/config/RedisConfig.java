@@ -4,6 +4,7 @@ import jakarta.annotation.PostConstruct;
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
@@ -23,12 +24,18 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @RequiredArgsConstructor
 public class RedisConfig {
 
-  private final RedisConfigProperties redisProperties;
+  private final RedisProperties redisProperties;
 
   /** 애플리케이션 시작 시 Redis 설정 정보를 로그로 출력합니다. */
   @PostConstruct
   public void init() {
-    redisProperties.printConfigs();
+    boolean isCluster = redisProperties.getCluster() != null && !redisProperties.getCluster().getNodes().isEmpty();
+    log.info("Redis 연결 모드: {}", isCluster ? "클러스터 모드" : "단일 노드 모드");
+    if (isCluster) {
+      log.info("클러스터 노드: {}", redisProperties.getCluster().getNodes());
+    } else {
+      log.info("단일 노드 연결: {}:{}", redisProperties.getHost(), redisProperties.getPort());
+    }
     log.info("Redis 연결 설정이 완료되었습니다.");
   }
 
@@ -40,7 +47,7 @@ public class RedisConfig {
   @Bean
   public RedisConnectionFactory redisConnectionFactory() {
     // 클러스터 모드 여부 확인
-    if (redisProperties.getCluster() != null && redisProperties.getCluster().isEnabled()) {
+    if (redisProperties.getCluster() != null && !redisProperties.getCluster().getNodes().isEmpty()) {
       log.info("Redis 클러스터 모드로 설정되었습니다.");
       return createClusterConnectionFactory();
     } else {
@@ -60,15 +67,15 @@ public class RedisConfig {
         new RedisStandaloneConfiguration(redisProperties.getHost(), redisProperties.getPort());
 
     // 비밀번호가 설정되어 있으면 적용
-    String password = redisProperties.getPassword();
-    if (password != null && !password.isEmpty()) {
-      redisConfig.setPassword(password);
+    if (redisProperties.getPassword() != null && !redisProperties.getPassword().isBlank()) {
+      redisConfig.setPassword(redisProperties.getPassword());
     }
 
     // 클라이언트 구성 (타임아웃 설정 등)
+    Duration timeout = redisProperties.getTimeout() != null ? redisProperties.getTimeout() : Duration.ofSeconds(15);
     LettuceClientConfiguration clientConfig =
         LettuceClientConfiguration.builder()
-            .commandTimeout(Duration.ofSeconds(redisProperties.getTimeout()))
+            .commandTimeout(timeout)
             .build();
 
     // Lettuce 라이브러리를 사용하여 Redis에 연결하는 ConnectionFactory 생성
@@ -81,31 +88,19 @@ public class RedisConfig {
    * @return 클러스터용 Redis 연결 팩토리
    */
   private RedisConnectionFactory createClusterConnectionFactory() {
-    // Redis 클러스터 설정 생성
-    RedisClusterConfiguration clusterConfiguration = new RedisClusterConfiguration();
-
-    // 클러스터 노드 설정 (콤마로 구분된 "host:port" 형식)
-    String clusterNodes = redisProperties.getCluster().getNodes();
-    if (clusterNodes != null && !clusterNodes.isEmpty()) {
-      String[] nodes = clusterNodes.split(",");
-      for (String node : nodes) {
-        String[] parts = node.trim().split(":");
-        if (parts.length == 2) {
-          clusterConfiguration.clusterNode(parts[0], Integer.parseInt(parts[1]));
-        }
-      }
-    }
+    // Redis 클러스터 설정 생성 (Spring Boot RedisProperties.Cluster 사용)
+    RedisClusterConfiguration clusterConfiguration = new RedisClusterConfiguration(redisProperties.getCluster().getNodes());
 
     // 비밀번호 설정이 있으면 적용
-    String password = redisProperties.getPassword();
-    if (password != null && !password.isEmpty()) {
-      clusterConfiguration.setPassword(password);
+    if (redisProperties.getPassword() != null && !redisProperties.getPassword().isBlank()) {
+      clusterConfiguration.setPassword(redisProperties.getPassword());
     }
 
     // 클러스터 연결 시 타임아웃 설정 등 고급 옵션
+    Duration timeout = redisProperties.getTimeout() != null ? redisProperties.getTimeout() : Duration.ofSeconds(15);
     LettuceClientConfiguration clientConfig =
         LettuceClientConfiguration.builder()
-            .commandTimeout(Duration.ofSeconds(redisProperties.getTimeout()))
+            .commandTimeout(timeout)
             .shutdownTimeout(Duration.ofSeconds(2))
             .build();
 
