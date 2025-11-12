@@ -4,6 +4,7 @@ import jakarta.annotation.PostConstruct;
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.data.redis.RedisConnectionDetails;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,21 +22,26 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @Slf4j
 @Configuration
 @EnableRedisRepositories(basePackages = "app.bottlenote.global.redis.repository")
-@RequiredArgsConstructor
 public class RedisConfig {
 
   private final RedisProperties redisProperties;
+  private final RedisConnectionDetails redisConnectionDetails;
+
+  public RedisConfig(RedisProperties redisProperties, RedisConnectionDetails redisConnectionDetails) {
+    this.redisProperties = redisProperties;
+    this.redisConnectionDetails = redisConnectionDetails;
+  }
 
   /** 애플리케이션 시작 시 Redis 설정 정보를 로그로 출력합니다. */
   @PostConstruct
   public void init() {
-    boolean isCluster =
-        redisProperties.getCluster() != null && !redisProperties.getCluster().getNodes().isEmpty();
-    log.info("Redis 연결 모드: {}", isCluster ? "클러스터 모드" : "단일 노드 모드");
-    if (isCluster) {
-      log.info("클러스터 노드: {}", redisProperties.getCluster().getNodes());
+    if (redisConnectionDetails.getCluster() != null) {
+      log.info("Redis 연결 모드: 클러스터 모드");
+      log.info("클러스터 노드: {}", redisConnectionDetails.getCluster().getNodes());
     } else {
-      log.info("단일 노드 연결: {}:{}", redisProperties.getHost(), redisProperties.getPort());
+      log.info("Redis 연결 모드: 단일 노드 모드");
+      RedisConnectionDetails.Standalone standalone = redisConnectionDetails.getStandalone();
+      log.info("단일 노드 연결: {}:{}", standalone.getHost(), standalone.getPort());
     }
     log.info("Redis 연결 설정이 완료되었습니다.");
   }
@@ -48,8 +54,7 @@ public class RedisConfig {
   @Bean
   public RedisConnectionFactory redisConnectionFactory() {
     // 클러스터 모드 여부 확인
-    if (redisProperties.getCluster() != null
-        && !redisProperties.getCluster().getNodes().isEmpty()) {
+    if (redisConnectionDetails.getCluster() != null) {
       log.info("Redis 클러스터 모드로 설정되었습니다.");
       return createClusterConnectionFactory();
     } else {
@@ -64,14 +69,18 @@ public class RedisConfig {
    * @return 단일 노드용 Redis 연결 팩토리
    */
   private RedisConnectionFactory createStandaloneConnectionFactory() {
-    // Redis 단일 노드 설정 객체 생성 (호스트, 포트 지정)
+    // RedisConnectionDetails에서 동적 설정 가져오기 (TestContainers 지원)
+    RedisConnectionDetails.Standalone standalone = redisConnectionDetails.getStandalone();
     RedisStandaloneConfiguration redisConfig =
-        new RedisStandaloneConfiguration(redisProperties.getHost(), redisProperties.getPort());
+        new RedisStandaloneConfiguration(standalone.getHost(), standalone.getPort());
 
     // 비밀번호가 설정되어 있으면 적용
-    if (redisProperties.getPassword() != null && !redisProperties.getPassword().isBlank()) {
-      redisConfig.setPassword(redisProperties.getPassword());
+    if (standalone.getPassword() != null) {
+      redisConfig.setPassword(standalone.getPassword());
     }
+
+    // 데이터베이스 인덱스 설정
+    redisConfig.setDatabase(standalone.getDatabase());
 
     // 클라이언트 구성 (타임아웃 설정 등)
     Duration timeout =
@@ -91,13 +100,18 @@ public class RedisConfig {
    * @return 클러스터용 Redis 연결 팩토리
    */
   private RedisConnectionFactory createClusterConnectionFactory() {
-    // Redis 클러스터 설정 생성 (Spring Boot RedisProperties.Cluster 사용)
-    RedisClusterConfiguration clusterConfiguration =
-        new RedisClusterConfiguration(redisProperties.getCluster().getNodes());
+    // RedisConnectionDetails에서 클러스터 설정 가져오기
+    RedisConnectionDetails.Cluster cluster = redisConnectionDetails.getCluster();
+    RedisClusterConfiguration clusterConfiguration = new RedisClusterConfiguration();
+
+    // 클러스터 노드 설정
+    cluster
+        .getNodes()
+        .forEach(node -> clusterConfiguration.clusterNode(node.host(), node.port()));
 
     // 비밀번호 설정이 있으면 적용
-    if (redisProperties.getPassword() != null && !redisProperties.getPassword().isBlank()) {
-      clusterConfiguration.setPassword(redisProperties.getPassword());
+    if (cluster.getPassword() != null) {
+      clusterConfiguration.setPassword(cluster.getPassword());
     }
 
     // 클러스터 연결 시 타임아웃 설정 등 고급 옵션
