@@ -24,16 +24,13 @@ spring:
 
   data:
     redis:
-      mode: ${REDIS_MODE:standalone} # standalone/cluster/sentinel
+      mode: ${REDIS_MODE:standalone} # standalone/cluster
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:16379}
       password: ${REDIS_PASSWORD:}
-      timeout: 15 # 연결 타임아웃 (초)
+      timeout: 15s # 연결 타임아웃
       cluster:
         nodes: ${REDIS_CLUSTER_NODES:}
-      sentinel:
-        master: ${REDIS_SENTINEL_MASTER:}
-        nodes: ${REDIS_SENTINEL_NODES:}
 
 --- # default/local 환경
 spring:

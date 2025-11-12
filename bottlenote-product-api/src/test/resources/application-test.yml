@@ -15,7 +15,7 @@ spring:
       mode: standalone
       repositories:
         enabled: false
-      timeout: 15
+      timeout: 15s
 
   # Datasource
   datasource:

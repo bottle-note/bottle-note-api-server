@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -22,7 +21,7 @@ import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.StringUtils;
 
-/** Redis 설정 클래스 - Standalone/Cluster/Sentinel 모드 동적 지원 */
+/** Redis 설정 클래스 - Standalone/Cluster 모드 동적 지원 */
 @Slf4j
 @Configuration
 @EnableRedisRepositories(basePackages = "app.bottlenote.global.redis.repository")
@@ -46,12 +45,6 @@ public class RedisConfig {
           log.info("클러스터 노드: {}", redisProperties.getCluster().getNodes());
         }
       }
-      case "sentinel" -> {
-        if (redisProperties.getSentinel() != null) {
-          log.info("센티넬 마스터: {}", redisProperties.getSentinel().getMaster());
-          log.info("센티넬 노드: {}", redisProperties.getSentinel().getNodes());
-        }
-      }
       default -> log.info("단일 노드 연결: {}:{}", redisProperties.getHost(), redisProperties.getPort());
     }
 
@@ -59,7 +52,7 @@ public class RedisConfig {
   }
 
   /**
-   * Redis 연결 팩토리를 생성합니다. (모드에 따라 Standalone/Cluster/Sentinel 동적 생성)
+   * Redis 연결 팩토리를 생성합니다. (모드에 따라 Standalone/Cluster 동적 생성)
    *
    * @return RedisConnectionFactory
    */
@@ -69,7 +62,6 @@ public class RedisConfig {
 
     return switch (redisMode.toLowerCase()) {
       case "cluster" -> createClusterConnectionFactory(clientConfig);
-      case "sentinel" -> createSentinelConnectionFactory(clientConfig);
       default -> createStandaloneConnectionFactory(clientConfig);
     };
   }
@@ -130,29 +122,6 @@ public class RedisConfig {
     }
 
     return new LettuceConnectionFactory(clusterConfig, clientConfig);
-  }
-
-  /** Sentinel 모드 ConnectionFactory 생성 */
-  private LettuceConnectionFactory createSentinelConnectionFactory(
-      LettuceClientConfiguration clientConfig) {
-    RedisProperties.Sentinel sentinelProperties = redisProperties.getSentinel();
-
-    if (sentinelProperties == null
-        || !StringUtils.hasText(sentinelProperties.getMaster())
-        || sentinelProperties.getNodes() == null
-        || sentinelProperties.getNodes().isEmpty()) {
-      throw new IllegalArgumentException("Redis Sentinel 모드에서 master와 nodes 설정이 필요합니다.");
-    }
-
-    RedisSentinelConfiguration sentinelConfig =
-        new RedisSentinelConfiguration(
-            sentinelProperties.getMaster(), new java.util.HashSet<>(sentinelProperties.getNodes()));
-
-    if (StringUtils.hasText(redisProperties.getPassword())) {
-      sentinelConfig.setPassword(redisProperties.getPassword());
-    }
-
-    return new LettuceConnectionFactory(sentinelConfig, clientConfig);
   }
 
   /**
