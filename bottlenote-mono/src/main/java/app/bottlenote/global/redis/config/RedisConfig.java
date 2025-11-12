@@ -78,10 +78,7 @@ public class RedisConfig {
 
   /** Lettuce 클라이언트 설정 생성 */
   private LettuceClientConfiguration createLettuceClientConfiguration() {
-    SocketOptions socketOptions =
-        SocketOptions.builder()
-            .connectTimeout(redisTimeout)
-            .build();
+    SocketOptions socketOptions = SocketOptions.builder().connectTimeout(redisTimeout).build();
 
     ClientOptions clientOptions = ClientOptions.builder().socketOptions(socketOptions).build();
 
