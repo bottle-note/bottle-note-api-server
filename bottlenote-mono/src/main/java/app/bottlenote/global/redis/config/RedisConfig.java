@@ -72,8 +72,12 @@ public class RedisConfig {
       }
     }
 
-    log.info("Username: {}", redisConnectionDetails.getUsername() != null ? "Configured" : "Not configured");
-    log.info("Password: {}", redisConnectionDetails.getPassword() != null ? "Configured" : "Not configured");
+    log.info(
+        "Username: {}",
+        redisConnectionDetails.getUsername() != null ? "Configured" : "Not configured");
+    log.info(
+        "Password: {}",
+        redisConnectionDetails.getPassword() != null ? "Configured" : "Not configured");
     log.info("========================================");
     log.info("✅ Redis connection successfully established");
     log.info("========================================");
