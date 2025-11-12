@@ -104,7 +104,8 @@ public class RedisConfig {
     RedisConnectionDetails.Standalone standalone = redisConnectionDetails.getStandalone();
 
     if (standalone == null) {
-      throw new IllegalStateException("Standalone 모드에서 RedisConnectionDetails.Standalone이 null입니다.");
+      throw new IllegalStateException(
+          "Standalone 모드에서 RedisConnectionDetails.Standalone이 null입니다.");
     }
 
     RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration();
@@ -135,9 +136,7 @@ public class RedisConfig {
     RedisClusterConfiguration clusterConfig = new RedisClusterConfiguration();
 
     // RedisConnectionDetails.Node를 host:port 문자열로 변환
-    cluster.getNodes().forEach(node ->
-        clusterConfig.clusterNode(node.host(), node.port())
-    );
+    cluster.getNodes().forEach(node -> clusterConfig.clusterNode(node.host(), node.port()));
 
     if (StringUtils.hasText(redisConnectionDetails.getPassword())) {
       clusterConfig.setPassword(redisConnectionDetails.getPassword());
