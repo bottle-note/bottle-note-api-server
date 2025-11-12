@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.data.redis.RedisConnectionDetails;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,6 +30,7 @@ import org.springframework.util.StringUtils;
 @RequiredArgsConstructor
 public class RedisConfig {
 
+  private final RedisConnectionDetails redisConnectionDetails;
   private final RedisProperties redisProperties;
 
   @Value("${spring.data.redis.mode:standalone}")
@@ -41,12 +43,17 @@ public class RedisConfig {
 
     switch (redisMode.toLowerCase()) {
       case "cluster" -> {
-        if (redisProperties.getCluster() != null
-            && redisProperties.getCluster().getNodes() != null) {
-          log.info("클러스터 노드: {}", redisProperties.getCluster().getNodes());
+        RedisConnectionDetails.Cluster cluster = redisConnectionDetails.getCluster();
+        if (cluster != null && cluster.getNodes() != null) {
+          log.info("클러스터 노드: {}", cluster.getNodes());
         }
       }
-      default -> log.info("단일 노드 연결: {}:{}", redisProperties.getHost(), redisProperties.getPort());
+      default -> {
+        RedisConnectionDetails.Standalone standalone = redisConnectionDetails.getStandalone();
+        if (standalone != null) {
+          log.info("단일 노드 연결: {}:{}", standalone.getHost(), standalone.getPort());
+        }
+      }
     }
 
     log.info("Redis 연결 설정이 완료되었습니다.");
@@ -94,12 +101,23 @@ public class RedisConfig {
   /** Standalone 모드 ConnectionFactory 생성 */
   private LettuceConnectionFactory createStandaloneConnectionFactory(
       LettuceClientConfiguration clientConfig) {
-    RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration();
-    standaloneConfig.setHostName(redisProperties.getHost());
-    standaloneConfig.setPort(redisProperties.getPort());
+    RedisConnectionDetails.Standalone standalone = redisConnectionDetails.getStandalone();
 
-    if (StringUtils.hasText(redisProperties.getPassword())) {
-      standaloneConfig.setPassword(redisProperties.getPassword());
+    if (standalone == null) {
+      throw new IllegalStateException("Standalone 모드에서 RedisConnectionDetails.Standalone이 null입니다.");
+    }
+
+    RedisStandaloneConfiguration standaloneConfig = new RedisStandaloneConfiguration();
+    standaloneConfig.setHostName(standalone.getHost());
+    standaloneConfig.setPort(standalone.getPort());
+    standaloneConfig.setDatabase(standalone.getDatabase());
+
+    if (StringUtils.hasText(redisConnectionDetails.getPassword())) {
+      standaloneConfig.setPassword(redisConnectionDetails.getPassword());
+    }
+
+    if (StringUtils.hasText(redisConnectionDetails.getUsername())) {
+      standaloneConfig.setUsername(redisConnectionDetails.getUsername());
     }
 
     return new LettuceConnectionFactory(standaloneConfig, clientConfig);
@@ -108,19 +126,25 @@ public class RedisConfig {
   /** Cluster 모드 ConnectionFactory 생성 */
   private LettuceConnectionFactory createClusterConnectionFactory(
       LettuceClientConfiguration clientConfig) {
-    RedisProperties.Cluster clusterProperties = redisProperties.getCluster();
+    RedisConnectionDetails.Cluster cluster = redisConnectionDetails.getCluster();
 
-    if (clusterProperties == null
-        || clusterProperties.getNodes() == null
-        || clusterProperties.getNodes().isEmpty()) {
+    if (cluster == null || cluster.getNodes() == null || cluster.getNodes().isEmpty()) {
       throw new IllegalArgumentException("Redis Cluster 모드에서 nodes 설정이 필요합니다.");
     }
 
-    RedisClusterConfiguration clusterConfig =
-        new RedisClusterConfiguration(new java.util.HashSet<>(clusterProperties.getNodes()));
+    RedisClusterConfiguration clusterConfig = new RedisClusterConfiguration();
 
-    if (StringUtils.hasText(redisProperties.getPassword())) {
-      clusterConfig.setPassword(redisProperties.getPassword());
+    // RedisConnectionDetails.Node를 host:port 문자열로 변환
+    cluster.getNodes().forEach(node ->
+        clusterConfig.clusterNode(node.host(), node.port())
+    );
+
+    if (StringUtils.hasText(redisConnectionDetails.getPassword())) {
+      clusterConfig.setPassword(redisConnectionDetails.getPassword());
+    }
+
+    if (StringUtils.hasText(redisConnectionDetails.getUsername())) {
+      clusterConfig.setUsername(redisConnectionDetails.getUsername());
     }
 
     return new LettuceConnectionFactory(clusterConfig, clientConfig);
