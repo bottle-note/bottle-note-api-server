@@ -29,7 +29,8 @@ public class RedisConfig {
   /** 애플리케이션 시작 시 Redis 설정 정보를 로그로 출력합니다. */
   @PostConstruct
   public void init() {
-    boolean isCluster = redisProperties.getCluster() != null && !redisProperties.getCluster().getNodes().isEmpty();
+    boolean isCluster =
+        redisProperties.getCluster() != null && !redisProperties.getCluster().getNodes().isEmpty();
     log.info("Redis 연결 모드: {}", isCluster ? "클러스터 모드" : "단일 노드 모드");
     if (isCluster) {
       log.info("클러스터 노드: {}", redisProperties.getCluster().getNodes());
@@ -47,7 +48,8 @@ public class RedisConfig {
   @Bean
   public RedisConnectionFactory redisConnectionFactory() {
     // 클러스터 모드 여부 확인
-    if (redisProperties.getCluster() != null && !redisProperties.getCluster().getNodes().isEmpty()) {
+    if (redisProperties.getCluster() != null
+        && !redisProperties.getCluster().getNodes().isEmpty()) {
       log.info("Redis 클러스터 모드로 설정되었습니다.");
       return createClusterConnectionFactory();
     } else {
@@ -72,11 +74,12 @@ public class RedisConfig {
     }
 
     // 클라이언트 구성 (타임아웃 설정 등)
-    Duration timeout = redisProperties.getTimeout() != null ? redisProperties.getTimeout() : Duration.ofSeconds(15);
+    Duration timeout =
+        redisProperties.getTimeout() != null
+            ? redisProperties.getTimeout()
+            : Duration.ofSeconds(15);
     LettuceClientConfiguration clientConfig =
-        LettuceClientConfiguration.builder()
-            .commandTimeout(timeout)
-            .build();
+        LettuceClientConfiguration.builder().commandTimeout(timeout).build();
 
     // Lettuce 라이브러리를 사용하여 Redis에 연결하는 ConnectionFactory 생성
     return new LettuceConnectionFactory(redisConfig, clientConfig);
@@ -89,7 +92,8 @@ public class RedisConfig {
    */
   private RedisConnectionFactory createClusterConnectionFactory() {
     // Redis 클러스터 설정 생성 (Spring Boot RedisProperties.Cluster 사용)
-    RedisClusterConfiguration clusterConfiguration = new RedisClusterConfiguration(redisProperties.getCluster().getNodes());
+    RedisClusterConfiguration clusterConfiguration =
+        new RedisClusterConfiguration(redisProperties.getCluster().getNodes());
 
     // 비밀번호 설정이 있으면 적용
     if (redisProperties.getPassword() != null && !redisProperties.getPassword().isBlank()) {
@@ -97,7 +101,10 @@ public class RedisConfig {
     }
 
     // 클러스터 연결 시 타임아웃 설정 등 고급 옵션
-    Duration timeout = redisProperties.getTimeout() != null ? redisProperties.getTimeout() : Duration.ofSeconds(15);
+    Duration timeout =
+        redisProperties.getTimeout() != null
+            ? redisProperties.getTimeout()
+            : Duration.ofSeconds(15);
     LettuceClientConfiguration clientConfig =
         LettuceClientConfiguration.builder()
             .commandTimeout(timeout)
