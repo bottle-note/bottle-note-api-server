@@ -4,6 +4,7 @@ import static java.lang.Boolean.FALSE;
 
 import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
+import app.bottlenote.observability.service.TracingService;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
@@ -30,6 +31,7 @@ public class RatingCommandService {
   private final UserFacade userFacade;
   private final AlcoholFacade alcoholFacade;
   private final HistoryEventPublisher ratingEventPublisher;
+  private final TracingService tracingService;
 
   @Transactional
   public RatingRegisterResponse register(Long alcoholId, Long userId, RatingPoint ratingPoint) {
@@ -66,6 +68,16 @@ public class RatingCommandService {
             rating.getId().getUserId(),
             isExistPrevRating ? prevRatingPoint : null,
             ratingPoint));
+
+    String action = isExistPrevRating ? "수정" : "등록";
+    log.info(
+        "평점 {} - userId: {}, alcoholId: {}, rating: {}, prevRating: {}, traceId: {}",
+        action,
+        userId,
+        alcoholId,
+        ratingPoint.getRating(),
+        isExistPrevRating ? prevRatingPoint.getRating() : "N/A",
+        tracingService.getCurrentTraceId());
 
     return RatingRegisterResponse.success(save.getRatingPoint().getRating());
   }

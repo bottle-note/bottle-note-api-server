@@ -15,6 +15,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -99,9 +100,17 @@ public class User extends BaseTimeEntity {
   @Column(name = "refresh_token")
   private String refreshToken;
 
+  @Comment("마지막 로그인 시간")
+  @Column(name = "last_login_at")
+  private LocalDateTime lastLoginAt;
+
   public void updateRefreshToken(String refreshToken) {
     Objects.requireNonNull(refreshToken, "refreshToken은 null이 될 수 없습니다.");
     this.refreshToken = refreshToken;
+  }
+
+  public void updateLastLoginAt(LocalDateTime lastLoginAt) {
+    this.lastLoginAt = lastLoginAt;
   }
 
   public void changeNickName(String nickName) {
@@ -134,5 +143,9 @@ public class User extends BaseTimeEntity {
   public void updateSocialUniqueId(String socialUniqueId) {
     Objects.requireNonNull(socialUniqueId, "socialUniqueId는 null이 될 수 없습니다.");
     this.socialUniqueId = socialUniqueId;
+  }
+
+  public boolean isFirstLogin() {
+    return this.lastLoginAt == null;
   }
 }

@@ -32,6 +32,9 @@ dependencies {
 	implementation libs.spring.cloud.starter.openfeign
 	implementation libs.firebase.admin
 
+	// ===== Observability =====
+	implementation project(':bottlenote-observability')
+
 	// ===== Batch =====
 	implementation libs.spring.boot.starter.quartz
 

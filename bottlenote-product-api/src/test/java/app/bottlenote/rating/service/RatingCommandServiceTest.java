@@ -9,6 +9,7 @@ import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.alcohols.fixture.FakeAlcoholFacade;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.history.fixture.FakeHistoryEventPublisher;
+import app.bottlenote.observability.service.LocalTracingService;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
@@ -46,7 +47,11 @@ class RatingCommandServiceTest {
     HistoryEventPublisher ratingEventPublisher = new FakeHistoryEventPublisher();
     ratingCommandService =
         new RatingCommandService(
-            fakeRatingRepository, fakeUserFacade, fakeAlcoholFacade, ratingEventPublisher);
+            fakeRatingRepository,
+            fakeUserFacade,
+            fakeAlcoholFacade,
+            ratingEventPublisher,
+            new LocalTracingService());
   }
 
   @Nested

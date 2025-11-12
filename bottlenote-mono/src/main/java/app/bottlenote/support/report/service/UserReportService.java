@@ -50,6 +50,7 @@ public class UserReportService {
     Objects.requireNonNull(reportUserId, "신고 대상자 ID는 필수 값입니다.");
 
     if (userId.equals(reportUserId)) {
+      log.warn("본인 신고 시도 - userId: {}, reportUserId: {}", userId, reportUserId);
       throw new ReportException(SELF_REPORT);
     }
 
@@ -141,6 +142,7 @@ public class UserReportService {
    */
   private String checkVerificationContent(String content) {
     if (content.length() > 300) {
+      log.warn("신고 내용 길이 초과 - contentLength: {}, limit: 300", content.length());
       throw new ReportException(REPORT_CONTENT_OVERFLOW);
     }
 
