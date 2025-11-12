@@ -2,7 +2,6 @@ package app.bottlenote.global.redis.config;
 
 import jakarta.annotation.PostConstruct;
 import java.time.Duration;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.data.redis.RedisConnectionDetails;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
@@ -27,7 +26,8 @@ public class RedisConfig {
   private final RedisProperties redisProperties;
   private final RedisConnectionDetails redisConnectionDetails;
 
-  public RedisConfig(RedisProperties redisProperties, RedisConnectionDetails redisConnectionDetails) {
+  public RedisConfig(
+      RedisProperties redisProperties, RedisConnectionDetails redisConnectionDetails) {
     this.redisProperties = redisProperties;
     this.redisConnectionDetails = redisConnectionDetails;
   }
@@ -105,9 +105,7 @@ public class RedisConfig {
     RedisClusterConfiguration clusterConfiguration = new RedisClusterConfiguration();
 
     // 클러스터 노드 설정
-    cluster
-        .getNodes()
-        .forEach(node -> clusterConfiguration.clusterNode(node.host(), node.port()));
+    cluster.getNodes().forEach(node -> clusterConfiguration.clusterNode(node.host(), node.port()));
 
     // 비밀번호 설정이 있으면 적용
     if (cluster.getPassword() != null) {
