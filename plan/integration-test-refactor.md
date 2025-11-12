@@ -361,51 +361,44 @@ public abstract class IntegrationTestSupport {
 
 ## 4. 구현 단계
 
-### Phase 0: 사전 준비 (Prerequisites) ⚠️
+### Phase 0: 사전 준비 (Prerequisites) ✅
 
 **실행 전 필수 확인 사항:**
 
-#### 4.0.1 의존성 추가
+#### 4.0.1 Testcontainers 버전 통일 ✅ 완료
 
-**build.gradle에 spring-boot-testcontainers 추가 필요:**
-```gradle
-// bottlenote-product-api/build.gradle
-dependencies {
-    // 기존 의존성...
-
-    // @ServiceConnection 지원을 위해 필수
-    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-}
-```
-
-**이유:**
-- Spring Boot 3.1+의 `@ServiceConnection` 기능을 사용하려면 필수
-- 없으면 컨테이너 자동 연결이 동작하지 않음
-
-#### 4.0.2 Testcontainers 버전 통일
-
-**libs.versions.toml 수정:**
+**libs.versions.toml 수정 완료:**
 ```toml
 [versions]
 testcontainers = "1.19.8"
-testcontainers-junit = "1.19.8"   # 1.19.0 → 1.19.8 변경
-testcontainers-mysql = "1.19.8"   # 1.19.0 → 1.19.8 변경
+testcontainers-junit = "1.19.8"   # ✅ 1.19.0 → 1.19.8 변경 완료
+testcontainers-mysql = "1.19.8"   # ✅ 1.19.0 → 1.19.8 변경 완료
 ```
 
-**이유:**
-- 현재 testcontainers 코어는 1.19.8이지만 junit/mysql은 1.19.0으로 버전 불일치
-- 버전 불일치 시 예상치 못한 호환성 문제 발생 가능
-- 모든 testcontainers 모듈을 동일 버전으로 통일 권장
+**변경 이유:**
+- testcontainers 코어 버전과 junit/mysql 버전 불일치 해결
+- 버전 불일치 시 예상치 못한 호환성 문제 방지
+- 모든 testcontainers 모듈을 1.19.8로 통일
 
-#### 4.0.3 Redis 컨테이너 의존성 확인
+**커밋:** `8af689c - chore: testcontainers 버전 통일 (1.19.8)`
 
-**RedisContainer를 사용하려면:**
+#### 4.0.2 기존 의존성 확인 ✅
+
+**bottlenote-product-api/build.gradle:**
 ```gradle
-// build.gradle에 이미 포함되어 있는지 확인
-testImplementation 'org.testcontainers:testcontainers'
+// Line 47: 이미 testcontainers 의존성 존재
+testImplementation libs.bundles.testcontainers.complete
 ```
 
-RedisContainer는 testcontainers 코어 모듈에 포함되어 있어 별도 추가 불필요.
+**포함된 의존성:**
+- ✅ testcontainers (1.19.8) - 코어
+- ✅ testcontainers-junit (1.19.8) - JUnit5 지원
+- ✅ testcontainers-mysql (1.19.8) - MySQL 컨테이너
+
+**추가 조치 불필요:**
+- Spring Boot 3.4.11의 `spring-boot-starter-test`가 이미 포함
+- @ServiceConnection 지원은 Spring Boot 내장
+- RedisContainer는 testcontainers 코어에 포함
 
 ---
 
