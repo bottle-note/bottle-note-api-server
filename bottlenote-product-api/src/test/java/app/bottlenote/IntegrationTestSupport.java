@@ -1,19 +1,12 @@
 package app.bottlenote;
 
 import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.global.security.jwt.JwtTokenProvider;
+import app.bottlenote.operation.utils.TestAuthenticationSupport;
 import app.bottlenote.operation.utils.TestContainersConfig;
-import app.bottlenote.user.constant.GenderType;
-import app.bottlenote.user.constant.SocialType;
-import app.bottlenote.user.constant.UserType;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.TokenItem;
-import app.bottlenote.user.repository.OauthRepository;
-import app.bottlenote.user.service.OauthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.List;
-import java.util.UUID;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
@@ -42,10 +35,8 @@ public abstract class IntegrationTestSupport {
   @Autowired protected ObjectMapper mapper;
   @Autowired protected MockMvc mockMvc;
   @Autowired protected MockMvcTester mockMvcTester;
-  @Autowired protected OauthService oauthService;
-  @Autowired protected OauthRepository oauthRepository;
+  @Autowired protected TestAuthenticationSupport authSupport;
   @Autowired private DataInitializer dataInitializer;
-  @Autowired private JwtTokenProvider jwtTokenProvider;
 
   @AfterEach
   void deleteAll() {
@@ -54,71 +45,30 @@ public abstract class IntegrationTestSupport {
     log.info("데이터 초기화 dataInitializer.deleteAll() 종료");
   }
 
+  // ========== 인증 관련 메서드 (위임) ==========
+
   protected TokenItem getToken(OauthRequest request) {
-    return oauthService.login(request);
+    return authSupport.createToken(request);
   }
 
   protected TokenItem getToken(User user) {
-    OauthRequest req =
-        new OauthRequest(
-            user.getEmail(),
-            null,
-            user.getSocialType().getFirst(),
-            user.getGender(),
-            user.getAge());
-    return oauthService.login(req);
+    return authSupport.createToken(user);
   }
 
   protected String getToken() {
-    User user = oauthRepository.getFirstUser().orElse(null);
-    if (user == null) {
-      UUID key = UUID.randomUUID();
-      user =
-          oauthRepository.save(
-              User.builder()
-                  .email(key + "@example.com")
-                  .age(20)
-                  .gender(GenderType.MALE)
-                  .nickName("testUser" + key)
-                  .socialType(List.of(SocialType.KAKAO))
-                  .role(UserType.ROLE_USER)
-                  .build());
-    }
-
-    TokenItem token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
-    return token.accessToken();
+    return authSupport.getAccessToken();
   }
 
   protected String getRandomToken() {
-    UUID key = UUID.randomUUID();
-    User user =
-        oauthRepository.save(
-            User.builder()
-                .email(key + "@example.com")
-                .age(20)
-                .gender(GenderType.MALE)
-                .nickName("testUser" + key)
-                .socialType(List.of(SocialType.KAKAO))
-                .role(UserType.ROLE_USER)
-                .build());
-    TokenItem token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
-    return token.accessToken();
+    return authSupport.getRandomAccessToken();
   }
 
   protected Long getTokenUserId() {
-    User user =
-        oauthRepository
-            .getFirstUser()
-            .orElseThrow(() -> new RuntimeException("init 처리된 유저가 없습니다."));
-    return user.getId();
+    return authSupport.getDefaultUserId();
   }
 
   protected Long getTokenUserId(String email) {
-    User user =
-        oauthRepository
-            .findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("해당 이메일의 유저가 없습니다: " + email));
-    return user.getId();
+    return authSupport.getUserId(email);
   }
 
   /**
