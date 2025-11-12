@@ -123,7 +123,7 @@ public class RedisConfig {
     }
 
     RedisClusterConfiguration clusterConfig =
-        new RedisClusterConfiguration(clusterProperties.getNodes());
+        new RedisClusterConfiguration(new java.util.HashSet<>(clusterProperties.getNodes()));
 
     if (StringUtils.hasText(redisProperties.getPassword())) {
       clusterConfig.setPassword(redisProperties.getPassword());
@@ -146,7 +146,7 @@ public class RedisConfig {
 
     RedisSentinelConfiguration sentinelConfig =
         new RedisSentinelConfiguration(
-            sentinelProperties.getMaster(), sentinelProperties.getNodes());
+            sentinelProperties.getMaster(), new java.util.HashSet<>(sentinelProperties.getNodes()));
 
     if (StringUtils.hasText(redisProperties.getPassword())) {
       sentinelConfig.setPassword(redisProperties.getPassword());
