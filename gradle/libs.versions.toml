@@ -37,8 +37,8 @@ firebase-admin = "9.4.3"
 # Testing
 testng = "7.7.0"
 testcontainers = "1.19.8"
-testcontainers-junit = "1.19.0"
-testcontainers-mysql = "1.19.0"
+testcontainers-junit = "1.19.8"
+testcontainers-mysql = "1.19.8"
 mockito-inline = "5.2.0"
 archunit = "1.4.0"
 
