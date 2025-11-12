@@ -29,34 +29,26 @@ public class TestAuthenticationSupport {
     this.oauthService = oauthService;
   }
 
-  /**
-   * 기본 유저의 Access Token 반환 (첫 번째 유저 또는 새로 생성)
-   */
+  /** 기본 유저의 Access Token 반환 (첫 번째 유저 또는 새로 생성) */
   public String getAccessToken() {
     User user = oauthRepository.getFirstUser().orElseGet(this::createRandomUser);
     TokenItem token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
     return token.accessToken();
   }
 
-  /**
-   * 랜덤 유저의 Access Token 반환 (항상 새로 생성)
-   */
+  /** 랜덤 유저의 Access Token 반환 (항상 새로 생성) */
   public String getRandomAccessToken() {
     User user = createRandomUser();
     TokenItem token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
     return token.accessToken();
   }
 
-  /**
-   * OAuth 로그인으로 TokenItem 생성
-   */
+  /** OAuth 로그인으로 TokenItem 생성 */
   public TokenItem createToken(OauthRequest request) {
     return oauthService.login(request);
   }
 
-  /**
-   * User 객체로 TokenItem 생성
-   */
+  /** User 객체로 TokenItem 생성 */
   public TokenItem createToken(User user) {
     OauthRequest req =
         new OauthRequest(
@@ -68,9 +60,7 @@ public class TestAuthenticationSupport {
     return oauthService.login(req);
   }
 
-  /**
-   * 기본 유저의 ID 반환
-   */
+  /** 기본 유저의 ID 반환 */
   public Long getDefaultUserId() {
     User user =
         oauthRepository
@@ -79,9 +69,7 @@ public class TestAuthenticationSupport {
     return user.getId();
   }
 
-  /**
-   * 이메일로 유저 ID 조회
-   */
+  /** 이메일로 유저 ID 조회 */
   public Long getUserId(String email) {
     User user =
         oauthRepository
@@ -90,9 +78,7 @@ public class TestAuthenticationSupport {
     return user.getId();
   }
 
-  /**
-   * 랜덤 테스트 유저 생성
-   */
+  /** 랜덤 테스트 유저 생성 */
   private User createRandomUser() {
     UUID key = UUID.randomUUID();
     return oauthRepository.save(
