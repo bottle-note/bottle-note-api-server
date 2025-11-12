@@ -2,11 +2,11 @@ package app.bottlenote;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.redis.testcontainers.RedisContainer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MySQLContainer;
 
 @Tag("integration")
@@ -14,7 +14,7 @@ import org.testcontainers.containers.MySQLContainer;
 class BottleNoteApplicationTest extends IntegrationTestSupport {
 
   @Autowired private MySQLContainer<?> mysqlContainer;
-  @Autowired private GenericContainer<?> redisContainer;
+  @Autowired private RedisContainer redisContainer;
 
   @Test
   @DisplayName("컨텍스트 로드 확인 테스트")
