@@ -41,7 +41,8 @@ public class RedisConfig {
 
     switch (redisMode.toLowerCase()) {
       case "cluster" -> {
-        if (redisProperties.getCluster() != null && redisProperties.getCluster().getNodes() != null) {
+        if (redisProperties.getCluster() != null
+            && redisProperties.getCluster().getNodes() != null) {
           log.info("클러스터 노드: {}", redisProperties.getCluster().getNodes());
         }
       }
@@ -75,21 +76,24 @@ public class RedisConfig {
 
   /** Lettuce 클라이언트 설정 생성 */
   private LettuceClientConfiguration createLettuceClientConfiguration() {
-    SocketOptions socketOptions = SocketOptions.builder()
-        .connectTimeout(Duration.ofSeconds(redisProperties.getTimeout() != null
-            ? redisProperties.getTimeout().getSeconds()
-            : 15))
-        .build();
+    SocketOptions socketOptions =
+        SocketOptions.builder()
+            .connectTimeout(
+                Duration.ofSeconds(
+                    redisProperties.getTimeout() != null
+                        ? redisProperties.getTimeout().getSeconds()
+                        : 15))
+            .build();
 
-    ClientOptions clientOptions = ClientOptions.builder()
-        .socketOptions(socketOptions)
-        .build();
+    ClientOptions clientOptions = ClientOptions.builder().socketOptions(socketOptions).build();
 
     return LettuceClientConfiguration.builder()
         .clientOptions(clientOptions)
-        .commandTimeout(Duration.ofSeconds(redisProperties.getTimeout() != null
-            ? redisProperties.getTimeout().getSeconds()
-            : 15))
+        .commandTimeout(
+            Duration.ofSeconds(
+                redisProperties.getTimeout() != null
+                    ? redisProperties.getTimeout().getSeconds()
+                    : 15))
         .build();
   }
 
@@ -112,11 +116,14 @@ public class RedisConfig {
       LettuceClientConfiguration clientConfig) {
     RedisProperties.Cluster clusterProperties = redisProperties.getCluster();
 
-    if (clusterProperties == null || clusterProperties.getNodes() == null || clusterProperties.getNodes().isEmpty()) {
+    if (clusterProperties == null
+        || clusterProperties.getNodes() == null
+        || clusterProperties.getNodes().isEmpty()) {
       throw new IllegalArgumentException("Redis Cluster 모드에서 nodes 설정이 필요합니다.");
     }
 
-    RedisClusterConfiguration clusterConfig = new RedisClusterConfiguration(clusterProperties.getNodes());
+    RedisClusterConfiguration clusterConfig =
+        new RedisClusterConfiguration(clusterProperties.getNodes());
 
     if (StringUtils.hasText(redisProperties.getPassword())) {
       clusterConfig.setPassword(redisProperties.getPassword());
@@ -130,14 +137,16 @@ public class RedisConfig {
       LettuceClientConfiguration clientConfig) {
     RedisProperties.Sentinel sentinelProperties = redisProperties.getSentinel();
 
-    if (sentinelProperties == null || !StringUtils.hasText(sentinelProperties.getMaster())
-        || sentinelProperties.getNodes() == null || sentinelProperties.getNodes().isEmpty()) {
+    if (sentinelProperties == null
+        || !StringUtils.hasText(sentinelProperties.getMaster())
+        || sentinelProperties.getNodes() == null
+        || sentinelProperties.getNodes().isEmpty()) {
       throw new IllegalArgumentException("Redis Sentinel 모드에서 master와 nodes 설정이 필요합니다.");
     }
 
-    RedisSentinelConfiguration sentinelConfig = new RedisSentinelConfiguration(
-        sentinelProperties.getMaster(),
-        sentinelProperties.getNodes());
+    RedisSentinelConfiguration sentinelConfig =
+        new RedisSentinelConfiguration(
+            sentinelProperties.getMaster(), sentinelProperties.getNodes());
 
     if (StringUtils.hasText(redisProperties.getPassword())) {
       sentinelConfig.setPassword(redisProperties.getPassword());
