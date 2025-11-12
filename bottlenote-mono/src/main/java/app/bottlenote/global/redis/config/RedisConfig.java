@@ -23,7 +23,6 @@ import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.StringUtils;
 
-/** Redis 설정 클래스 - Standalone/Cluster 모드 동적 지원 */
 @Slf4j
 @Configuration
 @EnableRedisRepositories(basePackages = "app.bottlenote.global.redis.repository")
@@ -38,7 +37,6 @@ public class RedisConfig {
   @Value("${spring.data.redis.timeout:15s}")
   private Duration redisTimeout;
 
-  /** 애플리케이션 준비 완료 시 Redis 연결 상태를 검증하고 로그로 출력합니다. */
   @EventListener(ApplicationReadyEvent.class)
   public void onApplicationReady() {
     log.info("========================================");
@@ -83,11 +81,6 @@ public class RedisConfig {
     log.info("========================================");
   }
 
-  /**
-   * Redis 연결 팩토리를 생성합니다. (모드에 따라 Standalone/Cluster 동적 생성)
-   *
-   * @return RedisConnectionFactory
-   */
   @Bean
   @ConditionalOnMissingBean(RedisConnectionFactory.class)
   public RedisConnectionFactory redisConnectionFactory() {
@@ -100,7 +93,6 @@ public class RedisConfig {
     };
   }
 
-  /** Lettuce 클라이언트 설정 생성 */
   private LettuceClientConfiguration createLettuceClientConfiguration() {
     SocketOptions socketOptions = SocketOptions.builder().connectTimeout(redisTimeout).build();
 
@@ -112,7 +104,6 @@ public class RedisConfig {
         .build();
   }
 
-  /** Standalone 모드 ConnectionFactory 생성 */
   private LettuceConnectionFactory createStandaloneConnectionFactory(
       LettuceClientConfiguration clientConfig) {
     RedisConnectionDetails.Standalone standalone = redisConnectionDetails.getStandalone();
@@ -138,7 +129,6 @@ public class RedisConfig {
     return new LettuceConnectionFactory(standaloneConfig, clientConfig);
   }
 
-  /** Cluster 모드 ConnectionFactory 생성 */
   private LettuceConnectionFactory createClusterConnectionFactory(
       LettuceClientConfiguration clientConfig) {
     RedisConnectionDetails.Cluster cluster = redisConnectionDetails.getCluster();
@@ -149,7 +139,6 @@ public class RedisConfig {
 
     RedisClusterConfiguration clusterConfig = new RedisClusterConfiguration();
 
-    // RedisConnectionDetails.Node를 host:port 문자열로 변환
     cluster.getNodes().forEach(node -> clusterConfig.clusterNode(node.host(), node.port()));
 
     if (StringUtils.hasText(redisConnectionDetails.getPassword())) {
@@ -163,18 +152,11 @@ public class RedisConfig {
     return new LettuceConnectionFactory(clusterConfig, clientConfig);
   }
 
-  /** Sentinel 모드 ConnectionFactory 생성 */
   private LettuceConnectionFactory createSentinelConnectionFactory(
       LettuceClientConfiguration clientConfig) {
-    // TODO: Sentinel 모드 구현 예정
-    throw new UnsupportedOperationException("Sentinel 모드는 아직 구현되지 않았습니다.");
+    throw new UnsupportedOperationException("Sentinel mode not yet implemented");
   }
 
-  /**
-   * Redis 작업을 위한 템플릿 객체를 생성합니다.
-   *
-   * @return Redis 작업을 수행할 수 있는 RedisTemplate 객체
-   */
   @Bean
   public RedisTemplate<String, Object> redisTemplate(
       RedisConnectionFactory redisConnectionFactory) {
