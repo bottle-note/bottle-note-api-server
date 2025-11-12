@@ -7,6 +7,7 @@ import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -57,6 +58,7 @@ public class RedisConfig {
    * @return RedisConnectionFactory
    */
   @Bean
+  @ConditionalOnMissingBean(RedisConnectionFactory.class)
   public RedisConnectionFactory redisConnectionFactory() {
     LettuceClientConfiguration clientConfig = createLettuceClientConfiguration();
 
