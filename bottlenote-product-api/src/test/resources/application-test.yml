@@ -12,11 +12,10 @@ spring:
   # Redis 설정
   data:
     redis:
+      mode: standalone
       repositories:
         enabled: false
       timeout: 15
-      cluster:
-        enabled: false
 
   # Datasource
   datasource:
