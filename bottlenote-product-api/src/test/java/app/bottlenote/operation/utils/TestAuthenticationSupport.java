@@ -29,6 +29,10 @@ public class TestAuthenticationSupport {
     this.oauthService = oauthService;
   }
 
+  public User getFirstUser() {
+    return oauthRepository.getFirstUser().orElseGet(this::createRandomUser);
+  }
+
   /** 기본 유저의 Access Token 반환 (첫 번째 유저 또는 새로 생성) */
   public String getAccessToken() {
     User user = oauthRepository.getFirstUser().orElseGet(this::createRandomUser);

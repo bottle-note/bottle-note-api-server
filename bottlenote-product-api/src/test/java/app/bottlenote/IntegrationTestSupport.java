@@ -59,16 +59,8 @@ public abstract class IntegrationTestSupport {
     return authSupport.getAccessToken();
   }
 
-  protected String getRandomToken() {
-    return authSupport.getRandomAccessToken();
-  }
-
   protected Long getTokenUserId() {
     return authSupport.getDefaultUserId();
-  }
-
-  protected Long getTokenUserId(String email) {
-    return authSupport.getUserId(email);
   }
 
   /**
