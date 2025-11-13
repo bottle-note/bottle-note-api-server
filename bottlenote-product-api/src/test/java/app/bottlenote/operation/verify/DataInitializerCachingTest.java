@@ -30,7 +30,7 @@ import org.springframework.test.context.ActiveProfiles;
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 @Import(TestContainersConfig.class)
 @ActiveProfiles("test")
-@Tag("integration")
+@Tag("operation")
 @DisplayName("DataInitializer 캐싱 검증 테스트")
 class DataInitializerCachingTest {
 

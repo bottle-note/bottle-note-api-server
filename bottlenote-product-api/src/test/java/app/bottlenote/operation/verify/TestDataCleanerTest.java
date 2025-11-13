@@ -25,7 +25,7 @@ import org.springframework.test.context.ActiveProfiles;
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 @Import(TestContainersConfig.class)
 @ActiveProfiles("test")
-@Tag("integration")
+@Tag("operation")
 @DisplayName("TestDataCleaner 검증 테스트")
 class TestDataCleanerTest {
 

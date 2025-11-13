@@ -27,7 +27,7 @@ import org.testcontainers.containers.MySQLContainer;
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 @Import(TestContainersConfig.class)
 @ActiveProfiles("test")
-@Tag("integration")
+@Tag("operation")
 @DisplayName("TestContainersConfig 검증 테스트")
 class TestContainersConfigTest {
 

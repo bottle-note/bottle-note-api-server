@@ -27,7 +27,7 @@ import org.testcontainers.containers.MySQLContainer;
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 @Import(TestContainersConfig.class)
 @ActiveProfiles("test")
-@Tag("integration")
+@Tag("operation")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @DisplayName("컨테이너 재사용 검증 테스트")
 class ContainerReuseIntegrationTest {
