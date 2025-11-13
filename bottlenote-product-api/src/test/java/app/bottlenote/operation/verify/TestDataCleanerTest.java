@@ -46,15 +46,18 @@ class TestDataCleanerTest {
   @Test
   @DisplayName("cleanAll()은 모든 테이블 데이터를 삭제해야 한다")
   void clean_all_should_truncate_all_tables() {
-    jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS test_table (id INT PRIMARY KEY, name VARCHAR(50))");
+    jdbcTemplate.execute(
+        "CREATE TABLE IF NOT EXISTS test_table (id INT PRIMARY KEY, name VARCHAR(50))");
     jdbcTemplate.execute("INSERT INTO test_table VALUES (1, 'test')");
 
-    Integer countBefore = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM test_table", Integer.class);
+    Integer countBefore =
+        jdbcTemplate.queryForObject("SELECT COUNT(*) FROM test_table", Integer.class);
     assertThat(countBefore).isEqualTo(1);
 
     testDataCleaner.cleanAll();
 
-    Integer countAfter = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM test_table", Integer.class);
+    Integer countAfter =
+        jdbcTemplate.queryForObject("SELECT COUNT(*) FROM test_table", Integer.class);
     assertThat(countAfter).isZero();
 
     jdbcTemplate.execute("DROP TABLE IF EXISTS test_table");
