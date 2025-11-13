@@ -10,7 +10,7 @@ import app.bottlenote.user.dto.response.TokenItem;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -39,8 +39,8 @@ public abstract class IntegrationTestSupport {
   @Autowired protected TestAuthenticationSupport authSupport;
   @Autowired protected TestDataCleaner dataCleaner;
 
-  @BeforeEach
-  void cleanUpBeforeEach() {
+  @AfterEach
+  void cleanUpAfterEach() {
     dataCleaner.cleanAll();
   }
 
