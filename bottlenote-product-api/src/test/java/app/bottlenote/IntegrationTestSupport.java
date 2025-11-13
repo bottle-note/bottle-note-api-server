@@ -3,13 +3,12 @@ package app.bottlenote;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.operation.utils.TestAuthenticationSupport;
 import app.bottlenote.operation.utils.TestContainersConfig;
+import app.bottlenote.operation.utils.TestDataCleaner;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.TokenItem;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -30,19 +29,15 @@ import org.springframework.test.web.servlet.assertj.MvcTestResult;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public abstract class IntegrationTestSupport {
 
-  protected static final Logger log = LogManager.getLogger(IntegrationTestSupport.class);
-
   @Autowired protected ObjectMapper mapper;
   @Autowired protected MockMvc mockMvc;
   @Autowired protected MockMvcTester mockMvcTester;
   @Autowired protected TestAuthenticationSupport authSupport;
-  @Autowired private DataInitializer dataInitializer;
+  @Autowired protected TestDataCleaner dataCleaner;
 
-  @AfterEach
-  void deleteAll() {
-    log.info("데이터 초기화 dataInitializer.deleteAll() 시작");
-    dataInitializer.deleteAll();
-    log.info("데이터 초기화 dataInitializer.deleteAll() 종료");
+  @BeforeEach
+  void cleanUpBeforeEach() {
+    dataCleaner.cleanAll();
   }
 
   // ========== 인증 관련 메서드 (위임) ==========
