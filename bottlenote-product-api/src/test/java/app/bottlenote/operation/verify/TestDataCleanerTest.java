@@ -2,6 +2,7 @@ package app.bottlenote.operation.verify;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.bottlenote.DataInitializer;
 import app.bottlenote.operation.utils.TestContainersConfig;
 import app.bottlenote.operation.utils.TestDataCleaner;
 import org.junit.jupiter.api.AfterEach;
@@ -30,6 +31,7 @@ import org.springframework.test.context.ActiveProfiles;
 class TestDataCleanerTest {
 
   @Autowired private TestDataCleaner testDataCleaner;
+  @Autowired private DataInitializer dataInitializer;
   @Autowired private JdbcTemplate jdbcTemplate;
 
   @AfterEach
@@ -48,6 +50,8 @@ class TestDataCleanerTest {
   void clean_all_should_truncate_all_tables() {
     jdbcTemplate.execute(
         "CREATE TABLE IF NOT EXISTS test_table (id INT PRIMARY KEY, name VARCHAR(50))");
+    dataInitializer.refreshCache();
+
     jdbcTemplate.execute("INSERT INTO test_table VALUES (1, 'test')");
 
     Integer countBefore =
