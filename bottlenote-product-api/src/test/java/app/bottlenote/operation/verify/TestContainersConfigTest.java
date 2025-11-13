@@ -72,7 +72,7 @@ class TestContainersConfigTest {
         .serverCommands()
         .setConfig("notify-keyspace-events", "Ex");
 
-    String response = redisConnectionFactory.getConnection().serverCommands().ping();
+    String response = redisConnectionFactory.getConnection().ping();
     assertThat(response).isEqualTo("PONG");
   }
 
