@@ -41,7 +41,6 @@ public class RedisConfig {
   public void onApplicationReady() {
     log.info("========================================");
     log.info("Redis Configuration Report");
-    log.info("========================================");
     log.info("Mode: {}", redisMode);
     log.info("Timeout: {}", redisTimeout);
 
@@ -76,7 +75,6 @@ public class RedisConfig {
     log.info(
         "Password: {}",
         redisConnectionDetails.getPassword() != null ? "Configured" : "Not configured");
-    log.info("========================================");
     log.info("✅ Redis connection successfully established");
     log.info("========================================");
   }
