@@ -3,7 +3,6 @@ package app.bottlenote;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.operation.utils.TestAuthenticationSupport;
 import app.bottlenote.operation.utils.TestContainersConfig;
-import app.bottlenote.operation.utils.TestDataCleaner;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.TokenItem;
@@ -37,11 +36,11 @@ public abstract class IntegrationTestSupport {
   @Autowired protected MockMvc mockMvc;
   @Autowired protected MockMvcTester mockMvcTester;
   @Autowired protected TestAuthenticationSupport authSupport;
-  @Autowired protected TestDataCleaner dataCleaner;
+  @Autowired protected DataInitializer dataInitializer;
 
   @AfterEach
   void cleanUpAfterEach() {
-    dataCleaner.cleanAll();
+    dataInitializer.deleteAll();
   }
 
   // ========== 인증 관련 메서드 (위임) ==========
