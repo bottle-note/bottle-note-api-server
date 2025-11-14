@@ -11,7 +11,7 @@ import org.testcontainers.containers.MySQLContainer;
 
 @Tag("integration")
 @DisplayName("[integration] [service] UserCommandService")
-class BottleNoteApplicationTest extends IntegrationTestSupport {
+class ApplicationContextStartupIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private MySQLContainer<?> mysqlContainer;
   @Autowired private RedisContainer redisContainer;
