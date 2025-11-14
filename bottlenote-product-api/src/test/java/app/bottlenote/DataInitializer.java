@@ -43,13 +43,16 @@ public class DataInitializer {
   }
 
   /** 캐시를 강제로 재초기화 후 전체 데이터 삭제 (테스트에서 동적 테이블 생성 시 사용) */
+  @Transactional(value = REQUIRES_NEW)
   public void refreshCache() {
     synchronized (truncationDMLs) {
       truncationDMLs.clear();
       init();
       initialized = true;
     }
-    deleteAll();
+    em.createNativeQuery(OFF_FOREIGN_CONSTRAINTS).executeUpdate();
+    truncationDMLs.stream().map(em::createNativeQuery).forEach(Query::executeUpdate);
+    em.createNativeQuery(ON_FOREIGN_CONSTRAINTS).executeUpdate();
   }
 
   private void initCache() {
