@@ -39,6 +39,8 @@ public class RedisConfig {
 
   @EventListener(ApplicationReadyEvent.class)
   public void onApplicationReady() {
+    validateRedisMode();
+
     log.info("========================================");
     log.info("Redis Configuration Report");
     log.info("Mode: {}", redisMode);
@@ -77,6 +79,15 @@ public class RedisConfig {
         redisConnectionDetails.getPassword() != null ? "Configured" : "Not configured");
     log.info("✅ Redis connection successfully established");
     log.info("========================================");
+  }
+
+  private void validateRedisMode() {
+    if ("sentinel".equalsIgnoreCase(redisMode)) {
+      throw new UnsupportedOperationException(
+          "Redis Sentinel mode is not yet supported. "
+              + "Please use 'standalone' or 'cluster' mode. "
+              + "Configure spring.data.redis.mode property accordingly.");
+    }
   }
 
   @Bean
