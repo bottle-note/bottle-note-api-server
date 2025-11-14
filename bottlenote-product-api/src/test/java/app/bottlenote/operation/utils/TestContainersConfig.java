@@ -30,7 +30,7 @@ public class TestContainersConfig {
         .withPassword("root");
   }
 
-  /** Redis 컨테이너를 Spring Bean으로 등록 @ServiceConnection이 자동으로 Redis 설정을 처리 */
+  /** Redis 컨테이너를 Spring Bean으로 등록합니다. @ServiceConnection이 자동으로 Redis 설정을 처리합니다. */
   @Bean
   @ServiceConnection
   RedisContainer redisContainer() {
