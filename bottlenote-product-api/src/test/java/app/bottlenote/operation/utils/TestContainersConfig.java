@@ -16,10 +16,7 @@ import org.testcontainers.utility.DockerImageName;
 @SuppressWarnings("resource")
 public class TestContainersConfig {
 
-  /**
-   * MySQL 컨테이너를 Spring Bean으로 등록합니다.
-   * @ServiceConnection이 자동으로 DataSource 설정을 처리합니다.
-   */
+  /** MySQL 컨테이너를 Spring Bean으로 등록합니다. @ServiceConnection이 자동으로 DataSource 설정을 처리합니다. */
   @Bean
   @ServiceConnection
   MySQLContainer<?> mysqlContainer() {
