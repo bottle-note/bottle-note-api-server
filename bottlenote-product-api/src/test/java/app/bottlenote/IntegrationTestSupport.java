@@ -1,6 +1,7 @@
 package app.bottlenote;
 
 import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.operation.utils.DataInitializer;
 import app.bottlenote.operation.utils.TestAuthenticationSupport;
 import app.bottlenote.operation.utils.TestContainersConfig;
 import app.bottlenote.user.domain.User;

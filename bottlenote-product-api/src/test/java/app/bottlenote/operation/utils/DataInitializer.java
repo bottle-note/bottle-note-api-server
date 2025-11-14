@@ -1,4 +1,4 @@
-package app.bottlenote;
+package app.bottlenote.operation.utils;
 
 import static jakarta.transaction.Transactional.TxType.REQUIRES_NEW;
 
