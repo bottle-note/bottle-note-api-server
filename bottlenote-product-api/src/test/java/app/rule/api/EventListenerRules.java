@@ -12,9 +12,16 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.boot.context.event.ApplicationStartedEvent;
+import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.ContextStartedEvent;
+import org.springframework.context.event.ContextStoppedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -24,7 +31,51 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @SuppressWarnings({"NonAsciiCharacters", "JUnitTestClassNamingConvention"})
 public class EventListenerRules extends AbstractRules {
 
-  /** 이벤트 리스너 클래스 명명 규칙을 검증합니다. 모든 이벤트 리스너 클래스는 이름이 'Listener'로 끝나야 합니다. */
+  /** Spring Framework 라이프사이클 이벤트 제외 목록 (도메인 이벤트 규칙에서 제외) */
+  private static final Set<Class<?>> EXCLUDED_SPRING_LIFECYCLE_EVENTS =
+      Set.of(
+          ApplicationReadyEvent.class,
+          ApplicationStartedEvent.class,
+          ContextRefreshedEvent.class,
+          ContextStartedEvent.class,
+          ContextStoppedEvent.class,
+          ContextClosedEvent.class);
+
+  private static boolean usesSpringLifecycleEvent(JavaMethod method) {
+    // 1. 메서드 매개변수 확인
+    boolean hasSpringLifecycleParam =
+        method.getParameters().stream()
+            .anyMatch(
+                param ->
+                    EXCLUDED_SPRING_LIFECYCLE_EVENTS.stream()
+                        .anyMatch(
+                            excludedClass ->
+                                param.getType().getName().equals(excludedClass.getName())));
+
+    if (hasSpringLifecycleParam) {
+      return true;
+    }
+
+    // 2. @EventListener 어노테이션의 value/classes 속성 확인
+    if (method.isAnnotatedWith(EventListener.class)) {
+      String annotationString = method.getAnnotationOfType(EventListener.class).toString();
+      if (EXCLUDED_SPRING_LIFECYCLE_EVENTS.stream()
+          .anyMatch(excludedClass -> annotationString.contains(excludedClass.getName()))) {
+        return true;
+      }
+    }
+
+    // 3. @TransactionalEventListener 어노테이션의 value/classes 속성 확인
+    if (method.isAnnotatedWith(TransactionalEventListener.class)) {
+      String annotationString =
+          method.getAnnotationOfType(TransactionalEventListener.class).toString();
+      return EXCLUDED_SPRING_LIFECYCLE_EVENTS.stream()
+          .anyMatch(excludedClass -> annotationString.contains(excludedClass.getName()));
+    }
+
+    return false;
+  }
+
   @Test
   public void 이벤트_리스너_클래스_명명_규칙_검증() {
     ArchRule rule =
@@ -37,7 +88,6 @@ public class EventListenerRules extends AbstractRules {
     rule.check(importedClasses);
   }
 
-  /** 이벤트 리스너 메서드가 있는 클래스에 DomainEventListener 어노테이션이 있는지 검증합니다. */
   @Test
   public void 이벤트_리스너_클래스는_DomainEventListener_어노테이션을_가져야_함() {
     ArchRule rule =
@@ -49,8 +99,9 @@ public class EventListenerRules extends AbstractRules {
                     return javaClass.getMethods().stream()
                         .anyMatch(
                             method ->
-                                method.isAnnotatedWith(EventListener.class)
-                                    || method.isAnnotatedWith(TransactionalEventListener.class));
+                                (method.isAnnotatedWith(EventListener.class)
+                                        || method.isAnnotatedWith(TransactionalEventListener.class))
+                                    && !usesSpringLifecycleEvent(method));
                   }
                 })
             .should()
@@ -60,7 +111,6 @@ public class EventListenerRules extends AbstractRules {
     rule.check(importedClasses);
   }
 
-  /** 이벤트 리스너 패키지 구조를 검증합니다. 모든 이벤트 리스너 클래스는 '.event.listener' 패키지에 위치해야 합니다. */
   @Test
   public void 이벤트_리스너_패키지_구조_검증() {
     ArchRule rule =
@@ -73,7 +123,6 @@ public class EventListenerRules extends AbstractRules {
     rule.check(importedClasses);
   }
 
-  /** 이벤트 리스너 메서드는 단일 매개변수만 가져야 합니다. */
   @Test
   public void 이벤트_리스너_메서드_매개변수_검증() {
     ArchRule rule =
@@ -82,6 +131,13 @@ public class EventListenerRules extends AbstractRules {
             .areAnnotatedWith(EventListener.class)
             .or()
             .areAnnotatedWith(TransactionalEventListener.class)
+            .and(
+                new DescribedPredicate<>("도메인 이벤트 리스너만 해당 (Spring 라이프사이클 이벤트 제외)") {
+                  @Override
+                  public boolean test(JavaMethod method) {
+                    return !usesSpringLifecycleEvent(method);
+                  }
+                })
             .should(
                 new ArchCondition<>("정확히 하나의 매개 변수가 있어야 한다") {
                   @Override
@@ -106,7 +162,6 @@ public class EventListenerRules extends AbstractRules {
     rule.check(importedClasses);
   }
 
-  /** 이벤트 리스너 메서드는 void 반환 타입을 가져야 합니다. */
   @Test
   public void 이벤트_리스너_메서드_반환타입_검증() {
     ArchRule rule =
@@ -115,6 +170,13 @@ public class EventListenerRules extends AbstractRules {
             .areAnnotatedWith(EventListener.class)
             .or()
             .areAnnotatedWith(TransactionalEventListener.class)
+            .and(
+                new DescribedPredicate<>("도메인 이벤트 리스너만 해당 (Spring 라이프사이클 이벤트 제외)") {
+                  @Override
+                  public boolean test(JavaMethod method) {
+                    return !usesSpringLifecycleEvent(method);
+                  }
+                })
             .should()
             .haveRawReturnType(void.class)
             .because("이벤트 리스너 메서드는 void 반환 타입을 가져야 합니다");
@@ -122,7 +184,6 @@ public class EventListenerRules extends AbstractRules {
     rule.check(importedClasses);
   }
 
-  /** 이벤트 리스너 메서드 명명 규칙을 검증합니다. 메서드 이름은 'handle', 'process', 'on' 등으로 시작해야 합니다. */
   @Test
   public void 이벤트_리스너_메서드_명명_규칙_검증() {
     ArchRule rule =
@@ -131,6 +192,13 @@ public class EventListenerRules extends AbstractRules {
             .areAnnotatedWith(EventListener.class)
             .or()
             .areAnnotatedWith(TransactionalEventListener.class)
+            .and(
+                new DescribedPredicate<>("도메인 이벤트 리스너만 해당 (Spring 라이프사이클 이벤트 제외)") {
+                  @Override
+                  public boolean test(JavaMethod method) {
+                    return !usesSpringLifecycleEvent(method);
+                  }
+                })
             .should()
             .haveNameMatching("^(handle|process|on).*")
             .because("이벤트 리스너 메서드는 'handle', 'process', 'on' 등으로 시작하는 명확한 이름을 가져야 합니다");
@@ -138,7 +206,6 @@ public class EventListenerRules extends AbstractRules {
     rule.check(importedClasses);
   }
 
-  /** 이벤트 리스너 메서드의 매개변수 타입은 이벤트 객체여야 합니다. 이벤트 객체는 이름이 'Event'로 끝나야 합니다. */
   @Test
   public void 이벤트_리스너_매개변수_타입_검증() {
     ArchRule rule =
@@ -151,6 +218,14 @@ public class EventListenerRules extends AbstractRules {
                 new ArchCondition<>(" '이벤트'로 끝나는 매개 변수 유형이 있어야한다.") {
                   @Override
                   public void check(JavaMethod method, ConditionEvents events) {
+                    if (usesSpringLifecycleEvent(method)) {
+                      events.add(
+                          SimpleConditionEvent.satisfied(
+                              method,
+                              "Spring 라이프사이클 이벤트는 도메인 이벤트 규칙에서 제외됩니다: " + method.getFullName()));
+                      return;
+                    }
+
                     if (method.getParameters().isEmpty()) {
                       events.add(
                           SimpleConditionEvent.violated(
@@ -158,7 +233,7 @@ public class EventListenerRules extends AbstractRules {
                       return;
                     }
 
-                    String paramTypeName = method.getParameters().get(0).getType().getName();
+                    String paramTypeName = method.getParameters().getFirst().getType().getName();
                     boolean satisfied = paramTypeName.endsWith("Event");
 
                     String message =
@@ -178,7 +253,6 @@ public class EventListenerRules extends AbstractRules {
     rule.check(importedClasses);
   }
 
-  /** TransactionalEventListener는 적절한 phase를 설정해야 합니다. */
   @Test
   public void 트랜잭션_이벤트_리스너_Phase_검증() {
     ArchRule rule =
@@ -189,6 +263,14 @@ public class EventListenerRules extends AbstractRules {
                 new ArchCondition<>("have explicitly defined phase") {
                   @Override
                   public void check(JavaMethod method, ConditionEvents events) {
+                    if (usesSpringLifecycleEvent(method)) {
+                      events.add(
+                          SimpleConditionEvent.satisfied(
+                              method,
+                              "Spring 라이프사이클 이벤트는 도메인 이벤트 규칙에서 제외됩니다: " + method.getFullName()));
+                      return;
+                    }
+
                     // 어노테이션 선언 문자열 가져오기 (소스 코드에 작성된 형태)
                     String annotationString =
                         method.getAnnotationOfType(TransactionalEventListener.class).toString();

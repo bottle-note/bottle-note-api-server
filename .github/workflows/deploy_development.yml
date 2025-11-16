@@ -13,10 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  ORACLE_ENV_FILE: git.environment-variables/deploy/oracle/application-node-1.env
-  ORACLE_SSH_KEY_FILE: git.environment-variables/deploy/oracle/keys/node-1.pem
   AWS_ECR_ENV_FILE: git.environment-variables/deploy/aws/ecr-properties.env
-  APP_ENV_FILE: git.environment-variables/application.springboot/dev.env
   ECR_REPOSITORY: ecr-bottle-note-api
 
 jobs:
@@ -100,6 +97,9 @@ jobs:
         uses: docker/setup-buildx-action@v3
         with:
           driver: docker-container
+      - name: generate build timestamp
+        id: build-time
+        run: echo "time=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
       - name: build and push dev image to ecr (github actions cache)
         uses: docker/build-push-action@v6
         with:
@@ -109,6 +109,10 @@ jobs:
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:development_${{ github.sha }}
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:development_latest
+          build-args: |
+            GIT_COMMIT=${{ github.sha }}
+            GIT_BRANCH=${{ github.ref_name }}
+            BUILD_TIME=${{ steps.build-time.outputs.time }}
           cache-from: type=gha,scope=development
           cache-to: type=gha,scope=development,mode=max
       - name: set image tag output for dev
@@ -120,7 +124,7 @@ jobs:
           echo "registry=$REGISTRY" >> $GITHUB_OUTPUT
           echo "✅ 이미지가 ECR에 빌드 및 푸시되었습니다: $REGISTRY/${{ env.ECR_REPOSITORY }}:development_$IMAGE_TAG, development_latest"
 
-  deploy-to-servers:
+  update-kustomize-tag:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
@@ -129,199 +133,50 @@ jobs:
         with:
           submodules: true
           token: ${{ secrets.GIT_ACCESS_TOKEN }}
-      - name: load oracle instance environment variables
-        env:
-          ENV_FILE: ${{ env.ORACLE_ENV_FILE }}
-        run: |
-          echo "📄 Oracle 인스턴스 환경변수 파일 로드 중..."
-          if [ ! -f "$ENV_FILE" ]; then
-            echo "❌ 환경변수 파일을 찾을 수 없습니다: $ENV_FILE"
-            exit 1
-          fi
 
-          while IFS='=' read -r key value || [ -n "$key" ]; do
-            [[ -z "$key" || "$key" == \#* ]] && continue
-
-            # 마스킹
-            echo "::add-mask::${value}"
-
-            # GitHub 환경변수로 설정
-            echo "${key}=${value}" >> $GITHUB_ENV
-            echo "  ✅ $key 로드됨"
-          done < "$ENV_FILE"
-
-          echo "✅ Oracle 인스턴스 환경변수 로드 완료"
-
-      - name: load ssh private key
-        env:
-          KEY_FILE: ${{ env.ORACLE_SSH_KEY_FILE }}
-        run: |
-          echo "🔑 SSH 개인키 파일 로드 중..."
-
-          if [ ! -f "$KEY_FILE" ]; then
-            echo "❌ SSH 키 파일을 찾을 수 없습니다: $KEY_FILE"
-            exit 1
-          fi
-
-          # SSH 키 전체 내용을 환경변수로 저장
-          SSH_KEY=$(cat "$KEY_FILE")
-
-          # SSH 키의 각 줄 마스킹
-          echo "$SSH_KEY" | while IFS= read -r line; do
-            [ -n "$line" ] && echo "::add-mask::${line}"
-          done
-
-          # 멀티라인 환경변수로 설정
-          {
-            echo "SSH_PRIVATE_KEY<<EOF_SSH_KEY"
-            cat "$KEY_FILE"
-            echo "EOF_SSH_KEY"
-          } >> $GITHUB_ENV
-
-          echo "✅ SSH 개인키 로드 완료"
-
-      - name: load aws ecr environment variables
-        env:
-          ENV_FILE: ${{ env.AWS_ECR_ENV_FILE }}
-        run: |
-          echo "📄 AWS ECR 환경변수 파일 로드 중..."
-          if [ ! -f "$ENV_FILE" ]; then
-            echo "❌ 환경변수 파일을 찾을 수 없습니다: $ENV_FILE"
-            exit 1
-          fi
-
-          while IFS='=' read -r key value || [ -n "$key" ]; do
-            [[ -z "$key" || "$key" == \#* ]] && continue
-
-            # 공백 제거
-            key=$(echo "$key" | xargs)
-            value=$(echo "$value" | xargs)
-
-            # 마스킹
-            echo "::add-mask::${value}"
-
-            # 변수명 매핑
-            case "$key" in
-              ECR_ACCESS_KEY)
-                echo "AWS_ACCESS_KEY_ID=${value}" >> $GITHUB_ENV
-                echo "  ✅ AWS_ACCESS_KEY_ID 로드됨"
-                ;;
-              ECR_SECRET_ACCESS_KEY)
-                echo "AWS_SECRET_ACCESS_KEY=${value}" >> $GITHUB_ENV
-                echo "  ✅ AWS_SECRET_ACCESS_KEY 로드됨"
-                ;;
-              ECR_REGION)
-                echo "AWS_REGION=${value}" >> $GITHUB_ENV
-                echo "  ✅ AWS_REGION 로드됨"
-                ;;
-              ECR_REGISTRY)
-                echo "ECR_REGISTRY=${value}" >> $GITHUB_ENV
-                echo "  ✅ ECR_REGISTRY 로드됨"
-                ;;
-            esac
-          done < "$ENV_FILE"
-
-          echo "✅ AWS ECR 환경변수 로드 완료"
-
-      - name: prepare application environment file
-        id: prepare-app-env
-        run: |
-          APP_ENV_CONTENT=$(cat "${{ env.APP_ENV_FILE }}" | base64 -w 0)
-          echo "content=$APP_ENV_CONTENT" >> $GITHUB_OUTPUT
-
-      - name: copy compose file to server
-        uses: appleboy/scp-action@master
+      # Kustomize 설치 (GitHub Marketplace의 검증된 액션 사용)
+      # GitHub Actions에서는 GITHUB_TOKEN이 자동 제공됨
+      - name: setup kustomize
+        uses: imranismail/setup-kustomize@v2
         with:
-          host: ${{ env.INSTANCE_NETWORK_PUBLIC_IP }}
-          port: ${{ env.INSTANCE_NETWORK_PORT }}
-          username: ${{ env.INSTANCE_HOST_USERNAME }}
-          key: ${{ env.SSH_PRIVATE_KEY }}
-          source: "compose/product-api.dev.yml"
-          target: "~/"
-      - name: deploy to development server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ env.INSTANCE_NETWORK_PUBLIC_IP }}
-          port: ${{ env.INSTANCE_NETWORK_PORT }}
-          username: ${{ env.INSTANCE_HOST_USERNAME }}
-          key: ${{ env.SSH_PRIVATE_KEY }}
-          script: |
-            aws configure set aws_access_key_id "${{ env.AWS_ACCESS_KEY_ID }}"
-            aws configure set aws_secret_access_key "${{ env.AWS_SECRET_ACCESS_KEY }}"
-            aws configure set region "${{ env.AWS_REGION }}"
-
-            ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-            ECR_REGISTRY="${ACCOUNT_ID}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com"
-            aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_REGISTRY
-
-            IMAGE_TAG="${{ needs.build-and-push.outputs.image_tag }}"
-            ECR_REPOSITORY="ecr-bottle-note-api"
-            FULL_IMAGE_NAME="$ECR_REGISTRY/$ECR_REPOSITORY:development_latest"
-            echo "다운로드할 이미지: $FULL_IMAGE_NAME (commit: $IMAGE_TAG)"
-            docker pull $FULL_IMAGE_NAME
-            docker images | grep $ECR_REPOSITORY
-
-            echo "${{ steps.prepare-app-env.outputs.content }}" | base64 -d > ~/compose/.bottlenote.development.ENV
-
-            export FULL_IMAGE_NAME="$FULL_IMAGE_NAME"
-            export GIT_BRANCH="${{ github.ref_name }}"
-            export GIT_COMMIT="${{ github.sha }}"
-            export BUILD_TIME="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-
-            docker stop bottle-note-api-development 2>/dev/null || true
-            docker rm bottle-note-api-development 2>/dev/null || true
-            docker compose -f ~/compose/product-api.dev.yml down 2>/dev/null || true
-
-            docker compose -f ~/compose/product-api.dev.yml up -d
-            docker compose -f ~/compose/product-api.dev.yml ps
-
-            echo "사용하지 않는 모든 Docker 리소스 정리 중..."
-            docker system prune -f
-            docker image prune -a -f --filter "until=24h"
-
-      - name: deployment verification
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: update image tag with kustomize
         run: |
-          echo "⏳ 컨테이너 시작 대기 중..."
-          sleep 15
+          COMMIT_SHA="${{ github.sha }}"
+          IMAGE_TAG="development_${COMMIT_SHA:0:7}"
 
-          # 재시도 로직 (최대 5회, 10초 간격)
-          MAX_RETRY=5
-          RETRY_COUNT=0
-          SUCCESS=false
+          echo "📦 업데이트할 이미지 태그: $IMAGE_TAG"
 
-          while [ $RETRY_COUNT -lt $MAX_RETRY ]; do
-            echo "🔍 API 상태 확인 시도 $((RETRY_COUNT + 1))/$MAX_RETRY..."
+          cd git.environment-variables/deploy/overlays/development
 
-            RESPONSE=$(curl -s -w "\n%{http_code}" https://api.development.bottle-note.com/api/v1/app-info)
-            HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
-            BODY=$(echo "$RESPONSE" | sed '$d')
+          # Kustomize로 이미지 태그 업데이트
+          kustomize edit set image \
+            536697247604.dkr.ecr.ap-northeast-2.amazonaws.com/ecr-bottle-note-api=536697247604.dkr.ecr.ap-northeast-2.amazonaws.com/ecr-bottle-note-api:${IMAGE_TAG}
 
-            if [ "$HTTP_CODE" = "200" ]; then
-              echo "📋 배포된 애플리케이션 정보:"
-              echo "$BODY" | jq '.'
+          echo "✅ kustomization.yaml 업데이트 완료"
+          git diff kustomization.yaml
 
-              # 배포된 커밋 검증
-              DEPLOYED_COMMIT=$(echo "$BODY" | jq -r '.data.gitCommitFullHash')
-              EXPECTED_COMMIT="${{ github.sha }}"
+      - name: commit and push to environment-variables
+        run: |
+          cd git.environment-variables
 
-              if [ "$DEPLOYED_COMMIT" = "$EXPECTED_COMMIT" ]; then
-                echo "✅ 배포 검증 성공: 커밋 일치"
-                SUCCESS=true
-                break
-              else
-                echo "⚠️  커밋 불일치 - 재시도 중..."
-                echo "  예상: $EXPECTED_COMMIT"
-                echo "  실제: $DEPLOYED_COMMIT"
-              fi
-            else
-              echo "⚠️  HTTP $HTTP_CODE - 재시도 중..."
-            fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-            RETRY_COUNT=$((RETRY_COUNT + 1))
-            [ $RETRY_COUNT -lt $MAX_RETRY ] && sleep 10
-          done
+          git add deploy/overlays/development/kustomization.yaml
 
-          if [ "$SUCCESS" = false ]; then
-            echo "❌ 배포 검증 실패: API 응답 없음 또는 커밋 불일치"
-            exit 1
-          fi
+          git commit -m "chore(dev): update image tag to ${GITHUB_SHA:0:7}
+
+          Updated by GitHub Actions
+          Commit: ${{ github.sha }}
+          Branch: ${{ github.ref_name }}
+          Workflow: ${{ github.workflow }}"
+
+          git push
+
+          echo "✅ Git 커밋 및 푸시 완료"
+          echo "🔄 ArgoCD가 변경사항을 감지하여 자동 배포를 시작합니다"
+
+
+  # Oracle 서버 직접 배포는 제거됨 (ArgoCD로 완전 전환)
+  # 이전 deploy-to-servers job은 .bak 파일 참조
