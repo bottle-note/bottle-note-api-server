@@ -25,6 +25,15 @@ RUN ./gradlew build -x test -x asciidoctor --build-cache --parallel
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 
+# 빌드 메타데이터 (GitHub Actions에서 주입)
+ARG GIT_COMMIT=unknown
+ARG GIT_BRANCH=unknown
+ARG BUILD_TIME=unknown
+
+ENV GIT_COMMIT=${GIT_COMMIT}
+ENV GIT_BRANCH=${GIT_BRANCH}
+ENV BUILD_TIME=${BUILD_TIME}
+
 # 시간대 설정
 ENV TZ=Asia/Seoul
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone

@@ -1,0 +1,69 @@
+# act로 로컬 테스트용 workflow
+# 실행: act workflow_dispatch -W .github/workflows/act/test-image-update.yml --secret-file .secrets --container-architecture linux/arm64
+
+name: Test Image Tag Update
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit_sha:
+        description: 'Git commit SHA (테스트용)'
+        required: false
+        default: 'abc1234'
+
+jobs:
+  update-image-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+
+      # Kustomize 설치 (GitHub Marketplace의 검증된 액션 사용)
+      # 2,475개 저장소에서 사용 중인 안정적인 액션
+      # GitHub Actions에서는 GITHUB_TOKEN이 자동 제공됨
+      - name: setup kustomize
+        uses: imranismail/setup-kustomize@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # kustomize-version: '5.0.0'  # 특정 버전 필요 시 주석 해제
+
+      - name: update image tag with kustomize
+        run: |
+          COMMIT_SHA="${{ github.event.inputs.commit_sha || github.sha }}"
+          IMAGE_TAG="development_${COMMIT_SHA:0:7}"
+
+          echo "📦 업데이트할 이미지 태그: $IMAGE_TAG"
+
+          cd git.environment-variables/deploy/overlays/development
+
+          # 현재 kustomization.yaml 내용 확인
+          echo "========== 변경 전 =========="
+          cat kustomization.yaml
+
+          # Kustomize로 이미지 태그 업데이트
+          kustomize edit set image \
+            536697247604.dkr.ecr.ap-northeast-2.amazonaws.com/ecr-bottle-note-api=536697247604.dkr.ecr.ap-northeast-2.amazonaws.com/ecr-bottle-note-api:${IMAGE_TAG}
+
+          # 변경 후 내용 확인
+          echo "========== 변경 후 =========="
+          cat kustomization.yaml
+
+          # Git diff 확인
+          echo "========== Git Diff =========="
+          git diff kustomization.yaml
+
+      - name: show what would be committed (dry-run)
+        run: |
+          cd git.environment-variables
+
+          echo "========== Git Status =========="
+          git status
+
+          echo "========== Commit 예정 내용 (DRY RUN) =========="
+          git add deploy/overlays/development/kustomization.yaml
+          git diff --cached
+
+          echo "✅ 테스트 완료 (실제 커밋/푸시는 하지 않음)"
