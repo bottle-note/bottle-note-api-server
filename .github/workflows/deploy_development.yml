@@ -23,9 +23,6 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     runs-on: ubuntu-24.04-arm
-    outputs:
-      image_tag: ${{ steps.build-image.outputs.image_tag }}
-      registry: ${{ steps.build-image.outputs.registry }}
     steps:
       - name: checkout code with submodules
         uses: actions/checkout@v4
@@ -58,6 +55,9 @@ jobs:
       - name: generate build timestamp
         id: build-time
         run: echo "time=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+      - name: generate short commit sha
+        id: short-sha
+        run: echo "sha=${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
       - name: build and push dev image to ecr (github actions cache)
         uses: docker/build-push-action@v6
         with:
@@ -65,7 +65,7 @@ jobs:
           platforms: linux/arm64
           push: true
           tags: |
-            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:development_${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:development_${{ steps.short-sha.outputs.sha }}
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:development_latest
           build-args: |
             GIT_COMMIT=${{ github.sha }}
@@ -73,14 +73,6 @@ jobs:
             BUILD_TIME=${{ steps.build-time.outputs.time }}
           cache-from: type=gha,scope=development
           cache-to: type=gha,scope=development,mode=max
-      - name: set image tag output for dev
-        id: build-image
-        run: |
-          IMAGE_TAG="${GITHUB_SHA:0:7}"
-          REGISTRY="${{ steps.login-ecr.outputs.registry }}"
-          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
-          echo "registry=$REGISTRY" >> $GITHUB_OUTPUT
-          echo "✅ 이미지가 ECR에 빌드 및 푸시되었습니다: $REGISTRY/${{ env.ECR_REPOSITORY }}:development_$IMAGE_TAG, development_latest"
 
   update-kustomize-tag:
     needs: build-and-push
