@@ -55,15 +55,24 @@ jobs:
           echo "========== Git Diff =========="
           git diff kustomization.yaml
 
-      - name: show what would be committed (dry-run)
+      - name: commit and push (with branch checkout)
         run: |
           cd git.environment-variables
 
-          echo "========== Git Status =========="
+          echo "========== Git Status (변경 전) =========="
           git status
 
-          echo "========== Commit 예정 내용 (DRY RUN) =========="
+          # detached HEAD 해결: main 브랜치로 전환
+          echo "========== Checkout main branch =========="
+          git checkout main
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
           git add deploy/overlays/development/kustomization.yaml
+
+          echo "========== Commit (DRY RUN - 실제로는 커밋하지 않음) =========="
           git diff --cached
 
-          echo "✅ 테스트 완료 (실제 커밋/푸시는 하지 않음)"
+          echo "✅ 테스트 완료"
+          echo "실제 workflow에서는 여기서 commit & push 실행됨"
