@@ -118,6 +118,9 @@ jobs:
         run: |
           cd git.environment-variables
 
+          # detached HEAD 해결: main 브랜치로 전환
+          git checkout main
+
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
@@ -130,7 +133,7 @@ jobs:
           Branch: ${{ github.ref_name }}
           Workflow: ${{ github.workflow }}"
 
-          git push
+          git push origin main
 
           echo "✅ Git 커밋 및 푸시 완료"
           echo "🔄 ArgoCD가 변경사항을 감지하여 자동 배포를 시작합니다"
