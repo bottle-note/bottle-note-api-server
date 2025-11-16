@@ -97,7 +97,12 @@ jobs:
 
           echo "📦 업데이트할 이미지 태그: $IMAGE_TAG"
 
-          cd git.environment-variables/deploy/overlays/development
+          cd git.environment-variables
+
+          # detached HEAD 해결: main 브랜치로 전환 (파일 수정 전)
+          git checkout main
+
+          cd deploy/overlays/development
 
           # Kustomize로 이미지 태그 업데이트
           kustomize edit set image \
@@ -109,9 +114,6 @@ jobs:
       - name: commit and push to environment-variables
         run: |
           cd git.environment-variables
-
-          # detached HEAD 해결: main 브랜치로 전환
-          git checkout main
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
