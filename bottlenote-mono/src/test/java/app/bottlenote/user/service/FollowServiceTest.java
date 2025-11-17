@@ -158,6 +158,10 @@ class FollowServiceTest {
   // ========== Helper Methods ==========
 
   private User createUser(String email, String nickname) {
-    return User.builder().email(email).nickName(nickname).imageUrl("https://example.com/image.jpg").build();
+    return User.builder()
+        .email(email)
+        .nickName(nickname)
+        .imageUrl("https://example.com/image.jpg")
+        .build();
   }
 }

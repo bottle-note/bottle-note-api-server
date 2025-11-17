@@ -17,8 +17,7 @@ public interface FollowRepository {
 
   Optional<Follow> findByUserIdAndFollowUserId(Long userId, Long followUserId);
 
-  List<FriendItem> getTastingFriendsInfoList(
-      Long alcoholId, Long userId, PageRequest pageRequest);
+  List<FriendItem> getTastingFriendsInfoList(Long alcoholId, Long userId, PageRequest pageRequest);
 
   PageResponse<FollowingSearchResponse> getFollowingList(
       Long userId, FollowPageableCriteria criteria);
