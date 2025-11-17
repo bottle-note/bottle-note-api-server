@@ -1,4 +1,4 @@
-package app.bottlenote.picks.repository;
+package app.bottlenote.picks.domain;
 
 import app.bottlenote.picks.domain.Picks;
 import java.util.Optional;

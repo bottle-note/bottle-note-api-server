@@ -1,4 +1,4 @@
-package app.bottlenote.support.help.repository;
+package app.bottlenote.support.help.domain;
 
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.support.help.constant.HelpType;

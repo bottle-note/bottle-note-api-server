@@ -10,6 +10,7 @@ import static app.bottlenote.support.business.exception.BusinessSupportException
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.global.data.response.CollectionResponse;
 import app.bottlenote.support.business.domain.BusinessSupport;
+import app.bottlenote.support.business.domain.BusinessSupportRepository;
 import app.bottlenote.support.business.dto.request.BusinessImageItem;
 import app.bottlenote.support.business.dto.request.BusinessSupportPageableRequest;
 import app.bottlenote.support.business.dto.request.BusinessSupportUpsertRequest;
@@ -17,7 +18,6 @@ import app.bottlenote.support.business.dto.response.BusinessInfoResponse;
 import app.bottlenote.support.business.dto.response.BusinessSupportDetailItem;
 import app.bottlenote.support.business.dto.response.BusinessSupportResultResponse;
 import app.bottlenote.support.business.exception.BusinessSupportException;
-import app.bottlenote.support.business.repository.BusinessSupportRepository;
 import app.bottlenote.user.facade.UserFacade;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
