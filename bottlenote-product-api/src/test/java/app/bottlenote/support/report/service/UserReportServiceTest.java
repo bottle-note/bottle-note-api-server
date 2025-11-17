@@ -9,9 +9,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import app.bottlenote.support.report.constant.UserReportType;
+import app.bottlenote.support.report.domain.UserReportRepository;
 import app.bottlenote.support.report.domain.UserReports;
 import app.bottlenote.support.report.dto.request.UserReportRequest;
-import app.bottlenote.support.report.domain.UserReportRepository;
 import app.bottlenote.support.report.dto.response.UserReportResponse;
 import app.bottlenote.support.report.exception.ReportException;
 import app.bottlenote.support.report.exception.ReportExceptionCode;
