@@ -120,11 +120,49 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 복합 키: `@Embeddable` 사용
 - 엔티티 필터링: Hibernate `@Filter` 활용
 
-### QueryDSL 패턴
+### 레포지토리 계층 구조
 
-- `Custom{도메인명}Repository` 인터페이스 + `Custom{도메인명}RepositoryImpl` 구현체
-- 동적 쿼리: BooleanBuilder 또는 조건부 where 절
-- 성능 최적화: 페치 조인, @BatchSize, `@Cacheable`
+#### 1. 도메인 레포지토리 (필수)
+- **위치**: `app.bottlenote.{domain}.domain`
+- **네이밍**: `{도메인명}Repository`
+- **어노테이션**: `@DomainRepository` (선택)
+- **역할**: 해당 도메인이 할 수 있는 행위를 정의만 하는 순수 비즈니스 인터페이스
+- **원칙**:
+  - Spring, JPA에 의존하지 않음
+  - 도메인 계층에 위치
+  - 서비스 계층은 이 인터페이스에만 의존
+
+#### 2. JPA 레포지토리 (필수)
+- **위치**: `app.bottlenote.{domain}.repository`
+- **네이밍**: `Jpa{도메인명}Repository`
+- **어노테이션**: `@JpaRepositoryImpl`
+- **역할**: 도메인 레포지토리의 실제 데이터베이스 접근 구현체
+- **원칙**:
+  - `JpaRepository<T, ID>` 상속으로 기본 CRUD 제공
+  - 도메인 레포지토리 인터페이스 구현
+  - 단순 조회는 메서드 쿼리 또는 `@Query` JPQL 사용
+  - QueryDSL Custom 레포지토리 통합 (필요 시)
+
+#### 3. QueryDSL 레포지토리 (선택 - 복잡한 쿼리만)
+- **역할**: 복잡한 동적 쿼리를 타입 세이프하게 작성하기 위한 확장 레포지토리
+- **사용 시점**: 메서드 쿼리나 JPQL로 표현하기 어려운 복잡한 쿼리가 필요할 때만 사용
+
+**구성 요소**:
+- **Custom 인터페이스**: `Custom{도메인명}Repository` (위치: repository 패키지)
+- **구현체**: `Custom{도메인명}RepositoryImpl` (위치: repository 패키지)
+- **쿼리 서포터**: `{도메인명}QuerySupporter` (@Component, 재사용 로직 제공)
+
+**QueryDSL 사용 기준**:
+- ✅ 복잡한 동적 조건 (여러 필터 조합)
+- ✅ 다중 테이블 조인 및 집계
+- ✅ 복잡한 Projection (DTO 변환)
+- ❌ 단순 CRUD
+- ❌ 단일 조건 조회 (메서드 쿼리 사용)
+
+**성능 최적화**:
+- 페치 조인, `@BatchSize` 활용 (N+1 방지)
+- `@Cacheable` 적절히 사용
+- 불필요한 컬럼 조회 방지 (Projection 활용)
 
 ## 보안 및 인증
 
