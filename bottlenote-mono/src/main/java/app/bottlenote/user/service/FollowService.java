@@ -2,6 +2,7 @@ package app.bottlenote.user.service;
 
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.user.domain.Follow;
+import app.bottlenote.user.domain.FollowRepository;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.dto.dsl.FollowPageableCriteria;
@@ -16,7 +17,6 @@ import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.facade.FollowFacade;
 import app.bottlenote.user.facade.payload.FriendItem;
-import app.bottlenote.user.repository.FollowRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
