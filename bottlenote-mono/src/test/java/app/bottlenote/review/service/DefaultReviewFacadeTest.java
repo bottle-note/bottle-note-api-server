@@ -55,7 +55,7 @@ class DefaultReviewFacadeTest {
     // when & then
     assertThatThrownBy(() -> reviewFacade.getAlcoholIdByReviewId(nonExistentReviewId))
         .isInstanceOf(ReviewException.class)
-        .hasFieldOrPropertyWithValue("code", ReviewExceptionCode.REVIEW_NOT_FOUND);
+        .hasFieldOrPropertyWithValue("exceptionCode", ReviewExceptionCode.REVIEW_NOT_FOUND);
   }
 
   @Test

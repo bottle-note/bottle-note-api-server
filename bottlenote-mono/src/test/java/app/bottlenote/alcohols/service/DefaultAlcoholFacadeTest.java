@@ -68,7 +68,7 @@ class DefaultAlcoholFacadeTest {
     // when & then
     assertThatThrownBy(() -> alcoholFacade.isValidAlcoholId(invalidAlcoholId))
         .isInstanceOf(AlcoholException.class)
-        .hasFieldOrPropertyWithValue("code", AlcoholExceptionCode.ALCOHOL_NOT_FOUND);
+        .hasFieldOrPropertyWithValue("exceptionCode", AlcoholExceptionCode.ALCOHOL_NOT_FOUND);
   }
 
   // ========== findAlcoholImageUrlById ==========
@@ -97,7 +97,7 @@ class DefaultAlcoholFacadeTest {
     // when & then
     assertThatThrownBy(() -> alcoholFacade.findAlcoholImageUrlById(nonExistentAlcoholId))
         .isInstanceOf(AlcoholException.class)
-        .hasFieldOrPropertyWithValue("code", AlcoholExceptionCode.ALCOHOL_NOT_FOUND);
+        .hasFieldOrPropertyWithValue("exceptionCode", AlcoholExceptionCode.ALCOHOL_NOT_FOUND);
   }
 
   // ========== getAlcoholSummaryItemWithNext ==========

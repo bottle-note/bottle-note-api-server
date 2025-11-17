@@ -60,7 +60,7 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
 
   @Override
   public Optional<AlcoholSummaryItem> findAlcoholInfoById(Long alcoholId, Long userId) {
-    return null;
+    return Optional.empty();
   }
 
   @Override

@@ -82,7 +82,7 @@ class DefaultUserFacadeTest {
     // when & then
     assertThatThrownBy(() -> userFacade.isValidUserId(invalidUserId))
         .isInstanceOf(UserException.class)
-        .hasFieldOrPropertyWithValue("code", UserExceptionCode.USER_NOT_FOUND);
+        .hasFieldOrPropertyWithValue("exceptionCode", UserExceptionCode.USER_NOT_FOUND);
   }
 
   @Test
@@ -119,7 +119,7 @@ class DefaultUserFacadeTest {
     // when & then
     assertThatThrownBy(() -> userFacade.getUserProfileInfo(nonExistentUserId))
         .isInstanceOf(UserException.class)
-        .hasFieldOrPropertyWithValue("code", UserExceptionCode.USER_NOT_FOUND);
+        .hasFieldOrPropertyWithValue("exceptionCode", UserExceptionCode.USER_NOT_FOUND);
   }
 
   @Test
