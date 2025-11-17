@@ -1,6 +1,8 @@
 package app.bottlenote.user.repository;
 
+import app.bottlenote.common.annotation.JpaRepositoryImpl;
 import app.bottlenote.user.domain.Follow;
+import app.bottlenote.user.domain.FollowRepository;
 import app.bottlenote.user.facade.payload.FriendItem;
 import java.util.List;
 import java.util.Optional;
@@ -9,8 +11,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface SpringDataJpaFollowRepository
-    extends JpaRepository<Follow, Long>, CustomFollowRepository {
+@JpaRepositoryImpl
+public interface JpaFollowRepository
+    extends FollowRepository, JpaRepository<Follow, Long>, CustomFollowRepository {
 
   @Query("SELECT f FROM follow f WHERE f.userId = :userId AND f.targetUserId = :followUserId")
   Optional<Follow> findByUserIdAndFollowUserId(
