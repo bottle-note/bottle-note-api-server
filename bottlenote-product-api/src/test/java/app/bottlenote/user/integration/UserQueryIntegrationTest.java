@@ -19,7 +19,7 @@ import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.dto.response.FollowerSearchResponse;
 import app.bottlenote.user.dto.response.FollowingSearchResponse;
 import app.bottlenote.user.exception.UserExceptionCode;
-import app.bottlenote.user.repository.FollowRepository;
+import app.bottlenote.user.domain.FollowRepository;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;

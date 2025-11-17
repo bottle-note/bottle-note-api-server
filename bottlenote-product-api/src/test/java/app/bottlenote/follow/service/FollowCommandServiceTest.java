@@ -13,7 +13,7 @@ import app.bottlenote.user.dto.request.FollowUpdateRequest;
 import app.bottlenote.user.dto.response.FollowUpdateResponse;
 import app.bottlenote.user.exception.FollowException;
 import app.bottlenote.user.exception.FollowExceptionCode;
-import app.bottlenote.user.repository.FollowRepository;
+import app.bottlenote.user.domain.FollowRepository;
 import app.bottlenote.user.service.FollowService;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
