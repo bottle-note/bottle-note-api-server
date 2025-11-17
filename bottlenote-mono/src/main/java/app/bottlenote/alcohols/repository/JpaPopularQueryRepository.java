@@ -15,7 +15,6 @@ public interface JpaPopularQueryRepository
     extends PopularQueryRepository, JpaRepository<Alcohol, Long> {
 
   @Override
-
   @Query(
       """
 			         SELECT
