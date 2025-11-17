@@ -52,9 +52,9 @@ class FollowServiceTest {
     FollowUpdateResponse response = followService.updateFollowStatus(request, currentUser.getId());
 
     // then
-    assertThat(response.status()).isEqualTo(FollowStatus.FOLLOWING);
-    assertThat(response.followUserId()).isEqualTo(targetUser.getId());
-    assertThat(response.nickName()).isEqualTo("타겟유저");
+    assertThat(response.getFollowUserId()).isEqualTo(targetUser.getId());
+    assertThat(response.getNickName()).isEqualTo("타겟유저");
+    assertThat(response.getMessage()).isEqualTo("성공적으로 팔로우 처리했습니다.");
   }
 
   @Test
@@ -81,8 +81,8 @@ class FollowServiceTest {
     FollowUpdateResponse response = followService.updateFollowStatus(request, currentUser.getId());
 
     // then
-    assertThat(response.status()).isEqualTo(FollowStatus.UNFOLLOW);
-    assertThat(response.followUserId()).isEqualTo(targetUser.getId());
+    assertThat(response.getFollowUserId()).isEqualTo(targetUser.getId());
+    assertThat(response.getMessage()).isEqualTo("성공적으로 팔로우 해제 처리했습니다.");
   }
 
   @Test
@@ -151,8 +151,8 @@ class FollowServiceTest {
     FollowUpdateResponse response = followService.updateFollowStatus(request, currentUser.getId());
 
     // then
-    assertThat(response.status()).isEqualTo(FollowStatus.FOLLOWING);
-    assertThat(response.followUserId()).isEqualTo(targetUser.getId());
+    assertThat(response.getFollowUserId()).isEqualTo(targetUser.getId());
+    assertThat(response.getMessage()).isEqualTo("성공적으로 팔로우 처리했습니다.");
   }
 
   // ========== Helper Methods ==========
