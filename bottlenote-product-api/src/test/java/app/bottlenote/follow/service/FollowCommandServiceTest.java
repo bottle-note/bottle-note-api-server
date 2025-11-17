@@ -7,13 +7,13 @@ import static org.mockito.Mockito.when;
 
 import app.bottlenote.user.constant.FollowStatus;
 import app.bottlenote.user.domain.Follow;
+import app.bottlenote.user.domain.FollowRepository;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.dto.request.FollowUpdateRequest;
 import app.bottlenote.user.dto.response.FollowUpdateResponse;
 import app.bottlenote.user.exception.FollowException;
 import app.bottlenote.user.exception.FollowExceptionCode;
-import app.bottlenote.user.domain.FollowRepository;
 import app.bottlenote.user.service.FollowService;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
