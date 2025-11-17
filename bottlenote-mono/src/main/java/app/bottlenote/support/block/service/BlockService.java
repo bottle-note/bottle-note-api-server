@@ -7,9 +7,9 @@ import static app.bottlenote.support.block.exception.BlockExceptionCode.USER_BLO
 
 import app.bottlenote.global.data.response.CollectionResponse;
 import app.bottlenote.support.block.domain.UserBlock;
+import app.bottlenote.support.block.domain.UserBlockRepository;
 import app.bottlenote.support.block.dto.response.UserBlockItem;
 import app.bottlenote.support.block.exception.BlockException;
-import app.bottlenote.support.block.repository.UserBlockRepository;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;

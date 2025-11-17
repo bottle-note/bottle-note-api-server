@@ -8,11 +8,11 @@ import static app.bottlenote.support.report.exception.ReportExceptionCode.REPORT
 import static app.bottlenote.support.report.exception.ReportExceptionCode.SELF_REPORT;
 
 import app.bottlenote.support.constant.StatusType;
+import app.bottlenote.support.report.domain.UserReportRepository;
 import app.bottlenote.support.report.domain.UserReports;
 import app.bottlenote.support.report.dto.request.UserReportRequest;
 import app.bottlenote.support.report.dto.response.UserReportResponse;
 import app.bottlenote.support.report.exception.ReportException;
-import app.bottlenote.support.report.repository.UserReportRepository;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.exception.UserException;

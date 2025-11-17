@@ -1,6 +1,5 @@
-package app.bottlenote.support.business.repository;
+package app.bottlenote.support.business.domain;
 
-import app.bottlenote.support.business.domain.BusinessSupport;
 import java.util.List;
 import java.util.Optional;
 
