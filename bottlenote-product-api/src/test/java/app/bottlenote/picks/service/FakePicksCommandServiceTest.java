@@ -11,7 +11,7 @@ import app.bottlenote.history.fixture.FakeHistoryEventPublisher;
 import app.bottlenote.picks.dto.request.PicksUpdateRequest;
 import app.bottlenote.picks.dto.response.PicksUpdateResponse;
 import app.bottlenote.picks.fake.FakePicksRepository;
-import app.bottlenote.picks.repository.PicksRepository;
+import app.bottlenote.picks.domain.PicksRepository;
 import app.bottlenote.user.facade.UserFacade;
 import app.bottlenote.user.fixture.FakeUserFacade;
 import org.junit.jupiter.api.BeforeEach;

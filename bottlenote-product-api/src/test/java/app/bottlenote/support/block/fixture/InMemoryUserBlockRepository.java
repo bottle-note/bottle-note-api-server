@@ -2,7 +2,7 @@ package app.bottlenote.support.block.fixture;
 
 import app.bottlenote.support.block.domain.UserBlock;
 import app.bottlenote.support.block.dto.response.UserBlockItem;
-import app.bottlenote.support.block.repository.UserBlockRepository;
+import app.bottlenote.support.block.domain.UserBlockRepository;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;

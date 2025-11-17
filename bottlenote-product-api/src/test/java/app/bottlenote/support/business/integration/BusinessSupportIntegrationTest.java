@@ -15,7 +15,7 @@ import app.bottlenote.support.business.constant.BusinessSupportType;
 import app.bottlenote.support.business.domain.BusinessSupport;
 import app.bottlenote.support.business.dto.request.BusinessSupportUpsertRequest;
 import app.bottlenote.support.business.fixture.BusinessSupportTestFactory;
-import app.bottlenote.support.business.repository.BusinessSupportRepository;
+import app.bottlenote.support.business.domain.BusinessSupportRepository;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.fixture.UserTestFactory;
 import java.util.List;
