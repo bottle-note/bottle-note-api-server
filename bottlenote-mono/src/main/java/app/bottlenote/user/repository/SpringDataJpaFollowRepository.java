@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-interface SpringDataJpaFollowRepository extends JpaRepository<Follow, Long> {
+public interface SpringDataJpaFollowRepository extends JpaRepository<Follow, Long> {
 
   @Query("SELECT f FROM follow f WHERE f.userId = :userId AND f.targetUserId = :followUserId")
   Optional<Follow> findByUserIdAndFollowUserId(
