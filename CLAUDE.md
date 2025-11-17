@@ -79,11 +79,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 프로젝트 특화 어노테이션
 
-- `@FacadeService`: 퍼사드 서비스 계층
-- `@DomainEventListener`: 도메인 이벤트 리스너
-- `@DomainRepository`: 도메인 레포지토리
-- `@JpaRepositoryImpl`: JPA 레포지토리 구현체
-- `@ThirdPartyService`: 외부 서비스
+#### 계층별 어노테이션
+
+**@FacadeService**
+- **역할**: 퍼사드 서비스 계층 표시
+- **위치**: `app.bottlenote.{domain}.facade`
+- **특징**: `@Service` 포함, 스프링 컴포넌트로 자동 등록
+- **용도**: 여러 서비스를 조합하는 퍼사드 패턴 구현
+
+**@DomainRepository**
+- **역할**: 순수 도메인 레포지토리 인터페이스 표시
+- **위치**: `app.bottlenote.{domain}.domain`
+- **특징**: 프레임워크 독립적, Spring/JPA에 의존하지 않음
+- **용도**: 도메인이 할 수 있는 행위를 정의하는 순수 비즈니스 인터페이스
+
+**@JpaRepositoryImpl**
+- **역할**: JPA 레포지토리 구현체 표시
+- **위치**: `app.bottlenote.{domain}.repository`
+- **특징**: `@Repository` 포함, 영속성 예외 변환 제공
+- **용도**: 도메인 레포지토리의 실제 데이터베이스 접근 구현
+
+**@DomainEventListener**
+- **역할**: 도메인 이벤트 리스너 표시
+- **위치**: `app.bottlenote.{domain}.event`
+- **특징**: `@Component` 포함, 동기/비동기 처리 방식 지정 가능 (`ProcessingType`)
+- **용도**: 도메인 이벤트를 처리하는 리스너 구현
+
+**@ThirdPartyService**
+- **역할**: 외부 서비스 연동 계층 표시
+- **위치**: `app.external` 또는 관련 패키지
+- **특징**: `@Service` 포함, 트랜잭션 불필요
+- **용도**: AWS, 외부 API 등 써드파티 시스템 통신
 
 ### 예외 처리
 
