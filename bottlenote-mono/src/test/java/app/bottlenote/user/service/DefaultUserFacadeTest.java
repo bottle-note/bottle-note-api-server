@@ -70,8 +70,7 @@ class DefaultUserFacadeTest {
     userRepository.save(user);
 
     // when & then
-    assertThatCode(() -> userFacade.isValidUserId(user.getId()))
-        .doesNotThrowAnyException();
+    assertThatCode(() -> userFacade.isValidUserId(user.getId())).doesNotThrowAnyException();
   }
 
   @Test
@@ -90,8 +89,7 @@ class DefaultUserFacadeTest {
   @DisplayName("null 유저 ID일 때 예외가 발생한다")
   void isValidUserId_null_유저() {
     // when & then
-    assertThatThrownBy(() -> userFacade.isValidUserId(null))
-        .isInstanceOf(Exception.class);
+    assertThatThrownBy(() -> userFacade.isValidUserId(null)).isInstanceOf(Exception.class);
   }
 
   // ========== getUserProfileInfo ==========
