@@ -1,6 +1,5 @@
 package app.bottlenote.support.block.domain;
 
-import app.bottlenote.support.block.domain.UserBlock;
 import app.bottlenote.support.block.dto.response.UserBlockItem;
 import java.util.List;
 import java.util.Optional;
