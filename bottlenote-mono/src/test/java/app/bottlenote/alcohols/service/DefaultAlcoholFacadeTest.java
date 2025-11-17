@@ -3,6 +3,7 @@ package app.bottlenote.alcohols.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.exception.AlcoholException;
@@ -139,6 +140,7 @@ class DefaultAlcoholFacadeTest {
         .type(AlcoholType.WHISKY)
         .korCategory("위스키")
         .engCategory("Whisky")
+        .categoryGroup(AlcoholCategoryGroup.SINGLE_MALT)
         .imageUrl("https://example.com/glenfiddich.jpg")
         .build();
   }
