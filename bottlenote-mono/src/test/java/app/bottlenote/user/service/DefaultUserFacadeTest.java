@@ -107,7 +107,7 @@ class DefaultUserFacadeTest {
     // then
     assertThat(profile).isNotNull();
     assertThat(profile.id()).isEqualTo(user.getId());
-    assertThat(profile.nickName()).isEqualTo("프로필유저");
+    assertThat(profile.nickname()).isEqualTo("프로필유저");
   }
 
   @Test
@@ -136,8 +136,8 @@ class DefaultUserFacadeTest {
     UserProfileItem profile2 = userFacade.getUserProfileInfo(user2.getId());
 
     // then
-    assertThat(profile1.nickName()).isEqualTo("유저1");
-    assertThat(profile2.nickName()).isEqualTo("유저2");
+    assertThat(profile1.nickname()).isEqualTo("유저1");
+    assertThat(profile2.nickname()).isEqualTo("유저2");
     assertThat(profile1.id()).isNotEqualTo(profile2.id());
   }
 
