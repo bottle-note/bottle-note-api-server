@@ -151,8 +151,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 #### 1. 도메인 레포지토리 (필수)
 - **위치**: `app.bottlenote.{domain}.domain`
 - **네이밍**: `{도메인명}Repository`
-- **어노테이션**: `@DomainRepository` (선택)
 - **역할**: 해당 도메인이 할 수 있는 행위를 정의만 하는 순수 비즈니스 인터페이스
+- **어노테이션**:
+  - `@DomainRepository` (선택) - 도메인 레포지토리임을 명시적으로 표시
+  - 어노테이션 없이 순수 인터페이스로만 작성 가능
 - **원칙**:
   - Spring, JPA에 의존하지 않음
   - 도메인 계층에 위치
@@ -161,8 +163,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 #### 2. JPA 레포지토리 (필수)
 - **위치**: `app.bottlenote.{domain}.repository`
 - **네이밍**: `Jpa{도메인명}Repository`
-- **어노테이션**: `@JpaRepositoryImpl`
 - **역할**: 도메인 레포지토리의 실제 데이터베이스 접근 구현체
+- **어노테이션**:
+  - `@JpaRepositoryImpl` (필수) - JPA 구현체임을 표시하고 `@Repository` 기능 제공
+  - 영속성 예외를 Spring의 DataAccessException으로 자동 변환
 - **원칙**:
   - `JpaRepository<T, ID>` 상속으로 기본 CRUD 제공
   - 도메인 레포지토리 인터페이스 구현
@@ -175,8 +179,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **구성 요소**:
 - **Custom 인터페이스**: `Custom{도메인명}Repository` (위치: repository 패키지)
+  - 어노테이션 불필요 (순수 인터페이스)
 - **구현체**: `Custom{도메인명}RepositoryImpl` (위치: repository 패키지)
-- **쿼리 서포터**: `{도메인명}QuerySupporter` (@Component, 재사용 로직 제공)
+  - 어노테이션 불필요 (Spring Data JPA가 자동 감지)
+- **쿼리 서포터**: `{도메인명}QuerySupporter` (위치: repository 패키지)
+  - `@Component` (필수) - 재사용 로직을 제공하는 스프링 빈
 
 **QueryDSL 사용 기준**:
 - ✅ 복잡한 동적 조건 (여러 필터 조합)
