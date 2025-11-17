@@ -18,7 +18,6 @@ import org.springframework.data.domain.PageRequest;
 public class JpaFollowRepositoryImpl implements FollowRepository {
 
   private final SpringDataJpaFollowRepository springDataJpaFollowRepository;
-  private final CustomFollowRepository customFollowRepository;
 
   @Override
   public Follow save(Follow follow) {
@@ -39,12 +38,12 @@ public class JpaFollowRepositoryImpl implements FollowRepository {
   @Override
   public PageResponse<FollowingSearchResponse> getFollowingList(
       Long userId, FollowPageableCriteria criteria) {
-    return customFollowRepository.getFollowingList(userId, criteria);
+    return springDataJpaFollowRepository.getFollowingList(userId, criteria);
   }
 
   @Override
   public PageResponse<FollowerSearchResponse> getFollowerList(
       Long userId, FollowPageableCriteria criteria) {
-    return customFollowRepository.getFollowerList(userId, criteria);
+    return springDataJpaFollowRepository.getFollowerList(userId, criteria);
   }
 }
