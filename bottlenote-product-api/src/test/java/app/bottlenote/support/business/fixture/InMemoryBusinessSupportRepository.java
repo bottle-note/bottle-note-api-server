@@ -1,7 +1,7 @@
 package app.bottlenote.support.business.fixture;
 
 import app.bottlenote.support.business.domain.BusinessSupport;
-import app.bottlenote.support.business.repository.BusinessSupportRepository;
+import app.bottlenote.support.business.domain.BusinessSupportRepository;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

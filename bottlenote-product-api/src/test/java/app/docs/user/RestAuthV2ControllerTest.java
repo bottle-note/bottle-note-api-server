@@ -16,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.user.config.OauthConfigProperties;
 import app.bottlenote.user.controller.AuthV2Controller;
+import app.bottlenote.user.dto.response.AuthResponse;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.service.AuthService;
 import app.bottlenote.user.service.NonceService;
@@ -120,7 +121,9 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
     TokenItem tokenItem =
         TokenItem.builder().accessToken(accessToken).refreshToken(refreshToken).build();
 
-    when(authService.loginWithApple(anyString(), anyString())).thenReturn(tokenItem);
+    AuthResponse authResult = new AuthResponse(tokenItem, true, "부드러운몰트1234");
+
+    when(authService.loginWithApple(anyString(), anyString())).thenReturn(authResult);
 
     Map<String, String> request = new HashMap<>();
     request.put("idToken", idToken);
@@ -140,7 +143,14 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
                 requestFields(
                     fieldWithPath("idToken").description("Apple에서 발급받은 ID 토큰"),
                     fieldWithPath("nonce").description("이전에 발급받은 Nonce 값")),
-                responseFields(fieldWithPath("accessToken").description("발급된 액세스 토큰"))));
+                responseFields(
+                    fieldWithPath("accessToken").description("발급된 액세스 토큰"),
+                    fieldWithPath("isFirstLogin")
+                        .description("최초 로그인 여부 (true: 최초 로그인, false: 기존 사용자)")
+                        .optional(),
+                    fieldWithPath("nickname")
+                        .description("사용자 닉네임 (최초 로그인 시 자동 생성된 닉네임)")
+                        .optional())));
   }
 
   @Test
@@ -155,7 +165,9 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
     TokenItem tokenItem =
         TokenItem.builder().accessToken(accessToken).refreshToken(refreshToken).build();
 
-    when(authService.loginWithKakao(anyString())).thenReturn(tokenItem);
+    AuthResponse authResult = new AuthResponse(tokenItem, true, "부드러운몰트1234");
+
+    when(authService.loginWithKakao(anyString())).thenReturn(authResult);
 
     Map<String, String> request = new HashMap<>();
     request.put("accessToken", kakaoAccessToken);
@@ -172,6 +184,13 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
             document(
                 "auth/kakao/login",
                 requestFields(fieldWithPath("accessToken").description("카카오에서 발급받은 액세스 토큰")),
-                responseFields(fieldWithPath("accessToken").description("발급된 액세스 토큰"))));
+                responseFields(
+                    fieldWithPath("accessToken").description("발급된 액세스 토큰"),
+                    fieldWithPath("isFirstLogin")
+                        .description("최초 로그인 여부 (true: 최초 로그인, false: 기존 사용자)")
+                        .optional(),
+                    fieldWithPath("nickname")
+                        .description("사용자 닉네임 (최초 로그인 시 자동 생성된 닉네임)")
+                        .optional())));
   }
 }

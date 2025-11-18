@@ -5,12 +5,12 @@ import static java.time.LocalDateTime.now;
 import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.domain.CurationKeywordRepository;
+import app.bottlenote.alcohols.domain.RegionRepository;
 import app.bottlenote.alcohols.dto.request.CurationKeywordSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.dto.response.CurationKeywordResponse;
 import app.bottlenote.alcohols.dto.response.RegionsItem;
-import app.bottlenote.alcohols.repository.JpaRegionQueryRepository;
 import app.bottlenote.global.service.cursor.CursorResponse;
 import java.util.List;
 import java.util.Optional;
@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class AlcoholReferenceService {
-  private final JpaRegionQueryRepository regionQueryRepository;
+  private final RegionRepository regionQueryRepository;
   private final AlcoholQueryRepository alcoholQueryRepository;
   private final CurationKeywordRepository curationKeywordRepository;
 

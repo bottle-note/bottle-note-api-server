@@ -81,7 +81,7 @@ class UserCommandIntegrationTest extends IntegrationTestSupport {
   @Test
   void test_2() throws Exception {
     // given
-    final User firstUser = oauthRepository.getFirstUser().get();
+    final User firstUser = authSupport.getFirstUser();
     Field statusField = User.class.getDeclaredField("status");
     statusField.setAccessible(true);
     statusField.set(firstUser, UserStatus.DELETED);
@@ -105,7 +105,7 @@ class UserCommandIntegrationTest extends IntegrationTestSupport {
   @Test
   void test_3() throws Exception {
     // given
-    final User firstUser = oauthRepository.getFirstUser().get();
+    final User firstUser = authSupport.getFirstUser();
 
     mockMvc
         .perform(

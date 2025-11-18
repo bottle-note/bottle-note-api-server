@@ -79,11 +79,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 프로젝트 특화 어노테이션
 
-- `@FacadeService`: 퍼사드 서비스 계층
-- `@DomainEventListener`: 도메인 이벤트 리스너
-- `@DomainRepository`: 도메인 레포지토리
-- `@JpaRepositoryImpl`: JPA 레포지토리 구현체
-- `@ThirdPartyService`: 외부 서비스
+#### 계층별 어노테이션
+
+**@FacadeService**
+- **역할**: 퍼사드 서비스 계층 표시
+- **위치**: `app.bottlenote.{domain}.facade`
+- **특징**: `@Service` 포함, 스프링 컴포넌트로 자동 등록
+- **용도**: 여러 서비스를 조합하는 퍼사드 패턴 구현
+
+**@DomainRepository**
+- **역할**: 순수 도메인 레포지토리 인터페이스 표시
+- **위치**: `app.bottlenote.{domain}.domain`
+- **특징**: 프레임워크 독립적, Spring/JPA에 의존하지 않음
+- **용도**: 도메인이 할 수 있는 행위를 정의하는 순수 비즈니스 인터페이스
+
+**@JpaRepositoryImpl**
+- **역할**: JPA 레포지토리 구현체 표시
+- **위치**: `app.bottlenote.{domain}.repository`
+- **특징**: `@Repository` 포함, 영속성 예외 변환 제공
+- **용도**: 도메인 레포지토리의 실제 데이터베이스 접근 구현
+
+**@DomainEventListener**
+- **역할**: 도메인 이벤트 리스너 표시
+- **위치**: `app.bottlenote.{domain}.event`
+- **특징**: `@Component` 포함, 동기/비동기 처리 방식 지정 가능 (`ProcessingType`)
+- **용도**: 도메인 이벤트를 처리하는 리스너 구현
+
+**@ThirdPartyService**
+- **역할**: 외부 서비스 연동 계층 표시
+- **위치**: `app.external` 또는 관련 패키지
+- **특징**: `@Service` 포함, 트랜잭션 불필요
+- **용도**: AWS, 외부 API 등 써드파티 시스템 통신
 
 ### 예외 처리
 
@@ -120,11 +146,56 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 복합 키: `@Embeddable` 사용
 - 엔티티 필터링: Hibernate `@Filter` 활용
 
-### QueryDSL 패턴
+### 레포지토리 계층 구조
 
-- `Custom{도메인명}Repository` 인터페이스 + `Custom{도메인명}RepositoryImpl` 구현체
-- 동적 쿼리: BooleanBuilder 또는 조건부 where 절
-- 성능 최적화: 페치 조인, @BatchSize, `@Cacheable`
+#### 1. 도메인 레포지토리 (필수)
+- **위치**: `app.bottlenote.{domain}.domain`
+- **네이밍**: `{도메인명}Repository`
+- **역할**: 해당 도메인이 할 수 있는 행위를 정의만 하는 순수 비즈니스 인터페이스
+- **어노테이션**:
+  - `@DomainRepository` (선택) - 도메인 레포지토리임을 명시적으로 표시
+  - 어노테이션 없이 순수 인터페이스로만 작성 가능
+- **원칙**:
+  - Spring, JPA에 의존하지 않음
+  - 도메인 계층에 위치
+  - 서비스 계층은 이 인터페이스에만 의존
+
+#### 2. JPA 레포지토리 (필수)
+- **위치**: `app.bottlenote.{domain}.repository`
+- **네이밍**: `Jpa{도메인명}Repository`
+- **역할**: 도메인 레포지토리의 실제 데이터베이스 접근 구현체
+- **어노테이션**:
+  - `@JpaRepositoryImpl` (필수) - JPA 구현체임을 표시하고 `@Repository` 기능 제공
+  - 영속성 예외를 Spring의 DataAccessException으로 자동 변환
+- **원칙**:
+  - `JpaRepository<T, ID>` 상속으로 기본 CRUD 제공
+  - 도메인 레포지토리 인터페이스 구현
+  - 단순 조회는 메서드 쿼리 또는 `@Query` JPQL 사용
+  - QueryDSL Custom 레포지토리 통합 (필요 시)
+
+#### 3. QueryDSL 레포지토리 (선택 - 복잡한 쿼리만)
+- **역할**: 복잡한 동적 쿼리를 타입 세이프하게 작성하기 위한 확장 레포지토리
+- **사용 시점**: 메서드 쿼리나 JPQL로 표현하기 어려운 복잡한 쿼리가 필요할 때만 사용
+
+**구성 요소**:
+- **Custom 인터페이스**: `Custom{도메인명}Repository` (위치: repository 패키지)
+  - 어노테이션 불필요 (순수 인터페이스)
+- **구현체**: `Custom{도메인명}RepositoryImpl` (위치: repository 패키지)
+  - 어노테이션 불필요 (Spring Data JPA가 자동 감지)
+- **쿼리 서포터**: `{도메인명}QuerySupporter` (위치: repository 패키지)
+  - `@Component` (필수) - 재사용 로직을 제공하는 스프링 빈
+
+**QueryDSL 사용 기준**:
+- ✅ 복잡한 동적 조건 (여러 필터 조합)
+- ✅ 다중 테이블 조인 및 집계
+- ✅ 복잡한 Projection (DTO 변환)
+- ❌ 단순 CRUD
+- ❌ 단일 조건 조회 (메서드 쿼리 사용)
+
+**성능 최적화**:
+- 페치 조인, `@BatchSize` 활용 (N+1 방지)
+- `@Cacheable` 적절히 사용
+- 불필요한 컬럼 조회 방지 (Projection 활용)
 
 ## 보안 및 인증
 
