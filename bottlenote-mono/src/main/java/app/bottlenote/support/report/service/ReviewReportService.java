@@ -6,10 +6,10 @@ import static app.bottlenote.support.report.exception.ReportExceptionCode.ALREAD
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.facade.ReviewFacade;
 import app.bottlenote.support.report.domain.ReviewReport;
+import app.bottlenote.support.report.domain.ReviewReportRepository;
 import app.bottlenote.support.report.dto.request.ReviewReportRequest;
 import app.bottlenote.support.report.dto.response.ReviewReportResponse;
 import app.bottlenote.support.report.exception.ReportException;
-import app.bottlenote.support.report.repository.ReviewReportRepository;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
