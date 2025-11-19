@@ -1,4 +1,4 @@
-package app.bottlenote.rating.fixture;
+package app.bottlenote.fixture;
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.rating.domain.Rating;

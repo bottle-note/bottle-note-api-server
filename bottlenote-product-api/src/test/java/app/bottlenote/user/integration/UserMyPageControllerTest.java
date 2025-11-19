@@ -9,13 +9,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.IntegrationTestSupport;
-import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
+import app.bottlenote.fixture.AlcoholTestFactory;
+import app.bottlenote.fixture.UserTestFactory;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.picks.dto.request.PicksUpdateRequest;
 import app.bottlenote.user.dto.request.MyBottleRequest;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.PicksMyBottleItem;
-import app.bottlenote.user.fixture.UserTestFactory;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;

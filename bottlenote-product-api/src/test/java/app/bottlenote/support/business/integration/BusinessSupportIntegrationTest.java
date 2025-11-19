@@ -11,13 +11,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.IntegrationTestSupport;
+import app.bottlenote.fixture.BusinessSupportTestFactory;
+import app.bottlenote.fixture.UserTestFactory;
 import app.bottlenote.support.business.constant.BusinessSupportType;
 import app.bottlenote.support.business.domain.BusinessSupport;
 import app.bottlenote.support.business.domain.BusinessSupportRepository;
 import app.bottlenote.support.business.dto.request.BusinessSupportUpsertRequest;
-import app.bottlenote.support.business.fixture.BusinessSupportTestFactory;
 import app.bottlenote.user.domain.User;
-import app.bottlenote.user.fixture.UserTestFactory;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
