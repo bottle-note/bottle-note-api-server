@@ -8,6 +8,7 @@ import app.bottlenote.user.domain.User;
 import jakarta.persistence.EntityManager;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +25,8 @@ public class RatingTestFactory {
 
   /** 사용자와 알코올로 Rating 생성 */
   @Transactional
-  public Rating persistRating(User user, Alcohol alcohol, int point) {
+  @NotNull
+  public Rating persistRating(@NotNull User user, @NotNull Alcohol alcohol, int point) {
     Rating rating =
         Rating.builder()
             .id(RatingId.is(user.getId(), alcohol.getId()))
@@ -37,7 +39,8 @@ public class RatingTestFactory {
 
   /** ID와 평점으로 Rating 생성 */
   @Transactional
-  public Rating persistRating(Long userId, Long alcoholId, int point) {
+  @NotNull
+  public Rating persistRating(@NotNull Long userId, @NotNull Long alcoholId, int point) {
     Rating rating =
         Rating.builder()
             .id(RatingId.is(userId, alcoholId))
@@ -50,7 +53,8 @@ public class RatingTestFactory {
 
   /** 빌더를 통한 Rating 생성 - 누락 필드 자동 채우기 */
   @Transactional
-  public Rating persistRating(Rating.RatingBuilder builder) {
+  @NotNull
+  public Rating persistRating(@NotNull Rating.RatingBuilder builder) {
     // 누락 필드 채우기
     Rating.RatingBuilder filledBuilder = fillMissingRatingFields(builder);
     Rating rating = filledBuilder.build();
@@ -61,7 +65,8 @@ public class RatingTestFactory {
 
   /** 빌더를 통한 Rating 생성 후 flush (즉시 ID 필요한 경우) */
   @Transactional
-  public Rating persistAndFlushRating(Rating.RatingBuilder builder) {
+  @NotNull
+  public Rating persistAndFlushRating(@NotNull Rating.RatingBuilder builder) {
     // 누락 필드 채우기
     Rating.RatingBuilder filledBuilder = fillMissingRatingFields(builder);
     Rating rating = filledBuilder.build();

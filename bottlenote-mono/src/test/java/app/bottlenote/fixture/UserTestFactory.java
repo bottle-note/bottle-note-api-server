@@ -11,6 +11,7 @@ import java.security.SecureRandom;
 import java.util.List;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,7 @@ public class UserTestFactory {
 
   /** 기본 User 생성 */
   @Transactional
+  @NotNull
   public User persistUser() {
     User user =
         User.builder()
@@ -44,7 +46,8 @@ public class UserTestFactory {
 
   /** 이메일과 닉네임으로 User 생성 */
   @Transactional
-  public User persistUser(String email, String nickName) {
+  @NotNull
+  public User persistUser(@NotNull String email, @NotNull String nickName) {
     User user =
         User.builder()
             .email(email + "-" + generateRandomSuffix() + "@example.com")
@@ -61,7 +64,8 @@ public class UserTestFactory {
 
   /** 빌더를 통한 User 생성 - 누락 필드 자동 채우기 */
   @Transactional
-  public User persistUser(User.UserBuilder builder) {
+  @NotNull
+  public User persistUser(@NotNull User.UserBuilder builder) {
     // 누락 필드 채우기
     User.UserBuilder filledBuilder = fillMissingUserFields(builder);
     User user = filledBuilder.build();
@@ -72,7 +76,8 @@ public class UserTestFactory {
 
   /** 빌더를 통한 User 생성 후 flush (즉시 ID 필요한 경우) */
   @Transactional
-  public User persistAndFlushUser(User.UserBuilder builder) {
+  @NotNull
+  public User persistAndFlushUser(@NotNull User.UserBuilder builder) {
     // 누락 필드 채우기
     User.UserBuilder filledBuilder = fillMissingUserFields(builder);
     User user = filledBuilder.build();
@@ -85,7 +90,8 @@ public class UserTestFactory {
 
   /** 사용자 객체로 팔로우 관계 생성 */
   @Transactional
-  public Follow persistFollow(User follower, User following) {
+  @NotNull
+  public Follow persistFollow(@NotNull User follower, @NotNull User following) {
     Follow follow =
         Follow.builder()
             .status(FollowStatus.FOLLOWING)
@@ -99,7 +105,8 @@ public class UserTestFactory {
 
   /** 사용자 ID로 팔로우 관계 생성 */
   @Transactional
-  public Follow persistFollow(Long followerId, Long followingId) {
+  @NotNull
+  public Follow persistFollow(@NotNull Long followerId, @NotNull Long followingId) {
     Follow follow =
         Follow.builder()
             .status(FollowStatus.FOLLOWING)
@@ -113,7 +120,8 @@ public class UserTestFactory {
 
   /** 빌더를 통한 Follow 생성 - 누락 필드 자동 채우기 */
   @Transactional
-  public Follow persistFollow(Follow.FollowBuilder builder) {
+  @NotNull
+  public Follow persistFollow(@NotNull Follow.FollowBuilder builder) {
     // 누락 필드 채우기
     Follow.FollowBuilder filledBuilder = fillMissingFollowFields(builder);
     Follow follow = filledBuilder.build();
@@ -126,6 +134,7 @@ public class UserTestFactory {
 
   /** 팔로워와 팔로잉 사용자를 모두 생성하고 팔로우 관계 설정 */
   @Transactional
+  @NotNull
   public Follow persistFollowWithUsers() {
     User follower = persistUserInternal("follower");
     User following = persistUserInternal("following");
@@ -134,7 +143,8 @@ public class UserTestFactory {
 
   /** 특정 사용자의 팔로워 N명 생성 */
   @Transactional
-  public List<Follow> persistFollowers(User targetUser, int count) {
+  @NotNull
+  public List<Follow> persistFollowers(@NotNull User targetUser, int count) {
     return java.util.stream.IntStream.range(0, count)
         .mapToObj(
             i -> {
@@ -146,7 +156,8 @@ public class UserTestFactory {
 
   /** 특정 사용자가 팔로우하는 사용자 N명 생성 */
   @Transactional
-  public List<Follow> persistFollowings(User follower, int count) {
+  @NotNull
+  public List<Follow> persistFollowings(@NotNull User follower, int count) {
     return java.util.stream.IntStream.range(0, count)
         .mapToObj(
             i -> {

@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +30,7 @@ public class AlcoholTestFactory {
 
   /** 기본 Region 생성 (스코틀랜드) */
   @Transactional
+  @NotNull
   public Region persistRegion() {
     Region region =
         Region.builder()
@@ -43,7 +45,8 @@ public class AlcoholTestFactory {
 
   /** 커스텀 Region 생성 */
   @Transactional
-  public Region persistRegion(String korName, String engName) {
+  @NotNull
+  public Region persistRegion(@NotNull String korName, @NotNull String engName) {
     Region region =
         Region.builder()
             .korName(korName + "-" + generateRandomSuffix())
@@ -56,7 +59,8 @@ public class AlcoholTestFactory {
 
   /** 빌더를 통한 Region 생성 */
   @Transactional
-  public Region persistRegion(Region.RegionBuilder builder) {
+  @NotNull
+  public Region persistRegion(@NotNull Region.RegionBuilder builder) {
     Region region = builder.build();
     em.persist(region);
     em.flush();
@@ -65,6 +69,7 @@ public class AlcoholTestFactory {
 
   /** 기본 Distillery 생성 (맥캘란) */
   @Transactional
+  @NotNull
   public Distillery persistDistillery() {
     Distillery distillery =
         Distillery.builder()
@@ -79,7 +84,8 @@ public class AlcoholTestFactory {
 
   /** 커스텀 Distillery 생성 */
   @Transactional
-  public Distillery persistDistillery(String korName, String engName) {
+  @NotNull
+  public Distillery persistDistillery(@NotNull String korName, @NotNull String engName) {
     Distillery distillery =
         Distillery.builder()
             .korName(korName + "-" + generateRandomSuffix())
@@ -92,7 +98,8 @@ public class AlcoholTestFactory {
 
   /** 빌더를 통한 Distillery 생성 */
   @Transactional
-  public Distillery persistDistillery(Distillery.DistilleryBuilder builder) {
+  @NotNull
+  public Distillery persistDistillery(@NotNull Distillery.DistilleryBuilder builder) {
     Distillery distillery = builder.build();
     em.persist(distillery);
     em.flush();
@@ -101,6 +108,7 @@ public class AlcoholTestFactory {
 
   /** 기본 Alcohol 생성 (위스키) - 연관 엔티티 자동 생성 */
   @Transactional
+  @NotNull
   public Alcohol persistAlcohol() {
     // 연관 엔티티 자동 생성
     Region region = persistRegionInternal();
@@ -126,6 +134,7 @@ public class AlcoholTestFactory {
   }
 
   @Transactional
+  @NotNull
   public List<Alcohol> persistAlcohols(int count) {
     return java.util.stream.IntStream.range(0, count)
         .mapToObj(i -> persistAlcohol(AlcoholType.WHISKY))
@@ -134,7 +143,8 @@ public class AlcoholTestFactory {
 
   /** 타입별 Alcohol 생성 - 연관 엔티티 자동 생성 */
   @Transactional
-  public Alcohol persistAlcohol(AlcoholType type) {
+  @NotNull
+  public Alcohol persistAlcohol(@NotNull AlcoholType type) {
     // 연관 엔티티 자동 생성
     Region region = persistRegionInternal();
     Distillery distillery = persistDistilleryInternal();
@@ -160,7 +170,8 @@ public class AlcoholTestFactory {
 
   /** 이름과 타입으로 Alcohol 생성 - 연관 엔티티 자동 생성 */
   @Transactional
-  public Alcohol persistAlcohol(String korName, String engName, AlcoholType type) {
+  @NotNull
+  public Alcohol persistAlcohol(@NotNull String korName, @NotNull String engName, @NotNull AlcoholType type) {
     // 연관 엔티티 자동 생성
     Region region = persistRegionInternal();
     Distillery distillery = persistDistilleryInternal();
@@ -186,7 +197,8 @@ public class AlcoholTestFactory {
 
   /** 정확한 이름으로 Alcohol 생성 (접미사 없음) - 연관 엔티티 자동 생성 */
   @Transactional
-  public Alcohol persistAlcoholWithName(String korName, String engName) {
+  @NotNull
+  public Alcohol persistAlcoholWithName(@NotNull String korName, @NotNull String engName) {
     // 연관 엔티티 자동 생성
     Region region = persistRegionInternal();
     Distillery distillery = persistDistilleryInternal();
@@ -212,7 +224,8 @@ public class AlcoholTestFactory {
 
   /** 연관 엔티티와 함께 Alcohol 생성 */
   @Transactional
-  public Alcohol persistAlcohol(AlcoholType type, Region region, Distillery distillery) {
+  @NotNull
+  public Alcohol persistAlcohol(@NotNull AlcoholType type, @NotNull Region region, @NotNull Distillery distillery) {
     Alcohol alcohol =
         Alcohol.builder()
             .korName(type.getDefaultKorName() + "-" + generateRandomSuffix())
@@ -234,7 +247,8 @@ public class AlcoholTestFactory {
 
   /** 빌더를 통한 Alcohol 생성 - 누락 필드 자동 채우기 */
   @Transactional
-  public Alcohol persistAlcohol(Alcohol.AlcoholBuilder builder) {
+  @NotNull
+  public Alcohol persistAlcohol(@NotNull Alcohol.AlcoholBuilder builder) {
     // 누락 필드 채우기
     Alcohol.AlcoholBuilder filledBuilder = fillMissingAlcoholFields(builder);
     Alcohol alcohol = filledBuilder.build();
@@ -245,7 +259,8 @@ public class AlcoholTestFactory {
 
   /** 빌더를 통한 Alcohol 생성 후 flush (즉시 ID 필요한 경우) */
   @Transactional
-  public Alcohol persistAndFlushAlcohol(Alcohol.AlcoholBuilder builder) {
+  @NotNull
+  public Alcohol persistAndFlushAlcohol(@NotNull Alcohol.AlcoholBuilder builder) {
     // 누락 필드 채우기
     Alcohol.AlcoholBuilder filledBuilder = fillMissingAlcoholFields(builder);
     Alcohol alcohol = filledBuilder.build();
@@ -380,6 +395,7 @@ public class AlcoholTestFactory {
 
   /** 기본 CurationKeyword 생성 */
   @Transactional
+  @NotNull
   public CurationKeyword persistCurationKeyword() {
     CurationKeyword curation =
         CurationKeyword.builder()
@@ -397,8 +413,9 @@ public class AlcoholTestFactory {
 
   /** 알코올 ID 목록과 함께 CurationKeyword 생성 */
   @Transactional
+  @NotNull
   public CurationKeyword persistCurationKeyword(
-      String name, String description, Set<Long> alcoholIds) {
+      @NotNull String name, @NotNull String description, @NotNull Set<Long> alcoholIds) {
     CurationKeyword curation =
         CurationKeyword.builder()
             .name(name)
@@ -415,7 +432,8 @@ public class AlcoholTestFactory {
 
   /** 알코올 리스트와 함께 CurationKeyword 생성 */
   @Transactional
-  public CurationKeyword persistCurationKeyword(String name, List<Alcohol> alcohols) {
+  @NotNull
+  public CurationKeyword persistCurationKeyword(@NotNull String name, @NotNull List<Alcohol> alcohols) {
     Set<Long> alcoholIds = new HashSet<>();
     if (alcohols != null) {
       alcohols.forEach(alcohol -> alcoholIds.add(alcohol.getId()));
