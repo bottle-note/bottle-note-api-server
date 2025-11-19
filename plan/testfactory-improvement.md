@@ -30,25 +30,143 @@ bottlenote-product-api/src/test/java/app/bottlenote/
    - 애그리거트 경계 불명확
    - Nullability 표현 부족 (JavaDoc에만 의존)
 
-## 2. 개선 목표
+## 2. 현재 구현 분석 (Phase 1 개선 전)
 
-### 2.1 중앙 집중 관리
+> 분석 일자: 2025-11-19
+> 대상: bottlenote-mono/src/test/java/app/bottlenote/fixture/
+> 상태: **Phase 1 완료** (격리 + 순수성 원칙 위반 수정 완료)
+
+### 2.1 전체 준수 현황
+
+| Factory | 단일책임 | 격리 | 순수성 | 명시성 | 응집성 | 종합 점수 |
+|---------|:--------:|:----:|:------:|:------:|:------:|:---------:|
+| UserTestFactory | ✅ | ~~⚠️ 45%~~ → ✅ | ✅ | ❌ 0% | ✅ | ~~**3/5**~~ → **4/5** |
+| AlcoholTestFactory | ⚠️ | ~~❌ 32%~~ → ✅ | ✅ | ❌ 0% | ✅ | ~~**2/5**~~ → **3/5** |
+| RatingTestFactory | ✅ | ~~❌ 40%~~ → ✅ | ~~❌~~ → ✅ | ❌ 0% | ✅ | ~~**2/5**~~ → **4/5** |
+| BusinessSupportTestFactory | ✅ | ✅ 100% | ✅ | ❌ 0% | ✅ | **4/5** ⭐ |
+
+**전체 통계 (Phase 1 전)**:
+- persist 메서드 총 35개
+- flush 호출: 14개 (40%) → **Phase 1 완료 후: 35개 (100%)**
+- Repository 의존성: 1개 → **Phase 1 완료 후: 0개 (100%)**
+- @NotNull/@Nullable: 0개 (0%) → **Phase 2 작업 대상**
+
+### 2.2 Phase 1에서 수정된 주요 위반 사항
+
+#### 격리 원칙 위반 (flush 미호출 - 21개 수정 완료)
+
+**UserTestFactory (6개 수정)**
+- Line 41: `persistUser()` - `em.flush()` 추가
+- Line 69: `persistUser(builder)` - `em.flush()` 추가
+- Line 110: `persistFollow(Long, Long)` - `em.flush()` 추가
+- Line 121: `persistFollow(builder)` - `em.flush()` 추가
+
+**AlcoholTestFactory (13개 수정)**
+- Region 메서드 (3개): Lines 41, 54, 63
+- Distillery 메서드 (3개): Lines 77, 90, 99
+- Alcohol 메서드 (7개): Lines 119, 151, 176, 201, 222, 233
+
+**RatingTestFactory (3개 수정 + 의존성 제거)**
+- Line 34: `persistRating(User, Alcohol, int)` - `em.flush()` 추가
+- Line 47: `persistRating(Long, Long, int)` - `em.flush()` 추가
+- Line 58: `persistRating(builder)` - `em.flush()` 추가
+- ~~Line 7, 24~~: Repository import 및 필드 삭제
+- ~~Line 76-83~~: `createRating()` 메서드 삭제 (@Deprecated)
+
+### 2.3 남은 개선 과제
+
+#### Priority 2: 명시성 원칙 (35개 메서드 모두)
+
+**현재:**
+```java
+// ❌ 명시성 없음
+public User persistUser(String email, String nickName)
+```
+
+**개선 후:**
+```java
+// ✅ 명시성 명확
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+@NotNull
+public User persistUser(
+    @NotNull String email,
+    @Nullable String nickName
+)
+```
+
+#### Priority 3: 단일 책임 원칙 (AlcoholTestFactory)
+
+```java
+// ❌ Line 371-385: 조회 로직 (Factory 역할 벗어남)
+@Transactional
+public Set<AlcoholsTastingTags> getAlcoholTastingTags(Long alcoholId) {
+    List<AlcoholsTastingTags> result = em.createQuery(...)
+        .getResultList();
+    return new HashSet<>(result);
+}
+
+// ❌ Line 394-441: 복잡한 비즈니스 로직 (@Deprecated)
+@Deprecated(since = "2025-01", forRemoval = true)
+public void appendTagsFromKeywordMapping(Long alcoholId, KeywordMapping mapping) {
+    // 삭제, 생성, 매핑을 포함한 복잡한 로직
+}
+```
+
+**개선 방안:**
+- `getAlcoholTastingTags()` 제거 또는 별도 Helper 클래스로 이동
+- `appendTagsFromKeywordMapping()` 삭제 (이미 @Deprecated)
+
+### 2.4 모범 사례: BusinessSupportTestFactory
+
+```java
+@Component
+@RequiredArgsConstructor
+public class BusinessSupportTestFactory {
+
+  @Autowired private EntityManager em; // ✅ EntityManager만 주입
+
+  @Transactional
+  public BusinessSupport persist(Long userId) { // ⚠️ @NotNull 필요
+    BusinessSupport bs = BusinessSupport.create(...);
+    em.persist(bs);
+    em.flush(); // ✅ 격리 원칙 준수
+    return bs;
+  }
+}
+```
+
+**장점:**
+- ✅ 간결함 (26줄)
+- ✅ 명확한 메서드 (persist)
+- ✅ 일관된 flush 호출
+- ✅ Repository 의존성 없음
+
+**개선 필요:**
+- ⚠️ @NotNull/@Nullable 어노테이션 누락
+
+---
+
+## 3. 개선 목표
+
+### 3.1 중앙 집중 관리
 - 모든 TestFactory를 한 곳에서 관리
 - 일관된 작성 규칙 적용
 
-### 2.2 논리적 응집도 향상
+### 3.2 논리적 응집도 향상
 - 엔티티와 TestFactory를 같은 모듈(`bottlenote-mono`)에 배치
 - 도메인 모델과 테스트 픽스처의 일관성 유지
 
-### 2.3 명확한 계약
+### 3.3 명확한 계약
 - `@NotNull`/`@Nullable` 어노테이션으로 사용법 명시
 - JavaDoc 없이도 직관적 사용 가능
 
-### 2.4 순환 의존성 차단
+### 3.4 순환 의존성 차단
 - Factory 간 주입 금지
 - 파라미터 전달 방식으로 조합
 
-## 2.5 테스트 엔티티 팩토리의 철학
+### 3.5 테스트 엔티티 팩토리의 철학
 
 > **테스트 엔티티 팩토리란 무엇인가?**
 >
@@ -200,9 +318,9 @@ public class RatingTestFactory {
 - [ ] **명시성**: @NotNull/@Nullable이 모든 곳에 있는가?
 - [ ] **응집성**: 다른 Factory를 주입하지 않았는가?
 
-## 3. 개선된 구조
+## 4. 개선된 구조
 
-### 3.1 디렉토리 구조
+### 4.1 디렉토리 구조
 
 ```
 bottlenote-mono/src/test/java/
@@ -224,7 +342,7 @@ bottlenote-mono/src/test/java/
 - ✅ 엔티티(`bottlenote-mono/domain`)와 같은 모듈
 - ✅ `bottlenote-product-api`에서 `@Autowired` 주입 가능 (의존성 방향 일치)
 
-### 3.2 애그리거트 경계
+### 4.2 애그리거트 경계
 
 **하나의 Factory는 하나의 애그리거트를 관리:**
 
@@ -242,9 +360,9 @@ bottlenote-mono/src/test/java/
 - 생명주기를 함께 관리하는가?
 - 루트 없이 독립 존재 가능한가?
 
-## 4. 핵심 설계 원칙
+## 5. 핵심 설계 원칙
 
-### 4.1 Factory 간 의존성 금지
+### 5.1 Factory 간 의존성 금지
 
 ```java
 @Component
@@ -278,7 +396,7 @@ public class ReviewTestFactory {
 - 명시적 제어 가능
 - 테스트 독립성 보장
 
-### 4.2 Nullability 명시
+### 5.2 Nullability 명시
 
 ```java
 import org.jetbrains.annotations.NotNull;
@@ -312,7 +430,7 @@ public class ReviewTestFactory {
 - JavaDoc 불필요
 - 계약 명확화
 
-### 4.3 메서드 명명 규칙
+### 5.3 메서드 명명 규칙
 
 ```java
 // 기본 생성
@@ -336,9 +454,9 @@ public class ReviewTestFactory {
 - `persist{Entities}`: 복수 엔티티 생성
 - `persist{Entity}(..., @Nullable Type field)`: 선택적 필드
 
-## 5. Factory 조합 방법
+## 6. Factory 조합 방법
 
-### 5.1 테스트에서 직접 조합 (기본)
+### 6.1 테스트에서 직접 조합 (기본)
 
 ```java
 @SpringBootTest
@@ -366,7 +484,7 @@ class ReviewIntegrationTest {
 - 테스트별 맞춤 데이터
 - 보일러플레이트 증가 (허용 가능)
 
-### 5.2 복잡한 시나리오 클래스 (선택적)
+### 6.2 복잡한 시나리오 클래스 (선택적)
 
 **여러 테스트에서 반복되는 복잡한 조합만 별도 관리:**
 
@@ -423,9 +541,9 @@ void 댓글_포함_리뷰_조회() {
 - 5줄 이상 조합 로직
 - 3회 이상 반복 사용
 
-## 6. 구현 예시
+## 7. 구현 예시
 
-### 6.1 UserTestFactory
+### 7.1 UserTestFactory
 
 ```java
 package app.bottlenote.fixture;
@@ -490,7 +608,7 @@ public class UserTestFactory {
 }
 ```
 
-### 6.2 ReviewTestFactory
+### 7.2 ReviewTestFactory
 
 ```java
 package app.bottlenote.fixture;
@@ -565,7 +683,7 @@ public class ReviewTestFactory {
 }
 ```
 
-## 7. 마이그레이션 계획
+## 8. 마이그레이션 계획
 
 ### Phase 0: 준비
 1. `bottlenote-mono/src/test/java/app/bottlenote/fixture/` 디렉토리 생성
@@ -588,7 +706,7 @@ public class ReviewTestFactory {
 1. 기존 `bottlenote-product-api/.../fixture/` 디렉토리 삭제
 2. 테스트 전체 실행 확인
 
-## 8. Rule.md 구조 (간단 버전)
+## 9. Rule.md 구조 (간단 버전)
 
 ```markdown
 # TestFactory 작성 규칙
@@ -639,7 +757,7 @@ public class UserTestFactory {
 ```
 ```
 
-## 9. 체크리스트
+## 10. 체크리스트
 
 마이그레이션 시 확인:
 
@@ -652,7 +770,7 @@ public class UserTestFactory {
 - [ ] 애그리거트 경계 준수
 - [ ] 테스트 정상 실행
 
-## 10. 기대 효과
+## 11. 기대 효과
 
 ### 개발자 경험 개선
 - 모든 TestFactory를 한눈에 파악
