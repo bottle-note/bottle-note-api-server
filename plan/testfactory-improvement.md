@@ -48,6 +48,158 @@ bottlenote-product-api/src/test/java/app/bottlenote/
 - Factory 간 주입 금지
 - 파라미터 전달 방식으로 조합
 
+## 2.5 테스트 엔티티 팩토리의 철학
+
+> **테스트 엔티티 팩토리란 무엇인가?**
+>
+> 순수하게 **영속화된 엔티티만 생성**하여 **완전한 상태로 반환**하는 테스트 전용 유틸리티
+
+### 핵심 원칙 5가지
+
+#### 1. 단일 책임 (Single Responsibility)
+- **엔티티 생성만** 전담
+- DTO 생성, 시나리오 구성, 검증 로직 등은 범위 밖
+- 명확한 경계: `persist{Entity}` 메서드만 제공
+
+**예시:**
+```java
+// ✅ 올바른 책임: 엔티티 생성
+public User persistUser()
+
+// ❌ 책임 벗어남: DTO 생성
+public UserResponse createUserResponse()
+
+// ❌ 책임 벗어남: 검증
+public void validateUser(User user)
+```
+
+#### 2. 격리 (Isolation)
+- **팩토리 메서드 밖에서는 엔티티가 완전히 영속화된 상태**
+- 반환된 엔티티는 **즉시 사용 가능** (ID 할당 완료)
+- 추가 persist/flush 불필요
+
+**핵심 계약:**
+```java
+@Transactional
+public User persistUser() {
+    User user = User.builder()...build();
+    em.persist(user);
+    em.flush();  // ✅ 메서드 내에서 완료
+    return user; // 완전히 영속화된 상태로 반환
+}
+
+// 테스트에서 사용
+User user = userFactory.persistUser();
+Long id = user.getId(); // ✅ null이 아님, 즉시 사용 가능
+```
+
+**왜 중요한가?**
+- 테스트 코드에서 `em.flush()` 호출 불필요
+- 다른 팩토리에서 즉시 FK 참조 가능
+- 테스트 간 격리 보장 (각 엔티티는 독립적)
+
+**안티패턴:**
+```java
+// ❌ 나쁜 예: flush 없이 반환
+public User persistUser() {
+    User user = User.builder()...build();
+    em.persist(user); // ID가 null일 수 있음
+    return user;
+}
+
+// 테스트 코드에서 추가 작업 필요 (격리 원칙 위반)
+User user = userFactory.persistUser();
+em.flush(); // ❌ 팩토리 밖에서 추가 작업 필요
+```
+
+#### 3. 순수성 (Purity)
+- **EntityManager만 주입**
+- Repository 의존 금지
+- 외부 서비스 호출 금지
+
+**이유:**
+- Repository는 비즈니스 로직 포함 가능 (테스트 복잡도 증가)
+- EntityManager는 순수 영속성 계층
+- 테스트 데이터 생성의 예측 가능성 보장
+
+**예시:**
+```java
+// ✅ 올바른 의존성
+@Autowired private EntityManager em;
+
+// ❌ 금지된 의존성
+@Autowired private UserRepository userRepository;
+@Autowired private EmailService emailService;
+```
+
+#### 4. 명시성 (Explicitness)
+- **@NotNull/@Nullable로 계약 표현**
+- IDE 자동 경고 활용
+- JavaDoc 불필요
+
+**효과:**
+- 컴파일 타임 검증
+- null 처리 로직 명확화
+- 사용자 실수 방지
+
+**예시:**
+```java
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+@Transactional
+@NotNull // 반환값이 절대 null이 아님
+public User persistUser(
+    @NotNull String email,      // 필수
+    @Nullable String nickName   // 선택
+) {
+    String finalNickName = nickName != null ? nickName : "기본닉네임";
+    User user = User.builder()
+        .email(email)
+        .nickName(finalNickName)
+        .build();
+    em.persist(user);
+    em.flush();
+    return user;
+}
+```
+
+#### 5. 응집성 (Cohesion)
+- **하나의 Factory = 하나의 애그리거트**
+- Factory 간 의존성 주입 금지
+- 파라미터로만 다른 애그리거트 전달
+
+**애그리거트 경계:**
+| Factory | 루트 엔티티 | 자식 엔티티 |
+|---------|------------|------------|
+| UserTestFactory | User | Follow |
+| AlcoholTestFactory | Alcohol, Region, Distillery | AlcoholsTastingTags |
+| ReviewTestFactory | Review | ReviewReply, ReviewImage |
+
+**조합 방식:**
+```java
+// ✅ 올바른 조합: 테스트에서 직접
+User user = userFactory.persistUser();
+Alcohol alcohol = alcoholFactory.persistAlcohol();
+Rating rating = ratingFactory.persistRating(user, alcohol, 5);
+
+// ❌ 잘못된 조합: Factory 간 주입
+@Component
+public class RatingTestFactory {
+    @Autowired private UserTestFactory userFactory; // ❌ 금지!
+}
+```
+
+### 철학 적용 체크리스트
+
+팩토리 메서드 작성 시 확인:
+
+- [ ] **단일 책임**: 엔티티만 생성하는가?
+- [ ] **격리**: `em.flush()` 완료 후 반환하는가?
+- [ ] **순수성**: EntityManager만 사용하는가?
+- [ ] **명시성**: @NotNull/@Nullable이 모든 곳에 있는가?
+- [ ] **응집성**: 다른 Factory를 주입하지 않았는가?
+
 ## 3. 개선된 구조
 
 ### 3.1 디렉토리 구조
@@ -441,13 +593,22 @@ public class ReviewTestFactory {
 ```markdown
 # TestFactory 작성 규칙
 
+> 순수하게 **영속화된 엔티티만 생성**하여 **완전한 상태로 반환**하는 테스트 전용 유틸리티
+
+## 핵심 철학 (5가지)
+1. **단일 책임**: 엔티티 생성만
+2. **격리**: 메서드 밖에서 즉시 사용 가능 (ID 할당 완료)
+3. **순수성**: EntityManager만 사용
+4. **명시성**: @NotNull/@Nullable 필수
+5. **응집성**: 하나의 Factory = 하나의 애그리거트
+
 ## 필수 규칙
 - `@Component` 선언
-- `EntityManager`만 주입
+- `EntityManager`만 주입 (Repository 금지 ❌)
 - 다른 Factory 주입 금지 ❌
-- `@NotNull`/`@Nullable` 모든 곳에 명시
+- `@NotNull`/`@Nullable` 모든 파라미터/반환값에 명시
 - `persist{Entity}` 명명 패턴
-- `@Transactional` 선언
+- `@Transactional` + `em.flush()` 필수 (격리 보장)
 
 ## 애그리거트 경계
 - UserTestFactory: User, Follow
@@ -457,6 +618,25 @@ public class ReviewTestFactory {
 ## 조합 방법
 - 테스트에서 여러 Factory 직접 조합
 - 복잡한 경우: scenario/ 패키지
+
+## 예시
+```java
+import org.jetbrains.annotations.NotNull;
+
+@Component
+public class UserTestFactory {
+    @Autowired private EntityManager em;
+
+    @Transactional
+    @NotNull
+    public User persistUser() {
+        User user = User.builder()...build();
+        em.persist(user);
+        em.flush(); // ✅ 격리: 메서드 내에서 완료
+        return user; // 즉시 사용 가능
+    }
+}
+```
 ```
 
 ## 9. 체크리스트
