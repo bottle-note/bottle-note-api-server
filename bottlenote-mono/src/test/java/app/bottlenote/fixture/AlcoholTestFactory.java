@@ -38,6 +38,7 @@ public class AlcoholTestFactory {
             .continent("Europe")
             .build();
     em.persist(region);
+    em.flush();
     return region;
   }
 
@@ -50,6 +51,7 @@ public class AlcoholTestFactory {
             .engName(engName + "-" + generateRandomSuffix())
             .build();
     em.persist(region);
+    em.flush();
     return region;
   }
 
@@ -58,6 +60,7 @@ public class AlcoholTestFactory {
   public Region persistRegion(Region.RegionBuilder builder) {
     Region region = builder.build();
     em.persist(region);
+    em.flush();
     return region;
   }
 
@@ -71,6 +74,7 @@ public class AlcoholTestFactory {
             .logoImgPath("https://example.com/macallan-logo.jpg")
             .build();
     em.persist(distillery);
+    em.flush();
     return distillery;
   }
 
@@ -83,6 +87,7 @@ public class AlcoholTestFactory {
             .engName(engName + "-" + generateRandomSuffix())
             .build();
     em.persist(distillery);
+    em.flush();
     return distillery;
   }
 
@@ -91,6 +96,7 @@ public class AlcoholTestFactory {
   public Distillery persistDistillery(Distillery.DistilleryBuilder builder) {
     Distillery distillery = builder.build();
     em.persist(distillery);
+    em.flush();
     return distillery;
   }
 
@@ -116,6 +122,7 @@ public class AlcoholTestFactory {
             .imageUrl("https://example.com/image.jpg")
             .build();
     em.persist(alcohol);
+    em.flush();
     return alcohol;
   }
 
@@ -148,6 +155,7 @@ public class AlcoholTestFactory {
             .imageUrl("https://example.com/" + type.name().toLowerCase() + ".jpg")
             .build();
     em.persist(alcohol);
+    em.flush();
     return alcohol;
   }
 
@@ -173,6 +181,7 @@ public class AlcoholTestFactory {
             .imageUrl("https://example.com/custom.jpg")
             .build();
     em.persist(alcohol);
+    em.flush();
     return alcohol;
   }
 
@@ -198,6 +207,7 @@ public class AlcoholTestFactory {
             .imageUrl("https://example.com/custom.jpg")
             .build();
     em.persist(alcohol);
+    em.flush();
     return alcohol;
   }
 
@@ -219,6 +229,7 @@ public class AlcoholTestFactory {
             .imageUrl("https://example.com/" + type.name().toLowerCase() + ".jpg")
             .build();
     em.persist(alcohol);
+    em.flush();
     return alcohol;
   }
 
@@ -229,6 +240,7 @@ public class AlcoholTestFactory {
     Alcohol.AlcoholBuilder filledBuilder = fillMissingAlcoholFields(builder);
     Alcohol alcohol = filledBuilder.build();
     em.persist(alcohol);
+    em.flush();
     return alcohol;
   }
 

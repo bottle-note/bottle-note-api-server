@@ -38,6 +38,7 @@ public class UserTestFactory {
             .role(UserType.ROLE_USER)
             .build();
     em.persist(user);
+    em.flush();
     return user;
   }
 
@@ -65,6 +66,7 @@ public class UserTestFactory {
     User.UserBuilder filledBuilder = fillMissingUserFields(builder);
     User user = filledBuilder.build();
     em.persist(user);
+    em.flush();
     return user;
   }
 
@@ -105,6 +107,7 @@ public class UserTestFactory {
             .targetUserId(followingId)
             .build();
     em.persist(follow);
+    em.flush();
     return follow;
   }
 
@@ -115,6 +118,7 @@ public class UserTestFactory {
     Follow.FollowBuilder filledBuilder = fillMissingFollowFields(builder);
     Follow follow = filledBuilder.build();
     em.persist(follow);
+    em.flush();
     return follow;
   }
 

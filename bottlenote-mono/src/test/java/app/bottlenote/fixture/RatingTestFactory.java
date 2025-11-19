@@ -4,7 +4,6 @@ import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
-import app.bottlenote.rating.repository.JpaRatingRepository;
 import app.bottlenote.user.domain.User;
 import jakarta.persistence.EntityManager;
 import java.util.Random;
@@ -21,8 +20,6 @@ public class RatingTestFactory {
 
   @Autowired private EntityManager em;
 
-  @Deprecated @Autowired private JpaRatingRepository ratingRepository;
-
   // ========== Rating 생성 메서드들 ==========
 
   /** 사용자와 알코올로 Rating 생성 */
@@ -34,6 +31,7 @@ public class RatingTestFactory {
             .ratingPoint(RatingPoint.of(point))
             .build();
     em.persist(rating);
+    em.flush();
     return rating;
   }
 
@@ -46,6 +44,7 @@ public class RatingTestFactory {
             .ratingPoint(RatingPoint.of(point))
             .build();
     em.persist(rating);
+    em.flush();
     return rating;
   }
 
@@ -56,6 +55,7 @@ public class RatingTestFactory {
     Rating.RatingBuilder filledBuilder = fillMissingRatingFields(builder);
     Rating rating = filledBuilder.build();
     em.persist(rating);
+    em.flush();
     return rating;
   }
 
@@ -68,18 +68,6 @@ public class RatingTestFactory {
     em.persist(rating);
     em.flush(); // 즉시 ID 필요한 경우에만 사용
     return rating;
-  }
-
-  // ========== 기존 메서드 (호환성 유지) ==========
-
-  @Deprecated
-  public void createRating(User user, Alcohol alcohol, int point) {
-    Rating rating =
-        Rating.builder()
-            .id(RatingId.is(user.getId(), alcohol.getId()))
-            .ratingPoint(RatingPoint.of(point))
-            .build();
-    ratingRepository.saveAndFlush(rating);
   }
 
   // ========== 헬퍼 메서드들 ==========
