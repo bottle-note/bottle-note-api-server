@@ -171,7 +171,8 @@ public class AlcoholTestFactory {
   /** 이름과 타입으로 Alcohol 생성 - 연관 엔티티 자동 생성 */
   @Transactional
   @NotNull
-  public Alcohol persistAlcohol(@NotNull String korName, @NotNull String engName, @NotNull AlcoholType type) {
+  public Alcohol persistAlcohol(
+      @NotNull String korName, @NotNull String engName, @NotNull AlcoholType type) {
     // 연관 엔티티 자동 생성
     Region region = persistRegionInternal();
     Distillery distillery = persistDistilleryInternal();
@@ -225,7 +226,8 @@ public class AlcoholTestFactory {
   /** 연관 엔티티와 함께 Alcohol 생성 */
   @Transactional
   @NotNull
-  public Alcohol persistAlcohol(@NotNull AlcoholType type, @NotNull Region region, @NotNull Distillery distillery) {
+  public Alcohol persistAlcohol(
+      @NotNull AlcoholType type, @NotNull Region region, @NotNull Distillery distillery) {
     Alcohol alcohol =
         Alcohol.builder()
             .korName(type.getDefaultKorName() + "-" + generateRandomSuffix())
@@ -433,7 +435,8 @@ public class AlcoholTestFactory {
   /** 알코올 리스트와 함께 CurationKeyword 생성 */
   @Transactional
   @NotNull
-  public CurationKeyword persistCurationKeyword(@NotNull String name, @NotNull List<Alcohol> alcohols) {
+  public CurationKeyword persistCurationKeyword(
+      @NotNull String name, @NotNull List<Alcohol> alcohols) {
     Set<Long> alcoholIds = new HashSet<>();
     if (alcohols != null) {
       alcohols.forEach(alcohol -> alcoholIds.add(alcohol.getId()));
