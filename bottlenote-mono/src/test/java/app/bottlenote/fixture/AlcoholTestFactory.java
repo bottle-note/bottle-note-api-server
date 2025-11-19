@@ -2,7 +2,6 @@ package app.bottlenote.fixture;
 
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.AlcoholType;
-import app.bottlenote.alcohols.constant.KeywordTagMapping;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholsTastingTags;
 import app.bottlenote.alcohols.domain.CurationKeyword;
@@ -378,7 +377,6 @@ public class AlcoholTestFactory {
     // 새로운 Set을 반환해서 Lazy 문제 회피
     return new HashSet<>(alcohol.getAlcoholsTastingTags());
   }
-
 
   /** 기본 CurationKeyword 생성 */
   @Transactional
