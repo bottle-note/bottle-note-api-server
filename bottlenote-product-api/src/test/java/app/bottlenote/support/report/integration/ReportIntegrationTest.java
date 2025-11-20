@@ -151,19 +151,20 @@ class ReportIntegrationTest extends IntegrationTestSupport {
     ReviewReportRequest reviewReportRequest =
         new ReviewReportRequest(review.getId(), ADVERTISEMENT, "이 리뷰는 광고 리뷰입니다.");
 
-    IntStream.range(1, 5)
-        .forEach(
-            (int i) -> {
-              ReviewReport reviewReport =
-                  ReviewReport.builder()
-                      .reviewId(reviewReportRequest.reportReviewId())
-                      .ipAddress(String.valueOf(i))
-                      .type(ADVERTISEMENT)
-                      .userId((long) i)
-                      .reportContent("이 리뷰는 광고 리뷰입니다.")
-                      .build();
-              reviewReportRepository.save(reviewReport);
-            });
+    // 1~4번째 신고자 생성 및 신고 저장
+    for (int i = 1; i <= 4; i++) {
+      User reporter = userTestFactory.persistUser("reporter-" + i, "신고자" + i);
+      ReviewReport reviewReport =
+          ReviewReport.builder()
+              .reviewId(reviewReportRequest.reportReviewId())
+              .ipAddress(String.valueOf(i))
+              .type(ADVERTISEMENT)
+              .userId(reporter.getId())
+              .reportContent("이 리뷰는 광고 리뷰입니다.")
+              .build();
+      reviewReportRepository.save(reviewReport);
+    }
+
     Review beforeReview =
         reviewRepository.findById(reviewReportRequest.reportReviewId()).orElse(null);
 
