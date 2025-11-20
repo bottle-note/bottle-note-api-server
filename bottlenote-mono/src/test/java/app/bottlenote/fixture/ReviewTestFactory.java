@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -229,8 +228,7 @@ public class ReviewTestFactory {
   /** ImageInfo를 직접 지정하여 ReviewImage 생성 */
   @Transactional
   @NotNull
-  public ReviewImage persistReviewImage(
-      @NotNull Review review, @NotNull ImageInfo imageInfo) {
+  public ReviewImage persistReviewImage(@NotNull Review review, @NotNull ImageInfo imageInfo) {
     ReviewImage reviewImage =
         ReviewImage.builder().reviewImageInfo(imageInfo).review(review).build();
 
