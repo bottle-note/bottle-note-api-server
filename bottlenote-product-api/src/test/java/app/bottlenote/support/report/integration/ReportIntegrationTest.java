@@ -170,26 +170,8 @@ class ReportIntegrationTest extends IntegrationTestSupport {
     Review beforeReview =
         reviewRepository.findById(reviewReportRequest.reportReviewId()).orElse(null);
 
-    MvcResult authResult =
-        mockMvc
-            .perform(
-                post("/api/v1/oauth/login")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(
-                        mapper.writeValueAsString(
-                            new OauthRequest("test@test.com", null, SocialType.KAKAO, null, null)))
-                    .header("Authorization", "Bearer " + getToken())
-                    .with(csrf()))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.code").value(200))
-            .andExpect(jsonPath("$.data").exists())
-            .andReturn();
-
-    String contentAsString = authResult.getResponse().getContentAsString(StandardCharsets.UTF_8);
-    GlobalResponse response = mapper.readValue(contentAsString, GlobalResponse.class);
-    JsonNode dataNode = mapper.convertValue(response.getData(), JsonNode.class);
-    String accessToken = dataNode.get("accessToken").asText();
+    // 5번째 신고를 위한 신고자 생성
+    User fifthReporter = userTestFactory.persistUser("report-5th", "다섯번째신고자");
 
     MvcResult result =
         mockMvc
@@ -197,7 +179,7 @@ class ReportIntegrationTest extends IntegrationTestSupport {
                 post("/api/v1/reports/review")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(mapper.writeValueAsString(reviewReportRequest))
-                    .header("Authorization", "Bearer " + accessToken)
+                    .header("Authorization", "Bearer " + getToken(fifthReporter).accessToken())
                     .with(csrf()))
             .andDo(print())
             .andExpect(status().isOk())
@@ -231,6 +213,7 @@ class ReportIntegrationTest extends IntegrationTestSupport {
   @Test
   void test_4() throws Exception {
     // given
+    User reporter = userTestFactory.persistUser("report-reporter", "신고자");
     User targetUser = userTestFactory.persistUser("report-target", "신고대상유저");
 
     UserReportRequest userReportRequest =
@@ -242,7 +225,7 @@ class ReportIntegrationTest extends IntegrationTestSupport {
                 post("/api/v1/reports/user")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(mapper.writeValueAsString(userReportRequest))
-                    .header("Authorization", "Bearer " + getToken())
+                    .header("Authorization", "Bearer " + getToken(reporter).accessToken())
                     .with(csrf()))
             .andDo(print())
             .andExpect(status().isOk())
