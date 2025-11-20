@@ -80,7 +80,9 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
     @Test
     @DisplayName("빌더 기반 User 생성")
     void persistUserWithBuilder() {
-      User user = userTestFactory.persistUser(User.builder().email("builder@example.com").nickName("빌더테스터"));
+      User user =
+          userTestFactory.persistUser(
+              User.builder().email("builder@example.com").nickName("빌더테스터"));
 
       assertThat(user.getId()).isNotNull();
       assertThat(user.getEmail()).isEqualTo("builder@example.com");
@@ -177,7 +179,8 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
     @Test
     @DisplayName("이름과 타입 지정 Alcohol 생성")
     void persistAlcoholWithNameAndType() {
-      Alcohol alcohol = alcoholTestFactory.persistAlcohol("테스트위스키", "Test Whisky", AlcoholType.WHISKY);
+      Alcohol alcohol =
+          alcoholTestFactory.persistAlcohol("테스트위스키", "Test Whisky", AlcoholType.WHISKY);
 
       assertThat(alcohol.getId()).isNotNull();
       assertThat(alcohol.getKorName()).contains("테스트위스키");
@@ -198,7 +201,10 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
     void persistAlcoholWithBuilder() {
       Alcohol alcohol =
           alcoholTestFactory.persistAlcohol(
-              Alcohol.builder().korName("빌더위스키").engName("Builder Whisky").type(AlcoholType.WHISKY));
+              Alcohol.builder()
+                  .korName("빌더위스키")
+                  .engName("Builder Whisky")
+                  .type(AlcoholType.WHISKY));
 
       assertThat(alcohol.getId()).isNotNull();
       assertThat(alcohol.getKorName()).isEqualTo("빌더위스키");
@@ -575,7 +581,8 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
       User user = userTestFactory.persistUser();
       Alcohol alcohol = alcoholTestFactory.persistAlcohol();
 
-      Picks picks = picksTestFactory.persistPicks(alcohol.getId(), user.getId(), PicksStatus.UNPICK);
+      Picks picks =
+          picksTestFactory.persistPicks(alcohol.getId(), user.getId(), PicksStatus.UNPICK);
 
       assertThat(picks.getId()).isNotNull();
       assertThat(picks.getStatus()).isEqualTo(PicksStatus.UNPICK);
@@ -634,7 +641,8 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
     void persistUserHistoryWithBasic() {
       User user = userTestFactory.persistUser();
 
-      UserHistory history = historyTestFactory.persistUserHistory(user.getId(), EventType.REVIEW_CREATE);
+      UserHistory history =
+          historyTestFactory.persistUserHistory(user.getId(), EventType.REVIEW_CREATE);
 
       assertThat(history.getId()).isNotNull();
       assertThat(history.getUserId()).isEqualTo(user.getId());
@@ -651,7 +659,8 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
       Alcohol alcohol = alcoholTestFactory.persistAlcohol();
 
       UserHistory history =
-          historyTestFactory.persistUserHistory(user.getId(), EventType.REVIEW_CREATE, alcohol.getId());
+          historyTestFactory.persistUserHistory(
+              user.getId(), EventType.REVIEW_CREATE, alcohol.getId());
 
       assertThat(history.getId()).isNotNull();
       assertThat(history.getAlcoholId()).isEqualTo(alcohol.getId());
@@ -715,7 +724,8 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
     void persistMultipleUserHistories() {
       User user = userTestFactory.persistUser();
 
-      List<UserHistory> histories = historyTestFactory.persistMultipleUserHistories(user.getId(), 5);
+      List<UserHistory> histories =
+          historyTestFactory.persistMultipleUserHistories(user.getId(), 5);
 
       assertThat(histories).hasSize(5);
       histories.forEach(history -> assertThat(history.getId()).isNotNull());
