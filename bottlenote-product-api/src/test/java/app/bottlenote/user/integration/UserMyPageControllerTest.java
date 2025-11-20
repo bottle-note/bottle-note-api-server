@@ -9,9 +9,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.IntegrationTestSupport;
-import app.bottlenote.fixture.AlcoholTestFactory;
-import app.bottlenote.fixture.UserTestFactory;
+import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
 import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.user.fixture.UserTestFactory;
 import app.bottlenote.picks.dto.request.PicksUpdateRequest;
 import app.bottlenote.user.dto.request.MyBottleRequest;
 import app.bottlenote.user.dto.response.MyBottleResponse;
