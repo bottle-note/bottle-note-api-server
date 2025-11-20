@@ -32,7 +32,6 @@ import app.bottlenote.support.report.dto.response.UserReportResponse;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.fixture.UserTestFactory;
 import java.nio.charset.StandardCharsets;
-import java.util.stream.IntStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
