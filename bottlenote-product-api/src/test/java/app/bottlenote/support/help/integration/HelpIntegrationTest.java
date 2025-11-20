@@ -237,7 +237,8 @@ class HelpIntegrationTest extends IntegrationTestSupport {
     void test_2() throws Exception {
       // given
       userTestFactory.persistUser("test@naver.com", "테스터");
-      OauthRequest anotherOauthRequest = new OauthRequest("test@naver.com", null, SocialType.KAKAO, null, null);
+      OauthRequest anotherOauthRequest =
+          new OauthRequest("test@naver.com", null, SocialType.KAKAO, null, null);
       Error error = Error.of(HELP_NOT_AUTHORIZED);
 
       // when then
@@ -379,7 +380,8 @@ class HelpIntegrationTest extends IntegrationTestSupport {
     void test_3() throws Exception {
       // given
       userTestFactory.persistUser("test@naver.com", "테스터");
-      OauthRequest anotherOauthRequest = new OauthRequest("test@naver.com", null, SocialType.KAKAO, null, null);
+      OauthRequest anotherOauthRequest =
+          new OauthRequest("test@naver.com", null, SocialType.KAKAO, null, null);
       Error error = Error.of(HELP_NOT_AUTHORIZED);
 
       // when then
