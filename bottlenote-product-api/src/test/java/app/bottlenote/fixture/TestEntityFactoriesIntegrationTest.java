@@ -3,8 +3,8 @@ package app.bottlenote.fixture;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.bottlenote.IntegrationTestSupport;
+import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.domain.constant.AlcoholCategoryGroup;
 import app.bottlenote.history.constant.EventType;
 import app.bottlenote.history.domain.UserHistory;
 import app.bottlenote.like.constant.LikeStatus;
@@ -15,7 +15,7 @@ import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewImage;
 import app.bottlenote.review.domain.ReviewReply;
-import app.bottlenote.support.domain.BusinessSupport;
+import app.bottlenote.support.business.domain.BusinessSupport;
 import app.bottlenote.user.domain.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
