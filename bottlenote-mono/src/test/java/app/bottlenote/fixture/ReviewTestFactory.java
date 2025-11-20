@@ -210,7 +210,7 @@ public class ReviewTestFactory {
   public ReviewImage persistReviewImage(@NotNull Review review, @NotNull String imageUrl) {
     ImageInfo imageInfo =
         ImageInfo.builder()
-            .order(1)
+            .order(1L)
             .imageUrl(imageUrl)
             .imagePath("/reviews/" + review.getId())
             .imageKey("review-" + review.getId() + "-" + generateRandomSuffix())
@@ -316,9 +316,6 @@ public class ReviewTestFactory {
     }
     if (tempReply.getContent() == null || tempReply.getContent().isEmpty()) {
       builder.content("기본 댓글 내용 " + generateRandomSuffix());
-    }
-    if (tempReply.getStatus() == null) {
-      builder.status(ReviewReplyStatus.NORMAL);
     }
 
     return builder;
