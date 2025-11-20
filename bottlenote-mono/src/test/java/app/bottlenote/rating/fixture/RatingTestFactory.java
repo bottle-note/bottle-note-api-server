@@ -4,11 +4,11 @@ import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
-import app.bottlenote.rating.repository.JpaRatingRepository;
 import app.bottlenote.user.domain.User;
 import jakarta.persistence.EntityManager;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,65 +21,58 @@ public class RatingTestFactory {
 
   @Autowired private EntityManager em;
 
-  @Deprecated @Autowired private JpaRatingRepository ratingRepository;
-
   // ========== Rating 생성 메서드들 ==========
 
   /** 사용자와 알코올로 Rating 생성 */
   @Transactional
-  public Rating persistRating(User user, Alcohol alcohol, int point) {
+  @NotNull
+  public Rating persistRating(@NotNull User user, @NotNull Alcohol alcohol, int point) {
     Rating rating =
         Rating.builder()
             .id(RatingId.is(user.getId(), alcohol.getId()))
             .ratingPoint(RatingPoint.of(point))
             .build();
     em.persist(rating);
+    em.flush();
     return rating;
   }
 
   /** ID와 평점으로 Rating 생성 */
   @Transactional
-  public Rating persistRating(Long userId, Long alcoholId, int point) {
+  @NotNull
+  public Rating persistRating(@NotNull Long userId, @NotNull Long alcoholId, int point) {
     Rating rating =
         Rating.builder()
             .id(RatingId.is(userId, alcoholId))
             .ratingPoint(RatingPoint.of(point))
             .build();
     em.persist(rating);
+    em.flush();
     return rating;
   }
 
   /** 빌더를 통한 Rating 생성 - 누락 필드 자동 채우기 */
   @Transactional
-  public Rating persistRating(Rating.RatingBuilder builder) {
+  @NotNull
+  public Rating persistRating(@NotNull Rating.RatingBuilder builder) {
     // 누락 필드 채우기
     Rating.RatingBuilder filledBuilder = fillMissingRatingFields(builder);
     Rating rating = filledBuilder.build();
     em.persist(rating);
+    em.flush();
     return rating;
   }
 
   /** 빌더를 통한 Rating 생성 후 flush (즉시 ID 필요한 경우) */
   @Transactional
-  public Rating persistAndFlushRating(Rating.RatingBuilder builder) {
+  @NotNull
+  public Rating persistAndFlushRating(@NotNull Rating.RatingBuilder builder) {
     // 누락 필드 채우기
     Rating.RatingBuilder filledBuilder = fillMissingRatingFields(builder);
     Rating rating = filledBuilder.build();
     em.persist(rating);
     em.flush(); // 즉시 ID 필요한 경우에만 사용
     return rating;
-  }
-
-  // ========== 기존 메서드 (호환성 유지) ==========
-
-  @Deprecated
-  public void createRating(User user, Alcohol alcohol, int point) {
-    Rating rating =
-        Rating.builder()
-            .id(RatingId.is(user.getId(), alcohol.getId()))
-            .ratingPoint(RatingPoint.of(point))
-            .build();
-    ratingRepository.saveAndFlush(rating);
   }
 
   // ========== 헬퍼 메서드들 ==========
