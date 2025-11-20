@@ -136,7 +136,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
     @BeforeEach
     void setUpTestData() {
-      testUser = userTestFactory.persistUser("help-read@test.com", "문의조회유저");
+      testUser = userTestFactory.persistUser("help-read", "문의조회유저");
       testHelp = helpTestFactory.persistHelp(testUser.getId(), HelpType.USER, "탈퇴관련문의", "탈퇴가 안돼요");
     }
 
@@ -199,7 +199,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
     @BeforeEach
     void setUpTestData() {
-      testUser = userTestFactory.persistUser("help-modify@test.com", "문의수정유저");
+      testUser = userTestFactory.persistUser("help-modify", "문의수정유저");
       testHelp = helpTestFactory.persistHelp(testUser.getId(), HelpType.USER, "탈퇴관련문의", "탈퇴가 안돼요");
     }
 
@@ -317,7 +317,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
     @BeforeEach
     void setUpTestData() {
-      testUser = userTestFactory.persistUser("help-delete@test.com", "문의삭제유저");
+      testUser = userTestFactory.persistUser("help-delete", "문의삭제유저");
       testHelp = helpTestFactory.persistHelp(testUser.getId(), HelpType.USER, "탈퇴관련문의", "탈퇴가 안돼요");
     }
 

@@ -231,7 +231,7 @@ class ReportIntegrationTest extends IntegrationTestSupport {
   @Test
   void test_4() throws Exception {
     // given
-    User targetUser = userTestFactory.persistUser("target@test.com", "신고대상유저");
+    User targetUser = userTestFactory.persistUser("report-target", "신고대상유저");
 
     UserReportRequest userReportRequest =
         new UserReportRequest(targetUser.getId(), UserReportType.FRAUD, "아주 나쁜놈이에요 신고합니다.");
