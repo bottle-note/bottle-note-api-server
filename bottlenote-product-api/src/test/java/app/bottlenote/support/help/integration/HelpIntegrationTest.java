@@ -315,7 +315,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
   @Nested
   @DisplayName("[Integration] 문의글 삭제 통합테스트")
-  class HelpDeleteIntegrationTest extends IntegrationTestSupport {
+  class HelpDeleteIntegrationTest {
 
     private User testUser;
     private Help testHelp;
