@@ -1283,14 +1283,45 @@ void 단순_조회_테스트() {
 
 ### 8.2 마이그레이션 체크리스트
 
-**테스트 파일별 체크리스트:**
-- [ ] @Sql 어노테이션 제거됨
-- [ ] TestFactory 또는 TestFactory 주입됨
-- [ ] Given 절에 데이터 생성 코드 추가됨
-- [ ] 매직 넘버가 객체 참조로 교체됨
-- [ ] 테스트가 성공적으로 통과함
-- [ ] 테스트 실행 시간이 기존 대비 10% 이내 차이
-- [ ] 코드 리뷰 완료
+**작업 전 준비**
+- [ ] 제거할 @Sql 파일 위치 확인 및 데이터 구조 파악
+- [ ] 필요한 TestFactory가 이미 존재하는지 확인 (없으면 생성 필요)
+  - 확인 경로: `bottlenote-product-api/src/test/java/app/bottlenote/{domain}/fixture/`
+  - 또는: `bottlenote-mono/src/test/java/app/bottlenote/{domain}/fixture/`
+- [ ] 기존 TestFactory들의 사용 패턴 확인 (특히 email, 필드 주입 방식)
+
+**Factory 생성/사용 시**
+- [ ] EntityManager는 `@Autowired` 필드 주입 사용 (생성자 주입 X)
+- [ ] UserTestFactory.persistUser()는 로컬 파트만 전달 (`"user1"` ⭕ / `"user1@test.com"` ❌)
+- [ ] 5가지 팩토리 원칙 준수 확인 (단일책임, 격리, 순수성, 명시성, 응집성)
+
+**토큰 생성 시**
+- [ ] 이미 생성한 User 객체가 있다면 `getToken(user)` 사용
+- [ ] `getToken(OauthRequest)` 사용 금지 (유저 중복 생성 위험)
+- [ ] 파라미터 없는 `getToken()`은 기본 유저 사용 (역할이 명확하지 않을 때만)
+
+**ID 관리**
+- [ ] 하드코딩된 userId 사용 금지 (1, 2, 3, 4 등)
+- [ ] 모든 유저는 Factory로 실제 생성 후 `.getId()` 사용
+- [ ] @Sql의 `INSERT ... VALUES (1, ...)` 패턴을 Factory로 변환 시 특히 주의
+
+**@Nested 클래스 처리**
+- [ ] @Nested 클래스는 `extends` 없이 선언 (자동 상속됨)
+- [ ] @BeforeEach는 @Nested 클래스 내부에 작성 (필요 시)
+- [ ] 외부 클래스의 @Autowired 필드는 @Nested에서 자동 접근 가능
+
+**작업 후 검증**
+- [ ] `grep "@Sql" {파일명}` 으로 모든 @Sql 제거 확인
+- [ ] `grep "getToken(oauthRequest)" {파일명}` 으로 잘못된 토큰 생성 확인
+- [ ] `grep -E "userId.*\([0-9]+L?\)" {파일명}` 으로 하드코딩된 ID 확인
+- [ ] 불필요한 import 제거 (OauthRequest, SocialType 등)
+- [ ] 로컬에서 해당 테스트 파일 실행하여 통과 확인
+
+**핵심 원칙**
+- [ ] **기존 패턴 먼저 확인**: 프로젝트의 다른 테스트들이 어떻게 하는지 보기
+- [ ] **한 곳 수정 시 전체 적용**: 동일한 실수가 여러 곳에 있을 수 있음
+- [ ] **내부 구현 파악**: 사용하는 메서드가 무엇을 하는지 확인
+- [ ] **@Sql vs Factory 차이 인식**: ID 관리 방식이 다름
 
 **Phase별 체크리스트:**
 - [ ] 모든 테스트 파일 마이그레이션 완료
@@ -1299,6 +1330,68 @@ void 단순_조회_테스트() {
 - [ ] 전체 테스트 실행 성공
 - [ ] 성능 측정 및 비교 완료
 - [ ] 팀 공유 완료
+
+---
+
+### 8.3 실제 마이그레이션 경험 (HelpIntegrationTest & ReportIntegrationTest)
+
+이 섹션은 실제 마이그레이션 과정에서 발생한 버그와 학습 내용을 정리한 것입니다.
+
+#### 버그 1. HelpTestFactory EntityManager 주입 방식 오류
+- **문제**: `@RequiredArgsConstructor`로 생성자 주입을 시도했지만 EntityManager가 주입되지 않음
+- **원인**: 기존 TestFactory 패턴을 확인하지 않고 일반적인 생성자 주입 방식 사용
+- **해결**: `@Autowired private EntityManager em` 필드 주입으로 변경
+- **교훈**: 새로운 Factory 생성 시 반드시 기존 패턴 확인
+
+#### 버그 2. @Nested 클래스가 IntegrationTestSupport 중복 상속
+- **문제**: `@Nested class XXX extends IntegrationTestSupport` 로 작성하여 중복 상속 발생
+- **원인**: JUnit5 @Nested 클래스는 외부 클래스의 상속을 자동으로 공유한다는 기본 동작 간과
+- **해결**: @Nested 클래스에서 `extends` 제거
+- **교훈**: @Nested 클래스는 상속 없이 선언
+
+#### 버그 3. getToken(oauthRequest)로 인한 이메일 중복 문제
+- **문제**: 이미 testUser를 생성했는데 OauthRequest로 또 다른 유저를 생성하려고 시도하여 unique constraint 위반
+- **원인**: `getToken(OauthRequest)`가 내부적으로 `oauthService.login()`을 호출하여 유저를 생성/조회한다는 점을 파악하지 못함
+- **해결**: `getToken(testUser)` 사용으로 이미 생성한 User 객체 직접 전달
+- **교훈**: 사용하는 메서드의 내부 구현을 반드시 확인
+
+#### 버그 4. UserTestFactory 이메일 형식 불일치
+- **문제**: `persistUser("help-read@test.com", ...)`처럼 전체 이메일을 파라미터로 전달하여 "help-read@test.com-12345@example.com" 형식의 잘못된 이메일 생성
+- **원인**: UserTestFactory는 로컬 파트만 받고 자동으로 `@example.com`을 붙이는 구현이라는 것을 확인하지 않음
+- **해결**: `persistUser("help-read", ...)`처럼 로컬 파트만 전달
+- **교훈**: Factory 메서드 사용 전 내부 구현 확인 필수
+
+#### 버그 5. test_3에서 하드코딩된 userId로 인한 ID 충돌
+- **문제**: `IntStream.range(1, 5)`로 userId를 1,2,3,4로 하드코딩하여 fifthReporter.getId()와 충돌 발생
+- **원인**: @Sql은 ID를 직접 지정하지만 Factory는 auto_increment로 자동 생성되어 충돌 가능하다는 점 간과
+- **해결**: 1~4번째 신고자도 실제 User 객체를 userTestFactory로 생성
+- **교훈**: @Sql과 Factory의 ID 관리 방식 차이 인식 중요
+
+#### 버그 6. test_4에서 reporter 유저 미생성
+- **문제**: `getToken()` 파라미터 없이 호출하여 신고자가 명확하지 않음
+- **원인**: 테스트에서 "신고자"와 "피신고자" 역할을 명확히 구분해야 한다는 점 간과
+- **해결**: reporter 유저를 명시적으로 생성하고 `getToken(reporter)` 사용
+- **교훈**: 테스트에서 역할이 명확해야 할 때는 각 유저를 명시적으로 생성
+
+#### 버그 7. HelpIntegrationTest에서 getToken(oauthRequest) 잔존
+- **문제**: @Nested 내부는 수정했지만 외부 클래스와 일부 @Nested에 getToken(oauthRequest) 2곳 남음
+- **원인**: 전체 파일을 grep으로 재확인하지 않고 일부만 수정
+- **해결**: `grep "getToken(oauthRequest)" {파일명}` 으로 전체 파일 검증 후 모두 수정
+- **교훈**: 수정 후 반드시 grep으로 전체 파일 재확인
+
+#### 근본 원인 요약
+- **내부 구현 미파악**: 사용하는 메서드의 내부 동작을 확인하지 않음
+- **패턴 불일치**: 기존 테스트 코드와 Factory들의 패턴을 충분히 분석하지 않음
+- **@Sql과 Factory의 차이 간과**: ID 관리 방식의 근본적 차이를 간과
+- **부분 수정**: 한 가지 실수를 수정할 때 프로젝트 전체에서 동일한 패턴 적용하지 않음
+- **검증 부족**: 수정 후 grep 등으로 전체 재확인하지 않음
+
+#### 핵심 교훈
+1. **프레임워크/라이브러리 메서드 사용 전 내부 구현 확인**
+2. **기존 코드 패턴 철저히 분석 후 동일하게 적용**
+3. **데이터 생성 방식 변경 시 ID 관리 전략 재검토**
+4. **수정 후 grep으로 전체 파일 재확인**
+5. **사용자 피드백 받은 실수는 프로젝트 전체에서 동일하게 수정**
 
 ---
 
