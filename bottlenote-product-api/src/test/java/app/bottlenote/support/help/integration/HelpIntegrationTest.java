@@ -30,9 +30,7 @@ import app.bottlenote.support.help.dto.response.HelpListResponse;
 import app.bottlenote.support.help.dto.response.HelpResultResponse;
 import app.bottlenote.support.help.fixture.HelpObjectFixture;
 import app.bottlenote.support.help.fixture.HelpTestFactory;
-import app.bottlenote.user.constant.SocialType;
 import app.bottlenote.user.domain.User;
-import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.fixture.UserTestFactory;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -51,7 +49,6 @@ import org.springframework.test.web.servlet.MvcResult;
 @WithMockUser
 class HelpIntegrationTest extends IntegrationTestSupport {
 
-  private OauthRequest oauthRequest;
   private HelpUpsertRequest helpUpsertRequest;
 
   @Autowired private HelpRepository helpRepository;
@@ -60,7 +57,6 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
   @BeforeEach
   void setUp() {
-    oauthRequest = new OauthRequest("chadongmin@naver.com", null, SocialType.KAKAO, null, null);
     helpUpsertRequest = HelpObjectFixture.getHelpUpsertRequest();
   }
 
@@ -84,7 +80,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
             post("/api/v1/help")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsBytes(helpUpsertRequest))
-                .header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+                .header("Authorization", "Bearer " + getToken())
                 .with(csrf()))
         .andDo(print())
         .andExpect(status().isBadRequest())
@@ -109,7 +105,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
                   post("/api/v1/help")
                       .contentType(MediaType.APPLICATION_JSON)
                       .content(mapper.writeValueAsBytes(helpUpsertRequest))
-                      .header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+                      .header("Authorization", "Bearer " + getToken())
                       .with(csrf()))
               .andDo(print())
               .andExpect(status().isOk())
