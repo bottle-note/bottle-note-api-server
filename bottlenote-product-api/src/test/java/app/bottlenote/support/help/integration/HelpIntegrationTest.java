@@ -136,7 +136,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
     @BeforeEach
     void setUpTestData() {
-      testUser = userTestFactory.persistUser("chadongmin@naver.com", "차동민");
+      testUser = userTestFactory.persistUser("help-read@test.com", "문의조회유저");
       testHelp = helpTestFactory.persistHelp(testUser.getId(), HelpType.USER, "탈퇴관련문의", "탈퇴가 안돼요");
     }
 
@@ -144,13 +144,12 @@ class HelpIntegrationTest extends IntegrationTestSupport {
     @Test
     void test_1() throws Exception {
       // given
-
       MvcResult result =
           mockMvc
               .perform(
                   get("/api/v1/help")
                       .contentType(MediaType.APPLICATION_JSON)
-                      .header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+                      .header("Authorization", "Bearer " + getToken(testUser).accessToken())
                       .with(csrf()))
               .andDo(print())
               .andExpect(status().isOk())
@@ -170,13 +169,12 @@ class HelpIntegrationTest extends IntegrationTestSupport {
     @Test
     void test_2() throws Exception {
       // given
-
       MvcResult result =
           mockMvc
               .perform(
                   get("/api/v1/help/{helpId}", testHelp.getId())
                       .contentType(MediaType.APPLICATION_JSON)
-                      .header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+                      .header("Authorization", "Bearer " + getToken(testUser).accessToken())
                       .with(csrf()))
               .andDo(print())
               .andExpect(status().isOk())
@@ -201,7 +199,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
     @BeforeEach
     void setUpTestData() {
-      testUser = userTestFactory.persistUser("chadongmin@naver.com", "차동민");
+      testUser = userTestFactory.persistUser("help-modify@test.com", "문의수정유저");
       testHelp = helpTestFactory.persistHelp(testUser.getId(), HelpType.USER, "탈퇴관련문의", "탈퇴가 안돼요");
     }
 
@@ -215,7 +213,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
                   patch("/api/v1/help/{helpId}", testHelp.getId())
                       .contentType(MediaType.APPLICATION_JSON)
                       .content(mapper.writeValueAsBytes(helpUpsertRequest))
-                      .header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+                      .header("Authorization", "Bearer " + getToken(testUser).accessToken())
                       .with(csrf()))
               .andDo(print())
               .andExpect(status().isOk())
@@ -236,9 +234,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
     @Test
     void test_2() throws Exception {
       // given
-      userTestFactory.persistUser("test@naver.com", "테스터");
-      OauthRequest anotherOauthRequest =
-          new OauthRequest("test@naver.com", null, SocialType.KAKAO, null, null);
+      User anotherUser = userTestFactory.persistUser("test@naver.com", "테스터");
       Error error = Error.of(HELP_NOT_AUTHORIZED);
 
       // when then
@@ -247,7 +243,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
               patch("/api/v1/help/{helpId}", testHelp.getId())
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(mapper.writeValueAsBytes(helpUpsertRequest))
-                  .header("Authorization", "Bearer " + getToken(anotherOauthRequest).accessToken())
+                  .header("Authorization", "Bearer " + getToken(anotherUser).accessToken())
                   .with(csrf()))
           .andDo(print())
           .andExpect(status().isUnauthorized())
@@ -272,7 +268,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
               patch("/api/v1/help/{helpId}", helpId)
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(mapper.writeValueAsBytes(helpUpsertRequest))
-                  .header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+                  .header("Authorization", "Bearer " + getToken(testUser).accessToken())
                   .with(csrf()))
           .andDo(print())
           .andExpect(status().isBadRequest())
@@ -286,8 +282,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
     @DisplayName("Not null 필드에 null이 할당되면 예외를 반환한다.")
     @Test
     void test_4() throws Exception {
-
-      long helpId = 1L;
+      // given
       Error error = Error.of(CONTENT_NOT_EMPTY);
 
       helpUpsertRequest =
@@ -300,7 +295,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
               patch("/api/v1/help/{helpId}", testHelp.getId())
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(mapper.writeValueAsBytes(helpUpsertRequest))
-                  .header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+                  .header("Authorization", "Bearer " + getToken(testUser).accessToken())
                   .with(csrf()))
           .andDo(print())
           .andExpect(status().isBadRequest())
@@ -322,7 +317,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
     @BeforeEach
     void setUpTestData() {
-      testUser = userTestFactory.persistUser("chadongmin@naver.com", "차동민");
+      testUser = userTestFactory.persistUser("help-delete@test.com", "문의삭제유저");
       testHelp = helpTestFactory.persistHelp(testUser.getId(), HelpType.USER, "탈퇴관련문의", "탈퇴가 안돼요");
     }
 
@@ -335,7 +330,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
               .perform(
                   delete("/api/v1/help/{helpId}", testHelp.getId())
                       .contentType(MediaType.APPLICATION_JSON)
-                      .header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+                      .header("Authorization", "Bearer " + getToken(testUser).accessToken())
                       .with(csrf()))
               .andDo(print())
               .andExpect(status().isOk())
@@ -364,7 +359,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
           .perform(
               delete("/api/v1/help/{helpId}", helpId)
                   .contentType(MediaType.APPLICATION_JSON)
-                  .header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+                  .header("Authorization", "Bearer " + getToken(testUser).accessToken())
                   .with(csrf()))
           .andDo(print())
           .andExpect(status().isBadRequest())
@@ -379,9 +374,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
     @Test
     void test_3() throws Exception {
       // given
-      userTestFactory.persistUser("test@naver.com", "테스터");
-      OauthRequest anotherOauthRequest =
-          new OauthRequest("test@naver.com", null, SocialType.KAKAO, null, null);
+      User anotherUser = userTestFactory.persistUser("test2@naver.com", "테스터2");
       Error error = Error.of(HELP_NOT_AUTHORIZED);
 
       // when then
@@ -389,7 +382,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
           .perform(
               delete("/api/v1/help/{helpId}", testHelp.getId())
                   .contentType(MediaType.APPLICATION_JSON)
-                  .header("Authorization", "Bearer " + getToken(anotherOauthRequest).accessToken())
+                  .header("Authorization", "Bearer " + getToken(anotherUser).accessToken())
                   .with(csrf()))
           .andDo(print())
           .andExpect(status().isUnauthorized())
