@@ -15,12 +15,9 @@ import org.springframework.stereotype.Component;
  *
  * <p>테스트에서 Picks 엔티티를 생성하고 영속화하는 헬퍼 클래스
  *
- * <p>철학:
- * 1. 단일 책임: 엔티티 생성과 영속화만 담당
- * 2. 격리: 모든 persist 메서드는 em.flush()를 호출하여 DB 반영 보장
- * 3. 순수성: Repository를 사용하지 않고 EntityManager만 사용
- * 4. 명시성: 모든 파라미터와 반환값에 @NotNull/@Nullable 명시
- * 5. 응집성: 다른 팩토리에 의존하지 않음
+ * <p>철학: 1. 단일 책임: 엔티티 생성과 영속화만 담당 2. 격리: 모든 persist 메서드는 em.flush()를 호출하여 DB 반영 보장 3. 순수성:
+ * Repository를 사용하지 않고 EntityManager만 사용 4. 명시성: 모든 파라미터와 반환값에 @NotNull/@Nullable 명시 5. 응집성: 다른 팩토리에
+ * 의존하지 않음
  */
 @Component
 public class PicksTestFactory {

@@ -1,6 +1,5 @@
 package app.bottlenote.fixture;
 
-import app.bottlenote.history.constant.EventCategory;
 import app.bottlenote.history.constant.EventType;
 import app.bottlenote.history.domain.UserHistory;
 import jakarta.persistence.EntityManager;
@@ -8,7 +7,6 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -21,12 +19,9 @@ import org.springframework.stereotype.Component;
  *
  * <p>테스트에서 UserHistory 엔티티를 생성하고 영속화하는 헬퍼 클래스
  *
- * <p>철학:
- * 1. 단일 책임: 엔티티 생성과 영속화만 담당
- * 2. 격리: 모든 persist 메서드는 em.flush()를 호출하여 DB 반영 보장
- * 3. 순수성: Repository를 사용하지 않고 EntityManager만 사용
- * 4. 명시성: 모든 파라미터와 반환값에 @NotNull/@Nullable 명시
- * 5. 응집성: 다른 팩토리에 의존하지 않음
+ * <p>철학: 1. 단일 책임: 엔티티 생성과 영속화만 담당 2. 격리: 모든 persist 메서드는 em.flush()를 호출하여 DB 반영 보장 3. 순수성:
+ * Repository를 사용하지 않고 EntityManager만 사용 4. 명시성: 모든 파라미터와 반환값에 @NotNull/@Nullable 명시 5. 응집성: 다른 팩토리에
+ * 의존하지 않음
  */
 @Component
 public class HistoryTestFactory {
@@ -172,7 +167,9 @@ public class HistoryTestFactory {
   @Transactional
   @NotNull
   public UserHistory persistUserHistoryWithDynamicMessage(
-      @NotNull Long userId, @NotNull EventType eventType, @NotNull Map<String, String> dynamicMessage) {
+      @NotNull Long userId,
+      @NotNull EventType eventType,
+      @NotNull Map<String, String> dynamicMessage) {
     LocalDate now = LocalDate.now();
     UserHistory history =
         UserHistory.builder()
