@@ -1,51 +1,5 @@
 # @Sql 어노테이션을 코드 베이스 방식으로 마이그레이션 계획
 
-```
-================================================================================
-                          PROJECT COMPLETION STAMP
-================================================================================
-Status: **IN PROGRESS**
-Start Date: 2025-11-18
-Last Updated: 2025-11-20
-
-** Completed Work **
-- HelpIntegrationTest @Sql 제거 완료 (4 @Nested classes, 9 test methods)
-- ReportIntegrationTest @Sql 제거 완료 (4 test methods)
-- HelpTestFactory 생성 (bottlenote-mono/src/test/java/app/bottlenote/support/help/fixture/)
-- 5가지 팩토리 원칙 적용 (단일책임, 격리, 순수성, 명시성, 응집성)
-- 142개 integration 테스트 모두 통과
-
-** Lessons Learned **
-- 7가지 버그 발견 및 해결
-  1. EntityManager 필드 주입 패턴 (@Autowired)
-  2. @Nested 클래스 중복 상속 문제
-  3. getToken(OauthRequest) 이메일 중복
-  4. UserTestFactory 이메일 형식 불일치
-  5. 하드코딩된 userId 충돌
-  6. reporter 유저 미생성
-  7. getToken(oauthRequest) 잔존
-- 상세 체크리스트 작성 (작업 전/중/후 단계별)
-- 실제 마이그레이션 경험 문서화 (섹션 8.3)
-
-** Remaining Work **
-- Phase 1-1: init-user.sql 마이그레이션 (7개 테스트 파일)
-- Phase 1-2: init-alcohol.sql 마이그레이션 (대용량 227개 데이터)
-- Phase 1-3: init-review.sql 마이그레이션
-- Phase 2: 중빈도 파일 (init-review-reply.sql, init-help.sql, init-user-history.sql)
-- Phase 3: 복합 파일 (init-user-mypage-query.sql, init-user-mybottle-query.sql)
-- Phase 4: 저빈도 파일 (init-popular_alcohol.sql)
-- Phase 5: SQL 파일 삭제 및 최종 검증
-
-** Key Principle **
-- @Sql vs Factory 차이: ID 관리 방식이 근본적으로 다름 (하드코딩 vs auto_increment)
-- 기존 패턴 먼저 확인: 프로젝트의 다른 TestFactory/테스트들이 어떻게 하는지 보기
-- 내부 구현 파악: 사용하는 메서드가 무엇을 하는지 확인
-- 한 곳 수정 시 전체 적용: 동일한 실수가 여러 곳에 있을 수 있음
-================================================================================
-```
-
----
-
 ## 1. 현재 상황 분석
 
 ### 1.1 @Sql 사용 현황
