@@ -3,7 +3,7 @@ package app.bottlenote.fixture;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.bottlenote.IntegrationTestSupport;
-import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
+import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.history.constant.EventType;
 import app.bottlenote.history.domain.UserHistory;
@@ -12,10 +12,13 @@ import app.bottlenote.like.domain.Likes;
 import app.bottlenote.picks.constant.PicksStatus;
 import app.bottlenote.picks.domain.Picks;
 import app.bottlenote.rating.domain.Rating;
+import app.bottlenote.rating.domain.RatingPoint;
+import app.bottlenote.review.constant.SizeType;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewImage;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.support.business.domain.BusinessSupport;
+import app.bottlenote.user.domain.Follow;
 import app.bottlenote.user.domain.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -65,43 +68,19 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("이메일 지정 User 생성")
-    void persistUserWithEmail() {
-      User user = userTestFactory.persistUser("test@example.com");
+    @DisplayName("이메일과 닉네임 지정 User 생성")
+    void persistUserWithEmailAndNickName() {
+      User user = userTestFactory.persistUser("test", "테스터");
 
       assertThat(user.getId()).isNotNull();
-      assertThat(user.getEmail()).isEqualTo("test@example.com");
-    }
-
-    @Test
-    @DisplayName("닉네임 지정 User 생성")
-    void persistUserWithNickName() {
-      User user = userTestFactory.persistUser("테스터", "test@example.com");
-
-      assertThat(user.getId()).isNotNull();
-      assertThat(user.getNickName()).isEqualTo("테스터");
-      assertThat(user.getEmail()).isEqualTo("test@example.com");
-    }
-
-    @Test
-    @DisplayName("모든 정보 지정 User 생성")
-    void persistUserWithAllInfo() {
-      User user = userTestFactory.persistUser("테스터", "test@example.com", "profile.jpg", "M", 1990);
-
-      assertThat(user.getId()).isNotNull();
-      assertThat(user.getNickName()).isEqualTo("테스터");
-      assertThat(user.getEmail()).isEqualTo("test@example.com");
-      assertThat(user.getImageUrl()).isEqualTo("profile.jpg");
-      assertThat(user.getGender()).isEqualTo("M");
-      assertThat(user.getAge()).isEqualTo(1990);
+      assertThat(user.getEmail()).contains("test");
+      assertThat(user.getNickName()).contains("테스터");
     }
 
     @Test
     @DisplayName("빌더 기반 User 생성")
     void persistUserWithBuilder() {
-      User user =
-          userTestFactory.persistUser(
-              User.builder().email("builder@example.com").nickName("빌더테스터"));
+      User user = userTestFactory.persistUser(User.builder().email("builder@example.com").nickName("빌더테스터"));
 
       assertThat(user.getId()).isNotNull();
       assertThat(user.getEmail()).isEqualTo("builder@example.com");
@@ -109,60 +88,65 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("여러 User 생성")
-    void persistUsers() {
-      List<User> users = userTestFactory.persistUsers(5);
+    @DisplayName("사용자 간 팔로우 관계 생성")
+    void persistFollow() {
+      User follower = userTestFactory.persistUser();
+      User following = userTestFactory.persistUser();
 
-      assertThat(users).hasSize(5);
-      users.forEach(user -> assertThat(user.getId()).isNotNull());
+      Follow follow = userTestFactory.persistFollow(follower, following);
+
+      assertThat(follow.getId()).isNotNull();
+      assertThat(follow.getUserId()).isEqualTo(follower.getId());
+      assertThat(follow.getTargetUserId()).isEqualTo(following.getId());
     }
 
     @Test
-    @DisplayName("팔로워 User 생성")
-    void persistFollowerUser() {
-      User user = userTestFactory.persistFollowerUser();
+    @DisplayName("ID로 팔로우 관계 생성")
+    void persistFollowWithIds() {
+      User follower = userTestFactory.persistUser();
+      User following = userTestFactory.persistUser();
 
-      assertThat(user.getId()).isNotNull();
-      assertThat(user.getNickName()).contains("팔로워");
+      Follow follow = userTestFactory.persistFollow(follower.getId(), following.getId());
+
+      assertThat(follow.getId()).isNotNull();
     }
 
     @Test
-    @DisplayName("팔로잉 User 생성")
-    void persistFollowingUser() {
-      User user = userTestFactory.persistFollowingUser();
+    @DisplayName("팔로우 관계와 사용자 동시 생성")
+    void persistFollowWithUsers() {
+      Follow follow = userTestFactory.persistFollowWithUsers();
 
-      assertThat(user.getId()).isNotNull();
-      assertThat(user.getNickName()).contains("팔로잉");
+      assertThat(follow.getId()).isNotNull();
+      assertThat(follow.getUserId()).isNotNull();
+      assertThat(follow.getTargetUserId()).isNotNull();
     }
 
     @Test
-    @DisplayName("사용자 ID로 User 조회")
-    void getUserById() {
-      User user = userTestFactory.persistUser();
-      User found = userTestFactory.getUserById(user.getId());
+    @DisplayName("특정 사용자의 팔로워 여럿 생성")
+    void persistFollowers() {
+      User targetUser = userTestFactory.persistUser();
+      List<Follow> followers = userTestFactory.persistFollowers(targetUser, 3);
 
-      assertThat(found).isNotNull();
-      assertThat(found.getId()).isEqualTo(user.getId());
+      assertThat(followers).hasSize(3);
+      followers.forEach(
+          follow -> {
+            assertThat(follow.getId()).isNotNull();
+            assertThat(follow.getTargetUserId()).isEqualTo(targetUser.getId());
+          });
     }
 
     @Test
-    @DisplayName("기본 사용자 ID 조회")
-    void getDefaultUserId() {
-      Long userId = userTestFactory.getDefaultUserId();
+    @DisplayName("특정 사용자가 팔로잉하는 사용자 여럿 생성")
+    void persistFollowings() {
+      User follower = userTestFactory.persistUser();
+      List<Follow> followings = userTestFactory.persistFollowings(follower, 3);
 
-      assertThat(userId).isNotNull();
-      User found = em.find(User.class, userId);
-      assertThat(found).isNotNull();
-    }
-
-    @Test
-    @DisplayName("임의 사용자 ID 조회")
-    void getRandomUserId() {
-      Long userId = userTestFactory.getRandomUserId();
-
-      assertThat(userId).isNotNull();
-      User found = em.find(User.class, userId);
-      assertThat(found).isNotNull();
+      assertThat(followings).hasSize(3);
+      followings.forEach(
+          follow -> {
+            assertThat(follow.getId()).isNotNull();
+            assertThat(follow.getUserId()).isEqualTo(follower.getId());
+          });
     }
   }
 
@@ -182,21 +166,31 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("이름 지정 Alcohol 생성")
-    void persistAlcoholWithName() {
-      Alcohol alcohol = alcoholTestFactory.persistAlcohol("테스트위스키");
+    @DisplayName("타입 지정 Alcohol 생성")
+    void persistAlcoholWithType() {
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol(AlcoholType.WHISKY);
 
       assertThat(alcohol.getId()).isNotNull();
-      assertThat(alcohol.getName()).contains("테스트위스키");
+      assertThat(alcohol.getType()).isEqualTo(AlcoholType.WHISKY);
     }
 
     @Test
-    @DisplayName("카테고리 지정 Alcohol 생성")
-    void persistAlcoholWithCategory() {
-      Alcohol alcohol = alcoholTestFactory.persistAlcohol("위스키", AlcoholCategoryGroup.WHISKY);
+    @DisplayName("이름과 타입 지정 Alcohol 생성")
+    void persistAlcoholWithNameAndType() {
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol("테스트위스키", "Test Whisky", AlcoholType.WHISKY);
 
       assertThat(alcohol.getId()).isNotNull();
-      assertThat(alcohol.getCategory()).isEqualTo(AlcoholCategoryGroup.WHISKY);
+      assertThat(alcohol.getKorName()).contains("테스트위스키");
+    }
+
+    @Test
+    @DisplayName("정확한 이름으로 Alcohol 생성")
+    void persistAlcoholWithName() {
+      Alcohol alcohol = alcoholTestFactory.persistAlcoholWithName("맥캘란 12년", "Macallan 12");
+
+      assertThat(alcohol.getId()).isNotNull();
+      assertThat(alcohol.getKorName()).isEqualTo("맥캘란 12년");
+      assertThat(alcohol.getEngName()).isEqualTo("Macallan 12");
     }
 
     @Test
@@ -204,10 +198,10 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
     void persistAlcoholWithBuilder() {
       Alcohol alcohol =
           alcoholTestFactory.persistAlcohol(
-              Alcohol.builder().korName("빌더위스키").korCategoryGroup(AlcoholCategoryGroup.WHISKY));
+              Alcohol.builder().korName("빌더위스키").engName("Builder Whisky").type(AlcoholType.WHISKY));
 
       assertThat(alcohol.getId()).isNotNull();
-      assertThat(alcohol.getName()).contains("빌더위스키");
+      assertThat(alcohol.getKorName()).isEqualTo("빌더위스키");
     }
 
     @Test
@@ -220,117 +214,48 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("카테고리별 여러 Alcohol 생성")
-    void persistAlcoholsByCategory() {
-      List<Alcohol> alcohols = alcoholTestFactory.persistAlcohols(3, AlcoholCategoryGroup.WHISKY);
+    @DisplayName("기본 Region 생성")
+    void persistRegion() {
+      var region = alcoholTestFactory.persistRegion();
 
-      assertThat(alcohols).hasSize(3);
-      alcohols.forEach(
-          alcohol -> {
-            assertThat(alcohol.getId()).isNotNull();
-            assertThat(alcohol.getCategory()).isEqualTo(AlcoholCategoryGroup.WHISKY);
-          });
+      assertThat(region.getId()).isNotNull();
+      assertThat(region.getKorName()).contains("스코틀랜드");
     }
 
     @Test
-    @DisplayName("AlcoholQuerySupporter용 Alcohol 생성")
-    void persistAlcoholsForSupporter() {
-      Alcohol alcohol = alcoholTestFactory.persistAlcoholsForSupporter();
+    @DisplayName("커스텀 Region 생성")
+    void persistRegionWithName() {
+      var region = alcoholTestFactory.persistRegion("일본", "Japan");
 
-      assertThat(alcohol.getId()).isNotNull();
+      assertThat(region.getId()).isNotNull();
+      assertThat(region.getKorName()).contains("일본");
     }
 
     @Test
-    @DisplayName("별점과 리뷰가 있는 Alcohol 생성")
-    void persistAlcoholWithRatingAndReview() {
-      User user = userTestFactory.persistUser();
-      Alcohol alcohol = alcoholTestFactory.persistAlcoholWithRatingAndReview(user);
+    @DisplayName("기본 Distillery 생성")
+    void persistDistillery() {
+      var distillery = alcoholTestFactory.persistDistillery();
 
-      assertThat(alcohol.getId()).isNotNull();
+      assertThat(distillery.getId()).isNotNull();
+      assertThat(distillery.getKorName()).contains("맥캘란");
     }
 
     @Test
-    @DisplayName("별점이 있는 Alcohol 생성")
-    void persistAlcoholWithRating() {
-      User user = userTestFactory.persistUser();
-      Alcohol alcohol = alcoholTestFactory.persistAlcoholWithRating(user);
+    @DisplayName("커스텀 Distillery 생성")
+    void persistDistilleryWithName() {
+      var distillery = alcoholTestFactory.persistDistillery("글렌피딕", "Glenfiddich");
 
-      assertThat(alcohol.getId()).isNotNull();
+      assertThat(distillery.getId()).isNotNull();
+      assertThat(distillery.getKorName()).contains("글렌피딕");
     }
 
     @Test
-    @DisplayName("리뷰가 있는 Alcohol 생성")
-    void persistAlcoholWithReview() {
-      User user = userTestFactory.persistUser();
-      Alcohol alcohol = alcoholTestFactory.persistAlcoholWithReview(user);
+    @DisplayName("기본 CurationKeyword 생성")
+    void persistCurationKeyword() {
+      var curation = alcoholTestFactory.persistCurationKeyword();
 
-      assertThat(alcohol.getId()).isNotNull();
-    }
-
-    @Test
-    @DisplayName("알코올 ID로 Alcohol 조회")
-    void getAlcoholById() {
-      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
-      Alcohol found = alcoholTestFactory.getAlcoholById(alcohol.getId());
-
-      assertThat(found).isNotNull();
-      assertThat(found.getId()).isEqualTo(alcohol.getId());
-    }
-
-    @Test
-    @DisplayName("기본 알코올 ID 조회")
-    void getDefaultAlcoholId() {
-      Long alcoholId = alcoholTestFactory.getDefaultAlcoholId();
-
-      assertThat(alcoholId).isNotNull();
-      Alcohol found = em.find(Alcohol.class, alcoholId);
-      assertThat(found).isNotNull();
-    }
-
-    @Test
-    @DisplayName("임의 알코올 ID 조회")
-    void getRandomAlcoholId() {
-      Long alcoholId = alcoholTestFactory.getRandomAlcoholId();
-
-      assertThat(alcoholId).isNotNull();
-      Alcohol found = em.find(Alcohol.class, alcoholId);
-      assertThat(found).isNotNull();
-    }
-
-    @Test
-    @DisplayName("알코올 ID 리스트 조회")
-    void getAlcoholIds() {
-      alcoholTestFactory.persistAlcohols(5);
-      List<Long> ids = alcoholTestFactory.getAlcoholIds();
-
-      assertThat(ids).hasSizeGreaterThanOrEqualTo(5);
-    }
-
-    @Test
-    @DisplayName("여러 알코올 ID 조회")
-    void getAlcoholIdsWithCount() {
-      List<Long> ids = alcoholTestFactory.getAlcoholIds(3);
-
-      assertThat(ids).hasSize(3);
-      ids.forEach(id -> assertThat(em.find(Alcohol.class, id)).isNotNull());
-    }
-
-    @Test
-    @DisplayName("기본 Alcohol 조회")
-    void getDefaultAlcohol() {
-      Alcohol alcohol = alcoholTestFactory.getDefaultAlcohol();
-
-      assertThat(alcohol).isNotNull();
-      assertThat(alcohol.getId()).isNotNull();
-    }
-
-    @Test
-    @DisplayName("임의 Alcohol 조회")
-    void getRandomAlcohol() {
-      Alcohol alcohol = alcoholTestFactory.getRandomAlcohol();
-
-      assertThat(alcohol).isNotNull();
-      assertThat(alcohol.getId()).isNotNull();
+      assertThat(curation.getId()).isNotNull();
+      assertThat(curation.getName()).contains("큐레이션");
     }
   }
 
@@ -339,16 +264,17 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
   class RatingTestFactoryTest {
 
     @Test
-    @DisplayName("기본 Rating 생성")
-    void persistRating() {
+    @DisplayName("User와 Alcohol로 Rating 생성")
+    void persistRatingWithEntities() {
       User user = userTestFactory.persistUser();
       Alcohol alcohol = alcoholTestFactory.persistAlcohol();
 
-      Rating rating = ratingTestFactory.persistRating(user, alcohol);
+      Rating rating = ratingTestFactory.persistRating(user, alcohol, 4);
 
       assertThat(rating.getId()).isNotNull();
       assertThat(rating.getId().getUserId()).isEqualTo(user.getId());
       assertThat(rating.getId().getAlcoholId()).isEqualTo(alcohol.getId());
+      assertThat(rating.getRatingPoint().getRating()).isEqualTo(4);
     }
 
     @Test
@@ -357,21 +283,10 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
       User user = userTestFactory.persistUser();
       Alcohol alcohol = alcoholTestFactory.persistAlcohol();
 
-      Rating rating = ratingTestFactory.persistRating(user.getId(), alcohol.getId());
+      Rating rating = ratingTestFactory.persistRating(user.getId(), alcohol.getId(), 5);
 
       assertThat(rating.getId()).isNotNull();
-    }
-
-    @Test
-    @DisplayName("별점 지정 Rating 생성")
-    void persistRatingWithRatingPoint() {
-      User user = userTestFactory.persistUser();
-      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
-
-      Rating rating = ratingTestFactory.persistRating(user, alcohol, 4.5);
-
-      assertThat(rating.getId()).isNotNull();
-      assertThat(rating.getRating()).isEqualTo(4.5);
+      assertThat(rating.getRatingPoint().getRating()).isEqualTo(5);
     }
 
     @Test
@@ -381,10 +296,13 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
       Alcohol alcohol = alcoholTestFactory.persistAlcohol();
 
       Rating rating =
-          ratingTestFactory.persistRating(Rating.builder().user(user).alcohol(alcohol).rating(5.0));
+          ratingTestFactory.persistRating(
+              Rating.builder()
+                  .id(Rating.RatingId.is(user.getId(), alcohol.getId()))
+                  .ratingPoint(RatingPoint.of(3)));
 
       assertThat(rating.getId()).isNotNull();
-      assertThat(rating.getRating()).isEqualTo(5.0);
+      assertThat(rating.getRatingPoint().getRating()).isEqualTo(3);
     }
   }
 
@@ -394,8 +312,9 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
 
     @Test
     @DisplayName("BusinessSupport 생성")
-    void persistBusinessSupport() {
-      BusinessSupport support = businessSupportTestFactory.persistBusinessSupport();
+    void persist() {
+      User user = userTestFactory.persistUser();
+      BusinessSupport support = businessSupportTestFactory.persist(user.getId());
 
       assertThat(support.getId()).isNotNull();
       em.clear();
@@ -409,7 +328,7 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
   class ReviewTestFactoryTest {
 
     @Test
-    @DisplayName("기본 Review 생성 (User, Alcohol)")
+    @DisplayName("User와 Alcohol로 Review 생성")
     void persistReviewWithEntities() {
       User user = userTestFactory.persistUser();
       Alcohol alcohol = alcoholTestFactory.persistAlcohol();
@@ -423,7 +342,7 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("기본 Review 생성 (userId, alcoholId)")
+    @DisplayName("ID로 Review 생성")
     void persistReviewWithIds() {
       User user = userTestFactory.persistUser();
       Alcohol alcohol = alcoholTestFactory.persistAlcohol();
@@ -441,11 +360,11 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
 
       Review review =
           reviewTestFactory.persistReview(
-              user, alcohol, "테스트 리뷰 내용", Review.SizeType.BOTTLE, BigDecimal.valueOf(50000));
+              user, alcohol, "테스트 리뷰 내용", SizeType.BOTTLE, BigDecimal.valueOf(50000));
 
       assertThat(review.getId()).isNotNull();
       assertThat(review.getContent()).isEqualTo("테스트 리뷰 내용");
-      assertThat(review.getSizeType()).isEqualTo(Review.SizeType.BOTTLE);
+      assertThat(review.getSizeType()).isEqualTo(SizeType.BOTTLE);
       assertThat(review.getPrice()).isEqualByComparingTo(BigDecimal.valueOf(50000));
     }
 
@@ -464,19 +383,7 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("여러 Review 생성")
-    void persistReviews() {
-      User user = userTestFactory.persistUser();
-      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
-
-      List<Review> reviews = reviewTestFactory.persistReviews(user, alcohol, 3);
-
-      assertThat(reviews).hasSize(3);
-      reviews.forEach(review -> assertThat(review.getId()).isNotNull());
-    }
-
-    @Test
-    @DisplayName("기본 ReviewReply 생성 (Review, User)")
+    @DisplayName("Review와 User로 ReviewReply 생성")
     void persistReviewReplyWithEntities() {
       User user = userTestFactory.persistUser();
       Alcohol alcohol = alcoholTestFactory.persistAlcohol();
@@ -488,7 +395,7 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("기본 ReviewReply 생성 (reviewId, userId)")
+    @DisplayName("ID로 ReviewReply 생성")
     void persistReviewReplyWithIds() {
       User user = userTestFactory.persistUser();
       Alcohol alcohol = alcoholTestFactory.persistAlcohol();
@@ -525,22 +432,8 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
 
       assertThat(nestedReply.getId()).isNotNull();
       assertThat(nestedReply.getContent()).isEqualTo("대댓글");
-      assertThat(nestedReply.getParentReplyId()).isEqualTo(parentReply.getId());
-    }
-
-    @Test
-    @DisplayName("빌더 기반 ReviewReply 생성")
-    void persistReviewReplyWithBuilder() {
-      User user = userTestFactory.persistUser();
-      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
-      Review review = reviewTestFactory.persistReview(user, alcohol);
-
-      ReviewReply reply =
-          reviewTestFactory.persistReviewReply(
-              ReviewReply.builder().reviewId(review.getId()).userId(user.getId()).content("빌더 댓글"));
-
-      assertThat(reply.getId()).isNotNull();
-      assertThat(reply.getContent()).isEqualTo("빌더 댓글");
+      assertThat(nestedReply.getParentReviewReply()).isNotNull();
+      assertThat(nestedReply.getParentReviewReply().getId()).isEqualTo(parentReply.getId());
     }
 
     @Test
@@ -577,7 +470,7 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
   class LikesTestFactoryTest {
 
     @Test
-    @DisplayName("기본 Likes 생성 (reviewId, userId)")
+    @DisplayName("기본 Likes 생성")
     void persistLikesWithIds() {
       User user = userTestFactory.persistUser();
       Alcohol alcohol = alcoholTestFactory.persistAlcohol();
@@ -663,7 +556,7 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
   class PicksTestFactoryTest {
 
     @Test
-    @DisplayName("기본 Picks 생성 (alcoholId, userId)")
+    @DisplayName("기본 Picks 생성")
     void persistPicksWithIds() {
       User user = userTestFactory.persistUser();
       Alcohol alcohol = alcoholTestFactory.persistAlcohol();
@@ -682,8 +575,7 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
       User user = userTestFactory.persistUser();
       Alcohol alcohol = alcoholTestFactory.persistAlcohol();
 
-      Picks picks =
-          picksTestFactory.persistPicks(alcohol.getId(), user.getId(), PicksStatus.UNPICK);
+      Picks picks = picksTestFactory.persistPicks(alcohol.getId(), user.getId(), PicksStatus.UNPICK);
 
       assertThat(picks.getId()).isNotNull();
       assertThat(picks.getStatus()).isEqualTo(PicksStatus.UNPICK);
@@ -738,12 +630,11 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
   class HistoryTestFactoryTest {
 
     @Test
-    @DisplayName("기본 UserHistory 생성 (userId, eventType)")
+    @DisplayName("기본 UserHistory 생성")
     void persistUserHistoryWithBasic() {
       User user = userTestFactory.persistUser();
 
-      UserHistory history =
-          historyTestFactory.persistUserHistory(user.getId(), EventType.REVIEW_CREATE);
+      UserHistory history = historyTestFactory.persistUserHistory(user.getId(), EventType.REVIEW_CREATE);
 
       assertThat(history.getId()).isNotNull();
       assertThat(history.getUserId()).isEqualTo(user.getId());
@@ -760,8 +651,7 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
       Alcohol alcohol = alcoholTestFactory.persistAlcohol();
 
       UserHistory history =
-          historyTestFactory.persistUserHistory(
-              user.getId(), EventType.REVIEW_CREATE, alcohol.getId());
+          historyTestFactory.persistUserHistory(user.getId(), EventType.REVIEW_CREATE, alcohol.getId());
 
       assertThat(history.getId()).isNotNull();
       assertThat(history.getAlcoholId()).isEqualTo(alcohol.getId());
@@ -825,8 +715,7 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
     void persistMultipleUserHistories() {
       User user = userTestFactory.persistUser();
 
-      List<UserHistory> histories =
-          historyTestFactory.persistMultipleUserHistories(user.getId(), 5);
+      List<UserHistory> histories = historyTestFactory.persistMultipleUserHistories(user.getId(), 5);
 
       assertThat(histories).hasSize(5);
       histories.forEach(history -> assertThat(history.getId()).isNotNull());
