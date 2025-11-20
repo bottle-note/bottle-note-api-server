@@ -1,4 +1,4 @@
-package app.bottlenote.fixture;
+package app.bottlenote.picks.fixture;
 
 import app.bottlenote.picks.constant.PicksStatus;
 import app.bottlenote.picks.domain.Picks;

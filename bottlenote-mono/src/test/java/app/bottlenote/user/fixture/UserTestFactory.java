@@ -1,4 +1,4 @@
-package app.bottlenote.fixture;
+package app.bottlenote.user.fixture;
 
 import app.bottlenote.user.constant.FollowStatus;
 import app.bottlenote.user.constant.GenderType;

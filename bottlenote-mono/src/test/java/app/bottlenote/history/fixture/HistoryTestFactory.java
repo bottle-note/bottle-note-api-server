@@ -1,4 +1,4 @@
-package app.bottlenote.fixture;
+package app.bottlenote.history.fixture;
 
 import app.bottlenote.history.constant.EventType;
 import app.bottlenote.history.domain.UserHistory;

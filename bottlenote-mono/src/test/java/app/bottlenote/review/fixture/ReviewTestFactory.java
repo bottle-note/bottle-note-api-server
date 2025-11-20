@@ -1,4 +1,4 @@
-package app.bottlenote.fixture;
+package app.bottlenote.review.fixture;
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.common.image.ImageInfo;

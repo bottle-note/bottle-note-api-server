@@ -1,4 +1,4 @@
-package app.bottlenote.fixture;
+package app.bottlenote.like.fixture;
 
 import app.bottlenote.like.constant.LikeStatus;
 import app.bottlenote.like.domain.LikeUserInfo;

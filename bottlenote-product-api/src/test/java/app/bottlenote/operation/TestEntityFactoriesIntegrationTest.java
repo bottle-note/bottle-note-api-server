@@ -1,25 +1,33 @@
-package app.bottlenote.fixture;
+package app.bottlenote.operation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.domain.Alcohol;
+import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
 import app.bottlenote.history.constant.EventType;
 import app.bottlenote.history.domain.UserHistory;
+import app.bottlenote.history.fixture.HistoryTestFactory;
 import app.bottlenote.like.constant.LikeStatus;
 import app.bottlenote.like.domain.Likes;
+import app.bottlenote.like.fixture.LikesTestFactory;
 import app.bottlenote.picks.constant.PicksStatus;
 import app.bottlenote.picks.domain.Picks;
+import app.bottlenote.picks.fixture.PicksTestFactory;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.RatingPoint;
+import app.bottlenote.rating.fixture.RatingTestFactory;
 import app.bottlenote.review.constant.SizeType;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewImage;
 import app.bottlenote.review.domain.ReviewReply;
+import app.bottlenote.review.fixture.ReviewTestFactory;
 import app.bottlenote.support.business.domain.BusinessSupport;
+import app.bottlenote.support.business.fixture.BusinessSupportTestFactory;
 import app.bottlenote.user.domain.Follow;
 import app.bottlenote.user.domain.User;
+import app.bottlenote.user.fixture.UserTestFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.math.BigDecimal;

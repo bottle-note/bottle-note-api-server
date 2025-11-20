@@ -1,4 +1,4 @@
-package app.bottlenote.fixture;
+package app.bottlenote.alcohols.fixture;
 
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.AlcoholType;

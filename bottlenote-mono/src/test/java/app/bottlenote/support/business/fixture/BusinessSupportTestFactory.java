@@ -1,4 +1,4 @@
-package app.bottlenote.fixture;
+package app.bottlenote.support.business.fixture;
 
 import app.bottlenote.support.business.constant.BusinessSupportType;
 import app.bottlenote.support.business.domain.BusinessSupport;
