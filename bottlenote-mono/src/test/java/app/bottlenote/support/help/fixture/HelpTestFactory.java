@@ -8,6 +8,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,11 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
  * <p>5가지 원칙: 1. 단일 책임: Help 엔티티 생성만 2. 격리: em.flush()로 즉시 반영 3. 순수성: EntityManager만 사용 4.
  * 명시성: @NotNull/@Nullable 명시 5. 응집성: 다른 팩토리 의존 없음
  */
-@Component
 @RequiredArgsConstructor
+@Component
 public class HelpTestFactory {
 
-  private final EntityManager em;
+  @Autowired private EntityManager em;
 
   /** 기본 Help 생성 (최소 필드) */
   @Transactional
