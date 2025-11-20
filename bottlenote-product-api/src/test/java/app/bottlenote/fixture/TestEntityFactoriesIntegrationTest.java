@@ -1,7 +1,6 @@
 package app.bottlenote.fixture;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.alcohols.domain.Alcohol;
@@ -87,8 +86,7 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
     @Test
     @DisplayName("모든 정보 지정 User 생성")
     void persistUserWithAllInfo() {
-      User user =
-          userTestFactory.persistUser("테스터", "test@example.com", "profile.jpg", "M", 1990);
+      User user = userTestFactory.persistUser("테스터", "test@example.com", "profile.jpg", "M", 1990);
 
       assertThat(user.getId()).isNotNull();
       assertThat(user.getNickName()).isEqualTo("테스터");
@@ -195,8 +193,7 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
     @Test
     @DisplayName("카테고리 지정 Alcohol 생성")
     void persistAlcoholWithCategory() {
-      Alcohol alcohol =
-          alcoholTestFactory.persistAlcohol("위스키", AlcoholCategoryGroup.WHISKY);
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol("위스키", AlcoholCategoryGroup.WHISKY);
 
       assertThat(alcohol.getId()).isNotNull();
       assertThat(alcohol.getCategory()).isEqualTo(AlcoholCategoryGroup.WHISKY);
@@ -225,8 +222,7 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
     @Test
     @DisplayName("카테고리별 여러 Alcohol 생성")
     void persistAlcoholsByCategory() {
-      List<Alcohol> alcohols =
-          alcoholTestFactory.persistAlcohols(3, AlcoholCategoryGroup.WHISKY);
+      List<Alcohol> alcohols = alcoholTestFactory.persistAlcohols(3, AlcoholCategoryGroup.WHISKY);
 
       assertThat(alcohols).hasSize(3);
       alcohols.forEach(
@@ -385,8 +381,7 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
       Alcohol alcohol = alcoholTestFactory.persistAlcohol();
 
       Rating rating =
-          ratingTestFactory.persistRating(
-              Rating.builder().user(user).alcohol(alcohol).rating(5.0));
+          ratingTestFactory.persistRating(Rating.builder().user(user).alcohol(alcohol).rating(5.0));
 
       assertThat(rating.getId()).isNotNull();
       assertThat(rating.getRating()).isEqualTo(5.0);
@@ -446,11 +441,7 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
 
       Review review =
           reviewTestFactory.persistReview(
-              user,
-              alcohol,
-              "테스트 리뷰 내용",
-              Review.SizeType.BOTTLE,
-              BigDecimal.valueOf(50000));
+              user, alcohol, "테스트 리뷰 내용", Review.SizeType.BOTTLE, BigDecimal.valueOf(50000));
 
       assertThat(review.getId()).isNotNull();
       assertThat(review.getContent()).isEqualTo("테스트 리뷰 내용");
@@ -466,10 +457,7 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
 
       Review review =
           reviewTestFactory.persistReview(
-              Review.builder()
-                  .userId(user.getId())
-                  .alcoholId(alcohol.getId())
-                  .content("빌더 리뷰"));
+              Review.builder().userId(user.getId()).alcoholId(alcohol.getId()).content("빌더 리뷰"));
 
       assertThat(review.getId()).isNotNull();
       assertThat(review.getContent()).isEqualTo("빌더 리뷰");
@@ -549,10 +537,7 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
 
       ReviewReply reply =
           reviewTestFactory.persistReviewReply(
-              ReviewReply.builder()
-                  .reviewId(review.getId())
-                  .userId(user.getId())
-                  .content("빌더 댓글"));
+              ReviewReply.builder().reviewId(review.getId()).userId(user.getId()).content("빌더 댓글"));
 
       assertThat(reply.getId()).isNotNull();
       assertThat(reply.getContent()).isEqualTo("빌더 댓글");
@@ -626,8 +611,7 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
       Alcohol alcohol = alcoholTestFactory.persistAlcohol();
       Review review = reviewTestFactory.persistReview(user, alcohol);
 
-      Likes likes =
-          likesTestFactory.persistLikes(review.getId(), user.getId(), LikeStatus.DISLIKE);
+      Likes likes = likesTestFactory.persistLikes(review.getId(), user.getId(), LikeStatus.DISLIKE);
 
       assertThat(likes.getId()).isNotNull();
       assertThat(likes.getStatus()).isEqualTo(LikeStatus.DISLIKE);
@@ -841,7 +825,8 @@ class TestEntityFactoriesIntegrationTest extends IntegrationTestSupport {
     void persistMultipleUserHistories() {
       User user = userTestFactory.persistUser();
 
-      List<UserHistory> histories = historyTestFactory.persistMultipleUserHistories(user.getId(), 5);
+      List<UserHistory> histories =
+          historyTestFactory.persistMultipleUserHistories(user.getId(), 5);
 
       assertThat(histories).hasSize(5);
       histories.forEach(history -> assertThat(history.getId()).isNotNull());
