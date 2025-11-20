@@ -15,10 +15,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.IntegrationTestSupport;
+import app.bottlenote.alcohols.domain.Alcohol;
+import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
 import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewRepository;
+import app.bottlenote.review.fixture.ReviewTestFactory;
 import app.bottlenote.support.report.constant.UserReportType;
 import app.bottlenote.support.report.domain.ReviewReport;
 import app.bottlenote.support.report.domain.ReviewReportRepository;
@@ -27,16 +30,18 @@ import app.bottlenote.support.report.dto.request.UserReportRequest;
 import app.bottlenote.support.report.dto.response.ReviewReportResponse;
 import app.bottlenote.support.report.dto.response.UserReportResponse;
 import app.bottlenote.user.constant.SocialType;
+import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.request.OauthRequest;
+import app.bottlenote.user.fixture.UserTestFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.IntStream;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 
 @Tag("integration")
@@ -45,18 +50,17 @@ class ReportIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private ReviewReportRepository reviewReportRepository;
   @Autowired private ReviewRepository reviewRepository;
+  @Autowired private UserTestFactory userTestFactory;
+  @Autowired private AlcoholTestFactory alcoholTestFactory;
+  @Autowired private ReviewTestFactory reviewTestFactory;
 
   @DisplayName("리뷰를 신고할 수 있다.")
   @Test
-  @Sql(
-      scripts = {
-        "/init-script/init-user.sql",
-        "/init-script/init-alcohol.sql",
-        "/init-script/init-review.sql"
-      })
   void test_1() throws Exception {
     // given
-    Review review = reviewRepository.findAll().getFirst();
+    User user = userTestFactory.persistUser();
+    Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+    Review review = reviewTestFactory.persistReview(user, alcohol);
     ReviewReportRequest reviewReportRequest =
         new ReviewReportRequest(review.getId(), ADVERTISEMENT, "이 리뷰는 광고 리뷰입니다.");
 
@@ -88,15 +92,11 @@ class ReportIntegrationTest extends IntegrationTestSupport {
 
   @DisplayName("유저는 하나의 리뷰에 대해 한번만 신고할 수 있다.")
   @Test
-  @Sql(
-      scripts = {
-        "/init-script/init-user.sql",
-        "/init-script/init-alcohol.sql",
-        "/init-script/init-review.sql"
-      })
   void test_2() throws Exception {
     // given
-    Review review = reviewRepository.findAll().getFirst();
+    User user = userTestFactory.persistUser();
+    Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+    Review review = reviewTestFactory.persistReview(user, alcohol);
     ReviewReportRequest reviewReportRequest =
         new ReviewReportRequest(review.getId(), ADVERTISEMENT, "이 리뷰는 광고 리뷰입니다.");
 
@@ -147,15 +147,11 @@ class ReportIntegrationTest extends IntegrationTestSupport {
 
   @DisplayName("서로 다른 IP로 5개의 신고가 누적되면 리뷰가 비활성화 된다.")
   @Test
-  @Sql(
-      scripts = {
-        "/init-script/init-user.sql",
-        "/init-script/init-alcohol.sql",
-        "/init-script/init-review.sql"
-      })
   void test_3() throws Exception {
     // given
-    Review review = reviewRepository.findAll().getFirst();
+    User user = userTestFactory.persistUser();
+    Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+    Review review = reviewTestFactory.persistReview(user, alcohol);
     ReviewReportRequest reviewReportRequest =
         new ReviewReportRequest(review.getId(), ADVERTISEMENT, "이 리뷰는 광고 리뷰입니다.");
 
@@ -234,15 +230,12 @@ class ReportIntegrationTest extends IntegrationTestSupport {
 
   @DisplayName("유저를 신고할 수 있다.")
   @Test
-  @Sql(
-      scripts = {
-        "/init-script/init-user.sql",
-        "/init-script/init-alcohol.sql",
-        "/init-script/init-review.sql"
-      })
   void test_4() throws Exception {
+    // given
+    User targetUser = userTestFactory.persistUser("target@test.com", "신고대상유저");
+
     UserReportRequest userReportRequest =
-        new UserReportRequest(2L, UserReportType.FRAUD, "아주 나쁜놈이에요 신고합니다.");
+        new UserReportRequest(targetUser.getId(), UserReportType.FRAUD, "아주 나쁜놈이에요 신고합니다.");
 
     MvcResult result =
         mockMvc
