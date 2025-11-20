@@ -97,7 +97,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
   @Nested
   @DisplayName("[Integration] 문의글 작성 통합테스트")
-  class HelpRegisterControllerIntegrationTest extends IntegrationTestSupport {
+  class HelpRegisterControllerIntegrationTest {
 
     @DisplayName("문의글을 작성할 수 있다.")
     @Test
@@ -129,7 +129,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
   @Nested
   @DisplayName("[Integration] 문의글 조회 통합테스트")
-  class HelpReadIntegrationTest extends IntegrationTestSupport {
+  class HelpReadIntegrationTest {
 
     private User testUser;
     private Help testHelp;
@@ -194,7 +194,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
   @Nested
   @DisplayName("[Integration] 문의글 수정 통합테스트")
-  class HelpModifyIntegrationTest extends IntegrationTestSupport {
+  class HelpModifyIntegrationTest {
 
     private User testUser;
     private Help testHelp;
