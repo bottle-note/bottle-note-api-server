@@ -107,8 +107,9 @@ public class MicrometerTracingAspect {
     }
   }
 
-  /** Repository 클래스의 모든 public 메서드를 자동으로 추적 */
-  @Around("execution(public * app.bottlenote..repository.*.*(..))")
+  /** Repository 주요 메서드만 추적 (Jpa*Repository, Custom*RepositoryImpl만 추적, Supporter 제외) */
+  @Around("execution(public * app.bottlenote..repository.Jpa*Repository.*(..)) || " +
+          "execution(public * app.bottlenote..repository.Custom*RepositoryImpl.*(..))")
   public Object traceRepositoryMethods(ProceedingJoinPoint joinPoint) throws Throwable {
     MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
     String className = methodSignature.getDeclaringType().getSimpleName();
@@ -141,15 +142,16 @@ public class MicrometerTracingAspect {
     }
   }
 
-  /** Controller 클래스의 모든 public 메서드를 자동으로 추적 */
-  @Around("execution(public * app.bottlenote..controller.*.*(..))")
+  /** Controller 클래스의 모든 public 메서드를 자동으로 추적 (Actuator 제외) */
+  @Around("execution(public * app.bottlenote..controller.*.*(..)) && " +
+          "!execution(* org.springframework.boot.actuate..*.*(..))")
   public Object traceControllerMethods(ProceedingJoinPoint joinPoint) throws Throwable {
     MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
     String className = methodSignature.getDeclaringType().getSimpleName();
     String methodName = methodSignature.getName();
 
+    // HealthCheck 같은 내부 헬스체크 엔드포인트 제외
     if (className.equals("HealthCheckController")) {
-      // HealthCheckController는 추적하지 않음
       return joinPoint.proceed();
     }
 
