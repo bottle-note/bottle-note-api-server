@@ -74,6 +74,10 @@ public class AlcoholViewHistoryService {
     // 2. Redis 데이터를 DB 엔티티로 변환
     redisHistories.forEach(
         redisHistory -> {
+          if (redisHistory == null) {
+            log.debug("TTL expired data found in index, skipping...");
+            return;
+          }
           var viewTime =
               LocalDateTime.ofInstant(
                   Instant.ofEpochMilli(redisHistory.getViewTime()), ZoneId.systemDefault());
