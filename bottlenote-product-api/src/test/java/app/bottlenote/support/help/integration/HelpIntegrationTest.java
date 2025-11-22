@@ -21,6 +21,7 @@ import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.support.help.constant.HelpType;
+import app.bottlenote.support.help.domain.Help;
 import app.bottlenote.support.help.domain.HelpRepository;
 import app.bottlenote.support.help.dto.request.HelpImageItem;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
@@ -28,8 +29,9 @@ import app.bottlenote.support.help.dto.response.HelpDetailItem;
 import app.bottlenote.support.help.dto.response.HelpListResponse;
 import app.bottlenote.support.help.dto.response.HelpResultResponse;
 import app.bottlenote.support.help.fixture.HelpObjectFixture;
-import app.bottlenote.user.constant.SocialType;
-import app.bottlenote.user.dto.request.OauthRequest;
+import app.bottlenote.support.help.fixture.HelpTestFactory;
+import app.bottlenote.user.domain.User;
+import app.bottlenote.user.fixture.UserTestFactory;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,7 +42,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 
 @Tag("integration")
@@ -48,14 +49,14 @@ import org.springframework.test.web.servlet.MvcResult;
 @WithMockUser
 class HelpIntegrationTest extends IntegrationTestSupport {
 
-  private OauthRequest oauthRequest;
   private HelpUpsertRequest helpUpsertRequest;
 
   @Autowired private HelpRepository helpRepository;
+  @Autowired private HelpTestFactory helpTestFactory;
+  @Autowired private UserTestFactory userTestFactory;
 
   @BeforeEach
   void setUp() {
-    oauthRequest = new OauthRequest("chadongmin@naver.com", null, SocialType.KAKAO, null, null);
     helpUpsertRequest = HelpObjectFixture.getHelpUpsertRequest();
   }
 
@@ -79,7 +80,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
             post("/api/v1/help")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsBytes(helpUpsertRequest))
-                .header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+                .header("Authorization", "Bearer " + getToken())
                 .with(csrf()))
         .andDo(print())
         .andExpect(status().isBadRequest())
@@ -92,7 +93,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
   @Nested
   @DisplayName("[Integration] 문의글 작성 통합테스트")
-  class HelpRegisterControllerIntegrationTest extends IntegrationTestSupport {
+  class HelpRegisterControllerIntegrationTest {
 
     @DisplayName("문의글을 작성할 수 있다.")
     @Test
@@ -104,7 +105,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
                   post("/api/v1/help")
                       .contentType(MediaType.APPLICATION_JSON)
                       .content(mapper.writeValueAsBytes(helpUpsertRequest))
-                      .header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+                      .header("Authorization", "Bearer " + getToken())
                       .with(csrf()))
               .andDo(print())
               .andExpect(status().isOk())
@@ -122,22 +123,29 @@ class HelpIntegrationTest extends IntegrationTestSupport {
     }
   }
 
-  @Sql(scripts = {"/init-script/init-user.sql", "/init-script/init-help.sql"})
   @Nested
   @DisplayName("[Integration] 문의글 조회 통합테스트")
-  class HelpReadIntegrationTest extends IntegrationTestSupport {
+  class HelpReadIntegrationTest {
+
+    private User testUser;
+    private Help testHelp;
+
+    @BeforeEach
+    void setUpTestData() {
+      testUser = userTestFactory.persistUser("help-read", "문의조회유저");
+      testHelp = helpTestFactory.persistHelp(testUser.getId(), HelpType.USER, "탈퇴관련문의", "탈퇴가 안돼요");
+    }
 
     @DisplayName("문의글 목록을 조회할 수 있다.")
     @Test
     void test_1() throws Exception {
       // given
-
       MvcResult result =
           mockMvc
               .perform(
                   get("/api/v1/help")
                       .contentType(MediaType.APPLICATION_JSON)
-                      .header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+                      .header("Authorization", "Bearer " + getToken(testUser).accessToken())
                       .with(csrf()))
               .andDo(print())
               .andExpect(status().isOk())
@@ -157,13 +165,12 @@ class HelpIntegrationTest extends IntegrationTestSupport {
     @Test
     void test_2() throws Exception {
       // given
-
       MvcResult result =
           mockMvc
               .perform(
-                  get("/api/v1/help/{helpId}", 1L)
+                  get("/api/v1/help/{helpId}", testHelp.getId())
                       .contentType(MediaType.APPLICATION_JSON)
-                      .header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+                      .header("Authorization", "Bearer " + getToken(testUser).accessToken())
                       .with(csrf()))
               .andDo(print())
               .andExpect(status().isOk())
@@ -179,23 +186,30 @@ class HelpIntegrationTest extends IntegrationTestSupport {
     }
   }
 
-  @Sql(scripts = {"/init-script/init-user.sql", "/init-script/init-help.sql"})
   @Nested
   @DisplayName("[Integration] 문의글 수정 통합테스트")
-  class HelpModifyIntegrationTest extends IntegrationTestSupport {
+  class HelpModifyIntegrationTest {
+
+    private User testUser;
+    private Help testHelp;
+
+    @BeforeEach
+    void setUpTestData() {
+      testUser = userTestFactory.persistUser("help-modify", "문의수정유저");
+      testHelp = helpTestFactory.persistHelp(testUser.getId(), HelpType.USER, "탈퇴관련문의", "탈퇴가 안돼요");
+    }
 
     @DisplayName("문의글을 수정할 수 있다.")
     @Test
     void test_1() throws Exception {
       // given when
-      long helpId = 1L;
       MvcResult result =
           mockMvc
               .perform(
-                  patch("/api/v1/help/{helpId}", helpId)
+                  patch("/api/v1/help/{helpId}", testHelp.getId())
                       .contentType(MediaType.APPLICATION_JSON)
                       .content(mapper.writeValueAsBytes(helpUpsertRequest))
-                      .header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+                      .header("Authorization", "Bearer " + getToken(testUser).accessToken())
                       .with(csrf()))
               .andDo(print())
               .andExpect(status().isOk())
@@ -215,17 +229,17 @@ class HelpIntegrationTest extends IntegrationTestSupport {
     @DisplayName("유저 본인이 작성한 글이 아니면 문의글을 수정할 수 없다.")
     @Test
     void test_2() throws Exception {
-      // given when
-      long helpId = 1L;
-      oauthRequest = new OauthRequest("test@naver.com", null, SocialType.KAKAO, null, null);
+      // given
+      User anotherUser = userTestFactory.persistUser("test@naver.com", "테스터");
       Error error = Error.of(HELP_NOT_AUTHORIZED);
 
+      // when then
       mockMvc
           .perform(
-              patch("/api/v1/help/{helpId}", helpId)
+              patch("/api/v1/help/{helpId}", testHelp.getId())
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(mapper.writeValueAsBytes(helpUpsertRequest))
-                  .header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+                  .header("Authorization", "Bearer " + getToken(anotherUser).accessToken())
                   .with(csrf()))
           .andDo(print())
           .andExpect(status().isUnauthorized())
@@ -240,17 +254,17 @@ class HelpIntegrationTest extends IntegrationTestSupport {
     @DisplayName("존재하지 않는 문의글을 수정할 수 없다.")
     @Test
     void test_3() throws Exception {
-      // given when
+      // given
       long helpId = -1L;
-      oauthRequest = new OauthRequest("test@naver.com", null, SocialType.KAKAO, null, null);
       Error error = Error.of(HELP_NOT_FOUND);
 
+      // when then
       mockMvc
           .perform(
               patch("/api/v1/help/{helpId}", helpId)
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(mapper.writeValueAsBytes(helpUpsertRequest))
-                  .header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+                  .header("Authorization", "Bearer " + getToken(testUser).accessToken())
                   .with(csrf()))
           .andDo(print())
           .andExpect(status().isBadRequest())
@@ -264,20 +278,20 @@ class HelpIntegrationTest extends IntegrationTestSupport {
     @DisplayName("Not null 필드에 null이 할당되면 예외를 반환한다.")
     @Test
     void test_4() throws Exception {
-
-      long helpId = 1L;
+      // given
       Error error = Error.of(CONTENT_NOT_EMPTY);
 
       helpUpsertRequest =
           new HelpUpsertRequest(
               "로그인이 안됨", null, HelpType.USER, List.of(new HelpImageItem(1L, "https://test.com")));
-      // given when
+
+      // when then
       mockMvc
           .perform(
-              patch("/api/v1/help/{helpId}", helpId)
+              patch("/api/v1/help/{helpId}", testHelp.getId())
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(mapper.writeValueAsBytes(helpUpsertRequest))
-                  .header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+                  .header("Authorization", "Bearer " + getToken(testUser).accessToken())
                   .with(csrf()))
           .andDo(print())
           .andExpect(status().isBadRequest())
@@ -290,22 +304,29 @@ class HelpIntegrationTest extends IntegrationTestSupport {
     }
   }
 
-  @Sql(scripts = {"/init-script/init-user.sql", "/init-script/init-help.sql"})
   @Nested
-  @DisplayName("[Integration] 문의글 수정 통합테스트")
-  class HelpDeleteIntegrationTest extends IntegrationTestSupport {
+  @DisplayName("[Integration] 문의글 삭제 통합테스트")
+  class HelpDeleteIntegrationTest {
+
+    private User testUser;
+    private Help testHelp;
+
+    @BeforeEach
+    void setUpTestData() {
+      testUser = userTestFactory.persistUser("help-delete", "문의삭제유저");
+      testHelp = helpTestFactory.persistHelp(testUser.getId(), HelpType.USER, "탈퇴관련문의", "탈퇴가 안돼요");
+    }
 
     @DisplayName("문의글을 삭제할 수 있다.")
     @Test
     void test_1() throws Exception {
       // given when
-      long helpId = 1L;
       MvcResult result =
           mockMvc
               .perform(
-                  delete("/api/v1/help/{helpId}", helpId)
+                  delete("/api/v1/help/{helpId}", testHelp.getId())
                       .contentType(MediaType.APPLICATION_JSON)
-                      .header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+                      .header("Authorization", "Bearer " + getToken(testUser).accessToken())
                       .with(csrf()))
               .andDo(print())
               .andExpect(status().isOk())
@@ -325,16 +346,16 @@ class HelpIntegrationTest extends IntegrationTestSupport {
     @DisplayName("존재하지 않는 문의글을 삭제할 수 없다.")
     @Test
     void test_2() throws Exception {
-      // given when
+      // given
       long helpId = -1L;
-      oauthRequest = new OauthRequest("test@naver.com", null, SocialType.KAKAO, null, null);
       Error error = Error.of(HELP_NOT_FOUND);
 
+      // when then
       mockMvc
           .perform(
               delete("/api/v1/help/{helpId}", helpId)
                   .contentType(MediaType.APPLICATION_JSON)
-                  .header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+                  .header("Authorization", "Bearer " + getToken(testUser).accessToken())
                   .with(csrf()))
           .andDo(print())
           .andExpect(status().isBadRequest())
@@ -348,16 +369,16 @@ class HelpIntegrationTest extends IntegrationTestSupport {
     @DisplayName("유저 본인이 작성한 글이 아니면 문의글을 삭제할 수 없다.")
     @Test
     void test_3() throws Exception {
-      // given when
-      long helpId = 1L;
-      oauthRequest = new OauthRequest("test@naver.com", null, SocialType.KAKAO, null, null);
+      // given
+      User anotherUser = userTestFactory.persistUser("test2@naver.com", "테스터2");
       Error error = Error.of(HELP_NOT_AUTHORIZED);
 
+      // when then
       mockMvc
           .perform(
-              delete("/api/v1/help/{helpId}", helpId)
+              delete("/api/v1/help/{helpId}", testHelp.getId())
                   .contentType(MediaType.APPLICATION_JSON)
-                  .header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+                  .header("Authorization", "Bearer " + getToken(anotherUser).accessToken())
                   .with(csrf()))
           .andDo(print())
           .andExpect(status().isUnauthorized())

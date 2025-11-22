@@ -19,6 +19,7 @@ import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
 import app.bottlenote.rating.fixture.RatingTestFactory;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.fixture.UserTestFactory;
+import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
@@ -36,6 +37,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
   @Autowired private AlcoholTestFactory alcoholTestFactory;
   @Autowired private UserTestFactory userTestFactory;
   @Autowired private RatingTestFactory ratingTestFactory;
+  @Autowired private EntityManager em;
 
   @Test
   @DisplayName("알코올 목록조회를 할 수 있다.")
@@ -83,8 +85,17 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
     assertNotNull(responseAlcohols);
 
     Long alcoholId = responseAlcohols.getFirst().getAlcoholId();
-    Set<AlcoholsTastingTags> alcoholTastingTags =
-        alcoholTestFactory.getAlcoholTastingTags(alcoholId);
+    List<AlcoholsTastingTags> alcoholTastingTags =
+        em.createQuery(
+                """
+                SELECT att
+                FROM alcohol_tasting_tags att
+                JOIN FETCH att.tastingTag
+                WHERE att.alcohol.id = :alcoholId
+                """,
+                AlcoholsTastingTags.class)
+            .setParameter("alcoholId", alcoholId)
+            .getResultList();
     List<TastingTag> tagList =
         alcoholTastingTags.stream().map(AlcoholsTastingTags::getTastingTag).toList();
 
