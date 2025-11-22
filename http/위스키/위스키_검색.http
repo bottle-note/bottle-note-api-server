@@ -22,7 +22,7 @@ Authorization: Bearer {{accessToken}}
 
 ### 2. 키워드 검색 (단일 단어)
 # @no-cookie-jar
-GET {{host}}/api/v1/alcohols/search?keyword=맥캘란
+GET {{host}}/api/v1/alcohols/search?keyword=비 오는 날 추천 위스키
 Authorization: Bearer {{accessToken}}
 
 ### 3. 키워드 검색 (여러 단어 - AND 검색)

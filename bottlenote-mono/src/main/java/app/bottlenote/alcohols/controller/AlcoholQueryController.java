@@ -34,9 +34,9 @@ public class AlcoholQueryController {
         switch (request.keyword() != null && !request.keyword().isEmpty()
             ? request.keyword()
             : "") {
-          case "비 오는 날 추천 위스키" -> request.withCurationId(1L);
-          case "강렬한 폭풍우 피트 추천 위스키" -> request.withCurationId(2L);
-          case "가을 추천 위스키" -> request.withCurationId(3L);
+          case "비 오는 날 추천 위스키" -> request.convertCurationId(1L);
+          case "강렬한 폭풍우 피트 추천 위스키" -> request.convertCurationId(2L);
+          case "가을 추천 위스키" -> request.convertCurationId(3L);
           default -> request;
         };
 
