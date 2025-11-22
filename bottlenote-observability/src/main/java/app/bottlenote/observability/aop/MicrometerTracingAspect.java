@@ -3,6 +3,8 @@ package app.bottlenote.observability.aop;
 import app.bottlenote.observability.annotation.TraceMethod;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -74,12 +76,29 @@ public class MicrometerTracingAspect {
     }
   }
 
-  /** Service 클래스의 모든 public 메서드를 자동으로 추적 */
+  /** Service 클래스의 모든 public 메서드를 자동으로 추적 (어노테이션 기반 필터링) */
   @Around("execution(public * app.bottlenote..service.*.*(..))")
   public Object traceServiceMethods(ProceedingJoinPoint joinPoint) throws Throwable {
     MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
     String className = methodSignature.getDeclaringType().getSimpleName();
     String methodName = methodSignature.getName();
+
+    // 해당 메소드의 어노테이션 추출
+    Method method = methodSignature.getMethod();
+
+    // @SkipTrace가 있으면 추적하지 않음
+    if (hasSkipTraceAnnotation(method)) {
+      return joinPoint.proceed();
+    }
+
+    // @Scheduled, @Job 어노테이션이 있으면 추적하지 않음
+    Annotation[] annotations = method.getAnnotations();
+    for (Annotation annotation : annotations) {
+      String annotationName = annotation.annotationType().getSimpleName();
+      if (annotationName.equals("Scheduled") || annotationName.equals("Job")) {
+        return joinPoint.proceed();
+      }
+    }
 
     String spanName = "service." + className + "." + methodName;
     Span span = tracer.nextSpan().name(spanName);
@@ -108,12 +127,19 @@ public class MicrometerTracingAspect {
   }
 
   /** Repository 주요 메서드만 추적 (Jpa*Repository, Custom*RepositoryImpl만 추적, Supporter 제외) */
-  @Around("execution(public * app.bottlenote..repository.Jpa*Repository.*(..)) || " +
-          "execution(public * app.bottlenote..repository.Custom*RepositoryImpl.*(..))")
+  @Around(
+      "execution(public * app.bottlenote..repository.Jpa*Repository.*(..)) || "
+          + "execution(public * app.bottlenote..repository.Custom*RepositoryImpl.*(..))")
   public Object traceRepositoryMethods(ProceedingJoinPoint joinPoint) throws Throwable {
     MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
     String className = methodSignature.getDeclaringType().getSimpleName();
     String methodName = methodSignature.getName();
+
+    // @SkipTrace가 있으면 추적하지 않음
+    Method method = methodSignature.getMethod();
+    if (hasSkipTraceAnnotation(method)) {
+      return joinPoint.proceed();
+    }
 
     String spanName = "repository." + className + "." + methodName;
     Span span = tracer.nextSpan().name(spanName);
@@ -143,8 +169,9 @@ public class MicrometerTracingAspect {
   }
 
   /** Controller 클래스의 모든 public 메서드를 자동으로 추적 (Actuator 제외) */
-  @Around("execution(public * app.bottlenote..controller.*.*(..)) && " +
-          "!execution(* org.springframework.boot.actuate..*.*(..))")
+  @Around(
+      "execution(public * app.bottlenote..controller.*.*(..)) && "
+          + "!execution(* org.springframework.boot.actuate..*.*(..))")
   public Object traceControllerMethods(ProceedingJoinPoint joinPoint) throws Throwable {
     MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
     String className = methodSignature.getDeclaringType().getSimpleName();
@@ -152,6 +179,12 @@ public class MicrometerTracingAspect {
 
     // HealthCheck 같은 내부 헬스체크 엔드포인트 제외
     if (className.equals("HealthCheckController")) {
+      return joinPoint.proceed();
+    }
+
+    // @SkipTrace가 있으면 추적하지 않음
+    Method method = methodSignature.getMethod();
+    if (hasSkipTraceAnnotation(method)) {
       return joinPoint.proceed();
     }
 
@@ -180,5 +213,15 @@ public class MicrometerTracingAspect {
     } finally {
       span.end();
     }
+  }
+
+  /** @SkipTrace 어노테이션이 있는지 확인 */
+  private boolean hasSkipTraceAnnotation(Method method) {
+    for (Annotation annotation : method.getAnnotations()) {
+      if (annotation.annotationType().getSimpleName().equals("SkipTrace")) {
+        return true;
+      }
+    }
+    return false;
   }
 }
