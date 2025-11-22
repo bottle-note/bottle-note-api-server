@@ -7,6 +7,7 @@ import app.bottlenote.global.redis.entity.AlcoholViewHistory;
 import app.bottlenote.global.redis.repository.RedisAlcoholViewHistoryRepository;
 import app.bottlenote.history.domain.AlcoholsViewHistory;
 import app.bottlenote.history.domain.AlcoholsViewHistoryRepository;
+import app.bottlenote.observability.annotation.SkipTrace;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -64,6 +65,7 @@ public class AlcoholViewHistoryService {
   }
 
   /** Redis에 저장된 조회 기록을 DB에 동기화 */
+  @SkipTrace
   @Transactional
   public void syncViewHistoryFromRedisToDb() {
     // 1. Redis에서 모든 조회 기록 가져오기
