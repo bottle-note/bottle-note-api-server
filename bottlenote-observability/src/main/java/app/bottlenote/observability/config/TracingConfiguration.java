@@ -1,5 +1,6 @@
 package app.bottlenote.observability.config;
 
+import io.micrometer.observation.ObservationPredicate;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender;
 import jakarta.annotation.PostConstruct;
@@ -10,6 +11,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.server.observation.ServerRequestObservationContext;
 
 @Slf4j
 @Configuration
@@ -54,6 +56,29 @@ public class TracingConfiguration {
     return event -> {
       OpenTelemetryAppender.install(openTelemetry);
       log.info("OpenTelemetryAppender installed");
+    };
+  }
+
+  @Bean
+  @ConditionalOnProperty(value = "management.tracing.disabled", havingValue = "false")
+  public ObservationPredicate skipActuatorEndpoints() {
+    return (name, context) -> {
+      // Scheduled task 제외
+      if (name.startsWith("task")) {
+        log.debug("Skipping tracing for scheduled task: {}", name);
+        return false;
+      }
+
+      // Actuator 엔드포인트 제외
+      if (context instanceof ServerRequestObservationContext serverContext) {
+        String uri = serverContext.getCarrier().getRequestURI();
+        boolean shouldObserve = !uri.startsWith("/actuator");
+        if (!shouldObserve) {
+          log.debug("Skipping tracing for actuator endpoint: {}", uri);
+        }
+        return shouldObserve;
+      }
+      return true;
     };
   }
 }
