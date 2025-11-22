@@ -22,8 +22,8 @@ public record AlcoholSearchRequest(
     pageSize = pageSize != null ? pageSize : 10L;
   }
 
-  public AlcoholSearchRequest withCurationId(Long curationId) {
+  public AlcoholSearchRequest convertCurationId(Long curationId) {
     return new AlcoholSearchRequest(
-        keyword, curationId, category, regionId, sortType, sortOrder, cursor, pageSize);
+        "", curationId, category, regionId, sortType, sortOrder, cursor, pageSize);
   }
 }
