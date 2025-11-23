@@ -62,3 +62,4 @@ CLAUDE.personal.md
 # .env files
 .env
 /prod.env
+http_old/

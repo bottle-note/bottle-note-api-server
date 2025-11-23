@@ -1,0 +1,20 @@
+### 리뷰 조회
+# @no-cookie-jar
+@alcoholId=209
+GET {{host}}/api/v1/reviews/{{alcoholId}}
+Authorization: Bearer {{accessToken}}
+
+### 나의 리뷰 조회
+GET {{host}}/api/v1/reviews/me/{{alcoholId}}
+Authorization: Bearer {{accessToken}}
+
+### 리뷰 상세 조회
+# @no-cookie-jar
+@reviewId = 2
+GET {{host}}/api/v1/reviews/detail/{{reviewId}}
+Authorization: Bearer {{accessToken}}
+
+### 리뷰 둘러보기
+# @no-cookie-jar
+GET {{host}}/api/v1/reviews/explore/standard?page=0&size=10&keywords=시그넷
+Authorization: Bearer {{accessToken}}

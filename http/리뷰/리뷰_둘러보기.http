@@ -1,4 +1,0 @@
-### 리뷰 둘러보기
-# @no-cookie-jar
-GET {{host}}/api/v1/reviews/explore/standard?page=0&size=10&keywords=시그넷
-Authorization: Bearer {{accessToken}}

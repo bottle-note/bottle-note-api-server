@@ -1,0 +1,29 @@
+### 마이보틀 - 리뷰 목록 조회
+@userId = 8
+GET {{host}}/api/v1/my-page/{{userId}}/my-bottle/reviews?keyword=&regionId=&sortType=LATEST&sortOrder=DESC&cursor=0&pageSize=50
+Authorization: Bearer {{accessToken}}
+
+### 마이보틀 - 별점 목록 조회
+@userId = 8
+GET {{host}}/api/v1/my-page/{{userId}}/my-bottle/ratings?keyword=&regionId=&sortType=LATEST&sortOrder=DESC&cursor=0&pageSize=50
+Authorization: Bearer {{accessToken}}
+
+### 마이보틀 - 찜 목록 조회
+@userId = 8
+GET {{host}}/api/v1/my-page/{{userId}}/my-bottle/picks?keyword=&regionId=&sortType=LATEST&sortOrder=DESC&cursor=0&pageSize=50
+Authorization: Bearer {{accessToken}}
+
+### 마이보틀 - 리뷰 목록 (키워드 검색)
+@userId = 8
+GET {{host}}/api/v1/my-page/{{userId}}/my-bottle/reviews?keyword=아란&regionId=&sortType=LATEST&sortOrder=DESC&cursor=0&pageSize=50
+Authorization: Bearer {{accessToken}}
+
+### 마이보틀 - 별점 목록 (지역 필터)
+@userId = 8
+GET {{host}}/api/v1/my-page/{{userId}}/my-bottle/ratings?keyword=&regionId=1&sortType=LATEST&sortOrder=DESC&cursor=0&pageSize=50
+Authorization: Bearer {{accessToken}}
+
+### 마이보틀 - 찜 목록 (평점순)
+@userId = 8
+GET {{host}}/api/v1/my-page/{{userId}}/my-bottle/picks?keyword=&regionId=&sortType=RATING&sortOrder=DESC&cursor=0&pageSize=50
+Authorization: Bearer {{accessToken}}
