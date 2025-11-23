@@ -31,6 +31,10 @@ Authorization: Bearer {{accessToken}}
 GET {{host}}/api/v1/blocks/stats/blocking-count
 Authorization: Bearer {{accessToken}}
 
+### 나를 차단한 유저 수 조회
+GET {{host}}/api/v1/blocks/stats/blocked-by-count
+Authorization: Bearer {{accessToken}}
+
 ### 차단 필터링 테스트 - 리뷰 조회
 GET {{host}}/api/v1/reviews/274
 Authorization: Bearer {{accessToken}}

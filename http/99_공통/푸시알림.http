@@ -1,0 +1,22 @@
+### 푸시 토큰 저장
+POST {{host}}/api/v1/external/push/token
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "deviceToken": "firebase-device-token-here",
+  "platform": "ANDROID"
+}
+
+### 푸시 토큰 저장 (iOS)
+POST {{host}}/api/v1/external/push/token
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "deviceToken": "firebase-device-token-here",
+  "platform": "IOS"
+}
+
+### 푸시 알림 전송 테스트
+GET {{host}}/api/v1/external/push?msg=테스트 메시지

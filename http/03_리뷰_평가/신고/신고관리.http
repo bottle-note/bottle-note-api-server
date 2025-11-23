@@ -1,0 +1,21 @@
+### 리뷰 신고
+POST {{host}}/api/v1/reports/review
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "reviewId": 1,
+  "reportType": "INAPPROPRIATE_CONTENT",
+  "content": "부적절한 내용이 포함되어 있습니다."
+}
+
+### 사용자 신고
+POST {{host}}/api/v1/reports/user
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "reportUserId": 10,
+  "reportType": "SPAM",
+  "content": "스팸 활동을 하는 사용자입니다."
+}

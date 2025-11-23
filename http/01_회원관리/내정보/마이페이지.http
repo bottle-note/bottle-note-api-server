@@ -15,19 +15,19 @@ Content-Type: application/json
 %}
 
 ### 게스트 사용자가 마이페이지를 조회한다.
-GET {{host}}/api/v1/mypage/1
+GET {{host}}/api/v1/my-page/1
 
 ### 로그인 이용자의 마이 페이지를 조회한다.
-GET {{host}}/api/v1/mypage/8
+GET {{host}}/api/v1/my-page/8
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 ### 타인의 마이페이지를 조회한다.
-GET {{host}}/api/v1/mypage/1
+GET {{host}}/api/v1/my-page/1
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 ### 존재하지 않는 사용자의 마이페이지를 조회한다.
-GET {{host}}/api/v1/mypage/99999
+GET {{host}}/api/v1/my-page/99999
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}

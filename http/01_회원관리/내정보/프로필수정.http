@@ -1,3 +1,7 @@
+### 현재 사용자 정보 조회
+GET {{host}}/api/v1/users/current
+Authorization: Bearer {{accessToken}}
+
 ### 닉네임 변경
 PATCH  {{host}}/api/v1/users/nickname
 Content-Type: application/json
