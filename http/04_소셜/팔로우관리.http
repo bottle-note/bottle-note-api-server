@@ -1,0 +1,39 @@
+### 팔로우 요청
+POST  {{host}}/api/v1/follow
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "followUserId": 1,
+  "status": "following"
+}
+
+### 팔로우 해제
+POST  {{host}}/api/v1/follow
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "followUserId": 1,
+  "status": "unfollow"
+}
+
+### 팔로우 조회
+GET  {{host}}/api/v1/follow/8/relation-list
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "cursor": 0,
+  "pageSize": 50
+}
+
+### 팔로워 조회
+GET  {{host}}/api/v1/follower/1
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "cursor": 0,
+  "pageSize": 50
+}
