@@ -1,0 +1,44 @@
+### 유저 차단하기
+POST {{host}}/api/v1/blocks
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+    "blockedUserId": 2
+}
+
+### 차단 해제하기
+DELETE {{host}}/api/v1/blocks/2
+Authorization: Bearer {{accessToken}}
+
+### 차단한 유저 목록 조회
+GET {{host}}/api/v1/blocks
+Authorization: Bearer {{accessToken}}
+
+### 차단한 유저 ID 목록 조회
+GET {{host}}/api/v1/blocks/ids
+Authorization: Bearer {{accessToken}}
+
+### 특정 유저 차단 여부 확인
+GET {{host}}/api/v1/blocks/check/2
+Authorization: Bearer {{accessToken}}
+
+### 상호 차단 여부 확인
+GET {{host}}/api/v1/blocks/mutual-check/2
+Authorization: Bearer {{accessToken}}
+
+### 내가 차단한 유저 수 조회
+GET {{host}}/api/v1/blocks/stats/blocking-count
+Authorization: Bearer {{accessToken}}
+
+### 나를 차단한 유저 수 조회
+GET {{host}}/api/v1/blocks/stats/blocked-by-count
+Authorization: Bearer {{accessToken}}
+
+### 차단 필터링 테스트 - 리뷰 조회
+GET {{host}}/api/v1/reviews/274
+Authorization: Bearer {{accessToken}}
+
+### 차단 필터링 테스트 - 리뷰 상세 조회
+GET {{host}}/api/v1/reviews/detail/1
+Authorization: Bearer {{accessToken}}

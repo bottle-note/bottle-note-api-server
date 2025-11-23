@@ -1,0 +1,24 @@
+### 리뷰 댓글 작성
+@reviewId = 5
+POST {{host}}/api/v1/review/reply/register/{{reviewId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "content": "👍👍👍👍",
+  "parentReplyId": "4"
+}
+
+### 리뷰 댓글 조회
+@reviewId = 1
+GET {{host}}/api/v1/review/reply/{{reviewId}}
+
+### 리뷰 대댓글 조회
+@replyId = 1
+GET {{host}}/api/v1/review/reply/{{reviewId}}/sub/{{replyId}}
+
+### 리뷰 댓글 삭제
+@reviewId = 5
+@replyId = 23
+DELETE {{host}}/api/v1/review/reply/{{reviewId}}/{{replyId}}
+Authorization: Bearer {{accessToken}}
