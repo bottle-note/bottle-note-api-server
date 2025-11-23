@@ -1,0 +1,89 @@
+### 리뷰 작성
+POST {{host}}/api/v1/reviews
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "alcoholId": 1,
+  "status": "PUBLIC",
+  "content": "정말 맛있는 위스키입니다. 부드러운 피트향과 달콤한 과일향이 잘 어우러져 있어요.",
+  "sizeType": "BOTTLE",
+  "price": 89000,
+  "locationInfo": {
+    "locationName": "위스키샵 강남점",
+    "zipCode": "06123",
+    "address": "서울특별시 강남구 테헤란로 123",
+    "detailAddress": "1층 101호",
+    "category": "LIQUOR_STORE",
+    "mapUrl": "https://map.kakao.com/link/123",
+    "latitude": "37.1234",
+    "longitude": "127.5678"
+  },
+  "imageUrlList": [
+    {
+      "order": 1,
+      "viewUrl": "https://example.com/image1.jpg"
+    },
+    {
+      "order": 2,
+      "viewUrl": "https://example.com/image2.jpg"
+    }
+  ],
+  "tastingTagList": ["SMOKY", "SWEET", "FRUITY"],
+  "rating": 4.5
+}
+
+### 리뷰 수정
+@reviewId = 1
+PATCH {{host}}/api/v1/reviews/{{reviewId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "content": "수정된 리뷰 내용입니다. 다시 맛보니 더 좋네요.",
+  "status": "PUBLIC",
+  "price": 95000,
+  "imageUrlList": [
+    {
+      "order": 1,
+      "viewUrl": "https://example.com/updated-image1.jpg"
+    }
+  ],
+  "sizeType": "GLASS",
+  "tastingTagList": ["SMOKY", "SWEET"],
+  "locationInfo": {
+    "locationName": "위스키바 홍대점",
+    "zipCode": "04123",
+    "address": "서울특별시 마포구 홍익로 45",
+    "detailAddress": "2층",
+    "category": "BAR",
+    "mapUrl": "https://map.kakao.com/link/456",
+    "latitude": "37.5567",
+    "longitude": "126.9236"
+  }
+}
+
+### 리뷰 공개 여부 변경
+@reviewId = 1
+PATCH {{host}}/api/v1/reviews/{{reviewId}}/display
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "status": "PRIVATE"
+}
+
+### 리뷰 공개로 변경
+@reviewId = 1
+PATCH {{host}}/api/v1/reviews/{{reviewId}}/display
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "status": "PUBLIC"
+}
+
+### 리뷰 삭제
+@reviewId = 1
+DELETE {{host}}/api/v1/reviews/{{reviewId}}
+Authorization: Bearer {{accessToken}}

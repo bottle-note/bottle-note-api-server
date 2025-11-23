@@ -1,0 +1,33 @@
+### 별점 등록
+POST  {{host}}/api/v1/rating/register
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "alcoholId": 1,
+  "rating": 3.5
+}
+
+### 별점은 0.5점 단위로 등록
+POST  {{host}}/api/v1/rating/register
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "alcoholId": 1,
+  "rating": 0.1
+}
+
+### 별점 목록 조회
+@keyword =
+@category = SINGLE_MALT
+@regionId =
+@cursor = 0
+@pageSize = 10
+GET {{host}}/api/v1/rating?keyword={{keyword}}&category={{category}}&regionId={{regionId}}&sortType=RANDOM&sortOrder=DESC&cursor={{cursor}}&pageSize={{pageSize}}
+
+### 유저별 별점 조회
+@alcoholId = 209
+GET {{host}}/api/v1/rating/{{alcoholId}}
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}

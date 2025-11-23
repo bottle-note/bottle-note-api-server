@@ -1,0 +1,8 @@
+### 사용자 히스토리 목록 조회
+@targetUserId = 8
+GET {{host}}/api/v1/history/{{targetUserId}}?cursor=0&pageSize=50&sortType=LATEST&sortOrder=DESC
+Authorization: Bearer {{accessToken}}
+
+### 위스키 조회 히스토리
+GET {{host}}/api/v1/history/view/alcohols
+Authorization: Bearer {{accessToken}}

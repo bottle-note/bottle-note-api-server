@@ -1,0 +1,36 @@
+### 문의 등록
+POST {{host}}/api/v1/help
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "title": "앱 사용 중 오류 문의",
+  "content": "리뷰 작성 시 이미지 업로드가 되지 않습니다.",
+  "category": "BUG"
+}
+
+### 문의 목록 조회
+GET {{host}}/api/v1/help?cursor=0&pageSize=10
+Authorization: Bearer {{accessToken}}
+
+### 문의 상세 조회
+@helpId = 1
+GET {{host}}/api/v1/help/{{helpId}}
+Authorization: Bearer {{accessToken}}
+
+### 문의 수정
+@helpId = 1
+PATCH {{host}}/api/v1/help/{{helpId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "title": "앱 사용 중 오류 문의 (수정)",
+  "content": "리뷰 작성 시 이미지 업로드가 되지 않습니다. 재시도해도 동일합니다.",
+  "category": "BUG"
+}
+
+### 문의 삭제
+@helpId = 1
+DELETE {{host}}/api/v1/help/{{helpId}}
+Authorization: Bearer {{accessToken}}

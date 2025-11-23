@@ -1,0 +1,23 @@
+### 관리자 권한 확인
+GET {{host}}/api/v2/auth/admin/permissions
+Authorization: Bearer {{accessToken}}
+
+### Apple 로그인 - Nonce 발급
+GET {{host}}/api/v2/auth/apple/nonce
+
+### Apple 로그인
+POST {{host}}/api/v2/auth/apple
+Content-Type: application/json
+
+{
+  "idToken": "eyJhbGciOiJSUzI1NiIsImtpZCI6Ik5qRXhOMFV3TlRVd05qYzRNVGxFUXpGRFFUVXlNekl4T0RBM01FVXdOREl5UVRBNVJqRXpSRGszT0EifQ...",
+  "nonce": "generated-nonce-value"
+}
+
+### Kakao 로그인
+POST {{host}}/api/v2/auth/kakao
+Content-Type: application/json
+
+{
+  "accessToken": "kakao-access-token-here"
+}

@@ -1,7 +1,0 @@
-# 토큰_설정.http 사용
-
-### 리뷰 상세 조회
-# @no-cookie-jar
-@reviewId = 2
-GET {{host}}/api/v1/reviews/detail/{{reviewId}}
-Authorization: Bearer {{accessToken}}
