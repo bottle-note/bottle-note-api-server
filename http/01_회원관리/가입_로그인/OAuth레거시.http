@@ -1,0 +1,40 @@
+### 기본 회원가입 (이메일/비밀번호)
+POST {{host}}/api/v1/oauth/basic/signup
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password123!",
+  "age": 25,
+  "gender": "MALE"
+}
+
+### 기본 로그인 (이메일/비밀번호)
+POST {{host}}/api/v1/oauth/basic/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password123!"
+}
+
+### 토큰 재발급
+POST {{host}}/api/v1/oauth/reissue
+refresh-token: {{refreshToken}}
+
+### 토큰 검증
+PUT {{host}}/api/v1/oauth/token/verify
+Content-Type: application/json
+
+{
+  "token": "{{accessToken}}"
+}
+
+### 계정 복구
+POST {{host}}/api/v1/oauth/restore
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password123!"
+}

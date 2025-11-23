@@ -1,0 +1,8 @@
+### 카테고리 조회
+GET {{host}}/api/v1/alcohols/categories
+Content-Type: application/json
+
+### 지역 조회
+GET {{host}}/api/v1/regions
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}

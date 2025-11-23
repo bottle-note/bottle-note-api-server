@@ -1,8 +1,0 @@
-### 리뷰 댓글 조회
-@reviewId = 1
-GET {{host}}/api/v1/review/reply/{{reviewId}}
-
-### 리뷰 대댓글 조회
-
-@replyId = 1
-GET {{host}}/api/v1/review/reply/{{reviewId}}/sub/{{replyId}}
