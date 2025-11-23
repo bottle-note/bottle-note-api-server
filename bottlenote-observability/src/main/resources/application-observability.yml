@@ -17,7 +17,7 @@ management:
     propagation:
       consume: W3C, B3, B3_MULTI
       produce: W3C
-    disabled: ${OTEL_TRACING_DISABLED:false}  # false = 트레이싱 활성화
+    disabled: true  # ${OTEL_TRACING_DISABLED:false}  # false = 트레이싱 활성화
     sampling:
       probability: ${OTEL_TRACE_SAMPLING:1.0}
     enabled: false # 오류로 인해 임시 비활성화.
@@ -51,4 +51,4 @@ management:
   prometheus:
     metrics:
       export:
-        enabled: ${PROMETHEUS_ENABLED:true}
+        enabled: false #${PROMETHEUS_ENABLED:true}
