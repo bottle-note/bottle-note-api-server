@@ -20,7 +20,7 @@ management:
     disabled: ${OTEL_TRACING_DISABLED:false}  # false = 트레이싱 활성화
     sampling:
       probability: ${OTEL_TRACE_SAMPLING:1.0}
-    enabled: false
+    enabled: false # 오류로 인해 임시 비활성화.
 
   # OTLP 설정
   otlp:
