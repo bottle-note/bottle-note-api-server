@@ -104,16 +104,20 @@ if (banner.isExternalUrl) {
 
 **3. 텍스트 오버레이 배치**
 
-`textPosition`에 따라 배너 이미지 위에 텍스트를 오버레이합니다.
+`textPosition`에 따라 `description` 텍스트를 배너 이미지 위에 오버레이합니다.
 
 [source,pseudo]
 ----
-switch (banner.textPosition) {
-    case "LT": align(top, left)
-    case "LB": align(bottom, left)
-    case "RT": align(top, right)
-    case "RB": align(bottom, right)
-    case "CENTER": align(center, center)
+// description이 있는 경우에만 텍스트 표시
+if (banner.description) {
+    switch (banner.textPosition) {
+        case "LT": align(top, left)
+        case "LB": align(bottom, left)
+        case "RT": align(top, right)
+        case "RB": align(bottom, right)
+        case "CENTER": align(center, center)
+    }
+    renderText(banner.description)
 }
 ----
 

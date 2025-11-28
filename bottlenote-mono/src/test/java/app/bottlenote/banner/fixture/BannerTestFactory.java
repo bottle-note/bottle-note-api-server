@@ -29,6 +29,7 @@ public class BannerTestFactory {
     Banner banner =
         Banner.builder()
             .name(name)
+            .description(name + " 설명")
             .imageUrl(imageUrl)
             .textPosition(TextPosition.CENTER)
             .bannerType(BannerType.CURATION)
@@ -54,6 +55,7 @@ public class BannerTestFactory {
     Banner banner =
         Banner.builder()
             .name(name)
+            .description(name + " 설명")
             .imageUrl(imageUrl)
             .textPosition(textPosition)
             .bannerType(bannerType)
@@ -88,6 +90,7 @@ public class BannerTestFactory {
       Banner banner =
           Banner.builder()
               .name("배너 " + (i + 1))
+              .description("배너 " + (i + 1) + " 설명")
               .imageUrl("https://example.com/banner" + (i + 1) + ".jpg")
               .textPosition(TextPosition.CENTER)
               .bannerType(BannerType.CURATION)
@@ -112,6 +115,7 @@ public class BannerTestFactory {
       Banner banner =
           Banner.builder()
               .name("활성 배너 " + (i + 1))
+              .description("활성 배너 " + (i + 1) + " 설명")
               .imageUrl("https://example.com/active" + (i + 1) + ".jpg")
               .textPosition(TextPosition.CENTER)
               .bannerType(BannerType.CURATION)
@@ -127,6 +131,7 @@ public class BannerTestFactory {
       Banner banner =
           Banner.builder()
               .name("비활성 배너 " + (i + 1))
+              .description("비활성 배너 " + (i + 1) + " 설명")
               .imageUrl("https://example.com/inactive" + (i + 1) + ".jpg")
               .textPosition(TextPosition.CENTER)
               .bannerType(BannerType.AD)
@@ -150,6 +155,7 @@ public class BannerTestFactory {
     Banner banner =
         Banner.builder()
             .name(name)
+            .description(name + " 설명")
             .imageUrl("https://example.com/" + name + ".jpg")
             .textPosition(TextPosition.CENTER)
             .bannerType(BannerType.SURVEY)
@@ -168,6 +174,9 @@ public class BannerTestFactory {
       Banner tempBanner, Banner.BannerBuilder builder) {
     if (tempBanner.getName() == null) {
       builder.name("테스트 배너");
+    }
+    if (tempBanner.getDescription() == null) {
+      builder.description("테스트 배너 설명");
     }
     if (tempBanner.getImageUrl() == null) {
       builder.imageUrl("https://example.com/default.jpg");

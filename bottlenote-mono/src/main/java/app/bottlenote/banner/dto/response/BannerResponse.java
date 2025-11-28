@@ -17,6 +17,7 @@ public class BannerResponse {
 
   private Long id;
   private String name;
+  private String description;
   private String imageUrl;
   private TextPosition textPosition;
   private String targetUrl;
@@ -30,6 +31,7 @@ public class BannerResponse {
     return BannerResponse.builder()
         .id(banner.getId())
         .name(banner.getName())
+        .description(banner.getDescription())
         .imageUrl(banner.getImageUrl())
         .textPosition(banner.getTextPosition())
         .targetUrl(banner.getTargetUrl())

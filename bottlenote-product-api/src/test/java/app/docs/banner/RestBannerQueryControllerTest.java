@@ -41,6 +41,7 @@ class RestBannerQueryControllerTest extends AbstractRestDocs {
             BannerResponse.builder()
                 .id(1L)
                 .name("신규 위스키 출시 이벤트")
+                .description("신규 위스키 출시 기념 특별 이벤트를 진행합니다.")
                 .imageUrl("https://cdn.bottle-note.com/banners/event1.jpg")
                 .textPosition(TextPosition.LB)
                 .targetUrl("/events/new-whiskey")
@@ -53,6 +54,7 @@ class RestBannerQueryControllerTest extends AbstractRestDocs {
             BannerResponse.builder()
                 .id(2L)
                 .name("사용자 설문조사")
+                .description("서비스 개선을 위한 설문조사에 참여해주세요.")
                 .imageUrl("https://cdn.bottle-note.com/banners/survey.jpg")
                 .textPosition(TextPosition.CENTER)
                 .targetUrl("https://forms.google.com/survey123")
@@ -65,6 +67,7 @@ class RestBannerQueryControllerTest extends AbstractRestDocs {
             BannerResponse.builder()
                 .id(3L)
                 .name("제휴 브랜드 소개")
+                .description("새로운 제휴 브랜드를 소개합니다.")
                 .imageUrl("https://cdn.bottle-note.com/banners/partner.jpg")
                 .textPosition(TextPosition.RT)
                 .targetUrl("/partners/brand-abc")
@@ -94,6 +97,7 @@ class RestBannerQueryControllerTest extends AbstractRestDocs {
                     fieldWithPath("data").type(JsonFieldType.ARRAY).description("배너 목록"),
                     fieldWithPath("data[].id").description("배너 고유 식별자"),
                     fieldWithPath("data[].name").description("배너명"),
+                    fieldWithPath("data[].description").description("배너 설명").optional(),
                     fieldWithPath("data[].imageUrl").description("배너 이미지 URL"),
                     fieldWithPath("data[].textPosition").description("텍스트 위치 (하단 TextPosition 참조)"),
                     fieldWithPath("data[].targetUrl").description("클릭 시 이동할 URL").optional(),

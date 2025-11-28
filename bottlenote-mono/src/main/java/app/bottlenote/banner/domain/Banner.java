@@ -33,6 +33,10 @@ public class Banner extends BaseEntity {
   @Column(name = "name", nullable = false)
   private String name;
 
+  @Comment("배너 설명")
+  @Column(name = "description")
+  private String description;
+
   @Comment("이미지 URL")
   @Column(name = "image_url", nullable = false)
   private String imageUrl;
@@ -75,6 +79,7 @@ public class Banner extends BaseEntity {
   public Banner(
       Long id,
       String name,
+      String description,
       String imageUrl,
       TextPosition textPosition,
       String targetUrl,
@@ -86,6 +91,7 @@ public class Banner extends BaseEntity {
       Boolean isActive) {
     this.id = id;
     this.name = name;
+    this.description = description;
     this.imageUrl = imageUrl;
     this.textPosition = textPosition;
     this.targetUrl = targetUrl;
