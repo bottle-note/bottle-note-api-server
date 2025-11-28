@@ -146,9 +146,7 @@ public class BannerTestFactory {
   @Transactional
   @NotNull
   public Banner persistBannerWithPeriod(
-      @NotNull String name,
-      @NotNull LocalDate startDate,
-      @NotNull LocalDate endDate) {
+      @NotNull String name, @NotNull LocalDate startDate, @NotNull LocalDate endDate) {
     Banner banner =
         Banner.builder()
             .name(name)
