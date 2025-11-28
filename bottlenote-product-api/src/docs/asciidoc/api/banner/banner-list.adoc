@@ -68,6 +68,70 @@ include::{snippets}/banner/list/response-body.adoc[]
 |===
 
 [discrete]
+==== 클라이언트 구현 가이드 ====
+
+**1. 배너 클릭 시 라우팅 처리**
+
+[source,pseudo]
+----
+if (banner.isExternalUrl) {
+    // 외부 브라우저 또는 인앱 웹뷰로 열기
+    openExternalBrowser(banner.targetUrl)
+} else {
+    // 앱 내부 화면으로 이동
+    navigateToInternalRoute(banner.targetUrl)
+}
+----
+
+**2. 내부 URL 라우팅 예시**
+
+[cols="2,3",options="header"]
+|===
+| targetUrl 패턴 | 이동 화면
+
+| `/events/{id}`
+| 이벤트 상세 화면
+
+| `/alcohols/{id}`
+| 위스키 상세 화면
+
+| `/reviews/{id}`
+| 리뷰 상세 화면
+
+| `/curations/{keyword}`
+| 큐레이션 목록 화면
+|===
+
+**3. 이미지 처리 권장사항**
+
+* 이미지는 CDN URL로 제공되므로 캐싱을 적극 활용하세요.
+* 배너 이미지 권장 비율: 16:9 또는 2:1
+* 로딩 중에는 placeholder 또는 shimmer 효과를 표시하세요.
+* 이미지 로드 실패 시 기본 배너 이미지를 표시하세요.
+
+**4. 배너 캐러셀/슬라이더 구현**
+
+* 자동 슬라이드: 3~5초 간격 권장
+* 사용자 스와이프 시 자동 슬라이드 일시 중지
+* 인디케이터(dots)로 현재 배너 위치 표시
+* 무한 루프 스크롤 지원 권장
+
+**5. 텍스트 오버레이 배치**
+
+`textPosition`에 따라 배너 이미지 위에 텍스트를 오버레이합니다.
+
+[source,pseudo]
+----
+switch (banner.textPosition) {
+    case "LT": align(top, left)
+    case "LB": align(bottom, left)
+    case "RT": align(top, right)
+    case "RB": align(bottom, right)
+    case "CENTER": align(center, center)
+}
+----
+
+[discrete]
 ==== 참고 사항 ====
 
 * 비활성화된 배너(`isActive=false`)는 조회되지 않습니다.
