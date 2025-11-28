@@ -5,9 +5,9 @@ import java.util.Optional;
 
 public interface BannerRepository {
 
-	Banner save(Banner banner);
+  Banner save(Banner banner);
 
-	Optional<Banner> findById(Long id);
+  Optional<Banner> findById(Long id);
 
-	List<Banner> findAllByIsActiveTrue();
+  List<Banner> findAllByIsActiveTrue();
 }

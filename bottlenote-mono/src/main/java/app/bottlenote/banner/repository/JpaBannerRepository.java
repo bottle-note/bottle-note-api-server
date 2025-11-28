@@ -9,5 +9,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 @JpaRepositoryImpl
 public interface JpaBannerRepository extends BannerRepository, JpaRepository<Banner, Long> {
 
-	List<Banner> findAllByIsActiveTrue();
+  List<Banner> findAllByIsActiveTrue();
 }
