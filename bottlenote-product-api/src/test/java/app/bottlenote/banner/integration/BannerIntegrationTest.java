@@ -26,8 +26,7 @@ import org.springframework.test.web.servlet.MvcResult;
 @WithMockUser
 class BannerIntegrationTest extends IntegrationTestSupport {
 
-  @Autowired
-  private BannerTestFactory bannerTestFactory;
+  @Autowired private BannerTestFactory bannerTestFactory;
 
   @Nested
   @DisplayName("배너 목록 조회")
@@ -41,9 +40,7 @@ class BannerIntegrationTest extends IntegrationTestSupport {
 
       // when & then
       mockMvc
-          .perform(
-              get("/api/v1/banners")
-                  .contentType(MediaType.APPLICATION_JSON))
+          .perform(get("/api/v1/banners").contentType(MediaType.APPLICATION_JSON))
           .andDo(print())
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.code").value(200))
@@ -60,9 +57,7 @@ class BannerIntegrationTest extends IntegrationTestSupport {
       // when & then
       mockMvc
           .perform(
-              get("/api/v1/banners")
-                  .param("limit", "3")
-                  .contentType(MediaType.APPLICATION_JSON))
+              get("/api/v1/banners").param("limit", "3").contentType(MediaType.APPLICATION_JSON))
           .andDo(print())
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.code").value(200))
@@ -74,24 +69,35 @@ class BannerIntegrationTest extends IntegrationTestSupport {
     @Test
     void test_3() throws Exception {
       // given
-      bannerTestFactory.persistBanner("배너3", "https://example.com/3.jpg",
+      bannerTestFactory.persistBanner(
+          "배너3",
+          "https://example.com/3.jpg",
           app.bottlenote.banner.constant.TextPosition.CENTER,
-          app.bottlenote.banner.constant.BannerType.CURATION, 3, true);
-      bannerTestFactory.persistBanner("배너1", "https://example.com/1.jpg",
+          app.bottlenote.banner.constant.BannerType.CURATION,
+          3,
+          true);
+      bannerTestFactory.persistBanner(
+          "배너1",
+          "https://example.com/1.jpg",
           app.bottlenote.banner.constant.TextPosition.CENTER,
-          app.bottlenote.banner.constant.BannerType.CURATION, 1, true);
-      bannerTestFactory.persistBanner("배너2", "https://example.com/2.jpg",
+          app.bottlenote.banner.constant.BannerType.CURATION,
+          1,
+          true);
+      bannerTestFactory.persistBanner(
+          "배너2",
+          "https://example.com/2.jpg",
           app.bottlenote.banner.constant.TextPosition.CENTER,
-          app.bottlenote.banner.constant.BannerType.CURATION, 2, true);
+          app.bottlenote.banner.constant.BannerType.CURATION,
+          2,
+          true);
 
       // when
-      MvcResult result = mockMvc
-          .perform(
-              get("/api/v1/banners")
-                  .contentType(MediaType.APPLICATION_JSON))
-          .andDo(print())
-          .andExpect(status().isOk())
-          .andReturn();
+      MvcResult result =
+          mockMvc
+              .perform(get("/api/v1/banners").contentType(MediaType.APPLICATION_JSON))
+              .andDo(print())
+              .andExpect(status().isOk())
+              .andReturn();
 
       // then
       List<BannerResponse> banners = extractDataAsList(result, new TypeReference<>() {});
@@ -109,9 +115,7 @@ class BannerIntegrationTest extends IntegrationTestSupport {
 
       // when & then
       mockMvc
-          .perform(
-              get("/api/v1/banners")
-                  .contentType(MediaType.APPLICATION_JSON))
+          .perform(get("/api/v1/banners").contentType(MediaType.APPLICATION_JSON))
           .andDo(print())
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.code").value(200))
@@ -125,24 +129,25 @@ class BannerIntegrationTest extends IntegrationTestSupport {
       // given - 데이터 없음
 
       // when & then
-      MvcResult result = mockMvc
-          .perform(
-              get("/api/v1/banners")
-                  .contentType(MediaType.APPLICATION_JSON))
-          .andDo(print())
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("$.code").value(200))
-          .andExpect(jsonPath("$.data").isArray())
-          .andReturn();
+      MvcResult result =
+          mockMvc
+              .perform(get("/api/v1/banners").contentType(MediaType.APPLICATION_JSON))
+              .andDo(print())
+              .andExpect(status().isOk())
+              .andExpect(jsonPath("$.code").value(200))
+              .andExpect(jsonPath("$.data").isArray())
+              .andReturn();
 
       List<BannerResponse> banners = extractDataAsList(result, new TypeReference<>() {});
       assertTrue(banners.isEmpty());
     }
   }
 
-  private <T> List<T> extractDataAsList(MvcResult result, TypeReference<List<T>> typeRef) throws Exception {
+  private <T> List<T> extractDataAsList(MvcResult result, TypeReference<List<T>> typeRef)
+      throws Exception {
     String responseString = result.getResponse().getContentAsString();
-    var response = mapper.readValue(responseString, app.bottlenote.global.data.response.GlobalResponse.class);
+    var response =
+        mapper.readValue(responseString, app.bottlenote.global.data.response.GlobalResponse.class);
     return mapper.convertValue(response.getData(), typeRef);
   }
 }
