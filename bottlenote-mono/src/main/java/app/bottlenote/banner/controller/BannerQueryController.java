@@ -19,7 +19,6 @@ public class BannerQueryController {
   @GetMapping
   public ResponseEntity<GlobalResponse> getActiveBanners(
       @RequestParam(defaultValue = "10") Integer limit) {
-    return ResponseEntity.ok(
-        GlobalResponse.success(bannerQueryService.getActiveBanners(limit)));
+    return ResponseEntity.ok(GlobalResponse.success(bannerQueryService.getActiveBanners(limit)));
   }
 }
