@@ -24,7 +24,9 @@ public class InMemoryBannerRepository implements BannerRepository {
   @Override
   public List<Banner> findAllByIsActiveTrue() {
     List<Banner> result =
-        database.values().stream().filter(banner -> Boolean.TRUE.equals(banner.getIsActive())).toList();
+        database.values().stream()
+            .filter(banner -> Boolean.TRUE.equals(banner.getIsActive()))
+            .toList();
 
     log.info("[InMemory] banner repository findAllByIsActiveTrue = {}", result.size());
     return result;
