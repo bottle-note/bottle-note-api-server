@@ -71,6 +71,10 @@ include::api/user/user-picks-mybottle.adoc[]
 include::api/external/push/device-token.adoc[]
 '''
 
+== 배너 (banner) 관련 API
+
+include::api/banner/banner-list.adoc[]
+
 == 둘러보기 (explore) 관련 API
 
 include::api/alcohols/explore.standard.adoc[]

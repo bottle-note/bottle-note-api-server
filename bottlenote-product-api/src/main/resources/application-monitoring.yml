@@ -1,0 +1,95 @@
+# application-monitoring.yml
+
+# 기본 로깅 레벨 설정
+logging:
+  level:
+    root: info
+
+# OpenTelemetry 기본 설정
+management:
+  tracing:
+    enabled: ${MONITORING_ENABLED:false}
+    sampling:
+      probability: 1.0  # 100% 샘플링
+  metrics:
+    export:
+      otlp:
+        enabled: ${MONITORING_ENABLED:false}
+  otlp:
+    tracing:
+      endpoint: ${OTEL_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
+    metrics:
+      endpoint: ${OTEL_METRICS_ENDPOINT:http://localhost:9090/api/v1/otlp/v1/metrics}
+
+# OpenTelemetry Resource Attributes
+otel:
+  resource:
+    attributes:
+      service.name: ${SERVICE_NAME:bottle-note-api}
+      service.instance.id: ${HOSTNAME:unknown}
+      deployment.environment: ${SPRING_PROFILES_ACTIVE:local}
+
+--- # Local 환경
+spring:
+  config:
+    activate:
+      on-profile: local,default
+
+# 모니터링 비활성화
+management:
+  tracing:
+    enabled: false
+  metrics:
+    export:
+      otlp:
+        enabled: false
+
+logging:
+  level:
+    org.hibernate.SQL: off
+    org.hibernate.orm.jdbc.bind: off
+    app.bottlenote.common.block.serializer: debug
+    app.bottlenote.common.block.service: debug
+    app.bottlenote.common.block.config: debug
+    root: info
+
+--- # 개발 환경
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+# 모니터링 비활성화
+management:
+  tracing:
+    enabled: false
+  metrics:
+    export:
+      otlp:
+        enabled: false
+
+logging:
+  level:
+    root: info
+    org.hibernate.orm.jdbc.bind: info
+    org.hibernate.SQL: info
+
+--- # 운영 환경
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+# 모니터링 활성화
+management:
+  tracing:
+    enabled: true
+  metrics:
+    export:
+      otlp:
+        enabled: true
+
+logging:
+  level:
+    root: info
+    org.hibernate: info
