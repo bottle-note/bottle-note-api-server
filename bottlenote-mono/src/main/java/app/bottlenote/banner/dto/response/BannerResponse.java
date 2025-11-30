@@ -2,7 +2,6 @@ package app.bottlenote.banner.dto.response;
 
 import app.bottlenote.banner.constant.BannerType;
 import app.bottlenote.banner.constant.TextPosition;
-import app.bottlenote.banner.domain.Banner;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,20 +25,4 @@ public class BannerResponse {
   private Integer sortOrder;
   private LocalDate startDate;
   private LocalDate endDate;
-
-  public static BannerResponse from(Banner banner) {
-    return BannerResponse.builder()
-        .id(banner.getId())
-        .name(banner.getName())
-        .description(banner.getDescription())
-        .imageUrl(banner.getImageUrl())
-        .textPosition(banner.getTextPosition())
-        .targetUrl(banner.getTargetUrl())
-        .isExternalUrl(banner.getIsExternalUrl())
-        .bannerType(banner.getBannerType())
-        .sortOrder(banner.getSortOrder())
-        .startDate(banner.getStartDate())
-        .endDate(banner.getEndDate())
-        .build();
-  }
 }
