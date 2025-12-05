@@ -52,7 +52,7 @@ quartz = "2.3.2"
 
 # Monitoring & Observability
 opentelemetry = "1.56.0"
-opentelemetry-instrumentation = "2.22.0"
+opentelemetry-instrumentation = "2.22.0-alpha"
 loki-logback-appender = "2.0.1"
 
 # Code Quality
@@ -119,16 +119,20 @@ aws-s3 = { module = "com.amazonaws:aws-java-sdk-s3", version.ref = "aws-java-sdk
 # Firebase
 firebase-admin = { module = "com.google.firebase:firebase-admin", version.ref = "firebase-admin" }
 
-# Monitoring & Observability
+# Monitoring & Observability - OpenTelemetry
 opentelemetry-bom = { module = "io.opentelemetry:opentelemetry-bom", version.ref = "opentelemetry" }
 opentelemetry-api = { module = "io.opentelemetry:opentelemetry-api" }
 opentelemetry-sdk = { module = "io.opentelemetry:opentelemetry-sdk" }
 opentelemetry-exporter-otlp = { module = "io.opentelemetry:opentelemetry-exporter-otlp" }
 opentelemetry-logback-appender = { module = "io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0", version.ref = "opentelemetry-instrumentation" }
+
+# Monitoring & Observability - Micrometer
 micrometer-core = { module = "io.micrometer:micrometer-core" }
 micrometer-tracing = { module = "io.micrometer:micrometer-tracing" }
 micrometer-tracing-bridge-otel = { module = "io.micrometer:micrometer-tracing-bridge-otel" }
 micrometer-registry-otlp = { module = "io.micrometer:micrometer-registry-otlp" }
+
+# Monitoring & Observability - Loki
 loki-logback-appender = { module = "com.github.loki4j:loki-logback-appender", version.ref = "loki-logback-appender" }
 
 # Network
@@ -233,6 +237,32 @@ spring-batch-complete = [
 	"spring-batch-test",
 	"spring-boot-starter-quartz"
 ]
+
+# OpenTelemetry 번들 (BOM 제외 - platform으로 별도 선언 필요)
+opentelemetry-complete = [
+	"opentelemetry-api",
+	"opentelemetry-sdk",
+	"opentelemetry-exporter-otlp",
+	"opentelemetry-logback-appender"
+]
+
+# Micrometer 번들
+micrometer-complete = [
+	"micrometer-core",
+	"micrometer-tracing",
+	"micrometer-tracing-bridge-otel",
+	"micrometer-registry-otlp"
+]
+
+# # 기존 개별 선언 (주석 처리)
+# # api libs.opentelemetry.api
+# # api libs.opentelemetry.sdk
+# # api libs.opentelemetry.exporter.otlp
+# # api libs.opentelemetry.logback.appender
+# # api libs.micrometer.core
+# # api libs.micrometer.tracing
+# # api libs.micrometer.tracing.bridge.otel
+# # api libs.micrometer.registry.otlp
 
 [plugins]
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }

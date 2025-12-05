@@ -31,7 +31,7 @@ management:
     # Metrics 설정 (Prometheus)
     metrics:
       export:
-        enabled: true
+        enabled: false #true
         url: ${OTEL_EXPORTER_OTLP_METRICS_ENDPOINT}
 
     # Logs 설정 (Loki) - Spring Boot 3.4.0 이상에서 사용 가능
