@@ -28,7 +28,7 @@ import org.springframework.util.FileCopyUtils;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
-public class PopularAlcoholSelectionJob {
+public class PopularAlcoholSelectionJobConfig {
 	public static final String POPULAR_JOB_NAME = "popularAlcoholJob";
 	private static final int CHUNK_SIZE = 100;
 	private final JdbcTemplate jdbcTemplate;

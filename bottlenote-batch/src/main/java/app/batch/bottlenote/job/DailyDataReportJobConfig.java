@@ -1,4 +1,4 @@
-package app.batch.bottlenote.job.report;
+package app.batch.bottlenote.job;
 
 import app.bottlenote.support.report.service.DailyDataReportService;
 import app.external.webhook.config.DiscordWebhookProperties;
@@ -21,7 +21,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
-public class DailyDataReportJob {
+public class DailyDataReportJobConfig {
 	public static final String DAILY_DATA_REPORT_JOB_NAME = "dailyDataReportJob";
 
 	private final DailyDataReportService dailyDataReportService;

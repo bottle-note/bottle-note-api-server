@@ -28,7 +28,7 @@ import org.springframework.util.FileCopyUtils;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
-public class BestReviewSelectionJob {
+public class BestReviewSelectionJobConfig {
 	public static final String BEST_REVIEW_JOB_NAME = "bestReviewSelectedJob";
 	private static final int CHUNK_SIZE = 100;
 	private final JdbcTemplate jdbcTemplate;

@@ -1,11 +1,11 @@
 package app.batch.bottlenote.schedule;
 
 
+import static app.batch.bottlenote.job.PopularAlcoholSelectionJobConfig.POPULAR_JOB_NAME;
+
 import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.stereotype.Component;
-
-import static app.batch.bottlenote.job.PopularAlcoholSelectionJob.POPULAR_JOB_NAME;
 
 /**
  * 인기 위스키 선정을 위한 Quartz Job 구현 클래스입니다.
