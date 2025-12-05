@@ -63,3 +63,4 @@ CLAUDE.personal.md
 .env
 /prod.env
 http_old/
+settings.local.json
