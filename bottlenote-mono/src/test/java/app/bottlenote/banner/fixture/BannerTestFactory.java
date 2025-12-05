@@ -6,7 +6,7 @@ import app.bottlenote.banner.domain.Banner;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +29,8 @@ public class BannerTestFactory {
     Banner banner =
         Banner.builder()
             .name(name)
-            .description(name + " 설명")
+            .descriptionA(name + " 설명A")
+            .descriptionB(name + " 설명B")
             .imageUrl(imageUrl)
             .textPosition(TextPosition.CENTER)
             .bannerType(BannerType.CURATION)
@@ -55,7 +56,8 @@ public class BannerTestFactory {
     Banner banner =
         Banner.builder()
             .name(name)
-            .description(name + " 설명")
+            .descriptionA(name + " 설명A")
+            .descriptionB(name + " 설명B")
             .imageUrl(imageUrl)
             .textPosition(textPosition)
             .bannerType(bannerType)
@@ -90,7 +92,8 @@ public class BannerTestFactory {
       Banner banner =
           Banner.builder()
               .name("배너 " + (i + 1))
-              .description("배너 " + (i + 1) + " 설명")
+              .descriptionA("배너 " + (i + 1) + " 설명A")
+              .descriptionB("배너 " + (i + 1) + " 설명B")
               .imageUrl("https://example.com/banner" + (i + 1) + ".jpg")
               .textPosition(TextPosition.CENTER)
               .bannerType(BannerType.CURATION)
@@ -115,7 +118,8 @@ public class BannerTestFactory {
       Banner banner =
           Banner.builder()
               .name("활성 배너 " + (i + 1))
-              .description("활성 배너 " + (i + 1) + " 설명")
+              .descriptionA("활성 배너 " + (i + 1) + " 설명A")
+              .descriptionB("활성 배너 " + (i + 1) + " 설명B")
               .imageUrl("https://example.com/active" + (i + 1) + ".jpg")
               .textPosition(TextPosition.CENTER)
               .bannerType(BannerType.CURATION)
@@ -131,7 +135,8 @@ public class BannerTestFactory {
       Banner banner =
           Banner.builder()
               .name("비활성 배너 " + (i + 1))
-              .description("비활성 배너 " + (i + 1) + " 설명")
+              .descriptionA("비활성 배너 " + (i + 1) + " 설명A")
+              .descriptionB("비활성 배너 " + (i + 1) + " 설명B")
               .imageUrl("https://example.com/inactive" + (i + 1) + ".jpg")
               .textPosition(TextPosition.CENTER)
               .bannerType(BannerType.AD)
@@ -151,11 +156,12 @@ public class BannerTestFactory {
   @Transactional
   @NotNull
   public Banner persistBannerWithPeriod(
-      @NotNull String name, @NotNull LocalDate startDate, @NotNull LocalDate endDate) {
+      @NotNull String name, @NotNull LocalDateTime startDate, @NotNull LocalDateTime endDate) {
     Banner banner =
         Banner.builder()
             .name(name)
-            .description(name + " 설명")
+            .descriptionA(name + " 설명A")
+            .descriptionB(name + " 설명B")
             .imageUrl("https://example.com/" + name + ".jpg")
             .textPosition(TextPosition.CENTER)
             .bannerType(BannerType.SURVEY)
@@ -175,8 +181,11 @@ public class BannerTestFactory {
     if (tempBanner.getName() == null) {
       builder.name("테스트 배너");
     }
-    if (tempBanner.getDescription() == null) {
-      builder.description("테스트 배너 설명");
+    if (tempBanner.getDescriptionA() == null) {
+      builder.descriptionA("테스트 배너 설명A");
+    }
+    if (tempBanner.getDescriptionB() == null) {
+      builder.descriptionB("테스트 배너 설명B");
     }
     if (tempBanner.getImageUrl() == null) {
       builder.imageUrl("https://example.com/default.jpg");

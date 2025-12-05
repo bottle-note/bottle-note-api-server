@@ -15,8 +15,7 @@ configurations {
 dependencies {
 	implementation project(':bottlenote-mono')
 	testImplementation project(':bottlenote-mono').sourceSets.test.output
-	//모니터링 서버 리소스 안정화 전까지 종료
-	//implementation project(':bottlenote-observability')
+	implementation project(':bottlenote-observability')
 	implementation project(':bottlenote-batch')
 
 	// ===== Spring Boot Web  =====

@@ -85,41 +85,25 @@ if (banner.isExternalUrl) {
 
 **2. 내부 URL 라우팅 예시**
 
-[cols="2,3",options="header"]
-|===
-| targetUrl 패턴 | 이동 화면
-
-| `/events/{id}`
-| 이벤트 상세 화면
-
-| `/alcohols/{id}`
-| 위스키 상세 화면
-
-| `/reviews/{id}`
-| 리뷰 상세 화면
-
-| `/curations/{keyword}`
-| 큐레이션 목록 화면
-|===
+- 협의 필요 (FE 편한 방식대로)
 
 **3. 텍스트 오버레이 배치**
 
-`textPosition`에 따라 `description` 텍스트를 배너 이미지 위에 오버레이합니다.
+`textPosition`에 따라 배너 텍스트를 이미지 위에 오버레이합니다.
 
-[source,pseudo]
-----
-// description이 있는 경우에만 텍스트 표시
-if (banner.description) {
-    switch (banner.textPosition) {
-        case "LT": align(top, left)
-        case "LB": align(bottom, left)
-        case "RT": align(top, right)
-        case "RB": align(bottom, right)
-        case "CENTER": align(center, center)
-    }
-    renderText(banner.description)
-}
-----
+* `name`: 배너 제목 (색상: `nameFontColor`)
+* `descriptionA`, `descriptionB`: 배너 설명 2줄 (색상: `descriptionFontColor`)
+* 색상 값은 HEX 코드 (예: `ffffff`)
+
+`textPosition` 값에 따라 적절한 위치에 텍스트를 배치합니다.
+
+*텍스트 포지션에 따른 name, description 위치 TEXT POSITION : 상수*
+
+* LT (Left Top) : name : 아래 / description : 위
+* LB (Left Bottom) : name : 위 / description : 아래
+* RT (Right Top) : name : 아래 / description : 위
+* RB (Right Bottom) : name : 위 / description : 아래
+* CENTER (Center) : name : 아래 / description : 위
 
 [discrete]
 ==== 참고 사항 ====
