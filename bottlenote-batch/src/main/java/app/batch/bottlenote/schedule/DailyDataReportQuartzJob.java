@@ -1,10 +1,10 @@
 package app.batch.bottlenote.schedule;
 
+import static app.batch.bottlenote.job.DailyDataReportJobConfig.DAILY_DATA_REPORT_JOB_NAME;
+
 import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.stereotype.Component;
-
-import static app.batch.bottlenote.job.report.DailyDataReportJob.DAILY_DATA_REPORT_JOB_NAME;
 
 /**
  * 일일 데이터 리포트를 위한 Quartz Job 구현 클래스입니다.
