@@ -6,6 +6,7 @@ spring:
     jdbc.initialize-schema: never # 배치 실행 시 DB 초기화 여부
 
   quartz:
+    overwrite-existing-jobs: true # 시작
     job-store-type: jdbc # 메모리(memory) 또는 데이터베이스(jdbc)
     jdbc:
       initialize-schema: never # 스키마 초기화 (always, never, embedded)
