@@ -51,9 +51,9 @@ restdocs-api-spec = "0.19.4"
 quartz = "2.3.2"
 
 # Monitoring & Observability
-opentelemetry = "1.34.1"
-opentelemetry-instrumentation = "2.1.0-alpha"  # logback appender용
-loki-logback-appender = "1.5.2"
+opentelemetry = "1.56.0"
+opentelemetry-instrumentation = "2.22.0"
+loki-logback-appender = "2.0.1"
 
 # Code Quality
 spotless = "7.0.2"
