@@ -1,6 +1,6 @@
 package app.batch.bottlenote.schedule;
 
-import static app.batch.bottlenote.job.DailyDataReportJob.DAILY_DATA_REPORT_JOB_NAME;
+import static app.batch.bottlenote.job.DailyDataReportJobConfig.DAILY_DATA_REPORT_JOB_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
