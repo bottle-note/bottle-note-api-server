@@ -7,6 +7,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum BannerType {
+  ETC("기타"),
   SURVEY("설문지"),
   CURATION("큐레이션"),
   AD("광고"),
