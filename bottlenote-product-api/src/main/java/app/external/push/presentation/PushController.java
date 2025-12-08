@@ -8,7 +8,6 @@ import app.bottlenote.user.exception.UserException;
 import app.external.push.application.PushHandler;
 import app.external.push.application.UserDeviceService;
 import app.external.push.data.request.TokenSaveRequest;
-import io.lettuce.core.dynamic.annotation.Param;
 import jakarta.validation.Valid;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +34,7 @@ public class PushController {
   }
 
   @GetMapping
-  public ResponseEntity<?> sendPush(@RequestParam @Param("msg") String message) {
+  public ResponseEntity<?> sendPush(@RequestParam("msg") String message) {
     pushHandler.sendPush(Collections.singletonList(6L), message);
     return GlobalResponse.ok("");
   }
