@@ -16,6 +16,11 @@ dependencies {
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 
+	// Security
+	implementation(libs.spring.boot.starter.security)
+	implementation(libs.spring.security.test)
+	testImplementation(libs.spring.security.test)
+
 	// Test - Spring REST Docs
 	add("asciidoctorExt", libs.spring.restdocs.asciidoctor)
 	testImplementation(libs.spring.restdocs.mockmvc)
@@ -25,6 +30,7 @@ dependencies {
 tasks.bootJar {
 	enabled = true
 	archiveFileName.set("bottlenote-admin-api.jar")
+	logger.info("Building bottlenote-admin-api.jar")
 }
 
 tasks.jar {

@@ -1,5 +1,4 @@
 # 기본 서버 설정
-
 app: # 애플리케이션 및 배포 정보
   info:
     server-name: ${SERVER_NAME:unknown}
@@ -23,6 +22,7 @@ spring:
   profiles:
     include:
       - datasource
+      - external
   jackson:
     time-zone: Asia/Seoul
 
@@ -42,6 +42,15 @@ logging:
   level:
     root: info
 
+# OTEL 비활성화
+management:
+  tracing:
+    enabled: false
+  otlp:
+    metrics:
+      export:
+        enabled: false
+
 --- # default/local 프로파일 (동일 설정)
 spring:
   config:
@@ -52,6 +61,14 @@ logging:
   level:
     root: info
     app.bottlenote: info
+
+management:
+  tracing:
+    enabled: false
+  otlp:
+    metrics:
+      export:
+        enabled: false
 
 server:
   tomcat:
@@ -71,9 +88,16 @@ logging:
     root: debug
     app.bottlenote: debug
     org.springframework: debug
-    # SQL 로깅 비활성화
     org.hibernate.SQL: off
     org.hibernate.orm.jdbc.bind: off
+
+management:
+  tracing:
+    enabled: false
+  otlp:
+    metrics:
+      export:
+        enabled: false
 
 server:
   tomcat:
@@ -93,6 +117,14 @@ logging:
     root: info
     app.bottlenote: info
 
+management:
+  tracing:
+    enabled: false
+  otlp:
+    metrics:
+      export:
+        enabled: false
+
 server:
   tomcat:
     threads:
@@ -110,6 +142,14 @@ logging:
   level:
     root: info
     app.bottlenote: warn
+
+management:
+  tracing:
+    enabled: false
+  otlp:
+    metrics:
+      export:
+        enabled: false
 
 server:
   tomcat:
