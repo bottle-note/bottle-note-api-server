@@ -34,12 +34,14 @@ jobs:
           fi
 
       - name: create release branch
+        id: create-branch
         if: steps.check-branch.outputs.exists == 'false'
         run: |
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-8)
           BRANCH_NAME="admin/release-${SHORT_SHA}"
 
           echo "Creating branch: $BRANCH_NAME"
+          echo "branch_name=${BRANCH_NAME}" >> $GITHUB_OUTPUT
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -48,6 +50,30 @@ jobs:
           git push origin "$BRANCH_NAME"
 
           echo "Successfully created branch: $BRANCH_NAME"
+
+      - name: create pull request
+        if: steps.check-branch.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GIT_ACCESS_TOKEN }}
+        run: |
+          BRANCH_NAME="${{ steps.create-branch.outputs.branch_name }}"
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-8)
+
+          gh pr create \
+            --base dev \
+            --head "$BRANCH_NAME" \
+            --title "Admin Release ${SHORT_SHA}" \
+            --body "## Summary
+          - Admin API 모듈 변경사항 릴리즈
+          - Commit: ${{ github.sha }}
+
+          ## Changes
+          - bottlenote-admin-api 모듈 변경 포함
+
+          ---
+          *This PR was automatically created by GitHub Actions*"
+
+          echo "Pull request created successfully"
 
       - name: skip notification
         if: steps.check-branch.outputs.exists == 'true'
