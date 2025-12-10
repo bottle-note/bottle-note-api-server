@@ -20,7 +20,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 	excludeAutoConfiguration = [SecurityAutoConfiguration::class]
 )
 @AutoConfigureRestDocs
-class HelloAdminApiControllerTest {
+class `HelloAdminApiControllerTest.bak` {
 
 	@Autowired
 	private lateinit var mockMvc: MockMvc
