@@ -110,13 +110,17 @@ jobs:
           cd git.environment-variables
           git checkout main
 
-          cd deploy/overlays/admin
-
+          # development
+          cd deploy/overlays/development
           kustomize edit set image \
-            536697247604.dkr.ecr.ap-northeast-2.amazonaws.com/ecr-bottle-note-api=536697247604.dkr.ecr.ap-northeast-2.amazonaws.com/ecr-bottle-note-api:${IMAGE_TAG}
+            ecr-bottle-note-admin-api=536697247604.dkr.ecr.ap-northeast-2.amazonaws.com/ecr-bottle-note-api:${IMAGE_TAG}
+          echo "development kustomization.yaml updated"
 
-          echo "kustomization.yaml updated"
-          git diff kustomization.yaml
+          # production
+          cd ../production
+          kustomize edit set image \
+            ecr-bottle-note-admin-api=536697247604.dkr.ecr.ap-northeast-2.amazonaws.com/ecr-bottle-note-api:${IMAGE_TAG}
+          echo "production kustomization.yaml updated"
 
       - name: commit and push to environment-variables
         run: |
@@ -125,7 +129,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add deploy/overlays/admin/kustomization.yaml
+          git add deploy/overlays/development/kustomization.yaml
+          git add deploy/overlays/production/kustomization.yaml
 
           git commit -m "chore(admin): update image tag to admin_${{ needs.build-and-push.outputs.version }}
 
