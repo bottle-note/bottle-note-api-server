@@ -1,4 +1,4 @@
-package app
+package app.bottlenote.alcohols.persentaton
 
 import app.bottlenote.global.data.response.GlobalResponse
 import org.springframework.web.bind.annotation.GetMapping
@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/admin/api/v1")
-class HelloAdminApiController {
+class AdminAlcoholsController {
 
 	@GetMapping("/hello")
 	fun hello(): GlobalResponse {
