@@ -1,0 +1,139 @@
+name: deploy admin api
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [ closed ]
+    branches:
+      - 'admin/release-*'
+
+concurrency:
+  group: "deploy-admin"
+  cancel-in-progress: true
+
+env:
+  ECR_REGION: ap-northeast-2
+  ECR_REGISTRY: 536697247604.dkr.ecr.ap-northeast-2.amazonaws.com
+  ECR_REPOSITORY: ecr-bottle-note-api
+
+jobs:
+  build-and-push:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: checkout code with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+
+      - name: read admin version
+        id: version
+        run: |
+          VERSION=$(cat bottlenote-admin-api/VERSION | tr -d '[:space:]')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "admin version: $VERSION"
+
+      - name: setup gradle cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.ECR_REGION }}
+
+      - name: login to amazon ecr
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: setup docker buildx for admin (cache support)
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
+
+      - name: generate build timestamp
+        id: build-time
+        run: echo "time=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+
+      - name: build and push admin image to ecr (github actions cache)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/arm64
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:admin_${{ steps.version.outputs.version }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:admin_latest
+          build-args: |
+            GIT_COMMIT=${{ github.sha }}
+            GIT_BRANCH=${{ github.ref_name }}
+            BUILD_TIME=${{ steps.build-time.outputs.time }}
+          cache-from: type=gha,scope=admin
+          cache-to: type=gha,scope=admin,mode=max
+
+  update-kustomize-tag:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+
+      - name: setup kustomize
+        uses: imranismail/setup-kustomize@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: update image tag with kustomize
+        run: |
+          VERSION="${{ needs.build-and-push.outputs.version }}"
+          IMAGE_TAG="admin_${VERSION}"
+
+          echo "update image tag: $IMAGE_TAG"
+
+          cd git.environment-variables
+          git checkout main
+
+          cd deploy/overlays/admin
+
+          kustomize edit set image \
+            536697247604.dkr.ecr.ap-northeast-2.amazonaws.com/ecr-bottle-note-api=536697247604.dkr.ecr.ap-northeast-2.amazonaws.com/ecr-bottle-note-api:${IMAGE_TAG}
+
+          echo "kustomization.yaml updated"
+          git diff kustomization.yaml
+
+      - name: commit and push to environment-variables
+        run: |
+          cd git.environment-variables
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add deploy/overlays/admin/kustomization.yaml
+
+          git commit -m "chore(admin): update image tag to admin_${{ needs.build-and-push.outputs.version }}
+
+          Updated by GitHub Actions
+          Commit: ${{ github.sha }}
+          Branch: ${{ github.ref_name }}
+          Workflow: ${{ github.workflow }}"
+
+          git push origin main
+
+          echo "git commit and push completed"
+          echo "argocd will detect changes and start deployment"
