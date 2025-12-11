@@ -37,9 +37,9 @@ public class Banner extends BaseEntity {
   private String name;
 
   @Comment("배너명 텍스트 색상(hex)")
-  @Column(name = "name_font_color", nullable = false, length = 6)
+  @Column(name = "name_font_color", nullable = false, length = 7)
   @Builder.Default
-  private String nameFontColor = "ffffff";
+  private String nameFontColor = "#ffffff";
 
   @Comment("배너 설명 부분1")
   @Column(name = "description_a", length = 50)
@@ -50,9 +50,9 @@ public class Banner extends BaseEntity {
   private String descriptionB;
 
   @Comment("배너 설명 텍스트 색상(HEX) a,b 동일 적용")
-  @Column(name = "description_font_color", nullable = false, length = 6)
+  @Column(name = "description_font_color", nullable = false, length = 7)
   @Builder.Default
-  private String descriptionFontColor = "ffffff";
+  private String descriptionFontColor = "#ffffff";
 
   @Comment("이미지 URL")
   @Column(name = "image_url", nullable = false)
