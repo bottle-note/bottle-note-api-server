@@ -1,0 +1,84 @@
+name: create admin release branch and pull request
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-and-create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: read current version
+        id: version
+        run: |
+          CURRENT_VERSION=$(cat bottlenote-admin-api/VERSION | tr -d '[:space:]')
+          echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "current version: $CURRENT_VERSION"
+
+      - name: check if release branch exists
+        id: check-branch
+        run: |
+          BRANCH_NAME="admin/release-${{ steps.version.outputs.current }}"
+          if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "branch $BRANCH_NAME already exists"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "branch $BRANCH_NAME does not exist"
+          fi
+
+      - name: calculate next version
+        if: steps.check-branch.outputs.exists == 'false'
+        id: next-version
+        run: |
+          CURRENT="${{ steps.version.outputs.current }}"
+          # x.y.z 형식에서 patch 버전만 증가
+          MAJOR=$(echo $CURRENT | cut -d. -f1)
+          MINOR=$(echo $CURRENT | cut -d. -f2)
+          PATCH=$(echo $CURRENT | cut -d. -f3)
+          NEXT_PATCH=$((PATCH + 1))
+          NEXT_VERSION="$MAJOR.$MINOR.$NEXT_PATCH"
+          echo "next=$NEXT_VERSION" >> $GITHUB_OUTPUT
+          echo "next version: $NEXT_VERSION"
+
+      - name: create release branch
+        if: steps.check-branch.outputs.exists == 'false'
+        run: |
+          BRANCH_NAME="admin/release-${{ steps.next-version.outputs.next }}"
+          git checkout -b "$BRANCH_NAME"
+          git push origin "$BRANCH_NAME"
+          echo "created branch: $BRANCH_NAME"
+
+      - name: update version on main
+        if: steps.check-branch.outputs.exists == 'false'
+        run: |
+          git checkout main
+          echo "${{ steps.next-version.outputs.next }}" > bottlenote-admin-api/VERSION
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add bottlenote-admin-api/VERSION
+          git commit -m "chore: bump admin version to ${{ steps.next-version.outputs.next }}"
+          git push origin main
+
+      - name: create pull request
+        if: steps.check-branch.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH_NAME="admin/release-${{ steps.next-version.outputs.next }}"
+          gh pr create \
+            --base "$BRANCH_NAME" \
+            --head main \
+            --title "deploy: $BRANCH_NAME" \
+            --body "deploy admin release branch from main"
