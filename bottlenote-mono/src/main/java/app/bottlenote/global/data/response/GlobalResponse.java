@@ -77,10 +77,6 @@ public class GlobalResponse {
     return ResponseEntity.ok(success(data, meta));
   }
 
-  public static <T> ResponseEntity<?> ok(Page<T> page) {
-    return ResponseEntity.ok(fromPage(page));
-  }
-
   public static <T> GlobalResponse fromPage(Page<T> page) {
     if (page == null) {
       return success(emptyList());
