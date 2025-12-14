@@ -4,11 +4,11 @@ import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
-import app.bottlenote.alcohols.dto.response.AdminAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.FriendsDetailResponse;
+import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.history.service.AlcoholViewHistoryService;
@@ -19,7 +19,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -94,7 +93,7 @@ public class AlcoholQueryService {
   }
 
   @Transactional(readOnly = true)
-  public Page<AdminAlcoholItem> searchAdminAlcohols(AdminAlcoholSearchRequest request) {
-    return alcoholQueryRepository.searchAdminAlcohols(request);
+  public GlobalResponse searchAdminAlcohols(AdminAlcoholSearchRequest request) {
+    return GlobalResponse.fromPage(alcoholQueryRepository.searchAdminAlcohols(request));
   }
 }

@@ -292,9 +292,6 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
   /** Admin용 알코올 검색 (Offset 페이징) */
   @Override
   public Page<AdminAlcoholItem> searchAdminAlcohols(AdminAlcoholSearchRequest request) {
-    SearchSortType sortType = request.sortType();
-    SortOrder sortOrder = request.sortOrder();
-
     List<AdminAlcoholItem> content =
         queryFactory
             .select(
@@ -313,7 +310,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                 supporter.keywordMatch(request.keyword()),
                 supporter.eqCategory(request.category()),
                 supporter.eqRegion(request.regionId()))
-            .orderBy(supporter.sortBy(sortType, sortOrder))
+            .orderBy(supporter.sortByAdmin(request.sortType(), request.sortOrder()))
             .offset((long) request.page() * request.size())
             .limit(request.size())
             .fetch();

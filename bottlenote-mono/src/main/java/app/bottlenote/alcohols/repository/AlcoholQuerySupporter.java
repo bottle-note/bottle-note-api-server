@@ -12,6 +12,7 @@ import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
 import static com.querydsl.jpa.JPAExpressions.select;
 
+import app.bottlenote.alcohols.constant.AdminAlcoholSortType;
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
@@ -157,6 +158,18 @@ public class AlcoholQuerySupporter {
       case RATING -> sortOrder == SortOrder.DESC ? avgRating.desc() : avgRating.asc();
       case PICK -> sortOrder == SortOrder.DESC ? pickCount.desc() : pickCount.asc();
       case REVIEW -> sortOrder == SortOrder.DESC ? reviewCount.desc() : reviewCount.asc();
+    };
+  }
+
+  /** Admin용 정렬 조건 생성 (이름/카테고리 기준) */
+  public OrderSpecifier<?> sortByAdmin(AdminAlcoholSortType sortType, SortOrder sortOrder) {
+    return switch (sortType) {
+      case KOR_NAME -> sortOrder == SortOrder.DESC ? alcohol.korName.desc() : alcohol.korName.asc();
+      case ENG_NAME -> sortOrder == SortOrder.DESC ? alcohol.engName.desc() : alcohol.engName.asc();
+      case KOR_CATEGORY ->
+          sortOrder == SortOrder.DESC ? alcohol.korCategory.desc() : alcohol.korCategory.asc();
+      case ENG_CATEGORY ->
+          sortOrder == SortOrder.DESC ? alcohol.engCategory.desc() : alcohol.engCategory.asc();
     };
   }
 

@@ -78,24 +78,27 @@ public class GlobalResponse {
   }
 
   public static <T> ResponseEntity<?> ok(Page<T> page) {
+    return ResponseEntity.ok(fromPage(page));
+  }
+
+  public static <T> GlobalResponse fromPage(Page<T> page) {
     if (page == null) {
-      return ResponseEntity.ok(success(emptyList()));
+      return success(emptyList());
     }
-    return ResponseEntity.ok(
-        GlobalResponse.builder()
-            .success(true)
-            .code(200)
-            .errors(emptyList())
-            .data(page.getContent())
-            .meta(
-                createMetaInfo()
-                    .add("page", page.getNumber())
-                    .add("size", page.getSize())
-                    .add("totalElements", page.getTotalElements())
-                    .add("totalPages", page.getTotalPages())
-                    .add("hasNext", page.hasNext())
-                    .getMetaInfos())
-            .build());
+    return GlobalResponse.builder()
+        .success(true)
+        .code(200)
+        .errors(emptyList())
+        .data(page.getContent())
+        .meta(
+            createMetaInfo()
+                .add("page", page.getNumber())
+                .add("size", page.getSize())
+                .add("totalElements", page.getTotalElements())
+                .add("totalPages", page.getTotalPages())
+                .add("hasNext", page.hasNext())
+                .getMetaInfos())
+        .build();
   }
 
   public static GlobalResponse success(Object data) {

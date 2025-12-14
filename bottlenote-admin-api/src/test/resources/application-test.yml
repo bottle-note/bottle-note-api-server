@@ -1,0 +1,84 @@
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: bottle-note-admin-test
+  test:
+    database:
+      replace: none
+  jackson:
+    time-zone: Asia/Seoul
+
+  # Redis 설정
+  data:
+    redis:
+      mode: standalone
+      repositories:
+        enabled: false
+      timeout: 15s
+
+  # Datasource
+  datasource:
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+    url: jdbc:tc:mysql:8.0.32:///bottlenote
+    username: root
+    password: root
+  sql:
+    init:
+      mode: never
+
+  # JPA
+  jpa:
+    properties:
+      hibernate:
+        format_sql: false
+        show_sql: false
+        globally_quoted_identifiers: false
+        use_sql_comments: false
+        hbm2ddl:
+          auto: validate
+    show-sql: true
+    generate-ddl: false
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+
+# Spring Security
+security:
+  jwt:
+    secret-key: 'c2VjdXJlU2VjcmV0S2V5MTIzNDU2Nzg5MGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6QWJDRGVGR2hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlrSg=='
+  nonce:
+    salt: 'test-salt-value-2024'
+
+# AWS S3
+amazon:
+  aws:
+    accessKey: fake-access-key
+    secretKey: fake-secret-key
+    region: ap-northeast-2
+    bucket: fake-bucket
+    cloudFrontUrl: https://fake-cloudfront.net
+
+# Profanity Filter
+profanity:
+  filter:
+    url: https://api.profanity.kr-filter.com/api/v1
+
+app:
+  thirdParty:
+    firebase-configuration-file: src/test/resources/service_account_credentials.json
+
+apple:
+  bundle-id: "com.bottlenote.official.app"
+
+# Observability 비활성화 (테스트 환경)
+management:
+  tracing:
+    disabled: true
+  otlp:
+    tracing:
+      endpoint: http://localhost:4318/v1/traces
+    metrics:
+      export:
+        enabled: false
+        url: http://localhost:4318/v1/metrics
+    logging:
+      endpoint: http://localhost:4318/v1/logs
