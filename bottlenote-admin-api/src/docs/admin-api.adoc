@@ -26,6 +26,6 @@ include::asciidoc/api/overview/global-exception.adoc[]
 
 '''
 
-== Sample API
+== Alcohol API
 
-include::asciidoc/api/sample-hello/hello.adoc[]
+include::asciidoc/api/admin-alcohols/alcohols.adoc[]

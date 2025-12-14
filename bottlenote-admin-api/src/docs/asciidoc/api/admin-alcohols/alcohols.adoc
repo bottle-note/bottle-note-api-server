@@ -1,0 +1,24 @@
+=== 술(Alcohol) 목록 조회 ===
+
+- 관리자용 술 목록 조회 API입니다.
+- 키워드 검색, 카테고리 필터, 정렬, 페이징을 지원합니다.
+
+[source]
+----
+GET /admin/api/v1/alcohols
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin-alcohols/search/query-parameters.adoc[]
+include::{snippets}/admin-alcohols/search/curl-request.adoc[]
+include::{snippets}/admin-alcohols/search/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin-alcohols/search/response-fields.adoc[]
+include::{snippets}/admin-alcohols/search/http-response.adoc[]
