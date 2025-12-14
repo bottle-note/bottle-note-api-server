@@ -28,6 +28,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 모듈 구조
 
+```mermaid
+flowchart TD
+    subgraph deploy["배포 단위 (JAR)"]
+        direction LR
+        product["product-api<br/>클라이언트용 · Java"]
+        admin["admin-api<br/>관리자용 · Kotlin"]
+    end
+
+    subgraph libs["라이브러리 모듈"]
+        direction LR
+        obs["observability<br/>모니터링 · OpenTelemetry"]
+        batch["batch<br/>배치 작업 · Quartz"]
+    end
+
+    mono["bottlenote-mono<br/>공유 라이브러리<br/>도메인/비즈니스 · JPA · QueryDSL"]
+
+    product --> obs & batch & mono
+    admin --> obs & mono
+    batch --> mono
+```
+
 ### bottlenote-mono
 - **역할**: 레거시 모놀리식 모듈 (핵심 비즈니스 로직)
 - **특징**:
@@ -45,6 +66,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - 실행 가능한 Spring Boot JAR로 빌드
   - 테스트 환경 구성 (단위, 통합, 아키텍처 규칙)
   - 클라이언트 사용자들의 요구사항을 처리하는 api 서버
+
+### bottlenote-admin-api
+- **역할**: 관리자용 API 서버 모듈 (Kotlin)
+- **특징**:
+  - bottlenote-mono 모듈 의존
+  - 관리자 전용 REST API
+  - context-path: `/admin/api/v1`
 
 ### bottlenote-batch
 - **역할**: 배치 처리 모듈
