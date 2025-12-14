@@ -1,5 +1,6 @@
 package app.bottlenote.alcohols.persentaton
 
+import app.bottlenote.alcohols.service.AlcoholQueryService
 import app.bottlenote.global.data.response.GlobalResponse
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -8,7 +9,9 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/alcohols")
-class AdminAlcoholsController {
+class AdminAlcoholsController(
+	private var alcoholsService: AlcoholQueryService
+) {
 
 	@GetMapping("/hello")
 	fun hello(): GlobalResponse {

@@ -10,6 +10,8 @@ import static app.bottlenote.review.domain.QReview.review;
 
 import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
+import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest;
+import app.bottlenote.alcohols.dto.response.AdminAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
@@ -25,6 +27,9 @@ import java.util.Objects;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 @AllArgsConstructor
 public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepository {
@@ -282,5 +287,48 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
             .fetchOne();
     CursorResponse<AlcoholDetailItem> list = CursorResponse.of(items, cursor, pageSize);
     return Pair.of(total, list);
+  }
+
+  /** Admin용 알코올 검색 (Offset 페이징) */
+  @Override
+  public Page<AdminAlcoholItem> searchAdminAlcohols(AdminAlcoholSearchRequest request) {
+    SearchSortType sortType = request.sortType();
+    SortOrder sortOrder = request.sortOrder();
+
+    List<AdminAlcoholItem> content =
+        queryFactory
+            .select(
+                Projections.constructor(
+                    AdminAlcoholItem.class,
+                    alcohol.id,
+                    alcohol.korName,
+                    alcohol.engName,
+                    alcohol.korCategory,
+                    alcohol.engCategory,
+                    alcohol.imageUrl,
+                    alcohol.createAt,
+                    alcohol.lastModifyAt))
+            .from(alcohol)
+            .where(
+                supporter.keywordMatch(request.keyword()),
+                supporter.eqCategory(request.category()),
+                supporter.eqRegion(request.regionId()))
+            .orderBy(supporter.sortBy(sortType, sortOrder))
+            .offset((long) request.page() * request.size())
+            .limit(request.size())
+            .fetch();
+
+    Long total =
+        queryFactory
+            .select(alcohol.id.count())
+            .from(alcohol)
+            .where(
+                supporter.keywordMatch(request.keyword()),
+                supporter.eqCategory(request.category()),
+                supporter.eqRegion(request.regionId()))
+            .fetchOne();
+
+    return new PageImpl<>(
+        content, PageRequest.of(request.page(), request.size()), total != null ? total : 0L);
   }
 }
