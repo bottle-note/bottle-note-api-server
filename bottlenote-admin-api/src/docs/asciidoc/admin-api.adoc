@@ -16,16 +16,16 @@ endif::[]
 
 == 개요 (overview)
 
-include::asciidoc/api/overview/overview.adoc[]
+include::api/overview/overview.adoc[]
 
 '''
-include::asciidoc/api/overview/global-response.adoc[]
+include::api/overview/global-response.adoc[]
 
 '''
-include::asciidoc/api/overview/global-exception.adoc[]
+include::api/overview/global-exception.adoc[]
 
 '''
 
 == Alcohol API
 
-include::asciidoc/api/admin-alcohols/alcohols.adoc[]
+include::api/admin-alcohols/alcohols.adoc[]

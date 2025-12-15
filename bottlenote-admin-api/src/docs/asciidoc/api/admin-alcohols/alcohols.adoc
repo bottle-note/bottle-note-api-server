@@ -12,13 +12,13 @@ GET /admin/api/v1/alcohols
 ==== 요청 파라미터 ====
 
 [discrete]
-include::{snippets}/admin-alcohols/search/query-parameters.adoc[]
-include::{snippets}/admin-alcohols/search/curl-request.adoc[]
-include::{snippets}/admin-alcohols/search/http-request.adoc[]
+include::{snippets}/admin/alcohols/search/query-parameters.adoc[]
+include::{snippets}/admin/alcohols/search/curl-request.adoc[]
+include::{snippets}/admin/alcohols/search/http-request.adoc[]
 
 [discrete]
 ==== 응답 파라미터 ====
 
 [discrete]
-include::{snippets}/admin-alcohols/search/response-fields.adoc[]
-include::{snippets}/admin-alcohols/search/http-response.adoc[]
+include::{snippets}/admin/alcohols/search/response-fields.adoc[]
+include::{snippets}/admin/alcohols/search/http-response.adoc[]
