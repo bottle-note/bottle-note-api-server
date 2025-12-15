@@ -71,7 +71,6 @@ tasks.asciidoctor {
 	inputs.dir(snippetsDir)
 	configurations(asciidoctorExt.name)
 	dependsOn(tasks.test)
-	setSourceDir(file("src/docs"))
 	sources {
 		include("**/admin-api.adoc")
 	}

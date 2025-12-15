@@ -125,6 +125,18 @@ subprojects {
 			includeTags 'rule'
 		}
 	}
+
+	// REST Docs 테스트 (app.docs 패키지)
+	if (project.name in ['bottlenote-product-api', 'bottlenote-admin-api']) {
+		tasks.register('restDocsTest', Test) {
+			description = 'REST Docs snippets 생성을 위한 테스트'
+			group = 'documentation'
+			useJUnitPlatform()
+			filter {
+				includeTestsMatching 'app.docs.*'
+			}
+		}
+	}
 }
 
 // 루트 프로젝트 태스크
@@ -156,4 +168,10 @@ tasks.register('check_rule_test') {
 	description = '전체 모듈 아키텍처 규칙 테스트 실행'
 	group = 'verification'
 	dependsOn subprojects.findAll { it.tasks.findByName('check_rule_test') }.collect { it.tasks.check_rule_test }
+}
+
+tasks.register('restDocsTest') {
+	description = 'REST Docs snippets 생성 (product-api, admin-api)'
+	group = 'documentation'
+	dependsOn subprojects.findAll { it.tasks.findByName('restDocsTest') }.collect { it.tasks.restDocsTest }
 }
