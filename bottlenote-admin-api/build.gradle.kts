@@ -21,6 +21,9 @@ dependencies {
 	implementation(libs.spring.security.test)
 	testImplementation(libs.spring.security.test)
 
+	testImplementation(libs.spring.boot.starter.data.jpa)
+	testImplementation(libs.mysql.connector.j)
+
 	// Test - Spring REST Docs
 	add("asciidoctorExt", libs.spring.restdocs.asciidoctor)
 	testImplementation(libs.spring.restdocs.mockmvc)

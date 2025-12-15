@@ -15,8 +15,10 @@ import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.transaction.annotation.Transactional
 import java.util.stream.Stream
 
+@Transactional
 @Tag("integration")
 @DisplayName("[integration] Admin Alcohol API 통합 테스트")
 class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
@@ -29,7 +31,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 		fun keywordSearchTestCases(): Stream<Arguments> = Stream.of(
 			Arguments.of("글렌피딕", 1, "한글 이름으로 검색"),
 			Arguments.of("Glenfiddich", 1, "영문 이름으로 검색"),
-			Arguments.of("위스키", 0, "매칭되지 않는 키워드")
+			Arguments.of("테킬라", 0, "매칭되지 않는 키워드")
 		)
 
 		@JvmStatic
