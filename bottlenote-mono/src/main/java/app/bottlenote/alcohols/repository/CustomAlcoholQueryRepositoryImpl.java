@@ -109,7 +109,9 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
             .fetchOne();
 
     CursorPageable pageable = CursorPageable.of(fetch, cursor, pageSize);
-    return PageResponse.of(AlcoholSearchResponse.of(totalCount, fetch), pageable);
+    List<AlcoholsSearchItem> content =
+        fetch.size() > pageSize ? fetch.subList(0, pageSize.intValue()) : fetch;
+    return PageResponse.of(AlcoholSearchResponse.of(totalCount, content), pageable);
   }
 
   /** queryDSL 알코올 상세 조회 */

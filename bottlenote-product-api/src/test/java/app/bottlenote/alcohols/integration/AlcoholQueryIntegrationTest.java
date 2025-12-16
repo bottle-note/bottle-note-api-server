@@ -407,4 +407,56 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
     assertTrue(resultIds.contains(alcohol2.getId()));
     assertFalse(resultIds.contains(alcohol3.getId())); // alcohol3은 큐레이션에 없음
   }
+
+  @Test
+  @DisplayName("커서 기반 페이징 시 페이지 간 중복 데이터가 발생하지 않는다.")
+  void test_13() throws Exception {
+    // given - 15개 알코올 생성
+    alcoholTestFactory.persistAlcohols(15);
+    int pageSize = 5;
+
+    // when - 첫 번째 페이지 조회 (cursor=0)
+    MvcTestResult firstPageResult =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/alcohols/search")
+            .param("cursor", "0")
+            .param("pageSize", String.valueOf(pageSize))
+            .contentType(APPLICATION_JSON)
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
+
+    AlcoholSearchResponse firstPage = extractData(firstPageResult, AlcoholSearchResponse.class);
+    List<Long> firstPageIds =
+        firstPage.getAlcohols().stream().map(AlcoholsSearchItem::getAlcoholId).toList();
+
+    // 두 번째 페이지 조회 (cursor=5)
+    MvcTestResult secondPageResult =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/alcohols/search")
+            .param("cursor", String.valueOf(pageSize))
+            .param("pageSize", String.valueOf(pageSize))
+            .contentType(APPLICATION_JSON)
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
+
+    AlcoholSearchResponse secondPage = extractData(secondPageResult, AlcoholSearchResponse.class);
+    List<Long> secondPageIds =
+        secondPage.getAlcohols().stream().map(AlcoholsSearchItem::getAlcoholId).toList();
+
+    // then
+    assertEquals(pageSize, firstPageIds.size(), "첫 번째 페이지는 정확히 pageSize만큼 반환해야 한다");
+    assertEquals(pageSize, secondPageIds.size(), "두 번째 페이지는 정확히 pageSize만큼 반환해야 한다");
+
+    // 중복 검증: 첫 번째 페이지와 두 번째 페이지에 같은 ID가 없어야 함
+    Set<Long> firstPageIdSet = new java.util.HashSet<>(firstPageIds);
+    for (Long secondPageId : secondPageIds) {
+      assertFalse(
+          firstPageIdSet.contains(secondPageId),
+          "페이지 간 중복 데이터가 발생했습니다. 중복 ID: " + secondPageId);
+    }
+  }
 }
