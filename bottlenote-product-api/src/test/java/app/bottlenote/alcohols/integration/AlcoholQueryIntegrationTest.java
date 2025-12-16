@@ -455,8 +455,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
     Set<Long> firstPageIdSet = new java.util.HashSet<>(firstPageIds);
     for (Long secondPageId : secondPageIds) {
       assertFalse(
-          firstPageIdSet.contains(secondPageId),
-          "페이지 간 중복 데이터가 발생했습니다. 중복 ID: " + secondPageId);
+          firstPageIdSet.contains(secondPageId), "페이지 간 중복 데이터가 발생했습니다. 중복 ID: " + secondPageId);
     }
   }
 }
