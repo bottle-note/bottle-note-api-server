@@ -21,10 +21,40 @@ dependencies {
 	implementation(libs.spring.security.test)
 	testImplementation(libs.spring.security.test)
 
+	testImplementation(libs.spring.boot.starter.data.jpa)
+	testImplementation(libs.mysql.connector.j)
+
 	// Test - Spring REST Docs
 	add("asciidoctorExt", libs.spring.restdocs.asciidoctor)
 	testImplementation(libs.spring.restdocs.mockmvc)
 	testImplementation(libs.restdocs.api.spec.mockmvc)
+
+	// Test - Testcontainers
+	testImplementation(libs.bundles.testcontainers.complete)
+
+	// Test - mono 모듈 TestFactory 참조
+	testImplementation(project(":bottlenote-mono").dependencyProject.sourceSets.test.get().output)
+}
+
+sourceSets {
+	main {
+		resources {
+			srcDirs("src/main/resources", "${rootProject.projectDir}/git.environment-variables")
+		}
+	}
+	test {
+		resources {
+			srcDirs("src/test/resources", "${rootProject.projectDir}/git.environment-variables")
+		}
+	}
+}
+
+tasks.processResources {
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.processTestResources {
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 tasks.bootJar {
@@ -41,7 +71,6 @@ tasks.asciidoctor {
 	inputs.dir(snippetsDir)
 	configurations(asciidoctorExt.name)
 	dependsOn(tasks.test)
-	setSourceDir(file("src/docs"))
 	sources {
 		include("**/admin-api.adoc")
 	}

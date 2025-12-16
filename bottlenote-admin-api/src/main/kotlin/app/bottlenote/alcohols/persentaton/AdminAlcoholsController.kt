@@ -1,19 +1,23 @@
 package app.bottlenote.alcohols.persentaton
 
+import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest
+import app.bottlenote.alcohols.service.AlcoholQueryService
 import app.bottlenote.global.data.response.GlobalResponse
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 
 @RestController
-@RequestMapping("/admin/api/v1")
-class AdminAlcoholsController {
+@RequestMapping("/alcohols")
+class AdminAlcoholsController(
+	private val alcoholQueryService: AlcoholQueryService
+) {
 
-	@GetMapping("/hello")
-	fun hello(): GlobalResponse {
-		val data = HashMap<String, String>()
-		data["message"] = "Hello World!"
-		return GlobalResponse.success(data)
+	@GetMapping
+	fun searchAlcohols(@ModelAttribute request: AdminAlcoholSearchRequest): ResponseEntity<GlobalResponse> {
+		return ResponseEntity.ok(alcoholQueryService.searchAdminAlcohols(request))
 	}
 }

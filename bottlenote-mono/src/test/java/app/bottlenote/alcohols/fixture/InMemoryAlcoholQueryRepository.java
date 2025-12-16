@@ -4,6 +4,8 @@ import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
+import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest;
+import app.bottlenote.alcohols.dto.response.AdminAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
@@ -16,6 +18,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.test.util.ReflectionTestUtils;
 
 public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
@@ -77,5 +81,10 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
   public Pair<Long, CursorResponse<AlcoholDetailItem>> getStandardExplore(
       Long userId, List<String> keyword, Long cursor, Integer size) {
     return null;
+  }
+
+  @Override
+  public Page<AdminAlcoholItem> searchAdminAlcohols(AdminAlcoholSearchRequest request) {
+    return new PageImpl<>(List.of());
   }
 }

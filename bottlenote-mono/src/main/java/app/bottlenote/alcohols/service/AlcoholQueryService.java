@@ -2,11 +2,13 @@ package app.bottlenote.alcohols.service;
 
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
+import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.FriendsDetailResponse;
+import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.history.service.AlcoholViewHistoryService;
@@ -88,5 +90,10 @@ public class AlcoholQueryService {
   public Pair<Long, CursorResponse<AlcoholDetailItem>> getStandardExplore(
       Long userId, List<String> keywords, Long cursor, Integer size) {
     return alcoholQueryRepository.getStandardExplore(userId, keywords, cursor, size);
+  }
+
+  @Transactional(readOnly = true)
+  public GlobalResponse searchAdminAlcohols(AdminAlcoholSearchRequest request) {
+    return GlobalResponse.fromPage(alcoholQueryRepository.searchAdminAlcohols(request));
   }
 }

@@ -10,7 +10,8 @@ public record CursorResponse<T>(List<T> items, CursorPageable pageable) {
 
   public static <T> CursorResponse<T> of(List<T> items, Long cursor, Integer size) {
     CursorPageable pageable = CursorPageable.of(items, cursor, size);
-    return new CursorResponse<>(items, pageable);
+    List<T> content = items.size() > size ? items.subList(0, size) : items;
+    return new CursorResponse<>(content, pageable);
   }
 
   public static <T> CursorResponse<T> from(PageResponse<List<T>> pageResponse) {

@@ -16,6 +16,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -74,6 +75,26 @@ public class GlobalResponse {
 
   public static ResponseEntity<?> ok(Object data, MetaInfos meta) {
     return ResponseEntity.ok(success(data, meta));
+  }
+
+  public static <T> GlobalResponse fromPage(Page<T> page) {
+    if (page == null) {
+      return success(emptyList());
+    }
+    return GlobalResponse.builder()
+        .success(true)
+        .code(200)
+        .errors(emptyList())
+        .data(page.getContent())
+        .meta(
+            createMetaInfo()
+                .add("page", page.getNumber())
+                .add("size", page.getSize())
+                .add("totalElements", page.getTotalElements())
+                .add("totalPages", page.getTotalPages())
+                .add("hasNext", page.hasNext())
+                .getMetaInfos())
+        .build();
   }
 
   public static GlobalResponse success(Object data) {

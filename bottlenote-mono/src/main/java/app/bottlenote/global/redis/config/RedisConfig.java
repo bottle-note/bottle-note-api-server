@@ -12,6 +12,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
@@ -37,15 +38,13 @@ public class RedisConfig {
   @Value("${spring.data.redis.timeout:15s}")
   private Duration redisTimeout;
 
+  @Order(Integer.MAX_VALUE - 100)
   @EventListener(ApplicationReadyEvent.class)
   public void onApplicationReady() {
     validateRedisMode();
 
     log.info("========================================");
-    log.info("Redis Configuration Report");
     log.info("Mode: {}", redisMode);
-    log.info("Timeout: {}", redisTimeout);
-
     switch (redisMode.toLowerCase()) {
       case "cluster" -> {
         RedisConnectionDetails.Cluster cluster = redisConnectionDetails.getCluster();
@@ -64,19 +63,10 @@ public class RedisConfig {
       default -> {
         RedisConnectionDetails.Standalone standalone = redisConnectionDetails.getStandalone();
         if (standalone != null) {
-          log.info("Host: {}", standalone.getHost());
-          log.info("Port: {}", standalone.getPort());
-          log.info("Database: {}", standalone.getDatabase());
+          log.info("this is standalone redis");
         }
       }
     }
-
-    log.info(
-        "Username: {}",
-        redisConnectionDetails.getUsername() != null ? "Configured" : "Not configured");
-    log.info(
-        "Password: {}",
-        redisConnectionDetails.getPassword() != null ? "Configured" : "Not configured");
     log.info("✅ Redis connection successfully established");
     log.info("========================================");
   }
