@@ -91,7 +91,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                 alcohol.engCategory,
                 alcohol.imageUrl)
             .orderBy(supporter.sortBy(sortType, sortOrder))
-            .orderBy(supporter.sortByRandom())
+            .orderBy(alcohol.id.asc())
             .offset(cursor)
             .limit(criteriaDto.pageSize() + 1) // 다음 페이지가 있는지 확인하기 위해 1개 더 가져옴
             .fetch();
@@ -109,7 +109,9 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
             .fetchOne();
 
     CursorPageable pageable = CursorPageable.of(fetch, cursor, pageSize);
-    return PageResponse.of(AlcoholSearchResponse.of(totalCount, fetch), pageable);
+    List<AlcoholsSearchItem> content =
+        fetch.size() > pageSize ? fetch.subList(0, pageSize.intValue()) : fetch;
+    return PageResponse.of(AlcoholSearchResponse.of(totalCount, content), pageable);
   }
 
   /** queryDSL 알코올 상세 조회 */
