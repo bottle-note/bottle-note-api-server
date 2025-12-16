@@ -91,7 +91,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                 alcohol.engCategory,
                 alcohol.imageUrl)
             .orderBy(supporter.sortBy(sortType, sortOrder))
-            .orderBy(supporter.sortByRandom())
+            .orderBy(alcohol.id.asc())
             .offset(cursor)
             .limit(criteriaDto.pageSize() + 1) // 다음 페이지가 있는지 확인하기 위해 1개 더 가져옴
             .fetch();
