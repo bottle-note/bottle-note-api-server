@@ -1,0 +1,173 @@
+name: Version Check & Release PR
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: version-check
+  cancel-in-progress: true
+
+jobs:
+  check-and-create-pr:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - module: product
+            version_file: bottlenote-product-api/VERSION
+            target_branch: product/release
+          - module: admin
+            version_file: bottlenote-admin-api/VERSION
+            target_branch: admin/release
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check VERSION file changed
+        id: version-change
+        run: |
+          if git diff --name-only HEAD~1 HEAD | grep -q "${{ matrix.version_file }}"; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            VERSION=$(cat ${{ matrix.version_file }} | tr -d '[:space:]')
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "${{ matrix.module }} VERSION changed: $VERSION"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "${{ matrix.module }} VERSION not changed, skipping"
+          fi
+
+      - name: Check existing PR
+        if: steps.version-change.outputs.changed == 'true'
+        id: existing-pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_DATA=$(gh pr list \
+            --base "${{ matrix.target_branch }}" \
+            --head "main" \
+            --state open \
+            --json number,title \
+            --limit 1)
+
+          if [ "$PR_DATA" != "[]" ]; then
+            PR_NUMBER=$(echo "$PR_DATA" | jq -r '.[0].number')
+            PR_TITLE=$(echo "$PR_DATA" | jq -r '.[0].title')
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+            echo "pr_title=$PR_TITLE" >> $GITHUB_OUTPUT
+            echo "Existing PR found: #$PR_NUMBER - $PR_TITLE"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "No existing PR found"
+          fi
+
+      - name: Extract version from existing PR title
+        if: steps.version-change.outputs.changed == 'true' && steps.existing-pr.outputs.exists == 'true'
+        id: existing-version
+        run: |
+          PR_TITLE="${{ steps.existing-pr.outputs.pr_title }}"
+          EXISTING_VERSION=$(echo "$PR_TITLE" | grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+' || echo "0.0.0")
+          echo "version=$EXISTING_VERSION" >> $GITHUB_OUTPUT
+          echo "Existing PR version: $EXISTING_VERSION"
+
+      - name: Compare versions
+        if: steps.version-change.outputs.changed == 'true' && steps.existing-pr.outputs.exists == 'true'
+        id: compare
+        run: |
+          NEW_VERSION="${{ steps.version-change.outputs.version }}"
+          OLD_VERSION="${{ steps.existing-version.outputs.version }}"
+
+          version_to_int() {
+            echo "$1" | awk -F. '{ printf("%d%03d%03d", $1, $2, $3) }'
+          }
+
+          NEW_INT=$(version_to_int "$NEW_VERSION")
+          OLD_INT=$(version_to_int "$OLD_VERSION")
+
+          if [ "$NEW_INT" -lt "$OLD_INT" ]; then
+            echo "ERROR: New version ($NEW_VERSION) is lower than existing PR version ($OLD_VERSION)"
+            exit 1
+          elif [ "$NEW_INT" -gt "$OLD_INT" ]; then
+            echo "result=update" >> $GITHUB_OUTPUT
+            echo "New version is higher, will update PR"
+          else
+            echo "result=skip" >> $GITHUB_OUTPUT
+            echo "Same version, skipping"
+          fi
+
+      - name: Ensure target branch exists
+        if: steps.version-change.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ! git ls-remote --heads origin "${{ matrix.target_branch }}" | grep -q "${{ matrix.target_branch }}"; then
+            echo "Creating target branch: ${{ matrix.target_branch }}"
+            git push origin HEAD:refs/heads/${{ matrix.target_branch }}
+          else
+            echo "Target branch exists: ${{ matrix.target_branch }}"
+          fi
+
+      - name: Create PR
+        if: steps.version-change.outputs.changed == 'true' && steps.existing-pr.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.version-change.outputs.version }}"
+          MODULE="${{ matrix.module }}"
+          TARGET="${{ matrix.target_branch }}"
+          DATE=$(date +'%Y.%m.%d')
+
+          TITLE="[deploy] ${MODULE}-v${VERSION}"
+          BODY=$(cat <<EOF
+          ## Release ${MODULE} v${VERSION}
+
+          - **Version**: ${VERSION}
+          - **Created at**: ${DATE}
+          - **Auto-generated release PR**
+
+          ---
+          This PR was automatically created by version-check workflow.
+          EOF
+          )
+
+          gh pr create \
+            --base "$TARGET" \
+            --head "main" \
+            --title "$TITLE" \
+            --body "$BODY" \
+            --assignee "Copilot"
+
+          echo "PR created: $TITLE"
+
+      - name: Update PR
+        if: steps.version-change.outputs.changed == 'true' && steps.existing-pr.outputs.exists == 'true' && steps.compare.outputs.result == 'update'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.version-change.outputs.version }}"
+          MODULE="${{ matrix.module }}"
+          PR_NUMBER="${{ steps.existing-pr.outputs.pr_number }}"
+          DATE=$(date +'%Y.%m.%d')
+
+          TITLE="[deploy] ${MODULE}-v${VERSION}"
+          BODY=$(cat <<EOF
+          ## Release ${MODULE} v${VERSION}
+
+          - **Version**: ${VERSION}
+          - **Updated at**: ${DATE}
+          - **Auto-generated release PR**
+
+          ---
+          This PR was automatically created by version-check workflow.
+          EOF
+          )
+
+          gh pr edit "$PR_NUMBER" \
+            --title "$TITLE" \
+            --body "$BODY"
+
+          echo "PR #$PR_NUMBER updated: $TITLE"
