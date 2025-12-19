@@ -11,11 +11,15 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.GIT_ACCESS_TOKEN }}
     steps:
-      - name: Checkout code with submodules
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
-          submodules: true
           token: ${{ secrets.GIT_ACCESS_TOKEN }}
+
+      - name: Checkout submodules
+        run: |
+          git config --global url."https://${{ secrets.GIT_ACCESS_TOKEN }}@github.com/".insteadOf "https://github.com/"
+          git submodule update --init git.environment-variables
 
       - name: Generate short commit SHA
         id: short-sha
@@ -29,14 +33,17 @@ jobs:
           registry-password: ${{ secrets.REGISTRY_PASSWORD }}
           image-name: bottlenote-product-api
           image-tag: test_${{ steps.short-sha.outputs.sha }}
-          additional-tags: test_latest
+          additional-tags: latest
           cache-scope: test
           platforms: linux/arm64
-          image-title: "BottleNote Product API"
-          image-description: "보틀노트 Product API"
+          image-title: "BottleNote Product API Development"
+          image-description: "보틀노트 Product API Development"
           image-vendor: "BottleNote"
           image-authors: "BottleNote Team"
-          image-licenses: "MIT"
+          # Cosign 서명
+          sign-image: 'true'
+          cosign-key-path: 'git.environment-variables/storage/docker-registry/cosign.key'
+          cosign-password: ${{ secrets.COSIGN_PASSWORD }}
 
       - name: Verify push result
         run: |

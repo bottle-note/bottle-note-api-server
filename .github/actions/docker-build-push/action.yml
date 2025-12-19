@@ -3,20 +3,19 @@ description: 'Docker 이미지를 빌드하고 Private Registry에 푸시하는 
 
 inputs:
   registry-url:
-    description: '레지스트리 URL (secrets에서 전달)'
+    description: '레지스트리 URL'
     required: true
   registry-username:
-    description: '레지스트리 사용자명 (htpasswd 인증)'
+    description: '레지스트리 사용자명'
     required: true
   registry-password:
-    description: '레지스트리 비밀번호 (htpasswd 인증)'
+    description: '레지스트리 비밀번호'
     required: true
-
   image-name:
-    description: '이미지 이름 (예: bottle-note-api, bottle-note-admin)'
+    description: '이미지 이름'
     required: true
   dockerfile:
-    description: 'Dockerfile 경로 (예: Dockerfile, Dockerfile-admin)'
+    description: 'Dockerfile 경로'
     required: false
     default: 'Dockerfile'
   context:
@@ -24,62 +23,66 @@ inputs:
     required: false
     default: '.'
   platforms:
-    description: '빌드 타겟 플랫폼 (예: linux/arm64, linux/amd64)'
+    description: '빌드 타겟 플랫폼'
     required: false
     default: 'linux/arm64'
-
-  #  태그 설정
   image-tag:
-    description: '메인 이미지 태그 (예: development_abc1234, production_v1.0.0)'
+    description: '메인 이미지 태그'
     required: true
   additional-tags:
-    description: '추가 태그들, 쉼표로 구분 (예: latest,stable)'
+    description: '추가 태그들 (쉼표로 구분)'
     required: false
     default: ''
-
-  #  캐시 설정
   cache-scope:
-    description: 'GHA 캐시 scope - 환경별로 구분 (예: development, production, admin)'
+    description: 'GHA 캐시 scope'
     required: true
-
-  #  빌드 인자
   build-args:
-    description: '추가 Docker build arguments (줄바꿈으로 구분)'
+    description: '추가 Docker build arguments'
     required: false
     default: ''
-
-  #  OCI 이미지 메타데이터 (Zot UI 표시용)
   image-title:
-    description: '이미지 제목 (org.opencontainers.image.title)'
+    description: '이미지 제목'
     required: false
     default: ''
   image-description:
-    description: '이미지 설명 (org.opencontainers.image.description)'
+    description: '이미지 설명'
     required: false
     default: ''
   image-vendor:
-    description: '벤더/회사명 (org.opencontainers.image.vendor)'
+    description: '벤더/회사명'
     required: false
     default: 'BottleNote'
   image-authors:
-    description: '작성자 (org.opencontainers.image.authors)'
+    description: '작성자'
     required: false
     default: ''
   image-licenses:
-    description: '라이선스 (org.opencontainers.image.licenses)'
+    description: '라이선스'
     required: false
     default: ''
   image-documentation:
-    description: '문서 URL (org.opencontainers.image.documentation)'
+    description: '문서 URL'
+    required: false
+    default: ''
+  sign-image:
+    description: 'cosign으로 이미지 서명 여부'
+    required: false
+    default: 'false'
+  cosign-key-path:
+    description: 'cosign 비밀키 파일 경로'
+    required: false
+    default: ''
+  cosign-password:
+    description: 'cosign 키 패스워드'
     required: false
     default: ''
 
 outputs:
   image-digest:
-    description: '푸시된 이미지의 digest (SHA256)'
+    description: '푸시된 이미지의 digest'
     value: ${{ steps.build-push.outputs.digest }}
   image-uri:
-    description: '푸시된 이미지의 전체 URI (registry/name:tag)'
+    description: '푸시된 이미지의 전체 URI'
     value: ${{ steps.tags.outputs.primary }}
   image-tags:
     description: '생성된 전체 이미지 태그 목록'
@@ -94,7 +97,6 @@ runs:
         registry: ${{ inputs.registry-url }}
         username: ${{ inputs.registry-username }}
         password: ${{ inputs.registry-password }}
-
     - name: Setup Docker Buildx
       uses: docker/setup-buildx-action@v3
       with:
@@ -111,34 +113,20 @@ runs:
         REGISTRY="${{ inputs.registry-url }}"
         IMAGE="${{ inputs.image-name }}"
         MAIN_TAG="${{ inputs.image-tag }}"
-
-        # Primary 이미지 URI (outputs에서 사용)
         PRIMARY="${REGISTRY}/${IMAGE}:${MAIN_TAG}"
         echo "primary=${PRIMARY}" >> $GITHUB_OUTPUT
-
-        # 메인 태그로 시작
         TAGS="${PRIMARY}"
-
-        # 추가 태그가 있으면 각각 추가
         if [ -n "${{ inputs.additional-tags }}" ]; then
           IFS=',' read -ra EXTRA_TAGS <<< "${{ inputs.additional-tags }}"
           for tag in "${EXTRA_TAGS[@]}"; do
-            # 공백 제거 후 태그 추가
             tag=$(echo "$tag" | xargs)
             TAGS="${TAGS}
         ${REGISTRY}/${IMAGE}:${tag}"
           done
         fi
-
-        # 멀티라인 출력을 위한 heredoc 사용
         echo "tags<<EOF" >> $GITHUB_OUTPUT
         echo "$TAGS" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
-
-        # 디버깅: 생성된 태그 출력
-        echo "::group::Generated Image Tags"
-        echo "$TAGS"
-        echo "::endgroup::"
 
     - name: Docker metadata
       id: meta
@@ -183,20 +171,18 @@ runs:
         cache-from: type=gha,scope=${{ inputs.cache-scope }}
         cache-to: type=gha,scope=${{ inputs.cache-scope }},mode=max
 
-    - name: Print build summary
+    - name: Install Cosign
+      if: inputs.sign-image == 'true'
+      uses: sigstore/cosign-installer@v3
+      with:
+        cosign-release: 'v2.2.4'
+
+    - name: Sign Image with Cosign
+      if: inputs.sign-image == 'true'
       shell: bash
+      env:
+        COSIGN_PASSWORD: ${{ inputs.cosign-password }}
       run: |
-        echo "## Docker Build Summary" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "| Item | Value |" >> $GITHUB_STEP_SUMMARY
-        echo "||-|" >> $GITHUB_STEP_SUMMARY
-        echo "| Registry | \`${{ inputs.registry-url }}\` |" >> $GITHUB_STEP_SUMMARY
-        echo "| Image | \`${{ inputs.image-name }}\` |" >> $GITHUB_STEP_SUMMARY
-        echo "| Tag | \`${{ inputs.image-tag }}\` |" >> $GITHUB_STEP_SUMMARY
-        echo "| Platform | \`${{ inputs.platforms }}\` |" >> $GITHUB_STEP_SUMMARY
-        echo "| Digest | \`${{ steps.build-push.outputs.digest }}\` |" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Full Image URI" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        echo "${{ steps.tags.outputs.primary }}" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        cosign sign --key "${{ github.workspace }}/${{ inputs.cosign-key-path }}" \
+          --tlog-upload=false \
+          "${{ inputs.registry-url }}/${{ inputs.image-name }}@${{ steps.build-push.outputs.digest }}"
