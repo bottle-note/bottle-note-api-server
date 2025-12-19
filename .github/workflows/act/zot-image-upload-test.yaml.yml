@@ -1,0 +1,44 @@
+# act 로컬 테스트용 워크플로우
+#  act workflow_dispatch -W .github/workflows/act/zot-image-upload-test.yaml.yml --secret-file .secrets
+name: Zot Image Upload Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-push-to-zot:
+    runs-on: ubuntu-24.04-arm
+    env:
+      GITHUB_TOKEN: ${{ secrets.GIT_ACCESS_TOKEN }}
+    steps:
+      - name: Checkout code with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+
+      - name: Generate short commit SHA
+        id: short-sha
+        run: echo "sha=${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
+
+      - name: Build and Push to Zot Registry
+        uses: ./.github/actions/docker-build-push
+        with:
+          registry-url: ${{ secrets.REGISTRY_ADDRESS }}
+          registry-username: ${{ secrets.REGISTRY_USERNAME }}
+          registry-password: ${{ secrets.REGISTRY_PASSWORD }}
+          image-name: bottlenote-product-api
+          image-tag: test_${{ steps.short-sha.outputs.sha }}
+          additional-tags: test_latest
+          cache-scope: test
+          platforms: linux/arm64
+          image-title: "BottleNote Product API"
+          image-description: "보틀노트 Product API"
+          image-vendor: "BottleNote"
+          image-authors: "BottleNote Team"
+          image-licenses: "MIT"
+
+      - name: Verify push result
+        run: |
+          echo "Image pushed successfully!"
+          echo "Check your Zot registry"
