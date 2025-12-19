@@ -16,6 +16,7 @@ jobs:
   check-and-create-pr:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         include:
           - module: product
@@ -149,8 +150,7 @@ jobs:
             --base "$TARGET" \
             --head "main" \
             --title "$TITLE" \
-            --body "$BODY" \
-            --assignee "Copilot"
+            --body "$BODY"
 
           echo "PR created: $TITLE"
 
