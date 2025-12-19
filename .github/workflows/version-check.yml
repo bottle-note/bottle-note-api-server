@@ -40,12 +40,12 @@ jobs:
           echo "Comparing $BEFORE..$AFTER"
 
           if git diff --name-only "$BEFORE" "$AFTER" | grep -q "${{ matrix.version_file }}"; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-            VERSION=$(cat ${{ matrix.version_file }} | tr -d '[:space:]')
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            VERSION=$(cat "${{ matrix.version_file }}" | tr -d '[:space:]')
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
             echo "${{ matrix.module }} VERSION changed: $VERSION"
           else
-            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "${{ matrix.module }} VERSION not changed, skipping"
           fi
 
@@ -65,12 +65,14 @@ jobs:
           if [ "$PR_DATA" != "[]" ]; then
             PR_NUMBER=$(echo "$PR_DATA" | jq -r '.[0].number')
             PR_TITLE=$(echo "$PR_DATA" | jq -r '.[0].title')
-            echo "exists=true" >> $GITHUB_OUTPUT
-            echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
-            echo "pr_title=$PR_TITLE" >> $GITHUB_OUTPUT
+            {
+              echo "exists=true"
+              echo "pr_number=$PR_NUMBER"
+              echo "pr_title=$PR_TITLE"
+            } >> "$GITHUB_OUTPUT"
             echo "Existing PR found: #$PR_NUMBER - $PR_TITLE"
           else
-            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "exists=false" >> "$GITHUB_OUTPUT"
             echo "No existing PR found"
           fi
 
@@ -80,7 +82,7 @@ jobs:
         run: |
           PR_TITLE="${{ steps.existing-pr.outputs.pr_title }}"
           EXISTING_VERSION=$(echo "$PR_TITLE" | grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+' || echo "0.0.0")
-          echo "version=$EXISTING_VERSION" >> $GITHUB_OUTPUT
+          echo "version=$EXISTING_VERSION" >> "$GITHUB_OUTPUT"
           echo "Existing PR version: $EXISTING_VERSION"
 
       - name: Compare versions
@@ -101,10 +103,10 @@ jobs:
             echo "ERROR: New version ($NEW_VERSION) is lower than existing PR version ($OLD_VERSION)"
             exit 1
           elif [ "$NEW_INT" -gt "$OLD_INT" ]; then
-            echo "result=update" >> $GITHUB_OUTPUT
+            echo "result=update" >> "$GITHUB_OUTPUT"
             echo "New version is higher, will update PR"
           else
-            echo "result=skip" >> $GITHUB_OUTPUT
+            echo "result=skip" >> "$GITHUB_OUTPUT"
             echo "Same version, skipping"
           fi
 
@@ -115,7 +117,7 @@ jobs:
         run: |
           if ! git ls-remote --heads origin "${{ matrix.target_branch }}" | grep -q "${{ matrix.target_branch }}"; then
             echo "Creating target branch: ${{ matrix.target_branch }}"
-            git push origin HEAD:refs/heads/${{ matrix.target_branch }}
+            git push origin "HEAD:refs/heads/${{ matrix.target_branch }}"
           else
             echo "Target branch exists: ${{ matrix.target_branch }}"
           fi
