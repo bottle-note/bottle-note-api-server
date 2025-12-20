@@ -1,18 +1,14 @@
-name: deploy v2 development product api
+name: deploy v2 product api production
 
 on:
   workflow_dispatch:
-  push:
+  pull_request:
+    types: [ closed ]
     branches:
-      - main
-    paths:
-      - 'bottlenote-batch/**'
-      - 'bottlenote-mono/**'
-      - 'bottlenote-observability/**'
-      - 'bottlenote-product-api/**'
+      - 'release/product'
 
 concurrency:
-  group: "deploy-product"
+  group: "deploy-product-production"
   cancel-in-progress: true
 
 env:
@@ -20,6 +16,9 @@ env:
 
 jobs:
   build-and-push:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     runs-on: ubuntu-24.04-arm
     outputs:
       version: ${{ steps.version.outputs.version }}
@@ -37,7 +36,7 @@ jobs:
         run: |
           VERSION=$(cat bottlenote-product-api/VERSION | tr -d '[:space:]')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "image-tag=product_${VERSION}_development" >> $GITHUB_OUTPUT
+          echo "image-tag=product_${VERSION}" >> $GITHUB_OUTPUT
           echo "Product version: $VERSION"
 
       - name: build and push to registry
@@ -48,12 +47,12 @@ jobs:
           registry-username: ${{ secrets.REGISTRY_USERNAME }}
           registry-password: ${{ secrets.REGISTRY_PASSWORD }}
           image-name: ${{ env.IMAGE_NAME }}
-          image-tag: product_${{ steps.version.outputs.version }}_development
+          image-tag: product_${{ steps.version.outputs.version }}
           additional-tags: product_latest
           dockerfile: Dockerfile
           context: .
           platforms: linux/arm64
-          cache-scope: product
+          cache-scope: product-production
           image-title: "BottleNote Product API"
           image-description: "BottleNote Product API Server"
           image-vendor: "BottleNote"
@@ -62,7 +61,7 @@ jobs:
           cosign-key-path: 'git.environment-variables/storage/docker-registry/cosign.key'
           cosign-password: ${{ secrets.COSIGN_PASSWORD }}
 
-  update-development:
+  update-production:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
@@ -77,21 +76,21 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: update development image tag
+      - name: update production image tag
         run: |
           IMAGE_TAG="${{ needs.build-and-push.outputs.image-tag }}"
           REGISTRY="${{ secrets.REGISTRY_ADDRESS }}"
 
-          echo "Updating development image tag: $IMAGE_TAG"
+          echo "Updating production image tag: $IMAGE_TAG"
 
           cd git.environment-variables
           git checkout main
 
-          cd deploy/overlays/development
+          cd deploy/overlays/production
           kustomize edit set image \
             bottlenote-product-api=${REGISTRY}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}
 
-          echo "development kustomization.yaml updated"
+          echo "production kustomization.yaml updated"
 
       - name: commit and push with retry
         run: |
@@ -100,14 +99,14 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add deploy/overlays/development/kustomization.yaml
+          git add deploy/overlays/production/kustomization.yaml
 
           if git diff --staged --quiet; then
             echo "No changes to commit"
             exit 0
           fi
 
-          git commit -m "chore(product): update development image tag to ${{ needs.build-and-push.outputs.image-tag }}
+          git commit -m "chore(product): update production image tag to ${{ needs.build-and-push.outputs.image-tag }}
 
           Updated by GitHub Actions
           Commit: ${{ github.sha }}
@@ -120,4 +119,4 @@ jobs:
             sleep $((i * 2))
           done
 
-          echo "Development deployment triggered"
+          echo "Production deployment triggered"
