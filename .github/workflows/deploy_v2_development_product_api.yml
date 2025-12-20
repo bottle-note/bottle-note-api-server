@@ -1,0 +1,123 @@
+name: deploy v2 development product api
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'bottlenote-batch/**'
+      - 'bottlenote-mono/**'
+      - 'bottlenote-observability/**'
+      - 'bottlenote-product-api/**'
+
+concurrency:
+  group: "deploy-product"
+  cancel-in-progress: true
+
+env:
+  IMAGE_NAME: bottlenote-product-api
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      image-tag: ${{ steps.version.outputs.image-tag }}
+      image-digest: ${{ steps.build.outputs.image-digest }}
+    steps:
+      - name: checkout code with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+
+      - name: read product version
+        id: version
+        run: |
+          VERSION=$(cat bottlenote-product-api/VERSION | tr -d '[:space:]')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "image-tag=product_${VERSION}_development" >> $GITHUB_OUTPUT
+          echo "Product version: $VERSION"
+
+      - name: build and push to registry
+        id: build
+        uses: ./.github/actions/docker-build-push
+        with:
+          registry-url: ${{ secrets.REGISTRY_ADDRESS }}
+          registry-username: ${{ secrets.REGISTRY_USERNAME }}
+          registry-password: ${{ secrets.REGISTRY_PASSWORD }}
+          image-name: ${{ env.IMAGE_NAME }}
+          image-tag: product_${{ steps.version.outputs.version }}_development
+          additional-tags: product_latest
+          dockerfile: Dockerfile
+          context: .
+          platforms: linux/arm64
+          cache-scope: product
+          image-title: "BottleNote Product API"
+          image-description: "BottleNote Product API Server"
+          image-vendor: "BottleNote"
+          image-authors: "BottleNote Team"
+          sign-image: 'true'
+          cosign-key-path: 'git.environment-variables/storage/docker-registry/cosign.key'
+          cosign-password: ${{ secrets.COSIGN_PASSWORD }}
+
+  update-development:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+
+      - name: setup kustomize
+        uses: imranismail/setup-kustomize@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: update development image tag
+        run: |
+          IMAGE_TAG="${{ needs.build-and-push.outputs.image-tag }}"
+          REGISTRY="${{ secrets.REGISTRY_ADDRESS }}"
+
+          echo "Updating development image tag: $IMAGE_TAG"
+
+          cd git.environment-variables
+          git checkout main
+
+          cd deploy/overlays/development
+          kustomize edit set image \
+            bottlenote-product-api=${REGISTRY}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}
+
+          echo "development kustomization.yaml updated"
+
+      - name: commit and push with retry
+        run: |
+          cd git.environment-variables
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add deploy/overlays/development/kustomization.yaml
+
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "chore(product): update development image tag to ${{ needs.build-and-push.outputs.image-tag }}
+
+          Updated by GitHub Actions
+          Commit: ${{ github.sha }}
+          Branch: ${{ github.ref_name }}
+          Workflow: ${{ github.workflow }}"
+
+          for i in {1..5}; do
+            git pull --rebase origin main && git push origin main && break
+            echo "Push failed, retry $i/5..."
+            sleep $((i * 2))
+          done
+
+          echo "Development deployment triggered"
