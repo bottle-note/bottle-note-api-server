@@ -1,4 +1,4 @@
-name: deploy v2 product api
+name: deploy v2 development product api
 
 on:
   workflow_dispatch:
