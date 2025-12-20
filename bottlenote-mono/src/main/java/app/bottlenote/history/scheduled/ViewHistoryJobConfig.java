@@ -7,7 +7,6 @@ import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,12 +21,9 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class ViewHistoryJobConfig {
 
-  @Value("${schedules.history.view.sync.enable}")
-  private boolean enable;
-
   @Bean
   public Trigger viewHistorySyncJobTrigger() {
-    log.info("viewHistorySyncJobTrigger() called {}", enable ? "enable" : "disable");
+    log.info("viewHistorySyncJobTrigger() called");
     return TriggerBuilder.newTrigger()
         .forJob(viewHistorySyncJobDetail())
         .withIdentity("viewHistorySyncTrigger")
@@ -37,7 +33,7 @@ public class ViewHistoryJobConfig {
 
   @Bean
   public JobDetail viewHistorySyncJobDetail() {
-    log.info("viewHistorySyncJobDetail() called {}", enable ? "enable" : "disable");
+    log.info("viewHistorySyncJobDetail() called");
     return JobBuilder.newJob(ViewHistorySyncJob.class)
         .withIdentity("viewHistorySyncJob")
         .storeDurably()
