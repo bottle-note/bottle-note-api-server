@@ -1,5 +1,6 @@
 # 기본 서버 설정
 app: # 애플리케이션 및 배포 정보
+  type: admin
   info:
     server-name: ${SERVER_NAME:unknown}
     environment: ${SPRING_PROFILES_ACTIVE:local}
@@ -76,6 +77,12 @@ server:
       max: 15
     max-connections: 20
     connection-timeout: 5000
+
+schedules:
+  history:
+    view:
+      sync:
+        enable: false
 
 --- # debug 프로파일 (디버그 로그만, SQL 로깅 없음)
 spring:
