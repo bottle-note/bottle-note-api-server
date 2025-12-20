@@ -52,6 +52,12 @@ management:
       export:
         enabled: false
 
+schedules:
+  history:
+    view:
+      sync:
+        enable: false
+
 --- # default/local 프로파일 (동일 설정)
 spring:
   config:
@@ -77,12 +83,6 @@ server:
       max: 15
     max-connections: 20
     connection-timeout: 5000
-
-schedules:
-  history:
-    view:
-      sync:
-        enable: false
 
 --- # debug 프로파일 (디버그 로그만, SQL 로깅 없음)
 spring:
