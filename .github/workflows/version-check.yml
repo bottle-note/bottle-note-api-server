@@ -21,10 +21,10 @@ jobs:
         include:
           - module: product
             version_file: bottlenote-product-api/VERSION
-            target_branch: product/release
+            target_branch: release/product
           - module: admin
             version_file: bottlenote-admin-api/VERSION
-            target_branch: admin/release
+            target_branch: release/admin
 
     steps:
       - name: Checkout code

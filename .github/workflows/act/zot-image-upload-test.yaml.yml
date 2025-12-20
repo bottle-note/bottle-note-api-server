@@ -1,6 +1,6 @@
-# act 로컬 테스트용 워크플로우
+# act 로컬 테스트용 워크플로우 (Admin API)
 #  act workflow_dispatch -W .github/workflows/act/zot-image-upload-test.yaml.yml --secret-file .secrets
-name: Zot Image Upload Test
+name: Zot Admin API Image Upload Test
 
 on:
   workflow_dispatch:
@@ -21,9 +21,12 @@ jobs:
           git config --global url."https://${{ secrets.GIT_ACCESS_TOKEN }}@github.com/".insteadOf "https://github.com/"
           git submodule update --init git.environment-variables
 
-      - name: Generate short commit SHA
-        id: short-sha
-        run: echo "sha=${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
+      - name: Read admin version
+        id: version
+        run: |
+          VERSION=$(cat bottlenote-admin-api/VERSION | tr -d '[:space:]')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Admin version: $VERSION"
 
       - name: Build and Push to Zot Registry
         uses: ./.github/actions/docker-build-push
@@ -31,16 +34,16 @@ jobs:
           registry-url: ${{ secrets.REGISTRY_ADDRESS }}
           registry-username: ${{ secrets.REGISTRY_USERNAME }}
           registry-password: ${{ secrets.REGISTRY_PASSWORD }}
-          image-name: bottlenote-product-api
-          image-tag: test_${{ steps.short-sha.outputs.sha }}
-          additional-tags: latest
-          cache-scope: test
+          image-name: bottlenote-admin-api
+          image-tag: admin_${{ steps.version.outputs.version }}
+          additional-tags: admin_latest
+          dockerfile: Dockerfile-admin
+          cache-scope: admin
           platforms: linux/arm64
-          image-title: "BottleNote Product API Development"
-          image-description: "보틀노트 Product API Development"
+          image-title: "BottleNote Admin API"
+          image-description: "BottleNote Admin API Server"
           image-vendor: "BottleNote"
           image-authors: "BottleNote Team"
-          # Cosign 서명
           sign-image: 'true'
           cosign-key-path: 'git.environment-variables/storage/docker-registry/cosign.key'
           cosign-password: ${{ secrets.COSIGN_PASSWORD }}
@@ -48,4 +51,5 @@ jobs:
       - name: Verify push result
         run: |
           echo "Image pushed successfully!"
+          echo "Image: bottlenote-admin-api:admin_${{ steps.version.outputs.version }}"
           echo "Check your Zot registry"

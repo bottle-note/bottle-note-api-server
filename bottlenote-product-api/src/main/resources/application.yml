@@ -1,6 +1,7 @@
 # 기본 서버 설정
 
 app: # 애플리케이션 및 배포 정보
+  type: product
   info:
     server-name: ${SERVER_NAME:unknown}
     environment: ${SPRING_PROFILES_ACTIVE:local}
@@ -26,7 +27,6 @@ spring:
       - external
       - observability
       - batch
-
   jackson:
     time-zone: Asia/Seoul
 
@@ -51,6 +51,12 @@ webhook:
 logging:
   level:
     root: info
+
+schedules:
+  history:
+    view:
+      sync:
+        enable: true
 
 --- # default/local 프로파일 (동일 설정)
 spring:
