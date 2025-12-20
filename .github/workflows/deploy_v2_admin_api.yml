@@ -5,7 +5,7 @@ on:
   pull_request:
     types: [ closed ]
     branches:
-      - 'admin/release'
+      - 'release/admin'
 
 concurrency:
   group: "deploy-admin"
