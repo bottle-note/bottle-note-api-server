@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import java.util.stream.Stream;
 
 public enum GenderType {
+  NONE,
   MALE,
   FEMALE;
 
