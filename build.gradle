@@ -61,6 +61,7 @@ subprojects {
 		// 공통 유틸리티
 		implementation libs.lombok
 		annotationProcessor libs.lombok
+		testAnnotationProcessor libs.lombok
 		implementation libs.commons.lang3
 	}
 
