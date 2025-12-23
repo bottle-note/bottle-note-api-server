@@ -3,10 +3,10 @@ package app
 import app.bottlenote.global.data.response.GlobalResponse
 import app.bottlenote.global.security.jwt.JwtTokenProvider
 import app.bottlenote.operation.utils.DataInitializer
+import app.bottlenote.operation.utils.TestContainersConfig
 import app.bottlenote.user.domain.AdminUser
 import app.bottlenote.user.dto.response.TokenItem
 import app.bottlenote.user.fixture.AdminUserTestFactory
-import app.helper.TestContainersConfig
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -23,7 +23,7 @@ import org.springframework.test.web.servlet.assertj.MvcTestResult
 
 @Import(TestContainersConfig::class)
 @ActiveProfiles("test")
-@Tag("integration")
+@Tag("admin_integration")
 @AutoConfigureMockMvc
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)

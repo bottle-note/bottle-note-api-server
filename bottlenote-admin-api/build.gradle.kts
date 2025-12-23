@@ -75,3 +75,4 @@ tasks.asciidoctor {
 	}
 	baseDirFollowsSourceFile()
 }
+tasks.register("prepareKotlinBuildScriptModel") {}

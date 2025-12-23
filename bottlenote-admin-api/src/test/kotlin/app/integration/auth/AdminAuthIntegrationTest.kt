@@ -2,7 +2,6 @@ package app.integration.auth
 
 import app.IntegrationTestSupport
 import app.bottlenote.user.constant.AdminRole
-import app.bottlenote.user.dto.response.TokenItem
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -10,7 +9,7 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
 
-@Tag("integration")
+@Tag("admin_integration")
 @DisplayName("[integration] Admin Auth API 통합 테스트")
 class AdminAuthIntegrationTest : IntegrationTestSupport() {
 

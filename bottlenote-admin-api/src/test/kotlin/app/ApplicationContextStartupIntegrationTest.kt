@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.testcontainers.containers.MySQLContainer
 
-@Tag("integration")
+@Tag("admin_integration")
 @DisplayName("[integration] Admin API 컨텍스트 로드 테스트")
 class ApplicationContextStartupIntegrationTest : IntegrationTestSupport() {
 
