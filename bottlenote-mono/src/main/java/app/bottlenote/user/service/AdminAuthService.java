@@ -115,7 +115,8 @@ public class AdminAuthService {
         saved.getRoles(),
         requesterId);
 
-    return AdminSignupResponse.from(saved);
+    return new AdminSignupResponse(
+        saved.getId(), saved.getEmail(), saved.getName(), saved.getRoles());
   }
 
   private void validateRoleAssignment(AdminUser requester, List<AdminRole> requestedRoles) {
