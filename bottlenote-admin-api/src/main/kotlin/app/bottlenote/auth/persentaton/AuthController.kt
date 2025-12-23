@@ -3,10 +3,12 @@ package app.bottlenote.auth.persentaton
 import app.bottlenote.auth.config.RootAdminProperties
 import app.bottlenote.global.data.response.GlobalResponse
 import app.bottlenote.global.security.SecurityContextUtil
+import app.bottlenote.user.dto.request.AdminSignupRequest
 import app.bottlenote.user.dto.response.TokenItem
 import app.bottlenote.user.exception.UserException
 import app.bottlenote.user.exception.UserExceptionCode
 import app.bottlenote.user.service.AdminAuthService
+import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.event.EventListener
@@ -45,6 +47,14 @@ class AuthController(
 	fun refresh(@RequestBody request: RefreshRequest): ResponseEntity<*> {
 		val tokenItem: TokenItem = authService.refresh(request.refreshToken)
 		return GlobalResponse.ok(tokenItem)
+	}
+
+	@PostMapping("/signup")
+	fun signup(@RequestBody @Valid request: AdminSignupRequest): ResponseEntity<*> {
+		val requesterId = SecurityContextUtil.getAdminUserIdByContext()
+			.orElseThrow { UserException(UserExceptionCode.REQUIRED_USER_ID) }
+		val response = authService.signup(requesterId, request)
+		return GlobalResponse.ok(response)
 	}
 
 	@DeleteMapping("/withdraw")

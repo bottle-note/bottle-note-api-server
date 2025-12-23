@@ -9,6 +9,8 @@ import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import app.bottlenote.user.constant.AdminRole;
 import app.bottlenote.user.domain.AdminUser;
 import app.bottlenote.user.domain.AdminUserRepository;
+import app.bottlenote.user.dto.request.AdminSignupRequest;
+import app.bottlenote.user.dto.response.AdminSignupResponse;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
@@ -80,12 +82,46 @@ public class AdminAuthService {
   }
 
   @Transactional
-  public TokenItem signup(Long adminId, String email, String encPassword) {
-    // todo: 구현 가능
-    // 1. 해당 이메일 사용가능한지 확인.
-    // 2. 현재 로그인한 사용자 Id가 Admin User에 있는지 ( 다단계식 회원가입만 가능)
-    // 3. 회원 정보 저장
-    return null;
+  public AdminSignupResponse signup(Long requesterId, AdminSignupRequest request) {
+    AdminUser requester =
+        adminUserRepository
+            .findById(requesterId)
+            .orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
+
+    if (!requester.isActive()) {
+      throw new UserException(UserExceptionCode.USER_DELETED);
+    }
+
+    validateRoleAssignment(requester, request.roles());
+
+    if (adminUserRepository.existsByEmail(request.email())) {
+      throw new UserException(UserExceptionCode.USER_ALREADY_EXISTS);
+    }
+
+    AdminUser newAdmin =
+        AdminUser.builder()
+            .email(request.email())
+            .password(passwordEncoder.encode(request.password()))
+            .name(request.name())
+            .roles(request.roles())
+            .build();
+
+    AdminUser saved = adminUserRepository.save(newAdmin);
+
+    log.info(
+        "어드민 계정 생성: adminId={}, email={}, roles={}, 생성자={}",
+        saved.getId(),
+        saved.getEmail(),
+        saved.getRoles(),
+        requesterId);
+
+    return AdminSignupResponse.from(saved);
+  }
+
+  private void validateRoleAssignment(AdminUser requester, List<AdminRole> requestedRoles) {
+    if (requestedRoles.contains(AdminRole.ROOT_ADMIN) && !requester.hasRole(AdminRole.ROOT_ADMIN)) {
+      throw new UserException(UserExceptionCode.ACCESS_DENIED);
+    }
   }
 
   @Transactional
