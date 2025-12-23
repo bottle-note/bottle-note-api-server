@@ -24,7 +24,10 @@ public class TestContainersConfig {
         .withReuse(true)
         .withDatabaseName("bottlenote")
         .withUsername("root")
-        .withPassword("root");
+        .withPassword("root")
+        .withInitScripts(
+            "storage/mysql/init/00-init-config-table.sql",
+            "storage/mysql/init/01-init-core-table.sql");
   }
 
   /** Redis 컨테이너를 Spring Bean으로 등록합니다. @ServiceConnection이 자동으로 Redis 설정을 처리합니다. */

@@ -6,6 +6,7 @@ import app.bottlenote.alcohols.constant.AlcoholCategoryGroup
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory
 import app.bottlenote.global.service.cursor.SortOrder
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -15,16 +16,22 @@ import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.transaction.annotation.Transactional
 import java.util.stream.Stream
 
-@Transactional
-@Tag("integration")
+@Tag("admin_integration")
 @DisplayName("[integration] Admin Alcohol API 통합 테스트")
 class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 
 	@Autowired
 	private lateinit var alcoholTestFactory: AlcoholTestFactory
+
+	private lateinit var accessToken: String
+
+	@BeforeEach
+	fun setUp() {
+		val admin = adminUserTestFactory.persistRootAdmin()
+		accessToken = getAccessToken(admin)
+	}
 
 	companion object {
 		@JvmStatic
@@ -52,7 +59,10 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 		alcoholTestFactory.persistAlcohols(5)
 
 		// when & then
-		assertThat(mockMvcTester.get().uri("/alcohols"))
+		assertThat(
+			mockMvcTester.get().uri("/alcohols")
+				.header("Authorization", "Bearer $accessToken")
+		)
 			.hasStatusOk()
 			.bodyJson()
 			.extractingPath("$.success").isEqualTo(true)
@@ -69,6 +79,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 		// when & then
 		assertThat(
 			mockMvcTester.get().uri("/alcohols")
+				.header("Authorization", "Bearer $accessToken")
 				.param("keyword", keyword)
 		)
 			.hasStatusOk()
@@ -86,6 +97,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 		// when & then
 		assertThat(
 			mockMvcTester.get().uri("/alcohols")
+				.header("Authorization", "Bearer $accessToken")
 				.param("category", category.name)
 		)
 			.hasStatusOk()
@@ -104,6 +116,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 		// when & then
 		assertThat(
 			mockMvcTester.get().uri("/alcohols")
+				.header("Authorization", "Bearer $accessToken")
 				.param("sortType", sortType.name)
 				.param("sortOrder", sortOrder.name)
 		)
@@ -127,6 +140,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 		// when & then
 		assertThat(
 			mockMvcTester.get().uri("/alcohols")
+				.header("Authorization", "Bearer $accessToken")
 				.param("page", page.toString())
 				.param("size", size.toString())
 		)

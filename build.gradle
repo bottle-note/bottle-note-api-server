@@ -17,7 +17,7 @@ ext {
 // 전체 프로젝트 공통 설정
 allprojects {
 	group = 'bottlenote'
-	version = '0.0.1-SNAPSHOT'
+	version = '0.0.1'
 	repositories {
 		mavenCentral()
 	}
@@ -61,6 +61,7 @@ subprojects {
 		// 공통 유틸리티
 		implementation libs.lombok
 		annotationProcessor libs.lombok
+		testAnnotationProcessor libs.lombok
 		implementation libs.commons.lang3
 	}
 
@@ -95,7 +96,7 @@ subprojects {
 	test {
 		outputs.upToDateWhen { false }
 		useJUnitPlatform {
-			excludeTags 'data-jpa-test', 'integration'
+			excludeTags 'data-jpa-test', 'integration', 'admin_integration'
 		}
 		testLogging {
 			events "passed", "skipped", "failed"
@@ -123,6 +124,12 @@ subprojects {
 	tasks.register('check_rule_test', Test) {
 		useJUnitPlatform {
 			includeTags 'rule'
+		}
+	}
+
+	tasks.register('admin_integration_test', Test) {
+		useJUnitPlatform {
+			includeTags 'admin_integration'
 		}
 	}
 
@@ -156,6 +163,13 @@ tasks.register('integration_test') {
 	description = '전체 모듈 통합 테스트 실행'
 	group = 'verification'
 	dependsOn subprojects.findAll { it.tasks.findByName('integration_test') }.collect { it.tasks.integration_test }
+}
+
+// admin_integration
+tasks.register('admin_integration_test') {
+	description = '어드민 모듈 통합 테스트'
+	group = 'verification'
+	dependsOn subprojects.findAll { it.tasks.findByName('admin_integration_test') }.collect { it.tasks.admin_integration_test }
 }
 
 tasks.register('unit_test') {

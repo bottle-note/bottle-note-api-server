@@ -2,14 +2,20 @@ name: deploy v2 development product api
 
 on:
   workflow_dispatch:
-  push:
+  workflow_run:
+    workflows: [ "product ci pipeline" ]
+    types:
+      - completed
     branches:
       - main
-    paths:
-      - 'bottlenote-batch/**'
-      - 'bottlenote-mono/**'
-      - 'bottlenote-observability/**'
-      - 'bottlenote-product-api/**'
+  #push:
+  #  branches:
+  #    - main
+  #  paths:
+  #    - 'bottlenote-batch/**'
+  #    - 'bottlenote-mono/**'
+  #    - 'bottlenote-observability/**'
+  #    - 'bottlenote-product-api/**'
 
 concurrency:
   group: "deploy-product"

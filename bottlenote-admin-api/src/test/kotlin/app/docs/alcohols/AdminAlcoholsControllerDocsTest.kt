@@ -17,6 +17,7 @@ import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfi
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document
+import org.springframework.restdocs.operation.preprocess.Preprocessors.*
 import org.springframework.restdocs.payload.JsonFieldType
 import org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath
 import org.springframework.restdocs.payload.PayloadDocumentation.responseFields
@@ -78,6 +79,8 @@ class AdminAlcoholsControllerDocsTest {
 			.apply(
 				document(
 					"admin/alcohols/search",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
 					queryParameters(
 						parameterWithName("keyword").optional().description("검색어 (한글/영문 이름 검색)"),
 						parameterWithName("category").optional().description("카테고리 그룹 필터 (예: SINGLE_MALT, BLEND 등)"),

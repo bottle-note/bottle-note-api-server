@@ -30,9 +30,7 @@ import org.springframework.test.web.servlet.assertj.MvcTestResult;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public abstract class IntegrationTestSupport {
-
   protected static final Logger log = LogManager.getLogger(IntegrationTestSupport.class);
-
   @Autowired protected ObjectMapper mapper;
   @Autowired protected MockMvc mockMvc;
   @Autowired protected MockMvcTester mockMvcTester;

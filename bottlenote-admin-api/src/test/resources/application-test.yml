@@ -82,3 +82,9 @@ management:
         url: http://localhost:4318/v1/metrics
     logging:
       endpoint: http://localhost:4318/v1/logs
+
+# Root Admin Configuration
+root:
+  admin:
+    email: ${ROOT_ADMIN_EMAIL:email@email.com}
+    password: ${ROOT_ADMIN_PASSWORD:email@email.com}
