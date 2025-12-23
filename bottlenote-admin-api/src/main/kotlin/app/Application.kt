@@ -2,9 +2,11 @@ package app
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.domain.EntityScan
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.boot.runApplication
 import java.util.*
 
+@ConfigurationPropertiesScan(basePackages = ["app"])
 @EntityScan(basePackages = ["app"])
 @SpringBootApplication(scanBasePackages = ["app"])
 class AdminApplication

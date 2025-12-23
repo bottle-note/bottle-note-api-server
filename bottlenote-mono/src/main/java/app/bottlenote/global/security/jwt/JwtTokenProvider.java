@@ -1,5 +1,6 @@
 package app.bottlenote.global.security.jwt;
 
+import app.bottlenote.user.constant.AdminRole;
 import app.bottlenote.user.constant.UserType;
 import app.bottlenote.user.dto.response.TokenItem;
 import io.jsonwebtoken.Claims;
@@ -9,6 +10,8 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import java.security.Key;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -110,6 +113,44 @@ public class JwtTokenProvider {
     Claims claims = Jwts.claims().setSubject(userEmail);
     claims.put(KEY_ROLES, role.name());
     claims.put("userId", userId);
+    return claims;
+  }
+
+  /** 어드민용 토큰 생성 메서드 (다중 역할 지원) */
+  public TokenItem generateAdminToken(String email, List<AdminRole> roles, Long adminId) {
+    String accessToken = createAdminAccessToken(email, roles, adminId);
+    String refreshToken = createAdminRefreshToken(email, roles, adminId);
+    return TokenItem.builder().accessToken(accessToken).refreshToken(refreshToken).build();
+  }
+
+  public String createAdminAccessToken(String email, List<AdminRole> roles, Long adminId) {
+    Claims claims = createAdminClaims(email, roles, adminId);
+    Date now = new Date();
+    return Jwts.builder()
+        .setClaims(claims)
+        .setIssuedAt(now)
+        .setExpiration(new Date(now.getTime() + ACCESS_TOKEN_EXPIRE_TIME))
+        .signWith(secretKey, SignatureAlgorithm.HS512)
+        .compact();
+  }
+
+  public String createAdminRefreshToken(String email, List<AdminRole> roles, Long adminId) {
+    Claims claims = createAdminClaims(email, roles, adminId);
+    Date now = new Date();
+    return Jwts.builder()
+        .setClaims(claims)
+        .setIssuedAt(now)
+        .setExpiration(new Date(now.getTime() + REFRESH_TOKEN_EXPIRE_TIME))
+        .signWith(secretKey, SignatureAlgorithm.HS512)
+        .compact();
+  }
+
+  private Claims createAdminClaims(String email, List<AdminRole> roles, Long adminId) {
+    Claims claims = Jwts.claims().setSubject(email);
+    String rolesString = roles.stream().map(AdminRole::name).collect(Collectors.joining(","));
+    claims.put(KEY_ROLES, rolesString);
+    claims.put("userId", adminId);
+    claims.put("isAdmin", true);
     return claims;
   }
 }

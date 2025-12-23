@@ -10,5 +10,9 @@ public interface AdminUserRepository {
 
   Optional<AdminUser> findByEmail(String email);
 
+  Optional<AdminUser> findByRefreshToken(String refreshToken);
+
   boolean existsByEmail(String email);
+
+  boolean existsActiveAdmin();
 }

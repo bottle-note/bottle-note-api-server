@@ -11,6 +11,8 @@ val asciidoctorExt: Configuration by configurations.creating
 
 dependencies {
 	implementation(project(":bottlenote-mono"))
+	testImplementation(project(":bottlenote-mono").dependencyProject.sourceSets["test"].output)
+
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
@@ -31,9 +33,6 @@ dependencies {
 
 	// Test - Testcontainers
 	testImplementation(libs.bundles.testcontainers.complete)
-
-	// Test - mono 모듈 TestFactory 참조
-	testImplementation(project(":bottlenote-mono").dependencyProject.sourceSets.test.get().output)
 }
 
 sourceSets {
