@@ -49,7 +49,7 @@ class AuthController(
 
 	@DeleteMapping("/withdraw")
 	fun withdraw(): ResponseEntity<*> {
-		val adminId = SecurityContextUtil.getUserIdByContext()
+		val adminId = SecurityContextUtil.getAdminUserIdByContext()
 			.orElseThrow { UserException(UserExceptionCode.REQUIRED_USER_ID) }
 		authService.withdraw(adminId)
 		return GlobalResponse.ok(mapOf("message" to "탈퇴 처리되었습니다."))
