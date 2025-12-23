@@ -30,13 +30,13 @@ public class AdminAuthService {
   private final BCryptPasswordEncoder passwordEncoder;
 
   @Transactional
-  public TokenItem login(String email, String password) {
+  public TokenItem login(String email, String encPassword) {
     AdminUser admin =
         adminUserRepository
             .findByEmail(email)
             .orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
 
-    if (!passwordEncoder.matches(password, admin.getPassword())) {
+    if (!passwordEncoder.matches(encPassword, admin.getPassword())) {
       throw new UserException(UserExceptionCode.LOGIN_FAILED);
     }
 
@@ -77,6 +77,15 @@ public class AdminAuthService {
     admin.updateRefreshToken(newToken.refreshToken());
 
     return newToken;
+  }
+
+  @Transactional
+  public TokenItem signup(Long adminId, String email, String encPassword) {
+    // todo: 구현 가능
+    // 1. 해당 이메일 사용가능한지 확인.
+    // 2. 현재 로그인한 사용자 Id가 Admin User에 있는지 ( 다단계식 회원가입만 가능)
+    // 3. 회원 정보 저장
+    return null;
   }
 
   @Transactional

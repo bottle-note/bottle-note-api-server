@@ -26,6 +26,12 @@ include::api/overview/global-exception.adoc[]
 
 '''
 
+== Auth API
+
+include::api/admin-auth/auth.adoc[]
+
+'''
+
 == Alcohol API
 
 include::api/admin-alcohols/alcohols.adoc[]
