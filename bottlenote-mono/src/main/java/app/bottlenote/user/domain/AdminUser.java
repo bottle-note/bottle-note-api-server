@@ -63,7 +63,7 @@ public class AdminUser extends BaseTimeEntity {
   private UserStatus status = UserStatus.ACTIVE;
 
   @Comment("리프레시 토큰")
-  @Column(name = "refresh_token")
+  @Column(name = "refresh_token", length = 512)
   private String refreshToken;
 
   @Comment("마지막 로그인 시간")

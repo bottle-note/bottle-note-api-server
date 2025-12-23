@@ -4,7 +4,7 @@ import static app.bottlenote.global.security.jwt.JwtTokenValidator.validateToken
 import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
 import static java.time.LocalDateTime.now;
 
-import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
+import app.bottlenote.global.security.jwt.AdminJwtAuthenticationManager;
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import app.bottlenote.user.constant.AdminRole;
 import app.bottlenote.user.domain.AdminUser;
@@ -26,7 +26,7 @@ public class AdminAuthService {
 
   private final AdminUserRepository adminUserRepository;
   private final JwtTokenProvider tokenProvider;
-  private final JwtAuthenticationManager authenticationManager;
+  private final AdminJwtAuthenticationManager authenticationManager;
   private final BCryptPasswordEncoder passwordEncoder;
 
   @Transactional
