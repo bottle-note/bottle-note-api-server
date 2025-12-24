@@ -132,6 +132,10 @@ public class AdminAuthService {
             .findById(adminId)
             .orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
 
+    if (admin.hasRole(AdminRole.ROOT_ADMIN)) {
+      throw new UserException(UserExceptionCode.ACCESS_DENIED);
+    }
+
     admin.deactivate();
     log.info("어드민 탈퇴: adminId={}", adminId);
   }
