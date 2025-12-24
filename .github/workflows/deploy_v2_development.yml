@@ -1,0 +1,235 @@
+name: deploy v2 development
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [ "product ci pipeline" ]
+    types:
+      - completed
+    branches:
+      - main
+
+concurrency:
+  group: "deploy-development"
+  cancel-in-progress: true
+
+jobs:
+  # ============================================
+  # 1단계: Gradle 빌드 및 JAR Artifact 업로드
+  # ============================================
+  prepare-build:
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      product-version: ${{ steps.versions.outputs.product-version }}
+      product-image-tag: ${{ steps.versions.outputs.product-image-tag }}
+      admin-version: ${{ steps.versions.outputs.admin-version }}
+      admin-image-tag: ${{ steps.versions.outputs.admin-image-tag }}
+    steps:
+      - name: checkout code with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+
+      - name: setup jdk
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: setup gradle cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: read versions
+        id: versions
+        run: |
+          PRODUCT_VERSION=$(cat bottlenote-product-api/VERSION | tr -d '[:space:]')
+          ADMIN_VERSION=$(cat bottlenote-admin-api/VERSION | tr -d '[:space:]')
+          echo "product-version=$PRODUCT_VERSION" >> $GITHUB_OUTPUT
+          echo "product-image-tag=product_${PRODUCT_VERSION}_development" >> $GITHUB_OUTPUT
+          echo "admin-version=$ADMIN_VERSION" >> $GITHUB_OUTPUT
+          echo "admin-image-tag=admin_${ADMIN_VERSION}_development" >> $GITHUB_OUTPUT
+          echo "Product version: $PRODUCT_VERSION"
+          echo "Admin version: $ADMIN_VERSION"
+
+      - name: build both modules
+        run: |
+          ./gradlew :bottlenote-product-api:build :bottlenote-admin-api:build \
+            -x test -x asciidoctor --build-cache --parallel
+
+      - name: upload product jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: product-jar
+          path: bottlenote-product-api/build/libs/bottlenote-product-api.jar
+          retention-days: 1
+
+      - name: upload admin jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-jar
+          path: bottlenote-admin-api/build/libs/bottlenote-admin-api.jar
+          retention-days: 1
+
+  # ============================================
+  # 2단계: Product Docker 이미지 빌드 (병렬)
+  # ============================================
+  build-product-image:
+    needs: prepare-build
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      image-digest: ${{ steps.build.outputs.image-digest }}
+    steps:
+      - name: checkout code with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+
+      - name: download product jar
+        uses: actions/download-artifact@v4
+        with:
+          name: product-jar
+          path: bottlenote-product-api/build/libs/
+
+      - name: build and push to registry
+        id: build
+        uses: ./.github/actions/docker-build-push
+        with:
+          registry-url: ${{ secrets.REGISTRY_ADDRESS }}
+          registry-username: ${{ secrets.REGISTRY_USERNAME }}
+          registry-password: ${{ secrets.REGISTRY_PASSWORD }}
+          image-name: bottlenote-product-api
+          image-tag: ${{ needs.prepare-build.outputs.product-image-tag }}
+          additional-tags: product_latest_development
+          dockerfile: Dockerfile
+          context: .
+          platforms: linux/arm64
+          cache-scope: product-development
+          image-title: "BottleNote Product API"
+          image-description: "BottleNote Product API Server (Development)"
+          image-vendor: "BottleNote"
+          image-authors: "BottleNote Team"
+          sign-image: 'true'
+          cosign-key-path: 'git.environment-variables/storage/docker-registry/cosign.key'
+          cosign-password: ${{ secrets.COSIGN_PASSWORD }}
+
+  # ============================================
+  # 2단계: Admin Docker 이미지 빌드 (병렬)
+  # ============================================
+  build-admin-image:
+    needs: prepare-build
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      image-digest: ${{ steps.build.outputs.image-digest }}
+    steps:
+      - name: checkout code with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+
+      - name: download admin jar
+        uses: actions/download-artifact@v4
+        with:
+          name: admin-jar
+          path: bottlenote-admin-api/build/libs/
+
+      - name: build and push to registry
+        id: build
+        uses: ./.github/actions/docker-build-push
+        with:
+          registry-url: ${{ secrets.REGISTRY_ADDRESS }}
+          registry-username: ${{ secrets.REGISTRY_USERNAME }}
+          registry-password: ${{ secrets.REGISTRY_PASSWORD }}
+          image-name: bottlenote-admin-api
+          image-tag: ${{ needs.prepare-build.outputs.admin-image-tag }}
+          additional-tags: admin_latest_development
+          dockerfile: Dockerfile-admin
+          context: .
+          platforms: linux/arm64
+          cache-scope: admin-development
+          image-title: "BottleNote Admin API"
+          image-description: "BottleNote Admin API Server (Development)"
+          image-vendor: "BottleNote"
+          image-authors: "BottleNote Team"
+          sign-image: 'true'
+          cosign-key-path: 'git.environment-variables/storage/docker-registry/cosign.key'
+          cosign-password: ${{ secrets.COSIGN_PASSWORD }}
+
+  # ============================================
+  # 3단계: Development 환경 업데이트
+  # ============================================
+  update-development:
+    needs: [prepare-build, build-product-image, build-admin-image]
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+
+      - name: setup kustomize
+        uses: imranismail/setup-kustomize@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: update development image tags
+        run: |
+          PRODUCT_TAG="${{ needs.prepare-build.outputs.product-image-tag }}"
+          ADMIN_TAG="${{ needs.prepare-build.outputs.admin-image-tag }}"
+          REGISTRY="${{ secrets.REGISTRY_ADDRESS }}"
+
+          echo "Updating development image tags:"
+          echo "  Product: $PRODUCT_TAG"
+          echo "  Admin: $ADMIN_TAG"
+
+          cd git.environment-variables
+          git checkout main
+
+          cd deploy/overlays/development
+          kustomize edit set image \
+            bottlenote-product-api=${REGISTRY}/bottlenote-product-api:${PRODUCT_TAG} \
+            bottlenote-admin-api=${REGISTRY}/bottlenote-admin-api:${ADMIN_TAG}
+
+          echo "development kustomization.yaml updated"
+
+      - name: commit and push with retry
+        run: |
+          cd git.environment-variables
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add deploy/overlays/development/kustomization.yaml
+
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "chore(dev): update development image tags
+
+          Product: ${{ needs.prepare-build.outputs.product-image-tag }}
+          Admin: ${{ needs.prepare-build.outputs.admin-image-tag }}
+
+          Updated by GitHub Actions
+          Commit: ${{ github.sha }}
+          Branch: ${{ github.ref_name }}
+          Workflow: ${{ github.workflow }}"
+
+          for i in {1..5}; do
+            git pull --rebase origin main && git push origin main && break
+            echo "Push failed, retry $i/5..."
+            sleep $((i * 2))
+          done
+
+          echo "Development deployment triggered"
