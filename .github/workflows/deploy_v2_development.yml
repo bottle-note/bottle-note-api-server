@@ -14,15 +14,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ============================================
-  # 1단계: Gradle 빌드 및 JAR Artifact 업로드
-  # ============================================
   prepare-build:
     runs-on: ubuntu-24.04-arm
     outputs:
-      product-version: ${{ steps.versions.outputs.product-version }}
+      short-sha: ${{ steps.versions.outputs.short-sha }}
       product-image-tag: ${{ steps.versions.outputs.product-image-tag }}
-      admin-version: ${{ steps.versions.outputs.admin-version }}
       admin-image-tag: ${{ steps.versions.outputs.admin-image-tag }}
     steps:
       - name: checkout code with submodules
@@ -47,17 +43,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: read versions
+      - name: generate image tags
         id: versions
         run: |
-          PRODUCT_VERSION=$(cat bottlenote-product-api/VERSION | tr -d '[:space:]')
-          ADMIN_VERSION=$(cat bottlenote-admin-api/VERSION | tr -d '[:space:]')
-          echo "product-version=$PRODUCT_VERSION" >> $GITHUB_OUTPUT
-          echo "product-image-tag=product_${PRODUCT_VERSION}_development" >> $GITHUB_OUTPUT
-          echo "admin-version=$ADMIN_VERSION" >> $GITHUB_OUTPUT
-          echo "admin-image-tag=admin_${ADMIN_VERSION}_development" >> $GITHUB_OUTPUT
-          echo "Product version: $PRODUCT_VERSION"
-          echo "Admin version: $ADMIN_VERSION"
+          SHORT_SHA="${GITHUB_SHA::7}"
+          echo "short-sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+          echo "product-image-tag=product_${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "admin-image-tag=admin_${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "Commit SHA: $SHORT_SHA"
 
       - name: build both modules
         run: |
@@ -78,9 +71,6 @@ jobs:
           path: bottlenote-admin-api/build/libs/bottlenote-admin-api.jar
           retention-days: 1
 
-  # ============================================
-  # 2단계: Product Docker 이미지 빌드 (병렬)
-  # ============================================
   build-product-image:
     needs: prepare-build
     runs-on: ubuntu-24.04-arm
@@ -121,9 +111,6 @@ jobs:
           cosign-key-path: 'git.environment-variables/storage/docker-registry/cosign.key'
           cosign-password: ${{ secrets.COSIGN_PASSWORD }}
 
-  # ============================================
-  # 2단계: Admin Docker 이미지 빌드 (병렬)
-  # ============================================
   build-admin-image:
     needs: prepare-build
     runs-on: ubuntu-24.04-arm
@@ -164,9 +151,6 @@ jobs:
           cosign-key-path: 'git.environment-variables/storage/docker-registry/cosign.key'
           cosign-password: ${{ secrets.COSIGN_PASSWORD }}
 
-  # ============================================
-  # 3단계: Development 환경 업데이트
-  # ============================================
   update-development:
     needs: [prepare-build, build-product-image, build-admin-image]
     runs-on: ubuntu-latest
@@ -216,14 +200,13 @@ jobs:
             exit 0
           fi
 
-          git commit -m "chore(dev): update development image tags
+          git commit -m "chore(dev): update development image tags (${{ needs.prepare-build.outputs.short-sha }})
 
           Product: ${{ needs.prepare-build.outputs.product-image-tag }}
           Admin: ${{ needs.prepare-build.outputs.admin-image-tag }}
 
           Updated by GitHub Actions
           Commit: ${{ github.sha }}
-          Branch: ${{ github.ref_name }}
           Workflow: ${{ github.workflow }}"
 
           for i in {1..5}; do
