@@ -10,13 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import org.springframework.test.context.ActiveProfiles;
 
 @Slf4j
-@Profile({"test", "batch"})
-@ActiveProfiles({"test", "batch"})
 @Component
 @SuppressWarnings("unchecked")
 public class DataInitializer {

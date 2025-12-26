@@ -1,0 +1,42 @@
+### 로그인
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+> {%
+    client.global.set("accessToken", response.body.data.accessToken);
+    client.global.set("refreshToken", response.body.data.refreshToken);
+%}
+
+### 토큰 갱신
+POST {{host}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+> {%
+    client.global.set("accessToken", response.body.data.accessToken);
+    client.global.set("refreshToken", response.body.data.refreshToken);
+%}
+
+### 회원가입
+POST {{host}}/auth/signup
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "email": "new@bottlenote.com",
+  "password": "password123",
+  "name": "새 어드민",
+  "roles": ["PARTNER", "COMMUNITY_MANAGER"]
+}
+
+### 탈퇴
+DELETE {{host}}/auth/withdraw
+Authorization: Bearer {{accessToken}}

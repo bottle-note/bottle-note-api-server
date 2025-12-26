@@ -71,4 +71,33 @@ public class SecurityContextUtil {
 
     return Optional.of(id);
   }
+
+  /**
+   * 현재 세션에서 인증된 어드민 사용자의 ID를 반환합니다.
+   *
+   * @return the admin user id by context
+   */
+  public static Optional<Long> getAdminUserIdByContext() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+    if (authentication == null) {
+      log.debug(contextNotFount);
+      return Optional.empty();
+    }
+
+    Object principal = authentication.getPrincipal();
+
+    if (!(principal instanceof CustomAdminUserContext adminContext)) {
+      log.debug("인증된 사용자의 정보가 CustomAdminUserContext의 인스턴스가 아닙니다.");
+      return Optional.empty();
+    }
+
+    Long id = adminContext.getId();
+    if (id == null) {
+      log.debug("어드민 사용자 ID가 null입니다.");
+      return Optional.empty();
+    }
+
+    return Optional.of(id);
+  }
 }

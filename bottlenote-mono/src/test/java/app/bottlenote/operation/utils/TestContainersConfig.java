@@ -4,6 +4,7 @@ import com.redis.testcontainers.RedisContainer;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -24,7 +25,10 @@ public class TestContainersConfig {
         .withReuse(true)
         .withDatabaseName("bottlenote")
         .withUsername("root")
-        .withPassword("root");
+        .withPassword("root")
+        .withInitScripts(
+            "storage/mysql/init/00-init-config-table.sql",
+            "storage/mysql/init/01-init-core-table.sql");
   }
 
   /** Redis 컨테이너를 Spring Bean으로 등록합니다. @ServiceConnection이 자동으로 Redis 설정을 처리합니다. */
@@ -32,5 +36,12 @@ public class TestContainersConfig {
   @ServiceConnection
   RedisContainer redisContainer() {
     return new RedisContainer(DockerImageName.parse("redis:7.0.12")).withReuse(true);
+  }
+
+  /** 테스트용 Fake RestTemplate 빈. webhookRestTemplate을 대체합니다. */
+  @Bean
+  @Primary
+  FakeWebhookRestTemplate webhookRestTemplate() {
+    return new FakeWebhookRestTemplate();
   }
 }

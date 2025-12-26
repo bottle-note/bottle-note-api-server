@@ -3,8 +3,6 @@ name: product ci pipeline
 on:
   workflow_dispatch:
   pull_request:
-    branches-ignore:
-      - 'release/admin'
 
 concurrency:
   group: "ci-${{ github.head_ref || github.ref }}"
@@ -27,13 +25,11 @@ jobs:
         with:
           submodules: true
           token: ${{ secrets.GIT_ACCESS_TOKEN }}
-
       - name: setup jdk
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-
       - name: setup gradle cache
         uses: actions/cache@v3
         with:
@@ -151,7 +147,14 @@ jobs:
     needs: prepare
     timeout-minutes: 20
     runs-on: ubuntu-latest
-
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - name: product
+            task: integration_test
+          - name: admin
+            task: admin_integration_test
     services:
       docker:
         image: docker:24.0
@@ -160,7 +163,6 @@ jobs:
           - 1234:1234
         env:
           DOCKER_TLS_CERTDIR: ""
-
     steps:
       - name: checkout code
         uses: actions/checkout@v4
@@ -191,17 +193,17 @@ jobs:
             */build
           key: workspace-${{ github.sha }}
 
-      - name: run integration tests
-        run: ./gradlew integration_test
+      - name: run ${{ matrix.name }} integration tests
+        run: ./gradlew ${{ matrix.task }}
 
       - name: upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: integration-test-results-${{ github.run_number }}
+          name: ${{ matrix.name }}-integration-test-results-${{ github.run_number }}
           path: |
-            */build/reports/tests/integration_test/
-            */build/test-results/integration_test/
+            */build/reports/tests/${{ matrix.task }}/
+            */build/test-results/${{ matrix.task }}/
 
   product-ci-final-build:
     needs: [ unit-tests, rule-tests, integration-tests ]

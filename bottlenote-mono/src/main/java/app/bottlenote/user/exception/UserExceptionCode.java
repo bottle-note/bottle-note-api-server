@@ -28,6 +28,7 @@ public enum UserExceptionCode implements ExceptionCode {
   JSON_PARSING_EXCEPTION(HttpStatus.BAD_REQUEST, "JSON 처리 중 오류가 발생했습니다"),
   NOT_MATCH_GUEST_CODE(HttpStatus.BAD_REQUEST, "게스트 코드가 일치하지 않습니다."),
   INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
+  LOGIN_FAILED(HttpStatus.BAD_REQUEST, "아이디 또는 비밀번호가 일치하지 않습니다."),
   TEMPORARY_LOGIN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "일시적인 로그인 오류입니다."),
   INVALID_APPLE_ID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 Apple ID 토큰입니다."),
   APPLE_ID_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "Apple ID 토큰이 만료되었습니다."),

@@ -58,17 +58,20 @@ schedules:
       sync:
         enable: false
 
+root:
+  admin:
+    email: ${ROOT_ADMIN_EMAIL:email@email.com}
+    password: ${ROOT_ADMIN_PASSWORD:email@email.com}
+
 --- # default/local 프로파일 (동일 설정)
 spring:
   config:
     activate:
       on-profile: default,local
-
 logging:
   level:
     root: info
     app.bottlenote: info
-
 management:
   tracing:
     enabled: false
@@ -76,7 +79,6 @@ management:
     metrics:
       export:
         enabled: false
-
 server:
   tomcat:
     threads:

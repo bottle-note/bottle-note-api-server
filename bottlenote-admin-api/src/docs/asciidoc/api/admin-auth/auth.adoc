@@ -1,0 +1,105 @@
+=== 로그인 ===
+
+- 관리자 계정으로 로그인하여 액세스 토큰과 리프레시 토큰을 발급받습니다.
+
+[source]
+----
+POST /admin/api/v1/auth/login
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/auth/login/request-fields.adoc[]
+include::{snippets}/admin/auth/login/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/auth/login/response-fields.adoc[]
+include::{snippets}/admin/auth/login/http-response.adoc[]
+
+'''
+
+=== 토큰 갱신 ===
+
+- 리프레시 토큰을 사용하여 새로운 액세스 토큰을 발급받습니다.
+
+[source]
+----
+POST /admin/api/v1/auth/refresh
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/auth/refresh/request-fields.adoc[]
+include::{snippets}/admin/auth/refresh/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/auth/refresh/response-fields.adoc[]
+include::{snippets}/admin/auth/refresh/http-response.adoc[]
+
+'''
+
+=== 회원가입 ===
+
+- 인증된 관리자가 새로운 관리자 계정을 생성합니다.
+- 모든 인증된 어드민이 호출 가능합니다.
+- ROOT_ADMIN 역할은 ROOT_ADMIN만 부여할 수 있습니다.
+
+[source]
+----
+POST /admin/api/v1/auth/signup
+----
+
+[discrete]
+==== 요청 헤더 ====
+
+[discrete]
+include::{snippets}/admin/auth/signup/request-headers.adoc[]
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/auth/signup/request-fields.adoc[]
+include::{snippets}/admin/auth/signup/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/auth/signup/response-fields.adoc[]
+include::{snippets}/admin/auth/signup/http-response.adoc[]
+
+'''
+
+=== 탈퇴 ===
+
+- 인증된 관리자 계정을 탈퇴 처리합니다.
+
+[source]
+----
+DELETE /admin/api/v1/auth/withdraw
+----
+
+[discrete]
+==== 요청 헤더 ====
+
+[discrete]
+include::{snippets}/admin/auth/withdraw/request-headers.adoc[]
+include::{snippets}/admin/auth/withdraw/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/auth/withdraw/response-fields.adoc[]
+include::{snippets}/admin/auth/withdraw/http-response.adoc[]
