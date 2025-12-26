@@ -194,10 +194,10 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 	inner class WithdrawTest {
 
 		@Test
-		@DisplayName("인증된 어드민이 탈퇴에 성공한다")
+		@DisplayName("일반 어드민이 탈퇴에 성공한다")
 		fun withdrawSuccess() {
 			// given
-			val admin = adminUserTestFactory.persistRootAdmin()
+			val admin = adminUserTestFactory.persistPartnerAdmin()
 			val accessToken = getAccessToken(admin)
 
 			// when & then
@@ -209,6 +209,24 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 				.hasStatusOk()
 				.bodyJson()
 				.extractingPath("$.data.message").isEqualTo("탈퇴 처리되었습니다.")
+		}
+
+		@Test
+		@DisplayName("ROOT_ADMIN은 탈퇴할 수 없다")
+		fun rootAdminCannotWithdraw() {
+			// given
+			val admin = adminUserTestFactory.persistRootAdmin()
+			val accessToken = getAccessToken(admin)
+
+			// when & then
+			assertThat(
+				mockMvcTester.delete()
+					.uri("/auth/withdraw")
+					.header("Authorization", "Bearer $accessToken")
+			)
+				.hasStatus4xxClientError()
+				.bodyJson()
+				.extractingPath("$.success").isEqualTo(false)
 		}
 	}
 
