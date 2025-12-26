@@ -19,11 +19,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @Tag("integration")
 @DisplayName("[integration] [service] DailyDataReportService - TestContainers 실제 데이터 통합 테스트")
 class DailyDataReportIntegrationTest extends IntegrationTestSupport {
-
   @Autowired private DailyDataReportService dailyDataReportService;
-
   @Autowired private JdbcTemplate jdbcTemplate;
-
   @Autowired private FakeWebhookRestTemplate fakeWebhookRestTemplate;
 
   private LocalDate testDate;
