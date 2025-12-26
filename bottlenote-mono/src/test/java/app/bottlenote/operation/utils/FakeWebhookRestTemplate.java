@@ -3,75 +3,71 @@ package app.bottlenote.operation.utils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.client.RestTemplate;
 
 /** 테스트용 Fake RestTemplate 구현체. 실제 HTTP 호출 없이 요청을 캡처하여 검증에 사용합니다. */
 public class FakeWebhookRestTemplate extends RestTemplate {
 
-  private final List<CapturedCall> capturedRequests =
-      Collections.synchronizedList(new ArrayList<>());
-  private ResponseEntity<?> defaultResponse = ResponseEntity.ok("Success");
+  private final List<CapturedCall> capturedCalls = Collections.synchronizedList(new ArrayList<>());
+  private final ResponseEntity<?> defaultResponse = ResponseEntity.ok("Success");
 
+  @NonNull
   @Override
   @SuppressWarnings("unchecked")
   public <T> ResponseEntity<T> postForEntity(
-      String url, Object request, Class<T> responseType, Object... uriVariables) {
-    capturedRequests.add(new CapturedCall(url, request));
+      @NonNull String url,
+      Object request,
+      @NonNull Class<T> responseType,
+      @NonNull Object... uriVariables) {
+    capturedCalls.add(new CapturedCall(url, request));
     return (ResponseEntity<T>) defaultResponse;
   }
 
+  @NonNull
   @Override
   @SuppressWarnings("unchecked")
   public <T> ResponseEntity<T> postForEntity(
-      String url, Object request, Class<T> responseType, java.util.Map<String, ?> uriVariables) {
-    capturedRequests.add(new CapturedCall(url, request));
+      @NonNull String url,
+      Object request,
+      @NonNull Class<T> responseType,
+      @NonNull Map<String, ?> uriVariables) {
+    capturedCalls.add(new CapturedCall(url, request));
     return (ResponseEntity<T>) defaultResponse;
-  }
-
-  public void setDefaultResponse(ResponseEntity<?> response) {
-    this.defaultResponse = response;
   }
 
   public int getCallCount() {
-    return capturedRequests.size();
+    return capturedCalls.size();
   }
 
   public boolean wasCalled() {
-    return !capturedRequests.isEmpty();
+    return !capturedCalls.isEmpty();
   }
 
   public boolean wasNotCalled() {
-    return capturedRequests.isEmpty();
-  }
-
-  public CapturedCall getLastRequest() {
-    if (capturedRequests.isEmpty()) {
-      return null;
-    }
-    return capturedRequests.get(capturedRequests.size() - 1);
+    return capturedCalls.isEmpty();
   }
 
   public String getLastRequestBody() {
-    CapturedCall last = getLastRequest();
-    if (last == null || last.request() == null) {
+    if (capturedCalls.isEmpty()) {
       return null;
     }
-    if (last.request() instanceof HttpEntity<?> entity) {
+    CapturedCall last = capturedCalls.getLast();
+    if (last.payload() == null) {
+      return null;
+    }
+    if (last.payload() instanceof HttpEntity<?> entity) {
       return entity.getBody() != null ? entity.getBody().toString() : null;
     }
-    return last.request().toString();
-  }
-
-  public List<CapturedCall> getAllRequests() {
-    return Collections.unmodifiableList(capturedRequests);
+    return last.payload().toString();
   }
 
   public void clear() {
-    capturedRequests.clear();
-    defaultResponse = ResponseEntity.ok("Success");
+    capturedCalls.clear();
   }
 
-  public record CapturedCall(String url, Object request) {}
+  public record CapturedCall(String url, Object payload) {}
 }
