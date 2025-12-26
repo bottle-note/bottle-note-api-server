@@ -10,7 +10,7 @@ import org.springframework.web.client.RestTemplate;
 /** 테스트용 Fake RestTemplate 구현체. 실제 HTTP 호출 없이 요청을 캡처하여 검증에 사용합니다. */
 public class FakeWebhookRestTemplate extends RestTemplate {
 
-  private final List<CapturedRequest> capturedRequests =
+  private final List<CapturedCall> capturedRequests =
       Collections.synchronizedList(new ArrayList<>());
   private ResponseEntity<?> defaultResponse = ResponseEntity.ok("Success");
 
@@ -18,7 +18,7 @@ public class FakeWebhookRestTemplate extends RestTemplate {
   @SuppressWarnings("unchecked")
   public <T> ResponseEntity<T> postForEntity(
       String url, Object request, Class<T> responseType, Object... uriVariables) {
-    capturedRequests.add(new CapturedRequest(url, request));
+    capturedRequests.add(new CapturedCall(url, request));
     return (ResponseEntity<T>) defaultResponse;
   }
 
@@ -26,7 +26,7 @@ public class FakeWebhookRestTemplate extends RestTemplate {
   @SuppressWarnings("unchecked")
   public <T> ResponseEntity<T> postForEntity(
       String url, Object request, Class<T> responseType, java.util.Map<String, ?> uriVariables) {
-    capturedRequests.add(new CapturedRequest(url, request));
+    capturedRequests.add(new CapturedCall(url, request));
     return (ResponseEntity<T>) defaultResponse;
   }
 
@@ -46,7 +46,7 @@ public class FakeWebhookRestTemplate extends RestTemplate {
     return capturedRequests.isEmpty();
   }
 
-  public CapturedRequest getLastRequest() {
+  public CapturedCall getLastRequest() {
     if (capturedRequests.isEmpty()) {
       return null;
     }
@@ -54,7 +54,7 @@ public class FakeWebhookRestTemplate extends RestTemplate {
   }
 
   public String getLastRequestBody() {
-    CapturedRequest last = getLastRequest();
+    CapturedCall last = getLastRequest();
     if (last == null || last.request() == null) {
       return null;
     }
@@ -64,7 +64,7 @@ public class FakeWebhookRestTemplate extends RestTemplate {
     return last.request().toString();
   }
 
-  public List<CapturedRequest> getAllRequests() {
+  public List<CapturedCall> getAllRequests() {
     return Collections.unmodifiableList(capturedRequests);
   }
 
@@ -73,5 +73,5 @@ public class FakeWebhookRestTemplate extends RestTemplate {
     defaultResponse = ResponseEntity.ok("Success");
   }
 
-  public record CapturedRequest(String url, Object request) {}
+  public record CapturedCall(String url, Object request) {}
 }
