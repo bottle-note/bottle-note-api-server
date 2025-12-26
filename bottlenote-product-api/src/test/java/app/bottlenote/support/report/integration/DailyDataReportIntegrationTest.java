@@ -3,14 +3,9 @@ package app.bottlenote.support.report.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 import app.bottlenote.IntegrationTestSupport;
+import app.bottlenote.operation.utils.FakeWebhookRestTemplate;
 import app.bottlenote.support.report.service.DailyDataReportService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,51 +13,30 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.web.client.RestTemplate;
 
 @Tag("integration")
 @DisplayName("[integration] [service] DailyDataReportService - TestContainers 실제 데이터 통합 테스트")
 class DailyDataReportIntegrationTest extends IntegrationTestSupport {
 
-  @TestConfiguration
-  static class TestConfig {
-    @Bean
-    @Primary
-    RestTemplate webhookRestTemplate() {
-      return Mockito.mock(RestTemplate.class);
-    }
-  }
-
   @Autowired private DailyDataReportService dailyDataReportService;
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
-  @Autowired private RestTemplate webhookRestTemplate;
+  @Autowired private FakeWebhookRestTemplate fakeWebhookRestTemplate;
 
   private LocalDate testDate;
 
   @BeforeEach
   void setUp() {
     testDate = LocalDate.now();
-    Mockito.reset(webhookRestTemplate);
+    fakeWebhookRestTemplate.clear();
   }
 
   @DisplayName("시나리오1: 실제 데이터로 일일 리포트를 생성하고 집계가 정확한지 검증")
   @Test
   void 실제_데이터를_사용하여_일일_리포트가_정확하게_집계된다() {
-    // given - Mock 응답 설정
-    doReturn(ResponseEntity.ok("Success"))
-        .when(webhookRestTemplate)
-        .postForEntity(anyString(), any(HttpEntity.class), eq(String.class));
-
     // given - 오늘과 어제 데이터를 구분하여 생성
     LocalDateTime today = testDate.atStartOfDay();
     LocalDateTime yesterday = today.minusDays(1);
@@ -100,23 +74,17 @@ class DailyDataReportIntegrationTest extends IntegrationTestSupport {
     dailyDataReportService.collectAndSendDailyReport(testDate, webhookUrl);
 
     // then - 웹훅이 정확히 1번 호출됨
-    verify(webhookRestTemplate, times(1))
-        .postForEntity(anyString(), any(HttpEntity.class), eq(String.class));
+    assertThat(fakeWebhookRestTemplate.getCallCount()).isEqualTo(1);
 
     // 전송된 메시지 내용 검증
-    org.mockito.ArgumentCaptor<HttpEntity> entityCaptor =
-        org.mockito.ArgumentCaptor.forClass(HttpEntity.class);
-    verify(webhookRestTemplate)
-        .postForEntity(anyString(), entityCaptor.capture(), eq(String.class));
-
-    String body = entityCaptor.getValue().getBody().toString();
+    String body = fakeWebhookRestTemplate.getLastRequestBody();
     assertNotNull(body);
 
     // 오늘 데이터만 집계되었는지 검증
-    assertThat(body).contains("👥 **신규 유저**: 3명");
-    assertThat(body).contains("✍️ **신규 리뷰**: 2개");
-    assertThat(body).contains("💬 **신규 댓글**: 4개");
-    assertThat(body).contains("❤️ **신규 좋아요**: 5개");
+    assertThat(body).contains("신규 유저**: 3명");
+    assertThat(body).contains("신규 리뷰**: 2개");
+    assertThat(body).contains("신규 댓글**: 4개");
+    assertThat(body).contains("신규 좋아요**: 5개");
   }
 
   @DisplayName("시나리오2: 데이터가 없는 날은 웹훅을 전송하지 않는다")
@@ -130,18 +98,12 @@ class DailyDataReportIntegrationTest extends IntegrationTestSupport {
     dailyDataReportService.collectAndSendDailyReport(emptyDate, webhookUrl);
 
     // then - 신규 데이터가 없으므로 웹훅이 호출되지 않음
-    verify(webhookRestTemplate, times(0))
-        .postForEntity(anyString(), any(HttpEntity.class), eq(String.class));
+    assertThat(fakeWebhookRestTemplate.wasNotCalled()).isTrue();
   }
 
   @DisplayName("시나리오3: 시간 경계값 - 자정 직전과 직후 데이터 구분")
   @Test
   void 자정을_기준으로_데이터가_정확하게_구분된다() {
-    // given - Mock 응답 설정
-    doReturn(ResponseEntity.ok("Success"))
-        .when(webhookRestTemplate)
-        .postForEntity(anyString(), any(HttpEntity.class), eq(String.class));
-
     // given - 자정 기준으로 경계값 테스트
     LocalDateTime todayMidnight = testDate.atStartOfDay();
     LocalDateTime beforeMidnight = todayMidnight.minusSeconds(1); // 23:59:59 (어제)
@@ -160,16 +122,13 @@ class DailyDataReportIntegrationTest extends IntegrationTestSupport {
         testDate, "https://discord.com/api/webhooks/test");
 
     // then - 자정 이후 데이터만 집계됨
-    org.mockito.ArgumentCaptor<HttpEntity> entityCaptor =
-        org.mockito.ArgumentCaptor.forClass(HttpEntity.class);
-    verify(webhookRestTemplate)
-        .postForEntity(anyString(), entityCaptor.capture(), eq(String.class));
+    assertThat(fakeWebhookRestTemplate.wasCalled()).isTrue();
 
-    String body = entityCaptor.getValue().getBody().toString();
+    String body = fakeWebhookRestTemplate.getLastRequestBody();
 
     // 자정 직후(00:00:01) 데이터만 포함
-    assertThat(body).contains("👥 **신규 유저**: 1명");
-    assertThat(body).contains("✍️ **신규 리뷰**: 1개");
+    assertThat(body).contains("신규 유저**: 1명");
+    assertThat(body).contains("신규 리뷰**: 1개");
   }
 
   @DisplayName("시나리오4: 웹훅 URL이 없으면 데이터 수집만 하고 전송하지 않는다")
@@ -183,18 +142,12 @@ class DailyDataReportIntegrationTest extends IntegrationTestSupport {
     assertDoesNotThrow(() -> dailyDataReportService.collectAndSendDailyReport(testDate, null));
 
     // then - 웹훅 전송이 호출되지 않음
-    verify(webhookRestTemplate, times(0))
-        .postForEntity(anyString(), any(HttpEntity.class), eq(String.class));
+    assertThat(fakeWebhookRestTemplate.wasNotCalled()).isTrue();
   }
 
   @DisplayName("시나리오5: 대량 데이터 집계 성능 테스트")
   @Test
   void 대량의_데이터도_정상적으로_집계된다() {
-    // given - Mock 응답 설정
-    doReturn(ResponseEntity.ok("Success"))
-        .when(webhookRestTemplate)
-        .postForEntity(anyString(), any(HttpEntity.class), eq(String.class));
-
     // given - 대량 데이터 생성 (유저 10명, 리뷰 20개, 댓글 30개, 좋아요 40개)
     LocalDateTime today = testDate.atStartOfDay();
 
@@ -223,27 +176,19 @@ class DailyDataReportIntegrationTest extends IntegrationTestSupport {
     dailyDataReportService.collectAndSendDailyReport(testDate, webhookUrl);
 
     // then - 정확한 집계 결과 확인
-    org.mockito.ArgumentCaptor<HttpEntity> entityCaptor =
-        org.mockito.ArgumentCaptor.forClass(HttpEntity.class);
-    verify(webhookRestTemplate)
-        .postForEntity(anyString(), entityCaptor.capture(), eq(String.class));
+    assertThat(fakeWebhookRestTemplate.wasCalled()).isTrue();
 
-    String body = entityCaptor.getValue().getBody().toString();
+    String body = fakeWebhookRestTemplate.getLastRequestBody();
 
-    assertThat(body).contains("👥 **신규 유저**: 10명");
-    assertThat(body).contains("✍️ **신규 리뷰**: 20개");
-    assertThat(body).contains("💬 **신규 댓글**: 30개");
-    assertThat(body).contains("❤️ **신규 좋아요**: 40개");
+    assertThat(body).contains("신규 유저**: 10명");
+    assertThat(body).contains("신규 리뷰**: 20개");
+    assertThat(body).contains("신규 댓글**: 30개");
+    assertThat(body).contains("신규 좋아요**: 40개");
   }
 
   @DisplayName("시나리오6: 신고와 문의 데이터가 포함된 리포트 생성")
   @Test
   void 신고와_문의_데이터가_포함된_리포트가_생성된다() {
-    // given - Mock 응답 설정
-    doReturn(ResponseEntity.ok("Success"))
-        .when(webhookRestTemplate)
-        .postForEntity(anyString(), any(HttpEntity.class), eq(String.class));
-
     // given - 신고 및 문의 데이터 생성
     createReviewReport(1L, 1L, "WAITING");
     createReviewReport(1L, 2L, "PENDING");
@@ -259,28 +204,20 @@ class DailyDataReportIntegrationTest extends IntegrationTestSupport {
     dailyDataReportService.collectAndSendDailyReport(testDate, webhookUrl);
 
     // then - 웹훅 호출 검증
-    org.mockito.ArgumentCaptor<HttpEntity> entityCaptor =
-        org.mockito.ArgumentCaptor.forClass(HttpEntity.class);
-    verify(webhookRestTemplate)
-        .postForEntity(anyString(), entityCaptor.capture(), eq(String.class));
+    assertThat(fakeWebhookRestTemplate.wasCalled()).isTrue();
 
-    String body = entityCaptor.getValue().getBody().toString();
+    String body = fakeWebhookRestTemplate.getLastRequestBody();
     assertNotNull(body);
 
     // 신고 및 문의 데이터 검증 (리뷰 신고 2건 + 유저 신고 1건 = 3건)
-    assertThat(body).contains("🚨 **미처리 신고**: 3건");
-    assertThat(body).contains("📧 **미처리 문의**: 2건");
-    assertThat(body).contains("👥 **신규 유저**: 1명");
+    assertThat(body).contains("미처리 신고**: 3건");
+    assertThat(body).contains("미처리 문의**: 2건");
+    assertThat(body).contains("신규 유저**: 1명");
   }
 
   @DisplayName("시나리오7: 0건인 항목은 리포트에서 제외된다")
   @Test
   void 값이_0인_항목은_메시지에_포함되지_않는다() {
-    // given - Mock 응답 설정
-    doReturn(ResponseEntity.ok("Success"))
-        .when(webhookRestTemplate)
-        .postForEntity(anyString(), any(HttpEntity.class), eq(String.class));
-
     // given - 신규 유저 1명만 생성 (다른 데이터는 0)
     LocalDateTime today = testDate.atStartOfDay();
     createUser(today, "onlyuser@test.com");
@@ -290,16 +227,13 @@ class DailyDataReportIntegrationTest extends IntegrationTestSupport {
     dailyDataReportService.collectAndSendDailyReport(testDate, webhookUrl);
 
     // then - 웹훅 호출 검증
-    org.mockito.ArgumentCaptor<HttpEntity> entityCaptor =
-        org.mockito.ArgumentCaptor.forClass(HttpEntity.class);
-    verify(webhookRestTemplate)
-        .postForEntity(anyString(), entityCaptor.capture(), eq(String.class));
+    assertThat(fakeWebhookRestTemplate.wasCalled()).isTrue();
 
-    String body = entityCaptor.getValue().getBody().toString();
+    String body = fakeWebhookRestTemplate.getLastRequestBody();
     assertNotNull(body);
 
     // 신규 유저만 포함되고 나머지는 제외
-    assertThat(body).contains("👥 **신규 유저**: 1명");
+    assertThat(body).contains("신규 유저**: 1명");
     assertThat(body).doesNotContain("**신규 리뷰**");
     assertThat(body).doesNotContain("**신규 댓글**");
     assertThat(body).doesNotContain("**신규 좋아요**");
