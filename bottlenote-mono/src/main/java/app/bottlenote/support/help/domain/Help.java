@@ -113,4 +113,13 @@ public class Help extends BaseEntity {
   public boolean isMyHelpPost(Long userId) {
     return this.userId.equals(userId);
   }
+
+  public void answer(Long adminId, String responseContent, StatusType status) {
+    Objects.requireNonNull(adminId, "adminId는 필수입니다");
+    Objects.requireNonNull(responseContent, "responseContent는 필수입니다");
+    Objects.requireNonNull(status, "status는 필수입니다");
+    this.adminId = adminId;
+    this.responseContent = responseContent;
+    this.status = status;
+  }
 }
