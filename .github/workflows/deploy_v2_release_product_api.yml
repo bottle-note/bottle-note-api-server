@@ -31,6 +31,22 @@ jobs:
           submodules: true
           token: ${{ secrets.GIT_ACCESS_TOKEN }}
 
+      - name: setup jdk
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: setup gradle cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
       - name: read product version
         id: version
         run: |
@@ -38,6 +54,10 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "image-tag=product_${VERSION}" >> $GITHUB_OUTPUT
           echo "Product version: $VERSION"
+
+      - name: build product module
+        run: |
+          ./gradlew :bottlenote-product-api:build -x test -x asciidoctor --build-cache --parallel
 
       - name: build and push to registry
         id: build

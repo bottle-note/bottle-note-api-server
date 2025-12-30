@@ -4,6 +4,7 @@ import com.redis.testcontainers.RedisContainer;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -35,5 +36,12 @@ public class TestContainersConfig {
   @ServiceConnection
   RedisContainer redisContainer() {
     return new RedisContainer(DockerImageName.parse("redis:7.0.12")).withReuse(true);
+  }
+
+  /** 테스트용 Fake RestTemplate 빈. webhookRestTemplate을 대체합니다. */
+  @Bean
+  @Primary
+  FakeWebhookRestTemplate webhookRestTemplate() {
+    return new FakeWebhookRestTemplate();
   }
 }

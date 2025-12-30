@@ -68,3 +68,5 @@ settings.local.json
 # Cosign keys
 cosign.key
 cosign.pub
+
+*.env.*

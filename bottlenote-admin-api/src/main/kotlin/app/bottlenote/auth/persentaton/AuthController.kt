@@ -27,13 +27,13 @@ class AuthController(
 
 	@EventListener(ApplicationReadyEvent::class)
 	fun onApplicationReady() {
-		val rootAdminIsAlive = authService.rootAdminIsAlive()
-		log.info("루트 어드민 존재 여부: {}", rootAdminIsAlive)
-		if (!rootAdminIsAlive) {
-			log.info("루트 어드민 초기 생성 로직 호출")
-			val email = rootAdminProperties.email
-			val encodedPassword = rootAdminProperties.getEncodedPassword(encoder)
-			authService.initRootAdmin(email, encodedPassword)
+		val email = rootAdminProperties.email
+		val encodedPassword = rootAdminProperties.getEncodedPassword(encoder)
+		val created = authService.initRootAdmin(email, encodedPassword)
+		if (created) {
+			log.info("루트 어드민 초기 생성 완료: {}", email)
+		} else {
+			log.info("루트 어드민 이미 존재: {}", email)
 		}
 	}
 
