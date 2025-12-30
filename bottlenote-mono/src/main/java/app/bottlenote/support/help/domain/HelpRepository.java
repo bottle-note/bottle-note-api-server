@@ -2,7 +2,9 @@ package app.bottlenote.support.help.domain;
 
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.support.help.constant.HelpType;
+import app.bottlenote.support.help.dto.request.AdminHelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
+import app.bottlenote.support.help.dto.response.AdminHelpListResponse;
 import app.bottlenote.support.help.dto.response.HelpListResponse;
 import java.util.List;
 import java.util.Optional;
@@ -23,4 +25,6 @@ public interface HelpRepository {
 
   PageResponse<HelpListResponse> getHelpList(
       HelpPageableRequest helpPageableRequest, Long currentUserId);
+
+  PageResponse<AdminHelpListResponse> getAdminHelpList(AdminHelpPageableRequest request);
 }
