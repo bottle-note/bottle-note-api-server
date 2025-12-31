@@ -5,7 +5,9 @@ on:
     branches: [ "main" ]
     paths:
       - 'bottlenote-*/src/docs/**'
+      - 'bottlenote-*/src/test/**/docs/**'
       - 'bottlenote-*/build.gradle*'
+      - 'gradle/libs.versions.toml'
       - 'docs/**'
       - '.github/workflows/github-pages.yml'
   workflow_dispatch:
