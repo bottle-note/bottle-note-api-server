@@ -44,7 +44,7 @@ mockito-inline = "5.2.0"
 archunit = "1.4.0"
 
 # Documentation
-spring-restdocs = "3.0.1"
+spring-restdocs = "3.0.3"
 restdocs-api-spec = "0.19.4"
 
 # Scheduling
