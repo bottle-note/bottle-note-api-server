@@ -1,9 +1,9 @@
 package app.bottlenote.common.file.repository;
 
 import app.bottlenote.common.annotation.JpaRepositoryImpl;
+import app.bottlenote.common.file.constant.ImageUploadStatus;
 import app.bottlenote.common.file.domain.ImageUploadLog;
 import app.bottlenote.common.file.domain.ImageUploadLogRepository;
-import app.bottlenote.common.file.domain.ImageUploadStatus;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
