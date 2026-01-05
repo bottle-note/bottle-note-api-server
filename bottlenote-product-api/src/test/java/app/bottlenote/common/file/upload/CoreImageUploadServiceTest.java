@@ -10,9 +10,10 @@ import app.bottlenote.common.file.dto.request.ImageUploadRequest;
 import app.bottlenote.common.file.dto.response.ImageUploadItem;
 import app.bottlenote.common.file.dto.response.ImageUploadResponse;
 import app.bottlenote.common.file.exception.FileException;
+import app.bottlenote.common.file.service.ImageUploadLogService;
 import app.bottlenote.common.file.service.ImageUploadService;
 import app.bottlenote.common.file.upload.fixture.FakeAmazonS3;
-import app.bottlenote.common.file.upload.fixture.FakeImageEventPublisher;
+import app.bottlenote.common.file.upload.fixture.InMemoryImageUploadLogRepository;
 import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
@@ -37,9 +38,11 @@ class CoreImageUploadServiceTest {
 
   @BeforeEach
   void setUp() {
+    ImageUploadLogService imageUploadLogService =
+        new ImageUploadLogService(new InMemoryImageUploadLogRepository());
     imageUploadService =
         new ImageUploadService(
-            new FakeImageEventPublisher(), new FakeAmazonS3(), ImageBucketName, cloudFrontUrl) {
+            imageUploadLogService, new FakeAmazonS3(), ImageBucketName, cloudFrontUrl) {
           @Override
           public String getImageKey(String rootPath, Long index) {
             if (rootPath.startsWith(PATH_DELIMITER)) {
