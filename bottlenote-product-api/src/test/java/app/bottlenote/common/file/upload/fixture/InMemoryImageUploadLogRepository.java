@@ -1,8 +1,8 @@
 package app.bottlenote.common.file.upload.fixture;
 
+import app.bottlenote.common.file.constant.ImageUploadStatus;
 import app.bottlenote.common.file.domain.ImageUploadLog;
 import app.bottlenote.common.file.domain.ImageUploadLogRepository;
-import app.bottlenote.common.file.domain.ImageUploadStatus;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;

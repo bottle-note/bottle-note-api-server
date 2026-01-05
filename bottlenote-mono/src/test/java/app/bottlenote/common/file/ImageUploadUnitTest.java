@@ -4,9 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import app.bottlenote.common.file.constant.ImageUploadStatus;
 import app.bottlenote.common.file.domain.ImageUploadLog;
 import app.bottlenote.common.file.domain.ImageUploadLogRepository;
-import app.bottlenote.common.file.domain.ImageUploadStatus;
 import app.bottlenote.common.file.dto.request.ImageUploadRequest;
 import app.bottlenote.common.file.dto.response.ImageUploadResponse;
 import app.bottlenote.common.file.service.ImageUploadLogService;

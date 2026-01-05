@@ -1,6 +1,7 @@
 package app.bottlenote.common.file.domain;
 
 import app.bottlenote.common.annotation.DomainRepository;
+import app.bottlenote.common.file.constant.ImageUploadStatus;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;

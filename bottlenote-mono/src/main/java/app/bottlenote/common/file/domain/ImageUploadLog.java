@@ -1,6 +1,7 @@
 package app.bottlenote.common.file.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
+import app.bottlenote.common.file.constant.ImageUploadStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

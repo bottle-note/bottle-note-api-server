@@ -1,4 +1,4 @@
-package app.bottlenote.common.file.domain;
+package app.bottlenote.common.file.constant;
 
 public enum ImageUploadStatus {
   PENDING, // URL 발급됨, 업로드 대기

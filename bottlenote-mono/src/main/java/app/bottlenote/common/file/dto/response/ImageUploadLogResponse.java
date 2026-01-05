@@ -1,6 +1,6 @@
 package app.bottlenote.common.file.dto.response;
 
-import app.bottlenote.common.file.domain.ImageUploadStatus;
+import app.bottlenote.common.file.constant.ImageUploadStatus;
 import java.time.LocalDateTime;
 import lombok.Builder;
 
