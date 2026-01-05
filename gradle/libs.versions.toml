@@ -39,6 +39,7 @@ testng = "7.7.0"
 testcontainers = "1.19.8"
 testcontainers-junit = "1.19.8"
 testcontainers-mysql = "1.19.8"
+testcontainers-minio = "1.19.8"
 testcontainers-redis = "2.2.4"
 mockito-inline = "5.2.0"
 archunit = "1.4.0"
@@ -143,6 +144,7 @@ testng = { module = "org.testng:testng", version.ref = "testng" }
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
 testcontainers-junit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers-junit" }
 testcontainers-mysql = { module = "org.testcontainers:mysql", version.ref = "testcontainers-mysql" }
+testcontainers-minio = { module = "org.testcontainers:minio", version.ref = "testcontainers-minio" }
 testcontainers-redis = { module = "com.redis:testcontainers-redis", version.ref = "testcontainers-redis" }
 spring-boot-testcontainers = { module = "org.springframework.boot:spring-boot-testcontainers", version.ref = "spring-boot" }
 mockito-inline = { module = "org.mockito:mockito-inline", version.ref = "mockito-inline" }
@@ -215,6 +217,7 @@ testcontainers-complete = [
 	"testcontainers",
 	"testcontainers-junit",
 	"testcontainers-mysql",
+	"testcontainers-minio",
 	"testcontainers-redis",
 	"spring-boot-testcontainers"
 ]
