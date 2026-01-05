@@ -33,7 +33,19 @@ public class ImageUploadLogService {
   @Async
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public CompletableFuture<ImageUploadLogResponse> saveAsync(ImageUploadLogRequest request) {
-    ImageUploadLog saved = imageUploadLogRepository.save(request.toEntity());
+    ImageUploadLog entity =
+        ImageUploadLog.builder()
+            .userId(request.userId())
+            .imageKey(request.imageKey())
+            .viewUrl(request.viewUrl())
+            .rootPath(request.rootPath())
+            .bucketName(request.bucketName())
+            .originalFileName(request.originalFileName())
+            .contentType(request.contentType())
+            .contentLength(request.contentLength())
+            .status(ImageUploadStatus.PENDING)
+            .build();
+    ImageUploadLog saved = imageUploadLogRepository.save(entity);
     log.info("이미지 업로드 로그 저장 완료 - imageKey: {}, userId: {}", saved.getImageKey(), saved.getUserId());
     return CompletableFuture.completedFuture(toResponse(saved));
   }
