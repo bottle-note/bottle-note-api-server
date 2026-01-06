@@ -1,120 +1,212 @@
 package app.bottlenote.common.file.upload;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.willDoNothing;
-import static org.mockito.Mockito.when;
+import static java.time.format.DateTimeFormatter.ofPattern;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import app.bottlenote.common.file.dto.request.ImageUploadRequest;
 import app.bottlenote.common.file.dto.response.ImageUploadItem;
 import app.bottlenote.common.file.dto.response.ImageUploadResponse;
+import app.bottlenote.common.file.exception.FileException;
 import app.bottlenote.common.file.service.ImageUploadService;
-import com.amazonaws.HttpMethod;
-import com.amazonaws.services.s3.AmazonS3;
-import java.net.URL;
-import java.util.List;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.junit.jupiter.api.Assertions;
+import app.bottlenote.common.file.service.ResourceCommandService;
+import app.bottlenote.common.file.upload.fixture.FakeAmazonS3;
+import app.bottlenote.common.file.upload.fixture.InMemoryResourceLogRepository;
+import java.time.LocalDate;
+import java.util.Calendar;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Tag("unit")
-@DisplayName("[unit] [service] [mock] CoreImageUpload")
-@ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = org.mockito.quality.Strictness.LENIENT)
+@DisplayName("[unit] [service] ImageUploadService")
 class ImageUploadServiceTest {
 
-  private static final Logger log = LogManager.getLogger(ImageUploadServiceTest.class);
-  @InjectMocks private ImageUploadService imageUploadService;
+  private static final Logger log = LoggerFactory.getLogger(ImageUploadServiceTest.class);
+  private static final String BUCKET_NAME = "test-bucket";
+  private static final String CLOUD_FRONT_URL = "https://cdn.example.com";
+  private static final String AWS_URL = "https://" + BUCKET_NAME + ".s3.amazonaws.com/";
+  private static final String UPLOAD_DATE = LocalDate.of(2024, 5, 1).format(ofPattern("yyyyMMdd"));
+  private static final String FAKE_UUID = "ddd8d2d8-7b0c-47e9-91d0-d21251f891e8";
 
-  @Mock private ApplicationEventPublisher eventPublisher;
-
-  @Mock private AmazonS3 amazonS3;
+  private ImageUploadService imageUploadService;
+  private InMemoryResourceLogRepository resourceLogRepository;
 
   @BeforeEach
   void setUp() {
-    ReflectionTestUtils.setField(imageUploadService, "imageBucketName", "image-bucket");
-    ReflectionTestUtils.setField(
-        imageUploadService, "cloudFrontUrl", "https://testUrl.cloudfront.net");
+    resourceLogRepository = new InMemoryResourceLogRepository();
+    ResourceCommandService resourceCommandService =
+        new ResourceCommandService(resourceLogRepository);
+    imageUploadService =
+        new ImageUploadService(
+            resourceCommandService, new FakeAmazonS3(), BUCKET_NAME, CLOUD_FRONT_URL) {
+          @Override
+          public String getImageKey(String rootPath, Long index) {
+            if (rootPath.startsWith(PATH_DELIMITER)) {
+              rootPath = rootPath.substring(1);
+            }
+            if (rootPath.endsWith(PATH_DELIMITER)) {
+              rootPath = rootPath.substring(0, rootPath.length() - 1);
+            }
+            String imageId = index + KEY_DELIMITER + FAKE_UUID + "." + EXTENSION;
+            return rootPath + PATH_DELIMITER + UPLOAD_DATE + PATH_DELIMITER + imageId;
+          }
+        };
   }
 
-  @Test
-  @DisplayName("단건 이미지 업로드 URL을 생성할 수 있다.")
-  void test_1() throws Exception {
-    // Given
-    String amazonUrl = "https://bottlenote.s3.ap-northeast-2.amazonaws.com/";
-    String viewUrl = "https://testUrl.cloudfront.net/";
-    String rootPath = "image-upload";
-    Long uploadSize = 1L;
-    String updateAt = "20240524";
-    String imageName = "ddd8d2d8-7b0c-47e9-91d0-d21251f891e8.jpg";
-    String key1 = rootPath + "/" + updateAt + "/" + "1-" + imageName;
+  @Nested
+  @DisplayName("PreSigned URL 생성 테스트")
+  class PreSignedUrlTest {
 
-    ImageUploadRequest 요청객체 = new ImageUploadRequest(rootPath, uploadSize); // 요청 사이즈를 2로 수정
-    ImageUploadResponse 응답객체 =
-        new ImageUploadResponse(
-            "image-bucket",
-            1,
-            5,
-            List.of(
-                new ImageUploadItem(
-                    1L,
-                    viewUrl + key1,
-                    amazonUrl
-                        + key1) /*,new ImageUploadItem(2L, viewUrl + key2, amazonUrl + key2)*/));
+    @Test
+    @DisplayName("PreSignUrl을 생성할 수 있다")
+    void test_1() {
+      // given
+      String imageKey = imageUploadService.getImageKey("review", 1L);
 
-    // when
-    when(amazonS3.generatePresignedUrl(anyString(), anyString(), any(), any(HttpMethod.class)))
-        .thenReturn(new URL(amazonUrl + key1));
-    willDoNothing().given(eventPublisher).publishEvent(any());
+      // when
+      String preSignUrl = imageUploadService.generatePreSignUrl(imageKey);
 
-    ImageUploadResponse 실제_반환값 = imageUploadService.getPreSignUrl(요청객체);
+      // then
+      log.info("PreSignUrl: {}", preSignUrl);
+      assertNotNull(preSignUrl);
+      assertEquals(AWS_URL + imageKey, preSignUrl);
+    }
 
-    // Then
-    ImageUploadItem 비교_대상 = 응답객체.imageUploadInfo().stream().findFirst().get();
-    ImageUploadItem 실제_비교_대상 = 실제_반환값.imageUploadInfo().stream().findFirst().get();
+    @Test
+    @DisplayName("업로드용 인증 URL을 생성할 수 있다")
+    void test_2() {
+      // given
+      ImageUploadRequest request = new ImageUploadRequest("review", 2L);
 
-    Assertions.assertNotNull(실제_반환값);
-    Assertions.assertEquals(응답객체.bucketName(), 실제_반환값.bucketName());
-    Assertions.assertEquals(응답객체.expiryTime(), 실제_반환값.expiryTime());
-    Assertions.assertEquals(비교_대상.order(), 실제_비교_대상.order());
-    Assertions.assertEquals(비교_대상.uploadUrl(), 실제_비교_대상.uploadUrl());
-    Assertions.assertTrue(실제_비교_대상.viewUrl().startsWith(viewUrl));
+      // when
+      ImageUploadResponse response = imageUploadService.getPreSignUrl(request);
+
+      // then
+      assertNotNull(response);
+      assertEquals(request.uploadSize(), response.uploadSize());
+      assertEquals(5, response.expiryTime());
+      assertEquals(BUCKET_NAME, response.bucketName());
+
+      for (Long index = 1L; index <= response.imageUploadInfo().size(); index++) {
+        String imageKey = imageUploadService.getImageKey(request.rootPath(), index);
+        String uploadUrlExpected = imageUploadService.generatePreSignUrl(imageKey);
+        String viewUrlExpected = imageUploadService.generateViewUrl(CLOUD_FRONT_URL, imageKey);
+
+        ImageUploadItem info = response.imageUploadInfo().get((int) (index - 1));
+
+        log.info("[{}] ImageUploadItem: {}", index, info);
+        assertEquals(index, info.order());
+        assertEquals(uploadUrlExpected, info.uploadUrl());
+        assertEquals(viewUrlExpected, info.viewUrl());
+      }
+    }
+
+    @Test
+    @DisplayName("단건 이미지 업로드 URL을 생성할 수 있다")
+    void test_3() {
+      // given
+      ImageUploadRequest request = new ImageUploadRequest("review", 1L);
+
+      // when
+      ImageUploadResponse response = imageUploadService.getPreSignUrl(request);
+
+      // then
+      assertNotNull(response);
+      assertEquals(1, response.uploadSize());
+      assertEquals(BUCKET_NAME, response.bucketName());
+
+      ImageUploadItem item = response.imageUploadInfo().get(0);
+      assertTrue(item.uploadUrl().startsWith(AWS_URL));
+      assertTrue(item.viewUrl().startsWith(CLOUD_FRONT_URL));
+    }
   }
 
-  @Test
-  @DisplayName("이미지 view URL을 생성할 수 있다.")
-  void test_2() {
-    String cloudFrontUrl = "https://testUrl.cloudfront.net";
-    String imageKey = "1-test.jpg";
-    String viewUrl = imageUploadService.generateViewUrl(cloudFrontUrl, imageKey);
+  @Nested
+  @DisplayName("View URL 생성 테스트")
+  class ViewUrlTest {
 
-    Assertions.assertEquals("https://testUrl.cloudfront.net/1-test.jpg", viewUrl);
+    @Test
+    @DisplayName("조회용 URL을 생성할 수 있다")
+    void test_1() {
+      // given
+      String imageKey = imageUploadService.getImageKey("review", 1L);
+
+      // when
+      String viewUrl = imageUploadService.generateViewUrl(CLOUD_FRONT_URL, imageKey);
+
+      // then
+      log.info("ViewUrl: {}", viewUrl);
+      assertNotNull(viewUrl);
+      assertEquals(CLOUD_FRONT_URL + "/" + imageKey, viewUrl);
+    }
   }
 
-  @Test
-  @DisplayName("업로드 이미지 경로를 생성할 수 있다.")
-  void test_3() throws Exception {
-    // Given
-    String imageKey = imageUploadService.getImageKey("test", 1L);
-    String amazonUrl = "https://bottlenote.s3.ap-northeast-2.amazonaws.com/";
-    when(amazonS3.generatePresignedUrl(anyString(), anyString(), any(), any(HttpMethod.class)))
-        .thenReturn(new URL(amazonUrl + imageKey));
+  @Nested
+  @DisplayName("이미지 키 생성 테스트")
+  class ImageKeyTest {
 
-    // when
-    String preSignUrl = imageUploadService.generatePreSignUrl(imageKey);
+    @Test
+    @DisplayName("이미지 루트 경로와 인덱스를 제공해 이미지 키를 생성할 수 있다")
+    void test_1() {
+      // given & when
+      String imageKey = imageUploadService.getImageKey("review", 1L);
+      String expected = "review/" + UPLOAD_DATE + "/1-" + FAKE_UUID + ".jpg";
 
-    // then
-    Assertions.assertEquals((amazonUrl + imageKey), preSignUrl);
+      // then
+      log.info("ImageKey: {}", imageKey);
+      assertNotNull(imageKey);
+      assertEquals(expected, imageKey);
+    }
+  }
+
+  @Nested
+  @DisplayName("만료 시간 테스트")
+  class ExpiryTimeTest {
+
+    @Test
+    @DisplayName("기본 만료 시간은 5분이다")
+    void test_1() {
+      // given
+      Calendar expectedExpiryTime = Calendar.getInstance();
+      expectedExpiryTime.add(Calendar.MINUTE, 5);
+
+      // when
+      Calendar actualExpiryTime = imageUploadService.getUploadExpiryTime(null);
+
+      // then
+      log.info("ExpiryTime: {}", actualExpiryTime);
+      long diffInMillis =
+          Math.abs(expectedExpiryTime.getTimeInMillis() - actualExpiryTime.getTimeInMillis());
+      assertTrue(
+          diffInMillis < TimeUnit.SECONDS.toMillis(1),
+          "The difference should be less than 1 second");
+    }
+
+    @Test
+    @DisplayName("최대 만료 시간은 10분이다")
+    void test_2() {
+      // given
+      Calendar expectedExpiryTime = Calendar.getInstance();
+      expectedExpiryTime.add(Calendar.MINUTE, 10);
+
+      // when
+      Calendar actualExpiryTime = imageUploadService.getUploadExpiryTime(10);
+
+      // then
+      long diffInMillis =
+          Math.abs(expectedExpiryTime.getTimeInMillis() - actualExpiryTime.getTimeInMillis());
+      assertTrue(
+          diffInMillis < TimeUnit.SECONDS.toMillis(1),
+          "The difference should be less than 1 second");
+      assertThrows(FileException.class, () -> imageUploadService.getUploadExpiryTime(11));
+    }
   }
 }
