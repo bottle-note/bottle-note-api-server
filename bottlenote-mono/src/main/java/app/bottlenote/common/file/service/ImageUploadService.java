@@ -2,8 +2,8 @@ package app.bottlenote.common.file.service;
 
 import app.bottlenote.common.annotation.ThirdPartyService;
 import app.bottlenote.common.file.PreSignUrlProvider;
-import app.bottlenote.common.file.dto.request.ImageUploadLogRequest;
 import app.bottlenote.common.file.dto.request.ImageUploadRequest;
+import app.bottlenote.common.file.dto.request.ResourceLogRequest;
 import app.bottlenote.common.file.dto.response.ImageUploadItem;
 import app.bottlenote.common.file.dto.response.ImageUploadResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
@@ -20,17 +20,17 @@ import org.springframework.beans.factory.annotation.Value;
 public class ImageUploadService implements PreSignUrlProvider {
 
   private static final Integer EXPIRY_TIME = 5;
-  private final ImageUploadLogService imageUploadLogService;
+  private final ResourceCommandService resourceCommandService;
   private final AmazonS3 amazonS3;
   private final String imageBucketName;
   private final String cloudFrontUrl;
 
   public ImageUploadService(
-      ImageUploadLogService imageUploadLogService,
+      ResourceCommandService resourceCommandService,
       AmazonS3 amazonS3,
       @Value("${amazon.aws.bucket}") String imageBucketName,
       @Value("${amazon.aws.cloudFrontUrl}") String cloudFrontUrl) {
-    this.imageUploadLogService = imageUploadLogService;
+    this.resourceCommandService = resourceCommandService;
     this.amazonS3 = amazonS3;
     this.imageBucketName = imageBucketName;
     this.cloudFrontUrl = cloudFrontUrl;
@@ -91,15 +91,15 @@ public class ImageUploadService implements PreSignUrlProvider {
                 items.forEach(
                     item -> {
                       String imageKey = extractImageKey(item.viewUrl());
-                      ImageUploadLogRequest logRequest =
-                          ImageUploadLogRequest.builder()
+                      ResourceLogRequest logRequest =
+                          ResourceLogRequest.builder()
                               .userId(userId)
-                              .imageKey(imageKey)
+                              .resourceKey(imageKey)
                               .viewUrl(item.viewUrl())
                               .rootPath(rootPath)
                               .bucketName(imageBucketName)
                               .build();
-                      imageUploadLogService.saveAsync(logRequest);
+                      resourceCommandService.saveImageResourceCreated(logRequest);
                     }));
   }
 
