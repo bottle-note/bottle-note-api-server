@@ -4,13 +4,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import app.bottlenote.common.file.constant.ImageUploadStatus;
-import app.bottlenote.common.file.domain.ImageUploadLog;
-import app.bottlenote.common.file.domain.ImageUploadLogRepository;
+import app.bottlenote.common.file.constant.ResourceEventType;
+import app.bottlenote.common.file.domain.ResourceLog;
+import app.bottlenote.common.file.domain.ResourceLogRepository;
 import app.bottlenote.common.file.dto.request.ImageUploadRequest;
 import app.bottlenote.common.file.dto.response.ImageUploadResponse;
-import app.bottlenote.common.file.service.ImageUploadLogService;
 import app.bottlenote.common.file.service.ImageUploadService;
+import app.bottlenote.common.file.service.ResourceCommandService;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
@@ -20,6 +20,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,8 +60,8 @@ class ImageUploadUnitTest {
 
   private static AmazonS3 amazonS3;
   private ImageUploadService imageUploadService;
-  private ImageUploadLogService imageUploadLogService;
-  private InMemoryImageUploadLogRepository imageUploadLogRepository;
+  private ResourceCommandService resourceCommandService;
+  private InMemoryResourceLogRepository resourceLogRepository;
 
   @BeforeAll
   static void setUpContainer() {
@@ -81,16 +82,16 @@ class ImageUploadUnitTest {
 
   @BeforeEach
   void setUp() {
-    imageUploadLogRepository = new InMemoryImageUploadLogRepository();
-    imageUploadLogService = new ImageUploadLogService(imageUploadLogRepository);
+    resourceLogRepository = new InMemoryResourceLogRepository();
+    resourceCommandService = new ResourceCommandService(resourceLogRepository);
     imageUploadService =
-        new ImageUploadService(imageUploadLogService, amazonS3, TEST_BUCKET, CLOUD_FRONT_URL);
+        new ImageUploadService(resourceCommandService, amazonS3, TEST_BUCKET, CLOUD_FRONT_URL);
   }
 
   @AfterEach
   void tearDown() {
     SecurityContextHolder.clearContext();
-    imageUploadLogRepository.clear();
+    resourceLogRepository.clear();
   }
 
   @Nested
@@ -176,11 +177,11 @@ class ImageUploadUnitTest {
   }
 
   @Nested
-  @DisplayName("이미지 업로드 로그 저장 테스트")
-  class ImageUploadLogTest {
+  @DisplayName("리소스 로그 저장 테스트")
+  class ResourceLogTest {
 
     @Test
-    @DisplayName("로그인 사용자가 PreSigned URL 생성 시 로그가 저장된다")
+    @DisplayName("로그인 사용자가 PreSigned URL 생성 시 CREATED 이벤트 로그가 저장된다")
     void test_1() {
       // given
       Long userId = 1L;
@@ -192,9 +193,10 @@ class ImageUploadUnitTest {
       imageUploadService.getPreSignUrl(request);
 
       // then
-      List<ImageUploadLog> logs = imageUploadLogRepository.findByUserId(userId);
+      List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
       assertEquals(2, logs.size());
-      assertEquals(ImageUploadStatus.PENDING, logs.get(0).getStatus());
+      assertEquals(ResourceEventType.CREATED, logs.get(0).getEventType());
+      assertEquals("IMAGE", logs.get(0).getResourceType());
 
       log.info("저장된 로그 수 = {}", logs.size());
     }
@@ -209,61 +211,56 @@ class ImageUploadUnitTest {
       imageUploadService.getPreSignUrl(request);
 
       // then
-      List<ImageUploadLog> logs = imageUploadLogRepository.findAll();
+      List<ResourceLog> logs = resourceLogRepository.findAll();
       assertEquals(0, logs.size());
 
       log.info("저장된 로그 수 = {}", logs.size());
     }
   }
 
-  static class InMemoryImageUploadLogRepository implements ImageUploadLogRepository {
+  static class InMemoryResourceLogRepository implements ResourceLogRepository {
 
-    private final Map<Long, ImageUploadLog> database = new HashMap<>();
+    private final Map<Long, ResourceLog> database = new HashMap<>();
 
     @Override
-    public ImageUploadLog save(ImageUploadLog imageUploadLog) {
-      Long id = (Long) ReflectionTestUtils.getField(imageUploadLog, "id");
+    public ResourceLog save(ResourceLog resourceLog) {
+      Long id = (Long) ReflectionTestUtils.getField(resourceLog, "id");
       if (id == null) {
         id = database.size() + 1L;
-        ReflectionTestUtils.setField(imageUploadLog, "id", id);
+        ReflectionTestUtils.setField(resourceLog, "id", id);
       }
-      database.put(id, imageUploadLog);
-      return imageUploadLog;
+      database.put(id, resourceLog);
+      return resourceLog;
     }
 
     @Override
-    public Optional<ImageUploadLog> findById(Long id) {
+    public Optional<ResourceLog> findById(Long id) {
       return Optional.ofNullable(database.get(id));
     }
 
     @Override
-    public Optional<ImageUploadLog> findByImageKey(String imageKey) {
+    public List<ResourceLog> findByResourceKey(String resourceKey) {
       return database.values().stream()
-          .filter(log -> log.getImageKey().equals(imageKey))
-          .findFirst();
-    }
-
-    @Override
-    public List<ImageUploadLog> findByUserId(Long userId) {
-      return database.values().stream().filter(log -> log.getUserId().equals(userId)).toList();
-    }
-
-    @Override
-    public List<ImageUploadLog> findByStatusAndCreateAtBefore(
-        ImageUploadStatus status, LocalDateTime dateTime) {
-      return database.values().stream()
-          .filter(log -> log.getStatus() == status)
-          .filter(
-              log -> {
-                LocalDateTime createAt =
-                    (LocalDateTime) ReflectionTestUtils.getField(log, "createAt");
-                return createAt == null || createAt.isBefore(dateTime);
-              })
+          .filter(log -> log.getResourceKey().equals(resourceKey))
           .toList();
     }
 
     @Override
-    public List<ImageUploadLog> findByReferenceIdAndReferenceType(
+    public List<ResourceLog> findByUserId(Long userId) {
+      return database.values().stream().filter(log -> log.getUserId().equals(userId)).toList();
+    }
+
+    @Override
+    public List<ResourceLog> findByEventTypeAndCreateAtBefore(
+        ResourceEventType eventType, LocalDateTime dateTime) {
+      return database.values().stream()
+          .filter(log -> log.getEventType() == eventType)
+          .filter(log -> log.getCreateAt() == null || log.getCreateAt().isBefore(dateTime))
+          .toList();
+    }
+
+    @Override
+    public List<ResourceLog> findByReferenceIdAndReferenceType(
         Long referenceId, String referenceType) {
       return database.values().stream()
           .filter(log -> referenceId.equals(log.getReferenceId()))
@@ -272,15 +269,22 @@ class ImageUploadUnitTest {
     }
 
     @Override
-    public void delete(ImageUploadLog imageUploadLog) {
-      database.remove(imageUploadLog.getId());
+    public Optional<ResourceLog> findLatestByResourceKey(String resourceKey) {
+      return database.values().stream()
+          .filter(log -> log.getResourceKey().equals(resourceKey))
+          .max(Comparator.comparing(ResourceLog::getCreateAt));
+    }
+
+    @Override
+    public void delete(ResourceLog resourceLog) {
+      database.remove(resourceLog.getId());
     }
 
     public void clear() {
       database.clear();
     }
 
-    public List<ImageUploadLog> findAll() {
+    public List<ResourceLog> findAll() {
       return List.copyOf(database.values());
     }
   }
