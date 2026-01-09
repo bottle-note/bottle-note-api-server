@@ -7,6 +7,8 @@ import static app.bottlenote.support.business.exception.BusinessSupportException
 import static app.bottlenote.support.business.exception.BusinessSupportExceptionCode.BUSINESS_SUPPORT_NOT_AUTHORIZED;
 import static app.bottlenote.support.business.exception.BusinessSupportExceptionCode.BUSINESS_SUPPORT_NOT_FOUND;
 
+import app.bottlenote.common.file.event.payload.ImageResourceActivatedEvent;
+import app.bottlenote.common.image.ImageUtil;
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.global.data.response.CollectionResponse;
 import app.bottlenote.support.business.domain.BusinessSupport;
@@ -20,7 +22,9 @@ import app.bottlenote.support.business.dto.response.BusinessSupportResultRespons
 import app.bottlenote.support.business.exception.BusinessSupportException;
 import app.bottlenote.user.facade.UserFacade;
 import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,9 +32,12 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class BusinessSupportService {
 
+  private static final String REFERENCE_TYPE_BUSINESS = "BUSINESS";
+
   private final BusinessSupportRepository repository;
   private final UserFacade userFacade;
   private final ProfanityClient profanityClient;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public BusinessSupportResultResponse register(BusinessSupportUpsertRequest req, Long userId) {
@@ -51,6 +58,8 @@ public class BusinessSupportService {
     // 이미지 저장
     bs.saveImages(req.imageUrlList(), saved.getId());
 
+    publishImageActivatedEvent(req.imageUrlList(), saved.getId());
+
     return BusinessSupportResultResponse.response(REGISTER_SUCCESS, saved.getId());
   }
 
@@ -70,6 +79,9 @@ public class BusinessSupportService {
         req.contact(),
         req.businessSupportType(),
         req.imageUrlList());
+
+    publishImageActivatedEvent(req.imageUrlList(), bs.getId());
+
     return BusinessSupportResultResponse.response(MODIFY_SUCCESS, bs.getId());
   }
 
@@ -124,5 +136,21 @@ public class BusinessSupportService {
         .responseContent(bs.getResponseContent())
         .lastModifyAt(bs.getLastModifyAt())
         .build();
+  }
+
+  private void publishImageActivatedEvent(List<BusinessImageItem> imageList, Long businessId) {
+    if (imageList == null || imageList.isEmpty() || businessId == null) {
+      return;
+    }
+    List<String> resourceKeys =
+        imageList.stream()
+            .map(BusinessImageItem::viewUrl)
+            .map(ImageUtil::extractResourceKey)
+            .filter(Objects::nonNull)
+            .toList();
+    if (!resourceKeys.isEmpty()) {
+      eventPublisher.publishEvent(
+          ImageResourceActivatedEvent.of(resourceKeys, businessId, REFERENCE_TYPE_BUSINESS));
+    }
   }
 }
