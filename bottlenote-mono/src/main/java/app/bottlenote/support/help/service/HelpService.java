@@ -6,6 +6,8 @@ import static app.bottlenote.support.help.constant.HelpResultMessage.REGISTER_SU
 import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_AUTHORIZED;
 import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
 
+import app.bottlenote.common.file.event.payload.ImageResourceActivatedEvent;
+import app.bottlenote.common.image.ImageUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.support.help.domain.Help;
 import app.bottlenote.support.help.domain.HelpRepository;
@@ -17,8 +19,11 @@ import app.bottlenote.support.help.dto.response.HelpListResponse;
 import app.bottlenote.support.help.dto.response.HelpResultResponse;
 import app.bottlenote.support.help.exception.HelpException;
 import app.bottlenote.user.facade.UserFacade;
+import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,8 +32,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class HelpService {
 
+  private static final String REFERENCE_TYPE_HELP = "HELP";
+
   private final UserFacade userDomainSupport;
   private final HelpRepository helpRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public HelpResultResponse registerHelp(HelpUpsertRequest helpUpsertRequest, Long currentUserId) {
@@ -47,6 +55,8 @@ public class HelpService {
 
     // 문의글 이미지 저장
     help.saveImages(helpUpsertRequest.imageUrlList(), help.getId());
+
+    publishImageActivatedEvent(helpUpsertRequest.imageUrlList(), saveHelp.getId());
 
     return HelpResultResponse.response(REGISTER_SUCCESS, saveHelp.getId());
   }
@@ -67,6 +77,8 @@ public class HelpService {
         helpUpsertRequest.content(),
         helpUpsertRequest.imageUrlList(),
         helpUpsertRequest.type());
+
+    publishImageActivatedEvent(helpUpsertRequest.imageUrlList(), help.getId());
 
     return HelpResultResponse.response(MODIFY_SUCCESS, help.getId());
   }
@@ -119,5 +131,21 @@ public class HelpService {
         .responseContent(help.getResponseContent())
         .lastModifyAt(help.getLastModifyAt())
         .build();
+  }
+
+  private void publishImageActivatedEvent(List<HelpImageItem> imageList, Long helpId) {
+    if (imageList == null || imageList.isEmpty() || helpId == null) {
+      return;
+    }
+    List<String> resourceKeys =
+        imageList.stream()
+            .map(HelpImageItem::viewUrl)
+            .map(ImageUtil::extractResourceKey)
+            .filter(Objects::nonNull)
+            .toList();
+    if (!resourceKeys.isEmpty()) {
+      eventPublisher.publishEvent(
+          ImageResourceActivatedEvent.of(resourceKeys, helpId, REFERENCE_TYPE_HELP));
+    }
   }
 }

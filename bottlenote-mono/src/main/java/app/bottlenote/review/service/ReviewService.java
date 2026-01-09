@@ -9,6 +9,8 @@ import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOU
 
 import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
+import app.bottlenote.common.file.event.payload.ImageResourceActivatedEvent;
+import app.bottlenote.common.image.ImageUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.observability.service.TracingService;
@@ -30,9 +32,12 @@ import app.bottlenote.review.event.payload.ReviewRegistryEvent;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 import app.bottlenote.user.facade.UserFacade;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,11 +46,14 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ReviewService {
 
+  private static final String REFERENCE_TYPE_REVIEW = "REVIEW";
+
   private final AlcoholFacade alcoholFacade;
   private final UserFacade userDomainSupport;
   private final ReviewRepository reviewRepository;
   private final HistoryEventPublisher reviewEventPublisher;
   private final TracingService tracingService;
+  private final ApplicationEventPublisher eventPublisher;
 
   /** Read */
   @Transactional(readOnly = true)
@@ -118,6 +126,8 @@ public class ReviewService {
             saveReview.getContent());
     reviewEventPublisher.publishReviewHistoryEvent(event);
 
+    publishImageActivatedEvent(reviewCreateRequest.imageUrlList(), saveReview.getId());
+
     log.info(
         "리뷰 생성 - reviewId: {}, userId: {}, alcoholId: {}, rating: {}, status: {}, traceId: {}",
         saveReview.getId(),
@@ -151,6 +161,9 @@ public class ReviewService {
     review.update(reviewModifyRequestWrapperItem);
     review.imageInitialization(reviewImageInfoRequests);
     review.updateTastingTags(request.tastingTagList());
+
+    publishImageActivatedEvent(reviewImageInfoRequests, reviewId);
+
     return ReviewResultResponse.response(MODIFY_SUCCESS, reviewId);
   }
 
@@ -187,5 +200,23 @@ public class ReviewService {
     return review.getStatus() == PUBLIC
         ? ReviewResultResponse.response(PUBLIC_SUCCESS, review.getId())
         : ReviewResultResponse.response(PRIVATE_SUCCESS, review.getId());
+  }
+
+  private void publishImageActivatedEvent(List<ReviewImageInfoRequest> imageList, Long reviewId) {
+    List<ReviewImageInfoRequest> images =
+        Objects.requireNonNullElse(imageList, Collections.emptyList());
+    if (images.isEmpty() || reviewId == null) {
+      return;
+    }
+    List<String> resourceKeys =
+        images.stream()
+            .map(ReviewImageInfoRequest::viewUrl)
+            .map(ImageUtil::extractResourceKey)
+            .filter(Objects::nonNull)
+            .toList();
+    if (!resourceKeys.isEmpty()) {
+      eventPublisher.publishEvent(
+          ImageResourceActivatedEvent.of(resourceKeys, reviewId, REFERENCE_TYPE_REVIEW));
+    }
   }
 }
