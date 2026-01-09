@@ -8,10 +8,20 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 import app.bottlenote.IntegrationTestSupport;
+import app.bottlenote.alcohols.domain.Alcohol;
+import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
 import app.bottlenote.common.file.constant.ResourceEventType;
 import app.bottlenote.common.file.domain.ResourceLog;
 import app.bottlenote.common.file.domain.ResourceLogRepository;
+import app.bottlenote.common.file.dto.response.ImageUploadItem;
 import app.bottlenote.common.file.dto.response.ImageUploadResponse;
+import app.bottlenote.review.constant.ReviewDisplayStatus;
+import app.bottlenote.review.constant.SizeType;
+import app.bottlenote.review.dto.request.LocationInfoRequest;
+import app.bottlenote.review.dto.request.ReviewCreateRequest;
+import app.bottlenote.review.dto.request.ReviewImageInfoRequest;
+import app.bottlenote.review.dto.response.ReviewCreateResponse;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.awaitility.Awaitility;
@@ -27,6 +37,12 @@ import org.springframework.test.web.servlet.assertj.MvcTestResult;
 class ImageUploadIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private ResourceLogRepository resourceLogRepository;
+  @Autowired private AlcoholTestFactory alcoholTestFactory;
+
+  private LocationInfoRequest createTestLocationInfo() {
+    return new LocationInfoRequest(
+        "테스트 장소", "12345", "서울시 강남구", "상세 주소", "BAR", "https://map.test.com", "37.123", "127.456");
+  }
 
   @Nested
   @DisplayName("PreSigned URL 생성 테스트")
@@ -171,6 +187,248 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
           });
 
       log.info("저장된 ResourceLog 수: {}", logs.size());
+    }
+  }
+
+  @Nested
+  @DisplayName("이미지 리소스 활성화 테스트")
+  class ResourceActivationTest {
+
+    @Test
+    @DisplayName("리뷰 생성 시 이미지가 포함되면 ResourceLog에 ACTIVATED 이벤트가 저장된다")
+    void test_review_with_images_creates_activated_log() throws Exception {
+      // given
+      String token = getToken();
+      Long userId = getTokenUserId();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+
+      // PreSigned URL 생성 (CREATED 로그 저장)
+      MvcTestResult presignResult =
+          mockMvcTester
+              .get()
+              .uri("/api/v1/s3/presign-url")
+              .param("rootPath", "review")
+              .param("uploadSize", "2")
+              .header("Authorization", "Bearer " + token)
+              .contentType(APPLICATION_JSON)
+              .with(csrf())
+              .exchange();
+
+      ImageUploadResponse uploadResponse = extractData(presignResult, ImageUploadResponse.class);
+      List<ImageUploadItem> uploadInfos = uploadResponse.imageUploadInfo();
+
+      // CREATED 로그 저장 대기
+      Awaitility.await()
+          .atMost(3, TimeUnit.SECONDS)
+          .untilAsserted(
+              () -> {
+                List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
+                assertEquals(2, logs.size());
+              });
+
+      // 리뷰 생성 요청 (이미지 URL 포함)
+      List<ReviewImageInfoRequest> imageRequests =
+          List.of(
+              new ReviewImageInfoRequest(1L, uploadInfos.get(0).viewUrl()),
+              new ReviewImageInfoRequest(2L, uploadInfos.get(1).viewUrl()));
+
+      ReviewCreateRequest reviewRequest =
+          new ReviewCreateRequest(
+              alcohol.getId(),
+              ReviewDisplayStatus.PUBLIC,
+              "테스트 리뷰 내용입니다.",
+              SizeType.GLASS,
+              BigDecimal.valueOf(30000),
+              createTestLocationInfo(),
+              imageRequests,
+              List.of("테이스팅태그"),
+              4.5);
+
+      // when
+      MvcTestResult reviewResult =
+          mockMvcTester
+              .post()
+              .uri("/api/v1/reviews")
+              .header("Authorization", "Bearer " + token)
+              .contentType(APPLICATION_JSON)
+              .content(mapper.writeValueAsString(reviewRequest))
+              .with(csrf())
+              .exchange();
+
+      ReviewCreateResponse reviewResponse = extractData(reviewResult, ReviewCreateResponse.class);
+      assertNotNull(reviewResponse.getId());
+
+      // then - ACTIVATED 로그 저장 대기
+      Awaitility.await()
+          .atMost(5, TimeUnit.SECONDS)
+          .untilAsserted(
+              () -> {
+                List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
+                long activatedCount =
+                    logs.stream()
+                        .filter(log -> log.getEventType() == ResourceEventType.ACTIVATED)
+                        .count();
+                assertEquals(2, activatedCount);
+              });
+
+      // ACTIVATED 로그 검증
+      List<ResourceLog> allLogs = resourceLogRepository.findByUserId(userId);
+      List<ResourceLog> activatedLogs =
+          allLogs.stream()
+              .filter(log -> log.getEventType() == ResourceEventType.ACTIVATED)
+              .toList();
+
+      assertEquals(2, activatedLogs.size());
+      activatedLogs.forEach(
+          activatedLog -> {
+            assertEquals(ResourceEventType.ACTIVATED, activatedLog.getEventType());
+            assertEquals(reviewResponse.getId(), activatedLog.getReferenceId());
+            assertEquals("REVIEW", activatedLog.getReferenceType());
+            assertTrue(activatedLog.getResourceKey().startsWith("review/"));
+          });
+
+      log.info("ACTIVATED 로그 수: {}", activatedLogs.size());
+    }
+
+    @Test
+    @DisplayName("이미지 없이 리뷰를 생성할 때 ACTIVATED 이벤트가 발생하지 않는다")
+    void test_review_without_images_does_not_create_activated_log() throws Exception {
+      // given
+      String token = getToken();
+      Long userId = getTokenUserId();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+
+      ReviewCreateRequest reviewRequest =
+          new ReviewCreateRequest(
+              alcohol.getId(),
+              ReviewDisplayStatus.PUBLIC,
+              "이미지 없는 테스트 리뷰",
+              SizeType.BOTTLE,
+              BigDecimal.valueOf(50000),
+              createTestLocationInfo(),
+              List.of(),
+              List.of(),
+              3.0);
+
+      // when
+      MvcTestResult reviewResult =
+          mockMvcTester
+              .post()
+              .uri("/api/v1/reviews")
+              .header("Authorization", "Bearer " + token)
+              .contentType(APPLICATION_JSON)
+              .content(mapper.writeValueAsString(reviewRequest))
+              .with(csrf())
+              .exchange();
+
+      ReviewCreateResponse reviewResponse = extractData(reviewResult, ReviewCreateResponse.class);
+      assertNotNull(reviewResponse.getId());
+
+      // then - 잠시 대기 후 ACTIVATED 로그가 없는지 확인
+      Thread.sleep(1000);
+      List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
+      long activatedCount =
+          logs.stream().filter(log -> log.getEventType() == ResourceEventType.ACTIVATED).count();
+
+      assertEquals(0, activatedCount);
+      log.info("이미지 없는 리뷰 생성 후 ACTIVATED 로그 수: {}", activatedCount);
+    }
+
+    @Test
+    @DisplayName("PreSigned URL 생성부터 리뷰 생성까지 전체 흐름에서 CREATED와 ACTIVATED 로그가 순차적으로 저장된다")
+    void test_full_flow_created_to_activated() throws Exception {
+      // given
+      String token = getToken();
+      Long userId = getTokenUserId();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+
+      // 1. PreSigned URL 생성 -> CREATED 로그
+      MvcTestResult presignResult =
+          mockMvcTester
+              .get()
+              .uri("/api/v1/s3/presign-url")
+              .param("rootPath", "review")
+              .param("uploadSize", "1")
+              .header("Authorization", "Bearer " + token)
+              .contentType(APPLICATION_JSON)
+              .with(csrf())
+              .exchange();
+
+      ImageUploadResponse uploadResponse = extractData(presignResult, ImageUploadResponse.class);
+      String viewUrl = uploadResponse.imageUploadInfo().get(0).viewUrl();
+
+      // CREATED 로그 대기
+      Awaitility.await()
+          .atMost(3, TimeUnit.SECONDS)
+          .untilAsserted(
+              () -> {
+                List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
+                assertEquals(1, logs.size());
+                assertEquals(ResourceEventType.CREATED, logs.get(0).getEventType());
+              });
+
+      // 2. 리뷰 생성 -> ACTIVATED 로그
+      ReviewCreateRequest reviewRequest =
+          new ReviewCreateRequest(
+              alcohol.getId(),
+              ReviewDisplayStatus.PUBLIC,
+              "전체 흐름 테스트 리뷰",
+              SizeType.GLASS,
+              BigDecimal.valueOf(25000),
+              createTestLocationInfo(),
+              List.of(new ReviewImageInfoRequest(1L, viewUrl)),
+              List.of(),
+              4.0);
+
+      MvcTestResult reviewResult =
+          mockMvcTester
+              .post()
+              .uri("/api/v1/reviews")
+              .header("Authorization", "Bearer " + token)
+              .contentType(APPLICATION_JSON)
+              .content(mapper.writeValueAsString(reviewRequest))
+              .with(csrf())
+              .exchange();
+
+      ReviewCreateResponse reviewResponse = extractData(reviewResult, ReviewCreateResponse.class);
+
+      // ACTIVATED 로그 대기
+      Awaitility.await()
+          .atMost(5, TimeUnit.SECONDS)
+          .untilAsserted(
+              () -> {
+                List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
+                assertEquals(2, logs.size());
+              });
+
+      // then - 전체 로그 검증
+      List<ResourceLog> allLogs = resourceLogRepository.findByUserId(userId);
+      assertEquals(2, allLogs.size());
+
+      ResourceLog createdLog =
+          allLogs.stream()
+              .filter(log -> log.getEventType() == ResourceEventType.CREATED)
+              .findFirst()
+              .orElseThrow();
+      ResourceLog activatedLog =
+          allLogs.stream()
+              .filter(log -> log.getEventType() == ResourceEventType.ACTIVATED)
+              .findFirst()
+              .orElseThrow();
+
+      // CREATED 로그 검증
+      assertEquals(ResourceEventType.CREATED, createdLog.getEventType());
+      assertEquals(userId, createdLog.getUserId());
+      assertTrue(createdLog.getResourceKey().startsWith("review/"));
+
+      // ACTIVATED 로그 검증
+      assertEquals(ResourceEventType.ACTIVATED, activatedLog.getEventType());
+      assertEquals(reviewResponse.getId(), activatedLog.getReferenceId());
+      assertEquals("REVIEW", activatedLog.getReferenceType());
+      assertEquals(createdLog.getResourceKey(), activatedLog.getResourceKey());
+
+      log.info(
+          "전체 흐름 테스트 완료 - CREATED: {}, ACTIVATED: {}", createdLog.getId(), activatedLog.getId());
     }
   }
 }
