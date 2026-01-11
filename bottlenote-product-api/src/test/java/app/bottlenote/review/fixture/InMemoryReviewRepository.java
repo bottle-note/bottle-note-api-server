@@ -66,7 +66,9 @@ public class InMemoryReviewRepository implements ReviewRepository {
 
   @Override
   public Optional<Review> findByIdAndUserId(Long reviewId, Long userId) {
-    return Optional.empty();
+    return database.values().stream()
+        .filter(r -> r.getId().equals(reviewId) && r.getUserId().equals(userId))
+        .findFirst();
   }
 
   @Override
