@@ -6,6 +6,5 @@ import app.bottlenote.common.annotation.JpaRepositoryImpl;
 import org.springframework.data.repository.CrudRepository;
 
 @JpaRepositoryImpl
-public interface JpaTastingTagRepository extends TastingTagRepository, CrudRepository<TastingTag, Long> {
-
-}
+public interface JpaTastingTagRepository
+    extends TastingTagRepository, CrudRepository<TastingTag, Long> {}
