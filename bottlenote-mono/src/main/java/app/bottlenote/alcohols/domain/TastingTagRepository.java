@@ -4,5 +4,5 @@ import java.util.List;
 
 public interface TastingTagRepository {
 
-	List<TastingTag> findAll();
+  List<TastingTag> findAll();
 }
