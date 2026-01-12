@@ -11,6 +11,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -21,6 +22,7 @@ public class TastingTagService {
 
   private volatile Trie trie;
 
+  @Transactional(readOnly = true)
   @EventListener(ApplicationReadyEvent.class)
   @Scheduled(cron = "0 0 0 * * *")
   public void initializeTrie() {
@@ -42,6 +44,7 @@ public class TastingTagService {
    * @param text 분석할 문장
    * @return 매칭된 태그 이름 목록
    */
+  @Transactional(readOnly = true)
   public List<String> extractTagNames(String text) {
     if (trie == null || text == null || text.isBlank()) {
       return List.of();
