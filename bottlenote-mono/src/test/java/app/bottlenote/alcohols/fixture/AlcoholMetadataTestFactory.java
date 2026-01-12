@@ -19,8 +19,7 @@ public class AlcoholMetadataTestFactory {
 
   private final Random random = new SecureRandom();
 
-  @Autowired
-  private EntityManager em;
+  @Autowired private EntityManager em;
 
   // ========== TastingTag ==========
 
@@ -33,10 +32,7 @@ public class AlcoholMetadataTestFactory {
   @Transactional
   @NotNull
   public TastingTag persistTastingTag(@NotNull String korName, @NotNull String engName) {
-    TastingTag tag = TastingTag.builder()
-        .korName(korName)
-        .engName(engName)
-        .build();
+    TastingTag tag = TastingTag.builder().korName(korName).engName(engName).build();
     em.persist(tag);
     em.flush();
     return tag;
@@ -45,24 +41,22 @@ public class AlcoholMetadataTestFactory {
   @Transactional
   @NotNull
   public List<TastingTag> persistTastingTags(@NotNull List<String[]> tagNames) {
-    return tagNames.stream()
-        .map(names -> persistTastingTag(names[0], names[1]))
-        .toList();
+    return tagNames.stream().map(names -> persistTastingTag(names[0], names[1])).toList();
   }
 
   @Transactional
   @NotNull
   public List<TastingTag> persistDefaultTastingTags() {
-    return persistTastingTags(List.of(
-        new String[]{"바닐라", "vanilla"},
-        new String[]{"꿀", "honey"},
-        new String[]{"스모키", "smoky"},
-        new String[]{"피트", "peat"},
-        new String[]{"오크", "oak"},
-        new String[]{"카라멜", "caramel"},
-        new String[]{"시트러스", "citrus"},
-        new String[]{"초콜릿", "chocolate"}
-    ));
+    return persistTastingTags(
+        List.of(
+            new String[] {"바닐라", "vanilla"},
+            new String[] {"꿀", "honey"},
+            new String[] {"스모키", "smoky"},
+            new String[] {"피트", "peat"},
+            new String[] {"오크", "oak"},
+            new String[] {"카라멜", "caramel"},
+            new String[] {"시트러스", "citrus"},
+            new String[] {"초콜릿", "chocolate"}));
   }
 
   // ========== Region ==========
@@ -76,11 +70,12 @@ public class AlcoholMetadataTestFactory {
   @Transactional
   @NotNull
   public Region persistRegion(@NotNull String korName, @NotNull String engName) {
-    Region region = Region.builder()
-        .korName(korName + "-" + generateRandomSuffix())
-        .engName(engName + "-" + generateRandomSuffix())
-        .continent("Europe")
-        .build();
+    Region region =
+        Region.builder()
+            .korName(korName + "-" + generateRandomSuffix())
+            .engName(engName + "-" + generateRandomSuffix())
+            .continent("Europe")
+            .build();
     em.persist(region);
     em.flush();
     return region;
@@ -97,11 +92,12 @@ public class AlcoholMetadataTestFactory {
   @Transactional
   @NotNull
   public Distillery persistDistillery(@NotNull String korName, @NotNull String engName) {
-    Distillery distillery = Distillery.builder()
-        .korName(korName + "-" + generateRandomSuffix())
-        .engName(engName + "-" + generateRandomSuffix())
-        .logoImgPath("https://example.com/logo.jpg")
-        .build();
+    Distillery distillery =
+        Distillery.builder()
+            .korName(korName + "-" + generateRandomSuffix())
+            .engName(engName + "-" + generateRandomSuffix())
+            .logoImgPath("https://example.com/logo.jpg")
+            .build();
     em.persist(distillery);
     em.flush();
     return distillery;
