@@ -152,9 +152,6 @@ class TastingTagServiceTest {
   }
 
   private TastingTag createTag(String korName, String engName) {
-    return TastingTag.builder()
-        .korName(korName)
-        .engName(engName)
-        .build();
+    return TastingTag.builder().korName(korName).engName(engName).build();
   }
 }
