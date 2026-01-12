@@ -18,7 +18,7 @@ public class TastingTagController {
   private final TastingTagService tastingTagService;
 
   @GetMapping("/extract")
-  public ResponseEntity<?> extractTags(@RequestParam String text) {
+  public ResponseEntity<?> getExtractedTags(@RequestParam String text) {
     List<String> tags = tastingTagService.extractTagNames(text);
     return GlobalResponse.ok(tags);
   }
