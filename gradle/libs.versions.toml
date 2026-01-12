@@ -28,6 +28,9 @@ jetbrains-annotations = "26.0.2"
 # Caching
 caffeine = "3.1.8"
 
+# Text Processing
+ahocorasick = "0.6.3"
+
 # AWS
 aws-java-sdk-s3 = "1.12.725"
 
@@ -113,6 +116,9 @@ commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "co
 
 # Caching
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
+
+# Text Processing
+ahocorasick = { module = "org.ahocorasick:ahocorasick", version.ref = "ahocorasick" }
 
 # AWS
 aws-s3 = { module = "com.amazonaws:aws-java-sdk-s3", version.ref = "aws-java-sdk-s3" }
