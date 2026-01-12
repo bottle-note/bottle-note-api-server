@@ -21,6 +21,9 @@ dependencies {
 	implementation libs.spring.boot.starter.cache
 	implementation libs.caffeine
 
+	// ===== Text Processing =====
+	implementation 'org.ahocorasick:ahocorasick:0.6.3'
+
 	// ===== Security =====
 	implementation libs.spring.boot.starter.security
 	testImplementation libs.spring.security.test
