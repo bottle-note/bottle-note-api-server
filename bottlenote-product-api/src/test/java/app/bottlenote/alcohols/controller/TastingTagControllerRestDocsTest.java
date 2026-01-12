@@ -43,9 +43,9 @@ class TastingTagControllerRestDocsTest extends AbstractRestDocs {
     when(tastingTagService.extractTagNames(anyString())).thenReturn(tags);
 
     // when
-    ResultActions resultActions = mockMvc.perform(
-        get("/api/v1/tasting-tags/extract")
-            .param("text", "바닐라 향이 좋고 꿀 같은 단맛에 스모키 함이 느껴져요"));
+    ResultActions resultActions =
+        mockMvc.perform(
+            get("/api/v1/tasting-tags/extract").param("text", "바닐라 향이 좋고 꿀 같은 단맛에 스모키 함이 느껴져요"));
 
     // then
     resultActions
@@ -53,8 +53,7 @@ class TastingTagControllerRestDocsTest extends AbstractRestDocs {
         .andDo(
             document(
                 "tasting-tags-extract",
-                queryParameters(
-                    parameterWithName("text").description("태그를 추출할 문장 (리뷰 내용 등)")),
+                queryParameters(parameterWithName("text").description("태그를 추출할 문장 (리뷰 내용 등)")),
                 responseFields(
                     fieldWithPath("success").type(BOOLEAN).description("성공 여부"),
                     fieldWithPath("code").type(NUMBER).description("응답 코드"),

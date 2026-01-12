@@ -19,8 +19,7 @@ import org.springframework.test.web.servlet.assertj.MvcTestResult;
 @DisplayName("[integration] [controller] TastingTag")
 class TastingTagIntegrationTest extends IntegrationTestSupport {
 
-  @Autowired
-  private AlcoholMetadataTestFactory metadataTestFactory;
+  @Autowired private AlcoholMetadataTestFactory metadataTestFactory;
 
   @BeforeEach
   void setUp() {
@@ -34,14 +33,15 @@ class TastingTagIntegrationTest extends IntegrationTestSupport {
     String text = "바닐라 향이 좋고 꿀 같은 단맛이 느껴져요";
 
     // when
-    MvcTestResult result = mockMvcTester
-        .get()
-        .uri("/api/v1/tasting-tags/extract")
-        .param("text", text)
-        .contentType(APPLICATION_JSON)
-        .header("Authorization", "Bearer " + getToken())
-        .with(csrf())
-        .exchange();
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/tasting-tags/extract")
+            .param("text", text)
+            .contentType(APPLICATION_JSON)
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
 
     // then
     List<String> tags = extractDataAsList(result);
@@ -55,14 +55,15 @@ class TastingTagIntegrationTest extends IntegrationTestSupport {
     String text = "스모키 하면서 피트 향이 강하고 오크 통 숙성의 깊은 맛";
 
     // when
-    MvcTestResult result = mockMvcTester
-        .get()
-        .uri("/api/v1/tasting-tags/extract")
-        .param("text", text)
-        .contentType(APPLICATION_JSON)
-        .header("Authorization", "Bearer " + getToken())
-        .with(csrf())
-        .exchange();
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/tasting-tags/extract")
+            .param("text", text)
+            .contentType(APPLICATION_JSON)
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
 
     // then
     List<String> tags = extractDataAsList(result);
@@ -76,14 +77,15 @@ class TastingTagIntegrationTest extends IntegrationTestSupport {
     String text = "바닐라빈 향이 좋고 꿀물처럼 달콤해요";
 
     // when
-    MvcTestResult result = mockMvcTester
-        .get()
-        .uri("/api/v1/tasting-tags/extract")
-        .param("text", text)
-        .contentType(APPLICATION_JSON)
-        .header("Authorization", "Bearer " + getToken())
-        .with(csrf())
-        .exchange();
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/tasting-tags/extract")
+            .param("text", text)
+            .contentType(APPLICATION_JSON)
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
 
     // then
     List<String> tags = extractDataAsList(result);
@@ -97,14 +99,15 @@ class TastingTagIntegrationTest extends IntegrationTestSupport {
     String text = "그냥 평범한 위스키입니다";
 
     // when
-    MvcTestResult result = mockMvcTester
-        .get()
-        .uri("/api/v1/tasting-tags/extract")
-        .param("text", text)
-        .contentType(APPLICATION_JSON)
-        .header("Authorization", "Bearer " + getToken())
-        .with(csrf())
-        .exchange();
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/tasting-tags/extract")
+            .param("text", text)
+            .contentType(APPLICATION_JSON)
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
 
     // then
     List<String> tags = extractDataAsList(result);
