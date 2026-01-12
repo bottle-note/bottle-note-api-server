@@ -46,37 +46,19 @@ class TastingTagServiceTest {
 
     static Stream<Arguments> 리뷰_문장_테스트_케이스() {
       return Stream.of(
-          Arguments.of(
-              "바닐라 향이 은은하게 퍼지면서 꿀 같은 단맛이 느껴져요",
-              List.of("바닐라", "꿀")),
-          Arguments.of(
-              "스모키 하면서도 피트 향이 강렬한 아일라 위스키입니다",
-              List.of("스모키", "피트")),
-          Arguments.of(
-              "오크 통 숙성의 깊은 맛과 카라멜 풍미가 일품이에요",
-              List.of("오크", "카라멜")),
-          Arguments.of(
-              "입안에서 시트러스 향이 톡 터지고 바닐라 피니시가 길게 이어집니다",
-              List.of("시트러스", "바닐라")),
-          Arguments.of(
-              "초콜릿, 꿀, 바닐라 삼박자가 완벽한 밸런스를 이룹니다",
-              List.of("초콜릿", "꿀", "바닐라")),
+          Arguments.of("바닐라 향이 은은하게 퍼지면서 꿀 같은 단맛이 느껴져요", List.of("바닐라", "꿀")),
+          Arguments.of("스모키 하면서도 피트 향이 강렬한 아일라 위스키입니다", List.of("스모키", "피트")),
+          Arguments.of("오크 통 숙성의 깊은 맛과 카라멜 풍미가 일품이에요", List.of("오크", "카라멜")),
+          Arguments.of("입안에서 시트러스 향이 톡 터지고 바닐라 피니시가 길게 이어집니다", List.of("시트러스", "바닐라")),
+          Arguments.of("초콜릿, 꿀, 바닐라 삼박자가 완벽한 밸런스를 이룹니다", List.of("초콜릿", "꿀", "바닐라")),
           Arguments.of(
               "This whisky has a nice vanilla and honey sweetness with a hint of oak",
               List.of("vanilla", "honey", "oak")),
           Arguments.of(
-              "Smoky peat flavor with caramel undertones",
-              List.of("smoky", "peat", "caramel")),
-          Arguments.of(
-              "달콤한 꿀 향 뒤로 은은한 스모키 함이 느껴지는 복합적인 위스키",
-              List.of("꿀", "스모키")),
-          Arguments.of(
-              "첫 모금에 바닐라, 중반에 오크, 피니시에 카라멜 - 완벽한 3단 변화",
-              List.of("바닐라", "오크", "카라멜")),
-          Arguments.of(
-              "가격 대비 훌륭해요. 시트러스 향과 꿀 맛의 조화가 좋습니다",
-              List.of("시트러스", "꿀"))
-      );
+              "Smoky peat flavor with caramel undertones", List.of("smoky", "peat", "caramel")),
+          Arguments.of("달콤한 꿀 향 뒤로 은은한 스모키 함이 느껴지는 복합적인 위스키", List.of("꿀", "스모키")),
+          Arguments.of("첫 모금에 바닐라, 중반에 오크, 피니시에 카라멜 - 완벽한 3단 변화", List.of("바닐라", "오크", "카라멜")),
+          Arguments.of("가격 대비 훌륭해요. 시트러스 향과 꿀 맛의 조화가 좋습니다", List.of("시트러스", "꿀")));
     }
 
     @ParameterizedTest(name = "\"{0}\" → {1}")
@@ -96,8 +78,7 @@ class TastingTagServiceTest {
           Arguments.of("꿀물처럼 달콤해요", List.of()),
           Arguments.of("스모키한 느낌", List.of()),
           Arguments.of("카라멜라이즈된 설탕 맛", List.of()),
-          Arguments.of("초콜릿케이크 같은 맛", List.of())
-      );
+          Arguments.of("초콜릿케이크 같은 맛", List.of()));
     }
 
     @ParameterizedTest(name = "\"{0}\" → {1}")
