@@ -53,8 +53,7 @@ class RestPopularViewControllerTest extends AbstractRestDocs {
         .andDo(
             document(
                 "alcohols/populars/view/week",
-                queryParameters(
-                    parameterWithName("top").description("조회할 위스키 개수 (기본값: 20)")),
+                queryParameters(parameterWithName("top").description("조회할 위스키 개수 (기본값: 20)")),
                 responseFields(
                     fieldWithPath("success").description("응답 성공 여부"),
                     fieldWithPath("code").description("응답 코드(http status code)"),
@@ -100,8 +99,7 @@ class RestPopularViewControllerTest extends AbstractRestDocs {
         .andDo(
             document(
                 "alcohols/populars/view/monthly",
-                queryParameters(
-                    parameterWithName("top").description("조회할 위스키 개수 (기본값: 20)")),
+                queryParameters(parameterWithName("top").description("조회할 위스키 개수 (기본값: 20)")),
                 responseFields(
                     fieldWithPath("success").description("응답 성공 여부"),
                     fieldWithPath("code").description("응답 코드(http status code)"),
