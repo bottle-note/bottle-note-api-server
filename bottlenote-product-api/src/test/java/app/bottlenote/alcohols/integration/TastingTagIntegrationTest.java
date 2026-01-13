@@ -6,6 +6,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.alcohols.fixture.AlcoholMetadataTestFactory;
+import app.bottlenote.alcohols.service.TastingTagService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,10 +21,12 @@ import org.springframework.test.web.servlet.assertj.MvcTestResult;
 class TastingTagIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private AlcoholMetadataTestFactory metadataTestFactory;
+  @Autowired private TastingTagService tastingTagService;
 
   @BeforeEach
   void setUp() {
     metadataTestFactory.persistDefaultTastingTags();
+    tastingTagService.initializeTrie();
   }
 
   @Test
