@@ -1,0 +1,26 @@
+### 토큰 발급
+POST {{host}}/api/v1/oauth/login
+Content-Type: application/json
+
+{
+  "email": "dev.bottle-note@gmail.com",
+  "socialType": "GOOGLE",
+  "gender": "MALE",
+  "age": 25
+}
+
+> {%
+    client.global.set("accessToken", response.body.data.accessToken);
+%}
+
+### 테이스팅 태그 추출 - 기본
+GET {{host}}/api/v1/tasting-tags/extract?text=바닐라 향이 좋고 꿀 같은 단맛이 느껴져요
+Authorization: Bearer {{accessToken}}
+
+### 테이스팅 태그 추출 - 여러 태그
+GET {{host}}/api/v1/tasting-tags/extract?text=스모키 하면서 피트 향이 강하고 오크 통 숙성의 깊은 맛
+Authorization: Bearer {{accessToken}}
+
+### 테이스팅 태그 추출 - 매칭 없음
+GET {{host}}/api/v1/tasting-tags/extract?text=그냥 평범한 위스키입니다
+Authorization: Bearer {{accessToken}}

@@ -57,8 +57,7 @@ class TastingTagControllerRestDocsTest extends AbstractRestDocs {
                 responseFields(
                     fieldWithPath("success").type(BOOLEAN).description("성공 여부"),
                     fieldWithPath("code").type(NUMBER).description("응답 코드"),
-                    fieldWithPath("data").type(ARRAY).description("추출된 태그 이름 목록"),
-                    fieldWithPath("data[]").type(STRING).description("태그 이름"),
+                    fieldWithPath("data").type(ARRAY).description("추출된 태그 이름 목록 (문자열 배열)"),
                     fieldWithPath("meta").type(OBJECT).description("메타 정보"),
                     fieldWithPath("meta.serverVersion").type(STRING).description("서버 버전"),
                     fieldWithPath("meta.serverEncoding").type(STRING).description("서버 인코딩"),
