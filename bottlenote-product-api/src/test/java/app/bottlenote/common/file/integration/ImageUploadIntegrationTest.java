@@ -537,7 +537,7 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
       ReviewModifyRequest modifyRequest =
           new ReviewModifyRequest(
               "수정된 리뷰 내용",
-              null,
+              ReviewDisplayStatus.PUBLIC,
               null,
               List.of(
                   new ReviewImageInfoRequest(1L, existingImageUrl),
