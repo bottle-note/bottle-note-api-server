@@ -20,7 +20,9 @@ import app.bottlenote.review.constant.SizeType;
 import app.bottlenote.review.dto.request.LocationInfoRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewImageInfoRequest;
+import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.response.ReviewCreateResponse;
+import app.bottlenote.review.dto.response.ReviewResultResponse;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -429,6 +431,156 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
 
       log.info(
           "전체 흐름 테스트 완료 - CREATED: {}, ACTIVATED: {}", createdLog.getId(), activatedLog.getId());
+    }
+
+    @Test
+    @DisplayName("리뷰 수정 시 기존 이미지는 중복 ACTIVATED 로그가 저장되지 않는다")
+    void test_modify_review_does_not_duplicate_activated_log() throws Exception {
+      // given
+      String token = getToken();
+      Long userId = getTokenUserId();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+
+      // 1. PreSigned URL 생성 (기존 이미지용)
+      MvcTestResult presignResult =
+          mockMvcTester
+              .get()
+              .uri("/api/v1/s3/presign-url")
+              .param("rootPath", "review")
+              .param("uploadSize", "1")
+              .header("Authorization", "Bearer " + token)
+              .contentType(APPLICATION_JSON)
+              .with(csrf())
+              .exchange();
+
+      ImageUploadResponse uploadResponse = extractData(presignResult, ImageUploadResponse.class);
+      String existingImageUrl = uploadResponse.imageUploadInfo().get(0).viewUrl();
+
+      // CREATED 로그 저장 대기
+      Awaitility.await()
+          .atMost(3, TimeUnit.SECONDS)
+          .untilAsserted(
+              () -> {
+                List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
+                assertEquals(1, logs.size());
+              });
+
+      // 2. 리뷰 생성 (이미지 1개 포함)
+      ReviewCreateRequest createRequest =
+          new ReviewCreateRequest(
+              alcohol.getId(),
+              ReviewDisplayStatus.PUBLIC,
+              "최초 리뷰 내용",
+              SizeType.GLASS,
+              BigDecimal.valueOf(30000),
+              createTestLocationInfo(),
+              List.of(new ReviewImageInfoRequest(1L, existingImageUrl)),
+              List.of(),
+              4.0);
+
+      MvcTestResult createResult =
+          mockMvcTester
+              .post()
+              .uri("/api/v1/reviews")
+              .header("Authorization", "Bearer " + token)
+              .contentType(APPLICATION_JSON)
+              .content(mapper.writeValueAsString(createRequest))
+              .with(csrf())
+              .exchange();
+
+      ReviewCreateResponse createResponse = extractData(createResult, ReviewCreateResponse.class);
+      Long reviewId = createResponse.getId();
+
+      // ACTIVATED 로그 저장 대기
+      Awaitility.await()
+          .atMost(5, TimeUnit.SECONDS)
+          .untilAsserted(
+              () -> {
+                List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
+                long activatedCount =
+                    logs.stream()
+                        .filter(l -> l.getEventType() == ResourceEventType.ACTIVATED)
+                        .count();
+                assertEquals(1, activatedCount);
+              });
+
+      // 3. 새 이미지 PreSigned URL 생성
+      MvcTestResult newPresignResult =
+          mockMvcTester
+              .get()
+              .uri("/api/v1/s3/presign-url")
+              .param("rootPath", "review")
+              .param("uploadSize", "1")
+              .header("Authorization", "Bearer " + token)
+              .contentType(APPLICATION_JSON)
+              .with(csrf())
+              .exchange();
+
+      ImageUploadResponse newUploadResponse =
+          extractData(newPresignResult, ImageUploadResponse.class);
+      String newImageUrl = newUploadResponse.imageUploadInfo().get(0).viewUrl();
+
+      // 새 이미지 CREATED 로그 저장 대기
+      Awaitility.await()
+          .atMost(3, TimeUnit.SECONDS)
+          .untilAsserted(
+              () -> {
+                List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
+                long createdCount =
+                    logs.stream()
+                        .filter(l -> l.getEventType() == ResourceEventType.CREATED)
+                        .count();
+                assertEquals(2, createdCount);
+              });
+
+      // 4. 리뷰 수정 (기존 이미지 + 새 이미지)
+      ReviewModifyRequest modifyRequest =
+          new ReviewModifyRequest(
+              "수정된 리뷰 내용",
+              null,
+              null,
+              List.of(
+                  new ReviewImageInfoRequest(1L, existingImageUrl),
+                  new ReviewImageInfoRequest(2L, newImageUrl)),
+              null,
+              null,
+              createTestLocationInfo());
+
+      // when
+      MvcTestResult modifyResult =
+          mockMvcTester
+              .patch()
+              .uri("/api/v1/reviews/{reviewId}", reviewId)
+              .header("Authorization", "Bearer " + token)
+              .contentType(APPLICATION_JSON)
+              .content(mapper.writeValueAsString(modifyRequest))
+              .with(csrf())
+              .exchange();
+
+      ReviewResultResponse modifyResponse = extractData(modifyResult, ReviewResultResponse.class);
+      assertNotNull(modifyResponse);
+
+      // then - ACTIVATED 로그 검증 (기존 이미지는 중복 저장 안 됨)
+      Awaitility.await()
+          .atMost(5, TimeUnit.SECONDS)
+          .untilAsserted(
+              () -> {
+                List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
+                long activatedCount =
+                    logs.stream()
+                        .filter(l -> l.getEventType() == ResourceEventType.ACTIVATED)
+                        .count();
+                assertEquals(2, activatedCount);
+              });
+
+      List<ResourceLog> allLogs = resourceLogRepository.findByUserId(userId);
+      List<ResourceLog> activatedLogs =
+          allLogs.stream().filter(l -> l.getEventType() == ResourceEventType.ACTIVATED).toList();
+
+      assertEquals(2, activatedLogs.size());
+      assertTrue(activatedLogs.stream().allMatch(l -> reviewId.equals(l.getReferenceId())));
+
+      log.info("리뷰 수정 후 총 로그 수: {}, ACTIVATED 로그 수: {}", allLogs.size(), activatedLogs.size());
     }
   }
 }

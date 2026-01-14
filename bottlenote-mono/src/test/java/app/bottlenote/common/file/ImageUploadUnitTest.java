@@ -272,7 +272,18 @@ class ImageUploadUnitTest {
     public Optional<ResourceLog> findLatestByResourceKey(String resourceKey) {
       return database.values().stream()
           .filter(log -> log.getResourceKey().equals(resourceKey))
-          .max(Comparator.comparing(ResourceLog::getCreateAt));
+          .max(Comparator.comparing(ResourceLog::getId));
+    }
+
+    @Override
+    public boolean existsByResourceKeyAndReferenceIdAndEventType(
+        String resourceKey, Long referenceId, ResourceEventType eventType) {
+      return database.values().stream()
+          .anyMatch(
+              log ->
+                  log.getResourceKey().equals(resourceKey)
+                      && referenceId.equals(log.getReferenceId())
+                      && log.getEventType() == eventType);
     }
 
     @Override

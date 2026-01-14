@@ -28,4 +28,7 @@ public interface JpaResourceLogRepository
   @Query(
       "SELECT r FROM resource_log r WHERE r.resourceKey = :resourceKey ORDER BY r.createAt DESC LIMIT 1")
   Optional<ResourceLog> findLatestByResourceKey(@Param("resourceKey") String resourceKey);
+
+  boolean existsByResourceKeyAndReferenceIdAndEventType(
+      String resourceKey, Long referenceId, ResourceEventType eventType);
 }

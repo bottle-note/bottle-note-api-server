@@ -137,6 +137,49 @@ class ResourceCommandServiceTest {
 
       log.info("저장된 로그 수 = {}", logs.size());
     }
+
+    @Test
+    @DisplayName("이미 활성화된 리소스에 대해 동일한 referenceId로 다시 활성화할 때 중복 로그가 저장되지 않는다")
+    void test_3() {
+      // given
+      String resourceKey = "review/20251231/1-uuid.jpg";
+      Long referenceId = 100L;
+      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey)).join();
+      resourceCommandService.activateImageResource(resourceKey, referenceId, "REVIEW").join();
+
+      // when
+      Optional<ResourceLogResponse> result =
+          resourceCommandService.activateImageResource(resourceKey, referenceId, "REVIEW").join();
+
+      // then
+      assertTrue(result.isEmpty());
+      List<ResourceLogResponse> logs = resourceCommandService.findByResourceKey(resourceKey);
+      long activatedCount =
+          logs.stream().filter(l -> l.eventType() == ResourceEventType.ACTIVATED).count();
+      assertEquals(1, activatedCount);
+
+      log.info("중복 활성화 시도 후 ACTIVATED 로그 수 = {}", activatedCount);
+    }
+
+    @Test
+    @DisplayName("같은 리소스 키라도 다른 referenceId로 활성화할 때는 각각 저장된다")
+    void test_4() {
+      // given
+      String resourceKey = "review/20251231/1-uuid.jpg";
+      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey)).join();
+
+      // when
+      resourceCommandService.activateImageResource(resourceKey, 100L, "REVIEW").join();
+      resourceCommandService.activateImageResource(resourceKey, 200L, "REVIEW").join();
+
+      // then
+      List<ResourceLogResponse> logs = resourceCommandService.findByResourceKey(resourceKey);
+      long activatedCount =
+          logs.stream().filter(l -> l.eventType() == ResourceEventType.ACTIVATED).count();
+      assertEquals(2, activatedCount);
+
+      log.info("서로 다른 referenceId로 활성화 후 ACTIVATED 로그 수 = {}", activatedCount);
+    }
   }
 
   @Nested
