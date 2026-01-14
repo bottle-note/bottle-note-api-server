@@ -24,5 +24,8 @@ public interface ResourceLogRepository {
 
   Optional<ResourceLog> findLatestByResourceKey(String resourceKey);
 
+  boolean existsByResourceKeyAndReferenceIdAndEventType(
+      String resourceKey, Long referenceId, ResourceEventType eventType);
+
   void delete(ResourceLog resourceLog);
 }

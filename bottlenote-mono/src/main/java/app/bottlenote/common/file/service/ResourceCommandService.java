@@ -52,6 +52,14 @@ public class ResourceCommandService {
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public CompletableFuture<Optional<ResourceLogResponse>> activateImageResource(
       String resourceKey, Long referenceId, String referenceType) {
+    // 이미 동일한 resourceKey, referenceId로 ACTIVATED 로그가 있으면 스킵
+    if (resourceLogRepository.existsByResourceKeyAndReferenceIdAndEventType(
+        resourceKey, referenceId, ResourceEventType.ACTIVATED)) {
+      log.info(
+          "이미지 리소스 활성화 로그 스킵 (중복) - resourceKey: {}, referenceId: {}", resourceKey, referenceId);
+      return CompletableFuture.completedFuture(Optional.empty());
+    }
+
     ResourceLog entity =
         ResourceLog.builder()
             .userId(getUserIdFromLatestLog(resourceKey))
