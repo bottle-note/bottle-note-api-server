@@ -97,11 +97,11 @@ class ResourceCommandServiceTest {
   }
 
   @Nested
-  @DisplayName("이미지 리소스 활성화 로그 저장 테스트")
+  @DisplayName("이미지 리소스 활성화 테스트")
   class ActivateImageResourceTest {
 
     @Test
-    @DisplayName("이미지 리소스를 활성화할 때 ACTIVATED 이벤트로 저장된다")
+    @DisplayName("이미지 리소스를 활성화하면 기존 레코드의 상태가 ACTIVATED로 변경된다")
     void test_1() {
       // given
       String resourceKey = "review/20251231/1-uuid.jpg";
@@ -122,7 +122,7 @@ class ResourceCommandServiceTest {
     }
 
     @Test
-    @DisplayName("같은 리소스 키에 대해 CREATED, ACTIVATED 두 개의 로그가 저장된다")
+    @DisplayName("활성화 후에도 레코드 수는 1개로 유지된다 (Single Record)")
     void test_2() {
       // given
       String resourceKey = "review/20251231/1-uuid.jpg";
@@ -132,14 +132,16 @@ class ResourceCommandServiceTest {
       resourceCommandService.activateImageResource(resourceKey, 100L, "REVIEW").join();
 
       // then
-      List<ResourceLogResponse> logs = resourceCommandService.findByResourceKey(resourceKey);
-      assertEquals(2, logs.size());
+      assertEquals(1, resourceLogRepository.findAll().size());
+      Optional<ResourceLogResponse> logOpt = resourceCommandService.findByResourceKey(resourceKey);
+      assertTrue(logOpt.isPresent());
+      assertEquals(ResourceEventType.ACTIVATED, logOpt.get().eventType());
 
-      log.info("저장된 로그 수 = {}", logs.size());
+      log.info("저장된 로그 수 = {}", resourceLogRepository.findAll().size());
     }
 
     @Test
-    @DisplayName("이미 활성화된 리소스에 대해 동일한 referenceId로 다시 활성화할 때 중복 로그가 저장되지 않는다")
+    @DisplayName("이미 활성화된 리소스에 대해 다시 활성화해도 상태가 유지된다")
     void test_3() {
       // given
       String resourceKey = "review/20251231/1-uuid.jpg";
@@ -153,41 +155,18 @@ class ResourceCommandServiceTest {
 
       // then
       assertTrue(result.isEmpty());
-      List<ResourceLogResponse> logs = resourceCommandService.findByResourceKey(resourceKey);
-      long activatedCount =
-          logs.stream().filter(l -> l.eventType() == ResourceEventType.ACTIVATED).count();
-      assertEquals(1, activatedCount);
+      assertEquals(1, resourceLogRepository.findAll().size());
 
-      log.info("중복 활성화 시도 후 ACTIVATED 로그 수 = {}", activatedCount);
-    }
-
-    @Test
-    @DisplayName("같은 리소스 키라도 다른 referenceId로 활성화할 때는 각각 저장된다")
-    void test_4() {
-      // given
-      String resourceKey = "review/20251231/1-uuid.jpg";
-      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey)).join();
-
-      // when
-      resourceCommandService.activateImageResource(resourceKey, 100L, "REVIEW").join();
-      resourceCommandService.activateImageResource(resourceKey, 200L, "REVIEW").join();
-
-      // then
-      List<ResourceLogResponse> logs = resourceCommandService.findByResourceKey(resourceKey);
-      long activatedCount =
-          logs.stream().filter(l -> l.eventType() == ResourceEventType.ACTIVATED).count();
-      assertEquals(2, activatedCount);
-
-      log.info("서로 다른 referenceId로 활성화 후 ACTIVATED 로그 수 = {}", activatedCount);
+      log.info("중복 활성화 시도 결과 = {}", result);
     }
   }
 
   @Nested
-  @DisplayName("이미지 리소스 무효화 로그 저장 테스트")
+  @DisplayName("이미지 리소스 무효화 테스트")
   class InvalidateImageResourceTest {
 
     @Test
-    @DisplayName("이미지 리소스를 무효화할 때 INVALIDATED 이벤트로 저장된다")
+    @DisplayName("이미지 리소스를 무효화하면 기존 레코드의 상태가 INVALIDATED로 변경된다")
     void test_1() {
       // given
       String resourceKey = "review/20251231/1-uuid.jpg";
@@ -201,8 +180,28 @@ class ResourceCommandServiceTest {
       // then
       assertTrue(result.isPresent());
       assertEquals(ResourceEventType.INVALIDATED, result.get().eventType());
+      assertEquals(1, resourceLogRepository.findAll().size());
 
       log.info("무효화 결과 = {}", result.get());
+    }
+
+    @Test
+    @DisplayName("이미 무효화된 리소스에 대해 다시 무효화해도 상태가 유지된다")
+    void test_2() {
+      // given
+      String resourceKey = "review/20251231/1-uuid.jpg";
+      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey)).join();
+      resourceCommandService.invalidateImageResource(resourceKey).join();
+
+      // when
+      Optional<ResourceLogResponse> result =
+          resourceCommandService.invalidateImageResource(resourceKey).join();
+
+      // then
+      assertTrue(result.isEmpty());
+      assertEquals(1, resourceLogRepository.findAll().size());
+
+      log.info("중복 무효화 시도 결과 = {}", result);
     }
   }
 
@@ -211,7 +210,7 @@ class ResourceCommandServiceTest {
   class FindResourceLogTest {
 
     @Test
-    @DisplayName("resourceKey로 최신 로그를 조회할 때 가장 최근 로그를 반환한다")
+    @DisplayName("resourceKey로 로그를 조회할 때 해당 레코드를 반환한다")
     void test_1() {
       // given
       String resourceKey = "review/20251231/1-uuid.jpg";
@@ -219,14 +218,13 @@ class ResourceCommandServiceTest {
       resourceCommandService.activateImageResource(resourceKey, 100L, "REVIEW").join();
 
       // when
-      Optional<ResourceLogResponse> result =
-          resourceCommandService.findLatestByResourceKey(resourceKey);
+      Optional<ResourceLogResponse> result = resourceCommandService.findByResourceKey(resourceKey);
 
       // then
       assertTrue(result.isPresent());
       assertEquals(ResourceEventType.ACTIVATED, result.get().eventType());
 
-      log.info("최신 로그 = {}", result.get());
+      log.info("조회된 로그 = {}", result.get());
     }
 
     @Test
@@ -236,8 +234,7 @@ class ResourceCommandServiceTest {
       String resourceKey = "non-existent-key.jpg";
 
       // when
-      Optional<ResourceLogResponse> result =
-          resourceCommandService.findLatestByResourceKey(resourceKey);
+      Optional<ResourceLogResponse> result = resourceCommandService.findByResourceKey(resourceKey);
 
       // then
       assertTrue(result.isEmpty());
@@ -285,17 +282,26 @@ class ResourceCommandServiceTest {
     }
 
     @Test
-    @DisplayName("ACTIVATED 상태의 로그는 CREATED 조회 시 제외된다")
+    @DisplayName("ACTIVATED로 상태가 변경된 로그는 CREATED 조회 시 제외된다")
     void test_2() {
       // given
-      String resourceKey = "review/20251231/1-uuid1.jpg";
-      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey)).join();
+      String resourceKey1 = "review/20251231/1-uuid1.jpg";
+      String resourceKey2 = "review/20251231/2-uuid2.jpg";
+      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey1)).join();
+      resourceCommandService.saveImageResourceCreated(createRequest(2L, resourceKey2)).join();
+
       resourceLogRepository
           .findById(1L)
           .ifPresent(
               log ->
                   ReflectionTestUtils.setField(log, "createAt", LocalDateTime.now().minusDays(7)));
-      resourceCommandService.activateImageResource(resourceKey, 100L, "REVIEW").join();
+      resourceLogRepository
+          .findById(2L)
+          .ifPresent(
+              log ->
+                  ReflectionTestUtils.setField(log, "createAt", LocalDateTime.now().minusDays(7)));
+
+      resourceCommandService.activateImageResource(resourceKey1, 100L, "REVIEW").join();
 
       // when
       List<ResourceLogItem> result =
@@ -304,7 +310,7 @@ class ResourceCommandServiceTest {
 
       // then
       assertEquals(1, result.size());
-      assertEquals(ResourceEventType.CREATED, result.get(0).eventType());
+      assertEquals(resourceKey2, result.get(0).resourceKey());
 
       log.info("조회된 로그 수 = {}", result.size());
     }

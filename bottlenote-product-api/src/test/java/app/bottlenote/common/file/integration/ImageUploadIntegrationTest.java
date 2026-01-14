@@ -197,7 +197,7 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
   class ResourceActivationTest {
 
     @Test
-    @DisplayName("리뷰 생성 시 이미지가 포함되면 ResourceLog에 ACTIVATED 이벤트가 저장된다")
+    @DisplayName("리뷰 생성 시 이미지가 포함되면 ResourceLog 상태가 ACTIVATED로 변경된다")
     void test_review_with_images_creates_activated_log() throws Exception {
       // given
       String token = getToken();
@@ -260,7 +260,7 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
       ReviewCreateResponse reviewResponse = extractData(reviewResult, ReviewCreateResponse.class);
       assertNotNull(reviewResponse.getId());
 
-      // then - ACTIVATED 로그 저장 대기
+      // then - ACTIVATED 상태로 변경 대기 (Single Record 방식)
       Awaitility.await()
           .atMost(5, TimeUnit.SECONDS)
           .untilAsserted(
@@ -273,15 +273,11 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
                 assertEquals(2, activatedCount);
               });
 
-      // ACTIVATED 로그 검증
+      // ACTIVATED 로그 검증 (총 레코드 수는 2개로 유지)
       List<ResourceLog> allLogs = resourceLogRepository.findByUserId(userId);
-      List<ResourceLog> activatedLogs =
-          allLogs.stream()
-              .filter(log -> log.getEventType() == ResourceEventType.ACTIVATED)
-              .toList();
+      assertEquals(2, allLogs.size());
 
-      assertEquals(2, activatedLogs.size());
-      activatedLogs.forEach(
+      allLogs.forEach(
           activatedLog -> {
             assertEquals(ResourceEventType.ACTIVATED, activatedLog.getEventType());
             assertEquals(reviewResponse.getId(), activatedLog.getReferenceId());
@@ -289,7 +285,7 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
             assertTrue(activatedLog.getResourceKey().startsWith("review/"));
           });
 
-      log.info("ACTIVATED 로그 수: {}", activatedLogs.size());
+      log.info("총 로그 수: {}, 모두 ACTIVATED 상태", allLogs.size());
     }
 
     @Test
@@ -337,7 +333,7 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("PreSigned URL 생성부터 리뷰 생성까지 전체 흐름에서 CREATED와 ACTIVATED 로그가 순차적으로 저장된다")
+    @DisplayName("PreSigned URL 생성부터 리뷰 생성까지 전체 흐름에서 단일 레코드의 상태가 CREATED에서 ACTIVATED로 변경된다")
     void test_full_flow_created_to_activated() throws Exception {
       // given
       String token = getToken();
@@ -369,7 +365,7 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
                 assertEquals(ResourceEventType.CREATED, logs.get(0).getEventType());
               });
 
-      // 2. 리뷰 생성 -> ACTIVATED 로그
+      // 2. 리뷰 생성 -> ACTIVATED 상태로 변경
       ReviewCreateRequest reviewRequest =
           new ReviewCreateRequest(
               alcohol.getId(),
@@ -394,47 +390,35 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
 
       ReviewCreateResponse reviewResponse = extractData(reviewResult, ReviewCreateResponse.class);
 
-      // ACTIVATED 로그 대기
+      // ACTIVATED 상태로 변경 대기 (Single Record 방식: 레코드 수는 1개 유지)
       Awaitility.await()
           .atMost(5, TimeUnit.SECONDS)
           .untilAsserted(
               () -> {
                 List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
-                assertEquals(2, logs.size());
+                assertEquals(1, logs.size());
+                assertEquals(ResourceEventType.ACTIVATED, logs.get(0).getEventType());
               });
 
-      // then - 전체 로그 검증
+      // then - 단일 레코드 검증
       List<ResourceLog> allLogs = resourceLogRepository.findByUserId(userId);
-      assertEquals(2, allLogs.size());
+      assertEquals(1, allLogs.size());
 
-      ResourceLog createdLog =
-          allLogs.stream()
-              .filter(log -> log.getEventType() == ResourceEventType.CREATED)
-              .findFirst()
-              .orElseThrow();
-      ResourceLog activatedLog =
-          allLogs.stream()
-              .filter(log -> log.getEventType() == ResourceEventType.ACTIVATED)
-              .findFirst()
-              .orElseThrow();
+      ResourceLog resourceLog = allLogs.get(0);
 
-      // CREATED 로그 검증
-      assertEquals(ResourceEventType.CREATED, createdLog.getEventType());
-      assertEquals(userId, createdLog.getUserId());
-      assertTrue(createdLog.getResourceKey().startsWith("review/"));
-
-      // ACTIVATED 로그 검증
-      assertEquals(ResourceEventType.ACTIVATED, activatedLog.getEventType());
-      assertEquals(reviewResponse.getId(), activatedLog.getReferenceId());
-      assertEquals("REVIEW", activatedLog.getReferenceType());
-      assertEquals(createdLog.getResourceKey(), activatedLog.getResourceKey());
+      // ACTIVATED 상태 검증
+      assertEquals(ResourceEventType.ACTIVATED, resourceLog.getEventType());
+      assertEquals(reviewResponse.getId(), resourceLog.getReferenceId());
+      assertEquals("REVIEW", resourceLog.getReferenceType());
+      assertEquals(userId, resourceLog.getUserId());
+      assertTrue(resourceLog.getResourceKey().startsWith("review/"));
 
       log.info(
-          "전체 흐름 테스트 완료 - CREATED: {}, ACTIVATED: {}", createdLog.getId(), activatedLog.getId());
+          "전체 흐름 테스트 완료 - 레코드 ID: {}, 상태: {}", resourceLog.getId(), resourceLog.getEventType());
     }
 
     @Test
-    @DisplayName("리뷰 수정 시 기존 이미지는 중복 ACTIVATED 로그가 저장되지 않는다")
+    @DisplayName("리뷰 수정 시 기존 이미지는 이미 ACTIVATED 상태이므로 상태가 유지되고, 새 이미지만 ACTIVATED로 변경된다")
     void test_modify_review_does_not_duplicate_activated_log() throws Exception {
       // given
       String token = getToken();
@@ -491,17 +475,14 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
       ReviewCreateResponse createResponse = extractData(createResult, ReviewCreateResponse.class);
       Long reviewId = createResponse.getId();
 
-      // ACTIVATED 로그 저장 대기
+      // ACTIVATED 상태로 변경 대기 (Single Record 방식)
       Awaitility.await()
           .atMost(5, TimeUnit.SECONDS)
           .untilAsserted(
               () -> {
                 List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
-                long activatedCount =
-                    logs.stream()
-                        .filter(l -> l.getEventType() == ResourceEventType.ACTIVATED)
-                        .count();
-                assertEquals(1, activatedCount);
+                assertEquals(1, logs.size());
+                assertEquals(ResourceEventType.ACTIVATED, logs.get(0).getEventType());
               });
 
       // 3. 새 이미지 PreSigned URL 생성
@@ -520,17 +501,13 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
           extractData(newPresignResult, ImageUploadResponse.class);
       String newImageUrl = newUploadResponse.imageUploadInfo().get(0).viewUrl();
 
-      // 새 이미지 CREATED 로그 저장 대기
+      // 새 이미지 CREATED 로그 저장 대기 (총 2개: 기존 ACTIVATED 1개 + 새 CREATED 1개)
       Awaitility.await()
           .atMost(3, TimeUnit.SECONDS)
           .untilAsserted(
               () -> {
                 List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
-                long createdCount =
-                    logs.stream()
-                        .filter(l -> l.getEventType() == ResourceEventType.CREATED)
-                        .count();
-                assertEquals(2, createdCount);
+                assertEquals(2, logs.size());
               });
 
       // 4. 리뷰 수정 (기존 이미지 + 새 이미지)
@@ -560,12 +537,13 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
       ReviewResultResponse modifyResponse = extractData(modifyResult, ReviewResultResponse.class);
       assertNotNull(modifyResponse);
 
-      // then - ACTIVATED 로그 검증 (기존 이미지는 중복 저장 안 됨)
+      // then - 모든 로그가 ACTIVATED 상태로 변경됨 (총 2개 레코드 유지)
       Awaitility.await()
           .atMost(5, TimeUnit.SECONDS)
           .untilAsserted(
               () -> {
                 List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
+                assertEquals(2, logs.size());
                 long activatedCount =
                     logs.stream()
                         .filter(l -> l.getEventType() == ResourceEventType.ACTIVATED)
@@ -574,13 +552,11 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
               });
 
       List<ResourceLog> allLogs = resourceLogRepository.findByUserId(userId);
-      List<ResourceLog> activatedLogs =
-          allLogs.stream().filter(l -> l.getEventType() == ResourceEventType.ACTIVATED).toList();
+      assertEquals(2, allLogs.size());
+      assertTrue(allLogs.stream().allMatch(l -> l.getEventType() == ResourceEventType.ACTIVATED));
+      assertTrue(allLogs.stream().allMatch(l -> reviewId.equals(l.getReferenceId())));
 
-      assertEquals(2, activatedLogs.size());
-      assertTrue(activatedLogs.stream().allMatch(l -> reviewId.equals(l.getReferenceId())));
-
-      log.info("리뷰 수정 후 총 로그 수: {}, ACTIVATED 로그 수: {}", allLogs.size(), activatedLogs.size());
+      log.info("리뷰 수정 후 총 로그 수: {}, 모두 ACTIVATED 상태", allLogs.size());
     }
   }
 }

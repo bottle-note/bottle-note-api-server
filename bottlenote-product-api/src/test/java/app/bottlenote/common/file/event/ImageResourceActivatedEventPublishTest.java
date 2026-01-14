@@ -1,8 +1,6 @@
 package app.bottlenote.common.file.event;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import app.bottlenote.alcohols.fixture.FakeAlcoholFacade;
@@ -39,6 +37,7 @@ import app.bottlenote.support.help.service.HelpService;
 import app.bottlenote.user.facade.payload.UserProfileItem;
 import app.bottlenote.user.fixture.FakeUserFacade;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -370,17 +369,11 @@ class ImageResourceActivatedEventPublishTest {
       // when
       resourceEventListener.handleImageResourceActivated(event);
 
-      // then
-      List<ResourceLog> logs = resourceLogRepository.findByResourceKey(resourceKey);
-      assertFalse(logs.isEmpty());
+      // then (Single Record 방식: 상태가 ACTIVATED로 변경)
+      Optional<ResourceLog> logOpt = resourceLogRepository.findByResourceKey(resourceKey);
+      assertTrue(logOpt.isPresent());
 
-      ResourceLog activatedLog =
-          logs.stream()
-              .filter(log -> log.getEventType() == ResourceEventType.ACTIVATED)
-              .findFirst()
-              .orElse(null);
-
-      assertNotNull(activatedLog);
+      ResourceLog activatedLog = logOpt.get();
       assertEquals(ResourceEventType.ACTIVATED, activatedLog.getEventType());
       assertEquals(referenceId, activatedLog.getReferenceId());
       assertEquals(referenceType, activatedLog.getReferenceType());
@@ -422,23 +415,18 @@ class ImageResourceActivatedEventPublishTest {
       // when
       resourceEventListener.handleImageResourceActivated(event);
 
-      // then
-      List<ResourceLog> logs1 = resourceLogRepository.findByResourceKey(resourceKey1);
-      List<ResourceLog> logs2 = resourceLogRepository.findByResourceKey(resourceKey2);
+      // then (Single Record 방식: 각 레코드의 상태가 ACTIVATED로 변경)
+      Optional<ResourceLog> logOpt1 = resourceLogRepository.findByResourceKey(resourceKey1);
+      Optional<ResourceLog> logOpt2 = resourceLogRepository.findByResourceKey(resourceKey2);
 
-      ResourceLog activated1 =
-          logs1.stream()
-              .filter(log -> log.getEventType() == ResourceEventType.ACTIVATED)
-              .findFirst()
-              .orElse(null);
-      ResourceLog activated2 =
-          logs2.stream()
-              .filter(log -> log.getEventType() == ResourceEventType.ACTIVATED)
-              .findFirst()
-              .orElse(null);
+      assertTrue(logOpt1.isPresent());
+      assertTrue(logOpt2.isPresent());
 
-      assertNotNull(activated1);
-      assertNotNull(activated2);
+      ResourceLog activated1 = logOpt1.get();
+      ResourceLog activated2 = logOpt2.get();
+
+      assertEquals(ResourceEventType.ACTIVATED, activated1.getEventType());
+      assertEquals(ResourceEventType.ACTIVATED, activated2.getEventType());
       assertEquals(referenceId, activated1.getReferenceId());
       assertEquals(referenceId, activated2.getReferenceId());
       assertEquals(referenceType, activated1.getReferenceType());
@@ -446,7 +434,7 @@ class ImageResourceActivatedEventPublishTest {
     }
 
     @Test
-    @DisplayName("CREATED 로그가 있는 리소스를 활성화할 때 CREATED와 ACTIVATED 로그가 모두 존재한다")
+    @DisplayName("CREATED 상태의 리소스를 활성화하면 해당 레코드의 상태가 ACTIVATED로 변경된다 (Single Record)")
     void test_resource_log_sequence_created_to_activated() {
       // given
       String resourceKey = "business/document.pdf";
@@ -470,17 +458,14 @@ class ImageResourceActivatedEventPublishTest {
       // when
       resourceEventListener.handleImageResourceActivated(event);
 
-      // then
-      List<ResourceLog> logs = resourceLogRepository.findByResourceKey(resourceKey);
-      assertEquals(2, logs.size());
+      // then (Single Record 방식: 1개의 레코드, 상태만 변경)
+      Optional<ResourceLog> logOpt = resourceLogRepository.findByResourceKey(resourceKey);
+      assertTrue(logOpt.isPresent());
 
-      boolean hasCreated =
-          logs.stream().anyMatch(log -> log.getEventType() == ResourceEventType.CREATED);
-      boolean hasActivated =
-          logs.stream().anyMatch(log -> log.getEventType() == ResourceEventType.ACTIVATED);
-
-      assertTrue(hasCreated);
-      assertTrue(hasActivated);
+      ResourceLog log = logOpt.get();
+      assertEquals(ResourceEventType.ACTIVATED, log.getEventType());
+      assertEquals(referenceId, log.getReferenceId());
+      assertEquals(referenceType, log.getReferenceType());
     }
   }
 }

@@ -15,7 +15,7 @@ import org.springframework.data.repository.query.Param;
 public interface JpaResourceLogRepository
     extends ResourceLogRepository, JpaRepository<ResourceLog, Long> {
 
-  List<ResourceLog> findByResourceKey(String resourceKey);
+  Optional<ResourceLog> findByResourceKey(String resourceKey);
 
   List<ResourceLog> findByUserId(Long userId);
 
@@ -24,11 +24,4 @@ public interface JpaResourceLogRepository
       @Param("eventType") ResourceEventType eventType, @Param("dateTime") LocalDateTime dateTime);
 
   List<ResourceLog> findByReferenceIdAndReferenceType(Long referenceId, String referenceType);
-
-  @Query(
-      "SELECT r FROM resource_log r WHERE r.resourceKey = :resourceKey ORDER BY r.createAt DESC LIMIT 1")
-  Optional<ResourceLog> findLatestByResourceKey(@Param("resourceKey") String resourceKey);
-
-  boolean existsByResourceKeyAndReferenceIdAndEventType(
-      String resourceKey, Long referenceId, ResourceEventType eventType);
 }
