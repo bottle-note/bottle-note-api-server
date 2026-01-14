@@ -6,10 +6,13 @@ import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholsTastingTags;
 import app.bottlenote.alcohols.domain.CurationKeyword;
 import app.bottlenote.alcohols.domain.Distillery;
+import app.bottlenote.alcohols.domain.PopularAlcohol;
 import app.bottlenote.alcohols.domain.Region;
 import app.bottlenote.alcohols.domain.TastingTag;
 import jakarta.persistence.EntityManager;
+import java.math.BigDecimal;
 import java.security.SecureRandom;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -454,5 +457,53 @@ public class AlcoholTestFactory {
     em.persist(curation);
     em.flush();
     return curation;
+  }
+
+  /** 기본 PopularAlcohol 생성 (오늘 날짜 기준) */
+  @Transactional
+  @NotNull
+  public PopularAlcohol persistPopularAlcohol(
+      @NotNull Long alcoholId, @NotNull BigDecimal popularScore) {
+    LocalDate today = LocalDate.now();
+    PopularAlcohol popularAlcohol =
+        PopularAlcohol.builder()
+            .alcoholId(alcoholId)
+            .year(today.getYear())
+            .month(today.getMonthValue())
+            .day(today.getDayOfMonth())
+            .reviewScore(BigDecimal.ZERO)
+            .ratingScore(BigDecimal.ZERO)
+            .pickScore(BigDecimal.ZERO)
+            .popularScore(popularScore)
+            .build();
+    em.persist(popularAlcohol);
+    em.flush();
+    return popularAlcohol;
+  }
+
+  /** 상세 점수와 함께 PopularAlcohol 생성 */
+  @Transactional
+  @NotNull
+  public PopularAlcohol persistPopularAlcohol(
+      @NotNull Long alcoholId,
+      @NotNull LocalDate date,
+      @NotNull BigDecimal reviewScore,
+      @NotNull BigDecimal ratingScore,
+      @NotNull BigDecimal pickScore,
+      @NotNull BigDecimal popularScore) {
+    PopularAlcohol popularAlcohol =
+        PopularAlcohol.builder()
+            .alcoholId(alcoholId)
+            .year(date.getYear())
+            .month(date.getMonthValue())
+            .day(date.getDayOfMonth())
+            .reviewScore(reviewScore)
+            .ratingScore(ratingScore)
+            .pickScore(pickScore)
+            .popularScore(popularScore)
+            .build();
+    em.persist(popularAlcohol);
+    em.flush();
+    return popularAlcohol;
   }
 }
