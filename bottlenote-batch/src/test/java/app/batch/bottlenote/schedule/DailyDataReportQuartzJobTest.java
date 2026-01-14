@@ -39,9 +39,12 @@ class DailyDataReportQuartzJobTest {
 
   private DailyDataReportQuartzJob dailyDataReportQuartzJob;
 
+  private AppInfoConfig appInfoConfig;
+
   @BeforeEach
   void setUp() {
-    AppInfoConfig appInfoConfig = new AppInfoConfig();
+    appInfoConfig = new AppInfoConfig();
+    appInfoConfig.setEnvironment("prod");
     dailyDataReportQuartzJob =
         new DailyDataReportQuartzJob(jobLauncher, jobRegistry, appInfoConfig);
   }
@@ -91,5 +94,39 @@ class DailyDataReportQuartzJobTest {
 
     // then
     assertEquals(DAILY_DATA_REPORT_JOB_NAME, expectedSchedulerName);
+  }
+
+  @Test
+  @DisplayName("dev 환경에서는 Job이 실행되지 않는다")
+  void testExecuteInternal_dev환경스킵() throws Exception {
+    // given
+    appInfoConfig.setEnvironment("dev");
+    dailyDataReportQuartzJob =
+        new DailyDataReportQuartzJob(jobLauncher, jobRegistry, appInfoConfig);
+
+    // when
+    dailyDataReportQuartzJob.executeInternal(context);
+
+    // then
+    verify(jobRegistry, times(0)).getJob(any());
+    verify(jobLauncher, times(0)).run(any(Job.class), any(JobParameters.class));
+  }
+
+  @Test
+  @DisplayName("prod 환경에서는 Job이 정상 실행된다")
+  void testExecuteInternal_prod환경실행() throws Exception {
+    // given
+    appInfoConfig.setEnvironment("prod");
+    dailyDataReportQuartzJob =
+        new DailyDataReportQuartzJob(jobLauncher, jobRegistry, appInfoConfig);
+    when(jobRegistry.getJob(eq(DAILY_DATA_REPORT_JOB_NAME))).thenReturn(job);
+    when(jobLauncher.run(any(Job.class), any(JobParameters.class))).thenReturn(null);
+
+    // when
+    dailyDataReportQuartzJob.executeInternal(context);
+
+    // then
+    verify(jobRegistry, times(1)).getJob(DAILY_DATA_REPORT_JOB_NAME);
+    verify(jobLauncher, times(1)).run(any(Job.class), any(JobParameters.class));
   }
 }
