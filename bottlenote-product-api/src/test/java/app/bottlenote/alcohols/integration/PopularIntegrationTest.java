@@ -8,7 +8,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.alcohols.dto.response.PopularsResponse;
+import app.bottlenote.alcohols.dto.response.PopularsOfWeekResponse;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
 import app.bottlenote.history.fixture.AlcoholsViewHistoryTestFactory;
 import app.bottlenote.rating.fixture.RatingTestFactory;
@@ -58,9 +58,9 @@ class PopularIntegrationTest extends IntegrationTestSupport {
               .exchange();
 
       // then
-      PopularsResponse response = extractData(result, PopularsResponse.class);
+      PopularsOfWeekResponse response = extractData(result, PopularsOfWeekResponse.class);
       assertNotNull(response);
-      assertEquals(5, response.alcohols().size());
+      assertEquals(5, response.getAlcohols().size());
     }
   }
 
@@ -97,10 +97,10 @@ class PopularIntegrationTest extends IntegrationTestSupport {
               .exchange();
 
       // then
-      PopularsResponse response = extractData(result, PopularsResponse.class);
+      PopularsOfWeekResponse response = extractData(result, PopularsOfWeekResponse.class);
       assertNotNull(response);
-      assertEquals(5, response.alcohols().size());
-      assertEquals(5, response.totalCount());
+      assertEquals(5, response.getAlcohols().size());
+      assertEquals(5, response.getTotalCount());
     }
 
     @Test
@@ -138,10 +138,10 @@ class PopularIntegrationTest extends IntegrationTestSupport {
               .exchange();
 
       // then
-      PopularsResponse response = extractData(result, PopularsResponse.class);
+      PopularsOfWeekResponse response = extractData(result, PopularsOfWeekResponse.class);
       assertNotNull(response);
-      assertEquals(10, response.totalCount());
-      assertTrue(response.alcohols().size() >= 5);
+      assertEquals(10, response.getTotalCount());
+      assertTrue(response.getAlcohols().size() >= 5);
     }
 
     @Test
@@ -173,10 +173,10 @@ class PopularIntegrationTest extends IntegrationTestSupport {
               .exchange();
 
       // then
-      PopularsResponse response = extractData(result, PopularsResponse.class);
+      PopularsOfWeekResponse response = extractData(result, PopularsOfWeekResponse.class);
       assertNotNull(response);
-      assertEquals(5, response.alcohols().size());
-      assertEquals(5, response.totalCount());
+      assertEquals(5, response.getAlcohols().size());
+      assertEquals(5, response.getTotalCount());
     }
   }
 
