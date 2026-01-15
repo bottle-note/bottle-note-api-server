@@ -50,9 +50,6 @@ public class TastingTagService {
       return List.of();
     }
 
-    return trie.parseText(text).stream()
-        .map(Emit::getKeyword)
-        .distinct()
-        .toList();
+    return trie.parseText(text).stream().map(Emit::getKeyword).distinct().toList();
   }
 }
