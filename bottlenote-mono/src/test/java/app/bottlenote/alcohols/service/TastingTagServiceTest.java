@@ -72,19 +72,20 @@ class TastingTagServiceTest {
       assertThat(result).containsExactlyInAnyOrderElementsOf(expectedTags);
     }
 
-    static Stream<Arguments> 부분_매칭_제외_케이스() {
+    static Stream<Arguments> 부분_매칭_허용_케이스() {
       return Stream.of(
-          Arguments.of("바닐라빈 향이 좋아요", List.of()),
-          Arguments.of("꿀물처럼 달콤해요", List.of()),
-          Arguments.of("스모키한 느낌", List.of()),
-          Arguments.of("카라멜라이즈된 설탕 맛", List.of()),
-          Arguments.of("초콜릿케이크 같은 맛", List.of()));
+          Arguments.of("바닐라빈 향이 좋아요", List.of("바닐라")),
+          Arguments.of("꿀물처럼 달콤해요", List.of("꿀")),
+          Arguments.of("스모키한 느낌", List.of("스모키")),
+          Arguments.of("카라멜라이즈된 설탕 맛", List.of("카라멜")),
+          Arguments.of("초콜릿케이크 같은 맛", List.of("초콜릿")),
+          Arguments.of("초콜릿향이 남니다", List.of("초콜릿")));
     }
 
     @ParameterizedTest(name = "\"{0}\" → {1}")
-    @MethodSource("부분_매칭_제외_케이스")
-    @DisplayName("부분 매칭은 제외한다")
-    void 부분_매칭_제외(String text, List<String> expectedTags) {
+    @MethodSource("부분_매칭_허용_케이스")
+    @DisplayName("부분 매칭을 허용한다")
+    void 부분_매칭_허용(String text, List<String> expectedTags) {
       // when
       List<String> result = tastingTagService.extractTagNames(text);
 
