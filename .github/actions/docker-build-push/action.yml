@@ -168,8 +168,8 @@ runs:
           GIT_BRANCH=${{ github.ref_name }}
           BUILD_TIME=${{ steps.build-time.outputs.time }}
           ${{ inputs.build-args }}
-        cache-from: type=gha,scope=${{ inputs.cache-scope }}
-        cache-to: type=gha,scope=${{ inputs.cache-scope }},mode=max
+        cache-from: type=registry,ref=${{ inputs.registry-url }}/${{ inputs.image-name }}:cache
+        cache-to: type=registry,ref=${{ inputs.registry-url }}/${{ inputs.image-name }}:cache,mode=max
 
     - name: Install Cosign
       if: inputs.sign-image == 'true'

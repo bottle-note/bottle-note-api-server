@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import app.bottlenote.common.event.fixture.FakeApplicationEventPublisher;
 import app.bottlenote.common.profanity.FakeProfanityClient;
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.global.data.response.CollectionResponse;
@@ -30,6 +31,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 
 @Tag("unit")
 @DisplayName("[unit] [service] BusinessSupport")
@@ -41,6 +43,7 @@ class BusinessSupportServiceTest {
   private InMemoryBusinessSupportRepository repository;
   private UserFacade userFacade;
   private ProfanityClient profanityClient;
+  private ApplicationEventPublisher eventPublisher;
 
   @BeforeEach
   void setUp() {
@@ -51,7 +54,8 @@ class BusinessSupportServiceTest {
             UserProfileItem.create(3L, "user3", ""));
     repository = new InMemoryBusinessSupportRepository();
     profanityClient = new FakeProfanityClient();
-    service = new BusinessSupportService(repository, userFacade, profanityClient);
+    eventPublisher = new FakeApplicationEventPublisher();
+    service = new BusinessSupportService(repository, userFacade, profanityClient, eventPublisher);
   }
 
   @Test

@@ -36,6 +36,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @Tag("unit")
 @DisplayName("[unit] [service] HelpService")
@@ -51,6 +52,7 @@ class HelpServiceTest {
   @InjectMocks private HelpService helpService;
   @Mock private HelpRepository helpRepository;
   @Mock private UserFacade userDomainSupport;
+  @Mock private ApplicationEventPublisher eventPublisher;
 
   @DisplayName("회원은 문의글을 작성할 수 있다.")
   @Test

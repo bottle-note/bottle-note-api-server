@@ -84,6 +84,9 @@ flowchart TD
 ## 빌드 및 실행
 
 ```bash
+# 서브모듈 초기화 (최초 클론 후 필수)
+git submodule update --init --recursive
+
 ./gradlew build                 # 전체 빌드
 ./gradlew test                  # 기본 테스트 (integration, data-jpa-test 제외)
 ./gradlew unit_test             # 단위 테스트 (@Tag("unit"))
@@ -92,6 +95,12 @@ flowchart TD
 ./gradlew asciidoctor           # API 문서 생성
 ./gradlew bootRun               # 애플리케이션 실행
 ```
+
+### 서브모듈
+
+- **git.environment-variables**: 환경 설정 및 초기화 스크립트 포함
+  - `storage/mysql/init/*.sql`: TestContainers용 DB 초기화 스크립트
+  - 통합 테스트 실행 전 서브모듈 초기화 필수
 
 ## 코드 작성 규칙
 
@@ -157,7 +166,7 @@ flowchart TD
 
 - `@Tag("unit")`: 단위 테스트, `@Tag("integration")`: 통합 테스트, `@Tag("rule")`: 아키텍처 규칙
 - 클래스명: `{기능명}ServiceTest`, 메서드명: `{기능명}할_수_있다`
-- `@DisplayName`: 한글로 테스트 목적 명시
+- `@DisplayName`: 한글로 테스트 목적 명시 (형식: `~할 때 ~한다`)
 
 ### 테스트 구조
 
@@ -165,6 +174,45 @@ flowchart TD
 - Fixture 클래스를 통한 테스트 데이터 관리
 - TestContainers 사용 (실제 DB 환경)
 - 테스트 데이터: `src/test/resources/init-script/` 디렉토리
+
+### 단위 테스트 패턴
+
+- **Fake/Stub 패턴 선호**: Mock 대신 InMemory 구현체 사용
+- **네이밍**: `InMemory{도메인명}Repository`, `Fake{서비스명}`
+- **위치**: `{도메인}.fixture` 패키지
+- **이벤트 테스트**: `FakeApplicationEventPublisher`로 발행된 이벤트 검증
+
+```java
+// 예시: InMemory 레포지토리
+public class InMemoryReviewRepository implements ReviewRepository {
+  private final Map<Long, Review> database = new HashMap<>();
+  // 도메인 레포지토리 인터페이스 구현
+}
+```
+
+### 통합 테스트 패턴
+
+- **베이스 클래스**: `IntegrationTestSupport` 상속
+- **API 테스트**: `MockMvcTester` 사용, `extractData()` 메서드로 응답 추출
+- **비동기 대기**: `Awaitility`로 이벤트 처리 대기
+- **테스트 데이터 생성**: `{도메인명}TestFactory` 사용 (`@Autowired`)
+
+```java
+// 예시: 비동기 이벤트 대기
+Awaitility.await()
+    .atMost(3, TimeUnit.SECONDS)
+    .untilAsserted(() -> {
+        List<ResourceLog> logs = repository.findByUserId(userId);
+        assertEquals(2, logs.size());
+    });
+```
+
+### 이벤트 기반 아키텍처
+
+- **이벤트 발행**: `ApplicationEventPublisher.publishEvent()`
+- **이벤트 수신**: `@TransactionalEventListener` + `@Async` 조합
+- **트랜잭션 분리**: `@Transactional(propagation = Propagation.REQUIRES_NEW)`
+- **이벤트 클래스**: `{도메인명}{동작}Event` record로 정의
 
 ## 데이터베이스 설계
 

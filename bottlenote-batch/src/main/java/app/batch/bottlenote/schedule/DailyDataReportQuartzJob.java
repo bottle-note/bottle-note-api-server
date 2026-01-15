@@ -19,13 +19,13 @@ import org.springframework.stereotype.Component;
  * <p>이 클래스는 BatchQuartzJob을 상속받아 일일 데이터 리포트 배치 작업에 특화된 Quartz Job을 구현합니다. Spring의 @Component 어노테이션을
  * 통해 스프링 빈으로 등록되며, QuartzConfig에서 이 클래스를 사용하여 JobDetail과 Trigger를 설정합니다.
  *
- * <p>dev 브랜치에서는 실행되지 않습니다.
+ * <p>dev 환경에서는 실행되지 않습니다.
  */
 @Slf4j
 @Component
 public class DailyDataReportQuartzJob extends BatchQuartzJob {
 
-  private static final String DEV_BRANCH = "dev";
+  private static final String DEV_ENVIRONMENT = "dev";
   private final AppInfoConfig appInfoConfig;
 
   /**
@@ -44,9 +44,9 @@ public class DailyDataReportQuartzJob extends BatchQuartzJob {
   @Override
   protected void executeInternal(@NonNull JobExecutionContext context)
       throws JobExecutionException {
-    String gitBranch = Objects.requireNonNullElse(appInfoConfig.getGitBranch(), "unknown");
-    if (DEV_BRANCH.equals(gitBranch)) {
-      log.info("[BATCH SKIP] dailyDataReportJob skipped on dev branch at: {}", now());
+    String environment = Objects.requireNonNullElse(appInfoConfig.getEnvironment(), "unknown");
+    if (DEV_ENVIRONMENT.equals(environment)) {
+      log.info("[BATCH SKIP] dailyDataReportJob skipped on dev environment at: {}", now());
       return;
     }
     super.executeInternal(context);
