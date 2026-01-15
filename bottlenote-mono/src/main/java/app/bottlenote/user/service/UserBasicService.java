@@ -7,6 +7,7 @@ import static app.bottlenote.user.exception.UserExceptionCode.MYPAGE_NOT_ACCESSI
 import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
 import app.bottlenote.common.file.event.payload.ImageResourceActivatedEvent;
+import app.bottlenote.common.file.event.payload.ImageResourceInvalidatedEvent;
 import app.bottlenote.common.image.ImageUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.user.constant.MyBottleType;
@@ -77,8 +78,22 @@ public class UserBasicService {
           User user =
               userRepository.findById(userId).orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
+          // 기존 프로필 이미지 URL 저장 (교체 전)
+          String oldImageUrl = user.getImageUrl();
+
           user.changeProfileImage(viewUrl);
 
+          // 기존 이미지가 있고 새 이미지와 다른 경우 INVALIDATED 이벤트 발행
+          if (oldImageUrl != null && !oldImageUrl.equals(viewUrl)) {
+            String oldResourceKey = ImageUtil.extractResourceKey(oldImageUrl);
+            if (oldResourceKey != null && user.getId() != null) {
+              eventPublisher.publishEvent(
+                  ImageResourceInvalidatedEvent.of(
+                      oldResourceKey, user.getId(), REFERENCE_TYPE_PROFILE));
+            }
+          }
+
+          // 새 이미지에 대해 ACTIVATED 이벤트 발행
           String resourceKey = ImageUtil.extractResourceKey(viewUrl);
           if (resourceKey != null && user.getId() != null) {
             eventPublisher.publishEvent(

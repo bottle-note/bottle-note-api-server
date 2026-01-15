@@ -558,5 +558,384 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
 
       log.info("리뷰 수정 후 총 로그 수: {}, 모두 ACTIVATED 상태", allLogs.size());
     }
+
+    @Test
+    @DisplayName("리뷰 수정 시 기존 이미지가 제거되면 해당 이미지의 상태가 INVALIDATED로 변경된다")
+    void test_modify_review_removes_image_changes_status_to_invalidated() throws Exception {
+      // given
+      String token = getToken();
+      Long userId = getTokenUserId();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+
+      // 1. PreSigned URL 2개 생성
+      MvcTestResult presignResult =
+          mockMvcTester
+              .get()
+              .uri("/api/v1/s3/presign-url")
+              .param("rootPath", "review")
+              .param("uploadSize", "2")
+              .header("Authorization", "Bearer " + token)
+              .contentType(APPLICATION_JSON)
+              .with(csrf())
+              .exchange();
+
+      ImageUploadResponse uploadResponse = extractData(presignResult, ImageUploadResponse.class);
+      String imageUrl1 = uploadResponse.imageUploadInfo().get(0).viewUrl();
+      String imageUrl2 = uploadResponse.imageUploadInfo().get(1).viewUrl();
+
+      // CREATED 로그 저장 대기
+      Awaitility.await()
+          .atMost(3, TimeUnit.SECONDS)
+          .untilAsserted(
+              () -> {
+                List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
+                assertEquals(2, logs.size());
+              });
+
+      // 2. 리뷰 생성 (이미지 2개 포함)
+      ReviewCreateRequest createRequest =
+          new ReviewCreateRequest(
+              alcohol.getId(),
+              ReviewDisplayStatus.PUBLIC,
+              "이미지 2개 리뷰",
+              SizeType.GLASS,
+              BigDecimal.valueOf(30000),
+              createTestLocationInfo(),
+              List.of(
+                  new ReviewImageInfoRequest(1L, imageUrl1),
+                  new ReviewImageInfoRequest(2L, imageUrl2)),
+              List.of(),
+              4.0);
+
+      MvcTestResult createResult =
+          mockMvcTester
+              .post()
+              .uri("/api/v1/reviews")
+              .header("Authorization", "Bearer " + token)
+              .contentType(APPLICATION_JSON)
+              .content(mapper.writeValueAsString(createRequest))
+              .with(csrf())
+              .exchange();
+
+      ReviewCreateResponse createResponse = extractData(createResult, ReviewCreateResponse.class);
+      Long reviewId = createResponse.getId();
+
+      // ACTIVATED 상태로 변경 대기
+      Awaitility.await()
+          .atMost(5, TimeUnit.SECONDS)
+          .untilAsserted(
+              () -> {
+                List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
+                long activatedCount =
+                    logs.stream()
+                        .filter(l -> l.getEventType() == ResourceEventType.ACTIVATED)
+                        .count();
+                assertEquals(2, activatedCount);
+              });
+
+      // 3. 리뷰 수정 (이미지 1개만 유지, 다른 1개 제거)
+      ReviewModifyRequest modifyRequest =
+          new ReviewModifyRequest(
+              "수정된 리뷰 - 이미지 1개 제거",
+              ReviewDisplayStatus.PUBLIC,
+              null,
+              List.of(new ReviewImageInfoRequest(1L, imageUrl1)),
+              null,
+              null,
+              createTestLocationInfo());
+
+      // when
+      mockMvcTester
+          .patch()
+          .uri("/api/v1/reviews/{reviewId}", reviewId)
+          .header("Authorization", "Bearer " + token)
+          .contentType(APPLICATION_JSON)
+          .content(mapper.writeValueAsString(modifyRequest))
+          .with(csrf())
+          .exchange();
+
+      // then - 이미지1은 ACTIVATED 유지, 이미지2는 INVALIDATED로 변경
+      Awaitility.await()
+          .atMost(5, TimeUnit.SECONDS)
+          .untilAsserted(
+              () -> {
+                List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
+                long invalidatedCount =
+                    logs.stream()
+                        .filter(l -> l.getEventType() == ResourceEventType.INVALIDATED)
+                        .count();
+                assertEquals(1, invalidatedCount);
+              });
+
+      List<ResourceLog> allLogs = resourceLogRepository.findByUserId(userId);
+      assertEquals(2, allLogs.size());
+
+      long activatedCount =
+          allLogs.stream().filter(l -> l.getEventType() == ResourceEventType.ACTIVATED).count();
+      long invalidatedCount =
+          allLogs.stream().filter(l -> l.getEventType() == ResourceEventType.INVALIDATED).count();
+
+      assertEquals(1, activatedCount);
+      assertEquals(1, invalidatedCount);
+
+      log.info("이미지 제거 후 - ACTIVATED: {}, INVALIDATED: {}", activatedCount, invalidatedCount);
+    }
+
+    @Test
+    @DisplayName("리뷰 삭제 시 모든 이미지의 상태가 INVALIDATED로 변경된다")
+    void test_delete_review_changes_all_images_to_invalidated() throws Exception {
+      // given
+      String token = getToken();
+      Long userId = getTokenUserId();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+
+      // 1. PreSigned URL 생성
+      MvcTestResult presignResult =
+          mockMvcTester
+              .get()
+              .uri("/api/v1/s3/presign-url")
+              .param("rootPath", "review")
+              .param("uploadSize", "2")
+              .header("Authorization", "Bearer " + token)
+              .contentType(APPLICATION_JSON)
+              .with(csrf())
+              .exchange();
+
+      ImageUploadResponse uploadResponse = extractData(presignResult, ImageUploadResponse.class);
+      String imageUrl1 = uploadResponse.imageUploadInfo().get(0).viewUrl();
+      String imageUrl2 = uploadResponse.imageUploadInfo().get(1).viewUrl();
+
+      // CREATED 로그 저장 대기
+      Awaitility.await()
+          .atMost(3, TimeUnit.SECONDS)
+          .untilAsserted(
+              () -> {
+                List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
+                assertEquals(2, logs.size());
+              });
+
+      // 2. 리뷰 생성 (이미지 2개 포함)
+      ReviewCreateRequest createRequest =
+          new ReviewCreateRequest(
+              alcohol.getId(),
+              ReviewDisplayStatus.PUBLIC,
+              "삭제 테스트 리뷰",
+              SizeType.GLASS,
+              BigDecimal.valueOf(30000),
+              createTestLocationInfo(),
+              List.of(
+                  new ReviewImageInfoRequest(1L, imageUrl1),
+                  new ReviewImageInfoRequest(2L, imageUrl2)),
+              List.of(),
+              4.0);
+
+      MvcTestResult createResult =
+          mockMvcTester
+              .post()
+              .uri("/api/v1/reviews")
+              .header("Authorization", "Bearer " + token)
+              .contentType(APPLICATION_JSON)
+              .content(mapper.writeValueAsString(createRequest))
+              .with(csrf())
+              .exchange();
+
+      ReviewCreateResponse createResponse = extractData(createResult, ReviewCreateResponse.class);
+      Long reviewId = createResponse.getId();
+
+      // ACTIVATED 상태로 변경 대기
+      Awaitility.await()
+          .atMost(5, TimeUnit.SECONDS)
+          .untilAsserted(
+              () -> {
+                List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
+                long activatedCount =
+                    logs.stream()
+                        .filter(l -> l.getEventType() == ResourceEventType.ACTIVATED)
+                        .count();
+                assertEquals(2, activatedCount);
+              });
+
+      // when - 리뷰 삭제
+      mockMvcTester
+          .delete()
+          .uri("/api/v1/reviews/{reviewId}", reviewId)
+          .header("Authorization", "Bearer " + token)
+          .contentType(APPLICATION_JSON)
+          .with(csrf())
+          .exchange();
+
+      // then - 모든 이미지가 INVALIDATED로 변경
+      Awaitility.await()
+          .atMost(5, TimeUnit.SECONDS)
+          .untilAsserted(
+              () -> {
+                List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
+                long invalidatedCount =
+                    logs.stream()
+                        .filter(l -> l.getEventType() == ResourceEventType.INVALIDATED)
+                        .count();
+                assertEquals(2, invalidatedCount);
+              });
+
+      List<ResourceLog> allLogs = resourceLogRepository.findByUserId(userId);
+      assertEquals(2, allLogs.size());
+      assertTrue(allLogs.stream().allMatch(l -> l.getEventType() == ResourceEventType.INVALIDATED));
+
+      log.info("리뷰 삭제 후 모든 이미지가 INVALIDATED 상태로 변경됨");
+    }
+
+    @Test
+    @DisplayName("리뷰 수정 시 모든 이미지를 교체하면 기존 이미지는 INVALIDATED, 새 이미지는 ACTIVATED가 된다")
+    void test_modify_review_replaces_all_images() throws Exception {
+      // given
+      String token = getToken();
+      Long userId = getTokenUserId();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+
+      // 1. 첫 번째 PreSigned URL 생성 (기존 이미지용)
+      MvcTestResult presignResult1 =
+          mockMvcTester
+              .get()
+              .uri("/api/v1/s3/presign-url")
+              .param("rootPath", "review")
+              .param("uploadSize", "1")
+              .header("Authorization", "Bearer " + token)
+              .contentType(APPLICATION_JSON)
+              .with(csrf())
+              .exchange();
+
+      ImageUploadResponse uploadResponse1 = extractData(presignResult1, ImageUploadResponse.class);
+      String oldImageUrl = uploadResponse1.imageUploadInfo().get(0).viewUrl();
+
+      // CREATED 로그 저장 대기
+      Awaitility.await()
+          .atMost(3, TimeUnit.SECONDS)
+          .untilAsserted(
+              () -> {
+                List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
+                assertEquals(1, logs.size());
+              });
+
+      // 2. 리뷰 생성 (기존 이미지 포함)
+      ReviewCreateRequest createRequest =
+          new ReviewCreateRequest(
+              alcohol.getId(),
+              ReviewDisplayStatus.PUBLIC,
+              "이미지 교체 테스트 리뷰",
+              SizeType.GLASS,
+              BigDecimal.valueOf(30000),
+              createTestLocationInfo(),
+              List.of(new ReviewImageInfoRequest(1L, oldImageUrl)),
+              List.of(),
+              4.0);
+
+      MvcTestResult createResult =
+          mockMvcTester
+              .post()
+              .uri("/api/v1/reviews")
+              .header("Authorization", "Bearer " + token)
+              .contentType(APPLICATION_JSON)
+              .content(mapper.writeValueAsString(createRequest))
+              .with(csrf())
+              .exchange();
+
+      ReviewCreateResponse createResponse = extractData(createResult, ReviewCreateResponse.class);
+      Long reviewId = createResponse.getId();
+
+      // ACTIVATED 상태로 변경 대기
+      Awaitility.await()
+          .atMost(5, TimeUnit.SECONDS)
+          .untilAsserted(
+              () -> {
+                List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
+                assertEquals(1, logs.size());
+                assertEquals(ResourceEventType.ACTIVATED, logs.get(0).getEventType());
+              });
+
+      // 3. 두 번째 PreSigned URL 생성 (새 이미지용)
+      MvcTestResult presignResult2 =
+          mockMvcTester
+              .get()
+              .uri("/api/v1/s3/presign-url")
+              .param("rootPath", "review")
+              .param("uploadSize", "1")
+              .header("Authorization", "Bearer " + token)
+              .contentType(APPLICATION_JSON)
+              .with(csrf())
+              .exchange();
+
+      ImageUploadResponse uploadResponse2 = extractData(presignResult2, ImageUploadResponse.class);
+      String newImageUrl = uploadResponse2.imageUploadInfo().get(0).viewUrl();
+
+      // 새 이미지 CREATED 로그 저장 대기 (총 2개)
+      Awaitility.await()
+          .atMost(3, TimeUnit.SECONDS)
+          .untilAsserted(
+              () -> {
+                List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
+                assertEquals(2, logs.size());
+              });
+
+      // 4. 리뷰 수정 (기존 이미지를 새 이미지로 완전 교체)
+      ReviewModifyRequest modifyRequest =
+          new ReviewModifyRequest(
+              "수정된 리뷰 - 이미지 완전 교체",
+              ReviewDisplayStatus.PUBLIC,
+              null,
+              List.of(new ReviewImageInfoRequest(1L, newImageUrl)),
+              null,
+              null,
+              createTestLocationInfo());
+
+      // when
+      mockMvcTester
+          .patch()
+          .uri("/api/v1/reviews/{reviewId}", reviewId)
+          .header("Authorization", "Bearer " + token)
+          .contentType(APPLICATION_JSON)
+          .content(mapper.writeValueAsString(modifyRequest))
+          .with(csrf())
+          .exchange();
+
+      // then - 기존 이미지 INVALIDATED, 새 이미지 ACTIVATED
+      Awaitility.await()
+          .atMost(5, TimeUnit.SECONDS)
+          .untilAsserted(
+              () -> {
+                List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
+                long invalidatedCount =
+                    logs.stream()
+                        .filter(l -> l.getEventType() == ResourceEventType.INVALIDATED)
+                        .count();
+                long activatedCount =
+                    logs.stream()
+                        .filter(l -> l.getEventType() == ResourceEventType.ACTIVATED)
+                        .count();
+                assertEquals(1, invalidatedCount);
+                assertEquals(1, activatedCount);
+              });
+
+      List<ResourceLog> allLogs = resourceLogRepository.findByUserId(userId);
+      assertEquals(2, allLogs.size());
+
+      ResourceLog oldImageLog =
+          allLogs.stream()
+              .filter(l -> l.getViewUrl().equals(oldImageUrl))
+              .findFirst()
+              .orElseThrow();
+      ResourceLog newImageLog =
+          allLogs.stream()
+              .filter(l -> l.getViewUrl().equals(newImageUrl))
+              .findFirst()
+              .orElseThrow();
+
+      assertEquals(ResourceEventType.INVALIDATED, oldImageLog.getEventType());
+      assertEquals(ResourceEventType.ACTIVATED, newImageLog.getEventType());
+
+      log.info(
+          "이미지 완전 교체 후 - 기존 이미지: {}, 새 이미지: {}",
+          oldImageLog.getEventType(),
+          newImageLog.getEventType());
+    }
   }
 }

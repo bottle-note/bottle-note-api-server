@@ -206,6 +206,67 @@ class ResourceCommandServiceTest {
   }
 
   @Nested
+  @DisplayName("이미지 리소스 삭제 테스트")
+  class DeleteImageResourceTest {
+
+    @Test
+    @DisplayName("무효화된 이미지 리소스를 삭제하면 DELETED 상태로 변경된다")
+    void test_1() {
+      // given
+      String resourceKey = "review/20251231/1-uuid.jpg";
+      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey)).join();
+      resourceCommandService.invalidateImageResource(resourceKey).join();
+
+      // when
+      CompletableFuture<Optional<ResourceLogResponse>> future =
+          resourceCommandService.deleteImageResource(resourceKey);
+      Optional<ResourceLogResponse> result = future.join();
+
+      // then
+      assertTrue(result.isPresent());
+      assertEquals(ResourceEventType.DELETED, result.get().eventType());
+      assertEquals(1, resourceLogRepository.findAll().size());
+
+      log.info("삭제 결과 = {}", result.get());
+    }
+
+    @Test
+    @DisplayName("CREATED 상태에서는 바로 삭제할 수 없다")
+    void test_2() {
+      // given
+      String resourceKey = "review/20251231/1-uuid.jpg";
+      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey)).join();
+
+      // when
+      Optional<ResourceLogResponse> result =
+          resourceCommandService.deleteImageResource(resourceKey).join();
+
+      // then
+      assertTrue(result.isEmpty());
+
+      log.info("CREATED 상태에서 삭제 시도 결과 = {}", result);
+    }
+
+    @Test
+    @DisplayName("ACTIVATED 상태에서는 바로 삭제할 수 없다")
+    void test_3() {
+      // given
+      String resourceKey = "review/20251231/1-uuid.jpg";
+      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey)).join();
+      resourceCommandService.activateImageResource(resourceKey, 100L, "REVIEW").join();
+
+      // when
+      Optional<ResourceLogResponse> result =
+          resourceCommandService.deleteImageResource(resourceKey).join();
+
+      // then
+      assertTrue(result.isEmpty());
+
+      log.info("ACTIVATED 상태에서 삭제 시도 결과 = {}", result);
+    }
+  }
+
+  @Nested
   @DisplayName("리소스 로그 조회 테스트")
   class FindResourceLogTest {
 
