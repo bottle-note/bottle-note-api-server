@@ -1,4 +1,4 @@
-package app.batch.bottlenote.config;
+package app.batch.bottlenote.properties;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;

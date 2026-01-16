@@ -1,6 +1,8 @@
-package app.batch.bottlenote.schedule;
+package app.batch.bottlenote.config;
 
-
+import app.batch.bottlenote.job.ranking.BestReviewSelectionJobConfig.BestReviewQuartzJob;
+import app.batch.bottlenote.job.ranking.PopularAlcoholSelectionJobConfig.PopularAlcoholQuartzJob;
+import app.batch.bottlenote.job.report.DailyDataReportJobConfig.DailyDataReportQuartzJob;
 import lombok.RequiredArgsConstructor;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.JobBuilder;

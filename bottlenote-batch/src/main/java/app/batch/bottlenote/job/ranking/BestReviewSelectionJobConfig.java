@@ -1,14 +1,19 @@
-package app.batch.bottlenote.job;
+package app.batch.bottlenote.job.ranking;
 
-import app.batch.bottlenote.data.payload.BestReviewPayload;
+import app.batch.bottlenote.BatchQuartzJob;
 import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.Chunk;
@@ -19,6 +24,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.FileCopyUtils;
 
@@ -91,15 +98,9 @@ public class BestReviewSelectionJobConfig {
 	 */
 	private String getQueryByResource() {
 		try {
-			// resources 디렉토리 하위의 파일 경로로 접근
 			Resource resource = new ClassPathResource("storage/mysql/sql/best-review-selected.sql");
-
-			// getFile() 호출 없이 리소스 내용 읽기
 			String query = new String(FileCopyUtils.copyToByteArray(resource.getInputStream()));
-
-			// 로그는 파일 경로가 아닌 리소스 설명으로 대체
 			log.debug("베스트 리뷰 쿼리 로드 완료: {}", resource.getDescription());
-
 			return query;
 		} catch (IOException e) {
 			log.error("[CRITICAL] 베스트 리뷰 SQL 파일을 찾을 수 없습니다: best-review-selected.sql", e);
@@ -113,11 +114,9 @@ public class BestReviewSelectionJobConfig {
 	private void updateBestReviews(Chunk<? extends BestReviewPayload> chunk) {
 		if (chunk.isEmpty()) return;
 
-		// 배치 업데이트를 위한 SQL 준비
 		String sql = "UPDATE reviews SET is_best = true WHERE id IN (" +
 				String.join(",", Collections.nCopies(chunk.size(), "?")) + ")";
 
-		// 파라미터 배열 준비
 		Object[] params = chunk.getItems().stream()
 				.map(BestReviewPayload::id)
 				.toArray();
@@ -147,17 +146,28 @@ public class BestReviewSelectionJobConfig {
 				currentIndex = 0;
 			}
 
-			BestReviewPayload nextItem = null;
-			if (currentIndex < results.size()) {
-				nextItem = results.get(currentIndex);
-				currentIndex++;
-			}
-
 			if (currentIndex >= results.size()) {
-				results = null;
+				return null;
 			}
 
-			return nextItem;
+			return results.get(currentIndex++);
+		}
+	}
+
+	@Component
+	public static class BestReviewQuartzJob extends BatchQuartzJob {
+		public BestReviewQuartzJob(JobLauncher jobLauncher, JobRegistry jobRegistry) {
+			super(jobLauncher, jobRegistry, BEST_REVIEW_JOB_NAME, "bestReviewSelectedJob");
+		}
+	}
+
+	@Builder
+	public record BestReviewPayload(Long id, Long alcoholId) {
+		public static class BestReviewMapper implements RowMapper<BestReviewPayload> {
+			@Override
+			public BestReviewPayload mapRow(ResultSet rs, int rowNum) throws SQLException {
+				return new BestReviewPayload(rs.getLong("id"), rs.getLong("alcohol_id"));
+			}
 		}
 	}
 }

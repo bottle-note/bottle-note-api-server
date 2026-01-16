@@ -1,5 +1,7 @@
-package app.batch.bottlenote.schedule;
+package app.batch.bottlenote;
 
+
+import static java.time.LocalDateTime.now;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,9 +14,6 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.lang.NonNull;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 
-import static java.time.LocalDateTime.now;
-
-
 /**
  * Quartz 스케줄러를 이용한 Spring Batch Job 실행을 위한 추상 기본 클래스입니다.
  * <p>
@@ -22,7 +21,7 @@ import static java.time.LocalDateTime.now;
  * Spring Batch Job을 실행하기 위한 공통 로직을 포함하고 있어 코드 중복을 줄이고
  * 일관된 방식으로 배치 작업을 실행할 수 있게 합니다.
  * <p>
- * Quartz는 스케줄링을 전담하고, 실제 비즈니스 로직은 Spring Batch가 담당하여 
+ * Quartz는 스케줄링을 전담하고, 실제 비즈니스 로직은 Spring Batch가 담당하여
  * 관심사를 명확히 분리합니다.
  */
 @Slf4j
