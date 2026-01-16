@@ -13,7 +13,7 @@ public interface ResourceLogRepository {
 
   Optional<ResourceLog> findById(Long id);
 
-  List<ResourceLog> findByResourceKey(String resourceKey);
+  Optional<ResourceLog> findByResourceKey(String resourceKey);
 
   List<ResourceLog> findByUserId(Long userId);
 
@@ -21,8 +21,6 @@ public interface ResourceLogRepository {
       ResourceEventType eventType, LocalDateTime dateTime);
 
   List<ResourceLog> findByReferenceIdAndReferenceType(Long referenceId, String referenceType);
-
-  Optional<ResourceLog> findLatestByResourceKey(String resourceKey);
 
   void delete(ResourceLog resourceLog);
 }

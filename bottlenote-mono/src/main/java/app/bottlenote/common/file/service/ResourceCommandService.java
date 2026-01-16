@@ -52,18 +52,23 @@ public class ResourceCommandService {
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public CompletableFuture<Optional<ResourceLogResponse>> activateImageResource(
       String resourceKey, Long referenceId, String referenceType) {
-    ResourceLog entity =
-        ResourceLog.builder()
-            .userId(getUserIdFromLatestLog(resourceKey))
-            .resourceKey(resourceKey)
-            .resourceType(RESOURCE_TYPE_IMAGE)
-            .eventType(ResourceEventType.ACTIVATED)
-            .referenceId(referenceId)
-            .referenceType(referenceType)
-            .viewUrl(getViewUrlFromLatestLog(resourceKey))
-            .build();
-    ResourceLog saved = resourceLogRepository.save(entity);
-    log.info("이미지 리소스 활성화 로그 저장 - resourceKey: {}, referenceId: {}", resourceKey, referenceId);
+    Optional<ResourceLog> resourceLogOpt = resourceLogRepository.findByResourceKey(resourceKey);
+
+    if (resourceLogOpt.isEmpty()) {
+      log.warn("리소스 로그를 찾을 수 없음 - resourceKey: {}", resourceKey);
+      return CompletableFuture.completedFuture(Optional.empty());
+    }
+
+    ResourceLog resourceLog = resourceLogOpt.get();
+
+    if (resourceLog.isActivated()) {
+      log.info("이미 활성화된 리소스 스킵 - resourceKey: {}", resourceKey);
+      return CompletableFuture.completedFuture(Optional.empty());
+    }
+
+    resourceLog.activate(referenceId, referenceType);
+    ResourceLog saved = resourceLogRepository.save(resourceLog);
+    log.info("이미지 리소스 활성화 - resourceKey: {}, referenceId: {}", resourceKey, referenceId);
     return CompletableFuture.completedFuture(Optional.of(toResponse(saved)));
   }
 
@@ -71,22 +76,53 @@ public class ResourceCommandService {
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public CompletableFuture<Optional<ResourceLogResponse>> invalidateImageResource(
       String resourceKey) {
-    ResourceLog entity =
-        ResourceLog.builder()
-            .userId(getUserIdFromLatestLog(resourceKey))
-            .resourceKey(resourceKey)
-            .resourceType(RESOURCE_TYPE_IMAGE)
-            .eventType(ResourceEventType.INVALIDATED)
-            .viewUrl(getViewUrlFromLatestLog(resourceKey))
-            .build();
-    ResourceLog saved = resourceLogRepository.save(entity);
-    log.info("이미지 리소스 무효화 로그 저장 - resourceKey: {}", resourceKey);
+    Optional<ResourceLog> resourceLogOpt = resourceLogRepository.findByResourceKey(resourceKey);
+
+    if (resourceLogOpt.isEmpty()) {
+      log.warn("리소스 로그를 찾을 수 없음 - resourceKey: {}", resourceKey);
+      return CompletableFuture.completedFuture(Optional.empty());
+    }
+
+    ResourceLog resourceLog = resourceLogOpt.get();
+
+    if (resourceLog.isInvalidated()) {
+      log.info("이미 무효화된 리소스 스킵 - resourceKey: {}", resourceKey);
+      return CompletableFuture.completedFuture(Optional.empty());
+    }
+
+    resourceLog.invalidate();
+    ResourceLog saved = resourceLogRepository.save(resourceLog);
+    log.info("이미지 리소스 무효화 - resourceKey: {}", resourceKey);
+    return CompletableFuture.completedFuture(Optional.of(toResponse(saved)));
+  }
+
+  @Async
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public CompletableFuture<Optional<ResourceLogResponse>> deleteImageResource(String resourceKey) {
+    Optional<ResourceLog> resourceLogOpt = resourceLogRepository.findByResourceKey(resourceKey);
+
+    if (resourceLogOpt.isEmpty()) {
+      log.warn("리소스 로그를 찾을 수 없음 - resourceKey: {}", resourceKey);
+      return CompletableFuture.completedFuture(Optional.empty());
+    }
+
+    ResourceLog resourceLog = resourceLogOpt.get();
+
+    if (!resourceLog.canTransitionTo(ResourceEventType.DELETED)) {
+      log.info(
+          "삭제 상태로 전이 불가 - resourceKey: {}, 현재 상태: {}", resourceKey, resourceLog.getEventType());
+      return CompletableFuture.completedFuture(Optional.empty());
+    }
+
+    resourceLog.markDeleted();
+    ResourceLog saved = resourceLogRepository.save(resourceLog);
+    log.info("이미지 리소스 삭제 - resourceKey: {}", resourceKey);
     return CompletableFuture.completedFuture(Optional.of(toResponse(saved)));
   }
 
   @Transactional(readOnly = true)
-  public Optional<ResourceLogResponse> findLatestByResourceKey(String resourceKey) {
-    return resourceLogRepository.findLatestByResourceKey(resourceKey).map(this::toResponse);
+  public Optional<ResourceLogResponse> findByResourceKey(String resourceKey) {
+    return resourceLogRepository.findByResourceKey(resourceKey).map(this::toResponse);
   }
 
   @Transactional(readOnly = true)
@@ -95,27 +131,6 @@ public class ResourceCommandService {
     return resourceLogRepository.findByEventTypeAndCreateAtBefore(eventType, dateTime).stream()
         .map(this::toItem)
         .toList();
-  }
-
-  @Transactional(readOnly = true)
-  public List<ResourceLogResponse> findByResourceKey(String resourceKey) {
-    return resourceLogRepository.findByResourceKey(resourceKey).stream()
-        .map(this::toResponse)
-        .toList();
-  }
-
-  private Long getUserIdFromLatestLog(String resourceKey) {
-    return resourceLogRepository
-        .findLatestByResourceKey(resourceKey)
-        .map(ResourceLog::getUserId)
-        .orElse(null);
-  }
-
-  private String getViewUrlFromLatestLog(String resourceKey) {
-    return resourceLogRepository
-        .findLatestByResourceKey(resourceKey)
-        .map(ResourceLog::getViewUrl)
-        .orElse(null);
   }
 
   private ResourceLogItem toItem(ResourceLog log) {
@@ -147,6 +162,7 @@ public class ResourceCommandService {
         .rootPath(log.getRootPath())
         .bucketName(log.getBucketName())
         .createAt(log.getCreateAt())
+        .lastModifyAt(log.getLastModifyAt())
         .build();
   }
 }

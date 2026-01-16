@@ -4,7 +4,6 @@ import app.bottlenote.common.file.constant.ResourceEventType;
 import app.bottlenote.common.file.domain.ResourceLog;
 import app.bottlenote.common.file.domain.ResourceLogRepository;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +16,7 @@ public class InMemoryResourceLogRepository implements ResourceLogRepository {
 
   private static final Logger log = LogManager.getLogger(InMemoryResourceLogRepository.class);
   private final Map<Long, ResourceLog> database = new HashMap<>();
+  private final Map<String, Long> resourceKeyIndex = new HashMap<>();
 
   @Override
   public ResourceLog save(ResourceLog resourceLog) {
@@ -26,6 +26,7 @@ public class InMemoryResourceLogRepository implements ResourceLogRepository {
       ReflectionTestUtils.setField(resourceLog, "id", id);
     }
     database.put(id, resourceLog);
+    resourceKeyIndex.put(resourceLog.getResourceKey(), id);
     log.info("[InMemory] resourceLog repository save = {}", resourceLog);
     return resourceLog;
   }
@@ -36,10 +37,12 @@ public class InMemoryResourceLogRepository implements ResourceLogRepository {
   }
 
   @Override
-  public List<ResourceLog> findByResourceKey(String resourceKey) {
-    return database.values().stream()
-        .filter(log -> log.getResourceKey().equals(resourceKey))
-        .toList();
+  public Optional<ResourceLog> findByResourceKey(String resourceKey) {
+    Long id = resourceKeyIndex.get(resourceKey);
+    if (id == null) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(database.get(id));
   }
 
   @Override
@@ -66,19 +69,14 @@ public class InMemoryResourceLogRepository implements ResourceLogRepository {
   }
 
   @Override
-  public Optional<ResourceLog> findLatestByResourceKey(String resourceKey) {
-    return database.values().stream()
-        .filter(log -> log.getResourceKey().equals(resourceKey))
-        .max(Comparator.comparing(ResourceLog::getCreateAt));
-  }
-
-  @Override
   public void delete(ResourceLog resourceLog) {
+    resourceKeyIndex.remove(resourceLog.getResourceKey());
     database.remove(resourceLog.getId());
   }
 
   public void clear() {
     database.clear();
+    resourceKeyIndex.clear();
   }
 
   public List<ResourceLog> findAll() {

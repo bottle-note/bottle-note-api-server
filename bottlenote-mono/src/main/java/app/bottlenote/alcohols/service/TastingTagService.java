@@ -39,7 +39,7 @@ public class TastingTagService {
   }
 
   /**
-   * 문장에서 태그 이름 목록을 추출한다.
+   * 문장에서 태그 이름 목록을 추출한다. (부분 매칭 허용)
    *
    * @param text 분석할 문장
    * @return 매칭된 태그 이름 목록
@@ -50,28 +50,6 @@ public class TastingTagService {
       return List.of();
     }
 
-    return trie.parseText(text).stream()
-        .filter(emit -> isWholeWord(text, emit))
-        .map(Emit::getKeyword)
-        .distinct()
-        .toList();
-  }
-
-  private boolean isWholeWord(String text, Emit emit) {
-    int start = emit.getStart();
-    int end = emit.getEnd() + 1;
-
-    if (start > 0 && isKorean(text.charAt(start - 1))) {
-      return false;
-    }
-    if (end < text.length() && isKorean(text.charAt(end))) {
-      return false;
-    }
-
-    return true;
-  }
-
-  private boolean isKorean(char c) {
-    return (c >= 0xAC00 && c <= 0xD7A3) || (c >= 0x1100 && c <= 0x11FF);
+    return trie.parseText(text).stream().map(Emit::getKeyword).distinct().toList();
   }
 }

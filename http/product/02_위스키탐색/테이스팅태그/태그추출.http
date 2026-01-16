@@ -24,3 +24,7 @@ Authorization: Bearer {{accessToken}}
 ### 테이스팅 태그 추출 - 매칭 없음
 GET {{host}}/api/v1/tasting-tags/extract?text=그냥 평범한 위스키입니다
 Authorization: Bearer {{accessToken}}
+
+### 테이스팅 태그 추출 - 포함 매칭
+GET {{host}}/api/v1/tasting-tags/extract?text=스모키향이 좋아요
+Authorization: Bearer {{accessToken}}

@@ -16,4 +16,5 @@ public record ResourceLogResponse(
     String viewUrl,
     String rootPath,
     String bucketName,
-    LocalDateTime createAt) {}
+    LocalDateTime createAt,
+    LocalDateTime lastModifyAt) {}

@@ -1,4 +1,4 @@
-package app.bottlenote.alcohols.controller;
+package app.docs.alcohols;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -16,6 +16,7 @@ import static org.springframework.restdocs.request.RequestDocumentation.paramete
 import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import app.bottlenote.alcohols.controller.TastingTagController;
 import app.bottlenote.alcohols.service.TastingTagService;
 import app.external.docs.AbstractRestDocs;
 import java.util.List;
@@ -26,7 +27,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 @Tag("rest-docs")
 @DisplayName("TastingTag API 문서화 테스트")
-class TastingTagControllerRestDocsTest extends AbstractRestDocs {
+class RestTastingTagControllerTest extends AbstractRestDocs {
 
   private final TastingTagService tastingTagService = mock(TastingTagService.class);
 

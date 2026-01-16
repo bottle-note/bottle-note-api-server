@@ -74,8 +74,8 @@ class TastingTagIntegrationTest extends IntegrationTestSupport {
   }
 
   @Test
-  @DisplayName("부분 매칭은 제외된다")
-  void excludePartialMatch() throws Exception {
+  @DisplayName("부분 매칭을 허용한다")
+  void allowPartialMatch() throws Exception {
     // given
     String text = "바닐라빈 향이 좋고 꿀물처럼 달콤해요";
 
@@ -92,7 +92,7 @@ class TastingTagIntegrationTest extends IntegrationTestSupport {
 
     // then
     List<String> tags = extractDataAsList(result);
-    assertThat(tags).isEmpty();
+    assertThat(tags).containsExactlyInAnyOrder("바닐라", "꿀");
   }
 
   @Test

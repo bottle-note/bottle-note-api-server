@@ -20,7 +20,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -221,6 +220,7 @@ class ImageUploadUnitTest {
   static class InMemoryResourceLogRepository implements ResourceLogRepository {
 
     private final Map<Long, ResourceLog> database = new HashMap<>();
+    private final Map<String, Long> resourceKeyIndex = new HashMap<>();
 
     @Override
     public ResourceLog save(ResourceLog resourceLog) {
@@ -230,6 +230,7 @@ class ImageUploadUnitTest {
         ReflectionTestUtils.setField(resourceLog, "id", id);
       }
       database.put(id, resourceLog);
+      resourceKeyIndex.put(resourceLog.getResourceKey(), id);
       return resourceLog;
     }
 
@@ -239,10 +240,12 @@ class ImageUploadUnitTest {
     }
 
     @Override
-    public List<ResourceLog> findByResourceKey(String resourceKey) {
-      return database.values().stream()
-          .filter(log -> log.getResourceKey().equals(resourceKey))
-          .toList();
+    public Optional<ResourceLog> findByResourceKey(String resourceKey) {
+      Long id = resourceKeyIndex.get(resourceKey);
+      if (id == null) {
+        return Optional.empty();
+      }
+      return Optional.ofNullable(database.get(id));
     }
 
     @Override
@@ -269,19 +272,14 @@ class ImageUploadUnitTest {
     }
 
     @Override
-    public Optional<ResourceLog> findLatestByResourceKey(String resourceKey) {
-      return database.values().stream()
-          .filter(log -> log.getResourceKey().equals(resourceKey))
-          .max(Comparator.comparing(ResourceLog::getCreateAt));
-    }
-
-    @Override
     public void delete(ResourceLog resourceLog) {
+      resourceKeyIndex.remove(resourceLog.getResourceKey());
       database.remove(resourceLog.getId());
     }
 
     public void clear() {
       database.clear();
+      resourceKeyIndex.clear();
     }
 
     public List<ResourceLog> findAll() {

@@ -39,4 +39,14 @@ public class AlcoholPopularService {
             34L, 41L, 45L, 49L, 63L, 102L, 105L, 118L, 139L, 140L, 153L, 162L, 167L, 170L, 172L);
     return popularQueryRepository.getSpringItems(userId, tags, excludedTags, pageable);
   }
+
+  @Transactional(readOnly = true)
+  public List<PopularItem> getPopularByViewsWeekly(Integer top, Long userId) {
+    return popularQueryRepository.getPopularByViewsWeekly(userId, top);
+  }
+
+  @Transactional(readOnly = true)
+  public List<PopularItem> getPopularByViewsMonthly(Integer top, Long userId) {
+    return popularQueryRepository.getPopularByViewsMonthly(userId, top);
+  }
 }

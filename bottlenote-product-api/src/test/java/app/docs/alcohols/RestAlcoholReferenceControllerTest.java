@@ -1,4 +1,4 @@
-package app.bottlenote.alcohols.controller;
+package app.docs.alcohols;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -17,6 +17,7 @@ import static org.springframework.restdocs.request.RequestDocumentation.pathPara
 import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import app.bottlenote.alcohols.controller.AlcoholReferenceController;
 import app.bottlenote.alcohols.dto.request.CurationKeywordSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.alcohols.dto.response.CurationKeywordResponse;
@@ -32,7 +33,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 @Tag("rest-docs")
 @DisplayName("큐레이션 키워드 API 문서화 테스트")
-class AlcoholReferenceControllerRestDocsTest extends AbstractRestDocs {
+class RestAlcoholReferenceControllerTest extends AbstractRestDocs {
 
   private final AlcoholReferenceService alcoholReferenceService =
       mock(AlcoholReferenceService.class);

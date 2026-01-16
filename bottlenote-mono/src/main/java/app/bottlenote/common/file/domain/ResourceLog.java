@@ -1,5 +1,6 @@
 package app.bottlenote.common.file.domain;
 
+import app.bottlenote.common.domain.BaseEntity;
 import app.bottlenote.common.file.constant.ResourceEventType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -9,20 +10,17 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.CreatedDate;
 
 @Getter
 @Entity(name = "resource_log")
 @Table(name = "resource_logs")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ResourceLog {
+public class ResourceLog extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,7 +31,7 @@ public class ResourceLog {
   private Long userId;
 
   @Comment("리소스 키 (S3 객체 키 등)")
-  @Column(name = "resource_key", nullable = false, length = 1024)
+  @Column(name = "resource_key", nullable = false, length = 1024, unique = true)
   private String resourceKey;
 
   @Comment("리소스 타입: IMAGE")
@@ -65,16 +63,6 @@ public class ResourceLog {
   @Column(name = "bucket_name", length = 128)
   private String bucketName;
 
-  @CreatedDate
-  @Comment("이벤트 발생일")
-  @Column(name = "create_at", nullable = false, updatable = false)
-  private LocalDateTime createAt;
-
-  @CreatedBy
-  @Comment("이벤트 발생자")
-  @Column(name = "create_by", length = 255)
-  private String createBy;
-
   @Builder
   public ResourceLog(
       Long id,
@@ -86,9 +74,7 @@ public class ResourceLog {
       String referenceType,
       String viewUrl,
       String rootPath,
-      String bucketName,
-      LocalDateTime createAt,
-      String createBy) {
+      String bucketName) {
     this.id = id;
     this.userId = userId;
     this.resourceKey = resourceKey;
@@ -99,7 +85,54 @@ public class ResourceLog {
     this.viewUrl = viewUrl;
     this.rootPath = rootPath;
     this.bucketName = bucketName;
-    this.createAt = createAt != null ? createAt : LocalDateTime.now();
-    this.createBy = createBy;
+  }
+
+  /** 리소스를 활성화 상태로 변경합니다. */
+  public ResourceLog activate(Long referenceId, String referenceType) {
+    validateStateTransition(ResourceEventType.ACTIVATED);
+    this.eventType = ResourceEventType.ACTIVATED;
+    this.referenceId = referenceId;
+    this.referenceType = referenceType;
+    return this;
+  }
+
+  /** 리소스를 무효화 상태로 변경합니다. */
+  public ResourceLog invalidate() {
+    validateStateTransition(ResourceEventType.INVALIDATED);
+    this.eventType = ResourceEventType.INVALIDATED;
+    return this;
+  }
+
+  /** 리소스를 삭제 상태로 변경합니다. */
+  public ResourceLog markDeleted() {
+    validateStateTransition(ResourceEventType.DELETED);
+    this.eventType = ResourceEventType.DELETED;
+    return this;
+  }
+
+  private void validateStateTransition(ResourceEventType newState) {
+    if (!canTransitionTo(newState)) {
+      throw new IllegalStateException(
+          String.format("%s 상태에서 %s 상태로 전이할 수 없습니다.", this.eventType, newState));
+    }
+  }
+
+  /** 현재 상태에서 새 상태로 전이가 가능한지 확인합니다. */
+  public boolean canTransitionTo(ResourceEventType newState) {
+    return switch (this.eventType) {
+      case CREATED ->
+          newState == ResourceEventType.ACTIVATED || newState == ResourceEventType.INVALIDATED;
+      case ACTIVATED -> newState == ResourceEventType.INVALIDATED;
+      case INVALIDATED -> newState == ResourceEventType.DELETED;
+      case DELETED -> false;
+    };
+  }
+
+  public boolean isActivated() {
+    return this.eventType == ResourceEventType.ACTIVATED;
+  }
+
+  public boolean isInvalidated() {
+    return this.eventType == ResourceEventType.INVALIDATED;
   }
 }

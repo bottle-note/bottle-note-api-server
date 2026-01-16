@@ -7,6 +7,7 @@ import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_A
 import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
 
 import app.bottlenote.common.file.event.payload.ImageResourceActivatedEvent;
+import app.bottlenote.common.file.event.payload.ImageResourceInvalidatedEvent;
 import app.bottlenote.common.image.ImageUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.support.help.domain.Help;
@@ -19,8 +20,11 @@ import app.bottlenote.support.help.dto.response.HelpListResponse;
 import app.bottlenote.support.help.dto.response.HelpResultResponse;
 import app.bottlenote.support.help.exception.HelpException;
 import app.bottlenote.user.facade.UserFacade;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -72,12 +76,30 @@ public class HelpService {
       throw new HelpException(HELP_NOT_AUTHORIZED);
     }
 
+    // 기존 이미지 목록 추출 (수정 전)
+    List<String> oldImageUrls =
+        help.getHelpImageList().getHelpImages().stream()
+            .map(image -> image.getHelpimageInfo().getImageUrl())
+            .toList();
+
     help.updateHelp(
         helpUpsertRequest.title(),
         helpUpsertRequest.content(),
         helpUpsertRequest.imageUrlList(),
         helpUpsertRequest.type());
 
+    // 새 이미지 목록 추출
+    List<String> newImageUrls =
+        Objects.requireNonNullElse(
+                helpUpsertRequest.imageUrlList(), Collections.<HelpImageItem>emptyList())
+            .stream()
+            .map(HelpImageItem::viewUrl)
+            .toList();
+
+    // 제거된 이미지에 대해 INVALIDATED 이벤트 발행
+    publishImageInvalidatedEvent(oldImageUrls, newImageUrls, help.getId());
+
+    // 새 이미지에 대해 ACTIVATED 이벤트 발행
     publishImageActivatedEvent(helpUpsertRequest.imageUrlList(), help.getId());
 
     return HelpResultResponse.response(MODIFY_SUCCESS, help.getId());
@@ -93,7 +115,16 @@ public class HelpService {
       throw new HelpException(HELP_NOT_AUTHORIZED);
     }
 
+    // 기존 이미지 목록 추출 (삭제 전)
+    List<String> oldImageUrls =
+        help.getHelpImageList().getHelpImages().stream()
+            .map(image -> image.getHelpimageInfo().getImageUrl())
+            .toList();
+
     help.deleteHelp();
+
+    // 모든 이미지에 대해 INVALIDATED 이벤트 발행
+    publishImageInvalidatedEvent(oldImageUrls, Collections.emptyList(), help.getId());
 
     return HelpResultResponse.response(DELETE_SUCCESS, help.getId());
   }
@@ -146,6 +177,25 @@ public class HelpService {
     if (!resourceKeys.isEmpty()) {
       eventPublisher.publishEvent(
           ImageResourceActivatedEvent.of(resourceKeys, helpId, REFERENCE_TYPE_HELP));
+    }
+  }
+
+  private void publishImageInvalidatedEvent(
+      List<String> oldImageUrls, List<String> newImageUrls, Long helpId) {
+    if (oldImageUrls == null || oldImageUrls.isEmpty() || helpId == null) {
+      return;
+    }
+    Set<String> newUrlSet =
+        new HashSet<>(Objects.requireNonNullElse(newImageUrls, Collections.emptyList()));
+    List<String> removedResourceKeys =
+        oldImageUrls.stream()
+            .filter(url -> !newUrlSet.contains(url))
+            .map(ImageUtil::extractResourceKey)
+            .filter(Objects::nonNull)
+            .toList();
+    if (!removedResourceKeys.isEmpty()) {
+      eventPublisher.publishEvent(
+          ImageResourceInvalidatedEvent.of(removedResourceKeys, helpId, REFERENCE_TYPE_HELP));
     }
   }
 }
