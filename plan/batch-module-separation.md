@@ -233,3 +233,83 @@ spring:
 
 1. **워크플로우 전략**: 기존 워크플로우에 batch 추가 vs 별도 워크플로우 생성
 2. **리소스 할당**: batch 서버 CPU/메모리 스펙
+
+---
+
+## 알려진 버그: BestReviewReader 무한 루프
+
+> 분리 작업 전 반드시 수정 필요
+
+### 현상
+
+- `bestReviewSelectedStep`이 종료되지 않고 `STARTED` 상태로 유지
+- READ_COUNT/WRITE_COUNT가 비정상적으로 증가 (수천만~수억 건)
+- 베스트 리뷰 초기화(`resetBestReviewStep`)는 완료되지만, 새로운 베스트 리뷰 선정이 끝나지 않음
+
+### 증거 (BATCH_STEP_EXECUTION 테이블)
+
+```
+STEP_NAME              | STATUS  | READ_COUNT  | WRITE_COUNT
+-----------------------|---------|-------------|-------------
+bestReviewSelectedStep | STARTED | 111,320,100 | 111,320,100  ← 무한 루프
+resetBestReviewStep    | COMPLETED | 0         | 0            ← 정상
+```
+
+### 원인
+
+`BestReviewReader.read()` 메서드의 논리 오류:
+
+```java
+@Override
+public BestReviewPayload read() {
+    if (results == null) {
+        results = jdbcTemplate.query(query, ...);  // 쿼리 실행
+        currentIndex = 0;
+    }
+
+    BestReviewPayload nextItem = null;
+    if (currentIndex < results.size()) {
+        nextItem = results.get(currentIndex);
+        currentIndex++;
+    }
+
+    if (currentIndex >= results.size()) {
+        results = null;  // ← 문제: 마지막 아이템 반환 시 null로 초기화
+    }
+
+    return nextItem;  // ← 마지막 아이템 반환
+}
+```
+
+**문제 흐름** (size=100 가정):
+
+1. `currentIndex = 99` (마지막)
+2. `nextItem = results.get(99)` 할당
+3. `currentIndex++` → 100
+4. `100 >= 100` → `results = null`
+5. `return nextItem` (마지막 아이템 반환)
+6. 다음 `read()` 호출 → `results == null` → 쿼리 다시 실행 → **무한 반복**
+
+**올바른 동작**: 마지막 아이템 반환 후, 다음 `read()` 호출 시 `null`을 반환해야 배치가 종료됨.
+
+### 해결 방안
+
+```java
+@Override
+public BestReviewPayload read() {
+    if (results == null) {
+        results = jdbcTemplate.query(query, new BestReviewPayload.BestReviewMapper());
+        currentIndex = 0;
+    }
+
+    if (currentIndex >= results.size()) {
+        return null;  // 모든 아이템 처리 완료 → 배치 종료
+    }
+
+    return results.get(currentIndex++);
+}
+```
+
+### 파일 위치
+
+`bottlenote-batch/src/main/java/app/batch/bottlenote/job/BestReviewSelectionJobConfig.java` (132~162 라인)
