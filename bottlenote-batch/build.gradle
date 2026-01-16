@@ -1,10 +1,31 @@
 // batch-module
+
+bootJar {
+	enabled = true
+	archiveFileName = 'bottlenote-batch.jar'
+}
+
+jar {
+	enabled = true
+}
+
 dependencies {
 	implementation project(':bottlenote-mono')
+	//noinspection GrUnresolvedAccess
+	testImplementation project(':bottlenote-mono').sourceSets.test.output
 
+
+	// batch
+	implementation libs.spring.boot.starter
 	implementation libs.spring.boot.starter.batch
-	testImplementation libs.spring.batch.test
 	implementation libs.spring.boot.starter.quartz
+
+	// Test - Lombok
+	testAnnotationProcessor libs.lombok
+
+	// Test
+	testImplementation libs.bundles.testcontainers.complete
+	testImplementation libs.spring.batch.test
 }
 
 tasks.register("prepareKotlinBuildScriptModel") {}
