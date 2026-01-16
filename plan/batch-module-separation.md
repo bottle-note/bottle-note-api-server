@@ -195,8 +195,41 @@ public class BatchApplication {
 | 배포 방식 | Deployment (상주형) | Quartz 내장 스케줄러 사용 |
 | 설정 방식 | 독립 `application.yml` | profile include 없이 배치 전용 설정 |
 
+## DB 커넥션 풀 설계
+
+### 배경
+
+- 프리티어 DB 사용 중 (max_connections: 60~100개 추정)
+- 3개 앱이 각각 커넥션 풀을 가지므로 총량 조정 필요
+
+### 권장 배분
+
+| 앱 | 풀 사이즈 | 이유 |
+|---|---|---|
+| product-api | 10~15 | 메인 트래픽 처리, 동시 요청 많음 |
+| admin-api | 5 | 관리자 전용, 사용 빈도 낮음 |
+| batch-app | 3 | 스케줄 작업, 동시성 낮음 |
+| **여유분** | 나머지 | 시스템/모니터링 용도 |
+
+### batch-app 설정 예시
+
+```yaml
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 3
+      minimum-idle: 1
+      connection-timeout: 30000
+      idle-timeout: 600000
+```
+
+### 고려사항
+
+- 배치는 동시 요청이 거의 없음 (스케줄 기반)
+- 매일 자정에 Job 3개 순차 실행 → 커넥션 2~3개면 충분
+- product-api가 주력이므로 커넥션 여유 확보 필요
+
 ## 미결정 사항
 
 1. **워크플로우 전략**: 기존 워크플로우에 batch 추가 vs 별도 워크플로우 생성
 2. **리소스 할당**: batch 서버 CPU/메모리 스펙
-3. **DB 커넥션 풀**: product/admin/batch 3개가 각각 커넥션 풀 가짐, 총 커넥션 수 조정 필요 여부
