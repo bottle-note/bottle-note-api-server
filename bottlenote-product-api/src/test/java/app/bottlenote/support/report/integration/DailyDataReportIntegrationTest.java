@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 @Tag("integration")
-@DisplayName("[integration] [service] DailyDataReportService - TestContainers 실제 데이터 통합 테스트")
+@DisplayName("[integration] [service] DailyDataReportService")
 class DailyDataReportIntegrationTest extends IntegrationTestSupport {
   @Autowired private DailyDataReportService dailyDataReportService;
   @Autowired private JdbcTemplate jdbcTemplate;

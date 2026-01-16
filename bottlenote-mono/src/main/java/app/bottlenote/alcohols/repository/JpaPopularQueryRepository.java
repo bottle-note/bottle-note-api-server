@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 
 @JpaRepositoryImpl
 public interface JpaPopularQueryRepository
-    extends PopularQueryRepository, JpaRepository<Alcohol, Long> {
+    extends PopularQueryRepository, CustomPopularQueryRepository, JpaRepository<Alcohol, Long> {
 
   @Override
   @Query(

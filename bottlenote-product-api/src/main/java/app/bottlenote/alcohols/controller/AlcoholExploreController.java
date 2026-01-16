@@ -30,6 +30,7 @@ public class AlcoholExploreController {
       @RequestParam(required = false) List<String> keywords,
       @RequestParam(required = false, defaultValue = "20") Integer size,
       @RequestParam(required = false, defaultValue = "0") Long cursor) {
+    if (keywords == null) keywords = List.of();
     Long userId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
     Pair<Long, CursorResponse<AlcoholDetailItem>> pair =
         alcoholQueryService.getStandardExplore(userId, keywords, cursor, size);

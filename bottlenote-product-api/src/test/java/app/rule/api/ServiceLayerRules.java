@@ -297,6 +297,7 @@ public class ServiceLayerRules extends AbstractRules {
     LOMBOK("Lombok 라이브러리", "lombok."),
     SLF4J("로깅 라이브러리", "org.slf4j"),
     APACHE_COMMONS("Apache Commons 라이브러리", "org.apache.commons."),
+    AHOCORASICK("Aho-Corasick 라이브러리", "org.ahocorasick."),
 
     // 애플리케이션 계층 패키지 (MEDIUM: 아키텍처에 따라 허용되는 패키지)
     SERVICE("서비스 계층", ".service."),

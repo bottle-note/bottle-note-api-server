@@ -43,3 +43,49 @@ include::{snippets}/alcohols/populars/spring/curl-request.adoc[]
 [discrete]
 include::{snippets}/alcohols/populars/spring/response-fields.adoc[]
 include::{snippets}/alcohols/populars/spring/response-body.adoc[]
+
+=== 주간 조회수 기반 인기 위스키 조회 ===
+
+주간 조회수를 기준으로 인기 위스키를 조회합니다.
+
+조회수가 부족한 경우 평점이 높은 위스키로 채워서 반환합니다.
+
+[source]
+----
+GET /api/v1/popular/view/week
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+include::{snippets}/alcohols/populars/view/week/query-parameters.adoc[]
+
+[discrete]
+==== 응답 파라미터  ====
+
+[discrete]
+include::{snippets}/alcohols/populars/view/week/response-fields.adoc[]
+include::{snippets}/alcohols/populars/view/week/response-body.adoc[]
+
+=== 월간 조회수 기반 인기 위스키 조회 ===
+
+월간 조회수를 기준으로 인기 위스키를 조회합니다.
+
+조회수가 부족한 경우 평점이 높은 위스키로 채워서 반환합니다.
+
+[source]
+----
+GET /api/v1/popular/view/monthly
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+include::{snippets}/alcohols/populars/view/monthly/query-parameters.adoc[]
+
+[discrete]
+==== 응답 파라미터  ====
+
+[discrete]
+include::{snippets}/alcohols/populars/view/monthly/response-fields.adoc[]
+include::{snippets}/alcohols/populars/view/monthly/response-body.adoc[]

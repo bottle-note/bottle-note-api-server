@@ -102,6 +102,9 @@ include::api/alcohols/curations.adoc[]
 '''
 include::api/alcohols/popular.adoc[]
 
+'''
+include::api/alcohols/tasting-tags.adoc[]
+
 == 리뷰 (review) 관련 API
 
 include::api/review/review-create.adoc[]

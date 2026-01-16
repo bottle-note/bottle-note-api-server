@@ -23,4 +23,19 @@ public class ImageUtil {
     String[] split = splitPath(imageUrl);
     return split[2];
   }
+
+  public static String extractResourceKey(String viewUrl) {
+    if (viewUrl == null || viewUrl.isBlank()) {
+      return null;
+    }
+    int protocolEnd = viewUrl.indexOf("://");
+    if (protocolEnd == -1) {
+      return viewUrl;
+    }
+    int firstSlashAfterHost = viewUrl.indexOf("/", protocolEnd + 3);
+    if (firstSlashAfterHost == -1) {
+      return "";
+    }
+    return viewUrl.substring(firstSlashAfterHost + 1);
+  }
 }

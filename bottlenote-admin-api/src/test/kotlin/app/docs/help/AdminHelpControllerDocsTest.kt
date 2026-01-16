@@ -152,7 +152,7 @@ class AdminHelpControllerDocsTest {
 
 		// when & then
 		assertThat(
-			mvc.get().uri("/helps/1")
+			mvc.get().uri("/helps/{helpId}", 1L)
 				.header("Authorization", "Bearer test_access_token")
 		)
 			.hasStatusOk()
@@ -177,7 +177,7 @@ class AdminHelpControllerDocsTest {
 						fieldWithPath("data.content").type(JsonFieldType.STRING).description("문의 내용"),
 						fieldWithPath("data.type").type(JsonFieldType.STRING).description("문의 유형"),
 						fieldWithPath("data.imageUrlList[].order").type(JsonFieldType.NUMBER).description("이미지 순서"),
-						fieldWithPath("data.imageUrlList[].imageUrl").type(JsonFieldType.STRING).description("이미지 URL"),
+						fieldWithPath("data.imageUrlList[].viewUrl").type(JsonFieldType.STRING).description("이미지 URL"),
 						fieldWithPath("data.status").type(JsonFieldType.STRING).description("처리 상태"),
 						fieldWithPath("data.adminId").type(JsonFieldType.NULL).description("담당 관리자 ID"),
 						fieldWithPath("data.responseContent").type(JsonFieldType.NULL).description("답변 내용"),
@@ -212,7 +212,7 @@ class AdminHelpControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.post().uri("/helps/1/answer")
+				mvc.post().uri("/helps/{helpId}/answer", 1L)
 					.header("Authorization", "Bearer test_access_token")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(objectMapper.writeValueAsString(request))

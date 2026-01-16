@@ -24,7 +24,7 @@ import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
 @Import(TestContainersConfig.class)
-@ActiveProfiles({"test", "batch"})
+@ActiveProfiles("test")
 @Tag("integration")
 @AutoConfigureMockMvc
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

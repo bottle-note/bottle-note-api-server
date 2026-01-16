@@ -2,6 +2,7 @@ package app.global.security;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
+import app.bottlenote.global.security.constant.MaliciousPathPattern;
 import app.bottlenote.global.security.jwt.JwtAuthenticationEntryPoint;
 import app.bottlenote.global.security.jwt.JwtAuthenticationFilter;
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
@@ -61,7 +62,9 @@ public class SecurityConfig {
         .formLogin(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers("/api/v1/picks/**")
+                auth.requestMatchers(MaliciousPathPattern.getAllPatterns())
+                    .denyAll()
+                    .requestMatchers("/api/v1/picks/**")
                     .authenticated()
                     .requestMatchers("/api/v1/s3/**")
                     .authenticated()

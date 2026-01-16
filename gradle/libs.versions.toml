@@ -28,6 +28,9 @@ jetbrains-annotations = "26.0.2"
 # Caching
 caffeine = "3.1.8"
 
+# Text Processing
+ahocorasick = "0.6.3"
+
 # AWS
 aws-java-sdk-s3 = "1.12.725"
 
@@ -39,12 +42,13 @@ testng = "7.7.0"
 testcontainers = "1.19.8"
 testcontainers-junit = "1.19.8"
 testcontainers-mysql = "1.19.8"
+testcontainers-minio = "1.19.8"
 testcontainers-redis = "2.2.4"
 mockito-inline = "5.2.0"
 archunit = "1.4.0"
 
 # Documentation
-spring-restdocs = "3.0.1"
+spring-restdocs = "3.0.3"
 restdocs-api-spec = "0.19.4"
 
 # Scheduling
@@ -113,6 +117,9 @@ commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "co
 # Caching
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
 
+# Text Processing
+ahocorasick = { module = "org.ahocorasick:ahocorasick", version.ref = "ahocorasick" }
+
 # AWS
 aws-s3 = { module = "com.amazonaws:aws-java-sdk-s3", version.ref = "aws-java-sdk-s3" }
 
@@ -143,6 +150,7 @@ testng = { module = "org.testng:testng", version.ref = "testng" }
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
 testcontainers-junit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers-junit" }
 testcontainers-mysql = { module = "org.testcontainers:mysql", version.ref = "testcontainers-mysql" }
+testcontainers-minio = { module = "org.testcontainers:minio", version.ref = "testcontainers-minio" }
 testcontainers-redis = { module = "com.redis:testcontainers-redis", version.ref = "testcontainers-redis" }
 spring-boot-testcontainers = { module = "org.springframework.boot:spring-boot-testcontainers", version.ref = "spring-boot" }
 mockito-inline = { module = "org.mockito:mockito-inline", version.ref = "mockito-inline" }
@@ -215,6 +223,7 @@ testcontainers-complete = [
 	"testcontainers",
 	"testcontainers-junit",
 	"testcontainers-mysql",
+	"testcontainers-minio",
 	"testcontainers-redis",
 	"spring-boot-testcontainers"
 ]

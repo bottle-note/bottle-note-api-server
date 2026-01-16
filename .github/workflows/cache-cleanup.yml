@@ -1,0 +1,114 @@
+name: cache cleanup
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # 매일 자정 (UTC)
+  workflow_dispatch:
+    inputs:
+      threshold_gb:
+        description: '삭제 기준 용량 (GB)'
+        required: false
+        default: '5'
+      dry_run:
+        description: '테스트 모드 (삭제 안 함)'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check cache usage
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          USAGE=$(gh api repos/${{ github.repository }}/actions/cache/usage --jq '.active_caches_size_in_bytes')
+          USAGE_GB=$(echo "scale=2; $USAGE / 1024 / 1024 / 1024" | bc)
+          THRESHOLD=${{ inputs.threshold_gb || '5' }}
+
+          echo "현재 캐시 사용량: ${USAGE_GB}GB / 10GB"
+          echo "삭제 기준: ${THRESHOLD}GB"
+          echo "usage_gb=$USAGE_GB" >> $GITHUB_OUTPUT
+          echo "threshold=$THRESHOLD" >> $GITHUB_OUTPUT
+
+          if (( $(echo "$USAGE_GB > $THRESHOLD" | bc -l) )); then
+            echo "should_clean=true" >> $GITHUB_OUTPUT
+            echo "기준 초과 - 정리 필요"
+          else
+            echo "should_clean=false" >> $GITHUB_OUTPUT
+            echo "기준 이하 - 정리 불필요"
+          fi
+
+      - name: List caches before cleanup
+        if: steps.check.outputs.should_clean == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "=== 캐시 목록 (크기순) ==="
+          gh api repos/${{ github.repository }}/actions/caches --paginate \
+            --jq '.actions_caches | sort_by(-.size_in_bytes) | .[:20][] | "\(.key[0:50]) | \(.ref[0:25]) | \(.size_in_bytes / 1024 / 1024 | floor)MB"'
+
+      - name: Delete PR branch caches
+        if: steps.check.outputs.should_clean == 'true' && inputs.dry_run != true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "=== PR 브랜치 캐시 삭제 ==="
+          gh api repos/${{ github.repository }}/actions/caches --paginate \
+            --jq '.actions_caches[] | select(.ref | startswith("refs/pull/")) | .id' | \
+          while read id; do
+            if [ -n "$id" ]; then
+              gh api -X DELETE repos/${{ github.repository }}/actions/caches/$id && echo "Deleted: $id"
+            fi
+          done
+
+      - name: Check usage after PR cleanup
+        if: steps.check.outputs.should_clean == 'true' && inputs.dry_run != true
+        id: after_pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          sleep 3
+          USAGE=$(gh api repos/${{ github.repository }}/actions/cache/usage --jq '.active_caches_size_in_bytes')
+          USAGE_GB=$(echo "scale=2; $USAGE / 1024 / 1024 / 1024" | bc)
+          THRESHOLD=${{ inputs.threshold_gb || '5' }}
+
+          echo "PR 정리 후 사용량: ${USAGE_GB}GB"
+
+          if (( $(echo "$USAGE_GB > $THRESHOLD" | bc -l) )); then
+            echo "still_over=true" >> $GITHUB_OUTPUT
+          else
+            echo "still_over=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Delete old main branch caches (if still over)
+        if: steps.after_pr.outputs.still_over == 'true' && inputs.dry_run != true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "=== main 브랜치 오래된 캐시 삭제 (7일 이상) ==="
+          CUTOFF=$(date -d '7 days ago' -Iseconds)
+
+          gh api repos/${{ github.repository }}/actions/caches --paginate \
+            --jq ".actions_caches[] | select(.ref == \"refs/heads/main\" and .last_accessed_at < \"$CUTOFF\") | .id" | \
+          while read id; do
+            if [ -n "$id" ]; then
+              gh api -X DELETE repos/${{ github.repository }}/actions/caches/$id && echo "Deleted old cache: $id"
+            fi
+          done
+
+      - name: Final usage report
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          sleep 3
+          USAGE=$(gh api repos/${{ github.repository }}/actions/cache/usage --jq '.active_caches_size_in_bytes')
+          USAGE_GB=$(echo "scale=2; $USAGE / 1024 / 1024 / 1024" | bc)
+          COUNT=$(gh api repos/${{ github.repository }}/actions/caches --jq '.total_count')
+
+          echo "=============================="
+          echo "최종 캐시 사용량: ${USAGE_GB}GB / 10GB"
+          echo "캐시 개수: ${COUNT}개"
+          echo "=============================="

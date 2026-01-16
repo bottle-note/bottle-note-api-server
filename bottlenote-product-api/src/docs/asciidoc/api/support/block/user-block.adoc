@@ -7,10 +7,12 @@
 POST /api/v1/blocks
 ----
 
+[discrete]
 ==== 요청 파라미터
 
 include::{snippets}/block-create/request-fields.adoc[]
 
+[discrete]
 ==== 응답 파라미터
 
 include::{snippets}/block-create/response-fields.adoc[]
@@ -26,10 +28,12 @@ include::{snippets}/block-create/response-fields.adoc[]
 DELETE /api/v1/blocks/{blockedUserId}
 ----
 
+[discrete]
 ==== 경로 파라미터
 
 include::{snippets}/block-delete/path-parameters.adoc[]
 
+[discrete]
 ==== 응답 파라미터
 
 include::{snippets}/block-delete/response-fields.adoc[]
@@ -45,6 +49,7 @@ include::{snippets}/block-delete/response-fields.adoc[]
 GET /api/v1/blocks
 ----
 
+[discrete]
 ==== 응답 파라미터
 
 include::{snippets}/block-list/response-fields.adoc[]
@@ -60,6 +65,7 @@ include::{snippets}/block-list/response-fields.adoc[]
 GET /api/v1/blocks/ids
 ----
 
+[discrete]
 ==== 응답 파라미터
 
 include::{snippets}/block-ids/response-fields.adoc[]
@@ -75,10 +81,12 @@ include::{snippets}/block-ids/response-fields.adoc[]
 GET /api/v1/blocks/check/{targetUserId}
 ----
 
+[discrete]
 ==== 경로 파라미터
 
 include::{snippets}/block-check/path-parameters.adoc[]
 
+[discrete]
 ==== 응답 파라미터
 
 include::{snippets}/block-check/response-fields.adoc[]
@@ -92,10 +100,12 @@ include::{snippets}/block-check/response-fields.adoc[]
 GET /api/v1/blocks/mutual-check/{targetUserId}
 ----
 
+[discrete]
 ==== 경로 파라미터
 
 include::{snippets}/block-mutual-check/path-parameters.adoc[]
 
+[discrete]
 ==== 응답 파라미터
 
 include::{snippets}/block-mutual-check/response-fields.adoc[]
@@ -111,6 +121,7 @@ include::{snippets}/block-mutual-check/response-fields.adoc[]
 GET /api/v1/blocks/stats/blocked-by-count
 ----
 
+[discrete]
 ==== 응답 파라미터
 
 include::{snippets}/block-blocked-by-count/response-fields.adoc[]
@@ -124,6 +135,7 @@ include::{snippets}/block-blocked-by-count/response-fields.adoc[]
 GET /api/v1/blocks/stats/blocking-count
 ----
 
+[discrete]
 ==== 응답 파라미터
 
 include::{snippets}/block-blocking-count/response-fields.adoc[]

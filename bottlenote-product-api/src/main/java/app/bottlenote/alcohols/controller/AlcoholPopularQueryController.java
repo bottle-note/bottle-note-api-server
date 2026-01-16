@@ -42,4 +42,23 @@ public class AlcoholPopularQueryController {
     var response = alcoholPopularService.getSpringItems(userId);
     return GlobalResponse.ok(response);
   }
+
+  /** 주간 조회수 기반 인기 위스키 리스트 조회 */
+  @GetMapping("/popular/view/week")
+  public ResponseEntity<?> getPopularByViewsWeekly(@RequestParam(defaultValue = "20") Integer top) {
+    Long userId = getUserIdByContext().orElse(-1L);
+    var populars = alcoholPopularService.getPopularByViewsWeekly(top, userId);
+    var response = PopularsOfWeekResponse.of(populars.size(), populars);
+    return GlobalResponse.ok(response);
+  }
+
+  /** 월간 조회수 기반 인기 위스키 리스트 조회 */
+  @GetMapping("/popular/view/monthly")
+  public ResponseEntity<?> getPopularByViewsMonthly(
+      @RequestParam(defaultValue = "20") Integer top) {
+    Long userId = getUserIdByContext().orElse(-1L);
+    var populars = alcoholPopularService.getPopularByViewsMonthly(top, userId);
+    var response = PopularsOfWeekResponse.of(populars.size(), populars);
+    return GlobalResponse.ok(response);
+  }
 }

@@ -1,5 +1,6 @@
 package app.global.security
 
+import app.bottlenote.global.security.constant.MaliciousPathPattern
 import app.bottlenote.global.security.jwt.AdminJwtAuthenticationFilter
 import app.bottlenote.global.security.jwt.AdminJwtAuthenticationManager
 import org.springframework.context.annotation.Bean
@@ -30,6 +31,7 @@ class SecurityConfig(
 			.httpBasic { it.disable() }
 			.authorizeHttpRequests { auth ->
 				auth
+					.requestMatchers(*MaliciousPathPattern.getAllPatterns()).denyAll()
 					.requestMatchers("/auth/login", "/auth/refresh").permitAll()
 					.requestMatchers("/actuator/**").permitAll()
 					.anyRequest().authenticated()

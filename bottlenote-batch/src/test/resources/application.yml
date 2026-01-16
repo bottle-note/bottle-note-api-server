@@ -1,0 +1,86 @@
+# 배치 테스트 설정
+
+app:
+  type: batch
+  info:
+    server-name: batch-test
+    environment: test
+    git-branch: test
+    git-commit: test
+    git-build-time: test
+  thirdParty:
+    firebase-configuration-file: src/test/resources/service_account_credentials.json
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: bottlenote-batch-test
+  jackson:
+    time-zone: Asia/Seoul
+
+  # JPA
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+    show-sql: false
+
+  # Redis
+  data:
+    redis:
+      repositories:
+        enabled: false
+
+  # Batch
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: always
+
+  # Quartz 비활성화
+  quartz:
+    auto-startup: false
+    job-store-type: memory
+
+# Discord 웹훅 (테스트용)
+discord:
+  webhook:
+    url: https://discord.test.webhook.url
+
+# AWS (테스트용)
+amazon:
+  aws:
+    accessKey: fake-access-key
+    secretKey: fake-secret-key
+    region: ap-northeast-2
+    bucket: fake-bucket
+    cloudFrontUrl: https://fake-cloudfront.net
+
+# Profanity Filter (테스트용)
+profanity:
+  filter:
+    url: https://fake-profanity-filter.test
+
+# Security (테스트용)
+security:
+  jwt:
+    secret-key: c2VjdXJlU2VjcmV0S2V5MTIzNDU2Nzg5MGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6QWJDRGVGR2hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlrSg==
+  nonce:
+    salt: test-salt-value
+
+# Apple (테스트용)
+apple:
+  bundle-id: com.bottlenote.test
+
+# Observability 비활성화
+management:
+  tracing:
+    enabled: false
+  otlp:
+    metrics:
+      export:
+        enabled: false

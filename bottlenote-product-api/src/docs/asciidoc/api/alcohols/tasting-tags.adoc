@@ -1,0 +1,19 @@
+=== 테이스팅 태그 추출 ===
+
+문장(리뷰 내용 등)에서 테이스팅 태그를 추출합니다.
+
+* 입력된 텍스트에서 등록된 테이스팅 태그와 매칭되는 단어를 추출합니다.
+* 부분 매칭은 제외됩니다. (예: "바닐라빈"에서 "바닐라"는 추출되지 않음)
+* 매칭되는 태그가 없으면 빈 배열이 반환됩니다.
+
+[discrete]
+==== 요청 파라미터 ====
+
+include::{snippets}/tasting-tags-extract/httpie-request.adoc[]
+include::{snippets}/tasting-tags-extract/query-parameters.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+include::{snippets}/tasting-tags-extract/response-fields.adoc[]
+include::{snippets}/tasting-tags-extract/response-body.adoc[]
