@@ -26,7 +26,6 @@ spring:
       - datasource
       - external
       - observability
-      - batch
   jackson:
     time-zone: Asia/Seoul
 
