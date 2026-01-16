@@ -32,22 +32,29 @@ spring:
 ## 분리 목표 구조
 
 ```
-┌─────────────────────────────────────┐     ┌─────────────────────────────────────┐
-│   bottlenote-product-api            │     │   bottlenote-batch-app              │
-│   (REST API 서버)                    │     │   (배치 전용 데몬)                   │
-├─────────────────────────────────────┤     ├─────────────────────────────────────┤
-│  - HTTP API 제공                     │     │  - Quartz 스케줄러                   │
-│  - 톰캣 내장                          │     │  - Spring Batch Jobs                │
-│  - batch 의존성 제거                  │     │  - 톰캣 없음 (web-application: none) │
-└────────────────────┬────────────────┘     └────────────────────┬────────────────┘
-                     │                                           │
-                     └────────────────┬──────────────────────────┘
-                                      │
-                     ┌────────────────▼────────────────┐
-                     │      bottlenote-mono            │
-                     │      (공유 라이브러리)           │
-                     └─────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                           배포 모듈 (실행 가능 JAR)                             │
+├───────────────────────┬───────────────────────┬───────────────────────────────┤
+│   product-api         │   admin-api           │   batch-app                   │
+│   :8080               │   :8081               │   :8082                       │
+│   (REST API)          │   (관리자 API)         │   (Quartz + Batch)            │
+└───────────┬───────────┴───────────┬───────────┴───────────────┬───────────────┘
+            │                       │                           │
+            └───────────────────────┼───────────────────────────┘
+                                    │
+            ┌───────────────────────▼───────────────────────┐
+            │              공유 라이브러리 (JAR)              │
+            ├───────────────────────┬───────────────────────┤
+            │   bottlenote-mono     │   bottlenote-          │
+            │   (도메인/비즈니스)    │   observability        │
+            └───────────────────────┴───────────────────────┘
 ```
+
+### 설계 원칙
+
+- **mono 모듈**: 거대한 공유 라이브러리로 유지 (web 의존성 포함)
+- **배포 모듈**: 각각 독립 실행 가능한 Spring Boot JAR
+- **헬스체크**: mono가 web 의존성을 가지므로 톰캣 활용, 포트만 분리
 
 ## 분리 작업 항목
 
@@ -69,10 +76,34 @@ spring:
 ### 3. 배치 모듈 신규 설정
 
 ```yaml
-# application-batch.yml 추가 설정
+# application.yml (batch 전용 - profile include 없이 독립 사용)
+server:
+  port: 8082
+
 spring:
-  main:
-    web-application-type: none  # 톰캣 비활성화
+  application:
+    name: bottlenote-batch
+
+  # Batch 설정
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: never
+
+  # Quartz 설정
+  quartz:
+    job-store-type: jdbc
+    # ... 기존 quartz 설정 유지
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
 ```
 
 ```java
@@ -156,8 +187,16 @@ public class BatchApplication {
 - [ ] 개발 환경 배포 테스트
 - [ ] 운영 환경 배포
 
+## 결정 사항
+
+| 항목 | 결정 | 이유 |
+|------|------|------|
+| 헬스체크 | 톰캣 사용 (포트 8082) | mono가 web 의존성 포함, actuator `/health` 활용 |
+| 배포 방식 | Deployment (상주형) | Quartz 내장 스케줄러 사용 |
+| 설정 방식 | 독립 `application.yml` | profile include 없이 배치 전용 설정 |
+
 ## 미결정 사항
 
 1. **워크플로우 전략**: 기존 워크플로우에 batch 추가 vs 별도 워크플로우 생성
-2. **배포 방식**: Deployment (상주형) vs CronJob (실행형) - 현재 Quartz 사용 중이므로 Deployment 권장
-3. **리소스 할당**: batch 서버 CPU/메모리 스펙
+2. **리소스 할당**: batch 서버 CPU/메모리 스펙
+3. **DB 커넥션 풀**: product/admin/batch 3개가 각각 커넥션 풀 가짐, 총 커넥션 수 조정 필요 여부
