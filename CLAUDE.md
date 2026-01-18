@@ -144,6 +144,42 @@ git submodule update --init --recursive
 
 ## Admin API 구현 규칙
 
+### Admin API 구현 체크리스트
+
+새로운 Admin API를 구현할 때 다음 체크리스트를 따르세요:
+
+#### 1. 요구사항 분석 및 설계
+- [ ] product-api에 동일/유사 기능이 있는지 확인
+- [ ] mono 모듈의 기존 서비스/도메인 로직 재사용 가능 여부 확인
+- [ ] 신규 서비스 메서드가 필요한 경우 mono 모듈에 추가 계획
+- [ ] API 엔드포인트 설계 (HTTP Method, URL 패턴)
+
+#### 2. mono 모듈 수정 (필요 시)
+- [ ] 서비스 클래스에 admin 전용 메서드 추가 (예: `xxxForAdmin`)
+- [ ] 인증 방식 분리: admin은 `adminId`를 파라미터로 받도록 설계
+- [ ] 공통 로직 추출 및 리팩토링 (`private` 메서드 분리)
+- [ ] 기존 테스트 영향 확인 및 수정
+
+#### 3. admin-api 컨트롤러 구현
+- [ ] 패키지: `app.bottlenote.{domain}.presentation`
+- [ ] 클래스명: `Admin{도메인명}Controller`
+- [ ] `@RestController`, `@RequestMapping("/{리소스}")` 설정
+- [ ] 인증이 필요한 API: `SecurityContextUtil.getAdminUserIdByContext()` 호출
+- [ ] 응답: `GlobalResponse.ok(response)` 래핑
+
+#### 4. 테스트 작성
+- [ ] 통합 테스트: `app/integration/{domain}/Admin{도메인명}IntegrationTest.kt`
+  - `IntegrationTestSupport` 상속
+  - `@Tag("admin_integration")` 태그
+  - 인증 성공/실패 케이스
+  - 주요 비즈니스 시나리오
+- [ ] RestDocs 테스트 (API 문서화 필요 시): `app/docs/{domain}/Admin{도메인명}ControllerDocsTest.kt`
+
+#### 5. 검증 및 완료
+- [ ] 컴파일 확인: `./gradlew :bottlenote-admin-api:compileKotlin`
+- [ ] 테스트 실행: `./gradlew :bottlenote-admin-api:admin_integration_test`
+- [ ] API 문서 생성: `./gradlew :bottlenote-admin-api:asciidoctor` (RestDocs 테스트 작성 시)
+
 ### 컨트롤러 작성 규칙
 
 1. **패키지 위치**: `app.bottlenote.{domain}.presentation`
