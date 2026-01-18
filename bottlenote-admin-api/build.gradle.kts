@@ -33,6 +33,9 @@ dependencies {
 
 	// Test - Testcontainers
 	testImplementation(libs.bundles.testcontainers.complete)
+
+	// Test - AWS S3 (for MinIO integration test)
+	testImplementation(libs.aws.s3)
 }
 
 sourceSets {
