@@ -54,7 +54,7 @@ amazon:
     accessKey: fake-access-key
     secretKey: fake-secret-key
     region: ap-northeast-2
-    bucket: fake-bucket
+    bucket: test-bucket
     cloudFrontUrl: https://fake-cloudfront.net
 
 # Profanity Filter
