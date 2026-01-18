@@ -1,0 +1,30 @@
+=== PreSigned URL 발급 ===
+
+- S3 업로드용 PreSigned URL을 발급합니다.
+- 발급된 URL은 지정된 시간(기본 5분) 동안 유효합니다.
+- 여러 개의 URL을 한 번에 발급할 수 있습니다.
+
+[source]
+----
+GET /admin/api/v1/s3/presign-url
+----
+
+[discrete]
+==== 요청 헤더 ====
+
+[discrete]
+include::{snippets}/admin/file/presign-url/request-headers.adoc[]
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/file/presign-url/query-parameters.adoc[]
+include::{snippets}/admin/file/presign-url/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/file/presign-url/response-fields.adoc[]
+include::{snippets}/admin/file/presign-url/http-response.adoc[]

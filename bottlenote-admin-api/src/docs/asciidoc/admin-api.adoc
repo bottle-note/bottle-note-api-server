@@ -41,3 +41,9 @@ include::api/admin-alcohols/alcohols.adoc[]
 == Help API
 
 include::api/admin-help/help.adoc[]
+
+'''
+
+== File API
+
+include::api/admin-file/file.adoc[]
