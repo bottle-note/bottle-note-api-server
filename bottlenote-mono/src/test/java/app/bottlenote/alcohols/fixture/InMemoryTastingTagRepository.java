@@ -22,21 +22,30 @@ public class InMemoryTastingTagRepository implements TastingTagRepository {
 
   @Override
   public Page<AdminTastingTagItem> findAllTastingTags(String keyword, Pageable pageable) {
-    List<AdminTastingTagItem> filtered = tags.stream()
-        .filter(t -> keyword == null || keyword.isEmpty()
-            || t.getKorName().contains(keyword)
-            || t.getEngName().contains(keyword))
-        .map(t -> new AdminTastingTagItem(
-            t.getId(), t.getKorName(), t.getEngName(),
-            t.getIcon(), t.getDescription(),
-            t.getCreateAt(), t.getLastModifyAt()))
-        .toList();
+    List<AdminTastingTagItem> filtered =
+        tags.stream()
+            .filter(
+                t ->
+                    keyword == null
+                        || keyword.isEmpty()
+                        || t.getKorName().contains(keyword)
+                        || t.getEngName().contains(keyword))
+            .map(
+                t ->
+                    new AdminTastingTagItem(
+                        t.getId(),
+                        t.getKorName(),
+                        t.getEngName(),
+                        t.getIcon(),
+                        t.getDescription(),
+                        t.getCreateAt(),
+                        t.getLastModifyAt()))
+            .toList();
 
     int start = (int) pageable.getOffset();
     int end = Math.min(start + pageable.getPageSize(), filtered.size());
-    List<AdminTastingTagItem> pageContent = start < filtered.size()
-        ? filtered.subList(start, end)
-        : List.of();
+    List<AdminTastingTagItem> pageContent =
+        start < filtered.size() ? filtered.subList(start, end) : List.of();
 
     return new PageImpl<>(pageContent, pageable, filtered.size());
   }
