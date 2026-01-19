@@ -1,7 +1,7 @@
 package app.docs.auth
 
 import app.bottlenote.auth.config.RootAdminProperties
-import app.bottlenote.auth.persentaton.AuthController
+import app.bottlenote.auth.presentation.AuthController
 import app.bottlenote.global.security.SecurityContextUtil
 import app.bottlenote.user.constant.AdminRole
 import app.bottlenote.user.dto.request.AdminSignupRequest

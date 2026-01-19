@@ -1,4 +1,4 @@
-package app.bottlenote.auth.persentaton
+package app.bottlenote.auth.presentation
 
 import app.bottlenote.auth.config.RootAdminProperties
 import app.bottlenote.global.data.response.GlobalResponse
