@@ -1,5 +1,7 @@
 package app.bottlenote.alcohols.domain;
 
+import static app.bottlenote.alcohols.repository.CustomAlcoholQueryRepository.AdminAlcoholDetailProjection;
+
 import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest;
@@ -14,8 +16,6 @@ import java.util.List;
 import java.util.Optional;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.data.domain.Page;
-
-import static app.bottlenote.alcohols.repository.CustomAlcoholQueryRepository.AdminAlcoholDetailProjection;
 
 /** 알코올 조회 질의에 관한 애그리거트를 정의합니다. */
 public interface AlcoholQueryRepository {
