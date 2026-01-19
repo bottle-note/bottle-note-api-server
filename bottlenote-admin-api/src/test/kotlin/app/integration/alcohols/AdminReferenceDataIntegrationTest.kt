@@ -30,25 +30,25 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 	inner class TastingTagsApi {
 
 		@Test
-		@DisplayName("전체 테이스팅 태그 목록을 조회할 수 있다")
+		@DisplayName("전체 테이스팅 태그 목록을 페이지네이션으로 조회할 수 있다")
 		fun getAllTastingTagsSuccess() {
 			// when & then
 			assertThat(
-				mockMvcTester.get().uri("/tasting-tags")
+				mockMvcTester.get().uri("/tasting-tags?page=0&size=20")
 					.header("Authorization", "Bearer $accessToken")
 			)
 				.hasStatusOk()
 				.bodyJson()
 				.extractingPath("$.success").isEqualTo(true)
 
-			// 응답이 리스트 형태임을 확인
+			// 페이지네이션 메타 정보 확인
 			assertThat(
-				mockMvcTester.get().uri("/tasting-tags")
+				mockMvcTester.get().uri("/tasting-tags?page=0&size=10")
 					.header("Authorization", "Bearer $accessToken")
 			)
 				.hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data").isNotNull
+				.extractingPath("$.meta.size").isEqualTo(10)
 		}
 
 		@Test
@@ -67,14 +67,14 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 	inner class RegionsApi {
 
 		@Test
-		@DisplayName("전체 지역 목록을 조회할 수 있다")
+		@DisplayName("전체 지역 목록을 페이지네이션으로 조회할 수 있다")
 		fun getAllRegionsSuccess() {
 			// given - alcoholTestFactory에서 region 데이터가 함께 생성됨
 			alcoholTestFactory.persistAlcohols(1)
 
 			// when & then
 			assertThat(
-				mockMvcTester.get().uri("/regions")
+				mockMvcTester.get().uri("/regions?page=0&size=20")
 					.header("Authorization", "Bearer $accessToken")
 			)
 				.hasStatusOk()
@@ -83,19 +83,23 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 		}
 
 		@Test
-		@DisplayName("지역 목록이 메타 정보를 포함한다")
-		fun getRegionsWithMetaInfo() {
+		@DisplayName("지역 목록이 페이지네이션 메타 정보를 포함한다")
+		fun getRegionsWithPaginationMeta() {
 			// given
 			alcoholTestFactory.persistAlcohols(1)
 
-			// when & then - 응답 데이터 확인
-			val result = mockMvcTester.get().uri("/regions")
+			// when & then - 응답 데이터 및 페이지네이션 메타 확인
+			val result = mockMvcTester.get().uri("/regions?page=0&size=10")
 				.header("Authorization", "Bearer $accessToken")
 
 			assertThat(result)
 				.hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data").isNotNull
+				.extractingPath("$.meta.page").isEqualTo(0)
+
+			assertThat(result)
+				.bodyJson()
+				.extractingPath("$.meta.totalElements").isNotNull
 
 			// 방어로직: 인증 없이 요청 시 실패
 			assertThat(
@@ -110,14 +114,14 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 	inner class DistilleriesApi {
 
 		@Test
-		@DisplayName("전체 증류소 목록을 조회할 수 있다")
+		@DisplayName("전체 증류소 목록을 페이지네이션으로 조회할 수 있다")
 		fun getAllDistilleriesSuccess() {
 			// given - alcoholTestFactory에서 distillery 데이터가 함께 생성됨
 			alcoholTestFactory.persistAlcohols(1)
 
 			// when & then
 			assertThat(
-				mockMvcTester.get().uri("/distilleries")
+				mockMvcTester.get().uri("/distilleries?page=0&size=20")
 					.header("Authorization", "Bearer $accessToken")
 			)
 				.hasStatusOk()
@@ -126,13 +130,13 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 		}
 
 		@Test
-		@DisplayName("증류소 목록이 필수 필드를 포함한다")
-		fun getDistilleriesWithRequiredFields() {
+		@DisplayName("증류소 목록을 키워드로 검색할 수 있다")
+		fun getDistilleriesWithKeyword() {
 			// given
 			alcoholTestFactory.persistAlcohols(1)
 
-			// when & then
-			val result = mockMvcTester.get().uri("/distilleries")
+			// when & then - 키워드 검색
+			val result = mockMvcTester.get().uri("/distilleries?keyword=&page=0&size=20")
 				.header("Authorization", "Bearer $accessToken")
 
 			assertThat(result)

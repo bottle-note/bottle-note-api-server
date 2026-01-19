@@ -6,16 +6,22 @@ import app.helper.alcohols.AlcoholsHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.BDDMockito.given
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document
 import org.springframework.restdocs.operation.preprocess.Preprocessors.*
 import org.springframework.restdocs.payload.JsonFieldType
 import org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath
 import org.springframework.restdocs.payload.PayloadDocumentation.responseFields
+import org.springframework.restdocs.request.RequestDocumentation.parameterWithName
+import org.springframework.restdocs.request.RequestDocumentation.queryParameters
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.assertj.MockMvcTester
 
@@ -38,13 +44,14 @@ class AdminTastingTagControllerDocsTest {
 	fun getAllTastingTags() {
 		// given
 		val items = AlcoholsHelper.createAdminTastingTagItems(3)
+		val page = PageImpl(items)
 
-		given(tastingTagRepository.findAllTastingTags())
-			.willReturn(items)
+		given(tastingTagRepository.findAllTastingTags(anyString(), any(Pageable::class.java)))
+			.willReturn(page)
 
 		// when & then
 		assertThat(
-			mvc.get().uri("/tasting-tags")
+			mvc.get().uri("/tasting-tags?keyword=&page=0&size=20&sortOrder=ASC")
 		)
 			.hasStatusOk()
 			.apply(
@@ -52,6 +59,12 @@ class AdminTastingTagControllerDocsTest {
 					"admin/tasting-tags/list",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
+					queryParameters(
+						parameterWithName("keyword").description("검색어 (한글명/영문명)").optional(),
+						parameterWithName("page").description("페이지 번호 (0부터 시작, 기본값: 0)").optional(),
+						parameterWithName("size").description("페이지 크기 (기본값: 20)").optional(),
+						parameterWithName("sortOrder").description("정렬 방향 (ASC/DESC, 기본값: ASC)").optional()
+					),
 					responseFields(
 						fieldWithPath("success").type(JsonFieldType.BOOLEAN).description("응답 성공 여부"),
 						fieldWithPath("code").type(JsonFieldType.NUMBER).description("응답 코드"),
@@ -65,6 +78,11 @@ class AdminTastingTagControllerDocsTest {
 						fieldWithPath("data[].modifiedAt").type(JsonFieldType.STRING).description("수정일시"),
 						fieldWithPath("errors").type(JsonFieldType.ARRAY).description("에러 목록"),
 						fieldWithPath("meta").type(JsonFieldType.OBJECT).description("메타 정보"),
+						fieldWithPath("meta.page").type(JsonFieldType.NUMBER).description("현재 페이지 번호"),
+						fieldWithPath("meta.size").type(JsonFieldType.NUMBER).description("페이지 크기"),
+						fieldWithPath("meta.totalElements").type(JsonFieldType.NUMBER).description("전체 요소 수"),
+						fieldWithPath("meta.totalPages").type(JsonFieldType.NUMBER).description("전체 페이지 수"),
+						fieldWithPath("meta.hasNext").type(JsonFieldType.BOOLEAN).description("다음 페이지 존재 여부"),
 						fieldWithPath("meta.serverVersion").type(JsonFieldType.STRING).description("서버 버전").ignored(),
 						fieldWithPath("meta.serverEncoding").type(JsonFieldType.STRING).description("서버 인코딩").ignored(),
 						fieldWithPath("meta.serverResponseTime").type(JsonFieldType.STRING).description("서버 응답 시간").ignored(),
