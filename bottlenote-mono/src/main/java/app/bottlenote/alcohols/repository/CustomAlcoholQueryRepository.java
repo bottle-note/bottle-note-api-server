@@ -11,6 +11,7 @@ import app.bottlenote.global.service.cursor.PageResponse;
 import java.util.List;
 import java.util.Optional;
 import org.apache.commons.lang3.tuple.Pair;
+import java.time.LocalDateTime;
 import org.springframework.data.domain.Page;
 
 public interface CustomAlcoholQueryRepository {
@@ -25,4 +26,33 @@ public interface CustomAlcoholQueryRepository {
       Long userId, List<String> keyword, Long cursor, Integer size);
 
   Page<AdminAlcoholItem> searchAdminAlcohols(AdminAlcoholSearchRequest request);
+
+  Optional<AdminAlcoholDetailProjection> findAdminAlcoholDetailById(Long alcoholId);
+
+  record AdminAlcoholDetailProjection(
+      Long alcoholId,
+      String korName,
+      String engName,
+      String imageUrl,
+      String type,
+      String korCategory,
+      String engCategory,
+      String categoryGroup,
+      String abv,
+      String age,
+      String cask,
+      String volume,
+      String description,
+      Long regionId,
+      String korRegion,
+      String engRegion,
+      Long distilleryId,
+      String korDistillery,
+      String engDistillery,
+      Double avgRating,
+      Long totalRatingsCount,
+      Long reviewCount,
+      Long pickCount,
+      LocalDateTime createdAt,
+      LocalDateTime modifiedAt) {}
 }

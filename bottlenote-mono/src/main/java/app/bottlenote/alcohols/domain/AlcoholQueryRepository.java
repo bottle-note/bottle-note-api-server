@@ -15,6 +15,8 @@ import java.util.Optional;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.data.domain.Page;
 
+import static app.bottlenote.alcohols.repository.CustomAlcoholQueryRepository.AdminAlcoholDetailProjection;
+
 /** 알코올 조회 질의에 관한 애그리거트를 정의합니다. */
 public interface AlcoholQueryRepository {
 
@@ -40,4 +42,6 @@ public interface AlcoholQueryRepository {
       Long userId, List<String> keyword, Long cursor, Integer size);
 
   Page<AdminAlcoholItem> searchAdminAlcohols(AdminAlcoholSearchRequest request);
+
+  Optional<AdminAlcoholDetailProjection> findAdminAlcoholDetailById(Long alcoholId);
 }

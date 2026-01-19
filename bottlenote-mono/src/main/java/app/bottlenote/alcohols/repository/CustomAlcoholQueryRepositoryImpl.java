@@ -330,4 +330,84 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
     return new PageImpl<>(
         content, PageRequest.of(request.page(), request.size()), total != null ? total : 0L);
   }
+
+  /** Admin용 알코올 단건 상세 조회 */
+  @Override
+  public Optional<AdminAlcoholDetailProjection> findAdminAlcoholDetailById(Long alcoholId) {
+    AdminAlcoholDetailProjection result =
+        queryFactory
+            .select(
+                Projections.constructor(
+                    AdminAlcoholDetailProjection.class,
+                    alcohol.id,
+                    alcohol.korName,
+                    alcohol.engName,
+                    alcohol.imageUrl,
+                    alcohol.type.stringValue(),
+                    alcohol.korCategory,
+                    alcohol.engCategory,
+                    alcohol.categoryGroup.stringValue(),
+                    alcohol.abv,
+                    alcohol.age,
+                    alcohol.cask,
+                    alcohol.volume,
+                    alcohol.description,
+                    region.id,
+                    region.korName,
+                    region.engName,
+                    distillery.id,
+                    distillery.korName,
+                    distillery.engName,
+                    rating
+                        .ratingPoint
+                        .rating
+                        .avg()
+                        .multiply(2)
+                        .castToNum(Double.class)
+                        .round()
+                        .divide(2)
+                        .coalesce(0.0),
+                    rating.id.count(),
+                    review.id.countDistinct(),
+                    picks.id.countDistinct(),
+                    alcohol.createAt,
+                    alcohol.lastModifyAt))
+            .from(alcohol)
+            .leftJoin(rating)
+            .on(rating.id.alcoholId.eq(alcohol.id))
+            .leftJoin(review)
+            .on(review.alcoholId.eq(alcohol.id))
+            .leftJoin(picks)
+            .on(picks.alcoholId.eq(alcohol.id))
+            .leftJoin(region)
+            .on(alcohol.region.id.eq(region.id))
+            .leftJoin(distillery)
+            .on(alcohol.distillery.id.eq(distillery.id))
+            .where(alcohol.id.eq(alcoholId))
+            .groupBy(
+                alcohol.id,
+                alcohol.korName,
+                alcohol.engName,
+                alcohol.imageUrl,
+                alcohol.type,
+                alcohol.korCategory,
+                alcohol.engCategory,
+                alcohol.categoryGroup,
+                alcohol.abv,
+                alcohol.age,
+                alcohol.cask,
+                alcohol.volume,
+                alcohol.description,
+                region.id,
+                region.korName,
+                region.engName,
+                distillery.id,
+                distillery.korName,
+                distillery.engName,
+                alcohol.createAt,
+                alcohol.lastModifyAt)
+            .fetchOne();
+
+    return Optional.ofNullable(result);
+  }
 }
