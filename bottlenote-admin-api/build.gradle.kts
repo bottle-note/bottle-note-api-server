@@ -18,9 +18,6 @@ dependencies {
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 
-	// Spring Data
-	implementation(libs.spring.boot.starter.data.jpa)
-
 	// Security
 	implementation(libs.spring.boot.starter.security)
 	implementation(libs.spring.security.test)
