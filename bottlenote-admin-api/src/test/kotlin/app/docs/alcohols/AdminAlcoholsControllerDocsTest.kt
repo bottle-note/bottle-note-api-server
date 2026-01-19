@@ -3,8 +3,7 @@ package app.docs.alcohols
 import app.bottlenote.alcohols.constant.AdminAlcoholSortType
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest
-import app.bottlenote.alcohols.dto.response.AdminAlcoholDetailResponse
-import app.bottlenote.alcohols.persentaton.AdminAlcoholsController
+import app.bottlenote.alcohols.presentation.AdminAlcoholsController
 import app.bottlenote.alcohols.service.AlcoholQueryService
 import app.bottlenote.global.service.cursor.SortOrder
 import app.helper.alcohols.AlcoholsHelper
@@ -23,9 +22,7 @@ import org.springframework.restdocs.operation.preprocess.Preprocessors.*
 import org.springframework.restdocs.payload.JsonFieldType
 import org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath
 import org.springframework.restdocs.payload.PayloadDocumentation.responseFields
-import org.springframework.restdocs.request.RequestDocumentation.parameterWithName
-import org.springframework.restdocs.request.RequestDocumentation.pathParameters
-import org.springframework.restdocs.request.RequestDocumentation.queryParameters
+import org.springframework.restdocs.request.RequestDocumentation.*
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.assertj.MockMvcTester
 
