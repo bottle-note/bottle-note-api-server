@@ -1,4 +1,4 @@
-package app.bottlenote.alcohols.persentaton
+package app.bottlenote.alcohols.presentation
 
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest
 import app.bottlenote.alcohols.service.AlcoholQueryService
@@ -24,6 +24,6 @@ class AdminAlcoholsController(
 
 	@GetMapping("/{alcoholId}")
 	fun getAlcoholDetail(@PathVariable alcoholId: Long): ResponseEntity<*> {
-		return ResponseEntity.ok(GlobalResponse.ok(alcoholQueryService.findAdminAlcoholDetailById(alcoholId)))
+		return GlobalResponse.ok(alcoholQueryService.findAdminAlcoholDetailById(alcoholId))
 	}
 }

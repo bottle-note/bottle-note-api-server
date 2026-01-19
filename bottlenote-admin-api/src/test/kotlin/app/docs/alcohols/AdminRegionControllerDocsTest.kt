@@ -1,20 +1,20 @@
 package app.docs.alcohols
 
-import app.bottlenote.alcohols.domain.RegionRepository
-import app.bottlenote.alcohols.persentaton.AdminRegionController
+import app.bottlenote.alcohols.dto.request.AdminReferenceSearchRequest
+import app.bottlenote.alcohols.presentation.AdminRegionController
+import app.bottlenote.alcohols.service.AlcoholReferenceService
+import app.bottlenote.global.data.response.GlobalResponse
 import app.helper.alcohols.AlcoholsHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.anyString
 import org.mockito.BDDMockito.given
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.data.domain.PageImpl
-import org.springframework.data.domain.Pageable
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document
 import org.springframework.restdocs.operation.preprocess.Preprocessors.*
 import org.springframework.restdocs.payload.JsonFieldType
@@ -37,7 +37,7 @@ class AdminRegionControllerDocsTest {
 	private lateinit var mvc: MockMvcTester
 
 	@MockitoBean
-	private lateinit var regionRepository: RegionRepository
+	private lateinit var alcoholReferenceService: AlcoholReferenceService
 
 	@Test
 	@DisplayName("지역 목록을 조회할 수 있다")
@@ -45,9 +45,10 @@ class AdminRegionControllerDocsTest {
 		// given
 		val items = AlcoholsHelper.createAdminRegionItems(3)
 		val page = PageImpl(items)
+		val response = GlobalResponse.fromPage(page)
 
-		given(regionRepository.findAllRegions(anyString(), any(Pageable::class.java)))
-			.willReturn(page)
+		given(alcoholReferenceService.findAllRegionsForAdmin(any(AdminReferenceSearchRequest::class.java)))
+			.willReturn(response)
 
 		// when & then
 		assertThat(
