@@ -24,7 +24,6 @@ public record AdminReferenceSearchRequest(
   }
 
   public Pageable toPageable() {
-    return PageRequest.of(
-        page, size, Sort.by(Sort.Direction.fromString(sortOrder.name()), "id"));
+    return PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortOrder.name()), "id"));
   }
 }
