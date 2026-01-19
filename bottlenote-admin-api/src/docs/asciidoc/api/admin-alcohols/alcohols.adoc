@@ -22,3 +22,30 @@ include::{snippets}/admin/alcohols/search/http-request.adoc[]
 [discrete]
 include::{snippets}/admin/alcohols/search/response-fields.adoc[]
 include::{snippets}/admin/alcohols/search/http-response.adoc[]
+
+'''
+
+=== 술(Alcohol) 단건 상세 조회 ===
+
+- 관리자용 술 단건 상세 조회 API입니다.
+- 기본 정보, 카테고리, 스펙, 지역, 증류소, 테이스팅 태그, 통계 정보를 모두 포함합니다.
+
+[source]
+----
+GET /admin/api/v1/alcohols/{alcoholId}
+----
+
+[discrete]
+==== 경로 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/alcohols/detail/path-parameters.adoc[]
+include::{snippets}/admin/alcohols/detail/curl-request.adoc[]
+include::{snippets}/admin/alcohols/detail/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/alcohols/detail/response-fields.adoc[]
+include::{snippets}/admin/alcohols/detail/http-response.adoc[]

@@ -47,3 +47,9 @@ include::api/admin-help/help.adoc[]
 == File API
 
 include::api/admin-file/file.adoc[]
+
+'''
+
+== Reference API
+
+include::api/admin-reference/reference.adoc[]

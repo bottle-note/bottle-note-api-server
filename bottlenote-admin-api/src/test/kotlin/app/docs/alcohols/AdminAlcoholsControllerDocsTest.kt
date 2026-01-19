@@ -3,6 +3,7 @@ package app.docs.alcohols
 import app.bottlenote.alcohols.constant.AdminAlcoholSortType
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest
+import app.bottlenote.alcohols.dto.response.AdminAlcoholDetailResponse
 import app.bottlenote.alcohols.persentaton.AdminAlcoholsController
 import app.bottlenote.alcohols.service.AlcoholQueryService
 import app.bottlenote.global.service.cursor.SortOrder
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.Mockito.any
+import org.mockito.Mockito.anyLong
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs
@@ -22,6 +24,7 @@ import org.springframework.restdocs.payload.JsonFieldType
 import org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath
 import org.springframework.restdocs.payload.PayloadDocumentation.responseFields
 import org.springframework.restdocs.request.RequestDocumentation.parameterWithName
+import org.springframework.restdocs.request.RequestDocumentation.pathParameters
 import org.springframework.restdocs.request.RequestDocumentation.queryParameters
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.assertj.MockMvcTester
@@ -109,6 +112,72 @@ class AdminAlcoholsControllerDocsTest {
 						fieldWithPath("meta.totalElements").type(JsonFieldType.NUMBER).description("전체 요소 수"),
 						fieldWithPath("meta.totalPages").type(JsonFieldType.NUMBER).description("전체 페이지 수"),
 						fieldWithPath("meta.hasNext").type(JsonFieldType.BOOLEAN).description("다음 페이지 존재 여부"),
+						fieldWithPath("meta.serverVersion").type(JsonFieldType.STRING).description("서버 버전").ignored(),
+						fieldWithPath("meta.serverEncoding").type(JsonFieldType.STRING).description("서버 인코딩").ignored(),
+						fieldWithPath("meta.serverResponseTime").type(JsonFieldType.STRING).description("서버 응답 시간").ignored(),
+						fieldWithPath("meta.serverPathVersion").type(JsonFieldType.STRING).description("API 경로 버전").ignored()
+					)
+				)
+			)
+	}
+
+	@Test
+	@DisplayName("관리자용 술 단건 상세 조회를 할 수 있다")
+	fun getAlcoholDetail() {
+		// given
+		val response = AlcoholsHelper.createAdminAlcoholDetailResponse()
+
+		given(alcoholQueryService.findAdminAlcoholDetailById(anyLong()))
+			.willReturn(response)
+
+		// when & then
+		assertThat(
+			mvc.get().uri("/alcohols/{alcoholId}", 1L)
+		)
+			.hasStatusOk()
+			.apply(
+				document(
+					"admin/alcohols/detail",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					pathParameters(
+						parameterWithName("alcoholId").description("술 ID")
+					),
+					responseFields(
+						fieldWithPath("success").type(JsonFieldType.BOOLEAN).description("응답 성공 여부"),
+						fieldWithPath("code").type(JsonFieldType.NUMBER).description("응답 코드"),
+						fieldWithPath("data").type(JsonFieldType.OBJECT).description("술 상세 정보"),
+						fieldWithPath("data.alcoholId").type(JsonFieldType.NUMBER).description("술 ID"),
+						fieldWithPath("data.korName").type(JsonFieldType.STRING).description("한글 이름"),
+						fieldWithPath("data.engName").type(JsonFieldType.STRING).description("영문 이름"),
+						fieldWithPath("data.imageUrl").type(JsonFieldType.STRING).description("이미지 URL"),
+						fieldWithPath("data.type").type(JsonFieldType.STRING).description("술 타입 (WHISKY 등)"),
+						fieldWithPath("data.korCategory").type(JsonFieldType.STRING).description("카테고리 한글명"),
+						fieldWithPath("data.engCategory").type(JsonFieldType.STRING).description("카테고리 영문명"),
+						fieldWithPath("data.categoryGroup").type(JsonFieldType.STRING).description("카테고리 그룹"),
+						fieldWithPath("data.abv").type(JsonFieldType.STRING).description("도수"),
+						fieldWithPath("data.age").type(JsonFieldType.STRING).description("숙성년도"),
+						fieldWithPath("data.cask").type(JsonFieldType.STRING).description("캐스크 타입"),
+						fieldWithPath("data.volume").type(JsonFieldType.STRING).description("용량"),
+						fieldWithPath("data.description").type(JsonFieldType.STRING).description("설명"),
+						fieldWithPath("data.regionId").type(JsonFieldType.NUMBER).description("지역 ID"),
+						fieldWithPath("data.korRegion").type(JsonFieldType.STRING).description("지역 한글명"),
+						fieldWithPath("data.engRegion").type(JsonFieldType.STRING).description("지역 영문명"),
+						fieldWithPath("data.distilleryId").type(JsonFieldType.NUMBER).description("증류소 ID"),
+						fieldWithPath("data.korDistillery").type(JsonFieldType.STRING).description("증류소 한글명"),
+						fieldWithPath("data.engDistillery").type(JsonFieldType.STRING).description("증류소 영문명"),
+						fieldWithPath("data.tastingTags").type(JsonFieldType.ARRAY).description("테이스팅 태그 목록"),
+						fieldWithPath("data.tastingTags[].id").type(JsonFieldType.NUMBER).description("태그 ID"),
+						fieldWithPath("data.tastingTags[].korName").type(JsonFieldType.STRING).description("태그 한글명"),
+						fieldWithPath("data.tastingTags[].engName").type(JsonFieldType.STRING).description("태그 영문명"),
+						fieldWithPath("data.avgRating").type(JsonFieldType.NUMBER).description("평균 평점"),
+						fieldWithPath("data.totalRatingsCount").type(JsonFieldType.NUMBER).description("평점 수"),
+						fieldWithPath("data.reviewCount").type(JsonFieldType.NUMBER).description("리뷰 수"),
+						fieldWithPath("data.pickCount").type(JsonFieldType.NUMBER).description("찜 수"),
+						fieldWithPath("data.createdAt").type(JsonFieldType.STRING).description("생성일시"),
+						fieldWithPath("data.modifiedAt").type(JsonFieldType.STRING).description("수정일시"),
+						fieldWithPath("errors").type(JsonFieldType.ARRAY).description("에러 목록"),
+						fieldWithPath("meta").type(JsonFieldType.OBJECT).description("메타 정보"),
 						fieldWithPath("meta.serverVersion").type(JsonFieldType.STRING).description("서버 버전").ignored(),
 						fieldWithPath("meta.serverEncoding").type(JsonFieldType.STRING).description("서버 인코딩").ignored(),
 						fieldWithPath("meta.serverResponseTime").type(JsonFieldType.STRING).description("서버 응답 시간").ignored(),
