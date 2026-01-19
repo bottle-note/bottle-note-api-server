@@ -8,6 +8,7 @@ import app.bottlenote.global.service.cursor.SortOrder
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -147,5 +148,58 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			.hasStatusOk()
 			.bodyJson()
 			.extractingPath("$.meta.size").isEqualTo(size)
+	}
+
+	@Nested
+	@DisplayName("술 단건 상세 조회 API")
+	inner class GetAlcoholDetail {
+
+		@Test
+		@DisplayName("관리자용 술 단건 상세 정보를 조회할 수 있다")
+		fun getAlcoholDetailSuccess() {
+			// given
+			val alcohol = alcoholTestFactory.persistAlcoholWithName("글렌피딕 12년", "Glenfiddich 12")
+
+			// when & then - 성공 응답 확인
+			assertThat(
+				mockMvcTester.get().uri("/alcohols/${alcohol.id}")
+					.header("Authorization", "Bearer $accessToken")
+			)
+				.hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.success").isEqualTo(true)
+
+			// 상세 데이터 검증
+			assertThat(
+				mockMvcTester.get().uri("/alcohols/${alcohol.id}")
+					.header("Authorization", "Bearer $accessToken")
+			)
+				.hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.korName").isEqualTo("글렌피딕 12년")
+		}
+
+		@Test
+		@DisplayName("모든 상세 필드가 포함되어 응답한다")
+		fun getAlcoholDetailWithAllFields() {
+			// given
+			val alcohol = alcoholTestFactory.persistAlcoholWithName("맥캘란 18년", "Macallan 18")
+
+			// when & then - 필수 필드 존재 여부 확인
+			val result = mockMvcTester.get().uri("/alcohols/${alcohol.id}")
+				.header("Authorization", "Bearer $accessToken")
+
+			assertThat(result)
+				.hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.alcoholId").isNotNull
+
+			// 방어로직: 존재하지 않는 ID로 조회 시 실패
+			assertThat(
+				mockMvcTester.get().uri("/alcohols/999999")
+					.header("Authorization", "Bearer $accessToken")
+			)
+				.hasStatus4xxClientError()
+		}
 	}
 }
