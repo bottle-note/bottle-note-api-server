@@ -25,5 +25,6 @@ public interface JpaDistilleryRepository
         or d.korName like concat('%', :keyword, '%')
         or d.engName like concat('%', :keyword, '%'))
       """)
-  Page<AdminDistilleryItem> findAllDistilleries(@Param("keyword") String keyword, Pageable pageable);
+  Page<AdminDistilleryItem> findAllDistilleries(
+      @Param("keyword") String keyword, Pageable pageable);
 }

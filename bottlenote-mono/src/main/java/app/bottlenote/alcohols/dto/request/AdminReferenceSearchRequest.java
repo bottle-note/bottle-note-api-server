@@ -12,10 +12,7 @@ import lombok.Builder;
  * @param size 페이지 크기
  */
 public record AdminReferenceSearchRequest(
-    String keyword,
-    SortOrder sortOrder,
-    Integer page,
-    Integer size) {
+    String keyword, SortOrder sortOrder, Integer page, Integer size) {
   @Builder
   public AdminReferenceSearchRequest {
     sortOrder = sortOrder != null ? sortOrder : SortOrder.ASC;
