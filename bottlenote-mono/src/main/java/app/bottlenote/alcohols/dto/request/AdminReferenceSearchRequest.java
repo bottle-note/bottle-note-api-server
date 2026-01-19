@@ -2,6 +2,9 @@ package app.bottlenote.alcohols.dto.request;
 
 import app.bottlenote.global.service.cursor.SortOrder;
 import lombok.Builder;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 /**
  * 참조 데이터 (테이스팅 태그, 지역, 증류소) 검색용 공통 Request
@@ -18,5 +21,10 @@ public record AdminReferenceSearchRequest(
     sortOrder = sortOrder != null ? sortOrder : SortOrder.ASC;
     page = page != null ? page : 0;
     size = size != null ? size : 20;
+  }
+
+  public Pageable toPageable() {
+    return PageRequest.of(
+        page, size, Sort.by(Sort.Direction.fromString(sortOrder.name()), "id"));
   }
 }
