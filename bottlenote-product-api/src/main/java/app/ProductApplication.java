@@ -7,9 +7,9 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 
 @EntityScan(basePackages = "app")
 @SpringBootApplication(scanBasePackages = "app")
-public class ProdcutApplication {
+public class ProductApplication {
   public static void main(String[] args) {
     TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
-    SpringApplication.run(ProdcutApplication.class, args);
+    SpringApplication.run(ProductApplication.class, args);
   }
 }
