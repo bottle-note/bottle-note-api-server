@@ -86,4 +86,9 @@ public class InMemoryReviewRepository implements ReviewRepository {
       Long userId, List<String> keywords, Long cursor, Integer size) {
     return null;
   }
+
+  @Override
+  public boolean existsByAlcoholId(Long alcoholId) {
+    return database.values().stream().anyMatch(review -> review.getAlcoholId().equals(alcoholId));
+  }
 }

@@ -6,7 +6,10 @@ import app.bottlenote.alcohols.dto.response.AdminAlcoholItem
 import app.bottlenote.alcohols.dto.response.AdminDistilleryItem
 import app.bottlenote.alcohols.dto.response.AdminRegionItem
 import app.bottlenote.alcohols.dto.response.AdminTastingTagItem
+import app.bottlenote.alcohols.constant.AlcoholCategoryGroup
+import app.bottlenote.alcohols.constant.AlcoholType
 import app.bottlenote.global.data.response.GlobalResponse
+import app.bottlenote.global.dto.response.AdminResultResponse
 import java.time.LocalDateTime
 
 object AlcoholsHelper {
@@ -154,4 +157,41 @@ object AlcoholsHelper {
 				)
 			)
 			.build()
+
+	fun createAdminResultResponse(
+		code: AdminResultResponse.ResultCode = AdminResultResponse.ResultCode.ALCOHOL_CREATED,
+		targetId: Long = 1L
+	): AdminResultResponse = AdminResultResponse.of(code, targetId)
+
+	fun createAlcoholUpsertRequestMap(
+		korName: String = "테스트 위스키",
+		engName: String = "Test Whisky",
+		abv: String = "40%",
+		type: AlcoholType = AlcoholType.WHISKY,
+		korCategory: String = "싱글 몰트",
+		engCategory: String = "Single Malt",
+		categoryGroup: AlcoholCategoryGroup = AlcoholCategoryGroup.SINGLE_MALT,
+		regionId: Long = 1L,
+		distilleryId: Long = 1L,
+		age: String = "12",
+		cask: String = "American Oak",
+		imageUrl: String = "https://example.com/test.jpg",
+		description: String = "테스트 설명",
+		volume: String = "700ml"
+	): Map<String, Any> = mapOf(
+		"korName" to korName,
+		"engName" to engName,
+		"abv" to abv,
+		"type" to type.name,
+		"korCategory" to korCategory,
+		"engCategory" to engCategory,
+		"categoryGroup" to categoryGroup.name,
+		"regionId" to regionId,
+		"distilleryId" to distilleryId,
+		"age" to age,
+		"cask" to cask,
+		"imageUrl" to imageUrl,
+		"description" to description,
+		"volume" to volume
+	)
 }

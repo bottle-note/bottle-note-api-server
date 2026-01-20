@@ -32,6 +32,8 @@ public interface ReviewRepository {
 
   boolean existsById(Long reviewId);
 
+  boolean existsByAlcoholId(Long alcoholId);
+
   Pair<Long, CursorResponse<ReviewExploreItem>> getStandardExplore(
       Long userId, List<String> keywords, Long cursor, Integer size);
 }

@@ -31,4 +31,9 @@ public interface JpaRatingRepository
 			""")
   Optional<UserRatingResponse> fetchUserRating(
       @Param("alcoholId") Long alcoholId, @Param("userId") Long userId);
+
+  @Override
+  @Query(
+      "select case when count(r) > 0 then true else false end from rating r where r.id.alcoholId = :alcoholId")
+  boolean existsByAlcoholId(@Param("alcoholId") Long alcoholId);
 }

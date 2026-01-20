@@ -16,6 +16,8 @@ import org.springframework.data.domain.Page;
 
 public interface CustomAlcoholQueryRepository {
 
+  List<Pair<String, String>> findAllCategoryPairs();
+
   PageResponse<AlcoholSearchResponse> searchAlcohols(AlcoholSearchCriteria criteriaDto);
 
   AlcoholDetailItem findAlcoholDetailById(Long alcoholId, Long userId);

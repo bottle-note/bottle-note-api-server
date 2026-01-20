@@ -226,6 +226,33 @@ public class AlcoholTestFactory {
     return alcohol;
   }
 
+  /** 특정 카테고리로 Alcohol 생성 - 연관 엔티티 자동 생성 */
+  @Transactional
+  @NotNull
+  public Alcohol persistAlcoholWithCategory(
+      @NotNull String korCategory, @NotNull String engCategory) {
+    Region region = persistRegionInternal();
+    Distillery distillery = persistDistilleryInternal();
+
+    Alcohol alcohol =
+        Alcohol.builder()
+            .korName("테스트 위스키-" + generateRandomSuffix())
+            .engName("Test Whisky-" + generateRandomSuffix())
+            .abv("40%")
+            .type(AlcoholType.WHISKY)
+            .korCategory(korCategory)
+            .engCategory(engCategory)
+            .categoryGroup(AlcoholCategoryGroup.SINGLE_MALT)
+            .region(region)
+            .distillery(distillery)
+            .cask("Oak")
+            .imageUrl("https://example.com/custom.jpg")
+            .build();
+    em.persist(alcohol);
+    em.flush();
+    return alcohol;
+  }
+
   /** 연관 엔티티와 함께 Alcohol 생성 */
   @Transactional
   @NotNull
