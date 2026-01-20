@@ -1,0 +1,8 @@
+### 위스키 목록 검색
+GET {{host}}/alcohols?keyword=&cursor=0&pageSize=10
+Authorization: Bearer {{accessToken}}
+
+### 위스키 상세 조회
+@alcoholId = 1
+GET {{host}}/alcohols/{{alcoholId}}
+Authorization: Bearer {{accessToken}}
