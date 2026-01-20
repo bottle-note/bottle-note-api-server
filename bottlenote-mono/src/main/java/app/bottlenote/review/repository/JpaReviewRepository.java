@@ -22,4 +22,9 @@ public interface JpaReviewRepository
   @Override
   @Query("select r from review r where r.userId = :userId")
   List<Review> findByUserId(@Param("userId") Long userId);
+
+  @Override
+  @Query(
+      "select case when count(r) > 0 then true else false end from review r where r.alcoholId = :alcoholId")
+  boolean existsByAlcoholId(@Param("alcoholId") Long alcoholId);
 }

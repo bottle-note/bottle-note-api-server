@@ -104,6 +104,11 @@ public class AlcoholQueryService {
   }
 
   @Transactional(readOnly = true)
+  public List<Pair<String, String>> findAllCategoryPairs() {
+    return alcoholQueryRepository.findAllCategoryPairs();
+  }
+
+  @Transactional(readOnly = true)
   public AdminAlcoholDetailResponse findAdminAlcoholDetailById(Long alcoholId) {
     AdminAlcoholDetailProjection projection =
         alcoholQueryRepository

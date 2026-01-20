@@ -36,6 +36,8 @@ public interface AlcoholQueryRepository {
 
   List<CategoryItem> findAllCategories(AlcoholType type);
 
+  List<Pair<String, String>> findAllCategoryPairs();
+
   Boolean existsByAlcoholId(Long alcoholId);
 
   Pair<Long, CursorResponse<AlcoholDetailItem>> getStandardExplore(

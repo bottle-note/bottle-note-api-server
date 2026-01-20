@@ -74,6 +74,14 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
   }
 
   @Override
+  public List<Pair<String, String>> findAllCategoryPairs() {
+    return alcohols.values().stream()
+        .map(a -> Pair.of(a.getKorCategory(), a.getEngCategory()))
+        .distinct()
+        .toList();
+  }
+
+  @Override
   public Boolean existsByAlcoholId(Long alcoholId) {
     return alcohols.containsKey(alcoholId);
   }

@@ -36,6 +36,20 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
   private final JPAQueryFactory queryFactory;
   private final AlcoholQuerySupporter supporter;
 
+  /** 모든 카테고리 페어(한글, 영문) 조회 */
+  @Override
+  public List<Pair<String, String>> findAllCategoryPairs() {
+    return queryFactory
+        .select(alcohol.korCategory, alcohol.engCategory)
+        .from(alcohol)
+        .groupBy(alcohol.korCategory, alcohol.engCategory)
+        .orderBy(alcohol.korCategory.asc())
+        .fetch()
+        .stream()
+        .map(tuple -> Pair.of(tuple.get(alcohol.korCategory), tuple.get(alcohol.engCategory)))
+        .toList();
+  }
+
   /** queryDSL 알코올 검색 */
   @Override
   public PageResponse<AlcoholSearchResponse> searchAlcohols(AlcoholSearchCriteria criteriaDto) {
