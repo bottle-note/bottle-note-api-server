@@ -13,6 +13,7 @@ GET /admin/api/v1/alcohols
 
 [discrete]
 include::{snippets}/admin/alcohols/search/query-parameters.adoc[]
+include::../common/enums/alcohol-category-group.adoc[]
 include::{snippets}/admin/alcohols/search/curl-request.adoc[]
 include::{snippets}/admin/alcohols/search/http-request.adoc[]
 
@@ -57,6 +58,8 @@ include::{snippets}/admin/alcohols/detail/http-response.adoc[]
 - 관리자용 술 생성 API입니다.
 - 모든 필드는 필수값입니다.
 
+
+
 [source]
 ----
 POST /admin/api/v1/alcohols
@@ -67,6 +70,8 @@ POST /admin/api/v1/alcohols
 
 [discrete]
 include::{snippets}/admin/alcohols/create/request-fields.adoc[]
+include::../common/enums/alcohol-type.adoc[]
+include::../common/enums/alcohol-category-group.adoc[]
 include::{snippets}/admin/alcohols/create/curl-request.adoc[]
 include::{snippets}/admin/alcohols/create/http-request.adoc[]
 
@@ -101,6 +106,8 @@ include::{snippets}/admin/alcohols/update/path-parameters.adoc[]
 
 [discrete]
 include::{snippets}/admin/alcohols/update/request-fields.adoc[]
+include::../common/enums/alcohol-type.adoc[]
+include::../common/enums/alcohol-category-group.adoc[]
 include::{snippets}/admin/alcohols/update/curl-request.adoc[]
 include::{snippets}/admin/alcohols/update/http-request.adoc[]
 

@@ -1,0 +1,12 @@
+[discrete]
+==== AdminRole (관리자 역할) ====
+
+[cols="2,3", options="header"]
+|===
+|값 |설명
+|`ROOT_ADMIN` |최고 관리자
+|`PARTNER` |파트너사
+|`CLIENT` |고객사
+|`BAR_OWNER` |바/매장 사장님
+|`COMMUNITY_MANAGER` |커뮤니티 매니저
+|===

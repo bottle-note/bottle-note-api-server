@@ -70,6 +70,7 @@ include::{snippets}/admin/auth/signup/request-headers.adoc[]
 
 [discrete]
 include::{snippets}/admin/auth/signup/request-fields.adoc[]
+include::../common/enums/admin-role.adoc[]
 include::{snippets}/admin/auth/signup/http-request.adoc[]
 
 [discrete]

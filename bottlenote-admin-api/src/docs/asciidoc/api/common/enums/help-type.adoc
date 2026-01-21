@@ -1,0 +1,11 @@
+[discrete]
+==== HelpType (문의 유형) ====
+
+[cols="2,3", options="header"]
+|===
+|값 |설명
+|`WHISKEY` |위스키 관련 문의
+|`REVIEW` |리뷰 관련 문의
+|`USER` |회원 관련 문의
+|`ETC` |그 외 모든 문의
+|===

@@ -1,0 +1,13 @@
+[discrete]
+==== AlcoholCategoryGroup (카테고리 그룹) ====
+
+[cols="2,3", options="header"]
+|===
+|값 |설명
+|`SINGLE_MALT` |싱글몰트 위스키
+|`BLEND` |블렌디드 위스키
+|`BLENDED_MALT` |블렌디드 몰트 위스키
+|`BOURBON` |버번 위스키
+|`RYE` |라이 위스키
+|`OTHER` |기타 위스키
+|===
