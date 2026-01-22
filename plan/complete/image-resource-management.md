@@ -1,3 +1,29 @@
+```
+================================================================================
+                          PROJECT COMPLETION STAMP
+================================================================================
+Status: **IN PROGRESS**
+Start Date: 2026-01-05
+Last Updated: 2026-01-22
+
+** Completed Work **
+- Phase 1: 이벤트 클래스 추가 (ImageResourceInvalidatedEvent, ImageResourceDeletedEvent)
+- Phase 2: ResourceCommandService에 invalidate/delete 메서드 추가
+- Phase 3: ResourceEventListener에 핸들러 추가
+- Phase 4-5: Review 도메인 수정/삭제 이벤트 발행 및 테스트 완료
+
+** Key Components **
+- ImageResourceInvalidatedEvent.java: 이미지 교체 시 무효화 이벤트
+- ImageResourceDeletedEvent.java: 이미지 삭제 시 삭제 이벤트
+- ResourceEventListener.java: INVALIDATED/DELETED 핸들러
+
+** Remaining Work **
+- User 도메인: 프로필 이미지 변경 시 INVALIDATED 이벤트 발행
+- Help 도메인: 수정/삭제 시 이벤트 발행
+- Business 도메인: 수정/삭제 시 이벤트 발행
+================================================================================
+```
+
 # 이미지 리소스 관리 분석
 
 ## 1. 현재 아키텍처 개요
