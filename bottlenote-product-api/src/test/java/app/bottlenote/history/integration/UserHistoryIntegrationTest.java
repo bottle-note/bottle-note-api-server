@@ -4,11 +4,15 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 import app.bottlenote.IntegrationTestSupport;
+import app.bottlenote.common.fixture.HistoryTestData;
+import app.bottlenote.common.fixture.TestDataSetupHelper;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.history.dto.response.UserHistoryItem;
 import app.bottlenote.history.dto.response.UserHistorySearchResponse;
 import app.bottlenote.picks.constant.PicksStatus;
+import app.bottlenote.user.domain.User;
+import app.bottlenote.user.dto.response.TokenItem;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,27 +20,30 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 
 @Tag("integration")
 @DisplayName("[integration] [history] UserHistory")
 class UserHistoryIntegrationTest extends IntegrationTestSupport {
 
-  @Sql(scripts = {"/init-script/init-user-history.sql"})
+  @Autowired private TestDataSetupHelper testDataSetupHelper;
+
   @DisplayName("파라미터 없이 유저 히스토리를 조회할 수 있다.")
   @Test
   void test_1() throws Exception {
     // given
-    final Long targetUserId = 1L;
+    HistoryTestData data = testDataSetupHelper.setupHistoryTestData();
+    User targetUser = data.getUser(0);
+    TokenItem token = getToken(targetUser);
 
     MvcResult result =
         mockMvc
             .perform(
-                get("/api/v1/history/{targetUserId}", targetUserId)
+                get("/api/v1/history/{targetUserId}", targetUser.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .header("Authorization", "Bearer " + getToken())
+                    .header("Authorization", "Bearer " + token.accessToken())
                     .with(csrf()))
             .andReturn();
 
@@ -52,19 +59,20 @@ class UserHistoryIntegrationTest extends IntegrationTestSupport {
     Assertions.assertNotNull(userHistorySearchResponse.userHistories());
   }
 
-  @Sql(scripts = {"/init-script/init-user-history.sql"})
   @DisplayName("유저 히스토리를 정렬해서 조회할 수 있다.")
   @Test
   void test_2() throws Exception {
     // given
-    final Long targetUserId = 1L;
+    HistoryTestData data = testDataSetupHelper.setupHistoryTestData();
+    User targetUser = data.getUser(0);
+    TokenItem token = getToken(targetUser);
 
     MvcResult result =
         mockMvc
             .perform(
-                get("/api/v1/history/{targetUserId}", targetUserId)
+                get("/api/v1/history/{targetUserId}", targetUser.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .header("Authorization", "Bearer " + getToken())
+                    .header("Authorization", "Bearer " + token.accessToken())
                     .param("sortOrder", SortOrder.DESC.name())
                     .with(csrf()))
             .andReturn();
@@ -90,19 +98,20 @@ class UserHistoryIntegrationTest extends IntegrationTestSupport {
     Assertions.assertEquals(userHistories.size(), userHistorySearchResponse.totalCount());
   }
 
-  @Sql(scripts = {"/init-script/init-user-history.sql"})
   @DisplayName("날짜 검색조건으로 유저 히스토리를 조회할 수 있다.")
   @Test
   void test_3() throws Exception {
     // given
-    final Long targetUserId = 1L;
+    HistoryTestData data = testDataSetupHelper.setupHistoryTestData();
+    User targetUser = data.getUser(0);
+    TokenItem token = getToken(targetUser);
 
     MvcResult initialMvcResult =
         mockMvc
             .perform(
-                get("/api/v1/history/{targetUserId}", targetUserId)
+                get("/api/v1/history/{targetUserId}", targetUser.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .header("Authorization", "Bearer " + getToken())
+                    .header("Authorization", "Bearer " + token.accessToken())
                     .with(csrf()))
             .andReturn();
 
@@ -123,9 +132,9 @@ class UserHistoryIntegrationTest extends IntegrationTestSupport {
     MvcResult filteredMvcResult =
         mockMvc
             .perform(
-                get("/api/v1/history/{targetUserId}", targetUserId)
+                get("/api/v1/history/{targetUserId}", targetUser.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .header("Authorization", "Bearer " + getToken())
+                    .header("Authorization", "Bearer " + token.accessToken())
                     .param("startDate", createdAtList.get(0).toString())
                     .param("endDate", createdAtList.get(1).toString())
                     .with(csrf()))
@@ -153,19 +162,20 @@ class UserHistoryIntegrationTest extends IntegrationTestSupport {
     }
   }
 
-  @Sql(scripts = {"/init-script/init-user-history.sql"})
   @DisplayName("별점으로 유저 히스토리 필터링하여 조회할 수 있다.")
   @Test
   void test_4() throws Exception {
     // given
-    final Long targetUserId = 1L;
+    HistoryTestData data = testDataSetupHelper.setupHistoryTestData();
+    User targetUser = data.getUser(0);
+    TokenItem token = getToken(targetUser);
 
     MvcResult result =
         mockMvc
             .perform(
-                get("/api/v1/history/{targetUserId}", targetUserId)
+                get("/api/v1/history/{targetUserId}", targetUser.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .header("Authorization", "Bearer " + getToken())
+                    .header("Authorization", "Bearer " + token.accessToken())
                     .param("ratingPoint", "5")
                     .with(csrf()))
             .andReturn();
@@ -181,19 +191,20 @@ class UserHistoryIntegrationTest extends IntegrationTestSupport {
     Assertions.assertNotNull(userHistorySearchResponse.userHistories());
   }
 
-  @Sql(scripts = {"/init-script/init-user-history.sql"})
   @DisplayName("찜/찜 해제 검색조건으로 유저 히스토리를 조회할 수 있다.")
   @Test
   void test_5() throws Exception {
     // given
-    final Long targetUserId = 1L;
+    HistoryTestData data = testDataSetupHelper.setupHistoryTestData();
+    User targetUser = data.getUser(0);
+    TokenItem token = getToken(targetUser);
 
     MvcResult result =
         mockMvc
             .perform(
-                get("/api/v1/history/{targetUserId}", targetUserId)
+                get("/api/v1/history/{targetUserId}", targetUser.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .header("Authorization", "Bearer " + getToken())
+                    .header("Authorization", "Bearer " + token.accessToken())
                     .param("picksStatus", PicksStatus.PICK.name())
                     .param("picksStatus", PicksStatus.UNPICK.name())
                     .with(csrf()))
@@ -210,19 +221,20 @@ class UserHistoryIntegrationTest extends IntegrationTestSupport {
     Assertions.assertNotNull(userHistorySearchResponse.userHistories());
   }
 
-  @Sql(scripts = {"/init-script/init-user-history.sql"})
   @DisplayName("리뷰 필터 조건으로 유저 히스토리를 조회할 수 있다.")
   @Test
   void test_6() throws Exception {
     // given
-    final Long targetUserId = 1L;
+    HistoryTestData data = testDataSetupHelper.setupHistoryTestData();
+    User targetUser = data.getUser(0);
+    TokenItem token = getToken(targetUser);
 
     MvcResult result =
         mockMvc
             .perform(
-                get("/api/v1/history/{targetUserId}", targetUserId)
+                get("/api/v1/history/{targetUserId}", targetUser.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .header("Authorization", "Bearer " + getToken())
+                    .header("Authorization", "Bearer " + token.accessToken())
                     .param("historyReviewFilterType", "BEST_REVIEW")
                     .param("historyReviewFilterType", "REVIEW_LIKE")
                     .param("historyReviewFilterType", "REVIEW_REPLY")
