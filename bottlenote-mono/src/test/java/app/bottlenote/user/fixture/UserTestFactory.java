@@ -62,6 +62,24 @@ public class UserTestFactory {
     return user;
   }
 
+  /** 특정 닉네임으로 User 생성 (닉네임 중복 테스트용) */
+  @Transactional
+  @NotNull
+  public User persistUserWithNickname(@NotNull String nickName) {
+    User user =
+        User.builder()
+            .email("user" + generateRandomSuffix() + "@example.com")
+            .nickName(nickName)
+            .age(25)
+            .gender(GenderType.MALE)
+            .socialType(List.of(SocialType.KAKAO))
+            .role(UserType.ROLE_USER)
+            .build();
+    em.persist(user);
+    em.flush();
+    return user;
+  }
+
   /** 빌더를 통한 User 생성 - 누락 필드 자동 채우기 */
   @Transactional
   @NotNull
