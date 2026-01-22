@@ -15,6 +15,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.IntegrationTestSupport;
+import app.bottlenote.alcohols.domain.Alcohol;
+import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
 import app.bottlenote.global.data.response.Error;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
@@ -30,17 +32,19 @@ import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewResultResponse;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
+import app.bottlenote.review.fixture.ReviewTestFactory;
+import app.bottlenote.user.domain.User;
+import app.bottlenote.user.dto.response.TokenItem;
+import app.bottlenote.user.fixture.UserTestFactory;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 
 @Tag("integration")
@@ -48,28 +52,28 @@ import org.springframework.test.web.servlet.MvcResult;
 class ReviewIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private ReviewRepository reviewRepository;
+  @Autowired private UserTestFactory userTestFactory;
+  @Autowired private AlcoholTestFactory alcoholTestFactory;
+  @Autowired private ReviewTestFactory reviewTestFactory;
 
   @Nested
   @DisplayName("리뷰 조회 테스트")
   class select {
-    @Sql(
-        scripts = {
-          "/init-script/init-alcohol.sql",
-          "/init-script/init-user.sql",
-          "/init-script/init-review.sql",
-          "/init-script/init-review-reply.sql"
-        })
+
     @DisplayName("리뷰 목록 조회에 성공한다.")
     @Test
     void test_1() throws Exception {
       // given
-      Long alcoholId = 4L;
+      User user = userTestFactory.persistUser();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+      reviewTestFactory.persistReview(user, alcohol);
+      reviewTestFactory.persistReview(user, alcohol);
 
       // when
       MvcResult result =
           mockMvc
               .perform(
-                  get("/api/v1/reviews/{alcoholId}", alcoholId)
+                  get("/api/v1/reviews/{alcoholId}", alcohol.getId())
                       .contentType(MediaType.APPLICATION_JSON)
                       .with(csrf()))
               .andDo(print())
@@ -84,30 +88,28 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
           mapper.convertValue(response.getData(), ReviewListResponse.class);
       List<ReviewInfo> reviewInfos = reviewListResponse.reviewList();
 
-      // when
+      // then
       assertNotNull(reviewListResponse);
       assertFalse(reviewInfos.isEmpty());
     }
 
-    @Sql(
-        scripts = {
-          "/init-script/init-alcohol.sql",
-          "/init-script/init-user.sql",
-          "/init-script/init-review.sql",
-          "/init-script/init-review-reply.sql"
-        })
     @DisplayName("리뷰 상세 조회에 성공한다.")
     @Test
     void test_2() throws Exception {
+      // given
+      User user = userTestFactory.persistUser();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+      TokenItem token = getToken(user);
 
-      ReviewCreateRequest reviewCreateRequest = ReviewObjectFixture.getReviewCreateRequest();
+      ReviewCreateRequest reviewCreateRequest =
+          ReviewObjectFixture.getReviewCreateRequestWithAlcoholId(alcohol.getId());
       MvcResult result =
           mockMvc
               .perform(
                   post("/api/v1/reviews")
                       .contentType(MediaType.APPLICATION_JSON)
                       .content(mapper.writeValueAsBytes(reviewCreateRequest))
-                      .header("Authorization", "Bearer " + getToken())
+                      .header("Authorization", "Bearer " + token.accessToken())
                       .with(csrf()))
               .andDo(print())
               .andExpect(status().isOk())
@@ -145,25 +147,23 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
           reviewCreateRequest.content(), reviewDetailResponse.reviewInfo().reviewContent());
     }
 
-    @Sql(
-        scripts = {
-          "/init-script/init-alcohol.sql",
-          "/init-script/init-user.sql",
-          "/init-script/init-review.sql",
-          "/init-script/init-review-reply.sql"
-        })
     @DisplayName("내가 작성한 리뷰 조회에 성공한다.")
     @Test
     void test_3() throws Exception {
+      // given
+      User user = userTestFactory.persistUser();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+      TokenItem token = getToken(user);
 
-      List<Review> reviewList = reviewRepository.findByUserId(getTokenUserId());
+      Review review = reviewTestFactory.persistReview(user, alcohol);
+      List<Review> reviewList = reviewRepository.findByUserId(user.getId());
 
       MvcResult result =
           mockMvc
               .perform(
-                  get("/api/v1/reviews/me/{alcoholId}", 1L)
+                  get("/api/v1/reviews/me/{alcoholId}", alcohol.getId())
                       .contentType(MediaType.APPLICATION_JSON)
-                      .header("Authorization", "Bearer " + getToken())
+                      .header("Authorization", "Bearer " + token.accessToken())
                       .with(csrf()))
               .andDo(print())
               .andExpect(status().isOk())
@@ -180,13 +180,13 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
       assertEquals(reviewList.size(), reviewListResponse.reviewList().size());
 
       reviewList.forEach(
-          review -> {
+          r -> {
             ReviewInfo reviewInfo =
                 reviewListResponse.reviewList().stream()
-                    .filter(info -> info.reviewId().equals(review.getId()))
+                    .filter(info -> info.reviewId().equals(r.getId()))
                     .findFirst()
                     .orElseThrow();
-            assertEquals(review.getContent(), reviewInfo.reviewContent());
+            assertEquals(r.getContent(), reviewInfo.reviewContent());
           });
     }
   }
@@ -195,18 +195,16 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
   @DisplayName("리뷰 생성 테스트")
   class create {
 
-    @Sql(
-        scripts = {
-          "/init-script/init-alcohol.sql",
-          "/init-script/init-user.sql",
-          "/init-script/init-review.sql",
-          "/init-script/init-review-reply.sql"
-        })
     @DisplayName("모든 필드가 포함된 리뷰 생성에 성공한다.")
     @Test
     void test_1() throws Exception {
+      // given
+      User user = userTestFactory.persistUser();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+      TokenItem token = getToken(user);
 
-      ReviewCreateRequest reviewCreateRequest = ReviewObjectFixture.getReviewCreateRequest();
+      ReviewCreateRequest reviewCreateRequest =
+          ReviewObjectFixture.getReviewCreateRequestWithAlcoholId(alcohol.getId());
 
       MvcResult result =
           mockMvc
@@ -214,7 +212,7 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
                   post("/api/v1/reviews")
                       .contentType(MediaType.APPLICATION_JSON)
                       .content(mapper.writeValueAsBytes(reviewCreateRequest))
-                      .header("Authorization", "Bearer " + getToken())
+                      .header("Authorization", "Bearer " + token.accessToken())
                       .with(csrf()))
               .andDo(print())
               .andExpect(status().isOk())
@@ -233,20 +231,18 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
 
   @Nested
   @DisplayName("리뷰 삭제 테스트")
-  class delete {
+  class deleteTest {
 
-    @Sql(
-        scripts = {
-          "/init-script/init-alcohol.sql",
-          "/init-script/init-user.sql",
-          "/init-script/init-review.sql",
-          "/init-script/init-review-reply.sql"
-        })
     @DisplayName("리뷰 삭제에 성공한다. (목록 조회 시 미노출)")
     @Test
     void test_1() throws Exception {
-      // 리뷰 생성
-      ReviewCreateRequest reviewCreateRequest = ReviewObjectFixture.getReviewCreateRequest();
+      // given
+      User user = userTestFactory.persistUser();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+      TokenItem token = getToken(user);
+
+      ReviewCreateRequest reviewCreateRequest =
+          ReviewObjectFixture.getReviewCreateRequestWithAlcoholId(alcohol.getId());
 
       MvcResult result =
           mockMvc
@@ -254,7 +250,7 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
                   post("/api/v1/reviews")
                       .contentType(MediaType.APPLICATION_JSON)
                       .content(mapper.writeValueAsBytes(reviewCreateRequest))
-                      .header("Authorization", "Bearer " + getToken())
+                      .header("Authorization", "Bearer " + token.accessToken())
                       .with(csrf()))
               .andDo(print())
               .andExpect(status().isOk())
@@ -275,7 +271,7 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
               .perform(
                   delete("/api/v1/reviews/{reviewId}", reviewId)
                       .contentType(MediaType.APPLICATION_JSON)
-                      .header("Authorization", "Bearer " + getToken())
+                      .header("Authorization", "Bearer " + token.accessToken())
                       .with(csrf()))
               .andDo(print())
               .andExpect(status().isOk())
@@ -316,25 +312,16 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
   @DisplayName("리뷰 수정 테스트")
   class update {
 
-    @BeforeEach
-    void setUp() {
-      final Long tokenUserId = getTokenUserId();
-      Review review = ReviewObjectFixture.getReviewFixture(1L, tokenUserId, "content1");
-      reviewRepository.save(review);
-    }
-
-    @Sql(
-        scripts = {
-          "/init-script/init-alcohol.sql",
-          "/init-script/init-user.sql",
-          "/init-script/init-review.sql",
-          "/init-script/init-review-reply.sql"
-        })
     @DisplayName("리뷰 수정에 성공한다.")
     @Test
     void test_1() throws Exception {
-      final Long tokenUserId = getTokenUserId();
-      final Long reviewId = reviewRepository.findByUserId(tokenUserId).get(0).getId();
+      // given
+      User user = userTestFactory.persistUser();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+      TokenItem token = getToken(user);
+      Review review = reviewTestFactory.persistReview(user, alcohol);
+
+      final Long reviewId = review.getId();
       final ReviewModifyRequest request =
           ReviewObjectFixture.getReviewModifyRequest(ReviewDisplayStatus.PUBLIC);
 
@@ -343,7 +330,7 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
               patch("/api/v1/reviews/{reviewId}", reviewId)
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(mapper.writeValueAsString(request))
-                  .header("Authorization", "Bearer " + getToken())
+                  .header("Authorization", "Bearer " + token.accessToken())
                   .with(csrf()))
           .andDo(print())
           .andExpect(status().isOk())
@@ -354,18 +341,16 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
       assertEquals(savedReview.getContent(), request.content());
     }
 
-    @Sql(
-        scripts = {
-          "/init-script/init-alcohol.sql",
-          "/init-script/init-user.sql",
-          "/init-script/init-review.sql",
-          "/init-script/init-review-reply.sql"
-        })
     @DisplayName("content와 status를 제외한 필드에 null이 할당되어도 수정에 성공한다.")
     @Test
     void test_2() throws Exception {
-      final Long tokenUserId = getTokenUserId();
-      final Long reviewId = reviewRepository.findByUserId(tokenUserId).get(0).getId();
+      // given
+      User user = userTestFactory.persistUser();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+      TokenItem token = getToken(user);
+      Review review = reviewTestFactory.persistReview(user, alcohol);
+
+      final Long reviewId = review.getId();
       final ReviewModifyRequest request =
           ReviewObjectFixture.getNullableReviewModifyRequest(ReviewDisplayStatus.PRIVATE);
 
@@ -374,7 +359,7 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
               patch("/api/v1/reviews/{reviewId}", reviewId)
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(mapper.writeValueAsString(request))
-                  .header("Authorization", "Bearer " + getToken())
+                  .header("Authorization", "Bearer " + token.accessToken())
                   .with(csrf()))
           .andDo(print())
           .andExpect(status().isOk())
@@ -387,21 +372,19 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
       assertEquals(savedReview.getContent(), request.content());
     }
 
-    @Sql(
-        scripts = {
-          "/init-script/init-alcohol.sql",
-          "/init-script/init-user.sql",
-          "/init-script/init-review.sql",
-          "/init-script/init-review-reply.sql"
-        })
     @DisplayName("Not Null인 필드에 null이 할당되면 리뷰 수정에 실패한다.")
     @Test
     void test_3() throws Exception {
+      // given
+      User user = userTestFactory.persistUser();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+      TokenItem token = getToken(user);
+      Review review = reviewTestFactory.persistReview(user, alcohol);
+
       final Error notNullEmpty = Error.of(ValidExceptionCode.REVIEW_CONTENT_REQUIRED);
       final Error notStatusEmpty = Error.of(ValidExceptionCode.REVIEW_DISPLAY_STATUS_NOT_EMPTY);
 
-      final Long tokenUserId = getTokenUserId();
-      final Long reviewId = reviewRepository.findByUserId(tokenUserId).get(0).getId();
+      final Long reviewId = review.getId();
       final ReviewModifyRequest request = ReviewObjectFixture.getWrongReviewModifyRequest();
 
       mockMvc
@@ -409,7 +392,7 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
               patch("/api/v1/reviews/{reviewId}", reviewId)
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(mapper.writeValueAsString(request))
-                  .header("Authorization", "Bearer " + getToken())
+                  .header("Authorization", "Bearer " + token.accessToken())
                   .with(csrf()))
           .andExpect(status().isBadRequest())
           .andDo(print())
@@ -429,19 +412,16 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
           .andReturn();
     }
 
-    @Sql(
-        scripts = {
-          "/init-script/init-alcohol.sql",
-          "/init-script/init-user.sql",
-          "/init-script/init-review.sql",
-          "/init-script/init-review-reply.sql"
-        })
     @DisplayName("리뷰 상태 변경에 성공한다.")
     @Test
     void test_4() throws Exception {
+      // given
+      User user = userTestFactory.persistUser();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+      TokenItem token = getToken(user);
+      Review review = reviewTestFactory.persistReview(user, alcohol);
 
-      final Long tokenUserId = getTokenUserId();
-      final Long reviewId = reviewRepository.findByUserId(tokenUserId).get(0).getId();
+      final Long reviewId = review.getId();
       final ReviewModifyRequest request =
           ReviewObjectFixture.getReviewModifyRequest(ReviewDisplayStatus.PRIVATE);
 
@@ -450,7 +430,7 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
               patch("/api/v1/reviews/{reviewId}/display", reviewId)
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(mapper.writeValueAsString(request))
-                  .header("Authorization", "Bearer " + getToken())
+                  .header("Authorization", "Bearer " + token.accessToken())
                   .with(csrf()))
           .andDo(print())
           .andExpect(status().isOk())
@@ -461,28 +441,26 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
       assertEquals(ReviewDisplayStatus.PRIVATE, savedReview.getStatus());
     }
 
-    @Sql(
-        scripts = {
-          "/init-script/init-alcohol.sql",
-          "/init-script/init-user.sql",
-          "/init-script/init-review.sql",
-          "/init-script/init-review-reply.sql"
-        })
     @DisplayName("Not null인 필드에 null이 할당되면 리뷰 상태 변경에 실패한다.")
     @Test
     void test_5() throws Exception {
+      // given
+      User user = userTestFactory.persistUser();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+      TokenItem token = getToken(user);
+      Review review = reviewTestFactory.persistReview(user, alcohol);
+
       final Error notStatusEmpty = Error.of(ValidExceptionCode.REVIEW_DISPLAY_STATUS_NOT_EMPTY);
       final ReviewModifyRequest request = ReviewObjectFixture.getNullableReviewModifyRequest(null);
 
-      final Long tokenUserId = getTokenUserId();
-      final Long reviewId = reviewRepository.findByUserId(tokenUserId).get(0).getId();
+      final Long reviewId = review.getId();
 
       mockMvc
           .perform(
               patch("/api/v1/reviews/{reviewId}/display", reviewId)
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(mapper.writeValueAsString(request))
-                  .header("Authorization", "Bearer " + getToken())
+                  .header("Authorization", "Bearer " + token.accessToken())
                   .with(csrf()))
           .andDo(print())
           .andExpect(status().isBadRequest())
