@@ -11,15 +11,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.IntegrationTestSupport;
+import app.bottlenote.alcohols.domain.Alcohol;
+import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.review.constant.ReviewReplyResultMessage;
-import app.bottlenote.review.constant.ReviewReplyStatus;
+import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewReplyRepository;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
 import app.bottlenote.review.dto.response.ReviewReplyResponse;
 import app.bottlenote.review.dto.response.RootReviewReplyResponse;
 import app.bottlenote.review.dto.response.SubReviewReplyResponse;
+import app.bottlenote.review.fixture.ReviewTestFactory;
+import app.bottlenote.user.domain.User;
+import app.bottlenote.user.dto.response.TokenItem;
+import app.bottlenote.user.fixture.UserTestFactory;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -27,7 +33,6 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 
 @Tag("integration")
@@ -35,33 +40,34 @@ import org.springframework.test.web.servlet.MvcResult;
 class ReviewReplyIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private ReviewReplyRepository reviewReplyRepository;
+  @Autowired private UserTestFactory userTestFactory;
+  @Autowired private AlcoholTestFactory alcoholTestFactory;
+  @Autowired private ReviewTestFactory reviewTestFactory;
 
   @Nested
   @DisplayName("리뷰 댓글 생성 테스트")
   class create {
 
     @DisplayName("리뷰의 댓글을 생성할 수 있다.")
-    @Sql(
-        scripts = {
-          "/init-script/init-alcohol.sql",
-          "/init-script/init-user.sql",
-          "/init-script/init-review.sql",
-          "/init-script/init-review-reply.sql"
-        })
     @Test
     void test_1() throws Exception {
+      // given
+      User reviewAuthor = userTestFactory.persistUser();
+      User replyAuthor = userTestFactory.persistUser();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+      Review review = reviewTestFactory.persistReview(reviewAuthor, alcohol);
+      TokenItem token = getToken(replyAuthor);
 
       ReviewReplyRegisterRequest replyRegisterRequest =
           new ReviewReplyRegisterRequest("댓글 내용", null);
-      final Long reviewId = 1L;
 
       MvcResult result =
           mockMvc
               .perform(
-                  post("/api/v1/review/reply/register/{reviewId}", reviewId)
+                  post("/api/v1/review/reply/register/{reviewId}", review.getId())
                       .contentType(MediaType.APPLICATION_JSON)
                       .content(mapper.writeValueAsString(replyRegisterRequest))
-                      .header("Authorization", "Bearer " + getToken())
+                      .header("Authorization", "Bearer " + token.accessToken())
                       .with(csrf()))
               .andDo(print())
               .andExpect(status().isOk())
@@ -79,35 +85,26 @@ class ReviewReplyIntegrationTest extends IntegrationTestSupport {
     }
 
     @DisplayName("댓글의 대댓글을 생성할 수 있다.")
-    @Sql(
-        scripts = {
-          "/init-script/init-alcohol.sql",
-          "/init-script/init-user.sql",
-          "/init-script/init-review.sql"
-        })
     @Test
     void test_2() throws Exception {
-
-      final Long reviewId = 1L;
-      ReviewReply savedReply =
-          reviewReplyRepository.save(
-              ReviewReply.builder()
-                  .reviewId(reviewId)
-                  .userId(getTokenUserId())
-                  .content("댓글 내용")
-                  .status(ReviewReplyStatus.NORMAL)
-                  .build());
+      // given
+      User reviewAuthor = userTestFactory.persistUser();
+      User replyAuthor = userTestFactory.persistUser();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+      Review review = reviewTestFactory.persistReview(reviewAuthor, alcohol);
+      ReviewReply parentReply = reviewTestFactory.persistReviewReply(review, replyAuthor);
+      TokenItem token = getToken(replyAuthor);
 
       ReviewReplyRegisterRequest replyRegisterRequest =
-          new ReviewReplyRegisterRequest("대댓글 내용", savedReply.getId());
+          new ReviewReplyRegisterRequest("대댓글 내용", parentReply.getId());
 
       MvcResult result =
           mockMvc
               .perform(
-                  post("/api/v1/review/reply/register/{reviewId}", reviewId)
+                  post("/api/v1/review/reply/register/{reviewId}", review.getId())
                       .contentType(MediaType.APPLICATION_JSON)
                       .content(mapper.writeValueAsString(replyRegisterRequest))
-                      .header("Authorization", "Bearer " + getToken())
+                      .header("Authorization", "Bearer " + token.accessToken())
                       .with(csrf()))
               .andDo(print())
               .andExpect(status().isOk())
@@ -130,23 +127,22 @@ class ReviewReplyIntegrationTest extends IntegrationTestSupport {
   class read {
 
     @DisplayName("리뷰의 최상위 댓글을 조회할 수 있다.")
-    @Sql(
-        scripts = {
-          "/init-script/init-alcohol.sql",
-          "/init-script/init-user.sql",
-          "/init-script/init-review.sql",
-          "/init-script/init-review-reply.sql"
-        })
     @Test
     void test_1() throws Exception {
-
       // given
-      final Long reviewId = 4L;
+      User reviewAuthor = userTestFactory.persistUser();
+      User replyAuthor1 = userTestFactory.persistUser();
+      User replyAuthor2 = userTestFactory.persistUser();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+      Review review = reviewTestFactory.persistReview(reviewAuthor, alcohol);
+      reviewTestFactory.persistReviewReply(review, replyAuthor1);
+      reviewTestFactory.persistReviewReply(review, replyAuthor2);
+
       // when && then
       MvcResult result =
           mockMvc
               .perform(
-                  get("/api/v1/review/reply/{reviewId}", reviewId)
+                  get("/api/v1/review/reply/{reviewId}", review.getId())
                       .contentType(MediaType.APPLICATION_JSON)
                       .param("cursor", "0")
                       .param("pageSize", "50")
@@ -163,36 +159,27 @@ class ReviewReplyIntegrationTest extends IntegrationTestSupport {
     }
 
     @DisplayName("리뷰의 대댓글 목록을 조회할 수 있다.")
-    @Sql(
-        scripts = {
-          "/init-script/init-alcohol.sql",
-          "/init-script/init-user.sql",
-          "/init-script/init-review.sql"
-        })
     @Test
     void test_2() throws Exception {
-
-      final Long reviewId = 1L;
-      ReviewReply savedReply =
-          reviewReplyRepository.save(
-              ReviewReply.builder()
-                  .reviewId(reviewId)
-                  .userId(getTokenUserId())
-                  .content("댓글 내용")
-                  .status(ReviewReplyStatus.NORMAL)
-                  .build());
+      // given
+      User reviewAuthor = userTestFactory.persistUser();
+      User replyAuthor = userTestFactory.persistUser();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+      Review review = reviewTestFactory.persistReview(reviewAuthor, alcohol);
+      ReviewReply parentReply = reviewTestFactory.persistReviewReply(review, replyAuthor);
+      TokenItem token = getToken(replyAuthor);
 
       ReviewReplyRegisterRequest replyRegisterRequest =
-          new ReviewReplyRegisterRequest("대댓글 내용", savedReply.getId());
+          new ReviewReplyRegisterRequest("대댓글 내용", parentReply.getId());
       final int count = 2;
 
       for (int i = 0; i < count; i++) {
         mockMvc
             .perform(
-                post("/api/v1/review/reply/register/{reviewId}", reviewId)
+                post("/api/v1/review/reply/register/{reviewId}", review.getId())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(mapper.writeValueAsString(replyRegisterRequest))
-                    .header("Authorization", "Bearer " + getToken())
+                    .header("Authorization", "Bearer " + token.accessToken())
                     .with(csrf()))
             .andDo(print())
             .andExpect(status().isOk())
@@ -205,11 +192,11 @@ class ReviewReplyIntegrationTest extends IntegrationTestSupport {
               .perform(
                   get(
                           "/api/v1/review/reply/{reviewId}/sub/{rootReplyId}",
-                          reviewId,
-                          savedReply.getId())
+                          review.getId(),
+                          parentReply.getId())
                       .contentType(MediaType.APPLICATION_JSON)
                       .content(mapper.writeValueAsString(replyRegisterRequest))
-                      .header("Authorization", "Bearer " + getToken())
+                      .header("Authorization", "Bearer " + token.accessToken())
                       .with(csrf()))
               .andDo(print())
               .andExpect(status().isOk())
@@ -228,34 +215,29 @@ class ReviewReplyIntegrationTest extends IntegrationTestSupport {
 
   @Nested
   @DisplayName("리뷰 댓글 삭제 테스트")
-  class delete {
+  class deleteTest {
 
     @DisplayName("리뷰 댓글을 삭제할 수 있다.")
-    @Sql(
-        scripts = {
-          "/init-script/init-alcohol.sql",
-          "/init-script/init-user.sql",
-          "/init-script/init-review.sql"
-        })
     @Test
     void test_1() throws Exception {
-
-      final Long reviewId = 1L;
-
-      ReviewReply savedReply =
-          reviewReplyRepository.save(
-              ReviewReply.builder()
-                  .reviewId(reviewId)
-                  .userId(getTokenUserId())
-                  .content("댓글 내용")
-                  .status(ReviewReplyStatus.NORMAL)
-                  .build());
+      // given
+      User reviewAuthor = userTestFactory.persistUser();
+      User replyAuthor1 = userTestFactory.persistUser();
+      User replyAuthor2 = userTestFactory.persistUser();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+      Review review = reviewTestFactory.persistReview(reviewAuthor, alcohol);
+      ReviewReply replyToDelete = reviewTestFactory.persistReviewReply(review, replyAuthor1);
+      reviewTestFactory.persistReviewReply(review, replyAuthor2);
+      TokenItem token = getToken(replyAuthor1);
 
       mockMvc
           .perform(
-              delete("/api/v1/review/reply/{reviewId}/{replyId}", reviewId, savedReply.getId())
+              delete(
+                      "/api/v1/review/reply/{reviewId}/{replyId}",
+                      review.getId(),
+                      replyToDelete.getId())
                   .contentType(MediaType.APPLICATION_JSON)
-                  .header("Authorization", "Bearer " + getToken())
+                  .header("Authorization", "Bearer " + token.accessToken())
                   .with(csrf()))
           .andDo(print())
           .andExpect(status().isOk())
@@ -265,7 +247,7 @@ class ReviewReplyIntegrationTest extends IntegrationTestSupport {
       MvcResult result =
           mockMvc
               .perform(
-                  get("/api/v1/review/reply/{reviewId}", reviewId)
+                  get("/api/v1/review/reply/{reviewId}", review.getId())
                       .contentType(MediaType.APPLICATION_JSON)
                       .with(csrf()))
               .andDo(print())

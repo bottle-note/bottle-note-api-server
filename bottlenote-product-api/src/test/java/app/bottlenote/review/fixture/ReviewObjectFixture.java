@@ -160,8 +160,13 @@ public class ReviewObjectFixture {
 
   /** 기본 ReviewCreateRequest 객체를 생성합니다. */
   public static ReviewCreateRequest getReviewCreateRequest() {
+    return getReviewCreateRequestWithAlcoholId(1L);
+  }
+
+  /** alcoholId를 지정한 ReviewCreateRequest 객체를 생성합니다. */
+  public static ReviewCreateRequest getReviewCreateRequestWithAlcoholId(Long alcoholId) {
     return new ReviewCreateRequest(
-        1L,
+        alcoholId,
         ReviewDisplayStatus.PUBLIC,
         "맛있어요",
         SizeType.GLASS,
