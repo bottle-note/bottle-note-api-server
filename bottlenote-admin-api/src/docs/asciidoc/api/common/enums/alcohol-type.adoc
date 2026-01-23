@@ -1,0 +1,16 @@
+[discrete]
+==== AlcoholType (술 타입) ====
+
+[cols="2,3", options="header"]
+|===
+|값 |설명
+|`WHISKY` |위스키
+|`RUM` |럼
+|`VODKA` |보드카
+|`GIN` |진
+|`TEQUILA` |데킬라
+|`BRANDY` |브랜디
+|`BEER` |맥주
+|`WINE` |와인
+|`ETC` |기타
+|===

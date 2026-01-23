@@ -10,6 +10,7 @@ import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
+import app.bottlenote.alcohols.repository.CustomAlcoholQueryRepository.AdminAlcoholDetailProjection;
 import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
 import java.util.HashMap;
@@ -73,6 +74,14 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
   }
 
   @Override
+  public List<Pair<String, String>> findAllCategoryPairs() {
+    return alcohols.values().stream()
+        .map(a -> Pair.of(a.getKorCategory(), a.getEngCategory()))
+        .distinct()
+        .toList();
+  }
+
+  @Override
   public Boolean existsByAlcoholId(Long alcoholId) {
     return alcohols.containsKey(alcoholId);
   }
@@ -86,5 +95,10 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
   @Override
   public Page<AdminAlcoholItem> searchAdminAlcohols(AdminAlcoholSearchRequest request) {
     return new PageImpl<>(List.of());
+  }
+
+  @Override
+  public Optional<AdminAlcoholDetailProjection> findAdminAlcoholDetailById(Long alcoholId) {
+    return Optional.empty();
   }
 }

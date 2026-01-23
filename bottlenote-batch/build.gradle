@@ -1,10 +1,66 @@
 // batch-module
+
+bootJar {
+	enabled = true
+	archiveFileName = 'bottlenote-batch.jar'
+}
+
+jar {
+	enabled = true
+}
+
 dependencies {
 	implementation project(':bottlenote-mono')
+	//noinspection GrUnresolvedAccess
+	testImplementation project(':bottlenote-mono').sourceSets.test.output
 
+	// batch
+	implementation libs.spring.boot.starter
 	implementation libs.spring.boot.starter.batch
-	testImplementation libs.spring.batch.test
 	implementation libs.spring.boot.starter.quartz
+	implementation libs.spring.boot.starter.actuator
+
+	// Test - Lombok
+	testAnnotationProcessor libs.lombok
+
+	// Test
+	testImplementation libs.bundles.testcontainers.complete
+	testImplementation libs.spring.batch.test
+
+	//security 필요없지만 mono 호환성을 위해
+	implementation libs.spring.boot.starter.security
+	implementation libs.spring.security.test
+	testImplementation libs.spring.security.test
+}
+
+sourceSets {
+	main {
+		resources {
+			srcDirs = ['src/main/resources',
+					   "${rootProject.projectDir}/git.environment-variables"]
+		}
+	}
+	test {
+		resources {
+			srcDirs = ['src/test/resources',
+					   "${rootProject.projectDir}/git.environment-variables"]
+		}
+	}
 }
 
 tasks.register("prepareKotlinBuildScriptModel") {}
+
+// 배치 테스트 태그 설정
+tasks.register('batch_test', Test) {
+	group = 'verification'
+	description = '배치 모듈 테스트 실행 (@Tag("batch"))'
+	useJUnitPlatform {
+		includeTags 'batch'
+	}
+}
+
+// CI에서 batch 테스트 제외 - batch는 독립 모듈로 별도 테스트
+tasks.named('unit_test') { enabled = false }
+tasks.named('integration_test') { enabled = false }
+tasks.named('check_rule_test') { enabled = false }
+tasks.named('admin_integration_test') { enabled = false }

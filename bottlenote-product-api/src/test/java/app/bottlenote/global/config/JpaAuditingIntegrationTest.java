@@ -8,48 +8,43 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.IntegrationTestSupport;
+import app.bottlenote.alcohols.domain.Alcohol;
+import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.fixture.ReviewObjectFixture;
-import app.bottlenote.user.constant.SocialType;
-import app.bottlenote.user.dto.request.OauthRequest;
+import app.bottlenote.user.domain.User;
+import app.bottlenote.user.dto.response.TokenItem;
+import app.bottlenote.user.fixture.UserTestFactory;
 import java.nio.charset.StandardCharsets;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 
 @Tag("integration")
 @DisplayName("[integration] [infra] JpaAuditing")
 class JpaAuditingIntegrationTest extends IntegrationTestSupport {
 
-  private ReviewCreateRequest reviewCreateRequest;
-  private OauthRequest oauthRequest;
-
   @Autowired private ReviewRepository reviewRepository;
-
-  @BeforeEach
-  void setUp() {
-    oauthRequest = new OauthRequest("chadongmin@naver.com", null, SocialType.KAKAO, null, null);
-    reviewCreateRequest = ReviewObjectFixture.getReviewCreateRequest();
-  }
+  @Autowired private UserTestFactory userTestFactory;
+  @Autowired private AlcoholTestFactory alcoholTestFactory;
 
   @DisplayName("DB 저장 시 생성자와 수정자가 기록된다.")
-  @Sql(
-      scripts = {
-        "/init-script/init-alcohol.sql",
-        "/init-script/init-user.sql",
-        "/init-script/init-review.sql",
-        "/init-script/init-review-reply.sql"
-      })
   @Test
   void test_1() throws Exception {
+    // given
+    User user = userTestFactory.persistUser();
+    Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+    TokenItem token = getToken(user);
+
+    ReviewCreateRequest reviewCreateRequest =
+        ReviewObjectFixture.getReviewCreateRequestWithAlcoholId(alcohol.getId());
+
     // when
     MvcResult result =
         mockMvc
@@ -57,7 +52,7 @@ class JpaAuditingIntegrationTest extends IntegrationTestSupport {
                 post("/api/v1/reviews")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(mapper.writeValueAsString(reviewCreateRequest))
-                    .header("Authorization", "Bearer " + getToken(oauthRequest).accessToken())
+                    .header("Authorization", "Bearer " + token.accessToken())
                     .with(csrf()))
             .andDo(print())
             .andExpect(status().isOk())
@@ -73,6 +68,6 @@ class JpaAuditingIntegrationTest extends IntegrationTestSupport {
 
     Review savedReview = reviewRepository.findById(review.getId()).orElseGet(null);
 
-    assertEquals(oauthRequest.email(), savedReview.getCreateBy());
+    assertEquals(user.getEmail(), savedReview.getCreateBy());
   }
 }

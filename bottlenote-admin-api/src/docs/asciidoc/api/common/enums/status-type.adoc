@@ -1,0 +1,11 @@
+[discrete]
+==== StatusType (처리 상태) ====
+
+[cols="2,3", options="header"]
+|===
+|값 |설명
+|`WAITING` |대기중
+|`SUCCESS` |처리 완료
+|`REJECT` |반려
+|`DELETED` |삭제
+|===

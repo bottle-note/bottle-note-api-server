@@ -20,6 +20,8 @@ include::{snippets}/admin/help/list/request-headers.adoc[]
 
 [discrete]
 include::{snippets}/admin/help/list/query-parameters.adoc[]
+include::../common/enums/help-type.adoc[]
+include::../common/enums/status-type.adoc[]
 include::{snippets}/admin/help/list/http-request.adoc[]
 
 [discrete]
@@ -90,6 +92,7 @@ include::{snippets}/admin/help/answer/path-parameters.adoc[]
 
 [discrete]
 include::{snippets}/admin/help/answer/request-fields.adoc[]
+include::../common/enums/status-type.adoc[]
 include::{snippets}/admin/help/answer/http-request.adoc[]
 
 [discrete]

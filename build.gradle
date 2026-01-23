@@ -189,3 +189,9 @@ tasks.register('restDocsTest') {
 	group = 'documentation'
 	dependsOn subprojects.findAll { it.tasks.findByName('restDocsTest') }.collect { it.tasks.restDocsTest }
 }
+
+tasks.register('batch_test') {
+	description = '배치 모듈 테스트 실행 (@Tag("batch"))'
+	group = 'verification'
+	dependsOn subprojects.findAll { it.tasks.findByName('batch_test') }.collect { it.tasks.batch_test }
+}

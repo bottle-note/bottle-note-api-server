@@ -1,5 +1,7 @@
 package app.bottlenote.alcohols.domain;
 
+import static app.bottlenote.alcohols.repository.CustomAlcoholQueryRepository.AdminAlcoholDetailProjection;
+
 import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest;
@@ -34,10 +36,14 @@ public interface AlcoholQueryRepository {
 
   List<CategoryItem> findAllCategories(AlcoholType type);
 
+  List<Pair<String, String>> findAllCategoryPairs();
+
   Boolean existsByAlcoholId(Long alcoholId);
 
   Pair<Long, CursorResponse<AlcoholDetailItem>> getStandardExplore(
       Long userId, List<String> keyword, Long cursor, Integer size);
 
   Page<AdminAlcoholItem> searchAdminAlcohols(AdminAlcoholSearchRequest request);
+
+  Optional<AdminAlcoholDetailProjection> findAdminAlcoholDetailById(Long alcoholId);
 }

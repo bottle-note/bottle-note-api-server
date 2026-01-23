@@ -16,6 +16,8 @@ endif::[]
 
 == 개요 (overview)
 
+NOTE: 로그인 API를 제외한 모든 API는 `Authorization` 헤더에 유효한 액세스 토큰이 필요합니다.
+
 include::api/overview/overview.adoc[]
 
 '''
@@ -41,3 +43,15 @@ include::api/admin-alcohols/alcohols.adoc[]
 == Help API
 
 include::api/admin-help/help.adoc[]
+
+'''
+
+== File API
+
+include::api/admin-file/file.adoc[]
+
+'''
+
+== Reference API
+
+include::api/admin-reference/reference.adoc[]

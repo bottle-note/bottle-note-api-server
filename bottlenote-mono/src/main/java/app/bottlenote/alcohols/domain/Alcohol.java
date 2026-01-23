@@ -15,6 +15,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.AccessLevel;
@@ -95,7 +96,50 @@ public class Alcohol extends BaseEntity {
   @Column(name = "volume")
   private String volume;
 
+  @Comment("삭제일시")
+  @Column(name = "deleted_at")
+  private LocalDateTime deletedAt;
+
   @Builder.Default
   @OneToMany(mappedBy = "alcohol", fetch = FetchType.LAZY)
   private Set<AlcoholsTastingTags> alcoholsTastingTags = new HashSet<>();
+
+  public void delete() {
+    this.deletedAt = LocalDateTime.now();
+  }
+
+  public boolean isDeleted() {
+    return this.deletedAt != null;
+  }
+
+  public void update(
+      String korName,
+      String engName,
+      String abv,
+      AlcoholType type,
+      String korCategory,
+      String engCategory,
+      AlcoholCategoryGroup categoryGroup,
+      Region region,
+      Distillery distillery,
+      String age,
+      String cask,
+      String imageUrl,
+      String description,
+      String volume) {
+    if (korName != null && !korName.isBlank()) this.korName = korName;
+    if (engName != null && !engName.isBlank()) this.engName = engName;
+    if (abv != null && !abv.isBlank()) this.abv = abv;
+    if (type != null) this.type = type;
+    if (korCategory != null && !korCategory.isBlank()) this.korCategory = korCategory;
+    if (engCategory != null && !engCategory.isBlank()) this.engCategory = engCategory;
+    if (categoryGroup != null) this.categoryGroup = categoryGroup;
+    if (region != null) this.region = region;
+    if (distillery != null) this.distillery = distillery;
+    if (age != null && !age.isBlank()) this.age = age;
+    if (cask != null && !cask.isBlank()) this.cask = cask;
+    if (imageUrl != null && !imageUrl.isBlank()) this.imageUrl = imageUrl;
+    if (description != null && !description.isBlank()) this.description = description;
+    if (volume != null && !volume.isBlank()) this.volume = volume;
+  }
 }

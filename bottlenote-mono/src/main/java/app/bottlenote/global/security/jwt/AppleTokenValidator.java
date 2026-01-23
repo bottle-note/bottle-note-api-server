@@ -28,7 +28,7 @@ public class AppleTokenValidator implements TokenValidator {
   private static final String APPLE_ISSUER = "https://appleid.apple.com";
 
   // application.yml 에서 실제 값 주입
-  @Value("${apple.bundle-id}")
+  @Value("${apple.bundle-id:bundle-id}")
   private String appleAudience;
 
   // Apple 공개키는 자주 바뀌지 않으므로 캐싱하여 사용

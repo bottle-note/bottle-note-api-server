@@ -13,6 +13,7 @@ GET /admin/api/v1/alcohols
 
 [discrete]
 include::{snippets}/admin/alcohols/search/query-parameters.adoc[]
+include::../common/enums/alcohol-category-group.adoc[]
 include::{snippets}/admin/alcohols/search/curl-request.adoc[]
 include::{snippets}/admin/alcohols/search/http-request.adoc[]
 
@@ -22,3 +23,146 @@ include::{snippets}/admin/alcohols/search/http-request.adoc[]
 [discrete]
 include::{snippets}/admin/alcohols/search/response-fields.adoc[]
 include::{snippets}/admin/alcohols/search/http-response.adoc[]
+
+'''
+
+=== 술(Alcohol) 단건 상세 조회 ===
+
+- 관리자용 술 단건 상세 조회 API입니다.
+- 기본 정보, 카테고리, 스펙, 지역, 증류소, 테이스팅 태그, 통계 정보를 모두 포함합니다.
+
+[source]
+----
+GET /admin/api/v1/alcohols/{alcoholId}
+----
+
+[discrete]
+==== 경로 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/alcohols/detail/path-parameters.adoc[]
+include::{snippets}/admin/alcohols/detail/curl-request.adoc[]
+include::{snippets}/admin/alcohols/detail/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/alcohols/detail/response-fields.adoc[]
+include::{snippets}/admin/alcohols/detail/http-response.adoc[]
+
+'''
+
+=== 술(Alcohol) 생성 ===
+
+- 관리자용 술 생성 API입니다.
+- 모든 필드는 필수값입니다.
+
+
+
+[source]
+----
+POST /admin/api/v1/alcohols
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/alcohols/create/request-fields.adoc[]
+include::../common/enums/alcohol-type.adoc[]
+include::../common/enums/alcohol-category-group.adoc[]
+include::{snippets}/admin/alcohols/create/curl-request.adoc[]
+include::{snippets}/admin/alcohols/create/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/alcohols/create/response-fields.adoc[]
+include::{snippets}/admin/alcohols/create/http-response.adoc[]
+
+'''
+
+=== 술(Alcohol) 수정 ===
+
+- 관리자용 술 수정 API입니다.
+- 전체 수정(PUT)이므로 모든 필드를 전달해야 합니다.
+- 이미 삭제된 술은 수정할 수 없습니다.
+
+[source]
+----
+PUT /admin/api/v1/alcohols/{alcoholId}
+----
+
+[discrete]
+==== 경로 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/alcohols/update/path-parameters.adoc[]
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/alcohols/update/request-fields.adoc[]
+include::../common/enums/alcohol-type.adoc[]
+include::../common/enums/alcohol-category-group.adoc[]
+include::{snippets}/admin/alcohols/update/curl-request.adoc[]
+include::{snippets}/admin/alcohols/update/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/alcohols/update/response-fields.adoc[]
+include::{snippets}/admin/alcohols/update/http-response.adoc[]
+
+'''
+
+=== 술(Alcohol) 삭제 ===
+
+- 관리자용 술 삭제 API입니다.
+- 소프트 삭제로 처리되며, 실제 데이터는 삭제되지 않습니다.
+- 리뷰 또는 평점이 존재하는 술은 삭제할 수 없습니다.
+- 이미 삭제된 술은 재삭제할 수 없습니다.
+
+[source]
+----
+DELETE /admin/api/v1/alcohols/{alcoholId}
+----
+
+[discrete]
+==== 경로 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/alcohols/delete/path-parameters.adoc[]
+include::{snippets}/admin/alcohols/delete/curl-request.adoc[]
+include::{snippets}/admin/alcohols/delete/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/alcohols/delete/response-fields.adoc[]
+include::{snippets}/admin/alcohols/delete/http-response.adoc[]
+
+'''
+
+=== 카테고리 레퍼런스 조회 ===
+
+- 현재 DB에 등록된 모든 카테고리 페어(한글/영문) 목록을 조회합니다.
+- 술 생성/수정 시 기존 카테고리를 참조하기 위한 API입니다.
+- 동일 한글 카테고리라도 영문 카테고리가 다르면 별도 항목으로 조회됩니다.
+
+[source]
+----
+GET /admin/api/v1/alcohols/categories/reference
+----
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/alcohols/category-reference/response-fields.adoc[]
+include::{snippets}/admin/alcohols/category-reference/http-response.adoc[]
