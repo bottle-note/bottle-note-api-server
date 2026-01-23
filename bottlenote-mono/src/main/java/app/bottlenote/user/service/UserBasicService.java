@@ -6,6 +6,9 @@ import static app.bottlenote.user.exception.UserExceptionCode.MYBOTTLE_NOT_ACCES
 import static app.bottlenote.user.exception.UserExceptionCode.MYPAGE_NOT_ACCESSIBLE;
 import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 
+import app.bottlenote.common.file.event.payload.ImageResourceActivatedEvent;
+import app.bottlenote.common.file.event.payload.ImageResourceInvalidatedEvent;
+import app.bottlenote.common.image.ImageUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.user.constant.MyBottleType;
 import app.bottlenote.user.domain.User;
@@ -22,6 +25,7 @@ import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,8 +34,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class UserBasicService {
 
+  private static final String REFERENCE_TYPE_PROFILE = "PROFILE";
+
   private final UserRepository userRepository;
   private final UserFilterManager userFilterManager;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public NicknameChangeResponse nicknameChange(Long userId, NicknameChangeRequest request) {
@@ -71,7 +78,27 @@ public class UserBasicService {
           User user =
               userRepository.findById(userId).orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
+          // 기존 프로필 이미지 URL 저장 (교체 전)
+          String oldImageUrl = user.getImageUrl();
+
           user.changeProfileImage(viewUrl);
+
+          // 기존 이미지가 있고 새 이미지와 다른 경우 INVALIDATED 이벤트 발행
+          if (oldImageUrl != null && !oldImageUrl.equals(viewUrl)) {
+            String oldResourceKey = ImageUtil.extractResourceKey(oldImageUrl);
+            if (oldResourceKey != null && user.getId() != null) {
+              eventPublisher.publishEvent(
+                  ImageResourceInvalidatedEvent.of(
+                      oldResourceKey, user.getId(), REFERENCE_TYPE_PROFILE));
+            }
+          }
+
+          // 새 이미지에 대해 ACTIVATED 이벤트 발행
+          String resourceKey = ImageUtil.extractResourceKey(viewUrl);
+          if (resourceKey != null && user.getId() != null) {
+            eventPublisher.publishEvent(
+                ImageResourceActivatedEvent.of(resourceKey, user.getId(), REFERENCE_TYPE_PROFILE));
+          }
 
           return new ProfileImageChangeResponse(user.getId(), user.getImageUrl());
         });

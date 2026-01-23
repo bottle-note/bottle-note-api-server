@@ -5,12 +5,16 @@ import static java.time.LocalDateTime.now;
 import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.domain.CurationKeywordRepository;
+import app.bottlenote.alcohols.domain.DistilleryRepository;
 import app.bottlenote.alcohols.domain.RegionRepository;
+import app.bottlenote.alcohols.domain.TastingTagRepository;
+import app.bottlenote.alcohols.dto.request.AdminReferenceSearchRequest;
 import app.bottlenote.alcohols.dto.request.CurationKeywordSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.dto.response.CurationKeywordResponse;
 import app.bottlenote.alcohols.dto.response.RegionsItem;
+import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.service.cursor.CursorResponse;
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +32,8 @@ public class AlcoholReferenceService {
   private final RegionRepository regionQueryRepository;
   private final AlcoholQueryRepository alcoholQueryRepository;
   private final CurationKeywordRepository curationKeywordRepository;
+  private final DistilleryRepository distilleryRepository;
+  private final TastingTagRepository tastingTagRepository;
 
   @Cacheable(value = "local_cache_alcohol_region_information")
   @Transactional(readOnly = true)
@@ -63,5 +69,23 @@ public class AlcoholReferenceService {
   @Transactional(readOnly = true)
   public Optional<Set<Long>> getCurationAlcoholIds(Long curationId) {
     return curationKeywordRepository.findById(curationId).map(curation -> curation.getAlcoholIds());
+  }
+
+  @Transactional(readOnly = true)
+  public GlobalResponse findAllRegionsForAdmin(AdminReferenceSearchRequest request) {
+    return GlobalResponse.fromPage(
+        regionQueryRepository.findAllRegions(request.keyword(), request.toPageable()));
+  }
+
+  @Transactional(readOnly = true)
+  public GlobalResponse findAllDistilleries(AdminReferenceSearchRequest request) {
+    return GlobalResponse.fromPage(
+        distilleryRepository.findAllDistilleries(request.keyword(), request.toPageable()));
+  }
+
+  @Transactional(readOnly = true)
+  public GlobalResponse findAllTastingTags(AdminReferenceSearchRequest request) {
+    return GlobalResponse.fromPage(
+        tastingTagRepository.findAllTastingTags(request.keyword(), request.toPageable()));
   }
 }

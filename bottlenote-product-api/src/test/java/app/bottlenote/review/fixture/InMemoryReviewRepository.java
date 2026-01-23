@@ -66,7 +66,9 @@ public class InMemoryReviewRepository implements ReviewRepository {
 
   @Override
   public Optional<Review> findByIdAndUserId(Long reviewId, Long userId) {
-    return Optional.empty();
+    return database.values().stream()
+        .filter(r -> r.getId().equals(reviewId) && r.getUserId().equals(userId))
+        .findFirst();
   }
 
   @Override
@@ -83,5 +85,10 @@ public class InMemoryReviewRepository implements ReviewRepository {
   public Pair<Long, CursorResponse<ReviewExploreItem>> getStandardExplore(
       Long userId, List<String> keywords, Long cursor, Integer size) {
     return null;
+  }
+
+  @Override
+  public boolean existsByAlcoholId(Long alcoholId) {
+    return database.values().stream().anyMatch(review -> review.getAlcoholId().equals(alcoholId));
   }
 }

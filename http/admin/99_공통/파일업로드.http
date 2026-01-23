@@ -1,0 +1,3 @@
+### S3 PreSigned URL 발급
+GET {{host}}/s3/presign-url?rootPath=admin&uploadSize=1
+Authorization: Bearer {{accessToken}}

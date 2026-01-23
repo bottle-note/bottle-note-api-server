@@ -41,7 +41,7 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(AbstractCustomException.class)
   public ResponseEntity<?> handleCustomException(AbstractCustomException exception) {
-    log.warn("사용자 정의 예외 발생 : ", exception);
+    log.warn("사용자 정의 예외 발생 : {}", exception.getMessage());
     return GlobalResponse.error(exception);
   }
 
@@ -53,7 +53,7 @@ public class GlobalExceptionHandler {
    */
   @ExceptionHandler(value = {Exception.class})
   public ResponseEntity<?> handleGenericException(Exception exception) {
-    log.error("Exception.class 예외 발생 : ", exception);
+    log.error("Exception.class 예외 발생 : {}", exception.getMessage());
     Error error = Error.of(UNKNOWN_ERROR.message(exception.getMessage()));
     return GlobalResponse.error(error);
   }

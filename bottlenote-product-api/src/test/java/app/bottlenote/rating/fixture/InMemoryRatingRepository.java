@@ -56,4 +56,10 @@ public class InMemoryRatingRepository implements RatingRepository {
   public Optional<UserRatingResponse> fetchUserRating(Long alcoholId, Long userId) {
     return Optional.empty();
   }
+
+  @Override
+  public boolean existsByAlcoholId(Long alcoholId) {
+    return ratings.values().stream()
+        .anyMatch(rating -> rating.getId().getAlcoholId().equals(alcoholId));
+  }
 }

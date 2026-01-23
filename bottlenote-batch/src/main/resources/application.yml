@@ -1,0 +1,77 @@
+# Batch 서버 설정
+
+app:
+  type: batch
+  info:
+    server-name: ${SERVER_NAME:unknown}
+    environment: ${SPRING_PROFILES_ACTIVE:local}
+    git-branch: ${GIT_BRANCH:unknown}
+    git-commit: ${GIT_COMMIT:unknown}
+    git-build-time: ${BUILD_TIME:unknown}
+
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: bottlenote-batch
+  profiles:
+    include:
+      - datasource
+      - external
+  jackson:
+    time-zone: Asia/Seoul
+
+  # Batch 설정
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: never
+
+  # Quartz 설정
+  quartz:
+    overwrite-existing-jobs: true
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: never
+    properties:
+      org:
+        quartz:
+          scheduler:
+            instanceName: bottle_note_quartz_scheduler
+            instanceId: AUTO
+          threadPool:
+            threadCount: 5
+            threadPriority: 5
+          jobStore:
+            driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+            isClustered: true
+            clusterCheckinInterval: 20000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
+  otlp:
+    metrics:
+      export:
+        enabled: false
+    tracing:
+      endpoint: ""
+  tracing:
+    enabled: false
+
+logging:
+  level:
+    root: info
+
+security:
+  jwt:
+    secret-key: c2VjdXJlU2VjcmV0S2V5MTIzNDU2Nzg5MGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6QWJDRGVGR2hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlrSg==
+  nonce:
+    salt: bottle-note-secure-salt-2024

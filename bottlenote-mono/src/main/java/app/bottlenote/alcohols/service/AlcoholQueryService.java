@@ -1,13 +1,19 @@
 package app.bottlenote.alcohols.service;
 
+import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
+import app.bottlenote.alcohols.dto.response.AdminAlcoholDetailResponse;
+import app.bottlenote.alcohols.dto.response.AdminAlcoholDetailResponse.TastingTagInfo;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.FriendsDetailResponse;
+import app.bottlenote.alcohols.exception.AlcoholException;
+import app.bottlenote.alcohols.exception.AlcoholExceptionCode;
+import app.bottlenote.alcohols.repository.CustomAlcoholQueryRepository.AdminAlcoholDetailProjection;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
@@ -95,5 +101,61 @@ public class AlcoholQueryService {
   @Transactional(readOnly = true)
   public GlobalResponse searchAdminAlcohols(AdminAlcoholSearchRequest request) {
     return GlobalResponse.fromPage(alcoholQueryRepository.searchAdminAlcohols(request));
+  }
+
+  @Transactional(readOnly = true)
+  public List<Pair<String, String>> findAllCategoryPairs() {
+    return alcoholQueryRepository.findAllCategoryPairs();
+  }
+
+  @Transactional(readOnly = true)
+  public AdminAlcoholDetailResponse findAdminAlcoholDetailById(Long alcoholId) {
+    AdminAlcoholDetailProjection projection =
+        alcoholQueryRepository
+            .findAdminAlcoholDetailById(alcoholId)
+            .orElseThrow(() -> new AlcoholException(AlcoholExceptionCode.ALCOHOL_NOT_FOUND));
+
+    Alcohol alcohol =
+        alcoholQueryRepository
+            .findById(alcoholId)
+            .orElseThrow(() -> new AlcoholException(AlcoholExceptionCode.ALCOHOL_NOT_FOUND));
+
+    List<TastingTagInfo> tastingTags =
+        alcohol.getAlcoholsTastingTags().stream()
+            .map(
+                att ->
+                    new TastingTagInfo(
+                        att.getTastingTag().getId(),
+                        att.getTastingTag().getKorName(),
+                        att.getTastingTag().getEngName()))
+            .toList();
+
+    return new AdminAlcoholDetailResponse(
+        projection.alcoholId(),
+        projection.korName(),
+        projection.engName(),
+        projection.imageUrl(),
+        projection.type(),
+        projection.korCategory(),
+        projection.engCategory(),
+        projection.categoryGroup(),
+        projection.abv(),
+        projection.age(),
+        projection.cask(),
+        projection.volume(),
+        projection.description(),
+        projection.regionId(),
+        projection.korRegion(),
+        projection.engRegion(),
+        projection.distilleryId(),
+        projection.korDistillery(),
+        projection.engDistillery(),
+        tastingTags,
+        projection.avgRating(),
+        projection.totalRatingsCount(),
+        projection.reviewCount(),
+        projection.pickCount(),
+        projection.createdAt(),
+        projection.modifiedAt());
   }
 }

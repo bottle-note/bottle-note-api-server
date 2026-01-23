@@ -70,3 +70,6 @@ cosign.key
 cosign.pub
 
 *.env.*
+
+# Log files
+spy.log

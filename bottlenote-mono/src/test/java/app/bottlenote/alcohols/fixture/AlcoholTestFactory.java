@@ -6,10 +6,13 @@ import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholsTastingTags;
 import app.bottlenote.alcohols.domain.CurationKeyword;
 import app.bottlenote.alcohols.domain.Distillery;
+import app.bottlenote.alcohols.domain.PopularAlcohol;
 import app.bottlenote.alcohols.domain.Region;
 import app.bottlenote.alcohols.domain.TastingTag;
 import jakarta.persistence.EntityManager;
+import java.math.BigDecimal;
 import java.security.SecureRandom;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -212,6 +215,33 @@ public class AlcoholTestFactory {
             .type(AlcoholType.WHISKY)
             .korCategory("위스키")
             .engCategory("Whiskey")
+            .categoryGroup(AlcoholCategoryGroup.SINGLE_MALT)
+            .region(region)
+            .distillery(distillery)
+            .cask("Oak")
+            .imageUrl("https://example.com/custom.jpg")
+            .build();
+    em.persist(alcohol);
+    em.flush();
+    return alcohol;
+  }
+
+  /** 특정 카테고리로 Alcohol 생성 - 연관 엔티티 자동 생성 */
+  @Transactional
+  @NotNull
+  public Alcohol persistAlcoholWithCategory(
+      @NotNull String korCategory, @NotNull String engCategory) {
+    Region region = persistRegionInternal();
+    Distillery distillery = persistDistilleryInternal();
+
+    Alcohol alcohol =
+        Alcohol.builder()
+            .korName("테스트 위스키-" + generateRandomSuffix())
+            .engName("Test Whisky-" + generateRandomSuffix())
+            .abv("40%")
+            .type(AlcoholType.WHISKY)
+            .korCategory(korCategory)
+            .engCategory(engCategory)
             .categoryGroup(AlcoholCategoryGroup.SINGLE_MALT)
             .region(region)
             .distillery(distillery)
@@ -454,5 +484,53 @@ public class AlcoholTestFactory {
     em.persist(curation);
     em.flush();
     return curation;
+  }
+
+  /** 기본 PopularAlcohol 생성 (오늘 날짜 기준) */
+  @Transactional
+  @NotNull
+  public PopularAlcohol persistPopularAlcohol(
+      @NotNull Long alcoholId, @NotNull BigDecimal popularScore) {
+    LocalDate today = LocalDate.now();
+    PopularAlcohol popularAlcohol =
+        PopularAlcohol.builder()
+            .alcoholId(alcoholId)
+            .year(today.getYear())
+            .month(today.getMonthValue())
+            .day(today.getDayOfMonth())
+            .reviewScore(BigDecimal.ZERO)
+            .ratingScore(BigDecimal.ZERO)
+            .pickScore(BigDecimal.ZERO)
+            .popularScore(popularScore)
+            .build();
+    em.persist(popularAlcohol);
+    em.flush();
+    return popularAlcohol;
+  }
+
+  /** 상세 점수와 함께 PopularAlcohol 생성 */
+  @Transactional
+  @NotNull
+  public PopularAlcohol persistPopularAlcohol(
+      @NotNull Long alcoholId,
+      @NotNull LocalDate date,
+      @NotNull BigDecimal reviewScore,
+      @NotNull BigDecimal ratingScore,
+      @NotNull BigDecimal pickScore,
+      @NotNull BigDecimal popularScore) {
+    PopularAlcohol popularAlcohol =
+        PopularAlcohol.builder()
+            .alcoholId(alcoholId)
+            .year(date.getYear())
+            .month(date.getMonthValue())
+            .day(date.getDayOfMonth())
+            .reviewScore(reviewScore)
+            .ratingScore(ratingScore)
+            .pickScore(pickScore)
+            .popularScore(popularScore)
+            .build();
+    em.persist(popularAlcohol);
+    em.flush();
+    return popularAlcohol;
   }
 }

@@ -1,0 +1,18 @@
+### 문의 목록 조회
+GET {{host}}/helps?cursor=0&pageSize=10
+Authorization: Bearer {{accessToken}}
+
+### 문의 상세 조회
+@helpId = 1
+GET {{host}}/helps/{{helpId}}
+Authorization: Bearer {{accessToken}}
+
+### 문의 답변 등록
+@helpId = 1
+POST {{host}}/helps/{{helpId}}/answer
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "content": "문의 주신 내용에 대해 답변 드립니다."
+}

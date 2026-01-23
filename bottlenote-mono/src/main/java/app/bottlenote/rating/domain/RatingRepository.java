@@ -22,4 +22,6 @@ public interface RatingRepository {
   PageResponse<RatingListFetchResponse> fetchRatingList(RatingListFetchCriteria criteria);
 
   Optional<UserRatingResponse> fetchUserRating(Long alcoholId, Long userId);
+
+  boolean existsByAlcoholId(Long alcoholId);
 }
