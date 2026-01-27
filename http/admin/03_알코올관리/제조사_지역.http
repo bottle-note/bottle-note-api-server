@@ -5,7 +5,3 @@ Authorization: Bearer {{accessToken}}
 ### 지역 목록 조회
 GET {{host}}/regions?keyword=&cursor=0&pageSize=10
 Authorization: Bearer {{accessToken}}
-
-### 테이스팅 태그 목록 조회
-GET {{host}}/tasting-tags?keyword=&cursor=0&pageSize=10
-Authorization: Bearer {{accessToken}}
