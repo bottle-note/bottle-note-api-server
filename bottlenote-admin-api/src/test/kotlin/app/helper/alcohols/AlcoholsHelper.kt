@@ -112,6 +112,7 @@ object AlcoholsHelper {
 				"Tag$i",
 				"icon$i.png",
 				"테이스팅 태그 설명 $i",
+				null,
 				LocalDateTime.of(2024, 1, i, 0, 0),
 				LocalDateTime.of(2024, 6, i, 0, 0)
 			)
