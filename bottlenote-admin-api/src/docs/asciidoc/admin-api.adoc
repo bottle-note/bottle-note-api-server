@@ -52,6 +52,12 @@ include::api/admin-file/file.adoc[]
 
 '''
 
+== Tasting Tag API
+
+include::api/admin-tasting-tags/tasting-tags.adoc[]
+
+'''
+
 == Reference API
 
 include::api/admin-reference/reference.adoc[]
