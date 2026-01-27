@@ -8,5 +8,6 @@ public record AdminTastingTagItem(
     String engName,
     String icon,
     String description,
+    Long parentId,
     LocalDateTime createdAt,
     LocalDateTime modifiedAt) {}
