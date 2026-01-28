@@ -14,6 +14,9 @@ import java.time.LocalDateTime
 
 object AlcoholsHelper {
 
+	/** 1x1 투명 PNG 이미지 (테스트용) */
+	const val VALID_BASE64_PNG = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+
 	fun createAdminAlcoholItem(
 		id: Long = 1L,
 		korName: String = "테스트 위스키",

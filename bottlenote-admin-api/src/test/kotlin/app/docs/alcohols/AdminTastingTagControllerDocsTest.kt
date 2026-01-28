@@ -207,7 +207,7 @@ class AdminTastingTagControllerDocsTest {
 			val request = mapOf(
 				"korName" to "바닐라",
 				"engName" to "Vanilla",
-				"icon" to "base64EncodedIcon",
+				"icon" to AlcoholsHelper.VALID_BASE64_PNG,
 				"description" to "바닐라 향",
 				"parentId" to null
 			)
@@ -266,6 +266,7 @@ class AdminTastingTagControllerDocsTest {
 			val request = mapOf(
 				"korName" to "바닐라 수정",
 				"engName" to "Vanilla Updated",
+				"icon" to AlcoholsHelper.VALID_BASE64_PNG,
 				"description" to "수정된 설명"
 			)
 			val response = AdminResultResponse.of(AdminResultResponse.ResultCode.TASTING_TAG_UPDATED, 1L)

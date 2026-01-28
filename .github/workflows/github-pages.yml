@@ -5,7 +5,8 @@ on:
     branches: [ "main" ]
     paths:
       - 'bottlenote-*/src/docs/**'
-      - 'bottlenote-*/src/test/**/docs/**'
+      - 'bottlenote-*/src/test/java/**/docs/**'
+      - 'bottlenote-*/src/test/kotlin/**/docs/**'
       - 'bottlenote-*/build.gradle*'
       - 'gradle/libs.versions.toml'
       - 'docs/**'

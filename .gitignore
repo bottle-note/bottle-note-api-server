@@ -73,3 +73,5 @@ cosign.pub
 
 # Log files
 spy.log
+/.omc/state/subagent-tracking.json
+/.omc/continuation-count.json
