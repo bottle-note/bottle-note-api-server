@@ -55,24 +55,32 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 			)
 				.hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.korName").isEqualTo("허니")
+				.extractingPath("$.data.tag.korName").isEqualTo("허니")
 		}
 
 		@Test
-		@DisplayName("부모 태그가 있는 경우 조상 정보가 포함된다")
-		fun getTagDetailWithAncestors() {
-			// given
+		@DisplayName("부모 태그가 있는 경우 마트료시카 구조로 조상 정보가 포함된다")
+		fun getTagDetailWithParentChain() {
+			// given - 3depth 트리 생성 (root -> middle -> leaf)
 			val tree = tastingTagTestFactory.persistTastingTagTree()
 			val leafTag = tree[2]
 
-			// when & then
+			// when & then - leaf 태그 조회 시 parent.parent 존재 확인
 			assertThat(
 				mockMvcTester.get().uri("/tasting-tags/${leafTag.id}")
 					.header("Authorization", "Bearer $accessToken")
 			)
 				.hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.ancestors.length()").isEqualTo(2)
+				.extractingPath("$.data.tag.parent").isNotNull()
+
+			assertThat(
+				mockMvcTester.get().uri("/tasting-tags/${leafTag.id}")
+					.header("Authorization", "Bearer $accessToken")
+			)
+				.hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.tag.parent.parent").isNotNull()
 		}
 
 		@Test

@@ -2,7 +2,7 @@ package app.bottlenote.alcohols.fixture;
 
 import app.bottlenote.alcohols.domain.TastingTag;
 import app.bottlenote.alcohols.domain.TastingTagRepository;
-import app.bottlenote.alcohols.dto.response.AdminTastingTagItem;
+import app.bottlenote.alcohols.dto.response.TastingTagNodeItem;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -22,8 +22,8 @@ public class InMemoryTastingTagRepository implements TastingTagRepository {
   }
 
   @Override
-  public Page<AdminTastingTagItem> findAllTastingTags(String keyword, Pageable pageable) {
-    List<AdminTastingTagItem> filtered =
+  public Page<TastingTagNodeItem> findAllTastingTags(String keyword, Pageable pageable) {
+    List<TastingTagNodeItem> filtered =
         tags.stream()
             .filter(
                 t ->
@@ -31,12 +31,12 @@ public class InMemoryTastingTagRepository implements TastingTagRepository {
                         || keyword.isEmpty()
                         || t.getKorName().contains(keyword)
                         || t.getEngName().contains(keyword))
-            .map(this::toAdminTastingTagItem)
+            .map(this::toTastingTagNodeItem)
             .toList();
 
     int start = (int) pageable.getOffset();
     int end = Math.min(start + pageable.getPageSize(), filtered.size());
-    List<AdminTastingTagItem> pageContent =
+    List<TastingTagNodeItem> pageContent =
         start < filtered.size() ? filtered.subList(start, end) : List.of();
 
     return new PageImpl<>(pageContent, pageable, filtered.size());
@@ -90,15 +90,8 @@ public class InMemoryTastingTagRepository implements TastingTagRepository {
     tags.clear();
   }
 
-  private AdminTastingTagItem toAdminTastingTagItem(TastingTag tag) {
-    return new AdminTastingTagItem(
-        tag.getId(),
-        tag.getKorName(),
-        tag.getEngName(),
-        tag.getIcon(),
-        tag.getDescription(),
-        tag.getParentId(),
-        tag.getCreateAt(),
-        tag.getLastModifyAt());
+  private TastingTagNodeItem toTastingTagNodeItem(TastingTag tag) {
+    return TastingTagNodeItem.forList(
+        tag.getId(), tag.getKorName(), tag.getEngName(), tag.getIcon(), tag.getDescription());
   }
 }

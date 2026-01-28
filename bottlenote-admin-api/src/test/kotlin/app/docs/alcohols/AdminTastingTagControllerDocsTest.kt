@@ -4,7 +4,7 @@ import app.bottlenote.alcohols.dto.request.AdminReferenceSearchRequest
 import app.bottlenote.alcohols.dto.request.AdminTastingTagUpsertRequest
 import app.bottlenote.alcohols.dto.response.AdminAlcoholItem
 import app.bottlenote.alcohols.dto.response.AdminTastingTagDetailResponse
-import app.bottlenote.alcohols.dto.response.AdminTastingTagItem
+import app.bottlenote.alcohols.dto.response.TastingTagNodeItem
 import app.bottlenote.alcohols.presentation.AdminTastingTagController
 import app.bottlenote.alcohols.service.AlcoholReferenceService
 import app.bottlenote.alcohols.service.TastingTagService
@@ -62,7 +62,7 @@ class AdminTastingTagControllerDocsTest {
 		@DisplayName("테이스팅 태그 목록을 조회할 수 있다")
 		fun getAllTastingTags() {
 			// given
-			val items = AlcoholsHelper.createAdminTastingTagItems(3)
+			val items = AlcoholsHelper.createTastingTagNodeItems(3)
 			val page = PageImpl(items)
 			val response = GlobalResponse.fromPage(page)
 
@@ -92,11 +92,10 @@ class AdminTastingTagControllerDocsTest {
 							fieldWithPath("data[].id").type(JsonFieldType.NUMBER).description("태그 ID"),
 							fieldWithPath("data[].korName").type(JsonFieldType.STRING).description("태그 한글명"),
 							fieldWithPath("data[].engName").type(JsonFieldType.STRING).description("태그 영문명"),
-							fieldWithPath("data[].icon").type(JsonFieldType.STRING).description("아이콘 (Base64)"),
-							fieldWithPath("data[].description").type(JsonFieldType.STRING).description("설명"),
-							fieldWithPath("data[].parentId").type(JsonFieldType.NUMBER).description("부모 태그 ID").optional(),
-							fieldWithPath("data[].createdAt").type(JsonFieldType.STRING).description("생성일시"),
-							fieldWithPath("data[].modifiedAt").type(JsonFieldType.STRING).description("수정일시"),
+							fieldWithPath("data[].icon").type(JsonFieldType.STRING).description("아이콘 (Base64)").optional(),
+							fieldWithPath("data[].description").type(JsonFieldType.STRING).description("설명").optional(),
+							fieldWithPath("data[].parent").type(JsonFieldType.OBJECT).description("부모 태그 (목록에서는 null)").optional(),
+							fieldWithPath("data[].children").type(JsonFieldType.ARRAY).description("자식 태그 목록 (목록에서는 null)").optional(),
 							fieldWithPath("errors").type(JsonFieldType.ARRAY).description("에러 목록"),
 							fieldWithPath("meta").type(JsonFieldType.OBJECT).description("메타 정보"),
 							fieldWithPath("meta.page").type(JsonFieldType.NUMBER).description("현재 페이지 번호"),
@@ -122,13 +121,11 @@ class AdminTastingTagControllerDocsTest {
 		@DisplayName("테이스팅 태그 상세 정보를 조회할 수 있다")
 		fun getTagDetail() {
 			// given
-			val tagItem = AdminTastingTagItem(
-				1L, "바닐라", "Vanilla", "base64icon", "바닐라 향", null,
-				LocalDateTime.of(2024, 1, 1, 0, 0), LocalDateTime.of(2024, 6, 1, 0, 0)
+			val childNode = TastingTagNodeItem.of(
+				2L, "바닐라 크림", "Vanilla Cream", null, "바닐라 크림 향", null, emptyList()
 			)
-			val childItem = AdminTastingTagItem(
-				2L, "바닐라 크림", "Vanilla Cream", null, "바닐라 크림 향", 1L,
-				LocalDateTime.of(2024, 2, 1, 0, 0), LocalDateTime.of(2024, 6, 1, 0, 0)
+			val tagNode = TastingTagNodeItem.of(
+				1L, "바닐라", "Vanilla", "base64icon", "바닐라 향", null, listOf(childNode)
 			)
 			val alcoholItem = AdminAlcoholItem(
 				1L, "글렌피딕 12년", "Glenfiddich 12", "싱글몰트", "Single Malt",
@@ -136,9 +133,7 @@ class AdminTastingTagControllerDocsTest {
 				LocalDateTime.of(2024, 1, 1, 0, 0), LocalDateTime.of(2024, 6, 1, 0, 0)
 			)
 
-			val response = AdminTastingTagDetailResponse.of(
-				tagItem, null, emptyList(), listOf(childItem), listOf(alcoholItem)
-			)
+			val response = AdminTastingTagDetailResponse.of(tagNode, listOf(alcoholItem))
 
 			given(tastingTagService.getTagDetail(anyLong())).willReturn(response)
 
@@ -157,22 +152,21 @@ class AdminTastingTagControllerDocsTest {
 							fieldWithPath("success").type(JsonFieldType.BOOLEAN).description("응답 성공 여부"),
 							fieldWithPath("code").type(JsonFieldType.NUMBER).description("응답 코드"),
 							fieldWithPath("data").type(JsonFieldType.OBJECT).description("태그 상세 정보"),
-							fieldWithPath("data.id").type(JsonFieldType.NUMBER).description("태그 ID"),
-							fieldWithPath("data.korName").type(JsonFieldType.STRING).description("태그 한글명"),
-							fieldWithPath("data.engName").type(JsonFieldType.STRING).description("태그 영문명"),
-							fieldWithPath("data.icon").type(JsonFieldType.STRING).description("아이콘 (Base64)").optional(),
-							fieldWithPath("data.description").type(JsonFieldType.STRING).description("설명").optional(),
-							fieldWithPath("data.parent").type(JsonFieldType.OBJECT).description("부모 태그 정보").optional(),
-							fieldWithPath("data.ancestors").type(JsonFieldType.ARRAY).description("조상 태그 목록 (가까운 순)"),
-							fieldWithPath("data.children").type(JsonFieldType.ARRAY).description("자식 태그 목록"),
-							fieldWithPath("data.children[].id").type(JsonFieldType.NUMBER).description("자식 태그 ID"),
-							fieldWithPath("data.children[].korName").type(JsonFieldType.STRING).description("자식 태그 한글명"),
-							fieldWithPath("data.children[].engName").type(JsonFieldType.STRING).description("자식 태그 영문명"),
-							fieldWithPath("data.children[].icon").type(JsonFieldType.STRING).description("자식 태그 아이콘").optional(),
-							fieldWithPath("data.children[].description").type(JsonFieldType.STRING).description("자식 태그 설명").optional(),
-							fieldWithPath("data.children[].parentId").type(JsonFieldType.NUMBER).description("부모 태그 ID").optional(),
-							fieldWithPath("data.children[].createdAt").type(JsonFieldType.STRING).description("생성일시"),
-							fieldWithPath("data.children[].modifiedAt").type(JsonFieldType.STRING).description("수정일시"),
+							fieldWithPath("data.tag").type(JsonFieldType.OBJECT).description("태그 트리 정보"),
+							fieldWithPath("data.tag.id").type(JsonFieldType.NUMBER).description("태그 ID"),
+							fieldWithPath("data.tag.korName").type(JsonFieldType.STRING).description("태그 한글명"),
+							fieldWithPath("data.tag.engName").type(JsonFieldType.STRING).description("태그 영문명"),
+							fieldWithPath("data.tag.icon").type(JsonFieldType.STRING).description("아이콘 (Base64)").optional(),
+							fieldWithPath("data.tag.description").type(JsonFieldType.STRING).description("설명").optional(),
+							fieldWithPath("data.tag.parent").type(JsonFieldType.OBJECT).description("부모 태그 (마트료시카 구조)").optional(),
+							fieldWithPath("data.tag.children").type(JsonFieldType.ARRAY).description("자식 태그 목록 (마트료시카 구조)"),
+							fieldWithPath("data.tag.children[].id").type(JsonFieldType.NUMBER).description("자식 태그 ID"),
+							fieldWithPath("data.tag.children[].korName").type(JsonFieldType.STRING).description("자식 태그 한글명"),
+							fieldWithPath("data.tag.children[].engName").type(JsonFieldType.STRING).description("자식 태그 영문명"),
+							fieldWithPath("data.tag.children[].icon").type(JsonFieldType.STRING).description("자식 태그 아이콘").optional(),
+							fieldWithPath("data.tag.children[].description").type(JsonFieldType.STRING).description("자식 태그 설명").optional(),
+							fieldWithPath("data.tag.children[].parent").type(JsonFieldType.OBJECT).description("손자의 부모 (null)").optional(),
+							fieldWithPath("data.tag.children[].children").type(JsonFieldType.ARRAY).description("손자 태그 목록"),
 							fieldWithPath("data.alcohols").type(JsonFieldType.ARRAY).description("연결된 위스키 목록"),
 							fieldWithPath("data.alcohols[].alcoholId").type(JsonFieldType.NUMBER).description("위스키 ID"),
 							fieldWithPath("data.alcohols[].korName").type(JsonFieldType.STRING).description("위스키 한글명"),
@@ -182,8 +176,6 @@ class AdminTastingTagControllerDocsTest {
 							fieldWithPath("data.alcohols[].imageUrl").type(JsonFieldType.STRING).description("이미지 URL").optional(),
 							fieldWithPath("data.alcohols[].createdAt").type(JsonFieldType.STRING).description("생성일시"),
 							fieldWithPath("data.alcohols[].modifiedAt").type(JsonFieldType.STRING).description("수정일시"),
-							fieldWithPath("data.createdAt").type(JsonFieldType.STRING).description("생성일시"),
-							fieldWithPath("data.modifiedAt").type(JsonFieldType.STRING).description("수정일시"),
 							fieldWithPath("errors").type(JsonFieldType.ARRAY).description("에러 목록"),
 							fieldWithPath("meta").type(JsonFieldType.OBJECT).description("메타 정보"),
 							fieldWithPath("meta.serverVersion").type(JsonFieldType.STRING).ignored(),

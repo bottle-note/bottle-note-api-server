@@ -22,7 +22,7 @@ import app.bottlenote.alcohols.domain.TastingTagRepository;
 import app.bottlenote.alcohols.dto.request.AdminTastingTagUpsertRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AdminTastingTagDetailResponse;
-import app.bottlenote.alcohols.dto.response.AdminTastingTagItem;
+import app.bottlenote.alcohols.dto.response.TastingTagNodeItem;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.global.dto.response.AdminResultResponse;
 import java.util.ArrayList;
@@ -66,12 +66,6 @@ public class TastingTagService {
     log.info("TastingTag Trie 초기화 완료: {}개 태그 등록", tags.size());
   }
 
-  /**
-   * 문장에서 태그 이름 목록을 추출한다. (부분 매칭 허용)
-   *
-   * @param text 분석할 문장
-   * @return 매칭된 태그 이름 목록
-   */
   @Transactional(readOnly = true)
   public List<String> extractTagNames(String text) {
     if (trie == null || text == null || text.isBlank()) {
@@ -88,28 +82,25 @@ public class TastingTagService {
             .findById(tagId)
             .orElseThrow(() -> new AlcoholException(TASTING_TAG_NOT_FOUND));
 
-    AdminTastingTagItem parent = null;
-    if (tag.getParentId() != null) {
-      parent =
-          tastingTagRepository
-              .findById(tag.getParentId())
-              .map(this::toAdminTastingTagItem)
-              .orElse(null);
-    }
+    TastingTagNodeItem parentChain = buildParentChain(tag.getParentId());
+    List<TastingTagNodeItem> childrenTree = buildChildrenTree(tagId);
 
-    List<AdminTastingTagItem> ancestors = findAncestors(tag.getParentId(), MAX_DEPTH);
-    List<AdminTastingTagItem> children =
-        tastingTagRepository.findByParentId(tagId).stream()
-            .map(this::toAdminTastingTagItem)
-            .toList();
+    TastingTagNodeItem tagNode =
+        TastingTagNodeItem.of(
+            tag.getId(),
+            tag.getKorName(),
+            tag.getEngName(),
+            tag.getIcon(),
+            tag.getDescription(),
+            parentChain,
+            childrenTree);
 
     List<AdminAlcoholItem> alcohols =
         alcoholsTastingTagsRepository.findByTastingTagId(tagId).stream()
             .map(att -> toAdminAlcoholItem(att.getAlcohol()))
             .toList();
 
-    AdminTastingTagItem tagItem = toAdminTastingTagItem(tag);
-    return AdminTastingTagDetailResponse.of(tagItem, parent, ancestors, children, alcohols);
+    return AdminTastingTagDetailResponse.of(tagNode, alcohols);
   }
 
   @Transactional
@@ -207,21 +198,46 @@ public class TastingTagService {
     return AdminResultResponse.of(TASTING_TAG_ALCOHOL_REMOVED, tagId);
   }
 
-  private List<AdminTastingTagItem> findAncestors(Long parentId, int maxDepth) {
-    List<AdminTastingTagItem> ancestors = new ArrayList<>();
-    Long currentParentId = parentId;
-    int depth = 0;
-
-    while (currentParentId != null && depth < maxDepth) {
-      TastingTag parent = tastingTagRepository.findById(currentParentId).orElse(null);
-      if (parent == null) break;
-
-      ancestors.add(toAdminTastingTagItem(parent));
-      currentParentId = parent.getParentId();
-      depth++;
+  /** 부모 체인을 마트료시카 구조로 빌드 (parent.parent.parent...) */
+  private TastingTagNodeItem buildParentChain(Long parentId) {
+    if (parentId == null) {
+      return null;
     }
 
-    return ancestors;
+    TastingTag parent = tastingTagRepository.findById(parentId).orElse(null);
+    if (parent == null) {
+      return null;
+    }
+
+    return TastingTagNodeItem.of(
+        parent.getId(),
+        parent.getKorName(),
+        parent.getEngName(),
+        parent.getIcon(),
+        parent.getDescription(),
+        buildParentChain(parent.getParentId()),
+        null);
+  }
+
+  /** 자식 트리를 마트료시카 구조로 빌드 (children[].children[]...) */
+  private List<TastingTagNodeItem> buildChildrenTree(Long tagId) {
+    List<TastingTag> children = tastingTagRepository.findByParentId(tagId);
+    if (children.isEmpty()) {
+      return List.of();
+    }
+
+    return children.stream()
+        .map(
+            child ->
+                TastingTagNodeItem.of(
+                    child.getId(),
+                    child.getKorName(),
+                    child.getEngName(),
+                    child.getIcon(),
+                    child.getDescription(),
+                    null,
+                    buildChildrenTree(child.getId())))
+        .toList();
   }
 
   private void validateParentAndDepth(Long parentId) {
@@ -263,17 +279,5 @@ public class TastingTagService {
         alcohol.getImageUrl(),
         alcohol.getCreateAt(),
         alcohol.getLastModifyAt());
-  }
-
-  private AdminTastingTagItem toAdminTastingTagItem(TastingTag tag) {
-    return new AdminTastingTagItem(
-        tag.getId(),
-        tag.getKorName(),
-        tag.getEngName(),
-        tag.getIcon(),
-        tag.getDescription(),
-        tag.getParentId(),
-        tag.getCreateAt(),
-        tag.getLastModifyAt());
   }
 }

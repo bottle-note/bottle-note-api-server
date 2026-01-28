@@ -2,7 +2,7 @@ package app.bottlenote.alcohols.repository;
 
 import app.bottlenote.alcohols.domain.TastingTag;
 import app.bottlenote.alcohols.domain.TastingTagRepository;
-import app.bottlenote.alcohols.dto.response.AdminTastingTagItem;
+import app.bottlenote.alcohols.dto.response.TastingTagNodeItem;
 import app.bottlenote.common.annotation.JpaRepositoryImpl;
 import java.util.List;
 import java.util.Optional;
@@ -19,15 +19,15 @@ public interface JpaTastingTagRepository
   @Override
   @Query(
       """
-      select new app.bottlenote.alcohols.dto.response.AdminTastingTagItem(
-        t.id, t.korName, t.engName, t.icon, t.description, t.parentId, t.createAt, t.lastModifyAt
+      select new app.bottlenote.alcohols.dto.response.TastingTagNodeItem(
+        t.id, t.korName, t.engName, t.icon, t.description, null, null
       )
       from tasting_tag t
       where (:keyword is null or :keyword = ''
         or t.korName like concat('%', :keyword, '%')
         or t.engName like concat('%', :keyword, '%'))
       """)
-  Page<AdminTastingTagItem> findAllTastingTags(@Param("keyword") String keyword, Pageable pageable);
+  Page<TastingTagNodeItem> findAllTastingTags(@Param("keyword") String keyword, Pageable pageable);
 
   @Override
   Optional<TastingTag> findById(Long id);
