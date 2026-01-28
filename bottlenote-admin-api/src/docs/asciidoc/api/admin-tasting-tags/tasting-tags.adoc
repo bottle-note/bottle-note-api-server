@@ -138,7 +138,7 @@ include::{snippets}/admin/tasting-tags/delete/http-response.adoc[]
 
 '''
 
-=== 테이스팅 태그 위스키 연결 ===
+=== 테이스팅 태그 연결 ===
 
 - 테이스팅 태그에 술을 벌크로 연결합니다.
 
@@ -170,7 +170,7 @@ include::{snippets}/admin/tasting-tags/add-alcohols/http-response.adoc[]
 
 '''
 
-=== 테이스팅 태그 위스키 연결 해제 ===
+=== 테이스팅 태그 연결 해제 ===
 
 - 테이스팅 태그에서 술 연결을 벌크로 해제합니다.
 
