@@ -69,4 +69,35 @@ public class CurationKeyword extends BaseEntity {
         .alcoholIds(alcoholIds != null ? new HashSet<>(alcoholIds) : new HashSet<>())
         .build();
   }
+
+  public void update(
+      String name,
+      String description,
+      String coverImageUrl,
+      Integer displayOrder,
+      Boolean isActive,
+      Set<Long> alcoholIds) {
+    this.name = name;
+    this.description = description;
+    this.coverImageUrl = coverImageUrl;
+    this.displayOrder = displayOrder;
+    this.isActive = isActive;
+    this.alcoholIds = alcoholIds != null ? new HashSet<>(alcoholIds) : new HashSet<>();
+  }
+
+  public void updateStatus(Boolean isActive) {
+    this.isActive = isActive;
+  }
+
+  public void updateDisplayOrder(Integer displayOrder) {
+    this.displayOrder = displayOrder;
+  }
+
+  public void addAlcohols(Set<Long> alcoholIds) {
+    this.alcoholIds.addAll(alcoholIds);
+  }
+
+  public void removeAlcohol(Long alcoholId) {
+    this.alcoholIds.remove(alcoholId);
+  }
 }
