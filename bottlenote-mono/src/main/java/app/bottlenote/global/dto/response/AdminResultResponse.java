@@ -25,6 +25,13 @@ public record AdminResultResponse(String code, String message, Long targetId, St
     TASTING_TAG_DELETED("테이스팅 태그가 삭제되었습니다."),
     TASTING_TAG_ALCOHOL_ADDED("위스키가 연결되었습니다."),
     TASTING_TAG_ALCOHOL_REMOVED("위스키 연결이 해제되었습니다."),
+    CURATION_CREATED("큐레이션이 등록되었습니다."),
+    CURATION_UPDATED("큐레이션이 수정되었습니다."),
+    CURATION_DELETED("큐레이션이 삭제되었습니다."),
+    CURATION_STATUS_UPDATED("큐레이션 활성화 상태가 변경되었습니다."),
+    CURATION_DISPLAY_ORDER_UPDATED("큐레이션 노출 순서가 변경되었습니다."),
+    CURATION_ALCOHOL_ADDED("큐레이션에 위스키가 추가되었습니다."),
+    CURATION_ALCOHOL_REMOVED("큐레이션에서 위스키가 제거되었습니다."),
     ;
 
     private final String message;
