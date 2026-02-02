@@ -434,9 +434,116 @@ git push origin main
 
 ---
 
-## 8. 추가 고려사항
+## 8. 파일 관리 전략: Git에 포함할 파일 vs CI에서 생성할 파일
 
-### 8.1 Spring Antora Extensions (선택)
+### 8.1 권장 전략: CI에서 조립
+
+원본 ADOC 파일은 각 모듈에서 계속 관리하고, **빌드 시에만 Antora 구조로 조립**합니다.
+
+| 항목 | Git에 포함 | CI에서 생성 |
+|------|:----------:|:-----------:|
+| `antora.yml` | ✅ | |
+| `antora-playbook.yml` | ✅ | |
+| `nav.adoc` | ✅ | |
+| `modules/ROOT/pages/index.adoc` | ✅ | |
+| `modules/{api}/pages/*.adoc` | | ✅ (복사) |
+| `modules/{api}/examples/snippets/` | | ✅ (복사) |
+| `_site/` (빌드 결과) | | ✅ (생성) |
+
+### 8.2 이유
+
+1. **중복 방지**: `src/docs/asciidoc/`에 있는 원본과 `docs/modules/`에 복사본이 생기면 동기화 문제 발생
+2. **단일 진실 소스(Single Source of Truth)**: 원본은 각 모듈의 `src/docs/`에만 유지
+3. **저장소 용량**: 스니펫은 빌드마다 생성되므로 Git에 불필요
+
+### 8.3 Git에 커밋할 파일 (설정만)
+
+```
+docs/
+├── antora.yml
+├── antora-playbook.yml
+└── modules/
+    ├── ROOT/
+    │   ├── nav.adoc
+    │   └── pages/
+    │       └── index.adoc    # 홈페이지만
+    ├── product-api/
+    │   └── nav.adoc          # 네비게이션만
+    └── admin-api/
+        └── nav.adoc          # 네비게이션만
+```
+
+### 8.4 CI에서 복사/생성할 파일
+
+```bash
+# GitHub Actions에서 실행
+# 1. ADOC 원본 복사
+cp -r bottlenote-product-api/src/docs/asciidoc/* docs/modules/product-api/pages/
+cp -r bottlenote-admin-api/src/docs/asciidoc/* docs/modules/admin-api/pages/
+
+# 2. REST Docs 스니펫 복사
+cp -r bottlenote-product-api/build/generated-snippets/* docs/modules/product-api/examples/
+cp -r bottlenote-admin-api/build/generated-snippets/* docs/modules/admin-api/examples/
+
+# 3. Antora 빌드 → _site/ 생성
+antora antora-playbook.yml
+```
+
+---
+
+## 9. 배포 방식: GitHub Pages 유지
+
+### 9.1 현재 vs Antora 배포 비교
+
+배포 대상(GitHub Pages)은 동일하고, **빌드 도구만 변경**됩니다.
+
+| 단계 | 현재 방식 | Antora 방식 |
+|------|-----------|-------------|
+| 1. 스니펫 생성 | `./gradlew restDocsTest` | `./gradlew restDocsTest` |
+| 2. HTML 빌드 | `./gradlew asciidoctor` | `antora antora-playbook.yml` |
+| 3. 결과물 위치 | `docs/*.html` | `docs/_site/` |
+| 4. 배포 | Jekyll → GitHub Pages | **그대로** GitHub Pages |
+
+### 9.2 GitHub Actions 변경점 비교
+
+**현재 방식**:
+```yaml
+- name: Generate API documentation
+  run: |
+    ./gradlew :bottlenote-product-api:asciidoctor :bottlenote-admin-api:asciidoctor
+    cp bottlenote-product-api/build/docs/asciidoc/product-api.html docs/
+    cp bottlenote-admin-api/build/docs/asciidoc/admin-api.html docs/
+
+- name: Build with Jekyll
+  uses: actions/jekyll-build-pages@v1
+  with:
+    source: ./docs
+```
+
+**Antora 전환 후**:
+```yaml
+- name: Build Antora site
+  run: |
+    # 파일 복사 (CI에서만)
+    cp -r bottlenote-product-api/src/docs/asciidoc/* docs/modules/product-api/pages/
+    cp -r bottlenote-admin-api/src/docs/asciidoc/* docs/modules/admin-api/pages/
+    cp -r bottlenote-product-api/build/generated-snippets/* docs/modules/product-api/examples/
+    cp -r bottlenote-admin-api/build/generated-snippets/* docs/modules/admin-api/examples/
+
+    # Antora 빌드
+    npx antora docs/antora-playbook.yml
+
+- name: Upload artifact
+  uses: actions/upload-pages-artifact@v3
+  with:
+    path: docs/_site    # Antora 출력 폴더
+```
+
+---
+
+## 10. 추가 고려사항
+
+### 10.1 Spring Antora Extensions (선택)
 
 Spring 공식 문서에서 사용하는 확장 기능:
 
@@ -449,7 +556,7 @@ npm install @springio/antora-extensions
 - Latest Version 매핑
 - Tabs 마이그레이션
 
-### 8.2 커스텀 UI Bundle (선택)
+### 10.2 커스텀 UI Bundle (선택)
 
 기본 Antora UI 대신 Spring 스타일 UI 사용 가능:
 
@@ -459,7 +566,7 @@ ui:
     url: https://github.com/spring-io/antora-ui-spring/releases/download/latest/ui-bundle.zip
 ```
 
-### 8.3 Algolia 검색 통합 (선택)
+### 10.3 Algolia 검색 통합 (선택)
 
 Antora에 Algolia DocSearch 통합 가능:
 
@@ -472,7 +579,7 @@ site:
 
 ---
 
-## 9. 참고 자료
+## 11. 참고 자료
 
 | 자료 | URL |
 |------|-----|
