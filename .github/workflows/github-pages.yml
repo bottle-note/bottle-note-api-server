@@ -1,4 +1,4 @@
-name: Deploy Jekyll with GitHub Pages dependencies preinstalled
+name: Deploy Antora Documentation to GitHub Pages
 
 on:
   push:
@@ -28,6 +28,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
@@ -40,24 +41,45 @@ jobs:
       - name: Generate REST Docs snippets
         run: ./gradlew restDocsTest
 
-      - name: Generate API documentation
-        run: |
-          mkdir -p docs
-          ./gradlew :bottlenote-product-api:asciidoctor :bottlenote-admin-api:asciidoctor
-          cp bottlenote-product-api/build/docs/asciidoc/product-api.html docs/
-          cp bottlenote-admin-api/build/docs/asciidoc/admin-api.html docs/
-          echo "API documentation copied"
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
+      - name: Install Antora
+        run: npm i -D @antora/cli@3.1 @antora/site-generator@3.1
+
+      - name: Copy files to Antora structure
+        run: |
+          # Product API: ADOC 파일 복사
+          mkdir -p docs/modules/product-api/pages
+          cp -r bottlenote-product-api/src/docs/asciidoc/* docs/modules/product-api/pages/
+
+          # Product API: 스니펫 복사
+          mkdir -p docs/modules/product-api/examples
+          cp -r bottlenote-product-api/build/generated-snippets/* docs/modules/product-api/examples/
+
+          # Admin API: ADOC 파일 복사
+          mkdir -p docs/modules/admin-api/pages
+          cp -r bottlenote-admin-api/src/docs/asciidoc/* docs/modules/admin-api/pages/
+
+          # Admin API: 스니펫 복사
+          mkdir -p docs/modules/admin-api/examples
+          cp -r bottlenote-admin-api/build/generated-snippets/* docs/modules/admin-api/examples/
+
+      - name: Build Antora site
+        run: |
+          cd docs
+          npx antora --fetch antora-playbook.yml
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
-      - name: Build with Jekyll
-        uses: actions/jekyll-build-pages@v1
-        with:
-          source: ./docs
-          destination: ./_site
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/_site
+
   deploy:
     environment:
       name: github-pages
