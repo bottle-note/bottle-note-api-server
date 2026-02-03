@@ -13,7 +13,7 @@ Antora는 **멀티 리포지토리, 멀티 버전 문서 사이트 생성기**�
 | **AsciiDoc 네이티브** | AsciiDoc 마크업 언어를 기본 지원 |
 | **멀티 버전** | 동일 문서의 여러 버전을 동시에 관리 |
 | **멀티 컴포넌트** | 여러 프로젝트/모듈 문서를 하나의 사이트로 통합 |
-| **Git 기반** | Git 저장소에서 직접 콘텐츠 수집 |
+| **Git 기반** | ``Git 저장소에서 직접 콘텐츠 수집 |
 | **정적 사이트** | HTML 정적 파일 생성 → 어디서든 호스팅 가능 |
 
 ### 1.2 현재 시스템 vs Antora
@@ -386,6 +386,16 @@ jobs:
 - [ ] 네비게이션 동작 확인
 - [ ] 검색 기능 확인 (추가 설정 필요 시)
 
+### Phase 5: UI 커스터마이징 ✅ 완료
+- [x] Antora 기본 UI 번들 설정
+- [x] supplemental-ui 폴더 구조 생성
+- [x] header-content.hbs 작성 (헤더 간소화)
+- [x] footer-content.hbs 작성 (푸터 간소화)
+- [x] toolbar.hbs 작성 (Edit this page 제거)
+- [x] 다크모드 토글 스위치 구현
+- [x] Spring 다크모드 색상 적용
+- [x] 로컬 빌드 테스트 통과
+
 ---
 
 ## 7. 롤백 계획
@@ -558,7 +568,112 @@ site:
 
 ---
 
-## 11. 참고 자료
+## 11. UI 커스터마이징 (완료)
+
+### 11.1 적용된 방식
+
+**Antora 기본 UI + Supplemental Files**로 헤더/푸터만 오버라이드하는 방식을 채택했습니다.
+
+| 시도 | 결과 | 문제점 |
+|------|------|--------|
+| Spring UI 번들 | ❌ 실패 | Spring 브랜딩이 너무 강함 |
+| Spring UI + supplemental files | ❌ 실패 | CSS 스타일 없이 HTML만 넣어서 토글 깨짐 |
+| Minimized Header UI (v1.1) | ❌ 실패 | 호환성 문제로 사이트 완전히 깨짐 |
+| **Antora 기본 UI + supplemental files** | ✅ 성공 | 안정적이고 커스터마이징 용이 |
+
+### 11.2 현재 파일 구조
+
+```
+docs/
+├── antora-playbook.yml
+└── supplemental-ui/
+    └── partials/
+        ├── header-content.hbs   # 커스텀 헤더 + 다크모드 CSS/JS
+        ├── footer-content.hbs   # 커스텀 푸터
+        └── toolbar.hbs          # Edit this page 제거
+```
+
+### 11.3 antora-playbook.yml 설정
+
+```yaml
+ui:
+  bundle:
+    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/HEAD/raw/build/ui-bundle.zip?job=bundle-stable
+    snapshot: true
+  supplemental_files: ./supplemental-ui
+
+content:
+  sources:
+    - url: ..
+      start_path: docs
+      branches: HEAD
+      edit_url: false  # Edit this page 비활성화
+```
+
+### 11.4 커스터마이징 항목
+
+#### 헤더 (header-content.hbs)
+- Products/Services/Download 메뉴 제거
+- Home 링크만 유지
+- 다크모드 토글 스위치 추가 (☀️/🌙 아이콘)
+
+#### 푸터 (footer-content.hbs)
+- Antora 라이선스 문구 제거
+- 사이트 제목만 표시
+
+#### 툴바 (toolbar.hbs)
+- "Edit this Page" 링크 완전 제거
+
+### 11.5 다크모드 구현
+
+#### 토글 스위치 UI
+- 슬라이더 형태의 토글 (50px × 26px)
+- 왼쪽: ☀️ (라이트), 오른쪽: 🌙 (다크)
+- 부드러운 전환 애니메이션 (0.2s)
+
+#### 색상 테마 (Spring 다크모드 색상 적용)
+
+| 요소 | 라이트 모드 | 다크 모드 |
+|------|-------------|-----------|
+| 배경 | 기본 (흰색) | `#1b1f23` |
+| 패널/코드 | 기본 | `#262a2d` |
+| 텍스트 | 기본 | `#bbbcbe` |
+| 제목 | 기본 | `#cecfd1` |
+| 링크 | 기본 | `#086dc3` |
+| 링크 호버 | 기본 | `#107ddd` |
+
+#### 기능
+- localStorage에 테마 설정 저장 (`antora-theme` 키)
+- 시스템 다크모드 설정 자동 감지 (`prefers-color-scheme: dark`)
+- 페이지 로드 시 저장된 테마 즉시 적용 (깜빡임 방지)
+
+### 11.6 빌드 및 확인
+
+```bash
+# 빌드
+cd docs
+npx antora --fetch antora-playbook.yml
+
+# 결과 확인
+open _site/bottle-note/index.html
+```
+
+### 11.7 검증 체크리스트
+
+- [x] 기본 사이트 CSS 정상 로드
+- [x] 헤더: Products/Services/Download 메뉴 제거됨
+- [x] 헤더: Home 링크만 표시
+- [x] 다크모드 토글 스위치 표시
+- [x] 다크모드 전환 정상 작동
+- [x] 다크모드 색상 Spring 테마 적용 (중립 그레이)
+- [x] 테마 설정 localStorage 저장/복원
+- [x] Edit this page 링크 제거됨
+- [x] 푸터 Antora 라이선스 문구 제거됨
+- [x] 좌측 사이드바 네비게이션 정상 작동
+
+---
+
+## 12. 참고 자료
 
 | 자료 | URL |
 |------|-----|
@@ -570,6 +685,13 @@ site:
 
 ---
 
-**작성일**: 2026-02-02
-**버전**: 1.0
+**작성일**: 2026-02-03
+**버전**: 1.1
 **담당자**: Development Team
+
+### 변경 이력
+
+| 버전 | 날짜 | 내용 |
+|------|------|------|
+| 1.0 | 2026-02-02 | 초안 작성 |
+| 1.1 | 2026-02-03 | UI 커스터마이징 완료 (섹션 11 추가) |

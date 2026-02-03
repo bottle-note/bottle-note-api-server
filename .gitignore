@@ -74,6 +74,7 @@ cosign.pub
 # Log files
 spy.log
 /.omc/
+**/.omc/
 
 # Antora (CI에서 생성되는 파일들)
 docs/modules/product-api/pages/

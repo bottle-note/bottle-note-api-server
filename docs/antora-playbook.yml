@@ -7,11 +7,13 @@ content:
     - url: ..
       start_path: docs
       branches: HEAD
+      edit_url: false
 
 ui:
   bundle:
     url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/HEAD/raw/build/ui-bundle.zip?job=bundle-stable
     snapshot: true
+  supplemental_files: ./supplemental-ui
 
 asciidoc:
   attributes:
