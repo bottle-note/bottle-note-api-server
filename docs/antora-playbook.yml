@@ -1,0 +1,21 @@
+site:
+  title: Bottle Note API Documentation
+  start_page: bottle-note::index.adoc
+
+content:
+  sources:
+    - url: .
+      start_path: .
+      branches: HEAD
+
+ui:
+  bundle:
+    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/HEAD/raw/build/ui-bundle.zip?job=bundle-stable
+    snapshot: true
+
+asciidoc:
+  attributes:
+    snippets: example$
+
+output:
+  dir: ./_site

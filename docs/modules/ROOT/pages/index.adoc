@@ -1,0 +1,8 @@
+= Bottle Note API Documentation
+
+Bottle Note API 문서입니다.
+
+== API 문서
+
+* xref:product-api:product-api.adoc[Product API] - 클라이언트용 API
+* xref:admin-api:admin-api.adoc[Admin API] - 관리자용 API

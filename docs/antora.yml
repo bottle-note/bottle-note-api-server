@@ -1,0 +1,11 @@
+name: bottle-note
+title: Bottle Note API
+version: ~
+start_page: ROOT:index.adoc
+asciidoc:
+  attributes:
+    snippets: example$
+nav:
+  - modules/ROOT/nav.adoc
+  - modules/product-api/nav.adoc
+  - modules/admin-api/nav.adoc
