@@ -1,11 +1,6 @@
 package app.docs.curation
 
-import app.bottlenote.alcohols.dto.request.AdminCurationAlcoholRequest
-import app.bottlenote.alcohols.dto.request.AdminCurationCreateRequest
-import app.bottlenote.alcohols.dto.request.AdminCurationDisplayOrderRequest
-import app.bottlenote.alcohols.dto.request.AdminCurationSearchRequest
-import app.bottlenote.alcohols.dto.request.AdminCurationStatusRequest
-import app.bottlenote.alcohols.dto.request.AdminCurationUpdateRequest
+import app.bottlenote.alcohols.dto.request.*
 import app.bottlenote.alcohols.presentation.AdminCurationController
 import app.bottlenote.alcohols.service.AdminCurationService
 import app.bottlenote.global.data.response.GlobalResponse
@@ -84,38 +79,20 @@ class AdminCurationControllerDocsTest {
                         responseFields(
                             fieldWithPath("success").type(JsonFieldType.BOOLEAN).description("응답 성공 여부"),
                             fieldWithPath("code").type(JsonFieldType.NUMBER).description("응답 코드"),
-                            fieldWithPath("data").type(JsonFieldType.OBJECT).description("페이징 데이터"),
-                            fieldWithPath("data.content").type(JsonFieldType.ARRAY).description("큐레이션 목록"),
-                            fieldWithPath("data.content[].id").type(JsonFieldType.NUMBER).description("큐레이션 ID"),
-                            fieldWithPath("data.content[].name").type(JsonFieldType.STRING).description("큐레이션명"),
-                            fieldWithPath("data.content[].alcoholCount").type(JsonFieldType.NUMBER).description("포함된 위스키 수"),
-                            fieldWithPath("data.content[].displayOrder").type(JsonFieldType.NUMBER).description("노출 순서"),
-                            fieldWithPath("data.content[].isActive").type(JsonFieldType.BOOLEAN).description("활성화 상태"),
-                            fieldWithPath("data.content[].createdAt").type(JsonFieldType.STRING).description("생성일시"),
-                            fieldWithPath("data.pageable").type(JsonFieldType.OBJECT).description("페이징 정보").ignored(),
-                            fieldWithPath("data.pageable.pageNumber").type(JsonFieldType.NUMBER).description("페이지 번호").ignored(),
-                            fieldWithPath("data.pageable.pageSize").type(JsonFieldType.NUMBER).description("페이지 크기").ignored(),
-                            fieldWithPath("data.pageable.sort").type(JsonFieldType.OBJECT).description("정렬 정보").ignored(),
-                            fieldWithPath("data.pageable.sort.empty").type(JsonFieldType.BOOLEAN).ignored(),
-                            fieldWithPath("data.pageable.sort.sorted").type(JsonFieldType.BOOLEAN).ignored(),
-                            fieldWithPath("data.pageable.sort.unsorted").type(JsonFieldType.BOOLEAN).ignored(),
-                            fieldWithPath("data.pageable.offset").type(JsonFieldType.NUMBER).ignored(),
-                            fieldWithPath("data.pageable.paged").type(JsonFieldType.BOOLEAN).ignored(),
-                            fieldWithPath("data.pageable.unpaged").type(JsonFieldType.BOOLEAN).ignored(),
-                            fieldWithPath("data.totalPages").type(JsonFieldType.NUMBER).description("전체 페이지 수"),
-                            fieldWithPath("data.totalElements").type(JsonFieldType.NUMBER).description("전체 요소 수"),
-                            fieldWithPath("data.last").type(JsonFieldType.BOOLEAN).description("마지막 페이지 여부"),
-                            fieldWithPath("data.size").type(JsonFieldType.NUMBER).description("페이지 크기"),
-                            fieldWithPath("data.number").type(JsonFieldType.NUMBER).description("현재 페이지 번호"),
-                            fieldWithPath("data.sort").type(JsonFieldType.OBJECT).description("정렬 정보").ignored(),
-                            fieldWithPath("data.sort.empty").type(JsonFieldType.BOOLEAN).ignored(),
-                            fieldWithPath("data.sort.sorted").type(JsonFieldType.BOOLEAN).ignored(),
-                            fieldWithPath("data.sort.unsorted").type(JsonFieldType.BOOLEAN).ignored(),
-                            fieldWithPath("data.numberOfElements").type(JsonFieldType.NUMBER).description("현재 페이지 요소 수"),
-                            fieldWithPath("data.first").type(JsonFieldType.BOOLEAN).description("첫 페이지 여부"),
-                            fieldWithPath("data.empty").type(JsonFieldType.BOOLEAN).description("빈 페이지 여부"),
+                            fieldWithPath("data[]").type(JsonFieldType.ARRAY).description("큐레이션 목록"),
+                            fieldWithPath("data[].id").type(JsonFieldType.NUMBER).description("큐레이션 ID"),
+                            fieldWithPath("data[].name").type(JsonFieldType.STRING).description("큐레이션명"),
+                            fieldWithPath("data[].alcoholCount").type(JsonFieldType.NUMBER).description("포함된 위스키 수"),
+                            fieldWithPath("data[].displayOrder").type(JsonFieldType.NUMBER).description("노출 순서"),
+                            fieldWithPath("data[].isActive").type(JsonFieldType.BOOLEAN).description("활성화 상태"),
+                            fieldWithPath("data[].createdAt").type(JsonFieldType.STRING).description("생성일시"),
                             fieldWithPath("errors").type(JsonFieldType.ARRAY).description("에러 목록"),
                             fieldWithPath("meta").type(JsonFieldType.OBJECT).description("메타 정보"),
+                            fieldWithPath("meta.page").type(JsonFieldType.NUMBER).description("현재 페이지 번호"),
+                            fieldWithPath("meta.size").type(JsonFieldType.NUMBER).description("페이지 크기"),
+                            fieldWithPath("meta.totalElements").type(JsonFieldType.NUMBER).description("전체 요소 수"),
+                            fieldWithPath("meta.totalPages").type(JsonFieldType.NUMBER).description("전체 페이지 수"),
+                            fieldWithPath("meta.hasNext").type(JsonFieldType.BOOLEAN).description("다음 페이지 존재 여부"),
                             fieldWithPath("meta.serverVersion").type(JsonFieldType.STRING).ignored(),
                             fieldWithPath("meta.serverEncoding").type(JsonFieldType.STRING).ignored(),
                             fieldWithPath("meta.serverResponseTime").type(JsonFieldType.STRING).ignored(),
