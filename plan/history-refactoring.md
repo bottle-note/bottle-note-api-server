@@ -512,3 +512,129 @@ COLUMN alcohol_id,
 3. **alcohol_id nullable**
 	- 주류 무관 이벤트(팔로우, 뱃지 등) 확장 대비
 	- 기존 조회 쿼리에서 NULL 체크 필요할 수 있음
+
+---
+
+## 10. 페이로드 네이밍 변경
+
+### 배경
+
+현재 도메인별 페이로드가 `*RegistryEvent`로 명명되어 있어 "진짜 이벤트"인 `HistoryEvent`와 혼동됨.
+실제로는 **Publisher에게 전달하는 데이터 묶음(Payload)** 이므로 이름 변경.
+
+### 변경 내용
+
+| 현재                        | 변경 후                      | 위치                              |
+|---------------------------|---------------------------|----------------------------------|
+| `ReviewRegistryEvent`     | `ReviewHistoryPayload`    | `review.event.payload`           |
+| `ReviewReplyRegistryEvent`| `ReviewReplyHistoryPayload`| `review.event.payload`          |
+| `LikesRegistryEvent`      | `LikesHistoryPayload`     | `like.event.payload`             |
+| `PicksRegistryEvent`      | `PicksHistoryPayload`     | `picks.event.payload`            |
+| `RatingRegistryEvent`     | `RatingHistoryPayload`    | `rating.event.payload`           |
+
+### 구조 명확화
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  [도메인 서비스]                                                             │
+│       ↓ *HistoryPayload (데이터 묶음)                                        │
+│  [HistoryEventPublisher] - 정제/변환                                        │
+│       ↓ HistoryEvent (진짜 이벤트)                                          │
+│  [HistoryListener / MQ]                                                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 아키텍처 룰 체크 수정
+
+`*RegistryEvent` → `*HistoryPayload` 변경에 따라 아키텍처 테스트 규칙 수정 필요.
+
+```java
+// 기존 룰 (수정 필요)
+.should().haveSimpleNameEndingWith("Event")
+
+// 변경 후
+.should().haveSimpleNameEndingWith("Payload")  // History 페이로드
+.should().haveSimpleNameEndingWith("Event")    // 진짜 이벤트 (HistoryEvent)
+```
+
+---
+
+## 11. EventCategory/EventType 확장 계획
+
+### 신규 EventCategory
+
+| 카테고리       | 용도              | alcohol_id |
+|--------------|------------------|------------|
+| `REVIEW`     | 리뷰, 댓글, 좋아요   | 필수         |
+| `PICK`       | 찜하기             | 필수         |
+| `RATING`     | 별점               | 필수         |
+| `SOCIAL`     | 팔로우, 차단 (신규)  | null        |
+| `REPORT`     | 신고 (신규)         | nullable    |
+| `PROFILE`    | 프로필 변경 (신규)   | null        |
+| `ACHIEVEMENT`| 뱃지, 티어 (신규)   | null        |
+
+### 신규 EventType (우선순위: 팔로우)
+
+| 이벤트            | 카테고리   | event_resource_id | alcohol_id | dynamic_message              |
+|-----------------|----------|-------------------|------------|------------------------------|
+| `FOLLOW_USER`   | SOCIAL   | targetUserId      | null       | `{targetNickname, followerCount}` |
+| `UNFOLLOW_USER` | SOCIAL   | targetUserId      | null       | -                            |
+
+### 팔로우 이벤트 예시
+
+```java
+// FollowService.java
+private FollowHistoryPayload buildFollowPayload(Long userId, Long targetUserId, String targetNickname) {
+    return new FollowHistoryPayload(userId, targetUserId, targetNickname);
+}
+
+// HistoryEventPublisher.java
+public void publishFollowHistoryEvent(FollowHistoryPayload payload) {
+    HistoryEvent historyEvent = HistoryEvent.builder()
+        .userId(payload.userId())
+        .eventCategory(EventCategory.SOCIAL)
+        .eventType(EventType.FOLLOW_USER)
+        .eventResourceId(payload.targetUserId())
+        .alcoholId(null)
+        .redirectUrl("/user/" + payload.targetUserId() + "/profile")
+        .dynamicMessage(Map.of("targetNickname", payload.targetNickname()))
+        .build();
+    eventPublisher.publishEvent(historyEvent);
+}
+```
+
+---
+
+## 12. MQ 전환 대비
+
+### 현재 → 미래 전환
+
+```
+현재: ApplicationEventPublisher → HistoryListener (로컬)
+미래: ApplicationEventPublisher → RabbitMQ/NATS → 외부 서비스
+```
+
+### Publisher 확장 포인트
+
+```java
+@Component
+public class HistoryEventPublisher {
+
+    private final ApplicationEventPublisher springPublisher;
+    // private final RabbitTemplate rabbitTemplate;  // 미래 추가
+    // private final NatsConnection natsConnection;  // 미래 추가
+
+    public void publish(HistoryEvent event) {
+        // 로컬 리스너
+        springPublisher.publishEvent(event);
+
+        // MQ 발행 (미래)
+        // rabbitTemplate.convertAndSend("history.exchange", "history.event", event);
+    }
+}
+```
+
+### 직렬화 대상
+
+- `HistoryEvent` 하나만 직렬화 스키마 관리
+- `*HistoryPayload`는 내부용이므로 직렬화 불필요
