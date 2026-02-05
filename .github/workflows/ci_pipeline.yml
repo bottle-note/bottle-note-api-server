@@ -1,8 +1,11 @@
-name: product ci pipeline
+name: ci pipeline
 
 on:
   workflow_dispatch:
   pull_request:
+  push:
+    branches:
+      - main
 
 concurrency:
   group: "ci-${{ github.head_ref || github.ref }}"

@@ -5,7 +5,7 @@ import app.bottlenote.alcohols.dto.response.AdminAlcoholDetailResponse.TastingTa
 import app.bottlenote.alcohols.dto.response.AdminAlcoholItem
 import app.bottlenote.alcohols.dto.response.AdminDistilleryItem
 import app.bottlenote.alcohols.dto.response.AdminRegionItem
-import app.bottlenote.alcohols.dto.response.AdminTastingTagItem
+import app.bottlenote.alcohols.dto.response.TastingTagNodeItem
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup
 import app.bottlenote.alcohols.constant.AlcoholType
 import app.bottlenote.global.data.response.GlobalResponse
@@ -13,6 +13,9 @@ import app.bottlenote.global.dto.response.AdminResultResponse
 import java.time.LocalDateTime
 
 object AlcoholsHelper {
+
+	/** 1x1 투명 PNG 이미지 (테스트용) */
+	const val VALID_BASE64_PNG = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
 
 	fun createAdminAlcoholItem(
 		id: Long = 1L,
@@ -104,16 +107,26 @@ object AlcoholsHelper {
 		LocalDateTime.of(2024, 6, 1, 0, 0)
 	)
 
-	fun createAdminTastingTagItems(count: Int = 3): List<AdminTastingTagItem> =
+	fun createTastingTagNodeItem(
+		id: Long = 1L,
+		korName: String = "테스트 태그",
+		engName: String = "Test Tag",
+		icon: String? = null,
+		description: String? = null,
+		parent: TastingTagNodeItem? = null,
+		children: List<TastingTagNodeItem>? = null
+	): TastingTagNodeItem = TastingTagNodeItem.of(
+		id, korName, engName, icon, description, parent, children
+	)
+
+	fun createTastingTagNodeItems(count: Int = 3): List<TastingTagNodeItem> =
 		(1..count).map { i ->
-			AdminTastingTagItem(
+			TastingTagNodeItem.forList(
 				i.toLong(),
 				"태그$i",
 				"Tag$i",
 				"icon$i.png",
-				"테이스팅 태그 설명 $i",
-				LocalDateTime.of(2024, 1, i, 0, 0),
-				LocalDateTime.of(2024, 6, i, 0, 0)
+				"테이스팅 태그 설명 $i"
 			)
 		}
 

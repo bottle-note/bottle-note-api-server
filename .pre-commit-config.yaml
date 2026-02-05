@@ -9,7 +9,8 @@ repos:
     rev: v3.1.0
     hooks:
       - id: conventional-pre-commit
-        stages: [commit-msg]
+        stages: [
+          commit-msg]
         args: [feat, fix, docs, style, refactor, test, chore, remove]
   - repo: local
     hooks:

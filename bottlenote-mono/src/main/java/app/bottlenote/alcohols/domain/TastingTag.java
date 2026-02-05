@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
@@ -40,18 +41,35 @@ public class TastingTag extends BaseEntity {
   @Column(name = "kor_name", nullable = false)
   private String korName;
 
-  // base64 이미지로 변환해도 될듯
-  @Comment("아이콘")
-  @Column(name = "icon")
+  @Lob
+  @Comment("아이콘 (Base64 이미지)")
+  @Column(name = "icon", columnDefinition = "MEDIUMTEXT")
   private String icon;
 
   @Comment("태그 설명")
   @Column(name = "description")
   private String description;
 
+  @Comment("부모 태그 ID (null이면 root)")
+  @Column(name = "parent_id")
+  private Long parentId;
+
   @Builder.Default
   @OneToMany(mappedBy = "tastingTag")
   private List<AlcoholsTastingTags> alcoholsTastingTags = new ArrayList<>();
+
+  public void update(
+      String korName, String engName, String icon, String description, Long parentId) {
+    this.korName = korName;
+    this.engName = engName;
+    this.icon = icon;
+    this.description = description;
+    this.parentId = parentId;
+  }
+
+  public boolean isRoot() {
+    return this.parentId == null;
+  }
 
   @Override
   public boolean equals(Object o) {

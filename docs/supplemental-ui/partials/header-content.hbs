@@ -1,0 +1,142 @@
+<style>
+/* Wide screen center layout */
+@media screen and (min-width: 1024px) {
+  .body {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+}
+
+/* Dark mode toggle switch */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  padding: 0 0.75rem;
+}
+.theme-toggle-input {
+  display: none;
+}
+.theme-toggle-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  width: 50px;
+  height: 26px;
+  background: #ddd;
+  border-radius: 100px;
+  position: relative;
+  transition: background-color 0.2s;
+}
+.theme-toggle-label::before {
+  content: "☀️";
+  font-size: 12px;
+  position: absolute;
+  left: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.theme-toggle-label::after {
+  content: "🌙";
+  font-size: 12px;
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.theme-toggle-slider {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  z-index: 1;
+}
+.theme-toggle-input:checked + .theme-toggle-label {
+  background: #4a5568;
+}
+.theme-toggle-input:checked + .theme-toggle-label .theme-toggle-slider {
+  transform: translateX(24px);
+}
+
+/* Dark mode styles - Spring theme colors */
+html[data-theme="dark"] {
+  --body-background: #1b1f23;
+  --body-font-color: #bbbcbe;
+  --panel-background: #262a2d;
+  --navbar-background: #1b1f23;
+  --navbar-font-color: #bbbcbe;
+  --nav-background: #1b1f23;
+  --nav-heading-font-color: #bbbcbe;
+  --nav-link-font-color: #bbbcbe;
+  --link-font-color: #086dc3;
+  --link-hover-font-color: #107ddd;
+  --heading-font-color: #cecfd1;
+  --code-background: #262a2d;
+  --pre-background: #262a2d;
+  --footer-background: #1b1f23;
+}
+html[data-theme="dark"] body { background: var(--body-background); color: var(--body-font-color); }
+html[data-theme="dark"] .navbar { background: var(--navbar-background); }
+html[data-theme="dark"] .navbar-item, html[data-theme="dark"] .navbar-link { color: var(--navbar-font-color); }
+html[data-theme="dark"] .nav-panel-menu { background: var(--nav-background); }
+html[data-theme="dark"] .nav-link { color: var(--nav-link-font-color); }
+html[data-theme="dark"] .nav-item.is-current-page > .nav-link { color: #fff; }
+html[data-theme="dark"] .doc { color: var(--body-font-color); }
+html[data-theme="dark"] .doc h1, html[data-theme="dark"] .doc h2, html[data-theme="dark"] .doc h3, html[data-theme="dark"] .doc h4 { color: var(--heading-font-color); }
+html[data-theme="dark"] .doc a { color: var(--link-font-color); }
+html[data-theme="dark"] .doc a:hover { color: var(--link-hover-font-color); }
+html[data-theme="dark"] .doc code { background: var(--code-background); color: #f6f8fa; }
+html[data-theme="dark"] .doc pre, html[data-theme="dark"] .listingblock pre { background: var(--pre-background); }
+html[data-theme="dark"] .footer { background: var(--footer-background); color: rgba(255,255,255,0.5); }
+html[data-theme="dark"] .toolbar { background: var(--nav-background); color: var(--body-font-color); }
+html[data-theme="dark"] .toc a { color: #aaa; }
+html[data-theme="dark"] .toc a:hover { color: #fff; }
+html[data-theme="dark"] .nav-panel-explore { background: var(--panel-background); }
+html[data-theme="dark"] .breadcrumbs a { color: var(--body-font-color); }
+</style>
+<script>
+(function(){
+  var t=localStorage.getItem('antora-theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
+  document.documentElement.setAttribute('data-theme',t);
+})();
+</script>
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="{{siteRootPath}}">{{site.title}}</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="{{siteRootPath}}">Home</a>
+        <div class="navbar-item theme-toggle">
+          <input type="checkbox" id="theme-toggle" class="theme-toggle-input">
+          <label for="theme-toggle" class="theme-toggle-label">
+            <span class="theme-toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<script>
+(function(){
+  var toggle = document.getElementById('theme-toggle');
+  var current = document.documentElement.getAttribute('data-theme');
+  toggle.checked = current === 'dark';
+  toggle.addEventListener('change', function(){
+    var theme = this.checked ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('antora-theme', theme);
+  });
+})();
+</script>

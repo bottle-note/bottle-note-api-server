@@ -45,6 +45,13 @@ public class DailyDataReportJobConfig {
 	public Job dailyDataReportJob(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
 		log.debug("일일 데이터 리포트 Job 초기화 시작");
 
+		String webhookUrl = discordWebhookProperties.getUrl();
+		if (webhookUrl == null || webhookUrl.isBlank()) {
+			log.warn("[CONFIG] Discord 웹훅 URL이 설정되지 않았습니다. (WEBHOOK_DISCORD_URL 환경변수 확인 필요)");
+		} else {
+			log.info("[CONFIG] Discord 웹훅 URL 설정 확인 완료");
+		}
+
 		Step collectAndSendStep = getCollectAndSendStep(jobRepository, transactionManager);
 
 		log.debug("일일 데이터 리포트 Job 초기화 완료");

@@ -1,0 +1,15 @@
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+{{#if page.home}}
+<a href="{{page.home.url}}" class="home-link{{#if page.home.current}} is-current{{/if}}"></a>
+{{/if}}
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+{{#with page.breadcrumbs}}
+  <ul>
+  {{#each this}}
+    <li><a href="{{{url}}}">{{content}}</a></li>
+  {{/each}}
+  </ul>
+{{/with}}
+</nav>
+</div>

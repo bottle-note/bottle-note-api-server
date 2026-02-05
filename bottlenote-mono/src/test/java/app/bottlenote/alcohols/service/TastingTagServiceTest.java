@@ -1,7 +1,10 @@
 package app.bottlenote.alcohols.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
+import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
+import app.bottlenote.alcohols.domain.AlcoholsTastingTagsRepository;
 import app.bottlenote.alcohols.domain.TastingTag;
 import app.bottlenote.alcohols.fixture.InMemoryTastingTagRepository;
 import java.util.List;
@@ -21,12 +24,18 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 class TastingTagServiceTest {
 
   InMemoryTastingTagRepository tastingTagRepository;
+  AlcoholsTastingTagsRepository alcoholsTastingTagsRepository;
+  AlcoholQueryRepository alcoholQueryRepository;
   TastingTagService tastingTagService;
 
   @BeforeEach
   void setUp() {
     tastingTagRepository = new InMemoryTastingTagRepository();
-    tastingTagService = new TastingTagService(tastingTagRepository);
+    alcoholsTastingTagsRepository = mock(AlcoholsTastingTagsRepository.class);
+    alcoholQueryRepository = mock(AlcoholQueryRepository.class);
+    tastingTagService =
+        new TastingTagService(
+            tastingTagRepository, alcoholsTastingTagsRepository, alcoholQueryRepository);
 
     tastingTagRepository.save(createTag("바닐라", "vanilla"));
     tastingTagRepository.save(createTag("꿀", "honey"));
