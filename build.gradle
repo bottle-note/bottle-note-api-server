@@ -141,6 +141,7 @@ subprojects {
 			useJUnitPlatform()
 			filter {
 				includeTestsMatching 'app.docs.*'
+				includeTestsMatching 'app.external.docs.*'
 			}
 		}
 	}

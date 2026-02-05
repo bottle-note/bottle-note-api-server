@@ -288,7 +288,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
                 user.imageUrl,
                 alcohol.id,
                 alcohol.korName)
-            .orderBy(review.lastModifyAt.desc())
+            .orderBy(review.createAt.desc())
             .offset(cursor)
             .limit(fetchSize)
             .fetch();

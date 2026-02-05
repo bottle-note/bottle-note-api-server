@@ -3,7 +3,7 @@ name: deploy v2 development
 on:
   workflow_dispatch:
   workflow_run:
-    workflows: [ "product ci pipeline" ]
+    workflows: [ "ci pipeline" ]
     types:
       - completed
     branches:

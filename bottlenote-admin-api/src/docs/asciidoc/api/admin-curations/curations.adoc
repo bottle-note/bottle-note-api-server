@@ -1,0 +1,260 @@
+=== 큐레이션 목록 조회 ===
+
+- 큐레이션 목록을 페이지네이션으로 조회합니다.
+- 키워드 및 활성화 상태로 필터링이 가능합니다.
+
+[source]
+----
+GET /admin/api/v1/curations
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/curations/list/query-parameters.adoc[]
+include::{snippets}/admin/curations/list/curl-request.adoc[]
+include::{snippets}/admin/curations/list/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/curations/list/response-fields.adoc[]
+include::{snippets}/admin/curations/list/http-response.adoc[]
+
+'''
+
+=== 큐레이션 상세 조회 ===
+
+- 특정 큐레이션의 상세 정보를 조회합니다.
+- 포함된 위스키 ID 목록을 포함합니다.
+
+[source]
+----
+GET /admin/api/v1/curations/{curationId}
+----
+
+[discrete]
+==== 경로 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/curations/detail/path-parameters.adoc[]
+include::{snippets}/admin/curations/detail/curl-request.adoc[]
+include::{snippets}/admin/curations/detail/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/curations/detail/response-fields.adoc[]
+include::{snippets}/admin/curations/detail/http-response.adoc[]
+
+'''
+
+=== 큐레이션 생성 ===
+
+- 새로운 큐레이션을 생성합니다.
+- 위스키 ID 목록을 함께 지정할 수 있습니다.
+
+[source]
+----
+POST /admin/api/v1/curations
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/curations/create/request-fields.adoc[]
+include::{snippets}/admin/curations/create/curl-request.adoc[]
+include::{snippets}/admin/curations/create/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/curations/create/response-fields.adoc[]
+include::{snippets}/admin/curations/create/http-response.adoc[]
+
+'''
+
+=== 큐레이션 수정 ===
+
+- 기존 큐레이션 정보를 수정합니다.
+
+[source]
+----
+PUT /admin/api/v1/curations/{curationId}
+----
+
+[discrete]
+==== 경로 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/curations/update/path-parameters.adoc[]
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/curations/update/request-fields.adoc[]
+include::{snippets}/admin/curations/update/curl-request.adoc[]
+include::{snippets}/admin/curations/update/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/curations/update/response-fields.adoc[]
+include::{snippets}/admin/curations/update/http-response.adoc[]
+
+'''
+
+=== 큐레이션 삭제 ===
+
+- 큐레이션을 삭제합니다.
+
+[source]
+----
+DELETE /admin/api/v1/curations/{curationId}
+----
+
+[discrete]
+==== 경로 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/curations/delete/path-parameters.adoc[]
+include::{snippets}/admin/curations/delete/curl-request.adoc[]
+include::{snippets}/admin/curations/delete/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/curations/delete/response-fields.adoc[]
+include::{snippets}/admin/curations/delete/http-response.adoc[]
+
+'''
+
+=== 큐레이션 활성화 상태 변경 ===
+
+- 큐레이션의 활성화 상태를 변경합니다.
+- 비활성화된 큐레이션은 클라이언트에 노출되지 않습니다.
+
+[source]
+----
+PATCH /admin/api/v1/curations/{curationId}/status
+----
+
+[discrete]
+==== 경로 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/curations/update-status/path-parameters.adoc[]
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/curations/update-status/request-fields.adoc[]
+include::{snippets}/admin/curations/update-status/curl-request.adoc[]
+include::{snippets}/admin/curations/update-status/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/curations/update-status/response-fields.adoc[]
+include::{snippets}/admin/curations/update-status/http-response.adoc[]
+
+'''
+
+=== 큐레이션 노출 순서 변경 ===
+
+- 큐레이션의 노출 순서를 변경합니다.
+- 숫자가 작을수록 먼저 노출됩니다.
+
+[source]
+----
+PATCH /admin/api/v1/curations/{curationId}/display-order
+----
+
+[discrete]
+==== 경로 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/curations/update-display-order/path-parameters.adoc[]
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/curations/update-display-order/request-fields.adoc[]
+include::{snippets}/admin/curations/update-display-order/curl-request.adoc[]
+include::{snippets}/admin/curations/update-display-order/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/curations/update-display-order/response-fields.adoc[]
+include::{snippets}/admin/curations/update-display-order/http-response.adoc[]
+
+'''
+
+=== 큐레이션에 위스키 추가 ===
+
+- 큐레이션에 위스키를 벌크로 추가합니다.
+
+[source]
+----
+POST /admin/api/v1/curations/{curationId}/alcohols
+----
+
+[discrete]
+==== 경로 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/curations/add-alcohols/path-parameters.adoc[]
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/curations/add-alcohols/request-fields.adoc[]
+include::{snippets}/admin/curations/add-alcohols/curl-request.adoc[]
+include::{snippets}/admin/curations/add-alcohols/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/curations/add-alcohols/response-fields.adoc[]
+include::{snippets}/admin/curations/add-alcohols/http-response.adoc[]
+
+'''
+
+=== 큐레이션에서 위스키 제거 ===
+
+- 큐레이션에서 특정 위스키를 제거합니다.
+
+[source]
+----
+DELETE /admin/api/v1/curations/{curationId}/alcohols/{alcoholId}
+----
+
+[discrete]
+==== 경로 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/curations/remove-alcohol/path-parameters.adoc[]
+include::{snippets}/admin/curations/remove-alcohol/curl-request.adoc[]
+include::{snippets}/admin/curations/remove-alcohol/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/curations/remove-alcohol/response-fields.adoc[]
+include::{snippets}/admin/curations/remove-alcohol/http-response.adoc[]

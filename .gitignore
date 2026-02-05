@@ -73,3 +73,16 @@ cosign.pub
 
 # Log files
 spy.log
+/.omc/
+**/.omc/
+
+# Antora (CI에서 생성되는 파일들)
+docs/modules/product-api/pages/
+docs/modules/product-api/examples/
+docs/modules/admin-api/pages/
+docs/modules/admin-api/examples/
+docs/_site/
+
+# 기존 Jekyll 빌드 결과물 (Antora 전환 후 삭제 예정)
+docs/admin-api.html
+docs/index.html

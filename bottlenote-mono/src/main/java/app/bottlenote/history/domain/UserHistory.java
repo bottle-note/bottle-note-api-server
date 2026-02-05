@@ -26,6 +26,7 @@ import org.hibernate.annotations.Type;
 
 @Builder
 @Getter
+@Comment("사용자 활동 이벤트 히스토리")
 @Entity(name = "user_history")
 @Table(name = "user_histories")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

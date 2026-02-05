@@ -7,6 +7,8 @@ import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
 
 import app.bottlenote.alcohols.domain.CurationKeyword;
+import app.bottlenote.alcohols.dto.request.AdminCurationSearchRequest;
+import app.bottlenote.alcohols.dto.response.AdminCurationListResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.alcohols.dto.response.CurationKeywordResponse;
 import app.bottlenote.global.service.cursor.CursorPageable;
@@ -18,6 +20,9 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -162,5 +167,41 @@ public class CustomCurationKeywordRepositoryImpl implements CustomCurationKeywor
             alcoholId,
             curationKeyword.alcoholIds)
         .eq(1L);
+  }
+
+  @Override
+  public Page<AdminCurationListResponse> searchForAdmin(
+      AdminCurationSearchRequest request, Pageable pageable) {
+
+    List<AdminCurationListResponse> content =
+        queryFactory
+            .select(
+                Projections.constructor(
+                    AdminCurationListResponse.class,
+                    curationKeyword.id,
+                    curationKeyword.name,
+                    curationKeyword.alcoholIds.size(),
+                    curationKeyword.displayOrder,
+                    curationKeyword.isActive,
+                    curationKeyword.createAt))
+            .from(curationKeyword)
+            .where(keywordContains(request.keyword()), isActiveEq(request.isActive()))
+            .orderBy(curationKeyword.displayOrder.asc(), curationKeyword.id.desc())
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
+            .fetch();
+
+    Long total =
+        queryFactory
+            .select(curationKeyword.count())
+            .from(curationKeyword)
+            .where(keywordContains(request.keyword()), isActiveEq(request.isActive()))
+            .fetchOne();
+
+    return new PageImpl<>(content, pageable, total != null ? total : 0L);
+  }
+
+  private BooleanExpression isActiveEq(Boolean isActive) {
+    return isActive != null ? curationKeyword.isActive.eq(isActive) : null;
   }
 }

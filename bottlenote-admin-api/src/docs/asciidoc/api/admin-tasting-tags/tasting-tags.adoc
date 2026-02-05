@@ -1,0 +1,201 @@
+=== 테이스팅 태그 목록 조회 ===
+
+- 테이스팅 태그 목록을 페이지네이션으로 조회합니다.
+- 키워드로 한글명/영문명 검색이 가능합니다.
+
+[source]
+----
+GET /admin/api/v1/tasting-tags
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/tasting-tags/list/query-parameters.adoc[]
+include::{snippets}/admin/tasting-tags/list/curl-request.adoc[]
+include::{snippets}/admin/tasting-tags/list/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/tasting-tags/list/response-fields.adoc[]룰
+include::{snippets}/admin/tasting-tags/list/http-response.adoc[]
+
+'''
+
+=== 테이스팅 태그 상세 조회 ===
+
+- 특정 테이스팅 태그의 상세 정보를 조회합니다.
+- 부모/자식 태그 정보 및 연결된 술 목록을 포함합니다.
+
+[source]
+----
+GET /admin/api/v1/tasting-tags/{tagId}
+----
+
+[discrete]
+==== 경로 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/tasting-tags/detail/path-parameters.adoc[]
+include::{snippets}/admin/tasting-tags/detail/curl-request.adoc[]
+include::{snippets}/admin/tasting-tags/detail/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/tasting-tags/detail/response-fields.adoc[]
+include::{snippets}/admin/tasting-tags/detail/http-response.adoc[]
+
+'''
+
+=== 테이스팅 태그 생성 ===
+
+- 새로운 테이스팅 태그를 생성합니다.
+- parentId를 지정하여 계층 구조를 만들 수 있습니다.
+
+[source]
+----
+POST /admin/api/v1/tasting-tags
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/tasting-tags/create/request-fields.adoc[]
+include::{snippets}/admin/tasting-tags/create/curl-request.adoc[]
+include::{snippets}/admin/tasting-tags/create/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/tasting-tags/create/response-fields.adoc[]
+include::{snippets}/admin/tasting-tags/create/http-response.adoc[]
+
+'''
+
+=== 테이스팅 태그 수정 ===
+
+- 기존 테이스팅 태그 정보를 수정합니다.
+
+[source]
+----
+PUT /admin/api/v1/tasting-tags/{tagId}
+----
+
+[discrete]
+==== 경로 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/tasting-tags/update/path-parameters.adoc[]
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/tasting-tags/update/request-fields.adoc[]
+include::{snippets}/admin/tasting-tags/update/curl-request.adoc[]
+include::{snippets}/admin/tasting-tags/update/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/tasting-tags/update/response-fields.adoc[]
+include::{snippets}/admin/tasting-tags/update/http-response.adoc[]
+
+'''
+
+=== 테이스팅 태그 삭제 ===
+
+- 테이스팅 태그를 삭제합니다.
+- 자식 태그가 있는 경우 삭제할 수 없습니다.
+
+[source]
+----
+DELETE /admin/api/v1/tasting-tags/{tagId}
+----
+
+[discrete]
+==== 경로 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/tasting-tags/delete/path-parameters.adoc[]
+include::{snippets}/admin/tasting-tags/delete/curl-request.adoc[]
+include::{snippets}/admin/tasting-tags/delete/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/tasting-tags/delete/response-fields.adoc[]
+include::{snippets}/admin/tasting-tags/delete/http-response.adoc[]
+
+'''
+
+=== 테이스팅 태그 연결 ===
+
+- 테이스팅 태그에 술을 벌크로 연결합니다.
+
+[source]
+----
+POST /admin/api/v1/tasting-tags/{tagId}/alcohols
+----
+
+[discrete]
+==== 경로 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/tasting-tags/add-alcohols/path-parameters.adoc[]
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/tasting-tags/add-alcohols/request-fields.adoc[]
+include::{snippets}/admin/tasting-tags/add-alcohols/curl-request.adoc[]
+include::{snippets}/admin/tasting-tags/add-alcohols/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/tasting-tags/add-alcohols/response-fields.adoc[]
+include::{snippets}/admin/tasting-tags/add-alcohols/http-response.adoc[]
+
+'''
+
+=== 테이스팅 태그 연결 해제 ===
+
+- 테이스팅 태그에서 술 연결을 벌크로 해제합니다.
+
+[source]
+----
+DELETE /admin/api/v1/tasting-tags/{tagId}/alcohols
+----
+
+[discrete]
+==== 경로 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/tasting-tags/remove-alcohols/path-parameters.adoc[]
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/tasting-tags/remove-alcohols/request-fields.adoc[]
+include::{snippets}/admin/tasting-tags/remove-alcohols/curl-request.adoc[]
+include::{snippets}/admin/tasting-tags/remove-alcohols/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/tasting-tags/remove-alcohols/response-fields.adoc[]
+include::{snippets}/admin/tasting-tags/remove-alcohols/http-response.adoc[]

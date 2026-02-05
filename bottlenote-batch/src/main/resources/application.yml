@@ -66,6 +66,12 @@ management:
   tracing:
     enabled: false
 
+schedules:
+  history:
+    view:
+      sync:
+        enable: false
+
 logging:
   level:
     root: info
