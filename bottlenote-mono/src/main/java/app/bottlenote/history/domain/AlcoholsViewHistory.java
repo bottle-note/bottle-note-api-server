@@ -31,6 +31,11 @@ public class AlcoholsViewHistory {
     return new AlcoholsViewHistory(id, viewAt);
   }
 
+  // 조회 시점 갱신
+  public void updateViewAt(LocalDateTime viewAt) {
+    this.viewAt = viewAt;
+  }
+
   @Getter
   @Embeddable
   @EqualsAndHashCode
@@ -44,5 +49,9 @@ public class AlcoholsViewHistory {
     @Comment("술 ID")
     @Column(name = "alcohol_id", nullable = false)
     private Long alcoholId;
+
+    public static AlcoholsViewHistoryId of(Long userId, Long alcoholId) {
+      return new AlcoholsViewHistoryId(userId, alcoholId);
+    }
   }
 }

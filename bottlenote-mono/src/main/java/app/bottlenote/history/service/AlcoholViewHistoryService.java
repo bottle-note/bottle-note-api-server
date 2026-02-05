@@ -6,13 +6,16 @@ import app.bottlenote.global.data.response.CollectionResponse;
 import app.bottlenote.global.redis.entity.AlcoholViewHistory;
 import app.bottlenote.global.redis.repository.RedisAlcoholViewHistoryRepository;
 import app.bottlenote.history.domain.AlcoholsViewHistory;
+import app.bottlenote.history.domain.AlcoholsViewHistory.AlcoholsViewHistoryId;
 import app.bottlenote.history.domain.AlcoholsViewHistoryRepository;
 import app.bottlenote.observability.annotation.SkipTrace;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -68,39 +71,67 @@ public class AlcoholViewHistoryService {
   @SkipTrace
   @Transactional
   public void syncViewHistoryFromRedisToDb() {
-    // 1. Redis에서 모든 조회 기록 가져오기
     Iterable<AlcoholViewHistory> redisHistories = redisViewHistoryRepository.findAll();
-    List<AlcoholsViewHistory> entitiesToSave = new ArrayList<>();
-    List<UUID> keysToDelete = new ArrayList<>();
 
-    // 2. Redis 데이터를 DB 엔티티로 변환
+    // 동일 (userId, alcoholId) 쌍에서 최신 viewTime만 유지
+    Map<AlcoholsViewHistoryId, RedisEntry> latestEntries = new HashMap<>();
+
     redisHistories.forEach(
         redisHistory -> {
           if (redisHistory == null) {
             log.debug("TTL expired data found in index, skipping...");
             return;
           }
+
           var viewTime =
               LocalDateTime.ofInstant(
                   Instant.ofEpochMilli(redisHistory.getViewTime()), ZoneId.systemDefault());
-          var historyEntity =
-              AlcoholsViewHistory.of(
-                  redisHistory.getUserId(), redisHistory.getAlcoholId(), viewTime);
-          entitiesToSave.add(historyEntity);
-          // 처리된 항목의 ID를 삭제 목록에 추가
-          keysToDelete.add(redisHistory.getId());
+          var compositeKey =
+              AlcoholsViewHistoryId.of(redisHistory.getUserId(), redisHistory.getAlcoholId());
+
+          latestEntries.merge(
+              compositeKey,
+              new RedisEntry(viewTime, redisHistory.getId()),
+              (existing, incoming) ->
+                  incoming.viewTime.isAfter(existing.viewTime) ? incoming : existing);
         });
 
-    // 3. DB에 저장
-    if (!entitiesToSave.isEmpty()) {
-      historyRepository.saveAll(entitiesToSave);
-      // 4. 처리 완료된 Redis 데이터 삭제
-      if (!keysToDelete.isEmpty()) {
-        redisViewHistoryRepository.deleteAllById(keysToDelete);
-        log.info("Redis에서 {}개 처리된 조회 기록 삭제 완료", keysToDelete.size());
+    List<UUID> successKeys = new ArrayList<>();
+
+    // 개별 처리로 에러 격리
+    for (var entry : latestEntries.entrySet()) {
+      var compositeKey = entry.getKey();
+      var redisEntry = entry.getValue();
+
+      try {
+        historyRepository
+            .findById(compositeKey)
+            .ifPresentOrElse(
+                existing -> existing.updateViewAt(redisEntry.viewTime),
+                () ->
+                    historyRepository.save(
+                        AlcoholsViewHistory.of(
+                            compositeKey.getUserId(),
+                            compositeKey.getAlcoholId(),
+                            redisEntry.viewTime)));
+        successKeys.add(redisEntry.redisId);
+      } catch (Exception e) {
+        log.error(
+            "조회 기록 동기화 실패: userId={}, alcoholId={}, error={}",
+            compositeKey.getUserId(),
+            compositeKey.getAlcoholId(),
+            e.getMessage());
       }
     }
+
+    // 성공한 항목만 Redis에서 삭제
+    if (!successKeys.isEmpty()) {
+      redisViewHistoryRepository.deleteAllById(successKeys);
+      log.info("Redis에서 {}개 처리된 조회 기록 삭제 완료", successKeys.size());
+    }
   }
+
+  private record RedisEntry(LocalDateTime viewTime, UUID redisId) {}
 
   @Transactional(readOnly = true)
   public CollectionResponse<ViewHistoryItem> getViewHistory(Long id) {
