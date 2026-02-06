@@ -1,7 +1,9 @@
 package app.helper.curation
 
+import app.bottlenote.alcohols.dto.response.AdminAlcoholItem
 import app.bottlenote.alcohols.dto.response.AdminCurationDetailResponse
 import app.bottlenote.alcohols.dto.response.AdminCurationListResponse
+import app.helper.alcohols.AlcoholsHelper
 import app.bottlenote.global.dto.response.AdminResultResponse
 import java.time.LocalDateTime
 
@@ -36,11 +38,11 @@ object CurationHelper {
         coverImageUrl: String = "https://example.com/cover.jpg",
         displayOrder: Int = 1,
         isActive: Boolean = true,
-        alcoholIds: Set<Long> = setOf(1L, 2L, 3L),
+        alcohols: List<AdminAlcoholItem> = AlcoholsHelper.createAdminAlcoholItems(3),
         createdAt: LocalDateTime = LocalDateTime.of(2024, 1, 1, 0, 0),
         modifiedAt: LocalDateTime = LocalDateTime.of(2024, 6, 1, 0, 0)
     ): AdminCurationDetailResponse = AdminCurationDetailResponse(
-        id, name, description, coverImageUrl, displayOrder, isActive, alcoholIds, createdAt, modifiedAt
+        id, name, description, coverImageUrl, displayOrder, isActive, alcohols, createdAt, modifiedAt
     )
 
     fun createCurationCreateRequest(

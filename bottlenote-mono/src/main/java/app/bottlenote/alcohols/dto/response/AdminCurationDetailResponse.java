@@ -1,7 +1,7 @@
 package app.bottlenote.alcohols.dto.response;
 
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.List;
 
 /**
  * Admin 큐레이션 상세 조회 응답
@@ -12,7 +12,7 @@ import java.util.Set;
  * @param coverImageUrl 커버 이미지 URL
  * @param displayOrder 노출 순서
  * @param isActive 활성화 상태
- * @param alcoholIds 포함된 위스키 ID 목록
+ * @param alcohols 포함된 위스키 목록
  * @param createdAt 생성일시
  * @param modifiedAt 수정일시
  */
@@ -23,7 +23,7 @@ public record AdminCurationDetailResponse(
     String coverImageUrl,
     Integer displayOrder,
     Boolean isActive,
-    Set<Long> alcoholIds,
+    List<AdminAlcoholItem> alcohols,
     LocalDateTime createdAt,
     LocalDateTime modifiedAt) {
 
@@ -34,7 +34,7 @@ public record AdminCurationDetailResponse(
       String coverImageUrl,
       Integer displayOrder,
       Boolean isActive,
-      Set<Long> alcoholIds,
+      List<AdminAlcoholItem> alcohols,
       LocalDateTime createdAt,
       LocalDateTime modifiedAt) {
     return new AdminCurationDetailResponse(
@@ -44,7 +44,7 @@ public record AdminCurationDetailResponse(
         coverImageUrl,
         displayOrder,
         isActive,
-        alcoholIds,
+        alcohols,
         createdAt,
         modifiedAt);
   }
