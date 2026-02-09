@@ -1,0 +1,205 @@
+=== 배너 목록 조회 ===
+
+- 배너 목록을 페이지네이션으로 조회합니다.
+- 키워드, 활성화 상태, 배너 유형으로 필터링이 가능합니다.
+
+include::../common/enums/banner-type.adoc[]
+include::../common/enums/text-position.adoc[]
+
+[source]
+----
+GET /admin/api/v1/banners
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/banners/list/query-parameters.adoc[]
+include::{snippets}/admin/banners/list/curl-request.adoc[]
+include::{snippets}/admin/banners/list/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/banners/list/response-fields.adoc[]
+include::{snippets}/admin/banners/list/http-response.adoc[]
+
+'''
+
+=== 배너 상세 조회 ===
+
+- 특정 배너의 상세 정보를 조회합니다.
+
+[source]
+----
+GET /admin/api/v1/banners/{bannerId}
+----
+
+[discrete]
+==== 경로 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/banners/detail/path-parameters.adoc[]
+include::{snippets}/admin/banners/detail/curl-request.adoc[]
+include::{snippets}/admin/banners/detail/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/banners/detail/response-fields.adoc[]
+include::{snippets}/admin/banners/detail/http-response.adoc[]
+
+'''
+
+=== 배너 생성 ===
+
+- 새로운 배너를 생성합니다.
+- URL 형식 검증을 수행하지 않으므로 클라이언트에서 유효한 URL을 전달해야 합니다.
+
+[source]
+----
+POST /admin/api/v1/banners
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/banners/create/request-fields.adoc[]
+include::{snippets}/admin/banners/create/curl-request.adoc[]
+include::{snippets}/admin/banners/create/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/banners/create/response-fields.adoc[]
+include::{snippets}/admin/banners/create/http-response.adoc[]
+
+'''
+
+=== 배너 수정 ===
+
+- 기존 배너 정보를 수정합니다.
+
+[source]
+----
+PUT /admin/api/v1/banners/{bannerId}
+----
+
+[discrete]
+==== 경로 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/banners/update/path-parameters.adoc[]
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/banners/update/request-fields.adoc[]
+include::{snippets}/admin/banners/update/curl-request.adoc[]
+include::{snippets}/admin/banners/update/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/banners/update/response-fields.adoc[]
+include::{snippets}/admin/banners/update/http-response.adoc[]
+
+'''
+
+=== 배너 삭제 ===
+
+- 배너를 삭제합니다. (물리 삭제)
+
+[source]
+----
+DELETE /admin/api/v1/banners/{bannerId}
+----
+
+[discrete]
+==== 경로 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/banners/delete/path-parameters.adoc[]
+include::{snippets}/admin/banners/delete/curl-request.adoc[]
+include::{snippets}/admin/banners/delete/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/banners/delete/response-fields.adoc[]
+include::{snippets}/admin/banners/delete/http-response.adoc[]
+
+'''
+
+=== 배너 활성화 상태 변경 ===
+
+- 배너의 활성화 상태를 변경합니다.
+- 비활성화된 배너는 클라이언트에 노출되지 않습니다.
+
+[source]
+----
+PATCH /admin/api/v1/banners/{bannerId}/status
+----
+
+[discrete]
+==== 경로 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/banners/update-status/path-parameters.adoc[]
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/banners/update-status/request-fields.adoc[]
+include::{snippets}/admin/banners/update-status/curl-request.adoc[]
+include::{snippets}/admin/banners/update-status/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/banners/update-status/response-fields.adoc[]
+include::{snippets}/admin/banners/update-status/http-response.adoc[]
+
+'''
+
+=== 배너 정렬 순서 변경 ===
+
+- 배너의 정렬 순서를 변경합니다.
+- 숫자가 작을수록 먼저 노출됩니다.
+- 동일 순서 충돌 시 기존 배너들이 자동으로 리오더링됩니다.
+
+[source]
+----
+PATCH /admin/api/v1/banners/{bannerId}/sort-order
+----
+
+[discrete]
+==== 경로 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/banners/update-sort-order/path-parameters.adoc[]
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/banners/update-sort-order/request-fields.adoc[]
+include::{snippets}/admin/banners/update-sort-order/curl-request.adoc[]
+include::{snippets}/admin/banners/update-sort-order/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/banners/update-sort-order/response-fields.adoc[]
+include::{snippets}/admin/banners/update-sort-order/http-response.adoc[]

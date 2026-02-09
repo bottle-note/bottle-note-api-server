@@ -7,7 +7,12 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 @JpaRepositoryImpl
-public interface JpaBannerRepository extends BannerRepository, JpaRepository<Banner, Long> {
+public interface JpaBannerRepository
+    extends BannerRepository, JpaRepository<Banner, Long>, CustomBannerRepository {
 
   List<Banner> findAllByIsActiveTrue();
+
+  boolean existsByName(String name);
+
+  List<Banner> findAllBySortOrderGreaterThanEqual(Integer sortOrder);
 }

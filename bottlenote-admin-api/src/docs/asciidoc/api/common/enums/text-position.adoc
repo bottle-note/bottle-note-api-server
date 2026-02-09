@@ -1,0 +1,12 @@
+[discrete]
+==== TextPosition (텍스트 위치) ====
+
+[cols="2,3", options="header"]
+|===
+|값 |설명
+|`LT` |좌상단
+|`LB` |좌하단
+|`RT` |우상단
+|`RB` |우하단
+|`CENTER` |중앙
+|===

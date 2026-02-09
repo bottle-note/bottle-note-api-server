@@ -1,16 +1,25 @@
 package app.bottlenote.banner.domain;
 
+import app.bottlenote.banner.dto.request.AdminBannerSearchRequest;
+import app.bottlenote.banner.dto.response.AdminBannerListResponse;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-/**
- * 배너 도메인 레포지토리 (조회 전용)
- *
- * <p>이 모듈은 사용자용 API로 조회만 가능합니다. 배너 생성/수정/삭제는 Admin 모듈에서 처리합니다.
- */
 public interface BannerRepository {
 
   Optional<Banner> findById(Long id);
 
   List<Banner> findAllByIsActiveTrue();
+
+  Banner save(Banner banner);
+
+  void delete(Banner banner);
+
+  boolean existsByName(String name);
+
+  List<Banner> findAllBySortOrderGreaterThanEqual(Integer sortOrder);
+
+  Page<AdminBannerListResponse> searchForAdmin(AdminBannerSearchRequest request, Pageable pageable);
 }

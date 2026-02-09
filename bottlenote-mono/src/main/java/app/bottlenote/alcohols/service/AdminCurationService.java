@@ -11,6 +11,7 @@ import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.
 import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.CURATION_STATUS_UPDATED;
 import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.CURATION_UPDATED;
 
+import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.domain.CurationKeyword;
 import app.bottlenote.alcohols.domain.CurationKeywordRepository;
 import app.bottlenote.alcohols.dto.request.AdminCurationAlcoholRequest;
@@ -19,11 +20,14 @@ import app.bottlenote.alcohols.dto.request.AdminCurationDisplayOrderRequest;
 import app.bottlenote.alcohols.dto.request.AdminCurationSearchRequest;
 import app.bottlenote.alcohols.dto.request.AdminCurationStatusRequest;
 import app.bottlenote.alcohols.dto.request.AdminCurationUpdateRequest;
+import app.bottlenote.alcohols.dto.response.AdminAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AdminCurationDetailResponse;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.dto.response.AdminResultResponse;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -36,6 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AdminCurationService {
 
   private final CurationKeywordRepository curationKeywordRepository;
+  private final AlcoholQueryRepository alcoholQueryRepository;
 
   @Transactional(readOnly = true)
   public GlobalResponse search(AdminCurationSearchRequest request) {
@@ -50,6 +55,21 @@ public class AdminCurationService {
             .findById(curationId)
             .orElseThrow(() -> new AlcoholException(CURATION_NOT_FOUND));
 
+    List<AdminAlcoholItem> alcohols =
+        alcoholQueryRepository.findAllByIdIn(new ArrayList<>(curation.getAlcoholIds())).stream()
+            .map(
+                alcohol ->
+                    new AdminAlcoholItem(
+                        alcohol.getId(),
+                        alcohol.getKorName(),
+                        alcohol.getEngName(),
+                        alcohol.getKorCategory(),
+                        alcohol.getEngCategory(),
+                        alcohol.getImageUrl(),
+                        alcohol.getCreateAt(),
+                        alcohol.getLastModifyAt()))
+            .toList();
+
     return AdminCurationDetailResponse.of(
         curation.getId(),
         curation.getName(),
@@ -57,7 +77,7 @@ public class AdminCurationService {
         curation.getCoverImageUrl(),
         curation.getDisplayOrder(),
         curation.getIsActive(),
-        curation.getAlcoholIds(),
+        alcohols,
         curation.getCreateAt(),
         curation.getLastModifyAt());
   }
