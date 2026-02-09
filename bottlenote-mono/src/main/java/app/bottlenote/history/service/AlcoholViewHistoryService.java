@@ -9,6 +9,7 @@ import app.bottlenote.history.domain.AlcoholsViewHistory;
 import app.bottlenote.history.domain.AlcoholsViewHistory.AlcoholsViewHistoryId;
 import app.bottlenote.history.domain.AlcoholsViewHistoryRepository;
 import app.bottlenote.observability.annotation.SkipTrace;
+import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -23,6 +24,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Slf4j
 @Service
@@ -33,6 +36,7 @@ public class AlcoholViewHistoryService {
   private final RedisAlcoholViewHistoryRepository redisViewHistoryRepository;
   private final AlcoholsViewHistoryRepository historyRepository;
   private final RedisTemplate<String, Object> redisTemplate;
+  private final EntityManager entityManager;
 
   /** 사용자의 주류 조회 기록 저장 */
   @Transactional
@@ -98,7 +102,6 @@ public class AlcoholViewHistoryService {
 
     List<UUID> successKeys = new ArrayList<>();
 
-    // 개별 처리로 에러 격리
     for (var entry : latestEntries.entrySet()) {
       var compositeKey = entry.getKey();
       var redisEntry = entry.getValue();
@@ -114,8 +117,12 @@ public class AlcoholViewHistoryService {
                             compositeKey.getUserId(),
                             compositeKey.getAlcoholId(),
                             redisEntry.viewTime)));
+        // flush로 즉시 SQL 실행하여 에러를 개별 catch로 격리
+        entityManager.flush();
         successKeys.add(redisEntry.redisId);
       } catch (Exception e) {
+        // flush 시점에 발생한 에러를 격리하고 해당 엔트리의 영속성 컨텍스트를 초기화
+        entityManager.clear();
         log.error(
             "조회 기록 동기화 실패: userId={}, alcoholId={}, error={}",
             compositeKey.getUserId(),
@@ -124,10 +131,17 @@ public class AlcoholViewHistoryService {
       }
     }
 
-    // 성공한 항목만 Redis에서 삭제
+    // DB 커밋 성공 후에만 Redis에서 삭제
     if (!successKeys.isEmpty()) {
-      redisViewHistoryRepository.deleteAllById(successKeys);
-      log.info("Redis에서 {}개 처리된 조회 기록 삭제 완료", successKeys.size());
+      List<UUID> keysToDelete = List.copyOf(successKeys);
+      TransactionSynchronizationManager.registerSynchronization(
+          new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+              redisViewHistoryRepository.deleteAllById(keysToDelete);
+              log.info("Redis에서 {}개 처리된 조회 기록 삭제 완료", keysToDelete.size());
+            }
+          });
     }
   }
 
