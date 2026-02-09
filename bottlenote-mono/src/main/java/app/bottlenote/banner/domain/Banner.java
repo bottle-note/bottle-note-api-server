@@ -95,4 +95,43 @@ public class Banner extends BaseEntity {
   @Column(name = "is_active", nullable = false)
   @Builder.Default
   private Boolean isActive = true;
+
+  public void update(
+      String name,
+      String nameFontColor,
+      String descriptionA,
+      String descriptionB,
+      String descriptionFontColor,
+      String imageUrl,
+      TextPosition textPosition,
+      Boolean isExternalUrl,
+      String targetUrl,
+      BannerType bannerType,
+      Integer sortOrder,
+      LocalDateTime startDate,
+      LocalDateTime endDate,
+      Boolean isActive) {
+    this.name = name;
+    this.nameFontColor = nameFontColor;
+    this.descriptionA = descriptionA;
+    this.descriptionB = descriptionB;
+    this.descriptionFontColor = descriptionFontColor;
+    this.imageUrl = imageUrl;
+    this.textPosition = textPosition;
+    this.isExternalUrl = isExternalUrl;
+    this.targetUrl = targetUrl;
+    this.bannerType = bannerType;
+    this.sortOrder = sortOrder;
+    this.startDate = startDate;
+    this.endDate = endDate;
+    this.isActive = isActive;
+  }
+
+  public void updateStatus(Boolean isActive) {
+    this.isActive = isActive;
+  }
+
+  public void updateSortOrder(Integer sortOrder) {
+    this.sortOrder = sortOrder;
+  }
 }
