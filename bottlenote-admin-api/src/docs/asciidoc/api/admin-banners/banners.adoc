@@ -3,6 +3,9 @@
 - 배너 목록을 페이지네이션으로 조회합니다.
 - 키워드, 활성화 상태, 배너 유형으로 필터링이 가능합니다.
 
+include::../common/enums/banner-type.adoc[]
+include::../common/enums/text-position.adoc[]
+
 [source]
 ----
 GET /admin/api/v1/banners

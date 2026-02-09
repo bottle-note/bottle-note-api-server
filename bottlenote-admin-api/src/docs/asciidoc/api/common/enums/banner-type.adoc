@@ -1,0 +1,12 @@
+[discrete]
+==== BannerType (배너 유형) ====
+
+[cols="2,3", options="header"]
+|===
+|값 |설명
+|`CURATION` |큐레이션
+|`AD` |광고
+|`SURVEY` |설문지
+|`PARTNERSHIP` |제휴
+|`ETC` |기타
+|===
