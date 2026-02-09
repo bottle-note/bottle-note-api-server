@@ -4,9 +4,8 @@ import app.bottlenote.user.constant.AdminRole;
 import app.bottlenote.user.constant.UserStatus;
 import app.bottlenote.user.domain.AdminUser;
 import jakarta.persistence.EntityManager;
-import java.security.SecureRandom;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,14 +18,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class AdminUserTestFactory {
 
-  private final Random random = new SecureRandom();
+  private static final AtomicInteger counter = new AtomicInteger(0);
 
   @Autowired private EntityManager em;
 
   @Autowired private BCryptPasswordEncoder passwordEncoder;
 
   private String generateRandomSuffix() {
-    return String.valueOf(random.nextInt(10000));
+    return String.valueOf(counter.incrementAndGet());
   }
 
   /** 기본 ROOT_ADMIN 생성 */

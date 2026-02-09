@@ -8,7 +8,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
 public class LikesTestFactory {
 
   @PersistenceContext private EntityManager em;
-  private final Random random = new Random();
+  private static final AtomicInteger counter = new AtomicInteger(0);
 
   /** 기본 Likes 생성 (reviewId, userId 지정) */
   @Transactional
@@ -98,7 +98,7 @@ public class LikesTestFactory {
   }
 
   private String generateRandomSuffix() {
-    return String.valueOf(random.nextInt(10000));
+    return String.valueOf(counter.incrementAndGet());
   }
 
   private Likes.LikesBuilder fillMissingLikesFields(Likes tempLikes, Likes.LikesBuilder builder) {

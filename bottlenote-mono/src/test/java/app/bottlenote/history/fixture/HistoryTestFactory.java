@@ -9,7 +9,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
 public class HistoryTestFactory {
 
   @PersistenceContext private EntityManager em;
-  private final Random random = new Random();
+  private static final AtomicInteger counter = new AtomicInteger(0);
 
   /** 기본 UserHistory 생성 (userId, eventType 지정) */
   @Transactional
@@ -187,7 +187,7 @@ public class HistoryTestFactory {
   }
 
   private String generateRandomSuffix() {
-    return String.valueOf(random.nextInt(10000));
+    return String.valueOf(counter.incrementAndGet());
   }
 
   private UserHistory.UserHistoryBuilder fillMissingHistoryFields(
