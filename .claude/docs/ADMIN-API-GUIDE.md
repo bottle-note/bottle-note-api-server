@@ -27,12 +27,15 @@ admin-api (Kotlin) → mono (Java)
 
 | 순서 | 작업 | 모듈 | 위치 |
 |------|------|------|------|
-| 1 | Request/Response DTO | mono | `{domain}/dto/request/`, `{domain}/dto/response/` |
-| 2 | ExceptionCode 추가 | mono | `{domain}/exception/{Domain}ExceptionCode.java` |
-| 3 | ResultCode 추가 | mono | `global/dto/response/AdminResultResponse.java` |
-| 4 | Repository 확장 (필요 시) | mono | `{domain}/repository/` |
-| 5 | Service 작성 | mono | `{domain}/service/Admin{Domain}Service.java` |
-| 6 | Controller 작성 | admin-api | `{domain}/presentation/Admin{Domain}Controller.kt` |
+| 1 | 엔티티 수정 메서드 추가 (필요 시) | mono | `{domain}/domain/{Domain}.java` |
+| 2 | Repository 확장 (필요 시) | mono | `{domain}/repository/` |
+| 3 | Request/Response DTO | mono | `{domain}/dto/request/`, `{domain}/dto/response/` |
+| 4 | ExceptionCode + Exception 추가 | mono | `{domain}/exception/{Domain}ExceptionCode.java`, `{Domain}Exception.java` |
+| 5 | ResultCode 추가 | mono | `global/dto/response/AdminResultResponse.java` |
+| 6 | Service 작성 | mono | `{domain}/service/Admin{Domain}Service.java` |
+| 7 | Controller 작성 | admin-api | `{domain}/presentation/Admin{Domain}Controller.kt` |
+
+> [주의] Repository 인터페이스에 메서드를 추가하면 `InMemory{Domain}Repository` 테스트 픽스처도 반드시 동기화해야 한다.
 
 ### Phase 2: 테스트
 
@@ -46,7 +49,12 @@ admin-api (Kotlin) → mono (Java)
 | 순서 | 작업 | 위치 |
 |------|------|------|
 | 1 | RestDocs Test | `app/docs/{domain}/Admin{Domain}ControllerDocsTest.kt` |
-| 2 | AsciiDoc | `src/docs/asciidoc/api/{domain}/` |
+| 2 | Enum adoc 생성 | `src/docs/asciidoc/api/common/enums/{enum-name}.adoc` |
+| 3 | Domain adoc 생성 | `src/docs/asciidoc/api/admin-{domain}/{domain}.adoc` |
+| 4 | 메인 문서에 include 추가 | `src/docs/asciidoc/admin-api.adoc` |
+| 5 | asciidoctor 빌드 검증 | `./gradlew :bottlenote-admin-api:asciidoctor` |
+
+> Domain adoc에서 enum adoc을 include할 때 상대 경로 사용: `include::../common/enums/{enum-name}.adoc[]`
 
 ---
 
@@ -57,7 +65,7 @@ admin-api (Kotlin) → mono (Java)
 | 규칙 | 설명 |
 |------|------|
 | **DTO-Entity 분리** | Response DTO는 Entity를 직접 참조하면 안 됨 (아키텍처 규칙 위반) |
-| **팩토리 메서드** | `from(Entity)` 금지 → `of(...)` 사용, 변환 로직은 Service에서 처리 |
+| **변환 로직** | `from(Entity)` 금지 → Service에서 직접 생성자 호출 또는 `of(...)` 팩토리 사용 |
 | **record 사용** | Java record로 작성, `@Builder` 생성자에서 기본값 설정 |
 | **Validation** | `@NotBlank`, `@NotNull` 등 Bean Validation 사용 |
 
@@ -66,7 +74,7 @@ admin-api (Kotlin) → mono (Java)
 | 규칙 | 설명 |
 |------|------|
 | **목록 조회 반환** | `Page<T>` 직접 반환 금지 → `GlobalResponse.fromPage()` 사용 |
-| **상세 조회 반환** | Response DTO 반환, `of()` 팩토리로 변환 |
+| **상세 조회 반환** | Response DTO 반환, Service에서 변환 (직접 생성자 또는 `of()`) |
 | **CUD 반환** | `AdminResultResponse.of(ResultCode, targetId)` 통일 |
 | **트랜잭션** | 조회는 `@Transactional(readOnly = true)`, CUD는 `@Transactional` |
 
@@ -104,6 +112,20 @@ admin-api (Kotlin) → mono (Java)
 
 ---
 
+## 예외 계층 구조
+
+```
+RuntimeException
+  → AbstractCustomException (ExceptionCode 보유)
+    → {Domain}Exception ({Domain}ExceptionCode)
+```
+
+- `{Domain}ExceptionCode`: `ExceptionCode` 인터페이스 구현 (`getMessage()`, `getHttpStatus()`)
+- `{Domain}Exception`: `AbstractCustomException` 상속, 생성자에서 `ExceptionCode` 전달
+- 참고: `AlcoholExceptionCode.java`, `BannerExceptionCode.java`
+
+---
+
 ## 테스트 규칙
 
 ### Integration Test
@@ -138,6 +160,8 @@ admin-api (Kotlin) → mono (Java)
 
 ## 참고 구현 파일
 
+### Curation (큐레이션) - 하위 리소스 관리 포함
+
 | 항목 | 파일 경로 |
 |------|----------|
 | Controller | `admin-api/.../alcohols/presentation/AdminCurationController.kt` |
@@ -147,6 +171,22 @@ admin-api (Kotlin) → mono (Java)
 | Integration Test | `admin-api/.../integration/curation/AdminCurationIntegrationTest.kt` |
 | RestDocs Test | `admin-api/.../docs/curation/AdminCurationControllerDocsTest.kt` |
 | Helper | `admin-api/.../helper/curation/CurationHelper.kt` |
+
+### Banner (배너) - QueryDSL 검색, 비즈니스 검증, sortOrder 리오더링 포함
+
+| 항목 | 파일 경로 |
+|------|----------|
+| Controller | `admin-api/.../banner/presentation/AdminBannerController.kt` |
+| Service | `mono/.../banner/service/AdminBannerService.java` |
+| Response DTO | `mono/.../banner/dto/response/AdminBanner*Response.java` |
+| Request DTO | `mono/.../banner/dto/request/AdminBanner*Request.java` |
+| Exception | `mono/.../banner/exception/BannerException.java`, `BannerExceptionCode.java` |
+| QueryDSL | `mono/.../banner/repository/CustomBannerRepository*.java` |
+| Integration Test | `admin-api/.../integration/banner/AdminBannerIntegrationTest.kt` |
+| RestDocs Test | `admin-api/.../docs/banner/AdminBannerControllerDocsTest.kt` |
+| Helper | `admin-api/.../helper/banner/BannerHelper.kt` |
+| AsciiDoc | `admin-api/src/docs/asciidoc/api/admin-banners/banners.adoc` |
+| Enum adoc | `admin-api/src/docs/asciidoc/api/common/enums/banner-type.adoc`, `text-position.adoc` |
 
 ---
 
@@ -158,12 +198,15 @@ Admin API 구현 완료 후 아래 순서대로 검증:
 |------|----------|--------|-----------|
 | 1 | 컴파일 | `./gradlew :bottlenote-admin-api:compileKotlin` | - |
 | 2 | 코드 포맷팅 | `./gradlew :bottlenote-mono:spotlessCheck` | mono만 적용 |
-| 3 | 아키텍처 규칙 | `./gradlew :bottlenote-mono:check_rule_test` | `@Tag("rule")` |
+| 3 | 아키텍처 규칙 | `./gradlew check_rule_test` | `@Tag("rule")` |
 | 4 | 단위 테스트 | `./gradlew unit_test` | `@Tag("unit")` |
-| 5 | 어드민 통합 테스트 | `./gradlew admin_integration_test` | `@Tag("admin_integration")` |
-| 6 | REST Docs 생성 | `./gradlew :bottlenote-admin-api:restDocsTest` | `app.docs.*` |
+| 5 | Product 통합 테스트 | `./gradlew integration_test` | `@Tag("integration")` |
+| 6 | Admin 통합 테스트 | `./gradlew admin_integration_test` | `@Tag("admin_integration")` |
+| 7 | REST Docs 빌드 | `./gradlew :bottlenote-admin-api:asciidoctor` | 문서화 시 |
 
-**전체 검증 (위 1-5 포함):**
+> CI 파이프라인은 3~6번을 병렬 실행한다. mono 모듈 변경이 product-api에 영향을 줄 수 있으므로 `integration_test`도 반드시 확인해야 한다.
+
+**전체 검증 (위 1-6 포함):**
 ```bash
 ./gradlew :bottlenote-admin-api:build
 ```
