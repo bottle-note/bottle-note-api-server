@@ -1,4 +1,4 @@
-name: Version Check & Release PR
+name: Version Tag Sync
 
 on:
   push:
@@ -48,6 +48,21 @@ jobs:
           else
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "${{ matrix.module }} VERSION not changed, skipping"
+          fi
+
+      - name: Create git tag
+        if: steps.version-change.outputs.changed == 'true'
+        run: |
+          VERSION="${{ steps.version-change.outputs.version }}"
+          MODULE="${{ matrix.module }}"
+          TAG_NAME="${MODULE}/v${VERSION}"
+
+          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Tag $TAG_NAME already exists, skipping"
+          else
+            git tag -a "$TAG_NAME" -m "Release ${MODULE} v${VERSION}"
+            git push origin "$TAG_NAME"
+            echo "Created and pushed tag: $TAG_NAME"
           fi
 
       - name: Check existing PR
