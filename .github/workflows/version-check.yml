@@ -134,7 +134,7 @@ jobs:
         id: existing-version
         run: |
           PR_TITLE="${{ steps.existing-pr.outputs.pr_title }}"
-          EXISTING_VERSION=$(echo "$PR_TITLE" | grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+' || echo "0.0.0")
+          EXISTING_VERSION=$(echo "$PR_TITLE" | grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?' || echo "0.0.0")
           echo "version=$EXISTING_VERSION" >> "$GITHUB_OUTPUT"
           echo "Existing PR version: $EXISTING_VERSION"
 
@@ -146,7 +146,7 @@ jobs:
           OLD_VERSION="${{ steps.existing-version.outputs.version }}"
 
           version_to_int() {
-            echo "$1" | awk -F. '{ printf("%d%03d%03d", $1, $2, $3) }'
+            echo "$1" | awk -F'[-.]' '{ printf("%d%03d%03d%03d", $1, $2, $3, (NF>=4 ? $4 : 0)) }'
           }
 
           NEW_INT=$(version_to_int "$NEW_VERSION")
