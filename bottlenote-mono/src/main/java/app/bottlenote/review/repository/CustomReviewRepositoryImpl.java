@@ -2,7 +2,6 @@ package app.bottlenote.review.repository;
 
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.like.domain.QLikes.likes;
-import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.constant.ReviewActiveStatus.ACTIVE;
 import static app.bottlenote.review.constant.ReviewDisplayStatus.PUBLIC;
 import static app.bottlenote.review.domain.QReview.review;
@@ -70,7 +69,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 
         // 가격 및 평점 정보
         review.price,
-        rating.ratingPoint.rating,
+        review.reviewRating,
 
         // 좋아요 및 댓글 정보
         likes.countDistinct(),
@@ -94,8 +93,6 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
         .on(review.id.eq(likes.reviewId).and(likes.status.eq(LikeStatus.LIKE)))
         .leftJoin(alcohol)
         .on(alcohol.id.eq(review.alcoholId))
-        .leftJoin(rating)
-        .on(rating.id.alcoholId.eq(review.alcoholId).and(rating.id.userId.eq(review.userId)))
         .leftJoin(reviewImage)
         .on(review.id.eq(reviewImage.review.id))
         .leftJoin(reviewReply)
@@ -123,8 +120,6 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
             .on(review.id.eq(likes.reviewId).and(likes.status.eq(LikeStatus.LIKE)))
             .leftJoin(alcohol)
             .on(alcohol.id.eq(review.alcoholId))
-            .leftJoin(rating)
-            .on(rating.id.alcoholId.eq(review.alcoholId).and(rating.id.userId.eq(review.userId)))
             .leftJoin(reviewReply)
             .on(review.id.eq(reviewReply.reviewId))
             .leftJoin(reviewImage)
@@ -181,8 +176,6 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
             .on(review.userId.eq(user.id))
             .leftJoin(likes)
             .on(review.id.eq(likes.reviewId).and(likes.status.eq(LikeStatus.LIKE)))
-            .leftJoin(rating)
-            .on(rating.id.alcoholId.eq(review.alcoholId).and(rating.id.userId.eq(review.userId)))
             .leftJoin(reviewReply)
             .on(review.id.eq(reviewReply.reviewId))
             .leftJoin(reviewImage)
@@ -264,8 +257,6 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
             .on(alcohol.id.eq(review.alcoholId))
             .leftJoin(likes)
             .on(review.id.eq(likes.reviewId).and(likes.status.eq(LikeStatus.LIKE)))
-            .leftJoin(rating)
-            .on(rating.id.alcoholId.eq(review.alcoholId).and(rating.id.userId.eq(review.userId)))
             .leftJoin(reviewImage)
             .on(review.id.eq(reviewImage.review.id))
             .leftJoin(reviewReply)
@@ -346,8 +337,6 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
             .on(alcohol.id.eq(review.alcoholId))
             .leftJoin(likes)
             .on(review.id.eq(likes.reviewId).and(likes.status.eq(LikeStatus.LIKE)))
-            .leftJoin(rating)
-            .on(rating.id.alcoholId.eq(review.alcoholId).and(rating.id.userId.eq(review.userId)))
             .leftJoin(reviewImage)
             .on(review.id.eq(reviewImage.review.id))
             .leftJoin(reviewReply)
