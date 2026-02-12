@@ -1,0 +1,77 @@
+### 배너 목록 조회
+GET {{host}}/banners?cursor=0&pageSize=10
+Authorization: Bearer {{accessToken}}
+
+### 배너 상세 조회
+@bannerId = 1
+GET {{host}}/banners/{{bannerId}}
+Authorization: Bearer {{accessToken}}
+
+### 배너 생성
+POST {{host}}/banners
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+    "name": "새 배너",
+    "nameFontColor": "#ffffff",
+    "descriptionA": "배너 설명A",
+    "descriptionB": "배너 설명B",
+    "descriptionFontColor": "#ffffff",
+    "imageUrl": "https://example.com/banner.jpg",
+    "textPosition": "RT",
+    "isExternalUrl": false,
+    "targetUrl": "https://www.instagram.com/bottle_note_official",
+    "bannerType": "CURATION",
+    "sortOrder": 0,
+    "startDate": "2026-02-11T00:00:00",
+    "endDate": "2026-02-12T00:00:00"
+}
+
+### 배너 수정
+@bannerId = 1
+PUT {{host}}/banners/{{bannerId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+    "name": "수정된 배너",
+    "nameFontColor": "#000000",
+    "descriptionA": "수정된 설명A",
+    "descriptionB": "수정된 설명B",
+    "descriptionFontColor": "#000000",
+    "imageUrl": "https://example.com/banner-updated.jpg",
+    "textPosition": "RT",
+    "isExternalUrl": false,
+    "targetUrl": "https://www.instagram.com/bottle_note_official",
+    "bannerType": "CURATION",
+    "sortOrder": 1,
+    "startDate": "2026-02-11T00:00:00",
+    "endDate": "2026-02-28T00:00:00",
+    "isActive": true
+}
+
+### 배너 삭제
+@bannerId = 1
+DELETE {{host}}/banners/{{bannerId}}
+Authorization: Bearer {{accessToken}}
+
+### 배너 활성화 상태 변경
+@bannerId = 1
+PATCH {{host}}/banners/{{bannerId}}/status
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+    "isActive": true
+}
+
+### 배너 정렬 순서 변경
+@bannerId = 1
+PATCH {{host}}/banners/{{bannerId}}/sort-order
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+    "sortOrder": 0
+}
