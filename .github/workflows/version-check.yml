@@ -1,11 +1,13 @@
-name: Version Check & Release PR
+name: Version Tag Sync
 
 on:
   push:
     branches: [main]
+    paths:
+      - '**/VERSION'
 
 concurrency:
-  group: version-check
+  group: version-tag-sync
   cancel-in-progress: true
 
 permissions:
@@ -13,7 +15,57 @@ permissions:
   pull-requests: write
 
 jobs:
-  check-and-create-pr:
+  create-tag:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - module: product
+            version_file: bottlenote-product-api/VERSION
+          - module: admin
+            version_file: bottlenote-admin-api/VERSION
+          - module: batch
+            version_file: bottlenote-batch/VERSION
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check VERSION file changed
+        id: version-change
+        run: |
+          if git diff --name-only HEAD~1 HEAD | grep -q "${{ matrix.version_file }}"; then
+            VERSION=$(cat "${{ matrix.version_file }}" | tr -d '[:space:]')
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+            echo "${{ matrix.module }} VERSION changed: $VERSION"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "${{ matrix.module }} VERSION not changed, skipping"
+          fi
+
+      - name: Create and push tag
+        if: steps.version-change.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          VERSION="${{ steps.version-change.outputs.version }}"
+          MODULE="${{ matrix.module }}"
+          TAG_NAME="${MODULE}/v${VERSION}"
+
+          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Tag $TAG_NAME already exists, skipping"
+          else
+            git tag -a "$TAG_NAME" -m "Release ${MODULE} v${VERSION}"
+            git push origin "$TAG_NAME"
+            echo "Created and pushed tag: $TAG_NAME"
+          fi
+
+  create-release-pr:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -82,7 +134,7 @@ jobs:
         id: existing-version
         run: |
           PR_TITLE="${{ steps.existing-pr.outputs.pr_title }}"
-          EXISTING_VERSION=$(echo "$PR_TITLE" | grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+' || echo "0.0.0")
+          EXISTING_VERSION=$(echo "$PR_TITLE" | grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?' || echo "0.0.0")
           echo "version=$EXISTING_VERSION" >> "$GITHUB_OUTPUT"
           echo "Existing PR version: $EXISTING_VERSION"
 
@@ -94,7 +146,7 @@ jobs:
           OLD_VERSION="${{ steps.existing-version.outputs.version }}"
 
           version_to_int() {
-            echo "$1" | awk -F. '{ printf("%d%03d%03d", $1, $2, $3) }'
+            echo "$1" | awk -F'[-.]' '{ printf("%d%03d%03d%03d", $1, $2, $3, (NF>=4 ? $4 : 0)) }'
           }
 
           NEW_INT=$(version_to_int "$NEW_VERSION")
@@ -142,7 +194,7 @@ jobs:
           - **Auto-generated release PR**
 
           ---
-          This PR was automatically created by version-check workflow.
+          This PR was automatically created by version-tag-sync workflow.
           EOF
           )
 
@@ -173,7 +225,7 @@ jobs:
           - **Auto-generated release PR**
 
           ---
-          This PR was automatically created by version-check workflow.
+          This PR was automatically created by version-tag-sync workflow.
           EOF
           )
 

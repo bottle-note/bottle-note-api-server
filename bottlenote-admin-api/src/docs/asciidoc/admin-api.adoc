@@ -67,3 +67,9 @@ include::api/admin-reference/reference.adoc[]
 == Curation API
 
 include::api/admin-curations/curations.adoc[]
+
+'''
+
+== Banner API
+
+include::api/admin-banners/banners.adoc[]

@@ -80,7 +80,17 @@ public enum ValidExceptionCode implements ExceptionCode {
   // HELP
   HELP_TITLE_REQUIRED(HttpStatus.BAD_REQUEST, "문의글 제목은 필수입니다."),
   HELP_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, "문의글 내용은 필수입니다."),
-  REQUIRED_HELP_TYPE(HttpStatus.BAD_REQUEST, "문의 유형은 필수입니다.(WHISKEY, REVIEW, USER, ETC)");
+  REQUIRED_HELP_TYPE(HttpStatus.BAD_REQUEST, "문의 유형은 필수입니다.(WHISKEY, REVIEW, USER, ETC)"),
+
+  // BANNER
+  BANNER_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "배너명은 필수입니다."),
+  INVALID_HEX_COLOR_FORMAT(HttpStatus.BAD_REQUEST, "HEX 색상 형식이 올바르지 않습니다."),
+  BANNER_DESCRIPTION_MAX_SIZE(HttpStatus.BAD_REQUEST, "배너 설명은 최대 50자까지 가능합니다."),
+  BANNER_IMAGE_URL_REQUIRED(HttpStatus.BAD_REQUEST, "이미지 URL은 필수입니다."),
+  BANNER_TYPE_REQUIRED(HttpStatus.BAD_REQUEST, "배너 유형은 필수입니다."),
+  BANNER_SORT_ORDER_REQUIRED(HttpStatus.BAD_REQUEST, "정렬 순서는 필수입니다."),
+  BANNER_SORT_ORDER_MINIMUM(HttpStatus.BAD_REQUEST, "정렬 순서는 0 이상이어야 합니다."),
+  BANNER_IS_ACTIVE_REQUIRED(HttpStatus.BAD_REQUEST, "활성화 상태는 필수입니다.");
 
   private final HttpStatus httpStatus;
   private String message;

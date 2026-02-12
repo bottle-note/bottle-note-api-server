@@ -4,9 +4,8 @@ import app.bottlenote.alcohols.domain.Distillery;
 import app.bottlenote.alcohols.domain.Region;
 import app.bottlenote.alcohols.domain.TastingTag;
 import jakarta.persistence.EntityManager;
-import java.security.SecureRandom;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class AlcoholMetadataTestFactory {
 
-  private final Random random = new SecureRandom();
+  private static final AtomicInteger counter = new AtomicInteger(0);
 
   @Autowired private EntityManager em;
 
@@ -104,6 +103,6 @@ public class AlcoholMetadataTestFactory {
   }
 
   private String generateRandomSuffix() {
-    return String.valueOf(random.nextInt(10000));
+    return String.valueOf(counter.incrementAndGet());
   }
 }

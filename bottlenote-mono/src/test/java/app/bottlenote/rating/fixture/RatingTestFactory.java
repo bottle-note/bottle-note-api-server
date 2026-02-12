@@ -6,7 +6,7 @@ import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.user.domain.User;
 import jakarta.persistence.EntityManager;
-import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class RatingTestFactory {
 
-  private final Random random = new Random();
+  private static final AtomicInteger counter = new AtomicInteger(0);
 
   @Autowired private EntityManager em;
 
@@ -79,7 +79,7 @@ public class RatingTestFactory {
 
   /** 랜덤 접미사 생성 헬퍼 메서드 */
   private String generateRandomSuffix() {
-    return String.valueOf(random.nextInt(10000));
+    return String.valueOf(counter.incrementAndGet());
   }
 
   /** Rating 빌더의 누락 필드 채우기 */
