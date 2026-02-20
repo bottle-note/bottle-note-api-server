@@ -113,6 +113,7 @@ class AdminAlcoholsControllerDocsTest {
 						fieldWithPath("data[].imageUrl").type(JsonFieldType.STRING).description("술 이미지 URL"),
 						fieldWithPath("data[].createdAt").type(JsonFieldType.STRING).description("생성일시"),
 						fieldWithPath("data[].modifiedAt").type(JsonFieldType.STRING).description("수정일시"),
+						fieldWithPath("data[].deletedAt").type(JsonFieldType.STRING).description("삭제일시").optional(),
 						fieldWithPath("errors").type(JsonFieldType.ARRAY).description("에러 목록"),
 						fieldWithPath("meta").type(JsonFieldType.OBJECT).description("메타 정보"),
 						fieldWithPath("meta.page").type(JsonFieldType.NUMBER).description("현재 페이지 번호"),

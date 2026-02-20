@@ -145,6 +145,7 @@ class AdminCurationControllerDocsTest {
                             fieldWithPath("data.alcohols[].imageUrl").type(JsonFieldType.STRING).description("이미지 URL"),
                             fieldWithPath("data.alcohols[].createdAt").type(JsonFieldType.STRING).description("생성일시"),
                             fieldWithPath("data.alcohols[].modifiedAt").type(JsonFieldType.STRING).description("수정일시"),
+                            fieldWithPath("data.alcohols[].deletedAt").type(JsonFieldType.STRING).description("삭제일시").optional(),
                             fieldWithPath("data.createdAt").type(JsonFieldType.STRING).description("생성일시"),
                             fieldWithPath("data.modifiedAt").type(JsonFieldType.STRING).description("수정일시"),
                             fieldWithPath("errors").type(JsonFieldType.ARRAY).description("에러 목록"),
