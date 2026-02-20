@@ -1,11 +1,15 @@
 package app.bottlenote.operation.utils;
 
+import app.bottlenote.common.profanity.ProfanityClient;
+import app.bottlenote.common.profanity.dto.response.ProfanityResponse;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.redis.testcontainers.RedisContainer;
+import java.util.Collections;
+import java.util.UUID;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
@@ -90,5 +94,38 @@ public class TestContainersConfig {
 
   public static String getTestBucket() {
     return TEST_BUCKET;
+  }
+
+  // 외부 비속어 필터 API 대신 Fake 구현체 사용
+  @Bean
+  @Primary
+  ProfanityClient fakeProfanityClient() {
+    return new ProfanityClient() {
+      @Override
+      public ProfanityResponse requestVerificationProfanity(String text) {
+        return ProfanityResponse.builder()
+            .trackingId(UUID.randomUUID().toString())
+            .status(new ProfanityResponse.Status(200, "OK", "Fake", null))
+            .detected(Collections.emptyList())
+            .filtered(text)
+            .elapsed("0.0")
+            .build();
+      }
+
+      @Override
+      public String getFilteredText(String text) {
+        return text == null ? "" : text;
+      }
+
+      @Override
+      public String filter(String content) {
+        return content == null || content.isBlank() ? "" : content;
+      }
+
+      @Override
+      public void validateProfanity(String text) {
+        // 테스트 환경에서는 비속어 검증 생략
+      }
+    };
   }
 }
