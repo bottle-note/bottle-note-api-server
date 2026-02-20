@@ -12,7 +12,8 @@ import lombok.Builder;
 
 public record AdminBannerCreateRequest(
     @NotBlank(message = "BANNER_NAME_REQUIRED") String name,
-    @Pattern(regexp = "^#[0-9a-fA-F]{6}$", message = "INVALID_HEX_COLOR_FORMAT") String nameFontColor,
+    @Pattern(regexp = "^#[0-9a-fA-F]{6}$", message = "INVALID_HEX_COLOR_FORMAT")
+        String nameFontColor,
     @Size(max = 50, message = "BANNER_DESCRIPTION_MAX_SIZE") String descriptionA,
     @Size(max = 50, message = "BANNER_DESCRIPTION_MAX_SIZE") String descriptionB,
     @Pattern(regexp = "^#[0-9a-fA-F]{6}$", message = "INVALID_HEX_COLOR_FORMAT")
