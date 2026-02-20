@@ -130,7 +130,7 @@ class AdminTastingTagControllerDocsTest {
 			val alcoholItem = AdminAlcoholItem(
 				1L, "글렌피딕 12년", "Glenfiddich 12", "싱글몰트", "Single Malt",
 				"https://example.com/image.jpg",
-				LocalDateTime.of(2024, 1, 1, 0, 0), LocalDateTime.of(2024, 6, 1, 0, 0)
+				LocalDateTime.of(2024, 1, 1, 0, 0), LocalDateTime.of(2024, 6, 1, 0, 0), null
 			)
 
 			val response = AdminTastingTagDetailResponse.of(tagNode, listOf(alcoholItem))

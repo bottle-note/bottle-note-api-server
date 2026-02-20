@@ -10,4 +10,5 @@ public record AdminAlcoholItem(
     String engCategoryName,
     String imageUrl,
     LocalDateTime createdAt,
-    LocalDateTime modifiedAt) {}
+    LocalDateTime modifiedAt,
+    LocalDateTime deletedAt) {}

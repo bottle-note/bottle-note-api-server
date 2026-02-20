@@ -25,9 +25,10 @@ object AlcoholsHelper {
 		engCategoryName: String = "Single Malt",
 		imageUrl: String = "https://example.com/image.jpg",
 		createdAt: LocalDateTime = LocalDateTime.of(2024, 1, 1, 0, 0),
-		modifiedAt: LocalDateTime = LocalDateTime.of(2024, 6, 1, 0, 0)
+		modifiedAt: LocalDateTime = LocalDateTime.of(2024, 6, 1, 0, 0),
+		deletedAt: LocalDateTime? = null
 	): AdminAlcoholItem = AdminAlcoholItem(
-		id, korName, engName, korCategoryName, engCategoryName, imageUrl, createdAt, modifiedAt
+		id, korName, engName, korCategoryName, engCategoryName, imageUrl, createdAt, modifiedAt, deletedAt
 	)
 
 	fun createAdminAlcoholItems(count: Int = 2): List<AdminAlcoholItem> =
