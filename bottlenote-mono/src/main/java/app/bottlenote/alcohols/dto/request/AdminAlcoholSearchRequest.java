@@ -13,6 +13,7 @@ import lombok.Builder;
  * @param sortOrder 정렬 방향
  * @param page 페이지 번호 (0부터)
  * @param size 페이지 크기
+ * @param includeDeleted 삭제 데이터 포함 여부 (기본값: false)
  */
 public record AdminAlcoholSearchRequest(
     String keyword,
@@ -21,12 +22,14 @@ public record AdminAlcoholSearchRequest(
     AdminAlcoholSortType sortType,
     SortOrder sortOrder,
     Integer page,
-    Integer size) {
+    Integer size,
+    Boolean includeDeleted) {
   @Builder
   public AdminAlcoholSearchRequest {
     sortType = sortType != null ? sortType : AdminAlcoholSortType.KOR_NAME;
     sortOrder = sortOrder != null ? sortOrder : SortOrder.ASC;
     page = page != null ? page : 0;
     size = size != null ? size : 20;
+    includeDeleted = includeDeleted != null ? includeDeleted : Boolean.FALSE;
   }
 }

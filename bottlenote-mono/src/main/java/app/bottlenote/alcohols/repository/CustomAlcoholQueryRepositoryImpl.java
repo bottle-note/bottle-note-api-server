@@ -320,12 +320,14 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                     alcohol.engCategory,
                     alcohol.imageUrl,
                     alcohol.createAt,
-                    alcohol.lastModifyAt))
+                    alcohol.lastModifyAt,
+                    alcohol.deletedAt))
             .from(alcohol)
             .where(
                 supporter.keywordMatch(request.keyword()),
                 supporter.eqCategory(request.category()),
-                supporter.eqRegion(request.regionId()))
+                supporter.eqRegion(request.regionId()),
+                Boolean.TRUE.equals(request.includeDeleted()) ? null : supporter.isNotDeleted())
             .orderBy(supporter.sortByAdmin(request.sortType(), request.sortOrder()))
             .offset((long) request.page() * request.size())
             .limit(request.size())
@@ -338,7 +340,8 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
             .where(
                 supporter.keywordMatch(request.keyword()),
                 supporter.eqCategory(request.category()),
-                supporter.eqRegion(request.regionId()))
+                supporter.eqRegion(request.regionId()),
+                Boolean.TRUE.equals(request.includeDeleted()) ? null : supporter.isNotDeleted())
             .fetchOne();
 
     return new PageImpl<>(

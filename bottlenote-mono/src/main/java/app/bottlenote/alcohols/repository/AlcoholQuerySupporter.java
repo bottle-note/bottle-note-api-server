@@ -178,6 +178,11 @@ public class AlcoholQuerySupporter {
     return Expressions.numberTemplate(Double.class, "function('rand')").asc();
   }
 
+  /** 삭제되지 않은 데이터 필터 조건 */
+  public BooleanExpression isNotDeleted() {
+    return alcohol.deletedAt.isNull();
+  }
+
   /** 이름 포함 여부 조건 생성 */
   public BooleanExpression eqName(String name) {
     if (StringUtils.isNullOrEmpty(name)) return null;
