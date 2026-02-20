@@ -165,6 +165,46 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 	}
 
 	@Nested
+	@DisplayName("삭제 데이터 필터링")
+	inner class DeletedAlcoholFiltering {
+
+		@Test
+		@DisplayName("기본 조회 시 삭제된 위스키는 제외된다")
+		fun excludeDeletedByDefault() {
+			// given
+			alcoholTestFactory.persistAlcohols(3)
+			alcoholTestFactory.persistDeletedAlcohol()
+
+			// when & then
+			assertThat(
+				mockMvcTester.get().uri("/alcohols")
+					.header("Authorization", "Bearer $accessToken")
+			)
+				.hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.length()").isEqualTo(3)
+		}
+
+		@Test
+		@DisplayName("includeDeleted=true 시 삭제된 위스키도 포함된다")
+		fun includeDeletedWhenFlagIsTrue() {
+			// given
+			alcoholTestFactory.persistAlcohols(3)
+			alcoholTestFactory.persistDeletedAlcohol()
+
+			// when & then
+			assertThat(
+				mockMvcTester.get().uri("/alcohols")
+					.header("Authorization", "Bearer $accessToken")
+					.param("includeDeleted", "true")
+			)
+				.hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.length()").isEqualTo(4)
+		}
+	}
+
+	@Nested
 	@DisplayName("카테고리 레퍼런스 조회 API")
 	inner class GetCategoryReference {
 

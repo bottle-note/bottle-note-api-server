@@ -225,6 +225,16 @@ public class AlcoholTestFactory {
     return alcohol;
   }
 
+  /** 삭제된 Alcohol 생성 (Soft Delete) - 연관 엔티티 자동 생성 */
+  @Transactional
+  @NotNull
+  public Alcohol persistDeletedAlcohol() {
+    Alcohol alcohol = persistAlcohol();
+    alcohol.delete();
+    em.flush();
+    return alcohol;
+  }
+
   /** 특정 카테고리로 Alcohol 생성 - 연관 엔티티 자동 생성 */
   @Transactional
   @NotNull
