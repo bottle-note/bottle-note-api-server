@@ -204,7 +204,7 @@ class AdminAlcoholsControllerDocsTest {
 			code = AdminResultResponse.ResultCode.ALCOHOL_CREATED,
 			targetId = 1L
 		)
-		val request = AlcoholsHelper.createAlcoholUpsertRequestMap()
+		val request = AlcoholsHelper.createAlcoholUpsertRequestMap(tastingTagIds = listOf(1L, 2L))
 
 		given(adminAlcoholCommandService.createAlcohol(any(AdminAlcoholUpsertRequest::class.java)))
 			.willReturn(response)
@@ -235,7 +235,8 @@ class AdminAlcoholsControllerDocsTest {
 						fieldWithPath("cask").type(JsonFieldType.STRING).description("캐스크 타입"),
 						fieldWithPath("imageUrl").type(JsonFieldType.STRING).description("이미지 URL"),
 						fieldWithPath("description").type(JsonFieldType.STRING).description("설명"),
-						fieldWithPath("volume").type(JsonFieldType.STRING).description("용량")
+						fieldWithPath("volume").type(JsonFieldType.STRING).description("용량"),
+						fieldWithPath("tastingTagIds").type(JsonFieldType.ARRAY).optional().description("테이스팅 태그 ID 목록")
 					),
 					responseFields(
 						fieldWithPath("success").type(JsonFieldType.BOOLEAN).description("응답 성공 여부"),
@@ -266,7 +267,8 @@ class AdminAlcoholsControllerDocsTest {
 		)
 		val request = AlcoholsHelper.createAlcoholUpsertRequestMap(
 			korName = "수정된 위스키",
-			engName = "Updated Whisky"
+			engName = "Updated Whisky",
+			tastingTagIds = listOf(1L, 2L)
 		)
 
 		given(adminAlcoholCommandService.updateAlcohol(anyLong(), any(AdminAlcoholUpsertRequest::class.java)))
@@ -301,7 +303,8 @@ class AdminAlcoholsControllerDocsTest {
 						fieldWithPath("cask").type(JsonFieldType.STRING).description("캐스크 타입"),
 						fieldWithPath("imageUrl").type(JsonFieldType.STRING).description("이미지 URL"),
 						fieldWithPath("description").type(JsonFieldType.STRING).description("설명"),
-						fieldWithPath("volume").type(JsonFieldType.STRING).description("용량")
+						fieldWithPath("volume").type(JsonFieldType.STRING).description("용량"),
+						fieldWithPath("tastingTagIds").type(JsonFieldType.ARRAY).optional().description("테이스팅 태그 ID 목록")
 					),
 					responseFields(
 						fieldWithPath("success").type(JsonFieldType.BOOLEAN).description("응답 성공 여부"),

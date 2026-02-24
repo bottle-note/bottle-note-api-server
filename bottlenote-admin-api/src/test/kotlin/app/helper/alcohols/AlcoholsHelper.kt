@@ -191,21 +191,23 @@ object AlcoholsHelper {
 		cask: String = "American Oak",
 		imageUrl: String = "https://example.com/test.jpg",
 		description: String = "테스트 설명",
-		volume: String = "700ml"
-	): Map<String, Any> = mapOf(
-		"korName" to korName,
-		"engName" to engName,
-		"abv" to abv,
-		"type" to type.name,
-		"korCategory" to korCategory,
-		"engCategory" to engCategory,
-		"categoryGroup" to categoryGroup.name,
-		"regionId" to regionId,
-		"distilleryId" to distilleryId,
-		"age" to age,
-		"cask" to cask,
-		"imageUrl" to imageUrl,
-		"description" to description,
-		"volume" to volume
-	)
+		volume: String = "700ml",
+		tastingTagIds: List<Long>? = null
+	): Map<String, Any> = buildMap {
+		put("korName", korName)
+		put("engName", engName)
+		put("abv", abv)
+		put("type", type.name)
+		put("korCategory", korCategory)
+		put("engCategory", engCategory)
+		put("categoryGroup", categoryGroup.name)
+		put("regionId", regionId)
+		put("distilleryId", distilleryId)
+		put("age", age)
+		put("cask", cask)
+		put("imageUrl", imageUrl)
+		put("description", description)
+		put("volume", volume)
+		tastingTagIds?.let { put("tastingTagIds", it) }
+	}
 }
