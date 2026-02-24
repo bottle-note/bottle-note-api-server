@@ -6,16 +6,20 @@ import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_HAS
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.DISTILLERY_NOT_FOUND;
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.REGION_NOT_FOUND;
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.TASTING_TAG_NOT_FOUND;
 import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.ALCOHOL_CREATED;
 import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.ALCOHOL_DELETED;
 import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.ALCOHOL_UPDATED;
 
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
+import app.bottlenote.alcohols.domain.AlcoholsTastingTags;
+import app.bottlenote.alcohols.domain.AlcoholsTastingTagsRepository;
 import app.bottlenote.alcohols.domain.Distillery;
 import app.bottlenote.alcohols.domain.DistilleryRepository;
 import app.bottlenote.alcohols.domain.Region;
 import app.bottlenote.alcohols.domain.RegionRepository;
+import app.bottlenote.alcohols.domain.TastingTagRepository;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholUpsertRequest;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.common.file.event.payload.ImageResourceActivatedEvent;
@@ -42,6 +46,8 @@ public class AdminAlcoholCommandService {
   private final DistilleryRepository distilleryRepository;
   private final ReviewRepository reviewRepository;
   private final RatingRepository ratingRepository;
+  private final AlcoholsTastingTagsRepository alcoholsTastingTagsRepository;
+  private final TastingTagRepository tastingTagRepository;
   private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
@@ -74,6 +80,9 @@ public class AdminAlcoholCommandService {
             .build();
 
     Alcohol saved = alcoholQueryRepository.save(alcohol);
+    if (request.tastingTagIds() != null && !request.tastingTagIds().isEmpty()) {
+      saveTastingTags(saved, request.tastingTagIds());
+    }
     publishImageActivatedEvent(request.imageUrl(), saved.getId());
 
     return AdminResultResponse.of(ALCOHOL_CREATED, saved.getId());
@@ -117,6 +126,13 @@ public class AdminAlcoholCommandService {
         request.description(),
         request.volume());
 
+    if (request.tastingTagIds() != null) {
+      alcoholsTastingTagsRepository.deleteByAlcoholId(alcoholId);
+      if (!request.tastingTagIds().isEmpty()) {
+        saveTastingTags(alcohol, request.tastingTagIds());
+      }
+    }
+
     handleImageChange(oldImageUrl, request.imageUrl(), alcoholId);
 
     return AdminResultResponse.of(ALCOHOL_UPDATED, alcoholId);
@@ -143,6 +159,19 @@ public class AdminAlcoholCommandService {
 
     alcohol.delete();
     return AdminResultResponse.of(ALCOHOL_DELETED, alcoholId);
+  }
+
+  private void saveTastingTags(Alcohol alcohol, List<Long> tagIds) {
+    List<AlcoholsTastingTags> mappings =
+        tagIds.stream()
+            .map(
+                tagId ->
+                    tastingTagRepository
+                        .findById(tagId)
+                        .orElseThrow(() -> new AlcoholException(TASTING_TAG_NOT_FOUND)))
+            .map(tag -> AlcoholsTastingTags.of(alcohol, tag))
+            .toList();
+    alcoholsTastingTagsRepository.saveAll(mappings);
   }
 
   private void publishImageActivatedEvent(String imageUrl, Long alcoholId) {

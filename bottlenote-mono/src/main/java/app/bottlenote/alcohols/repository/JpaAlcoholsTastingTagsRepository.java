@@ -31,4 +31,9 @@ public interface JpaAlcoholsTastingTagsRepository
   @Query(
       "select case when count(att) > 0 then true else false end from alcohol_tasting_tags att where att.tastingTag.id = :tastingTagId")
   boolean existsByTastingTagId(@Param("tastingTagId") Long tastingTagId);
+
+  @Override
+  @Modifying
+  @Query("delete from alcohol_tasting_tags att where att.alcohol.id = :alcoholId")
+  void deleteByAlcoholId(@Param("alcoholId") Long alcoholId);
 }
