@@ -6,3 +6,53 @@ Authorization: Bearer {{accessToken}}
 @alcoholId = 1
 GET {{host}}/alcohols/{{alcoholId}}
 Authorization: Bearer {{accessToken}}
+
+### 위스키 생성
+POST {{host}}/alcohols
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "korName": "글렌피딕 12년",
+  "engName": "Glenfiddich 12 Year",
+  "abv": "40%",
+  "type": "WHISKY",
+  "korCategory": "싱글 몰트",
+  "engCategory": "Single Malt",
+  "categoryGroup": "SINGLE_MALT",
+  "regionId": 1,
+  "distilleryId": 1,
+  "age": "12",
+  "cask": "American Oak",
+  "imageUrl": "https://example.com/glenfiddich12.jpg",
+  "description": "스코틀랜드의 대표적인 싱글몰트 위스키",
+  "volume": "700ml",
+  "tastingTagIds": [1, 2, 3]
+}
+
+### 위스키 수정
+PUT {{host}}/alcohols/{{alcoholId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "korName": "글렌피딕 18년",
+  "engName": "Glenfiddich 18 Year",
+  "abv": "43%",
+  "type": "WHISKY",
+  "korCategory": "싱글 몰트",
+  "engCategory": "Single Malt",
+  "categoryGroup": "SINGLE_MALT",
+  "regionId": 1,
+  "distilleryId": 1,
+  "age": "18",
+  "cask": "Sherry Oak",
+  "imageUrl": "https://example.com/glenfiddich18.jpg",
+  "description": "18년 숙성 싱글몰트 위스키",
+  "volume": "700ml",
+  "tastingTagIds": [1, 2]
+}
+
+### 위스키 삭제
+DELETE {{host}}/alcohols/{{alcoholId}}
+Authorization: Bearer {{accessToken}}
