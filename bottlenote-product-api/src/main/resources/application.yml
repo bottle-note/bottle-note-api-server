@@ -29,6 +29,26 @@ spring:
   jackson:
     time-zone: Asia/Seoul
 
+  # Quartz 설정 (ViewHistorySyncJob 클러스터링)
+  quartz:
+    overwrite-existing-jobs: true
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: never
+    properties:
+      org:
+        quartz:
+          scheduler:
+            instanceName: bottle_note_product_quartz_scheduler
+            instanceId: AUTO
+          threadPool:
+            threadCount: 5
+            threadPriority: 5
+          jobStore:
+            driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+            isClustered: true
+            clusterCheckinInterval: 20000
+
 # Spring Security
 security:
   jwt:

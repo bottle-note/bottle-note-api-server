@@ -32,7 +32,6 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.util.StringUtils;
 import com.querydsl.jpa.JPAExpressions;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.stereotype.Component;
@@ -129,6 +128,8 @@ public class ReviewQuerySupporter {
 
   public static List<OrderSpecifier<?>> sortBy(ReviewSortType reviewSortType, SortOrder sortOrder) {
     NumberExpression<Long> likesCount = likes.id.count();
+    // 동일 순위 리뷰 간 최신순 정렬을 위한 타이브레이커
+    OrderSpecifier<?> createAtDesc = review.createAt.desc();
     return switch (reviewSortType) {
       // 인기순 -> 임시로 좋아요 순으로 구현
       case POPULAR ->
@@ -136,17 +137,19 @@ public class ReviewQuerySupporter {
               new OrderSpecifier<>(sortOrder == DESC ? Order.DESC : Order.ASC, review.isBest)
                   .nullsLast(),
               new OrderSpecifier<>(sortOrder == DESC ? Order.DESC : Order.ASC, likesCount)
-                  .nullsLast());
+                  .nullsLast(),
+              createAtDesc);
       // 좋아요 순
       case LIKES ->
-          Collections.singletonList(sortOrder == DESC ? likesCount.desc() : likesCount.asc());
+          Arrays.asList(sortOrder == DESC ? likesCount.desc() : likesCount.asc(), createAtDesc);
 
       // 별점 순
       case RATING ->
-          Collections.singletonList(
+          Arrays.asList(
               sortOrder == DESC
                   ? rating.ratingPoint.rating.desc()
-                  : rating.ratingPoint.rating.asc());
+                  : rating.ratingPoint.rating.asc(),
+              createAtDesc);
 
       // 병 기준 가격 순
       case BOTTLE_PRICE -> {
@@ -155,7 +158,7 @@ public class ReviewQuerySupporter {
 
         OrderSpecifier<?> priceOrderSpecifier =
             new OrderSpecifier<>(sortOrder == DESC ? Order.DESC : Order.ASC, review.price);
-        yield Arrays.asList(sizeOrderSpecifier, priceOrderSpecifier);
+        yield Arrays.asList(sizeOrderSpecifier, priceOrderSpecifier, createAtDesc);
       }
 
       // 잔 기준 가격 순
@@ -165,7 +168,7 @@ public class ReviewQuerySupporter {
 
         OrderSpecifier<?> priceOrderSpecifier =
             new OrderSpecifier<>(sortOrder == DESC ? Order.DESC : Order.ASC, review.price);
-        yield Arrays.asList(sizeOrderSpecifier, priceOrderSpecifier);
+        yield Arrays.asList(sizeOrderSpecifier, priceOrderSpecifier, createAtDesc);
       }
     };
   }

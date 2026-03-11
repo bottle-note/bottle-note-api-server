@@ -4,6 +4,7 @@ import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.AlcoholType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.util.List;
 
 public record AdminAlcoholUpsertRequest(
     @NotBlank(message = "한글 이름은 필수입니다.") String korName,
@@ -19,4 +20,5 @@ public record AdminAlcoholUpsertRequest(
     @NotBlank(message = "캐스크 타입은 필수입니다.") String cask,
     @NotBlank(message = "이미지 URL은 필수입니다.") String imageUrl,
     @NotBlank(message = "설명은 필수입니다.") String description,
-    @NotBlank(message = "용량은 필수입니다.") String volume) {}
+    @NotBlank(message = "용량은 필수입니다.") String volume,
+    List<Long> tastingTagIds) {}

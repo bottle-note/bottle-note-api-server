@@ -5,6 +5,7 @@ import app.bottlenote.alcohols.constant.AdminAlcoholSortType
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup
 import app.bottlenote.alcohols.constant.AlcoholType
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory
+import app.bottlenote.alcohols.fixture.TastingTagTestFactory
 import app.bottlenote.global.service.cursor.SortOrder
 import app.bottlenote.rating.fixture.RatingTestFactory
 import app.bottlenote.review.fixture.ReviewTestFactory
@@ -39,6 +40,9 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 
 	@Autowired
 	private lateinit var ratingTestFactory: RatingTestFactory
+
+	@Autowired
+	private lateinit var tastingTagTestFactory: TastingTagTestFactory
 
 	private lateinit var accessToken: String
 
@@ -162,6 +166,46 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			.hasStatusOk()
 			.bodyJson()
 			.extractingPath("$.meta.size").isEqualTo(size)
+	}
+
+	@Nested
+	@DisplayName("삭제 데이터 필터링")
+	inner class DeletedAlcoholFiltering {
+
+		@Test
+		@DisplayName("기본 조회 시 삭제된 위스키는 제외된다")
+		fun excludeDeletedByDefault() {
+			// given
+			alcoholTestFactory.persistAlcohols(3)
+			alcoholTestFactory.persistDeletedAlcohol()
+
+			// when & then
+			assertThat(
+				mockMvcTester.get().uri("/alcohols")
+					.header("Authorization", "Bearer $accessToken")
+			)
+				.hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.length()").isEqualTo(3)
+		}
+
+		@Test
+		@DisplayName("includeDeleted=true 시 삭제된 위스키도 포함된다")
+		fun includeDeletedWhenFlagIsTrue() {
+			// given
+			alcoholTestFactory.persistAlcohols(3)
+			alcoholTestFactory.persistDeletedAlcohol()
+
+			// when & then
+			assertThat(
+				mockMvcTester.get().uri("/alcohols")
+					.header("Authorization", "Bearer $accessToken")
+					.param("includeDeleted", "true")
+			)
+				.hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.length()").isEqualTo(4)
+		}
 	}
 
 	@Nested
@@ -298,6 +342,91 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 		}
 
 		@Test
+		@DisplayName("테이스팅 태그와 함께 위스키를 생성할 수 있다")
+		fun createAlcoholWithTastingTags() {
+			// given
+			val region = alcoholTestFactory.persistRegion()
+			val distillery = alcoholTestFactory.persistDistillery()
+			val tag1 = tastingTagTestFactory.persistTastingTag("바닐라", "Vanilla")
+			val tag2 = tastingTagTestFactory.persistTastingTag("꿀", "Honey")
+
+			val request = mapOf(
+				"korName" to "테스트 위스키",
+				"engName" to "Test Whisky",
+				"abv" to "40%",
+				"type" to AlcoholType.WHISKY.name,
+				"korCategory" to "싱글 몰트",
+				"engCategory" to "Single Malt",
+				"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
+				"regionId" to region.id,
+				"distilleryId" to distillery.id,
+				"age" to "12",
+				"cask" to "American Oak",
+				"imageUrl" to "https://example.com/test.jpg",
+				"description" to "테스트 설명",
+				"volume" to "700ml",
+				"tastingTagIds" to listOf(tag1.id, tag2.id)
+			)
+
+			// when
+			val createResult = mockMvcTester.post().uri("/alcohols")
+				.header("Authorization", "Bearer $accessToken")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsString(request))
+				.exchange()
+
+			assertThat(createResult)
+				.hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.code").isEqualTo("ALCOHOL_CREATED")
+
+			// then - 상세 조회로 태그 확인
+			val alcoholId = extractData(createResult, Map::class.java)["targetId"]
+			assertThat(
+				mockMvcTester.get().uri("/alcohols/$alcoholId")
+					.header("Authorization", "Bearer $accessToken")
+			)
+				.hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.tastingTags.length()").isEqualTo(2)
+		}
+
+		@Test
+		@DisplayName("존재하지 않는 태그 ID로 생성 시 실패한다")
+		fun createAlcoholWithInvalidTastingTag() {
+			// given
+			val region = alcoholTestFactory.persistRegion()
+			val distillery = alcoholTestFactory.persistDistillery()
+
+			val request = mapOf(
+				"korName" to "테스트 위스키",
+				"engName" to "Test Whisky",
+				"abv" to "40%",
+				"type" to AlcoholType.WHISKY.name,
+				"korCategory" to "싱글 몰트",
+				"engCategory" to "Single Malt",
+				"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
+				"regionId" to region.id,
+				"distilleryId" to distillery.id,
+				"age" to "12",
+				"cask" to "American Oak",
+				"imageUrl" to "https://example.com/test.jpg",
+				"description" to "테스트 설명",
+				"volume" to "700ml",
+				"tastingTagIds" to listOf(999999L)
+			)
+
+			// when & then
+			assertThat(
+				mockMvcTester.post().uri("/alcohols")
+					.header("Authorization", "Bearer $accessToken")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(request))
+			)
+				.hasStatus4xxClientError()
+		}
+
+		@Test
 		@DisplayName("필수 필드 누락 시 실패한다")
 		fun createAlcoholWithMissingFields() {
 			// given
@@ -388,6 +517,150 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 				.hasStatusOk()
 				.bodyJson()
 				.extractingPath("$.data.code").isEqualTo("ALCOHOL_UPDATED")
+		}
+
+		@Test
+		@DisplayName("수정 시 태그를 교체할 수 있다")
+		fun updateAlcoholReplaceTastingTags() {
+			// given
+			val alcohol = alcoholTestFactory.persistAlcohol()
+			val region = alcoholTestFactory.persistRegion()
+			val distillery = alcoholTestFactory.persistDistillery()
+			val oldTag = tastingTagTestFactory.persistTastingTag("바닐라", "Vanilla")
+			val newTag1 = tastingTagTestFactory.persistTastingTag("피트", "Peat")
+			val newTag2 = tastingTagTestFactory.persistTastingTag("스모키", "Smoky")
+			tastingTagTestFactory.linkAlcoholToTag(alcohol, oldTag)
+
+			val request = mapOf(
+				"korName" to "수정된 위스키",
+				"engName" to "Updated Whisky",
+				"abv" to "43%",
+				"type" to AlcoholType.WHISKY.name,
+				"korCategory" to "싱글 몰트",
+				"engCategory" to "Single Malt",
+				"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
+				"regionId" to region.id,
+				"distilleryId" to distillery.id,
+				"age" to "18",
+				"cask" to "Sherry Oak",
+				"imageUrl" to "https://example.com/updated.jpg",
+				"description" to "수정된 설명",
+				"volume" to "750ml",
+				"tastingTagIds" to listOf(newTag1.id, newTag2.id)
+			)
+
+			// when
+			assertThat(
+				mockMvcTester.put().uri("/alcohols/${alcohol.id}")
+					.header("Authorization", "Bearer $accessToken")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(request))
+			)
+				.hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.code").isEqualTo("ALCOHOL_UPDATED")
+
+			// then - 상세 조회로 태그 교체 확인
+			assertThat(
+				mockMvcTester.get().uri("/alcohols/${alcohol.id}")
+					.header("Authorization", "Bearer $accessToken")
+			)
+				.hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.tastingTags.length()").isEqualTo(2)
+		}
+
+		@Test
+		@DisplayName("tastingTagIds 미포함 시 기존 태그가 유지된다")
+		fun updateAlcoholKeepExistingTags() {
+			// given
+			val alcohol = alcoholTestFactory.persistAlcohol()
+			val region = alcoholTestFactory.persistRegion()
+			val distillery = alcoholTestFactory.persistDistillery()
+			val tag = tastingTagTestFactory.persistTastingTag("바닐라", "Vanilla")
+			tastingTagTestFactory.linkAlcoholToTag(alcohol, tag)
+
+			val request = mapOf(
+				"korName" to "수정된 위스키",
+				"engName" to "Updated Whisky",
+				"abv" to "43%",
+				"type" to AlcoholType.WHISKY.name,
+				"korCategory" to "싱글 몰트",
+				"engCategory" to "Single Malt",
+				"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
+				"regionId" to region.id,
+				"distilleryId" to distillery.id,
+				"age" to "18",
+				"cask" to "Sherry Oak",
+				"imageUrl" to "https://example.com/updated.jpg",
+				"description" to "수정된 설명",
+				"volume" to "750ml"
+			)
+
+			// when
+			assertThat(
+				mockMvcTester.put().uri("/alcohols/${alcohol.id}")
+					.header("Authorization", "Bearer $accessToken")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(request))
+			)
+				.hasStatusOk()
+
+			// then - 기존 태그 유지 확인
+			assertThat(
+				mockMvcTester.get().uri("/alcohols/${alcohol.id}")
+					.header("Authorization", "Bearer $accessToken")
+			)
+				.hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.tastingTags.length()").isEqualTo(1)
+		}
+
+		@Test
+		@DisplayName("tastingTagIds가 빈 배열이면 태그가 전부 삭제된다")
+		fun updateAlcoholRemoveAllTags() {
+			// given
+			val alcohol = alcoholTestFactory.persistAlcohol()
+			val region = alcoholTestFactory.persistRegion()
+			val distillery = alcoholTestFactory.persistDistillery()
+			val tag = tastingTagTestFactory.persistTastingTag("바닐라", "Vanilla")
+			tastingTagTestFactory.linkAlcoholToTag(alcohol, tag)
+
+			val request = mapOf(
+				"korName" to "수정된 위스키",
+				"engName" to "Updated Whisky",
+				"abv" to "43%",
+				"type" to AlcoholType.WHISKY.name,
+				"korCategory" to "싱글 몰트",
+				"engCategory" to "Single Malt",
+				"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
+				"regionId" to region.id,
+				"distilleryId" to distillery.id,
+				"age" to "18",
+				"cask" to "Sherry Oak",
+				"imageUrl" to "https://example.com/updated.jpg",
+				"description" to "수정된 설명",
+				"volume" to "750ml",
+				"tastingTagIds" to emptyList<Long>()
+			)
+
+			// when
+			assertThat(
+				mockMvcTester.put().uri("/alcohols/${alcohol.id}")
+					.header("Authorization", "Bearer $accessToken")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(request))
+			)
+				.hasStatusOk()
+
+			// then - 태그 전부 삭제 확인
+			assertThat(
+				mockMvcTester.get().uri("/alcohols/${alcohol.id}")
+					.header("Authorization", "Bearer $accessToken")
+			)
+				.hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.tastingTags.length()").isEqualTo(0)
 		}
 
 		@Test

@@ -3,6 +3,11 @@ spring:
     allow-bean-definition-overriding: true
   application:
     name: bottle-note-test
+
+  # Quartz 비활성화 (테스트 환경)
+  quartz:
+    auto-startup: false
+    job-store-type: memory
   test:
     database:
       replace: none

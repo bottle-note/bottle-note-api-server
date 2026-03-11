@@ -278,6 +278,7 @@ public class TastingTagService {
         alcohol.getEngCategory(),
         alcohol.getImageUrl(),
         alcohol.getCreateAt(),
-        alcohol.getLastModifyAt());
+        alcohol.getLastModifyAt(),
+        alcohol.getDeletedAt());
   }
 }
