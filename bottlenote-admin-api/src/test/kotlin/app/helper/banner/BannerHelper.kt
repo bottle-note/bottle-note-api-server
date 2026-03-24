@@ -1,6 +1,7 @@
 package app.helper.banner
 
 import app.bottlenote.banner.constant.BannerType
+import app.bottlenote.banner.constant.MediaType
 import app.bottlenote.banner.constant.TextPosition
 import app.bottlenote.banner.dto.response.AdminBannerDetailResponse
 import app.bottlenote.banner.dto.response.AdminBannerListResponse
@@ -12,6 +13,7 @@ object BannerHelper {
     fun createAdminBannerListResponse(
         id: Long = 1L,
         name: String = "테스트 배너",
+        mediaType: MediaType = MediaType.IMAGE,
         bannerType: BannerType = BannerType.CURATION,
         sortOrder: Int = 0,
         isActive: Boolean = true,
@@ -19,7 +21,7 @@ object BannerHelper {
         endDate: LocalDateTime? = null,
         createdAt: LocalDateTime = LocalDateTime.of(2024, 1, 1, 0, 0)
     ): AdminBannerListResponse = AdminBannerListResponse(
-        id, name, bannerType, sortOrder, isActive, startDate, endDate, createdAt
+        id, name, mediaType, bannerType, sortOrder, isActive, startDate, endDate, createdAt
     )
 
     fun createAdminBannerListResponses(count: Int = 3): List<AdminBannerListResponse> =
@@ -43,6 +45,7 @@ object BannerHelper {
         textPosition: TextPosition = TextPosition.RT,
         isExternalUrl: Boolean = false,
         targetUrl: String? = null,
+        mediaType: MediaType = MediaType.IMAGE,
         bannerType: BannerType = BannerType.CURATION,
         sortOrder: Int = 0,
         startDate: LocalDateTime? = null,
@@ -52,7 +55,7 @@ object BannerHelper {
         modifiedAt: LocalDateTime = LocalDateTime.of(2024, 6, 1, 0, 0)
     ): AdminBannerDetailResponse = AdminBannerDetailResponse(
         id, name, nameFontColor, descriptionA, descriptionB, descriptionFontColor,
-        imageUrl, textPosition, isExternalUrl, targetUrl, bannerType, sortOrder,
+        imageUrl, textPosition, isExternalUrl, targetUrl, mediaType, bannerType, sortOrder,
         startDate, endDate, isActive, createdAt, modifiedAt
     )
 
@@ -66,6 +69,7 @@ object BannerHelper {
         textPosition: String = "RT",
         isExternalUrl: Boolean = false,
         targetUrl: String? = null,
+        mediaType: String = "IMAGE",
         bannerType: String = "CURATION",
         sortOrder: Int = 0,
         startDate: String? = null,
@@ -80,6 +84,7 @@ object BannerHelper {
         "textPosition" to textPosition,
         "isExternalUrl" to isExternalUrl,
         "targetUrl" to targetUrl,
+        "mediaType" to mediaType,
         "bannerType" to bannerType,
         "sortOrder" to sortOrder,
         "startDate" to startDate,
@@ -96,6 +101,7 @@ object BannerHelper {
         textPosition: String = "CENTER",
         isExternalUrl: Boolean = false,
         targetUrl: String? = null,
+        mediaType: String = "IMAGE",
         bannerType: String = "CURATION",
         sortOrder: Int = 1,
         startDate: String? = null,
@@ -111,6 +117,7 @@ object BannerHelper {
         "textPosition" to textPosition,
         "isExternalUrl" to isExternalUrl,
         "targetUrl" to targetUrl,
+        "mediaType" to mediaType,
         "bannerType" to bannerType,
         "sortOrder" to sortOrder,
         "startDate" to startDate,

@@ -217,7 +217,7 @@ class ImageUploadServiceTest {
       // given & when & then
       assertThrows(
           FileException.class,
-          () -> imageUploadService.getImageKey("review", 1L, "application/pdf"));
+          () -> imageUploadService.getImageKey("review", 1L, "application/zip"));
     }
   }
 
