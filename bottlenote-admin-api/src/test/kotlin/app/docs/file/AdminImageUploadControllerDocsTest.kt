@@ -80,6 +80,7 @@ class AdminImageUploadControllerDocsTest {
 					.header("Authorization", "Bearer test_access_token")
 					.param("rootPath", "admin/banner")
 					.param("uploadSize", "2")
+					.param("contentType", "image/jpeg")
 			)
 				.hasStatusOk()
 				.apply(
@@ -92,7 +93,8 @@ class AdminImageUploadControllerDocsTest {
 						),
 						queryParameters(
 							parameterWithName("rootPath").description("업로드 경로 (예: admin/banner, admin/alcohol)"),
-							parameterWithName("uploadSize").description("발급할 URL 개수")
+							parameterWithName("uploadSize").description("발급할 URL 개수"),
+							parameterWithName("contentType").description("업로드 파일의 Content-Type (image/jpeg, image/png, image/webp, video/mp4)").optional()
 						),
 						responseFields(
 							fieldWithPath("success").type(JsonFieldType.BOOLEAN).description("응답 성공 여부"),

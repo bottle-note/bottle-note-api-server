@@ -10,12 +10,14 @@ import app.bottlenote.common.file.dto.request.ImageUploadRequest;
 import app.bottlenote.common.file.dto.response.ImageUploadItem;
 import app.bottlenote.common.file.dto.response.ImageUploadResponse;
 import app.bottlenote.common.file.exception.FileException;
+import app.bottlenote.common.file.exception.FileExceptionCode;
 import app.bottlenote.common.file.service.ImageUploadService;
 import app.bottlenote.common.file.service.ResourceCommandService;
 import app.bottlenote.common.file.upload.fixture.FakeAmazonS3;
 import app.bottlenote.common.file.upload.fixture.InMemoryResourceLogRepository;
 import java.time.LocalDate;
 import java.util.Calendar;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -48,14 +50,18 @@ class ImageUploadServiceTest {
         new ImageUploadService(
             resourceCommandService, new FakeAmazonS3(), BUCKET_NAME, CLOUD_FRONT_URL) {
           @Override
-          public String getImageKey(String rootPath, Long index) {
+          public String getImageKey(String rootPath, Long index, String contentType) {
             if (rootPath.startsWith(PATH_DELIMITER)) {
               rootPath = rootPath.substring(1);
             }
             if (rootPath.endsWith(PATH_DELIMITER)) {
               rootPath = rootPath.substring(0, rootPath.length() - 1);
             }
-            String imageId = index + KEY_DELIMITER + FAKE_UUID + "." + EXTENSION;
+            String extension = ALLOWED_CONTENT_TYPES.get(contentType);
+            if (extension == null) {
+              throw new FileException(FileExceptionCode.UNSUPPORTED_CONTENT_TYPE);
+            }
+            String imageId = index + KEY_DELIMITER + FAKE_UUID + "." + extension;
             return rootPath + PATH_DELIMITER + UPLOAD_DATE + PATH_DELIMITER + imageId;
           }
         };
@@ -69,10 +75,10 @@ class ImageUploadServiceTest {
     @DisplayName("PreSignUrl을 생성할 수 있다")
     void test_1() {
       // given
-      String imageKey = imageUploadService.getImageKey("review", 1L);
+      String imageKey = imageUploadService.getImageKey("review", 1L, "image/jpeg");
 
       // when
-      String preSignUrl = imageUploadService.generatePreSignUrl(imageKey);
+      String preSignUrl = imageUploadService.generatePreSignUrl(imageKey, "image/jpeg");
 
       // then
       log.info("PreSignUrl: {}", preSignUrl);
@@ -84,7 +90,7 @@ class ImageUploadServiceTest {
     @DisplayName("업로드용 인증 URL을 생성할 수 있다")
     void test_2() {
       // given
-      ImageUploadRequest request = new ImageUploadRequest("review", 2L);
+      ImageUploadRequest request = new ImageUploadRequest("review", 2L, null);
 
       // when
       ImageUploadResponse response = imageUploadService.getPreSignUrl(request);
@@ -96,8 +102,8 @@ class ImageUploadServiceTest {
       assertEquals(BUCKET_NAME, response.bucketName());
 
       for (Long index = 1L; index <= response.imageUploadInfo().size(); index++) {
-        String imageKey = imageUploadService.getImageKey(request.rootPath(), index);
-        String uploadUrlExpected = imageUploadService.generatePreSignUrl(imageKey);
+        String imageKey = imageUploadService.getImageKey(request.rootPath(), index, "image/jpeg");
+        String uploadUrlExpected = imageUploadService.generatePreSignUrl(imageKey, "image/jpeg");
         String viewUrlExpected = imageUploadService.generateViewUrl(CLOUD_FRONT_URL, imageKey);
 
         ImageUploadItem info = response.imageUploadInfo().get((int) (index - 1));
@@ -113,7 +119,7 @@ class ImageUploadServiceTest {
     @DisplayName("단건 이미지 업로드 URL을 생성할 수 있다")
     void test_3() {
       // given
-      ImageUploadRequest request = new ImageUploadRequest("review", 1L);
+      ImageUploadRequest request = new ImageUploadRequest("review", 1L, null);
 
       // when
       ImageUploadResponse response = imageUploadService.getPreSignUrl(request);
@@ -137,7 +143,7 @@ class ImageUploadServiceTest {
     @DisplayName("조회용 URL을 생성할 수 있다")
     void test_1() {
       // given
-      String imageKey = imageUploadService.getImageKey("review", 1L);
+      String imageKey = imageUploadService.getImageKey("review", 1L, "image/jpeg");
 
       // when
       String viewUrl = imageUploadService.generateViewUrl(CLOUD_FRONT_URL, imageKey);
@@ -157,13 +163,61 @@ class ImageUploadServiceTest {
     @DisplayName("이미지 루트 경로와 인덱스를 제공해 이미지 키를 생성할 수 있다")
     void test_1() {
       // given & when
-      String imageKey = imageUploadService.getImageKey("review", 1L);
+      String imageKey = imageUploadService.getImageKey("review", 1L, "image/jpeg");
       String expected = "review/" + UPLOAD_DATE + "/1-" + FAKE_UUID + ".jpg";
 
       // then
       log.info("ImageKey: {}", imageKey);
       assertNotNull(imageKey);
       assertEquals(expected, imageKey);
+    }
+
+    @Test
+    @DisplayName("video/mp4 contentType으로 키 생성 시 확장자가 .mp4이다")
+    void test_2() {
+      // given & when
+      String imageKey = imageUploadService.getImageKey("review", 1L, "video/mp4");
+
+      // then
+      log.info("ImageKey: {}", imageKey);
+      assertTrue(imageKey.endsWith(".mp4"));
+    }
+
+    @Test
+    @DisplayName("허용된 모든 contentType으로 키를 생성할 수 있다")
+    void test_3() {
+      // given
+      Map<String, String> expectedExtensions =
+          Map.of(
+              "image/jpeg",
+              ".jpg",
+              "image/png",
+              ".png",
+              "image/webp",
+              ".webp",
+              "video/mp4",
+              ".mp4");
+
+      expectedExtensions.forEach(
+          (contentType, extension) -> {
+            // when
+            String imageKey = imageUploadService.getImageKey("review", 1L, contentType);
+
+            // then
+            log.info("contentType: {} -> ImageKey: {}", contentType, imageKey);
+            assertTrue(
+                imageKey.endsWith(extension),
+                "contentType " + contentType + "의 확장자는 " + extension + "이어야 한다");
+          });
+    }
+
+    @Test
+    @DisplayName("허용되지 않은 contentType으로 키 생성 시 예외가 발생한다")
+    void test_4() {
+      // given & when & then
+      assertThrows(
+          FileException.class,
+          () -> imageUploadService.getImageKey("review", 1L, "application/pdf"));
     }
   }
 

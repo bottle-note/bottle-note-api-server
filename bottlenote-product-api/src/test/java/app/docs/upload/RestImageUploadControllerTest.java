@@ -36,7 +36,7 @@ class RestImageUploadControllerTest extends AbstractRestDocs {
   @Test
   void test_1() throws Exception {
     // given
-    ImageUploadRequest request = new ImageUploadRequest("images", 1L);
+    ImageUploadRequest request = new ImageUploadRequest("images", 1L, "image/jpeg");
     ImageUploadResponse response =
         ImageUploadResponse.builder()
             .imageUploadInfo(
@@ -59,14 +59,19 @@ class RestImageUploadControllerTest extends AbstractRestDocs {
         .perform(
             get("/api/v1/s3/presign-url")
                 .param("rootPath", request.rootPath())
-                .param("uploadSize", String.valueOf(request.uploadSize())))
+                .param("uploadSize", String.valueOf(request.uploadSize()))
+                .param("contentType", "image/jpeg"))
         .andExpect(status().isOk())
         .andDo(
             document(
                 "file/image/upload/presign-url",
                 queryParameters(
                     parameterWithName("rootPath").description("업로드 파일 경로 (하단 설명 참조)"),
-                    parameterWithName("uploadSize").description("업로드할 이미지의 사이즈 ( 이미지당 1개 )")),
+                    parameterWithName("uploadSize").description("업로드할 이미지의 사이즈 ( 이미지당 1개 )"),
+                    parameterWithName("contentType")
+                        .description(
+                            "업로드 파일의 Content-Type (image/jpeg, image/png, image/webp, video/mp4)")
+                        .optional()),
                 responseFields(
                     fieldWithPath("success").description("응답 성공 여부"),
                     fieldWithPath("code").description("응답 코드(http status code)"),
