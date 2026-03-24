@@ -94,7 +94,7 @@ class AdminImageUploadControllerDocsTest {
 						queryParameters(
 							parameterWithName("rootPath").description("업로드 경로 (예: admin/banner, admin/alcohol)"),
 							parameterWithName("uploadSize").description("발급할 URL 개수"),
-							parameterWithName("contentType").description("업로드 파일의 Content-Type (image/jpeg, image/png, image/webp, video/mp4), 업로드(PUT) 요청 시 동일한 Content-Type 헤더 필요").optional()
+							parameterWithName("contentType").description("업로드 파일의 Content-Type. 허용 목록: image/jpeg, image/png, image/webp, image/gif, image/svg+xml, video/mp4, application/pdf. 업로드(PUT) 요청 시 동일한 Content-Type 헤더 필요").optional()
 						),
 						responseFields(
 							fieldWithPath("success").type(JsonFieldType.BOOLEAN).description("응답 성공 여부"),

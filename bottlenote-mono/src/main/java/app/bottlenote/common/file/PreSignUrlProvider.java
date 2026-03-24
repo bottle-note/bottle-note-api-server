@@ -18,7 +18,10 @@ public interface PreSignUrlProvider {
           "image/jpeg", "jpg",
           "image/png", "png",
           "image/webp", "webp",
-          "video/mp4", "mp4");
+          "image/gif", "gif",
+          "image/svg+xml", "svg",
+          "video/mp4", "mp4",
+          "application/pdf", "pdf");
 
   String PATH_DELIMITER = "/";
   String KEY_DELIMITER = "-";

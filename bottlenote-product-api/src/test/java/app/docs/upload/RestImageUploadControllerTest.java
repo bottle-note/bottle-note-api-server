@@ -70,7 +70,8 @@ class RestImageUploadControllerTest extends AbstractRestDocs {
                     parameterWithName("uploadSize").description("업로드할 이미지의 사이즈 ( 이미지당 1개 )"),
                     parameterWithName("contentType")
                         .description(
-                            "업로드 파일의 Content-Type (image/jpeg, image/png, image/webp, video/mp4). "
+                            "업로드 파일의 Content-Type. "
+                                + "허용 목록: image/jpeg, image/png, image/webp, image/gif, image/svg+xml, video/mp4, application/pdf. "
                                 + "업로드(PUT) 요청 시 동일한 Content-Type 헤더를 포함해야 합니다.")
                         .optional()),
                 responseFields(
