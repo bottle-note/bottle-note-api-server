@@ -1,3 +1,11 @@
 ### S3 PreSigned URL 발급
 GET {{host}}/s3/presign-url?rootPath=admin&uploadSize=1
 Authorization: Bearer {{accessToken}}
+
+### S3 PreSigned URL 발급 (contentType: image/jpeg)
+GET {{host}}/s3/presign-url?rootPath=admin/banner&uploadSize=1&contentType=image/jpeg
+Authorization: Bearer {{accessToken}}
+
+### S3 PreSigned URL 발급 (contentType: video/mp4)
+GET {{host}}/s3/presign-url?rootPath=admin/banner&uploadSize=1&contentType=video/mp4
+Authorization: Bearer {{accessToken}}

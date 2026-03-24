@@ -21,3 +21,11 @@ GET  {{host}}/api/v1/s3/presign-url?rootPath=review&uploadSize=1
 ### 토큰을 가지고 이미지 업로드 url 요청시 성공한다.
 GET  {{host}}/api/v1/s3/presign-url?rootPath=review&uploadSize=3
 Authorization: Bearer {{accessToken}}
+
+### contentType 지정하여 업로드 url 요청 (image/jpeg)
+GET  {{host}}/api/v1/s3/presign-url?rootPath=review&uploadSize=1&contentType=image/jpeg
+Authorization: Bearer {{accessToken}}
+
+### contentType 지정하여 업로드 url 요청 (video/mp4)
+GET  {{host}}/api/v1/s3/presign-url?rootPath=banner&uploadSize=1&contentType=video/mp4
+Authorization: Bearer {{accessToken}}
