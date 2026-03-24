@@ -57,7 +57,12 @@ public interface PreSignUrlProvider {
       rootPath = rootPath.substring(0, rootPath.length() - 1);
     }
 
-    String extension = ALLOWED_CONTENT_TYPES.get(contentType);
+    String normalized = contentType.strip().toLowerCase();
+    int semicolon = normalized.indexOf(';');
+    if (semicolon > 0) {
+      normalized = normalized.substring(0, semicolon).strip();
+    }
+    String extension = ALLOWED_CONTENT_TYPES.get(normalized);
     if (extension == null) {
       throw new FileException(UNSUPPORTED_CONTENT_TYPE);
     }
