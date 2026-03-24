@@ -128,7 +128,7 @@ public class Banner extends BaseEntity {
     this.textPosition = textPosition;
     this.isExternalUrl = isExternalUrl;
     this.targetUrl = targetUrl;
-    this.mediaType = mediaType;
+    this.mediaType = mediaType != null ? mediaType : this.mediaType;
     this.bannerType = bannerType;
     this.sortOrder = sortOrder;
     this.startDate = startDate;
