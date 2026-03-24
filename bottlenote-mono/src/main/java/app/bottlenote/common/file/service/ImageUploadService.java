@@ -9,6 +9,7 @@ import app.bottlenote.common.file.dto.response.ImageUploadResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -64,11 +65,12 @@ public class ImageUploadService implements PreSignUrlProvider {
   private List<ImageUploadItem> generatePreSignUrls(ImageUploadRequest request) {
     String rootPath = request.rootPath();
     Long uploadSize = request.uploadSize();
+    String contentType = request.contentType();
     List<ImageUploadItem> keys = new ArrayList<>();
 
     for (long index = 1; index <= uploadSize; index++) {
-      String imageKey = getImageKey(rootPath, index);
-      String preSignUrl = generatePreSignUrl(imageKey);
+      String imageKey = getImageKey(rootPath, index, contentType);
+      String preSignUrl = generatePreSignUrl(imageKey, contentType);
       String viewUrl = generateViewUrl(cloudFrontUrl, imageKey);
       keys.add(
           ImageUploadItem.builder().order(index).viewUrl(viewUrl).uploadUrl(preSignUrl).build());
@@ -97,11 +99,14 @@ public class ImageUploadService implements PreSignUrlProvider {
   }
 
   @Override
-  public String generatePreSignUrl(String imageKey) {
+  public String generatePreSignUrl(String imageKey, String contentType) {
     Calendar uploadExpiryTime = getUploadExpiryTime(EXPIRY_TIME);
-    return amazonS3
-        .generatePresignedUrl(imageBucketName, imageKey, uploadExpiryTime.getTime(), HttpMethod.PUT)
-        .toString();
+    GeneratePresignedUrlRequest request =
+        new GeneratePresignedUrlRequest(imageBucketName, imageKey)
+            .withMethod(HttpMethod.PUT)
+            .withExpiration(uploadExpiryTime.getTime())
+            .withContentType(contentType);
+    return amazonS3.generatePresignedUrl(request).toString();
   }
 
   private void saveImageUploadLogs(String rootPath, List<ImageUploadItem> items) {
