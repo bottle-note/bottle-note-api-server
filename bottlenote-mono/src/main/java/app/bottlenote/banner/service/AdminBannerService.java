@@ -60,6 +60,7 @@ public class AdminBannerService {
         banner.getTextPosition(),
         banner.getIsExternalUrl(),
         banner.getTargetUrl(),
+        banner.getMediaType(),
         banner.getBannerType(),
         banner.getSortOrder(),
         banner.getStartDate(),
@@ -93,6 +94,7 @@ public class AdminBannerService {
             .textPosition(request.textPosition())
             .isExternalUrl(request.isExternalUrl())
             .targetUrl(request.targetUrl())
+            .mediaType(request.mediaType())
             .bannerType(request.bannerType())
             .sortOrder(request.sortOrder())
             .startDate(request.startDate())
@@ -130,6 +132,7 @@ public class AdminBannerService {
         request.textPosition(),
         request.isExternalUrl(),
         request.targetUrl(),
+        request.mediaType(),
         request.bannerType(),
         request.sortOrder(),
         request.startDate(),

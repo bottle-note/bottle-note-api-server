@@ -1,6 +1,7 @@
 package app.bottlenote.banner.dto.request;
 
 import app.bottlenote.banner.constant.BannerType;
+import app.bottlenote.banner.constant.MediaType;
 import app.bottlenote.banner.constant.TextPosition;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -21,6 +22,7 @@ public record AdminBannerUpdateRequest(
     TextPosition textPosition,
     Boolean isExternalUrl,
     String targetUrl,
+    MediaType mediaType,
     @NotNull(message = "BANNER_TYPE_REQUIRED") BannerType bannerType,
     @NotNull(message = "BANNER_SORT_ORDER_REQUIRED")
         @Min(value = 0, message = "BANNER_SORT_ORDER_MINIMUM")

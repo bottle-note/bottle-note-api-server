@@ -32,6 +32,7 @@ public class CustomBannerRepositoryImpl implements CustomBannerRepository {
                     AdminBannerListResponse.class,
                     banner.id,
                     banner.name,
+                    banner.mediaType,
                     banner.bannerType,
                     banner.sortOrder,
                     banner.isActive,

@@ -1,6 +1,7 @@
 package app.bottlenote.banner.dto.response;
 
 import app.bottlenote.banner.constant.BannerType;
+import app.bottlenote.banner.constant.MediaType;
 import app.bottlenote.banner.constant.TextPosition;
 import java.time.LocalDateTime;
 
@@ -15,6 +16,7 @@ public record AdminBannerDetailResponse(
     TextPosition textPosition,
     Boolean isExternalUrl,
     String targetUrl,
+    MediaType mediaType,
     BannerType bannerType,
     Integer sortOrder,
     LocalDateTime startDate,
