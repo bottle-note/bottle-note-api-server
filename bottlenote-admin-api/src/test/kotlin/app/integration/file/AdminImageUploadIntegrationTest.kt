@@ -221,7 +221,7 @@ class AdminImageUploadIntegrationTest : IntegrationTestSupport() {
 			return try {
 				connection.doOutput = true
 				connection.requestMethod = "PUT"
-				connection.setRequestProperty("Content-Type", "application/octet-stream")
+				connection.setRequestProperty("Content-Type", "image/jpeg")
 
 				OutputStreamWriter(connection.outputStream).use { writer ->
 					writer.write(content)

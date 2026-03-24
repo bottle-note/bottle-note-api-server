@@ -41,7 +41,6 @@ public class FakeAmazonS3 extends AbstractFakeAmazonS3 {
       String bucketName = generatePresignedUrlRequest.getBucketName();
       String key = generatePresignedUrlRequest.getKey();
       url = new URL("https", bucketName + ".s3.amazonaws.com", "/" + key);
-      System.out.println("Fake url 생성 : " + url);
     } catch (MalformedURLException e) {
       throw new RuntimeException(e);
     }
