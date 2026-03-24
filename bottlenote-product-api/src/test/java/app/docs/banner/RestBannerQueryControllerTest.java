@@ -119,7 +119,8 @@ class RestBannerQueryControllerTest extends AbstractRestDocs {
                     fieldWithPath("data[].targetUrl").description("클릭 시 이동할 URL").optional(),
                     fieldWithPath("data[].isExternalUrl")
                         .description("외부 URL 여부 (true: 외부, false: 내부)"),
-                    fieldWithPath("data[].mediaType").description("미디어 유형 (IMAGE, VIDEO)"),
+                    fieldWithPath("data[].mediaType")
+                        .description("미디어 유형 (IMAGE, VIDEO). 프론트엔드에서 img/video 태그 분기용"),
                     fieldWithPath("data[].bannerType").description("배너 유형 (하단 BannerType 참조)"),
                     fieldWithPath("data[].sortOrder").description("정렬 순서 (오름차순)"),
                     fieldWithPath("data[].startDate").description("노출 시작일시 (nullable)").optional(),
