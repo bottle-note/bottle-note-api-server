@@ -101,7 +101,7 @@ class ImageUploadUnitTest {
     @DisplayName("PreSigned URL 생성 시 MinIO에서 유효한 URL을 반환한다")
     void test_1() {
       // given
-      ImageUploadRequest request = new ImageUploadRequest("review", 1L);
+      ImageUploadRequest request = new ImageUploadRequest("review", 1L, null);
 
       // when
       ImageUploadResponse response = imageUploadService.getPreSignUrl(request);
@@ -120,7 +120,7 @@ class ImageUploadUnitTest {
     @DisplayName("PreSigned URL로 실제 파일 업로드가 가능하다")
     void test_2() throws Exception {
       // given
-      ImageUploadRequest request = new ImageUploadRequest("review", 1L);
+      ImageUploadRequest request = new ImageUploadRequest("review", 1L, null);
       ImageUploadResponse response = imageUploadService.getPreSignUrl(request);
       String uploadUrl = response.imageUploadInfo().get(0).uploadUrl();
       byte[] testData = "test image content".getBytes();
@@ -148,7 +148,7 @@ class ImageUploadUnitTest {
     @DisplayName("업로드된 파일이 MinIO에 존재한다")
     void test_3() throws Exception {
       // given
-      ImageUploadRequest request = new ImageUploadRequest("review", 1L);
+      ImageUploadRequest request = new ImageUploadRequest("review", 1L, null);
       ImageUploadResponse response = imageUploadService.getPreSignUrl(request);
       String uploadUrl = response.imageUploadInfo().get(0).uploadUrl();
       String viewUrl = response.imageUploadInfo().get(0).viewUrl();
@@ -186,7 +186,7 @@ class ImageUploadUnitTest {
       Long userId = 1L;
       SecurityContextHolder.getContext()
           .setAuthentication(new TestingAuthenticationToken(userId.toString(), null));
-      ImageUploadRequest request = new ImageUploadRequest("review", 2L);
+      ImageUploadRequest request = new ImageUploadRequest("review", 2L, null);
 
       // when
       imageUploadService.getPreSignUrl(request);
@@ -204,7 +204,7 @@ class ImageUploadUnitTest {
     @DisplayName("비로그인 사용자가 PreSigned URL 생성 시 로그가 저장되지 않는다")
     void test_2() {
       // given
-      ImageUploadRequest request = new ImageUploadRequest("review", 2L);
+      ImageUploadRequest request = new ImageUploadRequest("review", 2L, null);
 
       // when
       imageUploadService.getPreSignUrl(request);

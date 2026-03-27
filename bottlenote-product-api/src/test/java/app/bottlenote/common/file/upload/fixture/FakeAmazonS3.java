@@ -38,7 +38,9 @@ public class FakeAmazonS3 extends AbstractFakeAmazonS3 {
       throws SdkClientException {
     URL url;
     try {
-      url = new URL("http://localhost:8080");
+      String bucketName = generatePresignedUrlRequest.getBucketName();
+      String key = generatePresignedUrlRequest.getKey();
+      url = new URL("https", bucketName + ".s3.amazonaws.com", "/" + key);
     } catch (MalformedURLException e) {
       throw new RuntimeException(e);
     }

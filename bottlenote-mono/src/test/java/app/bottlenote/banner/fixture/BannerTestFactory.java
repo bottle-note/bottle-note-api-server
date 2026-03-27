@@ -1,6 +1,7 @@
 package app.bottlenote.banner.fixture;
 
 import app.bottlenote.banner.constant.BannerType;
+import app.bottlenote.banner.constant.MediaType;
 import app.bottlenote.banner.constant.TextPosition;
 import app.bottlenote.banner.domain.Banner;
 import jakarta.persistence.EntityManager;
@@ -33,6 +34,7 @@ public class BannerTestFactory {
             .descriptionB(name + " 설명B")
             .imageUrl(imageUrl)
             .textPosition(TextPosition.CENTER)
+            .mediaType(MediaType.IMAGE)
             .bannerType(BannerType.CURATION)
             .sortOrder(0)
             .isActive(true)
@@ -60,6 +62,7 @@ public class BannerTestFactory {
             .descriptionB(name + " 설명B")
             .imageUrl(imageUrl)
             .textPosition(textPosition)
+            .mediaType(MediaType.IMAGE)
             .bannerType(bannerType)
             .sortOrder(sortOrder)
             .isActive(isActive)
@@ -96,6 +99,7 @@ public class BannerTestFactory {
               .descriptionB("배너 " + (i + 1) + " 설명B")
               .imageUrl("https://example.com/banner" + (i + 1) + ".jpg")
               .textPosition(TextPosition.CENTER)
+              .mediaType(MediaType.IMAGE)
               .bannerType(BannerType.CURATION)
               .sortOrder(i)
               .isActive(true)
@@ -122,6 +126,7 @@ public class BannerTestFactory {
               .descriptionB("활성 배너 " + (i + 1) + " 설명B")
               .imageUrl("https://example.com/active" + (i + 1) + ".jpg")
               .textPosition(TextPosition.CENTER)
+              .mediaType(MediaType.IMAGE)
               .bannerType(BannerType.CURATION)
               .sortOrder(i)
               .isActive(true)
@@ -139,6 +144,7 @@ public class BannerTestFactory {
               .descriptionB("비활성 배너 " + (i + 1) + " 설명B")
               .imageUrl("https://example.com/inactive" + (i + 1) + ".jpg")
               .textPosition(TextPosition.CENTER)
+              .mediaType(MediaType.IMAGE)
               .bannerType(BannerType.AD)
               .sortOrder(activeCount + i)
               .isActive(false)
@@ -164,6 +170,7 @@ public class BannerTestFactory {
             .descriptionB(name + " 설명B")
             .imageUrl("https://example.com/" + name + ".jpg")
             .textPosition(TextPosition.CENTER)
+            .mediaType(MediaType.IMAGE)
             .bannerType(BannerType.SURVEY)
             .sortOrder(0)
             .startDate(startDate)
@@ -192,6 +199,9 @@ public class BannerTestFactory {
     }
     if (tempBanner.getTextPosition() == null) {
       builder.textPosition(TextPosition.CENTER);
+    }
+    if (tempBanner.getMediaType() == null) {
+      builder.mediaType(MediaType.IMAGE);
     }
     if (tempBanner.getBannerType() == null) {
       builder.bannerType(BannerType.CURATION);

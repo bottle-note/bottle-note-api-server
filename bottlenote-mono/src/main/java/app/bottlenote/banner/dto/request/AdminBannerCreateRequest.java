@@ -1,6 +1,7 @@
 package app.bottlenote.banner.dto.request;
 
 import app.bottlenote.banner.constant.BannerType;
+import app.bottlenote.banner.constant.MediaType;
 import app.bottlenote.banner.constant.TextPosition;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -22,6 +23,7 @@ public record AdminBannerCreateRequest(
     TextPosition textPosition,
     Boolean isExternalUrl,
     String targetUrl,
+    MediaType mediaType,
     @NotNull(message = "BANNER_TYPE_REQUIRED") BannerType bannerType,
     @Min(value = 0, message = "BANNER_SORT_ORDER_MINIMUM") Integer sortOrder,
     LocalDateTime startDate,
@@ -33,6 +35,7 @@ public record AdminBannerCreateRequest(
     descriptionFontColor = descriptionFontColor != null ? descriptionFontColor : "#ffffff";
     textPosition = textPosition != null ? textPosition : TextPosition.RT;
     isExternalUrl = isExternalUrl != null ? isExternalUrl : false;
+    mediaType = mediaType != null ? mediaType : MediaType.IMAGE;
     sortOrder = sortOrder != null ? sortOrder : 0;
   }
 }
