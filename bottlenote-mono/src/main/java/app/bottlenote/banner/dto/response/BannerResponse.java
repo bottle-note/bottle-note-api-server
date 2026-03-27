@@ -1,6 +1,7 @@
 package app.bottlenote.banner.dto.response;
 
 import app.bottlenote.banner.constant.BannerType;
+import app.bottlenote.banner.constant.MediaType;
 import app.bottlenote.banner.constant.TextPosition;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -24,6 +25,7 @@ public class BannerResponse {
   private TextPosition textPosition;
   private String targetUrl;
   private Boolean isExternalUrl;
+  private MediaType mediaType;
   private BannerType bannerType;
   private Integer sortOrder;
   private LocalDateTime startDate;

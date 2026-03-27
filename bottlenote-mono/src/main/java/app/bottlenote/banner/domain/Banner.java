@@ -1,6 +1,7 @@
 package app.bottlenote.banner.domain;
 
 import app.bottlenote.banner.constant.BannerType;
+import app.bottlenote.banner.constant.MediaType;
 import app.bottlenote.banner.constant.TextPosition;
 import app.bottlenote.common.domain.BaseEntity;
 import jakarta.persistence.Column;
@@ -73,6 +74,12 @@ public class Banner extends BaseEntity {
   @Column(name = "target_url")
   private String targetUrl;
 
+  @Comment("미디어 유형")
+  @Column(name = "media_type", nullable = false)
+  @Enumerated(EnumType.STRING)
+  @Builder.Default
+  private MediaType mediaType = MediaType.IMAGE;
+
   @Comment("배너 유형")
   @Column(name = "banner_type", nullable = false)
   @Enumerated(EnumType.STRING)
@@ -106,6 +113,7 @@ public class Banner extends BaseEntity {
       TextPosition textPosition,
       Boolean isExternalUrl,
       String targetUrl,
+      MediaType mediaType,
       BannerType bannerType,
       Integer sortOrder,
       LocalDateTime startDate,
@@ -120,6 +128,7 @@ public class Banner extends BaseEntity {
     this.textPosition = textPosition;
     this.isExternalUrl = isExternalUrl;
     this.targetUrl = targetUrl;
+    this.mediaType = mediaType != null ? mediaType : this.mediaType;
     this.bannerType = bannerType;
     this.sortOrder = sortOrder;
     this.startDate = startDate;

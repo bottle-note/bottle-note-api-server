@@ -67,7 +67,8 @@ public class AdminCurationService {
                         alcohol.getEngCategory(),
                         alcohol.getImageUrl(),
                         alcohol.getCreateAt(),
-                        alcohol.getLastModifyAt()))
+                        alcohol.getLastModifyAt(),
+                        alcohol.getDeletedAt()))
             .toList();
 
     return AdminCurationDetailResponse.of(

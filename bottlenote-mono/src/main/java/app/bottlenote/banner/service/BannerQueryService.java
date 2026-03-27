@@ -34,6 +34,7 @@ public class BannerQueryService {
                     .textPosition(banner.getTextPosition())
                     .targetUrl(banner.getTargetUrl())
                     .isExternalUrl(banner.getIsExternalUrl())
+                    .mediaType(banner.getMediaType())
                     .bannerType(banner.getBannerType())
                     .sortOrder(banner.getSortOrder())
                     .startDate(banner.getStartDate())
