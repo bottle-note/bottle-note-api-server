@@ -8,17 +8,13 @@ import static app.bottlenote.support.report.exception.ReportExceptionCode.ALREAD
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
 import app.bottlenote.global.data.response.Error;
-import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.fixture.ReviewTestFactory;
@@ -31,13 +27,12 @@ import app.bottlenote.support.report.dto.response.ReviewReportResponse;
 import app.bottlenote.support.report.dto.response.UserReportResponse;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.fixture.UserTestFactory;
-import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.http.HttpStatus;
+import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
 @Tag("integration")
 @DisplayName("[integration] [controller] HelpController")
@@ -59,29 +54,23 @@ class ReportIntegrationTest extends IntegrationTestSupport {
     ReviewReportRequest reviewReportRequest =
         new ReviewReportRequest(review.getId(), ADVERTISEMENT, "이 리뷰는 광고 리뷰입니다.");
 
-    MvcResult result =
-        mockMvc
-            .perform(
-                post("/api/v1/reports/review")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(mapper.writeValueAsString(reviewReportRequest))
-                    .header("Authorization", "Bearer " + getToken())
-                    .with(csrf()))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.code").value(200))
-            .andExpect(jsonPath("$.data").exists())
-            .andReturn();
+    // when
+    MvcTestResult result =
+        mockMvcTester
+            .post()
+            .uri("/api/v1/reports/review")
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(reviewReportRequest))
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
 
+    // then
     ReviewReport saved = reviewReportRepository.findAll().getFirst();
     assertNotNull(saved);
     assertEquals(review.getId(), saved.getReviewId());
 
-    String contentAsString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-    GlobalResponse response = mapper.readValue(contentAsString, GlobalResponse.class);
-    ReviewReportResponse reviewReportResponse =
-        mapper.convertValue(response.getData(), ReviewReportResponse.class);
-
+    ReviewReportResponse reviewReportResponse = extractData(result, ReviewReportResponse.class);
     assertTrue(reviewReportResponse.success());
   }
 
@@ -95,49 +84,45 @@ class ReportIntegrationTest extends IntegrationTestSupport {
     ReviewReportRequest reviewReportRequest =
         new ReviewReportRequest(review.getId(), ADVERTISEMENT, "이 리뷰는 광고 리뷰입니다.");
 
-    MvcResult result =
-        mockMvc
-            .perform(
-                post("/api/v1/reports/review")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(mapper.writeValueAsString(reviewReportRequest))
-                    .header("Authorization", "Bearer " + getToken())
-                    .with(csrf()))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.code").value(200))
-            .andExpect(jsonPath("$.data").exists())
-            .andReturn();
+    // when - 첫 번째 신고 (성공)
+    MvcTestResult firstResult =
+        mockMvcTester
+            .post()
+            .uri("/api/v1/reports/review")
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(reviewReportRequest))
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
 
     ReviewReport saved =
         reviewReportRepository.findById(reviewReportRequest.reportReviewId()).orElse(null);
     assertNotNull(saved);
 
-    String contentAsString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-    GlobalResponse response = mapper.readValue(contentAsString, GlobalResponse.class);
     ReviewReportResponse reviewReportResponse =
-        mapper.convertValue(response.getData(), ReviewReportResponse.class);
-
+        extractData(firstResult, ReviewReportResponse.class);
     assertTrue(reviewReportResponse.success());
 
+    // when - 두 번째 신고 (에러)
     Error error = Error.of(ALREADY_REPORTED_REVIEW);
 
-    mockMvc
-        .perform(
-            post("/api/v1/reports/review")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(reviewReportRequest))
-                .header("Authorization", "Bearer " + getToken())
-                .with(csrf()))
-        .andDo(print())
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.code").value(400))
-        .andExpect(
-            jsonPath("$.errors[?(@.code == 'ALREADY_REPORTED_REVIEW')].status")
-                .value(error.status().name()))
-        .andExpect(
-            jsonPath("$.errors[?(@.code == 'ALREADY_REPORTED_REVIEW')].message")
-                .value(error.message()));
+    MvcTestResult secondResult =
+        mockMvcTester
+            .post()
+            .uri("/api/v1/reports/review")
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(reviewReportRequest))
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
+
+    // then
+    secondResult
+        .assertThat()
+        .hasStatus(HttpStatus.BAD_REQUEST)
+        .bodyJson()
+        .extractingPath("$.errors[0].status")
+        .isEqualTo(error.status().name());
   }
 
   @DisplayName("서로 다른 IP로 5개의 신고가 누적되면 리뷰가 비활성화 된다.")
@@ -150,7 +135,6 @@ class ReportIntegrationTest extends IntegrationTestSupport {
     ReviewReportRequest reviewReportRequest =
         new ReviewReportRequest(review.getId(), ADVERTISEMENT, "이 리뷰는 광고 리뷰입니다.");
 
-    // 1~4번째 신고자 생성 및 신고 저장
     for (int i = 1; i <= 4; i++) {
       User reporter = userTestFactory.persistUser("reporter-" + i, "신고자" + i);
       ReviewReport reviewReport =
@@ -167,31 +151,25 @@ class ReportIntegrationTest extends IntegrationTestSupport {
     Review beforeReview =
         reviewRepository.findById(reviewReportRequest.reportReviewId()).orElse(null);
 
-    // 5번째 신고를 위한 신고자 생성
     User fifthReporter = userTestFactory.persistUser("report-5th", "다섯번째신고자");
 
-    MvcResult result =
-        mockMvc
-            .perform(
-                post("/api/v1/reports/review")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(mapper.writeValueAsString(reviewReportRequest))
-                    .header("Authorization", "Bearer " + getToken(fifthReporter).accessToken())
-                    .with(csrf()))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.code").value(200))
-            .andExpect(jsonPath("$.data").exists())
-            .andReturn();
+    // when
+    MvcTestResult result =
+        mockMvcTester
+            .post()
+            .uri("/api/v1/reports/review")
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(reviewReportRequest))
+            .header("Authorization", "Bearer " + getToken(fifthReporter).accessToken())
+            .with(csrf())
+            .exchange();
 
+    // then
     ReviewReport savedReport =
         reviewReportRepository.findById(reviewReportRequest.reportReviewId()).orElse(null);
     assertNotNull(savedReport);
 
-    String content = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-    GlobalResponse res = mapper.readValue(content, GlobalResponse.class);
-    ReviewReportResponse reviewReportResponse =
-        mapper.convertValue(res.getData(), ReviewReportResponse.class);
+    ReviewReportResponse reviewReportResponse = extractData(result, ReviewReportResponse.class);
 
     Review afterReview =
         reviewRepository.findById(reviewReportRequest.reportReviewId()).orElse(null);
@@ -216,25 +194,19 @@ class ReportIntegrationTest extends IntegrationTestSupport {
     UserReportRequest userReportRequest =
         new UserReportRequest(targetUser.getId(), UserReportType.FRAUD, "아주 나쁜놈이에요 신고합니다.");
 
-    MvcResult result =
-        mockMvc
-            .perform(
-                post("/api/v1/reports/user")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(mapper.writeValueAsString(userReportRequest))
-                    .header("Authorization", "Bearer " + getToken(reporter).accessToken())
-                    .with(csrf()))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.code").value(200))
-            .andExpect(jsonPath("$.data").exists())
-            .andReturn();
+    // when
+    MvcTestResult result =
+        mockMvcTester
+            .post()
+            .uri("/api/v1/reports/user")
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(userReportRequest))
+            .header("Authorization", "Bearer " + getToken(reporter).accessToken())
+            .with(csrf())
+            .exchange();
 
-    String contentAsString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-    GlobalResponse response = mapper.readValue(contentAsString, GlobalResponse.class);
-    UserReportResponse userReportResponse =
-        mapper.convertValue(response.getData(), UserReportResponse.class);
-
+    // then
+    UserReportResponse userReportResponse = extractData(result, UserReportResponse.class);
     assertEquals(userReportResponse.getMessage(), SUCCESS.getMessage());
   }
 }
