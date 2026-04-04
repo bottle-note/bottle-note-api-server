@@ -23,8 +23,9 @@ allprojects {
 	}
 }
 
-// 서브모듈 공통 설정
+// 서브모듈 공통 설정/
 subprojects {
+
 	apply plugin: 'java-library'
 	apply plugin: 'org.springframework.boot'
 	apply plugin: 'io.spring.dependency-management'
