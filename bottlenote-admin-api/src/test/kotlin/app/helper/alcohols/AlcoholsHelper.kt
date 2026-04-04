@@ -140,7 +140,8 @@ object AlcoholsHelper {
 				listOf("유럽", "유럽", "아시아")[i - 1],
 				"지역 설명 $i",
 				LocalDateTime.of(2024, 1, i, 0, 0),
-				LocalDateTime.of(2024, 6, i, 0, 0)
+				LocalDateTime.of(2024, 6, i, 0, 0),
+				null
 			)
 		}
 
