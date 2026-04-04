@@ -46,6 +46,7 @@ dependencies {
 	testImplementation libs.mockito.inline
 	testImplementation libs.bundles.testcontainers.complete
 	testImplementation libs.archunit
+	testImplementation libs.liquibase.core
 }
 
 bootJar {

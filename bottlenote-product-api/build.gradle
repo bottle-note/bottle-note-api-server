@@ -50,6 +50,9 @@ dependencies {
 	// Test - TestContainers
 	testImplementation libs.bundles.testcontainers.complete
 
+	// Test - Liquibase (schema initialization)
+	testImplementation libs.liquibase.core
+
 	// Test - ArchUnit
 	testImplementation libs.archunit
 
@@ -83,8 +86,7 @@ sourceSets {
 	}
 	test {
 		resources {
-			srcDirs = ['src/test/resources',
-					   "${rootProject.projectDir}/git.environment-variables"]
+			srcDirs = ['src/test/resources']
 		}
 	}
 }

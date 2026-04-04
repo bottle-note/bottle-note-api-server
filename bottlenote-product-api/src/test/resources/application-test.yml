@@ -1,3 +1,4 @@
+
 spring:
   main:
     allow-bean-definition-overriding: true
@@ -28,13 +29,10 @@ spring:
     url: jdbc:tc:mysql:8.0.32:///bottlenote
     username: root
     password: root
-  sql:
-    init:
-      # mode: always
-      # schema-locations:
-      #   - classpath:storage/mysql/init/00-init-config-table.sql
-      #   - classpath:storage/mysql/init/01-init-core-table.sql
-      #   # - classpath:storage/mysql/init/*.sql
+  # Liquibase
+  liquibase:
+    change-log: classpath:storage/mysql/changelog/schema.mysql.sql
+    enabled: true
 
   # JPA
   jpa:
