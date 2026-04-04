@@ -1,5 +1,6 @@
 package app.bottlenote.config;
 
+import app.bottlenote.alcohols.domain.RegionRepository;
 import app.bottlenote.alcohols.repository.AlcoholQuerySupporter;
 import app.bottlenote.global.data.serializers.CustomDeserializers;
 import app.bottlenote.global.data.serializers.CustomDeserializers.TagListDeserializer;
@@ -14,6 +15,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.time.LocalDateTime;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Lazy;
 
 @TestConfiguration
 public class ModuleConfig {
@@ -37,8 +39,8 @@ public class ModuleConfig {
   }
 
   @Bean
-  public AlcoholQuerySupporter alcoholQuerySupporter() {
-    return new AlcoholQuerySupporter();
+  public AlcoholQuerySupporter alcoholQuerySupporter(@Lazy RegionRepository regionRepository) {
+    return new AlcoholQuerySupporter(regionRepository);
   }
 
   @Bean
@@ -52,7 +54,7 @@ public class ModuleConfig {
   }
 
   @Bean
-  public RatingQuerySupporter ratingQuerySupporter() {
-    return new RatingQuerySupporter();
+  public RatingQuerySupporter ratingQuerySupporter(@Lazy RegionRepository regionRepository) {
+    return new RatingQuerySupporter(regionRepository);
   }
 }
