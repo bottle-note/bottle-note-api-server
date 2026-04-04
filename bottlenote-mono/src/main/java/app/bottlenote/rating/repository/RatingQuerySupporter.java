@@ -20,10 +20,14 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.util.StringUtils;
 import java.util.List;
 import java.util.Objects;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class RatingQuerySupporter {
+
+  private final app.bottlenote.alcohols.domain.RegionRepository regionRepository;
 
   /**
    * CursorPageable 생성
@@ -98,11 +102,15 @@ public class RatingQuerySupporter {
     return alcohol.categoryGroup.stringValue().like("%" + category + "%");
   }
 
-  /** 리전을 검색하는 조건 */
+  /** 리전을 검색하는 조건 (부모 지역이면 하위 지역 포함) */
   protected BooleanExpression eqAlcoholRegion(Long regionId) {
     if (regionId == null) return null;
-
-    return alcohol.region.id.eq(regionId);
+    List<Long> childIds = regionRepository.findChildRegionIds(regionId);
+    if (childIds.isEmpty()) return alcohol.region.id.eq(regionId);
+    List<Long> regionIds = new java.util.ArrayList<>(childIds.size() + 1);
+    regionIds.add(regionId);
+    regionIds.addAll(childIds);
+    return alcohol.region.id.in(regionIds);
   }
 
   /**
