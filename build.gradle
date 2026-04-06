@@ -127,6 +127,7 @@ subprojects {
 		useJUnitPlatform {
 			includeTags 'integration'
 		}
+		systemProperty 'testcontainers.db.name', 'bottlenote_product'
 	}
 
 	tasks.register('unit_test', Test) {
@@ -145,6 +146,7 @@ subprojects {
 		useJUnitPlatform {
 			includeTags 'admin_integration'
 		}
+		systemProperty 'testcontainers.db.name', 'bottlenote_admin'
 	}
 
 	// REST Docs 테스트 (app.docs 패키지)

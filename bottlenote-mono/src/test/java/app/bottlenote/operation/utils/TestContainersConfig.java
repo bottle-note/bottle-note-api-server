@@ -8,8 +8,6 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.redis.testcontainers.RedisContainer;
-import java.util.Collections;
-import java.util.UUID;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
@@ -17,6 +15,9 @@ import org.springframework.context.annotation.Primary;
 import org.testcontainers.containers.MinIOContainer;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.utility.DockerImageName;
+
+import java.util.Collections;
+import java.util.UUID;
 
 /**
  * TestContainers 설정을 관리하는 Spring Bean 기반 Configuration
@@ -27,13 +28,16 @@ import org.testcontainers.utility.DockerImageName;
 @SuppressWarnings("resource")
 public class TestContainersConfig {
 
+  private static final String DEFAULT_DB_NAME = "bottlenote";
+
   /** MySQL 컨테이너를 Spring Bean으로 등록합니다. @ServiceConnection이 자동으로 DataSource 설정을 처리합니다. */
   @Bean
   @ServiceConnection
   MySQLContainer<?> mysqlContainer() {
+    String dbName = System.getProperty("testcontainers.db.name", DEFAULT_DB_NAME);
     return new MySQLContainer<>(DockerImageName.parse("mysql:8.0.32"))
         .withReuse(true)
-        .withDatabaseName("bottlenote")
+        .withDatabaseName(dbName)
         .withUsername("root")
         .withPassword("root");
   }

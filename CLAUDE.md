@@ -2,118 +2,75 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> 해당 지침은 Claude Code가 이 저장소의 코드 작업 시 참고할 수 있도록 작성되었습니다.
-> 만약 해당 파일과 동일한 경로에 CLAUDE.personal.md 파일이 존재한다면, 그 파일의 내용 또한 참고하여 작업을 진행하세요.
-> **개인 지침이 팀 지침과 충돌할 경우 팀 지침을 우선시하세요.**
+> If a `CLAUDE.personal.md` file exists in the same directory, also refer to its contents.
+> **Team instructions take priority over personal instructions when they conflict.**
 
-## 유저 지침
+## User Instructions
 
-- 영어로 질문하는 경우 의도를 잘 파악하고 문법적 오류가 있을 경우 응답에 문법에 대한 피드백을 제공하세요.
-- 질문 언어와 관련없이 응답 언어는 한국어로 작성하세요.
-- 복잡하거나 애매한 질문의 경우 이해한 내용을 요약해서 응답에 포함하세요.
-- 질문에 대한 답변은 명확하고 간결하게 작성하세요 (3-5줄 내외 권장).
-- 코드 예시가 필요한 경우 전체 코드를 한번에 보여줄지, 단계별로 나누어 설명할지 사용자에게 물어보세요.
-- 코드 예시가 필요한 경우, 코드의 목적과 사용법을 간단히 설명하세요.
-- 코드를 작성할 경우 주석은 한줄로 간략하게만 작성하세요.
-- 기존 코드 수정 시 프로젝트의 기존 패턴과 컨벤션을 반드시 따르세요.
-- 여러 파일 수정이 필요한 경우 수정할 파일 목록을 미리 알려주세요.
-- 에러나 문제 해결 시 단계별 접근 방법을 제시하세요.
-- 여러 해결책이 있을 때는 프로젝트 컨텍스트에 가장 적합한 방법을 우선 추천하세요.
+- Always respond in Korean regardless of question language.
+- If the user asks in English and there are grammar errors, provide grammar feedback in the response.
+- For complex or ambiguous questions, include a summary of your understanding in the response.
+- Keep answers clear and concise (3-5 lines recommended).
+- When code examples are needed, ask whether to show all at once or step by step.
+- When writing code, keep comments to a single brief line.
+- When modifying existing code, always follow the project's existing patterns and conventions.
+- When multiple files need changes, list the files to be modified upfront.
+- For error resolution, present a step-by-step approach.
+- When multiple solutions exist, recommend the one most fitting the project context first.
 
-## 프로젝트 개요
+## Project Overview
 
-- **기술 스택**: Spring Boot 3.1.9, Java 21, MySQL, Redis, QueryDSL
-- **아키텍처**: 도메인 주도 설계(DDD) 기반 멀티모듈 구조
-- **주요 도메인**: alcohols, user, review, rating, support, history, picks, like
+- **Stack**: Spring Boot 3.1.9, Java 21, MySQL, Redis, QueryDSL
+- **Architecture**: DDD-based multi-module structure
+- **Core Domains**: alcohols, user, review, rating, support, history, picks, like
 
 ## 모듈 구조
 
 ```mermaid
 flowchart TD
-    subgraph deploy["배포 단위 (JAR)"]
+    subgraph executable["Executable (bootJar)"]
         direction LR
-        product["product-api<br/>클라이언트용 · Java"]
-        admin["admin-api<br/>관리자용 · Kotlin"]
+        product["product-api<br/>Client API · Java"]
+        admin["admin-api<br/>Admin API · Kotlin"]
+        batch["batch<br/>Batch · Quartz"]
     end
 
-    subgraph libs["라이브러리 모듈"]
+    subgraph library["Library (JAR)"]
         direction LR
-        obs["observability<br/>모니터링 · OpenTelemetry"]
-        batch["batch<br/>배치 작업 · Quartz"]
+        mono["mono<br/>Shared Domain · JPA · QueryDSL"]
+        obs["observability<br/>OpenTelemetry · Micrometer"]
     end
 
-    mono["bottlenote-mono<br/>공유 라이브러리<br/>도메인/비즈니스 · JPA · QueryDSL"]
-
-    product --> obs & batch & mono
-    admin --> obs & mono
+    product --> mono & obs
+    admin --> mono
     batch --> mono
+    mono --> obs
 ```
 
-### bottlenote-mono
-- **역할**: 레거시 모놀리식 모듈 (핵심 비즈니스 로직)
-- **특징**:
-  - 모든 도메인 엔티티와 비즈니스 로직 포함
-  - JPA, QueryDSL, Redis 등 데이터 접근 계층
-  - 보안, 인증, 외부 서비스 연동 로직
-  - 라이브러리 JAR로 빌드 (실행 불가)
+### bottlenote-mono (Library)
+- Shared domain library: all entities, business logic, JPA, QueryDSL, Redis, Caffeine cache
+- Security, authentication, external service integration (AWS S3, Firebase, Feign)
+- Depends on `observability` (api import)
 
-### bottlenote-product-api
-- **역할**: API 서버 모듈
-- **특징**:
-  - bottlenote-mono 모듈 의존
-  - REST API 컨트롤러 계층
-  - API 문서화 (REST Docs, OpenAPI)
-  - 실행 가능한 Spring Boot JAR로 빌드
-  - 테스트 환경 구성 (단위, 통합, 아키텍처 규칙)
-  - 클라이언트 사용자들의 요구사항을 처리하는 api 서버
+### bottlenote-product-api (Executable, Java)
+- Client-facing REST API server (picks, likes, ratings, auth, follow, etc.)
+- Depends on `mono` + `observability`
+- REST Docs + OpenAPI documentation
 
-### bottlenote-admin-api
-- **역할**: 관리자용 API 서버 모듈 (Kotlin)
-- **특징**:
-  - bottlenote-mono 모듈 의존 (비즈니스 로직은 mono에서 제공)
-  - 관리자 전용 REST API (프레젠테이션 계층만 담당)
-  - context-path: `/admin/api/v1`
-  - Spring REST Docs 기반 API 문서화
-  - JWT 기반 어드민 전용 인증 체계
-  - 루트 어드민 자동 초기화 (`ApplicationReadyEvent`)
+### bottlenote-admin-api (Executable, Kotlin)
+- Admin REST API (presentation layer only, business logic from mono)
+- Depends on `mono` only
+- context-path: `/admin/api/v1`
+- JWT-based admin authentication, RBAC: `ROOT_ADMIN`, `PARTNER`, `COMMUNITY_MANAGER`
 
-**패키지 구조**:
-```
-app/
-├── Application.kt                 # 진입점
-├── bottlenote/{domain}/
-│   ├── presentation/              # 컨트롤러
-│   └── config/                    # 설정 클래스
-└── global/
-    ├── common/                    # 공통 유틸
-    └── security/                  # 보안 설정
-```
+### bottlenote-batch (Executable, Java)
+- Spring Batch + Quartz scheduler for ranking/popularity calculation jobs
+- Depends on `mono` only
 
-**Kotlin 코딩 컨벤션**:
-- `data class`: 요청/응답 DTO, 설정 클래스
-- `object`: 테스트 헬퍼 (싱글톤)
-- `val` 불변성 선호, `lateinit var`는 DI 주입용으로만 사용
-- 생성자 주입: 클래스 선언부에 파라미터로 명시
-- Named parameters 활용으로 가독성 향상
-
-**테스트 구조**:
-- `@Tag("admin_integration")`: 통합 테스트 태그
-- `IntegrationTestSupport`: 테스트 베이스 클래스 (TestContainers, MockMvcTester)
-- `app/docs/`: RestDocs 테스트 (`@WebMvcTest`)
-- `app/integration/`: 통합 테스트
-- `app/helper/`: 테스트 헬퍼 (`object` 싱글톤)
-
-**인증 체계**:
-- `AdminJwtAuthenticationFilter`, `AdminJwtAuthenticationManager` 사용
-- `SecurityContextUtil.getAdminUserIdByContext()`: 현재 어드민 ID 조회
-- RBAC 역할: `ROOT_ADMIN`, `PARTNER`, `COMMUNITY_MANAGER`
-
-### bottlenote-batch
-- **역할**: 배치 처리 모듈
-- **특징**:
-  - Spring Batch 기반 배치 작업
-  - Quartz 스케줄러 통합
-  - 정기적인 데이터 처리 작업
+### bottlenote-observability (Library)
+- Standalone monitoring library: OpenTelemetry, Micrometer, Spring Actuator
+- AOP-based tracing: `TracingService`, `@TraceMethod`, `@SkipTrace`
+- No internal module dependencies
 
 ## 빌드 및 실행
 

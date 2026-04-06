@@ -217,40 +217,46 @@ allowed-tools: Read, Edit, Write, Bash, Glob, Grep, Agent
 
 ## 5. 훅 설계
 
-### 5.1 PostToolUse: 자동 포매팅
+### 5.1 PostToolUse: 자동 포매팅 [구현 완료]
 
-**목적**: Claude가 Java 파일을 수정하면 자동으로 spotless 적용
+**목적**: Claude가 Java/Kotlin 파일을 수정하면 자동으로 spotless 적용
+
+**구현 방식**: 별도 스크립트 없이 settings.json 인라인 명령어로 구현
 
 ```json
 {
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/post-edit-format.sh",
-            "timeout": 30,
-            "statusMessage": "spotless 포매팅 적용 중..."
-          }
-        ]
-      }
-    ]
-  }
+  "PostToolUse": [
+    {
+      "matcher": "Edit|Write",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "FP=$(cat | jq -r '.tool_input.file_path // empty'); [[ \"$FP\" == *.java || \"$FP\" == *.kt ]] && cd $CLAUDE_PROJECT_DIR && ./gradlew spotlessApply -q 2>/dev/null || true",
+          "timeout": 30
+        }
+      ]
+    }
+  ]
 }
 ```
 
-**post-edit-format.sh 동작**:
-1. stdin으로 전달된 JSON에서 `tool_input.file_path` 추출
-2. `.java` 파일인 경우에만 spotless 실행
-3. mono 또는 product-api 모듈의 파일인지 판별 후 해당 모듈에 spotlessApply
-4. `.kt` 파일은 별도 포매터 적용 (ktlint 등, 추후 검토)
+**동작**:
+1. stdin JSON에서 `tool_input.file_path` 추출
+2. `.java` 또는 `.kt` 파일인 경우에만 spotless 실행
+3. 그 외 파일(.md, .gradle, .xml 등)은 스킵
 
-**고려사항**:
-- spotlessApply는 프로젝트 전체를 포매팅하므로 성능 이슈 가능
-- 대안: google-java-format CLI를 직접 호출하여 단일 파일만 포매팅
-- 타임아웃 30초 설정 (빌드 캐시가 있으면 빠름)
+**빌드 설정 (build.gradle)**:
+- `bottlenote-mono`, `bottlenote-product-api`: google-java-format (기존)
+- `bottlenote-admin-api`: ktlint 추가 (`no-wildcard-imports` 규칙 비활성화)
+
+**검증 결과**:
+- .java 파일: 인덴트/공백 위반 자동 복원 확인 (MD5 해시 일치)
+- .kt 파일: 인덴트/공백 위반 자동 복원 확인 (MD5 해시 일치)
+- .gradle 파일: Hook 미실행 확인 (의도대로 동작)
+
+**참고**:
+- 초기에 별도 스크립트(post-edit-format.sh)로 모듈별 분기 로직을 구현했으나, 인라인 명령어가 더 간결하여 채택
+- ktlint의 `no-wildcard-imports` 규칙은 auto-fix 불가 (클래스패스 분석 필요) → 비활성화 처리
 
 ### 5.2 PreToolUse: 커밋 메시지 검증
 
@@ -343,10 +349,11 @@ allowed-tools: Read, Edit, Write, Bash, Glob, Grep, Agent
 
 ### Phase 3: 훅 구현
 
-- [ ] `post-edit-format.sh` 작성 및 테스트
+- [x] PostToolUse 자동 포매팅 훅 (인라인 명령어 방식, .java + .kt 대응)
+- [x] build.gradle에 admin-api Kotlin spotless 설정 추가 (ktlint)
+- [x] 훅 동작 검증 (.java, .kt, .gradle 3종 케이스 MD5 해시 비교)
 - [ ] `pre-commit-validate.sh` 작성 및 테스트
-- [ ] settings.json 업데이트
-- [ ] 훅 성능 측정 (spotless 소요 시간)
+- [ ] settings.json에 PreToolUse 커밋 메시지 검증 훅 추가
 
 ### Phase 4: 검증 및 조정
 
@@ -361,10 +368,10 @@ allowed-tools: Read, Edit, Write, Bash, Glob, Grep, Agent
 
 | # | 질문 | 선택지 | 메모 |
 |---|------|--------|------|
-| 1 | spotless를 PostToolUse에서 실행할지, 커밋 전에만 실행할지 | A: 매 편집마다 / B: 커밋 전만 | A는 정확하지만 느림, B는 빠르지만 중간 상태가 어색 |
+| 1 | spotless를 PostToolUse에서 실행할지, 커밋 전에만 실행할지 | A: 매 편집마다 / B: 커밋 전만 | **결정: A** - 매 편집마다 실행, .java/.kt 파일만 필터링하여 불필요한 실행 방지 |
 | 2 | 스킬 간 공통 규칙(네이밍, 예외 처리)을 어디에 둘지 | A: CLAUDE.md / B: 별도 공통 스킬 / C: 각 스킬에 중복 | A가 가장 단순 |
 | 3 | admin-api 스킬에 context: fork를 적용할지 | A: fork (독립 컨텍스트) / B: 기본 (대화 공유) | fork면 대화 이력 참조 불가 |
-| 4 | Kotlin 파일 포매팅은 어떻게 할지 | A: ktlint / B: ktfmt / C: 당분간 제외 | admin-api는 Kotlin |
+| 4 | Kotlin 파일 포매팅은 어떻게 할지 | A: ktlint / B: ktfmt / C: 당분간 제외 | **���정: A** - ktlint 채택, `no-wildcard-imports` 규칙만 비활성화 (auto-fix 불가) |
 
 ---
 
