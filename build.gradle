@@ -76,7 +76,7 @@ subprojects {
 		}
 	}
 
-	// Spotless 설정 (mono, product-api에서 사용)
+	// Spotless 설정 (mono, product-api: Java / admin-api: Kotlin)
 	if (project.name in ['bottlenote-mono', 'bottlenote-product-api']) {
 		apply plugin: 'com.diffplug.spotless'
 
@@ -85,6 +85,19 @@ subprojects {
 				googleJavaFormat('1.27.0')
 				target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
 				targetExclude 'src/main/generated/**'
+			}
+		}
+	}
+
+	if (project.name == 'bottlenote-admin-api') {
+		apply plugin: 'com.diffplug.spotless'
+
+		spotless {
+			kotlin {
+				ktlint().editorConfigOverride([
+					'ktlint_standard_no-wildcard-imports': 'disabled'
+				])
+				target 'src/main/kotlin/**/*.kt', 'src/test/kotlin/**/*.kt'
 			}
 		}
 	}
