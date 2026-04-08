@@ -576,3 +576,92 @@ sequenceDiagram
 - [x] 기존 스킬(`implement-product-api`, `implement-test`)은 **제거 완료** (`a2945e59`)
 - [x] CLAUDE.md의 Admin/Product 구현 규칙은 `references/`로 **이동**, CLAUDE.md는 프로젝트 개요 중심으로 재구성
 - [x] 스킬 문서(SKILL.md, references)는 **영어**로 작성. 한국어는 커밋 메시지, plan 문서, 대화 응답, @DisplayName 등으로 제한
+
+---
+
+## 10. 동작 검증 및 피드백 (2026-04-08)
+
+### 검증 대상
+
+"어드민 유저 목록 조회 API" 기능을 `/define` -> `/plan` -> `/implement` -> `/self-review` -> `/test` -> `/verify full` 풀 사이클로 구현하며 스킬 체계를 실전 검증함.
+
+### 검증 결과 요약
+
+| Skill | 동작 여부 | 비고 |
+|-------|----------|------|
+| `/define` | O | 가정 7개, 성공 기준 7개 도출. 사용자 승인 게이트 정상 작동 |
+| `/plan` | O | 4개 Task 분해 (S x 3, M x 1). 의존 순서 정확 |
+| `/implement` | O | 9개 파일 생성/수정, Slice 단위 컴파일 체크 정상 |
+| `/self-review` | O | InMemory 구현체 누락 3건 발견 (Critical). 5축 리뷰 유효 |
+| `/test` | O | 통합 테스트 8개 작성, 시나리오 정의 -> 구현 흐름 정상 |
+| `/verify full` | O | L3 전체 통과. local record QueryDSL Projection 버그 발견 및 수정 |
+
+### 발견된 문제점
+
+#### [P1] 스킬 간 자동 연결 부재
+
+**현상**: `/implement` 완료 후 `/test`, `/verify full`로 자동 이어지지 않고, 사용자가 직접 "진행하자"라고 말해야 다음 스킬이 실행됨.
+
+**원인**: 각 스킬이 독립적으로 설계되어 있고, 다음 스킬을 자동 호출하라는 지시가 없음. CLAUDE.md에 라이프사이클 순서(`/define` -> `/plan` -> `/implement` -> `/test` -> `/verify full`)가 명시되어 있지만, 개별 스킬의 종료 시점에서 다음 스킬로의 전환을 안내하지 않음.
+
+**개선안**:
+- `/implement` 스킬 마지막에 "모든 Task 완료 시 `/test` -> `/verify full`까지 연속 실행" 지시 추가
+- 또는 각 스킬 Verification 섹션에 "Next: `/xxx`" 안내 추가
+
+#### [P2] plan 문서 마무리 프로세스 누락
+
+**현상**: 풀 사이클 완료 후 stamp-template.st 기반 스탬프 추가 및 `plan/complete/` 이동이 수행되지 않음.
+
+**원인**: `/plan` 스킬의 Plan Document Lifecycle에 "전체 완료 -> 스탬프 추가 -> complete로 이동"이 정의되어 있지만, 이 마무리를 담당하는 스킬이 없음. `/implement`도 `/verify`도 이 책임을 갖고 있지 않음.
+
+**개선안**:
+- `/verify full` 통과 후 또는 최종 커밋 후 stamp + complete 이동을 수행하는 마무리 단계를 `/implement` 또는 별도 스킬에 명시
+- 가장 간단한 방법: `/implement` 스킬의 Phase 4 (Final Verification) 이후에 plan 문서 마무리 절차 추가
+
+#### [P3] API 문서화 스킬 부재
+
+**현상**: 현재 스킬 체계에 RestDocs 테스트 작성 후 API 스펙 문서(adoc)를 생성하는 스킬이 없음.
+
+**원인**: `/test` 스킬에서 RestDocs 테스트 작성은 "사용자 요청 시만" 옵션으로 존재하지만, RestDocs 테스트 후 각 모듈의 `docs/` 디렉토리에 adoc 스펙 문서를 추가하는 워크플로우가 정의되어 있지 않음.
+
+**기대 흐름**: `/implement` -> `/test` (RestDocs 포함) -> adoc 스펙 생성 -> `./gradlew asciidoctor` 검증
+
+**개선안**:
+- `/test` 스킬에 RestDocs 작성 시 adoc 스펙 문서 생성까지 포함하는 Phase 추가
+- 또는 별도 `/docs` 스킬 신설: RestDocs 테스트 기반 API 문서화 전담
+- 문서 생성 후 `./gradlew asciidoctor` 검증을 `/verify` L2 이상에 포함
+
+#### [P4] self-review에서 발견한 패턴: InMemory 구현체 갱신 누락
+
+**현상**: `UserRepository` 인터페이스에 메서드 추가 시 3개의 InMemory 구현체(mono 1개, product-api 2개) 갱신을 누락하여 컴파일 에러 발생.
+
+**원인**: `/implement` 스킬에 "Repository 인터페이스 변경 시 InMemory 구현체도 갱신하라"는 Red Flag은 있지만, 구체적으로 어떤 모듈의 어떤 파일을 확인해야 하는지 가이드가 부족함.
+
+**개선안**: `/implement` 스킬의 Phase 1 (Mono Module) 또는 Red Flags에 구체적 체크 항목 추가:
+```
+Repository 인터페이스 변경 시 확인 대상:
+- mono/src/test/.../fixture/InMemory{Domain}*.java
+- product-api/src/test/.../fixture/InMemory{Domain}*.java
+```
+
+#### [P5] verify L3에서 발견한 패턴: local record와 QueryDSL Projection 비호환
+
+**현상**: 메서드 내부 local record를 `Projections.constructor()`에 사용하면 런타임에 생성자를 찾지 못함. 컴파일은 통과하지만 실행 시 실패.
+
+**원인**: local record는 컴파일 시 외부 클래스 참조 파라미터가 숨겨져 추가되어, QueryDSL 리플렉션 기반 생성자 매칭이 실패함.
+
+**개선안**: `/implement` 스킬의 references 또는 Red Flags에 추가:
+```
+QueryDSL Projections.constructor()에 사용하는 record는 반드시 
+클래스/인터페이스 레벨에 정의할 것. 메서드 내 local record는 리플렉션 실패.
+```
+
+### 우선순위
+
+| 우선순위 | 항목 | 난이도 |
+|---------|------|--------|
+| 높음 | P1: 스킬 간 자동 연결 | 각 스킬 SKILL.md에 Next 안내 추가 (S) |
+| 높음 | P2: plan 문서 마무리 프로세스 | `/implement` Phase 4에 절차 추가 (S) |
+| 중간 | P3: API 문서화 스킬 | `/docs` 스킬 신설 또는 `/test` 확장 (M) |
+| 낮음 | P4: InMemory 갱신 가이드 강화 | Red Flags에 구체적 경로 추가 (S) |
+| 낮음 | P5: local record 주의사항 | references에 한 줄 추가 (S) |

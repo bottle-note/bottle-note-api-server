@@ -1,3 +1,25 @@
+```
+================================================================================
+                          PROJECT COMPLETION STAMP
+================================================================================
+Status: **COMPLETED**
+Completion Date: 2026-04-08
+
+** Core Achievements **
+- GET /admin/api/v1/users 엔드포인트 구현 (키워드 검색, 상태 필터, 5종 정렬, 페이징)
+- 활동 지표(reviewCount, ratingCount, picksCount) 서브쿼리 기반 집계
+- admin 통합 테스트 8개 작성, L3 전체 통과
+
+** Key Components **
+- AdminUsersController.kt: admin-api 컨트롤러 (Kotlin)
+- CustomUserRepositoryImpl.searchAdminUsers(): QueryDSL 쿼리 (socialType 배치 로딩)
+- AdminUserService.java: 서비스 계층 (GlobalResponse.fromPage 위임)
+
+** Deferred Items **
+- RestDocs API 문서화: /docs 스킬 부재로 미작성
+================================================================================
+```
+
 # Plan: 어드민 - 유저 목록 조회 API
 
 ## Overview
