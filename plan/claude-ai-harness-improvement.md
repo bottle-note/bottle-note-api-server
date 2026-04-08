@@ -2,7 +2,8 @@
 
 > 작성일: 2026-04-08
 > 참고: [agent-skills](https://github.com/addyosmani/agent-skills) (Addy Osmani)
-> 상태: 설계 단계
+> 상태: 구현 완료
+> 완료일: 2026-04-08
 
 ---
 
@@ -553,18 +554,18 @@ sequenceDiagram
 
 ---
 
-## 8. 구현 순서 (우선순위)
+## 8. 구현 순서 (실제 진행 순서)
 
-| 순서 | 작업 | 난이도 | 효과 |
-|------|------|--------|------|
-| **1** | 공통 뼈대 확정 (Rationalizations + Red Flags + Verification) | 낮음 | 높음 |
-| **2** | `/implement` 스킬 작성 (implement-product-api + admin 통합) | 중간 | 높음 |
-| **3** | `/test` 스킬 보강 (implement-test 리네이밍 + 구조 보강) | 낮음 | 중간 |
-| **4** | `/debug` 스킬 작성 | 중간 | 높음 |
-| **5** | `/self-review` 스킬 작성 | 중간 | 중간 |
-| **6** | `/define` 스킬 작성 | 낮음 | 중간 |
-| **7** | `/plan` 스킬 작성 | 낮음 | 중간 |
-| **8** | CLAUDE.md 업데이트 (새 스킬 체계 반영) | 낮음 | 높음 |
+| 순서 | 작업 | 커밋 |
+|------|------|------|
+| **1** | `/self-review` 스킬 작성 | `1db651a8` |
+| **2** | `/implement` 스킬 작성 + references 3개 | `1db651a8` |
+| **3** | `/test` 스킬 보강 + references 복사 | `1db651a8` |
+| **4** | `/debug` 스킬 작성 | `1db651a8` |
+| **5** | `/define` 스킬 작성 | `1db651a8` |
+| **6** | `/plan` 스킬 작성 | `1db651a8` |
+| **7** | CLAUDE.md 재구성 (프로젝트 개요 + Skills 섹션) | `1db651a8` |
+| **8** | 기존 스킬 제거 (`implement-product-api`, `implement-test`) | `a2945e59` |
 
 ---
 
@@ -572,6 +573,6 @@ sequenceDiagram
 
 - [x] `/implement`에서 batch 모듈은 **제외** (product + admin만)
 - [x] `/self-review`는 **커밋 전 self-review 전용** (PR 리뷰는 범위 밖)
-- [x] 기존 스킬(`implement-product-api`, `implement-test`)은 **전체 완료 후 제거** (deprecated로 유지)
+- [x] 기존 스킬(`implement-product-api`, `implement-test`)은 **제거 완료** (`a2945e59`)
 - [x] CLAUDE.md의 Admin/Product 구현 규칙은 `references/`로 **이동**, CLAUDE.md는 프로젝트 개요 중심으로 재구성
 - [x] 스킬 문서(SKILL.md, references)는 **영어**로 작성. 한국어는 커밋 메시지, plan 문서, 대화 응답, @DisplayName 등으로 제한
