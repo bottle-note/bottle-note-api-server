@@ -1,3 +1,23 @@
+```
+================================================================================
+                          PROJECT COMPLETION STAMP
+================================================================================
+Status: **COMPLETED**
+Completion Date: 2026-03-30
+
+** Core Achievements **
+- PreSignUrlProvider의 하드코딩 확장자(.jpg) 제거, 7개 MIME 타입 동적 지원
+- ImageUploadService에 withContentType 적용으로 S3 Content-Type 제어 가능
+- ImageUploadRequest에 contentType 필드 추가 (기본값 image/jpeg)
+
+** Key Components **
+- PreSignUrlProvider.java: ALLOWED_CONTENT_TYPES 맵 (jpg, png, webp, gif, svg, mp4, pdf)
+- ImageUploadService.java: generatePreSignUrl(imageKey, contentType) 시그니처 변경
+- ImageUploadRequest.java: contentType 필드 추가
+- FileExceptionCode.java: UNSUPPORTED_CONTENT_TYPE 예외 추가
+================================================================================
+```
+
 # PreSigned URL Content-Type 지원
 
 > Issue: https://github.com/bottle-note/workspace/issues/205

@@ -9,6 +9,18 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FP=$(cat | jq -r '.tool_input.file_path // empty'); [[ \"$FP\" == *.java || \"$FP\" == *.kt ]] && cd $CLAUDE_PROJECT_DIR && ./gradlew spotlessApply -q 2>/dev/null || true",
+            "timeout": 30
+          }
+        ]
+      }
     ]
   }
 }

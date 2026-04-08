@@ -23,8 +23,9 @@ allprojects {
 	}
 }
 
-// 서브모듈 공통 설정
+// 서브모듈 공통 설정/
 subprojects {
+
 	apply plugin: 'java-library'
 	apply plugin: 'org.springframework.boot'
 	apply plugin: 'io.spring.dependency-management'
@@ -75,7 +76,7 @@ subprojects {
 		}
 	}
 
-	// Spotless 설정 (mono, product-api에서 사용)
+	// Spotless 설정 (mono, product-api: Java / admin-api: Kotlin)
 	if (project.name in ['bottlenote-mono', 'bottlenote-product-api']) {
 		apply plugin: 'com.diffplug.spotless'
 
@@ -84,6 +85,19 @@ subprojects {
 				googleJavaFormat('1.27.0')
 				target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
 				targetExclude 'src/main/generated/**'
+			}
+		}
+	}
+
+	if (project.name == 'bottlenote-admin-api') {
+		apply plugin: 'com.diffplug.spotless'
+
+		spotless {
+			kotlin {
+				ktlint().editorConfigOverride([
+					'ktlint_standard_no-wildcard-imports': 'disabled'
+				])
+				target 'src/main/kotlin/**/*.kt', 'src/test/kotlin/**/*.kt'
 			}
 		}
 	}
@@ -113,6 +127,7 @@ subprojects {
 		useJUnitPlatform {
 			includeTags 'integration'
 		}
+		systemProperty 'testcontainers.db.name', 'bottlenote_product'
 	}
 
 	tasks.register('unit_test', Test) {
@@ -131,6 +146,7 @@ subprojects {
 		useJUnitPlatform {
 			includeTags 'admin_integration'
 		}
+		systemProperty 'testcontainers.db.name', 'bottlenote_admin'
 	}
 
 	// REST Docs 테스트 (app.docs 패키지)

@@ -122,10 +122,22 @@ class AdminTastingTagControllerDocsTest {
 		fun getTagDetail() {
 			// given
 			val childNode = TastingTagNodeItem.of(
-				2L, "바닐라 크림", "Vanilla Cream", null, "바닐라 크림 향", null, emptyList()
+				2L,
+				"바닐라 크림",
+				"Vanilla Cream",
+				null,
+				"바닐라 크림 향",
+				null,
+				emptyList()
 			)
 			val tagNode = TastingTagNodeItem.of(
-				1L, "바닐라", "Vanilla", "base64icon", "바닐라 향", null, listOf(childNode)
+				1L,
+				"바닐라",
+				"Vanilla",
+				"base64icon",
+				"바닐라 향",
+				null,
+				listOf(childNode)
 			)
 			val alcoholItem = AdminAlcoholItem(
 				1L, "글렌피딕 12년", "Glenfiddich 12", "싱글몰트", "Single Malt",

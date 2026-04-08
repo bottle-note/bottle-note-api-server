@@ -18,7 +18,7 @@ public interface JpaRegionQueryRepository extends RegionRepository, CrudReposito
   @Override
   @Query(
       """
-      select new app.bottlenote.alcohols.dto.response.RegionsItem(r.id, r.korName, r.engName, r.description)
+      select new app.bottlenote.alcohols.dto.response.RegionsItem(r.id, r.korName, r.engName, r.description, r.parent.id)
       from region r order by r.id asc
       """)
   List<RegionsItem> findAllRegionsResponse();
@@ -27,7 +27,7 @@ public interface JpaRegionQueryRepository extends RegionRepository, CrudReposito
   @Query(
       """
       select new app.bottlenote.alcohols.dto.response.AdminRegionItem(
-        r.id, r.korName, r.engName, r.continent, r.description, r.createAt, r.lastModifyAt
+        r.id, r.korName, r.engName, r.continent, r.description, r.createAt, r.lastModifyAt, r.parent.id
       )
       from region r
       where (:keyword is null or :keyword = ''
@@ -35,4 +35,8 @@ public interface JpaRegionQueryRepository extends RegionRepository, CrudReposito
         or r.engName like concat('%', :keyword, '%'))
       """)
   Page<AdminRegionItem> findAllRegions(@Param("keyword") String keyword, Pageable pageable);
+
+  @Override
+  @Query("select r.id from region r where r.parent.id = :parentId")
+  List<Long> findChildRegionIds(@Param("parentId") Long parentId);
 }

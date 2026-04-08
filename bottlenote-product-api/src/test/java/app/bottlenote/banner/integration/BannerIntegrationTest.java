@@ -2,14 +2,12 @@ package app.bottlenote.banner.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.banner.dto.response.BannerResponse;
 import app.bottlenote.banner.fixture.BannerTestFactory;
+import app.bottlenote.global.data.response.GlobalResponse;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -17,9 +15,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
 @Tag("integration")
 @DisplayName("[integration] [controller] BannerQueryController")
@@ -38,14 +35,13 @@ class BannerIntegrationTest extends IntegrationTestSupport {
       // given
       bannerTestFactory.persistMultipleBanners(5);
 
-      // when & then
-      mockMvc
-          .perform(get("/api/v1/banners").contentType(MediaType.APPLICATION_JSON))
-          .andDo(print())
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("$.code").value(200))
-          .andExpect(jsonPath("$.data").isArray())
-          .andExpect(jsonPath("$.data.length()").value(5));
+      // when
+      MvcTestResult result =
+          mockMvcTester.get().uri("/api/v1/banners").contentType(APPLICATION_JSON).exchange();
+
+      // then
+      List<BannerResponse> banners = extractDataAsList(result, new TypeReference<>() {});
+      assertEquals(5, banners.size());
     }
 
     @DisplayName("limit 파라미터로 조회 개수를 제한할 수 있다.")
@@ -54,15 +50,18 @@ class BannerIntegrationTest extends IntegrationTestSupport {
       // given
       bannerTestFactory.persistMultipleBanners(5);
 
-      // when & then
-      mockMvc
-          .perform(
-              get("/api/v1/banners").param("limit", "3").contentType(MediaType.APPLICATION_JSON))
-          .andDo(print())
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("$.code").value(200))
-          .andExpect(jsonPath("$.data").isArray())
-          .andExpect(jsonPath("$.data.length()").value(3));
+      // when
+      MvcTestResult result =
+          mockMvcTester
+              .get()
+              .uri("/api/v1/banners")
+              .param("limit", "3")
+              .contentType(APPLICATION_JSON)
+              .exchange();
+
+      // then
+      List<BannerResponse> banners = extractDataAsList(result, new TypeReference<>() {});
+      assertEquals(3, banners.size());
     }
 
     @DisplayName("배너는 sortOrder 기준으로 오름차순 정렬된다.")
@@ -92,12 +91,8 @@ class BannerIntegrationTest extends IntegrationTestSupport {
           true);
 
       // when
-      MvcResult result =
-          mockMvc
-              .perform(get("/api/v1/banners").contentType(MediaType.APPLICATION_JSON))
-              .andDo(print())
-              .andExpect(status().isOk())
-              .andReturn();
+      MvcTestResult result =
+          mockMvcTester.get().uri("/api/v1/banners").contentType(APPLICATION_JSON).exchange();
 
       // then
       List<BannerResponse> banners = extractDataAsList(result, new TypeReference<>() {});
@@ -113,14 +108,13 @@ class BannerIntegrationTest extends IntegrationTestSupport {
       // given
       bannerTestFactory.persistMixedActiveBanners(3, 2);
 
-      // when & then
-      mockMvc
-          .perform(get("/api/v1/banners").contentType(MediaType.APPLICATION_JSON))
-          .andDo(print())
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("$.code").value(200))
-          .andExpect(jsonPath("$.data").isArray())
-          .andExpect(jsonPath("$.data.length()").value(3));
+      // when
+      MvcTestResult result =
+          mockMvcTester.get().uri("/api/v1/banners").contentType(APPLICATION_JSON).exchange();
+
+      // then
+      List<BannerResponse> banners = extractDataAsList(result, new TypeReference<>() {});
+      assertEquals(3, banners.size());
     }
 
     @DisplayName("활성 배너가 없으면 빈 배열을 반환한다.")
@@ -128,26 +122,21 @@ class BannerIntegrationTest extends IntegrationTestSupport {
     void test_5() throws Exception {
       // given - 데이터 없음
 
-      // when & then
-      MvcResult result =
-          mockMvc
-              .perform(get("/api/v1/banners").contentType(MediaType.APPLICATION_JSON))
-              .andDo(print())
-              .andExpect(status().isOk())
-              .andExpect(jsonPath("$.code").value(200))
-              .andExpect(jsonPath("$.data").isArray())
-              .andReturn();
+      // when
+      MvcTestResult result =
+          mockMvcTester.get().uri("/api/v1/banners").contentType(APPLICATION_JSON).exchange();
 
+      // then
       List<BannerResponse> banners = extractDataAsList(result, new TypeReference<>() {});
       assertTrue(banners.isEmpty());
     }
   }
 
-  private <T> List<T> extractDataAsList(MvcResult result, TypeReference<List<T>> typeRef)
+  private <T> List<T> extractDataAsList(MvcTestResult result, TypeReference<List<T>> typeRef)
       throws Exception {
+    result.assertThat().hasStatusOk();
     String responseString = result.getResponse().getContentAsString();
-    var response =
-        mapper.readValue(responseString, app.bottlenote.global.data.response.GlobalResponse.class);
+    GlobalResponse response = mapper.readValue(responseString, GlobalResponse.class);
     return mapper.convertValue(response.getData(), typeRef);
   }
 }

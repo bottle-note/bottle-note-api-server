@@ -77,6 +77,7 @@ class AdminRegionControllerDocsTest {
 						fieldWithPath("data[].description").type(JsonFieldType.STRING).description("설명"),
 						fieldWithPath("data[].createdAt").type(JsonFieldType.STRING).description("생성일시"),
 						fieldWithPath("data[].modifiedAt").type(JsonFieldType.STRING).description("수정일시"),
+						fieldWithPath("data[].parentId").type(JsonFieldType.NUMBER).description("상위 지역 ID").optional(),
 						fieldWithPath("errors").type(JsonFieldType.ARRAY).description("에러 목록"),
 						fieldWithPath("meta").type(JsonFieldType.OBJECT).description("메타 정보"),
 						fieldWithPath("meta.page").type(JsonFieldType.NUMBER).description("현재 페이지 번호"),

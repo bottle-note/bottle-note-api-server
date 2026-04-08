@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired
 @Tag("admin_integration")
 @DisplayName("[integration] Admin 참조 데이터 API 통합 테스트")
 class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
-
 	@Autowired
 	private lateinit var alcoholTestFactory: AlcoholTestFactory
 
@@ -28,27 +27,30 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 	@Nested
 	@DisplayName("테이스팅 태그 목록 조회 API")
 	inner class TastingTagsApi {
-
 		@Test
 		@DisplayName("전체 테이스팅 태그 목록을 페이지네이션으로 조회할 수 있다")
 		fun getAllTastingTagsSuccess() {
 			// when & then
 			assertThat(
-				mockMvcTester.get().uri("/tasting-tags?page=0&size=20")
+				mockMvcTester
+					.get()
+					.uri("/tasting-tags?page=0&size=20")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.success").isEqualTo(true)
+				.extractingPath("$.success")
+				.isEqualTo(true)
 
 			// 페이지네이션 메타 정보 확인
 			assertThat(
-				mockMvcTester.get().uri("/tasting-tags?page=0&size=10")
+				mockMvcTester
+					.get()
+					.uri("/tasting-tags?page=0&size=10")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.meta.size").isEqualTo(10)
+				.extractingPath("$.meta.size")
+				.isEqualTo(10)
 		}
 
 		@Test
@@ -57,15 +59,13 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 			// when & then - 방어로직: 인증 없이 요청 시 실패
 			assertThat(
 				mockMvcTester.get().uri("/tasting-tags")
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 		}
 	}
 
 	@Nested
 	@DisplayName("지역 목록 조회 API")
 	inner class RegionsApi {
-
 		@Test
 		@DisplayName("전체 지역 목록을 페이지네이션으로 조회할 수 있다")
 		fun getAllRegionsSuccess() {
@@ -74,12 +74,14 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.get().uri("/regions?page=0&size=20")
+				mockMvcTester
+					.get()
+					.uri("/regions?page=0&size=20")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.success").isEqualTo(true)
+				.extractingPath("$.success")
+				.isEqualTo(true)
 		}
 
 		@Test
@@ -89,30 +91,33 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 			alcoholTestFactory.persistAlcohols(1)
 
 			// when & then - 응답 데이터 및 페이지네이션 메타 확인
-			val result = mockMvcTester.get().uri("/regions?page=0&size=10")
-				.header("Authorization", "Bearer $accessToken")
+			val result =
+				mockMvcTester
+					.get()
+					.uri("/regions?page=0&size=10")
+					.header("Authorization", "Bearer $accessToken")
 
 			assertThat(result)
 				.hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.meta.page").isEqualTo(0)
+				.extractingPath("$.meta.page")
+				.isEqualTo(0)
 
 			assertThat(result)
 				.bodyJson()
-				.extractingPath("$.meta.totalElements").isNotNull
+				.extractingPath("$.meta.totalElements")
+				.isNotNull
 
 			// 방어로직: 인증 없이 요청 시 실패
 			assertThat(
 				mockMvcTester.get().uri("/regions")
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 		}
 	}
 
 	@Nested
 	@DisplayName("증류소 목록 조회 API")
 	inner class DistilleriesApi {
-
 		@Test
 		@DisplayName("전체 증류소 목록을 페이지네이션으로 조회할 수 있다")
 		fun getAllDistilleriesSuccess() {
@@ -121,12 +126,14 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.get().uri("/distilleries?page=0&size=20")
+				mockMvcTester
+					.get()
+					.uri("/distilleries?page=0&size=20")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.success").isEqualTo(true)
+				.extractingPath("$.success")
+				.isEqualTo(true)
 		}
 
 		@Test
@@ -136,19 +143,22 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 			alcoholTestFactory.persistAlcohols(1)
 
 			// when & then - 키워드 검색
-			val result = mockMvcTester.get().uri("/distilleries?keyword=&page=0&size=20")
-				.header("Authorization", "Bearer $accessToken")
+			val result =
+				mockMvcTester
+					.get()
+					.uri("/distilleries?keyword=&page=0&size=20")
+					.header("Authorization", "Bearer $accessToken")
 
 			assertThat(result)
 				.hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data").isNotNull
+				.extractingPath("$.data")
+				.isNotNull
 
 			// 방어로직: 인증 없이 요청 시 실패
 			assertThat(
 				mockMvcTester.get().uri("/distilleries")
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 		}
 	}
 }

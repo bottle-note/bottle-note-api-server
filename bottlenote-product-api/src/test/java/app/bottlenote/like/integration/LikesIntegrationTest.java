@@ -4,16 +4,12 @@ import static app.bottlenote.like.dto.response.LikesUpdateResponse.Message.DISLI
 import static app.bottlenote.like.dto.response.LikesUpdateResponse.Message.LIKED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
-import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.like.constant.LikeStatus;
 import app.bottlenote.like.domain.Likes;
 import app.bottlenote.like.domain.LikesRepository;
@@ -24,13 +20,11 @@ import app.bottlenote.review.fixture.ReviewTestFactory;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.fixture.UserTestFactory;
-import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
 @Tag("integration")
 @DisplayName("[integration] [controller] LikesController")
@@ -53,26 +47,19 @@ class LikesIntegrationTest extends IntegrationTestSupport {
 
     LikesUpdateRequest likesUpdateRequest = new LikesUpdateRequest(review.getId(), LikeStatus.LIKE);
 
-    // When & Then
-    MvcResult result =
-        mockMvc
-            .perform(
-                put("/api/v1/likes")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(mapper.writeValueAsString(likesUpdateRequest))
-                    .header("Authorization", "Bearer " + token.accessToken())
-                    .with(csrf()))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.code").value(200))
-            .andExpect(jsonPath("$.data").exists())
-            .andReturn();
+    // When
+    MvcTestResult result =
+        mockMvcTester
+            .put()
+            .uri("/api/v1/likes")
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(likesUpdateRequest))
+            .header("Authorization", "Bearer " + token.accessToken())
+            .with(csrf())
+            .exchange();
 
-    String contentAsString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-    GlobalResponse response = mapper.readValue(contentAsString, GlobalResponse.class);
-    LikesUpdateResponse likesUpdateResponse =
-        mapper.convertValue(response.getData(), LikesUpdateResponse.class);
-
+    // Then
+    LikesUpdateResponse likesUpdateResponse = extractData(result, LikesUpdateResponse.class);
     assertEquals(likesUpdateResponse.message(), LIKED.getMessage());
   }
 
@@ -91,17 +78,17 @@ class LikesIntegrationTest extends IntegrationTestSupport {
         new LikesUpdateRequest(review.getId(), LikeStatus.DISLIKE);
 
     // When - 좋아요 등록
-    mockMvc
-        .perform(
-            put("/api/v1/likes")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(likesUpdateRequest))
-                .header("Authorization", "Bearer " + token.accessToken())
-                .with(csrf()))
-        .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.code").value(200))
-        .andExpect(jsonPath("$.data").exists());
+    MvcTestResult registerResult =
+        mockMvcTester
+            .put()
+            .uri("/api/v1/likes")
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(likesUpdateRequest))
+            .header("Authorization", "Bearer " + token.accessToken())
+            .with(csrf())
+            .exchange();
+
+    registerResult.assertThat().hasStatusOk();
 
     Likes likes =
         likesRepository.findByReviewIdAndUserId(review.getId(), likeUser.getId()).orElse(null);
@@ -109,25 +96,18 @@ class LikesIntegrationTest extends IntegrationTestSupport {
     assertEquals(LikeStatus.LIKE, likes.getStatus());
 
     // When - 좋아요 해제
-    MvcResult result =
-        mockMvc
-            .perform(
-                put("/api/v1/likes")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(mapper.writeValueAsString(dislikesUpdateRequest))
-                    .header("Authorization", "Bearer " + token.accessToken())
-                    .with(csrf()))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.code").value(200))
-            .andExpect(jsonPath("$.data").exists())
-            .andReturn();
+    MvcTestResult result =
+        mockMvcTester
+            .put()
+            .uri("/api/v1/likes")
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(dislikesUpdateRequest))
+            .header("Authorization", "Bearer " + token.accessToken())
+            .with(csrf())
+            .exchange();
 
     // Then
-    String contentAsString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-    GlobalResponse response = mapper.readValue(contentAsString, GlobalResponse.class);
-    LikesUpdateResponse likesUpdateResponse =
-        mapper.convertValue(response.getData(), LikesUpdateResponse.class);
+    LikesUpdateResponse likesUpdateResponse = extractData(result, LikesUpdateResponse.class);
 
     assertEquals(likesUpdateResponse.message(), DISLIKE.getMessage());
     Likes dislike =

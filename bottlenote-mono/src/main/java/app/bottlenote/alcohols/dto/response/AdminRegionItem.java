@@ -9,4 +9,5 @@ public record AdminRegionItem(
     String continent,
     String description,
     LocalDateTime createdAt,
-    LocalDateTime modifiedAt) {}
+    LocalDateTime modifiedAt,
+    Long parentId) {}
