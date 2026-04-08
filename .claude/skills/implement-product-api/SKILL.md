@@ -1,9 +1,10 @@
 ---
-name: product-api
+name: implement-product-api
 description: |
   Product API feature implementation guide for the bottle-note-api-server project.
-  Trigger: "/product-api", or when the user says "API 추가", "엔드포인트 구현", "product api", "클라이언트 API".
-  Guides through the full implementation flow: mono module (domain/service) -> product-api (controller) -> tests.
+  Trigger: "/implement-product-api", or when the user says "API 추가", "엔드포인트 구현", "product api", "클라이언트 API".
+  Guides through the implementation flow: mono module (domain/service) -> product-api (controller).
+  For test implementation, use /implement-test after this skill completes.
   Always use this skill when implementing new features or endpoints in the product-api module.
 argument-hint: "[domain] [crud|search|action]"
 ---
@@ -18,14 +19,22 @@ Parse `$ARGUMENTS` to identify the target domain and work type, then follow thes
 
 ### Phase 0: Explore
 
-Before writing any code, understand what already exists.
+Before writing any code, understand what already exists and what will be affected.
 
+**Codebase scan:**
 1. Check if the domain exists in mono: `bottlenote-mono/src/main/java/app/bottlenote/{domain}/`
 2. Check existing services, facades, and repositories
 3. Check if product-api already has controllers for this domain
 4. Identify reusable code vs. what needs to be created
 
-Report your findings to the user before proceeding.
+**Impact analysis:**
+5. **Events** - related domain events (publish/subscribe), whether new events are needed
+6. **Transactions** - propagation policy when calling across Facades, need for `@Async` separation
+7. **Ripple scope** - files affected if Repository/Facade interfaces change (other services, InMemory implementations, tests)
+8. **Cache** - whether the target data is cached (`@Cacheable`, Caffeine, Redis), invalidation strategy needed
+9. **Schema** - whether Entity changes require a Liquibase migration
+
+Report both findings and impact to the user before proceeding.
 
 ### Phase 1: Mono Module (Domain & Business Logic)
 
@@ -39,16 +48,16 @@ All business logic belongs in `bottlenote-mono`. Read `references/mono-patterns.
 5. **Service** - `{Domain}Service` (Command/Query 분리는 필수가 아님, 아래 참고)
 6. **Facade** (타 도메인 접근이 필요할 때) - `{Domain}Facade` interface + `Default{Domain}Facade`
 
-**Service 구조에 대해:**
-- Command/Query 분리(`CommandService`/`QueryService`)는 기존 코드에 존재하지만 필수 패턴이 아님
-- 새로운 서비스는 `{Domain}Service` 하나로 작성해도 됨
-- 기존 분리된 서비스를 합칠 필요는 없음, 신규 구현 시 판단
+**Service structure:**
+- Command/Query split (`CommandService`/`QueryService`) exists in codebase but is not mandatory
+- New services can be a single `{Domain}Service`
+- No need to merge existing split services; decide per new implementation
 
-**Facade의 역할 - 도메인 간 경계를 보호:**
-- Facade는 다른 도메인의 서비스를 직접 호출하지 않고, 해당 도메인의 Facade를 통해 요청하는 패턴
-- 예: UserService가 랭킹 데이터를 직접 조회/수정하면 안 됨 → `RankingFacade`를 통해 요청
-- 이렇게 하면 각 도메인이 자기 내부 구현을 자유롭게 변경할 수 있음
-- Facade 인터페이스는 도메인이 외부에 노출하는 계약(contract)임
+**Facade role - protecting domain boundaries:**
+- Facade prevents direct cross-domain service calls; request through the target domain's Facade instead
+- Example: UserService must not query ranking data directly; use `RankingFacade`
+- This allows each domain to freely change its internal implementation
+- Facade interface is the contract a domain exposes to the outside
 
 ### Phase 2: Product API (Controller)
 
@@ -90,29 +99,19 @@ public class {Domain}Controller {
 - Response: Always wrap with `GlobalResponse.ok()`
 - Pagination: Use `CursorPageable` + `PageResponse` + `MetaInfos`
 
-### Phase 3: Tests
+### Phase 3: Verify
 
-Read `references/test-patterns.md` for detailed patterns and test infrastructure.
-
-**Required (always implement):**
-1. **Unit test** (`@Tag("unit")`) - Service logic with Fake/Stub pattern
-2. **Integration test** (`@Tag("integration")`) - Full API flow with TestContainers
-
-**Optional (user request only):**
-3. **RestDocs test** (`@Tag("restdocs")`) - API documentation
-
-Run `/verify quick` after each phase to catch compilation errors early.
-
-### Phase 4: Verify
-
-Use the `/verify` skill to validate at each stage:
+Use the `/verify` skill to validate:
 
 | Timing | Command | What it checks |
 |--------|---------|----------------|
 | After Phase 1 (Mono) | `/verify quick` | Compile + architecture rules |
 | After Phase 2 (Controller) | `/verify quick` | Compile + architecture rules |
-| After Phase 3 (Tests) | `/verify standard` | Compile + unit tests + build |
 | Before push/PR | `/verify full` | Full CI including integration tests |
+
+### Next: Tests
+
+After implementation is verified, use `/implement-test {domain} product` to create tests.
 
 ## Endpoint Design
 
