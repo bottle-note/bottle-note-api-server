@@ -1,0 +1,25 @@
+=== 유저 목록 조회 ===
+
+- 앱 사용자(User) 목록을 페이지네이션으로 조회합니다.
+- 키워드(닉네임/이메일), 상태(ACTIVE/DELETED)로 필터링이 가능합니다.
+- 활동 지표(리뷰 수, 별점 수, 찜 수)가 포함됩니다.
+
+[source]
+----
+GET /admin/api/v1/users
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/users/list/query-parameters.adoc[]
+include::{snippets}/admin/users/list/curl-request.adoc[]
+include::{snippets}/admin/users/list/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/users/list/response-fields.adoc[]
+include::{snippets}/admin/users/list/http-response.adoc[]

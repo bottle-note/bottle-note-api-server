@@ -70,6 +70,12 @@ include::api/admin-curations/curations.adoc[]
 
 '''
 
+== Users API
+
+include::api/admin-users/users.adoc[]
+
+'''
+
 == Banner API
 
 include::api/admin-banners/banners.adoc[]
