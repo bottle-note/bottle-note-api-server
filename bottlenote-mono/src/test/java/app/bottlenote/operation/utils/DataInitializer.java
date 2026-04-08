@@ -35,17 +35,16 @@ public class DataInitializer {
     if (!initialized) {
       initCache();
     }
-    log.info("데이터 초기화 시작");
+    log.debug("데이터 초기화 시작");
     em.createNativeQuery(OFF_FOREIGN_CONSTRAINTS).executeUpdate();
     truncationDMLs.stream().map(em::createNativeQuery).forEach(Query::executeUpdate);
     em.createNativeQuery(ON_FOREIGN_CONSTRAINTS).executeUpdate();
-    log.info("데이터 초기화 완료 - {}개 테이블 처리됨", truncationDMLs.size());
   }
 
   /** 캐시를 강제로 재초기화 후 전체 데이터 삭제 (테스트에서 동적 테이블 생성 시 사용) */
   @Transactional(value = REQUIRES_NEW)
   public void refreshCache() {
-    log.info("데이터 초기화 시작 (캐시 재초기화)");
+    log.debug("데이터 초기화 시작 (캐시 재초기화)");
     synchronized (truncationDMLs) {
       truncationDMLs.clear();
       init();
@@ -54,7 +53,7 @@ public class DataInitializer {
     em.createNativeQuery(OFF_FOREIGN_CONSTRAINTS).executeUpdate();
     truncationDMLs.stream().map(em::createNativeQuery).forEach(Query::executeUpdate);
     em.createNativeQuery(ON_FOREIGN_CONSTRAINTS).executeUpdate();
-    log.info("데이터 초기화 완료 - {}개 테이블 처리됨", truncationDMLs.size());
+    log.debug("데이터 초기화 완료 - {}개 테이블 처리됨", truncationDMLs.size());
   }
 
   private void initCache() {

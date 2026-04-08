@@ -2,13 +2,7 @@ package app.bottlenote.support.business.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.support.business.constant.BusinessSupportType;
@@ -23,6 +17,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
 @Tag("integration")
 @DisplayName("[integration] BusinessSupportController")
@@ -39,17 +35,17 @@ class BusinessSupportIntegrationTest extends IntegrationTestSupport {
         new BusinessSupportUpsertRequest(
             "이벤트 협업 관련 문의드려요", "blah blah", "test@naver.com", BusinessSupportType.EVENT, List.of());
 
-    mockMvc
-        .perform(
-            post("/api/v1/business-support")
-                .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsBytes(req))
-                .header("Authorization", "Bearer " + getToken())
-                .with(csrf()))
-        .andDo(print())
-        .andExpect(status().isOk())
-        .andReturn();
+    MvcTestResult result =
+        mockMvcTester
+            .post()
+            .uri("/api/v1/business-support")
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsBytes(req))
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
 
+    result.assertThat().hasStatusOk();
     assertEquals(1, repository.findAll().size());
   }
 
@@ -62,14 +58,16 @@ class BusinessSupportIntegrationTest extends IntegrationTestSupport {
             "이벤트 협업 관련 문의드려요", "blah blah", "test@naver.com", BusinessSupportType.EVENT, List.of());
 
     // when & then
-    mockMvc
-        .perform(
-            post("/api/v1/business-support")
-                .with(csrf())
-                .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(req)))
-        .andDo(print())
-        .andExpect(status().isBadRequest());
+    MvcTestResult result =
+        mockMvcTester
+            .post()
+            .uri("/api/v1/business-support")
+            .with(csrf())
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(req))
+            .exchange();
+
+    result.assertThat().hasStatus(HttpStatus.BAD_REQUEST);
   }
 
   @Test
@@ -80,10 +78,14 @@ class BusinessSupportIntegrationTest extends IntegrationTestSupport {
     businessFactory.persist(user.getId());
 
     // when & then
-    mockMvc
-        .perform(get("/api/v1/business-support").header("Authorization", "Bearer " + getToken()))
-        .andDo(print())
-        .andExpect(status().isOk());
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/business-support")
+            .header("Authorization", "Bearer " + getToken())
+            .exchange();
+
+    result.assertThat().hasStatusOk();
   }
 
   @Test
@@ -94,12 +96,14 @@ class BusinessSupportIntegrationTest extends IntegrationTestSupport {
     BusinessSupport support = businessFactory.persist(user.getId());
 
     // when & then
-    mockMvc
-        .perform(
-            get("/api/v1/business-support/{id}", support.getId())
-                .header("Authorization", "Bearer " + getToken()))
-        .andDo(print())
-        .andExpect(status().isOk());
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/business-support/{id}", support.getId())
+            .header("Authorization", "Bearer " + getToken())
+            .exchange();
+
+    result.assertThat().hasStatusOk();
   }
 
   @Test
@@ -109,12 +113,14 @@ class BusinessSupportIntegrationTest extends IntegrationTestSupport {
     long nonExistId = 999L;
 
     // when & then
-    mockMvc
-        .perform(
-            get("/api/v1/business-support/{id}", nonExistId)
-                .header("Authorization", "Bearer " + getToken()))
-        .andDo(print())
-        .andExpect(status().isBadRequest());
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/business-support/{id}", nonExistId)
+            .header("Authorization", "Bearer " + getToken())
+            .exchange();
+
+    result.assertThat().hasStatus(HttpStatus.BAD_REQUEST);
   }
 
   @Test
@@ -128,15 +134,17 @@ class BusinessSupportIntegrationTest extends IntegrationTestSupport {
             "이벤트 협업 관련 문의드려요", "blah blah", "test@naver.com", BusinessSupportType.EVENT, List.of());
 
     // when & then
-    mockMvc
-        .perform(
-            patch("/api/v1/business-support/{id}", support.getId())
-                .with(csrf())
-                .header("Authorization", "Bearer " + getToken())
-                .contentType(APPLICATION_JSON)
-                .content(mapper.writeValueAsString(req)))
-        .andDo(print())
-        .andExpect(status().isOk());
+    MvcTestResult result =
+        mockMvcTester
+            .patch()
+            .uri("/api/v1/business-support/{id}", support.getId())
+            .with(csrf())
+            .header("Authorization", "Bearer " + getToken())
+            .contentType(APPLICATION_JSON)
+            .content(mapper.writeValueAsString(req))
+            .exchange();
+
+    result.assertThat().hasStatusOk();
   }
 
   @Test
@@ -147,12 +155,14 @@ class BusinessSupportIntegrationTest extends IntegrationTestSupport {
     BusinessSupport support = businessFactory.persist(user.getId());
 
     // when & then
-    mockMvc
-        .perform(
-            delete("/api/v1/business-support/{id}", support.getId())
-                .with(csrf())
-                .header("Authorization", "Bearer " + getToken()))
-        .andDo(print())
-        .andExpect(status().isOk());
+    MvcTestResult result =
+        mockMvcTester
+            .delete()
+            .uri("/api/v1/business-support/{id}", support.getId())
+            .with(csrf())
+            .header("Authorization", "Bearer " + getToken())
+            .exchange();
+
+    result.assertThat().hasStatusOk();
   }
 }

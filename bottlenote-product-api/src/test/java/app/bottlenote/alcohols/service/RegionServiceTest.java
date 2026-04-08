@@ -29,15 +29,16 @@ class RegionServiceTest {
     // given
     List<RegionsItem> response =
         List.of(
-            RegionsItem.of(1L, "스코틀랜드/로우랜드", "Scotland/Lowlands", "가벼운 맛이 특징인 로우랜드 위스키"),
+            RegionsItem.of(1L, "스코틀랜드/로우랜드", "Scotland/Lowlands", "가벼운 맛이 특징인 로우랜드 위스키", 19L),
             RegionsItem.of(
                 2L,
                 "스코틀랜드/하이랜드",
                 "Scotland/Highlands",
-                "맛의 다양성이 특징인 하이랜드 위스키, 해안의 짠맛부터 달콤하고 과일 맛까지"),
-            RegionsItem.of(3L, "스코틀랜드/아일랜드", "Scotland/Ireland", "부드러운 맛이 특징인 아일랜드 위스키"),
-            RegionsItem.of(11L, "프랑스", "France", "주로 브랜디와 와인 생산지로 유명하지만 위스키도 생산"),
-            RegionsItem.of(12L, "스웨덴", "Sweden", "실험적인 방법으로 만드는 스웨덴 위스키"));
+                "맛의 다양성이 특징인 하이랜드 위스키, 해안의 짠맛부터 달콤하고 과일 맛까지",
+                19L),
+            RegionsItem.of(3L, "스코틀랜드/아일랜드", "Scotland/Ireland", "부드러운 맛이 특징인 아일랜드 위스키", 19L),
+            RegionsItem.of(11L, "프랑스", "France", "주로 브랜디와 와인 생산지로 유명하지만 위스키도 생산", null),
+            RegionsItem.of(12L, "스웨덴", "Sweden", "실험적인 방법으로 만드는 스웨덴 위스키", null));
 
     // When
     when(regionQueryRepository.findAllRegionsResponse()).thenReturn(response);

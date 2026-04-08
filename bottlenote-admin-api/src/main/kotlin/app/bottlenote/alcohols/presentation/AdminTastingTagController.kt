@@ -8,16 +8,7 @@ import app.bottlenote.alcohols.service.TastingTagService
 import app.bottlenote.global.data.response.GlobalResponse
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.ModelAttribute
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
-
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/tasting-tags")
@@ -25,48 +16,41 @@ class AdminTastingTagController(
 	private val alcoholReferenceService: AlcoholReferenceService,
 	private val tastingTagService: TastingTagService
 ) {
-
 	@GetMapping
-	fun getAllTastingTags(@ModelAttribute request: AdminReferenceSearchRequest): ResponseEntity<*> {
-		return ResponseEntity.ok(alcoholReferenceService.findAllTastingTags(request))
-	}
+	fun getAllTastingTags(
+		@ModelAttribute request: AdminReferenceSearchRequest
+	): ResponseEntity<*> = ResponseEntity.ok(alcoholReferenceService.findAllTastingTags(request))
 
 	@GetMapping("/{tagId}")
-	fun getTagDetail(@PathVariable tagId: Long): ResponseEntity<*> {
-		return GlobalResponse.ok(tastingTagService.getTagDetail(tagId))
-	}
+	fun getTagDetail(
+		@PathVariable tagId: Long
+	): ResponseEntity<*> = GlobalResponse.ok(tastingTagService.getTagDetail(tagId))
 
 	@PostMapping
-	fun createTag(@RequestBody @Valid request: AdminTastingTagUpsertRequest): ResponseEntity<*> {
-		return GlobalResponse.ok(tastingTagService.createTag(request))
-	}
+	fun createTag(
+		@RequestBody @Valid request: AdminTastingTagUpsertRequest
+	): ResponseEntity<*> = GlobalResponse.ok(tastingTagService.createTag(request))
 
 	@PutMapping("/{tagId}")
 	fun updateTag(
 		@PathVariable tagId: Long,
 		@RequestBody @Valid request: AdminTastingTagUpsertRequest
-	): ResponseEntity<*> {
-		return GlobalResponse.ok(tastingTagService.updateTag(tagId, request))
-	}
+	): ResponseEntity<*> = GlobalResponse.ok(tastingTagService.updateTag(tagId, request))
 
 	@DeleteMapping("/{tagId}")
-	fun deleteTag(@PathVariable tagId: Long): ResponseEntity<*> {
-		return GlobalResponse.ok(tastingTagService.deleteTag(tagId))
-	}
+	fun deleteTag(
+		@PathVariable tagId: Long
+	): ResponseEntity<*> = GlobalResponse.ok(tastingTagService.deleteTag(tagId))
 
 	@PostMapping("/{tagId}/alcohols")
 	fun addAlcoholsToTag(
 		@PathVariable tagId: Long,
 		@RequestBody @Valid request: AdminTastingTagAlcoholRequest
-	): ResponseEntity<*> {
-		return GlobalResponse.ok(tastingTagService.addAlcoholsToTag(tagId, request.alcoholIds()))
-	}
+	): ResponseEntity<*> = GlobalResponse.ok(tastingTagService.addAlcoholsToTag(tagId, request.alcoholIds()))
 
 	@DeleteMapping("/{tagId}/alcohols")
 	fun removeAlcoholsFromTag(
 		@PathVariable tagId: Long,
 		@RequestBody @Valid request: AdminTastingTagAlcoholRequest
-	): ResponseEntity<*> {
-		return GlobalResponse.ok(tastingTagService.removeAlcoholsFromTag(tagId, request.alcoholIds()))
-	}
+	): ResponseEntity<*> = GlobalResponse.ok(tastingTagService.removeAlcoholsFromTag(tagId, request.alcoholIds()))
 }

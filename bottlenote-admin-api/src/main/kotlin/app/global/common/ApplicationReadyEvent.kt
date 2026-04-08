@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class ApplicationReadyEvent(
-	private val info: AppInfoConfig,
+	private val info: AppInfoConfig
 ) {
 	companion object {
 		private val log = LoggerFactory.getLogger(ApplicationReadyEvent::class.java)
@@ -18,7 +18,8 @@ class ApplicationReadyEvent(
 	@Order(Int.MAX_VALUE - 1)
 	@EventListener(ApplicationReadyEvent::class)
 	fun displayServiceBanner() {
-		val banner = """
+		val banner =
+			"""
 				▗▄▄▖  ▗▄▖▗▄▄▄▖▗▄▄▄▖▗▖   ▗▄▄▄▖    ▗▖  ▗▖ ▗▄▖▗▄▄▄▖▗▄▄▄▖
 				▐▌ ▐▌▐▌ ▐▌ █    █  ▐▌   ▐▌       ▐▛▚▖▐▌▐▌ ▐▌ █  ▐▌
 				▐▛▀▚▖▐▌ ▐▌ █    █  ▐▌   ▐▛▀▀▘    ▐▌ ▝▜▌▐▌ ▐▌ █  ▐▛▀▀▘
@@ -35,7 +36,7 @@ class ApplicationReadyEvent(
 			  - Git Commit   : ${info.gitCommit}
 			  - Build Time   : ${info.gitBuildTime}
 			================================================================================
-		""".trimIndent()
+			""".trimIndent()
 		println(banner)
 	}
 }

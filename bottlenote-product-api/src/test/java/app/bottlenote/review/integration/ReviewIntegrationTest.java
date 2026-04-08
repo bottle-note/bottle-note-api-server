@@ -1,24 +1,16 @@
 package app.bottlenote.review.integration;
 
-import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
 import app.bottlenote.global.data.response.Error;
-import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.constant.ReviewResultMessage;
@@ -36,7 +28,6 @@ import app.bottlenote.review.fixture.ReviewTestFactory;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.fixture.UserTestFactory;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -44,8 +35,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.http.HttpStatus;
+import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
 @Tag("integration")
 @DisplayName("[integration] ReviewReplyController")
@@ -70,25 +61,18 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
       reviewTestFactory.persistReview(user, alcohol);
 
       // when
-      MvcResult result =
-          mockMvc
-              .perform(
-                  get("/api/v1/reviews/{alcoholId}", alcohol.getId())
-                      .contentType(MediaType.APPLICATION_JSON)
-                      .with(csrf()))
-              .andDo(print())
-              .andExpect(status().isOk())
-              .andExpect(jsonPath("$.code").value(200))
-              .andExpect(jsonPath("$.data").exists())
-              .andReturn();
-
-      String contentAsString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-      GlobalResponse response = mapper.readValue(contentAsString, GlobalResponse.class);
-      ReviewListResponse reviewListResponse =
-          mapper.convertValue(response.getData(), ReviewListResponse.class);
-      List<ReviewInfo> reviewInfos = reviewListResponse.reviewList();
+      MvcTestResult result =
+          mockMvcTester
+              .get()
+              .uri("/api/v1/reviews/{alcoholId}", alcohol.getId())
+              .contentType(APPLICATION_JSON)
+              .with(csrf())
+              .exchange();
 
       // then
+      ReviewListResponse reviewListResponse = extractData(result, ReviewListResponse.class);
+      List<ReviewInfo> reviewInfos = reviewListResponse.reviewList();
+
       assertNotNull(reviewListResponse);
       assertFalse(reviewInfos.isEmpty());
     }
@@ -103,42 +87,34 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
 
       ReviewCreateRequest reviewCreateRequest =
           ReviewObjectFixture.getReviewCreateRequestWithAlcoholId(alcohol.getId());
-      MvcResult result =
-          mockMvc
-              .perform(
-                  post("/api/v1/reviews")
-                      .contentType(MediaType.APPLICATION_JSON)
-                      .content(mapper.writeValueAsBytes(reviewCreateRequest))
-                      .header("Authorization", "Bearer " + token.accessToken())
-                      .with(csrf()))
-              .andDo(print())
-              .andExpect(status().isOk())
-              .andExpect(jsonPath("$.code").value(200))
-              .andExpect(jsonPath("$.data").exists())
-              .andReturn();
 
-      String contentAsString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-      GlobalResponse response = mapper.readValue(contentAsString, GlobalResponse.class);
+      MvcTestResult createResult =
+          mockMvcTester
+              .post()
+              .uri("/api/v1/reviews")
+              .contentType(APPLICATION_JSON)
+              .content(mapper.writeValueAsBytes(reviewCreateRequest))
+              .header("Authorization", "Bearer " + token.accessToken())
+              .with(csrf())
+              .exchange();
+
       ReviewCreateResponse reviewCreateResponse =
-          mapper.convertValue(response.getData(), ReviewCreateResponse.class);
+          extractData(createResult, ReviewCreateResponse.class);
 
       final Long reviewId = reviewCreateResponse.getId();
-      MvcResult result2 =
-          mockMvc
-              .perform(
-                  get("/api/v1/reviews/detail/{reviewId}", reviewId)
-                      .contentType(MediaType.APPLICATION_JSON)
-                      .with(csrf()))
-              .andDo(print())
-              .andExpect(status().isOk())
-              .andExpect(jsonPath("$.code").value(200))
-              .andExpect(jsonPath("$.data").exists())
-              .andReturn();
 
-      String contentAsString2 = result2.getResponse().getContentAsString(StandardCharsets.UTF_8);
-      GlobalResponse response2 = mapper.readValue(contentAsString2, GlobalResponse.class);
+      // when
+      MvcTestResult detailResult =
+          mockMvcTester
+              .get()
+              .uri("/api/v1/reviews/detail/{reviewId}", reviewId)
+              .contentType(APPLICATION_JSON)
+              .with(csrf())
+              .exchange();
+
+      // then
       ReviewDetailResponse reviewDetailResponse =
-          mapper.convertValue(response2.getData(), ReviewDetailResponse.class);
+          extractData(detailResult, ReviewDetailResponse.class);
 
       assertNotNull(reviewDetailResponse.reviewInfo());
       reviewDetailResponse.reviewImageList().forEach(Assertions::assertNotNull);
@@ -158,23 +134,18 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
       Review review = reviewTestFactory.persistReview(user, alcohol);
       List<Review> reviewList = reviewRepository.findByUserId(user.getId());
 
-      MvcResult result =
-          mockMvc
-              .perform(
-                  get("/api/v1/reviews/me/{alcoholId}", alcohol.getId())
-                      .contentType(MediaType.APPLICATION_JSON)
-                      .header("Authorization", "Bearer " + token.accessToken())
-                      .with(csrf()))
-              .andDo(print())
-              .andExpect(status().isOk())
-              .andExpect(jsonPath("$.code").value(200))
-              .andExpect(jsonPath("$.data").exists())
-              .andReturn();
+      // when
+      MvcTestResult result =
+          mockMvcTester
+              .get()
+              .uri("/api/v1/reviews/me/{alcoholId}", alcohol.getId())
+              .contentType(APPLICATION_JSON)
+              .header("Authorization", "Bearer " + token.accessToken())
+              .with(csrf())
+              .exchange();
 
-      String contentAsString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-      GlobalResponse response = mapper.readValue(contentAsString, GlobalResponse.class);
-      ReviewListResponse reviewListResponse =
-          mapper.convertValue(response.getData(), ReviewListResponse.class);
+      // then
+      ReviewListResponse reviewListResponse = extractData(result, ReviewListResponse.class);
 
       assertNotNull(reviewListResponse.reviewList());
       assertEquals(reviewList.size(), reviewListResponse.reviewList().size());
@@ -206,24 +177,19 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
       ReviewCreateRequest reviewCreateRequest =
           ReviewObjectFixture.getReviewCreateRequestWithAlcoholId(alcohol.getId());
 
-      MvcResult result =
-          mockMvc
-              .perform(
-                  post("/api/v1/reviews")
-                      .contentType(MediaType.APPLICATION_JSON)
-                      .content(mapper.writeValueAsBytes(reviewCreateRequest))
-                      .header("Authorization", "Bearer " + token.accessToken())
-                      .with(csrf()))
-              .andDo(print())
-              .andExpect(status().isOk())
-              .andExpect(jsonPath("$.code").value(200))
-              .andExpect(jsonPath("$.data").exists())
-              .andReturn();
+      // when
+      MvcTestResult result =
+          mockMvcTester
+              .post()
+              .uri("/api/v1/reviews")
+              .contentType(APPLICATION_JSON)
+              .content(mapper.writeValueAsBytes(reviewCreateRequest))
+              .header("Authorization", "Bearer " + token.accessToken())
+              .with(csrf())
+              .exchange();
 
-      String contentAsString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-      GlobalResponse response = mapper.readValue(contentAsString, GlobalResponse.class);
-      ReviewCreateResponse reviewCreateResponse =
-          mapper.convertValue(response.getData(), ReviewCreateResponse.class);
+      // then
+      ReviewCreateResponse reviewCreateResponse = extractData(result, ReviewCreateResponse.class);
 
       assertEquals(reviewCreateRequest.content(), reviewCreateResponse.getContent());
     }
@@ -244,62 +210,46 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
       ReviewCreateRequest reviewCreateRequest =
           ReviewObjectFixture.getReviewCreateRequestWithAlcoholId(alcohol.getId());
 
-      MvcResult result =
-          mockMvc
-              .perform(
-                  post("/api/v1/reviews")
-                      .contentType(MediaType.APPLICATION_JSON)
-                      .content(mapper.writeValueAsBytes(reviewCreateRequest))
-                      .header("Authorization", "Bearer " + token.accessToken())
-                      .with(csrf()))
-              .andDo(print())
-              .andExpect(status().isOk())
-              .andExpect(jsonPath("$.code").value(200))
-              .andExpect(jsonPath("$.data").exists())
-              .andReturn();
-      String contentAsString = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-      GlobalResponse response = mapper.readValue(contentAsString, GlobalResponse.class);
+      // 리뷰 생성
+      MvcTestResult createResult =
+          mockMvcTester
+              .post()
+              .uri("/api/v1/reviews")
+              .contentType(APPLICATION_JSON)
+              .content(mapper.writeValueAsBytes(reviewCreateRequest))
+              .header("Authorization", "Bearer " + token.accessToken())
+              .with(csrf())
+              .exchange();
+
       ReviewCreateResponse reviewCreateResponse =
-          mapper.convertValue(response.getData(), ReviewCreateResponse.class);
+          extractData(createResult, ReviewCreateResponse.class);
 
       final Long alcoholId = reviewCreateRequest.alcoholId();
       final Long reviewId = reviewCreateResponse.getId();
 
-      // 생성한 리뷰 삭제
-      MvcResult result2 =
-          mockMvc
-              .perform(
-                  delete("/api/v1/reviews/{reviewId}", reviewId)
-                      .contentType(MediaType.APPLICATION_JSON)
-                      .header("Authorization", "Bearer " + token.accessToken())
-                      .with(csrf()))
-              .andDo(print())
-              .andExpect(status().isOk())
-              .andExpect(jsonPath("$.code").value(200))
-              .andExpect(jsonPath("$.data").exists())
-              .andReturn();
-      String contentAsString2 = result2.getResponse().getContentAsString(StandardCharsets.UTF_8);
-      GlobalResponse response2 = mapper.readValue(contentAsString2, GlobalResponse.class);
+      // 리뷰 삭제
+      MvcTestResult deleteResult =
+          mockMvcTester
+              .delete()
+              .uri("/api/v1/reviews/{reviewId}", reviewId)
+              .contentType(APPLICATION_JSON)
+              .header("Authorization", "Bearer " + token.accessToken())
+              .with(csrf())
+              .exchange();
+
       ReviewResultResponse reviewResultResponse =
-          mapper.convertValue(response2.getData(), ReviewResultResponse.class);
+          extractData(deleteResult, ReviewResultResponse.class);
 
       // 리뷰 목록에서 조회안되는지 검증
-      MvcResult result3 =
-          mockMvc
-              .perform(
-                  get("/api/v1/reviews/{alcoholId}", alcoholId)
-                      .contentType(MediaType.APPLICATION_JSON)
-                      .with(csrf()))
-              .andDo(print())
-              .andExpect(status().isOk())
-              .andExpect(jsonPath("$.code").value(200))
-              .andExpect(jsonPath("$.data").exists())
-              .andReturn();
+      MvcTestResult listResult =
+          mockMvcTester
+              .get()
+              .uri("/api/v1/reviews/{alcoholId}", alcoholId)
+              .contentType(APPLICATION_JSON)
+              .with(csrf())
+              .exchange();
 
-      String contentAsString3 = result3.getResponse().getContentAsString(StandardCharsets.UTF_8);
-      GlobalResponse response3 = mapper.readValue(contentAsString3, GlobalResponse.class);
-      ReviewListResponse reviewListResponse =
-          mapper.convertValue(response3.getData(), ReviewListResponse.class);
+      ReviewListResponse reviewListResponse = extractData(listResult, ReviewListResponse.class);
       List<ReviewInfo> reviewInfos = reviewListResponse.reviewList();
 
       assertEquals(
@@ -325,18 +275,19 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
       final ReviewModifyRequest request =
           ReviewObjectFixture.getReviewModifyRequest(ReviewDisplayStatus.PUBLIC);
 
-      mockMvc
-          .perform(
-              patch("/api/v1/reviews/{reviewId}", reviewId)
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(mapper.writeValueAsString(request))
-                  .header("Authorization", "Bearer " + token.accessToken())
-                  .with(csrf()))
-          .andDo(print())
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("$.code").value(200))
-          .andExpect(jsonPath("$.data").exists())
-          .andReturn();
+      // when
+      MvcTestResult result =
+          mockMvcTester
+              .patch()
+              .uri("/api/v1/reviews/{reviewId}", reviewId)
+              .contentType(APPLICATION_JSON)
+              .content(mapper.writeValueAsString(request))
+              .header("Authorization", "Bearer " + token.accessToken())
+              .with(csrf())
+              .exchange();
+
+      // then
+      result.assertThat().hasStatusOk();
       Review savedReview = reviewRepository.findById(reviewId).orElseThrow();
       assertEquals(savedReview.getContent(), request.content());
     }
@@ -354,21 +305,20 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
       final ReviewModifyRequest request =
           ReviewObjectFixture.getNullableReviewModifyRequest(ReviewDisplayStatus.PRIVATE);
 
-      mockMvc
-          .perform(
-              patch("/api/v1/reviews/{reviewId}", reviewId)
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(mapper.writeValueAsString(request))
-                  .header("Authorization", "Bearer " + token.accessToken())
-                  .with(csrf()))
-          .andDo(print())
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("$.code").value(200))
-          .andExpect(jsonPath("$.data").exists())
-          .andReturn();
+      // when
+      MvcTestResult result =
+          mockMvcTester
+              .patch()
+              .uri("/api/v1/reviews/{reviewId}", reviewId)
+              .contentType(APPLICATION_JSON)
+              .content(mapper.writeValueAsString(request))
+              .header("Authorization", "Bearer " + token.accessToken())
+              .with(csrf())
+              .exchange();
 
+      // then
+      result.assertThat().hasStatusOk();
       Review savedReview = reviewRepository.findById(reviewId).orElseThrow();
-
       assertEquals(savedReview.getContent(), request.content());
     }
 
@@ -387,29 +337,20 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
       final Long reviewId = review.getId();
       final ReviewModifyRequest request = ReviewObjectFixture.getWrongReviewModifyRequest();
 
-      mockMvc
-          .perform(
-              patch("/api/v1/reviews/{reviewId}", reviewId)
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(mapper.writeValueAsString(request))
-                  .header("Authorization", "Bearer " + token.accessToken())
-                  .with(csrf()))
-          .andExpect(status().isBadRequest())
-          .andDo(print())
-          .andExpect(jsonPath("$.errors", hasSize(2)))
-          .andExpect(
-              jsonPath("$.errors[?(@.code == 'REVIEW_CONTENT_REQUIRED')].status")
-                  .value(notNullEmpty.status().name()))
-          .andExpect(
-              jsonPath("$.errors[?(@.code == 'REVIEW_CONTENT_REQUIRED')].message")
-                  .value(notNullEmpty.message()))
-          .andExpect(
-              jsonPath("$.errors[?(@.code == 'REVIEW_DISPLAY_STATUS_NOT_EMPTY')].status")
-                  .value(notStatusEmpty.status().name()))
-          .andExpect(
-              jsonPath("$.errors[?(@.code == 'REVIEW_DISPLAY_STATUS_NOT_EMPTY')].message")
-                  .value(notStatusEmpty.message()))
-          .andReturn();
+      // when
+      MvcTestResult result =
+          mockMvcTester
+              .patch()
+              .uri("/api/v1/reviews/{reviewId}", reviewId)
+              .contentType(APPLICATION_JSON)
+              .content(mapper.writeValueAsString(request))
+              .header("Authorization", "Bearer " + token.accessToken())
+              .with(csrf())
+              .exchange();
+
+      // then
+      result.assertThat().hasStatus(HttpStatus.BAD_REQUEST);
+      result.assertThat().bodyJson().extractingPath("$.errors").asArray().hasSize(2);
     }
 
     @DisplayName("리뷰 상태 변경에 성공한다.")
@@ -425,18 +366,19 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
       final ReviewModifyRequest request =
           ReviewObjectFixture.getReviewModifyRequest(ReviewDisplayStatus.PRIVATE);
 
-      mockMvc
-          .perform(
-              patch("/api/v1/reviews/{reviewId}/display", reviewId)
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(mapper.writeValueAsString(request))
-                  .header("Authorization", "Bearer " + token.accessToken())
-                  .with(csrf()))
-          .andDo(print())
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("$.code").value(200))
-          .andExpect(jsonPath("$.data").exists())
-          .andReturn();
+      // when
+      MvcTestResult result =
+          mockMvcTester
+              .patch()
+              .uri("/api/v1/reviews/{reviewId}/display", reviewId)
+              .contentType(APPLICATION_JSON)
+              .content(mapper.writeValueAsString(request))
+              .header("Authorization", "Bearer " + token.accessToken())
+              .with(csrf())
+              .exchange();
+
+      // then
+      result.assertThat().hasStatusOk();
       Review savedReview = reviewRepository.findById(reviewId).orElseThrow();
       assertEquals(ReviewDisplayStatus.PRIVATE, savedReview.getStatus());
     }
@@ -455,23 +397,30 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
 
       final Long reviewId = review.getId();
 
-      mockMvc
-          .perform(
-              patch("/api/v1/reviews/{reviewId}/display", reviewId)
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(mapper.writeValueAsString(request))
-                  .header("Authorization", "Bearer " + token.accessToken())
-                  .with(csrf()))
-          .andDo(print())
-          .andExpect(status().isBadRequest())
-          .andExpect(jsonPath("$.success").value("false"))
-          .andExpect(
-              jsonPath("$.errors[?(@.code == 'REVIEW_DISPLAY_STATUS_NOT_EMPTY')].status")
-                  .value(notStatusEmpty.status().name()))
-          .andExpect(
-              jsonPath("$.errors[?(@.code == 'REVIEW_DISPLAY_STATUS_NOT_EMPTY')].message")
-                  .value(notStatusEmpty.message()))
-          .andReturn();
+      // when
+      MvcTestResult result =
+          mockMvcTester
+              .patch()
+              .uri("/api/v1/reviews/{reviewId}/display", reviewId)
+              .contentType(APPLICATION_JSON)
+              .content(mapper.writeValueAsString(request))
+              .header("Authorization", "Bearer " + token.accessToken())
+              .with(csrf())
+              .exchange();
+
+      // then
+      result.assertThat().hasStatus(HttpStatus.BAD_REQUEST);
+      result.assertThat().bodyJson().extractingPath("$.success").isEqualTo(false);
+      result
+          .assertThat()
+          .bodyJson()
+          .extractingPath("$.errors[0].status")
+          .isEqualTo(notStatusEmpty.status().name());
+      result
+          .assertThat()
+          .bodyJson()
+          .extractingPath("$.errors[0].message")
+          .isEqualTo(notStatusEmpty.message());
     }
   }
 

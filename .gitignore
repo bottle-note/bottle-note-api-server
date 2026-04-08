@@ -86,3 +86,4 @@ docs/_site/
 # 기존 Jekyll 빌드 결과물 (Antora 전환 후 삭제 예정)
 docs/admin-api.html
 docs/index.html
+*/settings.local.json

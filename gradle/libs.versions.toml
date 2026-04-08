@@ -22,7 +22,7 @@ lombok = "1.18.30"
 google-guava = "32.1.2-jre"
 
 # Utilities
-commons-lang3 = "3.12.0"
+commons-lang3 = "3.17.0"
 jetbrains-annotations = "26.0.2"
 
 # Caching
@@ -50,6 +50,9 @@ archunit = "1.4.0"
 # Documentation
 spring-restdocs = "3.0.3"
 restdocs-api-spec = "0.19.4"
+
+# Schema Management
+liquibase-core = "4.33.0"
 
 # Scheduling
 quartz = "2.3.2"
@@ -144,6 +147,9 @@ loki-logback-appender = { module = "com.github.loki4j:loki-logback-appender", ve
 
 # Network
 netty-bom = { module = "io.netty:netty-bom", version.ref = "netty" }
+
+# Schema Management
+liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase-core" }
 
 # Testing
 testng = { module = "org.testng:testng", version.ref = "testng" }

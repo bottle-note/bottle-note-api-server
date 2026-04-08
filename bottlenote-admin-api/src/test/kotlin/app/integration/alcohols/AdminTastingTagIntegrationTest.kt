@@ -15,7 +15,6 @@ import org.springframework.http.MediaType
 @Tag("admin_integration")
 @DisplayName("[integration] Admin TastingTag API 통합 테스트")
 class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
-
 	@Autowired
 	private lateinit var tastingTagTestFactory: TastingTagTestFactory
 
@@ -33,7 +32,6 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 	@Nested
 	@DisplayName("테이스팅 태그 단건 조회 API")
 	inner class GetTagDetail {
-
 		@Test
 		@DisplayName("테이스팅 태그 상세 정보를 조회할 수 있다")
 		fun getTagDetailSuccess() {
@@ -42,20 +40,24 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.get().uri("/tasting-tags/${tag.id}")
+				mockMvcTester
+					.get()
+					.uri("/tasting-tags/${tag.id}")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.success").isEqualTo(true)
+				.extractingPath("$.success")
+				.isEqualTo(true)
 
 			assertThat(
-				mockMvcTester.get().uri("/tasting-tags/${tag.id}")
+				mockMvcTester
+					.get()
+					.uri("/tasting-tags/${tag.id}")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.tag.korName").isEqualTo("허니")
+				.extractingPath("$.data.tag.korName")
+				.isEqualTo("허니")
 		}
 
 		@Test
@@ -67,20 +69,24 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 
 			// when & then - leaf 태그 조회 시 parent.parent 존재 확인
 			assertThat(
-				mockMvcTester.get().uri("/tasting-tags/${leafTag.id}")
+				mockMvcTester
+					.get()
+					.uri("/tasting-tags/${leafTag.id}")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.tag.parent").isNotNull()
+				.extractingPath("$.data.tag.parent")
+				.isNotNull()
 
 			assertThat(
-				mockMvcTester.get().uri("/tasting-tags/${leafTag.id}")
+				mockMvcTester
+					.get()
+					.uri("/tasting-tags/${leafTag.id}")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.tag.parent.parent").isNotNull()
+				.extractingPath("$.data.tag.parent.parent")
+				.isNotNull()
 		}
 
 		@Test
@@ -93,12 +99,14 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.get().uri("/tasting-tags/${tag.id}")
+				mockMvcTester
+					.get()
+					.uri("/tasting-tags/${tag.id}")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.alcohols.length()").isEqualTo(1)
+				.extractingPath("$.data.alcohols.length()")
+				.isEqualTo(1)
 		}
 
 		@Test
@@ -106,37 +114,40 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 		fun getTagDetailNotFound() {
 			// when & then
 			assertThat(
-				mockMvcTester.get().uri("/tasting-tags/999999")
+				mockMvcTester
+					.get()
+					.uri("/tasting-tags/999999")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 		}
 	}
 
 	@Nested
 	@DisplayName("테이스팅 태그 생성 API")
 	inner class CreateTag {
-
 		@Test
 		@DisplayName("테이스팅 태그를 생성할 수 있다")
 		fun createTagSuccess() {
 			// given
-			val request = mapOf(
-				"korName" to "새로운 태그",
-				"engName" to "New Tag",
-				"description" to "테스트 설명"
-			)
+			val request =
+				mapOf(
+					"korName" to "새로운 태그",
+					"engName" to "New Tag",
+					"description" to "테스트 설명"
+				)
 
 			// when & then
 			assertThat(
-				mockMvcTester.post().uri("/tasting-tags")
+				mockMvcTester
+					.post()
+					.uri("/tasting-tags")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.code").isEqualTo("TASTING_TAG_CREATED")
+				.extractingPath("$.data.code")
+				.isEqualTo("TASTING_TAG_CREATED")
 		}
 
 		@Test
@@ -144,22 +155,25 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 		fun createTagWithParent() {
 			// given
 			val parent = tastingTagTestFactory.persistTastingTag("부모 태그", "Parent Tag")
-			val request = mapOf(
-				"korName" to "자식 태그",
-				"engName" to "Child Tag",
-				"parentId" to parent.id
-			)
+			val request =
+				mapOf(
+					"korName" to "자식 태그",
+					"engName" to "Child Tag",
+					"parentId" to parent.id
+				)
 
 			// when & then
 			assertThat(
-				mockMvcTester.post().uri("/tasting-tags")
+				mockMvcTester
+					.post()
+					.uri("/tasting-tags")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.code").isEqualTo("TASTING_TAG_CREATED")
+				.extractingPath("$.data.code")
+				.isEqualTo("TASTING_TAG_CREATED")
 		}
 
 		@Test
@@ -167,19 +181,21 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 		fun createTagDuplicateName() {
 			// given
 			tastingTagTestFactory.persistTastingTag("중복 태그", "Duplicate Tag")
-			val request = mapOf(
-				"korName" to "중복 태그",
-				"engName" to "Another Tag"
-			)
+			val request =
+				mapOf(
+					"korName" to "중복 태그",
+					"engName" to "Another Tag"
+				)
 
 			// when & then
 			assertThat(
-				mockMvcTester.post().uri("/tasting-tags")
+				mockMvcTester
+					.post()
+					.uri("/tasting-tags")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 		}
 
 		@Test
@@ -189,48 +205,52 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 			val tree = tastingTagTestFactory.persistTastingTagTree()
 			val leafTag = tree[2]
 
-			val request = mapOf(
-				"korName" to "4depth 태그",
-				"engName" to "4depth Tag",
-				"parentId" to leafTag.id
-			)
+			val request =
+				mapOf(
+					"korName" to "4depth 태그",
+					"engName" to "4depth Tag",
+					"parentId" to leafTag.id
+				)
 
 			// when & then - 4depth 생성 시도 시 실패
 			assertThat(
-				mockMvcTester.post().uri("/tasting-tags")
+				mockMvcTester
+					.post()
+					.uri("/tasting-tags")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 		}
 	}
 
 	@Nested
 	@DisplayName("테이스팅 태그 수정 API")
 	inner class UpdateTag {
-
 		@Test
 		@DisplayName("테이스팅 태그를 수정할 수 있다")
 		fun updateTagSuccess() {
 			// given
 			val tag = tastingTagTestFactory.persistTastingTag()
-			val request = mapOf(
-				"korName" to "수정된 태그",
-				"engName" to "Updated Tag",
-				"description" to "수정된 설명"
-			)
+			val request =
+				mapOf(
+					"korName" to "수정된 태그",
+					"engName" to "Updated Tag",
+					"description" to "수정된 설명"
+				)
 
 			// when & then
 			assertThat(
-				mockMvcTester.put().uri("/tasting-tags/${tag.id}")
+				mockMvcTester
+					.put()
+					.uri("/tasting-tags/${tag.id}")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.code").isEqualTo("TASTING_TAG_UPDATED")
+				.extractingPath("$.data.code")
+				.isEqualTo("TASTING_TAG_UPDATED")
 		}
 
 		@Test
@@ -240,45 +260,48 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 			tastingTagTestFactory.persistTastingTag("기존 태그", "Existing Tag")
 			val targetTag = tastingTagTestFactory.persistTastingTag("수정 대상", "Target Tag")
 
-			val request = mapOf(
-				"korName" to "기존 태그",
-				"engName" to "Updated Tag"
-			)
+			val request =
+				mapOf(
+					"korName" to "기존 태그",
+					"engName" to "Updated Tag"
+				)
 
 			// when & then
 			assertThat(
-				mockMvcTester.put().uri("/tasting-tags/${targetTag.id}")
+				mockMvcTester
+					.put()
+					.uri("/tasting-tags/${targetTag.id}")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 		}
 
 		@Test
 		@DisplayName("존재하지 않는 태그 수정 시 실패한다")
 		fun updateTagNotFound() {
 			// given
-			val request = mapOf(
-				"korName" to "수정된 태그",
-				"engName" to "Updated Tag"
-			)
+			val request =
+				mapOf(
+					"korName" to "수정된 태그",
+					"engName" to "Updated Tag"
+				)
 
 			// when & then
 			assertThat(
-				mockMvcTester.put().uri("/tasting-tags/999999")
+				mockMvcTester
+					.put()
+					.uri("/tasting-tags/999999")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 		}
 	}
 
 	@Nested
 	@DisplayName("테이스팅 태그 삭제 API")
 	inner class DeleteTag {
-
 		@Test
 		@DisplayName("테이스팅 태그를 삭제할 수 있다")
 		fun deleteTagSuccess() {
@@ -287,12 +310,14 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.delete().uri("/tasting-tags/${tag.id}")
+				mockMvcTester
+					.delete()
+					.uri("/tasting-tags/${tag.id}")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.code").isEqualTo("TASTING_TAG_DELETED")
+				.extractingPath("$.data.code")
+				.isEqualTo("TASTING_TAG_DELETED")
 		}
 
 		@Test
@@ -304,10 +329,11 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.delete().uri("/tasting-tags/${parent.id}")
+				mockMvcTester
+					.delete()
+					.uri("/tasting-tags/${parent.id}")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 		}
 
 		@Test
@@ -320,10 +346,11 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.delete().uri("/tasting-tags/${tag.id}")
+				mockMvcTester
+					.delete()
+					.uri("/tasting-tags/${tag.id}")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 		}
 
 		@Test
@@ -331,17 +358,17 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 		fun deleteTagNotFound() {
 			// when & then
 			assertThat(
-				mockMvcTester.delete().uri("/tasting-tags/999999")
+				mockMvcTester
+					.delete()
+					.uri("/tasting-tags/999999")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 		}
 	}
 
 	@Nested
 	@DisplayName("테이스팅 태그 위스키 연결 API")
 	inner class ManageAlcohols {
-
 		@Test
 		@DisplayName("위스키를 태그에 벌크로 연결할 수 있다")
 		fun addAlcoholsToTagSuccess() {
@@ -354,14 +381,16 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.post().uri("/tasting-tags/${tag.id}/alcohols")
+				mockMvcTester
+					.post()
+					.uri("/tasting-tags/${tag.id}/alcohols")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.code").isEqualTo("TASTING_TAG_ALCOHOL_ADDED")
+				.extractingPath("$.data.code")
+				.isEqualTo("TASTING_TAG_ALCOHOL_ADDED")
 		}
 
 		@Test
@@ -378,14 +407,16 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.delete().uri("/tasting-tags/${tag.id}/alcohols")
+				mockMvcTester
+					.delete()
+					.uri("/tasting-tags/${tag.id}/alcohols")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.code").isEqualTo("TASTING_TAG_ALCOHOL_REMOVED")
+				.extractingPath("$.data.code")
+				.isEqualTo("TASTING_TAG_ALCOHOL_REMOVED")
 		}
 
 		@Test
@@ -397,19 +428,19 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.post().uri("/tasting-tags/${tag.id}/alcohols")
+				mockMvcTester
+					.post()
+					.uri("/tasting-tags/${tag.id}/alcohols")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 		}
 	}
 
 	@Nested
 	@DisplayName("인증 테스트")
 	inner class AuthenticationTest {
-
 		@Test
 		@DisplayName("인증 없이 요청 시 실패한다")
 		fun requestWithoutAuth() {
@@ -418,11 +449,12 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 				.hasStatus4xxClientError()
 
 			assertThat(
-				mockMvcTester.post().uri("/tasting-tags")
+				mockMvcTester
+					.post()
+					.uri("/tasting-tags")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(mapOf("korName" to "테스트", "engName" to "Test")))
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 		}
 	}
 }

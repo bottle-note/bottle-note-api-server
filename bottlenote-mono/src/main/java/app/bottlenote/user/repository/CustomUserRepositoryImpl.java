@@ -5,24 +5,36 @@ import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
 import static app.bottlenote.user.domain.QUser.user;
+import static com.querydsl.jpa.JPAExpressions.select;
 
 import app.bottlenote.alcohols.repository.AlcoholQuerySupporter;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.picks.constant.PicksStatus;
 import app.bottlenote.picks.repository.PicksQuerySupporter;
 import app.bottlenote.rating.repository.RatingQuerySupporter;
 import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.review.domain.QReviewTastingTag;
 import app.bottlenote.review.repository.ReviewQuerySupporter;
+import app.bottlenote.user.constant.AdminUserSortType;
 import app.bottlenote.user.constant.MyBottleType;
+import app.bottlenote.user.constant.SocialType;
+import app.bottlenote.user.constant.UserStatus;
+import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
+import app.bottlenote.user.dto.request.AdminUserSearchRequest;
+import app.bottlenote.user.dto.response.AdminUserListResponse;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
 import app.bottlenote.user.dto.response.PicksMyBottleItem;
 import app.bottlenote.user.dto.response.RatingMyBottleItem;
 import app.bottlenote.user.dto.response.ReviewMyBottleItem;
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.Collections;
@@ -32,6 +44,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -326,5 +341,111 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
     MyBottleResponse myBottleResponse =
         MyBottleResponse.create(targetUserId, isMyPage, totalCount, picksMyBottleList);
     return PageResponse.of(myBottleResponse, cursorPageable);
+  }
+
+  @Override
+  public Page<AdminUserListResponse> searchAdminUsers(AdminUserSearchRequest request) {
+    Expression<Long> reviewCountExpr = reviewQuerySupporter.reviewCountSubQuery(user.id);
+    Expression<Long> ratingCountExpr = ratingQuerySupporter.ratingCountSubQuery(user.id);
+    Expression<Long> picksCountExpr = pickQuerySupporter.picksCountSubQuery(user.id);
+
+    List<AdminUserRow> rows =
+        queryFactory
+            .select(
+                Projections.constructor(
+                    AdminUserRow.class,
+                    user.id,
+                    user.email,
+                    user.nickName,
+                    user.imageUrl,
+                    user.role,
+                    user.status,
+                    reviewCountExpr,
+                    ratingCountExpr,
+                    picksCountExpr,
+                    user.createAt,
+                    user.lastLoginAt))
+            .from(user)
+            .where(adminUserKeyword(request.keyword()), adminUserStatus(request.status()))
+            .orderBy(adminUserSortOrder(request.sortType(), request.sortOrder()))
+            .offset((long) request.page() * request.size())
+            .limit(request.size())
+            .fetch();
+
+    // socialType 배치 로딩
+    List<Long> userIds = rows.stream().map(AdminUserRow::userId).toList();
+    Map<Long, List<SocialType>> socialTypeMap =
+        userIds.isEmpty()
+            ? Map.of()
+            : queryFactory.selectFrom(user).where(user.id.in(userIds)).fetch().stream()
+                .collect(Collectors.toMap(User::getId, User::getSocialType));
+
+    List<AdminUserListResponse> content =
+        rows.stream()
+            .map(
+                row ->
+                    new AdminUserListResponse(
+                        row.userId(),
+                        row.email(),
+                        row.nickName(),
+                        row.imageUrl(),
+                        row.role(),
+                        row.status(),
+                        socialTypeMap.getOrDefault(row.userId(), List.of()),
+                        row.reviewCount(),
+                        row.ratingCount(),
+                        row.picksCount(),
+                        row.createAt(),
+                        row.lastLoginAt()))
+            .toList();
+
+    Long total =
+        queryFactory
+            .select(user.id.count())
+            .from(user)
+            .where(adminUserKeyword(request.keyword()), adminUserStatus(request.status()))
+            .fetchOne();
+
+    return new PageImpl<>(
+        content, PageRequest.of(request.page(), request.size()), total != null ? total : 0L);
+  }
+
+  private BooleanExpression adminUserKeyword(String keyword) {
+    if (keyword == null || keyword.isBlank()) {
+      return null;
+    }
+    return user.nickName.containsIgnoreCase(keyword).or(user.email.containsIgnoreCase(keyword));
+  }
+
+  private BooleanExpression adminUserStatus(UserStatus status) {
+    if (status == null) {
+      return null;
+    }
+    return user.status.eq(status);
+  }
+
+  private OrderSpecifier<?> adminUserSortOrder(AdminUserSortType sortType, SortOrder sortOrder) {
+    Order order = sortOrder == SortOrder.ASC ? Order.ASC : Order.DESC;
+    return switch (sortType) {
+      case CREATED_AT -> new OrderSpecifier<>(order, user.createAt);
+      case NICK_NAME -> new OrderSpecifier<>(order, user.nickName);
+      case EMAIL -> new OrderSpecifier<>(order, user.email);
+      case REVIEW_COUNT ->
+          new OrderSpecifier<>(
+              order,
+              select(review.count())
+                  .from(review)
+                  .where(
+                      review
+                          .userId
+                          .eq(user.id)
+                          .and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE))));
+      case RATING_COUNT ->
+          new OrderSpecifier<>(
+              order,
+              select(rating.count())
+                  .from(rating)
+                  .where(rating.id.userId.eq(user.id).and(rating.ratingPoint.rating.gt(0.0))));
+    };
   }
 }

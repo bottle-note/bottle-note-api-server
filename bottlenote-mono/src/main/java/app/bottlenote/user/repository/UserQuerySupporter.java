@@ -23,10 +23,14 @@ import com.querydsl.core.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class UserQuerySupporter {
+
+  private final app.bottlenote.alcohols.domain.RegionRepository regionRepository;
 
   /**
    * 마이 페이지 사용자의 팔로워 수 를 조회한다.
@@ -115,11 +119,15 @@ public class UserQuerySupporter {
     return myBottleList.size() > request.pageSize();
   }
 
-  /** 지역(리전) 검색조건 */
+  /** 지역(리전) 검색조건 (부모 지역이면 하위 지역 포함) */
   public BooleanExpression eqRegion(Long regionId) {
     if (regionId == null) return null;
-
-    return alcohol.region.id.eq(regionId);
+    List<Long> childIds = regionRepository.findChildRegionIds(regionId);
+    if (childIds.isEmpty()) return alcohol.region.id.eq(regionId);
+    List<Long> regionIds = new java.util.ArrayList<>(childIds.size() + 1);
+    regionIds.add(regionId);
+    regionIds.addAll(childIds);
+    return alcohol.region.id.in(regionIds);
   }
 
   /** 술 이름을 검색하는 조건 */

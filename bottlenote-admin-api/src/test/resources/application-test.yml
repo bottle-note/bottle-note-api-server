@@ -23,9 +23,10 @@ spring:
     url: jdbc:tc:mysql:8.0.32:///bottlenote
     username: root
     password: root
-  sql:
-    init:
-      mode: never
+  # Liquibase
+  liquibase:
+    change-log: classpath:storage/mysql/changelog/schema.mysql.sql
+    enabled: true
 
   # JPA
   jpa:

@@ -11,7 +11,5 @@ data class RootAdminProperties(
 	/**
 	 * 주입받은 인코더를 사용하여 비밀번호를 암호화하여 반환합니다.
 	 */
-	fun getEncodedPassword(encoder: BCryptPasswordEncoder): String {
-		return encoder.encode(password)
-	}
+	fun getEncodedPassword(encoder: BCryptPasswordEncoder): String = encoder.encode(password)
 }
