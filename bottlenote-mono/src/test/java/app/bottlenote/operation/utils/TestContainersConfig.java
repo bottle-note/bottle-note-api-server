@@ -8,6 +8,8 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.redis.testcontainers.RedisContainer;
+import java.util.Collections;
+import java.util.UUID;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
@@ -15,9 +17,6 @@ import org.springframework.context.annotation.Primary;
 import org.testcontainers.containers.MinIOContainer;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.utility.DockerImageName;
-
-import java.util.Collections;
-import java.util.UUID;
 
 /**
  * TestContainers 설정을 관리하는 Spring Bean 기반 Configuration

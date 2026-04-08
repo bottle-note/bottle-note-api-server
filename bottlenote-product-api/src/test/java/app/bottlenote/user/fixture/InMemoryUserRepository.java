@@ -4,6 +4,8 @@ import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
+import app.bottlenote.user.dto.request.AdminUserSearchRequest;
+import app.bottlenote.user.dto.response.AdminUserListResponse;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
 import java.util.HashMap;
@@ -11,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.test.util.ReflectionTestUtils;
 
 public class InMemoryUserRepository implements UserRepository {
@@ -67,6 +71,11 @@ public class InMemoryUserRepository implements UserRepository {
   @Override
   public PageResponse<MyBottleResponse> getPicksMyBottle(MyBottlePageableCriteria criteria) {
     return null;
+  }
+
+  @Override
+  public Page<AdminUserListResponse> searchAdminUsers(AdminUserSearchRequest request) {
+    return new PageImpl<>(List.of());
   }
 
   public void clear() {

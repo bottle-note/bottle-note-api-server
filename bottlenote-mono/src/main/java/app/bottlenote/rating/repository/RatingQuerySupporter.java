@@ -70,6 +70,14 @@ public class RatingQuerySupporter {
         "ratingCount");
   }
 
+  public Expression<Long> ratingCountSubQuery(NumberPath<Long> userId) {
+    return ExpressionUtils.as(
+        select(rating.count())
+            .from(rating)
+            .where(rating.id.userId.eq(userId).and(rating.ratingPoint.rating.gt(0.0))),
+        "ratingCount");
+  }
+
   public Expression<Double> averageRatingSubQuery(NumberPath<Long> alocholId) {
     return ExpressionUtils.as(
         select(rating.ratingPoint.rating.avg().round())

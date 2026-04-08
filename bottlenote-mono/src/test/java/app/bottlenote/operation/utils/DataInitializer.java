@@ -1,17 +1,16 @@
 package app.bottlenote.operation.utils;
 
+import static jakarta.transaction.Transactional.TxType.REQUIRES_NEW;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
-import static jakarta.transaction.Transactional.TxType.REQUIRES_NEW;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
