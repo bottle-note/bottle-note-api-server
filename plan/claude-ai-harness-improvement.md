@@ -1,395 +1,577 @@
-# Claude AI 하드 하네스 구조 개선안
+# Claude AI Harness 개선 설계서
 
-> CLAUDE.md 중심 구조에서 Skills + Hooks 기반 분산 구조로 전환
+> 작성일: 2026-04-08
+> 참고: [agent-skills](https://github.com/addyosmani/agent-skills) (Addy Osmani)
+> 상태: 설계 단계
+
 ---
 
-## 1. 현재 구조 분석
+## 1. 현재 구조 진단
 
-### 현재 파일 구성
+### 현재 스킬 목록
 
-```
-.claude/
-├── settings.json              # 훅: SessionStart (Docker 세팅)만 존재
-├── hooks/
-│   └── session-start.sh       # 원격 환경 Docker 설치 전용
-├── docs/
-│   └── ADMIN-API-GUIDE.md     # 210줄, 스킬/훅 미연결 (사실상 사문서)
-└── skills/
-    └── deploy-batch/          # 배포 스킬 1개만 존재
-        ├── SKILL.md
-        └── scripts/*.sh
+| 스킬 | 대상 | 역할 |
+|------|------|------|
+| `/implement-product-api` | product-api (Java) | 기능 구현 가이드 |
+| `/implement-test` | product + admin | 테스트 작성 가이드 |
+| `/verify` | 전체 | 로컬 CI 검증 (L1/L2/L3) |
 
-CLAUDE.md                      # ~210줄, 모든 규칙이 여기에 집중
+### 현재 워크플로우
+
+```mermaid
+flowchart LR
+    A["/implement-product-api"] --> B["/implement-test"]
+    B --> C["/verify"]
+    C --> D["수동 커밋/PR"]
 ```
 
 ### 문제점
 
-| 문제 | 영향 |
+1. **모듈별 분산**: product-api와 admin-api 구현 스킬이 분리되어야 할 이유가 없음
+   - 둘 다 결국 "mono에 비즈니스 로직 → API 모듈에 컨트롤러" 패턴
+   - `/implement-test`는 이미 `[product|admin]` 인자로 통합되어 있음
+2. **라이프사이클 누락**: 요구사항 정의, 계획, 디버깅, 리뷰 단계가 없음
+3. **방어 장치 부족**: 핑계 차단(Rationalizations), 경고 신호(Red Flags), 종료 검증(Verification)이 없음
+4. **스킬 간 연계 불명확**: 어떤 순서로 어떤 스킬을 써야 하는지 가이드가 없음
+
+---
+
+## 2. 개선 방향: 에이전틱 스킬 체계
+
+### 핵심 아이디어
+
+**"프로젝트 특화 지식"은 references에, "워크플로우"는 스킬에 분리한다.**
+
+현재 `/implement-product-api`는 두 가지가 섞여 있음:
+- **워크플로우**: Phase 0 → Phase 1 → Phase 2 → Phase 3 (이건 범용적)
+- **프로젝트 패턴**: Repository 3-Tier, Facade, DTO 패턴 (이건 프로젝트 고유)
+
+개선 후에는:
+- 스킬 = **"무엇을 어떤 순서로 할 것인가"** (워크플로우, 게이트, 검증)
+- references = **"이 프로젝트에서는 어떻게 하는가"** (코드 패턴, 컨벤션)
+
+### 통합 원칙
+
+| 원칙 | 설명 |
 |------|------|
-| CLAUDE.md에 개요 + 구현 규칙 + 테스트 규칙 + 코드 스타일 전부 포함 | 컨텍스트 윈도우 낭비, 모든 대화에 전부 로딩됨 |
-| ADMIN-API-GUIDE.md가 스킬로 연결되지 않음 | 수동으로 읽어야만 참조 가능 |
-| 포매팅(spotless) 자동화 없음 | Claude가 수정한 코드가 포맷 위반 상태로 남음 |
-| 커밋 메시지 검증 없음 | 규칙(타입: 제목) 위반 가능 |
-| 구현 워크플로우가 코드화되지 않음 | 매번 대화로 가이드를 재설명해야 함 |
+| **모듈 통합** | product/admin을 하나의 `/implement` 스킬로 통합, 인자로 모듈 선택 |
+| **라이프사이클 완성** | DEFINE → PLAN → BUILD → TEST → VERIFY → REVIEW |
+| **방어 장치 내장** | 모든 스킬에 Rationalizations + Red Flags + Verification |
+| **게이트 워크플로우** | 각 단계 사이에 사용자 승인 게이트 |
 
-### 참고: 프론트엔드 프로젝트 (이미 스킬 구조 적용)
+---
 
+## 3. 새로운 스킬 체계
+
+### 전체 라이프사이클
+
+```mermaid
+flowchart TD
+    subgraph DEFINE["DEFINE 단계"]
+        spec["/define<br/>요구사항 명확화"]
+    end
+
+    subgraph PLAN["PLAN 단계"]
+        plan["/plan<br/>태스크 분해"]
+    end
+
+    subgraph BUILD["BUILD 단계"]
+        build["/implement<br/>점진적 구현"]
+        test["/test<br/>테스트 작성"]
+    end
+
+    subgraph VERIFY_STAGE["VERIFY 단계"]
+        verify["/verify<br/>로컬 CI"]
+        debug["/debug<br/>디버깅"]
+    end
+
+    subgraph REVIEW["REVIEW 단계"]
+        review["/self-review<br/>코드 리뷰"]
+    end
+
+    spec -->|"사용자 승인"| plan
+    plan -->|"사용자 승인"| build
+    build <-->|"Slice 단위 반복"| test
+    build --> verify
+    test --> verify
+    verify -->|"실패"| debug
+    debug -->|"수정 후"| verify
+    verify -->|"L2 통과"| review
+    review -->|"승인"| ship["커밋 / PR"]
+    review -->|"수정 필요"| build
 ```
-bottle-note-frontend/.claude/skills/Code/
-├── SKILL.md                  # 메인 스킬
-└── Workflows/
-    ├── api.md                # /api - API 함수 + Query 훅 생성
-    ├── component.md          # /component
-    ├── fix.md                # /fix
-    ├── hook.md               # /hook
-    ├── page.md               # /page
-    ├── refactor.md           # /refactor
-    ├── store.md              # /store
-    └── test.md               # /test
+
+### 스킬 매핑 (현재 → 개선)
+
+| 현재 | 개선 후 | 변화 |
+|------|---------|------|
+| `/implement-product-api` | `/implement [domain] [product\|admin]` | product/admin 통합, 에이전틱 워크플로우 |
+| `/implement-test` | `/test [domain] [product\|admin]` | 이름 간소화, 구조 보강 |
+| `/verify` | `/verify [quick\|standard\|full]` | 유지 (이미 잘 되어 있음) |
+| (없음) | `/define` | **신규** - 요구사항 정의 |
+| (없음) | `/plan` | **신규** - 태스크 분해 |
+| (없음) | `/debug` | **신규** - 체계적 디버깅 |
+| (없음) | `/self-review` | **신규** - 코드 리뷰 |
+
+---
+
+## 4. 각 스킬 상세 설계
+
+### 4.1 `/define` - 요구사항 명확화 (신규)
+
+**트리거**: "이거 구현해줘", "기능 추가", 모호한 요청
+
+**역할**: 코드 작성 전에 무엇을 만드는지 합의
+
+```mermaid
+flowchart LR
+    A["모호한 요청"] --> B["가정 표면화"]
+    B --> C["성공 기준 정의"]
+    C --> D["영향 범위 분석"]
+    D --> E["사용자 승인"]
+```
+
+**핵심 요소**:
+- 가정(Assumptions) 목록을 먼저 나열
+- 성공 기준을 구체적/테스트 가능하게 정의
+- 영향받는 모듈과 파일 목록 제시
+- 사용자 승인 없이 다음 단계로 넘어가지 않음
+
+**산출물**: `plan/{feature-name}.md` 파일의 Overview 섹션에 기록
+- `/define` 시점에 plan 문서를 생성하고 Overview에 가정, 성공 기준, 영향 범위를 작성
+- `/plan` 시점에 같은 문서에 Tasks 섹션을 추가
+- 하나의 문서가 define → plan → implement → complete 전체를 추적
+
+**Rationalizations 예시**:
+
+| 핑계 | 현실 |
+|------|------|
+| "이건 간단해서 스펙 필요 없다" | 간단한 작업에도 수용 기준은 필요하다. 2줄짜리 스펙이면 충분. |
+| "코드 짜면서 파악할게" | 그게 바로 삽질의 시작. 15분 스펙이 3시간 재작업을 막는다. |
+| "요구사항이 바뀔 텐데" | 그래서 스펙은 살아있는 문서. 없는 것보다 바뀌는 게 낫다. |
+
+---
+
+### 4.2 `/plan` - 태스크 분해 (신규)
+
+**트리거**: "계획 세워줘", 3개 이상 파일 변경 예상 시, `/define` 완료 후
+
+**역할**: 작업을 검증 가능한 작은 단위로 분해
+
+**핵심 요소**:
+- 의존성 그래프 기반 순서 결정
+- 각 태스크에 수용 기준 + 검증 방법 명시
+- Phase 사이에 체크포인트 배치
+- 수직 슬라이스(Vertical Slice) 선호
+
+**산출물**: `plan/{feature-name}.md` 파일 1개
+
+**플랜 문서 규칙**:
+- 하나의 기능 = 하나의 문서 (분할 금지)
+- 진행하면서 같은 문서에 상태를 갱신 (Task 완료 시 체크)
+- 작업 완료 시 문서 최상단에 `stamp-template.st` 기반 스탬프 추가
+
+**플랜 문서 라이프사이클**:
+```mermaid
+flowchart LR
+    A["plan 생성<br/>Status: IN PROGRESS"] --> B["Task 완료마다<br/>체크 + 기록 갱신"]
+    B --> C["전체 완료<br/>스탬프 추가<br/>Status: COMPLETED"]
+    C --> D["plan/complete/<br/>로 이동"]
+```
+
+**플랜 문서 구조**:
+```markdown
+# Plan: [기능명]
+
+## Overview  ← /define 시점에 작성
+[무엇을 왜 만드는지]
+
+### Assumptions
+- [가정 1]
+- [가정 2]
+
+### Success Criteria
+- [성공 기준 1 - 구체적, 테스트 가능]
+- [성공 기준 2]
+
+### Impact Scope
+- [영향받는 모듈/파일 목록]
+
+## Tasks  ← /plan 시점에 추가
+
+### Task 1: [제목]
+- 수용 기준: [구체적, 테스트 가능한 조건]
+- 검증: [명령어 또는 확인 방법]
+- 파일: [변경 예상 파일 목록]
+- 크기: [S | M | L → 분할 필요]
+- 상태: [ ] 미완료 / [x] 완료
+
+### Task 2: [제목]
+...
+
+## Progress Log  ← /implement 진행하면서 갱신
+- [날짜] Task 1 완료 - [커밋 해시 또는 요약]
+- [날짜] Task 2 완료 - [커밋 해시 또는 요약]
 ```
 
 ---
 
-## 2. 목표 구조
+### 4.3 `/implement` - 점진적 구현 (implement-product-api + admin 통합)
+
+**트리거**: "API 추가", "엔드포인트 구현", "기능 구현"
+**인자**: `[domain] [product|admin] [crud|search|action]`
+
+**현재 `/implement-product-api`와의 차이점**:
+
+| 항목 | 현재 | 개선 후 |
+|------|------|---------|
+| 대상 모듈 | product-api만 | product + admin 통합 |
+| 구현 단위 | Phase 단위 (대규모) | Slice 단위 (소규모, 반복) |
+| 중간 검증 | Phase 끝에만 verify | 매 Slice마다 테스트 실행 |
+| 커밋 타이밍 | 전체 완료 후 | Task 완료마다 커밋 (필수) |
+| 방어 장치 | 없음 | Rationalizations + Red Flags |
+
+**Task-Slice-Commit 관계**:
 
 ```
-CLAUDE.md                          # 경량화: 개요 + 모듈 구조 + 빌드 명령 + 핵심 원칙만
+Task  = 커밋 단위 (사용자와 합의한 논리적 목표)
+Slice = 실행 단위 (AI가 100줄 넘기 전에 컴파일 확인하는 규율)
+Commit = Task 완료 시 반드시 생성 (Slice마다 커밋하지 않음)
+```
 
+**검증 수준 구분**:
+
+| 시점 | 검증 수준 | 실행 내용 |
+|------|-----------|-----------|
+| **Slice 완료** | 컴파일만 | `compileJava`, `compileKotlin` |
+| **Task 완료** | self-review + 단위 테스트 + 커밋 | `/self-review` → `unit_test` + `check_rule_test` → 커밋 |
+| **전체 기능 완료** | 통합 테스트 | `integration_test`, `admin_integration_test` |
+
+**커밋 메시지 형식** (Task = 제목, Slice = 불릿):
+```
+feat: rating 통계 API Service 구현
+
+- RatingStatisticsResponse DTO 작성
+- RatingRepository에 통계 조회 메서드 추가
+- RatingService.getStatistics() 구현
+- AlcoholFacade 연동
+```
+
+**Task 내부 사이클**:
+```mermaid
+flowchart LR
+    A["Slice 구현"] --> B["컴파일 확인"]
+    B --> C{"통과?"}
+    C -->|"No"| E["수정"]
+    E --> B
+    C -->|"Yes"| D{"마지막<br/>Slice?"}
+    D -->|"No"| A
+    D -->|"Yes"| F["/self-review"]
+    F --> G["unit_test +<br/>check_rule_test"]
+    G --> H["Task 커밋"]
+```
+
+**모듈별 분기**:
+```mermaid
+flowchart TD
+    start["'/implement rating product crud'"] --> explore["Phase 0: Explore<br/>기존 코드 탐색 + 영향 분석"]
+    explore --> module_check{"모듈?"}
+    
+    module_check -->|"product"| mono_java["Phase 1: Mono<br/>Java 비즈니스 로직"]
+    module_check -->|"admin"| mono_admin["Phase 1: Mono<br/>Java 비즈니스 로직<br/>(Admin 전용 서비스)"]
+    
+    mono_java --> product_ctrl["Phase 2: Controller<br/>Java @RestController<br/>'/api/v1/{domain}'"]
+    mono_admin --> admin_ctrl["Phase 2: Controller<br/>Kotlin @RestController<br/>context-path: /admin/api/v1"]
+    
+    product_ctrl --> verify_q["Phase 3: /verify quick"]
+    admin_ctrl --> verify_q
+```
+
+**references 분리 (프로젝트 패턴은 별도 파일)**:
+- `references/mono-patterns.md` - Repository 3-Tier, Facade, DTO 패턴 (기존 유지)
+- `references/product-api-patterns.md` - Product 컨트롤러 패턴 (기존에서 분리)
+- `references/admin-api-patterns.md` - Admin 컨트롤러 패턴 (ADMIN-API-GUIDE.md 흡수)
+
+---
+
+### 4.4 `/test` - 테스트 작성 (기존 implement-test 보강)
+
+**트리거**: "테스트 작성", "테스트 추가", `/implement` 완료 후
+**인자**: `[domain] [product|admin] [unit|integration|restdocs|all]`
+
+**변경사항**: 이름 간소화 + 에이전틱 구조 추가 + 테스트 실행 시점 명확화
+
+기존 Phase 구조는 유지하되 추가:
+- Rationalizations 테이블
+- Red Flags 섹션
+- Verification 체크리스트
+
+**테스트 종류별 역할과 실행 시점**:
+
+| 테스트 종류 | 태그 | 작성 시점 | 실행 시점 | 실행 명령 |
+|------------|------|-----------|-----------|-----------|
+| **단위 테스트** | `@Tag("unit")` | `/implement` Task와 함께 | Task 커밋 전 | `./gradlew unit_test` |
+| **아키텍처 규칙** | `@Tag("rule")` | 이미 존재 (ArchUnit) | Task 커밋 전 | `./gradlew check_rule_test` |
+| **통합 테스트** | `@Tag("integration")` | 전체 기능 완료 후 | `/verify full` | `./gradlew integration_test` |
+| **Admin 통합** | `@Tag("admin_integration")` | 전체 기능 완료 후 | `/verify full` | `./gradlew admin_integration_test` |
+| **RestDocs** | (없음) | 사용자 요청 시만 | 문서화 필요 시 | `./gradlew restDocsTest` |
+
+**테스트 작성 패턴 선택 기준**:
+
+```
+새 테스트 작성 시:
+├── 서비스 로직 테스트?
+│   ├── Fake/InMemory 구현체가 있는가?
+│   │   ├── Yes → Fake 패턴 사용 (기존 InMemory 활용)
+│   │   └── No → InMemory 구현체 먼저 생성 → Fake 패턴
+│   └── Mockito는 최후의 수단 (사용자 확인 필수)
+├── API 엔드포인트 테스트?
+│   ├── product → IntegrationTestSupport + mockMvcTester
+│   └── admin → IntegrationTestSupport + mockMvcTester (Kotlin)
+└── API 문서화?
+    └── RestDocs (사용자 명시적 요청 시만)
+```
+
+**`/implement`와의 관계**:
+- `/implement` 안에서 Slice 단위로 **기존 테스트를 실행**하는 것 = 컴파일 확인
+- `/test`를 별도 호출하는 것 = **새로운 테스트 코드를 작성**하는 것
+- 단위 테스트는 `/implement` Task와 함께 작성하는 것이 이상적
+- 통합 테스트는 전체 기능 완료 후 `/test`로 별도 작성
+
+---
+
+### 4.5 `/debug` - 체계적 디버깅 (신규)
+
+**트리거**: "에러 났어", "테스트 실패", "빌드 안 돼", "왜 안 되지"
+
+**5단계 프로세스**:
+```mermaid
+flowchart LR
+    A["STOP<br/>작업 중단"] --> B["REPRODUCE<br/>재현"]
+    B --> C["LOCALIZE<br/>위치 특정"]
+    C --> D["FIX<br/>근본 원인 수정"]
+    D --> E["GUARD<br/>회귀 테스트 추가"]
+    E --> F["VERIFY<br/>전체 검증"]
+```
+
+**프로젝트 특화 분기**:
+```
+빌드 실패:
+├── Java 컴파일 에러 → mono/product-api 소스 확인
+├── Kotlin 컴파일 에러 → admin-api 소스 확인
+├── Spotless 포맷 에러 → ./gradlew spotlessApply
+├── 테스트 실패
+│   ├── @Tag("unit") → Fake/InMemory 구현체 확인
+│   ├── @Tag("integration") → TestContainers/Docker 상태 확인
+│   ├── @Tag("rule") → ArchUnit 아키텍처 규칙 위반 확인
+│   └── @Tag("admin_integration") → Admin 인증 설정 확인
+└── 의존성 에러 → libs.versions.toml 확인
+```
+
+---
+
+### 4.6 `/self-review` - 코드 리뷰 (신규)
+
+**트리거**: "리뷰해줘", 각 Task 커밋 전, 기능 완료 후
+
+**5축 리뷰 (프로젝트 맞춤화)**:
+
+| 축 | 이 프로젝트에서의 체크 포인트 |
+|----|---------------------------|
+| **정확성** | 스펙 일치, 에지 케이스, 예외 처리 |
+| **가독성** | 네이밍 컨벤션, 한글 DisplayName, 주석 간결성 |
+| **아키텍처** | Facade 경계, Repository 3-Tier, 도메인 분리 |
+| **보안** | SecurityContextUtil 인증, 입력 검증, SQL 파라미터화 |
+| **성능** | N+1 쿼리, 페이징 누락, 캐시 전략 |
+
+**심각도 레이블**:
+- **Critical**: 머지 차단 (보안 취약점, 데이터 손실, 기능 장애)
+- **Important**: 머지 전 수정 권장 (누락 테스트, 잘못된 추상화)
+- **Nit**: 선택 사항 (네이밍, 스타일)
+
+---
+
+## 5. 통합 파일 구조 (개선 후)
+
+```
 .claude/
-├── settings.json                  # 훅 설정 (포매팅, 커밋 검증 등)
+├── settings.json                    # 훅 설정 (기존 유지)
+├── settings.local.json              # 로컬 권한 (기존 유지)
 ├── hooks/
-│   ├── session-start.sh           # [기존] 원격 환경 Docker
-│   ├── post-edit-format.sh        # [신규] Edit/Write 후 spotless 실행
-│   └── pre-commit-validate.sh     # [신규] 커밋 메시지 규칙 검증
-│
+│   └── session-start.sh             # Docker 설정 (기존 유지)
+├── docs/
+│   └── ADMIN-API-GUIDE.md           # → references로 이동 예정
 ├── skills/
-│   ├── deploy-batch/              # [기존] 배포 스킬
-│   │
-│   ├── admin-api/                 # [신규] /admin-api 스킬
-│   │   ├── SKILL.md               # 진입점, Phase 분기
-│   │   └── references/
-│   │       ├── checklist.md       # 구현 체크리스트
-│   │       ├── controller.md      # 컨트롤러 규칙
-│   │       ├── service.md         # 서비스 규칙
-│   │       └── test.md            # 테스트 규칙
-│   │
-│   ├── product-api/               # [신규] /product-api 스킬
+│   ├── define/                      # [신규] 요구사항 명확화
+│   │   └── SKILL.md
+│   ├── plan/                        # [신규] 태스크 분해
+│   │   └── SKILL.md
+│   ├── implement/                   # [통합] product + admin 구현
 │   │   ├── SKILL.md
 │   │   └── references/
-│   │       ├── checklist.md
-│   │       └── controller.md
-│   │
-│   ├── test/                      # [신규] /test 스킬
+│   │       ├── mono-patterns.md     # 기존 유지
+│   │       ├── product-patterns.md  # 기존에서 분리
+│   │       └── admin-patterns.md    # ADMIN-API-GUIDE.md 흡수
+│   ├── test/                        # [보강] 이름 간소화
 │   │   ├── SKILL.md
 │   │   └── references/
-│   │       ├── unit-test.md       # 단위 테스트 (Fake/Stub 패턴)
-│   │       ├── integration-test.md # 통합 테스트 (TestContainers)
-│   │       └── restdocs-test.md   # RestDocs API 문서화 테스트
-│   │
-│   └── domain/                    # [신규] /domain 스킬
-│       ├── SKILL.md
-│       └── references/
-│           ├── entity.md          # 엔티티 작성 규칙
-│           ├── repository.md      # 3계층 레포지토리 패턴
-│           └── event.md           # 이벤트 기반 아키텍처
-│
-└── docs/
-    └── ADMIN-API-GUIDE.md         # admin-api 스킬 references로 흡수 후 제거
+│   │       ├── test-infra.md        # 기존 유지
+│   │       └── test-patterns.md     # 기존 유지
+│   ├── verify/                      # 기존 유지
+│   │   └── SKILL.md
+│   ├── debug/                       # [신규] 체계적 디버깅
+│   │   └── SKILL.md
+│   └── self-review/                 # [신규] 커밋 전 self-review
+│       └── SKILL.md
+└── ...
 ```
 
 ---
 
-## 3. CLAUDE.md 경량화 방안
+## 6. 모든 스킬의 공통 뼈대
 
-### 유지할 내용 (CLAUDE.md에 남길 것)
+agent-skills에서 차용하는 일관된 SKILL.md 구조:
 
-| 섹션 | 이유 |
-|------|------|
-| 프로젝트 개요 (기술 스택, 아키텍처) | 모든 대화에서 필요한 기본 컨텍스트 |
-| 모듈 구조 다이어그램 | 모듈 간 의존성 파악에 필수 |
-| 빌드 및 실행 명령어 | 빈번히 참조됨 |
-| 핵심 원칙 요약 (5줄 이내) | DDD, 계층 구조, 네이밍 컨벤션 키워드만 |
+### 언어 규칙
 
-### 스킬로 이동할 내용
+**SKILL.md, references 등 스킬 정의 문서는 영어로 작성한다.**
 
-| 현재 CLAUDE.md 섹션 | 이동 대상 스킬 |
-|---------------------|---------------|
-| Admin API 구현 규칙 (~50줄) | `/admin-api` 스킬 |
-| 코드 작성 규칙 - 아키텍처 패턴, 네이밍, 예외 처리 | `/domain` 스킬 |
-| 테스트 작성 규칙 (~30줄) | `/test` 스킬 |
-| 데이터베이스 설계 - 레포지토리 계층 구조 (~60줄) | `/domain` 스킬 references/repository.md |
-| 보안 및 인증, 외부 서비스 연동 | `/product-api`, `/admin-api` 스킬에서 필요 시 참조 |
+한국어를 사용하는 경우는 다음으로 제한:
+- 커밋 메시지 (타입 접두사는 영어, 제목/본문은 한국어)
+- `plan/*.md` 플랜 문서
+- 사용자와의 대화 응답
+- `@DisplayName` 등 한국어가 관례인 코드 요소
+- description의 트리거 키워드 (한국어 트리거는 한국어로 표기)
 
-### 예상 결과
+### SKILL.md 구조
 
-- **현재**: CLAUDE.md ~210줄 (매 대화마다 전체 로딩)
-- **목표**: CLAUDE.md ~60줄 (개요만) + 스킬별 on-demand 로딩
-
+```markdown
 ---
-
-## 4. 스킬 설계
-
-### 4.1 `/admin-api` 스킬
-
-```yaml
-# .claude/skills/admin-api/SKILL.md 프론트매터
----
-name: admin-api
+name: skill-name
 description: |
-  Admin API 구현 가이드. "어드민 API", "admin api", "관리자 API" 요청 시 사용.
-  mono 모듈 서비스 작성 -> admin-api 컨트롤러 -> 테스트 순서로 안내.
-argument-hint: "[도메인명] [작업유형: crud|search|action]"
-allowed-tools: Read, Edit, Write, Bash, Glob, Grep, Agent
----
-```
-
-**트리거 예시**:
-- `/admin-api banner crud` - 배너 CRUD 구현
-- `/admin-api curation search` - 큐레이션 검색 API 구현
-
-**동작**:
-1. `$ARGUMENTS[0]`(도메인)으로 기존 코드 탐색 (mono 모듈 내 해당 도메인)
-2. `$ARGUMENTS[1]`(작업유형)에 따라 체크리스트 분기
-3. 단계별 구현 가이드 제공 (Phase 1: mono, Phase 2: admin-api, Phase 3: test)
-
-**핵심**: 기존 `.claude/docs/ADMIN-API-GUIDE.md`의 내용을 references/로 분산 흡수
-
-### 4.2 `/product-api` 스킬
-
-```yaml
----
-name: product-api
-description: |
-  Product API 구현 가이드. "API 추가", "엔드포인트 구현" 요청 시 사용.
-  mono 모듈 Facade/Service -> product-api 컨트롤러 -> 테스트 순서로 안내.
-argument-hint: "[도메인명] [작업유형]"
-allowed-tools: Read, Edit, Write, Bash, Glob, Grep, Agent
----
-```
-
-**동작**:
-1. 도메인 탐색 (mono 모듈)
-2. Facade -> Service -> Controller 순서로 구현 가이드
-3. 커서 페이징 패턴 적용 (Admin과 다름)
-
-### 4.3 `/test` 스킬
-
-```yaml
----
-name: test
-description: |
-  테스트 코드 작성 가이드. "테스트 작성", "test" 요청 시 사용.
-  단위/통합/RestDocs 테스트를 구분하여 안내.
-argument-hint: "[대상클래스 또는 도메인] [unit|integration|restdocs]"
-allowed-tools: Read, Edit, Write, Bash, Glob, Grep, Agent
----
-```
-
-**트리거 예시**:
-- `/test ReviewService unit` - 리뷰 서비스 단위 테스트
-- `/test AdminBannerController restdocs` - 배너 API 문서화 테스트
-- `/test AlcoholService integration` - 주류 서비스 통합 테스트
-
-**동작 분기**:
-- `unit`: Fake/Stub 패턴 안내, InMemory 레포지토리 사용
-- `integration`: IntegrationTestSupport 상속, TestContainers, Awaitility
-- `restdocs`: @WebMvcTest, MockitoBean, document() 스니펫 생성
-
-### 4.4 `/domain` 스킬
-
-```yaml
----
-name: domain
-description: |
-  도메인 모델 구현 가이드. "엔티티 추가", "도메인 설계", "레포지토리" 요청 시 사용.
-  엔티티/레포지토리 3계층/이벤트 패턴을 안내.
-argument-hint: "[도메인명] [entity|repository|event]"
-allowed-tools: Read, Edit, Write, Bash, Glob, Grep, Agent
----
-```
-
-**동작 분기**:
-- `entity`: BaseEntity 상속, @Embeddable 복합키, Hibernate @Filter
-- `repository`: 3계층 (DomainRepository -> JpaRepository -> QueryDSL Custom)
-- `event`: ApplicationEventPublisher, @TransactionalEventListener, @Async
-
+  One-line description. Trigger conditions.
+  Trigger: "/command", or when the user says "한국어 트리거", "English trigger".
+argument-hint: "[arg description]"
 ---
 
-## 5. 훅 설계
+# Skill Title
 
-### 5.1 PostToolUse: 자동 포매팅 [구현 완료]
+## Overview
+Why this skill exists and what it does.
 
-**목적**: Claude가 Java/Kotlin 파일을 수정하면 자동으로 spotless 적용
+## When to Use
+- Condition 1
+- Condition 2
 
-**구현 방식**: 별도 스크립트 없이 settings.json 인라인 명령어로 구현
+## When NOT to Use
+- Condition 1
 
-```json
-{
-  "PostToolUse": [
-    {
-      "matcher": "Edit|Write",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "FP=$(cat | jq -r '.tool_input.file_path // empty'); [[ \"$FP\" == *.java || \"$FP\" == *.kt ]] && cd $CLAUDE_PROJECT_DIR && ./gradlew spotlessApply -q 2>/dev/null || true",
-          "timeout": 30
-        }
-      ]
-    }
-  ]
-}
-```
+## Process
+Step-by-step workflow (the core of the skill).
 
-**동작**:
-1. stdin JSON에서 `tool_input.file_path` 추출
-2. `.java` 또는 `.kt` 파일인 경우에만 spotless 실행
-3. 그 외 파일(.md, .gradle, .xml 등)은 스킵
+## Common Rationalizations
+| Rationalization | Reality |
+|-----------------|---------|
+| "..." | "..." |
 
-**빌드 설정 (build.gradle)**:
-- `bottlenote-mono`, `bottlenote-product-api`: google-java-format (기존)
-- `bottlenote-admin-api`: ktlint 추가 (`no-wildcard-imports` 규칙 비활성화)
+## Red Flags
+- Signal that something is going wrong
 
-**검증 결과**:
-- .java 파일: 인덴트/공백 위반 자동 복원 확인 (MD5 해시 일치)
-- .kt 파일: 인덴트/공백 위반 자동 복원 확인 (MD5 해시 일치)
-- .gradle 파일: Hook 미실행 확인 (의도대로 동작)
-
-**참고**:
-- 초기에 별도 스크립트(post-edit-format.sh)로 모듈별 분기 로직을 구현했으나, 인라인 명령어가 더 간결하여 채택
-- ktlint의 `no-wildcard-imports` 규칙은 auto-fix 불가 (클래스패스 분석 필요) → 비활성화 처리
-
-### 5.2 PreToolUse: 커밋 메시지 검증
-
-**목적**: 커밋 메시지가 `타입: 제목` 형식을 따르는지 검증
-
-```json
-{
-  "PreToolUse": [
-    {
-      "matcher": "Bash",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/pre-commit-validate.sh",
-          "timeout": 5
-        }
-      ]
-    }
-  ]
-}
-```
-
-**pre-commit-validate.sh 동작**:
-1. stdin JSON에서 `tool_input.command` 추출
-2. `git commit` 명령인지 확인 (아니면 즉시 통과)
-3. 커밋 메시지 추출 후 정규식 검증: `^(feat|fix|refactor|test|docs|chore): .{1,50}$`
-4. 실패 시 exit 2 (BLOCK) + stderr로 피드백 메시지 출력
-
-### 5.3 훅 설정 종합 (settings.json 최종 형태)
-
-```json
-{
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.sh"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/post-edit-format.sh",
-            "timeout": 30,
-            "statusMessage": "spotless 포매팅 적용 중..."
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/pre-commit-validate.sh",
-            "timeout": 5
-          }
-        ]
-      }
-    ]
-  }
-}
+## Verification
+- [ ] Exit criteria checklist
 ```
 
 ---
 
-## 6. 구현 로드맵
+## 7. 전체 워크플로우 시나리오 예시
 
-### Phase 1: CLAUDE.md 경량화
+### 시나리오: "rating 도메인에 평점 통계 API 추가"
 
-- [ ] CLAUDE.md에서 스킬로 이동할 섹션 식별 및 분리
-- [ ] 경량화된 CLAUDE.md 작성 (~60줄)
-- [ ] 기존 내용 백업
+```mermaid
+sequenceDiagram
+    actor User as 사용자
+    participant Define as /define
+    participant Plan as /plan
+    participant Impl as /implement
+    participant Test as /test
+    participant Verify as /verify
+    participant SR as /self-review
+    participant Git as git commit
 
-### Phase 2: 스킬 구현
+    %% DEFINE
+    User->>Define: "rating 통계 API 추가해줘"
+    Define->>Define: plan/rating-statistics.md 생성<br/>(Overview + Assumptions + Success Criteria)
+    Define->>User: 가정 목록 + 성공 기준 제시
+    User->>Define: 승인
 
-- [ ] `/admin-api` 스킬 (기존 ADMIN-API-GUIDE.md 흡수)
-- [ ] `/test` 스킬
-- [ ] `/product-api` 스킬
-- [ ] `/domain` 스킬
-- [ ] 각 스킬 테스트 (실제 트리거 및 동작 확인)
+    %% PLAN
+    Define->>Plan: 같은 문서에 Tasks 추가
+    Plan->>User: T1: DTO + Repository<br/>T2: Service + 단위테스트<br/>T3: Controller<br/>T4: 통합테스트
+    User->>Plan: 승인
 
-### Phase 3: 훅 구현
+    %% IMPLEMENT - Task 1
+    rect rgb(240, 248, 255)
+    Note over Impl,Git: Task 1: DTO + Repository
+    Impl->>Impl: Slice 1: DTO 작성 → compileJava
+    Impl->>Impl: Slice 2: Repository 추가 → compileJava
+    Impl->>SR: self-review (5축)
+    SR->>Verify: unit_test + check_rule_test
+    Verify->>Git: feat: rating 통계 DTO 및 Repository 추가
+    end
 
-- [x] PostToolUse 자동 포매팅 훅 (인라인 명령어 방식, .java + .kt 대응)
-- [x] build.gradle에 admin-api Kotlin spotless 설정 추가 (ktlint)
-- [x] 훅 동작 검증 (.java, .kt, .gradle 3종 케이스 MD5 해시 비교)
-- [ ] `pre-commit-validate.sh` 작성 및 테스트
-- [ ] settings.json에 PreToolUse 커밋 메시지 검증 훅 추가
+    %% IMPLEMENT - Task 2
+    rect rgb(240, 255, 240)
+    Note over Impl,Git: Task 2: Service + 단위테스트
+    Impl->>Impl: Slice 1: Service 구현 → compileJava
+    Impl->>Impl: Slice 2: 단위테스트 작성 → compileJava
+    Impl->>SR: self-review (5축)
+    SR->>Verify: unit_test + check_rule_test
+    Verify->>Git: feat: rating 통계 Service 구현
+    end
 
-### Phase 4: 검증 및 조정
+    %% IMPLEMENT - Task 3
+    rect rgb(255, 248, 240)
+    Note over Impl,Git: Task 3: Controller
+    Impl->>Impl: Slice 1: Controller 작성 → compileJava
+    Impl->>SR: self-review (5축)
+    SR->>Verify: unit_test + check_rule_test
+    Verify->>Git: feat: rating 통계 API 엔드포인트 추가
+    end
 
-- [ ] 실제 작업 시나리오 테스트 (Admin API 1개 구현해보기)
-- [ ] 컨텍스트 윈도우 사용량 비교 (전/후)
-- [ ] 스킬 트리거 정확도 확인
-- [ ] 훅 오탐/미탐 확인
+    %% TEST - Task 4
+    rect rgb(248, 240, 255)
+    Note over Test,Git: Task 4: 통합테스트
+    Test->>Test: 통합 테스트 작성
+    Test->>SR: self-review
+    SR->>Verify: /verify full (integration_test 포함)
+    Verify->>Git: test: rating 통계 API 통합 테스트 추가
+    end
+
+    %% COMPLETE
+    Git->>User: plan 문서에 스탬프 추가
+```
 
 ---
 
-## 7. 의사결정 필요 사항
+## 8. 구현 순서 (우선순위)
 
-| # | 질문 | 선택지 | 메모 |
-|---|------|--------|------|
-| 1 | spotless를 PostToolUse에서 실행할지, 커밋 전에만 실행할지 | A: 매 편집마다 / B: 커밋 전만 | **결정: A** - 매 편집마다 실행, .java/.kt 파일만 필터링하여 불필요한 실행 방지 |
-| 2 | 스킬 간 공통 규칙(네이밍, 예외 처리)을 어디에 둘지 | A: CLAUDE.md / B: 별도 공통 스킬 / C: 각 스킬에 중복 | A가 가장 단순 |
-| 3 | admin-api 스킬에 context: fork를 적용할지 | A: fork (독립 컨텍스트) / B: 기본 (대화 공유) | fork면 대화 이력 참조 불가 |
-| 4 | Kotlin 파일 포매팅은 어떻게 할지 | A: ktlint / B: ktfmt / C: 당분간 제외 | **���정: A** - ktlint 채택, `no-wildcard-imports` 규칙만 비활성화 (auto-fix 불가) |
-
----
-
-## 8. 기대 효과
-
-| 지표 | 현재 | 목표 |
-|------|------|------|
-| CLAUDE.md 크기 | ~210줄 (항상 로딩) | ~60줄 (개요만) |
-| 구현 가이드 접근 | 수동 (대화로 설명) | `/admin-api banner crud` 한 줄 |
-| 코드 포매팅 | 수동 spotlessApply | 자동 (훅) |
-| 커밋 메시지 검증 | 없음 | 자동 (훅) |
-| 새 기능 구현 시간 | 매번 규칙 재설명 필요 | 스킬이 컨텍스트 제공 |
+| 순서 | 작업 | 난이도 | 효과 |
+|------|------|--------|------|
+| **1** | 공통 뼈대 확정 (Rationalizations + Red Flags + Verification) | 낮음 | 높음 |
+| **2** | `/implement` 스킬 작성 (implement-product-api + admin 통합) | 중간 | 높음 |
+| **3** | `/test` 스킬 보강 (implement-test 리네이밍 + 구조 보강) | 낮음 | 중간 |
+| **4** | `/debug` 스킬 작성 | 중간 | 높음 |
+| **5** | `/self-review` 스킬 작성 | 중간 | 중간 |
+| **6** | `/define` 스킬 작성 | 낮음 | 중간 |
+| **7** | `/plan` 스킬 작성 | 낮음 | 중간 |
+| **8** | CLAUDE.md 업데이트 (새 스킬 체계 반영) | 낮음 | 높음 |
 
 ---
 
-## 참고 자료
+## 9. 결정 사항
 
-- Claude Code Hooks 공식 문서: https://code.claude.com/docs/en/hooks
-- Claude Code Skills 공식 문서: https://code.claude.com/docs/en/skills
-- 프론트엔드 스킬 구조: `bottle-note-frontend/.claude/skills/Code/`
-- 기존 배포 스킬: `.claude/skills/deploy-batch/`
+- [x] `/implement`에서 batch 모듈은 **제외** (product + admin만)
+- [x] `/self-review`는 **커밋 전 self-review 전용** (PR 리뷰는 범위 밖)
+- [x] 기존 스킬(`implement-product-api`, `implement-test`)은 **전체 완료 후 제거** (deprecated로 유지)
+- [x] CLAUDE.md의 Admin/Product 구현 규칙은 `references/`로 **이동**, CLAUDE.md는 프로젝트 개요 중심으로 재구성
+- [x] 스킬 문서(SKILL.md, references)는 **영어**로 작성. 한국어는 커밋 메시지, plan 문서, 대화 응답, @DisplayName 등으로 제한

@@ -99,111 +99,28 @@ git submodule update --init --recursive
   - `storage/mysql/init/*.sql`: TestContainers용 DB 초기화 스크립트
   - 통합 테스트 실행 전 서브모듈 초기화 필수
 
-## Admin API 구현 규칙
+## Skills (Development Workflow)
 
-### Admin API 구현 체크리스트
+Use these skills to follow the structured development lifecycle:
 
-새로운 Admin API를 구현할 때 다음 체크리스트를 따르세요:
+| Command | Purpose | When to Use |
+|---------|---------|-------------|
+| `/define` | Requirements clarification | Starting a new feature, vague requirements |
+| `/plan` | Task breakdown | After /define, multi-file changes |
+| `/implement` | Incremental implementation | Building features (product + admin) |
+| `/test` | Test creation | Unit, integration, RestDocs tests |
+| `/verify` | Local CI verification | Compile, unit test, integration test |
+| `/debug` | Systematic debugging | Build/test failures, unexpected errors |
+| `/self-review` | Pre-commit quality gate | Before every commit |
 
-#### 1. 요구사항 분석 및 설계
-- [ ] product-api에 동일/유사 기능이 있는지 확인
-- [ ] mono 모듈의 기존 서비스/도메인 로직 재사용 가능 여부 확인
-- [ ] 신규 서비스 메서드가 필요한 경우 mono 모듈에 추가 계획
-- [ ] API 엔드포인트 설계 (HTTP Method, URL 패턴)
+**Lifecycle:** `/define` -> `/plan` -> `/implement` (with `/self-review` per Task) -> `/test` -> `/verify full`
 
-#### 2. mono 모듈 수정 (필요 시)
-- [ ] 서비스 클래스에 admin 전용 메서드 추가 (예: `xxxForAdmin`)
-- [ ] 인증 방식 분리: admin은 `adminId`를 파라미터로 받도록 설계
-- [ ] 공통 로직 추출 및 리팩토링 (`private` 메서드 분리)
-- [ ] 기존 테스트 영향 확인 및 수정
-
-#### 3. admin-api 컨트롤러 구현
-- [ ] 패키지: `app.bottlenote.{domain}.presentation`
-- [ ] 클래스명: `Admin{도메인명}Controller`
-- [ ] `@RestController`, `@RequestMapping("/{리소스}")` 설정
-- [ ] 인증이 필요한 API: `SecurityContextUtil.getAdminUserIdByContext()` 호출
-- [ ] 응답: `GlobalResponse.ok(response)` 래핑
-
-#### 4. 테스트 작성
-- [ ] 통합 테스트: `app/integration/{domain}/Admin{도메인명}IntegrationTest.kt`
-  - `IntegrationTestSupport` 상속
-  - `@Tag("admin_integration")` 태그
-  - 인증 성공/실패 케이스
-  - 주요 비즈니스 시나리오
-- [ ] RestDocs 테스트 (API 문서화 필요 시): `app/docs/{domain}/Admin{도메인명}ControllerDocsTest.kt`
-
-#### 5. 검증 및 완료
-- [ ] 컴파일 확인: `./gradlew :bottlenote-admin-api:compileKotlin`
-- [ ] 테스트 실행: `./gradlew :bottlenote-admin-api:admin_integration_test`
-- [ ] API 문서 생성: `./gradlew :bottlenote-admin-api:asciidoctor` (RestDocs 테스트 작성 시)
-
-### 컨트롤러 작성 규칙
-
-1. **패키지 위치**: `app.bottlenote.{domain}.presentation`
-2. **클래스명**: `Admin{도메인명}Controller`
-3. **매핑**: `@RequestMapping("/{복수형 리소스}")` (예: `/helps`, `/alcohols`)
-4. **응답 타입**: `ResponseEntity<*>` 또는 `ResponseEntity<GlobalResponse>`
-5. **응답 래핑**: `GlobalResponse.ok(response)` 사용
-
-### API 엔드포인트 설계
-
-| HTTP Method | 용도 | URL 패턴 | 예시 |
-|-------------|------|----------|------|
-| GET | 목록 조회 | `/{resources}` | `GET /helps` |
-| GET | 단건 조회 | `/{resources}/{id}` | `GET /helps/1` |
-| POST | 생성/액션 | `/{resources}` 또는 `/{resources}/{id}/{action}` | `POST /helps/1/answer` |
-| PUT | 전체 수정 | `/{resources}/{id}` | `PUT /helps/1` |
-| PATCH | 부분 수정 | `/{resources}/{id}` | `PATCH /helps/1` |
-| DELETE | 삭제 | `/{resources}/{id}` | `DELETE /helps/1` |
-
-### 요청/응답 처리
-
-1. **목록 조회 요청**: `@ModelAttribute` + Request DTO
-2. **단건 조회**: `@PathVariable`
-3. **생성/수정 요청**: `@RequestBody @Valid` + Request DTO
-4. **페이징 응답**: `PageResponse.of(content, cursorPageable)`
-
-### 인증이 필요한 API
-
-```kotlin
-val adminId = SecurityContextUtil.getAdminUserIdByContext()
-    .orElseThrow { UserException(UserExceptionCode.REQUIRED_USER_ID) }
-```
-
-### 서비스 의존
-
-- 컨트롤러는 mono 모듈의 서비스를 직접 주입받아 사용
-- 비즈니스 로직은 mono 모듈에 구현
-- admin-api는 프레젠테이션 계층만 담당
-
-### 테스트 작성 규칙
-
-**통합 테스트** (`app/integration/{domain}/`):
-- `IntegrationTestSupport` 상속
-- `@Tag("admin_integration")` 태그
-- `@Nested` 클래스로 API별 그룹화
-- `mockMvcTester`로 API 호출 및 검증
-
-**RestDocs 테스트** (`app/docs/{domain}/`):
-- `@WebMvcTest(controllers = [...], excludeAutoConfiguration = [SecurityAutoConfiguration::class])`
-- `@MockitoBean`으로 서비스 목킹
-- `document()` 메서드로 API 문서 스니펫 생성
-
-### 헬퍼 클래스
-
-- **위치**: `app/helper/{domain}/`
-- **형태**: `object` 싱글톤
-- **용도**: 테스트 데이터 생성
-- **네이밍**: `{도메인명}Helper`
-
-```kotlin
-object AlcoholsHelper {
-    fun createAdminAlcoholItem(
-        id: Long = 1L,
-        korName: String = "테스트 위스키"
-    ): AdminAlcoholItem = ...
-}
-```
+**Detailed patterns** for product-api and admin-api implementation are in skill reference files:
+- `.claude/skills/implement/references/mono-patterns.md` — Repository 3-Tier, Facade, DTO, Event patterns
+- `.claude/skills/implement/references/product-patterns.md` — Product controller conventions
+- `.claude/skills/implement/references/admin-patterns.md` — Admin controller conventions (Kotlin)
+- `.claude/skills/test/references/test-infra.md` — TestContainers, Fake/InMemory list
+- `.claude/skills/test/references/test-patterns.md` — Unit, integration, RestDocs code patterns
 
 ## 코드 작성 규칙
 
@@ -283,32 +200,14 @@ object AlcoholsHelper {
 - **Fake/Stub 패턴 선호**: Mock 대신 InMemory 구현체 사용
 - **네이밍**: `InMemory{도메인명}Repository`, `Fake{서비스명}`
 - **위치**: `{도메인}.fixture` 패키지
-- **이벤트 테스트**: `FakeApplicationEventPublisher`로 발행된 이벤트 검증
-
-```java
-// 예시: InMemory 레포지토리
-public class InMemoryReviewRepository implements ReviewRepository {
-  private final Map<Long, Review> database = new HashMap<>();
-  // 도메인 레포지토리 인터페이스 구현
-}
-```
 
 ### 통합 테스트 패턴
 
 - **베이스 클래스**: `IntegrationTestSupport` 상속
-- **API 테스트**: `MockMvcTester` 사용, `extractData()` 메서드로 응답 추출
-- **비동기 대기**: `Awaitility`로 이벤트 처리 대기
-- **테스트 데이터 생성**: `{도메인명}TestFactory` 사용 (`@Autowired`)
+- **API 테스트**: `MockMvcTester` 사용
+- **테스트 데이터 생성**: `{도메인명}TestFactory` 사용
 
-```java
-// 예시: 비동기 이벤트 대기
-Awaitility.await()
-    .atMost(3, TimeUnit.SECONDS)
-    .untilAsserted(() -> {
-        List<ResourceLog> logs = repository.findByUserId(userId);
-        assertEquals(2, logs.size());
-    });
-```
+> Detailed code examples: see `/test` skill references (`test-infra.md`, `test-patterns.md`)
 
 ### 이벤트 기반 아키텍처
 
