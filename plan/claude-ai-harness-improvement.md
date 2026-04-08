@@ -665,3 +665,194 @@ QueryDSL Projections.constructor()에 사용하는 record는 반드시
 | 중간 | P3: API 문서화 스킬 | `/docs` 스킬 신설 또는 `/test` 확장 (M) |
 | 낮음 | P4: InMemory 갱신 가이드 강화 | Red Flags에 구체적 경로 추가 (S) |
 | 낮음 | P5: local record 주의사항 | references에 한 줄 추가 (S) |
+
+---
+
+## 11. `/docs` 스킬 설계 (API 문서화)
+
+### 배경
+
+현재 스킬 체계에서 RestDocs 테스트 작성과 adoc 스펙 문서 생성을 담당하는 스킬이 없다.
+`/test` 스킬에서 RestDocs는 "사용자 요청 시만" 옵션으로 존재하지만, 스니펫 생성 후 adoc 파일 작성 -> 인덱스 등록 -> asciidoctor 빌드 검증까지의 워크플로우가 정의되어 있지 않다.
+
+### 위치
+
+라이프사이클에서 `/test` 이후, `/verify` 이전에 위치한다.
+
+```
+/define -> /plan -> /implement (+ /self-review) -> /test -> /docs -> /verify full
+```
+
+### 트리거
+
+- "문서 작성해줘", "API 문서화", "RestDocs 추가", "adoc 작성"
+- `/test` 완료 후 자동 연결 (사용자가 문서화를 요청한 경우)
+
+### 전체 흐름
+
+```mermaid
+flowchart TD
+    A["Phase 0: Explore<br/>기존 문서 구조 탐색"] --> B["Phase 1: RestDocs 테스트 작성<br/>스니펫 생성"]
+    B --> C["Phase 2: adoc 스펙 문서 작성"]
+    C --> D["Phase 3: 인덱스 등록"]
+    D --> E["Phase 4: asciidoctor 빌드 검증"]
+```
+
+### Phase 0: Explore
+
+기존 문서 구조를 탐색하여 컨벤션을 파악한다.
+
+```
+확인 대상:
+├── 대상 모듈 확인 (product-api / admin-api)
+├── 기존 RestDocs 테스트 패턴
+│   ├── product: AbstractRestDocs 상속, Java, mockMvc.perform()
+│   └── admin: @WebMvcTest + @AutoConfigureRestDocs, Kotlin, MockMvcTester.apply()
+├── 기존 adoc 디렉토리 구조
+│   ├── product: src/docs/asciidoc/api/{domain}/{feature}.adoc
+│   └── admin: src/docs/asciidoc/api/admin-{domain}/{feature}.adoc
+└── 인덱스 파일 위치
+    ├── product: product-api.adoc
+    └── admin: admin-api.adoc
+```
+
+### Phase 1: RestDocs 테스트 작성
+
+모듈별로 다른 패턴을 따른다.
+
+**product-api (Java)**:
+```
+위치: product-api/src/test/java/app/docs/{domain}/RestDocs{Domain}ControllerTest.java
+베이스: AbstractRestDocs 상속
+서비스: mock(XxxService.class) 필드 선언
+인증: mockStatic(SecurityContextUtil.class)
+문서 ID: "{domain}/{operation}" (예: "rating/register")
+```
+
+**admin-api (Kotlin)**:
+```
+위치: admin-api/src/test/kotlin/app/docs/{domain}/Admin{Domain}ControllerDocsTest.kt
+어노테이션: @WebMvcTest + @AutoConfigureRestDocs
+서비스: @MockitoBean
+인증: excludeAutoConfiguration = [SecurityAutoConfiguration::class]
+문서 ID: "admin/{domain}/{operation}" (예: "admin/users/list")
+```
+
+**공통 규칙**:
+- 각 엔드포인트별 1개 테스트 메서드
+- queryParameters / pathParameters / requestFields / responseFields 모두 문서화
+- meta 필드(serverVersion 등)는 `.ignored()` 처리
+- `preprocessRequest(prettyPrint())`, `preprocessResponse(prettyPrint())` 필수
+
+**스니펫 생성 확인**:
+```bash
+# 테스트 실행 후 스니펫 디렉토리 확인
+ls build/generated-snippets/admin/{domain}/{operation}/
+# 예상 파일: curl-request.adoc, http-request.adoc, http-response.adoc,
+#           query-parameters.adoc, response-fields.adoc 등
+```
+
+### Phase 2: adoc 스펙 문서 작성
+
+스니펫을 include하는 adoc 파일을 생성한다.
+
+**위치**:
+- product: `src/docs/asciidoc/api/{domain}/{feature}.adoc`
+- admin: `src/docs/asciidoc/api/admin-{domain}/{feature}.adoc`
+
+**구조 템플릿**:
+```asciidoc
+=== {API 제목} ===
+
+- {API 설명}
+- {필터/검색 조건 안내}
+
+[source]
+----
+{HTTP_METHOD} {context-path}/{endpoint}
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/{document-id}/query-parameters.adoc[]
+include::{snippets}/{document-id}/curl-request.adoc[]
+include::{snippets}/{document-id}/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/{document-id}/response-fields.adoc[]
+include::{snippets}/{document-id}/http-response.adoc[]
+```
+
+**엔드포인트별 스니펫 include 분기**:
+- GET (목록): query-parameters + response-fields
+- GET (상세): path-parameters + response-fields
+- POST/PUT: request-fields + response-fields (+ path-parameters if applicable)
+- DELETE: path-parameters + response-fields
+
+### Phase 3: 인덱스 등록
+
+메인 인덱스 adoc 파일에 새 섹션을 추가한다.
+
+```asciidoc
+== {Domain} API
+
+include::api/{admin-}{domain}/{feature}.adoc[]
+
+'''
+```
+
+**배치 순서**: 기존 섹션들의 알파벳/논리 순서에 맞춰 삽입한다.
+
+### Phase 4: asciidoctor 빌드 검증
+
+```bash
+# admin-api
+./gradlew :bottlenote-admin-api:asciidoctor
+
+# product-api
+./gradlew :bottlenote-product-api:asciidoctor
+```
+
+**검증 기준**:
+- BUILD SUCCESSFUL
+- `build/asciidoc/html5/` 아래 HTML 파일 생성 확인
+- 새로 추가한 섹션이 HTML에 포함되어 있는지 확인
+
+### 인자
+
+```
+/docs [domain] [product|admin]
+```
+
+**예시**:
+- `/docs user admin` - admin-api 유저 API 문서화
+- `/docs rating product` - product-api 평점 API 문서화
+
+### Rationalizations
+
+| 핑계 | 현실 |
+|------|------|
+| "문서는 나중에 쓸게" | API가 배포되면 문서 없이 프론트엔드가 개발할 수 없다. 구현과 함께 작성해야 한다. |
+| "Swagger로 충분하다" | RestDocs는 테스트 기반이라 실제 동작하는 API만 문서화된다. Swagger는 어노테이션 기반이라 코드와 괴리가 생긴다. |
+| "adoc 파일은 그냥 복사하면 된다" | 스니펫 경로, 문서 ID, include 구조가 모듈/엔드포인트마다 다르다. 패턴을 따라야 빌드가 통과한다. |
+
+### Red Flags
+
+- RestDocs 테스트 없이 adoc 파일만 작성 (스니펫이 없으면 빌드 실패)
+- 문서 ID와 adoc include 경로 불일치
+- 인덱스 파일에 include 누락 (HTML에 섹션이 빠짐)
+- `asciidoctor` 빌드 검증 생략
+- product/admin 패턴 혼용 (product에서 @WebMvcTest 사용, admin에서 AbstractRestDocs 사용)
+
+### Verification
+
+- [ ] RestDocs 테스트가 통과하고 스니펫이 생성됨
+- [ ] adoc 파일이 올바른 위치에 생성됨
+- [ ] 인덱스 adoc에 새 섹션이 등록됨
+- [ ] `./gradlew asciidoctor` 빌드 성공
+- [ ] 생성된 HTML에 새 API 섹션이 포함됨
