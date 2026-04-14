@@ -17,7 +17,6 @@ import org.springframework.http.MediaType
 @Tag("admin_integration")
 @DisplayName("[integration] Admin Help API 통합 테스트")
 class AdminHelpIntegrationTest : IntegrationTestSupport() {
-
 	@Autowired
 	private lateinit var helpTestFactory: HelpTestFactory
 
@@ -35,7 +34,6 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 	@Nested
 	@DisplayName("문의 목록 조회 API")
 	inner class GetHelpListTest {
-
 		@Test
 		@DisplayName("문의 목록을 조회할 수 있다")
 		fun getHelpList() {
@@ -45,12 +43,14 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.get().uri("/helps")
+				mockMvcTester
+					.get()
+					.uri("/helps")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.success").isEqualTo(true)
+				.extractingPath("$.success")
+				.isEqualTo(true)
 		}
 
 		@Test
@@ -62,13 +62,15 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.get().uri("/helps")
+				mockMvcTester
+					.get()
+					.uri("/helps")
 					.header("Authorization", "Bearer $accessToken")
 					.param("status", StatusType.WAITING.name)
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.success").isEqualTo(true)
+				.extractingPath("$.success")
+				.isEqualTo(true)
 		}
 
 		@Test
@@ -81,13 +83,15 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.get().uri("/helps")
+				mockMvcTester
+					.get()
+					.uri("/helps")
 					.header("Authorization", "Bearer $accessToken")
 					.param("type", HelpType.WHISKEY.name)
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.success").isEqualTo(true)
+				.extractingPath("$.success")
+				.isEqualTo(true)
 		}
 
 		@Test
@@ -96,15 +100,13 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 			// when & then
 			assertThat(
 				mockMvcTester.get().uri("/helps")
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 		}
 	}
 
 	@Nested
 	@DisplayName("문의 상세 조회 API")
 	inner class GetHelpDetailTest {
-
 		@Test
 		@DisplayName("문의 상세를 조회할 수 있다")
 		fun getHelpDetail() {
@@ -114,20 +116,24 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.get().uri("/helps/${help.id}")
+				mockMvcTester
+					.get()
+					.uri("/helps/${help.id}")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.success").isEqualTo(true)
+				.extractingPath("$.success")
+				.isEqualTo(true)
 
 			assertThat(
-				mockMvcTester.get().uri("/helps/${help.id}")
+				mockMvcTester
+					.get()
+					.uri("/helps/${help.id}")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.title").isEqualTo("테스트 제목")
+				.extractingPath("$.data.title")
+				.isEqualTo("테스트 제목")
 		}
 
 		@Test
@@ -135,19 +141,20 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 		fun getHelpDetailNotFound() {
 			// when & then
 			assertThat(
-				mockMvcTester.get().uri("/helps/99999")
+				mockMvcTester
+					.get()
+					.uri("/helps/99999")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 				.bodyJson()
-				.extractingPath("$.success").isEqualTo(false)
+				.extractingPath("$.success")
+				.isEqualTo(false)
 		}
 	}
 
 	@Nested
 	@DisplayName("문의 답변 등록 API")
 	inner class AnswerHelpTest {
-
 		@Test
 		@DisplayName("문의에 답변을 등록할 수 있다")
 		fun answerHelp() {
@@ -155,31 +162,36 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 			val user = userTestFactory.persistUser()
 			val help = helpTestFactory.persistHelp(user.id, HelpType.WHISKEY)
 
-			val request = mapOf(
-				"responseContent" to "답변 내용입니다.",
-				"status" to StatusType.SUCCESS.name
-			)
+			val request =
+				mapOf(
+					"responseContent" to "답변 내용입니다.",
+					"status" to StatusType.SUCCESS.name
+				)
 
 			// when & then
 			assertThat(
-				mockMvcTester.post().uri("/helps/${help.id}/answer")
+				mockMvcTester
+					.post()
+					.uri("/helps/${help.id}/answer")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.success").isEqualTo(true)
+				.extractingPath("$.success")
+				.isEqualTo(true)
 
 			assertThat(
-				mockMvcTester.post().uri("/helps/${help.id}/answer")
+				mockMvcTester
+					.post()
+					.uri("/helps/${help.id}/answer")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.status").isEqualTo(StatusType.SUCCESS.name)
+				.extractingPath("$.data.status")
+				.isEqualTo(StatusType.SUCCESS.name)
 		}
 
 		@Test
@@ -189,42 +201,48 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 			val user = userTestFactory.persistUser()
 			val help = helpTestFactory.persistHelp(user.id, HelpType.WHISKEY)
 
-			val request = mapOf(
-				"responseContent" to "반려 사유입니다.",
-				"status" to StatusType.REJECT.name
-			)
+			val request =
+				mapOf(
+					"responseContent" to "반려 사유입니다.",
+					"status" to StatusType.REJECT.name
+				)
 
 			// when & then
 			assertThat(
-				mockMvcTester.post().uri("/helps/${help.id}/answer")
+				mockMvcTester
+					.post()
+					.uri("/helps/${help.id}/answer")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.status").isEqualTo(StatusType.REJECT.name)
+				.extractingPath("$.data.status")
+				.isEqualTo(StatusType.REJECT.name)
 		}
 
 		@Test
 		@DisplayName("존재하지 않는 문의에 답변하면 실패한다")
 		fun answerHelpNotFound() {
 			// given
-			val request = mapOf(
-				"responseContent" to "답변 내용입니다.",
-				"status" to StatusType.SUCCESS.name
-			)
+			val request =
+				mapOf(
+					"responseContent" to "답변 내용입니다.",
+					"status" to StatusType.SUCCESS.name
+				)
 
 			// when & then
 			assertThat(
-				mockMvcTester.post().uri("/helps/99999/answer")
+				mockMvcTester
+					.post()
+					.uri("/helps/99999/answer")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 				.bodyJson()
-				.extractingPath("$.success").isEqualTo(false)
+				.extractingPath("$.success")
+				.isEqualTo(false)
 		}
 
 		@Test
@@ -234,19 +252,21 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 			val user = userTestFactory.persistUser()
 			val help = helpTestFactory.persistHelp(user.id, HelpType.WHISKEY)
 
-			val request = mapOf(
-				"responseContent" to "",
-				"status" to StatusType.SUCCESS.name
-			)
+			val request =
+				mapOf(
+					"responseContent" to "",
+					"status" to StatusType.SUCCESS.name
+				)
 
 			// when & then
 			assertThat(
-				mockMvcTester.post().uri("/helps/${help.id}/answer")
+				mockMvcTester
+					.post()
+					.uri("/helps/${help.id}/answer")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 		}
 	}
 }

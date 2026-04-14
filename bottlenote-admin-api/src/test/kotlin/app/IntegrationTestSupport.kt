@@ -28,7 +28,6 @@ import org.springframework.test.web.servlet.assertj.MvcTestResult
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 abstract class IntegrationTestSupport {
-
 	companion object {
 		@JvmStatic
 		protected val log: Logger = LogManager.getLogger(IntegrationTestSupport::class.java)
@@ -57,16 +56,12 @@ abstract class IntegrationTestSupport {
 	/**
 	 * AdminUser에 대한 토큰 생성
 	 */
-	protected fun createToken(admin: AdminUser): TokenItem {
-		return jwtTokenProvider.generateAdminToken(admin.email, admin.roles, admin.id)
-	}
+	protected fun createToken(admin: AdminUser): TokenItem = jwtTokenProvider.generateAdminToken(admin.email, admin.roles, admin.id)
 
 	/**
 	 * AdminUser에 대한 액세스 토큰 문자열 반환
 	 */
-	protected fun getAccessToken(admin: AdminUser): String {
-		return createToken(admin).accessToken()
-	}
+	protected fun getAccessToken(admin: AdminUser): String = createToken(admin).accessToken()
 
 	/**
 	 * MvcTestResult에서 GlobalResponse 파싱
@@ -79,7 +74,10 @@ abstract class IntegrationTestSupport {
 	/**
 	 * MvcTestResult에서 data 필드를 지정 타입으로 변환
 	 */
-	protected fun <T> extractData(result: MvcTestResult, dataType: Class<T>): T {
+	protected fun <T> extractData(
+		result: MvcTestResult,
+		dataType: Class<T>
+	): T {
 		val response = parseResponse(result)
 		return mapper.convertValue(response.data, dataType)
 	}

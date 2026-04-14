@@ -11,7 +11,6 @@ import org.testcontainers.containers.MySQLContainer
 @Tag("admin_integration")
 @DisplayName("[integration] Admin API 컨텍스트 로드 테스트")
 class ApplicationContextStartupIntegrationTest : IntegrationTestSupport() {
-
 	@Autowired
 	private lateinit var mysqlContainer: MySQLContainer<Nothing>
 

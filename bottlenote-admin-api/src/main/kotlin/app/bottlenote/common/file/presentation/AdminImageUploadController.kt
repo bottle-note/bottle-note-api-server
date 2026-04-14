@@ -17,11 +17,14 @@ import org.springframework.web.bind.annotation.RestController
 class AdminImageUploadController(
 	private val imageUploadService: ImageUploadService
 ) {
-
 	@GetMapping("/presign-url")
-	fun getPreSignUrl(@ModelAttribute request: ImageUploadRequest): ResponseEntity<*> {
-		val adminId = SecurityContextUtil.getAdminUserIdByContext()
-			.orElseThrow { UserException(UserExceptionCode.REQUIRED_USER_ID) }
+	fun getPreSignUrl(
+		@ModelAttribute request: ImageUploadRequest
+	): ResponseEntity<*> {
+		val adminId =
+			SecurityContextUtil
+				.getAdminUserIdByContext()
+				.orElseThrow { UserException(UserExceptionCode.REQUIRED_USER_ID) }
 		return GlobalResponse.ok(imageUploadService.getPreSignUrlForAdmin(adminId, request))
 	}
 }

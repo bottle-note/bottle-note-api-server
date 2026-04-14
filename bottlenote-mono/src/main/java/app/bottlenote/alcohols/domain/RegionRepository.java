@@ -14,4 +14,6 @@ public interface RegionRepository {
   List<RegionsItem> findAllRegionsResponse();
 
   Page<AdminRegionItem> findAllRegions(String keyword, Pageable pageable);
+
+  List<Long> findChildRegionIds(Long parentId);
 }

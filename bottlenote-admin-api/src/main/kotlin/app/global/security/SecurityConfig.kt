@@ -20,28 +20,27 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 class SecurityConfig(
 	private val adminJwtAuthenticationManager: AdminJwtAuthenticationManager
 ) {
-
 	@Bean
-	fun filterChain(http: HttpSecurity): SecurityFilterChain {
-		return http
-			.csrf { it.disable() }
-			.cors { it.configurationSource(corsConfigurationSource()) }
-			.sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-			.formLogin { it.disable() }
-			.httpBasic { it.disable() }
-			.authorizeHttpRequests { auth ->
-				auth
-					.requestMatchers(*MaliciousPathPattern.getAllPatterns()).denyAll()
-					.requestMatchers("/auth/login", "/auth/refresh").permitAll()
-					.requestMatchers("/actuator/**").permitAll()
-					.anyRequest().authenticated()
-			}
-			.addFilterBefore(
-				AdminJwtAuthenticationFilter(adminJwtAuthenticationManager),
-				UsernamePasswordAuthenticationFilter::class.java
-			)
-			.build()
-	}
+	fun filterChain(http: HttpSecurity): SecurityFilterChain = http
+		.csrf { it.disable() }
+		.cors { it.configurationSource(corsConfigurationSource()) }
+		.sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+		.formLogin { it.disable() }
+		.httpBasic { it.disable() }
+		.authorizeHttpRequests { auth ->
+			auth
+				.requestMatchers(*MaliciousPathPattern.getAllPatterns())
+				.denyAll()
+				.requestMatchers("/auth/login", "/auth/refresh")
+				.permitAll()
+				.requestMatchers("/actuator/**")
+				.permitAll()
+				.anyRequest()
+				.authenticated()
+		}.addFilterBefore(
+			AdminJwtAuthenticationFilter(adminJwtAuthenticationManager),
+			UsernamePasswordAuthenticationFilter::class.java
+		).build()
 
 	@Bean
 	fun corsConfigurationSource(): CorsConfigurationSource {
@@ -57,7 +56,5 @@ class SecurityConfig(
 	}
 
 	@Bean
-	fun bCryptPasswordEncoder(): BCryptPasswordEncoder {
-		return BCryptPasswordEncoder()
-	}
+	fun bCryptPasswordEncoder(): BCryptPasswordEncoder = BCryptPasswordEncoder()
 }

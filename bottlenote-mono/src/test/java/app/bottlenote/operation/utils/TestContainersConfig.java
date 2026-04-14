@@ -27,18 +27,18 @@ import org.testcontainers.utility.DockerImageName;
 @SuppressWarnings("resource")
 public class TestContainersConfig {
 
+  private static final String DEFAULT_DB_NAME = "bottlenote";
+
   /** MySQL 컨테이너를 Spring Bean으로 등록합니다. @ServiceConnection이 자동으로 DataSource 설정을 처리합니다. */
   @Bean
   @ServiceConnection
   MySQLContainer<?> mysqlContainer() {
+    String dbName = System.getProperty("testcontainers.db.name", DEFAULT_DB_NAME);
     return new MySQLContainer<>(DockerImageName.parse("mysql:8.0.32"))
         .withReuse(true)
-        .withDatabaseName("bottlenote")
+        .withDatabaseName(dbName)
         .withUsername("root")
-        .withPassword("root")
-        .withInitScripts(
-            "storage/mysql/init/00-init-config-table.sql",
-            "storage/mysql/init/01-init-core-table.sql");
+        .withPassword("root");
   }
 
   /** Redis 컨테이너를 Spring Bean으로 등록합니다. @ServiceConnection이 자동으로 Redis 설정을 처리합니다. */

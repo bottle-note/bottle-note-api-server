@@ -2,118 +2,75 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> 해당 지침은 Claude Code가 이 저장소의 코드 작업 시 참고할 수 있도록 작성되었습니다.
-> 만약 해당 파일과 동일한 경로에 CLAUDE.personal.md 파일이 존재한다면, 그 파일의 내용 또한 참고하여 작업을 진행하세요.
-> **개인 지침이 팀 지침과 충돌할 경우 팀 지침을 우선시하세요.**
+> If a `CLAUDE.personal.md` file exists in the same directory, also refer to its contents.
+> **Team instructions take priority over personal instructions when they conflict.**
 
-## 유저 지침
+## User Instructions
 
-- 영어로 질문하는 경우 의도를 잘 파악하고 문법적 오류가 있을 경우 응답에 문법에 대한 피드백을 제공하세요.
-- 질문 언어와 관련없이 응답 언어는 한국어로 작성하세요.
-- 복잡하거나 애매한 질문의 경우 이해한 내용을 요약해서 응답에 포함하세요.
-- 질문에 대한 답변은 명확하고 간결하게 작성하세요 (3-5줄 내외 권장).
-- 코드 예시가 필요한 경우 전체 코드를 한번에 보여줄지, 단계별로 나누어 설명할지 사용자에게 물어보세요.
-- 코드 예시가 필요한 경우, 코드의 목적과 사용법을 간단히 설명하세요.
-- 코드를 작성할 경우 주석은 한줄로 간략하게만 작성하세요.
-- 기존 코드 수정 시 프로젝트의 기존 패턴과 컨벤션을 반드시 따르세요.
-- 여러 파일 수정이 필요한 경우 수정할 파일 목록을 미리 알려주세요.
-- 에러나 문제 해결 시 단계별 접근 방법을 제시하세요.
-- 여러 해결책이 있을 때는 프로젝트 컨텍스트에 가장 적합한 방법을 우선 추천하세요.
+- Always respond in Korean regardless of question language.
+- If the user asks in English and there are grammar errors, provide grammar feedback in the response.
+- For complex or ambiguous questions, include a summary of your understanding in the response.
+- Keep answers clear and concise (3-5 lines recommended).
+- When code examples are needed, ask whether to show all at once or step by step.
+- When writing code, keep comments to a single brief line.
+- When modifying existing code, always follow the project's existing patterns and conventions.
+- When multiple files need changes, list the files to be modified upfront.
+- For error resolution, present a step-by-step approach.
+- When multiple solutions exist, recommend the one most fitting the project context first.
 
-## 프로젝트 개요
+## Project Overview
 
-- **기술 스택**: Spring Boot 3.1.9, Java 21, MySQL, Redis, QueryDSL
-- **아키텍처**: 도메인 주도 설계(DDD) 기반 멀티모듈 구조
-- **주요 도메인**: alcohols, user, review, rating, support, history, picks, like
+- **Stack**: Spring Boot 3.1.9, Java 21, MySQL, Redis, QueryDSL
+- **Architecture**: DDD-based multi-module structure
+- **Core Domains**: alcohols, user, review, rating, support, history, picks, like
 
 ## 모듈 구조
 
 ```mermaid
 flowchart TD
-    subgraph deploy["배포 단위 (JAR)"]
+    subgraph executable["Executable (bootJar)"]
         direction LR
-        product["product-api<br/>클라이언트용 · Java"]
-        admin["admin-api<br/>관리자용 · Kotlin"]
+        product["product-api<br/>Client API · Java"]
+        admin["admin-api<br/>Admin API · Kotlin"]
+        batch["batch<br/>Batch · Quartz"]
     end
 
-    subgraph libs["라이브러리 모듈"]
+    subgraph library["Library (JAR)"]
         direction LR
-        obs["observability<br/>모니터링 · OpenTelemetry"]
-        batch["batch<br/>배치 작업 · Quartz"]
+        mono["mono<br/>Shared Domain · JPA · QueryDSL"]
+        obs["observability<br/>OpenTelemetry · Micrometer"]
     end
 
-    mono["bottlenote-mono<br/>공유 라이브러리<br/>도메인/비즈니스 · JPA · QueryDSL"]
-
-    product --> obs & batch & mono
-    admin --> obs & mono
+    product --> mono & obs
+    admin --> mono
     batch --> mono
+    mono --> obs
 ```
 
-### bottlenote-mono
-- **역할**: 레거시 모놀리식 모듈 (핵심 비즈니스 로직)
-- **특징**:
-  - 모든 도메인 엔티티와 비즈니스 로직 포함
-  - JPA, QueryDSL, Redis 등 데이터 접근 계층
-  - 보안, 인증, 외부 서비스 연동 로직
-  - 라이브러리 JAR로 빌드 (실행 불가)
+### bottlenote-mono (Library)
+- Shared domain library: all entities, business logic, JPA, QueryDSL, Redis, Caffeine cache
+- Security, authentication, external service integration (AWS S3, Firebase, Feign)
+- Depends on `observability` (api import)
 
-### bottlenote-product-api
-- **역할**: API 서버 모듈
-- **특징**:
-  - bottlenote-mono 모듈 의존
-  - REST API 컨트롤러 계층
-  - API 문서화 (REST Docs, OpenAPI)
-  - 실행 가능한 Spring Boot JAR로 빌드
-  - 테스트 환경 구성 (단위, 통합, 아키텍처 규칙)
-  - 클라이언트 사용자들의 요구사항을 처리하는 api 서버
+### bottlenote-product-api (Executable, Java)
+- Client-facing REST API server (picks, likes, ratings, auth, follow, etc.)
+- Depends on `mono` + `observability`
+- REST Docs + OpenAPI documentation
 
-### bottlenote-admin-api
-- **역할**: 관리자용 API 서버 모듈 (Kotlin)
-- **특징**:
-  - bottlenote-mono 모듈 의존 (비즈니스 로직은 mono에서 제공)
-  - 관리자 전용 REST API (프레젠테이션 계층만 담당)
-  - context-path: `/admin/api/v1`
-  - Spring REST Docs 기반 API 문서화
-  - JWT 기반 어드민 전용 인증 체계
-  - 루트 어드민 자동 초기화 (`ApplicationReadyEvent`)
+### bottlenote-admin-api (Executable, Kotlin)
+- Admin REST API (presentation layer only, business logic from mono)
+- Depends on `mono` only
+- context-path: `/admin/api/v1`
+- JWT-based admin authentication, RBAC: `ROOT_ADMIN`, `PARTNER`, `COMMUNITY_MANAGER`
 
-**패키지 구조**:
-```
-app/
-├── Application.kt                 # 진입점
-├── bottlenote/{domain}/
-│   ├── presentation/              # 컨트롤러
-│   └── config/                    # 설정 클래스
-└── global/
-    ├── common/                    # 공통 유틸
-    └── security/                  # 보안 설정
-```
+### bottlenote-batch (Executable, Java)
+- Spring Batch + Quartz scheduler for ranking/popularity calculation jobs
+- Depends on `mono` only
 
-**Kotlin 코딩 컨벤션**:
-- `data class`: 요청/응답 DTO, 설정 클래스
-- `object`: 테스트 헬퍼 (싱글톤)
-- `val` 불변성 선호, `lateinit var`는 DI 주입용으로만 사용
-- 생성자 주입: 클래스 선언부에 파라미터로 명시
-- Named parameters 활용으로 가독성 향상
-
-**테스트 구조**:
-- `@Tag("admin_integration")`: 통합 테스트 태그
-- `IntegrationTestSupport`: 테스트 베이스 클래스 (TestContainers, MockMvcTester)
-- `app/docs/`: RestDocs 테스트 (`@WebMvcTest`)
-- `app/integration/`: 통합 테스트
-- `app/helper/`: 테스트 헬퍼 (`object` 싱글톤)
-
-**인증 체계**:
-- `AdminJwtAuthenticationFilter`, `AdminJwtAuthenticationManager` 사용
-- `SecurityContextUtil.getAdminUserIdByContext()`: 현재 어드민 ID 조회
-- RBAC 역할: `ROOT_ADMIN`, `PARTNER`, `COMMUNITY_MANAGER`
-
-### bottlenote-batch
-- **역할**: 배치 처리 모듈
-- **특징**:
-  - Spring Batch 기반 배치 작업
-  - Quartz 스케줄러 통합
-  - 정기적인 데이터 처리 작업
+### bottlenote-observability (Library)
+- Standalone monitoring library: OpenTelemetry, Micrometer, Spring Actuator
+- AOP-based tracing: `TracingService`, `@TraceMethod`, `@SkipTrace`
+- No internal module dependencies
 
 ## 빌드 및 실행
 
@@ -142,111 +99,28 @@ git submodule update --init --recursive
   - `storage/mysql/init/*.sql`: TestContainers용 DB 초기화 스크립트
   - 통합 테스트 실행 전 서브모듈 초기화 필수
 
-## Admin API 구현 규칙
+## Skills (Development Workflow)
 
-### Admin API 구현 체크리스트
+Use these skills to follow the structured development lifecycle:
 
-새로운 Admin API를 구현할 때 다음 체크리스트를 따르세요:
+| Command | Purpose | When to Use |
+|---------|---------|-------------|
+| `/define` | Requirements clarification | Starting a new feature, vague requirements |
+| `/plan` | Task breakdown | After /define, multi-file changes |
+| `/implement` | Incremental implementation | Building features (product + admin) |
+| `/test` | Test creation | Unit, integration, RestDocs tests |
+| `/verify` | Local CI verification | Compile, unit test, integration test |
+| `/debug` | Systematic debugging | Build/test failures, unexpected errors |
+| `/self-review` | Pre-commit quality gate | Before every commit |
 
-#### 1. 요구사항 분석 및 설계
-- [ ] product-api에 동일/유사 기능이 있는지 확인
-- [ ] mono 모듈의 기존 서비스/도메인 로직 재사용 가능 여부 확인
-- [ ] 신규 서비스 메서드가 필요한 경우 mono 모듈에 추가 계획
-- [ ] API 엔드포인트 설계 (HTTP Method, URL 패턴)
+**Lifecycle:** `/define` -> `/plan` -> `/implement` (with `/self-review` per Task) -> `/test` -> `/verify full`
 
-#### 2. mono 모듈 수정 (필요 시)
-- [ ] 서비스 클래스에 admin 전용 메서드 추가 (예: `xxxForAdmin`)
-- [ ] 인증 방식 분리: admin은 `adminId`를 파라미터로 받도록 설계
-- [ ] 공통 로직 추출 및 리팩토링 (`private` 메서드 분리)
-- [ ] 기존 테스트 영향 확인 및 수정
-
-#### 3. admin-api 컨트롤러 구현
-- [ ] 패키지: `app.bottlenote.{domain}.presentation`
-- [ ] 클래스명: `Admin{도메인명}Controller`
-- [ ] `@RestController`, `@RequestMapping("/{리소스}")` 설정
-- [ ] 인증이 필요한 API: `SecurityContextUtil.getAdminUserIdByContext()` 호출
-- [ ] 응답: `GlobalResponse.ok(response)` 래핑
-
-#### 4. 테스트 작성
-- [ ] 통합 테스트: `app/integration/{domain}/Admin{도메인명}IntegrationTest.kt`
-  - `IntegrationTestSupport` 상속
-  - `@Tag("admin_integration")` 태그
-  - 인증 성공/실패 케이스
-  - 주요 비즈니스 시나리오
-- [ ] RestDocs 테스트 (API 문서화 필요 시): `app/docs/{domain}/Admin{도메인명}ControllerDocsTest.kt`
-
-#### 5. 검증 및 완료
-- [ ] 컴파일 확인: `./gradlew :bottlenote-admin-api:compileKotlin`
-- [ ] 테스트 실행: `./gradlew :bottlenote-admin-api:admin_integration_test`
-- [ ] API 문서 생성: `./gradlew :bottlenote-admin-api:asciidoctor` (RestDocs 테스트 작성 시)
-
-### 컨트롤러 작성 규칙
-
-1. **패키지 위치**: `app.bottlenote.{domain}.presentation`
-2. **클래스명**: `Admin{도메인명}Controller`
-3. **매핑**: `@RequestMapping("/{복수형 리소스}")` (예: `/helps`, `/alcohols`)
-4. **응답 타입**: `ResponseEntity<*>` 또는 `ResponseEntity<GlobalResponse>`
-5. **응답 래핑**: `GlobalResponse.ok(response)` 사용
-
-### API 엔드포인트 설계
-
-| HTTP Method | 용도 | URL 패턴 | 예시 |
-|-------------|------|----------|------|
-| GET | 목록 조회 | `/{resources}` | `GET /helps` |
-| GET | 단건 조회 | `/{resources}/{id}` | `GET /helps/1` |
-| POST | 생성/액션 | `/{resources}` 또는 `/{resources}/{id}/{action}` | `POST /helps/1/answer` |
-| PUT | 전체 수정 | `/{resources}/{id}` | `PUT /helps/1` |
-| PATCH | 부분 수정 | `/{resources}/{id}` | `PATCH /helps/1` |
-| DELETE | 삭제 | `/{resources}/{id}` | `DELETE /helps/1` |
-
-### 요청/응답 처리
-
-1. **목록 조회 요청**: `@ModelAttribute` + Request DTO
-2. **단건 조회**: `@PathVariable`
-3. **생성/수정 요청**: `@RequestBody @Valid` + Request DTO
-4. **페이징 응답**: `PageResponse.of(content, cursorPageable)`
-
-### 인증이 필요한 API
-
-```kotlin
-val adminId = SecurityContextUtil.getAdminUserIdByContext()
-    .orElseThrow { UserException(UserExceptionCode.REQUIRED_USER_ID) }
-```
-
-### 서비스 의존
-
-- 컨트롤러는 mono 모듈의 서비스를 직접 주입받아 사용
-- 비즈니스 로직은 mono 모듈에 구현
-- admin-api는 프레젠테이션 계층만 담당
-
-### 테스트 작성 규칙
-
-**통합 테스트** (`app/integration/{domain}/`):
-- `IntegrationTestSupport` 상속
-- `@Tag("admin_integration")` 태그
-- `@Nested` 클래스로 API별 그룹화
-- `mockMvcTester`로 API 호출 및 검증
-
-**RestDocs 테스트** (`app/docs/{domain}/`):
-- `@WebMvcTest(controllers = [...], excludeAutoConfiguration = [SecurityAutoConfiguration::class])`
-- `@MockitoBean`으로 서비스 목킹
-- `document()` 메서드로 API 문서 스니펫 생성
-
-### 헬퍼 클래스
-
-- **위치**: `app/helper/{domain}/`
-- **형태**: `object` 싱글톤
-- **용도**: 테스트 데이터 생성
-- **네이밍**: `{도메인명}Helper`
-
-```kotlin
-object AlcoholsHelper {
-    fun createAdminAlcoholItem(
-        id: Long = 1L,
-        korName: String = "테스트 위스키"
-    ): AdminAlcoholItem = ...
-}
-```
+**Detailed patterns** for product-api and admin-api implementation are in skill reference files:
+- `.claude/skills/implement/references/mono-patterns.md` — Repository 3-Tier, Facade, DTO, Event patterns
+- `.claude/skills/implement/references/product-patterns.md` — Product controller conventions
+- `.claude/skills/implement/references/admin-patterns.md` — Admin controller conventions (Kotlin)
+- `.claude/skills/test/references/test-infra.md` — TestContainers, Fake/InMemory list
+- `.claude/skills/test/references/test-patterns.md` — Unit, integration, RestDocs code patterns
 
 ## 코드 작성 규칙
 
@@ -326,32 +200,14 @@ object AlcoholsHelper {
 - **Fake/Stub 패턴 선호**: Mock 대신 InMemory 구현체 사용
 - **네이밍**: `InMemory{도메인명}Repository`, `Fake{서비스명}`
 - **위치**: `{도메인}.fixture` 패키지
-- **이벤트 테스트**: `FakeApplicationEventPublisher`로 발행된 이벤트 검증
-
-```java
-// 예시: InMemory 레포지토리
-public class InMemoryReviewRepository implements ReviewRepository {
-  private final Map<Long, Review> database = new HashMap<>();
-  // 도메인 레포지토리 인터페이스 구현
-}
-```
 
 ### 통합 테스트 패턴
 
 - **베이스 클래스**: `IntegrationTestSupport` 상속
-- **API 테스트**: `MockMvcTester` 사용, `extractData()` 메서드로 응답 추출
-- **비동기 대기**: `Awaitility`로 이벤트 처리 대기
-- **테스트 데이터 생성**: `{도메인명}TestFactory` 사용 (`@Autowired`)
+- **API 테스트**: `MockMvcTester` 사용
+- **테스트 데이터 생성**: `{도메인명}TestFactory` 사용
 
-```java
-// 예시: 비동기 이벤트 대기
-Awaitility.await()
-    .atMost(3, TimeUnit.SECONDS)
-    .untilAsserted(() -> {
-        List<ResourceLog> logs = repository.findByUserId(userId);
-        assertEquals(2, logs.size());
-    });
-```
+> Detailed code examples: see `/test` skill references (`test-infra.md`, `test-patterns.md`)
 
 ### 이벤트 기반 아키텍처
 
