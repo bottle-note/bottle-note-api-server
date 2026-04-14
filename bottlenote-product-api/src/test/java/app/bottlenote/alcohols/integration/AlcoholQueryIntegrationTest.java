@@ -8,9 +8,12 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 import app.bottlenote.IntegrationTestSupport;
+import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.domain.AlcoholsTastingTags;
+import app.bottlenote.alcohols.domain.Distillery;
+import app.bottlenote.alcohols.domain.Region;
 import app.bottlenote.alcohols.domain.TastingTag;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
@@ -457,5 +460,95 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
       assertFalse(
           firstPageIdSet.contains(secondPageId), "페이지 간 중복 데이터가 발생했습니다. 중복 ID: " + secondPageId);
     }
+  }
+
+  @Test
+  @DisplayName("부모 지역(스코틀랜드/전체)으로 검색하면 하위 지역 위스키도 함께 조회된다.")
+  void test_14_부모_지역으로_검색시_하위_지역_포함() throws Exception {
+    // given - 부모 지역과 하위 지역 생성
+    Region parentRegion = alcoholTestFactory.persistRegion("스코틀랜드/전체", "Scotland");
+    Region childRegion1 =
+        alcoholTestFactory.persistRegion(
+            Region.builder().korName("스페이사이드").engName("Speyside").parent(parentRegion));
+    Region childRegion2 =
+        alcoholTestFactory.persistRegion(
+            Region.builder().korName("아일라").engName("Islay").parent(parentRegion));
+    Region unrelatedRegion = alcoholTestFactory.persistRegion("일본", "Japan");
+
+    Distillery distillery = alcoholTestFactory.persistDistillery();
+
+    // 하위 지역에 위스키 생성
+    Alcohol speysideWhisky =
+        alcoholTestFactory.persistAlcohol(AlcoholType.WHISKY, childRegion1, distillery);
+    Alcohol islayWhisky =
+        alcoholTestFactory.persistAlcohol(AlcoholType.WHISKY, childRegion2, distillery);
+    // 부모 지역 자체에도 위스키 생성
+    Alcohol scotlandWhisky =
+        alcoholTestFactory.persistAlcohol(AlcoholType.WHISKY, parentRegion, distillery);
+    // 무관한 지역에 위스키 생성
+    Alcohol japanWhisky =
+        alcoholTestFactory.persistAlcohol(AlcoholType.WHISKY, unrelatedRegion, distillery);
+
+    // when - 부모 지역 ID로 검색
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/alcohols/search")
+            .param("regionId", String.valueOf(parentRegion.getId()))
+            .contentType(APPLICATION_JSON)
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
+
+    // then
+    AlcoholSearchResponse responseData = extractData(result, AlcoholSearchResponse.class);
+
+    assertNotNull(responseData);
+    assertEquals(3, responseData.getTotalCount(), "부모 + 하위 지역 위스키 3개가 조회되어야 한다");
+
+    Set<Long> resultIds =
+        responseData.getAlcohols().stream()
+            .map(AlcoholsSearchItem::getAlcoholId)
+            .collect(java.util.stream.Collectors.toSet());
+
+    assertTrue(resultIds.contains(scotlandWhisky.getId()), "부모 지역 위스키가 포함되어야 한다");
+    assertTrue(resultIds.contains(speysideWhisky.getId()), "스페이사이드 위스키가 포함되어야 한다");
+    assertTrue(resultIds.contains(islayWhisky.getId()), "아일라 위스키가 포함되어야 한다");
+    assertFalse(resultIds.contains(japanWhisky.getId()), "일본 위스키는 포함되지 않아야 한다");
+  }
+
+  @Test
+  @DisplayName("하위 지역으로 검색하면 해당 지역 위스키만 조회된다.")
+  void test_15_하위_지역으로_검색시_해당_지역만() throws Exception {
+    // given
+    Region parentRegion = alcoholTestFactory.persistRegion("스코틀랜드/전체", "Scotland");
+    Region childRegion =
+        alcoholTestFactory.persistRegion(
+            Region.builder().korName("스페이사이드").engName("Speyside").parent(parentRegion));
+
+    Distillery distillery = alcoholTestFactory.persistDistillery();
+
+    Alcohol parentWhisky =
+        alcoholTestFactory.persistAlcohol(AlcoholType.WHISKY, parentRegion, distillery);
+    Alcohol childWhisky =
+        alcoholTestFactory.persistAlcohol(AlcoholType.WHISKY, childRegion, distillery);
+
+    // when - 하위 지역 ID로 검색
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/alcohols/search")
+            .param("regionId", String.valueOf(childRegion.getId()))
+            .contentType(APPLICATION_JSON)
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
+
+    // then
+    AlcoholSearchResponse responseData = extractData(result, AlcoholSearchResponse.class);
+
+    assertNotNull(responseData);
+    assertEquals(1, responseData.getTotalCount(), "하위 지역 위스키 1개만 조회되어야 한다");
+    assertEquals(childWhisky.getId(), responseData.getAlcohols().getFirst().getAlcoholId());
   }
 }

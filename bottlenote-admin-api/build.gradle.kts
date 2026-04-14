@@ -31,6 +31,9 @@ dependencies {
 	testImplementation(libs.spring.restdocs.mockmvc)
 	testImplementation(libs.restdocs.api.spec.mockmvc)
 
+	// Test - Liquibase (schema initialization)
+	testImplementation(libs.liquibase.core)
+
 	// Test - Testcontainers
 	testImplementation(libs.bundles.testcontainers.complete)
 
@@ -46,13 +49,17 @@ sourceSets {
 	}
 	test {
 		resources {
-			srcDirs("src/test/resources", "${rootProject.projectDir}/git.environment-variables")
+			srcDirs("src/test/resources")
 		}
 	}
 }
 
 tasks.processResources {
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.jar {
+	exclude("storage/mysql/changelog/**")
 }
 
 tasks.processTestResources {

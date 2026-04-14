@@ -4,12 +4,16 @@ import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
+import app.bottlenote.user.dto.request.AdminUserSearchRequest;
+import app.bottlenote.user.dto.response.AdminUserListResponse;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.test.util.ReflectionTestUtils;
 
 public class InMemoryUserQueryRepository implements UserRepository {
@@ -62,5 +66,10 @@ public class InMemoryUserQueryRepository implements UserRepository {
   @Override
   public boolean existsByNickName(String nickname) {
     return users.values().stream().anyMatch(user -> user.getNickName().equals(nickname));
+  }
+
+  @Override
+  public Page<AdminUserListResponse> searchAdminUsers(AdminUserSearchRequest request) {
+    return new PageImpl<>(List.of());
   }
 }

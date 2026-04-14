@@ -31,12 +31,16 @@ import com.querydsl.jpa.JPAExpressions;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class AlcoholQuerySupporter {
+
+  private final app.bottlenote.alcohols.domain.RegionRepository regionRepository;
 
   /** 주류에 연결된 테이스팅 태그 목록을 문자열로 조회 */
   public static Expression<String> getTastingTags() {
@@ -197,11 +201,15 @@ public class AlcoholQuerySupporter {
     return alcohol.categoryGroup.stringValue().like("%" + category + "%");
   }
 
-  /** 지역 일치 여부 조건 생성 */
+  /** 지역 일치 여부 조건 생성 (부모 지역이면 하위 지역 포함) */
   public BooleanExpression eqRegion(Long regionId) {
     if (regionId == null) return null;
-
-    return alcohol.region.id.eq(regionId);
+    List<Long> childIds = regionRepository.findChildRegionIds(regionId);
+    if (childIds.isEmpty()) return alcohol.region.id.eq(regionId);
+    List<Long> regionIds = new java.util.ArrayList<>(childIds.size() + 1);
+    regionIds.add(regionId);
+    regionIds.addAll(childIds);
+    return alcohol.region.id.in(regionIds);
   }
 
   /** 사용자가 주류에 준 평점 조회 (QueryDSL 경로 버전) */

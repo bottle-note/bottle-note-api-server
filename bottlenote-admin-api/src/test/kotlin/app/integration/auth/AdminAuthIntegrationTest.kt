@@ -12,11 +12,9 @@ import org.springframework.http.MediaType
 @Tag("admin_integration")
 @DisplayName("[integration] Admin Auth API 통합 테스트")
 class AdminAuthIntegrationTest : IntegrationTestSupport() {
-
 	@Nested
 	@DisplayName("로그인 API")
 	inner class LoginTest {
-
 		@Test
 		@DisplayName("올바른 이메일과 비밀번호로 로그인에 성공한다")
 		fun loginSuccess() {
@@ -29,24 +27,26 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.post()
+				mockMvcTester
+					.post()
 					.uri("/auth/login")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.success").isEqualTo(true)
+				.extractingPath("$.success")
+				.isEqualTo(true)
 
 			assertThat(
-				mockMvcTester.post()
+				mockMvcTester
+					.post()
 					.uri("/auth/login")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.accessToken").isNotNull()
+				.extractingPath("$.data.accessToken")
+				.isNotNull()
 		}
 
 		@Test
@@ -61,14 +61,15 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.post()
+				mockMvcTester
+					.post()
 					.uri("/auth/login")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 				.bodyJson()
-				.extractingPath("$.success").isEqualTo(false)
+				.extractingPath("$.success")
+				.isEqualTo(false)
 		}
 
 		@Test
@@ -79,14 +80,15 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.post()
+				mockMvcTester
+					.post()
 					.uri("/auth/login")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 				.bodyJson()
-				.extractingPath("$.success").isEqualTo(false)
+				.extractingPath("$.success")
+				.isEqualTo(false)
 		}
 
 		@Test
@@ -101,14 +103,15 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.post()
+				mockMvcTester
+					.post()
 					.uri("/auth/login")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 				.bodyJson()
-				.extractingPath("$.success").isEqualTo(false)
+				.extractingPath("$.success")
+				.isEqualTo(false)
 		}
 
 		@Test
@@ -122,21 +125,21 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.post()
+				mockMvcTester
+					.post()
 					.uri("/auth/login")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.success").isEqualTo(true)
+				.extractingPath("$.success")
+				.isEqualTo(true)
 		}
 	}
 
 	@Nested
 	@DisplayName("토큰 갱신 API")
 	inner class RefreshTest {
-
 		@Test
 		@DisplayName("유효한 리프레시 토큰으로 토큰 갱신에 성공한다")
 		fun refreshSuccess() {
@@ -147,11 +150,13 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 
 			// 로그인해서 토큰 획득
 			val loginRequest = mapOf("email" to email, "password" to password)
-			val loginResult = mockMvcTester.post()
-				.uri("/auth/login")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(mapper.writeValueAsString(loginRequest))
-				.exchange()
+			val loginResult =
+				mockMvcTester
+					.post()
+					.uri("/auth/login")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(loginRequest))
+					.exchange()
 
 			val loginResponse = mapper.readTree(loginResult.response.contentAsString)
 			val refreshToken = loginResponse.path("data").path("refreshToken").asText()
@@ -160,14 +165,15 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.post()
+				mockMvcTester
+					.post()
 					.uri("/auth/refresh")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.accessToken").isNotNull()
+				.extractingPath("$.data.accessToken")
+				.isNotNull()
 		}
 
 		@Test
@@ -178,21 +184,21 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.post()
+				mockMvcTester
+					.post()
 					.uri("/auth/refresh")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 				.bodyJson()
-				.extractingPath("$.success").isEqualTo(false)
+				.extractingPath("$.success")
+				.isEqualTo(false)
 		}
 	}
 
 	@Nested
 	@DisplayName("탈퇴 API")
 	inner class WithdrawTest {
-
 		@Test
 		@DisplayName("일반 어드민이 탈퇴에 성공한다")
 		fun withdrawSuccess() {
@@ -202,13 +208,14 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.delete()
+				mockMvcTester
+					.delete()
 					.uri("/auth/withdraw")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.message").isEqualTo("탈퇴 처리되었습니다.")
+				.extractingPath("$.data.message")
+				.isEqualTo("탈퇴 처리되었습니다.")
 		}
 
 		@Test
@@ -220,20 +227,20 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.delete()
+				mockMvcTester
+					.delete()
 					.uri("/auth/withdraw")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 				.bodyJson()
-				.extractingPath("$.success").isEqualTo(false)
+				.extractingPath("$.success")
+				.isEqualTo(false)
 		}
 	}
 
 	@Nested
 	@DisplayName("회원가입 API")
 	inner class SignupTest {
-
 		@Test
 		@DisplayName("인증된 어드민이 새 어드민 계정을 생성할 수 있다")
 		fun signupSuccess() {
@@ -241,35 +248,38 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 			val admin = adminUserTestFactory.persistRootAdmin()
 			val accessToken = getAccessToken(admin)
 
-			val request = mapOf(
-				"email" to "new@bottlenote.com",
-				"password" to "password123",
-				"name" to "새 어드민",
-				"roles" to listOf("PARTNER")
-			)
+			val request =
+				mapOf(
+					"email" to "new@bottlenote.com",
+					"password" to "password123",
+					"name" to "새 어드민",
+					"roles" to listOf("PARTNER")
+				)
 
 			// when & then
 			assertThat(
-				mockMvcTester.post()
+				mockMvcTester
+					.post()
 					.uri("/auth/signup")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.success").isEqualTo(true)
+				.extractingPath("$.success")
+				.isEqualTo(true)
 
 			assertThat(
-				mockMvcTester.post()
+				mockMvcTester
+					.post()
 					.uri("/auth/signup")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request.plus("email" to "another@bottlenote.com")))
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.email").isEqualTo("another@bottlenote.com")
+				.extractingPath("$.data.email")
+				.isEqualTo("another@bottlenote.com")
 		}
 
 		@Test
@@ -279,24 +289,26 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 			val admin = adminUserTestFactory.persistRootAdmin()
 			val accessToken = getAccessToken(admin)
 
-			val request = mapOf(
-				"email" to "multi-role@bottlenote.com",
-				"password" to "password123",
-				"name" to "다중 역할 어드민",
-				"roles" to listOf("PARTNER", "COMMUNITY_MANAGER")
-			)
+			val request =
+				mapOf(
+					"email" to "multi-role@bottlenote.com",
+					"password" to "password123",
+					"name" to "다중 역할 어드민",
+					"roles" to listOf("PARTNER", "COMMUNITY_MANAGER")
+				)
 
 			// when & then
 			assertThat(
-				mockMvcTester.post()
+				mockMvcTester
+					.post()
 					.uri("/auth/signup")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.roles").isEqualTo(listOf("PARTNER", "COMMUNITY_MANAGER"))
+				.extractingPath("$.data.roles")
+				.isEqualTo(listOf("PARTNER", "COMMUNITY_MANAGER"))
 		}
 
 		@Test
@@ -306,24 +318,26 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 			val admin = adminUserTestFactory.persistRootAdmin()
 			val accessToken = getAccessToken(admin)
 
-			val request = mapOf(
-				"email" to "new-root@bottlenote.com",
-				"password" to "password123",
-				"name" to "새 루트 어드민",
-				"roles" to listOf("ROOT_ADMIN")
-			)
+			val request =
+				mapOf(
+					"email" to "new-root@bottlenote.com",
+					"password" to "password123",
+					"name" to "새 루트 어드민",
+					"roles" to listOf("ROOT_ADMIN")
+				)
 
 			// when & then
 			assertThat(
-				mockMvcTester.post()
+				mockMvcTester
+					.post()
 					.uri("/auth/signup")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.roles").isEqualTo(listOf("ROOT_ADMIN"))
+				.extractingPath("$.data.roles")
+				.isEqualTo(listOf("ROOT_ADMIN"))
 		}
 
 		@Test
@@ -333,45 +347,48 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 			val admin = adminUserTestFactory.persistPartnerAdmin()
 			val accessToken = getAccessToken(admin)
 
-			val request = mapOf(
-				"email" to "root-attempt@bottlenote.com",
-				"password" to "password123",
-				"name" to "루트 시도",
-				"roles" to listOf("ROOT_ADMIN")
-			)
+			val request =
+				mapOf(
+					"email" to "root-attempt@bottlenote.com",
+					"password" to "password123",
+					"name" to "루트 시도",
+					"roles" to listOf("ROOT_ADMIN")
+				)
 
 			// when & then
 			assertThat(
-				mockMvcTester.post()
+				mockMvcTester
+					.post()
 					.uri("/auth/signup")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 				.bodyJson()
-				.extractingPath("$.success").isEqualTo(false)
+				.extractingPath("$.success")
+				.isEqualTo(false)
 		}
 
 		@Test
 		@DisplayName("인증되지 않은 사용자는 회원가입 API를 호출할 수 없다")
 		fun signupFailWithoutAuth() {
 			// given
-			val request = mapOf(
-				"email" to "no-auth@bottlenote.com",
-				"password" to "password123",
-				"name" to "인증 없는 사용자",
-				"roles" to listOf("PARTNER")
-			)
+			val request =
+				mapOf(
+					"email" to "no-auth@bottlenote.com",
+					"password" to "password123",
+					"name" to "인증 없는 사용자",
+					"roles" to listOf("PARTNER")
+				)
 
 			// when & then
 			assertThat(
-				mockMvcTester.post()
+				mockMvcTester
+					.post()
 					.uri("/auth/signup")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 		}
 
 		@Test
@@ -384,24 +401,26 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 			val admin = adminUserTestFactory.persistRootAdmin()
 			val accessToken = getAccessToken(admin)
 
-			val request = mapOf(
-				"email" to existingEmail,
-				"password" to "password123",
-				"name" to "중복 시도",
-				"roles" to listOf("PARTNER")
-			)
+			val request =
+				mapOf(
+					"email" to existingEmail,
+					"password" to "password123",
+					"name" to "중복 시도",
+					"roles" to listOf("PARTNER")
+				)
 
 			// when & then
 			assertThat(
-				mockMvcTester.post()
+				mockMvcTester
+					.post()
 					.uri("/auth/signup")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 				.bodyJson()
-				.extractingPath("$.success").isEqualTo(false)
+				.extractingPath("$.success")
+				.isEqualTo(false)
 		}
 
 		@Test
@@ -411,22 +430,23 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 			val admin = adminUserTestFactory.persistRootAdmin()
 			val accessToken = getAccessToken(admin)
 
-			val request = mapOf(
-				"email" to "empty-roles@bottlenote.com",
-				"password" to "password123",
-				"name" to "역할 없음",
-				"roles" to emptyList<String>()
-			)
+			val request =
+				mapOf(
+					"email" to "empty-roles@bottlenote.com",
+					"password" to "password123",
+					"name" to "역할 없음",
+					"roles" to emptyList<String>()
+				)
 
 			// when & then
 			assertThat(
-				mockMvcTester.post()
+				mockMvcTester
+					.post()
 					.uri("/auth/signup")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 		}
 	}
 }

@@ -2,10 +2,13 @@ package app.bottlenote.user.domain;
 
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
+import app.bottlenote.user.dto.request.AdminUserSearchRequest;
+import app.bottlenote.user.dto.response.AdminUserListResponse;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.dto.response.MyPageResponse;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
 
 /** 유저 정보에 관한 질의에 대한 애그리거트를 정의합니다. */
 public interface UserRepository {
@@ -27,4 +30,6 @@ public interface UserRepository {
   PageResponse<MyBottleResponse> getRatingMyBottle(MyBottlePageableCriteria criteria);
 
   PageResponse<MyBottleResponse> getPicksMyBottle(MyBottlePageableCriteria criteria);
+
+  Page<AdminUserListResponse> searchAdminUsers(AdminUserSearchRequest request);
 }

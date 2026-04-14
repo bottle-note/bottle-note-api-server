@@ -9,130 +9,149 @@ import app.bottlenote.global.dto.response.AdminResultResponse
 import java.time.LocalDateTime
 
 object BannerHelper {
+	fun createAdminBannerListResponse(
+		id: Long = 1L,
+		name: String = "테스트 배너",
+		mediaType: MediaType = MediaType.IMAGE,
+		bannerType: BannerType = BannerType.CURATION,
+		sortOrder: Int = 0,
+		isActive: Boolean = true,
+		startDate: LocalDateTime? = null,
+		endDate: LocalDateTime? = null,
+		createdAt: LocalDateTime = LocalDateTime.of(2024, 1, 1, 0, 0)
+	): AdminBannerListResponse = AdminBannerListResponse(
+		id,
+		name,
+		mediaType,
+		bannerType,
+		sortOrder,
+		isActive,
+		startDate,
+		endDate,
+		createdAt
+	)
 
-    fun createAdminBannerListResponse(
-        id: Long = 1L,
-        name: String = "테스트 배너",
-        mediaType: MediaType = MediaType.IMAGE,
-        bannerType: BannerType = BannerType.CURATION,
-        sortOrder: Int = 0,
-        isActive: Boolean = true,
-        startDate: LocalDateTime? = null,
-        endDate: LocalDateTime? = null,
-        createdAt: LocalDateTime = LocalDateTime.of(2024, 1, 1, 0, 0)
-    ): AdminBannerListResponse = AdminBannerListResponse(
-        id, name, mediaType, bannerType, sortOrder, isActive, startDate, endDate, createdAt
-    )
+	fun createAdminBannerListResponses(count: Int = 3): List<AdminBannerListResponse> = (1..count).map { i ->
+		createAdminBannerListResponse(
+			id = i.toLong(),
+			name = "배너 $i",
+			sortOrder = i - 1,
+			createdAt = LocalDateTime.of(2024, i, 1, 0, 0)
+		)
+	}
 
-    fun createAdminBannerListResponses(count: Int = 3): List<AdminBannerListResponse> =
-        (1..count).map { i ->
-            createAdminBannerListResponse(
-                id = i.toLong(),
-                name = "배너 $i",
-                sortOrder = i - 1,
-                createdAt = LocalDateTime.of(2024, i, 1, 0, 0)
-            )
-        }
+	fun createAdminBannerDetailResponse(
+		id: Long = 1L,
+		name: String = "테스트 배너",
+		nameFontColor: String = "#ffffff",
+		descriptionA: String? = "배너 설명A",
+		descriptionB: String? = "배너 설명B",
+		descriptionFontColor: String = "#ffffff",
+		imageUrl: String = "https://example.com/banner.jpg",
+		textPosition: TextPosition = TextPosition.RT,
+		isExternalUrl: Boolean = false,
+		targetUrl: String? = null,
+		mediaType: MediaType = MediaType.IMAGE,
+		bannerType: BannerType = BannerType.CURATION,
+		sortOrder: Int = 0,
+		startDate: LocalDateTime? = null,
+		endDate: LocalDateTime? = null,
+		isActive: Boolean = true,
+		createdAt: LocalDateTime = LocalDateTime.of(2024, 1, 1, 0, 0),
+		modifiedAt: LocalDateTime = LocalDateTime.of(2024, 6, 1, 0, 0)
+	): AdminBannerDetailResponse = AdminBannerDetailResponse(
+		id,
+		name,
+		nameFontColor,
+		descriptionA,
+		descriptionB,
+		descriptionFontColor,
+		imageUrl,
+		textPosition,
+		isExternalUrl,
+		targetUrl,
+		mediaType,
+		bannerType,
+		sortOrder,
+		startDate,
+		endDate,
+		isActive,
+		createdAt,
+		modifiedAt
+	)
 
-    fun createAdminBannerDetailResponse(
-        id: Long = 1L,
-        name: String = "테스트 배너",
-        nameFontColor: String = "#ffffff",
-        descriptionA: String? = "배너 설명A",
-        descriptionB: String? = "배너 설명B",
-        descriptionFontColor: String = "#ffffff",
-        imageUrl: String = "https://example.com/banner.jpg",
-        textPosition: TextPosition = TextPosition.RT,
-        isExternalUrl: Boolean = false,
-        targetUrl: String? = null,
-        mediaType: MediaType = MediaType.IMAGE,
-        bannerType: BannerType = BannerType.CURATION,
-        sortOrder: Int = 0,
-        startDate: LocalDateTime? = null,
-        endDate: LocalDateTime? = null,
-        isActive: Boolean = true,
-        createdAt: LocalDateTime = LocalDateTime.of(2024, 1, 1, 0, 0),
-        modifiedAt: LocalDateTime = LocalDateTime.of(2024, 6, 1, 0, 0)
-    ): AdminBannerDetailResponse = AdminBannerDetailResponse(
-        id, name, nameFontColor, descriptionA, descriptionB, descriptionFontColor,
-        imageUrl, textPosition, isExternalUrl, targetUrl, mediaType, bannerType, sortOrder,
-        startDate, endDate, isActive, createdAt, modifiedAt
-    )
+	fun createBannerCreateRequest(
+		name: String = "새 배너",
+		nameFontColor: String = "#ffffff",
+		descriptionA: String? = "배너 설명A",
+		descriptionB: String? = "배너 설명B",
+		descriptionFontColor: String = "#ffffff",
+		imageUrl: String = "https://example.com/banner.jpg",
+		textPosition: String = "RT",
+		isExternalUrl: Boolean = false,
+		targetUrl: String? = null,
+		mediaType: String = "IMAGE",
+		bannerType: String = "CURATION",
+		sortOrder: Int = 0,
+		startDate: String? = null,
+		endDate: String? = null
+	): Map<String, Any?> = mapOf(
+		"name" to name,
+		"nameFontColor" to nameFontColor,
+		"descriptionA" to descriptionA,
+		"descriptionB" to descriptionB,
+		"descriptionFontColor" to descriptionFontColor,
+		"imageUrl" to imageUrl,
+		"textPosition" to textPosition,
+		"isExternalUrl" to isExternalUrl,
+		"targetUrl" to targetUrl,
+		"mediaType" to mediaType,
+		"bannerType" to bannerType,
+		"sortOrder" to sortOrder,
+		"startDate" to startDate,
+		"endDate" to endDate
+	)
 
-    fun createBannerCreateRequest(
-        name: String = "새 배너",
-        nameFontColor: String = "#ffffff",
-        descriptionA: String? = "배너 설명A",
-        descriptionB: String? = "배너 설명B",
-        descriptionFontColor: String = "#ffffff",
-        imageUrl: String = "https://example.com/banner.jpg",
-        textPosition: String = "RT",
-        isExternalUrl: Boolean = false,
-        targetUrl: String? = null,
-        mediaType: String = "IMAGE",
-        bannerType: String = "CURATION",
-        sortOrder: Int = 0,
-        startDate: String? = null,
-        endDate: String? = null
-    ): Map<String, Any?> = mapOf(
-        "name" to name,
-        "nameFontColor" to nameFontColor,
-        "descriptionA" to descriptionA,
-        "descriptionB" to descriptionB,
-        "descriptionFontColor" to descriptionFontColor,
-        "imageUrl" to imageUrl,
-        "textPosition" to textPosition,
-        "isExternalUrl" to isExternalUrl,
-        "targetUrl" to targetUrl,
-        "mediaType" to mediaType,
-        "bannerType" to bannerType,
-        "sortOrder" to sortOrder,
-        "startDate" to startDate,
-        "endDate" to endDate
-    )
+	fun createBannerUpdateRequest(
+		name: String = "수정된 배너",
+		nameFontColor: String = "#000000",
+		descriptionA: String? = "수정된 설명A",
+		descriptionB: String? = "수정된 설명B",
+		descriptionFontColor: String = "#000000",
+		imageUrl: String = "https://example.com/updated.jpg",
+		textPosition: String = "CENTER",
+		isExternalUrl: Boolean = false,
+		targetUrl: String? = null,
+		mediaType: String = "IMAGE",
+		bannerType: String = "CURATION",
+		sortOrder: Int = 1,
+		startDate: String? = null,
+		endDate: String? = null,
+		isActive: Boolean = true
+	): Map<String, Any?> = mapOf(
+		"name" to name,
+		"nameFontColor" to nameFontColor,
+		"descriptionA" to descriptionA,
+		"descriptionB" to descriptionB,
+		"descriptionFontColor" to descriptionFontColor,
+		"imageUrl" to imageUrl,
+		"textPosition" to textPosition,
+		"isExternalUrl" to isExternalUrl,
+		"targetUrl" to targetUrl,
+		"mediaType" to mediaType,
+		"bannerType" to bannerType,
+		"sortOrder" to sortOrder,
+		"startDate" to startDate,
+		"endDate" to endDate,
+		"isActive" to isActive
+	)
 
-    fun createBannerUpdateRequest(
-        name: String = "수정된 배너",
-        nameFontColor: String = "#000000",
-        descriptionA: String? = "수정된 설명A",
-        descriptionB: String? = "수정된 설명B",
-        descriptionFontColor: String = "#000000",
-        imageUrl: String = "https://example.com/updated.jpg",
-        textPosition: String = "CENTER",
-        isExternalUrl: Boolean = false,
-        targetUrl: String? = null,
-        mediaType: String = "IMAGE",
-        bannerType: String = "CURATION",
-        sortOrder: Int = 1,
-        startDate: String? = null,
-        endDate: String? = null,
-        isActive: Boolean = true
-    ): Map<String, Any?> = mapOf(
-        "name" to name,
-        "nameFontColor" to nameFontColor,
-        "descriptionA" to descriptionA,
-        "descriptionB" to descriptionB,
-        "descriptionFontColor" to descriptionFontColor,
-        "imageUrl" to imageUrl,
-        "textPosition" to textPosition,
-        "isExternalUrl" to isExternalUrl,
-        "targetUrl" to targetUrl,
-        "mediaType" to mediaType,
-        "bannerType" to bannerType,
-        "sortOrder" to sortOrder,
-        "startDate" to startDate,
-        "endDate" to endDate,
-        "isActive" to isActive
-    )
+	fun createBannerStatusRequest(isActive: Boolean = true): Map<String, Any> = mapOf("isActive" to isActive)
 
-    fun createBannerStatusRequest(isActive: Boolean = true): Map<String, Any> =
-        mapOf("isActive" to isActive)
+	fun createBannerSortOrderRequest(sortOrder: Int = 1): Map<String, Any> = mapOf("sortOrder" to sortOrder)
 
-    fun createBannerSortOrderRequest(sortOrder: Int = 1): Map<String, Any> =
-        mapOf("sortOrder" to sortOrder)
-
-    fun createAdminResultResponse(
-        code: AdminResultResponse.ResultCode = AdminResultResponse.ResultCode.BANNER_CREATED,
-        targetId: Long = 1L
-    ): AdminResultResponse = AdminResultResponse.of(code, targetId)
+	fun createAdminResultResponse(
+		code: AdminResultResponse.ResultCode = AdminResultResponse.ResultCode.BANNER_CREATED,
+		targetId: Long = 1L
+	): AdminResultResponse = AdminResultResponse.of(code, targetId)
 }

@@ -1,19 +1,18 @@
 package app.helper.alcohols
 
+import app.bottlenote.alcohols.constant.AlcoholCategoryGroup
+import app.bottlenote.alcohols.constant.AlcoholType
 import app.bottlenote.alcohols.dto.response.AdminAlcoholDetailResponse
 import app.bottlenote.alcohols.dto.response.AdminAlcoholDetailResponse.TastingTagInfo
 import app.bottlenote.alcohols.dto.response.AdminAlcoholItem
 import app.bottlenote.alcohols.dto.response.AdminDistilleryItem
 import app.bottlenote.alcohols.dto.response.AdminRegionItem
 import app.bottlenote.alcohols.dto.response.TastingTagNodeItem
-import app.bottlenote.alcohols.constant.AlcoholCategoryGroup
-import app.bottlenote.alcohols.constant.AlcoholType
 import app.bottlenote.global.data.response.GlobalResponse
 import app.bottlenote.global.dto.response.AdminResultResponse
 import java.time.LocalDateTime
 
 object AlcoholsHelper {
-
 	/** 1x1 투명 PNG 이미지 (테스트용) */
 	const val VALID_BASE64_PNG = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
 
@@ -28,19 +27,26 @@ object AlcoholsHelper {
 		modifiedAt: LocalDateTime = LocalDateTime.of(2024, 6, 1, 0, 0),
 		deletedAt: LocalDateTime? = null
 	): AdminAlcoholItem = AdminAlcoholItem(
-		id, korName, engName, korCategoryName, engCategoryName, imageUrl, createdAt, modifiedAt, deletedAt
+		id,
+		korName,
+		engName,
+		korCategoryName,
+		engCategoryName,
+		imageUrl,
+		createdAt,
+		modifiedAt,
+		deletedAt
 	)
 
-	fun createAdminAlcoholItems(count: Int = 2): List<AdminAlcoholItem> =
-		(1..count).map { i ->
-			createAdminAlcoholItem(
-				id = i.toLong(),
-				korName = "테스트 위스키 $i",
-				engName = "Test Whisky $i",
-				createdAt = LocalDateTime.of(2024, i, 1, 0, 0),
-				modifiedAt = LocalDateTime.of(2024, i + 5, 1, 0, 0)
-			)
-		}
+	fun createAdminAlcoholItems(count: Int = 2): List<AdminAlcoholItem> = (1..count).map { i ->
+		createAdminAlcoholItem(
+			id = i.toLong(),
+			korName = "테스트 위스키 $i",
+			engName = "Test Whisky $i",
+			createdAt = LocalDateTime.of(2024, i, 1, 0, 0),
+			modifiedAt = LocalDateTime.of(2024, i + 5, 1, 0, 0)
+		)
+	}
 
 	fun createPageResponse(
 		items: List<Any>,
@@ -51,7 +57,8 @@ object AlcoholsHelper {
 		val totalPages = if (totalElements == 0L) 0 else ((totalElements - 1) / size + 1).toInt()
 		val hasNext = page < totalPages - 1
 
-		return GlobalResponse.builder()
+		return GlobalResponse
+			.builder()
 			.success(true)
 			.code(200)
 			.data(items)
@@ -68,8 +75,7 @@ object AlcoholsHelper {
 					"serverResponseTime" to LocalDateTime.now().toString(),
 					"serverPathVersion" to "v1"
 				)
-			)
-			.build()
+			).build()
 	}
 
 	fun createAdminAlcoholDetailResponse(
@@ -117,60 +123,63 @@ object AlcoholsHelper {
 		parent: TastingTagNodeItem? = null,
 		children: List<TastingTagNodeItem>? = null
 	): TastingTagNodeItem = TastingTagNodeItem.of(
-		id, korName, engName, icon, description, parent, children
+		id,
+		korName,
+		engName,
+		icon,
+		description,
+		parent,
+		children
 	)
 
-	fun createTastingTagNodeItems(count: Int = 3): List<TastingTagNodeItem> =
-		(1..count).map { i ->
-			TastingTagNodeItem.forList(
-				i.toLong(),
-				"태그$i",
-				"Tag$i",
-				"icon$i.png",
-				"테이스팅 태그 설명 $i"
-			)
-		}
+	fun createTastingTagNodeItems(count: Int = 3): List<TastingTagNodeItem> = (1..count).map { i ->
+		TastingTagNodeItem.forList(
+			i.toLong(),
+			"태그$i",
+			"Tag$i",
+			"icon$i.png",
+			"테이스팅 태그 설명 $i"
+		)
+	}
 
-	fun createAdminRegionItems(count: Int = 3): List<AdminRegionItem> =
-		(1..count).map { i ->
-			AdminRegionItem(
-				i.toLong(),
-				listOf("스코틀랜드", "아일랜드", "일본")[i - 1],
-				listOf("Scotland", "Ireland", "Japan")[i - 1],
-				listOf("유럽", "유럽", "아시아")[i - 1],
-				"지역 설명 $i",
-				LocalDateTime.of(2024, 1, i, 0, 0),
-				LocalDateTime.of(2024, 6, i, 0, 0)
-			)
-		}
+	fun createAdminRegionItems(count: Int = 3): List<AdminRegionItem> = (1..count).map { i ->
+		AdminRegionItem(
+			i.toLong(),
+			listOf("스코틀랜드", "아일랜드", "일본")[i - 1],
+			listOf("Scotland", "Ireland", "Japan")[i - 1],
+			listOf("유럽", "유럽", "아시아")[i - 1],
+			"지역 설명 $i",
+			LocalDateTime.of(2024, 1, i, 0, 0),
+			LocalDateTime.of(2024, 6, i, 0, 0),
+			null
+		)
+	}
 
-	fun createAdminDistilleryItems(count: Int = 3): List<AdminDistilleryItem> =
-		(1..count).map { i ->
-			AdminDistilleryItem(
-				i.toLong(),
-				listOf("글렌피딕", "맥캘란", "야마자키")[i - 1],
-				listOf("Glenfiddich", "Macallan", "Yamazaki")[i - 1],
-				"https://example.com/logo$i.png",
-				LocalDateTime.of(2024, 1, i, 0, 0),
-				LocalDateTime.of(2024, 6, i, 0, 0)
-			)
-		}
+	fun createAdminDistilleryItems(count: Int = 3): List<AdminDistilleryItem> = (1..count).map { i ->
+		AdminDistilleryItem(
+			i.toLong(),
+			listOf("글렌피딕", "맥캘란", "야마자키")[i - 1],
+			listOf("Glenfiddich", "Macallan", "Yamazaki")[i - 1],
+			"https://example.com/logo$i.png",
+			LocalDateTime.of(2024, 1, i, 0, 0),
+			LocalDateTime.of(2024, 6, i, 0, 0)
+		)
+	}
 
-	fun createListResponse(items: List<Any>): GlobalResponse =
-		GlobalResponse.builder()
-			.success(true)
-			.code(200)
-			.data(items)
-			.errors(emptyList<String>())
-			.meta(
-				mapOf(
-					"serverVersion" to "1.0.0",
-					"serverEncoding" to "UTF-8",
-					"serverResponseTime" to LocalDateTime.now().toString(),
-					"serverPathVersion" to "v1"
-				)
+	fun createListResponse(items: List<Any>): GlobalResponse = GlobalResponse
+		.builder()
+		.success(true)
+		.code(200)
+		.data(items)
+		.errors(emptyList<String>())
+		.meta(
+			mapOf(
+				"serverVersion" to "1.0.0",
+				"serverEncoding" to "UTF-8",
+				"serverResponseTime" to LocalDateTime.now().toString(),
+				"serverPathVersion" to "v1"
 			)
-			.build()
+		).build()
 
 	fun createAdminResultResponse(
 		code: AdminResultResponse.ResultCode = AdminResultResponse.ResultCode.ALCOHOL_CREATED,

@@ -28,7 +28,6 @@ import java.util.stream.Stream
 @Tag("admin_integration")
 @DisplayName("[integration] Admin Alcohol API 통합 테스트")
 class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
-
 	@Autowired
 	private lateinit var alcoholTestFactory: AlcoholTestFactory
 
@@ -79,31 +78,39 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 
 		// when & then
 		assertThat(
-			mockMvcTester.get().uri("/alcohols")
+			mockMvcTester
+				.get()
+				.uri("/alcohols")
 				.header("Authorization", "Bearer $accessToken")
-		)
-			.hasStatusOk()
+		).hasStatusOk()
 			.bodyJson()
-			.extractingPath("$.success").isEqualTo(true)
+			.extractingPath("$.success")
+			.isEqualTo(true)
 	}
 
 	@ParameterizedTest(name = "{2}")
 	@MethodSource("keywordSearchTestCases")
 	@DisplayName("키워드로 술을 검색할 수 있다")
-	fun searchByKeyword(keyword: String, expectedCount: Int, description: String) {
+	fun searchByKeyword(
+		keyword: String,
+		expectedCount: Int,
+		description: String
+	) {
 		// given
 		alcoholTestFactory.persistAlcoholWithName("글렌피딕 12년", "Glenfiddich 12")
 		alcoholTestFactory.persistAlcoholWithName("맥캘란 18년", "Macallan 18")
 
 		// when & then
 		assertThat(
-			mockMvcTester.get().uri("/alcohols")
+			mockMvcTester
+				.get()
+				.uri("/alcohols")
 				.header("Authorization", "Bearer $accessToken")
 				.param("keyword", keyword)
-		)
-			.hasStatusOk()
+		).hasStatusOk()
 			.bodyJson()
-			.extractingPath("$.data.length()").isEqualTo(expectedCount)
+			.extractingPath("$.data.length()")
+			.isEqualTo(expectedCount)
 	}
 
 	@ParameterizedTest(name = "카테고리: {0}")
@@ -115,33 +122,40 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 
 		// when & then
 		assertThat(
-			mockMvcTester.get().uri("/alcohols")
+			mockMvcTester
+				.get()
+				.uri("/alcohols")
 				.header("Authorization", "Bearer $accessToken")
 				.param("category", category.name)
-		)
-			.hasStatusOk()
+		).hasStatusOk()
 			.bodyJson()
-			.extractingPath("$.success").isEqualTo(true)
+			.extractingPath("$.success")
+			.isEqualTo(true)
 	}
 
 	@ParameterizedTest(name = "정렬: {0} {1}")
 	@MethodSource("sortTypeTestCases")
 	@DisplayName("다양한 정렬 조건으로 조회할 수 있다")
-	fun sortByVariousTypes(sortType: AdminAlcoholSortType, sortOrder: SortOrder) {
+	fun sortByVariousTypes(
+		sortType: AdminAlcoholSortType,
+		sortOrder: SortOrder
+	) {
 		// given
 		alcoholTestFactory.persistAlcoholWithName("가나다 위스키", "ABC Whisky")
 		alcoholTestFactory.persistAlcoholWithName("마바사 위스키", "DEF Whisky")
 
 		// when & then
 		assertThat(
-			mockMvcTester.get().uri("/alcohols")
+			mockMvcTester
+				.get()
+				.uri("/alcohols")
 				.header("Authorization", "Bearer $accessToken")
 				.param("sortType", sortType.name)
 				.param("sortOrder", sortOrder.name)
-		)
-			.hasStatusOk()
+		).hasStatusOk()
 			.bodyJson()
-			.extractingPath("$.success").isEqualTo(true)
+			.extractingPath("$.success")
+			.isEqualTo(true)
 	}
 
 	@ParameterizedTest(name = "page={0}, size={1}")
@@ -152,26 +166,30 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 		"2, 5"
 	)
 	@DisplayName("페이징이 정상 동작한다")
-	fun pagination(page: Int, size: Int) {
+	fun pagination(
+		page: Int,
+		size: Int
+	) {
 		// given
 		alcoholTestFactory.persistAlcohols(25)
 
 		// when & then
 		assertThat(
-			mockMvcTester.get().uri("/alcohols")
+			mockMvcTester
+				.get()
+				.uri("/alcohols")
 				.header("Authorization", "Bearer $accessToken")
 				.param("page", page.toString())
 				.param("size", size.toString())
-		)
-			.hasStatusOk()
+		).hasStatusOk()
 			.bodyJson()
-			.extractingPath("$.meta.size").isEqualTo(size)
+			.extractingPath("$.meta.size")
+			.isEqualTo(size)
 	}
 
 	@Nested
 	@DisplayName("삭제 데이터 필터링")
 	inner class DeletedAlcoholFiltering {
-
 		@Test
 		@DisplayName("기본 조회 시 삭제된 위스키는 제외된다")
 		fun excludeDeletedByDefault() {
@@ -181,12 +199,14 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.get().uri("/alcohols")
+				mockMvcTester
+					.get()
+					.uri("/alcohols")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.length()").isEqualTo(3)
+				.extractingPath("$.data.length()")
+				.isEqualTo(3)
 		}
 
 		@Test
@@ -198,20 +218,21 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.get().uri("/alcohols")
+				mockMvcTester
+					.get()
+					.uri("/alcohols")
 					.header("Authorization", "Bearer $accessToken")
 					.param("includeDeleted", "true")
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.length()").isEqualTo(4)
+				.extractingPath("$.data.length()")
+				.isEqualTo(4)
 		}
 	}
 
 	@Nested
 	@DisplayName("카테고리 레퍼런스 조회 API")
 	inner class GetCategoryReference {
-
 		@Test
 		@DisplayName("기존 카테고리 페어 목록을 조회할 수 있다")
 		fun getCategoryReferenceSuccess() {
@@ -222,12 +243,14 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.get().uri("/alcohols/categories/reference")
+				mockMvcTester
+					.get()
+					.uri("/alcohols/categories/reference")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.success").isEqualTo(true)
+				.extractingPath("$.success")
+				.isEqualTo(true)
 		}
 
 		@Test
@@ -239,19 +262,20 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 
 			// when & then - 2개의 다른 페어가 반환됨
 			assertThat(
-				mockMvcTester.get().uri("/alcohols/categories/reference")
+				mockMvcTester
+					.get()
+					.uri("/alcohols/categories/reference")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.length()").isEqualTo(2)
+				.extractingPath("$.data.length()")
+				.isEqualTo(2)
 		}
 	}
 
 	@Nested
 	@DisplayName("술 단건 상세 조회 API")
 	inner class GetAlcoholDetail {
-
 		@Test
 		@DisplayName("관리자용 술 단건 상세 정보를 조회할 수 있다")
 		fun getAlcoholDetailSuccess() {
@@ -260,21 +284,25 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 
 			// when & then - 성공 응답 확인
 			assertThat(
-				mockMvcTester.get().uri("/alcohols/${alcohol.id}")
+				mockMvcTester
+					.get()
+					.uri("/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.success").isEqualTo(true)
+				.extractingPath("$.success")
+				.isEqualTo(true)
 
 			// 상세 데이터 검증
 			assertThat(
-				mockMvcTester.get().uri("/alcohols/${alcohol.id}")
+				mockMvcTester
+					.get()
+					.uri("/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.korName").isEqualTo("글렌피딕 12년")
+				.extractingPath("$.data.korName")
+				.isEqualTo("글렌피딕 12년")
 		}
 
 		@Test
@@ -284,27 +312,31 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			val alcohol = alcoholTestFactory.persistAlcoholWithName("맥캘란 18년", "Macallan 18")
 
 			// when & then - 필수 필드 존재 여부 확인
-			val result = mockMvcTester.get().uri("/alcohols/${alcohol.id}")
-				.header("Authorization", "Bearer $accessToken")
+			val result =
+				mockMvcTester
+					.get()
+					.uri("/alcohols/${alcohol.id}")
+					.header("Authorization", "Bearer $accessToken")
 
 			assertThat(result)
 				.hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.alcoholId").isNotNull
+				.extractingPath("$.data.alcoholId")
+				.isNotNull
 
 			// 방어로직: 존재하지 않는 ID로 조회 시 실패
 			assertThat(
-				mockMvcTester.get().uri("/alcohols/999999")
+				mockMvcTester
+					.get()
+					.uri("/alcohols/999999")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 		}
 	}
 
 	@Nested
 	@DisplayName("술 생성 API")
 	inner class CreateAlcohol {
-
 		@Test
 		@DisplayName("위스키를 생성할 수 있다")
 		fun createAlcoholSuccess() {
@@ -312,33 +344,36 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			val region = alcoholTestFactory.persistRegion()
 			val distillery = alcoholTestFactory.persistDistillery()
 
-			val request = mapOf(
-				"korName" to "테스트 위스키",
-				"engName" to "Test Whisky",
-				"abv" to "40%",
-				"type" to AlcoholType.WHISKY.name,
-				"korCategory" to "싱글 몰트",
-				"engCategory" to "Single Malt",
-				"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
-				"regionId" to region.id,
-				"distilleryId" to distillery.id,
-				"age" to "12",
-				"cask" to "American Oak",
-				"imageUrl" to "https://example.com/test.jpg",
-				"description" to "테스트 설명",
-				"volume" to "700ml"
-			)
+			val request =
+				mapOf(
+					"korName" to "테스트 위스키",
+					"engName" to "Test Whisky",
+					"abv" to "40%",
+					"type" to AlcoholType.WHISKY.name,
+					"korCategory" to "싱글 몰트",
+					"engCategory" to "Single Malt",
+					"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
+					"regionId" to region.id,
+					"distilleryId" to distillery.id,
+					"age" to "12",
+					"cask" to "American Oak",
+					"imageUrl" to "https://example.com/test.jpg",
+					"description" to "테스트 설명",
+					"volume" to "700ml"
+				)
 
 			// when & then
 			assertThat(
-				mockMvcTester.post().uri("/alcohols")
+				mockMvcTester
+					.post()
+					.uri("/alcohols")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.code").isEqualTo("ALCOHOL_CREATED")
+				.extractingPath("$.data.code")
+				.isEqualTo("ALCOHOL_CREATED")
 		}
 
 		@Test
@@ -350,45 +385,52 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			val tag1 = tastingTagTestFactory.persistTastingTag("바닐라", "Vanilla")
 			val tag2 = tastingTagTestFactory.persistTastingTag("꿀", "Honey")
 
-			val request = mapOf(
-				"korName" to "테스트 위스키",
-				"engName" to "Test Whisky",
-				"abv" to "40%",
-				"type" to AlcoholType.WHISKY.name,
-				"korCategory" to "싱글 몰트",
-				"engCategory" to "Single Malt",
-				"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
-				"regionId" to region.id,
-				"distilleryId" to distillery.id,
-				"age" to "12",
-				"cask" to "American Oak",
-				"imageUrl" to "https://example.com/test.jpg",
-				"description" to "테스트 설명",
-				"volume" to "700ml",
-				"tastingTagIds" to listOf(tag1.id, tag2.id)
-			)
+			val request =
+				mapOf(
+					"korName" to "테스트 위스키",
+					"engName" to "Test Whisky",
+					"abv" to "40%",
+					"type" to AlcoholType.WHISKY.name,
+					"korCategory" to "싱글 몰트",
+					"engCategory" to "Single Malt",
+					"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
+					"regionId" to region.id,
+					"distilleryId" to distillery.id,
+					"age" to "12",
+					"cask" to "American Oak",
+					"imageUrl" to "https://example.com/test.jpg",
+					"description" to "테스트 설명",
+					"volume" to "700ml",
+					"tastingTagIds" to listOf(tag1.id, tag2.id)
+				)
 
 			// when
-			val createResult = mockMvcTester.post().uri("/alcohols")
-				.header("Authorization", "Bearer $accessToken")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(mapper.writeValueAsString(request))
-				.exchange()
+			val createResult =
+				mockMvcTester
+					.post()
+					.uri("/alcohols")
+					.header("Authorization", "Bearer $accessToken")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(request))
+					.exchange()
 
 			assertThat(createResult)
 				.hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.code").isEqualTo("ALCOHOL_CREATED")
+				.extractingPath("$.data.code")
+				.isEqualTo("ALCOHOL_CREATED")
 
 			// then - 상세 조회로 태그 확인
 			val alcoholId = extractData(createResult, Map::class.java)["targetId"]
 			assertThat(
-				mockMvcTester.get().uri("/alcohols/$alcoholId")
+				mockMvcTester
+					.get()
+					.uri("/alcohols/$alcoholId")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.tastingTags.length()").isEqualTo(2)
+				.extractingPath("$.data.tastingTags.length()")
+				.isEqualTo(2)
 		}
 
 		@Test
@@ -398,50 +440,54 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			val region = alcoholTestFactory.persistRegion()
 			val distillery = alcoholTestFactory.persistDistillery()
 
-			val request = mapOf(
-				"korName" to "테스트 위스키",
-				"engName" to "Test Whisky",
-				"abv" to "40%",
-				"type" to AlcoholType.WHISKY.name,
-				"korCategory" to "싱글 몰트",
-				"engCategory" to "Single Malt",
-				"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
-				"regionId" to region.id,
-				"distilleryId" to distillery.id,
-				"age" to "12",
-				"cask" to "American Oak",
-				"imageUrl" to "https://example.com/test.jpg",
-				"description" to "테스트 설명",
-				"volume" to "700ml",
-				"tastingTagIds" to listOf(999999L)
-			)
+			val request =
+				mapOf(
+					"korName" to "테스트 위스키",
+					"engName" to "Test Whisky",
+					"abv" to "40%",
+					"type" to AlcoholType.WHISKY.name,
+					"korCategory" to "싱글 몰트",
+					"engCategory" to "Single Malt",
+					"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
+					"regionId" to region.id,
+					"distilleryId" to distillery.id,
+					"age" to "12",
+					"cask" to "American Oak",
+					"imageUrl" to "https://example.com/test.jpg",
+					"description" to "테스트 설명",
+					"volume" to "700ml",
+					"tastingTagIds" to listOf(999999L)
+				)
 
 			// when & then
 			assertThat(
-				mockMvcTester.post().uri("/alcohols")
+				mockMvcTester
+					.post()
+					.uri("/alcohols")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 		}
 
 		@Test
 		@DisplayName("필수 필드 누락 시 실패한다")
 		fun createAlcoholWithMissingFields() {
 			// given
-			val request = mapOf(
-				"korName" to "테스트 위스키"
-			)
+			val request =
+				mapOf(
+					"korName" to "테스트 위스키"
+				)
 
 			// when & then
 			assertThat(
-				mockMvcTester.post().uri("/alcohols")
+				mockMvcTester
+					.post()
+					.uri("/alcohols")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 		}
 
 		@Test
@@ -450,38 +496,39 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			// given
 			val distillery = alcoholTestFactory.persistDistillery()
 
-			val request = mapOf(
-				"korName" to "테스트 위스키",
-				"engName" to "Test Whisky",
-				"abv" to "40%",
-				"type" to AlcoholType.WHISKY.name,
-				"korCategory" to "싱글 몰트",
-				"engCategory" to "Single Malt",
-				"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
-				"regionId" to 999999L,
-				"distilleryId" to distillery.id,
-				"age" to "12",
-				"cask" to "American Oak",
-				"imageUrl" to "https://example.com/test.jpg",
-				"description" to "테스트 설명",
-				"volume" to "700ml"
-			)
+			val request =
+				mapOf(
+					"korName" to "테스트 위스키",
+					"engName" to "Test Whisky",
+					"abv" to "40%",
+					"type" to AlcoholType.WHISKY.name,
+					"korCategory" to "싱글 몰트",
+					"engCategory" to "Single Malt",
+					"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
+					"regionId" to 999999L,
+					"distilleryId" to distillery.id,
+					"age" to "12",
+					"cask" to "American Oak",
+					"imageUrl" to "https://example.com/test.jpg",
+					"description" to "테스트 설명",
+					"volume" to "700ml"
+				)
 
 			// when & then
 			assertThat(
-				mockMvcTester.post().uri("/alcohols")
+				mockMvcTester
+					.post()
+					.uri("/alcohols")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 		}
 	}
 
 	@Nested
 	@DisplayName("술 수정 API")
 	inner class UpdateAlcohol {
-
 		@Test
 		@DisplayName("위스키를 수정할 수 있다")
 		fun updateAlcoholSuccess() {
@@ -490,33 +537,36 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			val region = alcoholTestFactory.persistRegion()
 			val distillery = alcoholTestFactory.persistDistillery()
 
-			val request = mapOf(
-				"korName" to "수정된 위스키",
-				"engName" to "Updated Whisky",
-				"abv" to "43%",
-				"type" to AlcoholType.WHISKY.name,
-				"korCategory" to "싱글 몰트",
-				"engCategory" to "Single Malt",
-				"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
-				"regionId" to region.id,
-				"distilleryId" to distillery.id,
-				"age" to "18",
-				"cask" to "Sherry Oak",
-				"imageUrl" to "https://example.com/updated.jpg",
-				"description" to "수정된 설명",
-				"volume" to "750ml"
-			)
+			val request =
+				mapOf(
+					"korName" to "수정된 위스키",
+					"engName" to "Updated Whisky",
+					"abv" to "43%",
+					"type" to AlcoholType.WHISKY.name,
+					"korCategory" to "싱글 몰트",
+					"engCategory" to "Single Malt",
+					"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
+					"regionId" to region.id,
+					"distilleryId" to distillery.id,
+					"age" to "18",
+					"cask" to "Sherry Oak",
+					"imageUrl" to "https://example.com/updated.jpg",
+					"description" to "수정된 설명",
+					"volume" to "750ml"
+				)
 
 			// when & then
 			assertThat(
-				mockMvcTester.put().uri("/alcohols/${alcohol.id}")
+				mockMvcTester
+					.put()
+					.uri("/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.code").isEqualTo("ALCOHOL_UPDATED")
+				.extractingPath("$.data.code")
+				.isEqualTo("ALCOHOL_UPDATED")
 		}
 
 		@Test
@@ -531,43 +581,48 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			val newTag2 = tastingTagTestFactory.persistTastingTag("스모키", "Smoky")
 			tastingTagTestFactory.linkAlcoholToTag(alcohol, oldTag)
 
-			val request = mapOf(
-				"korName" to "수정된 위스키",
-				"engName" to "Updated Whisky",
-				"abv" to "43%",
-				"type" to AlcoholType.WHISKY.name,
-				"korCategory" to "싱글 몰트",
-				"engCategory" to "Single Malt",
-				"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
-				"regionId" to region.id,
-				"distilleryId" to distillery.id,
-				"age" to "18",
-				"cask" to "Sherry Oak",
-				"imageUrl" to "https://example.com/updated.jpg",
-				"description" to "수정된 설명",
-				"volume" to "750ml",
-				"tastingTagIds" to listOf(newTag1.id, newTag2.id)
-			)
+			val request =
+				mapOf(
+					"korName" to "수정된 위스키",
+					"engName" to "Updated Whisky",
+					"abv" to "43%",
+					"type" to AlcoholType.WHISKY.name,
+					"korCategory" to "싱글 몰트",
+					"engCategory" to "Single Malt",
+					"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
+					"regionId" to region.id,
+					"distilleryId" to distillery.id,
+					"age" to "18",
+					"cask" to "Sherry Oak",
+					"imageUrl" to "https://example.com/updated.jpg",
+					"description" to "수정된 설명",
+					"volume" to "750ml",
+					"tastingTagIds" to listOf(newTag1.id, newTag2.id)
+				)
 
 			// when
 			assertThat(
-				mockMvcTester.put().uri("/alcohols/${alcohol.id}")
+				mockMvcTester
+					.put()
+					.uri("/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.code").isEqualTo("ALCOHOL_UPDATED")
+				.extractingPath("$.data.code")
+				.isEqualTo("ALCOHOL_UPDATED")
 
 			// then - 상세 조회로 태그 교체 확인
 			assertThat(
-				mockMvcTester.get().uri("/alcohols/${alcohol.id}")
+				mockMvcTester
+					.get()
+					.uri("/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.tastingTags.length()").isEqualTo(2)
+				.extractingPath("$.data.tastingTags.length()")
+				.isEqualTo(2)
 		}
 
 		@Test
@@ -580,40 +635,44 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			val tag = tastingTagTestFactory.persistTastingTag("바닐라", "Vanilla")
 			tastingTagTestFactory.linkAlcoholToTag(alcohol, tag)
 
-			val request = mapOf(
-				"korName" to "수정된 위스키",
-				"engName" to "Updated Whisky",
-				"abv" to "43%",
-				"type" to AlcoholType.WHISKY.name,
-				"korCategory" to "싱글 몰트",
-				"engCategory" to "Single Malt",
-				"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
-				"regionId" to region.id,
-				"distilleryId" to distillery.id,
-				"age" to "18",
-				"cask" to "Sherry Oak",
-				"imageUrl" to "https://example.com/updated.jpg",
-				"description" to "수정된 설명",
-				"volume" to "750ml"
-			)
+			val request =
+				mapOf(
+					"korName" to "수정된 위스키",
+					"engName" to "Updated Whisky",
+					"abv" to "43%",
+					"type" to AlcoholType.WHISKY.name,
+					"korCategory" to "싱글 몰트",
+					"engCategory" to "Single Malt",
+					"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
+					"regionId" to region.id,
+					"distilleryId" to distillery.id,
+					"age" to "18",
+					"cask" to "Sherry Oak",
+					"imageUrl" to "https://example.com/updated.jpg",
+					"description" to "수정된 설명",
+					"volume" to "750ml"
+				)
 
 			// when
 			assertThat(
-				mockMvcTester.put().uri("/alcohols/${alcohol.id}")
+				mockMvcTester
+					.put()
+					.uri("/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 
 			// then - 기존 태그 유지 확인
 			assertThat(
-				mockMvcTester.get().uri("/alcohols/${alcohol.id}")
+				mockMvcTester
+					.get()
+					.uri("/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.tastingTags.length()").isEqualTo(1)
+				.extractingPath("$.data.tastingTags.length()")
+				.isEqualTo(1)
 		}
 
 		@Test
@@ -626,41 +685,45 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			val tag = tastingTagTestFactory.persistTastingTag("바닐라", "Vanilla")
 			tastingTagTestFactory.linkAlcoholToTag(alcohol, tag)
 
-			val request = mapOf(
-				"korName" to "수정된 위스키",
-				"engName" to "Updated Whisky",
-				"abv" to "43%",
-				"type" to AlcoholType.WHISKY.name,
-				"korCategory" to "싱글 몰트",
-				"engCategory" to "Single Malt",
-				"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
-				"regionId" to region.id,
-				"distilleryId" to distillery.id,
-				"age" to "18",
-				"cask" to "Sherry Oak",
-				"imageUrl" to "https://example.com/updated.jpg",
-				"description" to "수정된 설명",
-				"volume" to "750ml",
-				"tastingTagIds" to emptyList<Long>()
-			)
+			val request =
+				mapOf(
+					"korName" to "수정된 위스키",
+					"engName" to "Updated Whisky",
+					"abv" to "43%",
+					"type" to AlcoholType.WHISKY.name,
+					"korCategory" to "싱글 몰트",
+					"engCategory" to "Single Malt",
+					"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
+					"regionId" to region.id,
+					"distilleryId" to distillery.id,
+					"age" to "18",
+					"cask" to "Sherry Oak",
+					"imageUrl" to "https://example.com/updated.jpg",
+					"description" to "수정된 설명",
+					"volume" to "750ml",
+					"tastingTagIds" to emptyList<Long>()
+				)
 
 			// when
 			assertThat(
-				mockMvcTester.put().uri("/alcohols/${alcohol.id}")
+				mockMvcTester
+					.put()
+					.uri("/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 
 			// then - 태그 전부 삭제 확인
 			assertThat(
-				mockMvcTester.get().uri("/alcohols/${alcohol.id}")
+				mockMvcTester
+					.get()
+					.uri("/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.tastingTags.length()").isEqualTo(0)
+				.extractingPath("$.data.tastingTags.length()")
+				.isEqualTo(0)
 		}
 
 		@Test
@@ -670,38 +733,39 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			val region = alcoholTestFactory.persistRegion()
 			val distillery = alcoholTestFactory.persistDistillery()
 
-			val request = mapOf(
-				"korName" to "수정된 위스키",
-				"engName" to "Updated Whisky",
-				"abv" to "43%",
-				"type" to AlcoholType.WHISKY.name,
-				"korCategory" to "싱글 몰트",
-				"engCategory" to "Single Malt",
-				"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
-				"regionId" to region.id,
-				"distilleryId" to distillery.id,
-				"age" to "18",
-				"cask" to "Sherry Oak",
-				"imageUrl" to "https://example.com/updated.jpg",
-				"description" to "수정된 설명",
-				"volume" to "750ml"
-			)
+			val request =
+				mapOf(
+					"korName" to "수정된 위스키",
+					"engName" to "Updated Whisky",
+					"abv" to "43%",
+					"type" to AlcoholType.WHISKY.name,
+					"korCategory" to "싱글 몰트",
+					"engCategory" to "Single Malt",
+					"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
+					"regionId" to region.id,
+					"distilleryId" to distillery.id,
+					"age" to "18",
+					"cask" to "Sherry Oak",
+					"imageUrl" to "https://example.com/updated.jpg",
+					"description" to "수정된 설명",
+					"volume" to "750ml"
+				)
 
 			// when & then
 			assertThat(
-				mockMvcTester.put().uri("/alcohols/999999")
+				mockMvcTester
+					.put()
+					.uri("/alcohols/999999")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 		}
 	}
 
 	@Nested
 	@DisplayName("술 삭제 API")
 	inner class DeleteAlcohol {
-
 		@Test
 		@DisplayName("위스키를 삭제할 수 있다")
 		fun deleteAlcoholSuccess() {
@@ -710,12 +774,14 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.delete().uri("/alcohols/${alcohol.id}")
+				mockMvcTester
+					.delete()
+					.uri("/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatusOk()
+			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.code").isEqualTo("ALCOHOL_DELETED")
+				.extractingPath("$.data.code")
+				.isEqualTo("ALCOHOL_DELETED")
 		}
 
 		@Test
@@ -723,10 +789,11 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 		fun deleteAlcoholNotFound() {
 			// when & then
 			assertThat(
-				mockMvcTester.delete().uri("/alcohols/999999")
+				mockMvcTester
+					.delete()
+					.uri("/alcohols/999999")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 		}
 
 		@Test
@@ -739,10 +806,11 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.delete().uri("/alcohols/${alcohol.id}")
+				mockMvcTester
+					.delete()
+					.uri("/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 		}
 
 		@Test
@@ -755,10 +823,11 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 
 			// when & then
 			assertThat(
-				mockMvcTester.delete().uri("/alcohols/${alcohol.id}")
+				mockMvcTester
+					.delete()
+					.uri("/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
-			)
-				.hasStatus4xxClientError()
+			).hasStatus4xxClientError()
 		}
 	}
 }
