@@ -166,7 +166,7 @@
 - [ ] `AlcoholDetailItem` 호출부 누락 없음 (rg로 생성자 호출 지점 스캔)
 - [ ] 알코올 상세 조회(`GET /api/v1/alcohols/{id}`) 응답 필드 정상
 
-### Task 3: `AlcoholQuerySupporter`에 필터/정렬 헬퍼 추가
+### Task 3: `AlcoholQuerySupporter`에 필터/정렬 헬퍼 추가 ✓
 - 수용 기준:
   - `inRegionIds(List<Long>)`: null/empty일 때 조건 무시, 각 id에 대해 자식 region 확장 후 `alcohol.region.id.in(...)` 생성. `findChildRegionIds` 반복 호출을 피하려면 일괄 조회 메서드(`findChildRegionIdsIn(Collection<Long>)`) 신설하거나, N개 id에 대해 stream으로 한번에 병합
   - `inDistilleryIds(List<Long>)`: null/empty일 때 무시, 단순 `alcohol.distillery.id.in(...)`
@@ -281,6 +281,16 @@
 - 검증: `:bottlenote-product-api:unit_test` 성공, `RestAlcoholExploreControllerTest` 응답 body 호환 확인
   - (참고) `:bottlenote-mono:unit_test`는 MinIO Docker 초기화로 1건 실패, 본 변경과 무관
 - 커밋: `2a0572f1 refactor: simplify explore API return type (remove Pair wrapper)`
+
+### 2026-04-19 Task 3 완료
+- `SearchSortType`에 `RANDOM` 값 추가 (5종 총 지원)
+- `RegionRepository` + `JpaRegionQueryRepository`에 `findChildRegionIdsIn(Collection<Long>)` 일괄 자식 확장 메서드 신설 → 복수 regionIds에 대해 N+1 호출 방지
+- `AlcoholQuerySupporter`:
+  - `inRegionIds(List<Long>)`: 복수 부모 지역 입력 시 자식까지 합집합 IN (LinkedHashSet으로 중복 제거)
+  - `inDistilleryIds(List<Long>)`: 단순 IN, 계층 확장 없음
+  - `sortBy(...)`에 `RANDOM` 케이스 추가 (`sortByRandom()` 위임)
+- 검증: compile OK, `:bottlenote-product-api:unit_test` 그린
+- 커밋: TBD
 
 ### 2026-04-19 Task 2 완료
 - `AlcoholDetailItem`에 `reviewCount`, `pickCount` 필드 추가 (isPicked 뒤, alcoholsTastingTags 앞)

@@ -1,5 +1,17 @@
 package app.bottlenote.alcohols.repository;
 
+import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.alcohols.domain.QAlcoholsTastingTags.alcoholsTastingTags;
+import static app.bottlenote.alcohols.domain.QCurationKeyword.curationKeyword;
+import static app.bottlenote.alcohols.domain.QPopularAlcohol.popularAlcohol;
+import static app.bottlenote.alcohols.domain.QRegion.region;
+import static app.bottlenote.alcohols.domain.QTastingTag.tastingTag;
+import static app.bottlenote.picks.constant.PicksStatus.PICK;
+import static app.bottlenote.picks.domain.QPicks.picks;
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
+import static com.querydsl.jpa.JPAExpressions.select;
+
 import app.bottlenote.alcohols.constant.AdminAlcoholSortType;
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
@@ -16,25 +28,12 @@ import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.util.StringUtils;
 import com.querydsl.jpa.JPAExpressions;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
-
-import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.alcohols.domain.QAlcoholsTastingTags.alcoholsTastingTags;
-import static app.bottlenote.alcohols.domain.QCurationKeyword.curationKeyword;
-import static app.bottlenote.alcohols.domain.QPopularAlcohol.popularAlcohol;
-import static app.bottlenote.alcohols.domain.QRegion.region;
-import static app.bottlenote.alcohols.domain.QTastingTag.tastingTag;
-import static app.bottlenote.picks.constant.PicksStatus.PICK;
-import static app.bottlenote.picks.domain.QPicks.picks;
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.domain.QReview.review;
-import static com.querydsl.jpa.JPAExpressions.select;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
@@ -163,6 +162,7 @@ public class AlcoholQuerySupporter {
       case RATING -> sortOrder == SortOrder.DESC ? avgRating.desc() : avgRating.asc();
       case PICK -> sortOrder == SortOrder.DESC ? pickCount.desc() : pickCount.asc();
       case REVIEW -> sortOrder == SortOrder.DESC ? reviewCount.desc() : reviewCount.asc();
+      case RANDOM -> sortByRandom();
     };
   }
 
@@ -211,6 +211,27 @@ public class AlcoholQuerySupporter {
     regionIds.add(regionId);
     regionIds.addAll(childIds);
     return alcohol.region.id.in(regionIds);
+  }
+
+  /**
+   * 지역 ID 복수 OR 조건 생성 (각 부모 지역의 하위 지역까지 합집합으로 포함). null/empty 입력 시 조건 생략.
+   *
+   * <p>성능: 자식 지역은 단일 쿼리 `findChildRegionIdsIn`으로 한 번에 조회하여 N+1을 방지한다.
+   */
+  public BooleanExpression inRegionIds(List<Long> regionIds) {
+    if (regionIds == null || regionIds.isEmpty()) return null;
+    List<Long> childIds = regionRepository.findChildRegionIdsIn(regionIds);
+    if (childIds.isEmpty()) return alcohol.region.id.in(regionIds);
+    java.util.Set<Long> merged = new java.util.LinkedHashSet<>(regionIds.size() + childIds.size());
+    merged.addAll(regionIds);
+    merged.addAll(childIds);
+    return alcohol.region.id.in(merged);
+  }
+
+  /** 증류소 ID 복수 OR 조건 생성 (단순 IN, 계층 확장 없음). null/empty 입력 시 조건 생략. */
+  public BooleanExpression inDistilleryIds(List<Long> distilleryIds) {
+    if (distilleryIds == null || distilleryIds.isEmpty()) return null;
+    return alcohol.distillery.id.in(distilleryIds);
   }
 
   /** 사용자가 주류에 준 평점 조회 (QueryDSL 경로 버전) */
