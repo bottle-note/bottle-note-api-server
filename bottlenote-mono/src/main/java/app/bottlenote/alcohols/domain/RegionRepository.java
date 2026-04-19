@@ -2,6 +2,7 @@ package app.bottlenote.alcohols.domain;
 
 import app.bottlenote.alcohols.dto.response.AdminRegionItem;
 import app.bottlenote.alcohols.dto.response.RegionsItem;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -16,4 +17,6 @@ public interface RegionRepository {
   Page<AdminRegionItem> findAllRegions(String keyword, Pageable pageable);
 
   List<Long> findChildRegionIds(Long parentId);
+
+  List<Long> findChildRegionIdsIn(Collection<Long> parentIds);
 }

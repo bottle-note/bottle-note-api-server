@@ -5,6 +5,7 @@ import app.bottlenote.alcohols.domain.RegionRepository;
 import app.bottlenote.alcohols.dto.response.AdminRegionItem;
 import app.bottlenote.alcohols.dto.response.RegionsItem;
 import app.bottlenote.common.annotation.JpaRepositoryImpl;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -39,4 +40,8 @@ public interface JpaRegionQueryRepository extends RegionRepository, CrudReposito
   @Override
   @Query("select r.id from region r where r.parent.id = :parentId")
   List<Long> findChildRegionIds(@Param("parentId") Long parentId);
+
+  @Override
+  @Query("select r.id from region r where r.parent.id in :parentIds")
+  List<Long> findChildRegionIdsIn(@Param("parentIds") Collection<Long> parentIds);
 }
