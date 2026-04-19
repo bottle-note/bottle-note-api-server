@@ -180,7 +180,7 @@
 - 크기: S
 - 상태: [ ] 미완료
 
-### Task 4: 요청 DTO 신설 (`ExploreStandardRequest` + `ExploreStandardCriteria`)
+### Task 4: 요청 DTO 신설 (`ExploreStandardRequest` + `ExploreStandardCriteria`) ✓
 - 수용 기준:
   - `ExploreStandardRequest` record: `keywords(List<String>)`, `category`, `regionIds(List<Long>)`, `distilleryIds(List<Long>)`, `curationId`, `sortType`, `sortOrder`, `cursor(Long)`, `size(Integer)` + 컴팩트 생성자 기본값 (`sortType=RANDOM`, `sortOrder=DESC`, `cursor=0`, `size=20`, 컬렉션 null→empty)
   - `ExploreStandardCriteria`: 서비스→리포 전달용, `of(request, userId)` 팩토리
@@ -281,6 +281,11 @@
 - 검증: `:bottlenote-product-api:unit_test` 성공, `RestAlcoholExploreControllerTest` 응답 body 호환 확인
   - (참고) `:bottlenote-mono:unit_test`는 MinIO Docker 초기화로 1건 실패, 본 변경과 무관
 - 커밋: `2a0572f1 refactor: simplify explore API return type (remove Pair wrapper)`
+
+### 2026-04-19 Task 4 완료
+- `ExploreStandardRequest` record 신설: keywords/category/regionIds/distilleryIds/curationId/sortType/sortOrder/cursor/size + compact constructor에 기본값(RANDOM/DESC/0/20, 컬렉션 null→empty)
+- `ExploreStandardCriteria` record 신설: 서비스→리포 전달용, `of(request, userId)` 팩토리
+- 검증: `:bottlenote-mono:compileJava` 그린
 
 ### 2026-04-19 Task 3 완료
 - `SearchSortType`에 `RANDOM` 값 추가 (5종 총 지원)
