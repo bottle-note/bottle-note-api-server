@@ -1,13 +1,14 @@
 === 위스키 둘러보기(standard) API  ===
 
-- 기본형 위스키 둘러보기 API를 정의합니다.
-- 정렬 옵션이 없는 API 입니다 시간순으로 정렬됩니다
-- 키워드는 이름, 카테고리, 지역 , 태그를 대상으로 검색합니다.
-- 여러 키워드는 모두 AND 조건으로 검색됩니다 (모든 키워드를 포함하는 항목만 결과에 표시)
+- 위스키 탐색의 메인 엔드포인트. 기존 검색 API의 필터/정렬 옵션을 흡수한다.
+- 키워드는 이름(한/영), 카테고리(한/영), 지역(한/영), 테이스팅 태그를 대상으로 검색한다.
+- 여러 키워드는 AND로 결합되며 (모든 키워드 매칭 항목만 반환), 같은 종류의 ID 컬렉션(`regionIds`, `distilleryIds`)은 OR(IN)로 결합된다.
+- 정렬은 `sortType` 으로 제어하며 기본값은 `RANDOM`. `POPULAR`(평점 + 리뷰수), `RATING`(평점), `REVIEW`(리뷰수), `PICK`(찜수) 지원. `RANDOM` 외에는 `sortOrder`(ASC/DESC) 적용.
+- 페이지네이션은 커서 기반(`cursor`, `size`), 응답 메타의 `pageable.hasNext`로 다음 페이지 유무 판단.
 
 [source]
-keywords="keyword1"&keywords="keyword2"
-- 형태로 여러 키워드를 입력할 수 있다.
+keywords=keyword1&keywords=keyword2&regionIds=1&regionIds=2&distilleryIds=10
+- 복수 파라미터는 위와 같이 반복 전달한다.
 
 
 [discrete]

@@ -238,7 +238,7 @@
 - [ ] 아키텍처 규칙 통과 (`./gradlew check_rule_test`)
 - [ ] 2단계 쿼리 구조 검증 테스트 존재 및 그린
 
-### Task 7: RestDocs 갱신 + 통합 테스트 시나리오 추가
+### Task 7: RestDocs 갱신 + 통합 테스트 시나리오 추가 ✓
 - 수용 기준:
   - `RestAlcoholExploreControllerTest`에 신규 파라미터(`category`, `regionIds`, `distilleryIds`, `curationId`, `sortType`, `sortOrder`) + 응답 필드(`reviewCount`, `pickCount`)의 RestDocs 스니펫 정의
   - `explore.standard.adoc` 문서에서 요청 파라미터 표, 응답 필드 표, 메타 필드 표를 신규 내용으로 갱신 — 누락 없이 모든 필드 기재
@@ -281,6 +281,15 @@
 - 검증: `:bottlenote-product-api:unit_test` 성공, `RestAlcoholExploreControllerTest` 응답 body 호환 확인
   - (참고) `:bottlenote-mono:unit_test`는 MinIO Docker 초기화로 1건 실패, 본 변경과 무관
 - 커밋: `2a0572f1 refactor: simplify explore API return type (remove Pair wrapper)`
+
+### 2026-04-19 Task 7 완료
+- `explore.standard.adoc`: 상단 설명 전면 갱신 — 기본값 `RANDOM`, 정렬/필터/페이지네이션 정책, 복수 파라미터 사용법 안내
+- `RestAlcoholExploreControllerTest`는 Task 5에서 이미 신규 파라미터/필드 스니펫을 포함하도록 확장됨 → 별도 보강 불필요
+- `AlcoholQueryIntegrationTest`에 둘러보기 시나리오 3건 추가:
+  - `explore_default`: 기본 호출 시 응답 구조(items/pageable/searchParameters/reviewCount/pickCount) 유지 확인
+  - `explore_filter_by_regionIds`: 복수 regionIds OR 필터 동작 확인 (regionC 제외)
+  - `explore_sort_popular_desc`: POPULAR/DESC 정렬 파라미터 전달 및 응답 searchParameters 반영 확인
+- 검증: 컴파일 통과. **통합 테스트 실제 실행은 로컬 Docker/TestContainers 환경 부재로 확인 불가** — Docker 환경 보유 개발자/CI에서 실행 필요
 
 ### 2026-04-19 Task 6 완료
 - `CustomAlcoholQueryRepositoryImpl`:
