@@ -76,6 +76,7 @@ public class DataInitializer {
   }
 
   private boolean isSystemTable(String tableName) {
-    return SYSTEM_TABLE_PREFIXES.stream().anyMatch(prefix -> tableName.startsWith(prefix));
+    String lower = tableName.toLowerCase();
+    return SYSTEM_TABLE_PREFIXES.stream().anyMatch(lower::startsWith);
   }
 }
