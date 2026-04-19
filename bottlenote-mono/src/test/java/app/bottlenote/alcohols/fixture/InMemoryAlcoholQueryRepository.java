@@ -87,7 +87,7 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
   }
 
   @Override
-  public Pair<Long, CursorResponse<AlcoholDetailItem>> getStandardExplore(
+  public CursorResponse<AlcoholDetailItem> getStandardExplore(
       Long userId, List<String> keyword, Long cursor, Integer size) {
     return null;
   }

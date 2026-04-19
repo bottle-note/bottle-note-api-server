@@ -24,7 +24,7 @@ public interface CustomAlcoholQueryRepository {
 
   Optional<AlcoholSummaryItem> findAlcoholInfoById(Long alcoholId, Long userId);
 
-  Pair<Long, CursorResponse<AlcoholDetailItem>> getStandardExplore(
+  CursorResponse<AlcoholDetailItem> getStandardExplore(
       Long userId, List<String> keyword, Long cursor, Integer size);
 
   Page<AdminAlcoholItem> searchAdminAlcohols(AdminAlcoholSearchRequest request);
