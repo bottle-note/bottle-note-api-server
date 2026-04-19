@@ -2,14 +2,16 @@ package app.bottlenote.alcohols.controller;
 
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
+import app.bottlenote.global.data.response.CollectionResponse;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.CursorResponse;
+import app.bottlenote.global.service.meta.MetaInfos;
+import app.bottlenote.global.service.meta.MetaService;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,8 +34,14 @@ public class AlcoholExploreController {
       @RequestParam(required = false, defaultValue = "0") Long cursor) {
     if (keywords == null) keywords = List.of();
     Long userId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
-    Pair<Long, CursorResponse<AlcoholDetailItem>> pair =
+
+    CursorResponse<AlcoholDetailItem> result =
         alcoholQueryService.getStandardExplore(userId, keywords, cursor, size);
-    return GlobalResponse.ok(pair, Map.of("keywords", keywords));
+
+    CollectionResponse<AlcoholDetailItem> data = CollectionResponse.of(0L, result);
+    MetaInfos meta = MetaService.createMetaInfo();
+    meta.add("pageable", result.pageable());
+    meta.add("searchParameters", Map.of("keywords", keywords));
+    return GlobalResponse.ok(data, meta);
   }
 }

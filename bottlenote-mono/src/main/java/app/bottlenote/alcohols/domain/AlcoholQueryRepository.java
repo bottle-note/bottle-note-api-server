@@ -40,7 +40,7 @@ public interface AlcoholQueryRepository {
 
   Boolean existsByAlcoholId(Long alcoholId);
 
-  Pair<Long, CursorResponse<AlcoholDetailItem>> getStandardExplore(
+  CursorResponse<AlcoholDetailItem> getStandardExplore(
       Long userId, List<String> keyword, Long cursor, Integer size);
 
   Page<AdminAlcoholItem> searchAdminAlcohols(AdminAlcoholSearchRequest request);

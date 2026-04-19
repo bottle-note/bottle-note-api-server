@@ -1,5 +1,13 @@
 package app.bottlenote.alcohols.repository;
 
+import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.alcohols.domain.QDistillery.distillery;
+import static app.bottlenote.alcohols.domain.QRegion.region;
+import static app.bottlenote.alcohols.repository.AlcoholQuerySupporter.getTastingTags;
+import static app.bottlenote.picks.domain.QPicks.picks;
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
+
 import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest;
@@ -14,26 +22,17 @@ import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.AllArgsConstructor;
-import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.alcohols.domain.QDistillery.distillery;
-import static app.bottlenote.alcohols.domain.QRegion.region;
-import static app.bottlenote.alcohols.repository.AlcoholQuerySupporter.getTastingTags;
-import static app.bottlenote.picks.domain.QPicks.picks;
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.domain.QReview.review;
+import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 @AllArgsConstructor
 public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepository {
@@ -234,7 +233,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 
   /** queryDSL 알코올 둘러보기 */
   @Override
-  public Pair<Long, CursorResponse<AlcoholDetailItem>> getStandardExplore(
+  public CursorResponse<AlcoholDetailItem> getStandardExplore(
       Long userId, List<String> keyword, Long cursor, Integer pageSize) {
     int fetchSize = pageSize + 1;
 
@@ -255,7 +254,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 
     // 빈 결과 early return (IN 절 빈 리스트 방지)
     if (candidateIds.isEmpty()) {
-      return Pair.of(0L, CursorResponse.of(List.of(), cursor, pageSize));
+      return CursorResponse.of(List.of(), cursor, pageSize);
     }
 
     // 2단계: 1단계 ID 들에 대해서만 본문 + 평점 + 태그 조회 (3,000건 처리 → fetchSize 건 처리)
@@ -321,20 +320,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
     List<AlcoholDetailItem> ordered =
         candidateIds.stream().map(byId::get).filter(Objects::nonNull).toList();
 
-    // 커서 페이징에서 totalCount 는 의미상 불필요 → count 쿼리 일시 비활성화 (성능 측정용)
-    // Long total =
-    //     queryFactory
-    //         .select(alcohol.id.count())
-    //         .from(alcohol)
-    //         .join(region)
-    //         .on(alcohol.region.id.eq(region.id))
-    //         .join(distillery)
-    //         .on(alcohol.distillery.id.eq(distillery.id))
-    //         .where(supporter.keywordsMatch(keyword))
-    //         .fetchOne();
-    Long total = 0L;
-    CursorResponse<AlcoholDetailItem> list = CursorResponse.of(ordered, cursor, pageSize);
-    return Pair.of(total, list);
+    return CursorResponse.of(ordered, cursor, pageSize);
   }
 
   /** Admin용 알코올 검색 (Offset 페이징) */

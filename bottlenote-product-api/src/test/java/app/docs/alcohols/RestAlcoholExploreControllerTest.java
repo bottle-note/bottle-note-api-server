@@ -19,7 +19,6 @@ import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.CursorResponse;
 import app.docs.AbstractRestDocs;
 import java.util.List;
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -45,10 +44,10 @@ public class RestAlcoholExploreControllerTest extends AbstractRestDocs {
     CursorPageable pageable =
         CursorPageable.builder().currentCursor(0L).cursor(0L).pageSize(10L).hasNext(true).build();
     CursorResponse<AlcoholDetailItem> cursorResponse = CursorResponse.of(alcohols, pageable);
-    Pair<Long, CursorResponse<AlcoholDetailItem>> response = Pair.of(500L, cursorResponse);
 
     // when
-    when(alcoholQueryService.getStandardExplore(any(), any(), any(), any())).thenReturn(response);
+    when(alcoholQueryService.getStandardExplore(any(), any(), any(), any()))
+        .thenReturn(cursorResponse);
 
     // then
     mockMvc
