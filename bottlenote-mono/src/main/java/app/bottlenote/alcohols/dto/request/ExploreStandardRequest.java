@@ -5,6 +5,7 @@ import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.global.service.cursor.SortOrder;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.PositiveOrZero;
 import java.util.List;
 import lombok.Builder;
 
@@ -27,7 +28,7 @@ public record ExploreStandardRequest(
     Long curationId,
     SearchSortType sortType,
     SortOrder sortOrder,
-    Long cursor,
+    @PositiveOrZero Long cursor,
     @Min(1) @Max(100) Integer size) {
 
   @Builder
