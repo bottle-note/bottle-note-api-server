@@ -143,7 +143,7 @@
 - 크기: M
 - 상태: [ ] 미완료
 
-### Task 2: `AlcoholDetailItem`에 `reviewCount`/`pickCount` 추가 + 2단계 쿼리 집계 보강
+### Task 2: `AlcoholDetailItem`에 `reviewCount`/`pickCount` 추가 + 2단계 쿼리 집계 보강 ✓
 - 수용 기준:
   - `AlcoholDetailItem`에 `Long reviewCount`, `Long pickCount` 필드 추가
   - `getStandardExplore` 2단계 쿼리에 `LEFT JOIN review`, `LEFT JOIN picks` 및 `countDistinct` projection 추가, `GROUP BY` 갱신
@@ -280,5 +280,16 @@
 - `RestAlcoholExploreControllerTest`의 mock 반환값을 `CursorResponse`로 교체, `Pair` import 제거
 - 검증: `:bottlenote-product-api:unit_test` 성공, `RestAlcoholExploreControllerTest` 응답 body 호환 확인
   - (참고) `:bottlenote-mono:unit_test`는 MinIO Docker 초기화로 1건 실패, 본 변경과 무관
+- 커밋: `2a0572f1 refactor: simplify explore API return type (remove Pair wrapper)`
+
+### 2026-04-19 Task 2 완료
+- `AlcoholDetailItem`에 `reviewCount`, `pickCount` 필드 추가 (isPicked 뒤, alcoholsTastingTags 앞)
+- 2단계 쿼리와 `findAlcoholDetailById`에 `LEFT JOIN review`, `LEFT JOIN picks` + `countDistinct` projection 추가. `rating.id.count()`도 일관성을 위해 `countDistinct()`로 변경 (다중 LEFT JOIN 시 rating/review/picks의 조합이 카티시안 곱으로 부풀려지는 것을 방지)
+- `AlcoholQueryFixture` builder에 `reviewCount`/`pickCount` 랜덤값 삽입
+- 영향 받은 기존 RestDocs 테스트에 신규 필드 스니펫 추가:
+  - `RestAlcoholExploreControllerTest` (둘러보기)
+  - `RestAlcoholQueryControllerTest` (알코올 상세)
+- `AlcoholViewHistoryService`는 getter만 호출하므로 영향 없음
+- 검증: `:bottlenote-product-api:unit_test` 및 해당 RestDocs 테스트 그린. 상세 응답 JSON에 `reviewCount: 79`, `pickCount: 255` 노출 확인
 
 

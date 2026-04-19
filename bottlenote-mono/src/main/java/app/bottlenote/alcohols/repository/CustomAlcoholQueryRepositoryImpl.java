@@ -162,14 +162,20 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                     .divide(2)
                     .coalesce(0.0)
                     .as("rating"),
-                rating.id.count(),
+                rating.id.countDistinct(),
                 supporter.myRating(alcoholId, userId),
                 supporter.averageReviewRating(alcoholId, userId),
                 supporter.isPickedSubquery(alcoholId, userId),
+                review.id.countDistinct(),
+                picks.id.countDistinct(),
                 getTastingTags()))
         .from(alcohol)
         .leftJoin(rating)
         .on(rating.id.alcoholId.eq(alcohol.id))
+        .leftJoin(review)
+        .on(review.alcoholId.eq(alcohol.id))
+        .leftJoin(picks)
+        .on(picks.alcoholId.eq(alcohol.id))
         .join(region)
         .on(alcohol.region.id.eq(region.id))
         .join(distillery)
@@ -285,14 +291,20 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                         .divide(2)
                         .coalesce(0.0)
                         .as("rating"),
-                    rating.id.count(),
+                    rating.id.countDistinct(),
                     supporter.myRating(alcohol.id, userId),
                     supporter.averageReviewRating(alcohol.id, userId),
                     supporter.isPickedSubquery(alcohol.id, userId),
+                    review.id.countDistinct(),
+                    picks.id.countDistinct(),
                     getTastingTags()))
             .from(alcohol)
             .leftJoin(rating)
             .on(rating.id.alcoholId.eq(alcohol.id))
+            .leftJoin(review)
+            .on(review.alcoholId.eq(alcohol.id))
+            .leftJoin(picks)
+            .on(picks.alcoholId.eq(alcohol.id))
             .join(region)
             .on(alcohol.region.id.eq(region.id))
             .join(distillery)
