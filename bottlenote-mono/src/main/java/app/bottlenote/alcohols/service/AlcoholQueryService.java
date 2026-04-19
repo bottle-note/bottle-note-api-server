@@ -3,8 +3,10 @@ package app.bottlenote.alcohols.service;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
+import app.bottlenote.alcohols.dto.dsl.ExploreStandardCriteria;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
+import app.bottlenote.alcohols.dto.request.ExploreStandardRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholDetailResponse.TastingTagInfo;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
@@ -94,8 +96,9 @@ public class AlcoholQueryService {
 
   @Transactional(readOnly = true)
   public CursorResponse<AlcoholDetailItem> getStandardExplore(
-      Long userId, List<String> keywords, Long cursor, Integer size) {
-    return alcoholQueryRepository.getStandardExplore(userId, keywords, cursor, size);
+      ExploreStandardRequest request, Long userId) {
+    ExploreStandardCriteria criteria = ExploreStandardCriteria.of(request, userId);
+    return alcoholQueryRepository.getStandardExplore(criteria);
   }
 
   @Transactional(readOnly = true)

@@ -46,8 +46,7 @@ public class RestAlcoholExploreControllerTest extends AbstractRestDocs {
     CursorResponse<AlcoholDetailItem> cursorResponse = CursorResponse.of(alcohols, pageable);
 
     // when
-    when(alcoholQueryService.getStandardExplore(any(), any(), any(), any()))
-        .thenReturn(cursorResponse);
+    when(alcoholQueryService.getStandardExplore(any(), any())).thenReturn(cursorResponse);
 
     // then
     mockMvc
@@ -62,7 +61,23 @@ public class RestAlcoholExploreControllerTest extends AbstractRestDocs {
             document(
                 "alcohols/explore/standard",
                 queryParameters(
-                    parameterWithName("keywords").optional().description("검색어 목록"),
+                    parameterWithName("keywords")
+                        .optional()
+                        .description("검색어 목록 (다중 파라미터, 단어 간 AND 결합)"),
+                    parameterWithName("category")
+                        .optional()
+                        .description("카테고리 필터 (AlcoholCategoryGroup)"),
+                    parameterWithName("regionIds")
+                        .optional()
+                        .description("지역 ID 목록 (OR, 부모 지역이면 자식 포함)"),
+                    parameterWithName("distilleryIds").optional().description("증류소 ID 목록 (OR)"),
+                    parameterWithName("curationId").optional().description("큐레이션 ID"),
+                    parameterWithName("sortType")
+                        .optional()
+                        .description("정렬 타입 (RANDOM/POPULAR/RATING/REVIEW/PICK, 기본 RANDOM)"),
+                    parameterWithName("sortOrder")
+                        .optional()
+                        .description("정렬 순서 (ASC/DESC, 기본 DESC)"),
                     parameterWithName("cursor").optional().description("조회 할 시작 기준 위치"),
                     parameterWithName("size").optional().description("조회 할 페이지 사이즈")),
                 responseFields(
@@ -95,6 +110,19 @@ public class RestAlcoholExploreControllerTest extends AbstractRestDocs {
                     fieldWithPath("meta.serverPathVersion").ignored(),
                     fieldWithPath("meta.serverResponseTime").ignored(),
                     fieldWithPath("meta.searchParameters.keywords").description("검색어 정보"),
+                    fieldWithPath("meta.searchParameters.category")
+                        .optional()
+                        .description("적용된 카테고리 필터"),
+                    fieldWithPath("meta.searchParameters.regionIds").description("적용된 지역 ID 목록"),
+                    fieldWithPath("meta.searchParameters.distilleryIds")
+                        .description("적용된 증류소 ID 목록"),
+                    fieldWithPath("meta.searchParameters.curationId")
+                        .optional()
+                        .description("적용된 큐레이션 ID"),
+                    fieldWithPath("meta.searchParameters.sortType").description("적용된 정렬 타입"),
+                    fieldWithPath("meta.searchParameters.sortOrder").description("적용된 정렬 순서"),
+                    fieldWithPath("meta.searchParameters.cursor").description("요청 커서"),
+                    fieldWithPath("meta.searchParameters.size").description("요청 사이즈"),
                     fieldWithPath("meta.pageable").description("페이징 정보"),
                     fieldWithPath("meta.pageable.currentCursor").description("조회 시 기준 커서"),
                     fieldWithPath("meta.pageable.cursor").description("다음 페이지 커서"),

@@ -193,7 +193,7 @@
 - 크기: S
 - 상태: [ ] 미완료
 
-### Task 5: 필터 확장 — 요청/서비스/리포 연결 (`category`/`regionIds`/`distilleryIds`/`curationId`)
+### Task 5: 필터 확장 — 요청/서비스/리포 연결 (`category`/`regionIds`/`distilleryIds`/`curationId`) ✓
 - 수용 기준:
   - `AlcoholExploreController`가 `@ModelAttribute @Valid ExploreStandardRequest` 수신, 기존 `keywords/size/cursor`는 동일하게 바인딩
   - `AlcoholQueryService.getStandardExplore` 시그니처 `(userId, request)` 또는 `(criteria)` 기반으로 교체
@@ -281,6 +281,18 @@
 - 검증: `:bottlenote-product-api:unit_test` 성공, `RestAlcoholExploreControllerTest` 응답 body 호환 확인
   - (참고) `:bottlenote-mono:unit_test`는 MinIO Docker 초기화로 1건 실패, 본 변경과 무관
 - 커밋: `2a0572f1 refactor: simplify explore API return type (remove Pair wrapper)`
+
+### 2026-04-19 Task 5 완료
+- `AlcoholQueryRepository` / `CustomAlcoholQueryRepository` / `CustomAlcoholQueryRepositoryImpl.getStandardExplore` 시그니처를 `ExploreStandardCriteria` 기반으로 교체
+- 1단계 ID 추출 쿼리 where 절에 `keywordsMatch + eqCategory + inRegionIds + inDistilleryIds + eqCurationId` 합류 (heavy 서브쿼리는 여전히 2단계에서만 실행)
+- `AlcoholQueryService.getStandardExplore`는 `(ExploreStandardRequest, userId)` 시그니처로 교체, 내부에서 Criteria로 변환
+- Controller는 `@ModelAttribute @Valid ExploreStandardRequest` 수신, `meta.searchParameters`에 request DTO 전체 노출
+- InMemory fixture 2곳 시그니처 대응
+- `RestAlcoholExploreControllerTest`:
+  - `when(...)` 매처 2-arg로 축소
+  - queryParameters 스니펫에 `category`/`regionIds`/`distilleryIds`/`curationId`/`sortType`/`sortOrder` 추가
+  - `meta.searchParameters.*` 신규 필드 7종 스니펫 추가
+- 검증: `:bottlenote-product-api:unit_test` 전체 그린
 
 ### 2026-04-19 Task 4 완료
 - `ExploreStandardRequest` record 신설: keywords/category/regionIds/distilleryIds/curationId/sortType/sortOrder/cursor/size + compact constructor에 기본값(RANDOM/DESC/0/20, 컬렉션 null→empty)

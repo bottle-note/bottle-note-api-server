@@ -1,6 +1,7 @@
 package app.bottlenote.alcohols.repository;
 
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
+import app.bottlenote.alcohols.dto.dsl.ExploreStandardCriteria;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
@@ -24,8 +25,7 @@ public interface CustomAlcoholQueryRepository {
 
   Optional<AlcoholSummaryItem> findAlcoholInfoById(Long alcoholId, Long userId);
 
-  CursorResponse<AlcoholDetailItem> getStandardExplore(
-      Long userId, List<String> keyword, Long cursor, Integer size);
+  CursorResponse<AlcoholDetailItem> getStandardExplore(ExploreStandardCriteria criteria);
 
   Page<AdminAlcoholItem> searchAdminAlcohols(AdminAlcoholSearchRequest request);
 
