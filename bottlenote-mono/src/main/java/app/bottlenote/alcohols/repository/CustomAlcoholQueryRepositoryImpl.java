@@ -244,7 +244,8 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
     Long userId = criteria.userId();
     Long cursor = criteria.cursor();
     int pageSize = criteria.size();
-    int fetchSize = pageSize + 1;
+    // 컨트롤러에서 size는 @Max(100)으로 제한되지만, 리포 레이어 직접 호출 대비 오버플로우 가드
+    int fetchSize = Math.addExact(pageSize, 1);
 
     // 1단계: 후보 alcohol.id 만 추출. 정렬 타입별로 조인/집계 수준을 분기하여 성능을 보존한다.
     // heavy 상관 서브쿼리(myRating/averageReviewRating/isPickedSubquery/getTastingTags)는

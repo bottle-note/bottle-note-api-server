@@ -3,6 +3,8 @@ package app.bottlenote.alcohols.dto.request;
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.global.service.cursor.SortOrder;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import java.util.List;
 import lombok.Builder;
 
@@ -26,7 +28,7 @@ public record ExploreStandardRequest(
     SearchSortType sortType,
     SortOrder sortOrder,
     Long cursor,
-    Integer size) {
+    @Min(1) @Max(100) Integer size) {
 
   @Builder
   public ExploreStandardRequest {
