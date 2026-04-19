@@ -1,5 +1,27 @@
 # Plan: 둘러보기 API 메인 검색 확장
 
+## 산출물 요약
+
+- **브랜치**: `feat/explore-as-main-search`
+- **PR**: [bottle-note/bottle-note-api-server#577](https://github.com/bottle-note/bottle-note-api-server/pull/577)
+- **전파 이슈**: [bottle-note/workspace#233](https://github.com/bottle-note/workspace/issues/233)
+- **개발문서(인프라 버그)**: `Documents/sync/프로젝트/보틀노트/개발문서/2026.04.19 DataInitializer_DATABASECHANGELOG_TRUNCATE_버그_분석_해결.md`
+- **최종 커밋 체인** (origin/main 이후):
+  - `2a0572f1` refactor: simplify explore API return type (remove Pair wrapper)
+  - `7ef19a6e` feat: add reviewCount and pickCount to AlcoholDetailItem
+  - `d317b818` feat: add filter/sort helpers to AlcoholQuerySupporter
+  - `429f14a4` feat: add ExploreStandardRequest and Criteria DTOs
+  - `1f8c2116` feat: add filters (category, regionIds, distilleryIds, curationId) to explore API
+  - `94ca801b` feat: support sortType/sortOrder in explore with two-stage structure guard
+  - `2bd13b7d` docs: update explore adoc and add integration scenarios
+  - `d148f24d` docs: expand explore http samples for new filters and sort types
+  - `760249a8` chore: record successful integration test run
+  - `e5a1cdfe` docs: add sortType table and sort-order include to explore adoc
+  - `5d8afbae` fix: clamp explore size to 1..100 and guard fetchSize overflow
+  - `aeb7c34c` fix: reject negative cursor in explore request
+  - `9a669ca2` fix(test): preserve DATABASECHANGELOG from truncation in DataInitializer
+  - `2d3001b1` test: split AlcoholExploreController integration tests into dedicated class
+
 ## Overview
 
 ### 배경
@@ -141,7 +163,7 @@
   - `bottlenote-mono/src/test/.../alcohols/fixture/InMemoryAlcoholQueryRepository.java`
   - `bottlenote-product-api/src/test/.../alcohols/fixture/InMemoryAlcoholQueryRepository.java`
 - 크기: M
-- 상태: [ ] 미완료
+- 상태: [x] 완료
 
 ### Task 2: `AlcoholDetailItem`에 `reviewCount`/`pickCount` 추가 + 2단계 쿼리 집계 보강 ✓
 - 수용 기준:
@@ -158,7 +180,7 @@
   - `bottlenote-product-api/src/test/.../alcohols/fixture/AlcoholQueryFixture.java`
   - InMemory fixture 2곳
 - 크기: M
-- 상태: [ ] 미완료
+- 상태: [x] 완료
 
 ### Checkpoint: Task 1~2 완료 후
 - [ ] 전체 컴파일 통과
@@ -178,7 +200,7 @@
   - `bottlenote-mono/.../alcohols/domain/RegionRepository.java` (+ JPA 구현) — 일괄 조회 메서드 신설 시
   - 단위 테스트 파일 (신규 또는 기존 supporter 테스트 확장)
 - 크기: S
-- 상태: [ ] 미완료
+- 상태: [x] 완료
 
 ### Task 4: 요청 DTO 신설 (`ExploreStandardRequest` + `ExploreStandardCriteria`) ✓
 - 수용 기준:
@@ -191,7 +213,7 @@
   - `bottlenote-mono/.../alcohols/dto/dsl/ExploreStandardCriteria.java` (신규)
   - (선택) 검증 단위 테스트
 - 크기: S
-- 상태: [ ] 미완료
+- 상태: [x] 완료
 
 ### Task 5: 필터 확장 — 요청/서비스/리포 연결 (`category`/`regionIds`/`distilleryIds`/`curationId`) ✓
 - 수용 기준:
@@ -210,7 +232,7 @@
   - InMemory fixture 2곳
   - 단위/통합 테스트
 - 크기: M
-- 상태: [ ] 미완료
+- 상태: [x] 완료
 
 ### Task 6: 정렬 확장 — `sortType`/`sortOrder` 지원 + 2단계 구조 검증 테스트 ✓
 - 수용 기준:
@@ -230,7 +252,7 @@
   - `bottlenote-mono/.../alcohols/repository/AlcoholQuerySupporter.java`
   - 단위/통합 테스트
 - 크기: M
-- 상태: [ ] 미완료
+- 상태: [x] 완료
 
 ### Checkpoint: Task 3~6 완료 후
 - [ ] 컴파일 + 단위 테스트 통과
@@ -250,7 +272,7 @@
   - `bottlenote-product-api/src/docs/asciidoc/api/alcohols/explore.standard.adoc`
   - `bottlenote-product-api/src/test/.../alcohols/integration/AlcoholQueryIntegrationTest.java`
 - 크기: M
-- 상태: [ ] 미완료
+- 상태: [x] 완료
 
 ### Task 8: HTTP 샘플 갱신 + 성능 회귀 확인 ✓
 - 수용 기준:
@@ -263,7 +285,7 @@
   - `http/product/02_위스키탐색/위스키정보/둘러보기.http`
   - `http/product/README.md` (필요 시)
 - 크기: S
-- 상태: [ ] 미완료
+- 상태: [x] 완료
 
 ### Checkpoint: Task 7~8 완료 후 (PR 전)
 - [ ] `/verify full` 통과
@@ -294,6 +316,7 @@
   - `total = 0L` 고정으로 count 쿼리 제거 → 반환 타입 정리로 아예 코드에서 제거됨
 - 성능 실측: **로컬 Docker/dev MySQL 환경 부재로 k6 벤치마크 미수행**. `/위스키 둘러보기 API 성능개선.md` 수준(p50 ≤ 130ms, p95 ≤ 400ms) 유지는 dev 환경 k6 측정으로 재확인 필요
 - 검증: `:bottlenote-product-api:unit_test` 및 `:bottlenote-product-api:check_rule_test` 모두 그린
+- 커밋: `d148f24d docs: expand explore http samples for new filters and sort types`
 
 ### 2026-04-19 Task 7 완료
 - `explore.standard.adoc`: 상단 설명 전면 갱신 — 기본값 `RANDOM`, 정렬/필터/페이지네이션 정책, 복수 파라미터 사용법 안내
@@ -302,11 +325,15 @@
   - `explore_default`: 기본 호출 시 응답 구조(items/pageable/searchParameters/reviewCount/pickCount) 유지 확인
   - `explore_filter_by_regionIds`: 복수 regionIds OR 필터 동작 확인 (regionC 제외)
   - `explore_sort_popular_desc`: POPULAR/DESC 정렬 파라미터 전달 및 응답 searchParameters 반영 확인
-- 검증: 컴파일 통과 + **통합 테스트 실제 실행도 완료** (Docker/TestContainers 환경 확인 후 재실행):
+- 검증: 컴파일 통과 + 통합 테스트 실제 실행 완료
   - `explore_default()` — passed
   - `explore_filter_by_regionIds()` — passed
   - `explore_sort_popular_desc()` — passed
   - 측정: `BUILD SUCCESSFUL in 31s`
+- 커밋:
+  - `2bd13b7d docs: update explore adoc and add integration scenarios`
+  - `760249a8 chore: record successful integration test run`
+- 후속(분리): 이 3건은 이후 `2d3001b1` 커밋에서 전용 `AlcoholExploreControllerIntegrationTest` 클래스로 이동되고 16건으로 확장됨. 후속 개선 섹션 참조
 
 ### 2026-04-19 Task 6 완료
 - `CustomAlcoholQueryRepositoryImpl`:
@@ -319,6 +346,7 @@
   - 정렬 타입별 필요 테이블 판별용 `needsRatingJoin/needsReviewJoin/needsPicksJoin` 헬퍼 3종
 - 2단계 구조 검증: `ExploreStandardQueryStructureTest` 추가. `fetchCandidateIds` 메서드 본문에 heavy 상관 서브쿼리(`myRating`, `averageReviewRating`, `isPickedSubquery`, `getTastingTags`) 호출이 포함되지 않음을 소스 텍스트 기반으로 검증
 - 검증: `:bottlenote-mono:unit_test` 구조 검증 테스트 그린, `:bottlenote-product-api:unit_test` 전체 그린
+- 커밋: `94ca801b feat: support sortType/sortOrder in explore with two-stage structure guard`
 
 ### 2026-04-19 Task 5 완료
 - `AlcoholQueryRepository` / `CustomAlcoholQueryRepository` / `CustomAlcoholQueryRepositoryImpl.getStandardExplore` 시그니처를 `ExploreStandardCriteria` 기반으로 교체
@@ -331,11 +359,13 @@
   - queryParameters 스니펫에 `category`/`regionIds`/`distilleryIds`/`curationId`/`sortType`/`sortOrder` 추가
   - `meta.searchParameters.*` 신규 필드 7종 스니펫 추가
 - 검증: `:bottlenote-product-api:unit_test` 전체 그린
+- 커밋: `1f8c2116 feat: add filters (category, regionIds, distilleryIds, curationId) to explore API`
 
 ### 2026-04-19 Task 4 완료
 - `ExploreStandardRequest` record 신설: keywords/category/regionIds/distilleryIds/curationId/sortType/sortOrder/cursor/size + compact constructor에 기본값(RANDOM/DESC/0/20, 컬렉션 null→empty)
 - `ExploreStandardCriteria` record 신설: 서비스→리포 전달용, `of(request, userId)` 팩토리
 - 검증: `:bottlenote-mono:compileJava` 그린
+- 커밋: `429f14a4 feat: add ExploreStandardRequest and Criteria DTOs`
 
 ### 2026-04-19 Task 3 완료
 - `SearchSortType`에 `RANDOM` 값 추가 (5종 총 지원)
@@ -345,7 +375,7 @@
   - `inDistilleryIds(List<Long>)`: 단순 IN, 계층 확장 없음
   - `sortBy(...)`에 `RANDOM` 케이스 추가 (`sortByRandom()` 위임)
 - 검증: compile OK, `:bottlenote-product-api:unit_test` 그린
-- 커밋: TBD
+- 커밋: `d317b818 feat: add filter/sort helpers to AlcoholQuerySupporter`
 
 ### 2026-04-19 Task 2 완료
 - `AlcoholDetailItem`에 `reviewCount`, `pickCount` 필드 추가 (isPicked 뒤, alcoholsTastingTags 앞)
@@ -356,5 +386,51 @@
   - `RestAlcoholQueryControllerTest` (알코올 상세)
 - `AlcoholViewHistoryService`는 getter만 호출하므로 영향 없음
 - 검증: `:bottlenote-product-api:unit_test` 및 해당 RestDocs 테스트 그린. 상세 응답 JSON에 `reviewCount: 79`, `pickCount: 255` 노출 확인
+- 커밋: `7ef19a6e feat: add reviewCount and pickCount to AlcoholDetailItem`
 
+---
 
+## 후속 개선 (Task 8 이후)
+
+### 2026-04-19 PR 리뷰 대응 — 입력 검증 강화
+Copilot PR reviewer 지적 1·2번 반영. `ExploreStandardRequest`의 `size`/`cursor`에 Bean Validation 추가.
+- `size`: `@Min(1) @Max(100)` — 상한/하한 벗어난 요청은 `GlobalExceptionHandler`에서 400으로 자동 반려
+- `cursor`: `@PositiveOrZero` — 음수 차단 (0 허용, compact constructor 기본값과 정합)
+- Repository 쪽 방어 코딩으로 `fetchSize = Math.addExact(pageSize, 1)` 추가 — 혹시 size 검증을 우회한 직접 호출 대비
+- 커밋:
+  - `5d8afbae fix: clamp explore size to 1..100 and guard fetchSize overflow`
+  - `aeb7c34c fix: reject negative cursor in explore request`
+
+### 2026-04-19 PR 리뷰 대응 — explore adoc 정렬 표 보강
+검색(`search.adoc`)과 형식 일관성을 위해 정렬 타입 표와 공통 `sort-order.adoc` include 추가. RANDOM 기본값 명시.
+- 커밋: `e5a1cdfe docs: add sortType table and sort-order include to explore adoc`
+- Copilot 리뷰 3번(POPULAR NULL 처리)은 **기존 `searchAlcohols`에도 동일하게 존재하는 잠재 이슈**로 판단되어, 이번 PR 범위 밖 별도 이슈로 추적 대상. 기획 의도(평점 없는 알코올을 POPULAR 정렬에서 어떻게 다룰지)가 확정되면 반영.
+
+### 2026-04-19 인프라 버그 수정 — DataInitializer DATABASECHANGELOG 보존
+통합 테스트 연속 실행 시 `Table 'BATCH_JOB_EXECUTION' already exists`로 실패하는 이슈를 분석·해결. 근본 원인은 `DataInitializer`가 대소문자 prefix 매칭에 실패해 Liquibase 메타 테이블을 TRUNCATE하던 것.
+- `DataInitializer.isSystemTable`에서 입력 테이블명을 `toLowerCase()`로 정규화
+- TestContainers `withReuse(true)` 환경에서 Context 재시작 시 Liquibase가 올바르게 skip
+- 검증: 동일 컨테이너 재사용 상태에서 1·2·3회차 연속 `BUILD SUCCESSFUL` (각 36s / 26s / 32s)
+- 상세: 개발문서 `2026.04.19 DataInitializer_DATABASECHANGELOG_TRUNCATE_버그_분석_해결.md`
+- 커밋: `9a669ca2 fix(test): preserve DATABASECHANGELOG from truncation in DataInitializer`
+
+### 2026-04-19 통합 테스트 클래스 분리 + 확장
+둘러보기 통합 테스트를 전용 클래스로 분리하고 시나리오를 3건 → 16건으로 확장.
+- 신규 파일: `AlcoholExploreControllerIntegrationTest`
+- 기존 `AlcoholQueryIntegrationTest`에 섞여 있던 `explore_*` 3건은 제거 + 이동
+- 구조: `@Nested`로 의미 단위 그룹화
+  - DefaultBehavior (3)
+  - InputValidation (3, `@ParameterizedTest` + `@CsvSource` — size/cursor 400 검증)
+  - Filters (4 — regionIds/distilleryIds/curationId/keywords AND)
+  - Sort (5, `@ParameterizedTest` + `@EnumSource(SearchSortType)`)
+  - Pagination (1)
+- 응답 검증은 `MvcTestResult`의 AssertJ fluent API(`hasStatusOk().bodyJson().extractingPath(...)`) 기반. 필요 시 `com.jayway.jsonpath.JsonPath.read`로 추출된 값을 ListAssert와 결합
+- 검증: 16/16 passed (TestContainer 재사용 포함)
+- 커밋: `2d3001b1 test: split AlcoholExploreController integration tests into dedicated class`
+
+---
+
+## PR 제출 후 상태 (2026-04-19)
+- CI: 전 job 통과 (format, unit-tests, rule-tests, integration-tests(product/admin), product-ci-final-build, prepare)
+- Copilot 자동 리뷰: 지적 3건 중 2건 반영, 1건(POPULAR NULL)은 범위 밖 별도 이슈로 정리
+- 전파: `bottle-note/workspace#233` 이슈로 프론트/모바일/기획/QA에 공지
