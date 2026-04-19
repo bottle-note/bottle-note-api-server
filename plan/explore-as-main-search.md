@@ -302,7 +302,11 @@
   - `explore_default`: 기본 호출 시 응답 구조(items/pageable/searchParameters/reviewCount/pickCount) 유지 확인
   - `explore_filter_by_regionIds`: 복수 regionIds OR 필터 동작 확인 (regionC 제외)
   - `explore_sort_popular_desc`: POPULAR/DESC 정렬 파라미터 전달 및 응답 searchParameters 반영 확인
-- 검증: 컴파일 통과. **통합 테스트 실제 실행은 로컬 Docker/TestContainers 환경 부재로 확인 불가** — Docker 환경 보유 개발자/CI에서 실행 필요
+- 검증: 컴파일 통과 + **통합 테스트 실제 실행도 완료** (Docker/TestContainers 환경 확인 후 재실행):
+  - `explore_default()` — passed
+  - `explore_filter_by_regionIds()` — passed
+  - `explore_sort_popular_desc()` — passed
+  - 측정: `BUILD SUCCESSFUL in 31s`
 
 ### 2026-04-19 Task 6 완료
 - `CustomAlcoholQueryRepositoryImpl`:
