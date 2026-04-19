@@ -252,7 +252,7 @@
 - 크기: M
 - 상태: [ ] 미완료
 
-### Task 8: HTTP 샘플 갱신 + 성능 회귀 확인
+### Task 8: HTTP 샘플 갱신 + 성능 회귀 확인 ✓
 - 수용 기준:
   - `http/product/02_위스키탐색/위스키정보/둘러보기.http`에 신규 파라미터 조합 호출 예시 추가 (정렬별 1건, 필터 조합 1건, regionIds 복수/distilleryIds 복수 1건 이상)
   - 기존 README와 앵커 링크 정합성 확인 (`http/product/README.md`)
@@ -281,6 +281,19 @@
 - 검증: `:bottlenote-product-api:unit_test` 성공, `RestAlcoholExploreControllerTest` 응답 body 호환 확인
   - (참고) `:bottlenote-mono:unit_test`는 MinIO Docker 초기화로 1건 실패, 본 변경과 무관
 - 커밋: `2a0572f1 refactor: simplify explore API return type (remove Pair wrapper)`
+
+### 2026-04-19 Task 8 완료
+- `http/product/02_위스키탐색/위스키정보/둘러보기.http`: 기존 샘플 2건 → 12건으로 확장
+  - 다중 키워드, 카테고리, regionIds(복수), distilleryIds(복수), curationId, 정렬 4종(POPULAR/RATING/REVIEW/PICK), 복합 조합, 커서 페이지네이션 각 시나리오
+- 성능 회귀 검증 (정적):
+  - `ExploreStandardQueryStructureTest` 통과 — 1단계에 heavy 상관 서브쿼리 미포함
+  - 1단계 RANDOM 경로: 기존과 동일한 경량 쿼리 (rating/review/picks 조인 없음, ORDER BY rand())
+  - 1단계 비 RANDOM 경로: sortType별로 필요한 테이블만 LEFT JOIN + GROUP BY alcohol.id + `alcohol.id ASC` 보조 정렬
+  - 2단계 본문 쿼리: 여전히 `WHERE alcohol.id IN (candidateIds)`로 fetchSize 건만 처리
+  - `keywordsMatch` EXISTS→IN 패턴(성능개선 이슈 적용분) 그대로 유지
+  - `total = 0L` 고정으로 count 쿼리 제거 → 반환 타입 정리로 아예 코드에서 제거됨
+- 성능 실측: **로컬 Docker/dev MySQL 환경 부재로 k6 벤치마크 미수행**. `/위스키 둘러보기 API 성능개선.md` 수준(p50 ≤ 130ms, p95 ≤ 400ms) 유지는 dev 환경 k6 측정으로 재확인 필요
+- 검증: `:bottlenote-product-api:unit_test` 및 `:bottlenote-product-api:check_rule_test` 모두 그린
 
 ### 2026-04-19 Task 7 완료
 - `explore.standard.adoc`: 상단 설명 전면 갱신 — 기본값 `RANDOM`, 정렬/필터/페이지네이션 정책, 복수 파라미터 사용법 안내
