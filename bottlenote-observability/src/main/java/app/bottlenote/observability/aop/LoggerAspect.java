@@ -3,10 +3,12 @@ package app.bottlenote.observability.aop;
 import app.bottlenote.observability.annotation.DisableLogger;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +32,8 @@ import java.util.Set;
 @Slf4j
 public class LoggerAspect {
 
+  private static final long SLOW_REQUEST_THRESHOLD_MS = 1000L;
+
   private final RequestMappingHandlerMapping handlerMapping;
   private Set<String> loggerIgnorePatterns;
 
@@ -51,8 +55,10 @@ public class LoggerAspect {
 
     RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
     HttpServletRequest request = null;
+    HttpServletResponse response = null;
     if (attributes instanceof ServletRequestAttributes servletAttrs) {
       request = servletAttrs.getRequest();
+      response = servletAttrs.getResponse();
     }
 
     String controllerName = proceedingJoinPoint.getSignature().getDeclaringType().getSimpleName();
@@ -69,12 +75,18 @@ public class LoggerAspect {
       long time = System.currentTimeMillis() - start;
       boolean isIgnore = false;
       boolean isResponseError = false;
+      Integer statusCode = null;
+
       if (request != null && loggerIgnorePatterns != null) {
         isIgnore = loggerIgnorePatterns.contains(request.getRequestURI());
       }
       if (result instanceof ResponseEntity<?> responseEntity) {
+        statusCode = responseEntity.getStatusCode().value();
         isResponseError = !responseEntity.getStatusCode().is2xxSuccessful();
+      } else if (response != null) {
+        statusCode = response.getStatus();
       }
+
       if (thrown != null || isResponseError || !isIgnore) {
         try {
           params.put("controller", controllerName);
@@ -84,17 +96,26 @@ public class LoggerAspect {
             params.put("request_uri", request.getRequestURI());
             params.put("http_method", request.getMethod());
           }
+          String traceId = MDC.get("traceId");
+          if (traceId != null) {
+            params.put("trace_id", traceId);
+          }
           if (thrown != null) {
             params.put("exception", thrown.getClass().getSimpleName());
-            params.put("exception_message", thrown.getMessage());
           }
-          if (isResponseError && result != null) {
-            params.put("response_status", ((ResponseEntity<?>) result).getStatusCode().value());
+          if (statusCode != null) {
+            params.put("response_status", statusCode);
           }
         } catch (Exception e) {
           log.error("LoggerAspect error", e);
         }
-        log.info("time : {}ms, params : {}", time, params);
+
+        boolean slow = time >= SLOW_REQUEST_THRESHOLD_MS;
+        if (thrown != null || isResponseError || slow) {
+          log.warn("time : {}ms, params : {}", time, params);
+        } else {
+          log.info("time : {}ms, params : {}", time, params);
+        }
       }
     }
   }
