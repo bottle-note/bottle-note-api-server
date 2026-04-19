@@ -10,6 +10,7 @@ import static app.bottlenote.review.domain.QReview.review;
 
 import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
+import app.bottlenote.alcohols.dto.dsl.ExploreStandardCriteria;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
@@ -239,8 +240,10 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 
   /** queryDSL 알코올 둘러보기 */
   @Override
-  public CursorResponse<AlcoholDetailItem> getStandardExplore(
-      Long userId, List<String> keyword, Long cursor, Integer pageSize) {
+  public CursorResponse<AlcoholDetailItem> getStandardExplore(ExploreStandardCriteria criteria) {
+    Long userId = criteria.userId();
+    Long cursor = criteria.cursor();
+    int pageSize = criteria.size();
     int fetchSize = pageSize + 1;
 
     // 1단계: 후보 alcohol.id 만 가볍게 추출 (집계/서브쿼리 없음 → ORDER BY rand + LIMIT 만 처리)
@@ -252,7 +255,12 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
             .on(alcohol.region.id.eq(region.id))
             .join(distillery)
             .on(alcohol.distillery.id.eq(distillery.id))
-            .where(supporter.keywordsMatch(keyword))
+            .where(
+                supporter.keywordsMatch(criteria.keywords()),
+                supporter.eqCategory(criteria.category()),
+                supporter.inRegionIds(criteria.regionIds()),
+                supporter.inDistilleryIds(criteria.distilleryIds()),
+                supporter.eqCurationId(criteria.curationId()))
             .orderBy(supporter.sortByRandom())
             .offset(cursor)
             .limit(fetchSize)
