@@ -212,7 +212,7 @@
 - 크기: M
 - 상태: [ ] 미완료
 
-### Task 6: 정렬 확장 — `sortType`/`sortOrder` 지원 + 2단계 구조 검증 테스트
+### Task 6: 정렬 확장 — `sortType`/`sortOrder` 지원 + 2단계 구조 검증 테스트 ✓
 - 수용 기준:
   - 1단계 ID 추출 쿼리에 정렬 분기 적용:
     - RANDOM: 현 랜덤 정렬 경로 유지 (조인/집계 최소)
@@ -281,6 +281,18 @@
 - 검증: `:bottlenote-product-api:unit_test` 성공, `RestAlcoholExploreControllerTest` 응답 body 호환 확인
   - (참고) `:bottlenote-mono:unit_test`는 MinIO Docker 초기화로 1건 실패, 본 변경과 무관
 - 커밋: `2a0572f1 refactor: simplify explore API return type (remove Pair wrapper)`
+
+### 2026-04-19 Task 6 완료
+- `CustomAlcoholQueryRepositoryImpl`:
+  - `getStandardExplore`의 1단계 쿼리를 `fetchCandidateIds` private 메서드로 추출
+  - RANDOM: 기존 경량 경로 유지 (rating/review/picks LEFT JOIN 없음, ORDER BY rand())
+  - POPULAR/RATING: `LEFT JOIN rating` + GROUP BY alcohol.id + `sortBy(...)` + `alcohol.id ASC` 보조 정렬
+  - REVIEW: `LEFT JOIN review` + GROUP BY
+  - PICK: `LEFT JOIN picks` + GROUP BY
+  - POPULAR는 `rating` + `review` 모두 필요 → 둘 다 LEFT JOIN
+  - 정렬 타입별 필요 테이블 판별용 `needsRatingJoin/needsReviewJoin/needsPicksJoin` 헬퍼 3종
+- 2단계 구조 검증: `ExploreStandardQueryStructureTest` 추가. `fetchCandidateIds` 메서드 본문에 heavy 상관 서브쿼리(`myRating`, `averageReviewRating`, `isPickedSubquery`, `getTastingTags`) 호출이 포함되지 않음을 소스 텍스트 기반으로 검증
+- 검증: `:bottlenote-mono:unit_test` 구조 검증 테스트 그린, `:bottlenote-product-api:unit_test` 전체 그린
 
 ### 2026-04-19 Task 5 완료
 - `AlcoholQueryRepository` / `CustomAlcoholQueryRepository` / `CustomAlcoholQueryRepositoryImpl.getStandardExplore` 시그니처를 `ExploreStandardCriteria` 기반으로 교체

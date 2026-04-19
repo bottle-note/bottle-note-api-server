@@ -246,25 +246,10 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
     int pageSize = criteria.size();
     int fetchSize = pageSize + 1;
 
-    // 1단계: 후보 alcohol.id 만 가볍게 추출 (집계/서브쿼리 없음 → ORDER BY rand + LIMIT 만 처리)
-    List<Long> candidateIds =
-        queryFactory
-            .select(alcohol.id)
-            .from(alcohol)
-            .join(region)
-            .on(alcohol.region.id.eq(region.id))
-            .join(distillery)
-            .on(alcohol.distillery.id.eq(distillery.id))
-            .where(
-                supporter.keywordsMatch(criteria.keywords()),
-                supporter.eqCategory(criteria.category()),
-                supporter.inRegionIds(criteria.regionIds()),
-                supporter.inDistilleryIds(criteria.distilleryIds()),
-                supporter.eqCurationId(criteria.curationId()))
-            .orderBy(supporter.sortByRandom())
-            .offset(cursor)
-            .limit(fetchSize)
-            .fetch();
+    // 1단계: 후보 alcohol.id 만 추출. 정렬 타입별로 조인/집계 수준을 분기하여 성능을 보존한다.
+    // heavy 상관 서브쿼리(myRating/averageReviewRating/isPickedSubquery/getTastingTags)는
+    // 반드시 2단계에서만 실행되어야 한다 (성능개선 이슈 참고).
+    List<Long> candidateIds = fetchCandidateIds(criteria, fetchSize);
 
     // 빈 결과 early return (IN 절 빈 리스트 방지)
     if (candidateIds.isEmpty()) {
@@ -341,6 +326,69 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
         candidateIds.stream().map(byId::get).filter(Objects::nonNull).toList();
 
     return CursorResponse.of(ordered, cursor, pageSize);
+  }
+
+  /**
+   * 1단계 후보 ID 추출. 정렬 타입에 따라 RANDOM은 경량 경로, 나머지는 필요한 집계 테이블만 LEFT JOIN + GROUP BY + id ASC 보조 정렬로
+   * 처리한다.
+   */
+  private List<Long> fetchCandidateIds(ExploreStandardCriteria criteria, int fetchSize) {
+    SearchSortType sortType = criteria.sortType();
+    com.querydsl.jpa.impl.JPAQuery<Long> query =
+        queryFactory
+            .select(alcohol.id)
+            .from(alcohol)
+            .join(region)
+            .on(alcohol.region.id.eq(region.id))
+            .join(distillery)
+            .on(alcohol.distillery.id.eq(distillery.id));
+
+    if (sortType != SearchSortType.RANDOM) {
+      if (needsRatingJoin(sortType)) {
+        query = query.leftJoin(rating).on(rating.id.alcoholId.eq(alcohol.id));
+      }
+      if (needsReviewJoin(sortType)) {
+        query = query.leftJoin(review).on(review.alcoholId.eq(alcohol.id));
+      }
+      if (needsPicksJoin(sortType)) {
+        query = query.leftJoin(picks).on(picks.alcoholId.eq(alcohol.id));
+      }
+    }
+
+    query =
+        query.where(
+            supporter.keywordsMatch(criteria.keywords()),
+            supporter.eqCategory(criteria.category()),
+            supporter.inRegionIds(criteria.regionIds()),
+            supporter.inDistilleryIds(criteria.distilleryIds()),
+            supporter.eqCurationId(criteria.curationId()));
+
+    if (sortType == SearchSortType.RANDOM) {
+      return query
+          .orderBy(supporter.sortByRandom())
+          .offset(criteria.cursor())
+          .limit(fetchSize)
+          .fetch();
+    }
+
+    return query
+        .groupBy(alcohol.id)
+        .orderBy(supporter.sortBy(sortType, criteria.sortOrder()), alcohol.id.asc())
+        .offset(criteria.cursor())
+        .limit(fetchSize)
+        .fetch();
+  }
+
+  private static boolean needsRatingJoin(SearchSortType sortType) {
+    return sortType == SearchSortType.RATING || sortType == SearchSortType.POPULAR;
+  }
+
+  private static boolean needsReviewJoin(SearchSortType sortType) {
+    return sortType == SearchSortType.REVIEW || sortType == SearchSortType.POPULAR;
+  }
+
+  private static boolean needsPicksJoin(SearchSortType sortType) {
+    return sortType == SearchSortType.PICK;
   }
 
   /** Admin용 알코올 검색 (Offset 페이징) */
