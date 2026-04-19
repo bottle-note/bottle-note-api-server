@@ -1,17 +1,5 @@
 package app.bottlenote.alcohols.repository;
 
-import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.alcohols.domain.QAlcoholsTastingTags.alcoholsTastingTags;
-import static app.bottlenote.alcohols.domain.QCurationKeyword.curationKeyword;
-import static app.bottlenote.alcohols.domain.QPopularAlcohol.popularAlcohol;
-import static app.bottlenote.alcohols.domain.QRegion.region;
-import static app.bottlenote.alcohols.domain.QTastingTag.tastingTag;
-import static app.bottlenote.picks.constant.PicksStatus.PICK;
-import static app.bottlenote.picks.domain.QPicks.picks;
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.domain.QReview.review;
-import static com.querydsl.jpa.JPAExpressions.select;
-
 import app.bottlenote.alcohols.constant.AdminAlcoholSortType;
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
@@ -28,12 +16,25 @@ import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.util.StringUtils;
 import com.querydsl.jpa.JPAExpressions;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
+
+import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.alcohols.domain.QAlcoholsTastingTags.alcoholsTastingTags;
+import static app.bottlenote.alcohols.domain.QCurationKeyword.curationKeyword;
+import static app.bottlenote.alcohols.domain.QPopularAlcohol.popularAlcohol;
+import static app.bottlenote.alcohols.domain.QRegion.region;
+import static app.bottlenote.alcohols.domain.QTastingTag.tastingTag;
+import static app.bottlenote.picks.constant.PicksStatus.PICK;
+import static app.bottlenote.picks.domain.QPicks.picks;
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
+import static com.querydsl.jpa.JPAExpressions.select;
 
 @Slf4j
 @Component
@@ -285,18 +286,18 @@ public class AlcoholQuerySupporter {
               .or(region.engName.likeIgnoreCase("%" + keyword + "%"));
 
       // 현재 키워드에 대한 테이스팅 태그 검색 조건
+      // EXISTS(상관 서브쿼리, alcohol마다 평가) → IN(독립 서브쿼리, 1회 평가)로 변경
       BooleanExpression tastingTagCondition =
-          JPAExpressions.selectOne()
-              .from(alcoholsTastingTags)
-              .join(tastingTag)
-              .on(alcoholsTastingTags.tastingTag.id.eq(tastingTag.id))
-              .where(
-                  alcoholsTastingTags.alcohol.id.eq(alcohol.id),
-                  tastingTag
-                      .korName
-                      .likeIgnoreCase("%" + keyword + "%")
-                      .or(tastingTag.engName.likeIgnoreCase("%" + keyword + "%")))
-              .exists();
+          alcohol.id.in(
+              JPAExpressions.selectDistinct(alcoholsTastingTags.alcohol.id)
+                  .from(alcoholsTastingTags)
+                  .join(tastingTag)
+                  .on(alcoholsTastingTags.tastingTag.id.eq(tastingTag.id))
+                  .where(
+                      tastingTag
+                          .korName
+                          .likeIgnoreCase("%" + keyword + "%")
+                          .or(tastingTag.engName.likeIgnoreCase("%" + keyword + "%"))));
 
       // 현재 키워드에 대한 조건 (기본 필드 또는 테이스팅 태그)
       BooleanExpression keywordCondition = basicCondition.or(tastingTagCondition);
