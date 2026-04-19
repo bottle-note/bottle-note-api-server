@@ -31,6 +31,8 @@ public class AlcoholDetailItem {
   private Double myRating;
   private Double myAvgRating;
   private Boolean isPicked;
+  private Long reviewCount;
+  private Long pickCount;
 
   @JsonSerialize(using = TagListSerializer.class)
   @JsonDeserialize(using = TagListDeserializer.class)

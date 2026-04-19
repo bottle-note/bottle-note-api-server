@@ -86,6 +86,8 @@ public class RestAlcoholExploreControllerTest extends AbstractRestDocs {
                     fieldWithPath("data.items[].myRating").description("내 평점"),
                     fieldWithPath("data.items[].myAvgRating").description("내 평균 평점"),
                     fieldWithPath("data.items[].isPicked").description("술 찜 여부"),
+                    fieldWithPath("data.items[].reviewCount").description("리뷰 수"),
+                    fieldWithPath("data.items[].pickCount").description("찜 수"),
                     fieldWithPath("data.items[].alcoholsTastingTags").description("테이스팅 태그 목록"),
                     fieldWithPath("errors").ignored(),
                     fieldWithPath("meta.serverEncoding").ignored(),
