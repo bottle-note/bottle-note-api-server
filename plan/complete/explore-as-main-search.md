@@ -1,3 +1,52 @@
+```
+================================================================================
+                          PROJECT COMPLETION STAMP
+================================================================================
+Status: **COMPLETED**
+Completion Date: 2026-04-19
+
+** Core Achievements **
+- /api/v1/alcohols/explore/standard를 메인 탐색/검색 엔드포인트로 승격
+  (category/regionIds/distilleryIds/curationId/sortType/sortOrder 파라미터 흡수)
+- 성능 개선 이슈의 2단계 쿼리 구조(1단계 ID-only → 2단계 본문) 유지, 구조
+  검증 테스트(ExploreStandardQueryStructureTest)로 heavy 상관 서브쿼리의 1단계
+  침투 방지 회귀 방어
+- 응답 필드 보강(reviewCount/pickCount) 및 반환 타입 단순화
+  (Pair<Long, CursorResponse> → CursorResponse, 응답 JSON 구조 호환 유지)
+- AlcoholExploreControllerIntegrationTest 전용 클래스로 분리하고 통합 테스트
+  3건 → 16건 확장 (@Nested + @ParameterizedTest + MvcTestResult AssertJ fluent)
+- 입력 검증 강화: size @Min(1) @Max(100), cursor @PositiveOrZero (PR 리뷰 대응)
+- 부가 인프라 버그 수정: DataInitializer의 대소문자 prefix 매칭 버그로
+  DATABASECHANGELOG가 TRUNCATE되던 문제 해결 → TestContainer 재사용 환경에서
+  연속 실행 안정화
+
+** Key Components **
+- bottlenote-product-api/.../alcohols/controller/AlcoholExploreController.java
+- bottlenote-mono/.../alcohols/service/AlcoholQueryService.java
+- bottlenote-mono/.../alcohols/repository/CustomAlcoholQueryRepositoryImpl.java
+  (getStandardExplore, fetchCandidateIds 분기, findAlcoholDetailById 동기화)
+- bottlenote-mono/.../alcohols/repository/AlcoholQuerySupporter.java
+  (inRegionIds, inDistilleryIds, sortBy RANDOM 케이스)
+- bottlenote-mono/.../alcohols/dto/request/ExploreStandardRequest.java
+- bottlenote-mono/.../alcohols/dto/dsl/ExploreStandardCriteria.java
+- bottlenote-mono/.../alcohols/dto/response/AlcoholDetailItem.java (reviewCount/pickCount)
+- bottlenote-mono/.../alcohols/domain/RegionRepository.java + JpaRegionQueryRepository.java
+  (findChildRegionIdsIn 일괄 자식 지역 조회)
+- bottlenote-mono/src/test/.../alcohols/repository/ExploreStandardQueryStructureTest.java (신규)
+- bottlenote-product-api/src/test/.../alcohols/integration/AlcoholExploreControllerIntegrationTest.java (신규, 16 시나리오)
+- bottlenote-mono/src/test/.../operation/utils/DataInitializer.java (인프라 수정)
+- bottlenote-product-api/src/docs/asciidoc/api/alcohols/explore.standard.adoc (문서 갱신)
+
+** Deferred Items **
+- POPULAR 정렬 산식의 NULL 처리(`AVG(rating) + COUNT(review)` → NULL 전파):
+  기존 searchAlcohols에도 존재하는 잠재 이슈. 기획 의도 확정 후 별도 이슈로 처리
+- 운영 환경 k6 성능 회귀 실측: 로컬 환경 제약으로 미수행. 성능개선 이슈 수치
+  (p50 ≤ 130ms, p95 ≤ 400ms) 유지 여부는 dev/prod 측정 필요
+- /api/v1/alcohols/search 엔드포인트 deprecate 시점: 이번 PR 범위 밖, 프론트
+  이관 이후 별도 결정
+================================================================================
+```
+
 # Plan: 둘러보기 API 메인 검색 확장
 
 ## 산출물 요약
