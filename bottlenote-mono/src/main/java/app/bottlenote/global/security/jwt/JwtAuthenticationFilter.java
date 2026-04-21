@@ -1,7 +1,5 @@
 package app.bottlenote.global.security.jwt;
 
-import static java.util.Objects.requireNonNullElse;
-
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
@@ -9,16 +7,19 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import static java.util.Objects.requireNonNullElse;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -52,11 +53,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     try {
       Authentication authentication = jwtAuthenticationManager.getAnonymousAuthentication();
-
-      if (skipFilter(method, path)) {
-        log.debug("선택적인 인증이 필요한 경우 익명 사용자로 설정합니다.");
-        authentication = jwtAuthenticationManager.getAnonymousAuthentication();
-      }
 
       if (token != null && !token.isBlank()) {
         if (!JwtTokenValidator.validateToken(token)) {
