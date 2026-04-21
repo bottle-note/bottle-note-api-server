@@ -1,17 +1,5 @@
 package app.bottlenote.alcohols.repository;
 
-import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.alcohols.domain.QAlcoholsTastingTags.alcoholsTastingTags;
-import static app.bottlenote.alcohols.domain.QCurationKeyword.curationKeyword;
-import static app.bottlenote.alcohols.domain.QPopularAlcohol.popularAlcohol;
-import static app.bottlenote.alcohols.domain.QRegion.region;
-import static app.bottlenote.alcohols.domain.QTastingTag.tastingTag;
-import static app.bottlenote.picks.constant.PicksStatus.PICK;
-import static app.bottlenote.picks.domain.QPicks.picks;
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.domain.QReview.review;
-import static com.querydsl.jpa.JPAExpressions.select;
-
 import app.bottlenote.alcohols.constant.AdminAlcoholSortType;
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
@@ -28,12 +16,25 @@ import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.util.StringUtils;
 import com.querydsl.jpa.JPAExpressions;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
+
+import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.alcohols.domain.QAlcoholsTastingTags.alcoholsTastingTags;
+import static app.bottlenote.alcohols.domain.QCurationKeyword.curationKeyword;
+import static app.bottlenote.alcohols.domain.QPopularAlcohol.popularAlcohol;
+import static app.bottlenote.alcohols.domain.QRegion.region;
+import static app.bottlenote.alcohols.domain.QTastingTag.tastingTag;
+import static app.bottlenote.picks.constant.PicksStatus.PICK;
+import static app.bottlenote.picks.domain.QPicks.picks;
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
+import static com.querydsl.jpa.JPAExpressions.select;
 
 @Slf4j
 @Component
@@ -151,7 +152,9 @@ public class AlcoholQuerySupporter {
 
   /** 정렬 조건에 따른 OrderSpecifier 생성 */
   public OrderSpecifier<?> sortBy(SearchSortType searchSortType, SortOrder sortOrder) {
-    NumberExpression<Double> avgRating = rating.ratingPoint.rating.avg();
+    // 평점 없는 알코올의 AVG(rating) NULL → ORDER BY 시 NULL-first 로 정렬 불안정 유발
+    // coalesce(0.0) 로 결정적 정렬 + POPULAR 산식 NULL 전파 방지
+    NumberExpression<Double> avgRating = rating.ratingPoint.rating.avg().coalesce(0.0);
     NumberExpression<Long> reviewCount = review.id.countDistinct();
     NumberExpression<Long> pickCount = picks.id.countDistinct();
     return switch (searchSortType) {
@@ -236,6 +239,9 @@ public class AlcoholQuerySupporter {
 
   /** 사용자가 주류에 준 평점 조회 (QueryDSL 경로 버전) */
   public NumberExpression<Double> myRating(NumberPath<Long> alcoholId, Long userId) {
+    if (userId == null || userId == -1L) {
+      return Expressions.asNumber(0.0).castToNum(Double.class).as("myRating");
+    }
     return Expressions.asNumber(
             JPAExpressions.select(rating.ratingPoint.rating)
                 .from(rating)
@@ -248,6 +254,9 @@ public class AlcoholQuerySupporter {
 
   /** 사용자가 주류에 작성한 리뷰들의 평균 평점 계산 (QueryDSL 경로 버전) */
   public NumberExpression<Double> averageReviewRating(NumberPath<Long> alcoholId, Long userId) {
+    if (userId == null || userId == -1L) {
+      return Expressions.asNumber(0.0).castToNum(Double.class).as("myAvgRating");
+    }
     return Expressions.asNumber(
             JPAExpressions.select(
                     review
