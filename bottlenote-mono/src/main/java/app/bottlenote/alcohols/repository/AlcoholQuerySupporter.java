@@ -1,5 +1,17 @@
 package app.bottlenote.alcohols.repository;
 
+import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
+import static app.bottlenote.alcohols.domain.QAlcoholsTastingTags.alcoholsTastingTags;
+import static app.bottlenote.alcohols.domain.QCurationKeyword.curationKeyword;
+import static app.bottlenote.alcohols.domain.QPopularAlcohol.popularAlcohol;
+import static app.bottlenote.alcohols.domain.QRegion.region;
+import static app.bottlenote.alcohols.domain.QTastingTag.tastingTag;
+import static app.bottlenote.picks.constant.PicksStatus.PICK;
+import static app.bottlenote.picks.domain.QPicks.picks;
+import static app.bottlenote.rating.domain.QRating.rating;
+import static app.bottlenote.review.domain.QReview.review;
+import static com.querydsl.jpa.JPAExpressions.select;
+
 import app.bottlenote.alcohols.constant.AdminAlcoholSortType;
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
@@ -16,25 +28,12 @@ import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.util.StringUtils;
 import com.querydsl.jpa.JPAExpressions;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
-
-import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
-import static app.bottlenote.alcohols.domain.QAlcoholsTastingTags.alcoholsTastingTags;
-import static app.bottlenote.alcohols.domain.QCurationKeyword.curationKeyword;
-import static app.bottlenote.alcohols.domain.QPopularAlcohol.popularAlcohol;
-import static app.bottlenote.alcohols.domain.QRegion.region;
-import static app.bottlenote.alcohols.domain.QTastingTag.tastingTag;
-import static app.bottlenote.picks.constant.PicksStatus.PICK;
-import static app.bottlenote.picks.domain.QPicks.picks;
-import static app.bottlenote.rating.domain.QRating.rating;
-import static app.bottlenote.review.domain.QReview.review;
-import static com.querydsl.jpa.JPAExpressions.select;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
