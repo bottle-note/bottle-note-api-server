@@ -365,8 +365,9 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
             supporter.eqCurationId(criteria.curationId()));
 
     if (sortType == SearchSortType.RANDOM) {
+      // seed 는 Service 가 null 방어/생성 후 주입. id.asc() tiebreaker 로 동일 RAND 값 충돌 시에도 결정론적 순서 보장.
       return query
-          .orderBy(supporter.sortByRandom())
+          .orderBy(supporter.sortByRandom(criteria.seed()), alcohol.id.asc())
           .offset(criteria.cursor())
           .limit(fetchSize)
           .fetch();
