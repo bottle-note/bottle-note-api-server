@@ -39,8 +39,4 @@ public record ExploreStandardCriteria(
         request.size());
   }
 
-  /** 호환 유지 오버로드. Service 가 seed 확정 후 {@link #of(ExploreStandardRequest, Long, long)} 로 전환한다. */
-  public static ExploreStandardCriteria of(ExploreStandardRequest request, Long userId) {
-    return of(request, userId, 0L);
-  }
 }

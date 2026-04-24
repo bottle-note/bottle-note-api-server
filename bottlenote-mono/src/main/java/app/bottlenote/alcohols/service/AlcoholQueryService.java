@@ -1,5 +1,6 @@
 package app.bottlenote.alcohols.service;
 
+import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
@@ -12,6 +13,7 @@ import app.bottlenote.alcohols.dto.response.AdminAlcoholDetailResponse.TastingTa
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
+import app.bottlenote.alcohols.dto.response.ExploreStandardResponse;
 import app.bottlenote.alcohols.dto.response.FriendsDetailResponse;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.exception.AlcoholExceptionCode;
@@ -24,6 +26,7 @@ import app.bottlenote.review.facade.ReviewFacade;
 import app.bottlenote.user.facade.FollowFacade;
 import app.bottlenote.user.facade.payload.FriendItem;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -95,10 +98,19 @@ public class AlcoholQueryService {
   }
 
   @Transactional(readOnly = true)
-  public CursorResponse<AlcoholDetailItem> getStandardExplore(
-      ExploreStandardRequest request, Long userId) {
-    ExploreStandardCriteria criteria = ExploreStandardCriteria.of(request, userId);
-    return alcoholQueryRepository.getStandardExplore(criteria);
+  public ExploreStandardResponse getStandardExplore(ExploreStandardRequest request, Long userId) {
+    long resolvedSeed = resolveSeed(request);
+    ExploreStandardCriteria criteria = ExploreStandardCriteria.of(request, userId, resolvedSeed);
+    CursorResponse<AlcoholDetailItem> page = alcoholQueryRepository.getStandardExplore(criteria);
+    return new ExploreStandardResponse(resolvedSeed, page);
+  }
+
+  /** RANDOM 정렬 시 요청 seed 를 그대로 쓰고, 없으면 서버에서 생성한다. 비-RANDOM 정렬은 seed 가 쿼리에 영향을 주지 않으므로 0 으로 고정한다. */
+  private long resolveSeed(ExploreStandardRequest request) {
+    if (request.sortType() != SearchSortType.RANDOM) {
+      return 0L;
+    }
+    return request.seed() != null ? request.seed() : ThreadLocalRandom.current().nextLong();
   }
 
   @Transactional(readOnly = true)
