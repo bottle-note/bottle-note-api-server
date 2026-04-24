@@ -180,9 +180,17 @@ public class AlcoholQuerySupporter {
     };
   }
 
-  /** 랜덤 정렬 조건 생성 */
+  /** 랜덤 정렬 조건 생성 (시드 없음) */
   public OrderSpecifier<?> sortByRandom() {
     return Expressions.numberTemplate(Double.class, "function('rand')").asc();
+  }
+
+  /**
+   * 시드 기반 랜덤 정렬 조건 생성. MySQL {@code RAND(seed)} 에 바인딩되며 동일 seed 로 반복 호출 시 동일 순서가 생성된다. explore
+   * standard API 의 페이지 간 일관성 보장에 사용된다.
+   */
+  public OrderSpecifier<?> sortByRandom(long seed) {
+    return Expressions.numberTemplate(Double.class, "function('rand', {0})", seed).asc();
   }
 
   /** 삭제되지 않은 데이터 필터 조건 */
