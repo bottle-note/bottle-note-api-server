@@ -5,6 +5,7 @@
 - 여러 키워드는 AND로 결합되며 (모든 키워드 매칭 항목만 반환), 같은 종류의 ID 컬렉션(`regionIds`, `distilleryIds`)은 OR(IN)로 결합된다.
 - 정렬은 `sortType` 으로 제어하며 기본값은 `RANDOM`. `POPULAR`(평점 + 리뷰수), `RATING`(평점), `REVIEW`(리뷰수), `PICK`(찜수) 지원. `RANDOM` 외에는 `sortOrder`(ASC/DESC) 적용.
 - 페이지네이션은 커서 기반(`cursor`, `size`), 응답 메타의 `pageable.hasNext`로 다음 페이지 유무 판단.
+- `RANDOM` 정렬은 `seed`(Long) 파라미터를 지원한다. 미전송 시 서버가 시드를 생성해 응답 `meta.seed` 로 내려주며, 클라이언트는 이후 페이지 요청에 동일 seed 를 전달해 순서 일관성을 유지할 수 있다. seed 없이 연속 호출하면 매 요청마다 새 시드가 생성되므로 페이지 간 중복/누락이 발생할 수 있다(새 탐색 세션으로 간주). 비-`RANDOM` 정렬에서는 seed 가 무시된다.
 
 [source]
 keywords=keyword1&keywords=keyword2&regionIds=1&regionIds=2&distilleryIds=10
@@ -48,3 +49,12 @@ include::{snippets}/alcohols/explore/standard/response-body.adoc[]
 - 타입이 잘못 전달될 경우 예외가 반환됩니다.
 
 include::../overview/sort-order.adoc[]
+
+[discrete]
+===== _RANDOM seed 운용 가이드_ =====
+
+- 첫 요청: `seed` 를 생략하면 서버가 Long 값을 생성하여 응답 `meta.seed` 에 포함해 내려준다.
+- 다음 페이지: 직전 응답의 `meta.seed` 값을 요청 파라미터 `seed` 로 그대로 전달한다. 동일 seed 내에서는 페이지 간 중복/누락이 발생하지 않는다.
+- 새 탐색: seed 를 버리고 미전송으로 호출하면 서버가 새 seed 를 생성, 새로운 랜덤 순서가 시작된다.
+- 공유/재현: URL 에 seed 를 고정해 전달하면 동일한 랜덤 결과를 재현할 수 있다(공유 링크, QA 재현 용도).
+- 제약: MySQL `RAND(seed)` 기반이며 전체 테이블 스캔이 발생하는 것은 기존 RANDOM 정렬과 동일하다. 필터(`category`, `regionIds`, `distilleryIds`, `curationId`)로 후보를 좁힌 뒤 사용 권장.
