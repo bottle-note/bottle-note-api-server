@@ -38,5 +38,4 @@ public record ExploreStandardCriteria(
         request.cursor(),
         request.size());
   }
-
 }
