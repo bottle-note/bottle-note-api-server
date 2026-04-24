@@ -313,4 +313,148 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
           .doesNotContainAnyElementsOf(firstIds);
     }
   }
+
+  // =============================================================================================
+  // RANDOM seed
+  // =============================================================================================
+
+  /**
+   * RANDOM 정렬의 seed 파라미터 계약을 검증한다. MySQL {@code RAND(seed)} 에 바인딩되므로 TestContainers MySQL 환경에서만 동작
+   * 보장.
+   */
+  @Nested
+  @DisplayName("RANDOM seed")
+  class RandomSeed {
+
+    @Test
+    @DisplayName("동일 seed 로 두 번 호출하면 알코올 ID 순서가 동일하다")
+    void same_seed_produces_same_order() throws Exception {
+      alcoholTestFactory.persistAlcohols(20);
+
+      MvcTestResult first =
+          exchangeGet(
+              b -> b.param("sortType", "RANDOM").param("seed", "12345").param("size", "10"));
+      MvcTestResult second =
+          exchangeGet(
+              b -> b.param("sortType", "RANDOM").param("seed", "12345").param("size", "10"));
+
+      List<Integer> firstIds =
+          com.jayway.jsonpath.JsonPath.read(
+              first.getMvcResult().getResponse().getContentAsString(), "$.data.items[*].alcoholId");
+      second
+          .assertThat()
+          .hasStatusOk()
+          .bodyJson()
+          .extractingPath("$.data.items[*].alcoholId")
+          .asArray()
+          .containsExactlyElementsOf(firstIds);
+    }
+
+    @Test
+    @DisplayName("동일 seed 의 2페이지 분할 결과 합이 단일 조회 결과와 일치한다")
+    void paged_with_same_seed_matches_full_query() throws Exception {
+      alcoholTestFactory.persistAlcohols(20);
+
+      MvcTestResult full =
+          exchangeGet(
+              b ->
+                  b.param("sortType", "RANDOM")
+                      .param("seed", "777")
+                      .param("cursor", "0")
+                      .param("size", "10"));
+      MvcTestResult page1 =
+          exchangeGet(
+              b ->
+                  b.param("sortType", "RANDOM")
+                      .param("seed", "777")
+                      .param("cursor", "0")
+                      .param("size", "5"));
+      MvcTestResult page2 =
+          exchangeGet(
+              b ->
+                  b.param("sortType", "RANDOM")
+                      .param("seed", "777")
+                      .param("cursor", "5")
+                      .param("size", "5"));
+
+      List<Integer> fullIds =
+          com.jayway.jsonpath.JsonPath.read(
+              full.getMvcResult().getResponse().getContentAsString(), "$.data.items[*].alcoholId");
+      List<Integer> p1Ids =
+          com.jayway.jsonpath.JsonPath.read(
+              page1.getMvcResult().getResponse().getContentAsString(), "$.data.items[*].alcoholId");
+      List<Integer> p2Ids =
+          com.jayway.jsonpath.JsonPath.read(
+              page2.getMvcResult().getResponse().getContentAsString(), "$.data.items[*].alcoholId");
+
+      java.util.List<Integer> concatenated = new java.util.ArrayList<>(p1Ids);
+      concatenated.addAll(p2Ids);
+
+      org.assertj.core.api.Assertions.assertThat(concatenated).containsExactlyElementsOf(fullIds);
+    }
+
+    @Test
+    @DisplayName("seed 미전송 시 응답 meta.seed 에 서버 생성 Long 값이 포함된다")
+    void missing_seed_is_generated_and_echoed() {
+      alcoholTestFactory.persistAlcohols(3);
+
+      MvcTestResult result = exchangeGet(b -> b.param("sortType", "RANDOM"));
+
+      result
+          .assertThat()
+          .hasStatusOk()
+          .bodyJson()
+          .extractingPath("$.meta.seed")
+          .asNumber()
+          .isNotNull();
+    }
+
+    @Test
+    @DisplayName("seed 전송 시 응답 meta.seed 에 요청값이 그대로 에코된다")
+    void provided_seed_is_echoed() {
+      alcoholTestFactory.persistAlcohols(3);
+
+      // Integer 범위를 초과하는 값으로 보내 JSON 파싱이 Long 으로 고정되도록 한다.
+      long seedValue = 9_999_999_999L;
+      MvcTestResult result =
+          exchangeGet(b -> b.param("sortType", "RANDOM").param("seed", String.valueOf(seedValue)));
+
+      result
+          .assertThat()
+          .hasStatusOk()
+          .bodyJson()
+          .extractingPath("$.meta.seed")
+          .asNumber()
+          .isEqualTo(seedValue);
+    }
+
+    @Test
+    @DisplayName("비-RANDOM 정렬(POPULAR)에서는 seed 가 결과에 영향을 주지 않는다")
+    void non_random_sort_ignores_seed() throws Exception {
+      alcoholTestFactory.persistAlcohols(10);
+
+      MvcTestResult withSeed =
+          exchangeGet(
+              b ->
+                  b.param("sortType", "POPULAR")
+                      .param("sortOrder", "DESC")
+                      .param("seed", "111")
+                      .param("size", "10"));
+      MvcTestResult withoutSeed =
+          exchangeGet(
+              b -> b.param("sortType", "POPULAR").param("sortOrder", "DESC").param("size", "10"));
+
+      List<Integer> withSeedIds =
+          com.jayway.jsonpath.JsonPath.read(
+              withSeed.getMvcResult().getResponse().getContentAsString(),
+              "$.data.items[*].alcoholId");
+      withoutSeed
+          .assertThat()
+          .hasStatusOk()
+          .bodyJson()
+          .extractingPath("$.data.items[*].alcoholId")
+          .asArray()
+          .containsExactlyElementsOf(withSeedIds);
+    }
+  }
 }
