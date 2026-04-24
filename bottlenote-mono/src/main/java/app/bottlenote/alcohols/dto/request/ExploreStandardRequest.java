@@ -19,6 +19,9 @@ import lombok.Builder;
  *   <li>{@code regionIds}, {@code distilleryIds}: 컬렉션 내 값 간 <b>OR</b> (IN 절)
  *   <li>서로 다른 필터 간: <b>AND</b>
  * </ul>
+ *
+ * <p>{@code seed}: {@link SearchSortType#RANDOM} 정렬 시 페이지 간 순서 일관성을 위한 값. 미전송 시 서버가 생성하여 응답 meta 에
+ * 실어 내려준다. 클라이언트는 첫 응답의 seed 를 이후 페이지 요청에 그대로 전달하여 동일한 순서를 재현한다. 비-RANDOM 정렬에서는 무시된다.
  */
 public record ExploreStandardRequest(
     List<String> keywords,
@@ -28,6 +31,7 @@ public record ExploreStandardRequest(
     Long curationId,
     SearchSortType sortType,
     SortOrder sortOrder,
+    Long seed,
     @PositiveOrZero Long cursor,
     @Min(1) @Max(100) Integer size) {
 
