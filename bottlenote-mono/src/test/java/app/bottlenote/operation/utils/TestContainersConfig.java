@@ -8,8 +8,14 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.redis.testcontainers.RedisContainer;
+import com.zaxxer.hikari.HikariDataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Collections;
 import java.util.UUID;
+import javax.sql.DataSource;
+import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
@@ -19,33 +25,74 @@ import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
 /**
- * TestContainers 설정을 관리하는 Spring Bean 기반 Configuration
+ * TestContainers 설정. 공유 컨테이너 + fork별 DB 격리 패턴.
  *
- * <p>Spring Boot 3.1+ @ServiceConnection을 활용하여 컨테이너 자동 연결
+ * <p>MySQL 컨테이너는 모든 Gradle test fork가 공유하고, fork마다 별도의 DB(스키마)를 만들어 격리한다. fork id는 Gradle이 주입하는
+ * {@code org.gradle.test.worker} 시스템 프로퍼티로 결정된다.
  */
 @TestConfiguration(proxyBeanMethods = false)
 @SuppressWarnings("resource")
 public class TestContainersConfig {
 
   private static final String DEFAULT_DB_NAME = "bottlenote";
+  private static final String BOOTSTRAP_DB_NAME = "bottlenote_bootstrap";
 
-  /** MySQL 컨테이너를 Spring Bean으로 등록합니다. @ServiceConnection이 자동으로 DataSource 설정을 처리합니다. */
+  private static String workerId() {
+    return System.getProperty("org.gradle.test.worker", "0");
+  }
+
+  private static String forkDbName() {
+    String base = System.getProperty("testcontainers.db.name", DEFAULT_DB_NAME);
+    return base + "_w" + workerId();
+  }
+
+  /**
+   * MySQL 컨테이너를 Spring Bean으로 등록합니다.
+   *
+   * <p>모든 fork가 동일한 부트스트랩 DB 이름으로 컨테이너를 정의하여 Testcontainers reuse 해시를 일치시킨다. 실제 fork별 DB는 {@link
+   * #dataSource(MySQLContainer)}에서 동적으로 생성된다.
+   */
   @Bean
-  @ServiceConnection
   MySQLContainer<?> mysqlContainer() {
-    String dbName = System.getProperty("testcontainers.db.name", DEFAULT_DB_NAME);
     return new MySQLContainer<>(DockerImageName.parse("mysql:8.0.32"))
         .withReuse(true)
-        .withDatabaseName(dbName)
+        .withDatabaseName(BOOTSTRAP_DB_NAME)
         .withUsername("root")
         .withPassword("root");
+  }
+
+  /**
+   * fork별 독립 DB로 라우팅되는 DataSource.
+   *
+   * <p>컨테이너 시작 후 fork 전용 DB를 멱등 생성하고, JDBC URL을 fork DB로 교체해 반환한다. Liquibase와 JPA는 이 DataSource를 통해
+   * 자동으로 fork DB에 마이그레이션·검증을 수행한다.
+   */
+  @Bean
+  @Primary
+  DataSource dataSource(MySQLContainer<?> container) {
+    container.start();
+    String forkDb = forkDbName();
+    try (Connection conn = container.createConnection("");
+        Statement stmt = conn.createStatement()) {
+      stmt.execute("CREATE DATABASE IF NOT EXISTS `" + forkDb + "`");
+    } catch (SQLException e) {
+      throw new IllegalStateException("Failed to create fork database: " + forkDb, e);
+    }
+    String forkUrl = container.getJdbcUrl().replaceFirst("/" + BOOTSTRAP_DB_NAME, "/" + forkDb);
+    return DataSourceBuilder.create()
+        .type(HikariDataSource.class)
+        .url(forkUrl)
+        .username(container.getUsername())
+        .password(container.getPassword())
+        .driverClassName(container.getDriverClassName())
+        .build();
   }
 
   /** Redis 컨테이너를 Spring Bean으로 등록합니다. @ServiceConnection이 자동으로 Redis 설정을 처리합니다. */
   @Bean
   @ServiceConnection
   RedisContainer redisContainer() {
-    return new RedisContainer(DockerImageName.parse("redis:7.0.12")).withReuse(true);
+    return new RedisContainer(DockerImageName.parse("redis:7.0.12"));
   }
 
   /** 테스트용 Fake RestTemplate 빈. webhookRestTemplate을 대체합니다. */

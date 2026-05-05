@@ -23,12 +23,7 @@ spring:
         enabled: false
       timeout: 15s
 
-  # Datasource
-  datasource:
-    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
-    url: jdbc:tc:mysql:8.0.32:///bottlenote
-    username: root
-    password: root
+  # Datasource는 TestContainersConfig의 @Primary DataSource 빈에서 fork별 DB로 라우팅한다.
   # Liquibase
   liquibase:
     change-log: classpath:storage/mysql/changelog/schema.mysql.sql
