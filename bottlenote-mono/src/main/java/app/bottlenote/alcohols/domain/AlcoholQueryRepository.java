@@ -40,6 +40,8 @@ public interface AlcoholQueryRepository {
 
   Boolean existsByAlcoholId(Long alcoholId);
 
+  Boolean existsByDistilleryId(Long distilleryId);
+
   CursorResponse<AlcoholDetailItem> getStandardExplore(ExploreStandardCriteria criteria);
 
   Page<AdminAlcoholItem> searchAdminAlcohols(AdminAlcoholSearchRequest request);

@@ -26,6 +26,10 @@ public enum ValidExceptionCode implements ExceptionCode {
   ALCOHOL_ID_REQUIRED(HttpStatus.BAD_REQUEST, "알코올 식별자는 필수입니다."),
   ALCOHOL_ID_MINIMUM(HttpStatus.BAD_REQUEST, "알코올 식별자는 최소 1 이상 이어야 합니다."),
 
+  // DISTILLERY
+  DISTILLERY_KOR_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "증류소 한글 이름은 필수입니다."),
+  DISTILLERY_ENG_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "증류소 영문 이름은 필수입니다."),
+
   // PICK,
   PICK_ID_REQUIRED(HttpStatus.BAD_REQUEST, "픽 식별자는 필수입니다."),
   IS_PICKED_REQUIRED(HttpStatus.BAD_REQUEST, "픽 여부는 필수입니다."),

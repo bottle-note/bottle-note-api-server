@@ -7,6 +7,8 @@ public enum AlcoholExceptionCode implements ExceptionCode {
   ALCOHOL_NOT_FOUND(HttpStatus.NOT_FOUND, "위스키를 찾을 수 없습니다."),
   REGION_NOT_FOUND(HttpStatus.NOT_FOUND, "지역을 찾을 수 없습니다."),
   DISTILLERY_NOT_FOUND(HttpStatus.NOT_FOUND, "증류소를 찾을 수 없습니다."),
+  DISTILLERY_DUPLICATE_NAME(HttpStatus.CONFLICT, "동일한 이름의 증류소가 이미 존재합니다."),
+  DISTILLERY_HAS_ALCOHOLS(HttpStatus.CONFLICT, "연관된 위스키가 존재하는 증류소는 삭제할 수 없습니다."),
   ALCOHOL_HAS_REVIEWS(HttpStatus.CONFLICT, "리뷰가 존재하는 위스키는 삭제할 수 없습니다."),
   ALCOHOL_HAS_RATINGS(HttpStatus.CONFLICT, "평점이 존재하는 위스키는 삭제할 수 없습니다."),
   ALCOHOL_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "이미 삭제된 위스키입니다."),

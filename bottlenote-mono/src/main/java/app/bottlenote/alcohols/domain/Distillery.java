@@ -51,4 +51,10 @@ public class Distillery extends BaseEntity {
   @Builder.Default
   @OneToMany(mappedBy = "distillery")
   private List<Alcohol> alcohol = new ArrayList<>();
+
+  public void update(String korName, String engName, String logoImgUrl) {
+    this.korName = korName;
+    this.engName = engName;
+    this.logoImgPath = logoImgUrl;
+  }
 }

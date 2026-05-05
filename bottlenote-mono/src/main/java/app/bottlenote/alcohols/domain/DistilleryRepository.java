@@ -10,4 +10,16 @@ public interface DistilleryRepository {
   Optional<Distillery> findById(Long id);
 
   Page<AdminDistilleryItem> findAllDistilleries(String keyword, Pageable pageable);
+
+  Distillery save(Distillery distillery);
+
+  void delete(Distillery distillery);
+
+  boolean existsByKorName(String korName);
+
+  boolean existsByEngName(String engName);
+
+  boolean existsByKorNameAndIdNot(String korName, Long id);
+
+  boolean existsByEngNameAndIdNot(String engName, Long id);
 }
