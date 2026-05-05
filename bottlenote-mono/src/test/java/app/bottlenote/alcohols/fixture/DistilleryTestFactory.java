@@ -18,8 +18,8 @@ public class DistilleryTestFactory {
     return createDistillery(korName, engName, null);
   }
 
-  public static Distillery createDistillery(String korName, String engName, String logoImgUrl) {
-    return Distillery.builder().korName(korName).engName(engName).logoImgPath(logoImgUrl).build();
+  public static Distillery createDistillery(String korName, String engName, String imageUrl) {
+    return Distillery.builder().korName(korName).engName(engName).imageUrl(imageUrl).build();
   }
 
   @Transactional

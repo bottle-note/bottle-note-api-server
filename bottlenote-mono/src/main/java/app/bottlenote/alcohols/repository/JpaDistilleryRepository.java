@@ -18,7 +18,7 @@ public interface JpaDistilleryRepository
   @Query(
       """
       select new app.bottlenote.alcohols.dto.response.AdminDistilleryItem(
-        d.id, d.korName, d.engName, d.logoImgPath, d.createAt, d.lastModifyAt, d.sortOrder
+        d.id, d.korName, d.engName, d.imageUrl, d.createAt, d.lastModifyAt, d.sortOrder
       )
       from distillery d
       where (:keyword is null or :keyword = ''
