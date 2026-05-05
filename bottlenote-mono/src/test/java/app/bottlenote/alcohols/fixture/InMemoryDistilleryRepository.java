@@ -91,7 +91,7 @@ public class InMemoryDistilleryRepository implements DistilleryRepository {
         d.getId(),
         d.getKorName(),
         d.getEngName(),
-        d.getLogoImgPath(),
+        d.getImageUrl(),
         d.getCreateAt(),
         d.getLastModifyAt());
   }

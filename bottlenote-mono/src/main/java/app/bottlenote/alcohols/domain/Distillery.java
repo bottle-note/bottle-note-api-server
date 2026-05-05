@@ -39,9 +39,9 @@ public class Distillery extends BaseEntity {
   @Column(name = "kor_name", nullable = false)
   private String korName;
 
-  @Comment("증류소 로고 이미지 경로")
+  @Comment("증류소 이미지 URL (S3 업로드 후 URL)")
   @Column(name = "logo_img_url")
-  private String logoImgPath;
+  private String imageUrl;
 
   @Builder.Default
   @Comment("정렬 순서 (미설정: 9999)")
@@ -52,9 +52,9 @@ public class Distillery extends BaseEntity {
   @OneToMany(mappedBy = "distillery")
   private List<Alcohol> alcohol = new ArrayList<>();
 
-  public void update(String korName, String engName, String logoImgUrl) {
+  public void update(String korName, String engName, String imageUrl) {
     this.korName = korName;
     this.engName = engName;
-    this.logoImgPath = logoImgUrl;
+    this.imageUrl = imageUrl;
   }
 }

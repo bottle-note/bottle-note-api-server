@@ -6,7 +6,7 @@ public record AdminDistilleryItem(
     Long id,
     String korName,
     String engName,
-    String logoImgUrl,
+    String imageUrl,
     LocalDateTime createdAt,
     LocalDateTime modifiedAt,
     Integer sortOrder) {}

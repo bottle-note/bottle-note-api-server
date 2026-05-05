@@ -153,12 +153,13 @@ class DistilleryServiceTest {
       Distillery saved =
           distilleryRepository.save(DistilleryTestFactory.createDistillery("맥캘란", "Macallan"));
       AdminDistilleryUpsertRequest request =
-          new AdminDistilleryUpsertRequest("맥캘란", "Macallan", "data:image/png;base64,iVBORw0KGgo=");
+          new AdminDistilleryUpsertRequest(
+              "맥캘란", "Macallan", "https://cdn.example.com/distillery/macallan.jpg");
 
       AdminResultResponse result = distilleryService.update(saved.getId(), request);
 
       assertThat(result.code()).isEqualTo("DISTILLERY_UPDATED");
-      assertThat(saved.getLogoImgPath()).isEqualTo("data:image/png;base64,iVBORw0KGgo=");
+      assertThat(saved.getImageUrl()).isEqualTo("https://cdn.example.com/distillery/macallan.jpg");
     }
   }
 

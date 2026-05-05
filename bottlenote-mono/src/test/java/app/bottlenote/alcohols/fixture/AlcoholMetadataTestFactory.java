@@ -95,7 +95,7 @@ public class AlcoholMetadataTestFactory {
         Distillery.builder()
             .korName(korName + "-" + generateRandomSuffix())
             .engName(engName + "-" + generateRandomSuffix())
-            .logoImgPath("https://example.com/logo.jpg")
+            .imageUrl("https://example.com/logo.jpg")
             .build();
     em.persist(distillery);
     em.flush();

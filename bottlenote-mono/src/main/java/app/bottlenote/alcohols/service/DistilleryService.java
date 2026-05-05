@@ -47,7 +47,7 @@ public class DistilleryService {
         Distillery.builder()
             .korName(request.korName())
             .engName(request.engName())
-            .logoImgPath(request.logoImgUrl())
+            .imageUrl(request.imageUrl())
             .build();
 
     Distillery saved = distilleryRepository.save(distillery);
@@ -66,7 +66,7 @@ public class DistilleryService {
       throw new AlcoholException(DISTILLERY_DUPLICATE_NAME);
     }
 
-    distillery.update(request.korName(), request.engName(), request.logoImgUrl());
+    distillery.update(request.korName(), request.engName(), request.imageUrl());
 
     return AdminResultResponse.of(DISTILLERY_UPDATED, distilleryId);
   }
@@ -91,7 +91,7 @@ public class DistilleryService {
         d.getId(),
         d.getKorName(),
         d.getEngName(),
-        d.getLogoImgPath(),
+        d.getImageUrl(),
         d.getCreateAt(),
         d.getLastModifyAt());
   }

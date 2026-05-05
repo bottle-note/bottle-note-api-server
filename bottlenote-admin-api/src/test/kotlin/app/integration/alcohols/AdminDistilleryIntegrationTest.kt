@@ -73,7 +73,7 @@ class AdminDistilleryIntegrationTest : IntegrationTestSupport() {
 			val request = mapOf(
 				"korName" to "토버모리",
 				"engName" to "Tobermory",
-				"logoImgUrl" to null
+				"imageUrl" to null
 			)
 
 			assertThat(

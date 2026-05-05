@@ -87,7 +87,7 @@ class AdminDistilleryControllerDocsTest {
 						fieldWithPath("data[].id").type(JsonFieldType.NUMBER).description("증류소 ID"),
 						fieldWithPath("data[].korName").type(JsonFieldType.STRING).description("증류소 한글명"),
 						fieldWithPath("data[].engName").type(JsonFieldType.STRING).description("증류소 영문명"),
-						fieldWithPath("data[].logoImgUrl").type(JsonFieldType.STRING).description("로고 이미지 URL"),
+						fieldWithPath("data[].imageUrl").type(JsonFieldType.STRING).description("증류소 이미지 URL"),
 						fieldWithPath("data[].createdAt").type(JsonFieldType.STRING).description("생성일시"),
 						fieldWithPath("data[].modifiedAt").type(JsonFieldType.STRING).description("수정일시"),
 						fieldWithPath("data[].sortOrder").type(JsonFieldType.NUMBER).description("정렬 순서 (미설정: 9999)"),
@@ -135,7 +135,7 @@ class AdminDistilleryControllerDocsTest {
 						fieldWithPath("data.id").type(JsonFieldType.NUMBER).description("증류소 ID"),
 						fieldWithPath("data.korName").type(JsonFieldType.STRING).description("증류소 한글명"),
 						fieldWithPath("data.engName").type(JsonFieldType.STRING).description("증류소 영문명"),
-						fieldWithPath("data.logoImgUrl").type(JsonFieldType.STRING).description("로고 이미지 URL").optional(),
+						fieldWithPath("data.imageUrl").type(JsonFieldType.STRING).description("증류소 이미지 URL").optional(),
 						fieldWithPath("data.createdAt").type(JsonFieldType.STRING).description("생성일시"),
 						fieldWithPath("data.modifiedAt").type(JsonFieldType.STRING).description("수정일시"),
 						fieldWithPath("errors").type(JsonFieldType.ARRAY).description("에러 목록"),
@@ -157,7 +157,7 @@ class AdminDistilleryControllerDocsTest {
 		val request = mapOf(
 			"korName" to "토버모리",
 			"engName" to "Tobermory",
-			"logoImgUrl" to null
+			"imageUrl" to "https://cdn.example.com/distillery/macallan.jpg"
 		)
 
 		assertThat(
@@ -173,7 +173,7 @@ class AdminDistilleryControllerDocsTest {
 					requestFields(
 						fieldWithPath("korName").type(JsonFieldType.STRING).description("증류소 한글명 (필수)"),
 						fieldWithPath("engName").type(JsonFieldType.STRING).description("증류소 영문명 (필수)"),
-						fieldWithPath("logoImgUrl").type(JsonFieldType.STRING).description("로고 이미지 (base64 또는 data-URI)").optional()
+						fieldWithPath("imageUrl").type(JsonFieldType.STRING).description("증류소 이미지 URL (S3 업로드 후 받은 URL)").optional()
 					),
 					responseFields(cudResponseFields())
 				)
@@ -189,7 +189,7 @@ class AdminDistilleryControllerDocsTest {
 		val request = mapOf(
 			"korName" to "맥캘란 12년",
 			"engName" to "Macallan 12",
-			"logoImgUrl" to null
+			"imageUrl" to "https://cdn.example.com/distillery/macallan.jpg"
 		)
 
 		assertThat(
@@ -206,7 +206,7 @@ class AdminDistilleryControllerDocsTest {
 					requestFields(
 						fieldWithPath("korName").type(JsonFieldType.STRING).description("증류소 한글명 (필수)"),
 						fieldWithPath("engName").type(JsonFieldType.STRING).description("증류소 영문명 (필수)"),
-						fieldWithPath("logoImgUrl").type(JsonFieldType.STRING).description("로고 이미지 (base64 또는 data-URI)").optional()
+						fieldWithPath("imageUrl").type(JsonFieldType.STRING).description("증류소 이미지 URL (S3 업로드 후 받은 URL)").optional()
 					),
 					responseFields(cudResponseFields())
 				)
