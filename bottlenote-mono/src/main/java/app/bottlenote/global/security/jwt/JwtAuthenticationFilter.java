@@ -53,11 +53,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     try {
       Authentication authentication = jwtAuthenticationManager.getAnonymousAuthentication();
 
-      if (skipFilter(method, path)) {
-        log.debug("선택적인 인증이 필요한 경우 익명 사용자로 설정합니다.");
-        authentication = jwtAuthenticationManager.getAnonymousAuthentication();
-      }
-
       if (token != null && !token.isBlank()) {
         if (!JwtTokenValidator.validateToken(token)) {
           log.info("MalformedJwtException : 토큰이 유효하지 않습니다.");

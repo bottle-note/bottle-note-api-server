@@ -120,6 +120,8 @@ public class AlcoholQueryFixture {
         .myRating(myRating)
         .myAvgRating(myAvgRating)
         .isPicked(isPicked)
+        .reviewCount((long) random.nextInt(300))
+        .pickCount((long) random.nextInt(500))
         .alcoholsTastingTags(alcoholsTastingTags)
         .build();
   }

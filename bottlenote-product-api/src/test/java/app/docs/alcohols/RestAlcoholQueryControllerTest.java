@@ -179,6 +179,8 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
                     fieldWithPath("data.alcohols.myAvgRating")
                         .description("내가 지금까지 준 평균 평점(리뷰의 별점을 기반)"),
                     fieldWithPath("data.alcohols.isPicked").description("내가 좋아요한 술인지 여부"),
+                    fieldWithPath("data.alcohols.reviewCount").description("술의 리뷰 수"),
+                    fieldWithPath("data.alcohols.pickCount").description("술의 찜 수"),
                     fieldWithPath("data.alcohols.alcoholsTastingTags").description("술의 태그 목록"),
 
                     // 친구 정보

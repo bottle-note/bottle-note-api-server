@@ -4,6 +4,7 @@ import static app.bottlenote.alcohols.repository.CustomAlcoholQueryRepository.Ad
 
 import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
+import app.bottlenote.alcohols.dto.dsl.ExploreStandardCriteria;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
@@ -40,8 +41,7 @@ public interface AlcoholQueryRepository {
 
   Boolean existsByAlcoholId(Long alcoholId);
 
-  Pair<Long, CursorResponse<AlcoholDetailItem>> getStandardExplore(
-      Long userId, List<String> keyword, Long cursor, Integer size);
+  CursorResponse<AlcoholDetailItem> getStandardExplore(ExploreStandardCriteria criteria);
 
   Page<AdminAlcoholItem> searchAdminAlcohols(AdminAlcoholSearchRequest request);
 

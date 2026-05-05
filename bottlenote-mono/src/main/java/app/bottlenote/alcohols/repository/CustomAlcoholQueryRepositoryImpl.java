@@ -10,6 +10,7 @@ import static app.bottlenote.review.domain.QReview.review;
 
 import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
+import app.bottlenote.alcohols.dto.dsl.ExploreStandardCriteria;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
@@ -23,8 +24,11 @@ import app.bottlenote.global.service.cursor.SortOrder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.data.domain.Page;
@@ -159,14 +163,20 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                     .divide(2)
                     .coalesce(0.0)
                     .as("rating"),
-                rating.id.count(),
+                rating.id.countDistinct(),
                 supporter.myRating(alcoholId, userId),
                 supporter.averageReviewRating(alcoholId, userId),
                 supporter.isPickedSubquery(alcoholId, userId),
+                review.id.countDistinct(),
+                picks.id.countDistinct(),
                 getTastingTags()))
         .from(alcohol)
         .leftJoin(rating)
         .on(rating.id.alcoholId.eq(alcohol.id))
+        .leftJoin(review)
+        .on(review.alcoholId.eq(alcohol.id))
+        .leftJoin(picks)
+        .on(picks.alcoholId.eq(alcohol.id))
         .join(region)
         .on(alcohol.region.id.eq(region.id))
         .join(distillery)
@@ -230,9 +240,24 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 
   /** queryDSL 알코올 둘러보기 */
   @Override
-  public Pair<Long, CursorResponse<AlcoholDetailItem>> getStandardExplore(
-      Long userId, List<String> keyword, Long cursor, Integer pageSize) {
-    int fetchSize = pageSize + 1;
+  public CursorResponse<AlcoholDetailItem> getStandardExplore(ExploreStandardCriteria criteria) {
+    Long userId = criteria.userId();
+    Long cursor = criteria.cursor();
+    int pageSize = criteria.size();
+    // 컨트롤러에서 size는 @Max(100)으로 제한되지만, 리포 레이어 직접 호출 대비 오버플로우 가드
+    int fetchSize = Math.addExact(pageSize, 1);
+
+    // 1단계: 후보 alcohol.id 만 추출. 정렬 타입별로 조인/집계 수준을 분기하여 성능을 보존한다.
+    // heavy 상관 서브쿼리(myRating/averageReviewRating/isPickedSubquery/getTastingTags)는
+    // 반드시 2단계에서만 실행되어야 한다 (성능개선 이슈 참고).
+    List<Long> candidateIds = fetchCandidateIds(criteria, fetchSize);
+
+    // 빈 결과 early return (IN 절 빈 리스트 방지)
+    if (candidateIds.isEmpty()) {
+      return CursorResponse.of(List.of(), cursor, pageSize);
+    }
+
+    // 2단계: 1단계 ID 들에 대해서만 본문 + 평점 + 태그 조회 (3,000건 처리 → fetchSize 건 처리)
     List<AlcoholDetailItem> items =
         queryFactory
             .select(
@@ -260,19 +285,25 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                         .divide(2)
                         .coalesce(0.0)
                         .as("rating"),
-                    rating.id.count(),
+                    rating.id.countDistinct(),
                     supporter.myRating(alcohol.id, userId),
                     supporter.averageReviewRating(alcohol.id, userId),
                     supporter.isPickedSubquery(alcohol.id, userId),
+                    review.id.countDistinct(),
+                    picks.id.countDistinct(),
                     getTastingTags()))
             .from(alcohol)
             .leftJoin(rating)
             .on(rating.id.alcoholId.eq(alcohol.id))
+            .leftJoin(review)
+            .on(review.alcoholId.eq(alcohol.id))
+            .leftJoin(picks)
+            .on(picks.alcoholId.eq(alcohol.id))
             .join(region)
             .on(alcohol.region.id.eq(region.id))
             .join(distillery)
             .on(alcohol.distillery.id.eq(distillery.id))
-            .where(supporter.keywordsMatch(keyword))
+            .where(alcohol.id.in(candidateIds))
             .groupBy(
                 alcohol.id,
                 alcohol.imageUrl,
@@ -286,23 +317,80 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                 alcohol.abv,
                 distillery.korName,
                 distillery.engName)
-            .orderBy(supporter.sortByRandom())
-            .offset(cursor)
-            .limit(fetchSize)
             .fetch();
 
-    Long total =
+    // 1단계의 ORDER BY rand 순서를 앱 레벨에서 복원 (2단계 SQL 결과는 임의 순서)
+    Map<Long, AlcoholDetailItem> byId =
+        items.stream()
+            .collect(Collectors.toMap(AlcoholDetailItem::getAlcoholId, Function.identity()));
+    List<AlcoholDetailItem> ordered =
+        candidateIds.stream().map(byId::get).filter(Objects::nonNull).toList();
+
+    return CursorResponse.of(ordered, cursor, pageSize);
+  }
+
+  /**
+   * 1단계 후보 ID 추출. 정렬 타입에 따라 RANDOM은 경량 경로, 나머지는 필요한 집계 테이블만 LEFT JOIN + GROUP BY + id ASC 보조 정렬로
+   * 처리한다.
+   */
+  private List<Long> fetchCandidateIds(ExploreStandardCriteria criteria, int fetchSize) {
+    SearchSortType sortType = criteria.sortType();
+    com.querydsl.jpa.impl.JPAQuery<Long> query =
         queryFactory
-            .select(alcohol.id.count())
+            .select(alcohol.id)
             .from(alcohol)
             .join(region)
             .on(alcohol.region.id.eq(region.id))
             .join(distillery)
-            .on(alcohol.distillery.id.eq(distillery.id))
-            .where(supporter.keywordsMatch(keyword))
-            .fetchOne();
-    CursorResponse<AlcoholDetailItem> list = CursorResponse.of(items, cursor, pageSize);
-    return Pair.of(total, list);
+            .on(alcohol.distillery.id.eq(distillery.id));
+
+    if (sortType != SearchSortType.RANDOM) {
+      if (needsRatingJoin(sortType)) {
+        query = query.leftJoin(rating).on(rating.id.alcoholId.eq(alcohol.id));
+      }
+      if (needsReviewJoin(sortType)) {
+        query = query.leftJoin(review).on(review.alcoholId.eq(alcohol.id));
+      }
+      if (needsPicksJoin(sortType)) {
+        query = query.leftJoin(picks).on(picks.alcoholId.eq(alcohol.id));
+      }
+    }
+
+    query =
+        query.where(
+            supporter.keywordsMatch(criteria.keywords()),
+            supporter.eqCategory(criteria.category()),
+            supporter.inRegionIds(criteria.regionIds()),
+            supporter.inDistilleryIds(criteria.distilleryIds()),
+            supporter.eqCurationId(criteria.curationId()));
+
+    if (sortType == SearchSortType.RANDOM) {
+      // seed 는 Service 가 null 방어/생성 후 주입. id.asc() tiebreaker 로 동일 RAND 값 충돌 시에도 결정론적 순서 보장.
+      return query
+          .orderBy(supporter.sortByRandom(criteria.seed()), alcohol.id.asc())
+          .offset(criteria.cursor())
+          .limit(fetchSize)
+          .fetch();
+    }
+
+    return query
+        .groupBy(alcohol.id)
+        .orderBy(supporter.sortBy(sortType, criteria.sortOrder()), alcohol.id.asc())
+        .offset(criteria.cursor())
+        .limit(fetchSize)
+        .fetch();
+  }
+
+  private static boolean needsRatingJoin(SearchSortType sortType) {
+    return sortType == SearchSortType.RATING || sortType == SearchSortType.POPULAR;
+  }
+
+  private static boolean needsReviewJoin(SearchSortType sortType) {
+    return sortType == SearchSortType.REVIEW || sortType == SearchSortType.POPULAR;
+  }
+
+  private static boolean needsPicksJoin(SearchSortType sortType) {
+    return sortType == SearchSortType.PICK;
   }
 
   /** Admin용 알코올 검색 (Offset 페이징) */

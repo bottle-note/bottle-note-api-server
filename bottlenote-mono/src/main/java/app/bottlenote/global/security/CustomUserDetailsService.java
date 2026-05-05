@@ -35,7 +35,6 @@ public class CustomUserDetailsService implements UserDetailsService {
     return new CustomUserContext(customUser, authorities);
   }
 
-  @Transactional(readOnly = true)
   public UserDetails loadAnonymousUser() throws UsernameNotFoundException {
     User dAnonymousUser =
         User.builder().id(-4L).nickName("익명 사용자").email("AnonymousUser@email.com").build();

@@ -11,7 +11,8 @@ public enum SearchSortType {
   POPULAR("인기순"),
   RATING("별점순"),
   PICK("찜순"),
-  REVIEW("리뷰순");
+  REVIEW("리뷰순"),
+  RANDOM("랜덤");
 
   private final String name;
 
