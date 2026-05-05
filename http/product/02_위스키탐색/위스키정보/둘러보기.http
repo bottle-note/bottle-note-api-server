@@ -14,11 +14,50 @@ Content-Type: application/json
     client.global.set("accessToken", response.body.data.accessToken);
 %}
 
-### 위스키 둘러보기
+### 1. 위스키 둘러보기 - 다중 키워드 (AND)
 GET {{host}}/api/v1/alcohols/explore/standard?cursor=0&size=6&keywords=탈라모어&keywords=사과
 Authorization: Bearer {{accessToken}}
 
-### 위스키 둘러보기 2
+### 2. 위스키 둘러보기 - 기본 랜덤 탐색
 GET {{host}}/api/v1/alcohols/explore/standard?cursor=0&size=10
 Authorization: Bearer {{accessToken}}
 
+### 3. 위스키 둘러보기 - 카테고리 필터
+GET {{host}}/api/v1/alcohols/explore/standard?category=SINGLE_MALT&size=10
+Authorization: Bearer {{accessToken}}
+
+### 4. 위스키 둘러보기 - regionIds 복수 OR 필터
+GET {{host}}/api/v1/alcohols/explore/standard?regionIds=1&regionIds=2&size=10
+Authorization: Bearer {{accessToken}}
+
+### 5. 위스키 둘러보기 - distilleryIds 복수 OR 필터
+GET {{host}}/api/v1/alcohols/explore/standard?distilleryIds=10&distilleryIds=20&size=10
+Authorization: Bearer {{accessToken}}
+
+### 6. 위스키 둘러보기 - 큐레이션 필터
+GET {{host}}/api/v1/alcohols/explore/standard?curationId=1&size=10
+Authorization: Bearer {{accessToken}}
+
+### 7. 위스키 둘러보기 - 인기순 정렬(POPULAR + DESC)
+GET {{host}}/api/v1/alcohols/explore/standard?sortType=POPULAR&sortOrder=DESC&size=10
+Authorization: Bearer {{accessToken}}
+
+### 8. 위스키 둘러보기 - 평점순 정렬(RATING + DESC)
+GET {{host}}/api/v1/alcohols/explore/standard?sortType=RATING&sortOrder=DESC&size=10
+Authorization: Bearer {{accessToken}}
+
+### 9. 위스키 둘러보기 - 리뷰순 정렬(REVIEW + DESC)
+GET {{host}}/api/v1/alcohols/explore/standard?sortType=REVIEW&sortOrder=DESC&size=10
+Authorization: Bearer {{accessToken}}
+
+### 10. 위스키 둘러보기 - 찜순 정렬(PICK + DESC)
+GET {{host}}/api/v1/alcohols/explore/standard?sortType=PICK&sortOrder=DESC&size=10
+Authorization: Bearer {{accessToken}}
+
+### 11. 위스키 둘러보기 - 복합 필터 + 정렬
+GET {{host}}/api/v1/alcohols/explore/standard?keywords=글렌&category=SINGLE_MALT&regionIds=1&regionIds=2&sortType=POPULAR&sortOrder=DESC&size=10
+Authorization: Bearer {{accessToken}}
+
+### 12. 위스키 둘러보기 - 커서 페이지네이션
+GET {{host}}/api/v1/alcohols/explore/standard?cursor=10&size=10
+Authorization: Bearer {{accessToken}}

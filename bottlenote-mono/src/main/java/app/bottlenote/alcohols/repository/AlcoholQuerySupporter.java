@@ -151,7 +151,9 @@ public class AlcoholQuerySupporter {
 
   /** 정렬 조건에 따른 OrderSpecifier 생성 */
   public OrderSpecifier<?> sortBy(SearchSortType searchSortType, SortOrder sortOrder) {
-    NumberExpression<Double> avgRating = rating.ratingPoint.rating.avg();
+    // 평점 없는 알코올의 AVG(rating) NULL → ORDER BY 시 NULL-first 로 정렬 불안정 유발
+    // coalesce(0.0) 로 결정적 정렬 + POPULAR 산식 NULL 전파 방지
+    NumberExpression<Double> avgRating = rating.ratingPoint.rating.avg().coalesce(0.0);
     NumberExpression<Long> reviewCount = review.id.countDistinct();
     NumberExpression<Long> pickCount = picks.id.countDistinct();
     return switch (searchSortType) {
@@ -162,6 +164,7 @@ public class AlcoholQuerySupporter {
       case RATING -> sortOrder == SortOrder.DESC ? avgRating.desc() : avgRating.asc();
       case PICK -> sortOrder == SortOrder.DESC ? pickCount.desc() : pickCount.asc();
       case REVIEW -> sortOrder == SortOrder.DESC ? reviewCount.desc() : reviewCount.asc();
+      case RANDOM -> sortByRandom();
     };
   }
 
@@ -177,9 +180,17 @@ public class AlcoholQuerySupporter {
     };
   }
 
-  /** 랜덤 정렬 조건 생성 */
+  /** 랜덤 정렬 조건 생성 (시드 없음) */
   public OrderSpecifier<?> sortByRandom() {
     return Expressions.numberTemplate(Double.class, "function('rand')").asc();
+  }
+
+  /**
+   * 시드 기반 랜덤 정렬 조건 생성. MySQL {@code RAND(seed)} 에 바인딩되며 동일 seed 로 반복 호출 시 동일 순서가 생성된다. explore
+   * standard API 의 페이지 간 일관성 보장에 사용된다.
+   */
+  public OrderSpecifier<?> sortByRandom(long seed) {
+    return Expressions.numberTemplate(Double.class, "function('rand', {0})", seed).asc();
   }
 
   /** 삭제되지 않은 데이터 필터 조건 */
@@ -212,8 +223,32 @@ public class AlcoholQuerySupporter {
     return alcohol.region.id.in(regionIds);
   }
 
+  /**
+   * 지역 ID 복수 OR 조건 생성 (각 부모 지역의 하위 지역까지 합집합으로 포함). null/empty 입력 시 조건 생략.
+   *
+   * <p>성능: 자식 지역은 단일 쿼리 `findChildRegionIdsIn`으로 한 번에 조회하여 N+1을 방지한다.
+   */
+  public BooleanExpression inRegionIds(List<Long> regionIds) {
+    if (regionIds == null || regionIds.isEmpty()) return null;
+    List<Long> childIds = regionRepository.findChildRegionIdsIn(regionIds);
+    if (childIds.isEmpty()) return alcohol.region.id.in(regionIds);
+    java.util.Set<Long> merged = new java.util.LinkedHashSet<>(regionIds.size() + childIds.size());
+    merged.addAll(regionIds);
+    merged.addAll(childIds);
+    return alcohol.region.id.in(merged);
+  }
+
+  /** 증류소 ID 복수 OR 조건 생성 (단순 IN, 계층 확장 없음). null/empty 입력 시 조건 생략. */
+  public BooleanExpression inDistilleryIds(List<Long> distilleryIds) {
+    if (distilleryIds == null || distilleryIds.isEmpty()) return null;
+    return alcohol.distillery.id.in(distilleryIds);
+  }
+
   /** 사용자가 주류에 준 평점 조회 (QueryDSL 경로 버전) */
   public NumberExpression<Double> myRating(NumberPath<Long> alcoholId, Long userId) {
+    if (userId == null || userId == -1L) {
+      return Expressions.asNumber(0.0).castToNum(Double.class).as("myRating");
+    }
     return Expressions.asNumber(
             JPAExpressions.select(rating.ratingPoint.rating)
                 .from(rating)
@@ -226,6 +261,9 @@ public class AlcoholQuerySupporter {
 
   /** 사용자가 주류에 작성한 리뷰들의 평균 평점 계산 (QueryDSL 경로 버전) */
   public NumberExpression<Double> averageReviewRating(NumberPath<Long> alcoholId, Long userId) {
+    if (userId == null || userId == -1L) {
+      return Expressions.asNumber(0.0).castToNum(Double.class).as("myAvgRating");
+    }
     return Expressions.asNumber(
             JPAExpressions.select(
                     review
@@ -285,18 +323,18 @@ public class AlcoholQuerySupporter {
               .or(region.engName.likeIgnoreCase("%" + keyword + "%"));
 
       // 현재 키워드에 대한 테이스팅 태그 검색 조건
+      // EXISTS(상관 서브쿼리, alcohol마다 평가) → IN(독립 서브쿼리, 1회 평가)로 변경
       BooleanExpression tastingTagCondition =
-          JPAExpressions.selectOne()
-              .from(alcoholsTastingTags)
-              .join(tastingTag)
-              .on(alcoholsTastingTags.tastingTag.id.eq(tastingTag.id))
-              .where(
-                  alcoholsTastingTags.alcohol.id.eq(alcohol.id),
-                  tastingTag
-                      .korName
-                      .likeIgnoreCase("%" + keyword + "%")
-                      .or(tastingTag.engName.likeIgnoreCase("%" + keyword + "%")))
-              .exists();
+          alcohol.id.in(
+              JPAExpressions.selectDistinct(alcoholsTastingTags.alcohol.id)
+                  .from(alcoholsTastingTags)
+                  .join(tastingTag)
+                  .on(alcoholsTastingTags.tastingTag.id.eq(tastingTag.id))
+                  .where(
+                      tastingTag
+                          .korName
+                          .likeIgnoreCase("%" + keyword + "%")
+                          .or(tastingTag.engName.likeIgnoreCase("%" + keyword + "%"))));
 
       // 현재 키워드에 대한 조건 (기본 필드 또는 테이스팅 태그)
       BooleanExpression keywordCondition = basicCondition.or(tastingTagCondition);

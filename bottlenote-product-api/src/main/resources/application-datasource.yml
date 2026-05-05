@@ -7,12 +7,19 @@ spring:
       maximum-pool-size: 50
       minimum-idle: 10
       idle-timeout: 300000
-      max-lifetime: 1800000
+      # 원격 DB wait_timeout/네트워크 NAT에 선제 만료하여 끊긴 커넥션 사용 회피 (기존 30m → 10m)
+      max-lifetime: 600000
       connection-timeout: 30000
+      # idle 커넥션 주기 isValid() 핑 — TCP keepalive 효과
+      keepalive-time: 30000
+      # 검증 빠른 실패 → 신규 커넥션 확보
+      validation-timeout: 2000
       pool-name: HikariPool-BottleNote
       leak-detection-threshold: 60000
 
   jpa:
+    # 뷰 렌더 단계까지 세션을 유지하지 않음 (실제로 적용되도록 최상위에 선언)
+    open-in-view: false
     hibernate:
       ddl-auto: validate
     show-sql: false
@@ -20,7 +27,6 @@ spring:
       hibernate:
         format_sql: false
         use_sql_comments: false
-        open-in-view: false
 
   data:
     redis:
@@ -61,6 +67,13 @@ spring:
       on-profile: "dev,prod"
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${DB_HOST}/${DB_NAME}?useSSL=${DB_USE_SSL}&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+    # 원격 DB 라운드트립 최소화 파라미터:
+    # - useLocalSessionState: autocommit/isolation 상태를 클라이언트 캐시 → 매번 SHOW SESSION 방지
+    # - elideSetAutoCommits: autocommit 재설정 네트워크 왕복 생략
+    # - cacheServerConfiguration: 커넥션당 SHOW VARIABLES 1회만 실행
+    # - maintainTimeStats: 드라이버 자체 통계 비활성 (CPU/락 비용 제거)
+    # - tcpKeepAlive: OS-level TCP keepalive 활성
+    # - socketTimeout: 소켓 단위 8s 타임아웃 (행 무한 대기 방지)
+    url: jdbc:mysql://${DB_HOST}/${DB_NAME}?useSSL=${DB_USE_SSL}&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useLocalSessionState=true&elideSetAutoCommits=true&cacheServerConfiguration=true&maintainTimeStats=false&tcpKeepAlive=true&socketTimeout=8000
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}

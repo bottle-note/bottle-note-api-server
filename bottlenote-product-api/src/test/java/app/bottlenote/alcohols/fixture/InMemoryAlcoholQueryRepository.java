@@ -4,6 +4,7 @@ import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
+import app.bottlenote.alcohols.dto.dsl.ExploreStandardCriteria;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
@@ -78,8 +79,7 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
   }
 
   @Override
-  public Pair<Long, CursorResponse<AlcoholDetailItem>> getStandardExplore(
-      Long userId, List<String> keyword, Long cursor, Integer size) {
+  public CursorResponse<AlcoholDetailItem> getStandardExplore(ExploreStandardCriteria criteria) {
     return null;
   }
 
