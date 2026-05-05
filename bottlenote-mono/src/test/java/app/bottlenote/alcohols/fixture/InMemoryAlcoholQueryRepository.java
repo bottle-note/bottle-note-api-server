@@ -88,6 +88,15 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
   }
 
   @Override
+  public Boolean existsByDistilleryId(Long distilleryId) {
+    return alcohols.values().stream()
+        .anyMatch(
+            a ->
+                a.getDistillery() != null
+                    && Objects.equals(a.getDistillery().getId(), distilleryId));
+  }
+
+  @Override
   public CursorResponse<AlcoholDetailItem> getStandardExplore(ExploreStandardCriteria criteria) {
     return null;
   }

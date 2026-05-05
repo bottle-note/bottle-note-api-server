@@ -79,6 +79,11 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
   }
 
   @Override
+  public Boolean existsByDistilleryId(Long distilleryId) {
+    return null;
+  }
+
+  @Override
   public CursorResponse<AlcoholDetailItem> getStandardExplore(ExploreStandardCriteria criteria) {
     return null;
   }
