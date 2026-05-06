@@ -16,6 +16,7 @@ import app.bottlenote.alcohols.dto.response.AdminAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
+import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.CursorResponse;
@@ -30,7 +31,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -40,18 +40,20 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
   private final JPAQueryFactory queryFactory;
   private final AlcoholQuerySupporter supporter;
 
-  /** 모든 카테고리 페어(한글, 영문) 조회 */
+  /** 모든 카테고리(한글, 영문, 그룹) 조회 — 카테고리 레퍼런스 응답용 */
   @Override
-  public List<Pair<String, String>> findAllCategoryPairs() {
+  public List<CategoryItem> findAllCategoryItems() {
     return queryFactory
-        .select(alcohol.korCategory, alcohol.engCategory)
+        .select(
+            Projections.constructor(
+                CategoryItem.class,
+                alcohol.korCategory,
+                alcohol.engCategory,
+                alcohol.categoryGroup))
         .from(alcohol)
-        .groupBy(alcohol.korCategory, alcohol.engCategory)
+        .groupBy(alcohol.korCategory, alcohol.engCategory, alcohol.categoryGroup)
         .orderBy(alcohol.korCategory.asc())
-        .fetch()
-        .stream()
-        .map(tuple -> Pair.of(tuple.get(alcohol.korCategory), tuple.get(alcohol.engCategory)))
-        .toList();
+        .fetch();
   }
 
   /** queryDSL 알코올 검색 */

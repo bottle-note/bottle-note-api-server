@@ -1,5 +1,6 @@
 package app.bottlenote.alcohols.service;
 
+import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
@@ -13,6 +14,8 @@ import app.bottlenote.alcohols.dto.response.AdminAlcoholDetailResponse.TastingTa
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
+import app.bottlenote.alcohols.dto.response.CategoryItem;
+import app.bottlenote.alcohols.dto.response.CategoryPairItem;
 import app.bottlenote.alcohols.dto.response.ExploreStandardResponse;
 import app.bottlenote.alcohols.dto.response.FriendsDetailResponse;
 import app.bottlenote.alcohols.exception.AlcoholException;
@@ -25,11 +28,13 @@ import app.bottlenote.history.service.AlcoholViewHistoryService;
 import app.bottlenote.review.facade.ReviewFacade;
 import app.bottlenote.user.facade.FollowFacade;
 import app.bottlenote.user.facade.payload.FriendItem;
+import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -118,9 +123,22 @@ public class AlcoholQueryService {
     return GlobalResponse.fromPage(alcoholQueryRepository.searchAdminAlcohols(request));
   }
 
+  /** 카테고리 레퍼런스를 categoryGroup 기준으로 묶어 반환한다. enum 선언 순서로 키가 고정되며, 데이터가 없는 그룹도 빈 리스트로 포함된다. */
   @Transactional(readOnly = true)
-  public List<Pair<String, String>> findAllCategoryPairs() {
-    return alcoholQueryRepository.findAllCategoryPairs();
+  public Map<AlcoholCategoryGroup, List<CategoryPairItem>> findAllCategoryReferenceMap() {
+    Map<AlcoholCategoryGroup, List<CategoryPairItem>> grouped =
+        new EnumMap<>(AlcoholCategoryGroup.class);
+    for (AlcoholCategoryGroup group : AlcoholCategoryGroup.values()) {
+      grouped.put(group, new ArrayList<>());
+    }
+
+    for (CategoryItem item : alcoholQueryRepository.findAllCategoryItems()) {
+      AlcoholCategoryGroup group = item.categoryGroup();
+      if (group == null) continue;
+      grouped.get(group).add(new CategoryPairItem(item.korCategory(), item.engCategory()));
+    }
+
+    return grouped;
   }
 
   @Transactional(readOnly = true)
