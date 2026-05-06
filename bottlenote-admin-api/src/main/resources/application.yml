@@ -13,6 +13,10 @@ server:
     context-path: /admin/api/v1
     encoding:
       charset: UTF-8
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css
+    min-response-size: 1024
   tomcat:
     threads:
       max: 15

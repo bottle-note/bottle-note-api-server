@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.apache.commons.lang3.tuple.Pair;
+import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 
 public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
@@ -66,11 +66,11 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
   }
 
   @Override
-  public List<Pair<String, String>> findAllCategoryPairs() {
+  public List<CategoryItem> findAllCategoryItems() {
     return alcohols.values().stream()
-        .map(a -> Pair.of(a.getKorCategory(), a.getEngCategory()))
+        .map(a -> new CategoryItem(a.getKorCategory(), a.getEngCategory(), a.getCategoryGroup()))
         .distinct()
-        .toList();
+        .collect(Collectors.toList());
   }
 
   @Override

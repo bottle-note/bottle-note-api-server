@@ -256,11 +256,11 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 		@Test
 		@DisplayName("동일 한글 카테고리에 다른 영문 카테고리가 별도로 조회된다")
 		fun differentEngCategoriesAreSeparate() {
-			// given - 같은 한글 카테고리, 다른 영문 카테고리
+			// given - 같은 한글 카테고리, 다른 영문 카테고리 (둘 다 SINGLE_MALT 그룹)
 			alcoholTestFactory.persistAlcoholWithCategory("싱글 몰트", "Single Malt")
 			alcoholTestFactory.persistAlcoholWithCategory("싱글 몰트", "-")
 
-			// when & then - 2개의 다른 페어가 반환됨
+			// when & then - 그룹된 응답에서 SINGLE_MALT 그룹에 2개의 다른 페어가 반환됨
 			assertThat(
 				mockMvcTester
 					.get()
@@ -268,7 +268,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
-				.extractingPath("$.data.length()")
+				.extractingPath("$.data.SINGLE_MALT.length()")
 				.isEqualTo(2)
 		}
 	}

@@ -8,4 +8,5 @@ public record AdminDistilleryItem(
     String engName,
     String logoImgUrl,
     LocalDateTime createdAt,
-    LocalDateTime modifiedAt) {}
+    LocalDateTime modifiedAt,
+    Integer sortOrder) {}

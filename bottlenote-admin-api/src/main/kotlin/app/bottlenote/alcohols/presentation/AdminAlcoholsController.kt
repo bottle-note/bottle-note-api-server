@@ -26,11 +26,7 @@ class AdminAlcoholsController(
 	): ResponseEntity<*> = GlobalResponse.ok(alcoholQueryService.findAdminAlcoholDetailById(alcoholId))
 
 	@GetMapping("/categories/reference")
-	fun getCategoryReference(): ResponseEntity<*> {
-		val pairs = alcoholQueryService.findAllCategoryPairs()
-		val response = pairs.map { mapOf("korCategory" to it.left, "engCategory" to it.right) }
-		return GlobalResponse.ok(response)
-	}
+	fun getCategoryReference(): ResponseEntity<*> = GlobalResponse.ok(alcoholQueryService.findAllCategoryReferenceMap())
 
 	@PostMapping
 	fun createAlcohol(

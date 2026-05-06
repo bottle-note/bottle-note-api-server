@@ -4,6 +4,7 @@ import app.bottlenote.alcohols.constant.AdminAlcoholSortType
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest
 import app.bottlenote.alcohols.dto.request.AdminAlcoholUpsertRequest
+import app.bottlenote.alcohols.dto.response.CategoryPairItem
 import app.bottlenote.alcohols.presentation.AdminAlcoholsController
 import app.bottlenote.alcohols.service.AdminAlcoholCommandService
 import app.bottlenote.alcohols.service.AlcoholQueryService
@@ -11,7 +12,6 @@ import app.bottlenote.global.dto.response.AdminResultResponse
 import app.bottlenote.global.service.cursor.SortOrder
 import app.helper.alcohols.AlcoholsHelper
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.apache.commons.lang3.tuple.Pair
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -328,15 +328,29 @@ class AdminAlcoholsControllerDocsTest {
 	@Test
 	@DisplayName("카테고리 레퍼런스를 조회할 수 있다")
 	fun getCategoryReference() {
-		// given
-		val categoryPairs = listOf(
-			Pair.of("싱글 몰트", "Single Malt"),
-			Pair.of("블렌디드", "Blended"),
-			Pair.of("버번", "Bourbon")
+		// given — categoryGroup을 키로 갖는 grouped Map. enum 선언 순서로 LinkedHashMap/EnumMap에 채움
+		val grouped = linkedMapOf(
+			AlcoholCategoryGroup.SINGLE_MALT to listOf(
+				CategoryPairItem("싱글 몰트", "Single Malt")
+			),
+			AlcoholCategoryGroup.BLEND to listOf(
+				CategoryPairItem("블렌디드", "Blend")
+			),
+			AlcoholCategoryGroup.BLENDED_MALT to listOf(
+				CategoryPairItem("블렌디드 몰트", "Blended Malt")
+			),
+			AlcoholCategoryGroup.BOURBON to listOf(
+				CategoryPairItem("버번", "Bourbon")
+			),
+			AlcoholCategoryGroup.RYE to emptyList(),
+			AlcoholCategoryGroup.OTHER to listOf(
+				CategoryPairItem("테네시", "Tennessee"),
+				CategoryPairItem("콘", "Corn")
+			)
 		)
 
-		given(alcoholQueryService.findAllCategoryPairs())
-			.willReturn(categoryPairs)
+		given(alcoholQueryService.findAllCategoryReferenceMap())
+			.willReturn(grouped)
 
 		// when & then
 		assertThat(
@@ -351,9 +365,23 @@ class AdminAlcoholsControllerDocsTest {
 					responseFields(
 						fieldWithPath("success").type(JsonFieldType.BOOLEAN).description("응답 성공 여부"),
 						fieldWithPath("code").type(JsonFieldType.NUMBER).description("응답 코드"),
-						fieldWithPath("data").type(JsonFieldType.ARRAY).description("카테고리 페어 목록"),
-						fieldWithPath("data[].korCategory").type(JsonFieldType.STRING).description("한글 카테고리"),
-						fieldWithPath("data[].engCategory").type(JsonFieldType.STRING).description("영문 카테고리"),
+						fieldWithPath("data").type(JsonFieldType.OBJECT).description("categoryGroup별 카테고리 목록 (SINGLE_MALT, BLEND, BLENDED_MALT, BOURBON, RYE, OTHER)"),
+						fieldWithPath("data.SINGLE_MALT").type(JsonFieldType.ARRAY).description("싱글 몰트 그룹 카테고리 목록"),
+						fieldWithPath("data.SINGLE_MALT[].korCategory").type(JsonFieldType.STRING).description("한글 카테고리").optional(),
+						fieldWithPath("data.SINGLE_MALT[].engCategory").type(JsonFieldType.STRING).description("영문 카테고리").optional(),
+						fieldWithPath("data.BLEND").type(JsonFieldType.ARRAY).description("블렌디드 그룹 카테고리 목록"),
+						fieldWithPath("data.BLEND[].korCategory").type(JsonFieldType.STRING).description("한글 카테고리").optional(),
+						fieldWithPath("data.BLEND[].engCategory").type(JsonFieldType.STRING).description("영문 카테고리").optional(),
+						fieldWithPath("data.BLENDED_MALT").type(JsonFieldType.ARRAY).description("블렌디드 몰트 그룹 카테고리 목록"),
+						fieldWithPath("data.BLENDED_MALT[].korCategory").type(JsonFieldType.STRING).description("한글 카테고리").optional(),
+						fieldWithPath("data.BLENDED_MALT[].engCategory").type(JsonFieldType.STRING).description("영문 카테고리").optional(),
+						fieldWithPath("data.BOURBON").type(JsonFieldType.ARRAY).description("버번 그룹 카테고리 목록"),
+						fieldWithPath("data.BOURBON[].korCategory").type(JsonFieldType.STRING).description("한글 카테고리").optional(),
+						fieldWithPath("data.BOURBON[].engCategory").type(JsonFieldType.STRING).description("영문 카테고리").optional(),
+						fieldWithPath("data.RYE").type(JsonFieldType.ARRAY).description("라이 그룹 카테고리 목록 (데이터 없으면 빈 배열)"),
+						fieldWithPath("data.OTHER").type(JsonFieldType.ARRAY).description("기타 그룹 카테고리 목록"),
+						fieldWithPath("data.OTHER[].korCategory").type(JsonFieldType.STRING).description("한글 카테고리").optional(),
+						fieldWithPath("data.OTHER[].engCategory").type(JsonFieldType.STRING).description("영문 카테고리").optional(),
 						fieldWithPath("errors").type(JsonFieldType.ARRAY).description("에러 목록"),
 						fieldWithPath("meta").type(JsonFieldType.OBJECT).description("메타 정보"),
 						fieldWithPath("meta.serverVersion").type(JsonFieldType.STRING).description("서버 버전").ignored(),
