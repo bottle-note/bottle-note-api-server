@@ -8,14 +8,15 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Builder
@@ -42,6 +43,11 @@ public class Distillery extends BaseEntity {
   @Comment("증류소 로고 이미지 경로")
   @Column(name = "logo_img_url")
   private String logoImgPath;
+
+  @Builder.Default
+  @Comment("정렬 순서 (미설정: 9999)")
+  @Column(name = "sort_order", nullable = false)
+  private Integer sortOrder = 9999;
 
   @Builder.Default
   @OneToMany(mappedBy = "distillery")
