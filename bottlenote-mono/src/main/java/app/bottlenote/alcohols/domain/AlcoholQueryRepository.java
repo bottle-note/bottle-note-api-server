@@ -15,7 +15,6 @@ import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
 import java.util.List;
 import java.util.Optional;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.data.domain.Page;
 
 /** 알코올 조회 질의에 관한 애그리거트를 정의합니다. */
@@ -37,7 +36,7 @@ public interface AlcoholQueryRepository {
 
   List<CategoryItem> findAllCategories(AlcoholType type);
 
-  List<Pair<String, String>> findAllCategoryPairs();
+  List<CategoryItem> findAllCategoryItems();
 
   Boolean existsByAlcoholId(Long alcoholId);
 
