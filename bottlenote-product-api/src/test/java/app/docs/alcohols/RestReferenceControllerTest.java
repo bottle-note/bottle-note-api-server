@@ -1,5 +1,18 @@
 package app.docs.alcohols;
 
+import app.bottlenote.alcohols.controller.AlcoholReferenceController;
+import app.bottlenote.alcohols.dto.response.CategoryItem;
+import app.bottlenote.alcohols.dto.response.RegionsItem;
+import app.bottlenote.alcohols.fixture.AlcoholQueryFixture;
+import app.bottlenote.alcohols.service.AlcoholReferenceService;
+import app.docs.AbstractRestDocs;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.restdocs.payload.JsonFieldType;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+import java.util.List;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -11,18 +24,6 @@ import static org.springframework.restdocs.request.RequestDocumentation.queryPar
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import app.bottlenote.alcohols.controller.AlcoholReferenceController;
-import app.bottlenote.alcohols.dto.response.CategoryItem;
-import app.bottlenote.alcohols.dto.response.RegionsItem;
-import app.bottlenote.alcohols.fixture.AlcoholQueryFixture;
-import app.bottlenote.alcohols.service.AlcoholReferenceService;
-import app.docs.AbstractRestDocs;
-import java.util.List;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.restdocs.payload.JsonFieldType;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 @DisplayName("알코올 참조 컨트롤러 RestDocs용 테스트")
 class RestReferenceControllerTest extends AbstractRestDocs {
@@ -41,16 +42,17 @@ class RestReferenceControllerTest extends AbstractRestDocs {
     // given
     List<RegionsItem> response =
         List.of(
-            RegionsItem.of(1L, "스코틀랜드/로우랜드", "Scotland/Lowlands", "가벼운 맛이 특징인 로우랜드 위스키", 19L),
+            RegionsItem.of(1L, "스코틀랜드/로우랜드", "Scotland/Lowlands", "가벼운 맛이 특징인 로우랜드 위스키", 19L, 9999),
             RegionsItem.of(
                 2L,
                 "스코틀랜드/하이랜드",
                 "Scotland/Highlands",
                 "맛의 다양성이 특징인 하이랜드 위스키, 해안의 짠맛부터 달콤하고 과일 맛까지",
-                19L),
-            RegionsItem.of(3L, "스코틀랜드/아일랜드", "Scotland/Ireland", "부드러운 맛이 특징인 아일랜드 위스키", 19L),
-            RegionsItem.of(11L, "프랑스", "France", "주로 브랜디와 와인 생산지로 유명하지만 위스키도 생산", null),
-            RegionsItem.of(12L, "스웨덴", "Sweden", "실험적인 방법으로 만드는 스웨덴 위스키", null));
+                19L,
+                9999),
+            RegionsItem.of(3L, "스코틀랜드/아일랜드", "Scotland/Ireland", "부드러운 맛이 특징인 아일랜드 위스키", 19L, 9999),
+            RegionsItem.of(11L, "프랑스", "France", "주로 브랜디와 와인 생산지로 유명하지만 위스키도 생산", null, 9999),
+            RegionsItem.of(12L, "스웨덴", "Sweden", "실험적인 방법으로 만드는 스웨덴 위스키", null, 9999));
     // when
     when(referenceService.findAllRegion()).thenReturn(response);
 
@@ -72,6 +74,9 @@ class RestReferenceControllerTest extends AbstractRestDocs {
                         .type(JsonFieldType.NUMBER)
                         .description("상위 지역 ID")
                         .optional(),
+                    fieldWithPath("data[].sortOrder")
+                        .type(JsonFieldType.NUMBER)
+                        .description("정렬 순서 (미설정: 9999)"),
                     fieldWithPath("errors")
                         .type(JsonFieldType.ARRAY)
                         .description("응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)"),

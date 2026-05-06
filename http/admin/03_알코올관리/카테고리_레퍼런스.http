@@ -1,0 +1,35 @@
+### 로그인 (accessToken 발급 — 카테고리 레퍼런스 조회 전에 먼저 실행)
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+> {%
+    client.global.set("accessToken", response.body.data.accessToken);
+    client.global.set("refreshToken", response.body.data.refreshToken);
+%}
+
+### 카테고리 레퍼런스 조회 (categoryGroup별 grouped Map)
+# 응답은 AlcoholCategoryGroup enum(SINGLE_MALT, BLEND, BLENDED_MALT, BOURBON, RYE, OTHER)을
+# key로 갖고, 각 그룹에 속한 {korCategory, engCategory} 리스트를 value로 갖는다.
+# 데이터가 없는 그룹도 빈 배열([])로 응답에 포함된다.
+#
+# 위스키 등록/수정(POST/PUT /alcohols) 시 사용해야 하는 categoryGroup 값을
+# 이 응답에서 단일 소스로 참조한다.
+#
+# 예시 응답:
+# {
+#   "data": {
+#     "SINGLE_MALT": [{ "korCategory": "싱글 몰트", "engCategory": "Single Malt" }],
+#     "BLEND":       [{ "korCategory": "블렌디드", "engCategory": "Blend" }],
+#     "BLENDED_MALT":[{ "korCategory": "블렌디드 몰트", "engCategory": "Blended Malt" }],
+#     "BOURBON":     [{ "korCategory": "버번", "engCategory": "Bourbon" }],
+#     "RYE":         [],
+#     "OTHER":       [{ "korCategory": "테네시", "engCategory": "Tennessee" }]
+#   }
+# }
+GET {{host}}/alcohols/categories/reference
+Authorization: Bearer {{accessToken}}

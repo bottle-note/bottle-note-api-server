@@ -45,6 +45,11 @@ public class Region extends BaseEntity {
   @Column(name = "description", nullable = true)
   private String description;
 
+  @Builder.Default
+  @Comment("정렬 순서 (미설정: 9999)")
+  @Column(name = "sort_order", nullable = false)
+  private Integer sortOrder = 9999;
+
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "parent_id")
   @Comment("상위 지역")

@@ -10,4 +10,5 @@ public record AdminRegionItem(
     String description,
     LocalDateTime createdAt,
     LocalDateTime modifiedAt,
-    Long parentId) {}
+    Long parentId,
+    Integer sortOrder) {}
