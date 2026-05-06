@@ -1,3 +1,17 @@
+### 로그인 (accessToken 발급 — 카테고리 레퍼런스 조회 전에 먼저 실행)
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+> {%
+    client.global.set("accessToken", response.body.data.accessToken);
+    client.global.set("refreshToken", response.body.data.refreshToken);
+%}
+
 ### 카테고리 레퍼런스 조회 (categoryGroup별 grouped Map)
 # 응답은 AlcoholCategoryGroup enum(SINGLE_MALT, BLEND, BLENDED_MALT, BOURBON, RYE, OTHER)을
 # key로 갖고, 각 그룹에 속한 {korCategory, engCategory} 리스트를 value로 갖는다.
