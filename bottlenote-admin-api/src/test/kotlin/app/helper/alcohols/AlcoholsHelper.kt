@@ -2,12 +2,8 @@ package app.helper.alcohols
 
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup
 import app.bottlenote.alcohols.constant.AlcoholType
-import app.bottlenote.alcohols.dto.response.AdminAlcoholDetailResponse
+import app.bottlenote.alcohols.dto.response.*
 import app.bottlenote.alcohols.dto.response.AdminAlcoholDetailResponse.TastingTagInfo
-import app.bottlenote.alcohols.dto.response.AdminAlcoholItem
-import app.bottlenote.alcohols.dto.response.AdminDistilleryItem
-import app.bottlenote.alcohols.dto.response.AdminRegionItem
-import app.bottlenote.alcohols.dto.response.TastingTagNodeItem
 import app.bottlenote.global.data.response.GlobalResponse
 import app.bottlenote.global.dto.response.AdminResultResponse
 import java.time.LocalDateTime
@@ -151,7 +147,8 @@ object AlcoholsHelper {
 			"지역 설명 $i",
 			LocalDateTime.of(2024, 1, i, 0, 0),
 			LocalDateTime.of(2024, 6, i, 0, 0),
-			null
+			null,
+			9999
 		)
 	}
 
@@ -162,7 +159,8 @@ object AlcoholsHelper {
 			listOf("Glenfiddich", "Macallan", "Yamazaki")[i - 1],
 			"https://example.com/logo$i.png",
 			LocalDateTime.of(2024, 1, i, 0, 0),
-			LocalDateTime.of(2024, 6, i, 0, 0)
+			LocalDateTime.of(2024, 6, i, 0, 0),
+			9999
 		)
 	}
 

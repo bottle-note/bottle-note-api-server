@@ -3,11 +3,7 @@ package app.integration.alcohols
 import app.IntegrationTestSupport
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Tag
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.*
 import org.springframework.beans.factory.annotation.Autowired
 
 @Tag("admin_integration")
@@ -113,6 +109,24 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 				mockMvcTester.get().uri("/regions")
 			).hasStatus4xxClientError()
 		}
+
+		@Test
+		@DisplayName("지역 응답에 sortOrder 필드가 포함되며 미설정 시 9999가 반환된다")
+		fun getRegionsResponseIncludesSortOrderDefault() {
+			// given - 시드는 sort_order 미지정으로 INSERT, DB default 9999 적용
+			alcoholTestFactory.persistAlcohols(1)
+
+			// when & then
+			assertThat(
+				mockMvcTester
+					.get()
+					.uri("/regions?page=0&size=10")
+					.header("Authorization", "Bearer $accessToken")
+			).hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data[0].sortOrder")
+				.isEqualTo(9999)
+		}
 	}
 
 	@Nested
@@ -159,6 +173,24 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester.get().uri("/distilleries")
 			).hasStatus4xxClientError()
+		}
+
+		@Test
+		@DisplayName("증류소 응답에 sortOrder 필드가 포함되며 미설정 시 9999가 반환된다")
+		fun getDistilleriesResponseIncludesSortOrderDefault() {
+			// given - 시드는 sort_order 미지정으로 INSERT, DB default 9999 적용
+			alcoholTestFactory.persistAlcohols(1)
+
+			// when & then
+			assertThat(
+				mockMvcTester
+					.get()
+					.uri("/distilleries?page=0&size=20")
+					.header("Authorization", "Bearer $accessToken")
+			).hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data[0].sortOrder")
+				.isEqualTo(9999)
 		}
 	}
 }

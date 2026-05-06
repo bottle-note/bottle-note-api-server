@@ -11,4 +11,5 @@ public class RegionsItem {
   private final String engName;
   private final String description;
   private final Long parentId;
+  private final Integer sortOrder;
 }
