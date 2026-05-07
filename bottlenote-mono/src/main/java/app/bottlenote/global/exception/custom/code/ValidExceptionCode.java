@@ -90,7 +90,13 @@ public enum ValidExceptionCode implements ExceptionCode {
   BANNER_TYPE_REQUIRED(HttpStatus.BAD_REQUEST, "배너 유형은 필수입니다."),
   BANNER_SORT_ORDER_REQUIRED(HttpStatus.BAD_REQUEST, "정렬 순서는 필수입니다."),
   BANNER_SORT_ORDER_MINIMUM(HttpStatus.BAD_REQUEST, "정렬 순서는 0 이상이어야 합니다."),
-  BANNER_IS_ACTIVE_REQUIRED(HttpStatus.BAD_REQUEST, "활성화 상태는 필수입니다.");
+  BANNER_IS_ACTIVE_REQUIRED(HttpStatus.BAD_REQUEST, "활성화 상태는 필수입니다."),
+
+  // REGION
+  REGION_KOR_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "지역 한글명은 필수입니다."),
+  REGION_ENG_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "지역 영문명은 필수입니다."),
+  REGION_SORT_ORDER_REQUIRED(HttpStatus.BAD_REQUEST, "정렬 순서는 필수입니다."),
+  REGION_SORT_ORDER_MINIMUM(HttpStatus.BAD_REQUEST, "정렬 순서는 0 이상이어야 합니다.");
 
   private final HttpStatus httpStatus;
   private String message;
