@@ -54,4 +54,27 @@ public class Region extends BaseEntity {
   @JoinColumn(name = "parent_id")
   @Comment("상위 지역")
   private Region parent;
+
+  public void update(
+      String korName,
+      String engName,
+      String continent,
+      String description,
+      Integer sortOrder,
+      Region parent) {
+    this.korName = korName;
+    this.engName = engName;
+    this.continent = continent;
+    this.description = description;
+    this.sortOrder = sortOrder != null ? sortOrder : 9999;
+    this.parent = parent;
+  }
+
+  public void updateSortOrder(int sortOrder) {
+    this.sortOrder = sortOrder;
+  }
+
+  public void changeParent(Region parent) {
+    this.parent = parent;
+  }
 }
