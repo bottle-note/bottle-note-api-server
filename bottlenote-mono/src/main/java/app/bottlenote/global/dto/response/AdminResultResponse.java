@@ -37,6 +37,10 @@ public record AdminResultResponse(String code, String message, Long targetId, St
     BANNER_DELETED("배너가 삭제되었습니다."),
     BANNER_STATUS_UPDATED("배너 활성화 상태가 변경되었습니다."),
     BANNER_SORT_ORDER_UPDATED("배너 정렬 순서가 변경되었습니다."),
+    REGION_CREATED("지역이 등록되었습니다."),
+    REGION_UPDATED("지역이 수정되었습니다."),
+    REGION_DELETED("지역이 삭제되었습니다."),
+    REGION_SORT_ORDER_UPDATED("지역 정렬 순서가 변경되었습니다."),
     ;
 
     private final String message;
