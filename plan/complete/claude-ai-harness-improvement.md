@@ -1,18 +1,26 @@
 ```
 ================================================================================
-                          PROJECT STAMP
+                          PROJECT COMPLETION STAMP
 ================================================================================
-Status: **STALE**
+Status: **COMPLETED**
 First Drafted: 2026-04-08
-Marked Stale: 2026-05-08
+Completion Date: 2026-05-08
 
-** Reason **
-- 본문 헤더에 "상태: 구현 완료" 표기되어 있으나, plan 자체는 harness/skill 정책 설계 문서이므로 작업 단위가 아님
-- 후속 변경(82dd328f chore: 스킬 풀 사이클 검증 피드백 및 plan 완료 처리 등)으로 실제 harness/skill 구성은 운영 중
-- 이 plan 문서는 더 이상 진행/추적 단위가 아니라 참고 자료 성격이어서 plan 디렉토리에 두면 활성 plan 으로 오인될 수 있음
+** Core Achievements **
+- DEFINE → PLAN → BUILD(/implement + /test) → VERIFY → REVIEW(/self-review) 라이프사이클 6 스킬 + /debug 신설 운영 진입
+- product/admin 분리되어 있던 implement-product-api/implement-test 를 /implement, /test 로 통합하고 module 인자로 분기
+- references 분리(mono/product/admin/test-infra/test-patterns) 로 워크플로우와 프로젝트 패턴 책임 분리
+- agent-skills 기반 공통 SKILL.md 뼈대(Common Rationalizations, Red Flags, Verification) 정착
+- 풀 사이클 실전 검증("어드민 유저 목록 조회 API") 으로 6 스킬 동작 모두 OK 확인 (Section 10)
 
-** Recommended Next Step **
-- 참고 자료로 보존. harness/skill 운영 변화 시 본 문서 재작성보다는 별도 docs 위치(예: docs/harness/) 로 이관 검토
+** Key Components **
+- .claude/skills/{define,plan,implement,test,verify,debug,self-review}/SKILL.md
+- .claude/skills/implement/references/{mono-patterns,product-patterns,admin-patterns}.md
+- .claude/skills/test/references/{test-infra,test-patterns}.md
+- 기존 implement-product-api / implement-test 스킬은 a2945e59 에서 제거
+
+** Followup (별도 plan 으로 추출) **
+- Section 10 의 P1~P5 + Section 11 의 /docs 스킬 설계는 plan/claude-skill-improvements.md 로 추출하여 후속 작업으로 분리
 ================================================================================
 ```
 
