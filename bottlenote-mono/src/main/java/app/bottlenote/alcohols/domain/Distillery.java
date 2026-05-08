@@ -40,7 +40,7 @@ public class Distillery extends BaseEntity {
   private String korName;
 
   @Comment("증류소 이미지 URL (S3 업로드 후 URL)")
-  @Column(name = "logo_img_url")
+  @Column(name = "image_url")
   private String imageUrl;
 
   @Builder.Default
