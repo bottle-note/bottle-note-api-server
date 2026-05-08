@@ -181,6 +181,67 @@ class AdminDistilleryIntegrationTest : IntegrationTestSupport() {
 	}
 
 	@Nested
+	@DisplayName("증류소 정렬 변경 API")
+	inner class UpdateSortOrder {
+		@Test
+		@DisplayName("정렬 순서를 변경할 수 있다")
+		fun updateSortOrderSuccess() {
+			val distillery = distilleryTestFactory.persistDistillery("쿨일라", "Caol Ila")
+			val request = mapOf("sortOrder" to 50)
+
+			assertThat(
+				mockMvcTester
+					.patch()
+					.uri("/distilleries/${distillery.id}/sort-order")
+					.header("Authorization", "Bearer $accessToken")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(request))
+			).hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.code")
+				.isEqualTo("DISTILLERY_SORT_ORDER_UPDATED")
+		}
+
+		@Test
+		@DisplayName("음수 정렬 값은 400 검증 에러를 반환한다")
+		fun updateSortOrderNegative() {
+			val distillery = distilleryTestFactory.persistDistillery("라프로익", "Laphroaig")
+			val request = mapOf("sortOrder" to -1)
+
+			assertThat(
+				mockMvcTester
+					.patch()
+					.uri("/distilleries/${distillery.id}/sort-order")
+					.header("Authorization", "Bearer $accessToken")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(request))
+			).hasStatus4xxClientError()
+				.bodyJson()
+				.extractingPath("$.errors[0].code")
+				.isEqualTo("DISTILLERY_SORT_ORDER_MINIMUM")
+		}
+
+		@Test
+		@DisplayName("sortOrder 누락 시 400 검증 에러를 반환한다")
+		fun updateSortOrderMissing() {
+			val distillery = distilleryTestFactory.persistDistillery("라가불린", "Lagavulin")
+			val request: Map<String, Any?> = mapOf("sortOrder" to null)
+
+			assertThat(
+				mockMvcTester
+					.patch()
+					.uri("/distilleries/${distillery.id}/sort-order")
+					.header("Authorization", "Bearer $accessToken")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(request))
+			).hasStatus4xxClientError()
+				.bodyJson()
+				.extractingPath("$.errors[0].code")
+				.isEqualTo("DISTILLERY_SORT_ORDER_REQUIRED")
+		}
+	}
+
+	@Nested
 	@DisplayName("증류소 삭제 API")
 	inner class DeleteDistillery {
 		@Test

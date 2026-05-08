@@ -29,6 +29,8 @@ public enum ValidExceptionCode implements ExceptionCode {
   // DISTILLERY
   DISTILLERY_KOR_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "증류소 한글 이름은 필수입니다."),
   DISTILLERY_ENG_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "증류소 영문 이름은 필수입니다."),
+  DISTILLERY_SORT_ORDER_REQUIRED(HttpStatus.BAD_REQUEST, "정렬 순서는 필수입니다."),
+  DISTILLERY_SORT_ORDER_MINIMUM(HttpStatus.BAD_REQUEST, "정렬 순서는 0 이상이어야 합니다."),
 
   // PICK,
   PICK_ID_REQUIRED(HttpStatus.BAD_REQUEST, "픽 식별자는 필수입니다."),

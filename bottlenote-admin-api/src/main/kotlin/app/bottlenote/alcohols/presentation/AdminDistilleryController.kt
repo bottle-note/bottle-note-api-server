@@ -1,5 +1,6 @@
 package app.bottlenote.alcohols.presentation
 
+import app.bottlenote.alcohols.dto.request.AdminDistillerySortOrderRequest
 import app.bottlenote.alcohols.dto.request.AdminDistilleryUpsertRequest
 import app.bottlenote.alcohols.dto.request.AdminReferenceSearchRequest
 import app.bottlenote.alcohols.service.AlcoholReferenceService
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
@@ -48,4 +50,10 @@ class AdminDistilleryController(
 	fun deleteDistillery(
 		@PathVariable distilleryId: Long
 	): ResponseEntity<*> = GlobalResponse.ok(distilleryService.delete(distilleryId))
+
+	@PatchMapping("/{distilleryId}/sort-order")
+	fun updateSortOrder(
+		@PathVariable distilleryId: Long,
+		@RequestBody @Valid request: AdminDistillerySortOrderRequest
+	): ResponseEntity<*> = GlobalResponse.ok(distilleryService.updateSortOrder(distilleryId, request))
 }

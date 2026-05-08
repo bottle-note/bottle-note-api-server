@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.domain.Distillery;
+import app.bottlenote.alcohols.dto.request.AdminDistillerySortOrderRequest;
 import app.bottlenote.alcohols.dto.request.AdminDistilleryUpsertRequest;
 import app.bottlenote.alcohols.dto.response.AdminDistilleryItem;
 import app.bottlenote.alcohols.exception.AlcoholException;
@@ -69,7 +70,7 @@ class DistilleryServiceTest {
     @DisplayName("유효한 요청으로 생성하면 DISTILLERY_CREATED 응답을 반환한다")
     void 유효한_요청으로_생성할_수_있다() {
       AdminDistilleryUpsertRequest request =
-          new AdminDistilleryUpsertRequest("토버모리", "Tobermory", null);
+          new AdminDistilleryUpsertRequest("토버모리", "Tobermory", null, 9999);
 
       AdminResultResponse result = distilleryService.create(request);
 
@@ -82,7 +83,7 @@ class DistilleryServiceTest {
     void 한글_이름_중복_시_예외가_발생한다() {
       distilleryRepository.save(DistilleryTestFactory.createDistillery("맥캘란", "Macallan"));
       AdminDistilleryUpsertRequest request =
-          new AdminDistilleryUpsertRequest("맥캘란", "Different", null);
+          new AdminDistilleryUpsertRequest("맥캘란", "Different", null, 9999);
 
       assertThatThrownBy(() -> distilleryService.create(request))
           .isInstanceOf(AlcoholException.class)
@@ -94,7 +95,7 @@ class DistilleryServiceTest {
     void 영문_이름_중복_시_예외가_발생한다() {
       distilleryRepository.save(DistilleryTestFactory.createDistillery("맥캘란", "Macallan"));
       AdminDistilleryUpsertRequest request =
-          new AdminDistilleryUpsertRequest("다른이름", "Macallan", null);
+          new AdminDistilleryUpsertRequest("다른이름", "Macallan", null, 9999);
 
       assertThatThrownBy(() -> distilleryService.create(request))
           .isInstanceOf(AlcoholException.class)
@@ -112,7 +113,7 @@ class DistilleryServiceTest {
       Distillery saved =
           distilleryRepository.save(DistilleryTestFactory.createDistillery("맥캘란", "Macallan"));
       AdminDistilleryUpsertRequest request =
-          new AdminDistilleryUpsertRequest("맥캘란 12", "Macallan 12", null);
+          new AdminDistilleryUpsertRequest("맥캘란 12", "Macallan 12", null, 9999);
 
       AdminResultResponse result = distilleryService.update(saved.getId(), request);
 
@@ -126,7 +127,7 @@ class DistilleryServiceTest {
     @DisplayName("존재하지 않는 ID로 수정하면 DISTILLERY_NOT_FOUND 예외가 발생한다")
     void 존재하지_않는_ID로_수정하면_예외가_발생한다() {
       AdminDistilleryUpsertRequest request =
-          new AdminDistilleryUpsertRequest("토버모리", "Tobermory", null);
+          new AdminDistilleryUpsertRequest("토버모리", "Tobermory", null, 9999);
 
       assertThatThrownBy(() -> distilleryService.update(999L, request))
           .isInstanceOf(AlcoholException.class)
@@ -140,7 +141,7 @@ class DistilleryServiceTest {
       Distillery target =
           distilleryRepository.save(DistilleryTestFactory.createDistillery("토버모리", "Tobermory"));
       AdminDistilleryUpsertRequest request =
-          new AdminDistilleryUpsertRequest("맥캘란", "Tobermory", null);
+          new AdminDistilleryUpsertRequest("맥캘란", "Tobermory", null, 9999);
 
       assertThatThrownBy(() -> distilleryService.update(target.getId(), request))
           .isInstanceOf(AlcoholException.class)
@@ -154,7 +155,7 @@ class DistilleryServiceTest {
           distilleryRepository.save(DistilleryTestFactory.createDistillery("맥캘란", "Macallan"));
       AdminDistilleryUpsertRequest request =
           new AdminDistilleryUpsertRequest(
-              "맥캘란", "Macallan", "https://cdn.example.com/distillery/macallan.jpg");
+              "맥캘란", "Macallan", "https://cdn.example.com/distillery/macallan.jpg", 9999);
 
       AdminResultResponse result = distilleryService.update(saved.getId(), request);
 
@@ -199,6 +200,97 @@ class DistilleryServiceTest {
       assertThatThrownBy(() -> distilleryService.delete(saved.getId()))
           .isInstanceOf(AlcoholException.class)
           .hasMessageContaining(AlcoholExceptionCode.DISTILLERY_HAS_ALCOHOLS.getMessage());
+    }
+  }
+
+  @Nested
+  @DisplayName("sortOrder 처리")
+  class SortOrder {
+
+    @Test
+    @DisplayName("create 시 sortOrder 가 충돌하면 같은 값 이상 다른 증류소를 +1 reorder 한다")
+    void create_reorder() {
+      Distillery a =
+          distilleryRepository.save(
+              Distillery.builder().korName("A").engName("A").sortOrder(10).build());
+      Distillery b =
+          distilleryRepository.save(
+              Distillery.builder().korName("B").engName("B").sortOrder(20).build());
+
+      AdminDistilleryUpsertRequest request =
+          new AdminDistilleryUpsertRequest("새이름", "NewName", null, 20);
+      distilleryService.create(request);
+
+      assertThat(distilleryRepository.findById(a.getId()).orElseThrow().getSortOrder())
+          .isEqualTo(10);
+      assertThat(distilleryRepository.findById(b.getId()).orElseThrow().getSortOrder())
+          .isEqualTo(21);
+    }
+
+    @Test
+    @DisplayName("update 시 같은 sortOrder 면 reorder 하지 않는다(no-op)")
+    void update_sameSortOrder_noOp() {
+      Distillery target =
+          distilleryRepository.save(
+              Distillery.builder().korName("타겟").engName("Target").sortOrder(50).build());
+
+      AdminDistilleryUpsertRequest request =
+          new AdminDistilleryUpsertRequest("타겟", "Target", null, 50);
+      distilleryService.update(target.getId(), request);
+
+      assertThat(distilleryRepository.findById(target.getId()).orElseThrow().getSortOrder())
+          .isEqualTo(50);
+    }
+
+    @Test
+    @DisplayName("updateSortOrder 는 같은 값 이상 다른 증류소를 +1 밀어내고 자기 값은 새 값으로 갱신한다")
+    void updateSortOrder_reordersOthers() {
+      Distillery a =
+          distilleryRepository.save(
+              Distillery.builder().korName("A").engName("A").sortOrder(10).build());
+      Distillery b =
+          distilleryRepository.save(
+              Distillery.builder().korName("B").engName("B").sortOrder(20).build());
+      Distillery target =
+          distilleryRepository.save(
+              Distillery.builder().korName("T").engName("T").sortOrder(100).build());
+
+      AdminResultResponse result =
+          distilleryService.updateSortOrder(
+              target.getId(), new AdminDistillerySortOrderRequest(20));
+
+      assertThat(result.code()).isEqualTo("DISTILLERY_SORT_ORDER_UPDATED");
+      assertThat(distilleryRepository.findById(target.getId()).orElseThrow().getSortOrder())
+          .isEqualTo(20);
+      assertThat(distilleryRepository.findById(b.getId()).orElseThrow().getSortOrder())
+          .isEqualTo(21);
+      assertThat(distilleryRepository.findById(a.getId()).orElseThrow().getSortOrder())
+          .isEqualTo(10);
+    }
+
+    @Test
+    @DisplayName("updateSortOrder 동일값이면 변경 없음(no-op)")
+    void updateSortOrder_sameValue_noOp() {
+      Distillery target =
+          distilleryRepository.save(
+              Distillery.builder().korName("T").engName("T").sortOrder(50).build());
+
+      distilleryService.updateSortOrder(target.getId(), new AdminDistillerySortOrderRequest(50));
+
+      assertThat(distilleryRepository.findById(target.getId()).orElseThrow().getSortOrder())
+          .isEqualTo(50);
+    }
+
+    @Test
+    @DisplayName("create 의 sortOrder 미입력 시 default 9999 가 적용된다")
+    void create_defaultSortOrder() {
+      AdminDistilleryUpsertRequest request =
+          AdminDistilleryUpsertRequest.builder().korName("기본").engName("Default").build();
+
+      AdminResultResponse result = distilleryService.create(request);
+
+      assertThat(distilleryRepository.findById(result.targetId()).orElseThrow().getSortOrder())
+          .isEqualTo(9999);
     }
   }
 }

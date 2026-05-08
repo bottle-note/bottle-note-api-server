@@ -5,15 +5,18 @@ import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.DISTILLERY_
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.DISTILLERY_NOT_FOUND;
 import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.DISTILLERY_CREATED;
 import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.DISTILLERY_DELETED;
+import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.DISTILLERY_SORT_ORDER_UPDATED;
 import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.DISTILLERY_UPDATED;
 
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.domain.Distillery;
 import app.bottlenote.alcohols.domain.DistilleryRepository;
+import app.bottlenote.alcohols.dto.request.AdminDistillerySortOrderRequest;
 import app.bottlenote.alcohols.dto.request.AdminDistilleryUpsertRequest;
 import app.bottlenote.alcohols.dto.response.AdminDistilleryItem;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.global.dto.response.AdminResultResponse;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -43,11 +46,14 @@ public class DistilleryService {
       throw new AlcoholException(DISTILLERY_DUPLICATE_NAME);
     }
 
+    reorderSortOrders(request.sortOrder(), null);
+
     Distillery distillery =
         Distillery.builder()
             .korName(request.korName())
             .engName(request.engName())
             .imageUrl(request.imageUrl())
+            .sortOrder(request.sortOrder())
             .build();
 
     Distillery saved = distilleryRepository.save(distillery);
@@ -66,7 +72,12 @@ public class DistilleryService {
       throw new AlcoholException(DISTILLERY_DUPLICATE_NAME);
     }
 
-    distillery.update(request.korName(), request.engName(), request.imageUrl());
+    if (!distillery.getSortOrder().equals(request.sortOrder())) {
+      reorderSortOrders(request.sortOrder(), distilleryId);
+    }
+
+    distillery.update(
+        request.korName(), request.engName(), request.imageUrl(), request.sortOrder());
 
     return AdminResultResponse.of(DISTILLERY_UPDATED, distilleryId);
   }
@@ -86,6 +97,33 @@ public class DistilleryService {
     return AdminResultResponse.of(DISTILLERY_DELETED, distilleryId);
   }
 
+  @Transactional
+  public AdminResultResponse updateSortOrder(
+      Long distilleryId, AdminDistillerySortOrderRequest request) {
+    Distillery distillery =
+        distilleryRepository
+            .findById(distilleryId)
+            .orElseThrow(() -> new AlcoholException(DISTILLERY_NOT_FOUND));
+
+    if (!distillery.getSortOrder().equals(request.sortOrder())) {
+      reorderSortOrders(request.sortOrder(), distilleryId);
+    }
+
+    distillery.updateSortOrder(request.sortOrder());
+    return AdminResultResponse.of(DISTILLERY_SORT_ORDER_UPDATED, distilleryId);
+  }
+
+  private void reorderSortOrders(Integer newSortOrder, Long excludeDistilleryId) {
+    if (newSortOrder == null) {
+      return;
+    }
+    List<Distillery> conflicting =
+        distilleryRepository.findAllBySortOrderGreaterThanEqual(newSortOrder);
+    conflicting.stream()
+        .filter(d -> excludeDistilleryId == null || !d.getId().equals(excludeDistilleryId))
+        .forEach(d -> d.updateSortOrder(d.getSortOrder() + 1));
+  }
+
   private AdminDistilleryItem toAdminDistilleryItem(Distillery d) {
     return new AdminDistilleryItem(
         d.getId(),
@@ -93,6 +131,7 @@ public class DistilleryService {
         d.getEngName(),
         d.getImageUrl(),
         d.getCreateAt(),
-        d.getLastModifyAt());
+        d.getLastModifyAt(),
+        d.getSortOrder());
   }
 }
