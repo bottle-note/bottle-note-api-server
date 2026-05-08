@@ -23,6 +23,7 @@ public record AdminResultResponse(String code, String message, Long targetId, St
     DISTILLERY_CREATED("증류소가 등록되었습니다."),
     DISTILLERY_UPDATED("증류소가 수정되었습니다."),
     DISTILLERY_DELETED("증류소가 삭제되었습니다."),
+    DISTILLERY_SORT_ORDER_UPDATED("증류소 정렬 순서가 변경되었습니다."),
     TASTING_TAG_CREATED("테이스팅 태그가 등록되었습니다."),
     TASTING_TAG_UPDATED("테이스팅 태그가 수정되었습니다."),
     TASTING_TAG_DELETED("테이스팅 태그가 삭제되었습니다."),

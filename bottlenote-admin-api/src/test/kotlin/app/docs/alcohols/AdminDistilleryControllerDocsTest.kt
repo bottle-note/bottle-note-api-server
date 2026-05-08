@@ -1,5 +1,6 @@
 package app.docs.alcohols
 
+import app.bottlenote.alcohols.dto.request.AdminDistillerySortOrderRequest
 import app.bottlenote.alcohols.dto.request.AdminDistilleryUpsertRequest
 import app.bottlenote.alcohols.dto.request.AdminReferenceSearchRequest
 import app.bottlenote.alcohols.dto.response.AdminDistilleryItem
@@ -116,7 +117,8 @@ class AdminDistilleryControllerDocsTest {
 			"Macallan",
 			"https://example.com/logo.png",
 			LocalDateTime.now(),
-			LocalDateTime.now()
+			LocalDateTime.now(),
+			9999
 		)
 		given(distilleryService.getDetail(anyLong())).willReturn(item)
 
@@ -207,6 +209,33 @@ class AdminDistilleryControllerDocsTest {
 						fieldWithPath("korName").type(JsonFieldType.STRING).description("증류소 한글명 (필수)"),
 						fieldWithPath("engName").type(JsonFieldType.STRING).description("증류소 영문명 (필수)"),
 						fieldWithPath("imageUrl").type(JsonFieldType.STRING).description("증류소 이미지 URL (S3 업로드 후 받은 URL)").optional()
+					),
+					responseFields(cudResponseFields())
+				)
+			)
+	}
+
+	@Test
+	@DisplayName("증류소 정렬 순서를 변경할 수 있다")
+	fun updateDistillerySortOrder() {
+		val result = AdminResultResponse.of(ResultCode.DISTILLERY_SORT_ORDER_UPDATED, 1L)
+		given(distilleryService.updateSortOrder(anyLong(), any(AdminDistillerySortOrderRequest::class.java)))
+			.willReturn(result)
+		val request = mapOf("sortOrder" to 5)
+
+		assertThat(
+			mvc.patch().uri("/distilleries/{distilleryId}/sort-order", 1L)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsString(request))
+		).hasStatusOk()
+			.apply(
+				document(
+					"admin/distilleries/update-sort-order",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					pathParameters(parameterWithName("distilleryId").description("증류소 ID")),
+					requestFields(
+						fieldWithPath("sortOrder").type(JsonFieldType.NUMBER).description("새 정렬 순서 (0 이상, 충돌 시 같은 값 이상 다른 증류소가 +1 reorder)")
 					),
 					responseFields(cudResponseFields())
 				)

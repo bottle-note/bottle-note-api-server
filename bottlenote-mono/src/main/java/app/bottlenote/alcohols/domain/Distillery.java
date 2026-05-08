@@ -52,9 +52,14 @@ public class Distillery extends BaseEntity {
   @OneToMany(mappedBy = "distillery")
   private List<Alcohol> alcohol = new ArrayList<>();
 
-  public void update(String korName, String engName, String imageUrl) {
+  public void update(String korName, String engName, String imageUrl, Integer sortOrder) {
     this.korName = korName;
     this.engName = engName;
     this.imageUrl = imageUrl;
+    this.sortOrder = sortOrder != null ? sortOrder : 9999;
+  }
+
+  public void updateSortOrder(int sortOrder) {
+    this.sortOrder = sortOrder;
   }
 }

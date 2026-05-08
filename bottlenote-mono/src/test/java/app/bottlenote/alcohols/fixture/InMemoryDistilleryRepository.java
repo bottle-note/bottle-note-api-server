@@ -82,6 +82,11 @@ public class InMemoryDistilleryRepository implements DistilleryRepository {
         .anyMatch(d -> Objects.equals(d.getEngName(), engName) && !Objects.equals(d.getId(), id));
   }
 
+  @Override
+  public List<Distillery> findAllBySortOrderGreaterThanEqual(int sortOrder) {
+    return distilleries.stream().filter(d -> d.getSortOrder() >= sortOrder).toList();
+  }
+
   public void clear() {
     distilleries.clear();
   }
@@ -93,6 +98,7 @@ public class InMemoryDistilleryRepository implements DistilleryRepository {
         d.getEngName(),
         d.getImageUrl(),
         d.getCreateAt(),
-        d.getLastModifyAt());
+        d.getLastModifyAt(),
+        d.getSortOrder());
   }
 }
