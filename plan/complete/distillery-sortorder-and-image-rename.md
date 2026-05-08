@@ -1,3 +1,29 @@
+```
+================================================================================
+                          PROJECT COMPLETION STAMP
+================================================================================
+Status: **COMPLETED**
+Completion Date: 2026-05-08
+
+** Core Achievements **
+- 어드민 Distillery sortOrder 3-채널(생성·수정 DTO 필드 + PATCH /sort-order) 보강
+- Banner/Region 표준 일치: 자동 reorder + korName ASC 보조 정렬, default 9999
+- ValidExceptionCode 2건 + ResultCode 1건(DISTILLERY_SORT_ORDER_UPDATED) 추가
+- 단위 17 + 통합 12 + RestDocs 6 PASSED, admin_integration 171/171 회귀 0
+- DB 컬럼 logo_img_url → image_url rename 은 별도 작업으로 분리(사용자 main 처리)
+
+** Key Components **
+- bottlenote-admin-api/.../alcohols/presentation/AdminDistilleryController.kt 의 PATCH /sort-order
+- bottlenote-mono/.../alcohols/service/DistilleryService.java 의 reorderSortOrders + updateSortOrder
+- Distillery.update(...) 시그니처 확장 + updateSortOrder(int) 신설
+- DistilleryRepository.findAllBySortOrderGreaterThanEqual + JPQL ORDER BY 정렬 보정
+- DTO: AdminDistilleryUpsertRequest(sortOrder 추가), AdminDistillerySortOrderRequest 신규
+
+** Related **
+- PR #578 (rebased to linear) → main merge: a7bf0ab4, f374c118, a812ca6c, 61b5f7da, f385855b
+================================================================================
+```
+
 # Plan: Distillery sortOrder 입력 채널 보강
 
 ## Overview
