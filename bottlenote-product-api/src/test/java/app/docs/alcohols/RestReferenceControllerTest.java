@@ -1,18 +1,5 @@
 package app.docs.alcohols;
 
-import app.bottlenote.alcohols.controller.AlcoholReferenceController;
-import app.bottlenote.alcohols.dto.response.CategoryItem;
-import app.bottlenote.alcohols.dto.response.RegionsItem;
-import app.bottlenote.alcohols.fixture.AlcoholQueryFixture;
-import app.bottlenote.alcohols.service.AlcoholReferenceService;
-import app.docs.AbstractRestDocs;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.restdocs.payload.JsonFieldType;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
-import java.util.List;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -24,6 +11,18 @@ import static org.springframework.restdocs.request.RequestDocumentation.queryPar
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import app.bottlenote.alcohols.controller.AlcoholReferenceController;
+import app.bottlenote.alcohols.dto.response.CategoryItem;
+import app.bottlenote.alcohols.dto.response.RegionsItem;
+import app.bottlenote.alcohols.fixture.AlcoholQueryFixture;
+import app.bottlenote.alcohols.service.AlcoholReferenceService;
+import app.docs.AbstractRestDocs;
+import java.util.List;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.restdocs.payload.JsonFieldType;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 @DisplayName("알코올 참조 컨트롤러 RestDocs용 테스트")
 class RestReferenceControllerTest extends AbstractRestDocs {

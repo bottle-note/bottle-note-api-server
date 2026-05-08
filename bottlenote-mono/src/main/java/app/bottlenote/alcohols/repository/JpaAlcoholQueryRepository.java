@@ -26,4 +26,7 @@ public interface JpaAlcoholQueryRepository
 
   @Query("SELECT COUNT(a) > 0 FROM alcohol a WHERE a.id = :alcoholId")
   Boolean existsByAlcoholId(@Param("alcoholId") Long alcoholId);
+
+  @Query("SELECT COUNT(a) > 0 FROM alcohol a WHERE a.distillery.id = :distilleryId")
+  Boolean existsByDistilleryId(@Param("distilleryId") Long distilleryId);
 }

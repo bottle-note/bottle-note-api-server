@@ -8,15 +8,14 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
 @Builder
@@ -40,9 +39,9 @@ public class Distillery extends BaseEntity {
   @Column(name = "kor_name", nullable = false)
   private String korName;
 
-  @Comment("증류소 로고 이미지 경로")
-  @Column(name = "logo_img_url")
-  private String logoImgPath;
+  @Comment("증류소 이미지 URL (S3 업로드 후 URL)")
+  @Column(name = "image_url")
+  private String imageUrl;
 
   @Builder.Default
   @Comment("정렬 순서 (미설정: 9999)")
@@ -52,4 +51,15 @@ public class Distillery extends BaseEntity {
   @Builder.Default
   @OneToMany(mappedBy = "distillery")
   private List<Alcohol> alcohol = new ArrayList<>();
+
+  public void update(String korName, String engName, String imageUrl, Integer sortOrder) {
+    this.korName = korName;
+    this.engName = engName;
+    this.imageUrl = imageUrl;
+    this.sortOrder = sortOrder != null ? sortOrder : 9999;
+  }
+
+  public void updateSortOrder(int sortOrder) {
+    this.sortOrder = sortOrder;
+  }
 }

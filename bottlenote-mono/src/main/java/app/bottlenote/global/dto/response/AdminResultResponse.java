@@ -20,6 +20,10 @@ public record AdminResultResponse(String code, String message, Long targetId, St
     ALCOHOL_CREATED("위스키가 등록되었습니다."),
     ALCOHOL_UPDATED("위스키가 수정되었습니다."),
     ALCOHOL_DELETED("위스키가 삭제되었습니다."),
+    DISTILLERY_CREATED("증류소가 등록되었습니다."),
+    DISTILLERY_UPDATED("증류소가 수정되었습니다."),
+    DISTILLERY_DELETED("증류소가 삭제되었습니다."),
+    DISTILLERY_SORT_ORDER_UPDATED("증류소 정렬 순서가 변경되었습니다."),
     TASTING_TAG_CREATED("테이스팅 태그가 등록되었습니다."),
     TASTING_TAG_UPDATED("테이스팅 태그가 수정되었습니다."),
     TASTING_TAG_DELETED("테이스팅 태그가 삭제되었습니다."),
@@ -37,6 +41,10 @@ public record AdminResultResponse(String code, String message, Long targetId, St
     BANNER_DELETED("배너가 삭제되었습니다."),
     BANNER_STATUS_UPDATED("배너 활성화 상태가 변경되었습니다."),
     BANNER_SORT_ORDER_UPDATED("배너 정렬 순서가 변경되었습니다."),
+    REGION_CREATED("지역이 등록되었습니다."),
+    REGION_UPDATED("지역이 수정되었습니다."),
+    REGION_DELETED("지역이 삭제되었습니다."),
+    REGION_SORT_ORDER_UPDATED("지역 정렬 순서가 변경되었습니다."),
     ;
 
     private final String message;

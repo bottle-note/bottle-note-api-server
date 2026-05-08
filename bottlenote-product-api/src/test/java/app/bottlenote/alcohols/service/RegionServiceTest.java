@@ -1,7 +1,10 @@
 package app.bottlenote.alcohols.service;
 
+import static org.mockito.Mockito.when;
+
 import app.bottlenote.alcohols.dto.response.RegionsItem;
 import app.bottlenote.alcohols.repository.JpaRegionQueryRepository;
+import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -10,10 +13,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
-
-import static org.mockito.Mockito.when;
 
 @Tag("unit")
 @DisplayName("[unit] [service] RegionService")

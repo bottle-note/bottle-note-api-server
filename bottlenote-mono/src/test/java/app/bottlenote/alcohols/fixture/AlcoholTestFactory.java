@@ -77,7 +77,7 @@ public class AlcoholTestFactory {
         Distillery.builder()
             .korName("맥캘란-" + generateRandomSuffix())
             .engName("Macallan-" + generateRandomSuffix())
-            .logoImgPath("https://example.com/macallan-logo.jpg")
+            .imageUrl("https://example.com/macallan-logo.jpg")
             .build();
     em.persist(distillery);
     em.flush();
@@ -333,7 +333,7 @@ public class AlcoholTestFactory {
         Distillery.builder()
             .korName("맥캘란-" + generateRandomSuffix())
             .engName("Macallan-" + generateRandomSuffix())
-            .logoImgPath("https://example.com/macallan-logo.jpg")
+            .imageUrl("https://example.com/macallan-logo.jpg")
             .build();
     em.persist(distillery);
     return distillery;
