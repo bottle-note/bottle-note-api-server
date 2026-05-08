@@ -1,3 +1,28 @@
+```
+================================================================================
+                          PROJECT COMPLETION STAMP
+================================================================================
+Status: **COMPLETED** (간접 해결)
+Completion Date: 2026-05-08
+
+** Core Achievements **
+- 본 plan 의 직접 구현 대신 둘러보기(explore) API 보강 작업이 동일 성능 우려 영역을 자연스럽게 흡수
+- explore 측 쿼리 최적화·서브쿼리 축소·커서 핸들링 개선이 위스키 검색 경로에도 동일 효과
+- RANDOM seed + id tiebreaker 도입으로 결과 안정성 동시 개선
+
+** 자연 해소 경로 **
+- main commits: b2ddbc0e refactor: optimize alcohol query with reduced subqueries and improved cursor handling
+- f93fbdcb feat: support sortType/sortOrder in explore with two-stage structure guard
+- 7229ba9e feat: add filter/sort helpers to AlcoholQuerySupporter
+- 24b7642e feat: add reviewCount and pickCount to AlcoholDetailItem
+- bd20db5e refactor: simplify explore API return type
+
+** Note **
+- 별도 Phase 1~3 (성능 측정 → 테이블/엔티티 → 배치 Job) 추진 없이 종결
+- 향후 정량 측정 필요 시 별도 plan 으로 재개
+================================================================================
+```
+
 # 위스키 검색 API 성능 개선 계획
 
 ## 1. 개요

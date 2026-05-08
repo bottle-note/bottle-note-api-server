@@ -7,6 +7,8 @@ public enum AlcoholExceptionCode implements ExceptionCode {
   ALCOHOL_NOT_FOUND(HttpStatus.NOT_FOUND, "위스키를 찾을 수 없습니다."),
   REGION_NOT_FOUND(HttpStatus.NOT_FOUND, "지역을 찾을 수 없습니다."),
   DISTILLERY_NOT_FOUND(HttpStatus.NOT_FOUND, "증류소를 찾을 수 없습니다."),
+  DISTILLERY_DUPLICATE_NAME(HttpStatus.CONFLICT, "동일한 이름의 증류소가 이미 존재합니다."),
+  DISTILLERY_HAS_ALCOHOLS(HttpStatus.CONFLICT, "연관된 위스키가 존재하는 증류소는 삭제할 수 없습니다."),
   ALCOHOL_HAS_REVIEWS(HttpStatus.CONFLICT, "리뷰가 존재하는 위스키는 삭제할 수 없습니다."),
   ALCOHOL_HAS_RATINGS(HttpStatus.CONFLICT, "평점이 존재하는 위스키는 삭제할 수 없습니다."),
   ALCOHOL_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "이미 삭제된 위스키입니다."),
@@ -18,7 +20,14 @@ public enum AlcoholExceptionCode implements ExceptionCode {
   TASTING_TAG_MAX_DEPTH_EXCEEDED(HttpStatus.BAD_REQUEST, "태그 계층 구조는 최대 3단계까지 가능합니다."),
   CURATION_NOT_FOUND(HttpStatus.NOT_FOUND, "큐레이션을 찾을 수 없습니다."),
   CURATION_DUPLICATE_NAME(HttpStatus.CONFLICT, "동일한 이름의 큐레이션이 이미 존재합니다."),
-  CURATION_ALCOHOL_NOT_INCLUDED(HttpStatus.BAD_REQUEST, "해당 위스키가 큐레이션에 포함되어 있지 않습니다.");
+  CURATION_ALCOHOL_NOT_INCLUDED(HttpStatus.BAD_REQUEST, "해당 위스키가 큐레이션에 포함되어 있지 않습니다."),
+  REGION_DUPLICATE_KOR_NAME(HttpStatus.CONFLICT, "동일한 한글 이름의 지역이 이미 존재합니다."),
+  REGION_DUPLICATE_ENG_NAME(HttpStatus.CONFLICT, "동일한 영문 이름의 지역이 이미 존재합니다."),
+  REGION_HAS_CHILDREN(HttpStatus.CONFLICT, "자식 지역이 존재하는 지역은 삭제할 수 없습니다."),
+  REGION_HAS_ALCOHOLS(HttpStatus.CONFLICT, "연결된 위스키가 존재하는 지역은 삭제할 수 없습니다."),
+  REGION_PARENT_NOT_FOUND(HttpStatus.NOT_FOUND, "부모 지역을 찾을 수 없습니다."),
+  REGION_PARENT_CYCLE(HttpStatus.BAD_REQUEST, "자기 자신 또는 하위 지역을 부모로 지정할 수 없습니다."),
+  REGION_MAX_DEPTH_EXCEEDED(HttpStatus.BAD_REQUEST, "지역 계층 구조는 최대 2단계까지 가능합니다.");
 
   private final HttpStatus httpStatus;
   private final String message;

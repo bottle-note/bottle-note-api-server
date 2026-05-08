@@ -26,6 +26,12 @@ public enum ValidExceptionCode implements ExceptionCode {
   ALCOHOL_ID_REQUIRED(HttpStatus.BAD_REQUEST, "알코올 식별자는 필수입니다."),
   ALCOHOL_ID_MINIMUM(HttpStatus.BAD_REQUEST, "알코올 식별자는 최소 1 이상 이어야 합니다."),
 
+  // DISTILLERY
+  DISTILLERY_KOR_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "증류소 한글 이름은 필수입니다."),
+  DISTILLERY_ENG_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "증류소 영문 이름은 필수입니다."),
+  DISTILLERY_SORT_ORDER_REQUIRED(HttpStatus.BAD_REQUEST, "정렬 순서는 필수입니다."),
+  DISTILLERY_SORT_ORDER_MINIMUM(HttpStatus.BAD_REQUEST, "정렬 순서는 0 이상이어야 합니다."),
+
   // PICK,
   PICK_ID_REQUIRED(HttpStatus.BAD_REQUEST, "픽 식별자는 필수입니다."),
   IS_PICKED_REQUIRED(HttpStatus.BAD_REQUEST, "픽 여부는 필수입니다."),
@@ -90,7 +96,13 @@ public enum ValidExceptionCode implements ExceptionCode {
   BANNER_TYPE_REQUIRED(HttpStatus.BAD_REQUEST, "배너 유형은 필수입니다."),
   BANNER_SORT_ORDER_REQUIRED(HttpStatus.BAD_REQUEST, "정렬 순서는 필수입니다."),
   BANNER_SORT_ORDER_MINIMUM(HttpStatus.BAD_REQUEST, "정렬 순서는 0 이상이어야 합니다."),
-  BANNER_IS_ACTIVE_REQUIRED(HttpStatus.BAD_REQUEST, "활성화 상태는 필수입니다.");
+  BANNER_IS_ACTIVE_REQUIRED(HttpStatus.BAD_REQUEST, "활성화 상태는 필수입니다."),
+
+  // REGION
+  REGION_KOR_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "지역 한글명은 필수입니다."),
+  REGION_ENG_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "지역 영문명은 필수입니다."),
+  REGION_SORT_ORDER_REQUIRED(HttpStatus.BAD_REQUEST, "정렬 순서는 필수입니다."),
+  REGION_SORT_ORDER_MINIMUM(HttpStatus.BAD_REQUEST, "정렬 순서는 0 이상이어야 합니다.");
 
   private final HttpStatus httpStatus;
   private String message;

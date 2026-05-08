@@ -1,3 +1,25 @@
+```
+================================================================================
+                          PROJECT COMPLETION STAMP
+================================================================================
+Status: **COMPLETED**
+Completion Date: 2026-05-08
+
+** Core Achievements **
+- product/admin API 의 Distillery·Region 응답 DTO 에 sortOrder 필드 노출
+- JpaDistilleryRepository / JpaRegionQueryRepository JPQL select 절에 sortOrder 추가
+- RestDocs 응답 필드 문서화 갱신
+- 데이터베이스/엔티티 변경 없이 응답 직렬화만 보강
+
+** Key Components **
+- AdminDistilleryItem, AdminRegionItem, RegionsItem DTO sortOrder 필드 추가
+- JpaDistilleryRepository.findAllDistilleries / JpaRegionQueryRepository JPQL 변경
+
+** Related **
+- main commits: 2257a428 feat: Add default sort order field..., 8b6da61c feat: Expose sortOrder in Region and Distillery API responses
+================================================================================
+```
+
 # Plan: Distillery/Region 응답에 sortOrder 노출
 
 ## Overview

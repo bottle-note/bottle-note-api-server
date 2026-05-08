@@ -1,3 +1,26 @@
+```
+================================================================================
+                          PROJECT COMPLETION STAMP
+================================================================================
+Status: **COMPLETED**
+Completion Date: 2026-05-08
+
+** Core Achievements **
+- 둘러보기 RANDOM 정렬에 seed 파라미터 지원 — ORDER BY RAND(:seed) + id tiebreaker 로 페이지 간 중복/누락 제거
+- seed 미전송 시 서버에서 Long 값 생성, 응답 meta.seed 에 에코하여 클라이언트가 동일 시퀀스 재요청 가능
+- RestDocs 통합 시나리오 5건, RANDOM seed 통합 테스트 5건 추가
+
+** Key Components **
+- ExploreStandardRequest/Criteria 에 seed 필드 추가
+- AlcoholQuerySupporter 에 RANDOM seed 바인딩 헬퍼
+- AlcoholExploreController 응답 meta 에 seed 에코
+
+** Related **
+- main commits: 6a96d825 feat: explore 요청에 RANDOM seed 파라미터 필드 추가, ce839430 feat: RANDOM 정렬에 seed 바인딩과 id tiebreaker 적용, abb79265 feat: 둘러보기 서비스에 RANDOM seed 생성..., 5902227f test:..., 51e05930 docs:..., 4c44e626 docs: explore RANDOM seed plan 문서 추가
+- 직전 archive 시도(9ebfd1f5)는 미반영 상태로 본 stamp 로 정식 완료 처리
+================================================================================
+```
+
 # Plan: explore RANDOM 정렬 seed 파라미터 지원
 
 ## Overview

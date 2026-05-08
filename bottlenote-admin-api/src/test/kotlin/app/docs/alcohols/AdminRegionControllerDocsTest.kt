@@ -2,6 +2,7 @@ package app.docs.alcohols
 
 import app.bottlenote.alcohols.dto.request.AdminReferenceSearchRequest
 import app.bottlenote.alcohols.presentation.AdminRegionController
+import app.bottlenote.alcohols.service.AdminRegionService
 import app.bottlenote.alcohols.service.AlcoholReferenceService
 import app.bottlenote.global.data.response.GlobalResponse
 import app.helper.alcohols.AlcoholsHelper
@@ -38,6 +39,9 @@ class AdminRegionControllerDocsTest {
 
 	@MockitoBean
 	private lateinit var alcoholReferenceService: AlcoholReferenceService
+
+	@MockitoBean
+	private lateinit var adminRegionService: AdminRegionService
 
 	@Test
 	@DisplayName("지역 목록을 조회할 수 있다")

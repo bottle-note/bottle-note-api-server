@@ -19,4 +19,22 @@ public interface RegionRepository {
   List<Long> findChildRegionIds(Long parentId);
 
   List<Long> findChildRegionIdsIn(Collection<Long> parentIds);
+
+  Region save(Region region);
+
+  void delete(Region region);
+
+  boolean existsByKorName(String korName);
+
+  boolean existsByEngName(String engName);
+
+  boolean existsByKorNameAndIdNot(String korName, Long id);
+
+  boolean existsByEngNameAndIdNot(String engName, Long id);
+
+  List<Region> findAllBySortOrderGreaterThanEqual(int sortOrder);
+
+  boolean existsAlcoholByRegionId(Long regionId);
+
+  long countAlcoholsByRegionId(Long regionId);
 }
