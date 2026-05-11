@@ -290,6 +290,7 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
       result.assertThat().hasStatusOk();
       Review savedReview = reviewRepository.findById(reviewId).orElseThrow();
       assertEquals(savedReview.getContent(), request.content());
+      assertEquals(request.rating(), savedReview.getReviewRating());
     }
 
     @DisplayName("content와 status를 제외한 필드에 null이 할당되어도 수정에 성공한다.")

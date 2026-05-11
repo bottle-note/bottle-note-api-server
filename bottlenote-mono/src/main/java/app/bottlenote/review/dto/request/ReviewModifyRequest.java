@@ -26,4 +26,9 @@ public record ReviewModifyRequest(
     @JsonInclude() @JsonProperty(required = true) List<ReviewImageInfoRequest> imageUrlList,
     @JsonInclude() @JsonProperty(required = true) SizeType sizeType,
     @JsonInclude() @JsonProperty(required = true) List<String> tastingTagList,
-    @Valid @JsonInclude() @JsonProperty(required = true) LocationInfoRequest locationInfo) {}
+    @Valid @JsonInclude() @JsonProperty(required = true) LocationInfoRequest locationInfo,
+    Double rating) {
+  public ReviewModifyRequest {
+    rating = rating == null ? 0.0 : rating;
+  }
+}

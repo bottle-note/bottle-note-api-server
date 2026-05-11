@@ -110,6 +110,7 @@ public class Review extends BaseEntity {
     this.content = reviewModifyRequestWrapperItem.getContent();
     this.sizeType = reviewModifyRequestWrapperItem.getSizeType();
     this.price = reviewModifyRequestWrapperItem.getPrice();
+    this.reviewRating = reviewModifyRequestWrapperItem.getRating();
     LocationInfoRequest locationInfoRequest = reviewModifyRequestWrapperItem.getLocationInfo();
     if (!Objects.isNull(locationInfoRequest)) {
       this.reviewLocation =

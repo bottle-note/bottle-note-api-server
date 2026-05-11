@@ -1,5 +1,6 @@
 package app.bottlenote.review.dto.request;
 
+import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.constant.SizeType;
 import java.math.BigDecimal;
@@ -13,6 +14,7 @@ public class ReviewModifyRequestWrapperItem {
   private final BigDecimal price;
   private final SizeType sizeType;
   private final LocationInfoRequest locationInfo;
+  private final Double rating;
 
   public ReviewModifyRequestWrapperItem(
       app.bottlenote.review.dto.request.ReviewModifyRequest reviewModifyRequest) {
@@ -22,6 +24,7 @@ public class ReviewModifyRequestWrapperItem {
     this.sizeType = reviewModifyRequest.sizeType();
     this.locationInfo =
         Objects.requireNonNullElse(reviewModifyRequest.locationInfo(), LocationInfoRequest.empty());
+    this.rating = RatingPoint.of(reviewModifyRequest.rating()).getRating();
   }
 
   public static ReviewModifyRequestWrapperItem create(

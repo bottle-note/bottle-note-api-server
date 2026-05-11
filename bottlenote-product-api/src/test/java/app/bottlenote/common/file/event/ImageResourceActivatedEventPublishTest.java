@@ -123,7 +123,7 @@ class ImageResourceActivatedEventPublishTest {
           List.of(new ReviewImageInfoRequest(1L, "https://cdn.bottlenote.com/review/new-img.jpg"));
       ReviewModifyRequest modifyRequest =
           new ReviewModifyRequest(
-              "수정된 내용", null, null, newImages, null, null, LocationInfoRequest.empty());
+              "수정된 내용", null, null, newImages, null, null, LocationInfoRequest.empty(), null);
 
       // when
       reviewService.modifyReview(modifyRequest, createResponse.getId(), 1L);

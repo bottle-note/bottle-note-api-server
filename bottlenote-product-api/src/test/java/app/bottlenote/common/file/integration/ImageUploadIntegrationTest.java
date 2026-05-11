@@ -521,7 +521,8 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
                   new ReviewImageInfoRequest(2L, newImageUrl)),
               null,
               null,
-              createTestLocationInfo());
+              createTestLocationInfo(),
+              null);
 
       // when
       MvcTestResult modifyResult =
@@ -642,7 +643,8 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
               List.of(new ReviewImageInfoRequest(1L, imageUrl1)),
               null,
               null,
-              createTestLocationInfo());
+              createTestLocationInfo(),
+              null);
 
       // when
       mockMvcTester
@@ -885,7 +887,8 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
               List.of(new ReviewImageInfoRequest(1L, newImageUrl)),
               null,
               null,
-              createTestLocationInfo());
+              createTestLocationInfo(),
+              null);
 
       // when
       mockMvcTester
