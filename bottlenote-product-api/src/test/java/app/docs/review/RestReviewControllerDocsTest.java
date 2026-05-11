@@ -532,7 +532,8 @@ class RestReviewControllerDocsTest extends AbstractRestDocs {
                     fieldWithPath("imageUrlList").type(ARRAY).description("이미지 URL 목록"),
                     fieldWithPath("imageUrlList[].order").type(NUMBER).description("이미지 순서"),
                     fieldWithPath("imageUrlList[].viewUrl").type(STRING).description("이미지 뷰 URL"),
-                    fieldWithPath("tastingTagList").description("테이스팅 태그 목록 (최대 15개)").optional()),
+                    fieldWithPath("tastingTagList").description("테이스팅 태그 목록 (최대 15개)").optional(),
+                    fieldWithPath("rating").type(NUMBER).description("리뷰 시점 별점").optional()),
                 responseFields(
                     fieldWithPath("success").description("응답 성공 여부"),
                     fieldWithPath("code").description("응답 코드(http status code)"),
