@@ -148,7 +148,7 @@ spring:
 logging:
   level:
     root: info
-    app.bottlenote: warn
+    app.bottlenote: info
 
 server:
   tomcat:
