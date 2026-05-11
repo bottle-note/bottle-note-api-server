@@ -1,10 +1,10 @@
 name: Version Tag Sync
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '**/VERSION'
+#  push:
+#    branches: [main]
+#    paths:
+#      - '**/VERSION'
 
 concurrency:
   group: version-tag-sync
