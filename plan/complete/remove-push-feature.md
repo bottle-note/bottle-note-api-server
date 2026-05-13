@@ -1,5 +1,29 @@
 # Plan: 푸시 기능 제거
 
+================================================================================
+                          PROJECT COMPLETION STAMP
+================================================================================
+Status: **COMPLETED**
+Completion Date: 2026-05-14
+
+** Core Achievements **
+- product-api의 `/api/v1/external/push/**` API 2개를 제거했다.
+- mono의 Firebase FCM 초기화/전송 계층과 디바이스 토큰 저장 계층을 제거했다.
+- `firebase-admin` Gradle 의존성과 product/admin/batch Firebase 설정을 제거했다.
+
+** Key Components **
+- `bottlenote-product-api/src/main/java/app/external/push/presentation/PushController.java`: 삭제 완료.
+- `bottlenote-mono/src/main/java/app/external/push/**`: Firebase/푸시 전송 계층 삭제 완료.
+- `bottlenote-mono/src/main/java/app/bottlenote/user/dto/request/TokenVerifyRequest.java`: OAuth 토큰 검증 요청 DTO로 분리.
+
+** Verification **
+- Implementation Commit: `f86973f2 fix: 푸시 기능 제거`
+- `/verify full`: `compileJava compileTestJava`, admin Kotlin compile, `check_rule_test`, `unit_test`, build, `integration_test`, `admin_integration_test` 모두 성공.
+
+** Deferred Items **
+- `notifications`, `user_push_configs`, `user_device_tokens` DB 테이블 drop은 후속 migration 이슈에서 별도 승인 후 진행한다.
+================================================================================
+
 ## Overview
 
 초기 기능으로 들어갔던 푸시 알림 기능은 현재 제품 관점에서 필요성이 사라졌다. 동시에 `GET /api/v1/external/push?msg=` 엔드포인트는 인증 경계 밖에 놓여 있고, 내부 대상 사용자 ID도 `6L`로 하드코딩되어 있어 운영 리스크가 있다.
