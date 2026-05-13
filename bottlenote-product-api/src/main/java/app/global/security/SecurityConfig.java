@@ -82,8 +82,6 @@ public class SecurityConfig {
                     .authenticated()
                     .requestMatchers("/api/v1/reports/**")
                     .authenticated()
-                    .requestMatchers("/api/v1/push/**")
-                    .authenticated()
                     .requestMatchers("/api/v1/history/**")
                     .authenticated()
                     .requestMatchers("/api/v1/blocks/**")

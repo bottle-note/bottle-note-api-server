@@ -69,10 +69,6 @@ profanity:
   filter:
     url: https://api.profanity.kr-filter.com/api/v1
 
-app:
-  thirdParty:
-    firebase-configuration-file: src/test/resources/service_account_credentials.json
-
 apple:
   bundle-id: "com.bottlenote.official.app"
 

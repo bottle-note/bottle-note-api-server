@@ -33,7 +33,6 @@ dependencies {
 	// ===== External Services =====
 	implementation libs.aws.s3
 	implementation libs.spring.cloud.starter.openfeign
-	implementation libs.firebase.admin
 
 	// ===== Observability =====
 	implementation project(':bottlenote-observability')
