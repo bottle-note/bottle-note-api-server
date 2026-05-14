@@ -34,9 +34,6 @@ ahocorasick = "0.6.3"
 # AWS
 aws-java-sdk-s3 = "1.12.725"
 
-# Firebase
-firebase-admin = "9.4.3"
-
 # Testing
 testng = "7.7.0"
 testcontainers = "1.21.4"
@@ -125,9 +122,6 @@ ahocorasick = { module = "org.ahocorasick:ahocorasick", version.ref = "ahocorasi
 
 # AWS
 aws-s3 = { module = "com.amazonaws:aws-java-sdk-s3", version.ref = "aws-java-sdk-s3" }
-
-# Firebase
-firebase-admin = { module = "com.google.firebase:firebase-admin", version.ref = "firebase-admin" }
 
 # Monitoring & Observability - OpenTelemetry
 opentelemetry-bom = { module = "io.opentelemetry:opentelemetry-bom", version.ref = "opentelemetry" }

@@ -88,3 +88,8 @@ docs/admin-api.html
 docs/index.html
 */settings.local.json
 /tmp/*
+
+# AI skill backups (created on migration / overwrite)
+.claude/skills.backup-*/
+.agents/skills.backup-*/
+.claude/worktrees/

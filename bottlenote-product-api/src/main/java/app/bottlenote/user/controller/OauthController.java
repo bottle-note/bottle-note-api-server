@@ -6,13 +6,13 @@ import app.bottlenote.user.dto.request.BasicAccountRequest;
 import app.bottlenote.user.dto.request.BasicLoginRequest;
 import app.bottlenote.user.dto.request.GuestCodeRequest;
 import app.bottlenote.user.dto.request.OauthRequest;
+import app.bottlenote.user.dto.request.TokenVerifyRequest;
 import app.bottlenote.user.dto.response.BasicAccountResponse;
 import app.bottlenote.user.dto.response.OauthResponse;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.service.OauthService;
-import app.external.push.data.request.SingleTokenRequest;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -92,7 +92,7 @@ public class OauthController {
   }
 
   @PutMapping("/token/verify")
-  public ResponseEntity<?> verifyToken(@RequestBody @Valid SingleTokenRequest token) {
+  public ResponseEntity<?> verifyToken(@RequestBody @Valid TokenVerifyRequest token) {
     final String message = oauthService.verifyToken(token.token());
     return GlobalResponse.ok(message);
   }

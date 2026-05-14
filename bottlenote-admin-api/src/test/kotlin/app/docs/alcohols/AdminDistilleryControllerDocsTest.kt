@@ -140,6 +140,7 @@ class AdminDistilleryControllerDocsTest {
 						fieldWithPath("data.imageUrl").type(JsonFieldType.STRING).description("증류소 이미지 URL").optional(),
 						fieldWithPath("data.createdAt").type(JsonFieldType.STRING).description("생성일시"),
 						fieldWithPath("data.modifiedAt").type(JsonFieldType.STRING).description("수정일시"),
+						fieldWithPath("data.sortOrder").type(JsonFieldType.NUMBER).description("정렬 순서 (미설정: 9999)"),
 						fieldWithPath("errors").type(JsonFieldType.ARRAY).description("에러 목록"),
 						fieldWithPath("meta").type(JsonFieldType.OBJECT).description("메타 정보").ignored(),
 						fieldWithPath("meta.serverVersion").type(JsonFieldType.STRING).description("서버 버전").ignored(),

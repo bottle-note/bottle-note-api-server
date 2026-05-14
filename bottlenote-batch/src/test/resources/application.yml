@@ -8,8 +8,6 @@ app:
     git-branch: test
     git-commit: test
     git-build-time: test
-  thirdParty:
-    firebase-configuration-file: src/test/resources/service_account_credentials.json
 
 spring:
   main:
