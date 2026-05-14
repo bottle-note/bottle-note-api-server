@@ -1,18 +1,22 @@
 ---
 name: verify
 description: |
-  Local CI verification skill with 3 levels based on implementation stage.
+  Local CI verification skill with 3 levels (L1 quick / L2 standard / L3 full).
   Trigger: "/verify", "/verify quick", "/verify l1", "/verify standard", "/verify l2", "/verify full", "/verify l3",
-  or when the user says "검증해줘", "빌드 확인", "테스트 돌려줘", "CI 돌려봐".
+  or when the user says "검증해줘", "빌드 확인", "테스트 돌려줘", "CI 돌려봐", "run checks".
   Always use this skill when the user wants to check if their code compiles, passes tests, or is ready for PR.
-  This runs checks against the ENTIRE project because all modules share the mono module.
-argument-hint: "[quick|standard|full] or [l1|l2|l3]"
+  Branches on language via reference. Always runs against the ENTIRE project (modules can depend on each other).
+argument-hint: "[language] [quick|standard|full] (language optional if inferable)"
 ---
 
-# Verify - Local CI Pipeline
+# Verify — Local CI Pipeline
 
-Run local CI checks matching the project's GitHub Actions pipeline (`.github/workflows/ci_pipeline.yml`).
-All checks run against the **entire project** because product-api, admin-api, and batch all depend on mono — changes in one module can break others.
+References (read the matching one for exact commands):
+- `references/verify/{language}.md` — concrete commands per step (java-gradle / python / go / ...)
+
+## Overview
+
+Run local CI checks matching the project's pipeline. All checks run against the **entire project** because modules / packages typically share a common core — changes in one module can break others. Default level = L2 (Standard).
 
 ## Level Selection
 
@@ -22,62 +26,45 @@ Parse `$ARGUMENTS` to determine the verification level:
 |----------|-------|-------------|
 | `quick`, `l1`, or empty with scaffolding context | L1 | Mockup, scaffolding, initial structure |
 | `standard`, `l2`, empty (default) | L2 | Feature implementation complete |
-| `full`, `l3` | L3 | Push/PR 직전 최종 검증 |
+| `full`, `l3` | L3 | Before push / PR — final gate |
 
-If no argument is given, default to **L2 (Standard)**.
+L3 is the final gate before `git push` or PR creation. Integration tests take several minutes and typically require infrastructure containers (testcontainers / docker), so run L3 only when the feature is complete and you're ready to share the code. During active development, L1/L2 is sufficient.
 
-L3 is the final gate before `git push` or PR creation. Integration tests take several minutes and use TestContainers (Docker required), so run L3 only when the feature is complete and you're ready to share the code. During active development, L1/L2 is sufficient.
+## Generic Step Definitions
 
-## Execution Steps
+Concrete commands per step come from `references/verify/{language}.md`. The generic step contract:
+
+### L1 — Quick
+
+| Step | What it checks |
+|------|----------------|
+| 1 | Compile / type-check (all modules) |
+| 2 | Format / lint static checks |
+| 3 | Architecture / dependency rules (if the stack has them) |
+
+### L2 — Standard (includes L1)
+
+| Step | What it checks |
+|------|----------------|
+| 4 | Unit tests across all modules |
+| 5 | Full build / package (artifact production) |
+
+### L3 — Full (includes L2)
+
+| Step | What it checks |
+|------|----------------|
+| 6 | Integration tests (real infra via testcontainers / docker / equivalent) |
+| 7 | (Optional) End-to-end / smoke tests if the project defines them |
+
+## Execution
 
 Run each step sequentially. **Stop immediately on first failure** — report the error and skip remaining steps.
 
-### L1 - Quick
-
-| Step | Command | What it checks |
-|------|---------|----------------|
-| 1 | `./gradlew compileJava compileTestJava` | Java compilation (all modules) |
-| 2 | `./gradlew :bottlenote-admin-api:compileKotlin :bottlenote-admin-api:compileTestKotlin` | Kotlin compilation (admin-api) |
-| 3 | `./gradlew check_rule_test` | Architecture rules (ArchUnit) |
-
-### L2 - Standard (includes L1)
-
-| Step | Command | What it checks |
-|------|---------|----------------|
-| 4 | `./gradlew unit_test` | Unit tests across all modules |
-| 5 | `./gradlew build -x test -x asciidoctor --build-cache --parallel` | Full build (JAR packaging) |
-
-### L3 - Full (includes L2)
-
-| Step | Command | What it checks |
-|------|---------|----------------|
-| 6 | `./gradlew integration_test` | Product integration tests (TestContainers) |
-| 7 | `./gradlew admin_integration_test` | Admin integration tests (TestContainers) |
-
-## How to Run Each Step
-
-For each step, use the Bash tool:
-
+For each step:
 1. Record the start time
-2. Run the Gradle command
+2. Run the command (from `references/verify/{language}.md`)
 3. Calculate elapsed time
-4. Report the result immediately:
-
-```
-[L1 1/3] Compiling Java... (12s) OK
-```
-
-Or on failure:
-```
-[L1 2/3] Compiling Kotlin... (8s) FAIL
-```
-
-When a step fails:
-- Show the **last 30 lines** of output to help diagnose the error
-- Mark all remaining steps as SKIPPED
-- Proceed to the summary
-
-## Output Format
+4. Report the result immediately
 
 ### Progress (print after each step)
 
@@ -85,17 +72,22 @@ When a step fails:
 [L{level} {current}/{total}] {step name}... ({time}) {OK|FAIL}
 ```
 
+On failure:
+- Show the **last 30 lines** of output to help diagnose the error
+- Mark all remaining steps as SKIPPED
+- Proceed to the summary
+
 ### Final Summary (always print)
 
 ```
 Verification Summary (L2 - Standard)
 =====================================
 Step                    Status    Time
-Compile Java            OK        12s
-Compile Kotlin          OK        8s
-Rule tests              OK        15s
+Compile / type-check    OK        12s
+Lint / format           OK        8s
+Architecture rules      OK        15s
 Unit tests              OK        45s
-Build                   OK        30s
+Build / package         OK        30s
 -------------------------------------
 Total                   PASS      1m50s
 ```
@@ -110,14 +102,43 @@ Use `PASS` if all steps succeeded, `FAIL` if any step failed.
 | L2 | 5 steps | ~5 min |
 | L3 | 7 steps | ~15 min |
 
-Set Bash timeout accordingly:
-- Compile steps: 120000ms
-- Unit/rule tests: 300000ms
-- Integration tests: 600000ms
-- Build: 300000ms
+Adjust per-step shell timeouts accordingly (compile / lint: short; tests: medium; integration: long).
 
 ## Important
 
-- Never run module-specific checks — always full project scope
-- L3 integration tests require Docker (TestContainers)
-- If Docker is not available for L3, report it clearly and suggest falling back to L2
+- **Never run module-specific checks** — always full project scope. One module's change can break another.
+- L3 integration tests typically require Docker / infra containers. If unavailable, report clearly and suggest falling back to L2.
+- If `references/verify/{language}.md` does not exist for the project's language, ask the user to confirm the verification commands before running.
+
+## Common Rationalizations
+
+| Rationalization | Reality |
+|-----------------|---------|
+| "Let me just run quick" | If you've completed a Task, run standard. quick is for scaffolding. |
+| "Skip integration tests, they're slow" | They catch bugs unit tests cannot. Run them before push. |
+| "I only changed one module" | Other modules may depend on it. Always full project scope. |
+| "The test failed but it's flaky" | Flaky tests mask real bugs. Use `/debug` to investigate. |
+
+## Red Flags
+
+- Running module-specific checks instead of full project
+- Skipping L3 before push / PR
+- Reporting "PASS" without showing the summary
+- Continuing after a step failure (should STOP immediately)
+
+## Verification
+
+After running:
+
+- [ ] All steps for the requested level completed
+- [ ] Summary printed with status per step
+- [ ] On failure: last 30 lines of output shown, remaining steps marked SKIPPED
+- [ ] Total time reported
+
+---
+
+## Lifecycle Integration
+
+**Before this skill:** if `plan/conventions.md` does not exist, run `/scan-conventions` first — analysis relies on knowing the project's actual conventions (naming, layering, test patterns, build system).
+
+**After this skill:** invoke `/next-flow` to diagnose lifecycle state and propose the next command. `/next-flow` auto-progresses read-only verification only and never writes files. Note: `/plan` is a Claude Code UI command and cannot be auto-invoked — the user must type it themselves; `/next-flow` will print a notice in that case.

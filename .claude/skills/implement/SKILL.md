@@ -1,28 +1,29 @@
 ---
 name: implement
 description: |
-  Incremental feature implementation for product-api and admin-api modules.
-  Trigger: "/implement", or when the user says "API 추가", "엔드포인트 구현", "기능 구현", "feature implementation", "기능 개발".
-  Guides through the implementation flow: mono module (domain/service) -> API module (controller).
-  Supports both product-api (Java) and admin-api (Kotlin) via module argument.
-  For test implementation, use /test after this skill completes.
-argument-hint: "[domain] [product|admin] [crud|search|action]"
+  Incremental feature implementation across any language/stack.
+  Trigger: "/implement", or when the user says "API 추가", "기능 구현", "기능 개발", "feature implementation", "build this".
+  Branches on project type (web-api / cli / batch / library) and language (java-spring / python / go / ...) via arguments and references.
+  Enforces Task / Slice / Commit 3-level granularity. For test implementation, use /test after this skill completes.
+argument-hint: "[type] [language] [work-type]"
 ---
 
 # Incremental Implementation
 
+References (read the matching ones before coding):
+- `references/types/{type}.md` — type-specific patterns (web-api / cli / batch / library)
+- `references/languages/{language}.md` — language/framework-specific patterns
+
 ## Overview
 
-Build features in thin vertical slices — implement one piece, verify it compiles, then expand. Each Task is a committable unit; each Slice within a Task is a compile-check unit. This skill unifies product-api (Java) and admin-api (Kotlin) implementation through a shared workflow with module-specific branching.
-
-All business logic lives in `bottlenote-mono`. API modules (`bottlenote-product-api`, `bottlenote-admin-api`) contain only thin controllers that delegate to mono services/facades.
+Build features in thin vertical slices — implement one piece, verify it compiles / type-checks, then expand. Each Task is a committable unit; each Slice within a Task is a compile-check unit. The workflow is the same across stacks; concrete patterns live in references.
 
 ## When to Use
 
-- Implementing any new feature or endpoint
-- Adding CRUD operations to an existing domain
-- Extending an existing domain with new service methods
-- Any multi-file implementation work in product-api or admin-api
+- Implementing any new feature
+- Adding operations to an existing domain / module
+- Extending an existing component with new behavior
+- Any multi-file implementation work
 
 ## When NOT to Use
 
@@ -33,67 +34,64 @@ All business logic lives in `bottlenote-mono`. API modules (`bottlenote-product-
 
 ## Argument Parsing
 
-Parse `$ARGUMENTS` to identify:
-- **domain**: target domain (e.g., `alcohols`, `rating`, `review`, `support`)
-- **module**: `product` (default) or `admin`
-- **work type**: `crud`, `search`, `action` (informational, guides exploration scope)
+Parse `$ARGUMENTS`:
+- **type**: `web-api` | `cli` | `batch` | `library` — selects `references/types/{type}.md`
+- **language**: `java-spring` | `python` | `go` | ... — selects `references/languages/{language}.md`
+- **work-type**: `crud` | `search` | `action` | `read-only` (informational, guides exploration scope)
+
+If type / language is omitted, infer from project structure and confirm with the user before proceeding.
+
+**Missing language reference fallback.** If `references/languages/{language}.md` does not exist for the resolved language (e.g., `rust`, `kotlin-android`, `swift`, `zig`):
+
+1. **STOP** before Phase 0.
+2. Present the `references/types/{type}.md` applicable scope and ask the user to choose:
+   - **(a)** Provide the language's idioms inline (1-screen summary covering: module layout, DI/error/test patterns, build tool). This skill treats it as a temporary reference for this feature only.
+   - **(b)** Approve fallback to the nearest-language reference: `go` for systems langs, `python` for dynamic langs, `java-spring` for static JVM-like langs. The user must acknowledge that idioms may not fit perfectly.
+3. Never silently proceed with a missing language reference. If neither (a) nor (b) is approved, STOP.
 
 ## Process
 
 ### Phase 0: Explore
 
+**Hard gate — approved plan required.** BEFORE doing anything else, verify that an approved plan document with at least one Task exists at `plan/{feature-name}.md` (the Progress Log being empty or in-progress is fine; the existence of Tasks is what matters). If not → **STOP** and tell the user to run `/define` then `/plan` first. The only exception: a single-file obvious fix (typo, rename, one-line comment, formatting) — in that case skip the rest of Phase 0 and proceed directly to a minimal slice + `/self-review` + `/verify quick`. Multi-file work without an approved plan is never allowed.
+
 Before writing any code, understand what already exists and what will be affected.
 
 **Codebase scan:**
-1. Check if the domain exists in mono: `bottlenote-mono/src/main/java/app/bottlenote/{domain}/`
-2. Check existing services, facades, and repositories
-3. Check if the target API module already has controllers for this domain
-4. Identify reusable code vs. what needs to be created
+1. Locate the target module / package
+2. Identify existing services / handlers / repositories that may be reused
+3. Check what already exists vs. what needs to be created
+4. Read the relevant references (`types/{type}.md`, `languages/{language}.md`)
 
-**Impact analysis:**
-5. **Events** — related domain events (publish/subscribe), whether new events are needed
-6. **Transactions** — propagation policy when calling across Facades, need for `@Async` separation
-7. **Ripple scope** — files affected if Repository/Facade interfaces change (other services, InMemory implementations, tests)
-8. **Cache** — whether the target data is cached (`@Cacheable`, Caffeine, Redis), invalidation strategy needed
-9. **Schema** — whether Entity changes require a Liquibase migration
+**Impact analysis (general — extend with type-specific items from references):**
+5. **Cross-module coupling** — files affected if a shared interface changes (other modules, test doubles)
+6. **Persistence** — schema migration needed?
+7. **Async / events** — new events published or consumed?
+8. **Caching** — invalidation strategy needed?
+9. **Public API contract** — external consumers impacted?
 
 Report both findings and impact to the user before proceeding.
 
-### Phase 1: Mono Module (Domain & Business Logic)
+### Phase 1: Core / Business Logic
 
-All business logic belongs in `bottlenote-mono`. Read `references/mono-patterns.md` for detailed patterns.
+Build the foundation in the layer order documented in `references/types/{type}.md`. As a generic template:
 
-**Order of implementation:**
-1. **Entity/Domain** (if new domain) — `{domain}/domain/`
-2. **Repository** (3-tier) — Domain repo -> JPA repo -> QueryDSL (if needed)
-3. **DTO** — Request/Response records in `{domain}/dto/request/`, `{domain}/dto/response/`
-4. **Exception** — `{domain}/exception/{Domain}Exception.java` + `{Domain}ExceptionCode.java`
-5. **Service** — `{Domain}Service` (single service is the default; Command/Query split is optional)
-6. **Facade** (when cross-domain access is needed) — `{Domain}Facade` interface + `Default{Domain}Facade`
+1. **Domain model / entity** (if new)
+2. **Persistence interface + implementation** (repository, data access)
+3. **DTO / model** (request / response / event shapes)
+4. **Error / exception types**
+5. **Service / use case / handler logic**
+6. **Cross-module seam** (facade / port) when other modules need access
 
-**Module-specific service naming:**
-- **product**: `{Domain}Service` or `{Domain}CommandService` / `{Domain}QueryService`
-- **admin**: `Admin{Domain}Service` (separate service with `adminId` parameter pattern)
+Language-specific class/function naming, annotations, and idioms: see `references/languages/{language}.md`.
 
-### Phase 2: API Controller
+### Phase 2: Surface / Entry Point
 
-Read the appropriate reference for your target module:
-- **product**: `references/product-patterns.md`
-- **admin**: `references/admin-patterns.md`
-
-**Product (Java):**
-- Path: `@RequestMapping("/api/v1/{plural-resource}")`
-- Auth required: `SecurityContextUtil.getUserIdByContext().orElseThrow(...)`
-- Auth optional (read): `.orElse(-1L)`
-- Response: `GlobalResponse.ok(response)` or `GlobalResponse.ok(response, metaInfos)`
-- Pagination: `CursorPageable` + `PageResponse`
-
-**Admin (Kotlin):**
-- Context path: `/admin/api/v1` (configured in application)
-- Path: `@RequestMapping("/{plural-resource}")`
-- Auth: `SecurityContextUtil.getAdminUserIdByContext()`
-- Response: `GlobalResponse.ok(service.method())` or `ResponseEntity.ok(service.search(request))`
-- Pagination: Offset-based (`page`, `size`)
+Build the externally visible layer per `references/types/{type}.md`:
+- **web-api**: HTTP controller / route handler — path, auth, request validation, response shape, pagination
+- **cli**: command binding — flags, args, output format, exit codes
+- **batch**: job step + scheduler binding
+- **library**: public API surface + backwards-compat considerations
 
 ### Phase 3: Task-Slice-Commit Cycle
 
@@ -101,32 +99,34 @@ Each Task from the `/plan` is implemented through Slices:
 
 ```
 Task  = Commit unit (logical goal agreed with user)
-Slice = Execution unit (compile check before exceeding ~100 lines)
+Slice = Execution unit (compile / type-check before exceeding ~100 lines)
 ```
 
 **Verification levels:**
 
 | Timing | Level | What to run |
 |--------|-------|-------------|
-| After each Slice | Compile only | `./gradlew compileJava compileTestJava` (+ `compileKotlin` for admin) |
-| After Task completion | Self-review + unit tests | `/self-review` -> `./gradlew unit_test check_rule_test` |
+| After each Slice | Compile / type-check only | `/verify quick` or equivalent |
+| After Task completion | Self-review + unit tests | `/self-review` → `/verify standard` |
 | After all Tasks complete | Integration tests | `/verify full` |
+
+For exact commands per language, see `verify/references/verify/{your-language}.md`.
 
 **Commit message format** (Task = title, Slices = bullets):
 ```
-feat: rating 통계 API Service 구현
+feat: rating statistics service
 
-- RatingStatisticsResponse DTO 작성
-- RatingRepository에 통계 조회 메서드 추가
-- RatingService.getStatistics() 구현
-- AlcoholFacade 연동
+- RatingStatisticsResponse DTO
+- repository query for statistics
+- service.getStatistics() implementation
+- facade wiring
 ```
 
 **Cycle per Task:**
-1. Implement Slice -> compile check -> pass? continue : fix
+1. Implement Slice → compile / type-check → pass? continue : fix
 2. Repeat until all Slices in the Task are done
 3. Run `/self-review` on the Task's changes
-4. Run `./gradlew unit_test check_rule_test`
+4. Run `/verify standard` (unit + arch rules)
 5. Commit with descriptive message
 6. Update plan document (check off Task, add to Progress Log)
 7. Move to next Task
@@ -138,43 +138,57 @@ After all Tasks are committed:
 | Timing | Command | Purpose |
 |--------|---------|---------|
 | Implementation done | `/verify standard` | Compile + unit + build |
-| Before push/PR | `/verify full` | Includes integration tests |
+| Before push / PR | `/verify full` | Includes integration tests |
 
 Then use `/test` if integration tests need to be written.
 
-## Endpoint Design
+## Endpoint / Command Design
 
-| HTTP Method | Purpose | URL Pattern (product) | URL Pattern (admin) |
-|-------------|---------|----------------------|---------------------|
-| GET | List | `/api/v1/{resources}` | `/{resources}` |
-| GET | Detail | `/api/v1/{resources}/{id}` | `/{resources}/{id}` |
-| POST | Create | `/api/v1/{resources}` | `/{resources}` |
-| PUT | Full update | `/api/v1/{resources}/{id}` | `/{resources}/{id}` |
-| PATCH | Partial | `/api/v1/{resources}/{id}` | `/{resources}/{id}` |
-| DELETE | Delete | `/api/v1/{resources}/{id}` | `/{resources}/{id}` |
+URL / command shape, HTTP method mapping, flag conventions — all type-specific. See `references/types/{type}.md`.
 
-## Package Structure
+## Package / Module Structure
 
-```
-bottlenote-mono/src/main/java/app/bottlenote/{domain}/
-├── constant/       # Enums, constants
-├── domain/         # Entities, DomainRepository interface (@DomainRepository)
-├── dto/
-│   ├── request/    # Request records (@Valid)
-│   ├── response/   # Response records
-│   └── dsl/        # QueryDSL criteria
-├── event/          # Domain events, @DomainEventListener
-├── exception/      # {Domain}Exception + {Domain}ExceptionCode
-├── facade/         # {Domain}Facade interface
-├── repository/     # Jpa{Domain}Repository (@JpaRepositoryImpl), Custom repos
-└── service/        # {Domain}Service (@Service), Default{Domain}Facade (@FacadeService)
+Layer-to-folder mapping is type-specific (web-api differs from cli) and language-specific (Java package vs Python module vs Go internal/). See:
+- `references/types/{type}.md` for layer breakdown
+- `references/languages/{language}.md` for the language's idiomatic folder layout
 
-bottlenote-product-api/src/main/java/app/bottlenote/{domain}/
-└── controller/     # {Domain}Controller (thin, delegates to mono)
+## Polyglot Mode (monorepo with multiple type/language modules)
 
-bottlenote-admin-api/src/main/kotlin/app/bottlenote/{domain}/
-└── presentation/   # Admin{Domain}Controller.kt (thin, delegates to mono)
-```
+When the project is a polyglot monorepo (e.g., Python API + Go CLI + Java batch coexisting in one repo), a single `[type] [language]` argument is insufficient. Switch to **Polyglot Mode** when `/scan-conventions` reports more than one detected type or language.
+
+### Step 1: Build the module matrix during Phase 0
+
+| Path | Type | Language | Verify command | References to load |
+|------|------|----------|----------------|---------------------|
+| `services/api/` | web-api | python | `pytest -m unit` | types/web-api.md + languages/python.md + testing/python.md + verify/python.md |
+| `tools/cli/` | cli | go | `go test ./...` | types/cli.md + languages/go.md + testing/go.md + verify/go.md |
+| `batch/` | batch | java-spring | `./gradlew unit_test` | types/batch.md + languages/java-spring.md + testing/java.md + verify/java-gradle.md |
+
+Record the matrix in the plan document's `Impact Scope` section.
+
+### Step 2: Per-Task module declaration
+
+For each Task in `/plan`, declare which module(s) it touches. **A Task must not cross module boundaries** — each module has different references and verify commands. If a feature requires changes in two modules:
+
+- Split into **two Tasks** (one per module), or
+- Add a third Task for the cross-module contract (e.g., shared protobuf / OpenAPI / event schema)
+
+Cross-module Tasks are an L-size red flag and must be decomposed.
+
+### Step 3: Per-Slice reference loading
+
+During Slice execution, load ONLY the references for the current Slice's module. Do not mix idioms from two modules in one Slice (e.g., do not apply Python's `Depends()` idiom inside a Go handler Slice).
+
+### Step 4: Verification fan-out
+
+`/verify` runs the **union** of all touched modules' verify commands. If only `services/api/` was modified in the last Task, only `pytest -m unit` runs; if both `services/api/` and `batch/` were modified, both `pytest` and `./gradlew unit_test` run.
+
+### Red Flags specific to Polyglot Mode
+
+- A single Task touches files in two different modules (split it)
+- A Slice mixes idioms from two language references
+- `/scan-conventions` reports polyglot but the matrix is missing from the plan document
+- Verify fan-out skipped because "I only changed Python, the Go module is unchanged" — verify still must run on every Task-touched module
 
 ## Common Rationalizations
 
@@ -182,18 +196,18 @@ bottlenote-admin-api/src/main/kotlin/app/bottlenote/{domain}/
 |-----------------|---------|
 | "I'll test it all at the end" | Bugs compound. A bug in Slice 1 makes Slices 2-5 wrong. Compile-check each Slice. |
 | "It's faster to do it all at once" | It feels faster until something breaks and you cannot find which of 500 changed lines caused it. |
-| "I don't need a Facade for this" | If you are accessing another domain's Repository or Service directly, you need a Facade. Domain boundaries exist for a reason. |
+| "I don't need a facade / seam for this" | If you are accessing another module's internals directly, you need a seam. Module boundaries exist for a reason. |
 | "This refactor is small enough to include" | Refactors mixed with features make both harder to review and debug. Separate them. |
-| "The controller can handle this logic" | Controllers are thin. Business logic belongs in mono services. Always. |
+| "The controller / handler can hold this logic" | Surface layers are thin. Business logic belongs in the service / use case. Always. |
 | "I'll skip self-review, the code is straightforward" | Straightforward code still needs architecture and security checks. Run `/self-review`. |
 
 ## Red Flags
 
-- More than 100 lines written without a compile check
-- Cross-domain Repository or Service injected directly (bypassing Facade)
-- Controller containing business logic instead of delegating to service
-- Repository interface changed but InMemory test implementation not updated
-- No error handling for domain-specific exceptions
+- More than 100 lines written without a compile / type-check
+- Cross-module internals accessed directly (bypassing the documented seam)
+- Surface layer (controller / handler / CLI) containing business logic instead of delegating
+- Interface changed but test doubles (InMemory/Fake implementations) not updated
+- No error handling for module-specific error types
 - Skipping Phase 0 (Explore) and jumping straight to coding
 - Multiple unrelated changes in a single Task
 - Task completed without running `/self-review`
@@ -203,9 +217,18 @@ bottlenote-admin-api/src/main/kotlin/app/bottlenote/{domain}/
 After completing all Tasks for a feature:
 
 - [ ] Each Task was individually reviewed (`/self-review`) and committed
-- [ ] All Facade boundaries respected (no cross-domain direct access)
-- [ ] Repository 3-Tier pattern followed for new repositories
-- [ ] Unit tests pass: `./gradlew unit_test`
-- [ ] Architecture rules pass: `./gradlew check_rule_test`
-- [ ] Build succeeds: `./gradlew build -x test -x asciidoctor`
+- [ ] Module boundaries respected (no cross-module direct access)
+- [ ] Layer order from `references/types/{type}.md` followed
+- [ ] Language idioms from `references/languages/{language}.md` respected
+- [ ] Unit tests pass: `/verify standard`
+- [ ] Architecture / lint rules pass: included in `/verify standard`
+- [ ] Build / package succeeds
 - [ ] Plan document updated (all Tasks checked, Progress Log filled)
+
+---
+
+## Lifecycle Integration
+
+**Before this skill:** if `plan/conventions.md` does not exist, run `/scan-conventions` first — analysis relies on knowing the project's actual conventions (naming, layering, test patterns, build system).
+
+**After this skill:** invoke `/next-flow` to diagnose lifecycle state and propose the next command. `/next-flow` auto-progresses read-only verification only and never writes files. Note: `/plan` is a Claude Code UI command and cannot be auto-invoked — the user must type it themselves; `/next-flow` will print a notice in that case.

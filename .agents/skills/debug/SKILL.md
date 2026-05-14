@@ -2,7 +2,7 @@
 name: debug
 description: |
   Systematic root-cause debugging for build failures, test failures, and runtime errors.
-  Trigger: "/debug", or when the user says "에러 났어", "테스트 실패", "빌드 안 돼", "왜 안 되지", "debug this".
+  Trigger: "/debug", or when the user says "에러 났어", "테스트 실패", "빌드 안 돼", "왜 안 되지", "debug this", "this is broken".
   Follows a structured 6-step process: STOP, REPRODUCE, LOCALIZE, FIX, GUARD, VERIFY.
   Use when anything unexpected happens — do not guess at fixes.
 argument-hint: "[error description or test name]"
@@ -12,12 +12,12 @@ argument-hint: "[error description or test name]"
 
 ## Overview
 
-When something breaks, stop adding features, preserve evidence, and follow a structured process to find and fix the root cause. Guessing wastes time. This skill works for build errors, test failures, runtime bugs, and unexpected behavior in the bottle-note-api-server project.
+When something breaks, stop adding features, preserve evidence, and follow a structured process to find and fix the root cause. Guessing wastes time. This skill works for build errors, test failures, runtime bugs, and unexpected behavior across any language or stack.
 
 ## When to Use
 
-- Build fails (`compileJava`, `compileKotlin`, `spotlessApply`)
-- Tests fail (`unit_test`, `integration_test`, `check_rule_test`, `admin_integration_test`)
+- Build / compile / type-check fails
+- Tests fail (unit, integration, architecture rule, lint)
 - Runtime behavior does not match expectations
 - An error appears in logs or console
 - Something worked before and stopped working
@@ -45,70 +45,44 @@ Make the failure happen reliably. If you cannot reproduce it, you cannot fix it 
 
 ```
 Can you reproduce the failure?
-├── YES -> Proceed to Step 3
+├── YES → Proceed to Step 3
 └── NO
-    ├── Check environment differences (Docker running? submodule initialized?)
+    ├── Check environment differences (containers running? submodules / deps initialized?)
     ├── Run in isolation (single test, clean build)
     └── If truly non-reproducible, document conditions and monitor
 ```
 
-**Common reproduction commands:**
-```bash
-# Specific test
-./gradlew :bottlenote-product-api:test --tests "app.bottlenote.{domain}.{TestClass}.{testMethod}"
-
-# Test by tag
-./gradlew unit_test
-./gradlew integration_test
-./gradlew admin_integration_test
-./gradlew check_rule_test
-
-# Full clean build
-./gradlew clean build -x test -x asciidoctor
-
-# Compile only
-./gradlew compileJava compileTestJava
-./gradlew :bottlenote-admin-api:compileKotlin :bottlenote-admin-api:compileTestKotlin
-```
+For exact reproduction commands per language/stack, see `verify/references/verify/{your-language}.md`.
 
 ### Step 3: LOCALIZE
 
-Narrow down WHERE the failure happens. Use the project-specific triage tree:
+Narrow down WHERE the failure happens. Triage by failure category:
 
 ```
-Build failure:
-├── Java compile error
-│   ├── In bottlenote-mono -> check domain/service/repository code
-│   ├── In bottlenote-product-api -> check controller code
-│   └── In test source -> check test fixtures, InMemory implementations
-├── Kotlin compile error
-│   └── In bottlenote-admin-api -> check Kotlin controller/test code
-├── Spotless format error
-│   └── Run: ./gradlew spotlessApply (auto-fixes formatting)
-└── Dependency resolution error
-    └── Check gradle/libs.versions.toml for version conflicts
+Build / type-check failure:
+├── Compile error → check the affected module's source
+├── Format / lint error → run the project's auto-fix command (see verify references)
+└── Dependency resolution → check the project's lockfile / version manifest
 
 Test failure:
-├── @Tag("unit")
-│   ├── Fake/InMemory implementation out of sync with domain repo interface?
+├── Unit test
+│   ├── Test double (Fake/InMemory) out of sync with the interface it implements?
 │   ├── Service logic changed but test not updated?
-│   └── New dependency not wired in @BeforeEach setup?
-├── @Tag("integration")
-│   ├── Docker running? (TestContainers requires Docker)
-│   ├── Database schema changed? (check Liquibase changelogs)
-│   ├── Test data setup missing? (check TestFactory)
-│   └── Auth token issue? (check TestAuthenticationSupport)
-├── @Tag("rule")
-│   ├── Package dependency violation? (check ArchUnit rules)
-│   ├── New class in wrong package?
-│   └── Circular dependency introduced?
-└── @Tag("admin_integration")
-    ├── Admin auth setup correct?
-    ├── context-path /admin/api/v1 accounted for in test?
-    └── Kotlin-Java interop issue?
+│   └── New dependency not wired in test setup?
+├── Integration test
+│   ├── Required infrastructure running? (DB, queue, cache — testcontainers / docker / etc.)
+│   ├── Schema / migration up to date?
+│   ├── Test data setup missing or stale?
+│   └── Auth / token setup correct?
+└── Architecture / lint rule
+    ├── Boundary violation (cross-module direct access)?
+    ├── New code in wrong package / layer?
+    └── Cyclic dependency introduced?
 ```
 
-**For stack traces:** read bottom-up, find the first line referencing `app.bottlenote.*`.
+**For stack traces:** read bottom-up, find the first line in your own code (not framework / vendor).
+
+For project-specific triage trees (e.g., framework-specific failure modes), consult `implement/references/languages/{your-language}.md`.
 
 ### Step 4: FIX
 
@@ -118,55 +92,38 @@ Fix the ROOT CAUSE, not the symptom.
 Symptom: "Test expects 3 items but gets 2"
 
 Symptom fix (bad):
-  -> Change assertion to expect 2
+  → Change assertion to expect 2
 
 Root cause fix (good):
-  -> The query has a WHERE clause that filters out soft-deleted items
-  -> Fix the test data setup to not include soft-deleted items
+  → The query has a WHERE clause that filters out soft-deleted items
+  → Fix the test data setup to not include soft-deleted items
 ```
 
 Rules:
-- One change at a time — compile after each change
-- If fix requires more than 5 files, reconsider whether the diagnosis is correct
-- Do NOT suppress errors (`@Disabled`, empty catch blocks, `@SuppressWarnings`)
+- One change at a time — compile / type-check after each change
+- If a fix requires more than 5 files, reconsider whether the diagnosis is correct
+- Do NOT suppress errors (disabled annotations, empty catch blocks, lint-disable comments)
 - Do NOT delete or skip failing tests
 
 ### Step 5: GUARD
 
 Write a regression test that would have caught this bug.
 
-- Use `@DisplayName` in Korean describing the bug scenario
+- Use a descriptive test display name in the project's convention
 - The test should FAIL without the fix and PASS with it
-- If the fix changed a domain Repository interface, update the corresponding `InMemory{Domain}Repository`
-- If the fix changed a Facade interface, update the corresponding `Fake{Domain}Facade`
+- If the fix changed an interface, **update the corresponding test doubles** (InMemory/Fake implementations) — this is the most common source of cascading breakage
 
 ### Step 6: VERIFY
 
-Run verification to confirm the fix and check for regressions.
+Run verification to confirm the fix and check for regressions. See `/verify` and `verify/references/verify/{your-language}.md` for level selection:
 
 | Original failure | Minimum verification |
-|-----------------|---------------------|
-| Compile error | `./gradlew compileJava compileTestJava` |
-| Unit test | `./gradlew unit_test` |
-| Integration test | `./gradlew integration_test` (requires Docker) |
-| Architecture rule | `./gradlew check_rule_test` |
-| Admin test | `./gradlew admin_integration_test` |
-| Unknown/broad | `/verify standard` or `/verify full` |
-
-## Quick Reference: Diagnostic Commands
-
-| Situation | Command |
-|-----------|---------|
-| What changed recently | `git log --oneline -10` |
-| What files are modified | `git status` |
-| Diff of uncommitted changes | `git diff` |
-| Find which commit broke it | `git bisect start && git bisect bad HEAD && git bisect good <sha>` |
-| Check Java compile | `./gradlew compileJava compileTestJava` |
-| Check Kotlin compile | `./gradlew :bottlenote-admin-api:compileKotlin` |
-| Auto-fix formatting | `./gradlew spotlessApply` |
-| Run single test class | `./gradlew test --tests "app.bottlenote.{domain}.{TestClass}"` |
-| Check dependency versions | `cat gradle/libs.versions.toml` |
-| Check Docker status | `docker info` |
+|------------------|----------------------|
+| Compile / type-check | `/verify quick` |
+| Unit test | `/verify standard` |
+| Integration test | `/verify full` |
+| Architecture rule | `/verify standard` (rule tests usually run in L1/L2) |
+| Unknown / broad | `/verify full` |
 
 ## Common Rationalizations
 
@@ -183,7 +140,7 @@ Run verification to confirm the fix and check for regressions.
 - Changing more than 5 files to fix a "simple" bug (diagnosis is likely wrong)
 - Fixing without reproducing first
 - Multiple stacked fixes without verifying between each one
-- Suppressing errors instead of fixing root cause (`@Disabled`, empty catch, lint-disable)
+- Suppressing errors instead of fixing root cause
 - Changing test assertions to match wrong behavior
 - "It works now" without understanding what changed
 - No regression test added after a bug fix
@@ -196,6 +153,14 @@ After fixing a bug:
 - [ ] Fix addresses the root cause specifically
 - [ ] Regression test exists that fails without the fix
 - [ ] All existing tests pass
-- [ ] Build succeeds
-- [ ] InMemory/Fake implementations updated if interfaces changed
+- [ ] Build / type-check succeeds
+- [ ] Test doubles updated if interfaces changed
 - [ ] Original failure scenario verified end-to-end
+
+---
+
+## Lifecycle Integration
+
+**Before this skill:** if `plan/conventions.md` does not exist, run `/scan-conventions` first — analysis relies on knowing the project's actual conventions (naming, layering, test patterns, build system).
+
+**After this skill:** invoke `/next-flow` to diagnose lifecycle state and propose the next command. `/next-flow` auto-progresses read-only verification only and never writes files. Note: `/plan` is a Claude Code UI command and cannot be auto-invoked — the user must type it themselves; `/next-flow` will print a notice in that case.
