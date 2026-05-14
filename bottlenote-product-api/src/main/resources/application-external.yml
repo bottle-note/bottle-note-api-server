@@ -4,12 +4,6 @@ profanity:
     url: https://api.profanity.kr-filter.com/api/v1
     key: ${PROFANITY_FILTER_KEY}
 
-# Firebase
-app:
-  thirdParty:
-    firebase-configuration-file: /application/springboot/service_account_credentials.json
-    base64file: ${FIREBASE_BASE64_FILE}
-
 # AWS S3
 amazon:
   aws:

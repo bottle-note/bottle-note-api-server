@@ -24,11 +24,11 @@ import app.bottlenote.user.dto.request.BasicAccountRequest;
 import app.bottlenote.user.dto.request.BasicLoginRequest;
 import app.bottlenote.user.dto.request.GuestCodeRequest;
 import app.bottlenote.user.dto.request.OauthRequest;
+import app.bottlenote.user.dto.request.TokenVerifyRequest;
 import app.bottlenote.user.dto.response.BasicAccountResponse;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.service.OauthService;
 import app.docs.AbstractRestDocs;
-import app.external.push.data.request.SingleTokenRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -222,7 +222,7 @@ class RestOauthControllerTest extends AbstractRestDocs {
   @DisplayName("토큰 유효성을 검사할 수 있다.")
   void token_validation() throws Exception {
     // given
-    final SingleTokenRequest request = new SingleTokenRequest("test-token");
+    final TokenVerifyRequest request = new TokenVerifyRequest("test-token");
     final String message = "Token is valid";
 
     // when
