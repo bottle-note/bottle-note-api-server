@@ -1,3 +1,34 @@
+```
+================================================================================
+                          PROJECT COMPLETION STAMP
+================================================================================
+Status: **COMPLETED**
+Completion Date: 2026-05-14
+
+** Core Achievements **
+- 어드민 리뷰 목록 조회 GET API 추가 (bottlenote-admin-api): `GET /admin/api/v1/reviews` — 필터 7종(alcoholId / userId / activeStatus / displayStatus / keyword / createdFrom / createdTo) + 정렬 3종(CREATED_AT / REPLY_COUNT / UPDATED_AT) + 전체 상태(ACTIVE/DELETED/DISABLED, PUBLIC/PRIVATE) 노출
+- Task 4개 전부 커밋: 50caf5ae(기본 조회) / 669a038d(필터·정렬) / d4137a56(통합 테스트) / a0428009(RestDocs)
+- /verify full L3 8단계 전부 PASS (compile / lint / arch / unit / build / integration / admin-integration / asciidoctor, 11m 28s)
+- DB 스키마 변경 0건, 기존 product 리뷰 조회 정책 무변
+
+** Key Components **
+- AdminReviewController.kt (bottlenote-admin-api, presentation) — GET /reviews 엔드포인트
+- AdminReviewQueryService (bottlenote-mono) — 어드민 전용 read-only 조회 서비스
+- CustomReviewRepository / CustomReviewRepositoryImpl + ReviewQuerySupporter — QueryDSL 동적 필터·정렬
+- AdminReviewSearchRequest / AdminReviewListResponse / AdminReviewSortType
+- AdminReviewIntegrationTest (@Tag("admin_integration")) + AdminReviewControllerDocsTest (RestDocs)
+- InMemoryReviewRepository 2곳(mono / product) 갱신 — domain interface 변경 동기화
+
+** Deferred Items **
+- [Important] AdminReviewIntegrationTest 의 keyword 검색 커버리지에 한글 주류명(alcohol.korName) 케이스 누락 — 구현은 포함돼 있으나 회귀 방지 테스트 부재. /test 로 보강 권장
+- [Nit] AdminReviewControllerDocsTest 의 PageImpl 예시를 PageRequest 명시 형태로 정리하면 문서 일관성 향상
+
+** GSL 검증 메모 **
+- 본 작업은 GSL 강화본(B1'~B5)이 codex 런타임에서 게이트를 지키는지 실전 검증을 겸함
+- /define → /plan → /implement Task 1~4 → /verify full → /self-review → /next-flow 전 단계에서 codex 가 "Runtime Boundary — HARD STOP" 을 준수, 모호한 "진행하자" 에도 Task 단위로만 진행 (news-admin 구버전 폭주 대비 단계별 정지 확인)
+================================================================================
+```
+
 # Plan: 어드민 리뷰 목록 조회 API
 
 ## Overview
