@@ -22,7 +22,9 @@ import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.like.constant.LikeStatus;
+import app.bottlenote.review.dto.request.AdminReviewSearchRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
+import app.bottlenote.review.dto.response.AdminReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewExploreItem;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.facade.payload.ReviewInfo;
@@ -40,6 +42,9 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -205,6 +210,55 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 
     CursorPageable cursorPageable = getCursorPageable(reviewPageableRequest, fetch);
     return PageResponse.of(ReviewListResponse.of(totalCount, fetch), cursorPageable);
+  }
+
+  @Override
+  public Page<AdminReviewListResponse> searchAdminReviews(AdminReviewSearchRequest request) {
+    List<AdminReviewListResponse> content =
+        queryFactory
+            .select(
+                Projections.constructor(
+                    AdminReviewListResponse.class,
+                    review.id,
+                    alcohol.id,
+                    alcohol.korName,
+                    user.id,
+                    user.nickName,
+                    review.content,
+                    review.reviewRating,
+                    review.activeStatus,
+                    review.status,
+                    reviewReply.id.countDistinct(),
+                    review.createAt,
+                    review.lastModifyAt))
+            .from(review)
+            .join(user)
+            .on(review.userId.eq(user.id))
+            .leftJoin(alcohol)
+            .on(alcohol.id.eq(review.alcoholId))
+            .leftJoin(reviewReply)
+            .on(review.id.eq(reviewReply.reviewId))
+            .groupBy(
+                review.id,
+                alcohol.id,
+                alcohol.korName,
+                user.id,
+                user.nickName,
+                review.content,
+                review.reviewRating,
+                review.activeStatus,
+                review.status,
+                review.createAt,
+                review.lastModifyAt)
+            .orderBy(review.createAt.desc(), review.id.desc())
+            .offset((long) request.page() * request.size())
+            .limit(request.size())
+            .fetch();
+
+    Long total = queryFactory.select(review.id.countDistinct()).from(review).fetchOne();
+
+    return new PageImpl<>(
+        content, PageRequest.of(request.page(), request.size()), total != null ? total : 0L);
   }
 
   @Override
