@@ -8,6 +8,8 @@ import static app.bottlenote.review.domain.QReview.review;
 import static app.bottlenote.review.domain.QReviewImage.reviewImage;
 import static app.bottlenote.review.domain.QReviewReply.reviewReply;
 import static app.bottlenote.review.domain.QReviewTastingTag.reviewTastingTag;
+import static app.bottlenote.review.repository.ReviewQuerySupporter.adminReviewFilters;
+import static app.bottlenote.review.repository.ReviewQuerySupporter.adminReviewSortBy;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.containsKeywordInAll;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.getCursorPageable;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.getTastingTag;
@@ -238,6 +240,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
             .on(alcohol.id.eq(review.alcoholId))
             .leftJoin(reviewReply)
             .on(review.id.eq(reviewReply.reviewId))
+            .where(adminReviewFilters(request))
             .groupBy(
                 review.id,
                 alcohol.id,
@@ -250,12 +253,23 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
                 review.status,
                 review.createAt,
                 review.lastModifyAt)
-            .orderBy(review.createAt.desc(), review.id.desc())
+            .orderBy(
+                adminReviewSortBy(request.sortType(), request.sortOrder())
+                    .toArray(new OrderSpecifier[0]))
             .offset((long) request.page() * request.size())
             .limit(request.size())
             .fetch();
 
-    Long total = queryFactory.select(review.id.countDistinct()).from(review).fetchOne();
+    Long total =
+        queryFactory
+            .select(review.id.countDistinct())
+            .from(review)
+            .join(user)
+            .on(review.userId.eq(user.id))
+            .leftJoin(alcohol)
+            .on(alcohol.id.eq(review.alcoholId))
+            .where(adminReviewFilters(request))
+            .fetchOne();
 
     return new PageImpl<>(
         content, PageRequest.of(request.page(), request.size()), total != null ? total : 0L);

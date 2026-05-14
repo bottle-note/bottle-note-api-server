@@ -79,13 +79,13 @@
 - Verification: `./gradlew :bottlenote-mono:compileJava :bottlenote-admin-api:compileKotlin`
 - Files: `bottlenote-mono/src/main/java/app/bottlenote/review/constant/AdminReviewSortType.java`, `bottlenote-mono/src/main/java/app/bottlenote/review/dto/request/AdminReviewSearchRequest.java`, `bottlenote-mono/src/main/java/app/bottlenote/review/repository/CustomReviewRepositoryImpl.java`, `bottlenote-mono/src/main/java/app/bottlenote/review/repository/ReviewQuerySupporter.java`
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Checkpoint: after Tasks 1-2
-- [ ] `bottlenote-mono` Java compile passes
-- [ ] `bottlenote-admin-api` Kotlin compile passes
-- [ ] No DB migration file is added
-- [ ] Product review query policy remains unchanged
+- [x] `bottlenote-mono` Java compile passes
+- [x] `bottlenote-admin-api` Kotlin compile passes
+- [x] No DB migration file is added
+- [x] Product review query policy remains unchanged
 
 ### Task 3: 어드민 리뷰 목록 통합 테스트 slice
 - Acceptance: admin integration 테스트가 기본 목록, 전체 active/display 상태 노출, 7종 필터 단독 적용을 검증한다.
@@ -117,4 +117,10 @@
 - Implemented admin review basic list slice for `GET /admin/api/v1/reviews`.
 - Added mono request/response DTOs, read-only admin query service, `ReviewRepository.searchAdminReviews`, QueryDSL projection, and admin Kotlin controller.
 - Updated `InMemoryReviewRepository` implementations in mono/product test fixtures because the domain repository interface changed.
+- Verification: `./gradlew :bottlenote-mono:compileJava :bottlenote-admin-api:compileKotlin` passed.
+
+### 2026-05-14 — Task 2
+- Added admin review sort type and request defaults for `CREATED_AT DESC`.
+- Added QueryDSL filters for `alcoholId`, `userId`, `activeStatus`, `displayStatus`, `keyword`, `createdFrom`, and `createdTo`.
+- Added admin review ordering for `CREATED_AT`, `REPLY_COUNT`, and `UPDATED_AT` with latest-review tie breakers.
 - Verification: `./gradlew :bottlenote-mono:compileJava :bottlenote-admin-api:compileKotlin` passed.

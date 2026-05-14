@@ -14,8 +14,11 @@ import static com.querydsl.jpa.JPAExpressions.select;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.review.constant.AdminReviewSortType;
 import app.bottlenote.review.constant.ReviewActiveStatus;
+import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.constant.ReviewSortType;
+import app.bottlenote.review.dto.request.AdminReviewSearchRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 import app.bottlenote.review.facade.payload.UserInfo;
@@ -171,6 +174,73 @@ public class ReviewQuerySupporter {
         yield Arrays.asList(sizeOrderSpecifier, priceOrderSpecifier, createAtDesc);
       }
     };
+  }
+
+  public static BooleanExpression[] adminReviewFilters(AdminReviewSearchRequest request) {
+    return new BooleanExpression[] {
+      alcoholIdEq(request.alcoholId()),
+      userIdEq(request.userId()),
+      activeStatusEq(request.activeStatus()),
+      displayStatusEq(request.displayStatus()),
+      adminKeywordContains(request.keyword()),
+      createdFromGoe(request.createdFrom()),
+      createdToLoe(request.createdTo())
+    };
+  }
+
+  public static List<OrderSpecifier<?>> adminReviewSortBy(
+      AdminReviewSortType sortType, SortOrder sortOrder) {
+    Order order = sortOrder == SortOrder.ASC ? Order.ASC : Order.DESC;
+    NumberExpression<Long> replyCount = reviewReply.id.countDistinct();
+    OrderSpecifier<?> latestReview = review.createAt.desc();
+    OrderSpecifier<?> latestReviewId = review.id.desc();
+
+    OrderSpecifier<?> primary =
+        switch (sortType) {
+          case CREATED_AT -> new OrderSpecifier<>(order, review.createAt);
+          case REPLY_COUNT -> new OrderSpecifier<>(order, replyCount);
+          case UPDATED_AT -> new OrderSpecifier<>(order, review.lastModifyAt);
+        };
+
+    return Arrays.asList(primary, latestReview, latestReviewId);
+  }
+
+  private static BooleanExpression alcoholIdEq(Long alcoholId) {
+    return alcoholId != null ? review.alcoholId.eq(alcoholId) : null;
+  }
+
+  private static BooleanExpression userIdEq(Long userId) {
+    return userId != null ? review.userId.eq(userId) : null;
+  }
+
+  private static BooleanExpression activeStatusEq(ReviewActiveStatus activeStatus) {
+    return activeStatus != null ? review.activeStatus.eq(activeStatus) : null;
+  }
+
+  private static BooleanExpression displayStatusEq(ReviewDisplayStatus displayStatus) {
+    return displayStatus != null ? review.status.eq(displayStatus) : null;
+  }
+
+  private static BooleanExpression adminKeywordContains(String keyword) {
+    if (keyword == null || keyword.isBlank()) {
+      return null;
+    }
+    String value = "%" + keyword.trim() + "%";
+    return review
+        .content
+        .likeIgnoreCase(value)
+        .or(user.nickName.likeIgnoreCase(value))
+        .or(user.email.likeIgnoreCase(value))
+        .or(alcohol.korName.likeIgnoreCase(value))
+        .or(alcohol.engName.likeIgnoreCase(value));
+  }
+
+  private static BooleanExpression createdFromGoe(java.time.LocalDateTime createdFrom) {
+    return createdFrom != null ? review.createAt.goe(createdFrom) : null;
+  }
+
+  private static BooleanExpression createdToLoe(java.time.LocalDateTime createdTo) {
+    return createdTo != null ? review.createAt.loe(createdTo) : null;
   }
 
   /** 키워드를 이용해 작성자, 주류 정보, 리뷰 콘텐츠, 테이스팅 태그를 모두 검색하는 조건 생성 */
