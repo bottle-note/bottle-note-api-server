@@ -42,57 +42,55 @@ Determine which files to review.
 
 ### Step 2: Five-Axis Review
 
-Evaluate every change across these dimensions. For each axis, check the project-specific items listed below.
+Evaluate every change across these dimensions. Project-specific concrete checks live in the relevant references — consult `implement/references/languages/{your-language}.md` and `implement/references/types/{your-type}.md` for the exact items.
 
 #### Correctness
 
 Does the code do what it claims to do?
 
 - Does it match the spec or task acceptance criteria?
-- Are edge cases handled (null, empty, boundary values)?
+- Are edge cases handled (null, empty, boundary values, error inputs)?
 - Are error paths handled (not just the happy path)?
-- Are domain events published where expected?
+- Are domain events / side effects emitted where expected?
 - Do existing tests still pass?
 
 #### Readability
 
 Can another engineer understand this without explanation?
 
-- Names follow project conventions: `{Domain}Controller`, `Default{Domain}Facade`, `Jpa{Domain}Repository`
-- `@DisplayName` uses Korean in format: `~할 때 ~한다`
-- Comments are single-line and brief (no stating the obvious)
-- DTOs use `record` for immutability
+- Names follow the project's naming conventions
+- Test display names follow the project's convention (often the user's natural language describing behavior)
+- Comments are single-line and brief — no stating the obvious
+- Data structures use the language-idiomatic immutability primitives (record/dataclass/struct)
 - No deep nesting (3+ levels) — use guard clauses
 
 #### Architecture
 
 Does the change fit the system design?
 
-- **Facade boundary**: cross-domain access goes through Facade, never direct Repository/Service
-- **Repository 3-Tier**: Domain repo (pure interface) → JPA repo (implementation) → QueryDSL (complex queries only)
-- **Controller thinness**: controllers delegate to services/facades, no business logic
-- **Module boundary**: business logic in `bottlenote-mono`, controllers in API modules
-- **Custom annotations**: `@FacadeService`, `@DomainRepository`, `@JpaRepositoryImpl` used correctly
+- **Module boundary**: respects the project's layering rules — consult `implement/references/types/{your-type}.md` for the specific layering (e.g., service-vs-controller thinness, repository tiers, public-vs-internal API surface)
+- **Cross-module access**: goes through the documented seam (Facade, port, public function), never bypasses
+- **Custom conventions**: language/framework-specific annotations or markers used correctly (`implement/references/languages/{your-language}.md`)
 
 #### Security
 
 Does the change introduce vulnerabilities?
 
-- Authenticated endpoints use `SecurityContextUtil.getUserIdByContext()` (product) or `SecurityContextUtil.getAdminUserIdByContext()` (admin)
-- Request DTOs use `@Valid` with Bean Validation annotations
-- No raw SQL string concatenation (use parameterized queries or QueryDSL)
-- Sensitive data not logged (passwords, tokens)
+- Authenticated endpoints / commands use the project's auth primitive (not ad-hoc)
+- Inputs validated at the system boundary (request DTOs, CLI args)
+- No raw SQL / shell string concatenation — parameterized queries / safe APIs
+- Sensitive data not logged (passwords, tokens, PII)
 - No secrets in source code
 
 #### Performance
 
 Does the change introduce performance problems?
 
-- No N+1 query patterns (use fetch joins, `@BatchSize`)
-- List endpoints have pagination (`CursorPageable` for product, offset for admin)
-- Read-only operations use `@Transactional(readOnly = true)`
-- `@Cacheable` considered for frequently accessed, rarely changed data
-- No unbounded queries (always limit results)
+- No N+1 query patterns (use fetch joins / dataloader / batched APIs)
+- List endpoints / queries have pagination
+- Read-only operations marked as such (transaction modifiers, etc.) where the language supports it
+- Caching considered for frequently accessed, rarely changed data
+- No unbounded queries / collections (always limit)
 
 ### Step 3: Report Findings
 
@@ -111,9 +109,9 @@ Format each finding as:
 
 Example:
 ```
-[Critical] (Architecture) RatingService.java:42 — Directly injects AlcoholRepository instead of AlcoholFacade
-[Important] (Correctness) RatingController.java:28 — Missing null check for optional userId
-[Nit] (Readability) RatingService.java:15 — Variable name 'r' should be descriptive
+[Critical] (Architecture) service.py:42 — Directly imports another module's repository instead of going through its facade
+[Important] (Correctness) handler.go:28 — Missing nil check for optional userId
+[Nit] (Readability) service.java:15 — Variable name 'r' should be descriptive
 ```
 
 ### Step 4: Resolve or Recommend
@@ -137,12 +135,12 @@ After all Critical and Important issues are resolved, proceed to commit.
 ## Red Flags
 
 - Skipping review for "trivial" changes
-- All findings are Nit (you are not looking hard enough)
+- **All findings are Nit** — you are not looking hard enough
 - No findings at all on a multi-file change (review more carefully)
 - Ignoring Critical findings to meet a deadline
 - Reviewing without understanding the feature's intent or acceptance criteria
-- Facade boundaries violated (cross-domain direct access)
-- Repository interface changed but InMemory implementation not updated
+- Module boundaries violated (cross-module direct access)
+- Test doubles (InMemory/Fake) not updated when an interface they implement changed
 
 ## Verification
 
@@ -150,9 +148,16 @@ After completing the review:
 
 - [ ] All Critical issues are resolved
 - [ ] All Important issues are resolved or explicitly deferred with justification
-- [ ] Architecture rules respected (Facade boundaries, Repository 3-Tier)
-- [ ] Security checks in place for authenticated endpoints
-- [ ] No new N+1 patterns introduced
-- [ ] Code compiles: `./gradlew compileJava compileTestJava`
-- [ ] Unit tests pass: `./gradlew unit_test`
-- [ ] Architecture rules pass: `./gradlew check_rule_test`
+- [ ] Module boundaries respected
+- [ ] Security checks in place at boundaries
+- [ ] No new N+1 / unbounded patterns introduced
+- [ ] Code compiles / type-checks (see `/verify` quick)
+- [ ] Unit tests pass (see `/verify` standard)
+
+---
+
+## Lifecycle Integration
+
+**Before this skill:** if `plan/conventions.md` does not exist, run `/scan-conventions` first — analysis relies on knowing the project's actual conventions (naming, layering, test patterns, build system).
+
+**After this skill:** invoke `/next-flow` to diagnose lifecycle state and propose the next command. `/next-flow` auto-progresses read-only verification only and never writes files. Note: `/plan` is a Claude Code UI command and cannot be auto-invoked — the user must type it themselves; `/next-flow` will print a notice in that case.

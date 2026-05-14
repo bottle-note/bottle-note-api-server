@@ -12,10 +12,10 @@ allowed-tools: Bash, Read, Edit, Write, AskUserQuestion
 ## 현재 상태
 
 ### 사전 조건
-!`.Codex/skills/deploy-batch/scripts/check-prerequisites.sh 2>&1 || true`
+!`.claude/skills/deploy-batch/scripts/check-prerequisites.sh 2>&1 || true`
 
 ### 버전 정보
-!`.Codex/skills/deploy-batch/scripts/check-version.sh both 2>&1 || true`
+!`.claude/skills/deploy-batch/scripts/check-version.sh both 2>&1 || true`
 
 ## 배포 플로우
 
@@ -35,17 +35,17 @@ allowed-tools: Bash, Read, Edit, Write, AskUserQuestion
 
 ### 1단계: 사전 조건 확인
 ```bash
-.Codex/skills/deploy-batch/scripts/check-prerequisites.sh
+.claude/skills/deploy-batch/scripts/check-prerequisites.sh
 ```
 - 실패 시 안내된 설치 명령어 실행 후 재시도
 
 ### 2단계: 버전 확인 및 조정
 ```bash
-.Codex/skills/deploy-batch/scripts/check-version.sh both
+.claude/skills/deploy-batch/scripts/check-version.sh both
 ```
 - STATUS=CONFLICT 시 버전 증가 필요:
 ```bash
-.Codex/skills/deploy-batch/scripts/bump-version.sh --patch
+.claude/skills/deploy-batch/scripts/bump-version.sh --patch
 ```
 
 ### 3단계: 사용자에게 질문 (AskUserQuestion)
@@ -62,25 +62,25 @@ allowed-tools: Bash, Read, Edit, Write, AskUserQuestion
 ### 4단계: 이미지 빌드
 ```bash
 # VERSION 생략 시 VERSION 파일에서 자동 읽음
-.Codex/skills/deploy-batch/scripts/build-image.sh
-.Codex/skills/deploy-batch/scripts/build-image.sh 1.0.0  # 명시적 버전
+.claude/skills/deploy-batch/scripts/build-image.sh
+.claude/skills/deploy-batch/scripts/build-image.sh 1.0.0  # 명시적 버전
 ```
 
 ### 5단계: 이미지 푸시
 ```bash
 # 서명 없이
-.Codex/skills/deploy-batch/scripts/push-image.sh
+.claude/skills/deploy-batch/scripts/push-image.sh
 
 # 서명 포함
-.Codex/skills/deploy-batch/scripts/push-image.sh --sign
+.claude/skills/deploy-batch/scripts/push-image.sh --sign
 ```
 
 ### 6단계: kustomize 업데이트
 ```bash
 # 환경: production | development | both (기본값: both)
-.Codex/skills/deploy-batch/scripts/update-kustomize.sh
-.Codex/skills/deploy-batch/scripts/update-kustomize.sh production
-.Codex/skills/deploy-batch/scripts/update-kustomize.sh 1.0.0 both  # 명시적 버전
+.claude/skills/deploy-batch/scripts/update-kustomize.sh
+.claude/skills/deploy-batch/scripts/update-kustomize.sh production
+.claude/skills/deploy-batch/scripts/update-kustomize.sh 1.0.0 both  # 명시적 버전
 ```
 
 ## 스크립트 목록
@@ -99,10 +99,10 @@ allowed-tools: Bash, Read, Edit, Write, AskUserQuestion
 
 모든 스크립트는 `--dry-run` 옵션 지원:
 ```bash
-.Codex/skills/deploy-batch/scripts/bump-version.sh --dry-run
-.Codex/skills/deploy-batch/scripts/build-image.sh --dry-run
-.Codex/skills/deploy-batch/scripts/push-image.sh --dry-run --sign
-.Codex/skills/deploy-batch/scripts/update-kustomize.sh both --dry-run
+.claude/skills/deploy-batch/scripts/bump-version.sh --dry-run
+.claude/skills/deploy-batch/scripts/build-image.sh --dry-run
+.claude/skills/deploy-batch/scripts/push-image.sh --dry-run --sign
+.claude/skills/deploy-batch/scripts/update-kustomize.sh both --dry-run
 ```
 
 ## 주의사항

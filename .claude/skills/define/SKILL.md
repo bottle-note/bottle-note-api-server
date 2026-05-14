@@ -2,7 +2,7 @@
 name: define
 description: |
   Clarifies requirements before any code is written. Creates a plan document with assumptions, success criteria, and impact scope.
-  Trigger: "/define", or when the user says "이거 구현해줘", "기능 추가", "요구사항 정리", "define requirements".
+  Trigger: "/define", or when the user says "이거 구현해줘", "기능 추가", "요구사항 정리", "define requirements", "spec this".
   Use when starting a new feature, when requirements are vague, or when the scope of a change is unclear.
   Do NOT write code during this skill — the output is a plan document, not implementation.
 argument-hint: "[feature description]"
@@ -14,31 +14,39 @@ argument-hint: "[feature description]"
 
 Write a structured specification before writing any code. The plan document is the shared source of truth — it defines what we are building, why, and how we will know it is done. Code without a spec is guessing.
 
-This skill creates `plan/{feature-name}.md` with an Overview section. The `/plan` skill later adds Tasks to the same document.
+This skill creates `plan/{feature-name}.md` with an Overview section. The `/plan` skill later adds Tasks to the same document; `/implement` fills the Progress Log. One feature = one document, from define through commit.
 
 ## When to Use
 
 - Starting a new feature or significant change
 - Requirements are ambiguous or incomplete
-- The change touches 3+ files or multiple modules
-- The user gives a vague request ("이거 구현해줘", "추가해줘")
+- The change touches 3+ files or multiple components
+- The user gives a vague request ("이거 구현해줘", "추가해줘", "add this feature")
 
 ## When NOT to Use
 
 - Bug fixes with clear reproduction (use `/debug`)
 - Single-file changes with obvious scope
-- Requirements are already documented in a plan file
+- Requirements already documented in a plan file
 - Test-only work (use `/test`)
 
 ## Process
+
+### Step 0: Confirm Project Conventions Exist (hard gate)
+
+**Before any other step**, check that `plan/conventions.md` exists at the project root.
+
+- If it does NOT exist → **STOP**. Tell the user to run `/scan-conventions` first. Impact analysis (Step 4) depends on knowing the project's actual conventions (naming, layering, persistence, test patterns). Do NOT proceed to Step 1.
+- If it exists but is older than ~30 days → ask whether to rescan via `/scan-conventions` or use as-is.
+- If it exists and is current → proceed to Step 1 and treat the artifact as authoritative for downstream analysis.
 
 ### Step 1: Parse Request
 
 Identify what the user wants. Do NOT assume scope.
 
-- What domain is involved? (alcohols, rating, review, support, etc.)
-- Which module? (product-api, admin-api, or both?)
-- What is the expected user-facing behavior?
+- What domain or area is involved?
+- Which modules / services / surfaces are touched? (API server, CLI, batch, library, frontend, ...)
+- What is the expected externally visible behavior?
 - Are there related features already implemented?
 
 If anything is unclear, ask before proceeding. Do NOT fill in ambiguous requirements silently.
@@ -49,61 +57,66 @@ List every assumption explicitly. Each assumption is something that could be wro
 
 ```
 ASSUMPTIONS:
-1. This feature is for product-api (not admin-api)
-2. Authentication is required (not a public endpoint)
-3. The alcohol entity already exists and does not need schema changes
-4. Pagination uses cursor-based approach (project default for product)
+1. This feature targets the {module} (not {other-module})
+2. Authentication is required (not a public surface)
+3. The {entity} already exists and does not need schema changes
+4. {Pagination style} follows the project default
 -> Confirm or correct these before I proceed.
 ```
 
 Do NOT proceed without user confirmation on assumptions.
+
+**Superpowers absorption (if installed).** When Superpowers is active in the session, invoke its `brainstorming` skill as a sub-block before finalizing the assumption list — use the Socratic dialogue to surface deeper hidden assumptions, then merge its output into this section. The user-approval gate above still applies; brainstorming output does NOT bypass it. If Superpowers is not installed, skip this sub-block silently and proceed with GSL alone.
 
 ### Step 3: Define Success Criteria
 
 Each criterion must be specific and testable. Translate vague requirements into concrete conditions.
 
 ```
-REQUIREMENT: "평점 통계 기능 추가"
+REQUIREMENT: "add a usage statistics feature"
 
 SUCCESS CRITERIA:
-- GET /api/v1/ratings/statistics/{alcoholId} returns average rating, count, and distribution
-- Response includes rating distribution as a map (e.g., {FIVE: 12, FOUR: 8, ...})
-- Unauthenticated users can access (read-only endpoint)
-- Response time < 500ms for alcohols with 1000+ ratings
+- {GET endpoint / CLI command} returns average, count, and distribution
+- Response shape includes {field 1}, {field 2}, {field 3}
+- Unauthenticated callers can {access / are rejected with 401}
+- Latency target: < {N} ms at {scale} items
 -> Are these the right targets?
 ```
 
+Reject criteria that are not testable ("make it better", "improve performance").
+
 ### Step 4: Analyze Impact Scope
 
-Check which modules and components are affected:
+Check which parts of the system are affected. The exact checklist depends on the project type — consult `implement/references/types/{your-type}.md` for type-specific impact checklists. Generally:
 
-- **Modules**: Which of mono, product-api, admin-api are involved?
-- **Domains**: Does this touch multiple domains? (If yes, Facade needed)
-- **Entities**: Any schema changes? (Liquibase migration needed)
-- **Events**: New domain events? Existing event listeners affected?
-- **Cache**: Does this data need caching? Existing cache invalidation affected?
-- **Tests**: Which test types will be needed? (unit, integration, RestDocs)
+- **Modules / surfaces**: which ones are involved?
+- **Cross-component coupling**: any new dependency between previously independent units?
+- **Persistence**: schema migration needed?
+- **Async / events**: new events published or consumed?
+- **Caching**: invalidation policy affected?
+- **Tests**: which test layers will be needed?
+- **Docs / API contracts**: external consumers impacted?
 
 ### Step 5: Create Plan Document
 
-Create `plan/{feature-name}.md` in Korean with the following structure:
+Create `plan/{feature-name}.md`. Use the user's preferred language for plan documents (the working convention is the user's natural language; English keywords for section headers are fine):
 
 ```markdown
-# Plan: [기능명]
+# Plan: [feature name]
 
 ## Overview
-[무엇을 왜 만드는지]
+[what we are building and why]
 
 ### Assumptions
-- [가정 1]
-- [가정 2]
+- [assumption 1]
+- [assumption 2]
 
 ### Success Criteria
-- [성공 기준 1 - 구체적, 테스트 가능]
-- [성공 기준 2]
+- [specific, testable criterion 1]
+- [specific, testable criterion 2]
 
 ### Impact Scope
-- [영향받는 모듈/파일 목록]
+- [modules / files affected, schema, events, cache, tests]
 ```
 
 This document will be extended by `/plan` (Tasks section) and `/implement` (Progress Log).
@@ -116,9 +129,9 @@ Present the complete Overview to the user. Do NOT proceed to `/plan` or `/implem
 Plan document created: plan/{feature-name}.md
 
 Summary:
-- Assumptions: [count] items listed
-- Success criteria: [count] conditions defined
-- Impact: [modules affected]
+- Assumptions: [N] items listed
+- Success criteria: [N] conditions defined
+- Impact: [modules / surfaces affected]
 
 Approve to proceed to /plan for task breakdown?
 ```
@@ -128,7 +141,7 @@ Approve to proceed to /plan for task breakdown?
 | Rationalization | Reality |
 |-----------------|---------|
 | "This is simple, I don't need a spec" | Simple tasks still need acceptance criteria. A 2-line spec is fine. |
-| "I'll figure it out while coding" | That is how you end up with rework. 15 minutes of spec saves 3 hours of wrong implementation. |
+| "I'll figure it out while coding" | That is how rework happens. 15 minutes of spec saves 3 hours of wrong implementation. |
 | "Requirements will change anyway" | That is why the spec is a living document. Having one that changes is better than having none. |
 | "The user knows what they want" | Even clear requests have implicit assumptions. The spec surfaces those. |
 | "I can just start with /implement" | Without defined success criteria, how will you know when you are done? |
@@ -137,8 +150,8 @@ Approve to proceed to /plan for task breakdown?
 
 - Jumping to code without user approval on assumptions
 - Assumptions not listed explicitly
-- Success criteria that are not testable ("make it better", "improve performance")
-- Missing impact analysis (especially cross-domain Facade needs)
+- Success criteria that are not testable
+- Missing impact analysis (especially cross-component coupling)
 - Proceeding to `/plan` without user approval on the Overview
 - Creating multiple plan documents for a single feature
 
@@ -149,6 +162,13 @@ Before proceeding to `/plan`:
 - [ ] Plan document exists at `plan/{feature-name}.md`
 - [ ] Assumptions are listed and confirmed by user
 - [ ] Success criteria are specific and testable
-- [ ] Impact scope identifies affected modules, domains, and test types
+- [ ] Impact scope identifies affected modules / surfaces / tests
 - [ ] User has explicitly approved the Overview
-- [ ] Document is written in Korean (plan documents use Korean)
+
+---
+
+## Lifecycle Integration
+
+**Before this skill:** if `plan/conventions.md` does not exist, run `/scan-conventions` first — analysis relies on knowing the project's actual conventions (naming, layering, test patterns, build system).
+
+**After this skill:** invoke `/next-flow` to diagnose lifecycle state and propose the next command. `/next-flow` auto-progresses read-only verification only and never writes files. Note: `/plan` is a Claude Code UI command and cannot be auto-invoked — the user must type it themselves; `/next-flow` will print a notice in that case.
