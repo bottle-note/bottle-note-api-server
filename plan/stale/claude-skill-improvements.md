@@ -1,3 +1,23 @@
+```
+================================================================================
+                          PROJECT STAMP
+================================================================================
+Status: **STALE**
+First Drafted: 2026-05-08
+Marked Stale: 2026-05-14
+
+** Reason **
+- P1(스킬 간 자동 연결) / P2(plan 마무리 자동화) 는 별도 작업 (dev-cycle-skills GSL 추출, 커밋 e40d1c98) 에서 `/next-flow` 스킬 신설 및 `/implement` Phase 4 stamp 절차로 흡수됨 — SC1·SC2 는 본 plan 의도 이상으로 실현
+- bottle-note `.claude/skills/` 는 GSL 9 스킬셋으로 이식 완료 (`/scan-conventions`, `/next-flow` 신설 포함, 기존 references 5건은 GSL `(types × languages)` 매트릭스로 대체)
+- 잔여 P3(/docs) / P4(InMemory 구체 경로) / P5(local record + QueryDSL) 는 bottle-note 특화 항목으로 GSL 범용화 의도에서 제외됨 → 별도 plan 분리 필요
+- SC3~SC7 은 본 plan 으로 추적할 의미가 사라짐
+
+** Recommended Next Step **
+- 잔여 3 항목은 `plan/bottlenote-skill-refinements.md` (신규) 에서 bottle-note `.claude/skills/implement/references/languages/java-spring.md` + 신설 `/docs` 스킬 보강 단위로 재정의
+- 본 문서는 GSL 이식 의사결정 맥락 보존용 stale 보관
+================================================================================
+```
+
 # Plan: Claude Skill 체계 후속 개선 (P1~P5 + /docs + /finalize)
 
 ## Overview
