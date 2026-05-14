@@ -94,7 +94,7 @@
 - Verification: `./gradlew admin_integration_test --tests '*AdminReviewIntegrationTest'`
 - Files: `bottlenote-admin-api/src/test/kotlin/app/integration/review/AdminReviewIntegrationTest.kt`, `bottlenote-mono/src/test/java/app/bottlenote/review/fixture/ReviewTestFactory.java`
 - Size: S
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 4: 어드민 리뷰 목록 RestDocs 계약 slice
 - Acceptance: RestDocs 테스트가 `GET /reviews` query parameters와 응답 필드, page meta를 문서화한다.
@@ -124,3 +124,9 @@
 - Added QueryDSL filters for `alcoholId`, `userId`, `activeStatus`, `displayStatus`, `keyword`, `createdFrom`, and `createdTo`.
 - Added admin review ordering for `CREATED_AT`, `REPLY_COUNT`, and `UPDATED_AT` with latest-review tie breakers.
 - Verification: `./gradlew :bottlenote-mono:compileJava :bottlenote-admin-api:compileKotlin` passed.
+
+### 2026-05-14 — Task 3
+- Added `AdminReviewIntegrationTest` with `@Tag("admin_integration")` for default list response fields, all active/display state exposure, 7 standalone filters, keyword targets, 3 sort types with both directions, and page meta.
+- Extended `ReviewTestFactory` with a Testcontainers-backed admin review fixture method that persists real `Review` rows and fixes `create_at` / `last_modify_at` via the test database.
+- Verification note: root aggregate command `./gradlew admin_integration_test --tests '*AdminReviewIntegrationTest'` failed because the aggregate task does not accept `--tests`.
+- Verification: `git submodule update --init --recursive` completed for missing `git.environment-variables`; `./gradlew :bottlenote-admin-api:admin_integration_test --tests '*AdminReviewIntegrationTest'` passed.
