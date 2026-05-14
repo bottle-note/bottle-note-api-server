@@ -78,6 +78,6 @@ logging:
 
 security:
   jwt:
-    secret-key: c2VjdXJlU2VjcmV0S2V5MTIzNDU2Nzg5MGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6QWJDRGVGR2hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlrSg==
+    secret-key: ${JWT_SECRET_KEY}
   nonce:
-    salt: bottle-note-secure-salt-2024
+    salt: ${NONCE_SALT}
