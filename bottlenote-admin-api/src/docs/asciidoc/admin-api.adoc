@@ -76,6 +76,12 @@ include::api/admin-users/users.adoc[]
 
 '''
 
+== Review API
+
+include::admin-review.adoc[]
+
+'''
+
 == Banner API
 
 include::api/admin-banners/banners.adoc[]

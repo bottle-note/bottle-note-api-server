@@ -103,13 +103,13 @@
 - Verification: `./gradlew :bottlenote-admin-api:test --tests '*AdminReviewControllerDocsTest'`
 - Files: `bottlenote-admin-api/src/test/kotlin/app/docs/review/AdminReviewControllerDocsTest.kt`, `bottlenote-admin-api/src/docs/asciidoc/admin-review.adoc`
 - Size: S
-- Status: [ ] not done
+- Status: [x] done
 
 ### Checkpoint: after Tasks 3-4
 - [ ] `./gradlew admin_integration_test --tests '*AdminReviewIntegrationTest'` passes
-- [ ] `./gradlew :bottlenote-admin-api:test --tests '*AdminReviewControllerDocsTest'` passes
-- [ ] `./gradlew :bottlenote-admin-api:test` passes or any unrelated failure is recorded with evidence
-- [ ] API contract still exposes only `GET /admin/api/v1/reviews`
+- [x] `./gradlew :bottlenote-admin-api:test --tests '*AdminReviewControllerDocsTest'` passes
+- [x] `./gradlew :bottlenote-admin-api:test` passes or any unrelated failure is recorded with evidence
+- [x] API contract still exposes only `GET /admin/api/v1/reviews`
 
 ## Progress Log
 
@@ -130,3 +130,11 @@
 - Extended `ReviewTestFactory` with a Testcontainers-backed admin review fixture method that persists real `Review` rows and fixes `create_at` / `last_modify_at` via the test database.
 - Verification note: root aggregate command `./gradlew admin_integration_test --tests '*AdminReviewIntegrationTest'` failed because the aggregate task does not accept `--tests`.
 - Verification: `git submodule update --init --recursive` completed for missing `git.environment-variables`; `./gradlew :bottlenote-admin-api:admin_integration_test --tests '*AdminReviewIntegrationTest'` passed.
+
+### 2026-05-14 — Task 4
+- Added `AdminReviewControllerDocsTest` for `GET /admin/api/v1/reviews` query parameters, response fields, and page meta.
+- Added `admin-review.adoc` and linked it from `admin-api.adoc`; the document includes only the admin review list API.
+- Verification: `./gradlew :bottlenote-admin-api:test --tests '*AdminReviewControllerDocsTest'` passed.
+- Verification: `./gradlew :bottlenote-admin-api:test` passed, confirming the new admin DocsTest runs in the default admin test task.
+- Verification: `./gradlew :bottlenote-admin-api:asciidoctor` passed.
+- Contract check: `rg -n "@(?:Get|Post|Put|Patch|Delete)Mapping|/reviews|admin/reviews|Review API|admin-review" ...` found only `@GetMapping` on `/reviews`, the list DocsTest, and the list document include.
