@@ -34,6 +34,16 @@ public interface JpaRatingRepository
 
   @Override
   @Query(
+      "select coalesce(avg(r.ratingPoint.rating), 0.0) from rating r where r.id.alcoholId = :alcoholId and r.ratingPoint.rating > 0.0")
+  Double findAverageRatingByAlcoholId(@Param("alcoholId") Long alcoholId);
+
+  @Override
+  @Query(
+      "select count(r) from rating r where r.id.alcoholId = :alcoholId and r.ratingPoint.rating > 0.0")
+  Long countByAlcoholId(@Param("alcoholId") Long alcoholId);
+
+  @Override
+  @Query(
       "select case when count(r) > 0 then true else false end from rating r where r.id.alcoholId = :alcoholId")
   boolean existsByAlcoholId(@Param("alcoholId") Long alcoholId);
 }

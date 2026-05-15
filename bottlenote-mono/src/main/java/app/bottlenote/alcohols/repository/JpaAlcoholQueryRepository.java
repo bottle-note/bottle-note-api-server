@@ -13,6 +13,10 @@ public interface JpaAlcoholQueryRepository
     extends AlcoholQueryRepository, JpaRepository<Alcohol, Long>, CustomAlcoholQueryRepository {
 
   @Override
+  @Query("select distinct a from alcohol a left join fetch a.region where a.id in :ids")
+  List<Alcohol> findAllByIdIn(@Param("ids") List<Long> ids);
+
+  @Override
   @Query(
       """
 			        Select new app.bottlenote.alcohols.dto.response.CategoryItem(a.korCategory, a.engCategory,a.categoryGroup)

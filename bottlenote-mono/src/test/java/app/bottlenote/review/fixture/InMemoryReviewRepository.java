@@ -2,6 +2,8 @@ package app.bottlenote.review.fixture;
 
 import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.review.constant.ReviewActiveStatus;
+import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
@@ -72,6 +74,16 @@ public class InMemoryReviewRepository implements ReviewRepository {
   @Override
   public List<Review> findByUserId(Long userId) {
     return List.of();
+  }
+
+  @Override
+  public Long countByAlcoholIdAndActiveStatusAndStatus(
+      Long alcoholId, ReviewActiveStatus activeStatus, ReviewDisplayStatus status) {
+    return database.values().stream()
+        .filter(review -> Objects.equals(review.getAlcoholId(), alcoholId))
+        .filter(review -> review.getActiveStatus() == activeStatus)
+        .filter(review -> review.getStatus() == status)
+        .count();
   }
 
   @Override

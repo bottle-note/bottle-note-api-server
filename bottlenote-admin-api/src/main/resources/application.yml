@@ -62,6 +62,10 @@ schedules:
       sync:
         enable: false
 
+curation:
+  spec-sync:
+    enabled: ${CURATION_SPEC_SYNC_ENABLED:true}
+
 root:
   admin:
     email: ${ROOT_ADMIN_EMAIL:email@email.com}

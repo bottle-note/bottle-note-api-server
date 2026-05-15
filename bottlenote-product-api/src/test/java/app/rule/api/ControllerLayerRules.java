@@ -39,6 +39,8 @@ import org.springframework.web.bind.annotation.RestController;
 @SuppressWarnings({"NonAsciiCharacters", "JUnitTestClassNamingConvention"})
 public class ControllerLayerRules extends AbstractRules {
 
+  private static final String GRAPHQL_PACKAGE = "..graphql..";
+
   /** 컨트롤러 클래스 명명 규칙을 검증합니다. 컨트롤러 애노테이션이 있는 모든 클래스는 이름이 'Controller'로 끝나야 합니다. */
   @Test
   public void 컨트롤러_클래스_명명_규칙_검증() {
@@ -48,6 +50,8 @@ public class ControllerLayerRules extends AbstractRules {
             .areAnnotatedWith(RestController.class)
             .or()
             .areAnnotatedWith(Controller.class)
+            .and()
+            .resideOutsideOfPackage(GRAPHQL_PACKAGE)
             .should()
             .haveSimpleNameEndingWith("Controller")
             .because("컨트롤러 클래스는 명확한 식별을 위해 'Controller'로 끝나야 합니다");
@@ -64,6 +68,8 @@ public class ControllerLayerRules extends AbstractRules {
             .areAnnotatedWith(RestController.class)
             .or()
             .areAnnotatedWith(Controller.class)
+            .and()
+            .resideOutsideOfPackage(GRAPHQL_PACKAGE)
             .should()
             .resideInAnyPackage("..controller..", "..api..")
             .because("컨트롤러 클래스는 구조적 일관성을 위해 '.controller' 또는 '.api' 패키지에 위치해야 합니다");
@@ -98,6 +104,8 @@ public class ControllerLayerRules extends AbstractRules {
             .areAnnotatedWith(RestController.class)
             .or()
             .areAnnotatedWith(Controller.class)
+            .and()
+            .resideOutsideOfPackage(GRAPHQL_PACKAGE)
             .should()
             .beAnnotatedWith(RequestMapping.class)
             .because("컨트롤러 클래스는 기본 경로 정의를 위해 클래스 수준의 @RequestMapping을 가져야 합니다");
@@ -123,6 +131,9 @@ public class ControllerLayerRules extends AbstractRules {
             .arePublic()
             .and()
             .areNotStatic()
+            .and()
+            .areDeclaredInClassesThat()
+            .resideOutsideOfPackage(GRAPHQL_PACKAGE)
             .should()
             .beAnnotatedWith(GetMapping.class)
             .orShould()
@@ -251,6 +262,9 @@ public class ControllerLayerRules extends AbstractRules {
             .areAnnotatedWith(Controller.class)
             .and()
             .arePublic()
+            .and()
+            .areDeclaredInClassesThat()
+            .resideOutsideOfPackage(GRAPHQL_PACKAGE)
             .should(followControllerMethodNamingConvention())
             .because("컨트롤러 메서드는 명확한 동사로 시작하는 명명 규칙을 따라야 합니다(예: getUser, createOrder)");
 

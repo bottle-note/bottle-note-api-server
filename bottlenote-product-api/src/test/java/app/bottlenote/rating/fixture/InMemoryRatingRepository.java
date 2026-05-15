@@ -58,6 +58,24 @@ public class InMemoryRatingRepository implements RatingRepository {
   }
 
   @Override
+  public Double findAverageRatingByAlcoholId(Long alcoholId) {
+    return ratings.values().stream()
+        .filter(rating -> rating.getId().getAlcoholId().equals(alcoholId))
+        .mapToDouble(rating -> rating.getRatingPoint().getRating())
+        .filter(rating -> rating > 0.0)
+        .average()
+        .orElse(0.0);
+  }
+
+  @Override
+  public Long countByAlcoholId(Long alcoholId) {
+    return ratings.values().stream()
+        .filter(rating -> rating.getId().getAlcoholId().equals(alcoholId))
+        .filter(rating -> rating.getRatingPoint().getRating() > 0.0)
+        .count();
+  }
+
+  @Override
   public boolean existsByAlcoholId(Long alcoholId) {
     return ratings.values().stream()
         .anyMatch(rating -> rating.getId().getAlcoholId().equals(alcoholId));

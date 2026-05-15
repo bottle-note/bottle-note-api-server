@@ -2,6 +2,8 @@ package app.bottlenote.review.domain;
 
 import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.review.constant.ReviewActiveStatus;
+import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.response.ReviewExploreItem;
 import app.bottlenote.review.dto.response.ReviewListResponse;
@@ -29,6 +31,9 @@ public interface ReviewRepository {
   Optional<Review> findByIdAndUserId(Long reviewId, Long userId);
 
   List<Review> findByUserId(Long userId);
+
+  Long countByAlcoholIdAndActiveStatusAndStatus(
+      Long alcoholId, ReviewActiveStatus activeStatus, ReviewDisplayStatus status);
 
   boolean existsById(Long reviewId);
 

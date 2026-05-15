@@ -86,6 +86,10 @@ spring:
   config:
     activate:
       on-profile: default,local
+  graphql:
+    graphiql:
+      enabled: true
+      path: /graphiql
 
 logging:
   level:
