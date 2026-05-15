@@ -165,10 +165,23 @@ Before proceeding to `/plan`:
 - [ ] Impact scope identifies affected modules / surfaces / tests
 - [ ] User has explicitly approved the Overview
 
+## Runtime Boundary — HARD STOP
+
+This skill ENDS after the Verification checklist and final report are completed.
+
+For codex and any runtime without an enforced skill-return boundary:
+- MUST stop the assistant turn here.
+- MUST NOT invoke, load, or execute any next GSL skill in the same response turn.
+- MUST NOT continue into `/next-flow`, `/define`, `/plan`, `/implement`, `/test`, `/verify`, `/debug`, or `/self-review`.
+- MAY print exactly one suggested next command as plain text.
+- MUST wait for the user's next message before running any next skill.
+
+If the user says only "continue", treat that as permission to report the next recommended command, not permission to execute it.
+
 ---
 
 ## Lifecycle Integration
 
 **Before this skill:** if `plan/conventions.md` does not exist, run `/scan-conventions` first — analysis relies on knowing the project's actual conventions (naming, layering, test patterns, build system).
 
-**After this skill:** invoke `/next-flow` to diagnose lifecycle state and propose the next command. `/next-flow` auto-progresses read-only verification only and never writes files. Note: `/plan` is a Claude Code UI command and cannot be auto-invoked — the user must type it themselves; `/next-flow` will print a notice in that case.
+**After this skill:** the next GSL skill is started by the user, not by this skill — see the Runtime Boundary section above. `/next-flow` may be suggested for lifecycle diagnosis but is not auto-invoked. Runtime note: some environments expose slash commands as UI commands; codex loads GSL skills from `.agents/skills/`. In both cases, the next GSL skill requires a new explicit user message.

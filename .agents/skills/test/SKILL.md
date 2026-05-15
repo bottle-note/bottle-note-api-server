@@ -33,10 +33,11 @@ Write tests that prove code works. This skill guides you through creating unit t
 
 ## Relationship with `/implement`
 
-- **Unit tests**: ideally written together with implementation during a Task in `/implement`
-- **Integration tests**: written after all Tasks are implemented, via separate `/test` invocation
-- **Docs tests** (API contract docs): only when user explicitly requests
-- Slice-level compile checks in `/implement` may RUN existing tests; this skill WRITES new tests
+- **Unit tests**: may be written together with implementation during a Task in `/implement` — writing test code alongside a Task is allowed.
+- **NOT allowed**: running the full `/test` workflow (Phase 0 explore, Phase 1 scenario-approval gate, Phase 2-4) inside `/implement`. The full `/test` skill is a separate runtime boundary and needs its own explicit invocation.
+- **Integration tests**: written after all Tasks are implemented, via a separate `/test` invocation.
+- **Docs tests** (API contract docs): only when the user explicitly requests.
+- Slice-level compile checks in `/implement` may RUN existing tests; the full `/test` skill WRITES new tests through its scenario-approval process.
 
 ## Test Types and Timing
 
@@ -193,10 +194,23 @@ After completing test implementation:
 - [ ] All tests pass: `/verify` at appropriate level
 - [ ] Test doubles updated if domain interfaces changed
 
+## Runtime Boundary — HARD STOP
+
+This skill ENDS after the Verification checklist and final report are completed.
+
+For codex and any runtime without an enforced skill-return boundary:
+- MUST stop the assistant turn here.
+- MUST NOT invoke, load, or execute any next GSL skill in the same response turn.
+- MUST NOT continue into `/next-flow`, `/define`, `/plan`, `/implement`, `/test`, `/verify`, `/debug`, or `/self-review`.
+- MAY print exactly one suggested next command as plain text.
+- MUST wait for the user's next message before running any next skill.
+
+If the user says only "continue", treat that as permission to report the next recommended command, not permission to execute it.
+
 ---
 
 ## Lifecycle Integration
 
 **Before this skill:** if `plan/conventions.md` does not exist, run `/scan-conventions` first — analysis relies on knowing the project's actual conventions (naming, layering, test patterns, build system).
 
-**After this skill:** invoke `/next-flow` to diagnose lifecycle state and propose the next command. `/next-flow` auto-progresses read-only verification only and never writes files. Note: `/plan` is a Claude Code UI command and cannot be auto-invoked — the user must type it themselves; `/next-flow` will print a notice in that case.
+**After this skill:** the next GSL skill is started by the user, not by this skill — see the Runtime Boundary section above. `/next-flow` may be suggested for lifecycle diagnosis but is not auto-invoked. Runtime note: some environments expose slash commands as UI commands; codex loads GSL skills from `.agents/skills/`. In both cases, the next GSL skill requires a new explicit user message.

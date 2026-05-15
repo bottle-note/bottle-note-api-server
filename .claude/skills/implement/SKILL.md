@@ -125,11 +125,12 @@ feat: rating statistics service
 **Cycle per Task:**
 1. Implement Slice → compile / type-check → pass? continue : fix
 2. Repeat until all Slices in the Task are done
-3. Run `/self-review` on the Task's changes
-4. Run `/verify standard` (unit + arch rules)
+3. Run a self-review pass on the Task's changes (the 5-axis check). For a full independent review, stop and recommend `/self-review` as a separate invocation — do not run its full skill body inside `/implement`.
+4. Run the compile/type-check and unit-test commands needed for this Task. For full `/verify standard` or `/verify full`, stop and recommend `/verify` as a separate invocation.
 5. Commit with descriptive message
 6. Update plan document (check off Task, add to Progress Log)
-7. Move to next Task
+7. **HARD STOP after this Task.** Do NOT start the next Task in the same response turn. Report: completed Task number/title, verification evidence, changed files, next recommended Task. Then wait for the user's next message.
+   - Exception: proceed to the next Task in the same turn ONLY IF the user explicitly named multiple Tasks for continuous execution in their request (e.g. "do Tasks 1 through 3"). An ambiguous "continue" / "진행하자" is NOT such permission.
 
 ### Phase 4: Final Verification
 
@@ -211,6 +212,9 @@ During Slice execution, load ONLY the references for the current Slice's module.
 - Skipping Phase 0 (Explore) and jumping straight to coding
 - Multiple unrelated changes in a single Task
 - Task completed without running `/self-review`
+- Starting Task N+1 after completing Task N without explicit user permission for continuous execution
+- Treating an ambiguous "continue" as permission to finish all remaining Tasks
+- Running `/test`, `/verify`, or `/self-review` as full skill bodies inside `/implement` instead of stopping at that skill boundary
 
 ## Verification
 
@@ -225,10 +229,23 @@ After completing all Tasks for a feature:
 - [ ] Build / package succeeds
 - [ ] Plan document updated (all Tasks checked, Progress Log filled)
 
+## Runtime Boundary — HARD STOP
+
+This skill ENDS after the Verification checklist and final report are completed.
+
+For codex and any runtime without an enforced skill-return boundary:
+- MUST stop the assistant turn here.
+- MUST NOT invoke, load, or execute any next GSL skill in the same response turn.
+- MUST NOT continue into `/next-flow`, `/define`, `/plan`, `/implement`, `/test`, `/verify`, `/debug`, or `/self-review`.
+- MAY print exactly one suggested next command as plain text.
+- MUST wait for the user's next message before running any next skill.
+
+If the user says only "continue", treat that as permission to report the next recommended command, not permission to execute it.
+
 ---
 
 ## Lifecycle Integration
 
 **Before this skill:** if `plan/conventions.md` does not exist, run `/scan-conventions` first — analysis relies on knowing the project's actual conventions (naming, layering, test patterns, build system).
 
-**After this skill:** invoke `/next-flow` to diagnose lifecycle state and propose the next command. `/next-flow` auto-progresses read-only verification only and never writes files. Note: `/plan` is a Claude Code UI command and cannot be auto-invoked — the user must type it themselves; `/next-flow` will print a notice in that case.
+**After this skill:** the next GSL skill is started by the user, not by this skill — see the Runtime Boundary section above. `/next-flow` may be suggested for lifecycle diagnosis but is not auto-invoked. Runtime note: some environments expose slash commands as UI commands; codex loads GSL skills from `.agents/skills/`. In both cases, the next GSL skill requires a new explicit user message.
