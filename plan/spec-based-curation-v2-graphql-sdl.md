@@ -255,6 +255,30 @@
 - Size: L
 - Status: [x] done
 
+### Phase 3 Task 1: Product v2 query + response materialization
+
+- Acceptance:
+  - Product v2 목록/상세 API를 `/api/v2/curations`, `/api/v2/curations/{curationId}`로 추가한다.
+  - 기존 Product `/api/v1/curations` keyword endpoint는 변경하지 않는다.
+  - 상세 응답은 header + spec meta + materialized payload 구조로 반환한다.
+  - `responseSpec.x-graphql` 메타를 읽어 GraphQL query를 생성하고 서버 내부 GraphQL executor로 실행한다.
+  - `BOTTLE_NOTE` 항목은 `alcohol.alcoholId`로 stats를 보강하고, `MANUAL` 또는 `alcoholId = null` 항목은 GraphQL 조회 대상으로 넘기지 않는다.
+  - root array 스펙과 `payloadPath = $.alcohols` object 스펙을 모두 지원한다.
+  - Admin 저장 시점 request payload는 requestSpec 기준으로 required, enum, type, string length, array min/max items, numeric min/max를 검증한다.
+  - Product 조회 시점 materialized payload는 responseSpec 기준으로 다시 검증한다.
+- Verification:
+  - `./gradlew :bottlenote-mono:test --tests 'app.bottlenote.curation.service.CurationPayloadValidatorTest' --tests 'app.bottlenote.curation.service.CurationResponseMaterializerTest' --tests 'app.bottlenote.curation.service.ProductSpecBasedCurationServiceTest'`
+  - `./gradlew :bottlenote-product-api:compileJava`
+  - `./gradlew check_rule_test`
+- Files:
+  - `bottlenote-mono/src/main/java/app/bottlenote/curation/service/CurationPayloadValidator.java`
+  - `bottlenote-mono/src/main/java/app/bottlenote/curation/service/SpecGraphqlQueryBuilder.java`
+  - `bottlenote-mono/src/main/java/app/bottlenote/curation/service/CurationResponseMaterializer.java`
+  - `bottlenote-mono/src/main/java/app/bottlenote/curation/service/ProductSpecBasedCurationService.java`
+  - `bottlenote-product-api/src/main/java/app/bottlenote/curation/controller/ProductSpecBasedCurationController.java`
+- Size: L
+- Status: [x] done
+
 ## Progress Log
 
 - 2026-05-15 Task 1 완료: Spring GraphQL starter alias를 version catalog에 추가하고, `bottlenote-mono`에 GraphQL runtime dependency를 연결했다. SDL 경로는 `bottlenote-mono/src/main/resources/graphql/schema.graphqls`로 확정했다. 검증: `./gradlew :bottlenote-mono:compileJava` 성공, `./gradlew :bottlenote-product-api:compileJava` 성공, `git diff -- git.environment-variables/storage/mysql/changelog/` 변경 없음.
@@ -272,6 +296,7 @@
 - 2026-05-15 Phase 2 Task 3 추가 완료: Liquibase insert seed 대신 admin-api startup resource sync를 추가했다. `CurationSpecResourceReader`가 `bottlenote-mono/src/main/resources/openapi/curation/*.json` 3종을 읽고, `CurationSpecResourceSyncService`가 `code` 기준으로 `curation_spec`을 생성 또는 갱신한다. admin-api runner는 `curation.spec-sync.enabled=${CURATION_SPEC_SYNC_ENABLED:true}`로 제어된다. 검증: `./gradlew :bottlenote-mono:compileJava :bottlenote-admin-api:compileKotlin :bottlenote-mono:test --tests 'app.bottlenote.curation.service.CurationSpecResourceSyncServiceTest'` 성공, `./gradlew check_rule_test` 성공.
 - 2026-05-15 Phase 2 Task 2 완료: `bottlenote-mono`에 curation v2 Entity, domain repository interface, JPA repository, `CurationV2Service`, focused fake repository와 unit test를 추가했다. `request_spec`, `response_spec`, `payload` JSON 컬럼은 기존 의존성인 Hypersistence `JsonType`으로 매핑했다. `check_rule_test`에서 서비스 메서드 파라미터 5개 제한과 DTO 패키지/네이밍 규칙이 먼저 실패해 service 입력을 `dto.request`의 `*Request` record로 묶었다. 검증: `./gradlew :bottlenote-mono:compileJava :bottlenote-mono:test --tests 'app.bottlenote.curation.service.CurationV2ServiceTest' check_rule_test` 성공, focused 테스트 4개 통과.
 - 2026-05-15 Phase 2 Task 3 완료: 기존 Admin `/curations` endpoint는 유지하고, 신규 spec 기반 Admin surface를 `/spec-based-curations`와 `/curation-specs`로 추가했다. admin-api의 context-path가 이미 `/admin/api/v1`이므로 컨트롤러 path에 `/v2` prefix를 붙이지 않는다. 스펙 API는 목록/상세를 제공한다. 등록/수정은 `specId`로 `curation_spec`을 조회하고, `imageUrls` 1~3장을 정규화해 첫 번째 이미지를 `cover_image_url`에 저장하며, payload는 `curation_extension.payload`에 저장한다. 새 의존성 없이 requestSpec의 required field와 payload 크기를 검증하는 `CurationPayloadValidator`를 추가했다. 검증: `./gradlew :bottlenote-mono:test --tests 'app.bottlenote.curation.service.AdminSpecBasedCurationServiceTest' :bottlenote-admin-api:test --tests 'app.docs.curation.AdminSpecBasedCurationControllerDocsTest'` 성공, service 테스트 5개와 RestDocs 테스트 6개 통과. `./gradlew check_rule_test` 성공.
+- 2026-05-15 Phase 3 Task 1 완료: Product v2 조회 API `/api/v2/curations`, `/api/v2/curations/{curationId}`를 추가하고, `responseSpec.x-graphql` 기반 materializer를 도입했다. materializer는 GraphQL query/variables를 responseSpec에서 만들고, Spring GraphQL executor를 통해 내부 실행한 뒤 payload의 `stats` 위치에 병합한다. root array와 `payloadPath = $.alcohols` object payload를 모두 지원하며, `MANUAL` 또는 `alcoholId = null` 항목은 stats를 null로 둔다. `CurationPayloadValidator`는 requestSpec/responseSpec 공통 검증기로 확장해 required, enum, type, minLength/maxLength, minItems/maxItems, minimum/maximum을 검증한다. 검증: focused 테스트 13개 통과, `./gradlew :bottlenote-product-api:compileJava` 성공, `./gradlew check_rule_test` 성공.
 
 ## Current Decision Summary
 
@@ -283,15 +308,16 @@
 - `MANUAL` 항목처럼 `alcoholId = null`인 payload는 후속 Product hydration 단계에서 GraphQL 조회 대상으로 넘기지 않는다.
 - 기존 `curation_keyword`, `curation_keyword_alcohol_ids`, 기존 curation endpoint는 유지한다.
 - 신규 schema 변경은 Phase 2 Task 1에서 `git.environment-variables/storage/mysql/changelog/` 아래 changelog로 추가했고, 개발 DB와 운영 DB에 Liquibase CLI로 적용했다.
-- Phase 2 Task 3에서 Admin spec 기반 endpoint를 추가했다. 최종 URL은 admin-api context-path를 포함해 `/admin/api/v1/curation-specs`, `/admin/api/v1/spec-based-curations`다. Product v2 endpoint는 아직 만들지 않았다.
+- Phase 2 Task 3에서 Admin spec 기반 endpoint를 추가했다. 최종 URL은 admin-api context-path를 포함해 `/admin/api/v1/curation-specs`, `/admin/api/v1/spec-based-curations`다.
+- Phase 3 Task 1에서 Product spec 기반 endpoint를 추가했다. 최종 URL은 `/api/v2/curations`, `/api/v2/curations/{curationId}`다.
 
 ## Next Work
 
-### Next: Phase 3 - Product V2 Query + Hydration
+### Next: Phase 3 - Product V2 API Documentation + Runtime Smoke
 
-다음 작업은 Product에서 신규 curation v2를 조회하고 GraphQL hydration 결과를 조립하는 것이다.
+다음 작업은 Product v2 API 문서화와 실제 기동 smoke 검증이다.
 
-- Product v2 목록/상세 API를 추가한다.
-- 저장 payload를 response spec과 GraphQL hydration 결과로 앱 응답 형태로 조립한다.
-- `source = BOTTLE_NOTE` 항목만 stats를 보강하고 `source = MANUAL` 항목은 stats를 생략한다.
+- Product v2 목록/상세 API RestDocs 또는 OpenAPI 문서를 추가한다.
+- `.env` 기반 product-api 기동 후 `/api/v2/curations`, `/api/v2/curations/{curationId}`를 실제 DB 데이터로 호출한다.
+- 응답 payload가 `responseSpec`과 일치하고 `stats`가 의도대로 병합되는지 runtime smoke로 확인한다.
 - 기존 curation keyword endpoint는 계속 유지한다.
