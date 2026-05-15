@@ -99,6 +99,14 @@ class AdminSpecBasedCurationIntegrationTest : IntegrationTestSupport() {
 		}
 
 		@Test
+		@DisplayName("요청 DTO 필수 필드가 없으면 400을 반환한다")
+		fun create_whenRequestRequiredFieldMissing_returnsBadRequest() {
+			val request = createRequest(validPayload()) - "name"
+
+			assertBadRequest(request)
+		}
+
+		@Test
 		@DisplayName("request spec의 enum 값이 아니면 400을 반환한다")
 		fun create_whenEnumValueInvalid_returnsBadRequest() {
 			val payload = validPayload(source = "UNKNOWN_SOURCE")

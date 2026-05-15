@@ -12,11 +12,13 @@ import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.picks.constant.PicksStatus;
 import app.bottlenote.picks.domain.Picks;
 import app.bottlenote.picks.domain.PicksRepository;
+import app.bottlenote.picks.dto.response.AlcoholPicksCountResponse;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.rating.domain.RatingRepository;
 import app.bottlenote.rating.dto.dsl.RatingListFetchCriteria;
+import app.bottlenote.rating.dto.response.AlcoholRatingStatsResponse;
 import app.bottlenote.rating.dto.response.RatingListFetchResponse;
 import app.bottlenote.rating.dto.response.UserRatingResponse;
 import app.bottlenote.review.constant.ReviewActiveStatus;
@@ -71,6 +73,10 @@ class CurationAlcoholGraphqlResolverTest {
     assertThat(resolver.totalRatingsCount(alcohol)).isEqualTo(2L);
     assertThat(resolver.reviewCount(alcohol)).isEqualTo(1L);
     assertThat(resolver.totalPickCount(alcohol)).isEqualTo(1L);
+    assertThat(resolver.ratings(alcohols)).containsEntry(alcohol, 4.0);
+    assertThat(resolver.totalRatingsCounts(alcohols)).containsEntry(alcohol, 2L);
+    assertThat(resolver.reviewCounts(alcohols)).containsEntry(alcohol, 1L);
+    assertThat(resolver.totalPickCounts(alcohols)).containsEntry(alcohol, 1L);
   }
 
   private static Alcohol alcohol(Long alcoholId) {
@@ -173,6 +179,19 @@ class CurationAlcoholGraphqlResolverTest {
     }
 
     @Override
+    public List<AlcoholRatingStatsResponse> findStatsByAlcoholIds(List<Long> alcoholIds) {
+      return alcoholIds.stream()
+          .map(
+              alcoholId ->
+                  new AlcoholRatingStatsResponse(
+                      alcoholId,
+                      findAverageRatingByAlcoholId(alcoholId),
+                      countByAlcoholId(alcoholId)))
+          .filter(stats -> stats.totalRatingsCount() > 0)
+          .toList();
+    }
+
+    @Override
     public boolean existsByAlcoholId(Long alcoholId) {
       return ratings.values().stream()
           .anyMatch(rating -> Objects.equals(rating.getId().getAlcoholId(), alcoholId));
@@ -197,6 +216,18 @@ class CurationAlcoholGraphqlResolverTest {
           .filter(pick -> Objects.equals(pick.getAlcoholId(), alcoholId))
           .filter(pick -> pick.getStatus() == status)
           .count();
+    }
+
+    @Override
+    public List<AlcoholPicksCountResponse> countByAlcoholIdsAndStatus(
+        List<Long> alcoholIds, PicksStatus status) {
+      return alcoholIds.stream()
+          .map(
+              alcoholId ->
+                  new AlcoholPicksCountResponse(
+                      alcoholId, countByAlcoholIdAndStatus(alcoholId, status)))
+          .filter(count -> count.totalPickCount() > 0)
+          .toList();
     }
 
     @Override

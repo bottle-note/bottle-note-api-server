@@ -7,6 +7,7 @@ import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
+import app.bottlenote.review.dto.response.AlcoholReviewCountResponse;
 import app.bottlenote.review.dto.response.ReviewExploreItem;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.facade.payload.ReviewInfo;
@@ -84,6 +85,19 @@ public class InMemoryReviewRepository implements ReviewRepository {
         .filter(review -> review.getActiveStatus() == activeStatus)
         .filter(review -> review.getStatus() == status)
         .count();
+  }
+
+  @Override
+  public List<AlcoholReviewCountResponse> countByAlcoholIdsAndActiveStatusAndStatus(
+      List<Long> alcoholIds, ReviewActiveStatus activeStatus, ReviewDisplayStatus status) {
+    return alcoholIds.stream()
+        .map(
+            alcoholId ->
+                new AlcoholReviewCountResponse(
+                    alcoholId,
+                    countByAlcoholIdAndActiveStatusAndStatus(alcoholId, activeStatus, status)))
+        .filter(count -> count.reviewCount() > 0)
+        .toList();
   }
 
   @Override
