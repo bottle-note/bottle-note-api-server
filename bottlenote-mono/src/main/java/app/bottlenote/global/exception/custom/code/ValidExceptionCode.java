@@ -98,6 +98,15 @@ public enum ValidExceptionCode implements ExceptionCode {
   BANNER_SORT_ORDER_MINIMUM(HttpStatus.BAD_REQUEST, "정렬 순서는 0 이상이어야 합니다."),
   BANNER_IS_ACTIVE_REQUIRED(HttpStatus.BAD_REQUEST, "활성화 상태는 필수입니다."),
 
+  // CURATION
+  CURATION_SPEC_ID_REQUIRED(HttpStatus.BAD_REQUEST, "큐레이션 스펙 ID는 필수입니다."),
+  CURATION_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "큐레이션 이름은 필수입니다."),
+  CURATION_IMAGE_URLS_REQUIRED(HttpStatus.BAD_REQUEST, "큐레이션 이미지는 최소 1개 이상이어야 합니다."),
+  CURATION_IMAGE_URLS_MAX_SIZE(HttpStatus.BAD_REQUEST, "큐레이션 이미지는 최대 3개까지 등록할 수 있습니다."),
+  CURATION_DISPLAY_ORDER_REQUIRED(HttpStatus.BAD_REQUEST, "노출 순서는 필수입니다."),
+  CURATION_IS_ACTIVE_REQUIRED(HttpStatus.BAD_REQUEST, "활성화 상태는 필수입니다."),
+  CURATION_PAYLOAD_REQUIRED(HttpStatus.BAD_REQUEST, "payload는 필수입니다."),
+
   // REGION
   REGION_KOR_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "지역 한글명은 필수입니다."),
   REGION_ENG_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "지역 영문명은 필수입니다."),

@@ -40,6 +40,11 @@ public enum MaliciousPathPattern {
   SERVER_STATUS("/server-status", "Apache 서버 상태"),
   SERVER_INFO("/server-info", "Apache 서버 정보"),
 
+  // 내부 전용 엔드포인트
+  GRAPHQL("/graphql", "내부 GraphQL 엔드포인트"),
+  GRAPHIQL("/graphiql", "GraphiQL 탐색 UI"),
+  GRAPHIQL_ASSETS("/graphiql/**", "GraphiQL 탐색 UI 리소스"),
+
   // 백업/덤프 파일 (루트 경로만 차단, ** 뒤에 패턴 불가)
   SQL_FILE("/*.sql", "루트 SQL 덤프 파일"),
   BAK_FILE("/*.bak", "루트 백업 파일"),

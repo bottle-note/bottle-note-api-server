@@ -3,6 +3,7 @@ package app.bottlenote.rating.domain;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.dto.dsl.RatingListFetchCriteria;
+import app.bottlenote.rating.dto.response.AlcoholRatingStatsResponse;
 import app.bottlenote.rating.dto.response.RatingListFetchResponse;
 import app.bottlenote.rating.dto.response.UserRatingResponse;
 import java.util.List;
@@ -26,6 +27,8 @@ public interface RatingRepository {
   Double findAverageRatingByAlcoholId(Long alcoholId);
 
   Long countByAlcoholId(Long alcoholId);
+
+  List<AlcoholRatingStatsResponse> findStatsByAlcoholIds(List<Long> alcoholIds);
 
   boolean existsByAlcoholId(Long alcoholId);
 }

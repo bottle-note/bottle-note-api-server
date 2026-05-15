@@ -4,10 +4,13 @@ import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.picks.constant.PicksStatus;
 import app.bottlenote.picks.domain.PicksRepository;
+import app.bottlenote.picks.dto.response.AlcoholPicksCountResponse;
 import app.bottlenote.rating.domain.RatingRepository;
+import app.bottlenote.rating.dto.response.AlcoholRatingStatsResponse;
 import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.ReviewRepository;
+import app.bottlenote.review.dto.response.AlcoholReviewCountResponse;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -88,6 +91,49 @@ public class CurationAlcoholGraphqlService {
       return 0L;
     }
     return picksRepository.countByAlcoholIdAndStatus(alcoholId, PicksStatus.PICK);
+  }
+
+  @Transactional(readOnly = true)
+  public Map<Long, AlcoholRatingStatsResponse> ratingStats(List<Alcohol> alcohols) {
+    List<Long> alcoholIds = alcoholIdsOf(alcohols);
+    if (alcoholIds.isEmpty()) {
+      return Map.of();
+    }
+    return ratingRepository.findStatsByAlcoholIds(alcoholIds).stream()
+        .collect(Collectors.toMap(AlcoholRatingStatsResponse::alcoholId, Function.identity()));
+  }
+
+  @Transactional(readOnly = true)
+  public Map<Long, Long> reviewCounts(List<Alcohol> alcohols) {
+    List<Long> alcoholIds = alcoholIdsOf(alcohols);
+    if (alcoholIds.isEmpty()) {
+      return Map.of();
+    }
+    return reviewRepository
+        .countByAlcoholIdsAndActiveStatusAndStatus(
+            alcoholIds, ReviewActiveStatus.ACTIVE, ReviewDisplayStatus.PUBLIC)
+        .stream()
+        .collect(
+            Collectors.toMap(
+                AlcoholReviewCountResponse::alcoholId, AlcoholReviewCountResponse::reviewCount));
+  }
+
+  @Transactional(readOnly = true)
+  public Map<Long, Long> pickCounts(List<Alcohol> alcohols) {
+    List<Long> alcoholIds = alcoholIdsOf(alcohols);
+    if (alcoholIds.isEmpty()) {
+      return Map.of();
+    }
+    return picksRepository.countByAlcoholIdsAndStatus(alcoholIds, PicksStatus.PICK).stream()
+        .collect(
+            Collectors.toMap(
+                AlcoholPicksCountResponse::alcoholId, AlcoholPicksCountResponse::totalPickCount));
+  }
+
+  private List<Long> alcoholIdsOf(List<Alcohol> alcohols) {
+    return alcohols == null
+        ? List.of()
+        : alcohols.stream().map(this::alcoholIdOf).filter(Objects::nonNull).distinct().toList();
   }
 
   private Long alcoholIdOf(Alcohol alcohol) {

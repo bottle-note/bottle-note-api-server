@@ -4,7 +4,9 @@ import app.bottlenote.common.annotation.JpaRepositoryImpl;
 import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.domain.RatingRepository;
+import app.bottlenote.rating.dto.response.AlcoholRatingStatsResponse;
 import app.bottlenote.rating.dto.response.UserRatingResponse;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -41,6 +43,22 @@ public interface JpaRatingRepository
   @Query(
       "select count(r) from rating r where r.id.alcoholId = :alcoholId and r.ratingPoint.rating > 0.0")
   Long countByAlcoholId(@Param("alcoholId") Long alcoholId);
+
+  @Override
+  @Query(
+      """
+      select new app.bottlenote.rating.dto.response.AlcoholRatingStatsResponse(
+        r.id.alcoholId,
+        coalesce(avg(r.ratingPoint.rating), 0.0),
+        count(r)
+      )
+      from rating r
+      where r.id.alcoholId in :alcoholIds
+        and r.ratingPoint.rating > 0.0
+      group by r.id.alcoholId
+      """)
+  List<AlcoholRatingStatsResponse> findStatsByAlcoholIds(
+      @Param("alcoholIds") List<Long> alcoholIds);
 
   @Override
   @Query(
