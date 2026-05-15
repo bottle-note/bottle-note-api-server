@@ -23,5 +23,9 @@ public interface RatingRepository {
 
   Optional<UserRatingResponse> fetchUserRating(Long alcoholId, Long userId);
 
+  Double findAverageRatingByAlcoholId(Long alcoholId);
+
+  Long countByAlcoholId(Long alcoholId);
+
   boolean existsByAlcoholId(Long alcoholId);
 }
