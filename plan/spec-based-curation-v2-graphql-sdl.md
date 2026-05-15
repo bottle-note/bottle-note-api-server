@@ -279,6 +279,28 @@
 - Size: L
 - Status: [x] done
 
+### Phase 3 Task 2: Product v2 API docs + runtime smoke
+
+- Acceptance:
+  - Product v2 목록/상세 API RestDocs 테스트를 추가한다.
+  - `/api/v2/curations` 문서에는 spec 기반 큐레이션 목록 응답 구조를 남긴다.
+  - `/api/v2/curations/{curationId}` 문서에는 header, spec meta, materialized payload 구조를 남긴다.
+  - `.env` 기반 product-api 기동 후 `/api/v2/curations` runtime smoke를 수행한다.
+  - 실제 DB에 smoke row가 없으면 임시 row를 생성해 상세 조회까지 검증하고, 검증 후 삭제한다.
+  - smoke는 `BOTTLE_NOTE` stats 병합과 `MANUAL` stats null 처리를 확인한다.
+- Verification:
+  - `./gradlew :bottlenote-product-api:test --tests 'app.docs.curation.RestProductSpecBasedCurationControllerTest'`
+  - `./gradlew :bottlenote-product-api:asciidoctor`
+  - `./gradlew check_rule_test`
+  - `.env` 기반 `./gradlew :bottlenote-product-api:bootRun`
+  - `GET /api/v2/curations` HTTP 200
+  - `GET /api/v2/curations/{curationId}` HTTP 200
+- Files:
+  - `bottlenote-product-api/src/test/java/app/docs/curation/RestProductSpecBasedCurationControllerTest.java`
+  - `plan/spec-based-curation-v2-graphql-sdl.md`
+- Size: M
+- Status: [x] done
+
 ## Progress Log
 
 - 2026-05-15 Task 1 완료: Spring GraphQL starter alias를 version catalog에 추가하고, `bottlenote-mono`에 GraphQL runtime dependency를 연결했다. SDL 경로는 `bottlenote-mono/src/main/resources/graphql/schema.graphqls`로 확정했다. 검증: `./gradlew :bottlenote-mono:compileJava` 성공, `./gradlew :bottlenote-product-api:compileJava` 성공, `git diff -- git.environment-variables/storage/mysql/changelog/` 변경 없음.
@@ -297,6 +319,7 @@
 - 2026-05-15 Phase 2 Task 2 완료: `bottlenote-mono`에 curation v2 Entity, domain repository interface, JPA repository, `CurationV2Service`, focused fake repository와 unit test를 추가했다. `request_spec`, `response_spec`, `payload` JSON 컬럼은 기존 의존성인 Hypersistence `JsonType`으로 매핑했다. `check_rule_test`에서 서비스 메서드 파라미터 5개 제한과 DTO 패키지/네이밍 규칙이 먼저 실패해 service 입력을 `dto.request`의 `*Request` record로 묶었다. 검증: `./gradlew :bottlenote-mono:compileJava :bottlenote-mono:test --tests 'app.bottlenote.curation.service.CurationV2ServiceTest' check_rule_test` 성공, focused 테스트 4개 통과.
 - 2026-05-15 Phase 2 Task 3 완료: 기존 Admin `/curations` endpoint는 유지하고, 신규 spec 기반 Admin surface를 `/spec-based-curations`와 `/curation-specs`로 추가했다. admin-api의 context-path가 이미 `/admin/api/v1`이므로 컨트롤러 path에 `/v2` prefix를 붙이지 않는다. 스펙 API는 목록/상세를 제공한다. 등록/수정은 `specId`로 `curation_spec`을 조회하고, `imageUrls` 1~3장을 정규화해 첫 번째 이미지를 `cover_image_url`에 저장하며, payload는 `curation_extension.payload`에 저장한다. 새 의존성 없이 requestSpec의 required field와 payload 크기를 검증하는 `CurationPayloadValidator`를 추가했다. 검증: `./gradlew :bottlenote-mono:test --tests 'app.bottlenote.curation.service.AdminSpecBasedCurationServiceTest' :bottlenote-admin-api:test --tests 'app.docs.curation.AdminSpecBasedCurationControllerDocsTest'` 성공, service 테스트 5개와 RestDocs 테스트 6개 통과. `./gradlew check_rule_test` 성공.
 - 2026-05-15 Phase 3 Task 1 완료: Product v2 조회 API `/api/v2/curations`, `/api/v2/curations/{curationId}`를 추가하고, `responseSpec.x-graphql` 기반 materializer를 도입했다. materializer는 GraphQL query/variables를 responseSpec에서 만들고, Spring GraphQL executor를 통해 내부 실행한 뒤 payload의 `stats` 위치에 병합한다. root array와 `payloadPath = $.alcohols` object payload를 모두 지원하며, `MANUAL` 또는 `alcoholId = null` 항목은 stats를 null로 둔다. `CurationPayloadValidator`는 requestSpec/responseSpec 공통 검증기로 확장해 required, enum, type, minLength/maxLength, minItems/maxItems, minimum/maximum을 검증한다. 검증: focused 테스트 13개 통과, `./gradlew :bottlenote-product-api:compileJava` 성공, `./gradlew check_rule_test` 성공.
+- 2026-05-15 Phase 3 Task 2 완료: Product v2 목록/상세 RestDocs 테스트를 추가했고, `curation/v2/list`, `curation/v2/detail` 스니펫이 생성되는 것을 확인했다. `./gradlew :bottlenote-product-api:asciidoctor check_rule_test` 성공으로 `product-api.html` 생성과 rule test 통과를 확인했다. runtime smoke는 `.env` 기반 product-api를 8080에서 기동해 `GET /api/v2/curations` HTTP 200을 확인했다. 개발 DB에 active spec 기반 큐레이션이 0건이어서 `CODEX_RUNTIME_SMOKE_20260515` 임시 row를 생성한 뒤 `GET /api/v2/curations` HTTP 200, `GET /api/v2/curations/1` HTTP 200, list count=1, detail spec=`RECOMMENDED_WHISKY`, payload_count=2, BOTTLE_NOTE stats keys=`rating,reviewCount,totalPickCount,totalRatingsCount`, MANUAL stats null을 확인했다. 검증 후 임시 row는 삭제했고 삭제 확인 count=0, bootRun 프로세스도 종료했다.
 
 ## Current Decision Summary
 
@@ -313,11 +336,11 @@
 
 ## Next Work
 
-### Next: Phase 3 - Product V2 API Documentation + Runtime Smoke
+### Next: Phase 3 - Product V2 Runtime Hardening
 
-다음 작업은 Product v2 API 문서화와 실제 기동 smoke 검증이다.
+다음 작업은 실제 운영 응답 안전성을 높이는 보강이다.
 
-- Product v2 목록/상세 API RestDocs 또는 OpenAPI 문서를 추가한다.
-- `.env` 기반 product-api 기동 후 `/api/v2/curations`, `/api/v2/curations/{curationId}`를 실제 DB 데이터로 호출한다.
-- 응답 payload가 `responseSpec`과 일치하고 `stats`가 의도대로 병합되는지 runtime smoke로 확인한다.
+- `responseSpec` 불일치 시 내부 로그에 curationId/specCode/error path를 남긴다.
+- Product v2 상세 조회에서 GraphQL executor error가 있을 때의 실패 정책을 명확히 한다.
+- exposure date filtering을 Product 목록/상세에 적용할지 정책 결정 후 구현한다.
 - 기존 curation keyword endpoint는 계속 유지한다.
