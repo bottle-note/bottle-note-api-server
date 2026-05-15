@@ -8,6 +8,10 @@
 
 기존 `curation_keyword`와 `curation_keyword_alcohol_ids`는 유연한 이관을 위해 그대로 둔다. 기존 Admin/Product endpoint도 변경하지 않는다. 신규 외부 API는 이후 phase에서 v2 endpoint로 추가한다.
 
+### Flow Diagram
+
+![Spec-Based Curation V2 Flow](assets/spec-based-curation-v2-flow.png)
+
 ### Phase Roadmap
 
 1. **GraphQL SDL Foundation**
