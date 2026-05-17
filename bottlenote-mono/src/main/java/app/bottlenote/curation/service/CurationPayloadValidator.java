@@ -32,7 +32,7 @@ public class CurationPayloadValidator {
       return List.of("payload size must be <= " + MAX_PAYLOAD_BYTES + ", actual=" + payloadBytes);
     }
 
-    if ("array".equals(schema.path("x-container").asText()) || payloadNode.isArray()) {
+    if ("array".equals(schema.path("x-container").asText())) {
       if (!payloadNode.isArray()) {
         return List.of("$ payload는 array여야 합니다.");
       }
