@@ -12,6 +12,7 @@ import app.bottlenote.curation.domain.CurationSpecRepository;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationDetailResponse;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationListResponse;
 import app.bottlenote.curation.exception.CurationException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -34,8 +35,7 @@ public class ProductSpecBasedCurationService {
 
   @Transactional(readOnly = true)
   public List<ProductSpecBasedCurationListResponse> listActiveCurations() {
-    List<Curation> curations =
-        curationRepository.findAllByIsActiveTrueOrderByDisplayOrderAscIdAsc();
+    List<Curation> curations = curationRepository.findAllVisibleOn(LocalDate.now());
     Map<Long, CurationSpec> specMap =
         curationSpecRepository
             .findAllByIdIn(curations.stream().map(Curation::getSpecId).collect(Collectors.toSet()))
@@ -50,8 +50,7 @@ public class ProductSpecBasedCurationService {
   public ProductSpecBasedCurationDetailResponse getDetail(Long curationId) {
     Curation curation =
         curationRepository
-            .findById(curationId)
-            .filter(item -> Boolean.TRUE.equals(item.getIsActive()))
+            .findVisibleById(curationId, LocalDate.now())
             .orElseThrow(() -> new CurationException(CURATION_NOT_FOUND));
     CurationSpec spec =
         curationSpecRepository
@@ -63,7 +62,7 @@ public class ProductSpecBasedCurationService {
             .orElseThrow(() -> new CurationException(CURATION_NOT_FOUND));
     Object materialized =
         responseMaterializer.materialize(
-            curationId, spec.getResponseSpec(), extension.getPayload());
+            curationId, spec.getCode(), spec.getResponseSpec(), extension.getPayload());
     return toDetailResponse(curation, spec, materialized);
   }
 

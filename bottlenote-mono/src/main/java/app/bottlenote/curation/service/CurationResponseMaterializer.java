@@ -12,10 +12,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class CurationResponseMaterializer {
 
   private static final String JSON_PATH_ROOT = "$";
@@ -25,7 +27,8 @@ public class CurationResponseMaterializer {
   private final CurationGraphqlExecutor graphqlExecutor;
   private final CurationPayloadValidator payloadValidator;
 
-  public Object materialize(Long curationId, Map<String, Object> responseSpec, Object payload) {
+  public Object materialize(
+      Long curationId, String specCode, Map<String, Object> responseSpec, Object payload) {
     JsonNode payloadNode = objectMapper.valueToTree(payload);
     JsonNode responseSpecNode = objectMapper.valueToTree(responseSpec);
     List<SpecGraphqlQueryBuilder.Result> queries =
@@ -34,6 +37,7 @@ public class CurationResponseMaterializer {
     JsonNode hydrated = payloadNode;
     for (int i = 0; i < queries.size(); i++) {
       Map<String, Object> result = graphqlExecutor.execute(curationId, i, queries.get(i));
+      assertNoGraphqlErrors(curationId, specCode, queries.get(i), result);
       hydrated = applyHydration(hydrated, queries.get(i), result);
     }
 
@@ -41,9 +45,33 @@ public class CurationResponseMaterializer {
     List<String> errors =
         payloadValidator.validate(new MapBackedSchema(responseSpec), materialized);
     if (!errors.isEmpty()) {
+      log.error(
+          "Curation responseSpec mismatch. curationId={}, specCode={}, errors={}",
+          curationId,
+          specCode,
+          errors);
       throw new CurationException(CURATION_RESPONSE_INVALID);
     }
     return materialized;
+  }
+
+  private void assertNoGraphqlErrors(
+      Long curationId,
+      String specCode,
+      SpecGraphqlQueryBuilder.Result query,
+      Map<String, Object> result) {
+    if (result == null || !(result.get("errors") instanceof List<?> errors) || errors.isEmpty()) {
+      return;
+    }
+    log.error(
+        "Curation GraphQL hydration failed. curationId={}, specCode={}, payloadPath={}, entryField={}, errors={}",
+        curationId,
+        specCode,
+        query.payloadPath(),
+        query.entryField(),
+        errors);
+    throw new CurationException(
+        app.bottlenote.curation.exception.CurationExceptionCode.CURATION_GRAPHQL_EXECUTION_FAILED);
   }
 
   @SuppressWarnings("unchecked")

@@ -56,12 +56,26 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
   class ListCurations {
 
     @Test
-    @DisplayName("활성 큐레이션만 displayOrder와 id 순서로 조회할 수 있다")
+    @DisplayName("활성이고 노출 기간에 포함된 큐레이션만 displayOrder와 id 순서로 조회할 수 있다")
     void listActiveCurations_whenMixedStatus_returnsOnlyActiveItemsInDisplayOrder()
         throws Exception {
       // given
       Long laterId = createCuration("뒤 큐레이션", 20, true, List.of(manualItem("뒤")));
       createCuration("비활성 큐레이션", 1, false, List.of(manualItem("비활성")));
+      createCuration(
+          "미노출 큐레이션",
+          1,
+          true,
+          LocalDate.now().plusDays(1),
+          LocalDate.now().plusDays(5),
+          List.of(manualItem("미노출")));
+      createCuration(
+          "노출종료 큐레이션",
+          1,
+          true,
+          LocalDate.now().minusDays(5),
+          LocalDate.now().minusDays(1),
+          List.of(manualItem("노출종료")));
       Long firstId = createCuration("앞 큐레이션", 1, true, List.of(manualItem("앞")));
 
       // when
@@ -149,6 +163,27 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
+    @DisplayName("노출 기간 밖 큐레이션 상세 조회는 404를 반환한다")
+    void getDetail_whenOutsideExposureWindow_returnsNotFound() {
+      // given
+      Long curationId =
+          createCuration(
+              "미노출 상세",
+              1,
+              true,
+              LocalDate.now().plusDays(1),
+              LocalDate.now().plusDays(5),
+              List.of(manualItem("미노출")));
+
+      // when & then
+      assertThat(mockMvcTester.get().uri("/api/v2/curations/{curationId}", curationId))
+          .hasStatus4xxClientError()
+          .bodyJson()
+          .extractingPath("$.code")
+          .isEqualTo(404);
+    }
+
+    @Test
     @DisplayName("존재하지 않는 큐레이션 상세 조회는 404를 반환한다")
     void getDetail_whenMissingCuration_returnsNotFound() {
       assertThat(mockMvcTester.get().uri("/api/v2/curations/{curationId}", 999999L))
@@ -161,6 +196,22 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
 
   private Long createCuration(
       String name, int displayOrder, boolean active, List<Map<String, Object>> payload) {
+    return createCuration(
+        name,
+        displayOrder,
+        active,
+        LocalDate.now().minusDays(1),
+        LocalDate.now().plusDays(1),
+        payload);
+  }
+
+  private Long createCuration(
+      String name,
+      int displayOrder,
+      boolean active,
+      LocalDate exposureStartDate,
+      LocalDate exposureEndDate,
+      List<Map<String, Object>> payload) {
     return adminSpecBasedCurationService
         .create(
             new CurationCreateRequest(
@@ -168,8 +219,8 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
                 name,
                 "통합 테스트 큐레이션",
                 List.of("https://cdn.example.com/cover.jpg"),
-                LocalDate.of(2026, 6, 1),
-                LocalDate.of(2026, 6, 30),
+                exposureStartDate,
+                exposureEndDate,
                 displayOrder,
                 active,
                 payload))
