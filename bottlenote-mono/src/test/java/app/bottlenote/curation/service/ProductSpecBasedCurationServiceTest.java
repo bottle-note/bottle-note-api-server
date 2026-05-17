@@ -58,12 +58,16 @@ class ProductSpecBasedCurationServiceTest {
   }
 
   @Test
-  @DisplayName("Product v2 목록은 활성 큐레이션만 displayOrder, id 순서로 반환한다")
+  @DisplayName("Product v2 목록은 활성이고 노출 기간에 포함된 큐레이션만 displayOrder, id 순서로 반환한다")
   void listActiveCurations_whenMixedStatus_returnsOnlyActiveItemsInDisplayOrder()
       throws IOException {
     CurationSpec spec = createSpec();
     Long laterId = createCuration(spec.getId(), "뒤", 20, true);
     createCuration(spec.getId(), "비활성", 1, false);
+    createCuration(
+        spec.getId(), "미노출", 1, true, LocalDate.now().plusDays(1), LocalDate.now().plusDays(5));
+    createCuration(
+        spec.getId(), "노출종료", 1, true, LocalDate.now().minusDays(5), LocalDate.now().minusDays(1));
     Long firstId = createCuration(spec.getId(), "앞", 1, true);
 
     var result = productService.listActiveCurations();
@@ -102,6 +106,19 @@ class ProductSpecBasedCurationServiceTest {
         .hasFieldOrPropertyWithValue("exceptionCode", CurationExceptionCode.CURATION_NOT_FOUND);
   }
 
+  @Test
+  @DisplayName("노출 기간 밖 큐레이션 상세 조회는 Product v2에서 찾을 수 없다")
+  void getDetail_whenCurationOutsideExposureWindow_throwsNotFound() throws IOException {
+    CurationSpec spec = createSpec();
+    Long curationId =
+        createCuration(
+            spec.getId(), "미노출", 1, true, LocalDate.now().plusDays(1), LocalDate.now().plusDays(5));
+
+    assertThatThrownBy(() -> productService.getDetail(curationId))
+        .isInstanceOf(CurationException.class)
+        .hasFieldOrPropertyWithValue("exceptionCode", CurationExceptionCode.CURATION_NOT_FOUND);
+  }
+
   private CurationSpec createSpec() throws IOException {
     return curationV2Service.createSpec(
         new CurationSpecCreateRequest(
@@ -115,6 +132,22 @@ class ProductSpecBasedCurationServiceTest {
   }
 
   private Long createCuration(Long specId, String name, int displayOrder, boolean active) {
+    return createCuration(
+        specId,
+        name,
+        displayOrder,
+        active,
+        LocalDate.now().minusDays(1),
+        LocalDate.now().plusDays(1));
+  }
+
+  private Long createCuration(
+      Long specId,
+      String name,
+      int displayOrder,
+      boolean active,
+      LocalDate exposureStartDate,
+      LocalDate exposureEndDate) {
     return curationV2Service
         .createCuration(
             new CurationCreateRequest(
@@ -122,8 +155,8 @@ class ProductSpecBasedCurationServiceTest {
                 name,
                 "설명",
                 List.of("https://cdn.example.com/cover.jpg"),
-                LocalDate.of(2026, 6, 1),
-                LocalDate.of(2026, 6, 30),
+                exposureStartDate,
+                exposureEndDate,
                 displayOrder,
                 active,
                 List.of(

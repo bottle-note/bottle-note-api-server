@@ -1,7 +1,11 @@
 package app.bottlenote.curation.service;
 
+import static app.bottlenote.curation.exception.CurationExceptionCode.CURATION_GRAPHQL_EXECUTION_FAILED;
+
+import app.bottlenote.curation.exception.CurationException;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.graphql.ExecutionGraphQlRequest;
 import org.springframework.graphql.ExecutionGraphQlResponse;
 import org.springframework.graphql.ExecutionGraphQlService;
@@ -11,6 +15,7 @@ import reactor.core.publisher.Mono;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class SpringCurationGraphqlExecutor implements CurationGraphqlExecutor {
 
   private final ExecutionGraphQlService executionGraphQlService;
@@ -28,7 +33,23 @@ public class SpringCurationGraphqlExecutor implements CurationGraphqlExecutor {
             null);
     ExecutionGraphQlResponse response = Mono.from(executionGraphQlService.execute(request)).block();
     if (response == null) {
-      return Map.of();
+      log.error(
+          "Curation GraphQL hydration returned null response. curationId={}, queryIndex={}, payloadPath={}, entryField={}",
+          curationId,
+          index,
+          query.payloadPath(),
+          query.entryField());
+      throw new CurationException(CURATION_GRAPHQL_EXECUTION_FAILED);
+    }
+    if (!response.getExecutionResult().getErrors().isEmpty()) {
+      log.error(
+          "Curation GraphQL hydration returned errors. curationId={}, queryIndex={}, payloadPath={}, entryField={}, errors={}",
+          curationId,
+          index,
+          query.payloadPath(),
+          query.entryField(),
+          response.getExecutionResult().getErrors());
+      throw new CurationException(CURATION_GRAPHQL_EXECUTION_FAILED);
     }
     return response.getExecutionResult().toSpecification();
   }

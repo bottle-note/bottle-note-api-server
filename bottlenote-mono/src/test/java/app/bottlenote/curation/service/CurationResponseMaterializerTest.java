@@ -1,7 +1,10 @@
 package app.bottlenote.curation.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import app.bottlenote.curation.exception.CurationException;
+import app.bottlenote.curation.exception.CurationExceptionCode;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,7 +51,8 @@ class CurationResponseMaterializerTest {
             item("MANUAL", map("alcoholId", null, "korName", "수동", "selectedTags", List.of("오크"))));
 
     Object result =
-        materializer.materialize(1L, schema("recommended_whisky.json", "Response"), payload);
+        materializer.materialize(
+            1L, "RECOMMENDED_WHISKY", schema("recommended_whisky.json", "Response"), payload);
 
     JsonNode resultNode = OBJECT_MAPPER.valueToTree(result);
     assertThat(executor.executedQueries()).hasSize(1);
@@ -105,7 +109,8 @@ class CurationResponseMaterializerTest {
                     map("alcoholId", 7, "korName", "테스트", "selectedTags", List.of("셰리")))));
 
     Object result =
-        materializer.materialize(2L, schema("whisky_tasting_event.json", "Response"), payload);
+        materializer.materialize(
+            2L, "WHISKY_TASTING_EVENT", schema("whisky_tasting_event.json", "Response"), payload);
 
     JsonNode resultNode = OBJECT_MAPPER.valueToTree(result);
     assertThat(executor.executedQueries().get(0).variables().get("ids")).isEqualTo(List.of(7L));
@@ -115,7 +120,29 @@ class CurationResponseMaterializerTest {
         .isEqualTo(1);
   }
 
-  private static CurationResponseMaterializer materializer(FakeCurationGraphqlExecutor executor) {
+  @Test
+  @DisplayName("GraphQL 실행 errors가 있으면 부분 응답을 만들지 않고 실패한다")
+  void materialize_whenGraphqlResultHasErrors_throwsExecutionFailed() throws IOException {
+    CurationResponseMaterializer materializer = materializer(new ErrorGraphqlExecutor());
+    List<Map<String, Object>> payload =
+        List.of(
+            item(
+                "BOTTLE_NOTE",
+                map("alcoholId", 1, "korName", "테스트", "selectedTags", List.of("셰리"))));
+
+    assertThatThrownBy(
+            () ->
+                materializer.materialize(
+                    1L,
+                    "RECOMMENDED_WHISKY",
+                    schema("recommended_whisky.json", "Response"),
+                    payload))
+        .isInstanceOf(CurationException.class)
+        .hasFieldOrPropertyWithValue(
+            "exceptionCode", CurationExceptionCode.CURATION_GRAPHQL_EXECUTION_FAILED);
+  }
+
+  private static CurationResponseMaterializer materializer(CurationGraphqlExecutor executor) {
     return new CurationResponseMaterializer(
         OBJECT_MAPPER,
         new SpecGraphqlQueryBuilder(),
@@ -167,6 +194,15 @@ class CurationResponseMaterializerTest {
 
     List<SpecGraphqlQueryBuilder.Result> executedQueries() {
       return executedQueries;
+    }
+  }
+
+  private static final class ErrorGraphqlExecutor implements CurationGraphqlExecutor {
+
+    @Override
+    public Map<String, Object> execute(
+        Long curationId, int index, SpecGraphqlQueryBuilder.Result query) {
+      return map("errors", List.of(map("message", "forced graphql error")));
     }
   }
 }

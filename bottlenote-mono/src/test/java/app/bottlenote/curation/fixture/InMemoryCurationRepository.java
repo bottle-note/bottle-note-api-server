@@ -2,6 +2,7 @@ package app.bottlenote.curation.fixture;
 
 import app.bottlenote.curation.domain.Curation;
 import app.bottlenote.curation.domain.CurationRepository;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -27,6 +28,22 @@ public class InMemoryCurationRepository implements CurationRepository {
         .filter(curation -> Boolean.TRUE.equals(curation.getIsActive()))
         .sorted(Comparator.comparing(Curation::getDisplayOrder).thenComparing(Curation::getId))
         .toList();
+  }
+
+  @Override
+  public List<Curation> findAllVisibleOn(LocalDate today) {
+    return database.values().stream()
+        .filter(curation -> Boolean.TRUE.equals(curation.getIsActive()))
+        .filter(curation -> isVisibleOn(curation, today))
+        .sorted(Comparator.comparing(Curation::getDisplayOrder).thenComparing(Curation::getId))
+        .toList();
+  }
+
+  @Override
+  public Optional<Curation> findVisibleById(Long id, LocalDate today) {
+    return findById(id)
+        .filter(curation -> Boolean.TRUE.equals(curation.getIsActive()))
+        .filter(curation -> isVisibleOn(curation, today));
   }
 
   @Override
@@ -59,5 +76,12 @@ public class InMemoryCurationRepository implements CurationRepository {
   @Override
   public void delete(Curation curation) {
     database.remove(curation.getId());
+  }
+
+  private boolean isVisibleOn(Curation curation, LocalDate today) {
+    return (curation.getExposureStartDate() == null
+            || !curation.getExposureStartDate().isAfter(today))
+        && (curation.getExposureEndDate() == null
+            || !curation.getExposureEndDate().isBefore(today));
   }
 }

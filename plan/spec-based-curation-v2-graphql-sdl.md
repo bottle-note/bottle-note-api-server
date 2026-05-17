@@ -308,7 +308,7 @@
 - 2026-05-15 Task 3 완료: `bottlenote-mono`에 `CurationAlcoholGraphqlResolver`와 `CurationAlcoholGraphqlService`를 추가해 `Alcohol` field resolver를 연결했다. `rating`/`totalRatingsCount`는 rating repository 집계, `reviewCount`는 `ACTIVE` + `PUBLIC` review count, `totalPickCount`는 `PICK` 상태 count로 계산한다. `alcoholId = null`인 `MANUAL` 항목과 존재하지 않는 alcohol id는 GraphQL 조회 결과에서 제외하는 정책을 resolver 테스트명과 검증에 남겼다. 검증: `./gradlew :bottlenote-mono:compileJava` 성공, `./gradlew :bottlenote-mono:test --tests 'app.bottlenote.graphql.CurationGraphqlSchemaTest' --tests 'app.bottlenote.curation.graphql.CurationAlcoholGraphqlResolverTest'` 성공, `./gradlew :bottlenote-product-api:compileJava` 성공, `git diff -- git.environment-variables/storage/mysql/changelog/` 변경 없음.
 - 2026-05-15 추가 반영: `curation_demo/spec`의 OpenAPI 3.0 JSON 스펙 3종을 `bottlenote-mono/src/main/resources/openapi/curation/`에 그대로 추가했다. 대상은 `RECOMMENDED_WHISKY`, `WHISKY_PAIRING`, `WHISKY_TASTING_EVENT`이며 `x-curation`, `x-form-style`, `x-field-style`, `x-graphql` 메타를 포함한다. 검증: 원본 파일과 `cmp -s` 3건 일치, `./gradlew :bottlenote-mono:test --tests 'app.bottlenote.curation.CurationOpenApiSpecResourceTest'` 성공.
 - 2026-05-15 Task 4 완료: `.env`에 `SPRING_PROFILES_ACTIVE=local`을 추가하고 Redis를 로컬 `bottle-note-redis` 컨테이너(`localhost:26379`, no auth)로 연결하도록 수정했다. `set -a; source .env; set +a; ./gradlew :bottlenote-product-api:bootRun`으로 product API가 8080에서 기동했고, 로그에서 GraphQL schema 1개 로드, unmapped field 없음, `POST /graphql` 매핑, Redis connection success를 확인했다. smoke 결과: `GET /actuator/health` HTTP 200 및 Redis UP, `POST /graphql { __typename }` HTTP 200, 기존 `GET /api/v1/curations?cursor=0&pageSize=1` HTTP 200, changelog diff 변경 없음.
-- 2026-05-15 GraphiQL 운영 확인: `spring.graphql.graphiql.enabled=true`, `spring.graphql.graphiql.path=/graphiql`를 local/default profile에 추가해 브라우저 기반 GraphQL query console을 열 수 있게 했다. `GET /graphql`은 HTTP 405가 맞고, query 실행은 `POST /graphql` 또는 `/graphiql` UI를 사용한다.
+- 2026-05-15 GraphiQL 운영 확인: `spring.graphql.graphiql.enabled=true`, `spring.graphql.graphiql.path=/graphiql`를 local/default profile에 추가해 브라우저 기반 GraphQL query console을 열 수 있게 했다. `GET /graphql`은 HTTP 405가 맞고, query 실행은 `POST /graphql` 또는 `/graphiql` UI를 사용한다. 2026-05-17 운영 하드닝에서 이 결정은 철회했다. 현재는 GraphQL을 내부 hydration boundary로만 유지하기 위해 GraphiQL을 비활성화하고 `/graphql`, `/graphiql`, `/graphiql/**` 외부 HTTP 접근을 403으로 차단한다.
 - 2026-05-15 GraphQL browser smoke: Chrome에서 `/graphiql?path=/graphql`로 직접 쿼리를 실행했다. `[1, 999999]`는 존재하는 `1`만 반환했고, `[1, 1, 2]`는 중복 제거 후 `1, 2`만 반환했다. `[]`는 빈 배열을 반환했다. `[3, 1, 999999, 1, 2]`는 요청 순서 기준으로 `3, 1, 2`를 반환했고 없는 id와 중복 id를 제외했다.
 - 2026-05-15 GraphQL boundary smoke: Chrome에서 `picks` field 요청 시 `Field 'picks' in type 'Alcohol' is undefined` validation error가 발생했다. `[1, null]` 입력은 `[ID!]!` 제약에 의해 `ids[1] ... must not be null` validation error가 발생했다. `engName`, `imageUrl`, `regionName`, `korCategory`, `cask`, `abv`, `volume`, `rating`, `totalRatingsCount`, `reviewCount`, `totalPickCount` 전체 field hydration도 정상 확인했다.
 - 2026-05-15 Task 5 완료: final verification 중 `check_rule_test`가 먼저 product-api 테스트 fake repository compile error로 실패했다. 원인은 `PicksRepository`, `RatingRepository`, `ReviewRepository`에 Phase 1 stats count 메서드를 추가하면서 product-api 테스트 fake 3곳이 새 인터페이스 시그니처를 구현하지 않은 것이었다. `FakePicksRepository`, `InMemoryRatingRepository`, `InMemoryReviewRepository`에 count/average 메서드를 추가했다.
@@ -320,6 +320,8 @@
 - 2026-05-15 Phase 2 Task 3 완료: 기존 Admin `/curations` endpoint는 유지하고, 신규 spec 기반 Admin surface를 `/spec-based-curations`와 `/curation-specs`로 추가했다. admin-api의 context-path가 이미 `/admin/api/v1`이므로 컨트롤러 path에 `/v2` prefix를 붙이지 않는다. 스펙 API는 목록/상세를 제공한다. 등록/수정은 `specId`로 `curation_spec`을 조회하고, `imageUrls` 1~3장을 정규화해 첫 번째 이미지를 `cover_image_url`에 저장하며, payload는 `curation_extension.payload`에 저장한다. 새 의존성 없이 requestSpec의 required field와 payload 크기를 검증하는 `CurationPayloadValidator`를 추가했다. 검증: `./gradlew :bottlenote-mono:test --tests 'app.bottlenote.curation.service.AdminSpecBasedCurationServiceTest' :bottlenote-admin-api:test --tests 'app.docs.curation.AdminSpecBasedCurationControllerDocsTest'` 성공, service 테스트 5개와 RestDocs 테스트 6개 통과. `./gradlew check_rule_test` 성공.
 - 2026-05-15 Phase 3 Task 1 완료: Product v2 조회 API `/api/v2/curations`, `/api/v2/curations/{curationId}`를 추가하고, `responseSpec.x-graphql` 기반 materializer를 도입했다. materializer는 GraphQL query/variables를 responseSpec에서 만들고, Spring GraphQL executor를 통해 내부 실행한 뒤 payload의 `stats` 위치에 병합한다. root array와 `payloadPath = $.alcohols` object payload를 모두 지원하며, `MANUAL` 또는 `alcoholId = null` 항목은 stats를 null로 둔다. `CurationPayloadValidator`는 requestSpec/responseSpec 공통 검증기로 확장해 required, enum, type, minLength/maxLength, minItems/maxItems, minimum/maximum을 검증한다. 검증: focused 테스트 13개 통과, `./gradlew :bottlenote-product-api:compileJava` 성공, `./gradlew check_rule_test` 성공.
 - 2026-05-15 Phase 3 Task 2 완료: Product v2 목록/상세 RestDocs 테스트를 추가했고, `curation/v2/list`, `curation/v2/detail` 스니펫이 생성되는 것을 확인했다. `./gradlew :bottlenote-product-api:asciidoctor check_rule_test` 성공으로 `product-api.html` 생성과 rule test 통과를 확인했다. runtime smoke는 `.env` 기반 product-api를 8080에서 기동해 `GET /api/v2/curations` HTTP 200을 확인했다. 개발 DB에 active spec 기반 큐레이션이 0건이어서 `CODEX_RUNTIME_SMOKE_20260515` 임시 row를 생성한 뒤 `GET /api/v2/curations` HTTP 200, `GET /api/v2/curations/1` HTTP 200, list count=1, detail spec=`RECOMMENDED_WHISKY`, payload_count=2, BOTTLE_NOTE stats keys=`rating,reviewCount,totalPickCount,totalRatingsCount`, MANUAL stats null을 확인했다. 검증 후 임시 row는 삭제했고 삭제 확인 count=0, bootRun 프로세스도 종료했다.
+- 2026-05-17 Copilot review 대응 완료: GraphiQL default/local 비활성화, `/graphql`/`/graphiql`/`/graphiql/**` denyAll 차단, GraphQL stats field N+1 제거를 위한 `@BatchMapping` + `IN ... GROUP BY` 집계, Curation create/update Bean Validation enum message 수정을 반영했다. Copilot review thread 4건은 코드 확인 후 GitHub에서 resolved 처리했다. 검증: `/verify full` 범위로 compile, rule, unit, build, integration, admin integration 모두 성공.
+- 2026-05-17 Product V2 Runtime Hardening 완료: Product v2 목록/상세에 `isActive = true`와 `exposureStartDate <= today <= exposureEndDate` 정책을 적용했다. `exposureStartDate` 또는 `exposureEndDate`가 null이면 열린 구간으로 처리한다. GraphQL executor가 null response 또는 execution errors를 반환하면 부분 응답을 만들지 않고 `CURATION_GRAPHQL_EXECUTION_FAILED`로 fail-closed 처리한다. responseSpec 검증 실패 시 내부 로그에 `curationId`, `specCode`, validator error path를 남긴다. 검증: `./gradlew :bottlenote-mono:compileJava :bottlenote-product-api:compileJava :bottlenote-mono:compileTestJava :bottlenote-product-api:compileTestJava` 성공, focused unit/integration + `check_rule_test` 성공.
 
 ## Current Decision Summary
 
@@ -333,14 +335,15 @@
 - 신규 schema 변경은 Phase 2 Task 1에서 `git.environment-variables/storage/mysql/changelog/` 아래 changelog로 추가했고, 개발 DB와 운영 DB에 Liquibase CLI로 적용했다.
 - Phase 2 Task 3에서 Admin spec 기반 endpoint를 추가했다. 최종 URL은 admin-api context-path를 포함해 `/admin/api/v1/curation-specs`, `/admin/api/v1/spec-based-curations`다.
 - Phase 3 Task 1에서 Product spec 기반 endpoint를 추가했다. 최종 URL은 `/api/v2/curations`, `/api/v2/curations/{curationId}`다.
+- 2026-05-17 기준 Product v2 endpoint는 노출 기간 필터를 적용한다. `isActive = true`이고 오늘 날짜가 노출 시작/종료일 사이에 있는 큐레이션만 목록/상세에서 조회된다. null 노출일은 열린 구간으로 본다.
+- GraphQL hydration 실패는 Product v2 상세 응답에서 부분 성공으로 처리하지 않는다. 내부 로그를 남기고 500 계열 `CURATION_GRAPHQL_EXECUTION_FAILED`로 닫는다.
 
 ## Next Work
 
-### Next: Phase 3 - Product V2 Runtime Hardening
+### Next: Release Verification
 
-다음 작업은 실제 운영 응답 안전성을 높이는 보강이다.
+Product V2 Runtime Hardening까지 이번 브랜치에 반영했다. 다음 작업은 배포 전 검증과 PR 상태 확인이다.
 
-- `responseSpec` 불일치 시 내부 로그에 curationId/specCode/error path를 남긴다.
-- Product v2 상세 조회에서 GraphQL executor error가 있을 때의 실패 정책을 명확히 한다.
-- exposure date filtering을 Product 목록/상세에 적용할지 정책 결정 후 구현한다.
+- CI 결과를 확인한다.
+- 필요하면 `.env` 기반 product-api runtime smoke를 한 번 더 수행한다.
 - 기존 curation keyword endpoint는 계속 유지한다.
