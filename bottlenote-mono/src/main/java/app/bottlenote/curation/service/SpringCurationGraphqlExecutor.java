@@ -3,6 +3,7 @@ package app.bottlenote.curation.service;
 import static app.bottlenote.curation.exception.CurationExceptionCode.CURATION_GRAPHQL_EXECUTION_FAILED;
 
 import app.bottlenote.curation.exception.CurationException;
+import java.time.Duration;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,8 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class SpringCurationGraphqlExecutor implements CurationGraphqlExecutor {
 
+  private static final Duration GRAPHQL_EXECUTION_TIMEOUT = Duration.ofSeconds(3);
+
   private final ExecutionGraphQlService executionGraphQlService;
 
   @Override
@@ -31,7 +34,21 @@ public class SpringCurationGraphqlExecutor implements CurationGraphqlExecutor {
             Map.of(),
             "curation-" + curationId + "-" + index,
             null);
-    ExecutionGraphQlResponse response = Mono.from(executionGraphQlService.execute(request)).block();
+    ExecutionGraphQlResponse response;
+    try {
+      response =
+          Mono.from(executionGraphQlService.execute(request)).block(GRAPHQL_EXECUTION_TIMEOUT);
+    } catch (RuntimeException e) {
+      log.error(
+          "Curation GraphQL hydration execution failed. curationId={}, queryIndex={}, payloadPath={}, entryField={}, timeout={}",
+          curationId,
+          index,
+          query.payloadPath(),
+          query.entryField(),
+          GRAPHQL_EXECUTION_TIMEOUT,
+          e);
+      throw new CurationException(CURATION_GRAPHQL_EXECUTION_FAILED);
+    }
     if (response == null) {
       log.error(
           "Curation GraphQL hydration returned null response. curationId={}, queryIndex={}, payloadPath={}, entryField={}",

@@ -51,6 +51,19 @@ class CurationPayloadValidatorTest {
   }
 
   @Test
+  @DisplayName("requestSpec의 x-container가 object이면 root payload 배열을 허용하지 않는다")
+  void validate_whenObjectContainerReceivesArray_returnsRootTypeError() throws IOException {
+    Map<String, Object> requestSpec = schema("whisky_tasting_event.json", "Request");
+
+    List<String> errors =
+        validator.validate(
+            new MapBackedSchema(requestSpec),
+            List.of(tastingEventPayload(0, 1, List.of(recommendedItem("BOTTLE_NOTE")))));
+
+    assertThat(errors).containsExactly("$ 타입이 object이어야 합니다.");
+  }
+
+  @Test
   @DisplayName("requestSpec은 required, enum, type 불일치를 상세 path로 검증한다")
   void validate_whenRequiredEnumOrTypeInvalid_returnsDetailedErrors() throws IOException {
     Map<String, Object> requestSpec = schema("recommended_whisky.json", "Request");
