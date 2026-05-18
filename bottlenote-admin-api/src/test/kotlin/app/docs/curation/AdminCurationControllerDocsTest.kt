@@ -62,7 +62,7 @@ class AdminCurationControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.get().uri("/curations?keyword=&isActive=true&page=0&size=20")
+				mvc.get().uri("/v1/curations?keyword=&isActive=true&page=0&size=20")
 			)
 				.hasStatusOk()
 				.apply(
@@ -116,7 +116,7 @@ class AdminCurationControllerDocsTest {
 			given(adminCurationService.getDetail(anyLong())).willReturn(response)
 
 			// when & then
-			assertThat(mvc.get().uri("/curations/{curationId}", 1L))
+			assertThat(mvc.get().uri("/v1/curations/{curationId}", 1L))
 				.hasStatusOk()
 				.apply(
 					document(
@@ -176,7 +176,7 @@ class AdminCurationControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.post().uri("/curations")
+				mvc.post().uri("/v1/curations")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			)
@@ -229,7 +229,7 @@ class AdminCurationControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.put().uri("/curations/{curationId}", 1L)
+				mvc.put().uri("/v1/curations/{curationId}", 1L)
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			)
@@ -283,7 +283,7 @@ class AdminCurationControllerDocsTest {
 			given(adminCurationService.delete(anyLong())).willReturn(response)
 
 			// when & then
-			assertThat(mvc.delete().uri("/curations/{curationId}", 1L))
+			assertThat(mvc.delete().uri("/v1/curations/{curationId}", 1L))
 				.hasStatusOk()
 				.apply(
 					document(
@@ -329,7 +329,7 @@ class AdminCurationControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.patch().uri("/curations/{curationId}/status", 1L)
+				mvc.patch().uri("/v1/curations/{curationId}/status", 1L)
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			)
@@ -381,7 +381,7 @@ class AdminCurationControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.patch().uri("/curations/{curationId}/display-order", 1L)
+				mvc.patch().uri("/v1/curations/{curationId}/display-order", 1L)
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			)
@@ -433,7 +433,7 @@ class AdminCurationControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.post().uri("/curations/{curationId}/alcohols", 1L)
+				mvc.post().uri("/v1/curations/{curationId}/alcohols", 1L)
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			)
@@ -478,7 +478,7 @@ class AdminCurationControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.delete().uri("/curations/{curationId}/alcohols/{alcoholId}", 1L, 5L)
+				mvc.delete().uri("/v1/curations/{curationId}/alcohols/{alcoholId}", 1L, 5L)
 			)
 				.hasStatusOk()
 				.apply(
