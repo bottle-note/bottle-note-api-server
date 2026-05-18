@@ -143,7 +143,7 @@ class AdminReviewIntegrationTest : IntegrationTestSupport() {
 	private fun getReviews(vararg params: Pair<String, String>): JsonNode {
 		val request = mockMvcTester
 			.get()
-			.uri("/reviews")
+			.uri("/v1/reviews")
 			.header("Authorization", "Bearer $accessToken")
 		params.forEach { request.param(it.first, it.second) }
 

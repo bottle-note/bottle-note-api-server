@@ -83,7 +83,7 @@ class AdminReviewControllerDocsTest {
 
 		// when & then
 		assertThat(
-			mvc.get().uri("/reviews")
+			mvc.get().uri("/v1/reviews")
 				.param("alcoholId", "101")
 				.param("userId", "1001")
 				.param("activeStatus", ReviewActiveStatus.ACTIVE.name)
