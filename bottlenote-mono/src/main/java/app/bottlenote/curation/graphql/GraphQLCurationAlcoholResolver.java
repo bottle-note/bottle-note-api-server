@@ -1,7 +1,7 @@
 package app.bottlenote.curation.graphql;
 
 import app.bottlenote.alcohols.domain.Alcohol;
-import app.bottlenote.curation.service.CurationAlcoholGraphqlService;
+import app.bottlenote.curation.service.GraphQLCurationAlcoholService;
 import app.bottlenote.rating.dto.response.AlcoholRatingStatsResponse;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -17,13 +17,13 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 @RequiredArgsConstructor
-public class CurationAlcoholGraphqlResolver {
+public class GraphQLCurationAlcoholResolver {
 
-  private final CurationAlcoholGraphqlService curationAlcoholGraphqlService;
+  private final GraphQLCurationAlcoholService curationAlcoholGraphQLService;
 
   @QueryMapping
   public List<Alcohol> alcohols(@Argument List<Long> ids) {
-    return curationAlcoholGraphqlService.findAlcohols(ids);
+    return curationAlcoholGraphQLService.findAlcohols(ids);
   }
 
   @SchemaMapping(typeName = "Alcohol", field = "alcoholId")
@@ -33,49 +33,33 @@ public class CurationAlcoholGraphqlResolver {
 
   @SchemaMapping(typeName = "Alcohol", field = "regionName")
   public String regionName(Alcohol alcohol) {
-    return curationAlcoholGraphqlService.regionName(alcohol);
+    return curationAlcoholGraphQLService.regionName(alcohol);
   }
 
   @BatchMapping(typeName = "Alcohol", field = "rating")
   public Map<Alcohol, Double> ratings(List<Alcohol> alcohols) {
     Map<Long, AlcoholRatingStatsResponse> stats =
-        curationAlcoholGraphqlService.ratingStats(alcohols);
+        curationAlcoholGraphQLService.ratingStats(alcohols);
     return mapByAlcohol(alcohols, alcohol -> ratingStatsOf(stats, alcohol).rating());
   }
 
   @BatchMapping(typeName = "Alcohol", field = "totalRatingsCount")
   public Map<Alcohol, Long> totalRatingsCounts(List<Alcohol> alcohols) {
     Map<Long, AlcoholRatingStatsResponse> stats =
-        curationAlcoholGraphqlService.ratingStats(alcohols);
+        curationAlcoholGraphQLService.ratingStats(alcohols);
     return mapByAlcohol(alcohols, alcohol -> ratingStatsOf(stats, alcohol).totalRatingsCount());
   }
 
   @BatchMapping(typeName = "Alcohol", field = "reviewCount")
   public Map<Alcohol, Long> reviewCounts(List<Alcohol> alcohols) {
-    Map<Long, Long> counts = curationAlcoholGraphqlService.reviewCounts(alcohols);
+    Map<Long, Long> counts = curationAlcoholGraphQLService.reviewCounts(alcohols);
     return mapByAlcohol(alcohols, alcohol -> counts.getOrDefault(alcohol.getId(), 0L));
   }
 
   @BatchMapping(typeName = "Alcohol", field = "totalPickCount")
   public Map<Alcohol, Long> totalPickCounts(List<Alcohol> alcohols) {
-    Map<Long, Long> counts = curationAlcoholGraphqlService.pickCounts(alcohols);
+    Map<Long, Long> counts = curationAlcoholGraphQLService.pickCounts(alcohols);
     return mapByAlcohol(alcohols, alcohol -> counts.getOrDefault(alcohol.getId(), 0L));
-  }
-
-  public Double rating(Alcohol alcohol) {
-    return curationAlcoholGraphqlService.rating(alcohol);
-  }
-
-  public Long totalRatingsCount(Alcohol alcohol) {
-    return curationAlcoholGraphqlService.totalRatingsCount(alcohol);
-  }
-
-  public Long reviewCount(Alcohol alcohol) {
-    return curationAlcoholGraphqlService.reviewCount(alcohol);
-  }
-
-  public Long totalPickCount(Alcohol alcohol) {
-    return curationAlcoholGraphqlService.totalPickCount(alcohol);
   }
 
   private <T> Map<Alcohol, T> mapByAlcohol(List<Alcohol> alcohols, Function<Alcohol, T> mapper) {

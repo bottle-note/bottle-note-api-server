@@ -7,7 +7,7 @@ import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.Region;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholQueryRepository;
-import app.bottlenote.curation.service.CurationAlcoholGraphqlService;
+import app.bottlenote.curation.service.GraphQLCurationAlcoholService;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.picks.constant.PicksStatus;
 import app.bottlenote.picks.domain.Picks;
@@ -37,7 +37,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 @Tag("unit")
-class CurationAlcoholGraphqlResolverTest {
+class GraphQLCurationAlcoholResolverTest {
 
   @Test
   @DisplayName("MANUAL 항목처럼 alcoholId가 null이면 GraphQL 조회에서 제외하고 실제 도메인 통계를 반환한다")
@@ -46,9 +46,9 @@ class CurationAlcoholGraphqlResolverTest {
     FakeRatingRepository ratingRepository = new FakeRatingRepository();
     InMemoryReviewRepository reviewRepository = new InMemoryReviewRepository();
     FakePicksRepository picksRepository = new FakePicksRepository();
-    CurationAlcoholGraphqlResolver resolver =
-        new CurationAlcoholGraphqlResolver(
-            new CurationAlcoholGraphqlService(
+    GraphQLCurationAlcoholResolver resolver =
+        new GraphQLCurationAlcoholResolver(
+            new GraphQLCurationAlcoholService(
                 alcoholRepository, ratingRepository, reviewRepository, picksRepository));
 
     Alcohol alcohol = alcohol(1L);
@@ -69,10 +69,6 @@ class CurationAlcoholGraphqlResolverTest {
     assertThat(manualOnly).isEmpty();
     assertThat(resolver.alcoholId(alcohol)).isEqualTo(1L);
     assertThat(resolver.regionName(alcohol)).isEqualTo("스코틀랜드");
-    assertThat(resolver.rating(alcohol)).isEqualTo(4.0);
-    assertThat(resolver.totalRatingsCount(alcohol)).isEqualTo(2L);
-    assertThat(resolver.reviewCount(alcohol)).isEqualTo(1L);
-    assertThat(resolver.totalPickCount(alcohol)).isEqualTo(1L);
     assertThat(resolver.ratings(alcohols)).containsEntry(alcohol, 4.0);
     assertThat(resolver.totalRatingsCounts(alcohols)).containsEntry(alcohol, 2L);
     assertThat(resolver.reviewCounts(alcohols)).containsEntry(alcohol, 1L);

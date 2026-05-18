@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class CurationAlcoholGraphqlService {
+public class GraphQLCurationAlcoholService {
 
   private final AlcoholQueryRepository alcoholQueryRepository;
   private final RatingRepository ratingRepository;
@@ -54,43 +54,6 @@ public class CurationAlcoholGraphqlService {
       return null;
     }
     return alcohol.getRegion().getKorName();
-  }
-
-  @Transactional(readOnly = true)
-  public Double rating(Alcohol alcohol) {
-    Long alcoholId = alcoholIdOf(alcohol);
-    if (alcoholId == null) {
-      return 0.0;
-    }
-    return ratingRepository.findAverageRatingByAlcoholId(alcoholId);
-  }
-
-  @Transactional(readOnly = true)
-  public Long totalRatingsCount(Alcohol alcohol) {
-    Long alcoholId = alcoholIdOf(alcohol);
-    if (alcoholId == null) {
-      return 0L;
-    }
-    return ratingRepository.countByAlcoholId(alcoholId);
-  }
-
-  @Transactional(readOnly = true)
-  public Long reviewCount(Alcohol alcohol) {
-    Long alcoholId = alcoholIdOf(alcohol);
-    if (alcoholId == null) {
-      return 0L;
-    }
-    return reviewRepository.countByAlcoholIdAndActiveStatusAndStatus(
-        alcoholId, ReviewActiveStatus.ACTIVE, ReviewDisplayStatus.PUBLIC);
-  }
-
-  @Transactional(readOnly = true)
-  public Long totalPickCount(Alcohol alcohol) {
-    Long alcoholId = alcoholIdOf(alcohol);
-    if (alcoholId == null) {
-      return 0L;
-    }
-    return picksRepository.countByAlcoholIdAndStatus(alcoholId, PicksStatus.PICK);
   }
 
   @Transactional(readOnly = true)

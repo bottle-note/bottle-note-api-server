@@ -28,8 +28,8 @@ class CurationResponseMaterializerTest {
   @Test
   @DisplayName("root array payload는 responseSpec.x-graphql 기준으로 BOTTLE_NOTE stats만 보강한다")
   void materialize_whenRootArrayPayload_hydratesBottleNoteStatsOnly() throws IOException {
-    FakeCurationGraphqlExecutor executor =
-        new FakeCurationGraphqlExecutor(
+    FakeGraphQLCurationExecutor executor =
+        new FakeGraphQLCurationExecutor(
             List.of(
                 map(
                     "alcoholId",
@@ -67,8 +67,8 @@ class CurationResponseMaterializerTest {
   @Test
   @DisplayName("object payload의 payloadPath=$.alcohols는 하위 alcohols 배열에만 stats를 보강한다")
   void materialize_whenNestedPayloadPath_hydratesOnlyAlcoholSubtree() throws IOException {
-    FakeCurationGraphqlExecutor executor =
-        new FakeCurationGraphqlExecutor(
+    FakeGraphQLCurationExecutor executor =
+        new FakeGraphQLCurationExecutor(
             List.of(
                 map(
                     "alcoholId",
@@ -122,8 +122,8 @@ class CurationResponseMaterializerTest {
 
   @Test
   @DisplayName("GraphQL 실행 errors가 있으면 부분 응답을 만들지 않고 실패한다")
-  void materialize_whenGraphqlResultHasErrors_throwsExecutionFailed() throws IOException {
-    CurationResponseMaterializer materializer = materializer(new ErrorGraphqlExecutor());
+  void materialize_whenGraphQLResultHasErrors_throwsExecutionFailed() throws IOException {
+    CurationResponseMaterializer materializer = materializer(new ErrorGraphQLCurationExecutor());
     List<Map<String, Object>> payload =
         List.of(
             item(
@@ -142,10 +142,10 @@ class CurationResponseMaterializerTest {
             "exceptionCode", CurationExceptionCode.CURATION_GRAPHQL_EXECUTION_FAILED);
   }
 
-  private static CurationResponseMaterializer materializer(CurationGraphqlExecutor executor) {
+  private static CurationResponseMaterializer materializer(GraphQLCurationExecutor executor) {
     return new CurationResponseMaterializer(
         OBJECT_MAPPER,
-        new SpecGraphqlQueryBuilder(),
+        new GraphQLCurationQueryBuilder(),
         executor,
         new CurationPayloadValidator(OBJECT_MAPPER));
   }
@@ -176,32 +176,32 @@ class CurationResponseMaterializerTest {
     return map;
   }
 
-  private static final class FakeCurationGraphqlExecutor implements CurationGraphqlExecutor {
+  private static final class FakeGraphQLCurationExecutor implements GraphQLCurationExecutor {
 
     private final List<Map<String, Object>> alcohols;
-    private final List<SpecGraphqlQueryBuilder.Result> executedQueries = new ArrayList<>();
+    private final List<GraphQLCurationQueryBuilder.Result> executedQueries = new ArrayList<>();
 
-    FakeCurationGraphqlExecutor(List<Map<String, Object>> alcohols) {
+    FakeGraphQLCurationExecutor(List<Map<String, Object>> alcohols) {
       this.alcohols = alcohols;
     }
 
     @Override
     public Map<String, Object> execute(
-        Long curationId, int index, SpecGraphqlQueryBuilder.Result query) {
+        Long curationId, int index, GraphQLCurationQueryBuilder.Result query) {
       executedQueries.add(query);
       return map("data", map(query.entryField(), alcohols));
     }
 
-    List<SpecGraphqlQueryBuilder.Result> executedQueries() {
+    List<GraphQLCurationQueryBuilder.Result> executedQueries() {
       return executedQueries;
     }
   }
 
-  private static final class ErrorGraphqlExecutor implements CurationGraphqlExecutor {
+  private static final class ErrorGraphQLCurationExecutor implements GraphQLCurationExecutor {
 
     @Override
     public Map<String, Object> execute(
-        Long curationId, int index, SpecGraphqlQueryBuilder.Result query) {
+        Long curationId, int index, GraphQLCurationQueryBuilder.Result query) {
       return map("errors", List.of(map("message", "forced graphql error")));
     }
   }

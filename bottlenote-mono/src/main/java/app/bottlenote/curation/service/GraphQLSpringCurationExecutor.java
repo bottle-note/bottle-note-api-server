@@ -17,7 +17,7 @@ import reactor.core.publisher.Mono;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class SpringCurationGraphqlExecutor implements CurationGraphqlExecutor {
+public class GraphQLSpringCurationExecutor implements GraphQLCurationExecutor {
 
   private static final Duration GRAPHQL_EXECUTION_TIMEOUT = Duration.ofSeconds(3);
 
@@ -25,7 +25,7 @@ public class SpringCurationGraphqlExecutor implements CurationGraphqlExecutor {
 
   @Override
   public Map<String, Object> execute(
-      Long curationId, int index, SpecGraphqlQueryBuilder.Result query) {
+      Long curationId, int index, GraphQLCurationQueryBuilder.Result query) {
     ExecutionGraphQlRequest request =
         new DefaultExecutionGraphQlRequest(
             query.query(),
