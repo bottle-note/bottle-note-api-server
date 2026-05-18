@@ -110,8 +110,8 @@ class AdminReviewControllerDocsTest {
 						parameterWithName("keyword").description("검색어 (리뷰 본문/작성자 닉네임/작성자 이메일/술 한글명/술 영문명)").optional(),
 						parameterWithName("createdFrom").description("작성일시 시작 범위 (ISO-8601 LocalDateTime)").optional(),
 						parameterWithName("createdTo").description("작성일시 종료 범위 (ISO-8601 LocalDateTime)").optional(),
-						parameterWithName("sortType").description("정렬 기준 (CREATED_AT/REPLY_COUNT/UPDATED_AT, 기본값: CREATED_AT)").optional(),
-						parameterWithName("sortOrder").description("정렬 방향 (ASC/DESC, 기본값: DESC)").optional(),
+						parameterWithName("sortType").description("정렬 기준 (기본값: CREATED_AT, 상세 값은 AdminReviewSortType 표 참조)").optional(),
+						parameterWithName("sortOrder").description("정렬 방향 (기본값: DESC, 상세 값은 SortOrder 표 참조)").optional(),
 						parameterWithName("page").description("페이지 번호 (0 이상, 기본값: 0)").optional(),
 						parameterWithName("size").description("페이지 크기 (1~100, 기본값: 20)").optional()
 					),

@@ -2,7 +2,8 @@
 
 - 리뷰 목록을 페이지네이션으로 조회합니다.
 - 술, 작성자, 활성 상태, 노출 상태, 키워드, 작성일시 범위로 필터링할 수 있습니다.
-- 작성일, 댓글 수, 수정일 기준으로 정렬할 수 있습니다.
+- `sortType`은 정렬 기준을, `sortOrder`는 선택한 기준의 정렬 방향을 의미합니다.
+- 기본 정렬은 작성일시 기준 내림차순입니다.
 
 [source]
 ----
@@ -14,6 +15,8 @@ GET /admin/api/v1/reviews
 
 [discrete]
 include::{snippets}/admin/reviews/list/query-parameters.adoc[]
+include::api/common/enums/admin-review-sort-type.adoc[]
+include::api/common/enums/sort-order.adoc[]
 include::{snippets}/admin/reviews/list/curl-request.adoc[]
 include::{snippets}/admin/reviews/list/http-request.adoc[]
 
