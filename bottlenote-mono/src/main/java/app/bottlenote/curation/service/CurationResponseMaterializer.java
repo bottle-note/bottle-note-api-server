@@ -23,21 +23,21 @@ public class CurationResponseMaterializer {
   private static final String JSON_PATH_ROOT = "$";
 
   private final ObjectMapper objectMapper;
-  private final SpecGraphqlQueryBuilder queryBuilder;
-  private final CurationGraphqlExecutor graphqlExecutor;
+  private final GraphQLCurationQueryBuilder queryBuilder;
+  private final GraphQLCurationExecutor graphqlExecutor;
   private final CurationPayloadValidator payloadValidator;
 
   public Object materialize(
       Long curationId, String specCode, Map<String, Object> responseSpec, Object payload) {
     JsonNode payloadNode = objectMapper.valueToTree(payload);
     JsonNode responseSpecNode = objectMapper.valueToTree(responseSpec);
-    List<SpecGraphqlQueryBuilder.Result> queries =
+    List<GraphQLCurationQueryBuilder.Result> queries =
         queryBuilder.build(responseSpecNode, payloadNode);
 
     JsonNode hydrated = payloadNode;
     for (int i = 0; i < queries.size(); i++) {
       Map<String, Object> result = graphqlExecutor.execute(curationId, i, queries.get(i));
-      assertNoGraphqlErrors(curationId, specCode, queries.get(i), result);
+      assertNoGraphQLErrors(curationId, specCode, queries.get(i), result);
       hydrated = applyHydration(hydrated, queries.get(i), result);
     }
 
@@ -55,10 +55,10 @@ public class CurationResponseMaterializer {
     return materialized;
   }
 
-  private void assertNoGraphqlErrors(
+  private void assertNoGraphQLErrors(
       Long curationId,
       String specCode,
-      SpecGraphqlQueryBuilder.Result query,
+      GraphQLCurationQueryBuilder.Result query,
       Map<String, Object> result) {
     if (result == null || !(result.get("errors") instanceof List<?> errors) || errors.isEmpty()) {
       return;
@@ -76,7 +76,7 @@ public class CurationResponseMaterializer {
 
   @SuppressWarnings("unchecked")
   private JsonNode applyHydration(
-      JsonNode payload, SpecGraphqlQueryBuilder.Result query, Map<String, Object> result) {
+      JsonNode payload, GraphQLCurationQueryBuilder.Result query, Map<String, Object> result) {
     if (payload == null || result == null || !(result.get("data") instanceof Map<?, ?> data)) {
       return payload;
     }
@@ -93,7 +93,7 @@ public class CurationResponseMaterializer {
     }
 
     JsonNode rootCopy = payload.deepCopy();
-    JsonNode subtree = SpecGraphqlQueryBuilder.navigate(rootCopy, query.payloadPath());
+    JsonNode subtree = GraphQLCurationQueryBuilder.navigate(rootCopy, query.payloadPath());
     JsonNode merged = mergeSubtree(subtree, query, byKey);
     if (merged != null) {
       setAtPath(rootCopy, query.payloadPath(), merged);
@@ -127,7 +127,7 @@ public class CurationResponseMaterializer {
 
   private JsonNode mergeSubtree(
       JsonNode subtree,
-      SpecGraphqlQueryBuilder.Result query,
+      GraphQLCurationQueryBuilder.Result query,
       Map<Object, Map<String, Object>> byKey) {
     if (subtree == null) {
       return null;
@@ -145,13 +145,13 @@ public class CurationResponseMaterializer {
 
   private JsonNode mergeElement(
       JsonNode source,
-      SpecGraphqlQueryBuilder.Result query,
+      GraphQLCurationQueryBuilder.Result query,
       Map<Object, Map<String, Object>> byKey) {
     if (!source.isObject()) {
       return source;
     }
     ObjectNode node = ((ObjectNode) source).deepCopy();
-    JsonNode joinNode = SpecGraphqlQueryBuilder.navigate(node, query.joinPath());
+    JsonNode joinNode = GraphQLCurationQueryBuilder.navigate(node, query.joinPath());
     if (joinNode == null || joinNode.isNull()) {
       if (query.writeTo() != null && !node.has(query.writeTo())) {
         node.set(query.writeTo(), objectMapper.nullNode());
@@ -177,7 +177,7 @@ public class CurationResponseMaterializer {
       Map<Object, Map<String, Object>> byKey,
       String writeMode,
       String resultKey) {
-    if (SpecGraphqlQueryBuilder.WRITE_MODE_SINGLE.equals(writeMode)) {
+    if (GraphQLCurationQueryBuilder.WRITE_MODE_SINGLE.equals(writeMode)) {
       Object key = joinNode.isArray() ? firstScalar(joinNode) : jsonScalar(joinNode);
       Map<String, Object> hit = key == null ? null : byKey.get(normalizeKey(key));
       return hit == null

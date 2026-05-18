@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
 @Tag("unit")
-class CurationGraphqlSchemaTest {
+class GraphQLCurationSchemaTest {
 
   @Test
   @DisplayName("큐레이션 GraphQL SDL은 Alcohol 통계 조회 필드만 노출한다")

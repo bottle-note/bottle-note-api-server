@@ -10,7 +10,7 @@ import java.util.Set;
 import org.springframework.stereotype.Component;
 
 @Component
-public class SpecGraphqlQueryBuilder {
+public class GraphQLCurationQueryBuilder {
 
   static final String WRITE_MODE_ARRAY = "array";
   static final String WRITE_MODE_SINGLE = "single";

@@ -49,8 +49,8 @@ class ProductSpecBasedCurationServiceTest {
     CurationResponseMaterializer materializer =
         new CurationResponseMaterializer(
             OBJECT_MAPPER,
-            new SpecGraphqlQueryBuilder(),
-            new FixedGraphqlExecutor(),
+            new GraphQLCurationQueryBuilder(),
+            new FixedGraphQLCurationExecutor(),
             new CurationPayloadValidator(OBJECT_MAPPER));
     productService =
         new ProductSpecBasedCurationService(
@@ -194,11 +194,11 @@ class ProductSpecBasedCurationServiceTest {
     return map;
   }
 
-  private static final class FixedGraphqlExecutor implements CurationGraphqlExecutor {
+  private static final class FixedGraphQLCurationExecutor implements GraphQLCurationExecutor {
 
     @Override
     public Map<String, Object> execute(
-        Long curationId, int index, SpecGraphqlQueryBuilder.Result query) {
+        Long curationId, int index, GraphQLCurationQueryBuilder.Result query) {
       return map(
           "data",
           map(
