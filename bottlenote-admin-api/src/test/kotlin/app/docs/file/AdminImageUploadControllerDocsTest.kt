@@ -76,7 +76,7 @@ class AdminImageUploadControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.get().uri("/s3/presign-url")
+				mvc.get().uri("/v1/s3/presign-url")
 					.header("Authorization", "Bearer test_access_token")
 					.param("rootPath", "admin/banner")
 					.param("uploadSize", "2")

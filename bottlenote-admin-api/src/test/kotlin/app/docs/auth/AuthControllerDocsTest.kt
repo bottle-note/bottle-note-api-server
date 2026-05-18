@@ -67,7 +67,7 @@ class AuthControllerDocsTest {
 
 		// when & then
 		assertThat(
-			mvc.post().uri("/auth/login")
+			mvc.post().uri("/v1/auth/login")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request))
 		)
@@ -107,7 +107,7 @@ class AuthControllerDocsTest {
 
 		// when & then
 		assertThat(
-			mvc.post().uri("/auth/refresh")
+			mvc.post().uri("/v1/auth/refresh")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request))
 		)
@@ -145,7 +145,7 @@ class AuthControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.delete().uri("/auth/withdraw")
+				mvc.delete().uri("/v1/auth/withdraw")
 					.header("Authorization", "Bearer test_access_token")
 			)
 				.hasStatusOk()
@@ -197,7 +197,7 @@ class AuthControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.post().uri("/auth/signup")
+				mvc.post().uri("/v1/auth/signup")
 					.header("Authorization", "Bearer test_access_token")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(objectMapper.writeValueAsString(request))

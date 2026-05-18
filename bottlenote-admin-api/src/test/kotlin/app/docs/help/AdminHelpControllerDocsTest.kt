@@ -82,7 +82,7 @@ class AdminHelpControllerDocsTest {
 
 		// when & then
 		assertThat(
-			mvc.get().uri("/helps")
+			mvc.get().uri("/v1/helps")
 				.header("Authorization", "Bearer test_access_token")
 				.param("status", StatusType.WAITING.name)
 				.param("type", HelpType.WHISKEY.name)
@@ -152,7 +152,7 @@ class AdminHelpControllerDocsTest {
 
 		// when & then
 		assertThat(
-			mvc.get().uri("/helps/{helpId}", 1L)
+			mvc.get().uri("/v1/helps/{helpId}", 1L)
 				.header("Authorization", "Bearer test_access_token")
 		)
 			.hasStatusOk()
@@ -212,7 +212,7 @@ class AdminHelpControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.post().uri("/helps/{helpId}/answer", 1L)
+				mvc.post().uri("/v1/helps/{helpId}/answer", 1L)
 					.header("Authorization", "Bearer test_access_token")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(objectMapper.writeValueAsString(request))
