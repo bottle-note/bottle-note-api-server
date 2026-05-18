@@ -56,7 +56,7 @@ class AdminRegionControllerDocsTest {
 
 		// when & then
 		assertThat(
-			mvc.get().uri("/regions?keyword=&page=0&size=20&sortOrder=ASC")
+			mvc.get().uri("/v1/regions?keyword=&page=0&size=20&sortOrder=ASC")
 		)
 			.hasStatusOk()
 			.apply(

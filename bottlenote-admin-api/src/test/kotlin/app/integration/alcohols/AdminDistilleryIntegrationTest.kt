@@ -41,7 +41,7 @@ class AdminDistilleryIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/distilleries/${distillery.id}")
+					.uri("/v1/distilleries/${distillery.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -55,7 +55,7 @@ class AdminDistilleryIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/distilleries/999999")
+					.uri("/v1/distilleries/999999")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatus4xxClientError()
 				.bodyJson()
@@ -79,7 +79,7 @@ class AdminDistilleryIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/distilleries")
+					.uri("/v1/distilleries")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -101,7 +101,7 @@ class AdminDistilleryIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/distilleries")
+					.uri("/v1/distilleries")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -122,7 +122,7 @@ class AdminDistilleryIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/distilleries")
+					.uri("/v1/distilleries")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -148,7 +148,7 @@ class AdminDistilleryIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.put()
-					.uri("/distilleries/${distillery.id}")
+					.uri("/v1/distilleries/${distillery.id}")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -169,7 +169,7 @@ class AdminDistilleryIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.put()
-					.uri("/distilleries/999999")
+					.uri("/v1/distilleries/999999")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -192,7 +192,7 @@ class AdminDistilleryIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.patch()
-					.uri("/distilleries/${distillery.id}/sort-order")
+					.uri("/v1/distilleries/${distillery.id}/sort-order")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -211,7 +211,7 @@ class AdminDistilleryIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.patch()
-					.uri("/distilleries/${distillery.id}/sort-order")
+					.uri("/v1/distilleries/${distillery.id}/sort-order")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -230,7 +230,7 @@ class AdminDistilleryIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.patch()
-					.uri("/distilleries/${distillery.id}/sort-order")
+					.uri("/v1/distilleries/${distillery.id}/sort-order")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -252,7 +252,7 @@ class AdminDistilleryIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.delete()
-					.uri("/distilleries/${distillery.id}")
+					.uri("/v1/distilleries/${distillery.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -266,7 +266,7 @@ class AdminDistilleryIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.delete()
-					.uri("/distilleries/999999")
+					.uri("/v1/distilleries/999999")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatus4xxClientError()
 				.bodyJson()
