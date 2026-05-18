@@ -5,19 +5,19 @@
 
 [source]
 ----
-GET /admin/api/v1/curation-specs
+GET /admin/api/v2/curation-specs
 ----
 
 [discrete]
 ==== 요청 예시 ====
 
-include::{snippets}/admin/curation-specs/list/curl-request.adoc[]
-include::{snippets}/admin/curation-specs/list/http-request.adoc[]
+include::{snippets}/admin/v2/curation-specs/list/curl-request.adoc[]
+include::{snippets}/admin/v2/curation-specs/list/http-request.adoc[]
 
 [discrete]
 ==== 응답 예시 ====
 
-include::{snippets}/admin/curation-specs/list/response-body.adoc[]
+include::{snippets}/admin/v2/curation-specs/list/response-body.adoc[]
 
 '''
 
@@ -27,19 +27,19 @@ include::{snippets}/admin/curation-specs/list/response-body.adoc[]
 
 [source]
 ----
-GET /admin/api/v1/curation-specs/{specId}
+GET /admin/api/v2/curation-specs/{specId}
 ----
 
 [discrete]
 ==== 요청 예시 ====
 
-include::{snippets}/admin/curation-specs/detail/curl-request.adoc[]
-include::{snippets}/admin/curation-specs/detail/http-request.adoc[]
+include::{snippets}/admin/v2/curation-specs/detail/curl-request.adoc[]
+include::{snippets}/admin/v2/curation-specs/detail/http-request.adoc[]
 
 [discrete]
 ==== 응답 예시 ====
 
-include::{snippets}/admin/curation-specs/detail/response-body.adoc[]
+include::{snippets}/admin/v2/curation-specs/detail/response-body.adoc[]
 
 '''
 
@@ -50,19 +50,19 @@ include::{snippets}/admin/curation-specs/detail/response-body.adoc[]
 
 [source]
 ----
-GET /admin/api/v1/spec-based-curations
+GET /admin/api/v2/curations
 ----
 
 [discrete]
 ==== 요청 예시 ====
 
-include::{snippets}/admin/spec-based-curations/list/curl-request.adoc[]
-include::{snippets}/admin/spec-based-curations/list/http-request.adoc[]
+include::{snippets}/admin/v2/curations/list/curl-request.adoc[]
+include::{snippets}/admin/v2/curations/list/http-request.adoc[]
 
 [discrete]
 ==== 응답 예시 ====
 
-include::{snippets}/admin/spec-based-curations/list/response-body.adoc[]
+include::{snippets}/admin/v2/curations/list/response-body.adoc[]
 
 '''
 
@@ -72,19 +72,19 @@ include::{snippets}/admin/spec-based-curations/list/response-body.adoc[]
 
 [source]
 ----
-GET /admin/api/v1/spec-based-curations/{curationId}
+GET /admin/api/v2/curations/{curationId}
 ----
 
 [discrete]
 ==== 요청 예시 ====
 
-include::{snippets}/admin/spec-based-curations/detail/curl-request.adoc[]
-include::{snippets}/admin/spec-based-curations/detail/http-request.adoc[]
+include::{snippets}/admin/v2/curations/detail/curl-request.adoc[]
+include::{snippets}/admin/v2/curations/detail/http-request.adoc[]
 
 [discrete]
 ==== 응답 예시 ====
 
-include::{snippets}/admin/spec-based-curations/detail/response-body.adoc[]
+include::{snippets}/admin/v2/curations/detail/response-body.adoc[]
 
 '''
 
@@ -94,20 +94,20 @@ include::{snippets}/admin/spec-based-curations/detail/response-body.adoc[]
 
 [source]
 ----
-POST /admin/api/v1/spec-based-curations
+POST /admin/api/v2/curations
 ----
 
 [discrete]
 ==== 요청 예시 ====
 
-include::{snippets}/admin/spec-based-curations/create/curl-request.adoc[]
-include::{snippets}/admin/spec-based-curations/create/http-request.adoc[]
-include::{snippets}/admin/spec-based-curations/create/request-body.adoc[]
+include::{snippets}/admin/v2/curations/create/curl-request.adoc[]
+include::{snippets}/admin/v2/curations/create/http-request.adoc[]
+include::{snippets}/admin/v2/curations/create/request-body.adoc[]
 
 [discrete]
 ==== 응답 예시 ====
 
-include::{snippets}/admin/spec-based-curations/create/response-body.adoc[]
+include::{snippets}/admin/v2/curations/create/response-body.adoc[]
 
 '''
 
@@ -118,17 +118,17 @@ include::{snippets}/admin/spec-based-curations/create/response-body.adoc[]
 
 [source]
 ----
-PUT /admin/api/v1/spec-based-curations/{curationId}
+PUT /admin/api/v2/curations/{curationId}
 ----
 
 [discrete]
 ==== 요청 예시 ====
 
-include::{snippets}/admin/spec-based-curations/update/curl-request.adoc[]
-include::{snippets}/admin/spec-based-curations/update/http-request.adoc[]
-include::{snippets}/admin/spec-based-curations/update/request-body.adoc[]
+include::{snippets}/admin/v2/curations/update/curl-request.adoc[]
+include::{snippets}/admin/v2/curations/update/http-request.adoc[]
+include::{snippets}/admin/v2/curations/update/request-body.adoc[]
 
 [discrete]
 ==== 응답 예시 ====
 
-include::{snippets}/admin/spec-based-curations/update/response-body.adoc[]
+include::{snippets}/admin/v2/curations/update/response-body.adoc[]
