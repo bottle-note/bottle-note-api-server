@@ -66,7 +66,7 @@ class AdminBannerControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.get().uri("/banners?keyword=&isActive=true&bannerType=CURATION&page=0&size=20")
+				mvc.get().uri("/v1/banners?keyword=&isActive=true&bannerType=CURATION&page=0&size=20")
 			)
 				.hasStatusOk()
 				.apply(
@@ -124,7 +124,7 @@ class AdminBannerControllerDocsTest {
 			given(adminBannerService.getDetail(anyLong())).willReturn(response)
 
 			// when & then
-			assertThat(mvc.get().uri("/banners/{bannerId}", 1L))
+			assertThat(mvc.get().uri("/v1/banners/{bannerId}", 1L))
 				.hasStatusOk()
 				.apply(
 					document(
@@ -184,7 +184,7 @@ class AdminBannerControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.post().uri("/banners")
+				mvc.post().uri("/v1/banners")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			)
@@ -246,7 +246,7 @@ class AdminBannerControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.put().uri("/banners/{bannerId}", 1L)
+				mvc.put().uri("/v1/banners/{bannerId}", 1L)
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			)
@@ -309,7 +309,7 @@ class AdminBannerControllerDocsTest {
 			given(adminBannerService.delete(anyLong())).willReturn(response)
 
 			// when & then
-			assertThat(mvc.delete().uri("/banners/{bannerId}", 1L))
+			assertThat(mvc.delete().uri("/v1/banners/{bannerId}", 1L))
 				.hasStatusOk()
 				.apply(
 					document(
@@ -355,7 +355,7 @@ class AdminBannerControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.patch().uri("/banners/{bannerId}/status", 1L)
+				mvc.patch().uri("/v1/banners/{bannerId}/status", 1L)
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			)
@@ -407,7 +407,7 @@ class AdminBannerControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.patch().uri("/banners/{bannerId}/sort-order", 1L)
+				mvc.patch().uri("/v1/banners/{bannerId}/sort-order", 1L)
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			)
