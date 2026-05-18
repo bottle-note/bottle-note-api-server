@@ -35,6 +35,17 @@ export const displayConfig = {
 - token은 파일에 쓰지 않는다.
 - 401 응답을 받으면 저장된 token을 지우고 한 번 재로그인한다.
 
+## Current API Contract
+
+현재 코드베이스 기준 데모가 호출해야 하는 canonical endpoint는 다음과 같다.
+
+- Admin login: `/admin/api/v1/auth/login`
+- Admin specs: `/admin/api/v2/curation-specs`, `/admin/api/v2/curation-specs/{specId}`
+- Admin spec-based curation: `/admin/api/v2/curations`, `/admin/api/v2/curations/{curationId}`
+- Product curation v2: `/api/v2/curations`, `/api/v2/curations/{curationId}`
+
+기존 `/admin/api/v1/curation-specs`, `/admin/api/v1/spec-based-curations`는 2026-05-18 Admin API versioning 변경 이후 canonical endpoint가 아니며 alias도 제공하지 않는다.
+
 ## Local Static Server
 
 ```bash
@@ -53,6 +64,8 @@ python3 -m http.server 8097 --directory .example/display
 
 Executed at: 2026-05-17
 
+이 결과는 2026-05-18 Admin API v2 path remap 이전 실행 기록이다. 현재 코드베이스로 재검증할 때는 위 Current API Contract의 `/admin/api/v2/**` 경로를 사용한다.
+
 - Static pages:
   - `index.html`: HTTP 200
   - `specs.html`: HTTP 200
@@ -62,23 +75,31 @@ Executed at: 2026-05-17
   - `/admin/api/v1/auth/login`: HTTP 200
   - access token present: yes
 - Admin specs:
-  - `/admin/api/v1/curation-specs`: HTTP 200
+  - historical path: `/admin/api/v1/curation-specs`
+  - current path: `/admin/api/v2/curation-specs`
+  - historical result: HTTP 200
   - count: 3
   - first spec keys: `id`, `code`, `name`, `description`, `hydratorKey`, `version`, `isActive`, `requestSpec`, `responseSpec`
 - Admin curation list before demo create:
-  - `/admin/api/v1/spec-based-curations?keyword=&isActive=&page=0&size=50`: HTTP 200
+  - historical path: `/admin/api/v1/spec-based-curations?keyword=&isActive=&page=0&size=50`
+  - current path: `/admin/api/v2/curations?keyword=&isActive=&page=0&size=50`
+  - historical result: HTTP 200
   - count: 0
 - Product curation list before demo create:
   - `/api/v2/curations`: HTTP 200
   - count: 0
 - Invalid create smoke:
-  - `/admin/api/v1/spec-based-curations`: HTTP 400
+  - historical path: `/admin/api/v1/spec-based-curations`
+  - current path: `/admin/api/v2/curations`
+  - historical result: HTTP 400
   - error code: `CURATION_PAYLOAD_REQUIRED`
 - Valid create smoke:
   - created name: `CODEX_DISPLAY_SMOKE_20260517`
   - targetId: 2
 - Admin detail:
-  - `/admin/api/v1/spec-based-curations/2`: HTTP 200
+  - historical path: `/admin/api/v1/spec-based-curations/2`
+  - current path: `/admin/api/v2/curations/2`
+  - historical result: HTTP 200
   - spec: `RECOMMENDED_WHISKY`
   - payload type: array
   - payload count: 1

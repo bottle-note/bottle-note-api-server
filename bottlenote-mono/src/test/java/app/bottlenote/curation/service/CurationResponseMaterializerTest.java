@@ -26,7 +26,7 @@ class CurationResponseMaterializerTest {
   private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {};
 
   @Test
-  @DisplayName("root array payload는 responseSpec.x-graphql 기준으로 BOTTLE_NOTE stats만 보강한다")
+  @DisplayName("source: BOTTLE_NOTE(내부 알코올 참조)는 저장된 메타 정보를 유지하고 stats만 GraphQL 결과로 보강한다")
   void materialize_whenRootArrayPayload_hydratesBottleNoteStatsOnly() throws IOException {
     FakeGraphQLCurationExecutor executor =
         new FakeGraphQLCurationExecutor(
@@ -41,7 +41,11 @@ class CurationResponseMaterializerTest {
                     "reviewCount",
                     3,
                     "totalPickCount",
-                    8)));
+                    8,
+                    "korName",
+                    "GraphQL 원본명",
+                    "selectedTags",
+                    List.of("GraphQL 태그"))));
     CurationResponseMaterializer materializer = materializer(executor);
     List<Map<String, Object>> payload =
         List.of(
@@ -58,10 +62,91 @@ class CurationResponseMaterializerTest {
     assertThat(executor.executedQueries()).hasSize(1);
     assertThat(executor.executedQueries().get(0).query()).contains("alcohols(ids: $ids)");
     assertThat(executor.executedQueries().get(0).variables().get("ids")).isEqualTo(List.of(1L));
+    assertThat(resultNode.get(0).path("alcohol").path("korName").asText()).isEqualTo("테스트");
+    assertThat(resultNode.get(0).path("alcohol").path("korName").asText())
+        .isNotEqualTo("GraphQL 원본명");
+    assertThat(resultNode.get(0).path("alcohol").path("selectedTags").get(0).asText())
+        .isEqualTo("셰리");
+    assertThat(resultNode.get(0).path("alcohol").path("selectedTags").get(0).asText())
+        .isNotEqualTo("GraphQL 태그");
     assertThat(resultNode.get(0).path("stats").path("rating").asDouble()).isEqualTo(4.2);
+    assertThat(resultNode.get(0).path("stats").path("totalRatingsCount").asInt()).isEqualTo(10);
     assertThat(resultNode.get(0).path("stats").has("alcoholId")).isFalse();
     assertThat(resultNode.get(1).path("stats").isNull()).isTrue();
     assertThat(resultNode.get(1).path("alcohol").path("korName").asText()).isEqualTo("수동");
+  }
+
+  @Test
+  @DisplayName(
+      "source: BOTTLE_NOTE(내부 알코올 참조)가 중복 alcoholId를 가질 경우 GraphQL 변수는 중복 제거하고 각 항목에 stats를 보강한다")
+  void materialize_whenDuplicateBottleNoteAlcoholId_deduplicatesQueryVariablesAndHydratesEachItem()
+      throws IOException {
+    FakeGraphQLCurationExecutor executor =
+        new FakeGraphQLCurationExecutor(
+            List.of(
+                map(
+                    "alcoholId",
+                    11,
+                    "rating",
+                    4.7,
+                    "totalRatingsCount",
+                    5,
+                    "reviewCount",
+                    2,
+                    "totalPickCount",
+                    9)));
+    CurationResponseMaterializer materializer = materializer(executor);
+    List<Map<String, Object>> payload =
+        List.of(
+            item(
+                "BOTTLE_NOTE",
+                map("alcoholId", 11, "korName", "첫 번째 스냅샷", "selectedTags", List.of("셰리"))),
+            item(
+                "BOTTLE_NOTE",
+                map("alcoholId", 11, "korName", "두 번째 스냅샷", "selectedTags", List.of("피트"))),
+            item(
+                "MANUAL",
+                map("alcoholId", null, "korName", "직접 입력", "selectedTags", List.of("오크"))));
+
+    Object result =
+        materializer.materialize(
+            1L, "RECOMMENDED_WHISKY", schema("recommended_whisky.json", "Response"), payload);
+
+    JsonNode resultNode = OBJECT_MAPPER.valueToTree(result);
+    assertThat(executor.executedQueries()).hasSize(1);
+    assertThat(executor.executedQueries().get(0).variables().get("ids")).isEqualTo(List.of(11L));
+    assertThat(resultNode.get(0).path("alcohol").path("korName").asText()).isEqualTo("첫 번째 스냅샷");
+    assertThat(resultNode.get(1).path("alcohol").path("korName").asText()).isEqualTo("두 번째 스냅샷");
+    assertThat(resultNode.get(0).path("stats").path("rating").asDouble()).isEqualTo(4.7);
+    assertThat(resultNode.get(1).path("stats").path("rating").asDouble()).isEqualTo(4.7);
+    assertThat(resultNode.get(0).path("stats").path("totalPickCount").asInt()).isEqualTo(9);
+    assertThat(resultNode.get(1).path("stats").path("totalPickCount").asInt()).isEqualTo(9);
+    assertThat(resultNode.get(2).path("stats").isNull()).isTrue();
+  }
+
+  @Test
+  @DisplayName("source: MANUAL(직접 입력)만 있을 경우 GraphQL을 실행하지 않고 저장된 payload 그대로 응답한다")
+  void materialize_whenOnlyManualItems_doesNotExecuteGraphQLAndKeepsSnapshotPayload()
+      throws IOException {
+    FakeGraphQLCurationExecutor executor = new FakeGraphQLCurationExecutor(List.of());
+    CurationResponseMaterializer materializer = materializer(executor);
+    List<Map<String, Object>> payload =
+        List.of(
+            item(
+                "MANUAL",
+                map("alcoholId", null, "korName", "직접 입력 위스키", "selectedTags", List.of("오크"))));
+
+    Object result =
+        materializer.materialize(
+            1L, "RECOMMENDED_WHISKY", schema("recommended_whisky.json", "Response"), payload);
+
+    JsonNode resultNode = OBJECT_MAPPER.valueToTree(result);
+    assertThat(executor.executedQueries()).isEmpty();
+    assertThat(resultNode.get(0).path("source").asText()).isEqualTo("MANUAL");
+    assertThat(resultNode.get(0).path("alcohol").path("korName").asText()).isEqualTo("직접 입력 위스키");
+    assertThat(resultNode.get(0).path("alcohol").path("selectedTags").get(0).asText())
+        .isEqualTo("오크");
+    assertThat(resultNode.get(0).path("stats").isNull()).isTrue();
   }
 
   @Test

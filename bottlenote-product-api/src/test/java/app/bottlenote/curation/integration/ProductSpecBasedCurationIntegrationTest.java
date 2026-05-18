@@ -5,6 +5,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.alcohols.domain.Alcohol;
+import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
 import app.bottlenote.curation.domain.CurationSpec;
 import app.bottlenote.curation.domain.CurationSpecRepository;
@@ -38,6 +39,7 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
   @Autowired private CurationSpecRepository curationSpecRepository;
   @Autowired private AdminSpecBasedCurationService adminSpecBasedCurationService;
   @Autowired private AlcoholTestFactory alcoholTestFactory;
+  @Autowired private AlcoholQueryRepository alcoholRepository;
   @Autowired private UserTestFactory userTestFactory;
   @Autowired private RatingTestFactory ratingTestFactory;
   @Autowired private ReviewTestFactory reviewTestFactory;
@@ -149,6 +151,43 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
+    @DisplayName("Product v2에서 알코올 원본 정보가 변경된 후 조회할 경우 큐레이션 payload의 저장 시점 메타 정보로 응답하고 현재 통계를 보강한다")
+    void getDetail_whenSourceAlcoholMetadataChanged_returnsSnapshotMetadataAndCurrentStats()
+        throws Exception {
+      // given
+      Alcohol alcohol = alcoholTestFactory.persistAlcoholWithName("저장 시점 위스키", "Snapshot Whisky");
+      Long curationId = createCuration("스냅샷 큐레이션", 1, true, List.of(bottleNoteItem(alcohol)));
+      changeSourceAlcoholMetadata(alcohol);
+      assertThat(alcoholRepository.findById(alcohol.getId()).orElseThrow().getKorName())
+          .isEqualTo("변경된 원본 위스키");
+      User userA = userTestFactory.persistUser();
+      User userB = userTestFactory.persistUser();
+      ratingTestFactory.persistRating(userA, alcohol, 3);
+      ratingTestFactory.persistRating(userB, alcohol, 5);
+      reviewTestFactory.persistReview(userA, alcohol);
+      picksTestFactory.persistPicks(alcohol.getId(), userA.getId());
+
+      // when
+      MvcTestResult result =
+          mockMvcTester
+              .get()
+              .uri("/api/v2/curations/{curationId}", curationId)
+              .contentType(APPLICATION_JSON)
+              .exchange();
+
+      // then
+      JsonNode payloadItem = dataNode(result).path("payload").get(0);
+      assertThat(payloadItem.path("alcohol").path("korName").asText()).isEqualTo("저장 시점 위스키");
+      assertThat(payloadItem.path("alcohol").path("korName").asText()).isNotEqualTo("변경된 원본 위스키");
+      assertThat(payloadItem.path("alcohol").path("selectedTags").get(0).asText()).isEqualTo("셰리");
+      assertThat(payloadItem.path("stats").path("rating").asDouble()).isEqualTo(4.0);
+      assertThat(payloadItem.path("stats").path("totalRatingsCount").asLong()).isEqualTo(2L);
+      assertThat(payloadItem.path("stats").path("reviewCount").asLong()).isEqualTo(1L);
+      assertThat(payloadItem.path("stats").path("totalPickCount").asLong()).isEqualTo(1L);
+      assertThat(payloadItem.path("stats").has("alcoholId")).isFalse();
+    }
+
+    @Test
     @DisplayName("비활성 큐레이션 상세 조회는 404를 반환한다")
     void getDetail_whenInactiveCuration_returnsNotFound() {
       // given
@@ -244,6 +283,26 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
             alcohol.getKorName(),
             "selectedTags",
             List.of("셰리", "오크")));
+  }
+
+  private void changeSourceAlcoholMetadata(Alcohol alcohol) {
+    Alcohol sourceAlcohol = alcoholRepository.findById(alcohol.getId()).orElseThrow();
+    sourceAlcohol.update(
+        "변경된 원본 위스키",
+        "Changed Source Whisky",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        "https://cdn.example.com/changed-source.jpg",
+        null,
+        null);
+    alcoholRepository.save(sourceAlcohol);
   }
 
   private Map<String, Object> manualItem(String name) {
