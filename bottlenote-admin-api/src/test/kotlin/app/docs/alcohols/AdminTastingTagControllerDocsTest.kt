@@ -71,7 +71,7 @@ class AdminTastingTagControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.get().uri("/tasting-tags?keyword=&page=0&size=20&sortOrder=ASC")
+				mvc.get().uri("/v1/tasting-tags?keyword=&page=0&size=20&sortOrder=ASC")
 			)
 				.hasStatusOk()
 				.apply(
@@ -150,7 +150,7 @@ class AdminTastingTagControllerDocsTest {
 			given(tastingTagService.getTagDetail(anyLong())).willReturn(response)
 
 			// when & then
-			assertThat(mvc.get().uri("/tasting-tags/{tagId}", 1L))
+			assertThat(mvc.get().uri("/v1/tasting-tags/{tagId}", 1L))
 				.hasStatusOk()
 				.apply(
 					document(
@@ -223,7 +223,7 @@ class AdminTastingTagControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.post().uri("/tasting-tags")
+				mvc.post().uri("/v1/tasting-tags")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			)
@@ -281,7 +281,7 @@ class AdminTastingTagControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.put().uri("/tasting-tags/{tagId}", 1L)
+				mvc.put().uri("/v1/tasting-tags/{tagId}", 1L)
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			)
@@ -334,7 +334,7 @@ class AdminTastingTagControllerDocsTest {
 			given(tastingTagService.deleteTag(anyLong())).willReturn(response)
 
 			// when & then
-			assertThat(mvc.delete().uri("/tasting-tags/{tagId}", 1L))
+			assertThat(mvc.delete().uri("/v1/tasting-tags/{tagId}", 1L))
 				.hasStatusOk()
 				.apply(
 					document(
@@ -380,7 +380,7 @@ class AdminTastingTagControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.post().uri("/tasting-tags/{tagId}/alcohols", 1L)
+				mvc.post().uri("/v1/tasting-tags/{tagId}/alcohols", 1L)
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			)
@@ -427,7 +427,7 @@ class AdminTastingTagControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.delete().uri("/tasting-tags/{tagId}/alcohols", 1L)
+				mvc.delete().uri("/v1/tasting-tags/{tagId}/alcohols", 1L)
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			)

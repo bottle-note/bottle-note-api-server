@@ -145,13 +145,13 @@ Admin API의 versioning 경계를 정리한다. 현재 admin-api는 `server.serv
   - Reference data endpoints remain under `/admin/api/v1`.
 - Verification:
   - `./gradlew :bottlenote-admin-api:test --tests 'app.docs.alcohols.*'`
-  - `./gradlew admin_integration_test --tests 'app.integration.alcohols.*' --tests 'app.integration.region.*'`
+  - `./gradlew :bottlenote-admin-api:admin_integration_test --tests 'app.integration.alcohols.*' --tests 'app.integration.region.*'`
 - Files:
   - `bottlenote-admin-api/src/test/kotlin/app/docs/alcohols/*`
   - `bottlenote-admin-api/src/test/kotlin/app/integration/alcohols/*`
   - `bottlenote-admin-api/src/test/kotlin/app/integration/region/*`
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 5: Preserve Admin v1 banner and legacy curation routes in tests
 
@@ -220,3 +220,4 @@ Admin API의 versioning 경계를 정리한다. 현재 admin-api는 `server.serv
 - 2026-05-18: Task 1 완료. admin-api context-path를 `/admin/api`로 낮추고, `AdminApiVersionConfig`에서 legacy Admin presentation controller에 중앙 `/v1` prefix를 적용했다. spec 기반 curation controller 2개는 prefix 대상에서 제외했고, Security permit matcher를 `/v1/auth/login`, `/v1/auth/refresh`로 갱신했다. 검증: `./gradlew :bottlenote-admin-api:compileKotlin :bottlenote-admin-api:compileTestKotlin` 성공.
 - 2026-05-18: Task 2 완료. spec 기반 admin curation controller를 `/v2/curations`, spec 조회 controller를 `/v2/curation-specs`로 변경하고 RestDocs/integration 테스트 URI와 snippet 경로를 v2 기준으로 갱신했다. 검증: `./gradlew :bottlenote-admin-api:test --tests 'app.docs.curation.AdminSpecBasedCurationControllerDocsTest'` 성공, `./gradlew :bottlenote-admin-api:admin_integration_test --tests 'app.integration.curation.AdminSpecBasedCurationIntegrationTest'` 성공. root aggregate `admin_integration_test --tests ...`는 `--tests` 옵션을 받지 않아 모듈 Test 태스크 명령으로 정정했다.
 - 2026-05-18: Task 3 완료. auth, file, user, help docs/integration 테스트 요청 URI를 `/v1/**` 기준으로 갱신해 기존 Admin v1 최종 URL 보존을 검증했다. 검증: `./gradlew :bottlenote-admin-api:test --tests 'app.docs.auth.AuthControllerDocsTest' --tests 'app.docs.file.AdminImageUploadControllerDocsTest' --tests 'app.docs.user.AdminUsersControllerDocsTest' --tests 'app.docs.help.AdminHelpControllerDocsTest'` 성공, `./gradlew :bottlenote-admin-api:admin_integration_test --tests 'app.integration.auth.AdminAuthIntegrationTest' --tests 'app.integration.file.AdminImageUploadIntegrationTest' --tests 'app.integration.user.AdminUsersIntegrationTest' --tests 'app.integration.help.AdminHelpIntegrationTest'` 성공.
+- 2026-05-18: Task 4 완료. alcohol, distillery, region, tasting-tag docs/integration 테스트 요청 URI를 `/v1/**` 기준으로 갱신해 reference/admin alcohol API의 기존 v1 surface를 보존했다. 검증: `./gradlew :bottlenote-admin-api:test --tests 'app.docs.alcohols.*'` 성공, `./gradlew :bottlenote-admin-api:admin_integration_test --tests 'app.integration.alcohols.*' --tests 'app.integration.region.*'` 성공.
