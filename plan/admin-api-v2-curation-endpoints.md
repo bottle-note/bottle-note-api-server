@@ -213,7 +213,7 @@ Admin API의 versioning 경계를 정리한다. 현재 admin-api는 `server.serv
   - `plan/admin-api-v2-curation-endpoints.md`
   - `plan/spec-based-curation-v2-graphql-sdl.md`
 - Size: S
-- Status: [ ] not done
+- Status: [x] done
 
 ## Progress Log
 
@@ -223,3 +223,4 @@ Admin API의 versioning 경계를 정리한다. 현재 admin-api는 `server.serv
 - 2026-05-18: Task 4 완료. alcohol, distillery, region, tasting-tag docs/integration 테스트 요청 URI를 `/v1/**` 기준으로 갱신해 reference/admin alcohol API의 기존 v1 surface를 보존했다. 검증: `./gradlew :bottlenote-admin-api:test --tests 'app.docs.alcohols.*'` 성공, `./gradlew :bottlenote-admin-api:admin_integration_test --tests 'app.integration.alcohols.*' --tests 'app.integration.region.*'` 성공.
 - 2026-05-18: Task 5 완료. banner docs/integration 테스트를 `/v1/banners/**`, legacy curation docs/integration 테스트를 `/v1/curations/**` 기준으로 갱신했다. spec 기반 신규 curation 테스트는 `/v2/curations`로 유지되어 legacy와 v2 surface가 분리된다. 검증: `./gradlew :bottlenote-admin-api:test --tests 'app.docs.banner.AdminBannerControllerDocsTest' --tests 'app.docs.curation.AdminCurationControllerDocsTest'` 성공, `./gradlew :bottlenote-admin-api:admin_integration_test --tests 'app.integration.banner.AdminBannerIntegrationTest' --tests 'app.integration.curation.AdminCurationIntegrationTest'` 성공.
 - 2026-05-18: Task 6 완료. `.example/display`의 admin base URL을 `/admin/api`로 낮추고, legacy 호출은 `/v1`, spec 기반 신규 호출은 `/v2/curation-specs`, `/v2/curations`로 분리했다. `plan/spec-based-curation-v2-graphql-sdl.md`에는 기존 `/admin/api/v1/curation-specs`, `/admin/api/v1/spec-based-curations` 결정을 취소선 + 정정으로 남겼다. 검증: `curl -s http://localhost:8098/curation-architecture.html` 성공, `rg -n "spec-based-curations|/admin/api/v1/curation-specs|/admin/api/v1/spec-based-curations" .example/display plan/spec-based-curation-v2-graphql-sdl.md` 결과는 plan 문서의 취소선/정정 이력 3건만 남고 `.example/display`에는 stale canonical reference가 없음을 확인했다.
+- 2026-05-18: Task 7 완료. 최종 검증으로 admin compile, admin 전체 RestDocs/test, 전체 admin integration, rule test, diff whitespace check를 수행했고 모두 성공했다. 검증: `./gradlew :bottlenote-admin-api:compileKotlin :bottlenote-admin-api:compileTestKotlin` 성공, `./gradlew :bottlenote-admin-api:test` 성공, `./gradlew admin_integration_test` 성공, `./gradlew check_rule_test` 성공, `git diff --check` 성공.
