@@ -56,7 +56,7 @@ class AdminUsersIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/users")
+					.uri("/v1/users")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -75,7 +75,7 @@ class AdminUsersIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/users")
+					.uri("/v1/users")
 					.param("keyword", "검색대상")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
@@ -95,7 +95,7 @@ class AdminUsersIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/users")
+					.uri("/v1/users")
 					.param("keyword", "searchtarget")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
@@ -116,7 +116,7 @@ class AdminUsersIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/users")
+					.uri("/v1/users")
 					.param("status", "ACTIVE")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
@@ -140,7 +140,7 @@ class AdminUsersIntegrationTest : IntegrationTestSupport() {
 			// when
 			val result = mockMvcTester
 				.get()
-				.uri("/users")
+				.uri("/v1/users")
 				.param("keyword", user.nickName)
 				.header("Authorization", "Bearer $accessToken")
 				.exchange()
@@ -175,7 +175,7 @@ class AdminUsersIntegrationTest : IntegrationTestSupport() {
 			// when & then (리뷰 많은 순 DESC -> userB가 먼저)
 			val result = mockMvcTester
 				.get()
-				.uri("/users")
+				.uri("/v1/users")
 				.param("sortType", "REVIEW_COUNT")
 				.param("sortOrder", "DESC")
 				.header("Authorization", "Bearer $accessToken")
@@ -198,7 +198,7 @@ class AdminUsersIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/users")
+					.uri("/v1/users")
 					.param("page", "0")
 					.param("size", "2")
 					.header("Authorization", "Bearer $accessToken")
@@ -216,7 +216,7 @@ class AdminUsersIntegrationTest : IntegrationTestSupport() {
 		@DisplayName("인증 없이 요청하면 실패한다")
 		fun requestWithoutAuth() {
 			assertThat(
-				mockMvcTester.get().uri("/users")
+				mockMvcTester.get().uri("/v1/users")
 			).hasStatus4xxClientError()
 		}
 	}

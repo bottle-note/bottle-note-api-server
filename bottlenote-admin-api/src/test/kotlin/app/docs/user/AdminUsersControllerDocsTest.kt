@@ -67,7 +67,7 @@ class AdminUsersControllerDocsTest {
 
 		// when & then
 		assertThat(
-			mvc.get().uri("/users?keyword=&status=ACTIVE&sortType=CREATED_AT&sortOrder=DESC&page=0&size=20")
+			mvc.get().uri("/v1/users?keyword=&status=ACTIVE&sortType=CREATED_AT&sortOrder=DESC&page=0&size=20")
 		)
 			.hasStatusOk()
 			.apply(
