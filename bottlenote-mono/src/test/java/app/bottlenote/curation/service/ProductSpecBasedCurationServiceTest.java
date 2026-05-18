@@ -5,10 +5,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.bottlenote.curation.domain.CurationSpec;
 import app.bottlenote.curation.dto.request.CurationCreateRequest;
-import app.bottlenote.curation.dto.request.CurationSpecCreateRequest;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationDetailResponse;
 import app.bottlenote.curation.exception.CurationException;
 import app.bottlenote.curation.exception.CurationExceptionCode;
+import app.bottlenote.curation.fixture.CurationFixtureFactory;
 import app.bottlenote.curation.fixture.InMemoryCurationExtensionRepository;
 import app.bottlenote.curation.fixture.InMemoryCurationRepository;
 import app.bottlenote.curation.fixture.InMemoryCurationSpecRepository;
@@ -36,7 +36,7 @@ class ProductSpecBasedCurationServiceTest {
   InMemoryCurationSpecRepository specRepository;
   InMemoryCurationRepository curationRepository;
   InMemoryCurationExtensionRepository extensionRepository;
-  CurationV2Service curationV2Service;
+  CurationFixtureFactory curationFixtureFactory;
   ProductSpecBasedCurationService productService;
 
   @BeforeEach
@@ -44,8 +44,8 @@ class ProductSpecBasedCurationServiceTest {
     specRepository = new InMemoryCurationSpecRepository();
     curationRepository = new InMemoryCurationRepository();
     extensionRepository = new InMemoryCurationExtensionRepository();
-    curationV2Service =
-        new CurationV2Service(specRepository, curationRepository, extensionRepository);
+    curationFixtureFactory =
+        new CurationFixtureFactory(specRepository, curationRepository, extensionRepository);
     CurationResponseMaterializer materializer =
         new CurationResponseMaterializer(
             OBJECT_MAPPER,
@@ -120,15 +120,14 @@ class ProductSpecBasedCurationServiceTest {
   }
 
   private CurationSpec createSpec() throws IOException {
-    return curationV2Service.createSpec(
-        new CurationSpecCreateRequest(
-            "RECOMMENDED_WHISKY",
-            "추천 위스키",
-            "추천 설명",
-            schema("recommended_whisky.json", "Request"),
-            schema("recommended_whisky.json", "Response"),
-            "alcohol",
-            2));
+    return curationFixtureFactory.saveSpec(
+        "RECOMMENDED_WHISKY",
+        "추천 위스키",
+        "추천 설명",
+        schema("recommended_whisky.json", "Request"),
+        schema("recommended_whisky.json", "Response"),
+        "alcohol",
+        2);
   }
 
   private Long createCuration(Long specId, String name, int displayOrder, boolean active) {
@@ -148,8 +147,8 @@ class ProductSpecBasedCurationServiceTest {
       boolean active,
       LocalDate exposureStartDate,
       LocalDate exposureEndDate) {
-    return curationV2Service
-        .createCuration(
+    return curationFixtureFactory
+        .saveCuration(
             new CurationCreateRequest(
                 specId,
                 name,

@@ -218,16 +218,19 @@
   - `bottlenote-mono`에 `curation_spec`, `curation`, `curation_extension`에 대응되는 Entity를 추가한다.
   - Repository는 domain interface + JPA implementation 패턴을 따른다.
   - JSON 컬럼은 기존 Hypersistence `JsonType` 기반 매핑을 사용한다.
-  - Admin command가 재사용할 persistence service를 추가하되, REST endpoint는 아직 만들지 않는다.
+  - ~~Admin command가 재사용할 persistence service를 추가하되, REST endpoint는 아직 만들지 않는다.~~
+  - 정정: Admin command 저장 경로는 `AdminSpecBasedCurationService`로 단일화하고, mono에는 Entity + Repository + 테스트 fixture만 유지한다.
 - Verification:
   - `./gradlew :bottlenote-mono:compileJava`
-  - `./gradlew :bottlenote-mono:test --tests 'app.bottlenote.curation.service.CurationV2ServiceTest'`
+  - ~~`./gradlew :bottlenote-mono:test --tests 'app.bottlenote.curation.service.CurationV2ServiceTest'`~~
+  - `./gradlew :bottlenote-mono:test --tests 'app.bottlenote.curation.service.AdminSpecBasedCurationServiceTest' --tests 'app.bottlenote.curation.service.ProductSpecBasedCurationServiceTest' --tests 'app.bottlenote.curation.service.CurationResponseMaterializerTest'`
   - `./gradlew check_rule_test`
 - Files:
   - `bottlenote-mono/src/main/java/app/bottlenote/curation/domain/*`
   - `bottlenote-mono/src/main/java/app/bottlenote/curation/dto/request/*`
   - `bottlenote-mono/src/main/java/app/bottlenote/curation/repository/*`
-  - `bottlenote-mono/src/main/java/app/bottlenote/curation/service/CurationV2Service.java`
+  - ~~`bottlenote-mono/src/main/java/app/bottlenote/curation/service/CurationV2Service.java`~~
+  - `bottlenote-mono/src/test/java/app/bottlenote/curation/fixture/CurationFixtureFactory.java`
   - `bottlenote-mono/src/test/java/app/bottlenote/curation/**`
 - Size: M
 - Status: [x] done
@@ -322,6 +325,7 @@
 - 2026-05-15 Phase 3 Task 2 완료: Product v2 목록/상세 RestDocs 테스트를 추가했고, `curation/v2/list`, `curation/v2/detail` 스니펫이 생성되는 것을 확인했다. `./gradlew :bottlenote-product-api:asciidoctor check_rule_test` 성공으로 `product-api.html` 생성과 rule test 통과를 확인했다. runtime smoke는 `.env` 기반 product-api를 8080에서 기동해 `GET /api/v2/curations` HTTP 200을 확인했다. 개발 DB에 active spec 기반 큐레이션이 0건이어서 `CODEX_RUNTIME_SMOKE_20260515` 임시 row를 생성한 뒤 `GET /api/v2/curations` HTTP 200, `GET /api/v2/curations/1` HTTP 200, list count=1, detail spec=`RECOMMENDED_WHISKY`, payload_count=2, BOTTLE_NOTE stats keys=`rating,reviewCount,totalPickCount,totalRatingsCount`, MANUAL stats null을 확인했다. 검증 후 임시 row는 삭제했고 삭제 확인 count=0, bootRun 프로세스도 종료했다.
 - 2026-05-17 Copilot review 대응 완료: GraphiQL default/local 비활성화, `/graphql`/`/graphiql`/`/graphiql/**` denyAll 차단, GraphQL stats field N+1 제거를 위한 `@BatchMapping` + `IN ... GROUP BY` 집계, Curation create/update Bean Validation enum message 수정을 반영했다. Copilot review thread 4건은 코드 확인 후 GitHub에서 resolved 처리했다. 검증: `/verify full` 범위로 compile, rule, unit, build, integration, admin integration 모두 성공.
 - 2026-05-17 Product V2 Runtime Hardening 완료: Product v2 목록/상세에 `isActive = true`와 `exposureStartDate <= today <= exposureEndDate` 정책을 적용했다. `exposureStartDate` 또는 `exposureEndDate`가 null이면 열린 구간으로 처리한다. GraphQL executor가 null response 또는 execution errors를 반환하면 부분 응답을 만들지 않고 `CURATION_GRAPHQL_EXECUTION_FAILED`로 fail-closed 처리한다. responseSpec 검증 실패 시 내부 로그에 `curationId`, `specCode`, validator error path를 남긴다. 검증: `./gradlew :bottlenote-mono:compileJava :bottlenote-product-api:compileJava :bottlenote-mono:compileTestJava :bottlenote-product-api:compileTestJava` 성공, focused unit/integration + `check_rule_test` 성공.
+- 2026-05-18 리팩토링 완료: `CurationV2Service`와 `CurationSpecCreateRequest`를 제거해 검증 없는 운영 저장 경로를 닫았다. 단위 테스트의 spec/curation 생성은 `CurationFixtureFactory`로 이동했고, 실제 Admin 저장 경로는 `AdminSpecBasedCurationService`로 단일화했다. 검증: `./gradlew :bottlenote-mono:compileJava :bottlenote-mono:compileTestJava` 성공, focused curation unit 13개 성공, `./gradlew check_rule_test` 성공, `./gradlew unit_test` 성공.
 
 ## Current Decision Summary
 
