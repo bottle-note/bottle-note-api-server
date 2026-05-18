@@ -40,7 +40,7 @@ class AdminRegionIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/regions/${region.id}")
+					.uri("/v1/regions/${region.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -53,7 +53,7 @@ class AdminRegionIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/regions/999999")
+					.uri("/v1/regions/999999")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatus(404)
 		}
@@ -76,7 +76,7 @@ class AdminRegionIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/regions")
+					.uri("/v1/regions")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -98,7 +98,7 @@ class AdminRegionIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/regions")
+					.uri("/v1/regions")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -125,7 +125,7 @@ class AdminRegionIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.put()
-					.uri("/regions/${region.id}")
+					.uri("/v1/regions/${region.id}")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -146,7 +146,7 @@ class AdminRegionIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.delete()
-					.uri("/regions/${region.id}")
+					.uri("/v1/regions/${region.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -162,7 +162,7 @@ class AdminRegionIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.delete()
-					.uri("/regions/${root.id}")
+					.uri("/v1/regions/${root.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatus(409)
 		}
@@ -181,7 +181,7 @@ class AdminRegionIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.patch()
-					.uri("/regions/${region.id}/sort-order")
+					.uri("/v1/regions/${region.id}/sort-order")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))

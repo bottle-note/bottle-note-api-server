@@ -63,7 +63,7 @@ class AdminAlcoholsControllerDocsTest {
 
 		// when & then
 		assertThat(
-			mvc.get().uri("/alcohols")
+			mvc.get().uri("/v1/alcohols")
 				.param("keyword", "글렌")
 				.param("category", AlcoholCategoryGroup.SINGLE_MALT.name)
 				.param("regionId", "1")
@@ -77,7 +77,7 @@ class AdminAlcoholsControllerDocsTest {
 			.extractingPath("$.success").isEqualTo(true)
 
 		assertThat(
-			mvc.get().uri("/alcohols")
+			mvc.get().uri("/v1/alcohols")
 				.param("keyword", "글렌")
 				.param("category", AlcoholCategoryGroup.SINGLE_MALT.name)
 				.param("regionId", "1")
@@ -141,7 +141,7 @@ class AdminAlcoholsControllerDocsTest {
 
 		// when & then
 		assertThat(
-			mvc.get().uri("/alcohols/{alcoholId}", 1L)
+			mvc.get().uri("/v1/alcohols/{alcoholId}", 1L)
 		)
 			.hasStatusOk()
 			.apply(
@@ -211,7 +211,7 @@ class AdminAlcoholsControllerDocsTest {
 
 		// when & then
 		assertThat(
-			mvc.post().uri("/alcohols")
+			mvc.post().uri("/v1/alcohols")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(mapper.writeValueAsString(request))
 		)
@@ -276,7 +276,7 @@ class AdminAlcoholsControllerDocsTest {
 
 		// when & then
 		assertThat(
-			mvc.put().uri("/alcohols/{alcoholId}", 1L)
+			mvc.put().uri("/v1/alcohols/{alcoholId}", 1L)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(mapper.writeValueAsString(request))
 		)
@@ -354,7 +354,7 @@ class AdminAlcoholsControllerDocsTest {
 
 		// when & then
 		assertThat(
-			mvc.get().uri("/alcohols/categories/reference")
+			mvc.get().uri("/v1/alcohols/categories/reference")
 		)
 			.hasStatusOk()
 			.apply(
@@ -407,7 +407,7 @@ class AdminAlcoholsControllerDocsTest {
 
 		// when & then
 		assertThat(
-			mvc.delete().uri("/alcohols/{alcoholId}", 1L)
+			mvc.delete().uri("/v1/alcohols/{alcoholId}", 1L)
 		)
 			.hasStatusOk()
 			.apply(

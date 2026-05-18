@@ -45,7 +45,7 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/helps")
+					.uri("/v1/helps")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -64,7 +64,7 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/helps")
+					.uri("/v1/helps")
 					.header("Authorization", "Bearer $accessToken")
 					.param("status", StatusType.WAITING.name)
 			).hasStatusOk()
@@ -85,7 +85,7 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/helps")
+					.uri("/v1/helps")
 					.header("Authorization", "Bearer $accessToken")
 					.param("type", HelpType.WHISKEY.name)
 			).hasStatusOk()
@@ -99,7 +99,7 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 		fun getHelpListWithoutAuth() {
 			// when & then
 			assertThat(
-				mockMvcTester.get().uri("/helps")
+				mockMvcTester.get().uri("/v1/helps")
 			).hasStatus4xxClientError()
 		}
 	}
@@ -118,7 +118,7 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/helps/${help.id}")
+					.uri("/v1/helps/${help.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -128,7 +128,7 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/helps/${help.id}")
+					.uri("/v1/helps/${help.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -143,7 +143,7 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/helps/99999")
+					.uri("/v1/helps/99999")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatus4xxClientError()
 				.bodyJson()
@@ -172,7 +172,7 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/helps/${help.id}/answer")
+					.uri("/v1/helps/${help.id}/answer")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -184,7 +184,7 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/helps/${help.id}/answer")
+					.uri("/v1/helps/${help.id}/answer")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -211,7 +211,7 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/helps/${help.id}/answer")
+					.uri("/v1/helps/${help.id}/answer")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -235,7 +235,7 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/helps/99999/answer")
+					.uri("/v1/helps/99999/answer")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -262,7 +262,7 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/helps/${help.id}/answer")
+					.uri("/v1/helps/${help.id}/answer")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))

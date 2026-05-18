@@ -10,7 +10,7 @@ app: # 애플리케이션 및 배포 정보
 server:
   port: ${SERVER_PORT:8080}
   servlet:
-    context-path: /admin/api/v1
+    context-path: /admin/api
     encoding:
       charset: UTF-8
   compression:
@@ -61,6 +61,10 @@ schedules:
     view:
       sync:
         enable: false
+
+curation:
+  spec-sync:
+    enabled: ${CURATION_SPEC_SYNC_ENABLED:true}
 
 root:
   admin:

@@ -317,3 +317,15 @@ Use these skills to follow the structured development lifecycle:
 - 의존성 주입: 생성자 주입 우선
 - 불변성 지향: `final` 필드, `record` 활용
 - 단일 책임 원칙: 클래스와 메서드 역할 명확화
+
+## GSL on codex — Runtime Boundary Rules
+
+When using GSL skills from `.agents/skills/`, treat each `SKILL.md` as a single-turn procedure.
+
+- Load only the one GSL skill that matches the user's current explicit request.
+- Do not pre-load all 9 GSL skills unless the user explicitly asks for a read-only diagnosis of the skillset.
+- A GSL skill boundary is a hard stop. When a skill reaches its Verification / Runtime Boundary section, end the assistant turn.
+- `After this skill`, `Next: /...`, or `should invoke` means "suggest the next command", not "execute it now".
+- Do not transition between GSL skills (`/define`->`/plan`, `/plan`->`/implement`, `/implement` Task N->N+1, `/implement`->`/test`, `/test`->`/verify`, etc.) in the same assistant turn unless the user explicitly named that next skill — or named multiple Tasks for continuous execution — in their message.
+- `/implement` may write test code alongside a Task, but must NOT run the full `/test` / `/verify` / `/self-review` workflow inside itself. Those are separate skill boundaries.
+- If the user says "continue" ambiguously, ask whether to run the next suggested GSL skill or only report the next command.

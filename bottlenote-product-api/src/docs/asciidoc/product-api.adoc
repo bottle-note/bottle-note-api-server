@@ -97,6 +97,9 @@ include::api/alcohols/categories.adoc[]
 include::api/alcohols/curations.adoc[]
 
 '''
+include::api/curation/v2.adoc[]
+
+'''
 include::api/alcohols/popular.adoc[]
 
 '''

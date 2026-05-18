@@ -2,11 +2,14 @@ package app.bottlenote.review.fixture;
 
 import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.review.constant.ReviewActiveStatus;
+import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.request.AdminReviewSearchRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.response.AdminReviewListResponse;
+import app.bottlenote.review.dto.response.AlcoholReviewCountResponse;
 import app.bottlenote.review.dto.response.ReviewExploreItem;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.facade.payload.ReviewInfo;
@@ -84,6 +87,29 @@ public class InMemoryReviewRepository implements ReviewRepository {
   @Override
   public List<Review> findByUserId(Long userId) {
     return List.of();
+  }
+
+  @Override
+  public Long countByAlcoholIdAndActiveStatusAndStatus(
+      Long alcoholId, ReviewActiveStatus activeStatus, ReviewDisplayStatus status) {
+    return database.values().stream()
+        .filter(review -> Objects.equals(review.getAlcoholId(), alcoholId))
+        .filter(review -> review.getActiveStatus() == activeStatus)
+        .filter(review -> review.getStatus() == status)
+        .count();
+  }
+
+  @Override
+  public List<AlcoholReviewCountResponse> countByAlcoholIdsAndActiveStatusAndStatus(
+      List<Long> alcoholIds, ReviewActiveStatus activeStatus, ReviewDisplayStatus status) {
+    return alcoholIds.stream()
+        .map(
+            alcoholId ->
+                new AlcoholReviewCountResponse(
+                    alcoholId,
+                    countByAlcoholIdAndActiveStatusAndStatus(alcoholId, activeStatus, status)))
+        .filter(count -> count.reviewCount() > 0)
+        .toList();
   }
 
   @Override

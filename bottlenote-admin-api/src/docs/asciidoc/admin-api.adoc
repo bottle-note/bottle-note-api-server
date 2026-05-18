@@ -70,6 +70,10 @@ include::api/admin-curations/curations.adoc[]
 
 '''
 
+include::api/admin-curations/spec-based-curations.adoc[]
+
+'''
+
 == Users API
 
 include::api/admin-users/users.adoc[]

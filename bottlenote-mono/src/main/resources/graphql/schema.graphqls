@@ -1,0 +1,19 @@
+type Query {
+  alcohols(ids: [ID!]!): [Alcohol!]!
+}
+
+type Alcohol {
+  alcoholId: ID!
+  korName: String!
+  engName: String
+  imageUrl: String
+  regionName: String
+  korCategory: String
+  cask: String
+  abv: String
+  volume: String
+  rating: Float
+  totalRatingsCount: Int
+  reviewCount: Int
+  totalPickCount: Int
+}

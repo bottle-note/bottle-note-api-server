@@ -68,7 +68,7 @@ class AdminDistilleryControllerDocsTest {
 			.willReturn(response)
 
 		assertThat(
-			mvc.get().uri("/distilleries?keyword=&page=0&size=20&sortOrder=ASC")
+			mvc.get().uri("/v1/distilleries?keyword=&page=0&size=20&sortOrder=ASC")
 		).hasStatusOk()
 			.apply(
 				document(
@@ -123,7 +123,7 @@ class AdminDistilleryControllerDocsTest {
 		given(distilleryService.getDetail(anyLong())).willReturn(item)
 
 		assertThat(
-			mvc.get().uri("/distilleries/{distilleryId}", 1L)
+			mvc.get().uri("/v1/distilleries/{distilleryId}", 1L)
 		).hasStatusOk()
 			.apply(
 				document(
@@ -164,7 +164,7 @@ class AdminDistilleryControllerDocsTest {
 		)
 
 		assertThat(
-			mvc.post().uri("/distilleries")
+			mvc.post().uri("/v1/distilleries")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(mapper.writeValueAsString(request))
 		).hasStatusOk()
@@ -196,7 +196,7 @@ class AdminDistilleryControllerDocsTest {
 		)
 
 		assertThat(
-			mvc.put().uri("/distilleries/{distilleryId}", 1L)
+			mvc.put().uri("/v1/distilleries/{distilleryId}", 1L)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(mapper.writeValueAsString(request))
 		).hasStatusOk()
@@ -225,7 +225,7 @@ class AdminDistilleryControllerDocsTest {
 		val request = mapOf("sortOrder" to 5)
 
 		assertThat(
-			mvc.patch().uri("/distilleries/{distilleryId}/sort-order", 1L)
+			mvc.patch().uri("/v1/distilleries/{distilleryId}/sort-order", 1L)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(mapper.writeValueAsString(request))
 		).hasStatusOk()
@@ -250,7 +250,7 @@ class AdminDistilleryControllerDocsTest {
 		given(distilleryService.delete(anyLong())).willReturn(result)
 
 		assertThat(
-			mvc.delete().uri("/distilleries/{distilleryId}", 1L)
+			mvc.delete().uri("/v1/distilleries/{distilleryId}", 1L)
 		).hasStatusOk()
 			.apply(
 				document(

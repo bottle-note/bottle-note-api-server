@@ -64,6 +64,13 @@ class SecurityConfigIntegrationTest extends IntegrationTestSupport {
   }
 
   @Test
+  @DisplayName("내부 GraphQL 엔드포인트는 외부 HTTP 접근을 차단한다")
+  void 내부_GraphQL_엔드포인트_외부_접근_차단() {
+    mockMvcTester.get().uri("/graphiql").exchange().assertThat().hasStatus(FORBIDDEN);
+    mockMvcTester.post().uri("/graphql").exchange().assertThat().hasStatus(FORBIDDEN);
+  }
+
+  @Test
   @DisplayName("정상 API 경로는 차단되지 않는다")
   void 정상_API_경로_허용() {
     // when

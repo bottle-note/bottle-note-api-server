@@ -42,7 +42,7 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/tasting-tags/${tag.id}")
+					.uri("/v1/tasting-tags/${tag.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -52,7 +52,7 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/tasting-tags/${tag.id}")
+					.uri("/v1/tasting-tags/${tag.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -71,7 +71,7 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/tasting-tags/${leafTag.id}")
+					.uri("/v1/tasting-tags/${leafTag.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -81,7 +81,7 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/tasting-tags/${leafTag.id}")
+					.uri("/v1/tasting-tags/${leafTag.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -101,7 +101,7 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/tasting-tags/${tag.id}")
+					.uri("/v1/tasting-tags/${tag.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -116,7 +116,7 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/tasting-tags/999999")
+					.uri("/v1/tasting-tags/999999")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatus4xxClientError()
 		}
@@ -140,7 +140,7 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/tasting-tags")
+					.uri("/v1/tasting-tags")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -166,7 +166,7 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/tasting-tags")
+					.uri("/v1/tasting-tags")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -191,7 +191,7 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/tasting-tags")
+					.uri("/v1/tasting-tags")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -216,7 +216,7 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/tasting-tags")
+					.uri("/v1/tasting-tags")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -243,7 +243,7 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.put()
-					.uri("/tasting-tags/${tag.id}")
+					.uri("/v1/tasting-tags/${tag.id}")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -270,7 +270,7 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.put()
-					.uri("/tasting-tags/${targetTag.id}")
+					.uri("/v1/tasting-tags/${targetTag.id}")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -291,7 +291,7 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.put()
-					.uri("/tasting-tags/999999")
+					.uri("/v1/tasting-tags/999999")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -312,7 +312,7 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.delete()
-					.uri("/tasting-tags/${tag.id}")
+					.uri("/v1/tasting-tags/${tag.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -331,7 +331,7 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.delete()
-					.uri("/tasting-tags/${parent.id}")
+					.uri("/v1/tasting-tags/${parent.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatus4xxClientError()
 		}
@@ -348,7 +348,7 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.delete()
-					.uri("/tasting-tags/${tag.id}")
+					.uri("/v1/tasting-tags/${tag.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatus4xxClientError()
 		}
@@ -360,7 +360,7 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.delete()
-					.uri("/tasting-tags/999999")
+					.uri("/v1/tasting-tags/999999")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatus4xxClientError()
 		}
@@ -383,7 +383,7 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/tasting-tags/${tag.id}/alcohols")
+					.uri("/v1/tasting-tags/${tag.id}/alcohols")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -409,7 +409,7 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.delete()
-					.uri("/tasting-tags/${tag.id}/alcohols")
+					.uri("/v1/tasting-tags/${tag.id}/alcohols")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -430,7 +430,7 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/tasting-tags/${tag.id}/alcohols")
+					.uri("/v1/tasting-tags/${tag.id}/alcohols")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -445,13 +445,13 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 		@DisplayName("인증 없이 요청 시 실패한다")
 		fun requestWithoutAuth() {
 			// when & then
-			assertThat(mockMvcTester.get().uri("/tasting-tags/1"))
+			assertThat(mockMvcTester.get().uri("/v1/tasting-tags/1"))
 				.hasStatus4xxClientError()
 
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/tasting-tags")
+					.uri("/v1/tasting-tags")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(mapOf("korName" to "테스트", "engName" to "Test")))
 			).hasStatus4xxClientError()

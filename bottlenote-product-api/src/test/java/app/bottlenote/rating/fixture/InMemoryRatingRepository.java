@@ -5,6 +5,7 @@ import app.bottlenote.rating.domain.Rating;
 import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.domain.RatingRepository;
 import app.bottlenote.rating.dto.dsl.RatingListFetchCriteria;
+import app.bottlenote.rating.dto.response.AlcoholRatingStatsResponse;
 import app.bottlenote.rating.dto.response.RatingListFetchResponse;
 import app.bottlenote.rating.dto.response.UserRatingResponse;
 import java.util.HashMap;
@@ -55,6 +56,37 @@ public class InMemoryRatingRepository implements RatingRepository {
   @Override
   public Optional<UserRatingResponse> fetchUserRating(Long alcoholId, Long userId) {
     return Optional.empty();
+  }
+
+  @Override
+  public Double findAverageRatingByAlcoholId(Long alcoholId) {
+    return ratings.values().stream()
+        .filter(rating -> rating.getId().getAlcoholId().equals(alcoholId))
+        .mapToDouble(rating -> rating.getRatingPoint().getRating())
+        .filter(rating -> rating > 0.0)
+        .average()
+        .orElse(0.0);
+  }
+
+  @Override
+  public Long countByAlcoholId(Long alcoholId) {
+    return ratings.values().stream()
+        .filter(rating -> rating.getId().getAlcoholId().equals(alcoholId))
+        .filter(rating -> rating.getRatingPoint().getRating() > 0.0)
+        .count();
+  }
+
+  @Override
+  public List<AlcoholRatingStatsResponse> findStatsByAlcoholIds(List<Long> alcoholIds) {
+    return alcoholIds.stream()
+        .map(
+            alcoholId ->
+                new AlcoholRatingStatsResponse(
+                    alcoholId,
+                    findAverageRatingByAlcoholId(alcoholId),
+                    countByAlcoholId(alcoholId)))
+        .filter(stats -> stats.totalRatingsCount() > 0)
+        .toList();
   }
 
   @Override
