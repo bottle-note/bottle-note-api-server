@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/curation-specs")
+@RequestMapping("/v2/curation-specs")
 class AdminCurationSpecController(
 	private val adminSpecBasedCurationService: AdminSpecBasedCurationService
 ) {

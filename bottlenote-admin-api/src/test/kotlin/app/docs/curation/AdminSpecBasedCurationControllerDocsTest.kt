@@ -58,11 +58,11 @@ class AdminSpecBasedCurationControllerDocsTest {
 	fun listSpecs() {
 		given(adminSpecBasedCurationService.listSpecs()).willReturn(listOf(specResponse()))
 
-		assertThat(mvc.get().uri("/curation-specs"))
+		assertThat(mvc.get().uri("/v2/curation-specs"))
 			.hasStatusOk()
 			.apply(
 				document(
-					"admin/curation-specs/list",
+					"admin/v2/curation-specs/list",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint())
 				)
@@ -74,11 +74,11 @@ class AdminSpecBasedCurationControllerDocsTest {
 	fun getSpecDetail() {
 		given(adminSpecBasedCurationService.getSpecDetail(anyLong())).willReturn(specResponse())
 
-		assertThat(mvc.get().uri("/curation-specs/{specId}", 1L))
+		assertThat(mvc.get().uri("/v2/curation-specs/{specId}", 1L))
 			.hasStatusOk()
 			.apply(
 				document(
-					"admin/curation-specs/detail",
+					"admin/v2/curation-specs/detail",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint())
 				)
@@ -91,11 +91,11 @@ class AdminSpecBasedCurationControllerDocsTest {
 		given(adminSpecBasedCurationService.search(any(CurationSearchRequest::class.java)))
 			.willReturn(GlobalResponse.fromPage(PageImpl(listOf(listResponse()))))
 
-		assertThat(mvc.get().uri("/spec-based-curations?keyword=&isActive=true&page=0&size=20"))
+		assertThat(mvc.get().uri("/v2/curations?keyword=&isActive=true&page=0&size=20"))
 			.hasStatusOk()
 			.apply(
 				document(
-					"admin/spec-based-curations/list",
+					"admin/v2/curations/list",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint())
 				)
@@ -107,11 +107,11 @@ class AdminSpecBasedCurationControllerDocsTest {
 	fun getDetail() {
 		given(adminSpecBasedCurationService.getDetail(anyLong())).willReturn(detailResponse())
 
-		assertThat(mvc.get().uri("/spec-based-curations/{curationId}", 1L))
+		assertThat(mvc.get().uri("/v2/curations/{curationId}", 1L))
 			.hasStatusOk()
 			.apply(
 				document(
-					"admin/spec-based-curations/detail",
+					"admin/v2/curations/detail",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint())
 				)
@@ -125,14 +125,14 @@ class AdminSpecBasedCurationControllerDocsTest {
 			.willReturn(AdminResultResponse.of(AdminResultResponse.ResultCode.CURATION_CREATED, 1L))
 
 		assertThat(
-			mvc.post().uri("/spec-based-curations")
+			mvc.post().uri("/v2/curations")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(mapper.writeValueAsString(createRequest()))
 		)
 			.hasStatusOk()
 			.apply(
 				document(
-					"admin/spec-based-curations/create",
+					"admin/v2/curations/create",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint())
 				)
@@ -146,14 +146,14 @@ class AdminSpecBasedCurationControllerDocsTest {
 			.willReturn(AdminResultResponse.of(AdminResultResponse.ResultCode.CURATION_UPDATED, 1L))
 
 		assertThat(
-			mvc.put().uri("/spec-based-curations/{curationId}", 1L)
+			mvc.put().uri("/v2/curations/{curationId}", 1L)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(mapper.writeValueAsString(updateRequest()))
 		)
 			.hasStatusOk()
 			.apply(
 				document(
-					"admin/spec-based-curations/update",
+					"admin/v2/curations/update",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint())
 				)

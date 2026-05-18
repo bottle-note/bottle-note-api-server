@@ -38,7 +38,7 @@ class AdminSpecBasedCurationIntegrationTest : IntegrationTestSupport() {
 		fun listSpecsSuccess() {
 			val result = mockMvcTester
 				.get()
-				.uri("/curation-specs")
+				.uri("/v2/curation-specs")
 				.header("Authorization", "Bearer $accessToken")
 				.exchange()
 
@@ -55,7 +55,7 @@ class AdminSpecBasedCurationIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/curation-specs/$specId")
+					.uri("/v2/curation-specs/$specId")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -75,7 +75,7 @@ class AdminSpecBasedCurationIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/spec-based-curations")
+					.uri("/v2/curations")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -135,7 +135,7 @@ class AdminSpecBasedCurationIntegrationTest : IntegrationTestSupport() {
 		assertThat(
 			mockMvcTester
 				.post()
-				.uri("/spec-based-curations")
+				.uri("/v2/curations")
 				.header("Authorization", "Bearer $accessToken")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(mapper.writeValueAsString(request))

@@ -101,14 +101,14 @@ Admin API의 versioning 경계를 정리한다. 현재 admin-api는 `server.serv
   - `/v1/curation-specs`, `/v1/spec-based-curations` alias는 만들지 않는다.
 - Verification:
   - `./gradlew :bottlenote-admin-api:test --tests 'app.docs.curation.AdminSpecBasedCurationControllerDocsTest'`
-  - `./gradlew admin_integration_test --tests 'app.integration.curation.AdminSpecBasedCurationIntegrationTest'`
+  - `./gradlew :bottlenote-admin-api:admin_integration_test --tests 'app.integration.curation.AdminSpecBasedCurationIntegrationTest'`
 - Files:
   - `bottlenote-admin-api/src/main/kotlin/app/bottlenote/curation/presentation/AdminCurationSpecController.kt`
   - `bottlenote-admin-api/src/main/kotlin/app/bottlenote/curation/presentation/AdminSpecBasedCurationController.kt`
   - `bottlenote-admin-api/src/test/kotlin/app/docs/curation/AdminSpecBasedCurationControllerDocsTest.kt`
   - `bottlenote-admin-api/src/test/kotlin/app/integration/curation/AdminSpecBasedCurationIntegrationTest.kt`
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Checkpoint: after Tasks 1-2
 
@@ -218,3 +218,4 @@ Admin API의 versioning 경계를 정리한다. 현재 admin-api는 `server.serv
 ## Progress Log
 
 - 2026-05-18: Task 1 완료. admin-api context-path를 `/admin/api`로 낮추고, `AdminApiVersionConfig`에서 legacy Admin presentation controller에 중앙 `/v1` prefix를 적용했다. spec 기반 curation controller 2개는 prefix 대상에서 제외했고, Security permit matcher를 `/v1/auth/login`, `/v1/auth/refresh`로 갱신했다. 검증: `./gradlew :bottlenote-admin-api:compileKotlin :bottlenote-admin-api:compileTestKotlin` 성공.
+- 2026-05-18: Task 2 완료. spec 기반 admin curation controller를 `/v2/curations`, spec 조회 controller를 `/v2/curation-specs`로 변경하고 RestDocs/integration 테스트 URI와 snippet 경로를 v2 기준으로 갱신했다. 검증: `./gradlew :bottlenote-admin-api:test --tests 'app.docs.curation.AdminSpecBasedCurationControllerDocsTest'` 성공, `./gradlew :bottlenote-admin-api:admin_integration_test --tests 'app.integration.curation.AdminSpecBasedCurationIntegrationTest'` 성공. root aggregate `admin_integration_test --tests ...`는 `--tests` 옵션을 받지 않아 모듈 Test 태스크 명령으로 정정했다.
