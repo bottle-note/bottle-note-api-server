@@ -135,6 +135,15 @@ class AdminReviewIntegrationTest : IntegrationTestSupport() {
 		assertThat(response.at("/meta/hasNext").asBoolean()).isTrue()
 	}
 
+	@Test
+	@DisplayName("페이지 요청 값이 범위를 벗어나면 400을 반환한다")
+	fun searchAdminReviews_whenPageRequestOutOfRange_returnsBadRequest() {
+		// when & then
+		assertInvalidReviewSearch("page" to "-1")
+		assertInvalidReviewSearch("size" to "0")
+		assertInvalidReviewSearch("size" to "101")
+	}
+
 	private fun sorted(
 		sortType: AdminReviewSortType,
 		sortOrder: SortOrder
@@ -150,6 +159,16 @@ class AdminReviewIntegrationTest : IntegrationTestSupport() {
 		val result = request.exchange()
 		assertThat(result).hasStatusOk()
 		return mapper.readTree(result.response.contentAsString)
+	}
+
+	private fun assertInvalidReviewSearch(vararg params: Pair<String, String>) {
+		val request = mockMvcTester
+			.get()
+			.uri("/v1/reviews")
+			.header("Authorization", "Bearer $accessToken")
+		params.forEach { request.param(it.first, it.second) }
+
+		assertThat(request.exchange()).hasStatus(400)
 	}
 
 	private fun assertReviewIds(

@@ -112,8 +112,8 @@ class AdminReviewControllerDocsTest {
 						parameterWithName("createdTo").description("작성일시 종료 범위 (ISO-8601 LocalDateTime)").optional(),
 						parameterWithName("sortType").description("정렬 기준 (CREATED_AT/REPLY_COUNT/UPDATED_AT, 기본값: CREATED_AT)").optional(),
 						parameterWithName("sortOrder").description("정렬 방향 (ASC/DESC, 기본값: DESC)").optional(),
-						parameterWithName("page").description("페이지 번호 (0부터 시작, 기본값: 0)").optional(),
-						parameterWithName("size").description("페이지 크기 (기본값: 20)").optional()
+						parameterWithName("page").description("페이지 번호 (0 이상, 기본값: 0)").optional(),
+						parameterWithName("size").description("페이지 크기 (1~100, 기본값: 20)").optional()
 					),
 					responseFields(
 						fieldWithPath("success").type(JsonFieldType.BOOLEAN).description("응답 성공 여부"),
