@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyLong
@@ -33,6 +34,7 @@ import org.springframework.test.web.servlet.assertj.MockMvcTester
 	excludeAutoConfiguration = [SecurityAutoConfiguration::class]
 )
 @AutoConfigureRestDocs
+@Tag("restdocs")
 @DisplayName("Admin Curation 컨트롤러 RestDocs 테스트")
 class AdminCurationControllerDocsTest {
 

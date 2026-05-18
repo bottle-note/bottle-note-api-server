@@ -18,9 +18,11 @@ import app.bottlenote.common.file.service.ImageUploadService;
 import app.docs.AbstractRestDocs;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.test.context.support.WithMockUser;
 
+@Tag("restdocs")
 @DisplayName("이미지 업로드 RestDocs용 테스트")
 class RestImageUploadControllerTest extends AbstractRestDocs {
 

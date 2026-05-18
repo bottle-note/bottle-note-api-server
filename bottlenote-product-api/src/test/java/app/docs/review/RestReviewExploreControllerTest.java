@@ -23,8 +23,10 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+@Tag("restdocs")
 @DisplayName("[restdocs] 리뷰 둘러보기 계열 컨트롤러 RestDocs용 테스트")
 public class RestReviewExploreControllerTest extends AbstractRestDocs {
 

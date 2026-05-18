@@ -79,7 +79,7 @@ tasks.jar {
 tasks.asciidoctor {
 	inputs.dir(snippetsDir)
 	configurations(asciidoctorExt.name)
-	dependsOn(tasks.test)
+	dependsOn(tasks.named("restDocsTest"))
 	sources {
 		include("**/admin-api.adoc")
 	}

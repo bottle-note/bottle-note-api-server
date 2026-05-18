@@ -20,10 +20,12 @@ import app.bottlenote.alcohols.service.AlcoholReferenceService;
 import app.docs.AbstractRestDocs;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+@Tag("restdocs")
 @DisplayName("알코올 참조 컨트롤러 RestDocs용 테스트")
 class RestReferenceControllerTest extends AbstractRestDocs {
 
