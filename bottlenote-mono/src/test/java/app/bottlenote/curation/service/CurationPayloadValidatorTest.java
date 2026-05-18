@@ -10,9 +10,13 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.core.io.ClassPathResource;
 
 @Tag("unit")
@@ -35,6 +39,43 @@ class CurationPayloadValidatorTest {
             new MapBackedSchema(requestSpec), List.of(recommendedItem("BOTTLE_NOTE")));
 
     assertThat(errors).isEmpty();
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("validRequestPayloadsBySpec")
+  @DisplayName("큐레이션 스펙별 유효한 request payload일 경우 requestSpec 검증을 통과한다")
+  void validate_whenPayloadMatchesEachRequestSpec_returnsEmptyErrors(
+      String specCode, String resourceName, Object payload) throws IOException {
+    Map<String, Object> requestSpec = schema(resourceName, "Request");
+
+    List<String> errors = validator.validate(new MapBackedSchema(requestSpec), payload);
+
+    assertThat(errors).as(specCode).isEmpty();
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("validResponsePayloadsBySpec")
+  @DisplayName("큐레이션 스펙별 대표 materialized payload일 경우 responseSpec 검증을 통과한다")
+  void validate_whenMaterializedPayloadMatchesEachResponseSpec_returnsEmptyErrors(
+      String specCode, String resourceName, Object payload) throws IOException {
+    Map<String, Object> responseSpec = schema(resourceName, "Response");
+
+    List<String> errors = validator.validate(new MapBackedSchema(responseSpec), payload);
+
+    assertThat(errors).as(specCode).isEmpty();
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("invalidRequestPayloadsBySpec")
+  @DisplayName("큐레이션 스펙별 필수 payload가 누락될 경우 requestSpec 검증 오류를 반환한다")
+  void validate_whenRequiredPayloadBySpecIsMissing_returnsErrors(
+      String specCode, String resourceName, Object payload, String expectedError)
+      throws IOException {
+    Map<String, Object> requestSpec = schema(resourceName, "Request");
+
+    List<String> errors = validator.validate(new MapBackedSchema(requestSpec), payload);
+
+    assertThat(errors).as(specCode).contains(expectedError);
   }
 
   @Test
@@ -213,6 +254,35 @@ class CurationPayloadValidatorTest {
     return map("source", source, "alcohol", alcohol, "comment", null);
   }
 
+  private static Map<String, Object> pairingItem(String source) {
+    Map<String, Object> item = recommendedItem(source);
+    item.put(
+        "pairings",
+        List.of(
+            map(
+                "itemName",
+                "다크 초콜릿",
+                "itemImageUrl",
+                "https://cdn.example.com/pairing/chocolate.jpg",
+                "pairingNote",
+                "셰리 향과 단맛을 이어준다.")));
+    return item;
+  }
+
+  private static Map<String, Object> itemWithStats(Map<String, Object> item) {
+    Map<String, Object> itemWithStats = new LinkedHashMap<>(item);
+    itemWithStats.put(
+        "stats",
+        map("rating", 4.2, "totalRatingsCount", 10, "reviewCount", 3, "totalPickCount", 8));
+    return itemWithStats;
+  }
+
+  private static Map<String, Object> withoutField(Map<String, Object> source, String field) {
+    Map<String, Object> copy = new LinkedHashMap<>(source);
+    copy.remove(field);
+    return copy;
+  }
+
   private static Map<String, Object> tastingEventPayload(
       int entryFee, int capacity, List<Map<String, Object>> alcohols) {
     return map(
@@ -236,6 +306,56 @@ class CurationPayloadValidatorTest {
         "시작 10분 전 입장해 주세요.",
         "alcohols",
         alcohols);
+  }
+
+  private static Stream<Arguments> validRequestPayloadsBySpec() {
+    return Stream.of(
+        Arguments.of(
+            "RECOMMENDED_WHISKY",
+            "recommended_whisky.json",
+            List.of(recommendedItem("BOTTLE_NOTE"))),
+        Arguments.of("WHISKY_PAIRING", "whisky_pairing.json", List.of(pairingItem("BOTTLE_NOTE"))),
+        Arguments.of(
+            "WHISKY_TASTING_EVENT",
+            "whisky_tasting_event.json",
+            tastingEventPayload(0, 1, List.of(recommendedItem("BOTTLE_NOTE")))));
+  }
+
+  private static Stream<Arguments> validResponsePayloadsBySpec() {
+    return Stream.of(
+        Arguments.of(
+            "RECOMMENDED_WHISKY",
+            "recommended_whisky.json",
+            List.of(itemWithStats(recommendedItem("BOTTLE_NOTE")))),
+        Arguments.of(
+            "WHISKY_PAIRING",
+            "whisky_pairing.json",
+            List.of(itemWithStats(pairingItem("BOTTLE_NOTE")))),
+        Arguments.of(
+            "WHISKY_TASTING_EVENT",
+            "whisky_tasting_event.json",
+            tastingEventPayload(0, 1, List.of(itemWithStats(recommendedItem("BOTTLE_NOTE"))))));
+  }
+
+  private static Stream<Arguments> invalidRequestPayloadsBySpec() {
+    return Stream.of(
+        Arguments.of(
+            "RECOMMENDED_WHISKY",
+            "recommended_whisky.json",
+            List.of(withoutField(recommendedItem("BOTTLE_NOTE"), "alcohol")),
+            "$[0].alcohol 필드는 필수입니다."),
+        Arguments.of(
+            "WHISKY_PAIRING",
+            "whisky_pairing.json",
+            List.of(recommendedItem("BOTTLE_NOTE")),
+            "$[0].pairings 필드는 필수입니다."),
+        Arguments.of(
+            "WHISKY_TASTING_EVENT",
+            "whisky_tasting_event.json",
+            withoutField(
+                tastingEventPayload(0, 1, List.of(recommendedItem("BOTTLE_NOTE"))),
+                "applicationLink"),
+            "$.applicationLink 필드는 필수입니다."));
   }
 
   private static Map<String, Object> map(Object... values) {

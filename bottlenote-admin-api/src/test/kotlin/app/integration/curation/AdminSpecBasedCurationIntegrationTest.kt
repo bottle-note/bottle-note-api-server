@@ -48,6 +48,16 @@ class AdminSpecBasedCurationIntegrationTest : IntegrationTestSupport() {
 		}
 
 		@Test
+		@DisplayName("Admin v2에서 인증 없이 /v2/curation-specs를 요청할 경우 4xx를 반환한다")
+		fun listSpecs_whenUnauthenticated_returnsUnauthorized() {
+			assertThat(
+				mockMvcTester
+					.get()
+					.uri("/v2/curation-specs")
+			).hasStatus4xxClientError()
+		}
+
+		@Test
 		@DisplayName("큐레이션 스펙 상세에서 requestSpec과 responseSpec을 조회할 수 있다")
 		fun getSpecDetailSuccess() {
 			val specId = recommendedSpecId()
@@ -83,6 +93,32 @@ class AdminSpecBasedCurationIntegrationTest : IntegrationTestSupport() {
 				.bodyJson()
 				.extractingPath("$.data.code")
 				.isEqualTo("CURATION_CREATED")
+		}
+
+		@Test
+		@DisplayName("Admin v2에서 존재하지 않는 specId로 생성할 경우 404를 반환한다")
+		fun create_whenSpecIdDoesNotExist_returnsNotFound() {
+			val request = createRequest(validPayload()) + ("specId" to 999999L)
+
+			assertNotFound(
+				mockMvcTester
+					.post()
+					.uri("/v2/curations")
+					.header("Authorization", "Bearer $accessToken")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(request))
+					.exchange()
+			)
+		}
+
+		@Test
+		@DisplayName("Admin v2에서 인증 없이 /v2/curations를 요청할 경우 4xx를 반환한다")
+		fun listCurations_whenUnauthenticated_returnsUnauthorized() {
+			assertThat(
+				mockMvcTester
+					.get()
+					.uri("/v2/curations")
+			).hasStatus4xxClientError()
 		}
 
 		@Test
@@ -131,6 +167,24 @@ class AdminSpecBasedCurationIntegrationTest : IntegrationTestSupport() {
 		}
 	}
 
+	@Nested
+	@DisplayName("spec 기반 큐레이션 수정 API")
+	inner class UpdateSpecBasedCuration {
+		@Test
+		@DisplayName("Admin v2에서 존재하지 않는 curationId로 수정할 경우 404를 반환한다")
+		fun update_whenCurationIdDoesNotExist_returnsNotFound() {
+			assertNotFound(
+				mockMvcTester
+					.put()
+					.uri("/v2/curations/{curationId}", 999999L)
+					.header("Authorization", "Bearer $accessToken")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(updateRequest(validPayload())))
+					.exchange()
+			)
+		}
+	}
+
 	private fun assertBadRequest(request: Map<String, Any?>) {
 		assertThat(
 			mockMvcTester
@@ -145,10 +199,29 @@ class AdminSpecBasedCurationIntegrationTest : IntegrationTestSupport() {
 			.isEqualTo(400)
 	}
 
+	private fun assertNotFound(result: org.springframework.test.web.servlet.assertj.MvcTestResult) {
+		assertThat(result).hasStatus(404)
+			.bodyJson()
+			.extractingPath("$.code")
+			.isEqualTo(404)
+	}
+
 	private fun createRequest(payload: Any): Map<String, Any?> = mapOf(
 		"specId" to recommendedSpecId(),
 		"name" to "통합 테스트 큐레이션",
 		"description" to "request spec 검증 테스트",
+		"imageUrls" to listOf("https://cdn.example.com/cover.jpg"),
+		"exposureStartDate" to "2026-06-01",
+		"exposureEndDate" to "2026-06-30",
+		"displayOrder" to 1,
+		"isActive" to true,
+		"payload" to listOf(payload)
+	)
+
+	private fun updateRequest(payload: Any): Map<String, Any?> = mapOf(
+		"specId" to recommendedSpecId(),
+		"name" to "수정 테스트 큐레이션",
+		"description" to "존재하지 않는 큐레이션 수정 테스트",
 		"imageUrls" to listOf("https://cdn.example.com/cover.jpg"),
 		"exposureStartDate" to "2026-06-01",
 		"exposureEndDate" to "2026-06-30",

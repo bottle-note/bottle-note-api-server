@@ -36,9 +36,15 @@ public class CurationResponseMaterializer {
 
     JsonNode hydrated = payloadNode;
     for (int i = 0; i < queries.size(); i++) {
-      Map<String, Object> result = graphqlExecutor.execute(curationId, i, queries.get(i));
-      assertNoGraphQLErrors(curationId, specCode, queries.get(i), result);
-      hydrated = applyHydration(hydrated, queries.get(i), result);
+      GraphQLCurationQueryBuilder.Result query = queries.get(i);
+      if (hasNoArgumentValues(query)) {
+        hydrated = applyHydration(hydrated, query, emptyHydrationResult(query));
+        continue;
+      }
+
+      Map<String, Object> result = graphqlExecutor.execute(curationId, i, query);
+      assertNoGraphQLErrors(curationId, specCode, query, result);
+      hydrated = applyHydration(hydrated, query, result);
     }
 
     Object materialized = objectMapper.convertValue(hydrated, Object.class);
@@ -53,6 +59,21 @@ public class CurationResponseMaterializer {
       throw new CurationException(CURATION_RESPONSE_INVALID);
     }
     return materialized;
+  }
+
+  private boolean hasNoArgumentValues(GraphQLCurationQueryBuilder.Result query) {
+    return query.variables().values().stream().allMatch(this::isEmptyArgumentValue);
+  }
+
+  private boolean isEmptyArgumentValue(Object value) {
+    if (value == null) {
+      return true;
+    }
+    return value instanceof List<?> list && list.isEmpty();
+  }
+
+  private Map<String, Object> emptyHydrationResult(GraphQLCurationQueryBuilder.Result query) {
+    return Map.of("data", Map.of(query.entryField(), List.of()));
   }
 
   private void assertNoGraphQLErrors(
@@ -83,10 +104,6 @@ public class CurationResponseMaterializer {
 
     Object raw = data.get(query.entryField());
     List<?> hydrationList = normalizeHydration(raw);
-    if (hydrationList.isEmpty()) {
-      return payload;
-    }
-
     Map<Object, Map<String, Object>> byKey = indexByResultKey(hydrationList, query.resultKey());
     if (JSON_PATH_ROOT.equals(query.payloadPath())) {
       return mergeSubtree(payload, query, byKey);
