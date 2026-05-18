@@ -11,6 +11,7 @@ import app.helper.auth.AuthHelper
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.BDDMockito.given
@@ -38,6 +39,7 @@ import java.util.*
 	excludeAutoConfiguration = [SecurityAutoConfiguration::class]
 )
 @AutoConfigureRestDocs
+@Tag("restdocs")
 @DisplayName("Admin Auth 컨트롤러 RestDocs 테스트")
 class AuthControllerDocsTest {
 

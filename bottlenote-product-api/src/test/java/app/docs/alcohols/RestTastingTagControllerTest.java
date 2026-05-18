@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.ResultActions;
 
-@Tag("rest-docs")
+@Tag("restdocs")
 @DisplayName("TastingTag API 문서화 테스트")
 class RestTastingTagControllerTest extends AbstractRestDocs {
 

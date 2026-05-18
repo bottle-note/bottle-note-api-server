@@ -21,8 +21,10 @@ import app.bottlenote.global.service.cursor.CursorResponse;
 import app.docs.AbstractRestDocs;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+@Tag("restdocs")
 @DisplayName("alcohol 컨트롤러 RestDocs용 테스트")
 public class RestAlcoholExploreControllerTest extends AbstractRestDocs {
   private final AlcoholQueryService alcoholQueryService = mock(AlcoholQueryService.class);

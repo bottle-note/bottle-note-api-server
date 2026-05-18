@@ -10,6 +10,7 @@ import app.bottlenote.user.presentation.AdminUsersController
 import app.bottlenote.user.service.AdminUserService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
 import org.mockito.BDDMockito.given
@@ -32,6 +33,7 @@ import java.time.LocalDateTime
 	excludeAutoConfiguration = [SecurityAutoConfiguration::class]
 )
 @AutoConfigureRestDocs
+@Tag("restdocs")
 @DisplayName("Admin Users 컨트롤러 RestDocs 테스트")
 class AdminUsersControllerDocsTest {
 

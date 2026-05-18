@@ -31,7 +31,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 
-@Tag("rest-docs")
+@Tag("restdocs")
 @DisplayName("[restdocs] 마이페이지 컨트롤러 RestDocs용 테스트")
 class RestDocsUserQueryControllerTest extends AbstractRestDocs {
 

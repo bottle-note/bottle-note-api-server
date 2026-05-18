@@ -26,8 +26,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+@Tag("restdocs")
 @DisplayName("Product spec 기반 큐레이션 v2 API 문서화 테스트")
 class RestProductSpecBasedCurationControllerTest extends AbstractRestDocs {
 

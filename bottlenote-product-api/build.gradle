@@ -97,7 +97,7 @@ tasks.register("prepareKotlinBuildScriptModel") {}
 asciidoctor {
 	inputs.dir snippetsDir
 	configurations 'asciidoctorExt'
-	dependsOn test
+	dependsOn restDocsTest
 	sources {
 		include("**/product-api.adoc")
 	}
