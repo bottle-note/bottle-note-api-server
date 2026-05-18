@@ -10,7 +10,7 @@
 
 ### Flow Diagram
 
-![Spec-Based Curation V2 Flow](assets/spec-based-curation-v2-flow.png)
+![Spec-Based Curation V2 Flow](../assets/spec-based-curation-v2-flow.png)
 
 ### Phase Roadmap
 
