@@ -11,6 +11,7 @@ import app.bottlenote.review.presentation.AdminReviewController
 import app.bottlenote.review.service.AdminReviewQueryService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
 import org.mockito.BDDMockito.given
@@ -34,6 +35,7 @@ import java.time.LocalDateTime
 )
 @AutoConfigureRestDocs
 @DisplayName("Admin Review 컨트롤러 RestDocs 테스트")
+@Tag("restdocs")
 class AdminReviewControllerDocsTest {
 
 	@Autowired
