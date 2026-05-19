@@ -1,0 +1,9 @@
+[discrete]
+==== SortOrder (정렬 방향) ====
+
+[cols="2,3", options="header"]
+|===
+|값 |설명
+|`DESC` |내림차순 정렬
+|`ASC` |오름차순 정렬
+|===

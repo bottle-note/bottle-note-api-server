@@ -4,7 +4,9 @@ import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.review.constant.ReviewDisplayStatus;
+import app.bottlenote.review.dto.request.AdminReviewSearchRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
+import app.bottlenote.review.dto.response.AdminReviewListResponse;
 import app.bottlenote.review.dto.response.AlcoholReviewCountResponse;
 import app.bottlenote.review.dto.response.ReviewExploreItem;
 import app.bottlenote.review.dto.response.ReviewListResponse;
@@ -12,6 +14,7 @@ import app.bottlenote.review.facade.payload.ReviewInfo;
 import java.util.List;
 import java.util.Optional;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.data.domain.Page;
 
 public interface ReviewRepository {
 
@@ -28,6 +31,8 @@ public interface ReviewRepository {
 
   PageResponse<ReviewListResponse> getReviewsByMe(
       Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId);
+
+  Page<AdminReviewListResponse> searchAdminReviews(AdminReviewSearchRequest request);
 
   Optional<Review> findByIdAndUserId(Long reviewId, Long userId);
 

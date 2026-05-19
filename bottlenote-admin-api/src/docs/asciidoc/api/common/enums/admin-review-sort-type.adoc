@@ -1,0 +1,10 @@
+[discrete]
+==== AdminReviewSortType (관리자 리뷰 정렬 기준) ====
+
+[cols="2,3", options="header"]
+|===
+|값 |설명
+|`CREATED_AT` |리뷰 작성일시 기준 정렬
+|`REPLY_COUNT` |리뷰 댓글 수 기준 정렬
+|`UPDATED_AT` |리뷰 최종 수정일시 기준 정렬
+|===

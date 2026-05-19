@@ -8,6 +8,8 @@ import static app.bottlenote.review.domain.QReview.review;
 import static app.bottlenote.review.domain.QReviewImage.reviewImage;
 import static app.bottlenote.review.domain.QReviewReply.reviewReply;
 import static app.bottlenote.review.domain.QReviewTastingTag.reviewTastingTag;
+import static app.bottlenote.review.repository.ReviewQuerySupporter.adminReviewFilters;
+import static app.bottlenote.review.repository.ReviewQuerySupporter.adminReviewSortBy;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.containsKeywordInAll;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.getCursorPageable;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.getTastingTag;
@@ -22,7 +24,9 @@ import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.like.constant.LikeStatus;
+import app.bottlenote.review.dto.request.AdminReviewSearchRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
+import app.bottlenote.review.dto.response.AdminReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewExploreItem;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.facade.payload.ReviewInfo;
@@ -40,6 +44,9 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -205,6 +212,67 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 
     CursorPageable cursorPageable = getCursorPageable(reviewPageableRequest, fetch);
     return PageResponse.of(ReviewListResponse.of(totalCount, fetch), cursorPageable);
+  }
+
+  @Override
+  public Page<AdminReviewListResponse> searchAdminReviews(AdminReviewSearchRequest request) {
+    List<AdminReviewListResponse> content =
+        queryFactory
+            .select(
+                Projections.constructor(
+                    AdminReviewListResponse.class,
+                    review.id,
+                    alcohol.id,
+                    alcohol.korName,
+                    user.id,
+                    user.nickName,
+                    review.content,
+                    review.reviewRating,
+                    review.activeStatus,
+                    review.status,
+                    reviewReply.id.countDistinct(),
+                    review.createAt,
+                    review.lastModifyAt))
+            .from(review)
+            .join(user)
+            .on(review.userId.eq(user.id))
+            .leftJoin(alcohol)
+            .on(alcohol.id.eq(review.alcoholId))
+            .leftJoin(reviewReply)
+            .on(review.id.eq(reviewReply.reviewId))
+            .where(adminReviewFilters(request))
+            .groupBy(
+                review.id,
+                alcohol.id,
+                alcohol.korName,
+                user.id,
+                user.nickName,
+                review.content,
+                review.reviewRating,
+                review.activeStatus,
+                review.status,
+                review.createAt,
+                review.lastModifyAt)
+            .orderBy(
+                adminReviewSortBy(request.sortType(), request.sortOrder())
+                    .toArray(new OrderSpecifier[0]))
+            .offset((long) request.page() * request.size())
+            .limit(request.size())
+            .fetch();
+
+    Long total =
+        queryFactory
+            .select(review.id.countDistinct())
+            .from(review)
+            .join(user)
+            .on(review.userId.eq(user.id))
+            .leftJoin(alcohol)
+            .on(alcohol.id.eq(review.alcoholId))
+            .where(adminReviewFilters(request))
+            .fetchOne();
+
+    return new PageImpl<>(
+        content, PageRequest.of(request.page(), request.size()), total != null ? total : 0L);
   }
 
   @Override
