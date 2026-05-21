@@ -14,6 +14,7 @@ import app.bottlenote.support.help.service.AdminHelpService
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyLong
@@ -42,6 +43,7 @@ import java.util.*
 	excludeAutoConfiguration = [SecurityAutoConfiguration::class]
 )
 @AutoConfigureRestDocs
+@Tag("restdocs")
 @DisplayName("Admin Help 컨트롤러 RestDocs 테스트")
 class AdminHelpControllerDocsTest {
 
@@ -82,7 +84,7 @@ class AdminHelpControllerDocsTest {
 
 		// when & then
 		assertThat(
-			mvc.get().uri("/helps")
+			mvc.get().uri("/v1/helps")
 				.header("Authorization", "Bearer test_access_token")
 				.param("status", StatusType.WAITING.name)
 				.param("type", HelpType.WHISKEY.name)
@@ -152,7 +154,7 @@ class AdminHelpControllerDocsTest {
 
 		// when & then
 		assertThat(
-			mvc.get().uri("/helps/{helpId}", 1L)
+			mvc.get().uri("/v1/helps/{helpId}", 1L)
 				.header("Authorization", "Bearer test_access_token")
 		)
 			.hasStatusOk()
@@ -212,7 +214,7 @@ class AdminHelpControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.post().uri("/helps/{helpId}/answer", 1L)
+				mvc.post().uri("/v1/helps/{helpId}/answer", 1L)
 					.header("Authorization", "Bearer test_access_token")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(objectMapper.writeValueAsString(request))

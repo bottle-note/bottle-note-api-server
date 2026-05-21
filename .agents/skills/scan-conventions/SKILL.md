@@ -214,3 +214,16 @@ After running:
 - [ ] All CONFLICTs have a recorded user resolution
 - [ ] No source files were modified
 - [ ] Report printed to user with counts (MATCH / REFINEMENT / CONFLICT)
+
+## Runtime Boundary — HARD STOP
+
+This skill ENDS after the Verification checklist and final report are completed.
+
+For codex and any runtime without an enforced skill-return boundary:
+- MUST stop the assistant turn here.
+- MUST NOT invoke, load, or execute any next GSL skill in the same response turn.
+- MUST NOT continue into `/next-flow`, `/define`, `/plan`, `/implement`, `/test`, `/verify`, `/debug`, or `/self-review`.
+- MAY print exactly one suggested next command as plain text.
+- MUST wait for the user's next message before running any next skill.
+
+If the user says only "continue", treat that as permission to report the next recommended command, not permission to execute it.

@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyLong
@@ -37,6 +38,7 @@ import org.springframework.test.web.servlet.assertj.MockMvcTester
 	excludeAutoConfiguration = [SecurityAutoConfiguration::class]
 )
 @AutoConfigureRestDocs
+@Tag("restdocs")
 @DisplayName("Admin Banner 컨트롤러 RestDocs 테스트")
 class AdminBannerControllerDocsTest {
 
@@ -66,7 +68,7 @@ class AdminBannerControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.get().uri("/banners?keyword=&isActive=true&bannerType=CURATION&page=0&size=20")
+				mvc.get().uri("/v1/banners?keyword=&isActive=true&bannerType=CURATION&page=0&size=20")
 			)
 				.hasStatusOk()
 				.apply(
@@ -124,7 +126,7 @@ class AdminBannerControllerDocsTest {
 			given(adminBannerService.getDetail(anyLong())).willReturn(response)
 
 			// when & then
-			assertThat(mvc.get().uri("/banners/{bannerId}", 1L))
+			assertThat(mvc.get().uri("/v1/banners/{bannerId}", 1L))
 				.hasStatusOk()
 				.apply(
 					document(
@@ -184,7 +186,7 @@ class AdminBannerControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.post().uri("/banners")
+				mvc.post().uri("/v1/banners")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			)
@@ -246,7 +248,7 @@ class AdminBannerControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.put().uri("/banners/{bannerId}", 1L)
+				mvc.put().uri("/v1/banners/{bannerId}", 1L)
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			)
@@ -309,7 +311,7 @@ class AdminBannerControllerDocsTest {
 			given(adminBannerService.delete(anyLong())).willReturn(response)
 
 			// when & then
-			assertThat(mvc.delete().uri("/banners/{bannerId}", 1L))
+			assertThat(mvc.delete().uri("/v1/banners/{bannerId}", 1L))
 				.hasStatusOk()
 				.apply(
 					document(
@@ -355,7 +357,7 @@ class AdminBannerControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.patch().uri("/banners/{bannerId}/status", 1L)
+				mvc.patch().uri("/v1/banners/{bannerId}/status", 1L)
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			)
@@ -407,7 +409,7 @@ class AdminBannerControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.patch().uri("/banners/{bannerId}/sort-order", 1L)
+				mvc.patch().uri("/v1/banners/{bannerId}/sort-order", 1L)
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			)

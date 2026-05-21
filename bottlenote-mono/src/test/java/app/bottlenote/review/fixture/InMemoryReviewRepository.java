@@ -2,9 +2,14 @@ package app.bottlenote.review.fixture;
 
 import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.review.constant.ReviewActiveStatus;
+import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewRepository;
+import app.bottlenote.review.dto.request.AdminReviewSearchRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
+import app.bottlenote.review.dto.response.AdminReviewListResponse;
+import app.bottlenote.review.dto.response.AlcoholReviewCountResponse;
 import app.bottlenote.review.dto.response.ReviewExploreItem;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.facade.payload.ReviewInfo;
@@ -16,6 +21,9 @@ import java.util.Optional;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.util.ReflectionTestUtils;
 
 public class InMemoryReviewRepository implements ReviewRepository {
@@ -65,6 +73,11 @@ public class InMemoryReviewRepository implements ReviewRepository {
   }
 
   @Override
+  public Page<AdminReviewListResponse> searchAdminReviews(AdminReviewSearchRequest request) {
+    return new PageImpl<>(List.of(), PageRequest.of(request.page(), request.size()), 0);
+  }
+
+  @Override
   public Optional<Review> findByIdAndUserId(Long reviewId, Long userId) {
     return Optional.empty();
   }
@@ -72,6 +85,29 @@ public class InMemoryReviewRepository implements ReviewRepository {
   @Override
   public List<Review> findByUserId(Long userId) {
     return List.of();
+  }
+
+  @Override
+  public Long countByAlcoholIdAndActiveStatusAndStatus(
+      Long alcoholId, ReviewActiveStatus activeStatus, ReviewDisplayStatus status) {
+    return database.values().stream()
+        .filter(review -> Objects.equals(review.getAlcoholId(), alcoholId))
+        .filter(review -> review.getActiveStatus() == activeStatus)
+        .filter(review -> review.getStatus() == status)
+        .count();
+  }
+
+  @Override
+  public List<AlcoholReviewCountResponse> countByAlcoholIdsAndActiveStatusAndStatus(
+      List<Long> alcoholIds, ReviewActiveStatus activeStatus, ReviewDisplayStatus status) {
+    return alcoholIds.stream()
+        .map(
+            alcoholId ->
+                new AlcoholReviewCountResponse(
+                    alcoholId,
+                    countByAlcoholIdAndActiveStatusAndStatus(alcoholId, activeStatus, status)))
+        .filter(count -> count.reviewCount() > 0)
+        .toList();
   }
 
   @Override

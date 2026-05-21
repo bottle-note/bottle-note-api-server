@@ -23,8 +23,10 @@ import app.bottlenote.alcohols.service.AlcoholQueryService;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.docs.AbstractRestDocs;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+@Tag("restdocs")
 @DisplayName("alcohol 컨트롤러 RestDocs용 테스트")
 class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 

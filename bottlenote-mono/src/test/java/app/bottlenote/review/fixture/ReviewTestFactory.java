@@ -12,6 +12,7 @@ import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.user.domain.User;
 import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
@@ -101,6 +102,35 @@ public class ReviewTestFactory {
     Review review = filledBuilder.build();
     em.persist(review);
     em.flush();
+    return review;
+  }
+
+  /** 어드민 리뷰 목록 테스트용 Review 생성 */
+  @Transactional
+  @NotNull
+  public Review persistAdminReview(
+      @NotNull User user,
+      @NotNull Alcohol alcohol,
+      @NotNull String content,
+      @NotNull ReviewActiveStatus activeStatus,
+      @NotNull ReviewDisplayStatus displayStatus,
+      double reviewRating,
+      @NotNull LocalDateTime createAt,
+      @NotNull LocalDateTime lastModifyAt) {
+    Review review =
+        Review.builder()
+            .userId(user.getId())
+            .alcoholId(alcohol.getId())
+            .content(content)
+            .sizeType(SizeType.BOTTLE)
+            .price(BigDecimal.valueOf(50000))
+            .reviewRating(reviewRating)
+            .activeStatus(activeStatus)
+            .status(displayStatus)
+            .build();
+    em.persist(review);
+    em.flush();
+    updateReviewTimestamps(review.getId(), createAt, lastModifyAt);
     return review;
   }
 
@@ -254,6 +284,19 @@ public class ReviewTestFactory {
   /** 랜덤 접미사 생성 헬퍼 메서드 */
   private String generateRandomSuffix() {
     return String.valueOf(counter.incrementAndGet());
+  }
+
+  private void updateReviewTimestamps(
+      @NotNull Long reviewId,
+      @NotNull LocalDateTime createAt,
+      @NotNull LocalDateTime lastModifyAt) {
+    em.createNativeQuery(
+            "UPDATE reviews SET create_at = :createAt, last_modify_at = :lastModifyAt WHERE id = :id")
+        .setParameter("createAt", createAt)
+        .setParameter("lastModifyAt", lastModifyAt)
+        .setParameter("id", reviewId)
+        .executeUpdate();
+    em.flush();
   }
 
   /** Review 빌더의 누락 필드 채우기 */

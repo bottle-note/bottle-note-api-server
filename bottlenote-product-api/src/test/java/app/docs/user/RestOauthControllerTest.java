@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
-@Tag("document")
+@Tag("restdocs")
 @DisplayName("유저 Auth 컨트롤러 RestDocs 테스트")
 class RestOauthControllerTest extends AbstractRestDocs {
   private final OauthService oauthService = mock(OauthService.class);

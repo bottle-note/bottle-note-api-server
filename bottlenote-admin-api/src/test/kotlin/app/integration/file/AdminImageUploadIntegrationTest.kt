@@ -38,7 +38,7 @@ class AdminImageUploadIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/s3/presign-url")
+					.uri("/v1/s3/presign-url")
 					.header("Authorization", "Bearer $accessToken")
 					.param("rootPath", "admin/test")
 					.param("uploadSize", "1")
@@ -55,7 +55,7 @@ class AdminImageUploadIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/s3/presign-url")
+					.uri("/v1/s3/presign-url")
 					.header("Authorization", "Bearer $accessToken")
 					.param("rootPath", "admin/test")
 					.param("uploadSize", "3")
@@ -72,7 +72,7 @@ class AdminImageUploadIntegrationTest : IntegrationTestSupport() {
 			val result =
 				mockMvcTester
 					.get()
-					.uri("/s3/presign-url")
+					.uri("/v1/s3/presign-url")
 					.header("Authorization", "Bearer $accessToken")
 					.param("rootPath", "admin/test")
 					.param("uploadSize", "2")
@@ -103,7 +103,7 @@ class AdminImageUploadIntegrationTest : IntegrationTestSupport() {
 			val result =
 				mockMvcTester
 					.get()
-					.uri("/s3/presign-url")
+					.uri("/v1/s3/presign-url")
 					.header("Authorization", "Bearer $accessToken")
 					.param("rootPath", "admin/test")
 					.param("uploadSize", "1")
@@ -134,7 +134,7 @@ class AdminImageUploadIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/s3/presign-url")
+					.uri("/v1/s3/presign-url")
 					.param("rootPath", "admin/test")
 					.param("uploadSize", "1")
 			).hasStatus4xxClientError()
@@ -151,7 +151,7 @@ class AdminImageUploadIntegrationTest : IntegrationTestSupport() {
 			val result =
 				mockMvcTester
 					.get()
-					.uri("/s3/presign-url")
+					.uri("/v1/s3/presign-url")
 					.header("Authorization", "Bearer $accessToken")
 					.param("rootPath", "admin/upload-test")
 					.param("uploadSize", "1")
@@ -200,7 +200,7 @@ class AdminImageUploadIntegrationTest : IntegrationTestSupport() {
 			val result =
 				mockMvcTester
 					.get()
-					.uri("/s3/presign-url")
+					.uri("/v1/s3/presign-url")
 					.header("Authorization", "Bearer $accessToken")
 					.param("rootPath", "admin/multi-upload")
 					.param("uploadSize", "3")

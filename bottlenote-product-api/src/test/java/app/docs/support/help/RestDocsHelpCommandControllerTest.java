@@ -36,11 +36,13 @@ import app.docs.AbstractRestDocs;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
+@Tag("restdocs")
 @DisplayName("문의글 커맨드 컨트롤러 RestDocs용 테스트")
 class RestDocsHelpCommandControllerTest extends AbstractRestDocs {
 

@@ -4,6 +4,7 @@ dependencies {
 
 	// ===== Core =====
 	implementation libs.spring.boot.starter.web
+	implementation libs.spring.boot.starter.graphql
 	implementation libs.spring.boot.starter.validation
 
 	// ===== Database =====

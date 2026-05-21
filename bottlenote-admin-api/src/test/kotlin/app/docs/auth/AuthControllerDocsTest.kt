@@ -11,6 +11,7 @@ import app.helper.auth.AuthHelper
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.BDDMockito.given
@@ -38,6 +39,7 @@ import java.util.*
 	excludeAutoConfiguration = [SecurityAutoConfiguration::class]
 )
 @AutoConfigureRestDocs
+@Tag("restdocs")
 @DisplayName("Admin Auth 컨트롤러 RestDocs 테스트")
 class AuthControllerDocsTest {
 
@@ -67,7 +69,7 @@ class AuthControllerDocsTest {
 
 		// when & then
 		assertThat(
-			mvc.post().uri("/auth/login")
+			mvc.post().uri("/v1/auth/login")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request))
 		)
@@ -107,7 +109,7 @@ class AuthControllerDocsTest {
 
 		// when & then
 		assertThat(
-			mvc.post().uri("/auth/refresh")
+			mvc.post().uri("/v1/auth/refresh")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request))
 		)
@@ -145,7 +147,7 @@ class AuthControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.delete().uri("/auth/withdraw")
+				mvc.delete().uri("/v1/auth/withdraw")
 					.header("Authorization", "Bearer test_access_token")
 			)
 				.hasStatusOk()
@@ -197,7 +199,7 @@ class AuthControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.post().uri("/auth/signup")
+				mvc.post().uri("/v1/auth/signup")
 					.header("Authorization", "Bearer test_access_token")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(objectMapper.writeValueAsString(request))

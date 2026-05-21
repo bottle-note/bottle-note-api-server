@@ -7,10 +7,12 @@ import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.operation.utils.TestContainersConfig;
 import com.amazonaws.services.s3.AmazonS3;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testcontainers.containers.MinIOContainer;
 
+@Tag("integration")
 @DisplayName("[integration] MinIO 컨테이너 로딩 테스트")
 class MinioContainerLoadingTest extends IntegrationTestSupport {
 

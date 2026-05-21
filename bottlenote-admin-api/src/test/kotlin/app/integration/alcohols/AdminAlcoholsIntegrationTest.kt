@@ -80,7 +80,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 		assertThat(
 			mockMvcTester
 				.get()
-				.uri("/alcohols")
+				.uri("/v1/alcohols")
 				.header("Authorization", "Bearer $accessToken")
 		).hasStatusOk()
 			.bodyJson()
@@ -104,7 +104,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 		assertThat(
 			mockMvcTester
 				.get()
-				.uri("/alcohols")
+				.uri("/v1/alcohols")
 				.header("Authorization", "Bearer $accessToken")
 				.param("keyword", keyword)
 		).hasStatusOk()
@@ -124,7 +124,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 		assertThat(
 			mockMvcTester
 				.get()
-				.uri("/alcohols")
+				.uri("/v1/alcohols")
 				.header("Authorization", "Bearer $accessToken")
 				.param("category", category.name)
 		).hasStatusOk()
@@ -148,7 +148,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 		assertThat(
 			mockMvcTester
 				.get()
-				.uri("/alcohols")
+				.uri("/v1/alcohols")
 				.header("Authorization", "Bearer $accessToken")
 				.param("sortType", sortType.name)
 				.param("sortOrder", sortOrder.name)
@@ -177,7 +177,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 		assertThat(
 			mockMvcTester
 				.get()
-				.uri("/alcohols")
+				.uri("/v1/alcohols")
 				.header("Authorization", "Bearer $accessToken")
 				.param("page", page.toString())
 				.param("size", size.toString())
@@ -201,7 +201,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/alcohols")
+					.uri("/v1/alcohols")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -220,7 +220,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/alcohols")
+					.uri("/v1/alcohols")
 					.header("Authorization", "Bearer $accessToken")
 					.param("includeDeleted", "true")
 			).hasStatusOk()
@@ -245,7 +245,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/alcohols/categories/reference")
+					.uri("/v1/alcohols/categories/reference")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -264,7 +264,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/alcohols/categories/reference")
+					.uri("/v1/alcohols/categories/reference")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -286,7 +286,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/alcohols/${alcohol.id}")
+					.uri("/v1/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -297,7 +297,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/alcohols/${alcohol.id}")
+					.uri("/v1/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -315,7 +315,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			val result =
 				mockMvcTester
 					.get()
-					.uri("/alcohols/${alcohol.id}")
+					.uri("/v1/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
 
 			assertThat(result)
@@ -328,7 +328,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/alcohols/999999")
+					.uri("/v1/alcohols/999999")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatus4xxClientError()
 		}
@@ -366,7 +366,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/alcohols")
+					.uri("/v1/alcohols")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -408,7 +408,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			val createResult =
 				mockMvcTester
 					.post()
-					.uri("/alcohols")
+					.uri("/v1/alcohols")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -425,7 +425,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/alcohols/$alcoholId")
+					.uri("/v1/alcohols/$alcoholId")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -463,7 +463,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/alcohols")
+					.uri("/v1/alcohols")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -483,7 +483,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/alcohols")
+					.uri("/v1/alcohols")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -518,7 +518,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/alcohols")
+					.uri("/v1/alcohols")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -559,7 +559,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.put()
-					.uri("/alcohols/${alcohol.id}")
+					.uri("/v1/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -604,7 +604,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.put()
-					.uri("/alcohols/${alcohol.id}")
+					.uri("/v1/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -617,7 +617,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/alcohols/${alcohol.id}")
+					.uri("/v1/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -657,7 +657,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.put()
-					.uri("/alcohols/${alcohol.id}")
+					.uri("/v1/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -667,7 +667,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/alcohols/${alcohol.id}")
+					.uri("/v1/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -708,7 +708,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.put()
-					.uri("/alcohols/${alcohol.id}")
+					.uri("/v1/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -718,7 +718,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/alcohols/${alcohol.id}")
+					.uri("/v1/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -755,7 +755,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.put()
-					.uri("/alcohols/999999")
+					.uri("/v1/alcohols/999999")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -776,7 +776,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.delete()
-					.uri("/alcohols/${alcohol.id}")
+					.uri("/v1/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -791,7 +791,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.delete()
-					.uri("/alcohols/999999")
+					.uri("/v1/alcohols/999999")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatus4xxClientError()
 		}
@@ -808,7 +808,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.delete()
-					.uri("/alcohols/${alcohol.id}")
+					.uri("/v1/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatus4xxClientError()
 		}
@@ -825,7 +825,7 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.delete()
-					.uri("/alcohols/${alcohol.id}")
+					.uri("/v1/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatus4xxClientError()
 		}

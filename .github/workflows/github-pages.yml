@@ -8,6 +8,7 @@ on:
       - 'bottlenote-*/src/test/java/**/docs/**'
       - 'bottlenote-*/src/test/kotlin/**/docs/**'
       - 'bottlenote-*/build.gradle*'
+      - 'build.gradle'
       - 'gradle/libs.versions.toml'
       - 'docs/**'
       - '.github/workflows/github-pages.yml'
@@ -38,8 +39,8 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Generate REST Docs snippets
-        run: ./gradlew restDocsTest
+      - name: Generate and assemble REST Docs
+        run: ./gradlew docs_test
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

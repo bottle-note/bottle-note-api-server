@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.ResultActions;
 
-@Tag("rest-docs")
+@Tag("restdocs")
 @DisplayName("큐레이션 키워드 API 문서화 테스트")
 class RestAlcoholReferenceControllerTest extends AbstractRestDocs {
 

@@ -8,8 +8,10 @@ import app.bottlenote.history.event.payload.HistoryEvent;
 import app.bottlenote.history.fixture.InMemoryUserHistoryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+@Tag("unit")
 class UserHistoryListenerTest {
 
   private HistoryListener historyListener;

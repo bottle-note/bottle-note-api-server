@@ -80,4 +80,4 @@ security:
   jwt:
     secret-key: ${JWT_SECRET_KEY}
   nonce:
-    salt: ${NONCE_SALT}
+    salt: ${NONCE_SALT:bottle-note-secure-salt-2024}
