@@ -21,11 +21,13 @@ import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
+@Tag("restdocs")
 @DisplayName("Pick 컨트롤러 Rest API 문서화 테스트")
 class RestPicksCommandControllerTest extends AbstractRestDocs {
 

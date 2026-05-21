@@ -40,7 +40,7 @@ class AdminCurationIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/curations")
+					.uri("/v1/curations")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -58,7 +58,7 @@ class AdminCurationIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/curations")
+					.uri("/v1/curations")
 					.param("keyword", "테스트")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
@@ -77,7 +77,7 @@ class AdminCurationIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/curations")
+					.uri("/v1/curations")
 					.param("isActive", "true")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
@@ -90,7 +90,7 @@ class AdminCurationIntegrationTest : IntegrationTestSupport() {
 		@DisplayName("인증 없이 요청하면 401을 반환한다")
 		fun listUnauthorized() {
 			assertThat(
-				mockMvcTester.get().uri("/curations")
+				mockMvcTester.get().uri("/v1/curations")
 			).hasStatus4xxClientError()
 		}
 	}
@@ -108,7 +108,7 @@ class AdminCurationIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/curations/${curation.id}")
+					.uri("/v1/curations/${curation.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -123,7 +123,7 @@ class AdminCurationIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/curations/999999")
+					.uri("/v1/curations/999999")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatus4xxClientError()
 		}
@@ -145,7 +145,7 @@ class AdminCurationIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/curations")
+					.uri("/v1/curations")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -172,7 +172,7 @@ class AdminCurationIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/curations")
+					.uri("/v1/curations")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -196,7 +196,7 @@ class AdminCurationIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/curations")
+					.uri("/v1/curations")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -217,7 +217,7 @@ class AdminCurationIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/curations")
+					.uri("/v1/curations")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -243,7 +243,7 @@ class AdminCurationIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.put()
-					.uri("/curations/${curation.id}")
+					.uri("/v1/curations/${curation.id}")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -263,7 +263,7 @@ class AdminCurationIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.put()
-					.uri("/curations/999999")
+					.uri("/v1/curations/999999")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -284,7 +284,7 @@ class AdminCurationIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.delete()
-					.uri("/curations/${curation.id}")
+					.uri("/v1/curations/${curation.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -299,7 +299,7 @@ class AdminCurationIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.delete()
-					.uri("/curations/999999")
+					.uri("/v1/curations/999999")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatus4xxClientError()
 		}
@@ -319,7 +319,7 @@ class AdminCurationIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.patch()
-					.uri("/curations/${curation.id}/status")
+					.uri("/v1/curations/${curation.id}/status")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -339,7 +339,7 @@ class AdminCurationIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.patch()
-					.uri("/curations/999999/status")
+					.uri("/v1/curations/999999/status")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -361,7 +361,7 @@ class AdminCurationIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.patch()
-					.uri("/curations/${curation.id}/display-order")
+					.uri("/v1/curations/${curation.id}/display-order")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -391,7 +391,7 @@ class AdminCurationIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/curations/${curation.id}/alcohols")
+					.uri("/v1/curations/${curation.id}/alcohols")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -412,7 +412,7 @@ class AdminCurationIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.delete()
-					.uri("/curations/${curation.id}/alcohols/${alcohol.id}")
+					.uri("/v1/curations/${curation.id}/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -431,7 +431,7 @@ class AdminCurationIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.delete()
-					.uri("/curations/${curation.id}/alcohols/${alcohol.id}")
+					.uri("/v1/curations/${curation.id}/alcohols/${alcohol.id}")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatus4xxClientError()
 		}
@@ -444,16 +444,16 @@ class AdminCurationIntegrationTest : IntegrationTestSupport() {
 		@DisplayName("인증 없이 요청 시 실패한다")
 		fun requestWithoutAuth() {
 			// when & then
-			assertThat(mockMvcTester.get().uri("/curations"))
+			assertThat(mockMvcTester.get().uri("/v1/curations"))
 				.hasStatus4xxClientError()
 
-			assertThat(mockMvcTester.get().uri("/curations/1"))
+			assertThat(mockMvcTester.get().uri("/v1/curations/1"))
 				.hasStatus4xxClientError()
 
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/curations")
+					.uri("/v1/curations")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(CurationHelper.createCurationCreateRequest()))
 			).hasStatus4xxClientError()

@@ -29,7 +29,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/auth/login")
+					.uri("/v1/auth/login")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			).hasStatusOk()
@@ -40,7 +40,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/auth/login")
+					.uri("/v1/auth/login")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			).hasStatusOk()
@@ -63,7 +63,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/auth/login")
+					.uri("/v1/auth/login")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			).hasStatus4xxClientError()
@@ -82,7 +82,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/auth/login")
+					.uri("/v1/auth/login")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			).hasStatus4xxClientError()
@@ -105,7 +105,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/auth/login")
+					.uri("/v1/auth/login")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			).hasStatus4xxClientError()
@@ -127,7 +127,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/auth/login")
+					.uri("/v1/auth/login")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			).hasStatusOk()
@@ -153,7 +153,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 			val loginResult =
 				mockMvcTester
 					.post()
-					.uri("/auth/login")
+					.uri("/v1/auth/login")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(loginRequest))
 					.exchange()
@@ -167,7 +167,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/auth/refresh")
+					.uri("/v1/auth/refresh")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			).hasStatusOk()
@@ -186,7 +186,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/auth/refresh")
+					.uri("/v1/auth/refresh")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			).hasStatus4xxClientError()
@@ -210,7 +210,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.delete()
-					.uri("/auth/withdraw")
+					.uri("/v1/auth/withdraw")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -229,7 +229,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.delete()
-					.uri("/auth/withdraw")
+					.uri("/v1/auth/withdraw")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatus4xxClientError()
 				.bodyJson()
@@ -260,7 +260,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/auth/signup")
+					.uri("/v1/auth/signup")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -272,7 +272,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/auth/signup")
+					.uri("/v1/auth/signup")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request.plus("email" to "another@bottlenote.com")))
@@ -301,7 +301,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/auth/signup")
+					.uri("/v1/auth/signup")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -330,7 +330,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/auth/signup")
+					.uri("/v1/auth/signup")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -359,7 +359,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/auth/signup")
+					.uri("/v1/auth/signup")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -385,7 +385,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/auth/signup")
+					.uri("/v1/auth/signup")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			).hasStatus4xxClientError()
@@ -413,7 +413,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/auth/signup")
+					.uri("/v1/auth/signup")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
@@ -442,7 +442,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.post()
-					.uri("/auth/signup")
+					.uri("/v1/auth/signup")
 					.header("Authorization", "Bearer $accessToken")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))

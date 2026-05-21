@@ -23,7 +23,7 @@ import org.springframework.restdocs.payload.PayloadDocumentation;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-@Tag("document")
+@Tag("restdocs")
 @DisplayName("유저 Auth 컨트롤러 V2x OpenAPI 테스트")
 class OpenApiAuthV2ControllerTest extends AbstractRestDocs {
   private final AuthService authService = Mockito.mock(AuthService.class);

@@ -30,7 +30,7 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/tasting-tags?page=0&size=20")
+					.uri("/v1/tasting-tags?page=0&size=20")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -41,7 +41,7 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/tasting-tags?page=0&size=10")
+					.uri("/v1/tasting-tags?page=0&size=10")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -54,7 +54,7 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 		fun getTastingTagsWithoutAuth() {
 			// when & then - 방어로직: 인증 없이 요청 시 실패
 			assertThat(
-				mockMvcTester.get().uri("/tasting-tags")
+				mockMvcTester.get().uri("/v1/tasting-tags")
 			).hasStatus4xxClientError()
 		}
 	}
@@ -72,7 +72,7 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/regions?page=0&size=20")
+					.uri("/v1/regions?page=0&size=20")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -90,7 +90,7 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 			val result =
 				mockMvcTester
 					.get()
-					.uri("/regions?page=0&size=10")
+					.uri("/v1/regions?page=0&size=10")
 					.header("Authorization", "Bearer $accessToken")
 
 			assertThat(result)
@@ -106,7 +106,7 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 
 			// 방어로직: 인증 없이 요청 시 실패
 			assertThat(
-				mockMvcTester.get().uri("/regions")
+				mockMvcTester.get().uri("/v1/regions")
 			).hasStatus4xxClientError()
 		}
 
@@ -120,7 +120,7 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/regions?page=0&size=10")
+					.uri("/v1/regions?page=0&size=10")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -142,7 +142,7 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/distilleries?page=0&size=20")
+					.uri("/v1/distilleries?page=0&size=20")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
@@ -160,7 +160,7 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 			val result =
 				mockMvcTester
 					.get()
-					.uri("/distilleries?keyword=&page=0&size=20")
+					.uri("/v1/distilleries?keyword=&page=0&size=20")
 					.header("Authorization", "Bearer $accessToken")
 
 			assertThat(result)
@@ -171,7 +171,7 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 
 			// 방어로직: 인증 없이 요청 시 실패
 			assertThat(
-				mockMvcTester.get().uri("/distilleries")
+				mockMvcTester.get().uri("/v1/distilleries")
 			).hasStatus4xxClientError()
 		}
 
@@ -185,7 +185,7 @@ class AdminReferenceDataIntegrationTest : IntegrationTestSupport() {
 			assertThat(
 				mockMvcTester
 					.get()
-					.uri("/distilleries?page=0&size=20")
+					.uri("/v1/distilleries?page=0&size=20")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()

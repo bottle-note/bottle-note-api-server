@@ -8,6 +8,7 @@ import app.bottlenote.global.data.response.GlobalResponse
 import app.helper.alcohols.AlcoholsHelper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
 import org.mockito.BDDMockito.given
@@ -31,6 +32,7 @@ import org.springframework.test.web.servlet.assertj.MockMvcTester
 	excludeAutoConfiguration = [SecurityAutoConfiguration::class]
 )
 @AutoConfigureRestDocs
+@Tag("restdocs")
 @DisplayName("Admin Region 컨트롤러 RestDocs 테스트")
 class AdminRegionControllerDocsTest {
 
@@ -56,7 +58,7 @@ class AdminRegionControllerDocsTest {
 
 		// when & then
 		assertThat(
-			mvc.get().uri("/regions?keyword=&page=0&size=20&sortOrder=ASC")
+			mvc.get().uri("/v1/regions?keyword=&page=0&size=20&sortOrder=ASC")
 		)
 			.hasStatusOk()
 			.apply(

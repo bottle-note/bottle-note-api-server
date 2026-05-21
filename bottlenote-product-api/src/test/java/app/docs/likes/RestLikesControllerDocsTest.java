@@ -24,10 +24,12 @@ import app.docs.AbstractRestDocs;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.http.MediaType;
 
+@Tag("restdocs")
 @DisplayName("RestLikesController API 문서화 테스트")
 public class RestLikesControllerDocsTest extends AbstractRestDocs {
 

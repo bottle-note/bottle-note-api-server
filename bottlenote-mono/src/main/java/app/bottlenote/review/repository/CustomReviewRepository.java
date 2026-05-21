@@ -2,12 +2,15 @@ package app.bottlenote.review.repository;
 
 import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.review.dto.request.AdminReviewSearchRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
+import app.bottlenote.review.dto.response.AdminReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewExploreItem;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.data.domain.Page;
 
 public interface CustomReviewRepository {
 
@@ -41,6 +44,8 @@ public interface CustomReviewRepository {
    */
   PageResponse<ReviewListResponse> getReviewsByMe(
       Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId);
+
+  Page<AdminReviewListResponse> searchAdminReviews(AdminReviewSearchRequest request);
 
   Pair<Long, CursorResponse<ReviewExploreItem>> getStandardExplore(
       Long userId, List<String> keywords, Long cursor, Integer size);

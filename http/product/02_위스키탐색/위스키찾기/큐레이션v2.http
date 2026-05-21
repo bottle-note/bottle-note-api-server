@@ -1,0 +1,39 @@
+### 토큰 발급 (일반)
+# @no-cookie-jar
+POST {{host}}/api/v1/oauth/login
+Content-Type: application/json
+
+{
+  "email": "dev.bottle-note@gmail.com",
+  "socialType": "GOOGLE",
+  "gender": "MALE",
+  "age": 25
+}
+
+> {%
+  client.global.set("accessToken", response.body.data.accessToken);
+%}
+
+### 1. spec 기반 큐레이션 v2 목록 조회
+# @no-cookie-jar
+GET {{host}}/api/v2/curations
+Authorization: Bearer {{accessToken}}
+
+> {%
+    const curations = response.body.data || [];
+    if (curations.length > 0) {
+        client.global.set("curationV2Id", curations[0].id);
+    }
+%}
+
+### 2. spec 기반 큐레이션 v2 상세 조회
+# @no-cookie-jar
+@curationId = {{curationV2Id}}
+GET {{host}}/api/v2/curations/{{curationId}}
+Authorization: Bearer {{accessToken}}
+
+### 3. spec 기반 큐레이션 v2 상세 조회 - 직접 ID 지정
+# @no-cookie-jar
+@manualCurationId = 1
+GET {{host}}/api/v2/curations/{{manualCurationId}}
+Authorization: Bearer {{accessToken}}

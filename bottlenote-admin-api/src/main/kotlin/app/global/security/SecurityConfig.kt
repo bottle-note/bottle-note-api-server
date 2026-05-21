@@ -31,7 +31,7 @@ class SecurityConfig(
 			auth
 				.requestMatchers(*MaliciousPathPattern.getAllPatterns())
 				.denyAll()
-				.requestMatchers("/auth/login", "/auth/refresh")
+				.requestMatchers("/v1/auth/login", "/v1/auth/refresh")
 				.permitAll()
 				.requestMatchers("/actuator/**")
 				.permitAll()

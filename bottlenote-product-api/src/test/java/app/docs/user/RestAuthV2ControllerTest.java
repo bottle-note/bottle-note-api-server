@@ -33,7 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.http.MediaType;
 
-@Tag("document")
+@Tag("restdocs")
 @DisplayName("유저 Auth 컨트롤러 V2x RestDocs 테스트")
 class RestAuthV2ControllerTest extends AbstractRestDocs {
   private final AuthService authService = mock(AuthService.class);

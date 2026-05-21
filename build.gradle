@@ -110,7 +110,7 @@ subprojects {
 	test {
 		outputs.upToDateWhen { false }
 		useJUnitPlatform {
-			excludeTags 'data-jpa-test', 'integration', 'admin_integration'
+			excludeTags 'integration', 'admin_integration'
 		}
 		testLogging {
 			events "passed", "skipped", "failed"
@@ -154,10 +154,8 @@ subprojects {
 		tasks.register('restDocsTest', Test) {
 			description = 'REST Docs snippets 생성을 위한 테스트'
 			group = 'documentation'
-			useJUnitPlatform()
-			filter {
-				includeTestsMatching 'app.docs.*'
-				includeTestsMatching 'app.external.docs.*'
+			useJUnitPlatform {
+				includeTags 'restdocs'
 			}
 		}
 	}
@@ -205,6 +203,50 @@ tasks.register('restDocsTest') {
 	description = 'REST Docs snippets 생성 (product-api, admin-api)'
 	group = 'documentation'
 	dependsOn subprojects.findAll { it.tasks.findByName('restDocsTest') }.collect { it.tasks.restDocsTest }
+}
+
+tasks.register('verifyRestDocsIncludes') {
+	description = 'AsciiDoc include 대상과 REST Docs snippet 존재 여부 검증'
+	group = 'documentation'
+	dependsOn tasks.named('restDocsTest')
+
+	doLast {
+		def missing = []
+		['bottlenote-product-api', 'bottlenote-admin-api'].each { moduleName ->
+			def docsDir = file("${moduleName}/src/docs/asciidoc")
+			def snippetsDir = file("${moduleName}/build/generated-snippets")
+			fileTree(docsDir) {
+				include '**/*.adoc'
+			}.each { adoc ->
+				def matcher = adoc.text =~ /include::(.+?)\[\]/
+				matcher.each { match ->
+					def includePath = match[1]
+					def includeFile = includePath.startsWith('{snippets}/')
+							? new File(snippetsDir, includePath - '{snippets}/')
+							: new File(adoc.parentFile, includePath)
+					if (!includeFile.isFile()) {
+						missing << "${moduleName}:${docsDir.toPath().relativize(adoc.toPath())} -> ${includePath}"
+					}
+				}
+			}
+		}
+		if (!missing.isEmpty()) {
+			throw new GradleException("Missing AsciiDoc includes:\\n- ${missing.join('\\n- ')}")
+		}
+	}
+}
+
+tasks.register('docs_test') {
+	description = 'REST Docs snippets 생성과 AsciiDoc 조립 검증'
+	group = 'documentation'
+	dependsOn tasks.named('restDocsTest')
+	dependsOn tasks.named('verifyRestDocsIncludes')
+}
+
+gradle.projectsEvaluated {
+	tasks.named('docs_test') {
+		dependsOn subprojects.findAll { it.tasks.findByName('asciidoctor') }.collect { it.tasks.asciidoctor }
+	}
 }
 
 tasks.register('batch_test') {

@@ -8,6 +8,7 @@ import app.bottlenote.common.file.service.ImageUploadService
 import app.bottlenote.global.security.SecurityContextUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyLong
@@ -34,6 +35,7 @@ import java.util.*
 	excludeAutoConfiguration = [SecurityAutoConfiguration::class]
 )
 @AutoConfigureRestDocs
+@Tag("restdocs")
 @DisplayName("Admin 이미지 업로드 컨트롤러 RestDocs 테스트")
 class AdminImageUploadControllerDocsTest {
 
@@ -76,7 +78,7 @@ class AdminImageUploadControllerDocsTest {
 
 			// when & then
 			assertThat(
-				mvc.get().uri("/s3/presign-url")
+				mvc.get().uri("/v1/s3/presign-url")
 					.header("Authorization", "Bearer test_access_token")
 					.param("rootPath", "admin/banner")
 					.param("uploadSize", "2")

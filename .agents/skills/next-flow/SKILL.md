@@ -28,7 +28,7 @@ Hard policy (from codex consultation): *auto-progression is restricted to read-o
 - Before `/define` (no plan document yet — start with `/define` directly)
 - When a `/debug` recovery is in progress (let `/debug` finish first)
 - When the user has already named the next step explicitly
-- For `/plan` transition — `/plan` is a Claude Code UI command and cannot be auto-invoked from a skill; this skill will only print a notice telling the user to type `/plan` themselves
+- For any next GSL command transition — print the command name and stop. In slash-command UI runtimes, tell the user to type that command directly; in codex, tell the user to send a new message containing that skill name.
 
 ## Process
 
@@ -45,7 +45,7 @@ Read Overview, Tasks, Progress Log. Classify the work into exactly one of:
 
 | Signal | Current step | Next step |
 |--------|--------------|-----------|
-| Plan doc has Overview only, no Tasks | post-`/define` | `/plan` (UI command — print notice) |
+| Plan doc has Overview only, no Tasks | post-`/define` | `/plan` (print command and stop) |
 | Tasks exist, Progress Log empty | post-`/plan` | `/implement` |
 | Some Tasks done, more remain | mid-`/implement` | continue `/implement` with next Task |
 | All Tasks done, no integration tests written | post-`/implement` | `/test` (integration tests) |
@@ -97,10 +97,10 @@ Preconditions: PASS
 [Run it? You can type /<command> yourself, or reply "yes" to have me run it only if it is read-only.]
 ```
 
-For `/plan` and other UI commands, replace the last line with:
+For any next GSL command, do not run it in this turn. Replace the last line with runtime-neutral guidance:
 
 ```
-/plan is a Claude Code UI command — please type it in the input box yourself; I cannot trigger it from a skill.
+To continue, send a new message containing this command. In slash-command UI runtimes, type the command directly; in codex, send the skill name in a new message.
 ```
 
 ## Common Rationalizations
@@ -111,16 +111,16 @@ For `/plan` and other UI commands, replace the last line with:
 | "User said 'continue', so I can just push through commit" | Commit is a write boundary and an externally-visible action. Propose, never auto-run. |
 | "It's only a small edit to plan doc Progress Log" | Plan document is the single source of truth. Only `/implement` updates it after a Task commit. |
 | "/verify full passed — let me start the next feature" | Closing the current feature (stamp + plan/complete/ move) is a manual decision. Propose, don't act. |
-| "I'll auto-call /plan since /implement needs it" | `/plan` is a UI command. You cannot. Print the notice and stop. |
+| "I'll auto-call the next GSL command since it is obvious" | Next GSL commands are runtime boundaries. Print the command name and stop. |
 
 ## Red Flags
 
 - Auto-progression has caused any file to be created, edited, or deleted (immediate STOP — this skill should never do that)
 - Multiple next-step candidates proposed (the table in Step 2 should yield exactly one)
 - Preconditions skipped because "the user implied it was fine"
-- Proposing `/plan` for auto-invocation (impossible — print notice instead)
-- **Bypassing the UI-command notice by invoking `/plan` (or any other Claude Code UI command) through Bash, shell scripts, `subprocess`, MCP tools, or other wrappers — anti-pattern, STOP.** The notice is the only correct output for UI-command transitions.
-- The next command requires user approval (e.g., post-`/define` → `/plan`) and you tried to invoke it anyway
+- Proposing any next GSL command for same-turn execution instead of printing the command name and stopping
+- **Bypassing the runtime-boundary notice by invoking the next GSL command through Bash, shell scripts, `subprocess`, MCP tools, or other wrappers — anti-pattern, STOP.** The notice is the only correct output for GSL command transitions.
+- The next command requires user approval (e.g., post-`/define` → `/plan`) and you tried to execute it anyway
 
 ## Verification
 
@@ -130,5 +130,18 @@ After running:
 - [ ] All preconditions were checked in a read-only way
 - [ ] If any auto-action was run, it was read-only only (verify / status / log / diff)
 - [ ] No file was created, edited, or deleted by this skill
-- [ ] If the next step is `/plan`, the UI-command notice was printed instead of attempting auto-invoke
+- [ ] If the next step is a GSL command, the runtime-boundary notice was printed instead of attempting same-turn execution
 - [ ] The proposal includes the reason and the user's explicit invocation prompt
+
+## Runtime Boundary — HARD STOP
+
+This skill ENDS after the Verification checklist and final report are completed.
+
+For codex and any runtime without an enforced skill-return boundary:
+- MUST stop the assistant turn here.
+- MUST NOT invoke, load, or execute any next GSL skill in the same response turn.
+- MUST NOT continue into `/next-flow`, `/define`, `/plan`, `/implement`, `/test`, `/verify`, `/debug`, or `/self-review`.
+- MAY print exactly one suggested next command as plain text.
+- MUST wait for the user's next message before running any next skill.
+
+If the user says only "continue", treat that as permission to report the next recommended command, not permission to execute it.

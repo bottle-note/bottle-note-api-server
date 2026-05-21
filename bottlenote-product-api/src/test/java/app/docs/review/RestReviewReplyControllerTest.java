@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.http.MediaType;
 
-@Tag("rest-docs")
+@Tag("restdocs")
 @DisplayName("리뷰 댓글 컨트롤러 RestDocs용 테스트")
 class RestReviewReplyControllerTest extends AbstractRestDocs {
 

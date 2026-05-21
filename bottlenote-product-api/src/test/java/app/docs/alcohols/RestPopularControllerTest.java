@@ -21,9 +21,11 @@ import app.docs.AbstractRestDocs;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+@Tag("restdocs")
 @DisplayName("Popular API RestDocs")
 class RestPopularControllerTest extends AbstractRestDocs {
 

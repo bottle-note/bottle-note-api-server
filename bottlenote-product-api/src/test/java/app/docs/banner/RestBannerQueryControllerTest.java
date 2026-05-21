@@ -20,9 +20,11 @@ import app.docs.AbstractRestDocs;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.restdocs.payload.JsonFieldType;
 
+@Tag("restdocs")
 @DisplayName("배너 조회 컨트롤러 Rest API 문서화 테스트")
 class RestBannerQueryControllerTest extends AbstractRestDocs {
 
