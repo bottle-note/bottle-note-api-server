@@ -2,7 +2,6 @@ package app.integration.file
 
 import app.IntegrationTestSupport
 import app.bottlenote.operation.utils.TestContainersConfig
-import com.amazonaws.services.s3.AmazonS3
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -10,15 +9,19 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.GetObjectRequest
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URI
+import java.nio.charset.StandardCharsets
 
 @Tag("admin_integration")
 @DisplayName("[integration] Admin Image Upload API 통합 테스트")
 class AdminImageUploadIntegrationTest : IntegrationTestSupport() {
 	@Autowired
-	private lateinit var amazonS3: AmazonS3
+	private lateinit var s3Client: S3Client
 
 	private lateinit var accessToken: String
 
@@ -182,12 +185,26 @@ class AdminImageUploadIntegrationTest : IntegrationTestSupport() {
 
 			// then: S3에서 파일 존재 확인
 			val bucketName = TestContainersConfig.getTestBucket()
-			val exists = amazonS3.doesObjectExist(bucketName, s3Key)
-			assertThat(exists).isEqualTo(true)
+			s3Client.headObject(
+				HeadObjectRequest
+					.builder()
+					.bucket(bucketName)
+					.key(s3Key)
+					.build()
+			)
 
 			// then: 업로드된 내용 확인
-			val s3Object = amazonS3.getObject(bucketName, s3Key)
-			val content = s3Object.objectContent.bufferedReader().use { it.readText() }
+			val content =
+				s3Client
+					.getObject(
+						GetObjectRequest
+							.builder()
+							.bucket(bucketName)
+							.key(s3Key)
+							.build()
+					)
+					.bufferedReader(StandardCharsets.UTF_8)
+					.use { it.readText() }
 			assertThat(content).isEqualTo(testContent)
 
 			log.info("업로드된 파일 내용 확인 완료: {}", content)
@@ -229,13 +246,24 @@ class AdminImageUploadIntegrationTest : IntegrationTestSupport() {
 			val bucketName = TestContainersConfig.getTestBucket()
 			uploadResults.forEach { (s3Key, expectedContent, responseCode) ->
 				assertThat(responseCode).isEqualTo(200)
-				assertThat(amazonS3.doesObjectExist(bucketName, s3Key)).isEqualTo(true)
+				s3Client.headObject(
+					HeadObjectRequest
+						.builder()
+						.bucket(bucketName)
+						.key(s3Key)
+						.build()
+				)
 
 				val actualContent =
-					amazonS3
-						.getObject(bucketName, s3Key)
-						.objectContent
-						.bufferedReader()
+					s3Client
+						.getObject(
+							GetObjectRequest
+								.builder()
+								.bucket(bucketName)
+								.key(s3Key)
+								.build()
+						)
+						.bufferedReader(StandardCharsets.UTF_8)
 						.use { it.readText() }
 				assertThat(actualContent).isEqualTo(expectedContent)
 			}
