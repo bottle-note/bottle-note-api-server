@@ -4,11 +4,15 @@ import app.bottlenote.alcohols.constant.AdminAlcoholSortType
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest
 import app.bottlenote.alcohols.dto.request.AdminAlcoholUpsertRequest
+import app.bottlenote.alcohols.dto.request.AlcoholLookupRequest
+import app.bottlenote.alcohols.dto.response.AlcoholLookupItem
 import app.bottlenote.alcohols.dto.response.CategoryPairItem
 import app.bottlenote.alcohols.presentation.AdminAlcoholsController
 import app.bottlenote.alcohols.service.AdminAlcoholCommandService
+import app.bottlenote.alcohols.service.AlcoholLookupService
 import app.bottlenote.alcohols.service.AlcoholQueryService
 import app.bottlenote.global.dto.response.AdminResultResponse
+import app.bottlenote.global.service.cursor.CursorResponse
 import app.bottlenote.global.service.cursor.SortOrder
 import app.helper.alcohols.AlcoholsHelper
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -52,6 +56,98 @@ class AdminAlcoholsControllerDocsTest {
 
 	@MockitoBean
 	private lateinit var adminAlcoholCommandService: AdminAlcoholCommandService
+
+	@MockitoBean
+	private lateinit var alcoholLookupService: AlcoholLookupService
+
+	@Test
+	@DisplayName("관리자용 술 lookup 목록을 조회할 수 있다")
+	fun lookupAlcohols() {
+		// given
+		val item = AlcoholLookupItem(
+			1L,
+			"맥캘란 12년",
+			"Macallan 12",
+			"싱글몰트",
+			"Single Malt",
+			AlcoholCategoryGroup.SINGLE_MALT,
+			1L,
+			"스페이사이드",
+			"Speyside",
+			10L,
+			"맥캘란",
+			"Macallan",
+			"https://example.com/alcohol.png"
+		)
+		given(alcoholLookupService.lookup(any(AlcoholLookupRequest::class.java)))
+			.willReturn(CursorResponse.of(listOf(item), 0L, 20))
+
+		// when & then
+		assertThat(
+			mvc.get().uri("/v1/alcohols/lookup")
+				.param("keyword", "macallan")
+				.param("category", AlcoholCategoryGroup.SINGLE_MALT.name)
+				.param("regionId", "1")
+				.param("distilleryId", "10")
+				.param("source", "REDIS")
+				.param("cursor", "0")
+				.param("pageSize", "20")
+		)
+			.hasStatusOk()
+			.apply(
+				document(
+					"admin/alcohols/lookup",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					queryParameters(
+						parameterWithName("keyword").optional().description("검색어 (이름, 카테고리, 지역, 증류소 대상)"),
+						parameterWithName("category").optional().description("카테고리 그룹 필터. ALL 또는 미전달 시 전체"),
+						parameterWithName("regionId").optional().description("지역 ID 필터"),
+						parameterWithName("distilleryId").optional().description("증류소 ID 필터"),
+						parameterWithName("source").optional().description("조회 경로 (REDIS: 기본 snapshot 경로, DATABASE: k6 비교 검증용 DB 경로)"),
+						parameterWithName("cursor").optional().description("커서 위치 (기본값: 0)"),
+						parameterWithName("pageSize").optional().description("페이지 크기 (기본값: 20, 최대: 100)")
+					),
+					responseFields(
+						fieldWithPath("success").type(JsonFieldType.BOOLEAN).description("응답 성공 여부"),
+						fieldWithPath("code").type(JsonFieldType.NUMBER).description("응답 코드"),
+						fieldWithPath("data").type(JsonFieldType.ARRAY).description("술 lookup 목록"),
+						fieldWithPath("data[].alcoholId").type(JsonFieldType.NUMBER).description("술 ID"),
+						fieldWithPath("data[].korName").type(JsonFieldType.STRING).description("술 한글 이름"),
+						fieldWithPath("data[].engName").type(JsonFieldType.STRING).description("술 영문 이름"),
+						fieldWithPath("data[].korCategoryName").type(JsonFieldType.STRING).description("카테고리 한글명"),
+						fieldWithPath("data[].engCategoryName").type(JsonFieldType.STRING).description("카테고리 영문명"),
+						fieldWithPath("data[].categoryGroup").type(JsonFieldType.STRING).description("카테고리 그룹"),
+						fieldWithPath("data[].regionId").type(JsonFieldType.NUMBER).description("지역 ID"),
+						fieldWithPath("data[].korRegion").type(JsonFieldType.STRING).description("지역 한글명"),
+						fieldWithPath("data[].engRegion").type(JsonFieldType.STRING).description("지역 영문명"),
+						fieldWithPath("data[].distilleryId").type(JsonFieldType.NUMBER).description("증류소 ID"),
+						fieldWithPath("data[].korDistillery").type(JsonFieldType.STRING).description("증류소 한글명"),
+						fieldWithPath("data[].engDistillery").type(JsonFieldType.STRING).description("증류소 영문명"),
+						fieldWithPath("data[].imageUrl").type(JsonFieldType.STRING).description("술 이미지 URL"),
+						fieldWithPath("errors").type(JsonFieldType.ARRAY).description("에러 목록"),
+						fieldWithPath("meta").type(JsonFieldType.OBJECT).description("메타 정보"),
+						fieldWithPath("meta.pageable").type(JsonFieldType.OBJECT).description("페이징 정보"),
+						fieldWithPath("meta.pageable.currentCursor").type(JsonFieldType.NUMBER).description("조회 시 기준 커서"),
+						fieldWithPath("meta.pageable.cursor").type(JsonFieldType.NUMBER).description("다음 페이지 커서"),
+						fieldWithPath("meta.pageable.pageSize").type(JsonFieldType.NUMBER).description("페이지 크기"),
+						fieldWithPath("meta.pageable.hasNext").type(JsonFieldType.BOOLEAN).description("다음 페이지 존재 여부"),
+						fieldWithPath("meta.searchParameters").type(JsonFieldType.OBJECT).description("검색 조건"),
+						fieldWithPath("meta.searchParameters.keyword").type(JsonFieldType.STRING).description("검색어"),
+						fieldWithPath("meta.searchParameters.category").type(JsonFieldType.STRING).description("카테고리 그룹 필터"),
+						fieldWithPath("meta.searchParameters.regionId").type(JsonFieldType.NUMBER).description("지역 ID 필터"),
+						fieldWithPath("meta.searchParameters.distilleryId").type(JsonFieldType.NUMBER).description("증류소 ID 필터"),
+						fieldWithPath("meta.searchParameters.source").type(JsonFieldType.STRING).description("조회 경로"),
+						fieldWithPath("meta.searchParameters.cursor").type(JsonFieldType.NUMBER).description("커서 위치"),
+						fieldWithPath("meta.searchParameters.pageSize").type(JsonFieldType.NUMBER).description("페이지 크기"),
+						fieldWithPath("meta.serverVersion").type(JsonFieldType.STRING).description("서버 버전").ignored(),
+						fieldWithPath("meta.serverEncoding").type(JsonFieldType.STRING).description("서버 인코딩").ignored(),
+						fieldWithPath("meta.serverResponseTime").type(JsonFieldType.STRING).description("서버 응답 시간").ignored(),
+						fieldWithPath("meta.serverPathVersion").type(JsonFieldType.STRING).description("API 경로 버전").ignored()
+					)
+				)
+			)
+	}
 
 	@Test
 	@DisplayName("관리자용 술 목록을 조회할 수 있다")

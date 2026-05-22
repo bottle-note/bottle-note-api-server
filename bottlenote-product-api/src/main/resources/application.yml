@@ -76,6 +76,11 @@ logging:
     root: info
 
 schedules:
+  alcohol:
+    lookup:
+      sync:
+        enable: true
+        cron: "0 */5 * * * *"
   history:
     view:
       sync:

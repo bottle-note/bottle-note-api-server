@@ -1,5 +1,6 @@
 package app.bottlenote.alcohols.repository;
 
+import static app.bottlenote.alcohols.constant.AlcoholType.WHISKY;
 import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.alcohols.domain.QDistillery.distillery;
 import static app.bottlenote.alcohols.domain.QRegion.region;
@@ -14,6 +15,7 @@ import app.bottlenote.alcohols.dto.dsl.ExploreStandardCriteria;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
+import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
@@ -53,6 +55,35 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
         .from(alcohol)
         .groupBy(alcohol.korCategory, alcohol.engCategory, alcohol.categoryGroup)
         .orderBy(alcohol.korCategory.asc())
+        .fetch();
+  }
+
+  @Override
+  public List<AlcoholLookupItem> findAllLookupItems() {
+    return queryFactory
+        .select(
+            Projections.constructor(
+                AlcoholLookupItem.class,
+                alcohol.id,
+                alcohol.korName,
+                alcohol.engName,
+                alcohol.korCategory,
+                alcohol.engCategory,
+                alcohol.categoryGroup,
+                region.id,
+                region.korName,
+                region.engName,
+                distillery.id,
+                distillery.korName,
+                distillery.engName,
+                alcohol.imageUrl))
+        .from(alcohol)
+        .leftJoin(region)
+        .on(alcohol.region.id.eq(region.id))
+        .leftJoin(distillery)
+        .on(alcohol.distillery.id.eq(distillery.id))
+        .where(alcohol.type.eq(WHISKY), alcohol.deletedAt.isNull())
+        .orderBy(alcohol.id.asc())
         .fetch();
   }
 
