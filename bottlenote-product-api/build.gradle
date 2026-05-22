@@ -62,7 +62,8 @@ dependencies {
 	testImplementation libs.restdocs.api.spec.mockmvc
 
 	// Test - AWS
-	testImplementation libs.aws.s3
+	testImplementation platform(libs.aws.sdk.bom)
+	testImplementation libs.aws.sdk.s3
 
 	// Test - Feign
 	testImplementation libs.spring.cloud.starter.openfeign
