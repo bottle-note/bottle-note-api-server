@@ -159,6 +159,25 @@ class ResourceCommandServiceTest {
 
       log.info("중복 활성화 시도 결과 = {}", result);
     }
+
+    @Test
+    @DisplayName("다른 사용자의 이미지 리소스는 활성화하지 않는다")
+    void test_4() {
+      // given
+      String resourceKey = "review/20251231/1-uuid.jpg";
+      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey)).join();
+
+      // when
+      Optional<ResourceLogResponse> result =
+          resourceCommandService.activateImageResource(resourceKey, 100L, "REVIEW", 2L).join();
+
+      // then
+      assertTrue(result.isEmpty());
+      Optional<ResourceLogResponse> resourceLog =
+          resourceCommandService.findByResourceKey(resourceKey);
+      assertTrue(resourceLog.isPresent());
+      assertEquals(ResourceEventType.CREATED, resourceLog.get().eventType());
+    }
   }
 
   @Nested
