@@ -11,6 +11,7 @@ import app.bottlenote.common.file.dto.request.ResourceLogRequest;
 import app.bottlenote.common.file.event.listener.ResourceEventListener;
 import app.bottlenote.common.file.event.payload.ImageResourceActivatedEvent;
 import app.bottlenote.common.file.service.ResourceCommandService;
+import app.bottlenote.common.file.service.ResourceVerifierService;
 import app.bottlenote.common.file.upload.fixture.InMemoryResourceLogRepository;
 import app.bottlenote.common.profanity.FakeProfanityClient;
 import app.bottlenote.history.fixture.FakeHistoryEventPublisher;
@@ -54,11 +55,15 @@ class ImageResourceActivatedEventPublishTest {
 
     private ReviewService reviewService;
     private InMemoryReviewRepository reviewRepository;
+    private InMemoryResourceLogRepository resourceLogRepository;
+    private ResourceCommandService resourceCommandService;
     private FakeApplicationEventPublisher eventPublisher;
 
     @BeforeEach
     void setUp() {
       reviewRepository = new InMemoryReviewRepository();
+      resourceLogRepository = new InMemoryResourceLogRepository();
+      resourceCommandService = new ResourceCommandService(resourceLogRepository);
       eventPublisher = new FakeApplicationEventPublisher();
 
       reviewService =
@@ -68,7 +73,8 @@ class ImageResourceActivatedEventPublishTest {
               reviewRepository,
               new FakeHistoryEventPublisher(),
               new LocalTracingService(),
-              eventPublisher);
+              eventPublisher,
+              new ResourceVerifierService(resourceLogRepository));
     }
 
     @Test
@@ -79,6 +85,7 @@ class ImageResourceActivatedEventPublishTest {
           List.of(
               new ReviewImageInfoRequest(1L, "https://cdn.bottlenote.com/review/img1.jpg"),
               new ReviewImageInfoRequest(2L, "https://cdn.bottlenote.com/review/img2.jpg"));
+      images.forEach(image -> saveCreated(1L, image.viewUrl(), "review"));
       ReviewCreateRequest request = createReviewRequest(images);
 
       // when
@@ -121,6 +128,7 @@ class ImageResourceActivatedEventPublishTest {
 
       List<ReviewImageInfoRequest> newImages =
           List.of(new ReviewImageInfoRequest(1L, "https://cdn.bottlenote.com/review/new-img.jpg"));
+      newImages.forEach(image -> saveCreated(1L, image.viewUrl(), "review"));
       ReviewModifyRequest modifyRequest =
           new ReviewModifyRequest(
               "수정된 내용", null, null, newImages, null, null, LocationInfoRequest.empty(), null);
@@ -142,6 +150,12 @@ class ImageResourceActivatedEventPublishTest {
     private ReviewCreateRequest createReviewRequest(List<ReviewImageInfoRequest> images) {
       return new ReviewCreateRequest(
           1L, null, "테스트 리뷰 내용", null, null, LocationInfoRequest.empty(), images, List.of(), 4.5);
+    }
+
+    private void saveCreated(Long userId, String viewUrl, String rootPath) {
+      String resourceKey = viewUrl.substring("https://cdn.bottlenote.com/".length());
+      resourceCommandService.saveImageResourceCreated(
+          new ResourceLogRequest(userId, resourceKey, viewUrl, rootPath, "test-bucket"));
     }
   }
 
@@ -353,15 +367,13 @@ class ImageResourceActivatedEventPublishTest {
       Long referenceId = 100L;
       String referenceType = "REVIEW";
 
-      resourceCommandService
-          .saveImageResourceCreated(
-              new ResourceLogRequest(
-                  1L,
-                  resourceKey,
-                  "https://cdn.bottlenote.com/" + resourceKey,
-                  "review",
-                  "test-bucket"))
-          .join();
+      resourceCommandService.saveImageResourceCreated(
+          new ResourceLogRequest(
+              1L,
+              resourceKey,
+              "https://cdn.bottlenote.com/" + resourceKey,
+              "review",
+              "test-bucket"));
 
       ImageResourceActivatedEvent event =
           ImageResourceActivatedEvent.of(resourceKey, referenceId, referenceType);
@@ -389,24 +401,20 @@ class ImageResourceActivatedEventPublishTest {
       Long referenceId = 200L;
       String referenceType = "HELP";
 
-      resourceCommandService
-          .saveImageResourceCreated(
-              new ResourceLogRequest(
-                  1L,
-                  resourceKey1,
-                  "https://cdn.bottlenote.com/" + resourceKey1,
-                  "help",
-                  "test-bucket"))
-          .join();
-      resourceCommandService
-          .saveImageResourceCreated(
-              new ResourceLogRequest(
-                  1L,
-                  resourceKey2,
-                  "https://cdn.bottlenote.com/" + resourceKey2,
-                  "help",
-                  "test-bucket"))
-          .join();
+      resourceCommandService.saveImageResourceCreated(
+          new ResourceLogRequest(
+              1L,
+              resourceKey1,
+              "https://cdn.bottlenote.com/" + resourceKey1,
+              "help",
+              "test-bucket"));
+      resourceCommandService.saveImageResourceCreated(
+          new ResourceLogRequest(
+              1L,
+              resourceKey2,
+              "https://cdn.bottlenote.com/" + resourceKey2,
+              "help",
+              "test-bucket"));
 
       ImageResourceActivatedEvent event =
           ImageResourceActivatedEvent.of(
@@ -442,15 +450,13 @@ class ImageResourceActivatedEventPublishTest {
       Long referenceId = 300L;
       String referenceType = "BUSINESS";
 
-      resourceCommandService
-          .saveImageResourceCreated(
-              new ResourceLogRequest(
-                  userId,
-                  resourceKey,
-                  "https://cdn.bottlenote.com/" + resourceKey,
-                  "business",
-                  "test-bucket"))
-          .join();
+      resourceCommandService.saveImageResourceCreated(
+          new ResourceLogRequest(
+              userId,
+              resourceKey,
+              "https://cdn.bottlenote.com/" + resourceKey,
+              "business",
+              "test-bucket"));
 
       ImageResourceActivatedEvent event =
           ImageResourceActivatedEvent.of(resourceKey, referenceId, referenceType);

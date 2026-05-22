@@ -11,6 +11,7 @@ import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.common.file.event.payload.ImageResourceActivatedEvent;
 import app.bottlenote.common.file.event.payload.ImageResourceInvalidatedEvent;
+import app.bottlenote.common.file.service.ResourceVerifierService;
 import app.bottlenote.common.image.ImageUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
@@ -57,6 +58,7 @@ public class ReviewService {
   private final HistoryEventPublisher reviewEventPublisher;
   private final TracingService tracingService;
   private final ApplicationEventPublisher eventPublisher;
+  private final ResourceVerifierService resourceVerifierService;
 
   /** Read */
   @Transactional(readOnly = true)
@@ -92,6 +94,7 @@ public class ReviewService {
       ReviewCreateRequest reviewCreateRequest, Long currentUserId) {
     alcoholFacade.isValidAlcoholId(reviewCreateRequest.alcoholId());
     userDomainSupport.isValidUserId(currentUserId);
+    verifyReviewImages(reviewCreateRequest.imageUrlList(), currentUserId, null);
 
     RatingPoint point = RatingPoint.of(reviewCreateRequest.rating());
     Review review =
@@ -167,6 +170,7 @@ public class ReviewService {
     ReviewModifyRequestWrapperItem reviewModifyRequestWrapperItem =
         ReviewModifyRequestWrapperItem.create(request);
     List<ReviewImageInfoRequest> reviewImageInfoRequests = request.imageUrlList();
+    verifyReviewImages(reviewImageInfoRequests, currentUserId, reviewId);
 
     review.update(reviewModifyRequestWrapperItem);
     review.imageInitialization(reviewImageInfoRequests);
@@ -251,6 +255,17 @@ public class ReviewService {
       eventPublisher.publishEvent(
           ImageResourceActivatedEvent.of(resourceKeys, reviewId, REFERENCE_TYPE_REVIEW, userId));
     }
+  }
+
+  private void verifyReviewImages(
+      List<ReviewImageInfoRequest> imageList, Long userId, Long reviewId) {
+    List<String> viewUrls =
+        Objects.requireNonNullElse(imageList, Collections.<ReviewImageInfoRequest>emptyList())
+            .stream()
+            .map(ReviewImageInfoRequest::viewUrl)
+            .toList();
+    resourceVerifierService.verifyOwnedImageResources(
+        viewUrls, userId, reviewId, REFERENCE_TYPE_REVIEW);
   }
 
   private void publishImageInvalidatedEvent(

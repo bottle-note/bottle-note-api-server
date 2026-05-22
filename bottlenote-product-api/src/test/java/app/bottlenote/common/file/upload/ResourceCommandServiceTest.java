@@ -58,9 +58,7 @@ class ResourceCommandServiceTest {
       ResourceLogRequest request = createRequest(1L, "review/20251231/1-uuid.jpg");
 
       // when
-      CompletableFuture<ResourceLogResponse> future =
-          resourceCommandService.saveImageResourceCreated(request);
-      ResourceLogResponse response = future.join();
+      ResourceLogResponse response = resourceCommandService.saveImageResourceCreated(request);
 
       // then
       assertNotNull(response);
@@ -81,10 +79,8 @@ class ResourceCommandServiceTest {
       ResourceLogRequest request2 = createRequest(1L, "review/20251231/2-uuid2.jpg");
 
       // when
-      ResourceLogResponse response1 =
-          resourceCommandService.saveImageResourceCreated(request1).join();
-      ResourceLogResponse response2 =
-          resourceCommandService.saveImageResourceCreated(request2).join();
+      ResourceLogResponse response1 = resourceCommandService.saveImageResourceCreated(request1);
+      ResourceLogResponse response2 = resourceCommandService.saveImageResourceCreated(request2);
 
       // then
       assertEquals(1L, response1.id());
@@ -105,7 +101,7 @@ class ResourceCommandServiceTest {
     void test_1() {
       // given
       String resourceKey = "review/20251231/1-uuid.jpg";
-      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey)).join();
+      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey));
 
       // when
       CompletableFuture<Optional<ResourceLogResponse>> future =
@@ -126,7 +122,7 @@ class ResourceCommandServiceTest {
     void test_2() {
       // given
       String resourceKey = "review/20251231/1-uuid.jpg";
-      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey)).join();
+      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey));
 
       // when
       resourceCommandService.activateImageResource(resourceKey, 100L, "REVIEW").join();
@@ -146,7 +142,7 @@ class ResourceCommandServiceTest {
       // given
       String resourceKey = "review/20251231/1-uuid.jpg";
       Long referenceId = 100L;
-      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey)).join();
+      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey));
       resourceCommandService.activateImageResource(resourceKey, referenceId, "REVIEW").join();
 
       // when
@@ -165,7 +161,7 @@ class ResourceCommandServiceTest {
     void test_4() {
       // given
       String resourceKey = "review/20251231/1-uuid.jpg";
-      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey)).join();
+      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey));
 
       // when
       Optional<ResourceLogResponse> result =
@@ -189,7 +185,7 @@ class ResourceCommandServiceTest {
     void test_1() {
       // given
       String resourceKey = "review/20251231/1-uuid.jpg";
-      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey)).join();
+      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey));
 
       // when
       CompletableFuture<Optional<ResourceLogResponse>> future =
@@ -209,7 +205,7 @@ class ResourceCommandServiceTest {
     void test_2() {
       // given
       String resourceKey = "review/20251231/1-uuid.jpg";
-      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey)).join();
+      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey));
       resourceCommandService.invalidateImageResource(resourceKey).join();
 
       // when
@@ -233,7 +229,7 @@ class ResourceCommandServiceTest {
     void test_1() {
       // given
       String resourceKey = "review/20251231/1-uuid.jpg";
-      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey)).join();
+      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey));
       resourceCommandService.invalidateImageResource(resourceKey).join();
 
       // when
@@ -254,7 +250,7 @@ class ResourceCommandServiceTest {
     void test_2() {
       // given
       String resourceKey = "review/20251231/1-uuid.jpg";
-      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey)).join();
+      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey));
 
       // when
       Optional<ResourceLogResponse> result =
@@ -271,7 +267,7 @@ class ResourceCommandServiceTest {
     void test_3() {
       // given
       String resourceKey = "review/20251231/1-uuid.jpg";
-      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey)).join();
+      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey));
       resourceCommandService.activateImageResource(resourceKey, 100L, "REVIEW").join();
 
       // when
@@ -294,7 +290,7 @@ class ResourceCommandServiceTest {
     void test_1() {
       // given
       String resourceKey = "review/20251231/1-uuid.jpg";
-      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey)).join();
+      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey));
       resourceCommandService.activateImageResource(resourceKey, 100L, "REVIEW").join();
 
       // when
@@ -331,12 +327,10 @@ class ResourceCommandServiceTest {
     @DisplayName("CREATED 이벤트와 날짜 기준으로 로그 목록을 조회할 때 조건에 맞는 목록을 반환한다")
     void test_1() {
       // given
-      resourceCommandService
-          .saveImageResourceCreated(createRequest(1L, "review/20251231/1-uuid1.jpg"))
-          .join();
-      resourceCommandService
-          .saveImageResourceCreated(createRequest(2L, "review/20251231/2-uuid2.jpg"))
-          .join();
+      resourceCommandService.saveImageResourceCreated(
+          createRequest(1L, "review/20251231/1-uuid1.jpg"));
+      resourceCommandService.saveImageResourceCreated(
+          createRequest(2L, "review/20251231/2-uuid2.jpg"));
 
       // createAt 설정 (과거 날짜로)
       resourceLogRepository
@@ -367,8 +361,8 @@ class ResourceCommandServiceTest {
       // given
       String resourceKey1 = "review/20251231/1-uuid1.jpg";
       String resourceKey2 = "review/20251231/2-uuid2.jpg";
-      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey1)).join();
-      resourceCommandService.saveImageResourceCreated(createRequest(2L, resourceKey2)).join();
+      resourceCommandService.saveImageResourceCreated(createRequest(1L, resourceKey1));
+      resourceCommandService.saveImageResourceCreated(createRequest(2L, resourceKey2));
 
       resourceLogRepository
           .findById(1L)

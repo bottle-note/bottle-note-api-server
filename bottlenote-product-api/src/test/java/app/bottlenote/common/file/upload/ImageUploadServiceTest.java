@@ -171,6 +171,47 @@ class ImageUploadServiceTest {
       assertNotNull(viewUrl);
       assertEquals(CLOUD_FRONT_URL + "/" + imageKey, viewUrl);
     }
+
+    @Test
+    @DisplayName("CloudFront URL 끝에 slash가 있어도 조회용 URL에 중복 slash가 생기지 않는다")
+    void generateViewUrl_whenCloudFrontUrlHasTrailingSlash_normalizesUrl() {
+      // given
+      String imageKey = imageUploadService.getImageKey("review", 1L, "image/jpeg");
+
+      // when
+      String viewUrl = imageUploadService.generateViewUrl(CLOUD_FRONT_URL + "/", imageKey);
+
+      // then
+      assertEquals(CLOUD_FRONT_URL + "/" + imageKey, viewUrl);
+    }
+  }
+
+  @Nested
+  @DisplayName("ResourceLog 저장 테스트")
+  class ResourceLogTest {
+
+    @Test
+    @DisplayName("어드민 PreSign URL 생성은 응답 전 CREATED 로그를 저장한다")
+    void getPreSignUrlForAdmin_savesCreatedLogsSynchronously() {
+      // given
+      Long adminId = 1L;
+      ImageUploadRequest request = new ImageUploadRequest("review", 2L, null);
+
+      // when
+      ImageUploadResponse response = imageUploadService.getPreSignUrlForAdmin(adminId, request);
+
+      // then
+      assertEquals(2, response.imageUploadInfo().size());
+      assertEquals(2, resourceLogRepository.findByUserId(adminId).size());
+      response
+          .imageUploadInfo()
+          .forEach(
+              item ->
+                  assertTrue(
+                      resourceLogRepository
+                          .findByResourceKey(item.viewUrl().substring(CLOUD_FRONT_URL.length() + 1))
+                          .isPresent()));
+    }
   }
 
   @Nested
