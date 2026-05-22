@@ -47,6 +47,31 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
   @Autowired private AlcoholTestFactory alcoholTestFactory;
   @Autowired private ReviewTestFactory reviewTestFactory;
 
+  private ReviewCreateRequest withoutImages(ReviewCreateRequest request) {
+    return new ReviewCreateRequest(
+        request.alcoholId(),
+        request.status(),
+        request.content(),
+        request.sizeType(),
+        request.price(),
+        request.locationInfo(),
+        List.of(),
+        request.tastingTagList(),
+        request.rating());
+  }
+
+  private ReviewModifyRequest withoutImages(ReviewModifyRequest request) {
+    return new ReviewModifyRequest(
+        request.content(),
+        request.status(),
+        request.price(),
+        List.of(),
+        request.sizeType(),
+        request.tastingTagList(),
+        request.locationInfo(),
+        request.rating());
+  }
+
   @Nested
   @DisplayName("리뷰 조회 테스트")
   class select {
@@ -86,7 +111,7 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
       TokenItem token = getToken(user);
 
       ReviewCreateRequest reviewCreateRequest =
-          ReviewObjectFixture.getReviewCreateRequestWithAlcoholId(alcohol.getId());
+          withoutImages(ReviewObjectFixture.getReviewCreateRequestWithAlcoholId(alcohol.getId()));
 
       MvcTestResult createResult =
           mockMvcTester
@@ -175,7 +200,7 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
       TokenItem token = getToken(user);
 
       ReviewCreateRequest reviewCreateRequest =
-          ReviewObjectFixture.getReviewCreateRequestWithAlcoholId(alcohol.getId());
+          withoutImages(ReviewObjectFixture.getReviewCreateRequestWithAlcoholId(alcohol.getId()));
 
       // when
       MvcTestResult result =
@@ -208,7 +233,7 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
       TokenItem token = getToken(user);
 
       ReviewCreateRequest reviewCreateRequest =
-          ReviewObjectFixture.getReviewCreateRequestWithAlcoholId(alcohol.getId());
+          withoutImages(ReviewObjectFixture.getReviewCreateRequestWithAlcoholId(alcohol.getId()));
 
       // 리뷰 생성
       MvcTestResult createResult =
@@ -273,7 +298,7 @@ class ReviewIntegrationTest extends IntegrationTestSupport {
 
       final Long reviewId = review.getId();
       final ReviewModifyRequest request =
-          ReviewObjectFixture.getReviewModifyRequest(ReviewDisplayStatus.PUBLIC);
+          withoutImages(ReviewObjectFixture.getReviewModifyRequest(ReviewDisplayStatus.PUBLIC));
 
       // when
       MvcTestResult result =

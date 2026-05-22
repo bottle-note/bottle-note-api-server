@@ -17,6 +17,7 @@ import app.bottlenote.common.file.dto.response.ImageUploadItem;
 import app.bottlenote.common.file.dto.response.ImageUploadResponse;
 import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.constant.SizeType;
+import app.bottlenote.review.domain.ReviewRepository;
 import app.bottlenote.review.dto.request.LocationInfoRequest;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewImageInfoRequest;
@@ -45,6 +46,7 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private ResourceLogRepository resourceLogRepository;
   @Autowired private AlcoholTestFactory alcoholTestFactory;
+  @Autowired private ReviewRepository reviewRepository;
 
   private LocationInfoRequest createTestLocationInfo() {
     return new LocationInfoRequest(
@@ -102,6 +104,12 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
             order ->
                 new ReviewImageInfoRequest(
                     order, "https://fake-cloudfront.net/review/20260522/" + order + "-fake.jpg"))
+        .toList();
+  }
+
+  private List<ReviewImageInfoRequest> imageRequests(ImageUploadResponse response) {
+    return response.imageUploadInfo().stream()
+        .map(item -> new ReviewImageInfoRequest(item.order(), item.viewUrl()))
         .toList();
   }
 
@@ -227,17 +235,10 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
           .with(csrf())
           .exchange();
 
-      // then - 비동기 로그 저장 대기
-      Awaitility.await()
-          .atMost(3, TimeUnit.SECONDS)
-          .untilAsserted(
-              () -> {
-                List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
-                assertFalse(logs.isEmpty());
-                assertEquals(uploadSize.intValue(), logs.size());
-              });
-
+      // then
       List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
+      assertFalse(logs.isEmpty());
+      assertEquals(uploadSize.intValue(), logs.size());
       logs.forEach(
           resourceLog -> {
             assertEquals(ResourceEventType.CREATED, resourceLog.getEventType());
@@ -269,15 +270,6 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
 
       int uploadStatus = upload(uploadInfo.uploadUrl(), imageBytes, "image/jpeg");
       assertEquals(200, uploadStatus);
-
-      Awaitility.await()
-          .atMost(3, TimeUnit.SECONDS)
-          .untilAsserted(
-              () -> {
-                List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
-                assertEquals(1, logs.size());
-                assertEquals(ResourceEventType.CREATED, logs.get(0).getEventType());
-              });
 
       ReviewCreateRequest reviewRequest =
           createReviewRequest(
@@ -320,14 +312,15 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("presign 없이 임의로 만든 viewUrl로 리뷰 등록하는 경우")
-    void arbitrary_view_url_does_not_activate_resource_log() throws Exception {
+    @DisplayName("presign 없이 임의로 만든 viewUrl로 리뷰 등록하면 저장 전에 실패한다")
+    void arbitrary_view_url_rejects_review_before_save() throws Exception {
       // given
       String token = getToken();
       Long userId = getTokenUserId();
       Alcohol alcohol = alcoholTestFactory.persistAlcohol();
       ReviewCreateRequest reviewRequest =
           createReviewRequest(alcohol.getId(), fakeImageRequests(1));
+      int beforeCount = reviewRepository.findByUserId(userId).size();
 
       // when
       MvcTestResult reviewResult =
@@ -341,29 +334,22 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
               .exchange();
 
       // then
-      ReviewCreateResponse reviewResponse = extractData(reviewResult, ReviewCreateResponse.class);
-      assertNotNull(reviewResponse.getId());
-      Thread.sleep(1000);
+      reviewResult.assertThat().hasStatus4xxClientError();
+      assertEquals(beforeCount, reviewRepository.findByUserId(userId).size());
       assertEquals(0, resourceLogRepository.findByUserId(userId).size());
     }
 
     @Test
-    @DisplayName("다른 사용자가 발급받은 viewUrl을 내 리뷰에 등록하는 경우")
-    void other_user_view_url_does_not_activate_original_resource_log() throws Exception {
+    @DisplayName("다른 사용자가 발급받은 viewUrl을 내 리뷰에 등록하면 저장 전에 실패한다")
+    void other_user_view_url_rejects_review_before_save() throws Exception {
       // given
       String ownerToken = getToken();
       Long ownerId = getTokenUserId();
       ImageUploadResponse uploadResponse = createPresignedUrls(ownerToken, 1);
       String ownerViewUrl = uploadResponse.imageUploadInfo().get(0).viewUrl();
-
-      Awaitility.await()
-          .atMost(3, TimeUnit.SECONDS)
-          .untilAsserted(
-              () -> {
-                List<ResourceLog> logs = resourceLogRepository.findByUserId(ownerId);
-                assertEquals(1, logs.size());
-                assertEquals(ResourceEventType.CREATED, logs.get(0).getEventType());
-              });
+      List<ResourceLog> createdLogs = resourceLogRepository.findByUserId(ownerId);
+      assertEquals(1, createdLogs.size());
+      assertEquals(ResourceEventType.CREATED, createdLogs.get(0).getEventType());
 
       String otherToken = authSupport.getRandomAccessToken();
       Alcohol alcohol = alcoholTestFactory.persistAlcohol();
@@ -383,12 +369,109 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
               .exchange();
 
       // then
-      ReviewCreateResponse reviewResponse = extractData(reviewResult, ReviewCreateResponse.class);
-      assertNotNull(reviewResponse.getId());
-      Thread.sleep(1000);
+      reviewResult.assertThat().hasStatus4xxClientError();
       List<ResourceLog> ownerLogs = resourceLogRepository.findByUserId(ownerId);
       assertEquals(1, ownerLogs.size());
       assertEquals(ResourceEventType.CREATED, ownerLogs.get(0).getEventType());
+    }
+
+    @Test
+    @DisplayName("presign 없이 임의로 만든 viewUrl로 리뷰 수정하면 저장 전에 실패한다")
+    void arbitrary_view_url_rejects_review_modify_before_save() throws Exception {
+      // given
+      String token = getToken();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+      ReviewCreateRequest createRequest = createReviewRequest(alcohol.getId(), List.of());
+      ReviewCreateResponse createResponse =
+          extractData(
+              mockMvcTester
+                  .post()
+                  .uri("/api/v1/reviews")
+                  .header("Authorization", "Bearer " + token)
+                  .contentType(APPLICATION_JSON)
+                  .content(mapper.writeValueAsString(createRequest))
+                  .with(csrf())
+                  .exchange(),
+              ReviewCreateResponse.class);
+      Long reviewId = createResponse.getId();
+
+      ReviewModifyRequest modifyRequest =
+          new ReviewModifyRequest(
+              "수정 요청은 실패해야 한다",
+              ReviewDisplayStatus.PUBLIC,
+              null,
+              fakeImageRequests(1),
+              null,
+              null,
+              createTestLocationInfo(),
+              null);
+
+      // when
+      MvcTestResult modifyResult =
+          mockMvcTester
+              .patch()
+              .uri("/api/v1/reviews/{reviewId}", reviewId)
+              .header("Authorization", "Bearer " + token)
+              .contentType(APPLICATION_JSON)
+              .content(mapper.writeValueAsString(modifyRequest))
+              .with(csrf())
+              .exchange();
+
+      // then
+      modifyResult.assertThat().hasStatus4xxClientError();
+      assertEquals(
+          createRequest.content(), reviewRepository.findById(reviewId).orElseThrow().getContent());
+    }
+
+    @Test
+    @DisplayName("다른 사용자가 발급받은 viewUrl로 리뷰 수정하면 저장 전에 실패한다")
+    void other_user_view_url_rejects_review_modify_before_save() throws Exception {
+      // given
+      String token = getToken();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+      ReviewCreateRequest createRequest = createReviewRequest(alcohol.getId(), List.of());
+      ReviewCreateResponse createResponse =
+          extractData(
+              mockMvcTester
+                  .post()
+                  .uri("/api/v1/reviews")
+                  .header("Authorization", "Bearer " + token)
+                  .contentType(APPLICATION_JSON)
+                  .content(mapper.writeValueAsString(createRequest))
+                  .with(csrf())
+                  .exchange(),
+              ReviewCreateResponse.class);
+      Long reviewId = createResponse.getId();
+
+      String otherToken = authSupport.getRandomAccessToken();
+      ImageUploadResponse otherUploadResponse = createPresignedUrls(otherToken, 1);
+      String otherViewUrl = otherUploadResponse.imageUploadInfo().get(0).viewUrl();
+      ReviewModifyRequest modifyRequest =
+          new ReviewModifyRequest(
+              "수정 요청은 실패해야 한다",
+              ReviewDisplayStatus.PUBLIC,
+              null,
+              List.of(new ReviewImageInfoRequest(1L, otherViewUrl)),
+              null,
+              null,
+              createTestLocationInfo(),
+              null);
+
+      // when
+      MvcTestResult modifyResult =
+          mockMvcTester
+              .patch()
+              .uri("/api/v1/reviews/{reviewId}", reviewId)
+              .header("Authorization", "Bearer " + token)
+              .contentType(APPLICATION_JSON)
+              .content(mapper.writeValueAsString(modifyRequest))
+              .with(csrf())
+              .exchange();
+
+      // then
+      modifyResult.assertThat().hasStatus4xxClientError();
+      assertEquals(
+          createRequest.content(), reviewRepository.findById(reviewId).orElseThrow().getContent());
     }
 
     @Test
@@ -397,8 +480,9 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
       // given
       String token = getToken();
       Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+      ImageUploadResponse uploadResponse = createPresignedUrls(token, 5);
       ReviewCreateRequest reviewRequest =
-          createReviewRequest(alcohol.getId(), fakeImageRequests(5));
+          createReviewRequest(alcohol.getId(), imageRequests(uploadResponse));
 
       // when
       MvcTestResult reviewResult =
@@ -423,7 +507,8 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
       ReviewDetailResponse detailResponse = extractData(detailResult, ReviewDetailResponse.class);
       assertEquals(5L, detailResponse.reviewInfo().totalImageCount());
       assertEquals(
-          fakeImageRequests(5).get(0).viewUrl(), detailResponse.reviewInfo().reviewImageUrl());
+          uploadResponse.imageUploadInfo().get(0).viewUrl(),
+          detailResponse.reviewInfo().reviewImageUrl());
     }
 
     @Test
@@ -432,8 +517,9 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
       // given
       String token = getToken();
       Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+      ImageUploadResponse uploadResponse = createPresignedUrls(token, 6);
       ReviewCreateRequest reviewRequest =
-          createReviewRequest(alcohol.getId(), fakeImageRequests(6));
+          createReviewRequest(alcohol.getId(), imageRequests(uploadResponse));
 
       // when
       MvcTestResult reviewResult =
@@ -472,15 +558,6 @@ class ImageUploadIntegrationTest extends IntegrationTestSupport {
 
       ImageUploadResponse uploadResponse = extractData(presignResult, ImageUploadResponse.class);
       List<ImageUploadItem> uploadInfos = uploadResponse.imageUploadInfo();
-
-      // CREATED 로그 저장 대기
-      Awaitility.await()
-          .atMost(3, TimeUnit.SECONDS)
-          .untilAsserted(
-              () -> {
-                List<ResourceLog> logs = resourceLogRepository.findByUserId(userId);
-                assertEquals(2, logs.size());
-              });
 
       // 리뷰 생성 요청 (이미지 URL 포함)
       List<ReviewImageInfoRequest> imageRequests =

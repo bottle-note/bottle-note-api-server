@@ -26,10 +26,8 @@ public class ResourceCommandService {
 
   private final ResourceLogRepository resourceLogRepository;
 
-  @Async
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public CompletableFuture<ResourceLogResponse> saveImageResourceCreated(
-      ResourceLogRequest request) {
+  public ResourceLogResponse saveImageResourceCreated(ResourceLogRequest request) {
     ResourceLog entity =
         ResourceLog.builder()
             .userId(request.userId())
@@ -45,7 +43,7 @@ public class ResourceCommandService {
         "이미지 리소스 생성 로그 저장 - resourceKey: {}, userId: {}",
         saved.getResourceKey(),
         saved.getUserId());
-    return CompletableFuture.completedFuture(toResponse(saved));
+    return toResponse(saved);
   }
 
   @Async

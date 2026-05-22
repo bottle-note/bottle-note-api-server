@@ -34,7 +34,7 @@ public class ImageUploadService implements PreSignUrlProvider {
     this.resourceCommandService = resourceCommandService;
     this.s3Presigner = s3Presigner;
     this.imageBucketName = imageBucketName;
-    this.cloudFrontUrl = cloudFrontUrl;
+    this.cloudFrontUrl = normalizeCloudFrontUrl(cloudFrontUrl);
   }
 
   /**
@@ -95,7 +95,7 @@ public class ImageUploadService implements PreSignUrlProvider {
 
   @Override
   public String generateViewUrl(String cloudFrontUrl, String imageKey) {
-    return cloudFrontUrl + PATH_DELIMITER + imageKey;
+    return normalizeCloudFrontUrl(cloudFrontUrl) + PATH_DELIMITER + imageKey;
   }
 
   @Override
@@ -138,5 +138,13 @@ public class ImageUploadService implements PreSignUrlProvider {
   private String extractImageKey(String viewUrl) {
     int lastSlashOfCloudFront = cloudFrontUrl.length() + 1;
     return viewUrl.substring(lastSlashOfCloudFront);
+  }
+
+  private String normalizeCloudFrontUrl(String url) {
+    String normalized = url;
+    while (normalized.endsWith(PATH_DELIMITER)) {
+      normalized = normalized.substring(0, normalized.length() - 1);
+    }
+    return normalized;
   }
 }
