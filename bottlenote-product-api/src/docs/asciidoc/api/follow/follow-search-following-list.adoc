@@ -24,12 +24,11 @@ GET /api/v1/follow/{userId}/follower-list
 [discrete]
 ==== 요청 파라미터 ====
 
-include::{snippets}/follow/search/query-parameters.adoc[]
+include::{snippets}/follow/following-list/query-parameters.adoc[]
 
 [discrete]
 ==== 응답 파라미터 ====
 
-include::{snippets}/follow/search/response-fields.adoc[]
-include::{snippets}/follow/search/response-body.adoc[]
-
+include::{snippets}/follow/following-list/response-fields.adoc[]
+include::{snippets}/follow/following-list/response-body.adoc[]
 

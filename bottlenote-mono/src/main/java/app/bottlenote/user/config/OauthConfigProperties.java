@@ -23,11 +23,9 @@ import org.springframework.context.annotation.Configuration;
 public class OauthConfigProperties {
   private String refreshTokenHeaderPrefix;
   private int cookieExpireTime;
-  private String guestCode;
 
   public void printConfigs() {
     log.info("refreshTokenHeaderPrefix: {}", refreshTokenHeaderPrefix);
     log.info("cookieExpireTime: {}", cookieExpireTime);
-    log.info("guestCode: {}", guestCode);
   }
 }

@@ -1,6 +1,5 @@
 package app.docs.user;
 
-import static java.util.Base64.getEncoder;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -20,12 +19,9 @@ import app.bottlenote.user.config.OauthConfigProperties;
 import app.bottlenote.user.constant.GenderType;
 import app.bottlenote.user.constant.SocialType;
 import app.bottlenote.user.controller.OauthController;
-import app.bottlenote.user.dto.request.BasicAccountRequest;
 import app.bottlenote.user.dto.request.BasicLoginRequest;
-import app.bottlenote.user.dto.request.GuestCodeRequest;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.request.TokenVerifyRequest;
-import app.bottlenote.user.dto.response.BasicAccountResponse;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.service.OauthService;
 import app.docs.AbstractRestDocs;
@@ -44,7 +40,6 @@ class RestOauthControllerTest extends AbstractRestDocs {
   public RestOauthControllerTest() {
     this.config =
         OauthConfigProperties.builder()
-            .guestCode("TEST_GUEST_CODE")
             .cookieExpireTime(123456)
             .refreshTokenHeaderPrefix("refresh-token")
             .build();
@@ -177,48 +172,6 @@ class RestOauthControllerTest extends AbstractRestDocs {
   }
 
   @Test
-  @DisplayName("게스트 토큰을 발급 받을수 있다.")
-  void guest_login() throws Exception {
-    // given
-    final String guestCode = config.getGuestCode();
-    final var request = GuestCodeRequest.of(getEncoder().encodeToString(guestCode.getBytes()));
-    final String token = "response-token";
-
-    // when
-    when(oauthService.guestLogin()).thenReturn(token);
-
-    // then
-    mockMvc
-        .perform(
-            post("/api/v1/oauth/guest-login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-                .with(csrf()))
-        .andExpect(status().isOk())
-        .andDo(
-            document(
-                "user/guest-login",
-                requestFields(fieldWithPath("code").description("게스트 코드")),
-                responseFields(
-                    fieldWithPath("success").ignored(),
-                    fieldWithPath("code").ignored(),
-                    fieldWithPath("errors").ignored(),
-                    fieldWithPath("data.accessToken").description("액세스 토큰"),
-                    fieldWithPath("data.isFirstLogin")
-                        .type(JsonFieldType.BOOLEAN)
-                        .description("최초 로그인 여부 (true: 최초 로그인, false: 기존 사용자)")
-                        .optional(),
-                    fieldWithPath("data.nickname")
-                        .type(JsonFieldType.STRING)
-                        .description("사용자 닉네임 (최초 로그인 시 자동 생성된 닉네임)")
-                        .optional(),
-                    fieldWithPath("meta.serverEncoding").description("서버 인코딩 정도"),
-                    fieldWithPath("meta.serverVersion").description("서버 버전"),
-                    fieldWithPath("meta.serverPathVersion").description("서버 경로 버전"),
-                    fieldWithPath("meta.serverResponseTime").description("서버 응답 시간"))));
-  }
-
-  @Test
   @DisplayName("토큰 유효성을 검사할 수 있다.")
   void token_validation() throws Exception {
     // given
@@ -245,111 +198,6 @@ class RestOauthControllerTest extends AbstractRestDocs {
                     fieldWithPath("code").ignored(),
                     fieldWithPath("errors").ignored(),
                     fieldWithPath("data").description("결과"),
-                    fieldWithPath("meta.serverEncoding").ignored(),
-                    fieldWithPath("meta.serverVersion").ignored(),
-                    fieldWithPath("meta.serverPathVersion").ignored(),
-                    fieldWithPath("meta.serverResponseTime").ignored())));
-  }
-
-  @Test
-  @DisplayName("베이식 회원가입을 할 수 있다.")
-  void basic_signup() throws Exception {
-    // given
-    final String nickName = "부드러운몰트";
-    final BasicAccountRequest request =
-        BasicAccountRequest.builder()
-            .email("test@email.com")
-            .password("test-password")
-            .age(27)
-            .gender(null)
-            .build();
-
-    final BasicAccountResponse response =
-        BasicAccountResponse.builder()
-            .message(nickName + "님 환영합니다!")
-            .email(request.getEmail())
-            .nickname(nickName)
-            .accessToken("access-token")
-            .refreshToken("refresh-token")
-            .build();
-
-    // when
-    when(oauthService.basicSignup(
-            request.getEmail(), request.getPassword(), request.getAge(), request.getGender()))
-        .thenReturn(response);
-
-    // then
-    mockMvc
-        .perform(
-            post("/api/v1/oauth/basic/signup")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-                .with(csrf()))
-        .andExpect(status().isOk())
-        .andDo(
-            document(
-                "user/basic-signup",
-                requestFields(
-                    fieldWithPath("email").description("이메일"),
-                    fieldWithPath("password").description("비밀번호"),
-                    fieldWithPath("age").description("나이"),
-                    fieldWithPath("gender").description("성별")),
-                responseFields(
-                    fieldWithPath("success").ignored(),
-                    fieldWithPath("code").ignored(),
-                    fieldWithPath("errors").ignored(),
-                    fieldWithPath("data").description("결과"),
-                    fieldWithPath("data.message").description("결과 메시지"),
-                    fieldWithPath("data.email").description("이메일"),
-                    fieldWithPath("data.nickname").description("닉네임"),
-                    fieldWithPath("data.accessToken").description("accessToken"),
-                    fieldWithPath("data.refreshToken").description("refreshToken"),
-                    fieldWithPath("meta.serverEncoding").ignored(),
-                    fieldWithPath("meta.serverVersion").ignored(),
-                    fieldWithPath("meta.serverPathVersion").ignored(),
-                    fieldWithPath("meta.serverResponseTime").ignored())));
-  }
-
-  @Test
-  @DisplayName("베이식 로그인을 할 수 있다.")
-  void basic_login() throws Exception {
-    // given
-    final String nickName = "부드러운몰트";
-    final BasicLoginRequest request =
-        BasicLoginRequest.builder().email("test@email.com").password("test-password").build();
-
-    final TokenItem response = TokenItem.of("access-token", "refresh-token");
-    // when
-    when(oauthService.basicLogin(request.getEmail(), request.getPassword())).thenReturn(response);
-
-    // then
-    mockMvc
-        .perform(
-            post("/api/v1/oauth/basic/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-                .with(csrf()))
-        .andExpect(status().isOk())
-        .andDo(
-            document(
-                "user/basic-login",
-                requestFields(
-                    fieldWithPath("email").description("이메일"),
-                    fieldWithPath("password").description("비밀번호")),
-                responseFields(
-                    fieldWithPath("success").ignored(),
-                    fieldWithPath("code").ignored(),
-                    fieldWithPath("errors").ignored(),
-                    fieldWithPath("data").description("결과"),
-                    fieldWithPath("data.accessToken").description("accessToken"),
-                    fieldWithPath("data.isFirstLogin")
-                        .type(JsonFieldType.BOOLEAN)
-                        .description("최초 로그인 여부 (true: 최초 로그인, false: 기존 사용자)")
-                        .optional(),
-                    fieldWithPath("data.nickname")
-                        .type(JsonFieldType.STRING)
-                        .description("사용자 닉네임 (최초 로그인 시 자동 생성된 닉네임)")
-                        .optional(),
                     fieldWithPath("meta.serverEncoding").ignored(),
                     fieldWithPath("meta.serverVersion").ignored(),
                     fieldWithPath("meta.serverPathVersion").ignored(),

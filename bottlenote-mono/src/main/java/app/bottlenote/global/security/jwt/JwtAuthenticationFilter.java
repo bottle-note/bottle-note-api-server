@@ -122,7 +122,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
     String path = request.getRequestURI();
-    List<String> excludePath = List.of("login", "guest-login", "regions", "alcohols/categories");
+    List<String> excludePath = List.of("login", "regions", "alcohols/categories");
 
     return excludePath.stream().anyMatch(path::contains);
   }
