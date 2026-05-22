@@ -129,7 +129,8 @@ public class ReviewService {
             saveReview.getContent());
     reviewEventPublisher.publishReviewHistoryEvent(event);
 
-    publishImageActivatedEvent(reviewCreateRequest.imageUrlList(), saveReview.getId());
+    publishImageActivatedEvent(
+        reviewCreateRequest.imageUrlList(), saveReview.getId(), currentUserId);
 
     log.info(
         "리뷰 생성 - reviewId: {}, userId: {}, alcoholId: {}, rating: {}, status: {}, traceId: {}",
@@ -183,7 +184,7 @@ public class ReviewService {
     publishImageInvalidatedEvent(oldImageUrls, newImageUrls, reviewId);
 
     // 새 이미지에 대해 ACTIVATED 이벤트 발행
-    publishImageActivatedEvent(reviewImageInfoRequests, reviewId);
+    publishImageActivatedEvent(reviewImageInfoRequests, reviewId, currentUserId);
 
     return ReviewResultResponse.response(MODIFY_SUCCESS, reviewId);
   }
@@ -233,7 +234,8 @@ public class ReviewService {
         : ReviewResultResponse.response(PRIVATE_SUCCESS, review.getId());
   }
 
-  private void publishImageActivatedEvent(List<ReviewImageInfoRequest> imageList, Long reviewId) {
+  private void publishImageActivatedEvent(
+      List<ReviewImageInfoRequest> imageList, Long reviewId, Long userId) {
     List<ReviewImageInfoRequest> images =
         Objects.requireNonNullElse(imageList, Collections.emptyList());
     if (images.isEmpty() || reviewId == null) {
@@ -247,7 +249,7 @@ public class ReviewService {
             .toList();
     if (!resourceKeys.isEmpty()) {
       eventPublisher.publishEvent(
-          ImageResourceActivatedEvent.of(resourceKeys, reviewId, REFERENCE_TYPE_REVIEW));
+          ImageResourceActivatedEvent.of(resourceKeys, reviewId, REFERENCE_TYPE_REVIEW, userId));
     }
   }
 

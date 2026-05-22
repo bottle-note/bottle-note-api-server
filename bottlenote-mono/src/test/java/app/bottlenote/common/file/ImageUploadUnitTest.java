@@ -1,6 +1,7 @@
 package app.bottlenote.common.file;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -122,6 +123,22 @@ class ImageUploadUnitTest {
     resourceLogRepository.clear();
   }
 
+  private int upload(String uploadUrl, byte[] data, String contentType) throws Exception {
+    URL url = new URL(uploadUrl);
+    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+    connection.setDoOutput(true);
+    connection.setRequestMethod("PUT");
+    connection.setRequestProperty("Content-Type", contentType);
+    connection.setRequestProperty("Content-Length", String.valueOf(data.length));
+
+    try (OutputStream os = connection.getOutputStream()) {
+      os.write(data);
+    }
+    int responseCode = connection.getResponseCode();
+    connection.disconnect();
+    return responseCode;
+  }
+
   @Nested
   @DisplayName("PreSigned URL 생성 테스트")
   class PreSignedUrlTest {
@@ -171,6 +188,22 @@ class ImageUploadUnitTest {
       // then
       assertEquals(200, responseCode);
       log.info("업로드 응답 코드 = {}", responseCode);
+    }
+
+    @Test
+    @DisplayName("presigned URL 발급 시 서명된 contentType과 다른 contentType으로 PUT 하는 경우")
+    void test_2_content_type_mismatch() throws Exception {
+      // given
+      ImageUploadRequest request = new ImageUploadRequest("review", 1L, "image/png");
+      ImageUploadResponse response = imageUploadService.getPreSignUrl(request);
+      String uploadUrl = response.imageUploadInfo().get(0).uploadUrl();
+      byte[] testData = "test image content".getBytes(StandardCharsets.UTF_8);
+
+      // when
+      int responseCode = upload(uploadUrl, testData, "image/jpeg");
+
+      // then
+      assertNotEquals(200, responseCode);
     }
 
     @Test
