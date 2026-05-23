@@ -33,4 +33,8 @@ public interface JpaDistilleryRepository
   @Override
   @Query("select d from distillery d where d.sortOrder >= :sortOrder")
   List<Distillery> findAllBySortOrderGreaterThanEqual(@Param("sortOrder") int sortOrder);
+
+  @Override
+  @Query("select d from distillery d order by d.sortOrder asc, d.id asc")
+  List<Distillery> findAllOrderBySortOrderAsc();
 }

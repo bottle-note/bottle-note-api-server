@@ -21,5 +21,7 @@ public interface BannerRepository {
 
   List<Banner> findAllBySortOrderGreaterThanEqual(Integer sortOrder);
 
+  List<Banner> findAllOrderBySortOrderAsc();
+
   Page<AdminBannerListResponse> searchForAdmin(AdminBannerSearchRequest request, Pageable pageable);
 }

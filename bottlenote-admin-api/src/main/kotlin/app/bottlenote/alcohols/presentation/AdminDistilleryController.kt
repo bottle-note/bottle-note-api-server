@@ -6,6 +6,7 @@ import app.bottlenote.alcohols.dto.request.AdminReferenceSearchRequest
 import app.bottlenote.alcohols.service.AlcoholReferenceService
 import app.bottlenote.alcohols.service.DistilleryService
 import app.bottlenote.global.data.response.GlobalResponse
+import app.bottlenote.global.dto.request.AdminBulkReorderRequest
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -56,4 +57,9 @@ class AdminDistilleryController(
 		@PathVariable distilleryId: Long,
 		@RequestBody @Valid request: AdminDistillerySortOrderRequest
 	): ResponseEntity<*> = GlobalResponse.ok(distilleryService.updateSortOrder(distilleryId, request))
+
+	@PatchMapping("/bulk/reorder")
+	fun reorder(
+		@RequestBody @Valid request: AdminBulkReorderRequest
+	): ResponseEntity<*> = GlobalResponse.ok(distilleryService.reorder(request))
 }
