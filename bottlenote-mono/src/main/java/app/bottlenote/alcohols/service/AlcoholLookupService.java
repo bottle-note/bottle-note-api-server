@@ -5,6 +5,7 @@ import app.bottlenote.alcohols.domain.AlcoholLookupSnapshotStore;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.request.AlcoholLookupRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
+import app.bottlenote.alcohols.dto.response.AlcoholLookupSnapshotItem;
 import app.bottlenote.global.service.cursor.CursorResponse;
 import java.util.Arrays;
 import java.util.List;
@@ -28,14 +29,14 @@ public class AlcoholLookupService {
 
   @Transactional(readOnly = true)
   public int syncSnapshot() {
-    List<AlcoholLookupItem> items = findDatabaseItems();
+    List<AlcoholLookupSnapshotItem> items = findDatabaseItems();
     snapshotStore.replaceAll(items);
     return items.size();
   }
 
-  private List<AlcoholLookupItem> findRedisItemsWithFallback() {
+  private List<AlcoholLookupSnapshotItem> findRedisItemsWithFallback() {
     try {
-      List<AlcoholLookupItem> items = snapshotStore.findAll();
+      List<AlcoholLookupSnapshotItem> items = snapshotStore.findAll();
       if (!items.isEmpty()) {
         return items;
       }
@@ -46,17 +47,20 @@ public class AlcoholLookupService {
     return findDatabaseItems();
   }
 
-  private List<AlcoholLookupItem> findDatabaseItems() {
-    return alcoholQueryRepository.findAllLookupItems();
+  private List<AlcoholLookupSnapshotItem> findDatabaseItems() {
+    return alcoholQueryRepository.findAllLookupItems().stream()
+        .map(AlcoholLookupSnapshotItem::from)
+        .toList();
   }
 
   private CursorResponse<AlcoholLookupItem> filterAndSlice(
-      List<AlcoholLookupItem> items, AlcoholLookupRequest request) {
+      List<AlcoholLookupSnapshotItem> items, AlcoholLookupRequest request) {
     AlcoholCategoryGroup categoryGroup = request.categoryGroup();
     List<String> keywords = parseKeywords(request.keyword());
     long cursor = Math.max(request.cursor(), 0L);
     long pageSize = Math.max(request.pageSize(), 1L);
 
+    // 성능 검증용 구조: 정규화 필드는 snapshot에 저장하되, 후속 작업에서 DTO 패키지 경계를 정리한다.
     List<AlcoholLookupItem> page =
         items.stream()
             .filter(item -> matchesKeywords(item, keywords))
@@ -69,6 +73,7 @@ public class AlcoholLookupService {
                         || request.distilleryId().equals(item.distilleryId()))
             .skip(cursor)
             .limit(pageSize + 1)
+            .map(AlcoholLookupSnapshotItem::toLookupItem)
             .toList();
 
     return CursorResponse.of(page, cursor, Math.toIntExact(pageSize));
@@ -83,11 +88,10 @@ public class AlcoholLookupService {
         .toList();
   }
 
-  private boolean matchesKeywords(AlcoholLookupItem item, List<String> keywords) {
+  private boolean matchesKeywords(AlcoholLookupSnapshotItem item, List<String> keywords) {
     if (keywords.isEmpty()) {
       return true;
     }
-    String searchText = item.searchText();
-    return keywords.stream().allMatch(searchText::contains);
+    return keywords.stream().allMatch(item.normalizedSearchText()::contains);
   }
 }

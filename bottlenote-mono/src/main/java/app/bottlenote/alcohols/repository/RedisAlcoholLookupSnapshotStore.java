@@ -1,7 +1,7 @@
 package app.bottlenote.alcohols.repository;
 
 import app.bottlenote.alcohols.domain.AlcoholLookupSnapshotStore;
-import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
+import app.bottlenote.alcohols.dto.response.AlcoholLookupSnapshotItem;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,14 +16,14 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class RedisAlcoholLookupSnapshotStore implements AlcoholLookupSnapshotStore {
   private static final String LOOKUP_SNAPSHOT_KEY = "alcohol:lookup:snapshot:v1";
-  private static final TypeReference<List<AlcoholLookupItem>> LOOKUP_ITEMS_TYPE =
+  private static final TypeReference<List<AlcoholLookupSnapshotItem>> LOOKUP_ITEMS_TYPE =
       new TypeReference<>() {};
 
   private final RedisTemplate<String, Object> redisTemplate;
   private final ObjectMapper objectMapper;
 
   @Override
-  public List<AlcoholLookupItem> findAll() {
+  public List<AlcoholLookupSnapshotItem> findAll() {
     Object value = redisTemplate.opsForValue().get(LOOKUP_SNAPSHOT_KEY);
     if (value == null) {
       return List.of();
@@ -38,7 +38,7 @@ public class RedisAlcoholLookupSnapshotStore implements AlcoholLookupSnapshotSto
   }
 
   @Override
-  public void replaceAll(List<AlcoholLookupItem> items) {
+  public void replaceAll(List<AlcoholLookupSnapshotItem> items) {
     try {
       redisTemplate.opsForValue().set(LOOKUP_SNAPSHOT_KEY, objectMapper.writeValueAsString(items));
     } catch (JsonProcessingException e) {

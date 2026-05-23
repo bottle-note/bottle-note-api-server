@@ -181,3 +181,5 @@ FE 위스키 선택/세팅 컴포넌트에서 사용할 고속 조회 API를 추
 - 2026-05-23: Completed clean PR repair. PR branch `codex/alcohol-lookup` now contains only lookup commit on top of `origin/main`, and GitHub CI passed.
 - 2026-05-23: Local k6 comparison completed with temporary `/tmp` scripts only. DB load p95/p99 was 2128ms/2685ms, Redis load p95/p99 was 163ms/234ms, both with 0% failure. Redis stress at 50 VU exposed the local runtime limit with 8.3% failure, so spike was skipped.
 - 2026-05-23: Removed public `source=DATABASE` selection from lookup request/docs/tests after comparison. Redis miss fallback and snapshot sync DB projection remain.
+- 2026-05-23: Added experimental Redis snapshot normalized search text for local performance validation. API response shape remains unchanged; snapshot DTO/package boundary must be cleaned up in a follow-up.
+- 2026-05-23: Local k6 normalized snapshot validation completed with temporary `/tmp` scripts only. Redis snapshot payload size was 2,243,998 bytes. Normalized no-sync load p95/p99 was 118ms/129ms with 0% failure. Normalized stress processed 20,166 requests with 1.98% failure and p99 timeout, so spike remains skipped.
