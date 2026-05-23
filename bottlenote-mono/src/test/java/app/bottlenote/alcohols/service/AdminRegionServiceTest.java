@@ -268,7 +268,7 @@ class AdminRegionServiceTest {
   class BulkReorder {
 
     @Test
-    @DisplayName("전체 지역 bulk reorder는 요청 ID를 전체 지역 목록의 맨 앞으로 재배치한다")
+    @DisplayName("요청 ID가 주어졌을 때 전체 지역 목록의 맨 앞으로 재배치한다")
     void reorderToFront_whenIdsRequested_updatesRelativeOrder() {
       Region first = saveRegion("기존 맨 앞", "First", null, 1);
       Region second = saveRegion("두 번째", "Second", null, 10);
@@ -289,7 +289,7 @@ class AdminRegionServiceTest {
     }
 
     @Test
-    @DisplayName("자식 지역 bulk reorder는 같은 parentId의 직접 자식만 재배치한다")
+    @DisplayName("parentId가 주어졌을 때 같은 부모의 직접 자식만 재배치한다")
     void reorderChildrenToFront_whenIdsRequested_updatesOnlyChildrenOfParent() {
       Region parent = saveRegion("스코틀랜드", "Scotland", null, 1);
       Region anotherParent = saveRegion("아일랜드", "Ireland", null, 2);
@@ -312,7 +312,7 @@ class AdminRegionServiceTest {
     }
 
     @Test
-    @DisplayName("자식 지역 bulk reorder에 다른 부모의 ID가 포함되면 예외가 발생한다")
+    @DisplayName("자식 정렬 요청에 다른 부모의 ID가 포함될 때 예외가 발생한다")
     void reorderChildren_whenOtherParentChildIncluded_throwsException() {
       Region parent = saveRegion("스코틀랜드", "Scotland", null, 1);
       Region anotherParent = saveRegion("아일랜드", "Ireland", null, 2);
@@ -327,6 +327,46 @@ class AdminRegionServiceTest {
           .isInstanceOf(AlcoholException.class)
           .extracting("exceptionCode")
           .isEqualTo(AlcoholExceptionCode.REGION_REORDER_SCOPE_MISMATCH);
+    }
+
+    @Test
+    @DisplayName("요청 ID가 중복될 때 예외가 발생한다")
+    void reorder_whenDuplicateIds_throwsException() {
+      Region region = saveRegion("스코틀랜드", "Scotland", null, 1);
+
+      assertThatThrownBy(
+              () ->
+                  service.reorder(
+                      new AdminBulkReorderRequest(List.of(region.getId(), region.getId()))))
+          .isInstanceOf(AlcoholException.class)
+          .extracting("exceptionCode")
+          .isEqualTo(AlcoholExceptionCode.REGION_REORDER_DUPLICATE_ID);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 ID가 포함될 때 예외가 발생한다")
+    void reorder_whenUnknownIdRequested_throwsException() {
+      Region region = saveRegion("스코틀랜드", "Scotland", null, 1);
+
+      assertThatThrownBy(
+              () -> service.reorder(new AdminBulkReorderRequest(List.of(region.getId(), 999L))))
+          .isInstanceOf(AlcoholException.class)
+          .extracting("exceptionCode")
+          .isEqualTo(AlcoholExceptionCode.REGION_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 부모 ID로 자식 정렬을 요청할 때 예외가 발생한다")
+    void reorderChildren_whenUnknownParentIdRequested_throwsException() {
+      Region region = saveRegion("하이랜드", "Highland", null, 1);
+
+      assertThatThrownBy(
+              () ->
+                  service.reorderChildren(
+                      999L, new AdminBulkReorderRequest(List.of(region.getId()))))
+          .isInstanceOf(AlcoholException.class)
+          .extracting("exceptionCode")
+          .isEqualTo(AlcoholExceptionCode.REGION_PARENT_NOT_FOUND);
     }
   }
 

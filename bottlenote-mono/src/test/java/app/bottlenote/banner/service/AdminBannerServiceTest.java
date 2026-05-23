@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import app.bottlenote.banner.constant.BannerType;
 import app.bottlenote.banner.domain.Banner;
 import app.bottlenote.banner.exception.BannerException;
+import app.bottlenote.banner.exception.BannerExceptionCode;
 import app.bottlenote.banner.fixture.InMemoryBannerRepository;
 import app.bottlenote.global.dto.request.AdminBulkReorderRequest;
 import java.util.List;
@@ -28,7 +29,7 @@ class AdminBannerServiceTest {
   }
 
   @Test
-  @DisplayName("bulk reorder는 요청 ID를 전체 배너 목록의 맨 앞으로 재배치한다")
+  @DisplayName("요청 ID가 주어졌을 때 전체 배너 목록의 맨 앞으로 재배치한다")
   void reorderToFront_whenIdsRequested_updatesRelativeOrder() {
     Banner first = saveBanner("기존 맨 앞", 1);
     Banner second = saveBanner("두 번째", 10);
@@ -49,7 +50,7 @@ class AdminBannerServiceTest {
   }
 
   @Test
-  @DisplayName("bulk reorder 요청 ID가 중복되면 예외가 발생한다")
+  @DisplayName("요청 ID가 중복될 때 예외가 발생한다")
   void reorder_whenDuplicateIds_throwsException() {
     Banner banner = saveBanner("배너", 1);
 
@@ -57,7 +58,23 @@ class AdminBannerServiceTest {
             () ->
                 adminBannerService.reorder(
                     new AdminBulkReorderRequest(List.of(banner.getId(), banner.getId()))))
-        .isInstanceOf(BannerException.class);
+        .isInstanceOf(BannerException.class)
+        .extracting("exceptionCode")
+        .isEqualTo(BannerExceptionCode.BANNER_REORDER_DUPLICATE_ID);
+  }
+
+  @Test
+  @DisplayName("존재하지 않는 ID가 포함될 때 예외가 발생한다")
+  void reorder_whenUnknownIdRequested_throwsException() {
+    Banner banner = saveBanner("배너", 1);
+
+    assertThatThrownBy(
+            () ->
+                adminBannerService.reorder(
+                    new AdminBulkReorderRequest(List.of(banner.getId(), 999L))))
+        .isInstanceOf(BannerException.class)
+        .extracting("exceptionCode")
+        .isEqualTo(BannerExceptionCode.BANNER_NOT_FOUND);
   }
 
   private Banner saveBanner(String name, int sortOrder) {
