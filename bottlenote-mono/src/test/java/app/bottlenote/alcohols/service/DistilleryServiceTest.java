@@ -296,7 +296,7 @@ class DistilleryServiceTest {
     }
 
     @Test
-    @DisplayName("bulk reorder는 요청 ID를 전체 증류소 목록의 맨 앞으로 재배치한다")
+    @DisplayName("요청 ID가 주어졌을 때 전체 증류소 목록의 맨 앞으로 재배치한다")
     void reorderToFront_whenIdsRequested_updatesRelativeOrder() {
       Distillery first =
           distilleryRepository.save(
@@ -324,6 +324,38 @@ class DistilleryServiceTest {
           .containsExactly(
               third.getId(), second.getId(), fifth.getId(), fourth.getId(), first.getId());
       assertThat(result).extracting(Distillery::getSortOrder).containsExactly(1, 10, 20, 30, 40);
+    }
+
+    @Test
+    @DisplayName("요청 ID가 중복될 때 예외가 발생한다")
+    void reorder_whenDuplicateIds_throwsException() {
+      Distillery distillery =
+          distilleryRepository.save(
+              Distillery.builder().korName("증류소").engName("Distillery").sortOrder(1).build());
+
+      assertThatThrownBy(
+              () ->
+                  distilleryService.reorder(
+                      new AdminBulkReorderRequest(List.of(distillery.getId(), distillery.getId()))))
+          .isInstanceOf(AlcoholException.class)
+          .extracting("exceptionCode")
+          .isEqualTo(AlcoholExceptionCode.DISTILLERY_REORDER_DUPLICATE_ID);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 ID가 포함될 때 예외가 발생한다")
+    void reorder_whenUnknownIdRequested_throwsException() {
+      Distillery distillery =
+          distilleryRepository.save(
+              Distillery.builder().korName("증류소").engName("Distillery").sortOrder(1).build());
+
+      assertThatThrownBy(
+              () ->
+                  distilleryService.reorder(
+                      new AdminBulkReorderRequest(List.of(distillery.getId(), 999L))))
+          .isInstanceOf(AlcoholException.class)
+          .extracting("exceptionCode")
+          .isEqualTo(AlcoholExceptionCode.DISTILLERY_NOT_FOUND);
     }
   }
 }

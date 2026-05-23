@@ -263,3 +263,10 @@ PATCH /admin/api/v1/regions/{regionId}/sort-order
 - 2026-05-23: `codex/alcohol-lookup` 기반 워크트리 변경분을 `origin/main` 기반 `feat/admin-bulk-reorder-main` 워크트리로 충돌 없이 이식.
 - 2026-05-23: `./gradlew integration_test` 최초 실패 원인은 새 워크트리의 `git.environment-variables` 서브모듈 미초기화로 확인. `git submodule update --init --recursive` 후 재실행 통과.
 - 2026-05-23: `/verify full` 완료. compile, check_rule_test, unit_test, build, integration_test, admin_integration_test, admin-api test, asciidoctor 모두 BUILD SUCCESSFUL.
+- 2026-05-23: 추가 네거티브/바운더리 테스트 보강. 요청 DTO 빈 배열, 100개 초과, null ID, 0 이하 ID, 100개 정상 케이스와 도메인별 존재하지 않는 ID/중복 ID/scope mismatch 케이스를 명시적으로 검증.
+
+## Completion
+
+- Completed at: 2026-05-23
+- PR: https://github.com/bottle-note/bottle-note-api-server/pull/614
+- Issue: https://github.com/bottle-note/workspace/issues/258
