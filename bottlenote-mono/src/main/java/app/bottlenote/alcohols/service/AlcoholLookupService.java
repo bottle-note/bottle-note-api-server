@@ -10,8 +10,11 @@ import app.bottlenote.global.service.cursor.CursorResponse;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,9 +24,29 @@ import org.springframework.transaction.annotation.Transactional;
 public class AlcoholLookupService {
   private final AlcoholQueryRepository alcoholQueryRepository;
   private final AlcoholLookupSnapshotStore snapshotStore;
+  private final AtomicReference<LocalLookupSnapshot> localSnapshot =
+      new AtomicReference<>(LocalLookupSnapshot.empty());
+
+  @Value("${alcohol.lookup.token-index.enabled:false}")
+  private boolean tokenIndexEnabled;
+
+  @Value("${alcohol.lookup.local-cache.enabled:false}")
+  private boolean localCacheEnabled;
+
+  @Value("${alcohol.lookup.local-cache.version-check-interval-ms:1000}")
+  private long localCacheVersionCheckIntervalMs;
 
   @Transactional(readOnly = true)
   public CursorResponse<AlcoholLookupItem> lookup(AlcoholLookupRequest request) {
+    if (localCacheEnabled) {
+      return filterAndSlice(findLocalCachedItemsWithFallback(), request);
+    }
+    if (tokenIndexEnabled) {
+      Optional<List<AlcoholLookupSnapshotItem>> indexedItems = findRedisIndexedItems(request);
+      if (indexedItems.isPresent()) {
+        return filterAndSlice(indexedItems.get(), request);
+      }
+    }
     return filterAndSlice(findRedisItemsWithFallback(), request);
   }
 
@@ -32,6 +55,44 @@ public class AlcoholLookupService {
     List<AlcoholLookupSnapshotItem> items = findDatabaseItems();
     snapshotStore.replaceAll(items);
     return items.size();
+  }
+
+  private Optional<List<AlcoholLookupSnapshotItem>> findRedisIndexedItems(
+      AlcoholLookupRequest request) {
+    try {
+      return snapshotStore.findIndexed(request);
+    } catch (Exception e) {
+      log.warn("Alcohol lookup Redis token index 조회 실패. full snapshot 경로를 사용합니다.", e);
+      return Optional.empty();
+    }
+  }
+
+  private List<AlcoholLookupSnapshotItem> findLocalCachedItemsWithFallback() {
+    long now = System.currentTimeMillis();
+    LocalLookupSnapshot cached = localSnapshot.get();
+    if (cached.isFresh(now, localCacheVersionCheckIntervalMs)) {
+      return cached.items();
+    }
+
+    try {
+      Optional<String> redisVersion = snapshotStore.findVersion();
+      if (cached.hasItems()
+          && redisVersion.isPresent()
+          && redisVersion.get().equals(cached.version())) {
+        localSnapshot.set(cached.checkedAt(now));
+        return cached.items();
+      }
+
+      List<AlcoholLookupSnapshotItem> items = snapshotStore.findAll();
+      if (!items.isEmpty()) {
+        localSnapshot.set(LocalLookupSnapshot.of(redisVersion.orElse("unversioned"), items, now));
+        return items;
+      }
+      log.info("Alcohol lookup Redis snapshot이 비어 있어 DB fallback 경로를 사용합니다.");
+    } catch (Exception e) {
+      log.warn("Alcohol lookup local cache 갱신 실패. DB fallback 경로를 사용합니다.", e);
+    }
+    return findDatabaseItems();
   }
 
   private List<AlcoholLookupSnapshotItem> findRedisItemsWithFallback() {
@@ -93,5 +154,30 @@ public class AlcoholLookupService {
       return true;
     }
     return keywords.stream().allMatch(item.normalizedSearchText()::contains);
+  }
+
+  private record LocalLookupSnapshot(
+      String version, List<AlcoholLookupSnapshotItem> items, long checkedAtMillis) {
+
+    private static LocalLookupSnapshot empty() {
+      return new LocalLookupSnapshot("", List.of(), 0L);
+    }
+
+    private static LocalLookupSnapshot of(
+        String version, List<AlcoholLookupSnapshotItem> items, long checkedAtMillis) {
+      return new LocalLookupSnapshot(version, List.copyOf(items), checkedAtMillis);
+    }
+
+    private boolean hasItems() {
+      return !items.isEmpty();
+    }
+
+    private boolean isFresh(long now, long checkIntervalMillis) {
+      return hasItems() && now - checkedAtMillis < Math.max(checkIntervalMillis, 0L);
+    }
+
+    private LocalLookupSnapshot checkedAt(long checkedAtMillis) {
+      return new LocalLookupSnapshot(version, items, checkedAtMillis);
+    }
   }
 }

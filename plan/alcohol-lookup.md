@@ -183,3 +183,120 @@ FE 위스키 선택/세팅 컴포넌트에서 사용할 고속 조회 API를 추
 - 2026-05-23: Removed public `source=DATABASE` selection from lookup request/docs/tests after comparison. Redis miss fallback and snapshot sync DB projection remain.
 - 2026-05-23: Added experimental Redis snapshot normalized search text for local performance validation. API response shape remains unchanged; snapshot DTO/package boundary must be cleaned up in a follow-up.
 - 2026-05-23: Local k6 normalized snapshot validation completed with temporary `/tmp` scripts only. Redis snapshot payload size was 2,243,998 bytes. Normalized no-sync load p95/p99 was 118ms/129ms with 0% failure. Normalized stress processed 20,166 requests with 1.98% failure and p99 timeout, so spike remains skipped.
+
+## Performance Improvement Pilot 2
+
+### Context
+
+Redis category/region/distillery pre-bucket pilot is treated as failed. The observed improvement was too small, p95 did not improve, and p99 remained dominated by timeout tails under local runtime saturation. The pilot is rolled back and should not be used as the next optimization baseline.
+
+RediSearch, Redis Stack, OpenSearch, Meilisearch, Typesense, or any additional infrastructure component is out of scope for this phase. The next phase compares two in-process/Redis-only approaches:
+
+- Redis token inverted index: Redis remains the primary lookup snapshot source, but keyword tokens are indexed as `token -> alcoholId` sets.
+- App parsed snapshot cache: Redis remains the cross-pod source of truth, while each pod keeps a parsed in-memory lookup view with version/epoch validation.
+
+Two production pods must be considered for cache consistency, warm-up, and rolling deployment behavior. Moderate Spring Boot/Tomcat setting changes are allowed when they are validated separately from lookup algorithm changes.
+
+### Pilot Success Criteria
+
+- Both pilots preserve the current `/api/v1/alcohols/lookup` and `/admin/api/v1/alcohols/lookup` response shape.
+- Both pilots can be enabled/disabled independently by configuration.
+- k6 comparison captures p95, p99, error rate, throughput, Redis command count/latency, JVM allocation/GC, and Tomcat busy threads/connections.
+- Test cases include `macallan`, `맥캘란`, `macallan speyside`, no-match, empty keyword, large cursor, `pageSize=100`, category, regionId, distilleryId, and mixed filters.
+- Two-pod behavior is documented: sync race, cache version mismatch, stale-read window, startup warm-up, and Redis miss fallback.
+
+### Task 9: Redis token inverted index pilot
+- Acceptance: Snapshot sync writes item hash plus token index sets for normalized keyword tokens.
+- Acceptance: Lookup intersects keyword token sets and optional filter sets before hydrating items, without public API contract changes.
+- Acceptance: Feature flag allows falling back to current normalized snapshot scan path.
+- Verification: `./gradlew :bottlenote-mono:test --tests '*AlcoholLookupServiceTest*' :bottlenote-product-api:compileJava :bottlenote-admin-api:compileKotlin`
+- Files: `AlcoholLookupSnapshotStore.java`, `RedisAlcoholLookupSnapshotStore.java`, `AlcoholLookupService.java`, lookup service tests and fixtures
+- Size: M
+- Status: [x] done
+
+### Task 10: App parsed snapshot cache pilot
+- Acceptance: Each app pod can keep a parsed lookup snapshot/index in memory while Redis remains the shared source of truth.
+- Acceptance: Cache refresh uses a Redis snapshot version/epoch so two pods can detect staleness independently.
+- Acceptance: Feature flag allows disabling app memory cache and returning to Redis-only serving.
+- Verification: `./gradlew :bottlenote-mono:test --tests '*AlcoholLookupServiceTest*' :bottlenote-product-api:compileJava :bottlenote-admin-api:compileKotlin`
+- Files: `AlcoholLookupService.java`, snapshot store contract if version is added, lookup cache component, tests and fixtures
+- Size: M
+- Status: [x] done
+
+### Task 11: Lookup runtime tuning profile
+- Acceptance: Lookup performance test profile documents the exact Tomcat and Redis client settings used for local validation.
+- Acceptance: Any `application.yml` tuning is separated from algorithm changes and can be reverted independently.
+- Acceptance: Metrics needed to distinguish server saturation from lookup cost are exposed or documented.
+- Verification: `./gradlew :bottlenote-product-api:compileJava :bottlenote-admin-api:compileKotlin`
+- Files: product/admin resource configuration or profile-specific configuration, plan notes
+- Size: S
+- Status: [x] done
+
+### Checkpoint: after Tasks 9-11
+- [x] Redis token index pilot and app cache pilot compile independently.
+- [x] Both pilots are config-gated.
+- [x] Local smoke confirms lookup HTTP 200 without changing response shape.
+
+### Task 12: k6 comparison matrix and raw result collection
+- Acceptance: Local-only k6 scripts compare baseline normalized scan, Redis token index, and app parsed cache under identical scenarios.
+- Acceptance: Runs include non-saturated VU levels and saturated VU levels so algorithm cost and Tomcat saturation are separated.
+- Acceptance: Raw k6 output remains outside the repository under `/tmp`.
+- Verification: `/tmp` k6 summary files exist for each source/scenario and include p95/p99/error/http_reqs.
+- Files: plan notes only; k6 scripts/results are not committed
+- Size: S
+- Status: [x] done
+
+### Task 13: Two-pod consistency and rollout analysis
+- Acceptance: Document how two pods behave during snapshot refresh, rolling deploy, cache cold start, and Redis snapshot version changes.
+- Acceptance: Identify failure modes where pod A and pod B serve different snapshot versions and define acceptable stale-read window.
+- Acceptance: Decide whether pub/sub, polling, TTL, or request-time version check is the preferred invalidation strategy.
+- Verification: plan update with decision table and operational recommendation
+- Files: `plan/alcohol-lookup.md` and external performance document if needed
+- Size: S
+- Status: [x] done
+
+### Task 14: Final recommendation and cleanup
+- Acceptance: Compare baseline, token index, and app cache using the same metric table.
+- Acceptance: Choose one serving strategy or document why both should be abandoned.
+- Acceptance: Remove losing pilot code paths before PR finalization unless explicitly kept as feature-flagged experimental code.
+- Verification: `./gradlew check_rule_test unit_test integration_test admin_integration_test :bottlenote-admin-api:test asciidoctor`
+- Files: implementation files from winning strategy, tests, docs, plan
+- Size: M
+- Status: [ ] not done
+
+### Pilot 2 Result Summary
+
+Local-only k6 artifacts are stored under `/tmp` and are not committed. The comparison used product API `http://127.0.0.1:18080`, local Redis `localhost:26379`, development DB from `.env`, and `lookup-perf` profile with Tomcat `threads.max=64`, `max-connections=512`.
+
+| Mode | VU | Duration | http_reqs | fail | avg | p95 | p99 | max |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Baseline normalized scan | 30 | 45s | 7,517 | 0% | 78.8ms | 100.0ms | 172.2ms | 433.6ms |
+| Redis token prefix index | 30 | 45s | 7,980 | 0% | 68.1ms | 108.0ms | 139.2ms | 220.0ms |
+| App parsed snapshot cache | 30 | 45s | 8,278 | 0% | 62.3ms | 77.0ms | 88.4ms | 632.9ms |
+
+Additional 15 VU runs without p99 summary showed the same direction: local cache had the lowest p95 and highest request count, while token prefix index improved throughput but did not consistently improve p95.
+
+### Two-Pod Operational Decision
+
+| Concern | Redis token prefix index | App parsed snapshot cache |
+| --- | --- | --- |
+| Cross-pod consistency | Shared Redis index, consistent after sync completes | Each pod has its own memory view |
+| Stale-read window | Redis snapshot sync window only | `version-check-interval-ms` plus sync window |
+| Warm-up | None beyond Redis index availability | First request per pod hydrates parsed snapshot |
+| Rolling deploy | Stateless app path | New pod starts cold and hydrates on first lookup |
+| Failure fallback | Missing index key falls back to full snapshot scan | Cache refresh failure falls back to DB through existing path |
+| Current result | Moderate p99 improvement, p95 mixed | Best p95/p99 and throughput |
+
+Recommendation: keep Redis snapshot as the shared source of truth and use app parsed snapshot cache as the winning serving strategy. For two pods, set `ALCOHOL_LOOKUP_LOCAL_CACHE_VERSION_CHECK_INTERVAL_MS` to a small value such as `1000` during the pilot. This allows up to about one second of pod-to-pod lookup version skew after Redis snapshot version changes, which is acceptable for this lookup use case because rating/like/review counts are excluded.
+
+Redis token prefix index write is also guarded by `alcohol.lookup.token-index.enabled`. This prevents the losing/experimental token index from increasing 5-minute snapshot sync cost when only local cache is being evaluated.
+
+## Pilot 2 Progress Log
+
+- 2026-05-23: Implemented Redis token prefix index pilot behind `ALCOHOL_LOOKUP_TOKEN_INDEX_ENABLED`.
+- 2026-05-23: Implemented app parsed snapshot cache pilot behind `ALCOHOL_LOOKUP_LOCAL_CACHE_ENABLED`.
+- 2026-05-23: Added Redis snapshot version key for per-pod local cache invalidation.
+- 2026-05-23: Added `lookup-perf` profile for local-only Tomcat tuning: `LOOKUP_PERF_TOMCAT_THREADS_MAX`, `LOOKUP_PERF_TOMCAT_MAX_CONNECTIONS`, `LOOKUP_PERF_TOMCAT_CONNECTION_TIMEOUT`.
+- 2026-05-23: Local k6 results collected under `/tmp`; no k6 scripts or raw outputs are committed.
+- 2026-05-23: Verification passed: `./gradlew :bottlenote-mono:test --tests '*AlcoholLookupServiceTest*' :bottlenote-product-api:compileJava :bottlenote-admin-api:compileKotlin`.
+- 2026-05-23: Verification passed after final token-index write guard: `git diff --check && ./gradlew check_rule_test unit_test integration_test admin_integration_test :bottlenote-admin-api:test asciidoctor` in 9m 24s.
