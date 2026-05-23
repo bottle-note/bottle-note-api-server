@@ -89,7 +89,7 @@ schedules:
 alcohol:
   lookup:
     local-cache:
-      enabled: ${ALCOHOL_LOOKUP_LOCAL_CACHE_ENABLED:false}
+      enabled: ${ALCOHOL_LOOKUP_LOCAL_CACHE_ENABLED:true}
       version-check-interval-ms: ${ALCOHOL_LOOKUP_LOCAL_CACHE_VERSION_CHECK_INTERVAL_MS:1000}
 
 --- # default/local 프로파일 (동일 설정)

@@ -1,6 +1,7 @@
 package app.bottlenote.alcohols.scheduled;
 
 import app.bottlenote.alcohols.service.AlcoholLookupService;
+import app.bottlenote.alcohols.service.AlcoholLookupService.AlcoholLookupSyncResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -19,7 +20,9 @@ public class AlcoholLookupSyncScheduler {
 
   @Scheduled(cron = "${schedules.alcohol.lookup.sync.cron:0 */5 * * * *}")
   public void syncLookupSnapshot() {
-    int syncedCount = alcoholLookupService.syncSnapshot();
-    log.info("Alcohol lookup snapshot 동기화 완료: {}건", syncedCount);
+    AlcoholLookupSyncResult result = alcoholLookupService.syncSnapshot();
+    if (result.changed()) {
+      log.info("Alcohol lookup snapshot 동기화 완료: {}건", result.count());
+    }
   }
 }
