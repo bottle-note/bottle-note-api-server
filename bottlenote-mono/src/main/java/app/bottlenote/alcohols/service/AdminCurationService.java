@@ -3,6 +3,7 @@ package app.bottlenote.alcohols.service;
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.CURATION_ALCOHOL_NOT_INCLUDED;
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.CURATION_DUPLICATE_NAME;
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.CURATION_NOT_FOUND;
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.CURATION_REORDER_DUPLICATE_ID;
 import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.CURATION_ALCOHOL_ADDED;
 import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.CURATION_ALCOHOL_REMOVED;
 import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.CURATION_CREATED;
@@ -24,10 +25,15 @@ import app.bottlenote.alcohols.dto.response.AdminAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AdminCurationDetailResponse;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.global.dto.request.AdminBulkReorderRequest;
 import app.bottlenote.global.dto.response.AdminResultResponse;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -154,6 +160,33 @@ public class AdminCurationService {
   }
 
   @Transactional
+  public AdminResultResponse reorder(AdminBulkReorderRequest request) {
+    validateReorderIds(request.ids());
+
+    List<CurationKeyword> orderedCurations =
+        curationKeywordRepository.findAllOrderByDisplayOrderAsc();
+    Map<Long, CurationKeyword> curationById =
+        orderedCurations.stream()
+            .collect(Collectors.toMap(CurationKeyword::getId, Function.identity()));
+
+    Set<Long> requestedIds = new HashSet<>(request.ids());
+    List<CurationKeyword> reordered =
+        new ArrayList<>(
+            request.ids().stream().map(id -> findReorderTarget(curationById, id)).toList());
+    reordered.addAll(
+        orderedCurations.stream()
+            .filter(curation -> !requestedIds.contains(curation.getId()))
+            .toList());
+
+    List<Integer> slots =
+        orderedCurations.stream().map(CurationKeyword::getDisplayOrder).sorted().toList();
+    for (int i = 0; i < reordered.size(); i++) {
+      reordered.get(i).updateDisplayOrder(slots.get(i));
+    }
+    return AdminResultResponse.of(CURATION_DISPLAY_ORDER_UPDATED, null);
+  }
+
+  @Transactional
   public AdminResultResponse addAlcohols(Long curationId, AdminCurationAlcoholRequest request) {
     CurationKeyword curation =
         curationKeywordRepository
@@ -177,5 +210,20 @@ public class AdminCurationService {
 
     curation.removeAlcohol(alcoholId);
     return AdminResultResponse.of(CURATION_ALCOHOL_REMOVED, curationId);
+  }
+
+  private void validateReorderIds(List<Long> ids) {
+    if (new HashSet<>(ids).size() != ids.size()) {
+      throw new AlcoholException(CURATION_REORDER_DUPLICATE_ID);
+    }
+  }
+
+  private CurationKeyword findReorderTarget(
+      Map<Long, CurationKeyword> curationById, Long curationId) {
+    CurationKeyword curation = curationById.get(curationId);
+    if (curation == null) {
+      throw new AlcoholException(CURATION_NOT_FOUND);
+    }
+    return curation;
   }
 }

@@ -141,6 +141,21 @@ public class InMemoryRegionRepository implements RegionRepository {
   }
 
   @Override
+  public List<Region> findAllOrderBySortOrderAsc() {
+    return regions.stream()
+        .sorted(Comparator.comparing(Region::getSortOrder).thenComparing(Region::getId))
+        .toList();
+  }
+
+  @Override
+  public List<Region> findAllByParentIdOrderBySortOrderAsc(Long parentId) {
+    return regions.stream()
+        .filter(r -> r.getParent() != null && Objects.equals(r.getParent().getId(), parentId))
+        .sorted(Comparator.comparing(Region::getSortOrder).thenComparing(Region::getId))
+        .toList();
+  }
+
+  @Override
   public boolean existsAlcoholByRegionId(Long regionId) {
     return alcoholCountByRegion.getOrDefault(regionId, 0L) > 0;
   }

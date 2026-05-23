@@ -14,7 +14,9 @@ import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.exception.AlcoholExceptionCode;
 import app.bottlenote.alcohols.fixture.DistilleryTestFactory;
 import app.bottlenote.alcohols.fixture.InMemoryDistilleryRepository;
+import app.bottlenote.global.dto.request.AdminBulkReorderRequest;
 import app.bottlenote.global.dto.response.AdminResultResponse;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -291,6 +293,37 @@ class DistilleryServiceTest {
 
       assertThat(distilleryRepository.findById(result.targetId()).orElseThrow().getSortOrder())
           .isEqualTo(9999);
+    }
+
+    @Test
+    @DisplayName("bulk reorder는 요청 ID를 전체 증류소 목록의 맨 앞으로 재배치한다")
+    void reorderToFront_whenIdsRequested_updatesRelativeOrder() {
+      Distillery first =
+          distilleryRepository.save(
+              Distillery.builder().korName("기존 맨 앞").engName("First").sortOrder(1).build());
+      Distillery second =
+          distilleryRepository.save(
+              Distillery.builder().korName("두 번째").engName("Second").sortOrder(10).build());
+      Distillery third =
+          distilleryRepository.save(
+              Distillery.builder().korName("세 번째").engName("Third").sortOrder(20).build());
+      Distillery fourth =
+          distilleryRepository.save(
+              Distillery.builder().korName("네 번째").engName("Fourth").sortOrder(30).build());
+      Distillery fifth =
+          distilleryRepository.save(
+              Distillery.builder().korName("다섯 번째").engName("Fifth").sortOrder(40).build());
+
+      distilleryService.reorder(
+          new AdminBulkReorderRequest(
+              List.of(third.getId(), second.getId(), fifth.getId(), fourth.getId())));
+
+      List<Distillery> result = distilleryRepository.findAllOrderBySortOrderAsc();
+      assertThat(result)
+          .extracting(Distillery::getId)
+          .containsExactly(
+              third.getId(), second.getId(), fifth.getId(), fourth.getId(), first.getId());
+      assertThat(result).extracting(Distillery::getSortOrder).containsExactly(1, 10, 20, 30, 40);
     }
   }
 }

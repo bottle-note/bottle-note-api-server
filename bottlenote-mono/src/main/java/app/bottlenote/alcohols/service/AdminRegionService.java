@@ -8,6 +8,8 @@ import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.REGION_MAX_
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.REGION_NOT_FOUND;
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.REGION_PARENT_CYCLE;
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.REGION_PARENT_NOT_FOUND;
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.REGION_REORDER_DUPLICATE_ID;
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.REGION_REORDER_SCOPE_MISMATCH;
 import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.REGION_CREATED;
 import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.REGION_DELETED;
 import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.REGION_SORT_ORDER_UPDATED;
@@ -20,8 +22,16 @@ import app.bottlenote.alcohols.dto.request.AdminRegionSortOrderRequest;
 import app.bottlenote.alcohols.dto.request.AdminRegionUpdateRequest;
 import app.bottlenote.alcohols.dto.response.AdminRegionDetailResponse;
 import app.bottlenote.alcohols.exception.AlcoholException;
+import app.bottlenote.alcohols.exception.AlcoholExceptionCode;
+import app.bottlenote.global.dto.request.AdminBulkReorderRequest;
 import app.bottlenote.global.dto.response.AdminResultResponse;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -142,6 +152,27 @@ public class AdminRegionService {
     return AdminResultResponse.of(REGION_SORT_ORDER_UPDATED, regionId);
   }
 
+  @Transactional
+  public AdminResultResponse reorder(AdminBulkReorderRequest request) {
+    validateReorderIds(request.ids());
+    reorderInScope(request.ids(), regionRepository.findAllOrderBySortOrderAsc(), REGION_NOT_FOUND);
+    return AdminResultResponse.of(REGION_SORT_ORDER_UPDATED, null);
+  }
+
+  @Transactional
+  public AdminResultResponse reorderChildren(Long parentId, AdminBulkReorderRequest request) {
+    validateReorderIds(request.ids());
+    regionRepository
+        .findById(parentId)
+        .orElseThrow(() -> new AlcoholException(REGION_PARENT_NOT_FOUND));
+
+    reorderInScope(
+        request.ids(),
+        regionRepository.findAllByParentIdOrderBySortOrderAsc(parentId),
+        REGION_REORDER_SCOPE_MISMATCH);
+    return AdminResultResponse.of(REGION_SORT_ORDER_UPDATED, parentId);
+  }
+
   private void validateUniqueNames(String korName, String engName, Long excludeId) {
     boolean korDuplicated =
         excludeId == null
@@ -198,5 +229,37 @@ public class AdminRegionService {
     conflicting.stream()
         .filter(r -> excludeRegionId == null || !r.getId().equals(excludeRegionId))
         .forEach(r -> r.updateSortOrder(r.getSortOrder() + 1));
+  }
+
+  private void validateReorderIds(List<Long> ids) {
+    if (new HashSet<>(ids).size() != ids.size()) {
+      throw new AlcoholException(REGION_REORDER_DUPLICATE_ID);
+    }
+  }
+
+  private void reorderInScope(
+      List<Long> ids, List<Region> orderedRegions, AlcoholExceptionCode notFoundCode) {
+    Map<Long, Region> regionById =
+        orderedRegions.stream().collect(Collectors.toMap(Region::getId, Function.identity()));
+    Set<Long> requestedIds = new HashSet<>(ids);
+    List<Region> reordered =
+        new ArrayList<>(
+            ids.stream().map(id -> findReorderTarget(regionById, id, notFoundCode)).toList());
+    reordered.addAll(
+        orderedRegions.stream().filter(region -> !requestedIds.contains(region.getId())).toList());
+
+    List<Integer> slots = orderedRegions.stream().map(Region::getSortOrder).sorted().toList();
+    for (int i = 0; i < reordered.size(); i++) {
+      reordered.get(i).updateSortOrder(slots.get(i));
+    }
+  }
+
+  private Region findReorderTarget(
+      Map<Long, Region> regionById, Long regionId, AlcoholExceptionCode notFoundCode) {
+    Region region = regionById.get(regionId);
+    if (region == null) {
+      throw new AlcoholException(notFoundCode);
+    }
+    return region;
   }
 }

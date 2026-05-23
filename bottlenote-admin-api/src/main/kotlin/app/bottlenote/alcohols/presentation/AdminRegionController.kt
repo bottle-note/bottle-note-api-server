@@ -7,6 +7,7 @@ import app.bottlenote.alcohols.dto.request.AdminRegionUpdateRequest
 import app.bottlenote.alcohols.service.AdminRegionService
 import app.bottlenote.alcohols.service.AlcoholReferenceService
 import app.bottlenote.global.data.response.GlobalResponse
+import app.bottlenote.global.dto.request.AdminBulkReorderRequest
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -57,4 +58,15 @@ class AdminRegionController(
 		@PathVariable regionId: Long,
 		@RequestBody @Valid request: AdminRegionSortOrderRequest
 	): ResponseEntity<*> = GlobalResponse.ok(adminRegionService.updateSortOrder(regionId, request))
+
+	@PatchMapping("/bulk/reorder")
+	fun reorder(
+		@RequestBody @Valid request: AdminBulkReorderRequest
+	): ResponseEntity<*> = GlobalResponse.ok(adminRegionService.reorder(request))
+
+	@PatchMapping("/{parentId}/children/bulk/reorder")
+	fun reorderChildren(
+		@PathVariable parentId: Long,
+		@RequestBody @Valid request: AdminBulkReorderRequest
+	): ResponseEntity<*> = GlobalResponse.ok(adminRegionService.reorderChildren(parentId, request))
 }
