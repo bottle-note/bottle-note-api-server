@@ -88,8 +88,6 @@ schedules:
 
 alcohol:
   lookup:
-    token-index:
-      enabled: ${ALCOHOL_LOOKUP_TOKEN_INDEX_ENABLED:false}
     local-cache:
       enabled: ${ALCOHOL_LOOKUP_LOCAL_CACHE_ENABLED:false}
       version-check-interval-ms: ${ALCOHOL_LOOKUP_LOCAL_CACHE_VERSION_CHECK_INTERVAL_MS:1000}
