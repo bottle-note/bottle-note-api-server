@@ -27,9 +27,6 @@ public class AlcoholLookupService {
   private final AtomicReference<LocalLookupSnapshot> localSnapshot =
       new AtomicReference<>(LocalLookupSnapshot.empty());
 
-  @Value("${alcohol.lookup.token-index.enabled:false}")
-  private boolean tokenIndexEnabled;
-
   @Value("${alcohol.lookup.local-cache.enabled:false}")
   private boolean localCacheEnabled;
 
@@ -41,30 +38,18 @@ public class AlcoholLookupService {
     if (localCacheEnabled) {
       return filterAndSlice(findLocalCachedItemsWithFallback(), request);
     }
-    if (tokenIndexEnabled) {
-      Optional<List<AlcoholLookupSnapshotItem>> indexedItems = findRedisIndexedItems(request);
-      if (indexedItems.isPresent()) {
-        return filterAndSlice(indexedItems.get(), request);
-      }
-    }
     return filterAndSlice(findRedisItemsWithFallback(), request);
   }
 
   @Transactional(readOnly = true)
   public int syncSnapshot() {
     List<AlcoholLookupSnapshotItem> items = findDatabaseItems();
+    if (items.isEmpty()) {
+      log.warn("Alcohol lookup DB 원천 데이터가 0건이라 Redis snapshot 갱신을 건너뜁니다.");
+      return 0;
+    }
     snapshotStore.replaceAll(items);
     return items.size();
-  }
-
-  private Optional<List<AlcoholLookupSnapshotItem>> findRedisIndexedItems(
-      AlcoholLookupRequest request) {
-    try {
-      return snapshotStore.findIndexed(request);
-    } catch (Exception e) {
-      log.warn("Alcohol lookup Redis token index 조회 실패. full snapshot 경로를 사용합니다.", e);
-      return Optional.empty();
-    }
   }
 
   private List<AlcoholLookupSnapshotItem> findLocalCachedItemsWithFallback() {
@@ -88,9 +73,14 @@ public class AlcoholLookupService {
         localSnapshot.set(LocalLookupSnapshot.of(redisVersion.orElse("unversioned"), items, now));
         return items;
       }
-      log.info("Alcohol lookup Redis snapshot이 비어 있어 DB fallback 경로를 사용합니다.");
+      log.info("Alcohol lookup Redis snapshot이 비어 있어 fallback 경로를 사용합니다.");
     } catch (Exception e) {
-      log.warn("Alcohol lookup local cache 갱신 실패. DB fallback 경로를 사용합니다.", e);
+      log.warn("Alcohol lookup local cache 갱신 실패. fallback 경로를 사용합니다.", e);
+    }
+    if (cached.hasItems()) {
+      localSnapshot.set(cached.checkedAt(now));
+      log.warn("Alcohol lookup stale local cache를 사용합니다. Redis/DB 부하 보호를 우선합니다.");
+      return cached.items();
     }
     return findDatabaseItems();
   }

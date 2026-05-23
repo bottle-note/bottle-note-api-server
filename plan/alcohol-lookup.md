@@ -262,7 +262,7 @@ Two production pods must be considered for cache consistency, warm-up, and rolli
 - Verification: `./gradlew check_rule_test unit_test integration_test admin_integration_test :bottlenote-admin-api:test asciidoctor`
 - Files: implementation files from winning strategy, tests, docs, plan
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Pilot 2 Result Summary
 
@@ -289,7 +289,13 @@ Additional 15 VU runs without p99 summary showed the same direction: local cache
 
 Recommendation: keep Redis snapshot as the shared source of truth and use app parsed snapshot cache as the winning serving strategy. For two pods, set `ALCOHOL_LOOKUP_LOCAL_CACHE_VERSION_CHECK_INTERVAL_MS` to a small value such as `1000` during the pilot. This allows up to about one second of pod-to-pod lookup version skew after Redis snapshot version changes, which is acceptable for this lookup use case because rating/like/review counts are excluded.
 
-Redis token prefix index write is also guarded by `alcohol.lookup.token-index.enabled`. This prevents the losing/experimental token index from increasing 5-minute snapshot sync cost when only local cache is being evaluated.
+Redis token prefix index/pre-bucket code paths were removed before development server rollout because the local result did not justify the Redis key complexity or rebuild-window risk.
+
+### Development Server Hardening Decision
+
+- Redis 장애 또는 local cache refresh 실패 시, 기존 local cache가 있으면 DB fallback보다 stale local cache를 먼저 사용한다. 목적은 Redis 장애가 DB 장애로 전파되는 것을 막는 것이다.
+- Snapshot sync에서 DB 원천 조회 결과가 0건이면 Redis snapshot을 덮어쓰지 않는다. 목적은 일시적 DB/쿼리 이상이 전체 lookup 결과 삭제처럼 보이는 상황을 막는 것이다.
+- 다중 Pod scheduler 충돌 방지는 이번 development rollout 전 필수 항목에서 제외한다. 현재 full snapshot last-write-wins 구조이며, development/stage에서 local cache 동작과 장애 fallback을 먼저 검증한다.
 
 ## Pilot 2 Progress Log
 
@@ -300,3 +306,6 @@ Redis token prefix index write is also guarded by `alcohol.lookup.token-index.en
 - 2026-05-23: Local k6 results collected under `/tmp`; no k6 scripts or raw outputs are committed.
 - 2026-05-23: Verification passed: `./gradlew :bottlenote-mono:test --tests '*AlcoholLookupServiceTest*' :bottlenote-product-api:compileJava :bottlenote-admin-api:compileKotlin`.
 - 2026-05-23: Verification passed after final token-index write guard: `git diff --check && ./gradlew check_rule_test unit_test integration_test admin_integration_test :bottlenote-admin-api:test asciidoctor` in 9m 24s.
+- 2026-05-23: Removed Redis token prefix index/pre-bucket code paths and environment flag before development server rollout.
+- 2026-05-23: Added development rollout hardening: stale local cache before DB fallback, and skip Redis snapshot overwrite when DB source returns 0 lookup items.
+- 2026-05-23: Verification passed for development rollout hardening: `git diff --check && ./gradlew :bottlenote-mono:test --tests '*AlcoholLookupServiceTest*' :bottlenote-product-api:compileJava :bottlenote-admin-api:compileKotlin` in 5s.
