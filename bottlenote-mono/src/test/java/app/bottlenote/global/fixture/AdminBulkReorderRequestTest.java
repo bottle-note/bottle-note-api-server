@@ -1,7 +1,8 @@
-package app.bottlenote.global.dto.request;
+package app.bottlenote.global.fixture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.bottlenote.global.dto.request.AdminBulkReorderRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
