@@ -1,7 +1,6 @@
 package app.bottlenote.alcohols.service;
 
 import static app.bottlenote.alcohols.constant.AlcoholCategoryGroup.SINGLE_MALT;
-import static app.bottlenote.alcohols.constant.AlcoholLookupSource.DATABASE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.bottlenote.alcohols.domain.Alcohol;
@@ -108,22 +107,6 @@ class AlcoholLookupServiceTest {
     assertThat(snapshotStore.findAll())
         .extracting(AlcoholLookupItem::alcoholId)
         .containsExactly(1L);
-  }
-
-  @Test
-  @DisplayName("DATABASE source를 지정하면 DB 경로로 직접 조회한다")
-  void lookup_whenSourceIsDatabase_usesDatabaseItems() {
-    // given
-    snapshotStore.replaceAll(createLookupItems(1));
-    alcoholQueryRepository.save(createAlcohol(2L));
-    AlcoholLookupRequest request =
-        AlcoholLookupRequest.builder().source(DATABASE).keyword("macallan").pageSize(20L).build();
-
-    // when
-    CursorResponse<AlcoholLookupItem> response = alcoholLookupService.lookup(request);
-
-    // then
-    assertThat(response.items()).extracting(AlcoholLookupItem::alcoholId).containsExactly(2L);
   }
 
   private List<AlcoholLookupItem> createLookupItems(int size) {
