@@ -125,7 +125,10 @@ public class DistilleryService {
   public AdminResultResponse reorder(AdminBulkReorderRequest request) {
     validateReorderIds(request.ids());
 
-    List<Distillery> orderedDistilleries = distilleryRepository.findAllOrderBySortOrderAsc();
+    List<Distillery> orderedDistilleries =
+        distilleryRepository.findAllOrderBySortOrderAsc().stream()
+            .filter(distillery -> !Long.valueOf(0L).equals(distillery.getId()))
+            .toList();
     Map<Long, Distillery> distilleryById =
         orderedDistilleries.stream()
             .collect(Collectors.toMap(Distillery::getId, Function.identity()));
@@ -139,10 +142,8 @@ public class DistilleryService {
             .filter(distillery -> !requestedIds.contains(distillery.getId()))
             .toList());
 
-    List<Integer> slots =
-        orderedDistilleries.stream().map(Distillery::getSortOrder).sorted().toList();
     for (int i = 0; i < reordered.size(); i++) {
-      reordered.get(i).updateSortOrder(slots.get(i));
+      reordered.get(i).updateSortOrder(i + 1);
     }
     return AdminResultResponse.of(DISTILLERY_SORT_ORDER_UPDATED, null);
   }

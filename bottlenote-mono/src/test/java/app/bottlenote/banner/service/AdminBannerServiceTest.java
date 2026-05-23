@@ -46,7 +46,7 @@ class AdminBannerServiceTest {
         .extracting(Banner::getId)
         .containsExactly(
             third.getId(), second.getId(), fifth.getId(), fourth.getId(), first.getId());
-    assertThat(result).extracting(Banner::getSortOrder).containsExactly(1, 10, 20, 30, 40);
+    assertThat(result).extracting(Banner::getSortOrder).containsExactly(1, 2, 3, 4, 5);
   }
 
   @Test
