@@ -1,11 +1,11 @@
 package app.bottlenote.alcohols.domain;
 
-import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
+import app.bottlenote.alcohols.dto.response.AlcoholLookupSnapshotItem;
 import java.util.List;
 
 public interface AlcoholLookupSnapshotStore {
 
-  List<AlcoholLookupItem> findAll();
+  List<AlcoholLookupSnapshotItem> findAll();
 
-  void replaceAll(List<AlcoholLookupItem> items);
+  void replaceAll(List<AlcoholLookupSnapshotItem> items);
 }

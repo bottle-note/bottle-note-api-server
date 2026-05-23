@@ -8,6 +8,7 @@ import app.bottlenote.alcohols.domain.Distillery;
 import app.bottlenote.alcohols.domain.Region;
 import app.bottlenote.alcohols.dto.request.AlcoholLookupRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
+import app.bottlenote.alcohols.dto.response.AlcoholLookupSnapshotItem;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholLookupSnapshotStore;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholQueryRepository;
 import app.bottlenote.global.service.cursor.CursorResponse;
@@ -37,7 +38,7 @@ class AlcoholLookupServiceTest {
   @DisplayName("20,000건 lookup snapshot에서 검색 조건을 적용해 cursor 페이지를 반환한다")
   void lookup_whenSnapshotHas20000Items_returnsFilteredCursorPage() {
     // given
-    snapshotStore.replaceAll(createLookupItems(20_000));
+    snapshotStore.replaceAll(createLookupSnapshotItems(20_000));
     AlcoholLookupRequest request =
         AlcoholLookupRequest.builder()
             .keyword("macallan speyside")
@@ -65,8 +66,9 @@ class AlcoholLookupServiceTest {
     // given
     snapshotStore.replaceAll(
         List.of(
-            lookupItem(1L, "맥캘란 12년", "Macallan 12", "스페이사이드", "Speyside", "맥캘란", "Macallan"),
-            lookupItem(
+            lookupSnapshotItem(
+                1L, "맥캘란 12년", "Macallan 12", "스페이사이드", "Speyside", "맥캘란", "Macallan"),
+            lookupSnapshotItem(
                 2L, "글렌피딕 12년", "Glenfiddich 12", "스페이사이드", "Speyside", "글렌피딕", "Glenfiddich")));
     AlcoholLookupRequest request =
         AlcoholLookupRequest.builder().keyword("macallan speyside").pageSize(20L).build();
@@ -105,20 +107,22 @@ class AlcoholLookupServiceTest {
     // then
     assertThat(syncedCount).isEqualTo(1);
     assertThat(snapshotStore.findAll())
-        .extracting(AlcoholLookupItem::alcoholId)
+        .extracting(AlcoholLookupSnapshotItem::alcoholId)
         .containsExactly(1L);
+    assertThat(snapshotStore.findAll().get(0).normalizedSearchText())
+        .contains("macallan", "speyside", "single_malt");
   }
 
-  private List<AlcoholLookupItem> createLookupItems(int size) {
+  private List<AlcoholLookupSnapshotItem> createLookupSnapshotItems(int size) {
     return LongStream.rangeClosed(1, size)
         .mapToObj(
             id ->
-                lookupItem(
+                lookupSnapshotItem(
                     id, "맥캘란 " + id, "Macallan " + id, "스페이사이드", "Speyside", "맥캘란", "Macallan"))
         .toList();
   }
 
-  private AlcoholLookupItem lookupItem(
+  private AlcoholLookupSnapshotItem lookupSnapshotItem(
       Long alcoholId,
       String korName,
       String engName,
@@ -126,20 +130,21 @@ class AlcoholLookupServiceTest {
       String engRegion,
       String korDistillery,
       String engDistillery) {
-    return new AlcoholLookupItem(
-        alcoholId,
-        korName,
-        engName,
-        "싱글몰트",
-        "Single Malt",
-        SINGLE_MALT,
-        1L,
-        korRegion,
-        engRegion,
-        10L,
-        korDistillery,
-        engDistillery,
-        "https://example.com/alcohol.png");
+    return AlcoholLookupSnapshotItem.from(
+        new AlcoholLookupItem(
+            alcoholId,
+            korName,
+            engName,
+            "싱글몰트",
+            "Single Malt",
+            SINGLE_MALT,
+            1L,
+            korRegion,
+            engRegion,
+            10L,
+            korDistillery,
+            engDistillery,
+            "https://example.com/alcohol.png"));
   }
 
   private Alcohol createAlcohol(Long alcoholId) {
