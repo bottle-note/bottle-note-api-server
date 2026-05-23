@@ -285,7 +285,7 @@ class AdminRegionServiceTest {
           .extracting(Region::getId)
           .containsExactly(
               third.getId(), second.getId(), fifth.getId(), fourth.getId(), first.getId());
-      assertThat(result).extracting(Region::getSortOrder).containsExactly(1, 10, 20, 30, 40);
+      assertThat(result).extracting(Region::getSortOrder).containsExactly(1, 2, 3, 4, 5);
     }
 
     @Test
@@ -306,7 +306,7 @@ class AdminRegionServiceTest {
       assertThat(result)
           .extracting(Region::getId)
           .containsExactly(third.getId(), second.getId(), first.getId(), fourth.getId());
-      assertThat(result).extracting(Region::getSortOrder).containsExactly(1, 10, 20, 30);
+      assertThat(result).extracting(Region::getSortOrder).containsExactly(1, 2, 3, 4);
       assertThat(regionRepository.findById(otherChild.getId()).orElseThrow().getSortOrder())
           .isEqualTo(5);
     }

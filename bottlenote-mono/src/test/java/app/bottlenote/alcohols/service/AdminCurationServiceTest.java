@@ -33,24 +33,22 @@ class AdminCurationServiceTest {
   @Test
   @DisplayName("요청 ID가 주어졌을 때 전체 큐레이션 목록의 맨 앞으로 재배치한다")
   void reorderToFront_whenIdsRequested_updatesRelativeOrder() {
-    CurationKeyword first = saveCuration("기존 맨 앞", 1);
-    CurationKeyword second = saveCuration("두 번째", 10);
-    CurationKeyword third = saveCuration("세 번째", 20);
-    CurationKeyword fourth = saveCuration("네 번째", 30);
-    CurationKeyword fifth = saveCuration("다섯 번째", 40);
+    CurationKeyword first = saveCuration("기존 맨 앞", 0);
+    CurationKeyword second = saveCuration("두 번째", 1);
+    CurationKeyword third = saveCuration("세 번째", 1);
+    CurationKeyword fourth = saveCuration("네 번째", 1);
+    CurationKeyword fifth = saveCuration("다섯 번째", 20);
 
     adminCurationService.reorder(
         new AdminBulkReorderRequest(
-            List.of(third.getId(), second.getId(), fifth.getId(), fourth.getId())));
+            List.of(third.getId(), first.getId(), fourth.getId(), second.getId())));
 
     List<CurationKeyword> result = curationKeywordRepository.findAllOrderByDisplayOrderAsc();
     assertThat(result)
         .extracting(CurationKeyword::getId)
         .containsExactly(
-            third.getId(), second.getId(), fifth.getId(), fourth.getId(), first.getId());
-    assertThat(result)
-        .extracting(CurationKeyword::getDisplayOrder)
-        .containsExactly(1, 10, 20, 30, 40);
+            third.getId(), first.getId(), fourth.getId(), second.getId(), fifth.getId());
+    assertThat(result).extracting(CurationKeyword::getDisplayOrder).containsExactly(1, 2, 3, 4, 5);
   }
 
   @Test

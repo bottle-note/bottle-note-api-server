@@ -178,10 +178,8 @@ public class AdminCurationService {
             .filter(curation -> !requestedIds.contains(curation.getId()))
             .toList());
 
-    List<Integer> slots =
-        orderedCurations.stream().map(CurationKeyword::getDisplayOrder).sorted().toList();
     for (int i = 0; i < reordered.size(); i++) {
-      reordered.get(i).updateDisplayOrder(slots.get(i));
+      reordered.get(i).updateDisplayOrder(i + 1);
     }
     return AdminResultResponse.of(CURATION_DISPLAY_ORDER_UPDATED, null);
   }

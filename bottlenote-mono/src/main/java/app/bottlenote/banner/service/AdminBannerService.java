@@ -203,9 +203,8 @@ public class AdminBannerService {
     reordered.addAll(
         orderedBanners.stream().filter(banner -> !requestedIds.contains(banner.getId())).toList());
 
-    List<Integer> slots = orderedBanners.stream().map(Banner::getSortOrder).sorted().toList();
     for (int i = 0; i < reordered.size(); i++) {
-      reordered.get(i).updateSortOrder(slots.get(i));
+      reordered.get(i).updateSortOrder(i + 1);
     }
     return AdminResultResponse.of(BANNER_SORT_ORDER_UPDATED, null);
   }

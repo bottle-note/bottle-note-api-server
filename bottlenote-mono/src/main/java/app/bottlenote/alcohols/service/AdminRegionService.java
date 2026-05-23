@@ -248,9 +248,8 @@ public class AdminRegionService {
     reordered.addAll(
         orderedRegions.stream().filter(region -> !requestedIds.contains(region.getId())).toList());
 
-    List<Integer> slots = orderedRegions.stream().map(Region::getSortOrder).sorted().toList();
     for (int i = 0; i < reordered.size(); i++) {
-      reordered.get(i).updateSortOrder(slots.get(i));
+      reordered.get(i).updateSortOrder(i + 1);
     }
   }
 

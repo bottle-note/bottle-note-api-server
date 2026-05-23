@@ -22,6 +22,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @Tag("unit")
 @DisplayName("DistilleryService 단위 테스트")
@@ -323,7 +324,42 @@ class DistilleryServiceTest {
           .extracting(Distillery::getId)
           .containsExactly(
               third.getId(), second.getId(), fifth.getId(), fourth.getId(), first.getId());
-      assertThat(result).extracting(Distillery::getSortOrder).containsExactly(1, 10, 20, 30, 40);
+      assertThat(result).extracting(Distillery::getSortOrder).containsExactly(1, 2, 3, 4, 5);
+    }
+
+    @Test
+    @DisplayName("id 0 기본 증류소는 bulk reorder 범위에서 제외한다")
+    void reorder_whenDefaultDistilleryExists_excludesIdZero() {
+      Distillery defaultDistillery =
+          distilleryRepository.save(
+              Distillery.builder().korName("기본값").engName("Default").sortOrder(0).build());
+      ReflectionTestUtils.setField(defaultDistillery, "id", 0L);
+      Distillery first =
+          distilleryRepository.save(
+              Distillery.builder().korName("기존 맨 앞").engName("First").sortOrder(1).build());
+      Distillery second =
+          distilleryRepository.save(
+              Distillery.builder().korName("두 번째").engName("Second").sortOrder(1).build());
+      Distillery third =
+          distilleryRepository.save(
+              Distillery.builder().korName("세 번째").engName("Third").sortOrder(10).build());
+
+      distilleryService.reorder(
+          new AdminBulkReorderRequest(List.of(third.getId(), first.getId(), second.getId())));
+
+      assertThat(defaultDistillery.getSortOrder()).isZero();
+      assertThat(
+              distilleryRepository.findAllOrderBySortOrderAsc().stream()
+                  .filter(distillery -> !Long.valueOf(0L).equals(distillery.getId()))
+                  .toList())
+          .extracting(Distillery::getId)
+          .containsExactly(third.getId(), first.getId(), second.getId());
+      assertThat(
+              distilleryRepository.findAllOrderBySortOrderAsc().stream()
+                  .filter(distillery -> !Long.valueOf(0L).equals(distillery.getId()))
+                  .toList())
+          .extracting(Distillery::getSortOrder)
+          .containsExactly(1, 2, 3);
     }
 
     @Test
