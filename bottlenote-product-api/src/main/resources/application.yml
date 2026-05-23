@@ -150,9 +150,9 @@ logging:
 server:
   tomcat:
     threads:
-      max: 15
-    max-connections: 20
-    connection-timeout: 5000
+      max: 200
+    max-connections: 2000
+    connection-timeout: 30000
 
 --- # prod 프로파일 (운영 서버)
 spring:
