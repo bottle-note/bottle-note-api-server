@@ -96,6 +96,71 @@ class AlcoholLookupServiceTest {
   }
 
   @Test
+  @DisplayName("Redis token index가 활성화되면 indexed snapshot 후보군을 우선 사용한다")
+  void lookup_whenTokenIndexEnabled_usesIndexedSnapshotCandidates() {
+    // given
+    snapshotStore.replaceAll(createLookupSnapshotItems(20_000));
+    ReflectionTestUtils.setField(alcoholLookupService, "tokenIndexEnabled", true);
+    AlcoholLookupRequest request =
+        AlcoholLookupRequest.builder()
+            .keyword("macallan speyside")
+            .category("SINGLE_MALT")
+            .regionId(1L)
+            .distilleryId(10L)
+            .cursor(20L)
+            .pageSize(20L)
+            .build();
+
+    // when
+    CursorResponse<AlcoholLookupItem> response = alcoholLookupService.lookup(request);
+
+    // then
+    assertThat(response.items()).hasSize(20);
+    assertThat(response.items().get(0).alcoholId()).isEqualTo(21L);
+    assertThat(snapshotStore.findIndexedCount()).isEqualTo(1);
+    assertThat(snapshotStore.findAllCount()).isZero();
+  }
+
+  @Test
+  @DisplayName("Redis token index가 활성화되어도 부분 키워드 검색 의미를 유지한다")
+  void lookup_whenTokenIndexEnabledAndPartialKeyword_returnsMatchedItems() {
+    // given
+    snapshotStore.replaceAll(createLookupSnapshotItems(100));
+    ReflectionTestUtils.setField(alcoholLookupService, "tokenIndexEnabled", true);
+    AlcoholLookupRequest request =
+        AlcoholLookupRequest.builder().keyword("maca spey").pageSize(20L).build();
+
+    // when
+    CursorResponse<AlcoholLookupItem> response = alcoholLookupService.lookup(request);
+
+    // then
+    assertThat(response.items()).hasSize(20);
+    assertThat(response.items().get(0).alcoholId()).isEqualTo(1L);
+    assertThat(snapshotStore.findIndexedCount()).isEqualTo(1);
+    assertThat(snapshotStore.findAllCount()).isZero();
+  }
+
+  @Test
+  @DisplayName("local parsed cache가 활성화되면 같은 버전 snapshot을 재사용한다")
+  void lookup_whenLocalCacheEnabled_reusesParsedSnapshotWithinCheckInterval() {
+    // given
+    snapshotStore.replaceAll(createLookupSnapshotItems(100));
+    ReflectionTestUtils.setField(alcoholLookupService, "localCacheEnabled", true);
+    ReflectionTestUtils.setField(alcoholLookupService, "localCacheVersionCheckIntervalMs", 60_000L);
+    AlcoholLookupRequest request =
+        AlcoholLookupRequest.builder().keyword("macallan").pageSize(20L).build();
+
+    // when
+    alcoholLookupService.lookup(request);
+    CursorResponse<AlcoholLookupItem> response = alcoholLookupService.lookup(request);
+
+    // then
+    assertThat(response.items()).hasSize(20);
+    assertThat(snapshotStore.findAllCount()).isEqualTo(1);
+    assertThat(snapshotStore.findIndexedCount()).isZero();
+  }
+
+  @Test
   @DisplayName("DB 원천 데이터를 Redis snapshot으로 동기화한다")
   void syncSnapshot_savesDatabaseLookupItemsToSnapshotStore() {
     // given
