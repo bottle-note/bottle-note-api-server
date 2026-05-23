@@ -1,7 +1,5 @@
 package app.bottlenote.alcohols.service;
 
-import static app.bottlenote.alcohols.constant.AlcoholLookupSource.DATABASE;
-
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.domain.AlcoholLookupSnapshotStore;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
@@ -25,14 +23,7 @@ public class AlcoholLookupService {
 
   @Transactional(readOnly = true)
   public CursorResponse<AlcoholLookupItem> lookup(AlcoholLookupRequest request) {
-    List<AlcoholLookupItem> sourceItems =
-        request.source() == DATABASE ? findDatabaseItems() : findRedisItemsWithFallback();
-    return filterAndSlice(sourceItems, request);
-  }
-
-  @Transactional(readOnly = true)
-  public CursorResponse<AlcoholLookupItem> lookupFromDatabase(AlcoholLookupRequest request) {
-    return filterAndSlice(findDatabaseItems(), request);
+    return filterAndSlice(findRedisItemsWithFallback(), request);
   }
 
   @Transactional(readOnly = true)
@@ -66,7 +57,6 @@ public class AlcoholLookupService {
     long cursor = Math.max(request.cursor(), 0L);
     long pageSize = Math.max(request.pageSize(), 1L);
 
-    // k6 비교 기준: Redis와 DB 경로 모두 동일한 JVM stream 필터링 비용을 사용하고 I/O source만 분리한다.
     List<AlcoholLookupItem> page =
         items.stream()
             .filter(item -> matchesKeywords(item, keywords))

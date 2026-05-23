@@ -89,7 +89,6 @@ class AdminAlcoholsControllerDocsTest {
 				.param("category", AlcoholCategoryGroup.SINGLE_MALT.name)
 				.param("regionId", "1")
 				.param("distilleryId", "10")
-				.param("source", "REDIS")
 				.param("cursor", "0")
 				.param("pageSize", "20")
 		)
@@ -104,7 +103,6 @@ class AdminAlcoholsControllerDocsTest {
 						parameterWithName("category").optional().description("카테고리 그룹 필터. ALL 또는 미전달 시 전체"),
 						parameterWithName("regionId").optional().description("지역 ID 필터"),
 						parameterWithName("distilleryId").optional().description("증류소 ID 필터"),
-						parameterWithName("source").optional().description("조회 경로 (REDIS: 기본 snapshot 경로, DATABASE: k6 비교 검증용 DB 경로)"),
 						parameterWithName("cursor").optional().description("커서 위치 (기본값: 0)"),
 						parameterWithName("pageSize").optional().description("페이지 크기 (기본값: 20, 최대: 100)")
 					),
@@ -137,7 +135,6 @@ class AdminAlcoholsControllerDocsTest {
 						fieldWithPath("meta.searchParameters.category").type(JsonFieldType.STRING).description("카테고리 그룹 필터"),
 						fieldWithPath("meta.searchParameters.regionId").type(JsonFieldType.NUMBER).description("지역 ID 필터"),
 						fieldWithPath("meta.searchParameters.distilleryId").type(JsonFieldType.NUMBER).description("증류소 ID 필터"),
-						fieldWithPath("meta.searchParameters.source").type(JsonFieldType.STRING).description("조회 경로"),
 						fieldWithPath("meta.searchParameters.cursor").type(JsonFieldType.NUMBER).description("커서 위치"),
 						fieldWithPath("meta.searchParameters.pageSize").type(JsonFieldType.NUMBER).description("페이지 크기"),
 						fieldWithPath("meta.serverVersion").type(JsonFieldType.STRING).description("서버 버전").ignored(),

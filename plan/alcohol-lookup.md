@@ -6,7 +6,7 @@ FE 위스키 선택/세팅 컴포넌트에서 사용할 고속 조회 API를 추
 
 기존 `GET /api/v1/alcohols/search`는 일반 검색 화면까지 포함하는 무거운 조회 경로다. 신규 lookup API는 최대 20,000개 수준의 위스키 핵심 필드만 대상으로 하며, 별점, 좋아요, 리뷰 수, 사용자 pick 여부 같은 실시간 집계성 데이터는 제외한다.
 
-기본 아키텍처는 DB를 원천 데이터로 두고, Redis에 lookup snapshot을 주기적으로 동기화한 뒤, 요청 시 BE에서 snapshot을 읽어 메모리 stream 필터링과 cursor pagination을 수행하는 방식이다. DB 직접 조회 방식도 비교 검증 가능한 대체 경로로 준비한다. 실제 k6 기반 성능 검증 플랜과 측정은 다음 세션에서 별도로 진행한다.
+기본 아키텍처는 DB를 원천 데이터로 두고, Redis에 lookup snapshot을 주기적으로 동기화한 뒤, 요청 시 BE에서 snapshot을 읽어 메모리 stream 필터링과 cursor pagination을 수행하는 방식이다. DB 직접 조회 방식은 k6 비교 검증용 임시 경로로만 사용하고, 검증 후 외부 API 계약에서는 제거한다.
 
 ### Frontend Usage Findings
 
@@ -30,15 +30,15 @@ FE 위스키 선택/세팅 컴포넌트에서 사용할 고속 조회 API를 추
 - 페이지네이션은 cursor 기반을 기본으로 한다.
 - 최대 데이터 규모는 lookup 대상 20,000건으로 본다.
 - 일반 Redis만 사용 가능한 환경을 우선 가정하고, RediSearch는 이번 구현 범위에서 제외한다.
-- DB 직접 조회 방식은 운영 기본 경로가 아니라 k6 비교 검증을 위한 대체 경로로 준비한다.
+- DB 직접 조회 방식은 운영 기본 경로가 아니라 k6 비교 검증을 위한 임시 대체 경로로만 준비하고, 검증 후 외부 API 계약에서 제거한다.
 
 ### Success Criteria
 
 - `GET /api/v1/alcohols/lookup`이 `keyword`, `category`, `regionId`, `distilleryId`, `cursor`, `pageSize` 조건을 받아 cursor 기반 목록을 반환한다.
 - 응답 항목은 위스키 선택/세팅에 필요한 핵심 필드만 포함하고, 별점, 좋아요, 리뷰 수, pick 여부를 포함하지 않는다.
-- Redis snapshot 기반 조회 경로와 DB 직접 조회 경로가 동일한 검색 조건과 응답 모델을 공유한다.
+- Redis snapshot 기반 조회 경로가 기본 서빙 경로이며, Redis miss 또는 snapshot 부재 시 DB fallback을 수행한다.
 - Redis miss 또는 snapshot 부재 상황에서 정의된 fallback 동작이 있다.
-- 최대 20,000건 기준으로 k6 검증을 수행할 수 있도록 조회 경로 선택 기준과 측정 포인트가 문서 또는 코드 주석으로 남아 있다.
+- 최대 20,000건 기준으로 k6 검증을 수행하고, 외부 `source` 선택 경로는 검증 후 제거한다.
 - Product/Admin 양쪽에서 공통 `AlcoholLookupService`를 사용할 수 있다.
 - 기존 `/api/v1/alcohols/search`의 응답 계약과 동작은 변경하지 않는다.
 
@@ -103,7 +103,7 @@ FE 위스키 선택/세팅 컴포넌트에서 사용할 고속 조회 API를 추
 ### Task 3: Redis snapshot store와 fallback 경계 구현
 - Acceptance: lookup snapshot을 읽고 쓰는 저장소 경계가 생긴다.
 - Acceptance: Redis snapshot miss/empty 시 DB fallback을 호출할 수 있는 결과 흐름이 정의된다.
-- Acceptance: k6 비교를 위해 Redis snapshot 경로와 DB fallback 경로를 구분할 수 있는 코드 주석 또는 분기 기준이 남는다.
+- Acceptance: Redis snapshot miss/empty 시 DB fallback을 호출하되, 외부 API에서 DB source 선택은 노출하지 않는다.
 - Verification: `./gradlew :bottlenote-mono:compileJava`
 - Files: `bottlenote-mono/src/main/java/app/bottlenote/alcohols/repository/*` 또는 `global/redis/*`, 관련 fake/test fixture
 - Size: M
@@ -166,7 +166,7 @@ FE 위스키 선택/세팅 컴포넌트에서 사용할 고속 조회 API를 추
 
 ## Progress Log
 
-- 2026-05-23: Added lookup request/response contracts, `AlcoholLookupSource`, and cursor/pageSize defaults.
+- 2026-05-23: Added lookup request/response contracts and cursor/pageSize defaults.
 - 2026-05-23: Added DB source projection through `AlcoholQueryRepository.findAllLookupItems()` for k6 Redis-vs-DB comparison.
 - 2026-05-23: Added Redis snapshot store using key `alcohol:lookup:snapshot:v1`.
 - 2026-05-23: Added `AlcoholLookupService` with Redis default path, DB fallback/source path, 20,000-item stream filtering scenario, multi-keyword AND, and snapshot sync.
@@ -179,3 +179,5 @@ FE 위스키 선택/세팅 컴포넌트에서 사용할 고속 조회 API를 추
 - 2026-05-23: Verification passed: `./gradlew check_rule_test unit_test integration_test admin_integration_test :bottlenote-admin-api:test asciidoctor` in 9m 34s.
 - 2026-05-23: Runtime smoke passed with product API `dev` profile, local Redis `localhost:16379`, and development DB. Redis snapshot sync stored 3,288 lookup items and default REDIS lookup returned HTTP 200.
 - 2026-05-23: Completed clean PR repair. PR branch `codex/alcohol-lookup` now contains only lookup commit on top of `origin/main`, and GitHub CI passed.
+- 2026-05-23: Local k6 comparison completed with temporary `/tmp` scripts only. DB load p95/p99 was 2128ms/2685ms, Redis load p95/p99 was 163ms/234ms, both with 0% failure. Redis stress at 50 VU exposed the local runtime limit with 8.3% failure, so spike was skipped.
+- 2026-05-23: Removed public `source=DATABASE` selection from lookup request/docs/tests after comparison. Redis miss fallback and snapshot sync DB projection remain.

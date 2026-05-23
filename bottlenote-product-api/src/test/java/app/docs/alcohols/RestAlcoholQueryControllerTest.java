@@ -79,7 +79,6 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
                 .param("category", "SINGLE_MALT")
                 .param("regionId", "1")
                 .param("distilleryId", "10")
-                .param("source", "REDIS")
                 .param("cursor", "0")
                 .param("pageSize", "20"))
         .andExpect(status().isOk())
@@ -95,9 +94,6 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
                         .description("카테고리 그룹 필터. ALL 또는 미전달 시 전체"),
                     parameterWithName("regionId").optional().description("지역 ID 필터"),
                     parameterWithName("distilleryId").optional().description("증류소 ID 필터"),
-                    parameterWithName("source")
-                        .optional()
-                        .description("조회 경로 (REDIS: 기본 snapshot 경로, DATABASE: k6 비교 검증용 DB 경로)"),
                     parameterWithName("cursor").optional().description("커서 위치 (기본값: 0)"),
                     parameterWithName("pageSize")
                         .optional()
@@ -132,7 +128,6 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
                     fieldWithPath("meta.searchParameters.category").description("카테고리 그룹 필터"),
                     fieldWithPath("meta.searchParameters.regionId").description("지역 ID 필터"),
                     fieldWithPath("meta.searchParameters.distilleryId").description("증류소 ID 필터"),
-                    fieldWithPath("meta.searchParameters.source").description("조회 경로"),
                     fieldWithPath("meta.searchParameters.cursor").description("커서 위치"),
                     fieldWithPath("meta.searchParameters.pageSize").description("페이지 크기"))));
   }
