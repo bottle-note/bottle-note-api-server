@@ -10,7 +10,6 @@ public class TestConfigProperties {
   @Bean
   public OauthConfigProperties oauthConfigProperties() {
     return OauthConfigProperties.builder()
-        .guestCode("guest-code-for-test")
         .cookieExpireTime(100000)
         .refreshTokenHeaderPrefix("refresh-token")
         .build();
