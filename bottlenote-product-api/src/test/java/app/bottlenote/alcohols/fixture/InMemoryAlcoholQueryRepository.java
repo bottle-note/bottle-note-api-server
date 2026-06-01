@@ -8,6 +8,7 @@ import app.bottlenote.alcohols.dto.dsl.ExploreStandardCriteria;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
+import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
@@ -71,6 +72,28 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
         .map(a -> new CategoryItem(a.getKorCategory(), a.getEngCategory(), a.getCategoryGroup()))
         .distinct()
         .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<AlcoholLookupItem> findAllLookupItems() {
+    return alcohols.values().stream()
+        .map(
+            alcohol ->
+                new AlcoholLookupItem(
+                    alcohol.getId(),
+                    alcohol.getKorName(),
+                    alcohol.getEngName(),
+                    alcohol.getKorCategory(),
+                    alcohol.getEngCategory(),
+                    alcohol.getCategoryGroup(),
+                    alcohol.getRegion() != null ? alcohol.getRegion().getId() : null,
+                    alcohol.getRegion() != null ? alcohol.getRegion().getKorName() : null,
+                    alcohol.getRegion() != null ? alcohol.getRegion().getEngName() : null,
+                    alcohol.getDistillery() != null ? alcohol.getDistillery().getId() : null,
+                    alcohol.getDistillery() != null ? alcohol.getDistillery().getKorName() : null,
+                    alcohol.getDistillery() != null ? alcohol.getDistillery().getEngName() : null,
+                    alcohol.getImageUrl()))
+        .toList();
   }
 
   @Override

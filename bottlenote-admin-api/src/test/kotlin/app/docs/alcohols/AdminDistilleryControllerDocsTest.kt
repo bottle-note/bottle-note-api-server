@@ -8,6 +8,7 @@ import app.bottlenote.alcohols.presentation.AdminDistilleryController
 import app.bottlenote.alcohols.service.AlcoholReferenceService
 import app.bottlenote.alcohols.service.DistilleryService
 import app.bottlenote.global.data.response.GlobalResponse
+import app.bottlenote.global.dto.request.AdminBulkReorderRequest
 import app.bottlenote.global.dto.response.AdminResultResponse
 import app.bottlenote.global.dto.response.AdminResultResponse.ResultCode
 import app.helper.alcohols.AlcoholsHelper
@@ -246,6 +247,31 @@ class AdminDistilleryControllerDocsTest {
 	}
 
 	@Test
+	@DisplayName("증류소 목록을 bulk reorder 할 수 있다")
+	fun reorderDistilleries() {
+		val result = AdminResultResponse.of(ResultCode.DISTILLERY_SORT_ORDER_UPDATED, null)
+		given(distilleryService.reorder(any(AdminBulkReorderRequest::class.java))).willReturn(result)
+		val request = mapOf("ids" to listOf(3L, 1L, 6L, 5L))
+
+		assertThat(
+			mvc.patch().uri("/v1/distilleries/bulk/reorder")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsString(request))
+		).hasStatusOk()
+			.apply(
+				document(
+					"admin/distilleries/bulk-reorder",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					requestFields(
+						fieldWithPath("ids").type(JsonFieldType.ARRAY).description("맨 앞 구간으로 올릴 증류소 ID 목록 (1~100개). 배열 순서가 최종 상대 순서입니다")
+					),
+					responseFields(bulkReorderResponseFields())
+				)
+			)
+	}
+
+	@Test
 	@DisplayName("증류소를 삭제할 수 있다")
 	fun deleteDistillery() {
 		val result = AdminResultResponse.of(ResultCode.DISTILLERY_DELETED, 1L)
@@ -271,6 +297,21 @@ class AdminDistilleryControllerDocsTest {
 		fieldWithPath("data.code").type(JsonFieldType.STRING).description("처리 결과 코드"),
 		fieldWithPath("data.message").type(JsonFieldType.STRING).description("처리 결과 메시지"),
 		fieldWithPath("data.targetId").type(JsonFieldType.NUMBER).description("대상 증류소 ID"),
+		fieldWithPath("data.responseAt").type(JsonFieldType.STRING).description("응답 시각"),
+		fieldWithPath("errors").type(JsonFieldType.ARRAY).description("에러 목록"),
+		fieldWithPath("meta").type(JsonFieldType.OBJECT).description("메타 정보").ignored(),
+		fieldWithPath("meta.serverVersion").type(JsonFieldType.STRING).description("서버 버전").ignored(),
+		fieldWithPath("meta.serverEncoding").type(JsonFieldType.STRING).description("서버 인코딩").ignored(),
+		fieldWithPath("meta.serverResponseTime").type(JsonFieldType.STRING).description("서버 응답 시간").ignored(),
+		fieldWithPath("meta.serverPathVersion").type(JsonFieldType.STRING).description("API 경로 버전").ignored()
+	)
+
+	private fun bulkReorderResponseFields() = listOf(
+		fieldWithPath("success").type(JsonFieldType.BOOLEAN).description("응답 성공 여부"),
+		fieldWithPath("code").type(JsonFieldType.NUMBER).description("응답 코드"),
+		fieldWithPath("data.code").type(JsonFieldType.STRING).description("처리 결과 코드"),
+		fieldWithPath("data.message").type(JsonFieldType.STRING).description("처리 결과 메시지"),
+		fieldWithPath("data.targetId").type(JsonFieldType.NULL).description("bulk reorder는 단일 대상 ID를 반환하지 않습니다").optional(),
 		fieldWithPath("data.responseAt").type(JsonFieldType.STRING).description("응답 시각"),
 		fieldWithPath("errors").type(JsonFieldType.ARRAY).description("에러 목록"),
 		fieldWithPath("meta").type(JsonFieldType.OBJECT).description("메타 정보").ignored(),

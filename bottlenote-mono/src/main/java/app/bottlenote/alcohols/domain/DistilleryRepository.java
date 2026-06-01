@@ -25,4 +25,6 @@ public interface DistilleryRepository {
   boolean existsByEngNameAndIdNot(String engName, Long id);
 
   List<Distillery> findAllBySortOrderGreaterThanEqual(int sortOrder);
+
+  List<Distillery> findAllOrderBySortOrderAsc();
 }

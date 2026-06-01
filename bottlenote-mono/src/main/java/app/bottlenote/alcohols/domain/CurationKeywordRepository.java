@@ -5,6 +5,7 @@ import app.bottlenote.alcohols.dto.response.AdminCurationListResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.alcohols.dto.response.CurationKeywordResponse;
 import app.bottlenote.global.service.cursor.CursorResponse;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.data.domain.Page;
@@ -31,6 +32,8 @@ public interface CurationKeywordRepository {
   void delete(CurationKeyword curationKeyword);
 
   boolean existsByName(String name);
+
+  List<CurationKeyword> findAllOrderByDisplayOrderAsc();
 
   Page<AdminCurationListResponse> searchForAdmin(
       AdminCurationSearchRequest request, Pageable pageable);

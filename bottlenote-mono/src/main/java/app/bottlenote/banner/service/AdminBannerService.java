@@ -3,6 +3,7 @@ package app.bottlenote.banner.service;
 import static app.bottlenote.banner.exception.BannerExceptionCode.BANNER_DUPLICATE_NAME;
 import static app.bottlenote.banner.exception.BannerExceptionCode.BANNER_INVALID_DATE_RANGE;
 import static app.bottlenote.banner.exception.BannerExceptionCode.BANNER_NOT_FOUND;
+import static app.bottlenote.banner.exception.BannerExceptionCode.BANNER_REORDER_DUPLICATE_ID;
 import static app.bottlenote.banner.exception.BannerExceptionCode.BANNER_TARGET_URL_REQUIRED;
 import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.BANNER_CREATED;
 import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.BANNER_DELETED;
@@ -20,9 +21,16 @@ import app.bottlenote.banner.dto.request.AdminBannerUpdateRequest;
 import app.bottlenote.banner.dto.response.AdminBannerDetailResponse;
 import app.bottlenote.banner.exception.BannerException;
 import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.global.dto.request.AdminBulkReorderRequest;
 import app.bottlenote.global.dto.response.AdminResultResponse;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -179,6 +187,28 @@ public class AdminBannerService {
     return AdminResultResponse.of(BANNER_SORT_ORDER_UPDATED, bannerId);
   }
 
+  @Transactional
+  public AdminResultResponse reorder(AdminBulkReorderRequest request) {
+    validateReorderIds(request.ids());
+
+    List<Banner> orderedBanners = bannerRepository.findAllOrderBySortOrderAsc();
+    Map<Long, Banner> bannerById =
+        orderedBanners.stream().collect(Collectors.toMap(Banner::getId, Function.identity()));
+
+    List<Banner> requested =
+        request.ids().stream().map(id -> findReorderTarget(bannerById, id)).toList();
+
+    Set<Long> requestedIds = new HashSet<>(request.ids());
+    List<Banner> reordered = new ArrayList<>(requested);
+    reordered.addAll(
+        orderedBanners.stream().filter(banner -> !requestedIds.contains(banner.getId())).toList());
+
+    for (int i = 0; i < reordered.size(); i++) {
+      reordered.get(i).updateSortOrder(i + 1);
+    }
+    return AdminResultResponse.of(BANNER_SORT_ORDER_UPDATED, null);
+  }
+
   private void validateDateRange(LocalDateTime startDate, LocalDateTime endDate) {
     if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
       throw new BannerException(BANNER_INVALID_DATE_RANGE);
@@ -203,5 +233,19 @@ public class AdminBannerService {
     conflicting.stream()
         .filter(b -> !b.getId().equals(excludeBannerId))
         .forEach(b -> b.updateSortOrder(b.getSortOrder() + 1));
+  }
+
+  private void validateReorderIds(List<Long> ids) {
+    if (new HashSet<>(ids).size() != ids.size()) {
+      throw new BannerException(BANNER_REORDER_DUPLICATE_ID);
+    }
+  }
+
+  private Banner findReorderTarget(Map<Long, Banner> bannerById, Long id) {
+    Banner banner = bannerById.get(id);
+    if (banner == null) {
+      throw new BannerException(BANNER_NOT_FOUND);
+    }
+    return banner;
   }
 }
