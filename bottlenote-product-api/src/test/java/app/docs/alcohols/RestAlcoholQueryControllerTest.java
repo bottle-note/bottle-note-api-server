@@ -14,14 +14,20 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.controller.AlcoholQueryController;
+import app.bottlenote.alcohols.dto.request.AlcoholLookupRequest;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
+import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.fixture.AlcoholQueryFixture;
+import app.bottlenote.alcohols.service.AlcoholLookupService;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
+import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.docs.AbstractRestDocs;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -31,11 +37,99 @@ import org.junit.jupiter.api.Test;
 class RestAlcoholQueryControllerTest extends AbstractRestDocs {
 
   private final AlcoholQueryService alcoholQueryService = mock(AlcoholQueryService.class);
+  private final AlcoholLookupService alcoholLookupService = mock(AlcoholLookupService.class);
   private final AlcoholQueryFixture fixture = new AlcoholQueryFixture();
 
   @Override
   protected Object initController() {
-    return new AlcoholQueryController(alcoholQueryService);
+    return new AlcoholQueryController(alcoholQueryService, alcoholLookupService);
+  }
+
+  @DisplayName("술 lookup 목록을 조회할 수 있다.")
+  @Test
+  void docs_lookup() throws Exception {
+    // given
+    CursorResponse<AlcoholLookupItem> response =
+        CursorResponse.of(
+            List.of(
+                new AlcoholLookupItem(
+                    1L,
+                    "맥캘란 12년",
+                    "Macallan 12",
+                    "싱글몰트",
+                    "Single Malt",
+                    AlcoholCategoryGroup.SINGLE_MALT,
+                    1L,
+                    "스페이사이드",
+                    "Speyside",
+                    10L,
+                    "맥캘란",
+                    "Macallan",
+                    "https://example.com/alcohol.png")),
+            0L,
+            20);
+
+    when(alcoholLookupService.lookup(any(AlcoholLookupRequest.class))).thenReturn(response);
+
+    // when & then
+    mockMvc
+        .perform(
+            get("/api/v1/alcohols/lookup")
+                .param("keyword", "macallan")
+                .param("category", "SINGLE_MALT")
+                .param("regionId", "1")
+                .param("distilleryId", "10")
+                .param("cursor", "0")
+                .param("pageSize", "20"))
+        .andExpect(status().isOk())
+        .andDo(
+            document(
+                "alcohols/lookup",
+                queryParameters(
+                    parameterWithName("keyword")
+                        .optional()
+                        .description("검색어 (이름, 카테고리, 지역, 증류소 대상)"),
+                    parameterWithName("category")
+                        .optional()
+                        .description("카테고리 그룹 필터. ALL 또는 미전달 시 전체"),
+                    parameterWithName("regionId").optional().description("지역 ID 필터"),
+                    parameterWithName("distilleryId").optional().description("증류소 ID 필터"),
+                    parameterWithName("cursor").optional().description("커서 위치 (기본값: 0)"),
+                    parameterWithName("pageSize")
+                        .optional()
+                        .description("페이지 크기 (기본값: 20, 최대: 100)")),
+                responseFields(
+                    fieldWithPath("success").description("응답 성공 여부"),
+                    fieldWithPath("code").description("응답 코드(http status code)"),
+                    fieldWithPath("data[].alcoholId").description("술 ID"),
+                    fieldWithPath("data[].korName").description("술 한글 이름"),
+                    fieldWithPath("data[].engName").description("술 영문 이름"),
+                    fieldWithPath("data[].korCategoryName").description("술 한글 카테고리 이름"),
+                    fieldWithPath("data[].engCategoryName").description("술 영문 카테고리 이름"),
+                    fieldWithPath("data[].categoryGroup").description("카테고리 그룹"),
+                    fieldWithPath("data[].regionId").description("지역 ID"),
+                    fieldWithPath("data[].korRegion").description("지역 한글 이름"),
+                    fieldWithPath("data[].engRegion").description("지역 영문 이름"),
+                    fieldWithPath("data[].distilleryId").description("증류소 ID"),
+                    fieldWithPath("data[].korDistillery").description("증류소 한글 이름"),
+                    fieldWithPath("data[].engDistillery").description("증류소 영문 이름"),
+                    fieldWithPath("data[].imageUrl").description("술 이미지 URL"),
+                    fieldWithPath("errors").ignored(),
+                    fieldWithPath("meta.serverEncoding").ignored(),
+                    fieldWithPath("meta.serverVersion").ignored(),
+                    fieldWithPath("meta.serverPathVersion").ignored(),
+                    fieldWithPath("meta.serverResponseTime").ignored(),
+                    fieldWithPath("meta.pageable").description("페이징 정보"),
+                    fieldWithPath("meta.pageable.currentCursor").description("조회 시 기준 커서"),
+                    fieldWithPath("meta.pageable.cursor").description("다음 페이지 커서"),
+                    fieldWithPath("meta.pageable.pageSize").description("조회된 페이지 사이즈"),
+                    fieldWithPath("meta.pageable.hasNext").description("다음 페이지 존재 여부"),
+                    fieldWithPath("meta.searchParameters.keyword").description("검색어"),
+                    fieldWithPath("meta.searchParameters.category").description("카테고리 그룹 필터"),
+                    fieldWithPath("meta.searchParameters.regionId").description("지역 ID 필터"),
+                    fieldWithPath("meta.searchParameters.distilleryId").description("증류소 ID 필터"),
+                    fieldWithPath("meta.searchParameters.cursor").description("커서 위치"),
+                    fieldWithPath("meta.searchParameters.pageSize").description("페이지 크기"))));
   }
 
   @DisplayName("술 리스트를 조회할 수 있다.")

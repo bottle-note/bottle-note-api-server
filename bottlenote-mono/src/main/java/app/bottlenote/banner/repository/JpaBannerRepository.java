@@ -5,6 +5,7 @@ import app.bottlenote.banner.domain.BannerRepository;
 import app.bottlenote.common.annotation.JpaRepositoryImpl;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 @JpaRepositoryImpl
 public interface JpaBannerRepository
@@ -15,4 +16,8 @@ public interface JpaBannerRepository
   boolean existsByName(String name);
 
   List<Banner> findAllBySortOrderGreaterThanEqual(Integer sortOrder);
+
+  @Override
+  @Query("select b from banner b order by b.sortOrder asc, b.id asc")
+  List<Banner> findAllOrderBySortOrderAsc();
 }

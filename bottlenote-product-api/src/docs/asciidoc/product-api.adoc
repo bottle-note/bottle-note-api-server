@@ -79,6 +79,9 @@ include::api/review/explore.standard.adoc[]
 
 == 술 (alcohol) 관련 API
 
+include::api/alcohols/lookup.adoc[]
+
+'''
 include::api/alcohols/search.adoc[]
 
 '''

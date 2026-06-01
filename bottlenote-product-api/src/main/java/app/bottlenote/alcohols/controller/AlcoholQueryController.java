@@ -3,8 +3,10 @@ package app.bottlenote.alcohols.controller;
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 import static app.bottlenote.global.service.meta.MetaService.createMetaInfo;
 
+import app.bottlenote.alcohols.dto.request.AlcoholLookupRequest;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
+import app.bottlenote.alcohols.service.AlcoholLookupService;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
@@ -25,6 +27,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class AlcoholQueryController {
 
   private final AlcoholQueryService alcoholQueryService;
+  private final AlcoholLookupService alcoholLookupService;
+
+  @GetMapping("/lookup")
+  public ResponseEntity<?> getAlcoholLookups(@ModelAttribute @Valid AlcoholLookupRequest request) {
+    var response = alcoholLookupService.lookup(request);
+    return GlobalResponse.ok(
+        response.items(),
+        createMetaInfo().add("searchParameters", request).add("pageable", response.pageable()));
+  }
 
   @GetMapping("/search")
   public ResponseEntity<?> searchAlcohols(@ModelAttribute @Valid AlcoholSearchRequest request) {

@@ -4,6 +4,7 @@ import app.bottlenote.banner.domain.Banner;
 import app.bottlenote.banner.domain.BannerRepository;
 import app.bottlenote.banner.dto.request.AdminBannerSearchRequest;
 import app.bottlenote.banner.dto.response.AdminBannerListResponse;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +67,13 @@ public class InMemoryBannerRepository implements BannerRepository {
   @Override
   public List<Banner> findAllBySortOrderGreaterThanEqual(Integer sortOrder) {
     return database.values().stream().filter(banner -> banner.getSortOrder() >= sortOrder).toList();
+  }
+
+  @Override
+  public List<Banner> findAllOrderBySortOrderAsc() {
+    return database.values().stream()
+        .sorted(Comparator.comparing(Banner::getSortOrder).thenComparing(Banner::getId))
+        .toList();
   }
 
   @Override
