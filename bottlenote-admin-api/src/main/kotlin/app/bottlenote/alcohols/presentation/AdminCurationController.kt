@@ -3,6 +3,7 @@ package app.bottlenote.alcohols.presentation
 import app.bottlenote.alcohols.dto.request.*
 import app.bottlenote.alcohols.service.AdminCurationService
 import app.bottlenote.global.data.response.GlobalResponse
+import app.bottlenote.global.dto.request.AdminBulkReorderRequest
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -49,6 +50,11 @@ class AdminCurationController(
 		@PathVariable curationId: Long,
 		@RequestBody @Valid request: AdminCurationDisplayOrderRequest
 	): ResponseEntity<*> = GlobalResponse.ok(adminCurationService.updateDisplayOrder(curationId, request))
+
+	@PatchMapping("/bulk/reorder")
+	fun reorder(
+		@RequestBody @Valid request: AdminBulkReorderRequest
+	): ResponseEntity<*> = GlobalResponse.ok(adminCurationService.reorder(request))
 
 	@PostMapping("/{curationId}/alcohols")
 	fun addAlcohols(

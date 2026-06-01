@@ -3,6 +3,7 @@ package app.bottlenote.banner.presentation
 import app.bottlenote.banner.dto.request.*
 import app.bottlenote.banner.service.AdminBannerService
 import app.bottlenote.global.data.response.GlobalResponse
+import app.bottlenote.global.dto.request.AdminBulkReorderRequest
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -49,4 +50,9 @@ class AdminBannerController(
 		@PathVariable bannerId: Long,
 		@RequestBody @Valid request: AdminBannerSortOrderRequest
 	): ResponseEntity<*> = GlobalResponse.ok(adminBannerService.updateSortOrder(bannerId, request))
+
+	@PatchMapping("/bulk/reorder")
+	fun reorder(
+		@RequestBody @Valid request: AdminBulkReorderRequest
+	): ResponseEntity<*> = GlobalResponse.ok(adminBannerService.reorder(request))
 }

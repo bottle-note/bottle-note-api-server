@@ -26,6 +26,33 @@ include::{snippets}/admin/alcohols/search/http-response.adoc[]
 
 '''
 
+=== 술(Alcohol) lookup 조회 ===
+
+- 관리자 선택 컴포넌트에서 사용할 핵심 필드 기반의 고속 조회 API입니다.
+- 별점, 좋아요, 리뷰 수, 사용자 pick 여부 같은 집계성 데이터는 포함하지 않습니다.
+
+[source]
+----
+GET /admin/api/v1/alcohols/lookup
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/alcohols/lookup/query-parameters.adoc[]
+include::{snippets}/admin/alcohols/lookup/curl-request.adoc[]
+include::{snippets}/admin/alcohols/lookup/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/alcohols/lookup/response-fields.adoc[]
+include::{snippets}/admin/alcohols/lookup/http-response.adoc[]
+
+'''
+
 === 술(Alcohol) 단건 상세 조회 ===
 
 - 관리자용 술 단건 상세 조회 API입니다.

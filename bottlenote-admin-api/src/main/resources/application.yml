@@ -62,6 +62,12 @@ schedules:
       sync:
         enable: false
 
+alcohol:
+  lookup:
+    local-cache:
+      enabled: ${ALCOHOL_LOOKUP_LOCAL_CACHE_ENABLED:true}
+      version-check-interval-ms: ${ALCOHOL_LOOKUP_LOCAL_CACHE_VERSION_CHECK_INTERVAL_MS:1000}
+
 curation:
   spec-sync:
     enabled: ${CURATION_SPEC_SYNC_ENABLED:true}
@@ -145,9 +151,9 @@ management:
 server:
   tomcat:
     threads:
-      max: 15
-    max-connections: 20
-    connection-timeout: 5000
+      max: 100
+    max-connections: 500
+    connection-timeout: 30000
 
 --- # prod 프로파일 (운영 서버)
 spring:
@@ -174,3 +180,22 @@ server:
       max: 100
     max-connections: 500
     connection-timeout: 30000
+
+--- # lookup-perf 프로파일 (로컬 성능 검증 전용)
+spring:
+  config:
+    activate:
+      on-profile: lookup-perf
+
+server:
+  tomcat:
+    threads:
+      max: ${LOOKUP_PERF_TOMCAT_THREADS_MAX:64}
+    max-connections: ${LOOKUP_PERF_TOMCAT_MAX_CONNECTIONS:512}
+    connection-timeout: ${LOOKUP_PERF_TOMCAT_CONNECTION_TIMEOUT:10000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus

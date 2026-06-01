@@ -203,3 +203,55 @@ include::{snippets}/admin/banners/update-sort-order/http-request.adoc[]
 [discrete]
 include::{snippets}/admin/banners/update-sort-order/response-fields.adoc[]
 include::{snippets}/admin/banners/update-sort-order/http-response.adoc[]
+
+'''
+
+=== 배너 bulk reorder ===
+
+- 여러 배너를 한 번에 정렬 목록의 맨 앞으로 재배치합니다.
+- 기존 단건 API는 특정 배너 1개의 `sortOrder`를 지정 값으로 변경합니다.
+- bulk reorder API는 요청한 `ids`를 배열 순서대로 앞쪽 정렬 슬롯에 배정합니다.
+- 요청 ID는 1개 이상 100개 이하입니다.
+- 비활성 배너도 정렬값은 유지됩니다. `isActive=true`로 조회하면 화면에는 보이지 않아도 bulk reorder 결과로 뒤로 밀릴 수 있습니다.
+
+[source]
+----
+PATCH /admin/api/v1/banners/bulk/reorder
+----
+
+[source,json]
+----
+{ "ids": [3, 1, 6, 5] }
+----
+
+[source,text]
+----
+변경 전
+
+정렬 슬롯:   1    10    20    30    40
+          +----+-----+-----+-----+-----+
+배너 ID:  | 11 |  1  |  3  |  5  |  6  |
+          +----+-----+-----+-----+-----+
+
+변경 후
+
+정렬 슬롯:   1    10    20    30    40
+          +----+-----+-----+-----+-----+
+배너 ID:  |  3 |  1  |  6  |  5  | 11  |
+          +----+-----+-----+-----+-----+
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/banners/bulk-reorder/request-fields.adoc[]
+include::{snippets}/admin/banners/bulk-reorder/curl-request.adoc[]
+include::{snippets}/admin/banners/bulk-reorder/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/admin/banners/bulk-reorder/response-fields.adoc[]
+include::{snippets}/admin/banners/bulk-reorder/http-response.adoc[]

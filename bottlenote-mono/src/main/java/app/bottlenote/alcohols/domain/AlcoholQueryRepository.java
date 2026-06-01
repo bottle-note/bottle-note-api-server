@@ -8,6 +8,7 @@ import app.bottlenote.alcohols.dto.dsl.ExploreStandardCriteria;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
+import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
@@ -37,6 +38,8 @@ public interface AlcoholQueryRepository {
   List<CategoryItem> findAllCategories(AlcoholType type);
 
   List<CategoryItem> findAllCategoryItems();
+
+  List<AlcoholLookupItem> findAllLookupItems();
 
   Boolean existsByAlcoholId(Long alcoholId);
 
