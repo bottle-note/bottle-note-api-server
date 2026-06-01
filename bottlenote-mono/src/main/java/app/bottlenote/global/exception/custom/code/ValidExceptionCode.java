@@ -17,6 +17,10 @@ public enum ValidExceptionCode implements ExceptionCode {
   CONTENT_NOT_BLANK(HttpStatus.BAD_REQUEST, "공백입니다. 내용을 입력해주세요."),
   CONTENT_NOT_EMPTY(HttpStatus.BAD_REQUEST, "null입니다. 내용을 입력해주세요."),
   TITLE_NOT_EMPTY(HttpStatus.BAD_REQUEST, "null입니다. 타이틀(제목)을 입력해주세요."),
+  BULK_REORDER_IDS_REQUIRED(HttpStatus.BAD_REQUEST, "정렬할 ID 목록은 필수입니다."),
+  BULK_REORDER_IDS_MAX_SIZE(HttpStatus.BAD_REQUEST, "정렬할 ID는 최대 100개까지 요청할 수 있습니다."),
+  BULK_REORDER_ID_REQUIRED(HttpStatus.BAD_REQUEST, "정렬할 ID는 null일 수 없습니다."),
+  BULK_REORDER_ID_MINIMUM(HttpStatus.BAD_REQUEST, "정렬할 ID는 1 이상이어야 합니다."),
 
   // EXTERNAL
   DEVICE_TOKEN_REQUIRED(HttpStatus.BAD_REQUEST, "디바이스 토큰은 필수입니다."),

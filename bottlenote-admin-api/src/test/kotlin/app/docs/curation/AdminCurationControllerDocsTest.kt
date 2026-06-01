@@ -4,6 +4,7 @@ import app.bottlenote.alcohols.dto.request.*
 import app.bottlenote.alcohols.presentation.AdminCurationController
 import app.bottlenote.alcohols.service.AdminCurationService
 import app.bottlenote.global.data.response.GlobalResponse
+import app.bottlenote.global.dto.request.AdminBulkReorderRequest
 import app.bottlenote.global.dto.response.AdminResultResponse
 import app.helper.curation.CurationHelper
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -46,6 +47,22 @@ class AdminCurationControllerDocsTest {
 
 	@MockitoBean
 	private lateinit var adminCurationService: AdminCurationService
+
+	private fun bulkReorderResponseFields() = responseFields(
+		fieldWithPath("success").type(JsonFieldType.BOOLEAN).description("응답 성공 여부"),
+		fieldWithPath("code").type(JsonFieldType.NUMBER).description("응답 코드"),
+		fieldWithPath("data").type(JsonFieldType.OBJECT).description("결과 정보"),
+		fieldWithPath("data.code").type(JsonFieldType.STRING).description("결과 코드"),
+		fieldWithPath("data.message").type(JsonFieldType.STRING).description("결과 메시지"),
+		fieldWithPath("data.targetId").type(JsonFieldType.NULL).description("bulk reorder는 단일 대상 ID를 반환하지 않습니다").optional(),
+		fieldWithPath("data.responseAt").type(JsonFieldType.STRING).description("응답 시간"),
+		fieldWithPath("errors").type(JsonFieldType.ARRAY).description("에러 목록"),
+		fieldWithPath("meta").type(JsonFieldType.OBJECT).description("메타 정보"),
+		fieldWithPath("meta.serverVersion").type(JsonFieldType.STRING).ignored(),
+		fieldWithPath("meta.serverEncoding").type(JsonFieldType.STRING).ignored(),
+		fieldWithPath("meta.serverResponseTime").type(JsonFieldType.STRING).ignored(),
+		fieldWithPath("meta.serverPathVersion").type(JsonFieldType.STRING).ignored()
+	)
 
 	@Nested
 	@DisplayName("큐레이션 목록 조회")
@@ -100,6 +117,39 @@ class AdminCurationControllerDocsTest {
 							fieldWithPath("meta.serverResponseTime").type(JsonFieldType.STRING).ignored(),
 							fieldWithPath("meta.serverPathVersion").type(JsonFieldType.STRING).ignored()
 						)
+					)
+				)
+		}
+	}
+
+	@Nested
+	@DisplayName("큐레이션 bulk reorder")
+	inner class ReorderCurations {
+
+		@Test
+		@DisplayName("큐레이션 목록을 bulk reorder 할 수 있다")
+		fun reorder() {
+			val request = mapOf("ids" to listOf(3L, 1L, 6L, 5L))
+			val response = AdminResultResponse.of(AdminResultResponse.ResultCode.CURATION_DISPLAY_ORDER_UPDATED, null)
+
+			given(adminCurationService.reorder(any(AdminBulkReorderRequest::class.java)))
+				.willReturn(response)
+
+			assertThat(
+				mvc.patch().uri("/v1/curations/bulk/reorder")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(request))
+			)
+				.hasStatusOk()
+				.apply(
+					document(
+						"admin/curations/bulk-reorder",
+						preprocessRequest(prettyPrint()),
+						preprocessResponse(prettyPrint()),
+						requestFields(
+							fieldWithPath("ids").type(JsonFieldType.ARRAY).description("맨 앞 구간으로 올릴 큐레이션 ID 목록 (1~100개). 배열 순서가 최종 상대 순서입니다")
+						),
+						bulkReorderResponseFields()
 					)
 				)
 		}
