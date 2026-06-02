@@ -4,7 +4,6 @@ import static app.bottlenote.user.exception.UserExceptionCode.JSON_PARSING_EXCEP
 
 import app.bottlenote.user.constant.SocialType;
 import app.bottlenote.user.exception.UserException;
-import com.amazonaws.util.CollectionUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,7 +23,7 @@ public class JsonArrayConverter implements AttributeConverter<List<SocialType>, 
 
   @Override
   public String convertToDatabaseColumn(List<SocialType> list) {
-    if (CollectionUtils.isNullOrEmpty(list)) {
+    if (list == null || list.isEmpty()) {
       return "[]";
     }
     try {

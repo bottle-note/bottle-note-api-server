@@ -1,15 +1,14 @@
 package app.bottlenote.operation.utils;
 
+import app.bottlenote.common.file.service.ImageUploadService;
+import app.bottlenote.common.file.service.ResourceCommandService;
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.common.profanity.dto.response.ProfanityResponse;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.redis.testcontainers.RedisContainer;
+import java.net.URI;
 import java.util.Collections;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
@@ -17,6 +16,15 @@ import org.springframework.context.annotation.Primary;
 import org.testcontainers.containers.MinIOContainer;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.utility.DockerImageName;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 /**
  * TestContainers 설정을 관리하는 Spring Bean 기반 Configuration
@@ -71,25 +79,59 @@ public class TestContainersConfig {
     return container;
   }
 
-  /** MinIO에 연결하는 AmazonS3 클라이언트를 등록합니다. */
-  @Bean
+  /** MinIO에 연결하는 S3Client를 등록합니다. */
+  @Bean("testS3Client")
   @Primary
-  AmazonS3 amazonS3(MinIOContainer minioContainer) {
-    AmazonS3 s3Client =
-        AmazonS3ClientBuilder.standard()
-            .withEndpointConfiguration(
-                new AwsClientBuilder.EndpointConfiguration(minioContainer.getS3URL(), "us-east-1"))
-            .withCredentials(
-                new AWSStaticCredentialsProvider(
-                    new BasicAWSCredentials(MINIO_ACCESS_KEY, MINIO_SECRET_KEY)))
-            .withPathStyleAccessEnabled(true)
+  S3Client s3Client(MinIOContainer minioContainer) {
+    S3Client s3Client =
+        S3Client.builder()
+            .endpointOverride(URI.create(minioContainer.getS3URL()))
+            .region(Region.US_EAST_1)
+            .credentialsProvider(credentialsProvider())
+            .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())
             .build();
 
-    if (!s3Client.doesBucketExistV2(TEST_BUCKET)) {
-      s3Client.createBucket(TEST_BUCKET);
-    }
+    createBucketIfAbsent(s3Client);
 
     return s3Client;
+  }
+
+  /** MinIO에 연결하는 S3Presigner를 등록합니다. */
+  @Bean("testS3Presigner")
+  @Primary
+  S3Presigner s3Presigner(MinIOContainer minioContainer) {
+    return S3Presigner.builder()
+        .endpointOverride(URI.create(minioContainer.getS3URL()))
+        .region(Region.US_EAST_1)
+        .credentialsProvider(credentialsProvider())
+        .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())
+        .build();
+  }
+
+  private StaticCredentialsProvider credentialsProvider() {
+    return StaticCredentialsProvider.create(
+        AwsBasicCredentials.create(MINIO_ACCESS_KEY, MINIO_SECRET_KEY));
+  }
+
+  private void createBucketIfAbsent(S3Client s3Client) {
+    try {
+      s3Client.headBucket(HeadBucketRequest.builder().bucket(TEST_BUCKET).build());
+    } catch (S3Exception exception) {
+      if (exception.statusCode() == 404) {
+        s3Client.createBucket(CreateBucketRequest.builder().bucket(TEST_BUCKET).build());
+        return;
+      }
+      throw exception;
+    }
+  }
+
+  @Bean("testImageUploadService")
+  @Primary
+  ImageUploadService imageUploadService(
+      ResourceCommandService resourceCommandService,
+      S3Presigner s3Presigner,
+      @Value("${amazon.aws.cloudFrontUrl}") String cloudFrontUrl) {
+    return new ImageUploadService(resourceCommandService, s3Presigner, TEST_BUCKET, cloudFrontUrl);
   }
 
   public static String getTestBucket() {

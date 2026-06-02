@@ -11,6 +11,7 @@ public class InMemoryAlcoholLookupSnapshotStore implements AlcoholLookupSnapshot
   private List<AlcoholLookupSnapshotItem> snapshot = new ArrayList<>();
   private final AtomicLong version = new AtomicLong();
   private int findAllCount;
+  private int replaceAllCount;
   private boolean readFailure;
 
   @Override
@@ -36,11 +37,16 @@ public class InMemoryAlcoholLookupSnapshotStore implements AlcoholLookupSnapshot
   @Override
   public void replaceAll(List<AlcoholLookupSnapshotItem> items) {
     snapshot = new ArrayList<>(items);
+    replaceAllCount++;
     version.incrementAndGet();
   }
 
   public int findAllCount() {
     return findAllCount;
+  }
+
+  public int replaceAllCount() {
+    return replaceAllCount;
   }
 
   public void failReads() {

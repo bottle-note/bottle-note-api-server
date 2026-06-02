@@ -42,14 +42,24 @@ public class AlcoholLookupService {
   }
 
   @Transactional(readOnly = true)
-  public int syncSnapshot() {
+  public AlcoholLookupSyncResult syncSnapshot() {
     List<AlcoholLookupSnapshotItem> items = findDatabaseItems();
     if (items.isEmpty()) {
       log.warn("Alcohol lookup DB 원천 데이터가 0건이라 Redis snapshot 갱신을 건너뜁니다.");
-      return 0;
+      return AlcoholLookupSyncResult.unchanged(0);
     }
+
+    try {
+      List<AlcoholLookupSnapshotItem> currentItems = snapshotStore.findAll();
+      if (currentItems.equals(items)) {
+        return AlcoholLookupSyncResult.unchanged(items.size());
+      }
+    } catch (Exception e) {
+      log.warn("Alcohol lookup 기존 snapshot 비교 실패. 새 snapshot으로 갱신합니다.", e);
+    }
+
     snapshotStore.replaceAll(items);
-    return items.size();
+    return AlcoholLookupSyncResult.changed(items.size());
   }
 
   private List<AlcoholLookupSnapshotItem> findLocalCachedItemsWithFallback() {
@@ -168,6 +178,17 @@ public class AlcoholLookupService {
 
     private LocalLookupSnapshot checkedAt(long checkedAtMillis) {
       return new LocalLookupSnapshot(version, items, checkedAtMillis);
+    }
+  }
+
+  public record AlcoholLookupSyncResult(int count, boolean changed) {
+
+    private static AlcoholLookupSyncResult changed(int count) {
+      return new AlcoholLookupSyncResult(count, true);
+    }
+
+    private static AlcoholLookupSyncResult unchanged(int count) {
+      return new AlcoholLookupSyncResult(count, false);
     }
   }
 }

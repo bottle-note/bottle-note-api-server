@@ -7,9 +7,6 @@ import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.exception.custom.AbstractCustomException;
 import app.bottlenote.global.exception.custom.code.ValidExceptionCode;
 import app.bottlenote.global.security.jwt.JwtExceptionType;
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.SdkClientException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -28,6 +25,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkException;
 
 @Slf4j(topic = "GlobalExceptionHandler")
 @RestControllerAdvice
@@ -209,11 +209,11 @@ public class GlobalExceptionHandler {
    * @param exception the exception
    * @return the response entity
    */
-  @ExceptionHandler(AmazonClientException.class)
-  public ResponseEntity<?> handleAmazonClientException(AmazonClientException exception) {
+  @ExceptionHandler(SdkException.class)
+  public ResponseEntity<?> handleSdkException(SdkException exception) {
     String errorMessage;
 
-    if (exception instanceof AmazonServiceException ase) {
+    if (exception instanceof AwsServiceException ase) {
       errorMessage = "AWS 서비스 오류가 발생했습니다: " + ase.getMessage();
     } else if (exception instanceof SdkClientException sce) {
       errorMessage = "AWS SDK 오류가 발생했습니다: " + sce.getMessage();

@@ -63,6 +63,14 @@ public interface JpaRegionQueryRepository extends RegionRepository, CrudReposito
   List<Region> findAllBySortOrderGreaterThanEqual(@Param("sortOrder") int sortOrder);
 
   @Override
+  @Query("select r from region r order by r.sortOrder asc, r.id asc")
+  List<Region> findAllOrderBySortOrderAsc();
+
+  @Override
+  @Query("select r from region r where r.parent.id = :parentId order by r.sortOrder asc, r.id asc")
+  List<Region> findAllByParentIdOrderBySortOrderAsc(@Param("parentId") Long parentId);
+
+  @Override
   @Query(
       "select case when count(a) > 0 then true else false end from alcohol a where a.region.id = :regionId")
   boolean existsAlcoholByRegionId(@Param("regionId") Long regionId);

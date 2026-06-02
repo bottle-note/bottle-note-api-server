@@ -19,6 +19,7 @@ import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.fixture.UserTestFactory;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -43,7 +44,7 @@ class JpaAuditingIntegrationTest extends IntegrationTestSupport {
     TokenItem token = getToken(user);
 
     ReviewCreateRequest reviewCreateRequest =
-        ReviewObjectFixture.getReviewCreateRequestWithAlcoholId(alcohol.getId());
+        withoutImages(ReviewObjectFixture.getReviewCreateRequestWithAlcoholId(alcohol.getId()));
 
     // when
     MvcResult result =
@@ -69,5 +70,18 @@ class JpaAuditingIntegrationTest extends IntegrationTestSupport {
     Review savedReview = reviewRepository.findById(review.getId()).orElseGet(null);
 
     assertEquals(user.getEmail(), savedReview.getCreateBy());
+  }
+
+  private ReviewCreateRequest withoutImages(ReviewCreateRequest request) {
+    return new ReviewCreateRequest(
+        request.alcoholId(),
+        request.status(),
+        request.content(),
+        request.sizeType(),
+        request.price(),
+        request.locationInfo(),
+        List.of(),
+        request.tastingTagList(),
+        request.rating());
   }
 }

@@ -65,7 +65,7 @@ schedules:
 alcohol:
   lookup:
     local-cache:
-      enabled: ${ALCOHOL_LOOKUP_LOCAL_CACHE_ENABLED:false}
+      enabled: ${ALCOHOL_LOOKUP_LOCAL_CACHE_ENABLED:true}
       version-check-interval-ms: ${ALCOHOL_LOOKUP_LOCAL_CACHE_VERSION_CHECK_INTERVAL_MS:1000}
 
 curation:
@@ -151,9 +151,9 @@ management:
 server:
   tomcat:
     threads:
-      max: 15
-    max-connections: 20
-    connection-timeout: 5000
+      max: 100
+    max-connections: 500
+    connection-timeout: 30000
 
 --- # prod 프로파일 (운영 서버)
 spring:

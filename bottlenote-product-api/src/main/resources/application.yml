@@ -89,7 +89,7 @@ schedules:
 alcohol:
   lookup:
     local-cache:
-      enabled: ${ALCOHOL_LOOKUP_LOCAL_CACHE_ENABLED:false}
+      enabled: ${ALCOHOL_LOOKUP_LOCAL_CACHE_ENABLED:true}
       version-check-interval-ms: ${ALCOHOL_LOOKUP_LOCAL_CACHE_VERSION_CHECK_INTERVAL_MS:1000}
 
 --- # default/local 프로파일 (동일 설정)
@@ -150,9 +150,9 @@ logging:
 server:
   tomcat:
     threads:
-      max: 15
-    max-connections: 20
-    connection-timeout: 5000
+      max: 200
+    max-connections: 2000
+    connection-timeout: 30000
 
 --- # prod 프로파일 (운영 서버)
 spring:

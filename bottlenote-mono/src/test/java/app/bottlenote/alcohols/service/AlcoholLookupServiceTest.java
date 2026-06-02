@@ -11,6 +11,7 @@ import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupSnapshotItem;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholLookupSnapshotStore;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholQueryRepository;
+import app.bottlenote.alcohols.service.AlcoholLookupService.AlcoholLookupSyncResult;
 import app.bottlenote.global.service.cursor.CursorResponse;
 import java.util.List;
 import java.util.stream.LongStream;
@@ -143,10 +144,11 @@ class AlcoholLookupServiceTest {
     alcoholQueryRepository.save(createAlcohol(1L));
 
     // when
-    int syncedCount = alcoholLookupService.syncSnapshot();
+    AlcoholLookupSyncResult result = alcoholLookupService.syncSnapshot();
 
     // then
-    assertThat(syncedCount).isEqualTo(1);
+    assertThat(result.count()).isEqualTo(1);
+    assertThat(result.changed()).isTrue();
     assertThat(snapshotStore.findAll())
         .extracting(AlcoholLookupSnapshotItem::alcoholId)
         .containsExactly(1L);
@@ -161,13 +163,31 @@ class AlcoholLookupServiceTest {
     snapshotStore.replaceAll(createLookupSnapshotItems(1));
 
     // when
-    int syncedCount = alcoholLookupService.syncSnapshot();
+    AlcoholLookupSyncResult result = alcoholLookupService.syncSnapshot();
 
     // then
-    assertThat(syncedCount).isZero();
+    assertThat(result.count()).isZero();
+    assertThat(result.changed()).isFalse();
     assertThat(snapshotStore.findAll())
         .extracting(AlcoholLookupSnapshotItem::alcoholId)
         .containsExactly(1L);
+  }
+
+  @Test
+  @DisplayName("DB 원천 데이터가 기존 snapshot과 같으면 Redis snapshot을 갱신하지 않는다")
+  void syncSnapshot_whenDatabaseLookupItemsSameAsSnapshot_skipsSnapshotReplacement() {
+    // given
+    alcoholQueryRepository.save(createAlcohol(1L));
+    alcoholLookupService.syncSnapshot();
+    int replaceCount = snapshotStore.replaceAllCount();
+
+    // when
+    AlcoholLookupSyncResult result = alcoholLookupService.syncSnapshot();
+
+    // then
+    assertThat(result.count()).isEqualTo(1);
+    assertThat(result.changed()).isFalse();
+    assertThat(snapshotStore.replaceAllCount()).isEqualTo(replaceCount);
   }
 
   private List<AlcoholLookupSnapshotItem> createLookupSnapshotItems(int size) {

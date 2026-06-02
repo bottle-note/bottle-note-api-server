@@ -3,6 +3,7 @@ package app.bottlenote.alcohols.service;
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.DISTILLERY_DUPLICATE_NAME;
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.DISTILLERY_HAS_ALCOHOLS;
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.DISTILLERY_NOT_FOUND;
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.DISTILLERY_REORDER_DUPLICATE_ID;
 import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.DISTILLERY_CREATED;
 import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.DISTILLERY_DELETED;
 import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.DISTILLERY_SORT_ORDER_UPDATED;
@@ -15,8 +16,15 @@ import app.bottlenote.alcohols.dto.request.AdminDistillerySortOrderRequest;
 import app.bottlenote.alcohols.dto.request.AdminDistilleryUpsertRequest;
 import app.bottlenote.alcohols.dto.response.AdminDistilleryItem;
 import app.bottlenote.alcohols.exception.AlcoholException;
+import app.bottlenote.global.dto.request.AdminBulkReorderRequest;
 import app.bottlenote.global.dto.response.AdminResultResponse;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -113,6 +121,33 @@ public class DistilleryService {
     return AdminResultResponse.of(DISTILLERY_SORT_ORDER_UPDATED, distilleryId);
   }
 
+  @Transactional
+  public AdminResultResponse reorder(AdminBulkReorderRequest request) {
+    validateReorderIds(request.ids());
+
+    List<Distillery> orderedDistilleries =
+        distilleryRepository.findAllOrderBySortOrderAsc().stream()
+            .filter(distillery -> !Long.valueOf(0L).equals(distillery.getId()))
+            .toList();
+    Map<Long, Distillery> distilleryById =
+        orderedDistilleries.stream()
+            .collect(Collectors.toMap(Distillery::getId, Function.identity()));
+
+    Set<Long> requestedIds = new HashSet<>(request.ids());
+    List<Distillery> reordered =
+        new ArrayList<>(
+            request.ids().stream().map(id -> findReorderTarget(distilleryById, id)).toList());
+    reordered.addAll(
+        orderedDistilleries.stream()
+            .filter(distillery -> !requestedIds.contains(distillery.getId()))
+            .toList());
+
+    for (int i = 0; i < reordered.size(); i++) {
+      reordered.get(i).updateSortOrder(i + 1);
+    }
+    return AdminResultResponse.of(DISTILLERY_SORT_ORDER_UPDATED, null);
+  }
+
   private void reorderSortOrders(Integer newSortOrder, Long excludeDistilleryId) {
     if (newSortOrder == null) {
       return;
@@ -122,6 +157,20 @@ public class DistilleryService {
     conflicting.stream()
         .filter(d -> excludeDistilleryId == null || !d.getId().equals(excludeDistilleryId))
         .forEach(d -> d.updateSortOrder(d.getSortOrder() + 1));
+  }
+
+  private void validateReorderIds(List<Long> ids) {
+    if (new HashSet<>(ids).size() != ids.size()) {
+      throw new AlcoholException(DISTILLERY_REORDER_DUPLICATE_ID);
+    }
+  }
+
+  private Distillery findReorderTarget(Map<Long, Distillery> distilleryById, Long distilleryId) {
+    Distillery distillery = distilleryById.get(distilleryId);
+    if (distillery == null) {
+      throw new AlcoholException(DISTILLERY_NOT_FOUND);
+    }
+    return distillery;
   }
 
   private AdminDistilleryItem toAdminDistilleryItem(Distillery d) {

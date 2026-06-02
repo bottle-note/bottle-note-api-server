@@ -40,7 +40,7 @@ class ResourceEventListenerTest {
             .rootPath("review")
             .bucketName("test-bucket")
             .build();
-    resourceCommandService.saveImageResourceCreated(request).join();
+    resourceCommandService.saveImageResourceCreated(request);
   }
 
   @Nested

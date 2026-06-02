@@ -1,5 +1,7 @@
 # Plan: batch Critical hardening
 
+Status: **COMPLETED**
+
 ## Overview
 
 `bottlenote-batch` 모듈의 즉시 조치 대상 Critical 항목을 먼저 줄인다.
