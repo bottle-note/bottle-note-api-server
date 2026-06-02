@@ -1,5 +1,7 @@
 # Plan: batch component scan 축소
 
+Status: **COMPLETED**
+
 ## Overview
 
 `bottlenote-batch`의 `BatchApplication`은 현재 `@SpringBootApplication(scanBasePackages = "app")`, `@ComponentScan(basePackages = "app")`, `@EntityScan(basePackages = "app")`로 전체 `app` 패키지를 스캔한다. 이 범위는 batch 실행에 필요하지 않은 product/admin 성격의 bean, mono 내부 서비스, external 설정, observability component까지 batch application context에 로딩될 수 있게 만든다.

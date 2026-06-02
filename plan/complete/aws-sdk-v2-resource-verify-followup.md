@@ -1,5 +1,7 @@
 # Plan: AWS SDK v2 Resource Verify 후속 보강
 
+Status: **COMPLETED**
+
 ## Overview
 PR #611 후속으로 이미지 presign 이후 리뷰 저장까지의 운영 안전성을 보강한다. Presigned URL 응답 전 `ResourceLog` CREATED 저장을 완료하고, 리뷰 생성/수정 시 전달된 `viewUrl`이 현재 사용자에게 발급된 리소스인지 저장 전에 검증한다.
 
