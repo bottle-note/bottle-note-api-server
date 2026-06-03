@@ -1,8 +1,13 @@
 package app.bottlenote.global.security.constant;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
+import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.server.PathContainer;
+import org.springframework.web.util.pattern.PathPattern;
+import org.springframework.web.util.pattern.PathPatternParser;
 
 /** 악성 봇/스캐너가 자주 탐색하는 경로 패턴 목록. Spring Security에서 denyAll() 처리에 사용. */
 @Getter
@@ -72,6 +77,9 @@ public enum MaliciousPathPattern {
 
   private final String pattern;
   private final String description;
+  private static final PathPatternParser PATTERN_PARSER = PathPatternParser.defaultInstance;
+  private static final List<PathPattern> REQUEST_MATCHERS =
+      Arrays.stream(values()).map(pattern -> PATTERN_PARSER.parse(pattern.getPattern())).toList();
 
   /** 모든 악성 경로 패턴 배열 반환 */
   public static String[] getAllPatterns() {
@@ -84,5 +92,19 @@ public enum MaliciousPathPattern {
         .filter(p -> p.pattern.contains(keyword) || p.description.contains(keyword))
         .map(MaliciousPathPattern::getPattern)
         .toArray(String[]::new);
+  }
+
+  public static boolean matches(HttpServletRequest request) {
+    return REQUEST_MATCHERS.stream()
+        .anyMatch(pattern -> pattern.matches(PathContainer.parsePath(lookupPath(request))));
+  }
+
+  private static String lookupPath(HttpServletRequest request) {
+    String requestUri = request.getRequestURI();
+    String contextPath = request.getContextPath();
+    if (contextPath != null && !contextPath.isBlank() && requestUri.startsWith(contextPath)) {
+      requestUri = requestUri.substring(contextPath.length());
+    }
+    return requestUri == null || requestUri.isBlank() ? "/" : requestUri;
   }
 }

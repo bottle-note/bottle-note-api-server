@@ -1,6 +1,9 @@
 package app.bottlenote.banner.controller;
 
+import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.PUBLIC;
+
 import app.bottlenote.banner.service.BannerQueryService;
+import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/banners")
 @RequiredArgsConstructor
+@SecurityPolicy(auth = PUBLIC)
 public class BannerQueryController {
 
   private final BannerQueryService bannerQueryService;

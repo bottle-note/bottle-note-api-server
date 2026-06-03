@@ -1,8 +1,14 @@
 package app.bottlenote.global.security.jwt;
 
+import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.OPTIONAL_AUTH;
+import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.PUBLIC;
+import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.REQUIRED_AUTH;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.bottlenote.global.security.policy.SecurityPolicyRegistry;
+import app.bottlenote.global.security.policy.SecurityPolicyRoute;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -14,7 +20,18 @@ import org.springframework.mock.web.MockHttpServletRequest;
 @DisplayName("[unit] product-api JWT 필터 접근 정책")
 class JwtAuthenticationFilterPolicyTest {
 
-  private final TestJwtAuthenticationFilter filter = new TestJwtAuthenticationFilter();
+  private final SecurityPolicyRegistry policyRegistry =
+      new SecurityPolicyRegistry(
+          List.of(
+              SecurityPolicyRoute.explicit("POST", "/api/v1/oauth/login", PUBLIC),
+              SecurityPolicyRoute.explicit("GET", "/api/v1/regions", PUBLIC),
+              SecurityPolicyRoute.explicit("GET", "/api/v1/alcohols/categories", PUBLIC),
+              SecurityPolicyRoute.explicit("GET", "/api/v1/alcohols/search", OPTIONAL_AUTH),
+              SecurityPolicyRoute.explicit("POST", "/api/v1/likes", REQUIRED_AUTH),
+              SecurityPolicyRoute.explicit("PUT", "/api/v1/picks", REQUIRED_AUTH)),
+          REQUIRED_AUTH);
+  private final TestJwtAuthenticationFilter filter =
+      new TestJwtAuthenticationFilter(policyRegistry);
 
   @ParameterizedTest
   @CsvSource({
@@ -43,22 +60,15 @@ class JwtAuthenticationFilterPolicyTest {
   @Test
   @DisplayName("무토큰 required-auth 요청에는 anonymous 인증 컨텍스트를 주입하지 않는다")
   void shouldUseAnonymousAuthentication_whenRequiredAuthWithoutToken_returnsFalse() {
-    assertThat(
-            JwtAuthenticationFilter.shouldUseAnonymousAuthentication("POST", "/api/v1/likes", null))
-        .isFalse();
-    assertThat(
-            JwtAuthenticationFilter.shouldUseAnonymousAuthentication(
-                "POST", "/api/v1/rating/register", ""))
+    assertThat(filter.usesAnonymousAuthentication("POST", "/api/v1/likes", null)).isFalse();
+    assertThat(filter.usesAnonymousAuthentication("POST", "/api/v1/unknown-required", ""))
         .isFalse();
   }
 
   @Test
   @DisplayName("무토큰 optional-auth 요청에는 기존 anonymous 인증 컨텍스트를 유지한다")
   void shouldUseAnonymousAuthentication_whenOptionalAuthWithoutToken_returnsTrue() {
-    assertThat(
-            JwtAuthenticationFilter.shouldUseAnonymousAuthentication(
-                "GET", "/api/v1/alcohols/search", null))
-        .isTrue();
+    assertThat(filter.usesAnonymousAuthentication("GET", "/api/v1/alcohols/search", null)).isTrue();
   }
 
   private static HttpServletRequest request(String method, String path) {
@@ -66,13 +76,17 @@ class JwtAuthenticationFilterPolicyTest {
   }
 
   private static class TestJwtAuthenticationFilter extends JwtAuthenticationFilter {
-    TestJwtAuthenticationFilter() {
-      super(null);
+    TestJwtAuthenticationFilter(SecurityPolicyRegistry policyRegistry) {
+      super(null, policyRegistry);
     }
 
     @Override
     public boolean shouldNotFilter(HttpServletRequest request) {
       return super.shouldNotFilter(request);
+    }
+
+    boolean usesAnonymousAuthentication(String method, String path, String token) {
+      return super.shouldUseAnonymousAuthentication(method, path, token);
     }
   }
 }

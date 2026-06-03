@@ -1,5 +1,6 @@
 package app.bottlenote.alcohols.controller;
 
+import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.OPTIONAL_AUTH;
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 import static app.bottlenote.global.service.meta.MetaService.createMetaInfo;
 
@@ -8,6 +9,7 @@ import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.service.AlcoholLookupService;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
+import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
 import jakarta.validation.Valid;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/alcohols")
+@SecurityPolicy(auth = OPTIONAL_AUTH)
 public class AlcoholQueryController {
 
   private final AlcoholQueryService alcoholQueryService;

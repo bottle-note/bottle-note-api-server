@@ -105,7 +105,7 @@ Batch module resources currently include both `src/main/resources` and the root 
   - `@FacadeService`: facade implementation marker, includes Spring `@Service`
   - `@DomainEventListener`: domain event listener marker
   - `@ThirdPartyService`: external integration marker
-  - `@AccessPolicy`, `@ExcludeRule`: security/rule-related project markers
+  - `@SecurityPolicy`, `@ExcludeRule`: security/rule-related project markers
 - Web API layering:
   - Controller extracts request/security context and delegates to service/facade.
   - Service owns transaction boundary.

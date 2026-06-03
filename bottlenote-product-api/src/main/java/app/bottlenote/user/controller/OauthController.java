@@ -1,5 +1,8 @@
 package app.bottlenote.user.controller;
 
+import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.PUBLIC;
+
+import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.user.config.OauthConfigProperties;
 import app.bottlenote.user.dto.request.BasicLoginRequest;
@@ -25,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/oauth")
+@SecurityPolicy(auth = PUBLIC)
 public class OauthController {
   private static final String REFRESH_TOKEN_HEADER_PREFIX = "refresh-token";
   private final OauthService oauthService;

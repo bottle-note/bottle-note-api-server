@@ -1,7 +1,9 @@
 package app.bottlenote.rating.controller;
 
+import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.OPTIONAL_AUTH;
 import static app.bottlenote.rating.exception.RatingExceptionCode.REQUEST_USER_ID;
 
+import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.meta.MetaService;
@@ -64,6 +66,7 @@ public class RatingController {
    *
    * @param request 별점 평가 목록 조회 요청 객체
    */
+  @SecurityPolicy(auth = OPTIONAL_AUTH)
   @GetMapping
   public ResponseEntity<?> fetchRatingList(@ModelAttribute RatingListFetchRequest request) {
     Long userId = SecurityContextUtil.getUserIdByContext().orElse(-1L);

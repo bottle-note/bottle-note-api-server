@@ -1,6 +1,9 @@
 package app.bottlenote.curation.controller;
 
+import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.PUBLIC;
+
 import app.bottlenote.curation.service.ProductSpecBasedCurationService;
+import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v2/curations")
 @RequiredArgsConstructor
+@SecurityPolicy(auth = PUBLIC)
 public class ProductSpecBasedCurationController {
 
   private final ProductSpecBasedCurationService productSpecBasedCurationService;
