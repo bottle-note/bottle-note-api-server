@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.mvc.condition.PathPatternsRequestCondition;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.web.util.pattern.PathPattern;
@@ -24,12 +25,12 @@ public final class SecurityPolicyRouteCollector {
       AuthType fallback,
       List<SecurityPolicyRoute> extraRoutes) {
     return SecurityPolicyRegistry.of(
-        collectRoutes(handlerMapping.getHandlerMethods(), fallback), fallback, extraRoutes);
+        collectRoutes(handlerMapping.getHandlerMethods(), fallback), extraRoutes);
   }
 
   public static SecurityPolicyRegistry collect(
       Map<RequestMappingInfo, HandlerMethod> handlerMethods, AuthType fallback) {
-    return new SecurityPolicyRegistry(collectRoutes(handlerMethods, fallback), fallback);
+    return new SecurityPolicyRegistry(collectRoutes(handlerMethods, fallback));
   }
 
   private static List<SecurityPolicyRoute> collectRoutes(
@@ -45,7 +46,12 @@ public final class SecurityPolicyRouteCollector {
                   .map(RequestMethod::name)
                   .collect(Collectors.toUnmodifiableSet());
 
-          for (PathPattern pattern : mapping.getPathPatternsCondition().getPatterns()) {
+          PathPatternsRequestCondition pathPatternsCondition = mapping.getPathPatternsCondition();
+          if (pathPatternsCondition == null) {
+            throw new IllegalStateException(
+                "SecurityPolicy requires PathPattern based request mappings");
+          }
+          for (PathPattern pattern : pathPatternsCondition.getPatterns()) {
             routes.add(
                 new SecurityPolicyRoute(
                     methods, pattern, auth, source, handlerMethod.getShortLogMessage()));

@@ -11,19 +11,9 @@ public @interface SecurityPolicy {
 
   AuthType auth() default AuthType.REQUIRED_AUTH;
 
-  AccessType access() default AccessType.ALL;
-
-  String key() default "userId";
-
   enum AuthType {
     PUBLIC,
     OPTIONAL_AUTH,
     REQUIRED_AUTH
-  }
-
-  enum AccessType {
-    ALL,
-    OWNER,
-    ADMIN
   }
 }

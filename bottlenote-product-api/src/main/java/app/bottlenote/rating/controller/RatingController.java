@@ -1,6 +1,7 @@
 package app.bottlenote.rating.controller;
 
 import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.OPTIONAL_AUTH;
+import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.REQUIRED_AUTH;
 import static app.bottlenote.rating.exception.RatingExceptionCode.REQUEST_USER_ID;
 
 import app.bottlenote.global.annotation.SecurityPolicy;
@@ -88,6 +89,7 @@ public class RatingController {
    *
    * @param alcoholId 술의 식별자
    */
+  @SecurityPolicy(auth = REQUIRED_AUTH)
   @GetMapping("/{alcoholId}")
   public ResponseEntity<?> fetchRatingPoint(@PathVariable Long alcoholId) {
 

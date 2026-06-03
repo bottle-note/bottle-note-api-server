@@ -23,6 +23,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
 @Tag("integration")
@@ -122,5 +123,24 @@ class RatingIntegrationTest extends IntegrationTestSupport {
     assertEquals(1.0, userRatingResponse.rating());
     assertEquals(user.getId(), userRatingResponse.userId());
     assertEquals(alcohol.getId(), userRatingResponse.alcoholId());
+  }
+
+  @DisplayName("비회원 유저는 내가 매긴 특정 술의 별점을 조회할 수 없다.")
+  @Test
+  void fetchRatingPoint_whenAnonymous_returnsUnauthorized() throws Exception {
+    // Given
+    Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+
+    // When
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/rating/{alcoholId}", alcohol.getId())
+            .contentType(APPLICATION_JSON)
+            .with(csrf())
+            .exchange();
+
+    // Then
+    result.assertThat().hasStatus(HttpStatus.UNAUTHORIZED);
   }
 }

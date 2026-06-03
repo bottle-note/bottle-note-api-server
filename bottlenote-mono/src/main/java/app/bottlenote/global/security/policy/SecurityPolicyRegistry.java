@@ -3,23 +3,25 @@ package app.bottlenote.global.security.policy;
 import app.bottlenote.global.annotation.SecurityPolicy.AuthType;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import org.springframework.http.server.PathContainer;
+import org.springframework.web.util.pattern.PathPattern;
 
 public final class SecurityPolicyRegistry {
 
   private final List<SecurityPolicyRoute> routes;
-  private final AuthType fallback;
+  private static final AuthType UNKNOWN_ROUTE_AUTH = AuthType.PUBLIC;
 
-  public SecurityPolicyRegistry(List<SecurityPolicyRoute> routes, AuthType fallback) {
+  public SecurityPolicyRegistry(List<SecurityPolicyRoute> routes) {
     this.routes = List.copyOf(routes);
-    this.fallback = fallback;
   }
 
   public static SecurityPolicyRegistry of(
-      List<SecurityPolicyRoute> routes, AuthType fallback, List<SecurityPolicyRoute> extraRoutes) {
+      List<SecurityPolicyRoute> routes, List<SecurityPolicyRoute> extraRoutes) {
     List<SecurityPolicyRoute> combined = new ArrayList<>(extraRoutes);
     combined.addAll(routes);
-    return new SecurityPolicyRegistry(combined, fallback);
+    return new SecurityPolicyRegistry(combined);
   }
 
   public AuthType resolve(HttpServletRequest request) {
@@ -28,11 +30,14 @@ public final class SecurityPolicyRegistry {
 
   public AuthType resolve(String method, String path) {
     String lookupPath = normalizePath(path);
+    PathContainer pathContainer = PathContainer.parsePath(lookupPath);
     return routes.stream()
-        .filter(route -> route.matches(method, lookupPath))
-        .findFirst()
+        .filter(route -> route.matches(method, pathContainer))
+        .min(
+            Comparator.comparing(
+                SecurityPolicyRoute::pathPattern, PathPattern.SPECIFICITY_COMPARATOR))
         .map(SecurityPolicyRoute::auth)
-        .orElse(fallback);
+        .orElse(UNKNOWN_ROUTE_AUTH);
   }
 
   public boolean requiresAuthentication(HttpServletRequest request) {

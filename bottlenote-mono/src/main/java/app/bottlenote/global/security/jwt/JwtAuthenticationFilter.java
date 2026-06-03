@@ -111,6 +111,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
     return CorsUtils.isPreFlightRequest(request)
-        || securityPolicyRegistry.shouldSkipJwtFilter(request);
+        || (!MaliciousPathPattern.matches(request)
+            && securityPolicyRegistry.shouldSkipJwtFilter(request));
   }
 }

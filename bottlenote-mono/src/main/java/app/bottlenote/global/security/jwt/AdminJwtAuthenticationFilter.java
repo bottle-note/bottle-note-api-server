@@ -46,6 +46,11 @@ public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
 
     try {
       if (token == null || token.isBlank()) {
+        if (MaliciousPathPattern.matches(request)
+            || securityPolicyRegistry.shouldUseAnonymousAuthentication(method, path, token)) {
+          filterChain.doFilter(request, response);
+          return;
+        }
         log.debug("Admin API 접근 시 토큰이 필요합니다. path: {}", path);
         request.setAttribute(
             "exception", new CustomJwtException(CustomJwtExceptionCode.EMPTY_JWT_TOKEN));
@@ -94,7 +99,7 @@ public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
     return CorsUtils.isPreFlightRequest(request)
-        || MaliciousPathPattern.matches(request)
-        || securityPolicyRegistry.shouldSkipJwtFilter(request);
+        || (!MaliciousPathPattern.matches(request)
+            && securityPolicyRegistry.shouldSkipJwtFilter(request));
   }
 }

@@ -3,6 +3,7 @@ package app.bottlenote.global.security.policy;
 import app.bottlenote.global.annotation.SecurityPolicy.AuthType;
 import java.util.Locale;
 import java.util.Set;
+import org.springframework.http.server.PathContainer;
 import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPatternParser;
 
@@ -18,8 +19,11 @@ public record SecurityPolicyRoute(
   }
 
   public boolean matches(String method, String path) {
-    return matchesMethod(method)
-        && pathPattern.matches(org.springframework.http.server.PathContainer.parsePath(path));
+    return matches(method, PathContainer.parsePath(path));
+  }
+
+  public boolean matches(String method, PathContainer path) {
+    return matchesMethod(method) && pathPattern.matches(path);
   }
 
   private boolean matchesMethod(String method) {
