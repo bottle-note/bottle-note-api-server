@@ -39,7 +39,7 @@ public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
       throws ServletException, IOException {
 
     final String method = request.getMethod();
-    final String path = request.getServletPath();
+    final String path = SecurityPolicyRegistry.lookupPath(request);
     String token = resolveToken(request).orElse(null);
 
     log.debug("Admin JWT 필터 수행 >> {} : {}", method, path);
@@ -47,7 +47,7 @@ public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
     try {
       if (token == null || token.isBlank()) {
         if (MaliciousPathPattern.matches(request)
-            || securityPolicyRegistry.shouldUseAnonymousAuthentication(method, path, token)) {
+            || securityPolicyRegistry.shouldUseAnonymousAuthentication(request, token)) {
           filterChain.doFilter(request, response);
           return;
         }

@@ -13,6 +13,7 @@ import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -89,6 +90,18 @@ class SecurityPolicyRegistryTest {
             List.of(SecurityPolicyRoute.explicit("GET", "/known", REQUIRED_AUTH)));
 
     assertThat(registry.resolve("GET", "/unknown")).isEqualTo(PUBLIC);
+  }
+
+  @Test
+  @DisplayName("request 기반 anonymous 판단은 context-path를 제거한 lookup path를 사용한다")
+  void shouldUseAnonymousAuthentication_whenRequestHasContextPath_usesLookupPath() {
+    SecurityPolicyRegistry registry =
+        new SecurityPolicyRegistry(
+            List.of(SecurityPolicyRoute.explicit("GET", "/api/v1/search", OPTIONAL_AUTH)));
+    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/service/api/v1/search");
+    request.setContextPath("/service");
+
+    assertThat(registry.shouldUseAnonymousAuthentication(request, null)).isTrue();
   }
 
   private static SecurityPolicyRegistry collect(Object... mappingAndHandlers) {

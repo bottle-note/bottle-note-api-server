@@ -14,6 +14,8 @@ product/admin JWT 인증은 이미 동작 중이다. 이번 작업은 흩어진 
 - 여러 mapping이 동시에 매칭될 때 Spring `PathPattern` specificity 기준으로 가장 구체적인 정책을 선택한다.
 - admin-api의 기존 login/refresh public, 나머지 authenticated 흐름은 회귀하지 않는다.
 - 악성 경로 denyAll과 GraphQL/GraphiQL 외부 차단은 유지된다.
+- `/error`는 product/admin 모두 public extra route로 유지해 익명 error dispatch가 401로 덮이지 않는다.
+- 필터 내부 anonymous 판단은 request 기반 lookup path를 사용해 context-path 처리와 권한 판정을 일치시킨다.
 
 ## Tasks
 
@@ -61,3 +63,7 @@ product/admin JWT 인증은 이미 동작 중이다. 이번 작업은 흩어진 
 - 2026-06-03: `SecurityPolicy`의 no-op `access/key` 필드를 제거하고 required product endpoint는 `auth = REQUIRED_AUTH`로 명시.
 - 2026-06-03: malicious path가 no-match public 처리로 JWT 필터를 skip해 401로 회귀하던 문제를 악성 경로 필터 실행 유지로 복원.
 - 2026-06-03: 보완 후 mono test 180개, product integration 233개, admin integration 197개, rule test 62개 모두 통과. batch `compileJava`, `git diff --check`, legacy policy 명칭 잔여 검색도 통과.
+- 2026-06-03: PR 리뷰 후 product/admin `resolve("GET", "/error")`가 `REQUIRED_AUTH`로 잡히는 회귀를 테스트로 재현하고, `/error` explicit public route를 추가.
+- 2026-06-03: `BusinessSupportController`는 모든 메서드가 user context를 요구하므로 class-level `REQUIRED_AUTH`로 의도를 명시하고 익명 목록/상세 조회 401 테스트를 추가.
+- 2026-06-03: product/admin JWT 필터의 path 산출을 `SecurityPolicyRegistry.lookupPath(request)`로 통일하고 문자열 기반 anonymous 판단 오버로드를 제거.
+- 2026-06-03: 익명 required endpoint의 400 → 401 변경은 의도된 보안계층 차단이므로 릴리즈 노트와 FE 공지 대상.

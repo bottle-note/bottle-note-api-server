@@ -27,7 +27,8 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 		"POST, /v1/auth/signup, REQUIRED_AUTH",
 		"DELETE, /v1/auth/withdraw, REQUIRED_AUTH",
 		"GET, /v1/users, REQUIRED_AUTH",
-		"GET, /v1/not-found, PUBLIC"
+		"GET, /v1/not-found, PUBLIC",
+		"GET, /error, PUBLIC"
 	)
 	@DisplayName("admin-api SecurityPolicyRegistry가 실제 controller 정책을 수집한다")
 	fun adminSecurityPolicyRegistryCollectsControllerPolicies(

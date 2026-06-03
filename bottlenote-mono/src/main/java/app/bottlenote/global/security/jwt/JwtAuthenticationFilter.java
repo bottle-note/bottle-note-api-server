@@ -47,7 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       @NonNull FilterChain filterChain)
       throws ServletException, IOException {
     final String method = request.getMethod();
-    final String path = request.getRequestURI();
+    final String path = SecurityPolicyRegistry.lookupPath(request);
     String token = resolveToken(request).orElse(null);
 
     log.debug("Performs filtering inside the JWT. >> {} : {} ", method, path);
@@ -65,7 +65,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
           return;
         }
         authentication = jwtAuthenticationManager.getAuthentication(token);
-      } else if (shouldUseAnonymousAuthentication(method, path, token)) {
+      } else if (shouldUseAnonymousAuthentication(request, token)) {
         authentication = jwtAuthenticationManager.getAnonymousAuthentication();
       }
       if (authentication != null) {
@@ -103,8 +103,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     return Optional.empty();
   }
 
-  protected boolean shouldUseAnonymousAuthentication(String method, String path, String token) {
-    return securityPolicyRegistry.shouldUseAnonymousAuthentication(method, path, token);
+  protected boolean shouldUseAnonymousAuthentication(HttpServletRequest request, String token) {
+    return securityPolicyRegistry.shouldUseAnonymousAuthentication(request, token);
   }
 
   /** 인증 컨텍스트가 필요 없는 공개 API만 필터에서 제외한다. */

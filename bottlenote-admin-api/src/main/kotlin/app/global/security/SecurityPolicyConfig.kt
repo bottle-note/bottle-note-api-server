@@ -18,6 +18,9 @@ class SecurityPolicyConfig {
 	): SecurityPolicyRegistry = SecurityPolicyRouteCollector.collect(
 		handlerMapping,
 		REQUIRED_AUTH,
-		listOf(SecurityPolicyRoute.explicit(null, "/actuator/**", PUBLIC))
+		listOf(
+			SecurityPolicyRoute.explicit(null, "/actuator/**", PUBLIC),
+			SecurityPolicyRoute.explicit(null, "/error", PUBLIC)
+		)
 	)
 }

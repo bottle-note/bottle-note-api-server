@@ -1,7 +1,9 @@
 package app.bottlenote.support.business.controller;
 
+import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.REQUIRED_AUTH;
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
+import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.CollectionResponse;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/business-support")
+@SecurityPolicy(auth = REQUIRED_AUTH)
 @RequiredArgsConstructor
 public class BusinessSupportController {
 
