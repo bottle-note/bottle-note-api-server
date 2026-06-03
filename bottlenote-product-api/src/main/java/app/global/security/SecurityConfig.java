@@ -6,6 +6,7 @@ import app.bottlenote.global.security.constant.MaliciousPathPattern;
 import app.bottlenote.global.security.jwt.JwtAuthenticationEntryPoint;
 import app.bottlenote.global.security.jwt.JwtAuthenticationFilter;
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
+import app.bottlenote.global.security.policy.ProductApiAccessPolicy;
 import jakarta.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.List;
@@ -64,28 +65,11 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers(MaliciousPathPattern.getAllPatterns())
                     .denyAll()
-                    .requestMatchers("/api/v1/picks/**")
-                    .authenticated()
-                    .requestMatchers("/api/v1/s3/**")
-                    .authenticated()
-                    .requestMatchers("/api/v1/follow/**")
-                    .authenticated()
-                    .requestMatchers("/api/v1/reviews/me/**")
-                    .authenticated()
-                    .requestMatchers("/api/v1/reviews/**")
-                    .authenticated()
-                    .requestMatchers("/api/v1/users/**")
-                    .authenticated()
-                    .requestMatchers("/api/v1/help/**")
-                    .authenticated()
-                    .requestMatchers("/api/v1/my-page/**")
-                    .authenticated()
-                    .requestMatchers("/api/v1/reports/**")
-                    .authenticated()
-                    .requestMatchers("/api/v1/history/**")
-                    .authenticated()
-                    .requestMatchers("/api/v1/blocks/**")
-                    .authenticated()
+                    .requestMatchers(
+                        request ->
+                            ProductApiAccessPolicy.requiresAuthentication(
+                                request.getMethod(), request.getRequestURI()))
+                    .fullyAuthenticated()
                     .anyRequest()
                     .permitAll())
         .addFilterBefore(
