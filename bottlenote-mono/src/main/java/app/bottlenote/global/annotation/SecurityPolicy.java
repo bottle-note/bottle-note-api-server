@@ -5,18 +5,25 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target({ElementType.METHOD})
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface AccessPolicy {
-  /** 접근 제어 유형 */
-  AccessType type() default AccessType.ALL;
+public @interface SecurityPolicy {
 
-  /** PathVariable에서 사용자 ID를 가져올 변수명 */
+  AuthType auth() default AuthType.REQUIRED_AUTH;
+
+  AccessType access() default AccessType.ALL;
+
   String key() default "userId";
 
+  enum AuthType {
+    PUBLIC,
+    OPTIONAL_AUTH,
+    REQUIRED_AUTH
+  }
+
   enum AccessType {
-    ALL, // 모든 유저
-    OWNER, // 본인만
-    ADMIN // 관리자만
+    ALL,
+    OWNER,
+    ADMIN
   }
 }

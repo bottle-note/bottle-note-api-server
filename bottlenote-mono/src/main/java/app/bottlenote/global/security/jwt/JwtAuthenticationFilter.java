@@ -2,8 +2,8 @@ package app.bottlenote.global.security.jwt;
 
 import static java.util.Objects.requireNonNullElse;
 
-import app.bottlenote.global.security.policy.ProductApiAccessPolicy;
-import app.bottlenote.global.security.policy.ProductApiAccessPolicy.AccessType;
+import app.bottlenote.global.security.constant.MaliciousPathPattern;
+import app.bottlenote.global.security.policy.SecurityPolicyRegistry;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @Slf4j
@@ -28,6 +29,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   public static final String BEARER_PREFIX = "Bearer ";
 
   private final JwtAuthenticationManager jwtAuthenticationManager;
+  private final SecurityPolicyRegistry securityPolicyRegistry;
 
   /**
    * 내부 필터링 로직을 처리하는 메서드.
@@ -53,7 +55,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     try {
       Authentication authentication = null;
 
-      if (token != null && !token.isBlank()) {
+      if (MaliciousPathPattern.matches(request)) {
+        authentication = jwtAuthenticationManager.getAnonymousAuthentication();
+      } else if (token != null && !token.isBlank()) {
         if (!JwtTokenValidator.validateToken(token)) {
           log.info("MalformedJwtException : 토큰이 유효하지 않습니다.");
           request.setAttribute("exception", new MalformedJwtException("토큰이 유효하지 않습니다."));
@@ -99,14 +103,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     return Optional.empty();
   }
 
-  static boolean shouldUseAnonymousAuthentication(String method, String path, String token) {
-    return (token == null || token.isBlank())
-        && ProductApiAccessPolicy.resolve(method, path) != AccessType.REQUIRED_AUTH;
+  protected boolean shouldUseAnonymousAuthentication(String method, String path, String token) {
+    return securityPolicyRegistry.shouldUseAnonymousAuthentication(method, path, token);
   }
 
   /** 인증 컨텍스트가 필요 없는 공개 API만 필터에서 제외한다. */
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
-    return ProductApiAccessPolicy.shouldSkipJwtFilter(request.getMethod(), request.getRequestURI());
+    return CorsUtils.isPreFlightRequest(request)
+        || securityPolicyRegistry.shouldSkipJwtFilter(request);
   }
 }

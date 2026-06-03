@@ -1,5 +1,8 @@
 package app.external.version.presentation;
 
+import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.PUBLIC;
+
+import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.external.version.config.AppInfoConfig;
 import java.time.ZoneId;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/app-info")
 @RequiredArgsConstructor
+@SecurityPolicy(auth = PUBLIC)
 public class AppInfoController {
   private final AppInfoConfig info;
 

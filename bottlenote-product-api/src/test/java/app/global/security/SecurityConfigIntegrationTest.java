@@ -81,6 +81,19 @@ class SecurityConfigIntegrationTest extends IntegrationTestSupport {
   }
 
   @Test
+  @DisplayName("선택 인증 API도 유효하지 않은 토큰이면 인증 실패한다")
+  void 선택_인증_API_유효하지_않은_토큰_인증_실패() {
+    var result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/alcohols/search")
+            .header("Authorization", "Bearer invalid.token")
+            .exchange();
+
+    result.assertThat().hasStatus(UNAUTHORIZED);
+  }
+
+  @Test
   @DisplayName("정상 API 경로는 차단되지 않는다")
   void 정상_API_경로_허용() {
     // when

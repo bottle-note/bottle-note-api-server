@@ -269,7 +269,7 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
       assertNotEquals(targetUser.getId(), me.getId());
     }
 
-    @DisplayName("비회원 유저는 조회하면 BAD_REQUEST 예외를 반환한다.")
+    @DisplayName("비회원 유저는 마이보틀 조회 시 401을 반환한다.")
     @Test
     void test_3() throws Exception {
       // Given
@@ -293,14 +293,13 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
               .exchange();
 
       // Then
-      result.assertThat().hasStatus(HttpStatus.BAD_REQUEST);
+      result.assertThat().hasStatus(HttpStatus.UNAUTHORIZED);
     }
 
-    @DisplayName("마이보틀 유저가 존재하지 않는 경우 REQUIRED_USER_ID 예외를 반환한다.")
+    @DisplayName("인증 없이 마이보틀 유저가 존재하지 않는 경우 401을 반환한다.")
     @Test
     void test_4() throws Exception {
       // Given
-      Error error = Error.of(UserExceptionCode.REQUIRED_USER_ID);
       final Long nonExistentUserId = 999999L;
 
       // When
@@ -319,22 +318,7 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
               .exchange();
 
       // Then
-      result.assertThat().hasStatus(HttpStatus.BAD_REQUEST);
-      result
-          .assertThat()
-          .bodyJson()
-          .extractingPath("$.errors[0].code")
-          .isEqualTo(String.valueOf(error.code()));
-      result
-          .assertThat()
-          .bodyJson()
-          .extractingPath("$.errors[0].status")
-          .isEqualTo(error.status().name());
-      result
-          .assertThat()
-          .bodyJson()
-          .extractingPath("$.errors[0].message")
-          .isEqualTo(error.message());
+      result.assertThat().hasStatus(HttpStatus.UNAUTHORIZED);
     }
   }
 }

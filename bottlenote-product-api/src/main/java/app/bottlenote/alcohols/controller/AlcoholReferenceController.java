@@ -1,10 +1,13 @@
 package app.bottlenote.alcohols.controller;
 
+import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.PUBLIC;
+
 import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.dto.request.CurationKeywordSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.alcohols.dto.response.CurationKeywordResponse;
 import app.bottlenote.alcohols.service.AlcoholReferenceService;
+import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.service.cursor.CursorResponse;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
+@SecurityPolicy(auth = PUBLIC)
 public class AlcoholReferenceController {
 
   private final AlcoholReferenceService alcoholReferenceService;
