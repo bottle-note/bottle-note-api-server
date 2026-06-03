@@ -8,6 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import app.bottlenote.global.annotation.SecurityPolicy;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -28,7 +29,7 @@ class SecurityPolicyRegistryTest {
   @DisplayName("메서드 어노테이션의 인증 정책을 수집한다")
   void collect_whenMethodAnnotated_resolvesMethodPolicy() throws Exception {
     SecurityPolicyRegistry registry =
-        collect(mapping("GET", "/public"), handler(PolicyController.class, "publicEndpoint"));
+        collect(mapping("GET", "/public"), handler(PolicyHandler.class, "publicEndpoint"));
 
     assertThat(registry.resolve("GET", "/public")).isEqualTo(PUBLIC);
   }
@@ -39,9 +40,9 @@ class SecurityPolicyRegistryTest {
     SecurityPolicyRegistry registry =
         collect(
             mapping("GET", "/optional"),
-            handler(OptionalController.class, "optionalEndpoint"),
+            handler(OptionalHandler.class, "optionalEndpoint"),
             mapping("POST", "/optional/command"),
-            handler(OptionalController.class, "requiredEndpoint"));
+            handler(OptionalHandler.class, "requiredEndpoint"));
 
     assertThat(registry.resolve("GET", "/optional")).isEqualTo(OPTIONAL_AUTH);
     assertThat(registry.resolve("POST", "/optional/command")).isEqualTo(REQUIRED_AUTH);
@@ -53,7 +54,7 @@ class SecurityPolicyRegistryTest {
     SecurityPolicyRegistry registry =
         collect(
             mapping("POST", "/fallback-required"),
-            handler(PolicyController.class, "missingPolicyEndpoint"));
+            handler(PolicyHandler.class, "missingPolicyEndpoint"));
 
     assertThat(registry.resolve("POST", "/fallback-required")).isEqualTo(REQUIRED_AUTH);
   }
@@ -63,10 +64,31 @@ class SecurityPolicyRegistryTest {
   void resolve_whenPathContainsMatrixVariable_matchesSameControllerPattern() throws Exception {
     SecurityPolicyRegistry registry =
         collect(
-            mapping("PUT", "/api/v1/likes"),
-            handler(PolicyController.class, "missingPolicyEndpoint"));
+            mapping("PUT", "/api/v1/likes"), handler(PolicyHandler.class, "missingPolicyEndpoint"));
 
     assertThat(registry.resolve("PUT", "/api/v1/likes;v=1")).isEqualTo(REQUIRED_AUTH);
+  }
+
+  @Test
+  @DisplayName("구체적인 경로 정책이 변수 경로 정책보다 우선한다")
+  void resolve_whenSpecificPatternAndVariablePatternMatch_prefersSpecificPattern() {
+    SecurityPolicyRegistry registry =
+        new SecurityPolicyRegistry(
+            List.of(
+                SecurityPolicyRoute.explicit("GET", "/api/v1/alcohols/{alcoholId}", OPTIONAL_AUTH),
+                SecurityPolicyRoute.explicit("GET", "/api/v1/alcohols/categories", PUBLIC)));
+
+    assertThat(registry.resolve("GET", "/api/v1/alcohols/categories")).isEqualTo(PUBLIC);
+  }
+
+  @Test
+  @DisplayName("수집된 handler가 없는 경로는 인증 필수 fallback으로 취급하지 않는다")
+  void resolve_whenRouteMissing_doesNotApplyHandlerFallbackPolicy() {
+    SecurityPolicyRegistry registry =
+        new SecurityPolicyRegistry(
+            List.of(SecurityPolicyRoute.explicit("GET", "/known", REQUIRED_AUTH)));
+
+    assertThat(registry.resolve("GET", "/unknown")).isEqualTo(PUBLIC);
   }
 
   private static SecurityPolicyRegistry collect(Object... mappingAndHandlers) {
@@ -93,7 +115,7 @@ class SecurityPolicyRegistryTest {
     return new HandlerMethod(controllerType.getDeclaredConstructor().newInstance(), method);
   }
 
-  private static class PolicyController {
+  private static class PolicyHandler {
 
     @SecurityPolicy(auth = PUBLIC)
     @GetMapping("/public")
@@ -105,7 +127,7 @@ class SecurityPolicyRegistryTest {
 
   @SecurityPolicy(auth = OPTIONAL_AUTH)
   @RequestMapping("/optional")
-  private static class OptionalController {
+  private static class OptionalHandler {
 
     @GetMapping
     void optionalEndpoint() {}

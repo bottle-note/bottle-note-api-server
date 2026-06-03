@@ -296,6 +296,58 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
       result.assertThat().hasStatus(HttpStatus.UNAUTHORIZED);
     }
 
+    @DisplayName("비회원 유저는 별점 마이보틀 조회 시 401을 반환한다.")
+    @Test
+    void getRatingMyBottle_whenAnonymous_returnsUnauthorized() throws Exception {
+      // Given
+      User targetUser = userTestFactory.persistUser();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+      ratingTestFactory.persistRating(targetUser, alcohol, 4);
+
+      // When
+      MvcTestResult result =
+          mockMvcTester
+              .get()
+              .uri("/api/v1/my-page/{userId}/my-bottle/ratings", targetUser.getId())
+              .param("keyword", "")
+              .param("regionId", "")
+              .param("sortType", "LATEST")
+              .param("sortOrder", "DESC")
+              .param("cursor", "0")
+              .param("pageSize", "50")
+              .contentType(APPLICATION_JSON)
+              .with(csrf())
+              .exchange();
+
+      // Then
+      result.assertThat().hasStatus(HttpStatus.UNAUTHORIZED);
+    }
+
+    @DisplayName("비회원 유저는 찜 마이보틀 조회 시 401을 반환한다.")
+    @Test
+    void getPicksMyBottle_whenAnonymous_returnsUnauthorized() throws Exception {
+      // Given
+      User targetUser = userTestFactory.persistUser();
+
+      // When
+      MvcTestResult result =
+          mockMvcTester
+              .get()
+              .uri("/api/v1/my-page/{userId}/my-bottle/picks", targetUser.getId())
+              .param("keyword", "")
+              .param("regionId", "")
+              .param("sortType", "LATEST")
+              .param("sortOrder", "DESC")
+              .param("cursor", "0")
+              .param("pageSize", "50")
+              .contentType(APPLICATION_JSON)
+              .with(csrf())
+              .exchange();
+
+      // Then
+      result.assertThat().hasStatus(HttpStatus.UNAUTHORIZED);
+    }
+
     @DisplayName("인증 없이 마이보틀 유저가 존재하지 않는 경우 401을 반환한다.")
     @Test
     void test_4() throws Exception {

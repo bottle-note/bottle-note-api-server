@@ -1,11 +1,14 @@
 package app.global.security;
 
+import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.PUBLIC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 import app.bottlenote.IntegrationTestSupport;
+import app.bottlenote.global.annotation.SecurityPolicy.AuthType;
+import app.bottlenote.global.security.policy.SecurityPolicyRegistry;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
@@ -15,8 +18,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.DispatcherServlet;
 
 @Tag("integration")
@@ -25,6 +30,7 @@ class SecurityConfigIntegrationTest extends IntegrationTestSupport {
 
   private ListAppender<ILoggingEvent> logAppender;
   private Logger dispatcherLogger;
+  @Autowired private SecurityPolicyRegistry securityPolicyRegistry;
 
   @BeforeEach
   void setUpLogCapture() {
@@ -78,6 +84,31 @@ class SecurityConfigIntegrationTest extends IntegrationTestSupport {
     var result = mockMvcTester.get().uri("/api/v1/alcohols/search").exchange();
 
     result.assertThat().hasStatusOk();
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "GET, /api/v1/alcohols/categories, PUBLIC",
+    "GET, /api/v1/alcohols/1, OPTIONAL_AUTH",
+    "GET, /api/v1/rating, OPTIONAL_AUTH",
+    "GET, /api/v1/rating/1, REQUIRED_AUTH",
+    "GET, /api/v1/my-page/1, OPTIONAL_AUTH",
+    "GET, /api/v1/my-page/1/my-bottle/reviews, REQUIRED_AUTH",
+    "GET, /api/v1/my-page/1/my-bottle/ratings, REQUIRED_AUTH",
+    "GET, /api/v1/my-page/1/my-bottle/picks, REQUIRED_AUTH",
+    "PUT, /api/v1/likes, REQUIRED_AUTH"
+  })
+  @DisplayName("product-api SecurityPolicyRegistry가 실제 controller 정책을 수집한다")
+  void product_api_SecurityPolicyRegistry_정책_수집(String method, String path, String expected) {
+    AuthType expectedPolicy = AuthType.valueOf(expected);
+
+    assertThat(securityPolicyRegistry.resolve(method, path)).isEqualTo(expectedPolicy);
+  }
+
+  @Test
+  @DisplayName("수집된 handler가 없는 정상 경로는 인증 필수 fallback을 적용하지 않는다")
+  void 미수집_정상_경로는_인증_필수_fallback_미적용() {
+    assertThat(securityPolicyRegistry.resolve("GET", "/api/v1/not-found")).isEqualTo(PUBLIC);
   }
 
   @Test

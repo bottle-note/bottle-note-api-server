@@ -1,7 +1,7 @@
 package app.bottlenote.user.controller;
 
-import static app.bottlenote.global.annotation.SecurityPolicy.AccessType.ALL;
 import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.OPTIONAL_AUTH;
+import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.REQUIRED_AUTH;
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
 import app.bottlenote.global.annotation.SecurityPolicy;
@@ -32,14 +32,14 @@ public class UserMyPageController {
   private static final String PAGEABLE = "pageable";
 
   /** 마이 페이지 조회 API 모든 유저가 조회 가능 */
-  @SecurityPolicy(auth = OPTIONAL_AUTH, access = ALL)
+  @SecurityPolicy(auth = OPTIONAL_AUTH)
   @GetMapping("/{userId}")
   public ResponseEntity<?> getMyPage(@PathVariable Long userId) {
     final Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
     return GlobalResponse.ok(userBasicService.getMyPage(userId, currentUserId));
   }
 
-  @SecurityPolicy(access = ALL)
+  @SecurityPolicy(auth = REQUIRED_AUTH)
   @GetMapping("/{userId}/my-bottle/reviews")
   public ResponseEntity<?> getReviewMyBottle(
       @PathVariable(name = "userId") Long userId,
@@ -58,7 +58,7 @@ public class UserMyPageController {
             .add(PAGEABLE, pageResponse.cursorPageable()));
   }
 
-  @SecurityPolicy(access = ALL)
+  @SecurityPolicy(auth = REQUIRED_AUTH)
   @GetMapping("/{userId}/my-bottle/ratings")
   public ResponseEntity<?> getRatingMyBottle(
       @PathVariable(name = "userId") Long userId,
@@ -77,7 +77,7 @@ public class UserMyPageController {
             .add(PAGEABLE, pageResponse.cursorPageable()));
   }
 
-  @SecurityPolicy(access = ALL)
+  @SecurityPolicy(auth = REQUIRED_AUTH)
   @GetMapping("/{userId}/my-bottle/picks")
   public ResponseEntity<?> getPicksMyBottle(
       @PathVariable(name = "userId") Long userId,

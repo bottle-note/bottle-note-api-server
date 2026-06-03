@@ -10,13 +10,16 @@ product/admin JWT 인증은 이미 동작 중이다. 이번 작업은 흩어진 
 - `JwtAuthenticationFilter`는 public 경로만 건너뛰고, optional-auth와 required-auth에서는 토큰이 있으면 사용자 컨텍스트를 세팅한다.
 - optional-auth는 무토큰 접근을 허용하고, 유효 토큰은 개인화 응답을 유지한다.
 - 어노테이션이 없는 handler는 fallback `required-auth`로 수집된다.
+- 수집된 handler가 없는 경로는 handler fallback과 분리해 404/정적 경로에 인증을 강제하지 않는다.
+- 여러 mapping이 동시에 매칭될 때 Spring `PathPattern` specificity 기준으로 가장 구체적인 정책을 선택한다.
 - admin-api의 기존 login/refresh public, 나머지 authenticated 흐름은 회귀하지 않는다.
 - 악성 경로 denyAll과 GraphQL/GraphiQL 외부 차단은 유지된다.
 
 ## Tasks
 
 - [x] Task 1. `@SecurityPolicy` 접근 정책 모델 추가
-  - `auth` 축과 기존 owner/access 축을 하나의 어노테이션으로 통합한다.
+  - 현재 실제로 사용되는 `auth` 축만 `@SecurityPolicy`로 선언한다.
+  - 기존 owner/access 축은 사용 사례가 없어 이번 PR에서 제거하고, enforcement 없는 no-op 필드는 남기지 않는다.
   - handler mapping 수집 단위 테스트를 먼저 작성한다.
   - 어노테이션 누락 handler의 fallback `required-auth`를 검증한다.
 
@@ -54,3 +57,7 @@ product/admin JWT 인증은 이미 동작 중이다. 이번 작업은 흩어진 
 - 2026-06-03: `SecurityPolicyRegistryTest`, `JwtAuthenticationFilterPolicyTest`, `MaliciousPathPatternTest` 통과.
 - 2026-06-03: optional-auth API에 invalid token이 들어오면 401로 차단되도록 `SecurityConfigIntegrationTest` 회귀 테스트 추가.
 - 2026-06-03: product 전체 `integration_test` 220개 통과, admin 전체 `admin_integration_test` 189개 통과, batch `compileJava` 통과.
+- 2026-06-03: 리뷰 보완으로 route specificity 우선순위, 수집되지 않은 경로와 handler fallback 분리, product/admin registry matrix 테스트를 추가.
+- 2026-06-03: `SecurityPolicy`의 no-op `access/key` 필드를 제거하고 required product endpoint는 `auth = REQUIRED_AUTH`로 명시.
+- 2026-06-03: malicious path가 no-match public 처리로 JWT 필터를 skip해 401로 회귀하던 문제를 악성 경로 필터 실행 유지로 복원.
+- 2026-06-03: 보완 후 mono test 180개, product integration 233개, admin integration 197개, rule test 62개 모두 통과. batch `compileJava`, `git diff --check`, legacy policy 명칭 잔여 검색도 통과.
