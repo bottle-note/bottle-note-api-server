@@ -21,6 +21,8 @@ public class SecurityPolicyConfig {
     return SecurityPolicyRouteCollector.collect(
         handlerMapping,
         REQUIRED_AUTH,
-        List.of(SecurityPolicyRoute.explicit(null, "/actuator/**", PUBLIC)));
+        List.of(
+            SecurityPolicyRoute.explicit(null, "/actuator/**", PUBLIC),
+            SecurityPolicyRoute.explicit(null, "/error", PUBLIC)));
   }
 }

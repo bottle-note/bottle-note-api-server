@@ -95,7 +95,7 @@ class JwtAuthenticationFilterPolicyTest {
     }
 
     boolean usesAnonymousAuthentication(String method, String path, String token) {
-      return super.shouldUseAnonymousAuthentication(method, path, token);
+      return super.shouldUseAnonymousAuthentication(request(method, path), token);
     }
   }
 }

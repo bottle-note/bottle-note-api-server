@@ -48,15 +48,15 @@ public final class SecurityPolicyRegistry {
     return resolve(request) == AuthType.PUBLIC;
   }
 
-  public boolean shouldUseAnonymousAuthentication(String method, String path, String token) {
-    return (token == null || token.isBlank()) && resolve(method, path) != AuthType.REQUIRED_AUTH;
+  public boolean shouldUseAnonymousAuthentication(HttpServletRequest request, String token) {
+    return (token == null || token.isBlank()) && resolve(request) != AuthType.REQUIRED_AUTH;
   }
 
   public int routeCount() {
     return routes.size();
   }
 
-  private static String lookupPath(HttpServletRequest request) {
+  public static String lookupPath(HttpServletRequest request) {
     String requestUri = request.getRequestURI();
     String contextPath = request.getContextPath();
     if (contextPath != null && !contextPath.isBlank() && requestUri.startsWith(contextPath)) {

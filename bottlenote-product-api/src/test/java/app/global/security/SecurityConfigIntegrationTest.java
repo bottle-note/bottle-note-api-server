@@ -96,7 +96,10 @@ class SecurityConfigIntegrationTest extends IntegrationTestSupport {
     "GET, /api/v1/my-page/1/my-bottle/reviews, REQUIRED_AUTH",
     "GET, /api/v1/my-page/1/my-bottle/ratings, REQUIRED_AUTH",
     "GET, /api/v1/my-page/1/my-bottle/picks, REQUIRED_AUTH",
-    "PUT, /api/v1/likes, REQUIRED_AUTH"
+    "GET, /api/v1/business-support, REQUIRED_AUTH",
+    "GET, /api/v1/business-support/1, REQUIRED_AUTH",
+    "PUT, /api/v1/likes, REQUIRED_AUTH",
+    "GET, /error, PUBLIC"
   })
   @DisplayName("product-api SecurityPolicyRegistry가 실제 controller 정책을 수집한다")
   void product_api_SecurityPolicyRegistry_정책_수집(String method, String path, String expected) {
