@@ -10,25 +10,32 @@ import app.bottlenote.alcohols.dto.request.AdminRegionUpdateRequest;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.exception.AlcoholExceptionCode;
 import app.bottlenote.alcohols.fixture.InMemoryRegionRepository;
+import app.bottlenote.common.file.event.payload.ImageResourceActivatedEvent;
+import app.bottlenote.common.file.event.payload.ImageResourceInvalidatedEvent;
 import app.bottlenote.global.dto.request.AdminBulkReorderRequest;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 
 @Tag("unit")
 @DisplayName("AdminRegionService 단위 테스트")
 class AdminRegionServiceTest {
 
   private InMemoryRegionRepository regionRepository;
+  private TestEventPublisher eventPublisher;
   private AdminRegionService service;
 
   @BeforeEach
   void setUp() {
     regionRepository = new InMemoryRegionRepository();
-    service = new AdminRegionService(regionRepository);
+    eventPublisher = new TestEventPublisher();
+    service = new AdminRegionService(regionRepository, eventPublisher);
   }
 
   private Region saveRegion(String korName, String engName, Region parent, int sortOrder) {
@@ -57,6 +64,7 @@ class AdminRegionServiceTest {
               .engName("Scotland")
               .continent("Europe")
               .description("스카치")
+              .imageUrl("https://cdn.bottle-note.com/regions/scotland.png")
               .sortOrder(10)
               .build();
 
@@ -64,6 +72,16 @@ class AdminRegionServiceTest {
 
       assertThat(result.code()).isEqualTo("REGION_CREATED");
       assertThat(result.targetId()).isNotNull();
+      Region saved = regionRepository.findById(result.targetId()).orElseThrow();
+      assertThat(saved.getImageUrl()).isEqualTo("https://cdn.bottle-note.com/regions/scotland.png");
+      assertThat(eventPublisher.events(ImageResourceActivatedEvent.class))
+          .singleElement()
+          .satisfies(
+              event -> {
+                assertThat(event.resourceKeys()).containsExactly("regions/scotland.png");
+                assertThat(event.referenceId()).isEqualTo(saved.getId());
+                assertThat(event.referenceType()).isEqualTo("REGION");
+              });
     }
 
     @Test
@@ -141,14 +159,83 @@ class AdminRegionServiceTest {
               .engName("Scotland")
               .continent("Europe")
               .description("정정")
+              .imageUrl("https://cdn.bottle-note.com/regions/scotland-new.png")
               .sortOrder(10)
               .build();
 
       var result = service.update(region.getId(), request);
 
       assertThat(result.code()).isEqualTo("REGION_UPDATED");
-      assertThat(regionRepository.findById(region.getId()).orElseThrow().getKorName())
-          .isEqualTo("스코틀랜드");
+      Region updated = regionRepository.findById(region.getId()).orElseThrow();
+      assertThat(updated.getKorName()).isEqualTo("스코틀랜드");
+      assertThat(updated.getImageUrl())
+          .isEqualTo("https://cdn.bottle-note.com/regions/scotland-new.png");
+    }
+
+    @Test
+    @DisplayName("이미지 URL 변경 시 기존 이미지를 해제하고 새 이미지를 활성화한다")
+    void update_whenImageUrlChanged_publishesImageResourceEvents() {
+      Region region =
+          Region.builder()
+              .korName("스코틀랜드")
+              .engName("Scotland")
+              .imageUrl("https://cdn.bottle-note.com/regions/old.png")
+              .sortOrder(10)
+              .build();
+      regionRepository.save(region);
+
+      AdminRegionUpdateRequest request =
+          AdminRegionUpdateRequest.builder()
+              .korName("스코틀랜드")
+              .engName("Scotland")
+              .imageUrl("https://cdn.bottle-note.com/regions/new.png")
+              .sortOrder(10)
+              .build();
+
+      service.update(region.getId(), request);
+
+      assertThat(eventPublisher.events(ImageResourceInvalidatedEvent.class))
+          .singleElement()
+          .satisfies(
+              event -> {
+                assertThat(event.resourceKeys()).containsExactly("regions/old.png");
+                assertThat(event.referenceId()).isEqualTo(region.getId());
+                assertThat(event.referenceType()).isEqualTo("REGION");
+              });
+      assertThat(eventPublisher.events(ImageResourceActivatedEvent.class))
+          .singleElement()
+          .satisfies(
+              event -> {
+                assertThat(event.resourceKeys()).containsExactly("regions/new.png");
+                assertThat(event.referenceId()).isEqualTo(region.getId());
+                assertThat(event.referenceType()).isEqualTo("REGION");
+              });
+    }
+
+    @Test
+    @DisplayName("이미지 URL이 동일하면 이미지 리소스 이벤트를 발행하지 않는다")
+    void update_whenImageUrlSame_doesNotPublishImageResourceEvents() {
+      Region region =
+          Region.builder()
+              .korName("스코틀랜드")
+              .engName("Scotland")
+              .imageUrl("https://cdn.bottle-note.com/regions/same.png")
+              .sortOrder(10)
+              .build();
+      regionRepository.save(region);
+
+      AdminRegionUpdateRequest request =
+          AdminRegionUpdateRequest.builder()
+              .korName("스코틀랜드")
+              .engName("Scotland")
+              .imageUrl("https://cdn.bottle-note.com/regions/same.png")
+              .sortOrder(10)
+              .build();
+
+      service.update(region.getId(), request);
+
+      assertThat(eventPublisher.events(ImageResourceInvalidatedEvent.class)).isEmpty();
+      assertThat(eventPublisher.events(ImageResourceActivatedEvent.class)).isEmpty();
     }
 
     @Test
@@ -397,6 +484,25 @@ class AdminRegionServiceTest {
           .isInstanceOf(AlcoholException.class)
           .extracting("exceptionCode")
           .isEqualTo(AlcoholExceptionCode.REGION_NOT_FOUND);
+    }
+  }
+
+  static class TestEventPublisher implements ApplicationEventPublisher {
+
+    private final List<Object> events = new ArrayList<>();
+
+    @Override
+    public void publishEvent(ApplicationEvent event) {
+      events.add(event);
+    }
+
+    @Override
+    public void publishEvent(Object event) {
+      events.add(event);
+    }
+
+    <T> List<T> events(Class<T> eventType) {
+      return events.stream().filter(eventType::isInstance).map(eventType::cast).toList();
     }
   }
 }

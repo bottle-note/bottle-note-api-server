@@ -145,6 +145,7 @@ object AlcoholsHelper {
 			listOf("Scotland", "Ireland", "Japan")[i - 1],
 			listOf("유럽", "유럽", "아시아")[i - 1],
 			"지역 설명 $i",
+			"https://example.com/region$i.png",
 			LocalDateTime.of(2024, 1, i, 0, 0),
 			LocalDateTime.of(2024, 6, i, 0, 0),
 			null,

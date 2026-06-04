@@ -40,6 +40,7 @@ public class InMemoryRegionRepository implements RegionRepository {
                     r.getKorName(),
                     r.getEngName(),
                     r.getDescription(),
+                    r.getImageUrl(),
                     r.getParent() != null ? r.getParent().getId() : null,
                     r.getSortOrder()))
         .toList();
@@ -67,6 +68,7 @@ public class InMemoryRegionRepository implements RegionRepository {
                         r.getEngName(),
                         r.getContinent(),
                         r.getDescription(),
+                        r.getImageUrl(),
                         r.getCreateAt(),
                         r.getLastModifyAt(),
                         r.getParent() != null ? r.getParent().getId() : null,
