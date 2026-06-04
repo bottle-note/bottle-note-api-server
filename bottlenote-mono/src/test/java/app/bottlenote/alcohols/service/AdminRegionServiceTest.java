@@ -295,6 +295,31 @@ class AdminRegionServiceTest {
     }
 
     @Test
+    @DisplayName("이미지가 연결된 지역 삭제 시 이미지 리소스를 해제한다")
+    void delete_whenImageUrlExists_publishesImageResourceInvalidatedEvent() {
+      Region region =
+          Region.builder()
+              .korName("스코틀랜드")
+              .engName("Scotland")
+              .imageUrl("https://cdn.bottle-note.com/regions/scotland.png")
+              .sortOrder(10)
+              .build();
+      regionRepository.save(region);
+
+      service.delete(region.getId());
+
+      assertThat(eventPublisher.events(ImageResourceInvalidatedEvent.class))
+          .singleElement()
+          .satisfies(
+              event -> {
+                assertThat(event.resourceKeys()).containsExactly("regions/scotland.png");
+                assertThat(event.referenceId()).isEqualTo(region.getId());
+                assertThat(event.referenceType()).isEqualTo("REGION");
+              });
+      assertThat(eventPublisher.events(ImageResourceActivatedEvent.class)).isEmpty();
+    }
+
+    @Test
     @DisplayName("자식 지역이 존재하면 REGION_HAS_CHILDREN 예외가 발생한다")
     void delete_whenHasChildren_throws() {
       Region root = saveRegion("스코틀랜드", "Scotland", null, 10);

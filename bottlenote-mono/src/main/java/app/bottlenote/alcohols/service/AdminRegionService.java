@@ -148,6 +148,7 @@ public class AdminRegionService {
       throw new AlcoholException(REGION_HAS_ALCOHOLS);
     }
 
+    handleImageChange(region.getImageUrl(), null, regionId);
     regionRepository.delete(region);
     return AdminResultResponse.of(REGION_DELETED, regionId);
   }
