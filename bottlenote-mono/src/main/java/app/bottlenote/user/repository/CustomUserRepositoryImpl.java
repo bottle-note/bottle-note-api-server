@@ -138,7 +138,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                 review.isBest)
             .orderBy(
                 userQuerySupporter.sortBy(
-                    MyBottleType.REVIEW, request.sortType(), request.sortOrder()))
+                    MyBottleType.REVIEW, request.sortType(), request.sortOrder(), userId))
             .offset(request.cursor())
             .limit(request.pageSize() + 1)
             .fetch();
@@ -244,7 +244,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                 alcohol.id, alcohol.korName, alcohol.engName, alcohol.korCategory, alcohol.imageUrl)
             .orderBy(
                 userQuerySupporter.sortBy(
-                    MyBottleType.RATING, request.sortType(), request.sortOrder()))
+                    MyBottleType.RATING, request.sortType(), request.sortOrder(), userId))
             .offset(request.cursor())
             .limit(request.pageSize() + 1)
             .fetch();
@@ -314,7 +314,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                 picks.lastModifyAt)
             .orderBy(
                 userQuerySupporter.sortBy(
-                    MyBottleType.PICK, request.sortType(), request.sortOrder()))
+                    MyBottleType.PICK, request.sortType(), request.sortOrder(), targetUserId))
             .offset(request.cursor())
             .limit(request.pageSize() + 1)
             .fetch();

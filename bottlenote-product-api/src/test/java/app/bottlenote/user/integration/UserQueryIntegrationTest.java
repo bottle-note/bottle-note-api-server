@@ -12,6 +12,7 @@ import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
 import app.bottlenote.common.fixture.MyPageTestData;
 import app.bottlenote.common.fixture.TestDataSetupHelper;
 import app.bottlenote.global.data.response.Error;
+import app.bottlenote.picks.fixture.PicksTestFactory;
 import app.bottlenote.rating.fixture.RatingTestFactory;
 import app.bottlenote.review.fixture.ReviewTestFactory;
 import app.bottlenote.user.domain.User;
@@ -38,6 +39,7 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
   @Autowired private AlcoholTestFactory alcoholTestFactory;
   @Autowired private ReviewTestFactory reviewTestFactory;
   @Autowired private RatingTestFactory ratingTestFactory;
+  @Autowired private PicksTestFactory picksTestFactory;
   @Autowired private TestDataSetupHelper testDataSetupHelper;
 
   @Nested
@@ -269,6 +271,25 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
       assertNotEquals(targetUser.getId(), me.getId());
     }
 
+    @DisplayName("마이보틀 교차 정렬 조건은 500 없이 조회할 수 있다.")
+    @Test
+    void getMyBottle_whenCrossSortTypeRequested_returnsOk() throws Exception {
+      // Given
+      User me = userTestFactory.persistUser();
+      User targetUser = userTestFactory.persistUser();
+      Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+      picksTestFactory.persistPicks(alcohol.getId(), targetUser.getId());
+      reviewTestFactory.persistReview(targetUser, alcohol);
+      ratingTestFactory.persistRating(targetUser, alcohol, 4);
+      TokenItem token = getToken(me);
+
+      // Then
+      assertMyBottleStatusOk(token, targetUser, "picks", "RATING");
+      assertMyBottleStatusOk(token, targetUser, "picks", "REVIEW");
+      assertMyBottleStatusOk(token, targetUser, "reviews", "RATING");
+      assertMyBottleStatusOk(token, targetUser, "ratings", "REVIEW");
+    }
+
     @DisplayName("비회원 유저는 마이보틀 조회 시 401을 반환한다.")
     @Test
     void test_3() throws Exception {
@@ -371,6 +392,26 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
 
       // Then
       result.assertThat().hasStatus(HttpStatus.UNAUTHORIZED);
+    }
+
+    private void assertMyBottleStatusOk(
+        TokenItem token, User targetUser, String tabPath, String sortType) throws Exception {
+      MvcTestResult result =
+          mockMvcTester
+              .get()
+              .uri("/api/v1/my-page/{userId}/my-bottle/" + tabPath, targetUser.getId())
+              .param("keyword", "")
+              .param("regionId", "")
+              .param("sortType", sortType)
+              .param("sortOrder", "DESC")
+              .param("cursor", "0")
+              .param("pageSize", "50")
+              .contentType(APPLICATION_JSON)
+              .header("Authorization", "Bearer " + token.accessToken())
+              .with(csrf())
+              .exchange();
+
+      result.assertThat().hasStatusOk();
     }
   }
 }
