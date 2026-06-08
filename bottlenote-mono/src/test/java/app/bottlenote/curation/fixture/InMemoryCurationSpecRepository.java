@@ -2,6 +2,7 @@ package app.bottlenote.curation.fixture;
 
 import app.bottlenote.curation.domain.CurationSpec;
 import app.bottlenote.curation.domain.CurationSpecRepository;
+import app.bottlenote.curation.dto.response.CurationSpecListResponse;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +20,11 @@ public class InMemoryCurationSpecRepository implements CurationSpecRepository {
   }
 
   @Override
+  public Optional<CurationSpec> findByIdAndIsActiveTrue(Long id) {
+    return findById(id).filter(spec -> Boolean.TRUE.equals(spec.getIsActive()));
+  }
+
+  @Override
   public Optional<CurationSpec> findByCode(String code) {
     return database.values().stream().filter(spec -> spec.getCode().equals(code)).findFirst();
   }
@@ -28,6 +34,21 @@ public class InMemoryCurationSpecRepository implements CurationSpecRepository {
     return database.values().stream()
         .filter(spec -> Boolean.TRUE.equals(spec.getIsActive()))
         .sorted(java.util.Comparator.comparing(CurationSpec::getId))
+        .toList();
+  }
+
+  @Override
+  public List<CurationSpecListResponse> findAllActiveSpecSummaries() {
+    return findAllByIsActiveTrueOrderByIdAsc().stream()
+        .map(
+            spec ->
+                new CurationSpecListResponse(
+                    spec.getId(),
+                    spec.getCode(),
+                    spec.getName(),
+                    spec.getDescription(),
+                    spec.getVersion(),
+                    spec.getIsActive()))
         .toList();
   }
 

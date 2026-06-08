@@ -43,8 +43,12 @@ class AdminSpecBasedCurationIntegrationTest : IntegrationTestSupport() {
 				.exchange()
 
 			assertThat(result).hasStatusOk()
-			assertThat(dataNode(result).map { it.path("code").asText() })
+			val data = dataNode(result)
+			assertThat(data.map { it.path("code").asText() })
 				.contains("RECOMMENDED_WHISKY")
+			assertThat(data.first().has("requestSpec")).isFalse()
+			assertThat(data.first().has("responseSpec")).isFalse()
+			assertThat(data.first().has("hydratorKey")).isFalse()
 		}
 
 		@Test
@@ -71,6 +75,16 @@ class AdminSpecBasedCurationIntegrationTest : IntegrationTestSupport() {
 				.bodyJson()
 				.extractingPath("$.data.responseSpec.properties.stats.x-graphql.query")
 				.isEqualTo("alcohols")
+
+			assertThat(
+				mockMvcTester
+					.get()
+					.uri("/v2/curation-specs/$specId")
+					.header("Authorization", "Bearer $accessToken")
+			).hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.hydratorKey")
+				.isEqualTo("alcohol")
 		}
 	}
 
