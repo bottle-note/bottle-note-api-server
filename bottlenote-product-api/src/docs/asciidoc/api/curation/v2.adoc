@@ -1,3 +1,64 @@
+=== Spec 기반 큐레이션 스펙 v2 목록 조회 ===
+
+- Product 화면에서 사용할 활성 큐레이션 스펙 목록을 조회합니다.
+- 목록 응답은 메타 정보만 포함하며 `requestSpec`, `responseSpec`, `hydratorKey`는 포함하지 않습니다.
+
+[source]
+----
+GET /api/v2/curation-specs
+----
+
+[discrete]
+==== 요청 예시 ====
+
+include::{snippets}/curation-spec/v2/list/curl-request.adoc[]
+include::{snippets}/curation-spec/v2/list/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+include::{snippets}/curation-spec/v2/list/response-fields.adoc[]
+
+[discrete]
+==== 응답 예시 ====
+
+include::{snippets}/curation-spec/v2/list/response-body.adoc[]
+
+'''
+
+=== Spec 기반 큐레이션 스펙 v2 상세 조회 ===
+
+- 특정 큐레이션 스펙의 상세 정의를 조회합니다.
+- 상세 응답에는 작성/수정용 `requestSpec`, 조회/렌더링용 `responseSpec`, 보강용 `hydratorKey`가 포함됩니다.
+
+[source]
+----
+GET /api/v2/curation-specs/{specId}
+----
+
+[discrete]
+==== 경로 파라미터 ====
+
+include::{snippets}/curation-spec/v2/detail/path-parameters.adoc[]
+
+[discrete]
+==== 요청 예시 ====
+
+include::{snippets}/curation-spec/v2/detail/curl-request.adoc[]
+include::{snippets}/curation-spec/v2/detail/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+include::{snippets}/curation-spec/v2/detail/response-fields.adoc[]
+
+[discrete]
+==== 응답 예시 ====
+
+include::{snippets}/curation-spec/v2/detail/response-body.adoc[]
+
+'''
+
 === Spec 기반 큐레이션 v2 목록 조회 ===
 
 - OpenAPI spec 기반으로 등록된 Product 큐레이션 목록을 조회합니다.
