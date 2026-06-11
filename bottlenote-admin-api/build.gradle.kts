@@ -11,7 +11,6 @@ val asciidoctorExt: Configuration by configurations.creating
 
 dependencies {
 	implementation(project(":bottlenote-mono"))
-	testImplementation(project(":bottlenote-mono").dependencyProject.sourceSets["test"].output)
 	testImplementation(project(":bottlenote-test-support"))
 
 	implementation("org.springframework.boot:spring-boot-starter-web")
