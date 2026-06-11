@@ -132,7 +132,7 @@ public class ProductSpecBasedCurationService {
             .findByCurationId(curation.getId())
             .orElseThrow(() -> new CurationException(CURATION_NOT_FOUND));
     Object materialized =
-        responseMaterializer.materialize(
+        responseMaterializer.materializeFeed(
             curation.getId(), spec.getCode(), spec.getResponseSpec(), extension.getPayload());
     return new CurationFeedItemResponse(
         curation.getId(),

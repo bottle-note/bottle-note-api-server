@@ -192,7 +192,7 @@ public class AdminSpecBasedCurationService {
   private CurationFeedItemResponse toFeedResponse(Curation curation, CurationSpec spec) {
     CurationExtension extension = getExtension(curation.getId());
     Object materialized =
-        responseMaterializer.materialize(
+        responseMaterializer.materializeFeed(
             curation.getId(), spec.getCode(), spec.getResponseSpec(), extension.getPayload());
     return new CurationFeedItemResponse(
         curation.getId(),
