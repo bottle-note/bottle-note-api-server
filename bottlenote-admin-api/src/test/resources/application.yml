@@ -1,0 +1,3 @@
+# 테스트 classpath에서 main의 application.yml 로드를 차단한다 (의도된 빈 파일).
+# 테스트 설정은 application-test.yml만 사용한다.
+# 과거에는 bottlenote-mono test output의 빈 application.yml이 같은 역할을 했다.
