@@ -16,6 +16,7 @@ dependencies {
 	implementation project(':bottlenote-mono')
 	//noinspection GrUnresolvedAccess
 	testImplementation project(':bottlenote-mono').sourceSets.test.output
+	testImplementation project(':bottlenote-test-support')
 	implementation project(':bottlenote-observability')
 
 	// ===== Spring Boot Web  =====

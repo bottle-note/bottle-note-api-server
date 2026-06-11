@@ -45,6 +45,7 @@ dependencies {
 	implementation libs.spring.boot.starter.quartz
 
 	// ===== Testing =====
+	testImplementation project(':bottlenote-test-support')
 	testImplementation libs.testng
 	testImplementation libs.mockito.inline
 	testImplementation libs.bundles.testcontainers.complete
