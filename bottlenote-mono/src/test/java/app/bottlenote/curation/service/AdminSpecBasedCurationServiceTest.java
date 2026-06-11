@@ -8,6 +8,7 @@ import app.bottlenote.curation.dto.request.CurationCreateRequest;
 import app.bottlenote.curation.dto.request.CurationSearchRequest;
 import app.bottlenote.curation.dto.request.CurationUpdateRequest;
 import app.bottlenote.curation.dto.response.AdminSpecBasedCurationDetailResponse;
+import app.bottlenote.curation.dto.response.CurationFeedItemResponse;
 import app.bottlenote.curation.exception.CurationException;
 import app.bottlenote.curation.exception.CurationExceptionCode;
 import app.bottlenote.curation.fixture.CurationFixtureFactory;
@@ -48,7 +49,13 @@ class AdminSpecBasedCurationServiceTest {
             curationSpecRepository,
             curationRepository,
             curationExtensionRepository,
-            new CurationPayloadValidator(objectMapper));
+            new CurationPayloadValidator(objectMapper),
+            new CurationResponseMaterializer(
+                objectMapper,
+                new GraphQLCurationQueryBuilder(),
+                new NoopGraphQLCurationExecutor(),
+                new CurationPayloadValidator(objectMapper)),
+            new CurationFeedProjector(objectMapper));
   }
 
   @Test
@@ -144,27 +151,106 @@ class AdminSpecBasedCurationServiceTest {
     assertThat(result.getData()).asList().hasSize(1);
   }
 
+  @Test
+  @DisplayName("Admin feed는 페이지 size를 최대 10개로 제한하고 비활성 포함 여부를 필터링한다")
+  void searchFeed_페이지_최대_크기_제한과_상태_필터링() {
+    CurationSpec spec = createSpec();
+    for (int i = 0; i < 12; i++) {
+      adminSpecBasedCurationService.create(createRequest(spec.getId(), "활성" + i, i, true));
+    }
+    adminSpecBasedCurationService.create(createRequest(spec.getId(), "비활성", 0, false));
+
+    GlobalResponse result =
+        adminSpecBasedCurationService.searchFeed(new CurationSearchRequest("", true, 0, 30));
+
+    assertThat(result.getData()).asList().hasSize(10);
+    assertThat(result.getMeta().get("size")).isEqualTo(10);
+  }
+
+  @Test
+  @DisplayName("Admin feed는 x-feed 필드만 projection하고 disabled 필드는 제외한다")
+  void searchFeed_xFeed_projection() {
+    CurationSpec spec = createSpec();
+    adminSpecBasedCurationService.create(createRequest(spec.getId()));
+
+    GlobalResponse result =
+        adminSpecBasedCurationService.searchFeed(new CurationSearchRequest("", null, 0, 10));
+
+    Object first = ((List<?>) result.getData()).stream().findFirst().orElseThrow();
+    assertThat(first).isInstanceOf(CurationFeedItemResponse.class);
+    CurationFeedItemResponse item = (CurationFeedItemResponse) first;
+    assertThat(item.feedFields().get(0).path()).isEqualTo("alcohol");
+  }
+
   private CurationSpec createSpec() {
     return curationFixtureFactory.saveSpec(
         "RECOMMENDED_WHISKY",
         "추천 위스키",
         null,
         Map.of("type", "object", "required", List.of("source", "alcohol")),
-        Map.of("type", "object"),
+        Map.of(
+            "type",
+            "object",
+            "properties",
+            Map.of(
+                "source",
+                Map.of("type", "string"),
+                "alcohol",
+                Map.of(
+                    "type",
+                    "object",
+                    "x-feed",
+                    Map.of(
+                        "enabled",
+                        true,
+                        "role",
+                        "item-list",
+                        "order",
+                        10,
+                        "description",
+                        "피드 카드 위스키 정보를 구성하기 위해 포함한다.")),
+                "comment",
+                Map.of(
+                    "type",
+                    "string",
+                    "x-feed",
+                    Map.of(
+                        "enabled",
+                        false,
+                        "role",
+                        "description",
+                        "order",
+                        20,
+                        "description",
+                        "비활성 메타는 feed 응답에서 제외된다.")))),
         "alcohol",
         1);
   }
 
   private CurationCreateRequest createRequest(Long specId) {
+    return createRequest(specId, "비 오는 날 위스키", 1, true);
+  }
+
+  private CurationCreateRequest createRequest(
+      Long specId, String name, int displayOrder, boolean active) {
     return new CurationCreateRequest(
         specId,
-        "비 오는 날 위스키",
+        name,
         "스모키 위스키 추천",
         List.of("https://cdn.example.com/cover.jpg", "https://cdn.example.com/second.jpg"),
         LocalDate.of(2026, 6, 1),
         LocalDate.of(2026, 6, 30),
-        1,
-        true,
+        displayOrder,
+        active,
         Map.of("source", "BOTTLE_NOTE", "alcohol", Map.of("korName", "테스트 위스키")));
+  }
+
+  private static final class NoopGraphQLCurationExecutor implements GraphQLCurationExecutor {
+
+    @Override
+    public Map<String, Object> execute(
+        Long curationId, int index, GraphQLCurationQueryBuilder.Result query) {
+      return Map.of();
+    }
   }
 }

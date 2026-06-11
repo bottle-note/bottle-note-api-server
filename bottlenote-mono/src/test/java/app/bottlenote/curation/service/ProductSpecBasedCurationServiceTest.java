@@ -54,7 +54,11 @@ class ProductSpecBasedCurationServiceTest {
             new CurationPayloadValidator(OBJECT_MAPPER));
     productService =
         new ProductSpecBasedCurationService(
-            curationRepository, specRepository, extensionRepository, materializer);
+            curationRepository,
+            specRepository,
+            extensionRepository,
+            materializer,
+            new CurationFeedProjector(OBJECT_MAPPER));
   }
 
   @Test
@@ -107,6 +111,45 @@ class ProductSpecBasedCurationServiceTest {
   }
 
   @Test
+  @DisplayName("Product feed는 x-feed enabled 필드만 projection하고 spec 원문은 포함하지 않는다")
+  void searchFeed_whenXFeedExists_returnsProjectedFieldsOnly() throws IOException {
+    CurationSpec spec = createSpec();
+    createCuration(spec.getId(), "피드", 1, true);
+
+    var result = productService.searchFeed(0L, 20);
+
+    assertThat(result.items()).hasSize(1);
+    assertThat(result.pageable().getPageSize()).isEqualTo(10L);
+    assertThat(result.items().get(0).feedFields())
+        .extracting("path")
+        .containsExactly("alcohol", "comment");
+    assertThat(result.items().get(0).feedFields())
+        .extracting("role")
+        .containsExactly("item-list", "description");
+    assertThat(result.items().get(0).feedFields().get(0).value()).asList().hasSize(2);
+  }
+
+  @Test
+  @DisplayName("Product feed는 비활성/미노출 큐레이션을 제외하고 cursor size를 최대 10개로 제한한다")
+  void searchFeed_whenSizeExceedsLimit_capsToTenAndKeepsVisibility() throws IOException {
+    CurationSpec spec = createSpec();
+    for (int i = 0; i < 12; i++) {
+      createCuration(spec.getId(), "노출" + i, i, true);
+    }
+    createCuration(spec.getId(), "비활성", 1, false);
+    createCuration(
+        spec.getId(), "미노출", 1, true, LocalDate.now().plusDays(1), LocalDate.now().plusDays(5));
+
+    var result = productService.searchFeed(0L, 30);
+
+    assertThat(result.items()).hasSize(10);
+    assertThat(result.pageable().getPageSize()).isEqualTo(10L);
+    assertThat(result.pageable().getCurrentCursor()).isZero();
+    assertThat(result.pageable().getCursor()).isEqualTo(10L);
+    assertThat(result.pageable().getHasNext()).isTrue();
+  }
+
+  @Test
   @DisplayName("노출 기간 밖 큐레이션 상세 조회는 Product v2에서 찾을 수 없다")
   void getDetail_whenCurationOutsideExposureWindow_throwsNotFound() throws IOException {
     CurationSpec spec = createSpec();
@@ -120,12 +163,38 @@ class ProductSpecBasedCurationServiceTest {
   }
 
   private CurationSpec createSpec() throws IOException {
+    Map<String, Object> responseSpec = schema("recommended_whisky.json", "Response");
+    Map<String, Object> properties = castMap(responseSpec.get("properties"));
+    castMap(properties.get("alcohol"))
+        .put(
+            "x-feed",
+            map(
+                "enabled",
+                true,
+                "role",
+                "item-list",
+                "order",
+                10,
+                "description",
+                "피드 카드에서 위스키 목록을 구성하기 위해 포함한다."));
+    castMap(properties.get("comment"))
+        .put(
+            "x-feed",
+            map(
+                "enabled",
+                true,
+                "role",
+                "description",
+                "order",
+                20,
+                "description",
+                "피드 카드 설명 문구를 구성하기 위해 포함한다."));
     return curationFixtureFactory.saveSpec(
         "RECOMMENDED_WHISKY",
         "추천 위스키",
         "추천 설명",
         schema("recommended_whisky.json", "Request"),
-        schema("recommended_whisky.json", "Response"),
+        responseSpec,
         "alcohol",
         2);
   }
@@ -192,6 +261,11 @@ class ProductSpecBasedCurationServiceTest {
       map.put((String) values[i], values[i + 1]);
     }
     return map;
+  }
+
+  @SuppressWarnings("unchecked")
+  private static Map<String, Object> castMap(Object value) {
+    return (Map<String, Object>) value;
   }
 
   private static final class FixedGraphQLCurationExecutor implements GraphQLCurationExecutor {

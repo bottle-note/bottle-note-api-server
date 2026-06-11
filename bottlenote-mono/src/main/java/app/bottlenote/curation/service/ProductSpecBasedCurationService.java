@@ -9,10 +9,13 @@ import app.bottlenote.curation.domain.CurationExtensionRepository;
 import app.bottlenote.curation.domain.CurationRepository;
 import app.bottlenote.curation.domain.CurationSpec;
 import app.bottlenote.curation.domain.CurationSpecRepository;
+import app.bottlenote.curation.dto.response.CurationFeedItemResponse;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationDetailResponse;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationListResponse;
 import app.bottlenote.curation.exception.CurationException;
+import app.bottlenote.global.service.cursor.CursorResponse;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -27,11 +30,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProductSpecBasedCurationService {
 
   private static final String DEFAULT_CONTAINER = "object";
+  private static final int MAX_FEED_SIZE = 10;
 
   private final CurationRepository curationRepository;
   private final CurationSpecRepository curationSpecRepository;
   private final CurationExtensionRepository curationExtensionRepository;
   private final CurationResponseMaterializer responseMaterializer;
+  private final CurationFeedProjector feedProjector;
 
   @Transactional(readOnly = true)
   public List<ProductSpecBasedCurationListResponse> listActiveCurations() {
@@ -44,6 +49,27 @@ public class ProductSpecBasedCurationService {
     return curations.stream()
         .map(curation -> toListResponse(curation, specMap.get(curation.getSpecId())))
         .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public CursorResponse<CurationFeedItemResponse> searchFeed(Long cursor, Integer size) {
+    int pageSize = normalizeFeedSize(size);
+    long currentCursor = cursor != null && cursor > 0 ? cursor : 0L;
+    List<Curation> visibleCurations = curationRepository.findAllVisibleOn(LocalDate.now());
+    int fromIndex = Math.min(Math.toIntExact(currentCursor), visibleCurations.size());
+    int toIndex = Math.min(fromIndex + pageSize + 1, visibleCurations.size());
+    List<Curation> pageContent = new ArrayList<>(visibleCurations.subList(fromIndex, toIndex));
+    Map<Long, CurationSpec> specMap =
+        curationSpecRepository
+            .findAllByIdIn(
+                pageContent.stream().map(Curation::getSpecId).collect(Collectors.toSet()))
+            .stream()
+            .collect(Collectors.toMap(CurationSpec::getId, Function.identity()));
+    List<CurationFeedItemResponse> items =
+        pageContent.stream()
+            .map(curation -> toFeedResponse(curation, specMap.get(curation.getSpecId())))
+            .toList();
+    return CursorResponse.of(items, currentCursor, pageSize);
   }
 
   @Transactional(readOnly = true)
@@ -100,12 +126,44 @@ public class ProductSpecBasedCurationService {
         payload);
   }
 
+  private CurationFeedItemResponse toFeedResponse(Curation curation, CurationSpec spec) {
+    CurationExtension extension =
+        curationExtensionRepository
+            .findByCurationId(curation.getId())
+            .orElseThrow(() -> new CurationException(CURATION_NOT_FOUND));
+    Object materialized =
+        responseMaterializer.materialize(
+            curation.getId(), spec.getCode(), spec.getResponseSpec(), extension.getPayload());
+    return new CurationFeedItemResponse(
+        curation.getId(),
+        curation.getSpecId(),
+        spec.getCode(),
+        spec.getName(),
+        curation.getName(),
+        curation.getDescription(),
+        curation.getCoverImageUrl(),
+        imageUrls(curation),
+        curation.getExposureStartDate(),
+        curation.getExposureEndDate(),
+        curation.getDisplayOrder(),
+        null,
+        curation.getCreateAt(),
+        feedProjector.project(spec.getResponseSpec(), materialized));
+  }
+
   private List<String> imageUrls(Curation curation) {
     return java.util.stream.Stream.of(
             curation.getCoverImageUrl(), curation.getImageUrl2(), curation.getImageUrl3())
         .filter(Objects::nonNull)
         .filter(imageUrl -> !imageUrl.isBlank())
         .toList();
+  }
+
+  private int normalizeFeedSize(Integer size) {
+    if (size == null || size < 1) {
+      return MAX_FEED_SIZE;
+    }
+    return Math.min(size, MAX_FEED_SIZE);
   }
 
   private String container(CurationSpec spec) {

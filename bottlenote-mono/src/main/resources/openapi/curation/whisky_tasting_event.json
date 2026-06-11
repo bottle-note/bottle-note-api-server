@@ -252,7 +252,13 @@
             "description": "시음회 날짜",
             "example": "2025-06-15",
             "x-field-style": "none",
-            "x-display-name": "시음회 날짜"
+            "x-display-name": "시음회 날짜",
+            "x-feed": {
+              "enabled": true,
+              "role": "date",
+              "order": 10,
+              "description": "피드에서 시음회 일정의 날짜를 표시하고 정렬/상태 판단에 활용하기 위해 포함한다."
+            }
           },
           "eventTime": {
             "type": "string",
@@ -260,7 +266,13 @@
             "example": "19:30",
             "maxLength": 20,
             "x-field-style": "none",
-            "x-display-name": "시음회 시간"
+            "x-display-name": "시음회 시간",
+            "x-feed": {
+              "enabled": true,
+              "role": "time",
+              "order": 20,
+              "description": "피드에서 시음회 시작 시간을 표시하기 위해 포함한다."
+            }
           },
           "barAddress": {
             "type": "string",
@@ -268,7 +280,13 @@
             "example": "서울 강남구 테헤란로 123",
             "maxLength": 200,
             "x-field-style": "plain-text",
-            "x-display-name": "장소 및 바(bar) 주소"
+            "x-display-name": "장소 및 바(bar) 주소",
+            "x-feed": {
+              "enabled": true,
+              "role": "location",
+              "order": 30,
+              "description": "피드에서 장소 정보를 표시하거나 위치 안내를 구성하기 위해 포함한다."
+            }
           },
           "detailAddress": {
             "type": "string",
@@ -276,28 +294,52 @@
             "example": "2층 도시남 바",
             "maxLength": 200,
             "x-field-style": "plain-text",
-            "x-display-name": "상세 주소"
+            "x-display-name": "상세 주소",
+            "x-feed": {
+              "enabled": true,
+              "role": "location",
+              "order": 40,
+              "description": "피드에서 상세 장소 안내를 구성하기 위해 포함한다."
+            }
           },
           "isRecruiting": {
             "type": "boolean",
             "description": "시음회 참여자 모집 여부",
             "example": true,
             "x-field-style": "none",
-            "x-display-name": "참여자 모집 여부"
+            "x-display-name": "참여자 모집 여부",
+            "x-feed": {
+              "enabled": true,
+              "role": "status",
+              "order": 70,
+              "description": "피드에서 모집 상태 표시 및 신청 버튼 활성화 여부를 판단하기 위해 포함한다."
+            }
           },
           "entryFee": {
             "type": "integer",
             "description": "참가비",
             "example": 75000,
             "x-field-style": "plain-number",
-            "x-display-name": "참가비(1인당)"
+            "x-display-name": "참가비(1인당)",
+            "x-feed": {
+              "enabled": true,
+              "role": "price",
+              "order": 50,
+              "description": "피드에서 참가비 정보를 표시하기 위해 포함한다."
+            }
           },
           "capacity": {
             "type": "integer",
             "description": "총 모집 인원수",
             "example": 20,
             "x-field-style": "plain-number",
-            "x-display-name": "총 모집 인원수"
+            "x-display-name": "총 모집 인원수",
+            "x-feed": {
+              "enabled": true,
+              "role": "capacity",
+              "order": 60,
+              "description": "피드에서 모집 정원 정보를 표시하고 혼잡도를 판단하기 위해 포함한다."
+            }
           },
           "applicationLink": {
             "type": "string",
@@ -305,7 +347,13 @@
             "example": "https://forms.example.com/tasting",
             "maxLength": 2048,
             "x-field-style": "plain-text",
-            "x-display-name": "신청링크"
+            "x-display-name": "신청링크",
+            "x-feed": {
+              "enabled": true,
+              "role": "cta",
+              "order": 80,
+              "description": "피드에서 신청 CTA 링크를 처리하기 위해 포함한다."
+            }
           },
           "guideText": {
             "type": "string",
@@ -313,7 +361,13 @@
             "example": "시작 10분 전 입장해 주세요.",
             "maxLength": 1000,
             "x-field-style": "long-text",
-            "x-display-name": "안내사항"
+            "x-display-name": "안내사항",
+            "x-feed": {
+              "enabled": true,
+              "role": "description",
+              "order": 90,
+              "description": "피드에서 시음회 안내 문구를 요약 표시하기 위해 포함한다."
+            }
           },
           "alcohols": {
             "type": "array",
@@ -489,6 +543,12 @@
                 "source",
                 "alcohol"
               ]
+            },
+            "x-feed": {
+              "enabled": true,
+              "role": "item-list",
+              "order": 100,
+              "description": "피드에서 시음 위스키 라인업 목록을 구성하기 위해 포함한다."
             }
           }
         },

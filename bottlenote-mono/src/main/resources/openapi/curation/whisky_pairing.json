@@ -284,7 +284,13 @@
               "selectedTags"
             ],
             "x-field-style": "alcohol-card",
-            "x-display-name": "위스키"
+            "x-display-name": "위스키",
+            "x-feed": {
+              "enabled": true,
+              "role": "item-list",
+              "order": 10,
+              "description": "피드에서 페어링 대상 위스키 정보를 구성하기 위해 포함한다."
+            }
           },
           "comment": {
             "type": "string",
@@ -293,7 +299,13 @@
             "maxLength": 500,
             "x-field-style": "long-text",
             "x-display-name": "큐레이터 코멘트",
-            "nullable": true
+            "nullable": true,
+            "x-feed": {
+              "enabled": true,
+              "role": "description",
+              "order": 20,
+              "description": "피드에서 위스키 기대평 또는 소개 문구를 표시하기 위해 포함한다."
+            }
           },
           "stats": {
             "type": "object",
@@ -393,6 +405,12 @@
                 "itemName",
                 "pairingNote"
               ]
+            },
+            "x-feed": {
+              "enabled": true,
+              "role": "item-list",
+              "order": 30,
+              "description": "피드에서 함께 노출할 페어링 음식 목록을 구성하기 위해 포함한다."
             }
           }
         },
