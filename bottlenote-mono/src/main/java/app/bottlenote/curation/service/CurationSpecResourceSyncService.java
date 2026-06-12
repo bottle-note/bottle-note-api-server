@@ -3,8 +3,10 @@ package app.bottlenote.curation.service;
 import app.bottlenote.curation.domain.CurationSpec;
 import app.bottlenote.curation.domain.CurationSpecRepository;
 import app.bottlenote.curation.dto.response.CurationSpecSyncResponse;
+import app.bottlenote.curation.service.CurationPayloadValidator.MapBackedSchema;
 import app.bottlenote.curation.support.CurationSpecResourceReader;
 import app.bottlenote.curation.support.CurationSpecResourceReader.CurationSpecResourceDocument;
+import java.util.ArrayList;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -17,6 +19,7 @@ public class CurationSpecResourceSyncService {
 
   private final CurationSpecRepository curationSpecRepository;
   private final CurationSpecResourceReader curationSpecResourceReader;
+  private final CurationPayloadValidator curationPayloadValidator;
 
   @CacheEvict(
       value = {"local_cache_curation_spec_list", "local_cache_curation_spec_detail"},
@@ -27,6 +30,7 @@ public class CurationSpecResourceSyncService {
     int updatedCount = 0;
 
     for (CurationSpecResourceDocument specDocument : curationSpecResourceReader.readAll()) {
+      validateSpecDocument(specDocument);
       Optional<CurationSpec> existingSpec = curationSpecRepository.findByCode(specDocument.code());
       if (existingSpec.isPresent()) {
         curationSpecRepository.save(update(existingSpec.get(), specDocument));
@@ -38,6 +42,20 @@ public class CurationSpecResourceSyncService {
     }
 
     return new CurationSpecSyncResponse(createdCount, updatedCount);
+  }
+
+  private void validateSpecDocument(CurationSpecResourceDocument specDocument) {
+    var errors =
+        new ArrayList<>(
+            curationPayloadValidator.validateSpec(
+                specDocument.code() + "#Request", new MapBackedSchema(specDocument.requestSpec())));
+    errors.addAll(
+        curationPayloadValidator.validateSpec(
+            specDocument.code() + "#Response", new MapBackedSchema(specDocument.responseSpec())));
+    if (!errors.isEmpty()) {
+      throw new IllegalStateException(
+          specDocument.code() + " 큐레이션 스펙이 유효하지 않습니다.\n" + String.join("\n", errors));
+    }
   }
 
   private CurationSpec update(

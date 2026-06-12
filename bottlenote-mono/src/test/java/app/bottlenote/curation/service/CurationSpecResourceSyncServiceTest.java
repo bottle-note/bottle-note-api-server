@@ -21,11 +21,12 @@ class CurationSpecResourceSyncServiceTest {
   @DisplayName("리소스 OpenAPI 스펙을 curation_spec으로 생성하고 재실행 시 갱신한다")
   void sync_리소스_스펙_생성_및_갱신() {
     InMemoryCurationSpecRepository curationSpecRepository = new InMemoryCurationSpecRepository();
+    ObjectMapper objectMapper = new ObjectMapper();
     CurationSpecResourceReader resourceReader =
-        new CurationSpecResourceReader(
-            new PathMatchingResourcePatternResolver(), new ObjectMapper());
+        new CurationSpecResourceReader(new PathMatchingResourcePatternResolver(), objectMapper);
     CurationSpecResourceSyncService service =
-        new CurationSpecResourceSyncService(curationSpecRepository, resourceReader);
+        new CurationSpecResourceSyncService(
+            curationSpecRepository, resourceReader, new CurationPayloadValidator(objectMapper));
 
     CurationSpecSyncResponse firstResult = service.sync();
 
