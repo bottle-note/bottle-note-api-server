@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -23,6 +24,13 @@ public class ProductSpecBasedCurationController {
   @GetMapping
   public ResponseEntity<?> getCurations() {
     return GlobalResponse.ok(productSpecBasedCurationService.listActiveCurations());
+  }
+
+  @GetMapping("/feed")
+  public ResponseEntity<?> getCurationFeed(
+      @RequestParam(required = false, defaultValue = "0") Long cursor,
+      @RequestParam(required = false, defaultValue = "10") Integer size) {
+    return GlobalResponse.ok(productSpecBasedCurationService.searchFeed(cursor, size));
   }
 
   @GetMapping("/{curationId}")

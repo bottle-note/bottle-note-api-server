@@ -17,6 +17,7 @@ import app.bottlenote.curation.dto.request.CurationSearchRequest;
 import app.bottlenote.curation.dto.request.CurationUpdateRequest;
 import app.bottlenote.curation.dto.response.AdminSpecBasedCurationDetailResponse;
 import app.bottlenote.curation.dto.response.AdminSpecBasedCurationListResponse;
+import app.bottlenote.curation.dto.response.CurationFeedItemResponse;
 import app.bottlenote.curation.dto.response.CurationSpecResponse;
 import app.bottlenote.curation.exception.CurationException;
 import app.bottlenote.curation.service.CurationPayloadValidator.MapBackedSchema;
@@ -29,6 +30,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,10 +39,14 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AdminSpecBasedCurationService {
 
+  private static final int MAX_FEED_SIZE = 10;
+
   private final CurationSpecRepository curationSpecRepository;
   private final CurationRepository curationRepository;
   private final CurationExtensionRepository curationExtensionRepository;
   private final CurationPayloadValidator curationPayloadValidator;
+  private final CurationResponseMaterializer responseMaterializer;
+  private final CurationFeedProjector feedProjector;
 
   @Transactional(readOnly = true)
   public List<CurationSpecResponse> listSpecs() {
@@ -67,6 +73,26 @@ public class AdminSpecBasedCurationService {
             .collect(Collectors.toMap(CurationSpec::getId, Function.identity()));
     return GlobalResponse.fromPage(
         page.map(curation -> toListResponse(curation, specMap.get(curation.getSpecId()))));
+  }
+
+  @Transactional(readOnly = true)
+  public GlobalResponse searchFeed(CurationSearchRequest request) {
+    int size = normalizeFeedSize(request.size());
+    int pageNumber = request.page() != null && request.page() > 0 ? request.page() : 0;
+    PageRequest pageable = PageRequest.of(pageNumber, size);
+    Page<Curation> page =
+        curationRepository.searchForAdmin(request.keyword(), request.isActive(), pageable);
+    Map<Long, CurationSpec> specMap =
+        curationSpecRepository
+            .findAllByIdIn(
+                page.getContent().stream().map(Curation::getSpecId).collect(Collectors.toSet()))
+            .stream()
+            .collect(Collectors.toMap(CurationSpec::getId, Function.identity()));
+    List<CurationFeedItemResponse> content =
+        page.getContent().stream()
+            .map(curation -> toFeedResponse(curation, specMap.get(curation.getSpecId())))
+            .toList();
+    return GlobalResponse.fromPage(new PageImpl<>(content, pageable, page.getTotalElements()));
   }
 
   @Transactional(readOnly = true)
@@ -163,6 +189,28 @@ public class AdminSpecBasedCurationService {
         curation.getCreateAt());
   }
 
+  private CurationFeedItemResponse toFeedResponse(Curation curation, CurationSpec spec) {
+    CurationExtension extension = getExtension(curation.getId());
+    Object materialized =
+        responseMaterializer.materializeFeed(
+            curation.getId(), spec.getCode(), spec.getResponseSpec(), extension.getPayload());
+    return new CurationFeedItemResponse(
+        curation.getId(),
+        curation.getSpecId(),
+        spec.getCode(),
+        spec.getName(),
+        curation.getName(),
+        curation.getDescription(),
+        curation.getCoverImageUrl(),
+        imageUrls(curation),
+        curation.getExposureStartDate(),
+        curation.getExposureEndDate(),
+        curation.getDisplayOrder(),
+        curation.getIsActive(),
+        curation.getCreateAt(),
+        feedProjector.project(spec.getResponseSpec(), materialized));
+  }
+
   private AdminSpecBasedCurationDetailResponse toDetailResponse(
       Curation curation, CurationSpec spec, CurationExtension extension) {
     return new AdminSpecBasedCurationDetailResponse(
@@ -187,6 +235,13 @@ public class AdminSpecBasedCurationService {
         .filter(Objects::nonNull)
         .filter(imageUrl -> !imageUrl.isBlank())
         .toList();
+  }
+
+  private int normalizeFeedSize(Integer size) {
+    if (size == null || size < 1) {
+      return MAX_FEED_SIZE;
+    }
+    return Math.min(size, MAX_FEED_SIZE);
   }
 
   private CurationSpecResponse toSpecResponse(CurationSpec spec) {

@@ -24,7 +24,7 @@ public class GraphQLCurationQueryBuilder {
 
   public List<Result> build(JsonNode responseSpec, JsonNode payload) {
     List<Result> results = new ArrayList<>();
-    walk(responseSpec, payload, results);
+    walk(responseSpec, payload, results, "");
     return results;
   }
 
@@ -46,22 +46,24 @@ public class GraphQLCurationQueryBuilder {
     return current;
   }
 
-  private void walk(JsonNode node, JsonNode payload, List<Result> results) {
+  private void walk(JsonNode node, JsonNode payload, List<Result> results, String path) {
     if (node == null || !node.isObject()) {
       return;
     }
     JsonNode meta = node.get(META_KEY);
     if (isEntryPointMeta(meta)) {
-      results.add(buildOne(node, meta, payload));
+      results.add(buildOne(node, meta, payload, path));
       return;
     }
     JsonNode properties = node.get("properties");
     if (properties != null && properties.isObject()) {
-      properties.properties().forEach(entry -> walk(entry.getValue(), payload, results));
+      properties
+          .properties()
+          .forEach(entry -> walk(entry.getValue(), payload, results, append(path, entry.getKey())));
     }
     JsonNode items = node.get("items");
     if (items != null) {
-      walk(items, payload, results);
+      walk(items, payload, results, path);
     }
   }
 
@@ -69,7 +71,7 @@ public class GraphQLCurationQueryBuilder {
     return meta != null && meta.isObject() && meta.has("query");
   }
 
-  private Result buildOne(JsonNode entry, JsonNode meta, JsonNode payload) {
+  private Result buildOne(JsonNode entry, JsonNode meta, JsonNode payload, String targetPath) {
     String queryName = meta.get("query").asText();
     String argName = meta.path("argName").asText(DEFAULT_ARG_NAME);
     String argType = meta.path("argType").asText(DEFAULT_ARG_TYPE);
@@ -99,7 +101,12 @@ public class GraphQLCurationQueryBuilder {
         writeTo,
         resolveWriteMode(entry, writeTo),
         resultKey,
-        payloadPath);
+        payloadPath,
+        targetPath);
+  }
+
+  private String append(String path, String key) {
+    return path == null || path.isBlank() ? key : path + "." + key;
   }
 
   private JsonNode resolveSelectionRoot(JsonNode entry, String writeTo) {
@@ -227,5 +234,6 @@ public class GraphQLCurationQueryBuilder {
       String writeTo,
       String writeMode,
       String resultKey,
-      String payloadPath) {}
+      String payloadPath,
+      String targetPath) {}
 }

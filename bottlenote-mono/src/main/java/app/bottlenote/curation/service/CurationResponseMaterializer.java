@@ -9,8 +9,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -29,10 +31,26 @@ public class CurationResponseMaterializer {
 
   public Object materialize(
       Long curationId, String specCode, Map<String, Object> responseSpec, Object payload) {
+    return materialize(curationId, specCode, responseSpec, payload, false);
+  }
+
+  public Object materializeFeed(
+      Long curationId, String specCode, Map<String, Object> responseSpec, Object payload) {
+    return materialize(curationId, specCode, responseSpec, payload, true);
+  }
+
+  private Object materialize(
+      Long curationId,
+      String specCode,
+      Map<String, Object> responseSpec,
+      Object payload,
+      boolean feedOnly) {
     JsonNode payloadNode = objectMapper.valueToTree(payload);
     JsonNode responseSpecNode = objectMapper.valueToTree(responseSpec);
     List<GraphQLCurationQueryBuilder.Result> queries =
-        queryBuilder.build(responseSpecNode, payloadNode);
+        queryBuilder.build(responseSpecNode, payloadNode).stream()
+            .filter(query -> !feedOnly || isFeedQuery(query, responseSpecNode))
+            .toList();
 
     JsonNode hydrated = payloadNode;
     for (int i = 0; i < queries.size(); i++) {
@@ -48,6 +66,9 @@ public class CurationResponseMaterializer {
     }
 
     Object materialized = objectMapper.convertValue(hydrated, Object.class);
+    if (feedOnly) {
+      return materialized;
+    }
     List<String> errors =
         payloadValidator.validate(new MapBackedSchema(responseSpec), materialized);
     if (!errors.isEmpty()) {
@@ -59,6 +80,68 @@ public class CurationResponseMaterializer {
       throw new CurationException(CURATION_RESPONSE_INVALID);
     }
     return materialized;
+  }
+
+  private boolean isFeedQuery(GraphQLCurationQueryBuilder.Result query, JsonNode responseSpecNode) {
+    String targetPath = normalizePath(query.targetPath());
+    return collectFeedPaths(responseSpecNode).stream()
+        .map(this::normalizePath)
+        .anyMatch(feedPath -> intersects(feedPath, targetPath));
+  }
+
+  private Set<String> collectFeedPaths(JsonNode responseSpecNode) {
+    Set<String> paths = new HashSet<>();
+    collectFeedPaths(rootSchema(responseSpecNode), "", paths);
+    return paths;
+  }
+
+  private JsonNode rootSchema(JsonNode specNode) {
+    if ("array".equals(specNode.path("x-container").asText()) && specNode.has("items")) {
+      return specNode.get("items");
+    }
+    return specNode;
+  }
+
+  private void collectFeedPaths(JsonNode schema, String path, Set<String> paths) {
+    if (schema == null || !schema.isObject()) {
+      return;
+    }
+    JsonNode feedMeta = schema.get("x-feed");
+    if (feedMeta != null && feedMeta.isObject() && feedMeta.path("enabled").asBoolean(false)) {
+      paths.add(path);
+      return;
+    }
+    JsonNode properties = schema.get("properties");
+    if (properties != null && properties.isObject()) {
+      properties
+          .properties()
+          .forEach(
+              entry -> collectFeedPaths(entry.getValue(), append(path, entry.getKey()), paths));
+    }
+    JsonNode items = schema.get("items");
+    if (items != null) {
+      collectFeedPaths(items, path, paths);
+    }
+  }
+
+  private boolean intersects(String feedPath, String targetPath) {
+    if (feedPath.isBlank() || targetPath.isBlank()) {
+      return true;
+    }
+    return targetPath.equals(feedPath)
+        || targetPath.startsWith(feedPath + ".")
+        || feedPath.startsWith(targetPath + ".");
+  }
+
+  private String append(String path, String key) {
+    return path == null || path.isBlank() ? key : path + "." + key;
+  }
+
+  private String normalizePath(String path) {
+    if (path == null || JSON_PATH_ROOT.equals(path)) {
+      return "";
+    }
+    return path.startsWith("$.") ? path.substring(2) : path;
   }
 
   private boolean hasNoArgumentValues(GraphQLCurationQueryBuilder.Result query) {
