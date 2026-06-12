@@ -1,3 +1,19 @@
+================================================================================
+                          PROJECT COMPLETION STAMP
+================================================================================
+Status: **COMPLETED**
+Completion Date: 2026-05-22 (커밋 07273b10)
+
+** Core Achievements **
+- S3 연동을 AWS SDK v1에서 v2(S3Client/S3Presigner)로 전환, v1 의존성 제거 (2026-06-12 실측: 레포 전체 com.amazonaws import 및 aws-java-sdk 의존 0건)
+- Presigned URL API 외부 동작 유지, MinIO Testcontainers 테스트 v2 기반 전환
+
+** Key Components **
+- bottlenote-mono의 ImageUploadService 및 S3Client/S3Presigner 빈 설정
+- gradle/libs.versions.toml: aws-sdk-bom + software.amazon.awssdk:s3
+- 후속 검증은 plan/complete/aws-sdk-v2-resource-verify-followup.md 별도 완료
+================================================================================
+
 # Plan: AWS SDK Java v2 전환
 
 ## Overview

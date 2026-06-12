@@ -1,3 +1,18 @@
+================================================================================
+                          PROJECT COMPLETION STAMP
+================================================================================
+Status: **COMPLETED**
+Completion Date: 2026-05-08 (커밋 1b7bf8fc)
+
+** Core Achievements **
+- distilleries.logo_img_url을 image_url로 rename하는 changeset 추가 (기존 CREATE changeset은 checksum 정책상 미수정)
+- Distillery.java @Column 매핑 갱신, 테스트 INSERT 보정 (2026-06-12 실측: changelog 원본 CREATE 제외 logo_img_url 잔존 0건)
+
+** Key Components **
+- bottlenote-mono/src/main/java/app/bottlenote/alcohols/domain/Distillery.java
+- 서브모듈 git.environment-variables storage/mysql/changelog/schema.mysql.sql (ALTER changeset, 417행 부근)
+================================================================================
+
 # Plan: Distillery 이미지 컬럼 rename (logo_img_url → image_url)
 
 ## Overview

@@ -1,3 +1,19 @@
+================================================================================
+                          PROJECT COMPLETION STAMP
+================================================================================
+Status: **COMPLETED**
+Completion Date: 2026-06-04 (커밋 e5457a8c 선언화, eed8b74c/3f142a6f 정책 매칭·에러 경로 보완)
+
+** Core Achievements **
+- @SecurityPolicy 기반 public/optional-auth/required-auth 선언화, Task 4/4 완료
+- 어노테이션 누락 handler는 required-auth fallback으로 수집, 악성 경로 denyAll 유지
+
+** Key Components **
+- app.bottlenote.global.annotation.SecurityPolicy
+- app.bottlenote.global.security.policy.SecurityPolicyRegistry / SecurityPolicyRoute
+- bottlenote-product-api app.global.security.SecurityPolicyConfig
+================================================================================
+
 # JWT 접근 정책 선언화
 
 ## 목표

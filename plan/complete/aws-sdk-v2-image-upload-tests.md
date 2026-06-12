@@ -1,3 +1,18 @@
+================================================================================
+                          PROJECT COMPLETION STAMP
+================================================================================
+Status: **COMPLETED**
+Completion Date: 2026-05-23 (커밋 98262aed, 0ee8d529)
+
+** Core Achievements **
+- MinIO 기반 SDK v2 업로드 unit 테스트와 리뷰 이미지/ResourceLog 통합 테스트를 레이어별로 분리 보강
+- contentType 불일치, 비정상 presign URL, 리뷰 이미지 5장 경계 등 시나리오 고정
+
+** Key Components **
+- bottlenote-mono/src/test/java/app/bottlenote/common/file/ImageUploadUnitTest.java
+- bottlenote-product-api/src/test/java/app/bottlenote/common/file/integration/ImageUploadIntegrationTest.java
+================================================================================
+
 # Plan: AWS SDK v2 이미지 업로드 테스트 보강
 
 ## Overview

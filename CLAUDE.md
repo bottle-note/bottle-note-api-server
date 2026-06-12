@@ -20,16 +20,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-- **Stack**: Spring Boot 3.1.9, Java 21, MySQL, Redis, QueryDSL
+- **Stack**: Spring Boot 3.4.11, Java 21, MySQL, Redis, QueryDSL
 - **Architecture**: DDD-based multi-module structure
 - **Core Domains**: alcohols, user, review, rating, support, history, picks, like
 
 ## 모듈 구조
 
-> [진행 중] 모듈 기술 부채 정리 작업 진행 중 (2026-06-10 시작). 기존 구조 설명은 폐기되었으며, 정리 완료 후 재작성한다.
+> [진행 중] 모듈 기술 부채 정리 작업 진행 중 (2026-06-10 시작). 모듈 구성은 아래가 확정 토폴로지이며(물리 3분할은 트리거 조건부로 강등), 남은 작업은 mono 내부 표준 위반 청소와 ArchUnit 룰 활성화다.
 >
-> 현재 모듈: `product-api`(Java) / `admin-api`(Kotlin) / `batch` / `mono`(공유 라이브러리) / `observability`. 테스트 인프라용 `bottlenote-test-support` 모듈 분리가 예정되어 있다.
+> 현재 모듈: `product-api`(Java) / `admin-api`(Kotlin) / `batch` / `mono`(공유 라이브러리) / `observability` / `test-support`(테스트 인프라·픽스처). test-support 분리는 PR #623으로 완료(2026-06-12), 각 모듈은 testImplementation으로 소비한다.
 > 레이어 규칙은 아래 "레이어 표준 15"를 따른다.
+
+```mermaid
+graph LR
+    P["product-api (Java, bootJar)"] --> M["mono (공유 라이브러리)"]
+    A["admin-api (Kotlin, bootJar)"] --> M
+    B["batch (Java, bootJar)"] --> M
+    M --> O[observability]
+    TS["test-support (테스트 인프라)"] -- api --> M
+    P -. testImplementation .-> TS
+    A -. testImplementation .-> TS
+    M -. testImplementation .-> TS
+```
 
 ## 빌드 및 실행
 
@@ -75,11 +87,9 @@ Use these skills to follow the structured development lifecycle:
 **Lifecycle:** `/define` -> `/plan` -> `/implement` (with `/self-review` per Task) -> `/test` -> `/verify full`
 
 **Detailed patterns** for product-api and admin-api implementation are in skill reference files:
-- `.claude/skills/implement/references/mono-patterns.md` — Repository 3-Tier, Facade, DTO, Event patterns
-- `.claude/skills/implement/references/product-patterns.md` — Product controller conventions
-- `.claude/skills/implement/references/admin-patterns.md` — Admin controller conventions (Kotlin)
-- `.claude/skills/test/references/test-infra.md` — TestContainers, Fake/InMemory list
-- `.claude/skills/test/references/test-patterns.md` — Unit, integration, RestDocs code patterns
+- `.claude/skills/implement/references/languages/java-spring.md` — Java/Spring 구현 패턴
+- `.claude/skills/implement/references/languages/bottlenote-patterns.md` — 프로젝트 특화 패턴 (InMemory 갱신 체크리스트 등)
+- `.claude/skills/test/references/testing/java.md` — Java 테스트 패턴
 
 ## 코드 작성 규칙
 
@@ -172,13 +182,13 @@ Use these skills to follow the structured development lifecycle:
 - Given-When-Then 패턴 사용
 - Fixture 클래스를 통한 테스트 데이터 관리
 - TestContainers 사용 (실제 DB 환경)
-- 테스트 데이터: `src/test/resources/init-script/` 디렉토리
+- 테스트 데이터: test-support 모듈의 `{도메인명}TestFactory` / `DataInitializer`로 생성
 
 ### 단위 테스트 패턴
 
 - **Fake/Stub 패턴 선호**: Mock 대신 InMemory 구현체 사용
 - **네이밍**: `InMemory{도메인명}Repository`, `Fake{서비스명}`
-- **위치**: `{도메인}.fixture` 패키지
+- **위치**: `bottlenote-test-support` 모듈의 `{도메인}.fixture` 패키지 (특정 모듈 전용 헬퍼는 그 모듈 test에 둔다)
 
 ### 통합 테스트 패턴
 
