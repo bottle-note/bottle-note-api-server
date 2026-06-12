@@ -80,7 +80,14 @@
             "example": "https://forms.example.com/tasting",
             "maxLength": 2048,
             "x-field-style": "plain-text",
-            "x-display-name": "신청링크"
+            "x-display-name": "신청링크",
+            "x-depends-on": [
+              {
+                "key": "isRecruiting",
+                "value": "true",
+                "description": "모집 중인 경우에만 신청 링크가 의미 있으므로 isRecruiting 값에 의존한다."
+              }
+            ]
           },
           "guideText": {
             "type": "string",
@@ -348,6 +355,13 @@
             "maxLength": 2048,
             "x-field-style": "plain-text",
             "x-display-name": "신청링크",
+            "x-depends-on": [
+              {
+                "key": "isRecruiting",
+                "value": "true",
+                "description": "모집 중인 경우에만 신청 CTA 링크가 의미 있으므로 isRecruiting 값에 의존한다."
+              }
+            ],
             "x-feed": {
               "enabled": true,
               "role": "cta",
@@ -497,6 +511,13 @@
                   "type": "object",
                   "nullable": true,
                   "description": "DB alcoholId가 있을 때만 조회 시 보강되는 통계",
+                  "x-depends-on": [
+                    {
+                      "key": "source",
+                      "value": "BOTTLE_NOTE",
+                      "description": "통계 보강은 BottleNote DB 위스키를 참조하는 항목에서만 가능하므로 source 값에 의존한다."
+                    }
+                  ],
                   "x-graphql": {
                     "query": "alcohols",
                     "argFrom": "$.alcohol.alcoholId",
