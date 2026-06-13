@@ -3,6 +3,8 @@ package app.bottlenote.curation.service;
 import app.bottlenote.curation.dto.response.CurationFeedFieldResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -34,6 +36,13 @@ public class CurationFeedProjector {
         .toList();
   }
 
+  public Object projectPayload(Map<String, Object> responseSpec, Object payload) {
+    JsonNode specNode = objectMapper.valueToTree(responseSpec);
+    JsonNode payloadNode = objectMapper.valueToTree(payload);
+    JsonNode projected = projectNode(rootSchema(specNode), payloadNode);
+    return objectMapper.convertValue(projected, Object.class);
+  }
+
   private JsonNode rootSchema(JsonNode specNode) {
     if ("array".equals(specNode.path("x-container").asText()) && specNode.has(ITEMS)) {
       return specNode.get(ITEMS);
@@ -59,6 +68,49 @@ public class CurationFeedProjector {
     properties
         .properties()
         .forEach(entry -> collect(entry.getValue(), payload, append(path, entry.getKey()), fields));
+  }
+
+  private JsonNode projectNode(JsonNode schema, JsonNode payload) {
+    if (schema == null || !schema.isObject() || payload == null || payload.isMissingNode()) {
+      return null;
+    }
+    if (isEnabled(schema.get(FEED_META))) {
+      return payload;
+    }
+    if (payload.isArray()) {
+      return projectArray(schema, payload);
+    }
+    if (!payload.isObject()) {
+      return null;
+    }
+
+    JsonNode properties = schema.get(PROPERTIES);
+    if (properties == null || !properties.isObject()) {
+      return null;
+    }
+    ObjectNode projected = objectMapper.createObjectNode();
+    properties
+        .properties()
+        .forEach(
+            entry -> {
+              JsonNode childPayload = payload.get(entry.getKey());
+              JsonNode child = projectNode(entry.getValue(), childPayload);
+              if (child != null) {
+                projected.set(entry.getKey(), child);
+              }
+            });
+    return projected.isEmpty() ? null : projected;
+  }
+
+  private ArrayNode projectArray(JsonNode schema, JsonNode payload) {
+    JsonNode itemSchema = schema.has(ITEMS) ? schema.get(ITEMS) : schema;
+    ArrayNode projected = objectMapper.createArrayNode();
+    payload.forEach(
+        item -> {
+          JsonNode child = projectNode(itemSchema, item);
+          projected.add(child != null ? child : objectMapper.nullNode());
+        });
+    return projected;
   }
 
   private boolean isEnabled(JsonNode meta) {

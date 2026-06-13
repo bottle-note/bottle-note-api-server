@@ -154,6 +154,34 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
       // then
       assertThat(dataNode(result)).isEmpty();
     }
+
+    @Test
+    @DisplayName("Product feed는 상세 응답 형태에서 spec을 제외하고 x-feed payload 구조를 유지한다")
+    void searchFeed_returnsDetailShapeWithoutSpecAndKeepsXFeedPayloadStructure() throws Exception {
+      // given
+      Long curationId = createCuration("피드 큐레이션", 1, true, List.of(manualItem("피드 위스키")));
+
+      // when
+      MvcTestResult result =
+          mockMvcTester
+              .get()
+              .uri("/api/v2/curations/feed?size=10")
+              .contentType(APPLICATION_JSON)
+              .exchange();
+
+      // then
+      JsonNode item = dataNode(result).path("items").get(0);
+      JsonNode payloadItem = item.path("payload").get(0);
+      assertThat(item.path("id").asLong()).isEqualTo(curationId);
+      assertThat(item.has("spec")).isFalse();
+      assertThat(item.has("specId")).isFalse();
+      assertThat(item.has("feedFields")).isFalse();
+      assertThat(item.path("createAt").isMissingNode()).isFalse();
+      assertThat(payloadItem.has("source")).isFalse();
+      assertThat(payloadItem.has("stats")).isFalse();
+      assertThat(payloadItem.path("alcohol").path("korName").asText()).isEqualTo("피드 위스키");
+      assertThat(payloadItem.path("comment").asText()).isEqualTo("테스트 코멘트");
+    }
   }
 
   @Nested

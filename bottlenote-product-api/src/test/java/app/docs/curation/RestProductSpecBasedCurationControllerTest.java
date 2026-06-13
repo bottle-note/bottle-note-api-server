@@ -17,8 +17,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import app.bottlenote.curation.controller.ProductSpecBasedCurationController;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationDetailResponse;
+import app.bottlenote.curation.dto.response.ProductSpecBasedCurationFeedItemResponse;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationListResponse;
 import app.bottlenote.curation.service.ProductSpecBasedCurationService;
+import app.bottlenote.global.service.cursor.CursorResponse;
 import app.docs.AbstractRestDocs;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -90,6 +92,79 @@ class RestProductSpecBasedCurationControllerTest extends AbstractRestDocs {
                         .optional(),
                     fieldWithPath("data[].displayOrder").type(NUMBER).description("노출 순서"),
                     fieldWithPath("data[].createAt").type(ARRAY).description("생성 일시"),
+                    fieldWithPath("errors").type(ARRAY).description("에러 목록"),
+                    fieldWithPath("meta.serverEncoding").ignored(),
+                    fieldWithPath("meta.serverVersion").ignored(),
+                    fieldWithPath("meta.serverPathVersion").ignored(),
+                    fieldWithPath("meta.serverResponseTime").ignored())));
+  }
+
+  @Test
+  @DisplayName("spec 기반 큐레이션 v2 피드를 상세 응답 기반 payload로 조회할 수 있다")
+  void getCurationFeed() throws Exception {
+    when(productSpecBasedCurationService.searchFeed(0L, 10))
+        .thenReturn(
+            CursorResponse.of(
+                List.of(
+                    new ProductSpecBasedCurationFeedItemResponse(
+                        1L,
+                        "비 오는 날 위스키",
+                        "스모키 위스키 추천",
+                        "https://cdn.example.com/cover.jpg",
+                        List.of("https://cdn.example.com/cover.jpg"),
+                        LocalDate.of(2026, 6, 1),
+                        LocalDate.of(2026, 6, 30),
+                        1,
+                        LocalDateTime.of(2026, 5, 15, 12, 0),
+                        List.of(
+                            map(
+                                "alcohol",
+                                map(
+                                    "alcoholId",
+                                    1,
+                                    "korName",
+                                    "테스트 위스키",
+                                    "selectedTags",
+                                    List.of("셰리")),
+                                "comment",
+                                "추천 코멘트")))),
+                0L,
+                10));
+
+    mockMvc
+        .perform(get("/api/v2/curations/feed"))
+        .andExpect(status().isOk())
+        .andDo(
+            document(
+                "curation/v2/feed",
+                responseFields(
+                    fieldWithPath("success").type(BOOLEAN).description("응답 성공 여부"),
+                    fieldWithPath("code").type(NUMBER).description("응답 코드"),
+                    fieldWithPath("data.items").type(ARRAY).description("큐레이션 피드 목록"),
+                    fieldWithPath("data.items[].id").type(NUMBER).description("큐레이션 ID"),
+                    fieldWithPath("data.items[].name").description("큐레이션 이름"),
+                    fieldWithPath("data.items[].description").description("큐레이션 설명").optional(),
+                    fieldWithPath("data.items[].coverImageUrl").description("대표 이미지 URL"),
+                    fieldWithPath("data.items[].imageUrls")
+                        .type(ARRAY)
+                        .description("큐레이션 이미지 URL 목록"),
+                    fieldWithPath("data.items[].exposureStartDate")
+                        .type(ARRAY)
+                        .description("노출 시작일")
+                        .optional(),
+                    fieldWithPath("data.items[].exposureEndDate")
+                        .type(ARRAY)
+                        .description("노출 종료일")
+                        .optional(),
+                    fieldWithPath("data.items[].displayOrder").type(NUMBER).description("노출 순서"),
+                    fieldWithPath("data.items[].createAt").type(ARRAY).description("생성 일시"),
+                    subsectionWithPath("data.items[].payload")
+                        .type(ARRAY)
+                        .description("상세 payload와 동일한 구조에서 x-feed enabled 필드만 남긴 payload"),
+                    fieldWithPath("data.pageable.currentCursor").type(NUMBER).description("현재 커서"),
+                    fieldWithPath("data.pageable.cursor").type(NUMBER).description("다음 커서"),
+                    fieldWithPath("data.pageable.pageSize").type(NUMBER).description("페이지 크기"),
+                    fieldWithPath("data.pageable.hasNext").type(BOOLEAN).description("다음 페이지 여부"),
                     fieldWithPath("errors").type(ARRAY).description("에러 목록"),
                     fieldWithPath("meta.serverEncoding").ignored(),
                     fieldWithPath("meta.serverVersion").ignored(),

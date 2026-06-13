@@ -111,8 +111,8 @@ class ProductSpecBasedCurationServiceTest {
   }
 
   @Test
-  @DisplayName("Product feed는 x-feed enabled 필드만 projection하고 spec 원문은 포함하지 않는다")
-  void searchFeed_whenXFeedExists_returnsProjectedFieldsOnly() throws IOException {
+  @DisplayName("Product feed는 상세 응답에서 spec만 제외하고 payload 구조를 유지한 채 x-feed 필드만 반환한다")
+  void searchFeed_whenXFeedExists_returnsDetailShapeWithFilteredPayload() throws IOException {
     CurationSpec spec = createSpec();
     createCuration(spec.getId(), "피드", 1, true);
 
@@ -120,13 +120,16 @@ class ProductSpecBasedCurationServiceTest {
 
     assertThat(result.items()).hasSize(1);
     assertThat(result.pageable().getPageSize()).isEqualTo(10L);
-    assertThat(result.items().get(0).feedFields())
-        .extracting("path")
-        .containsExactly("alcohol", "comment");
-    assertThat(result.items().get(0).feedFields())
-        .extracting("role")
-        .containsExactly("item-list", "description");
-    assertThat(result.items().get(0).feedFields().get(0).value()).asList().hasSize(2);
+    assertThat(result.items().get(0).name()).isEqualTo("피드");
+    assertThat(result.items().get(0)).hasNoNullFieldsOrPropertiesExcept("description", "createAt");
+    JsonNode payload = OBJECT_MAPPER.valueToTree(result.items().get(0).payload());
+    assertThat(payload).hasSize(2);
+    assertThat(payload.get(0).has("source")).isFalse();
+    assertThat(payload.get(0).has("stats")).isFalse();
+    assertThat(payload.get(0).path("alcohol").path("korName").asText()).isEqualTo("테스트");
+    assertThat(payload.get(0).path("comment").isNull()).isTrue();
+    assertThat(payload.get(1).path("alcohol").path("korName").asText()).isEqualTo("수동");
+    assertThat(payload.get(1).has("source")).isFalse();
   }
 
   @Test
