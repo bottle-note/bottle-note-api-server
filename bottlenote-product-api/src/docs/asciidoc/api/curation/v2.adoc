@@ -88,6 +88,35 @@ include::{snippets}/curation/v2/list/response-body.adoc[]
 
 '''
 
+=== Spec 기반 큐레이션 v2 피드 조회 ===
+
+- Product 피드 화면에서 사용할 spec 기반 큐레이션 목록을 cursor 방식으로 조회합니다.
+- 각 item은 상세 응답 형태에서 `spec`을 제외한 구조입니다.
+- `payload`는 상세 payload와 동일한 중첩/배열 구조를 유지하되, responseSpec의 `x-feed.enabled = true` 필드만 포함합니다.
+
+[source]
+----
+GET /api/v2/curations/feed
+----
+
+[discrete]
+==== 요청 예시 ====
+
+include::{snippets}/curation/v2/feed/curl-request.adoc[]
+include::{snippets}/curation/v2/feed/http-request.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+include::{snippets}/curation/v2/feed/response-fields.adoc[]
+
+[discrete]
+==== 응답 예시 ====
+
+include::{snippets}/curation/v2/feed/response-body.adoc[]
+
+'''
+
 === Spec 기반 큐레이션 v2 상세 조회 ===
 
 - 특정 spec 기반 큐레이션의 상세 정보를 조회합니다.

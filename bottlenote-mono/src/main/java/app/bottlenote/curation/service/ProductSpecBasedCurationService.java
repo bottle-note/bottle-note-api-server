@@ -9,8 +9,8 @@ import app.bottlenote.curation.domain.CurationExtensionRepository;
 import app.bottlenote.curation.domain.CurationRepository;
 import app.bottlenote.curation.domain.CurationSpec;
 import app.bottlenote.curation.domain.CurationSpecRepository;
-import app.bottlenote.curation.dto.response.CurationFeedItemResponse;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationDetailResponse;
+import app.bottlenote.curation.dto.response.ProductSpecBasedCurationFeedItemResponse;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationListResponse;
 import app.bottlenote.curation.exception.CurationException;
 import app.bottlenote.global.service.cursor.CursorResponse;
@@ -52,7 +52,8 @@ public class ProductSpecBasedCurationService {
   }
 
   @Transactional(readOnly = true)
-  public CursorResponse<CurationFeedItemResponse> searchFeed(Long cursor, Integer size) {
+  public CursorResponse<ProductSpecBasedCurationFeedItemResponse> searchFeed(
+      Long cursor, Integer size) {
     int pageSize = normalizeFeedSize(size);
     long currentCursor = cursor != null && cursor > 0 ? cursor : 0L;
     List<Curation> visibleCurations = curationRepository.findAllVisibleOn(LocalDate.now());
@@ -65,7 +66,7 @@ public class ProductSpecBasedCurationService {
                 pageContent.stream().map(Curation::getSpecId).collect(Collectors.toSet()))
             .stream()
             .collect(Collectors.toMap(CurationSpec::getId, Function.identity()));
-    List<CurationFeedItemResponse> items =
+    List<ProductSpecBasedCurationFeedItemResponse> items =
         pageContent.stream()
             .map(curation -> toFeedResponse(curation, specMap.get(curation.getSpecId())))
             .toList();
@@ -126,7 +127,8 @@ public class ProductSpecBasedCurationService {
         payload);
   }
 
-  private CurationFeedItemResponse toFeedResponse(Curation curation, CurationSpec spec) {
+  private ProductSpecBasedCurationFeedItemResponse toFeedResponse(
+      Curation curation, CurationSpec spec) {
     CurationExtension extension =
         curationExtensionRepository
             .findByCurationId(curation.getId())
@@ -134,11 +136,8 @@ public class ProductSpecBasedCurationService {
     Object materialized =
         responseMaterializer.materializeFeed(
             curation.getId(), spec.getCode(), spec.getResponseSpec(), extension.getPayload());
-    return new CurationFeedItemResponse(
+    return new ProductSpecBasedCurationFeedItemResponse(
         curation.getId(),
-        curation.getSpecId(),
-        spec.getCode(),
-        spec.getName(),
         curation.getName(),
         curation.getDescription(),
         curation.getCoverImageUrl(),
@@ -146,9 +145,8 @@ public class ProductSpecBasedCurationService {
         curation.getExposureStartDate(),
         curation.getExposureEndDate(),
         curation.getDisplayOrder(),
-        null,
         curation.getCreateAt(),
-        feedProjector.project(spec.getResponseSpec(), materialized));
+        feedProjector.projectPayload(spec.getResponseSpec(), materialized));
   }
 
   private List<String> imageUrls(Curation curation) {
