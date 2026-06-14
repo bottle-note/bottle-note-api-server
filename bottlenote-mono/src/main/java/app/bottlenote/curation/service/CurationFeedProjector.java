@@ -102,7 +102,7 @@ public class CurationFeedProjector {
     return projected.isEmpty() ? null : projected;
   }
 
-  private ArrayNode projectArray(JsonNode schema, JsonNode payload) {
+  private JsonNode projectArray(JsonNode schema, JsonNode payload) {
     JsonNode itemSchema = schema.has(ITEMS) ? schema.get(ITEMS) : schema;
     ArrayNode projected = objectMapper.createArrayNode();
     payload.forEach(
@@ -110,7 +110,16 @@ public class CurationFeedProjector {
           JsonNode child = projectNode(itemSchema, item);
           projected.add(child != null ? child : objectMapper.nullNode());
         });
-    return projected;
+    return hasProjectedChild(projected) ? projected : null;
+  }
+
+  private boolean hasProjectedChild(ArrayNode projected) {
+    for (JsonNode child : projected) {
+      if (child != null && !child.isNull()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private boolean isEnabled(JsonNode meta) {
