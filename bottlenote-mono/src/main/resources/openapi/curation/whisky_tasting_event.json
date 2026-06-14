@@ -564,12 +564,6 @@
                 "source",
                 "alcohol"
               ]
-            },
-            "x-feed": {
-              "enabled": true,
-              "role": "item-list",
-              "order": 100,
-              "description": "피드에서 시음 위스키 라인업 목록을 구성하기 위해 포함한다."
             }
           }
         },
