@@ -1,26 +1,31 @@
 package app.bottlenote.global.security.jwt;
 
+import static app.bottlenote.global.exception.custom.code.ValidExceptionCode.JWT_TOKEN_EXCEPTION;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import app.bottlenote.global.data.response.Error;
+import app.bottlenote.global.data.response.GlobalResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.Objects;
+import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.HandlerExceptionResolver;
 
 @Slf4j
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-  private final HandlerExceptionResolver resolver;
+  private final ObjectMapper objectMapper;
 
-  public JwtAuthenticationEntryPoint(
-      @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver) {
-    this.resolver = resolver;
+  public JwtAuthenticationEntryPoint(ObjectMapper objectMapper) {
+    this.objectMapper = objectMapper;
   }
 
   /**
@@ -34,21 +39,36 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
   public void commence(
       HttpServletRequest request,
       HttpServletResponse response,
-      AuthenticationException authException) {
+      AuthenticationException authException)
+      throws IOException {
     log.info("JwtAuthenticationEntryPoint.commence : {}", authException.getMessage());
-    // 응답 상태를 401 Unauthorized로 설정합니다.
-    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-    // 응답 콘텐츠 타입을 JSON으로 설정합니다.
+
+    Error error = resolveError(request);
+
+    response.setStatus(error.status().value());
     response.setContentType(APPLICATION_JSON_VALUE);
-    // 응답의 문자 인코딩을 UTF-8로 설정합니다.
     response.setCharacterEncoding("UTF-8");
 
-    // 요청 속성에서 예외를 가져옵니다.
+    objectMapper.writeValue(response.getWriter(), GlobalResponse.error(error).getBody());
+  }
+
+  private Error resolveError(HttpServletRequest request) {
     Exception exception = (Exception) request.getAttribute("exception");
-
-    if (Objects.isNull(exception)) exception = authException;
-
-    // 예외를 처리하기 위해 HandlerExceptionResolver를 사용합니다.
-    resolver.resolveException(request, response, null, exception);
+    if (exception instanceof SignatureException) {
+      return Error.of(JwtExceptionType.INVALID_SIGNATURE);
+    }
+    if (exception instanceof MalformedJwtException) {
+      return Error.of(JwtExceptionType.MALFORMED_TOKEN);
+    }
+    if (exception instanceof ExpiredJwtException) {
+      return Error.of(JwtExceptionType.EXPIRED_TOKEN);
+    }
+    if (exception instanceof UnsupportedJwtException) {
+      return Error.of(JwtExceptionType.UNSUPPORTED_TOKEN);
+    }
+    if (exception instanceof IllegalArgumentException) {
+      return Error.of(JwtExceptionType.ILLEGAL_ARGUMENT);
+    }
+    return Error.of(JWT_TOKEN_EXCEPTION);
   }
 }

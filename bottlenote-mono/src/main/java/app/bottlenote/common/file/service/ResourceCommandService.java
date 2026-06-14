@@ -26,10 +26,8 @@ public class ResourceCommandService {
 
   private final ResourceLogRepository resourceLogRepository;
 
-  @Async
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public CompletableFuture<ResourceLogResponse> saveImageResourceCreated(
-      ResourceLogRequest request) {
+  public ResourceLogResponse saveImageResourceCreated(ResourceLogRequest request) {
     ResourceLog entity =
         ResourceLog.builder()
             .userId(request.userId())
@@ -45,13 +43,20 @@ public class ResourceCommandService {
         "이미지 리소스 생성 로그 저장 - resourceKey: {}, userId: {}",
         saved.getResourceKey(),
         saved.getUserId());
-    return CompletableFuture.completedFuture(toResponse(saved));
+    return toResponse(saved);
   }
 
   @Async
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public CompletableFuture<Optional<ResourceLogResponse>> activateImageResource(
       String resourceKey, Long referenceId, String referenceType) {
+    return activateImageResource(resourceKey, referenceId, referenceType, null);
+  }
+
+  @Async
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public CompletableFuture<Optional<ResourceLogResponse>> activateImageResource(
+      String resourceKey, Long referenceId, String referenceType, Long expectedUserId) {
     Optional<ResourceLog> resourceLogOpt = resourceLogRepository.findByResourceKey(resourceKey);
 
     if (resourceLogOpt.isEmpty()) {
@@ -60,6 +65,15 @@ public class ResourceCommandService {
     }
 
     ResourceLog resourceLog = resourceLogOpt.get();
+
+    if (expectedUserId != null && !expectedUserId.equals(resourceLog.getUserId())) {
+      log.warn(
+          "리소스 소유자가 일치하지 않아 활성화 스킵 - resourceKey: {}, expectedUserId: {}, actualUserId: {}",
+          resourceKey,
+          expectedUserId,
+          resourceLog.getUserId());
+      return CompletableFuture.completedFuture(Optional.empty());
+    }
 
     if (resourceLog.isActivated()) {
       log.info("이미 활성화된 리소스 스킵 - resourceKey: {}", resourceKey);

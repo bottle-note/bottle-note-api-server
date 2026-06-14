@@ -50,7 +50,7 @@ class BusinessSupportIntegrationTest extends IntegrationTestSupport {
   }
 
   @Test
-  @DisplayName("인증되지 않은 사용자는 문의를 등록할 수 없다.")
+  @DisplayName("인증되지 않은 사용자는 문의 등록 시 401을 반환한다.")
   void register_fail_unauthorized() throws Exception {
     // given
     BusinessSupportUpsertRequest req =
@@ -67,7 +67,7 @@ class BusinessSupportIntegrationTest extends IntegrationTestSupport {
             .content(mapper.writeValueAsString(req))
             .exchange();
 
-    result.assertThat().hasStatus(HttpStatus.BAD_REQUEST);
+    result.assertThat().hasStatus(HttpStatus.UNAUTHORIZED);
   }
 
   @Test
@@ -89,6 +89,14 @@ class BusinessSupportIntegrationTest extends IntegrationTestSupport {
   }
 
   @Test
+  @DisplayName("인증되지 않은 사용자는 문의 목록 조회 시 401을 반환한다.")
+  void get_list_fail_unauthorized() {
+    MvcTestResult result = mockMvcTester.get().uri("/api/v1/business-support").exchange();
+
+    result.assertThat().hasStatus(HttpStatus.UNAUTHORIZED);
+  }
+
+  @Test
   @DisplayName("자신이 등록한 문의 상세 내용을 조회할 수 있다. (200 OK)")
   void get_detail_success() throws Exception {
     // given
@@ -104,6 +112,14 @@ class BusinessSupportIntegrationTest extends IntegrationTestSupport {
             .exchange();
 
     result.assertThat().hasStatusOk();
+  }
+
+  @Test
+  @DisplayName("인증되지 않은 사용자는 문의 상세 조회 시 401을 반환한다.")
+  void get_detail_fail_unauthorized() {
+    MvcTestResult result = mockMvcTester.get().uri("/api/v1/business-support/{id}", 1L).exchange();
+
+    result.assertThat().hasStatus(HttpStatus.UNAUTHORIZED);
   }
 
   @Test

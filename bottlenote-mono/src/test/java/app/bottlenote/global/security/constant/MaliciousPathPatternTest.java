@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.util.pattern.PathPatternParser;
 
 @Tag("unit")
@@ -92,6 +93,16 @@ class MaliciousPathPatternTest {
 
     // then - SSL/인증서
     assertThat(patterns).contains("/.well-known/**");
+  }
+
+  @Test
+  @DisplayName("HTTP 요청 경로가 악성 패턴에 해당하는지 판별한다")
+  void matches_악성_요청_경로_판별() {
+    assertThat(MaliciousPathPattern.matches(new MockHttpServletRequest("GET", "/.env"))).isTrue();
+    assertThat(MaliciousPathPattern.matches(new MockHttpServletRequest("GET", "/.git/config")))
+        .isTrue();
+    assertThat(MaliciousPathPattern.matches(new MockHttpServletRequest("GET", "/api/v1/regions")))
+        .isFalse();
   }
 
   @Test

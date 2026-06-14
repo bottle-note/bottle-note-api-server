@@ -11,8 +11,6 @@ jar {
 
 dependencies {
 	implementation project(':bottlenote-mono')
-	//noinspection GrUnresolvedAccess
-	testImplementation project(':bottlenote-mono').sourceSets.test.output
 
 	// batch
 	implementation libs.spring.boot.starter

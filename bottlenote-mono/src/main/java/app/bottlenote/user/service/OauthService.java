@@ -6,12 +6,10 @@ import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TO
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import app.bottlenote.global.security.jwt.TokenValidator;
-import app.bottlenote.user.constant.GenderType;
 import app.bottlenote.user.constant.SocialType;
 import app.bottlenote.user.constant.UserType;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.request.OauthRequest;
-import app.bottlenote.user.dto.response.BasicAccountResponse;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
@@ -156,23 +154,6 @@ public class OauthService {
     user.restore();
   }
 
-  @Transactional
-  public String guestLogin() {
-    final int expireTime = 1000 * 60 * 60 * 24;
-    OauthRequest oauthRequest =
-        new OauthRequest(
-            "guest" + UUID.randomUUID() + "@bottlenote.com",
-            "socialUniqueId" + UUID.randomUUID(),
-            SocialType.APPLE,
-            GenderType.MALE,
-            30);
-    User guest =
-        oauthRepository
-            .loadGuestUser()
-            .orElseGet(() -> oauthSignUp(oauthRequest, UserType.ROLE_GUEST));
-    return tokenProvider.createGuestToken(guest.getId(), expireTime);
-  }
-
   private User oauthSignUp(OauthRequest oauthRequest, UserType userType) {
 
     String socialUniqueId = oauthRequest.socialUniqueId();
@@ -226,64 +207,6 @@ public class OauthService {
     user.updateRefreshToken(reissuedToken.refreshToken());
 
     return reissuedToken;
-  }
-
-  @Transactional
-  public BasicAccountResponse basicSignup(
-      String email, String password, Integer age, GenderType gender) {
-    oauthRepository
-        .findByEmail(email)
-        .ifPresent(
-            user -> {
-              throw new UserException(UserExceptionCode.USER_ALREADY_EXISTS);
-            });
-
-    String encodePassword = passwordEncoder.encode(password);
-    User user =
-        oauthRepository.save(
-            User.builder()
-                .email(email)
-                .password(encodePassword)
-                .role(UserType.ROLE_USER)
-                .socialType(List.of(SocialType.BASIC))
-                .nickName(generateNickname())
-                .age(age)
-                .gender(gender)
-                .build());
-
-    TokenItem token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
-    user.updateRefreshToken(token.refreshToken());
-
-    log.info(
-        "기본 회원가입 완료: email={}, userId={}, nickname={}",
-        user.getEmail(),
-        user.getId(),
-        user.getNickName());
-
-    return BasicAccountResponse.builder()
-        .message(user.getNickName() + "님 환영합니다!")
-        .email(user.getEmail())
-        .nickname(user.getNickName())
-        .accessToken(token.accessToken())
-        .refreshToken(token.refreshToken())
-        .build();
-  }
-
-  @Transactional
-  public TokenItem basicLogin(String email, String password) {
-    User user =
-        oauthRepository
-            .findByEmail(email)
-            .orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
-    if (!passwordEncoder.matches(password, user.getPassword())) {
-      throw new UserException(UserExceptionCode.INVALID_PASSWORD);
-    }
-
-    checkActiveUser(user);
-
-    TokenItem token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
-    user.updateRefreshToken(token.refreshToken());
-    return token;
   }
 
   protected String generateNickname() {

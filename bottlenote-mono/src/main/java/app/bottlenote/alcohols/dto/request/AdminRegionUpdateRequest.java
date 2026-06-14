@@ -9,6 +9,7 @@ public record AdminRegionUpdateRequest(
     @NotBlank(message = "REGION_ENG_NAME_REQUIRED") String engName,
     String continent,
     String description,
+    String imageUrl,
     Long parentId,
     @Min(value = 0, message = "REGION_SORT_ORDER_MINIMUM") Integer sortOrder) {
 

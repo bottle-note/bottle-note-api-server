@@ -4,7 +4,6 @@ import static app.bottlenote.user.exception.UserExceptionCode.JSON_PARSING_EXCEP
 
 import app.bottlenote.user.constant.AdminRole;
 import app.bottlenote.user.exception.UserException;
-import com.amazonaws.util.CollectionUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,7 +21,7 @@ public class AdminRoleConverter implements AttributeConverter<List<AdminRole>, S
 
   @Override
   public String convertToDatabaseColumn(List<AdminRole> roles) {
-    if (CollectionUtils.isNullOrEmpty(roles)) {
+    if (roles == null || roles.isEmpty()) {
       return "[]";
     }
     try {

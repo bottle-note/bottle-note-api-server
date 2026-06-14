@@ -1,6 +1,9 @@
 package app.bottlenote.alcohols.controller;
 
+import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.PUBLIC;
+
 import app.bottlenote.alcohols.service.TastingTagService;
+import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/tasting-tags")
 @RequiredArgsConstructor
+@SecurityPolicy(auth = PUBLIC)
 public class TastingTagController {
 
   private final TastingTagService tastingTagService;

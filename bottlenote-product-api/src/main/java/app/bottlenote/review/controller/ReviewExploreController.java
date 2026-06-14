@@ -1,5 +1,8 @@
 package app.bottlenote.review.controller;
 
+import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.OPTIONAL_AUTH;
+
+import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.CursorResponse;
@@ -21,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/reviews/explore")
+@SecurityPolicy(auth = OPTIONAL_AUTH)
 public class ReviewExploreController {
 
   private final ReviewExploreService reviewExploreService;

@@ -19,7 +19,7 @@ public interface JpaRegionQueryRepository extends RegionRepository, CrudReposito
   @Override
   @Query(
       """
-      select new app.bottlenote.alcohols.dto.response.RegionsItem(r.id, r.korName, r.engName, r.description, r.parent.id, r.sortOrder)
+      select new app.bottlenote.alcohols.dto.response.RegionsItem(r.id, r.korName, r.engName, r.description, r.imageUrl, r.parent.id, r.sortOrder)
       from region r order by r.sortOrder asc, r.korName asc
       """)
   List<RegionsItem> findAllRegionsResponse();
@@ -28,7 +28,7 @@ public interface JpaRegionQueryRepository extends RegionRepository, CrudReposito
   @Query(
       """
       select new app.bottlenote.alcohols.dto.response.AdminRegionItem(
-        r.id, r.korName, r.engName, r.continent, r.description, r.createAt, r.lastModifyAt, r.parent.id, r.sortOrder
+        r.id, r.korName, r.engName, r.continent, r.description, r.imageUrl, r.createAt, r.lastModifyAt, r.parent.id, r.sortOrder
       )
       from region r
       where (:keyword is null or :keyword = ''

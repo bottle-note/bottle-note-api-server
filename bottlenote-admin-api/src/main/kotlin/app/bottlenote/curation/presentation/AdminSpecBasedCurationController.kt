@@ -26,6 +26,11 @@ class AdminSpecBasedCurationController(
 		@ModelAttribute request: CurationSearchRequest
 	): ResponseEntity<GlobalResponse> = ResponseEntity.ok(adminSpecBasedCurationService.search(request))
 
+	@GetMapping("/feed")
+	fun feed(
+		@ModelAttribute request: CurationSearchRequest
+	): ResponseEntity<GlobalResponse> = ResponseEntity.ok(adminSpecBasedCurationService.searchFeed(request))
+
 	@GetMapping("/{curationId}")
 	fun detail(
 		@PathVariable curationId: Long

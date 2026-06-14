@@ -5,10 +5,12 @@ import app.bottlenote.curation.dto.request.CurationSearchRequest
 import app.bottlenote.curation.dto.request.CurationUpdateRequest
 import app.bottlenote.curation.dto.response.AdminSpecBasedCurationDetailResponse
 import app.bottlenote.curation.dto.response.AdminSpecBasedCurationListResponse
+import app.bottlenote.curation.dto.response.CurationSpecListResponse
 import app.bottlenote.curation.dto.response.CurationSpecResponse
 import app.bottlenote.curation.presentation.AdminCurationSpecController
 import app.bottlenote.curation.presentation.AdminSpecBasedCurationController
 import app.bottlenote.curation.service.AdminSpecBasedCurationService
+import app.bottlenote.curation.service.CurationSpecQueryService
 import app.bottlenote.global.data.response.GlobalResponse
 import app.bottlenote.global.dto.response.AdminResultResponse
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -55,10 +57,13 @@ class AdminSpecBasedCurationControllerDocsTest {
 	@MockitoBean
 	private lateinit var adminSpecBasedCurationService: AdminSpecBasedCurationService
 
+	@MockitoBean
+	private lateinit var curationSpecQueryService: CurationSpecQueryService
+
 	@Test
 	@DisplayName("큐레이션 스펙 목록을 조회할 수 있다")
 	fun listSpecs() {
-		given(adminSpecBasedCurationService.listSpecs()).willReturn(listOf(specResponse()))
+		given(curationSpecQueryService.listActiveSpecs()).willReturn(listOf(specListResponse()))
 
 		assertThat(mvc.get().uri("/v2/curation-specs"))
 			.hasStatusOk()
@@ -74,7 +79,7 @@ class AdminSpecBasedCurationControllerDocsTest {
 	@Test
 	@DisplayName("큐레이션 스펙 상세를 조회할 수 있다")
 	fun getSpecDetail() {
-		given(adminSpecBasedCurationService.getSpecDetail(anyLong())).willReturn(specResponse())
+		given(curationSpecQueryService.getSpecDetail(anyLong())).willReturn(specResponse())
 
 		assertThat(mvc.get().uri("/v2/curation-specs/{specId}", 1L))
 			.hasStatusOk()
@@ -172,6 +177,15 @@ class AdminSpecBasedCurationControllerDocsTest {
 		true,
 		mapOf("type" to "object", "required" to listOf("source", "alcohol")),
 		mapOf("type" to "object")
+	)
+
+	private fun specListResponse(): CurationSpecListResponse = CurationSpecListResponse(
+		1L,
+		"RECOMMENDED_WHISKY",
+		"추천 위스키",
+		"추천 위스키 카드 목록",
+		1,
+		true
 	)
 
 	private fun listResponse(): AdminSpecBasedCurationListResponse = AdminSpecBasedCurationListResponse(

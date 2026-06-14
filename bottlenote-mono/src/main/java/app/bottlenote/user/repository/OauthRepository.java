@@ -31,16 +31,6 @@ public interface OauthRepository extends CrudRepository<User, Long> {
   @Query("select u from users  u order by u.id limit 1")
   Optional<User> getFirstUser();
 
-  @Query(
-      """
-			SELECT u
-			FROM users u
-			WHERE u.role = 'ROLE_GUEST'
-			ORDER BY u.id
-			LIMIT 1
-			""")
-  Optional<User> loadGuestUser();
-
   @Query("select count (u)+1 from users u")
   String getNextNicknameSequence();
 }

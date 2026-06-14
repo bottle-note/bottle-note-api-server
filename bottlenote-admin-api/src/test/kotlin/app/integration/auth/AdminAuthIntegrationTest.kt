@@ -1,17 +1,44 @@
 package app.integration.auth
 
 import app.IntegrationTestSupport
+import app.bottlenote.global.annotation.SecurityPolicy.AuthType
+import app.bottlenote.global.security.policy.SecurityPolicyRegistry
 import app.bottlenote.user.constant.AdminRole
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 
 @Tag("admin_integration")
 @DisplayName("[integration] Admin Auth API 통합 테스트")
 class AdminAuthIntegrationTest : IntegrationTestSupport() {
+	@Autowired
+	private lateinit var securityPolicyRegistry: SecurityPolicyRegistry
+
+	@ParameterizedTest
+	@CsvSource(
+		"POST, /v1/auth/login, PUBLIC",
+		"POST, /v1/auth/refresh, PUBLIC",
+		"POST, /v1/auth/signup, REQUIRED_AUTH",
+		"DELETE, /v1/auth/withdraw, REQUIRED_AUTH",
+		"GET, /v1/users, REQUIRED_AUTH",
+		"GET, /v1/not-found, PUBLIC",
+		"GET, /error, PUBLIC"
+	)
+	@DisplayName("admin-api SecurityPolicyRegistry가 실제 controller 정책을 수집한다")
+	fun adminSecurityPolicyRegistryCollectsControllerPolicies(
+		method: String,
+		path: String,
+		expected: String
+	) {
+		assertThat(securityPolicyRegistry.resolve(method, path)).isEqualTo(AuthType.valueOf(expected))
+	}
+
 	@Nested
 	@DisplayName("로그인 API")
 	inner class LoginTest {
@@ -41,6 +68,30 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 				mockMvcTester
 					.post()
 					.uri("/v1/auth/login")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(request))
+			).hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.accessToken")
+				.isNotNull()
+		}
+
+		@Test
+		@DisplayName("잘못된 Authorization 헤더가 있어도 로그인에 성공한다")
+		fun loginSuccessWithInvalidAuthorizationHeader() {
+			// given
+			val email = "invalid-header@bottlenote.com"
+			val password = "password123"
+			adminUserTestFactory.persistRootAdmin(email, password)
+
+			val request = mapOf("email" to email, "password" to password)
+
+			// when & then
+			assertThat(
+				mockMvcTester
+					.post()
+					.uri("/v1/auth/login")
+					.header("Authorization", "Bearer invalid.token")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			).hasStatusOk()
@@ -168,6 +219,41 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 				mockMvcTester
 					.post()
 					.uri("/v1/auth/refresh")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(request))
+			).hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.accessToken")
+				.isNotNull()
+		}
+
+		@Test
+		@DisplayName("잘못된 Authorization 헤더가 있어도 유효한 리프레시 토큰이면 갱신에 성공한다")
+		fun refreshSuccessWithInvalidAuthorizationHeader() {
+			// given
+			val email = "refresh-invalid-header@bottlenote.com"
+			val password = "password123"
+			adminUserTestFactory.persistRootAdmin(email, password)
+
+			val loginRequest = mapOf("email" to email, "password" to password)
+			val loginResult =
+				mockMvcTester
+					.post()
+					.uri("/v1/auth/login")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(loginRequest))
+					.exchange()
+
+			val loginResponse = mapper.readTree(loginResult.response.contentAsString)
+			val refreshToken = loginResponse.path("data").path("refreshToken").asText()
+			val request = mapOf("refreshToken" to refreshToken)
+
+			// when & then
+			assertThat(
+				mockMvcTester
+					.post()
+					.uri("/v1/auth/refresh")
+					.header("Authorization", "Bearer invalid.token")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
 			).hasStatusOk()

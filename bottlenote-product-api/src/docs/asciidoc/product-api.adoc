@@ -44,9 +44,6 @@ include::api/auth/auth.adoc[]
 include::api/user/user-login.adoc[]
 
 '''
-include::api/user/user-guest-login.adoc[]
-
-'''
 include::api/user/user-reissue.adoc[]
 
 '''

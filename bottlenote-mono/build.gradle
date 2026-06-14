@@ -11,6 +11,7 @@ dependencies {
 	implementation libs.spring.boot.starter.data.jpa
 	implementation libs.spring.boot.starter.data.redis
 	runtimeOnly libs.mysql.connector.j
+	implementation libs.liquibase.core
 	implementation libs.p6spy
 	implementation libs.hypersistence.utils
 	implementation libs.querydsl.jpa
@@ -24,6 +25,7 @@ dependencies {
 
 	// ===== Text Processing =====
 	implementation libs.ahocorasick
+	implementation libs.commons.codec
 
 	// ===== Security =====
 	implementation libs.spring.boot.starter.security
@@ -32,7 +34,8 @@ dependencies {
 	implementation libs.google.guava
 
 	// ===== External Services =====
-	implementation libs.aws.s3
+	implementation platform(libs.aws.sdk.bom)
+	implementation libs.aws.sdk.s3
 	implementation libs.spring.cloud.starter.openfeign
 
 	// ===== Observability =====
@@ -42,11 +45,11 @@ dependencies {
 	implementation libs.spring.boot.starter.quartz
 
 	// ===== Testing =====
+	testImplementation project(':bottlenote-test-support')
 	testImplementation libs.testng
 	testImplementation libs.mockito.inline
 	testImplementation libs.bundles.testcontainers.complete
 	testImplementation libs.archunit
-	testImplementation libs.liquibase.core
 }
 
 bootJar {

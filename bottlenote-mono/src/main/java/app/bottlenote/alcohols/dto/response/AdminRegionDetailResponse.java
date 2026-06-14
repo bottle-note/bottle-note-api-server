@@ -8,6 +8,7 @@ public record AdminRegionDetailResponse(
     String engName,
     String continent,
     String description,
+    String imageUrl,
     Integer sortOrder,
     Long parentId,
     String parentKorName,

@@ -11,6 +11,7 @@ import app.bottlenote.alcohols.facade.AlcoholFacade;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.common.file.event.payload.ImageResourceActivatedEvent;
 import app.bottlenote.common.file.event.payload.ImageResourceInvalidatedEvent;
+import app.bottlenote.common.file.service.ResourceVerifierService;
 import app.bottlenote.common.image.ImageUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
@@ -57,6 +58,7 @@ public class ReviewService {
   private final HistoryEventPublisher reviewEventPublisher;
   private final TracingService tracingService;
   private final ApplicationEventPublisher eventPublisher;
+  private final ResourceVerifierService resourceVerifierService;
 
   /** Read */
   @Transactional(readOnly = true)
@@ -92,6 +94,7 @@ public class ReviewService {
       ReviewCreateRequest reviewCreateRequest, Long currentUserId) {
     alcoholFacade.isValidAlcoholId(reviewCreateRequest.alcoholId());
     userDomainSupport.isValidUserId(currentUserId);
+    verifyReviewImages(reviewCreateRequest.imageUrlList(), currentUserId, null);
 
     RatingPoint point = RatingPoint.of(reviewCreateRequest.rating());
     Review review =
@@ -129,7 +132,8 @@ public class ReviewService {
             saveReview.getContent());
     reviewEventPublisher.publishReviewHistoryEvent(event);
 
-    publishImageActivatedEvent(reviewCreateRequest.imageUrlList(), saveReview.getId());
+    publishImageActivatedEvent(
+        reviewCreateRequest.imageUrlList(), saveReview.getId(), currentUserId);
 
     log.info(
         "리뷰 생성 - reviewId: {}, userId: {}, alcoholId: {}, rating: {}, status: {}, traceId: {}",
@@ -166,6 +170,7 @@ public class ReviewService {
     ReviewModifyRequestWrapperItem reviewModifyRequestWrapperItem =
         ReviewModifyRequestWrapperItem.create(request);
     List<ReviewImageInfoRequest> reviewImageInfoRequests = request.imageUrlList();
+    verifyReviewImages(reviewImageInfoRequests, currentUserId, reviewId);
 
     review.update(reviewModifyRequestWrapperItem);
     review.imageInitialization(reviewImageInfoRequests);
@@ -183,7 +188,7 @@ public class ReviewService {
     publishImageInvalidatedEvent(oldImageUrls, newImageUrls, reviewId);
 
     // 새 이미지에 대해 ACTIVATED 이벤트 발행
-    publishImageActivatedEvent(reviewImageInfoRequests, reviewId);
+    publishImageActivatedEvent(reviewImageInfoRequests, reviewId, currentUserId);
 
     return ReviewResultResponse.response(MODIFY_SUCCESS, reviewId);
   }
@@ -233,7 +238,8 @@ public class ReviewService {
         : ReviewResultResponse.response(PRIVATE_SUCCESS, review.getId());
   }
 
-  private void publishImageActivatedEvent(List<ReviewImageInfoRequest> imageList, Long reviewId) {
+  private void publishImageActivatedEvent(
+      List<ReviewImageInfoRequest> imageList, Long reviewId, Long userId) {
     List<ReviewImageInfoRequest> images =
         Objects.requireNonNullElse(imageList, Collections.emptyList());
     if (images.isEmpty() || reviewId == null) {
@@ -247,8 +253,19 @@ public class ReviewService {
             .toList();
     if (!resourceKeys.isEmpty()) {
       eventPublisher.publishEvent(
-          ImageResourceActivatedEvent.of(resourceKeys, reviewId, REFERENCE_TYPE_REVIEW));
+          ImageResourceActivatedEvent.of(resourceKeys, reviewId, REFERENCE_TYPE_REVIEW, userId));
     }
+  }
+
+  private void verifyReviewImages(
+      List<ReviewImageInfoRequest> imageList, Long userId, Long reviewId) {
+    List<String> viewUrls =
+        Objects.requireNonNullElse(imageList, Collections.<ReviewImageInfoRequest>emptyList())
+            .stream()
+            .map(ReviewImageInfoRequest::viewUrl)
+            .toList();
+    resourceVerifierService.verifyOwnedImageResources(
+        viewUrls, userId, reviewId, REFERENCE_TYPE_REVIEW);
   }
 
   private void publishImageInvalidatedEvent(

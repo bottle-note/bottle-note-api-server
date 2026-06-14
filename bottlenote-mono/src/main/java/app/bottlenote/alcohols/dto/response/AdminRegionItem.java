@@ -8,6 +8,7 @@ public record AdminRegionItem(
     String engName,
     String continent,
     String description,
+    String imageUrl,
     LocalDateTime createdAt,
     LocalDateTime modifiedAt,
     Long parentId,

@@ -7,14 +7,14 @@ import app.bottlenote.common.file.dto.request.ResourceLogRequest;
 import app.bottlenote.common.file.dto.response.ImageUploadItem;
 import app.bottlenote.common.file.dto.response.ImageUploadResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
-import com.amazonaws.HttpMethod;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
+import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 @Slf4j
 @ThirdPartyService
@@ -22,19 +22,19 @@ public class ImageUploadService implements PreSignUrlProvider {
 
   private static final Integer EXPIRY_TIME = 5;
   private final ResourceCommandService resourceCommandService;
-  private final AmazonS3 amazonS3;
+  private final S3Presigner s3Presigner;
   private final String imageBucketName;
   private final String cloudFrontUrl;
 
   public ImageUploadService(
       ResourceCommandService resourceCommandService,
-      AmazonS3 amazonS3,
+      S3Presigner s3Presigner,
       @Value("${amazon.aws.bucket}") String imageBucketName,
       @Value("${amazon.aws.cloudFrontUrl}") String cloudFrontUrl) {
     this.resourceCommandService = resourceCommandService;
-    this.amazonS3 = amazonS3;
+    this.s3Presigner = s3Presigner;
     this.imageBucketName = imageBucketName;
-    this.cloudFrontUrl = cloudFrontUrl;
+    this.cloudFrontUrl = normalizeCloudFrontUrl(cloudFrontUrl);
   }
 
   /**
@@ -95,18 +95,23 @@ public class ImageUploadService implements PreSignUrlProvider {
 
   @Override
   public String generateViewUrl(String cloudFrontUrl, String imageKey) {
-    return cloudFrontUrl + PATH_DELIMITER + imageKey;
+    return normalizeCloudFrontUrl(cloudFrontUrl) + PATH_DELIMITER + imageKey;
   }
 
   @Override
   public String generatePreSignUrl(String imageKey, String contentType) {
-    Calendar uploadExpiryTime = getUploadExpiryTime(EXPIRY_TIME);
-    GeneratePresignedUrlRequest request =
-        new GeneratePresignedUrlRequest(imageBucketName, imageKey)
-            .withMethod(HttpMethod.PUT)
-            .withExpiration(uploadExpiryTime.getTime())
-            .withContentType(contentType);
-    return amazonS3.generatePresignedUrl(request).toString();
+    PutObjectRequest putObjectRequest =
+        PutObjectRequest.builder()
+            .bucket(imageBucketName)
+            .key(imageKey)
+            .contentType(contentType)
+            .build();
+    PutObjectPresignRequest presignRequest =
+        PutObjectPresignRequest.builder()
+            .signatureDuration(Duration.ofMinutes(EXPIRY_TIME))
+            .putObjectRequest(putObjectRequest)
+            .build();
+    return s3Presigner.presignPutObject(presignRequest).url().toString();
   }
 
   private void saveImageUploadLogs(String rootPath, List<ImageUploadItem> items) {
@@ -133,5 +138,13 @@ public class ImageUploadService implements PreSignUrlProvider {
   private String extractImageKey(String viewUrl) {
     int lastSlashOfCloudFront = cloudFrontUrl.length() + 1;
     return viewUrl.substring(lastSlashOfCloudFront);
+  }
+
+  private String normalizeCloudFrontUrl(String url) {
+    String normalized = url;
+    while (normalized.endsWith(PATH_DELIMITER)) {
+      normalized = normalized.substring(0, normalized.length() - 1);
+    }
+    return normalized;
   }
 }

@@ -14,8 +14,7 @@ configurations {
 
 dependencies {
 	implementation project(':bottlenote-mono')
-	//noinspection GrUnresolvedAccess
-	testImplementation project(':bottlenote-mono').sourceSets.test.output
+	testImplementation project(':bottlenote-test-support')
 	implementation project(':bottlenote-observability')
 
 	// ===== Spring Boot Web  =====
@@ -62,7 +61,8 @@ dependencies {
 	testImplementation libs.restdocs.api.spec.mockmvc
 
 	// Test - AWS
-	testImplementation libs.aws.s3
+	testImplementation platform(libs.aws.sdk.bom)
+	testImplementation libs.aws.sdk.s3
 
 	// Test - Feign
 	testImplementation libs.spring.cloud.starter.openfeign

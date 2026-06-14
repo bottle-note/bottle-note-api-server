@@ -9,12 +9,14 @@ import static com.querydsl.jpa.JPAExpressions.select;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.SortOrder;
+import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.user.constant.FollowStatus;
 import app.bottlenote.user.constant.MyBottleSortType;
 import app.bottlenote.user.constant.MyBottleType;
 import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
@@ -138,19 +140,56 @@ public class UserQuerySupporter {
 
   /** 마이 보틀 정렬 조건을 반환 */
   public OrderSpecifier<?> sortBy(
-      MyBottleType tabType, MyBottleSortType myBottleSortType, SortOrder sortOrder) {
+      MyBottleType tabType, MyBottleSortType myBottleSortType, SortOrder sortOrder, Long userId) {
     myBottleSortType = (myBottleSortType != null) ? myBottleSortType : MyBottleSortType.LATEST;
-    sortOrder = (sortOrder != null) ? sortOrder : SortOrder.DESC; // 기본값은 내림차순
+    sortOrder = (sortOrder != null) ? sortOrder : SortOrder.DESC;
 
     return switch (myBottleSortType) {
-      case RATING -> sortOrder.resolve(rating.ratingPoint.rating.max());
-      case REVIEW -> sortOrder.resolve(review.createAt.max());
+      case RATING -> orderSpecifier(sortOrder, ratingSortExpression(tabType, userId));
+      case REVIEW -> orderSpecifier(sortOrder, reviewSortExpression(tabType, userId));
       case LATEST ->
           switch (tabType) {
-            case PICK -> sortOrder.resolve(picks.lastModifyAt);
-            case REVIEW -> sortOrder.resolve(review.lastModifyAt);
-            case RATING -> sortOrder.resolve(rating.lastModifyAt);
+            case PICK -> orderSpecifier(sortOrder, picks.lastModifyAt);
+            case REVIEW -> orderSpecifier(sortOrder, review.lastModifyAt);
+            case RATING -> orderSpecifier(sortOrder, rating.lastModifyAt);
           };
     };
+  }
+
+  private OrderSpecifier<?> orderSpecifier(
+      SortOrder sortOrder, Expression<? extends Comparable<?>> expression) {
+    Order order = sortOrder == SortOrder.ASC ? Order.ASC : Order.DESC;
+    return new OrderSpecifier<>(order, expression).nullsLast();
+  }
+
+  private Expression<? extends Comparable<?>> ratingSortExpression(
+      MyBottleType tabType, Long userId) {
+    if (tabType == MyBottleType.RATING) {
+      return rating.ratingPoint.rating.max();
+    }
+    return select(rating.ratingPoint.rating.max())
+        .from(rating)
+        .where(
+            rating
+                .id
+                .userId
+                .eq(userId)
+                .and(rating.id.alcoholId.eq(alcohol.id))
+                .and(rating.ratingPoint.rating.gt(0.0)));
+  }
+
+  private Expression<? extends Comparable<?>> reviewSortExpression(
+      MyBottleType tabType, Long userId) {
+    if (tabType == MyBottleType.REVIEW) {
+      return review.createAt.max();
+    }
+    return select(review.createAt.max())
+        .from(review)
+        .where(
+            review
+                .userId
+                .eq(userId)
+                .and(review.alcoholId.eq(alcohol.id))
+                .and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE)));
   }
 }

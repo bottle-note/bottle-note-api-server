@@ -13,12 +13,12 @@ import app.bottlenote.common.file.exception.FileException;
 import app.bottlenote.common.file.exception.FileExceptionCode;
 import app.bottlenote.common.file.service.ImageUploadService;
 import app.bottlenote.common.file.service.ResourceCommandService;
-import app.bottlenote.common.file.upload.fixture.FakeAmazonS3;
 import app.bottlenote.common.file.upload.fixture.InMemoryResourceLogRepository;
 import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -26,6 +26,10 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 @Tag("unit")
 @DisplayName("[unit] [service] ImageUploadService")
@@ -34,21 +38,26 @@ class ImageUploadServiceTest {
   private static final Logger log = LoggerFactory.getLogger(ImageUploadServiceTest.class);
   private static final String BUCKET_NAME = "test-bucket";
   private static final String CLOUD_FRONT_URL = "https://cdn.example.com";
-  private static final String AWS_URL = "https://" + BUCKET_NAME + ".s3.amazonaws.com/";
   private static final String UPLOAD_DATE = LocalDate.of(2024, 5, 1).format(ofPattern("yyyyMMdd"));
   private static final String FAKE_UUID = "ddd8d2d8-7b0c-47e9-91d0-d21251f891e8";
 
   private ImageUploadService imageUploadService;
+  private S3Presigner s3Presigner;
   private InMemoryResourceLogRepository resourceLogRepository;
 
   @BeforeEach
   void setUp() {
+    s3Presigner =
+        S3Presigner.builder()
+            .region(Region.AP_NORTHEAST_2)
+            .credentialsProvider(
+                StaticCredentialsProvider.create(AwsBasicCredentials.create("access", "secret")))
+            .build();
     resourceLogRepository = new InMemoryResourceLogRepository();
     ResourceCommandService resourceCommandService =
         new ResourceCommandService(resourceLogRepository);
     imageUploadService =
-        new ImageUploadService(
-            resourceCommandService, new FakeAmazonS3(), BUCKET_NAME, CLOUD_FRONT_URL) {
+        new ImageUploadService(resourceCommandService, s3Presigner, BUCKET_NAME, CLOUD_FRONT_URL) {
           @Override
           public String getImageKey(String rootPath, Long index, String contentType) {
             if (rootPath.startsWith(PATH_DELIMITER)) {
@@ -67,6 +76,13 @@ class ImageUploadServiceTest {
         };
   }
 
+  @AfterEach
+  void closePresigner() {
+    if (s3Presigner != null) {
+      s3Presigner.close();
+    }
+  }
+
   @Nested
   @DisplayName("PreSigned URL 생성 테스트")
   class PreSignedUrlTest {
@@ -83,7 +99,9 @@ class ImageUploadServiceTest {
       // then
       log.info("PreSignUrl: {}", preSignUrl);
       assertNotNull(preSignUrl);
-      assertEquals(AWS_URL + imageKey, preSignUrl);
+      assertTrue(preSignUrl.startsWith("https://" + BUCKET_NAME + ".s3."));
+      assertTrue(preSignUrl.contains(imageKey));
+      assertTrue(preSignUrl.contains("X-Amz-Algorithm="));
     }
 
     @Test
@@ -130,7 +148,7 @@ class ImageUploadServiceTest {
       assertEquals(BUCKET_NAME, response.bucketName());
 
       ImageUploadItem item = response.imageUploadInfo().get(0);
-      assertTrue(item.uploadUrl().startsWith(AWS_URL));
+      assertTrue(item.uploadUrl().startsWith("https://" + BUCKET_NAME + ".s3."));
       assertTrue(item.viewUrl().startsWith(CLOUD_FRONT_URL));
     }
   }
@@ -152,6 +170,47 @@ class ImageUploadServiceTest {
       log.info("ViewUrl: {}", viewUrl);
       assertNotNull(viewUrl);
       assertEquals(CLOUD_FRONT_URL + "/" + imageKey, viewUrl);
+    }
+
+    @Test
+    @DisplayName("CloudFront URL 끝에 slash가 있어도 조회용 URL에 중복 slash가 생기지 않는다")
+    void generateViewUrl_whenCloudFrontUrlHasTrailingSlash_normalizesUrl() {
+      // given
+      String imageKey = imageUploadService.getImageKey("review", 1L, "image/jpeg");
+
+      // when
+      String viewUrl = imageUploadService.generateViewUrl(CLOUD_FRONT_URL + "/", imageKey);
+
+      // then
+      assertEquals(CLOUD_FRONT_URL + "/" + imageKey, viewUrl);
+    }
+  }
+
+  @Nested
+  @DisplayName("ResourceLog 저장 테스트")
+  class ResourceLogTest {
+
+    @Test
+    @DisplayName("어드민 PreSign URL 생성은 응답 전 CREATED 로그를 저장한다")
+    void getPreSignUrlForAdmin_savesCreatedLogsSynchronously() {
+      // given
+      Long adminId = 1L;
+      ImageUploadRequest request = new ImageUploadRequest("review", 2L, null);
+
+      // when
+      ImageUploadResponse response = imageUploadService.getPreSignUrlForAdmin(adminId, request);
+
+      // then
+      assertEquals(2, response.imageUploadInfo().size());
+      assertEquals(2, resourceLogRepository.findByUserId(adminId).size());
+      response
+          .imageUploadInfo()
+          .forEach(
+              item ->
+                  assertTrue(
+                      resourceLogRepository
+                          .findByResourceKey(item.viewUrl().substring(CLOUD_FRONT_URL.length() + 1))
+                          .isPresent()));
     }
   }
 

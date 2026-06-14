@@ -1,6 +1,7 @@
 package app.bottlenote.common.file;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -11,19 +12,17 @@ import app.bottlenote.common.file.dto.request.ImageUploadRequest;
 import app.bottlenote.common.file.dto.response.ImageUploadResponse;
 import app.bottlenote.common.file.service.ImageUploadService;
 import app.bottlenote.common.file.service.ResourceCommandService;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +38,17 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.testcontainers.containers.MinIOContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 @Tag("unit")
 @Testcontainers
@@ -57,25 +67,45 @@ class ImageUploadUnitTest {
           .withUserName(MINIO_ACCESS_KEY)
           .withPassword(MINIO_SECRET_KEY);
 
-  private static AmazonS3 amazonS3;
+  private static S3Client s3Client;
+  private static S3Presigner s3Presigner;
   private ImageUploadService imageUploadService;
   private ResourceCommandService resourceCommandService;
   private InMemoryResourceLogRepository resourceLogRepository;
 
   @BeforeAll
   static void setUpContainer() {
-    amazonS3 =
-        AmazonS3ClientBuilder.standard()
-            .withEndpointConfiguration(
-                new AwsClientBuilder.EndpointConfiguration(minioContainer.getS3URL(), "us-east-1"))
-            .withCredentials(
-                new AWSStaticCredentialsProvider(
-                    new BasicAWSCredentials(MINIO_ACCESS_KEY, MINIO_SECRET_KEY)))
-            .withPathStyleAccessEnabled(true)
-            .build();
+    StaticCredentialsProvider credentialsProvider =
+        StaticCredentialsProvider.create(
+            AwsBasicCredentials.create(MINIO_ACCESS_KEY, MINIO_SECRET_KEY));
+    S3Configuration s3Configuration =
+        S3Configuration.builder().pathStyleAccessEnabled(true).build();
+    URI endpoint = URI.create(minioContainer.getS3URL());
 
-    if (!amazonS3.doesBucketExistV2(TEST_BUCKET)) {
-      amazonS3.createBucket(TEST_BUCKET);
+    s3Client =
+        S3Client.builder()
+            .endpointOverride(endpoint)
+            .region(Region.US_EAST_1)
+            .credentialsProvider(credentialsProvider)
+            .serviceConfiguration(s3Configuration)
+            .build();
+    s3Presigner =
+        S3Presigner.builder()
+            .endpointOverride(endpoint)
+            .region(Region.US_EAST_1)
+            .credentialsProvider(credentialsProvider)
+            .serviceConfiguration(s3Configuration)
+            .build();
+    s3Client.createBucket(CreateBucketRequest.builder().bucket(TEST_BUCKET).build());
+  }
+
+  @AfterAll
+  static void closeClients() {
+    if (s3Client != null) {
+      s3Client.close();
+    }
+    if (s3Presigner != null) {
+      s3Presigner.close();
     }
   }
 
@@ -84,13 +114,29 @@ class ImageUploadUnitTest {
     resourceLogRepository = new InMemoryResourceLogRepository();
     resourceCommandService = new ResourceCommandService(resourceLogRepository);
     imageUploadService =
-        new ImageUploadService(resourceCommandService, amazonS3, TEST_BUCKET, CLOUD_FRONT_URL);
+        new ImageUploadService(resourceCommandService, s3Presigner, TEST_BUCKET, CLOUD_FRONT_URL);
   }
 
   @AfterEach
   void tearDown() {
     SecurityContextHolder.clearContext();
     resourceLogRepository.clear();
+  }
+
+  private int upload(String uploadUrl, byte[] data, String contentType) throws Exception {
+    URL url = new URL(uploadUrl);
+    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+    connection.setDoOutput(true);
+    connection.setRequestMethod("PUT");
+    connection.setRequestProperty("Content-Type", contentType);
+    connection.setRequestProperty("Content-Length", String.valueOf(data.length));
+
+    try (OutputStream os = connection.getOutputStream()) {
+      os.write(data);
+    }
+    int responseCode = connection.getResponseCode();
+    connection.disconnect();
+    return responseCode;
   }
 
   @Nested
@@ -145,6 +191,22 @@ class ImageUploadUnitTest {
     }
 
     @Test
+    @DisplayName("presigned URL 발급 시 서명된 contentType과 다른 contentType으로 PUT 하는 경우")
+    void test_2_content_type_mismatch() throws Exception {
+      // given
+      ImageUploadRequest request = new ImageUploadRequest("review", 1L, "image/png");
+      ImageUploadResponse response = imageUploadService.getPreSignUrl(request);
+      String uploadUrl = response.imageUploadInfo().get(0).uploadUrl();
+      byte[] testData = "test image content".getBytes(StandardCharsets.UTF_8);
+
+      // when
+      int responseCode = upload(uploadUrl, testData, "image/jpeg");
+
+      // then
+      assertNotEquals(200, responseCode);
+    }
+
+    @Test
     @DisplayName("업로드된 파일이 MinIO에 존재한다")
     void test_3() throws Exception {
       // given
@@ -167,11 +229,44 @@ class ImageUploadUnitTest {
       connection.disconnect();
 
       // when
-      boolean exists = amazonS3.doesObjectExist(TEST_BUCKET, imageKey);
+      s3Client.headObject(HeadObjectRequest.builder().bucket(TEST_BUCKET).key(imageKey).build());
 
       // then
-      assertTrue(exists);
-      log.info("업로드된 객체 키 = {}, 존재 여부 = {}", imageKey, exists);
+      log.info("업로드된 객체 키 = {}", imageKey);
+    }
+
+    @Test
+    @DisplayName("업로드된 파일 내용을 MinIO에서 조회할 수 있다")
+    void test_4() throws Exception {
+      // given
+      ImageUploadRequest request = new ImageUploadRequest("review", 1L, null);
+      ImageUploadResponse response = imageUploadService.getPreSignUrl(request);
+      String uploadUrl = response.imageUploadInfo().get(0).uploadUrl();
+      String viewUrl = response.imageUploadInfo().get(0).viewUrl();
+      String imageKey = viewUrl.substring(CLOUD_FRONT_URL.length() + 1);
+      byte[] testData = "test image content".getBytes();
+
+      URL url = new URL(uploadUrl);
+      HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+      connection.setDoOutput(true);
+      connection.setRequestMethod("PUT");
+      connection.setRequestProperty("Content-Type", "image/jpeg");
+      try (OutputStream os = connection.getOutputStream()) {
+        os.write(testData);
+      }
+      connection.getResponseCode();
+      connection.disconnect();
+
+      // when
+      String content;
+      try (ResponseInputStream<GetObjectResponse> responseInputStream =
+          s3Client.getObject(
+              GetObjectRequest.builder().bucket(TEST_BUCKET).key(imageKey).build())) {
+        content = new String(responseInputStream.readAllBytes(), StandardCharsets.UTF_8);
+      }
+
+      // then
+      assertEquals("test image content", content);
     }
   }
 
