@@ -136,17 +136,33 @@ class ProductSpecBasedCurationServiceTest {
   @DisplayName("Product feed는 시음회 라인업처럼 x-feed가 없는 배열 필드를 payload에서 완전히 제외한다")
   void searchFeed_whenArrayFieldHasNoXFeedChildren_excludesArrayField() throws IOException {
     CurationSpec spec = createTastingEventSpec();
-    createTastingEventCuration(spec.getId());
+    Long curationId = createTastingEventCuration(spec.getId());
 
     var result = productService.searchFeed(0L, 20);
 
     assertThat(result.items()).hasSize(1);
+    assertThat(result.items().get(0).id()).isEqualTo(curationId);
     JsonNode payload = OBJECT_MAPPER.valueToTree(result.items().get(0).payload());
     assertThat(payload.has("alcohols")).isFalse();
-    assertThat(payload.has("eventDate")).isTrue();
-    assertThat(payload.has("eventTime")).isTrue();
-    assertThat(payload.has("isRecruiting")).isTrue();
-    assertThat(payload.has("applicationLink")).isTrue();
+    assertThat(payload.path("eventDate").asText()).isEqualTo("2026-06-21");
+    assertThat(payload.path("eventTime").asText()).isEqualTo("19:00");
+    assertThat(payload.path("isRecruiting").asBoolean()).isTrue();
+    assertThat(payload.path("applicationLink").asText()).isEqualTo("https://example.com/apply");
+  }
+
+  @Test
+  @DisplayName("Product 상세는 시음회 라인업 배열을 payload에 유지한다")
+  void getDetail_whenTastingEventContainsAlcohols_keepsAlcoholsPayload() throws IOException {
+    CurationSpec spec = createTastingEventSpec();
+    Long curationId = createTastingEventCuration(spec.getId());
+
+    var result = productService.getDetail(curationId);
+
+    JsonNode payload = OBJECT_MAPPER.valueToTree(result.payload());
+    assertThat(payload.has("alcohols")).isTrue();
+    assertThat(payload.path("alcohols")).hasSize(1);
+    assertThat(payload.path("alcohols").get(0).path("alcohol").path("korName").asText())
+        .isEqualTo("글렌드로낙 오리지널 12년");
   }
 
   @Test
