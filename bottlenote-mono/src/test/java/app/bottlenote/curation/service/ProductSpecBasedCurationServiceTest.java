@@ -133,6 +133,23 @@ class ProductSpecBasedCurationServiceTest {
   }
 
   @Test
+  @DisplayName("Product feed는 시음회 라인업처럼 x-feed가 없는 배열 필드를 payload에서 완전히 제외한다")
+  void searchFeed_whenArrayFieldHasNoXFeedChildren_excludesArrayField() throws IOException {
+    CurationSpec spec = createTastingEventSpec();
+    createTastingEventCuration(spec.getId());
+
+    var result = productService.searchFeed(0L, 20);
+
+    assertThat(result.items()).hasSize(1);
+    JsonNode payload = OBJECT_MAPPER.valueToTree(result.items().get(0).payload());
+    assertThat(payload.has("alcohols")).isFalse();
+    assertThat(payload.has("eventDate")).isTrue();
+    assertThat(payload.has("eventTime")).isTrue();
+    assertThat(payload.has("isRecruiting")).isTrue();
+    assertThat(payload.has("applicationLink")).isTrue();
+  }
+
+  @Test
   @DisplayName("Product feed는 비활성/미노출 큐레이션을 제외하고 cursor size를 최대 10개로 제한한다")
   void searchFeed_whenSizeExceedsLimit_capsToTenAndKeepsVisibility() throws IOException {
     CurationSpec spec = createSpec();
@@ -237,6 +254,62 @@ class ProductSpecBasedCurationServiceTest {
                     item(
                         "MANUAL",
                         map("alcoholId", null, "korName", "수동", "selectedTags", List.of("오크"))))))
+        .getId();
+  }
+
+  private CurationSpec createTastingEventSpec() throws IOException {
+    return curationFixtureFactory.saveSpec(
+        "WHISKY_TASTING_EVENT",
+        "위스키 시음회",
+        "시음회 설명",
+        schema("whisky_tasting_event.json", "Request"),
+        schema("whisky_tasting_event.json", "Response"),
+        "alcohol",
+        1);
+  }
+
+  private Long createTastingEventCuration(Long specId) {
+    return curationFixtureFactory
+        .saveCuration(
+            new CurationCreateRequest(
+                specId,
+                "시음회",
+                "시음회 설명",
+                List.of("https://cdn.example.com/tasting.jpg"),
+                LocalDate.now().minusDays(1),
+                LocalDate.now().plusDays(1),
+                1,
+                true,
+                map(
+                    "eventDate",
+                    "2026-06-21",
+                    "eventTime",
+                    "19:00",
+                    "barAddress",
+                    "서울시 강남구 테스트로 1",
+                    "detailAddress",
+                    "2층",
+                    "isRecruiting",
+                    true,
+                    "entryFee",
+                    50000,
+                    "capacity",
+                    12,
+                    "applicationLink",
+                    "https://example.com/apply",
+                    "guideText",
+                    "시음회 안내",
+                    "alcohols",
+                    List.of(
+                        item(
+                            "BOTTLE_NOTE",
+                            map(
+                                "alcoholId",
+                                1,
+                                "korName",
+                                "글렌드로낙 오리지널 12년",
+                                "selectedTags",
+                                List.of("셰리")))))))
         .getId();
   }
 

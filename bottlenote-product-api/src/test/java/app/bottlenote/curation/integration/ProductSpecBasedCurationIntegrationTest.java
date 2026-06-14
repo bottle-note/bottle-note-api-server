@@ -46,11 +46,13 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
   @Autowired private PicksTestFactory picksTestFactory;
 
   private CurationSpec recommendedSpec;
+  private CurationSpec tastingEventSpec;
 
   @BeforeEach
   void setUp() {
     curationSpecResourceSyncService.sync();
     recommendedSpec = curationSpecRepository.findByCode("RECOMMENDED_WHISKY").orElseThrow();
+    tastingEventSpec = curationSpecRepository.findByCode("WHISKY_TASTING_EVENT").orElseThrow();
   }
 
   @Nested
@@ -181,6 +183,31 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
       assertThat(payloadItem.has("stats")).isFalse();
       assertThat(payloadItem.path("alcohol").path("korName").asText()).isEqualTo("피드 위스키");
       assertThat(payloadItem.path("comment").asText()).isEqualTo("테스트 코멘트");
+    }
+
+    @Test
+    @DisplayName("Product feed는 시음회 상세 라인업처럼 x-feed가 없는 배열 payload를 제외한다")
+    void searchFeed_whenTastingEventAlcoholsHasNoXFeed_excludesAlcoholsPayload() throws Exception {
+      // given
+      Long curationId = createTastingEventCuration();
+
+      // when
+      MvcTestResult result =
+          mockMvcTester
+              .get()
+              .uri("/api/v2/curations/feed?size=10")
+              .contentType(APPLICATION_JSON)
+              .exchange();
+
+      // then
+      JsonNode item = dataNode(result).path("items").get(0);
+      JsonNode payload = item.path("payload");
+      assertThat(item.path("id").asLong()).isEqualTo(curationId);
+      assertThat(payload.has("alcohols")).isFalse();
+      assertThat(payload.path("eventDate").asText()).isEqualTo("2026-06-21");
+      assertThat(payload.path("eventTime").asText()).isEqualTo("19:00");
+      assertThat(payload.path("isRecruiting").asBoolean()).isTrue();
+      assertThat(payload.path("applicationLink").asText()).isEqualTo("https://example.com/apply");
     }
   }
 
@@ -341,6 +368,42 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
                 displayOrder,
                 active,
                 payload))
+        .targetId();
+  }
+
+  private Long createTastingEventCuration() {
+    return adminSpecBasedCurationService
+        .create(
+            new CurationCreateRequest(
+                tastingEventSpec.getId(),
+                "시음회 큐레이션",
+                "시음회 설명",
+                List.of("https://cdn.example.com/tasting.jpg"),
+                LocalDate.now().minusDays(1),
+                LocalDate.now().plusDays(1),
+                1,
+                true,
+                map(
+                    "eventDate",
+                    "2026-06-21",
+                    "eventTime",
+                    "19:00",
+                    "barAddress",
+                    "서울시 강남구 테스트로 1",
+                    "detailAddress",
+                    "2층",
+                    "isRecruiting",
+                    true,
+                    "entryFee",
+                    50000,
+                    "capacity",
+                    12,
+                    "applicationLink",
+                    "https://example.com/apply",
+                    "guideText",
+                    "시음회 안내",
+                    "alcohols",
+                    List.of(manualItem("시음 위스키")))))
         .targetId();
   }
 
