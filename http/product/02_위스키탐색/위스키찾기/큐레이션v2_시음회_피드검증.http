@@ -1,0 +1,42 @@
+### 큐레이션 v2 시음회 피드 검증 - 개발 서버
+# @no-cookie-jar
+# 비밀정보 없음: Product 큐레이션 v2 조회 API는 PUBLIC endpoint 입니다.
+# 확인 포인트: feed payload에는 alcohols가 없어야 하고, 상세 payload에는 alcohols가 있어야 합니다.
+@productDevHost = https://api.development.bottle-note.com
+@tastingEventCurationId = 4
+@tastingEventSpecId = 3
+
+### 0. Product 앱 정보 확인 - 배포 commit 확인용
+GET {{productDevHost}}/api/v1/app-info
+
+### 1. Product 큐레이션 v2 목록 조회 - 시음회 id 확인용
+GET {{productDevHost}}/api/v2/curations
+
+### 2. Product 큐레이션 v2 시음회 스펙 조회 - alcohols.x-feed 미존재 확인
+GET {{productDevHost}}/api/v2/curation-specs/{{tastingEventSpecId}}
+
+### 3. Product 큐레이션 v2 피드 조회 - 시음회 payload.alcohols 미노출 확인
+GET {{productDevHost}}/api/v2/curations/feed?cursor=0&size=10
+
+> {%
+  client.test("시음회 feed payload에는 alcohols가 없어야 한다", function () {
+    const tastingEventId = 4;
+    const items = response.body.data.items || [];
+    const tastingEvent = items.find((item) => item.id === tastingEventId || item.specCode === "WHISKY_TASTING_EVENT");
+    client.assert(tastingEvent, "WHISKY_TASTING_EVENT feed item을 찾지 못했습니다. 목록 조회에서 id를 확인해 tastingEventCurationId와 tastingEventId를 함께 수정하세요.");
+    client.assert(!Object.prototype.hasOwnProperty.call(tastingEvent.payload || {}, "alcohols"), "feed payload에 alcohols가 포함되어 있습니다.");
+    client.assert(Object.prototype.hasOwnProperty.call(tastingEvent.payload || {}, "eventDate"), "feed payload에 eventDate가 없습니다.");
+    client.assert(Object.prototype.hasOwnProperty.call(tastingEvent.payload || {}, "isRecruiting"), "feed payload에 isRecruiting이 없습니다.");
+  });
+%}
+
+### 4. Product 큐레이션 v2 시음회 상세 조회 - 상세 payload.alcohols 유지 확인
+GET {{productDevHost}}/api/v2/curations/{{tastingEventCurationId}}
+
+> {%
+  client.test("시음회 상세 payload에는 alcohols가 있어야 한다", function () {
+    const payload = response.body.data.payload || {};
+    client.assert(Object.prototype.hasOwnProperty.call(payload, "alcohols"), "상세 payload에 alcohols가 없습니다.");
+    client.assert(Array.isArray(payload.alcohols), "상세 payload.alcohols가 배열이 아닙니다.");
+  });
+%}

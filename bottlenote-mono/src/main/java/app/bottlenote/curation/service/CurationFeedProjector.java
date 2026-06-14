@@ -108,18 +108,11 @@ public class CurationFeedProjector {
     payload.forEach(
         item -> {
           JsonNode child = projectNode(itemSchema, item);
-          projected.add(child != null ? child : objectMapper.nullNode());
+          if (child != null) {
+            projected.add(child);
+          }
         });
-    return hasProjectedChild(projected) ? projected : null;
-  }
-
-  private boolean hasProjectedChild(ArrayNode projected) {
-    for (JsonNode child : projected) {
-      if (child != null && !child.isNull()) {
-        return true;
-      }
-    }
-    return false;
+    return projected.isEmpty() ? null : projected;
   }
 
   private boolean isEnabled(JsonNode meta) {
