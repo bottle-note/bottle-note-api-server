@@ -1,5 +1,8 @@
 package app.bottlenote.review.controller;
 
+import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.OPTIONAL_AUTH;
+
+import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
@@ -54,6 +57,7 @@ public class ReviewReplyController {
     return GlobalResponse.ok(reviewReplyService.deleteReviewReply(reviewId, replyId, userId));
   }
 
+  @SecurityPolicy(auth = OPTIONAL_AUTH)
   @GetMapping("/{reviewId}")
   public ResponseEntity<?> getReviewReplyList(
       @PathVariable Long reviewId,
@@ -62,6 +66,7 @@ public class ReviewReplyController {
     return GlobalResponse.ok(reviewReplyService.getReviewRootReplays(reviewId, cursor, pageSize));
   }
 
+  @SecurityPolicy(auth = OPTIONAL_AUTH)
   @GetMapping("/{reviewId}/sub/{rootReplyId}")
   public ResponseEntity<?> getSubReviewReplies(
       @PathVariable Long reviewId,

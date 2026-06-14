@@ -1,9 +1,11 @@
 package app.bottlenote.alcohols.controller;
 
+import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.OPTIONAL_AUTH;
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 
 import app.bottlenote.alcohols.dto.response.PopularsOfWeekResponse;
 import app.bottlenote.alcohols.service.AlcoholPopularService;
+import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
+@SecurityPolicy(auth = OPTIONAL_AUTH)
 public class AlcoholPopularQueryController {
 
   private final AlcoholPopularService alcoholPopularService;

@@ -20,57 +20,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-- **Stack**: Spring Boot 3.1.9, Java 21, MySQL, Redis, QueryDSL
+- **Stack**: Spring Boot 3.4.11, Java 21, MySQL, Redis, QueryDSL
 - **Architecture**: DDD-based multi-module structure
 - **Core Domains**: alcohols, user, review, rating, support, history, picks, like
 
 ## 모듈 구조
 
+> [진행 중] 모듈 기술 부채 정리 작업 진행 중 (2026-06-10 시작). 모듈 구성은 아래가 확정 토폴로지이며(물리 3분할은 트리거 조건부로 강등), 남은 작업은 mono 내부 표준 위반 청소와 ArchUnit 룰 활성화다.
+>
+> 현재 모듈: `product-api`(Java) / `admin-api`(Kotlin) / `batch` / `mono`(공유 라이브러리) / `observability` / `test-support`(테스트 인프라·픽스처). test-support 분리는 PR #623으로 완료(2026-06-12), 각 모듈은 testImplementation으로 소비한다.
+> 레이어 규칙은 아래 "레이어 표준 15"를 따른다.
+
 ```mermaid
-flowchart TD
-    subgraph executable["Executable (bootJar)"]
-        direction LR
-        product["product-api<br/>Client API · Java"]
-        admin["admin-api<br/>Admin API · Kotlin"]
-        batch["batch<br/>Batch · Quartz"]
-    end
-
-    subgraph library["Library (JAR)"]
-        direction LR
-        mono["mono<br/>Shared Domain · JPA · QueryDSL"]
-        obs["observability<br/>OpenTelemetry · Micrometer"]
-    end
-
-    product --> mono & obs
-    admin --> mono
-    batch --> mono
-    mono --> obs
+graph LR
+    P["product-api (Java, bootJar)"] --> M["mono (공유 라이브러리)"]
+    A["admin-api (Kotlin, bootJar)"] --> M
+    B["batch (Java, bootJar)"] --> M
+    M --> O[observability]
+    TS["test-support (테스트 인프라)"] -- api --> M
+    P -. testImplementation .-> TS
+    A -. testImplementation .-> TS
+    M -. testImplementation .-> TS
 ```
-
-### bottlenote-mono (Library)
-- Shared domain library: all entities, business logic, JPA, QueryDSL, Redis, Caffeine cache
-- Security, authentication, external service integration (AWS S3, Firebase, Feign)
-- Depends on `observability` (api import)
-
-### bottlenote-product-api (Executable, Java)
-- Client-facing REST API server (picks, likes, ratings, auth, follow, etc.)
-- Depends on `mono` + `observability`
-- REST Docs + OpenAPI documentation
-
-### bottlenote-admin-api (Executable, Kotlin)
-- Admin REST API (presentation layer only, business logic from mono)
-- Depends on `mono` only
-- context-path: `/admin/api/v1`
-- JWT-based admin authentication, RBAC: `ROOT_ADMIN`, `PARTNER`, `COMMUNITY_MANAGER`
-
-### bottlenote-batch (Executable, Java)
-- Spring Batch + Quartz scheduler for ranking/popularity calculation jobs
-- Depends on `mono` only
-
-### bottlenote-observability (Library)
-- Standalone monitoring library: OpenTelemetry, Micrometer, Spring Actuator
-- AOP-based tracing: `TracingService`, `@TraceMethod`, `@SkipTrace`
-- No internal module dependencies
 
 ## 빌드 및 실행
 
@@ -116,11 +87,9 @@ Use these skills to follow the structured development lifecycle:
 **Lifecycle:** `/define` -> `/plan` -> `/implement` (with `/self-review` per Task) -> `/test` -> `/verify full`
 
 **Detailed patterns** for product-api and admin-api implementation are in skill reference files:
-- `.claude/skills/implement/references/mono-patterns.md` — Repository 3-Tier, Facade, DTO, Event patterns
-- `.claude/skills/implement/references/product-patterns.md` — Product controller conventions
-- `.claude/skills/implement/references/admin-patterns.md` — Admin controller conventions (Kotlin)
-- `.claude/skills/test/references/test-infra.md` — TestContainers, Fake/InMemory list
-- `.claude/skills/test/references/test-patterns.md` — Unit, integration, RestDocs code patterns
+- `.claude/skills/implement/references/languages/java-spring.md` — Java/Spring 구현 패턴
+- `.claude/skills/implement/references/languages/bottlenote-patterns.md` — 프로젝트 특화 패턴 (InMemory 갱신 체크리스트 등)
+- `.claude/skills/test/references/testing/java.md` — Java 테스트 패턴
 
 ## 코드 작성 규칙
 
@@ -128,6 +97,26 @@ Use these skills to follow the structured development lifecycle:
 
 - **계층 구조**: Controller → Facade <-> Service → Repository → Domain
 - **도메인별 패키지**: constant, controller, domain, dto, repository, service, facade, exception, event
+
+### 레이어 표준 15 (2026-06-10 확정)
+
+모듈 기술 부채 정리의 기준이 되는 표준. ArchUnit `@Tag("rule")` 테스트로 강제하며, 위반 0이 된 룰부터 활성화한다.
+
+1. 도메인 모델 != `@Entity`가 원칙이나, 구현 중복 제거를 위해 도메인 엔티티(JPA 엔티티)를 허용한다. 의도된 트레이드오프다.
+2. 레포지토리는 2형으로 분리한다: 순수 자바 인터페이스인 도메인 레포지토리(포트) + 구현 레포지토리(JPA, QueryDSL, Redis).
+3. 도메인 레포지토리 시그니처에 Spring Data 타입(`Page`, `Pageable`, `Slice`, `Sort`) 노출 금지. 페이징은 자체 타입(`PageResponse`, cursor criteria)을 쓴다.
+4. 기술 세부사항(QueryDSL, EntityManager, Redis)은 구현 레포지토리 안에 격리하고 포트 밖으로 새지 않는다.
+5. 코드는 자기 도메인 패키지에만 둔다. 타 도메인 파일을 자기 패키지에 두지 않는다.
+6. 타 도메인 접근은 Facade 경유만 허용한다. 타 도메인의 repository는 물론 service도 직접 참조하지 않는다.
+7. Facade는 인터페이스 + 별도 구현체로 구성한다. Service가 Facade를 겸직하지 않는다.
+8. Controller는 인터페이스에만 의존한다. 구현체 직접 주입 금지, 도메인 VO 직접 생성 금지.
+9. 트랜잭션 경계, 도메인 VO 생성/검증, cross-domain 조합은 Service가 소유한다.
+10. 테스트 더블은 Mockito가 아니라 포트와 Facade의 Fake/InMemory 구현을 쓴다.
+11. 공통 타입(`PageResponse`, cursor criteria, 공통 예외 베이스, 공통 어노테이션)은 `global`(공유 커널)에 둔다.
+12. global은 어떤 도메인도 모른다. global → 도메인 import 금지.
+13. 동기 호출은 Facade, 부수효과 전파(히스토리, 알림 등)는 도메인 이벤트로 한다.
+14. 예외는 도메인이 소유한다. 도메인별 예외는 자기 exception 패키지에, 공통 베이스만 global에 둔다.
+15. 운영 코드는 테스트 코드를 모른다. 테스트 인프라(컨테이너 설정, persistent factory, fake)는 test-support 모듈이 소유한다.
 
 ### 네이밍 컨벤션
 
@@ -193,13 +182,13 @@ Use these skills to follow the structured development lifecycle:
 - Given-When-Then 패턴 사용
 - Fixture 클래스를 통한 테스트 데이터 관리
 - TestContainers 사용 (실제 DB 환경)
-- 테스트 데이터: `src/test/resources/init-script/` 디렉토리
+- 테스트 데이터: test-support 모듈의 `{도메인명}TestFactory` / `DataInitializer`로 생성
 
 ### 단위 테스트 패턴
 
 - **Fake/Stub 패턴 선호**: Mock 대신 InMemory 구현체 사용
 - **네이밍**: `InMemory{도메인명}Repository`, `Fake{서비스명}`
-- **위치**: `{도메인}.fixture` 패키지
+- **위치**: `bottlenote-test-support` 모듈의 `{도메인}.fixture` 패키지 (특정 모듈 전용 헬퍼는 그 모듈 test에 둔다)
 
 ### 통합 테스트 패턴
 
@@ -284,8 +273,7 @@ Use these skills to follow the structured development lifecycle:
 ## 외부 서비스 연동
 
 - OpenFeign: `@FeignClient`, 설정 분리 `FeignConfig`, 에러 처리 `ErrorDecoder`
-- AWS S3: PreSigned URL 생성, `AwsS3Config`
-- Firebase FCM: `FirebaseProperties`, 비동기 처리 `@Async`
+- AWS S3: PreSigned URL 생성 (SDK v2 `S3Client`/`S3Presigner`)
 
 ## 좋은 Spring Boot 개발 관습
 
@@ -310,7 +298,7 @@ Use these skills to follow the structured development lifecycle:
 
 - 단위 테스트와 통합 테스트 분리
 - 테스트 데이터 격리: 각 테스트 독립성 보장
-- Mock 적절히 활용: 외부 의존성 분리
+- Mock 대신 Fake/InMemory 구현으로 외부 의존성 분리 (레이어 표준 10)
 
 ### 코드 품질
 

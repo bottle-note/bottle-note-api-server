@@ -25,6 +25,9 @@ spring:
         use_sql_comments: false
         open-in-view: false
 
+  liquibase:
+    enabled: false
+
   data:
     redis:
       mode: ${REDIS_MODE:standalone}

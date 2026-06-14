@@ -7,6 +7,7 @@ import app.bottlenote.curation.support.CurationSpecResourceReader;
 import app.bottlenote.curation.support.CurationSpecResourceReader.CurationSpecResourceDocument;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,9 @@ public class CurationSpecResourceSyncService {
   private final CurationSpecRepository curationSpecRepository;
   private final CurationSpecResourceReader curationSpecResourceReader;
 
+  @CacheEvict(
+      value = {"local_cache_curation_spec_list", "local_cache_curation_spec_detail"},
+      allEntries = true)
   @Transactional
   public CurationSpecSyncResponse sync() {
     int createdCount = 0;

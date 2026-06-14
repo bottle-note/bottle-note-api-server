@@ -11,7 +11,7 @@ val asciidoctorExt: Configuration by configurations.creating
 
 dependencies {
 	implementation(project(":bottlenote-mono"))
-	testImplementation(project(":bottlenote-mono").dependencyProject.sourceSets["test"].output)
+	testImplementation(project(":bottlenote-test-support"))
 
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
@@ -38,7 +38,8 @@ dependencies {
 	testImplementation(libs.bundles.testcontainers.complete)
 
 	// Test - AWS S3 (for MinIO integration test)
-	testImplementation(libs.aws.s3)
+	testImplementation(platform(libs.aws.sdk.bom))
+	testImplementation(libs.aws.sdk.s3)
 }
 
 sourceSets {

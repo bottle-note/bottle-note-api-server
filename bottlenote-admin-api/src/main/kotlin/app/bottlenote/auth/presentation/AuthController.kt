@@ -1,6 +1,8 @@
 package app.bottlenote.auth.presentation
 
 import app.bottlenote.auth.config.RootAdminProperties
+import app.bottlenote.global.annotation.SecurityPolicy
+import app.bottlenote.global.annotation.SecurityPolicy.AuthType.PUBLIC
 import app.bottlenote.global.data.response.GlobalResponse
 import app.bottlenote.global.security.SecurityContextUtil
 import app.bottlenote.user.dto.request.AdminSignupRequest
@@ -37,12 +39,14 @@ class AuthController(
 		}
 	}
 
+	@SecurityPolicy(auth = PUBLIC)
 	@PostMapping("/login")
 	fun login(@RequestBody request: LoginRequest): ResponseEntity<*> {
 		val tokenItem: TokenItem = authService.login(request.email, request.password)
 		return GlobalResponse.ok(tokenItem)
 	}
 
+	@SecurityPolicy(auth = PUBLIC)
 	@PostMapping("/refresh")
 	fun refresh(@RequestBody request: RefreshRequest): ResponseEntity<*> {
 		val tokenItem: TokenItem = authService.refresh(request.refreshToken)

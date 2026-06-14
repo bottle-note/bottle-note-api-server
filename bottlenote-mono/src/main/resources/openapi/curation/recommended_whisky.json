@@ -227,7 +227,13 @@
               "selectedTags"
             ],
             "x-field-style": "alcohol-card",
-            "x-display-name": "위스키"
+            "x-display-name": "위스키",
+            "x-feed": {
+              "enabled": true,
+              "role": "item-list",
+              "order": 10,
+              "description": "피드에서 추천 위스키 카드의 핵심 상품 정보를 구성하기 위해 포함한다."
+            }
           },
           "comment": {
             "type": "string",
@@ -236,7 +242,13 @@
             "maxLength": 500,
             "x-field-style": "long-text",
             "x-display-name": "큐레이터 코멘트",
-            "nullable": true
+            "nullable": true,
+            "x-feed": {
+              "enabled": true,
+              "role": "description",
+              "order": 20,
+              "description": "피드에서 큐레이터 코멘트/추천 사유를 표시하기 위해 포함한다."
+            }
           },
           "stats": {
             "type": "object",

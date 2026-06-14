@@ -6,7 +6,9 @@ import app.bottlenote.global.security.constant.MaliciousPathPattern;
 import app.bottlenote.global.security.jwt.JwtAuthenticationEntryPoint;
 import app.bottlenote.global.security.jwt.JwtAuthenticationFilter;
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
+import app.bottlenote.global.security.policy.SecurityPolicyRegistry;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
@@ -31,6 +34,7 @@ public class SecurityConfig {
 
   private final JwtAuthenticationManager jwtAuthenticationManager;
   private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+  private final SecurityPolicyRegistry securityPolicyRegistry;
 
   /**
    * 세션 메서드 참조를 위한 참조 메서드
@@ -45,6 +49,10 @@ public class SecurityConfig {
   @PostConstruct
   public void setup() {
     SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
+  }
+
+  private static boolean hasJwtException(HttpServletRequest request) {
+    return request.getAttribute("exception") != null;
   }
 
   /**
@@ -62,34 +70,18 @@ public class SecurityConfig {
         .formLogin(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers(MaliciousPathPattern.getAllPatterns())
+                auth.requestMatchers(MaliciousPathPattern::matches)
                     .denyAll()
-                    .requestMatchers("/api/v1/picks/**")
-                    .authenticated()
-                    .requestMatchers("/api/v1/s3/**")
-                    .authenticated()
-                    .requestMatchers("/api/v1/follow/**")
-                    .authenticated()
-                    .requestMatchers("/api/v1/reviews/me/**")
-                    .authenticated()
-                    .requestMatchers("/api/v1/reviews/**")
-                    .authenticated()
-                    .requestMatchers("/api/v1/users/**")
-                    .authenticated()
-                    .requestMatchers("/api/v1/help/**")
-                    .authenticated()
-                    .requestMatchers("/api/v1/my-page/**")
-                    .authenticated()
-                    .requestMatchers("/api/v1/reports/**")
-                    .authenticated()
-                    .requestMatchers("/api/v1/history/**")
-                    .authenticated()
-                    .requestMatchers("/api/v1/blocks/**")
-                    .authenticated()
+                    .requestMatchers(CorsUtils::isPreFlightRequest)
+                    .permitAll()
+                    .requestMatchers(SecurityConfig::hasJwtException)
+                    .fullyAuthenticated()
+                    .requestMatchers(securityPolicyRegistry::requiresAuthentication)
+                    .fullyAuthenticated()
                     .anyRequest()
                     .permitAll())
         .addFilterBefore(
-            new JwtAuthenticationFilter(jwtAuthenticationManager),
+            new JwtAuthenticationFilter(jwtAuthenticationManager, securityPolicyRegistry),
             UsernamePasswordAuthenticationFilter.class)
         .exceptionHandling(
             exceptionHandling ->

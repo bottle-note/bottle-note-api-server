@@ -23,17 +23,22 @@ import app.bottlenote.alcohols.dto.request.AdminRegionUpdateRequest;
 import app.bottlenote.alcohols.dto.response.AdminRegionDetailResponse;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.exception.AlcoholExceptionCode;
+import app.bottlenote.common.file.event.payload.ImageResourceActivatedEvent;
+import app.bottlenote.common.file.event.payload.ImageResourceInvalidatedEvent;
+import app.bottlenote.common.image.ImageUtil;
 import app.bottlenote.global.dto.request.AdminBulkReorderRequest;
 import app.bottlenote.global.dto.response.AdminResultResponse;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,7 +47,10 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AdminRegionService {
 
+  private static final String REFERENCE_TYPE_REGION = "REGION";
+
   private final RegionRepository regionRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional(readOnly = true)
   public AdminRegionDetailResponse getDetail(Long regionId) {
@@ -61,6 +69,7 @@ public class AdminRegionService {
         region.getEngName(),
         region.getContinent(),
         region.getDescription(),
+        region.getImageUrl(),
         region.getSortOrder(),
         parent != null ? parent.getId() : null,
         parent != null ? parent.getKorName() : null,
@@ -84,11 +93,13 @@ public class AdminRegionService {
             .engName(request.engName())
             .continent(request.continent())
             .description(request.description())
+            .imageUrl(request.imageUrl())
             .sortOrder(request.sortOrder())
             .parent(parent)
             .build();
 
     Region saved = regionRepository.save(region);
+    publishImageActivatedEvent(request.imageUrl(), saved.getId());
     return AdminResultResponse.of(REGION_CREATED, saved.getId());
   }
 
@@ -102,6 +113,7 @@ public class AdminRegionService {
     validateUniqueNames(request.korName(), request.engName(), regionId);
 
     Region parent = resolveParent(request.parentId(), regionId);
+    String oldImageUrl = region.getImageUrl();
 
     if (!region.getSortOrder().equals(request.sortOrder())) {
       reorderSortOrders(request.sortOrder(), regionId);
@@ -112,8 +124,11 @@ public class AdminRegionService {
         request.engName(),
         request.continent(),
         request.description(),
+        request.imageUrl(),
         request.sortOrder(),
         parent);
+
+    handleImageChange(oldImageUrl, request.imageUrl(), regionId);
 
     return AdminResultResponse.of(REGION_UPDATED, regionId);
   }
@@ -133,6 +148,7 @@ public class AdminRegionService {
       throw new AlcoholException(REGION_HAS_ALCOHOLS);
     }
 
+    handleImageChange(region.getImageUrl(), null, regionId);
     regionRepository.delete(region);
     return AdminResultResponse.of(REGION_DELETED, regionId);
   }
@@ -171,6 +187,31 @@ public class AdminRegionService {
         regionRepository.findAllByParentIdOrderBySortOrderAsc(parentId),
         REGION_REORDER_SCOPE_MISMATCH);
     return AdminResultResponse.of(REGION_SORT_ORDER_UPDATED, parentId);
+  }
+
+  private void publishImageActivatedEvent(String imageUrl, Long regionId) {
+    if (imageUrl == null || imageUrl.isBlank()) return;
+
+    String resourceKey = ImageUtil.extractResourceKey(imageUrl);
+    if (resourceKey != null && !resourceKey.isBlank()) {
+      eventPublisher.publishEvent(
+          ImageResourceActivatedEvent.of(List.of(resourceKey), regionId, REFERENCE_TYPE_REGION));
+    }
+  }
+
+  private void handleImageChange(String oldImageUrl, String newImageUrl, Long regionId) {
+    if (Objects.equals(oldImageUrl, newImageUrl)) return;
+
+    if (oldImageUrl != null && !oldImageUrl.isBlank()) {
+      String oldResourceKey = ImageUtil.extractResourceKey(oldImageUrl);
+      if (oldResourceKey != null && !oldResourceKey.isBlank()) {
+        eventPublisher.publishEvent(
+            ImageResourceInvalidatedEvent.of(
+                List.of(oldResourceKey), regionId, REFERENCE_TYPE_REGION));
+      }
+    }
+
+    publishImageActivatedEvent(newImageUrl, regionId);
   }
 
   private void validateUniqueNames(String korName, String engName, Long excludeId) {

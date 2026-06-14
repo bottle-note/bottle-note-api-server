@@ -91,6 +91,7 @@ class AdminRegionControllerDocsTest {
 						fieldWithPath("data[].engName").type(JsonFieldType.STRING).description("국가 영문명"),
 						fieldWithPath("data[].continent").type(JsonFieldType.STRING).description("대륙"),
 						fieldWithPath("data[].description").type(JsonFieldType.STRING).description("설명"),
+						fieldWithPath("data[].imageUrl").type(JsonFieldType.STRING).description("대표 이미지 URL").optional(),
 						fieldWithPath("data[].createdAt").type(JsonFieldType.STRING).description("생성일시"),
 						fieldWithPath("data[].modifiedAt").type(JsonFieldType.STRING).description("수정일시"),
 						fieldWithPath("data[].parentId").type(JsonFieldType.NUMBER).description("상위 지역 ID").optional(),

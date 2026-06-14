@@ -1,7 +1,9 @@
 package app.bottlenote.review.controller;
 
+import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.OPTIONAL_AUTH;
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
+import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
@@ -44,6 +46,7 @@ public class ReviewController {
     return GlobalResponse.ok(reviewService.createReview(reviewCreateRequest, currentUserId));
   }
 
+  @SecurityPolicy(auth = OPTIONAL_AUTH)
   @GetMapping("/{alcoholId}")
   public ResponseEntity<?> getReviews(
       @PathVariable Long alcoholId, @ModelAttribute ReviewPageableRequest reviewPageableRequest) {
@@ -56,6 +59,7 @@ public class ReviewController {
         MetaService.createMetaInfo().add("pageable", pageResponse.cursorPageable()));
   }
 
+  @SecurityPolicy(auth = OPTIONAL_AUTH)
   @GetMapping("/detail/{reviewId}")
   public ResponseEntity<?> getDetailReview(@PathVariable Long reviewId) {
 

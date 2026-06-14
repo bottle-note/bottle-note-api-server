@@ -71,6 +71,10 @@ class RestReferenceControllerTest extends AbstractRestDocs {
                     fieldWithPath("data[].korName").description("지역 한글명"),
                     fieldWithPath("data[].engName").description("지역 이름"),
                     fieldWithPath("data[].description").description("지역 설명"),
+                    fieldWithPath("data[].imageUrl")
+                        .type(JsonFieldType.STRING)
+                        .description("대표 이미지 URL")
+                        .optional(),
                     fieldWithPath("data[].parentId")
                         .type(JsonFieldType.NUMBER)
                         .description("상위 지역 ID")

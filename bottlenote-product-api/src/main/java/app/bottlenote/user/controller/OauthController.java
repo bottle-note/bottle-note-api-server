@@ -1,23 +1,20 @@
 package app.bottlenote.user.controller;
 
+import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.PUBLIC;
+
+import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.user.config.OauthConfigProperties;
-import app.bottlenote.user.dto.request.BasicAccountRequest;
 import app.bottlenote.user.dto.request.BasicLoginRequest;
-import app.bottlenote.user.dto.request.GuestCodeRequest;
 import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.request.TokenVerifyRequest;
-import app.bottlenote.user.dto.response.BasicAccountResponse;
 import app.bottlenote.user.dto.response.OauthResponse;
 import app.bottlenote.user.dto.response.TokenItem;
-import app.bottlenote.user.exception.UserException;
-import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.service.OauthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import java.util.Base64;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -31,28 +28,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/oauth")
+@SecurityPolicy(auth = PUBLIC)
 public class OauthController {
   private static final String REFRESH_TOKEN_HEADER_PREFIX = "refresh-token";
   private final OauthService oauthService;
   private final OauthConfigProperties configProperties;
-
-  @PostMapping("/basic/signup")
-  public ResponseEntity<?> executeBasicSignup(
-      @RequestBody @Valid BasicAccountRequest request, HttpServletResponse response) {
-    BasicAccountResponse token =
-        oauthService.basicSignup(
-            request.getEmail(), request.getPassword(), request.getAge(), request.getGender());
-    setRefreshTokenInCookie(response, token.refreshToken());
-    return GlobalResponse.ok(token);
-  }
-
-  @PostMapping("/basic/login")
-  public ResponseEntity<?> executeBasicLogin(
-      @RequestBody @Valid BasicLoginRequest request, HttpServletResponse response) {
-    TokenItem token = oauthService.basicLogin(request.getEmail(), request.getPassword());
-    setRefreshTokenInCookie(response, token.refreshToken());
-    return GlobalResponse.ok(OauthResponse.of(token.accessToken()));
-  }
 
   @PostMapping("/login")
   public ResponseEntity<?> executeOauthLogin(
@@ -60,21 +40,6 @@ public class OauthController {
     TokenItem token = oauthService.login(oauthReq);
     setRefreshTokenInCookie(response, token.refreshToken());
     return GlobalResponse.ok(OauthResponse.of(token.accessToken()));
-  }
-
-  @PostMapping("/guest-login")
-  public ResponseEntity<?> executeGuestLogin(@RequestBody @Valid GuestCodeRequest guestCode) {
-    final String key =
-        Base64.getEncoder().encodeToString(configProperties.getGuestCode().getBytes());
-    final String code = guestCode.code();
-
-    if (!code.equals(key)) {
-      throw new UserException(UserExceptionCode.NOT_MATCH_GUEST_CODE);
-    }
-
-    final String token = oauthService.guestLogin();
-    final OauthResponse oauthResponse = OauthResponse.of(token);
-    return GlobalResponse.ok(oauthResponse);
   }
 
   @PostMapping("/reissue")

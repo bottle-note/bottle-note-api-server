@@ -2,6 +2,8 @@ package app.bottlenote.global.security.jwt;
 
 import static java.util.Objects.requireNonNullElse;
 
+import app.bottlenote.global.security.constant.MaliciousPathPattern;
+import app.bottlenote.global.security.policy.SecurityPolicyRegistry;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
@@ -10,13 +12,13 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @Slf4j
@@ -27,6 +29,7 @@ public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
   public static final String BEARER_PREFIX = "Bearer ";
 
   private final AdminJwtAuthenticationManager adminJwtAuthenticationManager;
+  private final SecurityPolicyRegistry securityPolicyRegistry;
 
   @Override
   protected void doFilterInternal(
@@ -36,13 +39,18 @@ public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
       throws ServletException, IOException {
 
     final String method = request.getMethod();
-    final String path = request.getServletPath();
+    final String path = SecurityPolicyRegistry.lookupPath(request);
     String token = resolveToken(request).orElse(null);
 
     log.debug("Admin JWT 필터 수행 >> {} : {}", method, path);
 
     try {
       if (token == null || token.isBlank()) {
+        if (MaliciousPathPattern.matches(request)
+            || securityPolicyRegistry.shouldUseAnonymousAuthentication(request, token)) {
+          filterChain.doFilter(request, response);
+          return;
+        }
         log.debug("Admin API 접근 시 토큰이 필요합니다. path: {}", path);
         request.setAttribute(
             "exception", new CustomJwtException(CustomJwtExceptionCode.EMPTY_JWT_TOKEN));
@@ -90,8 +98,8 @@ public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
 
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
-    String path = request.getRequestURI();
-    List<String> excludePaths = List.of("/auth/login", "/auth/refresh", "/actuator");
-    return excludePaths.stream().anyMatch(path::contains);
+    return CorsUtils.isPreFlightRequest(request)
+        || (!MaliciousPathPattern.matches(request)
+            && securityPolicyRegistry.shouldSkipJwtFilter(request));
   }
 }

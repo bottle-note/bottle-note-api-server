@@ -206,6 +206,65 @@ class CurationResponseMaterializerTest {
   }
 
   @Test
+  @DisplayName("feed materialize는 x-feed 대상이 아닌 GraphQL 필드를 조회하지 않는다")
+  void materializeFeed_whenGraphQLFieldIsNotFeedTarget_skipsGraphQLExecution() throws IOException {
+    FakeGraphQLCurationExecutor executor = new FakeGraphQLCurationExecutor(List.of());
+    CurationResponseMaterializer materializer = materializer(executor);
+    List<Map<String, Object>> payload =
+        List.of(
+            item(
+                "BOTTLE_NOTE",
+                map("alcoholId", 1, "korName", "테스트", "selectedTags", List.of("셰리"))));
+
+    Object result =
+        materializer.materializeFeed(
+            1L, "RECOMMENDED_WHISKY", schema("recommended_whisky.json", "Response"), payload);
+
+    JsonNode resultNode = OBJECT_MAPPER.valueToTree(result);
+    assertThat(executor.executedQueries()).isEmpty();
+    assertThat(resultNode.get(0).path("alcohol").path("korName").asText()).isEqualTo("테스트");
+    assertThat(resultNode.get(0).path("stats").isMissingNode()).isTrue();
+  }
+
+  @Test
+  @DisplayName("feed materialize는 x-feed 활성 필드에 필요한 GraphQL만 조회한다")
+  void materializeFeed_whenGraphQLFieldIsFeedTarget_executesGraphQLExecution() throws IOException {
+    FakeGraphQLCurationExecutor executor =
+        new FakeGraphQLCurationExecutor(
+            List.of(
+                map(
+                    "alcoholId",
+                    1,
+                    "rating",
+                    4.2,
+                    "totalRatingsCount",
+                    10,
+                    "reviewCount",
+                    3,
+                    "totalPickCount",
+                    8)));
+    CurationResponseMaterializer materializer = materializer(executor);
+    Map<String, Object> responseSpec = schema("recommended_whisky.json", "Response");
+    Map<String, Object> properties = castMap(responseSpec.get("properties"));
+    castMap(properties.get("stats"))
+        .put(
+            "x-feed",
+            map("enabled", true, "role", "stats", "order", 30, "description", "피드 통계 노출"));
+    List<Map<String, Object>> payload =
+        List.of(
+            item(
+                "BOTTLE_NOTE",
+                map("alcoholId", 1, "korName", "테스트", "selectedTags", List.of("셰리"))));
+
+    Object result = materializer.materializeFeed(1L, "RECOMMENDED_WHISKY", responseSpec, payload);
+
+    JsonNode resultNode = OBJECT_MAPPER.valueToTree(result);
+    assertThat(executor.executedQueries()).hasSize(1);
+    assertThat(executor.executedQueries().get(0).targetPath()).isEqualTo("stats");
+    assertThat(resultNode.get(0).path("stats").path("rating").asDouble()).isEqualTo(4.2);
+  }
+
+  @Test
   @DisplayName("GraphQL 실행 errors가 있으면 부분 응답을 만들지 않고 실패한다")
   void materialize_whenGraphQLResultHasErrors_throwsExecutionFailed() throws IOException {
     CurationResponseMaterializer materializer = materializer(new ErrorGraphQLCurationExecutor());
@@ -259,6 +318,11 @@ class CurationResponseMaterializerTest {
       map.put((String) values[i], values[i + 1]);
     }
     return map;
+  }
+
+  @SuppressWarnings("unchecked")
+  private static Map<String, Object> castMap(Object value) {
+    return (Map<String, Object>) value;
   }
 
   private static final class FakeGraphQLCurationExecutor implements GraphQLCurationExecutor {

@@ -1,7 +1,9 @@
 package app.bottlenote.user.controller;
 
+import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.PUBLIC;
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
+import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.user.config.OauthConfigProperties;
@@ -46,12 +48,14 @@ public class AuthV2Controller {
   }
 
   /** Apple 로그인 전, 클라이언트에게 일회성 Nonce 값을 발급 */
+  @SecurityPolicy(auth = PUBLIC)
   @GetMapping("/apple/nonce")
   public ResponseEntity<NonceResponse> getAppleNonce() {
     return ResponseEntity.ok(new NonceResponse(nonceService.generateNonce()));
   }
 
   /** Apple 로그인 v2 */
+  @SecurityPolicy(auth = PUBLIC)
   @PostMapping("/apple")
   public ResponseEntity<?> executeAppleLogin(
       @RequestBody @Valid AppleLoginRequest appleLoginRequest, HttpServletResponse response) {
@@ -63,6 +67,7 @@ public class AuthV2Controller {
   }
 
   /** 카카오 로그인 v2 */
+  @SecurityPolicy(auth = PUBLIC)
   @PostMapping("/kakao")
   public ResponseEntity<?> executeKakaoLogin(
       @RequestBody @Valid KakaoLoginRequest kakaoLoginRequest, HttpServletResponse response) {

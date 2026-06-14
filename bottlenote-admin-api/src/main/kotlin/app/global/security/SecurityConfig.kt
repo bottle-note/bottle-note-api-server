@@ -3,6 +3,7 @@ package app.global.security
 import app.bottlenote.global.security.constant.MaliciousPathPattern
 import app.bottlenote.global.security.jwt.AdminJwtAuthenticationFilter
 import app.bottlenote.global.security.jwt.AdminJwtAuthenticationManager
+import app.bottlenote.global.security.policy.SecurityPolicyRegistry
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -11,14 +12,17 @@ import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.security.web.util.matcher.RequestMatcher
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
+import org.springframework.web.cors.CorsUtils
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
-	private val adminJwtAuthenticationManager: AdminJwtAuthenticationManager
+	private val adminJwtAuthenticationManager: AdminJwtAuthenticationManager,
+	private val securityPolicyRegistry: SecurityPolicyRegistry
 ) {
 	@Bean
 	fun filterChain(http: HttpSecurity): SecurityFilterChain = http
@@ -29,16 +33,18 @@ class SecurityConfig(
 		.httpBasic { it.disable() }
 		.authorizeHttpRequests { auth ->
 			auth
-				.requestMatchers(*MaliciousPathPattern.getAllPatterns())
+				.requestMatchers(MaliciousPathPattern::matches)
 				.denyAll()
-				.requestMatchers("/v1/auth/login", "/v1/auth/refresh")
+				.requestMatchers(CorsUtils::isPreFlightRequest)
 				.permitAll()
-				.requestMatchers("/actuator/**")
-				.permitAll()
-				.anyRequest()
+				.requestMatchers(RequestMatcher { request -> request.getAttribute("exception") != null })
 				.authenticated()
+				.requestMatchers(securityPolicyRegistry::requiresAuthentication)
+				.authenticated()
+				.anyRequest()
+				.permitAll()
 		}.addFilterBefore(
-			AdminJwtAuthenticationFilter(adminJwtAuthenticationManager),
+			AdminJwtAuthenticationFilter(adminJwtAuthenticationManager, securityPolicyRegistry),
 			UsernamePasswordAuthenticationFilter::class.java
 		).build()
 

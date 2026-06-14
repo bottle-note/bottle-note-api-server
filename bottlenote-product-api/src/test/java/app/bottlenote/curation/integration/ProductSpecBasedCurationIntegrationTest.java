@@ -54,6 +54,56 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
   }
 
   @Nested
+  @DisplayName("큐레이션 스펙 조회 API")
+  class ListCurationSpecs {
+
+    @Test
+    @DisplayName("Product v2에서 활성 큐레이션 스펙 목록을 조회할 수 있다")
+    void listCurationSpecs_returnsMetaOnly() throws Exception {
+      MvcTestResult result =
+          mockMvcTester
+              .get()
+              .uri("/api/v2/curation-specs")
+              .contentType(APPLICATION_JSON)
+              .exchange();
+
+      JsonNode data = dataNode(result);
+      assertThat(data).isNotEmpty();
+      assertThat(data.get(0).path("code").asText()).isEqualTo("RECOMMENDED_WHISKY");
+      assertThat(data.get(0).has("requestSpec")).isFalse();
+      assertThat(data.get(0).has("responseSpec")).isFalse();
+      assertThat(data.get(0).has("hydratorKey")).isFalse();
+    }
+
+    @Test
+    @DisplayName("Product v2에서 큐레이션 스펙 상세를 조회할 수 있다")
+    void getCurationSpec_returnsDetailSpec() throws Exception {
+      MvcTestResult result =
+          mockMvcTester
+              .get()
+              .uri("/api/v2/curation-specs/{specId}", recommendedSpec.getId())
+              .contentType(APPLICATION_JSON)
+              .exchange();
+
+      JsonNode data = dataNode(result);
+      assertThat(data.path("code").asText()).isEqualTo("RECOMMENDED_WHISKY");
+      assertThat(data.path("hydratorKey").asText()).isEqualTo("alcohol");
+      assertThat(data.path("requestSpec").has("type")).isTrue();
+      assertThat(data.path("responseSpec").has("properties")).isTrue();
+    }
+
+    @Test
+    @DisplayName("Product v2에서 존재하지 않는 큐레이션 스펙 상세 조회는 404를 반환한다")
+    void getCurationSpec_whenMissing_returnsNotFound() {
+      assertThat(mockMvcTester.get().uri("/api/v2/curation-specs/{specId}", 999999L))
+          .hasStatus4xxClientError()
+          .bodyJson()
+          .extractingPath("$.code")
+          .isEqualTo(404);
+    }
+  }
+
+  @Nested
   @DisplayName("큐레이션 목록 조회 API")
   class ListCurations {
 

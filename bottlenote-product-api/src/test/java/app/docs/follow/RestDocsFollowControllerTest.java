@@ -137,7 +137,7 @@ class RestDocsFollowControllerTest extends AbstractRestDocs {
         .andExpect(status().isOk())
         .andDo(
             document(
-                "follow/search",
+                "follow/following-list",
                 queryParameters(
                     parameterWithName("type").optional().description("팔로잉 or 팔로워 조회 여부 쿼리파라미터"),
                     parameterWithName("cursor").optional().description("조회 할 시작 기준 위치"),
@@ -190,7 +190,7 @@ class RestDocsFollowControllerTest extends AbstractRestDocs {
         .andExpect(status().isOk())
         .andDo(
             document(
-                "follow/search",
+                "follow/follower-list",
                 queryParameters(
                     parameterWithName("type").optional().description("팔로잉 or 팔로워 조회 여부 쿼리파라미터"),
                     parameterWithName("cursor").optional().description("조회 할 시작 기준 위치"),

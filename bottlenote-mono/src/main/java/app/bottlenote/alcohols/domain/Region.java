@@ -45,6 +45,10 @@ public class Region extends BaseEntity {
   @Column(name = "description", nullable = true)
   private String description;
 
+  @Comment("대표 이미지 URL")
+  @Column(name = "image_url", length = 2048)
+  private String imageUrl;
+
   @Builder.Default
   @Comment("정렬 순서 (미설정: 9999)")
   @Column(name = "sort_order", nullable = false)
@@ -60,12 +64,14 @@ public class Region extends BaseEntity {
       String engName,
       String continent,
       String description,
+      String imageUrl,
       Integer sortOrder,
       Region parent) {
     this.korName = korName;
     this.engName = engName;
     this.continent = continent;
     this.description = description;
+    this.imageUrl = imageUrl;
     this.sortOrder = sortOrder != null ? sortOrder : 9999;
     this.parent = parent;
   }

@@ -34,11 +34,6 @@ public class FakeOauthRepository implements OauthRepository {
   }
 
   @Override
-  public Optional<User> loadGuestUser() {
-    return Optional.empty();
-  }
-
-  @Override
   public String getNextNicknameSequence() {
     return "User" + (nicknameSequence++);
   }

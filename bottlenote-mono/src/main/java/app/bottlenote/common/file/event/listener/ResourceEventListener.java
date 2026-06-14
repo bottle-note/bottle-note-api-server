@@ -33,7 +33,7 @@ public class ResourceEventListener {
 
     for (String resourceKey : event.resourceKeys()) {
       resourceCommandService.activateImageResource(
-          resourceKey, event.referenceId(), event.referenceType());
+          resourceKey, event.referenceId(), event.referenceType(), event.userId());
     }
   }
 
