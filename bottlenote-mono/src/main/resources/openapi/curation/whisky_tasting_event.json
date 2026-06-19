@@ -243,7 +243,6 @@
           "detailAddress",
           "entryFee",
           "capacity",
-          "applicationLink",
           "guideText",
           "alcohols"
         ]
@@ -574,7 +573,6 @@
           "detailAddress",
           "entryFee",
           "capacity",
-          "applicationLink",
           "guideText",
           "alcohols"
         ]
