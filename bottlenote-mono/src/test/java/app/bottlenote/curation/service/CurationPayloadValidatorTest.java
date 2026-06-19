@@ -92,6 +92,97 @@ class CurationPayloadValidatorTest {
   }
 
   @Test
+  @DisplayName("x-depends-on 조건이 일치하면 의존 필드는 필수값으로 검증한다")
+  void validate_whenDependsOnConditionMatchesAndFieldMissing_returnsRequiredError() {
+    Map<String, Object> requestSpec =
+        conditionalRequiredSchema("hasExternalLink", "true", "externalUrl");
+    Map<String, Object> payload = map("hasExternalLink", true, "title", "외부 링크 콘텐츠");
+
+    List<String> errors = validator.validate(new MapBackedSchema(requestSpec), payload);
+
+    assertThat(errors).containsExactly("$.externalUrl 필드는 필수입니다.");
+  }
+
+  @Test
+  @DisplayName("x-depends-on 조건이 일치하지 않으면 의존 필드 누락을 허용한다")
+  void validate_whenDependsOnConditionDoesNotMatchAndFieldMissing_returnsEmptyErrors() {
+    Map<String, Object> requestSpec =
+        conditionalRequiredSchema("hasExternalLink", "true", "externalUrl");
+    Map<String, Object> payload = map("hasExternalLink", false, "title", "내부 콘텐츠");
+
+    List<String> errors = validator.validate(new MapBackedSchema(requestSpec), payload);
+
+    assertThat(errors).isEmpty();
+  }
+
+  @Test
+  @DisplayName("x-depends-on 조건이 일치하지 않아도 의존 필드가 있으면 타입을 검증한다")
+  void validate_whenDependsOnConditionDoesNotMatchButFieldExists_validatesFieldType() {
+    Map<String, Object> requestSpec =
+        conditionalRequiredSchema("hasExternalLink", "true", "externalUrl");
+    Map<String, Object> payload =
+        map("hasExternalLink", false, "title", "내부 콘텐츠", "externalUrl", 123);
+
+    List<String> errors = validator.validate(new MapBackedSchema(requestSpec), payload);
+
+    assertThat(errors).containsExactly("$.externalUrl 타입이 string이어야 합니다.");
+  }
+
+  @Test
+  @DisplayName("x-depends-on은 문자열 enum 조건도 필수값으로 검증한다")
+  void validate_whenStringEnumDependsOnConditionMatchesAndFieldMissing_returnsRequiredError() {
+    Map<String, Object> requestSpec =
+        conditionalRequiredSchema("publishType", "ONLINE", "meetingUrl");
+    Map<String, Object> payload = map("publishType", "ONLINE", "title", "온라인 행사");
+
+    List<String> errors = validator.validate(new MapBackedSchema(requestSpec), payload);
+
+    assertThat(errors).containsExactly("$.meetingUrl 필드는 필수입니다.");
+  }
+
+  @Test
+  @DisplayName("x-depends-on 조건 필드가 누락되면 조건부 필수 대신 조건 필드 required를 검증한다")
+  void validate_whenDependsOnSourceFieldMissing_returnsSourceRequiredErrorOnly() {
+    Map<String, Object> requestSpec =
+        conditionalRequiredSchema("hasExternalLink", "true", "externalUrl");
+    Map<String, Object> payload = map("title", "조건 필드 누락 콘텐츠");
+
+    List<String> errors = validator.validate(new MapBackedSchema(requestSpec), payload);
+
+    assertThat(errors).containsExactly("$.hasExternalLink 필드는 필수입니다.");
+  }
+
+  @Test
+  @DisplayName("시음회 모집 중이 아니면 신청 링크 누락을 허용한다")
+  void validate_whenTastingEventIsNotRecruitingAndApplicationLinkMissing_returnsEmptyErrors()
+      throws IOException {
+    Map<String, Object> requestSpec = schema("whisky_tasting_event.json", "Request");
+    Map<String, Object> payload =
+        withoutField(
+            tastingEventPayload(false, 0, 1, List.of(recommendedItem("BOTTLE_NOTE"))),
+            "applicationLink");
+
+    List<String> errors = validator.validate(new MapBackedSchema(requestSpec), payload);
+
+    assertThat(errors).isEmpty();
+  }
+
+  @Test
+  @DisplayName("시음회 모집 중이면 신청 링크 누락을 필수 오류로 검증한다")
+  void validate_whenTastingEventIsRecruitingAndApplicationLinkMissing_returnsRequiredError()
+      throws IOException {
+    Map<String, Object> requestSpec = schema("whisky_tasting_event.json", "Request");
+    Map<String, Object> payload =
+        withoutField(
+            tastingEventPayload(true, 0, 1, List.of(recommendedItem("BOTTLE_NOTE"))),
+            "applicationLink");
+
+    List<String> errors = validator.validate(new MapBackedSchema(requestSpec), payload);
+
+    assertThat(errors).containsExactly("$.applicationLink 필드는 필수입니다.");
+  }
+
+  @Test
   @DisplayName("requestSpec의 x-container가 object이면 root payload 배열을 허용하지 않는다")
   void validate_whenObjectContainerReceivesArray_returnsRootTypeError() throws IOException {
     Map<String, Object> requestSpec = schema("whisky_tasting_event.json", "Request");
@@ -285,6 +376,11 @@ class CurationPayloadValidatorTest {
 
   private static Map<String, Object> tastingEventPayload(
       int entryFee, int capacity, List<Map<String, Object>> alcohols) {
+    return tastingEventPayload(true, entryFee, capacity, alcohols);
+  }
+
+  private static Map<String, Object> tastingEventPayload(
+      boolean isRecruiting, int entryFee, int capacity, List<Map<String, Object>> alcohols) {
     return map(
         "eventDate",
         "2026-06-15",
@@ -295,7 +391,7 @@ class CurationPayloadValidatorTest {
         "detailAddress",
         "2층 도시남 바",
         "isRecruiting",
-        true,
+        isRecruiting,
         "entryFee",
         entryFee,
         "capacity",
@@ -306,6 +402,41 @@ class CurationPayloadValidatorTest {
         "시작 10분 전 입장해 주세요.",
         "alcohols",
         alcohols);
+  }
+
+  private static Map<String, Object> conditionalRequiredSchema(
+      String sourceField, String expectedValue, String dependentField) {
+    return map(
+        "type",
+        "object",
+        "required",
+        List.of(sourceField, "title"),
+        "properties",
+        map(
+            sourceField,
+            dependencySourceSchema(sourceField),
+            "title",
+            map("type", "string"),
+            dependentField,
+            map(
+                "type",
+                "string",
+                "x-depends-on",
+                List.of(
+                    map(
+                        "key",
+                        sourceField,
+                        "value",
+                        expectedValue,
+                        "description",
+                        sourceField + " 조건이 일치하면 필수입니다.")))));
+  }
+
+  private static Map<String, Object> dependencySourceSchema(String sourceField) {
+    if ("publishType".equals(sourceField)) {
+      return map("type", "string", "enum", List.of("ONLINE", "OFFLINE"));
+    }
+    return map("type", "boolean");
   }
 
   private static Stream<Arguments> validRequestPayloadsBySpec() {
@@ -353,9 +484,8 @@ class CurationPayloadValidatorTest {
             "WHISKY_TASTING_EVENT",
             "whisky_tasting_event.json",
             withoutField(
-                tastingEventPayload(0, 1, List.of(recommendedItem("BOTTLE_NOTE"))),
-                "applicationLink"),
-            "$.applicationLink 필드는 필수입니다."));
+                tastingEventPayload(0, 1, List.of(recommendedItem("BOTTLE_NOTE"))), "alcohols"),
+            "$.alcohols 필드는 필수입니다."));
   }
 
   private static Map<String, Object> map(Object... values) {

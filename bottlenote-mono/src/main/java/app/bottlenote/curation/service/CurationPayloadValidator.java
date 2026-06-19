@@ -243,14 +243,12 @@ public class CurationPayloadValidator {
   private void validateObject(JsonNode schema, JsonNode payload, String path, List<String> errors) {
     JsonNode requiredFields = schema.path("required");
     JsonNode properties = schema.path("properties");
+    Set<String> requiredFieldNames = requiredFieldNames(requiredFields);
 
-    if (requiredFields.isArray()) {
-      for (JsonNode field : requiredFields) {
-        String fieldName = field.asText();
-        JsonNode value = payload.get(fieldName);
-        if (value == null || value.isNull()) {
-          errors.add(path + "." + fieldName + " 필드는 필수입니다.");
-        }
+    for (String fieldName : requiredFieldNames) {
+      JsonNode value = payload.get(fieldName);
+      if (value == null || value.isNull()) {
+        errors.add(path + "." + fieldName + " 필드는 필수입니다.");
       }
     }
 
@@ -261,12 +259,54 @@ public class CurationPayloadValidator {
     Iterator<String> names = properties.fieldNames();
     while (names.hasNext()) {
       String name = names.next();
+      JsonNode fieldSchema = properties.get(name);
       JsonNode value = payload.get(name);
+      if (!requiredFieldNames.contains(name)
+          && isRequiredByDependsOn(fieldSchema, payload)
+          && (value == null || value.isNull())) {
+        errors.add(path + "." + name + " 필드는 필수입니다.");
+      }
       if (value == null) {
         continue;
       }
-      validateNode(properties.get(name), value, path + "." + name, false, errors);
+      validateNode(fieldSchema, value, path + "." + name, false, errors);
     }
+  }
+
+  private Set<String> requiredFieldNames(JsonNode requiredFields) {
+    if (!requiredFields.isArray()) {
+      return Set.of();
+    }
+    Set<String> fieldNames = new HashSet<>();
+    for (JsonNode field : requiredFields) {
+      fieldNames.add(field.asText());
+    }
+    return fieldNames;
+  }
+
+  private boolean isRequiredByDependsOn(JsonNode schema, JsonNode payload) {
+    JsonNode dependsOn = schema.path("x-depends-on");
+    if (!dependsOn.isArray() || dependsOn.isEmpty()) {
+      return false;
+    }
+    for (JsonNode dependency : dependsOn) {
+      if (!matchesDependency(dependency, payload)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private boolean matchesDependency(JsonNode dependency, JsonNode payload) {
+    String key = textualValue(dependency, "key");
+    String expectedValue = textualValue(dependency, "value");
+    if (key == null || expectedValue == null) {
+      return false;
+    }
+    JsonNode actualValue = payload.get(key);
+    return actualValue != null
+        && !actualValue.isNull()
+        && expectedValue.equals(actualValue.asText());
   }
 
   private void validateArray(JsonNode schema, JsonNode payload, String path, List<String> errors) {
