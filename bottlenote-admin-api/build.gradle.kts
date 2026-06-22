@@ -3,7 +3,6 @@ plugins {
 	alias(libs.plugins.kotlin.jvm)
 	alias(libs.plugins.kotlin.spring)
 	alias(libs.plugins.asciidoctor)
-	alias(libs.plugins.restdocs.api.spec)
 }
 // snippetsDir 정의
 val snippetsDir by extra { file("build/generated-snippets") }
@@ -29,7 +28,6 @@ dependencies {
 	// Test - Spring REST Docs
 	add("asciidoctorExt", libs.spring.restdocs.asciidoctor)
 	testImplementation(libs.spring.restdocs.mockmvc)
-	testImplementation(libs.restdocs.api.spec.mockmvc)
 
 	// Test - Liquibase (schema initialization)
 	testImplementation(libs.liquibase.core)

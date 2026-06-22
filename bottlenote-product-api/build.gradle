@@ -1,7 +1,6 @@
 // bottlenote-product-api
 plugins {
 	alias(libs.plugins.asciidoctor)
-	alias(libs.plugins.restdocs.api.spec)
 }
 
 ext {
@@ -58,7 +57,6 @@ dependencies {
 	// Test - Spring REST Docs
 	asciidoctorExt libs.spring.restdocs.asciidoctor
 	testImplementation libs.spring.restdocs.mockmvc
-	testImplementation libs.restdocs.api.spec.mockmvc
 
 	// Test - AWS
 	testImplementation platform(libs.aws.sdk.bom)
