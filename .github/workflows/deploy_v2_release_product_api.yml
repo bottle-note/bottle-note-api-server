@@ -7,6 +7,10 @@ on:
     branches:
       - 'release/product'
 
+permissions:
+  contents: read
+  actions: read
+
 concurrency:
   group: "deploy-product-production"
   cancel-in-progress: true
@@ -15,7 +19,48 @@ env:
   IMAGE_NAME: bottlenote-product-api
 
 jobs:
+  verify-release-pull-request-gate:
+    name: verify release pull request gate
+    if: |
+      (github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true)) &&
+      needs.verify-release-pull-request-gate.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify release pull request gate passed
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "[release-pull-request-gate] 시작: 릴리즈 배포 전 pull request gate 통과 이력을 확인합니다."
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "[release-pull-request-gate] manual_dispatch=true gate verification skipped"
+            exit 0
+          fi
+          pull_request_number="${{ github.event.pull_request.number }}"
+          pull_request_base_ref="${{ github.event.pull_request.base.ref }}"
+          pull_request_head_ref="${{ github.event.pull_request.head.ref }}"
+          pull_request_head_sha="${{ github.event.pull_request.head.sha }}"
+          [[ "$pull_request_head_ref" == "main" ]] || { echo "::error::release deployment requires pull request head to be main, got $pull_request_head_ref"; exit 1; }
+          api_url="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/release-pull-request-gate.yml/runs?event=pull_request&head_sha=${pull_request_head_sha}&status=success&per_page=20"
+          runs_json="$(curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "$api_url")" || { echo "::error::failed to query release pull request gate evidence"; exit 1; }
+          RUNS_JSON="$runs_json" python3 - "$pull_request_number" "$pull_request_base_ref" "$pull_request_head_sha" <<'PY'
+          import json, os, sys
+          number, base_ref, head_sha = sys.argv[1:4]
+          data = json.loads(os.environ["RUNS_JSON"])
+          for run in data.get("workflow_runs", []):
+              if run.get("event") != "pull_request" or run.get("conclusion") != "success" or run.get("head_sha") != head_sha:
+                  continue
+              for pull_request in run.get("pull_requests") or []:
+                  if str(pull_request.get("number")) == number and pull_request.get("base", {}).get("ref") == base_ref:
+                      print(f"[release-pull-request-gate] gate_success run_id={run.get('id')}")
+                      sys.exit(0)
+          print(f"::error::no successful release pull request gate run found for pull request #{number} base={base_ref} head_sha={head_sha}", file=sys.stderr)
+          sys.exit(1)
+          PY
+
   build-and-push:
+    needs: verify-release-pull-request-gate
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
