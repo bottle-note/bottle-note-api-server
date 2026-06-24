@@ -22,9 +22,8 @@ jobs:
   verify-release-pull-request-gate:
     name: verify release pull request gate
     if: |
-      (github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' && github.event.pull_request.merged == true)) &&
-      needs.verify-release-pull-request-gate.result == 'success'
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
     steps:
       - name: Verify release pull request gate passed
