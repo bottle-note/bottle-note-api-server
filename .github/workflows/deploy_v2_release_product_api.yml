@@ -8,7 +8,7 @@ on:
       - 'release/product'
 
 permissions:
-  contents: read
+  contents: write
   actions: read
 
 concurrency:
@@ -42,7 +42,7 @@ jobs:
           pull_request_head_sha="${{ github.event.pull_request.head.sha }}"
           [[ "$pull_request_head_ref" == "main" ]] || { echo "::error::release deployment requires pull request head to be main, got $pull_request_head_ref"; exit 1; }
           api_url="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/release-pull-request-gate.yml/runs?event=pull_request&head_sha=${pull_request_head_sha}&status=success&per_page=20"
-          runs_json="$(curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "$api_url")" || { echo "::error::failed to query release pull request gate evidence"; exit 1; }
+          runs_json="$(curl -fsSL -H "Authorization: Bearer *** -H "Accept: application/vnd.github+json" "$api_url")" || { echo "::error::failed to query release pull request gate evidence"; exit 1; }
           RUNS_JSON="$runs_json" python3 - "$pull_request_number" "$pull_request_base_ref" "$pull_request_head_sha" <<'PY'
           import json, os, sys
           number, base_ref, head_sha = sys.argv[1:4]
@@ -184,3 +184,30 @@ jobs:
           done
 
           echo "Production deployment triggered"
+
+  create-release-tag:
+    needs: [build-and-push, update-production]
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout release ref
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: create product release tag
+        env:
+          VERSION: ${{ needs.build-and-push.outputs.version }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+        run: |
+          set -euo pipefail
+          TAG="product/v${VERSION}"
+          git fetch --tags origin
+          if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
+            echo "Release tag already exists: ${TAG}"
+            exit 0
+          fi
+          git tag -a "${TAG}" "${MERGE_SHA}" -m "Release ${TAG}"
+          git push origin "refs/tags/${TAG}"
+          echo "Created release tag: ${TAG} -> ${MERGE_SHA}"
