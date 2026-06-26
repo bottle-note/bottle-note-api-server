@@ -35,16 +35,14 @@ jobs:
       - name: Select release target
         run: |
           set -euo pipefail
-          echo "[release-pull-request-gate] 시작: pull request base 브랜치에 맞는 릴리즈 대상, 버전 파일, 태그 prefix를 선택합니다."
+          echo "[release-pull-request-gate] 시작: pull request base 브랜치에 맞는 릴리즈 대상과 태그 prefix를 선택합니다."
           case "$PULL_REQUEST_BASE_REF" in
             release/product)
               target_branch="release/product"
-              version_file="bottlenote-product-api/VERSION"
               tag_prefix="product"
               ;;
             release/admin)
               target_branch="release/admin"
-              version_file="bottlenote-admin-api/VERSION"
               tag_prefix="admin"
               ;;
             *)
@@ -54,10 +52,9 @@ jobs:
           esac
           {
             echo "TARGET_BRANCH=$target_branch"
-            echo "VERSION_FILE=$version_file"
             echo "TAG_PREFIX=$tag_prefix"
           } >> "$GITHUB_ENV"
-          echo "[release-pull-request-gate] target=$target_branch version_file=$version_file tag_prefix=$tag_prefix"
+          echo "[release-pull-request-gate] target=$target_branch tag_prefix=$tag_prefix"
 
       - name: Check pull request direction
         run: |
@@ -69,28 +66,39 @@ jobs:
           [[ "$PULL_REQUEST_HEAD_REF" == "main" ]] || { echo "::error::invalid release pull request head: expected 'main', got '$PULL_REQUEST_HEAD_REF'"; exit 1; }
           echo "[release-pull-request-gate] direction_ok base=$PULL_REQUEST_BASE_REF head=$PULL_REQUEST_HEAD_REF"
 
-      - name: Check version and tag candidate
+      - name: Calculate next release tag candidate
         run: |
           set -euo pipefail
-          echo "[release-pull-request-gate] 시작: VERSION 파일을 읽고 SemVer 형식과 생성될 릴리즈 태그명을 확인합니다."
-          [[ -f "$VERSION_FILE" ]] || { echo "::error::version file not found: $VERSION_FILE"; exit 1; }
-          version="$(tr -d '[:space:]' < "$VERSION_FILE")"
-          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::invalid semver in $VERSION_FILE: '$version'"; exit 1; }
+          echo "[release-pull-request-gate] 시작: 기존 릴리즈 태그를 기준으로 다음 patch 버전과 태그명을 계산합니다."
+          git fetch --tags origin >/dev/null 2>&1 || { echo "::error::failed to fetch tags"; exit 1; }
+          version="$(python3 - "$TAG_PREFIX" <<'PY'
+          import re, subprocess, sys
+          prefix = sys.argv[1]
+          pattern = re.compile(rf"^{re.escape(prefix)}/v(\d+)\.(\d+)\.(\d+)$")
+          versions = []
+          tags = subprocess.check_output(["git", "tag", "--list", f"{prefix}/v*"], text=True).splitlines()
+          for tag in tags:
+              match = pattern.match(tag.strip())
+              if match:
+                  versions.append(tuple(map(int, match.groups())))
+          major, minor, patch = max(versions) if versions else (0, 0, 0)
+          print(f"{major}.{minor}.{patch + 1}")
+          PY
+          )"
           tag_name="${TAG_PREFIX}/v${version}"
           {
             echo "VERSION=$version"
             echo "TAG_NAME=$tag_name"
           } >> "$GITHUB_ENV"
-          echo "[release-pull-request-gate] version=$version tag=$tag_name"
+          echo "[release-pull-request-gate] next_version=$version tag=$tag_name"
 
       - name: Fetch release refs and tags
         run: |
           set -euo pipefail
-          echo "[release-pull-request-gate] 시작: 비교에 필요한 base/head 브랜치와 기존 태그 목록을 가져옵니다."
+          echo "[release-pull-request-gate] 시작: 비교에 필요한 base/head 브랜치와 base/head 브랜치를 가져옵니다."
           git fetch --no-tags origin "+refs/heads/${PULL_REQUEST_BASE_REF}:refs/remotes/origin/${PULL_REQUEST_BASE_REF}" >/dev/null 2>&1 || { echo "::error::failed to fetch origin/$PULL_REQUEST_BASE_REF"; exit 1; }
           git fetch --no-tags origin "+refs/heads/${PULL_REQUEST_HEAD_REF}:refs/remotes/origin/${PULL_REQUEST_HEAD_REF}" >/dev/null 2>&1 || { echo "::error::failed to fetch origin/$PULL_REQUEST_HEAD_REF"; exit 1; }
-          git fetch --tags origin >/dev/null 2>&1 || { echo "::error::failed to fetch tags"; exit 1; }
-          echo "[release-pull-request-gate] fetched base=$PULL_REQUEST_BASE_REF head=$PULL_REQUEST_HEAD_REF tags=true"
+          echo "[release-pull-request-gate] fetched base=$PULL_REQUEST_BASE_REF head=$PULL_REQUEST_HEAD_REF"
 
       - name: Check duplicate release tag
         run: |
@@ -148,7 +156,7 @@ jobs:
           [[ -n "${GITHUB_TOKEN:-}" ]] || { echo "::error::GITHUB_TOKEN required to verify main CI evidence"; exit 1; }
           [[ -n "${PULL_REQUEST_HEAD_SHA:-}" ]] || { echo "::error::cannot determine pull request head sha for main CI evidence"; exit 1; }
           api_url="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/${MAIN_CI_WORKFLOW}/runs?branch=main&event=push&head_sha=${PULL_REQUEST_HEAD_SHA}&status=success&per_page=1"
-          ci_json="$(curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "$api_url")" || { echo "::error::failed to query main CI evidence"; exit 1; }
+          ci_json="$(curl -fsSL -H "Authorization: Bearer *** -H "Accept: application/vnd.github+json" "$api_url")" || { echo "::error::failed to query main CI evidence"; exit 1; }
           CI_JSON="$ci_json" python3 - "$MAIN_CI_WORKFLOW" <<'PY'
           import json, os, sys
           workflow = sys.argv[1]
@@ -168,3 +176,4 @@ jobs:
         run: |
           echo "[release-pull-request-gate] 시작: 모든 릴리즈 pull request gate 검증이 끝났음을 기록합니다."
           echo "[release-pull-request-gate] release pull request gate passed"
+
