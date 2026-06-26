@@ -24,6 +24,7 @@ jobs:
       PULL_REQUEST_BASE_REF: ${{ github.event.pull_request.base.ref }}
       PULL_REQUEST_HEAD_REF: ${{ github.event.pull_request.head.ref }}
       PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      PULL_REQUEST_TITLE: ${{ github.event.pull_request.title }}
       MAIN_CI_WORKFLOW: ci_pipeline.yml
       REQUIRE_MAIN_CI: 'true'
     steps:
@@ -66,23 +67,21 @@ jobs:
           [[ "$PULL_REQUEST_HEAD_REF" == "main" ]] || { echo "::error::invalid release pull request head: expected 'main', got '$PULL_REQUEST_HEAD_REF'"; exit 1; }
           echo "[release-pull-request-gate] direction_ok base=$PULL_REQUEST_BASE_REF head=$PULL_REQUEST_HEAD_REF"
 
-      - name: Calculate next release tag candidate
+      - name: Check release title and tag candidate
         run: |
           set -euo pipefail
-          echo "[release-pull-request-gate] 시작: 기존 릴리즈 태그를 기준으로 다음 patch 버전과 태그명을 계산합니다."
-          git fetch --tags origin >/dev/null 2>&1 || { echo "::error::failed to fetch tags"; exit 1; }
+          echo "[release-pull-request-gate] 시작: pull request 제목에서 릴리즈 버전과 태그명을 검증합니다."
           version="$(python3 - "$TAG_PREFIX" <<'PY'
-          import re, subprocess, sys
+          import os, re, sys
           prefix = sys.argv[1]
-          pattern = re.compile(rf"^{re.escape(prefix)}/v(\d+)\.(\d+)\.(\d+)$")
-          versions = []
-          tags = subprocess.check_output(["git", "tag", "--list", f"{prefix}/v*"], text=True).splitlines()
-          for tag in tags:
-              match = pattern.match(tag.strip())
-              if match:
-                  versions.append(tuple(map(int, match.groups())))
-          major, minor, patch = max(versions) if versions else (0, 0, 0)
-          print(f"{major}.{minor}.{patch + 1}")
+          title = os.environ.get("PULL_REQUEST_TITLE", "")
+          semver = r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
+          pattern = re.compile(rf"^\[deploy\]\s+{re.escape(prefix)}-v({semver})$")
+          match = pattern.fullmatch(title.strip())
+          if not match:
+              print(f"::error::release pull request title must be '[deploy] {prefix}-vX.Y.Z', got: {title}", file=sys.stderr)
+              sys.exit(1)
+          print(match.group(1))
           PY
           )"
           tag_name="${TAG_PREFIX}/v${version}"
@@ -90,15 +89,16 @@ jobs:
             echo "VERSION=$version"
             echo "TAG_NAME=$tag_name"
           } >> "$GITHUB_ENV"
-          echo "[release-pull-request-gate] next_version=$version tag=$tag_name"
+          echo "[release-pull-request-gate] version=$version tag=$tag_name"
 
       - name: Fetch release refs and tags
         run: |
           set -euo pipefail
-          echo "[release-pull-request-gate] 시작: 비교에 필요한 base/head 브랜치와 base/head 브랜치를 가져옵니다."
+          echo "[release-pull-request-gate] 시작: 비교에 필요한 base/head 브랜치와 기존 태그를 가져옵니다."
           git fetch --no-tags origin "+refs/heads/${PULL_REQUEST_BASE_REF}:refs/remotes/origin/${PULL_REQUEST_BASE_REF}" >/dev/null 2>&1 || { echo "::error::failed to fetch origin/$PULL_REQUEST_BASE_REF"; exit 1; }
           git fetch --no-tags origin "+refs/heads/${PULL_REQUEST_HEAD_REF}:refs/remotes/origin/${PULL_REQUEST_HEAD_REF}" >/dev/null 2>&1 || { echo "::error::failed to fetch origin/$PULL_REQUEST_HEAD_REF"; exit 1; }
-          echo "[release-pull-request-gate] fetched base=$PULL_REQUEST_BASE_REF head=$PULL_REQUEST_HEAD_REF"
+          git fetch --tags origin >/dev/null 2>&1 || { echo "::error::failed to fetch tags"; exit 1; }
+          echo "[release-pull-request-gate] fetched base=$PULL_REQUEST_BASE_REF head=$PULL_REQUEST_HEAD_REF tags=true"
 
       - name: Check duplicate release tag
         run: |
@@ -176,4 +176,5 @@ jobs:
         run: |
           echo "[release-pull-request-gate] 시작: 모든 릴리즈 pull request gate 검증이 끝났음을 기록합니다."
           echo "[release-pull-request-gate] release pull request gate passed"
+
 

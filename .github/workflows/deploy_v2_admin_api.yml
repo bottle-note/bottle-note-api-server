@@ -2,6 +2,11 @@ name: deploy v2 admin api production
 
 on:
   workflow_dispatch:
+    inputs:
+      release-version:
+        description: 'admin release version (X.Y.Z) for manual dispatch'
+        required: true
+        type: string
   pull_request:
     types: [ closed ]
     branches:
@@ -91,35 +96,36 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: calculate next admin release version
+      - name: read admin release version
         id: version
         env:
-          PREFIX: admin
+          SERVICE: admin
+          RELEASE_TITLE: ${{ github.event.pull_request.title || '' }}
+          RELEASE_VERSION_INPUT: ${{ inputs['release-version'] || '' }}
         run: |
-          git fetch --tags origin
-          TARGET_SHA="${{ github.event.pull_request.merge_commit_sha || github.sha }}"
-          VERSION="$(python3 - "$PREFIX" "$TARGET_SHA" <<'PY'
-          import re, subprocess, sys
-          prefix, target_sha = sys.argv[1:3]
-          pattern = re.compile(rf"^{re.escape(prefix)}/v(\d+)\.(\d+)\.(\d+)$")
-          versions = []
-          for tag in subprocess.check_output(["git", "tag", "--list", f"{prefix}/v*"], text=True).splitlines():
-              tag = tag.strip()
-              match = pattern.match(tag)
-              if not match:
-                  continue
-              version = tuple(map(int, match.groups()))
-              commit = subprocess.check_output(["git", "rev-list", "-n", "1", tag], text=True).strip()
-              if target_sha and commit == target_sha:
-                  print(".".join(map(str, version)))
-                  sys.exit(0)
-              versions.append(version)
-          major, minor, patch = max(versions) if versions else (0, 0, 0)
-          print(f"{major}.{minor}.{patch + 1}")
+          set -euo pipefail
+          VERSION="$(python3 - "$SERVICE" <<'PY'
+          import os, re, sys
+          service = sys.argv[1]
+          title = os.environ.get("RELEASE_TITLE", "")
+          manual_version = os.environ.get("RELEASE_VERSION_INPUT", "")
+          semver = r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
+          if manual_version:
+              if not re.fullmatch(semver, manual_version):
+                  print(f"::error::invalid manual release version: {manual_version}", file=sys.stderr)
+                  sys.exit(1)
+              print(manual_version)
+              sys.exit(0)
+          pattern = re.compile(rf"^\[deploy\]\s+{re.escape(service)}-v({semver})$")
+          match = pattern.fullmatch(title.strip())
+          if not match:
+              print(f"::error::release pull request title must be '[deploy] {service}-vX.Y.Z', got: {title}", file=sys.stderr)
+              sys.exit(1)
+          print(match.group(1))
           PY
           )"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "image-tag=${PREFIX}_${VERSION}" >> $GITHUB_OUTPUT
+          echo "image-tag=${SERVICE}_${VERSION}" >> $GITHUB_OUTPUT
           echo "Release version: $VERSION"
 
       - name: build admin module
@@ -228,11 +234,18 @@ jobs:
           TAG="admin/v${VERSION}"
           git fetch --tags origin
           if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
-            echo "Release tag already exists: ${TAG}"
-            exit 0
+            EXISTING_SHA="$(git rev-list -n 1 "${TAG}")"
+            if [[ "$EXISTING_SHA" == "$MERGE_SHA" ]]; then
+              echo "Release tag already exists on target merge commit: ${TAG}"
+              exit 0
+            fi
+            echo "::error::release tag already exists on a different commit: ${TAG} -> ${EXISTING_SHA}"
+            exit 1
           fi
           git tag -a "${TAG}" "${MERGE_SHA}" -m "Release ${TAG}"
           git push origin "refs/tags/${TAG}"
           echo "Created release tag: ${TAG} -> ${MERGE_SHA}"
+
+
 
 
