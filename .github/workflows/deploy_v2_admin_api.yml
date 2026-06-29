@@ -25,6 +25,7 @@ env:
 jobs:
   verify-admin-release:
     name: verify admin release publish
+    if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'admin/v') }}
     runs-on: ubuntu-latest
     outputs:
       release-tag: ${{ steps.release.outputs.release-tag }}
