@@ -7,15 +7,8 @@ on:
       - published
   workflow_dispatch:
     inputs:
-      service:
-        description: 'Backend service to release'
-        required: true
-        type: choice
-        options:
-          - product
-          - admin
       tag:
-        description: 'Release tag, for example product/v1.2.3 or admin/v1.2.3'
+        description: 'Backend release tag, for example backend/v1.2.3'
         required: true
         type: string
       expected_state:
@@ -42,7 +35,6 @@ jobs:
     env:
       EVENT_NAME: ${{ github.event_name }}
       RELEASE_ACTION: ${{ github.event.action || '' }}
-      INPUT_SERVICE: ${{ inputs.service || '' }}
       INPUT_TAG: ${{ inputs.tag || '' }}
       INPUT_EXPECTED_STATE: ${{ inputs.expected_state || '' }}
       EVENT_TAG: ${{ github.event.release.tag_name || '' }}
@@ -59,24 +51,10 @@ jobs:
           set -euo pipefail
           release_tag="${EVENT_TAG:-$INPUT_TAG}"
           [[ -n "$release_tag" ]] || { echo "::error::release tag is required"; exit 1; }
+          [[ "$release_tag" =~ ^backend/v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::backend release tag required, got: $release_tag"; exit 1; }
 
-          if [[ "$release_tag" =~ ^product/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            service="product"
-            image_name="bottlenote-product-api"
-            image_tag="product_${release_tag#product/v}"
-          elif [[ "$release_tag" =~ ^admin/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            service="admin"
-            image_name="bottlenote-admin-api"
-            image_tag="admin_${release_tag#admin/v}"
-          else
-            echo "::error::unsupported backend release tag: $release_tag"
-            exit 1
-          fi
-
-          if [[ -n "$INPUT_SERVICE" && "$INPUT_SERVICE" != "$service" ]]; then
-            echo "::error::input service '$INPUT_SERVICE' does not match tag service '$service'"
-            exit 1
-          fi
+          version="${release_tag#backend/v}"
+          image_tag="backend_${version}"
 
           expected_state="$INPUT_EXPECTED_STATE"
           if [[ -z "$expected_state" ]]; then
@@ -88,14 +66,13 @@ jobs:
           fi
 
           {
-            echo "SERVICE=$service"
             echo "RELEASE_TAG=$release_tag"
             echo "EXPECTED_STATE=$expected_state"
-            echo "IMAGE_NAME=$image_name"
+            echo "VERSION=$version"
             echo "IMAGE_TAG=$image_tag"
           } >> "$GITHUB_ENV"
 
-          echo "[release-draft-gate] event=$EVENT_NAME action=${RELEASE_ACTION:-manual} service=$service tag=$release_tag expected_state=$expected_state image=$image_name:$image_tag"
+          echo "[release-draft-gate] event=$EVENT_NAME action=${RELEASE_ACTION:-manual} tag=$release_tag expected_state=$expected_state image_tag=$image_tag"
 
       - name: Fetch main and release tag
         run: |
@@ -165,7 +142,7 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" \
             -d '{"draft":false}' >/dev/null
-          echo "[release-draft-gate] ${SERVICE} release published by approved workflow"
+          echo "[release-draft-gate] backend release published by approved workflow"
 
       - name: Write release gate summary
         run: |
@@ -173,11 +150,10 @@ jobs:
           {
             echo "## Backend Release Gate"
             echo "- Event: \`${EVENT_NAME}/${RELEASE_ACTION:-manual}\`"
-            echo "- Service: \`${SERVICE}\`"
             echo "- Release tag: \`${RELEASE_TAG}\`"
             echo "- Expected state: \`${EXPECTED_STATE}\`"
             echo "- Tag commit: \`${TAG_SHA}\`"
-            echo "- Docker image: \`${IMAGE_NAME}:${IMAGE_TAG}\`"
+            echo "- Image tag: \`${IMAGE_TAG}\`"
             echo "- Main ancestry: \`passed\`"
             echo "- Release metadata: \`passed\`"
           } >> "$GITHUB_STEP_SUMMARY"

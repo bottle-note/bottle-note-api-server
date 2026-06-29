@@ -1,0 +1,300 @@
+name: deploy release applications
+
+on:
+  release:
+    types:
+      - published
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: deploy-backend-production-${{ github.event.release.tag_name }}
+  cancel-in-progress: true
+
+env:
+  PRODUCT_IMAGE_NAME: bottlenote-product-api
+  ADMIN_IMAGE_NAME: bottlenote-admin-api
+
+jobs:
+  release-gate:
+    name: gate backend release
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      release-tag: ${{ steps.release.outputs.release-tag }}
+      version: ${{ steps.release.outputs.version }}
+      image-tag: ${{ steps.release.outputs.image-tag }}
+      tag-sha: ${{ steps.release.outputs.tag-sha }}
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: validate published backend release
+        id: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          [[ -n "$RELEASE_TAG" ]] || { echo "::error::release tag is required"; exit 1; }
+          [[ "$RELEASE_TAG" =~ ^backend/v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::backend release tag required, got: $RELEASE_TAG"; exit 1; }
+
+          version="${RELEASE_TAG#backend/v}"
+          image_tag="backend_${version}"
+
+          git fetch --no-tags origin '+refs/heads/main:refs/remotes/origin/main'
+          git fetch --tags origin
+          git rev-parse -q --verify "refs/tags/${RELEASE_TAG}" >/dev/null || { echo "::error::release tag not found: $RELEASE_TAG"; exit 1; }
+          tag_sha="$(git rev-list -n 1 "$RELEASE_TAG")"
+          git merge-base --is-ancestor "$tag_sha" origin/main || { echo "::error::tag commit is not contained in origin/main: $tag_sha"; exit 1; }
+
+          releases_json="$(curl -fsSL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases?per_page=100")" || { echo "::error::failed to list releases"; exit 1; }
+
+          RELEASES_JSON="$releases_json" python3 - <<'PY'
+          import json, os, sys
+          tag = os.environ['RELEASE_TAG']
+          releases = json.loads(os.environ['RELEASES_JSON'])
+          release = next((item for item in releases if item.get('tag_name') == tag), None)
+          if release is None:
+              print(f'::error::release not found for tag: {tag}', file=sys.stderr)
+              sys.exit(1)
+          if release.get('draft'):
+              print('::error::release must be published before production deploy', file=sys.stderr)
+              sys.exit(1)
+          if release.get('prerelease'):
+              print('::error::production release must not be prerelease', file=sys.stderr)
+              sys.exit(1)
+          body = (release.get('body') or '').strip()
+          if len(body) < 80:
+              print('::error::release changelog is empty or too short', file=sys.stderr)
+              sys.exit(1)
+          print(f"release_id={release.get('id')} body_length={len(body)}")
+          PY
+
+          {
+            echo "release-tag=$RELEASE_TAG"
+            echo "version=$version"
+            echo "image-tag=$image_tag"
+            echo "tag-sha=$tag_sha"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## Backend Production Release Gate"
+            echo "- Release tag: \`${RELEASE_TAG}\`"
+            echo "- Version: \`${version}\`"
+            echo "- Image tag: \`${image_tag}\`"
+            echo "- Tag commit: \`${tag_sha}\`"
+            echo "- Main ancestry: \`passed\`"
+            echo "- Release metadata/changelog: \`passed\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "[backend-release-gate] passed release_tag=$RELEASE_TAG version=$version image_tag=$image_tag tag_sha=$tag_sha"
+
+  prepare-build:
+    name: build backend modules
+    needs: release-gate
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: checkout release tag with submodules
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release-gate.outputs.release-tag }}
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+
+      - name: setup jdk
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: setup gradle cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: build product and admin modules
+        run: |
+          ./gradlew :bottlenote-product-api:build :bottlenote-admin-api:build \
+            -x test -x asciidoctor --build-cache --parallel
+
+      - name: upload product jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: product-jar
+          path: bottlenote-product-api/build/libs/bottlenote-product-api.jar
+          retention-days: 1
+
+      - name: upload admin jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-jar
+          path: bottlenote-admin-api/build/libs/bottlenote-admin-api.jar
+          retention-days: 1
+
+  build-product-image:
+    name: build and push product image
+    needs:
+      - release-gate
+      - prepare-build
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      image-digest: ${{ steps.build.outputs.image-digest }}
+    steps:
+      - name: checkout release tag with submodules
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release-gate.outputs.release-tag }}
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+
+      - name: refresh docker build action from main
+        run: |
+          git fetch --no-tags origin '+refs/heads/main:refs/remotes/origin/main'
+          git checkout origin/main -- .github/actions/docker-build-push/action.yml
+
+      - name: download product jar
+        uses: actions/download-artifact@v4
+        with:
+          name: product-jar
+          path: bottlenote-product-api/build/libs/
+
+      - name: build and push to registry
+        id: build
+        uses: ./.github/actions/docker-build-push
+        with:
+          registry-url: ${{ secrets.REGISTRY_ADDRESS }}
+          registry-username: ${{ secrets.REGISTRY_USERNAME }}
+          registry-password: ${{ secrets.REGISTRY_PASSWORD }}
+          image-name: ${{ env.PRODUCT_IMAGE_NAME }}
+          image-tag: ${{ needs.release-gate.outputs.image-tag }}
+          dockerfile: Dockerfile
+          context: .
+          platforms: linux/arm64
+          cache-scope: product-production
+          image-title: "BottleNote Product API"
+          image-description: "BottleNote Product API Server"
+          image-vendor: "BottleNote"
+          image-authors: "BottleNote Team"
+          sign-image: 'true'
+          cosign-key-path: 'git.environment-variables/storage/docker-registry/cosign.key'
+          cosign-password: ${{ secrets.COSIGN_PASSWORD }}
+
+  build-admin-image:
+    name: build and push admin image
+    needs:
+      - release-gate
+      - prepare-build
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      image-digest: ${{ steps.build.outputs.image-digest }}
+    steps:
+      - name: checkout release tag with submodules
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release-gate.outputs.release-tag }}
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+
+      - name: refresh docker build action from main
+        run: |
+          git fetch --no-tags origin '+refs/heads/main:refs/remotes/origin/main'
+          git checkout origin/main -- .github/actions/docker-build-push/action.yml
+
+      - name: download admin jar
+        uses: actions/download-artifact@v4
+        with:
+          name: admin-jar
+          path: bottlenote-admin-api/build/libs/
+
+      - name: build and push to registry
+        id: build
+        uses: ./.github/actions/docker-build-push
+        with:
+          registry-url: ${{ secrets.REGISTRY_ADDRESS }}
+          registry-username: ${{ secrets.REGISTRY_USERNAME }}
+          registry-password: ${{ secrets.REGISTRY_PASSWORD }}
+          image-name: ${{ env.ADMIN_IMAGE_NAME }}
+          image-tag: ${{ needs.release-gate.outputs.image-tag }}
+          dockerfile: Dockerfile-admin
+          context: .
+          platforms: linux/arm64
+          cache-scope: admin-production
+          image-title: "BottleNote Admin API"
+          image-description: "BottleNote Admin API Server"
+          image-vendor: "BottleNote"
+          image-authors: "BottleNote Team"
+          sign-image: 'true'
+          cosign-key-path: 'git.environment-variables/storage/docker-registry/cosign.key'
+          cosign-password: ${{ secrets.COSIGN_PASSWORD }}
+
+  update-production:
+    name: update backend production images
+    needs:
+      - release-gate
+      - build-product-image
+      - build-admin-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code with submodules
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+
+      - name: setup kustomize
+        uses: imranismail/setup-kustomize@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: update production image tags
+        run: |
+          IMAGE_TAG="${{ needs.release-gate.outputs.image-tag }}"
+          REGISTRY="${{ secrets.REGISTRY_ADDRESS }}"
+
+          echo "Updating backend production image tags: $IMAGE_TAG"
+          cd git.environment-variables
+          git checkout main
+          cd deploy/overlays/production
+          kustomize edit set image \
+            bottlenote-product-api=${REGISTRY}/${{ env.PRODUCT_IMAGE_NAME }}:${IMAGE_TAG} \
+            bottlenote-admin-api=${REGISTRY}/${{ env.ADMIN_IMAGE_NAME }}:${IMAGE_TAG}
+          echo "production kustomization.yaml updated"
+
+      - name: commit and push with retry
+        run: |
+          cd git.environment-variables
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add deploy/overlays/production/kustomization.yaml
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "chore(backend): update production image tags to ${{ needs.release-gate.outputs.image-tag }}
+
+          Updated by GitHub Actions
+          Release: ${{ needs.release-gate.outputs.release-tag }}
+          Commit: ${{ needs.release-gate.outputs.tag-sha }}
+          Product digest: ${{ needs.build-product-image.outputs.image-digest }}
+          Admin digest: ${{ needs.build-admin-image.outputs.image-digest }}
+          Workflow: ${{ github.workflow }}"
+          for i in {1..5}; do
+            git pull --rebase origin main && git push origin main && break
+            echo "Push failed, retry $i/5..."
+            sleep $((i * 2))
+          done
+          echo "Backend production deployment triggered"
