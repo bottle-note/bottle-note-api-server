@@ -173,7 +173,7 @@ runs:
 
     - name: Install Cosign
       if: inputs.sign-image == 'true'
-      uses: sigstore/cosign-installer@v4
+      uses: sigstore/cosign-installer@v4.1.2
       with:
         cosign-release: 'v2.2.4'
 
