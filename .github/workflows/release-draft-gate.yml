@@ -1,0 +1,162 @@
+name: release draft gate
+
+on:
+  release:
+    types:
+      - created
+      - published
+  workflow_dispatch:
+    inputs:
+      service:
+        description: 'Backend service to release'
+        required: true
+        type: choice
+        options:
+          - product
+          - admin
+      tag:
+        description: 'Release tag, for example product/v1.2.3 or admin/v1.2.3'
+        required: true
+        type: string
+      expected_state:
+        description: 'Expected release state'
+        required: true
+        type: choice
+        default: draft
+        options:
+          - draft
+          - published
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-draft-gate-${{ github.event_name }}-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    name: validate backend release
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      EVENT_NAME: ${{ github.event_name }}
+      RELEASE_ACTION: ${{ github.event.action || '' }}
+      INPUT_SERVICE: ${{ inputs.service || '' }}
+      INPUT_TAG: ${{ inputs.tag || '' }}
+      INPUT_EXPECTED_STATE: ${{ inputs.expected_state || '' }}
+      EVENT_TAG: ${{ github.event.release.tag_name || '' }}
+      EVENT_DRAFT: ${{ github.event.release.draft || '' }}
+      EVENT_PRERELEASE: ${{ github.event.release.prerelease || '' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve release target
+        run: |
+          set -euo pipefail
+          release_tag="${EVENT_TAG:-$INPUT_TAG}"
+          [[ -n "$release_tag" ]] || { echo "::error::release tag is required"; exit 1; }
+
+          if [[ "$release_tag" =~ ^product/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            service="product"
+            image_name="bottlenote-product-api"
+            image_tag="product_${release_tag#product/v}"
+          elif [[ "$release_tag" =~ ^admin/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            service="admin"
+            image_name="bottlenote-admin-api"
+            image_tag="admin_${release_tag#admin/v}"
+          else
+            echo "::error::unsupported backend release tag: $release_tag"
+            exit 1
+          fi
+
+          if [[ -n "$INPUT_SERVICE" && "$INPUT_SERVICE" != "$service" ]]; then
+            echo "::error::input service '$INPUT_SERVICE' does not match tag service '$service'"
+            exit 1
+          fi
+
+          expected_state="$INPUT_EXPECTED_STATE"
+          if [[ -z "$expected_state" ]]; then
+            case "$RELEASE_ACTION" in
+              created) expected_state="draft" ;;
+              published) expected_state="published" ;;
+              *) expected_state="draft" ;;
+            esac
+          fi
+
+          {
+            echo "SERVICE=$service"
+            echo "RELEASE_TAG=$release_tag"
+            echo "EXPECTED_STATE=$expected_state"
+            echo "IMAGE_NAME=$image_name"
+            echo "IMAGE_TAG=$image_tag"
+          } >> "$GITHUB_ENV"
+
+          echo "[release-draft-gate] event=$EVENT_NAME action=${RELEASE_ACTION:-manual} service=$service tag=$release_tag expected_state=$expected_state image=$image_name:$image_tag"
+
+      - name: Fetch main and release tag
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin '+refs/heads/main:refs/remotes/origin/main'
+          git fetch --tags origin
+          git rev-parse -q --verify "refs/tags/${RELEASE_TAG}" >/dev/null || { echo "::error::release tag not found: $RELEASE_TAG"; exit 1; }
+          tag_sha="$(git rev-list -n 1 "$RELEASE_TAG")"
+          echo "TAG_SHA=$tag_sha" >> "$GITHUB_ENV"
+          echo "[release-draft-gate] tag_sha=$tag_sha"
+
+      - name: Verify tag commit is on main
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor "$TAG_SHA" origin/main || { echo "::error::tag commit is not contained in origin/main: $TAG_SHA"; exit 1; }
+          echo "[release-draft-gate] tag_on_main=true"
+
+      - name: Verify release metadata
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          release_json="$(curl -fsSL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/tags/${RELEASE_TAG}")" || { echo "::error::release not found for tag: $RELEASE_TAG"; exit 1; }
+          RELEASE_JSON="$release_json" python3 - <<'PY'
+          import json, os, sys
+          data = json.loads(os.environ['RELEASE_JSON'])
+          expected = os.environ['EXPECTED_STATE']
+          draft = bool(data.get('draft'))
+          prerelease = bool(data.get('prerelease'))
+          body = (data.get('body') or '').strip()
+          if expected == 'draft' and not draft:
+              print('::error::release must be draft for draft gate', file=sys.stderr)
+              sys.exit(1)
+          if expected == 'published' and draft:
+              print('::error::release must be published after publish event', file=sys.stderr)
+              sys.exit(1)
+          if prerelease:
+              print('::error::production release must not be marked as prerelease', file=sys.stderr)
+              sys.exit(1)
+          if len(body) < 40:
+              print('::error::release changelog is empty or too short', file=sys.stderr)
+              sys.exit(1)
+          print(f"[release-draft-gate] release_state={expected} release_id={data.get('id')} body_length={len(body)}")
+          PY
+
+      - name: Write release gate summary
+        run: |
+          set -euo pipefail
+          {
+            echo "## Backend Release Gate"
+            echo "- Event: \`${EVENT_NAME}/${RELEASE_ACTION:-manual}\`"
+            echo "- Service: \`${SERVICE}\`"
+            echo "- Release tag: \`${RELEASE_TAG}\`"
+            echo "- Expected state: \`${EXPECTED_STATE}\`"
+            echo "- Tag commit: \`${TAG_SHA}\`"
+            echo "- Docker image: \`${IMAGE_NAME}:${IMAGE_TAG}\`"
+            echo "- Main ancestry: \`passed\`"
+            echo "- Release metadata: \`passed\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "[release-draft-gate] release gate passed"
