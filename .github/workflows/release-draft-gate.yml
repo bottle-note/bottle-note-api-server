@@ -152,8 +152,8 @@ jobs:
           print(f"[release-draft-gate] release_state={expected} release_id={data.get('id')} body_length={len(body)}")
           PY
 
-      - name: Publish admin draft release
-        if: ${{ env.SERVICE == 'admin' && env.EXPECTED_STATE == 'draft' }}
+      - name: Publish draft release
+        if: ${{ env.EXPECTED_STATE == 'draft' }}
         env:
           PUBLISH_TOKEN: ${{ secrets.GIT_ACCESS_TOKEN }}
         run: |
@@ -165,7 +165,7 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" \
             -d '{"draft":false}' >/dev/null
-          echo "[release-draft-gate] admin release published by approved workflow"
+          echo "[release-draft-gate] ${SERVICE} release published by approved workflow"
 
       - name: Write release gate summary
         run: |
