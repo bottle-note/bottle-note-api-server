@@ -28,7 +28,7 @@ on:
           - published
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: release-draft-gate-${{ github.event_name }}-${{ github.event.release.tag_name || inputs.tag }}
