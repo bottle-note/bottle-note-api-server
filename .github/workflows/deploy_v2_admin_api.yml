@@ -153,7 +153,9 @@ jobs:
 
   update-production:
     name: update admin production image
-    needs: build-and-push
+    needs:
+      - verify-admin-release
+      - build-and-push
     runs-on: ubuntu-latest
     steps:
       - name: checkout code with submodules

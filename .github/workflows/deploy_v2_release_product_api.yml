@@ -150,7 +150,9 @@ jobs:
 
   update-production:
     name: update product production image
-    needs: build-and-push
+    needs:
+      - verify-product-release
+      - build-and-push
     runs-on: ubuntu-latest
     steps:
       - name: checkout code with submodules
