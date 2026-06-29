@@ -87,7 +87,7 @@ jobs:
           token: ${{ secrets.GIT_ACCESS_TOKEN }}
 
       - name: download product jar
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: product-jar
           path: bottlenote-product-api/build/libs/
@@ -127,7 +127,7 @@ jobs:
           token: ${{ secrets.GIT_ACCESS_TOKEN }}
 
       - name: download admin jar
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: admin-jar
           path: bottlenote-admin-api/build/libs/

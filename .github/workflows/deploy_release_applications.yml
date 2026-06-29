@@ -167,7 +167,7 @@ jobs:
           git checkout origin/main -- .github/actions/docker-build-push/action.yml
 
       - name: download product jar
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: product-jar
           path: bottlenote-product-api/build/libs/
@@ -215,7 +215,7 @@ jobs:
           git checkout origin/main -- .github/actions/docker-build-push/action.yml
 
       - name: download admin jar
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: admin-jar
           path: bottlenote-admin-api/build/libs/

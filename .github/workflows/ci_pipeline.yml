@@ -252,13 +252,13 @@ jobs:
         run: ./gradlew build -x test -x asciidoctor --build-cache --parallel
 
       - name: download all test results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: '*-test-results'
           merge-multiple: true
 
       - name: publish test report
-        uses: mikepenz/action-junit-report@v3
+        uses: mikepenz/action-junit-report@v6
         if: always()
         with:
           report_paths: '**/build/test-results/**/TEST-*.xml'
