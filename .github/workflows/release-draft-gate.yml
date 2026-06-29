@@ -147,8 +147,25 @@ jobs:
           if len(body) < 40:
               print('::error::release changelog is empty or too short', file=sys.stderr)
               sys.exit(1)
+          with open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8') as env:
+              env.write(f"RELEASE_ID={data.get('id')}\n")
           print(f"[release-draft-gate] release_state={expected} release_id={data.get('id')} body_length={len(body)}")
           PY
+
+      - name: Publish admin draft release
+        if: ${{ env.SERVICE == 'admin' && env.EXPECTED_STATE == 'draft' }}
+        env:
+          PUBLISH_TOKEN: ${{ secrets.GIT_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          [[ -n "${PUBLISH_TOKEN:-}" ]] || { echo "::error::GIT_ACCESS_TOKEN is required so release.published workflows are triggered"; exit 1; }
+          curl -fsSL -X PATCH \
+            -H "Authorization: Bearer ${PUBLISH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" \
+            -d '{"draft":false}' >/dev/null
+          echo "[release-draft-gate] admin release published by approved workflow"
 
       - name: Write release gate summary
         run: |
