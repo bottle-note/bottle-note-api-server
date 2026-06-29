@@ -1,170 +1,148 @@
-name: release pull request gate
+name: release draft gate
 
 on:
-  pull_request:
-    branches:
-      - 'release/product'
-      - 'release/admin'
-    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      service:
+        description: 'Backend service to release'
+        required: true
+        type: choice
+        options:
+          - product
+          - admin
+      tag:
+        description: 'Draft release tag, for example product/v1.2.3 or admin/v1.2.3'
+        required: true
+        type: string
 
 permissions:
   contents: read
   actions: read
 
 concurrency:
-  group: release-pull-request-gate-${{ github.event.pull_request.base.ref }}
+  group: release-draft-gate-${{ inputs.service }}-${{ inputs.tag }}
   cancel-in-progress: true
 
 jobs:
   gate:
-    name: release promotion gate
+    name: validate backend draft release
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 3
     env:
-      PULL_REQUEST_BASE_REF: ${{ github.event.pull_request.base.ref }}
-      PULL_REQUEST_HEAD_REF: ${{ github.event.pull_request.head.ref }}
-      PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      SERVICE: ${{ inputs.service }}
+      RELEASE_TAG: ${{ inputs.tag }}
       MAIN_CI_WORKFLOW: ci_pipeline.yml
-      REQUIRE_MAIN_CI: 'true'
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Select release target
+      - name: Select backend release target
         run: |
           set -euo pipefail
-          echo "[release-pull-request-gate] 시작: pull request base 브랜치에 맞는 릴리즈 대상, 버전 파일, 태그 prefix를 선택합니다."
-          case "$PULL_REQUEST_BASE_REF" in
-            release/product)
-              target_branch="release/product"
-              version_file="bottlenote-product-api/VERSION"
-              tag_prefix="product"
+          case "$SERVICE" in
+            product)
+              tag_pattern='^product/v[0-9]+\.[0-9]+\.[0-9]+$'
+              image_name='bottlenote-product-api'
+              image_tag="product_${RELEASE_TAG#product/v}"
               ;;
-            release/admin)
-              target_branch="release/admin"
-              version_file="bottlenote-admin-api/VERSION"
-              tag_prefix="admin"
+            admin)
+              tag_pattern='^admin/v[0-9]+\.[0-9]+\.[0-9]+$'
+              image_name='bottlenote-admin-api'
+              image_tag="admin_${RELEASE_TAG#admin/v}"
               ;;
             *)
-              echo "::error::unsupported release target: $PULL_REQUEST_BASE_REF"
+              echo "::error::unsupported backend service: $SERVICE"
               exit 1
               ;;
           esac
+          [[ "$RELEASE_TAG" =~ $tag_pattern ]] || { echo "::error::invalid release tag for $SERVICE: $RELEASE_TAG"; exit 1; }
           {
-            echo "TARGET_BRANCH=$target_branch"
-            echo "VERSION_FILE=$version_file"
-            echo "TAG_PREFIX=$tag_prefix"
+            echo "IMAGE_NAME=$image_name"
+            echo "IMAGE_TAG=$image_tag"
           } >> "$GITHUB_ENV"
-          echo "[release-pull-request-gate] target=$target_branch version_file=$version_file tag_prefix=$tag_prefix"
+          echo "[release-draft-gate] service=$SERVICE tag=$RELEASE_TAG image=$image_name:$image_tag"
 
-      - name: Check pull request direction
+      - name: Fetch main and tags
         run: |
           set -euo pipefail
-          echo "[release-pull-request-gate] 시작: 릴리즈 pull request 방향이 main에서 대상 release 브랜치로 향하는지 확인합니다."
-          [[ -n "${PULL_REQUEST_BASE_REF:-}" ]] || { echo "::error::cannot determine pull request base ref"; exit 1; }
-          [[ -n "${PULL_REQUEST_HEAD_REF:-}" ]] || { echo "::error::cannot determine pull request head ref"; exit 1; }
-          [[ "$PULL_REQUEST_BASE_REF" == "$TARGET_BRANCH" ]] || { echo "::error::invalid release pull request base: expected '$TARGET_BRANCH', got '$PULL_REQUEST_BASE_REF'"; exit 1; }
-          [[ "$PULL_REQUEST_HEAD_REF" == "main" ]] || { echo "::error::invalid release pull request head: expected 'main', got '$PULL_REQUEST_HEAD_REF'"; exit 1; }
-          echo "[release-pull-request-gate] direction_ok base=$PULL_REQUEST_BASE_REF head=$PULL_REQUEST_HEAD_REF"
+          git fetch --no-tags origin '+refs/heads/main:refs/remotes/origin/main'
+          git fetch --tags origin
+          git rev-parse -q --verify "refs/tags/${RELEASE_TAG}" >/dev/null || { echo "::error::release tag not found: $RELEASE_TAG"; exit 1; }
+          tag_sha="$(git rev-list -n 1 "$RELEASE_TAG")"
+          echo "TAG_SHA=$tag_sha" >> "$GITHUB_ENV"
+          echo "[release-draft-gate] tag_sha=$tag_sha"
 
-      - name: Check version and tag candidate
+      - name: Verify tag commit is on main
         run: |
           set -euo pipefail
-          echo "[release-pull-request-gate] 시작: VERSION 파일을 읽고 SemVer 형식과 생성될 릴리즈 태그명을 확인합니다."
-          [[ -f "$VERSION_FILE" ]] || { echo "::error::version file not found: $VERSION_FILE"; exit 1; }
-          version="$(tr -d '[:space:]' < "$VERSION_FILE")"
-          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::invalid semver in $VERSION_FILE: '$version'"; exit 1; }
-          tag_name="${TAG_PREFIX}/v${version}"
-          {
-            echo "VERSION=$version"
-            echo "TAG_NAME=$tag_name"
-          } >> "$GITHUB_ENV"
-          echo "[release-pull-request-gate] version=$version tag=$tag_name"
+          git merge-base --is-ancestor "$TAG_SHA" origin/main || { echo "::error::tag commit is not contained in origin/main: $TAG_SHA"; exit 1; }
+          echo "[release-draft-gate] tag_on_main=true"
 
-      - name: Fetch release refs and tags
+      - name: Verify draft release metadata
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          echo "[release-pull-request-gate] 시작: 비교에 필요한 base/head 브랜치와 기존 태그 목록을 가져옵니다."
-          git fetch --no-tags origin "+refs/heads/${PULL_REQUEST_BASE_REF}:refs/remotes/origin/${PULL_REQUEST_BASE_REF}" >/dev/null 2>&1 || { echo "::error::failed to fetch origin/$PULL_REQUEST_BASE_REF"; exit 1; }
-          git fetch --no-tags origin "+refs/heads/${PULL_REQUEST_HEAD_REF}:refs/remotes/origin/${PULL_REQUEST_HEAD_REF}" >/dev/null 2>&1 || { echo "::error::failed to fetch origin/$PULL_REQUEST_HEAD_REF"; exit 1; }
-          git fetch --tags origin >/dev/null 2>&1 || { echo "::error::failed to fetch tags"; exit 1; }
-          echo "[release-pull-request-gate] fetched base=$PULL_REQUEST_BASE_REF head=$PULL_REQUEST_HEAD_REF tags=true"
-
-      - name: Check duplicate release tag
-        run: |
-          set -euo pipefail
-          echo "[release-pull-request-gate] 시작: 같은 이름의 릴리즈 태그가 이미 존재하는지 확인합니다."
-          if git rev-parse -q --verify "refs/tags/${TAG_NAME}" >/dev/null; then
-            echo "::error::release tag already exists: $TAG_NAME"
-            exit 1
-          fi
-          echo "[release-pull-request-gate] tag_available=$TAG_NAME"
-
-      - name: Check commits to promote
-        run: |
-          set -euo pipefail
-          echo "[release-pull-request-gate] 시작: release 브랜치로 승격할 main 커밋이 실제로 존재하는지 확인합니다."
-          commit_count="$(git rev-list --count "origin/${PULL_REQUEST_BASE_REF}..origin/${PULL_REQUEST_HEAD_REF}")"
-          [[ "$commit_count" =~ ^[0-9]+$ ]] || { echo "::error::could not calculate release diff commit count"; exit 1; }
-          (( commit_count > 0 )) || { echo "::error::no commits to promote: origin/$PULL_REQUEST_HEAD_REF is not ahead of origin/$PULL_REQUEST_BASE_REF"; exit 1; }
-          echo "COMMIT_COUNT=$commit_count" >> "$GITHUB_ENV"
-          echo "[release-pull-request-gate] commits_to_promote=$commit_count"
-
-      - name: Write release diff summary
-        run: |
-          set -euo pipefail
-          echo "[release-pull-request-gate] 시작: 승격 대상 파일 변경 요약을 GitHub Actions Summary에 기록합니다."
-          diff_summary="$(git diff --name-status "origin/${PULL_REQUEST_BASE_REF}...origin/${PULL_REQUEST_HEAD_REF}" | head -200)"
-          [[ -n "$diff_summary" ]] || { echo "::error::diff summary is empty despite positive commit count"; exit 1; }
-          {
-            echo "## Release Pull Request Gate"
-            echo "- Base: \`${PULL_REQUEST_BASE_REF}\`"
-            echo "- Head: \`${PULL_REQUEST_HEAD_REF}\`"
-            echo "- Version: \`${VERSION}\`"
-            echo "- Tag candidate: \`${TAG_NAME}\`"
-            echo "- Commits to promote: \`${COMMIT_COUNT}\`"
-            echo
-            echo "### Diff summary"
-            echo '```'
-            echo "$diff_summary"
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-          echo "[release-pull-request-gate] diff_summary_written=true"
+          release_json="$(curl -fsSL \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/tags/${RELEASE_TAG}")" || { echo "::error::draft release not found for tag: $RELEASE_TAG"; exit 1; }
+          RELEASE_JSON="$release_json" python3 - <<'PY'
+          import json, os, sys
+          data = json.loads(os.environ['RELEASE_JSON'])
+          if not data.get('draft'):
+              print('::error::release must be draft before production publish', file=sys.stderr)
+              sys.exit(1)
+          if data.get('prerelease'):
+              print('::error::production release must not be marked as prerelease', file=sys.stderr)
+              sys.exit(1)
+          body = (data.get('body') or '').strip()
+          if len(body) < 40:
+              print('::error::release changelog is empty or too short', file=sys.stderr)
+              sys.exit(1)
+          print(f"[release-draft-gate] draft_release=true release_id={data.get('id')} body_length={len(body)}")
+          PY
 
       - name: Verify main CI evidence
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          echo "[release-pull-request-gate] 시작: pull request head SHA에 해당하는 main push CI 성공 이력을 GitHub Actions에서 확인합니다."
-          if [[ "$REQUIRE_MAIN_CI" != "true" ]]; then
-            echo "[release-pull-request-gate] main_ci_required=false"
-            exit 0
-          fi
-          [[ -n "${MAIN_CI_WORKFLOW:-}" ]] || { echo "::error::MAIN_CI_WORKFLOW is required when REQUIRE_MAIN_CI=true"; exit 1; }
-          [[ -n "${GITHUB_REPOSITORY:-}" ]] || { echo "::error::GITHUB_REPOSITORY is required to verify main CI evidence"; exit 1; }
-          [[ -n "${GITHUB_TOKEN:-}" ]] || { echo "::error::GITHUB_TOKEN required to verify main CI evidence"; exit 1; }
-          [[ -n "${PULL_REQUEST_HEAD_SHA:-}" ]] || { echo "::error::cannot determine pull request head sha for main CI evidence"; exit 1; }
-          api_url="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/${MAIN_CI_WORKFLOW}/runs?branch=main&event=push&head_sha=${PULL_REQUEST_HEAD_SHA}&status=success&per_page=1"
-          ci_json="$(curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "$api_url")" || { echo "::error::failed to query main CI evidence"; exit 1; }
+          api_url="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/${MAIN_CI_WORKFLOW}/runs?branch=main&event=push&head_sha=${TAG_SHA}&status=success&per_page=1"
+          ci_json="$(curl -fsSL \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "$api_url")" || { echo "::error::failed to query main CI evidence"; exit 1; }
           CI_JSON="$ci_json" python3 - "$MAIN_CI_WORKFLOW" <<'PY'
           import json, os, sys
           workflow = sys.argv[1]
-          data = json.loads(os.environ["CI_JSON"])
-          runs = data.get("workflow_runs", [])
+          runs = json.loads(os.environ['CI_JSON']).get('workflow_runs', [])
           if not runs:
-              print(f"::error::no successful push run found for main CI workflow: {workflow}", file=sys.stderr)
+              print(f"::error::no successful main push CI run found for {workflow} at tag commit", file=sys.stderr)
               sys.exit(1)
           run = runs[0]
-          if run.get("conclusion") != "success" or run.get("event") != "push":
-              print(f"::error::latest matching run is not a successful push run: {run.get('status')} / {run.get('conclusion')} / {run.get('event')}", file=sys.stderr)
-              sys.exit(1)
-          print(f"[release-pull-request-gate] main_ci_success={workflow} run_id={run.get('id')}")
+          print(f"[release-draft-gate] main_ci_success={workflow} run_id={run.get('id')}")
           PY
 
-      - name: Finish release gate
+      - name: Write release draft gate summary
         run: |
-          echo "[release-pull-request-gate] 시작: 모든 릴리즈 pull request gate 검증이 끝났음을 기록합니다."
-          echo "[release-pull-request-gate] release pull request gate passed"
+          set -euo pipefail
+          diff_summary="$(git diff --name-status "${RELEASE_TAG}^..${RELEASE_TAG}" | head -200 || true)"
+          {
+            echo "## Backend Release Draft Gate"
+            echo "- Service: \`${SERVICE}\`"
+            echo "- Release tag: \`${RELEASE_TAG}\`"
+            echo "- Tag commit: \`${TAG_SHA}\`"
+            echo "- Docker image: \`${IMAGE_NAME}:${IMAGE_TAG}\`"
+            echo "- Main ancestry: \`passed\`"
+            echo "- Draft release metadata: \`passed\`"
+            echo "- Main CI evidence: \`passed\`"
+            echo
+            echo "### Last-tag diff summary"
+            echo '```'
+            echo "${diff_summary:-No file changes detected for the tagged commit itself.}"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "[release-draft-gate] release draft gate passed"
