@@ -1,4 +1,4 @@
-name: Backend Release Gate
+name: release draft gate
 
 on:
   release:
@@ -7,12 +7,19 @@ on:
       - published
   workflow_dispatch:
     inputs:
+      service:
+        description: 'Backend service to release'
+        required: true
+        type: choice
+        options:
+          - product
+          - admin
       tag:
-        description: 'Backend release tag, for example backend/v1.2.3'
+        description: 'Release tag, for example product/v1.2.3 or admin/v1.2.3'
         required: true
         type: string
       expected_state:
-        description: 'Expected release state before optional auto publish'
+        description: 'Expected release state'
         required: true
         type: choice
         default: draft
@@ -24,7 +31,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: backend-release-gate-${{ github.event_name }}-${{ github.event.release.tag_name || inputs.tag }}
+  group: release-draft-gate-${{ github.event_name }}-${{ github.event.release.tag_name || inputs.tag }}
   cancel-in-progress: false
 
 jobs:
@@ -35,6 +42,7 @@ jobs:
     env:
       EVENT_NAME: ${{ github.event_name }}
       RELEASE_ACTION: ${{ github.event.action || '' }}
+      INPUT_SERVICE: ${{ inputs.service || '' }}
       INPUT_TAG: ${{ inputs.tag || '' }}
       INPUT_EXPECTED_STATE: ${{ inputs.expected_state || '' }}
       EVENT_TAG: ${{ github.event.release.tag_name || '' }}
@@ -46,12 +54,29 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Resolve backend release target
+      - name: Resolve release target
         run: |
           set -euo pipefail
           release_tag="${EVENT_TAG:-$INPUT_TAG}"
           [[ -n "$release_tag" ]] || { echo "::error::release tag is required"; exit 1; }
-          [[ "$release_tag" =~ ^backend/v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::backend release tag required, got: $release_tag"; exit 1; }
+
+          if [[ "$release_tag" =~ ^product/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            service="product"
+            image_name="bottlenote-product-api"
+            image_tag="product_${release_tag#product/v}"
+          elif [[ "$release_tag" =~ ^admin/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            service="admin"
+            image_name="bottlenote-admin-api"
+            image_tag="admin_${release_tag#admin/v}"
+          else
+            echo "::error::unsupported backend release tag: $release_tag"
+            exit 1
+          fi
+
+          if [[ -n "$INPUT_SERVICE" && "$INPUT_SERVICE" != "$service" ]]; then
+            echo "::error::input service '$INPUT_SERVICE' does not match tag service '$service'"
+            exit 1
+          fi
 
           expected_state="$INPUT_EXPECTED_STATE"
           if [[ -z "$expected_state" ]]; then
@@ -63,12 +88,14 @@ jobs:
           fi
 
           {
+            echo "SERVICE=$service"
             echo "RELEASE_TAG=$release_tag"
-            echo "RELEASE_VERSION=${release_tag#backend/v}"
             echo "EXPECTED_STATE=$expected_state"
+            echo "IMAGE_NAME=$image_name"
+            echo "IMAGE_TAG=$image_tag"
           } >> "$GITHUB_ENV"
 
-          echo "[backend-release-gate] event=$EVENT_NAME action=${RELEASE_ACTION:-manual} tag=$release_tag expected_state=$expected_state"
+          echo "[release-draft-gate] event=$EVENT_NAME action=${RELEASE_ACTION:-manual} service=$service tag=$release_tag expected_state=$expected_state image=$image_name:$image_tag"
 
       - name: Fetch main and release tag
         run: |
@@ -78,15 +105,15 @@ jobs:
           git rev-parse -q --verify "refs/tags/${RELEASE_TAG}" >/dev/null || { echo "::error::release tag not found: $RELEASE_TAG"; exit 1; }
           tag_sha="$(git rev-list -n 1 "$RELEASE_TAG")"
           echo "TAG_SHA=$tag_sha" >> "$GITHUB_ENV"
-          echo "[backend-release-gate] tag_sha=$tag_sha"
+          echo "[release-draft-gate] tag_sha=$tag_sha"
 
       - name: Verify tag commit is on main
         run: |
           set -euo pipefail
           git merge-base --is-ancestor "$TAG_SHA" origin/main || { echo "::error::tag commit is not contained in origin/main: $TAG_SHA"; exit 1; }
-          echo "[backend-release-gate] tag_on_main=true"
+          echo "[release-draft-gate] tag_on_main=true"
 
-      - name: Verify release metadata manifest
+      - name: Verify release metadata
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -97,101 +124,31 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases?per_page=100")" || { echo "::error::failed to list releases"; exit 1; }
           RELEASES_JSON="$releases_json" python3 - <<'PY'
-          import json, os, re, sys
-
+          import json, os, sys
           tag = os.environ['RELEASE_TAG']
-          expected = os.environ['EXPECTED_STATE']
           releases = json.loads(os.environ['RELEASES_JSON'])
-          release = next((item for item in releases if item.get('tag_name') == tag), None)
-          if release is None:
+          data = next((release for release in releases if release.get('tag_name') == tag), None)
+          if data is None:
               print(f'::error::release not found for tag: {tag}', file=sys.stderr)
               sys.exit(1)
-
-          draft = bool(release.get('draft'))
-          prerelease = bool(release.get('prerelease'))
-          body = (release.get('body') or '').strip()
+          expected = os.environ['EXPECTED_STATE']
+          draft = bool(data.get('draft'))
+          prerelease = bool(data.get('prerelease'))
+          body = (data.get('body') or '').strip()
           if expected == 'draft' and not draft:
-              print('::error::release must be draft before publish automation', file=sys.stderr)
+              print('::error::release must be draft for draft gate', file=sys.stderr)
               sys.exit(1)
           if expected == 'published' and draft:
               print('::error::release must be published after publish event', file=sys.stderr)
               sys.exit(1)
           if prerelease:
-              print('::error::backend production release must not be marked as prerelease', file=sys.stderr)
+              print('::error::production release must not be marked as prerelease', file=sys.stderr)
               sys.exit(1)
-
-          match = re.search(r'```json\s*(\{.*?\})\s*```', body, re.S)
-          manifest_text = match.group(1) if match else body
-          try:
-              manifest = json.loads(manifest_text)
-          except json.JSONDecodeError as exc:
-              print(f'::error::release body must contain a JSON manifest: {exc}', file=sys.stderr)
+          if len(body) < 40:
+              print('::error::release changelog is empty or too short', file=sys.stderr)
               sys.exit(1)
-
-          if manifest.get('releaseType') != 'backend':
-              print('::error::manifest.releaseType must be backend', file=sys.stderr)
-              sys.exit(1)
-          if not isinstance(manifest.get('autoPublish'), bool):
-              print('::error::manifest.autoPublish must be boolean', file=sys.stderr)
-              sys.exit(1)
-          services = manifest.get('services')
-          if not isinstance(services, dict):
-              print('::error::manifest.services must be object', file=sys.stderr)
-              sys.exit(1)
-
-          version_pattern = re.compile(r'^\d+\.\d+\.\d+$')
-          summary = []
-          for name in ('admin', 'product'):
-              service = services.get(name)
-              if not isinstance(service, dict):
-                  print(f'::error::manifest.services.{name} must be object', file=sys.stderr)
-                  sys.exit(1)
-              deploy = service.get('deploy')
-              if not isinstance(deploy, bool):
-                  print(f'::error::manifest.services.{name}.deploy must be boolean', file=sys.stderr)
-                  sys.exit(1)
-              version = service.get('version')
-              image_tag = service.get('imageTag')
-              if deploy:
-                  if not isinstance(version, str) or not version_pattern.match(version):
-                      print(f'::error::{name} deploy=true requires semver version', file=sys.stderr)
-                      sys.exit(1)
-                  expected_image_tag = f'{name}_{version}'
-                  if image_tag not in (None, expected_image_tag):
-                      print(f'::error::{name} imageTag must be {expected_image_tag}', file=sys.stderr)
-                      sys.exit(1)
-                  image_tag = expected_image_tag
-              else:
-                  if version is not None and (not isinstance(version, str) or not version_pattern.match(version)):
-                      print(f'::error::{name} deploy=false version must be null or semver', file=sys.stderr)
-                      sys.exit(1)
-                  if image_tag is not None:
-                      print(f'::error::{name} deploy=false imageTag must be null', file=sys.stderr)
-                      sys.exit(1)
-              summary.append(f'{name}:deploy={str(deploy).lower()}:version={version or "none"}:image={image_tag or "none"}')
-
-          with open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8') as env:
-              env.write(f"RELEASE_ID={release.get('id')}\n")
-              env.write(f"AUTO_PUBLISH={str(manifest.get('autoPublish')).lower()}\n")
-              env.write(f"ADMIN_DEPLOY={str(services['admin']['deploy']).lower()}\n")
-              env.write(f"PRODUCT_DEPLOY={str(services['product']['deploy']).lower()}\n")
-              env.write(f"MANIFEST_SUMMARY={';'.join(summary)}\n")
-          print(f"[backend-release-gate] release_state={expected} release_id={release.get('id')} auto_publish={manifest.get('autoPublish')} {' '.join(summary)}")
+          print(f"[release-draft-gate] release_state={expected} release_id={data.get('id')} body_length={len(body)}")
           PY
-
-      - name: Publish release after successful gate
-        if: ${{ env.EXPECTED_STATE == 'draft' && env.AUTO_PUBLISH == 'true' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          curl -fsSL -X PATCH \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" \
-            -d '{"draft":false}' >/dev/null
-          echo "[backend-release-gate] release_published=true release_id=${RELEASE_ID}"
 
       - name: Write release gate summary
         run: |
@@ -199,13 +156,12 @@ jobs:
           {
             echo "## Backend Release Gate"
             echo "- Event: \`${EVENT_NAME}/${RELEASE_ACTION:-manual}\`"
+            echo "- Service: \`${SERVICE}\`"
             echo "- Release tag: \`${RELEASE_TAG}\`"
-            echo "- Release version: \`${RELEASE_VERSION}\`"
             echo "- Expected state: \`${EXPECTED_STATE}\`"
             echo "- Tag commit: \`${TAG_SHA}\`"
-            echo "- Manifest: \`${MANIFEST_SUMMARY}\`"
-            echo "- Auto publish: \`${AUTO_PUBLISH}\`"
+            echo "- Docker image: \`${IMAGE_NAME}:${IMAGE_TAG}\`"
             echo "- Main ancestry: \`passed\`"
             echo "- Release metadata: \`passed\`"
           } >> "$GITHUB_STEP_SUMMARY"
-          echo "[backend-release-gate] release gate passed"
+          echo "[release-draft-gate] release gate passed"
