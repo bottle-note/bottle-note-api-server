@@ -59,16 +59,12 @@ jobs:
           tag_sha="$(git rev-list -n 1 "$release_tag")"
           git merge-base --is-ancestor "$tag_sha" origin/main || { echo "::error::tag commit is not contained in origin/main: $tag_sha"; exit 1; }
 
-          if [[ "$EVENT_NAME" == "release" ]]; then
-            [[ "$EVENT_DRAFT" == "false" ]] || { echo "::error::release event must be published"; exit 1; }
-            [[ "$EVENT_PRERELEASE" == "false" ]] || { echo "::error::production release must not be prerelease"; exit 1; }
-          else
-            releases_json="$(curl -fsSL \
-              -H "Authorization: Bearer ${GH_TOKEN}" \
-              -H "Accept: application/vnd.github+json" \
-              -H "X-GitHub-Api-Version: 2022-11-28" \
-              "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases?per_page=100")"
-            RELEASES_JSON="$releases_json" RELEASE_TAG="$release_tag" python3 - <<'PY'
+          releases_json="$(curl -fsSL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases?per_page=100")"
+          RELEASES_JSON="$releases_json" RELEASE_TAG="$release_tag" python3 - <<'PY'
           import json, os, sys
           tag = os.environ['RELEASE_TAG']
           releases = json.loads(os.environ['RELEASES_JSON'])
@@ -84,7 +80,6 @@ jobs:
               sys.exit(1)
           print(f"release_id={release.get('id')}")
           PY
-          fi
 
           {
             echo "release-tag=$release_tag"
