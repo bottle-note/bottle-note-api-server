@@ -1,4 +1,4 @@
-name: deploy api on development
+name: deploy development applications
 
 on:
   workflow_dispatch:
