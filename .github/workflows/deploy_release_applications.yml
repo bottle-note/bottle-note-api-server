@@ -132,14 +132,14 @@ jobs:
             -x test -x asciidoctor --build-cache --parallel
 
       - name: upload product jar
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: product-jar
           path: bottlenote-product-api/build/libs/bottlenote-product-api.jar
           retention-days: 1
 
       - name: upload admin jar
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: admin-jar
           path: bottlenote-admin-api/build/libs/bottlenote-admin-api.jar
