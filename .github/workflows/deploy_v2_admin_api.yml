@@ -124,6 +124,11 @@ jobs:
         run: |
           ./gradlew :bottlenote-admin-api:build -x test -x asciidoctor --build-cache --parallel
 
+      - name: refresh docker build action from main
+        run: |
+          git fetch --no-tags origin '+refs/heads/main:refs/remotes/origin/main'
+          git checkout origin/main -- .github/actions/docker-build-push/action.yml
+
       - name: build and push to registry
         id: build
         uses: ./.github/actions/docker-build-push
