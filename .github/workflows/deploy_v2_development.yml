@@ -9,6 +9,11 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  actions: read
+  deployments: write
+
 concurrency:
   group: "deploy-development"
   cancel-in-progress: true
@@ -219,3 +224,88 @@ jobs:
           done
 
           echo "Development deployment triggered"
+
+  record-development-deployments:
+    needs: [prepare-build, build-product-image, build-admin-image, update-development]
+    if: always() && needs.prepare-build.result == 'success'
+    runs-on: ubuntu-latest
+    env:
+      GH_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PRODUCT_IMAGE_TAG: ${{ needs.prepare-build.outputs.product-image-tag }}
+      ADMIN_IMAGE_TAG: ${{ needs.prepare-build.outputs.admin-image-tag }}
+      PRODUCT_IMAGE_DIGEST: ${{ needs.build-product-image.outputs.image-digest }}
+      ADMIN_IMAGE_DIGEST: ${{ needs.build-admin-image.outputs.image-digest }}
+      SHORT_SHA: ${{ needs.prepare-build.outputs.short-sha }}
+      BUILD_PRODUCT_RESULT: ${{ needs.build-product-image.result }}
+      BUILD_ADMIN_RESULT: ${{ needs.build-admin-image.result }}
+      UPDATE_RESULT: ${{ needs.update-development.result }}
+    steps:
+      - name: Register Development deployments
+        run: |
+          set -euo pipefail
+          if [[ "$BUILD_PRODUCT_RESULT" == "success" && "$BUILD_ADMIN_RESULT" == "success" && "$UPDATE_RESULT" == "success" ]]; then
+            deployment_state="success"
+          else
+            deployment_state="failure"
+          fi
+          create_deployment() {
+            local service="$1" image_name="$2" image_tag="$3" image_digest="$4" public_url="$5" status_url="$6"
+            python3 - "$service" "$image_name" "$image_tag" "$image_digest" "$public_url" "$status_url" "$deployment_state" <<'PY' >/tmp/development-deployment.json
+          import json, os, sys
+          service, image_name, image_tag, image_digest, public_url, status_url, state = sys.argv[1:8]
+          payload = {
+              "name": "Development",
+              "description": "개발 API 배포 환경 메타데이터",
+              "public_url": public_url,
+              "status_url": status_url,
+              "service": service,
+              "version": image_tag,
+              "image_tag": image_tag,
+              "image_digest": image_digest,
+              "target": {
+                  "service": service,
+                  "namespace": "bottlenote-development",
+                  "deployment": service,
+                  "image": f"{image_name}:{image_tag}",
+              },
+              "source_sha": os.environ["GITHUB_SHA"],
+              "workflow_run_id": os.environ["GITHUB_RUN_ID"],
+          }
+          print(json.dumps({
+              "ref": os.environ["GITHUB_SHA"],
+              "environment": "Development",
+              "description": f"{service} Development deployment",
+              "auto_merge": False,
+              "required_contexts": [],
+              "production_environment": False,
+              "transient_environment": False,
+              "payload": payload,
+          }))
+          PY
+            curl -fsSL -X POST \
+              -H "Authorization: Bearer ${GH_API_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -d @/tmp/development-deployment.json \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/deployments" >/tmp/development-deployment-response.json
+            deployment_id="$(python3 -c 'import json; print(json.load(open("/tmp/development-deployment-response.json"))["id"])')"
+            python3 - "$public_url" "$deployment_state" "$service" <<'PY' >/tmp/development-status.json
+          import json, os, sys
+          public_url, state, service = sys.argv[1:4]
+          print(json.dumps({
+              "state": state,
+              "environment": "Development",
+              "environment_url": public_url,
+              "log_url": f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}",
+              "description": f"{service} Development deployment {state}",
+              "auto_inactive": False,
+          }))
+          PY
+            curl -fsSL -X POST \
+              -H "Authorization: Bearer ${GH_API_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -d @/tmp/development-status.json \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/deployments/${deployment_id}/statuses" >/dev/null
+            echo "[deploy-development] service=$service deployment_id=$deployment_id state=$deployment_state"
+          }
+          create_deployment product-api bottlenote-product-api "$PRODUCT_IMAGE_TAG" "$PRODUCT_IMAGE_DIGEST" https://api.development.bottle-note.com https://api.development.bottle-note.com/actuator/health
+          create_deployment admin-api bottlenote-admin-api "$ADMIN_IMAGE_TAG" "$ADMIN_IMAGE_DIGEST" https://admin-api.development.bottle-note.com https://admin-api.development.bottle-note.com/actuator/health

@@ -24,6 +24,7 @@ jobs:
       PULL_REQUEST_BASE_REF: ${{ github.event.pull_request.base.ref }}
       PULL_REQUEST_HEAD_REF: ${{ github.event.pull_request.head.ref }}
       PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      PULL_REQUEST_TITLE: ${{ github.event.pull_request.title }}
       MAIN_CI_WORKFLOW: ci_pipeline.yml
       REQUIRE_MAIN_CI: 'true'
     steps:
@@ -35,16 +36,18 @@ jobs:
       - name: Select release target
         run: |
           set -euo pipefail
-          echo "[release-pull-request-gate] 시작: pull request base 브랜치에 맞는 릴리즈 대상, 버전 파일, 태그 prefix를 선택합니다."
+          echo "[release-pull-request-gate] 시작: pull request base 브랜치에 맞는 릴리즈 대상과 서비스 prefix를 선택합니다."
           case "$PULL_REQUEST_BASE_REF" in
             release/product)
               target_branch="release/product"
-              version_file="bottlenote-product-api/VERSION"
+              service_name="product-api"
+              title_prefix="product"
               tag_prefix="product"
               ;;
             release/admin)
               target_branch="release/admin"
-              version_file="bottlenote-admin-api/VERSION"
+              service_name="admin-api"
+              title_prefix="admin"
               tag_prefix="admin"
               ;;
             *)
@@ -54,10 +57,11 @@ jobs:
           esac
           {
             echo "TARGET_BRANCH=$target_branch"
-            echo "VERSION_FILE=$version_file"
+            echo "SERVICE_NAME=$service_name"
+            echo "TITLE_PREFIX=$title_prefix"
             echo "TAG_PREFIX=$tag_prefix"
           } >> "$GITHUB_ENV"
-          echo "[release-pull-request-gate] target=$target_branch version_file=$version_file tag_prefix=$tag_prefix"
+          echo "[release-pull-request-gate] target=$target_branch service=$service_name tag_prefix=$tag_prefix"
 
       - name: Check pull request direction
         run: |
@@ -69,19 +73,24 @@ jobs:
           [[ "$PULL_REQUEST_HEAD_REF" == "main" ]] || { echo "::error::invalid release pull request head: expected 'main', got '$PULL_REQUEST_HEAD_REF'"; exit 1; }
           echo "[release-pull-request-gate] direction_ok base=$PULL_REQUEST_BASE_REF head=$PULL_REQUEST_HEAD_REF"
 
-      - name: Check version and tag candidate
+      - name: Check title version and tag candidate
         run: |
           set -euo pipefail
-          echo "[release-pull-request-gate] 시작: VERSION 파일을 읽고 SemVer 형식과 생성될 릴리즈 태그명을 확인합니다."
-          [[ -f "$VERSION_FILE" ]] || { echo "::error::version file not found: $VERSION_FILE"; exit 1; }
-          version="$(tr -d '[:space:]' < "$VERSION_FILE")"
-          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::invalid semver in $VERSION_FILE: '$version'"; exit 1; }
+          echo "[release-pull-request-gate] 시작: pull request 제목에서 서비스/버전을 읽고 태그 후보를 확인합니다."
+          pattern="^\[deploy\] ${TITLE_PREFIX}-v([0-9]+\.[0-9]+\.[0-9]+)$"
+          if [[ ! "$PULL_REQUEST_TITLE" =~ $pattern ]]; then
+            echo "::error::invalid release pull request title: expected '[deploy] ${TITLE_PREFIX}-vX.Y.Z', got '$PULL_REQUEST_TITLE'"
+            exit 1
+          fi
+          version="${BASH_REMATCH[1]}"
           tag_name="${TAG_PREFIX}/v${version}"
+          image_tag="${TAG_PREFIX}_${version}"
           {
             echo "VERSION=$version"
             echo "TAG_NAME=$tag_name"
+            echo "IMAGE_TAG=$image_tag"
           } >> "$GITHUB_ENV"
-          echo "[release-pull-request-gate] version=$version tag=$tag_name"
+          echo "[release-pull-request-gate] version=$version tag=$tag_name image_tag=$image_tag"
 
       - name: Fetch release refs and tags
         run: |
@@ -122,8 +131,10 @@ jobs:
             echo "## Release Pull Request Gate"
             echo "- Base: \`${PULL_REQUEST_BASE_REF}\`"
             echo "- Head: \`${PULL_REQUEST_HEAD_REF}\`"
+            echo "- Service: \`${SERVICE_NAME}\`"
             echo "- Version: \`${VERSION}\`"
             echo "- Tag candidate: \`${TAG_NAME}\`"
+            echo "- Image tag: \`${IMAGE_TAG}\`"
             echo "- Commits to promote: \`${COMMIT_COUNT}\`"
             echo
             echo "### Diff summary"
@@ -148,7 +159,7 @@ jobs:
           [[ -n "${GITHUB_TOKEN:-}" ]] || { echo "::error::GITHUB_TOKEN required to verify main CI evidence"; exit 1; }
           [[ -n "${PULL_REQUEST_HEAD_SHA:-}" ]] || { echo "::error::cannot determine pull request head sha for main CI evidence"; exit 1; }
           api_url="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/${MAIN_CI_WORKFLOW}/runs?branch=main&event=push&head_sha=${PULL_REQUEST_HEAD_SHA}&status=success&per_page=1"
-          ci_json="$(curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "$api_url")" || { echo "::error::failed to query main CI evidence"; exit 1; }
+          ci_json="$(curl -fsSL -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "Accept: application/vnd.github+json" "$api_url")" || { echo "::error::failed to query main CI evidence"; exit 1; }
           CI_JSON="$ci_json" python3 - "$MAIN_CI_WORKFLOW" <<'PY'
           import json, os, sys
           workflow = sys.argv[1]

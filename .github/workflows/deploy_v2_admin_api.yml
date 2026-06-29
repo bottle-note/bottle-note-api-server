@@ -2,48 +2,143 @@ name: deploy v2 admin api production
 
 on:
   workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Create deployment metadata only; skip tag creation, build, push, and GitOps update'
+        required: true
+        default: 'true'
+        type: choice
+        options: ['true', 'false']
+      release-title:
+        description: 'Release title to parse, e.g. [deploy] admin-v1.2.3'
+        required: true
+        default: '[deploy] admin-v0.0.0'
+      source-sha:
+        description: 'Optional source SHA for dry-run deployment metadata'
+        required: false
+      deployment-environment:
+        description: 'GitHub Deployment environment for workflow_dispatch tests'
+        required: true
+        default: 'Development'
+        type: choice
+        options: ['Development', 'Production']
   pull_request:
     types: [ closed ]
     branches:
       - 'release/admin'
 
 permissions:
-  contents: read
+  contents: write
   actions: read
+  deployments: write
 
 concurrency:
   group: "deploy-admin-production"
   cancel-in-progress: true
 
 env:
+  SERVICE_NAME: admin-api
+  RELEASE_TITLE_PREFIX: admin
+  TAG_PREFIX: admin
   IMAGE_NAME: bottlenote-admin-api
+  IMAGE_TAG_PREFIX: admin
+  K8S_DEPLOYMENT: admin-api
+  PRODUCTION_PUBLIC_URL: https://admin-api.bottle-note.com
+  PRODUCTION_STATUS_URL: https://admin-api.bottle-note.com/actuator/health
+  DEVELOPMENT_PUBLIC_URL: https://admin-api.development.bottle-note.com
+  DEVELOPMENT_STATUS_URL: https://admin-api.development.bottle-note.com/actuator/health
 
 jobs:
-  verify-release-pull-request-gate:
-    name: verify release pull request gate
+  prepare-release:
+    name: prepare release metadata
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.prepare.outputs.version }}
+      image-tag: ${{ steps.prepare.outputs.image-tag }}
+      tag-name: ${{ steps.prepare.outputs.tag-name }}
+      source-sha: ${{ steps.prepare.outputs.source-sha }}
+      deployment-id: ${{ steps.deployment.outputs.deployment-id }}
+      deployment-environment: ${{ steps.prepare.outputs.deployment-environment }}
+      public-url: ${{ steps.prepare.outputs.public-url }}
+      status-url: ${{ steps.prepare.outputs.status-url }}
+      k8s-namespace: ${{ steps.prepare.outputs.k8s-namespace }}
+      dry-run: ${{ steps.prepare.outputs.dry-run }}
     steps:
+      - name: Parse release metadata
+        id: prepare
+        env:
+          PULL_REQUEST_TITLE: ${{ github.event.pull_request.title }}
+          PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+          PULL_REQUEST_MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          DISPATCH_TITLE: ${{ inputs.release-title }}
+          DISPATCH_SOURCE_SHA: ${{ inputs.source-sha }}
+          DISPATCH_DRY_RUN: ${{ inputs.dry-run }}
+          DISPATCH_ENVIRONMENT: ${{ inputs.deployment-environment }}
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            release_title="$DISPATCH_TITLE"
+            source_sha="${DISPATCH_SOURCE_SHA:-${GITHUB_SHA}}"
+            dry_run="$DISPATCH_DRY_RUN"
+            deployment_environment="$DISPATCH_ENVIRONMENT"
+            release_pr="manual"
+          else
+            release_title="$PULL_REQUEST_TITLE"
+            source_sha="${PULL_REQUEST_MERGE_SHA:-${GITHUB_SHA}}"
+            dry_run="false"
+            deployment_environment="Production"
+            release_pr="$PULL_REQUEST_NUMBER"
+          fi
+          [[ "$deployment_environment" == "Production" || "$deployment_environment" == "Development" ]] || { echo "::error::unsupported deployment environment: $deployment_environment"; exit 1; }
+          pattern="^\[deploy\] ${RELEASE_TITLE_PREFIX}-v([0-9]+\.[0-9]+\.[0-9]+)$"
+          if [[ ! "$release_title" =~ $pattern ]]; then
+            echo "::error::invalid release title: expected '[deploy] ${RELEASE_TITLE_PREFIX}-vX.Y.Z', got '$release_title'"
+            exit 1
+          fi
+          version="${BASH_REMATCH[1]}"
+          image_tag="${IMAGE_TAG_PREFIX}_${version}"
+          tag_name="${TAG_PREFIX}/v${version}"
+          if [[ "$deployment_environment" == "Production" ]]; then
+            public_url="$PRODUCTION_PUBLIC_URL"
+            status_url="$PRODUCTION_STATUS_URL"
+            k8s_namespace="bottlenote-production"
+          else
+            public_url="$DEVELOPMENT_PUBLIC_URL"
+            status_url="$DEVELOPMENT_STATUS_URL"
+            k8s_namespace="bottlenote-development"
+          fi
+          {
+            echo "version=$version"
+            echo "image-tag=$image_tag"
+            echo "tag-name=$tag_name"
+            echo "source-sha=$source_sha"
+            echo "deployment-environment=$deployment_environment"
+            echo "public-url=$public_url"
+            echo "status-url=$status_url"
+            echo "k8s-namespace=$k8s_namespace"
+            echo "dry-run=$dry_run"
+            echo "release-pr=$release_pr"
+          } >> "$GITHUB_OUTPUT"
+          echo "[deploy-release] service=${SERVICE_NAME} version=$version tag=$tag_name image_tag=$image_tag environment=$deployment_environment dry_run=$dry_run"
+
       - name: Verify release pull request gate passed
+        if: github.event_name == 'pull_request'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+          PULL_REQUEST_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          PULL_REQUEST_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
           echo "[release-pull-request-gate] 시작: 릴리즈 배포 전 pull request gate 통과 이력을 확인합니다."
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "[release-pull-request-gate] manual_dispatch=true gate verification skipped"
-            exit 0
-          fi
-          pull_request_number="${{ github.event.pull_request.number }}"
-          pull_request_base_ref="${{ github.event.pull_request.base.ref }}"
-          pull_request_head_ref="${{ github.event.pull_request.head.ref }}"
-          pull_request_head_sha="${{ github.event.pull_request.head.sha }}"
-          [[ "$pull_request_head_ref" == "main" ]] || { echo "::error::release deployment requires pull request head to be main, got $pull_request_head_ref"; exit 1; }
-          api_url="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/release-pull-request-gate.yml/runs?event=pull_request&head_sha=${pull_request_head_sha}&status=success&per_page=20"
-          runs_json="$(curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "$api_url")" || { echo "::error::failed to query release pull request gate evidence"; exit 1; }
-          RUNS_JSON="$runs_json" python3 - "$pull_request_number" "$pull_request_base_ref" "$pull_request_head_sha" <<'PY'
+          [[ "$PULL_REQUEST_HEAD_REF" == "main" ]] || { echo "::error::release deployment requires pull request head to be main, got $PULL_REQUEST_HEAD_REF"; exit 1; }
+          api_url="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/release-pull-request-gate.yml/runs?event=pull_request&head_sha=${PULL_REQUEST_HEAD_SHA}&status=success&per_page=20"
+          runs_json="$(curl -fsSL -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "Accept: application/vnd.github+json" "$api_url")" || { echo "::error::failed to query release pull request gate evidence"; exit 1; }
+          RUNS_JSON="$runs_json" python3 - "$PULL_REQUEST_NUMBER" "$PULL_REQUEST_BASE_REF" "$PULL_REQUEST_HEAD_SHA" <<'PY'
           import json, os, sys
           number, base_ref, head_sha = sys.argv[1:4]
           data = json.loads(os.environ["RUNS_JSON"])
@@ -58,15 +153,114 @@ jobs:
           sys.exit(1)
           PY
 
+      - name: Create service tag
+        if: steps.prepare.outputs.dry-run != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ steps.prepare.outputs.tag-name }}
+          SOURCE_SHA: ${{ steps.prepare.outputs.source-sha }}
+        run: |
+          set -euo pipefail
+          git_ref_url="https://api.github.com/repos/${GITHUB_REPOSITORY}/git/ref/tags/${TAG_NAME}"
+          if curl -fsSL -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "Accept: application/vnd.github+json" "$git_ref_url" >/dev/null 2>&1; then
+            echo "::error::release tag already exists: $TAG_NAME"
+            exit 1
+          fi
+          python3 - <<'PY' > /tmp/create-tag.json
+          import json, os
+          print(json.dumps({"ref": f"refs/tags/{os.environ['TAG_NAME']}", "sha": os.environ['SOURCE_SHA']}))
+          PY
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -d @/tmp/create-tag.json \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/git/refs" >/tmp/create-tag-response.json
+          echo "[deploy-release] service_tag_created=$TAG_NAME"
+
+      - name: Create GitHub Deployment
+        id: deployment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEPLOYMENT_ENVIRONMENT: ${{ steps.prepare.outputs.deployment-environment }}
+          DEPLOYMENT_REF: ${{ steps.prepare.outputs.tag-name }}
+          DRY_RUN: ${{ steps.prepare.outputs.dry-run }}
+          SOURCE_SHA: ${{ steps.prepare.outputs.source-sha }}
+          VERSION: ${{ steps.prepare.outputs.version }}
+          IMAGE_TAG: ${{ steps.prepare.outputs.image-tag }}
+          PUBLIC_URL: ${{ steps.prepare.outputs.public-url }}
+          STATUS_URL: ${{ steps.prepare.outputs.status-url }}
+          K8S_NAMESPACE: ${{ steps.prepare.outputs.k8s-namespace }}
+        run: |
+          set -euo pipefail
+          if [[ "$DRY_RUN" == "true" ]]; then
+            DEPLOYMENT_API_REF="$SOURCE_SHA"
+          else
+            DEPLOYMENT_API_REF="$DEPLOYMENT_REF"
+          fi
+          export DEPLOYMENT_API_REF
+          python3 - <<'PY' > /tmp/deployment.json
+          import json, os
+          payload = {
+              "name": os.environ["DEPLOYMENT_ENVIRONMENT"],
+              "description": "API 배포 환경 메타데이터",
+              "public_url": os.environ["PUBLIC_URL"],
+              "status_url": os.environ["STATUS_URL"],
+              "service": os.environ["SERVICE_NAME"],
+              "version": os.environ["VERSION"],
+              "tag": os.environ["DEPLOYMENT_REF"],
+              "image_tag": os.environ["IMAGE_TAG"],
+              "target": {
+                  "service": os.environ["SERVICE_NAME"],
+                  "namespace": os.environ["K8S_NAMESPACE"],
+                  "deployment": os.environ["K8S_DEPLOYMENT"],
+                  "image": f"{os.environ['IMAGE_NAME']}:{os.environ['IMAGE_TAG']}",
+              },
+              "source_sha": os.environ["SOURCE_SHA"],
+              "workflow_run_id": os.environ["GITHUB_RUN_ID"],
+              "dry_run": os.environ["DRY_RUN"] == "true",
+          }
+          body = {
+              "ref": os.environ["DEPLOYMENT_API_REF"],
+              "environment": os.environ["DEPLOYMENT_ENVIRONMENT"],
+              "description": f"{os.environ['SERVICE_NAME']} {os.environ['DEPLOYMENT_ENVIRONMENT']} deployment",
+              "auto_merge": False,
+              "required_contexts": [],
+              "production_environment": os.environ["DEPLOYMENT_ENVIRONMENT"] == "Production",
+              "transient_environment": False,
+              "payload": payload,
+          }
+          print(json.dumps(body))
+          PY
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -d @/tmp/deployment.json \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/deployments" >/tmp/deployment-response.json
+          deployment_id="$(python3 -c 'import json; print(json.load(open("/tmp/deployment-response.json"))["id"])')"
+          echo "deployment-id=$deployment_id" >> "$GITHUB_OUTPUT"
+          python3 - <<'PY' > /tmp/deployment-status.json
+          import json, os
+          print(json.dumps({
+              "state": "in_progress",
+              "environment": os.environ["DEPLOYMENT_ENVIRONMENT"],
+              "environment_url": os.environ["PUBLIC_URL"],
+              "log_url": f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}",
+              "description": "Deployment metadata created; rollout started",
+              "auto_inactive": False,
+          }))
+          PY
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -d @/tmp/deployment-status.json \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/deployments/${deployment_id}/statuses" >/dev/null
+          echo "[deploy-release] deployment_id=$deployment_id"
+
   build-and-push:
-    needs: verify-release-pull-request-gate
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    needs: prepare-release
+    if: needs.prepare-release.outputs.dry-run != 'true'
     runs-on: ubuntu-24.04-arm
     outputs:
-      version: ${{ steps.version.outputs.version }}
-      image-tag: ${{ steps.version.outputs.image-tag }}
       image-digest: ${{ steps.build.outputs.image-digest }}
     steps:
       - name: checkout code with submodules
@@ -91,14 +285,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: read admin version
-        id: version
-        run: |
-          VERSION=$(cat bottlenote-admin-api/VERSION | tr -d '[:space:]')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "image-tag=admin_${VERSION}" >> $GITHUB_OUTPUT
-          echo "Admin version: $VERSION"
-
       - name: build admin module
         run: |
           ./gradlew :bottlenote-admin-api:build -x test -x asciidoctor --build-cache --parallel
@@ -111,7 +297,7 @@ jobs:
           registry-username: ${{ secrets.REGISTRY_USERNAME }}
           registry-password: ${{ secrets.REGISTRY_PASSWORD }}
           image-name: ${{ env.IMAGE_NAME }}
-          image-tag: admin_${{ steps.version.outputs.version }}
+          image-tag: ${{ needs.prepare-release.outputs.image-tag }}
           additional-tags: admin_latest
           dockerfile: Dockerfile-admin
           context: .
@@ -126,8 +312,11 @@ jobs:
           cosign-password: ${{ secrets.COSIGN_PASSWORD }}
 
   update-production:
-    needs: build-and-push
+    needs: [prepare-release, build-and-push]
+    if: needs.prepare-release.outputs.dry-run != 'true'
     runs-on: ubuntu-latest
+    outputs:
+      env-commit: ${{ steps.commit.outputs.env-commit }}
     steps:
       - name: checkout code with submodules
         uses: actions/checkout@v4
@@ -142,45 +331,86 @@ jobs:
 
       - name: update production image tag
         run: |
-          IMAGE_TAG="${{ needs.build-and-push.outputs.image-tag }}"
+          IMAGE_TAG="${{ needs.prepare-release.outputs.image-tag }}"
           REGISTRY="${{ secrets.REGISTRY_ADDRESS }}"
-
           echo "Updating production image tag: $IMAGE_TAG"
-
           cd git.environment-variables
           git checkout main
-
           cd deploy/overlays/production
           kustomize edit set image \
             bottlenote-admin-api=${REGISTRY}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}
-
           echo "production kustomization.yaml updated"
 
       - name: commit and push with retry
+        id: commit
         run: |
+          set -euo pipefail
           cd git.environment-variables
-
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
           git add deploy/overlays/production/kustomization.yaml
-
           if git diff --staged --quiet; then
             echo "No changes to commit"
+            echo "env-commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-
-          git commit -m "chore(admin): update production image tag to ${{ needs.build-and-push.outputs.image-tag }}
+          git commit -m "chore(admin): update production image tag to ${{ needs.prepare-release.outputs.image-tag }}
 
           Updated by GitHub Actions
           Commit: ${{ github.sha }}
           Branch: ${{ github.ref_name }}
           Workflow: ${{ github.workflow }}"
-
           for i in {1..5}; do
             git pull --rebase origin main && git push origin main && break
             echo "Push failed, retry $i/5..."
             sleep $((i * 2))
           done
-
+          echo "env-commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           echo "Production deployment triggered"
+
+  finalize-deployment:
+    needs: [prepare-release, build-and-push, update-production]
+    if: always() && needs.prepare-release.result == 'success'
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      DEPLOYMENT_ID: ${{ needs.prepare-release.outputs.deployment-id }}
+      DEPLOYMENT_ENVIRONMENT: ${{ needs.prepare-release.outputs.deployment-environment }}
+      PUBLIC_URL: ${{ needs.prepare-release.outputs.public-url }}
+      DRY_RUN: ${{ needs.prepare-release.outputs.dry-run }}
+      BUILD_RESULT: ${{ needs.build-and-push.result }}
+      UPDATE_RESULT: ${{ needs.update-production.result }}
+      IMAGE_TAG: ${{ needs.prepare-release.outputs.image-tag }}
+      ENV_COMMIT: ${{ needs.update-production.outputs.env-commit }}
+    steps:
+      - name: Update GitHub Deployment status
+        run: |
+          set -euo pipefail
+          if [[ "$DRY_RUN" == "true" ]]; then
+            DEPLOYMENT_STATE="success"
+            DEPLOYMENT_DESCRIPTION="Dry-run deployment metadata test completed"
+          elif [[ "$BUILD_RESULT" == "success" && "$UPDATE_RESULT" == "success" ]]; then
+            DEPLOYMENT_STATE="success"
+            DEPLOYMENT_DESCRIPTION="Production rollout metadata completed: ${IMAGE_TAG} ${ENV_COMMIT}"
+          else
+            DEPLOYMENT_STATE="failure"
+            DEPLOYMENT_DESCRIPTION="Production rollout failed: build=${BUILD_RESULT} update=${UPDATE_RESULT}"
+          fi
+          export DEPLOYMENT_STATE DEPLOYMENT_DESCRIPTION
+          python3 - <<'PY' > /tmp/final-status.json
+          import json, os
+          print(json.dumps({
+              "state": os.environ["DEPLOYMENT_STATE"],
+              "environment": os.environ["DEPLOYMENT_ENVIRONMENT"],
+              "environment_url": os.environ["PUBLIC_URL"],
+              "log_url": f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}",
+              "description": os.environ["DEPLOYMENT_DESCRIPTION"][:140],
+              "auto_inactive": False,
+          }))
+          PY
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -d @/tmp/final-status.json \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/deployments/${DEPLOYMENT_ID}/statuses" >/dev/null
+          echo "[deploy-release] final_deployment_state=$DEPLOYMENT_STATE"
