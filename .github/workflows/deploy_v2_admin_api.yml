@@ -1,73 +1,111 @@
-name: deploy v2 admin api production
+name: deploy admin api on release publish
 
 on:
+  release:
+    types:
+      - published
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Admin release tag, for example admin/v1.2.3'
+        required: true
+        type: string
 
 permissions:
   contents: read
   actions: read
 
 concurrency:
-  group: "deploy-admin-production"
+  group: deploy-admin-production-${{ github.event.release.tag_name || inputs.tag }}
   cancel-in-progress: true
 
 env:
   IMAGE_NAME: bottlenote-admin-api
 
 jobs:
-  verify-release-pull-request-gate:
-    name: verify release pull request gate
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+  verify-admin-release:
+    name: verify admin release publish
     runs-on: ubuntu-latest
-    steps:
-      - name: Verify release pull request gate passed
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          echo "[release-pull-request-gate] 시작: 릴리즈 배포 전 pull request gate 통과 이력을 확인합니다."
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "[release-pull-request-gate] manual_dispatch=true gate verification skipped"
-            exit 0
-          fi
-          pull_request_number="${{ github.event.pull_request.number }}"
-          pull_request_base_ref="${{ github.event.pull_request.base.ref }}"
-          pull_request_head_ref="${{ github.event.pull_request.head.ref }}"
-          pull_request_head_sha="${{ github.event.pull_request.head.sha }}"
-          [[ "$pull_request_head_ref" == "main" ]] || { echo "::error::release deployment requires pull request head to be main, got $pull_request_head_ref"; exit 1; }
-          api_url="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/release-pull-request-gate.yml/runs?event=pull_request&head_sha=${pull_request_head_sha}&status=success&per_page=20"
-          runs_json="$(curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "$api_url")" || { echo "::error::failed to query release pull request gate evidence"; exit 1; }
-          RUNS_JSON="$runs_json" python3 - "$pull_request_number" "$pull_request_base_ref" "$pull_request_head_sha" <<'PY'
-          import json, os, sys
-          number, base_ref, head_sha = sys.argv[1:4]
-          data = json.loads(os.environ["RUNS_JSON"])
-          for run in data.get("workflow_runs", []):
-              if run.get("event") != "pull_request" or run.get("conclusion") != "success" or run.get("head_sha") != head_sha:
-                  continue
-              for pull_request in run.get("pull_requests") or []:
-                  if str(pull_request.get("number")) == number and pull_request.get("base", {}).get("ref") == base_ref:
-                      print(f"[release-pull-request-gate] gate_success run_id={run.get('id')}")
-                      sys.exit(0)
-          print(f"::error::no successful release pull request gate run found for pull request #{number} base={base_ref} head_sha={head_sha}", file=sys.stderr)
-          sys.exit(1)
-          PY
-
-  build-and-push:
-    needs: verify-release-pull-request-gate
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
-    runs-on: ubuntu-24.04-arm
     outputs:
-      version: ${{ steps.version.outputs.version }}
-      image-tag: ${{ steps.version.outputs.image-tag }}
-      image-digest: ${{ steps.build.outputs.image-digest }}
+      release-tag: ${{ steps.release.outputs.release-tag }}
+      version: ${{ steps.release.outputs.version }}
+      image-tag: ${{ steps.release.outputs.image-tag }}
+      tag-sha: ${{ steps.release.outputs.tag-sha }}
     steps:
-      - name: checkout code with submodules
+      - name: checkout repository
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
+
+      - name: resolve admin release
+        id: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_TAG: ${{ github.event.release.tag_name || '' }}
+          EVENT_DRAFT: ${{ github.event.release.draft || '' }}
+          EVENT_PRERELEASE: ${{ github.event.release.prerelease || '' }}
+          INPUT_TAG: ${{ inputs.tag || '' }}
+        run: |
+          set -euo pipefail
+          release_tag="${EVENT_TAG:-$INPUT_TAG}"
+          [[ "$release_tag" =~ ^admin/v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::admin release tag required, got: $release_tag"; exit 1; }
+          version="${release_tag#admin/v}"
+          image_tag="admin_${version}"
+
+          git fetch --no-tags origin '+refs/heads/main:refs/remotes/origin/main'
+          git fetch --tags origin
+          git rev-parse -q --verify "refs/tags/${release_tag}" >/dev/null || { echo "::error::release tag not found: $release_tag"; exit 1; }
+          tag_sha="$(git rev-list -n 1 "$release_tag")"
+          git merge-base --is-ancestor "$tag_sha" origin/main || { echo "::error::tag commit is not contained in origin/main: $tag_sha"; exit 1; }
+
+          if [[ "$EVENT_NAME" == "release" ]]; then
+            [[ "$EVENT_DRAFT" == "false" ]] || { echo "::error::release event must be published"; exit 1; }
+            [[ "$EVENT_PRERELEASE" == "false" ]] || { echo "::error::production release must not be prerelease"; exit 1; }
+          else
+            releases_json="$(curl -fsSL \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases?per_page=100")"
+            RELEASES_JSON="$releases_json" RELEASE_TAG="$release_tag" python3 - <<'PY'
+          import json, os, sys
+          tag = os.environ['RELEASE_TAG']
+          releases = json.loads(os.environ['RELEASES_JSON'])
+          release = next((item for item in releases if item.get('tag_name') == tag), None)
+          if release is None:
+              print(f'::error::release not found for tag: {tag}', file=sys.stderr)
+              sys.exit(1)
+          if release.get('draft'):
+              print('::error::release must be published', file=sys.stderr)
+              sys.exit(1)
+          if release.get('prerelease'):
+              print('::error::production release must not be prerelease', file=sys.stderr)
+              sys.exit(1)
+          print(f"release_id={release.get('id')}")
+          PY
+          fi
+
+          {
+            echo "release-tag=$release_tag"
+            echo "version=$version"
+            echo "image-tag=$image_tag"
+            echo "tag-sha=$tag_sha"
+          } >> "$GITHUB_OUTPUT"
+          echo "[admin-release-deploy] release_tag=$release_tag version=$version image_tag=$image_tag tag_sha=$tag_sha"
+
+  build-and-push:
+    name: build and push admin image
+    needs: verify-admin-release
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      image-tag: ${{ needs.verify-admin-release.outputs.image-tag }}
+      image-digest: ${{ steps.build.outputs.image-digest }}
+    steps:
+      - name: checkout release tag with submodules
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.verify-admin-release.outputs.release-tag }}
           submodules: true
           token: ${{ secrets.GIT_ACCESS_TOKEN }}
 
@@ -87,14 +125,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: read admin version
-        id: version
-        run: |
-          VERSION=$(cat bottlenote-admin-api/VERSION | tr -d '[:space:]')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "image-tag=admin_${VERSION}" >> $GITHUB_OUTPUT
-          echo "Admin version: $VERSION"
-
       - name: build admin module
         run: |
           ./gradlew :bottlenote-admin-api:build -x test -x asciidoctor --build-cache --parallel
@@ -107,7 +137,7 @@ jobs:
           registry-username: ${{ secrets.REGISTRY_USERNAME }}
           registry-password: ${{ secrets.REGISTRY_PASSWORD }}
           image-name: ${{ env.IMAGE_NAME }}
-          image-tag: admin_${{ steps.version.outputs.version }}
+          image-tag: ${{ needs.verify-admin-release.outputs.image-tag }}
           additional-tags: admin_latest
           dockerfile: Dockerfile-admin
           context: .
@@ -122,6 +152,7 @@ jobs:
           cosign-password: ${{ secrets.COSIGN_PASSWORD }}
 
   update-production:
+    name: update admin production image
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
@@ -140,43 +171,32 @@ jobs:
         run: |
           IMAGE_TAG="${{ needs.build-and-push.outputs.image-tag }}"
           REGISTRY="${{ secrets.REGISTRY_ADDRESS }}"
-
-          echo "Updating production image tag: $IMAGE_TAG"
-
+          echo "Updating admin production image tag: $IMAGE_TAG"
           cd git.environment-variables
           git checkout main
-
           cd deploy/overlays/production
-          kustomize edit set image \
-            bottlenote-admin-api=${REGISTRY}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}
-
+          kustomize edit set image bottlenote-admin-api=${REGISTRY}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}
           echo "production kustomization.yaml updated"
 
       - name: commit and push with retry
         run: |
           cd git.environment-variables
-
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
           git add deploy/overlays/production/kustomization.yaml
-
           if git diff --staged --quiet; then
             echo "No changes to commit"
             exit 0
           fi
-
           git commit -m "chore(admin): update production image tag to ${{ needs.build-and-push.outputs.image-tag }}
 
           Updated by GitHub Actions
-          Commit: ${{ github.sha }}
-          Branch: ${{ github.ref_name }}
+          Release: ${{ needs.verify-admin-release.outputs.release-tag }}
+          Commit: ${{ needs.verify-admin-release.outputs.tag-sha }}
           Workflow: ${{ github.workflow }}"
-
           for i in {1..5}; do
             git pull --rebase origin main && git push origin main && break
             echo "Push failed, retry $i/5..."
             sleep $((i * 2))
           done
-
-          echo "Production deployment triggered"
+          echo "Admin production deployment triggered"
