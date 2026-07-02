@@ -91,6 +91,9 @@ include::{snippets}/curation/v2/list/response-body.adoc[]
 === Spec 기반 큐레이션 v2 피드 조회 ===
 
 - Product 피드 화면에서 사용할 spec 기반 큐레이션 목록을 cursor 방식으로 조회합니다.
+- `keyword`는 단일 문자열이며 큐레이션 제목/설명, 스펙 제목/설명에 LIKE 조건으로 적용합니다.
+- `code`는 `keyword`와 별개의 큐레이션 스펙 코드 exact match 필터입니다.
+- `code` 값은 큐레이션 목록 조회 API(`GET /api/v2/curations`)의 `specCode` 또는 상세 조회 API(`GET /api/v2/curations/{curationId}`)의 `spec.code`에서 확인할 수 있습니다.
 - 각 item은 상세 응답 형태에서 `spec`을 제외한 구조입니다.
 - `payload`는 상세 payload와 동일한 중첩/배열 구조를 유지하되, responseSpec의 `x-feed.enabled = true` 필드만 포함합니다.
 
@@ -104,6 +107,11 @@ GET /api/v2/curations/feed
 
 include::{snippets}/curation/v2/feed/curl-request.adoc[]
 include::{snippets}/curation/v2/feed/http-request.adoc[]
+
+[discrete]
+==== 요청 파라미터 ====
+
+include::{snippets}/curation/v2/feed/query-parameters.adoc[]
 
 [discrete]
 ==== 응답 파라미터 ====

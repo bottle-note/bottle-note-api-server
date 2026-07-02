@@ -176,13 +176,51 @@ class ProductSpecBasedCurationServiceTest {
     createCuration(
         spec.getId(), "미노출", 1, true, LocalDate.now().plusDays(1), LocalDate.now().plusDays(5));
 
-    var result = productService.searchFeed(0L, 30);
+    var result = productService.searchFeed(null, null, 0L, 30);
 
     assertThat(result.items()).hasSize(10);
     assertThat(result.pageable().getPageSize()).isEqualTo(10L);
     assertThat(result.pageable().getCurrentCursor()).isZero();
     assertThat(result.pageable().getCursor()).isEqualTo(10L);
     assertThat(result.pageable().getHasNext()).isTrue();
+  }
+
+  @Test
+  @DisplayName(
+      "Product feed 검색은 keyword를 큐레이션 제목/설명과 스펙 제목/설명에 LIKE 적용하고 code는 별도 exact match로 필터링한다")
+  void searchFeed_whenKeywordAndCodeProvided_filtersBeforeCursorPagination() throws IOException {
+    CurationSpec recommendedSpec = createSpec();
+    CurationSpec pairingSpec =
+        curationFixtureFactory.saveSpec(
+            "WHISKY_PAIRING",
+            "위스키 페어링",
+            "안주 조합 스펙 설명",
+            schema("whisky_pairing.json", "Request"),
+            schema("whisky_pairing.json", "Response"),
+            "alcohol",
+            1);
+    createCuration(recommendedSpec.getId(), "큐레이션 제목 매치", "일반 설명", 1, true);
+    createCuration(recommendedSpec.getId(), "일반 제목", "큐레이션 설명 매치", 2, true);
+    createCuration(pairingSpec.getId(), "일반 제목", "일반 설명", 3, true);
+    createCuration(pairingSpec.getId(), "큐레이션 제목 매치 페어링", "일반 설명", 4, true);
+
+    var keywordResult = productService.searchFeed("큐레이션", null, 0L, 10);
+    var specKeywordResult = productService.searchFeed("안주", null, 0L, 10);
+    var codeResult = productService.searchFeed(null, "WHISKY_PAIRING", 0L, 10);
+    var combinedResult = productService.searchFeed("큐레이션", "WHISKY_PAIRING", 0L, 10);
+    var negativeResult = productService.searchFeed("큐레이션", "UNKNOWN_CODE", 0L, 10);
+    var boundaryResult = productService.searchFeed("   ", "   ", 0L, 10);
+
+    assertThat(keywordResult.items())
+        .extracting("name")
+        .containsExactly("큐레이션 제목 매치", "일반 제목", "큐레이션 제목 매치 페어링");
+    assertThat(specKeywordResult.items())
+        .extracting("name")
+        .containsExactly("일반 제목", "큐레이션 제목 매치 페어링");
+    assertThat(codeResult.items()).extracting("name").containsExactly("일반 제목", "큐레이션 제목 매치 페어링");
+    assertThat(combinedResult.items()).extracting("name").containsExactly("큐레이션 제목 매치 페어링");
+    assertThat(negativeResult.items()).isEmpty();
+    assertThat(boundaryResult.items()).hasSize(4);
   }
 
   @Test
@@ -252,12 +290,36 @@ class ProductSpecBasedCurationServiceTest {
       boolean active,
       LocalDate exposureStartDate,
       LocalDate exposureEndDate) {
+    return createCuration(
+        specId, name, "설명", displayOrder, active, exposureStartDate, exposureEndDate);
+  }
+
+  private Long createCuration(
+      Long specId, String name, String description, int displayOrder, boolean active) {
+    return createCuration(
+        specId,
+        name,
+        description,
+        displayOrder,
+        active,
+        LocalDate.now().minusDays(1),
+        LocalDate.now().plusDays(1));
+  }
+
+  private Long createCuration(
+      Long specId,
+      String name,
+      String description,
+      int displayOrder,
+      boolean active,
+      LocalDate exposureStartDate,
+      LocalDate exposureEndDate) {
     return curationFixtureFactory
         .saveCuration(
             new CurationCreateRequest(
                 specId,
                 name,
-                "설명",
+                description,
                 List.of("https://cdn.example.com/cover.jpg"),
                 exposureStartDate,
                 exposureEndDate,
