@@ -64,6 +64,35 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
   }
 
   @Test
+  @DisplayName("삭제 처리된 알코올은 Product 목록 검색에서 제외된다.")
+  void product_search_excludes_deleted_alcohol() throws Exception {
+    Alcohol visible = alcoholTestFactory.persistAlcoholWithName("노출 위스키", "Visible Whisky");
+    Alcohol deleted = alcoholTestFactory.persistAlcoholWithName("삭제 위스키", "Deleted Whisky");
+    deleted.delete();
+    em.flush();
+    em.clear();
+
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/alcohols/search")
+            .param("keyword", "위스키")
+            .contentType(APPLICATION_JSON)
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
+
+    AlcoholSearchResponse response = extractData(result, AlcoholSearchResponse.class);
+    Set<Long> resultIds =
+        response.getAlcohols().stream()
+            .map(AlcoholsSearchItem::getAlcoholId)
+            .collect(java.util.stream.Collectors.toSet());
+
+    assertTrue(resultIds.contains(visible.getId()));
+    assertFalse(resultIds.contains(deleted.getId()));
+  }
+
+  @Test
   @DisplayName("키워드를 알코올 목록조회를 할 수 있다.")
   void test_1_1() throws Exception {
     List<Alcohol> alcohols = alcoholTestFactory.persistAlcohols(1);
@@ -124,6 +153,26 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
     assertNotNull(alcoholDetail.alcohols());
     assertNotNull(alcoholDetail.reviewInfo());
     assertNotNull(alcoholDetail.friendsInfo());
+  }
+
+  @Test
+  @DisplayName("삭제 처리된 알코올은 Product 상세 조회에서 찾을 수 없다.")
+  void product_detail_excludes_deleted_alcohol() {
+    Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+    alcohol.delete();
+    em.flush();
+    em.clear();
+
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/alcohols/{alcoholId}", alcohol.getId())
+            .contentType(APPLICATION_JSON)
+            .header("Authorization", "Bearer " + getToken())
+            .with(csrf())
+            .exchange();
+
+    result.assertThat().hasStatus(org.springframework.http.HttpStatus.NOT_FOUND);
   }
 
   @Test

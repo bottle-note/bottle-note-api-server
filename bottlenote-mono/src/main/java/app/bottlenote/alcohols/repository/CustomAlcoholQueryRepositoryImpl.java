@@ -53,6 +53,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                 alcohol.engCategory,
                 alcohol.categoryGroup))
         .from(alcohol)
+        .where(alcohol.type.eq(WHISKY), supporter.isNotDeleted())
         .groupBy(alcohol.korCategory, alcohol.engCategory, alcohol.categoryGroup)
         .orderBy(alcohol.korCategory.asc())
         .fetch();
@@ -130,6 +131,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
             .leftJoin(review)
             .on(alcohol.id.eq(review.alcoholId))
             .where(
+                supporter.isNotDeleted(),
                 supporter.keywordMatch(criteriaDto.keyword()),
                 supporter.eqCurationId(criteriaDto.curationId()),
                 supporter.eqCategory(criteriaDto.category()),
@@ -153,6 +155,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
             .select(alcohol.id.count())
             .from(alcohol)
             .where(
+                supporter.isNotDeleted(),
                 supporter.keywordMatch(criteriaDto.keyword()),
                 supporter.eqCurationId(criteriaDto.curationId()),
                 supporter.eqCategory(criteriaDto.category()),
@@ -214,7 +217,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
         .on(alcohol.region.id.eq(region.id))
         .join(distillery)
         .on(alcohol.distillery.id.eq(distillery.id))
-        .where(alcohol.id.eq(alcoholId))
+        .where(alcohol.id.eq(alcoholId), supporter.isNotDeleted())
         .groupBy(
             alcohol.id,
             alcohol.imageUrl,
@@ -254,7 +257,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
             .on(alcohol.region.id.eq(region.id))
             .join(distillery)
             .on(alcohol.distillery.id.eq(distillery.id))
-            .where(alcohol.id.eq(alcoholId))
+            .where(alcohol.id.eq(alcoholId), supporter.isNotDeleted())
             .groupBy(
                 alcohol.id,
                 alcohol.korCategory,
@@ -336,7 +339,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
             .on(alcohol.region.id.eq(region.id))
             .join(distillery)
             .on(alcohol.distillery.id.eq(distillery.id))
-            .where(alcohol.id.in(candidateIds))
+            .where(alcohol.id.in(candidateIds), supporter.isNotDeleted())
             .groupBy(
                 alcohol.id,
                 alcohol.imageUrl,
@@ -395,7 +398,8 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
             supporter.eqCategory(criteria.category()),
             supporter.inRegionIds(criteria.regionIds()),
             supporter.inDistilleryIds(criteria.distilleryIds()),
-            supporter.eqCurationId(criteria.curationId()));
+            supporter.eqCurationId(criteria.curationId()),
+            supporter.isNotDeleted());
 
     if (sortType == SearchSortType.RANDOM) {
       // seed 는 Service 가 null 방어/생성 후 주입. id.asc() tiebreaker 로 동일 RAND 값 충돌 시에도 결정론적 순서 보장.

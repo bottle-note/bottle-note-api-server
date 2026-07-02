@@ -98,6 +98,25 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
+    @DisplayName("삭제 처리된 알코올은 Product 둘러보기에서 제외된다")
+    void explore_excludes_deleted_alcohol() {
+      Alcohol visible = alcoholTestFactory.persistAlcoholWithName("둘러보기 노출", "Explore Visible");
+      Alcohol deleted = alcoholTestFactory.persistAlcoholWithName("둘러보기 삭제", "Explore Deleted");
+      deleted.delete();
+
+      MvcTestResult result = exchangeGet(b -> b.param("keywords", "둘러보기").param("size", "10"));
+
+      result
+          .assertThat()
+          .hasStatusOk()
+          .bodyJson()
+          .extractingPath("$.data.items[*].alcoholId")
+          .asArray()
+          .contains(visible.getId().intValue())
+          .doesNotContain(deleted.getId().intValue());
+    }
+
+    @Test
     @DisplayName("응답 item에 reviewCount, pickCount 필드가 포함된다")
     void explore_response_includes_count_fields() {
       alcoholTestFactory.persistAlcohols(1);
