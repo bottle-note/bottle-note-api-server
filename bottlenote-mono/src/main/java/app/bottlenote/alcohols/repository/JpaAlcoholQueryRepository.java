@@ -22,13 +22,14 @@ public interface JpaAlcoholQueryRepository
 			        Select new app.bottlenote.alcohols.dto.response.CategoryItem(a.korCategory, a.engCategory,a.categoryGroup)
 			        from alcohol a
 			        where a.type = :type
+			        and a.deletedAt is null
 			        group by a.korCategory, a.engCategory,a.categoryGroup
 			        order by
 			        	case when a.categoryGroup = app.bottlenote.alcohols.constant.AlcoholCategoryGroup.OTHER then 1 else 0 end,a.korCategory
 			""")
   List<CategoryItem> findAllCategories(AlcoholType type);
 
-  @Query("SELECT COUNT(a) > 0 FROM alcohol a WHERE a.id = :alcoholId")
+  @Query("SELECT COUNT(a) > 0 FROM alcohol a WHERE a.id = :alcoholId AND a.deletedAt IS NULL")
   Boolean existsByAlcoholId(@Param("alcoholId") Long alcoholId);
 
   @Query("SELECT COUNT(a) > 0 FROM alcohol a WHERE a.distillery.id = :distilleryId")
