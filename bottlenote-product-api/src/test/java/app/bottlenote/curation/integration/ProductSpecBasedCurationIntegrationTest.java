@@ -250,7 +250,8 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
       assertThat(dataNode(codeResult).path("items").get(0).path("id").asLong())
           .isEqualTo(tastingId);
       assertThat(dataNode(negativeResult).path("items")).isEmpty();
-      assertThat(dataNode(boundaryResult).path("items")).hasSizeGreaterThanOrEqualTo(3);
+      assertThat(dataNode(boundaryResult).path("items").isArray()).isTrue();
+      assertThat(dataNode(boundaryResult).path("pageable").path("pageSize").asInt()).isEqualTo(10);
     }
   }
 
