@@ -54,21 +54,33 @@ public class ProductSpecBasedCurationService {
   @Transactional(readOnly = true)
   public CursorResponse<ProductSpecBasedCurationFeedItemResponse> searchFeed(
       Long cursor, Integer size) {
+    return searchFeed(null, null, cursor, size);
+  }
+
+  @Transactional(readOnly = true)
+  public CursorResponse<ProductSpecBasedCurationFeedItemResponse> searchFeed(
+      String keyword, String code, Long cursor, Integer size) {
     int pageSize = normalizeFeedSize(size);
     long currentCursor = cursor != null && cursor > 0 ? cursor : 0L;
     List<Curation> visibleCurations = curationRepository.findAllVisibleOn(LocalDate.now());
-    int fromIndex = Math.min(Math.toIntExact(currentCursor), visibleCurations.size());
-    int toIndex = Math.min(fromIndex + pageSize + 1, visibleCurations.size());
-    List<Curation> pageContent = new ArrayList<>(visibleCurations.subList(fromIndex, toIndex));
-    Map<Long, CurationSpec> specMap =
+    Map<Long, CurationSpec> allSpecMap =
         curationSpecRepository
             .findAllByIdIn(
-                pageContent.stream().map(Curation::getSpecId).collect(Collectors.toSet()))
+                visibleCurations.stream().map(Curation::getSpecId).collect(Collectors.toSet()))
             .stream()
             .collect(Collectors.toMap(CurationSpec::getId, Function.identity()));
+    List<Curation> filteredCurations =
+        visibleCurations.stream()
+            .filter(curation -> matchesCode(allSpecMap.get(curation.getSpecId()), code))
+            .filter(
+                curation -> matchesKeyword(curation, allSpecMap.get(curation.getSpecId()), keyword))
+            .toList();
+    int fromIndex = Math.min(Math.toIntExact(currentCursor), filteredCurations.size());
+    int toIndex = Math.min(fromIndex + pageSize + 1, filteredCurations.size());
+    List<Curation> pageContent = new ArrayList<>(filteredCurations.subList(fromIndex, toIndex));
     List<ProductSpecBasedCurationFeedItemResponse> items =
         pageContent.stream()
-            .map(curation -> toFeedResponse(curation, specMap.get(curation.getSpecId())))
+            .map(curation -> toFeedResponse(curation, allSpecMap.get(curation.getSpecId())))
             .toList();
     return CursorResponse.of(items, currentCursor, pageSize);
   }
@@ -155,6 +167,33 @@ public class ProductSpecBasedCurationService {
         .filter(Objects::nonNull)
         .filter(imageUrl -> !imageUrl.isBlank())
         .toList();
+  }
+
+  private boolean matchesCode(CurationSpec spec, String code) {
+    if (isBlank(code)) {
+      return true;
+    }
+    return spec != null && spec.getCode().equals(code.trim());
+  }
+
+  private boolean matchesKeyword(Curation curation, CurationSpec spec, String keyword) {
+    if (isBlank(keyword)) {
+      return true;
+    }
+    String normalizedKeyword = keyword.trim();
+    return contains(curation.getName(), normalizedKeyword)
+        || contains(curation.getDescription(), normalizedKeyword)
+        || (spec != null
+            && (contains(spec.getName(), normalizedKeyword)
+                || contains(spec.getDescription(), normalizedKeyword)));
+  }
+
+  private boolean contains(String value, String keyword) {
+    return value != null && value.contains(keyword);
+  }
+
+  private boolean isBlank(String value) {
+    return value == null || value.isBlank();
   }
 
   private int normalizeFeedSize(Integer size) {

@@ -209,6 +209,49 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
       assertThat(payload.path("isRecruiting").asBoolean()).isTrue();
       assertThat(payload.path("applicationLink").asText()).isEqualTo("https://example.com/apply");
     }
+
+    @Test
+    @DisplayName("Product feed는 keyword와 code 조건을 분리해 필터링하고 빈 조건은 전체 조건으로 처리한다")
+    void searchFeed_whenKeywordAndCodeProvided_filtersBySearchContract() throws Exception {
+      // given
+      createCuration("제목 매치 큐레이션", "일반 설명", 1, true, List.of(manualItem("제목")));
+      createCuration("일반 큐레이션", "설명 매치 큐레이션", 2, true, List.of(manualItem("설명")));
+      Long tastingId = createTastingEventCuration();
+
+      // when
+      MvcTestResult keywordResult =
+          mockMvcTester
+              .get()
+              .uri("/api/v2/curations/feed?keyword=큐레이션&size=10")
+              .contentType(APPLICATION_JSON)
+              .exchange();
+      MvcTestResult codeResult =
+          mockMvcTester
+              .get()
+              .uri("/api/v2/curations/feed?code=WHISKY_TASTING_EVENT&size=10")
+              .contentType(APPLICATION_JSON)
+              .exchange();
+      MvcTestResult negativeResult =
+          mockMvcTester
+              .get()
+              .uri("/api/v2/curations/feed?keyword=큐레이션&code=UNKNOWN_CODE&size=10")
+              .contentType(APPLICATION_JSON)
+              .exchange();
+      MvcTestResult boundaryResult =
+          mockMvcTester
+              .get()
+              .uri("/api/v2/curations/feed?keyword=%20%20%20&code=%20%20%20&size=10")
+              .contentType(APPLICATION_JSON)
+              .exchange();
+
+      // then
+      assertThat(dataNode(keywordResult).path("items")).hasSize(3);
+      assertThat(dataNode(codeResult).path("items")).hasSize(1);
+      assertThat(dataNode(codeResult).path("items").get(0).path("id").asLong())
+          .isEqualTo(tastingId);
+      assertThat(dataNode(negativeResult).path("items")).isEmpty();
+      assertThat(dataNode(boundaryResult).path("items")).hasSize(3);
+    }
   }
 
   @Nested
@@ -340,8 +383,18 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
 
   private Long createCuration(
       String name, int displayOrder, boolean active, List<Map<String, Object>> payload) {
+    return createCuration(name, "통합 테스트 큐레이션", displayOrder, active, payload);
+  }
+
+  private Long createCuration(
+      String name,
+      String description,
+      int displayOrder,
+      boolean active,
+      List<Map<String, Object>> payload) {
     return createCuration(
         name,
+        description,
         displayOrder,
         active,
         LocalDate.now().minusDays(1),
@@ -356,12 +409,24 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
       LocalDate exposureStartDate,
       LocalDate exposureEndDate,
       List<Map<String, Object>> payload) {
+    return createCuration(
+        name, "통합 테스트 큐레이션", displayOrder, active, exposureStartDate, exposureEndDate, payload);
+  }
+
+  private Long createCuration(
+      String name,
+      String description,
+      int displayOrder,
+      boolean active,
+      LocalDate exposureStartDate,
+      LocalDate exposureEndDate,
+      List<Map<String, Object>> payload) {
     return adminSpecBasedCurationService
         .create(
             new CurationCreateRequest(
                 recommendedSpec.getId(),
                 name,
-                "통합 테스트 큐레이션",
+                description,
                 List.of("https://cdn.example.com/cover.jpg"),
                 exposureStartDate,
                 exposureEndDate,

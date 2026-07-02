@@ -13,6 +13,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.response
 import static org.springframework.restdocs.payload.PayloadDocumentation.subsectionWithPath;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
+import static org.springframework.restdocs.request.RequestDocumentation.queryParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.curation.controller.ProductSpecBasedCurationController;
@@ -102,7 +103,7 @@ class RestProductSpecBasedCurationControllerTest extends AbstractRestDocs {
   @Test
   @DisplayName("spec 기반 큐레이션 v2 피드를 상세 응답 기반 payload로 조회할 수 있다")
   void getCurationFeed() throws Exception {
-    when(productSpecBasedCurationService.searchFeed(0L, 10))
+    when(productSpecBasedCurationService.searchFeed("페어링", "WHISKY_PAIRING", 0L, 10))
         .thenReturn(
             CursorResponse.of(
                 List.of(
@@ -132,11 +133,21 @@ class RestProductSpecBasedCurationControllerTest extends AbstractRestDocs {
                 10));
 
     mockMvc
-        .perform(get("/api/v2/curations/feed"))
+        .perform(get("/api/v2/curations/feed?keyword=페어링&code=WHISKY_PAIRING&cursor=0&size=10"))
         .andExpect(status().isOk())
         .andDo(
             document(
                 "curation/v2/feed",
+                queryParameters(
+                    parameterWithName("keyword")
+                        .description("검색어. 큐레이션 제목/설명, 스펙 제목/설명에 LIKE 조건으로 적용됩니다.")
+                        .optional(),
+                    parameterWithName("code")
+                        .description(
+                            "큐레이션 스펙 코드 exact match 필터. 사용 가능한 값은 큐레이션 목록 조회의 specCode 또는 상세 조회의 spec.code에서 확인합니다.")
+                        .optional(),
+                    parameterWithName("cursor").description("조회 시작 커서. 기본값 0").optional(),
+                    parameterWithName("size").description("페이지 크기. 최대 10, 기본값 10").optional()),
                 responseFields(
                     fieldWithPath("success").type(BOOLEAN).description("응답 성공 여부"),
                     fieldWithPath("code").type(NUMBER).description("응답 코드"),

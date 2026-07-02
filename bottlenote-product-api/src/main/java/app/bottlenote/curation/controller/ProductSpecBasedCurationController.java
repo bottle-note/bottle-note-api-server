@@ -28,9 +28,12 @@ public class ProductSpecBasedCurationController {
 
   @GetMapping("/feed")
   public ResponseEntity<?> getCurationFeed(
+      @RequestParam(required = false) String keyword,
+      @RequestParam(required = false) String code,
       @RequestParam(required = false, defaultValue = "0") Long cursor,
       @RequestParam(required = false, defaultValue = "10") Integer size) {
-    return GlobalResponse.ok(productSpecBasedCurationService.searchFeed(cursor, size));
+    return GlobalResponse.ok(
+        productSpecBasedCurationService.searchFeed(keyword, code, cursor, size));
   }
 
   @GetMapping("/{curationId}")
