@@ -18,7 +18,7 @@ public interface CurationRepository {
 
   Optional<Curation> findVisibleById(Long id, LocalDate today);
 
-  Page<Curation> searchForAdmin(String keyword, Boolean isActive, Pageable pageable);
+  Page<Curation> searchForAdmin(String keyword, Long specId, Boolean isActive, Pageable pageable);
 
   Curation save(Curation curation);
 

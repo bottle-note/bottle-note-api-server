@@ -152,6 +152,101 @@ class AdminSpecBasedCurationServiceTest {
   }
 
   @Test
+  @DisplayName("Admin 목록 검색은 code를 spec code exact match로 필터링한다")
+  void search_whenCodeProvided_filtersBySpecCode() {
+    CurationSpec recommendedSpec = createSpec();
+    CurationSpec pairingSpec = createPairingSpec();
+    adminSpecBasedCurationService.create(
+        createRequest(recommendedSpec.getId(), "추천 큐레이션", 1, true));
+    adminSpecBasedCurationService.create(createRequest(pairingSpec.getId(), "페어링 큐레이션", 2, true));
+
+    GlobalResponse result =
+        adminSpecBasedCurationService.search(
+            new CurationSearchRequest(null, "WHISKY_PAIRING", null, 0, 20));
+
+    assertThat(result.getData()).asList().hasSize(1);
+    assertThat(result.getData()).asList().extracting("specCode").containsExactly("WHISKY_PAIRING");
+  }
+
+  @Test
+  @DisplayName("Admin 목록 검색은 code와 keyword, isActive 조건을 함께 적용한다")
+  void search_whenCodeKeywordAndActiveProvided_combinesFilters() {
+    CurationSpec recommendedSpec = createSpec();
+    CurationSpec pairingSpec = createPairingSpec();
+    adminSpecBasedCurationService.create(createRequest(recommendedSpec.getId(), "추천 매치", 1, true));
+    adminSpecBasedCurationService.create(createRequest(pairingSpec.getId(), "페어링 매치", 2, true));
+    adminSpecBasedCurationService.create(createRequest(pairingSpec.getId(), "페어링 비활성", 3, false));
+
+    GlobalResponse result =
+        adminSpecBasedCurationService.search(
+            new CurationSearchRequest("매치", "WHISKY_PAIRING", true, 0, 20));
+
+    assertThat(result.getData()).asList().hasSize(1);
+    assertThat(result.getData()).asList().extracting("name").containsExactly("페어링 매치");
+  }
+
+  @Test
+  @DisplayName("Admin 목록 검색은 알 수 없는 code를 빈 결과로 반환한다")
+  void search_whenUnknownCodeProvided_returnsEmptyPage() {
+    CurationSpec spec = createSpec();
+    adminSpecBasedCurationService.create(createRequest(spec.getId()));
+
+    GlobalResponse result =
+        adminSpecBasedCurationService.search(
+            new CurationSearchRequest(null, "UNKNOWN_CODE", null, 0, 20));
+
+    assertThat(result.getData()).asList().isEmpty();
+  }
+
+  @Test
+  @DisplayName("Admin 목록 검색은 blank code를 필터 미적용으로 처리한다")
+  void search_whenBlankCodeProvided_ignoresCodeFilter() {
+    CurationSpec recommendedSpec = createSpec();
+    CurationSpec pairingSpec = createPairingSpec();
+    adminSpecBasedCurationService.create(
+        createRequest(recommendedSpec.getId(), "추천 큐레이션", 1, true));
+    adminSpecBasedCurationService.create(createRequest(pairingSpec.getId(), "페어링 큐레이션", 2, true));
+
+    GlobalResponse result =
+        adminSpecBasedCurationService.search(new CurationSearchRequest(null, "   ", null, 0, 20));
+
+    assertThat(result.getData()).asList().hasSize(2);
+  }
+
+  @Test
+  @DisplayName("Admin feed 검색도 code 필터를 적용한다")
+  void searchFeed_whenCodeProvided_filtersBySpecCode() {
+    CurationSpec recommendedSpec = createSpec();
+    CurationSpec pairingSpec = createPairingSpec();
+    adminSpecBasedCurationService.create(
+        createRequest(recommendedSpec.getId(), "추천 큐레이션", 1, true));
+    adminSpecBasedCurationService.create(createRequest(pairingSpec.getId(), "페어링 큐레이션", 2, true));
+
+    GlobalResponse result =
+        adminSpecBasedCurationService.searchFeed(
+            new CurationSearchRequest(null, "WHISKY_PAIRING", null, 0, 10));
+
+    assertThat(result.getData()).asList().hasSize(1);
+    assertThat(result.getData()).asList().extracting("specCode").containsExactly("WHISKY_PAIRING");
+  }
+
+  @Test
+  @DisplayName("Admin feed 검색은 blank code를 필터 미적용으로 처리한다")
+  void searchFeed_whenBlankCodeProvided_ignoresCodeFilter() {
+    CurationSpec recommendedSpec = createSpec();
+    CurationSpec pairingSpec = createPairingSpec();
+    adminSpecBasedCurationService.create(
+        createRequest(recommendedSpec.getId(), "추천 큐레이션", 1, true));
+    adminSpecBasedCurationService.create(createRequest(pairingSpec.getId(), "페어링 큐레이션", 2, true));
+
+    GlobalResponse result =
+        adminSpecBasedCurationService.searchFeed(
+            new CurationSearchRequest(null, "   ", null, 0, 10));
+
+    assertThat(result.getData()).asList().hasSize(2);
+  }
+
+  @Test
   @DisplayName("Admin feed는 페이지 size를 최대 10개로 제한하고 비활성 포함 여부를 필터링한다")
   void searchFeed_페이지_최대_크기_제한과_상태_필터링() {
     CurationSpec spec = createSpec();
@@ -223,6 +318,37 @@ class AdminSpecBasedCurationServiceTest {
                         20,
                         "description",
                         "비활성 메타는 feed 응답에서 제외된다.")))),
+        "alcohol",
+        1);
+  }
+
+  private CurationSpec createPairingSpec() {
+    return curationFixtureFactory.saveSpec(
+        "WHISKY_PAIRING",
+        "위스키 페어링",
+        "안주 조합 스펙 설명",
+        Map.of("type", "object", "required", List.of("source", "alcohol")),
+        Map.of(
+            "type",
+            "object",
+            "properties",
+            Map.of(
+                "source",
+                Map.of("type", "string"),
+                "alcohol",
+                Map.of(
+                    "type",
+                    "object",
+                    "x-feed",
+                    Map.of(
+                        "enabled",
+                        true,
+                        "role",
+                        "item-list",
+                        "order",
+                        10,
+                        "description",
+                        "피드 카드 페어링 정보를 구성하기 위해 포함한다.")))),
         "alcohol",
         1);
   }

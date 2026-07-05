@@ -31,6 +31,8 @@ import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document
 import org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest
 import org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse
 import org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint
+import org.springframework.restdocs.request.RequestDocumentation.parameterWithName
+import org.springframework.restdocs.request.RequestDocumentation.queryParameters
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.assertj.MockMvcTester
 import java.time.LocalDate
@@ -98,13 +100,20 @@ class AdminSpecBasedCurationControllerDocsTest {
 		given(adminSpecBasedCurationService.search(any(CurationSearchRequest::class.java)))
 			.willReturn(GlobalResponse.fromPage(PageImpl(listOf(listResponse()))))
 
-		assertThat(mvc.get().uri("/v2/curations?keyword=&isActive=true&page=0&size=20"))
+		assertThat(mvc.get().uri("/v2/curations?keyword=&code=RECOMMENDED_WHISKY&isActive=true&page=0&size=20"))
 			.hasStatusOk()
 			.apply(
 				document(
 					"admin/v2/curations/list",
 					preprocessRequest(prettyPrint()),
-					preprocessResponse(prettyPrint())
+					preprocessResponse(prettyPrint()),
+					queryParameters(
+						parameterWithName("keyword").description("큐레이션명 검색어").optional(),
+						parameterWithName("code").description("큐레이션 스펙 코드 exact match 필터").optional(),
+						parameterWithName("isActive").description("활성 상태 필터").optional(),
+						parameterWithName("page").description("페이지 번호, 기본값 0").optional(),
+						parameterWithName("size").description("페이지 크기, 기본값 20").optional()
+					)
 				)
 			)
 	}
