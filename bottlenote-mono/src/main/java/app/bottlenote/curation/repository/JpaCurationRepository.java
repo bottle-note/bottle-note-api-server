@@ -46,8 +46,9 @@ public interface JpaCurationRepository extends CurationRepository, JpaRepository
       SELECT c
       FROM curation c
       WHERE (:keyword IS NULL OR :keyword = '' OR c.name LIKE CONCAT('%', :keyword, '%'))
+        AND (:specId IS NULL OR c.specId = :specId)
         AND (:isActive IS NULL OR c.isActive = :isActive)
       ORDER BY c.displayOrder ASC, c.id ASC
       """)
-  Page<Curation> searchForAdmin(String keyword, Boolean isActive, Pageable pageable);
+  Page<Curation> searchForAdmin(String keyword, Long specId, Boolean isActive, Pageable pageable);
 }

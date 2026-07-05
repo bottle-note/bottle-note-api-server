@@ -47,12 +47,13 @@ public class InMemoryCurationRepository implements CurationRepository {
   }
 
   @Override
-  public Page<Curation> searchForAdmin(String keyword, Boolean isActive, Pageable pageable) {
+  public Page<Curation> searchForAdmin(String keyword, Long specId, Boolean isActive, Pageable pageable) {
     List<Curation> all =
         database.values().stream()
             .filter(
                 curation ->
                     keyword == null || keyword.isBlank() || curation.getName().contains(keyword))
+            .filter(curation -> specId == null || curation.getSpecId().equals(specId))
             .filter(curation -> isActive == null || curation.getIsActive().equals(isActive))
             .sorted(Comparator.comparing(Curation::getDisplayOrder).thenComparing(Curation::getId))
             .toList();
