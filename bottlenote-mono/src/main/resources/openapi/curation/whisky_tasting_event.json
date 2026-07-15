@@ -67,7 +67,7 @@
           },
           "capacity": {
             "type": "integer",
-            "minimum": 1,
+            "minimum": 0,
             "maximum": 999,
             "description": "총 모집 인원수",
             "example": 20,
