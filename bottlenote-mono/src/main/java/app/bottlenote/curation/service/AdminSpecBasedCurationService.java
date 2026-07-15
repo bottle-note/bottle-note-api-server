@@ -63,8 +63,12 @@ public class AdminSpecBasedCurationService {
   @Transactional(readOnly = true)
   public GlobalResponse search(CurationSearchRequest request) {
     PageRequest pageable = PageRequest.of(request.page(), request.size());
+    Long specId = resolveSpecId(request.code());
+    if (isUnknownCode(request.code(), specId)) {
+      return GlobalResponse.fromPage(Page.empty(pageable));
+    }
     Page<Curation> page =
-        curationRepository.searchForAdmin(request.keyword(), request.isActive(), pageable);
+        curationRepository.searchForAdmin(request.keyword(), specId, request.isActive(), pageable);
     Map<Long, CurationSpec> specMap =
         curationSpecRepository
             .findAllByIdIn(
@@ -80,8 +84,12 @@ public class AdminSpecBasedCurationService {
     int size = normalizeFeedSize(request.size());
     int pageNumber = request.page() != null && request.page() > 0 ? request.page() : 0;
     PageRequest pageable = PageRequest.of(pageNumber, size);
+    Long specId = resolveSpecId(request.code());
+    if (isUnknownCode(request.code(), specId)) {
+      return GlobalResponse.fromPage(Page.empty(pageable));
+    }
     Page<Curation> page =
-        curationRepository.searchForAdmin(request.keyword(), request.isActive(), pageable);
+        curationRepository.searchForAdmin(request.keyword(), specId, request.isActive(), pageable);
     Map<Long, CurationSpec> specMap =
         curationSpecRepository
             .findAllByIdIn(
@@ -176,6 +184,21 @@ public class AdminSpecBasedCurationService {
     if (!errors.isEmpty()) {
       throw new CurationException(CURATION_PAYLOAD_INVALID);
     }
+  }
+
+  private Long resolveSpecId(String code) {
+    if (isBlank(code)) {
+      return null;
+    }
+    return curationSpecRepository.findByCode(code.trim()).map(CurationSpec::getId).orElse(null);
+  }
+
+  private boolean isUnknownCode(String code, Long specId) {
+    return !isBlank(code) && specId == null;
+  }
+
+  private boolean isBlank(String value) {
+    return value == null || value.isBlank();
   }
 
   private AdminSpecBasedCurationListResponse toListResponse(Curation curation, CurationSpec spec) {

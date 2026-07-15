@@ -136,6 +136,71 @@ class AdminSpecBasedCurationIntegrationTest : IntegrationTestSupport() {
 		}
 
 		@Test
+		@DisplayName("Admin 큐레이션 목록은 code, keyword, isActive 조건을 조합해 조회할 수 있다")
+		fun listCurations_whenCodeKeywordAndActiveProvided_filtersResults() {
+			mockMvcTester
+				.post()
+				.uri("/v2/curations")
+				.header("Authorization", "Bearer $accessToken")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsString(createRequest(validPayload(), name = "통합 매치 큐레이션", isActive = true)))
+				.exchange()
+
+			val result = mockMvcTester
+				.get()
+				.uri("/v2/curations?keyword=매치&code=RECOMMENDED_WHISKY&isActive=true&page=0&size=20")
+				.header("Authorization", "Bearer $accessToken")
+				.exchange()
+
+			assertThat(result).hasStatusOk()
+			val data = dataNode(result)
+			assertThat(data.map { it.path("name").asText() }).contains("통합 매치 큐레이션")
+			assertThat(data.map { it.path("specCode").asText() }.distinct()).containsOnly("RECOMMENDED_WHISKY")
+		}
+
+		@Test
+		@DisplayName("Admin 큐레이션 목록은 알 수 없는 code를 빈 결과로 반환한다")
+		fun listCurations_whenUnknownCodeProvided_returnsEmptyResult() {
+			mockMvcTester
+				.post()
+				.uri("/v2/curations")
+				.header("Authorization", "Bearer $accessToken")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsString(createRequest(validPayload(), name = "통합 네거티브 큐레이션")))
+				.exchange()
+
+			val result = mockMvcTester
+				.get()
+				.uri("/v2/curations?code=UNKNOWN_CODE&page=0&size=20")
+				.header("Authorization", "Bearer $accessToken")
+				.exchange()
+
+			assertThat(result).hasStatusOk()
+			assertThat(dataNode(result)).isEmpty()
+		}
+
+		@Test
+		@DisplayName("Admin 큐레이션 목록은 blank code를 필터 미적용으로 처리한다")
+		fun listCurations_whenBlankCodeProvided_ignoresCodeFilter() {
+			mockMvcTester
+				.post()
+				.uri("/v2/curations")
+				.header("Authorization", "Bearer $accessToken")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsString(createRequest(validPayload(), name = "boundary-filter-curation")))
+				.exchange()
+
+			val result = mockMvcTester
+				.get()
+				.uri("/v2/curations?keyword=boundary&code=&page=0&size=20")
+				.header("Authorization", "Bearer $accessToken")
+				.exchange()
+
+			assertThat(result).hasStatusOk()
+			assertThat(dataNode(result).map { it.path("name").asText() }).contains("boundary-filter-curation")
+		}
+
+		@Test
 		@DisplayName("request spec의 required 필드가 없으면 400을 반환한다")
 		fun create_whenRequiredFieldMissing_returnsBadRequest() {
 			val payload = mapOf(
@@ -220,15 +285,19 @@ class AdminSpecBasedCurationIntegrationTest : IntegrationTestSupport() {
 			.isEqualTo(404)
 	}
 
-	private fun createRequest(payload: Any): Map<String, Any?> = mapOf(
+	private fun createRequest(
+		payload: Any,
+		name: String = "통합 테스트 큐레이션",
+		isActive: Boolean = true
+	): Map<String, Any?> = mapOf(
 		"specId" to recommendedSpecId(),
-		"name" to "통합 테스트 큐레이션",
+		"name" to name,
 		"description" to "request spec 검증 테스트",
 		"imageUrls" to listOf("https://cdn.example.com/cover.jpg"),
 		"exposureStartDate" to "2026-06-01",
 		"exposureEndDate" to "2026-06-30",
 		"displayOrder" to 1,
-		"isActive" to true,
+		"isActive" to isActive,
 		"payload" to listOf(payload)
 	)
 
