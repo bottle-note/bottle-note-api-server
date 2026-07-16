@@ -31,6 +31,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 class ApiRequestConsoleLoggingFilterTest {
 
   private static final String VISITOR_ID = "c74a0e2c-bf9d-4edf-b122-44d42f621d9a";
+  private static final String CHROME_USER_AGENT =
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+          + "(KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36";
 
   private final ApiRequestConsoleLoggingFilter filter = new ApiRequestConsoleLoggingFilter();
   private final Logger logger =
@@ -58,6 +61,7 @@ class ApiRequestConsoleLoggingFilterTest {
     MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/alcohols/search");
     request.setQueryString("keyword=macallan&access_token=abc123");
     request.setCookies(new Cookie(ApiRequestConsoleLoggingFilter.VISITOR_COOKIE_NAME, VISITOR_ID));
+    request.addHeader(HttpHeaders.USER_AGENT, CHROME_USER_AGENT);
     MockHttpServletResponse response = new MockHttpServletResponse();
     FilterChain filterChain =
         (servletRequest, servletResponse) ->
@@ -73,18 +77,49 @@ class ApiRequestConsoleLoggingFilterTest {
         .extracting(ILoggingEvent::getFormattedMessage)
         .anySatisfy(
             message -> {
-              assertThat(message).contains("traceId=trace-123");
-              assertThat(message).containsPattern("visitorId=[0-9a-f]{64}");
+              assertThat(message).contains("추적ID=trace-123");
+              assertThat(message).containsPattern("방문자ID=[0-9a-f]{64}");
               assertThat(message).doesNotContain(VISITOR_ID);
-              assertThat(message).contains("userId=42");
-              assertThat(message).contains("method=GET");
-              assertThat(message).contains("path=/api/v1/alcohols/search");
-              assertThat(message).contains("queryPresent=true");
+              assertThat(message).contains("회원ID=42");
+              assertThat(message).contains("기기유형=데스크톱");
+              assertThat(message).contains("운영체제=macOS");
+              assertThat(message).contains("브라우저=Chrome");
+              assertThat(message).contains("브라우저주버전=143");
+              assertThat(message).contains("웹뷰=false");
+              assertThat(message).contains("메서드=GET");
+              assertThat(message).contains("경로=/api/v1/alcohols/search");
+              assertThat(message).contains("쿼리존재=true");
               assertThat(message).doesNotContain("keyword=macallan");
               assertThat(message).doesNotContain("abc123");
-              assertThat(message).contains("status=201");
-              assertThat(message).containsPattern("durationMs=\\d+");
+              assertThat(message).doesNotContain(CHROME_USER_AGENT);
+              assertThat(message).contains("상태=201");
+              assertThat(message).containsPattern("처리시간ms=\\d+");
             });
+  }
+
+  @Test
+  @DisplayName("Android WebView 요청은 모바일 Android 웹뷰로 출력한다")
+  void Android_WebView_요청을_정규화한다() throws Exception {
+    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/alcohols/search");
+    request.setCookies(new Cookie(ApiRequestConsoleLoggingFilter.VISITOR_COOKIE_NAME, VISITOR_ID));
+    request.addHeader(
+        HttpHeaders.USER_AGENT,
+        "Mozilla/5.0 (Linux; Android 10; K; wv) AppleWebKit/537.36 "
+            + "(KHTML, like Gecko) Version/4.0 Chrome/143.0.0.0 Mobile Safari/537.36");
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    filter.doFilter(request, response, successfulChain());
+
+    assertThat(activityMessages())
+        .singleElement()
+        .satisfies(
+            message ->
+                assertThat(message)
+                    .contains("기기유형=모바일")
+                    .contains("운영체제=Android")
+                    .contains("브라우저=Chrome")
+                    .contains("브라우저주버전=143")
+                    .contains("웹뷰=true"));
   }
 
   @Test
