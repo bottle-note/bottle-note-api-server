@@ -138,7 +138,8 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                 review.isBest)
             .orderBy(
                 userQuerySupporter.sortBy(
-                    MyBottleType.REVIEW, request.sortType(), request.sortOrder(), userId))
+                    MyBottleType.REVIEW, request.sortType(), request.sortOrder(), userId),
+                userQuerySupporter.myBottleTieBreakerSortBy(request.sortOrder()))
             .offset(request.cursor())
             .limit(request.pageSize() + 1)
             .fetch();
@@ -183,6 +184,8 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
 
     CursorPageable cursorPageable =
         userQuerySupporter.myBottleCursorPageable(request, mergedReviewMyBottleList);
+    List<ReviewMyBottleItem> pageReviewMyBottleList =
+        userQuerySupporter.myBottlePageItems(request, mergedReviewMyBottleList);
 
     Long totalCount =
         queryFactory
@@ -201,7 +204,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
             .fetchOne();
 
     MyBottleResponse myBottleResponse =
-        MyBottleResponse.create(userId, isMyPage, totalCount, mergedReviewMyBottleList);
+        MyBottleResponse.create(userId, isMyPage, totalCount, pageReviewMyBottleList);
     return PageResponse.of(myBottleResponse, cursorPageable);
   }
 
@@ -244,12 +247,15 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                 alcohol.id, alcohol.korName, alcohol.engName, alcohol.korCategory, alcohol.imageUrl)
             .orderBy(
                 userQuerySupporter.sortBy(
-                    MyBottleType.RATING, request.sortType(), request.sortOrder(), userId))
+                    MyBottleType.RATING, request.sortType(), request.sortOrder(), userId),
+                userQuerySupporter.myBottleTieBreakerSortBy(request.sortOrder()))
             .offset(request.cursor())
             .limit(request.pageSize() + 1)
             .fetch();
     CursorPageable cursorPageable =
         userQuerySupporter.myBottleCursorPageable(request, ratingMyBottleList);
+    List<RatingMyBottleItem> pageRatingMyBottleList =
+        userQuerySupporter.myBottlePageItems(request, ratingMyBottleList);
 
     Long totalCount =
         queryFactory
@@ -269,7 +275,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
             .fetchOne();
 
     MyBottleResponse myBottleResponse =
-        MyBottleResponse.create(userId, isMyPage, totalCount, ratingMyBottleList);
+        MyBottleResponse.create(userId, isMyPage, totalCount, pageRatingMyBottleList);
     return PageResponse.of(myBottleResponse, cursorPageable);
   }
 
@@ -314,13 +320,16 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                 picks.lastModifyAt)
             .orderBy(
                 userQuerySupporter.sortBy(
-                    MyBottleType.PICK, request.sortType(), request.sortOrder(), targetUserId))
+                    MyBottleType.PICK, request.sortType(), request.sortOrder(), targetUserId),
+                userQuerySupporter.myBottleTieBreakerSortBy(request.sortOrder()))
             .offset(request.cursor())
             .limit(request.pageSize() + 1)
             .fetch();
 
     CursorPageable cursorPageable =
         userQuerySupporter.myBottleCursorPageable(request, picksMyBottleList);
+    List<PicksMyBottleItem> pagePicksMyBottleList =
+        userQuerySupporter.myBottlePageItems(request, picksMyBottleList);
 
     Long totalCount =
         queryFactory
@@ -339,7 +348,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
             .fetchOne();
 
     MyBottleResponse myBottleResponse =
-        MyBottleResponse.create(targetUserId, isMyPage, totalCount, picksMyBottleList);
+        MyBottleResponse.create(targetUserId, isMyPage, totalCount, pagePicksMyBottleList);
     return PageResponse.of(myBottleResponse, cursorPageable);
   }
 
