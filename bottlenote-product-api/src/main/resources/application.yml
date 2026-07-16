@@ -53,6 +53,11 @@ spring:
             isClustered: true
             clusterCheckinInterval: 20000
 
+bottlenote:
+  observability:
+    visitor-telemetry:
+      enabled: true
+
 # Spring Security
 security:
   jwt:

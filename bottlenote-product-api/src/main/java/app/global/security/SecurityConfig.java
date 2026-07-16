@@ -2,12 +2,12 @@ package app.global.security;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
-import app.bottlenote.global.logging.ApiRequestConsoleLoggingFilter;
 import app.bottlenote.global.security.constant.MaliciousPathPattern;
 import app.bottlenote.global.security.jwt.JwtAuthenticationEntryPoint;
 import app.bottlenote.global.security.jwt.JwtAuthenticationFilter;
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
 import app.bottlenote.global.security.policy.SecurityPolicyRegistry;
+import app.bottlenote.observability.visitor.VisitorTelemetryFilter;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
@@ -36,6 +36,7 @@ public class SecurityConfig {
   private final JwtAuthenticationManager jwtAuthenticationManager;
   private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
   private final SecurityPolicyRegistry securityPolicyRegistry;
+  private final VisitorTelemetryFilter visitorTelemetryFilter;
 
   /**
    * 세션 메서드 참조를 위한 참조 메서드
@@ -84,7 +85,7 @@ public class SecurityConfig {
         .addFilterBefore(
             new JwtAuthenticationFilter(jwtAuthenticationManager, securityPolicyRegistry),
             UsernamePasswordAuthenticationFilter.class)
-        .addFilterAfter(new ApiRequestConsoleLoggingFilter(), JwtAuthenticationFilter.class)
+        .addFilterAfter(visitorTelemetryFilter, JwtAuthenticationFilter.class)
         .exceptionHandling(
             exceptionHandling ->
                 exceptionHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint))
