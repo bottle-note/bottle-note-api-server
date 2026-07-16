@@ -2,6 +2,13 @@ spring:
   application:
     name: ${OTEL_SERVICE_NAME:UNKNOWN_SERVICE}
 
+bottlenote:
+  observability:
+    visitor-telemetry:
+      enabled: ${VISITOR_TELEMETRY_ENABLED:false}
+      stream-key: ${VISITOR_TELEMETRY_STREAM_KEY:visitor-telemetry}
+      max-length: ${VISITOR_TELEMETRY_MAX_LENGTH:100000}
+
 management:
   endpoints:
     web:
