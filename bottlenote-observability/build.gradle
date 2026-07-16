@@ -10,6 +10,7 @@ dependencies {
 	implementation libs.spring.boot.starter.web
 	api libs.spring.boot.starter.actuator
 	api libs.spring.boot.starter.aop
+	implementation libs.spring.boot.starter.data.redis
 
 	// OpenTelemetry
 	api libs.bundles.opentelemetry.complete
