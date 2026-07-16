@@ -264,7 +264,7 @@ public final class VisitorTelemetryFilter extends OncePerRequestFilter {
   }
 
   private void logTelemetry(VisitorTelemetry telemetry) {
-    log.info(
+    log.debug(
         "visitor_telemetry 추적ID={} 방문자ID={} 기기유형={} 운영체제={} 브라우저={} "
             + "브라우저주버전={} 웹뷰={} 메서드={} 요청경로={} 정규화경로={} 상태={} 처리시간ms={}",
         telemetry.traceId(),
