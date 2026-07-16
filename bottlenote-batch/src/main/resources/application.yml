@@ -99,7 +99,7 @@ security:
 spring:
   config:
     activate:
-      on-profile: local,dev
+      on-profile: local,dev,prod
 
 batch:
   visitor-telemetry:
