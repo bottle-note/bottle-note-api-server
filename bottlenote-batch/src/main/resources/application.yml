@@ -72,6 +72,19 @@ schedules:
       sync:
         enable: false
 
+batch:
+  visitor-telemetry:
+    enabled: false
+    stream-key: visitor-telemetry
+    group-name: visitor-telemetry-writers
+    dead-letter-stream-key: visitor-telemetry-dead-letter
+    consumer-name: ${HOSTNAME:bottlenote-batch-local}
+    batch-size: 200
+    block-timeout: 2s
+    retry-backoff: 5s
+    pending-idle: 1m
+    dead-letter-max-length: 10000
+
 logging:
   level:
     root: info
@@ -81,3 +94,13 @@ security:
     secret-key: ${JWT_SECRET_KEY}
   nonce:
     salt: ${NONCE_SALT:bottle-note-secure-salt-2024}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local,dev
+
+batch:
+  visitor-telemetry:
+    enabled: true

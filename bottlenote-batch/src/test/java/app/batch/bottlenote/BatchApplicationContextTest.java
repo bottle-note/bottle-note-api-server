@@ -20,6 +20,7 @@ import org.springframework.batch.core.Job;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.web.client.RestTemplate;
@@ -75,6 +76,7 @@ class BatchApplicationContextTest {
     assertThat(context.getBean(DiscordWebhookProperties.class).getUrl())
         .isEqualTo("https://discord.test.webhook.url");
     assertThat(context.getBean(AppInfoConfig.class).getEnvironment()).isEqualTo("test");
+    assertThat(context.getBean(StringRedisTemplate.class)).isNotNull();
   }
 
   @Test
@@ -85,5 +87,6 @@ class BatchApplicationContextTest {
     assertThat(context.getBeansOfType(ReviewService.class)).isEmpty();
     assertThat(context.getBeansOfType(UserReportService.class)).isEmpty();
     assertThat(context.getBeansOfType(ReviewReportService.class)).isEmpty();
+    assertThat(context.containsBean("visitorTelemetryStreamConsumer")).isFalse();
   }
 }
