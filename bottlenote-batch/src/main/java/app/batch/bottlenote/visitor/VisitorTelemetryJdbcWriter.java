@@ -10,7 +10,7 @@ final class VisitorTelemetryJdbcWriter {
 
   private static final String INSERT_SQL =
       """
-      INSERT INTO api_request_events (
+      INSERT INTO visitor_telemetry_events (
           stream_event_id, occurred_at, visitor_id, trace_id, http_method,
           request_path, request_uri, normalized_request_path, status_code, duration_ms,
           device_type, operating_system, browser, browser_major_version, is_webview
