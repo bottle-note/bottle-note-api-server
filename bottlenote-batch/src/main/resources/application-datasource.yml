@@ -30,13 +30,11 @@ spring:
 
   data:
     redis:
-      mode: ${REDIS_MODE:standalone}
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:16379}
+      username: ${REDIS_USERNAME:default}
       password: ${REDIS_PASSWORD:}
       timeout: 15s
-      cluster:
-        nodes: ${REDIS_CLUSTER_NODES:}
 
 --- # default/local 환경
 spring:
