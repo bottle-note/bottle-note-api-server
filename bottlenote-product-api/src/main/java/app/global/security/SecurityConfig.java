@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -36,7 +37,7 @@ public class SecurityConfig {
   private final JwtAuthenticationManager jwtAuthenticationManager;
   private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
   private final SecurityPolicyRegistry securityPolicyRegistry;
-  private final VisitorTelemetryFilter visitorTelemetryFilter;
+  private final ObjectProvider<VisitorTelemetryFilter> visitorTelemetryFilterProvider;
 
   /**
    * 세션 메서드 참조를 위한 참조 메서드
@@ -66,7 +67,7 @@ public class SecurityConfig {
    */
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    return http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+    http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
         .csrf(AbstractHttpConfigurer::disable)
         .sessionManagement(SecurityConfig::statelessSessionConfig)
         .formLogin(AbstractHttpConfigurer::disable)
@@ -84,9 +85,12 @@ public class SecurityConfig {
                     .permitAll())
         .addFilterBefore(
             new JwtAuthenticationFilter(jwtAuthenticationManager, securityPolicyRegistry),
-            UsernamePasswordAuthenticationFilter.class)
-        .addFilterAfter(visitorTelemetryFilter, JwtAuthenticationFilter.class)
-        .exceptionHandling(
+            UsernamePasswordAuthenticationFilter.class);
+
+    visitorTelemetryFilterProvider.ifAvailable(
+        filter -> http.addFilterAfter(filter, JwtAuthenticationFilter.class));
+
+    return http.exceptionHandling(
             exceptionHandling ->
                 exceptionHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint))
         .build();
