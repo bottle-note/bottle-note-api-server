@@ -22,6 +22,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.lang.NonNull;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.ContentCachingResponseWrapper;
 import org.springframework.web.util.WebUtils;
 
 @Slf4j
@@ -39,17 +40,21 @@ public class ApiRequestConsoleLoggingFilter extends OncePerRequestFilter {
       @NonNull FilterChain filterChain)
       throws ServletException, IOException {
     long startedAt = System.currentTimeMillis();
+    ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
+    boolean completed = false;
 
     try {
-      filterChain.doFilter(request, response);
+      filterChain.doFilter(request, responseWrapper);
+      completed = true;
     } finally {
       long durationMs = System.currentTimeMillis() - startedAt;
-      if (isSuccessful(response)) {
+      if (completed && isSuccessful(responseWrapper)) {
         findVisitorId(request)
             .ifPresentOrElse(
-                visitorId -> logActivity(request, response, durationMs, visitorId),
-                () -> issueVisitorCookie(response));
+                visitorId -> logActivity(request, responseWrapper, durationMs, visitorId),
+                () -> issueVisitorCookie(responseWrapper));
       }
+      responseWrapper.copyBodyToResponse();
     }
   }
 

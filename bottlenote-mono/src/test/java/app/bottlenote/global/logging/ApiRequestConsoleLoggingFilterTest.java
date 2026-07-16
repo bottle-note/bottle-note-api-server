@@ -88,12 +88,18 @@ class ApiRequestConsoleLoggingFilterTest {
   }
 
   @Test
-  @DisplayName("방문자 쿠키가 없는 성공 요청은 활동 로그 없이 쿠키를 발급한다")
-  void 방문자_쿠키가_없는_성공_요청은_쿠키를_발급한다() throws Exception {
+  @DisplayName("응답이 커밋되는 성공 요청도 활동 로그 없이 쿠키를 발급한다")
+  void 응답이_커밋되는_성공_요청도_쿠키를_발급한다() throws Exception {
     MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/alcohols/search");
-    MockHttpServletResponse response = new MockHttpServletResponse();
+    MockHttpServletResponse response = new HeaderRejectingCommittedResponse();
+    FilterChain committingChain =
+        (servletRequest, servletResponse) -> {
+          ((HttpServletResponse) servletResponse).setStatus(HttpServletResponse.SC_OK);
+          servletResponse.getWriter().write("response-body");
+          servletResponse.flushBuffer();
+        };
 
-    filter.doFilter(request, response, successfulChain());
+    filter.doFilter(request, response, committingChain);
 
     String setCookie = response.getHeader(HttpHeaders.SET_COOKIE);
     assertThat(setCookie)
@@ -105,6 +111,7 @@ class ApiRequestConsoleLoggingFilterTest {
         .contains("SameSite=Lax")
         .doesNotContain("Domain=");
     assertThat(extractCookieValue(setCookie)).satisfies(value -> UUID.fromString(value));
+    assertThat(response.getContentAsString()).isEqualTo("response-body");
     assertThat(activityMessages()).isEmpty();
   }
 
@@ -173,5 +180,15 @@ class ApiRequestConsoleLoggingFilterTest {
         .map(ILoggingEvent::getFormattedMessage)
         .filter(message -> message.startsWith("api_request"))
         .toList();
+  }
+
+  private static class HeaderRejectingCommittedResponse extends MockHttpServletResponse {
+
+    @Override
+    public void addHeader(String name, String value) {
+      if (!isCommitted()) {
+        super.addHeader(name, value);
+      }
+    }
   }
 }
