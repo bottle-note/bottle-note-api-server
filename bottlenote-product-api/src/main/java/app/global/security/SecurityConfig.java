@@ -2,6 +2,7 @@ package app.global.security;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
+import app.bottlenote.global.logging.ApiRequestConsoleLoggingFilter;
 import app.bottlenote.global.security.constant.MaliciousPathPattern;
 import app.bottlenote.global.security.jwt.JwtAuthenticationEntryPoint;
 import app.bottlenote.global.security.jwt.JwtAuthenticationFilter;
@@ -83,6 +84,7 @@ public class SecurityConfig {
         .addFilterBefore(
             new JwtAuthenticationFilter(jwtAuthenticationManager, securityPolicyRegistry),
             UsernamePasswordAuthenticationFilter.class)
+        .addFilterAfter(new ApiRequestConsoleLoggingFilter(), JwtAuthenticationFilter.class)
         .exceptionHandling(
             exceptionHandling ->
                 exceptionHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint))
