@@ -60,7 +60,7 @@ class VisitorTelemetryStreamConsumerIntegrationTest {
     jdbcTemplate = new JdbcTemplate(dataSource);
     jdbcTemplate.execute(
         """
-        CREATE TABLE api_request_events (
+        CREATE TABLE visitor_telemetry_events (
           id BIGINT AUTO_INCREMENT PRIMARY KEY,
           stream_event_id VARCHAR(41) NOT NULL UNIQUE,
           occurred_at DATETIME(6) NOT NULL,
@@ -93,7 +93,7 @@ class VisitorTelemetryStreamConsumerIntegrationTest {
   @BeforeEach
   void setUp() {
     redisTemplate.getConnectionFactory().getConnection().serverCommands().flushDb();
-    jdbcTemplate.update("DELETE FROM api_request_events");
+    jdbcTemplate.update("DELETE FROM visitor_telemetry_events");
     properties = new VisitorTelemetryProperties();
     properties.setConsumerName("integration-consumer");
     properties.setBlockTimeout(Duration.ofMillis(50));
@@ -142,7 +142,8 @@ class VisitorTelemetryStreamConsumerIntegrationTest {
   @DisplayName("DB 실패 메시지는 Pending에 남고 복구 후 다시 저장한다")
   void DB_실패_후_Pending을_재처리한다() {
     redisTemplate.opsForStream().add(properties.getStreamKey(), validFields());
-    jdbcTemplate.execute("RENAME TABLE api_request_events TO api_request_events_unavailable");
+    jdbcTemplate.execute(
+        "RENAME TABLE visitor_telemetry_events TO visitor_telemetry_events_unavailable");
     consumer.start();
 
     await().atMost(5, TimeUnit.SECONDS).untilAsserted(() ->
@@ -153,7 +154,8 @@ class VisitorTelemetryStreamConsumerIntegrationTest {
                     .getTotalPendingMessages())
             .isEqualTo(1));
 
-    jdbcTemplate.execute("RENAME TABLE api_request_events_unavailable TO api_request_events");
+    jdbcTemplate.execute(
+        "RENAME TABLE visitor_telemetry_events_unavailable TO visitor_telemetry_events");
 
     await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
       assertThat(rowCount()).isEqualTo(1);
@@ -226,7 +228,7 @@ class VisitorTelemetryStreamConsumerIntegrationTest {
     assertThat(rowCount()).isEqualTo(1);
     assertThat(
             jdbcTemplate.queryForObject(
-                "SELECT stream_event_id FROM api_request_events", String.class))
+                "SELECT stream_event_id FROM visitor_telemetry_events", String.class))
         .isEqualTo("recent-0");
   }
 
@@ -265,6 +267,7 @@ class VisitorTelemetryStreamConsumerIntegrationTest {
   }
 
   private int rowCount() {
-    return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM api_request_events", Integer.class);
+    return jdbcTemplate.queryForObject(
+        "SELECT COUNT(*) FROM visitor_telemetry_events", Integer.class);
   }
 }

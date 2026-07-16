@@ -14,7 +14,7 @@ public class VisitorTelemetryRetentionJob extends QuartzJobBean {
 
   private static final int DELETE_CHUNK_SIZE = 10_000;
   private static final String DELETE_SQL =
-      "DELETE FROM api_request_events "
+      "DELETE FROM visitor_telemetry_events "
           + "WHERE occurred_at < DATE_SUB(NOW(), INTERVAL 90 DAY) LIMIT "
           + DELETE_CHUNK_SIZE;
 
