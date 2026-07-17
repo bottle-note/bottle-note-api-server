@@ -1,6 +1,9 @@
 # 기본 서버 설정
 app: # 애플리케이션 및 배포 정보
   type: admin
+  cors:
+    allowed-origins:
+      - http://localhost:5173
   info:
     server-name: ${SERVER_NAME:unknown}
     environment: ${SPRING_PROFILES_ACTIVE:local}
@@ -130,6 +133,12 @@ server:
     connection-timeout: 5000
 
 --- # dev 프로파일 (개발 서버)
+app:
+  cors:
+    allowed-origins:
+      - https://admin.development.bottle-note.com
+      - http://localhost:5173
+
 spring:
   config:
     activate:
@@ -156,6 +165,11 @@ server:
     connection-timeout: 30000
 
 --- # prod 프로파일 (운영 서버)
+app:
+  cors:
+    allowed-origins:
+      - https://admin.bottle-note.com
+
 spring:
   config:
     activate:
