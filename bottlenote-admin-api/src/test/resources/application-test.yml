@@ -42,6 +42,11 @@ spring:
     generate-ddl: false
     database-platform: org.hibernate.dialect.MySQL8Dialect
 
+app:
+  cors:
+    allowed-origins:
+      - https://admin.bottle-note.com
+
 # Spring Security
 security:
   jwt:
