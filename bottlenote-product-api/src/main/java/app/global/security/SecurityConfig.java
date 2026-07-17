@@ -10,10 +10,10 @@ import app.bottlenote.global.security.policy.SecurityPolicyRegistry;
 import app.bottlenote.observability.visitor.VisitorTelemetryFilter;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -32,12 +32,14 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@EnableConfigurationProperties(CorsProperties.class)
 public class SecurityConfig {
 
   private final JwtAuthenticationManager jwtAuthenticationManager;
   private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
   private final SecurityPolicyRegistry securityPolicyRegistry;
   private final ObjectProvider<VisitorTelemetryFilter> visitorTelemetryFilterProvider;
+  private final CorsProperties corsProperties;
 
   /**
    * 세션 메서드 참조를 위한 참조 메서드
@@ -107,12 +109,11 @@ public class SecurityConfig {
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 
     CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOrigins(List.of("*")); // 모든 origin 허용
-    configuration.setAllowedMethods(
-        Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-    configuration.setAllowedHeaders(List.of("*")); // 모든 헤더 허용
-    configuration.setAllowCredentials(false); // credentials 허용하지 않음
-    source.registerCorsConfiguration("/**", configuration); // 모든 경로에 대해 설정 적용
+    configuration.setAllowedOrigins(corsProperties.allowedOrigins());
+    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+    configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+    configuration.setAllowCredentials(false);
+    source.registerCorsConfiguration("/**", configuration);
 
     return source;
   }

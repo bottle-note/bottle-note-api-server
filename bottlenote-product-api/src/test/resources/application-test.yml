@@ -48,6 +48,11 @@ spring:
     generate-ddl: false # SQL 스크립트로 스키마 생성
     database-platform: org.hibernate.dialect.MySQL8Dialect
 
+app:
+  cors:
+    allowed-origins:
+      - https://bottle-note.com
+
 # Spring Security
 security:
   jwt:

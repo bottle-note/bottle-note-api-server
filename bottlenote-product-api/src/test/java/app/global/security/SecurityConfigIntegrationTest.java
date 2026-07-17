@@ -22,6 +22,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.servlet.DispatcherServlet;
 
 @Tag("integration")
@@ -140,6 +141,35 @@ class SecurityConfigIntegrationTest extends IntegrationTestSupport {
 
     // then - 200 OK 또는 정상 응답 (403이 아님)
     result.assertThat().hasStatusOk();
+  }
+
+  @Test
+  @DisplayName("허용된 Origin의 preflight 요청에 해당 Origin을 반환한다")
+  void 허용된_Origin_preflight_허용() {
+    var result = preflight("https://bottle-note.com");
+
+    result.assertThat().hasStatusOk();
+    assertThat(result.getResponse().getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN))
+        .isEqualTo("https://bottle-note.com");
+  }
+
+  @Test
+  @DisplayName("허용되지 않은 Origin의 preflight 요청은 거부한다")
+  void 허용되지_않은_Origin_preflight_거부() {
+    var result = preflight("https://evil.example");
+
+    result.assertThat().hasStatus(FORBIDDEN);
+    assertThat(result.getResponse().getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN)).isNull();
+  }
+
+  private org.springframework.test.web.servlet.assertj.MvcTestResult preflight(String origin) {
+    return mockMvcTester
+        .options()
+        .uri("/api/v1/alcohols/search")
+        .header(HttpHeaders.ORIGIN, origin)
+        .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "GET")
+        .header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, "authorization,content-type")
+        .exchange();
   }
 
   @Test
