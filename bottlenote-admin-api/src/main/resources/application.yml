@@ -34,7 +34,7 @@ spring:
 # Spring Security
 security:
   jwt:
-    secret-key: ${JWT_SECRET_KEY:c2VjdXJlU2VjcmV0S2V5MTIzNDU2Nzg5MGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6QWJDRGVGR2hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlrSg==}
+    secret-key: ${JWT_SECRET_KEY}
     access-token-expiration: 86400 # 하루 (24시간)
     refresh-token-expiration: 2592000 # 한 달 (30일)
   nonce:
@@ -75,7 +75,7 @@ curation:
 root:
   admin:
     email: ${ROOT_ADMIN_EMAIL:email@email.com}
-    password: ${ROOT_ADMIN_PASSWORD:email@email.com}
+    password: ${ROOT_ADMIN_PASSWORD}
 
 --- # default/local 프로파일 (동일 설정)
 spring:
