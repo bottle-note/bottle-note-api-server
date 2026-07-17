@@ -47,7 +47,6 @@ public class OauthController {
       HttpServletRequest request, HttpServletResponse response) {
 
     String refreshToken = request.getHeader(REFRESH_TOKEN_HEADER_PREFIX);
-    log.info("refresh token in request header : {}", refreshToken);
 
     TokenItem token = oauthService.refresh(refreshToken);
 
