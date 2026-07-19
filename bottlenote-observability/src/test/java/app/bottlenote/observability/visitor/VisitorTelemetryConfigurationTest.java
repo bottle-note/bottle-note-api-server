@@ -32,10 +32,15 @@ class VisitorTelemetryConfigurationTest {
   }
 
   @Test
-  @DisplayName("활성화하면 필터를 생성하지만 Servlet 자동 등록은 비활성화한다")
+  @DisplayName("활성화하면 Publisher를 생성하고 Product 필터의 Servlet 자동 등록을 비활성화한다")
   void 활성화하면_Security_chain_연결용_필터를_생성한다() {
     contextRunner
         .withPropertyValues("bottlenote.observability.visitor-telemetry.enabled=true")
+        .withBean(
+            VisitorTelemetryFilter.class,
+            () ->
+                new VisitorTelemetryFilter(
+                    telemetry -> {}, () -> null, request -> null))
         .run(
             context -> {
               assertThat(context).hasSingleBean(VisitorTelemetryFilter.class);

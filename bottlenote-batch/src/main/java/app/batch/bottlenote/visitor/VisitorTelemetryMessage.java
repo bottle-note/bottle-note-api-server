@@ -8,6 +8,8 @@ record VisitorTelemetryMessage(
     String streamEventId,
     LocalDateTime occurredAt,
     String visitorId,
+    Long userId,
+    String ipAddress,
     String traceId,
     String httpMethod,
     String requestPath,
@@ -22,11 +24,14 @@ record VisitorTelemetryMessage(
     boolean webview) {
 
   static VisitorTelemetryMessage from(String streamEventId, Map<String, String> fields) {
+    String userId = optional(fields, "user_id", 20);
     try {
       return new VisitorTelemetryMessage(
           required(streamEventId, "stream_event_id", 41),
           LocalDateTime.parse(required(fields, "occurred_at", 26)),
           required(fields, "visitor_id", 64),
+          userId == null ? null : Long.valueOf(userId),
+          optional(fields, "ip_address", 45),
           optional(fields, "trace_id", 64),
           required(fields, "http_method", 10),
           required(fields, "request_path", 2048),
@@ -41,6 +46,8 @@ record VisitorTelemetryMessage(
           strictBoolean(fields, "is_webview"));
     } catch (DateTimeParseException exception) {
       throw new IllegalArgumentException("occurred_at 형식이 올바르지 않습니다", exception);
+    } catch (NumberFormatException exception) {
+      throw new IllegalArgumentException("user_id 필드가 숫자가 아닙니다", exception);
     }
   }
 

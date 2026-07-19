@@ -65,6 +65,8 @@ class VisitorTelemetryStreamConsumerIntegrationTest {
           stream_event_id VARCHAR(41) NOT NULL UNIQUE,
           occurred_at DATETIME(6) NOT NULL,
           visitor_id CHAR(64) NOT NULL,
+          user_id BIGINT NULL,
+          ip_address VARCHAR(45) ASCII NULL,
           trace_id VARCHAR(64) NULL,
           http_method VARCHAR(10) NOT NULL,
           request_path VARCHAR(2048) NOT NULL,
@@ -110,12 +112,27 @@ class VisitorTelemetryStreamConsumerIntegrationTest {
   @Test
   @DisplayName("기존 Stream부터 소비해 DB 저장 후 ACK하고 삭제한다")
   void 기존_Stream을_소비하고_저장한다() {
+    Map<String, String> legacyFields = validFields();
+    legacyFields.remove("user_id");
+    legacyFields.remove("ip_address");
+    redisTemplate.opsForStream().add(properties.getStreamKey(), legacyFields);
     redisTemplate.opsForStream().add(properties.getStreamKey(), validFields());
 
     consumer.start();
 
     await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
-      assertThat(rowCount()).isEqualTo(1);
+      assertThat(rowCount()).isEqualTo(2);
+      assertThat(
+              jdbcTemplate.queryForObject(
+                  "SELECT COUNT(*) FROM visitor_telemetry_events "
+                      + "WHERE user_id IS NULL AND ip_address IS NULL",
+                  Integer.class))
+          .isEqualTo(1);
+      assertThat(
+              jdbcTemplate.queryForObject(
+                  "SELECT ip_address FROM visitor_telemetry_events WHERE user_id = 42",
+                  String.class))
+          .isEqualTo("2001:db8::1");
       assertThat(redisTemplate.opsForStream().size(properties.getStreamKey())).isZero();
       assertThat(
               redisTemplate
@@ -193,6 +210,8 @@ class VisitorTelemetryStreamConsumerIntegrationTest {
             java.time.LocalDateTime.now().minusDays(91),
             "a".repeat(64),
             null,
+            null,
+            null,
             "GET",
             "/api/v1/old",
             "/api/v1/old",
@@ -209,6 +228,8 @@ class VisitorTelemetryStreamConsumerIntegrationTest {
             "recent-0",
             java.time.LocalDateTime.now().minusDays(89),
             "b".repeat(64),
+            null,
+            null,
             null,
             "GET",
             "/api/v1/recent",

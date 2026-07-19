@@ -19,6 +19,8 @@ class VisitorTelemetryTest {
         new VisitorTelemetry(
             LocalDateTime.of(2026, 7, 17, 1, 2, 3, 456_000_000),
             "visitor-hash",
+            42L,
+            "2001:db8::1",
             null,
             "GET",
             "/api/v1/alcohols?keyword=peated",
@@ -31,16 +33,40 @@ class VisitorTelemetryTest {
             "Chrome",
             "143",
             true);
+    VisitorTelemetry anonymousTelemetry =
+        new VisitorTelemetry(
+            LocalDateTime.of(2026, 7, 17, 1, 2, 3, 456_000_000),
+            "visitor-hash",
+            null,
+            null,
+            null,
+            "GET",
+            "/api/v1/alcohols",
+            "/api/v1/alcohols",
+            "/api/v1/alcohols",
+            200,
+            15,
+            "모바일",
+            "Android",
+            "Chrome",
+            "143",
+            false);
 
     Map<String, String> fields = telemetry.toStreamFields();
+    Map<String, String> anonymousFields = anonymousTelemetry.toStreamFields();
 
     assertThat(fields)
         .containsEntry("occurred_at", "2026-07-17T01:02:03.456000")
         .containsEntry("visitor_id", "visitor-hash")
+        .containsEntry("user_id", "42")
+        .containsEntry("ip_address", "2001:db8::1")
         .containsEntry("trace_id", "")
         .containsEntry("request_path", "/api/v1/alcohols?keyword=peated")
         .containsEntry("normalized_request_path", "/api/v1/alcohols")
         .containsEntry("is_webview", "true")
-        .doesNotContainKeys("user_id", "ip_hash", "user_agent_raw");
+        .doesNotContainKeys("ip_hash", "user_agent_raw");
+    assertThat(anonymousFields)
+        .containsEntry("user_id", "")
+        .containsEntry("ip_address", "");
   }
 }

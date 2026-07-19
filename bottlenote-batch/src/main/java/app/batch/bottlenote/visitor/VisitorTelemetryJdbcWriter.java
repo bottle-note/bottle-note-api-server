@@ -11,10 +11,11 @@ final class VisitorTelemetryJdbcWriter {
   private static final String INSERT_SQL =
       """
       INSERT INTO visitor_telemetry_events (
-          stream_event_id, occurred_at, visitor_id, trace_id, http_method,
-          request_path, request_uri, normalized_request_path, status_code, duration_ms,
-          device_type, operating_system, browser, browser_major_version, is_webview
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          stream_event_id, occurred_at, visitor_id, user_id, ip_address,
+          trace_id, http_method, request_path, request_uri, normalized_request_path,
+          status_code, duration_ms, device_type, operating_system, browser,
+          browser_major_version, is_webview
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE stream_event_id = VALUES(stream_event_id)
       """;
 
@@ -36,18 +37,20 @@ final class VisitorTelemetryJdbcWriter {
                   statement.setString(1, message.streamEventId());
                   statement.setObject(2, message.occurredAt());
                   statement.setString(3, message.visitorId());
-                  statement.setString(4, message.traceId());
-                  statement.setString(5, message.httpMethod());
-                  statement.setString(6, message.requestPath());
-                  statement.setString(7, message.requestUri());
-                  statement.setString(8, message.normalizedRequestPath());
-                  statement.setInt(9, message.statusCode());
-                  statement.setLong(10, message.durationMs());
-                  statement.setString(11, message.deviceType());
-                  statement.setString(12, message.operatingSystem());
-                  statement.setString(13, message.browser());
-                  statement.setString(14, message.browserMajorVersion());
-                  statement.setBoolean(15, message.webview());
+                  statement.setObject(4, message.userId());
+                  statement.setString(5, message.ipAddress());
+                  statement.setString(6, message.traceId());
+                  statement.setString(7, message.httpMethod());
+                  statement.setString(8, message.requestPath());
+                  statement.setString(9, message.requestUri());
+                  statement.setString(10, message.normalizedRequestPath());
+                  statement.setInt(11, message.statusCode());
+                  statement.setLong(12, message.durationMs());
+                  statement.setString(13, message.deviceType());
+                  statement.setString(14, message.operatingSystem());
+                  statement.setString(15, message.browser());
+                  statement.setString(16, message.browserMajorVersion());
+                  statement.setBoolean(17, message.webview());
                 }));
   }
 }

@@ -39,7 +39,9 @@ class VisitorTelemetryFilterTest {
   @DisplayName("최초 성공 요청은 쿠키를 발급하고 같은 방문자를 즉시 발행한다")
   void 최초_성공_요청을_발행한다() throws Exception {
     CapturingPublisher publisher = new CapturingPublisher();
-    VisitorTelemetryFilter filter = new VisitorTelemetryFilter(publisher, FIXED_CLOCK);
+    VisitorTelemetryFilter filter =
+        new VisitorTelemetryFilter(
+            publisher, () -> 42L, request -> "203.0.113.10", FIXED_CLOCK);
     MockHttpServletRequest request =
         new MockHttpServletRequest("GET", "/api/v1/alcohols/search");
     MockHttpServletResponse response = new MockHttpServletResponse();
@@ -59,6 +61,8 @@ class VisitorTelemetryFilterTest {
     assertThat(issuedVisitorId).satisfies(value -> UUID.fromString(value));
     assertThat(publisher.single()).satisfies(telemetry -> {
       assertThat(telemetry.visitorId()).isEqualTo(sha256(issuedVisitorId));
+      assertThat(telemetry.userId()).isEqualTo(42L);
+      assertThat(telemetry.ipAddress()).isEqualTo("203.0.113.10");
       assertThat(telemetry.occurredAt()).hasToString("2026-07-17T00:00");
       assertThat(telemetry.statusCode()).isEqualTo(200);
     });
@@ -68,7 +72,8 @@ class VisitorTelemetryFilterTest {
   @DisplayName("기존 쿠키와 라우트 패턴을 재사용하고 민감 쿼리 값만 치환한다")
   void 기존_쿠키와_정규화_경로를_발행한다() throws Exception {
     CapturingPublisher publisher = new CapturingPublisher();
-    VisitorTelemetryFilter filter = new VisitorTelemetryFilter(publisher, FIXED_CLOCK);
+    VisitorTelemetryFilter filter =
+        new VisitorTelemetryFilter(publisher, () -> null, request -> null, FIXED_CLOCK);
     MockHttpServletRequest request = request("GET", "/api/v1/alcohols/123");
     request.setCookies(new Cookie(VisitorTelemetryFilter.VISITOR_COOKIE_NAME, VISITOR_ID));
     request.setQueryString(
@@ -88,6 +93,8 @@ class VisitorTelemetryFilterTest {
     assertThat(response.getHeader(HttpHeaders.SET_COOKIE)).isNull();
     assertThat(publisher.single()).satisfies(telemetry -> {
       assertThat(telemetry.visitorId()).isEqualTo(sha256(VISITOR_ID));
+      assertThat(telemetry.userId()).isNull();
+      assertThat(telemetry.ipAddress()).isNull();
       assertThat(telemetry.traceId()).isEqualTo("trace-123");
       assertThat(telemetry.requestPath())
           .isEqualTo(
@@ -104,7 +111,8 @@ class VisitorTelemetryFilterTest {
   @DisplayName("잘못된 쿠키는 교체하고 교체한 방문자를 즉시 발행한다")
   void 잘못된_쿠키를_교체하고_발행한다() throws Exception {
     CapturingPublisher publisher = new CapturingPublisher();
-    VisitorTelemetryFilter filter = new VisitorTelemetryFilter(publisher, FIXED_CLOCK);
+    VisitorTelemetryFilter filter =
+        new VisitorTelemetryFilter(publisher, () -> null, request -> null, FIXED_CLOCK);
     MockHttpServletRequest request = request("GET", "/api/v1/alcohols/search");
     request.setCookies(
         new Cookie(VisitorTelemetryFilter.VISITOR_COOKIE_NAME, "client-created-value"));
@@ -122,7 +130,8 @@ class VisitorTelemetryFilterTest {
   @DisplayName("2xx가 아닌 응답은 쿠키와 텔레메트리를 남기지 않는다")
   void 성공하지_않은_응답은_기록하지_않는다(int status) throws Exception {
     CapturingPublisher publisher = new CapturingPublisher();
-    VisitorTelemetryFilter filter = new VisitorTelemetryFilter(publisher, FIXED_CLOCK);
+    VisitorTelemetryFilter filter =
+        new VisitorTelemetryFilter(publisher, () -> null, request -> null, FIXED_CLOCK);
     MockHttpServletRequest request = request("GET", "/api/v1/alcohols/search");
     MockHttpServletResponse response = new MockHttpServletResponse();
     FilterChain chain =
@@ -145,7 +154,8 @@ class VisitorTelemetryFilterTest {
   @DisplayName("수집 대상이 아닌 요청은 기록하지 않는다")
   void 수집_대상이_아닌_요청은_기록하지_않는다(String method, String path) throws Exception {
     CapturingPublisher publisher = new CapturingPublisher();
-    VisitorTelemetryFilter filter = new VisitorTelemetryFilter(publisher, FIXED_CLOCK);
+    VisitorTelemetryFilter filter =
+        new VisitorTelemetryFilter(publisher, () -> null, request -> null, FIXED_CLOCK);
     MockHttpServletResponse response = new MockHttpServletResponse();
 
     filter.doFilter(request(method, path), response, successfulChain());
@@ -158,7 +168,8 @@ class VisitorTelemetryFilterTest {
   @DisplayName("Android와 iOS WebView 요청을 정규화한다")
   void WebView_요청을_정규화한다() throws Exception {
     CapturingPublisher publisher = new CapturingPublisher();
-    VisitorTelemetryFilter filter = new VisitorTelemetryFilter(publisher, FIXED_CLOCK);
+    VisitorTelemetryFilter filter =
+        new VisitorTelemetryFilter(publisher, () -> null, request -> null, FIXED_CLOCK);
     MockHttpServletRequest androidRequest = request("GET", "/api/v1/alcohols/search");
     androidRequest.addHeader(
         HttpHeaders.USER_AGENT,
@@ -194,7 +205,8 @@ class VisitorTelemetryFilterTest {
   void 주요_브라우저를_정규화한다(
       String expectedBrowser, String expectedVersion, String userAgent) throws Exception {
     CapturingPublisher publisher = new CapturingPublisher();
-    VisitorTelemetryFilter filter = new VisitorTelemetryFilter(publisher, FIXED_CLOCK);
+    VisitorTelemetryFilter filter =
+        new VisitorTelemetryFilter(publisher, () -> null, request -> null, FIXED_CLOCK);
     MockHttpServletRequest request = request("GET", "/api/v1/alcohols/search");
     request.addHeader(HttpHeaders.USER_AGENT, userAgent);
 
@@ -210,7 +222,12 @@ class VisitorTelemetryFilterTest {
   @DisplayName("발행 실패에도 응답 상태와 본문을 유지한다")
   void 발행_실패가_응답에_영향을_주지_않는다() throws Exception {
     VisitorTelemetryFilter filter =
-        new VisitorTelemetryFilter(telemetry -> { throw new IllegalStateException("redis down"); });
+        new VisitorTelemetryFilter(
+            telemetry -> {
+              throw new IllegalStateException("redis down");
+            },
+            () -> null,
+            request -> null);
     MockHttpServletRequest request = request("GET", "/api/v1/alcohols/search");
     MockHttpServletResponse response = new MockHttpServletResponse();
     FilterChain chain =
