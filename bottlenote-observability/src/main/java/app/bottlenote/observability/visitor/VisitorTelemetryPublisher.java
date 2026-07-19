@@ -1,6 +1,6 @@
 package app.bottlenote.observability.visitor;
 
-interface VisitorTelemetryPublisher {
+public interface VisitorTelemetryPublisher {
 
   void publish(VisitorTelemetry telemetry);
 }

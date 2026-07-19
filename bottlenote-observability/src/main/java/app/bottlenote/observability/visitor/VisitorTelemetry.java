@@ -9,6 +9,8 @@ import java.util.Map;
 public record VisitorTelemetry(
     LocalDateTime occurredAt,
     String visitorId,
+    Long userId,
+    String ipAddress,
     String traceId,
     String httpMethod,
     String requestPath,
@@ -30,6 +32,8 @@ public record VisitorTelemetry(
     Map<String, String> fields = new LinkedHashMap<>();
     fields.put("occurred_at", occurredAt.format(DATE_TIME_FORMATTER));
     fields.put("visitor_id", visitorId);
+    fields.put("user_id", userId == null ? "" : Long.toString(userId));
+    fields.put("ip_address", ipAddress == null ? "" : ipAddress);
     fields.put("trace_id", traceId == null ? "" : traceId);
     fields.put("http_method", httpMethod);
     fields.put("request_path", requestPath);

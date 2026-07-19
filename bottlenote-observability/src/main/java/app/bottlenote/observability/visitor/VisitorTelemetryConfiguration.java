@@ -1,5 +1,6 @@
 package app.bottlenote.observability.visitor;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -26,11 +27,7 @@ public class VisitorTelemetryConfiguration {
   }
 
   @Bean
-  public VisitorTelemetryFilter visitorTelemetryFilter(VisitorTelemetryPublisher publisher) {
-    return new VisitorTelemetryFilter(publisher);
-  }
-
-  @Bean
+  @ConditionalOnBean(VisitorTelemetryFilter.class)
   FilterRegistrationBean<VisitorTelemetryFilter> visitorTelemetryFilterRegistration(
       VisitorTelemetryFilter filter) {
     FilterRegistrationBean<VisitorTelemetryFilter> registration =

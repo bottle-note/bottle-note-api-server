@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 class VisitorTelemetryMessageTest {
 
   @Test
-  @DisplayName("정상 필드를 Batch 내부 메시지로 변환하고 선택 필드는 null로 처리한다")
+  @DisplayName("새 필드를 변환하고 기존 Stream의 선택 필드는 null로 처리한다")
   void 정상_필드를_변환한다() {
     Map<String, String> fields = validFields();
     fields.put("trace_id", "");
@@ -22,11 +22,19 @@ class VisitorTelemetryMessageTest {
     fields.put("future_field", "ignored");
 
     VisitorTelemetryMessage message = VisitorTelemetryMessage.from("1-0", fields);
+    Map<String, String> legacyFields = validFields();
+    legacyFields.remove("user_id");
+    legacyFields.remove("ip_address");
+    VisitorTelemetryMessage legacyMessage = VisitorTelemetryMessage.from("2-0", legacyFields);
 
     assertThat(message.streamEventId()).isEqualTo("1-0");
+    assertThat(message.userId()).isEqualTo(42L);
+    assertThat(message.ipAddress()).isEqualTo("2001:db8::1");
     assertThat(message.traceId()).isNull();
     assertThat(message.browserMajorVersion()).isNull();
     assertThat(message.webview()).isFalse();
+    assertThat(legacyMessage.userId()).isNull();
+    assertThat(legacyMessage.ipAddress()).isNull();
   }
 
   @Test
@@ -57,12 +65,24 @@ class VisitorTelemetryMessageTest {
     invalidTime.put("occurred_at", "2026/07/17");
     assertThatThrownBy(() -> VisitorTelemetryMessage.from("1-0", invalidTime))
         .hasMessageContaining("occurred_at");
+
+    Map<String, String> invalidUserId = validFields();
+    invalidUserId.put("user_id", "not-number");
+    assertThatThrownBy(() -> VisitorTelemetryMessage.from("1-0", invalidUserId))
+        .hasMessageContaining("user_id");
+
+    Map<String, String> tooLongIpAddress = validFields();
+    tooLongIpAddress.put("ip_address", "a".repeat(46));
+    assertThatThrownBy(() -> VisitorTelemetryMessage.from("1-0", tooLongIpAddress))
+        .hasMessageContaining("ip_address");
   }
 
   static Map<String, String> validFields() {
     Map<String, String> fields = new LinkedHashMap<>();
     fields.put("occurred_at", "2026-07-17T01:20:13.717000");
     fields.put("visitor_id", "a".repeat(64));
+    fields.put("user_id", "42");
+    fields.put("ip_address", "2001:db8::1");
     fields.put("trace_id", "trace-id");
     fields.put("http_method", "GET");
     fields.put("request_path", "/api/v1/alcohols/search?keyword=test");

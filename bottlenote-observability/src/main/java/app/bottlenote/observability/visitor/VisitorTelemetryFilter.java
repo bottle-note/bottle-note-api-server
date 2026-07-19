@@ -19,6 +19,8 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
@@ -55,14 +57,25 @@ public final class VisitorTelemetryFilter extends OncePerRequestFilter {
           "phone");
 
   private final VisitorTelemetryPublisher publisher;
+  private final Supplier<Long> userIdSupplier;
+  private final Function<HttpServletRequest, String> clientIpResolver;
   private final Clock clock;
 
-  public VisitorTelemetryFilter(VisitorTelemetryPublisher publisher) {
-    this(publisher, Clock.system(KOREA_ZONE_ID));
+  public VisitorTelemetryFilter(
+      VisitorTelemetryPublisher publisher,
+      Supplier<Long> userIdSupplier,
+      Function<HttpServletRequest, String> clientIpResolver) {
+    this(publisher, userIdSupplier, clientIpResolver, Clock.system(KOREA_ZONE_ID));
   }
 
-  VisitorTelemetryFilter(VisitorTelemetryPublisher publisher, Clock clock) {
+  VisitorTelemetryFilter(
+      VisitorTelemetryPublisher publisher,
+      Supplier<Long> userIdSupplier,
+      Function<HttpServletRequest, String> clientIpResolver,
+      Clock clock) {
     this.publisher = publisher;
+    this.userIdSupplier = userIdSupplier;
+    this.clientIpResolver = clientIpResolver;
     this.clock = clock;
   }
 
@@ -136,6 +149,8 @@ public final class VisitorTelemetryFilter extends OncePerRequestFilter {
     return new VisitorTelemetry(
         LocalDateTime.now(clock),
         digest(visitorId),
+        userIdSupplier.get(),
+        clientIpResolver.apply(request),
         MDC.get("traceId"),
         request.getMethod(),
         sanitizedRequestPath(request),
