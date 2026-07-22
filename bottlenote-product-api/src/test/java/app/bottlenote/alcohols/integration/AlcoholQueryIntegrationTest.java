@@ -69,8 +69,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
     Alcohol visible = alcoholTestFactory.persistAlcoholWithName("노출 위스키", "Visible Whisky");
     Alcohol deleted = alcoholTestFactory.persistAlcoholWithName("삭제 위스키", "Deleted Whisky");
     deleted.delete();
-    em.flush();
-    em.clear();
+    alcoholQueryRepository.save(deleted);
 
     MvcTestResult result =
         mockMvcTester
@@ -160,8 +159,7 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
   void product_detail_excludes_deleted_alcohol() {
     Alcohol alcohol = alcoholTestFactory.persistAlcohol();
     alcohol.delete();
-    em.flush();
-    em.clear();
+    alcoholQueryRepository.save(alcohol);
 
     MvcTestResult result =
         mockMvcTester
