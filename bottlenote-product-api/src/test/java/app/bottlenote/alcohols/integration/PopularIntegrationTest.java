@@ -1,6 +1,7 @@
 package app.bottlenote.alcohols.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -62,6 +63,32 @@ class PopularIntegrationTest extends IntegrationTestSupport {
       assertNotNull(response);
       assertEquals(5, response.getAlcohols().size());
     }
+
+    @Test
+    @DisplayName("삭제 처리된 알코올은 주간 인기 위스키에서 제외된다")
+    void popularOfWeek_excludes_deleted_alcohol() throws Exception {
+      Alcohol visible = alcoholTestFactory.persistAlcohol();
+      Alcohol deleted = alcoholTestFactory.persistDeletedAlcohol();
+      alcoholTestFactory.persistPopularAlcohol(visible.getId(), BigDecimal.valueOf(0.4));
+      alcoholTestFactory.persistPopularAlcohol(deleted.getId(), BigDecimal.valueOf(0.9));
+
+      MvcTestResult result =
+          mockMvcTester
+              .get()
+              .uri("/api/v1/popular/week")
+              .param("top", "5")
+              .contentType(APPLICATION_JSON)
+              .with(csrf())
+              .exchange();
+
+      PopularsOfWeekResponse response = extractData(result, PopularsOfWeekResponse.class);
+      assertTrue(
+          response.getAlcohols().stream()
+              .anyMatch(item -> item.alcoholId().equals(visible.getId())));
+      assertFalse(
+          response.getAlcohols().stream()
+              .anyMatch(item -> item.alcoholId().equals(deleted.getId())));
+    }
   }
 
   @Nested
@@ -101,6 +128,36 @@ class PopularIntegrationTest extends IntegrationTestSupport {
       assertNotNull(response);
       assertEquals(5, response.getAlcohols().size());
       assertEquals(5, response.getTotalCount());
+    }
+
+    @Test
+    @DisplayName("삭제 처리된 알코올은 조회수 기반 인기 위스키에서 제외된다")
+    void popularByViews_excludes_deleted_alcohol() throws Exception {
+      Alcohol visible = alcoholTestFactory.persistAlcohol();
+      Alcohol deleted = alcoholTestFactory.persistDeletedAlcohol();
+      List<User> users = createUsers(2);
+      LocalDateTime now = LocalDateTime.now();
+      viewHistoryTestFactory.persistAlcoholsViewHistory(users.get(0).getId(), visible.getId(), now);
+      viewHistoryTestFactory.persistAlcoholsViewHistory(users.get(0).getId(), deleted.getId(), now);
+      viewHistoryTestFactory.persistAlcoholsViewHistory(
+          users.get(1).getId(), deleted.getId(), now.minusDays(1));
+
+      MvcTestResult result =
+          mockMvcTester
+              .get()
+              .uri("/api/v1/popular/view/week")
+              .param("top", "5")
+              .contentType(APPLICATION_JSON)
+              .with(csrf())
+              .exchange();
+
+      PopularsOfWeekResponse response = extractData(result, PopularsOfWeekResponse.class);
+      assertTrue(
+          response.getAlcohols().stream()
+              .anyMatch(item -> item.alcoholId().equals(visible.getId())));
+      assertFalse(
+          response.getAlcohols().stream()
+              .anyMatch(item -> item.alcoholId().equals(deleted.getId())));
     }
 
     @Test

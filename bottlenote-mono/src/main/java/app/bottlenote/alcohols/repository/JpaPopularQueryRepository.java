@@ -39,6 +39,7 @@ public interface JpaPopularQueryRepository
 			        WHERE p1_0.createdAt = (SELECT MAX(p2.createdAt)
 			                              FROM popular_alcohol p2
 			                              WHERE p2.alcoholId = p1_0.alcoholId)
+			          AND a1_0.deletedAt is null
 			        group by p1_0.id,p1_0.popularScore
 			        order by p1_0.popularScore desc
 			""")
@@ -67,6 +68,7 @@ public interface JpaPopularQueryRepository
 				left join rating r1_0 on a1_0.id = r1_0.id.alcoholId
 			WHERE at1_0.tastingTag.id in (:tags)
 				AND at1_0.tastingTag.id not in (:excludedTags)
+				AND a1_0.deletedAt is null
 			GROUP BY a1_0.id, a1_0.korName, a1_0.engName, a1_0.korCategory, a1_0.engCategory, a1_0.imageUrl
 			ORDER BY FUNCTION('RAND')
 			""")
