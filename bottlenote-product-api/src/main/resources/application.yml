@@ -2,6 +2,10 @@
 
 app: # 애플리케이션 및 배포 정보
   type: product
+  cors:
+    allowed-origins:
+      - http://localhost:3000
+      - http://localhost:5173
   info:
     server-name: ${SERVER_NAME:unknown}
     environment: ${SPRING_PROFILES_ACTIVE:local}
@@ -53,10 +57,15 @@ spring:
             isClustered: true
             clusterCheckinInterval: 20000
 
+bottlenote:
+  observability:
+    visitor-telemetry:
+      enabled: false
+
 # Spring Security
 security:
   jwt:
-    secret-key: ${JWT_SECRET_KEY:c2VjdXJlU2VjcmV0S2V5MTIzNDU2Nzg5MGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6QWJDRGVGR2hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlrSg==}
+    secret-key: ${JWT_SECRET_KEY}
     access-token-expiration: 86400 # 하루 (24시간)
     refresh-token-expiration: 2592000 # 한 달 (30일)
   nonce:
@@ -137,6 +146,13 @@ server:
     connection-timeout: 5000
 
 --- # dev 프로파일 (개발 서버)
+app:
+  cors:
+    allowed-origins:
+      - https://development.bottle-note.com
+      - http://localhost:3000
+      - http://localhost:5173
+
 spring:
   config:
     activate:
@@ -155,6 +171,11 @@ server:
     connection-timeout: 30000
 
 --- # prod 프로파일 (운영 서버)
+app:
+  cors:
+    allowed-origins:
+      - https://bottle-note.com
+
 spring:
   config:
     activate:
@@ -190,3 +211,14 @@ management:
     web:
       exposure:
         include: health,metrics,prometheus
+
+--- # VisitorTelemetry 활성 프로파일
+spring:
+  config:
+    activate:
+      on-profile: local,dev,prod
+
+bottlenote:
+  observability:
+    visitor-telemetry:
+      enabled: true

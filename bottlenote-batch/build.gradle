@@ -17,6 +17,7 @@ dependencies {
 	implementation libs.spring.boot.starter.batch
 	implementation libs.spring.boot.starter.quartz
 	implementation libs.spring.boot.starter.actuator
+	implementation libs.spring.boot.starter.data.redis
 
 	// Test - Lombok
 	testAnnotationProcessor libs.lombok

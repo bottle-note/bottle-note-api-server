@@ -2,16 +2,24 @@ package app.global.security;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
+import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.security.constant.MaliciousPathPattern;
 import app.bottlenote.global.security.jwt.JwtAuthenticationEntryPoint;
 import app.bottlenote.global.security.jwt.JwtAuthenticationFilter;
 import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
 import app.bottlenote.global.security.policy.SecurityPolicyRegistry;
+import app.bottlenote.observability.visitor.VisitorTelemetryFilter;
+import app.bottlenote.observability.visitor.VisitorTelemetryPublisher;
+import com.google.common.net.InetAddresses;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -30,11 +38,14 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@EnableConfigurationProperties(CorsProperties.class)
 public class SecurityConfig {
 
   private final JwtAuthenticationManager jwtAuthenticationManager;
   private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
   private final SecurityPolicyRegistry securityPolicyRegistry;
+  private final ObjectProvider<VisitorTelemetryFilter> visitorTelemetryFilterProvider;
+  private final CorsProperties corsProperties;
 
   /**
    * 세션 메서드 참조를 위한 참조 메서드
@@ -55,6 +66,34 @@ public class SecurityConfig {
     return request.getAttribute("exception") != null;
   }
 
+  @Bean
+  @ConditionalOnProperty(
+      prefix = "bottlenote.observability.visitor-telemetry",
+      name = "enabled",
+      havingValue = "true")
+  public static VisitorTelemetryFilter visitorTelemetryFilter(VisitorTelemetryPublisher publisher) {
+    Supplier<Long> userIdSupplier = () -> SecurityContextUtil.getUserIdByContext().orElse(null);
+    Function<HttpServletRequest, String> clientIpResolver =
+        request -> {
+          String forwardedFor = request.getHeader("X-Forwarded-For");
+          if (forwardedFor != null) {
+            for (String candidate : forwardedFor.split(",")) {
+              String trimmedCandidate = candidate.trim();
+              if (InetAddresses.isInetAddress(trimmedCandidate)) {
+                return InetAddresses.toAddrString(InetAddresses.forString(trimmedCandidate));
+              }
+            }
+          }
+
+          String remoteAddress = request.getRemoteAddr();
+          if (remoteAddress != null && InetAddresses.isInetAddress(remoteAddress)) {
+            return InetAddresses.toAddrString(InetAddresses.forString(remoteAddress));
+          }
+          return null;
+        };
+    return new VisitorTelemetryFilter(publisher, userIdSupplier, clientIpResolver);
+  }
+
   /**
    * 필터 체인 보안 설정
    *
@@ -64,7 +103,7 @@ public class SecurityConfig {
    */
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    return http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+    http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
         .csrf(AbstractHttpConfigurer::disable)
         .sessionManagement(SecurityConfig::statelessSessionConfig)
         .formLogin(AbstractHttpConfigurer::disable)
@@ -82,8 +121,12 @@ public class SecurityConfig {
                     .permitAll())
         .addFilterBefore(
             new JwtAuthenticationFilter(jwtAuthenticationManager, securityPolicyRegistry),
-            UsernamePasswordAuthenticationFilter.class)
-        .exceptionHandling(
+            UsernamePasswordAuthenticationFilter.class);
+
+    visitorTelemetryFilterProvider.ifAvailable(
+        filter -> http.addFilterAfter(filter, JwtAuthenticationFilter.class));
+
+    return http.exceptionHandling(
             exceptionHandling ->
                 exceptionHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint))
         .build();
@@ -100,12 +143,11 @@ public class SecurityConfig {
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 
     CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOrigins(List.of("*")); // 모든 origin 허용
-    configuration.setAllowedMethods(
-        Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-    configuration.setAllowedHeaders(List.of("*")); // 모든 헤더 허용
-    configuration.setAllowCredentials(false); // credentials 허용하지 않음
-    source.registerCorsConfiguration("/**", configuration); // 모든 경로에 대해 설정 적용
+    configuration.setAllowedOrigins(corsProperties.allowedOrigins());
+    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+    configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+    configuration.setAllowCredentials(false);
+    source.registerCorsConfiguration("/**", configuration);
 
     return source;
   }

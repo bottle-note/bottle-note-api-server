@@ -42,6 +42,11 @@ spring:
     generate-ddl: false
     database-platform: org.hibernate.dialect.MySQL8Dialect
 
+app:
+  cors:
+    allowed-origins:
+      - https://admin.bottle-note.com
+
 # Spring Security
 security:
   jwt:
@@ -83,5 +88,5 @@ management:
 # Root Admin Configuration
 root:
   admin:
-    email: ${ROOT_ADMIN_EMAIL:email@email.com}
-    password: ${ROOT_ADMIN_PASSWORD:email@email.com}
+    email: email@email.com
+    password: test-root-admin-password

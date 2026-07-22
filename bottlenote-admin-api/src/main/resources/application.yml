@@ -1,6 +1,9 @@
 # 기본 서버 설정
 app: # 애플리케이션 및 배포 정보
   type: admin
+  cors:
+    allowed-origins:
+      - http://localhost:5173
   info:
     server-name: ${SERVER_NAME:unknown}
     environment: ${SPRING_PROFILES_ACTIVE:local}
@@ -34,7 +37,7 @@ spring:
 # Spring Security
 security:
   jwt:
-    secret-key: ${JWT_SECRET_KEY:c2VjdXJlU2VjcmV0S2V5MTIzNDU2Nzg5MGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6QWJDRGVGR2hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlrSg==}
+    secret-key: ${JWT_SECRET_KEY}
     access-token-expiration: 86400 # 하루 (24시간)
     refresh-token-expiration: 2592000 # 한 달 (30일)
   nonce:
@@ -75,7 +78,7 @@ curation:
 root:
   admin:
     email: ${ROOT_ADMIN_EMAIL:email@email.com}
-    password: ${ROOT_ADMIN_PASSWORD:email@email.com}
+    password: ${ROOT_ADMIN_PASSWORD}
 
 --- # default/local 프로파일 (동일 설정)
 spring:
@@ -130,6 +133,12 @@ server:
     connection-timeout: 5000
 
 --- # dev 프로파일 (개발 서버)
+app:
+  cors:
+    allowed-origins:
+      - https://admin.development.bottle-note.com
+      - http://localhost:5173
+
 spring:
   config:
     activate:
@@ -156,6 +165,11 @@ server:
     connection-timeout: 30000
 
 --- # prod 프로파일 (운영 서버)
+app:
+  cors:
+    allowed-origins:
+      - https://admin.bottle-note.com
+
 spring:
   config:
     activate:

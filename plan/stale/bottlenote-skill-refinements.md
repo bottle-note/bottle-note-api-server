@@ -84,3 +84,11 @@
 ## Progress Log
 
 (implement 단계에서 채워짐)
+
+## Stale
+
+- Status: STALE
+- T1의 `bottlenote-patterns.md`는 `.claude/skills/`와 `.agents/skills/` 양쪽에 반영됐다.
+- 전용 `/docs` 스킬은 만들지 않고 RestDocs 테스트는 `/test`, adoc 갱신은 `/implement`, asciidoctor 검증은 `/verify`가 담당하는 방식으로 책임을 흡수했다.
+- D1~D4 결정과 T2~T4를 원안대로 진행하지 않으므로 남은 계획은 중단된 것으로 분류한다.
+- 현재 개발 워크플로우는 `.agents/skills/implement/references/languages/bottlenote-patterns.md`와 `plan/conventions.md`를 기준으로 한다.

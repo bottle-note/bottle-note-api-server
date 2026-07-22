@@ -22,7 +22,6 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.util.StringUtils;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -102,19 +101,21 @@ public class UserQuerySupporter {
   public CursorPageable myBottleCursorPageable(
       MyBottlePageableCriteria request, List<?> myBottleList) {
 
-    List<?> items = new ArrayList<>(myBottleList);
+    boolean hasNext = isHasNext(request, myBottleList);
 
-    boolean hasNext = isHasNext(request, items);
-
-    if (hasNext) {
-      items.remove(items.size() - 1);
-    }
     return CursorPageable.builder()
         .cursor(request.cursor() + request.pageSize())
         .pageSize(request.pageSize())
         .hasNext(hasNext)
         .currentCursor(request.cursor())
         .build();
+  }
+
+  public <T> List<T> myBottlePageItems(MyBottlePageableCriteria request, List<T> myBottleList) {
+    if (!isHasNext(request, myBottleList)) {
+      return myBottleList;
+    }
+    return myBottleList.stream().limit(request.pageSize()).toList();
   }
 
   private boolean isHasNext(MyBottlePageableCriteria request, List<?> myBottleList) {
@@ -154,6 +155,11 @@ public class UserQuerySupporter {
             case RATING -> orderSpecifier(sortOrder, rating.lastModifyAt);
           };
     };
+  }
+
+  public OrderSpecifier<?> myBottleTieBreakerSortBy(SortOrder sortOrder) {
+    sortOrder = (sortOrder != null) ? sortOrder : SortOrder.DESC;
+    return orderSpecifier(sortOrder, alcohol.id);
   }
 
   private OrderSpecifier<?> orderSpecifier(

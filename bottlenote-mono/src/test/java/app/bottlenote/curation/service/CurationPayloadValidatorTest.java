@@ -275,14 +275,14 @@ class CurationPayloadValidatorTest {
   }
 
   @Test
-  @DisplayName("시음회 requestSpec은 최소 경계값을 만족하면 통과한다")
-  void validate_whenTastingEventMinimumBoundaryValid_returnsEmptyErrors() throws IOException {
+  @DisplayName("시음회 requestSpec은 capacity 0 경계값을 만족하면 통과한다")
+  void validate_whenTastingEventCapacityZeroBoundaryValid_returnsEmptyErrors() throws IOException {
     Map<String, Object> requestSpec = schema("whisky_tasting_event.json", "Request");
 
     List<String> errors =
         validator.validate(
             new MapBackedSchema(requestSpec),
-            tastingEventPayload(0, 1, List.of(recommendedItem("BOTTLE_NOTE"))));
+            tastingEventPayload(0, 0, List.of(recommendedItem("BOTTLE_NOTE"))));
 
     assertThat(errors).isEmpty();
   }
