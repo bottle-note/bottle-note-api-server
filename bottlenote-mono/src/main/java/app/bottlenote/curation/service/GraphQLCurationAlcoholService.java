@@ -43,6 +43,7 @@ public class GraphQLCurationAlcoholService {
 
     Map<Long, Alcohol> alcoholsById =
         alcoholQueryRepository.findAllByIdIn(alcoholIds).stream()
+            .filter(alcohol -> alcohol.getDeletedAt() == null)
             .collect(Collectors.toMap(Alcohol::getId, Function.identity(), (left, right) -> left));
 
     return alcoholIds.stream().map(alcoholsById::get).filter(Objects::nonNull).toList();

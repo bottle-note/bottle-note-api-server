@@ -52,7 +52,10 @@ class GraphQLCurationAlcoholResolverTest {
                 alcoholRepository, ratingRepository, reviewRepository, picksRepository));
 
     Alcohol alcohol = alcohol(1L);
+    Alcohol deletedAlcohol = alcohol(2L);
+    deletedAlcohol.delete();
     alcoholRepository.save(alcohol);
+    alcoholRepository.save(deletedAlcohol);
     ratingRepository.save(rating(10L, 1L, 4.5));
     ratingRepository.save(rating(11L, 1L, 3.5));
     ratingRepository.save(rating(12L, 1L, 0.0));
@@ -62,7 +65,7 @@ class GraphQLCurationAlcoholResolverTest {
     picksRepository.save(picks(1L, 20L, PicksStatus.PICK));
     picksRepository.save(picks(1L, 21L, PicksStatus.UNPICK));
 
-    List<Alcohol> alcohols = resolver.alcohols(Arrays.asList(null, 1L, 999L));
+    List<Alcohol> alcohols = resolver.alcohols(Arrays.asList(null, 1L, 2L, 999L));
     List<Alcohol> manualOnly = resolver.alcohols(Collections.singletonList(null));
 
     assertThat(alcohols).extracting(Alcohol::getId).containsExactly(1L);
