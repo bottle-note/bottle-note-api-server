@@ -69,7 +69,7 @@ public class CustomPopularQueryRepositoryImpl implements CustomPopularQueryRepos
             .on(alcoholsViewHistory.id.alcoholId.eq(alcohol.id))
             .leftJoin(rating)
             .on(alcohol.id.eq(rating.id.alcoholId))
-            .where(alcoholsViewHistory.viewAt.goe(startDate))
+            .where(alcoholsViewHistory.viewAt.goe(startDate), alcohol.deletedAt.isNull())
             .groupBy(
                 alcohol.id,
                 alcohol.korName,
@@ -113,7 +113,9 @@ public class CustomPopularQueryRepositoryImpl implements CustomPopularQueryRepos
               .from(alcohol)
               .join(rating)
               .on(alcohol.id.eq(rating.id.alcoholId))
-              .where(excludeIds.isEmpty() ? null : alcohol.id.notIn(excludeIds))
+              .where(
+                  alcohol.deletedAt.isNull(),
+                  excludeIds.isEmpty() ? null : alcohol.id.notIn(excludeIds))
               .groupBy(
                   alcohol.id,
                   alcohol.korName,

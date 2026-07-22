@@ -115,7 +115,7 @@ public class CustomCurationKeywordRepositoryImpl implements CustomCurationKeywor
             .on(alcohol.id.eq(review.alcoholId))
             .leftJoin(picks)
             .on(alcohol.id.eq(picks.alcoholId))
-            .where(alcohol.id.in(alcoholIdsList), alcohol.id.gt(cursor))
+            .where(alcohol.id.in(alcoholIdsList), alcohol.id.gt(cursor), alcohol.deletedAt.isNull())
             .groupBy(
                 alcohol.id,
                 alcohol.korName,

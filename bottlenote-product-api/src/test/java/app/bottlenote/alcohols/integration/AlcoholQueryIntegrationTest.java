@@ -12,6 +12,7 @@ import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.domain.AlcoholsTastingTags;
+import app.bottlenote.alcohols.domain.CurationKeyword;
 import app.bottlenote.alcohols.domain.Distillery;
 import app.bottlenote.alcohols.domain.Region;
 import app.bottlenote.alcohols.domain.TastingTag;
@@ -19,9 +20,11 @@ import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
+import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.rating.fixture.RatingTestFactory;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.fixture.UserTestFactory;
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Set;
@@ -456,6 +459,42 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
     assertTrue(resultIds.contains(alcohol1.getId()));
     assertTrue(resultIds.contains(alcohol2.getId()));
     assertFalse(resultIds.contains(alcohol3.getId())); // alcohol3은 큐레이션에 없음
+  }
+
+  @Test
+  @DisplayName("삭제 처리된 알코올은 Product 큐레이션 위스키 목록에서 제외된다.")
+  void product_curation_alcohols_excludes_deleted_alcohol() throws Exception {
+    Alcohol visible = alcoholTestFactory.persistAlcoholWithName("큐레이션 노출", "Curation Visible");
+    Alcohol deleted = alcoholTestFactory.persistAlcoholWithName("큐레이션 삭제", "Curation Deleted");
+    deleted.delete();
+    alcoholQueryRepository.save(deleted);
+    CurationKeyword curation =
+        alcoholTestFactory.persistCurationKeyword("삭제 제외 큐레이션", List.of(visible, deleted));
+
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/curations/{curationId}/alcohols", curation.getId())
+            .param("cursor", "0")
+            .param("pageSize", "10")
+            .contentType(APPLICATION_JSON)
+            .with(csrf())
+            .exchange();
+
+    GlobalResponse response = parseResponse(result);
+    JsonNode items = mapper.convertValue(response.getData(), JsonNode.class).path("items");
+
+    assertTrue(containsAlcoholId(items, visible.getId()));
+    assertFalse(containsAlcoholId(items, deleted.getId()));
+  }
+
+  private boolean containsAlcoholId(JsonNode items, Long alcoholId) {
+    for (JsonNode item : items) {
+      if (item.path("alcoholId").asLong() == alcoholId) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Test
