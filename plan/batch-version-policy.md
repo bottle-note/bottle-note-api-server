@@ -127,7 +127,7 @@ GitHub Actions 수동 배포는 필수 `X.Y.Z` 버전 입력을 받아 `batch_X.
 - Verification: 세 스크립트의 인자 누락·invalid version 실패와 `1.0.7 --dry-run` 정상 출력을 실행 확인
 - Files: `.agents/skills/deploy-batch/scripts/build-image.sh`, `.agents/skills/deploy-batch/scripts/push-image.sh`, `.agents/skills/deploy-batch/scripts/update-kustomize.sh`, `.claude/skills/deploy-batch/scripts/build-image.sh`, `.claude/skills/deploy-batch/scripts/push-image.sh`, `.claude/skills/deploy-batch/scripts/update-kustomize.sh`
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 3: 로컬 deploy-batch 선택 흐름 전환
 
@@ -180,3 +180,4 @@ GitHub Actions 수동 배포는 필수 `X.Y.Z` 버전 입력을 받아 `batch_X.
 ## Progress Log
 
 - Task 1: `check-version.sh`를 최신 environment repository `origin/main`의 development/production batch 태그를 숫자 비교하는 도구로 전환했다. `1.0.6 / 1.0.6`에서 `1.0.7` 추천, `1.1.0` exact 후보 통과, 기준값 이하와 prerelease 후보 실패를 확인했다. `bump-version.sh`는 명시적 기준값만 비파괴적으로 증가시키며 patch/minor/major 결과 `1.0.7`, `1.1.0`, `2.0.0`을 확인했다. 네 스크립트의 `bash -n`, ShellCheck, `.agents`/`.claude` mode 및 content 일치를 확인했다.
+- Task 2: build, push, kustomize update의 VERSION fallback을 제거하고 exact version positional을 필수화했다. `.agents`와 `.claude`의 여섯 스크립트에서 누락·prerelease 입력이 외부 동작 전에 실패하고, `1.0.7 --dry-run`이 기존 `batch_1.0.7` 태그와 환경 출력을 유지함을 확인했다. `bash -n`, ShellCheck, mirror SHA-256 일치를 확인했다.
