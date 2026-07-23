@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import java.time.LocalDate
 
 @Tag("admin_integration")
 @DisplayName("[integration] Admin Spec Based Curation API 통합 테스트")
@@ -294,8 +295,8 @@ class AdminSpecBasedCurationIntegrationTest : IntegrationTestSupport() {
 		"name" to name,
 		"description" to "request spec 검증 테스트",
 		"imageUrls" to listOf("https://cdn.example.com/cover.jpg"),
-		"exposureStartDate" to "2026-06-01",
-		"exposureEndDate" to "2026-06-30",
+		"exposureStartDate" to LocalDate.now().minusDays(1).toString(),
+		"exposureEndDate" to LocalDate.now().plusDays(30).toString(),
 		"displayOrder" to 1,
 		"isActive" to isActive,
 		"payload" to listOf(payload)
@@ -306,8 +307,8 @@ class AdminSpecBasedCurationIntegrationTest : IntegrationTestSupport() {
 		"name" to "수정 테스트 큐레이션",
 		"description" to "존재하지 않는 큐레이션 수정 테스트",
 		"imageUrls" to listOf("https://cdn.example.com/cover.jpg"),
-		"exposureStartDate" to "2026-06-01",
-		"exposureEndDate" to "2026-06-30",
+		"exposureStartDate" to LocalDate.now().minusDays(1).toString(),
+		"exposureEndDate" to LocalDate.now().plusDays(30).toString(),
 		"displayOrder" to 1,
 		"isActive" to true,
 		"payload" to listOf(payload)

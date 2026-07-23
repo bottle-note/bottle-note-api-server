@@ -112,6 +112,66 @@ class AdminSpecBasedCurationServiceTest {
   }
 
   @Test
+  @DisplayName("노출 종료일이 시작일보다 빠르면 생성 요청을 거부한다")
+  void create_whenExposureEndDateBeforeStartDate_rejectsRequest() {
+    CurationSpec spec = createSpec();
+
+    assertThatThrownBy(
+            () ->
+                adminSpecBasedCurationService.create(
+                    createRequest(
+                        spec.getId(),
+                        "잘못된 노출 기간",
+                        1,
+                        true,
+                        LocalDate.now().plusDays(2),
+                        LocalDate.now().plusDays(1))))
+        .isInstanceOf(CurationException.class)
+        .hasFieldOrPropertyWithValue(
+            "exceptionCode", CurationExceptionCode.CURATION_EXPOSURE_PERIOD_INVALID);
+  }
+
+  @Test
+  @DisplayName("이미 노출 종료일이 지난 큐레이션은 활성 상태로 생성할 수 없다")
+  void create_whenExpiredExposureEndDateAndActive_rejectsRequest() {
+    CurationSpec spec = createSpec();
+
+    assertThatThrownBy(
+            () ->
+                adminSpecBasedCurationService.create(
+                    createRequest(
+                        spec.getId(),
+                        "이미 종료된 활성 큐레이션",
+                        1,
+                        true,
+                        LocalDate.now().minusDays(3),
+                        LocalDate.now().minusDays(1))))
+        .isInstanceOf(CurationException.class)
+        .hasFieldOrPropertyWithValue(
+            "exceptionCode", CurationExceptionCode.CURATION_EXPOSURE_ALREADY_ENDED);
+  }
+
+  @Test
+  @DisplayName("이미 노출 종료일이 지난 큐레이션도 비활성 상태면 생성할 수 있다")
+  void create_whenExpiredExposureEndDateAndInactive_allowsRequest() {
+    CurationSpec spec = createSpec();
+
+    var result =
+        adminSpecBasedCurationService.create(
+            createRequest(
+                spec.getId(),
+                "이미 종료된 비활성 큐레이션",
+                1,
+                false,
+                LocalDate.now().minusDays(3),
+                LocalDate.now().minusDays(1)));
+
+    AdminSpecBasedCurationDetailResponse detail =
+        adminSpecBasedCurationService.getDetail(result.targetId());
+    assertThat(detail.isActive()).isFalse();
+  }
+
+  @Test
   @DisplayName("큐레이션을 수정하면 본문과 extension payload를 함께 갱신한다")
   void update_본문과_payload_수정() {
     CurationSpec spec = createSpec();
@@ -125,8 +185,8 @@ class AdminSpecBasedCurationServiceTest {
                 "수정된 큐레이션",
                 "수정된 설명",
                 List.of("https://cdn.example.com/updated.jpg"),
-                LocalDate.of(2026, 7, 1),
-                LocalDate.of(2026, 7, 31),
+                LocalDate.now().minusDays(1),
+                LocalDate.now().plusDays(30),
                 5,
                 false,
                 Map.of("source", "MANUAL", "alcohol", Map.of("korName", "수동 입력"))));
@@ -137,6 +197,46 @@ class AdminSpecBasedCurationServiceTest {
     assertThat(detail.name()).isEqualTo("수정된 큐레이션");
     assertThat(detail.isActive()).isFalse();
     assertThat(detail.imageUrls()).containsExactly("https://cdn.example.com/updated.jpg");
+  }
+
+  @Test
+  @DisplayName("수정 시 노출 종료일이 시작일보다 빠르면 요청을 거부한다")
+  void update_whenExposureEndDateBeforeStartDate_rejectsRequest() {
+    CurationSpec spec = createSpec();
+    Long curationId = adminSpecBasedCurationService.create(createRequest(spec.getId())).targetId();
+
+    assertThatThrownBy(
+            () ->
+                adminSpecBasedCurationService.update(
+                    curationId,
+                    updateRequest(
+                        spec.getId(),
+                        true,
+                        LocalDate.now().plusDays(2),
+                        LocalDate.now().plusDays(1))))
+        .isInstanceOf(CurationException.class)
+        .hasFieldOrPropertyWithValue(
+            "exceptionCode", CurationExceptionCode.CURATION_EXPOSURE_PERIOD_INVALID);
+  }
+
+  @Test
+  @DisplayName("수정 시 이미 종료된 큐레이션을 활성 상태로 저장할 수 없다")
+  void update_whenExpiredExposureEndDateAndActive_rejectsRequest() {
+    CurationSpec spec = createSpec();
+    Long curationId = adminSpecBasedCurationService.create(createRequest(spec.getId())).targetId();
+
+    assertThatThrownBy(
+            () ->
+                adminSpecBasedCurationService.update(
+                    curationId,
+                    updateRequest(
+                        spec.getId(),
+                        true,
+                        LocalDate.now().minusDays(3),
+                        LocalDate.now().minusDays(1))))
+        .isInstanceOf(CurationException.class)
+        .hasFieldOrPropertyWithValue(
+            "exceptionCode", CurationExceptionCode.CURATION_EXPOSURE_ALREADY_ENDED);
   }
 
   @Test
@@ -359,13 +459,43 @@ class AdminSpecBasedCurationServiceTest {
 
   private CurationCreateRequest createRequest(
       Long specId, String name, int displayOrder, boolean active) {
+    return createRequest(
+        specId,
+        name,
+        displayOrder,
+        active,
+        LocalDate.now().minusDays(1),
+        LocalDate.now().plusDays(30));
+  }
+
+  private CurationUpdateRequest updateRequest(
+      Long specId, boolean active, LocalDate exposureStartDate, LocalDate exposureEndDate) {
+    return new CurationUpdateRequest(
+        specId,
+        "수정된 큐레이션",
+        "수정된 설명",
+        List.of("https://cdn.example.com/updated.jpg"),
+        exposureStartDate,
+        exposureEndDate,
+        5,
+        active,
+        Map.of("source", "MANUAL", "alcohol", Map.of("korName", "수동 입력")));
+  }
+
+  private CurationCreateRequest createRequest(
+      Long specId,
+      String name,
+      int displayOrder,
+      boolean active,
+      LocalDate exposureStartDate,
+      LocalDate exposureEndDate) {
     return new CurationCreateRequest(
         specId,
         name,
         "스모키 위스키 추천",
         List.of("https://cdn.example.com/cover.jpg", "https://cdn.example.com/second.jpg"),
-        LocalDate.of(2026, 6, 1),
-        LocalDate.of(2026, 6, 30),
+        exposureStartDate,
+        exposureEndDate,
         displayOrder,
         active,
         Map.of("source", "BOTTLE_NOTE", "alcohol", Map.of("korName", "테스트 위스키")));

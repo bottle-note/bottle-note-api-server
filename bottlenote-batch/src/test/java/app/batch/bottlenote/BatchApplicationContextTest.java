@@ -66,6 +66,8 @@ class BatchApplicationContextTest {
     assertThat(context.getBean(BestReviewQuartzJob.class)).isNotNull();
     assertThat(context.getBean(PopularAlcoholQuartzJob.class)).isNotNull();
     assertThat(context.getBean(DailyDataReportQuartzJob.class)).isNotNull();
+    assertThat(context.getBean("curationExpirationStatusJobDetail")).isNotNull();
+    assertThat(context.getBean("curationExpirationStatusTrigger")).isNotNull();
   }
 
   @Test
