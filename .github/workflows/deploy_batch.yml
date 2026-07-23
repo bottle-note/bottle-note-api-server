@@ -1,0 +1,318 @@
+name: deploy batch
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 배포 환경
+        required: true
+        type: choice
+        options:
+          - development
+          - production
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ inputs.environment }}
+  cancel-in-progress: false
+
+env:
+  IMAGE_NAME: bottlenote-batch
+
+jobs:
+  prepare-build:
+    name: validate, build, and test batch
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      image-tag: ${{ steps.release.outputs.image-tag }}
+    steps:
+      - name: checkout selected ref with submodules
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+
+      - name: validate deployment request
+        id: release
+        env:
+          TARGET_ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          set -euo pipefail
+
+          version="$(tr -d '\r\n' < bottlenote-batch/VERSION)"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+            echo "::error::bottlenote-batch/VERSION must use X.Y.Z format"
+            exit 1
+          }
+
+          if [[ "$TARGET_ENVIRONMENT" == "production" && "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "::error::production batch deployment is allowed only from main"
+            exit 1
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "image-tag=batch_${version}" >> "$GITHUB_OUTPUT"
+
+      - name: ensure image tag is unused
+        env:
+          REGISTRY_ADDRESS: ${{ secrets.REGISTRY_ADDRESS }}
+          REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+          IMAGE_TAG: ${{ steps.release.outputs.image-tag }}
+        run: |
+          set -euo pipefail
+
+          image="${REGISTRY_ADDRESS}/${IMAGE_NAME}:${IMAGE_TAG}"
+          echo "$REGISTRY_PASSWORD" | docker login "$REGISTRY_ADDRESS" \
+            --username "$REGISTRY_USERNAME" --password-stdin
+
+          if docker manifest inspect "$image" >/dev/null 2>manifest-error.log; then
+            echo "::error::image tag already exists and cannot be overwritten: $image"
+            exit 1
+          fi
+
+          if ! grep -Eqi 'manifest unknown|no such manifest|not found' manifest-error.log; then
+            cat manifest-error.log >&2
+            echo "::error::failed to verify whether image tag exists: $image"
+            exit 1
+          fi
+
+      - name: setup jdk
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: temurin
+
+      - name: setup gradle cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: build batch module
+        run: |
+          ./gradlew :bottlenote-batch:build \
+            -x test -x asciidoctor --build-cache --parallel
+
+      - name: run batch tests
+        run: ./gradlew :bottlenote-batch:batch_test --build-cache
+
+      - name: upload batch jar
+        uses: actions/upload-artifact@v7
+        with:
+          name: batch-jar
+          path: bottlenote-batch/build/libs/bottlenote-batch.jar
+          if-no-files-found: error
+          retention-days: 1
+
+  production-approval:
+    name: approve production deployment
+    needs: prepare-build
+    if: ${{ inputs.environment == 'production' }}
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: record approval
+        run: echo "Production environment approval completed"
+
+  push-image:
+    name: push and sign batch image
+    needs:
+      - prepare-build
+      - production-approval
+    if: >-
+      ${{
+        always() &&
+        needs.prepare-build.result == 'success' &&
+        (
+          inputs.environment == 'development' ||
+          needs.production-approval.result == 'success'
+        )
+      }}
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      image-digest: ${{ steps.build.outputs.image-digest }}
+    steps:
+      - name: checkout selected ref with submodules
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+
+      - name: download batch jar
+        uses: actions/download-artifact@v8
+        with:
+          name: batch-jar
+          path: bottlenote-batch/build/libs/
+
+      - name: recheck image tag is unused
+        env:
+          REGISTRY_ADDRESS: ${{ secrets.REGISTRY_ADDRESS }}
+          REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+          IMAGE_TAG: ${{ needs.prepare-build.outputs.image-tag }}
+        run: |
+          set -euo pipefail
+
+          image="${REGISTRY_ADDRESS}/${IMAGE_NAME}:${IMAGE_TAG}"
+          echo "$REGISTRY_PASSWORD" | docker login "$REGISTRY_ADDRESS" \
+            --username "$REGISTRY_USERNAME" --password-stdin
+
+          if docker manifest inspect "$image" >/dev/null 2>manifest-error.log; then
+            echo "::error::image tag already exists and cannot be overwritten: $image"
+            exit 1
+          fi
+
+          if ! grep -Eqi 'manifest unknown|no such manifest|not found' manifest-error.log; then
+            cat manifest-error.log >&2
+            echo "::error::failed to verify whether image tag exists: $image"
+            exit 1
+          fi
+
+      - name: build and push to registry
+        id: build
+        uses: ./.github/actions/docker-build-push
+        with:
+          registry-url: ${{ secrets.REGISTRY_ADDRESS }}
+          registry-username: ${{ secrets.REGISTRY_USERNAME }}
+          registry-password: ${{ secrets.REGISTRY_PASSWORD }}
+          image-name: ${{ env.IMAGE_NAME }}
+          image-tag: ${{ needs.prepare-build.outputs.image-tag }}
+          dockerfile: Dockerfile-batch
+          context: .
+          platforms: linux/arm64
+          cache-scope: batch-${{ inputs.environment }}
+          image-title: BottleNote Batch
+          image-description: BottleNote Batch Server
+          image-vendor: BottleNote
+          image-authors: BottleNote Team
+          sign-image: 'true'
+          cosign-key-path: git.environment-variables/storage/docker-registry/cosign.key
+          cosign-password: ${{ secrets.COSIGN_PASSWORD }}
+
+  update-gitops:
+    name: update batch GitOps image
+    needs:
+      - prepare-build
+      - push-image
+    runs-on: ubuntu-latest
+    outputs:
+      environment-commit: ${{ steps.deploy.outputs.environment-commit }}
+    steps:
+      - name: checkout selected ref with submodules
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+
+      - name: setup kustomize
+        uses: imranismail/setup-kustomize@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: update selected overlay and push
+        id: deploy
+        env:
+          TARGET_ENVIRONMENT: ${{ inputs.environment }}
+          REGISTRY_ADDRESS: ${{ secrets.REGISTRY_ADDRESS }}
+          IMAGE_TAG: ${{ needs.prepare-build.outputs.image-tag }}
+          IMAGE_DIGEST: ${{ needs.push-image.outputs.image-digest }}
+        run: |
+          set -euo pipefail
+
+          cd git.environment-variables
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          kustomization="deploy/overlays/${TARGET_ENVIRONMENT}/kustomization.yaml"
+          image="${REGISTRY_ADDRESS}/${IMAGE_NAME}:${IMAGE_TAG}"
+
+          for attempt in {1..5}; do
+            git fetch origin main
+            git checkout -B batch-deploy origin/main
+
+            (
+              cd "deploy/overlays/${TARGET_ENVIRONMENT}"
+              kustomize edit set image "bottlenote-batch=${image}"
+            )
+
+            git add "$kustomization"
+
+            if git diff --staged --quiet; then
+              environment_commit="$(git rev-parse HEAD)"
+              echo "environment-commit=$environment_commit" >> "$GITHUB_OUTPUT"
+              echo "Selected overlay already uses $IMAGE_TAG"
+              exit 0
+            fi
+
+            git commit -m "chore(batch): deploy ${IMAGE_TAG} to ${TARGET_ENVIRONMENT}" \
+              -m "Source: ${GITHUB_SHA}" \
+              -m "Digest: ${IMAGE_DIGEST}"
+
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              environment_commit="$(git rev-parse HEAD)"
+              echo "environment-commit=$environment_commit" >> "$GITHUB_OUTPUT"
+              echo "GitOps update pushed on attempt ${attempt}/5"
+              exit 0
+            fi
+
+            git rebase --abort 2>/dev/null || true
+            echo "::warning::GitOps push failed on attempt ${attempt}/5"
+            if [[ "$attempt" -lt 5 ]]; then
+              sleep $((attempt * 2))
+            fi
+          done
+
+          echo "::error::GitOps push failed after 5 attempts"
+          echo "::error::The image tag is now consumed; increment bottlenote-batch/VERSION before retrying"
+          exit 1
+
+  deployment-summary:
+    name: write deployment summary
+    needs:
+      - prepare-build
+      - production-approval
+      - push-image
+      - update-gitops
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: write summary
+        env:
+          TARGET_ENVIRONMENT: ${{ inputs.environment }}
+          VERSION: ${{ needs.prepare-build.outputs.version }}
+          IMAGE_TAG: ${{ needs.prepare-build.outputs.image-tag }}
+          IMAGE_DIGEST: ${{ needs.push-image.outputs.image-digest }}
+          ENVIRONMENT_COMMIT: ${{ needs.update-gitops.outputs.environment-commit }}
+          PREPARE_RESULT: ${{ needs.prepare-build.result }}
+          PUSH_RESULT: ${{ needs.push-image.result }}
+          GITOPS_RESULT: ${{ needs.update-gitops.result }}
+        run: |
+          {
+            echo "## Batch deployment"
+            echo "- Environment: \`${TARGET_ENVIRONMENT}\`"
+            echo "- Source SHA: \`${GITHUB_SHA}\`"
+            echo "- Version: \`${VERSION:-unavailable}\`"
+            echo "- Image tag: \`${IMAGE_TAG:-unavailable}\`"
+            echo "- Image digest: \`${IMAGE_DIGEST:-unavailable}\`"
+            echo "- Environment repository commit: \`${ENVIRONMENT_COMMIT:-unavailable}\`"
+            echo "- Build/test: \`${PREPARE_RESULT}\`"
+            echo "- Image push/sign: \`${PUSH_RESULT}\`"
+            echo "- GitOps update: \`${GITOPS_RESULT}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "$PUSH_RESULT" == "success" && "$GITOPS_RESULT" != "success" ]]; then
+            {
+              echo
+              echo "> Image push succeeded but GitOps update failed."
+              echo "> Increment \`bottlenote-batch/VERSION\` before rerunning."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
