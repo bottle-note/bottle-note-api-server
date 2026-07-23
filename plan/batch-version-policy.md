@@ -167,15 +167,15 @@ GitHub Actions 수동 배포는 필수 `X.Y.Z` 버전 입력을 받아 `batch_X.
 - Verification: `.claude/skills/deploy-batch/scripts/test-version-policy.sh`
 - Files: `.agents/skills/deploy-batch/scripts/test-version-policy.sh`, `.claude/skills/deploy-batch/scripts/test-version-policy.sh`
 - Size: S
-- Status: [ ] not done
+- Status: [x] done
 
 ### Checkpoint: after Tasks 4-5
 
-- [ ] workflow YAML parse 및 exact version 정적 계약 검증 통과
-- [ ] immutable tag 차단 로직이 prepare/push 두 위치에 유지됨
-- [ ] VERSION 파일과 전체 참조가 제거됨
-- [ ] `.agents`/`.claude` 대응 파일 목록 및 SHA-256 일치
-- [ ] `git diff --check` 통과 및 계획 밖 변경 없음
+- [x] workflow YAML parse 및 exact version 정적 계약 검증 통과
+- [x] immutable tag 차단 로직이 prepare/push 두 위치에 유지됨
+- [x] VERSION 파일과 전체 참조가 제거됨
+- [x] `.agents`/`.claude` 대응 파일 목록 및 SHA-256 일치
+- [x] `git diff --check` 통과 및 계획 밖 변경 없음
 
 ## Progress Log
 
@@ -183,3 +183,4 @@ GitHub Actions 수동 배포는 필수 `X.Y.Z` 버전 입력을 받아 `batch_X.
 - Task 2: build, push, kustomize update의 VERSION fallback을 제거하고 exact version positional을 필수화했다. `.agents`와 `.claude`의 여섯 스크립트에서 누락·prerelease 입력이 외부 동작 전에 실패하고, `1.0.7 --dry-run`이 기존 `batch_1.0.7` 태그와 환경 출력을 유지함을 확인했다. `bash -n`, ShellCheck, mirror SHA-256 일치를 확인했다.
 - Task 3: prerequisite에 Git 및 initialized environment repository 검사를 추가하고 VERSION 파일 검사를 제거했다. deploy-batch 스킬은 최신 두 환경 태그의 최댓값과 patch 추천값을 제시하고, 선택한 exact version을 재검증한 뒤 build/push/kustomize 모든 단계에 전달하도록 갱신했다. 현재 로컬 사전조건 9개 통과, obsolete VERSION 파일 참조 0건, 두 복제본 SHA-256 일치를 확인했다.
 - Task 4: `workflow_dispatch`에 required string version을 추가하고 strict exact SemVer 검증 후 `batch_X.Y.Z` 태그를 생성하도록 전환했다. `bottlenote-batch/VERSION`을 삭제하고 GitOps 실패/summary 재시도 안내를 새 exact version 입력 방식으로 바꿨다. YAML parse와 actionlint를 통과했고, immutable registry 검사가 prepare/push 직전 두 곳에 각각 유지됨을 확인했다.
+- Task 5: 임시 bare Git remote와 실제 clone/commit/push/fetch를 사용하는 `test-version-policy.sh`를 두 스킬 트리에 추가했다. 동일/상이 태그의 최댓값, patch 추천, exact candidate 경계, invalid/missing tag, fetch 실패, consumer 필수 인자/dry-run, workflow required input/immutable guard, VERSION 부재를 검증한다. 첫 실행에서 금지 문자열 검사의 self-match를 수정한 뒤 두 복제본 모두 `PASS: batch version policy`를 확인했고, 전체 9개 대응 파일의 SHA-256 일치를 확인했다.
