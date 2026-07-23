@@ -8,6 +8,8 @@ public enum CurationExceptionCode implements ExceptionCode {
   CURATION_SPEC_DUPLICATE_CODE(HttpStatus.CONFLICT, "동일한 큐레이션 스펙 코드가 이미 존재합니다."),
   CURATION_NOT_FOUND(HttpStatus.NOT_FOUND, "큐레이션을 찾을 수 없습니다."),
   CURATION_PAYLOAD_INVALID(HttpStatus.BAD_REQUEST, "큐레이션 payload가 스펙과 일치하지 않습니다."),
+  CURATION_EXPOSURE_PERIOD_INVALID(HttpStatus.BAD_REQUEST, "큐레이션 노출 종료일은 시작일보다 빠를 수 없습니다."),
+  CURATION_EXPOSURE_ALREADY_ENDED(HttpStatus.BAD_REQUEST, "노출 종료일이 지난 큐레이션은 활성 상태로 저장할 수 없습니다."),
   CURATION_RESPONSE_INVALID(HttpStatus.INTERNAL_SERVER_ERROR, "큐레이션 응답이 스펙과 일치하지 않습니다."),
   CURATION_GRAPHQL_EXECUTION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "큐레이션 GraphQL 보강에 실패했습니다.");
 

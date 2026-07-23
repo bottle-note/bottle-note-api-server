@@ -1,5 +1,7 @@
 package app.bottlenote.curation.service;
 
+import static app.bottlenote.curation.exception.CurationExceptionCode.CURATION_EXPOSURE_ALREADY_ENDED;
+import static app.bottlenote.curation.exception.CurationExceptionCode.CURATION_EXPOSURE_PERIOD_INVALID;
 import static app.bottlenote.curation.exception.CurationExceptionCode.CURATION_NOT_FOUND;
 import static app.bottlenote.curation.exception.CurationExceptionCode.CURATION_PAYLOAD_INVALID;
 import static app.bottlenote.curation.exception.CurationExceptionCode.CURATION_SPEC_NOT_FOUND;
@@ -23,6 +25,7 @@ import app.bottlenote.curation.exception.CurationException;
 import app.bottlenote.curation.service.CurationPayloadValidator.MapBackedSchema;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.dto.response.AdminResultResponse;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -114,6 +117,8 @@ public class AdminSpecBasedCurationService {
   @Transactional
   public AdminResultResponse create(CurationCreateRequest request) {
     CurationSpec spec = getSpec(request.specId());
+    validateExposureWindow(
+        request.exposureStartDate(), request.exposureEndDate(), request.isActive());
     validatePayload(spec, request.payload());
     Curation saved = curationRepository.save(toCuration(request, spec));
     curationExtensionRepository.save(
@@ -129,6 +134,8 @@ public class AdminSpecBasedCurationService {
   public AdminResultResponse update(Long curationId, CurationUpdateRequest request) {
     Curation curation = getCuration(curationId);
     CurationSpec spec = getSpec(request.specId());
+    validateExposureWindow(
+        request.exposureStartDate(), request.exposureEndDate(), request.isActive());
     validatePayload(spec, request.payload());
     curation.update(
         spec.getId(),
@@ -183,6 +190,20 @@ public class AdminSpecBasedCurationService {
         curationPayloadValidator.validate(new MapBackedSchema(spec.getRequestSpec()), payload);
     if (!errors.isEmpty()) {
       throw new CurationException(CURATION_PAYLOAD_INVALID);
+    }
+  }
+
+  private void validateExposureWindow(
+      LocalDate exposureStartDate, LocalDate exposureEndDate, Boolean isActive) {
+    if (exposureStartDate != null
+        && exposureEndDate != null
+        && exposureEndDate.isBefore(exposureStartDate)) {
+      throw new CurationException(CURATION_EXPOSURE_PERIOD_INVALID);
+    }
+    if (Boolean.TRUE.equals(isActive)
+        && exposureEndDate != null
+        && exposureEndDate.isBefore(LocalDate.now())) {
+      throw new CurationException(CURATION_EXPOSURE_ALREADY_ENDED);
     }
   }
 

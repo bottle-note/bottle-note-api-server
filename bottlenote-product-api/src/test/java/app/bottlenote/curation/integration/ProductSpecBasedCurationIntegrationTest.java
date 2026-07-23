@@ -7,6 +7,10 @@ import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
+import app.bottlenote.curation.domain.Curation;
+import app.bottlenote.curation.domain.CurationExtension;
+import app.bottlenote.curation.domain.CurationExtensionRepository;
+import app.bottlenote.curation.domain.CurationRepository;
 import app.bottlenote.curation.domain.CurationSpec;
 import app.bottlenote.curation.domain.CurationSpecRepository;
 import app.bottlenote.curation.dto.request.CurationCreateRequest;
@@ -37,6 +41,8 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private CurationSpecResourceSyncService curationSpecResourceSyncService;
   @Autowired private CurationSpecRepository curationSpecRepository;
+  @Autowired private CurationRepository curationRepository;
+  @Autowired private CurationExtensionRepository curationExtensionRepository;
   @Autowired private AdminSpecBasedCurationService adminSpecBasedCurationService;
   @Autowired private AlcoholTestFactory alcoholTestFactory;
   @Autowired private AlcoholQueryRepository alcoholRepository;
@@ -123,7 +129,7 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
           LocalDate.now().plusDays(1),
           LocalDate.now().plusDays(5),
           List.of(manualItem("미노출")));
-      createCuration(
+      createLegacyCuration(
           "노출종료 큐레이션",
           1,
           true,
@@ -435,6 +441,34 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
                 active,
                 payload))
         .targetId();
+  }
+
+  private Long createLegacyCuration(
+      String name,
+      int displayOrder,
+      boolean active,
+      LocalDate exposureStartDate,
+      LocalDate exposureEndDate,
+      List<Map<String, Object>> payload) {
+    Curation saved =
+        curationRepository.save(
+            Curation.builder()
+                .specId(recommendedSpec.getId())
+                .name(name)
+                .description("통합 테스트 큐레이션")
+                .coverImageUrl("https://cdn.example.com/cover.jpg")
+                .exposureStartDate(exposureStartDate)
+                .exposureEndDate(exposureEndDate)
+                .displayOrder(displayOrder)
+                .isActive(active)
+                .build());
+    curationExtensionRepository.save(
+        CurationExtension.builder()
+            .curationId(saved.getId())
+            .specId(recommendedSpec.getId())
+            .payload(payload)
+            .build());
+    return saved.getId();
   }
 
   private Long createTastingEventCuration() {
