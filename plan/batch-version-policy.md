@@ -152,11 +152,11 @@ GitHub Actions 수동 배포는 필수 `X.Y.Z` 버전 입력을 받아 `batch_X.
 - Acceptance: `deploy_batch.yml`은 required version input을 exact `X.Y.Z`로 검증하여 `batch_X.Y.Z`를 만들고 `bottlenote-batch/VERSION`을 읽지 않는다.
 - Acceptance: prepare와 push 직전의 immutable tag 중복 차단, production main 제한·approval, signing, GitOps 흐름을 유지한다.
 - Acceptance: GitOps 실패 및 summary 안내는 VERSION 파일 증가 대신 새 exact version 입력 후 재실행을 지시하며 `bottlenote-batch/VERSION` 파일은 삭제된다.
-- Verification: `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/deploy_batch.yml", aliases: true)'`
+- Verification: `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/deploy_batch.yml")'`
 - Verification: `rg -n "inputs.version|INPUT_VERSION|batch_|image tag already exists|production batch deployment" .github/workflows/deploy_batch.yml && ! rg -n "bottlenote-batch/VERSION" .github/workflows/deploy_batch.yml`
 - Files: `.github/workflows/deploy_batch.yml`, `bottlenote-batch/VERSION` 삭제
 - Size: S
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 5: 버전 정책 회귀 guard 추가
 
@@ -182,3 +182,4 @@ GitHub Actions 수동 배포는 필수 `X.Y.Z` 버전 입력을 받아 `batch_X.
 - Task 1: `check-version.sh`를 최신 environment repository `origin/main`의 development/production batch 태그를 숫자 비교하는 도구로 전환했다. `1.0.6 / 1.0.6`에서 `1.0.7` 추천, `1.1.0` exact 후보 통과, 기준값 이하와 prerelease 후보 실패를 확인했다. `bump-version.sh`는 명시적 기준값만 비파괴적으로 증가시키며 patch/minor/major 결과 `1.0.7`, `1.1.0`, `2.0.0`을 확인했다. 네 스크립트의 `bash -n`, ShellCheck, `.agents`/`.claude` mode 및 content 일치를 확인했다.
 - Task 2: build, push, kustomize update의 VERSION fallback을 제거하고 exact version positional을 필수화했다. `.agents`와 `.claude`의 여섯 스크립트에서 누락·prerelease 입력이 외부 동작 전에 실패하고, `1.0.7 --dry-run`이 기존 `batch_1.0.7` 태그와 환경 출력을 유지함을 확인했다. `bash -n`, ShellCheck, mirror SHA-256 일치를 확인했다.
 - Task 3: prerequisite에 Git 및 initialized environment repository 검사를 추가하고 VERSION 파일 검사를 제거했다. deploy-batch 스킬은 최신 두 환경 태그의 최댓값과 patch 추천값을 제시하고, 선택한 exact version을 재검증한 뒤 build/push/kustomize 모든 단계에 전달하도록 갱신했다. 현재 로컬 사전조건 9개 통과, obsolete VERSION 파일 참조 0건, 두 복제본 SHA-256 일치를 확인했다.
+- Task 4: `workflow_dispatch`에 required string version을 추가하고 strict exact SemVer 검증 후 `batch_X.Y.Z` 태그를 생성하도록 전환했다. `bottlenote-batch/VERSION`을 삭제하고 GitOps 실패/summary 재시도 안내를 새 exact version 입력 방식으로 바꿨다. YAML parse와 actionlint를 통과했고, immutable registry 검사가 prepare/push 직전 두 곳에 각각 유지됨을 확인했다.
