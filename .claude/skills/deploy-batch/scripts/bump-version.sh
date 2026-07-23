@@ -1,25 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# bump-version.sh
-# 패치 버전 자동 증가 (semver)
+# 명시적 SemVer를 비파괴적으로 증가시킨다.
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
-
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-NC='\033[0m'
-
-# 옵션 파싱
-DRY_RUN=false
+SEMVER_PATTERN='^(0|[1-9][0-9]*)\.((0|[1-9][0-9]*))\.((0|[1-9][0-9]*))$'
+BASE_VERSION=""
 BUMP_TYPE="patch"
+VALUE_ONLY=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
-        --dry-run)
-            DRY_RUN=true
+        --patch)
+            BUMP_TYPE="patch"
             shift
             ;;
         --minor)
@@ -30,59 +22,51 @@ while [[ $# -gt 0 ]]; do
             BUMP_TYPE="major"
             shift
             ;;
-        --patch)
-            BUMP_TYPE="patch"
+        --value-only)
+            VALUE_ONLY=true
             shift
             ;;
-        *)
-            echo "Usage: $0 [--dry-run] [--patch|--minor|--major]" >&2
+        -*)
+            echo "Usage: $0 <base-version> [--patch|--minor|--major] [--value-only]" >&2
             exit 1
+            ;;
+        *)
+            [[ -z "$BASE_VERSION" ]] || {
+                echo "Usage: $0 <base-version> [--patch|--minor|--major] [--value-only]" >&2
+                exit 1
+            }
+            BASE_VERSION=$1
+            shift
             ;;
     esac
 done
 
-VERSION_FILE="$PROJECT_ROOT/bottlenote-batch/VERSION"
-
-if [[ ! -f "$VERSION_FILE" ]]; then
-    echo -e "${RED}[ERROR]${NC} VERSION 파일 없음: $VERSION_FILE" >&2
+[[ -n "$BASE_VERSION" ]] || {
+    echo "[ERROR] 기준 버전이 필요합니다" >&2
     exit 1
-fi
-
-CURRENT_VERSION=$(cat "$VERSION_FILE" | tr -d '[:space:]')
-
-# semver 파싱
-if [[ ! "$CURRENT_VERSION" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-    echo -e "${RED}[ERROR]${NC} 잘못된 버전 형식: $CURRENT_VERSION (expected: X.Y.Z)" >&2
+}
+[[ "$BASE_VERSION" =~ $SEMVER_PATTERN ]] || {
+    echo "[ERROR] 기준 버전은 exact X.Y.Z 형식이어야 합니다: $BASE_VERSION" >&2
     exit 1
-fi
+}
 
-MAJOR="${BASH_REMATCH[1]}"
-MINOR="${BASH_REMATCH[2]}"
-PATCH="${BASH_REMATCH[3]}"
-
-# 버전 증가
+IFS=. read -r major minor patch <<< "$BASE_VERSION"
 case $BUMP_TYPE in
     major)
-        NEW_MAJOR=$((MAJOR + 1))
-        NEW_VERSION="${NEW_MAJOR}.0.0"
+        new_version="$((major + 1)).0.0"
         ;;
     minor)
-        NEW_MINOR=$((MINOR + 1))
-        NEW_VERSION="${MAJOR}.${NEW_MINOR}.0"
+        new_version="${major}.$((minor + 1)).0"
         ;;
     patch)
-        NEW_PATCH=$((PATCH + 1))
-        NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}"
+        new_version="${major}.${minor}.$((patch + 1))"
         ;;
 esac
 
-echo "=== 버전 증가 ($BUMP_TYPE) ==="
-echo "OLD=$CURRENT_VERSION"
-echo "NEW=$NEW_VERSION"
-
-if [[ "$DRY_RUN" == "true" ]]; then
-    echo -e "${YELLOW}[DRY-RUN]${NC} 실제 파일 수정 없음"
+if [[ "$VALUE_ONLY" == "true" ]]; then
+    echo "$new_version"
 else
-    echo "$NEW_VERSION" > "$VERSION_FILE"
-    echo -e "${GREEN}[OK]${NC} VERSION 파일 업데이트 완료"
+    echo "BASE_VERSION=$BASE_VERSION"
+    echo "BUMP_TYPE=$BUMP_TYPE"
+    echo "VERSION=$new_version"
 fi
