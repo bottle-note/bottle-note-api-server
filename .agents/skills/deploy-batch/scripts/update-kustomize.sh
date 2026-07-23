@@ -16,6 +16,7 @@ NC='\033[0m'
 VERSION=""
 ENV="both"
 DRY_RUN=false
+SEMVER_PATTERN='^(0|[1-9][0-9]*)\.((0|[1-9][0-9]*))\.((0|[1-9][0-9]*))$'
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -28,27 +29,28 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         -*)
-            echo "Usage: $0 [version] [production|development|both] [--dry-run]" >&2
+            echo "Usage: $0 <version> [production|development|both] [--dry-run]" >&2
             exit 1
             ;;
         *)
+            [[ -z "$VERSION" ]] || {
+                echo "Usage: $0 <version> [production|development|both] [--dry-run]" >&2
+                exit 1
+            }
             VERSION="$1"
             shift
             ;;
     esac
 done
 
-# 버전 파라미터 검증
-if [[ -z "$VERSION" ]]; then
-    VERSION_FILE="$PROJECT_ROOT/bottlenote-batch/VERSION"
-    if [[ -f "$VERSION_FILE" ]]; then
-        VERSION=$(cat "$VERSION_FILE" | tr -d '[:space:]')
-        echo -e "${YELLOW}[INFO]${NC} VERSION 파일에서 읽음: $VERSION"
-    else
-        echo -e "${RED}[ERROR]${NC} 버전을 지정하거나 VERSION 파일이 필요합니다" >&2
-        exit 1
-    fi
-fi
+[[ -n "$VERSION" ]] || {
+    echo -e "${RED}[ERROR]${NC} exact X.Y.Z 버전이 필요합니다" >&2
+    exit 1
+}
+[[ "$VERSION" =~ $SEMVER_PATTERN ]] || {
+    echo -e "${RED}[ERROR]${NC} 버전은 exact X.Y.Z 형식이어야 합니다: $VERSION" >&2
+    exit 1
+}
 
 # 환경 파라미터 검증
 if [[ "$ENV" != "production" ]] && [[ "$ENV" != "development" ]] && [[ "$ENV" != "both" ]]; then
