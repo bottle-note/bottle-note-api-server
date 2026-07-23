@@ -138,14 +138,14 @@ GitHub Actions 수동 배포는 필수 `X.Y.Z` 버전 입력을 받아 `batch_X.
 - Verification: `rg -n "VERSION|check-version|bump-version|build-image|push-image|update-kustomize" .agents/skills/deploy-batch .claude/skills/deploy-batch`
 - Files: `.agents/skills/deploy-batch/SKILL.md`, `.agents/skills/deploy-batch/scripts/check-prerequisites.sh`, `.claude/skills/deploy-batch/SKILL.md`, `.claude/skills/deploy-batch/scripts/check-prerequisites.sh`
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Checkpoint: after Tasks 1-3
 
-- [ ] 모든 변경 shell script의 `bash -n` 통과
-- [ ] 추천 patch와 exact minor/major 선택 시나리오 통과
-- [ ] VERSION 파일 read/write 참조가 로컬 deploy-batch 스킬과 스크립트에서 제거됨
-- [ ] dry-run에서 registry push 및 environment repository 변경이 발생하지 않음
+- [x] 모든 변경 shell script의 `bash -n` 통과
+- [x] 추천 patch와 exact minor/major 선택 시나리오 통과
+- [x] VERSION 파일 read/write 참조가 로컬 deploy-batch 스킬과 스크립트에서 제거됨
+- [x] dry-run에서 registry push 및 environment repository 변경이 발생하지 않음
 
 ### Task 4: workflow dispatch를 exact version source로 전환
 
@@ -181,3 +181,4 @@ GitHub Actions 수동 배포는 필수 `X.Y.Z` 버전 입력을 받아 `batch_X.
 
 - Task 1: `check-version.sh`를 최신 environment repository `origin/main`의 development/production batch 태그를 숫자 비교하는 도구로 전환했다. `1.0.6 / 1.0.6`에서 `1.0.7` 추천, `1.1.0` exact 후보 통과, 기준값 이하와 prerelease 후보 실패를 확인했다. `bump-version.sh`는 명시적 기준값만 비파괴적으로 증가시키며 patch/minor/major 결과 `1.0.7`, `1.1.0`, `2.0.0`을 확인했다. 네 스크립트의 `bash -n`, ShellCheck, `.agents`/`.claude` mode 및 content 일치를 확인했다.
 - Task 2: build, push, kustomize update의 VERSION fallback을 제거하고 exact version positional을 필수화했다. `.agents`와 `.claude`의 여섯 스크립트에서 누락·prerelease 입력이 외부 동작 전에 실패하고, `1.0.7 --dry-run`이 기존 `batch_1.0.7` 태그와 환경 출력을 유지함을 확인했다. `bash -n`, ShellCheck, mirror SHA-256 일치를 확인했다.
+- Task 3: prerequisite에 Git 및 initialized environment repository 검사를 추가하고 VERSION 파일 검사를 제거했다. deploy-batch 스킬은 최신 두 환경 태그의 최댓값과 patch 추천값을 제시하고, 선택한 exact version을 재검증한 뒤 build/push/kustomize 모든 단계에 전달하도록 갱신했다. 현재 로컬 사전조건 9개 통과, obsolete VERSION 파일 참조 0건, 두 복제본 SHA-256 일치를 확인했다.
