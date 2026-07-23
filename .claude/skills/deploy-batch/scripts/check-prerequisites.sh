@@ -25,7 +25,25 @@ ok() {
 
 echo "=== 사전 조건 확인 ==="
 
-# 1. age 키 확인
+# 1. Git 설치 확인
+if command -v git &> /dev/null; then
+    GIT_VERSION=$(git --version)
+    ok "git: $GIT_VERSION"
+else
+    panic "git 미설치" \
+          "brew install git"
+fi
+
+# 2. environment repository 확인
+ENV_REPO_DIR="$PROJECT_ROOT/git.environment-variables"
+if git -C "$ENV_REPO_DIR" rev-parse --is-inside-work-tree &> /dev/null; then
+    ok "environment repository 초기화됨"
+else
+    panic "environment repository가 초기화되지 않음: $ENV_REPO_DIR" \
+          "git submodule update --init --recursive"
+fi
+
+# 3. age 키 확인
 AGE_KEY_PATH="${HOME}/.config/sops/age/keys.txt"
 if [[ -f "$AGE_KEY_PATH" ]]; then
     ok "age 키: $AGE_KEY_PATH"
@@ -34,7 +52,7 @@ else
           "age-keygen -o ~/.config/sops/age/keys.txt"
 fi
 
-# 2. sops 설치 확인
+# 4. sops 설치 확인
 if command -v sops &> /dev/null; then
     SOPS_VERSION=$(sops --version 2>&1 | head -1)
     ok "sops: $SOPS_VERSION"
@@ -43,7 +61,7 @@ else
           "brew install sops"
 fi
 
-# 3. docker 설치 확인
+# 5. docker 설치 확인
 if command -v docker &> /dev/null; then
     DOCKER_VERSION=$(docker --version)
     ok "docker: $DOCKER_VERSION"
@@ -52,7 +70,7 @@ else
           "brew install --cask docker"
 fi
 
-# 4. kustomize 설치 확인
+# 6. kustomize 설치 확인
 if command -v kustomize &> /dev/null; then
     KUSTOMIZE_VERSION=$(kustomize version 2>&1 | head -1)
     ok "kustomize: $KUSTOMIZE_VERSION"
@@ -61,7 +79,7 @@ else
           "brew install kustomize"
 fi
 
-# 5. cosign 설치 확인 (선택사항 - 경고만)
+# 7. cosign 설치 확인 (선택사항 - 경고만)
 if command -v cosign &> /dev/null; then
     COSIGN_VERSION=$(cosign version 2>&1 | grep -i version | head -1 || echo "installed")
     ok "cosign: $COSIGN_VERSION"
@@ -69,17 +87,7 @@ else
     echo -e "${YELLOW}[WARN]${NC} cosign 미설치 (서명 기능 제한) - brew install cosign"
 fi
 
-# 6. VERSION 파일 확인
-VERSION_FILE="$PROJECT_ROOT/bottlenote-batch/VERSION"
-if [[ -f "$VERSION_FILE" ]]; then
-    VERSION=$(cat "$VERSION_FILE" | tr -d '[:space:]')
-    ok "VERSION 파일: $VERSION"
-else
-    panic "VERSION 파일 없음: $VERSION_FILE" \
-          "echo '1.0.0' > $VERSION_FILE"
-fi
-
-# 7. registry.sops.env 파일 확인
+# 8. registry.sops.env 파일 확인
 SOPS_ENV_FILE="$PROJECT_ROOT/git.environment-variables/storage/docker-registry/registry.sops.env"
 if [[ -f "$SOPS_ENV_FILE" ]]; then
     ok "registry.sops.env 존재"
@@ -88,7 +96,7 @@ else
           "git submodule update --init --recursive"
 fi
 
-# 8. Dockerfile-batch 확인
+# 9. Dockerfile-batch 확인
 DOCKERFILE="$PROJECT_ROOT/Dockerfile-batch"
 if [[ -f "$DOCKERFILE" ]]; then
     ok "Dockerfile-batch 존재"
