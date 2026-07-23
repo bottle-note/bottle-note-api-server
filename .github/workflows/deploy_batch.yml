@@ -10,6 +10,10 @@ on:
         options:
           - development
           - production
+      version:
+        description: 배포 버전 (exact X.Y.Z)
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -40,12 +44,13 @@ jobs:
         id: release
         env:
           TARGET_ENVIRONMENT: ${{ inputs.environment }}
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
 
-          version="$(tr -d '\r\n' < bottlenote-batch/VERSION)"
-          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
-            echo "::error::bottlenote-batch/VERSION must use X.Y.Z format"
+          version="$INPUT_VERSION"
+          [[ "$version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]] || {
+            echo "::error::version input must use exact X.Y.Z format"
             exit 1
           }
 
@@ -272,7 +277,7 @@ jobs:
           done
 
           echo "::error::GitOps push failed after 5 attempts"
-          echo "::error::The image tag is now consumed; increment bottlenote-batch/VERSION before retrying"
+          echo "::error::The image tag is now consumed; rerun with a new exact version"
           exit 1
 
   deployment-summary:
@@ -313,6 +318,6 @@ jobs:
             {
               echo
               echo "> Image push succeeded but GitOps update failed."
-              echo "> Increment \`bottlenote-batch/VERSION\` before rerunning."
+              echo "> Rerun with a new exact version because this image tag is consumed."
             } >> "$GITHUB_STEP_SUMMARY"
           fi
