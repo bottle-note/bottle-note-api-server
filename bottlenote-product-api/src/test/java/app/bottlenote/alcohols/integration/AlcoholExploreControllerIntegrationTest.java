@@ -7,6 +7,7 @@ import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.alcohols.domain.Alcohol;
+import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.domain.Distillery;
 import app.bottlenote.alcohols.domain.Region;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
@@ -34,6 +35,7 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
   private static final String ENDPOINT = "/api/v1/alcohols/explore/standard";
 
   @Autowired private AlcoholTestFactory alcoholTestFactory;
+  @Autowired private AlcoholQueryRepository alcoholQueryRepository;
 
   private MvcTestResult exchangeGet(
       java.util.function.Consumer<
@@ -95,6 +97,26 @@ class AlcoholExploreControllerIntegrationTest extends IntegrationTestSupport {
           .asArray()
           .isEmpty();
       result.assertThat().bodyJson().extractingPath("$.meta.pageable.hasNext").isEqualTo(false);
+    }
+
+    @Test
+    @DisplayName("삭제 처리된 알코올은 Product 둘러보기에서 제외된다")
+    void explore_excludes_deleted_alcohol() {
+      Alcohol visible = alcoholTestFactory.persistAlcoholWithName("둘러보기 노출", "Explore Visible");
+      Alcohol deleted = alcoholTestFactory.persistAlcoholWithName("둘러보기 삭제", "Explore Deleted");
+      deleted.delete();
+      alcoholQueryRepository.save(deleted);
+
+      MvcTestResult result = exchangeGet(b -> b.param("keywords", "둘러보기").param("size", "10"));
+
+      result
+          .assertThat()
+          .hasStatusOk()
+          .bodyJson()
+          .extractingPath("$.data.items[*].alcoholId")
+          .asArray()
+          .contains(visible.getId().intValue())
+          .doesNotContain(deleted.getId().intValue());
     }
 
     @Test

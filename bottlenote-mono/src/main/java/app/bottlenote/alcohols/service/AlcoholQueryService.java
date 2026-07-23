@@ -1,5 +1,7 @@
 package app.bottlenote.alcohols.service;
 
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
+
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.alcohols.domain.Alcohol;
@@ -19,7 +21,6 @@ import app.bottlenote.alcohols.dto.response.CategoryPairItem;
 import app.bottlenote.alcohols.dto.response.ExploreStandardResponse;
 import app.bottlenote.alcohols.dto.response.FriendsDetailResponse;
 import app.bottlenote.alcohols.exception.AlcoholException;
-import app.bottlenote.alcohols.exception.AlcoholExceptionCode;
 import app.bottlenote.alcohols.repository.CustomAlcoholQueryRepository.AdminAlcoholDetailProjection;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.service.cursor.CursorResponse;
@@ -32,6 +33,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -73,16 +75,17 @@ public class AlcoholQueryService {
    */
   @Transactional(readOnly = true)
   public AlcoholDetailResponse findAlcoholDetailById(Long alcoholId, Long userId) {
-    AlcoholDetailItem alcoholDetail =
-        alcoholQueryRepository.findAlcoholDetailById(alcoholId, userId);
+    AlcoholDetailItem alcoholDetailItem =
+        Optional.ofNullable(alcoholQueryRepository.findAlcoholDetailById(alcoholId, userId))
+            .orElseThrow(() -> new AlcoholException(ALCOHOL_NOT_FOUND));
 
     // 조회 기록 저장 (게스트 사용자 제외)
-    if (userId > 0 && alcoholDetail != null) viewHistoryService.recordView(userId, alcoholDetail);
+    if (userId > 0) viewHistoryService.recordView(userId, alcoholDetailItem);
 
     FriendsDetailResponse friendInfos = getFriendInfos(alcoholId, userId);
 
     return AlcoholDetailResponse.builder()
-        .alcohols(alcoholDetail)
+        .alcohols(alcoholDetailItem)
         .friendsInfo(friendInfos)
         .reviewInfo(reviewFacade.getReviewInfoList(alcoholId, userId))
         .build();
@@ -146,12 +149,12 @@ public class AlcoholQueryService {
     AdminAlcoholDetailProjection projection =
         alcoholQueryRepository
             .findAdminAlcoholDetailById(alcoholId)
-            .orElseThrow(() -> new AlcoholException(AlcoholExceptionCode.ALCOHOL_NOT_FOUND));
+            .orElseThrow(() -> new AlcoholException(ALCOHOL_NOT_FOUND));
 
     Alcohol alcohol =
         alcoholQueryRepository
             .findById(alcoholId)
-            .orElseThrow(() -> new AlcoholException(AlcoholExceptionCode.ALCOHOL_NOT_FOUND));
+            .orElseThrow(() -> new AlcoholException(ALCOHOL_NOT_FOUND));
 
     List<TastingTagInfo> tastingTags =
         alcohol.getAlcoholsTastingTags().stream()
