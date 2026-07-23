@@ -208,6 +208,12 @@ jobs:
     needs:
       - prepare-build
       - push-image
+    if: >-
+      ${{
+        always() &&
+        needs.prepare-build.result == 'success' &&
+        needs.push-image.result == 'success'
+      }}
     runs-on: ubuntu-latest
     outputs:
       environment-commit: ${{ steps.deploy.outputs.environment-commit }}
