@@ -19,6 +19,8 @@ public interface CurationSpecRepository {
 
   List<CurationSpecListResponse> findAllActiveSpecSummaries();
 
+  List<CurationSpec> findAllByCodeIn(Collection<String> codes);
+
   List<CurationSpec> findAllByIdIn(Collection<Long> ids);
 
   boolean existsByCode(String code);
