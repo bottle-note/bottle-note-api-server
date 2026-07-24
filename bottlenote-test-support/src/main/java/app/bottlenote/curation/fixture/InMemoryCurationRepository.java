@@ -2,7 +2,9 @@ package app.bottlenote.curation.fixture;
 
 import app.bottlenote.curation.domain.Curation;
 import app.bottlenote.curation.domain.CurationRepository;
+import app.bottlenote.curation.dto.dsl.CurationFeedSearchCriteria;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +39,31 @@ public class InMemoryCurationRepository implements CurationRepository {
         .filter(curation -> isVisibleOn(curation, today))
         .sorted(Comparator.comparing(Curation::getDisplayOrder).thenComparing(Curation::getId))
         .toList();
+  }
+
+  @Override
+  public List<Long> findFeedCandidateIds(CurationFeedSearchCriteria criteria) {
+    if (criteria.specIds().isEmpty()) {
+      return List.of();
+    }
+
+    List<Long> candidateIds =
+        database.values().stream()
+            .filter(curation -> Boolean.TRUE.equals(curation.getIsActive()))
+            .filter(curation -> isVisibleOn(curation, criteria.today()))
+            .filter(curation -> criteria.specIds().contains(curation.getSpecId()))
+            .filter(curation -> matchesKeyword(curation, criteria))
+            .sorted(Comparator.comparing(Curation::getDisplayOrder).thenComparing(Curation::getId))
+            .map(Curation::getId)
+            .toList();
+    int start = (int) Math.min(criteria.offset(), candidateIds.size());
+    int end = Math.min(start + criteria.fetchSize(), candidateIds.size());
+    return candidateIds.subList(start, end);
+  }
+
+  @Override
+  public List<Curation> findAllByIdIn(Collection<Long> ids) {
+    return database.values().stream().filter(curation -> ids.contains(curation.getId())).toList();
   }
 
   @Override
@@ -84,5 +111,19 @@ public class InMemoryCurationRepository implements CurationRepository {
             || !curation.getExposureStartDate().isAfter(today))
         && (curation.getExposureEndDate() == null
             || !curation.getExposureEndDate().isBefore(today));
+  }
+
+  private boolean matchesKeyword(Curation curation, CurationFeedSearchCriteria criteria) {
+    if (criteria.keyword() == null || criteria.keyword().isBlank()) {
+      return true;
+    }
+    String keyword = criteria.keyword().trim();
+    return contains(curation.getName(), keyword)
+        || contains(curation.getDescription(), keyword)
+        || criteria.keywordMatchedSpecIds().contains(curation.getSpecId());
+  }
+
+  private boolean contains(String value, String keyword) {
+    return value != null && value.contains(keyword);
   }
 }
