@@ -1,6 +1,7 @@
 package app.bottlenote.curation.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 import app.bottlenote.IntegrationTestSupport;
@@ -175,7 +176,7 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
       MvcTestResult result =
           mockMvcTester
               .get()
-              .uri("/api/v2/curations/feed?size=10")
+              .uri("/api/v2/curations/feed?code=RECOMMENDED_WHISKY&size=10")
               .contentType(APPLICATION_JSON)
               .exchange();
 
@@ -203,7 +204,7 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
       MvcTestResult result =
           mockMvcTester
               .get()
-              .uri("/api/v2/curations/feed?size=10")
+              .uri("/api/v2/curations/feed?code=WHISKY_TASTING_EVENT&size=10")
               .contentType(APPLICATION_JSON)
               .exchange();
 
@@ -219,7 +220,7 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("Product feed는 keyword와 code 조건을 분리해 필터링하고 빈 조건은 전체 조건으로 처리한다")
+    @DisplayName("Product feed는 복수 code를 OR로, keyword를 AND로 적용한다")
     void searchFeed_whenKeywordAndCodeProvided_filtersBySearchContract() throws Exception {
       // given
       createCuration("제목 매치 큐레이션", "일반 설명", 1, true, List.of(manualItem("제목")));
@@ -227,10 +228,11 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
       Long tastingId = createTastingEventCuration();
 
       // when
-      MvcTestResult keywordResult =
+      MvcTestResult multiCodeResult =
           mockMvcTester
               .get()
-              .uri("/api/v2/curations/feed?keyword=큐레이션&size=10")
+              .uri(
+                  "/api/v2/curations/feed?keyword=큐레이션&code=RECOMMENDED_WHISKY&code=WHISKY_TASTING_EVENT&size=10")
               .contentType(APPLICATION_JSON)
               .exchange();
       MvcTestResult codeResult =
@@ -245,21 +247,70 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
               .uri("/api/v2/curations/feed?keyword=큐레이션&code=UNKNOWN_CODE&size=10")
               .contentType(APPLICATION_JSON)
               .exchange();
-      MvcTestResult boundaryResult =
-          mockMvcTester
-              .get()
-              .uri("/api/v2/curations/feed?keyword=%20%20%20&code=%20%20%20&size=10")
-              .contentType(APPLICATION_JSON)
-              .exchange();
-
       // then
-      assertThat(dataNode(keywordResult).path("items")).hasSize(3);
+      assertThat(dataNode(multiCodeResult).path("items")).hasSize(3);
       assertThat(dataNode(codeResult).path("items")).hasSize(1);
       assertThat(dataNode(codeResult).path("items").get(0).path("id").asLong())
           .isEqualTo(tastingId);
       assertThat(dataNode(negativeResult).path("items")).isEmpty();
-      assertThat(dataNode(boundaryResult).path("items").isArray()).isTrue();
-      assertThat(dataNode(boundaryResult).path("pageable").path("pageSize").asInt()).isEqualTo(10);
+      mockMvcTester
+          .get()
+          .uri("/api/v2/curations/feed")
+          .exchange()
+          .assertThat()
+          .hasStatus(BAD_REQUEST);
+      mockMvcTester
+          .get()
+          .uri("/api/v2/curations/feed")
+          .param("code", " ")
+          .exchange()
+          .assertThat()
+          .hasStatus(BAD_REQUEST);
+    }
+
+    @Test
+    @DisplayName("Product feed는 노출 조건과 정렬을 적용한 뒤 offset cursor로 최대 10개를 반환한다")
+    void searchFeed_whenPageBoundaryReached_returnsStableOffsetPage() throws Exception {
+      // given
+      for (int i = 0; i < 12; i++) {
+        createCuration("노출 " + i, "페이지 경계", i, true, List.of(manualItem("위스키 " + i)));
+      }
+      createCuration("비활성", 1, false, List.of(manualItem("비활성")));
+      createCuration(
+          "미노출",
+          "페이지 경계",
+          1,
+          true,
+          LocalDate.now().plusDays(1),
+          LocalDate.now().plusDays(5),
+          List.of(manualItem("미노출")));
+
+      // when
+      MvcTestResult firstPage =
+          mockMvcTester
+              .get()
+              .uri("/api/v2/curations/feed?code=RECOMMENDED_WHISKY&cursor=0&size=30")
+              .contentType(APPLICATION_JSON)
+              .exchange();
+      MvcTestResult secondPage =
+          mockMvcTester
+              .get()
+              .uri("/api/v2/curations/feed?code=RECOMMENDED_WHISKY&cursor=10&size=10")
+              .contentType(APPLICATION_JSON)
+              .exchange();
+
+      // then
+      JsonNode firstPageData = dataNode(firstPage);
+      assertThat(firstPageData.path("items")).hasSize(10);
+      assertThat(firstPageData.path("items").get(0).path("name").asText()).isEqualTo("노출 0");
+      assertThat(firstPageData.path("pageable").path("pageSize").asInt()).isEqualTo(10);
+      assertThat(firstPageData.path("pageable").path("cursor").asLong()).isEqualTo(10L);
+      assertThat(firstPageData.path("pageable").path("hasNext").asBoolean()).isTrue();
+
+      JsonNode secondPageData = dataNode(secondPage);
+      assertThat(secondPageData.path("items")).hasSize(2);
+      assertThat(secondPageData.path("items").get(0).path("name").asText()).isEqualTo("노출 10");
+      assertThat(secondPageData.path("pageable").path("hasNext").asBoolean()).isFalse();
     }
   }
 
