@@ -1,0 +1,770 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "프로그램",
+    "description": "행사 기간과 장소, 여러 프로그램 및 프로그램별 위스키 라인업을 함께 발행하는 행사형 큐레이션.",
+    "version": "2.0.0"
+  },
+  "x-curation": {
+    "code": "PROGRAM",
+    "hydratorKey": "alcohol",
+    "container": "object"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "ProgramRequest": {
+        "type": "object",
+        "description": "프로그램 큐레이션 등록 요청",
+        "properties": {
+          "eventStartDate": {
+            "type": "string",
+            "format": "date",
+            "description": "행사 시작일",
+            "example": "2026-07-24",
+            "x-field-style": "date",
+            "x-display-name": "행사 시작일"
+          },
+          "eventEndDate": {
+            "type": "string",
+            "format": "date",
+            "description": "행사 종료일",
+            "example": "2026-07-26",
+            "x-field-style": "date",
+            "x-display-name": "행사 종료일"
+          },
+          "placeName": {
+            "type": "string",
+            "description": "행사 대표 장소명",
+            "example": "코엑스",
+            "maxLength": 100,
+            "x-field-style": "plain-text",
+            "x-display-name": "장소명"
+          },
+          "address": {
+            "type": "string",
+            "description": "행사 대표 주소",
+            "example": "서울 강남구 영동대로 513",
+            "maxLength": 200,
+            "x-field-style": "plain-text",
+            "x-display-name": "장소 및 주소"
+          },
+          "detailLocation": {
+            "type": "string",
+            "description": "행사 상세 위치",
+            "example": "C홀",
+            "maxLength": 200,
+            "nullable": true,
+            "x-field-style": "plain-text",
+            "x-display-name": "상세 위치"
+          },
+          "organizer": {
+            "type": "string",
+            "description": "행사 주최 또는 주관",
+            "example": "바앤스피릿쇼 조직위원회",
+            "maxLength": 120,
+            "nullable": true,
+            "x-field-style": "plain-text",
+            "x-display-name": "주최 / 주관"
+          },
+          "sponsor": {
+            "type": "string",
+            "description": "행사 협찬사",
+            "example": "보틀노트",
+            "maxLength": 120,
+            "nullable": true,
+            "x-field-style": "plain-text",
+            "x-display-name": "협찬"
+          },
+          "entryFee": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "행사 참가비. 0이면 무료",
+            "example": 30000,
+            "nullable": true,
+            "x-field-style": "plain-number",
+            "x-display-name": "참가비"
+          },
+          "officialUrl": {
+            "type": "string",
+            "description": "행사 공식 페이지 URL",
+            "example": "https://www.barshow.co.kr",
+            "maxLength": 2048,
+            "nullable": true,
+            "x-field-style": "plain-text",
+            "x-display-name": "공식 페이지 링크"
+          },
+          "registrationUrl": {
+            "type": "string",
+            "description": "행사 참가 신청 URL",
+            "example": "https://event-us.kr/event/123",
+            "maxLength": 2048,
+            "nullable": true,
+            "x-field-style": "plain-text",
+            "x-display-name": "참가 링크"
+          },
+          "programTags": {
+            "type": "array",
+            "description": "행사에서 다루는 프로그램 카테고리",
+            "example": [
+              "WHISKY",
+              "COCKTAIL"
+            ],
+            "maxItems": 6,
+            "items": {
+              "type": "string",
+              "enum": [
+                "WHISKY",
+                "TRADITIONAL_LIQUOR",
+                "WINE",
+                "COCKTAIL",
+                "BEER",
+                "OTHER_SPIRITS"
+              ]
+            },
+            "x-display-name": "프로그램 태그"
+          },
+          "programs": {
+            "type": "array",
+            "description": "행사에 포함된 프로그램 목록. 배열 순서가 앱 노출 순서다.",
+            "minItems": 1,
+            "maxItems": 20,
+            "x-display-name": "프로그램",
+            "items": {
+              "type": "object",
+              "description": "행사 프로그램",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "프로그램명",
+                  "example": "글렌카담 마스터클래스",
+                  "minLength": 1,
+                  "maxLength": 120,
+                  "x-field-style": "plain-text",
+                  "x-display-name": "프로그램명"
+                },
+                "type": {
+                  "type": "string",
+                  "description": "프로그램 유형",
+                  "example": "MASTER_CLASS",
+                  "enum": [
+                    "MASTER_CLASS",
+                    "TASTING",
+                    "SEMINAR",
+                    "BOOTH_EVENT",
+                    "OTHER"
+                  ],
+                  "x-display-name": "프로그램 유형"
+                },
+                "programDate": {
+                  "type": "string",
+                  "format": "date",
+                  "description": "프로그램 진행일",
+                  "example": "2026-07-24",
+                  "x-field-style": "date",
+                  "x-display-name": "날짜"
+                },
+                "startTime": {
+                  "type": "string",
+                  "format": "time",
+                  "description": "프로그램 시작 시간",
+                  "example": "14:00",
+                  "maxLength": 20,
+                  "x-field-style": "time",
+                  "x-display-name": "시작 시간"
+                },
+                "endTime": {
+                  "type": "string",
+                  "format": "time",
+                  "description": "프로그램 종료 시간",
+                  "example": "15:30",
+                  "maxLength": 20,
+                  "nullable": true,
+                  "x-field-style": "time",
+                  "x-display-name": "종료 시간"
+                },
+                "venue": {
+                  "type": "string",
+                  "description": "행사장 내부 진행 장소 또는 부스",
+                  "example": "마스터클래스룸 A",
+                  "maxLength": 120,
+                  "nullable": true,
+                  "x-field-style": "plain-text",
+                  "x-display-name": "진행 장소 / 부스"
+                },
+                "host": {
+                  "type": "string",
+                  "description": "프로그램 진행 브랜드 또는 진행자",
+                  "example": "글렌카담 브랜드 앰버서더",
+                  "maxLength": 120,
+                  "nullable": true,
+                  "x-field-style": "plain-text",
+                  "x-display-name": "진행 브랜드 / 진행자"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "프로그램 소개",
+                  "example": "대표 라인업을 브랜드 앰버서더의 해설과 함께 시음하는 클래스입니다.",
+                  "minLength": 1,
+                  "maxLength": 1000,
+                  "x-field-style": "long-text",
+                  "x-display-name": "프로그램 설명"
+                },
+                "applicationUrl": {
+                  "type": "string",
+                  "description": "프로그램별 참가 신청 URL",
+                  "example": "https://event-us.kr/event/456",
+                  "maxLength": 2048,
+                  "nullable": true,
+                  "x-field-style": "plain-text",
+                  "x-display-name": "참가 링크"
+                },
+                "whiskies": {
+                  "type": "array",
+                  "description": "프로그램에서 시음할 위스키 라인업",
+                  "maxItems": 10,
+                  "x-field-style": "alcohol-card-list",
+                  "x-display-name": "시음 위스키",
+                  "items": {
+                    "type": "object",
+                    "description": "프로그램 위스키 카드",
+                    "x-field-style": "alcohol-card",
+                    "x-display-name": "시음 위스키",
+                    "properties": {
+                      "source": {
+                        "type": "string",
+                        "enum": [
+                          "BOTTLE_NOTE",
+                          "MANUAL"
+                        ],
+                        "description": "위스키 데이터 출처",
+                        "example": "BOTTLE_NOTE"
+                      },
+                      "alcohol": {
+                        "type": "object",
+                        "description": "발행 시점의 위스키 노출용 미러 데이터",
+                        "properties": {
+                          "alcoholId": {
+                            "type": "integer",
+                            "format": "int64",
+                            "nullable": true,
+                            "description": "DB 알코올 ID. 직접 입력이면 null",
+                            "example": 1
+                          },
+                          "korName": {
+                            "type": "string",
+                            "description": "위스키 한글명",
+                            "example": "글렌카담 15년",
+                            "maxLength": 100
+                          },
+                          "engName": {
+                            "type": "string",
+                            "description": "위스키 영문명",
+                            "example": "GLENCADAM 15YO",
+                            "maxLength": 150
+                          },
+                          "imageUrl": {
+                            "type": "string",
+                            "description": "위스키 이미지 URL",
+                            "example": "https://img.example.com/alcohols/1.png",
+                            "maxLength": 2048,
+                            "x-field-style": "image-url",
+                            "x-display-name": "이미지"
+                          },
+                          "regionName": {
+                            "type": "string",
+                            "description": "지역 또는 국가명",
+                            "example": "스코틀랜드/하이랜드",
+                            "maxLength": 80
+                          },
+                          "korCategory": {
+                            "type": "string",
+                            "description": "한글 카테고리명",
+                            "example": "싱글 몰트",
+                            "maxLength": 80
+                          },
+                          "cask": {
+                            "type": "string",
+                            "description": "캐스크 정보",
+                            "example": "버번 캐스크",
+                            "maxLength": 120
+                          },
+                          "abv": {
+                            "type": "string",
+                            "description": "알코올 도수",
+                            "example": "46",
+                            "maxLength": 20
+                          },
+                          "volume": {
+                            "type": "string",
+                            "description": "용량",
+                            "example": "700ml",
+                            "maxLength": 20
+                          },
+                          "selectedTags": {
+                            "type": "array",
+                            "description": "최종 선택된 테이스팅 태그명 목록. 배열 순서가 앱 노출 순서다.",
+                            "example": [
+                              "꿀",
+                              "오렌지",
+                              "몰트"
+                            ],
+                            "maxItems": 12,
+                            "items": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 30
+                            },
+                            "x-field-style": "tag-list",
+                            "x-display-name": "테이스팅 태그",
+                            "x-ui-orderable": true
+                          }
+                        },
+                        "required": [
+                          "korName",
+                          "selectedTags"
+                        ],
+                        "x-field-style": "alcohol-card",
+                        "x-display-name": "위스키"
+                      },
+                      "comment": {
+                        "type": "string",
+                        "description": "위스키 기대평",
+                        "example": "하이랜드 특유의 부드럽고 균형 잡힌 풍미.",
+                        "maxLength": 500,
+                        "nullable": true,
+                        "x-field-style": "long-text",
+                        "x-display-name": "위스키 기대평"
+                      }
+                    },
+                    "required": [
+                      "source",
+                      "alcohol"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "name",
+                "type",
+                "programDate",
+                "startTime",
+                "description"
+              ]
+            }
+          }
+        },
+        "required": [
+          "eventStartDate",
+          "eventEndDate",
+          "placeName",
+          "address",
+          "programs"
+        ]
+      },
+      "ProgramResponse": {
+        "type": "object",
+        "description": "프로그램 큐레이션 조회 응답",
+        "properties": {
+          "eventStartDate": {
+            "type": "string",
+            "format": "date",
+            "description": "행사 시작일",
+            "example": "2026-07-24",
+            "x-field-style": "date",
+            "x-display-name": "행사 시작일",
+            "x-feed": {
+              "enabled": true,
+              "role": "date",
+              "order": 10,
+              "description": "피드에서 행사 시작일을 표시하기 위해 포함한다."
+            }
+          },
+          "eventEndDate": {
+            "type": "string",
+            "format": "date",
+            "description": "행사 종료일",
+            "example": "2026-07-26",
+            "x-field-style": "date",
+            "x-display-name": "행사 종료일",
+            "x-feed": {
+              "enabled": true,
+              "role": "date",
+              "order": 20,
+              "description": "피드에서 행사 종료일을 표시하기 위해 포함한다."
+            }
+          },
+          "placeName": {
+            "type": "string",
+            "description": "행사 대표 장소명",
+            "example": "코엑스",
+            "maxLength": 100,
+            "x-field-style": "plain-text",
+            "x-display-name": "장소명",
+            "x-feed": {
+              "enabled": true,
+              "role": "location",
+              "order": 30,
+              "description": "피드에서 행사 대표 장소를 표시하기 위해 포함한다."
+            }
+          },
+          "address": {
+            "type": "string",
+            "description": "행사 대표 주소",
+            "example": "서울 강남구 영동대로 513",
+            "maxLength": 200,
+            "x-field-style": "plain-text",
+            "x-display-name": "장소 및 주소"
+          },
+          "detailLocation": {
+            "type": "string",
+            "description": "행사 상세 위치",
+            "example": "C홀",
+            "maxLength": 200,
+            "nullable": true,
+            "x-field-style": "plain-text",
+            "x-display-name": "상세 위치"
+          },
+          "organizer": {
+            "type": "string",
+            "description": "행사 주최 또는 주관",
+            "example": "바앤스피릿쇼 조직위원회",
+            "maxLength": 120,
+            "nullable": true,
+            "x-field-style": "plain-text",
+            "x-display-name": "주최 / 주관"
+          },
+          "sponsor": {
+            "type": "string",
+            "description": "행사 협찬사",
+            "example": "보틀노트",
+            "maxLength": 120,
+            "nullable": true,
+            "x-field-style": "plain-text",
+            "x-display-name": "협찬"
+          },
+          "entryFee": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "행사 참가비. 0이면 무료",
+            "example": 30000,
+            "nullable": true,
+            "x-field-style": "plain-number",
+            "x-display-name": "참가비",
+            "x-feed": {
+              "enabled": true,
+              "role": "price",
+              "order": 40,
+              "description": "피드에서 행사 참가비를 표시하기 위해 포함한다."
+            }
+          },
+          "officialUrl": {
+            "type": "string",
+            "description": "행사 공식 페이지 URL",
+            "example": "https://www.barshow.co.kr",
+            "maxLength": 2048,
+            "nullable": true,
+            "x-field-style": "plain-text",
+            "x-display-name": "공식 페이지 링크"
+          },
+          "registrationUrl": {
+            "type": "string",
+            "description": "행사 참가 신청 URL",
+            "example": "https://event-us.kr/event/123",
+            "maxLength": 2048,
+            "nullable": true,
+            "x-field-style": "plain-text",
+            "x-display-name": "참가 링크"
+          },
+          "programTags": {
+            "type": "array",
+            "description": "행사에서 다루는 프로그램 카테고리",
+            "example": [
+              "WHISKY",
+              "COCKTAIL"
+            ],
+            "maxItems": 6,
+            "items": {
+              "type": "string",
+              "enum": [
+                "WHISKY",
+                "TRADITIONAL_LIQUOR",
+                "WINE",
+                "COCKTAIL",
+                "BEER",
+                "OTHER_SPIRITS"
+              ]
+            },
+            "x-display-name": "프로그램 태그",
+            "x-feed": {
+              "enabled": true,
+              "role": "item-list",
+              "order": 50,
+              "description": "피드에서 행사의 프로그램 카테고리를 표시하기 위해 포함한다."
+            }
+          },
+          "programs": {
+            "type": "array",
+            "description": "행사에 포함된 프로그램 목록. 배열 순서가 앱 노출 순서다.",
+            "minItems": 1,
+            "maxItems": 20,
+            "x-display-name": "프로그램",
+            "items": {
+              "type": "object",
+              "description": "행사 프로그램",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "프로그램명",
+                  "example": "글렌카담 마스터클래스",
+                  "minLength": 1,
+                  "maxLength": 120,
+                  "x-field-style": "plain-text",
+                  "x-display-name": "프로그램명",
+                  "x-feed": {
+                    "enabled": true,
+                    "role": "item-list",
+                    "order": 60,
+                    "description": "피드에서 프로그램 이름과 프로그램 개수를 구성하기 위해 포함한다."
+                  }
+                },
+                "type": {
+                  "type": "string",
+                  "description": "프로그램 유형",
+                  "example": "MASTER_CLASS",
+                  "enum": [
+                    "MASTER_CLASS",
+                    "TASTING",
+                    "SEMINAR",
+                    "BOOTH_EVENT",
+                    "OTHER"
+                  ],
+                  "x-display-name": "프로그램 유형",
+                  "x-feed": {
+                    "enabled": true,
+                    "role": "description",
+                    "order": 70,
+                    "description": "피드에서 프로그램 유형을 표시하기 위해 포함한다."
+                  }
+                },
+                "programDate": {
+                  "type": "string",
+                  "format": "date",
+                  "description": "프로그램 진행일",
+                  "example": "2026-07-24",
+                  "x-field-style": "date",
+                  "x-display-name": "날짜",
+                  "x-feed": {
+                    "enabled": true,
+                    "role": "date",
+                    "order": 80,
+                    "description": "피드에서 프로그램 진행일을 표시하기 위해 포함한다."
+                  }
+                },
+                "startTime": {
+                  "type": "string",
+                  "format": "time",
+                  "description": "프로그램 시작 시간",
+                  "example": "14:00",
+                  "maxLength": 20,
+                  "x-field-style": "time",
+                  "x-display-name": "시작 시간",
+                  "x-feed": {
+                    "enabled": true,
+                    "role": "time",
+                    "order": 90,
+                    "description": "피드에서 프로그램 시작 시간을 표시하기 위해 포함한다."
+                  }
+                },
+                "endTime": {
+                  "type": "string",
+                  "format": "time",
+                  "description": "프로그램 종료 시간",
+                  "example": "15:30",
+                  "maxLength": 20,
+                  "nullable": true,
+                  "x-field-style": "time",
+                  "x-display-name": "종료 시간"
+                },
+                "venue": {
+                  "type": "string",
+                  "description": "행사장 내부 진행 장소 또는 부스",
+                  "example": "마스터클래스룸 A",
+                  "maxLength": 120,
+                  "nullable": true,
+                  "x-field-style": "plain-text",
+                  "x-display-name": "진행 장소 / 부스"
+                },
+                "host": {
+                  "type": "string",
+                  "description": "프로그램 진행 브랜드 또는 진행자",
+                  "example": "글렌카담 브랜드 앰버서더",
+                  "maxLength": 120,
+                  "nullable": true,
+                  "x-field-style": "plain-text",
+                  "x-display-name": "진행 브랜드 / 진행자"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "프로그램 소개",
+                  "example": "대표 라인업을 브랜드 앰버서더의 해설과 함께 시음하는 클래스입니다.",
+                  "minLength": 1,
+                  "maxLength": 1000,
+                  "x-field-style": "long-text",
+                  "x-display-name": "프로그램 설명"
+                },
+                "applicationUrl": {
+                  "type": "string",
+                  "description": "프로그램별 참가 신청 URL",
+                  "example": "https://event-us.kr/event/456",
+                  "maxLength": 2048,
+                  "nullable": true,
+                  "x-field-style": "plain-text",
+                  "x-display-name": "참가 링크"
+                },
+                "whiskies": {
+                  "type": "array",
+                  "description": "프로그램에서 시음할 위스키 라인업",
+                  "maxItems": 10,
+                  "x-field-style": "alcohol-card-list",
+                  "x-display-name": "시음 위스키",
+                  "items": {
+                    "type": "object",
+                    "description": "프로그램 위스키 카드 조회 응답",
+                    "x-field-style": "alcohol-card",
+                    "x-display-name": "시음 위스키",
+                    "properties": {
+                      "source": {
+                        "type": "string",
+                        "enum": [
+                          "BOTTLE_NOTE",
+                          "MANUAL"
+                        ],
+                        "description": "위스키 데이터 출처",
+                        "example": "BOTTLE_NOTE"
+                      },
+                      "alcohol": {
+                        "type": "object",
+                        "description": "발행 시점의 위스키 노출용 미러 데이터",
+                        "properties": {
+                          "alcoholId": {
+                            "type": "integer",
+                            "format": "int64",
+                            "nullable": true,
+                            "description": "DB 알코올 ID. 직접 입력이면 null",
+                            "example": 1
+                          },
+                          "korName": {
+                            "type": "string",
+                            "description": "위스키 한글명",
+                            "example": "글렌카담 15년",
+                            "maxLength": 100
+                          },
+                          "engName": {
+                            "type": "string",
+                            "description": "위스키 영문명",
+                            "example": "GLENCADAM 15YO",
+                            "maxLength": 150
+                          },
+                          "imageUrl": {
+                            "type": "string",
+                            "description": "위스키 이미지 URL",
+                            "example": "https://img.example.com/alcohols/1.png",
+                            "maxLength": 2048,
+                            "x-field-style": "image-url",
+                            "x-display-name": "이미지"
+                          },
+                          "regionName": {
+                            "type": "string",
+                            "description": "지역 또는 국가명",
+                            "example": "스코틀랜드/하이랜드",
+                            "maxLength": 80
+                          },
+                          "korCategory": {
+                            "type": "string",
+                            "description": "한글 카테고리명",
+                            "example": "싱글 몰트",
+                            "maxLength": 80
+                          },
+                          "cask": {
+                            "type": "string",
+                            "description": "캐스크 정보",
+                            "example": "버번 캐스크",
+                            "maxLength": 120
+                          },
+                          "abv": {
+                            "type": "string",
+                            "description": "알코올 도수",
+                            "example": "46",
+                            "maxLength": 20
+                          },
+                          "volume": {
+                            "type": "string",
+                            "description": "용량",
+                            "example": "700ml",
+                            "maxLength": 20
+                          },
+                          "selectedTags": {
+                            "type": "array",
+                            "description": "최종 선택된 테이스팅 태그명 목록. 배열 순서가 앱 노출 순서다.",
+                            "example": [
+                              "꿀",
+                              "오렌지",
+                              "몰트"
+                            ],
+                            "maxItems": 12,
+                            "items": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 30
+                            },
+                            "x-field-style": "tag-list",
+                            "x-display-name": "테이스팅 태그",
+                            "x-ui-orderable": true
+                          }
+                        },
+                        "required": [
+                          "korName",
+                          "selectedTags"
+                        ],
+                        "x-field-style": "alcohol-card",
+                        "x-display-name": "위스키"
+                      },
+                      "comment": {
+                        "type": "string",
+                        "description": "위스키 기대평",
+                        "example": "하이랜드 특유의 부드럽고 균형 잡힌 풍미.",
+                        "maxLength": 500,
+                        "nullable": true,
+                        "x-field-style": "long-text",
+                        "x-display-name": "위스키 기대평"
+                      }
+                    },
+                    "required": [
+                      "source",
+                      "alcohol"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "name",
+                "type",
+                "programDate",
+                "startTime",
+                "description"
+              ]
+            }
+          }
+        },
+        "required": [
+          "eventStartDate",
+          "eventEndDate",
+          "placeName",
+          "address",
+          "programs"
+        ]
+      }
+    }
+  }
+}
