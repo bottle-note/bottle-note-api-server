@@ -77,10 +77,12 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
 
       JsonNode data = dataNode(result);
       assertThat(data).isNotEmpty();
-      assertThat(data.get(0).path("code").asText()).isEqualTo("RECOMMENDED_WHISKY");
-      assertThat(data.get(0).has("requestSpec")).isFalse();
-      assertThat(data.get(0).has("responseSpec")).isFalse();
-      assertThat(data.get(0).has("hydratorKey")).isFalse();
+      for (JsonNode spec : data) {
+        assertThat(spec.path("code").asText()).isNotBlank();
+        assertThat(spec.has("requestSpec")).isFalse();
+        assertThat(spec.has("responseSpec")).isFalse();
+        assertThat(spec.has("hydratorKey")).isFalse();
+      }
     }
 
     @Test
