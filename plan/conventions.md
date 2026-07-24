@@ -53,14 +53,15 @@ The current batch-focused work must treat `bottlenote-batch` as the primary surf
 ├── bottlenote-observability/
 │   └── src/main/java/app/bottlenote/observability/
 ├── git.environment-variables/
-│   └── storage/mysql/
-│       ├── changelog/
-│       ├── sql/
-│       └── back-up/init/
+│   └── storage/
+│       ├── db/migration/
+│       └── mysql/
+│           ├── sql/
+│           └── back-up/init/
 └── plan/
 ```
 
-Batch module resources currently include both `src/main/resources` and the root `git.environment-variables` directory. This is an existing convention plus a known risk, not a pattern to copy into new modules.
+Product/Admin package only private Flyway SQL into `db/migration`. Batch packages only its two required SQL resources from `storage/mysql/sql`.
 
 ## Naming Conventions
 
@@ -135,7 +136,7 @@ Batch module resources currently include both `src/main/resources` and the root 
 - Batch app exposes health only through actuator.
 - Batch datasource pool is intentionally small in `application-datasource.yml`.
 - Shared test fixtures/infra live in `bottlenote-test-support` (main sourceSet); mono/product/admin consume it via `testImplementation`. The former mono `sourceSets.test.output` hack was removed in PR #623; batch needs no test-support dependency.
-- Batch currently includes `git.environment-variables` in both main and test resources.
+- Batch copies only `popularity.sql` and `best-review-selected.sql` into main and test resources.
 - Batch currently contains hardcoded JWT secret and nonce salt defaults in main resource config.
 
 ## Comparison with GSL References

@@ -49,9 +49,6 @@ archunit = "1.4.0"
 spring-restdocs = "3.0.3"
 restdocs-api-spec = "0.19.4"
 
-# Schema Management
-liquibase-core = "4.33.0"
-
 # Scheduling
 quartz = "2.3.2"
 
@@ -147,7 +144,8 @@ loki-logback-appender = { module = "com.github.loki4j:loki-logback-appender", ve
 netty-bom = { module = "io.netty:netty-bom", version.ref = "netty" }
 
 # Schema Management
-liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase-core" }
+flyway-core = { module = "org.flywaydb:flyway-core" }
+flyway-mysql = { module = "org.flywaydb:flyway-mysql" }
 
 # Testing
 testng = { module = "org.testng:testng", version.ref = "testng" }

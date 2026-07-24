@@ -31,8 +31,9 @@ dependencies {
 	testImplementation(libs.spring.restdocs.mockmvc)
 	testImplementation(libs.restdocs.api.spec.mockmvc)
 
-	// Test - Liquibase (schema initialization)
-	testImplementation(libs.liquibase.core)
+	// Schema migration
+	runtimeOnly(libs.flyway.core)
+	runtimeOnly(libs.flyway.mysql)
 
 	// Test - Testcontainers
 	testImplementation(libs.bundles.testcontainers.complete)
@@ -45,7 +46,7 @@ dependencies {
 sourceSets {
 	main {
 		resources {
-			srcDirs("src/main/resources", "${rootProject.projectDir}/git.environment-variables")
+			srcDirs("src/main/resources")
 		}
 	}
 	test {
@@ -57,10 +58,10 @@ sourceSets {
 
 tasks.processResources {
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
-
-tasks.jar {
-	exclude("storage/mysql/changelog/**")
+	from("${rootProject.projectDir}/git.environment-variables/storage/db/migration") {
+		include("*.sql")
+		into("db/migration")
+	}
 }
 
 tasks.processTestResources {

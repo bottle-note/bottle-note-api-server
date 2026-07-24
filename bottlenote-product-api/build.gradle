@@ -49,8 +49,9 @@ dependencies {
 	// Test - TestContainers
 	testImplementation libs.bundles.testcontainers.complete
 
-	// Test - Liquibase (schema initialization)
-	testImplementation libs.liquibase.core
+	// Schema migration
+	runtimeOnly libs.flyway.core
+	runtimeOnly libs.flyway.mysql
 
 	// Test - ArchUnit
 	testImplementation libs.archunit
@@ -80,14 +81,20 @@ jar {
 sourceSets {
 	main {
 		resources {
-			srcDirs = ['src/main/resources',
-					   "${rootProject.projectDir}/git.environment-variables"]
+			srcDirs = ['src/main/resources']
 		}
 	}
 	test {
 		resources {
 			srcDirs = ['src/test/resources']
 		}
+	}
+}
+
+tasks.named('processResources') {
+	from("${rootProject.projectDir}/git.environment-variables/storage/db/migration") {
+		include '*.sql'
+		into 'db/migration'
 	}
 }
 

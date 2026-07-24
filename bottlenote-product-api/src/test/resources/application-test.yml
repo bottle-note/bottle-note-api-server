@@ -29,10 +29,11 @@ spring:
     url: jdbc:tc:mysql:8.0.32:///bottlenote
     username: root
     password: root
-  # Liquibase
-  liquibase:
-    change-log: classpath:storage/mysql/changelog/schema.mysql.sql
+  # Flyway
+  flyway:
     enabled: true
+    baseline-on-migrate: false
+    locations: classpath:db/migration
 
   # JPA
   jpa:

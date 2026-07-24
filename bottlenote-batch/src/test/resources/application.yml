@@ -26,8 +26,8 @@ spring:
         format_sql: false
     show-sql: false
 
-  # Liquibase 비활성화 (컨텍스트 배선 검증만 하므로 도메인 스키마 불필요)
-  liquibase:
+  # Flyway 비활성화 (컨텍스트 배선 검증만 하므로 도메인 스키마 불필요)
+  flyway:
     enabled: false
 
   # Redis

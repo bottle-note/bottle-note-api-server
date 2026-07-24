@@ -25,7 +25,7 @@ spring:
         use_sql_comments: false
         open-in-view: false
 
-  liquibase:
+  flyway:
     enabled: false
 
   data:
