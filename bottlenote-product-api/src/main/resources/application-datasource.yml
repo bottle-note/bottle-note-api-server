@@ -50,7 +50,7 @@ spring:
       on-profile: default,local
   datasource:
     driver-class-name: com.p6spy.engine.spy.P6SpyDriver
-    url: jdbc:p6spy:mysql://${DB_HOST:localhost:3306}/${DB_NAME:bottle_note}?useSSL=${DB_USE_SSL:false}&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+    url: jdbc:p6spy:mysql://${DB_HOST:localhost:3306}/${DB_NAME:bottle_note}?useSSL=${DB_USE_SSL:false}&connectionTimeZone=Asia/Seoul&forceConnectionTimeZoneToSession=true&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
     username: ${DB_USERNAME:localhost_bottle_note_username}
     password: ${DB_PASSWORD:localhost_bottle_note_password}
 
@@ -61,7 +61,7 @@ spring:
       on-profile: debug
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${DB_HOST:localhost:3306}/${DB_NAME:bottle_note}?useSSL=${DB_USE_SSL:false}&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://${DB_HOST:localhost:3306}/${DB_NAME:bottle_note}?useSSL=${DB_USE_SSL:false}&connectionTimeZone=Asia/Seoul&forceConnectionTimeZoneToSession=true&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
     username: ${DB_USERNAME:localhost_bottle_note_username}
     password: ${DB_PASSWORD:localhost_bottle_note_password}
 
@@ -79,6 +79,6 @@ spring:
     # - maintainTimeStats: 드라이버 자체 통계 비활성 (CPU/락 비용 제거)
     # - tcpKeepAlive: OS-level TCP keepalive 활성
     # - socketTimeout: 소켓 단위 8s 타임아웃 (행 무한 대기 방지)
-    url: jdbc:mysql://${DB_HOST}/${DB_NAME}?useSSL=${DB_USE_SSL}&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useLocalSessionState=true&elideSetAutoCommits=true&cacheServerConfiguration=true&maintainTimeStats=false&tcpKeepAlive=true&socketTimeout=8000
+    url: jdbc:mysql://${DB_HOST}/${DB_NAME}?useSSL=${DB_USE_SSL}&connectionTimeZone=Asia/Seoul&forceConnectionTimeZoneToSession=true&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useLocalSessionState=true&elideSetAutoCommits=true&cacheServerConfiguration=true&maintainTimeStats=false&tcpKeepAlive=true&socketTimeout=8000
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
