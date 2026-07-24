@@ -172,7 +172,7 @@ payload를 메모리에 적재하던 방식과 Extension N+1 조회를 제거한
 - Files:
   `ProductSpecBasedCurationIntegrationTest.java`
 - Size: S
-- Status: [ ] not done
+- Status: [x] done
 
 ### Checkpoint: after Tasks 4-5
 
@@ -192,3 +192,6 @@ payload를 메모리에 적재하던 방식과 Extension N+1 조회를 제거한
   테스트를 통과했다.
 - Task 4 완료: `code` 반복 파라미터를 필수 배열로 바꾸고 누락·공백 요청을
   HTTP 400으로 검증했다. Product REST Docs 테스트 5개를 통과했다.
+- Task 5 완료: 실제 DB에서 복수 code OR, keyword AND, 노출·정렬,
+  offset cursor, 미존재 code와 기존 `x-feed` 응답을 검증했다. Product
+  큐레이션 통합 테스트 14개를 통과했다.
