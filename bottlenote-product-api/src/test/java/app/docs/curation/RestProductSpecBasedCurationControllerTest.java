@@ -103,7 +103,8 @@ class RestProductSpecBasedCurationControllerTest extends AbstractRestDocs {
   @Test
   @DisplayName("spec 기반 큐레이션 v2 피드를 상세 응답 기반 payload로 조회할 수 있다")
   void getCurationFeed() throws Exception {
-    when(productSpecBasedCurationService.searchFeed("페어링", "WHISKY_PAIRING", 0L, 10))
+    when(productSpecBasedCurationService.searchFeed(
+            "페어링", List.of("PROGRAM", "WHISKY_TASTING_EVENT"), 0L, 10))
         .thenReturn(
             CursorResponse.of(
                 List.of(
@@ -133,7 +134,9 @@ class RestProductSpecBasedCurationControllerTest extends AbstractRestDocs {
                 10));
 
     mockMvc
-        .perform(get("/api/v2/curations/feed?keyword=페어링&code=WHISKY_PAIRING&cursor=0&size=10"))
+        .perform(
+            get(
+                "/api/v2/curations/feed?keyword=페어링&code=PROGRAM&code=WHISKY_TASTING_EVENT&cursor=0&size=10"))
         .andExpect(status().isOk())
         .andDo(
             document(
@@ -143,9 +146,7 @@ class RestProductSpecBasedCurationControllerTest extends AbstractRestDocs {
                         .description("검색어. 큐레이션 제목/설명, 스펙 제목/설명에 LIKE 조건으로 적용됩니다.")
                         .optional(),
                     parameterWithName("code")
-                        .description(
-                            "큐레이션 스펙 코드 exact match 필터. 사용 가능한 값은 큐레이션 목록 조회의 specCode 또는 상세 조회의 spec.code에서 확인합니다.")
-                        .optional(),
+                        .description("필수 큐레이션 스펙 코드 배열. 동일한 code 파라미터를 반복하면 OR 조건으로 조회합니다."),
                     parameterWithName("cursor").description("조회 시작 커서. 기본값 0").optional(),
                     parameterWithName("size").description("페이지 크기. 최대 10, 기본값 10").optional()),
                 responseFields(
@@ -181,6 +182,20 @@ class RestProductSpecBasedCurationControllerTest extends AbstractRestDocs {
                     fieldWithPath("meta.serverVersion").ignored(),
                     fieldWithPath("meta.serverPathVersion").ignored(),
                     fieldWithPath("meta.serverResponseTime").ignored())));
+  }
+
+  @Test
+  @DisplayName("spec 기반 큐레이션 v2 피드는 code가 없으면 400을 반환한다")
+  void getCurationFeed_whenCodeMissing_returnsBadRequest() throws Exception {
+    mockMvc.perform(get("/api/v2/curations/feed")).andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @DisplayName("spec 기반 큐레이션 v2 피드는 공백 code가 있으면 400을 반환한다")
+  void getCurationFeed_whenCodeBlank_returnsBadRequest() throws Exception {
+    mockMvc
+        .perform(get("/api/v2/curations/feed").param("code", " "))
+        .andExpect(status().isBadRequest());
   }
 
   @Test
