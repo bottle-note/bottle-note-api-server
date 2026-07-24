@@ -135,7 +135,7 @@ payload를 메모리에 적재하던 방식과 Extension N+1 조회를 제거한
   `ProductSpecBasedCurationService.java`,
   `ProductSpecBasedCurationServiceTest.java`
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Checkpoint: after Tasks 1-3
 
@@ -185,3 +185,6 @@ payload를 메모리에 적재하던 방식과 Extension N+1 조회를 제거한
 - Task 2 완료: 노출·스펙·keyword 조건과 offset/limit을 적용하는 후보 ID
   조회를 QueryDSL과 InMemory에 추가했다. Mono와 test-support 컴파일을
   통과했다.
+- Task 3 완료: 후보 ID의 큐레이션과 Extension만 일괄 조회하고 최대 10건만
+  hydration하도록 서비스 흐름을 교체했다. Product 큐레이션 서비스 단위
+  테스트를 통과했다.
