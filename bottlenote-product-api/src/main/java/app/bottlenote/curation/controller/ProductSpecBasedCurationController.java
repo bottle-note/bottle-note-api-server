@@ -2,15 +2,17 @@ package app.bottlenote.curation.controller;
 
 import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.PUBLIC;
 
+import app.bottlenote.curation.dto.request.CurationFeedSearchRequest;
 import app.bottlenote.curation.service.ProductSpecBasedCurationService;
 import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -28,12 +30,10 @@ public class ProductSpecBasedCurationController {
 
   @GetMapping("/feed")
   public ResponseEntity<?> getCurationFeed(
-      @RequestParam(required = false) String keyword,
-      @RequestParam(required = false) String code,
-      @RequestParam(required = false, defaultValue = "0") Long cursor,
-      @RequestParam(required = false, defaultValue = "10") Integer size) {
+      @ModelAttribute @Valid CurationFeedSearchRequest request) {
     return GlobalResponse.ok(
-        productSpecBasedCurationService.searchFeed(keyword, code, cursor, size));
+        productSpecBasedCurationService.searchFeed(
+            request.keyword(), request.code(), request.cursor(), request.size()));
   }
 
   @GetMapping("/{curationId}")

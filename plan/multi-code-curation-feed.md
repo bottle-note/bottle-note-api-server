@@ -153,10 +153,12 @@ payload를 메모리에 적재하던 방식과 Extension N+1 조회를 제거한
 - Verification:
   `./gradlew :bottlenote-product-api:test --tests '*RestProductSpecBasedCurationControllerTest'`
 - Files:
+  `CurationFeedSearchRequest.java`,
+  `ValidExceptionCode.java`,
   `ProductSpecBasedCurationController.java`,
   `RestProductSpecBasedCurationControllerTest.java`
-- Size: S
-- Status: [ ] not done
+- Size: M
+- Status: [x] done
 
 ### Task 5: 피드 조회 계약 통합 검증
 
@@ -188,3 +190,5 @@ payload를 메모리에 적재하던 방식과 Extension N+1 조회를 제거한
 - Task 3 완료: 후보 ID의 큐레이션과 Extension만 일괄 조회하고 최대 10건만
   hydration하도록 서비스 흐름을 교체했다. Product 큐레이션 서비스 단위
   테스트를 통과했다.
+- Task 4 완료: `code` 반복 파라미터를 필수 배열로 바꾸고 누락·공백 요청을
+  HTTP 400으로 검증했다. Product REST Docs 테스트 5개를 통과했다.

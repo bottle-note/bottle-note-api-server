@@ -110,6 +110,7 @@ public enum ValidExceptionCode implements ExceptionCode {
   CURATION_DISPLAY_ORDER_REQUIRED(HttpStatus.BAD_REQUEST, "노출 순서는 필수입니다."),
   CURATION_IS_ACTIVE_REQUIRED(HttpStatus.BAD_REQUEST, "활성화 상태는 필수입니다."),
   CURATION_PAYLOAD_REQUIRED(HttpStatus.BAD_REQUEST, "payload는 필수입니다."),
+  CURATION_CODE_REQUIRED(HttpStatus.BAD_REQUEST, "큐레이션 스펙 코드는 최소 1개 이상이어야 합니다."),
 
   // REGION
   REGION_KOR_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "지역 한글명은 필수입니다."),
