@@ -3,7 +3,6 @@ plugins {
 	alias(libs.plugins.kotlin.jvm)
 	alias(libs.plugins.kotlin.spring)
 	alias(libs.plugins.asciidoctor)
-	alias(libs.plugins.restdocs.api.spec)
 }
 // snippetsDir 정의
 val snippetsDir by extra { file("build/generated-snippets") }
@@ -15,6 +14,7 @@ dependencies {
 
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
+	implementation(libs.springdoc.openapi.starter.webmvc.ui)
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 
@@ -29,7 +29,6 @@ dependencies {
 	// Test - Spring REST Docs
 	add("asciidoctorExt", libs.spring.restdocs.asciidoctor)
 	testImplementation(libs.spring.restdocs.mockmvc)
-	testImplementation(libs.restdocs.api.spec.mockmvc)
 
 	// Schema migration
 	runtimeOnly(libs.flyway.core)
