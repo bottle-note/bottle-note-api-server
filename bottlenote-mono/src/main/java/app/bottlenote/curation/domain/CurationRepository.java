@@ -1,7 +1,9 @@
 package app.bottlenote.curation.domain;
 
 import app.bottlenote.common.annotation.DomainRepository;
+import app.bottlenote.curation.dto.dsl.CurationFeedSearchCriteria;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -15,6 +17,10 @@ public interface CurationRepository {
   List<Curation> findAllByIsActiveTrueOrderByDisplayOrderAscIdAsc();
 
   List<Curation> findAllVisibleOn(LocalDate today);
+
+  List<Long> findFeedCandidateIds(CurationFeedSearchCriteria criteria);
+
+  List<Curation> findAllByIdIn(Collection<Long> ids);
 
   Optional<Curation> findVisibleById(Long id, LocalDate today);
 

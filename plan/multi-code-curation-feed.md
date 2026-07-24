@@ -115,7 +115,7 @@ payload를 메모리에 적재하던 방식과 Extension N+1 조회를 제거한
   `JpaCurationRepository.java`,
   `InMemoryCurationRepository.java`
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 3: 후보 피드 일괄 조립
 
@@ -182,3 +182,6 @@ payload를 메모리에 적재하던 방식과 Extension N+1 조회를 제거한
 
 - Task 1 완료: 복수 code 기반 스펙 일괄 조회 포트를 JPA와 InMemory 구현에
   추가했다. Mono와 test-support 컴파일을 통과했다.
+- Task 2 완료: 노출·스펙·keyword 조건과 offset/limit을 적용하는 후보 ID
+  조회를 QueryDSL과 InMemory에 추가했다. Mono와 test-support 컴파일을
+  통과했다.

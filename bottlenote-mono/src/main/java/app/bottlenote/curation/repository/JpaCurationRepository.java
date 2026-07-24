@@ -4,6 +4,7 @@ import app.bottlenote.common.annotation.JpaRepositoryImpl;
 import app.bottlenote.curation.domain.Curation;
 import app.bottlenote.curation.domain.CurationRepository;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -13,9 +14,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 @JpaRepositoryImpl
-public interface JpaCurationRepository extends CurationRepository, JpaRepository<Curation, Long> {
+public interface JpaCurationRepository
+    extends CurationRepository, JpaRepository<Curation, Long>, CustomCurationFeedRepository {
 
   List<Curation> findAllByIsActiveTrueOrderByDisplayOrderAscIdAsc();
+
+  List<Curation> findAllByIdIn(Collection<Long> ids);
 
   @Override
   @Query(
