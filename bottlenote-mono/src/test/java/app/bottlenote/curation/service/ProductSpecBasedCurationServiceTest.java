@@ -116,7 +116,7 @@ class ProductSpecBasedCurationServiceTest {
     CurationSpec spec = createSpec();
     createCuration(spec.getId(), "피드", 1, true);
 
-    var result = productService.searchFeed(0L, 20);
+    var result = productService.searchFeed(null, List.of(spec.getCode()), 0L, 20);
 
     assertThat(result.items()).hasSize(1);
     assertThat(result.pageable().getPageSize()).isEqualTo(10L);
@@ -138,7 +138,7 @@ class ProductSpecBasedCurationServiceTest {
     CurationSpec spec = createTastingEventSpec();
     Long curationId = createTastingEventCuration(spec.getId());
 
-    var result = productService.searchFeed(0L, 20);
+    var result = productService.searchFeed(null, List.of(spec.getCode()), 0L, 20);
 
     assertThat(result.items()).hasSize(1);
     assertThat(result.items().get(0).id()).isEqualTo(curationId);
@@ -176,7 +176,7 @@ class ProductSpecBasedCurationServiceTest {
     createCuration(
         spec.getId(), "미노출", 1, true, LocalDate.now().plusDays(1), LocalDate.now().plusDays(5));
 
-    var result = productService.searchFeed(null, null, 0L, 30);
+    var result = productService.searchFeed(null, List.of(spec.getCode()), 0L, 30);
 
     assertThat(result.items()).hasSize(10);
     assertThat(result.pageable().getPageSize()).isEqualTo(10L);
@@ -204,12 +204,14 @@ class ProductSpecBasedCurationServiceTest {
     createCuration(pairingSpec.getId(), "일반 제목", "일반 설명", 3, true);
     createCuration(pairingSpec.getId(), "큐레이션 제목 매치 페어링", "일반 설명", 4, true);
 
-    var keywordResult = productService.searchFeed("큐레이션", null, 0L, 10);
-    var specKeywordResult = productService.searchFeed("안주", null, 0L, 10);
-    var codeResult = productService.searchFeed(null, "WHISKY_PAIRING", 0L, 10);
-    var combinedResult = productService.searchFeed("큐레이션", "WHISKY_PAIRING", 0L, 10);
-    var negativeResult = productService.searchFeed("큐레이션", "UNKNOWN_CODE", 0L, 10);
-    var boundaryResult = productService.searchFeed("   ", "   ", 0L, 10);
+    List<String> allCodes = List.of("RECOMMENDED_WHISKY", "WHISKY_PAIRING");
+    var keywordResult = productService.searchFeed("큐레이션", allCodes, 0L, 10);
+    var specKeywordResult = productService.searchFeed("안주", allCodes, 0L, 10);
+    var codeResult = productService.searchFeed(null, List.of("WHISKY_PAIRING"), 0L, 10);
+    var multiCodeResult = productService.searchFeed(null, allCodes, 0L, 10);
+    var combinedResult = productService.searchFeed("큐레이션", List.of("WHISKY_PAIRING"), 0L, 10);
+    var negativeResult = productService.searchFeed("큐레이션", List.of("UNKNOWN_CODE"), 0L, 10);
+    var emptyCodeResult = productService.searchFeed(null, List.of(), 0L, 10);
 
     assertThat(keywordResult.items())
         .extracting("name")
@@ -218,9 +220,12 @@ class ProductSpecBasedCurationServiceTest {
         .extracting("name")
         .containsExactly("일반 제목", "큐레이션 제목 매치 페어링");
     assertThat(codeResult.items()).extracting("name").containsExactly("일반 제목", "큐레이션 제목 매치 페어링");
+    assertThat(multiCodeResult.items())
+        .extracting("name")
+        .containsExactly("큐레이션 제목 매치", "일반 제목", "일반 제목", "큐레이션 제목 매치 페어링");
     assertThat(combinedResult.items()).extracting("name").containsExactly("큐레이션 제목 매치 페어링");
     assertThat(negativeResult.items()).isEmpty();
-    assertThat(boundaryResult.items()).hasSize(4);
+    assertThat(emptyCodeResult.items()).isEmpty();
   }
 
   @Test
