@@ -11,7 +11,6 @@ dependencies {
 	implementation libs.spring.boot.starter.data.jpa
 	implementation libs.spring.boot.starter.data.redis
 	runtimeOnly libs.mysql.connector.j
-	implementation libs.liquibase.core
 	implementation libs.p6spy
 	implementation libs.hypersistence.utils
 	implementation libs.querydsl.jpa

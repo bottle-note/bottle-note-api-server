@@ -22,9 +22,10 @@ spring:
         use_sql_comments: false
         open-in-view: false
 
-  liquibase:
-    enabled: ${LIQUIBASE_ENABLED:true}
-    change-log: classpath:storage/mysql/changelog/schema.mysql.sql
+  flyway:
+    enabled: ${FLYWAY_ENABLED:true}
+    baseline-on-migrate: false
+    locations: classpath:db/migration
 
   data:
     redis:
