@@ -116,7 +116,7 @@
             "x-field-style": "alcohol-card-list",
             "x-display-name": "시음 위스키",
             "minItems": 1,
-            "maxItems": 10,
+            "maxItems": 20,
             "items": {
               "type": "object",
               "description": "큐레이션 위스키 카드",
