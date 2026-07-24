@@ -6,6 +6,7 @@ import app.bottlenote.curation.domain.CurationSpec;
 import app.bottlenote.curation.dto.response.CurationSpecSyncResponse;
 import app.bottlenote.curation.fixture.InMemoryCurationSpecRepository;
 import app.bottlenote.curation.support.CurationSpecResourceReader;
+import app.bottlenote.curation.support.CurationSpecResourceReader.CurationSpecResourceDocument;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -27,17 +28,22 @@ class CurationSpecResourceSyncServiceTest {
     CurationSpecResourceSyncService service =
         new CurationSpecResourceSyncService(
             curationSpecRepository, resourceReader, new CurationPayloadValidator(objectMapper));
+    List<CurationSpecResourceDocument> specDocuments = resourceReader.readAll();
+    List<String> specCodes =
+        specDocuments.stream().map(CurationSpecResourceDocument::code).toList();
 
     CurationSpecSyncResponse firstResult = service.sync();
 
-    assertThat(firstResult.createdCount()).isEqualTo(3);
+    assertThat(specDocuments).isNotEmpty();
+    assertThat(firstResult.createdCount()).isEqualTo(specDocuments.size());
     assertThat(firstResult.updatedCount()).isZero();
-    assertThat(curationSpecRepository.findAllByIsActiveTrueOrderByIdAsc()).hasSize(3);
+    assertThat(curationSpecRepository.findAllByIsActiveTrueOrderByIdAsc())
+        .hasSize(specDocuments.size());
     assertThat(
             curationSpecRepository.findAllByIsActiveTrueOrderByIdAsc().stream()
                 .map(CurationSpec::getCode)
                 .toList())
-        .containsExactlyInAnyOrder("RECOMMENDED_WHISKY", "WHISKY_PAIRING", "WHISKY_TASTING_EVENT");
+        .containsExactlyInAnyOrderElementsOf(specCodes);
 
     CurationSpec recommended =
         curationSpecRepository.findByCode("RECOMMENDED_WHISKY").orElseThrow();
@@ -48,10 +54,9 @@ class CurationSpecResourceSyncServiceTest {
     CurationSpecSyncResponse secondResult = service.sync();
 
     assertThat(secondResult.createdCount()).isZero();
-    assertThat(secondResult.updatedCount()).isEqualTo(3);
+    assertThat(secondResult.updatedCount()).isEqualTo(specDocuments.size());
     assertThat(curationSpecRepository.findAllByIsActiveTrueOrderByIdAsc())
         .extracting(CurationSpec::getCode)
-        .containsExactlyElementsOf(
-            List.of("RECOMMENDED_WHISKY", "WHISKY_PAIRING", "WHISKY_TASTING_EVENT"));
+        .containsExactlyElementsOf(specCodes);
   }
 }

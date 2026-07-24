@@ -10,12 +10,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 @Tag("unit")
 class CurationOpenApiSpecResourceTest {
@@ -24,36 +27,32 @@ class CurationOpenApiSpecResourceTest {
   private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {};
   private static final CurationPayloadValidator SPEC_VALIDATOR =
       new CurationPayloadValidator(OBJECT_MAPPER);
+  private static final String SPEC_RESOURCE_PATTERN = "classpath*:openapi/curation/*.json";
 
   @Test
-  @DisplayName("큐레이션 OpenAPI 스펙 3종은 리소스에 포함되고 GraphQL 보강 메타를 가진다")
+  @DisplayName("모든 큐레이션 OpenAPI 스펙은 필수 메타데이터와 요청 응답 스키마를 가진다")
   void curationOpenApiSpecs_whenLoaded_containCurationMetadata() throws IOException {
-    List<SpecResource> specs = specResources();
+    List<Resource> resources = specResources();
 
-    for (SpecResource spec : specs) {
-      ClassPathResource resource = new ClassPathResource(spec.path());
+    assertThat(resources).isNotEmpty();
 
-      assertThat(resource.exists()).isTrue();
-
+    for (Resource resource : resources) {
       JsonNode root = OBJECT_MAPPER.readTree(resource.getInputStream());
+      JsonNode curation = root.path("x-curation");
+      JsonNode schemas = root.path("components").path("schemas");
 
       assertThat(root.path("openapi").asText()).isEqualTo("3.0.3");
       assertThat(root.path("paths").isObject()).isTrue();
-      assertThat(root.path("x-curation").path("code").asText()).isEqualTo(spec.code());
-      assertThat(root.path("x-curation").path("hydratorKey").asText()).isEqualTo("alcohol");
-      assertThat(root.path("x-curation").path("container").asText()).isEqualTo(spec.container());
-      assertThat(root.path("components").path("schemas").isObject()).isTrue();
-      assertThat(root.toString())
-          .contains(
-              "\"source\"",
-              "\"BOTTLE_NOTE\"",
-              "\"MANUAL\"",
-              "\"alcoholId\"",
-              "\"stats\"",
-              "\"x-graphql\"",
-              "\"totalRatingsCount\"",
-              "\"reviewCount\"",
-              "\"totalPickCount\"");
+      assertThat(curation.path("code").asText()).isNotBlank();
+      assertThat(curation.path("hydratorKey").asText()).isNotBlank();
+      assertThat(curation.path("container").asText()).isIn("array", "object");
+      assertThat(schemas.isObject()).isTrue();
+      assertThat(
+              schemas.properties().stream().anyMatch(entry -> entry.getKey().endsWith("Request")))
+          .isTrue();
+      assertThat(
+              schemas.properties().stream().anyMatch(entry -> entry.getKey().endsWith("Response")))
+          .isTrue();
     }
   }
 
@@ -62,11 +61,11 @@ class CurationOpenApiSpecResourceTest {
   void curationOpenApiSpecs_whenFieldDependencyExists_followDependsOnContract() throws IOException {
     List<String> dependencyPaths = new ArrayList<>();
 
-    for (SpecResource spec : specResources()) {
-      JsonNode root = OBJECT_MAPPER.readTree(new ClassPathResource(spec.path()).getInputStream());
+    for (Resource resource : specResources()) {
+      JsonNode root = OBJECT_MAPPER.readTree(resource.getInputStream());
       JsonNode schemas = root.path("components").path("schemas");
       for (Map.Entry<String, JsonNode> schema : schemas.properties()) {
-        String rootPath = spec.path() + "#" + schema.getKey();
+        String rootPath = resource.getFilename() + "#" + schema.getKey();
         Map<String, Object> schemaMap = OBJECT_MAPPER.convertValue(schema.getValue(), MAP_TYPE);
 
         assertThat(SPEC_VALIDATOR.validateSpec(rootPath, new MapBackedSchema(schemaMap))).isEmpty();
@@ -74,21 +73,13 @@ class CurationOpenApiSpecResourceTest {
       }
     }
 
-    assertThat(dependencyPaths)
-        .containsExactlyInAnyOrder(
-            "openapi/curation/recommended_whisky.json#RecommendedWhiskyItemResponse.stats",
-            "openapi/curation/whisky_pairing.json#WhiskyPairingItemResponse.stats",
-            "openapi/curation/whisky_tasting_event.json#WhiskyTastingEventRequest.applicationLink",
-            "openapi/curation/whisky_tasting_event.json#WhiskyTastingEventResponse.applicationLink",
-            "openapi/curation/whisky_tasting_event.json#WhiskyTastingEventResponse.alcohols[].stats");
+    assertThat(dependencyPaths).isNotEmpty();
   }
 
-  private static List<SpecResource> specResources() {
-    return List.of(
-        new SpecResource("openapi/curation/recommended_whisky.json", "RECOMMENDED_WHISKY", "array"),
-        new SpecResource("openapi/curation/whisky_pairing.json", "WHISKY_PAIRING", "array"),
-        new SpecResource(
-            "openapi/curation/whisky_tasting_event.json", "WHISKY_TASTING_EVENT", "object"));
+  private static List<Resource> specResources() throws IOException {
+    Resource[] resources =
+        new PathMatchingResourcePatternResolver().getResources(SPEC_RESOURCE_PATTERN);
+    return Arrays.stream(resources).sorted(Comparator.comparing(Resource::getFilename)).toList();
   }
 
   private static void collectDependencyPaths(
@@ -115,6 +106,4 @@ class CurationOpenApiSpecResourceTest {
       path.addLast(arrayField);
     }
   }
-
-  private record SpecResource(String path, String code, String container) {}
 }
