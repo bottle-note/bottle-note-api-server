@@ -53,6 +53,11 @@ public class InMemoryCurationSpecRepository implements CurationSpecRepository {
   }
 
   @Override
+  public List<CurationSpec> findAllByCodeIn(Collection<String> codes) {
+    return database.values().stream().filter(spec -> codes.contains(spec.getCode())).toList();
+  }
+
+  @Override
   public List<CurationSpec> findAllByIdIn(Collection<Long> ids) {
     return database.values().stream().filter(spec -> ids.contains(spec.getId())).toList();
   }
