@@ -66,27 +66,16 @@ git submodule update --init --recursive
 
 ### 서브모듈
 
-- **git.environment-variables**: 환경 설정 및 초기화 스크립트 포함
-  - `storage/mysql/init/*.sql`: TestContainers용 DB 초기화 스크립트
-  - 통합 테스트 실행 전 서브모듈 초기화 필수
+- **git.environment-variables**: 환경 설정과 DB 마이그레이션 SQL을 담은 비공개 서브모듈
+  - `storage/db/migration/*.sql`: Flyway 마이그레이션 원본
+  - `storage/mysql/sql/*.sql`: batch 전용 쿼리 리소스
+  - 빌드와 통합 테스트 실행 전 서브모듈 초기화 필수
 
 ## 배포 및 실행 인프라
 
-운영·개발 배포는 모두 k3s 클러스터에서 돌아가며 GitOps는 ArgoCD가 담당한다.
-
-### 런타임 토폴로지 (2026-07-25 확인)
-
-| 항목 | production | development |
-|------|-----------|-------------|
-| 네임스페이스 | `bottlenote-production` | `bottlenote-development` |
-| product-api | 2 replicas | 1 replica |
-| admin-api / batch / frontend | 각 1 replica (frontend 2) | 각 1 replica |
-| Redis | `redis-replication` StatefulSet 3 파드 (redis-operator 관리) | 동일 |
-
-- 클러스터는 k3s v1.33.5, **HPA가 없어 replica 수는 고정**이다. 인스턴스가 2대 이상이므로 요청 카운팅·잠금·중복 억제는 JVM 로컬 상태로 구현하면 안 되고 Redis 등 공유 저장소를 써야 한다.
-- 엣지는 Envoy Gateway v1.2.6 `main-gateway`(2 replicas)다. `HTTPRoute`가 `/api/v1`, `/api/v2`, `/actuator`만 통과시키고 나머지는 `block-unknown-paths` 필터로 차단한다.
-- `ClientTrafficPolicy`가 PROXY protocol을 켜고 클라이언트가 보낸 `X-Forwarded-For`를 제거한 뒤 Envoy가 다시 채운다. 따라서 앱이 받는 XFF는 신뢰할 수 있다.
-- k8s 매니페스트는 이 저장소가 아니라 ArgoCD가 바라보는 별도 GitOps 저장소에 있다. 클러스터 리소스를 바꾸려면 그쪽을 수정한다.
+- 운영·개발 모두 Kubernetes에서 돌아가고 GitOps로 배포한다. k8s 매니페스트는 이 저장소가 아니라 별도 저장소에 있다.
+- **애플리케이션 인스턴스는 다중이다.** 요청 카운팅, 분산 잠금, 중복 억제, 스케줄 단일 실행 같은 것을 JVM 로컬 상태(static 필드, 인메모리 캐시)로 구현하면 안 된다. Redis 등 공유 저장소를 쓴다.
+- 앞단 게이트웨이가 클라이언트를 통해 들어온 `X-Forwarded-For`를 제거하고 실제 접속 주소로 다시 채운다. 따라서 앱이 받는 XFF는 신뢰할 수 있다.
 
 ### 배포 방법
 
@@ -256,6 +245,16 @@ Use these skills to follow the structured development lifecycle:
 - **이벤트 클래스**: `{도메인명}{동작}Event` record로 정의
 
 ## 데이터베이스 설계
+
+### 스키마 마이그레이션 (Flyway)
+
+스키마는 Flyway가 애플리케이션 기동 시점에 적용한다. `ddl-auto`는 `validate`이며 Hibernate가 스키마를 생성하거나 변경하지 않는다. 엔티티를 바꾸면 마이그레이션도 함께 작성해야 하고, 그러지 않으면 기동 시 validate에서 실패한다.
+
+- 마이그레이션 원본은 `git.environment-variables/storage/db/migration/`에 두고, product-api와 admin-api의 `processResources`가 빌드 시 `classpath:db/migration`으로 복사한다. 저장소 소스 트리에는 `db/migration` 디렉터리가 없다.
+- 설정은 `enabled: ${FLYWAY_ENABLED:true}`, `baseline-on-migrate: false`, `locations: classpath:db/migration`이다. 기존 스키마에 임의로 baseline을 잡지 않는다.
+- batch 모듈은 `flyway.enabled=false`다. 마이그레이션 주체가 아니며, batch jar에 마이그레이션 SQL이 섞여 들어가면 빌드가 실패하는 가드가 있다. batch는 `storage/mysql/sql`의 지정된 쿼리 리소스만 패키징한다.
+- 통합 테스트도 `flyway.enabled=true`로 동작한다. TestContainers 스키마 역시 Flyway가 만들며, 별도 init 스크립트를 쓰지 않는다.
+- 새 마이그레이션은 서브모듈 저장소에 추가한 뒤 서브모듈 포인터를 갱신해야 반영된다.
 
 ### JPA 엔티티
 
