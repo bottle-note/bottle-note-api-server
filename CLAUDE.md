@@ -72,7 +72,7 @@ git submodule update --init --recursive
 
 ## 배포 및 실행 인프라
 
-> [주의] 루트의 `compose/*.yml`은 과거 단일 호스트 배포 잔재다. 현재 운영 배포는 k3s + ArgoCD다. compose 파일을 근거로 인스턴스 구성을 판단하지 말 것.
+운영·개발 배포는 모두 k3s 클러스터에서 돌아가며 GitOps는 ArgoCD가 담당한다.
 
 ### 런타임 토폴로지 (2026-07-25 확인)
 
