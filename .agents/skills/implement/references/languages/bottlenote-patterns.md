@@ -1,12 +1,12 @@
 # bottlenote-patterns
 
 > bottle-note 한정 implement 함정 / 실수 방지 부록.
-> 일반 컨벤션은 `plan/conventions.md`, 일반 Java/Spring 패턴은 `java-spring.md` 참조.
+> 일반 컨벤션은 프로젝트 지침(CLAUDE.md/AGENTS.md), 일반 Java/Spring 패턴은 `java-spring.md` 참조.
 > 본 파일은 GSL sync 와 무관한 프로젝트 특화 reference.
 
 ## When to load
 
-`/implement` Phase 0 에서 `plan/conventions.md` 와 함께 자동 참조. Repository / RestDocs / 이벤트 발행 관련 작업 시 우선 확인.
+`/implement` Phase 0 에서 자동 참조. Repository / RestDocs / 이벤트 발행 관련 작업 시 우선 확인.
 
 ---
 
@@ -86,7 +86,7 @@ bottlenote-admin-api/src/test/kotlin/.../fixture/InMemory{Domain}Repository.kt
 ### Facade ↔ Service 경계 drift
 
 - Cross-domain 접근은 `{Domain}Facade` 경유 원칙
-- 일부 service 가 facade 도 구현하는 기존 drift 존재 (`conventions.md` Comparison 표 참조)
+- Facade 구현체는 `service` 패키지에 둔다 (인터페이스는 `facade` — 지침의 @FacadeService 항목 참조)
 - 새 작업: facade 분리 권장. 기존 drift 는 plan 에 명시되지 않은 한 정리 대상 아님
 
 ### `@ThirdPartyService` 사용 시점
@@ -97,7 +97,7 @@ bottlenote-admin-api/src/test/kotlin/.../fixture/InMemory{Domain}Repository.kt
 
 ### Batch 모듈 특이사항 (`/define` / `/plan` 시 주의)
 
-`conventions.md` 의 "Batch-Specific Current Conventions" 참조. 핵심만:
+핵심만:
 - `bottlenote-batch` 는 `testFixtures` 대신 `mono` test output 직접 사용 (drift)
 - `git.environment-variables` 가 main+test 양쪽 resources 에 포함됨
 - main resource 에 하드코딩된 JWT secret / nonce salt default 존재
@@ -111,4 +111,4 @@ bottlenote-admin-api/src/test/kotlin/.../fixture/InMemory{Domain}Repository.kt
 
 - 항목이 GSL 표준 `java-spring.md` 에 흡수되면 본 파일에서 제거 → 중복 방지
 - 새 함정 발견 시 추가 (PR 사례 인용 권장)
-- conventions.md 가 자체 갱신될 때 본 파일과 충돌하는 부분은 conventions.md 우선
+- 프로젝트 지침(CLAUDE.md/AGENTS.md)과 충돌하는 부분은 지침 우선

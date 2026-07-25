@@ -2,17 +2,17 @@
 name: verify
 description: |
   Local CI verification skill with 3 levels (L1 quick / L2 standard / L3 full).
-  Trigger: "/verify", "/verify quick", "/verify l1", "/verify standard", "/verify l2", "/verify full", "/verify l3",
-  or when the user says "검증해줘", "빌드 확인", "테스트 돌려줘", "CI 돌려봐", "run checks".
-  Always use this skill when the user wants to check if their code compiles, passes tests, or is ready for PR.
-  Branches on language via reference. Always runs against the ENTIRE project (modules can depend on each other).
-argument-hint: "[language] [quick|standard|full] (language optional if inferable)"
+  Trigger: "/verify", "/verify quick", "/verify standard", "/verify full",
+  또는 사용자가 "검증해줘", "빌드 확인", "테스트 돌려줘", "CI 돌려봐", "run checks"라고 할 때.
+  상태 기반: Task 커밋 직전, 푸시·PR 직전, 코드가 컴파일되는지 확인이 필요할 때.
+  명령은 references/verify/java-gradle.md를 따른다. 항상 전체 프로젝트 범위로 실행한다 (모듈 간 의존 때문).
+argument-hint: "[quick|standard|full]"
 ---
 
 # Verify — Local CI Pipeline
 
 References (read the matching one for exact commands):
-- `references/verify/{language}.md` — concrete commands per step (java-gradle / python / go / ...)
+- `references/verify/java-gradle.md` — 단계별 실제 명령
 
 ## Overview
 
@@ -32,7 +32,7 @@ L3 is the final gate before `git push` or PR creation. Integration tests take se
 
 ## Generic Step Definitions
 
-Concrete commands per step come from `references/verify/{language}.md`. The generic step contract:
+Concrete commands per step come from `references/verify/java-gradle.md`. The generic step contract:
 
 ### L1 — Quick
 
@@ -62,7 +62,7 @@ Run each step sequentially. **Stop immediately on first failure** — report the
 
 For each step:
 1. Record the start time
-2. Run the command (from `references/verify/{language}.md`)
+2. Run the command (from `references/verify/java-gradle.md`)
 3. Calculate elapsed time
 4. Report the result immediately
 
@@ -107,8 +107,7 @@ Adjust per-step shell timeouts accordingly (compile / lint: short; tests: medium
 ## Important
 
 - **Never run module-specific checks** — always full project scope. One module's change can break another.
-- L3 integration tests typically require Docker / infra containers. If unavailable, report clearly and suggest falling back to L2.
-- If `references/verify/{language}.md` does not exist for the project's language, ask the user to confirm the verification commands before running.
+- L3 integration tests typically require Docker / infra containers (TestContainers + 서브모듈 초기화 필요). If unavailable, report clearly and suggest falling back to L2.
 
 ## Common Rationalizations
 
@@ -135,23 +134,6 @@ After running:
 - [ ] On failure: last 30 lines of output shown, remaining steps marked SKIPPED
 - [ ] Total time reported
 
-## Runtime Boundary — HARD STOP
+## 종료
 
-This skill ENDS after the Verification checklist and final report are completed.
-
-For codex and any runtime without an enforced skill-return boundary:
-- MUST stop the assistant turn here.
-- MUST NOT invoke, load, or execute any next GSL skill in the same response turn.
-- MUST NOT continue into `/next-flow`, `/define`, `/plan`, `/implement`, `/test`, `/verify`, `/debug`, or `/self-review`.
-- MAY print exactly one suggested next command as plain text.
-- MUST wait for the user's next message before running any next skill.
-
-If the user says only "continue", treat that as permission to report the next recommended command, not permission to execute it.
-
----
-
-## Lifecycle Integration
-
-**Before this skill:** if `plan/conventions.md` does not exist, run `/scan-conventions` first — analysis relies on knowing the project's actual conventions (naming, layering, test patterns, build system).
-
-**After this skill:** the next GSL skill is started by the user, not by this skill — see the Runtime Boundary section above. `/next-flow` may be suggested for lifecycle diagnosis but is not auto-invoked. Runtime note: some environments expose slash commands as UI commands; codex loads GSL skills from `.agents/skills/`. In both cases, the next GSL skill requires a new explicit user message.
+지침의 **GSL Execution Mode** 규칙을 따른다. Summary를 보고하고, PASS면 다음 단계(커밋 또는 PR), FAIL이면 `Next: /debug`를 제안한다. step-by-step이면 턴을 끝내고, delegated면 계약 scope에 따라 계속한다.

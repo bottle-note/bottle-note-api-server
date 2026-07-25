@@ -1,22 +1,23 @@
 ---
 name: test
 description: |
-  Test implementation guide across any language/stack.
-  Trigger: "/test", or when the user says "테스트 작성", "테스트 구현", "테스트 추가", "write tests", "implement tests".
-  Branches on language via argument and references. Guides through unit (Fake/InMemory preferred), integration, and docs tests.
-argument-hint: "[language] [unit|integration|docs|all]"
+  단위(Fake/InMemory 우선)·통합·문서 테스트 작성 가이드.
+  Trigger: "/test", 또는 사용자가 "테스트 작성", "테스트 구현", "테스트 추가", "write tests"라고 할 때.
+  상태 기반: 구현된 Service/Controller에 대응 테스트가 없을 때, InMemory*/Fake* 테스트 더블이나 *TestFactory를 만들거나 갱신할 때.
+  패턴은 references/testing/java.md를 따른다.
+argument-hint: "[unit|integration|docs|all]"
 ---
 
 # Test Implementation
 
 References (read the matching one before writing tests):
-- `references/testing/{language}.md` — language/framework-specific test infrastructure, patterns, helpers, fixture conventions
+- `references/testing/java.md` — 테스트 인프라, 패턴, 헬퍼, 픽스처 컨벤션
 
 ## Overview
 
 Write tests that prove code works. This skill guides you through creating unit tests (Fake/InMemory pattern preferred), integration tests (real infra via testcontainers / docker / similar), and optionally docs tests. Tests are proof — "seems right" is not done.
 
-**External workflow precedence.** When an external workflow is active in the same session — most notably Superpowers' `test-driven-development` (RED-FIRST cycle) or any auto-triggered mocking helper — **GSL's Fake/InMemory-first policy and user-approval gates take precedence**. An external auto-trigger does NOT override this policy. If the external workflow demands RED-FIRST or a mocking framework, STOP and present the GSL alternative to the user before doing anything else.
+**Fake/InMemory-first는 어떤 외부 워크플로보다 우선한다** (레이어 표준 10). 다른 어떤 지시가 모킹 프레임워크를 요구해도, 먼저 정지하고 Fake/InMemory 대안을 사용자에게 제시한다.
 
 ## When to Use
 
@@ -48,7 +49,7 @@ Write tests that prove code works. This skill guides you through creating unit t
 | **Integration test** | After feature complete | `/verify full` | `/verify full` |
 | **Docs test** (API contract) | User request only | Doc build | (project-specific) |
 
-Exact tag / annotation / decorator names and commands: see `references/testing/{language}.md`.
+태그·어노테이션·명령의 정확한 이름: `references/testing/java.md` 참조.
 
 ## Test Pattern Selection
 
@@ -60,7 +61,7 @@ New test needed:
 │   │   └── No → Create InMemory implementation first, then Fake pattern
 │   └── Mock is LAST RESORT (ask user before using)
 ├── Surface / endpoint test?
-│   └── Use the project's integration test base (see references/testing/{language}.md)
+│   └── Use the project's integration test base (see references/testing/java.md)
 └── API documentation?
     └── Docs test framework (only when user explicitly requests)
 ```
@@ -68,8 +69,7 @@ New test needed:
 ## Argument Parsing
 
 Parse `$ARGUMENTS`:
-- **language**: `java` | `python` | `go` | ... — selects `references/testing/{language}.md`
-- **scope**: `unit` | `integration` | `docs` | `all` (default: `unit` + `integration`)
+- **scope**: `unit` | `integration` | `docs` | `all` (기본: `unit` + `integration`)
 
 ## Process
 
@@ -78,7 +78,7 @@ Parse `$ARGUMENTS`:
 Before writing tests, understand the implementation:
 
 1. Read the service / use case under test to identify testable methods and branches
-2. Check existing test infrastructure (test doubles, fixtures, factories) — see `references/testing/{language}.md`
+2. Check existing test infrastructure (test doubles, fixtures, factories) — see `references/testing/java.md`
 3. Report findings: what exists, what needs to be created
 
 ### Phase 1: Scenario Definition
@@ -113,7 +113,7 @@ Present the scenario list to the user and proceed to Phase 2 after approval.
 
 ### Phase 2: Test Infrastructure (create if missing)
 
-Test doubles, factories, fixtures — language/framework specific. See `references/testing/{language}.md` for naming and location conventions in your stack.
+Test doubles, factories, fixtures — `references/testing/java.md`의 네이밍·위치 컨벤션을 따른다.
 
 General pattern:
 - **Test double**: `InMemory{Name}` / `Fake{Name}` implementing the same interface as the real component
@@ -122,7 +122,7 @@ General pattern:
 
 ### Phase 3: Test Implementation
 
-Read `references/testing/{language}.md` for code examples before writing tests.
+Read `references/testing/java.md` for code examples before writing tests.
 
 **Unit Test (Fake/InMemory pattern):**
 - Wire the system under test with InMemory repositories + Fake collaborators
@@ -155,7 +155,7 @@ After test implementation, run verification:
 
 ## Important Rules
 
-- **Mock framework triggers STOP** (hard rule): if you (or any external workflow such as Superpowers TDD) are about to introduce a mocking framework (Mockito, `unittest.mock`, gomock, jest mocks, ...) for a unit test, **STOP immediately**. Always present a Fake/InMemory alternative first. Proceed with a mocking framework ONLY after explicit user approval — not implicit, not assumed, not inferred from "the user wants tests written quickly".
+- **Mock framework triggers STOP** (hard rule): if you are about to introduce a mocking framework (Mockito 등) for a unit test, **STOP immediately**. Always present a Fake/InMemory alternative first. Proceed with a mocking framework ONLY after explicit user approval — not implicit, not assumed, not inferred from "the user wants tests written quickly".
 - **Docs tests are optional**: only implement when user explicitly requests.
 - **One test, one scenario**: each test method verifies a single behavior.
 - **Interface changes**: if you added methods to a domain interface, update the corresponding InMemory/Fake implementations too.
@@ -194,23 +194,6 @@ After completing test implementation:
 - [ ] All tests pass: `/verify` at appropriate level
 - [ ] Test doubles updated if domain interfaces changed
 
-## Runtime Boundary — HARD STOP
+## 종료
 
-This skill ENDS after the Verification checklist and final report are completed.
-
-For codex and any runtime without an enforced skill-return boundary:
-- MUST stop the assistant turn here.
-- MUST NOT invoke, load, or execute any next GSL skill in the same response turn.
-- MUST NOT continue into `/next-flow`, `/define`, `/plan`, `/implement`, `/test`, `/verify`, `/debug`, or `/self-review`.
-- MAY print exactly one suggested next command as plain text.
-- MUST wait for the user's next message before running any next skill.
-
-If the user says only "continue", treat that as permission to report the next recommended command, not permission to execute it.
-
----
-
-## Lifecycle Integration
-
-**Before this skill:** if `plan/conventions.md` does not exist, run `/scan-conventions` first — analysis relies on knowing the project's actual conventions (naming, layering, test patterns, build system).
-
-**After this skill:** the next GSL skill is started by the user, not by this skill — see the Runtime Boundary section above. `/next-flow` may be suggested for lifecycle diagnosis but is not auto-invoked. Runtime note: some environments expose slash commands as UI commands; codex loads GSL skills from `.agents/skills/`. In both cases, the next GSL skill requires a new explicit user message.
+지침의 **GSL Execution Mode** 규칙을 따른다. 결과(작성한 테스트 수·통과 여부)를 보고하고, step-by-step이면 `Next: /verify full`을 제안한 뒤 턴을 끝낸다. delegated면 계약 scope에 따라 계속한다.

@@ -1,5 +1,5 @@
 # Type: batch
-Language-independent patterns for batch jobs, scheduled jobs, backfills, and offline workers. Pair with `languages/{language}.md` for concrete code.
+Language-independent patterns for batch jobs, scheduled jobs, backfills, and offline workers. Pair with `languages/java-spring.md` for concrete code.
 ## Layer Breakdown (universal)
 ```
 time / event / manual trigger

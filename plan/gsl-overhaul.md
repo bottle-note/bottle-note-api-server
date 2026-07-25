@@ -110,7 +110,7 @@ GSL(Guided Software Lifecycle) 9개 스킬을 이 저장소 전용으로 대폭 
 - Verification: 4파일×미러 grep — "Superpowers" 0건, "HARD STOP" 상세 블록 0건, python/go 분기 0건
 - Files (advisory): 4 SKILL.md × 미러 2 = 8파일
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 7: 종합 검증 및 마감
 - Acceptance: Success Criteria 13개 전 항목 체크리스트 대조 통과. E2E 시나리오 2건(step-by-step 전체 사이클 1건, delegated 전체 사이클 1건) 치명 결함 0건. 용량 측정 기록
@@ -126,3 +126,4 @@ GSL(Guided Software Lifecycle) 9개 스킬을 이 저장소 전용으로 대폭 
 - Task 3: /define 재작성 — WHAT/HOW 분리 철학, 지침 기반 하드 게이트, Execution Mode 선언 게이트(계약 서명), 재개봉 프로토콜, 상태 기반 트리거. 시나리오 검증(scenario-define): 정상 경로 완주 확인, 함정("가정 확인 넘어가고") 게이트 우회 불가 판정, 치명 0건·경미 7건. 경미 중 5건 반영(합리화 표에 외부 압박 행 추가, mode 플레이스홀더, stop-conditions 3종 인라인, Step 3 차단 문구, delegated 종료 분기·push/pr 고지). 188행 → 140행.
 - Task 4: /plan 재작성 — 정육 모델(Task=관절=승인 대상, Slice=썰기=에이전트 전권), 분해→정렬→크기검산 순서, Files advisory 강등, Depends 필드 신설. 시나리오 검증(scenario-plan): 정상 완주 확인, 치명 3건 검출(재개봉 프로토콜 미정의 / 사용자 수평 요청 충돌·승인 거부 분기 부재 / 중단 지점이 Step 6에만). "가정 붕괴 시 즉시 중단" 전역 규칙 신설 + 수평 요청 특칙(1회 권고→재지시 시 사용자 결정) + 승인 거부 분기로 수정, 재검증 결과 3건 전부 해소·신규 치명 0건. 경미 4·5·6·8도 반영.
 - Task 5: /implement 재작성 — Execution Mode 분기(step은 Task별 정지+연속 실행 예외, delegated는 체크포인트 보고로 계속), stop-conditions 우선 규칙, Phase 4에 push/pr·PR 본문=체인지로그 공식화, Polyglot·언어 fallback 제거. 시나리오 검증(scenario-implement) 4건: step 정지·delegated 연속+푸시 직전 정지·가정 붕괴 정지·plan 부재 거부 모두 텍스트만으로 도출, 치명 0건. 경미 5건(재개 신호 해석, 모드 읽기 위치, 정지 보고 명세, 체크포인트 도달 지점, verify 레벨) 반영 후 검증자 재확인 완료. Checkpoint 3-5 통과.
+- Task 6: test/verify/debug/self-review 정리 — HARD STOP·Lifecycle Integration 꼬리를 "종료" 섹션(지침 참조 + 모드 분기 한 줄)으로 교체, Superpowers 문단 제거(Fake-first 우선 규칙은 유지), 언어 분기 제거(references를 java.md/java-gradle.md/java-spring.md 고정), test·verify·debug·self-review 트리거에 상태 기반 조건 추가. web-api.md·batch.md·bottlenote-patterns.md의 conventions.md·{language} 잔존 참조도 정리. grep 검증: Superpowers/Polyglot/{language}/{your-*}/next-flow/scan-conventions/conventions.md 전부 0건.

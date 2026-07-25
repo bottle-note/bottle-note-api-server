@@ -1,6 +1,6 @@
 # Type: web-api
 
-Language-independent patterns for HTTP-based API servers (REST primarily; GraphQL notes at the end). Pair with the matching `languages/{language}.md` for concrete code.
+Language-independent patterns for HTTP-based API servers (REST primarily; GraphQL notes at the end). Pair with `languages/java-spring.md` for concrete code.
 
 ## Layer Breakdown (universal)
 
@@ -73,7 +73,7 @@ Sub-resources:
 | 429 | Rate limit |
 | 5xx | Server-side failure (never leak internals in body) |
 
-Pick a project convention for 400 vs 422 and stick to it; document in `conventions.md`.
+Pick a project convention for 400 vs 422 and stick to it (이 저장소: 지침의 예외 처리 규칙 참조).
 
 ## Error Model
 
