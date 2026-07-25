@@ -45,6 +45,8 @@ security:
 apple:
   bundle-id: "com.bottlenote.official.app"
 
+# admin은 카카오 로그인을 쓰지 않지만 mono의 KakaoAuthService가 컴포넌트 스캔에 걸려 빈으로 생성된다.
+# apple.bundle-id가 여기 있는 것과 같은 이유다.
 kakao:
   app-id: ${KAKAO_APP_ID}
 
