@@ -2,7 +2,7 @@ package app.bottlenote.user.service;
 
 import app.bottlenote.common.annotation.ThirdPartyService;
 import app.bottlenote.user.client.KakaoFeignClient;
-import app.bottlenote.user.dto.response.KakaoAccessTokenInfo;
+import app.bottlenote.user.dto.response.KakaoTokenInfoResponse;
 import app.bottlenote.user.dto.response.KakaoUserResponse;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
@@ -64,7 +64,7 @@ public class KakaoAuthService {
    * 않으면 제3자 앱의 토큰으로 우리 서비스에 로그인할 수 있다.
    */
   private void verifyIssuedByOurApp(String authorization) {
-    KakaoAccessTokenInfo tokenInfo = kakaoFeignClient.getAccessTokenInfo(authorization).getBody();
+    KakaoTokenInfoResponse tokenInfo = kakaoFeignClient.getAccessTokenInfo(authorization).getBody();
 
     if (tokenInfo == null || !Objects.equals(tokenInfo.appId(), appId)) {
       log.warn(
