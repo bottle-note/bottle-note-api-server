@@ -167,10 +167,10 @@ Use these skills to follow the structured development lifecycle:
 #### 계층별 어노테이션
 
 **@FacadeService**
-- **역할**: 퍼사드 서비스 계층 표시
-- **위치**: `app.bottlenote.{domain}.facade`
+- **역할**: 도메인 간 통신의 완충 계층 구현체 표시
+- **위치**: 인터페이스는 `app.bottlenote.{domain}.facade`(타 도메인에 공개하는 계약), 구현체 `Default{도메인명}Facade`는 `app.bottlenote.{domain}.service`(도메인 내부 구현)
 - **특징**: `@Service` 포함, 스프링 컴포넌트로 자동 등록
-- **용도**: 여러 서비스를 조합하는 퍼사드 패턴 구현
+- **용도**: 도메인끼리는 서로의 Service를 직접 부르지 않고 상대 도메인의 Facade 인터페이스만 호출한다. user↔alcohols처럼 양방향 호출이 Service 상호 참조로 얽혀 부채가 되는 것을 막는 경계다
 
 **@DomainRepository**
 - **역할**: 순수 도메인 레포지토리 인터페이스 표시
