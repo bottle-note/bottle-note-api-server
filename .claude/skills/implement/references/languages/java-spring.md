@@ -222,7 +222,7 @@ Pattern: async + `REQUIRES_NEW` separates side-effect transaction from main. Fai
 
 | Annotation | Role | Location | Includes |
 |------------|------|----------|----------|
-| `@FacadeService` | Aggregate Root external door | `{domain}/facade/` | `@Service` |
+| `@FacadeService` | Aggregate Root external door | impl `Default{Domain}Facade` in `{domain}/service/`, interface in `{domain}/facade/` | `@Service` |
 | `@DomainRepository` | Pure domain interface | `{domain}/domain/` | (none, marker) |
 | `@JpaRepositoryImpl` | JPA implementation | `{domain}/repository/` | `@Repository` |
 | `@DomainEventListener` | Domain event listener | `{domain}/event/` | `@Component` |
