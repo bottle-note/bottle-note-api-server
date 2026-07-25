@@ -5,11 +5,6 @@ build/
 !**/src/test/**/build/
 docs/product-api.html
 
-### Production application.yml ###
-src/main/resources/application-dev.yml
-src/main/resources/application-prod.yml
-src/main/resources/secrets/monitoring.yml
-
 ### STS ###
 .apt_generated
 .classpath
@@ -42,12 +37,6 @@ out/
 .vscode/
 /.env
 
-# Ignore Gradle build output directory
-build
-/src/test/resources/application-dev.yml
-/src/main/resources/fcm/service_account_credentials.json
-/src/main/resources/META-INF/additional-spring-configuration-metadata.json
-/docs/product-api.html
 /logs/
 # QueryDSL generated files
 **/src/main/generated/
@@ -55,6 +44,7 @@ build
 /.secrets
 
 CLAUDE.personal.md
+AGENTS.personal.md
 
 # macOS
 .DS_Store
@@ -62,7 +52,6 @@ CLAUDE.personal.md
 # .env files
 .env
 /prod.env
-http_old/
 settings.local.json
 
 # Cosign keys
@@ -86,9 +75,6 @@ docs/_site/
 # Local static demo workspace
 .example/
 
-# 기존 Jekyll 빌드 결과물 (Antora 전환 후 삭제 예정)
-docs/admin-api.html
-docs/index.html
 */settings.local.json
 /tmp/*
 

@@ -127,6 +127,20 @@ Use these skills to follow the structured development lifecycle:
 - `.claude/skills/implement/references/languages/bottlenote-patterns.md` — 프로젝트 특화 패턴 (InMemory 갱신 체크리스트 등)
 - `.claude/skills/test/references/testing/java.md` — Java 테스트 패턴
 
+## 에이전트 설정 미러 규칙
+
+이 저장소는 codex와 Claude Code용 설정을 이중으로 보관한다. **한쪽을 고치면 반드시 다른 쪽도 같이 고친다.**
+
+| 대상 | codex | Claude Code |
+|---|---|---|
+| 지침 | `AGENTS.md` | `CLAUDE.md` |
+| 스킬 | `.agents` 디렉터리 | `.claude` 디렉터리 |
+
+- 두 지침 문서는 런타임 이름, 스킬 디렉터리 경로, personal 지침 파일명, 첫 줄 제목만 다르고 나머지 본문은 완전히 같아야 한다. 이 네 가지 외의 차이는 동기화 누락이다.
+- 두 스킬 디렉터리는 바이트 단위로 같아야 한다. `diff -rq`로 확인하고, 스킬 파일 안에 특정 런타임의 디렉터리 경로를 하드코딩하지 않는다.
+- Skills 표에 적은 슬래시 커맨드는 실제 스킬 디렉터리로 존재해야 한다. 스킬을 제거하면 표에서도 지운다.
+- 훅을 다시 도입한다면 머신 고유 절대경로와 런타임 전용 환경변수를 넣지 않는다. 저장소 루트는 `$(git rev-parse --show-toplevel)`로 구한다.
+
 ## 코드 작성 규칙
 
 ### 아키텍처 패턴
