@@ -92,7 +92,7 @@ GSL(Guided Software Lifecycle) 9개 스킬을 이 저장소 전용으로 대폭 
 - Verification: 서브에이전트 시나리오 2건 — (a) 정상: Task 3 시나리오의 define 산출물로 분해, (b) 함정: 수평 분해가 자연스러워 보이는 요청 → 수직 강제가 작동하는지
 - Files (advisory): plan/SKILL.md × 미러 2
 - Size: S
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 5: /implement 재작성
 - Acceptance: Execution Mode 분기 구현 — step-by-step은 Task별 HARD STOP 유지, delegated는 체크포인트 보고(Progress Log 기록+진행 보고)로 대체하되 stop-conditions 준수. Polyglot Mode·언어 fallback 제거, java-spring 고정. PR·체인지로그 단계를 Phase 4 이후 공식 꼬리로 정의
@@ -124,3 +124,4 @@ GSL(Guided Software Lifecycle) 9개 스킬을 이 저장소 전용으로 대폭 
 - Task 1: `chore/gsl-overhaul` 브랜치 분리(sync-agent는 origin으로 원복). next-flow·scan-conventions 스킬과 python/go/cli/library/worker-daemon references를 미러 양쪽에서 삭제(18파일), conventions.md는 stale로 이동. 삭제 전 용량 276KB/미러. 잔존 참조 44건을 9개 SKILL.md + web-api.md·bottlenote-patterns.md에서 확인 — SKILL.md는 Tasks 3-6 재작성에서, references 2개는 Task 6에서 해소 예정. 미러 diff 일치.
 - Task 2: 지침 양쪽의 "GSL Runtime Boundary Rules"를 "GSL Execution Mode" 섹션으로 교체. step-by-step 기본·delegated 선언 형식·stop-conditions 3종(가정 붕괴→재개봉, verify 3회 실패, scope 밖 행동)·PR 본문=체인지로그 관례를 명문화. 지침 정규화 diff 일치, Skills 표 7행이 실제 스킬 7종과 정합. Checkpoint 1-2 통과.
 - Task 3: /define 재작성 — WHAT/HOW 분리 철학, 지침 기반 하드 게이트, Execution Mode 선언 게이트(계약 서명), 재개봉 프로토콜, 상태 기반 트리거. 시나리오 검증(scenario-define): 정상 경로 완주 확인, 함정("가정 확인 넘어가고") 게이트 우회 불가 판정, 치명 0건·경미 7건. 경미 중 5건 반영(합리화 표에 외부 압박 행 추가, mode 플레이스홀더, stop-conditions 3종 인라인, Step 3 차단 문구, delegated 종료 분기·push/pr 고지). 188행 → 140행.
+- Task 4: /plan 재작성 — 정육 모델(Task=관절=승인 대상, Slice=썰기=에이전트 전권), 분해→정렬→크기검산 순서, Files advisory 강등, Depends 필드 신설. 시나리오 검증(scenario-plan): 정상 완주 확인, 치명 3건 검출(재개봉 프로토콜 미정의 / 사용자 수평 요청 충돌·승인 거부 분기 부재 / 중단 지점이 Step 6에만). "가정 붕괴 시 즉시 중단" 전역 규칙 신설 + 수평 요청 특칙(1회 권고→재지시 시 사용자 결정) + 승인 거부 분기로 수정, 재검증 결과 3건 전부 해소·신규 치명 0건. 경미 4·5·6·8도 반영.
