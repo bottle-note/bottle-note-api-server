@@ -78,6 +78,9 @@ profanity:
 apple:
   bundle-id: "com.bottlenote.official.app"
 
+kakao:
+  app-id: 1052783
+
 # Observability 비활성화 (테스트 환경)
 management:
   tracing:

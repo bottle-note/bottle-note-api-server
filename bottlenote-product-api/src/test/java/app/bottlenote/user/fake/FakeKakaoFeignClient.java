@@ -1,6 +1,7 @@
 package app.bottlenote.user.fake;
 
 import app.bottlenote.user.client.KakaoFeignClient;
+import app.bottlenote.user.dto.response.KakaoAccessTokenInfo;
 import app.bottlenote.user.dto.response.KakaoUserResponse;
 import feign.FeignException;
 import java.time.LocalDateTime;
@@ -12,9 +13,13 @@ import org.springframework.http.ResponseEntity;
 @Slf4j
 public class FakeKakaoFeignClient implements KakaoFeignClient {
 
+  /** 테스트 설정(application-test.yml)의 kakao.app-id와 같은 값이어야 통과한다. */
+  private static final Long TEST_APP_ID = 1052783L;
+
   private final Map<String, KakaoUserResponse> tokenDatabase = new HashMap<>();
   private boolean simulateUnauthorized = false;
   private boolean simulateServerError = false;
+  private Long appIdOverride = null;
 
   public FakeKakaoFeignClient() {
     setupDefaultUsers();
@@ -114,9 +119,37 @@ public class FakeKakaoFeignClient implements KakaoFeignClient {
     return ResponseEntity.ok(user);
   }
 
+  @Override
+  public ResponseEntity<KakaoAccessTokenInfo> getAccessTokenInfo(String authorization) {
+    if (simulateUnauthorized) {
+      throw new FeignException.Unauthorized(
+          "Unauthorized",
+          feign.Request.create(feign.Request.HttpMethod.GET, "test", Map.of(), null, null, null),
+          null,
+          Map.of());
+    }
+
+    KakaoUserResponse user = tokenDatabase.get(authorization);
+    if (user == null) {
+      throw new FeignException.Unauthorized(
+          "Invalid token",
+          feign.Request.create(feign.Request.HttpMethod.GET, "test", Map.of(), null, null, null),
+          null,
+          Map.of());
+    }
+
+    Long appId = appIdOverride != null ? appIdOverride : TEST_APP_ID;
+    return ResponseEntity.ok(new KakaoAccessTokenInfo(user.id(), 21599, appId));
+  }
+
   // 테스트 헬퍼 메서드들
   public void addTestUser(String token, KakaoUserResponse user) {
     tokenDatabase.put("Bearer " + token, user);
+  }
+
+  /** 타 앱에서 발급된 토큰 상황을 재현한다. */
+  public void simulateForeignAppToken(Long foreignAppId) {
+    this.appIdOverride = foreignAppId;
   }
 
   public void simulateUnauthorizedError() {
@@ -130,6 +163,7 @@ public class FakeKakaoFeignClient implements KakaoFeignClient {
   public void resetSimulation() {
     this.simulateUnauthorized = false;
     this.simulateServerError = false;
+    this.appIdOverride = null;
   }
 
   public void clear() {
