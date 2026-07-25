@@ -1,8 +1,8 @@
 # AGENTS.md
 
-This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
+This file provides guidance to Codex CLI when working with code in this repository.
 
-> If a `Codex.personal.md` file exists in the same directory, also refer to its contents.
+> If a `AGENTS.personal.md` file exists in the same directory, also refer to its contents.
 > **Team instructions take priority over personal instructions when they conflict.**
 
 ## User Instructions
@@ -69,6 +69,42 @@ git submodule update --init --recursive
 - **git.environment-variables**: 환경 설정 및 초기화 스크립트 포함
   - `storage/mysql/init/*.sql`: TestContainers용 DB 초기화 스크립트
   - 통합 테스트 실행 전 서브모듈 초기화 필수
+
+## 배포 및 실행 인프라
+
+> [주의] 루트의 `compose/*.yml`은 과거 단일 호스트 배포 잔재다. 현재 운영 배포는 k3s + ArgoCD다. compose 파일을 근거로 인스턴스 구성을 판단하지 말 것.
+
+### 런타임 토폴로지 (2026-07-25 확인)
+
+| 항목 | production | development |
+|------|-----------|-------------|
+| 네임스페이스 | `bottlenote-production` | `bottlenote-development` |
+| product-api | 2 replicas | 1 replica |
+| admin-api / batch / frontend | 각 1 replica (frontend 2) | 각 1 replica |
+| Redis | `redis-replication` StatefulSet 3 파드 (redis-operator 관리) | 동일 |
+
+- 클러스터는 k3s v1.33.5, **HPA가 없어 replica 수는 고정**이다. 인스턴스가 2대 이상이므로 요청 카운팅·잠금·중복 억제는 JVM 로컬 상태로 구현하면 안 되고 Redis 등 공유 저장소를 써야 한다.
+- 엣지는 Envoy Gateway v1.2.6 `main-gateway`(2 replicas)다. `HTTPRoute`가 `/api/v1`, `/api/v2`, `/actuator`만 통과시키고 나머지는 `block-unknown-paths` 필터로 차단한다.
+- `ClientTrafficPolicy`가 PROXY protocol을 켜고 클라이언트가 보낸 `X-Forwarded-For`를 제거한 뒤 Envoy가 다시 채운다. 따라서 앱이 받는 XFF는 신뢰할 수 있다.
+- k8s 매니페스트는 이 저장소가 아니라 ArgoCD가 바라보는 별도 GitOps 저장소에 있다. 클러스터 리소스를 바꾸려면 그쪽을 수정한다.
+
+### 배포 방법
+
+배포는 모두 GitHub Actions로 수행한다. **로컬에서 이미지 빌드·푸시·매니페스트 수정을 직접 하지 않는다.**
+
+| 대상 | 워크플로 | 트리거 |
+|------|---------|--------|
+| product-api / admin-api (운영) | `deploy_release_applications.yml` | `backend/vX.Y.Z` 릴리스 published |
+| product-api / admin-api (개발) | `deploy_development_applications.yml` | main CI 성공 시 자동, 또는 수동 dispatch |
+| batch | `deploy_batch.yml` | 수동 dispatch (`environment`, `version` 입력) |
+
+```bash
+# batch 배포 — version은 정확한 X.Y.Z, production은 main에서만 허용
+gh workflow run deploy_batch.yml -f environment=production -f version=1.2.3
+
+# 개발 환경 수동 배포
+gh workflow run deploy_development_applications.yml
+```
 
 ## Skills (Development Workflow)
 
@@ -306,7 +342,9 @@ Use these skills to follow the structured development lifecycle:
 - 불변성 지향: `final` 필드, `record` 활용
 - 단일 책임 원칙: 클래스와 메서드 역할 명확화
 
-## GSL on codex — Runtime Boundary Rules
+## GSL Runtime Boundary Rules
+
+> [상태] 현재 GSL 스킬셋은 구형이다. 별도 세션에서 개편할 예정이며, 개편 전까지 아래 경계 규칙을 유지한다.
 
 When using GSL skills from `.agents/skills/`, treat each `SKILL.md` as a single-turn procedure.
 
