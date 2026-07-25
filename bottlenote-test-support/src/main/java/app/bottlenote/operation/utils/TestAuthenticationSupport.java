@@ -5,10 +5,8 @@ import app.bottlenote.user.constant.GenderType;
 import app.bottlenote.user.constant.SocialType;
 import app.bottlenote.user.constant.UserType;
 import app.bottlenote.user.domain.User;
-import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.repository.OauthRepository;
-import app.bottlenote.user.service.OauthService;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
@@ -18,15 +16,11 @@ public class TestAuthenticationSupport {
 
   private final OauthRepository oauthRepository;
   private final JwtTokenProvider jwtTokenProvider;
-  private final OauthService oauthService;
 
   public TestAuthenticationSupport(
-      OauthRepository oauthRepository,
-      JwtTokenProvider jwtTokenProvider,
-      OauthService oauthService) {
+      OauthRepository oauthRepository, JwtTokenProvider jwtTokenProvider) {
     this.oauthRepository = oauthRepository;
     this.jwtTokenProvider = jwtTokenProvider;
-    this.oauthService = oauthService;
   }
 
   public User getFirstUser() {
@@ -47,21 +41,12 @@ public class TestAuthenticationSupport {
     return token.accessToken();
   }
 
-  /** OAuth 로그인으로 TokenItem 생성 */
-  public TokenItem createToken(OauthRequest request) {
-    return oauthService.login(request);
-  }
-
-  /** User 객체로 TokenItem 생성 */
+  /** User 객체로 TokenItem 생성 (리프레시 토큰까지 저장) */
   public TokenItem createToken(User user) {
-    OauthRequest req =
-        new OauthRequest(
-            user.getEmail(),
-            null,
-            user.getSocialType().getFirst(),
-            user.getGender(),
-            user.getAge());
-    return oauthService.login(req);
+    TokenItem token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
+    user.updateRefreshToken(token.refreshToken());
+    oauthRepository.save(user);
+    return token;
   }
 
   /** 기본 유저의 ID 반환 */

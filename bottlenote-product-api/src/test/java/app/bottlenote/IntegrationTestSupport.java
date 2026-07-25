@@ -5,7 +5,6 @@ import app.bottlenote.operation.utils.DataInitializer;
 import app.bottlenote.operation.utils.TestAuthenticationSupport;
 import app.bottlenote.operation.utils.TestContainersConfig;
 import app.bottlenote.user.domain.User;
-import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.response.TokenItem;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
@@ -43,10 +42,6 @@ public abstract class IntegrationTestSupport {
   }
 
   // ========== 인증 관련 메서드 (위임) ==========
-
-  protected TokenItem getToken(OauthRequest request) {
-    return authSupport.createToken(request);
-  }
 
   protected TokenItem getToken(User user) {
     return authSupport.createToken(user);
