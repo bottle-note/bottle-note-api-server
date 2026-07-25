@@ -4,6 +4,7 @@ description: |
   Systematic root-cause debugging for build failures, test failures, and runtime errors.
   Trigger: "/debug", or when the user says "에러 났어", "테스트 실패", "빌드 안 돼", "왜 안 되지", "debug this", "this is broken".
   Follows a structured 6-step process: STOP, REPRODUCE, LOCALIZE, FIX, GUARD, VERIFY.
+  상태 기반: 컴파일·테스트·ArchUnit 룰 실패 출력이 있을 때, /verify가 FAIL을 보고했을 때, 이전에 되던 것이 안 될 때.
   Use when anything unexpected happens — do not guess at fixes.
 argument-hint: "[error description or test name]"
 ---
@@ -52,7 +53,7 @@ Can you reproduce the failure?
     └── If truly non-reproducible, document conditions and monitor
 ```
 
-For exact reproduction commands per language/stack, see `verify/references/verify/{your-language}.md`.
+For exact reproduction commands, see `verify/references/verify/java-gradle.md`.
 
 ### Step 3: LOCALIZE
 
@@ -82,7 +83,7 @@ Test failure:
 
 **For stack traces:** read bottom-up, find the first line in your own code (not framework / vendor).
 
-For project-specific triage trees (e.g., framework-specific failure modes), consult `implement/references/languages/{your-language}.md`.
+For project-specific triage trees, consult `implement/references/languages/java-spring.md` and `bottlenote-patterns.md`.
 
 ### Step 4: FIX
 
@@ -115,7 +116,7 @@ Write a regression test that would have caught this bug.
 
 ### Step 6: VERIFY
 
-Run verification to confirm the fix and check for regressions. See `/verify` and `verify/references/verify/{your-language}.md` for level selection:
+Run verification to confirm the fix and check for regressions. See `/verify` for level selection:
 
 | Original failure | Minimum verification |
 |------------------|----------------------|
@@ -157,23 +158,6 @@ After fixing a bug:
 - [ ] Test doubles updated if interfaces changed
 - [ ] Original failure scenario verified end-to-end
 
-## Runtime Boundary — HARD STOP
+## 종료
 
-This skill ENDS after the Verification checklist and final report are completed.
-
-For codex and any runtime without an enforced skill-return boundary:
-- MUST stop the assistant turn here.
-- MUST NOT invoke, load, or execute any next GSL skill in the same response turn.
-- MUST NOT continue into `/next-flow`, `/define`, `/plan`, `/implement`, `/test`, `/verify`, `/debug`, or `/self-review`.
-- MAY print exactly one suggested next command as plain text.
-- MUST wait for the user's next message before running any next skill.
-
-If the user says only "continue", treat that as permission to report the next recommended command, not permission to execute it.
-
----
-
-## Lifecycle Integration
-
-**Before this skill:** if `plan/conventions.md` does not exist, run `/scan-conventions` first — analysis relies on knowing the project's actual conventions (naming, layering, test patterns, build system).
-
-**After this skill:** the next GSL skill is started by the user, not by this skill — see the Runtime Boundary section above. `/next-flow` may be suggested for lifecycle diagnosis but is not auto-invoked. Runtime note: some environments expose slash commands as UI commands; codex loads GSL skills from `.agents/skills/`. In both cases, the next GSL skill requires a new explicit user message.
+지침의 **GSL Execution Mode** 규칙을 따른다. 근본 원인·수정 내용·회귀 테스트를 보고한다. step-by-step이면 턴을 끝내고, delegated면 중단됐던 단계로 복귀한다 (단, 가정 붕괴가 원인이었다면 재개봉 프로토콜이 우선한다).

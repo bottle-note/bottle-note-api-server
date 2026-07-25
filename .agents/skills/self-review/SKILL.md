@@ -3,7 +3,7 @@ name: self-review
 description: |
   Pre-commit quality gate with 5-axis code review.
   Trigger: "/self-review", or when the user says "리뷰해줘", "review this", "코드 리뷰", "self review".
-  Use before every commit, after completing a Task in /implement, or when the user wants to review changes.
+  상태 기반: 커밋 직전 스테이징된 변경이 있을 때, /implement Task 완료 직후.
   Evaluates code across correctness, readability, architecture, security, and performance.
 argument-hint: "[files or scope]"
 ---
@@ -42,7 +42,7 @@ Determine which files to review.
 
 ### Step 2: Five-Axis Review
 
-Evaluate every change across these dimensions. Project-specific concrete checks live in the relevant references — consult `implement/references/languages/{your-language}.md` and `implement/references/types/{your-type}.md` for the exact items.
+Evaluate every change across these dimensions. 구체 체크 항목은 `implement/references/languages/java-spring.md`와 `implement/references/types/web-api.md`를 참조한다.
 
 #### Correctness
 
@@ -68,9 +68,9 @@ Can another engineer understand this without explanation?
 
 Does the change fit the system design?
 
-- **Module boundary**: respects the project's layering rules — consult `implement/references/types/{your-type}.md` for the specific layering (e.g., service-vs-controller thinness, repository tiers, public-vs-internal API surface)
+- **Module boundary**: 레이어 표준 15를 지키는가 (Controller 얇게, 레포지토리 2형 분리, 타 도메인은 Facade 경유)
 - **Cross-module access**: goes through the documented seam (Facade, port, public function), never bypasses
-- **Custom conventions**: language/framework-specific annotations or markers used correctly (`implement/references/languages/{your-language}.md`)
+- **Custom conventions**: 프로젝트 특화 어노테이션(@FacadeService, @JpaRepositoryImpl 등)을 지침 정의대로 사용했는가
 
 #### Security
 
@@ -154,23 +154,6 @@ After completing the review:
 - [ ] Code compiles / type-checks (see `/verify` quick)
 - [ ] Unit tests pass (see `/verify` standard)
 
-## Runtime Boundary — HARD STOP
+## 종료
 
-This skill ENDS after the Verification checklist and final report are completed.
-
-For codex and any runtime without an enforced skill-return boundary:
-- MUST stop the assistant turn here.
-- MUST NOT invoke, load, or execute any next GSL skill in the same response turn.
-- MUST NOT continue into `/next-flow`, `/define`, `/plan`, `/implement`, `/test`, `/verify`, `/debug`, or `/self-review`.
-- MAY print exactly one suggested next command as plain text.
-- MUST wait for the user's next message before running any next skill.
-
-If the user says only "continue", treat that as permission to report the next recommended command, not permission to execute it.
-
----
-
-## Lifecycle Integration
-
-**Before this skill:** if `plan/conventions.md` does not exist, run `/scan-conventions` first — analysis relies on knowing the project's actual conventions (naming, layering, test patterns, build system).
-
-**After this skill:** the next GSL skill is started by the user, not by this skill — see the Runtime Boundary section above. `/next-flow` may be suggested for lifecycle diagnosis but is not auto-invoked. Runtime note: some environments expose slash commands as UI commands; codex loads GSL skills from `.agents/skills/`. In both cases, the next GSL skill requires a new explicit user message.
+지침의 **GSL Execution Mode** 규칙을 따른다. 발견 사항(심각도별 건수)과 해소 여부를 보고한다. step-by-step이면 턴을 끝내고 커밋 여부를 사용자에게 넘긴다. delegated면 Critical 0건 확인 후 커밋으로 계속한다.
