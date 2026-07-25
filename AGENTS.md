@@ -137,6 +137,8 @@ Use these skills to follow the structured development lifecycle:
 - **계층 구조**: Controller → Facade <-> Service → Repository → Domain
 - **도메인별 패키지**: constant, controller, domain, dto, repository, service, facade, exception, event
 
+**설계 배경 — Facade는 도메인 간 완충 지대다.** 여러 도메인이 양방향으로 통신하는 구조(user↔alcohols 등)에서 Service끼리 직접 상호 참조하면 순환 의존과 부채가 쌓인다. 그래서 타 도메인 접근은 상대의 Facade 인터페이스로만 하며, 결합을 좁고 보이는 한 지점으로 모아 관리한다. 배치 상세는 아래 `@FacadeService` 항목, 강제 수단은 ArchUnit(`./gradlew check_rule_test`)이다.
+
 ### 레이어 표준 15 (2026-06-10 확정)
 
 모듈 기술 부채 정리의 기준이 되는 표준. ArchUnit `@Tag("rule")` 테스트로 강제하며, 위반 0이 된 룰부터 활성화한다.
