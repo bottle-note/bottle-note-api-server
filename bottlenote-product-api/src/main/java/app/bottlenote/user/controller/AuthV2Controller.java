@@ -9,13 +9,16 @@ import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.user.config.OauthConfigProperties;
 import app.bottlenote.user.dto.request.AppleLoginRequest;
 import app.bottlenote.user.dto.request.KakaoLoginRequest;
+import app.bottlenote.user.dto.request.TokenVerifyRequest;
 import app.bottlenote.user.dto.response.AuthResponse;
 import app.bottlenote.user.dto.response.NonceResponse;
 import app.bottlenote.user.dto.response.OauthResponse;
+import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.service.AuthService;
 import app.bottlenote.user.service.NonceService;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -75,6 +79,23 @@ public class AuthV2Controller {
     setRefreshTokenInCookie(response, result.token().refreshToken());
     return ResponseEntity.ok(
         OauthResponse.of(result.token().accessToken(), result.isFirstLogin(), result.nickname()));
+  }
+
+  /** 토큰 재발급. v1(`/api/v1/oauth/reissue`)과 동일 동작이며 클라이언트 전환용으로 함께 제공한다. */
+  @SecurityPolicy(auth = PUBLIC)
+  @PostMapping("/reissue")
+  public ResponseEntity<?> reissueToken(HttpServletRequest request, HttpServletResponse response) {
+    String refreshToken = request.getHeader(REFRESH_TOKEN_HEADER_PREFIX);
+    TokenItem token = authService.reissue(refreshToken);
+    setRefreshTokenInCookie(response, token.refreshToken());
+    return GlobalResponse.ok(OauthResponse.of(token.accessToken()));
+  }
+
+  /** 토큰 유효성 검증. v1(`/api/v1/oauth/token/verify`)과 동일 동작이다. */
+  @SecurityPolicy(auth = PUBLIC)
+  @PutMapping("/token/verify")
+  public ResponseEntity<?> verifyToken(@RequestBody @Valid TokenVerifyRequest request) {
+    return GlobalResponse.ok(authService.verifyToken(request.token()));
   }
 
   private void setRefreshTokenInCookie(HttpServletResponse response, String refreshToken) {
