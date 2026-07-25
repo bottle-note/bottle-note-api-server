@@ -53,22 +53,33 @@ elif [[ $missing -eq 0 ]]; then
   note "[OK] Skills 표 커맨드 ${checked}개 모두 스킬 존재"
 fi
 
-# 4) 훅 설정에 머신 고유 절대경로가 박히면 다른 체크아웃에서 깨진다.
-if hits=$(grep -nE '[A-Za-z]:\\|/Users/|/home/' .codex/hooks.json .claude/settings.json); then
-  note "[FAIL] 훅 설정에 머신 고유 절대경로가 있습니다:"
-  printf '%s\n' "$hits"
-  fail=1
-else
-  note "[OK] 훅 설정에 절대경로 없음"
-fi
+# 4) 훅 설정이 다시 생길 경우를 대비한 검사. 현재는 훅을 쓰지 않아 대상이 없다.
+#    - 머신 고유 절대경로가 박히면 다른 체크아웃에서 깨진다.
+#    - codex 훅이 Claude 전용 환경변수를 참조하면 조용히 실패한다.
+hook_found=0
+hook_violations=0
+for hook_file in .codex/hooks.json .claude/settings.json; do
+  [[ -f "$hook_file" ]] || continue
+  hook_found=$((hook_found + 1))
 
-# 5) codex 훅이 Claude 전용 환경변수를 참조하면 조용히 실패한다.
-if hits=$(grep -n 'CLAUDE_PROJECT_DIR\|CLAUDE_CODE_REMOTE' .codex/hooks.json); then
-  note "[FAIL] .codex/hooks.json 이 Claude 전용 환경변수를 참조합니다:"
-  printf '%s\n' "$hits"
-  fail=1
-else
-  note "[OK] .codex/hooks.json 에 Claude 전용 환경변수 없음"
+  if hits=$(grep -nE '[A-Za-z]:\\|/Users/|/home/' "$hook_file"); then
+    note "[FAIL] $hook_file 에 머신 고유 절대경로가 있습니다:"
+    printf '%s\n' "$hits"
+    hook_violations=$((hook_violations + 1))
+    fail=1
+  fi
+
+  if [[ "$hook_file" == .codex/* ]] && hits=$(grep -n 'CLAUDE_PROJECT_DIR\|CLAUDE_CODE_REMOTE' "$hook_file"); then
+    note "[FAIL] $hook_file 이 Claude 전용 환경변수를 참조합니다:"
+    printf '%s\n' "$hits"
+    hook_violations=$((hook_violations + 1))
+    fail=1
+  fi
+done
+if [[ $hook_found -eq 0 ]]; then
+  note "[SKIP] 훅 설정 파일 없음 — 검사 대상 없음"
+elif [[ $hook_violations -eq 0 ]]; then
+  note "[OK] 훅 설정 ${hook_found}건 이상 없음"
 fi
 
 if [[ $fail -eq 0 ]]; then
