@@ -22,9 +22,9 @@ argument-hint: "[feature-name or plan file path]"
 
 ## 가정 붕괴 시 즉시 중단 (전역 규칙)
 
-어느 Step에서든 define의 Assumption을 깨는 발견이 나오면 **그 자리에서 중단한다**. Tasks를 아직 기록하지 않았으면 기록하지 않고, 이미 기록했다면 해당 기록을 되돌린다. 이것이 stop-condition 1번(가정 붕괴)이며 delegated 위임보다 우선한다.
+어느 Step에서든 define의 Assumption을 깨는 발견이 나오면 **그 자리에서 중단한다**. Tasks를 아직 기록하지 않았으면 기록하지 않고, 이미 기록했다면 해당 기록을 되돌린다 (아직 승인되지 않은 기록에 한함 — 승인·커밋된 Task의 처리는 `/implement`의 정지 보고 규칙을 따른다). 이것이 stop-condition 1번(가정 붕괴)이며 delegated 위임보다 우선한다.
 
-중단 후 절차(재개봉 프로토콜): ① 발견 내용과 깨진 가정을 보고한다 ② define 문서의 Assumptions 수정안을 제시한다 ③ WHAT(성공 기준·범위)이 바뀌었으면 재승인을 받고, 표현만 정밀해진 것이면 기록만 남기고 계속한다.
+중단 후 절차(재개봉 프로토콜): ① 발견 내용과 깨진 가정을 보고한다 ② define 문서의 Assumptions 수정안을 제시하고 반영한다 ③ WHAT(성공 기준·범위)이 바뀌었으면 재승인을 받고, 표현만 정밀해진 것이면 기록만 남기고 계속한다.
 
 ## When NOT to Use
 
@@ -96,7 +96,7 @@ plan 문서에 Tasks 섹션을 채운다.
 
 ### Step 6: 게이트 (모드 분기)
 
-- **step-by-step**: 태스크 목록 요약(개수·크기 분포·의존 순서)을 제시하고 명시적 승인을 받은 뒤 턴을 끝낸다. 승인 전 `/implement` 진행 금지. **승인이 거부되면**: 거부 사유를 받아 Step 2부터 재분해한다. 사유가 분해 방식이 아니라 요구사항 자체라면 재개봉 프로토콜로 `/define`에 돌린다.
+- **step-by-step**: 태스크 목록 요약(개수·크기 분포·의존 순서)을 제시하고 턴을 끝낸다. 사용자의 승인 메시지가 오면 그것이 곧 `/implement` 진행 허가다 — 재차 제안만 하고 멈추지 않는다. 승인 전 `/implement` 진행 금지. **승인이 거부되면**: 거부 사유를 받아 Step 2부터 재분해한다. 사유가 분해 방식이 아니라 요구사항 자체라면 재개봉 프로토콜로 `/define`에 돌린다.
 - **delegated (scope에 plan 포함)**: 승인 권한은 define 게이트에서 이미 위임받았다. 목록을 체크포인트 보고로 남기고 다음 단계로 계속한다. 단, 분해 중 가정을 깨는 발견이 있었다면 stop-condition 1번(재개봉)이 우선한다.
 
 ## Common Rationalizations
@@ -117,4 +117,4 @@ plan 문서에 Tasks 섹션을 채운다.
 
 ## 종료
 
-지침의 **GSL Execution Mode** 규칙을 따른다. step-by-step이면 승인 후 `Next: /implement`를 제안하고 턴을 끝낸다. delegated면 보고를 남기고 계속한다.
+지침의 **GSL Execution Mode** 규칙을 따른다. step-by-step이면 목록 제시 후 턴을 끝내고, 이후 도착한 승인 메시지가 곧 `/implement` 진행 허가다 (Step 6과 동일 규칙). delegated면 보고를 남기고 계속한다.

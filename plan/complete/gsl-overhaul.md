@@ -117,7 +117,7 @@ GSL(Guided Software Lifecycle) 9개 스킬을 이 저장소 전용으로 대폭 
 - Verification: `diff -rq` 미러 일치, 지침 정규화 diff 일치, `du -sk` 전후 비교, E2E 서브에이전트 보고서
 - Files (advisory): 수정 없음(검증 전용), 필요 시 발견 결함 수정
 - Size: S
-- Status: [ ] not done
+- Status: [x] done
 
 ## Progress Log
 
@@ -127,3 +127,10 @@ GSL(Guided Software Lifecycle) 9개 스킬을 이 저장소 전용으로 대폭 
 - Task 4: /plan 재작성 — 정육 모델(Task=관절=승인 대상, Slice=썰기=에이전트 전권), 분해→정렬→크기검산 순서, Files advisory 강등, Depends 필드 신설. 시나리오 검증(scenario-plan): 정상 완주 확인, 치명 3건 검출(재개봉 프로토콜 미정의 / 사용자 수평 요청 충돌·승인 거부 분기 부재 / 중단 지점이 Step 6에만). "가정 붕괴 시 즉시 중단" 전역 규칙 신설 + 수평 요청 특칙(1회 권고→재지시 시 사용자 결정) + 승인 거부 분기로 수정, 재검증 결과 3건 전부 해소·신규 치명 0건. 경미 4·5·6·8도 반영.
 - Task 5: /implement 재작성 — Execution Mode 분기(step은 Task별 정지+연속 실행 예외, delegated는 체크포인트 보고로 계속), stop-conditions 우선 규칙, Phase 4에 push/pr·PR 본문=체인지로그 공식화, Polyglot·언어 fallback 제거. 시나리오 검증(scenario-implement) 4건: step 정지·delegated 연속+푸시 직전 정지·가정 붕괴 정지·plan 부재 거부 모두 텍스트만으로 도출, 치명 0건. 경미 5건(재개 신호 해석, 모드 읽기 위치, 정지 보고 명세, 체크포인트 도달 지점, verify 레벨) 반영 후 검증자 재확인 완료. Checkpoint 3-5 통과.
 - Task 6: test/verify/debug/self-review 정리 — HARD STOP·Lifecycle Integration 꼬리를 "종료" 섹션(지침 참조 + 모드 분기 한 줄)으로 교체, Superpowers 문단 제거(Fake-first 우선 규칙은 유지), 언어 분기 제거(references를 java.md/java-gradle.md/java-spring.md 고정), test·verify·debug·self-review 트리거에 상태 기반 조건 추가. web-api.md·batch.md·bottlenote-patterns.md의 conventions.md·{language} 잔존 참조도 정리. grep 검증: Superpowers/Polyglot/{language}/{your-*}/next-flow/scan-conventions/conventions.md 전부 0건.
+- Task 7: 종합 검증 — E2E 시나리오(scenario-e2e, 4개 텍스트 교차 검증)에서 문서 간 상충 치명 3건 검출("계속" 해석이 지침·implement에서 정반대 / delegated의 test 진입점 부재·마감 순서 역전 / verify 내부 실행 vs 격리 규칙). 지침에 스킬 전환·스킬 내부 재개 구분과 delegated 격리 예외를 명시하고 implement Phase 4를 test→verify full→마감→push→PR 순서로 재작성해 해소, 재판정에서 3건 전부 [해소]. 재판정이 신규 치명 1건(plan Step 6 vs 종료 절 불일치 — 1차 수정의 잔여물)과 경미 2건을 추가 검출, 모두 반영. 신규 치명은 두 문장의 문언 정합으로 자체 검증(기계적 일치 확인). Success Criteria 13개 전 항목 통과: 스킬 7종, references 6종, Superpowers·Polyglot·HARD STOP 0건, 미러·지침 diff 일치, Skills 표 7행 정합, 용량 276KB→132KB(47.8%).
+
+## Completion
+
+- Status: COMPLETE
+- 시나리오 검증 총계: 서브에이전트 4종(define/plan/implement/E2E), 검출 치명 7건(전부 해소·재검증 통과), 경미 19건(17건 반영, 2건은 의도된 외부 참조로 유지)
+- 최종 산출: 스킬 9→7종, 미러 용량 276KB→132KB, Execution Mode 계약(step-by-step 기본/delegated 선언) 도입, 재개봉 프로토콜·stop-conditions 3종 명문화

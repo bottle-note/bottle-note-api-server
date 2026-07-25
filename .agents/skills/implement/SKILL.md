@@ -60,15 +60,14 @@ Task 하나마다:
 | **step-by-step** | 정지. 완료 Task·검증 증거·변경 파일·다음 Task를 보고하고 턴을 끝낸다. 예외: 사용자가 연속 실행을 명시한 경우("Task 1~3", "결과까지")에만 계속. 범위 없는 재개 신호("계속", "고")는 **다음 Task 1개만** 허가로 간주한다 |
 | **delegated** (scope에 implement 포함) | 체크포인트 보고를 남기고 다음 Task로 계속한다 — Progress Log는 plan 문서에, 진행 요약은 대화에 즉시 출력해 사용자가 실시간 확인할 수 있게 한다 |
 
-**stop-conditions는 모드와 무관하게 우선한다** (지침의 GSL Execution Mode 참조): 가정을 깨는 발견 → 즉시 정지, 재개봉 프로토콜. verify 3회 실패 → `/debug` 보고 후 정지. scope 밖 행동 필요 → 직전 정지. 정지 시 보고 항목: 발동한 조건, 발견 내용, 깨진 가정(해당 시), 제안 조치.
+**stop-conditions는 모드와 무관하게 우선한다** (지침의 GSL Execution Mode 참조): 가정을 깨는 발견 → 즉시 정지, 재개봉 프로토콜. verify 3회 실패 → `/debug` 보고 후 정지. scope 밖 행동 필요 → 직전 정지. 정지 시 보고 항목: 발동한 조건, 발견 내용, 깨진 가정(해당 시), 제안 조치. 이미 커밋된 Task는 되돌리지 않고 보고에 포함한다 — 재승인 결과에 따라 후속 Task로 수정한다.
 
 ### Phase 4: 마감
 
-모든 Task 완료 후:
+모든 Task 커밋 후 생명주기 꼬리는 이 순서다: **통합 테스트(`/test`, 필요 시) → `/verify full` → plan 문서 완료 스탬프·`plan/complete/` 이동 → push → PR**. 마감(스탬프·이동)은 verify PASS 뒤에 온다.
 
-1. `/verify standard` (컴파일+단위+빌드) — 푸시·PR 전에는 `/verify full` (통합 포함)
-2. plan 문서에 완료 스탬프, `plan/complete/`로 이동
-3. **scope에 따라**: `push` 선언 시 푸시. `pr` 선언 시 PR 오픈 — **PR 본문이 체인지로그를 겸한다** (변경 사항·배경·검증·제외 범위 구조, 기존 PR 관례를 따른다). 미선언이면 해당 직전에서 정지하고 확인받되, 정지 보고에 "푸시 전 `/verify full` 필요"를 명시한다 (scope가 commit에서 끝나면 full이 아직 안 돌았을 수 있다).
+- **step-by-step**: 여기서 정지하고 `Next: /test`(통합 테스트가 필요하면) 또는 `Next: /verify full`을 제안한다. `/test`·`/verify`의 풀 워크플로는 별도 호출 경계다 — 이 스킬 안에서 실행하지 않는다. 마감·푸시·PR은 verify PASS 후 사용자 지시로 진행한다.
+- **delegated**: scope에 선언된 단계를 위 순서대로 이어 실행한다 (위임 계약의 이행 — 지침의 격리 규칙 예외). scope의 `test`는 `/test`의 시나리오 승인 게이트를 체크포인트 보고로 대체해 수행하고, `verify`는 full까지 돌린다. 마감(스탬프·`plan/complete/` 이동)은 scope 항목이 아니라 verify PASS 후 항상 수행하는 생명주기 꼬리다. `push`/`pr`는 선언 시에만 — **PR 본문이 체인지로그를 겸한다** (변경 사항·배경·검증·제외 범위 구조). 미선언이면 해당 직전에서 정지하고, 남은 단계와 검증 상태(full 통과 여부)를 보고한다.
 
 ## Common Rationalizations
 
@@ -91,4 +90,4 @@ Task 하나마다:
 
 ## 종료
 
-지침의 **GSL Execution Mode** 규칙을 따른다. step-by-step이면 Task 보고 후 턴 종료, 다음은 `Next: /implement (Task N+1)` 또는 전 Task 완료 시 `Next: /test`. delegated면 Phase 4까지 계속한다.
+지침의 **GSL Execution Mode** 규칙을 따른다. step-by-step이면 Task 보고 후 턴 종료, 다음은 `Next: /implement (Task N+1)`, 전 Task 완료 시에는 Phase 4의 순서(`/test` → `/verify full` → 마감)를 안내한다. delegated면 Phase 4를 scope대로 이어 실행한다.
