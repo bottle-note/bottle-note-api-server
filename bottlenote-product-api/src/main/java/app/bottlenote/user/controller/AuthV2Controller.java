@@ -81,7 +81,7 @@ public class AuthV2Controller {
         OauthResponse.of(result.token().accessToken(), result.isFirstLogin(), result.nickname()));
   }
 
-  /** 토큰 재발급. v1(`/api/v1/oauth/reissue`)과 동일 동작이며 클라이언트 전환용으로 함께 제공한다. */
+  /** 토큰 재발급 */
   @SecurityPolicy(auth = PUBLIC)
   @PostMapping("/reissue")
   public ResponseEntity<?> reissueToken(HttpServletRequest request, HttpServletResponse response) {
@@ -91,7 +91,7 @@ public class AuthV2Controller {
     return GlobalResponse.ok(OauthResponse.of(token.accessToken()));
   }
 
-  /** 토큰 유효성 검증. v1(`/api/v1/oauth/token/verify`)과 동일 동작이다. */
+  /** 토큰 유효성 검증 */
   @SecurityPolicy(auth = PUBLIC)
   @PutMapping("/token/verify")
   public ResponseEntity<?> verifyToken(@RequestBody @Valid TokenVerifyRequest request) {
