@@ -67,7 +67,7 @@ GSL(Guided Software Lifecycle) 9개 스킬을 이 저장소 전용으로 대폭 
 - Verification: `diff -rq .agents/skills .claude/skills` 일치, 삭제 대상 파일 0건 확인, 잔존 스킬에서 삭제된 스킬 참조가 깨지는 지점 목록화(다음 Task 입력)
 - Files (advisory): 미러 양쪽 약 24파일 삭제 + plan/conventions.md 이동. 브랜치 분리(`chore/gsl-overhaul` 생성, define 커밋 이관) 포함
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 2: Execution Mode 계약 + 지침 갱신
 - Acceptance: 지침(CLAUDE.md/AGENTS.md)의 "GSL Runtime Boundary Rules" 섹션이 Execution Mode 규칙(기본 step-by-step, delegated 선언 형식, stop-conditions, HARD STOP 통합 규정)으로 대체됨. Skills 표 9→7. PR 본문=체인지로그 관례가 delegated scope 정의에 포함됨
@@ -122,3 +122,5 @@ GSL(Guided Software Lifecycle) 9개 스킬을 이 저장소 전용으로 대폭 
 ## Progress Log
 
 (비어 있음 — /implement에서 기록)
+
+- Task 1: `chore/gsl-overhaul` 브랜치 분리(sync-agent는 origin으로 원복). next-flow·scan-conventions 스킬과 python/go/cli/library/worker-daemon references를 미러 양쪽에서 삭제(18파일), conventions.md는 stale로 이동. 삭제 전 용량 276KB/미러. 잔존 참조 44건을 9개 SKILL.md + web-api.md·bottlenote-patterns.md에서 확인 — SKILL.md는 Tasks 3-6 재작성에서, references 2개는 Task 6에서 해소 예정. 미러 diff 일치.
