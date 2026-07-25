@@ -1,187 +1,140 @@
 ---
 name: define
 description: |
-  Clarifies requirements before any code is written. Creates a plan document with assumptions, success criteria, and impact scope.
-  Trigger: "/define", or when the user says "이거 구현해줘", "기능 추가", "요구사항 정리", "define requirements", "spec this".
-  Use when starting a new feature, when requirements are vague, or when the scope of a change is unclear.
-  Do NOT write code during this skill — the output is a plan document, not implementation.
+  코드를 쓰기 전에 WHAT(무엇을·왜)을 확정하고 plan 문서와 Execution Mode 계약을 만든다.
+  Trigger: "/define", 또는 사용자가 "이거 구현해줘", "기능 추가", "요구사항 정리", "define", "spec this"라고 할 때.
+  상태 기반: 다중 파일 변경이 필요한 요청인데 plan/에 해당 기능 문서가 없을 때, 요청의 범위·성공 조건이 불명확할 때.
+  이 스킬 안에서는 코드를 쓰지 않는다 — 산출물은 plan 문서다.
 argument-hint: "[feature description]"
 ---
 
-# Define Requirements
+# Define — WHAT 확정과 위임 계약
 
-## Overview
+## 철학: WHAT과 HOW를 섞지 않는다
 
-Write a structured specification before writing any code. The plan document is the shared source of truth — it defines what we are building, why, and how we will know it is done. Code without a spec is guessing.
+이 스킬은 **무엇을·왜**만 다룬다. 어떻게(파일 구조, 태스크 순서, 구현 방식)는 `/plan`과 `/implement`의 몫이다.
 
-This skill creates `plan/{feature-name}.md` with an Overview section. The `/plan` skill later adds Tasks to the same document; `/implement` fills the Progress Log. One feature = one document, from define through commit.
+이유는 재생성 비용의 비대칭이다. HOW는 틀리면 에이전트가 다시 짜면 되지만(싸다), WHAT은 사람의 의도를 끌어내야 해서 다시 만들기 비싸다. 그래서 사람의 협의는 여기에 집중하고, WHAT이 승인되면 이후 실패는 HOW의 실패로 격리된다.
 
-## When to Use
+- 허용: 타당성 조사 (스키마가 이미 있는지, 어떤 모듈이 영향받는지 살펴보기)
+- 금지: HOW 결정 (태스크 분해, 파일 목록 확정, 구현 방식 선택)
 
-- Starting a new feature or significant change
-- Requirements are ambiguous or incomplete
-- The change touches 3+ files or multiple components
-- The user gives a vague request ("이거 구현해줘", "추가해줘", "add this feature")
+## 전제
+
+프로젝트 지침(CLAUDE.md/AGENTS.md)이 관습의 유일한 소유자다. 레이어 표준 15, 네이밍, 어노테이션, Flyway 규칙은 지침에 있으므로 여기서 다시 조사하지 않는다.
 
 ## When NOT to Use
 
-- Bug fixes with clear reproduction (use `/debug`)
-- Single-file changes with obvious scope
-- Requirements already documented in a plan file
-- Test-only work (use `/test`)
+- 재현 가능한 버그 수정 → `/debug`
+- 범위가 자명한 단일 파일 수정 → 바로 `/implement`
+- 이미 plan 문서가 있는 기능 → `/plan` 또는 `/implement`
+- 테스트만 추가 → `/test`
 
 ## Process
 
-### Step 0: Confirm Project Conventions Exist (hard gate)
+### Step 1: 요청 파싱
 
-**Before any other step**, check that `plan/conventions.md` exists at the project root.
+범위를 추측하지 않는다. 어떤 도메인인가, 어떤 모듈(product-api/admin-api/batch/mono)이 관련되나, 외부에서 관찰 가능한 기대 행동은 무엇인가. 불명확하면 진행 전에 묻는다.
 
-- If it does NOT exist → **STOP**. Tell the user to run `/scan-conventions` first. Impact analysis (Step 4) depends on knowing the project's actual conventions (naming, layering, persistence, test patterns). Do NOT proceed to Step 1.
-- If it exists but is older than ~30 days → ask whether to rescan via `/scan-conventions` or use as-is.
-- If it exists and is current → proceed to Step 1 and treat the artifact as authoritative for downstream analysis.
+### Step 2: 가정 표면화
 
-### Step 1: Parse Request
-
-Identify what the user wants. Do NOT assume scope.
-
-- What domain or area is involved?
-- Which modules / services / surfaces are touched? (API server, CLI, batch, library, frontend, ...)
-- What is the expected externally visible behavior?
-- Are there related features already implemented?
-
-If anything is unclear, ask before proceeding. Do NOT fill in ambiguous requirements silently.
-
-### Step 2: Surface Assumptions
-
-List every assumption explicitly. Each assumption is something that could be wrong.
+모든 가정을 명시하고 사용자 확인을 받는다. 가정 하나하나가 "틀릴 수 있는 것"이다.
 
 ```
 ASSUMPTIONS:
-1. This feature targets the {module} (not {other-module})
-2. Authentication is required (not a public surface)
-3. The {entity} already exists and does not need schema changes
-4. {Pagination style} follows the project default
--> Confirm or correct these before I proceed.
+1. 이 기능은 product-api 대상이다 (admin-api 아님)
+2. 인증 필요 (공개 엔드포인트 아님)
+3. {엔티티}는 이미 존재하고 스키마 변경 불필요
+→ 확인 또는 수정해 주세요.
 ```
 
-Do NOT proceed without user confirmation on assumptions.
+**확인 없이 진행 금지.** 가정을 조용히 채워 넣는 것이 재작업의 근원이다.
 
-**Superpowers absorption (if installed).** When Superpowers is active in the session, invoke its `brainstorming` skill as a sub-block before finalizing the assumption list — use the Socratic dialogue to surface deeper hidden assumptions, then merge its output into this section. The user-approval gate above still applies; brainstorming output does NOT bypass it. If Superpowers is not installed, skip this sub-block silently and proceed with GSL alone.
+### Step 3: 성공 기준
 
-### Step 3: Define Success Criteria
-
-Each criterion must be specific and testable. Translate vague requirements into concrete conditions.
+각 기준은 구체적이고 검증 가능해야 한다. "더 좋게", "성능 개선" 같은 검증 불가 기준은 거부하고 구체화를 요청한다.
 
 ```
-REQUIREMENT: "add a usage statistics feature"
-
 SUCCESS CRITERIA:
-- {GET endpoint / CLI command} returns average, count, and distribution
-- Response shape includes {field 1}, {field 2}, {field 3}
-- Unauthenticated callers can {access / are rejected with 401}
-- Latency target: < {N} ms at {scale} items
--> Are these the right targets?
+- GET {경로}가 평균·건수·분포를 반환한다
+- 미인증 호출은 401
+- 응답에 {필드1}, {필드2} 포함
+→ 이 목표가 맞습니까?
 ```
 
-Reject criteria that are not testable ("make it better", "improve performance").
+성공 기준도 가정과 같다 — 확인 없이 다음 Step으로 가지 않는다.
 
-### Step 4: Analyze Impact Scope
+### Step 4: 영향 범위 조사
 
-Check which parts of the system are affected. The exact checklist depends on the project type — consult `implement/references/types/{your-type}.md` for type-specific impact checklists. Generally:
+결정이 아니라 조사다: 관련 모듈, cross-domain 결합(Facade 신설 필요?), 스키마 마이그레이션 여부(Flyway — 엔티티 변경 시 필수), 이벤트 발행/수신, 캐시, 필요한 테스트 계층, 외부 API 계약.
 
-- **Modules / surfaces**: which ones are involved?
-- **Cross-component coupling**: any new dependency between previously independent units?
-- **Persistence**: schema migration needed?
-- **Async / events**: new events published or consumed?
-- **Caching**: invalidation policy affected?
-- **Tests**: which test layers will be needed?
-- **Docs / API contracts**: external consumers impacted?
+### Step 5: plan 문서 작성
 
-### Step 5: Create Plan Document
-
-Create `plan/{feature-name}.md`. Use the user's preferred language for plan documents (the working convention is the user's natural language; English keywords for section headers are fine):
+`plan/{feature-name}.md` 생성. 기능 하나 = 문서 하나.
 
 ```markdown
-# Plan: [feature name]
+# Plan: [기능명]
 
 ## Overview
-[what we are building and why]
+[무엇을, 왜]
 
 ### Assumptions
-- [assumption 1]
-- [assumption 2]
-
 ### Success Criteria
-- [specific, testable criterion 1]
-- [specific, testable criterion 2]
-
 ### Impact Scope
-- [modules / files affected, schema, events, cache, tests]
+
+## Execution Mode
+- mode: (승인 게이트에서 확정)
+
+## Tasks
+(/plan에서 작성)
+
+## Progress Log
 ```
 
-This document will be extended by `/plan` (Tasks section) and `/implement` (Progress Log).
+### Step 6: 승인 게이트 = 계약 서명
 
-### Step 6: User Approval Gate
-
-Present the complete Overview to the user. Do NOT proceed to `/plan` or `/implement` without explicit approval.
+Overview 승인과 **Execution Mode 선언**을 함께 받는다. 이것이 이 스킬의 핵심 산출물이다.
 
 ```
-Plan document created: plan/{feature-name}.md
+plan/{feature-name}.md 작성 완료
 
-Summary:
-- Assumptions: [N] items listed
-- Success criteria: [N] conditions defined
-- Impact: [modules / surfaces affected]
+- 가정 [N]건 / 성공 기준 [N]건 / 영향: [모듈]
 
-Approve to proceed to /plan for task breakdown?
+Execution Mode를 선택해 주세요:
+1. step-by-step (기본) — 단계마다 승인
+2. delegated — 이후 자율 진행. scope를 함께 선언해 주세요
+   (plan, implement, test, verify, commit [, push, pr])
 ```
+
+선택 결과를 plan 문서의 `## Execution Mode` 섹션에 기록한다. delegated면 scope와 stop-conditions를 함께 기록한다 — 기본 3종: ① 가정 붕괴(재개봉 프로토콜) ② `/verify` 3회 실패 ③ scope 밖 행동. **문서에 기록된 것만이 유효한 계약이다.** scope에 push/pr을 포함하면 그 행위가 별도 재확인 없이 수행된다는 뜻임을 게이트에서 함께 고지한다.
+
+## 재개봉 프로토콜
+
+이후 어느 단계(`/plan`, `/implement`, `/test`)에서든 **가정을 깨는 발견**이 나오면:
+
+1. 즉시 정지한다 (delegated 모드여도 — stop-condition 1번).
+2. 이 문서의 Assumptions를 수정한다.
+3. WHAT(성공 기준·범위)이 바뀌었으면 재승인을 받는다. 표현만 정밀해진 것이면 기록만 남기고 계속한다.
+
+조용히 적응해서 계속 진행하는 것이 최악의 선택이다.
 
 ## Common Rationalizations
 
-| Rationalization | Reality |
-|-----------------|---------|
-| "This is simple, I don't need a spec" | Simple tasks still need acceptance criteria. A 2-line spec is fine. |
-| "I'll figure it out while coding" | That is how rework happens. 15 minutes of spec saves 3 hours of wrong implementation. |
-| "Requirements will change anyway" | That is why the spec is a living document. Having one that changes is better than having none. |
-| "The user knows what they want" | Even clear requests have implicit assumptions. The spec surfaces those. |
-| "I can just start with /implement" | Without defined success criteria, how will you know when you are done? |
+| 합리화 | 현실 |
+|--------|------|
+| "간단해서 스펙 필요 없다" | 간단한 작업도 수용 기준은 필요하다. 2줄짜리 스펙이면 된다. |
+| "코딩하면서 알아가면 된다" | 그게 재작업이 생기는 방식이다. 스펙 15분이 잘못된 구현 3시간을 아낀다. |
+| "사용자가 뭘 원하는지 안다" | 명확한 요청에도 암묵적 가정이 있다. 스펙이 그걸 드러낸다. |
+| "사용자가 건너뛰라고 했다" | 속도 요청은 형식을 압축하라는 뜻이다(가정을 묶어 한 번에 제시). 확인 자체는 생략하지 않는다. |
 
 ## Red Flags
 
-- Jumping to code without user approval on assumptions
-- Assumptions not listed explicitly
-- Success criteria that are not testable
-- Missing impact analysis (especially cross-component coupling)
-- Proceeding to `/plan` without user approval on the Overview
-- Creating multiple plan documents for a single feature
+- 가정 확인 없이 다음 단계로 진행
+- 검증 불가능한 성공 기준을 그대로 수용
+- Execution Mode 선언 없이 게이트 통과
+- 기능 하나에 plan 문서 여러 개 생성
+- 이 스킬 안에서 코드 작성 또는 태스크 분해
 
-## Verification
+## 종료
 
-Before proceeding to `/plan`:
-
-- [ ] Plan document exists at `plan/{feature-name}.md`
-- [ ] Assumptions are listed and confirmed by user
-- [ ] Success criteria are specific and testable
-- [ ] Impact scope identifies affected modules / surfaces / tests
-- [ ] User has explicitly approved the Overview
-
-## Runtime Boundary — HARD STOP
-
-This skill ENDS after the Verification checklist and final report are completed.
-
-For codex and any runtime without an enforced skill-return boundary:
-- MUST stop the assistant turn here.
-- MUST NOT invoke, load, or execute any next GSL skill in the same response turn.
-- MUST NOT continue into `/next-flow`, `/define`, `/plan`, `/implement`, `/test`, `/verify`, `/debug`, or `/self-review`.
-- MAY print exactly one suggested next command as plain text.
-- MUST wait for the user's next message before running any next skill.
-
-If the user says only "continue", treat that as permission to report the next recommended command, not permission to execute it.
-
----
-
-## Lifecycle Integration
-
-**Before this skill:** if `plan/conventions.md` does not exist, run `/scan-conventions` first — analysis relies on knowing the project's actual conventions (naming, layering, test patterns, build system).
-
-**After this skill:** the next GSL skill is started by the user, not by this skill — see the Runtime Boundary section above. `/next-flow` may be suggested for lifecycle diagnosis but is not auto-invoked. Runtime note: some environments expose slash commands as UI commands; codex loads GSL skills from `.agents/skills/`. In both cases, the next GSL skill requires a new explicit user message.
+지침의 **GSL Execution Mode** 규칙을 따른다. 산출물(문서 경로, 가정·기준 개수, 확정된 모드)을 보고한다. step-by-step이면 `Next: /plan`을 제안한 뒤 턴을 끝내고, delegated(scope에 plan 포함)면 `/plan`으로 계속한다.
