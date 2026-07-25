@@ -11,6 +11,8 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.response
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.global.security.SecurityContextUtil;
@@ -192,5 +194,44 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
                     fieldWithPath("nickname")
                         .description("사용자 닉네임 (최초 로그인 시 자동 생성된 닉네임)")
                         .optional())));
+  }
+
+  @Test
+  @DisplayName("v2 경로로도 토큰을 재발급할 수 있다.")
+  void reissue_on_v2_test() throws Exception {
+    // given
+    String refreshToken = "refresh-token";
+    TokenItem newToken =
+        TokenItem.builder().accessToken("new-access-token").refreshToken("new-refresh").build();
+    when(authService.reissue(refreshToken)).thenReturn(newToken);
+
+    // then
+    mockMvc
+        .perform(
+            post("/api/v2/auth/reissue")
+                .header("refresh-token", refreshToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf()))
+        .andExpect(status().isOk())
+        .andExpect(cookie().exists("refresh-token"));
+  }
+
+  @Test
+  @DisplayName("v2 경로로도 토큰 유효성을 검사할 수 있다.")
+  void verify_on_v2_test() throws Exception {
+    // given
+    when(authService.verifyToken("test-token")).thenReturn("Token is valid");
+
+    Map<String, String> request = new HashMap<>();
+    request.put("token", "test-token");
+
+    // then
+    mockMvc
+        .perform(
+            put("/api/v2/auth/token/verify")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(request))
+                .with(csrf()))
+        .andExpect(status().isOk());
   }
 }

@@ -15,6 +15,7 @@
 [source]
 ----
 POST /api/v1/oauth/reissue
+POST /api/v2/auth/reissue    (동일 동작, 클라이언트 전환용)
 ----
 
 [discrete]
