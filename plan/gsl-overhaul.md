@@ -99,11 +99,11 @@ GSL(Guided Software Lifecycle) 9개 스킬을 이 저장소 전용으로 대폭 
 - Verification: 서브에이전트 시나리오 3건 — (a) step 모드 Task 완료 후 정지 확인, (b) delegated 모드 연속 진행+보고 확인, (c) 함정: delegated 중 define 가정이 깨지는 발견 → stop-condition 발동 확인
 - Files (advisory): implement/SKILL.md × 미러 2
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Checkpoint: after Tasks 3-5
-- [ ] 미러 diff 일치
-- [ ] 시나리오 치명 결함 0건 (발견 시 해당 Task로 되돌아가 수정)
+- [x] 미러 diff 일치
+- [x] 시나리오 치명 결함 0건 (발견 시 해당 Task로 되돌아가 수정)
 
 ### Task 6: test/verify/debug/self-review 정리
 - Acceptance: 4개 스킬에서 HARD STOP 보일러플레이트 제거→지침 참조, Superpowers·타 언어 분기 제거, java 고정, 트리거에 상태 기반 조건 추가. 워크플로 본문은 유지(이미 유효)
@@ -125,3 +125,4 @@ GSL(Guided Software Lifecycle) 9개 스킬을 이 저장소 전용으로 대폭 
 - Task 2: 지침 양쪽의 "GSL Runtime Boundary Rules"를 "GSL Execution Mode" 섹션으로 교체. step-by-step 기본·delegated 선언 형식·stop-conditions 3종(가정 붕괴→재개봉, verify 3회 실패, scope 밖 행동)·PR 본문=체인지로그 관례를 명문화. 지침 정규화 diff 일치, Skills 표 7행이 실제 스킬 7종과 정합. Checkpoint 1-2 통과.
 - Task 3: /define 재작성 — WHAT/HOW 분리 철학, 지침 기반 하드 게이트, Execution Mode 선언 게이트(계약 서명), 재개봉 프로토콜, 상태 기반 트리거. 시나리오 검증(scenario-define): 정상 경로 완주 확인, 함정("가정 확인 넘어가고") 게이트 우회 불가 판정, 치명 0건·경미 7건. 경미 중 5건 반영(합리화 표에 외부 압박 행 추가, mode 플레이스홀더, stop-conditions 3종 인라인, Step 3 차단 문구, delegated 종료 분기·push/pr 고지). 188행 → 140행.
 - Task 4: /plan 재작성 — 정육 모델(Task=관절=승인 대상, Slice=썰기=에이전트 전권), 분해→정렬→크기검산 순서, Files advisory 강등, Depends 필드 신설. 시나리오 검증(scenario-plan): 정상 완주 확인, 치명 3건 검출(재개봉 프로토콜 미정의 / 사용자 수평 요청 충돌·승인 거부 분기 부재 / 중단 지점이 Step 6에만). "가정 붕괴 시 즉시 중단" 전역 규칙 신설 + 수평 요청 특칙(1회 권고→재지시 시 사용자 결정) + 승인 거부 분기로 수정, 재검증 결과 3건 전부 해소·신규 치명 0건. 경미 4·5·6·8도 반영.
+- Task 5: /implement 재작성 — Execution Mode 분기(step은 Task별 정지+연속 실행 예외, delegated는 체크포인트 보고로 계속), stop-conditions 우선 규칙, Phase 4에 push/pr·PR 본문=체인지로그 공식화, Polyglot·언어 fallback 제거. 시나리오 검증(scenario-implement) 4건: step 정지·delegated 연속+푸시 직전 정지·가정 붕괴 정지·plan 부재 거부 모두 텍스트만으로 도출, 치명 0건. 경미 5건(재개 신호 해석, 모드 읽기 위치, 정지 보고 명세, 체크포인트 도달 지점, verify 레벨) 반영 후 검증자 재확인 완료. Checkpoint 3-5 통과.
