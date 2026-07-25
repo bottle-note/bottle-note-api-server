@@ -1,5 +1,8 @@
 package app.bottlenote.user.service;
 
+import static app.bottlenote.global.security.jwt.JwtTokenValidator.validateToken;
+import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
+
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import app.bottlenote.user.constant.GenderType;
 import app.bottlenote.user.constant.SocialType;
@@ -72,6 +75,39 @@ public class AuthService {
 
     checkActiveUser(user);
     return getAuthResult(user, SocialType.KAKAO);
+  }
+
+  /** 리프레시 토큰으로 액세스/리프레시 토큰을 재발급한다. */
+  @Transactional
+  public TokenItem reissue(String refreshToken) {
+    try {
+      if (!validateToken(refreshToken)) {
+        throw new UserException(INVALID_REFRESH_TOKEN);
+      }
+    } catch (Exception e) {
+      throw new UserException(INVALID_REFRESH_TOKEN);
+    }
+
+    User user =
+        oauthRepository
+            .findByRefreshToken(refreshToken)
+            .orElseThrow(() -> new UserException(INVALID_REFRESH_TOKEN));
+
+    TokenItem reissuedToken =
+        tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
+    user.updateRefreshToken(reissuedToken.refreshToken());
+    return reissuedToken;
+  }
+
+  /** 토큰의 유효성을 검사해 결과 메시지를 반환한다. */
+  @Transactional(readOnly = true)
+  public String verifyToken(String token) {
+    try {
+      return validateToken(token) ? "Token is valid" : "Token is invalid {empty}";
+    } catch (Exception e) {
+      log.error("Token is invalid : {}", e.getMessage());
+      return String.format("Token is invalid {%s}", e.getMessage());
+    }
   }
 
   private User findByEmailOrCreateAppleUser(String email, String socialUniqueId) {

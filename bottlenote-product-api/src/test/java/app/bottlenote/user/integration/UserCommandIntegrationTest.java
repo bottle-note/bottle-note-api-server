@@ -7,12 +7,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 import app.bottlenote.IntegrationTestSupport;
-import app.bottlenote.user.constant.SocialType;
 import app.bottlenote.user.constant.UserStatus;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
-import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.request.ProfileImageChangeRequest;
 import app.bottlenote.user.dto.response.NicknameChangeResponse;
 import app.bottlenote.user.dto.response.ProfileImageChangeResponse;
@@ -87,51 +85,6 @@ class UserCommandIntegrationTest extends IntegrationTestSupport {
 
     // Then
     result.assertThat().hasStatusOk();
-  }
-
-  @DisplayName("탈퇴한 회원이 재로그인 하는 경우 예외가 발생한다.")
-  @Test
-  void test_3() throws Exception {
-    // Given
-    User user = userTestFactory.persistUser();
-    TokenItem token = getToken(user);
-
-    // 먼저 회원 탈퇴
-    MvcTestResult deleteResult =
-        mockMvcTester
-            .delete()
-            .uri("/api/v1/users")
-            .contentType(APPLICATION_JSON)
-            .header("Authorization", "Bearer " + token.accessToken())
-            .with(csrf())
-            .exchange();
-
-    deleteResult.assertThat().hasStatusOk();
-
-    // When - 재로그인 시도
-    MvcTestResult loginResult =
-        mockMvcTester
-            .post()
-            .uri("/api/v1/oauth/login")
-            .contentType(APPLICATION_JSON)
-            .content(
-                mapper.writeValueAsString(
-                    new OauthRequest(user.getEmail(), null, SocialType.KAKAO, null, null)))
-            .with(csrf())
-            .exchange();
-
-    // Then
-    loginResult.assertThat().hasStatus(HttpStatus.BAD_REQUEST);
-    loginResult
-        .assertThat()
-        .bodyJson()
-        .extractingPath("$.errors[0].code")
-        .isEqualTo(UserExceptionCode.USER_DELETED.name());
-    loginResult
-        .assertThat()
-        .bodyJson()
-        .extractingPath("$.errors[0].message")
-        .isEqualTo(UserExceptionCode.USER_DELETED.getMessage());
   }
 
   @DisplayName("닉네임 변경에 성공한다.")

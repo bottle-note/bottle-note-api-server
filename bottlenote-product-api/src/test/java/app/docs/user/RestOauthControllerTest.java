@@ -16,13 +16,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.user.config.OauthConfigProperties;
-import app.bottlenote.user.constant.GenderType;
-import app.bottlenote.user.constant.SocialType;
 import app.bottlenote.user.controller.OauthController;
 import app.bottlenote.user.dto.request.BasicLoginRequest;
-import app.bottlenote.user.dto.request.OauthRequest;
 import app.bottlenote.user.dto.request.TokenVerifyRequest;
 import app.bottlenote.user.dto.response.TokenItem;
+import app.bottlenote.user.service.AuthService;
 import app.bottlenote.user.service.OauthService;
 import app.docs.AbstractRestDocs;
 import org.junit.jupiter.api.DisplayName;
@@ -34,6 +32,7 @@ import org.springframework.restdocs.payload.JsonFieldType;
 @Tag("restdocs")
 @DisplayName("유저 Auth 컨트롤러 RestDocs 테스트")
 class RestOauthControllerTest extends AbstractRestDocs {
+  private final AuthService authService = mock(AuthService.class);
   private final OauthService oauthService = mock(OauthService.class);
   private final OauthConfigProperties config;
 
@@ -47,74 +46,7 @@ class RestOauthControllerTest extends AbstractRestDocs {
 
   @Override
   protected Object initController() {
-
-    return new OauthController(oauthService, config);
-  }
-
-  @Test
-  @DisplayName("로그인을 할 수 있다.")
-  void login_test() throws Exception {
-
-    // given
-    OauthRequest oauthRequest =
-        new OauthRequest("cdm2883@naver.com", "", SocialType.KAKAO, GenderType.MALE, 27);
-    TokenItem tokenItem =
-        TokenItem.builder()
-            .accessToken(
-                "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNDk3NjUyM30.41SuOBgmX-sd8nrMbC-xm0kH6rbny_SMYCKWE4rNQEZgSrRPS0HvYv0X7E-weo6sHlWWm1OmiQgHl4-uy6-9ig")
-            .refreshToken(
-                "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJn44WB44WBZ2dAbmF2ZXIuY29tIiwicm9sZXMiOiJST0xFX1VTRVIiLCJ1c2VySWQiOjE2LCJpYXQiOjE3MTQ5NzU2MjMsImV4cCI6MTcxNjE4NTIyM30.lvmPueUcOb1erv5Llo4qhEUQ_gtWrpFGbBHDw-Pi94qj8MGojoEI3ugdMo8PwoKgrVQZ_gBwBbytwjxh8XktUg")
-            .build();
-
-    // when
-    when(oauthService.login(oauthRequest)).thenReturn(tokenItem);
-
-    // then
-    mockMvc
-        .perform(
-            post("/api/v1/oauth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .with(csrf())
-                .content(objectMapper.writeValueAsString(oauthRequest)))
-        .andExpect(status().isOk())
-        .andExpect(cookie().exists("refresh-token"))
-        .andDo(
-            document(
-                "user/user-login",
-                requestFields(
-                    fieldWithPath("email").type(JsonFieldType.STRING).description("이메일"),
-                    fieldWithPath("socialUniqueId")
-                        .type(JsonFieldType.STRING)
-                        .description("소셜 로그인 제공자의 고유 식별자"),
-                    fieldWithPath("gender").type(JsonFieldType.STRING).description("성별").optional(),
-                    fieldWithPath("age").type(JsonFieldType.NUMBER).description("나이").optional(),
-                    fieldWithPath("socialType")
-                        .type(JsonFieldType.STRING)
-                        .description("소셜 로그인 타입")),
-                responseFields(
-                    fieldWithPath("success").type(JsonFieldType.BOOLEAN).description("응답 성공 여부"),
-                    fieldWithPath("code")
-                        .type(JsonFieldType.NUMBER)
-                        .description("응답 코드(http status code)"),
-                    fieldWithPath("data.accessToken")
-                        .type(JsonFieldType.STRING)
-                        .description("액세스 토큰"),
-                    fieldWithPath("data.isFirstLogin")
-                        .type(JsonFieldType.BOOLEAN)
-                        .description("최초 로그인 여부 (true: 최초 로그인, false: 기존 사용자)")
-                        .optional(),
-                    fieldWithPath("data.nickname")
-                        .type(JsonFieldType.STRING)
-                        .description("사용자 닉네임 (최초 로그인 시 자동 생성된 닉네임)")
-                        .optional(),
-                    fieldWithPath("errors")
-                        .type(JsonFieldType.ARRAY)
-                        .description("응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)"),
-                    fieldWithPath("meta.serverEncoding").description("서버 인코딩 정도"),
-                    fieldWithPath("meta.serverVersion").description("서버 버전"),
-                    fieldWithPath("meta.serverPathVersion").description("서버 경로 버전"),
-                    fieldWithPath("meta.serverResponseTime").description("서버 응답 시간")),
-                responseHeaders(headerWithName("Set-Cookie").description("리프레쉬 토큰"))));
+    return new OauthController(authService, oauthService, config);
   }
 
   @Test
@@ -131,7 +63,7 @@ class RestOauthControllerTest extends AbstractRestDocs {
             .build();
 
     // when
-    when(oauthService.refresh(request)).thenReturn(newTokenItem);
+    when(authService.reissue(request)).thenReturn(newTokenItem);
 
     // then
     mockMvc
@@ -155,11 +87,11 @@ class RestOauthControllerTest extends AbstractRestDocs {
                         .description("액세스 토큰"),
                     fieldWithPath("data.isFirstLogin")
                         .type(JsonFieldType.BOOLEAN)
-                        .description("최초 로그인 여부 (true: 최초 로그인, false: 기존 사용자)")
+                        .description("최초 로그인 여부 (재발급 시에는 내려가지 않음)")
                         .optional(),
                     fieldWithPath("data.nickname")
                         .type(JsonFieldType.STRING)
-                        .description("사용자 닉네임 (최초 로그인 시 자동 생성된 닉네임)")
+                        .description("사용자 닉네임 (재발급 시에는 내려가지 않음)")
                         .optional(),
                     fieldWithPath("errors")
                         .type(JsonFieldType.ARRAY)
@@ -179,7 +111,7 @@ class RestOauthControllerTest extends AbstractRestDocs {
     final String message = "Token is valid";
 
     // when
-    when(oauthService.verifyToken(request.token())).thenReturn(message);
+    when(authService.verifyToken(request.token())).thenReturn(message);
 
     // then
     mockMvc

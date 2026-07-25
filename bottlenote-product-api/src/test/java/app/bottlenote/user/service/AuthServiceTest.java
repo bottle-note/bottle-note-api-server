@@ -1,6 +1,7 @@
 package app.bottlenote.user.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -12,6 +13,8 @@ import app.bottlenote.user.constant.UserType;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.response.AuthResponse;
 import app.bottlenote.user.dto.response.KakaoUserResponse;
+import app.bottlenote.user.dto.response.TokenItem;
+import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.fake.FakeJwtTokenProvider;
 import app.bottlenote.user.fake.FakeOauthRepository;
 import app.bottlenote.user.repository.RootAdminRepository;
@@ -20,6 +23,7 @@ import io.jsonwebtoken.security.Keys;
 import java.lang.reflect.Field;
 import java.security.Key;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -225,6 +229,75 @@ class AuthServiceTest {
     // then
     assertThat(result.isFirstLogin()).isFalse();
     assertThat(result.nickname()).isEqualTo("기존유저");
+  }
+
+  @Test
+  @DisplayName("탈퇴한 회원이 재로그인 하는 경우 예외가 발생한다")
+  void deleted_user_cannot_login() {
+    // given
+    KakaoUserResponse.KakaoAccount kakaoAccount =
+        new KakaoUserResponse.KakaoAccount(
+            false,
+            null,
+            false,
+            null,
+            false,
+            "deleted@kakao.com",
+            true,
+            true,
+            false,
+            "20~29",
+            false,
+            "female");
+    KakaoUserResponse kakaoUser =
+        new KakaoUserResponse(987654321L, LocalDateTime.now(), kakaoAccount);
+    when(kakaoAuthService.getUserInfo(anyString())).thenReturn(kakaoUser);
+
+    authService.loginWithKakao("valid-kakao-token");
+    User user = oauthRepository.findByEmail("deleted@kakao.com").orElseThrow();
+    user.withdrawUser();
+
+    // when & then
+    assertThrows(UserException.class, () -> authService.loginWithKakao("valid-kakao-token"));
+  }
+
+  @Test
+  @DisplayName("토큰 재발급을 할 수 있다.")
+  void reissue_token() {
+    // given
+    String reissueRefreshToken =
+        jwtTokenProvider.createRefreshToken("cdm2883@naver.com", UserType.ROLE_USER, 1L);
+
+    User userWithRefreshToken =
+        User.builder()
+            .id(1L)
+            .email("cdm2883@naver.com")
+            .gender(GenderType.MALE)
+            .socialType(new ArrayList<>(List.of(SocialType.KAKAO)))
+            .age(26)
+            .nickName("mockNickname")
+            .role(UserType.ROLE_USER)
+            .refreshToken(reissueRefreshToken)
+            .build();
+    oauthRepository.save(userWithRefreshToken);
+
+    // when
+    TokenItem response = authService.reissue(reissueRefreshToken);
+
+    // then
+    assertThat(response).isNotNull();
+    assertThat(response.accessToken()).isNotNull().isNotEmpty();
+    assertThat(response.refreshToken()).isNotNull().isNotEmpty();
+  }
+
+  @Test
+  @DisplayName("토큰 검증에 통과하지 못하면 토큰 재발급에 실패한다")
+  void reissue_token_fail() {
+    // given
+    String invalidRefreshToken = "invalid-refresh-token";
+
+    // when & then
+    assertThrows(UserException.class, () -> authService.reissue(invalidRefreshToken));
   }
 
   private Field getLastLoginAtField() {
