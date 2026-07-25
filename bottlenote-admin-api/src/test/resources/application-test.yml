@@ -72,6 +72,7 @@ profanity:
 apple:
   bundle-id: "com.bottlenote.official.app"
 
+# mono의 KakaoAuthService가 admin 컨텍스트에도 로드되므로 placeholder 해석이 필요하다.
 kakao:
   app-id: 1052783
 
