@@ -22,7 +22,7 @@ public class AdminUserTestFactory {
 
   @Autowired private EntityManager em;
 
-  @Autowired private BCryptPasswordEncoder passwordEncoder;
+  private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
   private String generateRandomSuffix() {
     return String.valueOf(counter.incrementAndGet());

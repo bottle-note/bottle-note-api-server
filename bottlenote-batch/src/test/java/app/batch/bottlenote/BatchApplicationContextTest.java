@@ -10,7 +10,7 @@ import app.bottlenote.support.report.service.DailyDataReportService;
 import app.bottlenote.support.report.service.ReviewReportService;
 import app.bottlenote.support.report.service.UserReportService;
 import app.bottlenote.user.service.AdminUserService;
-import app.bottlenote.user.service.OauthService;
+import app.bottlenote.user.service.AuthService;
 import app.external.version.config.AppInfoConfig;
 import app.external.webhook.config.DiscordWebhookProperties;
 import org.junit.jupiter.api.DisplayName;
@@ -84,7 +84,7 @@ class BatchApplicationContextTest {
   @Test
   @DisplayName("batch와 무관한 product/admin 성격의 mono bean은 로드하지 않는다")
   void contextDoesNotLoadUnnecessaryMonoBeans() {
-    assertThat(context.getBeansOfType(OauthService.class)).isEmpty();
+    assertThat(context.getBeansOfType(AuthService.class)).isEmpty();
     assertThat(context.getBeansOfType(AdminUserService.class)).isEmpty();
     assertThat(context.getBeansOfType(ReviewService.class)).isEmpty();
     assertThat(context.getBeansOfType(UserReportService.class)).isEmpty();

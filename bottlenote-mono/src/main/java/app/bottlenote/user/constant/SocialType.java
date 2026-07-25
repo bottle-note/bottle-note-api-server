@@ -8,7 +8,6 @@ public enum SocialType {
   NAVER,
   GOOGLE,
   APPLE,
-  BASIC,
   NONE;
 
   @JsonCreator
