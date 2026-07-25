@@ -2,8 +2,7 @@
 
 [source]
 ----
-PUT /api/v1/oauth/token/verify
-PUT /api/v2/auth/token/verify    (동일 동작, 클라이언트 전환용)
+PUT /api/v2/auth/token/verify
 ----
 
 [discrete]

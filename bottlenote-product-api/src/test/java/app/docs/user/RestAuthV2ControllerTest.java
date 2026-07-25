@@ -4,6 +4,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
+import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
+import static org.springframework.restdocs.headers.HeaderDocumentation.responseHeaders;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
@@ -34,6 +36,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.http.MediaType;
+import org.springframework.restdocs.payload.JsonFieldType;
 
 @Tag("restdocs")
 @DisplayName("유저 Auth 컨트롤러 V2x RestDocs 테스트")
@@ -197,7 +200,7 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
   }
 
   @Test
-  @DisplayName("v2 경로로도 토큰을 재발급할 수 있다.")
+  @DisplayName("토큰을 재발급할 수 있다.")
   void reissue_on_v2_test() throws Exception {
     // given
     String refreshToken = "refresh-token";
@@ -213,11 +216,38 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
                 .contentType(MediaType.APPLICATION_JSON)
                 .with(csrf()))
         .andExpect(status().isOk())
-        .andExpect(cookie().exists("refresh-token"));
+        .andExpect(cookie().exists("refresh-token"))
+        .andDo(
+            document(
+                "user/user-reissue",
+                responseFields(
+                    fieldWithPath("success").type(JsonFieldType.BOOLEAN).description("응답 성공 여부"),
+                    fieldWithPath("code")
+                        .type(JsonFieldType.NUMBER)
+                        .description("응답 코드(http status code)"),
+                    fieldWithPath("data.accessToken")
+                        .type(JsonFieldType.STRING)
+                        .description("액세스 토큰"),
+                    fieldWithPath("data.isFirstLogin")
+                        .type(JsonFieldType.BOOLEAN)
+                        .description("최초 로그인 여부 (재발급 시에는 내려가지 않음)")
+                        .optional(),
+                    fieldWithPath("data.nickname")
+                        .type(JsonFieldType.STRING)
+                        .description("사용자 닉네임 (재발급 시에는 내려가지 않음)")
+                        .optional(),
+                    fieldWithPath("errors")
+                        .type(JsonFieldType.ARRAY)
+                        .description("응답 성공 여부가 false일 경우 에러 메시지(없을 경우 null)"),
+                    fieldWithPath("meta.serverEncoding").description("서버 인코딩 정도"),
+                    fieldWithPath("meta.serverVersion").description("서버 버전"),
+                    fieldWithPath("meta.serverPathVersion").description("서버 경로 버전"),
+                    fieldWithPath("meta.serverResponseTime").description("서버 응답 시간")),
+                responseHeaders(headerWithName("Set-Cookie").description("리프레쉬 토큰"))));
   }
 
   @Test
-  @DisplayName("v2 경로로도 토큰 유효성을 검사할 수 있다.")
+  @DisplayName("토큰 유효성을 검사할 수 있다.")
   void verify_on_v2_test() throws Exception {
     // given
     when(authService.verifyToken("test-token")).thenReturn("Token is valid");
@@ -232,6 +262,19 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(new ObjectMapper().writeValueAsString(request))
                 .with(csrf()))
-        .andExpect(status().isOk());
+        .andExpect(status().isOk())
+        .andDo(
+            document(
+                "user/token-verify",
+                requestFields(fieldWithPath("token").description("검사할 토큰")),
+                responseFields(
+                    fieldWithPath("success").ignored(),
+                    fieldWithPath("code").ignored(),
+                    fieldWithPath("errors").ignored(),
+                    fieldWithPath("data").description("결과"),
+                    fieldWithPath("meta.serverEncoding").ignored(),
+                    fieldWithPath("meta.serverVersion").ignored(),
+                    fieldWithPath("meta.serverPathVersion").ignored(),
+                    fieldWithPath("meta.serverResponseTime").ignored())));
   }
 }
