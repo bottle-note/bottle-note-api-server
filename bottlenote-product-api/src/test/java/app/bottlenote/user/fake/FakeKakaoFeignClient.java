@@ -1,7 +1,7 @@
 package app.bottlenote.user.fake;
 
 import app.bottlenote.user.client.KakaoFeignClient;
-import app.bottlenote.user.dto.response.KakaoAccessTokenInfo;
+import app.bottlenote.user.dto.response.KakaoTokenInfoResponse;
 import app.bottlenote.user.dto.response.KakaoUserResponse;
 import feign.FeignException;
 import java.time.LocalDateTime;
@@ -120,7 +120,7 @@ public class FakeKakaoFeignClient implements KakaoFeignClient {
   }
 
   @Override
-  public ResponseEntity<KakaoAccessTokenInfo> getAccessTokenInfo(String authorization) {
+  public ResponseEntity<KakaoTokenInfoResponse> getAccessTokenInfo(String authorization) {
     if (simulateUnauthorized) {
       throw new FeignException.Unauthorized(
           "Unauthorized",
@@ -139,7 +139,7 @@ public class FakeKakaoFeignClient implements KakaoFeignClient {
     }
 
     Long appId = appIdOverride != null ? appIdOverride : TEST_APP_ID;
-    return ResponseEntity.ok(new KakaoAccessTokenInfo(user.id(), 21599, appId));
+    return ResponseEntity.ok(new KakaoTokenInfoResponse(user.id(), 21599, appId));
   }
 
   // 테스트 헬퍼 메서드들
