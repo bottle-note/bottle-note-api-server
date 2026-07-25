@@ -48,11 +48,76 @@ GSL(Guided Software Lifecycle) 9개 스킬을 이 저장소 전용으로 대폭 
 
 ## Execution Mode
 
-- mode: step-by-step (Assumption 10, 승인 시 확정)
+- mode: step-by-step (Assumption 10, 확정)
+- 검증 방법론: 서브에이전트 시나리오 검증 (사용자 지시로 추가)
+
+## 검증 방법론 — 서브에이전트 시나리오 검증
+
+재작성된 스킬 텍스트가 실제로 의도한 행동을 유도하는지, 합성 시나리오를 만들어 서브에이전트로 롤플레이 검증한다.
+
+- **방식**: 서브에이전트에게 재작성된 SKILL.md 전문과 가상의 기능 요청(예: "시음 노트에 온도 기록 추가")을 주고, 그 스킬을 따르는 에이전트로서 어떻게 행동할지 서술하게 한다. 지시가 모호한 곳, 상충하는 곳, 폭주(승인 없이 진행)를 허용하는 구멍을 보고받는다.
+- **함정 시나리오 포함**: 정상 경로만이 아니라 위반 유도 시나리오를 섞는다 — 수평 분해를 유도하는 요청, 애매한 "계속해줘", 가정이 깨지는 중간 발견, delegated 모드에서 stop-condition 상황.
+- **수용 기준**: 치명 결함(승인 게이트 우회 가능, stop-condition 무시 가능, 지시 상충) 0건. 경미한 모호함은 기록 후 수정 여부 판단.
+- 서브에이전트는 스킬 텍스트만 보고 판단한다 (이 대화의 맥락 없이) — 신규 세션이 읽었을 때의 실효성을 검증하는 것이 목적이다.
 
 ## Tasks
 
-(/plan에서 작성)
+### Task 1: 삭제 — 스킬 2종·미사용 references·conventions 은퇴
+- Acceptance: `next-flow`/`scan-conventions` 스킬이 미러 양쪽에서 삭제됨. references에서 python/go/cli/library/worker-daemon 삭제. `plan/conventions.md` 은퇴(stale 이동). 잔존 스킬 7종은 아직 수정 전이어도 무방
+- Verification: `diff -rq .agents/skills .claude/skills` 일치, 삭제 대상 파일 0건 확인, 잔존 스킬에서 삭제된 스킬 참조가 깨지는 지점 목록화(다음 Task 입력)
+- Files (advisory): 미러 양쪽 약 24파일 삭제 + plan/conventions.md 이동. 브랜치 분리(`chore/gsl-overhaul` 생성, define 커밋 이관) 포함
+- Size: M
+- Status: [ ] not done
+
+### Task 2: Execution Mode 계약 + 지침 갱신
+- Acceptance: 지침(CLAUDE.md/AGENTS.md)의 "GSL Runtime Boundary Rules" 섹션이 Execution Mode 규칙(기본 step-by-step, delegated 선언 형식, stop-conditions, HARD STOP 통합 규정)으로 대체됨. Skills 표 9→7. PR 본문=체인지로그 관례가 delegated scope 정의에 포함됨
+- Verification: 지침 정규화 diff 일치, 표의 7개 커맨드가 실제 스킬 디렉터리와 정합
+- Files (advisory): CLAUDE.md, AGENTS.md
+- Size: S
+- Status: [ ] not done
+
+### Checkpoint: after Tasks 1-2
+- [ ] 미러 diff 일치, 지침 diff 일치
+- [ ] 잔존 스킬의 깨진 참조 목록 확보
+
+### Task 3: /define 재작성
+- Acceptance: WHAT/HOW 분리 철학 명문화, 하드 게이트를 conventions.md → 지침 존재로 교체, 승인 게이트에 Execution Mode 선언 절차 추가, 재개봉 프로토콜(가정 붕괴 시 STOP→수정→재승인) 명시, HARD STOP 보일러플레이트 제거(지침 참조 한 줄), 트리거에 상태 기반 조건 추가
+- Verification: 서브에이전트 시나리오 2건 — (a) 정상: 신규 기능 요청 → 가정·성공기준 도출 및 모드 선언까지, (b) 함정: 모호한 요청에 가정 확인 없이 진행하도록 유도 → 게이트가 막는지
+- Files (advisory): define/SKILL.md × 미러 2
+- Size: S
+- Status: [ ] not done
+
+### Task 4: /plan 재작성
+- Acceptance: 분해(자연 관절)→의존성 정렬→크기 검증 순서로 재구성, Task=승인 대상/Slice=에이전트 전권 구분 명문화, `Files:`를 advisory로 강등, Superpowers 블록 제거, HARD STOP 제거
+- Verification: 서브에이전트 시나리오 2건 — (a) 정상: Task 3 시나리오의 define 산출물로 분해, (b) 함정: 수평 분해가 자연스러워 보이는 요청 → 수직 강제가 작동하는지
+- Files (advisory): plan/SKILL.md × 미러 2
+- Size: S
+- Status: [ ] not done
+
+### Task 5: /implement 재작성
+- Acceptance: Execution Mode 분기 구현 — step-by-step은 Task별 HARD STOP 유지, delegated는 체크포인트 보고(Progress Log 기록+진행 보고)로 대체하되 stop-conditions 준수. Polyglot Mode·언어 fallback 제거, java-spring 고정. PR·체인지로그 단계를 Phase 4 이후 공식 꼬리로 정의
+- Verification: 서브에이전트 시나리오 3건 — (a) step 모드 Task 완료 후 정지 확인, (b) delegated 모드 연속 진행+보고 확인, (c) 함정: delegated 중 define 가정이 깨지는 발견 → stop-condition 발동 확인
+- Files (advisory): implement/SKILL.md × 미러 2
+- Size: M
+- Status: [ ] not done
+
+### Checkpoint: after Tasks 3-5
+- [ ] 미러 diff 일치
+- [ ] 시나리오 치명 결함 0건 (발견 시 해당 Task로 되돌아가 수정)
+
+### Task 6: test/verify/debug/self-review 정리
+- Acceptance: 4개 스킬에서 HARD STOP 보일러플레이트 제거→지침 참조, Superpowers·타 언어 분기 제거, java 고정, 트리거에 상태 기반 조건 추가. 워크플로 본문은 유지(이미 유효)
+- Verification: 4파일×미러 grep — "Superpowers" 0건, "HARD STOP" 상세 블록 0건, python/go 분기 0건
+- Files (advisory): 4 SKILL.md × 미러 2 = 8파일
+- Size: M
+- Status: [ ] not done
+
+### Task 7: 종합 검증 및 마감
+- Acceptance: Success Criteria 13개 전 항목 체크리스트 대조 통과. E2E 시나리오 2건(step-by-step 전체 사이클 1건, delegated 전체 사이클 1건) 치명 결함 0건. 용량 측정 기록
+- Verification: `diff -rq` 미러 일치, 지침 정규화 diff 일치, `du -sk` 전후 비교, E2E 서브에이전트 보고서
+- Files (advisory): 수정 없음(검증 전용), 필요 시 발견 결함 수정
+- Size: S
+- Status: [ ] not done
 
 ## Progress Log
 
