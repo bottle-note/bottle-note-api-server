@@ -23,7 +23,7 @@ class JwtAuthenticationFilterPolicyTest {
   private final SecurityPolicyRegistry policyRegistry =
       new SecurityPolicyRegistry(
           List.of(
-              SecurityPolicyRoute.explicit("POST", "/api/v1/oauth/login", PUBLIC),
+              SecurityPolicyRoute.explicit("POST", "/api/v2/auth/kakao", PUBLIC),
               SecurityPolicyRoute.explicit("GET", "/api/v1/regions", PUBLIC),
               SecurityPolicyRoute.explicit("GET", "/api/v1/alcohols/categories", PUBLIC),
               SecurityPolicyRoute.explicit("GET", "/api/v1/alcohols/search", OPTIONAL_AUTH),
@@ -35,7 +35,7 @@ class JwtAuthenticationFilterPolicyTest {
 
   @ParameterizedTest
   @CsvSource({
-    "POST, /api/v1/oauth/login",
+    "POST, /api/v2/auth/kakao",
     "GET, /api/v1/regions",
     "GET, /api/v1/alcohols/categories"
   })

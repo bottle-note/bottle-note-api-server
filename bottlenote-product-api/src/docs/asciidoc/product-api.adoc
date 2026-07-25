@@ -41,7 +41,6 @@ include::api/auth/auth.adoc[]
 == 회원 (user) 관련 API
 
 '''
-include::api/user/user-login.adoc[]
 
 '''
 include::api/user/user-reissue.adoc[]
