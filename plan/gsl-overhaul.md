@@ -74,11 +74,11 @@ GSL(Guided Software Lifecycle) 9개 스킬을 이 저장소 전용으로 대폭 
 - Verification: 지침 정규화 diff 일치, 표의 7개 커맨드가 실제 스킬 디렉터리와 정합
 - Files (advisory): CLAUDE.md, AGENTS.md
 - Size: S
-- Status: [ ] not done
+- Status: [x] done
 
 ### Checkpoint: after Tasks 1-2
-- [ ] 미러 diff 일치, 지침 diff 일치
-- [ ] 잔존 스킬의 깨진 참조 목록 확보
+- [x] 미러 diff 일치, 지침 diff 일치
+- [x] 잔존 스킬의 깨진 참조 목록 확보
 
 ### Task 3: /define 재작성
 - Acceptance: WHAT/HOW 분리 철학 명문화, 하드 게이트를 conventions.md → 지침 존재로 교체, 승인 게이트에 Execution Mode 선언 절차 추가, 재개봉 프로토콜(가정 붕괴 시 STOP→수정→재승인) 명시, HARD STOP 보일러플레이트 제거(지침 참조 한 줄), 트리거에 상태 기반 조건 추가
@@ -121,6 +121,5 @@ GSL(Guided Software Lifecycle) 9개 스킬을 이 저장소 전용으로 대폭 
 
 ## Progress Log
 
-(비어 있음 — /implement에서 기록)
-
 - Task 1: `chore/gsl-overhaul` 브랜치 분리(sync-agent는 origin으로 원복). next-flow·scan-conventions 스킬과 python/go/cli/library/worker-daemon references를 미러 양쪽에서 삭제(18파일), conventions.md는 stale로 이동. 삭제 전 용량 276KB/미러. 잔존 참조 44건을 9개 SKILL.md + web-api.md·bottlenote-patterns.md에서 확인 — SKILL.md는 Tasks 3-6 재작성에서, references 2개는 Task 6에서 해소 예정. 미러 diff 일치.
+- Task 2: 지침 양쪽의 "GSL Runtime Boundary Rules"를 "GSL Execution Mode" 섹션으로 교체. step-by-step 기본·delegated 선언 형식·stop-conditions 3종(가정 붕괴→재개봉, verify 3회 실패, scope 밖 행동)·PR 본문=체인지로그 관례를 명문화. 지침 정규화 diff 일치, Skills 표 7행이 실제 스킬 7종과 정합. Checkpoint 1-2 통과.
