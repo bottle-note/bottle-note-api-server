@@ -1,3 +1,0 @@
-### 회원 탈퇴
-DELETE {{host}}/api/v1/users
-Authorization: Bearer {{accessToken}}
