@@ -1,251 +1,94 @@
 ---
 name: implement
 description: |
-  Incremental feature implementation across any language/stack.
-  Trigger: "/implement", or when the user says "API 추가", "기능 구현", "기능 개발", "feature implementation", "build this".
-  Branches on project type (web-api / cli / batch / library) and language (java-spring / python / go / ...) via arguments and references.
-  Enforces Task / Slice / Commit 3-level granularity. For test implementation, use /test after this skill completes.
-argument-hint: "[type] [language] [work-type]"
+  승인된 Tasks를 Slice 단위로 얇게 구현하고 Task 단위로 커밋한다. Execution Mode에 따라 Task별 정지 또는 자율 연속 진행한다.
+  Trigger: "/implement", 또는 사용자가 "API 추가", "기능 구현", "기능 개발", "build this"라고 할 때.
+  상태 기반: plan/{기능}.md에 미완료 Task가 있을 때. Controller/Service/Repository/Facade 등 다중 파일 구현 작업일 때.
+  Java/Spring 패턴은 references/languages/java-spring.md, 프로젝트 특화 패턴은 bottlenote-patterns.md를 따른다.
+argument-hint: "[feature-name or task number]"
 ---
 
-# Incremental Implementation
+# Implement — Slice 실행과 Task 커밋
 
-References (read the matching ones before coding):
-- `references/types/{type}.md` — type-specific patterns (web-api / cli / batch / library)
-- `references/languages/{language}.md` — language/framework-specific patterns
+References (코딩 전에 해당 항목을 읽는다):
+- `references/languages/java-spring.md` — Java/Spring 구현 패턴 (product-api·mono)
+- `references/languages/bottlenote-patterns.md` — 프로젝트 특화 패턴 (InMemory 갱신 체크리스트 등)
+- `references/types/web-api.md` — API 계층 패턴 / `references/types/batch.md` — batch 작업 시
 
-## Overview
+## 철학: Slice는 에이전트 전권
 
-Build features in thin vertical slices — implement one piece, verify it compiles / type-checks, then expand. Each Task is a committable unit; each Slice within a Task is a compile-check unit. The workflow is the same across stacks; concrete patterns live in references.
+Task는 `/plan`에서 승인된 계약(관절)이고, 그 안에서 어떻게 썰어 실행할지는 이 스킬의 재량이다. 단 하나의 규칙: **~100줄을 넘기기 전에 컴파일 체크한다.** Slice 1의 버그는 Slice 2~5를 전부 오염시키므로, 얇게 썰고 자주 확인한다.
 
-## When to Use
+```
+Task  = 커밋 단위 (승인된 계약 — 변경하려면 /plan 재개봉)
+Slice = 컴파일 체크 단위 (에이전트 재량 — 어떻게 썰든 자유)
+```
 
-- Implementing any new feature
-- Adding operations to an existing domain / module
-- Extending an existing component with new behavior
-- Any multi-file implementation work
+## 전제 (하드 게이트)
 
-## When NOT to Use
+`plan/{feature-name}.md`에 승인된 Tasks가 있어야 한다. 없으면 **정지**하고 `/define` → `/plan`을 안내한다. 시작 시 같은 문서의 `## Execution Mode` 섹션에서 mode·scope·stop-conditions를 읽는다 — 선언이 없으면 step-by-step이다.
 
-- Bug fixing with clear reproduction (use `/debug`)
-- Test-only work (use `/test`)
-- Requirements unclear or ambiguous (use `/define` first)
-- Single-file config changes or documentation updates
-
-## Argument Parsing
-
-Parse `$ARGUMENTS`:
-- **type**: `web-api` | `cli` | `batch` | `library` — selects `references/types/{type}.md`
-- **language**: `java-spring` | `python` | `go` | ... — selects `references/languages/{language}.md`
-- **work-type**: `crud` | `search` | `action` | `read-only` (informational, guides exploration scope)
-
-If type / language is omitted, infer from project structure and confirm with the user before proceeding.
-
-**Missing language reference fallback.** If `references/languages/{language}.md` does not exist for the resolved language (e.g., `rust`, `kotlin-android`, `swift`, `zig`):
-
-1. **STOP** before Phase 0.
-2. Present the `references/types/{type}.md` applicable scope and ask the user to choose:
-   - **(a)** Provide the language's idioms inline (1-screen summary covering: module layout, DI/error/test patterns, build tool). This skill treats it as a temporary reference for this feature only.
-   - **(b)** Approve fallback to the nearest-language reference: `go` for systems langs, `python` for dynamic langs, `java-spring` for static JVM-like langs. The user must acknowledge that idioms may not fit perfectly.
-3. Never silently proceed with a missing language reference. If neither (a) nor (b) is approved, STOP.
+유일한 예외: 자명한 단일 파일 수정(오타, 리네임, 한 줄 수정) — 이 경우 최소 slice + 약식 리뷰 + 컴파일 체크로 바로 처리한다. **다중 파일 작업은 승인된 plan 없이 절대 진행하지 않는다.**
 
 ## Process
 
-### Phase 0: Explore
+### Phase 0: 탐색
 
-**Hard gate — approved plan required.** BEFORE doing anything else, verify that an approved plan document with at least one Task exists at `plan/{feature-name}.md` (the Progress Log being empty or in-progress is fine; the existence of Tasks is what matters). If not → **STOP** and tell the user to run `/define` then `/plan` first. The only exception: a single-file obvious fix (typo, rename, one-line comment, formatting) — in that case skip the rest of Phase 0 and proceed directly to a minimal slice + `/self-review` + `/verify quick`. Multi-file work without an approved plan is never allowed.
+코드를 쓰기 전에 파악한다: 대상 모듈·패키지 위치, 재사용할 기존 Service/Repository/Facade, 이미 있는 것과 새로 만들 것의 구분. 그리고 영향을 보고한다 — cross-domain 결합(Facade 신설·수정 시 InMemory 테스트 더블 갱신 필요), 스키마 변경(엔티티를 바꾸면 Flyway 마이그레이션 필수 — `ddl-auto: validate`라 누락 시 기동 실패), 이벤트, 캐시.
 
-Before writing any code, understand what already exists and what will be affected.
+### Phase 1: 코어
 
-**Codebase scan:**
-1. Locate the target module / package
-2. Identify existing services / handlers / repositories that may be reused
-3. Check what already exists vs. what needs to be created
-4. Read the relevant references (`types/{type}.md`, `languages/{language}.md`)
+레이어 순서: 엔티티(신규 시) → 도메인 레포지토리(포트) → JPA 구현 → DTO(record) → 예외 → Service → cross-domain 필요 시 Facade 인터페이스+구현. 네이밍·어노테이션은 지침과 references가 정의하며 ArchUnit이 강제한다.
 
-**Impact analysis (general — extend with type-specific items from references):**
-5. **Cross-module coupling** — files affected if a shared interface changes (other modules, test doubles)
-6. **Persistence** — schema migration needed?
-7. **Async / events** — new events published or consumed?
-8. **Caching** — invalidation strategy needed?
-9. **Public API contract** — external consumers impacted?
+### Phase 2: 표면
 
-Report both findings and impact to the user before proceeding.
+Controller — 경로, 인증(`@SecurityPolicy`), 요청 검증(`@Valid`), 응답(`GlobalResponse`), 페이징(`PageResponse`/`CursorPageable`). Controller는 얇게 — 비즈니스 로직은 Service 소유다.
 
-### Phase 1: Core / Business Logic
+### Phase 3: Task 사이클
 
-Build the foundation in the layer order documented in `references/types/{type}.md`. As a generic template:
+Task 하나마다:
 
-1. **Domain model / entity** (if new)
-2. **Persistence interface + implementation** (repository, data access)
-3. **DTO / model** (request / response / event shapes)
-4. **Error / exception types**
-5. **Service / use case / handler logic**
-6. **Cross-module seam** (facade / port) when other modules need access
+1. Slice 구현 → 컴파일 체크 (`./gradlew compileJava -q` 수준) → 통과할 때까지 수정
+2. Task의 모든 Slice 완료 → 5축 약식 리뷰(정확성·가독성·아키텍처·보안·성능 — 전면 리뷰가 필요하면 `/self-review`를 별도 호출로 권고)
+3. 단위 테스트 실행 (Task 곁에 테스트 코드를 쓰는 것은 허용; `/test`의 풀 워크플로는 별도 경계)
+4. 커밋 — 제목은 Task, 본문 불릿은 Slice. 커밋 메시지는 한국어(프로젝트 관례)
+5. plan 문서 갱신: Status 체크, Progress Log에 한 단락 기록
+6. **모드 분기**:
 
-Language-specific class/function naming, annotations, and idioms: see `references/languages/{language}.md`.
+| Execution Mode | Task 완료 후 행동 |
+|---|---|
+| **step-by-step** | 정지. 완료 Task·검증 증거·변경 파일·다음 Task를 보고하고 턴을 끝낸다. 예외: 사용자가 연속 실행을 명시한 경우("Task 1~3", "결과까지")에만 계속. 범위 없는 재개 신호("계속", "고")는 **다음 Task 1개만** 허가로 간주한다 |
+| **delegated** (scope에 implement 포함) | 체크포인트 보고를 남기고 다음 Task로 계속한다 — Progress Log는 plan 문서에, 진행 요약은 대화에 즉시 출력해 사용자가 실시간 확인할 수 있게 한다 |
 
-### Phase 2: Surface / Entry Point
+**stop-conditions는 모드와 무관하게 우선한다** (지침의 GSL Execution Mode 참조): 가정을 깨는 발견 → 즉시 정지, 재개봉 프로토콜. verify 3회 실패 → `/debug` 보고 후 정지. scope 밖 행동 필요 → 직전 정지. 정지 시 보고 항목: 발동한 조건, 발견 내용, 깨진 가정(해당 시), 제안 조치.
 
-Build the externally visible layer per `references/types/{type}.md`:
-- **web-api**: HTTP controller / route handler — path, auth, request validation, response shape, pagination
-- **cli**: command binding — flags, args, output format, exit codes
-- **batch**: job step + scheduler binding
-- **library**: public API surface + backwards-compat considerations
+### Phase 4: 마감
 
-### Phase 3: Task-Slice-Commit Cycle
+모든 Task 완료 후:
 
-Each Task from the `/plan` is implemented through Slices:
-
-```
-Task  = Commit unit (logical goal agreed with user)
-Slice = Execution unit (compile / type-check before exceeding ~100 lines)
-```
-
-**Verification levels:**
-
-| Timing | Level | What to run |
-|--------|-------|-------------|
-| After each Slice | Compile / type-check only | `/verify quick` or equivalent |
-| After Task completion | Self-review + unit tests | `/self-review` → `/verify standard` |
-| After all Tasks complete | Integration tests | `/verify full` |
-
-For exact commands per language, see `verify/references/verify/{your-language}.md`.
-
-**Commit message format** (Task = title, Slices = bullets):
-```
-feat: rating statistics service
-
-- RatingStatisticsResponse DTO
-- repository query for statistics
-- service.getStatistics() implementation
-- facade wiring
-```
-
-**Cycle per Task:**
-1. Implement Slice → compile / type-check → pass? continue : fix
-2. Repeat until all Slices in the Task are done
-3. Run a self-review pass on the Task's changes (the 5-axis check). For a full independent review, stop and recommend `/self-review` as a separate invocation — do not run its full skill body inside `/implement`.
-4. Run the compile/type-check and unit-test commands needed for this Task. For full `/verify standard` or `/verify full`, stop and recommend `/verify` as a separate invocation.
-5. Commit with descriptive message
-6. Update plan document (check off Task, add to Progress Log)
-7. **HARD STOP after this Task.** Do NOT start the next Task in the same response turn. Report: completed Task number/title, verification evidence, changed files, next recommended Task. Then wait for the user's next message.
-   - Exception: proceed to the next Task in the same turn ONLY IF the user explicitly named multiple Tasks for continuous execution in their request (e.g. "do Tasks 1 through 3"). An ambiguous "continue" / "진행하자" is NOT such permission.
-
-### Phase 4: Final Verification
-
-After all Tasks are committed:
-
-| Timing | Command | Purpose |
-|--------|---------|---------|
-| Implementation done | `/verify standard` | Compile + unit + build |
-| Before push / PR | `/verify full` | Includes integration tests |
-
-Then use `/test` if integration tests need to be written.
-
-## Endpoint / Command Design
-
-URL / command shape, HTTP method mapping, flag conventions — all type-specific. See `references/types/{type}.md`.
-
-## Package / Module Structure
-
-Layer-to-folder mapping is type-specific (web-api differs from cli) and language-specific (Java package vs Python module vs Go internal/). See:
-- `references/types/{type}.md` for layer breakdown
-- `references/languages/{language}.md` for the language's idiomatic folder layout
-
-## Polyglot Mode (monorepo with multiple type/language modules)
-
-When the project is a polyglot monorepo (e.g., Python API + Go CLI + Java batch coexisting in one repo), a single `[type] [language]` argument is insufficient. Switch to **Polyglot Mode** when `/scan-conventions` reports more than one detected type or language.
-
-### Step 1: Build the module matrix during Phase 0
-
-| Path | Type | Language | Verify command | References to load |
-|------|------|----------|----------------|---------------------|
-| `services/api/` | web-api | python | `pytest -m unit` | types/web-api.md + languages/python.md + testing/python.md + verify/python.md |
-| `tools/cli/` | cli | go | `go test ./...` | types/cli.md + languages/go.md + testing/go.md + verify/go.md |
-| `batch/` | batch | java-spring | `./gradlew unit_test` | types/batch.md + languages/java-spring.md + testing/java.md + verify/java-gradle.md |
-
-Record the matrix in the plan document's `Impact Scope` section.
-
-### Step 2: Per-Task module declaration
-
-For each Task in `/plan`, declare which module(s) it touches. **A Task must not cross module boundaries** — each module has different references and verify commands. If a feature requires changes in two modules:
-
-- Split into **two Tasks** (one per module), or
-- Add a third Task for the cross-module contract (e.g., shared protobuf / OpenAPI / event schema)
-
-Cross-module Tasks are an L-size red flag and must be decomposed.
-
-### Step 3: Per-Slice reference loading
-
-During Slice execution, load ONLY the references for the current Slice's module. Do not mix idioms from two modules in one Slice (e.g., do not apply Python's `Depends()` idiom inside a Go handler Slice).
-
-### Step 4: Verification fan-out
-
-`/verify` runs the **union** of all touched modules' verify commands. If only `services/api/` was modified in the last Task, only `pytest -m unit` runs; if both `services/api/` and `batch/` were modified, both `pytest` and `./gradlew unit_test` run.
-
-### Red Flags specific to Polyglot Mode
-
-- A single Task touches files in two different modules (split it)
-- A Slice mixes idioms from two language references
-- `/scan-conventions` reports polyglot but the matrix is missing from the plan document
-- Verify fan-out skipped because "I only changed Python, the Go module is unchanged" — verify still must run on every Task-touched module
+1. `/verify standard` (컴파일+단위+빌드) — 푸시·PR 전에는 `/verify full` (통합 포함)
+2. plan 문서에 완료 스탬프, `plan/complete/`로 이동
+3. **scope에 따라**: `push` 선언 시 푸시. `pr` 선언 시 PR 오픈 — **PR 본문이 체인지로그를 겸한다** (변경 사항·배경·검증·제외 범위 구조, 기존 PR 관례를 따른다). 미선언이면 해당 직전에서 정지하고 확인받되, 정지 보고에 "푸시 전 `/verify full` 필요"를 명시한다 (scope가 commit에서 끝나면 full이 아직 안 돌았을 수 있다).
 
 ## Common Rationalizations
 
-| Rationalization | Reality |
-|-----------------|---------|
-| "I'll test it all at the end" | Bugs compound. A bug in Slice 1 makes Slices 2-5 wrong. Compile-check each Slice. |
-| "It's faster to do it all at once" | It feels faster until something breaks and you cannot find which of 500 changed lines caused it. |
-| "I don't need a facade / seam for this" | If you are accessing another module's internals directly, you need a seam. Module boundaries exist for a reason. |
-| "This refactor is small enough to include" | Refactors mixed with features make both harder to review and debug. Separate them. |
-| "The controller / handler can hold this logic" | Surface layers are thin. Business logic belongs in the service / use case. Always. |
-| "I'll skip self-review, the code is straightforward" | Straightforward code still needs architecture and security checks. Run `/self-review`. |
+| 합리화 | 현실 |
+|--------|------|
+| "한 번에 다 만들고 마지막에 테스트" | 버그는 복리다. Slice마다 컴파일 체크해라. |
+| "Controller에 로직 조금 넣어도" | 표면은 얇게. 로직은 Service 소유다. 항상. |
+| "리팩토링도 겸사겸사" | 기능과 리팩토링을 섞으면 둘 다 리뷰·디버그가 어려워진다. 분리해라. |
+| "인터페이스만 바꾸고 Fake는 나중에" | 포트를 바꾸면 InMemory 구현도 같은 Task에서 갱신한다 (bottlenote-patterns.md 체크리스트). |
 
 ## Red Flags
 
-- More than 100 lines written without a compile / type-check
-- Cross-module internals accessed directly (bypassing the documented seam)
-- Surface layer (controller / handler / CLI) containing business logic instead of delegating
-- Interface changed but test doubles (InMemory/Fake implementations) not updated
-- No error handling for module-specific error types
-- Skipping Phase 0 (Explore) and jumping straight to coding
-- Multiple unrelated changes in a single Task
-- Task completed without running `/self-review`
-- Starting Task N+1 after completing Task N without explicit user permission for continuous execution
-- Treating an ambiguous "continue" as permission to finish all remaining Tasks
-- Running `/test`, `/verify`, or `/self-review` as full skill bodies inside `/implement` instead of stopping at that skill boundary
+- 100줄 넘게 쓰고 컴파일 체크 없음
+- 타 도메인 Service/Repository 직접 참조 (Facade 경유 위반 — ArchUnit이 잡지만 그 전에 스스로 잡아라)
+- 승인된 plan 없이 다중 파일 작업 시작
+- 엔티티 변경에 Flyway 마이그레이션 누락
+- step-by-step인데 명시 허가 없이 다음 Task 진행
+- delegated인데 stop-condition을 무시하고 계속 진행
+- Task 커밋 없이 여러 Task를 한 커밋에 뭉침
 
-## Verification
+## 종료
 
-After completing all Tasks for a feature:
-
-- [ ] Each Task was individually reviewed (`/self-review`) and committed
-- [ ] Module boundaries respected (no cross-module direct access)
-- [ ] Layer order from `references/types/{type}.md` followed
-- [ ] Language idioms from `references/languages/{language}.md` respected
-- [ ] Unit tests pass: `/verify standard`
-- [ ] Architecture / lint rules pass: included in `/verify standard`
-- [ ] Build / package succeeds
-- [ ] Plan document updated (all Tasks checked, Progress Log filled)
-
-## Runtime Boundary — HARD STOP
-
-This skill ENDS after the Verification checklist and final report are completed.
-
-For codex and any runtime without an enforced skill-return boundary:
-- MUST stop the assistant turn here.
-- MUST NOT invoke, load, or execute any next GSL skill in the same response turn.
-- MUST NOT continue into `/next-flow`, `/define`, `/plan`, `/implement`, `/test`, `/verify`, `/debug`, or `/self-review`.
-- MAY print exactly one suggested next command as plain text.
-- MUST wait for the user's next message before running any next skill.
-
-If the user says only "continue", treat that as permission to report the next recommended command, not permission to execute it.
-
----
-
-## Lifecycle Integration
-
-**Before this skill:** if `plan/conventions.md` does not exist, run `/scan-conventions` first — analysis relies on knowing the project's actual conventions (naming, layering, test patterns, build system).
-
-**After this skill:** the next GSL skill is started by the user, not by this skill — see the Runtime Boundary section above. `/next-flow` may be suggested for lifecycle diagnosis but is not auto-invoked. Runtime note: some environments expose slash commands as UI commands; codex loads GSL skills from `.agents/skills/`. In both cases, the next GSL skill requires a new explicit user message.
+지침의 **GSL Execution Mode** 규칙을 따른다. step-by-step이면 Task 보고 후 턴 종료, 다음은 `Next: /implement (Task N+1)` 또는 전 Task 완료 시 `Next: /test`. delegated면 Phase 4까지 계속한다.
