@@ -58,10 +58,6 @@ public class User extends BaseTimeEntity {
   @Column(name = "email", nullable = false, unique = true)
   private String email;
 
-  @Comment("사용자 비밀번호")
-  @Column(name = "password")
-  private String password;
-
   @Comment("사용자 닉네임")
   @Column(name = "nick_name", nullable = false, unique = true)
   private String nickName;

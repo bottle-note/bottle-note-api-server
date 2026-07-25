@@ -1,6 +1,5 @@
 package app.docs.user;
 
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
@@ -17,11 +16,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import app.bottlenote.user.config.OauthConfigProperties;
 import app.bottlenote.user.controller.OauthController;
-import app.bottlenote.user.dto.request.BasicLoginRequest;
 import app.bottlenote.user.dto.request.TokenVerifyRequest;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.service.AuthService;
-import app.bottlenote.user.service.OauthService;
 import app.docs.AbstractRestDocs;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -30,10 +27,9 @@ import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
 @Tag("restdocs")
-@DisplayName("유저 Auth 컨트롤러 RestDocs 테스트")
+@DisplayName("토큰 재발급·검증 컨트롤러 RestDocs 테스트")
 class RestOauthControllerTest extends AbstractRestDocs {
   private final AuthService authService = mock(AuthService.class);
-  private final OauthService oauthService = mock(OauthService.class);
   private final OauthConfigProperties config;
 
   public RestOauthControllerTest() {
@@ -46,7 +42,7 @@ class RestOauthControllerTest extends AbstractRestDocs {
 
   @Override
   protected Object initController() {
-    return new OauthController(authService, oauthService, config);
+    return new OauthController(authService, config);
   }
 
   @Test
@@ -130,40 +126,6 @@ class RestOauthControllerTest extends AbstractRestDocs {
                     fieldWithPath("code").ignored(),
                     fieldWithPath("errors").ignored(),
                     fieldWithPath("data").description("결과"),
-                    fieldWithPath("meta.serverEncoding").ignored(),
-                    fieldWithPath("meta.serverVersion").ignored(),
-                    fieldWithPath("meta.serverPathVersion").ignored(),
-                    fieldWithPath("meta.serverResponseTime").ignored())));
-  }
-
-  @Test
-  @DisplayName("회원 탈퇴를 복구 할 수 있다.")
-  void restore() throws Exception {
-    // given
-    final String email = "test-email";
-    final String password = "test-password";
-    var request = BasicLoginRequest.builder().email(email).password(password).build();
-
-    doNothing().when(oauthService).restoreUser(email, password);
-
-    mockMvc
-        .perform(
-            post("/api/v1/oauth/restore")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-                .with(csrf()))
-        .andExpect(status().isOk())
-        .andDo(
-            document(
-                "user/restore",
-                requestFields(
-                    fieldWithPath("email").description("이메일"),
-                    fieldWithPath("password").description("비밀번호")),
-                responseFields(
-                    fieldWithPath("success").ignored(),
-                    fieldWithPath("code").ignored(),
-                    fieldWithPath("errors").ignored(),
-                    fieldWithPath("data").description("결과 메시지"),
                     fieldWithPath("meta.serverEncoding").ignored(),
                     fieldWithPath("meta.serverVersion").ignored(),
                     fieldWithPath("meta.serverPathVersion").ignored(),

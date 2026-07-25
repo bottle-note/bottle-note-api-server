@@ -5,12 +5,10 @@ import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.PUBLIC;
 import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.user.config.OauthConfigProperties;
-import app.bottlenote.user.dto.request.BasicLoginRequest;
 import app.bottlenote.user.dto.request.TokenVerifyRequest;
 import app.bottlenote.user.dto.response.OauthResponse;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.service.AuthService;
-import app.bottlenote.user.service.OauthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/** 토큰 재발급·검증 표면. 로그인 자체는 v2(AuthV2Controller)가 담당한다. */
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -32,7 +31,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class OauthController {
   private static final String REFRESH_TOKEN_HEADER_PREFIX = "refresh-token";
   private final AuthService authService;
-  private final OauthService oauthService;
   private final OauthConfigProperties configProperties;
 
   @PostMapping("/reissue")
@@ -47,12 +45,6 @@ public class OauthController {
   @PutMapping("/token/verify")
   public ResponseEntity<?> verifyToken(@RequestBody @Valid TokenVerifyRequest token) {
     return GlobalResponse.ok(authService.verifyToken(token.token()));
-  }
-
-  @PostMapping("/restore")
-  public ResponseEntity<?> restoreAccount(@RequestBody @Valid BasicLoginRequest request) {
-    oauthService.restoreUser(request.getEmail(), request.getPassword());
-    return GlobalResponse.ok("restore success");
   }
 
   private void setRefreshTokenInCookie(HttpServletResponse response, String refreshToken) {

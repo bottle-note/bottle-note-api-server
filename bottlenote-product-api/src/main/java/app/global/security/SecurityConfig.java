@@ -152,7 +152,7 @@ public class SecurityConfig {
     return source;
   }
 
-  /** BCryptPasswordEncoder 빈 등록 */
+  /** mono의 AdminAuthService가 관리자 비밀번호 검증에 사용한다 (사용자 인증과 무관) */
   @Bean
   BCryptPasswordEncoder bCryptPasswordEncoder() {
     return new BCryptPasswordEncoder();
