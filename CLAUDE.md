@@ -263,16 +263,34 @@ Use these skills to follow the structured development lifecycle:
 - OpenFeign: `@FeignClient`, 설정 분리 `FeignConfig`, 에러 처리 `ErrorDecoder`
 - AWS S3: PreSigned URL 생성 (SDK v2 `S3Client`/`S3Presigner`)
 
-## GSL Runtime Boundary Rules
+## GSL Execution Mode
 
-> [상태] 현재 GSL 스킬셋은 구형이다. 별도 세션에서 개편할 예정이며, 개편 전까지 아래 경계 규칙을 유지한다.
+GSL 스킬(define/plan/implement/test/verify/debug/self-review)은 `plan/{기능}.md` 문서를 공유 상태로 쓰는 개발 생명주기다. 진행 방식은 `/define` 승인 게이트에서 계약으로 확정되며, **plan 문서의 `## Execution Mode` 섹션이 유일한 근거다.** 문서에 선언이 없으면 step-by-step이다.
 
-When using GSL skills from `.claude/skills/`, treat each `SKILL.md` as a single-turn procedure.
+### step-by-step (기본값)
 
-- Load only the one GSL skill that matches the user's current explicit request.
-- Do not pre-load all 9 GSL skills unless the user explicitly asks for a read-only diagnosis of the skillset.
-- A GSL skill boundary is a hard stop. When a skill reaches its Verification / Runtime Boundary section, end the assistant turn.
-- `After this skill`, `Next: /...`, or `should invoke` means "suggest the next command", not "execute it now".
-- Do not transition between GSL skills (`/define`->`/plan`, `/plan`->`/implement`, `/implement` Task N->N+1, `/implement`->`/test`, `/test`->`/verify`, etc.) in the same assistant turn unless the user explicitly named that next skill — or named multiple Tasks for continuous execution — in their message.
-- `/implement` may write test code alongside a Task, but must NOT run the full `/test` / `/verify` / `/self-review` workflow inside itself. Those are separate skill boundaries.
-- If the user says "continue" ambiguously, ask whether to run the next suggested GSL skill or only report the next command.
+- 각 GSL 스킬은 자기 작업과 종료 보고를 마치면 **턴을 끝낸다**. 다음 스킬 실행에는 사용자의 새 메시지가 필요하다.
+- `/implement`는 Task 하나를 커밋하고 보고한 뒤 정지한다. 예외: 사용자가 여러 Task의 연속 실행을 명시적으로 지정한 경우("Task 1~3 진행해", "결과까지 진행해")에만 이어서 진행한다.
+- 애매한 "계속", "continue"는 다음 명령을 안내하라는 뜻이지 실행 허가가 아니다.
+- 종료 보고에는 다음 권장 명령을 한 줄로 제안한다 (실행하지 않는다).
+- 스킬 하나가 다른 스킬의 전체 워크플로를 내부에서 실행하지 않는다 (`/implement`가 Task 곁에 테스트 코드를 쓰는 것은 허용, `/test`·`/verify`·`/self-review`의 풀 워크플로 실행은 금지).
+
+### delegated (define 승인 시 명시 선언)
+
+`/define` 승인 게이트에서 아래 형식으로 선언하고 plan 문서에 기록한 경우에만 유효하다.
+
+```markdown
+## Execution Mode
+- mode: delegated
+- scope: plan, implement, test, verify, commit   # push, pr 포함 가능
+- stop-conditions: 기본 3종 (+ 추가 조건)
+```
+
+- scope에 포함된 단계는 단계 간 승인 없이 자율 진행한다. 단 Task마다 Progress Log 기록과 체크포인트 보고는 남긴다.
+- `push`가 scope에 없으면 커밋까지만 하고 푸시 직전에 정지한다. `pr`이 있으면 PR 오픈과 본문 작성까지 수행한다 — **이 저장소는 PR 본문이 체인지로그를 겸한다.**
+
+### stop-conditions (모드 무관, 무조건 정지)
+
+1. **가정 붕괴** — 작업 중 발견이 define의 Assumption을 깨면 즉시 정지하고 재개봉 프로토콜(define 수정 → WHAT이 바뀌었으면 재승인)을 따른다. 조용히 적응하지 않는다.
+2. **verify 반복 실패** — `/verify` 실패를 3회 시도 안에 해결하지 못하면 `/debug` 결과를 보고하고 정지한다.
+3. **scope 밖 행동** — 선언된 scope 밖의 되돌리기 어려운 행동(푸시, PR 오픈, 파일 대량 삭제, 인프라 변경)이 필요해지면 그 직전에 정지하고 확인받는다.
