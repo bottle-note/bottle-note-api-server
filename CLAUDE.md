@@ -166,37 +166,15 @@ Use these skills to follow the structured development lifecycle:
 
 ### 프로젝트 특화 어노테이션
 
-#### 계층별 어노테이션
+| 어노테이션 | 위치 | 포함 | 용도 |
+|---|---|---|---|
+| `@FacadeService` | 구현체 `Default{도메인명}Facade`는 `{domain}.service`, 인터페이스는 `{domain}.facade`(공개 계약) | `@Service` | 도메인 간 완충 계층 구현체. 타 도메인은 Facade 인터페이스만 호출한다 |
+| `@DomainRepository` | `{domain}.domain` | 없음 (마커) | Spring/JPA 비의존 도메인 레포지토리 인터페이스 |
+| `@JpaRepositoryImpl` | `{domain}.repository` | `@Repository` | 도메인 레포지토리의 JPA 구현체, 영속성 예외 변환 |
+| `@DomainEventListener` | `{domain}.event` | `@Component` | 도메인 이벤트 리스너, `ProcessingType`으로 동기/비동기 지정 |
+| `@ThirdPartyService` | `app.external` | `@Service` | AWS·외부 API 등 써드파티 연동 계층 |
 
-**@FacadeService**
-- **역할**: 도메인 간 통신의 완충 계층 구현체 표시
-- **위치**: 인터페이스는 `app.bottlenote.{domain}.facade`(타 도메인에 공개하는 계약), 구현체 `Default{도메인명}Facade`는 `app.bottlenote.{domain}.service`(도메인 내부 구현)
-- **특징**: `@Service` 포함, 스프링 컴포넌트로 자동 등록
-- **용도**: 도메인끼리는 서로의 Service를 직접 부르지 않고 상대 도메인의 Facade 인터페이스만 호출한다. user↔alcohols처럼 양방향 호출이 Service 상호 참조로 얽혀 부채가 되는 것을 막는 경계다
-
-**@DomainRepository**
-- **역할**: 순수 도메인 레포지토리 인터페이스 표시
-- **위치**: `app.bottlenote.{domain}.domain`
-- **특징**: 프레임워크 독립적, Spring/JPA에 의존하지 않음
-- **용도**: 도메인이 할 수 있는 행위를 정의하는 순수 비즈니스 인터페이스
-
-**@JpaRepositoryImpl**
-- **역할**: JPA 레포지토리 구현체 표시
-- **위치**: `app.bottlenote.{domain}.repository`
-- **특징**: `@Repository` 포함, 영속성 예외 변환 제공
-- **용도**: 도메인 레포지토리의 실제 데이터베이스 접근 구현
-
-**@DomainEventListener**
-- **역할**: 도메인 이벤트 리스너 표시
-- **위치**: `app.bottlenote.{domain}.event`
-- **특징**: `@Component` 포함, 동기/비동기 처리 방식 지정 가능 (`ProcessingType`)
-- **용도**: 도메인 이벤트를 처리하는 리스너 구현
-
-**@ThirdPartyService**
-- **역할**: 외부 서비스 연동 계층 표시
-- **위치**: `app.external` 또는 관련 패키지
-- **특징**: `@Service` 포함, 트랜잭션 불필요
-- **용도**: AWS, 외부 API 등 써드파티 시스템 통신
+> 코드 예시: `.claude/skills/implement/references/languages/java-spring.md`
 
 ### 예외 처리
 
@@ -266,54 +244,13 @@ Use these skills to follow the structured development lifecycle:
 
 ### 레포지토리 계층 구조
 
-#### 1. 도메인 레포지토리 (필수)
-- **위치**: `app.bottlenote.{domain}.domain`
-- **네이밍**: `{도메인명}Repository`
-- **역할**: 해당 도메인이 할 수 있는 행위를 정의만 하는 순수 비즈니스 인터페이스
-- **어노테이션**:
-  - `@DomainRepository` (선택) - 도메인 레포지토리임을 명시적으로 표시
-  - 어노테이션 없이 순수 인터페이스로만 작성 가능
-- **원칙**:
-  - Spring, JPA에 의존하지 않음
-  - 도메인 계층에 위치
-  - 서비스 계층은 이 인터페이스에만 의존
+레이어 표준 2·4가 원칙이다: 포트(순수 인터페이스)와 구현을 분리하고, 기술 세부사항은 구현 안에 격리한다.
 
-#### 2. JPA 레포지토리 (필수)
-- **위치**: `app.bottlenote.{domain}.repository`
-- **네이밍**: `Jpa{도메인명}Repository`
-- **역할**: 도메인 레포지토리의 실제 데이터베이스 접근 구현체
-- **어노테이션**:
-  - `@JpaRepositoryImpl` (필수) - JPA 구현체임을 표시하고 `@Repository` 기능 제공
-  - 영속성 예외를 Spring의 DataAccessException으로 자동 변환
-- **원칙**:
-  - `JpaRepository<T, ID>` 상속으로 기본 CRUD 제공
-  - 도메인 레포지토리 인터페이스 구현
-  - 단순 조회는 메서드 쿼리 또는 `@Query` JPQL 사용
-  - QueryDSL Custom 레포지토리 통합 (필요 시)
+1. **도메인 레포지토리** (필수): `{도메인명}Repository`, `{domain}.domain` 위치, `@DomainRepository`는 선택. Spring/JPA 비의존 순수 인터페이스이며 Service는 여기에만 의존한다.
+2. **JPA 레포지토리** (필수): `Jpa{도메인명}Repository`, `{domain}.repository` 위치, `@JpaRepositoryImpl` 필수. `JpaRepository<T, ID>` 상속 + 도메인 레포지토리 구현. 단순 조회는 메서드 쿼리 또는 `@Query` JPQL로 해결한다.
+3. **QueryDSL 레포지토리** (복잡한 쿼리만): `Custom{도메인명}Repository` / `Custom{도메인명}RepositoryImpl` / `{도메인명}QuerySupporter`(`@Component`), 전부 repository 패키지. 동적 조건 조합·다중 조인·복잡한 Projection에만 쓰고, 단순 CRUD나 단일 조건 조회에는 쓰지 않는다.
 
-#### 3. QueryDSL 레포지토리 (선택 - 복잡한 쿼리만)
-- **역할**: 복잡한 동적 쿼리를 타입 세이프하게 작성하기 위한 확장 레포지토리
-- **사용 시점**: 메서드 쿼리나 JPQL로 표현하기 어려운 복잡한 쿼리가 필요할 때만 사용
-
-**구성 요소**:
-- **Custom 인터페이스**: `Custom{도메인명}Repository` (위치: repository 패키지)
-  - 어노테이션 불필요 (순수 인터페이스)
-- **구현체**: `Custom{도메인명}RepositoryImpl` (위치: repository 패키지)
-  - 어노테이션 불필요 (Spring Data JPA가 자동 감지)
-- **쿼리 서포터**: `{도메인명}QuerySupporter` (위치: repository 패키지)
-  - `@Component` (필수) - 재사용 로직을 제공하는 스프링 빈
-
-**QueryDSL 사용 기준**:
-- ✅ 복잡한 동적 조건 (여러 필터 조합)
-- ✅ 다중 테이블 조인 및 집계
-- ✅ 복잡한 Projection (DTO 변환)
-- ❌ 단순 CRUD
-- ❌ 단일 조건 조회 (메서드 쿼리 사용)
-
-**성능 최적화**:
-- 페치 조인, `@BatchSize` 활용 (N+1 방지)
-- `@Cacheable` 적절히 사용
-- 불필요한 컬럼 조회 방지 (Projection 활용)
+> 구현 예시: `.claude/skills/implement/references/languages/java-spring.md`
 
 ## 보안 및 인증
 
@@ -325,37 +262,6 @@ Use these skills to follow the structured development lifecycle:
 
 - OpenFeign: `@FeignClient`, 설정 분리 `FeignConfig`, 에러 처리 `ErrorDecoder`
 - AWS S3: PreSigned URL 생성 (SDK v2 `S3Client`/`S3Presigner`)
-
-## 좋은 Spring Boot 개발 관습
-
-### 응답 통일성
-
-- API 응답 형식 통일: `GlobalResponse` 또는 `ResponseEntity` 일관성 유지
-- 에러 응답 표준화: HTTP 상태 코드와 에러 메시지 일관성
-
-### 성능 최적화
-
-- N+1 문제 방지: 페치 조인, `@BatchSize`, 쿼리 최적화
-- 캐싱 전략: `@Cacheable` 적절히 활용
-- 비동기 처리: `@Async`, 이벤트 기반 처리
-
-### 보안 기본 원칙
-
-- 입력값 검증: `@Valid`, `@Validated` 사용
-- 민감 정보 로깅 금지
-- SQL 인젝션 방지: PreparedStatement 사용
-
-### 테스트 품질
-
-- 단위 테스트와 통합 테스트 분리
-- 테스트 데이터 격리: 각 테스트 독립성 보장
-- Mock 대신 Fake/InMemory 구현으로 외부 의존성 분리 (레이어 표준 10)
-
-### 코드 품질
-
-- 의존성 주입: 생성자 주입 우선
-- 불변성 지향: `final` 필드, `record` 활용
-- 단일 책임 원칙: 클래스와 메서드 역할 명확화
 
 ## GSL Runtime Boundary Rules
 
