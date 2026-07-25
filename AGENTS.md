@@ -271,7 +271,7 @@ GSL 스킬(define/plan/implement/test/verify/debug/self-review)은 `plan/{기능
 
 - 각 GSL 스킬은 자기 작업과 종료 보고를 마치면 **턴을 끝낸다**. 다음 스킬 실행에는 사용자의 새 메시지가 필요하다.
 - `/implement`는 Task 하나를 커밋하고 보고한 뒤 정지한다. 예외: 사용자가 여러 Task의 연속 실행을 명시적으로 지정한 경우("Task 1~3 진행해", "결과까지 진행해")에만 이어서 진행한다.
-- 애매한 "계속", "continue"는 다음 명령을 안내하라는 뜻이지 실행 허가가 아니다.
+- 애매한 "계속", "continue"는 **다음 스킬로의 전환** 허가가 아니다 — 다음 명령을 안내하라는 뜻으로 해석한다. 단, 진행 중인 스킬 내부의 재개 신호는 그 스킬의 규정을 따른다 (`/implement`: 다음 Task 1개만 허가).
 - 종료 보고에는 다음 권장 명령을 한 줄로 제안한다 (실행하지 않는다).
 - 스킬 하나가 다른 스킬의 전체 워크플로를 내부에서 실행하지 않는다 (`/implement`가 Task 곁에 테스트 코드를 쓰는 것은 허용, `/test`·`/verify`·`/self-review`의 풀 워크플로 실행은 금지).
 
@@ -286,11 +286,11 @@ GSL 스킬(define/plan/implement/test/verify/debug/self-review)은 `plan/{기능
 - stop-conditions: 기본 3종 (+ 추가 조건)
 ```
 
-- scope에 포함된 단계는 단계 간 승인 없이 자율 진행한다. 단 Task마다 Progress Log 기록과 체크포인트 보고는 남긴다.
+- scope에 포함된 단계는 생명주기 순서(plan → implement → test → verify → commit → push → pr)대로 단계 간 승인 없이 이어 실행한다. 이는 위임 계약의 이행이므로 step-by-step의 스킬 격리 규칙이 적용되지 않는다. 단 Task마다 Progress Log 기록과 체크포인트 보고는 남긴다.
 - `push`가 scope에 없으면 커밋까지만 하고 푸시 직전에 정지한다. `pr`이 있으면 PR 오픈과 본문 작성까지 수행한다 — **이 저장소는 PR 본문이 체인지로그를 겸한다.**
 
 ### stop-conditions (모드 무관, 무조건 정지)
 
 1. **가정 붕괴** — 작업 중 발견이 define의 Assumption을 깨면 즉시 정지하고 재개봉 프로토콜(define 수정 → WHAT이 바뀌었으면 재승인)을 따른다. 조용히 적응하지 않는다.
 2. **verify 반복 실패** — `/verify` 실패를 3회 시도 안에 해결하지 못하면 `/debug` 결과를 보고하고 정지한다.
-3. **scope 밖 행동** — 선언된 scope 밖의 되돌리기 어려운 행동(푸시, PR 오픈, 파일 대량 삭제, 인프라 변경)이 필요해지면 그 직전에 정지하고 확인받는다.
+3. **scope 밖 행동** — 선언된 scope 밖의 되돌리기 어려운 행동(푸시, PR 오픈, 파일 대량 삭제, 인프라 변경)이 필요해지면 그 직전에 정지하고 확인받는다. step-by-step에서 scope는 사용자가 명시적으로 승인한 작업 범위를 뜻한다.

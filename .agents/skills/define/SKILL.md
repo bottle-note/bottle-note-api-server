@@ -84,6 +84,8 @@ SUCCESS CRITERIA:
 
 ## Execution Mode
 - mode: (승인 게이트에서 확정)
+- scope: (delegated일 때 기록)
+- stop-conditions: (delegated일 때 기록 — 기본 3종은 선언 없이도 항상 적용)
 
 ## Tasks
 (/plan에서 작성)
@@ -110,10 +112,10 @@ Execution Mode를 선택해 주세요:
 
 ## 재개봉 프로토콜
 
-이후 어느 단계(`/plan`, `/implement`, `/test`)에서든 **가정을 깨는 발견**이 나오면:
+이후 어느 단계에서든 **가정을 깨는 발견**이 나오면:
 
 1. 즉시 정지한다 (delegated 모드여도 — stop-condition 1번).
-2. 이 문서의 Assumptions를 수정한다.
+2. 이 문서의 Assumptions 수정안을 제시하고 반영한다.
 3. WHAT(성공 기준·범위)이 바뀌었으면 재승인을 받는다. 표현만 정밀해진 것이면 기록만 남기고 계속한다.
 
 조용히 적응해서 계속 진행하는 것이 최악의 선택이다.
