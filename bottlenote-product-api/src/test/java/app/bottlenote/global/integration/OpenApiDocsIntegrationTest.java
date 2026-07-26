@@ -85,7 +85,6 @@ class OpenApiDocsIntegrationTest extends OpenApiSpecTestSupport {
   }
 
   private boolean isBare(SpecOperation operation) {
-    return BARE_RESPONSE_OPERATIONS.contains(
-        "%s %s".formatted(operation.method().toUpperCase(), operation.path()));
+    return BARE_RESPONSE_OPERATIONS.contains(operation.endpoint());
   }
 }
