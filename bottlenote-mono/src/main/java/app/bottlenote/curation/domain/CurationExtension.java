@@ -37,6 +37,11 @@ public class CurationExtension extends BaseEntity {
   @Type(JsonType.class)
   private Object payload;
 
+  @Comment("x-feed 기준 피드 조회용 파생 payload")
+  @Column(name = "feed_payload", columnDefinition = "json")
+  @Type(JsonType.class)
+  private Object feedPayload;
+
   public void update(Long specId, Object payload) {
     this.specId = specId;
     this.payload = payload;
