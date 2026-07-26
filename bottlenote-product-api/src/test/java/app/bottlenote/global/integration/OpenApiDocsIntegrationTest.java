@@ -62,7 +62,7 @@ class OpenApiDocsIntegrationTest extends OpenApiSpecTestSupport {
     assertThat(envelopeOperations)
         .allSatisfy(
             operation ->
-                assertThat(fieldNamesOf(operation.successSchema()))
+                assertThat(propertyNamesOf(operation.successSchema()))
                     .withFailMessage("%s 의 성공 응답이 공통 형식이 아닙니다", operation)
                     .containsExactlyInAnyOrderElementsOf(ENVELOPE_FIELDS));
   }
@@ -80,7 +80,7 @@ class OpenApiDocsIntegrationTest extends OpenApiSpecTestSupport {
               assertThat(schema.has("$ref"))
                   .withFailMessage("%s 의 응답이 DTO를 가리키지 않습니다", operation)
                   .isTrue();
-              assertThat(fieldNamesOf(schema)).doesNotContainAnyElementsOf(ENVELOPE_FIELDS);
+              assertThat(propertyNamesOf(schema)).doesNotContainAnyElementsOf(ENVELOPE_FIELDS);
             });
   }
 

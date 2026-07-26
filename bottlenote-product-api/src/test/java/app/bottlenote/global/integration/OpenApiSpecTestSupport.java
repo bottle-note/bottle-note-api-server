@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.MissingNode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 
 /** 생성된 OpenAPI 스펙을 읽어 검사하는 테스트들의 공통 기반. */
 abstract class OpenApiSpecTestSupport extends IntegrationTestSupport {
@@ -39,17 +41,14 @@ abstract class OpenApiSpecTestSupport extends IntegrationTestSupport {
     return operations;
   }
 
-  /** 지정한 자식 노드의 필드 이름 목록. */
-  protected List<String> fieldNamesOf(JsonNode node, String childName) {
-    List<String> names = new ArrayList<>();
-    node.path(childName).fieldNames().forEachRemaining(names::add);
-    return names;
+  /** 노드의 직접 자식 이름. */
+  protected Stream<String> childNamesOf(JsonNode node) {
+    return node.properties().stream().map(Map.Entry::getKey);
   }
 
-  protected List<String> fieldNamesOf(JsonNode node) {
-    List<String> names = new ArrayList<>();
-    node.path("properties").fieldNames().forEachRemaining(names::add);
-    return names;
+  /** 스키마 노드가 선언한 property 이름. */
+  protected List<String> propertyNamesOf(JsonNode node) {
+    return childNamesOf(node.path("properties")).toList();
   }
 
   /** 스펙에 실린 하나의 엔드포인트. */
