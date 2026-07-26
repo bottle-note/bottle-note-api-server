@@ -13,7 +13,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.springframework.http.MediaType;
 
 /** 별점 엔드포인트의 문서 설명. */
 public final class RatingApiDocs {
@@ -39,10 +38,7 @@ public final class RatingApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "등록된 별점 정보",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = RatingRegisterResponse.class))))
+              content = @Content(schema = @Schema(implementation = RatingRegisterResponse.class))))
   public @interface RegisterRating {}
 
   @Target(ElementType.METHOD)
@@ -62,7 +58,6 @@ public final class RatingApiDocs {
               description = "별점을 매기지 않은 위스키 목록",
               content =
                   @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
                       array =
                           @ArraySchema(
                               schema = @Schema(implementation = RatingListFetchResponse.class)))))
@@ -77,9 +72,6 @@ public final class RatingApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "내가 준 별점",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = UserRatingResponse.class))))
+              content = @Content(schema = @Schema(implementation = UserRatingResponse.class))))
   public @interface FetchUserRating {}
 }

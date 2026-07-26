@@ -10,7 +10,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.springframework.http.MediaType;
 
 /** 이미지 업로드 엔드포인트의 문서 설명. */
 public final class ImageUploadApiDocs {
@@ -37,9 +36,6 @@ public final class ImageUploadApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "업로드 주소와 조회 주소",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = ImageUploadResponse.class))))
+              content = @Content(schema = @Schema(implementation = ImageUploadResponse.class))))
   public @interface GetPreSignUrl {}
 }

@@ -11,7 +11,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.springframework.http.MediaType;
 
 /** 배너 조회 엔드포인트의 문서 설명. */
 public final class BannerApiDocs {
@@ -39,7 +38,6 @@ public final class BannerApiDocs {
               description = "노출 중인 배너 목록",
               content =
                   @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
                       array =
                           @ArraySchema(schema = @Schema(implementation = BannerResponse.class)))))
   public @interface GetActiveBanners {}

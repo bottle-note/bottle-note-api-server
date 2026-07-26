@@ -10,7 +10,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.springframework.http.MediaType;
 
 /** 테이스팅 태그 추출 엔드포인트의 문서 설명. */
 public final class TastingTagApiDocs {
@@ -38,7 +37,6 @@ public final class TastingTagApiDocs {
               description = "추출된 태그 이름 목록",
               content =
                   @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
                       array =
                           @ArraySchema(
                               schema =

@@ -12,7 +12,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.List;
-import org.springframework.http.MediaType;
 
 /** 위스키 탐색 엔드포인트의 문서 설명. */
 public final class AlcoholExploreApiDocs {
@@ -40,10 +39,7 @@ public final class AlcoholExploreApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "이번 페이지의 위스키 목록",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = ExploreResult.class))))
+              content = @Content(schema = @Schema(implementation = ExploreResult.class))))
   public @interface GetStandardExplore {}
 
   /** 탐색 응답의 data 형태. 실제로는 {@code CollectionResponse<AlcoholDetailItem>}이다. */

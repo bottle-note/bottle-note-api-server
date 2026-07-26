@@ -9,7 +9,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.springframework.http.MediaType;
 
 /** 서버 정보 엔드포인트의 문서 설명. */
 public final class AppInfoApiDocs {
@@ -35,10 +34,7 @@ public final class AppInfoApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "서버 배포 정보",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = AppInfoResult.class))))
+              content = @Content(schema = @Schema(implementation = AppInfoResult.class))))
   public @interface GetAppInfo {}
 
   /** 실제 응답은 문자열 맵이다. 담기는 키를 문서에 드러내기 위해 같은 모양의 타입을 선언한다. */

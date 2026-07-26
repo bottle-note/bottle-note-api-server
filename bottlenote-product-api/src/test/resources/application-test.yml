@@ -60,6 +60,7 @@ springdoc:
     path: /openapi.product.json
   swagger-ui:
     enabled: false
+  default-produces-media-type: application/json
 
 # Spring Security
 security:

@@ -16,7 +16,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.List;
-import org.springframework.http.MediaType;
 
 /** 위스키 기준 정보와 큐레이션 조회 엔드포인트의 문서 설명. */
 public final class AlcoholReferenceApiDocs {
@@ -39,7 +38,6 @@ public final class AlcoholReferenceApiDocs {
               description = "지역 목록",
               content =
                   @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
                       array = @ArraySchema(schema = @Schema(implementation = RegionsItem.class)))))
   public @interface GetRegions {}
 
@@ -54,7 +52,6 @@ public final class AlcoholReferenceApiDocs {
               description = "종류 목록",
               content =
                   @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
                       array = @ArraySchema(schema = @Schema(implementation = CategoryItem.class)))))
   public @interface GetCategories {}
 
@@ -67,10 +64,7 @@ public final class AlcoholReferenceApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "큐레이션 키워드 목록",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = CurationKeywordPage.class))))
+              content = @Content(schema = @Schema(implementation = CurationKeywordPage.class))))
   public @interface SearchCurationKeywords {}
 
   @Target(ElementType.METHOD)
@@ -82,10 +76,7 @@ public final class AlcoholReferenceApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "큐레이션에 담긴 위스키 목록",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = CurationAlcoholPage.class))))
+              content = @Content(schema = @Schema(implementation = CurationAlcoholPage.class))))
   public @interface GetCurationAlcohols {}
 
   /** 실제로는 {@code CursorResponse<CurationKeywordResponse>}다. */

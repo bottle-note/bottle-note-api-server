@@ -11,7 +11,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.springframework.http.MediaType;
 
 /** 신고 엔드포인트의 문서 설명. */
 public final class ReportApiDocs {
@@ -37,10 +36,7 @@ public final class ReportApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "신고 접수 결과",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = UserReportResponse.class))))
+              content = @Content(schema = @Schema(implementation = UserReportResponse.class))))
   public @interface ReportUser {}
 
   @Target(ElementType.METHOD)
@@ -52,9 +48,6 @@ public final class ReportApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "신고 접수 결과",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = ReviewReportResponse.class))))
+              content = @Content(schema = @Schema(implementation = ReviewReportResponse.class))))
   public @interface ReportReview {}
 }

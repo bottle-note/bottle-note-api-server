@@ -12,7 +12,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.springframework.http.MediaType;
 
 /** 리뷰 댓글 엔드포인트의 문서 설명. */
 public final class ReviewReplyApiDocs {
@@ -39,10 +38,7 @@ public final class ReviewReplyApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "등록된 댓글 정보",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = ReviewReplyResponse.class))))
+              content = @Content(schema = @Schema(implementation = ReviewReplyResponse.class))))
   public @interface RegisterReply {}
 
   @Target(ElementType.METHOD)
@@ -54,10 +50,7 @@ public final class ReviewReplyApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "삭제 처리 결과",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = ReviewReplyResponse.class))))
+              content = @Content(schema = @Schema(implementation = ReviewReplyResponse.class))))
   public @interface DeleteReply {}
 
   @Target(ElementType.METHOD)
@@ -70,10 +63,7 @@ public final class ReviewReplyApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "최상위 댓글 목록",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = RootReviewReplyResponse.class))))
+              content = @Content(schema = @Schema(implementation = RootReviewReplyResponse.class))))
   public @interface GetRootReplies {}
 
   @Target(ElementType.METHOD)
@@ -85,9 +75,6 @@ public final class ReviewReplyApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "대댓글 목록",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = SubReviewReplyResponse.class))))
+              content = @Content(schema = @Schema(implementation = SubReviewReplyResponse.class))))
   public @interface GetSubReplies {}
 }

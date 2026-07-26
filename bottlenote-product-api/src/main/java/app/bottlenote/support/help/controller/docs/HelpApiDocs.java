@@ -13,7 +13,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.springframework.http.MediaType;
 
 /** 고객 문의 엔드포인트의 문서 설명. */
 public final class HelpApiDocs {
@@ -39,10 +38,7 @@ public final class HelpApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "등록 처리 결과",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = HelpResultResponse.class))))
+              content = @Content(schema = @Schema(implementation = HelpResultResponse.class))))
   public @interface RegisterHelp {}
 
   @Target(ElementType.METHOD)
@@ -61,7 +57,6 @@ public final class HelpApiDocs {
               description = "문의 목록",
               content =
                   @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
                       array =
                           @ArraySchema(schema = @Schema(implementation = HelpListResponse.class)))))
   public @interface GetHelpList {}
@@ -75,10 +70,7 @@ public final class HelpApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "문의 상세 정보",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = HelpDetailItem.class))))
+              content = @Content(schema = @Schema(implementation = HelpDetailItem.class))))
   public @interface GetHelpDetail {}
 
   @Target(ElementType.METHOD)
@@ -90,10 +82,7 @@ public final class HelpApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "수정 처리 결과",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = HelpResultResponse.class))))
+              content = @Content(schema = @Schema(implementation = HelpResultResponse.class))))
   public @interface ModifyHelp {}
 
   @Target(ElementType.METHOD)
@@ -105,9 +94,6 @@ public final class HelpApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "삭제 처리 결과",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = HelpResultResponse.class))))
+              content = @Content(schema = @Schema(implementation = HelpResultResponse.class))))
   public @interface DeleteHelp {}
 }

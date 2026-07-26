@@ -13,7 +13,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.List;
-import org.springframework.http.MediaType;
 
 /** 활동 기록 엔드포인트의 문서 설명. */
 public final class UserHistoryApiDocs {
@@ -41,7 +40,6 @@ public final class UserHistoryApiDocs {
               description = "활동 기록 목록",
               content =
                   @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
                       array =
                           @ArraySchema(
                               schema = @Schema(implementation = UserHistorySearchResponse.class)))))
@@ -56,10 +54,7 @@ public final class UserHistoryApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "전체 건수와 최근 본 위스키 목록",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = ViewHistoryCollection.class))))
+              content = @Content(schema = @Schema(implementation = ViewHistoryCollection.class))))
   public @interface GetViewHistory {}
 
   /** 실제로는 {@code CollectionResponse<ViewHistoryItem>}다. */

@@ -13,7 +13,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.springframework.http.MediaType;
 
 /** 회원 정보 관리 엔드포인트의 문서 설명. */
 public final class UserBasicApiDocs {
@@ -39,10 +38,7 @@ public final class UserBasicApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "변경된 닉네임",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = NicknameChangeResponse.class))))
+              content = @Content(schema = @Schema(implementation = NicknameChangeResponse.class))))
   public @interface ChangeNickname {}
 
   @Target(ElementType.METHOD)
@@ -55,9 +51,7 @@ public final class UserBasicApiDocs {
               responseCode = "200",
               description = "변경된 프로필 이미지 주소",
               content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = ProfileImageChangeResponse.class))))
+                  @Content(schema = @Schema(implementation = ProfileImageChangeResponse.class))))
   public @interface ChangeProfileImage {}
 
   @Target(ElementType.METHOD)
@@ -70,9 +64,7 @@ public final class UserBasicApiDocs {
               responseCode = "200",
               description = "탈퇴 처리 결과",
               content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = WithdrawUserResultResponse.class))))
+                  @Content(schema = @Schema(implementation = WithdrawUserResultResponse.class))))
   public @interface WithdrawUser {}
 
   @Target(ElementType.METHOD)
@@ -84,9 +76,6 @@ public final class UserBasicApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "사용자 프로필",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = UserProfileItem.class))))
+              content = @Content(schema = @Schema(implementation = UserProfileItem.class))))
   public @interface GetCurrentUser {}
 }

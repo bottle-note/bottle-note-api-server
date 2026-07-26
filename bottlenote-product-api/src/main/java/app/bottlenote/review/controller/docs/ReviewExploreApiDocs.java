@@ -11,7 +11,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.springframework.http.MediaType;
 
 /** 리뷰 탐색 엔드포인트의 문서 설명. */
 public final class ReviewExploreApiDocs {
@@ -39,10 +38,7 @@ public final class ReviewExploreApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "전체 건수와 이번 페이지의 리뷰 목록",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = ExploreResult.class))))
+              content = @Content(schema = @Schema(implementation = ExploreResult.class))))
   public @interface GetStandardExplore {}
 
   /**
