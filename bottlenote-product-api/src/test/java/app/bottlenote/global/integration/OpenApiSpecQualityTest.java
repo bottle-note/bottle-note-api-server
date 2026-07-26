@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -18,10 +19,13 @@ import org.junit.jupiter.api.Test;
 @DisplayName("[integration] OpenAPI 스펙 품질")
 class OpenApiSpecQualityTest extends OpenApiSpecTestSupport {
 
+  /** OpenAPI가 components 하위 키에 허용하는 형식. */
+  private static final Pattern COMPONENT_NAME_PATTERN = Pattern.compile("^[a-zA-Z0-9._-]+$");
+
   /**
    * 아직 문서 어노테이션을 붙이지 않은 컨트롤러의 기본 태그 이름.
    *
-   * <p>springdoc은 태그를 지정하지 않으면 컨트롤러 클래스명을 kebab-case로 바꿔 태그로 쓴다. 이 목록이 곧 남은 작업량이다.
+   * <p>springdoc은 태그를 지정하지 않으면 컨트롤러 클래스명을 kebab-case로 바꿔 태그로 쓴다. 목록이 비었다는 것은 전수 문서화가 끝났다는 뜻이다.
    */
   private static final Set<String> PENDING_TAGS = Set.of();
 
@@ -79,6 +83,29 @@ class OpenApiSpecQualityTest extends OpenApiSpecTestSupport {
 
     assertThat(violations)
         .withFailMessage("응답 data가 빈 object입니다. 담기는 타입을 알려주세요:%n%s", String.join("%n", violations))
+        .isEmpty();
+  }
+
+  @Test
+  @DisplayName("components 하위 이름은 OpenAPI가 허용하는 식별자 형식이다")
+  void components_이름이_식별자_형식이다() throws Exception {
+    var components = fetchSpec().at("/components");
+    var violations =
+        fieldNamesOf(components).stream()
+            .flatMap(
+                group ->
+                    fieldNamesOf(components, group).stream()
+                        .filter(name -> !COMPONENT_NAME_PATTERN.matcher(name).matches())
+                        .map(name -> group + "." + name))
+            .toList();
+
+    assertThat(violations)
+        .withFailMessage(
+            """
+            components 하위 이름이 OpenAPI 규칙(%s)을 위반합니다. \
+            @Schema(name=...)이나 보안 스키마 이름에는 영문 식별자를 쓰고 한국어는 title이나 \
+            description으로 옮기세요. 위반하면 Scalar 같은 문서 도구가 스펙을 거부합니다:%n%s""",
+            COMPONENT_NAME_PATTERN.pattern(), String.join("%n", violations))
         .isEmpty();
   }
 

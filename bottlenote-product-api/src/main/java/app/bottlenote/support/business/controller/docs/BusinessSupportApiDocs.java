@@ -107,7 +107,7 @@ public final class BusinessSupportApiDocs {
   public @interface DeleteBusinessSupport {}
 
   /** 실제로는 {@code CollectionResponse<BusinessInfoResponse>}다. */
-  @Schema(name = "비즈니스 문의 목록", description = "전체 건수와 문의 목록")
+  @Schema(name = "BusinessSupportCollection", title = "비즈니스 문의 목록", description = "전체 건수와 문의 목록")
   private record BusinessSupportCollection(
       @Schema(description = "문의 전체 건수", example = "3") long totalCount,
       @ArraySchema(schema = @Schema(implementation = BusinessInfoResponse.class))

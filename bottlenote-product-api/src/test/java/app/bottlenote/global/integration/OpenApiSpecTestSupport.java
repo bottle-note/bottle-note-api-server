@@ -39,6 +39,13 @@ abstract class OpenApiSpecTestSupport extends IntegrationTestSupport {
     return operations;
   }
 
+  /** 지정한 자식 노드의 필드 이름 목록. */
+  protected List<String> fieldNamesOf(JsonNode node, String childName) {
+    List<String> names = new ArrayList<>();
+    node.path(childName).fieldNames().forEachRemaining(names::add);
+    return names;
+  }
+
   protected List<String> fieldNamesOf(JsonNode node) {
     List<String> names = new ArrayList<>();
     node.path("properties").fieldNames().forEachRemaining(names::add);
