@@ -23,6 +23,8 @@ public class SecurityPolicyConfig {
         REQUIRED_AUTH,
         List.of(
             SecurityPolicyRoute.explicit(null, "/actuator/**", PUBLIC),
-            SecurityPolicyRoute.explicit(null, "/error", PUBLIC)));
+            SecurityPolicyRoute.explicit(null, "/error", PUBLIC),
+            // API 스펙은 클라이언트 개발자가 인증 없이 받아갈 수 있어야 한다
+            SecurityPolicyRoute.explicit(null, "/openapi.product.json", PUBLIC)));
   }
 }

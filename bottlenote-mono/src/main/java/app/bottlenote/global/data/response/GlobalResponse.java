@@ -58,11 +58,11 @@ public class GlobalResponse {
     this.meta = meta;
   }
 
-  public static ResponseEntity<?> ok(Object data) {
+  public static ResponseEntity<GlobalResponse> ok(Object data) {
     return ResponseEntity.ok(success(data));
   }
 
-  public static <T, P> ResponseEntity<?> ok(
+  public static <T, P> ResponseEntity<GlobalResponse> ok(
       Pair<Long, CursorResponse<T>> pair, P searchParameters) {
     Long totalCount = pair.getLeft();
     CursorResponse<T> items = pair.getRight();
@@ -73,7 +73,7 @@ public class GlobalResponse {
     return ResponseEntity.ok(success(response, metaInfos));
   }
 
-  public static ResponseEntity<?> ok(Object data, MetaInfos meta) {
+  public static ResponseEntity<GlobalResponse> ok(Object data, MetaInfos meta) {
     return ResponseEntity.ok(success(data, meta));
   }
 

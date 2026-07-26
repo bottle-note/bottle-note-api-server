@@ -21,6 +21,9 @@ dependencies {
 	implementation libs.spring.boot.starter.web
 	implementation libs.spring.boot.starter.validation
 
+	// OpenAPI 스펙 생성 (swagger-ui는 설정으로 비활성)
+	implementation libs.springdoc.openapi.starter.webmvc.ui
+
 	// Test - Lombok
 	testAnnotationProcessor libs.lombok
 
@@ -100,7 +103,10 @@ tasks.named('processResources') {
 
 tasks.register("prepareKotlinBuildScriptModel") {}
 
-// Spring REST Docs 설정
+// [삭제 예정] Spring REST Docs 설정
+// API 문서는 springdoc OpenAPI(GET /openapi.product.json)로 대체됐다.
+// 전환 기간 동안만 유지하며 새 엔드포인트를 이 경로로 문서화하지 않는다.
+// 상세: src/test/java/app/docs/DEPRECATED.md
 asciidoctor {
 	inputs.dir snippetsDir
 	configurations 'asciidoctorExt'
