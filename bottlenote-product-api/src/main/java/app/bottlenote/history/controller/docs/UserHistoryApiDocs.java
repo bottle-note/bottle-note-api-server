@@ -63,7 +63,7 @@ public final class UserHistoryApiDocs {
   public @interface GetViewHistory {}
 
   /** 실제로는 {@code CollectionResponse<ViewHistoryItem>}다. */
-  @Schema(name = "최근 본 위스키 목록", description = "전체 건수와 최근 본 위스키")
+  @Schema(name = "ViewHistoryCollection", title = "최근 본 위스키 목록", description = "전체 건수와 최근 본 위스키")
   private record ViewHistoryCollection(
       @Schema(description = "최근 본 위스키 건수", example = "12") long totalCount,
       @ArraySchema(schema = @Schema(implementation = ViewHistoryItem.class))

@@ -89,14 +89,20 @@ public final class AlcoholReferenceApiDocs {
   public @interface GetCurationAlcohols {}
 
   /** 실제로는 {@code CursorResponse<CurationKeywordResponse>}다. */
-  @Schema(name = "큐레이션 키워드 페이지", description = "이번 페이지의 큐레이션과 다음 페이지 정보")
+  @Schema(
+      name = "CurationKeywordPage",
+      title = "큐레이션 키워드 페이지",
+      description = "이번 페이지의 큐레이션과 다음 페이지 정보")
   private record CurationKeywordPage(
       @ArraySchema(schema = @Schema(implementation = CurationKeywordResponse.class))
           List<CurationKeywordResponse> items,
       CursorPageable pageable) {}
 
   /** 실제로는 {@code CursorResponse<AlcoholsSearchItem>}다. */
-  @Schema(name = "큐레이션 위스키 페이지", description = "이번 페이지의 위스키와 다음 페이지 정보")
+  @Schema(
+      name = "CurationAlcoholPage",
+      title = "큐레이션 위스키 페이지",
+      description = "이번 페이지의 위스키와 다음 페이지 정보")
   private record CurationAlcoholPage(
       @ArraySchema(schema = @Schema(implementation = AlcoholsSearchItem.class))
           List<AlcoholsSearchItem> items,

@@ -85,7 +85,10 @@ public final class SpecBasedCurationApiDocs {
   public @interface GetCuration {}
 
   /** 실제로는 {@code CursorResponse<ProductSpecBasedCurationFeedItemResponse>}다. */
-  @Schema(name = "큐레이션 피드 페이지", description = "이번 페이지의 피드 항목과 다음 페이지 정보")
+  @Schema(
+      name = "CurationFeedPage",
+      title = "큐레이션 피드 페이지",
+      description = "이번 페이지의 피드 항목과 다음 페이지 정보")
   private record CurationFeedPage(
       @ArraySchema(
               schema = @Schema(implementation = ProductSpecBasedCurationFeedItemResponse.class))

@@ -11,8 +11,12 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenApiConfig {
 
-  /** 액세스 토큰을 Authorization 헤더로 전달하는 방식을 가리키는 이름. */
-  public static final String BEARER_AUTH = "액세스 토큰";
+  /**
+   * 액세스 토큰을 Authorization 헤더로 전달하는 방식을 가리키는 이름.
+   *
+   * <p>components 하위 키는 OpenAPI 규칙상 영문 식별자여야 한다. 사람이 읽을 설명은 description에 담는다.
+   */
+  public static final String BEARER_AUTH = "bearerAuth";
 
   @Bean
   OpenAPI productOpenApi() {

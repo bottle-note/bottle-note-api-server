@@ -161,7 +161,7 @@ public final class BlockApiDocs {
   public @interface GetBlockingCount {}
 
   /** 실제로는 {@code CollectionResponse<UserBlockItem>}다. */
-  @Schema(name = "차단 목록", description = "차단한 사용자 수와 목록")
+  @Schema(name = "BlockedUserCollection", title = "차단 목록", description = "차단한 사용자 수와 목록")
   private record BlockedUserCollection(
       @Schema(description = "차단한 사용자 수", example = "5") long totalCount,
       @ArraySchema(schema = @Schema(implementation = UserBlockItem.class))

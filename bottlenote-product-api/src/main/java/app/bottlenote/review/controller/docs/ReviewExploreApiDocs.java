@@ -51,7 +51,10 @@ public final class ReviewExploreApiDocs {
    * <p>실제 응답은 {@code CollectionResponse<ReviewExploreItem>}이지만 제네릭 타입은 어노테이션으로 표현할 수 없어, 같은 모양을 갖는
    * 타입을 문서용으로 따로 둔다.
    */
-  @Schema(name = "리뷰 탐색 결과", description = "조건에 맞는 전체 건수와 이번 페이지의 리뷰 목록")
+  @Schema(
+      name = "ReviewExploreResult",
+      title = "리뷰 탐색 결과",
+      description = "조건에 맞는 전체 건수와 이번 페이지의 리뷰 목록")
   private record ExploreResult(
       @Schema(description = "조건에 맞는 리뷰의 전체 건수", example = "500") long totalCount,
       @ArraySchema(schema = @Schema(implementation = ReviewExploreItem.class))

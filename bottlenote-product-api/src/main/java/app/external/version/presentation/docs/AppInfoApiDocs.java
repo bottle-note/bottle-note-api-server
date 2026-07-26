@@ -42,7 +42,7 @@ public final class AppInfoApiDocs {
   public @interface GetAppInfo {}
 
   /** 실제 응답은 문자열 맵이다. 담기는 키를 문서에 드러내기 위해 같은 모양의 타입을 선언한다. */
-  @Schema(name = "서버 배포 정보", description = "서버 이름과 배포된 코드의 출처")
+  @Schema(name = "AppInfoResult", title = "서버 배포 정보", description = "서버 이름과 배포된 코드의 출처")
   private record AppInfoResult(
       @Schema(description = "서버 이름", example = "product-api") String serverName,
       @Schema(description = "실행 환경", example = "prod") String environment,
