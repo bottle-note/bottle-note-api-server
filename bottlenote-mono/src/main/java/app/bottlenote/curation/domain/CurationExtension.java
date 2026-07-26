@@ -42,8 +42,9 @@ public class CurationExtension extends BaseEntity {
   @Type(JsonType.class)
   private Object feedPayload;
 
-  public void update(Long specId, Object payload) {
+  public void update(Long specId, Object payload, Object feedPayload) {
     this.specId = specId;
     this.payload = payload;
+    this.feedPayload = feedPayload;
   }
 }

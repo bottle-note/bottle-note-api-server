@@ -1,6 +1,7 @@
 package app.integration.curation
 
 import app.IntegrationTestSupport
+import app.bottlenote.curation.domain.CurationExtensionRepository
 import app.bottlenote.curation.domain.CurationSpecRepository
 import app.bottlenote.curation.service.CurationSpecResourceSyncService
 import org.assertj.core.api.Assertions.assertThat
@@ -21,6 +22,9 @@ class AdminSpecBasedCurationIntegrationTest : IntegrationTestSupport() {
 
 	@Autowired
 	private lateinit var curationSpecRepository: CurationSpecRepository
+
+	@Autowired
+	private lateinit var curationExtensionRepository: CurationExtensionRepository
 
 	private lateinit var accessToken: String
 
@@ -108,6 +112,28 @@ class AdminSpecBasedCurationIntegrationTest : IntegrationTestSupport() {
 				.bodyJson()
 				.extractingPath("$.data.code")
 				.isEqualTo("CURATION_CREATED")
+		}
+
+		@Test
+		@DisplayName("큐레이션 생성 시 x-feed 기준 feed_payload가 원본 payload와 함께 저장된다")
+		fun create_persistsFeedPayloadWithSourcePayload() {
+			val result = mockMvcTester
+				.post()
+				.uri("/v2/curations")
+				.header("Authorization", "Bearer $accessToken")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsString(createRequest(validPayload())))
+				.exchange()
+
+			assertThat(result).hasStatusOk()
+			val curationId = dataNode(result).path("targetId").asLong()
+			val extension = curationExtensionRepository.findByCurationId(curationId).orElseThrow()
+			val feedPayload = mapper.valueToTree<com.fasterxml.jackson.databind.JsonNode>(extension.feedPayload)
+			assertThat(feedPayload).hasSize(1)
+			assertThat(feedPayload[0].path("alcohol").path("korName").asText()).isEqualTo("검증 위스키")
+			assertThat(feedPayload[0].path("comment").asText()).isEqualTo("테스트 코멘트")
+			assertThat(feedPayload[0].has("source")).isFalse()
+			assertThat(feedPayload[0].has("stats")).isFalse()
 		}
 
 		@Test
@@ -250,6 +276,33 @@ class AdminSpecBasedCurationIntegrationTest : IntegrationTestSupport() {
 	@Nested
 	@DisplayName("spec 기반 큐레이션 수정 API")
 	inner class UpdateSpecBasedCuration {
+		@Test
+		@DisplayName("큐레이션 수정 시 feed_payload도 새 payload 기준으로 함께 갱신된다")
+		fun update_refreshesFeedPayload() {
+			val created = mockMvcTester
+				.post()
+				.uri("/v2/curations")
+				.header("Authorization", "Bearer $accessToken")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsString(createRequest(validPayload())))
+				.exchange()
+			val curationId = dataNode(created).path("targetId").asLong()
+
+			val updated = mockMvcTester
+				.put()
+				.uri("/v2/curations/{curationId}", curationId)
+				.header("Authorization", "Bearer $accessToken")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsString(updateRequest(validPayload(selectedTags = listOf("오크")) + ("comment" to "수정된 코멘트"))))
+				.exchange()
+
+			assertThat(updated).hasStatusOk()
+			val extension = curationExtensionRepository.findByCurationId(curationId).orElseThrow()
+			val feedPayload = mapper.valueToTree<com.fasterxml.jackson.databind.JsonNode>(extension.feedPayload)
+			assertThat(feedPayload[0].path("comment").asText()).isEqualTo("수정된 코멘트")
+			assertThat(feedPayload[0].path("alcohol").path("selectedTags")).hasSize(1)
+		}
+
 		@Test
 		@DisplayName("Admin v2에서 존재하지 않는 curationId로 수정할 경우 404를 반환한다")
 		fun update_whenCurationIdDoesNotExist_returnsNotFound() {
