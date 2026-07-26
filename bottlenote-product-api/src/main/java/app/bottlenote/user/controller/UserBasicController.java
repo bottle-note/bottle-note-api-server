@@ -4,6 +4,7 @@ import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByCont
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
 import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.user.controller.docs.UserBasicApiDocs;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
 import app.bottlenote.user.dto.request.ProfileImageChangeRequest;
 import app.bottlenote.user.dto.response.NicknameChangeResponse;
@@ -27,13 +28,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/users")
+@UserBasicApiDocs.ApiTag
 public class UserBasicController {
 
   private final UserBasicService userBasicService;
   private final DefaultUserFacade userFacade;
 
+  @UserBasicApiDocs.ChangeNickname
   @PatchMapping("/nickname")
-  public ResponseEntity<?> changeNickname(
+  public ResponseEntity<GlobalResponse> changeNickname(
       @RequestBody @Valid NicknameChangeRequest nicknameChangeRequest) {
 
     Long userId = getUserIdByContext().orElseThrow(() -> new UserException(REQUIRED_USER_ID));
@@ -43,8 +46,9 @@ public class UserBasicController {
     return GlobalResponse.ok(response);
   }
 
+  @UserBasicApiDocs.ChangeProfileImage
   @PatchMapping("/profile-image")
-  public ResponseEntity<?> changeProfileImage(
+  public ResponseEntity<GlobalResponse> changeProfileImage(
       @RequestBody @Valid ProfileImageChangeRequest request) {
 
     Long userId = getUserIdByContext().orElseThrow(() -> new UserException(REQUIRED_USER_ID));
@@ -55,8 +59,9 @@ public class UserBasicController {
     return GlobalResponse.ok(response);
   }
 
+  @UserBasicApiDocs.WithdrawUser
   @DeleteMapping
-  public ResponseEntity<?> withdrawUser() {
+  public ResponseEntity<GlobalResponse> withdrawUser() {
 
     Long userId = getUserIdByContext().orElseThrow(() -> new UserException(REQUIRED_USER_ID));
 
@@ -65,8 +70,9 @@ public class UserBasicController {
     return GlobalResponse.ok(response);
   }
 
+  @UserBasicApiDocs.GetCurrentUser
   @GetMapping("/current")
-  public ResponseEntity<?> getCurrentUser() {
+  public ResponseEntity<GlobalResponse> getCurrentUser() {
     Long userId = getUserIdByContext().orElseThrow(() -> new UserException(REQUIRED_USER_ID));
     return GlobalResponse.ok(userFacade.getUserProfileInfo(userId));
   }

@@ -8,6 +8,7 @@ import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.meta.MetaService;
+import app.bottlenote.review.controller.docs.ReviewApiDocs;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
 import app.bottlenote.review.dto.request.ReviewModifyRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
@@ -33,12 +34,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/reviews")
+@ReviewApiDocs.ApiTag
 public class ReviewController {
 
   private final ReviewService reviewService;
 
+  @ReviewApiDocs.CreateReview
   @PostMapping
-  public ResponseEntity<?> createReview(
+  public ResponseEntity<GlobalResponse> createReview(
       @RequestBody @Valid ReviewCreateRequest reviewCreateRequest) {
     Long currentUserId =
         SecurityContextUtil.getUserIdByContext()
@@ -47,8 +50,9 @@ public class ReviewController {
   }
 
   @SecurityPolicy(auth = OPTIONAL_AUTH)
+  @ReviewApiDocs.GetReviews
   @GetMapping("/{alcoholId}")
-  public ResponseEntity<?> getReviews(
+  public ResponseEntity<GlobalResponse> getReviews(
       @PathVariable Long alcoholId, @ModelAttribute ReviewPageableRequest reviewPageableRequest) {
     Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
     PageResponse<ReviewListResponse> pageResponse =
@@ -60,16 +64,18 @@ public class ReviewController {
   }
 
   @SecurityPolicy(auth = OPTIONAL_AUTH)
+  @ReviewApiDocs.GetReviewDetail
   @GetMapping("/detail/{reviewId}")
-  public ResponseEntity<?> getDetailReview(@PathVariable Long reviewId) {
+  public ResponseEntity<GlobalResponse> getDetailReview(@PathVariable Long reviewId) {
 
     Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
 
     return GlobalResponse.ok(reviewService.getDetailReview(reviewId, currentUserId));
   }
 
+  @ReviewApiDocs.GetMyReviews
   @GetMapping("/me/{alcoholId}")
-  public ResponseEntity<?> getMyReviews(
+  public ResponseEntity<GlobalResponse> getMyReviews(
       @ModelAttribute ReviewPageableRequest reviewPageableRequest, @PathVariable Long alcoholId) {
 
     Long currentUserId =
@@ -84,8 +90,9 @@ public class ReviewController {
         MetaService.createMetaInfo().add("pageable", myReviews.cursorPageable()));
   }
 
+  @ReviewApiDocs.ModifyReview
   @PatchMapping("/{reviewId}")
-  public ResponseEntity<?> modifyReview(
+  public ResponseEntity<GlobalResponse> modifyReview(
       @RequestBody @Valid ReviewModifyRequest reviewModifyRequest, @PathVariable Long reviewId) {
 
     Long currentUserId =
@@ -96,8 +103,9 @@ public class ReviewController {
         reviewService.modifyReview(reviewModifyRequest, reviewId, currentUserId));
   }
 
+  @ReviewApiDocs.ChangeReviewStatus
   @PatchMapping("/{reviewId}/display")
-  public ResponseEntity<?> changeStatus(
+  public ResponseEntity<GlobalResponse> changeStatus(
       @PathVariable Long reviewId, @Valid @RequestBody ReviewStatusChangeRequest status) {
     Long currentUserId =
         SecurityContextUtil.getUserIdByContext()
@@ -106,8 +114,9 @@ public class ReviewController {
     return GlobalResponse.ok(reviewService.changeStatus(reviewId, status, currentUserId));
   }
 
+  @ReviewApiDocs.DeleteReview
   @DeleteMapping("/{reviewId}")
-  public ResponseEntity<?> deleteReview(@PathVariable Long reviewId) {
+  public ResponseEntity<GlobalResponse> deleteReview(@PathVariable Long reviewId) {
     Long currentUserId =
         SecurityContextUtil.getUserIdByContext()
             .orElseThrow(() -> new UserException(REQUIRED_USER_ID));

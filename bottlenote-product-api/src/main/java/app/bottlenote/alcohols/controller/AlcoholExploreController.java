@@ -2,6 +2,7 @@ package app.bottlenote.alcohols.controller;
 
 import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.OPTIONAL_AUTH;
 
+import app.bottlenote.alcohols.controller.docs.AlcoholExploreApiDocs;
 import app.bottlenote.alcohols.dto.request.ExploreStandardRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.ExploreStandardResponse;
@@ -26,13 +27,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/alcohols/explore")
 @SecurityPolicy(auth = OPTIONAL_AUTH)
+@AlcoholExploreApiDocs.ApiTag
 public class AlcoholExploreController {
 
   private final AlcoholQueryService alcoholQueryService;
 
   /** 기본 표준 형태의 위스키 둘러보기 API. 검색 기능(필터/정렬)을 흡수한 메인 탐색 엔드포인트. */
+  @AlcoholExploreApiDocs.GetStandardExplore
   @GetMapping("/standard")
-  public ResponseEntity<?> getStandardExplore(
+  public ResponseEntity<GlobalResponse> getStandardExplore(
       @ModelAttribute @Valid ExploreStandardRequest request) {
     Long userId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
 

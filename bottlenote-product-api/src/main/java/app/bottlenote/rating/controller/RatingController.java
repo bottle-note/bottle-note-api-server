@@ -8,6 +8,7 @@ import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.meta.MetaService;
+import app.bottlenote.rating.controller.docs.RatingApiDocs;
 import app.bottlenote.rating.domain.RatingPoint;
 import app.bottlenote.rating.dto.request.RatingListFetchRequest;
 import app.bottlenote.rating.dto.request.RatingRegisterRequest;
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/rating")
+@RatingApiDocs.ApiTag
 public class RatingController {
 
   private final RatingCommandService commandService;
@@ -47,8 +49,10 @@ public class RatingController {
    * @param request the request
    * @return the response entity
    */
+  @RatingApiDocs.RegisterRating
   @PostMapping("/register")
-  public ResponseEntity<?> registerRatingPoint(@RequestBody @Valid RatingRegisterRequest request) {
+  public ResponseEntity<GlobalResponse> registerRatingPoint(
+      @RequestBody @Valid RatingRegisterRequest request) {
     log.info("RatingRegisterRequest: {}", request);
 
     Long userId =
@@ -68,8 +72,10 @@ public class RatingController {
    * @param request 별점 평가 목록 조회 요청 객체
    */
   @SecurityPolicy(auth = OPTIONAL_AUTH)
+  @RatingApiDocs.FetchRatingList
   @GetMapping
-  public ResponseEntity<?> fetchRatingList(@ModelAttribute RatingListFetchRequest request) {
+  public ResponseEntity<GlobalResponse> fetchRatingList(
+      @ModelAttribute RatingListFetchRequest request) {
     Long userId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
     var response = queryService.fetchRatingList(request, userId);
     return ResponseEntity.ok(
@@ -90,8 +96,9 @@ public class RatingController {
    * @param alcoholId 술의 식별자
    */
   @SecurityPolicy(auth = REQUIRED_AUTH)
+  @RatingApiDocs.FetchUserRating
   @GetMapping("/{alcoholId}")
-  public ResponseEntity<?> fetchRatingPoint(@PathVariable Long alcoholId) {
+  public ResponseEntity<GlobalResponse> fetchRatingPoint(@PathVariable Long alcoholId) {
 
     Long userId =
         SecurityContextUtil.getUserIdByContext()

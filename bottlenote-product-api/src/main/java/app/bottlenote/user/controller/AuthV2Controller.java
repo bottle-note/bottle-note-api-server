@@ -7,6 +7,7 @@ import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.user.config.OauthConfigProperties;
+import app.bottlenote.user.controller.docs.AuthApiDocs;
 import app.bottlenote.user.dto.request.AppleLoginRequest;
 import app.bottlenote.user.dto.request.KakaoLoginRequest;
 import app.bottlenote.user.dto.request.TokenVerifyRequest;
@@ -35,14 +36,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v2/auth")
+@AuthApiDocs.ApiTag
 public class AuthV2Controller {
   private final AuthService authService;
   private final NonceService nonceService;
   private final OauthConfigProperties configProperties;
   private static final String REFRESH_TOKEN_HEADER_PREFIX = "refresh-token";
 
+  @AuthApiDocs.CheckAdminStatus
   @GetMapping("/admin/permissions")
-  public ResponseEntity<?> checkAdminStatus() {
+  public ResponseEntity<GlobalResponse> checkAdminStatus() {
     Long currentUserId =
         SecurityContextUtil.getUserIdByContext()
             .orElseThrow(() -> new UserException(REQUIRED_USER_ID));
@@ -53,6 +56,7 @@ public class AuthV2Controller {
 
   /** Apple 로그인 전, 클라이언트에게 일회성 Nonce 값을 발급 */
   @SecurityPolicy(auth = PUBLIC)
+  @AuthApiDocs.GetAppleNonce
   @GetMapping("/apple/nonce")
   public ResponseEntity<NonceResponse> getAppleNonce() {
     return ResponseEntity.ok(new NonceResponse(nonceService.generateNonce()));
@@ -60,8 +64,9 @@ public class AuthV2Controller {
 
   /** Apple 로그인 v2 */
   @SecurityPolicy(auth = PUBLIC)
+  @AuthApiDocs.ExecuteAppleLogin
   @PostMapping("/apple")
-  public ResponseEntity<?> executeAppleLogin(
+  public ResponseEntity<OauthResponse> executeAppleLogin(
       @RequestBody @Valid AppleLoginRequest appleLoginRequest, HttpServletResponse response) {
     AuthResponse result =
         authService.loginWithApple(appleLoginRequest.idToken(), appleLoginRequest.nonce());
@@ -72,8 +77,9 @@ public class AuthV2Controller {
 
   /** 카카오 로그인 v2 */
   @SecurityPolicy(auth = PUBLIC)
+  @AuthApiDocs.ExecuteKakaoLogin
   @PostMapping("/kakao")
-  public ResponseEntity<?> executeKakaoLogin(
+  public ResponseEntity<OauthResponse> executeKakaoLogin(
       @RequestBody @Valid KakaoLoginRequest kakaoLoginRequest, HttpServletResponse response) {
     AuthResponse result = authService.loginWithKakao(kakaoLoginRequest.accessToken());
     setRefreshTokenInCookie(response, result.token().refreshToken());
@@ -83,8 +89,10 @@ public class AuthV2Controller {
 
   /** 토큰 재발급 */
   @SecurityPolicy(auth = PUBLIC)
+  @AuthApiDocs.ReissueToken
   @PostMapping("/reissue")
-  public ResponseEntity<?> reissueToken(HttpServletRequest request, HttpServletResponse response) {
+  public ResponseEntity<GlobalResponse> reissueToken(
+      HttpServletRequest request, HttpServletResponse response) {
     String refreshToken = request.getHeader(REFRESH_TOKEN_HEADER_PREFIX);
     TokenItem token = authService.reissue(refreshToken);
     setRefreshTokenInCookie(response, token.refreshToken());
@@ -93,8 +101,10 @@ public class AuthV2Controller {
 
   /** 토큰 유효성 검증 */
   @SecurityPolicy(auth = PUBLIC)
+  @AuthApiDocs.VerifyToken
   @PutMapping("/token/verify")
-  public ResponseEntity<?> verifyToken(@RequestBody @Valid TokenVerifyRequest request) {
+  public ResponseEntity<GlobalResponse> verifyToken(
+      @RequestBody @Valid TokenVerifyRequest request) {
     return GlobalResponse.ok(authService.verifyToken(request.token()));
   }
 

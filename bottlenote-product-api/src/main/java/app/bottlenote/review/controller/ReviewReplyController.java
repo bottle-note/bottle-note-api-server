@@ -5,6 +5,7 @@ import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.OPTIONAL_
 import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.review.controller.docs.ReviewReplyApiDocs;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
 import app.bottlenote.review.service.ReviewReplyService;
 import app.bottlenote.user.exception.UserException;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/review/reply")
+@ReviewReplyApiDocs.ApiTag
 public class ReviewReplyController {
 
   private final ReviewReplyService reviewReplyService;
@@ -37,8 +39,9 @@ public class ReviewReplyController {
    * @param request 요청(댓글 내용 String content, Long parentReplyId)
    * @return 결과 메시지
    */
+  @ReviewReplyApiDocs.RegisterReply
   @PostMapping("/register/{reviewId}")
-  public ResponseEntity<?> registerReviewReply(
+  public ResponseEntity<GlobalResponse> registerReviewReply(
       @PathVariable Long reviewId, @RequestBody @Valid ReviewReplyRegisterRequest request) {
     Long userId =
         SecurityContextUtil.getUserIdByContext()
@@ -47,8 +50,9 @@ public class ReviewReplyController {
     return GlobalResponse.ok(reviewReplyService.registerReviewReply(reviewId, userId, request));
   }
 
+  @ReviewReplyApiDocs.DeleteReply
   @DeleteMapping("/{reviewId}/{replyId}")
-  public ResponseEntity<?> deleteReviewReply(
+  public ResponseEntity<GlobalResponse> deleteReviewReply(
       @PathVariable Long reviewId, @PathVariable Long replyId) {
     Long userId =
         SecurityContextUtil.getUserIdByContext()
@@ -58,8 +62,9 @@ public class ReviewReplyController {
   }
 
   @SecurityPolicy(auth = OPTIONAL_AUTH)
+  @ReviewReplyApiDocs.GetRootReplies
   @GetMapping("/{reviewId}")
-  public ResponseEntity<?> getReviewReplyList(
+  public ResponseEntity<GlobalResponse> getReviewReplyList(
       @PathVariable Long reviewId,
       @RequestParam(required = false, defaultValue = "0") Long cursor,
       @RequestParam(required = false, defaultValue = "50") Long pageSize) {
@@ -67,8 +72,9 @@ public class ReviewReplyController {
   }
 
   @SecurityPolicy(auth = OPTIONAL_AUTH)
+  @ReviewReplyApiDocs.GetSubReplies
   @GetMapping("/{reviewId}/sub/{rootReplyId}")
-  public ResponseEntity<?> getSubReviewReplies(
+  public ResponseEntity<GlobalResponse> getSubReviewReplies(
       @PathVariable Long reviewId,
       @PathVariable Long rootReplyId,
       @RequestParam(required = false, defaultValue = "0") Long cursor,

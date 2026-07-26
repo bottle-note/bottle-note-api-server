@@ -7,6 +7,7 @@ import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.meta.MetaService;
+import app.bottlenote.user.controller.docs.FollowApiDocs;
 import app.bottlenote.user.dto.request.FollowPageableRequest;
 import app.bottlenote.user.dto.request.FollowUpdateRequest;
 import app.bottlenote.user.dto.response.FollowerSearchResponse;
@@ -28,12 +29,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/follow")
 @RequiredArgsConstructor
+@FollowApiDocs.ApiTag
 public class FollowController {
 
   private final FollowService followService;
 
+  @FollowApiDocs.GetFollowingList
   @GetMapping("/{targetUserId}/following-list")
-  public ResponseEntity<?> findFollowingList(
+  public ResponseEntity<GlobalResponse> findFollowingList(
       @PathVariable Long targetUserId, @ModelAttribute FollowPageableRequest pageableRequest) {
 
     Long currentUserId =
@@ -47,8 +50,9 @@ public class FollowController {
         MetaService.createMetaInfo().add("pageable", followingPageResponse.cursorPageable()));
   }
 
+  @FollowApiDocs.GetFollowerList
   @GetMapping("/{targetUserId}/follower-list")
-  public ResponseEntity<?> findFollowerList(
+  public ResponseEntity<GlobalResponse> findFollowerList(
       @PathVariable Long targetUserId, @ModelAttribute FollowPageableRequest pageableRequest) {
 
     Long currentUserId =
@@ -62,8 +66,10 @@ public class FollowController {
         MetaService.createMetaInfo().add("pageable", followerPageResponse.cursorPageable()));
   }
 
+  @FollowApiDocs.UpdateFollowStatus
   @PostMapping
-  public ResponseEntity<?> updateFollowStatus(@RequestBody @Valid FollowUpdateRequest request) {
+  public ResponseEntity<GlobalResponse> updateFollowStatus(
+      @RequestBody @Valid FollowUpdateRequest request) {
     Long userId =
         getUserIdByContext().orElseThrow(() -> new UserException(UserExceptionCode.USER_NOT_FOUND));
 

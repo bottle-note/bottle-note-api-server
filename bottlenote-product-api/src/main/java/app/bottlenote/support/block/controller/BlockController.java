@@ -5,6 +5,7 @@ import static app.bottlenote.support.block.exception.BlockExceptionCode.REQUIRED
 import app.bottlenote.global.data.response.CollectionResponse;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.support.block.controller.docs.BlockApiDocs;
 import app.bottlenote.support.block.dto.request.BlockCreateRequest;
 import app.bottlenote.support.block.dto.response.UserBlockItem;
 import app.bottlenote.support.block.exception.BlockException;
@@ -25,12 +26,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/blocks")
+@BlockApiDocs.ApiTag
 public class BlockController {
 
   private final BlockService blockService;
 
+  @BlockApiDocs.CreateBlock
   @PostMapping
-  public ResponseEntity<?> createBlock(@RequestBody @Valid BlockCreateRequest request) {
+  public ResponseEntity<GlobalResponse> createBlock(
+      @RequestBody @Valid BlockCreateRequest request) {
     Long currentUserId =
         SecurityContextUtil.getUserIdByContext()
             .orElseThrow(() -> new BlockException(REQUIRED_USER_ID));
@@ -42,8 +46,9 @@ public class BlockController {
     return GlobalResponse.ok(blockedUsers);
   }
 
+  @BlockApiDocs.DeleteBlock
   @DeleteMapping("/{blockedUserId}")
-  public ResponseEntity<?> deleteBlock(@PathVariable Long blockedUserId) {
+  public ResponseEntity<GlobalResponse> deleteBlock(@PathVariable Long blockedUserId) {
     Long currentUserId =
         SecurityContextUtil.getUserIdByContext()
             .orElseThrow(() -> new BlockException(REQUIRED_USER_ID));
@@ -55,8 +60,9 @@ public class BlockController {
     return GlobalResponse.ok(blockedUsers);
   }
 
+  @BlockApiDocs.GetBlockedUsers
   @GetMapping
-  public ResponseEntity<?> getBlockedUsers() {
+  public ResponseEntity<GlobalResponse> getBlockedUsers() {
     Long currentUserId =
         SecurityContextUtil.getUserIdByContext()
             .orElseThrow(() -> new BlockException(REQUIRED_USER_ID));
@@ -64,8 +70,9 @@ public class BlockController {
     return GlobalResponse.ok(blockService.getBlockedUserItems(currentUserId));
   }
 
+  @BlockApiDocs.GetBlockedUserIds
   @GetMapping("/ids")
-  public ResponseEntity<?> getBlockedUserIds() {
+  public ResponseEntity<GlobalResponse> getBlockedUserIds() {
     Long currentUserId =
         SecurityContextUtil.getUserIdByContext()
             .orElseThrow(() -> new BlockException(REQUIRED_USER_ID));
@@ -73,8 +80,9 @@ public class BlockController {
     return GlobalResponse.ok(blockService.getBlockedUserIds(currentUserId));
   }
 
+  @BlockApiDocs.CheckBlocked
   @GetMapping("/check/{targetUserId}")
-  public ResponseEntity<?> checkBlocked(@PathVariable Long targetUserId) {
+  public ResponseEntity<GlobalResponse> checkBlocked(@PathVariable Long targetUserId) {
     Long currentUserId =
         SecurityContextUtil.getUserIdByContext()
             .orElseThrow(() -> new BlockException(REQUIRED_USER_ID));
@@ -83,8 +91,9 @@ public class BlockController {
     return GlobalResponse.ok(isBlocked);
   }
 
+  @BlockApiDocs.CheckMutualBlocked
   @GetMapping("/mutual-check/{targetUserId}")
-  public ResponseEntity<?> checkMutualBlocked(@PathVariable Long targetUserId) {
+  public ResponseEntity<GlobalResponse> checkMutualBlocked(@PathVariable Long targetUserId) {
     Long currentUserId =
         SecurityContextUtil.getUserIdByContext()
             .orElseThrow(() -> new BlockException(REQUIRED_USER_ID));
@@ -93,8 +102,9 @@ public class BlockController {
     return GlobalResponse.ok(isMutualBlocked);
   }
 
+  @BlockApiDocs.GetBlockedByCount
   @GetMapping("/stats/blocked-by-count")
-  public ResponseEntity<?> getBlockedByCount() {
+  public ResponseEntity<GlobalResponse> getBlockedByCount() {
     Long currentUserId =
         SecurityContextUtil.getUserIdByContext()
             .orElseThrow(() -> new BlockException(REQUIRED_USER_ID));
@@ -103,8 +113,9 @@ public class BlockController {
     return GlobalResponse.ok(count);
   }
 
+  @BlockApiDocs.GetBlockingCount
   @GetMapping("/stats/blocking-count")
-  public ResponseEntity<?> getBlockingCount() {
+  public ResponseEntity<GlobalResponse> getBlockingCount() {
     Long currentUserId =
         SecurityContextUtil.getUserIdByContext()
             .orElseThrow(() -> new BlockException(REQUIRED_USER_ID));

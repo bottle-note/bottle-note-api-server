@@ -5,6 +5,7 @@ import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.PUBLIC;
 import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.external.version.config.AppInfoConfig;
+import app.external.version.presentation.docs.AppInfoApiDocs;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -22,11 +23,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/app-info")
 @RequiredArgsConstructor
 @SecurityPolicy(auth = PUBLIC)
+@AppInfoApiDocs.ApiTag
 public class AppInfoController {
   private final AppInfoConfig info;
 
+  @AppInfoApiDocs.GetAppInfo
   @GetMapping
-  public ResponseEntity<?> getAppInfo() {
+  public ResponseEntity<GlobalResponse> getAppInfo() {
     Map<String, Object> infoMap = new HashMap<>();
     infoMap.put("serverName", info.getServerName());
     infoMap.put("environment", info.getEnvironment());

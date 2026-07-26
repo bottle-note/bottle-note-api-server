@@ -1,5 +1,6 @@
 package app.bottlenote.common.file.controller;
 
+import app.bottlenote.common.file.controller.docs.ImageUploadApiDocs;
 import app.bottlenote.common.file.dto.request.ImageUploadRequest;
 import app.bottlenote.common.file.service.ImageUploadService;
 import app.bottlenote.global.data.response.GlobalResponse;
@@ -13,12 +14,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/s3")
+@ImageUploadApiDocs.ApiTag
 public class ImageUploadController {
 
   private final ImageUploadService imageUploadService;
 
+  @ImageUploadApiDocs.GetPreSignUrl
   @GetMapping("/presign-url")
-  public ResponseEntity<?> getPreSignUrl(@ModelAttribute ImageUploadRequest request) {
+  public ResponseEntity<GlobalResponse> getPreSignUrl(@ModelAttribute ImageUploadRequest request) {
     return ResponseEntity.ok(GlobalResponse.success(imageUploadService.getPreSignUrl(request)));
   }
 }
