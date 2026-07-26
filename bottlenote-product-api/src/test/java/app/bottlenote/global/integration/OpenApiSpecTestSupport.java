@@ -5,7 +5,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import app.bottlenote.IntegrationTestSupport;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.MissingNode;
-import java.util.ArrayList;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -14,31 +15,26 @@ import java.util.stream.Stream;
 abstract class OpenApiSpecTestSupport extends IntegrationTestSupport {
 
   protected static final String SPEC_PATH = "/openapi.product.json";
-  protected static final String JSON_SCHEMA = "/content/application~1json/schema";
 
-  protected JsonNode fetchSpec() throws Exception {
+  protected JsonNode fetchSpec() {
     var result = mockMvcTester.get().uri(SPEC_PATH).exchange();
-    return mapper.readTree(result.getResponse().getContentAsString(UTF_8));
+    try {
+      return mapper.readTree(result.getResponse().getContentAsString(UTF_8));
+    } catch (IOException e) {
+      throw new UncheckedIOException("OpenAPI 스펙을 읽지 못했습니다", e);
+    }
   }
 
   /** 스펙의 모든 엔드포인트를 평탄하게 펼친다. */
   protected List<SpecOperation> operationsOf(JsonNode spec) {
-    List<SpecOperation> operations = new ArrayList<>();
-    spec.at("/paths")
-        .properties()
-        .forEach(
-            pathEntry ->
-                pathEntry
-                    .getValue()
-                    .properties()
-                    .forEach(
-                        methodEntry ->
-                            operations.add(
-                                new SpecOperation(
-                                    pathEntry.getKey(),
-                                    methodEntry.getKey(),
-                                    methodEntry.getValue()))));
-    return operations;
+    return spec.at("/paths").properties().stream()
+        .flatMap(
+            path ->
+                path.getValue().properties().stream()
+                    .map(
+                        method ->
+                            new SpecOperation(path.getKey(), method.getKey(), method.getValue())))
+        .toList();
   }
 
   /** 위반 목록을 실패 메시지에 담을 형태로 잇는다. */
@@ -58,6 +54,8 @@ abstract class OpenApiSpecTestSupport extends IntegrationTestSupport {
 
   /** 스펙에 실린 하나의 엔드포인트. */
   protected record SpecOperation(String path, String method, JsonNode definition) {
+
+    private static final String OBJECT_TYPE = "object";
 
     /** 200 응답 본문의 스키마. 공통 형식이면 그 형식, 아니면 DTO 참조. */
     JsonNode successSchema() {
@@ -91,13 +89,14 @@ abstract class OpenApiSpecTestSupport extends IntegrationTestSupport {
       return definition.path("operationId").asText("");
     }
 
-    JsonNode dataSchema() {
-      return definition.at("/responses/200" + JSON_SCHEMA + "/properties/data");
+    /** 공통 형식의 data 자리에 담긴 스키마. */
+    private JsonNode dataSchema() {
+      return successSchema().path("properties").path("data");
     }
 
     boolean hasEmptyDataSchema() {
       JsonNode data = dataSchema();
-      return "object".equals(data.path("type").asText())
+      return OBJECT_TYPE.equals(data.path("type").asText())
           && !data.has("$ref")
           && !data.has("properties");
     }
