@@ -6,6 +6,7 @@ import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.support.report.controller.docs.ReportApiDocs;
 import app.bottlenote.support.report.dto.request.ReviewReportRequest;
 import app.bottlenote.support.report.dto.request.UserReportRequest;
 import app.bottlenote.support.report.dto.response.UserReportResponse;
@@ -26,13 +27,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/reports")
+@ReportApiDocs.ApiTag
 public class ReportCommandController {
 
   private final UserReportService userReportService;
   private final ReviewReportService reviewReportService;
 
+  @ReportApiDocs.ReportUser
   @PostMapping("/user")
-  public ResponseEntity<?> reportUser(@RequestBody @Valid UserReportRequest userReportRequest) {
+  public ResponseEntity<GlobalResponse> reportUser(
+      @RequestBody @Valid UserReportRequest userReportRequest) {
 
     Long currentUserId =
         SecurityContextUtil.getUserIdByContext()
@@ -46,8 +50,9 @@ public class ReportCommandController {
     return GlobalResponse.ok(userReportService.userReport(currentUserId, userReportRequest));
   }
 
+  @ReportApiDocs.ReportReview
   @PostMapping("/review")
-  public ResponseEntity<?> reportReview(
+  public ResponseEntity<GlobalResponse> reportReview(
       @RequestBody @Valid ReviewReportRequest reviewReportRequest, HttpServletRequest request) {
     Long currentUserId =
         SecurityContextUtil.getUserIdByContext()

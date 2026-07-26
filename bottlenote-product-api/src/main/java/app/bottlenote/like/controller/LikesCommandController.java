@@ -3,6 +3,7 @@ package app.bottlenote.like.controller;
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 
 import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.like.controller.docs.LikesApiDocs;
 import app.bottlenote.like.dto.request.LikesUpdateRequest;
 import app.bottlenote.like.dto.response.LikesUpdateResponse;
 import app.bottlenote.like.service.LikesCommandService;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/likes")
+@LikesApiDocs.ApiTag
 public class LikesCommandController {
 
   private final LikesCommandService likesCommandService;
@@ -25,8 +27,10 @@ public class LikesCommandController {
     this.likesCommandService = likesCommandService;
   }
 
+  @LikesApiDocs.UpdateLikes
   @PutMapping
-  public ResponseEntity<?> updateLikes(@Valid @RequestBody LikesUpdateRequest request) {
+  public ResponseEntity<GlobalResponse> updateLikes(
+      @Valid @RequestBody LikesUpdateRequest request) {
     Long userId =
         getUserIdByContext()
             .orElseThrow(() -> new UserException(UserExceptionCode.REQUIRED_USER_ID));

@@ -7,6 +7,7 @@ import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.CollectionResponse;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.support.business.controller.docs.BusinessSupportApiDocs;
 import app.bottlenote.support.business.dto.request.BusinessSupportPageableRequest;
 import app.bottlenote.support.business.dto.request.BusinessSupportUpsertRequest;
 import app.bottlenote.support.business.dto.response.BusinessInfoResponse;
@@ -30,20 +31,25 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/business-support")
 @SecurityPolicy(auth = REQUIRED_AUTH)
 @RequiredArgsConstructor
+@BusinessSupportApiDocs.ApiTag
 public class BusinessSupportController {
 
   private final BusinessSupportService service;
 
+  @BusinessSupportApiDocs.RegisterBusinessSupport
   @PostMapping
-  public ResponseEntity<?> register(@Valid @RequestBody BusinessSupportUpsertRequest req) {
+  public ResponseEntity<GlobalResponse> register(
+      @Valid @RequestBody BusinessSupportUpsertRequest req) {
     Long userId =
         SecurityContextUtil.getUserIdByContext()
             .orElseThrow(() -> new UserException(REQUIRED_USER_ID));
     return GlobalResponse.ok(service.register(req, userId));
   }
 
+  @BusinessSupportApiDocs.GetBusinessSupportList
   @GetMapping
-  public ResponseEntity<?> getAllList(@ModelAttribute BusinessSupportPageableRequest req) {
+  public ResponseEntity<GlobalResponse> getAllList(
+      @ModelAttribute BusinessSupportPageableRequest req) {
     Long userId =
         SecurityContextUtil.getUserIdByContext()
             .orElseThrow(() -> new UserException(REQUIRED_USER_ID));
@@ -51,8 +57,9 @@ public class BusinessSupportController {
     return GlobalResponse.ok(collection);
   }
 
+  @BusinessSupportApiDocs.GetBusinessSupportDetail
   @GetMapping("/{id}")
-  public ResponseEntity<?> getDetail(@PathVariable Long id) {
+  public ResponseEntity<GlobalResponse> getDetail(@PathVariable Long id) {
     Long userId =
         SecurityContextUtil.getUserIdByContext()
             .orElseThrow(() -> new UserException(REQUIRED_USER_ID));
@@ -60,8 +67,9 @@ public class BusinessSupportController {
     return GlobalResponse.ok(item);
   }
 
+  @BusinessSupportApiDocs.ModifyBusinessSupport
   @PatchMapping("/{id}")
-  public ResponseEntity<?> modify(
+  public ResponseEntity<GlobalResponse> modify(
       @PathVariable Long id, @Valid @RequestBody BusinessSupportUpsertRequest req) {
     Long userId =
         SecurityContextUtil.getUserIdByContext()
@@ -69,8 +77,9 @@ public class BusinessSupportController {
     return GlobalResponse.ok(service.modify(id, req, userId));
   }
 
+  @BusinessSupportApiDocs.DeleteBusinessSupport
   @DeleteMapping("/{id}")
-  public ResponseEntity<?> delete(@PathVariable Long id) {
+  public ResponseEntity<GlobalResponse> delete(@PathVariable Long id) {
     Long userId =
         SecurityContextUtil.getUserIdByContext()
             .orElseThrow(() -> new UserException(REQUIRED_USER_ID));

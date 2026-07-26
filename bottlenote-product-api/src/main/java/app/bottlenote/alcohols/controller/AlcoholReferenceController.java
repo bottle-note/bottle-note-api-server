@@ -3,6 +3,7 @@ package app.bottlenote.alcohols.controller;
 import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.PUBLIC;
 
 import app.bottlenote.alcohols.constant.AlcoholType;
+import app.bottlenote.alcohols.controller.docs.AlcoholReferenceApiDocs;
 import app.bottlenote.alcohols.dto.request.CurationKeywordSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.alcohols.dto.response.CurationKeywordResponse;
@@ -23,31 +24,36 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
 @SecurityPolicy(auth = PUBLIC)
+@AlcoholReferenceApiDocs.ApiTag
 public class AlcoholReferenceController {
 
   private final AlcoholReferenceService alcoholReferenceService;
 
+  @AlcoholReferenceApiDocs.GetRegions
   @GetMapping("/regions")
-  public ResponseEntity<?> findAll() {
+  public ResponseEntity<GlobalResponse> findAll() {
     return GlobalResponse.ok(alcoholReferenceService.findAllRegion());
   }
 
+  @AlcoholReferenceApiDocs.GetCategories
   @GetMapping("/alcohols/categories")
-  public ResponseEntity<?> getAlcoholCategory(
+  public ResponseEntity<GlobalResponse> getAlcoholCategory(
       @RequestParam(required = false, defaultValue = "WHISKY") AlcoholType type) {
     return GlobalResponse.ok(alcoholReferenceService.getAlcoholCategory(type));
   }
 
+  @AlcoholReferenceApiDocs.SearchCurationKeywords
   @GetMapping("/curations")
-  public ResponseEntity<?> searchCurationKeywords(
+  public ResponseEntity<GlobalResponse> searchCurationKeywords(
       @ModelAttribute CurationKeywordSearchRequest request) {
     CursorResponse<CurationKeywordResponse> response =
         alcoholReferenceService.searchCurationKeywords(request);
     return GlobalResponse.ok(response);
   }
 
+  @AlcoholReferenceApiDocs.GetCurationAlcohols
   @GetMapping("/curations/{curationId}/alcohols")
-  public ResponseEntity<?> getCurationAlcohols(
+  public ResponseEntity<GlobalResponse> getCurationAlcohols(
       @PathVariable Long curationId,
       @RequestParam(required = false, defaultValue = "0") Long cursor,
       @RequestParam(required = false, defaultValue = "10") Long pageSize) {

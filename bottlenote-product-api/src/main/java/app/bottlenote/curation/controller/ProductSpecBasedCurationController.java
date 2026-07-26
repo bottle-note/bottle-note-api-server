@@ -2,6 +2,7 @@ package app.bottlenote.curation.controller;
 
 import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.PUBLIC;
 
+import app.bottlenote.curation.controller.docs.SpecBasedCurationApiDocs;
 import app.bottlenote.curation.dto.request.CurationFeedSearchRequest;
 import app.bottlenote.curation.service.ProductSpecBasedCurationService;
 import app.bottlenote.global.annotation.SecurityPolicy;
@@ -19,25 +20,29 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v2/curations")
 @RequiredArgsConstructor
 @SecurityPolicy(auth = PUBLIC)
+@SpecBasedCurationApiDocs.ApiTag
 public class ProductSpecBasedCurationController {
 
   private final ProductSpecBasedCurationService productSpecBasedCurationService;
 
+  @SpecBasedCurationApiDocs.GetCurations
   @GetMapping
-  public ResponseEntity<?> getCurations() {
+  public ResponseEntity<GlobalResponse> getCurations() {
     return GlobalResponse.ok(productSpecBasedCurationService.listActiveCurations());
   }
 
+  @SpecBasedCurationApiDocs.GetCurationFeed
   @GetMapping("/feed")
-  public ResponseEntity<?> getCurationFeed(
+  public ResponseEntity<GlobalResponse> getCurationFeed(
       @ModelAttribute @Valid CurationFeedSearchRequest request) {
     return GlobalResponse.ok(
         productSpecBasedCurationService.searchFeed(
             request.keyword(), request.code(), request.cursor(), request.size()));
   }
 
+  @SpecBasedCurationApiDocs.GetCuration
   @GetMapping("/{curationId}")
-  public ResponseEntity<?> getCuration(@PathVariable Long curationId) {
+  public ResponseEntity<GlobalResponse> getCuration(@PathVariable Long curationId) {
     return GlobalResponse.ok(productSpecBasedCurationService.getDetail(curationId));
   }
 }

@@ -3,6 +3,7 @@ package app.bottlenote.picks.controller;
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 
 import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.picks.controller.docs.PicksApiDocs;
 import app.bottlenote.picks.dto.request.PicksUpdateRequest;
 import app.bottlenote.picks.service.PicksCommandService;
 import app.bottlenote.user.exception.UserException;
@@ -18,10 +19,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/picks")
 @RequiredArgsConstructor
+@PicksApiDocs.ApiTag
 public class PicksCommandController {
 
   private final PicksCommandService picksCommandService;
 
+  @PicksApiDocs.UpdatePicks
   @PutMapping
   public ResponseEntity<GlobalResponse> updatePicks(
       @RequestBody @Valid PicksUpdateRequest request) {

@@ -3,6 +3,7 @@ package app.bottlenote.alcohols.controller;
 import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.OPTIONAL_AUTH;
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 
+import app.bottlenote.alcohols.controller.docs.AlcoholPopularApiDocs;
 import app.bottlenote.alcohols.dto.response.PopularsOfWeekResponse;
 import app.bottlenote.alcohols.service.AlcoholPopularService;
 import app.bottlenote.global.annotation.SecurityPolicy;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
 @SecurityPolicy(auth = OPTIONAL_AUTH)
+@AlcoholPopularApiDocs.ApiTag
 public class AlcoholPopularQueryController {
 
   private final AlcoholPopularService alcoholPopularService;
@@ -30,8 +32,10 @@ public class AlcoholPopularQueryController {
    * @param top 조회할 위스키 목록 개수
    * @return 조회된 위스키 목록
    */
+  @AlcoholPopularApiDocs.GetPopularOfWeek
   @GetMapping("/popular/week")
-  public ResponseEntity<?> getPopularOfWeek(@RequestParam(defaultValue = "5") Integer top) {
+  public ResponseEntity<GlobalResponse> getPopularOfWeek(
+      @RequestParam(defaultValue = "5") Integer top) {
     Long userId = getUserIdByContext().orElse(-1L);
     var populars = alcoholPopularService.getPopularOfWeek(top, userId);
     var response = PopularsOfWeekResponse.of(populars.size(), populars);
@@ -39,16 +43,19 @@ public class AlcoholPopularQueryController {
   }
 
   /** 봄 추천 인기 위스키 리스트 조회 */
+  @AlcoholPopularApiDocs.GetSpringItems
   @GetMapping("/popular/spring")
-  public ResponseEntity<?> getSpringItems() {
+  public ResponseEntity<GlobalResponse> getSpringItems() {
     Long userId = getUserIdByContext().orElse(-1L);
     var response = alcoholPopularService.getSpringItems(userId);
     return GlobalResponse.ok(response);
   }
 
   /** 주간 조회수 기반 인기 위스키 리스트 조회 */
+  @AlcoholPopularApiDocs.GetPopularByViewsWeekly
   @GetMapping("/popular/view/week")
-  public ResponseEntity<?> getPopularByViewsWeekly(@RequestParam(defaultValue = "20") Integer top) {
+  public ResponseEntity<GlobalResponse> getPopularByViewsWeekly(
+      @RequestParam(defaultValue = "20") Integer top) {
     Long userId = getUserIdByContext().orElse(-1L);
     var populars = alcoholPopularService.getPopularByViewsWeekly(top, userId);
     var response = PopularsOfWeekResponse.of(populars.size(), populars);
@@ -56,8 +63,9 @@ public class AlcoholPopularQueryController {
   }
 
   /** 월간 조회수 기반 인기 위스키 리스트 조회 */
+  @AlcoholPopularApiDocs.GetPopularByViewsMonthly
   @GetMapping("/popular/view/monthly")
-  public ResponseEntity<?> getPopularByViewsMonthly(
+  public ResponseEntity<GlobalResponse> getPopularByViewsMonthly(
       @RequestParam(defaultValue = "20") Integer top) {
     Long userId = getUserIdByContext().orElse(-1L);
     var populars = alcoholPopularService.getPopularByViewsMonthly(top, userId);

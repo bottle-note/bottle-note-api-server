@@ -6,6 +6,7 @@ import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.meta.MetaService;
+import app.bottlenote.support.help.controller.docs.HelpApiDocs;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpUpsertRequest;
 import app.bottlenote.support.help.dto.response.HelpListResponse;
@@ -28,12 +29,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/help")
 @RequiredArgsConstructor
+@HelpApiDocs.ApiTag
 public class HelpCommandController {
 
   private final HelpService helpService;
 
+  @HelpApiDocs.RegisterHelp
   @PostMapping
-  public ResponseEntity<?> registerHelp(@Valid @RequestBody HelpUpsertRequest helpUpsertRequest) {
+  public ResponseEntity<GlobalResponse> registerHelp(
+      @Valid @RequestBody HelpUpsertRequest helpUpsertRequest) {
 
     Long currentUserId =
         SecurityContextUtil.getUserIdByContext()
@@ -42,8 +46,10 @@ public class HelpCommandController {
     return GlobalResponse.ok(helpService.registerHelp(helpUpsertRequest, currentUserId));
   }
 
+  @HelpApiDocs.GetHelpList
   @GetMapping
-  public ResponseEntity<?> getHelpList(@ModelAttribute HelpPageableRequest helpPageableRequest) {
+  public ResponseEntity<GlobalResponse> getHelpList(
+      @ModelAttribute HelpPageableRequest helpPageableRequest) {
 
     Long currentUserId =
         SecurityContextUtil.getUserIdByContext()
@@ -57,8 +63,9 @@ public class HelpCommandController {
         MetaService.createMetaInfo().add("pageable", pageResponse.cursorPageable()));
   }
 
+  @HelpApiDocs.GetHelpDetail
   @GetMapping("/{helpId}")
-  public ResponseEntity<?> getDetailHelp(@PathVariable Long helpId) {
+  public ResponseEntity<GlobalResponse> getDetailHelp(@PathVariable Long helpId) {
 
     Long currentUserId =
         SecurityContextUtil.getUserIdByContext()
@@ -67,8 +74,9 @@ public class HelpCommandController {
     return GlobalResponse.ok(helpService.getDetailHelp(helpId, currentUserId));
   }
 
+  @HelpApiDocs.ModifyHelp
   @PatchMapping("/{helpId}")
-  public ResponseEntity<?> modifyHelp(
+  public ResponseEntity<GlobalResponse> modifyHelp(
       @Valid @RequestBody HelpUpsertRequest helpUpsertRequest, @PathVariable Long helpId) {
 
     Long currentUserId =
@@ -78,8 +86,9 @@ public class HelpCommandController {
     return GlobalResponse.ok(helpService.modifyHelp(helpUpsertRequest, currentUserId, helpId));
   }
 
+  @HelpApiDocs.DeleteHelp
   @DeleteMapping("/{helpId}")
-  public ResponseEntity<?> deleteHelp(@PathVariable Long helpId) {
+  public ResponseEntity<GlobalResponse> deleteHelp(@PathVariable Long helpId) {
 
     Long currentUserId =
         SecurityContextUtil.getUserIdByContext()

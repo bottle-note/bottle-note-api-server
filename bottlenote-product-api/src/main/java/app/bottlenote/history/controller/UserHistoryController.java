@@ -7,6 +7,7 @@ import app.bottlenote.global.data.response.CollectionResponse;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.meta.MetaService;
+import app.bottlenote.history.controller.docs.UserHistoryApiDocs;
 import app.bottlenote.history.dto.request.UserHistorySearchRequest;
 import app.bottlenote.history.dto.response.UserHistorySearchResponse;
 import app.bottlenote.history.service.AlcoholViewHistoryService;
@@ -23,13 +24,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/history")
 @RequiredArgsConstructor
+@UserHistoryApiDocs.ApiTag
 public class UserHistoryController {
 
   private final UserHistoryQueryService userHistoryQueryService;
   private final AlcoholViewHistoryService alcoholViewHistoryService;
 
+  @UserHistoryApiDocs.GetUserHistoryList
   @GetMapping("/{targetUserId}")
-  public ResponseEntity<?> findUserHistoryList(
+  public ResponseEntity<GlobalResponse> findUserHistoryList(
       @PathVariable Long targetUserId,
       @ModelAttribute @Valid UserHistorySearchRequest userHistorySearchRequest) {
 
@@ -40,8 +43,9 @@ public class UserHistoryController {
         MetaService.createMetaInfo().add("pageable", userHistoryList.cursorPageable()));
   }
 
+  @UserHistoryApiDocs.GetViewHistory
   @GetMapping("/view/alcohols")
-  public ResponseEntity<?> getViewHistory() {
+  public ResponseEntity<GlobalResponse> getViewHistory() {
     Long id = getUserIdByContext().orElse(-1L);
     CollectionResponse<ViewHistoryItem> response = alcoholViewHistoryService.getViewHistory(id);
     return GlobalResponse.ok(response);

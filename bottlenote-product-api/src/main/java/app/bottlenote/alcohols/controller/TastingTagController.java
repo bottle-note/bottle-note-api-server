@@ -2,6 +2,7 @@ package app.bottlenote.alcohols.controller;
 
 import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.PUBLIC;
 
+import app.bottlenote.alcohols.controller.docs.TastingTagApiDocs;
 import app.bottlenote.alcohols.service.TastingTagService;
 import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
@@ -17,12 +18,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/tasting-tags")
 @RequiredArgsConstructor
 @SecurityPolicy(auth = PUBLIC)
+@TastingTagApiDocs.ApiTag
 public class TastingTagController {
 
   private final TastingTagService tastingTagService;
 
+  @TastingTagApiDocs.ExtractTags
   @GetMapping("/extract")
-  public ResponseEntity<?> getExtractedTags(@RequestParam String text) {
+  public ResponseEntity<GlobalResponse> getExtractedTags(@RequestParam String text) {
     List<String> tags = tastingTagService.extractTagNames(text);
     return GlobalResponse.ok(tags);
   }

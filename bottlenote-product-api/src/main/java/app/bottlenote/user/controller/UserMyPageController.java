@@ -10,6 +10,7 @@ import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.user.constant.MyBottleType;
+import app.bottlenote.user.controller.docs.UserMyPageApiDocs;
 import app.bottlenote.user.dto.request.MyBottleRequest;
 import app.bottlenote.user.dto.response.MyBottleResponse;
 import app.bottlenote.user.exception.UserException;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/my-page")
+@UserMyPageApiDocs.ApiTag
 public class UserMyPageController {
 
   private final UserBasicService userBasicService;
@@ -33,15 +35,17 @@ public class UserMyPageController {
 
   /** 마이 페이지 조회 API 모든 유저가 조회 가능 */
   @SecurityPolicy(auth = OPTIONAL_AUTH)
+  @UserMyPageApiDocs.GetMyPage
   @GetMapping("/{userId}")
-  public ResponseEntity<?> getMyPage(@PathVariable Long userId) {
+  public ResponseEntity<GlobalResponse> getMyPage(@PathVariable Long userId) {
     final Long currentUserId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
     return GlobalResponse.ok(userBasicService.getMyPage(userId, currentUserId));
   }
 
   @SecurityPolicy(auth = REQUIRED_AUTH)
+  @UserMyPageApiDocs.GetReviewMyBottle
   @GetMapping("/{userId}/my-bottle/reviews")
-  public ResponseEntity<?> getReviewMyBottle(
+  public ResponseEntity<GlobalResponse> getReviewMyBottle(
       @PathVariable(name = "userId") Long userId,
       @ModelAttribute(name = "myBottleRequest") MyBottleRequest myBottleRequest) {
     final Long currentUserId =
@@ -59,8 +63,9 @@ public class UserMyPageController {
   }
 
   @SecurityPolicy(auth = REQUIRED_AUTH)
+  @UserMyPageApiDocs.GetRatingMyBottle
   @GetMapping("/{userId}/my-bottle/ratings")
-  public ResponseEntity<?> getRatingMyBottle(
+  public ResponseEntity<GlobalResponse> getRatingMyBottle(
       @PathVariable(name = "userId") Long userId,
       @ModelAttribute(name = "myBottleRequest") MyBottleRequest myBottleRequest) {
     final Long currentUserId =
@@ -78,8 +83,9 @@ public class UserMyPageController {
   }
 
   @SecurityPolicy(auth = REQUIRED_AUTH)
+  @UserMyPageApiDocs.GetPicksMyBottle
   @GetMapping("/{userId}/my-bottle/picks")
-  public ResponseEntity<?> getPicksMyBottle(
+  public ResponseEntity<GlobalResponse> getPicksMyBottle(
       @PathVariable(name = "userId") Long userId,
       @ModelAttribute(name = "myBottleRequest") MyBottleRequest myBottleRequest) {
     final Long currentUserId =
