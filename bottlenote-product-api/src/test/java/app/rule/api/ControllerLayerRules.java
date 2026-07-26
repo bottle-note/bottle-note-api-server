@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /** 컨트롤러 계층의 아키텍처 규칙을 검증하는 테스트 클래스입니다. */
 @Tag("rule")
@@ -426,20 +427,32 @@ public class ControllerLayerRules extends AbstractRules {
    * <p>{@code ResponseEntity<?>}로 두면 스펙 생성기가 응답 타입을 알 수 없습니다. 공통 응답 형식을 쓰면 {@code
    * ResponseEntity<GlobalResponse>}, 형식을 거치지 않고 DTO를 그대로 내보내면 그 DTO를 적습니다. 이 선언이 API 문서에서 응답 형식을
    * 판단하는 근거이므로 와일드카드를 허용하면 문서가 실제 응답과 달라질 수 있습니다.
+   *
+   * <p>에러 응답을 만드는 {@code @RestControllerAdvice}도 같은 근거를 따르므로 함께 검사합니다.
    */
   @Test
   public void 컨트롤러_응답_타입_명시_검증() {
     ArchRule rule =
         methods()
             .that()
-            .areDeclaredInClassesThat()
-            .areAnnotatedWith(RestController.class)
-            .and()
             .arePublic()
+            .and()
+            .areDeclaredInClassesThat(respondToClients())
             .should(declareResponseBodyType())
             .because("응답 본문 타입은 API 문서 생성의 근거이므로 ResponseEntity<?> 대신 실제 타입을 선언해야 합니다");
 
     rule.check(importedClasses);
+  }
+
+  /** 클라이언트에게 응답 본문을 직접 내보내는 클래스. */
+  private DescribedPredicate<JavaClass> respondToClients() {
+    return new DescribedPredicate<>("@RestController 또는 @RestControllerAdvice 로 선언된") {
+      @Override
+      public boolean test(JavaClass javaClass) {
+        return javaClass.isAnnotatedWith(RestController.class)
+            || javaClass.isAnnotatedWith(RestControllerAdvice.class);
+      }
+    };
   }
 
   private ArchCondition<JavaMethod> declareResponseBodyType() {
@@ -450,6 +463,10 @@ public class ControllerLayerRules extends AbstractRules {
           return;
         }
         if (!(method.getReturnType() instanceof JavaParameterizedType parameterized)) {
+          events.add(
+              SimpleConditionEvent.violated(
+                  method,
+                  method.getFullName() + " 이(가) 타입 인자 없는 ResponseEntity 를 반환합니다. 본문 타입을 선언하세요"));
           return;
         }
         boolean hasWildcard =
