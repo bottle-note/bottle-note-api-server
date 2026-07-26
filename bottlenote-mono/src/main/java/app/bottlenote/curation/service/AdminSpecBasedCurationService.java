@@ -126,6 +126,8 @@ public class AdminSpecBasedCurationService {
             .curationId(saved.getId())
             .specId(spec.getId())
             .payload(request.payload())
+            .feedPayload(
+                feedProjector.extractFeedPayload(spec.getResponseSpec(), request.payload()))
             .build());
     return AdminResultResponse.of(CURATION_CREATED, saved.getId());
   }
@@ -148,7 +150,11 @@ public class AdminSpecBasedCurationService {
         request.exposureEndDate(),
         request.displayOrder(),
         request.isActive());
-    getExtension(curationId).update(spec.getId(), request.payload());
+    getExtension(curationId)
+        .update(
+            spec.getId(),
+            request.payload(),
+            feedProjector.extractFeedPayload(spec.getResponseSpec(), request.payload()));
     return AdminResultResponse.of(CURATION_UPDATED, curationId);
   }
 

@@ -3,6 +3,7 @@ package app.bottlenote.curation.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import app.bottlenote.curation.domain.CurationExtension;
 import app.bottlenote.curation.domain.CurationSpec;
 import app.bottlenote.curation.dto.request.CurationCreateRequest;
 import app.bottlenote.curation.dto.request.CurationSearchRequest;
@@ -16,6 +17,7 @@ import app.bottlenote.curation.fixture.InMemoryCurationExtensionRepository;
 import app.bottlenote.curation.fixture.InMemoryCurationRepository;
 import app.bottlenote.curation.fixture.InMemoryCurationSpecRepository;
 import app.bottlenote.global.data.response.GlobalResponse;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import java.util.List;
@@ -74,6 +76,46 @@ class AdminSpecBasedCurationServiceTest {
     assertThat(detail.spec().code()).isEqualTo("RECOMMENDED_WHISKY");
     assertThat(new ObjectMapper().valueToTree(detail.payload()).path("source").asText())
         .isEqualTo("BOTTLE_NOTE");
+  }
+
+  @Test
+  @DisplayName("큐레이션을 생성하면 x-feed 기준으로 추출한 feedPayload를 원본과 함께 저장한다")
+  void create_feedPayload_함께_저장() {
+    CurationSpec spec = createSpec();
+
+    var result = adminSpecBasedCurationService.create(createRequest(spec.getId()));
+
+    CurationExtension extension =
+        curationExtensionRepository.findByCurationId(result.targetId()).orElseThrow();
+    JsonNode feedPayload = new ObjectMapper().valueToTree(extension.getFeedPayload());
+    assertThat(feedPayload.path("alcohol").path("korName").asText()).isEqualTo("테스트 위스키");
+    assertThat(feedPayload.has("source")).isFalse();
+  }
+
+  @Test
+  @DisplayName("큐레이션을 수정하면 feedPayload도 새 payload 기준으로 함께 갱신된다")
+  void update_feedPayload_함께_갱신() {
+    CurationSpec spec = createSpec();
+    Long curationId = adminSpecBasedCurationService.create(createRequest(spec.getId())).targetId();
+
+    adminSpecBasedCurationService.update(
+        curationId,
+        new CurationUpdateRequest(
+            spec.getId(),
+            "수정된 큐레이션",
+            "수정된 설명",
+            List.of("https://cdn.example.com/updated.jpg"),
+            LocalDate.now().minusDays(1),
+            LocalDate.now().plusDays(30),
+            5,
+            false,
+            Map.of("source", "MANUAL", "alcohol", Map.of("korName", "수동 입력"))));
+
+    CurationExtension extension =
+        curationExtensionRepository.findByCurationId(curationId).orElseThrow();
+    JsonNode feedPayload = new ObjectMapper().valueToTree(extension.getFeedPayload());
+    assertThat(feedPayload.path("alcohol").path("korName").asText()).isEqualTo("수동 입력");
+    assertThat(feedPayload.has("source")).isFalse();
   }
 
   @Test
