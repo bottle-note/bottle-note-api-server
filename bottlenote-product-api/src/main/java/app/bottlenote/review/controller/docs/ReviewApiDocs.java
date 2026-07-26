@@ -14,7 +14,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.springframework.http.MediaType;
 
 /**
  * 리뷰 엔드포인트의 문서 설명을 모아둔다.
@@ -46,10 +45,7 @@ public final class ReviewApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "작성된 리뷰의 식별자",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = ReviewCreateResponse.class))))
+              content = @Content(schema = @Schema(implementation = ReviewCreateResponse.class))))
   public @interface CreateReview {}
 
   @Target(ElementType.METHOD)
@@ -69,7 +65,6 @@ public final class ReviewApiDocs {
               description = "리뷰 목록",
               content =
                   @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
                       array =
                           @ArraySchema(
                               schema = @Schema(implementation = ReviewListResponse.class)))))
@@ -84,10 +79,7 @@ public final class ReviewApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "리뷰 상세 정보",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = ReviewDetailResponse.class))))
+              content = @Content(schema = @Schema(implementation = ReviewDetailResponse.class))))
   public @interface GetReviewDetail {}
 
   @Target(ElementType.METHOD)
@@ -101,7 +93,6 @@ public final class ReviewApiDocs {
               description = "내가 작성한 리뷰 목록",
               content =
                   @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
                       array =
                           @ArraySchema(
                               schema = @Schema(implementation = ReviewListResponse.class)))))
@@ -116,10 +107,7 @@ public final class ReviewApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "수정 처리 결과",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = ReviewResultResponse.class))))
+              content = @Content(schema = @Schema(implementation = ReviewResultResponse.class))))
   public @interface ModifyReview {}
 
   @Target(ElementType.METHOD)
@@ -131,10 +119,7 @@ public final class ReviewApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "변경 처리 결과",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = ReviewResultResponse.class))))
+              content = @Content(schema = @Schema(implementation = ReviewResultResponse.class))))
   public @interface ChangeReviewStatus {}
 
   @Target(ElementType.METHOD)
@@ -146,9 +131,6 @@ public final class ReviewApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "삭제 처리 결과",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = ReviewResultResponse.class))))
+              content = @Content(schema = @Schema(implementation = ReviewResultResponse.class))))
   public @interface DeleteReview {}
 }

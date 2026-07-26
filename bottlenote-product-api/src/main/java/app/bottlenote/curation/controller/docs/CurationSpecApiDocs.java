@@ -12,7 +12,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.springframework.http.MediaType;
 
 /** 큐레이션 명세 조회 엔드포인트의 문서 설명. */
 public final class CurationSpecApiDocs {
@@ -41,7 +40,6 @@ public final class CurationSpecApiDocs {
               description = "활성 명세 목록",
               content =
                   @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
                       array =
                           @ArraySchema(
                               schema = @Schema(implementation = CurationSpecListResponse.class)))))
@@ -56,9 +54,6 @@ public final class CurationSpecApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "명세 상세 정보",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = CurationSpecResponse.class))))
+              content = @Content(schema = @Schema(implementation = CurationSpecResponse.class))))
   public @interface GetCurationSpec {}
 }

@@ -13,7 +13,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.springframework.http.MediaType;
 
 /** 위스키 조회 엔드포인트의 문서 설명. */
 public final class AlcoholQueryApiDocs {
@@ -42,7 +41,6 @@ public final class AlcoholQueryApiDocs {
               description = "자동 완성 후보 목록",
               content =
                   @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
                       array =
                           @ArraySchema(
                               schema = @Schema(implementation = AlcoholLookupItem.class)))))
@@ -66,7 +64,6 @@ public final class AlcoholQueryApiDocs {
               description = "검색된 위스키 목록",
               content =
                   @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
                       array =
                           @ArraySchema(
                               schema = @Schema(implementation = AlcoholSearchResponse.class)))))
@@ -86,9 +83,6 @@ public final class AlcoholQueryApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "위스키 상세 정보",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = AlcoholDetailResponse.class))))
+              content = @Content(schema = @Schema(implementation = AlcoholDetailResponse.class))))
   public @interface GetAlcoholDetail {}
 }

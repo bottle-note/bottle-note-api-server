@@ -13,7 +13,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.springframework.http.MediaType;
 
 /** 팔로우 엔드포인트의 문서 설명. */
 public final class FollowApiDocs {
@@ -41,7 +40,6 @@ public final class FollowApiDocs {
               description = "팔로잉 목록",
               content =
                   @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
                       array =
                           @ArraySchema(
                               schema = @Schema(implementation = FollowingSearchResponse.class)))))
@@ -58,7 +56,6 @@ public final class FollowApiDocs {
               description = "팔로워 목록",
               content =
                   @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
                       array =
                           @ArraySchema(
                               schema = @Schema(implementation = FollowerSearchResponse.class)))))
@@ -73,9 +70,6 @@ public final class FollowApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "변경된 팔로우 상태",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = FollowUpdateResponse.class))))
+              content = @Content(schema = @Schema(implementation = FollowUpdateResponse.class))))
   public @interface UpdateFollowStatus {}
 }

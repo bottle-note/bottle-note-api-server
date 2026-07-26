@@ -12,7 +12,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.List;
-import org.springframework.http.MediaType;
 
 /** 사용자 차단 엔드포인트의 문서 설명. */
 public final class BlockApiDocs {
@@ -38,10 +37,7 @@ public final class BlockApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "차단 후의 전체 차단 목록",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = BlockedUserCollection.class))))
+              content = @Content(schema = @Schema(implementation = BlockedUserCollection.class))))
   public @interface CreateBlock {}
 
   @Target(ElementType.METHOD)
@@ -53,10 +49,7 @@ public final class BlockApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "해제 후의 전체 차단 목록",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = BlockedUserCollection.class))))
+              content = @Content(schema = @Schema(implementation = BlockedUserCollection.class))))
   public @interface DeleteBlock {}
 
   @Target(ElementType.METHOD)
@@ -68,10 +61,7 @@ public final class BlockApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "차단한 사용자 목록",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = BlockedUserCollection.class))))
+              content = @Content(schema = @Schema(implementation = BlockedUserCollection.class))))
   public @interface GetBlockedUsers {}
 
   @Target(ElementType.METHOD)
@@ -85,7 +75,6 @@ public final class BlockApiDocs {
               description = "차단한 사용자 식별자 목록",
               content =
                   @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
                       array =
                           @ArraySchema(
                               schema =
@@ -103,7 +92,6 @@ public final class BlockApiDocs {
               description = "차단 여부",
               content =
                   @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
                       schema =
                           @Schema(
                               type = "boolean",
@@ -122,7 +110,6 @@ public final class BlockApiDocs {
               description = "상호 차단 여부",
               content =
                   @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
                       schema =
                           @Schema(
                               type = "boolean",
@@ -140,9 +127,7 @@ public final class BlockApiDocs {
               responseCode = "200",
               description = "나를 차단한 사용자 수",
               content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(type = "integer", format = "int64", example = "3"))))
+                  @Content(schema = @Schema(type = "integer", format = "int64", example = "3"))))
   public @interface GetBlockedByCount {}
 
   @Target(ElementType.METHOD)
@@ -155,9 +140,7 @@ public final class BlockApiDocs {
               responseCode = "200",
               description = "내가 차단한 사용자 수",
               content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(type = "integer", format = "int64", example = "5"))))
+                  @Content(schema = @Schema(type = "integer", format = "int64", example = "5"))))
   public @interface GetBlockingCount {}
 
   /** 실제로는 {@code CollectionResponse<UserBlockItem>}다. */

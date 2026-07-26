@@ -10,7 +10,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.springframework.http.MediaType;
 
 /** 리뷰 좋아요 엔드포인트의 문서 설명. */
 public final class LikesApiDocs {
@@ -36,9 +35,6 @@ public final class LikesApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "변경된 좋아요 상태",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = LikesUpdateResponse.class))))
+              content = @Content(schema = @Schema(implementation = LikesUpdateResponse.class))))
   public @interface UpdateLikes {}
 }

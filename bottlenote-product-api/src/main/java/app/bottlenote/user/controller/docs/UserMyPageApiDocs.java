@@ -11,7 +11,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.springframework.http.MediaType;
 
 /** 마이페이지 엔드포인트의 문서 설명. */
 public final class UserMyPageApiDocs {
@@ -37,10 +36,7 @@ public final class UserMyPageApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "마이페이지 정보",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = MyPageResponse.class))))
+              content = @Content(schema = @Schema(implementation = MyPageResponse.class))))
   public @interface GetMyPage {}
 
   @Target(ElementType.METHOD)
@@ -58,10 +54,7 @@ public final class UserMyPageApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "리뷰를 남긴 위스키 목록",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = MyBottleResponse.class))))
+              content = @Content(schema = @Schema(implementation = MyBottleResponse.class))))
   public @interface GetReviewMyBottle {}
 
   @Target(ElementType.METHOD)
@@ -73,10 +66,7 @@ public final class UserMyPageApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "별점을 남긴 위스키 목록",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = MyBottleResponse.class))))
+              content = @Content(schema = @Schema(implementation = MyBottleResponse.class))))
   public @interface GetRatingMyBottle {}
 
   @Target(ElementType.METHOD)
@@ -93,9 +83,6 @@ public final class UserMyPageApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "찜한 위스키 목록",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = MyBottleResponse.class))))
+              content = @Content(schema = @Schema(implementation = MyBottleResponse.class))))
   public @interface GetPicksMyBottle {}
 }

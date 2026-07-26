@@ -14,7 +14,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.List;
-import org.springframework.http.MediaType;
 
 /** 비즈니스 제휴 문의 엔드포인트의 문서 설명. */
 public final class BusinessSupportApiDocs {
@@ -41,9 +40,7 @@ public final class BusinessSupportApiDocs {
               responseCode = "200",
               description = "등록 처리 결과",
               content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = BusinessSupportResultResponse.class))))
+                  @Content(schema = @Schema(implementation = BusinessSupportResultResponse.class))))
   public @interface RegisterBusinessSupport {}
 
   @Target(ElementType.METHOD)
@@ -56,9 +53,7 @@ public final class BusinessSupportApiDocs {
               responseCode = "200",
               description = "전체 건수와 문의 목록",
               content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = BusinessSupportCollection.class))))
+                  @Content(schema = @Schema(implementation = BusinessSupportCollection.class))))
   public @interface GetBusinessSupportList {}
 
   @Target(ElementType.METHOD)
@@ -71,9 +66,7 @@ public final class BusinessSupportApiDocs {
               responseCode = "200",
               description = "문의 상세 정보",
               content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = BusinessSupportDetailItem.class))))
+                  @Content(schema = @Schema(implementation = BusinessSupportDetailItem.class))))
   public @interface GetBusinessSupportDetail {}
 
   @Target(ElementType.METHOD)
@@ -86,9 +79,7 @@ public final class BusinessSupportApiDocs {
               responseCode = "200",
               description = "수정 처리 결과",
               content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = BusinessSupportResultResponse.class))))
+                  @Content(schema = @Schema(implementation = BusinessSupportResultResponse.class))))
   public @interface ModifyBusinessSupport {}
 
   @Target(ElementType.METHOD)
@@ -101,9 +92,7 @@ public final class BusinessSupportApiDocs {
               responseCode = "200",
               description = "삭제 처리 결과",
               content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = BusinessSupportResultResponse.class))))
+                  @Content(schema = @Schema(implementation = BusinessSupportResultResponse.class))))
   public @interface DeleteBusinessSupport {}
 
   /** 실제로는 {@code CollectionResponse<BusinessInfoResponse>}다. */

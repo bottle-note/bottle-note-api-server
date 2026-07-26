@@ -11,7 +11,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.springframework.http.MediaType;
 
 /** 로그인과 토큰 관리 엔드포인트의 문서 설명. */
 public final class AuthApiDocs {
@@ -34,7 +33,6 @@ public final class AuthApiDocs {
               description = "관리자 여부",
               content =
                   @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
                       schema =
                           @Schema(type = "boolean", example = "false", description = "관리자면 true"))))
   public @interface CheckAdminStatus {}
@@ -54,10 +52,7 @@ public final class AuthApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "발급된 일회성 값",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = NonceResponse.class))))
+              content = @Content(schema = @Schema(implementation = NonceResponse.class))))
   public @interface GetAppleNonce {}
 
   @Target(ElementType.METHOD)
@@ -75,10 +70,7 @@ public final class AuthApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "액세스 토큰과 첫 로그인 여부",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = OauthResponse.class))))
+              content = @Content(schema = @Schema(implementation = OauthResponse.class))))
   public @interface ExecuteAppleLogin {}
 
   @Target(ElementType.METHOD)
@@ -96,10 +88,7 @@ public final class AuthApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "액세스 토큰과 첫 로그인 여부",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = OauthResponse.class))))
+              content = @Content(schema = @Schema(implementation = OauthResponse.class))))
   public @interface ExecuteKakaoLogin {}
 
   @Target(ElementType.METHOD)
@@ -116,10 +105,7 @@ public final class AuthApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "새로 발급된 액세스 토큰",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = OauthResponse.class))))
+              content = @Content(schema = @Schema(implementation = OauthResponse.class))))
   public @interface ReissueToken {}
 
   @Target(ElementType.METHOD)
@@ -131,9 +117,6 @@ public final class AuthApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "검증 결과",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(type = "string", description = "검증 결과 메시지"))))
+              content = @Content(schema = @Schema(type = "string", description = "검증 결과 메시지"))))
   public @interface VerifyToken {}
 }

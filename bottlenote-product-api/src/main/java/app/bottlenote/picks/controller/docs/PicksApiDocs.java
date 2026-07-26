@@ -10,7 +10,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.springframework.http.MediaType;
 
 /** 찜하기 엔드포인트의 문서 설명. */
 public final class PicksApiDocs {
@@ -36,9 +35,6 @@ public final class PicksApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "변경된 찜 상태",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = PicksUpdateResponse.class))))
+              content = @Content(schema = @Schema(implementation = PicksUpdateResponse.class))))
   public @interface UpdatePicks {}
 }

@@ -68,6 +68,8 @@ springdoc:
     path: /openapi.product.json
   swagger-ui:
     enabled: false
+  # 응답은 모두 JSON이므로 @Content마다 미디어 타입을 적지 않는다
+  default-produces-media-type: application/json
 
 # Spring Security
 security:

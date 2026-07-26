@@ -12,7 +12,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.springframework.http.MediaType;
 
 /** 인기 위스키 엔드포인트의 문서 설명. */
 public final class AlcoholPopularApiDocs {
@@ -33,10 +32,7 @@ public final class AlcoholPopularApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "전체 건수와 인기 위스키 목록",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = PopularsOfWeekResponse.class))))
+              content = @Content(schema = @Schema(implementation = PopularsOfWeekResponse.class))))
   public @interface GetPopularOfWeek {}
 
   @Target(ElementType.METHOD)
@@ -50,7 +46,6 @@ public final class AlcoholPopularApiDocs {
               description = "봄 추천 위스키 목록",
               content =
                   @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
                       array = @ArraySchema(schema = @Schema(implementation = PopularItem.class)))))
   public @interface GetSpringItems {}
 
@@ -63,10 +58,7 @@ public final class AlcoholPopularApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "전체 건수와 조회수 상위 위스키 목록",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = PopularsOfWeekResponse.class))))
+              content = @Content(schema = @Schema(implementation = PopularsOfWeekResponse.class))))
   public @interface GetPopularByViewsWeekly {}
 
   @Target(ElementType.METHOD)
@@ -78,9 +70,6 @@ public final class AlcoholPopularApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "전체 건수와 조회수 상위 위스키 목록",
-              content =
-                  @Content(
-                      mediaType = MediaType.APPLICATION_JSON_VALUE,
-                      schema = @Schema(implementation = PopularsOfWeekResponse.class))))
+              content = @Content(schema = @Schema(implementation = PopularsOfWeekResponse.class))))
   public @interface GetPopularByViewsMonthly {}
 }
