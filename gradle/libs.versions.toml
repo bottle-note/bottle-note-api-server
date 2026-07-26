@@ -48,6 +48,8 @@ archunit = "1.4.0"
 # Documentation
 spring-restdocs = "3.0.3"
 restdocs-api-spec = "0.19.4"
+# 2.8.x가 Spring Boot 3.x 지원 라인 (3.0.x는 Boot 4 전용)
+springdoc-openapi = "2.8.17"
 
 # Scheduling
 quartz = "2.3.2"
@@ -162,6 +164,7 @@ archunit = { module = "com.tngtech.archunit:archunit-junit5", version.ref = "arc
 spring-restdocs-asciidoctor = { module = "org.springframework.restdocs:spring-restdocs-asciidoctor", version.ref = "spring-restdocs" }
 spring-restdocs-mockmvc = { module = "org.springframework.restdocs:spring-restdocs-mockmvc", version.ref = "spring-restdocs" }
 restdocs-api-spec-mockmvc = { module = "com.epages:restdocs-api-spec-mockmvc", version.ref = "restdocs-api-spec" }
+springdoc-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc-openapi" }
 
 # Jackson - Spring Boot에서 관리하는 버전 사용
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations" }

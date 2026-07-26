@@ -62,6 +62,13 @@ bottlenote:
     visitor-telemetry:
       enabled: false
 
+# OpenAPI 문서 (스펙 JSON만 노출하고 swagger-ui는 사용하지 않는다)
+springdoc:
+  api-docs:
+    path: /openapi.product.json
+  swagger-ui:
+    enabled: false
+
 # Spring Security
 security:
   jwt:
