@@ -41,6 +41,11 @@ abstract class OpenApiSpecTestSupport extends IntegrationTestSupport {
     return operations;
   }
 
+  /** 위반 목록을 실패 메시지에 담을 형태로 잇는다. */
+  protected String joined(List<String> violations) {
+    return String.join(System.lineSeparator(), violations);
+  }
+
   /** 노드의 직접 자식 이름. */
   protected Stream<String> childNamesOf(JsonNode node) {
     return node.properties().stream().map(Map.Entry::getKey);
@@ -61,6 +66,16 @@ abstract class OpenApiSpecTestSupport extends IntegrationTestSupport {
         return MissingNode.getInstance();
       }
       return content.properties().iterator().next().getValue().path("schema");
+    }
+
+    /** HTTP 메서드와 경로를 합친 식별자. */
+    String endpoint() {
+      return "%s %s".formatted(method.toUpperCase(), path);
+    }
+
+    /** 문서에 선언된 보안 요구사항. 선언이 없으면 missing 노드. */
+    JsonNode security() {
+      return definition.path("security");
     }
 
     String tag() {

@@ -2,7 +2,6 @@ package app.bottlenote.global.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.List;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.DisplayName;
@@ -75,9 +74,5 @@ class OpenApiSpecQualityTest extends OpenApiSpecTestSupport {
         operationsOf(fetchSpec()).stream().filter(violating).map(SpecOperation::toString).toList();
 
     assertThat(violations).withFailMessage("%s:%n%s", reason, joined(violations)).isEmpty();
-  }
-
-  private String joined(List<String> violations) {
-    return String.join(System.lineSeparator(), violations);
   }
 }
