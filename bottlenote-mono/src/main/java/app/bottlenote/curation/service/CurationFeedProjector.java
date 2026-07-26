@@ -7,8 +7,10 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Component;
 public class CurationFeedProjector {
 
   private static final String FEED_META = "x-feed";
+  private static final String GRAPHQL_META = "x-graphql";
   private static final String PROPERTIES = "properties";
   private static final String ITEMS = "items";
   private static final String JSON_PATH_ROOT = "$";
@@ -41,6 +44,126 @@ public class CurationFeedProjector {
     JsonNode payloadNode = objectMapper.valueToTree(payload);
     JsonNode projected = projectNode(rootSchema(specNode), payloadNode);
     return objectMapper.convertValue(projected, Object.class);
+  }
+
+  // 저장용 feed payload: x-feed 필드 투영 결과에 피드 교차 x-graphql의 숨은 입력값(argFrom)을 병합한다.
+  public Object extractFeedPayload(Map<String, Object> responseSpec, Object payload) {
+    JsonNode specNode = objectMapper.valueToTree(responseSpec);
+    JsonNode payloadNode = objectMapper.valueToTree(payload);
+    JsonNode rootSchema = rootSchema(specNode);
+    Set<String> feedPaths = new HashSet<>();
+    collectFeedPaths(rootSchema, "", feedPaths);
+    List<String> inputPaths = new ArrayList<>();
+    collectGraphQLInputPaths(rootSchema, "", feedPaths, inputPaths);
+    if (payloadNode != null && payloadNode.isArray()) {
+      ArrayNode extracted = objectMapper.createArrayNode();
+      payloadNode.forEach(
+          item -> {
+            JsonNode child = extractObject(rootSchema, item, inputPaths);
+            if (child != null) {
+              extracted.add(child);
+            }
+          });
+      return objectMapper.convertValue(extracted.isEmpty() ? null : extracted, Object.class);
+    }
+    return objectMapper.convertValue(
+        extractObject(rootSchema, payloadNode, inputPaths), Object.class);
+  }
+
+  private JsonNode extractObject(JsonNode schema, JsonNode payload, List<String> inputPaths) {
+    JsonNode projected = projectNode(schema, payload);
+    if (projected == null || !projected.isObject() || payload == null || !payload.isObject()) {
+      return projected;
+    }
+    for (String inputPath : inputPaths) {
+      JsonNode value = GraphQLCurationQueryBuilder.navigate(payload, inputPath);
+      if (value != null) {
+        setAtPath((ObjectNode) projected, inputPath, value);
+      }
+    }
+    return projected;
+  }
+
+  private void collectFeedPaths(JsonNode schema, String path, Set<String> paths) {
+    if (schema == null || !schema.isObject()) {
+      return;
+    }
+    if (isEnabled(schema.get(FEED_META))) {
+      paths.add(path);
+      return;
+    }
+    JsonNode properties = schema.get(PROPERTIES);
+    if (properties != null && properties.isObject()) {
+      properties
+          .properties()
+          .forEach(
+              entry -> collectFeedPaths(entry.getValue(), append(path, entry.getKey()), paths));
+    }
+    JsonNode items = schema.get(ITEMS);
+    if (items != null) {
+      collectFeedPaths(items, path, paths);
+    }
+  }
+
+  private void collectGraphQLInputPaths(
+      JsonNode schema, String path, Set<String> feedPaths, List<String> inputPaths) {
+    if (schema == null || !schema.isObject()) {
+      return;
+    }
+    JsonNode meta = schema.get(GRAPHQL_META);
+    if (meta != null && meta.isObject() && meta.has("query")) {
+      String argFrom = normalizePath(meta.path("argFrom").asText(JSON_PATH_ROOT));
+      boolean feedQuery = feedPaths.stream().anyMatch(feedPath -> intersects(feedPath, path));
+      if (feedQuery && !argFrom.isBlank()) {
+        inputPaths.add(argFrom);
+      }
+      return;
+    }
+    JsonNode properties = schema.get(PROPERTIES);
+    if (properties != null && properties.isObject()) {
+      properties
+          .properties()
+          .forEach(
+              entry ->
+                  collectGraphQLInputPaths(
+                      entry.getValue(), append(path, entry.getKey()), feedPaths, inputPaths));
+    }
+    JsonNode items = schema.get(ITEMS);
+    if (items != null) {
+      collectGraphQLInputPaths(items, path, feedPaths, inputPaths);
+    }
+  }
+
+  private boolean intersects(String feedPath, String targetPath) {
+    if (feedPath.isBlank() || targetPath.isBlank()) {
+      return true;
+    }
+    return targetPath.equals(feedPath)
+        || targetPath.startsWith(feedPath + ".")
+        || feedPath.startsWith(targetPath + ".");
+  }
+
+  private String normalizePath(String path) {
+    if (path == null || JSON_PATH_ROOT.equals(path)) {
+      return "";
+    }
+    return path.startsWith("$.") ? path.substring(2) : path;
+  }
+
+  private void setAtPath(ObjectNode target, String path, JsonNode value) {
+    String[] segments = path.split("\\.");
+    ObjectNode current = target;
+    for (int i = 0; i < segments.length - 1; i++) {
+      JsonNode next = current.get(segments[i]);
+      if (next instanceof ObjectNode objectNode) {
+        current = objectNode;
+      } else {
+        ObjectNode created = objectMapper.createObjectNode();
+        current.set(segments[i], created);
+        current = created;
+      }
+    }
+    current.set(segments[segments.length - 1], value);
   }
 
   private JsonNode rootSchema(JsonNode specNode) {
