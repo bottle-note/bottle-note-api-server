@@ -54,7 +54,7 @@ class OpenApiDocsIntegrationTest extends OpenApiSpecTestSupport {
 
   @Test
   @DisplayName("공통 형식을 쓰는 엔드포인트의 성공 응답은 공통 필드를 갖는다")
-  void 공통_형식을_쓰는_응답은_공통_필드를_갖는다() throws Exception {
+  void 공통_형식을_쓰는_응답은_공통_필드를_갖는다() {
     var envelopeOperations =
         operationsOf(fetchSpec()).stream().filter(operation -> !isBare(operation)).toList();
 
@@ -69,7 +69,7 @@ class OpenApiDocsIntegrationTest extends OpenApiSpecTestSupport {
 
   @Test
   @DisplayName("공통 형식을 쓰지 않는 엔드포인트는 응답 본문이 곧 DTO다")
-  void 공통_형식을_쓰지_않는_응답은_DTO를_직접_가리킨다() throws Exception {
+  void 공통_형식을_쓰지_않는_응답은_DTO를_직접_가리킨다() {
     var bareOperations = operationsOf(fetchSpec()).stream().filter(this::isBare).toList();
 
     assertThat(bareOperations).hasSameSizeAs(BARE_RESPONSE_OPERATIONS);

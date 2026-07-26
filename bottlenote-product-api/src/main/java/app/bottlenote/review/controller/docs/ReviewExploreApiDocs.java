@@ -11,6 +11,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.List;
 
 /** 리뷰 탐색 엔드포인트의 문서 설명. */
 public final class ReviewExploreApiDocs {
@@ -38,7 +39,7 @@ public final class ReviewExploreApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "전체 건수와 이번 페이지의 리뷰 목록",
-              content = @Content(schema = @Schema(implementation = ExploreResult.class))))
+              content = @Content(schema = @Schema(implementation = ReviewExploreResult.class))))
   public @interface GetStandardExplore {}
 
   /**
@@ -51,8 +52,8 @@ public final class ReviewExploreApiDocs {
       name = "ReviewExploreResult",
       title = "리뷰 탐색 결과",
       description = "조건에 맞는 전체 건수와 이번 페이지의 리뷰 목록")
-  private record ExploreResult(
+  private record ReviewExploreResult(
       @Schema(description = "조건에 맞는 리뷰의 전체 건수", example = "500") long totalCount,
       @ArraySchema(schema = @Schema(implementation = ReviewExploreItem.class))
-          java.util.List<ReviewExploreItem> items) {}
+          List<ReviewExploreItem> items) {}
 }

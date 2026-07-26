@@ -28,7 +28,7 @@ class OpenApiSecurityRequirementTest extends OpenApiSpecTestSupport {
 
   @Test
   @DisplayName("문서의 토큰 요구는 실제 인증 정책과 일치한다")
-  void 문서의_토큰_요구가_실제_정책과_일치한다() throws Exception {
+  void 문서의_토큰_요구가_실제_정책과_일치한다() {
     var policies = authTypesByEndpoint();
     var operations = operationsOf(fetchSpec());
 
@@ -61,7 +61,7 @@ class OpenApiSecurityRequirementTest extends OpenApiSpecTestSupport {
 
   @Test
   @DisplayName("토큰을 요구하는 엔드포인트가 문서에 실제로 존재한다")
-  void 토큰을_요구하는_엔드포인트가_존재한다() throws Exception {
+  void 토큰을_요구하는_엔드포인트가_존재한다() {
     var requiring = operationsOf(fetchSpec()).stream().filter(this::requiresBearer).toList();
 
     assertThat(requiring)
@@ -71,7 +71,7 @@ class OpenApiSecurityRequirementTest extends OpenApiSpecTestSupport {
 
   @Test
   @DisplayName("토큰이 있으면 쓰고 없어도 동작하는 엔드포인트는 익명 호출도 허용으로 표시된다")
-  void 선택적_인증은_익명_호출도_허용으로_표시된다() throws Exception {
+  void 선택적_인증은_익명_호출도_허용으로_표시된다() {
     var policies = authTypesByEndpoint();
 
     var violations =

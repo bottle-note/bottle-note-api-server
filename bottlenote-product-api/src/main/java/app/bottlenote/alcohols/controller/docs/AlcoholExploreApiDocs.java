@@ -39,12 +39,12 @@ public final class AlcoholExploreApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "이번 페이지의 위스키 목록",
-              content = @Content(schema = @Schema(implementation = ExploreResult.class))))
+              content = @Content(schema = @Schema(implementation = AlcoholExploreResult.class))))
   public @interface GetStandardExplore {}
 
   /** 탐색 응답의 data 형태. 실제로는 {@code CollectionResponse<AlcoholDetailItem>}이다. */
   @Schema(name = "AlcoholExploreResult", title = "위스키 탐색 결과", description = "전체 건수와 이번 페이지의 위스키 목록")
-  private record ExploreResult(
+  private record AlcoholExploreResult(
       @Schema(description = "전체 건수. 탐색에서는 집계하지 않아 0으로 내려간다", example = "0") long totalCount,
       @ArraySchema(schema = @Schema(implementation = AlcoholDetailItem.class))
           List<AlcoholDetailItem> items) {}
