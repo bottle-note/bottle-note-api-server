@@ -149,7 +149,7 @@ subprojects {
 		systemProperty 'testcontainers.db.name', 'bottlenote_admin'
 	}
 
-	// REST Docs 테스트 (app.docs 패키지)
+	// [삭제 예정] REST Docs 테스트 (app.docs 패키지) — springdoc OpenAPI로 대체됨
 	if (project.name in ['bottlenote-product-api', 'bottlenote-admin-api']) {
 		tasks.register('restDocsTest', Test) {
 			description = 'REST Docs snippets 생성을 위한 테스트'
