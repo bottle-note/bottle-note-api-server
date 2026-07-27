@@ -5,14 +5,12 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import app.bottlenote.global.data.response.GlobalResponse;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.Operation;
-import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.BooleanSchema;
 import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.IntegerSchema;
 import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
-import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import java.util.Optional;
 import org.springdoc.core.customizers.OperationCustomizer;
@@ -36,6 +34,9 @@ public class GlobalResponseSchemaCustomizer implements OperationCustomizer {
 
   private static final String SUCCESS_STATUS_PREFIX = "2";
   private static final String OBJECT_TYPE = "object";
+
+  /** 공통 형식의 code에 담기는 값. 성공 응답은 항상 200이다. */
+  private static final int HTTP_OK = 200;
 
   private static final String SUCCESS = "success";
   private static final String CODE = "code";
@@ -125,12 +126,14 @@ public class GlobalResponseSchemaCustomizer implements OperationCustomizer {
 
   private Schema<?> commonEnvelope(Schema<?> data) {
     return new ObjectSchema()
-        .addProperty(SUCCESS, new BooleanSchema().description("요청 처리 성공 여부"))
-        .addProperty(CODE, new IntegerSchema().description("HTTP 상태 코드"))
+        .addProperty(SUCCESS, new BooleanSchema().description("요청 처리 성공 여부").example(true))
+        .addProperty(CODE, new IntegerSchema().description("HTTP 상태 코드").example(HTTP_OK))
         .addProperty(DATA, data.description("요청 결과 값"))
+        .addProperty(ERRORS, ErrorResponseSchema.emptyErrors().description("오류 목록. 성공 시 비어 있다"))
         .addProperty(
-            ERRORS,
-            new ArraySchema().items(new StringSchema()).description("오류 메시지 목록. 성공 시 비어 있다"))
-        .addProperty(META, new ObjectSchema().description("서버 버전, 응답 시각, 페이징 정보 등 부가 정보"));
+            META,
+            new ObjectSchema()
+                .description("서버 버전, 응답 시각, 페이징 정보 등 부가 정보")
+                .example(ErrorResponseSchema.EXAMPLE_META));
   }
 }
