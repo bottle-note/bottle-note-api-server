@@ -58,11 +58,11 @@ public class GlobalResponse {
     this.meta = meta;
   }
 
-  public static ResponseEntity<?> ok(Object data) {
+  public static ResponseEntity<GlobalResponse> ok(Object data) {
     return ResponseEntity.ok(success(data));
   }
 
-  public static <T, P> ResponseEntity<?> ok(
+  public static <T, P> ResponseEntity<GlobalResponse> ok(
       Pair<Long, CursorResponse<T>> pair, P searchParameters) {
     Long totalCount = pair.getLeft();
     CursorResponse<T> items = pair.getRight();
@@ -73,7 +73,7 @@ public class GlobalResponse {
     return ResponseEntity.ok(success(response, metaInfos));
   }
 
-  public static ResponseEntity<?> ok(Object data, MetaInfos meta) {
+  public static ResponseEntity<GlobalResponse> ok(Object data, MetaInfos meta) {
     return ResponseEntity.ok(success(data, meta));
   }
 
@@ -137,7 +137,7 @@ public class GlobalResponse {
         .build();
   }
 
-  public static ResponseEntity<?> error(Error error) {
+  public static ResponseEntity<GlobalResponse> error(Error error) {
     GlobalResponse response =
         GlobalResponse.builder()
             .success(false)
@@ -149,7 +149,7 @@ public class GlobalResponse {
     return new ResponseEntity<>(response, error.code().getHttpStatus());
   }
 
-  public static ResponseEntity<?> error(AbstractCustomException exception) {
+  public static ResponseEntity<GlobalResponse> error(AbstractCustomException exception) {
 
     Error error = Error.of(exception.getExceptionCode());
 
@@ -165,7 +165,7 @@ public class GlobalResponse {
     return new ResponseEntity<>(response, exception.getExceptionCode().getHttpStatus());
   }
 
-  public static ResponseEntity<?> error(Set<Error> errorSet) {
+  public static ResponseEntity<GlobalResponse> error(Set<Error> errorSet) {
     GlobalResponse response =
         GlobalResponse.builder()
             .success(false)

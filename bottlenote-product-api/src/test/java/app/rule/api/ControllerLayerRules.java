@@ -10,6 +10,8 @@ import app.rule.AbstractRules;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.domain.JavaParameterizedType;
+import com.tngtech.archunit.core.domain.JavaWildcardType;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
@@ -32,6 +34,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /** 컨트롤러 계층의 아키텍처 규칙을 검증하는 테스트 클래스입니다. */
 @Tag("rule")
@@ -413,6 +416,69 @@ public class ControllerLayerRules extends AbstractRules {
                   method, "메서드 이름 '" + methodName + "'은(는) 명명 규칙을 따르지 않습니다"));
         } else {
           events.add(SimpleConditionEvent.satisfied(method, "메서드 이름이 명명 규칙을 따릅니다"));
+        }
+      }
+    };
+  }
+
+  /**
+   * 컨트롤러가 응답 본문 타입을 명시하는지 검증합니다.
+   *
+   * <p>{@code ResponseEntity<?>}로 두면 스펙 생성기가 응답 타입을 알 수 없습니다. 공통 응답 형식을 쓰면 {@code
+   * ResponseEntity<GlobalResponse>}, 형식을 거치지 않고 DTO를 그대로 내보내면 그 DTO를 적습니다. 이 선언이 API 문서에서 응답 형식을
+   * 판단하는 근거이므로 와일드카드를 허용하면 문서가 실제 응답과 달라질 수 있습니다.
+   *
+   * <p>에러 응답을 만드는 {@code @RestControllerAdvice}도 같은 근거를 따르므로 함께 검사합니다.
+   */
+  @Test
+  public void 컨트롤러_응답_타입_명시_검증() {
+    ArchRule rule =
+        methods()
+            .that()
+            .arePublic()
+            .and()
+            .areDeclaredInClassesThat(respondToClients())
+            .should(declareResponseBodyType())
+            .because("응답 본문 타입은 API 문서 생성의 근거이므로 ResponseEntity<?> 대신 실제 타입을 선언해야 합니다");
+
+    rule.check(importedClasses);
+  }
+
+  /** 클라이언트에게 응답 본문을 직접 내보내는 클래스. */
+  private DescribedPredicate<JavaClass> respondToClients() {
+    return new DescribedPredicate<>("@RestController 또는 @RestControllerAdvice 로 선언된") {
+      @Override
+      public boolean test(JavaClass javaClass) {
+        return javaClass.isAnnotatedWith(RestController.class)
+            || javaClass.isAnnotatedWith(RestControllerAdvice.class);
+      }
+    };
+  }
+
+  private ArchCondition<JavaMethod> declareResponseBodyType() {
+    return new ArchCondition<>("ResponseEntity의 본문 타입을 구체적으로 선언한다") {
+      @Override
+      public void check(JavaMethod method, ConditionEvents events) {
+        if (!method.getRawReturnType().isAssignableTo(ResponseEntity.class)) {
+          return;
+        }
+        if (!(method.getReturnType() instanceof JavaParameterizedType parameterized)) {
+          events.add(
+              SimpleConditionEvent.violated(
+                  method,
+                  method.getFullName() + " 이(가) 타입 인자 없는 ResponseEntity 를 반환합니다. 본문 타입을 선언하세요"));
+          return;
+        }
+        boolean hasWildcard =
+            parameterized.getActualTypeArguments().stream()
+                .anyMatch(argument -> argument instanceof JavaWildcardType);
+        if (hasWildcard) {
+          events.add(
+              SimpleConditionEvent.violated(
+                  method,
+                  method.getFullName() + " 이(가) ResponseEntity<?> 를 반환합니다. 실제 본문 타입을 선언하세요"));
+        } else {
+          events.add(SimpleConditionEvent.satisfied(method, "응답 본문 타입을 선언했습니다"));
         }
       }
     };

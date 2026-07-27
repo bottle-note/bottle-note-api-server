@@ -6,6 +6,7 @@ import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.CursorResponse;
+import app.bottlenote.review.controller.docs.ReviewExploreApiDocs;
 import app.bottlenote.review.dto.response.ReviewExploreItem;
 import app.bottlenote.review.service.ReviewExploreService;
 import java.util.Collections;
@@ -25,12 +26,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/reviews/explore")
 @SecurityPolicy(auth = OPTIONAL_AUTH)
+@ReviewExploreApiDocs.ApiTag
 public class ReviewExploreController {
 
   private final ReviewExploreService reviewExploreService;
 
+  @ReviewExploreApiDocs.GetStandardExplore
   @GetMapping("/standard")
-  public ResponseEntity<?> getStandardExplore(
+  public ResponseEntity<GlobalResponse> getStandardExplore(
       @RequestParam(required = false) List<String> keywords,
       @RequestParam(required = false, defaultValue = "20") Integer size,
       @RequestParam(required = false, defaultValue = "0") Long cursor) {

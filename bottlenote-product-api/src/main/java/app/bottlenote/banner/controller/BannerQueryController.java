@@ -2,6 +2,7 @@ package app.bottlenote.banner.controller;
 
 import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.PUBLIC;
 
+import app.bottlenote.banner.controller.docs.BannerApiDocs;
 import app.bottlenote.banner.service.BannerQueryService;
 import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
@@ -16,10 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/banners")
 @RequiredArgsConstructor
 @SecurityPolicy(auth = PUBLIC)
+@BannerApiDocs.ApiTag
 public class BannerQueryController {
 
   private final BannerQueryService bannerQueryService;
 
+  @BannerApiDocs.GetActiveBanners
   @GetMapping
   public ResponseEntity<GlobalResponse> getActiveBanners(
       @RequestParam(defaultValue = "10") Integer limit) {

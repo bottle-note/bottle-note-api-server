@@ -1,3 +1,6 @@
+// [삭제 예정] 이 문서는 springdoc OpenAPI(GET /openapi.product.json)로 대체됐습니다.
+// 새 엔드포인트를 이 문서에 추가하지 마세요. 상세: ../../test/java/app/docs/DEPRECATED.md
+
 ifndef::snippets[]
 :snippets: ../../build/generated-snippets
 endif::[]

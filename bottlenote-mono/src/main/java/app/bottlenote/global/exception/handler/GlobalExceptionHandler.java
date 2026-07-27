@@ -40,7 +40,7 @@ public class GlobalExceptionHandler {
    * @return the response entity
    */
   @ExceptionHandler(AbstractCustomException.class)
-  public ResponseEntity<?> handleCustomException(AbstractCustomException exception) {
+  public ResponseEntity<GlobalResponse> handleCustomException(AbstractCustomException exception) {
     log.warn("사용자 정의 예외 발생 : {}", exception.getMessage());
     return GlobalResponse.error(exception);
   }
@@ -52,7 +52,7 @@ public class GlobalExceptionHandler {
    * @return the response entity
    */
   @ExceptionHandler(value = {Exception.class})
-  public ResponseEntity<?> handleGenericException(Exception exception) {
+  public ResponseEntity<GlobalResponse> handleGenericException(Exception exception) {
     log.error("Exception.class 예외 발생 : {}", exception.getMessage());
     Error error = Error.of(UNKNOWN_ERROR.message(exception.getMessage()));
     return GlobalResponse.error(error);
@@ -65,7 +65,8 @@ public class GlobalExceptionHandler {
    * @return the response entity
    */
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<?> handleValidationException(MethodArgumentNotValidException exception) {
+  public ResponseEntity<GlobalResponse> handleValidationException(
+      MethodArgumentNotValidException exception) {
 
     BindingResult bindingResult = exception.getBindingResult();
 
@@ -95,7 +96,7 @@ public class GlobalExceptionHandler {
    * @return the response entity
    */
   @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-  public ResponseEntity<?> handleTypeMismatchException(
+  public ResponseEntity<GlobalResponse> handleTypeMismatchException(
       MethodArgumentTypeMismatchException exception) {
     String fieldName = exception.getName();
     String rejectedValue = Objects.requireNonNull(exception.getValue()).toString();
@@ -119,7 +120,7 @@ public class GlobalExceptionHandler {
    * @return the response entity
    */
   @ExceptionHandler(HttpMessageNotReadableException.class)
-  public ResponseEntity<?> handleHttpMessageNotReadableException(
+  public ResponseEntity<GlobalResponse> handleHttpMessageNotReadableException(
       HttpMessageNotReadableException exception) {
     final String finallyErrorMessage = "요청 본문을 파싱하는 도중 오류가 발생했습니다. 요청 본문의 형식을 확인해주세요.";
 
@@ -172,7 +173,7 @@ public class GlobalExceptionHandler {
         UnsupportedJwtException.class,
         IllegalArgumentException.class
       })
-  public ResponseEntity<?> jwtTokenException(Exception e) {
+  public ResponseEntity<GlobalResponse> jwtTokenException(Exception e) {
 
     JwtExceptionType exceptionType = getJwtExceptionType(e);
 
@@ -210,7 +211,7 @@ public class GlobalExceptionHandler {
    * @return the response entity
    */
   @ExceptionHandler(SdkException.class)
-  public ResponseEntity<?> handleSdkException(SdkException exception) {
+  public ResponseEntity<GlobalResponse> handleSdkException(SdkException exception) {
     String errorMessage;
 
     if (exception instanceof AwsServiceException ase) {

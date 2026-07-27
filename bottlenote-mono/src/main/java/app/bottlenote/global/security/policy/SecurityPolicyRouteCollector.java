@@ -33,6 +33,12 @@ public final class SecurityPolicyRouteCollector {
     return new SecurityPolicyRegistry(collectRoutes(handlerMethods, fallback));
   }
 
+  /** 핸들러에 적용되는 인증 방식. 문서 생성처럼 라우트 수집 밖에서도 같은 판정이 필요해 공개한다. */
+  public static AuthType resolveAuthType(HandlerMethod handlerMethod, AuthType fallback) {
+    SecurityPolicy policy = findPolicy(handlerMethod);
+    return policy == null ? fallback : policy.auth();
+  }
+
   private static List<SecurityPolicyRoute> collectRoutes(
       Map<RequestMappingInfo, HandlerMethod> handlerMethods, AuthType fallback) {
     List<SecurityPolicyRoute> routes = new ArrayList<>();

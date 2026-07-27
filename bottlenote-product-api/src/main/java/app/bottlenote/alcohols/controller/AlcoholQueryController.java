@@ -4,6 +4,7 @@ import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.OPTIONAL_
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 import static app.bottlenote.global.service.meta.MetaService.createMetaInfo;
 
+import app.bottlenote.alcohols.controller.docs.AlcoholQueryApiDocs;
 import app.bottlenote.alcohols.dto.request.AlcoholLookupRequest;
 import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
@@ -27,21 +28,26 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/alcohols")
 @SecurityPolicy(auth = OPTIONAL_AUTH)
+@AlcoholQueryApiDocs.ApiTag
 public class AlcoholQueryController {
 
   private final AlcoholQueryService alcoholQueryService;
   private final AlcoholLookupService alcoholLookupService;
 
+  @AlcoholQueryApiDocs.GetLookups
   @GetMapping("/lookup")
-  public ResponseEntity<?> getAlcoholLookups(@ModelAttribute @Valid AlcoholLookupRequest request) {
+  public ResponseEntity<GlobalResponse> getAlcoholLookups(
+      @ModelAttribute @Valid AlcoholLookupRequest request) {
     var response = alcoholLookupService.lookup(request);
     return GlobalResponse.ok(
         response.items(),
         createMetaInfo().add("searchParameters", request).add("pageable", response.pageable()));
   }
 
+  @AlcoholQueryApiDocs.SearchAlcohols
   @GetMapping("/search")
-  public ResponseEntity<?> searchAlcohols(@ModelAttribute @Valid AlcoholSearchRequest request) {
+  public ResponseEntity<GlobalResponse> searchAlcohols(
+      @ModelAttribute @Valid AlcoholSearchRequest request) {
 
     // 키워드에 따라 큐레이션 ID 매핑 임시 ( 나중에는 이벤트 시작 시점에 로딩해오는게 더 좋을듯
     request =
@@ -65,8 +71,9 @@ public class AlcoholQueryController {
             .add("pageable", pageResponse.cursorPageable()));
   }
 
+  @AlcoholQueryApiDocs.GetAlcoholDetail
   @GetMapping("/{alcoholId}")
-  public ResponseEntity<?> findAlcoholDetailById(@PathVariable Long alcoholId) {
+  public ResponseEntity<GlobalResponse> findAlcoholDetailById(@PathVariable Long alcoholId) {
     Long id = getUserIdByContext().orElse(-1L);
     return GlobalResponse.ok(alcoholQueryService.findAlcoholDetailById(alcoholId, id));
   }
