@@ -56,7 +56,16 @@ public final class BlockApiDocs {
   @Retention(RetentionPolicy.RUNTIME)
   @Operation(
       summary = "내가 차단한 사용자 목록을 조회한다",
-      description = "내가 차단한 사용자들의 프로필과 차단 시점을 반환합니다. 설정 화면의 차단 목록에 쓰입니다.",
+      description =
+          """
+          내가 차단한 사용자들의 프로필과 차단 시점을 반환합니다. 설정 화면의 차단 목록에 쓰입니다.
+
+          **오류 코드**
+
+          | 코드 | 상태 코드 | 발생 조건 | 설명 |
+          | --- | --- | --- | --- |
+          | `REQUIRED_USER_ID` | 400 | 액세스 토큰에서 사용자 식별자를 얻지 못했을 때 | 유저 아이디가 필요합니다. |
+          """,
       responses =
           @ApiResponse(
               responseCode = "200",
