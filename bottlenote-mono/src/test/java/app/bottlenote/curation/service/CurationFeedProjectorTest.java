@@ -208,6 +208,99 @@ class CurationFeedProjectorTest {
     assertThat(result.has("stats")).isFalse();
   }
 
+  @Test
+  @DisplayName("payloadPath가 지정된 x-graphql의 argFrom은 그 하위 배열 원소 기준으로 숨은 입력값을 보존한다")
+  void extractFeedPayload_whenGraphQLInputIsUnderPayloadPath_preservesArgValuePerElement() {
+    Map<String, Object> responseSpec =
+        map(
+            "type",
+            "object",
+            "properties",
+            map(
+                "eventDate", map("type", "string", "x-feed", map("enabled", true, "role", "date")),
+                "alcohols",
+                    map(
+                        "type",
+                        "array",
+                        "items",
+                        map(
+                            "type",
+                            "object",
+                            "properties",
+                            map(
+                                "source", map("type", "string"),
+                                "alcohol",
+                                    map(
+                                        "type",
+                                        "object",
+                                        "properties",
+                                        map(
+                                            "alcoholId", map("type", "integer"),
+                                            "korName", map("type", "string"))),
+                                "stats",
+                                    map(
+                                        "type", "object",
+                                        "nullable", true,
+                                        "x-feed", map("enabled", true, "role", "stats"),
+                                        "x-graphql",
+                                            map(
+                                                "query", "alcohols",
+                                                "argFrom", "$.alcohol.alcoholId",
+                                                "argName", "ids",
+                                                "argType", "[ID!]!",
+                                                "writeTo", "stats",
+                                                "resultKey", "alcoholId",
+                                                "payloadPath", "$.alcohols"),
+                                        "properties",
+                                            map(
+                                                "rating",
+                                                map("type", "number", "x-graphql", true))))))));
+    Object payload =
+        map(
+            "eventDate",
+            "2026-06-21",
+            "alcohols",
+            List.of(
+                map("source", "BOTTLE_NOTE", "alcohol", map("alcoholId", 1, "korName", "글렌드로낙")),
+                map("source", "MANUAL", "alcohol", map("alcoholId", 2, "korName", "아드벡"))));
+
+    JsonNode result =
+        OBJECT_MAPPER.valueToTree(projector.extractFeedPayload(responseSpec, payload));
+
+    assertThat(result.path("eventDate").asText()).isEqualTo("2026-06-21");
+    JsonNode alcohols = result.path("alcohols");
+    assertThat(alcohols).hasSize(2);
+    assertThat(alcohols.get(0).path("alcohol").path("alcoholId").asLong()).isEqualTo(1L);
+    assertThat(alcohols.get(1).path("alcohol").path("alcoholId").asLong()).isEqualTo(2L);
+    assertThat(alcohols.get(0).path("alcohol").has("korName")).isFalse();
+    assertThat(alcohols.get(0).has("source")).isFalse();
+    assertThat(alcohols.get(0).has("stats")).isFalse();
+  }
+
+  @Test
+  @DisplayName("남길 x-feed 필드가 없으면 null이 아니라 스펙 컨테이너에 맞는 빈 값을 반환한다")
+  void extractFeedPayload_whenNothingToKeep_returnsEmptyContainer() {
+    Map<String, Object> arraySpec =
+        map(
+            "x-container",
+            "array",
+            "items",
+            map("type", "object", "properties", map("memo", map("type", "string"))));
+    Map<String, Object> objectSpec =
+        map("type", "object", "properties", map("memo", map("type", "string")));
+
+    JsonNode arrayResult =
+        OBJECT_MAPPER.valueToTree(
+            projector.extractFeedPayload(arraySpec, List.of(map("memo", "내부 메모"))));
+    JsonNode objectResult =
+        OBJECT_MAPPER.valueToTree(projector.extractFeedPayload(objectSpec, map("memo", "내부 메모")));
+
+    assertThat(arrayResult.isArray()).isTrue();
+    assertThat(arrayResult).isEmpty();
+    assertThat(objectResult.isObject()).isTrue();
+    assertThat(objectResult).isEmpty();
+  }
+
   private static Map<String, Object> schema(String resourceName, String suffix) throws IOException {
     JsonNode root =
         OBJECT_MAPPER.readTree(
