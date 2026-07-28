@@ -16,5 +16,7 @@ public interface JpaCurationExtensionRepository
 
   List<CurationExtension> findAllByCurationIdIn(Collection<Long> curationIds);
 
+  List<CurationExtension> findAllBySpecIdIn(Collection<Long> specIds);
+
   void deleteByCurationId(Long curationId);
 }

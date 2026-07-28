@@ -115,7 +115,7 @@ PR #677로 `curation_extension.feed_payload` 쓰기 경로는 확보됐다. 다�
   `InMemoryCurationExtensionRepository.java`, 관련 테스트
 - Depends: 없음 (Task 1과 병렬 가능 — 서비스는 specId 목록만 입력받는다)
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Checkpoint: after Tasks 1-2
 - [ ] 컴파일 통과 / 단위 테스트 통과 / ArchUnit 룰 통과
@@ -187,3 +187,14 @@ PR #677로 `curation_extension.feed_payload` 쓰기 경로는 확보됐다. 다�
   뭉개 재생성 누락을 "변경 없음"으로 위장 → `List.copyOf`로 NPE 노출
   ③ 정규화 엣지 미검증 → `CurationSpecFingerprintTest` 9건 신규.
   단위 테스트 14건 통과.
+- Task 2 완료: `CurationFeedPayloadRegenerator` 신규,
+  `CurationExtensionRepository.findAllBySpecIdIn`과
+  `CurationExtension.updateFeedPayload` 추가. NULL 레거시 행 포함(backfill 겸용).
+  codex 리뷰에서 **경합 버그**를 잡아 `@DynamicUpdate` 적용: 전체 컬럼 UPDATE면
+  재생성이 로드한 stale `payload`가 어드민 저장분을 덮어써 SSOT가 유실된다.
+  나머지 지적은 설계 판단으로 유지 — `save()` 명시 호출은 더티체킹 의존을
+  피해 포트 계약을 지키려는 것이고, 행 단위 예외의 전체 롤백은 "재생성 안 됨
+  + fallback 동작"이라 안전한 쪽이며, `specIds` null 원소는 Task 1과 같은
+  이유로 NPE 노출을 택했다. 단위 테스트 6건 통과.
+- 알려진 한계: 재생성이 대상 전체를 한 트랜잭션에 적재한다. 현재 운영 28건
+  기준 문제없으나 큐레이션이 수천 건이 되면 chunk 처리가 필요하다.
