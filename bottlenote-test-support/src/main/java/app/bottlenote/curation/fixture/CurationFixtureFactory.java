@@ -63,6 +63,11 @@ public class CurationFixtureFactory {
   }
 
   public Curation saveCuration(CurationCreateRequest request) {
+    return saveCuration(request, true);
+  }
+
+  // withFeedPayload=false는 backfill 이전 레거시 행을 재현한다. 읽기 경로의 NULL fallback 검증용이다.
+  public Curation saveCuration(CurationCreateRequest request, boolean withFeedPayload) {
     Curation saved =
         curationRepository.save(
             Curation.builder()
@@ -82,7 +87,7 @@ public class CurationFixtureFactory {
             .curationId(saved.getId())
             .specId(request.specId())
             .payload(request.payload())
-            .feedPayload(feedPayloadOf(request))
+            .feedPayload(withFeedPayload ? feedPayloadOf(request) : null)
             .build());
     return saved;
   }

@@ -157,7 +157,7 @@ PR #677로 `curation_extension.feed_payload` 쓰기 경로는 확보됐다. 다�
   `CurationFixtureFactory.java`
 - Depends: 4
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 6: Admin 프리뷰 전환과 재생성 통합 검증
 - Acceptance: Admin 피드 프리뷰가 `feed_payload` 기준으로 응답하고 NULL이면
@@ -169,7 +169,7 @@ PR #677로 `curation_extension.feed_payload` 쓰기 경로는 확보됐다. 다�
   통합 테스트 신규
 - Depends: 3, 4
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ## Progress Log
 
@@ -213,5 +213,22 @@ PR #677로 `curation_extension.feed_payload` 쓰기 경로는 확보됐다. 다�
   Redis를 직접 물렸으나 admin-api 테스트 클래스패스에 `RedisTemplate`이 없어
   컴파일이 깨졌고, 레이어 표준 4(기술 세부사항은 구현에 격리)에도 이 형태가 맞다.
   재생성 예외는 경고 로그로 삼키고 락은 finally에서 해제한다. 러너 단위 4건 통과.
+- Task 5·6 완료: Product 통합에서 동일 payload를 가진 전환/레거시(NULL) 큐레이션의
+  피드 응답 payload가 같음을 E2E로 확인. Admin 통합에서 프리뷰 fallback,
+  responseSpec 미변경 시 재생성 0건, 변경 시 해당 스펙만 갱신되고 다른 스펙은
+  NULL 유지, 원본 payload 불변을 실제 DB로 확인. 픽스처에 withFeedPayload
+  옵션을 추가해 레거시 상태를 만들 수 있게 했다.
+  Admin 피드 응답은 `fromPage`라 data 자체가 배열인데 items 경로로 읽어 한 번
+  실패했고 파싱을 교정했다.
+- codex 최종 리뷰 반영 (Critical 2건, Important 1건):
+  ① **재생성 실패의 영구 유실** — sync가 DB 스펙을 이미 덮어써서 다음 기동에는
+  "변경 없음"으로 보이고, feed_payload가 non-NULL이면 fallback도 안 걸려 낡은
+  응답이 굳는다. → `invalidate()`를 먼저 커밋해 실패 시 NULL이 남게 했다.
+  정확성은 항상 유지되고 잃는 것은 성능뿐이다.
+  ② **Redis 장애가 기동 실패로 전파** — `tryAcquire()`가 try 밖이라 연결 오류가
+  ApplicationReadyEvent로 전파돼 "경고 후 기동" 계약을 깼다. → try 안으로 옮기고
+  release도 runCatching으로 감쌌다. 락 예외 경로 테스트 2건 추가.
+  ③ 락 해제가 소유권을 확인하지 않아 TTL 만료 후 남의 락을 지울 수 있었다.
+  → UUID 토큰 비교 후 삭제.
 - 알려진 한계: 재생성이 대상 전체를 한 트랜잭션에 적재한다. 현재 운영 28건
   기준 문제없으나 큐레이션이 수천 건이 되면 chunk 처리가 필요하다.

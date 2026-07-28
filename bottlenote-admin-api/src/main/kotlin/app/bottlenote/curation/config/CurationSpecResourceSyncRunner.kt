@@ -35,16 +35,20 @@ class CurationSpecResourceSyncRunner(
 		regenerateFeedPayloads(result.changedSpecIds())
 	}
 
-	// feed_payload는 파생 데이터고 NULL fallback이 있다. 재생성 실패로 서비스 기동을 막지 않는다.
+	// feed_payload는 파생 데이터고 NULL fallback이 있다. 재생성 실패나 Redis 장애로 기동을 막지 않는다.
 	private fun regenerateFeedPayloads(changedSpecIds: List<Long>) {
 		if (changedSpecIds.isEmpty()) {
 			return
 		}
-		if (!curationFeedRegenerationLock.tryAcquire()) {
-			log.info("다른 인스턴스가 재생성 중이라 건너뜁니다: specIds={}", changedSpecIds)
-			return
-		}
+		var acquired = false
 		try {
+			acquired = curationFeedRegenerationLock.tryAcquire()
+			if (!acquired) {
+				log.info("다른 인스턴스가 재생성 중이라 건너뜁니다: specIds={}", changedSpecIds)
+				return
+			}
+			// 무효화를 먼저 커밋한다. 뒤 단계가 실패해도 낡은 값이 아니라 NULL이 남아 원본으로 fallback된다.
+			curationFeedPayloadRegenerationService.invalidate(changedSpecIds)
 			val regenerated = curationFeedPayloadRegenerationService.regenerate(changedSpecIds)
 			log.info(
 				"responseSpec 변경으로 feed_payload 재생성: specIds={}, curations={}",
@@ -58,7 +62,10 @@ class CurationSpecResourceSyncRunner(
 				e
 			)
 		} finally {
-			curationFeedRegenerationLock.release()
+			if (acquired) {
+				runCatching { curationFeedRegenerationLock.release() }
+					.onFailure { log.warn("재생성 락 해제에 실패했습니다. TTL로 만료됩니다.", it) }
+			}
 		}
 	}
 }

@@ -20,11 +20,22 @@ class CurationSpecResourceSyncRunnerTest {
 		private val onRegenerate: (Collection<Long>) -> Int = { it.size }
 	) : CurationFeedPayloadRegenerationService(null, null, null) {
 		val calls = mutableListOf<Collection<Long>>()
+		val invalidated = mutableListOf<Collection<Long>>()
+
+		override fun invalidate(specIds: Collection<Long>?): Int {
+			invalidated.add(specIds ?: emptyList())
+			return (specIds ?: emptyList()).size
+		}
 
 		override fun regenerate(specIds: Collection<Long>?): Int {
 			calls.add(specIds ?: emptyList())
 			return onRegenerate(specIds ?: emptyList())
 		}
+	}
+
+	private class ExplodingLock(private val onAcquire: Boolean) : CurationFeedRegenerationLock {
+		override fun tryAcquire(): Boolean = if (onAcquire) throw IllegalStateException("Redis 연결 실패") else true
+		override fun release(): Unit = throw IllegalStateException("Redis 연결 실패")
 	}
 
 	private class FakeLock(private val acquirable: Boolean) : CurationFeedRegenerationLock {
@@ -79,6 +90,42 @@ class CurationSpecResourceSyncRunnerTest {
 
 		assertThat(regeneration.calls).isEmpty()
 		assertThat(lock.releaseCount).isZero()
+	}
+
+	@Test
+	@DisplayName("무효화를 먼저 수행한 뒤 재생성한다")
+	fun sync_invalidatesBeforeRegenerating() {
+		val regeneration = RecordingRegenerationService()
+		val lock = FakeLock(true)
+
+		CurationSpecResourceSyncRunner(syncServiceReturning(listOf(1L)), regeneration, lock).sync()
+
+		assertThat(regeneration.invalidated).containsExactly(listOf(1L))
+		assertThat(regeneration.calls).containsExactly(listOf(1L))
+	}
+
+	@Test
+	@DisplayName("락 획득 중 Redis가 죽어도 기동을 막지 않는다")
+	fun sync_whenLockAcquireThrows_doesNotBlockStartup() {
+		val runner = CurationSpecResourceSyncRunner(
+			syncServiceReturning(listOf(1L)),
+			RecordingRegenerationService(),
+			ExplodingLock(onAcquire = true)
+		)
+
+		assertThatCode { runner.sync() }.doesNotThrowAnyException()
+	}
+
+	@Test
+	@DisplayName("락 해제 중 Redis가 죽어도 기동을 막지 않는다")
+	fun sync_whenLockReleaseThrows_doesNotBlockStartup() {
+		val runner = CurationSpecResourceSyncRunner(
+			syncServiceReturning(listOf(1L)),
+			RecordingRegenerationService(),
+			ExplodingLock(onAcquire = false)
+		)
+
+		assertThatCode { runner.sync() }.doesNotThrowAnyException()
 	}
 
 	@Test

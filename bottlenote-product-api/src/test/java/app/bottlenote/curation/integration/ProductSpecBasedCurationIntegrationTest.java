@@ -195,6 +195,48 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
+    @DisplayName("feed_payload가 저장된 큐레이션과 NULL인 레거시 큐레이션의 피드 응답이 같다")
+    void searchFeed_whenFeedPayloadIsNull_fallsBackToSourceAndMatches() throws Exception {
+      // given - 같은 payload로 하나는 feed_payload 저장, 하나는 레거시(NULL)
+      List<Map<String, Object>> payload = List.of(manualItem("동등성 위스키"));
+      Long migratedId = createCuration("전환 큐레이션", 1, true, payload);
+      Long legacyId =
+          createLegacyCuration(
+              "레거시 큐레이션",
+              2,
+              true,
+              LocalDate.now().minusDays(1),
+              LocalDate.now().plusDays(1),
+              payload);
+      assertThat(
+              curationExtensionRepository
+                  .findByCurationId(migratedId)
+                  .orElseThrow()
+                  .getFeedPayload())
+          .isNotNull();
+      assertThat(
+              curationExtensionRepository.findByCurationId(legacyId).orElseThrow().getFeedPayload())
+          .isNull();
+
+      // when
+      MvcTestResult result =
+          mockMvcTester
+              .get()
+              .uri("/api/v2/curations/feed?code=RECOMMENDED_WHISKY&size=10")
+              .contentType(APPLICATION_JSON)
+              .exchange();
+
+      // then
+      JsonNode items = dataNode(result).path("items");
+      JsonNode migrated = itemById(items, migratedId);
+      JsonNode legacy = itemById(items, legacyId);
+      assertThat(legacy.path("payload")).isEqualTo(migrated.path("payload"));
+      assertThat(legacy.path("payload").get(0).path("alcohol").path("korName").asText())
+          .isEqualTo("동등성 위스키");
+      assertThat(legacy.path("payload").get(0).has("source")).isFalse();
+    }
+
+    @Test
     @DisplayName("Product feed는 시음회 상세 라인업처럼 x-feed가 없는 배열 payload를 제외한다")
     void searchFeed_whenTastingEventAlcoholsHasNoXFeed_excludesAlcoholsPayload() throws Exception {
       // given
@@ -439,6 +481,15 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
           .extractingPath("$.code")
           .isEqualTo(404);
     }
+  }
+
+  private static JsonNode itemById(JsonNode items, Long curationId) {
+    for (JsonNode item : items) {
+      if (item.path("id").asLong() == curationId) {
+        return item;
+      }
+    }
+    throw new AssertionError("피드에 큐레이션이 없습니다: " + curationId);
   }
 
   private Long createCuration(
