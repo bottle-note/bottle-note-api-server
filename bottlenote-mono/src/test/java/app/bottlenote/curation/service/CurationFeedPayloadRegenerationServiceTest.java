@@ -99,10 +99,10 @@ class CurationFeedPayloadRegenerationServiceTest {
   }
 
   @Test
-  @DisplayName("빈 목록이나 null을 받으면 아무것도 하지 않는다")
+  @DisplayName("빈 목록을 받으면 아무것도 하지 않는다")
   void regenerate_whenNoSpecIds_doesNothing() {
     assertThat(regenerator.regenerate(List.of())).isZero();
-    assertThat(regenerator.regenerate(null)).isZero();
+    assertThat(regenerator.invalidate(List.of())).isZero();
   }
 
   @Test
