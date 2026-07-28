@@ -141,7 +141,7 @@ PR #677로 `curation_extension.feed_payload` 쓰기 경로는 확보됐다. 다�
   `AdminSpecBasedCurationService.java`, `CurationExtension.java`, 관련 테스트
 - Depends: 없음 (1-3과 병렬 가능)
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Checkpoint: after Tasks 3-4
 - [ ] 컴파일 통과 / 단위 테스트 통과 / ArchUnit 룰 통과
@@ -196,5 +196,16 @@ PR #677로 `curation_extension.feed_payload` 쓰기 경로는 확보됐다. 다�
   피해 포트 계약을 지키려는 것이고, 행 단위 예외의 전체 롤백은 "재생성 안 됨
   + fallback 동작"이라 안전한 쪽이며, `specIds` null 원소는 Task 1과 같은
   이유로 NPE 노출을 택했다. 단위 테스트 6건 통과.
+- Task 4 완료: `CurationExtension.feedSource()`(NULL이면 원본 fallback)를 두 서비스가
+  공유한다. Product 피드·Admin 프리뷰 전환, 상세는 원본 유지.
+  codex 리뷰가 **동등성 논증의 허점**을 잡았다: 최초 테스트가 `materializeFeed`를
+  건너뛰고 "두 경로 모두 동일 적용"이라고 가정했는데, 인자가 비면 materializer가
+  no-op이 아니라 `writeTo`에 null/[]을 써서 배열 원소를 살린다. 원본 경로는 그
+  원소가 남고 feed_payload 경로는 추출 단계에서 버려 응답이 갈릴 수 있다.
+  → 테스트를 실제 파이프라인(소스 → materializeFeed → projectPayload) 비교로
+  바꾸고, GraphQL 실행 시 실패하는 executor를 물렸다. 인자가 빈 경우는 실행 없이
+  갈리므로 "현행 스펙에 피드 교차 x-graphql 없음"을 명시적 트립와이어로 고정했다.
+  현재 4개 스펙 모두 교차 0건이라 동등성이 성립하며, 새 스펙이 생기면 테스트가
+  깨져 재검토를 강제한다. 단위 테스트 8건 통과.
 - 알려진 한계: 재생성이 대상 전체를 한 트랜잭션에 적재한다. 현재 운영 28건
   기준 문제없으나 큐레이션이 수천 건이 되면 chunk 처리가 필요하다.
