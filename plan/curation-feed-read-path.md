@@ -129,7 +129,7 @@ PR #677로 `curation_extension.feed_payload` 쓰기 경로는 확보됐다. 다�
 - Files (advisory): 락 지원 신규, `CurationSpecResourceSyncRunner.kt`, 관련 테스트
 - Depends: 1, 2
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 4: 피드 읽기 경로를 feed_payload로 전환
 - Acceptance: Product 피드와 Admin 피드 프리뷰가 `feed_payload`를 소스로 쓰고,
@@ -207,5 +207,11 @@ PR #677로 `curation_extension.feed_payload` 쓰기 경로는 확보됐다. 다�
   갈리므로 "현행 스펙에 피드 교차 x-graphql 없음"을 명시적 트립와이어로 고정했다.
   현재 4개 스펙 모두 교차 0건이라 동등성이 성립하며, 새 스펙이 생기면 테스트가
   깨져 재검토를 강제한다. 단위 테스트 8건 통과.
+- Task 3 완료: 러너가 동기화 직후 `changedSpecIds`가 있을 때만 재생성한다.
+  락은 `CurationFeedRegenerationLock`(도메인 인터페이스) +
+  `RedisCurationFeedRegenerationLock`(구현)으로 분리했다 — 처음엔 서비스에
+  Redis를 직접 물렸으나 admin-api 테스트 클래스패스에 `RedisTemplate`이 없어
+  컴파일이 깨졌고, 레이어 표준 4(기술 세부사항은 구현에 격리)에도 이 형태가 맞다.
+  재생성 예외는 경고 로그로 삼키고 락은 finally에서 해제한다. 러너 단위 4건 통과.
 - 알려진 한계: 재생성이 대상 전체를 한 트랜잭션에 적재한다. 현재 운영 28건
   기준 문제없으나 큐레이션이 수천 건이 되면 chunk 처리가 필요하다.
