@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CurationFeedPayloadRegenerator {
+public class CurationFeedPayloadRegenerationService {
 
   private final CurationSpecRepository curationSpecRepository;
   private final CurationExtensionRepository curationExtensionRepository;
