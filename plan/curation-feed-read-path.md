@@ -230,5 +230,13 @@ PR #677로 `curation_extension.feed_payload` 쓰기 경로는 확보됐다. 다�
   release도 runCatching으로 감쌌다. 락 예외 경로 테스트 2건 추가.
   ③ 락 해제가 소유권을 확인하지 않아 TTL 만료 후 남의 락을 지울 수 있었다.
   → UUID 토큰 비교 후 삭제.
+- 정리: 러너가 락 획득/해제·무효화 순서·실패 정책을 모두 들고 있어 config 클래스가
+  비대해졌다. 오케스트레이션을 `CurationFeedPayloadRefreshService`(mono)로 옮겨
+  러너를 35줄/위임 한 줄로 줄였고, 정책 테스트도 mono로 이동했다.
+  `regenerate`의 `spec == null` 분기는 `findAllBySpecIdIn(specs.keySet())`로
+  조회하므로 성립할 수 없는 죽은 코드라 제거했고, 중복 가드는 헬퍼로 모았다.
+  불필요한 `save()` 호출도 걷어내 더티체킹에 맡겼다.
+  `refresh()`는 무효화·재생성이 각자 커밋되어야 해서 `NOT_SUPPORTED`로
+  "경계 없음"을 명시했다 — ArchUnit 트랜잭션 룰의 취지(경계 명확화)에 맞는 선언이다.
 - 알려진 한계: 재생성이 대상 전체를 한 트랜잭션에 적재한다. 현재 운영 28건
   기준 문제없으나 큐레이션이 수천 건이 되면 chunk 처리가 필요하다.
