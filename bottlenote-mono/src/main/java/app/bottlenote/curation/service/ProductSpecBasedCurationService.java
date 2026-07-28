@@ -166,7 +166,7 @@ public class ProductSpecBasedCurationService {
       Curation curation, CurationSpec spec, CurationExtension extension) {
     Object materialized =
         responseMaterializer.materializeFeed(
-            curation.getId(), spec.getCode(), spec.getResponseSpec(), extension.getPayload());
+            curation.getId(), spec.getCode(), spec.getResponseSpec(), extension.feedSource());
     return new ProductSpecBasedCurationFeedItemResponse(
         curation.getId(),
         curation.getName(),

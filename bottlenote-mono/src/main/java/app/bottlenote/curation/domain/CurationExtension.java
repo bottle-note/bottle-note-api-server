@@ -55,4 +55,10 @@ public class CurationExtension extends BaseEntity {
   public void updateFeedPayload(Object feedPayload) {
     this.feedPayload = feedPayload;
   }
+
+  // 피드 조회 소스. NULL은 backfill 이전 레거시 행이므로 원본으로 되돌아간다.
+  // 빈 결과는 []/{}로 저장되므로 NULL만 fallback 조건이다.
+  public Object feedSource() {
+    return feedPayload != null ? feedPayload : payload;
+  }
 }
