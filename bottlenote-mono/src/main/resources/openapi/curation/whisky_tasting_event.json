@@ -34,6 +34,24 @@
             "x-field-style": "none",
             "x-display-name": "시음회 시간"
           },
+          "placeName": {
+            "type": "string",
+            "description": "시음회 장소명",
+            "example": "보틀노트 테이스팅룸",
+            "maxLength": 100,
+            "x-field-style": "address-search",
+            "x-display-name": "장소명"
+          },
+          "zipCode": {
+            "type": "string",
+            "description": "장소 우편번호",
+            "example": "06236",
+            "minLength": 5,
+            "maxLength": 5,
+            "pattern": "^\\d{5}$",
+            "x-field-style": "address-search",
+            "x-display-name": "우편번호"
+          },
           "barAddress": {
             "type": "string",
             "description": "장소 및 바 주소",
@@ -279,6 +297,30 @@
               "order": 20,
               "description": "피드에서 시음회 시작 시간을 표시하기 위해 포함한다."
             }
+          },
+          "placeName": {
+            "type": "string",
+            "description": "시음회 장소명",
+            "example": "보틀노트 테이스팅룸",
+            "maxLength": 100,
+            "x-field-style": "address-search",
+            "x-display-name": "장소명",
+            "x-feed": {
+              "enabled": true,
+              "role": "location",
+              "order": 25,
+              "description": "피드에서 시음회 장소명을 표시하기 위해 포함한다."
+            }
+          },
+          "zipCode": {
+            "type": "string",
+            "description": "장소 우편번호",
+            "example": "06236",
+            "minLength": 5,
+            "maxLength": 5,
+            "pattern": "^\\d{5}$",
+            "x-field-style": "address-search",
+            "x-display-name": "우편번호"
           },
           "barAddress": {
             "type": "string",
