@@ -1,3 +1,29 @@
+```
+================================================================================
+                          PROJECT COMPLETION STAMP
+================================================================================
+Status: **COMPLETED**
+Completion Date: 2026-07-28
+
+** Core Achievements **
+- 시음회 requestSpec·responseSpec에 placeName·zipCode 추가 (둘 다 optional)
+- placeName을 x-feed(order 25, role location)로 노출, zipCode는 피드 제외
+- 프로그램 placeName·address를 address-search 계약으로 전환하고 zipCode 추가
+- 전 단계 PASS: unit 502건 / rule 63건 / integration 268건 / admin integration 209건, 실패 0
+
+** Key Components **
+- resources/openapi/curation/whisky_tasting_event.json
+- resources/openapi/curation/program.json
+- curation/service/CurationPlaceFieldContractTest.java (계약·회귀 9건)
+
+** Deferred Items **
+- placeName·zipCode의 required 승격: FE 장소검색 연결 후
+- CurationPayloadValidator의 pattern 지원: 이번은 리소스 JSON만 수정하는 범위
+- 미정의 property 차단: FE가 보내는 다른 필드까지 깨질 수 있어 별건
+- FE 연계(barAddress 전용 자동 동기화 제거, 필드별 매핑): FE 작업
+================================================================================
+```
+
 # Plan: 큐레이션 시음회·프로그램 장소검색 계약 정렬
 
 ## Overview
