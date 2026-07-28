@@ -63,9 +63,10 @@ bottlenote:
       enabled: false
 
 # OpenAPI 문서 (스펙 JSON만 노출하고 swagger-ui는 사용하지 않는다)
+# ingress가 /api/v*/** 만 앱으로 넘기므로 스펙 경로도 그 아래에 둔다
 springdoc:
   api-docs:
-    path: /openapi.product.json
+    path: /api/v1/openapi.product.json
   swagger-ui:
     enabled: false
   # 응답은 모두 JSON이므로 @Content마다 미디어 타입을 적지 않는다
