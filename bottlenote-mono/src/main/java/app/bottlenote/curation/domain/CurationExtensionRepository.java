@@ -12,6 +12,8 @@ public interface CurationExtensionRepository {
 
   List<CurationExtension> findAllByCurationIdIn(Collection<Long> curationIds);
 
+  List<CurationExtension> findAllBySpecIdIn(Collection<Long> specIds);
+
   CurationExtension save(CurationExtension curationExtension);
 
   void deleteByCurationId(Long curationId);

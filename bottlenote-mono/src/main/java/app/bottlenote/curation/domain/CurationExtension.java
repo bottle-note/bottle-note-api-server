@@ -12,8 +12,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 
+// 재생성은 feed_payload만 바꾼다. 전체 컬럼 UPDATE면 로드 시점의 stale payload가 어드민 저장분을 덮는다.
+@DynamicUpdate
 @Comment("spec 기반 큐레이션 payload")
 @Entity(name = "curation_extension")
 @Table(name = "curation_extension")
@@ -45,6 +48,11 @@ public class CurationExtension extends BaseEntity {
   public void update(Long specId, Object payload, Object feedPayload) {
     this.specId = specId;
     this.payload = payload;
+    this.feedPayload = feedPayload;
+  }
+
+  // 스펙 변경에 따른 재생성용. 원본 payload는 SSOT이므로 건드리지 않는다.
+  public void updateFeedPayload(Object feedPayload) {
     this.feedPayload = feedPayload;
   }
 }

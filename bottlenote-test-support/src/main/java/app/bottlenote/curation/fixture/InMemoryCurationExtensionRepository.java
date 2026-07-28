@@ -25,6 +25,13 @@ public class InMemoryCurationExtensionRepository implements CurationExtensionRep
   }
 
   @Override
+  public List<CurationExtension> findAllBySpecIdIn(Collection<Long> specIds) {
+    return database.values().stream()
+        .filter(extension -> specIds.contains(extension.getSpecId()))
+        .toList();
+  }
+
+  @Override
   public CurationExtension save(CurationExtension curationExtension) {
     database.put(curationExtension.getCurationId(), curationExtension);
     return curationExtension;
