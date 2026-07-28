@@ -6,7 +6,7 @@
 
 API 문서는 springdoc OpenAPI 어노테이션으로 생성합니다.
 
-- 스펙: `GET /openapi.product.json` (앱 실행 중 조회)
+- 스펙: `GET /api/v1/openapi.product.json` (앱 실행 중 조회)
 - 문서 작성 위치: `app.bottlenote.{도메인}.controller.docs.{컨트롤러}ApiDocs`
 - 품질 검증: `OpenApiSpecQualityTest` — 태그·요약·응답 스키마 누락을 전수 검사합니다
 

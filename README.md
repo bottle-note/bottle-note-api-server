@@ -71,6 +71,13 @@
 
 ---
 
+## 이슈 관리
+
+기능 요청, 버그 리포트, 작업 항목 등 모든 이슈는 [bottle-note/workspace](https://github.com/bottle-note/workspace) 레포지토리에서 관리합니다. <br/>
+이슈의 SSOT는 workspace이며, PR 작성 시 본문에 `bottle-note/workspace#N` 형식으로 관련 이슈를 링크해 주세요.
+
+---
+
 보틀노트는 위스키 애호가들이 모여 서로의 의견을 공유하고 <br/>
 더욱 즐겁고 유익한 시음 경험을 할 수 있도록 도와줍니다.
 

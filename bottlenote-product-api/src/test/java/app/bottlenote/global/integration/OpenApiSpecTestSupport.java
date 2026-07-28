@@ -10,14 +10,17 @@ import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+import org.springframework.beans.factory.annotation.Value;
 
 /** 생성된 OpenAPI 스펙을 읽어 검사하는 테스트들의 공통 기반. */
 abstract class OpenApiSpecTestSupport extends IntegrationTestSupport {
 
-  protected static final String SPEC_PATH = "/openapi.product.json";
+  // 스펙 경로의 SSOT는 springdoc.api-docs.path 프로퍼티다
+  @Value("${springdoc.api-docs.path}")
+  protected String specPath;
 
   protected JsonNode fetchSpec() {
-    var result = mockMvcTester.get().uri(SPEC_PATH).exchange();
+    var result = mockMvcTester.get().uri(specPath).exchange();
     try {
       return mapper.readTree(result.getResponse().getContentAsString(UTF_8));
     } catch (IOException e) {

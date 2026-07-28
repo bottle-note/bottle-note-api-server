@@ -57,7 +57,7 @@ app:
 # OpenAPI 문서 (운영 설정과 같은 경로를 유지해 스펙을 그대로 검증한다)
 springdoc:
   api-docs:
-    path: /openapi.product.json
+    path: /api/v1/openapi.product.json
   swagger-ui:
     enabled: false
   default-produces-media-type: application/json

@@ -95,6 +95,10 @@ gh workflow run deploy_batch.yml -f environment=production -f version=1.2.3
 gh workflow run deploy_development_applications.yml
 ```
 
+## 이슈 관리
+
+이슈의 SSOT는 [bottle-note/workspace](https://github.com/bottle-note/workspace) 레포지토리다. 이슈는 이 레포가 아니라 workspace에 등록하고, 작업 시작 전 관련 이슈를 먼저 확인한다. PR 본문에는 `bottle-note/workspace#N` 형식으로 관련 이슈를 링크한다.
+
 ## Skills (Development Workflow)
 
 Use these skills to follow the structured development lifecycle:

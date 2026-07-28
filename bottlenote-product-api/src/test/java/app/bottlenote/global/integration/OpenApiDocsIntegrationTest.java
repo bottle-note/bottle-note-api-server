@@ -26,7 +26,7 @@ class OpenApiDocsIntegrationTest extends OpenApiSpecTestSupport {
   @Test
   @DisplayName("인증 없이 스펙 문서를 조회할 수 있다")
   void 인증_없이_스펙_문서를_조회할_수_있다() {
-    assertThat(mockMvcTester.get().uri(SPEC_PATH))
+    assertThat(mockMvcTester.get().uri(specPath))
         .hasStatusOk()
         .bodyJson()
         .extractingPath("$.info.title")
@@ -36,7 +36,7 @@ class OpenApiDocsIntegrationTest extends OpenApiSpecTestSupport {
   @Test
   @DisplayName("스펙 문서는 OpenAPI 3.1 형식이다")
   void 스펙_문서는_OpenAPI_3_1_형식이다() {
-    assertThat(mockMvcTester.get().uri(SPEC_PATH))
+    assertThat(mockMvcTester.get().uri(specPath))
         .hasStatusOk()
         .bodyJson()
         .extractingPath("$.openapi")
