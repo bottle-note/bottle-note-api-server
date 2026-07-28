@@ -1,3 +1,30 @@
+```
+================================================================================
+                          PROJECT COMPLETION STAMP
+================================================================================
+Status: **COMPLETED**
+Completion Date: 2026-07-28
+
+** Core Achievements **
+- responseSpec 변경 감지 (canonical JSON + SHA-256, 스키마 변경 없음)
+- 변경된 스펙의 feed_payload 재생성 (NULL 레거시 포함 backfill 겸용, 공유 락, 무효화 선행)
+- 피드 조회 소스를 feed_payload로 전환 (NULL이면 원본 fallback), Product 피드 + Admin 프리뷰
+- 전 단계 PASS: unit 493건 / rule 63건 / integration 268건 / admin integration 209건, 실패 0
+
+** Key Components **
+- curation/support/CurationSpecFingerprint.java (canonical JSON 지문)
+- curation/service/CurationFeedPayloadRegenerationService.java (무효화·재생성)
+- curation/service/CurationFeedPayloadRefreshService.java (잠금·순서·실패 정책)
+- curation/domain/CurationExtension.feedSource() (NULL fallback)
+- curation/service/CurationFeedSourceEquivalenceTest.java (전환 동등성 + 트립와이어)
+
+** Deferred Items **
+- x-feed 스펙 보정: 프론트 협의 후 별도 PR (피드 응답 payload는 API 계약)
+- 재생성 중 어드민 저장 경합 시 파생값 세대 불일치: @Version 필요, 스키마 변경 범위 밖
+- 재생성 트랜잭션 chunk 처리: 수천 건 규모부터 필요
+================================================================================
+```
+
 # Plan: 큐레이션 피드 읽기 경로 전환 및 스펙 변경 시 재생성
 
 ## Overview
