@@ -489,6 +489,51 @@ class CurationPayloadValidatorTest {
             "$.alcohols 필드는 필수입니다."));
   }
 
+  @Test
+  @DisplayName("pattern에 맞지 않는 문자열은 거부한다")
+  void validate_whenStringViolatesPattern_rejects() {
+    Map<String, Object> spec = patternSpec();
+
+    assertThat(validator.validate(new MapBackedSchema(spec), map("zipCode", "0623A")))
+        .anyMatch(error -> error.contains("형식"));
+    assertThat(validator.validate(new MapBackedSchema(spec), map("zipCode", "우편번호"))).isNotEmpty();
+  }
+
+  @Test
+  @DisplayName("pattern에 맞는 문자열은 통과한다")
+  void validate_whenStringMatchesPattern_passes() {
+    assertThat(validator.validate(new MapBackedSchema(patternSpec()), map("zipCode", "06236")))
+        .isEmpty();
+  }
+
+  @Test
+  @DisplayName("pattern이 없는 필드는 형식 검사를 하지 않는다")
+  void validate_whenNoPattern_skipsPatternCheck() {
+    Map<String, Object> spec =
+        map("type", "object", "properties", map("memo", map("type", "string")));
+
+    assertThat(validator.validate(new MapBackedSchema(spec), map("memo", "아무 값"))).isEmpty();
+  }
+
+  @Test
+  @DisplayName("스펙의 pattern이 잘못된 정규식이면 오류로 보고하고 검증을 계속한다")
+  void validate_whenPatternIsInvalidRegex_reportsWithoutThrowing() {
+    Map<String, Object> spec =
+        map("type", "object", "properties", map("broken", map("type", "string", "pattern", "[")));
+
+    List<String> errors = validator.validate(new MapBackedSchema(spec), map("broken", "값"));
+
+    assertThat(errors).anyMatch(error -> error.contains("정규식"));
+  }
+
+  private static Map<String, Object> patternSpec() {
+    return map(
+        "type",
+        "object",
+        "properties",
+        map("zipCode", map("type", "string", "pattern", "^\\d{5}$")));
+  }
+
   private static Map<String, Object> map(Object... values) {
     Map<String, Object> map = new LinkedHashMap<>();
     for (int i = 0; i < values.length; i += 2) {

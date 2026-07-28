@@ -12,12 +12,18 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CurationPayloadValidator {
 
   private static final int MAX_PAYLOAD_BYTES = 128 * 1024;
+
+  // 같은 스펙이 반복 검증되므로 컴파일 결과를 재사용한다.
+  private final Map<String, Pattern> patternCache = new ConcurrentHashMap<>();
 
   private final ObjectMapper objectMapper;
 
@@ -349,6 +355,22 @@ public class CurationPayloadValidator {
     }
     if (schema.has("maxLength") && value.length() > schema.get("maxLength").asInt()) {
       errors.add(path + " 문자열 길이는 최대 " + schema.get("maxLength").asInt() + "자여야 합니다.");
+    }
+    validatePattern(schema, value, path, errors);
+  }
+
+  // 스펙이 잘못된 정규식을 담고 있어도 payload 검증 전체를 중단시키지 않는다.
+  private void validatePattern(JsonNode schema, String value, String path, List<String> errors) {
+    if (!schema.has("pattern")) {
+      return;
+    }
+    String pattern = schema.get("pattern").asText();
+    try {
+      if (!patternCache.computeIfAbsent(pattern, Pattern::compile).matcher(value).find()) {
+        errors.add(path + " 값이 형식(" + pattern + ")에 맞지 않습니다.");
+      }
+    } catch (PatternSyntaxException e) {
+      errors.add(path + " 스펙의 pattern이 올바른 정규식이 아닙니다: " + pattern);
     }
   }
 

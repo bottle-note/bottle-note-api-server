@@ -18,7 +18,8 @@ Completion Date: 2026-07-28
 
 ** Deferred Items **
 - placeName·zipCode의 required 승격: FE 장소검색 연결 후
-- CurationPayloadValidator의 pattern 지원: 이번은 리소스 JSON만 수정하는 범위
+- ~~CurationPayloadValidator의 pattern 지원~~: 후속 커밋에서 구현 완료. validateString이
+  pattern을 검사하므로 zipCode의 숫자 5자리 제약이 실제로 강제된다
 - 미정의 property 차단: FE가 보내는 다른 필드까지 깨질 수 있어 별건
 - FE 연계(barAddress 전용 자동 동기화 제거, 필드별 매핑): FE 작업
 ================================================================================
@@ -64,6 +65,8 @@ Completion Date: 2026-07-28
   maxItems/minItems뿐이며, 기존 큐레이션 스펙에 `pattern` 사용처도 없었다.
   따라서 `zipCode`에 `minLength: 5`, `maxLength: 5`를 함께 걸어 길이는 서버가
   강제하고, `pattern: ^\d{5}$`는 숫자 제약을 FE·문서용으로 남긴다.
+  **[후속 정정] 이 가정은 후속 커밋에서 해소됐다.** `validateString`에 pattern
+  검사를 추가해 지금은 서버가 숫자 5자리까지 강제한다.
   review 도메인은 Bean Validation `@Pattern`을 쓰지만 큐레이션 payload는
   자유형 JSON이라 같은 방식을 쓸 수 없다. 검증기에 `pattern` 지원을 추가하는
   것은 이번 범위(리소스 JSON만 수정) 밖이라 후속 과제로 남긴다.

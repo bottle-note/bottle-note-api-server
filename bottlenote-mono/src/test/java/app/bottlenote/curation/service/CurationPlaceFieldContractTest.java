@@ -73,6 +73,28 @@ class CurationPlaceFieldContractTest {
   }
 
   @Test
+  @DisplayName("zipCode가 숫자 5자리가 아니면 검증이 거부한다")
+  void validate_whenZipCodeIsNotFiveDigits_rejects() throws IOException {
+    Map<String, Object> payload = legacyPayload();
+    payload.put("zipCode", "0623A");
+
+    var errors = validator.validate(new MapBackedSchema(schema(TASTING, "Request")), payload);
+
+    assertThat(errors).isNotEmpty();
+  }
+
+  @Test
+  @DisplayName("숫자 5자리 zipCode는 통과한다")
+  void validate_whenZipCodeIsFiveDigits_passes() throws IOException {
+    Map<String, Object> payload = legacyPayload();
+    payload.put("zipCode", "06236");
+
+    var errors = validator.validate(new MapBackedSchema(schema(TASTING, "Request")), payload);
+
+    assertThat(errors).isEmpty();
+  }
+
+  @Test
   @DisplayName("placeName이 responseSpec 검증 대상이 되어도 기존 저장값이 상세 경로에서 통과한다")
   void validateResponse_whenLegacyPlaceNameExists_passes() throws IOException {
     // responseSpec에 placeName이 새로 들어가면서 상세 경로(materialize)의 검증 대상이 됐다.
