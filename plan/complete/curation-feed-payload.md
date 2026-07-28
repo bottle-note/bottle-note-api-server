@@ -162,3 +162,20 @@ Completion Date: 2026-07-27
   변경이 없어 InMemory 레포지토리·픽스처 갱신은 불필요로 판명(acceptance
   advisory 조정). mono 단위 34건, admin 통합 17건 통과(실제 DB JSON
   라운드트립 포함).
+- PR #677 리뷰 반영 (925ddfeb): `argFrom`을 루트 기준으로 탐색해
+  `payloadPath` 하위(`whisky_tasting_event`)의 숨은 입력값이 누락되던 결함
+  수정. 남길 스키마 경로를 미리 모아 투영 재귀에 넘기는 방식으로 재작성해
+  배열 원소에서도 경로가 어긋나지 않게 했고, `setAtPath`·`extractObject`가
+  제거됐다. 남길 값이 없으면 null 대신 빈 컨테이너를 저장해 backfill 이전
+  레거시 행과 구분한다. 피드 경로 해석 규칙은 `CurationFeedPaths`로 추출해
+  materializer와 공유한다. 신규 단위 테스트 2건은 수정 전 코드에서 실패를
+  확인했다.
+- PR #677 리뷰 반영 (1ef1a777): Task 3의 "픽스처 갱신 불필요" 판단을
+  뒤집는다. `CurationFixtureFactory`가 feed_payload를 비워두면 후속 읽기
+  경로 테스트가 NULL fallback 분기만 타게 되므로 운영과 같은 추출 결과를
+  남기도록 했다.
+- 리뷰 반영 후 검증: unit_test 459건(mono 233 + product 205 +
+  observability 21), integration_test 254건, admin_integration_test 206건
+  전부 통과. check_rule_test·spotlessCheck 그린.
+- 서브모듈 포인터 6611431로 최신화. 개발 환경 이미지 태그 범프 2건이며
+  `storage/` 변경은 없다(V4 이후 신규 마이그레이션 없음).
