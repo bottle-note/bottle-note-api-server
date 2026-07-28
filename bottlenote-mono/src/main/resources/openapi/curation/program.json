@@ -38,15 +38,25 @@
             "description": "행사 대표 장소명",
             "example": "코엑스",
             "maxLength": 100,
-            "x-field-style": "plain-text",
+            "x-field-style": "address-search",
             "x-display-name": "장소명"
+          },
+          "zipCode": {
+            "type": "string",
+            "description": "행사 장소 우편번호",
+            "example": "06164",
+            "minLength": 5,
+            "maxLength": 5,
+            "pattern": "^\\d{5}$",
+            "x-field-style": "address-search",
+            "x-display-name": "우편번호"
           },
           "address": {
             "type": "string",
             "description": "행사 대표 주소",
             "example": "서울 강남구 영동대로 513",
             "maxLength": 200,
-            "x-field-style": "plain-text",
+            "x-field-style": "address-search",
             "x-display-name": "장소 및 주소"
           },
           "detailLocation": {
