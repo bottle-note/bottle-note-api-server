@@ -7,6 +7,8 @@ import app.bottlenote.curation.domain.CurationRepository;
 import app.bottlenote.curation.domain.CurationSpec;
 import app.bottlenote.curation.domain.CurationSpecRepository;
 import app.bottlenote.curation.dto.request.CurationCreateRequest;
+import app.bottlenote.curation.service.CurationFeedProjector;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -15,14 +17,28 @@ public class CurationFixtureFactory {
   private final CurationSpecRepository curationSpecRepository;
   private final CurationRepository curationRepository;
   private final CurationExtensionRepository curationExtensionRepository;
+  private final CurationFeedProjector curationFeedProjector;
 
   public CurationFixtureFactory(
       CurationSpecRepository curationSpecRepository,
       CurationRepository curationRepository,
       CurationExtensionRepository curationExtensionRepository) {
+    this(
+        curationSpecRepository,
+        curationRepository,
+        curationExtensionRepository,
+        new CurationFeedProjector(new ObjectMapper()));
+  }
+
+  public CurationFixtureFactory(
+      CurationSpecRepository curationSpecRepository,
+      CurationRepository curationRepository,
+      CurationExtensionRepository curationExtensionRepository,
+      CurationFeedProjector curationFeedProjector) {
     this.curationSpecRepository = curationSpecRepository;
     this.curationRepository = curationRepository;
     this.curationExtensionRepository = curationExtensionRepository;
+    this.curationFeedProjector = curationFeedProjector;
   }
 
   public CurationSpec saveSpec(
@@ -66,8 +82,17 @@ public class CurationFixtureFactory {
             .curationId(saved.getId())
             .specId(request.specId())
             .payload(request.payload())
+            .feedPayload(feedPayloadOf(request))
             .build());
     return saved;
+  }
+
+  // 픽스처도 운영과 같은 추출 결과를 남긴다. 그러지 않으면 읽기 경로 테스트가 fallback 분기만 타게 된다.
+  private Object feedPayloadOf(CurationCreateRequest request) {
+    return curationSpecRepository
+        .findById(request.specId())
+        .map(spec -> curationFeedProjector.extractFeedPayload(spec.getResponseSpec(), request.payload()))
+        .orElse(null);
   }
 
   private static Map<String, Object> copyOf(Map<String, Object> value) {
