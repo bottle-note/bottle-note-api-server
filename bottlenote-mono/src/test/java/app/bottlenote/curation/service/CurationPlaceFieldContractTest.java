@@ -34,22 +34,24 @@ class CurationPlaceFieldContractTest {
     JsonNode tasting = OBJECT_MAPPER.valueToTree(schema(TASTING, "Request")).path("properties");
     assertThat(tasting.path("placeName").path("x-field-style").asText())
         .isEqualTo("address-search");
-    assertThat(tasting.path("zipCode").path("x-field-style").asText()).isEqualTo("address-search");
+    assertThat(tasting.path("kakaoPlaceId").path("x-field-style").asText())
+        .isEqualTo("address-search");
 
     JsonNode program = OBJECT_MAPPER.valueToTree(schema(PROGRAM, "Request")).path("properties");
     assertThat(program.path("placeName").path("x-field-style").asText())
         .isEqualTo("address-search");
     assertThat(program.path("address").path("x-field-style").asText()).isEqualTo("address-search");
-    assertThat(program.path("zipCode").path("x-field-style").asText()).isEqualTo("address-search");
+    assertThat(program.path("kakaoPlaceId").path("x-field-style").asText())
+        .isEqualTo("address-search");
   }
 
   @Test
-  @DisplayName("placeName과 zipCode는 optional이라 기존 required 계약을 늘리지 않는다")
+  @DisplayName("placeName과 kakaoPlaceId는 optional이라 기존 required 계약을 늘리지 않는다")
   void requestSpec_newFields_areOptional() throws IOException {
     JsonNode required = OBJECT_MAPPER.valueToTree(schema(TASTING, "Request")).path("required");
 
     assertThat(required).hasSize(8);
-    assertThat(required.toString()).doesNotContain("placeName").doesNotContain("zipCode");
+    assertThat(required.toString()).doesNotContain("placeName").doesNotContain("kakaoPlaceId");
   }
 
   @Test
@@ -62,10 +64,10 @@ class CurationPlaceFieldContractTest {
   }
 
   @Test
-  @DisplayName("zipCode가 5자가 아니면 검증이 거부한다")
-  void validate_whenZipCodeLengthIsNotFive_rejects() throws IOException {
+  @DisplayName("kakaoPlaceId가 빈 문자열이면 검증이 거부한다")
+  void validate_whenKakaoPlaceIdIsBlank_rejects() throws IOException {
     Map<String, Object> payload = legacyPayload();
-    payload.put("zipCode", "123");
+    payload.put("kakaoPlaceId", "");
 
     var errors = validator.validate(new MapBackedSchema(schema(TASTING, "Request")), payload);
 
@@ -73,10 +75,10 @@ class CurationPlaceFieldContractTest {
   }
 
   @Test
-  @DisplayName("zipCode가 숫자 5자리가 아니면 검증이 거부한다")
-  void validate_whenZipCodeIsNotFiveDigits_rejects() throws IOException {
+  @DisplayName("kakaoPlaceId가 숫자가 아니면 검증이 거부한다")
+  void validate_whenKakaoPlaceIdIsNotDigits_rejects() throws IOException {
     Map<String, Object> payload = legacyPayload();
-    payload.put("zipCode", "0623A");
+    payload.put("kakaoPlaceId", "2728A225");
 
     var errors = validator.validate(new MapBackedSchema(schema(TASTING, "Request")), payload);
 
@@ -84,10 +86,21 @@ class CurationPlaceFieldContractTest {
   }
 
   @Test
-  @DisplayName("숫자 5자리 zipCode는 통과한다")
-  void validate_whenZipCodeIsFiveDigits_passes() throws IOException {
+  @DisplayName("kakaoPlaceId가 20자리를 넘으면 검증이 거부한다")
+  void validate_whenKakaoPlaceIdExceedsMaxLength_rejects() throws IOException {
     Map<String, Object> payload = legacyPayload();
-    payload.put("zipCode", "06236");
+    payload.put("kakaoPlaceId", "123456789012345678901");
+
+    var errors = validator.validate(new MapBackedSchema(schema(TASTING, "Request")), payload);
+
+    assertThat(errors).isNotEmpty();
+  }
+
+  @Test
+  @DisplayName("20자리 숫자 kakaoPlaceId는 통과한다")
+  void validate_whenKakaoPlaceIdAtMaxLength_passes() throws IOException {
+    Map<String, Object> payload = legacyPayload();
+    payload.put("kakaoPlaceId", "12345678901234567890");
 
     var errors = validator.validate(new MapBackedSchema(schema(TASTING, "Request")), payload);
 
@@ -131,18 +144,18 @@ class CurationPlaceFieldContractTest {
   }
 
   @Test
-  @DisplayName("피드에는 placeName이 실리고 zipCode는 실리지 않는다")
-  void extractFeedPayload_exposesPlaceNameButNotZipCode() throws IOException {
+  @DisplayName("피드에는 placeName이 실리고 kakaoPlaceId는 실리지 않는다")
+  void extractFeedPayload_exposesPlaceNameButNotKakaoPlaceId() throws IOException {
     Map<String, Object> payload = legacyPayload();
     payload.put("placeName", "보틀노트 테이스팅룸");
-    payload.put("zipCode", "06236");
+    payload.put("kakaoPlaceId", "27288225");
 
     JsonNode feedPayload =
         OBJECT_MAPPER.valueToTree(
             projector.extractFeedPayload(schema(TASTING, "Response"), payload));
 
     assertThat(feedPayload.path("placeName").asText()).isEqualTo("보틀노트 테이스팅룸");
-    assertThat(feedPayload.has("zipCode")).isFalse();
+    assertThat(feedPayload.has("kakaoPlaceId")).isFalse();
   }
 
   @Test

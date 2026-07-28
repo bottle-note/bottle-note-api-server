@@ -41,15 +41,15 @@
             "x-field-style": "address-search",
             "x-display-name": "장소명"
           },
-          "zipCode": {
+          "kakaoPlaceId": {
             "type": "string",
-            "description": "행사 장소 우편번호",
-            "example": "06164",
-            "minLength": 5,
-            "maxLength": 5,
-            "pattern": "^\\d{5}$",
+            "description": "Kakao Places 장소 ID",
+            "example": "27288225",
+            "minLength": 1,
+            "maxLength": 20,
+            "pattern": "^\\d+$",
             "x-field-style": "address-search",
-            "x-display-name": "우편번호"
+            "x-display-name": "Kakao 장소 ID"
           },
           "address": {
             "type": "string",
