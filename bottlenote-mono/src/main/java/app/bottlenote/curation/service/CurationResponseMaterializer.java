@@ -9,10 +9,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -83,65 +81,9 @@ public class CurationResponseMaterializer {
   }
 
   private boolean isFeedQuery(GraphQLCurationQueryBuilder.Result query, JsonNode responseSpecNode) {
-    String targetPath = normalizePath(query.targetPath());
-    return collectFeedPaths(responseSpecNode).stream()
-        .map(this::normalizePath)
-        .anyMatch(feedPath -> intersects(feedPath, targetPath));
-  }
-
-  private Set<String> collectFeedPaths(JsonNode responseSpecNode) {
-    Set<String> paths = new HashSet<>();
-    collectFeedPaths(rootSchema(responseSpecNode), "", paths);
-    return paths;
-  }
-
-  private JsonNode rootSchema(JsonNode specNode) {
-    if ("array".equals(specNode.path("x-container").asText()) && specNode.has("items")) {
-      return specNode.get("items");
-    }
-    return specNode;
-  }
-
-  private void collectFeedPaths(JsonNode schema, String path, Set<String> paths) {
-    if (schema == null || !schema.isObject()) {
-      return;
-    }
-    JsonNode feedMeta = schema.get("x-feed");
-    if (feedMeta != null && feedMeta.isObject() && feedMeta.path("enabled").asBoolean(false)) {
-      paths.add(path);
-      return;
-    }
-    JsonNode properties = schema.get("properties");
-    if (properties != null && properties.isObject()) {
-      properties
-          .properties()
-          .forEach(
-              entry -> collectFeedPaths(entry.getValue(), append(path, entry.getKey()), paths));
-    }
-    JsonNode items = schema.get("items");
-    if (items != null) {
-      collectFeedPaths(items, path, paths);
-    }
-  }
-
-  private boolean intersects(String feedPath, String targetPath) {
-    if (feedPath.isBlank() || targetPath.isBlank()) {
-      return true;
-    }
-    return targetPath.equals(feedPath)
-        || targetPath.startsWith(feedPath + ".")
-        || feedPath.startsWith(targetPath + ".");
-  }
-
-  private String append(String path, String key) {
-    return path == null || path.isBlank() ? key : path + "." + key;
-  }
-
-  private String normalizePath(String path) {
-    if (path == null || JSON_PATH_ROOT.equals(path)) {
-      return "";
-    }
-    return path.startsWith("$.") ? path.substring(2) : path;
+    return CurationFeedPaths.intersectsFeed(
+        CurationFeedPaths.collect(CurationFeedPaths.rootSchema(responseSpecNode)),
+        query.targetPath());
   }
 
   private boolean hasNoArgumentValues(GraphQLCurationQueryBuilder.Result query) {
@@ -313,7 +255,7 @@ public class CurationResponseMaterializer {
   }
 
   private void setAtPath(JsonNode root, String path, JsonNode value) {
-    String trimmed = stripPathPrefix(path);
+    String trimmed = CurationFeedPaths.normalize(path);
     if (trimmed.isEmpty()) {
       return;
     }
@@ -328,13 +270,6 @@ public class CurationResponseMaterializer {
     if (current instanceof ObjectNode objectNode) {
       objectNode.set(segments[segments.length - 1], value);
     }
-  }
-
-  private String stripPathPrefix(String path) {
-    if (path.startsWith("$.")) {
-      return path.substring(2);
-    }
-    return JSON_PATH_ROOT.equals(path) ? "" : path;
   }
 
   private Object normalizeKey(Object value) {
