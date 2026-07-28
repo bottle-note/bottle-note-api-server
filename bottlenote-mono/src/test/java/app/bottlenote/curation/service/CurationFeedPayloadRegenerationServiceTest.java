@@ -17,21 +17,21 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 @Tag("unit")
-@DisplayName("CurationFeedPayloadRegenerator 단위 테스트")
-class CurationFeedPayloadRegeneratorTest {
+@DisplayName("CurationFeedPayloadRegenerationService 단위 테스트")
+class CurationFeedPayloadRegenerationServiceTest {
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   private InMemoryCurationSpecRepository specRepository;
   private InMemoryCurationExtensionRepository extensionRepository;
-  private CurationFeedPayloadRegenerator regenerator;
+  private CurationFeedPayloadRegenerationService regenerator;
 
   @BeforeEach
   void setUp() {
     specRepository = new InMemoryCurationSpecRepository();
     extensionRepository = new InMemoryCurationExtensionRepository();
     regenerator =
-        new CurationFeedPayloadRegenerator(
+        new CurationFeedPayloadRegenerationService(
             specRepository, extensionRepository, new CurationFeedProjector(OBJECT_MAPPER));
   }
 

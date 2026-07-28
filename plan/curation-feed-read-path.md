@@ -187,7 +187,7 @@ PR #677로 `curation_extension.feed_payload` 쓰기 경로는 확보됐다. 다�
   뭉개 재생성 누락을 "변경 없음"으로 위장 → `List.copyOf`로 NPE 노출
   ③ 정규화 엣지 미검증 → `CurationSpecFingerprintTest` 9건 신규.
   단위 테스트 14건 통과.
-- Task 2 완료: `CurationFeedPayloadRegenerator` 신규,
+- Task 2 완료: `CurationFeedPayloadRegenerationService` 신규,
   `CurationExtensionRepository.findAllBySpecIdIn`과
   `CurationExtension.updateFeedPayload` 추가. NULL 레거시 행 포함(backfill 겸용).
   codex 리뷰에서 **경합 버그**를 잡아 `@DynamicUpdate` 적용: 전체 컬럼 UPDATE면
