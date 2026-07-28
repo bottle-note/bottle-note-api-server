@@ -29,7 +29,8 @@ public class CurationFeedPayloadRegenerationService {
   // sync가 DB 스펙을 이미 덮어써서 다음 기동에는 "변경 없음"으로 보이므로, 낡은 값을 남기면 영구히 굳는다.
   @Transactional
   public int invalidate(Collection<Long> specIds) {
-    List<CurationExtension> extensions = extensionsOf(specIds);
+    List<CurationExtension> extensions =
+        curationExtensionRepository.findAllBySpecIdIn(Set.copyOf(specIds));
     extensions.forEach(extension -> extension.updateFeedPayload(null));
     log.info("큐레이션 feed_payload 무효화: specIds={}, curations={}", specIds, extensions.size());
     return extensions.size();
@@ -38,7 +39,7 @@ public class CurationFeedPayloadRegenerationService {
   @Transactional
   public int regenerate(Collection<Long> specIds) {
     Map<Long, CurationSpec> specs =
-        curationSpecRepository.findAllByIdIn(idsOf(specIds)).stream()
+        curationSpecRepository.findAllByIdIn(Set.copyOf(specIds)).stream()
             .collect(Collectors.toMap(CurationSpec::getId, Function.identity()));
 
     // feed_payload가 NULL인 레거시 행도 대상이다. 재생성이 backfill을 겸한다.
@@ -52,14 +53,5 @@ public class CurationFeedPayloadRegenerationService {
     log.info(
         "큐레이션 feed_payload 재생성 완료: specIds={}, curations={}", specs.keySet(), extensions.size());
     return extensions.size();
-  }
-
-  private List<CurationExtension> extensionsOf(Collection<Long> specIds) {
-    Set<Long> ids = idsOf(specIds);
-    return ids.isEmpty() ? List.of() : curationExtensionRepository.findAllBySpecIdIn(ids);
-  }
-
-  private Set<Long> idsOf(Collection<Long> specIds) {
-    return specIds == null ? Set.of() : Set.copyOf(specIds);
   }
 }
