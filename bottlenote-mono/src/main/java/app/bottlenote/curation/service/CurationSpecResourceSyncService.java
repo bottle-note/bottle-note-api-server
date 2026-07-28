@@ -4,9 +4,11 @@ import app.bottlenote.curation.domain.CurationSpec;
 import app.bottlenote.curation.domain.CurationSpecRepository;
 import app.bottlenote.curation.dto.response.CurationSpecSyncResponse;
 import app.bottlenote.curation.service.CurationPayloadValidator.MapBackedSchema;
+import app.bottlenote.curation.support.CurationSpecFingerprint;
 import app.bottlenote.curation.support.CurationSpecResourceReader;
 import app.bottlenote.curation.support.CurationSpecResourceReader.CurationSpecResourceDocument;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -20,6 +22,7 @@ public class CurationSpecResourceSyncService {
   private final CurationSpecRepository curationSpecRepository;
   private final CurationSpecResourceReader curationSpecResourceReader;
   private final CurationPayloadValidator curationPayloadValidator;
+  private final CurationSpecFingerprint curationSpecFingerprint;
 
   @CacheEvict(
       value = {"local_cache_curation_spec_list", "local_cache_curation_spec_detail"},
@@ -28,20 +31,29 @@ public class CurationSpecResourceSyncService {
   public CurationSpecSyncResponse sync() {
     int createdCount = 0;
     int updatedCount = 0;
+    List<Long> changedSpecIds = new ArrayList<>();
 
     for (CurationSpecResourceDocument specDocument : curationSpecResourceReader.readAll()) {
       validateSpecDocument(specDocument);
       Optional<CurationSpec> existingSpec = curationSpecRepository.findByCode(specDocument.code());
       if (existingSpec.isPresent()) {
-        curationSpecRepository.save(update(existingSpec.get(), specDocument));
+        CurationSpec curationSpec = existingSpec.get();
+        // 덮어쓰기 전에 비교해야 한다. update()가 responseSpec을 교체하고 나면 이전 값을 잃는다.
+        boolean responseSpecChanged =
+            !curationSpecFingerprint.isSame(
+                curationSpec.getResponseSpec(), specDocument.responseSpec());
+        curationSpecRepository.save(update(curationSpec, specDocument));
         updatedCount++;
+        if (responseSpecChanged) {
+          changedSpecIds.add(curationSpec.getId());
+        }
       } else {
         curationSpecRepository.save(create(specDocument));
         createdCount++;
       }
     }
 
-    return new CurationSpecSyncResponse(createdCount, updatedCount);
+    return new CurationSpecSyncResponse(createdCount, updatedCount, changedSpecIds);
   }
 
   private void validateSpecDocument(CurationSpecResourceDocument specDocument) {
