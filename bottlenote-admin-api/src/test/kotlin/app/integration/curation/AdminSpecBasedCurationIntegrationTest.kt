@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import java.time.LocalDate
+import java.util.LinkedHashMap
 
 @Tag("admin_integration")
 @DisplayName("[integration] Admin Spec Based Curation API 통합 테스트")
@@ -25,6 +26,13 @@ class AdminSpecBasedCurationIntegrationTest : IntegrationTestSupport() {
 
 	@Autowired
 	private lateinit var curationExtensionRepository: CurationExtensionRepository
+
+	@Autowired
+	private lateinit var curationRepository: app.bottlenote.curation.domain.CurationRepository
+
+	@Autowired
+	private lateinit var curationFeedPayloadRegenerationService:
+		app.bottlenote.curation.service.CurationFeedPayloadRegenerationService
 
 	private lateinit var accessToken: String
 
@@ -330,6 +338,123 @@ class AdminSpecBasedCurationIntegrationTest : IntegrationTestSupport() {
 			.bodyJson()
 			.extractingPath("$.code")
 			.isEqualTo(400)
+	}
+
+	@Nested
+	@DisplayName("스펙 변경에 따른 feed_payload 재생성")
+	inner class FeedPayloadRegeneration {
+
+		@Test
+		@DisplayName("responseSpec이 그대로면 재동기화해도 변경 스펙이 없어 재생성하지 않는다")
+		fun sync_whenResponseSpecUnchanged_reportsNoChangedSpec() {
+			val result = curationSpecResourceSyncService.sync()
+
+			assertThat(result.updatedCount()).isPositive()
+			assertThat(result.changedSpecIds()).isEmpty()
+			assertThat(result.hasChangedSpecs()).isFalse()
+		}
+
+		@Test
+		@DisplayName("responseSpec을 바꾸면 그 스펙의 큐레이션만 feed_payload가 재생성되고 NULL 행도 채워진다")
+		fun regenerate_whenResponseSpecChanged_refreshesOnlyThatSpec() {
+			val curationId = createCurationViaApi()
+			val otherSpecId = curationSpecRepository.findByCode("WHISKY_TASTING_EVENT").orElseThrow().id
+			// backfill 이전 레거시 행을 재현한다.
+			curationExtensionRepository.findByCurationId(curationId).orElseThrow()
+				.also { it.updateFeedPayload(null) }
+				.let { curationExtensionRepository.save(it) }
+			val otherBefore = tamperOtherSpecCuration(otherSpecId)
+
+			tamperResponseSpec(recommendedSpecId())
+			val syncResult = curationSpecResourceSyncService.sync()
+			curationFeedPayloadRegenerationService.regenerate(syncResult.changedSpecIds())
+
+			assertThat(syncResult.changedSpecIds()).containsExactly(recommendedSpecId())
+			val regenerated = curationExtensionRepository.findByCurationId(curationId).orElseThrow()
+			assertThat(regenerated.feedPayload).isNotNull()
+			assertThat(mapper.valueToTree<com.fasterxml.jackson.databind.JsonNode>(regenerated.feedPayload)[0].path("alcohol").path("korName").asText())
+				.isEqualTo("검증 위스키")
+			// 원본 payload는 SSOT이므로 그대로여야 한다.
+			assertThat(mapper.valueToTree<com.fasterxml.jackson.databind.JsonNode>(regenerated.payload)[0].has("source")).isTrue()
+			assertThat(curationExtensionRepository.findByCurationId(otherBefore).orElseThrow().feedPayload)
+				.isNull()
+		}
+
+		@Test
+		@DisplayName("Admin 피드 프리뷰는 feed_payload가 NULL이어도 원본으로 fallback해 같은 결과를 낸다")
+		fun searchFeed_whenFeedPayloadIsNull_fallsBackToSource() {
+			val migratedId = createCurationViaApi()
+			val legacyId = createCurationViaApi()
+			curationExtensionRepository.findByCurationId(legacyId).orElseThrow()
+				.also { it.updateFeedPayload(null) }
+				.let { curationExtensionRepository.save(it) }
+
+			val result = mockMvcTester
+				.get()
+				.uri("/v2/curations/feed?code=RECOMMENDED_WHISKY&size=10")
+				.header("Authorization", "Bearer $accessToken")
+				.exchange()
+
+			assertThat(result).hasStatusOk()
+			// fromPage는 data 자체가 배열이다.
+			val items = dataNode(result)
+			val migrated = items.first { it.path("id").asLong() == migratedId }
+			val legacy = items.first { it.path("id").asLong() == legacyId }
+			assertThat(legacy.path("feedFields")).isEqualTo(migrated.path("feedFields"))
+			assertThat(migrated.path("feedFields")).isNotEmpty()
+		}
+
+		private fun createCurationViaApi(): Long {
+			val result = mockMvcTester
+				.post()
+				.uri("/v2/curations")
+				.header("Authorization", "Bearer $accessToken")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsString(createRequest(validPayload())))
+				.exchange()
+			return dataNode(result).path("targetId").asLong()
+		}
+
+		// 다른 스펙의 큐레이션을 NULL 상태로 만들어 재생성 범위 밖임을 확인할 수 있게 한다.
+		private fun tamperOtherSpecCuration(otherSpecId: Long): Long {
+			val curation = curationRepository.save(
+				app.bottlenote.curation.domain.Curation.builder()
+					.specId(otherSpecId)
+					.name("다른 스펙 큐레이션")
+					.description("재생성 범위 검증")
+					.coverImageUrl("https://cdn.example.com/cover.jpg")
+					.exposureStartDate(LocalDate.now().minusDays(1))
+					.exposureEndDate(LocalDate.now().plusDays(30))
+					.displayOrder(1)
+					.isActive(true)
+					.build()
+			)
+			curationExtensionRepository.save(
+				app.bottlenote.curation.domain.CurationExtension.builder()
+					.curationId(curation.id)
+					.specId(otherSpecId)
+					.payload(mapOf("eventDate" to "2026-06-21"))
+					.build()
+			)
+			return curation.id
+		}
+
+		// x-feed를 하나 꺼서 responseSpec 지문이 실제로 달라지게 만든다.
+		private fun tamperResponseSpec(specId: Long) {
+			val spec = curationSpecRepository.findById(specId).orElseThrow()
+			val tampered = LinkedHashMap(spec.responseSpec)
+			tampered["x-regeneration-test"] = System.nanoTime()
+			spec.update(
+				spec.name,
+				spec.description,
+				spec.requestSpec,
+				tampered,
+				spec.hydratorKey,
+				spec.version,
+				true
+			)
+			curationSpecRepository.save(spec)
+		}
 	}
 
 	private fun assertNotFound(result: org.springframework.test.web.servlet.assertj.MvcTestResult) {

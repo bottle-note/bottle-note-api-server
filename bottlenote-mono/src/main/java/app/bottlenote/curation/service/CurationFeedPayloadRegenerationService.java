@@ -25,6 +25,23 @@ public class CurationFeedPayloadRegenerationService {
   private final CurationExtensionRepository curationExtensionRepository;
   private final CurationFeedProjector feedProjector;
 
+  // 재생성 전에 먼저 비운다. 이후 단계가 실패해도 NULL fallback으로 정확한 응답이 나가기 때문이다.
+  // sync가 DB 스펙을 이미 덮어써서 다음 기동에는 "변경 없음"으로 보이므로, 낡은 값을 남기면 영구히 굳는다.
+  @Transactional
+  public int invalidate(Collection<Long> specIds) {
+    if (specIds == null || specIds.isEmpty()) {
+      return 0;
+    }
+    List<CurationExtension> extensions =
+        curationExtensionRepository.findAllBySpecIdIn(Set.copyOf(specIds));
+    for (CurationExtension extension : extensions) {
+      extension.updateFeedPayload(null);
+      curationExtensionRepository.save(extension);
+    }
+    log.info("큐레이션 feed_payload 무효화: specIds={}, curations={}", specIds, extensions.size());
+    return extensions.size();
+  }
+
   @Transactional
   public int regenerate(Collection<Long> specIds) {
     if (specIds == null || specIds.isEmpty()) {
