@@ -3,7 +3,7 @@
   "info": {
     "title": "프로그램",
     "description": "행사 기간과 장소, 여러 프로그램 및 프로그램별 위스키 라인업을 함께 발행하는 행사형 큐레이션.",
-    "version": "2.0.0"
+    "version": "3.0.0"
   },
   "x-curation": {
     "code": "PROGRAM",

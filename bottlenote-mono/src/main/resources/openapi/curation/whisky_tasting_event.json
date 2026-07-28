@@ -3,7 +3,7 @@
   "info": {
     "title": "위스키 시음회",
     "description": "시음회 날짜, 장소, 참가 정보와 시음 위스키 라인업을 함께 발행하는 이벤트형 큐레이션.",
-    "version": "2.0.0"
+    "version": "3.0.0"
   },
   "x-curation": {
     "code": "WHISKY_TASTING_EVENT",
