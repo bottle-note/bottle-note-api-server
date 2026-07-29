@@ -3,7 +3,6 @@ package app.bottlenote.alcohols.fixture;
 import app.bottlenote.alcohols.domain.Region;
 import app.bottlenote.alcohols.domain.RegionRepository;
 import app.bottlenote.alcohols.dto.response.AdminRegionItem;
-import app.bottlenote.alcohols.dto.response.RegionCacheRevision;
 import app.bottlenote.alcohols.dto.response.RegionsItem;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,16 +46,6 @@ public class InMemoryRegionRepository implements RegionRepository {
         .toList();
   }
 
-  @Override
-  public RegionCacheRevision getCacheRevision() {
-    return new RegionCacheRevision(
-        regions.size(),
-        regions.stream()
-            .map(Region::getLastModifyAt)
-            .filter(Objects::nonNull)
-            .max(Comparator.naturalOrder())
-            .orElse(null));
-  }
 
   @Override
   public Page<AdminRegionItem> findAllRegions(String keyword, Pageable pageable) {

@@ -31,15 +31,30 @@ class RegionCacheRefreshServiceTest {
   }
 
   @Test
-  @DisplayName("지역의 최종 수정 시각이 변경되면 Product 지역 캐시를 비운다")
-  void refresh_whenRegionLastModifyAtChanged_clearsRegionCache() {
-    Region region = Region.builder().korName("스코틀랜드").engName("Scotland").build();
-    regionRepository.save(region);
+  @DisplayName("지역이 추가되면 Product 지역 캐시를 비운다")
+  void refresh_whenRegionAdded_clearsRegionCache() {
     service.refresh();
 
     Cache cache = cacheManager.getCache(REGION_CACHE_NAME);
     cache.put(SimpleKey.EMPTY, "cached-regions");
+    regionRepository.save(Region.builder().korName("스코틀랜드").engName("Scotland").build());
+
+    service.refresh();
+
+    assertThat(cache.get(SimpleKey.EMPTY)).isNull();
+  }
+
+  @Test
+  @DisplayName("같은 최종 수정 시각에 지역 내용이 변경되면 Product 지역 캐시를 비운다")
+  void refresh_whenRegionContentChangedWithSameLastModifyAt_clearsRegionCache() {
+    Region region = Region.builder().korName("스코틀랜드").engName("Scotland").build();
+    regionRepository.save(region);
     ReflectionTestUtils.setField(region, "lastModifyAt", LocalDateTime.of(2026, 7, 29, 12, 5));
+    service.refresh();
+
+    Cache cache = cacheManager.getCache(REGION_CACHE_NAME);
+    cache.put(SimpleKey.EMPTY, "cached-regions");
+    region.update("스코틀랜드", "Scotland", null, "변경된 설명", null, null, null);
 
     service.refresh();
 
