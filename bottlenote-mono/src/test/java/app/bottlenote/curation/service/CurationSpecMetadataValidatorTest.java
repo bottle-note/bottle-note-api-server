@@ -19,6 +19,41 @@ class CurationSpecMetadataValidatorTest {
   private final CurationPayloadValidator validator = new CurationPayloadValidator(OBJECT_MAPPER);
 
   @Test
+  @DisplayName("x-place-search-target 대상 key가 같은 properties scope에 없으면 스펙 검증에 실패한다")
+  void validateSpec_존재하지_않는_placeSearchTarget_key_실패() throws Exception {
+    Map<String, Object> schema =
+        OBJECT_MAPPER.readValue(
+            """
+            {
+              "type": "object",
+              "properties": {
+                "placeName": {
+                  "type": "string",
+                  "x-field-style": "address-search",
+                  "x-place-search-targets": {
+                    "placeName": "placeName",
+                    "address": "address",
+                    "missingPlaceId": "id"
+                  }
+                },
+                "address": {
+                  "type": "string"
+                }
+              }
+            }
+            """,
+            MAP_TYPE);
+
+    assertThat(validator.validateSpec("test#Request", new MapBackedSchema(schema)))
+        .anySatisfy(
+            error ->
+                assertThat(error)
+                    .contains("장소검색 대상 key가 같은 scope에 없습니다")
+                    .contains("test#Request.placeName")
+                    .contains("missingPlaceId"));
+  }
+
+  @Test
   @DisplayName("x-depends-on 대상 key가 같은 properties scope에 없으면 스펙 검증에 실패한다")
   void validateSpec_존재하지_않는_dependency_key_실패() throws Exception {
     Map<String, Object> schema =

@@ -3,7 +3,7 @@
   "info": {
     "title": "프로그램",
     "description": "행사 기간과 장소, 여러 프로그램 및 프로그램별 위스키 라인업을 함께 발행하는 행사형 큐레이션.",
-    "version": "3.0.0"
+    "version": "3.0.1"
   },
   "x-curation": {
     "code": "PROGRAM",
@@ -35,29 +35,44 @@
           },
           "placeName": {
             "type": "string",
-            "description": "행사 대표 장소명",
+            "description": "행사 대표 장소명. 장소검색으로 선택한다.",
             "example": "코엑스",
             "maxLength": 100,
             "x-field-style": "address-search",
-            "x-display-name": "장소명"
+            "x-display-name": "장소명",
+            "x-place-search-targets": {
+              "placeName": "placeName",
+              "kakaoPlaceId": "id",
+              "address": "address"
+            }
           },
           "kakaoPlaceId": {
             "type": "string",
-            "description": "Kakao Places 장소 ID",
+            "description": "Kakao Places 장소 ID. 장소검색 선택값으로 자동 저장한다.",
             "example": "27288225",
             "minLength": 1,
             "maxLength": 20,
             "pattern": "^\\d+$",
-            "x-field-style": "address-search",
+            "x-field-style": "hidden",
             "x-display-name": "Kakao 장소 ID"
           },
           "address": {
             "type": "string",
-            "description": "행사 대표 주소",
+            "description": "행사 대표 주소. 장소검색 선택값으로 자동 설정되며 직접 수정할 수 없다.",
             "example": "서울 강남구 영동대로 513",
             "maxLength": 200,
-            "x-field-style": "address-search",
+            "x-field-style": "plain-text",
+            "x-read-only": true,
             "x-display-name": "장소 및 주소"
+          },
+          "detailAddress": {
+            "type": "string",
+            "description": "행사 상세 주소. 건물, 층, 호 등 주소를 보완해 직접 입력한다.",
+            "example": "B홀 2층",
+            "maxLength": 200,
+            "nullable": true,
+            "x-field-style": "plain-text",
+            "x-display-name": "상세 주소"
           },
           "detailLocation": {
             "type": "string",
@@ -425,6 +440,15 @@
             "maxLength": 200,
             "x-field-style": "plain-text",
             "x-display-name": "장소 및 주소"
+          },
+          "detailAddress": {
+            "type": "string",
+            "description": "행사 상세 주소. 건물, 층, 호 등 주소를 보완해 직접 입력한다.",
+            "example": "B홀 2층",
+            "maxLength": 200,
+            "nullable": true,
+            "x-field-style": "plain-text",
+            "x-display-name": "상세 주소"
           },
           "detailLocation": {
             "type": "string",
