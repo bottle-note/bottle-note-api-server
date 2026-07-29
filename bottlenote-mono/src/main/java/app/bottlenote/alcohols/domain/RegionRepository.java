@@ -1,6 +1,7 @@
 package app.bottlenote.alcohols.domain;
 
 import app.bottlenote.alcohols.dto.response.AdminRegionItem;
+import app.bottlenote.alcohols.dto.response.RegionCacheRevision;
 import app.bottlenote.alcohols.dto.response.RegionsItem;
 import java.util.Collection;
 import java.util.List;
@@ -13,6 +14,8 @@ public interface RegionRepository {
   Optional<Region> findById(Long id);
 
   List<RegionsItem> findAllRegionsResponse();
+
+  RegionCacheRevision getCacheRevision();
 
   Page<AdminRegionItem> findAllRegions(String keyword, Pageable pageable);
 

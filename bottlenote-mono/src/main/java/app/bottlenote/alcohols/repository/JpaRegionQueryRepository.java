@@ -3,6 +3,7 @@ package app.bottlenote.alcohols.repository;
 import app.bottlenote.alcohols.domain.Region;
 import app.bottlenote.alcohols.domain.RegionRepository;
 import app.bottlenote.alcohols.dto.response.AdminRegionItem;
+import app.bottlenote.alcohols.dto.response.RegionCacheRevision;
 import app.bottlenote.alcohols.dto.response.RegionsItem;
 import app.bottlenote.common.annotation.JpaRepositoryImpl;
 import java.util.Collection;
@@ -23,6 +24,11 @@ public interface JpaRegionQueryRepository extends RegionRepository, CrudReposito
       from region r order by r.sortOrder asc, r.korName asc
       """)
   List<RegionsItem> findAllRegionsResponse();
+
+  @Override
+  @Query(
+      "select new app.bottlenote.alcohols.dto.response.RegionCacheRevision(count(r), max(r.lastModifyAt)) from region r")
+  RegionCacheRevision getCacheRevision();
 
   @Override
   @Query(

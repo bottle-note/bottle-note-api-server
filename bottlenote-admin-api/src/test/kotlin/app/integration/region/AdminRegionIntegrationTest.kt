@@ -1,6 +1,7 @@
 package app.integration.region
 
 import app.IntegrationTestSupport
+import app.bottlenote.alcohols.domain.RegionRepository
 import app.bottlenote.alcohols.dto.request.AdminRegionCreateRequest
 import app.bottlenote.alcohols.dto.request.AdminRegionSortOrderRequest
 import app.bottlenote.alcohols.dto.request.AdminRegionUpdateRequest
@@ -20,6 +21,9 @@ class AdminRegionIntegrationTest : IntegrationTestSupport() {
 
 	@Autowired
 	private lateinit var regionTestFactory: RegionTestFactory
+
+	@Autowired
+	private lateinit var regionRepository: RegionRepository
 
 	private lateinit var accessToken: String
 
@@ -132,6 +136,33 @@ class AdminRegionIntegrationTest : IntegrationTestSupport() {
 			).hasStatusOk()
 				.bodyJson()
 				.extractingPath("$.data.code").isEqualTo("REGION_UPDATED")
+		}
+
+		@Test
+		@DisplayName("지역 수정 시 lastModifyAt이 갱신된다")
+		fun updateRefreshesLastModifyAt() {
+			val region = regionTestFactory.persistRoot("스코트랜드", "ScotlandTypo", 10)
+			val before = regionRepository.findById(region.id!!).orElseThrow().lastModifyAt
+			Thread.sleep(1100)
+
+			val request = AdminRegionUpdateRequest.builder()
+				.korName("스코틀랜드")
+				.engName("Scotland")
+				.description("정정")
+				.sortOrder(10)
+				.build()
+
+			assertThat(
+				mockMvcTester
+					.put()
+					.uri("/v1/regions/${region.id}")
+					.header("Authorization", "Bearer $accessToken")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(request))
+			).hasStatusOk()
+
+			val after = regionRepository.findById(region.id!!).orElseThrow().lastModifyAt
+			assertThat(after).isAfter(before)
 		}
 	}
 
