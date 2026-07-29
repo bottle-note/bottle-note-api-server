@@ -29,20 +29,16 @@ class CurationPlaceFieldContractTest {
   private final CurationFeedProjector projector = new CurationFeedProjector(OBJECT_MAPPER);
 
   @Test
-  @DisplayName("장소검색이 필요한 필드는 address-search 렌더링 계약을 쓴다")
-  void requestSpec_placeSearchFields_useAddressSearchStyle() throws IOException {
+  @DisplayName("장소검색은 장소명 하나에서 수행하고 선택값을 자동 대상 필드에 매핑한다")
+  void requestSpec_placeSearch_usesPlaceNameAsTheOnlySearchInput() throws IOException {
     JsonNode tasting = OBJECT_MAPPER.valueToTree(schema(TASTING, "Request")).path("properties");
-    assertThat(tasting.path("placeName").path("x-field-style").asText())
-        .isEqualTo("address-search");
-    assertThat(tasting.path("kakaoPlaceId").path("x-field-style").asText())
-        .isEqualTo("address-search");
+    assertPlaceSearchContract(tasting, "barAddress");
 
     JsonNode program = OBJECT_MAPPER.valueToTree(schema(PROGRAM, "Request")).path("properties");
-    assertThat(program.path("placeName").path("x-field-style").asText())
-        .isEqualTo("address-search");
-    assertThat(program.path("address").path("x-field-style").asText()).isEqualTo("address-search");
-    assertThat(program.path("kakaoPlaceId").path("x-field-style").asText())
-        .isEqualTo("address-search");
+    assertPlaceSearchContract(program, "address");
+    assertThat(program.path("detailAddress").path("x-field-style").asText())
+        .isEqualTo("plain-text");
+    assertThat(program.path("detailAddress").path("nullable").asBoolean()).isTrue();
   }
 
   @Test
@@ -169,6 +165,19 @@ class CurationPlaceFieldContractTest {
             .isEmpty();
       }
     }
+  }
+
+  private static void assertPlaceSearchContract(JsonNode properties, String addressKey) {
+    JsonNode placeName = properties.path("placeName");
+    assertThat(placeName.path("x-field-style").asText()).isEqualTo("address-search");
+    JsonNode targets = placeName.path("x-place-search-targets");
+    assertThat(targets.path("placeName").asText()).isEqualTo("placeName");
+    assertThat(targets.path("kakaoPlaceId").asText()).isEqualTo("id");
+    assertThat(targets.path(addressKey).asText()).isEqualTo("address");
+
+    assertThat(properties.path("kakaoPlaceId").path("x-field-style").asText()).isEqualTo("hidden");
+    assertThat(properties.path(addressKey).path("x-field-style").asText()).isEqualTo("plain-text");
+    assertThat(properties.path(addressKey).path("x-read-only").asBoolean()).isTrue();
   }
 
   private static Map<String, Object> legacyPayload() {

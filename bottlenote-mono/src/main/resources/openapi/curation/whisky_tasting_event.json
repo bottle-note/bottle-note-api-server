@@ -3,7 +3,7 @@
   "info": {
     "title": "위스키 시음회",
     "description": "시음회 날짜, 장소, 참가 정보와 시음 위스키 라인업을 함께 발행하는 이벤트형 큐레이션.",
-    "version": "3.0.0"
+    "version": "3.0.1"
   },
   "x-curation": {
     "code": "WHISKY_TASTING_EVENT",
@@ -36,28 +36,34 @@
           },
           "placeName": {
             "type": "string",
-            "description": "시음회 장소명",
+            "description": "시음회 장소명. 장소검색으로 선택한다.",
             "example": "보틀노트 테이스팅룸",
             "maxLength": 100,
             "x-field-style": "address-search",
-            "x-display-name": "장소명"
+            "x-display-name": "장소명",
+            "x-place-search-targets": {
+              "placeName": "placeName",
+              "kakaoPlaceId": "id",
+              "barAddress": "address"
+            }
           },
           "kakaoPlaceId": {
             "type": "string",
-            "description": "Kakao Places 장소 ID",
+            "description": "Kakao Places 장소 ID. 장소검색 선택값으로 자동 저장한다.",
             "example": "27288225",
             "minLength": 1,
             "maxLength": 20,
             "pattern": "^\\d+$",
-            "x-field-style": "address-search",
+            "x-field-style": "hidden",
             "x-display-name": "Kakao 장소 ID"
           },
           "barAddress": {
             "type": "string",
-            "description": "장소 및 바 주소",
+            "description": "장소 및 바 주소. 장소검색 선택값으로 자동 설정되며 직접 수정할 수 없다.",
             "example": "서울 강남구 테헤란로 123",
             "maxLength": 200,
             "x-field-style": "plain-text",
+            "x-read-only": true,
             "x-display-name": "장소 및 바(bar) 주소"
           },
           "detailAddress": {
@@ -319,7 +325,7 @@
             "minLength": 1,
             "maxLength": 20,
             "pattern": "^\\d+$",
-            "x-field-style": "address-search",
+            "x-field-style": "hidden",
             "x-display-name": "Kakao 장소 ID"
           },
           "barAddress": {
