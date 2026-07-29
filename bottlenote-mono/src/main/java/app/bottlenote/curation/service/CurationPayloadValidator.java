@@ -80,6 +80,14 @@ public class CurationPayloadValidator {
     if (dependsOn != null) {
       validateDependsOn(rootPath, path, siblingKeys, siblingProperties, dependsOn, errors);
     }
+    JsonNode placeSearchTargets = schema.get("x-place-search-targets");
+    if (placeSearchTargets != null) {
+      validatePlaceSearchTargets(rootPath, path, schema, siblingKeys, placeSearchTargets, errors);
+    }
+    JsonNode readOnly = schema.get("x-read-only");
+    if (readOnly != null && !readOnly.isBoolean()) {
+      errors.add(fieldPath(rootPath, path) + " x-read-only는 boolean이어야 합니다.");
+    }
 
     JsonNode properties = schema.path("properties");
     if (properties.isObject()) {
@@ -103,6 +111,33 @@ public class CurationPayloadValidator {
       if (!path.isEmpty() && path.peekLast().endsWith("[]")) {
         String arrayField = path.removeLast();
         path.addLast(arrayField.substring(0, arrayField.length() - 2));
+      }
+    }
+  }
+
+  private void validatePlaceSearchTargets(
+      String rootPath,
+      ArrayDeque<String> path,
+      JsonNode schema,
+      Set<String> siblingKeys,
+      JsonNode placeSearchTargets,
+      List<String> errors) {
+    String fieldPath = fieldPath(rootPath, path);
+    if (!"address-search".equals(schema.path("x-field-style").asText())) {
+      errors.add(fieldPath + " x-place-search-targets는 address-search 필드에만 지정할 수 있습니다.");
+    }
+    if (!placeSearchTargets.isObject() || placeSearchTargets.isEmpty()) {
+      errors.add(fieldPath + " x-place-search-targets는 비어있지 않은 object여야 합니다.");
+      return;
+    }
+    for (Map.Entry<String, JsonNode> target : placeSearchTargets.properties()) {
+      if (!siblingKeys.contains(target.getKey())) {
+        errors.add(fieldPath + " 장소검색 대상 key가 같은 scope에 없습니다: " + target.getKey());
+      }
+      if (!target.getValue().isTextual()
+          || !Set.of("placeName", "id", "address").contains(target.getValue().asText())) {
+        errors.add(
+            fieldPath + " 장소검색 source는 placeName, id, address 중 하나여야 합니다: " + target.getKey());
       }
     }
   }
