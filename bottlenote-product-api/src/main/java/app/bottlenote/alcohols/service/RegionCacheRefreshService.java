@@ -10,10 +10,11 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
-@Component
+@Service
 @RequiredArgsConstructor
 public class RegionCacheRefreshService {
 
@@ -24,11 +25,13 @@ public class RegionCacheRefreshService {
   private List<RegionsItem> lastKnownRegions;
 
   @EventListener(ApplicationReadyEvent.class)
+  @Transactional(readOnly = true)
   public void initializeRevision() {
     refresh();
   }
 
   @Scheduled(cron = "${schedules.region.cache.refresh.cron:0 */5 * * * *}")
+  @Transactional(readOnly = true)
   public synchronized void refresh() {
     List<RegionsItem> currentRegions = regionRepository.findAllRegionsResponse();
     if (lastKnownRegions != null && !lastKnownRegions.equals(currentRegions)) {

@@ -20,6 +20,7 @@ dependencies {
 	// ===== Spring Boot Web  =====
 	implementation libs.spring.boot.starter.web
 	implementation libs.spring.boot.starter.validation
+	implementation libs.spring.boot.starter.data.jpa
 
 	// OpenAPI 스펙 생성 (swagger-ui는 설정으로 비활성)
 	implementation libs.springdoc.openapi.starter.webmvc.ui
