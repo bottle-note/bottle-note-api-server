@@ -110,6 +110,13 @@
             "x-field-style": "plain-number",
             "x-display-name": "참가비"
           },
+          "is_tbc": {
+            "type": "boolean",
+            "description": "행사 참가비 미정 여부. false이면 entryFee의 0은 무료를 뜻한다.",
+            "example": false,
+            "x-field-style": "none",
+            "x-display-name": "참가비 미정 여부"
+          },
           "officialUrl": {
             "type": "string",
             "description": "행사 공식 페이지 URL",
@@ -490,6 +497,19 @@
               "role": "price",
               "order": 40,
               "description": "피드에서 행사 참가비를 표시하기 위해 포함한다."
+            }
+          },
+          "is_tbc": {
+            "type": "boolean",
+            "description": "행사 참가비 미정 여부. false이면 entryFee의 0은 무료를 뜻한다.",
+            "example": false,
+            "x-field-style": "none",
+            "x-display-name": "참가비 미정 여부",
+            "x-feed": {
+              "enabled": true,
+              "role": "price-tbc",
+              "order": 41,
+              "description": "피드에서 행사 참가비 미정 여부를 구분하기 위해 포함한다."
             }
           },
           "officialUrl": {
