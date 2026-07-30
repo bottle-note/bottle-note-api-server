@@ -155,6 +155,27 @@ class CurationPlaceFieldContractTest {
   }
 
   @Test
+  @DisplayName("가격 스펙은 무료와 미정 구분을 위한 is_tbc 값을 요청과 피드에 선언한다")
+  void priceSpecs_declareOptionalIsTbcForRequestResponseAndFeed() throws IOException {
+    for (String resource : List.of(TASTING, PROGRAM)) {
+      JsonNode request = OBJECT_MAPPER.valueToTree(schema(resource, "Request"));
+      JsonNode response = OBJECT_MAPPER.valueToTree(schema(resource, "Response"));
+
+      assertThat(request.path("properties").path("is_tbc").path("type").asText())
+          .isEqualTo("boolean");
+      assertThat(request.path("required").toString()).doesNotContain("is_tbc");
+      assertThat(response.path("properties").path("is_tbc").path("type").asText())
+          .isEqualTo("boolean");
+      assertThat(response.path("required").toString()).doesNotContain("is_tbc");
+      assertThat(
+              response.path("properties").path("is_tbc").path("x-feed").path("enabled").asBoolean())
+          .isTrue();
+      assertThat(response.path("properties").path("is_tbc").path("x-feed").path("role").asText())
+          .isEqualTo("price-tbc");
+    }
+  }
+
+  @Test
   @DisplayName("네 스펙 문서 모두 스펙 자체 검증을 통과한다")
   void validateSpec_allSchemas_areValid() throws IOException {
     for (String resource : List.of(TASTING, PROGRAM)) {

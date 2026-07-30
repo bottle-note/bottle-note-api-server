@@ -89,6 +89,13 @@
             "x-field-style": "plain-number",
             "x-display-name": "참가비(1인당)"
           },
+          "is_tbc": {
+            "type": "boolean",
+            "description": "참가비 미정 여부. false이면 entryFee의 0은 무료를 뜻한다.",
+            "example": false,
+            "x-field-style": "none",
+            "x-display-name": "참가비 미정 여부"
+          },
           "capacity": {
             "type": "integer",
             "minimum": 0,
@@ -380,6 +387,19 @@
               "role": "price",
               "order": 50,
               "description": "피드에서 참가비 정보를 표시하기 위해 포함한다."
+            }
+          },
+          "is_tbc": {
+            "type": "boolean",
+            "description": "참가비 미정 여부. false이면 entryFee의 0은 무료를 뜻한다.",
+            "example": false,
+            "x-field-style": "none",
+            "x-display-name": "참가비 미정 여부",
+            "x-feed": {
+              "enabled": true,
+              "role": "price-tbc",
+              "order": 51,
+              "description": "피드에서 참가비 미정 여부를 구분하기 위해 포함한다."
             }
           },
           "capacity": {
