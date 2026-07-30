@@ -9,13 +9,9 @@ import app.bottlenote.alcohols.domain.DistilleryRepository;
 import app.bottlenote.alcohols.domain.RegionRepository;
 import app.bottlenote.alcohols.domain.TastingTagRepository;
 import app.bottlenote.alcohols.dto.request.AdminReferenceSearchRequest;
-import app.bottlenote.alcohols.dto.request.CurationKeywordSearchRequest;
-import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
-import app.bottlenote.alcohols.dto.response.CurationKeywordResponse;
 import app.bottlenote.alcohols.dto.response.RegionsItem;
 import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.global.service.cursor.CursorResponse;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -46,19 +42,6 @@ public class AlcoholReferenceService {
   @Transactional(readOnly = true)
   public List<CategoryItem> getAlcoholCategory(AlcoholType type) {
     return alcoholQueryRepository.findAllCategories(type);
-  }
-
-  @Transactional(readOnly = true)
-  public CursorResponse<CurationKeywordResponse> searchCurationKeywords(
-      CurationKeywordSearchRequest request) {
-    return curationKeywordRepository.searchCurationKeywords(
-        request.keyword(), request.alcoholId(), request.cursor(), request.pageSize().intValue());
-  }
-
-  @Transactional(readOnly = true)
-  public CursorResponse<AlcoholsSearchItem> getCurationAlcohols(
-      Long curationId, Long cursor, Long pageSize) {
-    return curationKeywordRepository.getCurationAlcohols(curationId, cursor, pageSize.intValue());
   }
 
   @Transactional(readOnly = true)

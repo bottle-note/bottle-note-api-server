@@ -4,9 +4,7 @@ import app.bottlenote.alcohols.domain.CurationKeyword;
 import app.bottlenote.alcohols.domain.CurationKeywordRepository;
 import app.bottlenote.alcohols.dto.request.AdminCurationSearchRequest;
 import app.bottlenote.alcohols.dto.response.AdminCurationListResponse;
-import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
-import app.bottlenote.alcohols.dto.response.CurationKeywordResponse;
-import app.bottlenote.global.service.cursor.CursorResponse;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -31,17 +29,6 @@ public class InMemoryCurationKeywordRepository implements CurationKeywordReposit
     return Optional.empty();
   }
 
-  @Override
-  public CursorResponse<CurationKeywordResponse> searchCurationKeywords(
-      String keyword, Long alcoholId, Long cursor, Integer pageSize) {
-    return null;
-  }
-
-  @Override
-  public CursorResponse<AlcoholsSearchItem> getCurationAlcohols(
-      Long curationId, Long cursor, Integer pageSize) {
-    return null;
-  }
 
   @Override
   public Optional<Set<Long>> findAlcoholIdsByKeyword(String keyword) {

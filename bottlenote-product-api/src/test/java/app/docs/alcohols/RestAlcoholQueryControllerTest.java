@@ -168,8 +168,7 @@ class RestAlcoholQueryControllerTest extends AbstractRestDocs {
                         .optional()
                         .description(
                             "큐레이션 ID (특정 큐레이션에 포함된 알코올만 필터링)\n"
-                                + "- keyword와 함께 사용 시 curationId가 우선 적용\n"
-                                + "- 큐레이션 목록은 /api/v1/curations API에서 조회 가능"),
+                                + "- keyword와 함께 사용 시 curationId가 우선 적용"),
                     parameterWithName("category")
                         .optional()
                         .description("카테고리 필터 (category API 참조)\n" + "- 예: SINGLE_MALT, BLEND 등"),
