@@ -2,9 +2,6 @@ package app.bottlenote.alcohols.domain;
 
 import app.bottlenote.alcohols.dto.request.AdminCurationSearchRequest;
 import app.bottlenote.alcohols.dto.response.AdminCurationListResponse;
-import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
-import app.bottlenote.alcohols.dto.response.CurationKeywordResponse;
-import app.bottlenote.global.service.cursor.CursorResponse;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -17,12 +14,6 @@ public interface CurationKeywordRepository {
   Optional<CurationKeyword> findById(Long id);
 
   Optional<CurationKeyword> findByNameContainingAndIsActiveTrue(String name);
-
-  CursorResponse<CurationKeywordResponse> searchCurationKeywords(
-      String keyword, Long alcoholId, Long cursor, Integer pageSize);
-
-  CursorResponse<AlcoholsSearchItem> getCurationAlcohols(
-      Long curationId, Long cursor, Integer pageSize);
 
   Optional<Set<Long>> findAlcoholIdsByKeyword(String keyword);
 
