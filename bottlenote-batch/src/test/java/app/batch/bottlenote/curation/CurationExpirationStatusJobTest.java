@@ -44,6 +44,9 @@ class CurationExpirationStatusJobTest {
     return sql ->
         sql.contains("UPDATE curation")
             && sql.contains("is_active = false")
+            && sql.contains("last_modify_principal_email = 'batch-curation-expiration'")
+            && sql.contains("last_modify_principal_type = 'SYSTEM'")
+            && !sql.contains("last_modify_by")
             && sql.contains("is_active = true")
             && sql.contains("exposure_end_date < CURDATE()");
   }

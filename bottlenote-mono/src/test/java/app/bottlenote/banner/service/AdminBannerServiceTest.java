@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.bottlenote.banner.constant.BannerType;
 import app.bottlenote.banner.domain.Banner;
+import app.bottlenote.banner.dto.request.AdminBannerCreateRequest;
 import app.bottlenote.banner.exception.BannerException;
 import app.bottlenote.banner.exception.BannerExceptionCode;
 import app.bottlenote.banner.fixture.InMemoryBannerRepository;
@@ -75,6 +76,23 @@ class AdminBannerServiceTest {
         .isInstanceOf(BannerException.class)
         .extracting("exceptionCode")
         .isEqualTo(BannerExceptionCode.BANNER_NOT_FOUND);
+  }
+
+  @Test
+  @DisplayName("배너를 생성할 때 동영상 대표 이미지 URL을 저장한다")
+  void 배너를_생성할_때_posterUrl을_저장한다() {
+    AdminBannerCreateRequest request =
+        AdminBannerCreateRequest.builder()
+            .name("동영상 배너")
+            .imageUrl("https://example.com/banner.mp4")
+            .posterUrl("https://example.com/poster.jpg")
+            .bannerType(BannerType.CURATION)
+            .build();
+
+    adminBannerService.create(request);
+
+    Banner saved = bannerRepository.findAllOrderBySortOrderAsc().getFirst();
+    assertThat(saved.getPosterUrl()).isEqualTo("https://example.com/poster.jpg");
   }
 
   private Banner saveBanner(String name, int sortOrder) {

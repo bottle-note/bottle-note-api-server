@@ -20,6 +20,7 @@ public record AdminBannerCreateRequest(
     @Pattern(regexp = "^#[0-9a-fA-F]{6}$", message = "INVALID_HEX_COLOR_FORMAT")
         String descriptionFontColor,
     @NotBlank(message = "BANNER_IMAGE_URL_REQUIRED") String imageUrl,
+    @Size(max = 500, message = "BANNER_POSTER_URL_MAX_SIZE") String posterUrl,
     TextPosition textPosition,
     Boolean isExternalUrl,
     String targetUrl,
