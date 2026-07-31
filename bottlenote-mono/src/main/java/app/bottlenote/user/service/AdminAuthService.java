@@ -1,9 +1,13 @@
 package app.bottlenote.user.service;
 
 import static app.bottlenote.global.security.jwt.JwtTokenValidator.validateToken;
+import static app.bottlenote.user.exception.UserExceptionCode.AGENT_AUTHENTICATION_FAILED;
+import static app.bottlenote.user.exception.UserExceptionCode.AGENT_KEY_INVALID_FORMAT;
 import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
 import static java.time.LocalDateTime.now;
 
+import app.bottlenote.agent.facade.AgentFacade;
+import app.bottlenote.agent.facade.payload.AgentAccountInfo;
 import app.bottlenote.global.security.jwt.AdminJwtAuthenticationManager;
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import app.bottlenote.user.constant.AdminRole;
@@ -30,6 +34,7 @@ public class AdminAuthService {
   private final JwtTokenProvider tokenProvider;
   private final AdminJwtAuthenticationManager authenticationManager;
   private final BCryptPasswordEncoder passwordEncoder;
+  private final AgentFacade agentFacade;
 
   @Transactional
   public TokenItem login(String email, String encPassword) {
@@ -52,6 +57,37 @@ public class AdminAuthService {
     admin.updateLastLoginAt(now());
 
     log.info("어드민 로그인: email={}, roles={}", admin.getEmail(), admin.getRoles());
+    return token;
+  }
+
+  /**
+   * 에이전트 키로 매핑된 관리자 계정을 조회해 기존 로그인과 동일한 토큰을 발급한다. 잘못된 형식, 미등록·비활성 에이전트, 매핑 누락, 비활성 계정을 구분하지 않고 동일한
+   * 401로 응답해 계정 존재 여부를 노출하지 않는다.
+   */
+  @Transactional
+  public TokenItem loginWithAgent(String rawAgentKey) {
+    AgentAccountInfo agentAccount;
+    try {
+      agentAccount =
+          agentFacade
+              .findActiveAgentAccount(rawAgentKey)
+              .orElseThrow(() -> new UserException(AGENT_AUTHENTICATION_FAILED));
+    } catch (IllegalArgumentException e) {
+      throw new UserException(AGENT_KEY_INVALID_FORMAT);
+    }
+
+    AdminUser admin =
+        adminUserRepository
+            .findByAgentId(agentAccount.agentId())
+            .filter(AdminUser::isActive)
+            .orElseThrow(() -> new UserException(AGENT_AUTHENTICATION_FAILED));
+
+    TokenItem token =
+        tokenProvider.generateAdminToken(admin.getEmail(), admin.getRoles(), admin.getId());
+    admin.updateRefreshToken(token.refreshToken());
+    admin.updateLastLoginAt(now());
+
+    log.info("어드민 에이전트 로그인: adminId={}, roles={}", admin.getId(), admin.getRoles());
     return token;
   }
 
