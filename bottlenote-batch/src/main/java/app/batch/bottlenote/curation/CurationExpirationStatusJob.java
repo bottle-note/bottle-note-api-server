@@ -16,7 +16,8 @@ public class CurationExpirationStatusJob extends QuartzJobBean {
       "UPDATE curation "
           + "SET is_active = false, last_modify_at = NOW(), "
           + "last_modify_principal_email = 'batch-curation-expiration', "
-          + "last_modify_principal_type = 'SYSTEM' "
+          + "last_modify_principal_type = 'SYSTEM', "
+          + "last_modify_principal_id = NULL "
           + "WHERE is_active = true "
           + "AND exposure_end_date IS NOT NULL "
           + "AND exposure_end_date < CURDATE()";
