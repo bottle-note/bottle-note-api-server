@@ -94,6 +94,25 @@ public final class AuthApiDocs {
   @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.RUNTIME)
   @Operation(
+      summary = "에이전트 키로 로그인한다",
+      description =
+          """
+          발급받은 에이전트 키(비밀 UUID)로 매핑된 계정에 로그인합니다.
+
+          에이전트 키가 UUID 형식이 아니면 400을 반환합니다. 키가 등록되지 않았거나 비활성화됐거나
+          매핑된 계정이 없거나 계정이 비활성 상태인 경우는 모두 동일한 401로 응답해 계정 존재 여부를 노출하지 않습니다.
+          리프레시 토큰은 응답 본문이 아니라 쿠키로 내려갑니다. 이 응답은 공통 형식으로 감싸지 않습니다.
+          """,
+      responses =
+          @ApiResponse(
+              responseCode = "200",
+              description = "액세스 토큰과 첫 로그인 여부",
+              content = @Content(schema = @Schema(implementation = OauthResponse.class))))
+  public @interface ExecuteAgentLogin {}
+
+  @Target(ElementType.METHOD)
+  @Retention(RetentionPolicy.RUNTIME)
+  @Operation(
       summary = "액세스 토큰을 다시 발급한다",
       description =
           """

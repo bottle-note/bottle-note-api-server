@@ -123,7 +123,10 @@ public enum ValidExceptionCode implements ExceptionCode {
   REGION_KOR_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "지역 한글명은 필수입니다."),
   REGION_ENG_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "지역 영문명은 필수입니다."),
   REGION_SORT_ORDER_REQUIRED(HttpStatus.BAD_REQUEST, "정렬 순서는 필수입니다."),
-  REGION_SORT_ORDER_MINIMUM(HttpStatus.BAD_REQUEST, "정렬 순서는 0 이상이어야 합니다.");
+  REGION_SORT_ORDER_MINIMUM(HttpStatus.BAD_REQUEST, "정렬 순서는 0 이상이어야 합니다."),
+
+  // AGENT
+  AGENT_KEY_REQUIRED(HttpStatus.BAD_REQUEST, "에이전트 키는 필수입니다.");
 
   private final HttpStatus httpStatus;
   private String message;

@@ -13,6 +13,11 @@ import app.bottlenote.agreement.domain.UserAgreement;
 import app.bottlenote.agreement.fixture.InMemoryUserAgreementRepository;
 import app.bottlenote.agreement.service.AgreementEvaluator;
 import app.bottlenote.agreement.service.DefaultAgreementFacade;
+import app.bottlenote.agent.domain.Agent;
+import app.bottlenote.agent.facade.AgentFacade;
+import app.bottlenote.agent.fixture.InMemoryAgentRepository;
+import app.bottlenote.agent.service.DefaultAgentFacade;
+import app.bottlenote.agent.support.AgentKeyHasher;
 import app.bottlenote.global.security.jwt.JwtTokenValidator;
 import app.bottlenote.user.constant.GenderType;
 import app.bottlenote.user.constant.SocialType;
@@ -22,6 +27,7 @@ import app.bottlenote.user.dto.response.AuthResponse;
 import app.bottlenote.user.dto.response.KakaoUserResponse;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.exception.UserException;
+import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.fake.FakeJwtTokenProvider;
 import app.bottlenote.user.fake.FakeOauthRepository;
 import app.bottlenote.user.repository.RootAdminRepository;
@@ -48,6 +54,8 @@ class AuthServiceTest {
   private AppleAuthService appleAuthService;
   private KakaoAuthService kakaoAuthService;
   private InMemoryUserAgreementRepository agreementRepository;
+  private InMemoryAgentRepository agentRepository;
+  private AgentFacade agentFacade;
 
   @BeforeEach
   void setUp() throws Exception {
@@ -61,6 +69,8 @@ class AuthServiceTest {
     agreementRepository = new InMemoryUserAgreementRepository();
     AgreementEvaluator agreementEvaluator = new AgreementEvaluator(agreementRepository);
     DefaultAgreementFacade agreementFacade = new DefaultAgreementFacade(agreementEvaluator);
+    agentRepository = new InMemoryAgentRepository();
+    agentFacade = new DefaultAgentFacade(agentRepository);
 
     authService =
         new AuthService(
@@ -69,9 +79,11 @@ class AuthServiceTest {
             jwtTokenProvider,
             appleAuthService,
             kakaoAuthService,
-            agreementFacade);
+            agreementFacade,
+            agentFacade);
 
     oauthRepository.clear();
+    agentRepository.clear();
   }
 
   private void initializeJwtTokenValidator() throws Exception {
@@ -368,6 +380,143 @@ class AuthServiceTest {
 
     // when & then
     assertThrows(UserException.class, () -> authService.reissue(invalidRefreshToken));
+  }
+
+  @Test
+  @DisplayName("활성 에이전트 키로 매핑된 계정으로 로그인할 수 있다")
+  void loginWithAgent_success() {
+    // given
+    String rawKey = "11111111-1111-1111-1111-111111111111";
+    String agentId = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+    agentRepository.save(
+        Agent.builder()
+            .id(agentId)
+            .profileCode("0001")
+            .secretHash(AgentKeyHasher.normalizeAndHash(rawKey))
+            .isActive(true)
+            .build());
+
+    User agentUser =
+        User.builder()
+            .email("agent0001@bottlenote.com")
+            .nickName("에이전트0001")
+            .socialType(new ArrayList<>())
+            .role(UserType.ROLE_USER)
+            .agentId(agentId)
+            .build();
+    oauthRepository.save(agentUser);
+
+    // when
+    AuthResponse result = authService.loginWithAgent(rawKey);
+
+    // then
+    assertThat(result.token().accessToken()).isNotNull();
+    assertThat(result.token().refreshToken()).isNotNull();
+    assertThat(result.nickname()).isEqualTo("에이전트0001");
+  }
+
+  @Test
+  @DisplayName("에이전트 키가 UUID 형식이 아니면 400에 해당하는 예외가 발생한다")
+  void loginWithAgent_malformedKey_throwsInvalidFormat() {
+    // when
+    UserException exception =
+        assertThrows(UserException.class, () -> authService.loginWithAgent("not-a-uuid"));
+
+    // then
+    assertThat(exception.getExceptionCode()).isEqualTo(UserExceptionCode.AGENT_KEY_INVALID_FORMAT);
+  }
+
+  @Test
+  @DisplayName("등록되지 않은 에이전트 키는 401에 해당하는 예외가 발생한다")
+  void loginWithAgent_unknownKey_throwsAuthenticationFailed() {
+    // given
+    String unknownKey = "22222222-2222-2222-2222-222222222222";
+
+    // when
+    UserException exception =
+        assertThrows(UserException.class, () -> authService.loginWithAgent(unknownKey));
+
+    // then
+    assertThat(exception.getExceptionCode())
+        .isEqualTo(UserExceptionCode.AGENT_AUTHENTICATION_FAILED);
+  }
+
+  @Test
+  @DisplayName("비활성 에이전트 키는 401에 해당하는 예외가 발생한다")
+  void loginWithAgent_inactiveAgent_throwsAuthenticationFailed() {
+    // given
+    String rawKey = "33333333-3333-3333-3333-333333333333";
+    agentRepository.save(
+        Agent.builder()
+            .id("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb")
+            .profileCode("0002")
+            .secretHash(AgentKeyHasher.normalizeAndHash(rawKey))
+            .isActive(false)
+            .build());
+
+    // when
+    UserException exception =
+        assertThrows(UserException.class, () -> authService.loginWithAgent(rawKey));
+
+    // then
+    assertThat(exception.getExceptionCode())
+        .isEqualTo(UserExceptionCode.AGENT_AUTHENTICATION_FAILED);
+  }
+
+  @Test
+  @DisplayName("활성 에이전트라도 매핑된 계정이 없으면 401에 해당하는 예외가 발생한다")
+  void loginWithAgent_missingAccountMapping_throwsAuthenticationFailed() {
+    // given
+    String rawKey = "44444444-4444-4444-4444-444444444444";
+    agentRepository.save(
+        Agent.builder()
+            .id("cccccccc-cccc-cccc-cccc-cccccccccccc")
+            .profileCode("0003")
+            .secretHash(AgentKeyHasher.normalizeAndHash(rawKey))
+            .isActive(true)
+            .build());
+
+    // when
+    UserException exception =
+        assertThrows(UserException.class, () -> authService.loginWithAgent(rawKey));
+
+    // then
+    assertThat(exception.getExceptionCode())
+        .isEqualTo(UserExceptionCode.AGENT_AUTHENTICATION_FAILED);
+  }
+
+  @Test
+  @DisplayName("에이전트에 매핑된 계정이 탈퇴 상태면 401에 해당하는 예외가 발생한다")
+  void loginWithAgent_withdrawnUser_throwsAuthenticationFailed() {
+    // given
+    String rawKey = "55555555-5555-5555-5555-555555555555";
+    String agentId = "dddddddd-dddd-dddd-dddd-dddddddddddd";
+    agentRepository.save(
+        Agent.builder()
+            .id(agentId)
+            .profileCode("0004")
+            .secretHash(AgentKeyHasher.normalizeAndHash(rawKey))
+            .isActive(true)
+            .build());
+
+    User withdrawnUser =
+        User.builder()
+            .email("agent0004@bottlenote.com")
+            .nickName("에이전트0004")
+            .socialType(new ArrayList<>())
+            .role(UserType.ROLE_USER)
+            .agentId(agentId)
+            .build();
+    withdrawnUser.withdrawUser();
+    oauthRepository.save(withdrawnUser);
+
+    // when
+    UserException exception =
+        assertThrows(UserException.class, () -> authService.loginWithAgent(rawKey));
+
+    // then
+    assertThat(exception.getExceptionCode())
+        .isEqualTo(UserExceptionCode.AGENT_AUTHENTICATION_FAILED);
   }
 
   private Field getLastLoginAtField() {

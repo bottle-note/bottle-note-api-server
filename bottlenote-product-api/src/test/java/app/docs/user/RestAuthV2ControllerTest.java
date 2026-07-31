@@ -207,6 +207,46 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
   }
 
   @Test
+  @DisplayName("에이전트 키로 로그인을 수행합니다.")
+  void executeAgentLogin_test() throws Exception {
+
+    // given
+    String agentKey = "11111111-1111-1111-1111-111111111111";
+    String accessToken = "test-access-token";
+    String refreshToken = "test-refresh-token";
+
+    TokenItem tokenItem =
+        TokenItem.builder().accessToken(accessToken).refreshToken(refreshToken).build();
+
+    AuthResponse authResult = new AuthResponse(tokenItem, false, "agent_user_0001");
+
+    when(authService.loginWithAgent(anyString())).thenReturn(authResult);
+
+    Map<String, String> request = new HashMap<>();
+    request.put("agentKey", agentKey);
+
+    // then
+    mockMvc
+        .perform(
+            post("/api/v2/auth/agent")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(request))
+                .with(csrf()))
+        .andExpect(status().isOk())
+        .andExpect(cookie().exists("refresh-token"))
+        .andDo(
+            document(
+                "auth/agent/login",
+                requestFields(fieldWithPath("agentKey").description("발급받은 에이전트 비밀 키(UUID)")),
+                responseFields(
+                    fieldWithPath("accessToken").description("발급된 액세스 토큰"),
+                    fieldWithPath("isFirstLogin")
+                        .description("최초 로그인 여부 (true: 최초 로그인, false: 기존 사용자)")
+                        .optional(),
+                    fieldWithPath("nickname").description("사용자 닉네임").optional())));
+  }
+
+  @Test
   @DisplayName("토큰을 재발급할 수 있다.")
   void reissue_on_v2_test() throws Exception {
     // given

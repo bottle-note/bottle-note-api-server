@@ -78,6 +78,31 @@ include::{snippets}/auth/kakao/login/request-fields.adoc[]
 include::{snippets}/auth/kakao/login/response-fields.adoc[]
 include::{snippets}/auth/kakao/login/http-response.adoc[]
 
+=== 에이전트 로그인 ===
+
+- 발급받은 에이전트 비밀 키(UUID)를 기존 사용자 JWT로 교환합니다.
+- 성공 시 액세스 토큰을 반환하고, 리프레시 토큰은 HttpOnly 쿠키로 설정됩니다.
+
+[source]
+----
+POST /api/v2/auth/agent
+----
+
+[discrete]
+==== 요청 파라미터 ====
+
+[discrete]
+include::{snippets}/auth/agent/login/curl-request.adoc[]
+include::{snippets}/auth/agent/login/http-request.adoc[]
+include::{snippets}/auth/agent/login/request-fields.adoc[]
+
+[discrete]
+==== 응답 파라미터 ====
+
+[discrete]
+include::{snippets}/auth/agent/login/response-fields.adoc[]
+include::{snippets}/auth/agent/login/http-response.adoc[]
+
 === 루트 관리자 권한 검증 ===
 
 - 현재 로그인한 사용자가 루트 관리자 권한을 가지고 있는지 검증합니다.

@@ -109,6 +109,7 @@ class SecurityConfigIntegrationTest extends IntegrationTestSupport {
     "GET, /api/v1/business-support, REQUIRED_AUTH",
     "GET, /api/v1/business-support/1, REQUIRED_AUTH",
     "PUT, /api/v1/likes, REQUIRED_AUTH",
+    "POST, /api/v2/auth/agent, PUBLIC",
     "GET, /error, PUBLIC"
   })
   @DisplayName("product-api SecurityPolicyRegistry가 실제 controller 정책을 수집한다")

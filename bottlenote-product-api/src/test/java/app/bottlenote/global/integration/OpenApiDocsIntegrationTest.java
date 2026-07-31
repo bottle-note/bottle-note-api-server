@@ -20,7 +20,11 @@ class OpenApiDocsIntegrationTest extends OpenApiSpecTestSupport {
    * <p>이 목록은 예외를 허용하기 위한 것이 아니라 예외를 고정하기 위한 것이다. 여기 없는 엔드포인트가 공통 형식을 벗어나면 아래 검사가 실패한다.
    */
   private static final Set<String> BARE_RESPONSE_OPERATIONS =
-      Set.of("GET /api/v2/auth/apple/nonce", "POST /api/v2/auth/apple", "POST /api/v2/auth/kakao");
+      Set.of(
+          "GET /api/v2/auth/apple/nonce",
+          "POST /api/v2/auth/apple",
+          "POST /api/v2/auth/kakao",
+          "POST /api/v2/auth/agent");
 
   private static final List<String> ENVELOPE_FIELDS =
       List.of("success", "code", "data", "errors", "meta");
