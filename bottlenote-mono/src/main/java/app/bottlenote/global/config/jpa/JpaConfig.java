@@ -1,5 +1,6 @@
 package app.bottlenote.global.config.jpa;
 
+import app.bottlenote.common.domain.AuditPrincipal;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
@@ -13,7 +14,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 public class JpaConfig {
 
   @Bean
-  public AuditorAware<String> auditorAware() {
+  public AuditorAware<AuditPrincipal> auditorAware() {
     return new AuditorAwareImpl();
   }
 }

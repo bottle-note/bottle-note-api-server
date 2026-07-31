@@ -95,6 +95,7 @@ public class InMemoryBannerRepository implements BannerRepository {
                         b.getId(),
                         b.getName(),
                         b.getMediaType(),
+                        b.getPosterUrl(),
                         b.getBannerType(),
                         b.getSortOrder(),
                         b.getIsActive(),

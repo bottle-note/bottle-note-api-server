@@ -65,6 +65,7 @@ public class AdminBannerService {
         banner.getDescriptionB(),
         banner.getDescriptionFontColor(),
         banner.getImageUrl(),
+        banner.getPosterUrl(),
         banner.getTextPosition(),
         banner.getIsExternalUrl(),
         banner.getTargetUrl(),
@@ -99,6 +100,7 @@ public class AdminBannerService {
             .descriptionB(request.descriptionB())
             .descriptionFontColor(request.descriptionFontColor())
             .imageUrl(request.imageUrl())
+            .posterUrl(request.posterUrl())
             .textPosition(request.textPosition())
             .isExternalUrl(request.isExternalUrl())
             .targetUrl(request.targetUrl())
@@ -137,6 +139,7 @@ public class AdminBannerService {
         request.descriptionB(),
         request.descriptionFontColor(),
         request.imageUrl(),
+        request.posterUrl(),
         request.textPosition(),
         request.isExternalUrl(),
         request.targetUrl(),

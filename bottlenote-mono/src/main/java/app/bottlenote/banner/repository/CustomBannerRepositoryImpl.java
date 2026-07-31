@@ -33,6 +33,7 @@ public class CustomBannerRepositoryImpl implements CustomBannerRepository {
                     banner.id,
                     banner.name,
                     banner.mediaType,
+                    banner.posterUrl,
                     banner.bannerType,
                     banner.sortOrder,
                     banner.isActive,

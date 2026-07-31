@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 import app.bottlenote.IntegrationTestSupport;
+import app.bottlenote.banner.constant.BannerType;
+import app.bottlenote.banner.constant.MediaType;
+import app.bottlenote.banner.domain.Banner;
 import app.bottlenote.banner.dto.response.BannerResponse;
 import app.bottlenote.banner.fixture.BannerTestFactory;
 import app.bottlenote.global.data.response.GlobalResponse;
@@ -115,6 +118,26 @@ class BannerIntegrationTest extends IntegrationTestSupport {
       // then
       List<BannerResponse> banners = extractDataAsList(result, new TypeReference<>() {});
       assertEquals(3, banners.size());
+    }
+
+    @DisplayName("동영상 배너는 대표 이미지 URL을 반환한다.")
+    @Test
+    void 동영상_배너는_posterUrl을_반환한다() throws Exception {
+      bannerTestFactory.persistBanner(
+          Banner.builder()
+              .name("동영상 배너")
+              .imageUrl("https://example.com/banner.mp4")
+              .posterUrl("https://example.com/poster.jpg")
+              .mediaType(MediaType.VIDEO)
+              .bannerType(BannerType.CURATION)
+              .sortOrder(1)
+              .isActive(true));
+
+      MvcTestResult result =
+          mockMvcTester.get().uri("/api/v1/banners").contentType(APPLICATION_JSON).exchange();
+
+      List<BannerResponse> banners = extractDataAsList(result, new TypeReference<>() {});
+      assertEquals("https://example.com/poster.jpg", banners.getFirst().getPosterUrl());
     }
 
     @DisplayName("활성 배너가 없으면 빈 배열을 반환한다.")

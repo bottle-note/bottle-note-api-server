@@ -8,6 +8,7 @@ public record AdminBannerListResponse(
     Long id,
     String name,
     MediaType mediaType,
+    String posterUrl,
     BannerType bannerType,
     Integer sortOrder,
     Boolean isActive,

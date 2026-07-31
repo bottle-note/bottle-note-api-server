@@ -31,6 +31,7 @@ public class BannerQueryService {
                     .descriptionB(banner.getDescriptionB())
                     .descriptionFontColor(banner.getDescriptionFontColor())
                     .imageUrl(banner.getImageUrl())
+                    .posterUrl(banner.getPosterUrl())
                     .textPosition(banner.getTextPosition())
                     .targetUrl(banner.getTargetUrl())
                     .isExternalUrl(banner.getIsExternalUrl())

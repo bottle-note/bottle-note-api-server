@@ -69,7 +69,8 @@ class JpaAuditingIntegrationTest extends IntegrationTestSupport {
 
     Review savedReview = reviewRepository.findById(review.getId()).orElseGet(null);
 
-    assertEquals(user.getEmail(), savedReview.getCreateBy());
+    assertEquals(user.getId(), savedReview.getCreatePrincipal().getId());
+    assertEquals(user.getEmail(), savedReview.getCreatePrincipal().getEmail());
   }
 
   private ReviewCreateRequest withoutImages(ReviewCreateRequest request) {
