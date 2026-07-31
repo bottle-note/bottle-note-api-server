@@ -2,7 +2,7 @@
 
 ## Status
 
-- 상태: 승인됨
+- 상태: 완료 (2026-08-01)
 - 시작일: 2026-08-01
 - 관련 이슈: `bottle-note/workspace#340`
 
@@ -47,7 +47,7 @@
 - [x] 6개 프로필의 시드·매핑·권한과 Product/Admin 기존 API 접근을 확인한다.
 - [x] 감사 주체가 기존 `USER`/`ADMIN`으로 기록되는지 확인한다.
 - [x] security-policy/rule/unit/integration/RestDocs와 전체 로컬 CI를 통과한다.
-- [ ] 서브모듈 PR·부모 포인터·부모 PR·이슈 링크를 일치시킨다.
+- [x] 서브모듈 PR·부모 포인터·부모 PR·이슈 링크를 일치시킨다.
 
 ## Progress Log
 
@@ -56,3 +56,4 @@
 - 2026-08-01: 공통 Agent 조회와 Product/Admin 토큰 교환을 구현하고 unit/integration/RestDocs/security-policy 테스트를 추가했다.
 - 2026-08-01: Product 토큰의 기존 API 접근·USER 감사·refresh 회전, Admin 토큰의 보호 API 접근·ADMIN 감사·refresh 회전을 통합 테스트로 검증했다.
 - 2026-08-01: 전체 CI에서 발견된 OpenAPI bare-response 목록 누락 1건을 수정하고 unit 531, rule 63, Product integration 277, Admin integration 220, admin test 74, RestDocs 138개를 실패 0건으로 통과했다.
+- 2026-08-01: 환경변수 PR #6, 백엔드 PR #688, workspace 이슈 #340을 상호 연결하고 작업을 완료했다.
