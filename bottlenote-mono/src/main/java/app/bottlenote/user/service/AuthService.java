@@ -5,9 +5,9 @@ import static app.bottlenote.user.exception.UserExceptionCode.AGENT_AUTHENTICATI
 import static app.bottlenote.user.exception.UserExceptionCode.AGENT_KEY_INVALID_FORMAT;
 import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
 
-import app.bottlenote.agreement.facade.AgreementFacade;
 import app.bottlenote.agent.facade.AgentFacade;
 import app.bottlenote.agent.facade.payload.AgentAccountInfo;
+import app.bottlenote.agreement.facade.AgreementFacade;
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import app.bottlenote.user.constant.GenderType;
 import app.bottlenote.user.constant.SocialType;

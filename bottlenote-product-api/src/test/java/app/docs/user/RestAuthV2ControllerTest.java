@@ -218,7 +218,7 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
     TokenItem tokenItem =
         TokenItem.builder().accessToken(accessToken).refreshToken(refreshToken).build();
 
-    AuthResponse authResult = new AuthResponse(tokenItem, false, "agent_user_0001");
+    AuthResponse authResult = new AuthResponse(tokenItem, false, "agent_user_0001", true);
 
     when(authService.loginWithAgent(anyString())).thenReturn(authResult);
 
@@ -243,7 +243,8 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
                     fieldWithPath("isFirstLogin")
                         .description("최초 로그인 여부 (true: 최초 로그인, false: 기존 사용자)")
                         .optional(),
-                    fieldWithPath("nickname").description("사용자 닉네임").optional())));
+                    fieldWithPath("nickname").description("사용자 닉네임").optional(),
+                    fieldWithPath("agreementRequired").description("필수 동의가 필요하면 true"))));
   }
 
   @Test

@@ -105,7 +105,11 @@ public class AuthV2Controller {
     AuthResponse result = authService.loginWithAgent(agentLoginRequest.agentKey());
     setRefreshTokenInCookie(response, result.token().refreshToken());
     return ResponseEntity.ok(
-        OauthResponse.of(result.token().accessToken(), result.isFirstLogin(), result.nickname()));
+        OauthResponse.of(
+            result.token().accessToken(),
+            result.isFirstLogin(),
+            result.nickname(),
+            result.agreementRequired()));
   }
 
   /** 토큰 재발급 */

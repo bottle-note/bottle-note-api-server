@@ -8,6 +8,11 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import app.bottlenote.agent.domain.Agent;
+import app.bottlenote.agent.facade.AgentFacade;
+import app.bottlenote.agent.fixture.InMemoryAgentRepository;
+import app.bottlenote.agent.service.DefaultAgentFacade;
+import app.bottlenote.agent.support.AgentKeyHasher;
 import app.bottlenote.agreement.constant.AgreementAction;
 import app.bottlenote.agreement.constant.AgreementInputContext;
 import app.bottlenote.agreement.constant.AgreementType;
@@ -15,11 +20,6 @@ import app.bottlenote.agreement.domain.UserAgreement;
 import app.bottlenote.agreement.fixture.InMemoryUserAgreementRepository;
 import app.bottlenote.agreement.service.AgreementEvaluator;
 import app.bottlenote.agreement.service.DefaultAgreementFacade;
-import app.bottlenote.agent.domain.Agent;
-import app.bottlenote.agent.facade.AgentFacade;
-import app.bottlenote.agent.fixture.InMemoryAgentRepository;
-import app.bottlenote.agent.service.DefaultAgentFacade;
-import app.bottlenote.agent.support.AgentKeyHasher;
 import app.bottlenote.global.security.jwt.JwtTokenValidator;
 import app.bottlenote.user.constant.GenderType;
 import app.bottlenote.user.constant.SocialType;
@@ -59,9 +59,9 @@ class AuthServiceTest {
   private RootAdminRepository rootAdminRepository;
   private AppleAuthService appleAuthService;
   private KakaoAuthService kakaoAuthService;
-  private InMemoryUserAgreementRepository agreementRepository;
   private InMemoryAgentRepository agentRepository;
   private AgentFacade agentFacade;
+  private InMemoryUserAgreementRepository agreementRepository;
 
   @BeforeEach
   void setUp() throws Exception {
@@ -72,11 +72,11 @@ class AuthServiceTest {
     rootAdminRepository = mock(RootAdminRepository.class);
     appleAuthService = mock(AppleAuthService.class);
     kakaoAuthService = mock(KakaoAuthService.class);
+    agentRepository = new InMemoryAgentRepository();
+    agentFacade = new DefaultAgentFacade(agentRepository);
     agreementRepository = new InMemoryUserAgreementRepository();
     AgreementEvaluator agreementEvaluator = new AgreementEvaluator(agreementRepository);
     DefaultAgreementFacade agreementFacade = new DefaultAgreementFacade(agreementEvaluator);
-    agentRepository = new InMemoryAgentRepository();
-    agentFacade = new DefaultAgentFacade(agentRepository);
 
     authService =
         new AuthService(
