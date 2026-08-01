@@ -73,12 +73,12 @@
 - Files (advisory): `AgreementPolicyProperties`, 평가 결과 DTO, `AgreementEvaluator`, `application.yml`, Evaluator 단위 테스트
 - Depends: Tasks 1-2
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Checkpoint: after Tasks 1-3
-- [ ] mono/test-support 컴파일 통과
-- [ ] Evaluator 단위 테스트 통과
-- [ ] ArchUnit 룰 통과
+- [x] mono/test-support 컴파일 통과
+- [x] Evaluator 단위 테스트 통과
+- [x] ArchUnit 룰 통과
 
 ### Task 4: 동의 조회·제출 서비스
 - Acceptance: 인증 사용자 기준 조회와 제출이 동일한 상태 응답을 반환하고, 제출은 유형별 새 이벤트에 표시 원문·서버 시각·입력 맥락·IP·User-Agent를 기록한다. AGREE 뒤 REVOKE를 제출하면 기존 행은 유지되고 최신 판정만 미충족으로 바뀐다.
@@ -122,3 +122,4 @@
 - 2026-08-01: environment-variables PR #8 병합 및 부모 저장소 서브모듈 포인터 커밋 완료.
 - 2026-08-01: Task 1 완료. V6와 일치하는 append-only `UserAgreement`, enum 3개, 도메인 repository port와 `JpaUserAgreementRepository`를 추가했다. `recorded_at DESC, id DESC` 최신 조회와 사용자·유형 격리를 포함한 repository 통합 테스트 5개가 통과했고, 전체 Java/Test 컴파일 및 `check_rule_test`가 통과했다. self-review는 Critical 0건, Important 1건(`JpaRepository` 관례와 append-only 경계 명시)을 `@Immutable`, `updatable=false`, 제한된 도메인 포트로 해소했다.
 - 2026-08-01: Task 2 완료. test-support에 append-only `InMemoryUserAgreementRepository`를 추가하고 단조 증가 ID와 `recordedAt DESC, id DESC` 최신 조회를 구현했다. append-only·재저장 거부·최신 시각·동률 ID·사용자/유형 격리 단위 테스트 5개와 test-support 컴파일, 전체 `check_rule_test`가 통과했다. self-review는 Critical 0건, Important 1건(동일 객체 재저장 시 기존 이력 ID 훼손 가능성)을 재저장 거부로 해소했다.
+- 2026-08-01: Task 3 완료. 두 필수 유형의 `required`와 `effective-from` 환경 설정, 최신 이벤트 기반 `AgreementEvaluator`, status API와 login hint가 공유할 불변 평가 결과를 추가했다. 이력 없음·유효 동의·철회·기준 시각 이전·재동의·동률 ID·선택 정책 7개 분기와 설정 기본값·override 바인딩 2개를 검증했고, 전체 unit/compile 및 `check_rule_test`가 통과했다. self-review는 Critical 0건, Important 2건(`@Service` 규칙 부적합, 응답 DTO 접미사 부적합)을 각각 정책 `@Component`와 domain record로 해소했다.
