@@ -13,6 +13,7 @@ import app.bottlenote.agreement.constant.AgreementType;
 import app.bottlenote.agreement.domain.UserAgreement;
 import app.bottlenote.agreement.fixture.InMemoryUserAgreementRepository;
 import app.bottlenote.agreement.service.AgreementEvaluator;
+import app.bottlenote.agreement.service.DefaultAgreementFacade;
 import app.bottlenote.global.security.jwt.JwtTokenValidator;
 import app.bottlenote.user.constant.GenderType;
 import app.bottlenote.user.constant.SocialType;
@@ -61,6 +62,7 @@ class AuthServiceTest {
     agreementRepository = new InMemoryUserAgreementRepository();
     AgreementEvaluator agreementEvaluator =
         new AgreementEvaluator(agreementRepository, new AgreementPolicyProperties());
+    DefaultAgreementFacade agreementFacade = new DefaultAgreementFacade(agreementEvaluator);
 
     authService =
         new AuthService(
@@ -69,7 +71,7 @@ class AuthServiceTest {
             jwtTokenProvider,
             appleAuthService,
             kakaoAuthService,
-            agreementEvaluator);
+            agreementFacade);
 
     oauthRepository.clear();
   }
