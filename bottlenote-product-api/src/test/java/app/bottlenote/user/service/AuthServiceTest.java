@@ -1,5 +1,7 @@
 package app.bottlenote.user.service;
 
+import static app.bottlenote.agent.constant.AgentStatus.ACTIVE;
+import static app.bottlenote.agent.constant.AgentStatus.INACTIVE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -391,24 +393,24 @@ class AuthServiceTest {
   void loginWithAgent_success() {
     // given
     String rawKey = apiKey('A');
-    String agentId = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
-    agentRepository.save(
-        Agent.builder()
-            .id(agentId)
-            .profileCode("0001")
-            .secretHash(AgentKeyHasher.validateAndHash(rawKey))
-            .isActive(true)
-            .build());
-
     User agentUser =
         User.builder()
             .email("agent0001@bottlenote.com")
             .nickName("에이전트0001")
             .socialType(new ArrayList<>())
             .role(UserType.ROLE_USER)
-            .agentId(agentId)
             .build();
     oauthRepository.save(agentUser);
+    agentRepository.save(
+        Agent.builder()
+            .id("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+            .profileCode("0001")
+            .name("BottleNote Agent A")
+            .status(ACTIVE)
+            .productUserId(agentUser.getId())
+            .adminUserId(1L)
+            .apiKeyHash(AgentKeyHasher.validateAndHash(rawKey))
+            .build());
 
     // when
     AuthResponse result = authService.loginWithAgent(rawKey);
@@ -454,8 +456,11 @@ class AuthServiceTest {
         Agent.builder()
             .id("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb")
             .profileCode("0002")
-            .secretHash(AgentKeyHasher.validateAndHash(rawKey))
-            .isActive(false)
+            .name("BottleNote Agent B")
+            .status(INACTIVE)
+            .productUserId(1L)
+            .adminUserId(1L)
+            .apiKeyHash(AgentKeyHasher.validateAndHash(rawKey))
             .build());
 
     // when
@@ -476,8 +481,11 @@ class AuthServiceTest {
         Agent.builder()
             .id("cccccccc-cccc-cccc-cccc-cccccccccccc")
             .profileCode("0003")
-            .secretHash(AgentKeyHasher.validateAndHash(rawKey))
-            .isActive(true)
+            .name("BottleNote Agent C")
+            .status(ACTIVE)
+            .productUserId(Long.MAX_VALUE)
+            .adminUserId(1L)
+            .apiKeyHash(AgentKeyHasher.validateAndHash(rawKey))
             .build());
 
     // when
@@ -494,25 +502,25 @@ class AuthServiceTest {
   void loginWithAgent_withdrawnUser_throwsAuthenticationFailed() {
     // given
     String rawKey = apiKey('E');
-    String agentId = "dddddddd-dddd-dddd-dddd-dddddddddddd";
-    agentRepository.save(
-        Agent.builder()
-            .id(agentId)
-            .profileCode("0004")
-            .secretHash(AgentKeyHasher.validateAndHash(rawKey))
-            .isActive(true)
-            .build());
-
     User withdrawnUser =
         User.builder()
             .email("agent0004@bottlenote.com")
             .nickName("에이전트0004")
             .socialType(new ArrayList<>())
             .role(UserType.ROLE_USER)
-            .agentId(agentId)
             .build();
     withdrawnUser.withdrawUser();
     oauthRepository.save(withdrawnUser);
+    agentRepository.save(
+        Agent.builder()
+            .id("dddddddd-dddd-dddd-dddd-dddddddddddd")
+            .profileCode("0004")
+            .name("BottleNote Agent D")
+            .status(ACTIVE)
+            .productUserId(withdrawnUser.getId())
+            .adminUserId(1L)
+            .apiKeyHash(AgentKeyHasher.validateAndHash(rawKey))
+            .build());
 
     // when
     UserException exception =

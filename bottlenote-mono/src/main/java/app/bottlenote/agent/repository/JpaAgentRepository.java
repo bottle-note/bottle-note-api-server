@@ -1,5 +1,6 @@
 package app.bottlenote.agent.repository;
 
+import app.bottlenote.agent.constant.AgentStatus;
 import app.bottlenote.agent.domain.Agent;
 import app.bottlenote.agent.domain.AgentRepository;
 import app.bottlenote.common.annotation.JpaRepositoryImpl;
@@ -9,5 +10,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 @JpaRepositoryImpl
 public interface JpaAgentRepository extends AgentRepository, JpaRepository<Agent, String> {
 
-  Optional<Agent> findBySecretHashAndIsActiveTrue(String secretHash);
+  Optional<Agent> findByApiKeyHashAndStatus(String apiKeyHash, AgentStatus status);
 }

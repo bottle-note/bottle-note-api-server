@@ -1,5 +1,7 @@
 package app.bottlenote.agent.service;
 
+import static app.bottlenote.agent.constant.AgentStatus.ACTIVE;
+
 import app.bottlenote.agent.domain.Agent;
 import app.bottlenote.agent.domain.AgentRepository;
 import app.bottlenote.agent.facade.AgentFacade;
@@ -17,10 +19,13 @@ public class DefaultAgentFacade implements AgentFacade {
 
   @Override
   public Optional<AgentAccountInfo> findActiveAgentAccount(String rawAgentKey) {
-    String secretHash = AgentKeyHasher.validateAndHash(rawAgentKey);
+    String apiKeyHash = AgentKeyHasher.validateAndHash(rawAgentKey);
     return agentRepository
-        .findBySecretHashAndIsActiveTrue(secretHash)
+        .findByApiKeyHashAndStatus(apiKeyHash, ACTIVE)
         .filter(Agent::isUsable)
-        .map(agent -> new AgentAccountInfo(agent.getId(), agent.getProfileCode()));
+        .map(
+            agent ->
+                new AgentAccountInfo(
+                    agent.getProductUserId(), agent.getAdminUserId(), agent.getProfileCode()));
   }
 }

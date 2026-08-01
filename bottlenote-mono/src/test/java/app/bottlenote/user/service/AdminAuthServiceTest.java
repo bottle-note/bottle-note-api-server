@@ -1,5 +1,7 @@
 package app.bottlenote.user.service;
 
+import static app.bottlenote.agent.constant.AgentStatus.ACTIVE;
+import static app.bottlenote.agent.constant.AgentStatus.INACTIVE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -57,7 +59,7 @@ class AdminAuthServiceTest {
             agentFacade);
   }
 
-  private AdminUser saveActiveAdmin(String agentId) {
+  private AdminUser saveActiveAdmin() {
     AdminUser admin =
         AdminUser.builder()
             .email("agent-admin@bottlenote.com")
@@ -65,7 +67,6 @@ class AdminAuthServiceTest {
             .name("Agent Admin")
             .roles(List.of(AdminRole.ROOT_ADMIN))
             .status(UserStatus.ACTIVE)
-            .agentId(agentId)
             .build();
     return adminUserRepository.save(admin);
   }
@@ -75,15 +76,17 @@ class AdminAuthServiceTest {
   void loginWithAgent_success() {
     // given
     String rawKey = apiKey('A');
-    String agentId = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+    AdminUser admin = saveActiveAdmin();
     agentRepository.save(
         Agent.builder()
-            .id(agentId)
+            .id("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
             .profileCode("0001")
-            .secretHash(AgentKeyHasher.validateAndHash(rawKey))
-            .isActive(true)
+            .name("BottleNote Agent A")
+            .status(ACTIVE)
+            .productUserId(1L)
+            .adminUserId(admin.getId())
+            .apiKeyHash(AgentKeyHasher.validateAndHash(rawKey))
             .build());
-    saveActiveAdmin(agentId);
 
     // when
     TokenItem token = adminAuthService.loginWithAgent(rawKey);
@@ -128,8 +131,11 @@ class AdminAuthServiceTest {
         Agent.builder()
             .id("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb")
             .profileCode("0002")
-            .secretHash(AgentKeyHasher.validateAndHash(rawKey))
-            .isActive(false)
+            .name("BottleNote Agent B")
+            .status(INACTIVE)
+            .productUserId(1L)
+            .adminUserId(1L)
+            .apiKeyHash(AgentKeyHasher.validateAndHash(rawKey))
             .build());
 
     // when
@@ -150,8 +156,11 @@ class AdminAuthServiceTest {
         Agent.builder()
             .id("cccccccc-cccc-cccc-cccc-cccccccccccc")
             .profileCode("0003")
-            .secretHash(AgentKeyHasher.validateAndHash(rawKey))
-            .isActive(true)
+            .name("BottleNote Agent C")
+            .status(ACTIVE)
+            .productUserId(1L)
+            .adminUserId(Long.MAX_VALUE)
+            .apiKeyHash(AgentKeyHasher.validateAndHash(rawKey))
             .build());
 
     // when
@@ -168,15 +177,6 @@ class AdminAuthServiceTest {
   void loginWithAgent_inactiveAdmin_throwsAuthenticationFailed() {
     // given
     String rawKey = apiKey('E');
-    String agentId = "dddddddd-dddd-dddd-dddd-dddddddddddd";
-    agentRepository.save(
-        Agent.builder()
-            .id(agentId)
-            .profileCode("0004")
-            .secretHash(AgentKeyHasher.validateAndHash(rawKey))
-            .isActive(true)
-            .build());
-
     AdminUser inactiveAdmin =
         AdminUser.builder()
             .email("inactive-agent-admin@bottlenote.com")
@@ -184,9 +184,18 @@ class AdminAuthServiceTest {
             .name("Inactive Agent Admin")
             .roles(List.of(AdminRole.ROOT_ADMIN))
             .status(UserStatus.DELETED)
-            .agentId(agentId)
             .build();
     adminUserRepository.save(inactiveAdmin);
+    agentRepository.save(
+        Agent.builder()
+            .id("dddddddd-dddd-dddd-dddd-dddddddddddd")
+            .profileCode("0004")
+            .name("BottleNote Agent D")
+            .status(ACTIVE)
+            .productUserId(1L)
+            .adminUserId(inactiveAdmin.getId())
+            .apiKeyHash(AgentKeyHasher.validateAndHash(rawKey))
+            .build());
 
     // when
     UserException exception =

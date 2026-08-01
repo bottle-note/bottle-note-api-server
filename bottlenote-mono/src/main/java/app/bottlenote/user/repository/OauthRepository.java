@@ -28,8 +28,6 @@ public interface OauthRepository extends CrudRepository<User, Long> {
 
   Optional<User> findByRefreshToken(String refreshToken);
 
-  Optional<User> findByAgentId(String agentId);
-
   @Query("select u from users  u order by u.id limit 1")
   Optional<User> getFirstUser();
 

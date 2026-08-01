@@ -1,5 +1,7 @@
 package app.bottlenote.user.integration;
 
+import static app.bottlenote.agent.constant.AgentStatus.ACTIVE;
+import static app.bottlenote.agent.constant.AgentStatus.INACTIVE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -9,8 +11,11 @@ import app.bottlenote.agent.domain.Agent;
 import app.bottlenote.agent.domain.AgentRepository;
 import app.bottlenote.agent.support.AgentKeyHasher;
 import app.bottlenote.common.constant.AuditPrincipalType;
+import app.bottlenote.user.constant.AdminRole;
 import app.bottlenote.user.constant.SocialType;
 import app.bottlenote.user.constant.UserType;
+import app.bottlenote.user.domain.AdminUser;
+import app.bottlenote.user.domain.AdminUserRepository;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.request.AgentLoginRequest;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
@@ -31,6 +36,7 @@ import org.springframework.test.web.servlet.assertj.MvcTestResult;
 class AgentLoginIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private AgentRepository agentRepository;
+  @Autowired private AdminUserRepository adminUserRepository;
   @Autowired private OauthRepository oauthRepository;
   @Autowired private EntityManager entityManager;
 
@@ -39,24 +45,8 @@ class AgentLoginIntegrationTest extends IntegrationTestSupport {
   void 활성_에이전트_로그인_성공() throws Exception {
     // given
     String rawKey = apiKey('A');
-    Agent agent =
-        agentRepository.save(
-            Agent.builder()
-                .id(UUID.randomUUID().toString())
-                .profileCode("9001")
-                .secretHash(AgentKeyHasher.validateAndHash(rawKey))
-                .isActive(true)
-                .build());
-
-    User user =
-        User.builder()
-            .email("agent-it-0001@bottlenote.com")
-            .nickName("agent_it_0001")
-            .role(UserType.ROLE_USER)
-            .socialType(new ArrayList<>(List.of(SocialType.NONE)))
-            .agentId(agent.getId())
-            .build();
-    oauthRepository.save(user);
+    User user = saveUser("agent-it-0001");
+    saveAgent(rawKey, "9001", user.getId(), true);
 
     // when
     MvcTestResult result =
@@ -108,13 +98,8 @@ class AgentLoginIntegrationTest extends IntegrationTestSupport {
   void 비활성_에이전트는_401() throws Exception {
     // given
     String rawKey = apiKey('C');
-    agentRepository.save(
-        Agent.builder()
-            .id(UUID.randomUUID().toString())
-            .profileCode("9002")
-            .secretHash(AgentKeyHasher.validateAndHash(rawKey))
-            .isActive(false)
-            .build());
+    User user = saveUser("agent-it-inactive-agent");
+    saveAgent(rawKey, "9002", user.getId(), false);
 
     // when
     MvcTestResult result =
@@ -131,17 +116,14 @@ class AgentLoginIntegrationTest extends IntegrationTestSupport {
   }
 
   @Test
-  @DisplayName("활성 에이전트라도 매핑된 계정이 없으면 401을 반환한다")
-  void 매핑_계정_없으면_401() throws Exception {
+  @DisplayName("활성 에이전트에 매핑된 Product 계정이 비활성이면 401을 반환한다")
+  void 매핑된_Product_계정이_비활성이면_401() throws Exception {
     // given
     String rawKey = apiKey('D');
-    agentRepository.save(
-        Agent.builder()
-            .id(UUID.randomUUID().toString())
-            .profileCode("9003")
-            .secretHash(AgentKeyHasher.validateAndHash(rawKey))
-            .isActive(true)
-            .build());
+    User user = saveUser("agent-it-inactive-user");
+    user.withdrawUser();
+    oauthRepository.save(user);
+    saveAgent(rawKey, "9003", user.getId(), true);
 
     // when
     MvcTestResult result =
@@ -162,8 +144,8 @@ class AgentLoginIntegrationTest extends IntegrationTestSupport {
   void 에이전트_토큰으로_기존_API를_호출하면_USER로_감사한다() throws Exception {
     // given
     String rawKey = apiKey('E');
-    Agent agent = saveAgent(rawKey, "9004");
-    User user = saveUser(agent.getId(), "agent-it-audit");
+    User user = saveUser("agent-it-audit");
+    saveAgent(rawKey, "9004", user.getId(), true);
 
     MvcTestResult loginResult = login(rawKey);
     String accessToken =
@@ -196,8 +178,8 @@ class AgentLoginIntegrationTest extends IntegrationTestSupport {
   void 에이전트_재로그인은_이전_리프레시_토큰을_무효화한다() throws Exception {
     // given
     String rawKey = apiKey('F');
-    Agent agent = saveAgent(rawKey, "9005");
-    saveUser(agent.getId(), "agent-it-refresh");
+    User user = saveUser("agent-it-refresh");
+    saveAgent(rawKey, "9005", user.getId(), true);
 
     String firstRefreshToken = login(rawKey).getResponse().getCookie("refresh-token").getValue();
     Thread.sleep(1100);
@@ -216,24 +198,37 @@ class AgentLoginIntegrationTest extends IntegrationTestSupport {
     result.assertThat().hasStatus(HttpStatus.UNAUTHORIZED);
   }
 
-  private Agent saveAgent(String rawKey, String profileCode) {
+  private Agent saveAgent(String rawKey, String profileCode, Long productUserId, boolean isActive) {
+    AdminUser admin = saveAdmin(profileCode);
     return agentRepository.save(
         Agent.builder()
             .id(UUID.randomUUID().toString())
             .profileCode(profileCode)
-            .secretHash(AgentKeyHasher.validateAndHash(rawKey))
-            .isActive(true)
+            .name("BottleNote Agent " + profileCode)
+            .status(isActive ? ACTIVE : INACTIVE)
+            .productUserId(productUserId)
+            .adminUserId(admin.getId())
+            .apiKeyHash(AgentKeyHasher.validateAndHash(rawKey))
             .build());
   }
 
-  private User saveUser(String agentId, String identity) {
+  private User saveUser(String identity) {
     return oauthRepository.save(
         User.builder()
             .email(identity + "@bottlenote.com")
             .nickName(identity.replace("-", ""))
             .role(UserType.ROLE_USER)
             .socialType(new ArrayList<>(List.of(SocialType.NONE)))
-            .agentId(agentId)
+            .build());
+  }
+
+  private AdminUser saveAdmin(String profileCode) {
+    return adminUserRepository.save(
+        AdminUser.builder()
+            .email("agent-product-test-" + profileCode + "@bottlenote.com")
+            .password("unused-password")
+            .name("Agent Product Test " + profileCode)
+            .roles(new ArrayList<>(List.of(AdminRole.ROOT_ADMIN)))
             .build());
   }
 
