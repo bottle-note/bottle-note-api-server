@@ -53,18 +53,19 @@ class InMemoryUserAgreementRepositoryTest {
   }
 
   @Test
-  @DisplayName("조회할 때 가장 최근 시각의 이력을 반환한다")
-  void findLatest_whenRecordedAtDiffers_returnsNewestRecordedAt() {
-    UserAgreement older = agreement(1L, AgreementType.TERMS_OF_SERVICE, RECORDED_AT);
-    UserAgreement newer = agreement(1L, AgreementType.TERMS_OF_SERVICE, RECORDED_AT.plusSeconds(1));
-    repository.save(newer);
-    repository.save(older);
+  @DisplayName("기록 시각과 관계없이 더 큰 ID의 이력을 반환한다")
+  void findLatest_whenRecordedAtDiffers_returnsHighestId() {
+    UserAgreement first =
+        agreement(1L, AgreementType.TERMS_OF_SERVICE, RECORDED_AT.plusSeconds(1));
+    UserAgreement second = agreement(1L, AgreementType.TERMS_OF_SERVICE, RECORDED_AT);
+    repository.save(first);
+    repository.save(second);
 
-    assertThat(latest(1L, AgreementType.TERMS_OF_SERVICE)).contains(newer);
+    assertThat(latest(1L, AgreementType.TERMS_OF_SERVICE)).contains(second);
   }
 
   @Test
-  @DisplayName("기록 시각이 같을 때 더 큰 ID의 이력을 반환한다")
+  @DisplayName("기록 시각이 같아도 더 큰 ID의 이력을 반환한다")
   void findLatest_whenRecordedAtTies_returnsHighestId() {
     UserAgreement first = agreement(1L, AgreementType.TERMS_OF_SERVICE, RECORDED_AT);
     UserAgreement second = agreement(1L, AgreementType.TERMS_OF_SERVICE, RECORDED_AT);
@@ -86,8 +87,7 @@ class InMemoryUserAgreementRepositoryTest {
   }
 
   private Optional<UserAgreement> latest(Long userId, AgreementType agreementType) {
-    return repository.findFirstByUserIdAndAgreementTypeOrderByRecordedAtDescIdDesc(
-        userId, agreementType);
+    return repository.findFirstByUserIdAndAgreementTypeOrderByIdDesc(userId, agreementType);
   }
 
   private UserAgreement agreement(

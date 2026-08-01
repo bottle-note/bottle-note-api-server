@@ -50,27 +50,28 @@ class UserAgreementRepositoryIntegrationTest extends IntegrationTestSupport {
   }
 
   @Test
-  @DisplayName("기록 시각이 다를 때 가장 최근 동의 이력을 조회한다")
-  void findLatest_whenRecordedAtDiffers_returnsNewestRecordedAt() {
+  @DisplayName("기록 시각과 관계없이 ID가 큰 동의 이력을 조회한다")
+  void findLatest_whenRecordedAtDiffers_returnsHighestId() {
     User user = userTestFactory.persistUser();
-    UserAgreement newest =
-        userAgreementRepository.save(
-            createAgreement(
-                user.getId(), AgreementType.TERMS_OF_SERVICE, AgreementAction.AGREE, RECORDED_AT));
     userAgreementRepository.save(
         createAgreement(
             user.getId(),
             AgreementType.TERMS_OF_SERVICE,
-            AgreementAction.REVOKE,
-            RECORDED_AT.minusMinutes(1)));
+            AgreementAction.AGREE,
+            RECORDED_AT.plusMinutes(1)));
+    UserAgreement latest =
+        userAgreementRepository.save(
+            createAgreement(
+                user.getId(), AgreementType.TERMS_OF_SERVICE, AgreementAction.REVOKE, RECORDED_AT));
 
     UserAgreement result =
         userAgreementRepository
-            .findFirstByUserIdAndAgreementTypeOrderByRecordedAtDescIdDesc(
+            .findFirstByUserIdAndAgreementTypeOrderByIdDesc(
                 user.getId(), AgreementType.TERMS_OF_SERVICE)
             .orElseThrow();
 
-    assertThat(result.getId()).isEqualTo(newest.getId());
+    assertThat(result.getId()).isEqualTo(latest.getId());
+    assertThat(result.getAction()).isEqualTo(AgreementAction.REVOKE);
   }
 
   @Test
@@ -87,7 +88,7 @@ class UserAgreementRepositoryIntegrationTest extends IntegrationTestSupport {
 
     UserAgreement result =
         userAgreementRepository
-            .findFirstByUserIdAndAgreementTypeOrderByRecordedAtDescIdDesc(
+            .findFirstByUserIdAndAgreementTypeOrderByIdDesc(
                 user.getId(), AgreementType.TERMS_OF_SERVICE)
             .orElseThrow();
 
@@ -122,7 +123,7 @@ class UserAgreementRepositoryIntegrationTest extends IntegrationTestSupport {
 
     UserAgreement result =
         userAgreementRepository
-            .findFirstByUserIdAndAgreementTypeOrderByRecordedAtDescIdDesc(
+            .findFirstByUserIdAndAgreementTypeOrderByIdDesc(
                 targetUser.getId(), AgreementType.TERMS_OF_SERVICE)
             .orElseThrow();
 

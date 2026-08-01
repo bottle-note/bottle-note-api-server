@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.groups.Tuple.tuple;
 
-import app.bottlenote.agreement.config.AgreementPolicyProperties;
 import app.bottlenote.agreement.constant.AgreementAction;
 import app.bottlenote.agreement.constant.AgreementInputContext;
 import app.bottlenote.agreement.constant.AgreementType;
@@ -44,8 +43,7 @@ class AgreementServiceTest {
   @BeforeEach
   void setUp() {
     repository = new InMemoryUserAgreementRepository();
-    AgreementEvaluator evaluator =
-        new AgreementEvaluator(repository, new AgreementPolicyProperties());
+    AgreementEvaluator evaluator = new AgreementEvaluator(repository);
     Clock clock = Clock.fixed(RECORDED_INSTANT, ZONE_ID);
     service = new AgreementService(repository, evaluator, clock);
   }

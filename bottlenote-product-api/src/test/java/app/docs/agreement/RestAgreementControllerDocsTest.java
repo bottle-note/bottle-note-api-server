@@ -17,7 +17,6 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.requestF
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.bottlenote.agreement.config.AgreementPolicyProperties;
 import app.bottlenote.agreement.controller.AgreementController;
 import app.bottlenote.agreement.dto.request.AgreementSubmitRequest;
 import app.bottlenote.agreement.dto.request.AgreementSubmitRequest.Item;
@@ -47,11 +46,10 @@ class RestAgreementControllerDocsTest extends AbstractRestDocs {
 
   private final InMemoryUserAgreementRepository agreementRepository =
       new InMemoryUserAgreementRepository();
-  private final AgreementPolicyProperties policyProperties = new AgreementPolicyProperties();
   private final AgreementService agreementService =
       new AgreementService(
           agreementRepository,
-          new AgreementEvaluator(agreementRepository, policyProperties),
+          new AgreementEvaluator(agreementRepository),
           Clock.fixed(Instant.parse("2026-08-01T09:00:00Z"), ZoneOffset.UTC));
 
   @Override
