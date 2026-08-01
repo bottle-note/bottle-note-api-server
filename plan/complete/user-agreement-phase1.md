@@ -1,5 +1,8 @@
 # Plan: 사용자 동의 Phase 1
 
+Status: Completed
+Completion Date: 2026-08-01
+
 ## Overview
 
 인증된 사용자의 약관 동의 이력을 append-only로 기록하고, 요청 시점의 정책 기준에 따라 동의 충족 여부를 하나의 Evaluator가 판정한다. Product API는 동의 상태 조회와 제출 기능을 제공하며, 소셜 로그인 응답에는 같은 판정 결과로 계산한 `agreementRequired` 힌트를 포함한다. 이번 범위에서는 보호 API를 차단하거나 403 응답을 자동 생성하지 않는다.
@@ -128,3 +131,4 @@
 - 2026-08-01: Task 6 완료. Apple/Kakao가 공유하는 `AuthService#getAuthResult`에 `AgreementEvaluator` 판정을 연결해 `agreementRequired = !eligible`을 내부 `AuthResponse`에 담았고, 미충족이어도 기존 JWT 발급·refresh token 저장·로그인 성공 흐름을 유지했다. InMemory 동의 저장소를 사용한 AuthService 단위 테스트 10개(신규 2개 포함), 전체 unit 540개, Auth RestDocs 회귀 6개, Java/Kotlin 컴파일, `check_rule_test`, 테스트 제외 전체 build가 통과했다. 현재 코드에 agent 로그인 경로는 없음을 확인했고 Gate/403과 `OauthResponse` 투영은 변경하지 않았으며, self-review Important 1건(Apple/Kakao refresh cookie 값 회귀 공백)을 두 RestDocs 테스트의 cookie 값 assertion으로 해소했다.
 - 2026-08-01: Task 7 완료. `OauthResponse`에 nullable `agreementRequired`를 추가하고 Apple/Kakao 로그인에서 `AuthResponse` 힌트를 투영하되, reissue factory는 `isFirstLogin`·`nickname`·`agreementRequired`를 `null`로 유지했다. RestAuthV2ControllerTest 6개, 기존 OpenApiAuthV2ControllerTest 1개, 실제 Spring context OpenApiDocsIntegrationTest 7개, 전체 unit 540개와 Java/Kotlin 컴파일, `check_rule_test`, 테스트 제외 전체 build, `asciidoctor`가 통과했다. Apple/Kakao는 `accessToken`, `isFirstLogin`, `nickname`, `agreementRequired` exact field와 필수 동의 필요 의미를 문서화했고, bare response 3개·refresh cookie·reissue nullable 형태를 유지했으며 Gate/403·SecurityConfig 변경은 없다. self-review는 Critical 0건, Important 1건(신규 Mockito OpenAPI 테스트가 테스트 더블 정책에 맞지 않음)을 해당 추가본 제거와 실제 context 통합 테스트로 해소했다.
 - 2026-08-01: 최종 self-review 아키텍처 수정 완료. user `AuthService`가 agreement `AgreementEvaluator`를 직접 참조하던 레이어 표준 6·7 위반을 `AgreementFacade#isEligible`과 `@FacadeService DefaultAgreementFacade`로 분리했고, 구현체만 기존 Evaluator에 위임하도록 했다. AuthService 단위 테스트는 Mockito 추가 없이 InMemory 동의 저장소→실제 Evaluator→실제 Default Facade 조합을 사용했고 focused 10개, 전체 unit 540개, rule 63개, Java/Test 컴파일, 테스트 제외 전체 build가 통과했다. 기존 `agreementRequired = !eligible`, 동의 API, Gate/403 제외 범위는 변경하지 않았으며 self-review의 Critical 0건, Important 1건(타 도메인 Service 직접 참조)을 해소했다.
+- 2026-08-01: 최종 L3 검증 완료. 전체 unit 540개, integration 283개, admin integration 210개, rule 63개, RestDocs 138개가 모두 실패·스킵 없이 통과했고 Java/Kotlin 컴파일, 패키지 build, `asciidoctor`도 통과했다. `origin/main`은 현재 브랜치의 조상이며 서브모듈 포인터 `c605215`는 병합된 environment-variables `origin/main`에 포함됨을 확인했다.
