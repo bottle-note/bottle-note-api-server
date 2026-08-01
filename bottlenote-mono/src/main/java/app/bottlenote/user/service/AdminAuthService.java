@@ -78,7 +78,7 @@ public class AdminAuthService {
 
     AdminUser admin =
         adminUserRepository
-            .findByAgentId(agentAccount.agentId())
+            .findById(agentAccount.adminUserId())
             .filter(AdminUser::isActive)
             .orElseThrow(() -> new UserException(AGENT_AUTHENTICATION_FAILED));
 

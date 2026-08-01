@@ -1,6 +1,7 @@
 package app.integration.auth
 
 import app.IntegrationTestSupport
+import app.bottlenote.agent.constant.AgentStatus
 import app.bottlenote.agent.domain.Agent
 import app.bottlenote.agent.domain.AgentRepository
 import app.bottlenote.agent.support.AgentKeyHasher
@@ -8,9 +9,13 @@ import app.bottlenote.common.constant.AuditPrincipalType
 import app.bottlenote.global.annotation.SecurityPolicy.AuthType
 import app.bottlenote.global.security.policy.SecurityPolicyRegistry
 import app.bottlenote.user.constant.AdminRole
+import app.bottlenote.user.constant.SocialType
 import app.bottlenote.user.constant.UserStatus
+import app.bottlenote.user.constant.UserType
 import app.bottlenote.user.domain.AdminUser
 import app.bottlenote.user.domain.AdminUserRepository
+import app.bottlenote.user.domain.User
+import app.bottlenote.user.repository.OauthRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -34,6 +39,9 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 
 	@Autowired
 	private lateinit var adminUserRepository: AdminUserRepository
+
+	@Autowired
+	private lateinit var oauthRepository: OauthRepository
 
 	@ParameterizedTest
 	@CsvSource(
@@ -209,23 +217,44 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 	inner class AgentLoginTest {
 		private fun apiKey(value: Char): String = "bn_agent_" + value.toString().repeat(43)
 
-		private fun saveAgent(rawKey: String, profileCode: String, isActive: Boolean = true): Agent = agentRepository.save(
-			Agent.builder()
-				.id(UUID.randomUUID().toString())
-				.profileCode(profileCode)
-				.secretHash(AgentKeyHasher.validateAndHash(rawKey))
-				.isActive(isActive)
-				.build()
-		)
+		private fun saveAgent(
+			rawKey: String,
+			profileCode: String,
+			adminUserId: Long,
+			isActive: Boolean = true,
+			productStatus: UserStatus = UserStatus.ACTIVE
+		): Agent {
+			val productUser = saveProductUser(profileCode, productStatus)
+			return agentRepository.save(
+				Agent.builder()
+					.id(UUID.randomUUID().toString())
+					.profileCode(profileCode)
+					.name("BottleNote Agent $profileCode")
+					.status(if (isActive) AgentStatus.ACTIVE else AgentStatus.INACTIVE)
+					.productUserId(productUser.id)
+					.adminUserId(adminUserId)
+					.apiKeyHash(AgentKeyHasher.validateAndHash(rawKey))
+					.build()
+			)
+		}
 
-		private fun saveAdminWithAgent(agentId: String, status: UserStatus = UserStatus.ACTIVE): AdminUser = adminUserRepository.save(
+		private fun saveAdmin(status: UserStatus = UserStatus.ACTIVE): AdminUser = adminUserRepository.save(
 			AdminUser.builder()
 				.email("agent-admin-${UUID.randomUUID()}@bottlenote.com")
 				.password("encoded")
 				.name("Agent Admin")
 				.roles(listOf(AdminRole.ROOT_ADMIN))
 				.status(status)
-				.agentId(agentId)
+				.build()
+		)
+
+		private fun saveProductUser(profileCode: String, status: UserStatus): User = oauthRepository.save(
+			User.builder()
+				.email("agent-admin-test-$profileCode@bottlenote.com")
+				.nickName("agent_admin_test_$profileCode")
+				.role(UserType.ROLE_USER)
+				.status(status)
+				.socialType(listOf(SocialType.NONE))
 				.build()
 		)
 
@@ -234,8 +263,8 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 		fun agentLoginSuccess() {
 			// given
 			val rawKey = apiKey('A')
-			val agent = saveAgent(rawKey, "9101")
-			saveAdminWithAgent(agent.id)
+			val admin = saveAdmin()
+			saveAgent(rawKey, "9101", admin.id)
 
 			val request = mapOf("agentKey" to rawKey)
 
@@ -289,7 +318,8 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 		fun agentLoginFailWithInactiveAgent() {
 			// given
 			val rawKey = apiKey('C')
-			saveAgent(rawKey, "9102", isActive = false)
+			val admin = saveAdmin()
+			saveAgent(rawKey, "9102", admin.id, isActive = false)
 
 			val request = mapOf("agentKey" to rawKey)
 
@@ -304,11 +334,12 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 		}
 
 		@Test
-		@DisplayName("활성 에이전트라도 매핑된 관리자 계정이 없으면 401을 반환한다")
-		fun agentLoginFailWithMissingMapping() {
+		@DisplayName("Product 계정이 비활성이어도 활성 Admin 계정으로 로그인할 수 있다")
+		fun agentLoginSucceedsWithInactiveProductAccount() {
 			// given
 			val rawKey = apiKey('D')
-			saveAgent(rawKey, "9103")
+			val admin = saveAdmin()
+			saveAgent(rawKey, "9103", admin.id, productStatus = UserStatus.DELETED)
 
 			val request = mapOf("agentKey" to rawKey)
 
@@ -319,7 +350,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 					.uri("/v1/auth/agent")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(mapper.writeValueAsString(request))
-			).hasStatus(HttpStatus.UNAUTHORIZED)
+			).hasStatusOk()
 		}
 
 		@Test
@@ -327,8 +358,8 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 		fun agentLoginFailWithInactiveAdmin() {
 			// given
 			val rawKey = apiKey('E')
-			val agent = saveAgent(rawKey, "9104")
-			saveAdminWithAgent(agent.id, status = UserStatus.DELETED)
+			val admin = saveAdmin(status = UserStatus.DELETED)
+			saveAgent(rawKey, "9104", admin.id)
 
 			val request = mapOf("agentKey" to rawKey)
 
@@ -347,8 +378,8 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 		fun agentIssuedTokenAccessesProtectedAdminApi() {
 			// given
 			val rawKey = apiKey('F')
-			val agent = saveAgent(rawKey, "9105")
-			saveAdminWithAgent(agent.id)
+			val admin = saveAdmin()
+			saveAgent(rawKey, "9105", admin.id)
 
 			val loginResult =
 				mockMvcTester
@@ -377,8 +408,8 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 		fun agentReloginInvalidatesPreviousRefreshToken() {
 			// given
 			val rawKey = apiKey('G')
-			val agent = saveAgent(rawKey, "9106")
-			saveAdminWithAgent(agent.id)
+			val admin = saveAdmin()
+			saveAgent(rawKey, "9106", admin.id)
 
 			val firstLoginResult =
 				mockMvcTester
@@ -415,8 +446,8 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 		fun agentIssuedTokenSignupAuditsAsAdminPrincipal() {
 			// given
 			val rawKey = apiKey('H')
-			val agent = saveAgent(rawKey, "9107")
-			val requester = saveAdminWithAgent(agent.id)
+			val requester = saveAdmin()
+			saveAgent(rawKey, "9107", requester.id)
 
 			val loginResult =
 				mockMvcTester

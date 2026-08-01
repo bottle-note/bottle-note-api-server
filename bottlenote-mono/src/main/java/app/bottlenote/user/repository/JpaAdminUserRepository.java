@@ -15,8 +15,6 @@ public interface JpaAdminUserRepository
 
   Optional<AdminUser> findByRefreshToken(String refreshToken);
 
-  Optional<AdminUser> findByAgentId(String agentId);
-
   boolean existsByEmail(String email);
 
   @Query("SELECT COUNT(a) > 0 FROM admin_users a WHERE a.status = 'ACTIVE'")

@@ -100,10 +100,6 @@ public class User extends BaseTimeEntity {
   @Column(name = "last_login_at")
   private LocalDateTime lastLoginAt;
 
-  @Comment("연동된 에이전트 UUID")
-  @Column(name = "agent_id", unique = true, columnDefinition = "char(36)")
-  private String agentId;
-
   public void updateRefreshToken(String refreshToken) {
     Objects.requireNonNull(refreshToken, "refreshToken은 null이 될 수 없습니다.");
     this.refreshToken = refreshToken;

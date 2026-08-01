@@ -43,13 +43,6 @@ public class InMemoryAdminUserRepository implements AdminUserRepository {
   }
 
   @Override
-  public Optional<AdminUser> findByAgentId(String agentId) {
-    return adminUsers.values().stream()
-        .filter(admin -> agentId.equals(admin.getAgentId()))
-        .findFirst();
-  }
-
-  @Override
   public boolean existsByEmail(String email) {
     return adminUsers.values().stream().anyMatch(admin -> admin.getEmail().equals(email));
   }

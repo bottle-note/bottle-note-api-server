@@ -1,5 +1,6 @@
 package app.bottlenote.agent.fixture;
 
+import app.bottlenote.agent.constant.AgentStatus;
 import app.bottlenote.agent.domain.Agent;
 import app.bottlenote.agent.domain.AgentRepository;
 import java.util.HashMap;
@@ -11,10 +12,10 @@ public class InMemoryAgentRepository implements AgentRepository {
   private final Map<String, Agent> agentDatabase = new HashMap<>();
 
   @Override
-  public Optional<Agent> findBySecretHashAndIsActiveTrue(String secretHash) {
+  public Optional<Agent> findByApiKeyHashAndStatus(String apiKeyHash, AgentStatus status) {
     return agentDatabase.values().stream()
-        .filter(agent -> agent.getSecretHash().equals(secretHash))
-        .filter(Agent::isUsable)
+        .filter(agent -> agent.getApiKeyHash().equals(apiKeyHash))
+        .filter(agent -> agent.getStatus() == status)
         .findFirst();
   }
 

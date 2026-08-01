@@ -102,7 +102,7 @@ public class AuthService {
 
     User user =
         oauthRepository
-            .findByAgentId(agentAccount.agentId())
+            .findById(agentAccount.productUserId())
             .filter(User::isAlive)
             .orElseThrow(() -> new UserException(AGENT_AUTHENTICATION_FAILED));
 

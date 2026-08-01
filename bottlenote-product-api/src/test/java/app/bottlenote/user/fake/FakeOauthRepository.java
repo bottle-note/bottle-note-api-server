@@ -29,13 +29,6 @@ public class FakeOauthRepository implements OauthRepository {
   }
 
   @Override
-  public Optional<User> findByAgentId(String agentId) {
-    return userDatabase.values().stream()
-        .filter(user -> agentId.equals(user.getAgentId()))
-        .findFirst();
-  }
-
-  @Override
   public Optional<User> getFirstUser() {
     return Optional.empty();
   }
