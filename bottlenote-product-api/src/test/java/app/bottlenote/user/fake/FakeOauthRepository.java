@@ -24,8 +24,18 @@ public class FakeOauthRepository implements OauthRepository {
   }
 
   @Override
+  public Optional<User> findByEmailForUpdate(String email) {
+    return findByEmail(email);
+  }
+
+  @Override
   public Optional<User> findByRefreshToken(String refreshToken) {
     return Optional.ofNullable(refreshTokenDatabase.get(refreshToken));
+  }
+
+  @Override
+  public Optional<User> findByIdForUpdate(Long userId) {
+    return Optional.ofNullable(userDatabase.get(userId));
   }
 
   @Override
@@ -52,6 +62,11 @@ public class FakeOauthRepository implements OauthRepository {
   @Override
   public Optional<User> findBySocialUniqueId(String socialUniqueId) {
     return Optional.ofNullable(socialUniqueIdDatabase.get(socialUniqueId));
+  }
+
+  @Override
+  public Optional<User> findBySocialUniqueIdForUpdate(String socialUniqueId) {
+    return findBySocialUniqueId(socialUniqueId);
   }
 
   @Override

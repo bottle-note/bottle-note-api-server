@@ -74,6 +74,11 @@ public enum ValidExceptionCode implements ExceptionCode {
   SOCIAL_TYPE_REQUIRED(HttpStatus.BAD_REQUEST, "로그인 및 회원가입에 필요한 소셜타입이 없습니다."),
   AGE_MINIMUM(HttpStatus.BAD_REQUEST, "나이는 0 이상 이어야 합니다."),
   EMAIL_NOT_BLANK(HttpStatus.BAD_REQUEST, "이메일은 필수입니다."),
+  SIGNUP_TOKEN_REQUIRED(HttpStatus.BAD_REQUEST, "가입 완료 토큰은 필수입니다."),
+  SIGNUP_AGREEMENTS_REQUIRED(HttpStatus.BAD_REQUEST, "가입 필수 동의는 비어 있을 수 없습니다."),
+  AGREEMENT_TYPE_REQUIRED(HttpStatus.BAD_REQUEST, "동의 유형은 필수입니다."),
+  AGREEMENT_VERSION_REQUIRED(HttpStatus.BAD_REQUEST, "동의 문서 버전은 필수입니다."),
+  AGREEMENT_VERSION_MAX_SIZE(HttpStatus.BAD_REQUEST, "동의 문서 버전은 최대 50자입니다."),
 
   // REPORT,
   REPORT_TARGET_USER_ID_REQUIRED(HttpStatus.BAD_REQUEST, "신고 대상자 아이디는 필수입니다."),

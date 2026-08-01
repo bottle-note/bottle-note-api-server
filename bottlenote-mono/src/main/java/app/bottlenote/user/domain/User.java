@@ -81,7 +81,7 @@ public class User extends BaseTimeEntity {
   private UserType role;
 
   @Enumerated(EnumType.STRING)
-  @Comment("사용자 상태(ACTIVE, DELETED)")
+  @Comment("사용자 상태(ACTIVE, SIGNUP_PENDING, DELETED)")
   @Column(name = "status", nullable = false)
   @Builder.Default
   private UserStatus status = UserStatus.ACTIVE;
@@ -130,6 +130,21 @@ public class User extends BaseTimeEntity {
 
   public boolean isAlive() {
     return this.status == UserStatus.ACTIVE;
+  }
+
+  public boolean isSignupPending() {
+    return this.status == UserStatus.SIGNUP_PENDING;
+  }
+
+  public boolean isDeleted() {
+    return this.status == UserStatus.DELETED;
+  }
+
+  public void activate() {
+    if (!isSignupPending()) {
+      throw new IllegalStateException("가입 대기 사용자만 활성화할 수 있습니다.");
+    }
+    this.status = UserStatus.ACTIVE;
   }
 
   public void restore() {

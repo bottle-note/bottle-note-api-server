@@ -6,6 +6,7 @@ import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TO
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import app.bottlenote.user.constant.GenderType;
 import app.bottlenote.user.constant.SocialType;
+import app.bottlenote.user.constant.UserStatus;
 import app.bottlenote.user.constant.UserType;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.response.AuthResponse;
@@ -34,6 +35,7 @@ public class AuthService {
   private final JwtTokenProvider tokenProvider;
   private final AppleAuthService appleAuthService;
   private final KakaoAuthService kakaoAuthService;
+  private final SignupService signupService;
   private final SecureRandom randomValue = new SecureRandom();
 
   @Transactional(readOnly = true)
@@ -51,10 +53,9 @@ public class AuthService {
 
     User user =
         oauthRepository
-            .findBySocialUniqueId(socialUniqueId)
+            .findBySocialUniqueIdForUpdate(socialUniqueId)
             .orElseGet(() -> findByEmailOrCreateAppleUser(email, socialUniqueId));
 
-    checkActiveUser(user);
     return getAuthResult(user, SocialType.APPLE);
   }
 
@@ -70,10 +71,9 @@ public class AuthService {
 
     User user =
         oauthRepository
-            .findBySocialUniqueId(kakaoId)
+            .findBySocialUniqueIdForUpdate(kakaoId)
             .orElseGet(() -> findByEmailOrCreateKakaoUser(kakaoUser));
 
-    checkActiveUser(user);
     return getAuthResult(user, SocialType.KAKAO);
   }
 
@@ -92,6 +92,9 @@ public class AuthService {
         oauthRepository
             .findByRefreshToken(refreshToken)
             .orElseThrow(() -> new UserException(INVALID_REFRESH_TOKEN));
+    if (!user.isAlive()) {
+      throw new UserException(INVALID_REFRESH_TOKEN);
+    }
 
     TokenItem reissuedToken =
         tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
@@ -112,7 +115,7 @@ public class AuthService {
 
   private User findByEmailOrCreateAppleUser(String email, String socialUniqueId) {
     return oauthRepository
-        .findByEmail(email)
+        .findByEmailForUpdate(email)
         .map(
             existingUser -> {
               log.info("기존 계정({})에 Apple 계정 연동: socialUniqueId={}", email, socialUniqueId);
@@ -133,6 +136,7 @@ public class AuthService {
             .socialUniqueId(socialUniqueId)
             .socialType(List.of(SocialType.APPLE))
             .role(UserType.ROLE_USER)
+            .status(UserStatus.SIGNUP_PENDING)
             .nickName(generateNickname())
             .build();
     return oauthRepository.save(user);
@@ -149,7 +153,7 @@ public class AuthService {
     }
 
     return oauthRepository
-        .findByEmail(email)
+        .findByEmailForUpdate(email)
         .map(
             existingUser -> {
               log.info("기존 계정({})에 카카오 계정 연동: kakaoId={}", email, kakaoId);
@@ -178,6 +182,7 @@ public class AuthService {
             .socialUniqueId(kakaoId)
             .socialType(List.of(SocialType.KAKAO))
             .role(UserType.ROLE_USER)
+            .status(UserStatus.SIGNUP_PENDING)
             .gender(gender)
             .age(age)
             .nickName(generateNickname())
@@ -185,17 +190,19 @@ public class AuthService {
     return oauthRepository.save(user);
   }
 
-  private void checkActiveUser(User user) {
-    if (!user.isAlive()) throw new UserException(UserExceptionCode.USER_DELETED);
-  }
-
   private AuthResponse getAuthResult(User user, SocialType socialType) {
     user.addSocialType(socialType);
+    if (user.isDeleted()) {
+      throw new UserException(UserExceptionCode.USER_DELETED);
+    }
+    if (user.isSignupPending()) {
+      return AuthResponse.signupPending(signupService.issueToken(user, socialType));
+    }
     TokenItem token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
     user.updateRefreshToken(token.refreshToken());
     boolean isFirstLogin = user.isFirstLogin();
     user.updateLastLoginAt(java.time.LocalDateTime.now());
-    return new AuthResponse(token, isFirstLogin, user.getNickName());
+    return AuthResponse.login(token, isFirstLogin, user.getNickName());
   }
 
   private GenderType extractGenderFromKakao(KakaoUserResponse.KakaoAccount account) {

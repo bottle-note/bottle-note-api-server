@@ -10,14 +10,19 @@ import app.bottlenote.user.config.OauthConfigProperties;
 import app.bottlenote.user.controller.docs.AuthApiDocs;
 import app.bottlenote.user.dto.request.AppleLoginRequest;
 import app.bottlenote.user.dto.request.KakaoLoginRequest;
+import app.bottlenote.user.dto.request.SignupRequest;
 import app.bottlenote.user.dto.request.TokenVerifyRequest;
+import app.bottlenote.user.dto.response.AuthLoginResponse;
 import app.bottlenote.user.dto.response.AuthResponse;
 import app.bottlenote.user.dto.response.NonceResponse;
 import app.bottlenote.user.dto.response.OauthResponse;
+import app.bottlenote.user.dto.response.SignupCompleteResponse;
+import app.bottlenote.user.dto.response.SignupPendingResponse;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.service.AuthService;
 import app.bottlenote.user.service.NonceService;
+import app.bottlenote.user.service.SignupService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -40,6 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthV2Controller {
   private final AuthService authService;
   private final NonceService nonceService;
+  private final SignupService signupService;
   private final OauthConfigProperties configProperties;
   private static final String REFRESH_TOKEN_HEADER_PREFIX = "refresh-token";
 
@@ -66,25 +72,33 @@ public class AuthV2Controller {
   @SecurityPolicy(auth = PUBLIC)
   @AuthApiDocs.ExecuteAppleLogin
   @PostMapping("/apple")
-  public ResponseEntity<OauthResponse> executeAppleLogin(
+  public ResponseEntity<AuthLoginResponse> executeAppleLogin(
       @RequestBody @Valid AppleLoginRequest appleLoginRequest, HttpServletResponse response) {
     AuthResponse result =
         authService.loginWithApple(appleLoginRequest.idToken(), appleLoginRequest.nonce());
-    setRefreshTokenInCookie(response, result.token().refreshToken());
-    return ResponseEntity.ok(
-        OauthResponse.of(result.token().accessToken(), result.isFirstLogin(), result.nickname()));
+    setRefreshTokenInCookieIfPresent(response, result);
+    return ResponseEntity.ok(createLoginResponse(result));
   }
 
   /** 카카오 로그인 v2 */
   @SecurityPolicy(auth = PUBLIC)
   @AuthApiDocs.ExecuteKakaoLogin
   @PostMapping("/kakao")
-  public ResponseEntity<OauthResponse> executeKakaoLogin(
+  public ResponseEntity<AuthLoginResponse> executeKakaoLogin(
       @RequestBody @Valid KakaoLoginRequest kakaoLoginRequest, HttpServletResponse response) {
     AuthResponse result = authService.loginWithKakao(kakaoLoginRequest.accessToken());
-    setRefreshTokenInCookie(response, result.token().refreshToken());
-    return ResponseEntity.ok(
-        OauthResponse.of(result.token().accessToken(), result.isFirstLogin(), result.nickname()));
+    setRefreshTokenInCookieIfPresent(response, result);
+    return ResponseEntity.ok(createLoginResponse(result));
+  }
+
+  /** 가입 완료 */
+  @SecurityPolicy(auth = PUBLIC)
+  @AuthApiDocs.CompleteSignup
+  @PostMapping("/signup")
+  public ResponseEntity<SignupCompleteResponse> registerSignup(
+      @RequestBody @Valid SignupRequest request) {
+    signupService.complete(request);
+    return ResponseEntity.ok(SignupCompleteResponse.completed());
   }
 
   /** 토큰 재발급 */
@@ -118,5 +132,18 @@ public class AuthV2Controller {
     cookie.setPath("/");
     cookie.setMaxAge(cookieExpireTime);
     response.addCookie(cookie);
+  }
+
+  private void setRefreshTokenInCookieIfPresent(HttpServletResponse response, AuthResponse result) {
+    if (result.token() != null) {
+      setRefreshTokenInCookie(response, result.token().refreshToken());
+    }
+  }
+
+  private AuthLoginResponse createLoginResponse(AuthResponse result) {
+    if (result.signupToken() != null) {
+      return SignupPendingResponse.from(result);
+    }
+    return OauthResponse.from(result);
   }
 }

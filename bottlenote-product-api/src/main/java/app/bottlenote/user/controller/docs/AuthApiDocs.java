@@ -2,6 +2,8 @@ package app.bottlenote.user.controller.docs;
 
 import app.bottlenote.user.dto.response.NonceResponse;
 import app.bottlenote.user.dto.response.OauthResponse;
+import app.bottlenote.user.dto.response.SignupCompleteResponse;
+import app.bottlenote.user.dto.response.SignupPendingResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -63,14 +65,17 @@ public final class AuthApiDocs {
           """
           애플에서 받은 인증 토큰과 앞서 발급받은 일회성 값으로 로그인합니다.
 
-          처음 로그인하는 계정이면 회원을 새로 만들고 응답에 첫 로그인 여부를 표시합니다.
-          리프레시 토큰은 응답 본문이 아니라 쿠키로 내려갑니다. 이 응답은 공통 형식으로 감싸지 않습니다.
+          기존 회원은 액세스 토큰과 리프레시 쿠키를 받습니다.
+          신규 회원은 일반 토큰 없이 SIGNUP_PENDING 상태와 가입 완료 전용 토큰을 받습니다.
           """,
       responses =
           @ApiResponse(
               responseCode = "200",
-              description = "액세스 토큰과 첫 로그인 여부",
-              content = @Content(schema = @Schema(implementation = OauthResponse.class))))
+              description = "기존 회원 토큰 또는 신규 회원 가입 대기 토큰",
+              content =
+                  @Content(
+                      schema =
+                          @Schema(oneOf = {OauthResponse.class, SignupPendingResponse.class}))))
   public @interface ExecuteAppleLogin {}
 
   @Target(ElementType.METHOD)
@@ -82,14 +87,30 @@ public final class AuthApiDocs {
           카카오에서 받은 액세스 토큰으로 로그인합니다.
 
           서버는 그 토큰이 우리 앱에서 발급된 것인지 확인한 뒤 처리합니다.
-          처음 로그인하는 계정이면 회원을 새로 만듭니다. 리프레시 토큰은 쿠키로 내려가며 이 응답은 공통 형식으로 감싸지 않습니다.
+          기존 회원은 액세스 토큰과 리프레시 쿠키를 받습니다.
+          신규 회원은 일반 토큰 없이 SIGNUP_PENDING 상태와 가입 완료 전용 토큰을 받습니다.
           """,
       responses =
           @ApiResponse(
               responseCode = "200",
-              description = "액세스 토큰과 첫 로그인 여부",
-              content = @Content(schema = @Schema(implementation = OauthResponse.class))))
+              description = "기존 회원 토큰 또는 신규 회원 가입 대기 토큰",
+              content =
+                  @Content(
+                      schema =
+                          @Schema(oneOf = {OauthResponse.class, SignupPendingResponse.class}))))
   public @interface ExecuteKakaoLogin {}
+
+  @Target(ElementType.METHOD)
+  @Retention(RetentionPolicy.RUNTIME)
+  @Operation(
+      summary = "가입 동의를 저장하고 가입을 완료한다",
+      description = "가입 완료 전용 토큰과 필수 동의 유형·문서 버전 형식을 검증해 사용자를 활성화합니다.",
+      responses =
+          @ApiResponse(
+              responseCode = "200",
+              description = "가입 완료",
+              content = @Content(schema = @Schema(implementation = SignupCompleteResponse.class))))
+  public @interface CompleteSignup {}
 
   @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.RUNTIME)

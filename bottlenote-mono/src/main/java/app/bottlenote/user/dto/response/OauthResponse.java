@@ -5,13 +5,17 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor(staticName = "of")
-public class OauthResponse {
-
-  private final String accessToken;
-  private final Boolean isFirstLogin;
-  private final String nickname;
+public final class OauthResponse implements AuthLoginResponse {
+  private String accessToken;
+  private Boolean isFirstLogin;
+  private String nickname;
 
   public static OauthResponse of(String accessToken) {
     return new OauthResponse(accessToken, null, null);
+  }
+
+  public static OauthResponse from(AuthResponse response) {
+    return new OauthResponse(
+        response.token().accessToken(), response.isFirstLogin(), response.nickname());
   }
 }

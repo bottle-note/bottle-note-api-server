@@ -3,6 +3,7 @@ package app.bottlenote.user.domain;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.bottlenote.user.constant.SocialType;
+import app.bottlenote.user.constant.UserStatus;
 import app.bottlenote.user.constant.UserType;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -114,5 +115,29 @@ class UserTest {
 
     // then
     assertThat(user.getNickName()).isEqualTo("새로운닉네임");
+  }
+
+  @Test
+  @DisplayName("가입 대기 사용자를 활성화할 수 있다")
+  void activate_signup_pending_user() {
+    // given
+    User user =
+        User.builder()
+            .id(1L)
+            .email("pending@example.com")
+            .nickName("가입대기유저")
+            .role(UserType.ROLE_USER)
+            .status(UserStatus.SIGNUP_PENDING)
+            .socialType(new ArrayList<>(List.of(SocialType.KAKAO)))
+            .build();
+
+    assertThat(user.isSignupPending()).isTrue();
+
+    // when
+    user.activate();
+
+    // then
+    assertThat(user.isAlive()).isTrue();
+    assertThat(user.isSignupPending()).isFalse();
   }
 }

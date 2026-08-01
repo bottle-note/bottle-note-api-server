@@ -1,8 +1,12 @@
 package app.docs.user;
 
+import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
 import static org.springframework.restdocs.headers.HeaderDocumentation.responseHeaders;
@@ -15,6 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.global.security.SecurityContextUtil;
@@ -24,9 +29,11 @@ import app.bottlenote.user.dto.response.AuthResponse;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.service.AuthService;
 import app.bottlenote.user.service.NonceService;
+import app.bottlenote.user.service.SignupService;
 import app.docs.AbstractRestDocs;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
@@ -43,13 +50,14 @@ import org.springframework.restdocs.payload.JsonFieldType;
 class RestAuthV2ControllerTest extends AbstractRestDocs {
   private final AuthService authService = mock(AuthService.class);
   private final NonceService nonceService = mock(NonceService.class);
+  private final SignupService signupService = mock(SignupService.class);
   private final OauthConfigProperties config = mock(OauthConfigProperties.class);
 
   private MockedStatic<SecurityContextUtil> mockedSecurityUtil;
 
   @Override
   protected Object initController() {
-    return new AuthV2Controller(authService, nonceService, config);
+    return new AuthV2Controller(authService, nonceService, signupService, config);
   }
 
   @BeforeEach
@@ -126,7 +134,7 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
     TokenItem tokenItem =
         TokenItem.builder().accessToken(accessToken).refreshToken(refreshToken).build();
 
-    AuthResponse authResult = new AuthResponse(tokenItem, true, "부드러운몰트1234");
+    AuthResponse authResult = AuthResponse.login(tokenItem, true, "부드러운몰트1234");
 
     when(authService.loginWithApple(anyString(), anyString())).thenReturn(authResult);
 
@@ -170,7 +178,7 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
     TokenItem tokenItem =
         TokenItem.builder().accessToken(accessToken).refreshToken(refreshToken).build();
 
-    AuthResponse authResult = new AuthResponse(tokenItem, true, "부드러운몰트1234");
+    AuthResponse authResult = AuthResponse.login(tokenItem, true, "부드러운몰트1234");
 
     when(authService.loginWithKakao(anyString())).thenReturn(authResult);
 
@@ -200,6 +208,92 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
   }
 
   @Test
+  @DisplayName("신규 카카오 사용자는 가입 토큰만 받습니다.")
+  void executeKakaoLogin_signup_pending_test() throws Exception {
+    // given
+    when(authService.loginWithKakao(anyString()))
+        .thenReturn(AuthResponse.signupPending("test-signup-token"));
+    Map<String, String> request = Map.of("accessToken", "test-kakao-access-token");
+
+    // when & then
+    mockMvc
+        .perform(
+            post("/api/v2/auth/kakao")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(request))
+                .with(csrf()))
+        .andExpect(status().isOk())
+        .andExpect(cookie().doesNotExist("refresh-token"))
+        .andExpect(jsonPath("$.status").value("SIGNUP_PENDING"))
+        .andExpect(jsonPath("$.signupToken").value("test-signup-token"))
+        .andExpect(jsonPath("$.accessToken").doesNotExist())
+        .andDo(
+            document(
+                "auth/kakao/signup-pending",
+                requestFields(fieldWithPath("accessToken").description("카카오에서 발급받은 액세스 토큰")),
+                responseFields(
+                    fieldWithPath("status").description("가입 필요 상태"),
+                    fieldWithPath("signupToken").description("가입 완료 API 전용 단기 토큰"))));
+  }
+
+  @Test
+  @DisplayName("가입 동의를 저장하고 가입을 완료합니다.")
+  void completeSignup_test() throws Exception {
+    // given
+    Map<String, Object> request =
+        Map.of(
+            "signupToken",
+            "test-signup-token",
+            "agreements",
+            List.of(
+                Map.of("type", "TERMS_OF_SERVICE", "version", "2026-08-01"),
+                Map.of("type", "PRIVACY_COLLECTION_USE", "version", "2026-08-01")));
+
+    // when & then
+    mockMvc
+        .perform(
+            post("/api/v2/auth/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(request))
+                .with(csrf()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value("SIGNUP_COMPLETED"))
+        .andDo(
+            document(
+                "auth/signup/complete",
+                requestFields(
+                    fieldWithPath("signupToken").description("가입 완료 API 전용 단기 토큰"),
+                    fieldWithPath("agreements[].type").description("동의 유형"),
+                    fieldWithPath("agreements[].version").description("동의 문서 버전")),
+                responseFields(fieldWithPath("status").description("가입 완료 상태"))));
+    verify(signupService).complete(any());
+  }
+
+  @Test
+  @DisplayName("동의 문서 버전이 50자를 초과하면 가입을 거부합니다.")
+  void complete_signup_rejects_too_long_version() throws Exception {
+    // given
+    Map<String, Object> request =
+        Map.of(
+            "signupToken",
+            "test-signup-token",
+            "agreements",
+            List.of(
+                Map.of("type", "TERMS_OF_SERVICE", "version", "v".repeat(51)),
+                Map.of("type", "PRIVACY_COLLECTION_USE", "version", "2026-08-01")));
+
+    // when & then
+    mockMvc
+        .perform(
+            post("/api/v2/auth/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+                .with(csrf()))
+        .andExpect(status().isBadRequest());
+    verify(signupService, never()).complete(any());
+  }
+
+  @Test
   @DisplayName("토큰을 재발급할 수 있다.")
   void reissue_on_v2_test() throws Exception {
     // given
@@ -217,6 +311,8 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
                 .with(csrf()))
         .andExpect(status().isOk())
         .andExpect(cookie().exists("refresh-token"))
+        .andExpect(jsonPath("$.data.isFirstLogin").value(nullValue()))
+        .andExpect(jsonPath("$.data.nickname").value(nullValue()))
         .andDo(
             document(
                 "user/user-reissue",

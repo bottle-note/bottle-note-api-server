@@ -7,6 +7,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import app.bottlenote.global.security.jwt.JwtTokenValidator;
+import app.bottlenote.user.constant.AuthStatus;
 import app.bottlenote.user.constant.GenderType;
 import app.bottlenote.user.constant.SocialType;
 import app.bottlenote.user.constant.UserType;
@@ -40,6 +41,7 @@ class AuthServiceTest {
   private RootAdminRepository rootAdminRepository;
   private AppleAuthService appleAuthService;
   private KakaoAuthService kakaoAuthService;
+  private SignupService signupService;
 
   @BeforeEach
   void setUp() throws Exception {
@@ -50,6 +52,10 @@ class AuthServiceTest {
     rootAdminRepository = mock(RootAdminRepository.class);
     appleAuthService = mock(AppleAuthService.class);
     kakaoAuthService = mock(KakaoAuthService.class);
+    signupService = mock(SignupService.class);
+    when(signupService.issueToken(
+            org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any()))
+        .thenReturn("signup-token");
 
     authService =
         new AuthService(
@@ -57,7 +63,8 @@ class AuthServiceTest {
             oauthRepository,
             jwtTokenProvider,
             appleAuthService,
-            kakaoAuthService);
+            kakaoAuthService,
+            signupService);
 
     oauthRepository.clear();
   }
@@ -101,14 +108,13 @@ class AuthServiceTest {
     AuthResponse result = authService.loginWithKakao("valid-kakao-token");
 
     // then
-    assertThat(result.isFirstLogin()).isTrue();
-    assertThat(result.token().accessToken()).isNotNull();
-    assertThat(result.token().refreshToken()).isNotNull();
-    assertThat(result.nickname()).isNotNull();
+    assertThat(result.status()).isEqualTo(AuthStatus.SIGNUP_PENDING);
+    assertThat(result.signupToken()).isEqualTo("signup-token");
+    assertThat(result.token()).isNull();
   }
 
   @Test
-  @DisplayName("카카오 재로그인 시 isFirstLogin이 false를 반환한다")
+  @DisplayName("카카오 가입 완료 후 첫 로그인 시 isFirstLogin이 true를 반환한다")
   void test_Kakao_ReLogin_ReturnsIsFirstLoginFalse() {
     // given
     KakaoUserResponse.KakaoAccount kakaoAccount =
@@ -132,12 +138,13 @@ class AuthServiceTest {
     when(kakaoAuthService.getUserInfo(anyString())).thenReturn(kakaoUser);
 
     authService.loginWithKakao("valid-kakao-token");
+    oauthRepository.findByEmail("test@kakao.com").orElseThrow().activate();
 
     // when
     AuthResponse result = authService.loginWithKakao("valid-kakao-token");
 
     // then
-    assertThat(result.isFirstLogin()).isFalse();
+    assertThat(result.isFirstLogin()).isTrue();
     assertThat(result.token().accessToken()).isNotNull();
     assertThat(result.token().refreshToken()).isNotNull();
   }
@@ -156,14 +163,13 @@ class AuthServiceTest {
     AuthResponse result = authService.loginWithApple("valid-id-token", "valid-nonce");
 
     // then
-    assertThat(result.isFirstLogin()).isTrue();
-    assertThat(result.token().accessToken()).isNotNull();
-    assertThat(result.token().refreshToken()).isNotNull();
-    assertThat(result.nickname()).isNotNull();
+    assertThat(result.status()).isEqualTo(AuthStatus.SIGNUP_PENDING);
+    assertThat(result.signupToken()).isEqualTo("signup-token");
+    assertThat(result.token()).isNull();
   }
 
   @Test
-  @DisplayName("애플 재로그인 시 isFirstLogin이 false를 반환한다")
+  @DisplayName("애플 가입 완료 후 첫 로그인 시 isFirstLogin이 true를 반환한다")
   void test_Apple_ReLogin_ReturnsIsFirstLoginFalse() {
     // given
     AppleAuthService.AppleUserInfo appleUserInfo =
@@ -173,12 +179,13 @@ class AuthServiceTest {
         .thenReturn(appleUserInfo);
 
     authService.loginWithApple("valid-id-token", "valid-nonce");
+    oauthRepository.findByEmail("apple@test.com").orElseThrow().activate();
 
     // when
     AuthResponse result = authService.loginWithApple("valid-id-token", "valid-nonce");
 
     // then
-    assertThat(result.isFirstLogin()).isFalse();
+    assertThat(result.isFirstLogin()).isTrue();
     assertThat(result.token().accessToken()).isNotNull();
     assertThat(result.token().refreshToken()).isNotNull();
   }

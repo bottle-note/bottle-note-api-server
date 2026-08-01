@@ -29,6 +29,10 @@ public class CustomUserDetailsService implements UserDetailsService {
             .findByEmail(email)
             .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
 
+    if (!customUser.isAlive()) {
+      throw new UsernameNotFoundException("활성 사용자가 아닙니다.");
+    }
+
     List<GrantedAuthority> authorities = new ArrayList<>();
     authorities.add(new SimpleGrantedAuthority(customUser.getRole().toString()));
 

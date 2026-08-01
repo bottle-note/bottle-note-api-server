@@ -39,6 +39,10 @@ public enum UserExceptionCode implements ExceptionCode {
   INVALID_NONCE(HttpStatus.UNAUTHORIZED, "유효하지 않은 Nonce 값입니다."),
   NONCE_EXPIRED(HttpStatus.UNAUTHORIZED, "만료된 Nonce 값입니다."),
   NONCE_ALREADY_USED(HttpStatus.UNAUTHORIZED, "이미 사용된 Nonce 값입니다."),
+  INVALID_SIGNUP_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 가입 토큰입니다."),
+  SIGNUP_TOKEN_CONSUMED(HttpStatus.CONFLICT, "이미 사용된 가입 토큰입니다."),
+  SIGNUP_ALREADY_COMPLETED(HttpStatus.CONFLICT, "이미 가입이 완료된 사용자입니다."),
+  INVALID_SIGNUP_AGREEMENTS(HttpStatus.BAD_REQUEST, "필수 가입 동의 정보가 올바르지 않습니다."),
   INVALID_KAKAO_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 카카오 액세스 토큰입니다."),
   KAKAO_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 API 호출 오류입니다.");
   private final HttpStatus httpStatus;

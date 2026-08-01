@@ -1,10 +1,12 @@
 package app.bottlenote.user.repository;
 
 import app.bottlenote.user.domain.User;
-import feign.Param;
+import jakarta.persistence.LockModeType;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 
 public interface OauthRepository extends CrudRepository<User, Long> {
 
@@ -22,11 +24,23 @@ public interface OauthRepository extends CrudRepository<User, Long> {
 
   Optional<User> findBySocialUniqueId(String socialUniqueId);
 
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("select u from users u where u.socialUniqueId = :socialUniqueId")
+  Optional<User> findBySocialUniqueIdForUpdate(@Param("socialUniqueId") String socialUniqueId);
+
   Optional<User> findByNickName(String nickName);
 
   Optional<User> findByEmail(String email);
 
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("select u from users u where u.email = :email")
+  Optional<User> findByEmailForUpdate(@Param("email") String email);
+
   Optional<User> findByRefreshToken(String refreshToken);
+
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("select u from users u where u.id = :userId")
+  Optional<User> findByIdForUpdate(@Param("userId") Long userId);
 
   @Query("select u from users  u order by u.id limit 1")
   Optional<User> getFirstUser();
