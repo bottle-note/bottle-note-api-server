@@ -57,7 +57,7 @@
 - Files (advisory): 동의 enum 3개, `UserAgreement`, `UserAgreementRepository`, `JpaUserAgreementRepository`, repository 통합 테스트
 - Depends: 없음
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 2: InMemory 동의 저장소
 - Acceptance: test-support의 InMemory 구현이 저장 시 기존 이벤트를 덮지 않고 추가하며, 사용자·유형 격리와 `recorded_at`, `id` 최신순 규칙을 JPA 포트와 동일하게 모사한다.
@@ -120,3 +120,4 @@
 ## Progress Log
 
 - 2026-08-01: environment-variables PR #8 병합 및 부모 저장소 서브모듈 포인터 커밋 완료.
+- 2026-08-01: Task 1 완료. V6와 일치하는 append-only `UserAgreement`, enum 3개, 도메인 repository port와 `JpaUserAgreementRepository`를 추가했다. `recorded_at DESC, id DESC` 최신 조회와 사용자·유형 격리를 포함한 repository 통합 테스트 5개가 통과했고, 전체 Java/Test 컴파일 및 `check_rule_test`가 통과했다. self-review는 Critical 0건, Important 1건(`JpaRepository` 관례와 append-only 경계 명시)을 `@Immutable`, `updatable=false`, 제한된 도메인 포트로 해소했다.
