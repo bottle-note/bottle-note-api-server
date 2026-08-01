@@ -31,7 +31,7 @@ public class Agent extends BaseEntity {
   private String id;
 
   @Comment("프로필 코드 (0001~0006)")
-  @Column(name = "profile_code", nullable = false, length = 4)
+  @Column(name = "profile_code", nullable = false, columnDefinition = "char(4)")
   private String profileCode;
 
   @Comment("에이전트 이름")
