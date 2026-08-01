@@ -4,6 +4,7 @@ import app.bottlenote.global.exception.custom.code.ExceptionCode;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
+/** 사용자 약관 동의 처리에 사용하는 예외 코드를 정의한다. */
 @Getter
 public enum AgreementExceptionCode implements ExceptionCode {
   INVALID_AGREEMENT_TYPE(HttpStatus.BAD_REQUEST, "알 수 없는 동의 유형입니다."),

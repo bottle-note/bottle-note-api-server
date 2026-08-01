@@ -10,6 +10,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+/** 사용자의 최신 약관 이력을 기준으로 현재 동의 상태를 판정한다. */
 @Component
 @RequiredArgsConstructor
 public class AgreementEvaluator {

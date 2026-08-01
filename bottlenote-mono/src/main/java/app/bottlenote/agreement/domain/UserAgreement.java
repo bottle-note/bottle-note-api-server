@@ -19,6 +19,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.Immutable;
 
+/** 사용자의 약관 동의 및 철회 이력을 저장한다. */
 @Getter
 @Immutable
 @Entity(name = "userAgreement")

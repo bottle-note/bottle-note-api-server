@@ -11,6 +11,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/** 사용자 약관 동의 API의 OpenAPI 문서를 정의한다. */
 public final class AgreementApiDocs {
 
   private AgreementApiDocs() {}

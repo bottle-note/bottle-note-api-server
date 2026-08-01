@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/** 사용자의 약관 동의 상태 조회와 의사표시 기록을 처리한다. */
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)

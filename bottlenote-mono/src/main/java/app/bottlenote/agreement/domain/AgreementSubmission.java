@@ -5,6 +5,7 @@ import app.bottlenote.agreement.constant.AgreementInputContext;
 import app.bottlenote.agreement.constant.AgreementType;
 import java.util.Objects;
 
+/** 사용자가 제출한 약관 동의 또는 철회 정보를 나타낸다. */
 public record AgreementSubmission(
     AgreementType type,
     AgreementAction action,

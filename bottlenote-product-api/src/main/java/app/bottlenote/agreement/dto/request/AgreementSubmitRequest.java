@@ -13,6 +13,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
+/** 사용자가 제출한 약관 동의 또는 철회 요청을 나타낸다. */
 @Schema(description = "사용자 동의 제출 요청")
 public record AgreementSubmitRequest(
     @NotEmpty(message = "AGREEMENTS_REQUIRED") List<@Valid Item> agreements) {
@@ -21,6 +22,7 @@ public record AgreementSubmitRequest(
     return agreements.stream().map(Item::toSubmission).toList();
   }
 
+  /** 제출할 약관 동의 항목을 나타낸다. */
   @Schema(name = "AgreementSubmitItem", description = "제출할 동의 항목")
   public record Item(
       @Schema(allowableValues = {"TERMS_OF_SERVICE", "PRIVACY_COLLECTION_USE"})
