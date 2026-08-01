@@ -72,7 +72,11 @@ public class AuthV2Controller {
         authService.loginWithApple(appleLoginRequest.idToken(), appleLoginRequest.nonce());
     setRefreshTokenInCookie(response, result.token().refreshToken());
     return ResponseEntity.ok(
-        OauthResponse.of(result.token().accessToken(), result.isFirstLogin(), result.nickname()));
+        OauthResponse.of(
+            result.token().accessToken(),
+            result.isFirstLogin(),
+            result.nickname(),
+            result.agreementRequired()));
   }
 
   /** 카카오 로그인 v2 */
@@ -84,7 +88,11 @@ public class AuthV2Controller {
     AuthResponse result = authService.loginWithKakao(kakaoLoginRequest.accessToken());
     setRefreshTokenInCookie(response, result.token().refreshToken());
     return ResponseEntity.ok(
-        OauthResponse.of(result.token().accessToken(), result.isFirstLogin(), result.nickname()));
+        OauthResponse.of(
+            result.token().accessToken(),
+            result.isFirstLogin(),
+            result.nickname(),
+            result.agreementRequired()));
   }
 
   /** 토큰 재발급 */

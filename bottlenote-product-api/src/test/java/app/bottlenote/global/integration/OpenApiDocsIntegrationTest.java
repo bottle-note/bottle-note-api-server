@@ -87,6 +87,36 @@ class OpenApiDocsIntegrationTest extends OpenApiSpecTestSupport {
   }
 
   @Test
+  @DisplayName("소셜 로그인은 동의 필요 힌트를 포함한 exact field 응답을 문서화한다")
+  void 소셜_로그인은_동의_필요_힌트를_포함한_exact_field_응답을_문서화한다() {
+    JsonNode spec = fetchSpec();
+    var loginOperations =
+        operationsOf(spec).stream()
+            .filter(
+                operation ->
+                    Set.of("POST /api/v2/auth/apple", "POST /api/v2/auth/kakao")
+                        .contains(operation.endpoint()))
+            .toList();
+
+    assertThat(loginOperations).hasSize(2);
+    assertThat(loginOperations)
+        .allSatisfy(
+            operation -> {
+              JsonNode responseSchema = resolveSchema(spec, operation.successSchema());
+              assertThat(propertyNamesOf(responseSchema))
+                  .containsExactlyInAnyOrder(
+                      "accessToken", "isFirstLogin", "nickname", "agreementRequired");
+              assertThat(
+                      responseSchema
+                          .path("properties")
+                          .path("agreementRequired")
+                          .path("type")
+                          .asText())
+                  .isEqualTo("boolean");
+            });
+  }
+
+  @Test
   @DisplayName("동의 조회와 제출은 같은 exact field 응답을 문서화한다")
   void 동의_API는_같은_exact_field_응답을_문서화한다() {
     JsonNode spec = fetchSpec();
