@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/** 인증 사용자의 약관 동의 API를 제공한다. */
 @RestController
 @RequiredArgsConstructor
 @SecurityPolicy(auth = REQUIRED_AUTH)
