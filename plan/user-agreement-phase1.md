@@ -65,7 +65,7 @@
 - Files (advisory): `InMemoryUserAgreementRepository`, 관련 테스트
 - Depends: Task 1
 - Size: S
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 3: 정책 기반 Agreement Evaluator
 - Acceptance: 유형별 `required`와 `effective-from` 설정을 읽고, 최신 이벤트 없음·REVOKE·기준일 이전 AGREE를 미충족으로 판정한다. 선택 정책은 전체 `eligible`에 영향을 주지 않고 두 필수 유형이 모두 유효한 AGREE일 때만 `eligible=true`다.
@@ -121,3 +121,4 @@
 
 - 2026-08-01: environment-variables PR #8 병합 및 부모 저장소 서브모듈 포인터 커밋 완료.
 - 2026-08-01: Task 1 완료. V6와 일치하는 append-only `UserAgreement`, enum 3개, 도메인 repository port와 `JpaUserAgreementRepository`를 추가했다. `recorded_at DESC, id DESC` 최신 조회와 사용자·유형 격리를 포함한 repository 통합 테스트 5개가 통과했고, 전체 Java/Test 컴파일 및 `check_rule_test`가 통과했다. self-review는 Critical 0건, Important 1건(`JpaRepository` 관례와 append-only 경계 명시)을 `@Immutable`, `updatable=false`, 제한된 도메인 포트로 해소했다.
+- 2026-08-01: Task 2 완료. test-support에 append-only `InMemoryUserAgreementRepository`를 추가하고 단조 증가 ID와 `recordedAt DESC, id DESC` 최신 조회를 구현했다. append-only·재저장 거부·최신 시각·동률 ID·사용자/유형 격리 단위 테스트 5개와 test-support 컴파일, 전체 `check_rule_test`가 통과했다. self-review는 Critical 0건, Important 1건(동일 객체 재저장 시 기존 이력 ID 훼손 가능성)을 재저장 거부로 해소했다.
