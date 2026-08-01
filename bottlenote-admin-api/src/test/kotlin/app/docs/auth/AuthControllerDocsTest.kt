@@ -105,7 +105,7 @@ class AuthControllerDocsTest {
 		val tokenItem = AuthHelper.createTokenItem()
 		given(authService.loginWithAgent(anyString())).willReturn(tokenItem)
 
-		val request = mapOf("agentKey" to "11111111-1111-1111-1111-111111111111")
+		val request = mapOf("agentKey" to ("bn_agent_" + "A".repeat(43)))
 
 		// when & then
 		assertThat(
@@ -120,7 +120,7 @@ class AuthControllerDocsTest {
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
 					requestFields(
-						fieldWithPath("agentKey").type(JsonFieldType.STRING).description("에이전트 비밀 키 (UUID)")
+						fieldWithPath("agentKey").type(JsonFieldType.STRING).description("에이전트 비밀 API Key")
 					),
 					responseFields(
 						fieldWithPath("success").type(JsonFieldType.BOOLEAN).description("응답 성공 여부"),

@@ -6,24 +6,36 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @Tag("unit")
 @DisplayName("AgentKeyHasher 단위 테스트")
 class AgentKeyHasherTest {
 
   @Test
-  @DisplayName("UUID를 정규화한 뒤 SHA-256 고정 벡터와 동일하게 해시한다")
-  void normalizeAndHash_대문자와_공백이_있는_UUID_고정_해시를_반환한다() {
-    String result = AgentKeyHasher.normalizeAndHash(" ABCDEFAB-CDEF-ABCD-EFAB-CDEFABCDEFAB ");
+  @DisplayName("올바른 API Key를 SHA-256 고정 벡터와 동일하게 해시한다")
+  void validateAndHash_올바른_API_Key면_고정_해시를_반환한다() {
+    String result = AgentKeyHasher.validateAndHash("bn_agent_" + "A".repeat(43));
 
     assertThat(result)
-        .isEqualTo("7676cf41072021ea236fc87b2abf756d540d3365afa7dde043a10c35f385f341");
+        .isEqualTo("c46ed383296d0583a361c196c7d1b79c4baec0d0d1ccec96007d2be721a8492f");
   }
 
-  @Test
-  @DisplayName("UUID 형식이 아니면 예외를 발생시킨다")
-  void normalizeAndHash_UUID_형식이_아니면_예외를_발생시킨다() {
-    assertThatThrownBy(() -> AgentKeyHasher.normalizeAndHash("not-a-uuid"))
+  @ParameterizedTest
+  @MethodSource("invalidApiKeys")
+  @DisplayName("접두사, 길이, 문자집합 또는 공백이 잘못되면 예외를 발생시킨다")
+  void validateAndHash_API_Key_형식이_아니면_예외를_발생시킨다(String invalidApiKey) {
+    assertThatThrownBy(() -> AgentKeyHasher.validateAndHash(invalidApiKey))
         .isInstanceOf(IllegalArgumentException.class);
+  }
+
+  private static String[] invalidApiKeys() {
+    return new String[] {
+      "agent_" + "A".repeat(43),
+      "bn_agent_" + "A".repeat(42),
+      "bn_agent_" + "A".repeat(42) + "+",
+      " bn_agent_" + "A".repeat(43)
+    };
   }
 }

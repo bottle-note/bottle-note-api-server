@@ -30,7 +30,7 @@ public class Agent extends BaseEntity {
   @Column(name = "profile_code", nullable = false, length = 10)
   private String profileCode;
 
-  @Comment("비밀 키(UUID) SHA-256 해시")
+  @Comment("비밀 API Key SHA-256 해시")
   @Column(name = "secret_hash", nullable = false, unique = true, columnDefinition = "char(64)")
   private String secretHash;
 

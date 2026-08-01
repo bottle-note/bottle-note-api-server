@@ -17,7 +17,7 @@ public class DefaultAgentFacade implements AgentFacade {
 
   @Override
   public Optional<AgentAccountInfo> findActiveAgentAccount(String rawAgentKey) {
-    String secretHash = AgentKeyHasher.normalizeAndHash(rawAgentKey);
+    String secretHash = AgentKeyHasher.validateAndHash(rawAgentKey);
     return agentRepository
         .findBySecretHashAndIsActiveTrue(secretHash)
         .filter(Agent::isUsable)

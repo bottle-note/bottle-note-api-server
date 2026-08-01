@@ -207,11 +207,13 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 	@Nested
 	@DisplayName("에이전트 로그인 API")
 	inner class AgentLoginTest {
+		private fun apiKey(value: Char): String = "bn_agent_" + value.toString().repeat(43)
+
 		private fun saveAgent(rawKey: String, profileCode: String, isActive: Boolean = true): Agent = agentRepository.save(
 			Agent.builder()
 				.id(UUID.randomUUID().toString())
 				.profileCode(profileCode)
-				.secretHash(AgentKeyHasher.normalizeAndHash(rawKey))
+				.secretHash(AgentKeyHasher.validateAndHash(rawKey))
 				.isActive(isActive)
 				.build()
 		)
@@ -231,7 +233,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 		@DisplayName("활성 에이전트 키로 매핑된 관리자 계정으로 로그인에 성공한다")
 		fun agentLoginSuccess() {
 			// given
-			val rawKey = UUID.randomUUID().toString()
+			val rawKey = apiKey('A')
 			val agent = saveAgent(rawKey, "9101")
 			saveAdminWithAgent(agent.id)
 
@@ -251,10 +253,10 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 		}
 
 		@Test
-		@DisplayName("에이전트 키가 UUID 형식이 아니면 400을 반환한다")
+		@DisplayName("에이전트 키가 API Key 형식이 아니면 400을 반환한다")
 		fun agentLoginFailWithMalformedKey() {
 			// given
-			val request = mapOf("agentKey" to "not-a-uuid")
+			val request = mapOf("agentKey" to "invalid-key")
 
 			// when & then
 			assertThat(
@@ -270,7 +272,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 		@DisplayName("등록되지 않은 에이전트 키는 401을 반환한다")
 		fun agentLoginFailWithUnknownKey() {
 			// given
-			val request = mapOf("agentKey" to UUID.randomUUID().toString())
+			val request = mapOf("agentKey" to apiKey('B'))
 
 			// when & then
 			assertThat(
@@ -286,7 +288,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 		@DisplayName("비활성 에이전트 키는 401을 반환한다")
 		fun agentLoginFailWithInactiveAgent() {
 			// given
-			val rawKey = UUID.randomUUID().toString()
+			val rawKey = apiKey('C')
 			saveAgent(rawKey, "9102", isActive = false)
 
 			val request = mapOf("agentKey" to rawKey)
@@ -305,7 +307,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 		@DisplayName("활성 에이전트라도 매핑된 관리자 계정이 없으면 401을 반환한다")
 		fun agentLoginFailWithMissingMapping() {
 			// given
-			val rawKey = UUID.randomUUID().toString()
+			val rawKey = apiKey('D')
 			saveAgent(rawKey, "9103")
 
 			val request = mapOf("agentKey" to rawKey)
@@ -324,7 +326,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 		@DisplayName("에이전트에 매핑된 관리자 계정이 비활성 상태면 401을 반환한다")
 		fun agentLoginFailWithInactiveAdmin() {
 			// given
-			val rawKey = UUID.randomUUID().toString()
+			val rawKey = apiKey('E')
 			val agent = saveAgent(rawKey, "9104")
 			saveAdminWithAgent(agent.id, status = UserStatus.DELETED)
 
@@ -344,7 +346,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 		@DisplayName("에이전트 로그인으로 발급받은 토큰으로 보호된 관리자 API에 접근할 수 있다")
 		fun agentIssuedTokenAccessesProtectedAdminApi() {
 			// given
-			val rawKey = UUID.randomUUID().toString()
+			val rawKey = apiKey('F')
 			val agent = saveAgent(rawKey, "9105")
 			saveAdminWithAgent(agent.id)
 
@@ -374,7 +376,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 		@DisplayName("에이전트로 재로그인하면 이전 리프레시 토큰은 무효화된다(last-writer-wins)")
 		fun agentReloginInvalidatesPreviousRefreshToken() {
 			// given
-			val rawKey = UUID.randomUUID().toString()
+			val rawKey = apiKey('G')
 			val agent = saveAgent(rawKey, "9106")
 			saveAdminWithAgent(agent.id)
 
@@ -412,7 +414,7 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 		@DisplayName("에이전트 토큰으로 회원가입한 계정의 감사 주체는 기존과 동일하게 ADMIN으로 기록된다")
 		fun agentIssuedTokenSignupAuditsAsAdminPrincipal() {
 			// given
-			val rawKey = UUID.randomUUID().toString()
+			val rawKey = apiKey('H')
 			val agent = saveAgent(rawKey, "9107")
 			val requester = saveAdminWithAgent(agent.id)
 

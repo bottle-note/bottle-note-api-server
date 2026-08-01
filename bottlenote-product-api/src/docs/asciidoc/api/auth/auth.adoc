@@ -80,7 +80,7 @@ include::{snippets}/auth/kakao/login/http-response.adoc[]
 
 === 에이전트 로그인 ===
 
-- 발급받은 에이전트 비밀 키(UUID)를 기존 사용자 JWT로 교환합니다.
+- 발급받은 `bn_agent_` 접두사의 비밀 API Key를 기존 사용자 JWT로 교환합니다.
 - 성공 시 액세스 토큰을 반환하고, 리프레시 토큰은 HttpOnly 쿠키로 설정됩니다.
 
 [source]

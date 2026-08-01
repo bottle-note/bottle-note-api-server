@@ -38,13 +38,13 @@ class AgentLoginIntegrationTest extends IntegrationTestSupport {
   @DisplayName("활성 에이전트 키로 매핑된 계정에 로그인하면 기존 OAuth와 동일한 응답과 refresh 쿠키를 내려준다")
   void 활성_에이전트_로그인_성공() throws Exception {
     // given
-    String rawKey = UUID.randomUUID().toString();
+    String rawKey = apiKey('A');
     Agent agent =
         agentRepository.save(
             Agent.builder()
                 .id(UUID.randomUUID().toString())
                 .profileCode("9001")
-                .secretHash(AgentKeyHasher.normalizeAndHash(rawKey))
+                .secretHash(AgentKeyHasher.validateAndHash(rawKey))
                 .isActive(true)
                 .build());
 
@@ -74,14 +74,14 @@ class AgentLoginIntegrationTest extends IntegrationTestSupport {
   }
 
   @Test
-  @DisplayName("UUID 형식이 아닌 에이전트 키는 400을 반환한다")
+  @DisplayName("API Key 형식이 아닌 에이전트 키는 400을 반환한다")
   void 형식이_잘못된_키는_400() throws Exception {
     MvcTestResult result =
         mockMvcTester
             .post()
             .uri("/api/v2/auth/agent")
             .contentType(APPLICATION_JSON)
-            .content(mapper.writeValueAsString(new AgentLoginRequest("not-a-uuid")))
+            .content(mapper.writeValueAsString(new AgentLoginRequest("invalid-key")))
             .with(csrf())
             .exchange();
 
@@ -96,7 +96,7 @@ class AgentLoginIntegrationTest extends IntegrationTestSupport {
             .post()
             .uri("/api/v2/auth/agent")
             .contentType(APPLICATION_JSON)
-            .content(mapper.writeValueAsString(new AgentLoginRequest(UUID.randomUUID().toString())))
+            .content(mapper.writeValueAsString(new AgentLoginRequest(apiKey('B'))))
             .with(csrf())
             .exchange();
 
@@ -107,12 +107,12 @@ class AgentLoginIntegrationTest extends IntegrationTestSupport {
   @DisplayName("비활성 에이전트 키는 401을 반환한다")
   void 비활성_에이전트는_401() throws Exception {
     // given
-    String rawKey = UUID.randomUUID().toString();
+    String rawKey = apiKey('C');
     agentRepository.save(
         Agent.builder()
             .id(UUID.randomUUID().toString())
             .profileCode("9002")
-            .secretHash(AgentKeyHasher.normalizeAndHash(rawKey))
+            .secretHash(AgentKeyHasher.validateAndHash(rawKey))
             .isActive(false)
             .build());
 
@@ -134,12 +134,12 @@ class AgentLoginIntegrationTest extends IntegrationTestSupport {
   @DisplayName("활성 에이전트라도 매핑된 계정이 없으면 401을 반환한다")
   void 매핑_계정_없으면_401() throws Exception {
     // given
-    String rawKey = UUID.randomUUID().toString();
+    String rawKey = apiKey('D');
     agentRepository.save(
         Agent.builder()
             .id(UUID.randomUUID().toString())
             .profileCode("9003")
-            .secretHash(AgentKeyHasher.normalizeAndHash(rawKey))
+            .secretHash(AgentKeyHasher.validateAndHash(rawKey))
             .isActive(true)
             .build());
 
@@ -161,7 +161,7 @@ class AgentLoginIntegrationTest extends IntegrationTestSupport {
   @DisplayName("에이전트 로그인으로 발급받은 토큰으로 기존 API를 호출하면 감사 주체가 USER로 기록된다")
   void 에이전트_토큰으로_기존_API를_호출하면_USER로_감사한다() throws Exception {
     // given
-    String rawKey = UUID.randomUUID().toString();
+    String rawKey = apiKey('E');
     Agent agent = saveAgent(rawKey, "9004");
     User user = saveUser(agent.getId(), "agent-it-audit");
 
@@ -195,7 +195,7 @@ class AgentLoginIntegrationTest extends IntegrationTestSupport {
   @DisplayName("에이전트로 재로그인하면 이전 리프레시 토큰은 무효화된다")
   void 에이전트_재로그인은_이전_리프레시_토큰을_무효화한다() throws Exception {
     // given
-    String rawKey = UUID.randomUUID().toString();
+    String rawKey = apiKey('F');
     Agent agent = saveAgent(rawKey, "9005");
     saveUser(agent.getId(), "agent-it-refresh");
 
@@ -221,7 +221,7 @@ class AgentLoginIntegrationTest extends IntegrationTestSupport {
         Agent.builder()
             .id(UUID.randomUUID().toString())
             .profileCode(profileCode)
-            .secretHash(AgentKeyHasher.normalizeAndHash(rawKey))
+            .secretHash(AgentKeyHasher.validateAndHash(rawKey))
             .isActive(true)
             .build());
   }
@@ -245,5 +245,9 @@ class AgentLoginIntegrationTest extends IntegrationTestSupport {
         .content(mapper.writeValueAsString(new AgentLoginRequest(rawKey)))
         .with(csrf())
         .exchange();
+  }
+
+  private static String apiKey(char value) {
+    return "bn_agent_" + String.valueOf(value).repeat(43);
   }
 }
