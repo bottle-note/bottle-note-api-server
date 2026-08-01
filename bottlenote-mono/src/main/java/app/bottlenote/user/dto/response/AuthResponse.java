@@ -1,3 +1,4 @@
 package app.bottlenote.user.dto.response;
 
-public record AuthResponse(TokenItem token, Boolean isFirstLogin, String nickname) {}
+public record AuthResponse(
+    TokenItem token, Boolean isFirstLogin, String nickname, boolean agreementRequired) {}

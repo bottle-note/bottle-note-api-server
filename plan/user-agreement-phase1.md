@@ -102,12 +102,12 @@
 - Files (advisory): `AuthService`, `AuthResponse`, `AuthServiceTest`
 - Depends: Task 3
 - Size: S
-- Status: [ ] not done
+- Status: [x] done
 
 ### Checkpoint: after Tasks 4-6
-- [ ] mono/product-api 컴파일 통과
+- [x] mono/product-api 컴파일 통과
 - [ ] 동의 API·로그인 단위 및 통합 테스트 통과
-- [ ] 보호 API에 Gate/403 변경이 없음을 diff로 확인
+- [x] 보호 API에 Gate/403 변경이 없음을 diff로 확인
 
 ### Task 7: 로그인 응답·문서 호환성
 - Acceptance: Apple/Kakao 로그인 응답에 `agreementRequired` 불리언이 추가되고 재발급 응답은 기존 nullable 필드 계약을 유지한다. RestDocs와 OpenAPI가 단일 로그인 응답 스키마를 문서화하고 기존 bare-response 규칙을 통과한다.
@@ -125,3 +125,4 @@
 - 2026-08-01: Task 3 완료. 두 필수 유형의 `required`와 `effective-from` 환경 설정, 최신 이벤트 기반 `AgreementEvaluator`, status API와 login hint가 공유할 불변 평가 결과를 추가했다. 이력 없음·유효 동의·철회·기준 시각 이전·재동의·동률 ID·선택 정책 7개 분기와 설정 기본값·override 바인딩 2개를 검증했고, 전체 unit/compile 및 `check_rule_test`가 통과했다. self-review는 Critical 0건, Important 2건(`@Service` 규칙 부적합, 응답 DTO 접미사 부적합)을 각각 정책 `@Component`와 domain record로 해소했다.
 - 2026-08-01: Task 4 완료. 인증 사용자 기준 상태 조회와 append-only 제출 서비스를 추가하고, 항목별 AGREE/REVOKE·원문·INDIVIDUAL/BULK 맥락·IP·User-Agent 및 주입된 `Clock`의 서버 시각을 저장한 뒤 같은 Evaluator 결과를 반환하도록 했다. 서비스 단위 테스트 7개와 전체 unit 538개, Java/Kotlin 컴파일, `check_rule_test`, 테스트 제외 전체 build가 통과했다. self-review는 Critical 0건, Important 2건(메서드별 트랜잭션 명시, 허용 DTO 패키지 위반)을 각각 읽기 트랜잭션 선언과 domain submission record로 해소했다.
 - 2026-08-01: Task 5 완료. 일반 인증이 필요한 `GET /api/v2/agreements/status`와 `POST /api/v2/agreements`를 추가하고, 요청 `agreements[]`를 `AgreementSubmission`으로 변환해 신뢰된 XFF 기반 IP와 User-Agent를 서비스에 전달했다. Controller 통합 테스트 7개, OpenAPI 회귀 테스트 14개, RestDocs 테스트 2개와 product/root ArchUnit 검증이 통과했으며 두 API의 `eligible`, `items[{type, required, agreed}]` exact field와 제출 요청 exact field를 고정했다. self-review는 Critical 0건, Important 4건(인증 주체 주입 불일치, 문서 테스트 Mock 사용, OpenAPI nested Item 충돌, 알 수 없는 type 예외 코드)을 기존 `SecurityContextUtil`, InMemory 기반 실제 서비스, 고유 schema 이름, `INVALID_AGREEMENT_TYPE` 매핑으로 모두 해소했다.
+- 2026-08-01: Task 6 완료. Apple/Kakao가 공유하는 `AuthService#getAuthResult`에 `AgreementEvaluator` 판정을 연결해 `agreementRequired = !eligible`을 내부 `AuthResponse`에 담았고, 미충족이어도 기존 JWT 발급·refresh token 저장·로그인 성공 흐름을 유지했다. InMemory 동의 저장소를 사용한 AuthService 단위 테스트 10개(신규 2개 포함), 전체 unit 540개, Auth RestDocs 회귀 6개, Java/Kotlin 컴파일, `check_rule_test`, 테스트 제외 전체 build가 통과했다. 현재 코드에 agent 로그인 경로는 없음을 확인했고 Gate/403과 `OauthResponse` 투영은 변경하지 않았으며, self-review Important 1건(Apple/Kakao refresh cookie 값 회귀 공백)을 두 RestDocs 테스트의 cookie 값 assertion으로 해소했다.
