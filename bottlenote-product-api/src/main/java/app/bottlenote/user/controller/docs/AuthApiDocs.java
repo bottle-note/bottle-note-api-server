@@ -69,7 +69,7 @@ public final class AuthApiDocs {
       responses =
           @ApiResponse(
               responseCode = "200",
-              description = "액세스 토큰과 첫 로그인 여부",
+              description = "액세스 토큰, 첫 로그인 여부, 필수 동의 필요 여부",
               content = @Content(schema = @Schema(implementation = OauthResponse.class))))
   public @interface ExecuteAppleLogin {}
 
@@ -87,7 +87,7 @@ public final class AuthApiDocs {
       responses =
           @ApiResponse(
               responseCode = "200",
-              description = "액세스 토큰과 첫 로그인 여부",
+              description = "액세스 토큰, 첫 로그인 여부, 필수 동의 필요 여부",
               content = @Content(schema = @Schema(implementation = OauthResponse.class))))
   public @interface ExecuteKakaoLogin {}
 

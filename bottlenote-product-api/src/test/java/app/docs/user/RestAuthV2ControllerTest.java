@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.global.security.SecurityContextUtil;
@@ -143,6 +144,7 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
                 .with(csrf()))
         .andExpect(status().isOk())
         .andExpect(cookie().value("refresh-token", refreshToken))
+        .andExpect(jsonPath("$.agreementRequired").value(true))
         .andDo(
             document(
                 "auth/apple/login",
@@ -156,7 +158,8 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
                         .optional(),
                     fieldWithPath("nickname")
                         .description("사용자 닉네임 (최초 로그인 시 자동 생성된 닉네임)")
-                        .optional())));
+                        .optional(),
+                    fieldWithPath("agreementRequired").description("필수 동의가 필요하면 true"))));
   }
 
   @Test
@@ -187,6 +190,7 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
                 .with(csrf()))
         .andExpect(status().isOk())
         .andExpect(cookie().value("refresh-token", refreshToken))
+        .andExpect(jsonPath("$.agreementRequired").value(true))
         .andDo(
             document(
                 "auth/kakao/login",
@@ -198,7 +202,8 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
                         .optional(),
                     fieldWithPath("nickname")
                         .description("사용자 닉네임 (최초 로그인 시 자동 생성된 닉네임)")
-                        .optional())));
+                        .optional(),
+                    fieldWithPath("agreementRequired").description("필수 동의가 필요하면 true"))));
   }
 
   @Test
@@ -237,6 +242,10 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
                     fieldWithPath("data.nickname")
                         .type(JsonFieldType.STRING)
                         .description("사용자 닉네임 (재발급 시에는 내려가지 않음)")
+                        .optional(),
+                    fieldWithPath("data.agreementRequired")
+                        .type(JsonFieldType.BOOLEAN)
+                        .description("필수 동의 필요 여부 (재발급 시에는 내려가지 않음)")
                         .optional(),
                     fieldWithPath("errors")
                         .type(JsonFieldType.ARRAY)

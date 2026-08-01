@@ -10,8 +10,9 @@ public class OauthResponse {
   private final String accessToken;
   private final Boolean isFirstLogin;
   private final String nickname;
+  private final Boolean agreementRequired;
 
   public static OauthResponse of(String accessToken) {
-    return new OauthResponse(accessToken, null, null);
+    return new OauthResponse(accessToken, null, null, null);
   }
 }

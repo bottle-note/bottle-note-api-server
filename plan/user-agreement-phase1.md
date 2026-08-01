@@ -106,7 +106,7 @@
 
 ### Checkpoint: after Tasks 4-6
 - [x] mono/product-api 컴파일 통과
-- [ ] 동의 API·로그인 단위 및 통합 테스트 통과
+- [x] 동의 API·로그인 단위 및 통합 테스트 통과
 - [x] 보호 API에 Gate/403 변경이 없음을 diff로 확인
 
 ### Task 7: 로그인 응답·문서 호환성
@@ -115,7 +115,7 @@
 - Files (advisory): `OauthResponse`, `AuthV2Controller`, 로그인 RestDocs/OpenAPI 테스트, 공통 OpenAPI 회귀 테스트
 - Depends: Task 6
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ## Progress Log
 
@@ -126,3 +126,4 @@
 - 2026-08-01: Task 4 완료. 인증 사용자 기준 상태 조회와 append-only 제출 서비스를 추가하고, 항목별 AGREE/REVOKE·원문·INDIVIDUAL/BULK 맥락·IP·User-Agent 및 주입된 `Clock`의 서버 시각을 저장한 뒤 같은 Evaluator 결과를 반환하도록 했다. 서비스 단위 테스트 7개와 전체 unit 538개, Java/Kotlin 컴파일, `check_rule_test`, 테스트 제외 전체 build가 통과했다. self-review는 Critical 0건, Important 2건(메서드별 트랜잭션 명시, 허용 DTO 패키지 위반)을 각각 읽기 트랜잭션 선언과 domain submission record로 해소했다.
 - 2026-08-01: Task 5 완료. 일반 인증이 필요한 `GET /api/v2/agreements/status`와 `POST /api/v2/agreements`를 추가하고, 요청 `agreements[]`를 `AgreementSubmission`으로 변환해 신뢰된 XFF 기반 IP와 User-Agent를 서비스에 전달했다. Controller 통합 테스트 7개, OpenAPI 회귀 테스트 14개, RestDocs 테스트 2개와 product/root ArchUnit 검증이 통과했으며 두 API의 `eligible`, `items[{type, required, agreed}]` exact field와 제출 요청 exact field를 고정했다. self-review는 Critical 0건, Important 4건(인증 주체 주입 불일치, 문서 테스트 Mock 사용, OpenAPI nested Item 충돌, 알 수 없는 type 예외 코드)을 기존 `SecurityContextUtil`, InMemory 기반 실제 서비스, 고유 schema 이름, `INVALID_AGREEMENT_TYPE` 매핑으로 모두 해소했다.
 - 2026-08-01: Task 6 완료. Apple/Kakao가 공유하는 `AuthService#getAuthResult`에 `AgreementEvaluator` 판정을 연결해 `agreementRequired = !eligible`을 내부 `AuthResponse`에 담았고, 미충족이어도 기존 JWT 발급·refresh token 저장·로그인 성공 흐름을 유지했다. InMemory 동의 저장소를 사용한 AuthService 단위 테스트 10개(신규 2개 포함), 전체 unit 540개, Auth RestDocs 회귀 6개, Java/Kotlin 컴파일, `check_rule_test`, 테스트 제외 전체 build가 통과했다. 현재 코드에 agent 로그인 경로는 없음을 확인했고 Gate/403과 `OauthResponse` 투영은 변경하지 않았으며, self-review Important 1건(Apple/Kakao refresh cookie 값 회귀 공백)을 두 RestDocs 테스트의 cookie 값 assertion으로 해소했다.
+- 2026-08-01: Task 7 완료. `OauthResponse`에 nullable `agreementRequired`를 추가하고 Apple/Kakao 로그인에서 `AuthResponse` 힌트를 투영하되, reissue factory는 `isFirstLogin`·`nickname`·`agreementRequired`를 `null`로 유지했다. RestAuthV2ControllerTest 6개, 기존 OpenApiAuthV2ControllerTest 1개, 실제 Spring context OpenApiDocsIntegrationTest 7개, 전체 unit 540개와 Java/Kotlin 컴파일, `check_rule_test`, 테스트 제외 전체 build, `asciidoctor`가 통과했다. Apple/Kakao는 `accessToken`, `isFirstLogin`, `nickname`, `agreementRequired` exact field와 필수 동의 필요 의미를 문서화했고, bare response 3개·refresh cookie·reissue nullable 형태를 유지했으며 Gate/403·SecurityConfig 변경은 없다. self-review는 Critical 0건, Important 1건(신규 Mockito OpenAPI 테스트가 테스트 더블 정책에 맞지 않음)을 해당 추가본 제거와 실제 context 통합 테스트로 해소했다.
