@@ -3,7 +3,7 @@ package app.bottlenote.user.service;
 import static app.bottlenote.global.security.jwt.JwtTokenValidator.validateToken;
 import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
 
-import app.bottlenote.agreement.service.AgreementEvaluator;
+import app.bottlenote.agreement.facade.AgreementFacade;
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import app.bottlenote.user.constant.GenderType;
 import app.bottlenote.user.constant.SocialType;
@@ -35,7 +35,7 @@ public class AuthService {
   private final JwtTokenProvider tokenProvider;
   private final AppleAuthService appleAuthService;
   private final KakaoAuthService kakaoAuthService;
-  private final AgreementEvaluator agreementEvaluator;
+  private final AgreementFacade agreementFacade;
   private final SecureRandom randomValue = new SecureRandom();
 
   @Transactional(readOnly = true)
@@ -197,7 +197,7 @@ public class AuthService {
     user.updateRefreshToken(token.refreshToken());
     boolean isFirstLogin = user.isFirstLogin();
     user.updateLastLoginAt(java.time.LocalDateTime.now());
-    boolean agreementRequired = !agreementEvaluator.evaluate(user.getId()).eligible();
+    boolean agreementRequired = !agreementFacade.isEligible(user.getId());
     return new AuthResponse(token, isFirstLogin, user.getNickName(), agreementRequired);
   }
 
