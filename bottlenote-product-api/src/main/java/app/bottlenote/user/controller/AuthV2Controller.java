@@ -8,6 +8,7 @@ import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.user.config.OauthConfigProperties;
 import app.bottlenote.user.controller.docs.AuthApiDocs;
+import app.bottlenote.user.dto.request.AgentLoginRequest;
 import app.bottlenote.user.dto.request.AppleLoginRequest;
 import app.bottlenote.user.dto.request.KakaoLoginRequest;
 import app.bottlenote.user.dto.request.TokenVerifyRequest;
@@ -72,7 +73,11 @@ public class AuthV2Controller {
         authService.loginWithApple(appleLoginRequest.idToken(), appleLoginRequest.nonce());
     setRefreshTokenInCookie(response, result.token().refreshToken());
     return ResponseEntity.ok(
-        OauthResponse.of(result.token().accessToken(), result.isFirstLogin(), result.nickname()));
+        OauthResponse.of(
+            result.token().accessToken(),
+            result.isFirstLogin(),
+            result.nickname(),
+            result.agreementRequired()));
   }
 
   /** 카카오 로그인 v2 */
@@ -84,7 +89,27 @@ public class AuthV2Controller {
     AuthResponse result = authService.loginWithKakao(kakaoLoginRequest.accessToken());
     setRefreshTokenInCookie(response, result.token().refreshToken());
     return ResponseEntity.ok(
-        OauthResponse.of(result.token().accessToken(), result.isFirstLogin(), result.nickname()));
+        OauthResponse.of(
+            result.token().accessToken(),
+            result.isFirstLogin(),
+            result.nickname(),
+            result.agreementRequired()));
+  }
+
+  /** 에이전트 키 기반 로그인 */
+  @SecurityPolicy(auth = PUBLIC)
+  @AuthApiDocs.ExecuteAgentLogin
+  @PostMapping("/agent")
+  public ResponseEntity<OauthResponse> executeAgentLogin(
+      @RequestBody @Valid AgentLoginRequest agentLoginRequest, HttpServletResponse response) {
+    AuthResponse result = authService.loginWithAgent(agentLoginRequest.agentKey());
+    setRefreshTokenInCookie(response, result.token().refreshToken());
+    return ResponseEntity.ok(
+        OauthResponse.of(
+            result.token().accessToken(),
+            result.isFirstLogin(),
+            result.nickname(),
+            result.agreementRequired()));
   }
 
   /** 토큰 재발급 */

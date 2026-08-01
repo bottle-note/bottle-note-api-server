@@ -1,26 +1,33 @@
 package app.bottlenote.global.config.jpa;
 
+import app.bottlenote.common.constant.AuditPrincipalType;
+import app.bottlenote.common.domain.AuditPrincipal;
+import app.bottlenote.global.security.CustomAdminUserContext;
+import app.bottlenote.global.security.CustomUserContext;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 
-@Slf4j
-public class AuditorAwareImpl implements AuditorAware<String> {
+public class AuditorAwareImpl implements AuditorAware<AuditPrincipal> {
 
   @Override
-  public Optional<String> getCurrentAuditor() {
-
+  public Optional<AuditPrincipal> getCurrentAuditor() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null || !authentication.isAuthenticated()) {
+      return Optional.empty();
+    }
 
-    if (authentication != null && authentication.isAuthenticated()) {
-      if ("[ROLE_ANONYMOUS]".equals(authentication.getAuthorities().toString())) {
-        return Optional.of("anonymousUser");
-      }
-      UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-      return Optional.ofNullable(userDetails.getUsername());
+    Object principal = authentication.getPrincipal();
+    if (principal instanceof CustomAdminUserContext admin) {
+      return Optional.of(
+          new AuditPrincipal(admin.getId(), AuditPrincipalType.ADMIN, admin.getUsername()));
+    }
+    if (principal instanceof CustomUserContext user) {
+      AuditPrincipalType type =
+          user.getId().equals(-4L) ? AuditPrincipalType.ANONYMOUS : AuditPrincipalType.USER;
+      Long id = type == AuditPrincipalType.ANONYMOUS ? null : user.getId();
+      return Optional.of(new AuditPrincipal(id, type, user.getUsername()));
     }
     return Optional.empty();
   }

@@ -1,9 +1,21 @@
 package app.integration.auth
 
 import app.IntegrationTestSupport
+import app.bottlenote.agent.constant.AgentStatus
+import app.bottlenote.agent.domain.Agent
+import app.bottlenote.agent.domain.AgentRepository
+import app.bottlenote.agent.support.AgentKeyHasher
+import app.bottlenote.common.constant.AuditPrincipalType
 import app.bottlenote.global.annotation.SecurityPolicy.AuthType
 import app.bottlenote.global.security.policy.SecurityPolicyRegistry
 import app.bottlenote.user.constant.AdminRole
+import app.bottlenote.user.constant.SocialType
+import app.bottlenote.user.constant.UserStatus
+import app.bottlenote.user.constant.UserType
+import app.bottlenote.user.domain.AdminUser
+import app.bottlenote.user.domain.AdminUserRepository
+import app.bottlenote.user.domain.User
+import app.bottlenote.user.repository.OauthRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -12,7 +24,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import java.util.UUID
 
 @Tag("admin_integration")
 @DisplayName("[integration] Admin Auth API 통합 테스트")
@@ -20,10 +34,20 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 	@Autowired
 	private lateinit var securityPolicyRegistry: SecurityPolicyRegistry
 
+	@Autowired
+	private lateinit var agentRepository: AgentRepository
+
+	@Autowired
+	private lateinit var adminUserRepository: AdminUserRepository
+
+	@Autowired
+	private lateinit var oauthRepository: OauthRepository
+
 	@ParameterizedTest
 	@CsvSource(
 		"POST, /v1/auth/login, PUBLIC",
 		"POST, /v1/auth/refresh, PUBLIC",
+		"POST, /v1/auth/agent, PUBLIC",
 		"POST, /v1/auth/signup, REQUIRED_AUTH",
 		"DELETE, /v1/auth/withdraw, REQUIRED_AUTH",
 		"GET, /v1/users, REQUIRED_AUTH",
@@ -185,6 +209,282 @@ class AdminAuthIntegrationTest : IntegrationTestSupport() {
 				.bodyJson()
 				.extractingPath("$.success")
 				.isEqualTo(true)
+		}
+	}
+
+	@Nested
+	@DisplayName("에이전트 로그인 API")
+	inner class AgentLoginTest {
+		private fun apiKey(value: Char): String = "bn_agent_" + value.toString().repeat(43)
+
+		private fun saveAgent(
+			rawKey: String,
+			profileCode: String,
+			adminUserId: Long,
+			isActive: Boolean = true,
+			productStatus: UserStatus = UserStatus.ACTIVE
+		): Agent {
+			val productUser = saveProductUser(profileCode, productStatus)
+			return agentRepository.save(
+				Agent.builder()
+					.id(UUID.randomUUID().toString())
+					.profileCode(profileCode)
+					.name("BottleNote Agent $profileCode")
+					.status(if (isActive) AgentStatus.ACTIVE else AgentStatus.INACTIVE)
+					.productUserId(productUser.id)
+					.adminUserId(adminUserId)
+					.apiKeyHash(AgentKeyHasher.validateAndHash(rawKey))
+					.build()
+			)
+		}
+
+		private fun saveAdmin(status: UserStatus = UserStatus.ACTIVE): AdminUser = adminUserRepository.save(
+			AdminUser.builder()
+				.email("agent-admin-${UUID.randomUUID()}@bottlenote.com")
+				.password("encoded")
+				.name("Agent Admin")
+				.roles(listOf(AdminRole.ROOT_ADMIN))
+				.status(status)
+				.build()
+		)
+
+		private fun saveProductUser(profileCode: String, status: UserStatus): User = oauthRepository.save(
+			User.builder()
+				.email("agent-admin-test-$profileCode@bottlenote.com")
+				.nickName("agent_admin_test_$profileCode")
+				.role(UserType.ROLE_USER)
+				.status(status)
+				.socialType(listOf(SocialType.NONE))
+				.build()
+		)
+
+		@Test
+		@DisplayName("활성 에이전트 키로 매핑된 관리자 계정으로 로그인에 성공한다")
+		fun agentLoginSuccess() {
+			// given
+			val rawKey = apiKey('A')
+			val admin = saveAdmin()
+			saveAgent(rawKey, "9101", admin.id)
+
+			val request = mapOf("agentKey" to rawKey)
+
+			// when & then
+			assertThat(
+				mockMvcTester
+					.post()
+					.uri("/v1/auth/agent")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(request))
+			).hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.accessToken")
+				.isNotNull()
+		}
+
+		@Test
+		@DisplayName("에이전트 키가 API Key 형식이 아니면 400을 반환한다")
+		fun agentLoginFailWithMalformedKey() {
+			// given
+			val request = mapOf("agentKey" to "invalid-key")
+
+			// when & then
+			assertThat(
+				mockMvcTester
+					.post()
+					.uri("/v1/auth/agent")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(request))
+			).hasStatus(HttpStatus.BAD_REQUEST)
+		}
+
+		@Test
+		@DisplayName("등록되지 않은 에이전트 키는 401을 반환한다")
+		fun agentLoginFailWithUnknownKey() {
+			// given
+			val request = mapOf("agentKey" to apiKey('B'))
+
+			// when & then
+			assertThat(
+				mockMvcTester
+					.post()
+					.uri("/v1/auth/agent")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(request))
+			).hasStatus(HttpStatus.UNAUTHORIZED)
+		}
+
+		@Test
+		@DisplayName("비활성 에이전트 키는 401을 반환한다")
+		fun agentLoginFailWithInactiveAgent() {
+			// given
+			val rawKey = apiKey('C')
+			val admin = saveAdmin()
+			saveAgent(rawKey, "9102", admin.id, isActive = false)
+
+			val request = mapOf("agentKey" to rawKey)
+
+			// when & then
+			assertThat(
+				mockMvcTester
+					.post()
+					.uri("/v1/auth/agent")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(request))
+			).hasStatus(HttpStatus.UNAUTHORIZED)
+		}
+
+		@Test
+		@DisplayName("Product 계정이 비활성이어도 활성 Admin 계정으로 로그인할 수 있다")
+		fun agentLoginSucceedsWithInactiveProductAccount() {
+			// given
+			val rawKey = apiKey('D')
+			val admin = saveAdmin()
+			saveAgent(rawKey, "9103", admin.id, productStatus = UserStatus.DELETED)
+
+			val request = mapOf("agentKey" to rawKey)
+
+			// when & then
+			assertThat(
+				mockMvcTester
+					.post()
+					.uri("/v1/auth/agent")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(request))
+			).hasStatusOk()
+		}
+
+		@Test
+		@DisplayName("에이전트에 매핑된 관리자 계정이 비활성 상태면 401을 반환한다")
+		fun agentLoginFailWithInactiveAdmin() {
+			// given
+			val rawKey = apiKey('E')
+			val admin = saveAdmin(status = UserStatus.DELETED)
+			saveAgent(rawKey, "9104", admin.id)
+
+			val request = mapOf("agentKey" to rawKey)
+
+			// when & then
+			assertThat(
+				mockMvcTester
+					.post()
+					.uri("/v1/auth/agent")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(request))
+			).hasStatus(HttpStatus.UNAUTHORIZED)
+		}
+
+		@Test
+		@DisplayName("에이전트 로그인으로 발급받은 토큰으로 보호된 관리자 API에 접근할 수 있다")
+		fun agentIssuedTokenAccessesProtectedAdminApi() {
+			// given
+			val rawKey = apiKey('F')
+			val admin = saveAdmin()
+			saveAgent(rawKey, "9105", admin.id)
+
+			val loginResult =
+				mockMvcTester
+					.post()
+					.uri("/v1/auth/agent")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(mapOf("agentKey" to rawKey)))
+					.exchange()
+			val accessToken =
+				mapper.readTree(loginResult.response.contentAsString).path("data").path("accessToken").asText()
+
+			// when & then
+			assertThat(
+				mockMvcTester
+					.get()
+					.uri("/v1/users")
+					.header("Authorization", "Bearer $accessToken")
+			).hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.success")
+				.isEqualTo(true)
+		}
+
+		@Test
+		@DisplayName("에이전트로 재로그인하면 이전 리프레시 토큰은 무효화된다(last-writer-wins)")
+		fun agentReloginInvalidatesPreviousRefreshToken() {
+			// given
+			val rawKey = apiKey('G')
+			val admin = saveAdmin()
+			saveAgent(rawKey, "9106", admin.id)
+
+			val firstLoginResult =
+				mockMvcTester
+					.post()
+					.uri("/v1/auth/agent")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(mapOf("agentKey" to rawKey)))
+					.exchange()
+			val firstRefreshToken =
+				mapper.readTree(firstLoginResult.response.contentAsString).path("data").path("refreshToken").asText()
+
+			// JWT의 iat/exp는 초 단위라 같은 초에 재로그인하면 토큰이 동일해질 수 있어 시간차를 둔다
+			Thread.sleep(1100)
+
+			mockMvcTester
+				.post()
+				.uri("/v1/auth/agent")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsString(mapOf("agentKey" to rawKey)))
+				.exchange()
+
+			// when & then: 이전 refresh token은 더 이상 유효하지 않다
+			assertThat(
+				mockMvcTester
+					.post()
+					.uri("/v1/auth/refresh")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(mapOf("refreshToken" to firstRefreshToken)))
+			).hasStatus4xxClientError()
+		}
+
+		@Test
+		@DisplayName("에이전트 토큰으로 회원가입한 계정의 감사 주체는 기존과 동일하게 ADMIN으로 기록된다")
+		fun agentIssuedTokenSignupAuditsAsAdminPrincipal() {
+			// given
+			val rawKey = apiKey('H')
+			val requester = saveAdmin()
+			saveAgent(rawKey, "9107", requester.id)
+
+			val loginResult =
+				mockMvcTester
+					.post()
+					.uri("/v1/auth/agent")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(mapOf("agentKey" to rawKey)))
+					.exchange()
+			val accessToken =
+				mapper.readTree(loginResult.response.contentAsString).path("data").path("accessToken").asText()
+
+			val newAdminEmail = "agent-signup-${UUID.randomUUID()}@bottlenote.com"
+			val signupRequest =
+				mapOf(
+					"email" to newAdminEmail,
+					"password" to "password123",
+					"name" to "에이전트 발급 관리자",
+					"roles" to listOf("PARTNER")
+				)
+
+			// when
+			assertThat(
+				mockMvcTester
+					.post()
+					.uri("/v1/auth/signup")
+					.header("Authorization", "Bearer $accessToken")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(signupRequest))
+			).hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.success")
+				.isEqualTo(true)
+
+			// then: 감사 주체는 AGENT가 아니라 기존과 동일하게 ADMIN으로 기록된다
+			val createdAdmin = adminUserRepository.findByEmail(newAdminEmail).orElseThrow()
+			assertThat(createdAdmin.createPrincipal.type).isEqualTo(AuditPrincipalType.ADMIN)
+			assertThat(createdAdmin.createPrincipal.id).isEqualTo(requester.id)
 		}
 	}
 

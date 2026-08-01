@@ -1,8 +1,13 @@
 package app.bottlenote.user.service;
 
 import static app.bottlenote.global.security.jwt.JwtTokenValidator.validateToken;
+import static app.bottlenote.user.exception.UserExceptionCode.AGENT_AUTHENTICATION_FAILED;
+import static app.bottlenote.user.exception.UserExceptionCode.AGENT_KEY_INVALID_FORMAT;
 import static app.bottlenote.user.exception.UserExceptionCode.INVALID_REFRESH_TOKEN;
 
+import app.bottlenote.agent.facade.AgentFacade;
+import app.bottlenote.agent.facade.payload.AgentAccountInfo;
+import app.bottlenote.agreement.facade.AgreementFacade;
 import app.bottlenote.global.security.jwt.JwtTokenProvider;
 import app.bottlenote.user.constant.GenderType;
 import app.bottlenote.user.constant.SocialType;
@@ -34,6 +39,8 @@ public class AuthService {
   private final JwtTokenProvider tokenProvider;
   private final AppleAuthService appleAuthService;
   private final KakaoAuthService kakaoAuthService;
+  private final AgreementFacade agreementFacade;
+  private final AgentFacade agentFacade;
   private final SecureRandom randomValue = new SecureRandom();
 
   @Transactional(readOnly = true)
@@ -75,6 +82,31 @@ public class AuthService {
 
     checkActiveUser(user);
     return getAuthResult(user, SocialType.KAKAO);
+  }
+
+  /**
+   * 에이전트 키로 매핑된 계정을 조회해 기존 OAuth와 동일한 토큰을 발급한다. 잘못된 형식, 미등록·비활성 에이전트, 매핑 누락, 비활성 계정을 구분하지 않고 동일한
+   * 401로 응답해 계정 존재 여부를 노출하지 않는다.
+   */
+  @Transactional
+  public AuthResponse loginWithAgent(String rawAgentKey) {
+    AgentAccountInfo agentAccount;
+    try {
+      agentAccount =
+          agentFacade
+              .findActiveAgentAccount(rawAgentKey)
+              .orElseThrow(() -> new UserException(AGENT_AUTHENTICATION_FAILED));
+    } catch (IllegalArgumentException e) {
+      throw new UserException(AGENT_KEY_INVALID_FORMAT);
+    }
+
+    User user =
+        oauthRepository
+            .findById(agentAccount.productUserId())
+            .filter(User::isAlive)
+            .orElseThrow(() -> new UserException(AGENT_AUTHENTICATION_FAILED));
+
+    return issueAuthResponse(user);
   }
 
   /** 리프레시 토큰으로 액세스/리프레시 토큰을 재발급한다. */
@@ -191,11 +223,16 @@ public class AuthService {
 
   private AuthResponse getAuthResult(User user, SocialType socialType) {
     user.addSocialType(socialType);
+    return issueAuthResponse(user);
+  }
+
+  private AuthResponse issueAuthResponse(User user) {
     TokenItem token = tokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
     user.updateRefreshToken(token.refreshToken());
     boolean isFirstLogin = user.isFirstLogin();
     user.updateLastLoginAt(java.time.LocalDateTime.now());
-    return new AuthResponse(token, isFirstLogin, user.getNickName());
+    boolean agreementRequired = !agreementFacade.isEligible(user.getId());
+    return new AuthResponse(token, isFirstLogin, user.getNickName(), agreementRequired);
   }
 
   private GenderType extractGenderFromKakao(KakaoUserResponse.KakaoAccount account) {

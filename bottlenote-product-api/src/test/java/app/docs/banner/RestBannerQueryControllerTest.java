@@ -83,6 +83,7 @@ class RestBannerQueryControllerTest extends AbstractRestDocs {
                 .descriptionB("소개합니다.")
                 .descriptionFontColor("ffffff")
                 .imageUrl("https://cdn.bottle-note.com/banners/partner.jpg")
+                .posterUrl("https://cdn.bottle-note.com/banners/partner-poster.jpg")
                 .textPosition(TextPosition.RT)
                 .targetUrl("/partners/brand-abc")
                 .isExternalUrl(false)
@@ -117,6 +118,7 @@ class RestBannerQueryControllerTest extends AbstractRestDocs {
                     fieldWithPath("data[].descriptionB").description("배너 설명 파트 B").optional(),
                     fieldWithPath("data[].descriptionFontColor").description("배너 설명 텍스트 색상 (HEX)"),
                     fieldWithPath("data[].imageUrl").description("배너 이미지 URL"),
+                    fieldWithPath("data[].posterUrl").description("동영상 배너 대표 이미지 URL").optional(),
                     fieldWithPath("data[].textPosition").description("텍스트 위치 (하단 TextPosition 참조)"),
                     fieldWithPath("data[].targetUrl").description("클릭 시 이동할 URL").optional(),
                     fieldWithPath("data[].isExternalUrl")

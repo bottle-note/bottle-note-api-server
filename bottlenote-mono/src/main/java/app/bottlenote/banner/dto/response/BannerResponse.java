@@ -22,6 +22,7 @@ public class BannerResponse {
   private String descriptionB;
   private String descriptionFontColor;
   private String imageUrl;
+  private String posterUrl;
   private TextPosition textPosition;
   private String targetUrl;
   private Boolean isExternalUrl;

@@ -2,8 +2,10 @@ package app.bottlenote.global.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -18,7 +20,11 @@ class OpenApiDocsIntegrationTest extends OpenApiSpecTestSupport {
    * <p>이 목록은 예외를 허용하기 위한 것이 아니라 예외를 고정하기 위한 것이다. 여기 없는 엔드포인트가 공통 형식을 벗어나면 아래 검사가 실패한다.
    */
   private static final Set<String> BARE_RESPONSE_OPERATIONS =
-      Set.of("GET /api/v2/auth/apple/nonce", "POST /api/v2/auth/apple", "POST /api/v2/auth/kakao");
+      Set.of(
+          "GET /api/v2/auth/apple/nonce",
+          "POST /api/v2/auth/apple",
+          "POST /api/v2/auth/kakao",
+          "POST /api/v2/auth/agent");
 
   private static final List<String> ENVELOPE_FIELDS =
       List.of("success", "code", "data", "errors", "meta");
@@ -82,6 +88,90 @@ class OpenApiDocsIntegrationTest extends OpenApiSpecTestSupport {
                   .isTrue();
               assertThat(propertyNamesOf(schema)).doesNotContainAnyElementsOf(ENVELOPE_FIELDS);
             });
+  }
+
+  @Test
+  @DisplayName("소셜 로그인은 동의 필요 힌트를 포함한 exact field 응답을 문서화한다")
+  void 소셜_로그인은_동의_필요_힌트를_포함한_exact_field_응답을_문서화한다() {
+    JsonNode spec = fetchSpec();
+    var loginOperations =
+        operationsOf(spec).stream()
+            .filter(
+                operation ->
+                    Set.of("POST /api/v2/auth/apple", "POST /api/v2/auth/kakao")
+                        .contains(operation.endpoint()))
+            .toList();
+
+    assertThat(loginOperations).hasSize(2);
+    assertThat(loginOperations)
+        .allSatisfy(
+            operation -> {
+              JsonNode responseSchema = resolveSchema(spec, operation.successSchema());
+              assertThat(propertyNamesOf(responseSchema))
+                  .containsExactlyInAnyOrder(
+                      "accessToken", "isFirstLogin", "nickname", "agreementRequired");
+              assertThat(
+                      responseSchema
+                          .path("properties")
+                          .path("agreementRequired")
+                          .path("type")
+                          .asText())
+                  .isEqualTo("boolean");
+            });
+  }
+
+  @Test
+  @DisplayName("동의 조회와 제출은 같은 exact field 응답을 문서화한다")
+  void 동의_API는_같은_exact_field_응답을_문서화한다() {
+    JsonNode spec = fetchSpec();
+    var agreementOperations =
+        operationsOf(spec).stream()
+            .filter(
+                operation ->
+                    Set.of("GET /api/v2/agreements/status", "POST /api/v2/agreements")
+                        .contains(operation.endpoint()))
+            .toList();
+
+    assertThat(agreementOperations).hasSize(2);
+    assertThat(agreementOperations)
+        .allSatisfy(
+            operation -> {
+              JsonNode statusSchema =
+                  resolveSchema(spec, operation.successSchema().path("properties").path("data"));
+              assertThat(propertyNamesOf(statusSchema))
+                  .containsExactlyInAnyOrder("eligible", "items");
+
+              JsonNode itemSchema =
+                  resolveSchema(spec, statusSchema.path("properties").path("items").path("items"));
+              assertThat(propertyNamesOf(itemSchema))
+                  .containsExactlyInAnyOrder("type", "required", "agreed");
+            });
+
+    var submitOperation =
+        agreementOperations.stream()
+            .filter(operation -> operation.endpoint().startsWith("POST "))
+            .findFirst()
+            .orElseThrow();
+    JsonNode requestSchema =
+        resolveSchema(
+            spec, submitOperation.definition().at("/requestBody/content/application~1json/schema"));
+    assertThat(propertyNamesOf(requestSchema)).containsExactly("agreements");
+    assertThat(textValuesOf(requestSchema.path("required"))).containsExactly("agreements");
+    JsonNode requestItemSchema =
+        resolveSchema(spec, requestSchema.path("properties").path("agreements").path("items"));
+    assertThat(propertyNamesOf(requestItemSchema))
+        .containsExactlyInAnyOrder("type", "action", "content", "inputContext");
+    assertThat(textValuesOf(requestItemSchema.path("required")))
+        .containsExactlyInAnyOrder("type", "action", "content", "inputContext");
+  }
+
+  private JsonNode resolveSchema(JsonNode spec, JsonNode schema) {
+    String ref = schema.path("$ref").asText();
+    return ref.startsWith("#/") ? spec.at(ref.substring(1)) : schema;
+  }
+
+  private List<String> textValuesOf(JsonNode array) {
+    return StreamSupport.stream(array.spliterator(), false).map(JsonNode::asText).toList();
   }
 
   private boolean isBare(SpecOperation operation) {

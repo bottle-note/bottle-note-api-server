@@ -13,6 +13,7 @@ public record AdminBannerDetailResponse(
     String descriptionB,
     String descriptionFontColor,
     String imageUrl,
+    String posterUrl,
     TextPosition textPosition,
     Boolean isExternalUrl,
     String targetUrl,

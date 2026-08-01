@@ -6,6 +6,7 @@ import app.bottlenote.global.annotation.SecurityPolicy.AuthType.PUBLIC
 import app.bottlenote.global.data.response.GlobalResponse
 import app.bottlenote.global.security.SecurityContextUtil
 import app.bottlenote.user.dto.request.AdminSignupRequest
+import app.bottlenote.user.dto.request.AgentLoginRequest
 import app.bottlenote.user.dto.response.TokenItem
 import app.bottlenote.user.exception.UserException
 import app.bottlenote.user.exception.UserExceptionCode
@@ -50,6 +51,13 @@ class AuthController(
 	@PostMapping("/refresh")
 	fun refresh(@RequestBody request: RefreshRequest): ResponseEntity<*> {
 		val tokenItem: TokenItem = authService.refresh(request.refreshToken)
+		return GlobalResponse.ok(tokenItem)
+	}
+
+	@SecurityPolicy(auth = PUBLIC)
+	@PostMapping("/agent")
+	fun loginWithAgent(@RequestBody @Valid request: AgentLoginRequest): ResponseEntity<*> {
+		val tokenItem: TokenItem = authService.loginWithAgent(request.agentKey())
 		return GlobalResponse.ok(tokenItem)
 	}
 

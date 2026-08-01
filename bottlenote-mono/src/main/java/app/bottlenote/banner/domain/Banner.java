@@ -59,6 +59,10 @@ public class Banner extends BaseEntity {
   @Column(name = "image_url", nullable = false)
   private String imageUrl;
 
+  @Comment("동영상 배너 대표 이미지 URL")
+  @Column(name = "poster_url", length = 500)
+  private String posterUrl;
+
   @Comment("텍스트 위치")
   @Column(name = "text_position", nullable = false)
   @Enumerated(EnumType.STRING)
@@ -110,6 +114,7 @@ public class Banner extends BaseEntity {
       String descriptionB,
       String descriptionFontColor,
       String imageUrl,
+      String posterUrl,
       TextPosition textPosition,
       Boolean isExternalUrl,
       String targetUrl,
@@ -125,6 +130,7 @@ public class Banner extends BaseEntity {
     this.descriptionB = descriptionB;
     this.descriptionFontColor = descriptionFontColor;
     this.imageUrl = imageUrl;
+    this.posterUrl = posterUrl;
     this.textPosition = textPosition;
     this.isExternalUrl = isExternalUrl;
     this.targetUrl = targetUrl;

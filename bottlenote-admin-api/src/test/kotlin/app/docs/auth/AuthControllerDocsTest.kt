@@ -99,6 +99,45 @@ class AuthControllerDocsTest {
 	}
 
 	@Test
+	@DisplayName("에이전트 로그인")
+	fun agent() {
+		// given
+		val tokenItem = AuthHelper.createTokenItem()
+		given(authService.loginWithAgent(anyString())).willReturn(tokenItem)
+
+		val request = mapOf("agentKey" to ("bn_agent_" + "A".repeat(43)))
+
+		// when & then
+		assertThat(
+			mvc.post().uri("/v1/auth/agent")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(request))
+		)
+			.hasStatusOk()
+			.apply(
+				document(
+					"admin/auth/agent",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					requestFields(
+						fieldWithPath("agentKey").type(JsonFieldType.STRING).description("에이전트 비밀 API Key")
+					),
+					responseFields(
+						fieldWithPath("success").type(JsonFieldType.BOOLEAN).description("응답 성공 여부"),
+						fieldWithPath("code").type(JsonFieldType.NUMBER).description("응답 코드"),
+						fieldWithPath("data.accessToken").type(JsonFieldType.STRING).description("액세스 토큰"),
+						fieldWithPath("data.refreshToken").type(JsonFieldType.STRING).description("리프레시 토큰"),
+						fieldWithPath("errors").type(JsonFieldType.ARRAY).description("에러 목록"),
+						fieldWithPath("meta.serverVersion").type(JsonFieldType.STRING).ignored(),
+						fieldWithPath("meta.serverEncoding").type(JsonFieldType.STRING).ignored(),
+						fieldWithPath("meta.serverResponseTime").type(JsonFieldType.STRING).ignored(),
+						fieldWithPath("meta.serverPathVersion").type(JsonFieldType.STRING).ignored()
+					)
+				)
+			)
+	}
+
+	@Test
 	@DisplayName("토큰 갱신")
 	fun refresh() {
 		// given

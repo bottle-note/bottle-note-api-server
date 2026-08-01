@@ -75,6 +75,13 @@ public enum ValidExceptionCode implements ExceptionCode {
   AGE_MINIMUM(HttpStatus.BAD_REQUEST, "나이는 0 이상 이어야 합니다."),
   EMAIL_NOT_BLANK(HttpStatus.BAD_REQUEST, "이메일은 필수입니다."),
 
+  // AGREEMENT
+  AGREEMENTS_REQUIRED(HttpStatus.BAD_REQUEST, "동의 항목은 최소 1개 이상이어야 합니다."),
+  AGREEMENT_TYPE_REQUIRED(HttpStatus.BAD_REQUEST, "동의 유형은 필수입니다."),
+  AGREEMENT_ACTION_REQUIRED(HttpStatus.BAD_REQUEST, "동의 의사표시는 필수입니다."),
+  AGREEMENT_CONTENT_EMPTY(HttpStatus.BAD_REQUEST, "동의 문서 원문은 비어 있을 수 없습니다."),
+  AGREEMENT_INPUT_CONTEXT_REQUIRED(HttpStatus.BAD_REQUEST, "동의 선택 맥락은 필수입니다."),
+
   // REPORT,
   REPORT_TARGET_USER_ID_REQUIRED(HttpStatus.BAD_REQUEST, "신고 대상자 아이디는 필수입니다."),
   REPORT_TARGET_REVIEW_ID_REQUIRED(HttpStatus.BAD_REQUEST, "신고 대상 리뷰 아이디는 필수입니다."),
@@ -116,7 +123,10 @@ public enum ValidExceptionCode implements ExceptionCode {
   REGION_KOR_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "지역 한글명은 필수입니다."),
   REGION_ENG_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "지역 영문명은 필수입니다."),
   REGION_SORT_ORDER_REQUIRED(HttpStatus.BAD_REQUEST, "정렬 순서는 필수입니다."),
-  REGION_SORT_ORDER_MINIMUM(HttpStatus.BAD_REQUEST, "정렬 순서는 0 이상이어야 합니다.");
+  REGION_SORT_ORDER_MINIMUM(HttpStatus.BAD_REQUEST, "정렬 순서는 0 이상이어야 합니다."),
+
+  // AGENT
+  AGENT_KEY_REQUIRED(HttpStatus.BAD_REQUEST, "에이전트 키는 필수입니다.");
 
   private final HttpStatus httpStatus;
   private String message;

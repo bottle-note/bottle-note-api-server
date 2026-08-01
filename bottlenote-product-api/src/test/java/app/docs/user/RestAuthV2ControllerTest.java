@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bottlenote.global.security.SecurityContextUtil;
@@ -126,7 +127,7 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
     TokenItem tokenItem =
         TokenItem.builder().accessToken(accessToken).refreshToken(refreshToken).build();
 
-    AuthResponse authResult = new AuthResponse(tokenItem, true, "부드러운몰트1234");
+    AuthResponse authResult = new AuthResponse(tokenItem, true, "부드러운몰트1234", true);
 
     when(authService.loginWithApple(anyString(), anyString())).thenReturn(authResult);
 
@@ -142,6 +143,8 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
                 .content(new ObjectMapper().writeValueAsString(request))
                 .with(csrf()))
         .andExpect(status().isOk())
+        .andExpect(cookie().value("refresh-token", refreshToken))
+        .andExpect(jsonPath("$.agreementRequired").value(true))
         .andDo(
             document(
                 "auth/apple/login",
@@ -155,7 +158,8 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
                         .optional(),
                     fieldWithPath("nickname")
                         .description("사용자 닉네임 (최초 로그인 시 자동 생성된 닉네임)")
-                        .optional())));
+                        .optional(),
+                    fieldWithPath("agreementRequired").description("필수 동의가 필요하면 true"))));
   }
 
   @Test
@@ -170,7 +174,7 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
     TokenItem tokenItem =
         TokenItem.builder().accessToken(accessToken).refreshToken(refreshToken).build();
 
-    AuthResponse authResult = new AuthResponse(tokenItem, true, "부드러운몰트1234");
+    AuthResponse authResult = new AuthResponse(tokenItem, true, "부드러운몰트1234", true);
 
     when(authService.loginWithKakao(anyString())).thenReturn(authResult);
 
@@ -185,6 +189,8 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
                 .content(new ObjectMapper().writeValueAsString(request))
                 .with(csrf()))
         .andExpect(status().isOk())
+        .andExpect(cookie().value("refresh-token", refreshToken))
+        .andExpect(jsonPath("$.agreementRequired").value(true))
         .andDo(
             document(
                 "auth/kakao/login",
@@ -196,7 +202,49 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
                         .optional(),
                     fieldWithPath("nickname")
                         .description("사용자 닉네임 (최초 로그인 시 자동 생성된 닉네임)")
-                        .optional())));
+                        .optional(),
+                    fieldWithPath("agreementRequired").description("필수 동의가 필요하면 true"))));
+  }
+
+  @Test
+  @DisplayName("에이전트 키로 로그인을 수행합니다.")
+  void executeAgentLogin_test() throws Exception {
+
+    // given
+    String agentKey = "bn_agent_" + "A".repeat(43);
+    String accessToken = "test-access-token";
+    String refreshToken = "test-refresh-token";
+
+    TokenItem tokenItem =
+        TokenItem.builder().accessToken(accessToken).refreshToken(refreshToken).build();
+
+    AuthResponse authResult = new AuthResponse(tokenItem, false, "agent_user_0001", true);
+
+    when(authService.loginWithAgent(anyString())).thenReturn(authResult);
+
+    Map<String, String> request = new HashMap<>();
+    request.put("agentKey", agentKey);
+
+    // then
+    mockMvc
+        .perform(
+            post("/api/v2/auth/agent")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(request))
+                .with(csrf()))
+        .andExpect(status().isOk())
+        .andExpect(cookie().exists("refresh-token"))
+        .andDo(
+            document(
+                "auth/agent/login",
+                requestFields(fieldWithPath("agentKey").description("발급받은 에이전트 비밀 API Key")),
+                responseFields(
+                    fieldWithPath("accessToken").description("발급된 액세스 토큰"),
+                    fieldWithPath("isFirstLogin")
+                        .description("최초 로그인 여부 (true: 최초 로그인, false: 기존 사용자)")
+                        .optional(),
+                    fieldWithPath("nickname").description("사용자 닉네임").optional(),
+                    fieldWithPath("agreementRequired").description("필수 동의가 필요하면 true"))));
   }
 
   @Test
@@ -235,6 +283,10 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
                     fieldWithPath("data.nickname")
                         .type(JsonFieldType.STRING)
                         .description("사용자 닉네임 (재발급 시에는 내려가지 않음)")
+                        .optional(),
+                    fieldWithPath("data.agreementRequired")
+                        .type(JsonFieldType.BOOLEAN)
+                        .description("필수 동의 필요 여부 (재발급 시에는 내려가지 않음)")
                         .optional(),
                     fieldWithPath("errors")
                         .type(JsonFieldType.ARRAY)
