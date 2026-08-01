@@ -94,7 +94,7 @@
 - Files (advisory): `AgreementController`, `AgreementApiDocs`, Controller 통합 테스트, RestDocs 테스트
 - Depends: Task 4
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 6: 로그인 판정 힌트
 - Acceptance: AuthService가 기존 JWT 발급 이후 같은 `AgreementEvaluator`로 판정한 `agreementRequired = !eligible`을 AuthResponse에 담는다. Apple/Kakao 모두 같은 경로를 사용하고 기존 JWT·refresh cookie·최초 로그인 판정은 유지된다.
@@ -124,3 +124,4 @@
 - 2026-08-01: Task 2 완료. test-support에 append-only `InMemoryUserAgreementRepository`를 추가하고 단조 증가 ID와 `recordedAt DESC, id DESC` 최신 조회를 구현했다. append-only·재저장 거부·최신 시각·동률 ID·사용자/유형 격리 단위 테스트 5개와 test-support 컴파일, 전체 `check_rule_test`가 통과했다. self-review는 Critical 0건, Important 1건(동일 객체 재저장 시 기존 이력 ID 훼손 가능성)을 재저장 거부로 해소했다.
 - 2026-08-01: Task 3 완료. 두 필수 유형의 `required`와 `effective-from` 환경 설정, 최신 이벤트 기반 `AgreementEvaluator`, status API와 login hint가 공유할 불변 평가 결과를 추가했다. 이력 없음·유효 동의·철회·기준 시각 이전·재동의·동률 ID·선택 정책 7개 분기와 설정 기본값·override 바인딩 2개를 검증했고, 전체 unit/compile 및 `check_rule_test`가 통과했다. self-review는 Critical 0건, Important 2건(`@Service` 규칙 부적합, 응답 DTO 접미사 부적합)을 각각 정책 `@Component`와 domain record로 해소했다.
 - 2026-08-01: Task 4 완료. 인증 사용자 기준 상태 조회와 append-only 제출 서비스를 추가하고, 항목별 AGREE/REVOKE·원문·INDIVIDUAL/BULK 맥락·IP·User-Agent 및 주입된 `Clock`의 서버 시각을 저장한 뒤 같은 Evaluator 결과를 반환하도록 했다. 서비스 단위 테스트 7개와 전체 unit 538개, Java/Kotlin 컴파일, `check_rule_test`, 테스트 제외 전체 build가 통과했다. self-review는 Critical 0건, Important 2건(메서드별 트랜잭션 명시, 허용 DTO 패키지 위반)을 각각 읽기 트랜잭션 선언과 domain submission record로 해소했다.
+- 2026-08-01: Task 5 완료. 일반 인증이 필요한 `GET /api/v2/agreements/status`와 `POST /api/v2/agreements`를 추가하고, 요청 `agreements[]`를 `AgreementSubmission`으로 변환해 신뢰된 XFF 기반 IP와 User-Agent를 서비스에 전달했다. Controller 통합 테스트 7개, OpenAPI 회귀 테스트 14개, RestDocs 테스트 2개와 product/root ArchUnit 검증이 통과했으며 두 API의 `eligible`, `items[{type, required, agreed}]` exact field와 제출 요청 exact field를 고정했다. self-review는 Critical 0건, Important 4건(인증 주체 주입 불일치, 문서 테스트 Mock 사용, OpenAPI nested Item 충돌, 알 수 없는 type 예외 코드)을 기존 `SecurityContextUtil`, InMemory 기반 실제 서비스, 고유 schema 이름, `INVALID_AGREEMENT_TYPE` 매핑으로 모두 해소했다.
