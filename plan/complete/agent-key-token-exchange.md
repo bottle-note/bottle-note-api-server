@@ -2,7 +2,7 @@
 
 ## Status
 
-- 상태: 재개봉 — API Key 형식 전환 진행 중
+- 상태: 완료
 - 시작일: 2026-08-01
 - 관련 이슈: `bottle-note/workspace#340`
 
@@ -52,9 +52,9 @@
 
 ### Task 5. 비밀 자격증명을 API Key 형식으로 전환
 
-- [ ] 기존 UUID 비밀 키 6개를 폐기하고 `bn_agent_<base64url>` 키 6개와 SHA-256 시드 해시를 생성한다.
-- [ ] 서버 형식 검증과 Product/Admin 테스트·문서를 새 API Key 계약으로 변경한다.
-- [ ] V6·전체 로컬 CI·PR CI와 원문 키 미노출을 다시 검증한다.
+- [x] 기존 UUID 비밀 키 6개를 폐기하고 `bn_agent_<base64url>` 키 6개와 SHA-256 시드 해시를 생성한다.
+- [x] 서버 형식 검증과 Product/Admin 테스트·문서를 새 API Key 계약으로 변경한다.
+- [x] V6·targeted 로컬 검증·PR CI와 원문 키 미노출을 다시 검증한다.
 
 ## Progress Log
 
@@ -65,3 +65,5 @@
 - 2026-08-01: 전체 CI에서 발견된 OpenAPI bare-response 목록 누락 1건을 수정하고 unit 531, rule 63, Product integration 277, Admin integration 220, admin test 74, RestDocs 138개를 실패 0건으로 통과했다.
 - 2026-08-01: 환경변수 PR #6, 백엔드 PR #688, workspace 이슈 #340을 상호 연결하고 작업을 완료했다.
 - 2026-08-01: 사용자 결정으로 UUID 비밀 키를 `bn_agent_<43자 base64url>` API Key로 교체하기 위해 계획을 재개봉했다.
+- 2026-08-01: 새 키 6개와 V6 해시의 6/6 대응, 중복 0건, 추적 파일 원문 노출 0건을 확인했다.
+- 2026-08-01: 로컬 Docker 전체 CI 대신 PR #688 CI에서 compile, unit, rule, Product/Admin integration, 최종 build와 JUnit report가 모두 성공한 것을 확인하고 API Key 전환을 완료했다.
