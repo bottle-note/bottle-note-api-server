@@ -6,6 +6,13 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import app.bottlenote.agreement.config.AgreementPolicyProperties;
+import app.bottlenote.agreement.constant.AgreementAction;
+import app.bottlenote.agreement.constant.AgreementInputContext;
+import app.bottlenote.agreement.constant.AgreementType;
+import app.bottlenote.agreement.domain.UserAgreement;
+import app.bottlenote.agreement.fixture.InMemoryUserAgreementRepository;
+import app.bottlenote.agreement.service.AgreementEvaluator;
 import app.bottlenote.global.security.jwt.JwtTokenValidator;
 import app.bottlenote.user.constant.GenderType;
 import app.bottlenote.user.constant.SocialType;
@@ -40,6 +47,7 @@ class AuthServiceTest {
   private RootAdminRepository rootAdminRepository;
   private AppleAuthService appleAuthService;
   private KakaoAuthService kakaoAuthService;
+  private InMemoryUserAgreementRepository agreementRepository;
 
   @BeforeEach
   void setUp() throws Exception {
@@ -50,6 +58,9 @@ class AuthServiceTest {
     rootAdminRepository = mock(RootAdminRepository.class);
     appleAuthService = mock(AppleAuthService.class);
     kakaoAuthService = mock(KakaoAuthService.class);
+    agreementRepository = new InMemoryUserAgreementRepository();
+    AgreementEvaluator agreementEvaluator =
+        new AgreementEvaluator(agreementRepository, new AgreementPolicyProperties());
 
     authService =
         new AuthService(
@@ -57,7 +68,8 @@ class AuthServiceTest {
             oauthRepository,
             jwtTokenProvider,
             appleAuthService,
-            kakaoAuthService);
+            kakaoAuthService,
+            agreementEvaluator);
 
     oauthRepository.clear();
   }
@@ -105,6 +117,7 @@ class AuthServiceTest {
     assertThat(result.token().accessToken()).isNotNull();
     assertThat(result.token().refreshToken()).isNotNull();
     assertThat(result.nickname()).isNotNull();
+    assertThat(result.agreementRequired()).isTrue();
   }
 
   @Test
@@ -160,6 +173,63 @@ class AuthServiceTest {
     assertThat(result.token().accessToken()).isNotNull();
     assertThat(result.token().refreshToken()).isNotNull();
     assertThat(result.nickname()).isNotNull();
+    assertThat(result.agreementRequired()).isTrue();
+  }
+
+  @Test
+  @DisplayName("동의 충족 사용자가 카카오로 로그인하면 동의 필요 힌트를 false로 반환한다")
+  void loginWithKakao_whenEligible_returnsAgreementRequiredFalse() {
+    // given
+    saveRequiredAgreements(1L);
+    KakaoUserResponse.KakaoAccount kakaoAccount =
+        new KakaoUserResponse.KakaoAccount(
+            false,
+            null,
+            false,
+            null,
+            false,
+            "eligible@kakao.com",
+            true,
+            true,
+            false,
+            "20~29",
+            false,
+            "female");
+    KakaoUserResponse kakaoUser =
+        new KakaoUserResponse(111111111L, LocalDateTime.now(), kakaoAccount);
+    when(kakaoAuthService.getUserInfo(anyString())).thenReturn(kakaoUser);
+
+    // when
+    AuthResponse result = authService.loginWithKakao("valid-kakao-token");
+
+    // then
+    assertThat(result.agreementRequired()).isFalse();
+    assertThat(result.token().accessToken()).isNotBlank();
+    assertThat(result.token().refreshToken()).isNotBlank();
+    assertThat(result.isFirstLogin()).isTrue();
+    assertThat(result.nickname()).isNotBlank();
+    assertThat(oauthRepository.findByEmail("eligible@kakao.com").orElseThrow().getRefreshToken())
+        .isEqualTo(result.token().refreshToken());
+  }
+
+  @Test
+  @DisplayName("동의 미충족 사용자가 애플로 로그인하면 동의 필요 힌트를 true로 반환한다")
+  void loginWithApple_whenNotEligible_returnsAgreementRequiredTrue() {
+    // given
+    saveAgreement(1L, AgreementType.TERMS_OF_SERVICE);
+    AppleAuthService.AppleUserInfo appleUserInfo =
+        new AppleAuthService.AppleUserInfo("apple-ineligible", "ineligible@apple.com");
+    when(appleAuthService.validateAndGetUserInfo(anyString(), anyString()))
+        .thenReturn(appleUserInfo);
+
+    // when
+    AuthResponse result = authService.loginWithApple("valid-id-token", "valid-nonce");
+
+    // then
+    assertThat(result.agreementRequired()).isTrue();
+    assertThat(result.token().accessToken()).isNotBlank();
+    assertThat(result.token().refreshToken()).isNotBlank();
+    assertThat(result.isFirstLogin()).isTrue();
   }
 
   @Test
@@ -316,5 +386,23 @@ class AuthServiceTest {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private void saveRequiredAgreements(Long userId) {
+    saveAgreement(userId, AgreementType.TERMS_OF_SERVICE);
+    saveAgreement(userId, AgreementType.PRIVACY_COLLECTION_USE);
+  }
+
+  private void saveAgreement(Long userId, AgreementType type) {
+    agreementRepository.save(
+        UserAgreement.create(
+            userId,
+            type,
+            AgreementAction.AGREE,
+            "document",
+            LocalDateTime.of(2026, 8, 1, 0, 0),
+            AgreementInputContext.INDIVIDUAL,
+            "127.0.0.1",
+            "test-agent"));
   }
 }

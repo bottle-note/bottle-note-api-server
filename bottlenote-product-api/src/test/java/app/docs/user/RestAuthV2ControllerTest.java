@@ -126,7 +126,7 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
     TokenItem tokenItem =
         TokenItem.builder().accessToken(accessToken).refreshToken(refreshToken).build();
 
-    AuthResponse authResult = new AuthResponse(tokenItem, true, "부드러운몰트1234");
+    AuthResponse authResult = new AuthResponse(tokenItem, true, "부드러운몰트1234", true);
 
     when(authService.loginWithApple(anyString(), anyString())).thenReturn(authResult);
 
@@ -142,6 +142,7 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
                 .content(new ObjectMapper().writeValueAsString(request))
                 .with(csrf()))
         .andExpect(status().isOk())
+        .andExpect(cookie().value("refresh-token", refreshToken))
         .andDo(
             document(
                 "auth/apple/login",
@@ -170,7 +171,7 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
     TokenItem tokenItem =
         TokenItem.builder().accessToken(accessToken).refreshToken(refreshToken).build();
 
-    AuthResponse authResult = new AuthResponse(tokenItem, true, "부드러운몰트1234");
+    AuthResponse authResult = new AuthResponse(tokenItem, true, "부드러운몰트1234", true);
 
     when(authService.loginWithKakao(anyString())).thenReturn(authResult);
 
@@ -185,6 +186,7 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
                 .content(new ObjectMapper().writeValueAsString(request))
                 .with(csrf()))
         .andExpect(status().isOk())
+        .andExpect(cookie().value("refresh-token", refreshToken))
         .andDo(
             document(
                 "auth/kakao/login",
