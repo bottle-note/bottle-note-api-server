@@ -14,9 +14,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 public class InMemoryUserAgreementRepository implements UserAgreementRepository {
 
   private static final Comparator<UserAgreement> LATEST_FIRST =
-      Comparator.comparing(UserAgreement::getRecordedAt)
-          .thenComparing(UserAgreement::getId)
-          .reversed();
+      Comparator.comparing(UserAgreement::getId).reversed();
 
   private final AtomicLong idGenerator = new AtomicLong(1L);
   private final List<UserAgreement> database = new ArrayList<>();
@@ -33,7 +31,7 @@ public class InMemoryUserAgreementRepository implements UserAgreementRepository 
   }
 
   @Override
-  public Optional<UserAgreement> findFirstByUserIdAndAgreementTypeOrderByRecordedAtDescIdDesc(
+  public Optional<UserAgreement> findFirstByUserIdAndAgreementTypeOrderByIdDesc(
       Long userId, AgreementType agreementType) {
     return database.stream()
         .filter(userAgreement -> userAgreement.getUserId().equals(userId))

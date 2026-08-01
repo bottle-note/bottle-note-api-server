@@ -9,6 +9,6 @@ public interface UserAgreementRepository {
 
   UserAgreement save(UserAgreement userAgreement);
 
-  Optional<UserAgreement> findFirstByUserIdAndAgreementTypeOrderByRecordedAtDescIdDesc(
+  Optional<UserAgreement> findFirstByUserIdAndAgreementTypeOrderByIdDesc(
       Long userId, AgreementType agreementType);
 }

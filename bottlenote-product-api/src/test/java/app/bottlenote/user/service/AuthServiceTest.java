@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import app.bottlenote.agreement.config.AgreementPolicyProperties;
 import app.bottlenote.agreement.constant.AgreementAction;
 import app.bottlenote.agreement.constant.AgreementInputContext;
 import app.bottlenote.agreement.constant.AgreementType;
@@ -60,8 +59,7 @@ class AuthServiceTest {
     appleAuthService = mock(AppleAuthService.class);
     kakaoAuthService = mock(KakaoAuthService.class);
     agreementRepository = new InMemoryUserAgreementRepository();
-    AgreementEvaluator agreementEvaluator =
-        new AgreementEvaluator(agreementRepository, new AgreementPolicyProperties());
+    AgreementEvaluator agreementEvaluator = new AgreementEvaluator(agreementRepository);
     DefaultAgreementFacade agreementFacade = new DefaultAgreementFacade(agreementEvaluator);
 
     authService =

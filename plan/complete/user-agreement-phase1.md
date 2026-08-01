@@ -5,32 +5,31 @@ Completion Date: 2026-08-01
 
 ## Overview
 
-인증된 사용자의 약관 동의 이력을 append-only로 기록하고, 요청 시점의 정책 기준에 따라 동의 충족 여부를 하나의 Evaluator가 판정한다. Product API는 동의 상태 조회와 제출 기능을 제공하며, 소셜 로그인 응답에는 같은 판정 결과로 계산한 `agreementRequired` 힌트를 포함한다. 이번 범위에서는 보호 API를 차단하거나 403 응답을 자동 생성하지 않는다.
+인증된 사용자의 약관 동의 이력을 append-only로 기록하고, 유형별 가장 큰 이력 ID의 action으로 동의 충족 여부를 하나의 Evaluator가 판정한다. Product API는 동의 상태 조회와 제출 기능을 제공하며, 소셜 로그인 응답에는 같은 판정 결과로 계산한 `agreementRequired` 힌트를 포함한다. 이번 범위에서는 보호 API를 차단하거나 403 응답을 자동 생성하지 않는다.
 
 ### Assumptions
 
 1. 대상은 product-api의 사용자 인증 흐름이며 admin-api용 동의 API는 추가하지 않는다.
 2. 필수 동의 유형은 `TERMS_OF_SERVICE`, `PRIVACY_COLLECTION_USE` 두 종류다.
-3. 유형별 `effective-from`은 해당 시각 이후 기록된 동의만 유효하게 인정하는 정책 기준이다.
-4. 필수 유형의 최신 기록이 `AGREE`이고 `recorded_at >= effective-from`일 때만 해당 유형을 충족한다.
-5. 최신 기록이 `REVOKE`라면 `effective-from` 전후와 관계없이 해당 유형은 미충족이다.
+3. 유형별 최신 이력은 DB가 부여한 더 큰 `id`로 판정한다.
+4. 최신 기록이 `AGREE`일 때만 해당 유형을 충족한다.
+5. 이력이 없거나 최신 기록이 `REVOKE`이면 해당 유형은 미충족이다.
 6. 동의 이력은 UPDATE/DELETE 없이 AGREE/REVOKE 이벤트를 계속 추가한다.
 7. 로그인 응답의 `agreementRequired`는 Evaluator의 `eligible`을 반전한 힌트이며 접근 제어 근거가 아니다.
 8. AgreementGate, 면제 어노테이션, 보호 API의 403 자동 응답은 이번 범위에서 제외한다.
 9. API 경로는 `GET /api/v2/agreements/status`, `POST /api/v2/agreements`이며 두 API 모두 일반 인증이 필요하다.
 10. 제출 본문의 `content`는 클라이언트가 실제 표시한 원문이며 서버는 이를 그대로 저장한다. `user_id`와 `recorded_at`은 각각 인증 주체와 서버 시각에서 얻는다.
 11. `inputContext`는 항목별 선택인 `INDIVIDUAL`과 전체 선택인 `BULK`만 허용한다.
-12. 최초 `effective-from`은 두 필수 유형 모두 `2026-08-01T00:00:00`으로 두고 환경변수로 변경할 수 있게 한다.
-13. 동일한 `recorded_at` 이벤트가 있으면 더 큰 `id`를 최신 이벤트로 판정한다.
+12. 두 동의 유형은 모두 필수이며 별도의 YAML 정책이나 기간 계산을 두지 않는다.
 
 ### Success Criteria
 
 1. 인증된 사용자가 동의 상태를 조회하고 동의 또는 철회를 제출할 수 있다.
 2. 동의 제출과 상태 조회는 동일한 상태 응답 스키마를 사용한다.
-3. 필수 유형별 최신 이벤트가 모두 유효한 AGREE일 때만 `eligible=true`다.
+3. 필수 유형별 가장 큰 이력 ID의 action이 모두 `AGREE`일 때만 `eligible=true`다.
 4. AGREE 이후 REVOKE를 제출하면 기존 AGREE 행은 유지되고 `eligible=false`가 된다.
-5. `effective-from`을 상향하면 기준일 이전 AGREE만 가진 사용자는 미충족이 된다.
-6. 선택 정책은 전체 `eligible` 판정을 바꾸지 않도록 Evaluator가 `required` 설정을 따른다.
+5. 기록 시각과 관계없이 DB에서 가장 나중에 추가된 이벤트의 action으로 현재 상태를 판정한다.
+6. 두 동의 유형을 모두 충족해야 `eligible=true`다.
 7. Apple/Kakao 소셜 로그인 응답에 `agreementRequired`가 포함되고 상태 API와 동일한 Evaluator 결과를 사용한다.
 8. 기존 JWT 발급·refresh cookie·로그인 단일 응답 스키마는 유지된다.
 9. 보호 API 차단이나 `AGREEMENT_REQUIRED` 403 응답은 발생하지 않는다.
@@ -41,7 +40,7 @@ Completion Date: 2026-08-01
 ### Impact Scope
 
 - `git.environment-variables`: 병합된 V6 `user_agreements` migration과 서브모듈 포인터
-- `bottlenote-mono`: 동의 도메인, 저장소 포트/JPA 구현, 정책 설정, Evaluator, 서비스, DTO, 로그인 응답
+- `bottlenote-mono`: 동의 도메인, 저장소 포트/JPA 구현, Evaluator, 서비스, DTO, 로그인 응답
 - `bottlenote-product-api`: 동의 API, API 문서, 로그인 응답 투영
 - `bottlenote-test-support`: InMemory 동의 저장소와 테스트 지원
 - 테스트: Evaluator 단위 테스트, API·로그인 통합 테스트, RestDocs/OpenAPI 회귀
@@ -55,7 +54,7 @@ Completion Date: 2026-08-01
 ## Tasks
 
 ### Task 1: 동의 이력 영속 경로
-- Acceptance: V6 스키마와 일치하는 append-only `UserAgreement`가 정적 팩토리로 생성되고, 도메인 포트와 JPA 구현이 사용자·유형별 최신 이벤트를 `recorded_at`, `id` 내림차순 기준으로 한 건씩 반환한다. 운영 코드에는 UPDATE/DELETE 경로가 없다.
+- Acceptance: V6 스키마와 일치하는 append-only `UserAgreement`가 정적 팩토리로 생성되고, 도메인 포트와 JPA 구현이 사용자·유형별 가장 큰 `id`의 이벤트를 한 건씩 반환한다. 운영 코드에는 UPDATE/DELETE 경로가 없다.
 - Verification: `./gradlew :bottlenote-mono:compileJava`, 관련 repository 통합 테스트
 - Files (advisory): 동의 enum 3개, `UserAgreement`, `UserAgreementRepository`, `JpaUserAgreementRepository`, repository 통합 테스트
 - Depends: 없음
@@ -63,17 +62,17 @@ Completion Date: 2026-08-01
 - Status: [x] done
 
 ### Task 2: InMemory 동의 저장소
-- Acceptance: test-support의 InMemory 구현이 저장 시 기존 이벤트를 덮지 않고 추가하며, 사용자·유형 격리와 `recorded_at`, `id` 최신순 규칙을 JPA 포트와 동일하게 모사한다.
+- Acceptance: test-support의 InMemory 구현이 저장 시 기존 이벤트를 덮지 않고 추가하며, 사용자·유형 격리와 가장 큰 `id`의 이벤트를 최신으로 조회하는 규칙을 JPA 포트와 동일하게 모사한다.
 - Verification: `./gradlew :bottlenote-test-support:compileJava`, Fake 동작 테스트
 - Files (advisory): `InMemoryUserAgreementRepository`, 관련 테스트
 - Depends: Task 1
 - Size: S
 - Status: [x] done
 
-### Task 3: 정책 기반 Agreement Evaluator
-- Acceptance: 유형별 `required`와 `effective-from` 설정을 읽고, 최신 이벤트 없음·REVOKE·기준일 이전 AGREE를 미충족으로 판정한다. 선택 정책은 전체 `eligible`에 영향을 주지 않고 두 필수 유형이 모두 유효한 AGREE일 때만 `eligible=true`다.
+### Task 3: Agreement Evaluator
+- Acceptance: TERMS_OF_SERVICE와 PRIVACY_COLLECTION_USE를 모두 필수 유형으로 응답하고, 유형별 가장 큰 `id`의 이벤트가 없거나 REVOKE면 미동의, AGREE면 동의로 판정한다. 두 유형이 모두 동의일 때만 `eligible=true`다.
 - Verification: `./gradlew unit_test --tests '*AgreementEvaluatorTest'`
-- Files (advisory): `AgreementPolicyProperties`, 평가 결과 DTO, `AgreementEvaluator`, `application.yml`, Evaluator 단위 테스트
+- Files (advisory): 평가 결과 DTO, `AgreementEvaluator`, Evaluator 단위 테스트
 - Depends: Tasks 1-2
 - Size: M
 - Status: [x] done
@@ -120,6 +119,14 @@ Completion Date: 2026-08-01
 - Size: M
 - Status: [x] done
 
+### Task 8: 동의 상태 판정 단순화
+- Acceptance: YAML 정책과 `AgreementPolicyProperties`를 제거하고, 유형별 가장 큰 이력 ID의 action만으로 현재 동의 상태를 판정한다. 이력 없음과 최신 REVOKE는 미동의, 최신 AGREE는 동의다.
+- Verification: 전체 Java/Kotlin compile, Agreement Evaluator/Service/InMemory/Auth focused unit, 전체 rule. integration/admin integration은 Task 8 작업 범위에서 실행하지 않는다.
+- Files (advisory): 정책 설정·테스트, Evaluator, repository port/JPA/InMemory, 관련 테스트, application.yml
+- Depends: Task 7
+- Size: M
+- Status: [x] done
+
 ## Progress Log
 
 - 2026-08-01: environment-variables PR #8 병합 및 부모 저장소 서브모듈 포인터 커밋 완료.
@@ -132,3 +139,4 @@ Completion Date: 2026-08-01
 - 2026-08-01: Task 7 완료. `OauthResponse`에 nullable `agreementRequired`를 추가하고 Apple/Kakao 로그인에서 `AuthResponse` 힌트를 투영하되, reissue factory는 `isFirstLogin`·`nickname`·`agreementRequired`를 `null`로 유지했다. RestAuthV2ControllerTest 6개, 기존 OpenApiAuthV2ControllerTest 1개, 실제 Spring context OpenApiDocsIntegrationTest 7개, 전체 unit 540개와 Java/Kotlin 컴파일, `check_rule_test`, 테스트 제외 전체 build, `asciidoctor`가 통과했다. Apple/Kakao는 `accessToken`, `isFirstLogin`, `nickname`, `agreementRequired` exact field와 필수 동의 필요 의미를 문서화했고, bare response 3개·refresh cookie·reissue nullable 형태를 유지했으며 Gate/403·SecurityConfig 변경은 없다. self-review는 Critical 0건, Important 1건(신규 Mockito OpenAPI 테스트가 테스트 더블 정책에 맞지 않음)을 해당 추가본 제거와 실제 context 통합 테스트로 해소했다.
 - 2026-08-01: 최종 self-review 아키텍처 수정 완료. user `AuthService`가 agreement `AgreementEvaluator`를 직접 참조하던 레이어 표준 6·7 위반을 `AgreementFacade#isEligible`과 `@FacadeService DefaultAgreementFacade`로 분리했고, 구현체만 기존 Evaluator에 위임하도록 했다. AuthService 단위 테스트는 Mockito 추가 없이 InMemory 동의 저장소→실제 Evaluator→실제 Default Facade 조합을 사용했고 focused 10개, 전체 unit 540개, rule 63개, Java/Test 컴파일, 테스트 제외 전체 build가 통과했다. 기존 `agreementRequired = !eligible`, 동의 API, Gate/403 제외 범위는 변경하지 않았으며 self-review의 Critical 0건, Important 1건(타 도메인 Service 직접 참조)을 해소했다.
 - 2026-08-01: 최종 L3 검증 완료. 전체 unit 540개, integration 283개, admin integration 210개, rule 63개, RestDocs 138개가 모두 실패·스킵 없이 통과했고 Java/Kotlin 컴파일, 패키지 build, `asciidoctor`도 통과했다. `origin/main`은 현재 브랜치의 조상이며 서브모듈 포인터 `c605215`는 병합된 environment-variables `origin/main`에 포함됨을 확인했다.
+- 2026-08-01: Task 8 완료. `AgreementPolicyProperties`와 바인딩 테스트, `application.yml`의 `agreement.policy`를 제거하고, repository 파생 조회와 InMemory 구현을 `id DESC` 한 건 조회로 통일했다. Evaluator는 두 유형을 모두 필수로 응답하며 최신 action이 `AGREE`인 경우에만 `agreed=true`로 판정하고, `recordedAt`은 감사 데이터로만 보존한다. 리뷰 지적에 따라 V6 최신 조회 인덱스를 `(user_id, agreement_type, id)`로 맞추고 Task 1~3 Acceptance의 과거 정책 표현을 최종 규칙으로 정리해 리뷰를 해소했다. 최종 빠른 검증에서 전체 Java/Kotlin compile, 전체 unit 535개, rule 63개가 실패·스킵 없이 통과했고 `git diff --check`도 통과했으며, 지시된 범위에 따라 integration/admin integration은 실행하지 않았다.

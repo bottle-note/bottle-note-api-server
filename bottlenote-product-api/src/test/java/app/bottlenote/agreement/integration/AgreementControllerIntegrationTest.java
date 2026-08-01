@@ -204,7 +204,7 @@ class AgreementControllerIntegrationTest extends IntegrationTestSupport {
 
   private UserAgreement latest(User user, app.bottlenote.agreement.constant.AgreementType type) {
     return userAgreementRepository
-        .findFirstByUserIdAndAgreementTypeOrderByRecordedAtDescIdDesc(user.getId(), type)
+        .findFirstByUserIdAndAgreementTypeOrderByIdDesc(user.getId(), type)
         .orElseThrow();
   }
 
