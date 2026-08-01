@@ -4,23 +4,24 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
-import java.util.UUID;
+import java.util.regex.Pattern;
 
-// 에이전트 비밀 키(UUID) 정규화 및 SHA-256 해시. 원문 키는 저장하지 않고 해시만 비교한다.
+// 에이전트 비밀 API Key의 형식을 검증하고 SHA-256 해시만 비교한다.
 public final class AgentKeyHasher {
 
   private static final String ALGORITHM = "SHA-256";
+  private static final Pattern API_KEY_PATTERN = Pattern.compile("^bn_agent_[A-Za-z0-9_-]{43}$");
 
   private AgentKeyHasher() {}
 
   /**
-   * @throws IllegalArgumentException rawKey가 UUID 형식이 아닌 경우
+   * @throws IllegalArgumentException rawKey가 에이전트 API Key 형식이 아닌 경우
    */
-  public static String normalize(String rawKey) {
-    if (rawKey == null) {
-      throw new IllegalArgumentException("agentKey는 null이 될 수 없습니다.");
+  public static String validate(String rawKey) {
+    if (rawKey == null || !API_KEY_PATTERN.matcher(rawKey).matches()) {
+      throw new IllegalArgumentException("agentKey 형식이 올바르지 않습니다.");
     }
-    return UUID.fromString(rawKey.trim().toLowerCase()).toString();
+    return rawKey;
   }
 
   public static String hash(String normalizedKey) {
@@ -34,9 +35,9 @@ public final class AgentKeyHasher {
   }
 
   /**
-   * @throws IllegalArgumentException rawKey가 UUID 형식이 아닌 경우
+   * @throws IllegalArgumentException rawKey가 에이전트 API Key 형식이 아닌 경우
    */
-  public static String normalizeAndHash(String rawKey) {
-    return hash(normalize(rawKey));
+  public static String validateAndHash(String rawKey) {
+    return hash(validate(rawKey));
   }
 }

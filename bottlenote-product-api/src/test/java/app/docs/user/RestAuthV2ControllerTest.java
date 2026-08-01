@@ -211,7 +211,7 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
   void executeAgentLogin_test() throws Exception {
 
     // given
-    String agentKey = "11111111-1111-1111-1111-111111111111";
+    String agentKey = "bn_agent_" + "A".repeat(43);
     String accessToken = "test-access-token";
     String refreshToken = "test-refresh-token";
 
@@ -237,7 +237,7 @@ class RestAuthV2ControllerTest extends AbstractRestDocs {
         .andDo(
             document(
                 "auth/agent/login",
-                requestFields(fieldWithPath("agentKey").description("발급받은 에이전트 비밀 키(UUID)")),
+                requestFields(fieldWithPath("agentKey").description("발급받은 에이전트 비밀 API Key")),
                 responseFields(
                     fieldWithPath("accessToken").description("발급된 액세스 토큰"),
                     fieldWithPath("isFirstLogin")

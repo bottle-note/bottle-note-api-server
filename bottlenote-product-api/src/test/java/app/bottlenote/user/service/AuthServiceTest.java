@@ -47,6 +47,10 @@ import org.junit.jupiter.api.Test;
 @DisplayName("[unit] [service] AuthService")
 class AuthServiceTest {
 
+  private static String apiKey(char value) {
+    return "bn_agent_" + String.valueOf(value).repeat(43);
+  }
+
   private AuthService authService;
   private FakeOauthRepository oauthRepository;
   private FakeJwtTokenProvider jwtTokenProvider;
@@ -386,13 +390,13 @@ class AuthServiceTest {
   @DisplayName("활성 에이전트 키로 매핑된 계정으로 로그인할 수 있다")
   void loginWithAgent_success() {
     // given
-    String rawKey = "11111111-1111-1111-1111-111111111111";
+    String rawKey = apiKey('A');
     String agentId = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
     agentRepository.save(
         Agent.builder()
             .id(agentId)
             .profileCode("0001")
-            .secretHash(AgentKeyHasher.normalizeAndHash(rawKey))
+            .secretHash(AgentKeyHasher.validateAndHash(rawKey))
             .isActive(true)
             .build());
 
@@ -416,11 +420,11 @@ class AuthServiceTest {
   }
 
   @Test
-  @DisplayName("에이전트 키가 UUID 형식이 아니면 400에 해당하는 예외가 발생한다")
+  @DisplayName("에이전트 키가 API Key 형식이 아니면 400에 해당하는 예외가 발생한다")
   void loginWithAgent_malformedKey_throwsInvalidFormat() {
     // when
     UserException exception =
-        assertThrows(UserException.class, () -> authService.loginWithAgent("not-a-uuid"));
+        assertThrows(UserException.class, () -> authService.loginWithAgent("invalid-key"));
 
     // then
     assertThat(exception.getExceptionCode()).isEqualTo(UserExceptionCode.AGENT_KEY_INVALID_FORMAT);
@@ -430,7 +434,7 @@ class AuthServiceTest {
   @DisplayName("등록되지 않은 에이전트 키는 401에 해당하는 예외가 발생한다")
   void loginWithAgent_unknownKey_throwsAuthenticationFailed() {
     // given
-    String unknownKey = "22222222-2222-2222-2222-222222222222";
+    String unknownKey = apiKey('B');
 
     // when
     UserException exception =
@@ -445,12 +449,12 @@ class AuthServiceTest {
   @DisplayName("비활성 에이전트 키는 401에 해당하는 예외가 발생한다")
   void loginWithAgent_inactiveAgent_throwsAuthenticationFailed() {
     // given
-    String rawKey = "33333333-3333-3333-3333-333333333333";
+    String rawKey = apiKey('C');
     agentRepository.save(
         Agent.builder()
             .id("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb")
             .profileCode("0002")
-            .secretHash(AgentKeyHasher.normalizeAndHash(rawKey))
+            .secretHash(AgentKeyHasher.validateAndHash(rawKey))
             .isActive(false)
             .build());
 
@@ -467,12 +471,12 @@ class AuthServiceTest {
   @DisplayName("활성 에이전트라도 매핑된 계정이 없으면 401에 해당하는 예외가 발생한다")
   void loginWithAgent_missingAccountMapping_throwsAuthenticationFailed() {
     // given
-    String rawKey = "44444444-4444-4444-4444-444444444444";
+    String rawKey = apiKey('D');
     agentRepository.save(
         Agent.builder()
             .id("cccccccc-cccc-cccc-cccc-cccccccccccc")
             .profileCode("0003")
-            .secretHash(AgentKeyHasher.normalizeAndHash(rawKey))
+            .secretHash(AgentKeyHasher.validateAndHash(rawKey))
             .isActive(true)
             .build());
 
@@ -489,13 +493,13 @@ class AuthServiceTest {
   @DisplayName("에이전트에 매핑된 계정이 탈퇴 상태면 401에 해당하는 예외가 발생한다")
   void loginWithAgent_withdrawnUser_throwsAuthenticationFailed() {
     // given
-    String rawKey = "55555555-5555-5555-5555-555555555555";
+    String rawKey = apiKey('E');
     String agentId = "dddddddd-dddd-dddd-dddd-dddddddddddd";
     agentRepository.save(
         Agent.builder()
             .id(agentId)
             .profileCode("0004")
-            .secretHash(AgentKeyHasher.normalizeAndHash(rawKey))
+            .secretHash(AgentKeyHasher.validateAndHash(rawKey))
             .isActive(true)
             .build());
 
