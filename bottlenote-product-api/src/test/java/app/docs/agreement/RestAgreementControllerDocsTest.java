@@ -106,7 +106,7 @@ class RestAgreementControllerDocsTest extends AbstractRestDocs {
                             "동의 유형: TERMS_OF_SERVICE, PRIVACY_COLLECTION_USE 또는 MARKETING"),
                     fieldWithPath("agreements[].action")
                         .type(STRING)
-                        .description("동의 의사표시: AGREE 또는 REVOKE"),
+                        .description("사용자 제출 가능 동작: AGREE 또는 REVOKE. EXPIRED는 서버 전용 상태로 제출할 수 없음"),
                     fieldWithPath("agreements[].content")
                         .type(STRING)
                         .description("사용자에게 표시한 문서 원문 스냅샷"),

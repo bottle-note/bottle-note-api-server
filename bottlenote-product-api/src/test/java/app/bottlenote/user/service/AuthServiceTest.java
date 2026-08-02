@@ -251,6 +251,25 @@ class AuthServiceTest {
   }
 
   @Test
+  @DisplayName("필수 동의가 만료된 사용자가 로그인하면 동의 필요 힌트를 true로 반환한다")
+  void loginWithApple_whenRequiredAgreementIsExpired_returnsAgreementRequiredTrue() {
+    // given
+    saveAgreement(1L, AgreementType.TERMS_OF_SERVICE);
+    saveAgreement(1L, AgreementType.TERMS_OF_SERVICE, AgreementAction.EXPIRED);
+    saveAgreement(1L, AgreementType.PRIVACY_COLLECTION_USE);
+    AppleAuthService.AppleUserInfo appleUserInfo =
+        new AppleAuthService.AppleUserInfo("apple-expired", "expired@apple.com");
+    when(appleAuthService.validateAndGetUserInfo(anyString(), anyString()))
+        .thenReturn(appleUserInfo);
+
+    // when
+    AuthResponse result = authService.loginWithApple("valid-id-token", "valid-nonce");
+
+    // then
+    assertThat(result.agreementRequired()).isTrue();
+  }
+
+  @Test
   @DisplayName("애플 재로그인 시 isFirstLogin이 false를 반환한다")
   void test_Apple_ReLogin_ReturnsIsFirstLoginFalse() {
     // given
@@ -555,11 +574,15 @@ class AuthServiceTest {
   }
 
   private void saveAgreement(Long userId, AgreementType type) {
+    saveAgreement(userId, type, AgreementAction.AGREE);
+  }
+
+  private void saveAgreement(Long userId, AgreementType type, AgreementAction action) {
     agreementRepository.save(
         UserAgreement.create(
             userId,
             type,
-            AgreementAction.AGREE,
+            action,
             "document",
             LocalDateTime.of(2026, 8, 1, 0, 0),
             AgreementInputContext.INDIVIDUAL,
