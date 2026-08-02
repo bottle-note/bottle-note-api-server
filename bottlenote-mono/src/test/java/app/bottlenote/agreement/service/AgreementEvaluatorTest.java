@@ -40,7 +40,8 @@ class AgreementEvaluatorTest {
     assertThat(result.items())
         .containsExactly(
             new Item(AgreementType.TERMS_OF_SERVICE, true, false),
-            new Item(AgreementType.PRIVACY_COLLECTION_USE, true, false));
+            new Item(AgreementType.PRIVACY_COLLECTION_USE, true, false),
+            new Item(AgreementType.MARKETING, false, false));
   }
 
   @Test
@@ -52,7 +53,8 @@ class AgreementEvaluatorTest {
     AgreementEvaluation result = evaluator.evaluate(USER_ID);
 
     assertThat(result.eligible()).isTrue();
-    assertThat(result.items()).allMatch(Item::agreed);
+    assertThat(result.items()).filteredOn(Item::required).allMatch(Item::agreed);
+    assertThat(item(result, AgreementType.MARKETING).agreed()).isFalse();
   }
 
   @Test
