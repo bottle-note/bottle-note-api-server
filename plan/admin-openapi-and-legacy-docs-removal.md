@@ -2,7 +2,7 @@
 
 ## Overview
 
-**무엇을**: admin-api의 13개 컨트롤러 65개 operation을 런타임 OpenAPI 3.1 문서로 제공하고, Product/Admin의 RestDocs·AsciiDoc·Antora 문서 체계를 제거한다. Product/Admin OpenAPI JSON은 인증 없이 공개하되 일반 API CORS와 분리된 문서 전용 CORS 정책을 사용한다.
+**무엇을**: admin-api의 13개 컨트롤러 65개 operation을 런타임 OpenAPI 3.1 문서로 제공하고, Product/Admin의 RestDocs·AsciiDoc·Antora 문서 체계를 제거한다. Product/Admin OpenAPI JSON은 인증 없이 공개하되 일반 API CORS와 분리된 문서 전용 CORS 정책을 사용한다. OpenAPI 전환은 1차 PR #692로 완료했고, 레거시 문서 제거는 별도 2차 PR로 진행한다.
 
 **왜**: product-api는 이미 springdoc 기반 문서를 제공하지만 admin-api는 RestDocs 기반 문서만 남아 있어 문서 생성 방식이 이원화되어 있다. 두 API를 OpenAPI로 통일하고 수동 동기화가 필요한 레거시 문서 파이프라인을 제거한다.
 
@@ -11,7 +11,7 @@
 1. Admin OpenAPI의 외부 계약은 `GET https://admin-api.development.bottle-note.com/admin/api/v1/openapi.admin.json`이다.
 2. Admin OpenAPI JSON은 JWT 등 인증 정보 없이 조회할 수 있는 PUBLIC 리소스다. Swagger UI는 제공하지 않는다.
 3. Product와 Admin OpenAPI JSON은 일반 API CORS 정책에서 분리된 문서 전용 CORS 정책 집합을 사용한다.
-4. 문서 전용 CORS 정책의 초기 허용 origin은 비어 있다. `Origin` 없는 무인증 GET은 정상 처리하지만, `Origin`이 있는 cross-origin 요청은 Spring CORS 처리 단계에서 403으로 거부하며 permissive CORS 헤더를 반환하지 않는다. 전체 origin 허용은 후속 보안 작업에서 별도로 결정한다.
+4. Product/Admin 문서 전용 CORS 정책은 `https://bottle-note.github.io`만 허용한다. `Origin` 없는 무인증 GET과 허용 origin 요청은 정상 처리하고, 임의 origin 요청은 403으로 거부하며 `Access-Control-Allow-Origin: *`를 반환하지 않는다.
 5. product-api의 기존 springdoc 문서와 품질 검증은 유지한다. admin-api에는 같은 수준의 OpenAPI 문서 계약을 추가한다.
 6. Admin의 65개 operation 모두 한국어 태그·summary·정상 응답 스키마를 가지며, 실제 런타임 성공 응답은 기존과 동일한 `GlobalResponse` 형식을 유지한다.
 7. Admin 컨트롤러의 `ResponseEntity<*>` 58건은 명시적인 본문 타입으로 바꾸되 직렬화 결과, HTTP 상태, 헤더 및 비즈니스 동작은 변경하지 않는다. 이미 명시적인 7건과 기존에 `GlobalResponse`를 반환하는 호출을 다시 감싸지 않는다.
@@ -27,7 +27,7 @@
 4. Admin의 정상 응답 문서가 실제 `GlobalResponse` envelope와 내부 data 타입을 표현하며, 런타임 응답을 이중으로 감싼 endpoint가 0건이다.
 5. Admin 운영 컨트롤러의 `ResponseEntity<*>` 선언이 0건이며 이를 회귀 검출하는 규칙이 존재한다.
 6. Admin Swagger UI 경로는 HTTP 200을 반환하지 않는다.
-7. Product/Admin OpenAPI JSON을 임의의 외부 `Origin`으로 호출하거나 preflight 요청했을 때 permissive CORS 응답 헤더가 반환되지 않는다. 일반 API의 기존 CORS 동작은 유지된다.
+7. Product/Admin OpenAPI JSON은 `https://bottle-note.github.io`에만 CORS를 허용하고, 임의의 외부 `Origin` 요청에는 permissive CORS 응답 헤더를 반환하지 않는다. 일반 API의 기존 CORS 동작은 유지된다.
 8. Product OpenAPI JSON의 무인증 HTTP 200, OpenAPI 3.1, 기존 operation 문서 품질이 유지된다.
 9. 저장소의 활성 코드·테스트·빌드·CI에서 RestDocs, AsciiDoc, Antora 실행 및 참조가 0건이다. 보존 목적의 완료 plan 기록은 검사 대상에서 제외한다.
 10. 로컬에서는 컴파일, 단위 테스트, 아키텍처 규칙 및 정적 검증이 통과하고, 통합 테스트는 PR CI의 `integration_test`와 `admin_integration_test` 결과로 통과를 확인한다.
@@ -190,7 +190,7 @@
 ### Checkpoint: after Tasks 5-11
 - [x] Admin `ResponseEntity<*>` 0건 및 65 operation 문서 코드 완성
 - [x] compile, compileTest, unit, rule 검증 통과
-- [ ] Draft PR push 후 Product/Admin 통합 테스트 CI 통과
+- [x] PR #692에서 Product/Admin 통합 테스트를 포함한 CI 전체 통과
 
 ### Task 12: Product RestDocs 테스트 자산 제거
 - Acceptance:
@@ -208,7 +208,7 @@
   - Product AsciiDoc 원본과 build의 RestDocs/AsciiDoctor 설정이 0건이다.
   - Product springdoc 의존성과 OpenAPI 구현은 유지된다.
   - Product 모듈 빌드가 허용된 검증 범위에서 통과한다.
-- Verification: `./gradlew :bottlenote-product-api:build -x test -x asciidoctor`
+- Verification: `./gradlew :bottlenote-product-api:build -x test`
 - Files (advisory): product `src/docs/asciidoc`, product build
 - Depends: 12
 - Size: M
@@ -217,7 +217,7 @@
 ### Task 14: Admin RestDocs 테스트 자산 제거
 - Acceptance:
   - Admin RestDocs 테스트와 `restdocs` 태그가 0건이다.
-  - Admin OpenAPI 대체 문서가 직전 Draft PR CI에서 통과한 상태다.
+  - Admin OpenAPI 대체 문서가 1차 PR #692 CI에서 통과한 상태다.
   - Admin 테스트 컴파일이 통과한다.
 - Verification: `./gradlew :bottlenote-admin-api:compileTestKotlin`
 - Files (advisory): admin docs 테스트 디렉터리
@@ -294,3 +294,6 @@
 - 2026-08-02: Task 10 완료. Admin `ResponseEntity<*>` 0건을 재확인하고 raw·wildcard 반환 타입 회귀 규칙을 추가했으며 전체 `check_rule_test`가 통과했다.
 - 2026-08-02: Task 11 완료. Admin OpenAPI 65 operation·품질·envelope·보안 계약 통합 테스트 4개를 추가했고 `compileTestKotlin`과 `unit_test`가 통과했다. 통합 테스트 실행은 Draft PR CI로 이관했다.
 - 2026-08-02: 검증 중 Kotlin/AssertJ 제네릭 추론 실패를 PUBLIC endpoint Set 값 비교로 수정해 중단 지점에서 재개했다.
+- 2026-08-02: 1차 PR #692의 merge와 Product/Admin 통합 테스트, unit-tests, rule-tests, final build CI 성공을 확인했다. OpenAPI 전환(Tasks 1~11)과 레거시 문서 제거(Tasks 12~18)를 별도 PR로 분리했다.
+- 2026-08-02: 개발 환경에서 Admin OpenAPI 무인증 HTTP 200, OpenAPI 3.1.0, 65 operations, bearerAuth와 Product/Admin 문서 CORS의 최종 허용 origin `https://bottle-note.github.io`를 확인한 결과를 반영했다.
+- 2026-08-02: 2차 삭제 전 현재 파일을 재집계했다. Product docs 테스트 30개, Product 외부 docs 지원 1개, snippet template 2개, Product AsciiDoc 63개, Admin docs 테스트 13개, Admin AsciiDoc 24개, Antora `docs/` 파일 9개, `-x asciidoctor` workflow 참조 4개, 레거시 Pages workflow 1개다.
