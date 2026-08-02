@@ -3,6 +3,7 @@ package app.bottlenote.alcohols.presentation
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest
 import app.bottlenote.alcohols.dto.request.AdminAlcoholUpsertRequest
 import app.bottlenote.alcohols.dto.request.AlcoholLookupRequest
+import app.bottlenote.alcohols.presentation.docs.AdminAlcoholsApiDocs
 import app.bottlenote.alcohols.service.AdminAlcoholCommandService
 import app.bottlenote.alcohols.service.AlcoholLookupService
 import app.bottlenote.alcohols.service.AlcoholQueryService
@@ -14,15 +15,17 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/alcohols")
+@AdminAlcoholsApiDocs.ApiTag
 class AdminAlcoholsController(
 	private val alcoholQueryService: AlcoholQueryService,
 	private val adminAlcoholCommandService: AdminAlcoholCommandService,
 	private val alcoholLookupService: AlcoholLookupService
 ) {
+	@AdminAlcoholsApiDocs.GetAlcoholLookups
 	@GetMapping("/lookup")
 	fun getAlcoholLookups(
 		@ModelAttribute @Valid request: AlcoholLookupRequest
-	): ResponseEntity<*> {
+	): ResponseEntity<GlobalResponse> {
 		val response = alcoholLookupService.lookup(request)
 		return GlobalResponse.ok(
 			response.items(),
@@ -32,32 +35,39 @@ class AdminAlcoholsController(
 		)
 	}
 
+	@AdminAlcoholsApiDocs.SearchAlcohols
 	@GetMapping
 	fun searchAlcohols(
 		@ModelAttribute request: AdminAlcoholSearchRequest
 	): ResponseEntity<GlobalResponse> = ResponseEntity.ok(alcoholQueryService.searchAdminAlcohols(request))
 
+	@AdminAlcoholsApiDocs.GetAlcoholDetail
 	@GetMapping("/{alcoholId}")
 	fun getAlcoholDetail(
 		@PathVariable alcoholId: Long
-	): ResponseEntity<*> = GlobalResponse.ok(alcoholQueryService.findAdminAlcoholDetailById(alcoholId))
+	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(alcoholQueryService.findAdminAlcoholDetailById(alcoholId))
 
+	@AdminAlcoholsApiDocs.GetCategoryReference
 	@GetMapping("/categories/reference")
-	fun getCategoryReference(): ResponseEntity<*> = GlobalResponse.ok(alcoholQueryService.findAllCategoryReferenceMap())
+	fun getCategoryReference(): ResponseEntity<GlobalResponse> =
+		GlobalResponse.ok(alcoholQueryService.findAllCategoryReferenceMap())
 
+	@AdminAlcoholsApiDocs.CreateAlcohol
 	@PostMapping
 	fun createAlcohol(
 		@RequestBody @Valid request: AdminAlcoholUpsertRequest
-	): ResponseEntity<*> = GlobalResponse.ok(adminAlcoholCommandService.createAlcohol(request))
+	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminAlcoholCommandService.createAlcohol(request))
 
+	@AdminAlcoholsApiDocs.UpdateAlcohol
 	@PutMapping("/{alcoholId}")
 	fun updateAlcohol(
 		@PathVariable alcoholId: Long,
 		@RequestBody @Valid request: AdminAlcoholUpsertRequest
-	): ResponseEntity<*> = GlobalResponse.ok(adminAlcoholCommandService.updateAlcohol(alcoholId, request))
+	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminAlcoholCommandService.updateAlcohol(alcoholId, request))
 
+	@AdminAlcoholsApiDocs.DeleteAlcohol
 	@DeleteMapping("/{alcoholId}")
 	fun deleteAlcohol(
 		@PathVariable alcoholId: Long
-	): ResponseEntity<*> = GlobalResponse.ok(adminAlcoholCommandService.deleteAlcohol(alcoholId))
+	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminAlcoholCommandService.deleteAlcohol(alcoholId))
 }
