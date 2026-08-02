@@ -267,7 +267,7 @@
 - Files (advisory): 지침 2개, 스킬 미러 6개, Admin 가이드, 완료 plan
 - Depends: 16, 17
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Final Verification
 - [ ] 로컬 통합 테스트 실행 0건
@@ -303,3 +303,4 @@
 - 2026-08-02: Task 15 완료. Admin AsciiDoc 24개, Admin build의 RestDocs/Asciidoctor 설정, 레거시 GitHub Pages workflow 1개를 제거하고 CI·배포 workflow 4개의 `-x asciidoctor`를 삭제했다. workflow 잔여 참조 0건을 확인했고 `build -x test`가 종료 코드 0으로 통과했다.
 - 2026-08-02: Task 16 완료. 루트 Gradle의 문서 plugin과 `restDocsTest`, `docs_test`, `verifyRestDocsIncludes` 정의 62줄 및 version catalog의 레거시 문서 항목 13줄을 제거했다. `tasks --all`에서 제거 대상 task가 각각 0건이고 `build -x test --build-cache --parallel`이 종료 코드 0으로 통과했으며 springdoc catalog 2건은 유지됐다.
 - 2026-08-02: Task 17 완료. Antora `docs/` 파일 9개, Antora 전용 ignore 7줄, AsciiDoc 전용 editor 설정 6줄을 제거하고 허용 태그 정책에서 `restdocs`를 삭제했다. 활성 `.adoc`과 `docs/` 파일, 태그 정책 참조가 각각 0건이며 `check_rule_test`가 종료 코드 0으로 통과했다.
+- 2026-08-02: Task 18 완료. AGENTS/CLAUDE의 레거시 빌드 명령, 양쪽 implement/test/verify 스킬, Admin 가이드를 springdoc JSON 경로와 실제 context 기반 OpenAPI 품질 검증 절차로 갱신하고 역사적 정적 문서 전환 plan에 후속 제거 상태를 기록했다. 활성 지침의 레거시 키워드가 0건이고 `diff -rq .claude/skills .agents/skills`가 차이 없이 통과했으며 AGENTS/CLAUDE는 허용된 런타임 차이만 남았다.

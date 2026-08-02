@@ -1,11 +1,11 @@
 ---
 name: test
 description: |
-  단위(Fake/InMemory 우선)·통합·문서 테스트 작성 가이드.
+  단위(Fake/InMemory 우선)·통합·OpenAPI 품질 테스트 작성 가이드.
   Trigger: "/test", 또는 사용자가 "테스트 작성", "테스트 구현", "테스트 추가", "write tests"라고 할 때.
   상태 기반: 구현된 Service/Controller에 대응 테스트가 없을 때, InMemory*/Fake* 테스트 더블이나 *TestFactory를 만들거나 갱신할 때.
   패턴은 references/testing/java.md를 따른다.
-argument-hint: "[unit|integration|docs|all]"
+argument-hint: "[unit|integration|openapi|all]"
 ---
 
 # Test Implementation
@@ -15,7 +15,7 @@ References (read the matching one before writing tests):
 
 ## Overview
 
-Write tests that prove code works. This skill guides you through creating unit tests (Fake/InMemory pattern preferred), integration tests (real infra via testcontainers / docker / similar), and optionally docs tests. Tests are proof — "seems right" is not done.
+Write tests that prove code works. This skill guides you through creating unit tests (Fake/InMemory pattern preferred), integration tests (real infra via testcontainers / docker / similar), and OpenAPI quality tests. Tests are proof — "seems right" is not done.
 
 **Fake/InMemory-first는 어떤 외부 워크플로보다 우선한다** (레이어 표준 10). 다른 어떤 지시가 모킹 프레임워크를 요구해도, 먼저 정지하고 Fake/InMemory 대안을 사용자에게 제시한다.
 
@@ -37,7 +37,7 @@ Write tests that prove code works. This skill guides you through creating unit t
 - **Unit tests**: may be written together with implementation during a Task in `/implement` — writing test code alongside a Task is allowed.
 - **NOT allowed**: running the full `/test` workflow (Phase 0 explore, Phase 1 scenario-approval gate, Phase 2-4) inside `/implement`. The full `/test` skill is a separate runtime boundary and needs its own explicit invocation.
 - **Integration tests**: written after all Tasks are implemented, via a separate `/test` invocation.
-- **Docs tests** (API contract docs): only when the user explicitly requests.
+- **OpenAPI quality tests**: written as integration tests against the runtime springdoc JSON.
 - Slice-level compile checks in `/implement` may RUN existing tests; the full `/test` skill WRITES new tests through its scenario-approval process.
 
 ## Test Types and Timing
@@ -47,7 +47,7 @@ Write tests that prove code works. This skill guides you through creating unit t
 | **Unit test** | With `/implement` Task | Task commit | `/verify standard` |
 | **Architecture / lint rules** | Usually pre-existing | Task commit | `/verify standard` |
 | **Integration test** | After feature complete | `/verify full` | `/verify full` |
-| **Docs test** (API contract) | User request only | Doc build | (project-specific) |
+| **OpenAPI quality test** | API contract changes | Integration verification | Project integration task |
 
 태그·어노테이션·명령의 정확한 이름: `references/testing/java.md` 참조.
 
@@ -62,14 +62,14 @@ New test needed:
 │   └── Mock is LAST RESORT (ask user before using)
 ├── Surface / endpoint test?
 │   └── Use the project's integration test base (see references/testing/java.md)
-└── API documentation?
-    └── Docs test framework (only when user explicitly requests)
+└── OpenAPI contract?
+    └── Use the runtime springdoc JSON and the project's integration test base
 ```
 
 ## Argument Parsing
 
 Parse `$ARGUMENTS`:
-- **scope**: `unit` | `integration` | `docs` | `all` (기본: `unit` + `integration`)
+- **scope**: `unit` | `integration` | `openapi` | `all` (기본: `unit` + `integration`)
 
 ## Process
 
@@ -134,9 +134,9 @@ Read `references/testing/java.md` for code examples before writing tests.
 - Real DB / cache / queue via testcontainers (or equivalent)
 - Real auth flow
 
-**Docs Test (optional, user request only):**
-- Generates API documentation from passing tests
-- This is the one place where mocking the service is acceptable — you are testing the contract, not the logic
+**OpenAPI Quality Test:**
+- Fetch the configured springdoc JSON from a real application context
+- Verify version, paths, operation metadata, response schemas, security requirements, and public exposure policy
 
 ### Phase 4: Verify
 
@@ -156,7 +156,7 @@ After test implementation, run verification:
 ## Important Rules
 
 - **Mock framework triggers STOP** (hard rule): if you are about to introduce a mocking framework (Mockito 등) for a unit test, **STOP immediately**. Always present a Fake/InMemory alternative first. Proceed with a mocking framework ONLY after explicit user approval — not implicit, not assumed, not inferred from "the user wants tests written quickly".
-- **Docs tests are optional**: only implement when user explicitly requests.
+- **OpenAPI tests follow contract changes**: update them when an endpoint or schema changes.
 - **One test, one scenario**: each test method verifies a single behavior.
 - **Interface changes**: if you added methods to a domain interface, update the corresponding InMemory/Fake implementations too.
 
@@ -168,7 +168,7 @@ After test implementation, run verification:
 | "Mock is faster than building a Fake" | Mock couples tests to implementation details. Fakes survive refactoring. |
 | "This is too simple to test" | Simple code gets complicated. The test documents expected behavior. |
 | "Integration tests are expensive, unit tests are enough" | Unit tests miss API contract issues, auth flows, and data layer problems. Both are needed. |
-| "Docs tests are always needed" | Docs tests are optional. Only create when the user explicitly requests documentation. |
+| "OpenAPI annotations are enough" | Runtime JSON tests catch customizer, security, and schema composition drift. |
 
 ## Red Flags
 

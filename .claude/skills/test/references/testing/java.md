@@ -10,13 +10,13 @@ Production-validated patterns for JUnit 5 + TestContainers + MockMvcTester. Gene
 | `@Tag("integration")` | Integration test | `IntegrationTestSupport` | `{module}/src/test/java/.../integration/` | `./gradlew integration_test` (Docker) |
 | `@Tag("admin_integration")` | Admin integration | `IntegrationTestSupport` | `{admin-module}/src/test/.../integration/` | `./gradlew admin_integration_test` |
 | `@Tag("rule")` | Architecture rules | (none, ArchUnit) | `{module}/src/test/.../rule/` | `./gradlew check_rule_test` |
-| (none) | RestDocs test | `AbstractRestDocs` | `{module}/src/test/.../docs/` | Document build |
+| Integration tag | OpenAPI quality | `IntegrationTestSupport` | `{module}/src/test/.../integration/openapi/` | Module integration task |
 
 Tag-filtered execution prevents slow integration tests from running with every unit test cycle.
 
 ## Naming Convention
 
-- Test class: `Fake{Feature}ServiceTest` (unit), `{Feature}IntegrationTest` (integration), `Rest{Domain}ControllerDocsTest` (RestDocs)
+- Test class: `Fake{Feature}ServiceTest` (unit), `{Feature}IntegrationTest` (integration), `OpenApi{Feature}IntegrationTest` (OpenAPI quality)
 - Method: `{action}_{scenario}_{expectedResult}()` or Korean `@DisplayName`
 - `@DisplayName`: Korean `~할 때 ~한다` describing observable behavior
 
@@ -276,46 +276,30 @@ void register_triggersHistoryEvent() {
 }
 ```
 
-## Pattern 4 — RestDocs Test (user request only)
+## Pattern 4 — OpenAPI Quality Test
 
 ```java
-class RestRatingControllerDocsTest extends AbstractRestDocs {
+@Tag("integration")
+class OpenApiQualityIntegrationTest extends IntegrationTestSupport {
 
-    @MockBean private RatingService service;                         // mocking acceptable HERE
+    @Value("${springdoc.api-docs.path}")
+    private String specPath;
 
-    @Override
-    protected Object initController() {
-        return new RatingController(service);
-    }
+    @Test @DisplayName("OpenAPI 3.1 스펙과 응답 스키마를 제공한다")
+    void openApi_hasExpectedContract() throws Exception {
+        MvcTestResult result = mockMvcTester.get().uri(specPath).exchange();
 
-    @Test @DisplayName("rating registration API docs")
-    void registerRating() throws Exception {
-        given(service.register(anyLong(), anyLong(), any()))
-            .willReturn(new RatingRegisterResponse(1L));
-
-        mockSecurityContext(1L);                                     // static mock for SecurityContextUtil
-
-        mockMvc.perform(post("/api/v1/ratings")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(request))
-                .with(csrf()))
-            .andExpect(status().isOk())
-            .andDo(document("rating-register",
-                requestFields(
-                    fieldWithPath("alcoholId").type(NUMBER).description("alcohol ID"),
-                    fieldWithPath("rating").type(NUMBER).description("rating value")
-                ),
-                responseFields(
-                    fieldWithPath("success").type(BOOLEAN).description("success"),
-                    fieldWithPath("code").type(NUMBER).description("status code"),
-                    fieldWithPath("data.ratingId").type(NUMBER).description("rating ID")
-                )
-            ));
+        assertThat(result).hasStatusOk();
+        JsonNode spec = mapper.readTree(result.getResponse().getContentAsByteArray());
+        assertThat(spec.path("openapi").asText()).startsWith("3.1");
+        assertThat(spec.path("paths").path("/api/v1/ratings").isObject()).isTrue();
+        assertThat(spec.path("components").path("securitySchemes").path("bearerAuth").isObject())
+            .isTrue();
     }
 }
 ```
 
-**Why `@MockBean` is OK here**: docs tests verify the API contract (request/response shape), not business logic. Service behavior is mocked because the test target is documentation generation.
+Use the real application context so customizers, response envelopes, security requirements, and configured public path are validated together.
 
 ## Test Data Catalog (Fake/InMemory)
 

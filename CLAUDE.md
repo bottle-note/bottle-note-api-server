@@ -54,13 +54,11 @@ git submodule update --init --recursive
 ./gradlew unit_test             # 단위 테스트 (@Tag("unit"))
 ./gradlew integration_test      # 통합 테스트 (@Tag("integration"))
 ./gradlew check_rule_test       # 아키텍처 규칙 테스트 (@Tag("rule"))
-./gradlew asciidoctor           # API 문서 생성
 ./gradlew bootRun               # 애플리케이션 실행
 
 # admin-api 모듈 전용
 ./gradlew :bottlenote-admin-api:build           # admin-api 빌드
 ./gradlew :bottlenote-admin-api:test            # admin-api 테스트 실행
-./gradlew :bottlenote-admin-api:asciidoctor     # admin-api 문서 생성
 ./gradlew :bottlenote-admin-api:bootRun         # admin-api 실행
 ```
 
@@ -108,7 +106,7 @@ Use these skills to follow the structured development lifecycle:
 | `/define` | Requirements clarification | Starting a new feature, vague requirements |
 | `/plan` | Task breakdown | After /define, multi-file changes |
 | `/implement` | Incremental implementation | Building features (product + admin) |
-| `/test` | Test creation | Unit, integration, RestDocs tests |
+| `/test` | Test creation | Unit, integration, OpenAPI quality tests |
 | `/verify` | Local CI verification | Compile, unit test, integration test |
 | `/debug` | Systematic debugging | Build/test failures, unexpected errors |
 | `/self-review` | Pre-commit quality gate | Before every commit |
