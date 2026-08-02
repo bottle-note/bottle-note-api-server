@@ -80,6 +80,20 @@ class SecurityConfigIntegrationTest : IntegrationTestSupport() {
 	}
 
 	@Test
+	@DisplayName("GitHub Pages Origin의 문서 스펙 요청을 허용한다")
+	fun openApiSpecGitHubPagesOriginAllowed() {
+		val result = mockMvcTester
+			.get()
+			.uri(openApiSpecPath)
+			.header(HttpHeaders.ORIGIN, "https://bottle-note.github.io")
+			.exchange()
+
+		result.assertThat().hasStatusOk()
+		assertThat(result.response.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN))
+			.isEqualTo("https://bottle-note.github.io")
+	}
+
+	@Test
 	@DisplayName("문서 스펙 경로는 Origin이 없는 무인증 GET을 정상 허용한다")
 	fun openApiSpecNoOriginRequestAllowed() {
 		val result = mockMvcTester
