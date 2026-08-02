@@ -13,13 +13,17 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 
 @Configuration
 class SecurityPolicyConfig {
+	companion object {
+		val FALLBACK_AUTH_TYPE = REQUIRED_AUTH
+	}
+
 	@Bean
 	fun securityPolicyRegistry(
 		@Qualifier("requestMappingHandlerMapping") handlerMapping: RequestMappingHandlerMapping,
 		@Value("\${springdoc.api-docs.path}") specPath: String
 	): SecurityPolicyRegistry = SecurityPolicyRouteCollector.collect(
 		handlerMapping,
-		REQUIRED_AUTH,
+		FALLBACK_AUTH_TYPE,
 		listOf(
 			SecurityPolicyRoute.explicit(null, "/actuator/**", PUBLIC),
 			SecurityPolicyRoute.explicit(null, "/error", PUBLIC),
