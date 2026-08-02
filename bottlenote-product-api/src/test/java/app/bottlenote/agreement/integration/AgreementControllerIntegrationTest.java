@@ -2,6 +2,7 @@ package app.bottlenote.agreement.integration;
 
 import static app.bottlenote.agreement.constant.AgreementAction.AGREE;
 import static app.bottlenote.agreement.constant.AgreementInputContext.INDIVIDUAL;
+import static app.bottlenote.agreement.constant.AgreementType.MARKETING;
 import static app.bottlenote.agreement.constant.AgreementType.PRIVACY_COLLECTION_USE;
 import static app.bottlenote.agreement.constant.AgreementType.TERMS_OF_SERVICE;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,9 +63,12 @@ class AgreementControllerIntegrationTest extends IntegrationTestSupport {
       JsonNode data = responseData(result);
       assertThat(fieldNames(data)).containsExactlyInAnyOrder("eligible", "items");
       assertThat(data.path("eligible").booleanValue()).isFalse();
-      assertThat(data.path("items")).hasSize(2);
+      assertThat(data.path("items")).hasSize(3);
       assertThat(fieldNames(data.path("items").get(0)))
           .containsExactlyInAnyOrder("type", "required", "agreed");
+      JsonNode marketing = item(data, MARKETING.name());
+      assertThat(marketing.path("required").booleanValue()).isFalse();
+      assertThat(marketing.path("agreed").booleanValue()).isFalse();
     }
 
     @Test
@@ -106,7 +110,10 @@ class AgreementControllerIntegrationTest extends IntegrationTestSupport {
       JsonNode data = responseData(result);
       assertThat(fieldNames(data)).containsExactlyInAnyOrder("eligible", "items");
       assertThat(data.path("eligible").booleanValue()).isTrue();
-      assertThat(data.path("items")).hasSize(2);
+      assertThat(data.path("items")).hasSize(3);
+      JsonNode marketing = item(data, MARKETING.name());
+      assertThat(marketing.path("required").booleanValue()).isFalse();
+      assertThat(marketing.path("agreed").booleanValue()).isTrue();
 
       UserAgreement terms = latest(user, TERMS_OF_SERVICE);
       assertThat(terms.getAction()).isEqualTo(AGREE);
@@ -114,6 +121,7 @@ class AgreementControllerIntegrationTest extends IntegrationTestSupport {
       assertThat(terms.getInputContext()).isEqualTo(INDIVIDUAL);
       assertThat(terms.getClientIp()).isEqualTo("203.0.113.10");
       assertThat(terms.getUserAgent()).isEqualTo("BottleNote/2.0");
+      assertThat(latest(user, MARKETING).getAction()).isEqualTo(AGREE);
     }
 
     @Test
@@ -199,7 +207,8 @@ class AgreementControllerIntegrationTest extends IntegrationTestSupport {
     return new AgreementSubmitRequest(
         List.of(
             new Item(TERMS_OF_SERVICE.name(), AGREE, "이용약관 원문", INDIVIDUAL),
-            new Item(PRIVACY_COLLECTION_USE.name(), AGREE, "개인정보 수집 이용 원문", INDIVIDUAL)));
+            new Item(PRIVACY_COLLECTION_USE.name(), AGREE, "개인정보 수집 이용 원문", INDIVIDUAL),
+            new Item(MARKETING.name(), AGREE, "마케팅 정보 수신 동의 원문", INDIVIDUAL)));
   }
 
   private UserAgreement latest(User user, app.bottlenote.agreement.constant.AgreementType type) {
@@ -215,5 +224,12 @@ class AgreementControllerIntegrationTest extends IntegrationTestSupport {
   private Set<String> fieldNames(JsonNode node) {
     return StreamSupport.stream(((Iterable<String>) () -> node.fieldNames()).spliterator(), false)
         .collect(java.util.stream.Collectors.toSet());
+  }
+
+  private JsonNode item(JsonNode data, String type) {
+    return StreamSupport.stream(data.path("items").spliterator(), false)
+        .filter(item -> item.path("type").asText().equals(type))
+        .findFirst()
+        .orElseThrow();
   }
 }

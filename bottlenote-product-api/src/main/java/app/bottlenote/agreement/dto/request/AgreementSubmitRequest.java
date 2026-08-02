@@ -25,7 +25,7 @@ public record AgreementSubmitRequest(
   /** 제출할 약관 동의 항목을 나타낸다. */
   @Schema(name = "AgreementSubmitItem", description = "제출할 동의 항목")
   public record Item(
-      @Schema(allowableValues = {"TERMS_OF_SERVICE", "PRIVACY_COLLECTION_USE"})
+      @Schema(allowableValues = {"TERMS_OF_SERVICE", "PRIVACY_COLLECTION_USE", "MARKETING"})
           @NotBlank(message = "AGREEMENT_TYPE_REQUIRED")
           String type,
       @NotNull(message = "AGREEMENT_ACTION_REQUIRED") AgreementAction action,
