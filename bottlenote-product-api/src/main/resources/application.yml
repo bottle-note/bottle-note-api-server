@@ -6,6 +6,7 @@ app: # 애플리케이션 및 배포 정보
     allowed-origins:
       - http://localhost:3000
       - http://localhost:5173
+    docs-allowed-origins: []
   info:
     server-name: ${SERVER_NAME:unknown}
     environment: ${SPRING_PROFILES_ACTIVE:local}

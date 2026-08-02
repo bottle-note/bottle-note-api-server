@@ -18,6 +18,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -98,12 +99,14 @@ public class SecurityConfig {
    * 필터 체인 보안 설정
    *
    * @param http the http
+   * @param corsConfigurationSource the cors configuration source
    * @return the security filter chain
    * @throws Exception the exception
    */
   @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+  public SecurityFilterChain filterChain(
+      HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception {
+    http.cors(cors -> cors.configurationSource(corsConfigurationSource))
         .csrf(AbstractHttpConfigurer::disable)
         .sessionManagement(SecurityConfig::statelessSessionConfig)
         .formLogin(AbstractHttpConfigurer::disable)
@@ -135,12 +138,24 @@ public class SecurityConfig {
   /**
    * Cors 구성 소스 빈 등록
    *
+   * <p>문서 스펙 경로는 일반 API와 분리된 CORS 정책을 쓴다. 초기 허용 origin은 비어 있어 Origin이 있는 요청은 403으로 거부되고, Origin이 없는
+   * 무인증 GET은 CORS 처리 대상이 아니므로 정상 통과한다.
+   *
+   * @param openApiSpecPath the open api spec path
    * @return the cors configuration source
    */
   @Bean
-  CorsConfigurationSource corsConfigurationSource() {
+  CorsConfigurationSource corsConfigurationSource(
+      @Value("${springdoc.api-docs.path}") String openApiSpecPath) {
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+
+    CorsConfiguration docsConfiguration = new CorsConfiguration();
+    docsConfiguration.setAllowedOrigins(corsProperties.docsAllowedOrigins());
+    docsConfiguration.setAllowedMethods(List.of("GET", "OPTIONS"));
+    docsConfiguration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+    docsConfiguration.setAllowCredentials(false);
+    source.registerCorsConfiguration(openApiSpecPath, docsConfiguration);
 
     CorsConfiguration configuration = new CorsConfiguration();
     configuration.setAllowedOrigins(corsProperties.allowedOrigins());

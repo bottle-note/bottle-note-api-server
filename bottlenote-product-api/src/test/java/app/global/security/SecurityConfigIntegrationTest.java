@@ -27,6 +27,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -41,6 +42,9 @@ class SecurityConfigIntegrationTest extends IntegrationTestSupport {
   private ListAppender<ILoggingEvent> logAppender;
   private Logger dispatcherLogger;
   @Autowired private SecurityPolicyRegistry securityPolicyRegistry;
+
+  @Value("${springdoc.api-docs.path}")
+  private String openApiSpecPath;
 
   @BeforeEach
   void setUpLogCapture() {
@@ -234,6 +238,43 @@ class SecurityConfigIntegrationTest extends IntegrationTestSupport {
 
     result.assertThat().hasStatus(FORBIDDEN);
     assertThat(result.getResponse().getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN)).isNull();
+  }
+
+  @Test
+  @DisplayName("문서 스펙 경로는 일반 API에서 허용된 Origin이어도 403이고 permissive CORS 헤더를 반환하지 않는다")
+  void 문서_스펙_Origin_있는_요청_거부() {
+    var result =
+        mockMvcTester
+            .get()
+            .uri(openApiSpecPath)
+            .header(HttpHeaders.ORIGIN, "https://bottle-note.com")
+            .exchange();
+
+    result.assertThat().hasStatus(FORBIDDEN);
+    assertThat(result.getResponse().getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN)).isNull();
+  }
+
+  @Test
+  @DisplayName("문서 스펙 경로의 preflight 요청도 일반 API에서 허용된 Origin이어도 403으로 거부한다")
+  void 문서_스펙_preflight_거부() {
+    var result =
+        mockMvcTester
+            .options()
+            .uri(openApiSpecPath)
+            .header(HttpHeaders.ORIGIN, "https://bottle-note.com")
+            .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "GET")
+            .exchange();
+
+    result.assertThat().hasStatus(FORBIDDEN);
+    assertThat(result.getResponse().getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN)).isNull();
+  }
+
+  @Test
+  @DisplayName("문서 스펙 경로는 Origin이 없는 무인증 GET을 정상 허용한다")
+  void 문서_스펙_Origin_없는_요청_허용() {
+    var result = mockMvcTester.get().uri(openApiSpecPath).exchange();
+
+    result.assertThat().hasStatusOk();
   }
 
   private org.springframework.test.web.servlet.assertj.MvcTestResult preflight(String origin) {
