@@ -106,11 +106,11 @@
 - Files (advisory): admin CORS properties/config, main/test application 설정, CORS 통합 테스트
 - Depends: 1
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Checkpoint: after Tasks 1-4
-- [ ] Admin/Product 컴파일과 테스트 컴파일 통과
-- [ ] 로컬 통합 테스트 실행 0건
+- [x] Admin/Product 컴파일과 테스트 컴파일 통과
+- [x] 로컬 통합 테스트 실행 0건
 
 ### Task 5: 위스키 참조 operation 문서화
 - Acceptance:
@@ -285,3 +285,4 @@
 - 2026-08-02: Task 1 완료. Admin springdoc 의존성·OpenAPI 설정·PUBLIC 스펙 경로를 추가했고 `compileKotlin`, `compileTestKotlin`이 통과했다. 로컬 통합 테스트는 실행하지 않았다.
 - 2026-08-02: Task 3 완료. Product 문서 경로를 빈 `docs-allowed-origins` CORS set으로 분리하고 CI 실행 대상 통합 테스트 3개를 추가했다. `compileJava`, `compileTestJava`, `unit_test`가 통과했으며 통합 테스트는 실행하지 않았다.
 - 2026-08-02: Task 2 완료. Admin 전용 성공 envelope·공통 오류·SecurityPolicy 기반 인증 customizer를 추가했고 `compileKotlin`이 통과했다.
+- 2026-08-02: Task 4 완료. Admin 문서 경로를 빈 `docs-allowed-origins` CORS set으로 분리하고 CI 실행 대상 통합 테스트 3개를 추가했다. `compileTestKotlin`과 `unit_test`가 통과했다.

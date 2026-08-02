@@ -47,6 +47,7 @@ app:
   cors:
     allowed-origins:
       - https://admin.bottle-note.com
+    docs-allowed-origins: []
 
 # Spring Security
 security:
