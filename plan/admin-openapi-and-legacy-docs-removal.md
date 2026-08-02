@@ -245,7 +245,7 @@
 - Files (advisory): root build, version catalog
 - Depends: 15
 - Size: S
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 17: Antora 사이트와 RestDocs 테스트 태그 정책 제거
 - Acceptance:
@@ -301,3 +301,4 @@
 - 2026-08-02: Task 13 완료. Product AsciiDoc 63개와 Product build의 RestDocs/Asciidoctor plugin·configuration·dependency·task를 제거했다. `:bottlenote-product-api:build -x test`가 종료 코드 0으로 통과했고 springdoc 의존성 및 `/api/v1/openapi.product.json` 설정을 양성 검색으로 확인했다.
 - 2026-08-02: Task 14 완료. Admin docs 테스트 디렉터리의 Kotlin 테스트 12개와 지원 문서 1개를 삭제했다. Admin 테스트 영역의 RestDocs 참조가 0건임을 확인했고 `:bottlenote-admin-api:compileTestKotlin`이 종료 코드 0으로 통과했다. 로컬 통합 테스트는 실행하지 않았다.
 - 2026-08-02: Task 15 완료. Admin AsciiDoc 24개, Admin build의 RestDocs/Asciidoctor 설정, 레거시 GitHub Pages workflow 1개를 제거하고 CI·배포 workflow 4개의 `-x asciidoctor`를 삭제했다. workflow 잔여 참조 0건을 확인했고 `build -x test`가 종료 코드 0으로 통과했다.
+- 2026-08-02: Task 16 완료. 루트 Gradle의 문서 plugin과 `restDocsTest`, `docs_test`, `verifyRestDocsIncludes` 정의 62줄 및 version catalog의 레거시 문서 항목 13줄을 제거했다. `tasks --all`에서 제거 대상 task가 각각 0건이고 `build -x test --build-cache --parallel`이 종료 코드 0으로 통과했으며 springdoc catalog 2건은 유지됐다.

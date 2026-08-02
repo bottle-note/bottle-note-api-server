@@ -2,9 +2,7 @@
 plugins {
 	alias(libs.plugins.spring.boot) apply false
 	alias(libs.plugins.spring.dependency.management) apply false
-	alias(libs.plugins.asciidoctor) apply false
 	alias(libs.plugins.spotless) apply false
-	alias(libs.plugins.restdocs.api.spec) apply false
 	alias(libs.plugins.kotlin.jvm) apply false
 	alias(libs.plugins.kotlin.spring) apply false
 }
@@ -149,16 +147,6 @@ subprojects {
 		systemProperty 'testcontainers.db.name', 'bottlenote_admin'
 	}
 
-	// [삭제 예정] REST Docs 테스트 (app.docs 패키지) — springdoc OpenAPI로 대체됨
-	if (project.name in ['bottlenote-product-api', 'bottlenote-admin-api']) {
-		tasks.register('restDocsTest', Test) {
-			description = 'REST Docs snippets 생성을 위한 테스트'
-			group = 'documentation'
-			useJUnitPlatform {
-				includeTags 'restdocs'
-			}
-		}
-	}
 }
 
 // 루트 프로젝트 태스크
@@ -197,56 +185,6 @@ tasks.register('check_rule_test') {
 	description = '전체 모듈 아키텍처 규칙 테스트 실행'
 	group = 'verification'
 	dependsOn subprojects.findAll { it.tasks.findByName('check_rule_test') }.collect { it.tasks.check_rule_test }
-}
-
-tasks.register('restDocsTest') {
-	description = 'REST Docs snippets 생성 (product-api, admin-api)'
-	group = 'documentation'
-	dependsOn subprojects.findAll { it.tasks.findByName('restDocsTest') }.collect { it.tasks.restDocsTest }
-}
-
-tasks.register('verifyRestDocsIncludes') {
-	description = 'AsciiDoc include 대상과 REST Docs snippet 존재 여부 검증'
-	group = 'documentation'
-	dependsOn tasks.named('restDocsTest')
-
-	doLast {
-		def missing = []
-		['bottlenote-product-api', 'bottlenote-admin-api'].each { moduleName ->
-			def docsDir = file("${moduleName}/src/docs/asciidoc")
-			def snippetsDir = file("${moduleName}/build/generated-snippets")
-			fileTree(docsDir) {
-				include '**/*.adoc'
-			}.each { adoc ->
-				def matcher = adoc.text =~ /include::(.+?)\[\]/
-				matcher.each { match ->
-					def includePath = match[1]
-					def includeFile = includePath.startsWith('{snippets}/')
-							? new File(snippetsDir, includePath - '{snippets}/')
-							: new File(adoc.parentFile, includePath)
-					if (!includeFile.isFile()) {
-						missing << "${moduleName}:${docsDir.toPath().relativize(adoc.toPath())} -> ${includePath}"
-					}
-				}
-			}
-		}
-		if (!missing.isEmpty()) {
-			throw new GradleException("Missing AsciiDoc includes:\\n- ${missing.join('\\n- ')}")
-		}
-	}
-}
-
-tasks.register('docs_test') {
-	description = 'REST Docs snippets 생성과 AsciiDoc 조립 검증'
-	group = 'documentation'
-	dependsOn tasks.named('restDocsTest')
-	dependsOn tasks.named('verifyRestDocsIncludes')
-}
-
-gradle.projectsEvaluated {
-	tasks.named('docs_test') {
-		dependsOn subprojects.findAll { it.tasks.findByName('asciidoctor') }.collect { it.tasks.asciidoctor }
-	}
 }
 
 tasks.register('batch_test') {
