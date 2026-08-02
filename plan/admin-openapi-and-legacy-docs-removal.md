@@ -223,7 +223,7 @@
 - Files (advisory): admin docs 테스트 디렉터리
 - Depends: 11 및 중간 CI checkpoint
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 15: Admin AsciiDoc와 CI 문서 파이프라인 절단
 - Acceptance:
@@ -299,3 +299,4 @@
 - 2026-08-02: 2차 삭제 전 현재 파일을 재집계했다. Product docs 테스트 30개, Product 외부 docs 지원 1개, snippet template 2개, Product AsciiDoc 63개, Admin docs 테스트 13개, Admin AsciiDoc 24개, Antora `docs/` 파일 9개, `-x asciidoctor` workflow 참조 4개, 레거시 Pages workflow 1개다.
 - 2026-08-02: Task 12 완료. Product RestDocs 테스트 30개, 외부 지원 1개, snippet template 2개를 삭제하고 일반 통합 테스트 1개의 request builder를 표준 MockMvc builder로 교체했다. `:bottlenote-product-api:compileTestJava unit_test`가 종료 코드 0으로 통과했고 로컬 통합 테스트는 실행하지 않았다. 남은 `restdocs` 1건은 Task 17 대상인 허용 태그 정책이다.
 - 2026-08-02: Task 13 완료. Product AsciiDoc 63개와 Product build의 RestDocs/Asciidoctor plugin·configuration·dependency·task를 제거했다. `:bottlenote-product-api:build -x test`가 종료 코드 0으로 통과했고 springdoc 의존성 및 `/api/v1/openapi.product.json` 설정을 양성 검색으로 확인했다.
+- 2026-08-02: Task 14 완료. Admin docs 테스트 디렉터리의 Kotlin 테스트 12개와 지원 문서 1개를 삭제했다. Admin 테스트 영역의 RestDocs 참조가 0건임을 확인했고 `:bottlenote-admin-api:compileTestKotlin`이 종료 코드 0으로 통과했다. 로컬 통합 테스트는 실행하지 않았다.
