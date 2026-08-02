@@ -212,7 +212,7 @@
 - Files (advisory): product `src/docs/asciidoc`, product build
 - Depends: 12
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 14: Admin RestDocs 테스트 자산 제거
 - Acceptance:
@@ -298,3 +298,4 @@
 - 2026-08-02: 개발 환경에서 Admin OpenAPI 무인증 HTTP 200, OpenAPI 3.1.0, 65 operations, bearerAuth와 Product/Admin 문서 CORS의 최종 허용 origin `https://bottle-note.github.io`를 확인한 결과를 반영했다.
 - 2026-08-02: 2차 삭제 전 현재 파일을 재집계했다. Product docs 테스트 30개, Product 외부 docs 지원 1개, snippet template 2개, Product AsciiDoc 63개, Admin docs 테스트 13개, Admin AsciiDoc 24개, Antora `docs/` 파일 9개, `-x asciidoctor` workflow 참조 4개, 레거시 Pages workflow 1개다.
 - 2026-08-02: Task 12 완료. Product RestDocs 테스트 30개, 외부 지원 1개, snippet template 2개를 삭제하고 일반 통합 테스트 1개의 request builder를 표준 MockMvc builder로 교체했다. `:bottlenote-product-api:compileTestJava unit_test`가 종료 코드 0으로 통과했고 로컬 통합 테스트는 실행하지 않았다. 남은 `restdocs` 1건은 Task 17 대상인 허용 태그 정책이다.
+- 2026-08-02: Task 13 완료. Product AsciiDoc 63개와 Product build의 RestDocs/Asciidoctor plugin·configuration·dependency·task를 제거했다. `:bottlenote-product-api:build -x test`가 종료 코드 0으로 통과했고 springdoc 의존성 및 `/api/v1/openapi.product.json` 설정을 양성 검색으로 확인했다.

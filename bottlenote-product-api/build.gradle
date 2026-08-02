@@ -1,17 +1,4 @@
 // bottlenote-product-api
-plugins {
-	alias(libs.plugins.asciidoctor)
-	alias(libs.plugins.restdocs.api.spec)
-}
-
-ext {
-	snippetsDir = file('build/generated-snippets')
-}
-
-configurations {
-	asciidoctorExt
-}
-
 dependencies {
 	implementation project(':bottlenote-mono')
 	testImplementation project(':bottlenote-test-support')
@@ -60,11 +47,6 @@ dependencies {
 	// Test - ArchUnit
 	testImplementation libs.archunit
 
-	// Test - Spring REST Docs
-	asciidoctorExt libs.spring.restdocs.asciidoctor
-	testImplementation libs.spring.restdocs.mockmvc
-	testImplementation libs.restdocs.api.spec.mockmvc
-
 	// Test - AWS
 	testImplementation platform(libs.aws.sdk.bom)
 	testImplementation libs.aws.sdk.s3
@@ -103,17 +85,3 @@ tasks.named('processResources') {
 }
 
 tasks.register("prepareKotlinBuildScriptModel") {}
-
-// [삭제 예정] Spring REST Docs 설정
-// API 문서는 springdoc OpenAPI(GET /api/v1/openapi.product.json)로 대체됐다.
-// 전환 기간 동안만 유지하며 새 엔드포인트를 이 경로로 문서화하지 않는다.
-// 상세: src/test/java/app/docs/DEPRECATED.md
-asciidoctor {
-	inputs.dir snippetsDir
-	configurations 'asciidoctorExt'
-	dependsOn restDocsTest
-	sources {
-		include("**/product-api.adoc")
-	}
-	baseDirFollowsSourceFile()
-}
