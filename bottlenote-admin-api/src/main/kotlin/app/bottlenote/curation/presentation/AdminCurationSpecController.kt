@@ -1,5 +1,6 @@
 package app.bottlenote.curation.presentation
 
+import app.bottlenote.curation.presentation.docs.AdminCurationSpecApiDocs
 import app.bottlenote.curation.service.CurationSpecQueryService
 import app.bottlenote.global.data.response.GlobalResponse
 import org.springframework.http.ResponseEntity
@@ -10,14 +11,17 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/v2/curation-specs")
+@AdminCurationSpecApiDocs.ApiTag
 class AdminCurationSpecController(
 	private val curationSpecQueryService: CurationSpecQueryService
 ) {
+	@AdminCurationSpecApiDocs.GetAllCurationSpecs
 	@GetMapping
-	fun list(): ResponseEntity<*> = GlobalResponse.ok(curationSpecQueryService.listActiveSpecs())
+	fun list(): ResponseEntity<GlobalResponse> = GlobalResponse.ok(curationSpecQueryService.listActiveSpecs())
 
+	@AdminCurationSpecApiDocs.GetCurationSpecDetail
 	@GetMapping("/{specId}")
 	fun detail(
 		@PathVariable specId: Long
-	): ResponseEntity<*> = GlobalResponse.ok(curationSpecQueryService.getSpecDetail(specId))
+	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(curationSpecQueryService.getSpecDetail(specId))
 }

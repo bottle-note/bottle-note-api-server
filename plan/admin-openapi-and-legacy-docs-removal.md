@@ -163,7 +163,7 @@
 - Files (advisory): 컨트롤러 2개, 문서 어노테이션 2개
 - Depends: 2
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 10: Admin 응답 타입 회귀 규칙
 - Acceptance:
@@ -290,3 +290,4 @@
 - 2026-08-02: Task 6 완료. Alcohols·AdminCuration 17개 operation 문서와 명시적 `GlobalResponse` 반환 타입을 추가했고 `compileKotlin`이 통과했다.
 - 2026-08-02: Task 7 완료. Auth·Users·Review 7개 operation 문서와 명시적 `GlobalResponse` 반환 타입을 추가했고 PUBLIC 인증 정책 3건을 유지한 채 `compileKotlin`이 통과했다.
 - 2026-08-02: Task 8 완료. Banner·ImageUpload·Help 12개 operation 문서와 명시적 `GlobalResponse` 반환 타입을 추가했고 `compileKotlin`이 통과했다.
+- 2026-08-02: Task 9 완료. CurationSpec·SpecBasedCuration 7개 operation 문서를 실제 `/v2` 경로를 유지해 추가했고 `compileKotlin`이 통과했다.
