@@ -256,7 +256,7 @@
 - Files (advisory): `docs/`, `TestTagRules`
 - Depends: 12, 14, 15, 16
 - Size: S
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 18: 프로젝트 지침과 문서화 가이드 갱신
 - Acceptance:
@@ -302,3 +302,4 @@
 - 2026-08-02: Task 14 완료. Admin docs 테스트 디렉터리의 Kotlin 테스트 12개와 지원 문서 1개를 삭제했다. Admin 테스트 영역의 RestDocs 참조가 0건임을 확인했고 `:bottlenote-admin-api:compileTestKotlin`이 종료 코드 0으로 통과했다. 로컬 통합 테스트는 실행하지 않았다.
 - 2026-08-02: Task 15 완료. Admin AsciiDoc 24개, Admin build의 RestDocs/Asciidoctor 설정, 레거시 GitHub Pages workflow 1개를 제거하고 CI·배포 workflow 4개의 `-x asciidoctor`를 삭제했다. workflow 잔여 참조 0건을 확인했고 `build -x test`가 종료 코드 0으로 통과했다.
 - 2026-08-02: Task 16 완료. 루트 Gradle의 문서 plugin과 `restDocsTest`, `docs_test`, `verifyRestDocsIncludes` 정의 62줄 및 version catalog의 레거시 문서 항목 13줄을 제거했다. `tasks --all`에서 제거 대상 task가 각각 0건이고 `build -x test --build-cache --parallel`이 종료 코드 0으로 통과했으며 springdoc catalog 2건은 유지됐다.
+- 2026-08-02: Task 17 완료. Antora `docs/` 파일 9개, Antora 전용 ignore 7줄, AsciiDoc 전용 editor 설정 6줄을 제거하고 허용 태그 정책에서 `restdocs`를 삭제했다. 활성 `.adoc`과 `docs/` 파일, 태그 정책 참조가 각각 0건이며 `check_rule_test`가 종료 코드 0으로 통과했다.

@@ -1,1 +1,0 @@
-* xref:product-api.adoc[Product API]
