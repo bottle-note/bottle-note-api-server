@@ -20,7 +20,7 @@ public class AgreementEvaluator {
   public AgreementEvaluation evaluate(Long userId) {
     List<Item> items =
         Arrays.stream(AgreementType.values()).map(type -> evaluate(userId, type)).toList();
-    boolean eligible = items.stream().allMatch(Item::agreed);
+    boolean eligible = items.stream().filter(Item::required).allMatch(Item::agreed);
     return new AgreementEvaluation(eligible, items);
   }
 
@@ -30,6 +30,6 @@ public class AgreementEvaluator {
             .findFirstByUserIdAndAgreementTypeOrderByIdDesc(userId, type)
             .filter(agreement -> agreement.getAction() == AgreementAction.AGREE)
             .isPresent();
-    return new Item(type, true, agreed);
+    return new Item(type, type.isRequired(), agreed);
   }
 }
