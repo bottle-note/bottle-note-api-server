@@ -95,3 +95,11 @@ root:
   admin:
     email: email@email.com
     password: test-root-admin-password
+
+# OpenAPI 문서 (운영 설정과 같은 경로를 유지해 스펙을 그대로 검증한다)
+springdoc:
+  api-docs:
+    path: /v1/openapi.admin.json
+  swagger-ui:
+    enabled: false
+  default-produces-media-type: application/json

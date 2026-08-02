@@ -85,6 +85,14 @@ root:
     email: ${ROOT_ADMIN_EMAIL:email@email.com}
     password: ${ROOT_ADMIN_PASSWORD}
 
+# OpenAPI JSON은 context-path와 합쳐 /admin/api/v1/openapi.admin.json으로 노출한다
+springdoc:
+  api-docs:
+    path: /v1/openapi.admin.json
+  swagger-ui:
+    enabled: false
+  default-produces-media-type: application/json
+
 --- # default/local 프로파일 (동일 설정)
 spring:
   config:
