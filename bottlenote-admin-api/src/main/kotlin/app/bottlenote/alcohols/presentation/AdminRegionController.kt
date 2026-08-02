@@ -4,6 +4,7 @@ import app.bottlenote.alcohols.dto.request.AdminReferenceSearchRequest
 import app.bottlenote.alcohols.dto.request.AdminRegionCreateRequest
 import app.bottlenote.alcohols.dto.request.AdminRegionSortOrderRequest
 import app.bottlenote.alcohols.dto.request.AdminRegionUpdateRequest
+import app.bottlenote.alcohols.presentation.docs.AdminRegionApiDocs
 import app.bottlenote.alcohols.service.AdminRegionService
 import app.bottlenote.alcohols.service.AlcoholReferenceService
 import app.bottlenote.global.data.response.GlobalResponse
@@ -23,50 +24,59 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/regions")
+@AdminRegionApiDocs.ApiTag
 class AdminRegionController(
 	private val alcoholReferenceService: AlcoholReferenceService,
 	private val adminRegionService: AdminRegionService
 ) {
+	@AdminRegionApiDocs.GetAllRegions
 	@GetMapping
 	fun getAllRegions(
 		@ModelAttribute request: AdminReferenceSearchRequest
-	): ResponseEntity<*> = ResponseEntity.ok(alcoholReferenceService.findAllRegionsForAdmin(request))
+	): ResponseEntity<GlobalResponse> = ResponseEntity.ok(alcoholReferenceService.findAllRegionsForAdmin(request))
 
+	@AdminRegionApiDocs.GetRegionDetail
 	@GetMapping("/{regionId}")
 	fun detail(
 		@PathVariable regionId: Long
-	): ResponseEntity<*> = GlobalResponse.ok(adminRegionService.getDetail(regionId))
+	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminRegionService.getDetail(regionId))
 
+	@AdminRegionApiDocs.CreateRegion
 	@PostMapping
 	fun create(
 		@RequestBody @Valid request: AdminRegionCreateRequest
-	): ResponseEntity<*> = GlobalResponse.ok(adminRegionService.create(request))
+	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminRegionService.create(request))
 
+	@AdminRegionApiDocs.UpdateRegion
 	@PutMapping("/{regionId}")
 	fun update(
 		@PathVariable regionId: Long,
 		@RequestBody @Valid request: AdminRegionUpdateRequest
-	): ResponseEntity<*> = GlobalResponse.ok(adminRegionService.update(regionId, request))
+	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminRegionService.update(regionId, request))
 
+	@AdminRegionApiDocs.DeleteRegion
 	@DeleteMapping("/{regionId}")
 	fun delete(
 		@PathVariable regionId: Long
-	): ResponseEntity<*> = GlobalResponse.ok(adminRegionService.delete(regionId))
+	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminRegionService.delete(regionId))
 
+	@AdminRegionApiDocs.UpdateRegionSortOrder
 	@PatchMapping("/{regionId}/sort-order")
 	fun updateSortOrder(
 		@PathVariable regionId: Long,
 		@RequestBody @Valid request: AdminRegionSortOrderRequest
-	): ResponseEntity<*> = GlobalResponse.ok(adminRegionService.updateSortOrder(regionId, request))
+	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminRegionService.updateSortOrder(regionId, request))
 
+	@AdminRegionApiDocs.ReorderRegions
 	@PatchMapping("/bulk/reorder")
 	fun reorder(
 		@RequestBody @Valid request: AdminBulkReorderRequest
-	): ResponseEntity<*> = GlobalResponse.ok(adminRegionService.reorder(request))
+	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminRegionService.reorder(request))
 
+	@AdminRegionApiDocs.ReorderRegionChildren
 	@PatchMapping("/{parentId}/children/bulk/reorder")
 	fun reorderChildren(
 		@PathVariable parentId: Long,
 		@RequestBody @Valid request: AdminBulkReorderRequest
-	): ResponseEntity<*> = GlobalResponse.ok(adminRegionService.reorderChildren(parentId, request))
+	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminRegionService.reorderChildren(parentId, request))
 }

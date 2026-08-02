@@ -121,7 +121,7 @@
 - Files (advisory): 컨트롤러 3개, 문서 어노테이션 3개
 - Depends: 2
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 6: 위스키 본체 operation 문서화
 - Acceptance:
@@ -286,3 +286,4 @@
 - 2026-08-02: Task 3 완료. Product 문서 경로를 빈 `docs-allowed-origins` CORS set으로 분리하고 CI 실행 대상 통합 테스트 3개를 추가했다. `compileJava`, `compileTestJava`, `unit_test`가 통과했으며 통합 테스트는 실행하지 않았다.
 - 2026-08-02: Task 2 완료. Admin 전용 성공 envelope·공통 오류·SecurityPolicy 기반 인증 customizer를 추가했고 `compileKotlin`이 통과했다.
 - 2026-08-02: Task 4 완료. Admin 문서 경로를 빈 `docs-allowed-origins` CORS set으로 분리하고 CI 실행 대상 통합 테스트 3개를 추가했다. `compileTestKotlin`과 `unit_test`가 통과했다.
+- 2026-08-02: Task 5 완료. Distillery·Region·TastingTag 22개 operation 문서와 명시적 `GlobalResponse` 반환 타입을 추가했고 `compileKotlin`이 통과했다.
