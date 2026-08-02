@@ -44,17 +44,17 @@ admin-api (Kotlin) → mono (Java)
 | 1 | Test Helper | `app/helper/{domain}/{Domain}Helper.kt` (object 싱글톤) |
 | 2 | Integration Test | `app/integration/{domain}/Admin{Domain}IntegrationTest.kt` |
 
-### Phase 3: 문서화 (선택)
+### Phase 3: OpenAPI 문서화
 
 | 순서 | 작업 | 위치 |
 |------|------|------|
-| 1 | RestDocs Test | `app/docs/{domain}/Admin{Domain}ControllerDocsTest.kt` |
-| 2 | Enum adoc 생성 | `src/docs/asciidoc/api/common/enums/{enum-name}.adoc` |
-| 3 | Domain adoc 생성 | `src/docs/asciidoc/api/admin-{domain}/{domain}.adoc` |
-| 4 | 메인 문서에 include 추가 | `src/docs/asciidoc/admin-api.adoc` |
-| 5 | asciidoctor 빌드 검증 | `./gradlew :bottlenote-admin-api:asciidoctor` |
+| 1 | Controller operation 문서화 | `@Tag`, `@Operation`, `@ApiResponse` |
+| 2 | 응답 data 타입 명시 | `GlobalResponse<{ResponseType}>` |
+| 3 | 보안 요구사항 확인 | 실제 `SecurityPolicy` 기반 `bearerAuth` |
+| 4 | 품질 계약 테스트 | `app/integration/openapi/` |
+| 5 | 테스트 컴파일 | `./gradlew :bottlenote-admin-api:compileTestKotlin` |
 
-> Domain adoc에서 enum adoc을 include할 때 상대 경로 사용: `include::../common/enums/{enum-name}.adoc[]`
+> 공개 스펙 경로는 `GET /admin/api/v1/openapi.admin.json`이다. 무인증 조회를 허용하고 Swagger UI는 제공하지 않는다.
 
 ---
 
@@ -147,14 +147,15 @@ RuntimeException
 | 수정 | 성공, 인증 실패, 존재하지 않는 ID |
 | 삭제 | 성공, 인증 실패, 존재하지 않는 ID |
 
-### RestDocs Test
+### OpenAPI 품질 테스트
 
 | 항목 | 규칙 |
 |------|------|
-| 어노테이션 | `@WebMvcTest(excludeAutoConfiguration = [SecurityAutoConfiguration::class])` |
-| Mock | `@MockitoBean`으로 Service 목킹 |
-| 목록 조회 Mock | `GlobalResponse.fromPage(page)` 반환 |
-| 그 외 Mock | Response DTO 또는 `AdminResultResponse` 반환 |
+| 기반 | 실제 application context와 `IntegrationTestSupport` 사용 |
+| 태그 | `@Tag("admin_integration")` |
+| 경로 | `${springdoc.api-docs.path}` 설정을 SSOT로 사용 |
+| 품질 | operation 수, 태그, summary, 응답 envelope와 data 스키마 검증 |
+| 보안 | PUBLIC operation과 bearer 요구 operation을 실제 정책과 비교 |
 
 ---
 
@@ -169,7 +170,7 @@ RuntimeException
 | Response DTO | `mono/.../alcohols/dto/response/AdminCurationDetailResponse.java` |
 | Request DTO | `mono/.../alcohols/dto/request/AdminCuration*Request.java` |
 | Integration Test | `admin-api/.../integration/curation/AdminCurationIntegrationTest.kt` |
-| RestDocs Test | `admin-api/.../docs/curation/AdminCurationControllerDocsTest.kt` |
+| OpenAPI Test | `admin-api/.../integration/openapi/` |
 | Helper | `admin-api/.../helper/curation/CurationHelper.kt` |
 
 ### Banner (배너) - QueryDSL 검색, 비즈니스 검증, sortOrder 리오더링 포함
@@ -183,10 +184,8 @@ RuntimeException
 | Exception | `mono/.../banner/exception/BannerException.java`, `BannerExceptionCode.java` |
 | QueryDSL | `mono/.../banner/repository/CustomBannerRepository*.java` |
 | Integration Test | `admin-api/.../integration/banner/AdminBannerIntegrationTest.kt` |
-| RestDocs Test | `admin-api/.../docs/banner/AdminBannerControllerDocsTest.kt` |
 | Helper | `admin-api/.../helper/banner/BannerHelper.kt` |
-| AsciiDoc | `admin-api/src/docs/asciidoc/api/admin-banners/banners.adoc` |
-| Enum adoc | `admin-api/src/docs/asciidoc/api/common/enums/banner-type.adoc`, `text-position.adoc` |
+| OpenAPI Test | `admin-api/.../integration/openapi/` |
 
 ---
 
@@ -202,9 +201,8 @@ Admin API 구현 완료 후 아래 순서대로 검증:
 | 4 | 단위 테스트 | `./gradlew unit_test` | `@Tag("unit")` |
 | 5 | Product 통합 테스트 | `./gradlew integration_test` | `@Tag("integration")` |
 | 6 | Admin 통합 테스트 | `./gradlew admin_integration_test` | `@Tag("admin_integration")` |
-| 7 | REST Docs 빌드 | `./gradlew :bottlenote-admin-api:asciidoctor` | 문서화 시 |
 
-> CI 파이프라인은 3~6번을 병렬 실행한다. mono 모듈 변경이 product-api에 영향을 줄 수 있으므로 `integration_test`도 반드시 확인해야 한다.
+> CI 파이프라인은 3~6번을 병렬 실행한다. Admin OpenAPI 품질 테스트는 6번에 포함되며, mono 모듈 변경이 product-api에 영향을 줄 수 있으므로 `integration_test`도 반드시 확인해야 한다.
 
 **전체 검증 (위 1-6 포함):**
 ```bash

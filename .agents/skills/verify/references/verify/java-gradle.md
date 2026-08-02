@@ -41,9 +41,9 @@ allprojects {
 | Step | Command | What it catches |
 |------|---------|-----------------|
 | 4 Unit tests | `./gradlew unit_test` | Business logic regressions (tag-filtered `@Tag("unit")`) |
-| 5 Full build | `./gradlew build -x test -x asciidoctor --build-cache --parallel` | JAR packaging, classpath resolution, dependency graph |
+| 5 Full build | `./gradlew build -x test --build-cache --parallel` | JAR packaging, classpath resolution, dependency graph |
 
-`--build-cache --parallel` cuts L2 from ~8 min to ~5 min on warm cache. Use `-x test -x asciidoctor` to avoid duplicate test runs (already done in step 4) and slow doc generation.
+`--build-cache --parallel` cuts L2 from ~8 min to ~5 min on warm cache. Use `-x test` to avoid duplicate test runs already completed in step 4.
 
 ### L3 — Full (~15 min, includes L2)
 
@@ -51,7 +51,6 @@ allprojects {
 |------|---------|-----------------|
 | 6 Integration tests | `./gradlew integration_test` (requires Docker) | DB schema drift, real-IO failures (TestContainers spins up MySQL, Redis, MinIO) |
 | 7 Admin integration (if present) | `./gradlew admin_integration_test` (requires Docker) | Admin-surface integration tests with Kotlin/Java interop, context-path |
-| 8 (optional) Doc build | `./gradlew asciidoctor` | RestDocs / AsciiDoc generation, snippet references |
 
 L3 = final gate before `git push` / PR. During active development, L1/L2 is sufficient.
 
@@ -68,7 +67,7 @@ A typical CI job (e.g., GitHub Actions) maps onto L1+L2+L3:
 - run: ./gradlew compileJava compileTestJava :{kotlin-module}:compileKotlin
 - run: ./gradlew check_rule_test
 - run: ./gradlew unit_test
-- run: ./gradlew build -x test -x asciidoctor --build-cache --parallel
+- run: ./gradlew build -x test --build-cache --parallel
 - run: ./gradlew integration_test admin_integration_test    # requires Docker service
 ```
 
@@ -97,7 +96,6 @@ Recommended timeouts for shell automations / Claude Code Bash tool:
 | Full build | 300 s |
 | Integration tests | 600 s |
 | Admin integration | 600 s |
-| Doc build (asciidoctor) | 300 s |
 
 Containers are reused (`withReuse(true)`), so steady-state integration is faster than first run. Allow first-run cold-start headroom.
 

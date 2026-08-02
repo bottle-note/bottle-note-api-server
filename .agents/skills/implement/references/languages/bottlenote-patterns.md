@@ -6,7 +6,7 @@
 
 ## When to load
 
-`/implement` Phase 0 에서 자동 참조. Repository / RestDocs / 이벤트 발행 관련 작업 시 우선 확인.
+`/implement` Phase 0 에서 자동 참조. Repository / OpenAPI / 이벤트 발행 관련 작업 시 우선 확인.
 
 ---
 
@@ -37,7 +37,7 @@ bottlenote-admin-api/src/test/kotlin/.../fixture/InMemory{Domain}Repository.kt
 
 ---
 
-## P3 흡수. RestDocs / asciidoctor 워크플로우
+## P3 흡수. springdoc OpenAPI 워크플로우
 
 원래 `/docs` 신규 스킬 후보였던 흐름. GSL 9 스킬로 분배:
 
@@ -45,16 +45,17 @@ bottlenote-admin-api/src/test/kotlin/.../fixture/InMemory{Domain}Repository.kt
 
 | 단계 | GSL 스킬 | bottle-note 구체 |
 |------|---------|------------------|
-| RestDocs 테스트 작성 | `/test` | `Rest{Domain}ControllerDocsTest` (product), `Admin{Domain}ControllerDocsTest` (admin) |
-| `.adoc` 인덱스·조각 작성 | `/implement` Slice | `bottlenote-{product\|admin}-api/src/docs/asciidoc/**.adoc` |
-| asciidoctor 빌드 검증 | `/verify` L3 | `./gradlew asciidoctor` |
-| admin default test 검증 | `/verify` L3 | `./gradlew :bottlenote-admin-api:test` |
+| Controller 스펙 작성 | `/implement` Slice | springdoc 어노테이션과 명시적 `GlobalResponse` data 타입 |
+| 품질 계약 테스트 | `/test` | Product `OpenApi*IntegrationTest`, Admin `app/integration/openapi/**` |
+| 빌드 검증 | `/verify` L2 | `./gradlew build -x test --build-cache --parallel` |
+| 런타임 계약 검증 | `/verify` L3 | `integration_test`, `admin_integration_test` |
 
-### admin default test 케이스 (PR #578 사례)
+### OpenAPI 공개 경로와 품질 기준
 
-- product 의 `Rest*DocsTest` 는 `@Tag("integration")` 로 분리돼 root `test` 에서 제외됨
-- 그러나 **admin 의 `Admin*DocsTest` 는 default `:bottlenote-admin-api:test` 에서 함께 도는 경우 있음**
-- 따라서 admin RestDocs 수정 시 `./gradlew :bottlenote-admin-api:test` 도 반드시 확인 (누락 시 PR drift 발생)
+- Product JSON: `GET /api/v1/openapi.product.json`
+- Admin JSON: `GET /admin/api/v1/openapi.admin.json`
+- 두 경로 모두 무인증 공개, OpenAPI 3.1, 명시적 응답 스키마와 실제 보안 정책의 bearer 요구사항을 검증한다.
+- Swagger UI는 제공하지 않으며, 문서 CORS는 `https://bottle-note.github.io`만 허용한다.
 
 ### `/verify full` 권장 명령 시퀀스
 
@@ -62,8 +63,7 @@ bottlenote-admin-api/src/test/kotlin/.../fixture/InMemory{Domain}Repository.kt
 ./gradlew check_rule_test                  # baseline rule check
 ./gradlew unit_test integration_test       # 표준 단위·통합
 ./gradlew admin_integration_test           # admin 통합
-./gradlew :bottlenote-admin-api:test       # admin default test (DocsTest 누락 방지)
-./gradlew asciidoctor                      # RestDocs HTML 빌드 검증
+./gradlew build -x test --build-cache --parallel
 ```
 
 ---
