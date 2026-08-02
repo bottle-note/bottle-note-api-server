@@ -4,6 +4,7 @@ import app.bottlenote.global.data.response.GlobalResponse
 import app.bottlenote.global.security.SecurityContextUtil
 import app.bottlenote.support.help.dto.request.AdminHelpAnswerRequest
 import app.bottlenote.support.help.dto.request.AdminHelpPageableRequest
+import app.bottlenote.support.help.presentation.docs.AdminHelpApiDocs
 import app.bottlenote.support.help.service.AdminHelpService
 import app.bottlenote.user.exception.UserException
 import app.bottlenote.user.exception.UserExceptionCode
@@ -13,30 +14,34 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/helps")
+@AdminHelpApiDocs.ApiTag
 class AdminHelpController(
 	private val adminHelpService: AdminHelpService
 ) {
+	@AdminHelpApiDocs.GetHelpList
 	@GetMapping
 	fun getHelpList(
 		@ModelAttribute request: AdminHelpPageableRequest
-	): ResponseEntity<*> {
+	): ResponseEntity<GlobalResponse> {
 		val response = adminHelpService.getHelpList(request)
 		return GlobalResponse.ok(response)
 	}
 
+	@AdminHelpApiDocs.GetHelpDetail
 	@GetMapping("/{helpId}")
 	fun getHelpDetail(
 		@PathVariable helpId: Long
-	): ResponseEntity<*> {
+	): ResponseEntity<GlobalResponse> {
 		val response = adminHelpService.getHelpDetail(helpId)
 		return GlobalResponse.ok(response)
 	}
 
+	@AdminHelpApiDocs.AnswerHelp
 	@PostMapping("/{helpId}/answer")
 	fun answerHelp(
 		@PathVariable helpId: Long,
 		@RequestBody @Valid request: AdminHelpAnswerRequest
-	): ResponseEntity<*> {
+	): ResponseEntity<GlobalResponse> {
 		val adminId =
 			SecurityContextUtil
 				.getAdminUserIdByContext()

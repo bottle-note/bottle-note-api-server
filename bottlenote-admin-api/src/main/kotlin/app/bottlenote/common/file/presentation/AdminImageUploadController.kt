@@ -1,6 +1,7 @@
 package app.bottlenote.common.file.presentation
 
 import app.bottlenote.common.file.dto.request.ImageUploadRequest
+import app.bottlenote.common.file.presentation.docs.AdminImageUploadApiDocs
 import app.bottlenote.common.file.service.ImageUploadService
 import app.bottlenote.global.data.response.GlobalResponse
 import app.bottlenote.global.security.SecurityContextUtil
@@ -14,13 +15,15 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/s3")
+@AdminImageUploadApiDocs.ApiTag
 class AdminImageUploadController(
 	private val imageUploadService: ImageUploadService
 ) {
+	@AdminImageUploadApiDocs.GetPreSignUrl
 	@GetMapping("/presign-url")
 	fun getPreSignUrl(
 		@ModelAttribute request: ImageUploadRequest
-	): ResponseEntity<*> {
+	): ResponseEntity<GlobalResponse> {
 		val adminId =
 			SecurityContextUtil
 				.getAdminUserIdByContext()
