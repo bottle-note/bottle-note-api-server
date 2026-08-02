@@ -185,11 +185,11 @@
 - Files (advisory): Admin OpenAPI 테스트 지원·품질·노출·보안 테스트 4개
 - Depends: 3, 4, 5, 6, 7, 8, 9
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Checkpoint: after Tasks 5-11
-- [ ] Admin `ResponseEntity<*>` 0건 및 65 operation 문서 코드 완성
-- [ ] compile, compileTest, unit, rule 검증 통과
+- [x] Admin `ResponseEntity<*>` 0건 및 65 operation 문서 코드 완성
+- [x] compile, compileTest, unit, rule 검증 통과
 - [ ] Draft PR push 후 Product/Admin 통합 테스트 CI 통과
 
 ### Task 12: Product RestDocs 테스트 자산 제거
@@ -292,3 +292,5 @@
 - 2026-08-02: Task 8 완료. Banner·ImageUpload·Help 12개 operation 문서와 명시적 `GlobalResponse` 반환 타입을 추가했고 `compileKotlin`이 통과했다.
 - 2026-08-02: Task 9 완료. CurationSpec·SpecBasedCuration 7개 operation 문서를 실제 `/v2` 경로를 유지해 추가했고 `compileKotlin`이 통과했다.
 - 2026-08-02: Task 10 완료. Admin `ResponseEntity<*>` 0건을 재확인하고 raw·wildcard 반환 타입 회귀 규칙을 추가했으며 전체 `check_rule_test`가 통과했다.
+- 2026-08-02: Task 11 완료. Admin OpenAPI 65 operation·품질·envelope·보안 계약 통합 테스트 4개를 추가했고 `compileTestKotlin`과 `unit_test`가 통과했다. 통합 테스트 실행은 Draft PR CI로 이관했다.
+- 2026-08-02: 검증 중 Kotlin/AssertJ 제네릭 추론 실패를 PUBLIC endpoint Set 값 비교로 수정해 중단 지점에서 재개했다.
