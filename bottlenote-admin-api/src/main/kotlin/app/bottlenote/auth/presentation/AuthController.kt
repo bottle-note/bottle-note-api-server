@@ -1,6 +1,7 @@
 package app.bottlenote.auth.presentation
 
 import app.bottlenote.auth.config.RootAdminProperties
+import app.bottlenote.auth.presentation.docs.AuthApiDocs
 import app.bottlenote.global.annotation.SecurityPolicy
 import app.bottlenote.global.annotation.SecurityPolicy.AuthType.PUBLIC
 import app.bottlenote.global.data.response.GlobalResponse
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/auth")
+@AuthApiDocs.ApiTag
 class AuthController(
 	private val authService: AdminAuthService,
 	private val rootAdminProperties: RootAdminProperties,
@@ -40,37 +42,42 @@ class AuthController(
 		}
 	}
 
+	@AuthApiDocs.Login
 	@SecurityPolicy(auth = PUBLIC)
 	@PostMapping("/login")
-	fun login(@RequestBody request: LoginRequest): ResponseEntity<*> {
+	fun login(@RequestBody request: LoginRequest): ResponseEntity<GlobalResponse> {
 		val tokenItem: TokenItem = authService.login(request.email, request.password)
 		return GlobalResponse.ok(tokenItem)
 	}
 
+	@AuthApiDocs.Refresh
 	@SecurityPolicy(auth = PUBLIC)
 	@PostMapping("/refresh")
-	fun refresh(@RequestBody request: RefreshRequest): ResponseEntity<*> {
+	fun refresh(@RequestBody request: RefreshRequest): ResponseEntity<GlobalResponse> {
 		val tokenItem: TokenItem = authService.refresh(request.refreshToken)
 		return GlobalResponse.ok(tokenItem)
 	}
 
+	@AuthApiDocs.LoginWithAgent
 	@SecurityPolicy(auth = PUBLIC)
 	@PostMapping("/agent")
-	fun loginWithAgent(@RequestBody @Valid request: AgentLoginRequest): ResponseEntity<*> {
+	fun loginWithAgent(@RequestBody @Valid request: AgentLoginRequest): ResponseEntity<GlobalResponse> {
 		val tokenItem: TokenItem = authService.loginWithAgent(request.agentKey())
 		return GlobalResponse.ok(tokenItem)
 	}
 
+	@AuthApiDocs.Signup
 	@PostMapping("/signup")
-	fun signup(@RequestBody @Valid request: AdminSignupRequest): ResponseEntity<*> {
+	fun signup(@RequestBody @Valid request: AdminSignupRequest): ResponseEntity<GlobalResponse> {
 		val requesterId = SecurityContextUtil.getAdminUserIdByContext()
 			.orElseThrow { UserException(UserExceptionCode.REQUIRED_USER_ID) }
 		val response = authService.signup(requesterId, request)
 		return GlobalResponse.ok(response)
 	}
 
+	@AuthApiDocs.Withdraw
 	@DeleteMapping("/withdraw")
-	fun withdraw(): ResponseEntity<*> {
+	fun withdraw(): ResponseEntity<GlobalResponse> {
 		val adminId = SecurityContextUtil.getAdminUserIdByContext()
 			.orElseThrow { UserException(UserExceptionCode.REQUIRED_USER_ID) }
 		authService.withdraw(adminId)
