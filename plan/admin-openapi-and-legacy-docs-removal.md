@@ -142,7 +142,7 @@
 - Files (advisory): 컨트롤러 3개, 문서 어노테이션 3개
 - Depends: 2
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 8: 배너·이미지·문의 operation 문서화
 - Acceptance:
@@ -288,3 +288,4 @@
 - 2026-08-02: Task 4 완료. Admin 문서 경로를 빈 `docs-allowed-origins` CORS set으로 분리하고 CI 실행 대상 통합 테스트 3개를 추가했다. `compileTestKotlin`과 `unit_test`가 통과했다.
 - 2026-08-02: Task 5 완료. Distillery·Region·TastingTag 22개 operation 문서와 명시적 `GlobalResponse` 반환 타입을 추가했고 `compileKotlin`이 통과했다.
 - 2026-08-02: Task 6 완료. Alcohols·AdminCuration 17개 operation 문서와 명시적 `GlobalResponse` 반환 타입을 추가했고 `compileKotlin`이 통과했다.
+- 2026-08-02: Task 7 완료. Auth·Users·Review 7개 operation 문서와 명시적 `GlobalResponse` 반환 타입을 추가했고 PUBLIC 인증 정책 3건을 유지한 채 `compileKotlin`이 통과했다.
