@@ -60,7 +60,7 @@ class OpenApiSecurityRequirementTest : OpenApiSpecTestSupport() {
 
 		assertThat(publicEndpoints)
 			.withFailMessage("PUBLIC 엔드포인트가 기대한 3건과 다릅니다:%n%s", joined(publicEndpoints.toList()))
-			.isEqualTo(setOf("POST /auth/login", "POST /auth/refresh", "POST /auth/agent"))
+			.isEqualTo(setOf("POST /v1/auth/login", "POST /v1/auth/refresh", "POST /v1/auth/agent"))
 	}
 
 	/** 실제 보안 정책이 판정한 엔드포인트별 인증 방식. */
