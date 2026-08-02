@@ -45,8 +45,8 @@ class AgreementEvaluatorTest {
   }
 
   @Test
-  @DisplayName("두 유형의 최신 이력이 동의면 충족으로 판정한다")
-  void evaluate_whenLatestActionsAreAgree_returnsEligible() {
+  @DisplayName("필수 유형의 최신 이력이 동의면 선택 동의 없이도 충족으로 판정한다")
+  void evaluate_whenLatestRequiredActionsAreAgree_returnsEligible() {
     save(AgreementType.TERMS_OF_SERVICE, AgreementAction.AGREE, RECORDED_AT);
     save(AgreementType.PRIVACY_COLLECTION_USE, AgreementAction.AGREE, RECORDED_AT.minusYears(1));
 

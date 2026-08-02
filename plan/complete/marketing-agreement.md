@@ -1,5 +1,8 @@
 # Plan: 마케팅 선택 동의 추가
 
+Status: Completed
+Completion Date: 2026-08-02
+
 ## Overview
 
 기존 사용자 동의 도메인에 마케팅 정보 수신 동의를 선택 항목으로 추가한다. 동의 상태 응답은 각 유형의 필수 여부와 현재 동의 여부를 함께 제공하고, 전체 동의 자격과 로그인 동의 필요 힌트는 필수 항목만 기준으로 판정한다.
@@ -65,3 +68,4 @@
 - 2026-08-02: plan 완료. 선택 동의 판정 경로와 API 계약의 수직 슬라이스 2개로 분해했으며 Task 2는 Task 1에 의존한다.
 - 2026-08-02: Task 1 완료. 동의 유형에 필수 여부를 추가하고 마케팅을 선택 유형으로 정의했다. Evaluator는 필수 항목만 전체 자격에 반영하며 상태 항목에는 유형별 필수 여부를 노출한다. 관련 compile과 evaluator/service/auth focused unit test가 통과했다.
 - 2026-08-02: Task 2 완료. 제출 API와 OpenAPI 허용값에 MARKETING을 추가하고 상태 응답에서 선택 여부와 최신 동의 상태를 검증하도록 API·문서 계약 테스트를 갱신했다. product-api main/test compile과 전체 unit test가 통과했으며 integration·RestDocs/OpenAPI 실행은 계약대로 PR CI에 위임한다.
+- 2026-08-02: 로컬 최종 검증 완료. 전체 Java/Kotlin main·test compile과 unit test 553개가 실패·오류·스킵 없이 통과했다. self-review는 Critical 0건, Important 0건, Nit 1건이었으며 테스트 설명을 현재 선택 동의 규칙에 맞게 수정해 해소했다. rule·product/admin integration·최종 build는 main 대상 PR CI에서 확인한다.
