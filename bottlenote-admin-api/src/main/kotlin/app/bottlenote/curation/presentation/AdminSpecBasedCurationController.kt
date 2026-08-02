@@ -3,6 +3,7 @@ package app.bottlenote.curation.presentation
 import app.bottlenote.curation.dto.request.CurationCreateRequest
 import app.bottlenote.curation.dto.request.CurationSearchRequest
 import app.bottlenote.curation.dto.request.CurationUpdateRequest
+import app.bottlenote.curation.presentation.docs.AdminSpecBasedCurationApiDocs
 import app.bottlenote.curation.service.AdminSpecBasedCurationService
 import app.bottlenote.global.data.response.GlobalResponse
 import jakarta.validation.Valid
@@ -18,32 +19,38 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/v2/curations")
+@AdminSpecBasedCurationApiDocs.ApiTag
 class AdminSpecBasedCurationController(
 	private val adminSpecBasedCurationService: AdminSpecBasedCurationService
 ) {
+	@AdminSpecBasedCurationApiDocs.GetAllSpecBasedCurations
 	@GetMapping
 	fun list(
 		@ModelAttribute request: CurationSearchRequest
 	): ResponseEntity<GlobalResponse> = ResponseEntity.ok(adminSpecBasedCurationService.search(request))
 
+	@AdminSpecBasedCurationApiDocs.GetSpecBasedCurationFeed
 	@GetMapping("/feed")
 	fun feed(
 		@ModelAttribute request: CurationSearchRequest
 	): ResponseEntity<GlobalResponse> = ResponseEntity.ok(adminSpecBasedCurationService.searchFeed(request))
 
+	@AdminSpecBasedCurationApiDocs.GetSpecBasedCurationDetail
 	@GetMapping("/{curationId}")
 	fun detail(
 		@PathVariable curationId: Long
-	): ResponseEntity<*> = GlobalResponse.ok(adminSpecBasedCurationService.getDetail(curationId))
+	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminSpecBasedCurationService.getDetail(curationId))
 
+	@AdminSpecBasedCurationApiDocs.CreateSpecBasedCuration
 	@PostMapping
 	fun create(
 		@RequestBody @Valid request: CurationCreateRequest
-	): ResponseEntity<*> = GlobalResponse.ok(adminSpecBasedCurationService.create(request))
+	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminSpecBasedCurationService.create(request))
 
+	@AdminSpecBasedCurationApiDocs.UpdateSpecBasedCuration
 	@PutMapping("/{curationId}")
 	fun update(
 		@PathVariable curationId: Long,
 		@RequestBody @Valid request: CurationUpdateRequest
-	): ResponseEntity<*> = GlobalResponse.ok(adminSpecBasedCurationService.update(curationId, request))
+	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminSpecBasedCurationService.update(curationId, request))
 }
