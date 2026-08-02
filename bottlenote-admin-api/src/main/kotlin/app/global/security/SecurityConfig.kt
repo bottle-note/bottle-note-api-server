@@ -4,6 +4,7 @@ import app.bottlenote.global.security.constant.MaliciousPathPattern
 import app.bottlenote.global.security.jwt.AdminJwtAuthenticationFilter
 import app.bottlenote.global.security.jwt.AdminJwtAuthenticationManager
 import app.bottlenote.global.security.policy.SecurityPolicyRegistry
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -26,9 +27,9 @@ class SecurityConfig(
 	private val corsProperties: CorsProperties
 ) {
 	@Bean
-	fun filterChain(http: HttpSecurity): SecurityFilterChain = http
+	fun filterChain(http: HttpSecurity, corsConfigurationSource: CorsConfigurationSource): SecurityFilterChain = http
 		.csrf { it.disable() }
-		.cors { it.configurationSource(corsConfigurationSource()) }
+		.cors { it.configurationSource(corsConfigurationSource) }
 		.sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
 		.formLogin { it.disable() }
 		.httpBasic { it.disable() }
@@ -49,8 +50,17 @@ class SecurityConfig(
 			UsernamePasswordAuthenticationFilter::class.java
 		).build()
 
+	// 문서 스펙 경로는 일반 API와 분리된 CORS 정책을 쓴다.
 	@Bean
-	fun corsConfigurationSource(): CorsConfigurationSource {
+	fun corsConfigurationSource(
+		@Value("\${springdoc.api-docs.path}") openApiSpecPath: String
+	): CorsConfigurationSource {
+		val docsConfiguration = CorsConfiguration()
+		docsConfiguration.allowedOrigins = corsProperties.docsAllowedOrigins
+		docsConfiguration.allowedMethods = listOf("GET", "OPTIONS")
+		docsConfiguration.allowedHeaders = listOf("Authorization", "Content-Type")
+		docsConfiguration.allowCredentials = false
+
 		val configuration = CorsConfiguration()
 		configuration.allowedOrigins = corsProperties.allowedOrigins
 		configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
@@ -58,6 +68,7 @@ class SecurityConfig(
 		configuration.allowCredentials = false
 
 		val source = UrlBasedCorsConfigurationSource()
+		source.registerCorsConfiguration(openApiSpecPath, docsConfiguration)
 		source.registerCorsConfiguration("/**", configuration)
 		return source
 	}
