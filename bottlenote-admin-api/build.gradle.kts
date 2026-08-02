@@ -18,6 +18,9 @@ dependencies {
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 
+	// OpenAPI
+	implementation(libs.springdoc.openapi.starter.webmvc.ui)
+
 	// Security
 	implementation(libs.spring.boot.starter.security)
 	implementation(libs.spring.security.test)
