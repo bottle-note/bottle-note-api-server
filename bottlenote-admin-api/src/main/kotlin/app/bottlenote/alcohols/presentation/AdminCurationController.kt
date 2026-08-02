@@ -58,8 +58,7 @@ class AdminCurationController(
 	fun updateDisplayOrder(
 		@PathVariable curationId: Long,
 		@RequestBody @Valid request: AdminCurationDisplayOrderRequest
-	): ResponseEntity<GlobalResponse> =
-		GlobalResponse.ok(adminCurationService.updateDisplayOrder(curationId, request))
+	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminCurationService.updateDisplayOrder(curationId, request))
 
 	@AdminCurationApiDocs.ReorderCurations
 	@PatchMapping("/bulk/reorder")
