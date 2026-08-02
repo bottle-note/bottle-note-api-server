@@ -58,7 +58,7 @@ jobs:
       - name: build both modules
         run: |
           ./gradlew :bottlenote-product-api:build :bottlenote-admin-api:build \
-            -x test -x asciidoctor --build-cache --parallel
+            -x test --build-cache --parallel
 
       - name: upload product jar
         uses: actions/upload-artifact@v7

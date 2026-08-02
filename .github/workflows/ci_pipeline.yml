@@ -249,7 +249,7 @@ jobs:
           key: workspace-${{ github.sha }}
 
       - name: build project
-        run: ./gradlew build -x test -x asciidoctor --build-cache --parallel
+        run: ./gradlew build -x test --build-cache --parallel
 
       - name: download all test results
         uses: actions/download-artifact@v8
