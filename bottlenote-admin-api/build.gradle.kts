@@ -2,12 +2,7 @@
 plugins {
 	alias(libs.plugins.kotlin.jvm)
 	alias(libs.plugins.kotlin.spring)
-	alias(libs.plugins.asciidoctor)
-	alias(libs.plugins.restdocs.api.spec)
 }
-// snippetsDir 정의
-val snippetsDir by extra { file("build/generated-snippets") }
-val asciidoctorExt: Configuration by configurations.creating
 
 dependencies {
 	implementation(project(":bottlenote-mono"))
@@ -31,11 +26,6 @@ dependencies {
 
 	// Test - Architecture rules
 	testImplementation(libs.archunit)
-
-	// Test - Spring REST Docs
-	add("asciidoctorExt", libs.spring.restdocs.asciidoctor)
-	testImplementation(libs.spring.restdocs.mockmvc)
-	testImplementation(libs.restdocs.api.spec.mockmvc)
 
 	// Schema migration
 	runtimeOnly(libs.flyway.core)
@@ -84,13 +74,4 @@ tasks.jar {
 	enabled = true
 }
 
-tasks.asciidoctor {
-	inputs.dir(snippetsDir)
-	configurations(asciidoctorExt.name)
-	dependsOn(tasks.named("restDocsTest"))
-	sources {
-		include("**/admin-api.adoc")
-	}
-	baseDirFollowsSourceFile()
-}
 tasks.register("prepareKotlinBuildScriptModel") {}
