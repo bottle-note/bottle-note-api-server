@@ -71,6 +71,19 @@ class AgreementEvaluatorTest {
   }
 
   @Test
+  @DisplayName("동의 후 만료되면 철회와 동일하게 미동의로 판정한다")
+  void evaluate_whenLatestActionIsExpired_returnsNotEligible() {
+    save(AgreementType.TERMS_OF_SERVICE, AgreementAction.AGREE, RECORDED_AT.plusSeconds(10));
+    save(AgreementType.TERMS_OF_SERVICE, AgreementAction.EXPIRED, RECORDED_AT);
+    save(AgreementType.PRIVACY_COLLECTION_USE, AgreementAction.AGREE, RECORDED_AT);
+
+    AgreementEvaluation result = evaluator.evaluate(USER_ID);
+
+    assertThat(result.eligible()).isFalse();
+    assertThat(item(result, AgreementType.TERMS_OF_SERVICE).agreed()).isFalse();
+  }
+
+  @Test
   @DisplayName("철회 후 다시 동의하면 최신 동의 상태로 판정한다")
   void evaluate_whenLatestActionReturnsToAgree_returnsEligible() {
     save(AgreementType.TERMS_OF_SERVICE, AgreementAction.REVOKE, RECORDED_AT.plusSeconds(10));

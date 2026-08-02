@@ -6,7 +6,8 @@ import lombok.Getter;
 @Getter
 public enum AgreementAction {
   AGREE("약관에 동의함"),
-  REVOKE("약관 동의를 철회함");
+  REVOKE("약관 동의를 철회함"),
+  EXPIRED("약관 동의가 만료됨");
 
   private final String description;
 

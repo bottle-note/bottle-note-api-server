@@ -1,6 +1,7 @@
 package app.bottlenote.agreement.integration;
 
 import static app.bottlenote.agreement.constant.AgreementAction.AGREE;
+import static app.bottlenote.agreement.constant.AgreementAction.EXPIRED;
 import static app.bottlenote.agreement.constant.AgreementInputContext.INDIVIDUAL;
 import static app.bottlenote.agreement.constant.AgreementType.MARKETING;
 import static app.bottlenote.agreement.constant.AgreementType.PRIVACY_COLLECTION_USE;
@@ -159,6 +160,29 @@ class AgreementControllerIntegrationTest extends IntegrationTestSupport {
           .bodyJson()
           .extractingPath("$.errors[0].code")
           .isEqualTo(AgreementExceptionCode.INVALID_AGREEMENT_TYPE.name());
+    }
+
+    @Test
+    @DisplayName("만료 상태를 제출하면 저장하지 않고 400을 반환한다")
+    void submit_whenActionIsExpired_returnsBadRequestWithoutSaving() throws Exception {
+      User user = userTestFactory.persistUser();
+      TokenItem token = getToken(user);
+      AgreementSubmitRequest request =
+          new AgreementSubmitRequest(
+              List.of(new Item(TERMS_OF_SERVICE.name(), EXPIRED, "원문", INDIVIDUAL)));
+
+      MvcTestResult result = submit(token, request);
+
+      result.assertThat().hasStatus(HttpStatus.BAD_REQUEST);
+      result
+          .assertThat()
+          .bodyJson()
+          .extractingPath("$.errors[0].code")
+          .isEqualTo(AgreementExceptionCode.UNSUPPORTED_AGREEMENT_ACTION.name());
+      assertThat(
+              userAgreementRepository.findFirstByUserIdAndAgreementTypeOrderByIdDesc(
+                  user.getId(), TERMS_OF_SERVICE))
+          .isEmpty();
     }
 
     @Test

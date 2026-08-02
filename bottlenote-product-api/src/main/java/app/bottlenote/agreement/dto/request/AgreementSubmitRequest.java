@@ -28,11 +28,18 @@ public record AgreementSubmitRequest(
       @Schema(allowableValues = {"TERMS_OF_SERVICE", "PRIVACY_COLLECTION_USE", "MARKETING"})
           @NotBlank(message = "AGREEMENT_TYPE_REQUIRED")
           String type,
-      @NotNull(message = "AGREEMENT_ACTION_REQUIRED") AgreementAction action,
+      @Schema(
+              description = "사용자 제출 가능 동작. EXPIRED는 서버가 기록하는 상태로 요청할 수 없다.",
+              allowableValues = {"AGREE", "REVOKE"})
+          @NotNull(message = "AGREEMENT_ACTION_REQUIRED")
+          AgreementAction action,
       @NotBlank(message = "AGREEMENT_CONTENT_EMPTY") String content,
       @NotNull(message = "AGREEMENT_INPUT_CONTEXT_REQUIRED") AgreementInputContext inputContext) {
 
     private AgreementSubmission toSubmission() {
+      if (action == AgreementAction.EXPIRED) {
+        throw new AgreementException(AgreementExceptionCode.UNSUPPORTED_AGREEMENT_ACTION);
+      }
       return new AgreementSubmission(agreementType(), action, content, inputContext);
     }
 

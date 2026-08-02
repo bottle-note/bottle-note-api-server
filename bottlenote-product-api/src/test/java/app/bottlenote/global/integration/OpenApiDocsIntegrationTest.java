@@ -165,6 +165,8 @@ class OpenApiDocsIntegrationTest extends OpenApiSpecTestSupport {
         .containsExactlyInAnyOrder("type", "action", "content", "inputContext");
     assertThat(textValuesOf(requestItemSchema.path("properties").path("type").path("enum")))
         .containsExactly("TERMS_OF_SERVICE", "PRIVACY_COLLECTION_USE", "MARKETING");
+    assertThat(textValuesOf(requestItemSchema.path("properties").path("action").path("enum")))
+        .containsExactly("AGREE", "REVOKE");
   }
 
   private JsonNode resolveSchema(JsonNode spec, JsonNode schema) {
