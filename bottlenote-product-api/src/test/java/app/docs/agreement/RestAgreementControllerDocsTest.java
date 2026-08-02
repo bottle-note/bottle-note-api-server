@@ -2,6 +2,7 @@ package app.docs.agreement;
 
 import static app.bottlenote.agreement.constant.AgreementAction.AGREE;
 import static app.bottlenote.agreement.constant.AgreementInputContext.INDIVIDUAL;
+import static app.bottlenote.agreement.constant.AgreementType.MARKETING;
 import static app.bottlenote.agreement.constant.AgreementType.PRIVACY_COLLECTION_USE;
 import static app.bottlenote.agreement.constant.AgreementType.TERMS_OF_SERVICE;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
@@ -84,7 +85,8 @@ class RestAgreementControllerDocsTest extends AbstractRestDocs {
         new AgreementSubmitRequest(
             List.of(
                 new Item(TERMS_OF_SERVICE.name(), AGREE, "이용약관 원문", INDIVIDUAL),
-                new Item(PRIVACY_COLLECTION_USE.name(), AGREE, "개인정보 수집 이용 원문", INDIVIDUAL)));
+                new Item(PRIVACY_COLLECTION_USE.name(), AGREE, "개인정보 수집 이용 원문", INDIVIDUAL),
+                new Item(MARKETING.name(), AGREE, "마케팅 정보 수신 동의 원문", INDIVIDUAL)));
     mockMvc
         .perform(
             post("/api/v2/agreements")
@@ -98,7 +100,10 @@ class RestAgreementControllerDocsTest extends AbstractRestDocs {
                 "agreements/submit",
                 requestFields(
                     fieldWithPath("agreements").type(ARRAY).description("제출할 동의 항목"),
-                    fieldWithPath("agreements[].type").type(STRING).description("동의 유형"),
+                    fieldWithPath("agreements[].type")
+                        .type(STRING)
+                        .description(
+                            "동의 유형: TERMS_OF_SERVICE, PRIVACY_COLLECTION_USE 또는 MARKETING"),
                     fieldWithPath("agreements[].action")
                         .type(STRING)
                         .description("동의 의사표시: AGREE 또는 REVOKE"),

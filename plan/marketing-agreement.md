@@ -57,10 +57,11 @@
 - Files (advisory): `AgreementSubmitRequest`, 동의 Controller 통합 테스트, RestDocs/OpenAPI 계약 테스트
 - Depends: Task 1
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ## Progress Log
 
 - 2026-08-02: define 승인. 마케팅을 선택 동의로 추가하고 필수 동의만 전체 자격과 로그인 힌트에 반영하기로 확정했다. 로컬 검증은 compile과 unit test로 제한하며, rule·integration·최종 build는 main 대상 PR CI에서 확인한다.
 - 2026-08-02: plan 완료. 선택 동의 판정 경로와 API 계약의 수직 슬라이스 2개로 분해했으며 Task 2는 Task 1에 의존한다.
 - 2026-08-02: Task 1 완료. 동의 유형에 필수 여부를 추가하고 마케팅을 선택 유형으로 정의했다. Evaluator는 필수 항목만 전체 자격에 반영하며 상태 항목에는 유형별 필수 여부를 노출한다. 관련 compile과 evaluator/service/auth focused unit test가 통과했다.
+- 2026-08-02: Task 2 완료. 제출 API와 OpenAPI 허용값에 MARKETING을 추가하고 상태 응답에서 선택 여부와 최신 동의 상태를 검증하도록 API·문서 계약 테스트를 갱신했다. product-api main/test compile과 전체 unit test가 통과했으며 integration·RestDocs/OpenAPI 실행은 계약대로 PR CI에 위임한다.
