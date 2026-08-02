@@ -49,8 +49,7 @@ class AdminAlcoholsController(
 
 	@AdminAlcoholsApiDocs.GetCategoryReference
 	@GetMapping("/categories/reference")
-	fun getCategoryReference(): ResponseEntity<GlobalResponse> =
-		GlobalResponse.ok(alcoholQueryService.findAllCategoryReferenceMap())
+	fun getCategoryReference(): ResponseEntity<GlobalResponse> = GlobalResponse.ok(alcoholQueryService.findAllCategoryReferenceMap())
 
 	@AdminAlcoholsApiDocs.CreateAlcohol
 	@PostMapping
