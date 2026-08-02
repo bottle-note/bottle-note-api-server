@@ -95,7 +95,7 @@
 - Files (advisory): product CORS properties/config, main/test application 설정, CORS 통합 테스트
 - Depends: 없음
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 4: Admin 문서 전용 CORS 정책
 - Acceptance:
@@ -283,3 +283,4 @@
 - 2026-08-02: 공통 OpenAPI customizer를 mono로 이동하면 batch까지 영향이 확장되므로 admin-api 내부 구현으로 범위를 유지하기로 계획했다.
 - 2026-08-02: 빈 문서 CORS set의 실제 동작을 cross-origin 403, Origin 없는 무인증 GET 200으로 정밀화했다.
 - 2026-08-02: Task 1 완료. Admin springdoc 의존성·OpenAPI 설정·PUBLIC 스펙 경로를 추가했고 `compileKotlin`, `compileTestKotlin`이 통과했다. 로컬 통합 테스트는 실행하지 않았다.
+- 2026-08-02: Task 3 완료. Product 문서 경로를 빈 `docs-allowed-origins` CORS set으로 분리하고 CI 실행 대상 통합 테스트 3개를 추가했다. `compileJava`, `compileTestJava`, `unit_test`가 통과했으며 통합 테스트는 실행하지 않았다.
