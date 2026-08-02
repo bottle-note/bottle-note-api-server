@@ -174,7 +174,7 @@
 - Files (advisory): 기존 product rule 테스트 1개
 - Depends: 5, 6, 7, 8, 9
 - Size: S
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 11: Admin OpenAPI 품질 통합 테스트
 - Acceptance:
@@ -291,3 +291,4 @@
 - 2026-08-02: Task 7 완료. Auth·Users·Review 7개 operation 문서와 명시적 `GlobalResponse` 반환 타입을 추가했고 PUBLIC 인증 정책 3건을 유지한 채 `compileKotlin`이 통과했다.
 - 2026-08-02: Task 8 완료. Banner·ImageUpload·Help 12개 operation 문서와 명시적 `GlobalResponse` 반환 타입을 추가했고 `compileKotlin`이 통과했다.
 - 2026-08-02: Task 9 완료. CurationSpec·SpecBasedCuration 7개 operation 문서를 실제 `/v2` 경로를 유지해 추가했고 `compileKotlin`이 통과했다.
+- 2026-08-02: Task 10 완료. Admin `ResponseEntity<*>` 0건을 재확인하고 raw·wildcard 반환 타입 회귀 규칙을 추가했으며 전체 `check_rule_test`가 통과했다.
