@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 class TestTagRules {
 
   private static final Set<String> ALLOWED_TAGS =
-      Set.of("unit", "integration", "admin_integration", "restdocs", "rule", "batch");
+      Set.of("unit", "integration", "admin_integration", "rule", "batch");
   private static final Pattern TAG_PATTERN =
       Pattern.compile("@Tag\\(\\s*(?:value\\s*=\\s*)?\"([^\"]+)\"\\s*\\)");
 
