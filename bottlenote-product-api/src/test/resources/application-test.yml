@@ -53,6 +53,7 @@ app:
   cors:
     allowed-origins:
       - https://bottle-note.com
+      - https://bottle-note.github.io
     docs-allowed-origins:
       - https://bottle-note.github.io
 
