@@ -232,6 +232,16 @@ class SecurityConfigIntegrationTest extends IntegrationTestSupport {
   }
 
   @Test
+  @DisplayName("GitHub Pages Origin의 일반 Product API preflight 요청을 허용한다")
+  void GitHub_Pages_Origin_일반_Product_API_preflight_허용() {
+    var result = preflight("https://bottle-note.github.io");
+
+    result.assertThat().hasStatusOk();
+    assertThat(result.getResponse().getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN))
+        .isEqualTo("https://bottle-note.github.io");
+  }
+
+  @Test
   @DisplayName("허용되지 않은 Origin의 preflight 요청은 거부한다")
   void 허용되지_않은_Origin_preflight_거부() {
     var result = preflight("https://evil.example");

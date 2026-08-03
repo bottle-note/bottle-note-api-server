@@ -27,6 +27,16 @@ class SecurityConfigIntegrationTest : IntegrationTestSupport() {
 	}
 
 	@Test
+	@DisplayName("GitHub Pages Origin의 일반 Admin API preflight 요청을 허용한다")
+	fun githubPagesOriginAdminApiPreflightAllowed() {
+		val result = preflight("https://bottle-note.github.io")
+
+		result.assertThat().hasStatusOk()
+		assertThat(result.response.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN))
+			.isEqualTo("https://bottle-note.github.io")
+	}
+
+	@Test
 	@DisplayName("Product Origin의 Admin API preflight 요청은 거부한다")
 	fun productOriginPreflightRejected() {
 		val result = preflight("https://bottle-note.com")

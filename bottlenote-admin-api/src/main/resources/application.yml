@@ -4,6 +4,7 @@ app: # 애플리케이션 및 배포 정보
   cors:
     allowed-origins:
       - http://localhost:5173
+      - https://bottle-note.github.io
     docs-allowed-origins:
       - https://bottle-note.github.io
   info:
@@ -153,6 +154,7 @@ app:
     allowed-origins:
       - https://admin.development.bottle-note.com
       - http://localhost:5173
+      - https://bottle-note.github.io
 
 spring:
   config:
@@ -184,6 +186,7 @@ app:
   cors:
     allowed-origins:
       - https://admin.bottle-note.com
+      - https://bottle-note.github.io
 
 spring:
   config:
