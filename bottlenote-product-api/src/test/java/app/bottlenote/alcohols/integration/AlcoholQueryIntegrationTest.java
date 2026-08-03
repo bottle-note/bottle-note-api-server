@@ -20,6 +20,8 @@ import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
 import app.bottlenote.rating.fixture.RatingTestFactory;
+import app.bottlenote.user.constant.FollowStatus;
+import app.bottlenote.user.domain.Follow;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.fixture.UserTestFactory;
 import jakarta.persistence.EntityManager;
@@ -204,6 +206,36 @@ class AlcoholQueryIntegrationTest extends IntegrationTestSupport {
     assertNotNull(alcoholDetail.friendsInfo());
     assertEquals(1, alcoholDetail.friendsInfo().getFollowerCount());
     assertEquals(follower.getId(), alcoholDetail.friendsInfo().getFriends().getFirst().userId());
+  }
+
+  @Test
+  @DisplayName("언팔로우한 사용자는 마셔본 친구에서 제외한다.")
+  void tastingFriends_excludes_unfollowed_user() throws Exception {
+    Alcohol alcohol = alcoholTestFactory.persistAlcohol();
+    String tokenString = getToken();
+    Long currentUserId = getTokenUserId();
+    User unfollowedUser = userTestFactory.persistUser("unfollowed@example.com", "unfollowed");
+    userTestFactory.persistFollow(
+        Follow.builder()
+            .userId(currentUserId)
+            .targetUserId(unfollowedUser.getId())
+            .status(FollowStatus.UNFOLLOW));
+    ratingTestFactory.persistRating(unfollowedUser.getId(), alcohol.getId(), 4);
+
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v1/alcohols/{alcoholId}", alcohol.getId())
+            .contentType(APPLICATION_JSON)
+            .header("Authorization", "Bearer " + tokenString)
+            .with(csrf())
+            .exchange();
+
+    AlcoholDetailResponse alcoholDetail = extractData(result, AlcoholDetailResponse.class);
+
+    assertNotNull(alcoholDetail.friendsInfo());
+    assertEquals(0, alcoholDetail.friendsInfo().getFollowerCount());
+    assertTrue(alcoholDetail.friendsInfo().getFriends().isEmpty());
   }
 
   @Test

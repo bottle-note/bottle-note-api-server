@@ -33,6 +33,7 @@ public interface JpaFollowRepository
 		        SELECT f.targetUserId
 		        FROM follow f
 		        WHERE f.userId = :userId
+		        AND f.status = app.bottlenote.user.constant.FollowStatus.FOLLOWING
 		    )
 		    AND r.id.alcoholId = :alcoholId
 		""")
