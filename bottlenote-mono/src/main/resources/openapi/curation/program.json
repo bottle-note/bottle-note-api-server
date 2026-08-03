@@ -3,7 +3,7 @@
   "info": {
     "title": "프로그램",
     "description": "행사 기간과 장소, 여러 프로그램 및 프로그램별 위스키 라인업을 함께 발행하는 행사형 큐레이션.",
-    "version": "3.0.1"
+    "version": "3.0.2"
   },
   "x-curation": {
     "code": "PROGRAM",
@@ -133,7 +133,7 @@
             "maxLength": 2048,
             "nullable": true,
             "x-field-style": "plain-text",
-            "x-display-name": "참가 링크"
+            "x-display-name": "참가 신청 링크"
           },
           "programTags": {
             "type": "array",
@@ -249,7 +249,7 @@
                   "maxLength": 2048,
                   "nullable": true,
                   "x-field-style": "plain-text",
-                  "x-display-name": "참가 링크"
+                  "x-display-name": "참가 신청 링크"
                 },
                 "whiskies": {
                   "type": "array",
@@ -379,8 +379,6 @@
               "required": [
                 "name",
                 "type",
-                "programDate",
-                "startTime",
                 "description"
               ]
             }
@@ -528,7 +526,7 @@
             "maxLength": 2048,
             "nullable": true,
             "x-field-style": "plain-text",
-            "x-display-name": "참가 링크"
+            "x-display-name": "참가 신청 링크"
           },
           "programTags": {
             "type": "array",
@@ -674,7 +672,7 @@
                   "maxLength": 2048,
                   "nullable": true,
                   "x-field-style": "plain-text",
-                  "x-display-name": "참가 링크"
+                  "x-display-name": "참가 신청 링크"
                 },
                 "whiskies": {
                   "type": "array",
@@ -804,8 +802,6 @@
               "required": [
                 "name",
                 "type",
-                "programDate",
-                "startTime",
                 "description"
               ]
             }
