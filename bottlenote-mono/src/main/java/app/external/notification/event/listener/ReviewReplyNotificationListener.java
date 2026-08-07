@@ -3,7 +3,7 @@ package app.external.notification.event.listener;
 import static app.bottlenote.common.annotation.DomainEventListener.ProcessingType.ASYNCHRONOUS;
 
 import app.bottlenote.common.annotation.DomainEventListener;
-import app.bottlenote.review.event.payload.ReviewReplyRegistryEvent;
+import app.bottlenote.review.event.payload.ReviewReplyNotificationEvent;
 import app.external.notification.application.NotificationService;
 import app.external.notification.data.payload.NotificationMessage;
 import app.external.notification.domain.constant.NotificationCategory;
@@ -15,7 +15,12 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-/** 리뷰 댓글 등록 시 리뷰 작성자에게 Notification(SSOT)을 생성한다. Delivery(SSE/Push)는 담당하지 않는다. */
+/**
+ * {@link ReviewReplyNotificationEvent}를 구독해 리뷰 작성자에게 Notification(SSOT)을 생성한다.
+ *
+ * <p>Delivery(SSE/Push)는 담당하지 않는다. History 발행 경로와 분리되어 있으며, 이후 활동 이벤트 파이프라인
+ * 공동화(bottle-note/workspace#373) 때 단일 이벤트 리스너 분기로 합쳐질 수 있다.
+ */
 @Slf4j
 @RequiredArgsConstructor
 @DomainEventListener(type = ASYNCHRONOUS)
@@ -28,7 +33,7 @@ public class ReviewReplyNotificationListener {
   @Async
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   @TransactionalEventListener
-  public void handleReviewReplyRegistered(ReviewReplyRegistryEvent event) {
+  public void handleReviewReplyNotification(ReviewReplyNotificationEvent event) {
     if (event == null) {
       return;
     }

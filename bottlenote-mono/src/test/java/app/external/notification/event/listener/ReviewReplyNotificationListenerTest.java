@@ -2,7 +2,7 @@ package app.external.notification.event.listener;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import app.bottlenote.review.event.payload.ReviewReplyRegistryEvent;
+import app.bottlenote.review.event.payload.ReviewReplyNotificationEvent;
 import app.external.notification.application.NotificationService;
 import app.external.notification.data.payload.NotificationMessage;
 import app.external.notification.domain.Notification;
@@ -36,19 +36,19 @@ class ReviewReplyNotificationListenerTest {
 
   @Nested
   @DisplayName("리뷰 댓글 알림을 생성할 때")
-  class HandleReviewReplyRegistered {
+  class HandleReviewReplyNotification {
 
     @Test
     @DisplayName("다른 사용자가 댓글 달면 리뷰 작성자에게 알림을 보낸다")
-    void handleReviewReplyRegistered_whenOtherUserReplies_sendsNotificationToAuthor() {
+    void handleReviewReplyNotification_whenOtherUserReplies_sendsNotificationToAuthor() {
       // given
       String content = "좋은 리뷰네요!";
-      ReviewReplyRegistryEvent event =
-          ReviewReplyRegistryEvent.of(
+      ReviewReplyNotificationEvent event =
+          ReviewReplyNotificationEvent.of(
               REVIEW_ID, REVIEW_AUTHOR_ID, OTHER_USER_ID, REPLY_ID, content);
 
       // when
-      listener.handleReviewReplyRegistered(event);
+      listener.handleReviewReplyNotification(event);
 
       // then
       assertThat(notificationService.messages).hasSize(1);
@@ -62,14 +62,14 @@ class ReviewReplyNotificationListenerTest {
 
     @Test
     @DisplayName("리뷰 작성자 본인 댓글이면 알림을 보내지 않는다")
-    void handleReviewReplyRegistered_whenSelfReply_skipsNotification() {
+    void handleReviewReplyNotification_whenSelfReply_skipsNotification() {
       // given
-      ReviewReplyRegistryEvent event =
-          ReviewReplyRegistryEvent.of(
+      ReviewReplyNotificationEvent event =
+          ReviewReplyNotificationEvent.of(
               REVIEW_ID, REVIEW_AUTHOR_ID, REVIEW_AUTHOR_ID, REPLY_ID, "내 리뷰에 댓글");
 
       // when
-      listener.handleReviewReplyRegistered(event);
+      listener.handleReviewReplyNotification(event);
 
       // then
       assertThat(notificationService.messages).isEmpty();
@@ -77,9 +77,9 @@ class ReviewReplyNotificationListenerTest {
 
     @Test
     @DisplayName("이벤트가 null이면 아무 것도 하지 않는다")
-    void handleReviewReplyRegistered_whenEventNull_doesNothing() {
+    void handleReviewReplyNotification_whenEventNull_doesNothing() {
       // when
-      listener.handleReviewReplyRegistered(null);
+      listener.handleReviewReplyNotification(null);
 
       // then
       assertThat(notificationService.messages).isEmpty();
