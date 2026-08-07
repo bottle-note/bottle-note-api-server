@@ -36,14 +36,4 @@ public interface JpaAlcoholsTastingTagsRepository
   @Modifying
   @Query("delete from alcohol_tasting_tags att where att.alcohol.id = :alcoholId")
   void deleteByAlcoholId(@Param("alcoholId") Long alcoholId);
-
-  @Override
-  @Query(
-      """
-      select case when count(att) > 0 then true else false end
-      from alcohol_tasting_tags att
-      where att.alcohol.id = :alcoholId and att.tastingTag.id = :tastingTagId
-      """)
-  boolean existsByAlcoholIdAndTastingTagId(
-      @Param("alcoholId") Long alcoholId, @Param("tastingTagId") Long tastingTagId);
 }
