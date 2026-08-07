@@ -21,6 +21,7 @@ import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.fixture.UserTestFactory;
 import com.fasterxml.jackson.databind.JsonNode;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.StreamSupport;
@@ -127,8 +128,10 @@ class AgreementControllerIntegrationTest extends IntegrationTestSupport {
       assertThat(terms.getClientIp()).isEqualTo("203.0.113.10");
       assertThat(terms.getUserAgent()).isEqualTo("BottleNote/2.0");
       assertThat(latest(user, MARKETING).getAction()).isEqualTo(AGREE);
-      assertThat(item(data, TERMS_OF_SERVICE.name()).path("recordedAt").asText())
-          .isEqualTo(terms.getRecordedAt().toString());
+      // JSON 문자열과 LocalDateTime#toString()은 소수부 자리수가 다를 수 있어 시각 값으로 비교한다.
+      LocalDateTime responseRecordedAt =
+          LocalDateTime.parse(item(data, TERMS_OF_SERVICE.name()).path("recordedAt").asText());
+      assertThat(responseRecordedAt).isEqualTo(terms.getRecordedAt());
     }
 
     @Test
