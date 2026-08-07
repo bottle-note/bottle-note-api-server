@@ -233,6 +233,7 @@ public class UserTestFactory {
   }
 
   /** AgreementGate를 통과할 수 있도록 필수 유형 AGREE 이력을 시드한다. */
+  @Transactional
   public void seedRequiredAgreements(@NotNull Long userId) {
     LocalDateTime recordedAt = LocalDateTime.of(2026, 1, 1, 0, 0);
     Arrays.stream(AgreementType.values())
