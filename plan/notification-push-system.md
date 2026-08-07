@@ -23,7 +23,7 @@
 
 1. 이번 작업의 **1차 구현 범위**는 Notification SSOT + 알림함 API다. **SSE · Device Token · Mobile Push · FCM 재도입은 1차 제외**다.
 2. **admin-api 관리자 알림 발송 API는 1차 제외**다.
-3. 기존 `notifications` 테이블과 `app.external.notification` 패키지를 **재사용·진화**한다. (전면 drop 후 재생성 아님)
+3. 기존 `notifications` 테이블과 `app.bottlenote.notification` 패키지를 **재사용·진화**한다. (전면 drop 후 재생성 아님)
 4. 대상 모듈은 **product-api + mono** 중심이다. batch 변경은 1차 불필요를 전제로 한다.
 5. 알림 조회·읽음 API는 **인증 사용자 본인 데이터만** 대상으로 한다.
 6. 최소 생성 트리거는 **리뷰 댓글 알림 1종**이다. (설계 9.1 — 서비스 활동 알림)
@@ -56,8 +56,8 @@
 
 **조사 결과 (현재 코드)**
 
-- mono: `app.external.notification` — 엔티티/저장 골격, `UserNotificationService`는 DB 저장만 수행
-- product-api: `NotificationController` 빈 껍데기 (`/api/v1/external/notification`)
+- mono: `app.bottlenote.notification` — 엔티티/저장 골격, `UserNotificationService`는 DB 저장만 수행
+- product-api: `NotificationController` 빈 껍데기 (`/api/v1/notifications`)
 - DB: `notifications`, `user_push_configs`, `user_device_tokens` 잔존
 - FCM / Push 코드: 제거됨 (재도입 1차 제외)
 - 마케팅 동의 `MARKETING`: 완료됨 — 1차 캠페인 발송 없음으로 Policy 연동은 후속
@@ -95,10 +95,10 @@
 ### Task 1: Notification 도메인 조회·읽음 경로 (mono)
 - Acceptance:
   - 사용자별 알림 목록 조회·미읽음 개수·단건 읽음·전체 읽음이 도메인/서비스 계층에서 동작한다
-  - 기존 `notifications` 테이블·`app.external.notification` 패키지를 재사용·진화한다
+  - 기존 `notifications` 테이블·`app.bottlenote.notification` 패키지를 재사용·진화한다
   - 스키마 변경이 필요하면 구현을 멈추고 오케스트레이션으로 schema 서브모듈 worktree 작업을 분리한다 (이 Task에서 마이그레이션 SQL을 백엔드에 직접 추가하지 않는다)
 - Verification: `./gradlew :bottlenote-mono:unit_test --tests '*Notification*'` (또는 동등 unit 필터) 및 compile
-- Files (advisory): `app.external.notification.domain.*`, `repository/*`, `application/*`, test-support InMemory fixture
+- Files (advisory): `app.bottlenote.notification.domain.*`, `repository/*`, `application/*`, test-support InMemory fixture
 - Depends: 없음
 - Size: M
 - Status: [x] done
@@ -158,3 +158,5 @@
 - 2026-08-08: Task 2 완료 — commit `5c9e3741`. product-api 알림함 API + integration 9건 통과.
 - 2026-08-08: Task 3 완료 — commit `8a2c6b36`. ReviewReplyRegistryEvent + ReviewReplyNotificationListener. 본인 댓글 생략.
 - 2026-08-08: 코디네이터 verify — compile + unit_test SUCCESS, NotificationControllerIntegrationTest 9 tests 0 failures.
+
+- 2026-08-08: Notification 패키지 `app.external.notification` → `app.bottlenote.notification` 이전, API `/api/v1/notifications`.
