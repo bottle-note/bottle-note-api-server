@@ -1,8 +1,8 @@
-# Admin MCP 아키텍처 — 격리 게이트웨이
+# Admin MCP — 아키텍처 SSOT
 
-- 작성: 2026-08-08
-- 이슈: bottle-note/workspace#370
-- 결정: **별도 앱 `bottlenote-mcp`** + **백엔드 MCP 전용 API**
+- 이슈: bottle-note/workspace#370 · 관련 #340(Agent Key) · #341(감사, open)
+- 작성/정리: 2026-08-08
+- 이 문서가 plan 내 **유일한** MCP 설계 문서다. 조사 원본(research/brief)은 폐기했다.
 
 ## Topology
 
@@ -11,7 +11,7 @@
         |  Streamable HTTP  https://mcp.bottlenote.com/mcp
         |  Authorization: Bearer bn_agent_*
         v
- bottlenote-mcp  (/Users/hgkim/workspace/bottlenote/mcp)
+ bottlenote-mcp  (/Users/hgkim/workspace/bottlenote/mcp, TS)
         |  내부 HTTP allowlist only
         |  1) POST /admin/api/v1/auth/agent
         |  2) GET  /admin/api/v1/mcp/...
@@ -20,47 +20,57 @@
  bottlenote-admin-api
 ```
 
-## 왜 API 서버 엔드포인트만으로 부족한가
+## 결정
 
-- MCP는 REST가 아니라 **JSON-RPC tools 프로토콜** (Streamable HTTP).
-- 게이트웨이를 격리해야 권한 폭발 반경·배포·스케일을 Admin UI API와 분리 가능.
+| 항목 | 값 |
+|------|-----|
+| 게이트웨이 | 별도 TS 앱 `bottlenote-mcp` (admin-api 내장·Java monorepo MCP 모듈 비채택) |
+| Transport | Streamable HTTP `/mcp`, **stateless** (sticky 없음, multi-pod OK) |
+| Wire | 구현은 SDK 현실에 맞춤; 비즈니스 상태 세션 금지 |
+| 인증 | Agent Key만 수신 → 서버 내부 #340 교환 → Admin JWT(요청 스코프) |
+| 배포 | multi-arch Node 22 (`linux/amd64`, `linux/arm64`), k9s/GitOps |
+| 서브모듈 | `git.environment-variables` (api-server와 동일). 키 커밋 금지 |
 
-## 왜 TS 별도 앱인가 (이번 결정)
+## 백엔드 MCP API (admin-api)
 
-| 옵션 | 결과 |
-|------|------|
-| admin-api 내장 MCP | 비채택 — 프로세스/배포 커플링 |
-| Java monorepo 모듈 | 가능했으나 사용자 지정 경로 `bottlenote/mcp` 별도 앱 |
-| **TS `bottlenote-mcp`** | **채택** — Codex/Claude MCP SDK, multi-arch Node 이미지, k9s 독립 배포 |
-
-## 서브모듈
-
-- 동일: `git.environment-variables` → `https://github.com/bottle-note/environment-variables.git`
-- 시크릿/배포 매니페스트 원천은 서브모듈. 앱 레포에 키 커밋 금지.
-
-## Multi-arch
-
-- Dockerfile: `node:22-alpine` base (amd64/arm64)
-- buildx: `--platform linux/amd64,linux/arm64`
-
-## 백엔드 MCP 최적화 API (admin-api)
+일반 `/alcohols` UI 계약과 분리. 필드 축소·size≤50.
 
 | Method | Path | 용도 |
 |--------|------|------|
-| GET | `/admin/api/v1/mcp/whiskies` | 요약 검색 (size≤50) |
+| GET | `/admin/api/v1/mcp/whiskies` | 요약 검색 |
 | GET | `/admin/api/v1/mcp/whiskies/{id}` | MCP용 상세 |
 
-일반 Admin UI 계약(`/alcohols`)과 분리. 필드 축소·페이지 클램프·agent 친화 페이로드.
+## Tools
 
-## 보안
+### v0.1 (구현 중/게이트웨이 스캐폴드)
 
-1. 클라이언트 → MCP: Agent Key만
-2. MCP → Admin: Agent Key 교환 후 JWT (요청 스코프)
-3. 아웃바운드 allowlist: `/auth/agent`, `/mcp/*`
-4. 로그 스크럽: `bn_agent_*`, JWT
-5. 삭제/bulk 툴 미등록
+| tool | backend |
+|------|---------|
+| `bottlenote_whisky_search` | `GET /mcp/whiskies` |
+| `bottlenote_whisky_get` | `GET /mcp/whiskies/{id}` |
 
-## 로컬 경로
+### 이후 (미구현)
 
-- MCP app: `/Users/hgkim/workspace/bottlenote/mcp`
-- Backend worktree: `bottle-note-api-server/feat-issues-mcp`
+조회: lookup, category reference, distillery/region list·get, tasting_tag list  
+쓰기: whisky create/update(`confirm=true`), image presign, preview_diff  
+감사: #341 연계
+
+### NEVER (미등록 + 아웃바운드 거부)
+
+- delete / bulk / 무페이징 list_all
+- 토큰 발급·통과 프록시
+- 웹검색·외부 출처 판단·태그 자동생성
+- curation / banner / user / review 전면
+
+## 보안 (필수)
+
+1. 클라이언트 → MCP: Agent Key만 (Admin JWT 수신·통과 금지)
+2. MCP → Admin: allowlist `/auth/agent`, `/mcp/*` 만
+3. 로그·메트릭·예외에 `bn_agent_*` / JWT 원문 금지
+4. 쓰기 툴은 서버 `confirm=true` 강제 (annotation은 UX 힌트일 뿐)
+5. Rate limit 키: agentId 우선, fallback XFF (게이트웨이 XFF 신뢰)
+
+## 로컬
+
+- MCP app: `/Users/hgkim/workspace/bottlenote/mcp` (푸시·본구현은 별도)
+- Backend: 이 저장소 `feat-issues-mcp` 등
