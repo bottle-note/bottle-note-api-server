@@ -18,6 +18,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -87,6 +88,26 @@ class AgreementServiceTest {
           .containsExactly(
               tuple(AgreementType.TERMS_OF_SERVICE, "이용약관 원문"),
               tuple(AgreementType.PRIVACY_COLLECTION_USE, "개인정보 원문"));
+    }
+
+    @Test
+    @DisplayName("기록 시각을 마이크로초로 정규화한다")
+    void submit_whenClockHasNanos_truncatesRecordedAtToMicros() {
+      Instant withNanos = Instant.parse("2026-08-01T01:23:45.123456789Z");
+      service =
+          new AgreementService(
+              repository, new AgreementEvaluator(repository), Clock.fixed(withNanos, ZONE_ID));
+
+      service.submit(
+          USER_ID, requiredSubmissions(AgreementInputContext.INDIVIDUAL), CLIENT_IP, USER_AGENT);
+
+      LocalDateTime expected =
+          LocalDateTime.ofInstant(withNanos, ZONE_ID).truncatedTo(ChronoUnit.MICROS);
+      assertThat(repository.findAll())
+          .isNotEmpty()
+          .allSatisfy(agreement -> assertThat(agreement.getRecordedAt()).isEqualTo(expected));
+      assertThat(item(service.getStatus(USER_ID), AgreementType.TERMS_OF_SERVICE).recordedAt())
+          .isEqualTo(expected);
     }
 
     @Test
