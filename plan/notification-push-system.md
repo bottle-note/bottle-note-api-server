@@ -131,19 +131,19 @@
 - Status: [x] done
 
 ### Checkpoint: after Tasks 2-3
-- [ ] product-api + mono compile 통과
-- [ ] 관련 unit test 통과
-- [ ] SC1–SC8 대응 테스트 존재
+- [x] product-api + mono compile 통과
+- [x] 관련 unit test 통과 (`./gradlew unit_test` BUILD SUCCESSFUL)
+- [x] SC1–SC8 대응 테스트 존재 (mono unit + product integration 9건 0 failures)
 
-> Task 2와 Task 3은 Task 1 완료 후 병렬 가능.  
-> 최종 `/verify`는 implement 종료 후 코디네이터가 수행 (마지막 Task 뒤 Checkpoint 생략 규칙 준수 — 위 Checkpoint는 중간 검산용).
+> Task 2와 Task 3은 Task 1 완료 후 병렬 실행 완료.  
+> Task S는 스키마 불필요로 미기동.
 
 ### Task S (조건부): environment-variables 스키마 마이그레이션
 - Acceptance: 필요한 Flyway SQL이 서브모듈 저장소에 커밋되고, 백엔드는 서브모듈 포인터만 갱신한다
 - Verification: 서브모듈 브랜치/커밋 존재 + 백엔드 `git submodule status` 포인터 일치
 - Depends: Task 1에서 스키마 필요 판정 시
 - Size: S–M
-- Status: [ ] not done (조건부)
+- Status: [x] cancelled — 스키마 변경 불필요
 - Orchestration: **신규 worktree + Grok worker** (`repo: bottle-note/environment-variables` 또는 로컬 서브모듈 remote). 백엔드 포인터 갱신은 별도 짧은 Task/커밋
 
 ## Progress Log
@@ -153,6 +153,8 @@
 - 2026-08-08: Overview 초안 작성. Execution Mode 승인 대기.
 - 2026-08-08: Execution Mode **delegated** 확정. scope=`plan, implement, test, verify, commit`. 오케스트레이션=Grok only. 스키마=서브모듈 신규 worktree 분리 후 포인터만 갱신.
 - 2026-08-08: `/plan` Tasks 1–3 + 조건부 Task S 작성.
-- 2026-08-08: Task 1 완료 — mono Notification 도메인 포트/서비스 조회·읽음 경로 + InMemory unit 9건 통과. 스키마 변경 없음.
-- 2026-08-08: Task 2 완료 — product-api 알림함 API(list/unread-count/mark one/mark all) + integration 9건 통과. userId는 security context만 사용.
-- 2026-08-08: Task 3 완료 — ReviewReplyService가 ReviewReplyRegistryEvent 발행, ReviewReplyNotificationListener가 NotificationService.sendNotification 호출. 본인 댓글 알림 생략. unit 3건(리스너) + 기존 ReplyService unit 통과. SSE/Push 없음.
+- 2026-08-08: Orca Run `run_564665017005` 생성. Grok worker로 Task 1–3 디스패치.
+- 2026-08-08: Task 1 완료 — commit `e33f6b7a`. 스키마 변경 없음. unit 9건 통과. (worker_done capability 거부는 코디네이터가 git 검증 후 task-update로 정산)
+- 2026-08-08: Task 2 완료 — commit `5c9e3741`. product-api 알림함 API + integration 9건 통과.
+- 2026-08-08: Task 3 완료 — commit `8a2c6b36`. ReviewReplyRegistryEvent + ReviewReplyNotificationListener. 본인 댓글 생략.
+- 2026-08-08: 코디네이터 verify — compile + unit_test SUCCESS, NotificationControllerIntegrationTest 9 tests 0 failures.
