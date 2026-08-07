@@ -1,4 +1,4 @@
-package app.bottlenote.notification.presentation;
+package app.bottlenote.notification.controller;
 
 import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.REQUIRED_AUTH;
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
@@ -6,13 +6,14 @@ import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.notification.application.NotificationService;
-import app.bottlenote.notification.data.response.NotificationListResponse;
-import app.bottlenote.notification.data.response.NotificationMarkAllReadResponse;
-import app.bottlenote.notification.data.response.NotificationMarkReadResponse;
-import app.bottlenote.notification.data.response.NotificationUnreadCountResponse;
+import app.bottlenote.notification.controller.docs.NotificationApiDocs;
 import app.bottlenote.notification.domain.Notification;
-import app.bottlenote.notification.presentation.docs.NotificationApiDocs;
+import app.bottlenote.notification.dto.response.NotificationItemResponse;
+import app.bottlenote.notification.dto.response.NotificationListResponse;
+import app.bottlenote.notification.dto.response.NotificationMarkAllReadResponse;
+import app.bottlenote.notification.dto.response.NotificationMarkReadResponse;
+import app.bottlenote.notification.dto.response.NotificationUnreadCountResponse;
+import app.bottlenote.notification.service.NotificationService;
 import app.bottlenote.user.exception.UserException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -37,8 +38,9 @@ public class NotificationController {
   @NotificationApiDocs.GetNotifications
   public ResponseEntity<GlobalResponse> getNotifications() {
     Long userId = currentUserId();
-    List<Notification> notifications = notificationService.getNotifications(userId);
-    return GlobalResponse.ok(NotificationListResponse.from(notifications));
+    List<NotificationItemResponse> items =
+        notificationService.getNotifications(userId).stream().map(this::toItem).toList();
+    return GlobalResponse.ok(NotificationListResponse.of(items));
   }
 
   @GetMapping("/unread-count")
@@ -51,7 +53,7 @@ public class NotificationController {
 
   @PatchMapping("/{notificationId}/read")
   @NotificationApiDocs.MarkAsRead
-  public ResponseEntity<GlobalResponse> markAsRead(@PathVariable Long notificationId) {
+  public ResponseEntity<GlobalResponse> updateRead(@PathVariable Long notificationId) {
     Long userId = currentUserId();
     notificationService.markAsRead(userId, notificationId);
     return GlobalResponse.ok(NotificationMarkReadResponse.of(notificationId));
@@ -59,10 +61,22 @@ public class NotificationController {
 
   @PatchMapping("/read-all")
   @NotificationApiDocs.MarkAllAsRead
-  public ResponseEntity<GlobalResponse> markAllAsRead() {
+  public ResponseEntity<GlobalResponse> updateAllRead() {
     Long userId = currentUserId();
     int updatedCount = notificationService.markAllAsRead(userId);
     return GlobalResponse.ok(NotificationMarkAllReadResponse.of(updatedCount));
+  }
+
+  private NotificationItemResponse toItem(Notification notification) {
+    return NotificationItemResponse.of(
+        notification.getId(),
+        notification.getTitle(),
+        notification.getContent(),
+        notification.getType(),
+        notification.getCategory(),
+        notification.getStatus(),
+        notification.getIsRead(),
+        notification.getCreateAt());
   }
 
   private Long currentUserId() {

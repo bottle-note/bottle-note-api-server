@@ -1,4 +1,4 @@
-package app.bottlenote.notification.domain.constant;
+package app.bottlenote.notification.constant;
 
 import lombok.Getter;
 

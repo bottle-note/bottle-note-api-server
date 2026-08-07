@@ -45,7 +45,7 @@ public interface JpaNotificationRepository
       """
 			update notification n
 			set n.isRead = true,
-			    n.status = app.bottlenote.notification.domain.constant.NotificationStatus.READ
+			    n.status = app.bottlenote.notification.constant.NotificationStatus.READ
 			where n.userId = :userId and n.isRead = false
 			""")
   int markAllAsReadByUserId(@Param("userId") Long userId);

@@ -1,6 +1,5 @@
-package app.bottlenote.notification.data.response;
+package app.bottlenote.notification.dto.response;
 
-import app.bottlenote.notification.domain.Notification;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
@@ -12,9 +11,7 @@ public record NotificationListResponse(
     @ArraySchema(schema = @Schema(implementation = NotificationItemResponse.class))
         List<NotificationItemResponse> items) {
 
-  public static NotificationListResponse from(List<Notification> notifications) {
-    List<NotificationItemResponse> items =
-        notifications.stream().map(NotificationItemResponse::from).toList();
+  public static NotificationListResponse of(List<NotificationItemResponse> items) {
     return new NotificationListResponse(items.size(), items);
   }
 }

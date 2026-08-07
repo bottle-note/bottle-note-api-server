@@ -1,9 +1,8 @@
-package app.bottlenote.notification.data.response;
+package app.bottlenote.notification.dto.response;
 
-import app.bottlenote.notification.domain.Notification;
-import app.bottlenote.notification.domain.constant.NotificationCategory;
-import app.bottlenote.notification.domain.constant.NotificationStatus;
-import app.bottlenote.notification.domain.constant.NotificationType;
+import app.bottlenote.notification.constant.NotificationCategory;
+import app.bottlenote.notification.constant.NotificationStatus;
+import app.bottlenote.notification.constant.NotificationType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 
@@ -19,15 +18,16 @@ public record NotificationItemResponse(
     @Schema(description = "읽음 여부", example = "false") Boolean isRead,
     @Schema(description = "생성 시각") LocalDateTime createAt) {
 
-  public static NotificationItemResponse from(Notification notification) {
+  public static NotificationItemResponse of(
+      Long id,
+      String title,
+      String content,
+      NotificationType type,
+      NotificationCategory category,
+      NotificationStatus status,
+      Boolean isRead,
+      LocalDateTime createAt) {
     return new NotificationItemResponse(
-        notification.getId(),
-        notification.getTitle(),
-        notification.getContent(),
-        notification.getType(),
-        notification.getCategory(),
-        notification.getStatus(),
-        notification.getIsRead(),
-        notification.getCreateAt());
+        id, title, content, type, category, status, isRead, createAt);
   }
 }
