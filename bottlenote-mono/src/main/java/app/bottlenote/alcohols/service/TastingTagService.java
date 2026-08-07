@@ -25,8 +25,9 @@ import app.bottlenote.alcohols.dto.response.AdminTastingTagDetailResponse;
 import app.bottlenote.alcohols.dto.response.TastingTagNodeItem;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.global.dto.response.AdminResultResponse;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ahocorasick.trie.Emit;
@@ -175,17 +176,22 @@ public class TastingTagService {
             .findById(tagId)
             .orElseThrow(() -> new AlcoholException(TASTING_TAG_NOT_FOUND));
 
-    List<AlcoholsTastingTags> newMappings = new ArrayList<>();
-    for (Long alcoholId : alcoholIds.stream().distinct().toList()) {
-      if (alcoholsTastingTagsRepository.existsByAlcoholIdAndTastingTagId(alcoholId, tagId)) {
-        continue;
-      }
-      Alcohol alcohol =
-          alcoholQueryRepository
-              .findById(alcoholId)
-              .orElseThrow(() -> new AlcoholException(ALCOHOL_NOT_FOUND));
-      newMappings.add(AlcoholsTastingTags.of(alcohol, tag));
-    }
+    Set<Long> existingAlcoholIds =
+        alcoholsTastingTagsRepository.findByTastingTagId(tagId).stream()
+            .map(att -> att.getAlcohol().getId())
+            .collect(Collectors.toSet());
+
+    List<AlcoholsTastingTags> newMappings =
+        alcoholIds.stream()
+            .distinct()
+            .filter(alcoholId -> !existingAlcoholIds.contains(alcoholId))
+            .map(
+                alcoholId ->
+                    alcoholQueryRepository
+                        .findById(alcoholId)
+                        .orElseThrow(() -> new AlcoholException(ALCOHOL_NOT_FOUND)))
+            .map(alcohol -> AlcoholsTastingTags.of(alcohol, tag))
+            .toList();
 
     alcoholsTastingTagsRepository.saveAll(newMappings);
     return AdminResultResponse.of(TASTING_TAG_ALCOHOL_ADDED, tagId);
