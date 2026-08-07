@@ -39,9 +39,9 @@ class AgreementEvaluatorTest {
     assertThat(result.eligible()).isFalse();
     assertThat(result.items())
         .containsExactly(
-            new Item(AgreementType.TERMS_OF_SERVICE, true, false),
-            new Item(AgreementType.PRIVACY_COLLECTION_USE, true, false),
-            new Item(AgreementType.MARKETING, false, false));
+            new Item(AgreementType.TERMS_OF_SERVICE, true, false, null),
+            new Item(AgreementType.PRIVACY_COLLECTION_USE, true, false, null),
+            new Item(AgreementType.MARKETING, false, false, null));
   }
 
   @Test
@@ -54,7 +54,11 @@ class AgreementEvaluatorTest {
 
     assertThat(result.eligible()).isTrue();
     assertThat(result.items()).filteredOn(Item::required).allMatch(Item::agreed);
+    assertThat(item(result, AgreementType.TERMS_OF_SERVICE).recordedAt()).isEqualTo(RECORDED_AT);
+    assertThat(item(result, AgreementType.PRIVACY_COLLECTION_USE).recordedAt())
+        .isEqualTo(RECORDED_AT.minusYears(1));
     assertThat(item(result, AgreementType.MARKETING).agreed()).isFalse();
+    assertThat(item(result, AgreementType.MARKETING).recordedAt()).isNull();
   }
 
   @Test
@@ -68,6 +72,7 @@ class AgreementEvaluatorTest {
 
     assertThat(result.eligible()).isFalse();
     assertThat(item(result, AgreementType.TERMS_OF_SERVICE).agreed()).isFalse();
+    assertThat(item(result, AgreementType.TERMS_OF_SERVICE).recordedAt()).isEqualTo(RECORDED_AT);
   }
 
   @Test
@@ -81,6 +86,7 @@ class AgreementEvaluatorTest {
 
     assertThat(result.eligible()).isFalse();
     assertThat(item(result, AgreementType.TERMS_OF_SERVICE).agreed()).isFalse();
+    assertThat(item(result, AgreementType.TERMS_OF_SERVICE).recordedAt()).isEqualTo(RECORDED_AT);
   }
 
   @Test
@@ -93,6 +99,7 @@ class AgreementEvaluatorTest {
     AgreementEvaluation result = evaluator.evaluate(USER_ID);
 
     assertThat(result.eligible()).isTrue();
+    assertThat(item(result, AgreementType.TERMS_OF_SERVICE).recordedAt()).isEqualTo(RECORDED_AT);
   }
 
   private void save(AgreementType type, AgreementAction action, LocalDateTime recordedAt) {
