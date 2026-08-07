@@ -164,6 +164,7 @@ public class AdminAlcoholCommandService {
   private void saveTastingTags(Alcohol alcohol, List<Long> tagIds) {
     List<AlcoholsTastingTags> mappings =
         tagIds.stream()
+            .distinct()
             .map(
                 tagId ->
                     tastingTagRepository
