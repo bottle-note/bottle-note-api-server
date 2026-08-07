@@ -34,7 +34,7 @@ class AdminAccessControlController(
 	@PostMapping
 	fun ban(@Valid @RequestBody request: IpBanRequest): ResponseEntity<GlobalResponse> {
 		val ip = normalizeIp(request.ip)
-		val reason = request.reason.orEmpty()
+		val reason = request.reason?.takeIf { it.isNotBlank() } ?: "manual"
 		accessControlService.banIp(ip, Duration.ofSeconds(request.ttlSeconds.toLong()), reason)
 		val ban = accessControlService.getBan(ip)
 		audit("BAN", ip, request.ttlSeconds.toLong(), reason)
@@ -48,6 +48,40 @@ class AdminAccessControlController(
 		)
 	}
 
+	/**
+	 * - `ip` 있음: 단건 조회
+	 * - `ip` 없음: 활성 ban 목록 (max 기본 100, 상한 500)
+	 */
+	@GetMapping
+	fun getOrList(
+		@RequestParam(required = false) ip: String?,
+		@RequestParam(required = false, defaultValue = "100") max: Int
+	): ResponseEntity<GlobalResponse> {
+		if (!ip.isNullOrBlank()) {
+			val normalized = normalizeIp(ip)
+			val ban = accessControlService.getBan(normalized)
+			return GlobalResponse.ok(
+				IpBanResponse(
+					ip = normalized,
+					reason = ban?.reason.orEmpty(),
+					ttlSeconds = ban?.ttlSeconds ?: 0,
+					banned = ban != null
+				)
+			)
+		}
+		val limit = max.coerceIn(1, 500)
+		val items =
+			accessControlService.listBans(limit).map {
+				IpBanResponse(
+					ip = it.ip(),
+					reason = it.reason(),
+					ttlSeconds = it.ttlSeconds(),
+					banned = true
+				)
+			}
+		return GlobalResponse.ok(IpBanListResponse(total = items.size, items = items))
+	}
+
 	/** IPv6 호환을 위해 path variable 대신 query param 사용 */
 	@DeleteMapping
 	fun unban(@RequestParam ip: String): ResponseEntity<GlobalResponse> {
@@ -55,20 +89,6 @@ class AdminAccessControlController(
 		accessControlService.unbanIp(normalized)
 		audit("UNBAN", normalized, 0, "")
 		return GlobalResponse.ok(IpBanResponse(ip = normalized, reason = "", ttlSeconds = 0, banned = false))
-	}
-
-	@GetMapping
-	fun get(@RequestParam ip: String): ResponseEntity<GlobalResponse> {
-		val normalized = normalizeIp(ip)
-		val ban = accessControlService.getBan(normalized)
-		return GlobalResponse.ok(
-			IpBanResponse(
-				ip = normalized,
-				reason = ban?.reason.orEmpty(),
-				ttlSeconds = ban?.ttlSeconds ?: 0,
-				banned = ban != null
-			)
-		)
 	}
 
 	private fun normalizeIp(raw: String): String {
@@ -104,4 +124,9 @@ data class IpBanResponse(
 	val reason: String,
 	val ttlSeconds: Long,
 	val banned: Boolean
+)
+
+data class IpBanListResponse(
+	val total: Int,
+	val items: List<IpBanResponse>
 )

@@ -41,13 +41,20 @@ bottlenote:
   access-control:
     enabled: true
     fail-open: true
+    key-namespace: admin
     default-rate-limit:
       limit: 300
+      window-seconds: 60
+    unknown-ip-rate-limit:
+      limit: 20
       window-seconds: 60
     path-rules:
       - path-prefix: /auth
         limit: 30
         window-seconds: 60
+    # self-lockout 탈출: ban/RL 모두 스킵 (관리 평면)
+    management-path-prefixes:
+      - /v1/access-control
     excluded-path-prefixes:
       - /actuator
       - /v1/openapi.admin.json

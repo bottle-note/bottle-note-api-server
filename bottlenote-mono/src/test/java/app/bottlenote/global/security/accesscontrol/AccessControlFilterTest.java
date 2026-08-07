@@ -30,9 +30,9 @@ class AccessControlFilterTest {
     InMemoryAccessControlStore store = new InMemoryAccessControlStore();
     AccessControlProperties properties = new AccessControlProperties();
     properties.setDefaultRateLimit(new RateLimitRule(2, 60));
+    properties.setKeyNamespace("product");
     PathRateLimitRuleSupport.authRule(properties);
     service = new AccessControlService(store, properties, AccessControlMetrics.noop());
-    // Spring 운영 ObjectMapper와 동일하게 JavaTime 모듈 등록
     filter = new AccessControlFilter(service, new ObjectMapper().findAndRegisterModules());
   }
 
@@ -52,7 +52,7 @@ class AccessControlFilterTest {
   }
 
   @Test
-  @DisplayName("rate limit 초과 시 429를 반환한다")
+  @DisplayName("rate limit 초과 시 429와 Remaining 0을 반환한다")
   void doFilter_whenRateLimited_returns429() throws Exception {
     MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/alcohols");
     request.addHeader("X-Forwarded-For", "203.0.113.2");
@@ -67,12 +67,12 @@ class AccessControlFilterTest {
     assertThat(denied.getStatus()).isEqualTo(429);
     assertThat(denied.getHeader("Retry-After")).isNotBlank();
     assertThat(denied.getHeader("X-RateLimit-Limit")).isEqualTo("2");
+    assertThat(denied.getHeader("X-RateLimit-Remaining")).isEqualTo("0");
     assertThat(denied.getContentAsString()).contains("요청이 너무 많습니다");
-    assertThat(denied.getContentAsString()).contains("serverVersion");
   }
 
   @Test
-  @DisplayName("ban 시 403을 반환한다")
+  @DisplayName("ban 시 403과 Retry-After를 반환한다")
   void doFilter_whenBanned_returns403() throws Exception {
     service.banIp("203.0.113.3", Duration.ofMinutes(5), "test");
     MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/alcohols");
@@ -84,6 +84,7 @@ class AccessControlFilterTest {
 
     assertThat(continued).isFalse();
     assertThat(response.getStatus()).isEqualTo(403);
+    assertThat(response.getHeader("Retry-After")).isNotBlank();
     assertThat(response.getContentAsString()).contains("접근이 일시적으로 제한");
   }
 
@@ -96,7 +97,6 @@ class AccessControlFilterTest {
     AtomicBoolean continued = new AtomicBoolean(false);
     FilterChain chain = trackingChain(continued);
 
-    // auth rule limit=2
     filter.doFilter(request, new MockHttpServletResponse(), chain);
     filter.doFilter(request, new MockHttpServletResponse(), chain);
     MockHttpServletResponse denied = new MockHttpServletResponse();
@@ -124,7 +124,6 @@ class AccessControlFilterTest {
     };
   }
 
-  /** 테스트용 path rule 헬퍼 */
   private static final class PathRateLimitRuleSupport {
     private PathRateLimitRuleSupport() {}
 

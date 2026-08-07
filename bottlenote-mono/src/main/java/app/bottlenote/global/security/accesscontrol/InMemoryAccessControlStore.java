@@ -2,6 +2,8 @@ package app.bottlenote.global.security.accesscontrol;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -46,24 +48,48 @@ public class InMemoryAccessControlStore implements AccessControlStore {
   }
 
   @Override
-  public long tryConsume(String key, int limit, Duration window) {
+  public List<BanInfo> listBans(int max) {
+    int limit = Math.max(max, 0);
+    List<BanInfo> result = new ArrayList<>();
+    Instant now = Instant.now();
+    for (Map.Entry<String, BanEntry> entry : bans.entrySet()) {
+      if (result.size() >= limit) {
+        break;
+      }
+      BanEntry ban = entry.getValue();
+      if (ban.expiresAt().isBefore(now)) {
+        bans.remove(entry.getKey(), ban);
+        continue;
+      }
+      long ttl = Duration.between(now, ban.expiresAt()).getSeconds();
+      result.add(new BanInfo(entry.getKey(), ban.reason(), Math.max(ttl, 0)));
+    }
+    return result;
+  }
+
+  @Override
+  public ConsumeResult tryConsume(String key, int limit, Duration window) {
     Instant now = Instant.now();
     CounterEntry updated =
         counters.compute(
             key,
             (k, existing) -> {
-              if (existing == null || existing.windowStart().plus(window).isBefore(now)) {
-                return new CounterEntry(1, now);
+              if (existing == null || !existing.windowStart().plus(window).isAfter(now)) {
+                return new CounterEntry(1, now, window);
               }
-              return new CounterEntry(existing.count() + 1, existing.windowStart());
+              return new CounterEntry(
+                  existing.count() + 1, existing.windowStart(), existing.window());
             });
+    long retryAfter =
+        Math.max(
+            1, Duration.between(now, updated.windowStart().plus(updated.window())).getSeconds());
     if (updated.count() > limit) {
-      return -1;
+      return ConsumeResult.deny(retryAfter);
     }
-    return limit - updated.count();
+    return ConsumeResult.allow(limit - updated.count());
   }
 
   private record BanEntry(String reason, Instant expiresAt) {}
 
-  private record CounterEntry(long count, Instant windowStart) {}
+  private record CounterEntry(long count, Instant windowStart, Duration window) {}
 }

@@ -3,6 +3,7 @@ package app.bottlenote.global.security.accesscontrol;
 import app.bottlenote.global.security.accesscontrol.AccessControlProperties.PathRateLimitRule;
 import app.bottlenote.global.security.accesscontrol.AccessControlProperties.RateLimitRule;
 import app.bottlenote.global.security.accesscontrol.AccessControlStore.BanInfo;
+import app.bottlenote.global.security.accesscontrol.AccessControlStore.ConsumeResult;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
@@ -13,49 +14,59 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class AccessControlService {
 
+  private static final String UNKNOWN_IP_TOKEN = "_unknown";
+
   private final AccessControlStore store;
   private final AccessControlProperties properties;
   private final AccessControlMetrics metrics;
 
   public Decision evaluate(String clientIp, String requestPath) {
-    if (clientIp == null || clientIp.isBlank()) {
+    // self-lockout 탈출: 관리 API는 ban/RL 모두 스킵
+    if (isManagementPath(requestPath)) {
       Decision decision = Decision.allow();
       metrics.record(decision);
       return decision;
     }
 
+    String effectiveIp = (clientIp == null || clientIp.isBlank()) ? UNKNOWN_IP_TOKEN : clientIp;
+
     try {
-      // ban은 exclude 경로에서도 적용 (actuator 등 ban 우회 방지)
-      if (store.isBanned(clientIp)) {
-        BanInfo ban = store.getBan(clientIp);
-        long retryAfter = ban == null || ban.ttlSeconds() < 0 ? 60 : ban.ttlSeconds();
+      if (!UNKNOWN_IP_TOKEN.equals(effectiveIp) && store.isBanned(effectiveIp)) {
+        BanInfo ban = store.getBan(effectiveIp);
+        long retryAfter = ban == null || ban.ttlSeconds() < 0 ? 60 : Math.max(ban.ttlSeconds(), 1);
         Decision decision = Decision.banned(retryAfter);
         metrics.record(decision);
         return decision;
       }
 
-      // exclude는 rate limit만 스킵
+      // exclude는 rate limit만 스킵 (ban은 위에서 이미 적용)
       if (isExcluded(requestPath)) {
         Decision decision = Decision.allow();
         metrics.record(decision);
         return decision;
       }
 
-      RateLimitRule rule = resolveRule(requestPath);
-      String counterKey = clientIp + "|" + ruleScope(requestPath);
-      long remaining =
+      RateLimitRule rule =
+          UNKNOWN_IP_TOKEN.equals(effectiveIp)
+              ? properties.getUnknownIpRateLimit()
+              : resolveRule(requestPath);
+      String counterKey = rateLimitKey(effectiveIp, requestPath, rule);
+      ConsumeResult consumed =
           store.tryConsume(counterKey, rule.limit(), Duration.ofSeconds(rule.windowSeconds()));
-      if (remaining < 0) {
-        Decision decision = Decision.rateLimited(rule.windowSeconds(), rule.limit());
+      if (!consumed.allowed()) {
+        Decision decision = Decision.rateLimited(consumed.retryAfterSeconds(), rule.limit());
         metrics.record(decision);
         return decision;
       }
-      Decision decision = Decision.allow(remaining, rule.limit());
+      Decision decision = Decision.allow(consumed.remaining(), rule.limit());
       metrics.record(decision);
       return decision;
     } catch (RuntimeException ex) {
       log.warn(
-          "access-control store failure ip={} path={}: {}", clientIp, requestPath, ex.toString());
+          "access-control store failure ip={} path={}: {}",
+          effectiveIp,
+          requestPath,
+          ex.toString());
       if (properties.isFailOpen()) {
         metrics.recordStoreError(true);
         Decision decision = Decision.allow();
@@ -79,6 +90,30 @@ public class AccessControlService {
 
   public BanInfo getBan(String ip) {
     return store.getBan(requireNormalizedIp(ip));
+  }
+
+  public List<BanInfo> listBans(int max) {
+    return store.listBans(max);
+  }
+
+  private String rateLimitKey(String ip, String path, RateLimitRule rule) {
+    String ns =
+        properties.getKeyNamespace() == null || properties.getKeyNamespace().isBlank()
+            ? "default"
+            : properties.getKeyNamespace();
+    String scope = UNKNOWN_IP_TOKEN.equals(ip) ? "unknown" : ruleScope(path);
+    return ns + ":" + ip + "|" + scope;
+  }
+
+  private boolean isManagementPath(String path) {
+    if (path == null) {
+      return false;
+    }
+    List<String> prefixes = properties.getManagementPathPrefixes();
+    if (prefixes == null || prefixes.isEmpty()) {
+      return false;
+    }
+    return prefixes.stream().anyMatch(path::startsWith);
   }
 
   private boolean isExcluded(String path) {
@@ -144,7 +179,7 @@ public class AccessControlService {
     }
 
     public static Decision rateLimited(long retryAfterSeconds, long limit) {
-      return new Decision(Type.RATE_LIMITED, retryAfterSeconds, -1, limit);
+      return new Decision(Type.RATE_LIMITED, retryAfterSeconds, 0, limit);
     }
 
     public boolean allowed() {

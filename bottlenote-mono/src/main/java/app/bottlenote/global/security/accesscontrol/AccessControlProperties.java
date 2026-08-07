@@ -13,11 +13,21 @@ public class AccessControlProperties {
   /** Redis 장애 시 요청 허용 (true) / 거절 (false) */
   private boolean failOpen = true;
 
+  /** rate-limit 키 네임스페이스 (product/admin 분리). ban 키는 공유 차단을 위해 네임스페이스를 쓰지 않는다. */
+  private String keyNamespace = "default";
+
   private RateLimitRule defaultRateLimit = new RateLimitRule(300, 60);
+
+  /** IP 해석 실패 시 적용할 보수적 한도 */
+  private RateLimitRule unknownIpRateLimit = new RateLimitRule(30, 60);
 
   private List<PathRateLimitRule> pathRules = new ArrayList<>();
 
+  /** rate limit만 스킵 (ban은 적용) */
   private List<String> excludedPathPrefixes = new ArrayList<>(List.of("/actuator", "/favicon.ico"));
+
+  /** ban + rate limit 모두 스킵 (self-lockout 탈출용 관리 API 등). admin `/v1/access-control` 권장. */
+  private List<String> managementPathPrefixes = new ArrayList<>();
 
   public boolean isEnabled() {
     return enabled;
@@ -35,12 +45,28 @@ public class AccessControlProperties {
     this.failOpen = failOpen;
   }
 
+  public String getKeyNamespace() {
+    return keyNamespace;
+  }
+
+  public void setKeyNamespace(String keyNamespace) {
+    this.keyNamespace = keyNamespace;
+  }
+
   public RateLimitRule getDefaultRateLimit() {
     return defaultRateLimit;
   }
 
   public void setDefaultRateLimit(RateLimitRule defaultRateLimit) {
     this.defaultRateLimit = defaultRateLimit;
+  }
+
+  public RateLimitRule getUnknownIpRateLimit() {
+    return unknownIpRateLimit;
+  }
+
+  public void setUnknownIpRateLimit(RateLimitRule unknownIpRateLimit) {
+    this.unknownIpRateLimit = unknownIpRateLimit;
   }
 
   public List<PathRateLimitRule> getPathRules() {
@@ -59,6 +85,14 @@ public class AccessControlProperties {
     this.excludedPathPrefixes = excludedPathPrefixes;
   }
 
+  public List<String> getManagementPathPrefixes() {
+    return managementPathPrefixes;
+  }
+
+  public void setManagementPathPrefixes(List<String> managementPathPrefixes) {
+    this.managementPathPrefixes = managementPathPrefixes;
+  }
+
   public record RateLimitRule(int limit, int windowSeconds) {
     public RateLimitRule {
       if (limit <= 0) {
@@ -69,7 +103,6 @@ public class AccessControlProperties {
       }
     }
 
-    // Spring Boot relaxed binding default ctor support
     public RateLimitRule() {
       this(300, 60);
     }

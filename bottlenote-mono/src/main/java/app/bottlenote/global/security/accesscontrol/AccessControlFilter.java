@@ -37,23 +37,13 @@ public class AccessControlFilter extends OncePerRequestFilter {
     Decision decision = accessControlService.evaluate(clientIp, path);
 
     if (decision.allowed()) {
-      if (decision.limit() >= 0) {
-        response.setHeader("X-RateLimit-Limit", String.valueOf(decision.limit()));
-      }
-      if (decision.remaining() >= 0) {
-        response.setHeader("X-RateLimit-Remaining", String.valueOf(decision.remaining()));
-      }
+      writeRateLimitHeaders(response, decision);
       filterChain.doFilter(request, response);
       return;
     }
 
     if (decision.type() == Decision.Type.BANNED) {
-      writeError(
-          response,
-          HttpStatus.FORBIDDEN,
-          AccessControlExceptionCode.IP_BANNED,
-          decision.retryAfterSeconds(),
-          decision.limit());
+      writeError(response, HttpStatus.FORBIDDEN, AccessControlExceptionCode.IP_BANNED, decision);
       return;
     }
 
@@ -61,8 +51,7 @@ public class AccessControlFilter extends OncePerRequestFilter {
         response,
         HttpStatus.TOO_MANY_REQUESTS,
         AccessControlExceptionCode.RATE_LIMIT_EXCEEDED,
-        decision.retryAfterSeconds(),
-        decision.limit());
+        decision);
   }
 
   /** context-path를 제거해 admin/product path-rules가 동일 규칙으로 매칭되게 한다. */
@@ -79,21 +68,33 @@ public class AccessControlFilter extends OncePerRequestFilter {
     return uri;
   }
 
+  private static void writeRateLimitHeaders(HttpServletResponse response, Decision decision) {
+    if (decision.limit() >= 0) {
+      response.setHeader("X-RateLimit-Limit", String.valueOf(decision.limit()));
+    }
+    if (decision.remaining() >= 0) {
+      response.setHeader("X-RateLimit-Remaining", String.valueOf(decision.remaining()));
+    }
+  }
+
   private void writeError(
       HttpServletResponse response,
       HttpStatus status,
       AccessControlExceptionCode code,
-      long retryAfterSeconds,
-      long limit)
+      Decision decision)
       throws IOException {
     response.setStatus(status.value());
     response.setCharacterEncoding(StandardCharsets.UTF_8.name());
     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-    if (retryAfterSeconds > 0) {
-      response.setHeader("Retry-After", String.valueOf(retryAfterSeconds));
+    if (decision.retryAfterSeconds() > 0) {
+      response.setHeader("Retry-After", String.valueOf(decision.retryAfterSeconds()));
     }
-    if (limit >= 0) {
-      response.setHeader("X-RateLimit-Limit", String.valueOf(limit));
+    if (decision.limit() >= 0) {
+      response.setHeader("X-RateLimit-Limit", String.valueOf(decision.limit()));
+    }
+    // 초과 시 remaining=0 명시
+    if (decision.type() == Decision.Type.RATE_LIMITED) {
+      response.setHeader("X-RateLimit-Remaining", "0");
     }
 
     Error error = Error.of(code);
