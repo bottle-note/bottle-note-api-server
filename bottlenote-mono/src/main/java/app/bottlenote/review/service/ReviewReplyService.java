@@ -17,7 +17,7 @@ import app.bottlenote.review.dto.response.ReviewReplyResponse;
 import app.bottlenote.review.dto.response.RootReviewReplyResponse;
 import app.bottlenote.review.dto.response.SubReviewReplyResponse;
 import app.bottlenote.review.event.payload.ReviewRegistryEvent;
-import app.bottlenote.review.event.payload.ReviewReplyRegistryEvent;
+import app.bottlenote.review.event.payload.ReviewReplyNotificationEvent;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.user.facade.UserFacade;
@@ -91,14 +91,16 @@ public class ReviewReplyService {
 
     final Long alcoholId = review.getAlcoholId();
 
+    // 활동 부수효과는 현재 이중 발행한다. (bottle-note/workspace#373 에서 단일 파이프라인으로 통합 예정)
+    // 1) History: ReviewRegistryEvent → HistoryEventPublisher → user_histories
+    // 2) Notification: ReviewReplyNotificationEvent → listener → notifications
     ReviewRegistryEvent historyEvent =
         ReviewRegistryEvent.of(
             reply.getReviewId(), alcoholId, reply.getUserId(), reply.getContent());
     reviewReplyEventPublisher.publishReplyHistoryEvent(historyEvent);
 
-    // 알림 등 부수효과는 도메인 이벤트로 전파한다.
     eventPublisher.publishEvent(
-        ReviewReplyRegistryEvent.of(
+        ReviewReplyNotificationEvent.of(
             reply.getReviewId(),
             review.getUserId(),
             reply.getUserId(),
