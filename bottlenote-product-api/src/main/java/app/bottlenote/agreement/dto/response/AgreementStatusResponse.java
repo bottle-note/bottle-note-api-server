@@ -3,6 +3,7 @@ package app.bottlenote.agreement.dto.response;
 import app.bottlenote.agreement.constant.AgreementType;
 import app.bottlenote.agreement.domain.AgreementEvaluation;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /** 사용자의 현재 약관 동의 상태 응답을 나타낸다. */
@@ -21,10 +22,12 @@ public record AgreementStatusResponse(
   public record Item(
       @Schema(description = "동의 유형") AgreementType type,
       @Schema(description = "필수 동의 여부") boolean required,
-      @Schema(description = "현재 동의 충족 여부") boolean agreed) {
+      @Schema(description = "현재 동의 충족 여부") boolean agreed,
+      @Schema(description = "해당 유형 최신 이력 기록 시각(KST wall-clock). 이력 없으면 null")
+          LocalDateTime recordedAt) {
 
     private static Item from(AgreementEvaluation.Item item) {
-      return new Item(item.type(), item.required(), item.agreed());
+      return new Item(item.type(), item.required(), item.agreed(), item.recordedAt());
     }
   }
 }

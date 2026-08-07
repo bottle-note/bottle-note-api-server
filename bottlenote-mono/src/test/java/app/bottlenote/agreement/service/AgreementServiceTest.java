@@ -18,6 +18,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -56,9 +57,9 @@ class AgreementServiceTest {
     assertThat(result.eligible()).isFalse();
     assertThat(result.items())
         .containsExactly(
-            new Item(AgreementType.TERMS_OF_SERVICE, true, false),
-            new Item(AgreementType.PRIVACY_COLLECTION_USE, true, false),
-            new Item(AgreementType.MARKETING, false, false));
+            new Item(AgreementType.TERMS_OF_SERVICE, true, false, null),
+            new Item(AgreementType.PRIVACY_COLLECTION_USE, true, false, null),
+            new Item(AgreementType.MARKETING, false, false, null));
   }
 
   @Nested
@@ -90,6 +91,26 @@ class AgreementServiceTest {
     }
 
     @Test
+    @DisplayName("기록 시각을 마이크로초로 정규화한다")
+    void submit_whenClockHasNanos_truncatesRecordedAtToMicros() {
+      Instant withNanos = Instant.parse("2026-08-01T01:23:45.123456789Z");
+      service =
+          new AgreementService(
+              repository, new AgreementEvaluator(repository), Clock.fixed(withNanos, ZONE_ID));
+
+      service.submit(
+          USER_ID, requiredSubmissions(AgreementInputContext.INDIVIDUAL), CLIENT_IP, USER_AGENT);
+
+      LocalDateTime expected =
+          LocalDateTime.ofInstant(withNanos, ZONE_ID).truncatedTo(ChronoUnit.MICROS);
+      assertThat(repository.findAll())
+          .isNotEmpty()
+          .allSatisfy(agreement -> assertThat(agreement.getRecordedAt()).isEqualTo(expected));
+      assertThat(item(service.getStatus(USER_ID), AgreementType.TERMS_OF_SERVICE).recordedAt())
+          .isEqualTo(expected);
+    }
+
+    @Test
     @DisplayName("전체 선택으로 제출한 각 항목은 BULK 맥락으로 기록한다")
     void submit_whenBulkItemsAreSubmitted_recordsBulkContext() {
       service.submit(
@@ -112,7 +133,9 @@ class AgreementServiceTest {
 
       assertThat(result.eligible()).isTrue();
       assertThat(result.items()).filteredOn(Item::required).allMatch(Item::agreed);
+      assertThat(item(result, AgreementType.TERMS_OF_SERVICE).recordedAt()).isEqualTo(RECORDED_AT);
       assertThat(item(result, AgreementType.MARKETING).agreed()).isFalse();
+      assertThat(item(result, AgreementType.MARKETING).recordedAt()).isNull();
       assertThat(result).isEqualTo(service.getStatus(USER_ID));
     }
 
@@ -145,6 +168,7 @@ class AgreementServiceTest {
       assertThat(repository.findAll()).hasSize(3);
       assertThat(result.eligible()).isFalse();
       assertThat(item(result, AgreementType.TERMS_OF_SERVICE).agreed()).isFalse();
+      assertThat(item(result, AgreementType.TERMS_OF_SERVICE).recordedAt()).isEqualTo(RECORDED_AT);
     }
 
     @Test

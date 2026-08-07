@@ -66,10 +66,11 @@ class AgreementControllerIntegrationTest extends IntegrationTestSupport {
       assertThat(data.path("eligible").booleanValue()).isFalse();
       assertThat(data.path("items")).hasSize(3);
       assertThat(fieldNames(data.path("items").get(0)))
-          .containsExactlyInAnyOrder("type", "required", "agreed");
+          .containsExactlyInAnyOrder("type", "required", "agreed", "recordedAt");
       JsonNode marketing = item(data, MARKETING.name());
       assertThat(marketing.path("required").booleanValue()).isFalse();
       assertThat(marketing.path("agreed").booleanValue()).isFalse();
+      assertThat(marketing.path("recordedAt").isNull()).isTrue();
     }
 
     @Test
@@ -112,9 +113,12 @@ class AgreementControllerIntegrationTest extends IntegrationTestSupport {
       assertThat(fieldNames(data)).containsExactlyInAnyOrder("eligible", "items");
       assertThat(data.path("eligible").booleanValue()).isTrue();
       assertThat(data.path("items")).hasSize(3);
+      assertThat(fieldNames(data.path("items").get(0)))
+          .containsExactlyInAnyOrder("type", "required", "agreed", "recordedAt");
       JsonNode marketing = item(data, MARKETING.name());
       assertThat(marketing.path("required").booleanValue()).isFalse();
       assertThat(marketing.path("agreed").booleanValue()).isTrue();
+      assertThat(marketing.path("recordedAt").isNull()).isFalse();
 
       UserAgreement terms = latest(user, TERMS_OF_SERVICE);
       assertThat(terms.getAction()).isEqualTo(AGREE);
@@ -123,6 +127,8 @@ class AgreementControllerIntegrationTest extends IntegrationTestSupport {
       assertThat(terms.getClientIp()).isEqualTo("203.0.113.10");
       assertThat(terms.getUserAgent()).isEqualTo("BottleNote/2.0");
       assertThat(latest(user, MARKETING).getAction()).isEqualTo(AGREE);
+      assertThat(item(data, TERMS_OF_SERVICE.name()).path("recordedAt").asText())
+          .isEqualTo(terms.getRecordedAt().toString());
     }
 
     @Test

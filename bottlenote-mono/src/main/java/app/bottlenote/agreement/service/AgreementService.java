@@ -8,6 +8,7 @@ import app.bottlenote.agreement.exception.AgreementException;
 import app.bottlenote.agreement.exception.AgreementExceptionCode;
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,8 @@ public class AgreementService {
   public AgreementEvaluation submit(
       Long userId, List<AgreementSubmission> submissions, String clientIp, String userAgent) {
     validate(submissions);
-    LocalDateTime recordedAt = LocalDateTime.now(clock);
+    // MySQL DATETIME(6)과 맞춰 마이크로초로 정규화한다. 나노 잔여 시 응답/DB 재조회 불일치가 난다.
+    LocalDateTime recordedAt = LocalDateTime.now(clock).truncatedTo(ChronoUnit.MICROS);
     submissions.forEach(
         submission ->
             userAgreementRepository.save(

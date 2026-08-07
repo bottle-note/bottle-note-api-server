@@ -144,7 +144,7 @@ class OpenApiDocsIntegrationTest extends OpenApiSpecTestSupport {
               JsonNode itemSchema =
                   resolveSchema(spec, statusSchema.path("properties").path("items").path("items"));
               assertThat(propertyNamesOf(itemSchema))
-                  .containsExactlyInAnyOrder("type", "required", "agreed");
+                  .containsExactlyInAnyOrder("type", "required", "agreed", "recordedAt");
             });
 
     var submitOperation =
