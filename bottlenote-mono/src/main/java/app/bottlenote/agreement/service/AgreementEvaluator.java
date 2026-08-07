@@ -25,11 +25,15 @@ public class AgreementEvaluator {
   }
 
   private Item evaluate(Long userId, AgreementType type) {
-    boolean agreed =
-        userAgreementRepository
-            .findFirstByUserIdAndAgreementTypeOrderByIdDesc(userId, type)
-            .filter(agreement -> agreement.getAction() == AgreementAction.AGREE)
-            .isPresent();
-    return new Item(type, type.isRequired(), agreed);
+    return userAgreementRepository
+        .findFirstByUserIdAndAgreementTypeOrderByIdDesc(userId, type)
+        .map(
+            agreement ->
+                new Item(
+                    type,
+                    type.isRequired(),
+                    agreement.getAction() == AgreementAction.AGREE,
+                    agreement.getRecordedAt()))
+        .orElseGet(() -> new Item(type, type.isRequired(), false, null));
   }
 }
