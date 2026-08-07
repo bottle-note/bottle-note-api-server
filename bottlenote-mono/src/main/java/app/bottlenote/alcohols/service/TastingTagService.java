@@ -176,7 +176,10 @@ public class TastingTagService {
             .orElseThrow(() -> new AlcoholException(TASTING_TAG_NOT_FOUND));
 
     List<AlcoholsTastingTags> newMappings = new ArrayList<>();
-    for (Long alcoholId : alcoholIds) {
+    for (Long alcoholId : alcoholIds.stream().distinct().toList()) {
+      if (alcoholsTastingTagsRepository.existsByAlcoholIdAndTastingTagId(alcoholId, tagId)) {
+        continue;
+      }
       Alcohol alcohol =
           alcoholQueryRepository
               .findById(alcoholId)

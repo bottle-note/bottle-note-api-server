@@ -13,4 +13,6 @@ public interface AlcoholsTastingTagsRepository {
   boolean existsByTastingTagId(Long tastingTagId);
 
   void deleteByAlcoholId(Long alcoholId);
+
+  boolean existsByAlcoholIdAndTastingTagId(Long alcoholId, Long tastingTagId);
 }
