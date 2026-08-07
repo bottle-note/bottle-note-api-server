@@ -1,9 +1,11 @@
 package app.global.security
 
+import app.bottlenote.global.security.accesscontrol.AccessControlFilter
 import app.bottlenote.global.security.constant.MaliciousPathPattern
 import app.bottlenote.global.security.jwt.AdminJwtAuthenticationFilter
 import app.bottlenote.global.security.jwt.AdminJwtAuthenticationManager
 import app.bottlenote.global.security.policy.SecurityPolicyRegistry
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -24,31 +26,40 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 class SecurityConfig(
 	private val adminJwtAuthenticationManager: AdminJwtAuthenticationManager,
 	private val securityPolicyRegistry: SecurityPolicyRegistry,
-	private val corsProperties: CorsProperties
+	private val corsProperties: CorsProperties,
+	private val accessControlFilterProvider: ObjectProvider<AccessControlFilter>
 ) {
 	@Bean
-	fun filterChain(http: HttpSecurity, corsConfigurationSource: CorsConfigurationSource): SecurityFilterChain = http
-		.csrf { it.disable() }
-		.cors { it.configurationSource(corsConfigurationSource) }
-		.sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-		.formLogin { it.disable() }
-		.httpBasic { it.disable() }
-		.authorizeHttpRequests { auth ->
-			auth
-				.requestMatchers(MaliciousPathPattern::matches)
-				.denyAll()
-				.requestMatchers(CorsUtils::isPreFlightRequest)
-				.permitAll()
-				.requestMatchers(RequestMatcher { request -> request.getAttribute("exception") != null })
-				.authenticated()
-				.requestMatchers(securityPolicyRegistry::requiresAuthentication)
-				.authenticated()
-				.anyRequest()
-				.permitAll()
-		}.addFilterBefore(
-			AdminJwtAuthenticationFilter(adminJwtAuthenticationManager, securityPolicyRegistry),
-			UsernamePasswordAuthenticationFilter::class.java
-		).build()
+	fun filterChain(http: HttpSecurity, corsConfigurationSource: CorsConfigurationSource): SecurityFilterChain {
+		http
+			.csrf { it.disable() }
+			.cors { it.configurationSource(corsConfigurationSource) }
+			.sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+			.formLogin { it.disable() }
+			.httpBasic { it.disable() }
+			.authorizeHttpRequests { auth ->
+				auth
+					.requestMatchers(MaliciousPathPattern::matches)
+					.denyAll()
+					.requestMatchers(CorsUtils::isPreFlightRequest)
+					.permitAll()
+					.requestMatchers(RequestMatcher { request -> request.getAttribute("exception") != null })
+					.authenticated()
+					.requestMatchers(securityPolicyRegistry::requiresAuthentication)
+					.authenticated()
+					.anyRequest()
+					.permitAll()
+			}.addFilterBefore(
+				AdminJwtAuthenticationFilter(adminJwtAuthenticationManager, securityPolicyRegistry),
+				UsernamePasswordAuthenticationFilter::class.java
+			)
+
+		accessControlFilterProvider.ifAvailable { filter ->
+			http.addFilterBefore(filter, AdminJwtAuthenticationFilter::class.java)
+		}
+
+		return http.build()
+	}
 
 	// 문서 스펙 경로는 일반 API와 분리된 CORS 정책을 쓴다.
 	@Bean

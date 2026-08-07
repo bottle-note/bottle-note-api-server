@@ -64,6 +64,25 @@ bottlenote:
   observability:
     visitor-telemetry:
       enabled: false
+  # 앱 레이어 IP ban + rate limit (Redis 공유, multi-pod)
+  access-control:
+    enabled: true
+    fail-open: true
+    default-rate-limit:
+      # 공유 NAT·홈 피드 병렬 호출 오탐을 줄이기 위해 여유 있게 시작 후 메트릭으로 조인다
+      limit: 600
+      window-seconds: 60
+    path-rules:
+      - path-prefix: /api/v2/auth
+        limit: 30
+        window-seconds: 60
+      - path-prefix: /api/v1/reviews
+        limit: 60
+        window-seconds: 60
+    excluded-path-prefixes:
+      - /actuator
+      - /favicon.ico
+      - /api/v1/openapi.product.json
 
 # OpenAPI 문서 (스펙 JSON만 노출하고 swagger-ui는 사용하지 않는다)
 # ingress가 /api/v*/** 만 앱으로 넘기므로 스펙 경로도 그 아래에 둔다

@@ -3,6 +3,8 @@ package app.global.security;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.global.security.accesscontrol.AccessControlFilter;
+import app.bottlenote.global.security.accesscontrol.ClientIpResolver;
 import app.bottlenote.global.security.constant.MaliciousPathPattern;
 import app.bottlenote.global.security.jwt.JwtAuthenticationEntryPoint;
 import app.bottlenote.global.security.jwt.JwtAuthenticationFilter;
@@ -10,7 +12,6 @@ import app.bottlenote.global.security.jwt.JwtAuthenticationManager;
 import app.bottlenote.global.security.policy.SecurityPolicyRegistry;
 import app.bottlenote.observability.visitor.VisitorTelemetryFilter;
 import app.bottlenote.observability.visitor.VisitorTelemetryPublisher;
-import com.google.common.net.InetAddresses;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -46,6 +47,7 @@ public class SecurityConfig {
   private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
   private final SecurityPolicyRegistry securityPolicyRegistry;
   private final ObjectProvider<VisitorTelemetryFilter> visitorTelemetryFilterProvider;
+  private final ObjectProvider<AccessControlFilter> accessControlFilterProvider;
   private final CorsProperties corsProperties;
 
   /**
@@ -74,24 +76,7 @@ public class SecurityConfig {
       havingValue = "true")
   public static VisitorTelemetryFilter visitorTelemetryFilter(VisitorTelemetryPublisher publisher) {
     Supplier<Long> userIdSupplier = () -> SecurityContextUtil.getUserIdByContext().orElse(null);
-    Function<HttpServletRequest, String> clientIpResolver =
-        request -> {
-          String forwardedFor = request.getHeader("X-Forwarded-For");
-          if (forwardedFor != null) {
-            for (String candidate : forwardedFor.split(",")) {
-              String trimmedCandidate = candidate.trim();
-              if (InetAddresses.isInetAddress(trimmedCandidate)) {
-                return InetAddresses.toAddrString(InetAddresses.forString(trimmedCandidate));
-              }
-            }
-          }
-
-          String remoteAddress = request.getRemoteAddr();
-          if (remoteAddress != null && InetAddresses.isInetAddress(remoteAddress)) {
-            return InetAddresses.toAddrString(InetAddresses.forString(remoteAddress));
-          }
-          return null;
-        };
+    Function<HttpServletRequest, String> clientIpResolver = ClientIpResolver::resolve;
     return new VisitorTelemetryFilter(publisher, userIdSupplier, clientIpResolver);
   }
 
@@ -125,6 +110,9 @@ public class SecurityConfig {
         .addFilterBefore(
             new JwtAuthenticationFilter(jwtAuthenticationManager, securityPolicyRegistry),
             UsernamePasswordAuthenticationFilter.class);
+
+    accessControlFilterProvider.ifAvailable(
+        filter -> http.addFilterBefore(filter, JwtAuthenticationFilter.class));
 
     visitorTelemetryFilterProvider.ifAvailable(
         filter -> http.addFilterAfter(filter, JwtAuthenticationFilter.class));

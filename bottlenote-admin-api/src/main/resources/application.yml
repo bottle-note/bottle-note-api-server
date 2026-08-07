@@ -37,6 +37,21 @@ spring:
   jackson:
     time-zone: Asia/Seoul
 
+bottlenote:
+  access-control:
+    enabled: true
+    fail-open: true
+    default-rate-limit:
+      limit: 300
+      window-seconds: 60
+    path-rules:
+      - path-prefix: /auth
+        limit: 30
+        window-seconds: 60
+    excluded-path-prefixes:
+      - /actuator
+      - /v1/openapi.admin.json
+
 # Spring Security
 security:
   jwt:
