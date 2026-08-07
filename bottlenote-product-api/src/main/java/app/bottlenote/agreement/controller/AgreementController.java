@@ -4,6 +4,7 @@ import static app.bottlenote.common.support.HttpClient.getClientIP;
 import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.REQUIRED_AUTH;
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
+import app.bottlenote.agreement.annotation.AgreementExempt;
 import app.bottlenote.agreement.controller.docs.AgreementApiDocs;
 import app.bottlenote.agreement.dto.request.AgreementSubmitRequest;
 import app.bottlenote.agreement.dto.response.AgreementStatusResponse;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 /** 인증 사용자의 약관 동의 API를 제공한다. */
 @RestController
 @RequiredArgsConstructor
+@AgreementExempt
 @SecurityPolicy(auth = REQUIRED_AUTH)
 @RequestMapping("/api/v2/agreements")
 @AgreementApiDocs.ApiTag

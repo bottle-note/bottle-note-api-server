@@ -3,6 +3,7 @@ package app.bottlenote.user.controller;
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
+import app.bottlenote.agreement.annotation.AgreementExempt;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.user.controller.docs.UserBasicApiDocs;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
@@ -59,6 +60,7 @@ public class UserBasicController {
     return GlobalResponse.ok(response);
   }
 
+  @AgreementExempt
   @UserBasicApiDocs.WithdrawUser
   @DeleteMapping
   public ResponseEntity<GlobalResponse> withdrawUser() {

@@ -3,6 +3,7 @@ package app.bottlenote.user.controller;
 import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.PUBLIC;
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
+import app.bottlenote.agreement.annotation.AgreementExempt;
 import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
@@ -113,6 +114,7 @@ public class AuthV2Controller {
   }
 
   /** 토큰 재발급 */
+  @AgreementExempt
   @SecurityPolicy(auth = PUBLIC)
   @AuthApiDocs.ReissueToken
   @PostMapping("/reissue")
