@@ -21,6 +21,8 @@ import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.fixture.UserTestFactory;
 import com.fasterxml.jackson.databind.JsonNode;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.StreamSupport;
@@ -127,8 +129,11 @@ class AgreementControllerIntegrationTest extends IntegrationTestSupport {
       assertThat(terms.getClientIp()).isEqualTo("203.0.113.10");
       assertThat(terms.getUserAgent()).isEqualTo("BottleNote/2.0");
       assertThat(latest(user, MARKETING).getAction()).isEqualTo(AGREE);
-      assertThat(item(data, TERMS_OF_SERVICE.name()).path("recordedAt").asText())
-          .isEqualTo(terms.getRecordedAt().toString());
+      // 응답은 저장 직후 메모리 값(나노), DB 재조회는 DATETIME 정밀도(마이크로)일 수 있다.
+      LocalDateTime responseRecordedAt =
+          LocalDateTime.parse(item(data, TERMS_OF_SERVICE.name()).path("recordedAt").asText());
+      assertThat(responseRecordedAt.truncatedTo(ChronoUnit.MICROS))
+          .isEqualTo(terms.getRecordedAt().truncatedTo(ChronoUnit.MICROS));
     }
 
     @Test
