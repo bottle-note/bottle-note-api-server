@@ -117,7 +117,7 @@
 - Files (advisory): `NotificationController`, security 경로, OpenAPI 어노테이션, integration test
 - Depends: Task 1
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 3: 리뷰 댓글 → Notification 생성 연동
 - Acceptance:
@@ -154,4 +154,5 @@
 - 2026-08-08: Execution Mode **delegated** 확정. scope=`plan, implement, test, verify, commit`. 오케스트레이션=Grok only. 스키마=서브모듈 신규 worktree 분리 후 포인터만 갱신.
 - 2026-08-08: `/plan` Tasks 1–3 + 조건부 Task S 작성.
 - 2026-08-08: Task 1 완료 — mono Notification 도메인 포트/서비스 조회·읽음 경로 + InMemory unit 9건 통과. 스키마 변경 없음.
+- 2026-08-08: Task 2 완료 — product-api 알림함 API(list/unread-count/mark one/mark all) + integration 9건 통과. userId는 security context만 사용.
 - 2026-08-08: Task 3 완료 — ReviewReplyService가 ReviewReplyRegistryEvent 발행, ReviewReplyNotificationListener가 NotificationService.sendNotification 호출. 본인 댓글 알림 생략. unit 3건(리스너) + 기존 ReplyService unit 통과. SSE/Push 없음.
