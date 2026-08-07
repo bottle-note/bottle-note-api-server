@@ -19,6 +19,7 @@ import app.bottlenote.user.domain.AdminUserRepository;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.request.AgentLoginRequest;
 import app.bottlenote.user.dto.request.NicknameChangeRequest;
+import app.bottlenote.user.fixture.UserTestFactory;
 import app.bottlenote.user.repository.OauthRepository;
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ class AgentLoginIntegrationTest extends IntegrationTestSupport {
   @Autowired private AgentRepository agentRepository;
   @Autowired private AdminUserRepository adminUserRepository;
   @Autowired private OauthRepository oauthRepository;
+  @Autowired private UserTestFactory userTestFactory;
   @Autowired private EntityManager entityManager;
 
   @Test
@@ -213,13 +215,16 @@ class AgentLoginIntegrationTest extends IntegrationTestSupport {
   }
 
   private User saveUser(String identity) {
-    return oauthRepository.save(
-        User.builder()
-            .email(identity + "@bottlenote.com")
-            .nickName(identity.replace("-", ""))
-            .role(UserType.ROLE_USER)
-            .socialType(new ArrayList<>(List.of(SocialType.NONE)))
-            .build());
+    User user =
+        oauthRepository.save(
+            User.builder()
+                .email(identity + "@bottlenote.com")
+                .nickName(identity.replace("-", ""))
+                .role(UserType.ROLE_USER)
+                .socialType(new ArrayList<>(List.of(SocialType.NONE)))
+                .build());
+    userTestFactory.seedRequiredAgreements(user.getId());
+    return user;
   }
 
   private AdminUser saveAdmin(String profileCode) {
