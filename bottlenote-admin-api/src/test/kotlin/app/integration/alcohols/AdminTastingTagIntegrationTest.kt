@@ -436,6 +436,41 @@ class AdminTastingTagIntegrationTest : IntegrationTestSupport() {
 					.content(mapper.writeValueAsString(request))
 			).hasStatus4xxClientError()
 		}
+
+		@Test
+		@DisplayName("이미 연결된 위스키를 다시 요청해도 멱등적으로 성공하고 상세 alcohol은 1개다")
+		fun addAlcoholsToTagIdempotent() {
+			// given
+			val tag = tastingTagTestFactory.persistTastingTag()
+			val alcohol = alcoholTestFactory.persistAlcohol()
+			tastingTagTestFactory.linkAlcoholToTag(alcohol, tag)
+
+			val request = mapOf("alcoholIds" to listOf(alcohol.id, alcohol.id))
+
+			// when
+			assertThat(
+				mockMvcTester
+					.post()
+					.uri("/v1/tasting-tags/${tag.id}/alcohols")
+					.header("Authorization", "Bearer $accessToken")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(request))
+			).hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.code")
+				.isEqualTo("TASTING_TAG_ALCOHOL_ADDED")
+
+			// then
+			assertThat(
+				mockMvcTester
+					.get()
+					.uri("/v1/tasting-tags/${tag.id}")
+					.header("Authorization", "Bearer $accessToken")
+			).hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.alcohols.length()")
+				.isEqualTo(1)
+		}
 	}
 
 	@Nested

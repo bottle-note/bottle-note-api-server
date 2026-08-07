@@ -4,6 +4,7 @@ import app.bottlenote.alcohols.domain.AlcoholsTastingTags;
 import app.bottlenote.alcohols.domain.AlcoholsTastingTagsRepository;
 import app.bottlenote.common.annotation.JpaRepositoryImpl;
 import java.util.List;
+import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -16,6 +17,11 @@ public interface JpaAlcoholsTastingTagsRepository
   @Override
   @Query("select att from alcohol_tasting_tags att where att.tastingTag.id = :tastingTagId")
   List<AlcoholsTastingTags> findByTastingTagId(@Param("tastingTagId") Long tastingTagId);
+
+  @Override
+  @Query(
+      "select att.alcohol.id from alcohol_tasting_tags att where att.tastingTag.id = :tastingTagId")
+  Set<Long> findAlcoholIdsByTastingTagId(@Param("tastingTagId") Long tastingTagId);
 
   @Override
   @Modifying
