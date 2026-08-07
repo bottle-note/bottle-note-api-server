@@ -77,4 +77,10 @@ public class Notification extends BaseEntity {
     this.status = status != null ? status : NotificationStatus.PENDING;
     this.isRead = isRead != null && isRead;
   }
+
+  /** 알림을 읽음 처리한다. 이미 읽은 경우 상태를 유지한다. */
+  public void markAsRead() {
+    this.isRead = true;
+    this.status = NotificationStatus.READ;
+  }
 }
