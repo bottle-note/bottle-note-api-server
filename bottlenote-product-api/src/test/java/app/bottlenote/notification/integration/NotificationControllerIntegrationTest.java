@@ -4,11 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 import app.bottlenote.IntegrationTestSupport;
+import app.bottlenote.notification.constant.NotificationCategory;
+import app.bottlenote.notification.constant.NotificationStatus;
+import app.bottlenote.notification.constant.NotificationType;
 import app.bottlenote.notification.domain.Notification;
 import app.bottlenote.notification.domain.NotificationRepository;
-import app.bottlenote.notification.domain.constant.NotificationCategory;
-import app.bottlenote.notification.domain.constant.NotificationStatus;
-import app.bottlenote.notification.domain.constant.NotificationType;
 import app.bottlenote.notification.exception.NotificationExceptionCode;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.response.TokenItem;

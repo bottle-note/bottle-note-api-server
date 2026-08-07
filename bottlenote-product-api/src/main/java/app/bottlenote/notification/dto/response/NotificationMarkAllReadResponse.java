@@ -1,4 +1,4 @@
-package app.bottlenote.notification.data.response;
+package app.bottlenote.notification.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

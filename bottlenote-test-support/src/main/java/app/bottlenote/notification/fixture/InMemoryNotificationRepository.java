@@ -2,7 +2,7 @@ package app.bottlenote.notification.fixture;
 
 import app.bottlenote.notification.domain.Notification;
 import app.bottlenote.notification.domain.NotificationRepository;
-import app.bottlenote.notification.domain.constant.NotificationStatus;
+import app.bottlenote.notification.constant.NotificationStatus;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;

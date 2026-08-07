@@ -3,10 +3,10 @@ package app.bottlenote.notification.event.listener;
 import static app.bottlenote.common.annotation.DomainEventListener.ProcessingType.ASYNCHRONOUS;
 
 import app.bottlenote.common.annotation.DomainEventListener;
-import app.bottlenote.notification.application.NotificationService;
-import app.bottlenote.notification.data.payload.NotificationMessage;
-import app.bottlenote.notification.domain.constant.NotificationCategory;
-import app.bottlenote.notification.domain.constant.NotificationType;
+import app.bottlenote.notification.constant.NotificationCategory;
+import app.bottlenote.notification.constant.NotificationType;
+import app.bottlenote.notification.payload.NotificationMessage;
+import app.bottlenote.notification.service.NotificationService;
 import app.bottlenote.review.event.payload.ReviewReplyNotificationEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

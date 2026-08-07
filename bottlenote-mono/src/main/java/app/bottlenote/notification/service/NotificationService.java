@@ -1,7 +1,7 @@
-package app.bottlenote.notification.application;
+package app.bottlenote.notification.service;
 
-import app.bottlenote.notification.data.payload.NotificationMessage;
 import app.bottlenote.notification.domain.Notification;
+import app.bottlenote.notification.payload.NotificationMessage;
 import java.util.List;
 
 public interface NotificationService {

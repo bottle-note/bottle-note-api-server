@@ -1,7 +1,7 @@
-package app.bottlenote.notification.data.payload;
+package app.bottlenote.notification.payload;
 
-import app.bottlenote.notification.domain.constant.NotificationCategory;
-import app.bottlenote.notification.domain.constant.NotificationType;
+import app.bottlenote.notification.constant.NotificationCategory;
+import app.bottlenote.notification.constant.NotificationType;
 
 public record NotificationMessage(
     Long userId, // 알람 대상 사용자 식별자

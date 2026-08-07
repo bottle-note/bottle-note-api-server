@@ -2,11 +2,11 @@ package app.bottlenote.notification.event.listener;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import app.bottlenote.notification.application.NotificationService;
-import app.bottlenote.notification.data.payload.NotificationMessage;
+import app.bottlenote.notification.constant.NotificationCategory;
+import app.bottlenote.notification.constant.NotificationType;
 import app.bottlenote.notification.domain.Notification;
-import app.bottlenote.notification.domain.constant.NotificationCategory;
-import app.bottlenote.notification.domain.constant.NotificationType;
+import app.bottlenote.notification.payload.NotificationMessage;
+import app.bottlenote.notification.service.NotificationService;
 import app.bottlenote.review.event.payload.ReviewReplyNotificationEvent;
 import java.util.ArrayList;
 import java.util.List;

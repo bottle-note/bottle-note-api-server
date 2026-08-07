@@ -1,9 +1,9 @@
-package app.bottlenote.notification.presentation.docs;
+package app.bottlenote.notification.controller.docs;
 
-import app.bottlenote.notification.data.response.NotificationListResponse;
-import app.bottlenote.notification.data.response.NotificationMarkAllReadResponse;
-import app.bottlenote.notification.data.response.NotificationMarkReadResponse;
-import app.bottlenote.notification.data.response.NotificationUnreadCountResponse;
+import app.bottlenote.notification.dto.response.NotificationListResponse;
+import app.bottlenote.notification.dto.response.NotificationMarkAllReadResponse;
+import app.bottlenote.notification.dto.response.NotificationMarkReadResponse;
+import app.bottlenote.notification.dto.response.NotificationUnreadCountResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

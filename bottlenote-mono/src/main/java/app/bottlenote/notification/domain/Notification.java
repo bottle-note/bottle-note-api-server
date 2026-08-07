@@ -1,9 +1,9 @@
 package app.bottlenote.notification.domain;
 
 import app.bottlenote.common.domain.BaseEntity;
-import app.bottlenote.notification.domain.constant.NotificationCategory;
-import app.bottlenote.notification.domain.constant.NotificationStatus;
-import app.bottlenote.notification.domain.constant.NotificationType;
+import app.bottlenote.notification.constant.NotificationCategory;
+import app.bottlenote.notification.constant.NotificationStatus;
+import app.bottlenote.notification.constant.NotificationType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -56,7 +56,7 @@ public class Notification extends BaseEntity {
   @Column(name = "is_read", nullable = false)
   private Boolean isRead;
 
-  public Notification() {}
+  protected Notification() {}
 
   @Builder
   public Notification(

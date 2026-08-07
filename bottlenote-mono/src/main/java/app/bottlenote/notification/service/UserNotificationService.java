@@ -1,10 +1,10 @@
-package app.bottlenote.notification.application;
+package app.bottlenote.notification.service;
 
-import app.bottlenote.notification.data.payload.NotificationMessage;
 import app.bottlenote.notification.domain.Notification;
 import app.bottlenote.notification.domain.NotificationRepository;
 import app.bottlenote.notification.exception.NotificationException;
 import app.bottlenote.notification.exception.NotificationExceptionCode;
+import app.bottlenote.notification.payload.NotificationMessage;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.exception.UserException;
