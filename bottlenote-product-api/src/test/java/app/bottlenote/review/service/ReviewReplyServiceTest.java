@@ -33,6 +33,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 
 @Tag("unit")
 @DisplayName("[unit] [service] ReviewReplyService")
@@ -63,6 +64,8 @@ class ReviewReplyServiceTest {
     reviewRepository.save(review1);
     reviewRepository.save(review2);
 
+    ApplicationEventPublisher eventPublisher = event -> {};
+
     reviewReplyService =
         new ReviewReplyService(
             reviewReplyRepository,
@@ -70,6 +73,7 @@ class ReviewReplyServiceTest {
             profanityClient,
             userFacade,
             reviewReplyEventPublisher,
+            eventPublisher,
             new LocalTracingService());
   }
 

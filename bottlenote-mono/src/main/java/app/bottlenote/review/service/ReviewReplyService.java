@@ -2,13 +2,13 @@ package app.bottlenote.review.service;
 
 import static app.bottlenote.review.constant.ReviewReplyResultMessage.SUCCESS_DELETE_REPLY;
 import static app.bottlenote.review.constant.ReviewReplyResultMessage.SUCCESS_REGISTER_REPLY;
-import static app.bottlenote.review.exception.ReviewExceptionCode.REVIEW_NOT_FOUND;
 import static java.lang.Boolean.FALSE;
 
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.observability.service.TracingService;
 import app.bottlenote.review.constant.ReviewReplyStatus;
+import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewReplyRepository;
 import app.bottlenote.review.domain.ReviewRepository;
@@ -17,6 +17,7 @@ import app.bottlenote.review.dto.response.ReviewReplyResponse;
 import app.bottlenote.review.dto.response.RootReviewReplyResponse;
 import app.bottlenote.review.dto.response.SubReviewReplyResponse;
 import app.bottlenote.review.event.payload.ReviewRegistryEvent;
+import app.bottlenote.review.event.payload.ReviewReplyRegistryEvent;
 import app.bottlenote.review.exception.ReviewException;
 import app.bottlenote.review.exception.ReviewExceptionCode;
 import app.bottlenote.user.facade.UserFacade;
@@ -24,6 +25,7 @@ import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +40,7 @@ public class ReviewReplyService {
   private final ProfanityClient profanityClient;
   private final UserFacade userFacade;
   private final HistoryEventPublisher reviewReplyEventPublisher;
+  private final ApplicationEventPublisher eventPublisher;
   private final TracingService tracingService;
 
   /**
@@ -64,9 +67,10 @@ public class ReviewReplyService {
     final String content = profanityClient.getFilteredText(request.content());
     log.info("욕설 필터링 시간 : {}", (System.nanoTime() - start2) / 1_000_000 + "ms");
 
-    if (!reviewRepository.existsById(reviewId)) {
-      throw new ReviewException(ReviewExceptionCode.REVIEW_NOT_FOUND);
-    }
+    final Review review =
+        reviewRepository
+            .findById(reviewId)
+            .orElseThrow(() -> new ReviewException(ReviewExceptionCode.REVIEW_NOT_FOUND));
 
     Optional<ReviewReply> parentReply =
         reviewReplyRepository.isEligibleParentReply(reviewId, request.parentReplyId());
@@ -85,16 +89,21 @@ public class ReviewReplyService {
     log.info("최종 처리 시간 : {}", (System.nanoTime() - start) / 1_000_000 + "ms");
     reviewReplyRepository.save(reply);
 
-    final Long alcoholId =
-        reviewRepository
-            .findById(reviewId)
-            .orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND))
-            .getAlcoholId();
+    final Long alcoholId = review.getAlcoholId();
 
-    ReviewRegistryEvent event =
+    ReviewRegistryEvent historyEvent =
         ReviewRegistryEvent.of(
             reply.getReviewId(), alcoholId, reply.getUserId(), reply.getContent());
-    reviewReplyEventPublisher.publishReplyHistoryEvent(event);
+    reviewReplyEventPublisher.publishReplyHistoryEvent(historyEvent);
+
+    // 알림 등 부수효과는 도메인 이벤트로 전파한다.
+    eventPublisher.publishEvent(
+        ReviewReplyRegistryEvent.of(
+            reply.getReviewId(),
+            review.getUserId(),
+            reply.getUserId(),
+            reply.getId(),
+            reply.getContent()));
 
     log.info(
         "댓글 생성 - replyId: {}, reviewId: {}, userId: {}, alcoholId: {}, isSubReply: {}, traceId: {}",
