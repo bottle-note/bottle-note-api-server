@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service
 @Service
 class AdminMcpWhiskyService(
 	private val alcoholQueryService: AlcoholQueryService,
-	private val objectMapper: ObjectMapper,
+	private val objectMapper: ObjectMapper
 ) {
 	fun search(request: McpWhiskySearchRequest): McpWhiskySearchResult {
 		val page = (request.page ?: 0).coerceAtLeast(0)
@@ -34,7 +34,7 @@ class AdminMcpWhiskyService(
 				null,
 				page,
 				size,
-				false,
+				false
 			)
 		// AlcoholQueryService.searchAdminAlcohols uses GlobalResponse.fromPage:
 		// data = List content, meta.totalElements / meta.hasNext
@@ -47,7 +47,7 @@ class AdminMcpWhiskyService(
 			page = page,
 			size = size,
 			totalElements = total,
-			hasNext = hasNext,
+			hasNext = hasNext
 		)
 	}
 
@@ -93,38 +93,36 @@ class AdminMcpWhiskyService(
 		}
 	}
 
-	private fun AdminAlcoholItem.toSummary(): McpWhiskySummary =
-		McpWhiskySummary(
-			alcoholId = alcoholId,
-			korName = korName,
-			engName = engName,
-			korCategory = korCategoryName,
-			engCategory = engCategoryName,
-			imageUrl = imageUrl,
-		)
+	private fun AdminAlcoholItem.toSummary(): McpWhiskySummary = McpWhiskySummary(
+		alcoholId = alcoholId,
+		korName = korName,
+		engName = engName,
+		korCategory = korCategoryName,
+		engCategory = engCategoryName,
+		imageUrl = imageUrl
+	)
 
-	private fun AdminAlcoholDetailResponse.toMcpDetail(): McpWhiskyDetail =
-		McpWhiskyDetail(
-			alcoholId = alcoholId,
-			korName = korName,
-			engName = engName,
-			korCategory = korCategory,
-			engCategory = engCategory,
-			imageUrl = imageUrl,
-			abv = abv,
-			age = age,
-			cask = cask,
-			volume = volume,
-			description = description,
-			regionId = regionId,
-			korRegion = korRegion,
-			engRegion = engRegion,
-			distilleryId = distilleryId,
-			korDistillery = korDistillery,
-			engDistillery = engDistillery,
-			tastingTags =
-				tastingTags.map { tag ->
-					McpTastingTag(id = tag.id, korName = tag.korName, engName = tag.engName)
-				},
-		)
+	private fun AdminAlcoholDetailResponse.toMcpDetail(): McpWhiskyDetail = McpWhiskyDetail(
+		alcoholId = alcoholId,
+		korName = korName,
+		engName = engName,
+		korCategory = korCategory,
+		engCategory = engCategory,
+		imageUrl = imageUrl,
+		abv = abv,
+		age = age,
+		cask = cask,
+		volume = volume,
+		description = description,
+		regionId = regionId,
+		korRegion = korRegion,
+		engRegion = engRegion,
+		distilleryId = distilleryId,
+		korDistillery = korDistillery,
+		engDistillery = engDistillery,
+		tastingTags =
+		tastingTags.map { tag ->
+			McpTastingTag(id = tag.id, korName = tag.korName, engName = tag.engName)
+		}
+	)
 }
