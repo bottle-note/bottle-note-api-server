@@ -6,7 +6,10 @@ import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.external.notification.data.payload.NotificationMessage;
 import app.external.notification.domain.Notification;
-import app.external.notification.repository.NotificationRepository;
+import app.external.notification.domain.NotificationRepository;
+import app.external.notification.exception.NotificationException;
+import app.external.notification.exception.NotificationExceptionCode;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -42,5 +45,36 @@ public class UserNotificationService implements NotificationService {
             .build();
 
     notificationRepository.save(notification);
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public List<Notification> getNotifications(Long userId) {
+    return notificationRepository.findAllByUserIdOrderByIdDesc(userId);
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public long countUnread(Long userId) {
+    return notificationRepository.countByUserIdAndIsReadFalse(userId);
+  }
+
+  @Transactional
+  @Override
+  public void markAsRead(Long userId, Long notificationId) {
+    Notification notification =
+        notificationRepository
+            .findByIdAndUserId(notificationId, userId)
+            .orElseThrow(
+                () -> new NotificationException(NotificationExceptionCode.NOTIFICATION_NOT_FOUND));
+
+    notification.markAsRead();
+    notificationRepository.save(notification);
+  }
+
+  @Transactional
+  @Override
+  public int markAllAsRead(Long userId) {
+    return notificationRepository.markAllAsReadByUserId(userId);
   }
 }
