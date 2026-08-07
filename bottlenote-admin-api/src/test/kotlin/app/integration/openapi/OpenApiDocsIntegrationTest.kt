@@ -11,10 +11,9 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 
 	private val envelopeFields = listOf("success", "code", "data", "errors", "meta")
 
-	// Admin operation은 모두 GlobalResponse 공통 형식을 쓴다 (plan Assumption 6).
+	// Admin의 65 operation은 모두 GlobalResponse 공통 형식을 쓴다 (plan Assumption 6).
 	// product와 달리 공통 형식을 벗어나는 예외 엔드포인트가 없다.
-	// MCP 위스키 검색·상세 2건 추가 → 65 + 2 = 67
-	private val expectedOperationCount = 67
+	private val expectedOperationCount = 65
 
 	@Test
 	@DisplayName("인증 없이 스펙 문서를 조회할 수 있다")
@@ -46,8 +45,8 @@ class OpenApiDocsIntegrationTest : OpenApiSpecTestSupport() {
 	}
 
 	@Test
-	@DisplayName("문서에는 67개 operation이 누락 없이 포함된다")
-	fun openApiSpecContains67Operations() {
+	@DisplayName("문서에는 65개 operation이 누락 없이 포함된다")
+	fun openApiSpecContains65Operations() {
 		val operations = operationsOf(fetchSpec())
 
 		assertThat(operations)
