@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,7 +25,12 @@ import org.hibernate.annotations.Comment;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Comment("알코올과 테이스팅 태그 연관관계 해소 테이블 ")
 @Entity(name = "alcohol_tasting_tags")
-@Table(name = "alcohols_tasting_tags")
+@Table(
+    name = "alcohols_tasting_tags",
+    uniqueConstraints =
+        @UniqueConstraint(
+            name = "uq_alcohols_tasting_tags_alcohol_tag",
+            columnNames = {"alcohol_id", "tasting_tag_id"}))
 public class AlcoholsTastingTags extends BaseTimeEntity {
 
   @Id

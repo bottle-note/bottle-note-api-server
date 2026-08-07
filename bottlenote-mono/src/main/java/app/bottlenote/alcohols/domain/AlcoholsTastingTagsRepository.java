@@ -1,10 +1,13 @@
 package app.bottlenote.alcohols.domain;
 
 import java.util.List;
+import java.util.Set;
 
 public interface AlcoholsTastingTagsRepository {
 
   List<AlcoholsTastingTags> findByTastingTagId(Long tastingTagId);
+
+  Set<Long> findAlcoholIdsByTastingTagId(Long tastingTagId);
 
   <S extends AlcoholsTastingTags> List<S> saveAll(Iterable<S> alcoholsTastingTags);
 

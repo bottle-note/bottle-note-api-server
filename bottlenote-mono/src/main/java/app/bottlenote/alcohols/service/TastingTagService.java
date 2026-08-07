@@ -4,6 +4,7 @@ import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.TASTING_TAG_DUPLICATE_NAME;
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.TASTING_TAG_HAS_ALCOHOLS;
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.TASTING_TAG_HAS_CHILDREN;
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.TASTING_TAG_MAPPING_DUPLICATE;
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.TASTING_TAG_MAX_DEPTH_EXCEEDED;
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.TASTING_TAG_NOT_FOUND;
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.TASTING_TAG_PARENT_NOT_FOUND;
@@ -34,6 +35,7 @@ import org.ahocorasick.trie.Emit;
 import org.ahocorasick.trie.Trie;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -98,7 +100,13 @@ public class TastingTagService {
 
     List<AdminAlcoholItem> alcohols =
         alcoholsTastingTagsRepository.findByTastingTagId(tagId).stream()
-            .map(att -> toAdminAlcoholItem(att.getAlcohol()))
+            .map(AlcoholsTastingTags::getAlcohol)
+            .collect(
+                Collectors.toMap(
+                    Alcohol::getId, alcohol -> alcohol, (existing, ignored) -> existing))
+            .values()
+            .stream()
+            .map(this::toAdminAlcoholItem)
             .toList();
 
     return AdminTastingTagDetailResponse.of(tagNode, alcohols);
@@ -177,9 +185,7 @@ public class TastingTagService {
             .orElseThrow(() -> new AlcoholException(TASTING_TAG_NOT_FOUND));
 
     Set<Long> existingAlcoholIds =
-        alcoholsTastingTagsRepository.findByTastingTagId(tagId).stream()
-            .map(att -> att.getAlcohol().getId())
-            .collect(Collectors.toSet());
+        alcoholsTastingTagsRepository.findAlcoholIdsByTastingTagId(tagId);
 
     List<AlcoholsTastingTags> newMappings =
         alcoholIds.stream()
@@ -193,7 +199,11 @@ public class TastingTagService {
             .map(alcohol -> AlcoholsTastingTags.of(alcohol, tag))
             .toList();
 
-    alcoholsTastingTagsRepository.saveAll(newMappings);
+    try {
+      alcoholsTastingTagsRepository.saveAll(newMappings);
+    } catch (DataIntegrityViolationException ex) {
+      throw new AlcoholException(TASTING_TAG_MAPPING_DUPLICATE);
+    }
     return AdminResultResponse.of(TASTING_TAG_ALCOHOL_ADDED, tagId);
   }
 

@@ -6,6 +6,7 @@ import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_HAS
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.DISTILLERY_NOT_FOUND;
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.REGION_NOT_FOUND;
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.TASTING_TAG_MAPPING_DUPLICATE;
 import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.TASTING_TAG_NOT_FOUND;
 import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.ALCOHOL_CREATED;
 import static app.bottlenote.global.dto.response.AdminResultResponse.ResultCode.ALCOHOL_DELETED;
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -172,7 +174,11 @@ public class AdminAlcoholCommandService {
                         .orElseThrow(() -> new AlcoholException(TASTING_TAG_NOT_FOUND)))
             .map(tag -> AlcoholsTastingTags.of(alcohol, tag))
             .toList();
-    alcoholsTastingTagsRepository.saveAll(mappings);
+    try {
+      alcoholsTastingTagsRepository.saveAll(mappings);
+    } catch (DataIntegrityViolationException ex) {
+      throw new AlcoholException(TASTING_TAG_MAPPING_DUPLICATE);
+    }
   }
 
   private void publishImageActivatedEvent(String imageUrl, Long alcoholId) {

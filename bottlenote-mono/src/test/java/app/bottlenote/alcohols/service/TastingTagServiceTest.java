@@ -1,11 +1,17 @@
 package app.bottlenote.alcohols.service;
 
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.ALCOHOL_NOT_FOUND;
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.TASTING_TAG_MAPPING_DUPLICATE;
+import static app.bottlenote.alcohols.exception.AlcoholExceptionCode.TASTING_TAG_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
-import app.bottlenote.alcohols.domain.AlcoholsTastingTagsRepository;
+import app.bottlenote.alcohols.domain.Alcohol;
+import app.bottlenote.alcohols.domain.AlcoholsTastingTags;
 import app.bottlenote.alcohols.domain.TastingTag;
+import app.bottlenote.alcohols.exception.AlcoholException;
+import app.bottlenote.alcohols.fixture.InMemoryAlcoholQueryRepository;
+import app.bottlenote.alcohols.fixture.InMemoryAlcoholsTastingTagsRepository;
 import app.bottlenote.alcohols.fixture.InMemoryTastingTagRepository;
 import java.util.List;
 import java.util.stream.Stream;
@@ -24,15 +30,15 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 class TastingTagServiceTest {
 
   InMemoryTastingTagRepository tastingTagRepository;
-  AlcoholsTastingTagsRepository alcoholsTastingTagsRepository;
-  AlcoholQueryRepository alcoholQueryRepository;
+  InMemoryAlcoholsTastingTagsRepository alcoholsTastingTagsRepository;
+  InMemoryAlcoholQueryRepository alcoholQueryRepository;
   TastingTagService tastingTagService;
 
   @BeforeEach
   void setUp() {
     tastingTagRepository = new InMemoryTastingTagRepository();
-    alcoholsTastingTagsRepository = mock(AlcoholsTastingTagsRepository.class);
-    alcoholQueryRepository = mock(AlcoholQueryRepository.class);
+    alcoholsTastingTagsRepository = new InMemoryAlcoholsTastingTagsRepository();
+    alcoholQueryRepository = new InMemoryAlcoholQueryRepository();
     tastingTagService =
         new TastingTagService(
             tastingTagRepository, alcoholsTastingTagsRepository, alcoholQueryRepository);
@@ -138,6 +144,95 @@ class TastingTagServiceTest {
 
       // then
       assertThat(result).isEmpty();
+    }
+  }
+
+  @Nested
+  @DisplayName("addAlcoholsToTag 메서드")
+  class AddAlcoholsToTag {
+
+    @Test
+    @DisplayName("요청 alcoholId 중복은 한 번만 저장한다")
+    void 요청_중복_alcoholId는_한_번만_저장한다() {
+      TastingTag tag = tastingTagRepository.findByKorName("오크").orElseThrow();
+      Alcohol alcohol = alcoholQueryRepository.save(Alcohol.builder().korName("위스키1").build());
+
+      tastingTagService.addAlcoholsToTag(tag.getId(), List.of(alcohol.getId(), alcohol.getId()));
+
+      assertThat(alcoholsTastingTagsRepository.count()).isEqualTo(1);
+      assertThat(alcoholsTastingTagsRepository.findAlcoholIdsByTastingTagId(tag.getId()))
+          .containsExactly(alcohol.getId());
+    }
+
+    @Test
+    @DisplayName("이미 연결된 주류는 skip 하여 멱등적으로 성공한다")
+    void 이미_연결된_주류는_skip한다() {
+      TastingTag tag = tastingTagRepository.findByKorName("오크").orElseThrow();
+      Alcohol alcohol = alcoholQueryRepository.save(Alcohol.builder().korName("위스키1").build());
+      alcoholsTastingTagsRepository.saveAll(List.of(AlcoholsTastingTags.of(alcohol, tag)));
+
+      tastingTagService.addAlcoholsToTag(tag.getId(), List.of(alcohol.getId()));
+
+      assertThat(alcoholsTastingTagsRepository.count()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 태그면 TASTING_TAG_NOT_FOUND 예외를 던진다")
+    void 태그_미존재_예외() {
+      assertThatThrownBy(() -> tastingTagService.addAlcoholsToTag(999L, List.of(1L)))
+          .isInstanceOf(AlcoholException.class)
+          .extracting(ex -> ((AlcoholException) ex).getExceptionCode())
+          .isEqualTo(TASTING_TAG_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 주류면 ALCOHOL_NOT_FOUND 예외를 던진다")
+    void 주류_미존재_예외() {
+      TastingTag tag = tastingTagRepository.findByKorName("오크").orElseThrow();
+
+      assertThatThrownBy(() -> tastingTagService.addAlcoholsToTag(tag.getId(), List.of(999L)))
+          .isInstanceOf(AlcoholException.class)
+          .extracting(ex -> ((AlcoholException) ex).getExceptionCode())
+          .isEqualTo(ALCOHOL_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("유니크 제약 위반 시 TASTING_TAG_MAPPING_DUPLICATE 로 변환한다")
+    void 유니크_위반_시_매핑_중복_예외() {
+      TastingTag tag = tastingTagRepository.findByKorName("오크").orElseThrow();
+      Alcohol alcohol = alcoholQueryRepository.save(Alcohol.builder().korName("위스키1").build());
+      alcoholsTastingTagsRepository.saveAll(List.of(AlcoholsTastingTags.of(alcohol, tag)));
+
+      // 사전 skip을 우회해 저장 단계에서 중복이 나도록, 기존 매핑 조회 결과를 비우는 대신
+      // 동일 매핑을 강제로 한 번 더 저장 시도한다.
+      assertThatThrownBy(
+              () ->
+                  alcoholsTastingTagsRepository.saveAll(
+                      List.of(AlcoholsTastingTags.of(alcohol, tag))))
+          .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+
+      // 서비스 계층 변환: 동시성으로 사전 체크가 빈 사이 중복 insert 가 발생한 경우를 모사
+      InMemoryAlcoholsTastingTagsRepository racingRepo =
+          new InMemoryAlcoholsTastingTagsRepository() {
+            @Override
+            public java.util.Set<Long> findAlcoholIdsByTastingTagId(Long tastingTagId) {
+              return java.util.Set.of();
+            }
+
+            @Override
+            public <S extends AlcoholsTastingTags> List<S> saveAll(
+                Iterable<S> alcoholsTastingTags) {
+              throw new org.springframework.dao.DataIntegrityViolationException("duplicate");
+            }
+          };
+      TastingTagService racingService =
+          new TastingTagService(tastingTagRepository, racingRepo, alcoholQueryRepository);
+
+      assertThatThrownBy(
+              () -> racingService.addAlcoholsToTag(tag.getId(), List.of(alcohol.getId())))
+          .isInstanceOf(AlcoholException.class)
+          .extracting(ex -> ((AlcoholException) ex).getExceptionCode())
+          .isEqualTo(TASTING_TAG_MAPPING_DUPLICATE);
     }
   }
 

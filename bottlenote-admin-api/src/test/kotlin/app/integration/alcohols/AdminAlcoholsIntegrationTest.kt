@@ -434,6 +434,62 @@ class AdminAlcoholsIntegrationTest : IntegrationTestSupport() {
 		}
 
 		@Test
+		@DisplayName("중복 tastingTagIds로 생성해도 상세 태그는 한 번만 노출된다")
+		fun createAlcoholWithDuplicateTastingTagIds() {
+			// given
+			val region = alcoholTestFactory.persistRegion()
+			val distillery = alcoholTestFactory.persistDistillery()
+			val tag = tastingTagTestFactory.persistTastingTag("오크", "Oak")
+
+			val request =
+				mapOf(
+					"korName" to "중복 태그 위스키",
+					"engName" to "Duplicate Tag Whisky",
+					"abv" to "40%",
+					"type" to AlcoholType.WHISKY.name,
+					"korCategory" to "싱글 몰트",
+					"engCategory" to "Single Malt",
+					"categoryGroup" to AlcoholCategoryGroup.SINGLE_MALT.name,
+					"regionId" to region.id,
+					"distilleryId" to distillery.id,
+					"age" to "12",
+					"cask" to "American Oak",
+					"imageUrl" to "https://example.com/test.jpg",
+					"description" to "테스트 설명",
+					"volume" to "700ml",
+					"tastingTagIds" to listOf(tag.id, tag.id, tag.id)
+				)
+
+			// when
+			val createResult =
+				mockMvcTester
+					.post()
+					.uri("/v1/alcohols")
+					.header("Authorization", "Bearer $accessToken")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(mapper.writeValueAsString(request))
+					.exchange()
+
+			assertThat(createResult)
+				.hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.code")
+				.isEqualTo("ALCOHOL_CREATED")
+
+			// then
+			val alcoholId = extractData(createResult, Map::class.java)["targetId"]
+			assertThat(
+				mockMvcTester
+					.get()
+					.uri("/v1/alcohols/$alcoholId")
+					.header("Authorization", "Bearer $accessToken")
+			).hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.tastingTags.length()")
+				.isEqualTo(1)
+		}
+
+		@Test
 		@DisplayName("존재하지 않는 태그 ID로 생성 시 실패한다")
 		fun createAlcoholWithInvalidTastingTag() {
 			// given

@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -164,6 +165,10 @@ public class AlcoholQueryService {
                         att.getTastingTag().getId(),
                         att.getTastingTag().getKorName(),
                         att.getTastingTag().getEngName()))
+            .collect(
+                Collectors.toMap(TastingTagInfo::id, tag -> tag, (existing, ignored) -> existing))
+            .values()
+            .stream()
             .toList();
 
     return new AdminAlcoholDetailResponse(
