@@ -1,21 +1,14 @@
 package app.bottlenote.agreement.integration;
 
-import static app.bottlenote.agreement.constant.AgreementAction.AGREE;
-import static app.bottlenote.agreement.constant.AgreementInputContext.INDIVIDUAL;
-import static app.bottlenote.agreement.constant.AgreementType.PRIVACY_COLLECTION_USE;
-import static app.bottlenote.agreement.constant.AgreementType.TERMS_OF_SERVICE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 import app.bottlenote.IntegrationTestSupport;
-import app.bottlenote.agreement.domain.UserAgreement;
-import app.bottlenote.agreement.domain.UserAgreementRepository;
 import app.bottlenote.agreement.exception.AgreementExceptionCode;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.fixture.UserTestFactory;
-import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -33,12 +26,11 @@ class AgreementGateIntegrationTest extends IntegrationTestSupport {
   private static final String WITHDRAW_ENDPOINT = "/api/v1/users";
 
   @Autowired private UserTestFactory userTestFactory;
-  @Autowired private UserAgreementRepository userAgreementRepository;
 
   @Test
   @DisplayName("동의 미충족 인증 사용자는 보호 API에서 AGREEMENT_REQUIRED를 받는다")
   void protectedApi_whenAgreementMissing_returnsAgreementRequired() {
-    User user = userTestFactory.persistUser();
+    User user = userTestFactory.persistUserWithoutAgreements();
     TokenItem token = getToken(user);
 
     MvcTestResult result =
@@ -59,7 +51,7 @@ class AgreementGateIntegrationTest extends IntegrationTestSupport {
   @Test
   @DisplayName("동의 미충족이어도 동의 상태 조회와 탈퇴는 면제되어 통과한다")
   void exemptApis_whenAgreementMissing_areAccessible() {
-    User user = userTestFactory.persistUser();
+    User user = userTestFactory.persistUserWithoutAgreements();
     TokenItem token = getToken(user);
 
     mockMvcTester
@@ -86,20 +78,6 @@ class AgreementGateIntegrationTest extends IntegrationTestSupport {
   void protectedApi_whenEligible_returnsOk() throws Exception {
     User user = userTestFactory.persistUser();
     TokenItem token = getToken(user);
-    LocalDateTime now = LocalDateTime.of(2026, 8, 8, 0, 0);
-    userAgreementRepository.save(
-        UserAgreement.create(
-            user.getId(), TERMS_OF_SERVICE, AGREE, "이용약관", now, INDIVIDUAL, "127.0.0.1", "test"));
-    userAgreementRepository.save(
-        UserAgreement.create(
-            user.getId(),
-            PRIVACY_COLLECTION_USE,
-            AGREE,
-            "개인정보",
-            now,
-            INDIVIDUAL,
-            "127.0.0.1",
-            "test"));
 
     MvcTestResult result =
         mockMvcTester
@@ -109,6 +87,6 @@ class AgreementGateIntegrationTest extends IntegrationTestSupport {
             .exchange();
 
     result.assertThat().hasStatusOk();
-    assertThat(result.getResponse().getContentAsString()).contains("email");
+    assertThat(result.getResponse().getContentAsString()).contains("nickname");
   }
 }

@@ -133,7 +133,7 @@ class UserAgreementRepositoryIntegrationTest extends IntegrationTestSupport {
   @Test
   @DisplayName("새 의사표시를 저장할 때 기존 동의 이력을 유지한다")
   void save_whenActionChanges_appendsAgreementHistory() {
-    User user = userTestFactory.persistUser();
+    User user = userTestFactory.persistUserWithoutAgreements();
     userAgreementRepository.save(
         createAgreement(
             user.getId(), AgreementType.TERMS_OF_SERVICE, AgreementAction.AGREE, RECORDED_AT));

@@ -1,5 +1,9 @@
 package app.bottlenote.user.fixture;
 
+import app.bottlenote.agreement.constant.AgreementAction;
+import app.bottlenote.agreement.constant.AgreementInputContext;
+import app.bottlenote.agreement.constant.AgreementType;
+import app.bottlenote.agreement.domain.UserAgreement;
 import app.bottlenote.user.constant.FollowStatus;
 import app.bottlenote.user.constant.GenderType;
 import app.bottlenote.user.constant.SocialType;
@@ -7,6 +11,8 @@ import app.bottlenote.user.constant.UserType;
 import app.bottlenote.user.domain.Follow;
 import app.bottlenote.user.domain.User;
 import jakarta.persistence.EntityManager;
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
@@ -25,22 +31,18 @@ public class UserTestFactory {
 
   // ========== User 생성 메서드들 ==========
 
-  /** 기본 User 생성 */
+  /** 기본 User 생성 (필수 약관 동의 시드 포함) */
   @Transactional
   @NotNull
   public User persistUser() {
-    User user =
-        User.builder()
-            .email("user" + generateRandomSuffix() + "@example.com")
-            .nickName("사용자-" + generateRandomSuffix())
-            .age(25)
-            .gender(GenderType.MALE)
-            .socialType(List.of(SocialType.KAKAO))
-            .role(UserType.ROLE_USER)
-            .build();
-    em.persist(user);
-    em.flush();
-    return user;
+    return persistUserWithAgreements(true);
+  }
+
+  /** 필수 약관 동의 이력 없이 User 생성 (AgreementGate 미충족 시나리오용) */
+  @Transactional
+  @NotNull
+  public User persistUserWithoutAgreements() {
+    return persistUserWithAgreements(false);
   }
 
   /** 이메일과 닉네임으로 User 생성 */
@@ -58,6 +60,7 @@ public class UserTestFactory {
             .build();
     em.persist(user);
     em.flush();
+    seedRequiredAgreements(user.getId());
     return user;
   }
 
@@ -76,6 +79,7 @@ public class UserTestFactory {
             .build();
     em.persist(user);
     em.flush();
+    seedRequiredAgreements(user.getId());
     return user;
   }
 
@@ -88,6 +92,7 @@ public class UserTestFactory {
     User user = filledBuilder.build();
     em.persist(user);
     em.flush();
+    seedRequiredAgreements(user.getId());
     return user;
   }
 
@@ -100,6 +105,7 @@ public class UserTestFactory {
     User user = filledBuilder.build();
     em.persist(user);
     em.flush(); // 즉시 ID 필요한 경우에만 사용
+    seedRequiredAgreements(user.getId());
     return user;
   }
 
@@ -203,7 +209,47 @@ public class UserTestFactory {
             .role(UserType.ROLE_USER)
             .build();
     em.persist(user);
+    em.flush();
+    seedRequiredAgreements(user.getId());
     return user;
+  }
+
+  private User persistUserWithAgreements(boolean seedAgreements) {
+    User user =
+        User.builder()
+            .email("user" + generateRandomSuffix() + "@example.com")
+            .nickName("사용자-" + generateRandomSuffix())
+            .age(25)
+            .gender(GenderType.MALE)
+            .socialType(List.of(SocialType.KAKAO))
+            .role(UserType.ROLE_USER)
+            .build();
+    em.persist(user);
+    em.flush();
+    if (seedAgreements) {
+      seedRequiredAgreements(user.getId());
+    }
+    return user;
+  }
+
+  /** AgreementGate를 통과할 수 있도록 필수 유형 AGREE 이력을 시드한다. */
+  public void seedRequiredAgreements(@NotNull Long userId) {
+    LocalDateTime recordedAt = LocalDateTime.of(2026, 1, 1, 0, 0);
+    Arrays.stream(AgreementType.values())
+        .filter(AgreementType::isRequired)
+        .forEach(
+            type ->
+                em.persist(
+                    UserAgreement.create(
+                        userId,
+                        type,
+                        AgreementAction.AGREE,
+                        type.getDescription(),
+                        recordedAt,
+                        AgreementInputContext.BULK,
+                        "127.0.0.1",
+                        "UserTestFactory")));
+    em.flush();
   }
 
   /** User 빌더의 누락 필드 채우기 */
