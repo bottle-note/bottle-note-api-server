@@ -1,6 +1,7 @@
 package app.bottlenote.notification.domain;
 
 import app.bottlenote.common.annotation.DomainRepository;
+import app.bottlenote.notification.dto.dsl.NotificationListCriteria;
 import java.util.List;
 import java.util.Optional;
 

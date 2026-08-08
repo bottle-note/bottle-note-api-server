@@ -7,7 +7,7 @@ import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.notification.constant.NotificationCategory;
 import app.bottlenote.notification.constant.NotificationType;
 import app.bottlenote.notification.dto.request.NotificationPageableRequest;
-import app.bottlenote.notification.dto.response.NotificationListResult;
+import app.bottlenote.notification.dto.response.NotificationListResponse;
 import app.bottlenote.notification.payload.NotificationMessage;
 import app.bottlenote.notification.service.NotificationService;
 import app.bottlenote.review.event.payload.ReviewReplyNotificationEvent;
@@ -99,10 +99,10 @@ class ReviewReplyNotificationListenerTest {
     }
 
     @Override
-    public PageResponse<NotificationListResult> getNotifications(
+    public PageResponse<NotificationListResponse> getNotifications(
         Long userId, NotificationPageableRequest request) {
       return PageResponse.of(
-          NotificationListResult.of(0, List.of()),
+          NotificationListResponse.of(0, List.of()),
           CursorPageable.builder()
               .currentCursor(0L)
               .cursor(0L)

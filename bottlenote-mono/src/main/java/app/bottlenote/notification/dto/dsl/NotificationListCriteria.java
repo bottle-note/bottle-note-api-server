@@ -1,4 +1,4 @@
-package app.bottlenote.notification.domain;
+package app.bottlenote.notification.dto.dsl;
 
 import java.util.Objects;
 

@@ -3,10 +3,10 @@ package app.bottlenote.notification.service;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.notification.domain.Notification;
-import app.bottlenote.notification.domain.NotificationListCriteria;
 import app.bottlenote.notification.domain.NotificationRepository;
+import app.bottlenote.notification.dto.dsl.NotificationListCriteria;
 import app.bottlenote.notification.dto.request.NotificationPageableRequest;
-import app.bottlenote.notification.dto.response.NotificationListResult;
+import app.bottlenote.notification.dto.response.NotificationListResponse;
 import app.bottlenote.notification.exception.NotificationException;
 import app.bottlenote.notification.exception.NotificationExceptionCode;
 import app.bottlenote.notification.payload.NotificationMessage;
@@ -53,7 +53,7 @@ public class UserNotificationService implements NotificationService {
 
   @Transactional(readOnly = true)
   @Override
-  public PageResponse<NotificationListResult> getNotifications(
+  public PageResponse<NotificationListResponse> getNotifications(
       Long userId, NotificationPageableRequest request) {
     NotificationListCriteria criteria =
         NotificationListCriteria.of(userId, request.cursor(), request.pageSize());
@@ -64,8 +64,10 @@ public class UserNotificationService implements NotificationService {
     List<Notification> content =
         hasNext ? List.copyOf(fetched.subList(0, criteria.pageSize().intValue())) : fetched;
 
+    List<NotificationListResponse.Item> items = content.stream().map(this::toItem).toList();
+
     // nextCursor = 마지막 반환 item id (keyset)
-    Long nextCursor = content.isEmpty() ? criteria.cursor() : content.getLast().getId();
+    Long nextCursor = items.isEmpty() ? criteria.cursor() : items.getLast().id();
     CursorPageable pageable =
         CursorPageable.builder()
             .currentCursor(criteria.cursor())
@@ -74,7 +76,7 @@ public class UserNotificationService implements NotificationService {
             .hasNext(hasNext)
             .build();
 
-    return PageResponse.of(NotificationListResult.of(totalCount, content), pageable);
+    return PageResponse.of(NotificationListResponse.of(totalCount, items), pageable);
   }
 
   @Transactional(readOnly = true)
@@ -100,5 +102,17 @@ public class UserNotificationService implements NotificationService {
   @Override
   public int markAllAsRead(Long userId) {
     return notificationRepository.markAllAsReadByUserId(userId);
+  }
+
+  private NotificationListResponse.Item toItem(Notification notification) {
+    return new NotificationListResponse.Item(
+        notification.getId(),
+        notification.getTitle(),
+        notification.getContent(),
+        notification.getType(),
+        notification.getCategory(),
+        notification.getStatus(),
+        notification.getIsRead(),
+        notification.getCreateAt());
   }
 }

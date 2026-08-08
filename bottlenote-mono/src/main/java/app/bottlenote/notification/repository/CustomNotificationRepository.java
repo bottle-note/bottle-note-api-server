@@ -1,7 +1,7 @@
 package app.bottlenote.notification.repository;
 
 import app.bottlenote.notification.domain.Notification;
-import app.bottlenote.notification.domain.NotificationListCriteria;
+import app.bottlenote.notification.dto.dsl.NotificationListCriteria;
 import java.util.List;
 
 /** 알림함 커서 페이징 조회. */
