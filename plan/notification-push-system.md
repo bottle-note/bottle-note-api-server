@@ -146,6 +146,19 @@
 - Status: [x] cancelled — 스키마 변경 불필요
 - Orchestration: **신규 worktree + Grok worker** (`repo: bottle-note/environment-variables` 또는 로컬 서브모듈 remote). 백엔드 포인터 갱신은 별도 짧은 Task/커밋
 
+### Task A (PR #701 리뷰 후속): UserFacade 경계 + AFTER_COMMIT 명시
+- Acceptance:
+  - `UserNotificationService`가 `UserRepository`를 직접 참조하지 않고 `UserFacade`만 경유한다
+  - 알림 대상 없음 예외 계약은 `UserExceptionCode.NOTIFICATION_USER_NOT_FOUND`로 보존한다
+  - `ReviewReplyNotificationListener`의 `@TransactionalEventListener` phase를 `AFTER_COMMIT`으로 명시한다
+  - 관련 Fake/InMemory·단위 테스트를 갱신한다
+- Out of scope: cursor/integration/issue 기타 리뷰 항목
+- Verification: mono compile + Notification 관련 unit + rule 테스트
+- Files (advisory): `UserNotificationService`, `ReviewReplyNotificationListener`, `FakeUserFacade`, `UserNotificationServiceTest`, plan 문서
+- Depends: Task 1–3
+- Size: S
+- Status: [x] done
+
 ## Progress Log
 
 - 2026-08-08: `/define` 착수. 설계 문서 반영, 기존 notification/push 잔존 구조 조사.
@@ -160,3 +173,5 @@
 - 2026-08-08: 코디네이터 verify — compile + unit_test SUCCESS, NotificationControllerIntegrationTest 9 tests 0 failures.
 
 - 2026-08-08: Notification 패키지 `app.external.notification` → `app.bottlenote.notification` 이전, API `/api/v1/notifications`.
+- 2026-08-08: PR #701 리뷰 후속 Task A 추가 — UserNotificationService UserFacade 경유, NOTIFICATION_USER_NOT_FOUND 계약 보존, ReviewReplyNotificationListener AFTER_COMMIT 명시. cursor/integration/issue 항목은 범위 외.
+- 2026-08-08: Task A 완료 — FakeUserFacade를 test-support로 이전, Notification unit + product FakeUserFacade 소비 unit + check_rule_test 통과.

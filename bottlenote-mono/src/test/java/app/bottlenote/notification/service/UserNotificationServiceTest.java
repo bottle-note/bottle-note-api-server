@@ -11,13 +11,10 @@ import app.bottlenote.notification.exception.NotificationException;
 import app.bottlenote.notification.exception.NotificationExceptionCode;
 import app.bottlenote.notification.fixture.InMemoryNotificationRepository;
 import app.bottlenote.notification.payload.NotificationMessage;
-import app.bottlenote.user.constant.GenderType;
-import app.bottlenote.user.constant.SocialType;
-import app.bottlenote.user.constant.UserType;
-import app.bottlenote.user.domain.User;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
-import app.bottlenote.user.fixture.InMemoryUserQueryRepository;
+import app.bottlenote.user.facade.payload.UserProfileItem;
+import app.bottlenote.user.fixture.FakeUserFacade;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -32,15 +29,15 @@ class UserNotificationServiceTest {
   private static final Long USER_ID = 1L;
   private static final Long OTHER_USER_ID = 2L;
 
-  private InMemoryUserQueryRepository userRepository;
+  private FakeUserFacade userFacade;
   private InMemoryNotificationRepository notificationRepository;
   private UserNotificationService service;
 
   @BeforeEach
   void setUp() {
-    userRepository = new InMemoryUserQueryRepository();
+    userFacade = new FakeUserFacade();
     notificationRepository = new InMemoryNotificationRepository();
-    service = new UserNotificationService(userRepository, notificationRepository);
+    service = new UserNotificationService(userFacade, notificationRepository);
   }
 
   @Nested
@@ -190,21 +187,7 @@ class UserNotificationServiceTest {
   }
 
   private void seedUser(Long userId) {
-    User user =
-        User.builder()
-            .email("user" + userId + "@example.com")
-            .nickName("user" + userId)
-            .age(25)
-            .gender(GenderType.MALE)
-            .socialType(List.of(SocialType.KAKAO))
-            .role(UserType.ROLE_USER)
-            .build();
-    userRepository.save(user);
-    // InMemoryUserQueryRepository assigns sequential ids starting at 1.
-    if (!user.getId().equals(userId)) {
-      throw new IllegalStateException(
-          "테스트 픽스처 userId 불일치: expected=" + userId + ", actual=" + user.getId());
-    }
+    userFacade.addUser(UserProfileItem.create(userId, "user" + userId, ""));
   }
 
   private Notification seedNotification(Long userId, String title) {

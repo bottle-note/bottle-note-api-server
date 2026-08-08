@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.test.util.ReflectionTestUtils;
 
+/** UserFacade 테스트 더블. mono/product 단위 테스트가 공유한다. */
 public class FakeUserFacade implements UserFacade {
   private static final Logger log = LogManager.getLogger(FakeUserFacade.class);
   public final Map<Long, UserProfileItem> userDatabase = new ConcurrentHashMap<>();
@@ -36,28 +37,17 @@ public class FakeUserFacade implements UserFacade {
     }
   }
 
-  /**
-   * 유틸리티 메서드: 테스트 목적의 유저 데이터를 추가합니다.
-   *
-   * @param userProfileItem 추가할 유저 정보
-   */
   public void addUser(UserProfileItem userProfileItem) {
     Objects.requireNonNull(userProfileItem, "UserProfileItem cannot be null");
     userDatabase.put(userProfileItem.id(), userProfileItem);
     log.debug("Added user: {}", userProfileItem);
   }
 
-  /**
-   * 유틸리티 메서드: ID로 유저 데이터를 제거합니다.
-   *
-   * @param userId 제거할 유저 ID
-   */
   public void removeUserById(Long userId) {
     userDatabase.remove(userId);
     log.debug("Removed user with ID: {}", userId);
   }
 
-  /** 유틸리티 메서드: 모든 유저 데이터를 초기화합니다. */
   public void clearUserDatabase() {
     userDatabase.clear();
     log.debug("Cleared all user data");

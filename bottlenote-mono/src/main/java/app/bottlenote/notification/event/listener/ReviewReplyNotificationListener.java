@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
@@ -32,7 +33,7 @@ public class ReviewReplyNotificationListener {
 
   @Async
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  @TransactionalEventListener
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleReviewReplyNotification(ReviewReplyNotificationEvent event) {
     if (event == null) {
       return;
