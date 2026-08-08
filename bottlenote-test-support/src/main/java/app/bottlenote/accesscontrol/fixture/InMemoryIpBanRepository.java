@@ -42,6 +42,11 @@ public class InMemoryIpBanRepository implements IpBanRepository {
   }
 
   @Override
+  public Optional<IpBan> findByNormalizedIpForUpdate(String normalizedIp) {
+    return findByNormalizedIp(normalizedIp);
+  }
+
+  @Override
   public List<IpBan> findByStatusOrderByStateChangedAtDesc(IpBanStatus status, int limit) {
     return database.values().stream()
         .filter(ban -> ban.getStatus() == status)
@@ -68,6 +73,20 @@ public class InMemoryIpBanRepository implements IpBanRepository {
                     || ban.getExpiresAt().isAfter(expiresAt)
                     || (ban.getExpiresAt().isEqual(expiresAt) && ban.getId() > id))
         .sorted(Comparator.comparing(IpBan::getExpiresAt).thenComparing(IpBan::getId))
+        .limit(Math.max(limit, 1))
+        .toList();
+  }
+
+  @Override
+  public List<IpBan> findInactiveAfter(LocalDateTime stateChangedAt, Long id, int limit) {
+    return database.values().stream()
+        .filter(ban -> !ban.isActive())
+        .filter(
+            ban ->
+                stateChangedAt == null
+                    || ban.getStateChangedAt().isAfter(stateChangedAt)
+                    || (ban.getStateChangedAt().isEqual(stateChangedAt) && ban.getId() > id))
+        .sorted(Comparator.comparing(IpBan::getStateChangedAt).thenComparing(IpBan::getId))
         .limit(Math.max(limit, 1))
         .toList();
   }

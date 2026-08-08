@@ -15,11 +15,15 @@ public interface IpBanRepository {
 
   Optional<IpBan> findByNormalizedIp(String normalizedIp);
 
+  Optional<IpBan> findByNormalizedIpForUpdate(String normalizedIp);
+
   List<IpBan> findByStatusOrderByStateChangedAtDesc(IpBanStatus status, int limit);
 
   List<IpBan> findAllOrderByStateChangedAtDesc(int limit);
 
   List<IpBan> findActiveAfter(LocalDateTime expiresAt, Long id, int limit);
+
+  List<IpBan> findInactiveAfter(LocalDateTime stateChangedAt, Long id, int limit);
 
   List<IpBan> findTerminatedBefore(LocalDateTime cutoff, int limit);
 

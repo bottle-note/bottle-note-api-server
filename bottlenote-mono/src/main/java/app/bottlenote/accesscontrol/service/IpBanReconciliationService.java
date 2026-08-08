@@ -42,7 +42,8 @@ public class IpBanReconciliationService {
   @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public void reconcile() {
     reconcileActiveBans();
-    removeStaleRedisBans();
+    reconcileInactiveBans();
+    removeLegacyRedisBans();
   }
 
   private void reconcileActiveBans() {
@@ -83,7 +84,33 @@ public class IpBanReconciliationService {
     }
   }
 
-  private void removeStaleRedisBans() {
+  private void reconcileInactiveBans() {
+    LocalDateTime cursorStateChangedAt = null;
+    Long cursorId = null;
+    while (true) {
+      List<IpBan> batch =
+          ipBanRepository.findInactiveAfter(cursorStateChangedAt, cursorId, BATCH_SIZE);
+      if (batch.isEmpty()) {
+        return;
+      }
+      for (IpBan ban : batch) {
+        try {
+          accessControlStore.projectUnban(
+              ban.getNormalizedIp(), ipBanEventRepository.findLatestIdByIpBanId(ban.getId()));
+        } catch (RuntimeException exception) {
+          log.warn("IP ban inactive reconciliation failed ip={}", ban.getNormalizedIp(), exception);
+        }
+      }
+      IpBan last = batch.getLast();
+      cursorStateChangedAt = last.getStateChangedAt();
+      cursorId = last.getId();
+      if (batch.size() < BATCH_SIZE) {
+        return;
+      }
+    }
+  }
+
+  private void removeLegacyRedisBans() {
     for (AccessControlStore.BanInfo redisBan : accessControlStore.listBans(BATCH_SIZE)) {
       try {
         IpBanDetailResponse detail = ipBanFacade.findByIp(redisBan.ip()).orElse(null);

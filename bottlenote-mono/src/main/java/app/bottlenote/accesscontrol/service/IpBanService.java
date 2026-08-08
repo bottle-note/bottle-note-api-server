@@ -59,7 +59,10 @@ public class IpBanService {
       return toDetail(created);
     }
 
-    IpBan ban = existing.get();
+    IpBan ban =
+        ipBanRepository
+            .findByNormalizedIpForUpdate(normalizedIp)
+            .orElseThrow(() -> new IpBanException(IpBanExceptionCode.IP_BAN_NOT_FOUND));
     LocalDateTime previousExpiresAt = ban.getExpiresAt();
     if (ban.isActive()) {
       ban.extend(sanitizedReason, now, expiresAt);
@@ -99,7 +102,7 @@ public class IpBanService {
 
     IpBan ban =
         ipBanRepository
-            .findByNormalizedIp(normalizedIp)
+            .findByNormalizedIpForUpdate(normalizedIp)
             .orElseThrow(() -> new IpBanException(IpBanExceptionCode.IP_BAN_NOT_FOUND));
     if (!ban.isActive()) {
       throw new IpBanException(IpBanExceptionCode.IP_BAN_NOT_ACTIVE);
@@ -129,7 +132,7 @@ public class IpBanService {
 
     IpBan ban =
         ipBanRepository
-            .findByNormalizedIp(normalizedIp)
+            .findByNormalizedIpForUpdate(normalizedIp)
             .orElseThrow(() -> new IpBanException(IpBanExceptionCode.IP_BAN_NOT_FOUND));
     if (!ban.isActive()) {
       throw new IpBanException(IpBanExceptionCode.IP_BAN_NOT_ACTIVE);

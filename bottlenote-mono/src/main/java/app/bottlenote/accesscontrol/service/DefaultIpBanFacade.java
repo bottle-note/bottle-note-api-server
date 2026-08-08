@@ -14,6 +14,8 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.dao.CannotAcquireLockException;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @FacadeService
 @Slf4j
@@ -30,7 +32,16 @@ public class DefaultIpBanFacade implements IpBanFacade {
 
   @Override
   public IpBanCommandResponse ban(String rawIp, Duration ttl, String reason, Long adminUserId) {
-    IpBanDetailResponse detail = ipBanService.ban(rawIp, ttl, reason, adminUserId);
+    IpBanDetailResponse detail;
+    try {
+      detail = ipBanService.ban(rawIp, ttl, reason, adminUserId);
+    } catch (DataIntegrityViolationException | CannotAcquireLockException exception) {
+      log.info(
+          "IP ban insert race retried once ip={} cause={}",
+          rawIp,
+          exception.getClass().getSimpleName());
+      detail = ipBanService.ban(rawIp, ttl, reason, adminUserId);
+    }
     return projectBan(detail, ttl);
   }
 

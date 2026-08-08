@@ -78,6 +78,38 @@ class IpBanReconciliationServiceTest {
   }
 
   @Test
+  @DisplayName("201번째 비활성 DB 밴도 커서 순회로 Redis에서 제거한다")
+  void reconcile_whenInactiveBansExceedBatch_removesBeyondFirstBatch() {
+    Fixture fixture = fixture();
+
+    for (int host = 1; host <= 201; host++) {
+      String ip = "198.18.1." + host;
+      IpBan ban =
+          fixture.banRepository.save(
+              IpBan.createActive(
+                  ip, "abuse", NOW.minusMinutes(10), NOW.plusMinutes(10), NOW.minusMinutes(10)));
+      ban.unban("reviewed", NOW.minusMinutes(1));
+      fixture.banRepository.save(ban);
+      fixture.eventRepository.save(
+          IpBanAuditRecord.create(
+              ban.getId(),
+              IpBanEventType.UNBAN,
+              "reviewed",
+              NOW.plusMinutes(10),
+              NOW.plusMinutes(10),
+              IpBanActorType.ADMIN,
+              1L,
+              null,
+              NOW.minusMinutes(1)));
+      fixture.store.ban(ip, Duration.ofMinutes(10), "stale");
+    }
+
+    fixture.reconciliationService.reconcile();
+
+    assertThat(fixture.store.isBanned("198.18.1.201")).isFalse();
+  }
+
+  @Test
   @DisplayName("180일이 지난 종료 밴은 signal과 event를 먼저 지운 뒤 삭제한다")
   void retention_whenTerminatedBanIsOld_deletesChildrenBeforeBan() {
     Fixture fixture = fixture();

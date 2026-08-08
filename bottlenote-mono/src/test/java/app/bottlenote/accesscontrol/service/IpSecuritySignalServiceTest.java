@@ -5,15 +5,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.bottlenote.accesscontrol.constant.SignalVerdict;
+import app.bottlenote.accesscontrol.domain.IpBan;
 import app.bottlenote.accesscontrol.dto.request.IpSecuritySignalReportRequest;
 import app.bottlenote.accesscontrol.dto.response.IpSecuritySignalResponse;
 import app.bottlenote.accesscontrol.exception.IpBanException;
 import app.bottlenote.accesscontrol.exception.IpBanExceptionCode;
+import app.bottlenote.accesscontrol.fixture.InMemoryIpBanRepository;
 import app.bottlenote.accesscontrol.fixture.InMemoryIpSecuritySignalRepository;
 import app.bottlenote.agent.domain.Agent;
 import app.bottlenote.agent.fixture.InMemoryAgentRepository;
 import app.bottlenote.agent.service.DefaultAgentFacade;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -31,16 +34,21 @@ class IpSecuritySignalServiceTest {
   private static final LocalDateTime OBSERVED_UNTIL = LocalDateTime.of(2026, 8, 9, 12, 0);
 
   private InMemoryIpSecuritySignalRepository signalRepository;
+  private InMemoryIpBanRepository banRepository;
   private InMemoryAgentRepository agentRepository;
   private IpSecuritySignalService service;
 
   @BeforeEach
   void setUp() {
     signalRepository = new InMemoryIpSecuritySignalRepository();
+    banRepository = new InMemoryIpBanRepository();
     agentRepository = new InMemoryAgentRepository();
     service =
         new IpSecuritySignalService(
-            signalRepository, new DefaultAgentFacade(agentRepository), Clock.fixed(NOW, ZONE_ID));
+            signalRepository,
+            banRepository,
+            new DefaultAgentFacade(agentRepository),
+            Clock.fixed(NOW, ZONE_ID));
   }
 
   @Test
@@ -147,9 +155,40 @@ class IpSecuritySignalServiceTest {
         .isEqualTo(IpBanExceptionCode.INVALID_SECURITY_SIGNAL);
   }
 
+  @Test
+  @DisplayName("존재하지 않는 부모 밴으로 signal을 등록하면 not found를 반환한다")
+  void report_whenParentBanIsMissing_throwsNotFound() {
+    assertThatThrownBy(() -> service.report(report(999L, "198.51.100.45", null), 11L))
+        .isInstanceOf(IpBanException.class)
+        .extracting("exceptionCode")
+        .isEqualTo(IpBanExceptionCode.IP_BAN_NOT_FOUND);
+  }
+
+  @Test
+  @DisplayName("부모 밴과 다른 IP로 signal을 등록하면 거부한다")
+  void report_whenParentBanIpDiffers_throwsInvalidSignal() {
+    IpBan ban =
+        banRepository.save(
+            IpBan.createActive(
+                "198.51.100.46",
+                "abuse",
+                OBSERVED_FROM,
+                OBSERVED_FROM.plus(Duration.ofMinutes(10)),
+                OBSERVED_FROM));
+
+    assertThatThrownBy(() -> service.report(report(ban.getId(), "198.51.100.47", null), 11L))
+        .isInstanceOf(IpBanException.class)
+        .extracting("exceptionCode")
+        .isEqualTo(IpBanExceptionCode.INVALID_SECURITY_SIGNAL);
+  }
+
   private static IpSecuritySignalReportRequest report(String ip, String agentVersion) {
+    return report(null, ip, agentVersion);
+  }
+
+  private static IpSecuritySignalReportRequest report(Long banId, String ip, String agentVersion) {
     return new IpSecuritySignalReportRequest(
-        null,
+        banId,
         ip,
         "/api/v2/reviews",
         "post",

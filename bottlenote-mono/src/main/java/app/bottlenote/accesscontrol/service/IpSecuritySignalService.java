@@ -1,6 +1,7 @@
 package app.bottlenote.accesscontrol.service;
 
 import app.bottlenote.accesscontrol.constant.SignalVerdict;
+import app.bottlenote.accesscontrol.domain.IpBanRepository;
 import app.bottlenote.accesscontrol.domain.IpSecuritySignal;
 import app.bottlenote.accesscontrol.domain.IpSecuritySignalRepository;
 import app.bottlenote.accesscontrol.dto.request.IpSecuritySignalReportRequest;
@@ -26,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class IpSecuritySignalService {
 
   private final IpSecuritySignalRepository signalRepository;
+  private final IpBanRepository ipBanRepository;
   private final AgentFacade agentFacade;
   private final Clock clock;
 
@@ -34,6 +36,7 @@ public class IpSecuritySignalService {
       IpSecuritySignalReportRequest report, Long reporterAdminUserId) {
     Objects.requireNonNull(report, "report는 null일 수 없습니다.");
     String normalizedIp = requireNormalizedIp(report.rawIp());
+    validateParentIp(report.ipBanId(), normalizedIp);
     Reporter reporter = resolveReporter(reporterAdminUserId, report.agentVersion());
     try {
       IpSecuritySignal signal =
@@ -118,6 +121,19 @@ public class IpSecuritySignalService {
               }
               return new Reporter(adminUserId, null, null);
             });
+  }
+
+  private void validateParentIp(Long ipBanId, String normalizedIp) {
+    if (ipBanId == null) {
+      return;
+    }
+    var ban =
+        ipBanRepository
+            .findById(ipBanId)
+            .orElseThrow(() -> new IpBanException(IpBanExceptionCode.IP_BAN_NOT_FOUND));
+    if (!ban.getNormalizedIp().equals(normalizedIp)) {
+      throw new IpBanException(IpBanExceptionCode.INVALID_SECURITY_SIGNAL);
+    }
   }
 
   private IpSecuritySignalResponse toView(IpSecuritySignal signal) {

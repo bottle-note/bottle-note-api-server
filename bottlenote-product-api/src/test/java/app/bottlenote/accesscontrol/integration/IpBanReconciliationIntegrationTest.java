@@ -74,6 +74,24 @@ class IpBanReconciliationIntegrationTest extends IntegrationTestSupport {
   }
 
   @Test
+  @DisplayName("201번째 DB UNBANNED도 keyset 재조정으로 Redis에서 제거한다")
+  void reconcile_whenInactiveBansExceedBatch_removesBeyondFirstDatabaseBatch() {
+    String lastIp = null;
+    for (int index = 1; index <= 201; index++) {
+      String ip = "198.18." + (index / 250) + "." + (index % 250 + 1);
+      ipBanFacade.ban(ip, Duration.ofMinutes(10), "stale-" + index, null);
+      ipBanService.unban(ip, "reviewed-" + index, null);
+      lastIp = ip;
+    }
+
+    assertThat(accessControlStore.isBanned(lastIp)).isTrue();
+
+    reconciliationService.reconcile();
+
+    assertThat(accessControlStore.isBanned(lastIp)).isFalse();
+  }
+
+  @Test
   @DisplayName("DB에서 만료된 활성 차단은 재조정이 EXPIRE 이력과 Redis 제거를 수행한다")
   void reconcile_whenDatabaseBanExpires_marksExpiredAndRemovesRedisProjection() {
     String ip = nextTestIp();

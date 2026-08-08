@@ -2,6 +2,7 @@ package app.bottlenote.accesscontrol.integration;
 
 import static app.bottlenote.agent.constant.AgentStatus.ACTIVE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.accesscontrol.constant.SignalVerdict;
@@ -9,6 +10,8 @@ import app.bottlenote.accesscontrol.domain.IpSecuritySignalRepository;
 import app.bottlenote.accesscontrol.dto.request.IpSecuritySignalReportRequest;
 import app.bottlenote.accesscontrol.dto.response.IpBanDetailResponse;
 import app.bottlenote.accesscontrol.dto.response.IpSecuritySignalResponse;
+import app.bottlenote.accesscontrol.exception.IpBanException;
+import app.bottlenote.accesscontrol.exception.IpBanExceptionCode;
 import app.bottlenote.accesscontrol.service.IpBanService;
 import app.bottlenote.accesscontrol.service.IpSecuritySignalService;
 import app.bottlenote.agent.domain.Agent;
@@ -79,6 +82,32 @@ class IpSecuritySignalPersistenceIntegrationTest extends IntegrationTestSupport 
     assertThat(reviewed.verdict()).isEqualTo(SignalVerdict.FALSE_POSITIVE);
     assertThat(reviewed.reviewedByAdminUserId()).isEqualTo(admin.getId());
     assertThat(signalService.list("2001:db8::50", 10)).hasSize(1);
+  }
+
+  @Test
+  @DisplayName("존재하지 않는 부모 밴을 지정한 signal은 저장하지 않는다")
+  void report_whenParentBanMissing_throwsNotFound() {
+    AdminUser admin = adminUserTestFactory.persistRootAdmin();
+
+    assertThatThrownBy(
+            () -> signalService.report(report(999_999L, "198.51.100.51", null), admin.getId()))
+        .isInstanceOf(IpBanException.class)
+        .extracting("exceptionCode")
+        .isEqualTo(IpBanExceptionCode.IP_BAN_NOT_FOUND);
+  }
+
+  @Test
+  @DisplayName("부모 밴과 다른 IP를 지정한 signal은 저장하지 않는다")
+  void report_whenParentBanIpDiffers_throwsInvalidSignal() {
+    AdminUser admin = adminUserTestFactory.persistRootAdmin();
+    IpBanDetailResponse ban =
+        ipBanService.ban("198.51.100.52", Duration.ofMinutes(10), "abuse", admin.getId());
+
+    assertThatThrownBy(
+            () -> signalService.report(report(ban.id(), "198.51.100.53", null), admin.getId()))
+        .isInstanceOf(IpBanException.class)
+        .extracting("exceptionCode")
+        .isEqualTo(IpBanExceptionCode.INVALID_SECURITY_SIGNAL);
   }
 
   private static IpSecuritySignalReportRequest report(Long banId, String ip, String agentVersion) {

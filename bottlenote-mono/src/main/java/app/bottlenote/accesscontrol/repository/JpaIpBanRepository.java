@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,6 +20,11 @@ import org.springframework.data.repository.query.Param;
 public interface JpaIpBanRepository extends IpBanRepository, JpaRepository<IpBan, Long> {
 
   Optional<IpBan> findByNormalizedIp(String normalizedIp);
+
+  @Override
+  @Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+  @Query("select b from ipBan b where b.normalizedIp = :normalizedIp")
+  Optional<IpBan> findByNormalizedIpForUpdate(@Param("normalizedIp") String normalizedIp);
 
   @Query("select b from ipBan b where b.status = :status order by b.stateChangedAt desc, b.id desc")
   List<IpBan> findByStatusOrdered(@Param("status") IpBanStatus status, Pageable pageable);
@@ -50,6 +56,24 @@ public interface JpaIpBanRepository extends IpBanRepository, JpaRepository<IpBan
   @Override
   default List<IpBan> findActiveAfter(LocalDateTime expiresAt, Long id, int limit) {
     return findActiveAfterQuery(expiresAt, id == null ? 0L : id, pageable(limit));
+  }
+
+  @Query(
+      """
+      select b from ipBan b
+      where b.status in ('UNBANNED', 'EXPIRED')
+        and (:stateChangedAt is null or b.stateChangedAt > :stateChangedAt
+          or (b.stateChangedAt = :stateChangedAt and b.id > :id))
+      order by b.stateChangedAt asc, b.id asc
+      """)
+  List<IpBan> findInactiveAfterQuery(
+      @Param("stateChangedAt") LocalDateTime stateChangedAt,
+      @Param("id") Long id,
+      Pageable pageable);
+
+  @Override
+  default List<IpBan> findInactiveAfter(LocalDateTime stateChangedAt, Long id, int limit) {
+    return findInactiveAfterQuery(stateChangedAt, id == null ? 0L : id, pageable(limit));
   }
 
   @Query(
