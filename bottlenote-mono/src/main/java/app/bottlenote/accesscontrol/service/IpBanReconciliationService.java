@@ -14,14 +14,20 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /** MySQL 상태를 bounded batch로 Redis enforcement에 수렴시킨다. */
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@ConditionalOnBean(AccessControlStore.class)
+@ConditionalOnProperty(
+    prefix = "bottlenote.access-control",
+    name = "enabled",
+    havingValue = "true",
+    matchIfMissing = true)
 public class IpBanReconciliationService {
 
   static final int BATCH_SIZE = 200;
@@ -33,6 +39,7 @@ public class IpBanReconciliationService {
   private final AccessControlStore accessControlStore;
   private final Clock clock;
 
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public void reconcile() {
     reconcileActiveBans();
     removeStaleRedisBans();

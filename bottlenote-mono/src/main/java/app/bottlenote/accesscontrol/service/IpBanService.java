@@ -54,7 +54,8 @@ public class IpBanService {
           ipBanRepository.save(
               IpBan.createActive(normalizedIp, sanitizedReason, now, expiresAt, now));
       appendEvent(
-          created.getId(), IpBanEventType.BAN, sanitizedReason, null, expiresAt, actor, now);
+          new EventCommand(
+              created.getId(), IpBanEventType.BAN, sanitizedReason, null, expiresAt, actor, now));
       return toDetail(created);
     }
 
@@ -64,20 +65,28 @@ public class IpBanService {
       ban.extend(sanitizedReason, now, expiresAt);
       ipBanRepository.save(ban);
       appendEvent(
-          ban.getId(),
-          IpBanEventType.EXTEND,
-          sanitizedReason,
-          previousExpiresAt,
-          expiresAt,
-          actor,
-          now);
+          new EventCommand(
+              ban.getId(),
+              IpBanEventType.EXTEND,
+              sanitizedReason,
+              previousExpiresAt,
+              expiresAt,
+              actor,
+              now));
       return toDetail(ban);
     }
 
     ban.ban(sanitizedReason, now, expiresAt);
     ipBanRepository.save(ban);
     appendEvent(
-        ban.getId(), IpBanEventType.BAN, sanitizedReason, previousExpiresAt, expiresAt, actor, now);
+        new EventCommand(
+            ban.getId(),
+            IpBanEventType.BAN,
+            sanitizedReason,
+            previousExpiresAt,
+            expiresAt,
+            actor,
+            now));
     return toDetail(ban);
   }
 
@@ -100,13 +109,14 @@ public class IpBanService {
     ban.unban(sanitizedReason, now);
     ipBanRepository.save(ban);
     appendEvent(
-        ban.getId(),
-        IpBanEventType.UNBAN,
-        sanitizedReason,
-        previousExpiresAt,
-        ban.getExpiresAt(),
-        actor,
-        now);
+        new EventCommand(
+            ban.getId(),
+            IpBanEventType.UNBAN,
+            sanitizedReason,
+            previousExpiresAt,
+            ban.getExpiresAt(),
+            actor,
+            now));
     return toDetail(ban);
   }
 
@@ -129,26 +139,30 @@ public class IpBanService {
     ban.expire(sanitizedReason, now);
     ipBanRepository.save(ban);
     appendEvent(
-        ban.getId(),
-        IpBanEventType.EXPIRE,
-        sanitizedReason,
-        previousExpiresAt,
-        ban.getExpiresAt(),
-        actor,
-        now);
+        new EventCommand(
+            ban.getId(),
+            IpBanEventType.EXPIRE,
+            sanitizedReason,
+            previousExpiresAt,
+            ban.getExpiresAt(),
+            actor,
+            now));
     return toDetail(ban);
   }
 
+  @Transactional(readOnly = true)
   public Optional<IpBanDetail> getDetail(String rawIp) {
     String normalizedIp = requireNormalizedIp(rawIp);
     return ipBanRepository.findByNormalizedIp(normalizedIp).map(this::toDetail);
   }
 
+  @Transactional(readOnly = true)
   public Optional<IpBanDetail> getDetail(Long id) {
     Objects.requireNonNull(id, "id는 null일 수 없습니다.");
     return ipBanRepository.findById(id).map(this::toDetail);
   }
 
+  @Transactional(readOnly = true)
   public List<IpBanSummary> list(IpBanStatus status, int max) {
     int limit = normalizeLimit(max);
     List<IpBan> bans =
@@ -158,25 +172,18 @@ public class IpBanService {
     return bans.stream().map(this::toSummary).toList();
   }
 
-  private void appendEvent(
-      Long ipBanId,
-      IpBanEventType eventType,
-      String reason,
-      LocalDateTime previousExpiresAt,
-      LocalDateTime nextExpiresAt,
-      Actor actor,
-      LocalDateTime occurredAt) {
+  private void appendEvent(EventCommand command) {
     ipBanEventRepository.save(
         IpBanEvent.create(
-            ipBanId,
-            eventType,
-            reason,
-            previousExpiresAt,
-            nextExpiresAt,
-            actor.type(),
-            actor.adminUserId(),
-            actor.agentId(),
-            occurredAt));
+            command.ipBanId(),
+            command.eventType(),
+            command.reason(),
+            command.previousExpiresAt(),
+            command.nextExpiresAt(),
+            command.actor().type(),
+            command.actor().adminUserId(),
+            command.actor().agentId(),
+            command.occurredAt()));
   }
 
   private Actor resolveActor(Long adminUserId) {
@@ -280,4 +287,13 @@ public class IpBanService {
       return new Actor(IpBanActorType.AGENT, adminUserId, agentId);
     }
   }
+
+  private record EventCommand(
+      Long ipBanId,
+      IpBanEventType eventType,
+      String reason,
+      LocalDateTime previousExpiresAt,
+      LocalDateTime nextExpiresAt,
+      Actor actor,
+      LocalDateTime occurredAt) {}
 }

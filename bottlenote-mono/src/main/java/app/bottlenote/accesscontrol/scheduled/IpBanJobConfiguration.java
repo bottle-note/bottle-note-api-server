@@ -1,12 +1,11 @@
 package app.bottlenote.accesscontrol.scheduled;
 
-import app.bottlenote.global.security.accesscontrol.AccessControlStore;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 /** Product JDBC Quartz cluster에서만 실행되는 IP ban 운영 작업. */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(prefix = "app", name = "type", havingValue = "product")
-@ConditionalOnBean(AccessControlStore.class)
+@ConditionalOnExpression("'${bottlenote.access-control.enabled:true}'.equals('true')")
 public class IpBanJobConfiguration {
 
   @Bean

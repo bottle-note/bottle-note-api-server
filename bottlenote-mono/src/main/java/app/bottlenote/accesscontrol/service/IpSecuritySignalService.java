@@ -76,6 +76,7 @@ public class IpSecuritySignalService {
     }
   }
 
+  @Transactional(readOnly = true)
   public Optional<IpSecuritySignalView> getDetail(Long signalId) {
     if (signalId == null) {
       return Optional.empty();
@@ -83,6 +84,7 @@ public class IpSecuritySignalService {
     return signalRepository.findById(signalId).map(this::toView);
   }
 
+  @Transactional(readOnly = true)
   public List<IpSecuritySignalView> list(String rawIp, int max) {
     String normalizedIp = requireNormalizedIp(rawIp);
     return signalRepository

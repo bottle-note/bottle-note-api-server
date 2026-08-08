@@ -1,21 +1,24 @@
 package app.bottlenote.accesscontrol.scheduled;
 
 import app.bottlenote.accesscontrol.service.IpBanRetentionService;
-import app.bottlenote.global.security.accesscontrol.AccessControlStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 @DisallowConcurrentExecution
 @RequiredArgsConstructor
-@ConditionalOnBean(AccessControlStore.class)
+@ConditionalOnProperty(
+    prefix = "bottlenote.access-control",
+    name = "enabled",
+    havingValue = "true",
+    matchIfMissing = true)
 public class IpBanRetentionJob implements Job {
 
   private final IpBanRetentionService retentionService;
