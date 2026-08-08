@@ -5,10 +5,9 @@ import app.bottlenote.notification.domain.NotificationRepository;
 import app.bottlenote.notification.exception.NotificationException;
 import app.bottlenote.notification.exception.NotificationExceptionCode;
 import app.bottlenote.notification.payload.NotificationMessage;
-import app.bottlenote.user.domain.User;
-import app.bottlenote.user.domain.UserRepository;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
+import app.bottlenote.user.facade.UserFacade;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class UserNotificationService implements NotificationService {
-  private final UserRepository userRepository;
+  private final UserFacade userFacade;
   private final NotificationRepository notificationRepository;
 
   @Transactional
@@ -30,14 +29,14 @@ public class UserNotificationService implements NotificationService {
         message,
         Thread.currentThread().getName());
 
-    User notiyTargetUser =
-        userRepository
-            .findById(message.userId())
-            .orElseThrow(() -> new UserException(UserExceptionCode.NOTIFICATION_USER_NOT_FOUND));
+    // 알림 대상 없음은 user 일반 USER_NOT_FOUND가 아니라 notification 경계 코드로 유지
+    if (!Boolean.TRUE.equals(userFacade.existsByUserId(message.userId()))) {
+      throw new UserException(UserExceptionCode.NOTIFICATION_USER_NOT_FOUND);
+    }
 
     Notification notification =
         Notification.builder()
-            .userId(notiyTargetUser.getId())
+            .userId(message.userId())
             .title(message.title())
             .content(message.content())
             .type(message.type())
