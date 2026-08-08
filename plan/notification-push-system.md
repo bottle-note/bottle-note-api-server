@@ -204,3 +204,4 @@
 - 2026-08-08: Task B 착수 — Notification 목록 API를 id-desc keyset cursor pagination으로 변경.
 - 2026-08-08: Task B 완료 — cursor 미지정/0=조건 없음, cursor&gt;0이면 id&lt;cursor, order by id desc, limit size+1, nextCursor=마지막 item id. unit+integration 검증. SC1 추가 통합 테스트는 Task C.
 - 2026-08-08: Task C 완료 — `ReviewReplyNotificationIntegrationTest` 2건(타 사용자 댓글→작성자 알림 저장, 본인 댓글 미생성). 실제 ApplicationEventPublisher + AFTER_COMMIT @Async + Awaitility bounded wait. Mockito/no-op 없음. integration_test BUILD SUCCESSFUL.
+- 2026-08-08: Task D self-review — 최초 리뷰 5건 해소 확인(UserFacade, AFTER_COMMIT, id-desc keyset cursor, SC1 통합 테스트, workspace#311 정합). ArchUnit DTO 위반 3건 수정: Criteria→`dto.dsl`, `NotificationListResponse`(+Item, 엔티티 비의존), product-api 중복 DTO 제거.

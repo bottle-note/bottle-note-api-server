@@ -1,7 +1,7 @@
 package app.bottlenote.notification.repository;
 
 import app.bottlenote.notification.domain.Notification;
-import app.bottlenote.notification.domain.NotificationListCriteria;
+import app.bottlenote.notification.dto.dsl.NotificationListCriteria;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import java.util.List;

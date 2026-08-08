@@ -9,18 +9,14 @@ import app.bottlenote.global.security.SecurityContextUtil;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.notification.controller.docs.NotificationApiDocs;
-import app.bottlenote.notification.domain.Notification;
 import app.bottlenote.notification.dto.request.NotificationPageableRequest;
-import app.bottlenote.notification.dto.response.NotificationItemResponse;
 import app.bottlenote.notification.dto.response.NotificationListResponse;
-import app.bottlenote.notification.dto.response.NotificationListResult;
 import app.bottlenote.notification.dto.response.NotificationMarkAllReadResponse;
 import app.bottlenote.notification.dto.response.NotificationMarkReadResponse;
 import app.bottlenote.notification.dto.response.NotificationUnreadCountResponse;
 import app.bottlenote.notification.service.NotificationService;
 import app.bottlenote.user.exception.UserException;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,13 +41,10 @@ public class NotificationController {
   public ResponseEntity<GlobalResponse> getNotifications(
       @ModelAttribute @Valid NotificationPageableRequest request) {
     Long userId = currentUserId();
-    PageResponse<NotificationListResult> page =
+    PageResponse<NotificationListResponse> page =
         notificationService.getNotifications(userId, request);
-    List<NotificationItemResponse> items =
-        page.content().items().stream().map(this::toItem).toList();
-    NotificationListResponse body = NotificationListResponse.of(page.content().totalCount(), items);
     return GlobalResponse.ok(
-        body, MetaService.createMetaInfo().add("pageable", page.cursorPageable()));
+        page.content(), MetaService.createMetaInfo().add("pageable", page.cursorPageable()));
   }
 
   @GetMapping("/unread-count")
@@ -76,18 +69,6 @@ public class NotificationController {
     Long userId = currentUserId();
     int updatedCount = notificationService.markAllAsRead(userId);
     return GlobalResponse.ok(NotificationMarkAllReadResponse.of(updatedCount));
-  }
-
-  private NotificationItemResponse toItem(Notification notification) {
-    return NotificationItemResponse.of(
-        notification.getId(),
-        notification.getTitle(),
-        notification.getContent(),
-        notification.getType(),
-        notification.getCategory(),
-        notification.getStatus(),
-        notification.getIsRead(),
-        notification.getCreateAt());
   }
 
   private Long currentUserId() {
