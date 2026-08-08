@@ -175,9 +175,15 @@
 - Status: [x] done
 
 ### Task C (후속): SC1 댓글 알림 생성 통합 테스트 보강
-- Acceptance: 리뷰 댓글 생성 → Notification 저장 경로의 통합 테스트를 보강한다
-- Status: [ ] pending
+- Acceptance:
+  - 실제 Spring context + TestContainers DB에서 댓글 등록 트랜잭션 commit 후 `ReviewReplyNotificationEvent` → AFTER_COMMIT async listener → 리뷰 작성자 `notifications` 행 저장을 검증한다
+  - 본인 댓글은 notifications 미생성
+  - Mockito/no-op publisher 금지, IntegrationTestSupport/TestFactory, bounded await
+- Verification: `./gradlew :bottlenote-product-api:integration_test --tests '*ReviewReplyNotificationIntegrationTest*'`
+- Files (advisory): `ReviewReplyNotificationIntegrationTest`, plan Progress Log
 - Depends: Task B
+- Size: S
+- Status: [x] done
 
 ## Progress Log
 
@@ -197,3 +203,4 @@
 - 2026-08-08: Task A 완료 — FakeUserFacade를 test-support로 이전, Notification unit + product FakeUserFacade 소비 unit + check_rule_test 통과.
 - 2026-08-08: Task B 착수 — Notification 목록 API를 id-desc keyset cursor pagination으로 변경.
 - 2026-08-08: Task B 완료 — cursor 미지정/0=조건 없음, cursor&gt;0이면 id&lt;cursor, order by id desc, limit size+1, nextCursor=마지막 item id. unit+integration 검증. SC1 추가 통합 테스트는 Task C.
+- 2026-08-08: Task C 완료 — `ReviewReplyNotificationIntegrationTest` 2건(타 사용자 댓글→작성자 알림 저장, 본인 댓글 미생성). 실제 ApplicationEventPublisher + AFTER_COMMIT @Async + Awaitility bounded wait. Mockito/no-op 없음. integration_test BUILD SUCCESSFUL.
