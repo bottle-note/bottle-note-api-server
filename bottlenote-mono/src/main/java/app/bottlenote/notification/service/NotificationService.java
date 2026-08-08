@@ -1,14 +1,16 @@
 package app.bottlenote.notification.service;
 
-import app.bottlenote.notification.domain.Notification;
+import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.notification.dto.request.NotificationPageableRequest;
+import app.bottlenote.notification.dto.response.NotificationListResult;
 import app.bottlenote.notification.payload.NotificationMessage;
-import java.util.List;
 
 public interface NotificationService {
 
   void sendNotification(NotificationMessage message);
 
-  List<Notification> getNotifications(Long userId);
+  PageResponse<NotificationListResult> getNotifications(
+      Long userId, NotificationPageableRequest request);
 
   long countUnread(Long userId);
 

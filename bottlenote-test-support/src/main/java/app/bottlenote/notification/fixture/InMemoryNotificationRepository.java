@@ -1,8 +1,9 @@
 package app.bottlenote.notification.fixture;
 
-import app.bottlenote.notification.domain.Notification;
-import app.bottlenote.notification.domain.NotificationRepository;
 import app.bottlenote.notification.constant.NotificationStatus;
+import app.bottlenote.notification.domain.Notification;
+import app.bottlenote.notification.domain.NotificationListCriteria;
+import app.bottlenote.notification.domain.NotificationRepository;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -44,11 +45,20 @@ public class InMemoryNotificationRepository implements NotificationRepository {
   }
 
   @Override
-  public List<Notification> findAllByUserIdOrderByIdDesc(Long userId) {
+  public List<Notification> findPageByUserId(NotificationListCriteria criteria) {
     return database.stream()
-        .filter(notification -> notification.getUserId().equals(userId))
+        .filter(notification -> notification.getUserId().equals(criteria.userId()))
+        .filter(
+            notification ->
+                !criteria.hasCursor() || notification.getId() < criteria.cursor())
         .sorted(Comparator.comparing(Notification::getId).reversed())
+        .limit(criteria.fetchLimit())
         .toList();
+  }
+
+  @Override
+  public long countByUserId(Long userId) {
+    return database.stream().filter(notification -> notification.getUserId().equals(userId)).count();
   }
 
   @Override
@@ -63,7 +73,8 @@ public class InMemoryNotificationRepository implements NotificationRepository {
   public int markAllAsReadByUserId(Long userId) {
     int updated = 0;
     for (Notification notification : database) {
-      if (notification.getUserId().equals(userId) && Boolean.FALSE.equals(notification.getIsRead())) {
+      if (notification.getUserId().equals(userId)
+          && Boolean.FALSE.equals(notification.getIsRead())) {
         notification.markAsRead();
         updated++;
       }

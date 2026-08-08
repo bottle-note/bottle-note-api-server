@@ -2,9 +2,12 @@ package app.bottlenote.notification.event.listener;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.bottlenote.global.service.cursor.CursorPageable;
+import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.notification.constant.NotificationCategory;
 import app.bottlenote.notification.constant.NotificationType;
-import app.bottlenote.notification.domain.Notification;
+import app.bottlenote.notification.dto.request.NotificationPageableRequest;
+import app.bottlenote.notification.dto.response.NotificationListResult;
 import app.bottlenote.notification.payload.NotificationMessage;
 import app.bottlenote.notification.service.NotificationService;
 import app.bottlenote.review.event.payload.ReviewReplyNotificationEvent;
@@ -96,8 +99,16 @@ class ReviewReplyNotificationListenerTest {
     }
 
     @Override
-    public List<Notification> getNotifications(Long userId) {
-      return List.of();
+    public PageResponse<NotificationListResult> getNotifications(
+        Long userId, NotificationPageableRequest request) {
+      return PageResponse.of(
+          NotificationListResult.of(0, List.of()),
+          CursorPageable.builder()
+              .currentCursor(0L)
+              .cursor(0L)
+              .pageSize(request.pageSize())
+              .hasNext(false)
+              .build());
     }
 
     @Override
