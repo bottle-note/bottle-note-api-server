@@ -108,14 +108,40 @@ class RedisAccessControlStoreIntegrationTest {
   }
 
   @Test
+  @DisplayName("legacy 전용 bounded 목록은 versioned projection을 제외한다")
+  void listUnversionedBans_returnsOnlyLegacyBans() {
+    String legacyIp = "203.0.113.78";
+    String projectedIp = "203.0.113.79";
+    store.ban(legacyIp, Duration.ofMinutes(5), "legacy");
+    store.projectBan(projectedIp, Duration.ofMinutes(5), "db", 10L);
+
+    assertThat(store.listUnversionedBans(20)).extracting(BanInfo::ip).containsExactly(legacyIp);
+  }
+
+  @Test
+  @DisplayName("DB projection 밴은 같은 IP의 legacy duplicate를 제거해 orphan 예산을 보존한다")
+  void projectBan_removesLegacyDuplicateBeforeLegacyOrphanCleanup() {
+    String duplicateIp = "203.0.113.78";
+    String orphanIp = "203.0.113.79";
+    store.ban(duplicateIp, Duration.ofMinutes(5), "legacy");
+    store.ban(orphanIp, Duration.ofMinutes(5), "legacy-orphan");
+
+    store.projectBan(duplicateIp, Duration.ofMinutes(5), "db", 10L);
+
+    assertThat(store.listUnversionedBans(20)).extracting(BanInfo::ip).containsExactly(orphanIp);
+    assertThat(redisTemplate.hasKey("bn:ac:ban:" + duplicateIp)).isFalse();
+    assertThat(store.getBan(duplicateIp).reason()).isEqualTo("db");
+  }
+
+  @Test
   @DisplayName("projection unban은 legacy stale key까지 제거하고 공존 목록을 중복하지 않는다")
   void projectUnban_whenLegacyAndProjectedKeysCoexist_removesLegacyAndDeduplicates() {
     String ip = "203.0.113.79";
+    store.projectBan(ip, Duration.ofMinutes(5), "projected-abuse", 20L);
     redisTemplate.opsForValue().set("bn:ac:ban:" + ip, "1", Duration.ofMinutes(5));
     redisTemplate
         .opsForValue()
         .set("bn:ac:ban-reason:" + ip, "legacy-abuse", Duration.ofMinutes(5));
-    store.projectBan(ip, Duration.ofMinutes(5), "projected-abuse", 20L);
 
     assertThat(store.listBans(10))
         .singleElement()

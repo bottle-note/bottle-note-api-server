@@ -22,6 +22,7 @@ public class RedisAccessControlStore implements AccessControlStore {
   private static final String BAN_VERSION_PREFIX = "bn:ac:ban-version:";
   private static final String RATE_KEY_PREFIX = "bn:ac:rl:";
   private static final long PROJECTION_VERSION_TTL_SECONDS = Duration.ofDays(180).toSeconds();
+  private static final int LEGACY_SCAN_CANDIDATE_LIMIT = 100;
 
   /** KEYS[1]=rate key, ARGV[1]=window seconds returns {count, pttl_ms} */
   private static final DefaultRedisScript<List> TRY_CONSUME_SCRIPT = new DefaultRedisScript<>();
@@ -142,6 +143,7 @@ public class RedisAccessControlStore implements AccessControlStore {
         String.valueOf(Math.max(1, ttl.toSeconds())),
         reason == null ? "" : reason,
         String.valueOf(PROJECTION_VERSION_TTL_SECONDS));
+    redisTemplate.delete(List.of(legacyBanKey(ip), legacyReasonKey(ip)));
   }
 
   @Override
@@ -263,6 +265,70 @@ public class RedisAccessControlStore implements AccessControlStore {
       }
       Long ttlSeconds = pipelined.get(base) instanceof Long ttl ? ttl : null;
       // -2: key missing (만료 레이스), -1: no expire, >=0: remaining seconds
+      if (ttlSeconds == null || ttlSeconds == -2L) {
+        continue;
+      }
+      String ip = extractIp(banKeys.get(i));
+      String reason = pipelined.get(base + 1) instanceof String value ? value : "";
+      result.add(new BanInfo(ip, reason == null ? "" : reason, ttlSeconds));
+      if (result.size() >= limit) {
+        break;
+      }
+    }
+    return result;
+  }
+
+  @Override
+  public List<BanInfo> listUnversionedBans(int max) {
+    int limit = Math.max(max, 0);
+    if (limit == 0) {
+      return List.of();
+    }
+    List<String> banKeys = new ArrayList<>();
+    ScanOptions options =
+        ScanOptions.scanOptions()
+            .match(BAN_KEY_PREFIX + "[^{]*")
+            .count(LEGACY_SCAN_CANDIDATE_LIMIT)
+            .build();
+    try (Cursor<String> cursor = redisTemplate.scan(options)) {
+      while (cursor.hasNext() && banKeys.size() < limit) {
+        String key = cursor.next();
+        if (key != null && key.startsWith(BAN_KEY_PREFIX) && !isProjectedBanKey(key)) {
+          banKeys.add(key);
+        }
+      }
+    }
+    return readBanInfos(banKeys, limit);
+  }
+
+  private List<BanInfo> readBanInfos(List<String> banKeys, int limit) {
+    if (banKeys.isEmpty()) {
+      return List.of();
+    }
+    List<Object> pipelined =
+        redisTemplate.executePipelined(
+            new SessionCallback<>() {
+              @Override
+              @SuppressWarnings("unchecked")
+              public Object execute(RedisOperations operations) {
+                for (String banKey : banKeys) {
+                  operations.getExpire(banKey, TimeUnit.SECONDS);
+                  String ip = extractIp(banKey);
+                  operations.opsForValue().get(reasonKeyForBanKey(banKey, ip));
+                }
+                return null;
+              }
+            });
+    List<BanInfo> result = new ArrayList<>(Math.min(banKeys.size(), limit));
+    if (pipelined == null) {
+      return result;
+    }
+    for (int i = 0; i < banKeys.size(); i++) {
+      int base = i * 2;
+      if (base + 1 >= pipelined.size()) {
+        break;
+      }
+      Long ttlSeconds = pipelined.get(base) instanceof Long ttl ? ttl : null;
       if (ttlSeconds == null || ttlSeconds == -2L) {
         continue;
       }

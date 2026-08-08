@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class IpBanReconciliationService {
 
   static final int BATCH_SIZE = 200;
+  static final int LEGACY_CLEANUP_BATCH_SIZE = 20;
   private static final String EXPIRE_REASON = "차단 기간 만료";
 
   private final IpBanRepository ipBanRepository;
@@ -51,9 +52,9 @@ public class IpBanReconciliationService {
   @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public InactiveCursor reconcile(InactiveCursor inactiveCursor) {
     reconcileActiveBans();
-    InactiveReconciliationResult inactiveResult = reconcileInactiveBans(inactiveCursor);
-    removeLegacyRedisBans(BATCH_SIZE - inactiveResult.processedCount());
-    return inactiveResult.nextCursor();
+    InactiveCursor nextCursor = reconcileInactiveBans(inactiveCursor);
+    removeLegacyRedisBans();
+    return nextCursor;
   }
 
   private void reconcileActiveBans() {
@@ -94,34 +95,33 @@ public class IpBanReconciliationService {
     }
   }
 
-  private InactiveReconciliationResult reconcileInactiveBans(InactiveCursor cursor) {
+  private InactiveCursor reconcileInactiveBans(InactiveCursor cursor) {
     LocalDateTime stateChangedAt = cursor == null ? null : cursor.stateChangedAt();
     Long id = cursor == null ? null : cursor.id();
     List<IpBan> batch = ipBanRepository.findInactiveAfter(stateChangedAt, id, BATCH_SIZE);
     if (batch.isEmpty()) {
-      return new InactiveReconciliationResult(null, 0);
+      return null;
     }
+    InactiveCursor lastSuccessfulCursor = cursor;
     for (IpBan ban : batch) {
       try {
         accessControlStore.projectUnban(
             ban.getNormalizedIp(), ipBanEventRepository.findLatestIdByIpBanId(ban.getId()));
+        lastSuccessfulCursor = new InactiveCursor(ban.getStateChangedAt(), ban.getId());
       } catch (RuntimeException exception) {
         log.warn("IP ban inactive reconciliation failed ip={}", ban.getNormalizedIp(), exception);
+        return lastSuccessfulCursor;
       }
     }
     if (batch.size() < BATCH_SIZE) {
-      return new InactiveReconciliationResult(null, batch.size());
+      return null;
     }
-    IpBan last = batch.getLast();
-    return new InactiveReconciliationResult(
-        new InactiveCursor(last.getStateChangedAt(), last.getId()), batch.size());
+    return lastSuccessfulCursor;
   }
 
-  private void removeLegacyRedisBans(int max) {
-    if (max <= 0) {
-      return;
-    }
-    for (AccessControlStore.BanInfo redisBan : accessControlStore.listBans(max)) {
+  private void removeLegacyRedisBans() {
+    for (AccessControlStore.BanInfo redisBan :
+        accessControlStore.listUnversionedBans(LEGACY_CLEANUP_BATCH_SIZE)) {
       try {
         IpBanDetailResponse detail = ipBanFacade.findByIp(redisBan.ip()).orElse(null);
         if (detail == null) {
@@ -139,6 +139,4 @@ public class IpBanReconciliationService {
 
   /** JDBC Quartz JobDataMap에 문자열로 보관할 수 있는 종료 차단 keyset 위치. */
   public record InactiveCursor(LocalDateTime stateChangedAt, long id) {}
-
-  private record InactiveReconciliationResult(InactiveCursor nextCursor, int processedCount) {}
 }

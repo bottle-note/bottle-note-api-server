@@ -32,6 +32,11 @@ public interface AccessControlStore {
   /** 활성 ban 목록 (최대 max 개, 운영 inventory용). */
   List<BanInfo> listBans(int max);
 
+  /** DB 관리 이전에 생성된 version 없는 legacy ban 목록 (최대 max 개). */
+  default List<BanInfo> listUnversionedBans(int max) {
+    return listBans(max);
+  }
+
   /**
    * fixed-window 카운터를 증가시킨다.
    *

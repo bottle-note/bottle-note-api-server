@@ -96,6 +96,20 @@ class IpBanReconciliationIntegrationTest extends IntegrationTestSupport {
   }
 
   @Test
+  @DisplayName("DB에 없는 legacy Redis 밴은 재조정의 독립 cleanup 예산으로 제거한다")
+  void reconcile_whenLegacyRedisBanHasNoDatabaseState_removesOrphan() {
+    String orphanIp = nextTestIp();
+    stringRedisTemplate.opsForValue().set("bn:ac:ban:" + orphanIp, "1", Duration.ofMinutes(10));
+    stringRedisTemplate
+        .opsForValue()
+        .set("bn:ac:ban-reason:" + orphanIp, "legacy-orphan", Duration.ofMinutes(10));
+
+    reconciliationService.reconcile();
+
+    assertThat(accessControlStore.isBanned(orphanIp)).isFalse();
+  }
+
+  @Test
   @DisplayName("DB에서 만료된 활성 차단은 재조정이 EXPIRE 이력과 Redis 제거를 수행한다")
   void reconcile_whenDatabaseBanExpires_marksExpiredAndRemovesRedisProjection() {
     String ip = nextTestIp();

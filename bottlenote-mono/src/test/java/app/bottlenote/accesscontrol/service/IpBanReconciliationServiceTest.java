@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -153,6 +154,47 @@ class IpBanReconciliationServiceTest {
   }
 
   @Test
+  @DisplayName("비활성 projection이 한 번 실패하면 실패 행부터 다음 주기에 다시 처리한다")
+  void reconcile_whenInactiveProjectionFails_retriesFailedRowWithoutSkippingLaterRows() {
+    FailOnceUnbanStore store = new FailOnceUnbanStore(inactiveTestIp(2));
+    Fixture fixture = fixture(store);
+    for (int host = 1; host <= 3; host++) {
+      saveInactiveBan(fixture, inactiveTestIp(host));
+    }
+
+    InactiveCursor cursor = fixture.reconciliationService.reconcile(null);
+
+    assertThat(cursor.id()).isEqualTo(1L);
+    assertThat(store.isBanned(inactiveTestIp(1))).isFalse();
+    assertThat(store.isBanned(inactiveTestIp(2))).isTrue();
+    assertThat(store.isBanned(inactiveTestIp(3))).isTrue();
+
+    InactiveCursor end = fixture.reconciliationService.reconcile(cursor);
+
+    assertThat(end).isNull();
+    assertThat(store.unbanAttempts()).isEqualTo(2);
+    assertThat(store.isBanned(inactiveTestIp(2))).isFalse();
+    assertThat(store.isBanned(inactiveTestIp(3))).isFalse();
+  }
+
+  @Test
+  @DisplayName("비활성 backlog가 200건이어도 legacy orphan cleanup 예산을 별도로 보장한다")
+  void reconcile_whenInactiveBacklogExists_cleansLegacyOrphanWithDedicatedBudget() {
+    String orphanIp = "203.0.113.199";
+    LegacyListingStore store = new LegacyListingStore(orphanIp);
+    Fixture fixture = fixture(store);
+    for (int host = 1; host <= 200; host++) {
+      saveInactiveBan(fixture, inactiveTestIp(host));
+    }
+    store.ban(orphanIp, Duration.ofMinutes(10), "legacy");
+
+    fixture.reconciliationService.reconcile(null);
+
+    assertThat(store.legacyLookupCount()).isEqualTo(1);
+    assertThat(store.isBanned(orphanIp)).isFalse();
+  }
+
+  @Test
   @DisplayName("180일이 지난 종료 밴은 signal과 event를 먼저 지운 뒤 삭제한다")
   void retention_whenTerminatedBanIsOld_deletesChildrenBeforeBan() {
     Fixture fixture = fixture();
@@ -198,9 +240,12 @@ class IpBanReconciliationServiceTest {
   }
 
   private static Fixture fixture() {
+    return fixture(new InMemoryAccessControlStore());
+  }
+
+  private static Fixture fixture(InMemoryAccessControlStore store) {
     InMemoryIpBanRepository banRepository = new InMemoryIpBanRepository();
     InMemoryIpBanEventRepository eventRepository = new InMemoryIpBanEventRepository();
-    InMemoryAccessControlStore store = new InMemoryAccessControlStore();
     IpBanService ipBanService =
         new IpBanService(
             banRepository,
@@ -219,6 +264,27 @@ class IpBanReconciliationServiceTest {
         new IpBanRetentionService(banRepository, eventRepository, signalRepository, CLOCK));
   }
 
+  private static void saveInactiveBan(Fixture fixture, String ip) {
+    IpBan ban =
+        fixture.banRepository.save(
+            IpBan.createActive(
+                ip, "abuse", NOW.minusMinutes(10), NOW.plusMinutes(10), NOW.minusMinutes(10)));
+    ban.unban("reviewed", NOW.minusMinutes(1));
+    fixture.banRepository.save(ban);
+    fixture.eventRepository.save(
+        IpBanAuditRecord.create(
+            ban.getId(),
+            IpBanEventType.UNBAN,
+            "reviewed",
+            NOW.plusMinutes(10),
+            NOW.plusMinutes(10),
+            IpBanActorType.ADMIN,
+            1L,
+            null,
+            NOW.minusMinutes(1)));
+    fixture.store.ban(ip, Duration.ofMinutes(10), "stale");
+  }
+
   private static String inactiveTestIp(int index) {
     return "198.19." + (index / 250) + "." + (index % 250 + 1);
   }
@@ -231,4 +297,46 @@ class IpBanReconciliationServiceTest {
       IpBanService ipBanService,
       IpBanReconciliationService reconciliationService,
       IpBanRetentionService retentionService) {}
+
+  private static final class FailOnceUnbanStore extends InMemoryAccessControlStore {
+
+    private final String failingIp;
+    private int unbanAttempts;
+
+    private FailOnceUnbanStore(String failingIp) {
+      this.failingIp = failingIp;
+    }
+
+    @Override
+    public void projectUnban(String ip, long eventId) {
+      if (ip.equals(failingIp) && unbanAttempts++ == 0) {
+        throw new IllegalStateException("redis down");
+      }
+      super.projectUnban(ip, eventId);
+    }
+
+    int unbanAttempts() {
+      return unbanAttempts;
+    }
+  }
+
+  private static final class LegacyListingStore extends InMemoryAccessControlStore {
+
+    private final String orphanIp;
+    private int legacyLookupCount;
+
+    private LegacyListingStore(String orphanIp) {
+      this.orphanIp = orphanIp;
+    }
+
+    @Override
+    public List<BanInfo> listUnversionedBans(int max) {
+      legacyLookupCount++;
+      return List.of(new BanInfo(orphanIp, "legacy", 60));
+    }
+
+    int legacyLookupCount() {
+      return legacyLookupCount;
+    }
+  }
 }
