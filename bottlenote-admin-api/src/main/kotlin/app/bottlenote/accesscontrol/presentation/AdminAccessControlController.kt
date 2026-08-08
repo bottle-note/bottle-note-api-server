@@ -1,13 +1,13 @@
 package app.bottlenote.accesscontrol.presentation
 
 import app.bottlenote.accesscontrol.constant.IpBanStatus
+import app.bottlenote.accesscontrol.constant.ProjectionStatus
 import app.bottlenote.accesscontrol.constant.SignalVerdict
-import app.bottlenote.accesscontrol.dto.request.IpSecuritySignalReport
-import app.bottlenote.accesscontrol.dto.response.IpBanCommandResult
-import app.bottlenote.accesscontrol.dto.response.IpBanDetail
-import app.bottlenote.accesscontrol.dto.response.IpBanEventView
-import app.bottlenote.accesscontrol.dto.response.IpBanSummary
-import app.bottlenote.accesscontrol.dto.response.ProjectionStatus
+import app.bottlenote.accesscontrol.dto.request.IpSecuritySignalReportRequest
+import app.bottlenote.accesscontrol.dto.response.IpBanCommandResponse
+import app.bottlenote.accesscontrol.dto.response.IpBanDetailResponse
+import app.bottlenote.accesscontrol.dto.response.IpBanEventResponse
+import app.bottlenote.accesscontrol.dto.response.IpBanSummaryResponse
 import app.bottlenote.accesscontrol.exception.IpBanException
 import app.bottlenote.accesscontrol.exception.IpBanExceptionCode
 import app.bottlenote.accesscontrol.facade.IpBanFacade
@@ -98,7 +98,7 @@ class AdminAccessControlController(
 	@PostMapping("/signals")
 	fun reportSignal(@Valid @RequestBody request: IpSecuritySignalRequest): ResponseEntity<GlobalResponse> = GlobalResponse.ok(
 		ipSecuritySignalFacade.report(
-			IpSecuritySignalReport(
+			IpSecuritySignalReportRequest(
 				request.ipBanId,
 				request.ip,
 				request.endpointPath,
@@ -136,7 +136,7 @@ class AdminAccessControlController(
 		ipSecuritySignalFacade.review(signalId, request.verdict, request.reviewNote, requiredAdminId())
 	)
 
-	private fun commandResponse(result: IpBanCommandResult): ResponseEntity<GlobalResponse> {
+	private fun commandResponse(result: IpBanCommandResponse): ResponseEntity<GlobalResponse> {
 		val response = toResponse(result.detail(), result.projectionStatus())
 		return if (result.projectionStatus() == ProjectionStatus.PENDING_RECONCILE) {
 			ResponseEntity.status(HttpStatus.ACCEPTED).body(GlobalResponse.ok(response).body)
@@ -151,7 +151,7 @@ class AdminAccessControlController(
 	private fun normalizeIp(rawIp: String): String = ClientIpResolver.normalize(rawIp)
 		?: throw IpBanException(IpBanExceptionCode.INVALID_IP)
 
-	private fun toResponse(detail: IpBanDetail, projectionStatus: ProjectionStatus? = null): IpBanResponse = IpBanResponse(
+	private fun toResponse(detail: IpBanDetailResponse, projectionStatus: ProjectionStatus? = null): IpBanResponse = IpBanResponse(
 		id = detail.id(),
 		ip = detail.normalizedIp(),
 		reason = detail.reason(),
@@ -164,7 +164,7 @@ class AdminAccessControlController(
 		projectionStatus = projectionStatus
 	)
 
-	private fun toResponse(summary: IpBanSummary): IpBanResponse = IpBanResponse(
+	private fun toResponse(summary: IpBanSummaryResponse): IpBanResponse = IpBanResponse(
 		id = summary.id(),
 		ip = summary.normalizedIp(),
 		reason = summary.reason(),
@@ -177,7 +177,7 @@ class AdminAccessControlController(
 		projectionStatus = null
 	)
 
-	private fun toHistoryResponse(detail: IpBanDetail): IpBanHistoryResponse = IpBanHistoryResponse(
+	private fun toHistoryResponse(detail: IpBanDetailResponse): IpBanHistoryResponse = IpBanHistoryResponse(
 		id = detail.id(),
 		ip = detail.normalizedIp(),
 		status = detail.status(),
@@ -221,7 +221,7 @@ data class IpBanHistoryResponse(
 	val effectiveFrom: LocalDateTime,
 	val expiresAt: LocalDateTime,
 	val stateChangedAt: LocalDateTime,
-	val events: List<IpBanEventView>
+	val events: List<IpBanEventResponse>
 )
 
 data class IpSecuritySignalRequest(

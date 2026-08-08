@@ -4,12 +4,12 @@ import app.bottlenote.accesscontrol.constant.IpBanActorType;
 import app.bottlenote.accesscontrol.constant.IpBanEventType;
 import app.bottlenote.accesscontrol.constant.IpBanStatus;
 import app.bottlenote.accesscontrol.domain.IpBan;
-import app.bottlenote.accesscontrol.domain.IpBanEvent;
+import app.bottlenote.accesscontrol.domain.IpBanAuditRecord;
 import app.bottlenote.accesscontrol.domain.IpBanEventRepository;
 import app.bottlenote.accesscontrol.domain.IpBanRepository;
-import app.bottlenote.accesscontrol.dto.response.IpBanDetail;
-import app.bottlenote.accesscontrol.dto.response.IpBanEventView;
-import app.bottlenote.accesscontrol.dto.response.IpBanSummary;
+import app.bottlenote.accesscontrol.dto.response.IpBanDetailResponse;
+import app.bottlenote.accesscontrol.dto.response.IpBanEventResponse;
+import app.bottlenote.accesscontrol.dto.response.IpBanSummaryResponse;
 import app.bottlenote.accesscontrol.exception.IpBanException;
 import app.bottlenote.accesscontrol.exception.IpBanExceptionCode;
 import app.bottlenote.agent.facade.AgentFacade;
@@ -40,7 +40,7 @@ public class IpBanService {
   private final Clock clock;
 
   @Transactional
-  public IpBanDetail ban(String rawIp, Duration ttl, String reason, Long adminUserId) {
+  public IpBanDetailResponse ban(String rawIp, Duration ttl, String reason, Long adminUserId) {
     String normalizedIp = requireNormalizedIp(rawIp);
     String sanitizedReason = requireReason(reason);
     Duration validatedTtl = requireTtl(ttl);
@@ -91,7 +91,7 @@ public class IpBanService {
   }
 
   @Transactional
-  public IpBanDetail unban(String rawIp, String reason, Long adminUserId) {
+  public IpBanDetailResponse unban(String rawIp, String reason, Long adminUserId) {
     String normalizedIp = requireNormalizedIp(rawIp);
     String sanitizedReason = requireReason(reason);
     LocalDateTime now = now();
@@ -121,7 +121,7 @@ public class IpBanService {
   }
 
   @Transactional
-  public IpBanDetail expire(String rawIp, String reason) {
+  public IpBanDetailResponse expire(String rawIp, String reason) {
     String normalizedIp = requireNormalizedIp(rawIp);
     String sanitizedReason = requireReason(reason);
     LocalDateTime now = now();
@@ -151,19 +151,19 @@ public class IpBanService {
   }
 
   @Transactional(readOnly = true)
-  public Optional<IpBanDetail> getDetail(String rawIp) {
+  public Optional<IpBanDetailResponse> getDetail(String rawIp) {
     String normalizedIp = requireNormalizedIp(rawIp);
     return ipBanRepository.findByNormalizedIp(normalizedIp).map(this::toDetail);
   }
 
   @Transactional(readOnly = true)
-  public Optional<IpBanDetail> getDetail(Long id) {
+  public Optional<IpBanDetailResponse> getDetail(Long id) {
     Objects.requireNonNull(id, "id는 null일 수 없습니다.");
     return ipBanRepository.findById(id).map(this::toDetail);
   }
 
   @Transactional(readOnly = true)
-  public List<IpBanSummary> list(IpBanStatus status, int max) {
+  public List<IpBanSummaryResponse> list(IpBanStatus status, int max) {
     int limit = normalizeLimit(max);
     List<IpBan> bans =
         status == null
@@ -174,7 +174,7 @@ public class IpBanService {
 
   private void appendEvent(EventCommand command) {
     ipBanEventRepository.save(
-        IpBanEvent.create(
+        IpBanAuditRecord.create(
             command.ipBanId(),
             command.eventType(),
             command.reason(),
@@ -196,12 +196,12 @@ public class IpBanService {
         .orElse(Actor.admin(adminUserId));
   }
 
-  private IpBanDetail toDetail(IpBan ban) {
-    List<IpBanEventView> events =
+  private IpBanDetailResponse toDetail(IpBan ban) {
+    List<IpBanEventResponse> events =
         ipBanEventRepository.findByIpBanIdOrderByIdAsc(ban.getId()).stream()
             .map(this::toEventView)
             .toList();
-    return new IpBanDetail(
+    return new IpBanDetailResponse(
         ban.getId(),
         ban.getNormalizedIp(),
         ban.getStatus(),
@@ -212,8 +212,8 @@ public class IpBanService {
         events);
   }
 
-  private IpBanSummary toSummary(IpBan ban) {
-    return new IpBanSummary(
+  private IpBanSummaryResponse toSummary(IpBan ban) {
+    return new IpBanSummaryResponse(
         ban.getId(),
         ban.getNormalizedIp(),
         ban.getStatus(),
@@ -223,8 +223,8 @@ public class IpBanService {
         ban.getStateChangedAt());
   }
 
-  private IpBanEventView toEventView(IpBanEvent event) {
-    return new IpBanEventView(
+  private IpBanEventResponse toEventView(IpBanAuditRecord event) {
+    return new IpBanEventResponse(
         event.getId(),
         event.getIpBanId(),
         event.getEventType(),

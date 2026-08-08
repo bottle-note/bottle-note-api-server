@@ -2,13 +2,15 @@ package app.bottlenote.accesscontrol.dto.response;
 
 import app.bottlenote.accesscontrol.constant.IpBanStatus;
 import java.time.LocalDateTime;
+import java.util.List;
 
-/** IP 차단 목록용 요약. */
-public record IpBanSummary(
+/** IP 차단 상세와 감사 이력. */
+public record IpBanDetailResponse(
     Long id,
     String normalizedIp,
     IpBanStatus status,
     String reason,
     LocalDateTime effectiveFrom,
     LocalDateTime expiresAt,
-    LocalDateTime stateChangedAt) {}
+    LocalDateTime stateChangedAt,
+    List<IpBanEventResponse> events) {}

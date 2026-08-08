@@ -26,7 +26,7 @@ import org.hibernate.annotations.Immutable;
 @Table(name = "ip_ban_events")
 @Comment("IP 차단 append-only 감사 이력")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class IpBanEvent extends BaseEntity {
+public class IpBanAuditRecord extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -70,7 +70,7 @@ public class IpBanEvent extends BaseEntity {
   @Column(name = "occurred_at", nullable = false, updatable = false)
   private LocalDateTime occurredAt;
 
-  private IpBanEvent(
+  private IpBanAuditRecord(
       Long ipBanId,
       IpBanEventType eventType,
       String reason,
@@ -92,7 +92,7 @@ public class IpBanEvent extends BaseEntity {
     validateActor();
   }
 
-  public static IpBanEvent create(
+  public static IpBanAuditRecord create(
       Long ipBanId,
       IpBanEventType eventType,
       String reason,
@@ -102,7 +102,7 @@ public class IpBanEvent extends BaseEntity {
       Long actorAdminUserId,
       String actorAgentId,
       LocalDateTime occurredAt) {
-    return new IpBanEvent(
+    return new IpBanAuditRecord(
         ipBanId,
         eventType,
         reason,

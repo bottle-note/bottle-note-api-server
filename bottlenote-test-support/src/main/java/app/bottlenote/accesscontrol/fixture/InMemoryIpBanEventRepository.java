@@ -1,6 +1,6 @@
 package app.bottlenote.accesscontrol.fixture;
 
-import app.bottlenote.accesscontrol.domain.IpBanEvent;
+import app.bottlenote.accesscontrol.domain.IpBanAuditRecord;
 import app.bottlenote.accesscontrol.domain.IpBanEventRepository;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -12,10 +12,10 @@ import org.springframework.test.util.ReflectionTestUtils;
 public class InMemoryIpBanEventRepository implements IpBanEventRepository {
 
   private final AtomicLong idGenerator = new AtomicLong(1L);
-  private final List<IpBanEvent> database = new ArrayList<>();
+  private final List<IpBanAuditRecord> database = new ArrayList<>();
 
   @Override
-  public IpBanEvent save(IpBanEvent event) {
+  public IpBanAuditRecord save(IpBanAuditRecord event) {
     Objects.requireNonNull(event, "event는 null일 수 없습니다.");
     if (event.getId() != null) {
       throw new IllegalArgumentException("이미 저장된 이벤트는 다시 저장할 수 없습니다.");
@@ -26,10 +26,10 @@ public class InMemoryIpBanEventRepository implements IpBanEventRepository {
   }
 
   @Override
-  public List<IpBanEvent> findByIpBanIdOrderByIdAsc(Long ipBanId) {
+  public List<IpBanAuditRecord> findByIpBanIdOrderByIdAsc(Long ipBanId) {
     return database.stream()
         .filter(event -> event.getIpBanId().equals(ipBanId))
-        .sorted(Comparator.comparing(IpBanEvent::getId))
+        .sorted(Comparator.comparing(IpBanAuditRecord::getId))
         .toList();
   }
 
@@ -37,7 +37,7 @@ public class InMemoryIpBanEventRepository implements IpBanEventRepository {
   public long findLatestIdByIpBanId(Long ipBanId) {
     return database.stream()
         .filter(event -> event.getIpBanId().equals(ipBanId))
-        .mapToLong(IpBanEvent::getId)
+        .mapToLong(IpBanAuditRecord::getId)
         .max()
         .orElse(0L);
   }
@@ -49,7 +49,7 @@ public class InMemoryIpBanEventRepository implements IpBanEventRepository {
     return size - database.size();
   }
 
-  public List<IpBanEvent> findAll() {
+  public List<IpBanAuditRecord> findAll() {
     return List.copyOf(database);
   }
 

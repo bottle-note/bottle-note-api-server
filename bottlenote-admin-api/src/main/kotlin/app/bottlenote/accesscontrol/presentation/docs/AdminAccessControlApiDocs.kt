@@ -1,6 +1,6 @@
 package app.bottlenote.accesscontrol.presentation.docs
 
-import app.bottlenote.accesscontrol.dto.response.IpSecuritySignalView
+import app.bottlenote.accesscontrol.dto.response.IpSecuritySignalResponse
 import app.bottlenote.accesscontrol.presentation.IpBanHistoryResponse
 import app.bottlenote.accesscontrol.presentation.IpBanListResponse
 import app.bottlenote.accesscontrol.presentation.IpBanResponse
@@ -39,21 +39,21 @@ object AdminAccessControlApiDocs {
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(summary = "IP 보안 signal을 등록한다", description = "query string, header, body, key 등 민감 원문은 저장하지 않는다", responses = [ApiResponse(responseCode = "200", content = [Content(schema = Schema(implementation = IpSecuritySignalView::class))])])
+	@Operation(summary = "IP 보안 signal을 등록한다", description = "query string, header, body, key 등 민감 원문은 저장하지 않는다", responses = [ApiResponse(responseCode = "200", content = [Content(schema = Schema(implementation = IpSecuritySignalResponse::class))])])
 	annotation class ReportSignal
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(summary = "IP 보안 signal 상세를 조회한다", responses = [ApiResponse(responseCode = "200", content = [Content(schema = Schema(implementation = IpSecuritySignalView::class))])])
+	@Operation(summary = "IP 보안 signal 상세를 조회한다", responses = [ApiResponse(responseCode = "200", content = [Content(schema = Schema(implementation = IpSecuritySignalResponse::class))])])
 	annotation class GetSignal
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(summary = "IP별 보안 signal을 조회한다", responses = [ApiResponse(responseCode = "200", content = [Content(schema = Schema(implementation = IpSecuritySignalView::class))])])
+	@Operation(summary = "IP별 보안 signal을 조회한다", responses = [ApiResponse(responseCode = "200", content = [Content(schema = Schema(implementation = IpSecuritySignalResponse::class))])])
 	annotation class ListSignals
 
 	@Target(AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
-	@Operation(summary = "IP 보안 signal을 확정 판정한다", responses = [ApiResponse(responseCode = "200", content = [Content(schema = Schema(implementation = IpSecuritySignalView::class))])])
+	@Operation(summary = "IP 보안 signal을 확정 판정한다", responses = [ApiResponse(responseCode = "200", content = [Content(schema = Schema(implementation = IpSecuritySignalResponse::class))])])
 	annotation class ReviewSignal
 }

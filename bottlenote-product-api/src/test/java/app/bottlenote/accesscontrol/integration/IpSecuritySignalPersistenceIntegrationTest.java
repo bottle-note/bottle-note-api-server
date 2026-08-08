@@ -6,9 +6,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.accesscontrol.constant.SignalVerdict;
 import app.bottlenote.accesscontrol.domain.IpSecuritySignalRepository;
-import app.bottlenote.accesscontrol.dto.request.IpSecuritySignalReport;
-import app.bottlenote.accesscontrol.dto.response.IpBanDetail;
-import app.bottlenote.accesscontrol.dto.response.IpSecuritySignalView;
+import app.bottlenote.accesscontrol.dto.request.IpSecuritySignalReportRequest;
+import app.bottlenote.accesscontrol.dto.response.IpBanDetailResponse;
+import app.bottlenote.accesscontrol.dto.response.IpSecuritySignalResponse;
 import app.bottlenote.accesscontrol.service.IpBanService;
 import app.bottlenote.accesscontrol.service.IpSecuritySignalService;
 import app.bottlenote.agent.domain.Agent;
@@ -39,10 +39,10 @@ class IpSecuritySignalPersistenceIntegrationTest extends IntegrationTestSupport 
   @DisplayName("밴에 연결한 signal은 관리자·관찰 근거와 UNKNOWN 상태로 저장한다")
   void report_whenLinkedToBan_persistsSignal() {
     AdminUser admin = adminUserTestFactory.persistRootAdmin();
-    IpBanDetail ban =
+    IpBanDetailResponse ban =
         ipBanService.ban("198.51.100.50", Duration.ofMinutes(10), "abuse", admin.getId());
 
-    IpSecuritySignalView signal =
+    IpSecuritySignalResponse signal =
         signalService.report(report(ban.id(), "198.51.100.50", null), admin.getId());
 
     assertThat(signalRepository.findById(signal.id())).isPresent();
@@ -68,9 +68,9 @@ class IpSecuritySignalPersistenceIntegrationTest extends IntegrationTestSupport 
             .apiKeyHash("c".repeat(64))
             .build());
 
-    IpSecuritySignalView reported =
+    IpSecuritySignalResponse reported =
         signalService.report(report(null, "2001:DB8::50", "2.4.0"), admin.getId());
-    IpSecuritySignalView reviewed =
+    IpSecuritySignalResponse reviewed =
         signalService.review(
             reported.id(), SignalVerdict.FALSE_POSITIVE, "verified", admin.getId());
 
@@ -81,9 +81,9 @@ class IpSecuritySignalPersistenceIntegrationTest extends IntegrationTestSupport 
     assertThat(signalService.list("2001:db8::50", 10)).hasSize(1);
   }
 
-  private static IpSecuritySignalReport report(Long banId, String ip, String agentVersion) {
+  private static IpSecuritySignalReportRequest report(Long banId, String ip, String agentVersion) {
     LocalDateTime observedFrom = LocalDateTime.of(2026, 8, 9, 10, 0);
-    return new IpSecuritySignalReport(
+    return new IpSecuritySignalReportRequest(
         banId,
         ip,
         "/api/v2/auth/login",

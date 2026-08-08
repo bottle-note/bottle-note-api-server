@@ -6,7 +6,7 @@ import app.bottlenote.accesscontrol.constant.IpBanActorType;
 import app.bottlenote.accesscontrol.constant.IpBanEventType;
 import app.bottlenote.accesscontrol.constant.IpBanStatus;
 import app.bottlenote.accesscontrol.domain.IpBan;
-import app.bottlenote.accesscontrol.domain.IpBanEvent;
+import app.bottlenote.accesscontrol.domain.IpBanAuditRecord;
 import app.bottlenote.accesscontrol.domain.IpSecuritySignal;
 import app.bottlenote.accesscontrol.fixture.InMemoryIpBanEventRepository;
 import app.bottlenote.accesscontrol.fixture.InMemoryIpBanRepository;
@@ -55,7 +55,7 @@ class IpBanReconciliationServiceTest {
                 NOW.minusSeconds(1),
                 NOW.minusMinutes(10)));
     fixture.eventRepository.save(
-        IpBanEvent.create(
+        IpBanAuditRecord.create(
             ban.getId(),
             IpBanEventType.BAN,
             "abuse",
@@ -72,7 +72,7 @@ class IpBanReconciliationServiceTest {
     assertThat(fixture.banRepository.findByNormalizedIp("203.0.113.121").orElseThrow().getStatus())
         .isEqualTo(IpBanStatus.EXPIRED);
     assertThat(fixture.eventRepository.findByIpBanIdOrderByIdAsc(ban.getId()))
-        .extracting(IpBanEvent::getEventType)
+        .extracting(IpBanAuditRecord::getEventType)
         .containsExactly(IpBanEventType.BAN, IpBanEventType.EXPIRE);
     assertThat(fixture.store.isBanned("203.0.113.121")).isFalse();
   }
@@ -91,7 +91,7 @@ class IpBanReconciliationServiceTest {
                 NOW.minusDays(200)));
     ban.expire("expired", NOW.minusDays(181));
     fixture.eventRepository.save(
-        IpBanEvent.create(
+        IpBanAuditRecord.create(
             ban.getId(),
             IpBanEventType.EXPIRE,
             "expired",

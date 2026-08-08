@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.accesscontrol.constant.IpBanEventType;
 import app.bottlenote.accesscontrol.constant.IpBanStatus;
-import app.bottlenote.accesscontrol.dto.response.IpBanDetail;
+import app.bottlenote.accesscontrol.dto.response.IpBanDetailResponse;
 import app.bottlenote.accesscontrol.facade.IpBanFacade;
 import app.bottlenote.accesscontrol.service.IpBanReconciliationService;
 import app.bottlenote.accesscontrol.service.IpBanService;
@@ -68,7 +68,7 @@ class IpBanReconciliationIntegrationTest extends IntegrationTestSupport {
 
     reconciliationService.reconcile();
 
-    IpBanDetail detail = ipBanFacade.findByIp(ip).orElseThrow();
+    IpBanDetailResponse detail = ipBanFacade.findByIp(ip).orElseThrow();
     assertThat(detail.status()).isEqualTo(IpBanStatus.UNBANNED);
     assertThat(accessControlStore.isBanned(ip)).isFalse();
   }
@@ -77,7 +77,7 @@ class IpBanReconciliationIntegrationTest extends IntegrationTestSupport {
   @DisplayName("DB에서 만료된 활성 차단은 재조정이 EXPIRE 이력과 Redis 제거를 수행한다")
   void reconcile_whenDatabaseBanExpires_marksExpiredAndRemovesRedisProjection() {
     String ip = nextTestIp();
-    IpBanDetail ban = ipBanFacade.ban(ip, Duration.ofMinutes(10), "expired", null).detail();
+    IpBanDetailResponse ban = ipBanFacade.ban(ip, Duration.ofMinutes(10), "expired", null).detail();
     jdbcTemplate.update(
         """
         update ip_bans
@@ -89,7 +89,7 @@ class IpBanReconciliationIntegrationTest extends IntegrationTestSupport {
 
     reconciliationService.reconcile();
 
-    IpBanDetail detail = ipBanFacade.findByIp(ip).orElseThrow();
+    IpBanDetailResponse detail = ipBanFacade.findByIp(ip).orElseThrow();
     assertThat(detail.status()).isEqualTo(IpBanStatus.EXPIRED);
     assertThat(detail.events())
         .extracting(event -> event.eventType())

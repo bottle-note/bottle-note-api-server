@@ -6,9 +6,9 @@ import java.util.List;
 @DomainRepository
 public interface IpBanEventRepository {
 
-  IpBanEvent save(IpBanEvent event);
+  IpBanAuditRecord save(IpBanAuditRecord event);
 
-  List<IpBanEvent> findByIpBanIdOrderByIdAsc(Long ipBanId);
+  List<IpBanAuditRecord> findByIpBanIdOrderByIdAsc(Long ipBanId);
 
   long findLatestIdByIpBanId(Long ipBanId);
 

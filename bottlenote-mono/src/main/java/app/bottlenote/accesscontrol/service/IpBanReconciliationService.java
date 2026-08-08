@@ -4,7 +4,7 @@ import app.bottlenote.accesscontrol.constant.IpBanStatus;
 import app.bottlenote.accesscontrol.domain.IpBan;
 import app.bottlenote.accesscontrol.domain.IpBanEventRepository;
 import app.bottlenote.accesscontrol.domain.IpBanRepository;
-import app.bottlenote.accesscontrol.dto.response.IpBanDetail;
+import app.bottlenote.accesscontrol.dto.response.IpBanDetailResponse;
 import app.bottlenote.accesscontrol.facade.IpBanFacade;
 import app.bottlenote.global.security.accesscontrol.AccessControlStore;
 import java.time.Clock;
@@ -86,7 +86,7 @@ public class IpBanReconciliationService {
   private void removeStaleRedisBans() {
     for (AccessControlStore.BanInfo redisBan : accessControlStore.listBans(BATCH_SIZE)) {
       try {
-        IpBanDetail detail = ipBanFacade.findByIp(redisBan.ip()).orElse(null);
+        IpBanDetailResponse detail = ipBanFacade.findByIp(redisBan.ip()).orElse(null);
         if (detail == null) {
           accessControlStore.removeUnversionedBan(redisBan.ip());
           continue;

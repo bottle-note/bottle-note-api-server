@@ -5,7 +5,7 @@ import app.bottlenote.accesscontrol.constant.IpBanEventType;
 import java.time.LocalDateTime;
 
 /** IP 차단 감사 이벤트 조회 뷰. */
-public record IpBanEventView(
+public record IpBanEventResponse(
     Long id,
     Long ipBanId,
     IpBanEventType eventType,

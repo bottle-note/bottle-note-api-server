@@ -3,7 +3,7 @@ package app.bottlenote.accesscontrol.dto.response;
 import app.bottlenote.accesscontrol.constant.SignalVerdict;
 import java.time.LocalDateTime;
 
-public record IpSecuritySignalView(
+public record IpSecuritySignalResponse(
     Long id,
     Long ipBanId,
     String normalizedIp,

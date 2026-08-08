@@ -5,8 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.bottlenote.accesscontrol.constant.SignalVerdict;
-import app.bottlenote.accesscontrol.dto.request.IpSecuritySignalReport;
-import app.bottlenote.accesscontrol.dto.response.IpSecuritySignalView;
+import app.bottlenote.accesscontrol.dto.request.IpSecuritySignalReportRequest;
+import app.bottlenote.accesscontrol.dto.response.IpSecuritySignalResponse;
 import app.bottlenote.accesscontrol.exception.IpBanException;
 import app.bottlenote.accesscontrol.exception.IpBanExceptionCode;
 import app.bottlenote.accesscontrol.fixture.InMemoryIpSecuritySignalRepository;
@@ -46,7 +46,7 @@ class IpSecuritySignalServiceTest {
   @Test
   @DisplayName("관리자가 signal을 등록하면 query string 없이 UNKNOWN 상태로 저장한다")
   void report_whenAdmin_persistsUnknownSignal() {
-    IpSecuritySignalView view = service.report(report("198.51.100.40", null), 11L);
+    IpSecuritySignalResponse view = service.report(report("198.51.100.40", null), 11L);
 
     assertThat(view.normalizedIp()).isEqualTo("198.51.100.40");
     assertThat(view.endpointPath()).isEqualTo("/api/v2/reviews");
@@ -72,7 +72,7 @@ class IpSecuritySignalServiceTest {
             .apiKeyHash("a".repeat(64))
             .build());
 
-    IpSecuritySignalView view = service.report(report("2001:DB8::40", "1.2.3"), 42L);
+    IpSecuritySignalResponse view = service.report(report("2001:DB8::40", "1.2.3"), 42L);
 
     assertThat(view.normalizedIp()).isEqualTo("2001:db8::40");
     assertThat(view.reportedByAgentId()).isEqualTo(agentId);
@@ -82,9 +82,9 @@ class IpSecuritySignalServiceTest {
   @Test
   @DisplayName("UNKNOWN signal은 공격으로 판정하고 검토 정보를 기록한다")
   void review_whenUnknown_recordsConfirmedAttack() {
-    IpSecuritySignalView reported = service.report(report("198.51.100.41", null), 11L);
+    IpSecuritySignalResponse reported = service.report(report("198.51.100.41", null), 11L);
 
-    IpSecuritySignalView reviewed =
+    IpSecuritySignalResponse reviewed =
         service.review(reported.id(), SignalVerdict.CONFIRMED_ATTACK, "reproduced", 12L);
 
     assertThat(reviewed.verdict()).isEqualTo(SignalVerdict.CONFIRMED_ATTACK);
@@ -96,7 +96,7 @@ class IpSecuritySignalServiceTest {
   @Test
   @DisplayName("이미 판정한 signal은 다시 판정할 수 없다")
   void review_whenAlreadyReviewed_throws() {
-    IpSecuritySignalView reported = service.report(report("198.51.100.42", null), 11L);
+    IpSecuritySignalResponse reported = service.report(report("198.51.100.42", null), 11L);
     service.review(reported.id(), SignalVerdict.FALSE_POSITIVE, "safe", 12L);
 
     assertThatThrownBy(
@@ -109,8 +109,8 @@ class IpSecuritySignalServiceTest {
   @Test
   @DisplayName("query string이 포함된 endpoint는 저장하지 않는다")
   void report_whenEndpointHasQueryString_throws() {
-    IpSecuritySignalReport invalid =
-        new IpSecuritySignalReport(
+    IpSecuritySignalReportRequest invalid =
+        new IpSecuritySignalReportRequest(
             null,
             "198.51.100.43",
             "/api/v2/reviews?token=secret",
@@ -147,8 +147,8 @@ class IpSecuritySignalServiceTest {
         .isEqualTo(IpBanExceptionCode.INVALID_SECURITY_SIGNAL);
   }
 
-  private static IpSecuritySignalReport report(String ip, String agentVersion) {
-    return new IpSecuritySignalReport(
+  private static IpSecuritySignalReportRequest report(String ip, String agentVersion) {
+    return new IpSecuritySignalReportRequest(
         null,
         ip,
         "/api/v2/reviews",

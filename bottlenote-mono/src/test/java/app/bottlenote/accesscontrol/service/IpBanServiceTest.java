@@ -7,9 +7,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import app.bottlenote.accesscontrol.constant.IpBanActorType;
 import app.bottlenote.accesscontrol.constant.IpBanEventType;
 import app.bottlenote.accesscontrol.constant.IpBanStatus;
-import app.bottlenote.accesscontrol.domain.IpBanEvent;
-import app.bottlenote.accesscontrol.dto.response.IpBanDetail;
-import app.bottlenote.accesscontrol.dto.response.IpBanSummary;
+import app.bottlenote.accesscontrol.domain.IpBanAuditRecord;
+import app.bottlenote.accesscontrol.dto.response.IpBanDetailResponse;
+import app.bottlenote.accesscontrol.dto.response.IpBanSummaryResponse;
 import app.bottlenote.accesscontrol.exception.IpBanException;
 import app.bottlenote.accesscontrol.exception.IpBanExceptionCode;
 import app.bottlenote.accesscontrol.fixture.InMemoryIpBanEventRepository;
@@ -63,7 +63,7 @@ class IpBanServiceTest {
     @Test
     @DisplayName("신규 IPv4 차단과 BAN 이벤트를 같은 상태로 저장한다")
     void ban_whenNewIpv4_persistsActiveBanAndBanEvent() {
-      IpBanDetail detail = service.ban(IPV4, Duration.ofMinutes(10), "abuse", 11L);
+      IpBanDetailResponse detail = service.ban(IPV4, Duration.ofMinutes(10), "abuse", 11L);
 
       assertThat(detail.normalizedIp()).isEqualTo(IPV4);
       assertThat(detail.status()).isEqualTo(IpBanStatus.ACTIVE);
@@ -79,7 +79,7 @@ class IpBanServiceTest {
     @Test
     @DisplayName("IPv6를 정규화해 저장한다")
     void ban_whenIpv6_normalizesAddress() {
-      IpBanDetail detail = service.ban("2001:DB8::1", Duration.ofMinutes(5), "scan", 1L);
+      IpBanDetailResponse detail = service.ban("2001:DB8::1", Duration.ofMinutes(5), "scan", 1L);
 
       assertThat(detail.normalizedIp()).isEqualTo(IPV6);
       assertThat(banRepository.findByNormalizedIp(IPV6)).isPresent();
@@ -90,7 +90,7 @@ class IpBanServiceTest {
     void ban_whenAlreadyActive_extendsAndAppendsExtendEvent() {
       service.ban(IPV4, Duration.ofMinutes(5), "first", 1L);
 
-      IpBanDetail detail = service.ban(IPV4, Duration.ofMinutes(30), "extend-reason", 1L);
+      IpBanDetailResponse detail = service.ban(IPV4, Duration.ofMinutes(30), "extend-reason", 1L);
 
       assertThat(detail.status()).isEqualTo(IpBanStatus.ACTIVE);
       assertThat(detail.reason()).isEqualTo("extend-reason");
@@ -108,7 +108,7 @@ class IpBanServiceTest {
       service.ban(IPV4, Duration.ofMinutes(5), "first", 1L);
       service.unban(IPV4, "done", 1L);
 
-      IpBanDetail detail = service.ban(IPV4, Duration.ofMinutes(15), "again", 1L);
+      IpBanDetailResponse detail = service.ban(IPV4, Duration.ofMinutes(15), "again", 1L);
 
       assertThat(detail.status()).isEqualTo(IpBanStatus.ACTIVE);
       assertThat(detail.events())
@@ -132,7 +132,7 @@ class IpBanServiceTest {
               .apiKeyHash("a".repeat(64))
               .build());
 
-      IpBanDetail detail = service.ban(IPV4, Duration.ofMinutes(5), "agent-ban", 42L);
+      IpBanDetailResponse detail = service.ban(IPV4, Duration.ofMinutes(5), "agent-ban", 42L);
 
       assertThat(detail.events().getFirst().actorType()).isEqualTo(IpBanActorType.AGENT);
       assertThat(detail.events().getFirst().actorAdminUserId()).isEqualTo(42L);
@@ -142,7 +142,7 @@ class IpBanServiceTest {
     @Test
     @DisplayName("adminUserId가 없으면 SYSTEM 주체로 기록한다")
     void ban_whenAdminUserIdNull_recordsSystemActor() {
-      IpBanDetail detail = service.ban(IPV4, Duration.ofMinutes(5), "auto", null);
+      IpBanDetailResponse detail = service.ban(IPV4, Duration.ofMinutes(5), "auto", null);
 
       assertThat(detail.events().getFirst().actorType()).isEqualTo(IpBanActorType.SYSTEM);
       assertThat(detail.events().getFirst().actorAdminUserId()).isNull();
@@ -181,7 +181,7 @@ class IpBanServiceTest {
     void unban_whenActive_marksUnbanned() {
       service.ban(IPV4, Duration.ofMinutes(10), "abuse", 1L);
 
-      IpBanDetail detail = service.unban(IPV4, "manual-unban", 1L);
+      IpBanDetailResponse detail = service.unban(IPV4, "manual-unban", 1L);
 
       assertThat(detail.status()).isEqualTo(IpBanStatus.UNBANNED);
       assertThat(detail.events().getLast().eventType()).isEqualTo(IpBanEventType.UNBAN);
@@ -193,7 +193,7 @@ class IpBanServiceTest {
     void expire_whenActive_marksExpiredAsSystem() {
       service.ban(IPV4, Duration.ofMinutes(10), "abuse", 1L);
 
-      IpBanDetail detail = service.expire(IPV4, "ttl-elapsed");
+      IpBanDetailResponse detail = service.expire(IPV4, "ttl-elapsed");
 
       assertThat(detail.status()).isEqualTo(IpBanStatus.EXPIRED);
       assertThat(detail.events().getLast().eventType()).isEqualTo(IpBanEventType.EXPIRE);
@@ -223,7 +223,7 @@ class IpBanServiceTest {
       service.ban(IPV4, Duration.ofMinutes(5), "first", 1L);
       service.ban(IPV4, Duration.ofMinutes(10), "extend", 1L);
 
-      IpBanDetail detail = service.getDetail(IPV4).orElseThrow();
+      IpBanDetailResponse detail = service.getDetail(IPV4).orElseThrow();
 
       assertThat(detail.events()).hasSize(2);
       assertThat(detail.events().get(0).eventType()).isEqualTo(IpBanEventType.BAN);
@@ -238,11 +238,11 @@ class IpBanServiceTest {
       service.ban("203.0.113.3", Duration.ofMinutes(5), "c", 1L);
       service.unban("203.0.113.2", "done", 1L);
 
-      List<IpBanSummary> active = service.list(IpBanStatus.ACTIVE, 10);
+      List<IpBanSummaryResponse> active = service.list(IpBanStatus.ACTIVE, 10);
 
       assertThat(active).hasSize(2);
       assertThat(active)
-          .extracting(IpBanSummary::normalizedIp)
+          .extracting(IpBanSummaryResponse::normalizedIp)
           .containsExactlyInAnyOrder("203.0.113.1", "203.0.113.3");
     }
   }
@@ -258,7 +258,7 @@ class IpBanServiceTest {
             new DefaultAgentFacade(agentRepository),
             Clock.fixed(withNanos, ZONE_ID));
 
-    IpBanDetail detail = service.ban(IPV4, Duration.ofSeconds(30), "nano", 1L);
+    IpBanDetailResponse detail = service.ban(IPV4, Duration.ofSeconds(30), "nano", 1L);
 
     LocalDateTime expected =
         LocalDateTime.ofInstant(withNanos, ZONE_ID)
@@ -266,7 +266,7 @@ class IpBanServiceTest {
     assertThat(detail.effectiveFrom()).isEqualTo(expected);
     assertThat(detail.stateChangedAt()).isEqualTo(expected);
     assertThat(eventRepository.findAll())
-        .extracting(IpBanEvent::getOccurredAt)
+        .extracting(IpBanAuditRecord::getOccurredAt)
         .containsExactly(expected);
   }
 }

@@ -7,13 +7,13 @@ import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.accesscontrol.constant.IpBanActorType;
 import app.bottlenote.accesscontrol.constant.IpBanEventType;
 import app.bottlenote.accesscontrol.constant.IpBanStatus;
-import app.bottlenote.accesscontrol.domain.IpBanEvent;
+import app.bottlenote.accesscontrol.domain.IpBanAuditRecord;
 import app.bottlenote.accesscontrol.domain.IpBanEventRepository;
 import app.bottlenote.accesscontrol.domain.IpBanRepository;
 import app.bottlenote.accesscontrol.domain.IpSecuritySignal;
 import app.bottlenote.accesscontrol.domain.IpSecuritySignalRepository;
-import app.bottlenote.accesscontrol.dto.response.IpBanDetail;
-import app.bottlenote.accesscontrol.dto.response.IpBanSummary;
+import app.bottlenote.accesscontrol.dto.response.IpBanDetailResponse;
+import app.bottlenote.accesscontrol.dto.response.IpBanSummaryResponse;
 import app.bottlenote.accesscontrol.service.IpBanRetentionService;
 import app.bottlenote.accesscontrol.service.IpBanService;
 import app.bottlenote.agent.domain.Agent;
@@ -52,10 +52,11 @@ class IpBanPersistenceIntegrationTest extends IntegrationTestSupport {
   void ban_whenNewIp_persistsCurrentStateAndBanEvent() {
     AdminUser admin = adminUserTestFactory.persistRootAdmin();
 
-    IpBanDetail detail = ipBanService.ban(IPV4, Duration.ofMinutes(10), "db-abuse", admin.getId());
+    IpBanDetailResponse detail =
+        ipBanService.ban(IPV4, Duration.ofMinutes(10), "db-abuse", admin.getId());
 
     assertThat(ipBanRepository.findByNormalizedIp(IPV4)).isPresent();
-    List<IpBanEvent> events = ipBanEventRepository.findByIpBanIdOrderByIdAsc(detail.id());
+    List<IpBanAuditRecord> events = ipBanEventRepository.findByIpBanIdOrderByIdAsc(detail.id());
     assertThat(events).hasSize(1);
     assertThat(events.getFirst().getEventType()).isEqualTo(IpBanEventType.BAN);
     assertThat(events.getFirst().getActorType()).isEqualTo(IpBanActorType.ADMIN);
@@ -66,14 +67,16 @@ class IpBanPersistenceIntegrationTest extends IntegrationTestSupport {
   @DisplayName("활성 재밴은 EXTEND 이벤트를 추가하고 만료 시각을 갱신한다")
   void ban_whenActive_extendsAndAppendsEvent() {
     AdminUser admin = adminUserTestFactory.persistRootAdmin();
-    IpBanDetail first = ipBanService.ban(IPV4, Duration.ofMinutes(5), "first", admin.getId());
+    IpBanDetailResponse first =
+        ipBanService.ban(IPV4, Duration.ofMinutes(5), "first", admin.getId());
 
-    IpBanDetail second = ipBanService.ban(IPV4, Duration.ofMinutes(30), "extend", admin.getId());
+    IpBanDetailResponse second =
+        ipBanService.ban(IPV4, Duration.ofMinutes(30), "extend", admin.getId());
 
     assertThat(second.id()).isEqualTo(first.id());
     assertThat(second.expiresAt()).isAfter(first.expiresAt());
     assertThat(ipBanEventRepository.findByIpBanIdOrderByIdAsc(second.id()))
-        .extracting(IpBanEvent::getEventType)
+        .extracting(IpBanAuditRecord::getEventType)
         .containsExactly(IpBanEventType.BAN, IpBanEventType.EXTEND);
   }
 
@@ -84,8 +87,8 @@ class IpBanPersistenceIntegrationTest extends IntegrationTestSupport {
     ipBanService.ban("198.51.100.21", Duration.ofMinutes(10), "u", admin.getId());
     ipBanService.ban("198.51.100.22", Duration.ofMinutes(10), "e", admin.getId());
 
-    IpBanDetail unbanned = ipBanService.unban("198.51.100.21", "manual", admin.getId());
-    IpBanDetail expired = ipBanService.expire("198.51.100.22", "ttl");
+    IpBanDetailResponse unbanned = ipBanService.unban("198.51.100.21", "manual", admin.getId());
+    IpBanDetailResponse expired = ipBanService.expire("198.51.100.22", "ttl");
 
     assertThat(unbanned.status()).isEqualTo(IpBanStatus.UNBANNED);
     assertThat(expired.status()).isEqualTo(IpBanStatus.EXPIRED);
@@ -117,11 +120,11 @@ class IpBanPersistenceIntegrationTest extends IntegrationTestSupport {
             .apiKeyHash("b".repeat(64))
             .build());
 
-    IpBanDetail detail =
+    IpBanDetailResponse detail =
         ipBanService.ban("2001:DB8::20", Duration.ofMinutes(3), "agent", admin.getId());
 
     assertThat(detail.normalizedIp()).isEqualTo(IPV6);
-    IpBanEvent event = ipBanEventRepository.findByIpBanIdOrderByIdAsc(detail.id()).getFirst();
+    IpBanAuditRecord event = ipBanEventRepository.findByIpBanIdOrderByIdAsc(detail.id()).getFirst();
     assertThat(event.getActorType()).isEqualTo(IpBanActorType.AGENT);
     assertThat(event.getActorAdminUserId()).isEqualTo(admin.getId());
     assertThat(event.getActorAgentId()).isEqualTo(agentId);
@@ -135,10 +138,12 @@ class IpBanPersistenceIntegrationTest extends IntegrationTestSupport {
     ipBanService.ban("198.51.100.31", Duration.ofMinutes(10), "b", admin.getId());
     ipBanService.unban("198.51.100.31", "done", admin.getId());
 
-    List<IpBanSummary> active = ipBanService.list(IpBanStatus.ACTIVE, 100);
-    IpBanDetail detail = ipBanService.getDetail("198.51.100.30").orElseThrow();
+    List<IpBanSummaryResponse> active = ipBanService.list(IpBanStatus.ACTIVE, 100);
+    IpBanDetailResponse detail = ipBanService.getDetail("198.51.100.30").orElseThrow();
 
-    assertThat(active).extracting(IpBanSummary::normalizedIp).containsExactly("198.51.100.30");
+    assertThat(active)
+        .extracting(IpBanSummaryResponse::normalizedIp)
+        .containsExactly("198.51.100.30");
     assertThat(detail.events()).isNotEmpty();
     assertThat(detail.status()).isEqualTo(IpBanStatus.ACTIVE);
   }
@@ -147,7 +152,7 @@ class IpBanPersistenceIntegrationTest extends IntegrationTestSupport {
   @DisplayName("180일 이내 signal이 연결된 종료 밴은 보존하고 모두 만료되면 FK 순서로 삭제한다")
   void retention_whenRecentSignalExists_preservesParentUntilSignalExpires() {
     AdminUser admin = adminUserTestFactory.persistRootAdmin();
-    IpBanDetail ban =
+    IpBanDetailResponse ban =
         ipBanService.ban("198.51.100.40", Duration.ofMinutes(10), "retention", admin.getId());
     ipBanService.expire("198.51.100.40", "expired");
     IpSecuritySignal signal =

@@ -3,8 +3,8 @@ package app.bottlenote.accesscontrol.service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.bottlenote.accesscontrol.constant.IpBanEventType;
-import app.bottlenote.accesscontrol.dto.response.IpBanCommandResult;
-import app.bottlenote.accesscontrol.dto.response.ProjectionStatus;
+import app.bottlenote.accesscontrol.constant.ProjectionStatus;
+import app.bottlenote.accesscontrol.dto.response.IpBanCommandResponse;
 import app.bottlenote.accesscontrol.fixture.InMemoryIpBanEventRepository;
 import app.bottlenote.accesscontrol.fixture.InMemoryIpBanRepository;
 import app.bottlenote.agent.fixture.InMemoryAgentRepository;
@@ -31,7 +31,7 @@ class DefaultIpBanFacadeTest {
     InMemoryAccessControlStore store = new InMemoryAccessControlStore();
     DefaultIpBanFacade facade = facade(eventRepository, store);
 
-    IpBanCommandResult result = facade.ban("203.0.113.80", Duration.ofMinutes(5), "abuse", 1L);
+    IpBanCommandResponse result = facade.ban("203.0.113.80", Duration.ofMinutes(5), "abuse", 1L);
 
     assertThat(result.projectionStatus()).isEqualTo(ProjectionStatus.APPLIED);
     assertThat(result.detail().events()).hasSize(1);
@@ -46,7 +46,7 @@ class DefaultIpBanFacadeTest {
     InMemoryIpBanEventRepository eventRepository = new InMemoryIpBanEventRepository();
     DefaultIpBanFacade facade = facade(eventRepository, new FailingProjectionStore());
 
-    IpBanCommandResult result = facade.ban("203.0.113.81", Duration.ofMinutes(5), "abuse", 1L);
+    IpBanCommandResponse result = facade.ban("203.0.113.81", Duration.ofMinutes(5), "abuse", 1L);
 
     assertThat(result.projectionStatus()).isEqualTo(ProjectionStatus.PENDING_RECONCILE);
     assertThat(result.detail().events()).hasSize(1);
