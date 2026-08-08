@@ -94,7 +94,7 @@
 - Files (advisory): accesscontrol signal domain/repository/service/facade와 Fake
 - Depends: Task 3
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Checkpoint: after Tasks 1-4
 
@@ -160,3 +160,4 @@
 - 2026-08-09: Task 1 완료 — 커밋 `22794b04`. access-control 단위 28/28, Redis 통합 4/4, Product 3/3, Admin 5/5, ArchUnit 64/64 통과.
 - 2026-08-09: Task 2 완료 — 서브모듈 커밋 `7aea7d8b`를 `origin/Whale0928/blacklist`에 push. V9 3테이블, seed 0건, Product/Admin Flyway와 Batch resource guard 통과.
 - 2026-08-09: Task 3 완료 — `app.bottlenote.accesscontrol`에 IpBan current-state·IpBanEvent append-only·IpBanService/Facade 수직 슬라이스. AgentFacade adminUserId 조회 추가. 단위 14/14, Product DB 통합 5/5 통과. 필터/Admin API/signal/projection/scheduler 미변경.
+- 2026-08-09: Task 4 완료 — `IpSecuritySignal`과 verdict 수직 슬라이스를 추가. signal은 query string 없는 endpoint, method/rule, 관찰 구간·횟수, Admin/활성 Agent UUID·입력 agent version을 저장하며 UNKNOWN에서 확정 판정으로 한 번만 전이한다. 단위 6/6, Product DB 통합 2/2, Spotless 통과.
