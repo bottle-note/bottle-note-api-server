@@ -1,5 +1,6 @@
 package app.bottlenote.global.security.accesscontrol;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -12,6 +13,12 @@ public class AccessControlProperties {
 
   /** Redis 장애 시 요청 허용 (true) / 거절 (false) */
   private boolean failOpen = true;
+
+  /**
+   * access-control 전용 Redis 명령 타임아웃. 전역 {@code spring.data.redis.timeout}(기본 15s)과 분리한다. Redis 장애 시
+   * 요청 스레드가 장시간 점유되지 않도록 짧게 유지한다.
+   */
+  private Duration redisCommandTimeout = Duration.ofMillis(200);
 
   /** rate-limit 키 네임스페이스 (product/admin 분리). ban 키는 공유 차단을 위해 네임스페이스를 쓰지 않는다. */
   private String keyNamespace = "default";
@@ -43,6 +50,14 @@ public class AccessControlProperties {
 
   public void setFailOpen(boolean failOpen) {
     this.failOpen = failOpen;
+  }
+
+  public Duration getRedisCommandTimeout() {
+    return redisCommandTimeout;
+  }
+
+  public void setRedisCommandTimeout(Duration redisCommandTimeout) {
+    this.redisCommandTimeout = redisCommandTimeout;
   }
 
   public String getKeyNamespace() {
@@ -93,6 +108,7 @@ public class AccessControlProperties {
     this.managementPathPrefixes = managementPathPrefixes;
   }
 
+  /** YAML 생성자 바인딩을 위해 no-arg 생성자는 두지 않는다. */
   public record RateLimitRule(int limit, int windowSeconds) {
     public RateLimitRule {
       if (limit <= 0) {
@@ -102,14 +118,14 @@ public class AccessControlProperties {
         throw new IllegalArgumentException("windowSeconds must be positive");
       }
     }
-
-    public RateLimitRule() {
-      this(300, 60);
-    }
   }
 
   public static class PathRateLimitRule {
     private String pathPrefix = "";
+
+    /** 비어 있으면 모든 HTTP method에 적용 */
+    private List<String> methods = new ArrayList<>();
+
     private int limit = 60;
     private int windowSeconds = 60;
 
@@ -119,6 +135,14 @@ public class AccessControlProperties {
 
     public void setPathPrefix(String pathPrefix) {
       this.pathPrefix = pathPrefix;
+    }
+
+    public List<String> getMethods() {
+      return methods;
+    }
+
+    public void setMethods(List<String> methods) {
+      this.methods = methods;
     }
 
     public int getLimit() {

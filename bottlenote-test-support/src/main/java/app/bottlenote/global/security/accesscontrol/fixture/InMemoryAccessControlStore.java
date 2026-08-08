@@ -1,5 +1,6 @@
-package app.bottlenote.global.security.accesscontrol;
+package app.bottlenote.global.security.accesscontrol.fixture;
 
+import app.bottlenote.global.security.accesscontrol.AccessControlStore;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -7,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** 단위 테스트·로컬 전용. 다중 Pod에서는 사용하지 않는다. */
+/** 단위 테스트 전용. 운영 multi-pod 경로에서는 사용하지 않는다. */
 public class InMemoryAccessControlStore implements AccessControlStore {
 
   private final Map<String, BanEntry> bans = new ConcurrentHashMap<>();

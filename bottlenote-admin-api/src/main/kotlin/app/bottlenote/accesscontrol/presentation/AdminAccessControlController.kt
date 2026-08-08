@@ -12,7 +12,7 @@ import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 import org.slf4j.LoggerFactory
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -24,8 +24,15 @@ import org.springframework.web.bind.annotation.RestController
 import java.time.Duration
 
 @RestController
-@RequestMapping("/v1/access-control/ip-bans")
-@ConditionalOnBean(AccessControlService::class)
+// AdminApiVersionConfig가 app.bottlenote.*.presentation 컨트롤러에 /v1 prefix를 붙인다
+@RequestMapping("/access-control/ip-bans")
+// ConditionalOnBean(AccessControlService)는 스캔 순서에 따라 컨트롤러가 누락될 수 있다
+@ConditionalOnProperty(
+	prefix = "bottlenote.access-control",
+	name = ["enabled"],
+	havingValue = "true",
+	matchIfMissing = true
+)
 class AdminAccessControlController(
 	private val accessControlService: AccessControlService
 ) {
@@ -91,10 +98,8 @@ class AdminAccessControlController(
 		return GlobalResponse.ok(IpBanResponse(ip = normalized, reason = "", ttlSeconds = 0, banned = false))
 	}
 
-	private fun normalizeIp(raw: String): String {
-		return ClientIpResolver.normalize(raw)
-			?: throw AccessControlException(AccessControlExceptionCode.INVALID_IP)
-	}
+	private fun normalizeIp(raw: String): String = ClientIpResolver.normalize(raw)
+		?: throw AccessControlException(AccessControlExceptionCode.INVALID_IP)
 
 	private fun audit(action: String, ip: String, ttlSeconds: Long, reason: String) {
 		val adminId = SecurityContextUtil.getAdminUserIdByContext().orElse(null)

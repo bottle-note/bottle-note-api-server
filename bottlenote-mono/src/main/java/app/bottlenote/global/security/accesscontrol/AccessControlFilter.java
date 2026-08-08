@@ -34,7 +34,7 @@ public class AccessControlFilter extends OncePerRequestFilter {
       throws ServletException, IOException {
     String clientIp = ClientIpResolver.resolve(request);
     String path = resolvePathWithinApplication(request);
-    Decision decision = accessControlService.evaluate(clientIp, path);
+    Decision decision = accessControlService.evaluate(clientIp, path, request.getMethod());
 
     if (decision.allowed()) {
       writeRateLimitHeaders(response, decision);

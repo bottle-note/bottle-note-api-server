@@ -3,7 +3,7 @@ package app.bottlenote.global.security.accesscontrol;
 import java.time.Duration;
 import java.util.List;
 
-/** IP ban + rate limit 상태 저장소 (Redis / InMemory) */
+/** IP ban + rate limit 상태 저장소 (운영: Redis) */
 public interface AccessControlStore {
 
   boolean isBanned(String ip);

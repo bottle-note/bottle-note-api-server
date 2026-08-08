@@ -39,6 +39,8 @@ spring:
 
 bottlenote:
   access-control:
+    # 전역 spring.data.redis.timeout(15s)과 분리 — Redis 장애 시 요청 스레드 점유 상한
+    redis-command-timeout: 200ms
     enabled: true
     fail-open: true
     key-namespace: admin

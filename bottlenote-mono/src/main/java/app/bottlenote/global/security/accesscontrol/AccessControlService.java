@@ -7,6 +7,9 @@ import app.bottlenote.global.security.accesscontrol.AccessControlStore.ConsumeRe
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,7 +23,7 @@ public class AccessControlService {
   private final AccessControlProperties properties;
   private final AccessControlMetrics metrics;
 
-  public Decision evaluate(String clientIp, String requestPath) {
+  public Decision evaluate(String clientIp, String requestPath, String httpMethod) {
     // self-lockout 탈출: 관리 API는 ban/RL 모두 스킵
     if (isManagementPath(requestPath)) {
       Decision decision = Decision.allow();
@@ -29,6 +32,7 @@ public class AccessControlService {
     }
 
     String effectiveIp = (clientIp == null || clientIp.isBlank()) ? UNKNOWN_IP_TOKEN : clientIp;
+    String method = normalizeMethod(httpMethod);
 
     try {
       if (!UNKNOWN_IP_TOKEN.equals(effectiveIp) && store.isBanned(effectiveIp)) {
@@ -46,11 +50,17 @@ public class AccessControlService {
         return decision;
       }
 
+      Optional<PathRateLimitRule> matched =
+          UNKNOWN_IP_TOKEN.equals(effectiveIp)
+              ? Optional.empty()
+              : matchPathRule(requestPath, method);
       RateLimitRule rule =
           UNKNOWN_IP_TOKEN.equals(effectiveIp)
               ? properties.getUnknownIpRateLimit()
-              : resolveRule(requestPath);
-      String counterKey = rateLimitKey(effectiveIp, requestPath, rule);
+              : matched
+                  .map(r -> new RateLimitRule(r.getLimit(), r.getWindowSeconds()))
+                  .orElse(properties.getDefaultRateLimit());
+      String counterKey = rateLimitKey(effectiveIp, matched);
       ConsumeResult consumed =
           store.tryConsume(counterKey, rule.limit(), Duration.ofSeconds(rule.windowSeconds()));
       if (!consumed.allowed()) {
@@ -63,9 +73,10 @@ public class AccessControlService {
       return decision;
     } catch (RuntimeException ex) {
       log.warn(
-          "access-control store failure ip={} path={}: {}",
+          "access-control store failure ip={} path={} method={}: {}",
           effectiveIp,
           requestPath,
+          method,
           ex.toString());
       if (properties.isFailOpen()) {
         metrics.recordStoreError(true);
@@ -96,12 +107,12 @@ public class AccessControlService {
     return store.listBans(max);
   }
 
-  private String rateLimitKey(String ip, String path, RateLimitRule rule) {
+  private String rateLimitKey(String ip, Optional<PathRateLimitRule> matched) {
     String ns =
         properties.getKeyNamespace() == null || properties.getKeyNamespace().isBlank()
             ? "default"
             : properties.getKeyNamespace();
-    String scope = UNKNOWN_IP_TOKEN.equals(ip) ? "unknown" : ruleScope(path);
+    String scope = UNKNOWN_IP_TOKEN.equals(ip) ? "unknown" : ruleScope(matched);
     return ns + ":" + ip + "|" + scope;
   }
 
@@ -127,28 +138,58 @@ public class AccessControlService {
     return prefixes.stream().anyMatch(path::startsWith);
   }
 
-  private RateLimitRule resolveRule(String path) {
+  private Optional<PathRateLimitRule> matchPathRule(String path, String method) {
     List<PathRateLimitRule> pathRules = properties.getPathRules();
-    if (pathRules != null && path != null) {
-      return pathRules.stream()
-          .filter(rule -> rule.getPathPrefix() != null && path.startsWith(rule.getPathPrefix()))
-          .max(Comparator.comparingInt(rule -> rule.getPathPrefix().length()))
-          .map(rule -> new RateLimitRule(rule.getLimit(), rule.getWindowSeconds()))
-          .orElse(properties.getDefaultRateLimit());
+    if (pathRules == null || path == null) {
+      return Optional.empty();
     }
-    return properties.getDefaultRateLimit();
+    return pathRules.stream()
+        .filter(rule -> rule.getPathPrefix() != null && path.startsWith(rule.getPathPrefix()))
+        .filter(rule -> matchesMethod(rule, method))
+        .max(Comparator.comparingInt(rule -> rule.getPathPrefix().length()));
   }
 
-  private String ruleScope(String path) {
-    List<PathRateLimitRule> pathRules = properties.getPathRules();
-    if (pathRules != null && path != null) {
-      return pathRules.stream()
-          .filter(r -> r.getPathPrefix() != null && path.startsWith(r.getPathPrefix()))
-          .max(Comparator.comparingInt(r -> r.getPathPrefix().length()))
-          .map(PathRateLimitRule::getPathPrefix)
-          .orElse("default");
+  private static boolean matchesMethod(PathRateLimitRule rule, String method) {
+    List<String> methods = rule.getMethods();
+    if (methods == null || methods.isEmpty()) {
+      return true;
     }
-    return "default";
+    if (method == null || method.isBlank()) {
+      return false;
+    }
+    return methods.stream()
+        .filter(m -> m != null && !m.isBlank())
+        .map(AccessControlService::normalizeMethod)
+        .anyMatch(method::equals);
+  }
+
+  private static String ruleScope(Optional<PathRateLimitRule> matched) {
+    if (matched.isEmpty()) {
+      return "default";
+    }
+    PathRateLimitRule rule = matched.get();
+    String prefix = rule.getPathPrefix() == null ? "default" : rule.getPathPrefix();
+    String methodScope = methodScope(rule);
+    return methodScope.isEmpty() ? prefix : prefix + "#" + methodScope;
+  }
+
+  private static String methodScope(PathRateLimitRule rule) {
+    List<String> methods = rule.getMethods();
+    if (methods == null || methods.isEmpty()) {
+      return "";
+    }
+    return methods.stream()
+        .filter(m -> m != null && !m.isBlank())
+        .map(AccessControlService::normalizeMethod)
+        .sorted()
+        .collect(Collectors.joining(","));
+  }
+
+  private static String normalizeMethod(String method) {
+    if (method == null || method.isBlank()) {
+      return "";
+    }
+    return method.trim().toUpperCase(Locale.ROOT);
   }
 
   private static String requireNormalizedIp(String ip) {
