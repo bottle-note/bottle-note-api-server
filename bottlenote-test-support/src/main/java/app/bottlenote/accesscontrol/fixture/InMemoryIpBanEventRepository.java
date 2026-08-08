@@ -33,6 +33,22 @@ public class InMemoryIpBanEventRepository implements IpBanEventRepository {
         .toList();
   }
 
+  @Override
+  public long findLatestIdByIpBanId(Long ipBanId) {
+    return database.stream()
+        .filter(event -> event.getIpBanId().equals(ipBanId))
+        .mapToLong(IpBanEvent::getId)
+        .max()
+        .orElse(0L);
+  }
+
+  @Override
+  public int deleteByIpBanIdIn(List<Long> ipBanIds) {
+    int size = database.size();
+    database.removeIf(event -> ipBanIds.contains(event.getIpBanId()));
+    return size - database.size();
+  }
+
   public List<IpBanEvent> findAll() {
     return List.copyOf(database);
   }

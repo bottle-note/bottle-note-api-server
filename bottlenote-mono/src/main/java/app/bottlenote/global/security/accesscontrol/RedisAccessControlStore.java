@@ -31,6 +31,9 @@ public class RedisAccessControlStore implements AccessControlStore {
 
   private static final DefaultRedisScript<Long> PROJECT_UNBAN_SCRIPT = new DefaultRedisScript<>();
 
+  private static final DefaultRedisScript<Long> REMOVE_UNVERSIONED_BAN_SCRIPT =
+      new DefaultRedisScript<>();
+
   static {
     TRY_CONSUME_SCRIPT.setResultType(List.class);
     TRY_CONSUME_SCRIPT.setScriptText(
@@ -60,6 +63,13 @@ public class RedisAccessControlStore implements AccessControlStore {
         if current and tonumber(ARGV[1]) < tonumber(current) then return 0 end
         redis.call('DEL', KEYS[1], KEYS[2])
         redis.call('SET', KEYS[3], ARGV[1], 'EX', ARGV[2])
+        return 1
+        """);
+    REMOVE_UNVERSIONED_BAN_SCRIPT.setResultType(Long.class);
+    REMOVE_UNVERSIONED_BAN_SCRIPT.setScriptText(
+        """
+        if redis.call('EXISTS', KEYS[3]) == 1 then return 0 end
+        redis.call('DEL', KEYS[1], KEYS[2])
         return 1
         """);
   }
@@ -148,6 +158,16 @@ public class RedisAccessControlStore implements AccessControlStore {
   }
 
   @Override
+  public void removeUnversionedBan(String ip) {
+    Long removed =
+        redisTemplate.execute(
+            REMOVE_UNVERSIONED_BAN_SCRIPT, List.of(banKey(ip), reasonKey(ip), versionKey(ip)));
+    if (Long.valueOf(1L).equals(removed)) {
+      redisTemplate.delete(List.of(legacyBanKey(ip), legacyReasonKey(ip)));
+    }
+  }
+
+  @Override
   public BanInfo getBan(String ip) {
     String banKey = banKey(ip);
     String reasonKey = reasonKey(ip);
@@ -204,6 +224,9 @@ public class RedisAccessControlStore implements AccessControlStore {
         }
         String ip = extractIp(key);
         String current = banKeysByIp.get(ip);
+        if (current == null && banKeysByIp.size() >= limit) {
+          break;
+        }
         if (current == null || isProjectedBanKey(key)) {
           banKeysByIp.put(ip, key);
         }

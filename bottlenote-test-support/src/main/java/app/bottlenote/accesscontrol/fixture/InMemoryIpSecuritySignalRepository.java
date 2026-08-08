@@ -2,6 +2,7 @@ package app.bottlenote.accesscontrol.fixture;
 
 import app.bottlenote.accesscontrol.domain.IpSecuritySignal;
 import app.bottlenote.accesscontrol.domain.IpSecuritySignalRepository;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,33 @@ public class InMemoryIpSecuritySignalRepository implements IpSecuritySignalRepos
         .sorted(Comparator.comparing(IpSecuritySignal::getId).reversed())
         .limit(Math.max(limit, 1))
         .toList();
+  }
+
+  @Override
+  public List<IpSecuritySignal> findByCreateAtBeforeOrderByIdAsc(LocalDateTime cutoff, int limit) {
+    return database.values().stream()
+        .filter(signal -> signal.getCreateAt() != null && signal.getCreateAt().isBefore(cutoff))
+        .sorted(Comparator.comparing(IpSecuritySignal::getId))
+        .limit(Math.max(limit, 1))
+        .toList();
+  }
+
+  @Override
+  public int deleteByIds(List<Long> ids) {
+    int count = 0;
+    for (Long id : ids) {
+      if (database.remove(id) != null) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  @Override
+  public int deleteByIpBanIdIn(List<Long> ipBanIds) {
+    int size = database.size();
+    database.values().removeIf(signal -> ipBanIds.contains(signal.getIpBanId()));
+    return size - database.size();
   }
 
   public List<IpSecuritySignal> findAll() {

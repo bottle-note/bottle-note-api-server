@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.time.LocalDateTime;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -55,6 +56,40 @@ public class InMemoryIpBanRepository implements IpBanRepository {
         .sorted(latestFirst())
         .limit(Math.max(limit, 1))
         .toList();
+  }
+
+  @Override
+  public List<IpBan> findActiveAfter(LocalDateTime expiresAt, Long id, int limit) {
+    return database.values().stream()
+        .filter(IpBan::isActive)
+        .filter(
+            ban ->
+                expiresAt == null
+                    || ban.getExpiresAt().isAfter(expiresAt)
+                    || (ban.getExpiresAt().isEqual(expiresAt) && ban.getId() > id))
+        .sorted(Comparator.comparing(IpBan::getExpiresAt).thenComparing(IpBan::getId))
+        .limit(Math.max(limit, 1))
+        .toList();
+  }
+
+  @Override
+  public List<IpBan> findTerminatedBefore(LocalDateTime cutoff, int limit) {
+    return database.values().stream()
+        .filter(ban -> !ban.isActive() && ban.getStateChangedAt().isBefore(cutoff))
+        .sorted(Comparator.comparing(IpBan::getStateChangedAt).thenComparing(IpBan::getId))
+        .limit(Math.max(limit, 1))
+        .toList();
+  }
+
+  @Override
+  public int deleteByIds(List<Long> ids) {
+    int count = 0;
+    for (Long id : ids) {
+      if (database.remove(id) != null) {
+        count++;
+      }
+    }
+    return count;
   }
 
   public List<IpBan> findAll() {

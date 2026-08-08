@@ -13,10 +13,12 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 
 @FacadeService
 @Slf4j
 @RequiredArgsConstructor
+@ConditionalOnBean(AccessControlStore.class)
 public class DefaultIpBanFacade implements IpBanFacade {
 
   private final IpBanService ipBanService;

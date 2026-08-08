@@ -79,6 +79,21 @@ class RedisAccessControlStoreIntegrationTest {
   }
 
   @Test
+  @DisplayName("재조정은 version 없는 legacy ban만 제거하고 DB projection은 보존한다")
+  void removeUnversionedBan_removesOnlyLegacyState() {
+    String legacyIp = "203.0.113.78";
+    String projectedIp = "203.0.113.79";
+    store.ban(legacyIp, Duration.ofMinutes(5), "legacy");
+    store.projectBan(projectedIp, Duration.ofMinutes(5), "db", 20L);
+
+    store.removeUnversionedBan(legacyIp);
+    store.removeUnversionedBan(projectedIp);
+
+    assertThat(store.isBanned(legacyIp)).isFalse();
+    assertThat(store.isBanned(projectedIp)).isTrue();
+  }
+
+  @Test
   @DisplayName("배포 전 legacy ban 키도 enforcement·조회·목록에서 유지한다")
   void legacyBan_whenOnlyLegacyKeysExist_remainsEnforcedAndListed() {
     String ip = "203.0.113.78";

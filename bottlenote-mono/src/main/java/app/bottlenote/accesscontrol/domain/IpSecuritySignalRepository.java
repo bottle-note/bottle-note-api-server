@@ -1,6 +1,7 @@
 package app.bottlenote.accesscontrol.domain;
 
 import app.bottlenote.common.annotation.DomainRepository;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,4 +12,10 @@ public interface IpSecuritySignalRepository {
   Optional<IpSecuritySignal> findById(Long id);
 
   List<IpSecuritySignal> findByNormalizedIpOrderByIdDesc(String normalizedIp, int limit);
+
+  List<IpSecuritySignal> findByCreateAtBeforeOrderByIdAsc(LocalDateTime cutoff, int limit);
+
+  int deleteByIds(List<Long> ids);
+
+  int deleteByIpBanIdIn(List<Long> ipBanIds);
 }

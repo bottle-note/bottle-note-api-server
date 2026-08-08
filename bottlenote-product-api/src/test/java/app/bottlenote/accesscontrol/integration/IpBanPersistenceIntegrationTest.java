@@ -10,8 +10,11 @@ import app.bottlenote.accesscontrol.constant.IpBanStatus;
 import app.bottlenote.accesscontrol.domain.IpBanEvent;
 import app.bottlenote.accesscontrol.domain.IpBanEventRepository;
 import app.bottlenote.accesscontrol.domain.IpBanRepository;
+import app.bottlenote.accesscontrol.domain.IpSecuritySignal;
+import app.bottlenote.accesscontrol.domain.IpSecuritySignalRepository;
 import app.bottlenote.accesscontrol.dto.response.IpBanDetail;
 import app.bottlenote.accesscontrol.dto.response.IpBanSummary;
+import app.bottlenote.accesscontrol.service.IpBanRetentionService;
 import app.bottlenote.accesscontrol.service.IpBanService;
 import app.bottlenote.agent.domain.Agent;
 import app.bottlenote.agent.domain.AgentRepository;
@@ -25,6 +28,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 @Tag("integration")
 @DisplayName("[integration] IP 차단 영속화")
@@ -36,9 +40,12 @@ class IpBanPersistenceIntegrationTest extends IntegrationTestSupport {
   @Autowired private IpBanService ipBanService;
   @Autowired private IpBanRepository ipBanRepository;
   @Autowired private IpBanEventRepository ipBanEventRepository;
+  @Autowired private IpSecuritySignalRepository ipSecuritySignalRepository;
+  @Autowired private IpBanRetentionService ipBanRetentionService;
   @Autowired private AgentRepository agentRepository;
   @Autowired private AdminUserTestFactory adminUserTestFactory;
   @Autowired private UserTestFactory userTestFactory;
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   @Test
   @DisplayName("밴 요청은 현재 상태와 BAN 이벤트를 한 트랜잭션으로 저장한다")
@@ -134,5 +141,48 @@ class IpBanPersistenceIntegrationTest extends IntegrationTestSupport {
     assertThat(active).extracting(IpBanSummary::normalizedIp).containsExactly("198.51.100.30");
     assertThat(detail.events()).isNotEmpty();
     assertThat(detail.status()).isEqualTo(IpBanStatus.ACTIVE);
+  }
+
+  @Test
+  @DisplayName("180일 이내 signal이 연결된 종료 밴은 보존하고 모두 만료되면 FK 순서로 삭제한다")
+  void retention_whenRecentSignalExists_preservesParentUntilSignalExpires() {
+    AdminUser admin = adminUserTestFactory.persistRootAdmin();
+    IpBanDetail ban =
+        ipBanService.ban("198.51.100.40", Duration.ofMinutes(10), "retention", admin.getId());
+    ipBanService.expire("198.51.100.40", "expired");
+    IpSecuritySignal signal =
+        ipSecuritySignalRepository.save(
+            IpSecuritySignal.report(
+                ban.id(),
+                "198.51.100.40",
+                "/api/v2/auth",
+                "POST",
+                "rate-limit",
+                ban.effectiveFrom(),
+                ban.expiresAt(),
+                1,
+                null,
+                null,
+                null));
+    jdbcTemplate.update(
+        "update ip_bans set state_changed_at = date_sub(now(6), interval 181 day) where id = ?",
+        ban.id());
+    jdbcTemplate.update(
+        "update ip_security_signals set create_at = date_sub(now(6), interval 179 day) where id = ?",
+        signal.getId());
+
+    ipBanRetentionService.purgeExpiredData();
+
+    assertThat(ipBanRepository.findById(ban.id())).isPresent();
+    assertThat(ipSecuritySignalRepository.findById(signal.getId())).isPresent();
+    jdbcTemplate.update(
+        "update ip_security_signals set create_at = date_sub(now(6), interval 181 day) where id = ?",
+        signal.getId());
+
+    ipBanRetentionService.purgeExpiredData();
+
+    assertThat(ipSecuritySignalRepository.findById(signal.getId())).isEmpty();
+    assertThat(ipBanEventRepository.findByIpBanIdOrderByIdAsc(ban.id())).isEmpty();
+    assertThat(ipBanRepository.findById(ban.id())).isEmpty();
   }
 }

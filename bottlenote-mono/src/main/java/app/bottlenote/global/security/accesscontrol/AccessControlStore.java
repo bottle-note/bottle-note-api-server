@@ -22,6 +22,11 @@ public interface AccessControlStore {
     unban(ip);
   }
 
+  /** DB 관리 이전의 version 없는 legacy ban만 제거한다. */
+  default void removeUnversionedBan(String ip) {
+    unban(ip);
+  }
+
   BanInfo getBan(String ip);
 
   /** 활성 ban 목록 (최대 max 개, 운영 inventory용). */

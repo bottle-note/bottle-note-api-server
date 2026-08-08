@@ -9,4 +9,8 @@ public interface IpBanEventRepository {
   IpBanEvent save(IpBanEvent event);
 
   List<IpBanEvent> findByIpBanIdOrderByIdAsc(Long ipBanId);
+
+  long findLatestIdByIpBanId(Long ipBanId);
+
+  int deleteByIpBanIdIn(List<Long> ipBanIds);
 }

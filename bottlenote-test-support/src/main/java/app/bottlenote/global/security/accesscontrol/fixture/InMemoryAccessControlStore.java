@@ -65,6 +65,13 @@ public class InMemoryAccessControlStore implements AccessControlStore {
   }
 
   @Override
+  public void removeUnversionedBan(String ip) {
+    if (!projectionVersions.containsKey(ip)) {
+      bans.remove(ip);
+    }
+  }
+
+  @Override
   public BanInfo getBan(String ip) {
     BanEntry entry = bans.get(ip);
     if (entry == null || entry.expiresAt().isBefore(Instant.now())) {
