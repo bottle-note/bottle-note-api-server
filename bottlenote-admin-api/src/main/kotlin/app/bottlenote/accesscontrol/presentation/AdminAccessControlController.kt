@@ -1,32 +1,48 @@
 package app.bottlenote.accesscontrol.presentation
 
+import app.bottlenote.accesscontrol.constant.IpBanStatus
+import app.bottlenote.accesscontrol.constant.SignalVerdict
+import app.bottlenote.accesscontrol.dto.request.IpSecuritySignalReport
+import app.bottlenote.accesscontrol.dto.response.IpBanCommandResult
+import app.bottlenote.accesscontrol.dto.response.IpBanDetail
+import app.bottlenote.accesscontrol.dto.response.IpBanEventView
+import app.bottlenote.accesscontrol.dto.response.IpBanSummary
+import app.bottlenote.accesscontrol.dto.response.ProjectionStatus
+import app.bottlenote.accesscontrol.exception.IpBanException
+import app.bottlenote.accesscontrol.exception.IpBanExceptionCode
+import app.bottlenote.accesscontrol.facade.IpBanFacade
+import app.bottlenote.accesscontrol.facade.IpSecuritySignalFacade
+import app.bottlenote.accesscontrol.presentation.docs.AdminAccessControlApiDocs
 import app.bottlenote.global.data.response.GlobalResponse
 import app.bottlenote.global.security.SecurityContextUtil
-import app.bottlenote.global.security.accesscontrol.AccessControlException
-import app.bottlenote.global.security.accesscontrol.AccessControlExceptionCode
-import app.bottlenote.global.security.accesscontrol.AccessControlService
 import app.bottlenote.global.security.accesscontrol.ClientIpResolver
+import app.bottlenote.user.exception.UserException
+import app.bottlenote.user.exception.UserExceptionCode
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
-import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.Duration
+import java.time.LocalDateTime
 
 @RestController
 // AdminApiVersionConfig가 app.bottlenote.*.presentation 컨트롤러에 /v1 prefix를 붙인다
 @RequestMapping("/access-control/ip-bans")
-// ConditionalOnBean(AccessControlService)는 스캔 순서에 따라 컨트롤러가 누락될 수 있다
+@AdminAccessControlApiDocs.ApiTag
 @ConditionalOnProperty(
 	prefix = "bottlenote.access-control",
 	name = ["enabled"],
@@ -34,84 +50,143 @@ import java.time.Duration
 	matchIfMissing = true
 )
 class AdminAccessControlController(
-	private val accessControlService: AccessControlService
+	private val ipBanFacade: IpBanFacade,
+	private val ipSecuritySignalFacade: IpSecuritySignalFacade
 ) {
-	private val log = LoggerFactory.getLogger(javaClass)
-
+	@AdminAccessControlApiDocs.Ban
 	@PostMapping
 	fun ban(@Valid @RequestBody request: IpBanRequest): ResponseEntity<GlobalResponse> {
-		val ip = normalizeIp(request.ip)
-		val reason = request.reason?.takeIf { it.isNotBlank() } ?: "manual"
-		accessControlService.banIp(ip, Duration.ofSeconds(request.ttlSeconds.toLong()), reason)
-		val ban = accessControlService.getBan(ip)
-		audit("BAN", ip, request.ttlSeconds.toLong(), reason)
-		return GlobalResponse.ok(
-			IpBanResponse(
-				ip = ip,
-				reason = ban?.reason.orEmpty(),
-				ttlSeconds = ban?.ttlSeconds ?: request.ttlSeconds.toLong(),
-				banned = true
-			)
+		val result = ipBanFacade.ban(
+			request.ip,
+			Duration.ofSeconds(request.ttlSeconds.toLong()),
+			request.reason?.takeIf { it.isNotBlank() } ?: "manual",
+			requiredAdminId()
 		)
+		return commandResponse(result)
 	}
 
-	/**
-	 * - `ip` 있음: 단건 조회
-	 * - `ip` 없음: 활성 ban 목록 (max 기본 100, 상한 500)
-	 */
+	/** `ip`이 있으면 단건, 없으면 DB의 활성 차단 목록을 조회한다. */
+	@AdminAccessControlApiDocs.GetOrList
 	@GetMapping
 	fun getOrList(
 		@RequestParam(required = false) ip: String?,
 		@RequestParam(required = false, defaultValue = "100") max: Int
 	): ResponseEntity<GlobalResponse> {
 		if (!ip.isNullOrBlank()) {
-			val normalized = normalizeIp(ip)
-			val ban = accessControlService.getBan(normalized)
-			return GlobalResponse.ok(
-				IpBanResponse(
-					ip = normalized,
-					reason = ban?.reason.orEmpty(),
-					ttlSeconds = ban?.ttlSeconds ?: 0,
-					banned = ban != null
-				)
-			)
+			val normalizedIp = normalizeIp(ip)
+			val detail = ipBanFacade.findByIp(normalizedIp)
+			return GlobalResponse.ok(detail.map(::toResponse).orElseGet { IpBanResponse(null, normalizedIp, "", 0, false, null) })
 		}
-		val limit = max.coerceIn(1, 500)
-		val items =
-			accessControlService.listBans(limit).map {
-				IpBanResponse(
-					ip = it.ip(),
-					reason = it.reason(),
-					ttlSeconds = it.ttlSeconds(),
-					banned = true
-				)
-			}
+		val items = ipBanFacade.list(IpBanStatus.ACTIVE, max.coerceIn(1, 500)).map(::toResponse)
 		return GlobalResponse.ok(IpBanListResponse(total = items.size, items = items))
 	}
 
+	@AdminAccessControlApiDocs.GetHistory
+	@GetMapping("/{ipBanId}")
+	fun getHistory(@PathVariable ipBanId: Long): ResponseEntity<GlobalResponse> = GlobalResponse.ok(
+		ipBanFacade.findById(ipBanId)
+			.map(::toHistoryResponse)
+			.orElseThrow { IpBanException(IpBanExceptionCode.IP_BAN_NOT_FOUND) }
+	)
+
 	/** IPv6 호환을 위해 path variable 대신 query param 사용 */
+	@AdminAccessControlApiDocs.Unban
 	@DeleteMapping
-	fun unban(@RequestParam ip: String): ResponseEntity<GlobalResponse> {
-		val normalized = normalizeIp(ip)
-		accessControlService.unbanIp(normalized)
-		audit("UNBAN", normalized, 0, "")
-		return GlobalResponse.ok(IpBanResponse(ip = normalized, reason = "", ttlSeconds = 0, banned = false))
-	}
+	fun unban(@RequestParam ip: String): ResponseEntity<GlobalResponse> = commandResponse(ipBanFacade.unban(ip, "manual", requiredAdminId()))
 
-	private fun normalizeIp(raw: String): String = ClientIpResolver.normalize(raw)
-		?: throw AccessControlException(AccessControlExceptionCode.INVALID_IP)
-
-	private fun audit(action: String, ip: String, ttlSeconds: Long, reason: String) {
-		val adminId = SecurityContextUtil.getAdminUserIdByContext().orElse(null)
-		log.info(
-			"access-control audit action={} adminId={} ip={} ttlSeconds={} reason={}",
-			action,
-			adminId,
-			ip,
-			ttlSeconds,
-			reason
+	@AdminAccessControlApiDocs.ReportSignal
+	@PostMapping("/signals")
+	fun reportSignal(@Valid @RequestBody request: IpSecuritySignalRequest): ResponseEntity<GlobalResponse> = GlobalResponse.ok(
+		ipSecuritySignalFacade.report(
+			IpSecuritySignalReport(
+				request.ipBanId,
+				request.ip,
+				request.endpointPath,
+				request.httpMethod,
+				request.ruleCode,
+				request.observedFrom,
+				request.observedUntil,
+				request.observationCount,
+				request.agentVersion
+			),
+			requiredAdminId()
 		)
+	)
+
+	@AdminAccessControlApiDocs.GetSignal
+	@GetMapping("/signals/{signalId}")
+	fun getSignal(@PathVariable signalId: Long): ResponseEntity<GlobalResponse> = GlobalResponse.ok(
+		ipSecuritySignalFacade.findById(signalId)
+			.orElseThrow { IpBanException(IpBanExceptionCode.IP_SECURITY_SIGNAL_NOT_FOUND) }
+	)
+
+	@AdminAccessControlApiDocs.ListSignals
+	@GetMapping("/signals")
+	fun listSignals(
+		@RequestParam ip: String,
+		@RequestParam(required = false, defaultValue = "100") max: Int
+	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(ipSecuritySignalFacade.findByIp(ip, max.coerceIn(1, 500)))
+
+	@AdminAccessControlApiDocs.ReviewSignal
+	@PostMapping("/signals/{signalId}/verdict")
+	fun reviewSignal(
+		@PathVariable signalId: Long,
+		@Valid @RequestBody request: IpSecuritySignalVerdictRequest
+	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(
+		ipSecuritySignalFacade.review(signalId, request.verdict, request.reviewNote, requiredAdminId())
+	)
+
+	private fun commandResponse(result: IpBanCommandResult): ResponseEntity<GlobalResponse> {
+		val response = toResponse(result.detail(), result.projectionStatus())
+		return if (result.projectionStatus() == ProjectionStatus.PENDING_RECONCILE) {
+			ResponseEntity.status(HttpStatus.ACCEPTED).body(GlobalResponse.ok(response).body)
+		} else {
+			GlobalResponse.ok(response)
+		}
 	}
+
+	private fun requiredAdminId(): Long = SecurityContextUtil.getAdminUserIdByContext()
+		.orElseThrow { UserException(UserExceptionCode.REQUIRED_USER_ID) }
+
+	private fun normalizeIp(rawIp: String): String = ClientIpResolver.normalize(rawIp)
+		?: throw IpBanException(IpBanExceptionCode.INVALID_IP)
+
+	private fun toResponse(detail: IpBanDetail, projectionStatus: ProjectionStatus? = null): IpBanResponse = IpBanResponse(
+		id = detail.id(),
+		ip = detail.normalizedIp(),
+		reason = detail.reason(),
+		ttlSeconds = if (detail.status() == IpBanStatus.ACTIVE) {
+			Duration.between(LocalDateTime.now(), detail.expiresAt()).seconds.coerceAtLeast(0)
+		} else {
+			0
+		},
+		banned = detail.status() == IpBanStatus.ACTIVE,
+		projectionStatus = projectionStatus
+	)
+
+	private fun toResponse(summary: IpBanSummary): IpBanResponse = IpBanResponse(
+		id = summary.id(),
+		ip = summary.normalizedIp(),
+		reason = summary.reason(),
+		ttlSeconds = if (summary.status() == IpBanStatus.ACTIVE) {
+			Duration.between(LocalDateTime.now(), summary.expiresAt()).seconds.coerceAtLeast(0)
+		} else {
+			0
+		},
+		banned = summary.status() == IpBanStatus.ACTIVE,
+		projectionStatus = null
+	)
+
+	private fun toHistoryResponse(detail: IpBanDetail): IpBanHistoryResponse = IpBanHistoryResponse(
+		id = detail.id(),
+		ip = detail.normalizedIp(),
+		status = detail.status(),
+		reason = detail.reason(),
+		effectiveFrom = detail.effectiveFrom(),
+		expiresAt = detail.expiresAt(),
+		stateChangedAt = detail.stateChangedAt(),
+		events = detail.events()
+	)
 }
 
 data class IpBanRequest(
@@ -125,13 +200,57 @@ data class IpBanRequest(
 )
 
 data class IpBanResponse(
+	val id: Long?,
 	val ip: String,
 	val reason: String,
 	val ttlSeconds: Long,
-	val banned: Boolean
+	val banned: Boolean,
+	val projectionStatus: ProjectionStatus?
 )
 
 data class IpBanListResponse(
 	val total: Int,
 	val items: List<IpBanResponse>
+)
+
+data class IpBanHistoryResponse(
+	val id: Long,
+	val ip: String,
+	val status: IpBanStatus,
+	val reason: String,
+	val effectiveFrom: LocalDateTime,
+	val expiresAt: LocalDateTime,
+	val stateChangedAt: LocalDateTime,
+	val events: List<IpBanEventView>
+)
+
+data class IpSecuritySignalRequest(
+	val ipBanId: Long? = null,
+	@field:NotBlank
+	val ip: String,
+	@field:NotBlank
+	@field:Size(max = 1024)
+	@field:Pattern(regexp = "^[^?]+$", message = "ACCESS_CONTROL_SIGNAL_ENDPOINT_QUERY_FORBIDDEN")
+	val endpointPath: String,
+	@field:NotBlank
+	@field:Size(max = 10)
+	val httpMethod: String,
+	@field:NotBlank
+	@field:Size(max = 100)
+	val ruleCode: String,
+	@field:NotNull
+	val observedFrom: LocalDateTime,
+	@field:NotNull
+	val observedUntil: LocalDateTime,
+	@field:Min(1)
+	val observationCount: Int,
+	@field:Size(max = 100)
+	val agentVersion: String? = null
+)
+
+data class IpSecuritySignalVerdictRequest(
+	@field:NotNull
+	val verdict: SignalVerdict,
+	@field:Size(max = 500)
+	val reviewNote: String? = null
 )

@@ -33,10 +33,12 @@ class AccessControlSecurityIntegrationTest : IntegrationTestSupport() {
 	private lateinit var accessControlService: AccessControlService
 
 	private lateinit var accessToken: String
+	private var adminId: Long = 0
 
 	@BeforeEach
 	fun setUpAdminToken() {
 		val admin = adminUserTestFactory.persistRootAdmin()
+		adminId = admin.id
 		accessToken = getAccessToken(admin)
 	}
 
@@ -202,6 +204,108 @@ class AccessControlSecurityIntegrationTest : IntegrationTestSupport() {
 		} finally {
 			accessControlService.unbanIp(escapeIp)
 		}
+	}
+
+	@Test
+	@DisplayName("관리 API는 DB 차단 상태와 signal 판정을 감사 이력으로 관리한다")
+	fun managementApiPersistsBanHistoryAndSignalVerdict() {
+		val targetIp = nextTestIp()
+		val banResult =
+			mockMvcTester
+				.post()
+				.uri(BAN_API)
+				.header("Authorization", "Bearer $accessToken")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsString(mapOf("ip" to targetIp, "ttlSeconds" to 600, "reason" to "api-db-state")))
+				.exchange()
+
+		banResult.assertThat().hasStatusOk()
+		val banData = mapper.readTree(banResult.response.contentAsString).path("data")
+		assertThat(banData.path("ip").asText()).isEqualTo(targetIp)
+		assertThat(banData.path("reason").asText()).isEqualTo("api-db-state")
+		assertThat(banData.path("ttlSeconds").asLong()).isPositive()
+		assertThat(banData.path("banned").asBoolean()).isTrue()
+		assertThat(banData.path("projectionStatus").asText()).isEqualTo("APPLIED")
+		val banId = banData.path("id").asLong()
+
+		val listResult =
+			mockMvcTester
+				.get()
+				.uri("$BAN_API?max=100")
+				.header("Authorization", "Bearer $accessToken")
+				.exchange()
+		listResult.assertThat().hasStatusOk()
+		assertThat(mapper.readTree(listResult.response.contentAsString).path("data").path("items").toString()).contains(targetIp)
+
+		val historyResult =
+			mockMvcTester
+				.get()
+				.uri("$BAN_API/$banId")
+				.header("Authorization", "Bearer $accessToken")
+				.exchange()
+		historyResult.assertThat().hasStatusOk()
+		val history = mapper.readTree(historyResult.response.contentAsString).path("data")
+		assertThat(history.path("events").first().path("actorAdminUserId").asLong()).isEqualTo(adminId)
+
+		val signalBody =
+			mapOf(
+				"ipBanId" to banId,
+				"ip" to targetIp,
+				"endpointPath" to "/v1/reviews",
+				"httpMethod" to "POST",
+				"ruleCode" to "RATE_LIMIT_EXCEEDED",
+				"observedFrom" to "2026-08-09T10:00:00",
+				"observedUntil" to "2026-08-09T10:01:00",
+				"observationCount" to 3
+			)
+		val signalResult =
+			mockMvcTester
+				.post()
+				.uri("$BAN_API/signals")
+				.header("Authorization", "Bearer $accessToken")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsString(signalBody))
+				.exchange()
+		signalResult.assertThat().hasStatusOk()
+		val signal = mapper.readTree(signalResult.response.contentAsString).path("data")
+		assertThat(signal.path("reportedByAdminUserId").asLong()).isEqualTo(adminId)
+		assertThat(signal.path("verdict").asText()).isEqualTo("UNKNOWN")
+		val signalId = signal.path("id").asLong()
+
+		mockMvcTester
+			.get()
+			.uri("$BAN_API/signals?ip=$targetIp")
+			.header("Authorization", "Bearer $accessToken")
+			.exchange()
+			.assertThat()
+			.hasStatusOk()
+
+		val reviewed =
+			mockMvcTester
+				.post()
+				.uri("$BAN_API/signals/$signalId/verdict")
+				.header("Authorization", "Bearer $accessToken")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(mapper.writeValueAsString(mapOf("verdict" to "CONFIRMED_ATTACK", "reviewNote" to "confirmed")))
+				.exchange()
+		reviewed.assertThat().hasStatusOk()
+		assertThat(mapper.readTree(reviewed.response.contentAsString).path("data").path("reviewedByAdminUserId").asLong()).isEqualTo(adminId)
+
+		mockMvcTester
+			.get()
+			.uri("$BAN_API/signals/$signalId")
+			.header("Authorization", "Bearer $accessToken")
+			.exchange()
+			.assertThat()
+			.hasStatusOk()
+
+		mockMvcTester
+			.delete()
+			.uri("$BAN_API?ip=$targetIp")
+			.header("Authorization", "Bearer $accessToken")
+			.exchange()
+			.assertThat()
+			.hasStatusOk()
 	}
 
 	/**

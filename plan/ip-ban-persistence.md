@@ -129,7 +129,7 @@
 - Files (advisory): Admin controller, request/response DTO, accesscontrol facade, Admin integration tests
 - Depends: Tasks 4-6
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 8: DB·Redis·Security chain 통합 검증
 
@@ -163,3 +163,4 @@
 - 2026-08-09: Task 4 완료 — `IpSecuritySignal`과 verdict 수직 슬라이스를 추가. signal은 query string 없는 endpoint, method/rule, 관찰 구간·횟수, Admin/활성 Agent UUID·입력 agent version을 저장하며 UNKNOWN에서 확정 판정으로 한 번만 전이한다. 단위 6/6, Product DB 통합 2/2, Spotless 통과.
 - 2026-08-09: Task 5 완료 — facade는 DB 트랜잭션 종료 뒤 최신 append-only event ID로 Redis projection을 수행하고 실패 시 DB 상태를 유지한 채 `PENDING_RECONCILE`을 반환한다. Redis/InMemory projection은 역순 이벤트를 무시하며 unban version은 180일 보존한다.
 - 2026-08-09: Task 6 완료 — Product JDBC Quartz cluster에서 1분 단일 재조정과 일일 180일 보존 작업을 분리했다. 활성 상태는 bounded cursor로 Redis에 복원하고, 만료 ACTIVE는 SYSTEM EXPIRE 이벤트 뒤 versioned unban한다. signal→event→종료 ban 순서로 FK를 정리하며 access-control 비활성 테스트 프로필에는 Job을 등록하지 않는다.
+- 2026-08-09: Task 7 완료 — Admin IP ban API를 DB facade 기반으로 전환하고 기존 ip/reason/ttlSeconds/banned 응답에 id/projectionStatus를 추가했다. 활성 목록은 DB SSOT이며 history, signal 등록·조회, UNKNOWN 확정 판정 API를 OpenAPI와 함께 제공한다. 인증 admin ID를 ban/event/signal reporter·reviewer에 명시적으로 전달하고, projection 실패 API는 HTTP 202/PENDING_RECONCILE과 DB ban/event 보존을 통합 테스트로 검증했다.

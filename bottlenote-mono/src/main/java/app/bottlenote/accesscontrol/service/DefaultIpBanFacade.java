@@ -13,12 +13,16 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 @FacadeService
 @Slf4j
 @RequiredArgsConstructor
-@ConditionalOnBean(AccessControlStore.class)
+@ConditionalOnProperty(
+    prefix = "bottlenote.access-control",
+    name = "enabled",
+    havingValue = "true",
+    matchIfMissing = true)
 public class DefaultIpBanFacade implements IpBanFacade {
 
   private final IpBanService ipBanService;
