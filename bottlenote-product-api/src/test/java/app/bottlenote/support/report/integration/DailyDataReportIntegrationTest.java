@@ -212,9 +212,9 @@ class DailyDataReportIntegrationTest extends IntegrationTestSupport {
     assertThat(body).contains("신규 유저**: 1명");
   }
 
-  @DisplayName("시나리오7: 0건인 항목은 리포트에서 제외된다")
+  @DisplayName("시나리오7: 0건인 항목은 리포트에서 제외하되 별점 이벤트는 0건으로 표시한다")
   @Test
-  void 값이_0인_항목은_메시지에_포함되지_않는다() {
+  void 값이_0인_별점_이벤트는_메시지에_포함된다() {
     // given - 신규 유저 1명만 생성 (다른 데이터는 0)
     LocalDateTime today = testDate.atStartOfDay();
     createUser(today, "onlyuser@test.com");
@@ -229,13 +229,34 @@ class DailyDataReportIntegrationTest extends IntegrationTestSupport {
     String body = fakeWebhookRestTemplate.getLastRequestBody();
     assertNotNull(body);
 
-    // 신규 유저만 포함되고 나머지는 제외
+    // 신규 유저와 0건인 별점 이벤트만 포함되고 나머지는 제외
     assertThat(body).contains("신규 유저**: 1명");
+    assertThat(body).contains("별점 이벤트**: 0건");
     assertThat(body).doesNotContain("**신규 리뷰**");
     assertThat(body).doesNotContain("**신규 댓글**");
     assertThat(body).doesNotContain("**신규 좋아요**");
     assertThat(body).doesNotContain("**미처리 신고**");
     assertThat(body).doesNotContain("**미처리 문의**");
+  }
+
+  @DisplayName("시나리오8: 대상 날짜에 발생한 별점 이벤트를 유형과 관계없이 집계한다")
+  @Test
+  void 대상_날짜의_별점_이벤트_발생_건수를_집계한다() {
+    // given
+    LocalDateTime today = testDate.atStartOfDay();
+    LocalDateTime yesterday = today.minusDays(1);
+    createRatingEvent(today, "START_RATING");
+    createRatingEvent(today, "RATING_MODIFY");
+    createRatingEvent(today, "RATING_DELETE");
+    createRatingEvent(yesterday, "START_RATING");
+
+    // when
+    dailyDataReportService.collectAndSendDailyReport(
+        testDate, "https://discord.com/api/webhooks/test");
+
+    // then
+    assertThat(fakeWebhookRestTemplate.wasCalled()).isTrue();
+    assertThat(fakeWebhookRestTemplate.getLastRequestBody()).contains("별점 이벤트**: 3건");
   }
 
   // Helper methods - 직접 SQL 사용
@@ -279,6 +300,15 @@ class DailyDataReportIntegrationTest extends IntegrationTestSupport {
             + "VALUES (?, ?, 'TestUser', 'LIKE', ?, ?)",
         reviewId,
         userId,
+        createDate,
+        createDate);
+  }
+
+  private void createRatingEvent(LocalDateTime createDate, String eventType) {
+    jdbcTemplate.update(
+        "INSERT INTO user_histories (user_id, event_category, event_type, alcohol_id, create_at, last_modify_at) "
+            + "VALUES (1, 'RATING', ?, 1, ?, ?)",
+        eventType,
         createDate,
         createDate);
   }
