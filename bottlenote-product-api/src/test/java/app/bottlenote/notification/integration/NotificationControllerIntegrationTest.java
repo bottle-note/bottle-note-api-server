@@ -68,6 +68,55 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
       assertThat(fieldNames(data.path("items").get(0)))
           .containsExactlyInAnyOrder(
               "id", "title", "content", "type", "category", "status", "isRead", "createAt");
+
+      JsonNode pageable = responseMeta(result).path("pageable");
+      assertThat(pageable.path("currentCursor").asLong()).isZero();
+      assertThat(pageable.path("pageSize").asLong()).isEqualTo(10L);
+      assertThat(pageable.path("hasNext").asBoolean()).isFalse();
+    }
+
+    @Test
+    @DisplayName("id-desc keyset cursor로 다음 페이지를 조회한다")
+    void getNotifications_whenKeysetCursor_returnsNextPageByLastItemId() throws Exception {
+      User user = userTestFactory.persistUser();
+      TokenItem token = getToken(user);
+
+      Notification n1 = seedNotification(user.getId(), "n1");
+      Notification n2 = seedNotification(user.getId(), "n2");
+      Notification n3 = seedNotification(user.getId(), "n3");
+
+      MvcTestResult first =
+          mockMvcTester
+              .get()
+              .uri(BASE + "?cursor=0&pageSize=2")
+              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
+              .exchange();
+
+      first.assertThat().hasStatusOk();
+      JsonNode firstData = responseData(first);
+      assertThat(firstData.path("totalCount").asLong()).isEqualTo(3);
+      assertThat(firstData.path("items")).hasSize(2);
+      assertThat(firstData.path("items").get(0).path("id").asLong()).isEqualTo(n3.getId());
+      assertThat(firstData.path("items").get(1).path("id").asLong()).isEqualTo(n2.getId());
+      JsonNode firstPageable = responseMeta(first).path("pageable");
+      assertThat(firstPageable.path("hasNext").asBoolean()).isTrue();
+      // nextCursor = 마지막 반환 item id
+      assertThat(firstPageable.path("cursor").asLong()).isEqualTo(n2.getId());
+
+      MvcTestResult second =
+          mockMvcTester
+              .get()
+              .uri(BASE + "?cursor=" + n2.getId() + "&pageSize=2")
+              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
+              .exchange();
+
+      second.assertThat().hasStatusOk();
+      JsonNode secondData = responseData(second);
+      assertThat(secondData.path("items")).hasSize(1);
+      assertThat(secondData.path("items").get(0).path("id").asLong()).isEqualTo(n1.getId());
+      assertThat(responseMeta(second).path("pageable").path("hasNext").asBoolean()).isFalse();
+      assertThat(responseMeta(second).path("pageable").path("cursor").asLong())
+          .isEqualTo(n1.getId());
     }
 
     @Test
@@ -251,6 +300,10 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
 
   private JsonNode responseData(MvcTestResult result) throws Exception {
     return mapper.readTree(result.getResponse().getContentAsString()).path("data");
+  }
+
+  private JsonNode responseMeta(MvcTestResult result) throws Exception {
+    return mapper.readTree(result.getResponse().getContentAsString()).path("meta");
   }
 
   private Set<String> fieldNames(JsonNode node) {

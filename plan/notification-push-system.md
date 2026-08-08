@@ -159,6 +159,26 @@
 - Size: S
 - Status: [x] done
 
+### Task B: Notification 목록 공개 API cursor pagination (id-desc keyset)
+- Acceptance:
+  - 알림 목록 API가 공개 API 표준 `CursorPageable` + `PageResponse` + `meta.pageable`을 사용한다
+  - 요청 DTO 기본값/검증 (`cursor` 미지정/0=최초, `pageSize` 10, max 100)
+  - 순수 port criteria + JPA **id-desc keyset**: cursor&gt;0이면 `id < cursor`, `order by id desc`, `limit pageSize+1`
+  - nextCursor(`meta.pageable.cursor`) = 이번 페이지 마지막 반환 item id
+  - InMemory / service / controller / response / OpenAPI / unit·integration 정합
+  - 사용자 소유권(본인 알림만) 유지
+- Out of scope: SC1 댓글→알림 생성 추가 통합 테스트(다음 Task), push
+- Verification: compile + Notification unit + NotificationControllerIntegrationTest
+- Files (advisory): NotificationRepository/Custom JPA, NotificationPageableRequest, UserNotificationService, NotificationController, InMemory, tests, plan
+- Depends: Task A
+- Size: M
+- Status: [x] done
+
+### Task C (후속): SC1 댓글 알림 생성 통합 테스트 보강
+- Acceptance: 리뷰 댓글 생성 → Notification 저장 경로의 통합 테스트를 보강한다
+- Status: [ ] pending
+- Depends: Task B
+
 ## Progress Log
 
 - 2026-08-08: `/define` 착수. 설계 문서 반영, 기존 notification/push 잔존 구조 조사.
@@ -175,3 +195,5 @@
 - 2026-08-08: Notification 패키지 `app.external.notification` → `app.bottlenote.notification` 이전, API `/api/v1/notifications`.
 - 2026-08-08: PR #701 리뷰 후속 Task A 추가 — UserNotificationService UserFacade 경유, NOTIFICATION_USER_NOT_FOUND 계약 보존, ReviewReplyNotificationListener AFTER_COMMIT 명시. cursor/integration/issue 항목은 범위 외.
 - 2026-08-08: Task A 완료 — FakeUserFacade를 test-support로 이전, Notification unit + product FakeUserFacade 소비 unit + check_rule_test 통과.
+- 2026-08-08: Task B 착수 — Notification 목록 API를 id-desc keyset cursor pagination으로 변경.
+- 2026-08-08: Task B 완료 — cursor 미지정/0=조건 없음, cursor&gt;0이면 id&lt;cursor, order by id desc, limit size+1, nextCursor=마지막 item id. unit+integration 검증. SC1 추가 통합 테스트는 Task C.

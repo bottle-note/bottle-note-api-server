@@ -5,6 +5,7 @@ import app.bottlenote.notification.dto.response.NotificationMarkAllReadResponse;
 import app.bottlenote.notification.dto.response.NotificationMarkReadResponse;
 import app.bottlenote.notification.dto.response.NotificationUnreadCountResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -30,7 +31,11 @@ public final class NotificationApiDocs {
       summary = "내 알림 목록을 조회한다",
       description =
           """
-          인증 사용자 본인의 알림을 최신순으로 반환합니다. 타 사용자 알림은 포함되지 않습니다.
+          인증 사용자 본인의 알림을 최신순(id desc) keyset 커서 페이징으로 반환합니다. 타 사용자 알림은 포함되지 않습니다.
+
+          - `cursor`: 직전 페이지 마지막 알림 id. 미지정/0이면 최신부터 조회
+          - `pageSize`: 페이지 크기 (기본 10, 최대 100)
+          - 응답 `meta.pageable.cursor`는 이번 페이지 마지막 item id(다음 요청용 nextCursor)
 
           **오류 코드**
 
@@ -38,6 +43,13 @@ public final class NotificationApiDocs {
           | --- | --- | --- | --- |
           | `REQUIRED_USER_ID` | 400 | 액세스 토큰에서 사용자 식별자를 얻지 못했을 때 | 유저 아이디가 필요합니다. |
           """,
+      parameters = {
+        @Parameter(
+            name = "cursor",
+            description = "직전 페이지 마지막 알림 id (keyset, 0이면 최초)",
+            example = "0"),
+        @Parameter(name = "pageSize", description = "페이지 크기", example = "10")
+      },
       responses =
           @ApiResponse(
               responseCode = "200",

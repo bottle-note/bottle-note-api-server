@@ -6,19 +6,25 @@ import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.notification.controller.docs.NotificationApiDocs;
 import app.bottlenote.notification.domain.Notification;
+import app.bottlenote.notification.dto.request.NotificationPageableRequest;
 import app.bottlenote.notification.dto.response.NotificationItemResponse;
 import app.bottlenote.notification.dto.response.NotificationListResponse;
+import app.bottlenote.notification.dto.response.NotificationListResult;
 import app.bottlenote.notification.dto.response.NotificationMarkAllReadResponse;
 import app.bottlenote.notification.dto.response.NotificationMarkReadResponse;
 import app.bottlenote.notification.dto.response.NotificationUnreadCountResponse;
 import app.bottlenote.notification.service.NotificationService;
 import app.bottlenote.user.exception.UserException;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,11 +42,16 @@ public class NotificationController {
 
   @GetMapping
   @NotificationApiDocs.GetNotifications
-  public ResponseEntity<GlobalResponse> getNotifications() {
+  public ResponseEntity<GlobalResponse> getNotifications(
+      @ModelAttribute @Valid NotificationPageableRequest request) {
     Long userId = currentUserId();
+    PageResponse<NotificationListResult> page =
+        notificationService.getNotifications(userId, request);
     List<NotificationItemResponse> items =
-        notificationService.getNotifications(userId).stream().map(this::toItem).toList();
-    return GlobalResponse.ok(NotificationListResponse.of(items));
+        page.content().items().stream().map(this::toItem).toList();
+    NotificationListResponse body = NotificationListResponse.of(page.content().totalCount(), items);
+    return GlobalResponse.ok(
+        body, MetaService.createMetaInfo().add("pageable", page.cursorPageable()));
   }
 
   @GetMapping("/unread-count")

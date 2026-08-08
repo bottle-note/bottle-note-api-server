@@ -3,10 +3,13 @@ package app.bottlenote.notification.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.notification.constant.NotificationCategory;
 import app.bottlenote.notification.constant.NotificationStatus;
 import app.bottlenote.notification.constant.NotificationType;
 import app.bottlenote.notification.domain.Notification;
+import app.bottlenote.notification.dto.request.NotificationPageableRequest;
+import app.bottlenote.notification.dto.response.NotificationListResult;
 import app.bottlenote.notification.exception.NotificationException;
 import app.bottlenote.notification.exception.NotificationExceptionCode;
 import app.bottlenote.notification.fixture.InMemoryNotificationRepository;
@@ -15,7 +18,6 @@ import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.facade.payload.UserProfileItem;
 import app.bottlenote.user.fixture.FakeUserFacade;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -96,12 +98,53 @@ class UserNotificationServiceTest {
       Notification newer = seedNotification(USER_ID, "new");
       seedNotification(OTHER_USER_ID, "other");
 
-      List<Notification> result = service.getNotifications(USER_ID);
+      PageResponse<NotificationListResult> result =
+          service.getNotifications(USER_ID, NotificationPageableRequest.builder().build());
 
-      assertThat(result)
+      assertThat(result.content().totalCount()).isEqualTo(2);
+      assertThat(result.content().items())
           .extracting(Notification::getId)
           .containsExactly(newer.getId(), older.getId());
-      assertThat(result).extracting(Notification::getTitle).containsExactly("new", "old");
+      assertThat(result.content().items())
+          .extracting(Notification::getTitle)
+          .containsExactly("new", "old");
+      assertThat(result.cursorPageable().getHasNext()).isFalse();
+      assertThat(result.cursorPageable().getCurrentCursor()).isZero();
+      assertThat(result.cursorPageable().getCursor()).isEqualTo(older.getId());
+      assertThat(result.cursorPageable().getPageSize()).isEqualTo(10L);
+    }
+
+    @Test
+    @DisplayName("id-desc keyset으로 다음 페이지를 조회하고 nextCursor는 마지막 item id다")
+    void getNotifications_whenKeysetCursor_returnsNextPageById() {
+      Notification n1 = seedNotification(USER_ID, "n1");
+      Notification n2 = seedNotification(USER_ID, "n2");
+      Notification n3 = seedNotification(USER_ID, "n3");
+
+      PageResponse<NotificationListResult> firstPage =
+          service.getNotifications(
+              USER_ID, NotificationPageableRequest.builder().cursor(0L).pageSize(2L).build());
+
+      assertThat(firstPage.content().totalCount()).isEqualTo(3);
+      assertThat(firstPage.content().items())
+          .extracting(Notification::getId)
+          .containsExactly(n3.getId(), n2.getId());
+      assertThat(firstPage.cursorPageable().getHasNext()).isTrue();
+      assertThat(firstPage.cursorPageable().getCurrentCursor()).isZero();
+      // nextCursor = 마지막 반환 item id
+      assertThat(firstPage.cursorPageable().getCursor()).isEqualTo(n2.getId());
+
+      PageResponse<NotificationListResult> secondPage =
+          service.getNotifications(
+              USER_ID,
+              NotificationPageableRequest.builder().cursor(n2.getId()).pageSize(2L).build());
+
+      assertThat(secondPage.content().items())
+          .extracting(Notification::getId)
+          .containsExactly(n1.getId());
+      assertThat(secondPage.cursorPageable().getHasNext()).isFalse();
+      assertThat(secondPage.cursorPageable().getCurrentCursor()).isEqualTo(n2.getId());
+      assertThat(secondPage.cursorPageable().getCursor()).isEqualTo(n1.getId());
     }
 
     @Test

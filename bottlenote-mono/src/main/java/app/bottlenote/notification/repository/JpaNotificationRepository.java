@@ -3,7 +3,6 @@ package app.bottlenote.notification.repository;
 import app.bottlenote.common.annotation.JpaRepositoryImpl;
 import app.bottlenote.notification.domain.Notification;
 import app.bottlenote.notification.domain.NotificationRepository;
-import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -12,7 +11,9 @@ import org.springframework.data.repository.query.Param;
 
 @JpaRepositoryImpl
 public interface JpaNotificationRepository
-    extends NotificationRepository, JpaRepository<Notification, Long> {
+    extends NotificationRepository,
+        JpaRepository<Notification, Long>,
+        CustomNotificationRepository {
 
   @Override
   @Query(
@@ -21,15 +22,6 @@ public interface JpaNotificationRepository
 			where n.id = :id and n.userId = :userId
 			""")
   Optional<Notification> findByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
-
-  @Override
-  @Query(
-      """
-			select n from notification n
-			where n.userId = :userId
-			order by n.id desc
-			""")
-  List<Notification> findAllByUserIdOrderByIdDesc(@Param("userId") Long userId);
 
   @Override
   @Query(

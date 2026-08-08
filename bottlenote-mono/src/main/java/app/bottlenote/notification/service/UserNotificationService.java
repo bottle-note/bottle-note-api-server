@@ -1,7 +1,12 @@
 package app.bottlenote.notification.service;
 
+import app.bottlenote.global.service.cursor.CursorPageable;
+import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.notification.domain.Notification;
+import app.bottlenote.notification.domain.NotificationListCriteria;
 import app.bottlenote.notification.domain.NotificationRepository;
+import app.bottlenote.notification.dto.request.NotificationPageableRequest;
+import app.bottlenote.notification.dto.response.NotificationListResult;
 import app.bottlenote.notification.exception.NotificationException;
 import app.bottlenote.notification.exception.NotificationExceptionCode;
 import app.bottlenote.notification.payload.NotificationMessage;
@@ -48,8 +53,28 @@ public class UserNotificationService implements NotificationService {
 
   @Transactional(readOnly = true)
   @Override
-  public List<Notification> getNotifications(Long userId) {
-    return notificationRepository.findAllByUserIdOrderByIdDesc(userId);
+  public PageResponse<NotificationListResult> getNotifications(
+      Long userId, NotificationPageableRequest request) {
+    NotificationListCriteria criteria =
+        NotificationListCriteria.of(userId, request.cursor(), request.pageSize());
+    long totalCount = notificationRepository.countByUserId(userId);
+    List<Notification> fetched = notificationRepository.findPageByUserId(criteria);
+
+    boolean hasNext = fetched.size() > criteria.pageSize();
+    List<Notification> content =
+        hasNext ? List.copyOf(fetched.subList(0, criteria.pageSize().intValue())) : fetched;
+
+    // nextCursor = 마지막 반환 item id (keyset)
+    Long nextCursor = content.isEmpty() ? criteria.cursor() : content.getLast().getId();
+    CursorPageable pageable =
+        CursorPageable.builder()
+            .currentCursor(criteria.cursor())
+            .cursor(nextCursor)
+            .pageSize(criteria.pageSize())
+            .hasNext(hasNext)
+            .build();
+
+    return PageResponse.of(NotificationListResult.of(totalCount, content), pageable);
   }
 
   @Transactional(readOnly = true)

@@ -11,7 +11,7 @@ public record NotificationListResponse(
     @ArraySchema(schema = @Schema(implementation = NotificationItemResponse.class))
         List<NotificationItemResponse> items) {
 
-  public static NotificationListResponse of(List<NotificationItemResponse> items) {
-    return new NotificationListResponse(items.size(), items);
+  public static NotificationListResponse of(long totalCount, List<NotificationItemResponse> items) {
+    return new NotificationListResponse(totalCount, items);
   }
 }
