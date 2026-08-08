@@ -11,6 +11,7 @@ import app.bottlenote.accesscontrol.domain.IpSecuritySignal;
 import app.bottlenote.accesscontrol.fixture.InMemoryIpBanEventRepository;
 import app.bottlenote.accesscontrol.fixture.InMemoryIpBanRepository;
 import app.bottlenote.accesscontrol.fixture.InMemoryIpSecuritySignalRepository;
+import app.bottlenote.accesscontrol.service.IpBanReconciliationService.InactiveCursor;
 import app.bottlenote.agent.fixture.InMemoryAgentRepository;
 import app.bottlenote.agent.service.DefaultAgentFacade;
 import app.bottlenote.global.security.accesscontrol.fixture.InMemoryAccessControlStore;
@@ -78,8 +79,8 @@ class IpBanReconciliationServiceTest {
   }
 
   @Test
-  @DisplayName("201번째 비활성 DB 밴도 커서 순회로 Redis에서 제거한다")
-  void reconcile_whenInactiveBansExceedBatch_removesBeyondFirstBatch() {
+  @DisplayName("201번째 비활성 DB 밴은 다음 주기에서 Redis에서 제거한다")
+  void reconcile_whenInactiveBansExceedBatch_removesBeyondFirstBatchOnNextRun() {
     Fixture fixture = fixture();
 
     for (int host = 1; host <= 201; host++) {
@@ -104,9 +105,51 @@ class IpBanReconciliationServiceTest {
       fixture.store.ban(ip, Duration.ofMinutes(10), "stale");
     }
 
-    fixture.reconciliationService.reconcile();
+    InactiveCursor cursor = fixture.reconciliationService.reconcile(null);
+
+    assertThat(fixture.store.isBanned("198.18.1.201")).isTrue();
+
+    fixture.reconciliationService.reconcile(cursor);
 
     assertThat(fixture.store.isBanned("198.18.1.201")).isFalse();
+  }
+
+  @Test
+  @DisplayName("401건 비활성 차단은 200, 400, 종료 순으로 cursor를 전진시킨다")
+  void reconcile_whenInactiveBansAre401_advancesCursorByBatchAndResetsAtEnd() {
+    Fixture fixture = fixture();
+
+    for (int host = 1; host <= 401; host++) {
+      String ip = inactiveTestIp(host);
+      IpBan ban =
+          fixture.banRepository.save(
+              IpBan.createActive(
+                  ip, "abuse", NOW.minusMinutes(10), NOW.plusMinutes(10), NOW.minusMinutes(10)));
+      ban.unban("reviewed", NOW.minusMinutes(1));
+      fixture.banRepository.save(ban);
+      fixture.eventRepository.save(
+          IpBanAuditRecord.create(
+              ban.getId(),
+              IpBanEventType.UNBAN,
+              "reviewed",
+              NOW.plusMinutes(10),
+              NOW.plusMinutes(10),
+              IpBanActorType.ADMIN,
+              1L,
+              null,
+              NOW.minusMinutes(1)));
+      fixture.store.ban(ip, Duration.ofMinutes(10), "stale");
+    }
+
+    InactiveCursor first = fixture.reconciliationService.reconcile(null);
+    InactiveCursor second = fixture.reconciliationService.reconcile(first);
+    InactiveCursor end = fixture.reconciliationService.reconcile(second);
+
+    assertThat(first.id()).isEqualTo(200L);
+    assertThat(second.id()).isEqualTo(400L);
+    assertThat(end).isNull();
+    assertThat(fixture.store.isBanned(inactiveTestIp(201))).isFalse();
+    assertThat(fixture.store.isBanned(inactiveTestIp(401))).isFalse();
   }
 
   @Test
@@ -174,6 +217,10 @@ class IpBanReconciliationServiceTest {
         ipBanService,
         new IpBanReconciliationService(banRepository, eventRepository, facade, store, CLOCK),
         new IpBanRetentionService(banRepository, eventRepository, signalRepository, CLOCK));
+  }
+
+  private static String inactiveTestIp(int index) {
+    return "198.19." + (index / 250) + "." + (index % 250 + 1);
   }
 
   private record Fixture(

@@ -1,6 +1,5 @@
 package app.bottlenote.accesscontrol.service;
 
-import app.bottlenote.accesscontrol.constant.IpBanStatus;
 import app.bottlenote.accesscontrol.domain.IpBan;
 import app.bottlenote.accesscontrol.domain.IpBanEventRepository;
 import app.bottlenote.accesscontrol.domain.IpBanRepository;
@@ -41,9 +40,20 @@ public class IpBanReconciliationService {
 
   @Transactional(propagation = Propagation.NOT_SUPPORTED)
   public void reconcile() {
+    reconcile(null);
+  }
+
+  /**
+   * 활성 차단은 매 실행마다 복구하고, 종료 차단은 전달받은 keyset 이후 최대 한 batch만 처리한다.
+   *
+   * @return 다음 실행에 사용할 cursor. 종료에 도달하면 {@code null}이다.
+   */
+  @Transactional(propagation = Propagation.NOT_SUPPORTED)
+  public InactiveCursor reconcile(InactiveCursor inactiveCursor) {
     reconcileActiveBans();
-    reconcileInactiveBans();
-    removeLegacyRedisBans();
+    InactiveReconciliationResult inactiveResult = reconcileInactiveBans(inactiveCursor);
+    removeLegacyRedisBans(BATCH_SIZE - inactiveResult.processedCount());
+    return inactiveResult.nextCursor();
   }
 
   private void reconcileActiveBans() {
@@ -84,42 +94,38 @@ public class IpBanReconciliationService {
     }
   }
 
-  private void reconcileInactiveBans() {
-    LocalDateTime cursorStateChangedAt = null;
-    Long cursorId = null;
-    while (true) {
-      List<IpBan> batch =
-          ipBanRepository.findInactiveAfter(cursorStateChangedAt, cursorId, BATCH_SIZE);
-      if (batch.isEmpty()) {
-        return;
-      }
-      for (IpBan ban : batch) {
-        try {
-          accessControlStore.projectUnban(
-              ban.getNormalizedIp(), ipBanEventRepository.findLatestIdByIpBanId(ban.getId()));
-        } catch (RuntimeException exception) {
-          log.warn("IP ban inactive reconciliation failed ip={}", ban.getNormalizedIp(), exception);
-        }
-      }
-      IpBan last = batch.getLast();
-      cursorStateChangedAt = last.getStateChangedAt();
-      cursorId = last.getId();
-      if (batch.size() < BATCH_SIZE) {
-        return;
+  private InactiveReconciliationResult reconcileInactiveBans(InactiveCursor cursor) {
+    LocalDateTime stateChangedAt = cursor == null ? null : cursor.stateChangedAt();
+    Long id = cursor == null ? null : cursor.id();
+    List<IpBan> batch = ipBanRepository.findInactiveAfter(stateChangedAt, id, BATCH_SIZE);
+    if (batch.isEmpty()) {
+      return new InactiveReconciliationResult(null, 0);
+    }
+    for (IpBan ban : batch) {
+      try {
+        accessControlStore.projectUnban(
+            ban.getNormalizedIp(), ipBanEventRepository.findLatestIdByIpBanId(ban.getId()));
+      } catch (RuntimeException exception) {
+        log.warn("IP ban inactive reconciliation failed ip={}", ban.getNormalizedIp(), exception);
       }
     }
+    if (batch.size() < BATCH_SIZE) {
+      return new InactiveReconciliationResult(null, batch.size());
+    }
+    IpBan last = batch.getLast();
+    return new InactiveReconciliationResult(
+        new InactiveCursor(last.getStateChangedAt(), last.getId()), batch.size());
   }
 
-  private void removeLegacyRedisBans() {
-    for (AccessControlStore.BanInfo redisBan : accessControlStore.listBans(BATCH_SIZE)) {
+  private void removeLegacyRedisBans(int max) {
+    if (max <= 0) {
+      return;
+    }
+    for (AccessControlStore.BanInfo redisBan : accessControlStore.listBans(max)) {
       try {
         IpBanDetailResponse detail = ipBanFacade.findByIp(redisBan.ip()).orElse(null);
         if (detail == null) {
           accessControlStore.removeUnversionedBan(redisBan.ip());
-          continue;
-        }
-        if (detail.status() != IpBanStatus.ACTIVE || !detail.expiresAt().isAfter(now())) {
-          accessControlStore.projectUnban(redisBan.ip(), detail.events().getLast().id());
         }
       } catch (RuntimeException exception) {
         log.warn("IP ban stale Redis cleanup failed ip={}", redisBan.ip(), exception);
@@ -130,4 +136,9 @@ public class IpBanReconciliationService {
   private LocalDateTime now() {
     return LocalDateTime.now(clock).truncatedTo(ChronoUnit.MICROS);
   }
+
+  /** JDBC Quartz JobDataMap에 문자열로 보관할 수 있는 종료 차단 keyset 위치. */
+  public record InactiveCursor(LocalDateTime stateChangedAt, long id) {}
+
+  private record InactiveReconciliationResult(InactiveCursor nextCursor, int processedCount) {}
 }
