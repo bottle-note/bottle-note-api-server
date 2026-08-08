@@ -23,9 +23,22 @@ public class DefaultAgentFacade implements AgentFacade {
     return agentRepository
         .findByApiKeyHashAndStatus(apiKeyHash, ACTIVE)
         .filter(Agent::isUsable)
-        .map(
-            agent ->
-                new AgentAccountInfo(
-                    agent.getProductUserId(), agent.getAdminUserId(), agent.getProfileCode()));
+        .map(this::toAccountInfo);
+  }
+
+  @Override
+  public Optional<AgentAccountInfo> findActiveAgentByAdminUserId(Long adminUserId) {
+    if (adminUserId == null) {
+      return Optional.empty();
+    }
+    return agentRepository
+        .findByAdminUserIdAndStatus(adminUserId, ACTIVE)
+        .filter(Agent::isUsable)
+        .map(this::toAccountInfo);
+  }
+
+  private AgentAccountInfo toAccountInfo(Agent agent) {
+    return new AgentAccountInfo(
+        agent.getId(), agent.getProductUserId(), agent.getAdminUserId(), agent.getProfileCode());
   }
 }

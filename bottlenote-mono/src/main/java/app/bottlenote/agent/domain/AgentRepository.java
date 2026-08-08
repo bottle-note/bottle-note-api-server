@@ -9,5 +9,7 @@ public interface AgentRepository {
 
   Optional<Agent> findByApiKeyHashAndStatus(String apiKeyHash, AgentStatus status);
 
+  Optional<Agent> findByAdminUserIdAndStatus(Long adminUserId, AgentStatus status);
+
   Agent save(Agent agent);
 }

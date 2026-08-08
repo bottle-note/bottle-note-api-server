@@ -11,4 +11,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface JpaAgentRepository extends AgentRepository, JpaRepository<Agent, String> {
 
   Optional<Agent> findByApiKeyHashAndStatus(String apiKeyHash, AgentStatus status);
+
+  Optional<Agent> findByAdminUserIdAndStatus(Long adminUserId, AgentStatus status);
 }
