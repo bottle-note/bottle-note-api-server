@@ -67,16 +67,18 @@ public class DailyDataReportService {
       Long newReviewsCount = countNewReviews(startOfDay, endOfDay);
       Long newRepliesCount = countNewReplies(startOfDay, endOfDay);
       Long newLikesCount = countNewLikes(startOfDay, endOfDay);
+      Long ratingEventsCount = countRatingEvents(startOfDay, endOfDay);
       Long newReportsCount = countUnprocessedReports();
       Long newInquiriesCount = countUnprocessedInquiries();
 
       log.info(
-          "일일 데이터 리포트 수집 완료: {} - 유저: {}, 리뷰: {}, 댓글: {}, 좋아요: {}, 미처리 신고: {}, 미처리 문의: {}",
+          "일일 데이터 리포트 수집 완료: {} - 유저: {}, 리뷰: {}, 댓글: {}, 좋아요: {}, 별점 이벤트: {}, 미처리 신고: {}, 미처리 문의: {}",
           targetDate,
           newUsersCount,
           newReviewsCount,
           newRepliesCount,
           newLikesCount,
+          ratingEventsCount,
           newReportsCount,
           newInquiriesCount);
 
@@ -86,6 +88,7 @@ public class DailyDataReportService {
           newReviewsCount,
           newRepliesCount,
           newLikesCount,
+          ratingEventsCount,
           newReportsCount,
           newInquiriesCount);
     } catch (Exception e) {
@@ -153,6 +156,13 @@ public class DailyDataReportService {
 
   private Long countNewLikes(LocalDateTime start, LocalDateTime end) {
     String sql = "SELECT COUNT(*) FROM likes WHERE create_at >= ? AND create_at < ?";
+    return jdbcTemplate.queryForObject(sql, Long.class, start, end);
+  }
+
+  private Long countRatingEvents(LocalDateTime start, LocalDateTime end) {
+    String sql =
+        "SELECT COUNT(*) FROM user_histories "
+            + "WHERE event_category = 'RATING' AND create_at >= ? AND create_at < ?";
     return jdbcTemplate.queryForObject(sql, Long.class, start, end);
   }
 
