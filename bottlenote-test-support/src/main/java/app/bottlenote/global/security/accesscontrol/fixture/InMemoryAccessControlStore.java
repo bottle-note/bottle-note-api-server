@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class InMemoryAccessControlStore implements AccessControlStore {
 
   private final Map<String, BanEntry> bans = new ConcurrentHashMap<>();
+  private final Map<String, Long> projectionVersions = new ConcurrentHashMap<>();
   private final Map<String, CounterEntry> counters = new ConcurrentHashMap<>();
 
   @Override
@@ -35,6 +36,32 @@ public class InMemoryAccessControlStore implements AccessControlStore {
   @Override
   public void unban(String ip) {
     bans.remove(ip);
+  }
+
+  @Override
+  public void projectBan(String ip, Duration ttl, String reason, long eventId) {
+    projectionVersions.compute(
+        ip,
+        (ignored, current) -> {
+          if (current == null || eventId >= current) {
+            bans.put(ip, new BanEntry(reason == null ? "" : reason, Instant.now().plus(ttl)));
+            return eventId;
+          }
+          return current;
+        });
+  }
+
+  @Override
+  public void projectUnban(String ip, long eventId) {
+    projectionVersions.compute(
+        ip,
+        (ignored, current) -> {
+          if (current == null || eventId >= current) {
+            bans.remove(ip);
+            return eventId;
+          }
+          return current;
+        });
   }
 
   @Override

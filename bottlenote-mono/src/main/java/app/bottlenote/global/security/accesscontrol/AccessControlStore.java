@@ -12,6 +12,16 @@ public interface AccessControlStore {
 
   void unban(String ip);
 
+  /** DB 감사 이벤트 순서를 이용해 Redis enforcement를 단조롭게 갱신한다. */
+  default void projectBan(String ip, Duration ttl, String reason, long eventId) {
+    ban(ip, ttl, reason);
+  }
+
+  /** 늦게 도착한 이전 밴이 해제를 덮어쓰지 않도록 버전을 보존한다. */
+  default void projectUnban(String ip, long eventId) {
+    unban(ip);
+  }
+
   BanInfo getBan(String ip);
 
   /** 활성 ban 목록 (최대 max 개, 운영 inventory용). */

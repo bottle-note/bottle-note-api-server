@@ -109,7 +109,7 @@
 - Files (advisory): accesscontrol projection service/result와 Redis access-control store
 - Depends: Task 3
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 6: JDBC Quartz reconcile과 180일 retention
 
@@ -161,3 +161,4 @@
 - 2026-08-09: Task 2 완료 — 서브모듈 커밋 `7aea7d8b`를 `origin/Whale0928/blacklist`에 push. V9 3테이블, seed 0건, Product/Admin Flyway와 Batch resource guard 통과.
 - 2026-08-09: Task 3 완료 — `app.bottlenote.accesscontrol`에 IpBan current-state·IpBanEvent append-only·IpBanService/Facade 수직 슬라이스. AgentFacade adminUserId 조회 추가. 단위 14/14, Product DB 통합 5/5 통과. 필터/Admin API/signal/projection/scheduler 미변경.
 - 2026-08-09: Task 4 완료 — `IpSecuritySignal`과 verdict 수직 슬라이스를 추가. signal은 query string 없는 endpoint, method/rule, 관찰 구간·횟수, Admin/활성 Agent UUID·입력 agent version을 저장하며 UNKNOWN에서 확정 판정으로 한 번만 전이한다. 단위 6/6, Product DB 통합 2/2, Spotless 통과.
+- 2026-08-09: Task 5 완료 — facade는 DB 트랜잭션 종료 뒤 최신 append-only event ID로 Redis projection을 수행하고 실패 시 DB 상태를 유지한 채 `PENDING_RECONCILE`을 반환한다. Redis/InMemory projection은 역순 이벤트를 무시하며 unban version은 180일 보존한다.
