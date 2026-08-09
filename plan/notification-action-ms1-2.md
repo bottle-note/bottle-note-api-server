@@ -121,12 +121,12 @@
 - Files (advisory): `NotificationService`, `UserNotificationService`, 읽음 result DTO, `NotificationController`, `NotificationMarkReadResponse`, `UserNotificationServiceTest`, `NotificationControllerIntegrationTest`
 - Depends: Task 2
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Checkpoint: after Tasks 1-3
-- [ ] schema commit/push와 backend gitlink SHA 일치
-- [ ] 신규 읽음 경로에서 `status=READ` 대입 0건
-- [ ] 로컬 실행 없이 정적 self-review Critical/Important 0건
+- [x] schema commit/push와 backend gitlink SHA 일치
+- [x] 신규 읽음 경로에서 `status=READ` 대입 0건
+- [x] 로컬 실행 없이 정적 self-review Critical/Important 0건
 
 ### Task 4: OPEN_REVIEW Action trust boundary
 - Acceptance:
@@ -184,3 +184,4 @@
 - 2026-08-09: Execution Mode `delegated` 확정. Codex 구현자, GitHub CI-only 검증, 최종 Opus 리뷰 정확히 1회, PR/배포 제외.
 - 2026-08-09: Orca Run `run_27b9d340d752` 생성. 계획 전용 Codex worker 2회는 파일 변경 전 응답 정지로 중단했고 coordinator가 동일 근거로 define/plan 문서를 작성했다.
 - 2026-08-09: Task 2 완료 — schema commit `92332784e`로 gitlink를 갱신하고 단건·전체 읽음을 최초 `read_at` 원자 갱신으로 전환했다. 전달 `status` 보존과 레거시 `read_at=NULL` 호환을 InMemory 및 단위 테스트 9개 시나리오로 정적 검토했으며, 로컬 테스트는 정책에 따라 실행하지 않았다.
+- 2026-08-10: Task 3 완료 — 단건 읽음 결과에 `notificationId/isRead/readAt/changed/unreadCount`를 추가하고 최초·반복·레거시 null·타 사용자 404 계약을 단위 및 controller integration 시나리오로 작성했다. 로컬 Gradle·테스트·빌드·Spotless는 정책에 따라 실행하지 않았다.

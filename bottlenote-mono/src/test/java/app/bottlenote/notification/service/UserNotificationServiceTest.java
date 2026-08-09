@@ -174,9 +174,14 @@ class UserNotificationServiceTest {
       Notification notification =
           seedNotification(USER_ID, "title", NotificationStatus.SENT, false, null);
 
-      service.markAsRead(USER_ID, notification.getId());
+      NotificationMarkReadResult result = service.markAsRead(USER_ID, notification.getId());
 
       Notification saved = notificationRepository.findById(notification.getId()).orElseThrow();
+      assertThat(result.notificationId()).isEqualTo(notification.getId());
+      assertThat(result.isRead()).isTrue();
+      assertThat(result.readAt()).isEqualTo(saved.getReadAt());
+      assertThat(result.changed()).isTrue();
+      assertThat(result.unreadCount()).isZero();
       assertThat(saved.getIsRead()).isTrue();
       assertThat(saved.getReadAt()).isNotNull();
       assertThat(saved.getStatus()).isEqualTo(NotificationStatus.SENT);
@@ -186,11 +191,14 @@ class UserNotificationServiceTest {
     @DisplayName("이미 읽은 알림을 다시 읽어도 최초 읽음 시각을 유지한다")
     void markAsRead_whenCalledAgain_preservesFirstReadAt() {
       Notification notification = seedNotification(USER_ID, "title");
-      service.markAsRead(USER_ID, notification.getId());
+      NotificationMarkReadResult first = service.markAsRead(USER_ID, notification.getId());
       LocalDateTime firstReadAt = notification.getReadAt();
 
-      service.markAsRead(USER_ID, notification.getId());
+      NotificationMarkReadResult second = service.markAsRead(USER_ID, notification.getId());
 
+      assertThat(first.changed()).isTrue();
+      assertThat(second.changed()).isFalse();
+      assertThat(second.readAt()).isEqualTo(first.readAt());
       assertThat(notification.getReadAt()).isEqualTo(firstReadAt);
     }
 
@@ -218,8 +226,11 @@ class UserNotificationServiceTest {
       Notification notification =
           seedNotification(USER_ID, "legacy", NotificationStatus.READ, true, null);
 
-      service.markAsRead(USER_ID, notification.getId());
+      NotificationMarkReadResult result = service.markAsRead(USER_ID, notification.getId());
 
+      assertThat(result.isRead()).isTrue();
+      assertThat(result.readAt()).isNull();
+      assertThat(result.changed()).isFalse();
       assertThat(notification.getIsRead()).isTrue();
       assertThat(notification.getReadAt()).isNull();
       assertThat(notification.getStatus()).isEqualTo(NotificationStatus.READ);

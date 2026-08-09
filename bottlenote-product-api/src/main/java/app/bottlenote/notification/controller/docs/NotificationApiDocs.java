@@ -78,7 +78,8 @@ public final class NotificationApiDocs {
       summary = "알림 하나를 읽음 처리한다",
       description =
           """
-          지정한 알림을 읽음 처리합니다. 본인 소유 알림만 대상이며, 없거나 타 사용자 알림이면 404입니다.
+          지정한 알림을 멱등하게 읽음 처리합니다. 최초 요청만 `changed=true`이며 반복 요청은 최초 `readAt`을 유지하고 `changed=false`를 반환합니다.
+          본인 소유 알림만 대상이며, 없거나 타 사용자 알림이면 404입니다.
 
           **오류 코드**
 

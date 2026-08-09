@@ -91,16 +91,22 @@ public class UserNotificationService implements NotificationService {
 
   @Transactional
   @Override
-  public void markAsRead(Long userId, Long notificationId) {
+  public NotificationMarkReadResult markAsRead(Long userId, Long notificationId) {
     int updated =
         notificationRepository.markAsReadByIdAndUserId(
             notificationId, userId, LocalDateTime.now(KST));
-    if (updated == 0) {
-      notificationRepository
-          .findByIdAndUserId(notificationId, userId)
-          .orElseThrow(
-              () -> new NotificationException(NotificationExceptionCode.NOTIFICATION_NOT_FOUND));
-    }
+    Notification notification =
+        notificationRepository
+            .findByIdAndUserId(notificationId, userId)
+            .orElseThrow(
+                () -> new NotificationException(NotificationExceptionCode.NOTIFICATION_NOT_FOUND));
+    long unreadCount = notificationRepository.countByUserIdAndIsReadFalse(userId);
+    return new NotificationMarkReadResult(
+        notification.getId(),
+        Boolean.TRUE.equals(notification.getIsRead()),
+        notification.getReadAt(),
+        updated == 1,
+        unreadCount);
   }
 
   @Transactional

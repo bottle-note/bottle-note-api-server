@@ -117,8 +117,8 @@ class ReviewReplyNotificationListenerTest {
     }
 
     @Override
-    public void markAsRead(Long userId, Long notificationId) {
-      // no-op
+    public NotificationMarkReadResult markAsRead(Long userId, Long notificationId) {
+      return new NotificationMarkReadResult(notificationId, true, null, false, 0);
     }
 
     @Override

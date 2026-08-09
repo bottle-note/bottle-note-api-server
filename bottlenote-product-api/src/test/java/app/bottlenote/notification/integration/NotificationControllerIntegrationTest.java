@@ -174,8 +174,8 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
   class MarkAsRead {
 
     @Test
-    @DisplayName("본인 알림을 읽음 처리한다")
-    void markAsRead_whenOwnNotification_marksRead() throws Exception {
+    @DisplayName("본인 알림을 멱등하게 읽음 처리한다")
+    void markAsRead_whenRepeated_returnsFirstReadAtAndChangedFalse() throws Exception {
       User user = userTestFactory.persistUser();
       TokenItem token = getToken(user);
       Notification notification = seedNotification(user.getId(), "target");
@@ -192,10 +192,52 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
       JsonNode data = responseData(result);
       assertThat(data.path("notificationId").asLong()).isEqualTo(notification.getId());
       assertThat(data.path("isRead").asBoolean()).isTrue();
+      assertThat(data.path("readAt").asText()).endsWith("+09:00");
+      assertThat(data.path("changed").asBoolean()).isTrue();
+      assertThat(data.path("unreadCount").asLong()).isZero();
+
+      MvcTestResult repeated =
+          mockMvcTester
+              .patch()
+              .uri(BASE + "/{notificationId}/read", notification.getId())
+              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
+              .with(csrf())
+              .exchange();
+      JsonNode repeatedData = responseData(repeated);
+      repeated.assertThat().hasStatusOk();
+      assertThat(repeatedData.path("readAt").asText()).isEqualTo(data.path("readAt").asText());
+      assertThat(repeatedData.path("changed").asBoolean()).isFalse();
+      assertThat(repeatedData.path("unreadCount").asLong()).isZero();
 
       Notification reloaded = notificationRepository.findById(notification.getId()).orElseThrow();
       assertThat(reloaded.getIsRead()).isTrue();
-      assertThat(reloaded.getStatus()).isEqualTo(NotificationStatus.READ);
+      assertThat(reloaded.getReadAt()).isNotNull();
+      assertThat(reloaded.getStatus()).isEqualTo(NotificationStatus.PENDING);
+    }
+
+    @Test
+    @DisplayName("기존 읽음 시각이 없으면 null과 changed false를 반환한다")
+    void markAsRead_whenLegacyReadAtIsNull_returnsNullAndChangedFalse() throws Exception {
+      User user = userTestFactory.persistUser();
+      TokenItem token = getToken(user);
+      Notification notification = seedNotification(user.getId(), "legacy");
+      notification.markAsRead();
+      org.springframework.test.util.ReflectionTestUtils.setField(notification, "readAt", null);
+      notificationRepository.save(notification);
+
+      MvcTestResult result =
+          mockMvcTester
+              .patch()
+              .uri(BASE + "/{notificationId}/read", notification.getId())
+              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
+              .with(csrf())
+              .exchange();
+
+      result.assertThat().hasStatusOk();
+      JsonNode data = responseData(result);
+      assertThat(data.path("readAt").isNull()).isTrue();
+      assertThat(data.path("changed").asBoolean()).isFalse();
+      assertThat(data.path("unreadCount").asLong()).isZero();
     }
 
     @Test
