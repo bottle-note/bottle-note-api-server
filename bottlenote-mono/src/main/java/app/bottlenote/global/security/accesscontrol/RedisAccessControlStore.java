@@ -1,5 +1,6 @@
 package app.bottlenote.global.security.accesscontrol;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -7,8 +8,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.SessionCallback;
@@ -77,31 +80,70 @@ public class RedisAccessControlStore implements AccessControlStore {
 
   private final StringRedisTemplate redisTemplate;
 
-  /** store 소유 전용 factory(비등록). null이면 destroy 시 정리하지 않는다. */
-  private final LettuceConnectionFactory ownedConnectionFactory;
+  private final StringRedisTemplate rateLimitTemplate;
+  private final List<LettuceConnectionFactory> ownedConnectionFactories;
 
   public RedisAccessControlStore(StringRedisTemplate redisTemplate) {
-    this(redisTemplate, null);
+    this(redisTemplate, redisTemplate, List.of());
   }
 
-  public RedisAccessControlStore(
-      StringRedisTemplate redisTemplate, LettuceConnectionFactory ownedConnectionFactory) {
+  RedisAccessControlStore(
+      StringRedisTemplate redisTemplate,
+      StringRedisTemplate rateLimitTemplate,
+      List<LettuceConnectionFactory> ownedConnectionFactories) {
     this.redisTemplate = redisTemplate;
-    this.ownedConnectionFactory = ownedConnectionFactory;
+    this.rateLimitTemplate = rateLimitTemplate;
+    this.ownedConnectionFactories = List.copyOf(ownedConnectionFactories);
   }
 
   /** Spring {@code destroyMethod} — 소유 factory 자원 정리. */
   public void destroy() {
-    if (ownedConnectionFactory != null) {
-      ownedConnectionFactory.destroy();
+    RuntimeException failure = null;
+    for (int index = ownedConnectionFactories.size() - 1; index >= 0; index--) {
+      try {
+        ownedConnectionFactories.get(index).destroy();
+      } catch (RuntimeException exception) {
+        if (failure == null) {
+          failure = exception;
+        } else {
+          failure.addSuppressed(exception);
+        }
+      }
+    }
+    if (failure != null) {
+      throw failure;
     }
   }
 
   @Override
+  public BanLookup lookupBan(String ip) {
+    return executeRedis(
+        () ->
+            redisTemplate.execute(
+                (RedisCallback<BanLookup>)
+                    connection -> {
+                      Long projectedTtlMillis =
+                          connection.keyCommands().pTtl(serializeKey(banKey(ip)));
+                      if (projectedTtlMillis == null) {
+                        throw unavailablePttl();
+                      }
+                      if (projectedTtlMillis != -2L) {
+                        return new BanLookup(true, toTtlSeconds(projectedTtlMillis));
+                      }
+                      Long legacyTtlMillis =
+                          connection.keyCommands().pTtl(serializeKey(legacyBanKey(ip)));
+                      if (legacyTtlMillis == null) {
+                        throw unavailablePttl();
+                      }
+                      return legacyTtlMillis == -2L
+                          ? BanLookup.notBanned()
+                          : new BanLookup(true, toTtlSeconds(legacyTtlMillis));
+                    }));
+  }
+
+  @Override
   public boolean isBanned(String ip) {
-    Boolean projected = redisTemplate.hasKey(banKey(ip));
-    return Boolean.TRUE.equals(projected)
-        || Boolean.TRUE.equals(redisTemplate.hasKey(legacyBanKey(ip)));
+    return lookupBan(ip).banned();
   }
 
   @Override
@@ -343,17 +385,20 @@ public class RedisAccessControlStore implements AccessControlStore {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public ConsumeResult tryConsume(String key, int limit, Duration window) {
     String redisKey = RATE_KEY_PREFIX + key;
     List<String> keys = Collections.singletonList(redisKey);
-    List<Long> raw =
-        redisTemplate.execute(TRY_CONSUME_SCRIPT, keys, String.valueOf(window.getSeconds()));
-    if (raw == null || raw.size() < 2 || raw.get(0) == null) {
-      throw new IllegalStateException("redis tryConsume script returned null");
+    List<?> raw =
+        executeRedis(
+            () ->
+                rateLimitTemplate.execute(
+                    TRY_CONSUME_SCRIPT, keys, String.valueOf(window.getSeconds())));
+    if (raw == null
+        || raw.size() < 2
+        || !(raw.get(0) instanceof Long count)
+        || !(raw.get(1) instanceof Long pttlMs)) {
+      throw new IllegalStateException("redis tryConsume script returned malformed result");
     }
-    long count = raw.get(0);
-    long pttlMs = raw.get(1) == null ? -1L : raw.get(1);
     long retryAfterSeconds = pttlMs > 0 ? Math.max(1, (pttlMs + 999) / 1000) : window.getSeconds();
     if (count > limit) {
       return ConsumeResult.deny(retryAfterSeconds);
@@ -363,6 +408,27 @@ public class RedisAccessControlStore implements AccessControlStore {
 
   private static String banKey(String ip) {
     return BAN_KEY_PREFIX + hashTag(ip);
+  }
+
+  private static byte[] serializeKey(String key) {
+    return key.getBytes(StandardCharsets.UTF_8);
+  }
+
+  private static long toTtlSeconds(long ttlMillis) {
+    return ttlMillis < 0 ? ttlMillis : TimeUnit.MILLISECONDS.toSeconds(ttlMillis);
+  }
+
+  private static AccessControlStore.UnavailableException unavailablePttl() {
+    return new AccessControlStore.UnavailableException(
+        new IllegalStateException("redis PTTL returned null"));
+  }
+
+  private static <T> T executeRedis(RedisOperation<T> operation) {
+    try {
+      return operation.execute();
+    } catch (DataAccessException exception) {
+      throw new AccessControlStore.UnavailableException(exception);
+    }
   }
 
   private static String reasonKey(String ip) {
@@ -400,5 +466,11 @@ public class RedisAccessControlStore implements AccessControlStore {
 
   private static String reasonKeyForBanKey(String banKey, String ip) {
     return isProjectedBanKey(banKey) ? reasonKey(ip) : legacyReasonKey(ip);
+  }
+
+  @FunctionalInterface
+  private interface RedisOperation<T> {
+
+    T execute();
   }
 }

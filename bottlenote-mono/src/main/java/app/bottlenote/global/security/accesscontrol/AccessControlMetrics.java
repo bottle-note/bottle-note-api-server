@@ -13,6 +13,13 @@ public class AccessControlMetrics {
   private final Counter rateLimited;
   private final Counter storeError;
   private final Counter failOpen;
+  private final Counter banFallbackSnapshotHit;
+  private final Counter banFallbackSnapshotMiss;
+  private final Counter banFallbackSnapshotStale;
+  private final Counter rateLimitFallbackFailOpen;
+  private final Counter rateLimitFallbackFailClosed;
+  private final Counter banAdmissionSaturated;
+  private final Counter banAdmissionCooldown;
 
   public AccessControlMetrics(MeterRegistry registry) {
     this.allow = decisionCounter(registry, "allow");
@@ -26,6 +33,13 @@ public class AccessControlMetrics {
         Counter.builder("access_control_fail_open_total")
             .description("Access control fail-open allows after store failure")
             .register(registry);
+    this.banFallbackSnapshotHit = banFallbackCounter(registry, "snapshot_hit");
+    this.banFallbackSnapshotMiss = banFallbackCounter(registry, "snapshot_miss");
+    this.banFallbackSnapshotStale = banFallbackCounter(registry, "snapshot_stale");
+    this.rateLimitFallbackFailOpen = rateLimitFallbackCounter(registry, "fail_open");
+    this.rateLimitFallbackFailClosed = rateLimitFallbackCounter(registry, "fail_closed");
+    this.banAdmissionSaturated = banAdmissionCounter(registry, "saturated");
+    this.banAdmissionCooldown = banAdmissionCounter(registry, "cooldown");
   }
 
   public static AccessControlMetrics noop() {
@@ -47,10 +61,72 @@ public class AccessControlMetrics {
     }
   }
 
+  public void recordBanFallback(BanFallbackResult result, boolean opened, boolean storeFailed) {
+    if (storeFailed) {
+      storeError.increment();
+      if (opened) {
+        failOpen.increment();
+      }
+    }
+    switch (result) {
+      case SNAPSHOT_HIT -> banFallbackSnapshotHit.increment();
+      case SNAPSHOT_MISS -> banFallbackSnapshotMiss.increment();
+      case SNAPSHOT_STALE -> banFallbackSnapshotStale.increment();
+    }
+  }
+
+  public void recordBanAdmissionFallback(BanAdmissionResult result) {
+    switch (result) {
+      case SATURATED -> banAdmissionSaturated.increment();
+      case COOLDOWN -> banAdmissionCooldown.increment();
+    }
+  }
+
+  public void recordRateLimitFallback(boolean opened) {
+    recordStoreError(opened);
+    if (opened) {
+      rateLimitFallbackFailOpen.increment();
+      return;
+    }
+    rateLimitFallbackFailClosed.increment();
+  }
+
+  public enum BanFallbackResult {
+    SNAPSHOT_HIT,
+    SNAPSHOT_MISS,
+    SNAPSHOT_STALE
+  }
+
+  public enum BanAdmissionResult {
+    SATURATED,
+    COOLDOWN
+  }
+
   private static Counter decisionCounter(MeterRegistry registry, String type) {
     return Counter.builder("access_control_decisions_total")
         .description("Access control decisions")
         .tag("type", type)
+        .register(registry);
+  }
+
+  private static Counter banFallbackCounter(MeterRegistry registry, String result) {
+    return Counter.builder("access_control_ban_fallback_total")
+        .description("Ban lookup fallback results")
+        .tag("result", result)
+        .register(registry);
+  }
+
+  private static Counter rateLimitFallbackCounter(MeterRegistry registry, String result) {
+    return Counter.builder("access_control_rate_limit_fallback_total")
+        .description("Rate-limit fallback results after access control store failure")
+        .tag("result", result)
+        .register(registry);
+  }
+
+  private static Counter banAdmissionCounter(MeterRegistry registry, String result) {
+    return Counter.builder("access_control_ban_admission_total")
+        .description("Ban lookup admission fallback results")
+        .tag("result", result)
         .register(registry);
   }
 }

@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Field;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -33,7 +34,12 @@ class AccessControlConfigurationTest {
               AccessControlConfiguration.class)
           .withPropertyValues(
               "bottlenote.access-control.enabled=true",
-              "bottlenote.access-control.redis-command-timeout=200ms");
+              "bottlenote.access-control.redis-command-timeout=200ms",
+              "bottlenote.access-control.snapshot.refresh-interval-ms=45000",
+              "bottlenote.access-control.snapshot.stale-threshold=4m",
+              "bottlenote.access-control.snapshot.max-entries=2",
+              "bottlenote.access-control.burst-admission.max-concurrent=7",
+              "bottlenote.access-control.burst-admission.cooldown=2s");
 
   @Test
   @DisplayName("access-control 활성 시 RedisConnectionFactory·StringRedisTemplate 타입 후보가 각각 하나다")
@@ -51,6 +57,17 @@ class AccessControlConfigurationTest {
           assertThat(templates).hasSize(1);
           assertThat(context).hasSingleBean(RedisConnectionFactory.class);
           assertThat(context).hasSingleBean(StringRedisTemplate.class);
+          assertThat(context).hasSingleBean(BanSnapshotHolder.class);
+          assertThat(context).hasSingleBean(BanSnapshotRefresher.class);
+          AccessControlProperties.Snapshot snapshotProperties =
+              context.getBean(AccessControlProperties.class).getSnapshot();
+          assertThat(snapshotProperties.getRefreshIntervalMs()).isEqualTo(45_000L);
+          assertThat(snapshotProperties.getStaleThreshold()).isEqualTo(Duration.ofMinutes(4));
+          assertThat(snapshotProperties.getMaxEntries()).isEqualTo(2);
+          AccessControlProperties.BurstAdmission admissionProperties =
+              context.getBean(AccessControlProperties.class).getBurstAdmission();
+          assertThat(admissionProperties.getMaxConcurrent()).isEqualTo(7);
+          assertThat(admissionProperties.getCooldown()).isEqualTo(Duration.ofSeconds(2));
 
           // 무수식 주입 — @Primary 없이도 성공해야 한다
           RedisConnectionFactoryFactoryProbe factoryProbe =
@@ -68,7 +85,7 @@ class AccessControlConfigurationTest {
   }
 
   @Test
-  @DisplayName("AccessControlStore는 비등록 전용 factory(200ms)를 소유하고 공용 factory와 다르다")
+  @DisplayName("AccessControlStore는 ban·rate-limit 전용 factory(200ms)를 각각 소유한다")
   void accessControlStore_ownsDedicatedNonBeanFactoryWith200msTimeout() {
     enabledContextRunner.run(
         context -> {
@@ -80,18 +97,39 @@ class AccessControlConfigurationTest {
 
           StringRedisTemplate storeTemplate = extractTemplate(redisStore);
           LettuceConnectionFactory ownedFactory = extractOwnedFactory(redisStore);
+          StringRedisTemplate rateLimitTemplate = extractRateLimitTemplate(redisStore);
+          LettuceConnectionFactory rateLimitFactory =
+              (LettuceConnectionFactory) rateLimitTemplate.getConnectionFactory();
+          List<?> ownedFactories = extractOwnedFactories(redisStore);
           RedisConnectionFactory sharedFactory = context.getBean(RedisConnectionFactory.class);
+          LettuceConnectionFactory sharedLettuceFactory = (LettuceConnectionFactory) sharedFactory;
+          Object sharedClientResources = sharedClientResources(sharedLettuceFactory);
 
           assertThat(ownedFactory).isNotNull();
           assertThat(ownedFactory).isNotSameAs(sharedFactory);
           assertThat(storeTemplate.getConnectionFactory()).isSameAs(ownedFactory);
           assertThat(ownedFactory.getClientConfiguration().getCommandTimeout())
               .isEqualTo(Duration.ofMillis(200));
+          assertThat(rateLimitTemplate).isNotSameAs(storeTemplate);
+          assertThat(rateLimitFactory).isNotSameAs(ownedFactory).isNotSameAs(sharedFactory);
+          assertThat(ownedFactories).hasSize(2);
+          assertThat(ownedFactories.get(0)).isSameAs(ownedFactory);
+          assertThat(ownedFactories.get(1)).isSameAs(rateLimitFactory);
+          assertThat(ownedFactories)
+              .allSatisfy(
+                  candidate -> {
+                    assertThat(candidate).isInstanceOf(LettuceConnectionFactory.class);
+                    LettuceConnectionFactory factory = (LettuceConnectionFactory) candidate;
+                    assertThat(factory.getClientConfiguration().getCommandTimeout())
+                        .isEqualTo(Duration.ofMillis(200));
+                    assertThat(factory.getClientResources()).isSameAs(sharedClientResources);
+                    assertThat(factory.getShareNativeConnection()).isTrue();
+                  });
 
           // 전용 factory/template은 Spring 타입 후보에 포함되지 않는다
           assertThat(context.getBeansOfType(RedisConnectionFactory.class).values())
               .containsExactly(sharedFactory)
-              .doesNotContain(ownedFactory);
+              .doesNotContain(ownedFactory, rateLimitFactory);
           assertThat(context.getBeansOfType(StringRedisTemplate.class).values())
               .doesNotContain(storeTemplate);
           assertThat(context.getBean(StringRedisTemplate.class).getConnectionFactory())
@@ -110,6 +148,8 @@ class AccessControlConfigurationTest {
               assertThat(context).hasNotFailed();
               assertThat(context).doesNotHaveBean(AccessControlStore.class);
               assertThat(context).doesNotHaveBean(AccessControlService.class);
+              assertThat(context).doesNotHaveBean(BanSnapshotHolder.class);
+              assertThat(context).doesNotHaveBean(BanSnapshotRefresher.class);
               assertThat(context.getBeansOfType(RedisConnectionFactory.class)).hasSize(1);
             });
   }
@@ -125,13 +165,34 @@ class AccessControlConfigurationTest {
   }
 
   private static LettuceConnectionFactory extractOwnedFactory(RedisAccessControlStore store) {
+    return (LettuceConnectionFactory) extractTemplate(store).getConnectionFactory();
+  }
+
+  private static StringRedisTemplate extractRateLimitTemplate(RedisAccessControlStore store) {
     try {
-      Field field = RedisAccessControlStore.class.getDeclaredField("ownedConnectionFactory");
+      Field field = RedisAccessControlStore.class.getDeclaredField("rateLimitTemplate");
       field.setAccessible(true);
-      return (LettuceConnectionFactory) field.get(store);
+      return (StringRedisTemplate) field.get(store);
     } catch (ReflectiveOperationException ex) {
       throw new IllegalStateException(ex);
     }
+  }
+
+  private static List<?> extractOwnedFactories(RedisAccessControlStore store) {
+    try {
+      Field field = RedisAccessControlStore.class.getDeclaredField("ownedConnectionFactories");
+      field.setAccessible(true);
+      return (List<?>) field.get(store);
+    } catch (ReflectiveOperationException ex) {
+      throw new IllegalStateException(ex);
+    }
+  }
+
+  private static Object sharedClientResources(LettuceConnectionFactory factory) {
+    if (factory.getClientResources() != null) {
+      return factory.getClientResources();
+    }
+    return factory.getNativeClient().getResources();
   }
 
   /** 실제 RedisConfig와 같이 @Primary 없는 단일 RedisConnectionFactory. */

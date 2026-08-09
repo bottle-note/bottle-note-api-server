@@ -10,6 +10,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import java.io.IOException;
+import java.time.Clock;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,7 +34,13 @@ class AccessControlFilterTest {
     properties.setDefaultRateLimit(new RateLimitRule(2, 60));
     properties.setKeyNamespace("product");
     PathRateLimitRuleSupport.authRule(properties);
-    service = new AccessControlService(store, properties, AccessControlMetrics.noop());
+    service =
+        new AccessControlService(
+            store,
+            properties,
+            AccessControlMetrics.noop(),
+            new BanSnapshotHolder(properties.getSnapshot().getMaxEntries()),
+            Clock.systemUTC());
     filter = new AccessControlFilter(service, new ObjectMapper().findAndRegisterModules());
   }
 
@@ -92,8 +99,7 @@ class AccessControlFilterTest {
   @Test
   @DisplayName("context-path를 제거한 뒤 path rule을 적용한다")
   void doFilter_whenAdminContextPath_matchesPathRule() throws Exception {
-    MockHttpServletRequest request =
-        new MockHttpServletRequest("POST", "/admin/api/v1/auth/login");
+    MockHttpServletRequest request = new MockHttpServletRequest("POST", "/admin/api/v1/auth/login");
     request.setContextPath("/admin/api");
     request.addHeader("X-Forwarded-For", "203.0.113.4");
     AtomicBoolean continued = new AtomicBoolean(false);
@@ -141,7 +147,12 @@ class AccessControlFilterTest {
 
     properties.setPathRules(java.util.List.of(reviewsGet, reviewsWrite));
     AccessControlService methodService =
-        new AccessControlService(store, properties, AccessControlMetrics.noop());
+        new AccessControlService(
+            store,
+            properties,
+            AccessControlMetrics.noop(),
+            new BanSnapshotHolder(properties.getSnapshot().getMaxEntries()),
+            Clock.systemUTC());
     AccessControlFilter methodFilter =
         new AccessControlFilter(methodService, new ObjectMapper().findAndRegisterModules());
 

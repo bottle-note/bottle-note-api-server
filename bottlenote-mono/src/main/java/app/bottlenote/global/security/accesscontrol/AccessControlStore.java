@@ -6,6 +6,17 @@ import java.util.List;
 /** IP ban + rate limit 상태 저장소 (운영: Redis) */
 public interface AccessControlStore {
 
+  /** Access-control 저장소의 일시적 기술 장애를 구분한다. */
+  class UnavailableException extends RuntimeException {
+
+    public UnavailableException(Throwable cause) {
+      super("access-control store is unavailable", cause);
+    }
+  }
+
+  /** 요청 경로 전용 단일 Redis 키 ban 조회. */
+  BanLookup lookupBan(String ip);
+
   boolean isBanned(String ip);
 
   void ban(String ip, Duration ttl, String reason);
@@ -45,6 +56,13 @@ public interface AccessControlStore {
   ConsumeResult tryConsume(String key, int limit, Duration window);
 
   record BanInfo(String ip, String reason, long ttlSeconds) {}
+
+  record BanLookup(boolean banned, long ttlSeconds) {
+
+    public static BanLookup notBanned() {
+      return new BanLookup(false, -2L);
+    }
+  }
 
   record ConsumeResult(long remaining, long retryAfterSeconds) {
     public boolean allowed() {

@@ -20,6 +20,10 @@ public class AccessControlProperties {
    */
   private Duration redisCommandTimeout = Duration.ofMillis(200);
 
+  private Snapshot snapshot = new Snapshot();
+
+  private BurstAdmission burstAdmission = new BurstAdmission();
+
   /** rate-limit 키 네임스페이스 (product/admin 분리). ban 키는 공유 차단을 위해 네임스페이스를 쓰지 않는다. */
   private String keyNamespace = "default";
 
@@ -58,6 +62,22 @@ public class AccessControlProperties {
 
   public void setRedisCommandTimeout(Duration redisCommandTimeout) {
     this.redisCommandTimeout = redisCommandTimeout;
+  }
+
+  public Snapshot getSnapshot() {
+    return snapshot;
+  }
+
+  public void setSnapshot(Snapshot snapshot) {
+    this.snapshot = snapshot;
+  }
+
+  public BurstAdmission getBurstAdmission() {
+    return burstAdmission;
+  }
+
+  public void setBurstAdmission(BurstAdmission burstAdmission) {
+    this.burstAdmission = burstAdmission;
   }
 
   public String getKeyNamespace() {
@@ -159,6 +179,57 @@ public class AccessControlProperties {
 
     public void setWindowSeconds(int windowSeconds) {
       this.windowSeconds = windowSeconds;
+    }
+  }
+
+  public static class Snapshot {
+    private long refreshIntervalMs = 30_000L;
+    private Duration staleThreshold = Duration.ofMinutes(3);
+    private int maxEntries = 10_000;
+
+    public long getRefreshIntervalMs() {
+      return refreshIntervalMs;
+    }
+
+    public void setRefreshIntervalMs(long refreshIntervalMs) {
+      this.refreshIntervalMs = refreshIntervalMs;
+    }
+
+    public Duration getStaleThreshold() {
+      return staleThreshold;
+    }
+
+    public void setStaleThreshold(Duration staleThreshold) {
+      this.staleThreshold = staleThreshold;
+    }
+
+    public int getMaxEntries() {
+      return maxEntries;
+    }
+
+    public void setMaxEntries(int maxEntries) {
+      this.maxEntries = maxEntries;
+    }
+  }
+
+  public static class BurstAdmission {
+    private int maxConcurrent = 32;
+    private Duration cooldown = Duration.ofSeconds(1);
+
+    public int getMaxConcurrent() {
+      return maxConcurrent;
+    }
+
+    public void setMaxConcurrent(int maxConcurrent) {
+      this.maxConcurrent = maxConcurrent;
+    }
+
+    public Duration getCooldown() {
+      return cooldown;
+    }
+
+    public void setCooldown(Duration cooldown) {
+      this.cooldown = cooldown;
     }
   }
 }
