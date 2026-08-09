@@ -22,6 +22,8 @@ public class AccessControlProperties {
 
   private Snapshot snapshot = new Snapshot();
 
+  private BurstAdmission burstAdmission = new BurstAdmission();
+
   /** rate-limit 키 네임스페이스 (product/admin 분리). ban 키는 공유 차단을 위해 네임스페이스를 쓰지 않는다. */
   private String keyNamespace = "default";
 
@@ -68,6 +70,14 @@ public class AccessControlProperties {
 
   public void setSnapshot(Snapshot snapshot) {
     this.snapshot = snapshot;
+  }
+
+  public BurstAdmission getBurstAdmission() {
+    return burstAdmission;
+  }
+
+  public void setBurstAdmission(BurstAdmission burstAdmission) {
+    this.burstAdmission = burstAdmission;
   }
 
   public String getKeyNamespace() {
@@ -199,6 +209,27 @@ public class AccessControlProperties {
 
     public void setMaxEntries(int maxEntries) {
       this.maxEntries = maxEntries;
+    }
+  }
+
+  public static class BurstAdmission {
+    private int maxConcurrent = 32;
+    private Duration cooldown = Duration.ofSeconds(1);
+
+    public int getMaxConcurrent() {
+      return maxConcurrent;
+    }
+
+    public void setMaxConcurrent(int maxConcurrent) {
+      this.maxConcurrent = maxConcurrent;
+    }
+
+    public Duration getCooldown() {
+      return cooldown;
+    }
+
+    public void setCooldown(Duration cooldown) {
+      this.cooldown = cooldown;
     }
   }
 }

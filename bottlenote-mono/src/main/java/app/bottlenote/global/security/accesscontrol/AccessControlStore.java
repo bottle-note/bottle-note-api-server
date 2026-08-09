@@ -6,6 +6,14 @@ import java.util.List;
 /** IP ban + rate limit 상태 저장소 (운영: Redis) */
 public interface AccessControlStore {
 
+  /** Access-control 저장소의 일시적 기술 장애를 구분한다. */
+  class UnavailableException extends RuntimeException {
+
+    public UnavailableException(Throwable cause) {
+      super("access-control store is unavailable", cause);
+    }
+  }
+
   /** 요청 경로 전용 단일 Redis 키 ban 조회. */
   BanLookup lookupBan(String ip);
 

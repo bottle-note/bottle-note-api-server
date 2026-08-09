@@ -34,4 +34,14 @@ class AccessControlPropertiesTest {
     assertThat(snapshot.getStaleThreshold()).isEqualTo(Duration.ofMinutes(3));
     assertThat(snapshot.getMaxEntries()).isEqualTo(10_000);
   }
+
+  @Test
+  @DisplayName("burst admission 기본값은 32 동시 요청과 1초 cooldown 이다")
+  void burstAdmission_defaultsAreConfigured() {
+    AccessControlProperties.BurstAdmission admission =
+        new AccessControlProperties().getBurstAdmission();
+
+    assertThat(admission.getMaxConcurrent()).isEqualTo(32);
+    assertThat(admission.getCooldown()).isEqualTo(Duration.ofSeconds(1));
+  }
 }
