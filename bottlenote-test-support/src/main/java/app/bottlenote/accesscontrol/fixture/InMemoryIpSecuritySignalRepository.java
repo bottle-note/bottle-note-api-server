@@ -32,6 +32,11 @@ public class InMemoryIpSecuritySignalRepository implements IpSecuritySignalRepos
   }
 
   @Override
+  public Optional<IpSecuritySignal> findByIdForUpdate(Long id) {
+    return findById(id);
+  }
+
+  @Override
   public List<IpSecuritySignal> findByNormalizedIpOrderByIdDesc(String normalizedIp, int limit) {
     return database.values().stream()
         .filter(signal -> signal.getNormalizedIp().equals(normalizedIp))

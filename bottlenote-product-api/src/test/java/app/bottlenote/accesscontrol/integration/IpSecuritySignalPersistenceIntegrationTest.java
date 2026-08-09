@@ -21,7 +21,13 @@ import app.bottlenote.user.fixture.AdminUserTestFactory;
 import app.bottlenote.user.fixture.UserTestFactory;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -108,6 +114,64 @@ class IpSecuritySignalPersistenceIntegrationTest extends IntegrationTestSupport 
         .isInstanceOf(IpBanException.class)
         .extracting("exceptionCode")
         .isEqualTo(IpBanExceptionCode.INVALID_SECURITY_SIGNAL);
+  }
+
+  @Test
+  @DisplayName("동일 signal을 동시에 판정하면 하나의 확정 판정만 저장한다")
+  void review_whenSameSignalConcurrent_acceptsOnlyOneVerdict() throws Exception {
+    AdminUser admin = adminUserTestFactory.persistRootAdmin();
+    IpSecuritySignalResponse reported =
+        signalService.report(report(null, "198.51.100.54", null), admin.getId());
+    CountDownLatch ready = new CountDownLatch(2);
+    CountDownLatch start = new CountDownLatch(1);
+    ExecutorService executor = Executors.newFixedThreadPool(2);
+    try {
+      Future<String> first =
+          executor.submit(
+              () ->
+                  reviewAfterStart(
+                      reported.id(), SignalVerdict.CONFIRMED_ATTACK, admin.getId(), ready, start));
+      Future<String> second =
+          executor.submit(
+              () ->
+                  reviewAfterStart(
+                      reported.id(), SignalVerdict.FALSE_POSITIVE, admin.getId(), ready, start));
+
+      assertThat(ready.await(10, TimeUnit.SECONDS)).isTrue();
+      start.countDown();
+      List<String> outcomes =
+          List.of(first.get(30, TimeUnit.SECONDS), second.get(30, TimeUnit.SECONDS));
+
+      assertThat(outcomes)
+          .contains(IpBanExceptionCode.IP_SECURITY_SIGNAL_ALREADY_REVIEWED.name())
+          .anyMatch(
+              outcome ->
+                  outcome.equals(SignalVerdict.CONFIRMED_ATTACK.name())
+                      || outcome.equals(SignalVerdict.FALSE_POSITIVE.name()));
+    } finally {
+      executor.shutdownNow();
+      assertThat(executor.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
+    }
+  }
+
+  private String reviewAfterStart(
+      Long signalId,
+      SignalVerdict verdict,
+      Long adminId,
+      CountDownLatch ready,
+      CountDownLatch start) {
+    ready.countDown();
+    try {
+      if (!start.await(10, TimeUnit.SECONDS)) {
+        throw new IllegalStateException("동시 시작 신호를 받지 못했습니다.");
+      }
+      return signalService.review(signalId, verdict, "concurrent", adminId).verdict().name();
+    } catch (IpBanException exception) {
+      return exception.getExceptionCode().toString();
+    } catch (InterruptedException exception) {
+      Thread.currentThread().interrupt();
+      throw new IllegalStateException(exception);
+    }
   }
 
   private static IpSecuritySignalReportRequest report(Long banId, String ip, String agentVersion) {

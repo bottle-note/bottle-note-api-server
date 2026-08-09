@@ -67,7 +67,7 @@ public class IpSecuritySignalService {
     }
     IpSecuritySignal signal =
         signalRepository
-            .findById(signalId)
+            .findByIdForUpdate(signalId)
             .orElseThrow(() -> new IpBanException(IpBanExceptionCode.IP_SECURITY_SIGNAL_NOT_FOUND));
     if (signal.getVerdict() != SignalVerdict.UNKNOWN) {
       throw new IpBanException(IpBanExceptionCode.IP_SECURITY_SIGNAL_ALREADY_REVIEWED);

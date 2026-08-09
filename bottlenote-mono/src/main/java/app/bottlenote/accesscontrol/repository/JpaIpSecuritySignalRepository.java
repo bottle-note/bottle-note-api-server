@@ -5,8 +5,10 @@ import app.bottlenote.accesscontrol.domain.IpSecuritySignalRepository;
 import app.bottlenote.common.annotation.JpaRepositoryImpl;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,6 +18,11 @@ public interface JpaIpSecuritySignalRepository
     extends IpSecuritySignalRepository, JpaRepository<IpSecuritySignal, Long> {
 
   List<IpSecuritySignal> findByNormalizedIpOrderByIdDesc(String normalizedIp, PageRequest pageable);
+
+  @Override
+  @Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+  @Query("select s from ipSecuritySignal s where s.id = :id")
+  Optional<IpSecuritySignal> findByIdForUpdate(@Param("id") Long id);
 
   @Override
   default List<IpSecuritySignal> findByNormalizedIpOrderByIdDesc(String normalizedIp, int limit) {

@@ -92,7 +92,8 @@ class AccessControlFilterTest {
   @Test
   @DisplayName("context-path를 제거한 뒤 path rule을 적용한다")
   void doFilter_whenAdminContextPath_matchesPathRule() throws Exception {
-    MockHttpServletRequest request = new MockHttpServletRequest("POST", "/admin/api/auth/login");
+    MockHttpServletRequest request =
+        new MockHttpServletRequest("POST", "/admin/api/v1/auth/login");
     request.setContextPath("/admin/api");
     request.addHeader("X-Forwarded-For", "203.0.113.4");
     AtomicBoolean continued = new AtomicBoolean(false);
@@ -109,10 +110,11 @@ class AccessControlFilterTest {
   @Test
   @DisplayName("resolvePathWithinApplication은 context-path를 제거한다")
   void resolvePathWithinApplication_stripsContextPath() {
-    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/admin/api/auth/login");
+    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/admin/api/v1/auth/login");
     request.setContextPath("/admin/api");
 
-    assertThat(AccessControlFilter.resolvePathWithinApplication(request)).isEqualTo("/auth/login");
+    assertThat(AccessControlFilter.resolvePathWithinApplication(request))
+        .isEqualTo("/v1/auth/login");
   }
 
   @Test
@@ -183,7 +185,7 @@ class AccessControlFilterTest {
     static void authRule(AccessControlProperties properties) {
       AccessControlProperties.PathRateLimitRule authRule =
           new AccessControlProperties.PathRateLimitRule();
-      authRule.setPathPrefix("/auth");
+      authRule.setPathPrefix("/v1/auth");
       authRule.setLimit(2);
       authRule.setWindowSeconds(60);
       properties.setPathRules(java.util.List.of(authRule));

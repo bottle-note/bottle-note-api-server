@@ -51,7 +51,7 @@ bottlenote:
       limit: 20
       window-seconds: 60
     path-rules:
-      - path-prefix: /auth
+      - path-prefix: /v1/auth
         limit: 30
         window-seconds: 60
     # self-lockout 탈출: ban/RL 모두 스킵 (관리 평면)

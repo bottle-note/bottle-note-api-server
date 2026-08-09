@@ -11,6 +11,8 @@ public interface IpSecuritySignalRepository {
 
   Optional<IpSecuritySignal> findById(Long id);
 
+  Optional<IpSecuritySignal> findByIdForUpdate(Long id);
+
   List<IpSecuritySignal> findByNormalizedIpOrderByIdDesc(String normalizedIp, int limit);
 
   List<IpSecuritySignal> findByCreateAtBeforeOrderByIdAsc(LocalDateTime cutoff, int limit);
