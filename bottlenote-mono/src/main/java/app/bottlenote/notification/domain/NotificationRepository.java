@@ -25,6 +25,9 @@ public interface NotificationRepository {
 
   long countByUserIdAndIsReadFalse(Long userId);
 
+  boolean existsBySourceTypeAndSourceIdAndUserId(
+      String sourceType, Long sourceId, Long userId);
+
   /** 본인 미읽음 알림을 읽음 처리하고 최초 읽음 시각을 기록한다. */
   int markAsReadByIdAndUserId(Long id, Long userId, LocalDateTime readAt);
 

@@ -3,8 +3,6 @@ package app.bottlenote.notification.event.listener;
 import static app.bottlenote.common.annotation.DomainEventListener.ProcessingType.ASYNCHRONOUS;
 
 import app.bottlenote.common.annotation.DomainEventListener;
-import app.bottlenote.notification.constant.NotificationCategory;
-import app.bottlenote.notification.constant.NotificationType;
 import app.bottlenote.notification.payload.NotificationMessage;
 import app.bottlenote.notification.service.NotificationService;
 import app.bottlenote.review.event.payload.ReviewReplyNotificationEvent;
@@ -49,17 +47,17 @@ public class ReviewReplyNotificationListener {
     }
 
     NotificationMessage message =
-        NotificationMessage.create(
+        NotificationMessage.reviewReply(
             event.reviewAuthorId(),
-            NotificationType.USER,
-            NotificationCategory.REVIEW,
+            event.reviewId(),
+            event.replyId(),
             TITLE,
             event.content());
 
     notificationService.sendNotification(message);
 
     log.info(
-        "리뷰 댓글 알림 생성 - reviewId: {}, reviewAuthorId: {}, replyUserId: {}, replyId: {}",
+        "리뷰 댓글 알림 저장 요청 처리 - reviewId: {}, reviewAuthorId: {}, replyUserId: {}, replyId: {}",
         event.reviewId(),
         event.reviewAuthorId(),
         event.replyUserId(),

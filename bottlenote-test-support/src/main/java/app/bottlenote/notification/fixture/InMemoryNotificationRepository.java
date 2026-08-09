@@ -77,6 +77,17 @@ public class InMemoryNotificationRepository implements NotificationRepository {
   }
 
   @Override
+  public boolean existsBySourceTypeAndSourceIdAndUserId(
+      String sourceType, Long sourceId, Long userId) {
+    return database.stream()
+        .anyMatch(
+            notification ->
+                Objects.equals(notification.getSourceType(), sourceType)
+                    && Objects.equals(notification.getSourceId(), sourceId)
+                    && Objects.equals(notification.getUserId(), userId));
+  }
+
+  @Override
   public int markAsReadByIdAndUserId(Long id, Long userId, LocalDateTime readAt) {
     Optional<Notification> notification = findByIdAndUserId(id, userId);
     if (notification.isEmpty() || Boolean.TRUE.equals(notification.get().getIsRead())) {

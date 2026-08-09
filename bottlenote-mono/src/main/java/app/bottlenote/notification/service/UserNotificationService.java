@@ -37,13 +37,26 @@ public class UserNotificationService implements NotificationService {
   @Override
   public void sendNotification(NotificationMessage message) {
     log.info(
-        "[Service] NotificationMessage: {} , thread name : : {}",
-        message,
+        "알림 저장 요청 - userId: {}, sourceType: {}, sourceId: {}, threadName: {}",
+        message.userId(),
+        message.sourceType(),
+        message.sourceId(),
         Thread.currentThread().getName());
 
     // 알림 대상 없음은 user 일반 USER_NOT_FOUND가 아니라 notification 경계 코드로 유지
     if (!Boolean.TRUE.equals(userFacade.existsByUserId(message.userId()))) {
       throw new UserException(UserExceptionCode.NOTIFICATION_USER_NOT_FOUND);
+    }
+
+    if (message.sourceType() != null
+        && notificationRepository.existsBySourceTypeAndSourceIdAndUserId(
+            message.sourceType().name(), message.sourceId(), message.userId())) {
+      log.info(
+          "중복 알림 저장 생략 - userId: {}, sourceType: {}, sourceId: {}",
+          message.userId(),
+          message.sourceType(),
+          message.sourceId());
+      return;
     }
 
     Notification notification =
@@ -53,6 +66,9 @@ public class UserNotificationService implements NotificationService {
             .content(message.content())
             .type(message.type())
             .category(message.category())
+            .sourceType(message.sourceType() != null ? message.sourceType().name() : null)
+            .sourceId(message.sourceId())
+            .action(message.action())
             .build();
 
     notificationRepository.save(notification);

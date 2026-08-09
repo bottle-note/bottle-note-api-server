@@ -4,7 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.notification.action.NotificationAction;
+import app.bottlenote.notification.action.NotificationActionType;
 import app.bottlenote.notification.constant.NotificationCategory;
+import app.bottlenote.notification.constant.NotificationSourceType;
 import app.bottlenote.notification.constant.NotificationType;
 import app.bottlenote.notification.dto.request.NotificationPageableRequest;
 import app.bottlenote.notification.dto.response.NotificationListResponse;
@@ -61,6 +64,12 @@ class ReviewReplyNotificationListenerTest {
       assertThat(message.category()).isEqualTo(NotificationCategory.REVIEW);
       assertThat(message.title()).isEqualTo(ReviewReplyNotificationListener.TITLE);
       assertThat(message.content()).isEqualTo(content);
+      assertThat(message.sourceType()).isEqualTo(NotificationSourceType.REVIEW_REPLY);
+      assertThat(message.sourceId()).isEqualTo(REPLY_ID);
+      assertThat(message.action().type()).isEqualTo(NotificationActionType.OPEN_REVIEW);
+      assertThat(message.action().targetId()).isEqualTo(REVIEW_ID);
+      assertThat(message.action().payload().path("replyId").longValue()).isEqualTo(REPLY_ID);
+      assertThat(message.action().version()).isEqualTo(NotificationAction.CURRENT_VERSION);
     }
 
     @Test

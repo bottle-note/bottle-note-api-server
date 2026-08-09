@@ -33,6 +33,10 @@ public interface JpaNotificationRepository
   long countByUserIdAndIsReadFalse(@Param("userId") Long userId);
 
   @Override
+  boolean existsBySourceTypeAndSourceIdAndUserId(
+      String sourceType, Long sourceId, Long userId);
+
+  @Override
   @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query(
       """

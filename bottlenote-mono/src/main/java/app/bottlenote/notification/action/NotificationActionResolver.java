@@ -16,8 +16,8 @@ public class NotificationActionResolver {
 
   public NotificationListResponse.Action resolve(Notification notification) {
     if (!NotificationActionType.OPEN_REVIEW.name().equals(notification.getActionType())
-        || !Integer.valueOf(NotificationAction.CURRENT_VERSION)
-            .equals(notification.getActionVersion())
+        || notification.getActionVersion() == null
+        || notification.getActionVersion().intValue() != NotificationAction.CURRENT_VERSION
         || notification.getActionTargetId() == null
         || notification.getActionTargetId() <= 0
         || notification.getActionPayload() == null) {

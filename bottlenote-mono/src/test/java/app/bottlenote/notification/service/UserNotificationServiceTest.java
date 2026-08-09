@@ -11,6 +11,7 @@ import app.bottlenote.notification.action.NotificationActionType;
 import app.bottlenote.notification.constant.NotificationCategory;
 import app.bottlenote.notification.constant.NotificationReadStatus;
 import app.bottlenote.notification.constant.NotificationStatus;
+import app.bottlenote.notification.constant.NotificationSourceType;
 import app.bottlenote.notification.constant.NotificationType;
 import app.bottlenote.notification.domain.Notification;
 import app.bottlenote.notification.dto.request.NotificationPageableRequest;
@@ -100,6 +101,45 @@ class UserNotificationServiceTest {
           .isInstanceOf(UserException.class)
           .extracting(ex -> ((UserException) ex).getExceptionCode())
           .isEqualTo(UserExceptionCode.NOTIFICATION_USER_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("동일 댓글 알림을 순차 전송하면 한 건만 저장한다")
+    void sendNotification_whenReviewReplyDuplicated_savesOnce() {
+      seedUser(USER_ID);
+      NotificationMessage message =
+          NotificationMessage.reviewReply(USER_ID, 10L, 20L, "새 댓글", "내용");
+
+      service.sendNotification(message);
+      service.sendNotification(message);
+
+      assertThat(notificationRepository.findAll())
+          .singleElement()
+          .satisfies(
+              notification -> {
+                assertThat(notification.getSourceType())
+                    .isEqualTo(NotificationSourceType.REVIEW_REPLY.name());
+                assertThat(notification.getSourceId()).isEqualTo(20L);
+                assertThat(notification.getActionType()).isEqualTo("OPEN_REVIEW");
+                assertThat(notification.getActionTargetId()).isEqualTo(10L);
+                assertThat(notification.getActionPayload().path("replyId").longValue())
+                    .isEqualTo(20L);
+                assertThat(notification.getActionVersion()).isEqualTo((short) 1);
+              });
+    }
+
+    @Test
+    @DisplayName("원본이 없는 레거시 메시지는 기존처럼 매번 저장한다")
+    void sendNotification_whenLegacyMessageDuplicated_savesEachTime() {
+      seedUser(USER_ID);
+      NotificationMessage message =
+          NotificationMessage.create(
+              USER_ID, NotificationType.USER, NotificationCategory.REVIEW, "제목", "내용");
+
+      service.sendNotification(message);
+      service.sendNotification(message);
+
+      assertThat(notificationRepository.findAll()).hasSize(2);
     }
   }
 
@@ -366,25 +406,27 @@ class UserNotificationServiceTest {
     @Test
     @DisplayName("미지원 또는 불완전 Action은 항목별 null로 강등한다")
     void getNotifications_whenActionsAreInvalid_downgradesEachActionToNull() {
-      Notification unsupportedType = seedRawAction("OPEN_URL", 10L, Map.of("replyId", 20L), 1);
+      Notification unsupportedType =
+          seedRawAction("OPEN_URL", 10L, Map.of("replyId", 20L), (short) 1);
       Notification unsupportedVersion =
-          seedRawAction("OPEN_REVIEW", 10L, Map.of("replyId", 20L), 2);
+          seedRawAction("OPEN_REVIEW", 10L, Map.of("replyId", 20L), (short) 2);
       Notification extraKey =
-          seedRawAction("OPEN_REVIEW", 10L, Map.of("replyId", 20L, "url", "invalid"), 1);
+          seedRawAction(
+              "OPEN_REVIEW", 10L, Map.of("replyId", 20L, "url", "invalid"), (short) 1);
       Notification wrongType =
-          seedRawAction("OPEN_REVIEW", 10L, Map.of("replyId", "20"), 1);
+          seedRawAction("OPEN_REVIEW", 10L, Map.of("replyId", "20"), (short) 1);
       Notification nonPositiveTarget =
-          seedRawAction("OPEN_REVIEW", 0L, Map.of("replyId", 20L), 1);
+          seedRawAction("OPEN_REVIEW", 0L, Map.of("replyId", 20L), (short) 1);
       Notification oversized =
           seedRawAction(
               "OPEN_REVIEW",
               10L,
               Map.of("replyId", new BigInteger("9".repeat(1025))),
-              1);
-      Notification scalarPayload = seedRawAction("OPEN_REVIEW", 10L, "20", 1);
-      Notification listPayload = seedRawAction("OPEN_REVIEW", 10L, List.of(20L), 1);
-      Notification missingPayload = seedRawAction("OPEN_REVIEW", 10L, null, 1);
-      Notification missingReplyId = seedRawAction("OPEN_REVIEW", 10L, Map.of(), 1);
+              (short) 1);
+      Notification scalarPayload = seedRawAction("OPEN_REVIEW", 10L, "20", (short) 1);
+      Notification listPayload = seedRawAction("OPEN_REVIEW", 10L, List.of(20L), (short) 1);
+      Notification missingPayload = seedRawAction("OPEN_REVIEW", 10L, null, (short) 1);
+      Notification missingReplyId = seedRawAction("OPEN_REVIEW", 10L, Map.of(), (short) 1);
       Notification legacy = seedNotification(USER_ID, "legacy");
       Notification valid =
           seedNotification(USER_ID, "valid", NotificationAction.openReview(10L, 20L));
@@ -613,7 +655,7 @@ class UserNotificationServiceTest {
   }
 
   private Notification seedRawAction(
-      String actionType, Long targetId, Object payload, Integer version) {
+      String actionType, Long targetId, Object payload, Short version) {
     Notification notification = seedNotification(USER_ID, "raw-action");
     ReflectionTestUtils.setField(notification, "actionType", actionType);
     ReflectionTestUtils.setField(notification, "actionTargetId", targetId);
