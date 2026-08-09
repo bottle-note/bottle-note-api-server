@@ -12,6 +12,7 @@ import app.bottlenote.notification.constant.NotificationType;
 import app.bottlenote.notification.dto.request.NotificationPageableRequest;
 import app.bottlenote.notification.dto.response.NotificationListResponse;
 import app.bottlenote.notification.payload.NotificationMessage;
+import app.bottlenote.notification.service.NotificationMarkReadResult;
 import app.bottlenote.notification.service.NotificationService;
 import app.bottlenote.review.event.payload.ReviewReplyNotificationEvent;
 import java.util.ArrayList;
