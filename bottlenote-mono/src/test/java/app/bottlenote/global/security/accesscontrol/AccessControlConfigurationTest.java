@@ -33,7 +33,10 @@ class AccessControlConfigurationTest {
               AccessControlConfiguration.class)
           .withPropertyValues(
               "bottlenote.access-control.enabled=true",
-              "bottlenote.access-control.redis-command-timeout=200ms");
+              "bottlenote.access-control.redis-command-timeout=200ms",
+              "bottlenote.access-control.snapshot.refresh-interval-ms=45000",
+              "bottlenote.access-control.snapshot.stale-threshold=4m",
+              "bottlenote.access-control.snapshot.max-entries=2");
 
   @Test
   @DisplayName("access-control 활성 시 RedisConnectionFactory·StringRedisTemplate 타입 후보가 각각 하나다")
@@ -51,6 +54,13 @@ class AccessControlConfigurationTest {
           assertThat(templates).hasSize(1);
           assertThat(context).hasSingleBean(RedisConnectionFactory.class);
           assertThat(context).hasSingleBean(StringRedisTemplate.class);
+          assertThat(context).hasSingleBean(BanSnapshotHolder.class);
+          assertThat(context).hasSingleBean(BanSnapshotRefresher.class);
+          AccessControlProperties.Snapshot snapshotProperties =
+              context.getBean(AccessControlProperties.class).getSnapshot();
+          assertThat(snapshotProperties.getRefreshIntervalMs()).isEqualTo(45_000L);
+          assertThat(snapshotProperties.getStaleThreshold()).isEqualTo(Duration.ofMinutes(4));
+          assertThat(snapshotProperties.getMaxEntries()).isEqualTo(2);
 
           // 무수식 주입 — @Primary 없이도 성공해야 한다
           RedisConnectionFactoryFactoryProbe factoryProbe =
@@ -110,6 +120,8 @@ class AccessControlConfigurationTest {
               assertThat(context).hasNotFailed();
               assertThat(context).doesNotHaveBean(AccessControlStore.class);
               assertThat(context).doesNotHaveBean(AccessControlService.class);
+              assertThat(context).doesNotHaveBean(BanSnapshotHolder.class);
+              assertThat(context).doesNotHaveBean(BanSnapshotRefresher.class);
               assertThat(context.getBeansOfType(RedisConnectionFactory.class)).hasSize(1);
             });
   }
