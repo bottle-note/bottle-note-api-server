@@ -5,9 +5,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.notification.action.NotificationAction;
-import app.bottlenote.notification.action.NotificationActionFallbackType;
 import app.bottlenote.notification.action.NotificationActionResolver;
-import app.bottlenote.notification.action.NotificationActionType;
+import app.bottlenote.notification.constant.NotificationActionFallbackType;
+import app.bottlenote.notification.constant.NotificationActionType;
 import app.bottlenote.notification.constant.NotificationCategory;
 import app.bottlenote.notification.constant.NotificationReadStatus;
 import app.bottlenote.notification.constant.NotificationStatus;

@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.notification.action.NotificationAction;
-import app.bottlenote.notification.action.NotificationActionType;
+import app.bottlenote.notification.constant.NotificationActionType;
 import app.bottlenote.notification.constant.NotificationCategory;
 import app.bottlenote.notification.constant.NotificationSourceType;
 import app.bottlenote.notification.constant.NotificationType;

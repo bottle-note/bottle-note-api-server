@@ -1,7 +1,7 @@
 package app.bottlenote.notification.controller.docs;
 
-import app.bottlenote.notification.action.NotificationActionFallbackType;
-import app.bottlenote.notification.action.NotificationActionType;
+import app.bottlenote.notification.constant.NotificationActionFallbackType;
+import app.bottlenote.notification.constant.NotificationActionType;
 import app.bottlenote.notification.constant.NotificationCategory;
 import app.bottlenote.notification.constant.NotificationStatus;
 import app.bottlenote.notification.constant.NotificationType;
