@@ -98,7 +98,7 @@
 - Files (advisory): k6 스크립트, 실행 문서 또는 workflow 보조 파일
 - Depends: Task 4
 - Size: S
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 6: CI와 개발 서버에서 최종 검증
 - Acceptance:
@@ -120,3 +120,4 @@
 - 2026-08-09: Task 2 완료. Redis ban 목록을 `Map.copyOf` immutable snapshot과 `AtomicReference`로 원자 교체하며 30초 갱신·3분 stale·10,000건 상한·개별 TTL·무기한 TTL을 제공한다. 실패 시 이전 snapshot을 유지하고 Redis TTL 초 단위 절삭은 최대 1초 보수적으로 보정했다. Opus 설계 검토와 Sonnet diff 리뷰 후 유효 지적을 반영했으며, 집중 단위 14/14, Spotless, 전체 `check_rule_test`가 통과했다.
 - 2026-08-09: Task 3 완료. ban Redis 장애 시 fresh snapshot hit만 403으로 유지하고 miss·expired·stale·startup은 설정에 따라 즉시 fail-open/fail-closed하며, 같은 요청에서 rate-limit Redis를 재호출하지 않는다. ban 정상 후 rate-limit만 실패한 경로는 별도 처리하고 저카디널리티 fallback 메트릭을 추가했다. Opus 설계와 Terra 구현 후 독립 검증: Service 25/25, Filter 6/6, Configuration 3/3(총 34/34), Spotless, 전체 `check_rule_test` 통과. Tasks 1-3 checkpoint 완료.
 - 2026-08-09: Task 4 완료. 실제 Product `MockMvcTester` Security chain과 Testcontainers Redis delegate를 사용하는 제어형 store로 정상 allow/403/429, Redis 장애 snapshot hit 403, fresh miss 200·rate-limit 미호출, 복구 후 정상 헤더 복귀를 검증했다. `--rerun-tasks` 독립 실행 기준 통합 6/6, Product Spotless, 전체 `check_rule_test` 통과.
+- 2026-08-09: Task 5 완료. k6 `per-vu-iterations`로 500 VU가 각각 1회 요청해 총 500 동시 요청을 만드는 fixed/random 모드를 추가했다. 네트워크 실패 0, 5xx 0, p95 1초·p99 2초 미만과 fixed 200 비율 100%를 threshold로 강제하고 6개 제한 상태 카운터를 출력한다. 두 모드 `k6 inspect`, BASE_URL 누락 exit 107·HTTP 요청 0건, 비밀정보/XFF 스캔, diff check를 통과했다.
