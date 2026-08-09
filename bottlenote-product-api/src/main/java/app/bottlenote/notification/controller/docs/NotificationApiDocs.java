@@ -35,6 +35,12 @@ public final class NotificationApiDocs {
 
           - `cursor`: 직전 페이지 마지막 알림 id. 미지정/0이면 최신부터 조회
           - `pageSize`: 페이지 크기 (기본 10, 최대 100)
+          - `types`: 알림 타입 목록. 미지정 또는 빈 목록이면 전체
+          - `categories`: 알림 카테고리 목록. 미지정 또는 빈 목록이면 전체
+          - `readStatus`: 읽음 필터 (`ALL`, `UNREAD`, `READ`, 기본 `ALL`). `isRead` 기준
+          - `createdFrom`: 생성 시각 하한(포함), ISO-8601 OffsetDateTime
+          - `createdTo`: 생성 시각 상한(제외), ISO-8601 OffsetDateTime
+          - 시각 offset은 동일 instant의 Asia/Seoul 시각으로 정규화하며, from은 to보다 이전이어야 함
           - 응답 `meta.pageable.cursor`는 이번 페이지 마지막 item id(다음 요청용 nextCursor)
 
           **오류 코드**
@@ -48,7 +54,21 @@ public final class NotificationApiDocs {
             name = "cursor",
             description = "직전 페이지 마지막 알림 id (keyset, 0이면 최초)",
             example = "0"),
-        @Parameter(name = "pageSize", description = "페이지 크기", example = "10")
+        @Parameter(name = "pageSize", description = "페이지 크기", example = "10"),
+        @Parameter(name = "types", description = "알림 타입 목록", example = "USER"),
+        @Parameter(name = "categories", description = "알림 카테고리 목록", example = "REVIEW"),
+        @Parameter(
+            name = "readStatus",
+            description = "읽음 필터 (ALL, UNREAD, READ)",
+            example = "ALL"),
+        @Parameter(
+            name = "createdFrom",
+            description = "생성 시각 하한(포함), ISO-8601 OffsetDateTime",
+            example = "2026-08-10T00:00:00Z"),
+        @Parameter(
+            name = "createdTo",
+            description = "생성 시각 상한(제외), ISO-8601 OffsetDateTime",
+            example = "2026-08-11T00:00:00Z")
       },
       responses =
           @ApiResponse(

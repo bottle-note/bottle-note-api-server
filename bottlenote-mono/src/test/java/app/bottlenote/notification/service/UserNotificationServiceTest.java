@@ -9,6 +9,7 @@ import app.bottlenote.notification.action.NotificationActionFallbackType;
 import app.bottlenote.notification.action.NotificationActionResolver;
 import app.bottlenote.notification.action.NotificationActionType;
 import app.bottlenote.notification.constant.NotificationCategory;
+import app.bottlenote.notification.constant.NotificationReadStatus;
 import app.bottlenote.notification.constant.NotificationStatus;
 import app.bottlenote.notification.constant.NotificationType;
 import app.bottlenote.notification.domain.Notification;
@@ -25,6 +26,7 @@ import app.bottlenote.user.fixture.FakeUserFacade;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -159,6 +161,179 @@ class UserNotificationServiceTest {
       assertThat(secondPage.cursorPageable().getHasNext()).isFalse();
       assertThat(secondPage.cursorPageable().getCurrentCursor()).isEqualTo(n2.getId());
       assertThat(secondPage.cursorPageable().getCursor()).isEqualTo(n1.getId());
+    }
+
+    @Test
+    @DisplayName("알림 타입으로 목록과 totalCount를 필터링한다")
+    void getNotifications_whenTypeFilterExists_returnsMatchingType() {
+      seedNotification(USER_ID, "user");
+      notificationRepository.save(
+          Notification.builder()
+              .userId(USER_ID)
+              .title("system")
+              .content("system-content")
+              .type(NotificationType.SYSTEM)
+              .category(NotificationCategory.REVIEW)
+              .build());
+
+      PageResponse<NotificationListResponse> result =
+          service.getNotifications(
+              USER_ID,
+              NotificationPageableRequest.builder()
+                  .types(List.of(NotificationType.SYSTEM))
+                  .build());
+
+      assertThat(result.content().totalCount()).isOne();
+      assertThat(result.content().items())
+          .extracting(NotificationListResponse.Item::type)
+          .containsExactly(NotificationType.SYSTEM);
+    }
+
+    @Test
+    @DisplayName("알림 카테고리로 목록을 필터링한다")
+    void getNotifications_whenCategoryFilterExists_returnsMatchingCategory() {
+      seedNotification(USER_ID, "review");
+      notificationRepository.save(
+          Notification.builder()
+              .userId(USER_ID)
+              .title("notice")
+              .content("notice-content")
+              .type(NotificationType.USER)
+              .category(NotificationCategory.NOTICE)
+              .build());
+
+      PageResponse<NotificationListResponse> result =
+          service.getNotifications(
+              USER_ID,
+              NotificationPageableRequest.builder()
+                  .categories(List.of(NotificationCategory.NOTICE))
+                  .build());
+
+      assertThat(result.content().items())
+          .extracting(NotificationListResponse.Item::category)
+          .containsExactly(NotificationCategory.NOTICE);
+    }
+
+    @Test
+    @DisplayName("READ UNREAD ALL을 isRead 기준으로 필터링한다")
+    void getNotifications_whenReadStatusChanges_filtersByIsRead() {
+      Notification unread = seedNotification(USER_ID, "unread");
+      Notification read = seedNotification(USER_ID, "read");
+      read.markAsRead(LocalDateTime.of(2026, 8, 10, 10, 0));
+
+      PageResponse<NotificationListResponse> readResult =
+          service.getNotifications(
+              USER_ID,
+              NotificationPageableRequest.builder()
+                  .readStatus(NotificationReadStatus.READ)
+                  .build());
+      PageResponse<NotificationListResponse> unreadResult =
+          service.getNotifications(
+              USER_ID,
+              NotificationPageableRequest.builder()
+                  .readStatus(NotificationReadStatus.UNREAD)
+                  .build());
+      PageResponse<NotificationListResponse> allResult =
+          service.getNotifications(
+              USER_ID,
+              NotificationPageableRequest.builder()
+                  .readStatus(NotificationReadStatus.ALL)
+                  .build());
+
+      assertThat(readResult.content().items())
+          .extracting(NotificationListResponse.Item::id)
+          .containsExactly(read.getId());
+      assertThat(unreadResult.content().items())
+          .extracting(NotificationListResponse.Item::id)
+          .containsExactly(unread.getId());
+      assertThat(allResult.content().totalCount()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("생성 시각은 from 포함 to 제외 반개구간으로 필터링한다")
+    void getNotifications_whenCreatedRangeExists_usesHalfOpenIntervalInKst() {
+      Notification before = seedNotification(USER_ID, "before");
+      Notification from = seedNotification(USER_ID, "from");
+      Notification inside = seedNotification(USER_ID, "inside");
+      Notification to = seedNotification(USER_ID, "to");
+      ReflectionTestUtils.setField(before, "createAt", LocalDateTime.of(2026, 8, 10, 8, 59));
+      ReflectionTestUtils.setField(from, "createAt", LocalDateTime.of(2026, 8, 10, 9, 0));
+      ReflectionTestUtils.setField(inside, "createAt", LocalDateTime.of(2026, 8, 10, 9, 30));
+      ReflectionTestUtils.setField(to, "createAt", LocalDateTime.of(2026, 8, 10, 10, 0));
+
+      PageResponse<NotificationListResponse> result =
+          service.getNotifications(
+              USER_ID,
+              NotificationPageableRequest.builder()
+                  .createdFrom(OffsetDateTime.parse("2026-08-10T00:00:00Z"))
+                  .createdTo(OffsetDateTime.parse("2026-08-10T01:00:00Z"))
+                  .build());
+
+      assertThat(result.content().items())
+          .extracting(NotificationListResponse.Item::id)
+          .containsExactly(inside.getId(), from.getId());
+      assertThat(result.content().totalCount()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("결합 필터의 다중 cursor 페이지는 중복과 누락 없이 id 내림차순이다")
+    void getNotifications_whenCombinedFilterIsPaged_hasNoDuplicatesOrMissingItems() {
+      Notification n1 = seedNotification(USER_ID, "n1");
+      Notification n2 = seedNotification(USER_ID, "n2");
+      Notification n3 = seedNotification(USER_ID, "n3");
+      seedNotification(OTHER_USER_ID, "other");
+      seedNotification(USER_ID, "excluded").markAsRead();
+      NotificationPageableRequest firstRequest =
+          NotificationPageableRequest.builder()
+              .types(List.of(NotificationType.USER))
+              .categories(List.of(NotificationCategory.REVIEW))
+              .readStatus(NotificationReadStatus.UNREAD)
+              .pageSize(2L)
+              .build();
+
+      PageResponse<NotificationListResponse> first =
+          service.getNotifications(USER_ID, firstRequest);
+      PageResponse<NotificationListResponse> second =
+          service.getNotifications(
+              USER_ID,
+              NotificationPageableRequest.builder()
+                  .cursor(first.cursorPageable().getCursor())
+                  .pageSize(2L)
+                  .types(firstRequest.types())
+                  .categories(firstRequest.categories())
+                  .readStatus(firstRequest.readStatus())
+                  .build());
+
+      assertThat(first.content().totalCount()).isEqualTo(3);
+      assertThat(second.content().totalCount()).isEqualTo(3);
+      assertThat(
+              java.util.stream.Stream.concat(
+                      first.content().items().stream(), second.content().items().stream())
+                  .map(NotificationListResponse.Item::id)
+                  .toList())
+          .containsExactly(n3.getId(), n2.getId(), n1.getId());
+    }
+
+    @Test
+    @DisplayName("빈 타입과 카테고리 목록은 전체를 조회한다")
+    void getNotifications_whenCollectionFiltersAreEmpty_returnsAll() {
+      seedNotification(USER_ID, "review");
+      notificationRepository.save(
+          Notification.builder()
+              .userId(USER_ID)
+              .title("notice")
+              .content("notice-content")
+              .type(NotificationType.SYSTEM)
+              .category(NotificationCategory.NOTICE)
+              .build());
+
+      PageResponse<NotificationListResponse> result =
+          service.getNotifications(
+              USER_ID,
+              NotificationPageableRequest.builder().types(List.of()).categories(List.of()).build());
+
+      assertThat(result.content().totalCount()).isEqualTo(2);
+      assertThat(result.content().items()).hasSize(2);
     }
 
     @Test

@@ -9,5 +9,7 @@ public interface CustomNotificationRepository {
 
   List<Notification> findPageByUserId(NotificationListCriteria criteria);
 
+  long countByCriteria(NotificationListCriteria criteria);
+
   long countByUserId(Long userId);
 }
