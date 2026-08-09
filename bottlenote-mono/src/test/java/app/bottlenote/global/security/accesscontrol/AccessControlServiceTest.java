@@ -10,8 +10,13 @@ import app.bottlenote.global.security.accesscontrol.AccessControlStore.BanInfo;
 import app.bottlenote.global.security.accesscontrol.AccessControlStore.BanLookup;
 import app.bottlenote.global.security.accesscontrol.AccessControlStore.ConsumeResult;
 import app.bottlenote.global.security.accesscontrol.fixture.InMemoryAccessControlStore;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -23,6 +28,10 @@ class AccessControlServiceTest {
 
   private InMemoryAccessControlStore store;
   private AccessControlProperties properties;
+  private BanSnapshotHolder snapshotHolder;
+  private Clock clock;
+  private SimpleMeterRegistry meterRegistry;
+  private AccessControlMetrics metrics;
   private AccessControlService service;
 
   @BeforeEach
@@ -61,7 +70,11 @@ class AccessControlServiceTest {
     properties.setPathRules(List.of(authRule, exploreRule, reviewsGetRule, reviewsWriteRule));
     properties.setExcludedPathPrefixes(List.of("/actuator"));
 
-    service = new AccessControlService(store, properties, AccessControlMetrics.noop());
+    snapshotHolder = new BanSnapshotHolder(properties.getSnapshot().getMaxEntries());
+    clock = Clock.fixed(Instant.parse("2026-08-09T00:00:00Z"), ZoneOffset.UTC);
+    meterRegistry = new SimpleMeterRegistry();
+    metrics = new AccessControlMetrics(meterRegistry);
+    service = newService(store);
   }
 
   @Test
@@ -153,8 +166,7 @@ class AccessControlServiceTest {
   void evaluate_whenBanned_usesSingleLookupBan() {
     LookupCountingStore lookupStore = new LookupCountingStore();
     lookupStore.ban("203.0.113.91", Duration.ofMinutes(10), "abuse");
-    AccessControlService lookupService =
-        new AccessControlService(lookupStore, properties, AccessControlMetrics.noop());
+    AccessControlService lookupService = newService(lookupStore);
 
     Decision decision = lookupService.evaluate("203.0.113.91", "/api/v1/alcohols", "GET");
 
@@ -256,8 +268,7 @@ class AccessControlServiceTest {
             return ConsumeResult.allow(0);
           }
         };
-    AccessControlService failingService =
-        new AccessControlService(failingStore, properties, AccessControlMetrics.noop());
+    AccessControlService failingService = newService(failingStore);
 
     assertThat(failingService.evaluate("203.0.113.13", "/api/v1/alcohols", "GET").allowed())
         .isTrue();
@@ -299,12 +310,176 @@ class AccessControlServiceTest {
             return ConsumeResult.allow(0);
           }
         };
-    AccessControlService failingService =
-        new AccessControlService(failingStore, properties, AccessControlMetrics.noop());
+    AccessControlService failingService = newService(failingStore);
 
     assertThatThrownBy(() -> failingService.evaluate("203.0.113.14", "/api/v1/alcohols", "GET"))
         .isInstanceOf(IllegalStateException.class)
         .hasMessage("programming error");
+  }
+
+  @Test
+  @DisplayName("ban Redis 장애에서 fresh snapshot hit은 403을 반환하고 rate-limit을 호출하지 않는다")
+  void evaluate_whenBanLookupFailsAndFreshSnapshotHits_returnsBannedWithoutRateLimitCall() {
+    String ip = "203.0.113.40";
+    snapshotHolder.replace(
+        new BanSnapshot(
+            Map.of(ip, new BanSnapshot.BanEntry(clock.instant().plusSeconds(120), "abuse")),
+            clock.instant()));
+    FailingBanStore failingStore = new FailingBanStore();
+
+    Decision decision = newService(failingStore).evaluate(ip, "/api/v1/alcohols", "GET");
+
+    assertThat(decision.type()).isEqualTo(Decision.Type.BANNED);
+    assertThat(decision.retryAfterSeconds()).isEqualTo(120);
+    assertThat(failingStore.rateLimitCalls()).isZero();
+    assertCounter("access_control_ban_fallback_total", "snapshot_hit").isEqualTo(1.0);
+    assertCounter("access_control_store_errors_total", null).isEqualTo(1.0);
+  }
+
+  @Test
+  @DisplayName("무기한 snapshot ban은 60초 Retry-After를 반환한다")
+  void evaluate_whenBanLookupFailsAndSnapshotIsIndefinite_returnsSixtySecondRetryAfter() {
+    String ip = "203.0.113.41";
+    snapshotHolder.replace(
+        new BanSnapshot(
+            Map.of(ip, new BanSnapshot.BanEntry(Instant.MAX, "abuse")), clock.instant()));
+
+    Decision decision = newService(new FailingBanStore()).evaluate(ip, "/api/v1/alcohols", "GET");
+
+    assertThat(decision.type()).isEqualTo(Decision.Type.BANNED);
+    assertThat(decision.retryAfterSeconds()).isEqualTo(60);
+  }
+
+  @Test
+  @DisplayName("ban Redis 장애에서 fresh snapshot miss는 fail-open allow하고 rate-limit을 호출하지 않는다")
+  void evaluate_whenBanLookupFailsAndSnapshotMiss_allowsWithoutRateLimitCall() {
+    snapshotHolder.replace(new BanSnapshot(Map.of(), clock.instant()));
+    FailingBanStore failingStore = new FailingBanStore();
+
+    Decision decision =
+        newService(failingStore).evaluate("203.0.113.42", "/api/v1/alcohols", "GET");
+
+    assertThat(decision.type()).isEqualTo(Decision.Type.ALLOW);
+    assertThat(failingStore.rateLimitCalls()).isZero();
+    assertCounter("access_control_ban_fallback_total", "snapshot_miss").isEqualTo(1.0);
+    assertCounter("access_control_fail_open_total", null).isEqualTo(1.0);
+  }
+
+  @Test
+  @DisplayName("ban Redis 장애에서 만료된 snapshot entry는 fail-open 한다")
+  void evaluate_whenBanLookupFailsAndSnapshotEntryExpired_allows() {
+    String ip = "203.0.113.43";
+    snapshotHolder.replace(
+        new BanSnapshot(
+            Map.of(ip, new BanSnapshot.BanEntry(clock.instant().minusSeconds(1), "expired")),
+            clock.instant()));
+
+    Decision decision = newService(new FailingBanStore()).evaluate(ip, "/api/v1/alcohols", "GET");
+
+    assertThat(decision.type()).isEqualTo(Decision.Type.ALLOW);
+    assertCounter("access_control_ban_fallback_total", "snapshot_miss").isEqualTo(1.0);
+  }
+
+  @Test
+  @DisplayName("ban Redis 장애에서 stale snapshot은 entry가 있어도 fail-open 한다")
+  void evaluate_whenBanLookupFailsAndSnapshotIsStale_allows() {
+    String ip = "203.0.113.44";
+    snapshotHolder.replace(
+        new BanSnapshot(
+            Map.of(ip, new BanSnapshot.BanEntry(clock.instant().plusSeconds(120), "abuse")),
+            clock.instant().minus(Duration.ofMinutes(3)).minusNanos(1)));
+
+    Decision decision = newService(new FailingBanStore()).evaluate(ip, "/api/v1/alcohols", "GET");
+
+    assertThat(decision.type()).isEqualTo(Decision.Type.ALLOW);
+    assertCounter("access_control_ban_fallback_total", "snapshot_stale").isEqualTo(1.0);
+  }
+
+  @Test
+  @DisplayName("ban Redis 장애에서 startup empty snapshot은 fail-open 한다")
+  void evaluate_whenBanLookupFailsAndSnapshotIsEmptyAtStartup_allows() {
+    Decision decision =
+        newService(new FailingBanStore()).evaluate("203.0.113.45", "/api/v1/alcohols", "GET");
+
+    assertThat(decision.type()).isEqualTo(Decision.Type.ALLOW);
+    assertCounter("access_control_ban_fallback_total", "snapshot_stale").isEqualTo(1.0);
+  }
+
+  @Test
+  @DisplayName("ban Redis 장애에서 fail-open false는 즉시 rate-limited 하고 rate-limit을 호출하지 않는다")
+  void evaluate_whenBanLookupFailsAndFailOpenFalse_returnsRateLimitedWithoutRateLimitCall() {
+    properties.setFailOpen(false);
+    FailingBanStore failingStore = new FailingBanStore();
+
+    Decision decision =
+        newService(failingStore).evaluate("203.0.113.46", "/api/v1/alcohols", "GET");
+
+    assertThat(decision.type()).isEqualTo(Decision.Type.RATE_LIMITED);
+    assertThat(decision.retryAfterSeconds()).isEqualTo(60);
+    assertThat(failingStore.rateLimitCalls()).isZero();
+  }
+
+  @Test
+  @DisplayName("rate-limit Redis 장애는 fail-open 메트릭과 함께 allow 한다")
+  void evaluate_whenRateLimitFailsAndFailOpen_allowsAndRecordsMetric() {
+    Decision decision =
+        newService(new FailingRateLimitStore()).evaluate("203.0.113.47", "/api/v1/alcohols", "GET");
+
+    assertThat(decision.type()).isEqualTo(Decision.Type.ALLOW);
+    assertCounter("access_control_rate_limit_fallback_total", "fail_open").isEqualTo(1.0);
+    assertCounter("access_control_store_errors_total", null).isEqualTo(1.0);
+  }
+
+  @Test
+  @DisplayName("rate-limit Redis 장애는 fail-open false에서 rate-limited 메트릭을 기록한다")
+  void evaluate_whenRateLimitFailsAndFailOpenFalse_rateLimitsAndRecordsMetric() {
+    properties.setFailOpen(false);
+
+    Decision decision =
+        newService(new FailingRateLimitStore()).evaluate("203.0.113.48", "/api/v1/alcohols", "GET");
+
+    assertThat(decision.type()).isEqualTo(Decision.Type.RATE_LIMITED);
+    assertCounter("access_control_rate_limit_fallback_total", "fail_closed").isEqualTo(1.0);
+  }
+
+  private AccessControlService newService(AccessControlStore accessControlStore) {
+    return new AccessControlService(accessControlStore, properties, metrics, snapshotHolder, clock);
+  }
+
+  private org.assertj.core.api.AbstractDoubleAssert<?> assertCounter(String name, String result) {
+    io.micrometer.core.instrument.search.Search search = meterRegistry.find(name);
+    if (result != null) {
+      search = search.tag("result", result);
+    }
+    return assertThat(search.counter().count());
+  }
+
+  private static final class FailingBanStore extends InMemoryAccessControlStore {
+
+    private int rateLimitCalls;
+
+    @Override
+    public BanLookup lookupBan(String ip) {
+      throw new AccessControlStoreUnavailableException(new IllegalStateException("redis down"));
+    }
+
+    @Override
+    public ConsumeResult tryConsume(String key, int limit, Duration window) {
+      rateLimitCalls++;
+      throw new AssertionError("ban lookup failure must not call rate-limit Redis");
+    }
+
+    int rateLimitCalls() {
+      return rateLimitCalls;
+    }
+  }
+
+  private static final class FailingRateLimitStore extends InMemoryAccessControlStore {
+
+    @Override
+    public ConsumeResult tryConsume(String key, int limit, Duration window) {
+      throw new AccessControlStoreUnavailableException(new IllegalStateException("redis down"));
+    }
   }
 
   private static final class LookupCountingStore extends InMemoryAccessControlStore {

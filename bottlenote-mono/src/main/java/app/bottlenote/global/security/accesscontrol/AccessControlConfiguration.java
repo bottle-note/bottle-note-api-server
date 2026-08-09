@@ -86,8 +86,10 @@ public class AccessControlConfiguration {
   public AccessControlService accessControlService(
       AccessControlStore accessControlStore,
       AccessControlProperties properties,
-      AccessControlMetrics accessControlMetrics) {
-    return new AccessControlService(accessControlStore, properties, accessControlMetrics);
+      AccessControlMetrics accessControlMetrics,
+      BanSnapshotHolder banSnapshotHolder) {
+    return new AccessControlService(
+        accessControlStore, properties, accessControlMetrics, banSnapshotHolder, Clock.systemUTC());
   }
 
   @Bean
