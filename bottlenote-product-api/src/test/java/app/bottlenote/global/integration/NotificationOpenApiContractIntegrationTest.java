@@ -32,12 +32,13 @@ class NotificationOpenApiContractIntegrationTest extends OpenApiSpecTestSupport 
     assertThat(parameter(operation, "types").at("/schema/type").asText()).isEqualTo("array");
     assertThat(parameter(operation, "categories").at("/schema/type").asText()).isEqualTo("array");
 
-    JsonNode listSchema =
-        spec.path("components").path("schemas").properties().stream()
-            .map(entry -> entry.getValue())
-            .filter(schema -> propertyNamesOf(schema).containsAll(List.of("totalCount", "items")))
-            .findFirst()
-            .orElseThrow();
+    JsonNode responseSchema =
+        resolve(
+            spec,
+            operation
+                .definition()
+                .at("/responses/200/content/application~1json/schema"));
+    JsonNode listSchema = resolve(spec, responseSchema.path("properties").path("data"));
     JsonNode itemSchema =
         resolve(spec, listSchema.path("properties").path("items").path("items"));
     assertThat(propertyNamesOf(itemSchema)).contains("status", "isRead", "createAt", "readAt", "action");
