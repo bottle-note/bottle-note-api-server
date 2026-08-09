@@ -8,7 +8,7 @@
 - Issue: `bottle-note/workspace#381`
 - Base: PR `bottle-note/bottle-note-api-server#701`, commit `08e903dfb224075b3c544c1d5dbb3a524aeca998`
 - API shape: 기존 `GlobalResponse` + `data.totalCount/items` + `meta.pageable` 유지
-- Primary action: `OPEN_REVIEW`
+- Primary actions: `OPEN_REVIEW`, `OPEN_HELP`
 
 ### Assumptions
 
@@ -27,6 +27,8 @@
 13. 기존 nullable source/action 컬럼 행은 그대로 호환하며 `action=null`로 응답한다.
 14. 사용자 후속 결정으로 `(user_id, is_read, id)`, `(user_id, create_at, id)` 인덱스를 V10에 포함한다. 실제 데이터 분포 기반 `EXPLAIN ANALYZE` 실효성 검증은 미검증 범위로 유지한다.
 15. 향후 Outbox/SSE/FCM은 같은 canonical notification/action 의미를 채널별 envelope로 매핑한다. API 목록 envelope를 SSE/FCM에 바이트 단위로 복제하는 것은 이번 범위가 아니다.
+16. 문의 답변 알림은 `type=USER`, `category=ANSWER`, `source_type=HELP_ANSWER`, `source_id=helpId`, `action_type=OPEN_HELP`, `action_target_id=helpId`, `action_payload={}`, `action_version=1`로 저장한다.
+17. 같은 문의에 답변을 다시 등록해도 사용자별 알림은 한 건만 유지하며, 문의 상세 API가 이동 시점에 본인 문의인지 다시 검증한다. 문의 삭제·권한 없음은 알림함으로 fallback한다.
 
 ### Success Criteria
 
@@ -46,13 +48,17 @@
 | SC12 | 타 사용자 알림 조회·읽음 차단과 기존 미읽음 API가 회귀하지 않는다 | integration |
 | SC13 | Product/Admin Flyway 리소스 복사와 Batch 마이그레이션 제외 가드가 유지된다 | GitHub CI build/rule |
 | SC14 | 전체 GitHub Actions `ci pipeline`이 최종 backend head SHA에서 성공한다 | workflow run jobs |
+| SC15 | 관리자 문의 답변 commit 후 문의 작성자에게 HELP_ANSWER/OPEN_HELP 알림이 생성되고 재답변은 중복 저장되지 않는다 | unit + Admin integration |
+| SC16 | OPEN_HELP v1은 정확한 빈 객체 payload만 허용하며 목록 응답과 OpenAPI가 OPEN_REVIEW와 함께 두 Action을 표현한다 | unit + Product integration + OpenAPI |
 
 ### Impact Scope
 
 **Backend**
 
 - `bottlenote-mono`: Notification entity/port/JPA/query/service, Action contract, 댓글 listener
+- `bottlenote-mono`: 문의 답변 이벤트 발행과 Notification listener
 - `bottlenote-product-api`: 목록·읽음 API DTO/OpenAPI와 controller integration test
+- `bottlenote-admin-api`: 문의 답변 후 알림 저장 통합 테스트
 - `bottlenote-test-support`: InMemory Notification repository
 - `git.environment-variables`: 별도 Orca worktree의 신규 Flyway SQL
 - backend repo: 서브모듈 gitlink와 이 계획 문서
@@ -177,6 +183,28 @@
 - Size: M
 - Status: [x] done
 
+### Task 8: 문의 답변 OPEN_HELP 알림 경로
+- Acceptance:
+  - 관리자 문의 답변 commit 후 문의 작성자에게 `HELP_ANSWER/helpId` source와 `OPEN_HELP/helpId/{}/v1` Action 알림을 생성한다.
+  - 같은 문의에 답변을 다시 등록해도 사용자별 알림은 한 건만 유지한다.
+  - 임의 route를 추가하지 않고 기존 문의 상세 API가 소유권을 재검증하며 접근 불가 시 공통 fallback을 사용한다.
+- Verification: 정적 self-review 후 commit, 최종 GitHub CI unit/Admin integration
+- Files (advisory): `AdminHelpService`, 문의 답변 Notification event/listener, `NotificationAction`, enum, `NotificationMessage`
+- Depends: Tasks 4, 6
+- Size: M
+- Status: [x] done
+
+### Task 9: OPEN_HELP 공통 계약 테스트와 문서화
+- Acceptance:
+  - OPEN_HELP의 빈 payload와 잘못된 payload 강등을 단위·Product integration으로 검증한다.
+  - 관리자 답변의 AFTER_COMMIT 비동기 저장과 중복 방지를 실제 Spring context/Testcontainers로 검증한다.
+  - OpenAPI가 OPEN_REVIEW와 OPEN_HELP allowlist 및 타입별 payload를 표현한다.
+- Verification: backend push 후 최종 head SHA의 GitHub Actions `ci pipeline` 전체 job 성공
+- Files (advisory): notification service/listener tests, `AdminHelpIntegrationTest`, `NotificationControllerIntegrationTest`, OpenAPI schema/contract test
+- Depends: Task 8
+- Size: M
+- Status: [ ] not done
+
 ## Progress Log
 
 - 2026-08-09: #381 최신 본문, #384 개발 검증 댓글, PR #701, 기존 MS1-1 계획, Notification 코드/테스트, Flyway와 아키텍처 문서를 재확인했다.
@@ -194,3 +222,4 @@
 - 2026-08-10: GitHub Actions run `31323979472`에서 prepare, unit 658개, rule 64개, Product integration 351개, Admin integration 248개, 최종 build와 JUnit report가 모두 성공했다.
 - 2026-08-10: 사용자 후속 결정으로 V10에 읽음·시간 범위 복합 인덱스를 추가하고 environment PR #12를 `main`에 병합했다. Backend에는 최신 `main` `fcb469137`을 merge하고 environment `main` `7d29a9797`로 gitlink를 갱신해 PR #704에 push했다. 배포는 수행하지 않았다.
 - 2026-08-10: 별도 Orca Run `run_b470f4dee37d`의 Opus 코드 스멜 리뷰 1회에서 7건을 받았다. Action payload 검증 중복, stateless Resolver, 단일 필드 payload top-level 타입, Request/Criteria 정규화 중복을 해소 대상으로 채택했고, 레거시 `NotificationStatus.READ` 제거와 비원자 읽음 갱신은 호환성·동시성 때문에 제외했다.
+- 2026-08-10: Task 8 완료 — 관리자 문의 답변 commit 후 `HELP_ANSWER/helpId` source와 `OPEN_HELP/helpId/{}/v1` Action 알림을 생성하도록 지원 이벤트와 Notification listener를 추가했다. Action payload 구현은 `NotificationAction` 내부 sealed 계약으로 묶고 OPEN_HELP는 정확한 빈 객체만 허용한다. listener 단위 시나리오 2개를 작성했으며 로컬 Gradle·테스트·Spotless는 실행하지 않았다.

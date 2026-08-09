@@ -161,7 +161,7 @@ public class UserNotificationService implements NotificationService {
       return new NotificationListResponse.Action(
           action.type(),
           action.targetId(),
-          action.openReviewPayload(),
+          action.actionPayload(),
           action.version(),
           NotificationActionFallbackType.OPEN_NOTIFICATION_CENTER);
     } catch (IllegalArgumentException exception) {

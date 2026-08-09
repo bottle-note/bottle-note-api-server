@@ -1,6 +1,6 @@
 package app.bottlenote.notification.dto.response;
 
-import app.bottlenote.notification.action.NotificationAction.OpenReviewActionPayload;
+import app.bottlenote.notification.action.NotificationAction.ActionPayload;
 import app.bottlenote.notification.constant.NotificationActionFallbackType;
 import app.bottlenote.notification.constant.NotificationActionType;
 import app.bottlenote.notification.constant.NotificationCategory;
@@ -45,7 +45,7 @@ public record NotificationListResponse(long totalCount, List<Item> items) {
   public record Action(
       NotificationActionType type,
       Long targetId,
-      OpenReviewActionPayload payload,
+      ActionPayload payload,
       Integer version,
       NotificationActionFallbackType fallbackType) {}
 }
