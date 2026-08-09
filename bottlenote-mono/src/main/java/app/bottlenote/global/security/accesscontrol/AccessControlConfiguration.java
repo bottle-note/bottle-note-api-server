@@ -48,17 +48,13 @@ public class AccessControlConfiguration {
   @ConditionalOnMissingBean(AccessControlStore.class)
   public AccessControlStore accessControlStore(
       RedisConnectionFactory redisConnectionFactory, AccessControlProperties properties) {
-    int rateLimitConnectionCount = resolveRateLimitConnectionCount(properties);
-    List<LettuceConnectionFactory> ownedFactories = new ArrayList<>(rateLimitConnectionCount + 1);
+    List<LettuceConnectionFactory> ownedFactories = new ArrayList<>(2);
     try {
       StringRedisTemplate banTemplate =
           createDedicatedTemplate(redisConnectionFactory, properties, ownedFactories);
-      List<StringRedisTemplate> rateLimitTemplates = new ArrayList<>(rateLimitConnectionCount);
-      for (int index = 0; index < rateLimitConnectionCount; index++) {
-        rateLimitTemplates.add(
-            createDedicatedTemplate(redisConnectionFactory, properties, ownedFactories));
-      }
-      return new RedisAccessControlStore(banTemplate, rateLimitTemplates, ownedFactories);
+      StringRedisTemplate rateLimitTemplate =
+          createDedicatedTemplate(redisConnectionFactory, properties, ownedFactories);
+      return new RedisAccessControlStore(banTemplate, rateLimitTemplate, ownedFactories);
     } catch (RuntimeException exception) {
       destroyFactoriesReverse(ownedFactories, exception);
       throw exception;
@@ -166,15 +162,6 @@ public class AccessControlConfiguration {
     StringRedisTemplate template = new StringRedisTemplate(factory);
     template.afterPropertiesSet();
     return template;
-  }
-
-  private static int resolveRateLimitConnectionCount(AccessControlProperties properties) {
-    int count = properties.getRateLimitConnectionCount();
-    if (count < 1 || count > 8) {
-      throw new IllegalArgumentException(
-          "access-control.rateLimitConnectionCount must be between 1 and 8");
-    }
-    return count;
   }
 
   private static ClientResources sourceClientResources(LettuceConnectionFactory source) {

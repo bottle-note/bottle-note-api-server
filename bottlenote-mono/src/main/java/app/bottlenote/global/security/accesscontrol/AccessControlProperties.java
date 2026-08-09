@@ -20,9 +20,6 @@ public class AccessControlProperties {
    */
   private Duration redisCommandTimeout = Duration.ofMillis(200);
 
-  /** rate-limit Lua 명령을 분산할 전용 Redis 연결 수 */
-  private int rateLimitConnectionCount = 4;
-
   private Snapshot snapshot = new Snapshot();
 
   private BurstAdmission burstAdmission = new BurstAdmission();
@@ -65,14 +62,6 @@ public class AccessControlProperties {
 
   public void setRedisCommandTimeout(Duration redisCommandTimeout) {
     this.redisCommandTimeout = redisCommandTimeout;
-  }
-
-  public int getRateLimitConnectionCount() {
-    return rateLimitConnectionCount;
-  }
-
-  public void setRateLimitConnectionCount(int rateLimitConnectionCount) {
-    this.rateLimitConnectionCount = rateLimitConnectionCount;
   }
 
   public Snapshot getSnapshot() {

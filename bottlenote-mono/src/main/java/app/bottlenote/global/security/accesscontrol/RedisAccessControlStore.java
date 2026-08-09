@@ -8,7 +8,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.Cursor;
@@ -81,31 +80,19 @@ public class RedisAccessControlStore implements AccessControlStore {
 
   private final StringRedisTemplate redisTemplate;
 
-  private final List<StringRedisTemplate> rateLimitTemplates;
+  private final StringRedisTemplate rateLimitTemplate;
   private final List<LettuceConnectionFactory> ownedConnectionFactories;
-  private final AtomicLong nextRateLimitTemplateIndex = new AtomicLong();
 
   public RedisAccessControlStore(StringRedisTemplate redisTemplate) {
-    this(redisTemplate, null);
-  }
-
-  public RedisAccessControlStore(
-      StringRedisTemplate redisTemplate, LettuceConnectionFactory ownedConnectionFactory) {
-    this(
-        redisTemplate,
-        List.of(redisTemplate),
-        ownedConnectionFactory == null ? List.of() : List.of(ownedConnectionFactory));
+    this(redisTemplate, redisTemplate, List.of());
   }
 
   RedisAccessControlStore(
       StringRedisTemplate redisTemplate,
-      List<StringRedisTemplate> rateLimitTemplates,
+      StringRedisTemplate rateLimitTemplate,
       List<LettuceConnectionFactory> ownedConnectionFactories) {
     this.redisTemplate = redisTemplate;
-    if (rateLimitTemplates == null || rateLimitTemplates.isEmpty()) {
-      throw new IllegalArgumentException("rateLimitTemplates must not be empty");
-    }
-    this.rateLimitTemplates = List.copyOf(rateLimitTemplates);
+    this.rateLimitTemplate = rateLimitTemplate;
     this.ownedConnectionFactories = List.copyOf(ownedConnectionFactories);
   }
 
@@ -404,8 +391,8 @@ public class RedisAccessControlStore implements AccessControlStore {
     List<?> raw =
         executeRedis(
             () ->
-                rateLimitTemplate()
-                    .execute(TRY_CONSUME_SCRIPT, keys, String.valueOf(window.getSeconds())));
+                rateLimitTemplate.execute(
+                    TRY_CONSUME_SCRIPT, keys, String.valueOf(window.getSeconds())));
     if (raw == null
         || raw.size() < 2
         || !(raw.get(0) instanceof Long count)
@@ -421,13 +408,6 @@ public class RedisAccessControlStore implements AccessControlStore {
 
   private static String banKey(String ip) {
     return BAN_KEY_PREFIX + hashTag(ip);
-  }
-
-  private StringRedisTemplate rateLimitTemplate() {
-    int index =
-        (int)
-            Math.floorMod(nextRateLimitTemplateIndex.getAndIncrement(), rateLimitTemplates.size());
-    return rateLimitTemplates.get(index);
   }
 
   private static byte[] serializeKey(String key) {
