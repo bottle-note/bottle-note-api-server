@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
 @Tag("integration")
@@ -39,6 +40,7 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
   @Autowired private UserTestFactory userTestFactory;
   @Autowired private NotificationRepository notificationRepository;
   @Autowired private EntityManager entityManager;
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   @Nested
   @DisplayName("알림 목록 조회")
@@ -245,15 +247,9 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
       Notification from = seedNotification(user.getId(), "from");
       Notification inside = seedNotification(user.getId(), "inside");
       Notification to = seedNotification(user.getId(), "to");
-      org.springframework.test.util.ReflectionTestUtils.setField(
-          from, "createAt", LocalDateTime.of(2026, 8, 10, 9, 0));
-      org.springframework.test.util.ReflectionTestUtils.setField(
-          inside, "createAt", LocalDateTime.of(2026, 8, 10, 9, 30));
-      org.springframework.test.util.ReflectionTestUtils.setField(
-          to, "createAt", LocalDateTime.of(2026, 8, 10, 10, 0));
-      notificationRepository.save(from);
-      notificationRepository.save(inside);
-      notificationRepository.save(to);
+      updateCreateAt(from.getId(), LocalDateTime.of(2026, 8, 10, 9, 0));
+      updateCreateAt(inside.getId(), LocalDateTime.of(2026, 8, 10, 9, 30));
+      updateCreateAt(to.getId(), LocalDateTime.of(2026, 8, 10, 10, 0));
 
       MvcTestResult result =
           mockMvcTester
@@ -678,6 +674,13 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
     org.springframework.test.util.ReflectionTestUtils.setField(
         notification, "actionVersion", (short) actionVersion);
     return notificationRepository.save(notification);
+  }
+
+  private void updateCreateAt(Long notificationId, LocalDateTime createAt) {
+    assertThat(
+            jdbcTemplate.update(
+                "UPDATE notifications SET create_at = ? WHERE id = ?", createAt, notificationId))
+        .isEqualTo(1);
   }
 
   private JsonNode findItem(JsonNode items, Long notificationId) {
