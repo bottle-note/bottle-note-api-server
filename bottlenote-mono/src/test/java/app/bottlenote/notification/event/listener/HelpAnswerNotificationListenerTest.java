@@ -10,6 +10,7 @@ import app.bottlenote.notification.domain.Notification;
 import app.bottlenote.notification.fixture.InMemoryNotificationRepository;
 import app.bottlenote.notification.service.UserNotificationService;
 import app.bottlenote.support.help.event.payload.HelpAnswerNotificationEvent;
+import app.bottlenote.user.facade.payload.UserProfileItem;
 import app.bottlenote.user.fixture.FakeUserFacade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,7 +32,9 @@ class HelpAnswerNotificationListenerTest {
     notificationRepository = new InMemoryNotificationRepository();
     listener =
         new HelpAnswerNotificationListener(
-            new UserNotificationService(new FakeUserFacade(), notificationRepository));
+            new UserNotificationService(
+                new FakeUserFacade(UserProfileItem.create(HELP_USER_ID, "문의 작성자", null)),
+                notificationRepository));
   }
 
   @Test

@@ -203,7 +203,7 @@
 - Files (advisory): notification service/listener tests, `AdminHelpIntegrationTest`, `NotificationControllerIntegrationTest`, OpenAPI schema/contract test
 - Depends: Task 8
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ## Progress Log
 
@@ -223,3 +223,4 @@
 - 2026-08-10: 사용자 후속 결정으로 V10에 읽음·시간 범위 복합 인덱스를 추가하고 environment PR #12를 `main`에 병합했다. Backend에는 최신 `main` `fcb469137`을 merge하고 environment `main` `7d29a9797`로 gitlink를 갱신해 PR #704에 push했다. 배포는 수행하지 않았다.
 - 2026-08-10: 별도 Orca Run `run_b470f4dee37d`의 Opus 코드 스멜 리뷰 1회에서 7건을 받았다. Action payload 검증 중복, stateless Resolver, 단일 필드 payload top-level 타입, Request/Criteria 정규화 중복을 해소 대상으로 채택했고, 레거시 `NotificationStatus.READ` 제거와 비원자 읽음 갱신은 호환성·동시성 때문에 제외했다.
 - 2026-08-10: Task 8 완료 — 관리자 문의 답변 commit 후 `HELP_ANSWER/helpId` source와 `OPEN_HELP/helpId/{}/v1` Action 알림을 생성하도록 지원 이벤트와 Notification listener를 추가했다. Action payload 구현은 `NotificationAction` 내부 sealed 계약으로 묶고 OPEN_HELP는 정확한 빈 객체만 허용한다. listener 단위 시나리오 2개를 작성했으며 로컬 Gradle·테스트·Spotless는 실행하지 않았다.
+- 2026-08-10: Task 9 구현 완료 — OPEN_HELP 정상·잘못된 payload 강등 단위 2개, 목록 JSON 빈 payload 1개, 관리자 답변 AFTER_COMMIT 저장·재답변 중복 방지 1개를 추가했다. 기존 반려 답변 통합 테스트도 async 저장 완료를 기다리도록 보강하고 OpenAPI에 OPEN_REVIEW/OPEN_HELP payload oneOf 계약을 반영했다. 로컬 검증은 실행하지 않았으며 GitHub CI 검증 대기 상태다.

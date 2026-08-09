@@ -1,11 +1,17 @@
 package app.integration.help
 
 import app.IntegrationTestSupport
+import app.bottlenote.notification.constant.NotificationCategory
+import app.bottlenote.notification.constant.NotificationSourceType
+import app.bottlenote.notification.domain.NotificationRepository
+import app.bottlenote.notification.dto.dsl.NotificationListCriteria
 import app.bottlenote.support.constant.StatusType
 import app.bottlenote.support.help.constant.HelpType
 import app.bottlenote.support.help.fixture.HelpTestFactory
 import app.bottlenote.user.fixture.UserTestFactory
+import java.time.Duration
 import org.assertj.core.api.Assertions.assertThat
+import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -22,6 +28,9 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 
 	@Autowired
 	private lateinit var userTestFactory: UserTestFactory
+
+	@Autowired
+	private lateinit var notificationRepository: NotificationRepository
 
 	private lateinit var accessToken: String
 
@@ -156,7 +165,7 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 	@DisplayName("문의 답변 등록 API")
 	inner class AnswerHelpTest {
 		@Test
-		@DisplayName("문의에 답변을 등록할 수 있다")
+		@DisplayName("문의에 다시 답변해도 작성자에게 OPEN_HELP 알림을 한 건만 생성한다")
 		fun answerHelp() {
 			// given
 			val user = userTestFactory.persistUser()
@@ -181,6 +190,27 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 				.extractingPath("$.success")
 				.isEqualTo(true)
 
+			await()
+				.atMost(Duration.ofSeconds(5))
+				.untilAsserted {
+					val notifications =
+						notificationRepository.findPageByUserId(
+							NotificationListCriteria.of(user.id, 0L, 10L)
+						)
+					assertThat(notifications).hasSize(1)
+					val notification = notifications.first()
+					assertThat(notification.userId).isEqualTo(user.id)
+					assertThat(notification.title).isEqualTo("문의 답변")
+					assertThat(notification.content).isEqualTo("답변 내용입니다.")
+					assertThat(notification.category).isEqualTo(NotificationCategory.ANSWER)
+					assertThat(notification.sourceType).isEqualTo(NotificationSourceType.HELP_ANSWER.name)
+					assertThat(notification.sourceId).isEqualTo(help.id)
+					assertThat(notification.actionType).isEqualTo("OPEN_HELP")
+					assertThat(notification.actionTargetId).isEqualTo(help.id)
+					assertThat(notification.actionPayload.isEmpty).isTrue()
+					assertThat(notification.actionVersion).isEqualTo(1.toShort())
+				}
+
 			assertThat(
 				mockMvcTester
 					.post()
@@ -192,6 +222,13 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 				.bodyJson()
 				.extractingPath("$.data.status")
 				.isEqualTo(StatusType.SUCCESS.name)
+
+			await()
+				.during(Duration.ofSeconds(1))
+				.atMost(Duration.ofSeconds(5))
+				.untilAsserted {
+					assertThat(notificationRepository.countByUserId(user.id)).isEqualTo(1L)
+				}
 		}
 
 		@Test
@@ -219,6 +256,12 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 				.bodyJson()
 				.extractingPath("$.data.status")
 				.isEqualTo(StatusType.REJECT.name)
+
+			await()
+				.atMost(Duration.ofSeconds(5))
+				.untilAsserted {
+					assertThat(notificationRepository.countByUserId(user.id)).isEqualTo(1L)
+				}
 		}
 
 		@Test
