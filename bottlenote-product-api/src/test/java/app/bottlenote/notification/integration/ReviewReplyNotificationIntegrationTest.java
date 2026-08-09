@@ -9,10 +9,15 @@ import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
 import app.bottlenote.notification.constant.NotificationCategory;
+import app.bottlenote.notification.constant.NotificationSourceType;
 import app.bottlenote.notification.constant.NotificationType;
 import app.bottlenote.notification.domain.Notification;
 import app.bottlenote.notification.domain.NotificationRepository;
 import app.bottlenote.notification.dto.dsl.NotificationListCriteria;
+import app.bottlenote.notification.dto.request.NotificationPageableRequest;
+import app.bottlenote.notification.payload.NotificationMessage;
+import app.bottlenote.notification.repository.JpaNotificationRepository;
+import app.bottlenote.notification.service.NotificationService;
 import app.bottlenote.review.domain.Review;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
 import app.bottlenote.review.fixture.ReviewTestFactory;
@@ -27,8 +32,11 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * SC1: 댓글 등록 트랜잭션 commit 후 {@code ReviewReplyNotificationEvent}가 AFTER_COMMIT 비동기 listener를 거쳐
@@ -47,6 +55,9 @@ class ReviewReplyNotificationIntegrationTest extends IntegrationTestSupport {
   @Autowired private AlcoholTestFactory alcoholTestFactory;
   @Autowired private ReviewTestFactory reviewTestFactory;
   @Autowired private NotificationRepository notificationRepository;
+  @Autowired private JpaNotificationRepository jpaNotificationRepository;
+  @Autowired private NotificationService notificationService;
+  @Autowired private PlatformTransactionManager transactionManager;
 
   @Nested
   @DisplayName("다른 사용자가 댓글을 등록할 때")
@@ -93,10 +104,78 @@ class ReviewReplyNotificationIntegrationTest extends IntegrationTestSupport {
                 assertThat(notification.getType()).isEqualTo(NotificationType.USER);
                 assertThat(notification.getCategory()).isEqualTo(NotificationCategory.REVIEW);
                 assertThat(notification.getIsRead()).isFalse();
+                assertThat(notification.getSourceType())
+                    .isEqualTo(NotificationSourceType.REVIEW_REPLY.name());
+                assertThat(notification.getSourceId()).isPositive();
+                assertThat(notification.getActionType()).isEqualTo("OPEN_REVIEW");
+                assertThat(notification.getActionTargetId()).isEqualTo(review.getId());
+                assertThat(notification.getActionPayload().path("replyId").longValue())
+                    .isEqualTo(notification.getSourceId());
+                assertThat(notification.getActionVersion()).isEqualTo((short) 1);
+
+                var item =
+                    notificationService
+                        .getNotifications(
+                            reviewAuthor.getId(), NotificationPageableRequest.builder().build())
+                        .content()
+                        .items()
+                        .getFirst();
+                assertThat(item.action().type().name()).isEqualTo("OPEN_REVIEW");
+                assertThat(item.action().targetId()).isEqualTo(review.getId());
+                assertThat(item.action().payload().replyId()).isEqualTo(notification.getSourceId());
+                assertThat(item.action().version()).isEqualTo(1);
               });
 
       // 댓글 작성자 본인에게는 알림이 없어야 한다
       assertThat(notificationRepository.countByUserId(replyAuthor.getId())).isZero();
+    }
+
+    @Test
+    @DisplayName("동일 source 알림을 순차 전송하면 한 건만 저장한다")
+    void sendNotification_whenSameSourceSentSequentially_savesOnce() {
+      // given
+      User reviewAuthor = userTestFactory.persistUser();
+      NotificationMessage message =
+          NotificationMessage.reviewReply(
+              reviewAuthor.getId(), 101L, 201L, EXPECTED_TITLE, "순차 중복 방지");
+
+      // when
+      notificationService.sendNotification(message);
+      notificationService.sendNotification(message);
+
+      // then
+      assertThat(notificationRepository.countByUserId(reviewAuthor.getId())).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("별도 트랜잭션 raw 중복 저장은 DB UNIQUE가 거부한다")
+    void saveNotification_whenRawSourceDuplicated_rejectsByDatabaseUnique() {
+      // given
+      User reviewAuthor = userTestFactory.persistUser();
+      NotificationMessage message =
+          NotificationMessage.reviewReply(
+              reviewAuthor.getId(), 102L, 202L, EXPECTED_TITLE, "DB 중복 방지");
+      notificationService.sendNotification(message);
+      Notification duplicate =
+          Notification.builder()
+              .userId(reviewAuthor.getId())
+              .title(EXPECTED_TITLE)
+              .content("DB 중복 방지")
+              .type(NotificationType.USER)
+              .category(NotificationCategory.REVIEW)
+              .sourceType(NotificationSourceType.REVIEW_REPLY.name())
+              .sourceId(202L)
+              .action(message.action())
+              .build();
+      TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+
+      // when & then
+      org.assertj.core.api.Assertions.assertThatThrownBy(
+              () ->
+                  transactionTemplate.executeWithoutResult(
+                      status -> jpaNotificationRepository.saveAndFlush(duplicate)))
+          .isInstanceOf(DataIntegrityViolationException.class);
+      assertThat(notificationRepository.countByUserId(reviewAuthor.getId())).isEqualTo(1L);
     }
   }
 

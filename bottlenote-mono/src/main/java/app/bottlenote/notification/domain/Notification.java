@@ -88,7 +88,7 @@ public class Notification extends BaseEntity {
 
   @Comment("알림 Action 스키마 버전")
   @Column(name = "action_version")
-  private Integer actionVersion;
+  private Short actionVersion;
 
   protected Notification() {}
 
@@ -121,7 +121,7 @@ public class Notification extends BaseEntity {
       this.actionType = action.type().name();
       this.actionTargetId = action.targetId();
       this.actionPayload = action.payload();
-      this.actionVersion = action.version();
+      this.actionVersion = action.version().shortValue();
     }
   }
 

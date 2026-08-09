@@ -159,12 +159,12 @@
 - Files (advisory): `NotificationMessage`, `ReviewReplyNotificationListener`, `NotificationRepository`, `JpaNotificationRepository`, `UserNotificationService`, listener unit test, reply integration test
 - Depends: Task 4
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Checkpoint: after Tasks 4-6
-- [ ] raw URL/route 저장·응답 0건
-- [ ] invalid Action 한 건이 목록 전체를 실패시키지 않는 테스트 존재
-- [ ] source UNIQUE와 애플리케이션 멱등 경로 정합
+- [x] raw URL/route 저장·응답 0건
+- [x] invalid Action 한 건이 목록 전체를 실패시키지 않는 테스트 존재
+- [x] source UNIQUE와 애플리케이션 멱등 경로 정합
 
 ### Task 7: 공통 API 계약 통합 검증과 문서화
 - Acceptance:
@@ -187,3 +187,4 @@
 - 2026-08-10: Task 3 완료 — 단건 읽음 결과에 `notificationId/isRead/readAt/changed/unreadCount`를 추가하고 최초·반복·레거시 null·타 사용자 404 계약을 단위 및 controller integration 시나리오로 작성했다. 로컬 Gradle·테스트·빌드·Spotless는 정책에 따라 실행하지 않았다.
 - 2026-08-10: Task 4 완료 — `sourceType/sourceId`와 `JsonNode` raw Action을 매핑하고, `OPEN_REVIEW` typed 저장 경계 및 allowlist/version/양수 ID/정확한 key/1 KiB 응답 검증을 추가해 잘못된 행만 `action=null`로 강등했다. 목록 `createAt/readAt`은 `+09:00` OffsetDateTime으로 제공한다. 단위·controller integration 시나리오를 작성했으며 로컬 Gradle·테스트·빌드·Spotless는 정책에 따라 실행하지 않았다.
 - 2026-08-10: Task 5 완료 — `types/categories/readStatus/createdFrom/createdTo` 필터를 KST `[from,to)` 조건과 id DESC cursor에 결합하고, cursor를 제외한 동일 필터로 `totalCount`를 계산하도록 JPA/InMemory를 정렬했다. 단위·controller integration 시나리오를 작성했으며 후보 인덱스는 운영 분포와 `EXPLAIN ANALYZE` 근거가 없어 추가하지 않았고 로컬 Gradle·테스트·빌드·Spotless는 실행하지 않았다.
+- 2026-08-10: Task 6 완료 — 댓글 이벤트를 `REVIEW_REPLY/replyId` source와 `OPEN_REVIEW/reviewId/payload.replyId/version=1` Action으로 저장하고, 애플리케이션의 순차 멱등 확인과 V10 UNIQUE 경쟁 방어를 정렬했다. `action_version SMALLINT`에 맞춰 raw entity는 `Short`로 매핑하고 typed Action 경계에서 `shortValue()/intValue()`로 변환한다. 작성 기준 7개 시나리오를 정적 검토했으며 원본 댓글 rollback·Notification 실패 비영향과 로컬 실행 검증은 범위 및 정책에 따라 미검증으로 남겼다.
