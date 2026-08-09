@@ -4,21 +4,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.bottlenote.global.security.accesscontrol.AccessControlStore.BanInfo;
+import app.bottlenote.global.security.accesscontrol.AccessControlStore.BanLookup;
 import app.bottlenote.global.security.accesscontrol.AccessControlStore.ConsumeResult;
 import com.redis.testcontainers.RedisContainer;
 import io.lettuce.core.ClientOptions;
-import io.lettuce.core.RedisCommandTimeoutException;
 import io.lettuce.core.SocketOptions;
 import java.time.Duration;
 import java.util.List;
+import java.util.Properties;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -57,6 +60,40 @@ class RedisAccessControlStoreIntegrationTest {
     store.unban("203.0.113.10");
     assertThat(store.isBanned("203.0.113.10")).isFalse();
     assertThat(store.getBan("203.0.113.10")).isNull();
+  }
+
+  @Test
+  @DisplayName("lookupBan은 projected key의 PTTL 한 번으로 ban과 TTL을 판정한다")
+  void lookupBan_whenProjectedKeyExists_returnsBanWithTtl() {
+    String ip = "203.0.113.11";
+    store.projectBan(ip, Duration.ofMinutes(5), "abuse", 1L);
+    CommandStats before = commandStats();
+
+    BanLookup ban = store.lookupBan(ip);
+    CommandStats after = commandStats();
+
+    assertThat(ban.banned()).isTrue();
+    assertThat(ban.ttlSeconds()).isPositive();
+    assertThat(after.pttlCalls() - before.pttlCalls()).isEqualTo(1);
+    assertThat(after.existsCalls() - before.existsCalls()).isZero();
+  }
+
+  @Test
+  @DisplayName("lookupBan은 projected key가 없을 때만 legacy key를 조회한다")
+  void lookupBan_whenProjectedKeyMissing_fallsBackToLegacyOnly() {
+    String ip = "203.0.113.12";
+    redisTemplate.opsForValue().set("bn:ac:ban:" + ip, "1", Duration.ofMinutes(5));
+
+    BanLookup legacyBan = store.lookupBan(ip);
+
+    assertThat(legacyBan.banned()).isTrue();
+    assertThat(legacyBan.ttlSeconds()).isPositive();
+
+    redisTemplate.opsForValue().set("bn:ac:ban:{" + ip + "}", "1");
+    BanLookup persistentProjectedBan = store.lookupBan(ip);
+
+    assertThat(persistentProjectedBan.banned()).isTrue();
+    assertThat(persistentProjectedBan.ttlSeconds()).isEqualTo(-1L);
   }
 
   @Test
@@ -213,12 +250,9 @@ class RedisAccessControlStoreIntegrationTest {
     RedisAccessControlStore brokenStore = new RedisAccessControlStore(broken);
 
     long started = System.nanoTime();
-    assertThatThrownBy(() -> brokenStore.isBanned("203.0.113.99"))
-        .isInstanceOfAny(
-            RedisCommandTimeoutException.class,
-            org.springframework.dao.QueryTimeoutException.class,
-            org.springframework.data.redis.RedisConnectionFailureException.class,
-            org.springframework.dao.DataAccessResourceFailureException.class);
+    assertThatThrownBy(() -> brokenStore.lookupBan("203.0.113.99"))
+        .isInstanceOf(AccessControlStoreUnavailableException.class)
+        .hasCauseInstanceOf(DataAccessException.class);
     long elapsedMs = Duration.ofNanos(System.nanoTime() - started).toMillis();
 
     factory.destroy();
@@ -244,4 +278,24 @@ class RedisAccessControlStoreIntegrationTest {
     template.afterPropertiesSet();
     return template;
   }
+
+  private CommandStats commandStats() {
+    Properties stats =
+        redisTemplate.execute(
+            (RedisCallback<Properties>)
+                connection -> connection.serverCommands().info("commandstats"));
+    return new CommandStats(commandCalls(stats, "pttl"), commandCalls(stats, "exists"));
+  }
+
+  private static long commandCalls(Properties stats, String command) {
+    String value = stats.getProperty("cmdstat_" + command, "calls=0");
+    for (String field : value.split(",")) {
+      if (field.startsWith("calls=")) {
+        return Long.parseLong(field.substring("calls=".length()));
+      }
+    }
+    throw new IllegalStateException("missing calls for Redis command " + command);
+  }
+
+  private record CommandStats(long pttlCalls, long existsCalls) {}
 }

@@ -3,6 +3,7 @@ package app.bottlenote.global.security.accesscontrol;
 import app.bottlenote.global.security.accesscontrol.AccessControlProperties.PathRateLimitRule;
 import app.bottlenote.global.security.accesscontrol.AccessControlProperties.RateLimitRule;
 import app.bottlenote.global.security.accesscontrol.AccessControlStore.BanInfo;
+import app.bottlenote.global.security.accesscontrol.AccessControlStore.BanLookup;
 import app.bottlenote.global.security.accesscontrol.AccessControlStore.ConsumeResult;
 import java.time.Duration;
 import java.util.Comparator;
@@ -35,9 +36,12 @@ public class AccessControlService {
     String method = normalizeMethod(httpMethod);
 
     try {
-      if (!UNKNOWN_IP_TOKEN.equals(effectiveIp) && store.isBanned(effectiveIp)) {
-        BanInfo ban = store.getBan(effectiveIp);
-        long retryAfter = ban == null || ban.ttlSeconds() < 0 ? 60 : Math.max(ban.ttlSeconds(), 1);
+      BanLookup ban =
+          UNKNOWN_IP_TOKEN.equals(effectiveIp)
+              ? BanLookup.notBanned()
+              : store.lookupBan(effectiveIp);
+      if (ban.banned()) {
+        long retryAfter = ban.ttlSeconds() < 0 ? 60 : Math.max(ban.ttlSeconds(), 1);
         Decision decision = Decision.banned(retryAfter);
         metrics.record(decision);
         return decision;
@@ -71,7 +75,7 @@ public class AccessControlService {
       Decision decision = Decision.allow(consumed.remaining(), rule.limit());
       metrics.record(decision);
       return decision;
-    } catch (RuntimeException ex) {
+    } catch (AccessControlStoreUnavailableException ex) {
       log.warn(
           "access-control store failure ip={} path={} method={}: {}",
           effectiveIp,

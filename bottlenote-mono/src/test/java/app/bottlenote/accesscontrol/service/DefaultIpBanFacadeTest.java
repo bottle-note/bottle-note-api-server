@@ -69,6 +69,11 @@ class DefaultIpBanFacadeTest {
   private static final class FailingProjectionStore implements AccessControlStore {
 
     @Override
+    public BanLookup lookupBan(String ip) {
+      return BanLookup.notBanned();
+    }
+
+    @Override
     public boolean isBanned(String ip) {
       return false;
     }
