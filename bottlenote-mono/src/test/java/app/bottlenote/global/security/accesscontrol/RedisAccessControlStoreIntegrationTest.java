@@ -243,19 +243,13 @@ class RedisAccessControlStoreIntegrationTest {
   }
 
   @Test
-  @DisplayName("rate-limit 전용 채널 4개가 같은 키의 500 동시 요청에서도 한도를 정확히 적용한다")
-  void tryConsume_acrossRateLimitChannels_enforcesLimitUnderConcurrentRequests() throws Exception {
-    List<LettuceConnectionFactory> ownedFactories = new ArrayList<>();
-    List<StringRedisTemplate> rateLimitTemplates = new ArrayList<>();
-    for (int index = 0; index < 4; index++) {
-      LettuceConnectionFactory factory = createFactory(Duration.ofSeconds(2));
-      ownedFactories.add(factory);
-      StringRedisTemplate template = new StringRedisTemplate(factory);
-      template.afterPropertiesSet();
-      rateLimitTemplates.add(template);
-    }
-    RedisAccessControlStore multiChannelStore =
-        new RedisAccessControlStore(redisTemplate, rateLimitTemplates, ownedFactories);
+  @DisplayName("rate-limit 전용 채널은 같은 키의 500 동시 요청에서도 한도를 정확히 적용한다")
+  void tryConsume_withDedicatedChannel_enforcesLimitUnderConcurrentRequests() throws Exception {
+    LettuceConnectionFactory rateLimitFactory = createFactory(Duration.ofSeconds(2));
+    StringRedisTemplate rateLimitTemplate = new StringRedisTemplate(rateLimitFactory);
+    rateLimitTemplate.afterPropertiesSet();
+    RedisAccessControlStore dedicatedChannelStore =
+        new RedisAccessControlStore(redisTemplate, rateLimitTemplate, List.of(rateLimitFactory));
     String key = "product:203.0.113.90|default";
     int limit = 60;
     int requestCount = 500;
@@ -271,7 +265,8 @@ class RedisAccessControlStoreIntegrationTest {
                           () -> {
                             ready.countDown();
                             start.await();
-                            return multiChannelStore.tryConsume(key, limit, Duration.ofSeconds(60));
+                            return dedicatedChannelStore.tryConsume(
+                                key, limit, Duration.ofSeconds(60));
                           }))
               .toList();
       try {
@@ -290,7 +285,7 @@ class RedisAccessControlStoreIntegrationTest {
       Long ttlSeconds = redisTemplate.getExpire("bn:ac:rl:" + key, TimeUnit.SECONDS);
       assertThat(ttlSeconds).isNotNull().isBetween(1L, 60L);
     } finally {
-      multiChannelStore.destroy();
+      dedicatedChannelStore.destroy();
     }
   }
 

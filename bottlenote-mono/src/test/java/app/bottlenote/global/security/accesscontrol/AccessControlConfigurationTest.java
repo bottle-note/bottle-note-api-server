@@ -38,7 +38,6 @@ class AccessControlConfigurationTest {
               "bottlenote.access-control.snapshot.refresh-interval-ms=45000",
               "bottlenote.access-control.snapshot.stale-threshold=4m",
               "bottlenote.access-control.snapshot.max-entries=2",
-              "bottlenote.access-control.rate-limit-connection-count=3",
               "bottlenote.access-control.burst-admission.max-concurrent=7",
               "bottlenote.access-control.burst-admission.cooldown=2s");
 
@@ -65,8 +64,6 @@ class AccessControlConfigurationTest {
           assertThat(snapshotProperties.getRefreshIntervalMs()).isEqualTo(45_000L);
           assertThat(snapshotProperties.getStaleThreshold()).isEqualTo(Duration.ofMinutes(4));
           assertThat(snapshotProperties.getMaxEntries()).isEqualTo(2);
-          assertThat(context.getBean(AccessControlProperties.class).getRateLimitConnectionCount())
-              .isEqualTo(3);
           AccessControlProperties.BurstAdmission admissionProperties =
               context.getBean(AccessControlProperties.class).getBurstAdmission();
           assertThat(admissionProperties.getMaxConcurrent()).isEqualTo(7);
@@ -88,7 +85,7 @@ class AccessControlConfigurationTest {
   }
 
   @Test
-  @DisplayName("AccessControlStore는 비등록 전용 factory(200ms)를 소유하고 공용 factory와 다르다")
+  @DisplayName("AccessControlStore는 ban·rate-limit 전용 factory(200ms)를 각각 소유한다")
   void accessControlStore_ownsDedicatedNonBeanFactoryWith200msTimeout() {
     enabledContextRunner.run(
         context -> {
@@ -100,7 +97,9 @@ class AccessControlConfigurationTest {
 
           StringRedisTemplate storeTemplate = extractTemplate(redisStore);
           LettuceConnectionFactory ownedFactory = extractOwnedFactory(redisStore);
-          List<?> rateLimitTemplates = extractRateLimitTemplates(redisStore);
+          StringRedisTemplate rateLimitTemplate = extractRateLimitTemplate(redisStore);
+          LettuceConnectionFactory rateLimitFactory =
+              (LettuceConnectionFactory) rateLimitTemplate.getConnectionFactory();
           List<?> ownedFactories = extractOwnedFactories(redisStore);
           RedisConnectionFactory sharedFactory = context.getBean(RedisConnectionFactory.class);
           LettuceConnectionFactory sharedLettuceFactory = (LettuceConnectionFactory) sharedFactory;
@@ -111,10 +110,11 @@ class AccessControlConfigurationTest {
           assertThat(storeTemplate.getConnectionFactory()).isSameAs(ownedFactory);
           assertThat(ownedFactory.getClientConfiguration().getCommandTimeout())
               .isEqualTo(Duration.ofMillis(200));
-          assertThat(rateLimitTemplates).hasSize(3);
-          assertThat(ownedFactories).hasSize(4);
-          assertThat(rateLimitTemplates)
-              .allSatisfy(template -> assertThat(template).isInstanceOf(StringRedisTemplate.class));
+          assertThat(rateLimitTemplate).isNotSameAs(storeTemplate);
+          assertThat(rateLimitFactory).isNotSameAs(ownedFactory).isNotSameAs(sharedFactory);
+          assertThat(ownedFactories).hasSize(2);
+          assertThat(ownedFactories.get(0)).isSameAs(ownedFactory);
+          assertThat(ownedFactories.get(1)).isSameAs(rateLimitFactory);
           assertThat(ownedFactories)
               .allSatisfy(
                   candidate -> {
@@ -129,7 +129,7 @@ class AccessControlConfigurationTest {
           // 전용 factory/template은 Spring 타입 후보에 포함되지 않는다
           assertThat(context.getBeansOfType(RedisConnectionFactory.class).values())
               .containsExactly(sharedFactory)
-              .doesNotContain(ownedFactory);
+              .doesNotContain(ownedFactory, rateLimitFactory);
           assertThat(context.getBeansOfType(StringRedisTemplate.class).values())
               .doesNotContain(storeTemplate);
           assertThat(context.getBean(StringRedisTemplate.class).getConnectionFactory())
@@ -154,21 +154,6 @@ class AccessControlConfigurationTest {
             });
   }
 
-  @Test
-  @DisplayName("rate-limit 전용 연결 수는 1부터 8까지만 허용한다")
-  void rateLimitConnectionCount_whenOutsideRange_failsContextCreation() {
-    enabledContextRunner
-        .withPropertyValues("bottlenote.access-control.rate-limit-connection-count=0")
-        .run(
-            context -> {
-              assertThat(context).hasFailed();
-              assertThat(context.getStartupFailure())
-                  .hasRootCauseInstanceOf(IllegalArgumentException.class)
-                  .hasRootCauseMessage(
-                      "access-control.rateLimitConnectionCount must be between 1 and 8");
-            });
-  }
-
   private static StringRedisTemplate extractTemplate(RedisAccessControlStore store) {
     try {
       Field field = RedisAccessControlStore.class.getDeclaredField("redisTemplate");
@@ -183,11 +168,11 @@ class AccessControlConfigurationTest {
     return (LettuceConnectionFactory) extractTemplate(store).getConnectionFactory();
   }
 
-  private static List<?> extractRateLimitTemplates(RedisAccessControlStore store) {
+  private static StringRedisTemplate extractRateLimitTemplate(RedisAccessControlStore store) {
     try {
-      Field field = RedisAccessControlStore.class.getDeclaredField("rateLimitTemplates");
+      Field field = RedisAccessControlStore.class.getDeclaredField("rateLimitTemplate");
       field.setAccessible(true);
-      return (List<?>) field.get(store);
+      return (StringRedisTemplate) field.get(store);
     } catch (ReflectiveOperationException ex) {
       throw new IllegalStateException(ex);
     }

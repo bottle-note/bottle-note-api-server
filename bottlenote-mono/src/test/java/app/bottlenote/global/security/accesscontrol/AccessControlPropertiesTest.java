@@ -20,12 +20,6 @@ class AccessControlPropertiesTest {
   }
 
   @Test
-  @DisplayName("rateLimitConnectionCount 기본값은 4 이다")
-  void rateLimitConnectionCount_defaultIsFour() {
-    assertThat(new AccessControlProperties().getRateLimitConnectionCount()).isEqualTo(4);
-  }
-
-  @Test
   @DisplayName("failOpen 기본값은 true 이다")
   void failOpen_defaultIsTrue() {
     assertThat(new AccessControlProperties().isFailOpen()).isTrue();
