@@ -19,6 +19,8 @@ public interface NotificationRepository {
   /** 사용자 알림을 id 내림차순으로 조회한다. limit은 pageSize+1(hasNext 판별)을 포함한다. */
   List<Notification> findPageByUserId(NotificationListCriteria criteria);
 
+  long countByCriteria(NotificationListCriteria criteria);
+
   long countByUserId(Long userId);
 
   long countByUserIdAndIsReadFalse(Long userId);

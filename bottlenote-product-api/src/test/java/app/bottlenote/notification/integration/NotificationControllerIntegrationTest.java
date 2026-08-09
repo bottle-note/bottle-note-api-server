@@ -15,6 +15,7 @@ import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.fixture.UserTestFactory;
 import com.fasterxml.jackson.databind.JsonNode;
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.DisplayName;
@@ -131,6 +132,162 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
       assertThat(responseMeta(second).path("pageable").path("hasNext").asBoolean()).isFalse();
       assertThat(responseMeta(second).path("pageable").path("cursor").asLong())
           .isEqualTo(n1.getId());
+    }
+
+    @Test
+    @DisplayName("타입 카테고리 읽음 상태를 결합해 본인 알림만 조회한다")
+    void getNotifications_whenFiltersCombined_returnsMatchingOwnNotifications()
+        throws Exception {
+      User user = userTestFactory.persistUser();
+      User other = userTestFactory.persistUser();
+      TokenItem token = getToken(user);
+      Notification matching = seedNotification(user.getId(), "matching");
+      Notification read = seedNotification(user.getId(), "read");
+      read.markAsRead();
+      notificationRepository.save(read);
+      notificationRepository.save(
+          Notification.builder()
+              .userId(user.getId())
+              .title("notice")
+              .content("notice-content")
+              .type(NotificationType.SYSTEM)
+              .category(NotificationCategory.NOTICE)
+              .build());
+      seedNotification(other.getId(), "other");
+
+      MvcTestResult result =
+          mockMvcTester
+              .get()
+              .uri(BASE + "?types=USER&categories=REVIEW&readStatus=UNREAD")
+              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
+              .exchange();
+
+      result.assertThat().hasStatusOk();
+      JsonNode data = responseData(result);
+      assertThat(data.path("totalCount").asLong()).isOne();
+      assertThat(data.path("items")).hasSize(1);
+      assertThat(data.path("items").get(0).path("id").asLong()).isEqualTo(matching.getId());
+    }
+
+    @Test
+    @DisplayName("빈 타입과 카테고리 query는 전체 알림을 조회한다")
+    void getNotifications_whenCollectionQueriesAreEmpty_returnsAllNotifications()
+        throws Exception {
+      User user = userTestFactory.persistUser();
+      TokenItem token = getToken(user);
+      seedNotification(user.getId(), "review");
+      notificationRepository.save(
+          Notification.builder()
+              .userId(user.getId())
+              .title("notice")
+              .content("notice-content")
+              .type(NotificationType.SYSTEM)
+              .category(NotificationCategory.NOTICE)
+              .build());
+
+      MvcTestResult result =
+          mockMvcTester
+              .get()
+              .uri(BASE + "?types=&categories=")
+              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
+              .exchange();
+
+      result.assertThat().hasStatusOk();
+      assertThat(responseData(result).path("totalCount").asLong()).isEqualTo(2);
+      assertThat(responseData(result).path("items")).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("동일 필터의 cursor 페이지는 중복과 누락 없이 id 내림차순이다")
+    void getNotifications_whenFilteredCursorPagesRequested_returnsStableKeysetPages()
+        throws Exception {
+      User user = userTestFactory.persistUser();
+      TokenItem token = getToken(user);
+      Notification n1 = seedNotification(user.getId(), "n1");
+      Notification n2 = seedNotification(user.getId(), "n2");
+      Notification n3 = seedNotification(user.getId(), "n3");
+
+      MvcTestResult first =
+          mockMvcTester
+              .get()
+              .uri(BASE + "?types=USER&readStatus=ALL&pageSize=2")
+              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
+              .exchange();
+      JsonNode firstData = responseData(first);
+      long cursor = responseMeta(first).path("pageable").path("cursor").asLong();
+
+      MvcTestResult second =
+          mockMvcTester
+              .get()
+              .uri(BASE + "?types=USER&readStatus=ALL&pageSize=2&cursor=" + cursor)
+              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
+              .exchange();
+      JsonNode secondData = responseData(second);
+
+      first.assertThat().hasStatusOk();
+      second.assertThat().hasStatusOk();
+      assertThat(firstData.path("totalCount").asLong()).isEqualTo(3);
+      assertThat(secondData.path("totalCount").asLong()).isEqualTo(3);
+      assertThat(firstData.path("items").get(0).path("id").asLong()).isEqualTo(n3.getId());
+      assertThat(firstData.path("items").get(1).path("id").asLong()).isEqualTo(n2.getId());
+      assertThat(secondData.path("items").get(0).path("id").asLong()).isEqualTo(n1.getId());
+    }
+
+    @Test
+    @DisplayName("생성 시각은 from 포함 to 제외로 조회한다")
+    void getNotifications_whenCreatedRangeExists_usesHalfOpenInterval() throws Exception {
+      User user = userTestFactory.persistUser();
+      TokenItem token = getToken(user);
+      Notification from = seedNotification(user.getId(), "from");
+      Notification inside = seedNotification(user.getId(), "inside");
+      Notification to = seedNotification(user.getId(), "to");
+      org.springframework.test.util.ReflectionTestUtils.setField(
+          from, "createAt", LocalDateTime.of(2026, 8, 10, 9, 0));
+      org.springframework.test.util.ReflectionTestUtils.setField(
+          inside, "createAt", LocalDateTime.of(2026, 8, 10, 9, 30));
+      org.springframework.test.util.ReflectionTestUtils.setField(
+          to, "createAt", LocalDateTime.of(2026, 8, 10, 10, 0));
+      notificationRepository.save(from);
+      notificationRepository.save(inside);
+      notificationRepository.save(to);
+
+      MvcTestResult result =
+          mockMvcTester
+              .get()
+              .uri(
+                  BASE
+                      + "?createdFrom=2026-08-10T00:00:00Z&createdTo=2026-08-10T01:00:00Z")
+              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
+              .exchange();
+
+      result.assertThat().hasStatusOk();
+      JsonNode data = responseData(result);
+      assertThat(data.path("totalCount").asLong()).isEqualTo(2);
+      assertThat(data.path("items").get(0).path("id").asLong()).isEqualTo(inside.getId());
+      assertThat(data.path("items").get(1).path("id").asLong()).isEqualTo(from.getId());
+    }
+
+    @Test
+    @DisplayName("생성 시각 범위가 역전되거나 같으면 400을 반환한다")
+    void getNotifications_whenCreatedRangeIsInvalid_returnsBadRequest() {
+      User user = userTestFactory.persistUser();
+      TokenItem token = getToken(user);
+
+      MvcTestResult equalRange =
+          mockMvcTester
+              .get()
+              .uri(BASE + "?createdFrom=2026-08-10T01:00:00Z&createdTo=2026-08-10T01:00:00Z")
+              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
+              .exchange();
+      MvcTestResult reversedRange =
+          mockMvcTester
+              .get()
+              .uri(BASE + "?createdFrom=2026-08-10T02:00:00Z&createdTo=2026-08-10T01:00:00Z")
+              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
+              .exchange();
+
+      equalRange.assertThat().hasStatus(HttpStatus.BAD_REQUEST);
+      reversedRange.assertThat().hasStatus(HttpStatus.BAD_REQUEST);
     }
 
     @Test

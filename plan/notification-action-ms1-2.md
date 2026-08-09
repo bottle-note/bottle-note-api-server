@@ -99,7 +99,7 @@
 - Files (advisory): `storage/db/migration/V{latest+1}__add_notification_action.sql`
 - Depends: 없음
 - Size: S
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 2: 읽음 시각과 전달 상태 분리
 - Acceptance:
@@ -148,7 +148,7 @@
 - Files (advisory): `NotificationPageableRequest`, `NotificationListCriteria`, custom repository, `UserNotificationService`, `InMemoryNotificationRepository`, `UserNotificationServiceTest`, `NotificationControllerIntegrationTest`
 - Depends: Task 3
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 6: 댓글 source/action과 중복 방지
 - Acceptance:
@@ -186,3 +186,4 @@
 - 2026-08-09: Task 2 완료 — schema commit `92332784e`로 gitlink를 갱신하고 단건·전체 읽음을 최초 `read_at` 원자 갱신으로 전환했다. 전달 `status` 보존과 레거시 `read_at=NULL` 호환을 InMemory 및 단위 테스트 9개 시나리오로 정적 검토했으며, 로컬 테스트는 정책에 따라 실행하지 않았다.
 - 2026-08-10: Task 3 완료 — 단건 읽음 결과에 `notificationId/isRead/readAt/changed/unreadCount`를 추가하고 최초·반복·레거시 null·타 사용자 404 계약을 단위 및 controller integration 시나리오로 작성했다. 로컬 Gradle·테스트·빌드·Spotless는 정책에 따라 실행하지 않았다.
 - 2026-08-10: Task 4 완료 — `sourceType/sourceId`와 `JsonNode` raw Action을 매핑하고, `OPEN_REVIEW` typed 저장 경계 및 allowlist/version/양수 ID/정확한 key/1 KiB 응답 검증을 추가해 잘못된 행만 `action=null`로 강등했다. 목록 `createAt/readAt`은 `+09:00` OffsetDateTime으로 제공한다. 단위·controller integration 시나리오를 작성했으며 로컬 Gradle·테스트·빌드·Spotless는 정책에 따라 실행하지 않았다.
+- 2026-08-10: Task 5 완료 — `types/categories/readStatus/createdFrom/createdTo` 필터를 KST `[from,to)` 조건과 id DESC cursor에 결합하고, cursor를 제외한 동일 필터로 `totalCount`를 계산하도록 JPA/InMemory를 정렬했다. 단위·controller integration 시나리오를 작성했으며 후보 인덱스는 운영 분포와 `EXPLAIN ANALYZE` 근거가 없어 추가하지 않았고 로컬 Gradle·테스트·빌드·Spotless는 실행하지 않았다.

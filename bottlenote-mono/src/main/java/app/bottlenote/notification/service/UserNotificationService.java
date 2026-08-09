@@ -63,8 +63,8 @@ public class UserNotificationService implements NotificationService {
   public PageResponse<NotificationListResponse> getNotifications(
       Long userId, NotificationPageableRequest request) {
     NotificationListCriteria criteria =
-        NotificationListCriteria.of(userId, request.cursor(), request.pageSize());
-    long totalCount = notificationRepository.countByUserId(userId);
+        request.toCriteria(userId);
+    long totalCount = notificationRepository.countByCriteria(criteria);
     List<Notification> fetched = notificationRepository.findPageByUserId(criteria);
 
     boolean hasNext = fetched.size() > criteria.pageSize();

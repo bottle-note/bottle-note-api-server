@@ -1,5 +1,6 @@
 package app.bottlenote.notification.fixture;
 
+import app.bottlenote.notification.constant.NotificationReadStatus;
 import app.bottlenote.notification.constant.NotificationStatus;
 import app.bottlenote.notification.domain.Notification;
 import app.bottlenote.notification.domain.NotificationRepository;
@@ -48,13 +49,18 @@ public class InMemoryNotificationRepository implements NotificationRepository {
   @Override
   public List<Notification> findPageByUserId(NotificationListCriteria criteria) {
     return database.stream()
-        .filter(notification -> notification.getUserId().equals(criteria.userId()))
+        .filter(notification -> matches(notification, criteria))
         .filter(
             notification ->
                 !criteria.hasCursor() || notification.getId() < criteria.cursor())
         .sorted(Comparator.comparing(Notification::getId).reversed())
         .limit(criteria.fetchLimit())
         .toList();
+  }
+
+  @Override
+  public long countByCriteria(NotificationListCriteria criteria) {
+    return database.stream().filter(notification -> matches(notification, criteria)).count();
   }
 
   @Override
@@ -107,5 +113,36 @@ public class InMemoryNotificationRepository implements NotificationRepository {
     ReflectionTestUtils.setField(notification, "isRead", false);
     ReflectionTestUtils.setField(notification, "status", NotificationStatus.PENDING);
     return save(notification);
+  }
+
+  private boolean matches(Notification notification, NotificationListCriteria criteria) {
+    if (!notification.getUserId().equals(criteria.userId())) {
+      return false;
+    }
+    if (!criteria.types().isEmpty() && !criteria.types().contains(notification.getType())) {
+      return false;
+    }
+    if (!criteria.categories().isEmpty()
+        && !criteria.categories().contains(notification.getCategory())) {
+      return false;
+    }
+    if (criteria.readStatus() == NotificationReadStatus.READ
+        && !Boolean.TRUE.equals(notification.getIsRead())) {
+      return false;
+    }
+    if (criteria.readStatus() == NotificationReadStatus.UNREAD
+        && !Boolean.FALSE.equals(notification.getIsRead())) {
+      return false;
+    }
+    if ((criteria.createdFrom() != null || criteria.createdTo() != null)
+        && notification.getCreateAt() == null) {
+      return false;
+    }
+    if (criteria.createdFrom() != null
+        && notification.getCreateAt().isBefore(criteria.createdFrom())) {
+      return false;
+    }
+    return criteria.createdTo() == null
+        || notification.getCreateAt().isBefore(criteria.createdTo());
   }
 }
