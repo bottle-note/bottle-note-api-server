@@ -60,7 +60,7 @@
 - Files (advisory): snapshot 계약/구현, 갱신 컴포넌트, 설정, 단위 테스트
 - Depends: Task 1
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 3: Redis 장애 요청 판정에 snapshot fallback 연결
 - Acceptance:
@@ -117,3 +117,4 @@
 - 2026-08-09: Sonnet 코드 병목 조사, Opus 안전·성능 계약 검토, Terra 테스트 구조 조사 완료. 초기 Opus model ID 재시도 및 Terra Dispatch capability 복구 이력 있음.
 - 2026-08-09: delegated 계획 완료. Task 6개(S 2, M 4), 의존 순서 1→2→3→4→5→6.
 - 2026-08-09: Task 1 완료. 요청 경로를 non-null `BanLookup`과 raw PTTL callback으로 전환해 projected ban은 PTTL 1회·EXISTS 0회로 판정한다. Redis 기술 장애만 typed exception으로 변환하고 프로그래밍 오류는 전파한다. 독립 검증: AccessControlService 단위 16/16, Redis 통합 12/12, Spotless, 전체 `check_rule_test` 통과. Sonnet 리뷰 Critical 1·Important 3은 커밋 전 모두 해소.
+- 2026-08-09: Task 2 완료. Redis ban 목록을 `Map.copyOf` immutable snapshot과 `AtomicReference`로 원자 교체하며 30초 갱신·3분 stale·10,000건 상한·개별 TTL·무기한 TTL을 제공한다. 실패 시 이전 snapshot을 유지하고 Redis TTL 초 단위 절삭은 최대 1초 보수적으로 보정했다. Opus 설계 검토와 Sonnet diff 리뷰 후 유효 지적을 반영했으며, 집중 단위 14/14, Spotless, 전체 `check_rule_test`가 통과했다.

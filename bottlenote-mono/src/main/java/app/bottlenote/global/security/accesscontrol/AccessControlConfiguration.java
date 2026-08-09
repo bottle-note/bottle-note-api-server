@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.SocketOptions;
 import io.micrometer.core.instrument.MeterRegistry;
+import java.time.Clock;
 import java.time.Duration;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -59,6 +60,25 @@ public class AccessControlConfiguration {
   public AccessControlMetrics accessControlMetrics(ObjectProvider<MeterRegistry> meterRegistry) {
     MeterRegistry registry = meterRegistry.getIfAvailable();
     return registry == null ? AccessControlMetrics.noop() : new AccessControlMetrics(registry);
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(BanSnapshotHolder.class)
+  public BanSnapshotHolder banSnapshotHolder(AccessControlProperties properties) {
+    return new BanSnapshotHolder(properties.getSnapshot().getMaxEntries());
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(BanSnapshotRefresher.class)
+  public BanSnapshotRefresher banSnapshotRefresher(
+      AccessControlStore accessControlStore,
+      BanSnapshotHolder banSnapshotHolder,
+      AccessControlProperties properties) {
+    return new BanSnapshotRefresher(
+        accessControlStore,
+        banSnapshotHolder,
+        properties.getSnapshot().getMaxEntries(),
+        Clock.systemUTC());
   }
 
   @Bean
