@@ -10,9 +10,15 @@ import com.redis.testcontainers.RedisContainer;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.SocketOptions;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -35,14 +41,22 @@ class RedisAccessControlStoreIntegrationTest {
   @Container
   static final RedisContainer REDIS = new RedisContainer(DockerImageName.parse("redis:7.0.12"));
 
+  private LettuceConnectionFactory connectionFactory;
   private StringRedisTemplate redisTemplate;
   private RedisAccessControlStore store;
 
   @BeforeEach
   void setUp() {
-    redisTemplate = createTemplate(Duration.ofSeconds(2));
+    connectionFactory = createFactory(Duration.ofSeconds(2));
+    redisTemplate = new StringRedisTemplate(connectionFactory);
+    redisTemplate.afterPropertiesSet();
     redisTemplate.getConnectionFactory().getConnection().serverCommands().flushDb();
     store = new RedisAccessControlStore(redisTemplate);
+  }
+
+  @AfterEach
+  void tearDown() {
+    connectionFactory.destroy();
   }
 
   @Test
@@ -229,6 +243,58 @@ class RedisAccessControlStoreIntegrationTest {
   }
 
   @Test
+  @DisplayName("rate-limit 전용 채널 4개가 같은 키의 500 동시 요청에서도 한도를 정확히 적용한다")
+  void tryConsume_acrossRateLimitChannels_enforcesLimitUnderConcurrentRequests() throws Exception {
+    List<LettuceConnectionFactory> ownedFactories = new ArrayList<>();
+    List<StringRedisTemplate> rateLimitTemplates = new ArrayList<>();
+    for (int index = 0; index < 4; index++) {
+      LettuceConnectionFactory factory = createFactory(Duration.ofSeconds(2));
+      ownedFactories.add(factory);
+      StringRedisTemplate template = new StringRedisTemplate(factory);
+      template.afterPropertiesSet();
+      rateLimitTemplates.add(template);
+    }
+    RedisAccessControlStore multiChannelStore =
+        new RedisAccessControlStore(redisTemplate, rateLimitTemplates, ownedFactories);
+    String key = "product:203.0.113.90|default";
+    int limit = 60;
+    int requestCount = 500;
+    CountDownLatch ready = new CountDownLatch(requestCount);
+    CountDownLatch start = new CountDownLatch(1);
+
+    try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+      List<java.util.concurrent.Future<ConsumeResult>> results =
+          IntStream.range(0, requestCount)
+              .mapToObj(
+                  ignored ->
+                      executor.submit(
+                          () -> {
+                            ready.countDown();
+                            start.await();
+                            return multiChannelStore.tryConsume(key, limit, Duration.ofSeconds(60));
+                          }))
+              .toList();
+      try {
+        assertThat(ready.await(5, TimeUnit.SECONDS)).isTrue();
+      } finally {
+        start.countDown();
+      }
+
+      List<ConsumeResult> consumed = new ArrayList<>(requestCount);
+      for (java.util.concurrent.Future<ConsumeResult> result : results) {
+        consumed.add(result.get(10, TimeUnit.SECONDS));
+      }
+
+      assertThat(consumed).filteredOn(ConsumeResult::allowed).hasSize(limit);
+      assertThat(consumed).filteredOn(result -> !result.allowed()).hasSize(requestCount - limit);
+      Long ttlSeconds = redisTemplate.getExpire("bn:ac:rl:" + key, TimeUnit.SECONDS);
+      assertThat(ttlSeconds).isNotNull().isBetween(1L, 60L);
+    } finally {
+      multiChannelStore.destroy();
+    }
+  }
+
+  @Test
   @DisplayName("access-control commandTimeout(200ms)은 연결 불가 시 전역 15s보다 빨리 실패한다")
   void shortCommandTimeout_failsFasterThanGlobalDefault() {
     // TEST-NET-1 비라우팅 주소 — connectTimeout 200ms로 빠르게 실패해야 한다
@@ -260,7 +326,7 @@ class RedisAccessControlStoreIntegrationTest {
     assertThat(elapsedMs).isLessThan(2_000);
   }
 
-  private static StringRedisTemplate createTemplate(Duration commandTimeout) {
+  private static LettuceConnectionFactory createFactory(Duration commandTimeout) {
     LettuceClientConfiguration clientConfig =
         LettuceClientConfiguration.builder()
             .commandTimeout(commandTimeout)
@@ -274,9 +340,7 @@ class RedisAccessControlStoreIntegrationTest {
     LettuceConnectionFactory factory = new LettuceConnectionFactory(standalone, clientConfig);
     factory.afterPropertiesSet();
     factory.start();
-    StringRedisTemplate template = new StringRedisTemplate(factory);
-    template.afterPropertiesSet();
-    return template;
+    return factory;
   }
 
   private CommandStats commandStats() {

@@ -3,9 +3,12 @@ package app.bottlenote.global.security.accesscontrol;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.SocketOptions;
+import io.lettuce.core.resource.ClientResources;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Clock;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -45,14 +48,21 @@ public class AccessControlConfiguration {
   @ConditionalOnMissingBean(AccessControlStore.class)
   public AccessControlStore accessControlStore(
       RedisConnectionFactory redisConnectionFactory, AccessControlProperties properties) {
-    LettuceConnectionFactory dedicated =
-        createDedicatedConnectionFactory(redisConnectionFactory, properties);
-    // 비등록 인스턴스 — Spring lifecycle 대신 수동 초기화/종료
-    dedicated.afterPropertiesSet();
-    dedicated.start();
-    StringRedisTemplate template = new StringRedisTemplate(dedicated);
-    template.afterPropertiesSet();
-    return new RedisAccessControlStore(template, dedicated);
+    int rateLimitConnectionCount = resolveRateLimitConnectionCount(properties);
+    List<LettuceConnectionFactory> ownedFactories = new ArrayList<>(rateLimitConnectionCount + 1);
+    try {
+      StringRedisTemplate banTemplate =
+          createDedicatedTemplate(redisConnectionFactory, properties, ownedFactories);
+      List<StringRedisTemplate> rateLimitTemplates = new ArrayList<>(rateLimitConnectionCount);
+      for (int index = 0; index < rateLimitConnectionCount; index++) {
+        rateLimitTemplates.add(
+            createDedicatedTemplate(redisConnectionFactory, properties, ownedFactories));
+      }
+      return new RedisAccessControlStore(banTemplate, rateLimitTemplates, ownedFactories);
+    } catch (RuntimeException exception) {
+      destroyFactoriesReverse(ownedFactories, exception);
+      throw exception;
+    }
   }
 
   @Bean
@@ -105,9 +115,16 @@ public class AccessControlConfiguration {
 
   static LettuceConnectionFactory createDedicatedConnectionFactory(
       RedisConnectionFactory redisConnectionFactory, AccessControlProperties properties) {
+    if (!(redisConnectionFactory instanceof LettuceConnectionFactory source)) {
+      throw new IllegalStateException(
+          "access-control requires LettuceConnectionFactory; got "
+              + redisConnectionFactory.getClass().getName());
+    }
     Duration commandTimeout = resolveCommandTimeout(properties);
+    ClientResources clientResources = sourceClientResources(source);
     LettuceClientConfiguration clientConfig =
         LettuceClientConfiguration.builder()
+            .clientResources(clientResources)
             .commandTimeout(commandTimeout)
             .clientOptions(
                 ClientOptions.builder()
@@ -115,19 +132,13 @@ public class AccessControlConfiguration {
                     .build())
             .build();
 
-    if (!(redisConnectionFactory instanceof LettuceConnectionFactory source)) {
-      throw new IllegalStateException(
-          "access-control requires LettuceConnectionFactory; got "
-              + redisConnectionFactory.getClass().getName());
-    }
-
     RedisClusterConfiguration clusterConfiguration = source.getClusterConfiguration();
     if (clusterConfiguration != null
         && clusterConfiguration.getClusterNodes() != null
         && !clusterConfiguration.getClusterNodes().isEmpty()) {
       LettuceConnectionFactory factory =
           new LettuceConnectionFactory(clusterConfiguration, clientConfig);
-      factory.setShareNativeConnection(source.getShareNativeConnection());
+      factory.setShareNativeConnection(true);
       return factory;
     }
 
@@ -138,9 +149,55 @@ public class AccessControlConfiguration {
     }
     LettuceConnectionFactory factory =
         new LettuceConnectionFactory(standaloneConfiguration, clientConfig);
-    factory.setShareNativeConnection(source.getShareNativeConnection());
+    factory.setShareNativeConnection(true);
     factory.setDatabase(source.getDatabase());
     return factory;
+  }
+
+  private static StringRedisTemplate createDedicatedTemplate(
+      RedisConnectionFactory redisConnectionFactory,
+      AccessControlProperties properties,
+      List<LettuceConnectionFactory> ownedFactories) {
+    LettuceConnectionFactory factory =
+        createDedicatedConnectionFactory(redisConnectionFactory, properties);
+    ownedFactories.add(factory);
+    factory.afterPropertiesSet();
+    factory.start();
+    StringRedisTemplate template = new StringRedisTemplate(factory);
+    template.afterPropertiesSet();
+    return template;
+  }
+
+  private static int resolveRateLimitConnectionCount(AccessControlProperties properties) {
+    int count = properties.getRateLimitConnectionCount();
+    if (count < 1 || count > 8) {
+      throw new IllegalArgumentException(
+          "access-control.rateLimitConnectionCount must be between 1 and 8");
+    }
+    return count;
+  }
+
+  private static ClientResources sourceClientResources(LettuceConnectionFactory source) {
+    ClientResources configuredResources = source.getClientResources();
+    if (configuredResources != null) {
+      return configuredResources;
+    }
+    if (source.getNativeClient() != null) {
+      return source.getNativeClient().getResources();
+    }
+    throw new IllegalStateException(
+        "access-control source Lettuce client resources are unavailable");
+  }
+
+  private static void destroyFactoriesReverse(
+      List<LettuceConnectionFactory> ownedFactories, RuntimeException original) {
+    for (int index = ownedFactories.size() - 1; index >= 0; index--) {
+      try {
+        ownedFactories.get(index).destroy();
+      } catch (RuntimeException cleanupFailure) {
+        original.addSuppressed(cleanupFailure);
+      }
+    }
   }
 
   private static Duration resolveCommandTimeout(AccessControlProperties properties) {
