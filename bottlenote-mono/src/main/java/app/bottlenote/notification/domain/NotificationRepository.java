@@ -2,6 +2,7 @@ package app.bottlenote.notification.domain;
 
 import app.bottlenote.common.annotation.DomainRepository;
 import app.bottlenote.notification.dto.dsl.NotificationListCriteria;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,6 +23,9 @@ public interface NotificationRepository {
 
   long countByUserIdAndIsReadFalse(Long userId);
 
+  /** 본인 미읽음 알림을 읽음 처리하고 최초 읽음 시각을 기록한다. */
+  int markAsReadByIdAndUserId(Long id, Long userId, LocalDateTime readAt);
+
   /** 미읽음 알림을 모두 읽음 처리하고 갱신 건수를 반환한다. */
-  int markAllAsReadByUserId(Long userId);
+  int markAllAsReadByUserId(Long userId, LocalDateTime readAt);
 }

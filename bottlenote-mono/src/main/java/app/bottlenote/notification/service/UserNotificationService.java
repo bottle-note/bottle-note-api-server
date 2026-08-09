@@ -13,6 +13,8 @@ import app.bottlenote.notification.payload.NotificationMessage;
 import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.facade.UserFacade;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class UserNotificationService implements NotificationService {
+  private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+
   private final UserFacade userFacade;
   private final NotificationRepository notificationRepository;
 
@@ -88,20 +92,21 @@ public class UserNotificationService implements NotificationService {
   @Transactional
   @Override
   public void markAsRead(Long userId, Long notificationId) {
-    Notification notification =
-        notificationRepository
-            .findByIdAndUserId(notificationId, userId)
-            .orElseThrow(
-                () -> new NotificationException(NotificationExceptionCode.NOTIFICATION_NOT_FOUND));
-
-    notification.markAsRead();
-    notificationRepository.save(notification);
+    int updated =
+        notificationRepository.markAsReadByIdAndUserId(
+            notificationId, userId, LocalDateTime.now(KST));
+    if (updated == 0) {
+      notificationRepository
+          .findByIdAndUserId(notificationId, userId)
+          .orElseThrow(
+              () -> new NotificationException(NotificationExceptionCode.NOTIFICATION_NOT_FOUND));
+    }
   }
 
   @Transactional
   @Override
   public int markAllAsRead(Long userId) {
-    return notificationRepository.markAllAsReadByUserId(userId);
+    return notificationRepository.markAllAsReadByUserId(userId, LocalDateTime.now(KST));
   }
 
   private NotificationListResponse.Item toItem(Notification notification) {
