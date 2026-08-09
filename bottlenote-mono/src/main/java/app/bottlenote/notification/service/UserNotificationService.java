@@ -2,6 +2,7 @@ package app.bottlenote.notification.service;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.notification.action.NotificationActionResolver;
 import app.bottlenote.notification.domain.Notification;
 import app.bottlenote.notification.domain.NotificationRepository;
 import app.bottlenote.notification.dto.dsl.NotificationListCriteria;
@@ -14,6 +15,7 @@ import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.facade.UserFacade;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,7 @@ public class UserNotificationService implements NotificationService {
 
   private final UserFacade userFacade;
   private final NotificationRepository notificationRepository;
+  private final NotificationActionResolver notificationActionResolver;
 
   @Transactional
   @Override
@@ -124,6 +127,12 @@ public class UserNotificationService implements NotificationService {
         notification.getCategory(),
         notification.getStatus(),
         notification.getIsRead(),
-        notification.getCreateAt());
+        toKstOffset(notification.getCreateAt()),
+        toKstOffset(notification.getReadAt()),
+        notificationActionResolver.resolve(notification));
+  }
+
+  private OffsetDateTime toKstOffset(LocalDateTime dateTime) {
+    return dateTime != null ? dateTime.atZone(KST).toOffsetDateTime() : null;
   }
 }

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 import app.bottlenote.IntegrationTestSupport;
+import app.bottlenote.notification.action.NotificationAction;
 import app.bottlenote.notification.constant.NotificationCategory;
 import app.bottlenote.notification.constant.NotificationStatus;
 import app.bottlenote.notification.constant.NotificationType;
@@ -67,7 +68,20 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
       assertThat(data.path("items").get(1).path("id").asLong()).isEqualTo(older.getId());
       assertThat(fieldNames(data.path("items").get(0)))
           .containsExactlyInAnyOrder(
-              "id", "title", "content", "type", "category", "status", "isRead", "createAt");
+              "id",
+              "title",
+              "content",
+              "type",
+              "category",
+              "status",
+              "isRead",
+              "createAt",
+              "readAt",
+              "action");
+
+      assertThat(data.path("items").get(0).path("action").isNull()).isTrue();
+      assertThat(data.path("items").get(0).path("createAt").asText()).endsWith("+09:00");
+      assertThat(data.path("items").get(0).path("readAt").isNull()).isTrue();
 
       JsonNode pageable = responseMeta(result).path("pageable");
       assertThat(pageable.path("currentCursor").asLong()).isZero();
@@ -117,6 +131,43 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
       assertThat(responseMeta(second).path("pageable").path("hasNext").asBoolean()).isFalse();
       assertThat(responseMeta(second).path("pageable").path("cursor").asLong())
           .isEqualTo(n1.getId());
+    }
+
+    @Test
+    @DisplayName("OPEN_REVIEW Action을 의미 기반 계약으로 반환한다")
+    void getNotifications_whenOpenReviewActionExists_returnsTypedAction() throws Exception {
+      User user = userTestFactory.persistUser();
+      TokenItem token = getToken(user);
+      Notification notification =
+          Notification.builder()
+              .userId(user.getId())
+              .title("reply")
+              .content("reply-content")
+              .type(NotificationType.USER)
+              .category(NotificationCategory.REVIEW)
+              .action(NotificationAction.openReview(10L, 20L))
+              .build();
+      notification.markAsRead(java.time.LocalDateTime.of(2026, 8, 10, 12, 0));
+      notificationRepository.save(notification);
+
+      MvcTestResult result =
+          mockMvcTester
+              .get()
+              .uri(BASE)
+              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
+              .exchange();
+
+      result.assertThat().hasStatusOk();
+      JsonNode item = responseData(result).path("items").get(0);
+      assertThat(item.path("id").asLong()).isEqualTo(notification.getId());
+      assertThat(item.path("action").path("type").asText()).isEqualTo("OPEN_REVIEW");
+      assertThat(item.path("action").path("targetId").asLong()).isEqualTo(10L);
+      assertThat(item.path("action").path("payload").path("replyId").asLong()).isEqualTo(20L);
+      assertThat(item.path("action").path("version").asInt()).isEqualTo(1);
+      assertThat(item.path("action").path("fallbackType").asText())
+          .isEqualTo("OPEN_NOTIFICATION_CENTER");
+      assertThat(item.path("createAt").asText()).endsWith("+09:00");
+      assertThat(item.path("readAt").asText()).isEqualTo("2026-08-10T12:00:00+09:00");
     }
 
     @Test
