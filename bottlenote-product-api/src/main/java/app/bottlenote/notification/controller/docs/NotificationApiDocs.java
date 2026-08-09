@@ -1,11 +1,13 @@
 package app.bottlenote.notification.controller.docs;
 
-import app.bottlenote.notification.dto.response.NotificationListResponse;
+import app.bottlenote.notification.constant.NotificationCategory;
+import app.bottlenote.notification.constant.NotificationType;
 import app.bottlenote.notification.dto.response.NotificationMarkAllReadResponse;
 import app.bottlenote.notification.dto.response.NotificationMarkReadResponse;
 import app.bottlenote.notification.dto.response.NotificationUnreadCountResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -42,6 +44,12 @@ public final class NotificationApiDocs {
           - `createdTo`: 생성 시각 상한(제외), ISO-8601 OffsetDateTime
           - 시각 offset은 동일 instant의 Asia/Seoul 시각으로 정규화하며, from은 to보다 이전이어야 함
           - 응답 `meta.pageable.cursor`는 이번 페이지 마지막 item id(다음 요청용 nextCursor)
+          - `isRead/readAt`은 읽음 상태, `status`는 PENDING/SENT/FAILED 전달 상태로 서로 독립
+          - `createAt/readAt` 값은 Asia/Seoul `+09:00` offset으로 반환하고 `readAt`은 null일 수 있음
+
+          별도 Action 실행 endpoint는 제공하지 않습니다. 앱과 웹은 응답의 semantic `type`을 각 플랫폼 내부 route로 변환합니다.
+          `OPEN_REVIEW` 이동 시 리뷰 상세 API가 존재 여부와 접근 권한을 다시 검증합니다. 댓글만 삭제됐으면 리뷰 상세를 열고 댓글 강조를 생략하며,
+          리뷰가 삭제됐거나 접근 권한이 없으면 `fallbackType=OPEN_NOTIFICATION_CENTER`를 적용합니다. 서버 응답에는 raw URL 또는 route 문자열을 포함하지 않습니다.
 
           **오류 코드**
 
@@ -55,8 +63,22 @@ public final class NotificationApiDocs {
             description = "직전 페이지 마지막 알림 id (keyset, 0이면 최초)",
             example = "0"),
         @Parameter(name = "pageSize", description = "페이지 크기", example = "10"),
-        @Parameter(name = "types", description = "알림 타입 목록", example = "USER"),
-        @Parameter(name = "categories", description = "알림 카테고리 목록", example = "REVIEW"),
+        @Parameter(
+            name = "types",
+            description = "알림 타입 배열. 미지정 또는 빈 배열이면 전체",
+            array =
+                @ArraySchema(
+                    schema =
+                        @Schema(
+                            implementation = NotificationType.class))),
+        @Parameter(
+            name = "categories",
+            description = "알림 카테고리 배열. 미지정 또는 빈 배열이면 전체",
+            array =
+                @ArraySchema(
+                    schema =
+                        @Schema(
+                            implementation = NotificationCategory.class))),
         @Parameter(
             name = "readStatus",
             description = "읽음 필터 (ALL, UNREAD, READ)",
@@ -75,7 +97,8 @@ public final class NotificationApiDocs {
               responseCode = "200",
               description = "알림 목록",
               content =
-                  @Content(schema = @Schema(implementation = NotificationListResponse.class))))
+                  @Content(
+                      schema = @Schema(implementation = NotificationListOpenApiSchema.class))))
   public @interface GetNotifications {}
 
   @Target(ElementType.METHOD)

@@ -15,7 +15,10 @@ import app.bottlenote.user.domain.User;
 import app.bottlenote.user.dto.response.TokenItem;
 import app.bottlenote.user.fixture.UserTestFactory;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import jakarta.persistence.EntityManager;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.DisplayName;
@@ -35,6 +38,7 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
 
   @Autowired private UserTestFactory userTestFactory;
   @Autowired private NotificationRepository notificationRepository;
+  @Autowired private EntityManager entityManager;
 
   @Nested
   @DisplayName("알림 목록 조회")
@@ -328,6 +332,63 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
+    @DisplayName("유효하지 않은 raw Action은 해당 항목만 null로 강등한다")
+    void getNotifications_whenRawActionsAreInvalid_returnsValidItemAndNullInvalidActions()
+        throws Exception {
+      User user = userTestFactory.persistUser();
+      TokenItem token = getToken(user);
+      Notification valid =
+          seedActionNotification(
+              user.getId(), "valid", NotificationAction.openReview(10L, 20L));
+      Notification unknownType =
+          seedRawActionNotification(
+              user.getId(),
+              "unknown-type",
+              "OPEN_UNKNOWN",
+              1,
+              JsonNodeFactory.instance.objectNode().put("replyId", 21L));
+      Notification unknownVersion =
+          seedRawActionNotification(
+              user.getId(),
+              "unknown-version",
+              "OPEN_REVIEW",
+              2,
+              JsonNodeFactory.instance.objectNode().put("replyId", 22L));
+      Notification scalarPayload =
+          seedRawActionNotification(
+              user.getId(),
+              "scalar",
+              "OPEN_REVIEW",
+              1,
+              JsonNodeFactory.instance.textNode("invalid"));
+      Notification incompletePayload =
+          seedRawActionNotification(
+              user.getId(),
+              "incomplete",
+              "OPEN_REVIEW",
+              1,
+              JsonNodeFactory.instance.objectNode());
+
+      MvcTestResult result =
+          mockMvcTester
+              .get()
+              .uri(BASE)
+              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
+              .exchange();
+
+      result.assertThat().hasStatusOk();
+      JsonNode items = responseData(result).path("items");
+      assertThat(items).hasSize(5);
+      assertThat(findItem(items, valid.getId()).path("action").path("type").asText())
+          .isEqualTo("OPEN_REVIEW");
+      assertThat(
+              List.of(unknownType, unknownVersion, scalarPayload, incompletePayload).stream()
+                  .map(notification -> findItem(items, notification.getId()).path("action"))
+                  .toList())
+          .allMatch(JsonNode::isNull);
+    }
+
+    @Test
     @DisplayName("인증 정보가 없으면 401을 반환한다")
     void getNotifications_whenUnauthenticated_returnsUnauthorized() {
       mockMvcTester.get().uri(BASE).exchange().assertThat().hasStatus(HttpStatus.UNAUTHORIZED);
@@ -494,14 +555,16 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
   class MarkAllAsRead {
 
     @Test
-    @DisplayName("본인 미읽음 알림만 모두 읽음 처리한다")
-    void markAllAsRead_whenAuthenticated_marksOnlyOwnUnread() throws Exception {
+    @DisplayName("전체 읽음을 반복해도 최초 시각과 전달 상태를 보존한다")
+    void markAllAsRead_whenRepeated_preservesFirstReadAtDeliveryStatusAndOtherUser()
+        throws Exception {
       User user = userTestFactory.persistUser();
       User other = userTestFactory.persistUser();
       TokenItem token = getToken(user);
 
-      seedNotification(user.getId(), "unread-1");
-      seedNotification(user.getId(), "unread-2");
+      Notification pending = seedNotification(user.getId(), "pending", NotificationStatus.PENDING);
+      Notification sent = seedNotification(user.getId(), "sent", NotificationStatus.SENT);
+      Notification failed = seedNotification(user.getId(), "failed", NotificationStatus.FAILED);
       Notification otherNotification = seedNotification(other.getId(), "other-unread");
 
       MvcTestResult result =
@@ -514,12 +577,50 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
 
       result.assertThat().hasStatusOk();
       JsonNode data = responseData(result);
-      assertThat(data.path("updatedCount").asInt()).isEqualTo(2);
+      assertThat(data.path("updatedCount").asInt()).isEqualTo(3);
+
+      entityManager.clear();
+      List<Notification> firstReload =
+          List.of(pending, sent, failed).stream()
+              .map(
+                  notification ->
+                      notificationRepository.findById(notification.getId()).orElseThrow())
+              .toList();
+      assertThat(firstReload)
+          .allSatisfy(notification -> assertThat(notification.getReadAt()).isNotNull());
+
+      MvcTestResult repeated =
+          mockMvcTester
+              .patch()
+              .uri(BASE + "/read-all")
+              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
+              .with(csrf())
+              .exchange();
+
+      repeated.assertThat().hasStatusOk();
+      assertThat(responseData(repeated).path("updatedCount").asInt()).isZero();
+
+      entityManager.clear();
+      List<Notification> secondReload =
+          List.of(pending, sent, failed).stream()
+              .map(
+                  notification ->
+                      notificationRepository.findById(notification.getId()).orElseThrow())
+              .toList();
+      assertThat(secondReload)
+          .extracting(Notification::getReadAt)
+          .containsExactlyElementsOf(firstReload.stream().map(Notification::getReadAt).toList());
+      assertThat(secondReload)
+          .extracting(Notification::getStatus)
+          .containsExactly(
+              NotificationStatus.PENDING, NotificationStatus.SENT, NotificationStatus.FAILED);
 
       assertThat(notificationRepository.countByUserIdAndIsReadFalse(user.getId())).isZero();
-      assertThat(
-              notificationRepository.findById(otherNotification.getId()).orElseThrow().getIsRead())
-          .isFalse();
+      Notification otherReloaded =
+          notificationRepository.findById(otherNotification.getId()).orElseThrow();
+      assertThat(otherReloaded.getIsRead()).isFalse();
+      assertThat(otherReloaded.getReadAt()).isNull();
+      assertThat(otherReloaded.getStatus()).isEqualTo(NotificationStatus.PENDING);
     }
 
     @Test
@@ -536,6 +637,11 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
   }
 
   private Notification seedNotification(Long userId, String title) {
+    return seedNotification(userId, title, NotificationStatus.PENDING);
+  }
+
+  private Notification seedNotification(
+      Long userId, String title, NotificationStatus status) {
     return notificationRepository.save(
         Notification.builder()
             .userId(userId)
@@ -543,9 +649,42 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
             .content(title + "-content")
             .type(NotificationType.USER)
             .category(NotificationCategory.REVIEW)
-            .status(NotificationStatus.PENDING)
+            .status(status)
             .isRead(false)
             .build());
+  }
+
+  private Notification seedActionNotification(
+      Long userId, String title, NotificationAction action) {
+    return notificationRepository.save(
+        Notification.builder()
+            .userId(userId)
+            .title(title)
+            .content(title + "-content")
+            .type(NotificationType.USER)
+            .category(NotificationCategory.REVIEW)
+            .action(action)
+            .build());
+  }
+
+  private Notification seedRawActionNotification(
+      Long userId, String title, String actionType, int actionVersion, JsonNode payload) {
+    Notification notification = seedNotification(userId, title);
+    org.springframework.test.util.ReflectionTestUtils.setField(
+        notification, "actionType", actionType);
+    org.springframework.test.util.ReflectionTestUtils.setField(notification, "actionTargetId", 10L);
+    org.springframework.test.util.ReflectionTestUtils.setField(
+        notification, "actionPayload", payload);
+    org.springframework.test.util.ReflectionTestUtils.setField(
+        notification, "actionVersion", (short) actionVersion);
+    return notificationRepository.save(notification);
+  }
+
+  private JsonNode findItem(JsonNode items, Long notificationId) {
+    return StreamSupport.stream(items.spliterator(), false)
+        .filter(item -> item.path("id").asLong() == notificationId)
+        .findFirst()
+        .orElseThrow();
   }
 
   private JsonNode responseData(MvcTestResult result) throws Exception {
