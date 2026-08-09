@@ -4,6 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.notification.action.NotificationAction;
+import app.bottlenote.notification.action.NotificationActionFallbackType;
+import app.bottlenote.notification.action.NotificationActionResolver;
+import app.bottlenote.notification.action.NotificationActionType;
 import app.bottlenote.notification.constant.NotificationCategory;
 import app.bottlenote.notification.constant.NotificationStatus;
 import app.bottlenote.notification.constant.NotificationType;
@@ -18,12 +22,17 @@ import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.facade.payload.UserProfileItem;
 import app.bottlenote.user.fixture.FakeUserFacade;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @Tag("unit")
 @DisplayName("UserNotificationService 단위 테스트")
@@ -40,7 +49,11 @@ class UserNotificationServiceTest {
   void setUp() {
     userFacade = new FakeUserFacade();
     notificationRepository = new InMemoryNotificationRepository();
-    service = new UserNotificationService(userFacade, notificationRepository);
+    service =
+        new UserNotificationService(
+            userFacade,
+            notificationRepository,
+            new NotificationActionResolver(new ObjectMapper()));
   }
 
   @Nested
@@ -146,6 +159,101 @@ class UserNotificationServiceTest {
       assertThat(secondPage.cursorPageable().getHasNext()).isFalse();
       assertThat(secondPage.cursorPageable().getCurrentCursor()).isEqualTo(n2.getId());
       assertThat(secondPage.cursorPageable().getCursor()).isEqualTo(n1.getId());
+    }
+
+    @Test
+    @DisplayName("유효한 OPEN_REVIEW Action을 typed 계약으로 반환한다")
+    void getNotifications_whenOpenReviewActionIsValid_returnsTypedAction() {
+      Notification notification =
+          seedNotification(USER_ID, "action", NotificationAction.openReview(10L, 20L));
+      LocalDateTime occurredAt = LocalDateTime.of(2026, 8, 10, 12, 0);
+      ReflectionTestUtils.setField(notification, "createAt", occurredAt);
+      notification.markAsRead(occurredAt);
+
+      NotificationListResponse.Item item =
+          service
+              .getNotifications(USER_ID, NotificationPageableRequest.builder().build())
+              .content()
+              .items()
+              .getFirst();
+
+      assertThat(item.id()).isEqualTo(notification.getId());
+      assertThat(item.action().type()).isEqualTo(NotificationActionType.OPEN_REVIEW);
+      assertThat(item.action().targetId()).isEqualTo(10L);
+      assertThat(item.action().payload().replyId()).isEqualTo(20L);
+      assertThat(item.action().version()).isEqualTo(1);
+      assertThat(item.action().fallbackType())
+          .isEqualTo(NotificationActionFallbackType.OPEN_NOTIFICATION_CENTER);
+      assertThat(item.createAt().toString()).isEqualTo("2026-08-10T12:00+09:00");
+      assertThat(item.readAt().toString()).isEqualTo("2026-08-10T12:00+09:00");
+    }
+
+    @Test
+    @DisplayName("미지원 또는 불완전 Action은 항목별 null로 강등한다")
+    void getNotifications_whenActionsAreInvalid_downgradesEachActionToNull() {
+      Notification unsupportedType = seedRawAction("OPEN_URL", 10L, Map.of("replyId", 20L), 1);
+      Notification unsupportedVersion =
+          seedRawAction("OPEN_REVIEW", 10L, Map.of("replyId", 20L), 2);
+      Notification extraKey =
+          seedRawAction("OPEN_REVIEW", 10L, Map.of("replyId", 20L, "url", "invalid"), 1);
+      Notification wrongType =
+          seedRawAction("OPEN_REVIEW", 10L, Map.of("replyId", "20"), 1);
+      Notification nonPositiveTarget =
+          seedRawAction("OPEN_REVIEW", 0L, Map.of("replyId", 20L), 1);
+      Notification oversized =
+          seedRawAction(
+              "OPEN_REVIEW",
+              10L,
+              Map.of("replyId", new BigInteger("9".repeat(1025))),
+              1);
+      Notification scalarPayload = seedRawAction("OPEN_REVIEW", 10L, "20", 1);
+      Notification listPayload = seedRawAction("OPEN_REVIEW", 10L, List.of(20L), 1);
+      Notification missingPayload = seedRawAction("OPEN_REVIEW", 10L, null, 1);
+      Notification missingReplyId = seedRawAction("OPEN_REVIEW", 10L, Map.of(), 1);
+      Notification legacy = seedNotification(USER_ID, "legacy");
+      Notification valid =
+          seedNotification(USER_ID, "valid", NotificationAction.openReview(10L, 20L));
+
+      PageResponse<NotificationListResponse> result =
+          service.getNotifications(
+              USER_ID, NotificationPageableRequest.builder().pageSize(20L).build());
+
+      assertThat(result.content().items()).hasSize(12);
+      assertThat(result.content().items())
+          .extracting(NotificationListResponse.Item::id)
+          .containsExactlyInAnyOrder(
+              unsupportedType.getId(),
+              unsupportedVersion.getId(),
+              extraKey.getId(),
+              wrongType.getId(),
+              nonPositiveTarget.getId(),
+              oversized.getId(),
+              scalarPayload.getId(),
+              listPayload.getId(),
+              missingPayload.getId(),
+              missingReplyId.getId(),
+              legacy.getId(),
+              valid.getId());
+      assertThat(result.content().items())
+          .filteredOn(item -> !item.id().equals(valid.getId()))
+          .extracting(NotificationListResponse.Item::action)
+          .containsOnlyNulls();
+      assertThat(result.content().items())
+          .filteredOn(item -> item.id().equals(valid.getId()))
+          .extracting(NotificationListResponse.Item::action)
+          .doesNotContainNull();
+    }
+
+    @Test
+    @DisplayName("OPEN_REVIEW 저장 계약은 양수 식별자와 정확한 payload key를 강제한다")
+    void openReview_whenCreatingAction_validatesStorageContract() {
+      NotificationAction action = NotificationAction.openReview(10L, 20L);
+
+      assertThat(action.payload().path("replyId").longValue()).isEqualTo(20L);
+      assertThatThrownBy(() -> NotificationAction.openReview(0L, 20L))
+          .isInstanceOf(IllegalArgumentException.class);
+      assertThatThrownBy(() -> NotificationAction.openReview(10L, 0L))
+          .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -314,6 +422,30 @@ class UserNotificationServiceTest {
 
   private Notification seedNotification(Long userId, String title) {
     return seedNotification(userId, title, null, false, null);
+  }
+
+  private Notification seedNotification(
+      Long userId, String title, NotificationAction action) {
+    return notificationRepository.save(
+        Notification.builder()
+            .userId(userId)
+            .title(title)
+            .content(title + "-content")
+            .type(NotificationType.USER)
+            .category(NotificationCategory.REVIEW)
+            .action(action)
+            .build());
+  }
+
+  private Notification seedRawAction(
+      String actionType, Long targetId, Object payload, Integer version) {
+    Notification notification = seedNotification(USER_ID, "raw-action");
+    ReflectionTestUtils.setField(notification, "actionType", actionType);
+    ReflectionTestUtils.setField(notification, "actionTargetId", targetId);
+    ReflectionTestUtils.setField(
+        notification, "actionPayload", new ObjectMapper().valueToTree(payload));
+    ReflectionTestUtils.setField(notification, "actionVersion", version);
+    return notification;
   }
 
   private Notification seedNotification(
