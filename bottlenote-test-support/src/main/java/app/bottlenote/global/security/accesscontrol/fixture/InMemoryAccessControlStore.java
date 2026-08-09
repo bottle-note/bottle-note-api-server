@@ -16,6 +16,12 @@ public class InMemoryAccessControlStore implements AccessControlStore {
   private final Map<String, CounterEntry> counters = new ConcurrentHashMap<>();
 
   @Override
+  public BanLookup lookupBan(String ip) {
+    BanInfo ban = getBan(ip);
+    return ban == null ? BanLookup.notBanned() : new BanLookup(true, ban.ttlSeconds());
+  }
+
+  @Override
   public boolean isBanned(String ip) {
     BanEntry entry = bans.get(ip);
     if (entry == null) {

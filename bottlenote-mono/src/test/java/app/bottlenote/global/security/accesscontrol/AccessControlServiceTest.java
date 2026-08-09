@@ -1,11 +1,13 @@
 package app.bottlenote.global.security.accesscontrol;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.bottlenote.global.security.accesscontrol.AccessControlProperties.PathRateLimitRule;
 import app.bottlenote.global.security.accesscontrol.AccessControlProperties.RateLimitRule;
 import app.bottlenote.global.security.accesscontrol.AccessControlService.Decision;
 import app.bottlenote.global.security.accesscontrol.AccessControlStore.BanInfo;
+import app.bottlenote.global.security.accesscontrol.AccessControlStore.BanLookup;
 import app.bottlenote.global.security.accesscontrol.AccessControlStore.ConsumeResult;
 import app.bottlenote.global.security.accesscontrol.fixture.InMemoryAccessControlStore;
 import java.time.Duration;
@@ -147,6 +149,20 @@ class AccessControlServiceTest {
   }
 
   @Test
+  @DisplayName("ban 조회는 lookupBan 한 번으로 판정한다")
+  void evaluate_whenBanned_usesSingleLookupBan() {
+    LookupCountingStore lookupStore = new LookupCountingStore();
+    lookupStore.ban("203.0.113.91", Duration.ofMinutes(10), "abuse");
+    AccessControlService lookupService =
+        new AccessControlService(lookupStore, properties, AccessControlMetrics.noop());
+
+    Decision decision = lookupService.evaluate("203.0.113.91", "/api/v1/alcohols", "GET");
+
+    assertThat(decision.type()).isEqualTo(Decision.Type.BANNED);
+    assertThat(lookupStore.lookupCount()).isOne();
+  }
+
+  @Test
   @DisplayName("unban 하면 다시 허용된다")
   void evaluate_whenUnbanned_allowsAgain() {
     service.banIp("203.0.113.10", Duration.ofMinutes(10), "abuse");
@@ -209,8 +225,14 @@ class AccessControlServiceTest {
     AccessControlStore failingStore =
         new AccessControlStore() {
           @Override
+          public BanLookup lookupBan(String ip) {
+            throw new AccessControlStoreUnavailableException(
+                new IllegalStateException("redis down"));
+          }
+
+          @Override
           public boolean isBanned(String ip) {
-            throw new IllegalStateException("redis down");
+            return false;
           }
 
           @Override
@@ -239,5 +261,74 @@ class AccessControlServiceTest {
 
     assertThat(failingService.evaluate("203.0.113.13", "/api/v1/alcohols", "GET").allowed())
         .isTrue();
+  }
+
+  @Test
+  @DisplayName("저장소 기술 장애가 아닌 예외는 fail-open 하지 않는다")
+  void evaluate_whenStoreProgrammingError_propagates() {
+    AccessControlStore failingStore =
+        new AccessControlStore() {
+          @Override
+          public BanLookup lookupBan(String ip) {
+            throw new IllegalStateException("programming error");
+          }
+
+          @Override
+          public boolean isBanned(String ip) {
+            return false;
+          }
+
+          @Override
+          public void ban(String ip, Duration ttl, String reason) {}
+
+          @Override
+          public void unban(String ip) {}
+
+          @Override
+          public BanInfo getBan(String ip) {
+            return null;
+          }
+
+          @Override
+          public List<BanInfo> listBans(int max) {
+            return List.of();
+          }
+
+          @Override
+          public ConsumeResult tryConsume(String key, int limit, Duration window) {
+            return ConsumeResult.allow(0);
+          }
+        };
+    AccessControlService failingService =
+        new AccessControlService(failingStore, properties, AccessControlMetrics.noop());
+
+    assertThatThrownBy(() -> failingService.evaluate("203.0.113.14", "/api/v1/alcohols", "GET"))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessage("programming error");
+  }
+
+  private static final class LookupCountingStore extends InMemoryAccessControlStore {
+
+    private int lookupCount;
+
+    @Override
+    public BanLookup lookupBan(String ip) {
+      lookupCount++;
+      return super.isBanned(ip) ? new BanLookup(true, 60) : BanLookup.notBanned();
+    }
+
+    @Override
+    public boolean isBanned(String ip) {
+      throw new AssertionError("evaluate must use lookupBan");
+    }
+
+    @Override
+    public BanInfo getBan(String ip) {
+      throw new AssertionError("evaluate must use lookupBan");
+    }
+
+    int lookupCount() {
+      return lookupCount;
+    }
   }
 }
