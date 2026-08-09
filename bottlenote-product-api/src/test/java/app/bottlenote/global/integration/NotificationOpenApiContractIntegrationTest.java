@@ -54,9 +54,17 @@ class NotificationOpenApiContractIntegrationTest extends OpenApiSpecTestSupport 
         .containsExactlyInAnyOrder("type", "targetId", "payload", "version", "fallbackType");
     assertThat(actionSchema.path("properties").path("fallbackType").path("description").asText())
         .contains("fallback");
+    JsonNode actionTypeSchema =
+        resolve(spec, actionSchema.path("properties").path("type"));
+    assertThat(
+            StreamSupport.stream(actionTypeSchema.path("enum").spliterator(), false)
+                .map(JsonNode::asText)
+                .toList())
+        .contains("OPEN_REVIEW", "OPEN_HELP");
     JsonNode payloadSchema =
         resolve(spec, actionSchema.path("properties").path("payload"));
     assertThat(propertyNamesOf(payloadSchema)).containsExactly("replyId");
+    assertThat(spec.at("/components/schemas/OpenHelpActionPayload/properties").isEmpty()).isTrue();
   }
 
   private JsonNode parameter(SpecOperation operation, String name) {

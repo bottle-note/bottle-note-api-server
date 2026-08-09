@@ -328,6 +328,44 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
+    @DisplayName("OPEN_HELP Action을 빈 payload 계약으로 반환한다")
+    void getNotifications_whenOpenHelpActionExists_returnsEmptyPayloadAction() throws Exception {
+      User user = userTestFactory.persistUser();
+      TokenItem token = getToken(user);
+      Notification notification =
+          Notification.builder()
+              .userId(user.getId())
+              .title("문의 답변")
+              .content("문의에 답변이 등록됐습니다.")
+              .type(NotificationType.USER)
+              .category(NotificationCategory.ANSWER)
+              .sourceType("HELP_ANSWER")
+              .sourceId(30L)
+              .action(NotificationAction.openHelp(30L))
+              .build();
+      notificationRepository.save(notification);
+
+      MvcTestResult result =
+          mockMvcTester
+              .get()
+              .uri(BASE)
+              .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
+              .exchange();
+
+      result.assertThat().hasStatusOk();
+      JsonNode item = responseData(result).path("items").get(0);
+      assertThat(item.path("id").asLong()).isEqualTo(notification.getId());
+      assertThat(item.path("category").asText()).isEqualTo("ANSWER");
+      assertThat(item.path("action").path("type").asText()).isEqualTo("OPEN_HELP");
+      assertThat(item.path("action").path("targetId").asLong()).isEqualTo(30L);
+      assertThat(item.path("action").path("payload").isObject()).isTrue();
+      assertThat(item.path("action").path("payload").isEmpty()).isTrue();
+      assertThat(item.path("action").path("version").asInt()).isEqualTo(1);
+      assertThat(item.path("action").path("fallbackType").asText())
+          .isEqualTo("OPEN_NOTIFICATION_CENTER");
+    }
+
+    @Test
     @DisplayName("유효하지 않은 raw Action은 해당 항목만 null로 강등한다")
     void getNotifications_whenRawActionsAreInvalid_returnsValidItemAndNullInvalidActions()
         throws Exception {

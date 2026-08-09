@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.notification.action.NotificationAction;
+import app.bottlenote.notification.action.NotificationAction.OpenHelpActionPayload;
+import app.bottlenote.notification.action.NotificationAction.OpenReviewActionPayload;
 import app.bottlenote.notification.constant.NotificationActionFallbackType;
 import app.bottlenote.notification.constant.NotificationActionType;
 import app.bottlenote.notification.constant.NotificationCategory;
@@ -23,6 +25,7 @@ import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.facade.payload.UserProfileItem;
 import app.bottlenote.user.fixture.FakeUserFacade;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -390,12 +393,54 @@ class UserNotificationServiceTest {
       assertThat(item.id()).isEqualTo(notification.getId());
       assertThat(item.action().type()).isEqualTo(NotificationActionType.OPEN_REVIEW);
       assertThat(item.action().targetId()).isEqualTo(10L);
-      assertThat(item.action().payload().replyId()).isEqualTo(20L);
+      assertThat(item.action().payload())
+          .isInstanceOfSatisfying(
+              OpenReviewActionPayload.class,
+              payload -> assertThat(payload.replyId()).isEqualTo(20L));
       assertThat(item.action().version()).isEqualTo(1);
       assertThat(item.action().fallbackType())
           .isEqualTo(NotificationActionFallbackType.OPEN_NOTIFICATION_CENTER);
       assertThat(item.createAt().toString()).isEqualTo("2026-08-10T12:00+09:00");
       assertThat(item.readAt().toString()).isEqualTo("2026-08-10T12:00+09:00");
+    }
+
+    @Test
+    @DisplayName("유효한 OPEN_HELP Action을 빈 payload 계약으로 반환한다")
+    void getNotifications_whenOpenHelpActionIsValid_returnsEmptyPayloadAction() {
+      Notification notification =
+          seedNotification(USER_ID, "help-action", NotificationAction.openHelp(30L));
+
+      NotificationListResponse.Item item =
+          service
+              .getNotifications(USER_ID, NotificationPageableRequest.builder().build())
+              .content()
+              .items()
+              .getFirst();
+
+      assertThat(item.id()).isEqualTo(notification.getId());
+      assertThat(item.action().type()).isEqualTo(NotificationActionType.OPEN_HELP);
+      assertThat(item.action().targetId()).isEqualTo(30L);
+      assertThat(item.action().payload()).isInstanceOf(OpenHelpActionPayload.class);
+      assertThat(item.action().version()).isEqualTo(1);
+      assertThat(item.action().fallbackType())
+          .isEqualTo(NotificationActionFallbackType.OPEN_NOTIFICATION_CENTER);
+    }
+
+    @Test
+    @DisplayName("OPEN_HELP payload에 key가 있으면 Action을 null로 강등한다")
+    void getNotifications_whenOpenHelpPayloadHasKey_downgradesActionToNull() {
+      Notification notification =
+          seedRawAction("OPEN_HELP", 30L, Map.of("route", "/help/30"), (short) 1);
+
+      NotificationListResponse.Item item =
+          service
+              .getNotifications(USER_ID, NotificationPageableRequest.builder().build())
+              .content()
+              .items()
+              .getFirst();
+
+      assertThat(item.id()).isEqualTo(notification.getId());
+      assertThat(item.action()).isNull();
     }
 
     @Test

@@ -8,6 +8,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.fixture.AlcoholTestFactory;
+import app.bottlenote.notification.action.NotificationAction.OpenReviewActionPayload;
 import app.bottlenote.notification.constant.NotificationCategory;
 import app.bottlenote.notification.constant.NotificationSourceType;
 import app.bottlenote.notification.constant.NotificationType;
@@ -122,7 +123,11 @@ class ReviewReplyNotificationIntegrationTest extends IntegrationTestSupport {
                         .getFirst();
                 assertThat(item.action().type().name()).isEqualTo("OPEN_REVIEW");
                 assertThat(item.action().targetId()).isEqualTo(review.getId());
-                assertThat(item.action().payload().replyId()).isEqualTo(notification.getSourceId());
+                assertThat(item.action().payload())
+                    .isInstanceOfSatisfying(
+                        OpenReviewActionPayload.class,
+                        payload ->
+                            assertThat(payload.replyId()).isEqualTo(notification.getSourceId()));
                 assertThat(item.action().version()).isEqualTo(1);
               });
 
