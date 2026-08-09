@@ -12,6 +12,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import java.util.Objects;
 import lombok.Builder;
 import lombok.Getter;
@@ -56,6 +57,10 @@ public class Notification extends BaseEntity {
   @Column(name = "is_read", nullable = false)
   private Boolean isRead;
 
+  @Comment("사용자가 최초로 알림을 읽은 시각")
+  @Column(name = "read_at")
+  private LocalDateTime readAt;
+
   protected Notification() {}
 
   @Builder
@@ -67,7 +72,8 @@ public class Notification extends BaseEntity {
       NotificationType type,
       NotificationCategory category,
       NotificationStatus status,
-      Boolean isRead) {
+      Boolean isRead,
+      LocalDateTime readAt) {
     this.id = id;
     this.userId = Objects.requireNonNull(userId, "사용자 식별자는 필수입니다.");
     this.title = Objects.requireNonNull(title, "알림 제목은 필수입니다.");
@@ -76,11 +82,21 @@ public class Notification extends BaseEntity {
     this.category = Objects.requireNonNull(category, "알림 종류는 필수입니다.");
     this.status = status != null ? status : NotificationStatus.PENDING;
     this.isRead = isRead != null && isRead;
+    this.readAt = readAt;
   }
 
-  /** 알림을 읽음 처리한다. 이미 읽은 경우 상태를 유지한다. */
+  /** 알림을 읽음 처리하고 최초 읽음 시각을 보존한다. */
   public void markAsRead() {
+    markAsRead(LocalDateTime.now());
+  }
+
+  /** 지정한 시각으로 알림을 읽음 처리하고 최초 읽음 시각을 보존한다. */
+  public void markAsRead(LocalDateTime now) {
+    Objects.requireNonNull(now, "읽음 시각은 필수입니다.");
+    if (Boolean.TRUE.equals(this.isRead)) {
+      return;
+    }
     this.isRead = true;
-    this.status = NotificationStatus.READ;
+    this.readAt = this.readAt != null ? this.readAt : now;
   }
 }

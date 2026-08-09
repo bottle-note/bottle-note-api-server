@@ -110,7 +110,7 @@
 - Files (advisory): `git.environment-variables`, `Notification`, `NotificationRepository`, `JpaNotificationRepository`, `InMemoryNotificationRepository`, `UserNotificationServiceTest`
 - Depends: Task 1
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Task 3: 읽음 API 멱등 응답
 - Acceptance:
@@ -183,3 +183,4 @@
 - 2026-08-09: 사용자 합의 반영 — 기존 응답 envelope 유지, 읽음은 `isRead/readAt`, `status`는 전달 상태, 별도 Action endpoint 없음.
 - 2026-08-09: Execution Mode `delegated` 확정. Codex 구현자, GitHub CI-only 검증, 최종 Opus 리뷰 정확히 1회, PR/배포 제외.
 - 2026-08-09: Orca Run `run_27b9d340d752` 생성. 계획 전용 Codex worker 2회는 파일 변경 전 응답 정지로 중단했고 coordinator가 동일 근거로 define/plan 문서를 작성했다.
+- 2026-08-09: Task 2 완료 — schema commit `92332784e`로 gitlink를 갱신하고 단건·전체 읽음을 최초 `read_at` 원자 갱신으로 전환했다. 전달 `status` 보존과 레거시 `read_at=NULL` 호환을 InMemory 및 단위 테스트 9개 시나리오로 정적 검토했으며, 로컬 테스트는 정책에 따라 실행하지 않았다.

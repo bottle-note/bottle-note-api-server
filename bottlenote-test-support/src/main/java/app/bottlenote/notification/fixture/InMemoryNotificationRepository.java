@@ -2,8 +2,9 @@ package app.bottlenote.notification.fixture;
 
 import app.bottlenote.notification.constant.NotificationStatus;
 import app.bottlenote.notification.domain.Notification;
-import app.bottlenote.notification.dto.dsl.NotificationListCriteria;
 import app.bottlenote.notification.domain.NotificationRepository;
+import app.bottlenote.notification.dto.dsl.NotificationListCriteria;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -70,12 +71,22 @@ public class InMemoryNotificationRepository implements NotificationRepository {
   }
 
   @Override
-  public int markAllAsReadByUserId(Long userId) {
+  public int markAsReadByIdAndUserId(Long id, Long userId, LocalDateTime readAt) {
+    Optional<Notification> notification = findByIdAndUserId(id, userId);
+    if (notification.isEmpty() || Boolean.TRUE.equals(notification.get().getIsRead())) {
+      return 0;
+    }
+    notification.get().markAsRead(readAt);
+    return 1;
+  }
+
+  @Override
+  public int markAllAsReadByUserId(Long userId, LocalDateTime readAt) {
     int updated = 0;
     for (Notification notification : database) {
       if (notification.getUserId().equals(userId)
           && Boolean.FALSE.equals(notification.getIsRead())) {
-        notification.markAsRead();
+        notification.markAsRead(readAt);
         updated++;
       }
     }

@@ -18,6 +18,7 @@ import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.facade.payload.UserProfileItem;
 import app.bottlenote.user.fixture.FakeUserFacade;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -168,15 +169,60 @@ class UserNotificationServiceTest {
   class MarkRead {
 
     @Test
-    @DisplayName("본인 알림 단건을 읽음 처리한다")
-    void markAsRead_whenOwnNotification_marksRead() {
-      Notification notification = seedNotification(USER_ID, "title");
+    @DisplayName("본인 미읽음 알림은 최초 읽음 시각을 기록한다")
+    void markAsRead_whenUnreadNotification_recordsFirstReadAt() {
+      Notification notification =
+          seedNotification(USER_ID, "title", NotificationStatus.SENT, false, null);
 
       service.markAsRead(USER_ID, notification.getId());
 
       Notification saved = notificationRepository.findById(notification.getId()).orElseThrow();
       assertThat(saved.getIsRead()).isTrue();
-      assertThat(saved.getStatus()).isEqualTo(NotificationStatus.READ);
+      assertThat(saved.getReadAt()).isNotNull();
+      assertThat(saved.getStatus()).isEqualTo(NotificationStatus.SENT);
+    }
+
+    @Test
+    @DisplayName("이미 읽은 알림을 다시 읽어도 최초 읽음 시각을 유지한다")
+    void markAsRead_whenCalledAgain_preservesFirstReadAt() {
+      Notification notification = seedNotification(USER_ID, "title");
+      service.markAsRead(USER_ID, notification.getId());
+      LocalDateTime firstReadAt = notification.getReadAt();
+
+      service.markAsRead(USER_ID, notification.getId());
+
+      assertThat(notification.getReadAt()).isEqualTo(firstReadAt);
+    }
+
+    @Test
+    @DisplayName("읽음 처리할 때 전달 상태를 변경하지 않는다")
+    void markAsRead_whenDeliveryStatusExists_preservesStatus() {
+      Notification pending =
+          seedNotification(USER_ID, "pending", NotificationStatus.PENDING, false, null);
+      Notification sent = seedNotification(USER_ID, "sent", NotificationStatus.SENT, false, null);
+      Notification failed =
+          seedNotification(USER_ID, "failed", NotificationStatus.FAILED, false, null);
+
+      service.markAsRead(USER_ID, pending.getId());
+      service.markAsRead(USER_ID, sent.getId());
+      service.markAsRead(USER_ID, failed.getId());
+
+      assertThat(pending.getStatus()).isEqualTo(NotificationStatus.PENDING);
+      assertThat(sent.getStatus()).isEqualTo(NotificationStatus.SENT);
+      assertThat(failed.getStatus()).isEqualTo(NotificationStatus.FAILED);
+    }
+
+    @Test
+    @DisplayName("기존 읽음 시각이 없는 알림은 null을 유지한다")
+    void markAsRead_whenLegacyReadAtIsNull_preservesNull() {
+      Notification notification =
+          seedNotification(USER_ID, "legacy", NotificationStatus.READ, true, null);
+
+      service.markAsRead(USER_ID, notification.getId());
+
+      assertThat(notification.getIsRead()).isTrue();
+      assertThat(notification.getReadAt()).isNull();
+      assertThat(notification.getStatus()).isEqualTo(NotificationStatus.READ);
     }
 
     @Test
@@ -201,10 +247,12 @@ class UserNotificationServiceTest {
     }
 
     @Test
-    @DisplayName("본인 미읽음 알림을 모두 읽음 처리한다")
-    void markAllAsRead_whenUnreadExist_marksAllOwn() {
-      Notification first = seedNotification(USER_ID, "a");
-      Notification second = seedNotification(USER_ID, "b");
+    @DisplayName("전체 읽음은 본인 미읽음에만 시각을 기록하고 전달 상태를 유지한다")
+    void markAllAsRead_whenUnreadExist_recordsOwnReadAtAndPreservesStatus() {
+      Notification first =
+          seedNotification(USER_ID, "a", NotificationStatus.SENT, false, null);
+      Notification second =
+          seedNotification(USER_ID, "b", NotificationStatus.FAILED, false, null);
       Notification other = seedNotification(OTHER_USER_ID, "other");
 
       int updated = service.markAllAsRead(USER_ID);
@@ -212,9 +260,29 @@ class UserNotificationServiceTest {
       assertThat(updated).isEqualTo(2);
       assertThat(first.getIsRead()).isTrue();
       assertThat(second.getIsRead()).isTrue();
+      assertThat(first.getReadAt()).isNotNull();
+      assertThat(second.getReadAt()).isEqualTo(first.getReadAt());
+      assertThat(first.getStatus()).isEqualTo(NotificationStatus.SENT);
+      assertThat(second.getStatus()).isEqualTo(NotificationStatus.FAILED);
       assertThat(other.getIsRead()).isFalse();
+      assertThat(other.getReadAt()).isNull();
       assertThat(service.countUnread(USER_ID)).isZero();
       assertThat(service.countUnread(OTHER_USER_ID)).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("전체 읽음은 기존 최초 읽음 시각을 변경하지 않는다")
+    void markAllAsRead_whenAlreadyReadExists_preservesExistingReadAt() {
+      LocalDateTime existingReadAt = LocalDateTime.of(2026, 8, 1, 12, 0);
+      Notification alreadyRead =
+          seedNotification(USER_ID, "read", NotificationStatus.SENT, true, existingReadAt);
+      Notification unread = seedNotification(USER_ID, "unread");
+
+      int updated = service.markAllAsRead(USER_ID);
+
+      assertThat(updated).isEqualTo(1);
+      assertThat(alreadyRead.getReadAt()).isEqualTo(existingReadAt);
+      assertThat(unread.getReadAt()).isNotNull();
     }
 
     @Test
@@ -234,6 +302,15 @@ class UserNotificationServiceTest {
   }
 
   private Notification seedNotification(Long userId, String title) {
+    return seedNotification(userId, title, null, false, null);
+  }
+
+  private Notification seedNotification(
+      Long userId,
+      String title,
+      NotificationStatus status,
+      boolean isRead,
+      LocalDateTime readAt) {
     return notificationRepository.save(
         Notification.builder()
             .userId(userId)
@@ -241,6 +318,9 @@ class UserNotificationServiceTest {
             .content(title + "-content")
             .type(NotificationType.USER)
             .category(NotificationCategory.REVIEW)
+            .status(status)
+            .isRead(isRead)
+            .readAt(readAt)
             .build());
   }
 }
