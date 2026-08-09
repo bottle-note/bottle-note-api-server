@@ -14,6 +14,7 @@ import app.bottlenote.notification.dto.response.NotificationListResponse;
 import app.bottlenote.notification.dto.response.NotificationMarkAllReadResponse;
 import app.bottlenote.notification.dto.response.NotificationMarkReadResponse;
 import app.bottlenote.notification.dto.response.NotificationUnreadCountResponse;
+import app.bottlenote.notification.service.NotificationMarkReadResult;
 import app.bottlenote.notification.service.NotificationService;
 import app.bottlenote.user.exception.UserException;
 import jakarta.validation.Valid;
@@ -59,8 +60,14 @@ public class NotificationController {
   @NotificationApiDocs.MarkAsRead
   public ResponseEntity<GlobalResponse> updateRead(@PathVariable Long notificationId) {
     Long userId = currentUserId();
-    notificationService.markAsRead(userId, notificationId);
-    return GlobalResponse.ok(NotificationMarkReadResponse.of(notificationId));
+    NotificationMarkReadResult result = notificationService.markAsRead(userId, notificationId);
+    return GlobalResponse.ok(
+        NotificationMarkReadResponse.of(
+            result.notificationId(),
+            result.isRead(),
+            result.readAt(),
+            result.changed(),
+            result.unreadCount()));
   }
 
   @PatchMapping("/read-all")
