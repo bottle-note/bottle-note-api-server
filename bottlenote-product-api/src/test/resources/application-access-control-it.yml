@@ -1,0 +1,16 @@
+# access-control Security chain 통합 테스트 전용 프로필
+# application-test.yml의 enabled=false 기본값은 유지하고, 이 프로필 활성 시에만 켠다.
+bottlenote:
+  access-control:
+    enabled: true
+    fail-open: true
+    key-namespace: product-ac-it
+    redis-command-timeout: 200ms
+    default-rate-limit:
+      limit: 3
+      window-seconds: 60
+    unknown-ip-rate-limit:
+      limit: 2
+      window-seconds: 60
+    # 기본 path-rules를 비워 default-rate-limit 계약만 검증한다
+    path-rules: []

@@ -20,6 +20,14 @@ public class InMemoryAgentRepository implements AgentRepository {
   }
 
   @Override
+  public Optional<Agent> findByAdminUserIdAndStatus(Long adminUserId, AgentStatus status) {
+    return agentDatabase.values().stream()
+        .filter(agent -> agent.getAdminUserId().equals(adminUserId))
+        .filter(agent -> agent.getStatus() == status)
+        .findFirst();
+  }
+
+  @Override
   public Agent save(Agent agent) {
     agentDatabase.put(agent.getId(), agent);
     return agent;
