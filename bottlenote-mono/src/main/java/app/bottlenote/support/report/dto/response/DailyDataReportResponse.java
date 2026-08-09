@@ -9,6 +9,7 @@ public record DailyDataReportResponse(
     Long newReviewsCount,
     Long newRepliesCount,
     Long newLikesCount,
+    Long ratingEventsCount,
     Long newReportsCount,
     Long newInquiriesCount) {
 
@@ -17,6 +18,7 @@ public record DailyDataReportResponse(
         || newReviewsCount > 0
         || newRepliesCount > 0
         || newLikesCount > 0
+        || ratingEventsCount > 0
         || newReportsCount > 0
         || newInquiriesCount > 0;
   }
@@ -39,6 +41,7 @@ public record DailyDataReportResponse(
     if (newLikesCount > 0) {
       sb.append("❤️ **신규 좋아요**: ").append(newLikesCount).append("개\n");
     }
+    sb.append("⭐ **별점 이벤트**: ").append(ratingEventsCount).append("건\n");
     if (newReportsCount > 0) {
       sb.append("🚨 **미처리 신고**: ").append(newReportsCount).append("건\n");
     }

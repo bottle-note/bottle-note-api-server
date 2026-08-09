@@ -1,3 +1,7 @@
+bottlenote:
+  access-control:
+    # 통합 테스트 부하/격리: 기본 비활성 (단위 테스트는 mono에서 별도 검증)
+    enabled: false
 
 spring:
   main:

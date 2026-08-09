@@ -126,7 +126,13 @@ public enum ValidExceptionCode implements ExceptionCode {
   REGION_SORT_ORDER_MINIMUM(HttpStatus.BAD_REQUEST, "정렬 순서는 0 이상이어야 합니다."),
 
   // AGENT
-  AGENT_KEY_REQUIRED(HttpStatus.BAD_REQUEST, "에이전트 키는 필수입니다.");
+  AGENT_KEY_REQUIRED(HttpStatus.BAD_REQUEST, "에이전트 키는 필수입니다."),
+
+  // ACCESS CONTROL
+  ACCESS_CONTROL_IP_REQUIRED(HttpStatus.BAD_REQUEST, "IP 주소는 필수입니다."),
+  ACCESS_CONTROL_BAN_TTL_MINIMUM(HttpStatus.BAD_REQUEST, "ban TTL은 1초 이상이어야 합니다."),
+  ACCESS_CONTROL_BAN_TTL_MAXIMUM(HttpStatus.BAD_REQUEST, "ban TTL은 30일(2592000초) 이하여야 합니다."),
+  ACCESS_CONTROL_BAN_REASON_MAX_SIZE(HttpStatus.BAD_REQUEST, "ban 사유는 최대 200자까지 가능합니다.");
 
   private final HttpStatus httpStatus;
   private String message;

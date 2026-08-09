@@ -37,6 +37,30 @@ spring:
   jackson:
     time-zone: Asia/Seoul
 
+bottlenote:
+  access-control:
+    # 전역 spring.data.redis.timeout(15s)과 분리 — Redis 장애 시 요청 스레드 점유 상한
+    redis-command-timeout: 200ms
+    enabled: true
+    fail-open: true
+    key-namespace: admin
+    default-rate-limit:
+      limit: 300
+      window-seconds: 60
+    unknown-ip-rate-limit:
+      limit: 20
+      window-seconds: 60
+    path-rules:
+      - path-prefix: /v1/auth
+        limit: 30
+        window-seconds: 60
+    # self-lockout 탈출: ban/RL 모두 스킵 (관리 평면)
+    management-path-prefixes:
+      - /v1/access-control
+    excluded-path-prefixes:
+      - /actuator
+      - /v1/openapi.admin.json
+
 # Spring Security
 security:
   jwt:

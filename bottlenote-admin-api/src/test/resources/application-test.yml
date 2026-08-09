@@ -1,3 +1,7 @@
+bottlenote:
+  access-control:
+    enabled: false
+
 spring:
   main:
     allow-bean-definition-overriding: true

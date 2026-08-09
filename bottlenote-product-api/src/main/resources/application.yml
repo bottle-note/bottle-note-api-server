@@ -64,6 +64,41 @@ bottlenote:
   observability:
     visitor-telemetry:
       enabled: false
+  # 앱 레이어 IP ban + rate limit (Redis 공유, multi-pod)
+  access-control:
+    enabled: true
+    fail-open: true
+    # 전역 spring.data.redis.timeout(15s)과 분리 — Redis 장애 시 요청 스레드 점유 상한
+    redis-command-timeout: 200ms
+    key-namespace: product
+    default-rate-limit:
+      # 공유 NAT·홈 피드 병렬 호출 오탐을 줄이기 위해 여유 있게 시작 후 메트릭으로 조인다
+      limit: 600
+      window-seconds: 60
+    unknown-ip-rate-limit:
+      limit: 30
+      window-seconds: 60
+    path-rules:
+      - path-prefix: /api/v2/auth
+        limit: 30
+        window-seconds: 60
+      # explore는 긴 prefix로 유지 (기존 longest-prefix 계약)
+      - path-prefix: /api/v1/reviews/explore
+        limit: 600
+        window-seconds: 60
+      # review 읽기/쓰기 한도는 method별 별도 Redis 버킷
+      - path-prefix: /api/v1/reviews
+        methods: [GET]
+        limit: 600
+        window-seconds: 60
+      - path-prefix: /api/v1/reviews
+        methods: [POST, PATCH, DELETE]
+        limit: 60
+        window-seconds: 60
+    excluded-path-prefixes:
+      - /actuator
+      - /favicon.ico
+      - /api/v1/openapi.product.json
 
 # OpenAPI 문서 (스펙 JSON만 노출하고 swagger-ui는 사용하지 않는다)
 # ingress가 /api/v*/** 만 앱으로 넘기므로 스펙 경로도 그 아래에 둔다
