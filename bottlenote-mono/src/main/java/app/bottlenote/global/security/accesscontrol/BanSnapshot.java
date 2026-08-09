@@ -44,5 +44,9 @@ public record BanSnapshot(Map<String, BanEntry> entries, Instant refreshedAt) {
     public long remainingSeconds(Instant now) {
       return Math.max(Duration.between(now, expiresAt).getSeconds(), 0L);
     }
+
+    public boolean isIndefinite() {
+      return Instant.MAX.equals(expiresAt);
+    }
   }
 }

@@ -71,12 +71,12 @@
 - Files (advisory): `AccessControlService`, configuration, metrics, Fake store/snapshot, 단위 테스트
 - Depends: Task 2
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Checkpoint: after Tasks 1-3
-- [ ] mono 컴파일 통과
-- [ ] access-control 단위·Redis 통합 테스트 통과
-- [ ] ArchUnit 룰 통과
+- [x] mono 컴파일 통과
+- [x] access-control 단위·Redis 통합 테스트 통과
+- [x] ArchUnit 룰 통과
 
 ### Task 4: 실제 Product Security chain 장애 복구 검증
 - Acceptance:
@@ -118,3 +118,4 @@
 - 2026-08-09: delegated 계획 완료. Task 6개(S 2, M 4), 의존 순서 1→2→3→4→5→6.
 - 2026-08-09: Task 1 완료. 요청 경로를 non-null `BanLookup`과 raw PTTL callback으로 전환해 projected ban은 PTTL 1회·EXISTS 0회로 판정한다. Redis 기술 장애만 typed exception으로 변환하고 프로그래밍 오류는 전파한다. 독립 검증: AccessControlService 단위 16/16, Redis 통합 12/12, Spotless, 전체 `check_rule_test` 통과. Sonnet 리뷰 Critical 1·Important 3은 커밋 전 모두 해소.
 - 2026-08-09: Task 2 완료. Redis ban 목록을 `Map.copyOf` immutable snapshot과 `AtomicReference`로 원자 교체하며 30초 갱신·3분 stale·10,000건 상한·개별 TTL·무기한 TTL을 제공한다. 실패 시 이전 snapshot을 유지하고 Redis TTL 초 단위 절삭은 최대 1초 보수적으로 보정했다. Opus 설계 검토와 Sonnet diff 리뷰 후 유효 지적을 반영했으며, 집중 단위 14/14, Spotless, 전체 `check_rule_test`가 통과했다.
+- 2026-08-09: Task 3 완료. ban Redis 장애 시 fresh snapshot hit만 403으로 유지하고 miss·expired·stale·startup은 설정에 따라 즉시 fail-open/fail-closed하며, 같은 요청에서 rate-limit Redis를 재호출하지 않는다. ban 정상 후 rate-limit만 실패한 경로는 별도 처리하고 저카디널리티 fallback 메트릭을 추가했다. Opus 설계와 Terra 구현 후 독립 검증: Service 25/25, Filter 6/6, Configuration 3/3(총 34/34), Spotless, 전체 `check_rule_test` 통과. Tasks 1-3 checkpoint 완료.

@@ -13,6 +13,11 @@ public class AccessControlMetrics {
   private final Counter rateLimited;
   private final Counter storeError;
   private final Counter failOpen;
+  private final Counter banFallbackSnapshotHit;
+  private final Counter banFallbackSnapshotMiss;
+  private final Counter banFallbackSnapshotStale;
+  private final Counter rateLimitFallbackFailOpen;
+  private final Counter rateLimitFallbackFailClosed;
 
   public AccessControlMetrics(MeterRegistry registry) {
     this.allow = decisionCounter(registry, "allow");
@@ -26,6 +31,11 @@ public class AccessControlMetrics {
         Counter.builder("access_control_fail_open_total")
             .description("Access control fail-open allows after store failure")
             .register(registry);
+    this.banFallbackSnapshotHit = banFallbackCounter(registry, "snapshot_hit");
+    this.banFallbackSnapshotMiss = banFallbackCounter(registry, "snapshot_miss");
+    this.banFallbackSnapshotStale = banFallbackCounter(registry, "snapshot_stale");
+    this.rateLimitFallbackFailOpen = rateLimitFallbackCounter(registry, "fail_open");
+    this.rateLimitFallbackFailClosed = rateLimitFallbackCounter(registry, "fail_closed");
   }
 
   public static AccessControlMetrics noop() {
@@ -47,10 +57,51 @@ public class AccessControlMetrics {
     }
   }
 
+  public void recordBanFallback(BanFallbackResult result, boolean opened) {
+    storeError.increment();
+    if (opened) {
+      failOpen.increment();
+    }
+    switch (result) {
+      case SNAPSHOT_HIT -> banFallbackSnapshotHit.increment();
+      case SNAPSHOT_MISS -> banFallbackSnapshotMiss.increment();
+      case SNAPSHOT_STALE -> banFallbackSnapshotStale.increment();
+    }
+  }
+
+  public void recordRateLimitFallback(boolean opened) {
+    recordStoreError(opened);
+    if (opened) {
+      rateLimitFallbackFailOpen.increment();
+      return;
+    }
+    rateLimitFallbackFailClosed.increment();
+  }
+
+  public enum BanFallbackResult {
+    SNAPSHOT_HIT,
+    SNAPSHOT_MISS,
+    SNAPSHOT_STALE
+  }
+
   private static Counter decisionCounter(MeterRegistry registry, String type) {
     return Counter.builder("access_control_decisions_total")
         .description("Access control decisions")
         .tag("type", type)
+        .register(registry);
+  }
+
+  private static Counter banFallbackCounter(MeterRegistry registry, String result) {
+    return Counter.builder("access_control_ban_fallback_total")
+        .description("Ban lookup fallback results after access control store failure")
+        .tag("result", result)
+        .register(registry);
+  }
+
+  private static Counter rateLimitFallbackCounter(MeterRegistry registry, String result) {
+    return Counter.builder("access_control_rate_limit_fallback_total")
+        .description("Rate-limit fallback results after access control store failure")
+        .tag("result", result)
         .register(registry);
   }
 }
