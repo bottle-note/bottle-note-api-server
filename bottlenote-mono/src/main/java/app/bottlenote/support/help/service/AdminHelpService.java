@@ -11,11 +11,13 @@ import app.bottlenote.support.help.dto.request.HelpImageItem;
 import app.bottlenote.support.help.dto.response.AdminHelpAnswerResponse;
 import app.bottlenote.support.help.dto.response.AdminHelpDetailResponse;
 import app.bottlenote.support.help.dto.response.AdminHelpListResponse;
+import app.bottlenote.support.help.event.payload.HelpAnswerNotificationEvent;
 import app.bottlenote.support.help.exception.HelpException;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +28,7 @@ public class AdminHelpService {
 
   private final HelpRepository helpRepository;
   private final UserRepository userRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional(readOnly = true)
   public PageResponse<AdminHelpListResponse> getHelpList(AdminHelpPageableRequest request) {
@@ -70,6 +73,9 @@ public class AdminHelpService {
         helpRepository.findById(helpId).orElseThrow(() -> new HelpException(HELP_NOT_FOUND));
 
     help.answer(adminId, request.responseContent(), request.status());
+    eventPublisher.publishEvent(
+        HelpAnswerNotificationEvent.of(
+            help.getId(), help.getUserId(), request.responseContent()));
 
     return AdminHelpAnswerResponse.of(help.getId(), help.getStatus());
   }

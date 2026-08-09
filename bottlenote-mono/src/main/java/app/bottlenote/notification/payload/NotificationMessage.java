@@ -46,4 +46,22 @@ public record NotificationMessage(
         replyId,
         action);
   }
+
+  /**
+   * 관리자 문의 답변의 원본 정보와 {@code OPEN_HELP} Action을 포함한 메시지를 생성한다.
+   *
+   * <p>문의 식별자는 중복 방지 source와 이동 대상에 함께 사용한다.
+   */
+  public static NotificationMessage helpAnswer(
+      Long userId, Long helpId, String title, String content) {
+    return new NotificationMessage(
+        userId,
+        NotificationType.USER,
+        NotificationCategory.ANSWER,
+        title,
+        content,
+        NotificationSourceType.HELP_ANSWER,
+        helpId,
+        NotificationAction.openHelp(helpId));
+  }
 }

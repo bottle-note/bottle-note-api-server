@@ -20,7 +20,7 @@ public record NotificationAction(
   public static final int MAX_PAYLOAD_BYTES = 1024;
 
   public NotificationAction {
-    if (type != NotificationActionType.OPEN_REVIEW) {
+    if (type == null) {
       throw new IllegalArgumentException("지원하지 않는 알림 Action입니다.");
     }
     if (targetId == null || targetId <= 0) {
@@ -36,6 +36,7 @@ public record NotificationAction(
     validatePayloadSize(payload);
     switch (type) {
       case OPEN_REVIEW -> OpenReviewActionPayload.from(payload);
+      case OPEN_HELP -> OpenHelpActionPayload.from(payload);
     }
   }
 
@@ -50,6 +51,19 @@ public record NotificationAction(
         NotificationActionType.OPEN_REVIEW,
         reviewId,
         JsonNodeFactory.instance.objectNode().put("replyId", payload.replyId()),
+        CURRENT_VERSION);
+  }
+
+  /**
+   * 문의 답변 알림에 사용할 {@code OPEN_HELP} Action을 생성한다.
+   *
+   * <p>문의 식별자를 검증하고 v1의 빈 객체 payload를 함께 저장한다.
+   */
+  public static NotificationAction openHelp(Long helpId) {
+    return new NotificationAction(
+        NotificationActionType.OPEN_HELP,
+        helpId,
+        JsonNodeFactory.instance.objectNode(),
         CURRENT_VERSION);
   }
 
@@ -74,12 +88,15 @@ public record NotificationAction(
   }
 
   /**
-   * 검증된 JSON payload를 {@code OPEN_REVIEW} 전용 타입으로 변환한다.
+   * 검증된 JSON payload를 Action 타입별 응답 DTO로 변환한다.
    *
-   * <p>목록 응답은 이 타입을 사용해 플랫폼 공통 댓글 식별자 계약을 제공한다.
+   * <p>목록 응답은 raw JSON 대신 이 계약을 사용해 앱·웹에 전달한다.
    */
-  public OpenReviewActionPayload openReviewPayload() {
-    return OpenReviewActionPayload.from(payload);
+  public ActionPayload actionPayload() {
+    return switch (type) {
+      case OPEN_REVIEW -> OpenReviewActionPayload.from(payload);
+      case OPEN_HELP -> OpenHelpActionPayload.from(payload);
+    };
   }
 
   private static void validatePayloadSize(JsonNode payload) {
@@ -89,11 +106,19 @@ public record NotificationAction(
   }
 
   /**
+   * Action 타입별 응답 payload가 구현하는 공통 계약이다.
+   *
+   * <p>구현 타입은 이 Action 내부에 두어 버전별 검증 책임을 한곳에 모은다.
+   */
+  public sealed interface ActionPayload
+      permits OpenReviewActionPayload, OpenHelpActionPayload {}
+
+  /**
    * {@code OPEN_REVIEW} Action이 사용하는 댓글 위치 정보다.
    *
    * <p>댓글 식별자 하나만 허용하며 저장·응답 경계에서 동일한 검증 규칙을 사용한다.
    */
-  public record OpenReviewActionPayload(Long replyId) {
+  public record OpenReviewActionPayload(Long replyId) implements ActionPayload {
 
     public OpenReviewActionPayload {
       if (replyId == null || replyId <= 0) {
@@ -113,6 +138,21 @@ public record NotificationAction(
         throw new IllegalArgumentException("OPEN_REVIEW payload 형식이 올바르지 않습니다.");
       }
       return new OpenReviewActionPayload(replyId.longValue());
+    }
+  }
+
+  /**
+   * {@code OPEN_HELP} v1이 사용하는 빈 payload 계약이다.
+   *
+   * <p>문의 이동에는 targetId만 필요하므로 추가 key를 허용하지 않는다.
+   */
+  public record OpenHelpActionPayload() implements ActionPayload {
+
+    private static OpenHelpActionPayload from(JsonNode payload) {
+      if (!payload.isObject() || !payload.isEmpty()) {
+        throw new IllegalArgumentException("OPEN_HELP payload 형식이 올바르지 않습니다.");
+      }
+      return new OpenHelpActionPayload();
     }
   }
 }
