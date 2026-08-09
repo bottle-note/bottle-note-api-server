@@ -9,6 +9,11 @@ public interface CustomNotificationRepository {
 
   List<Notification> findPageByUserId(NotificationListCriteria criteria);
 
+  /**
+   * cursor를 제외하고 목록 필터에 일치하는 알림 수를 집계한다.
+   *
+   * <p>페이지 이동과 무관한 전체 건수를 응답하기 위해 사용한다.
+   */
   long countByCriteria(NotificationListCriteria criteria);
 
   long countByUserId(Long userId);

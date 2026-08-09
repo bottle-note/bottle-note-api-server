@@ -19,12 +19,22 @@ public interface NotificationRepository {
   /** 사용자 알림을 id 내림차순으로 조회한다. limit은 pageSize+1(hasNext 판별)을 포함한다. */
   List<Notification> findPageByUserId(NotificationListCriteria criteria);
 
+  /**
+   * cursor를 제외한 목록 조회 조건의 전체 알림 수를 반환한다.
+   *
+   * <p>목록과 동일한 사용자·필터 조건을 적용한다.
+   */
   long countByCriteria(NotificationListCriteria criteria);
 
   long countByUserId(Long userId);
 
   long countByUserIdAndIsReadFalse(Long userId);
 
+  /**
+   * 원본 이벤트와 수신 사용자 조합의 알림 존재 여부를 확인한다.
+   *
+   * <p>DB UNIQUE 제약과 함께 동일 이벤트 재전달을 멱등 처리한다.
+   */
   boolean existsBySourceTypeAndSourceIdAndUserId(
       String sourceType, Long sourceId, Long userId);
 

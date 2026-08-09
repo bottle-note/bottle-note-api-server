@@ -6,7 +6,11 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import org.jspecify.annotations.Nullable;
 
-/** 단건 읽음 처리 결과 응답. */
+/**
+ * 단건 알림의 멱등 읽음 처리 API 응답이다.
+ *
+ * <p>최초 읽음 시각과 상태 변경 여부, 처리 후 미읽음 개수를 제공한다.
+ */
 @Schema(name = "NotificationMarkReadResponse", title = "단건 읽음 결과", description = "멱등 읽음 처리 결과")
 public record NotificationMarkReadResponse(
     @Schema(description = "읽음 처리된 알림 식별자", example = "1") Long notificationId,
@@ -17,6 +21,11 @@ public record NotificationMarkReadResponse(
     @Schema(description = "처리 후 미읽음 알림 개수", example = "2") long unreadCount) {
   private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
+  /**
+   * 서비스 결과의 KST 로컬 시각을 {@code +09:00} offset 응답으로 변환한다.
+   *
+   * <p>과거 시각이 없으면 {@code readAt}은 {@code null}로 유지한다.
+   */
   public static NotificationMarkReadResponse of(
       Long notificationId,
       boolean isRead,

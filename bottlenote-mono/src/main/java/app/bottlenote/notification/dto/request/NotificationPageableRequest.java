@@ -50,6 +50,11 @@ public record NotificationPageableRequest(
     return createdFrom == null || createdTo == null || createdFrom.isBefore(createdTo);
   }
 
+  /**
+   * API 요청 조건을 도메인 조회 포트가 사용하는 criteria로 변환한다.
+   *
+   * <p>오프셋 시각은 동일 instant의 KST 로컬 시각으로 정규화한다.
+   */
   public NotificationListCriteria toCriteria(Long userId) {
     return new NotificationListCriteria(
         userId,

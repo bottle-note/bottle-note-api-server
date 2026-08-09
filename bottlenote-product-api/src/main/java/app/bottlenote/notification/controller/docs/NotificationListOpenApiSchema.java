@@ -9,13 +9,22 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.OffsetDateTime;
 import java.util.List;
 
-/** 알림 목록 응답의 OpenAPI 전용 schema. */
+/**
+ * 알림 목록 응답을 문서화하기 위한 OpenAPI 전용 schema다.
+ *
+ * <p>실제 응답의 읽음 상태와 의미 기반 Action 구조를 API 문서에 고정한다.
+ */
 @Schema(name = "NotificationListResponse", description = "필터 조건에 맞는 알림 목록과 전체 건수")
 public record NotificationListOpenApiSchema(
     @Schema(description = "cursor를 제외한 동일 필터 조건의 전체 알림 수", example = "2")
         long totalCount,
     @Schema(description = "id 내림차순 알림 목록") List<Item> items) {
 
+  /**
+   * 알림 목록에 포함되는 단일 항목 schema다.
+   *
+   * <p>읽음 상태와 전달 상태, 이동 Action을 서로 분리해 문서화한다.
+   */
   @Schema(name = "NotificationListItem", description = "읽음 상태와 전달 상태를 분리한 알림 항목")
   public record Item(
       @Schema(description = "알림 식별자", example = "101") Long id,
@@ -38,6 +47,11 @@ public record NotificationListOpenApiSchema(
       @Schema(description = "의미 기반 이동 Action, 미지원 또는 유효하지 않은 값은 null", nullable = true)
           Action action) {}
 
+  /**
+   * 앱과 웹이 내부 route로 변환할 Action schema다.
+   *
+   * <p>허용된 타입과 payload 버전, 공통 fallback을 함께 제공한다.
+   */
   @Schema(name = "NotificationAction", description = "앱과 웹이 내부 route로 변환하는 의미 기반 Action")
   public record Action(
       @Schema(description = "허용된 Action 타입", example = "OPEN_REVIEW")
@@ -50,6 +64,11 @@ public record NotificationListOpenApiSchema(
               example = "OPEN_NOTIFICATION_CENTER")
           NotificationActionFallbackType fallbackType) {}
 
+  /**
+   * 리뷰 상세 화면에서 강조할 댓글 정보를 표현한다.
+   *
+   * <p>댓글이 삭제된 경우 클라이언트는 강조 없이 리뷰 상세만 표시한다.
+   */
   @Schema(name = "OpenReviewActionPayload", description = "리뷰 상세에서 강조할 댓글 정보")
   public record OpenReviewActionPayload(
       @Schema(description = "강조 대상 댓글 식별자, 삭제된 댓글이면 강조를 생략함", example = "20")

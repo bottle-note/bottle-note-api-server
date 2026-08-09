@@ -24,14 +24,11 @@ public record NotificationListCriteria(
 
   public NotificationListCriteria {
     Objects.requireNonNull(userId, "userId는 필수입니다.");
-    cursor = cursor != null ? cursor : 0L;
-    pageSize = pageSize != null ? pageSize : 10L;
-    types = types == null ? List.of() : types.stream().filter(Objects::nonNull).toList();
-    categories =
-        categories == null
-            ? List.of()
-            : categories.stream().filter(Objects::nonNull).toList();
-    readStatus = readStatus != null ? readStatus : NotificationReadStatus.ALL;
+    Objects.requireNonNull(cursor, "cursor는 필수입니다.");
+    Objects.requireNonNull(pageSize, "pageSize는 필수입니다.");
+    types = List.copyOf(Objects.requireNonNull(types, "types는 필수입니다."));
+    categories = List.copyOf(Objects.requireNonNull(categories, "categories는 필수입니다."));
+    Objects.requireNonNull(readStatus, "readStatus는 필수입니다.");
   }
 
   public static NotificationListCriteria of(Long userId, Long cursor, Long pageSize) {
