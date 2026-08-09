@@ -2,7 +2,8 @@ package app.bottlenote.notification.service;
 
 import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.notification.action.NotificationActionResolver;
+import app.bottlenote.notification.action.NotificationAction;
+import app.bottlenote.notification.constant.NotificationActionFallbackType;
 import app.bottlenote.notification.domain.Notification;
 import app.bottlenote.notification.domain.NotificationRepository;
 import app.bottlenote.notification.dto.dsl.NotificationListCriteria;
@@ -31,7 +32,6 @@ public class UserNotificationService implements NotificationService {
 
   private final UserFacade userFacade;
   private final NotificationRepository notificationRepository;
-  private final NotificationActionResolver notificationActionResolver;
 
   @Transactional
   @Override
@@ -145,7 +145,28 @@ public class UserNotificationService implements NotificationService {
         notification.getIsRead(),
         toKstOffset(notification.getCreateAt()),
         toKstOffset(notification.getReadAt()),
-        notificationActionResolver.resolve(notification));
+        resolveAction(notification));
+  }
+
+  private NotificationListResponse.Action resolveAction(Notification notification) {
+    try {
+      NotificationAction action =
+          NotificationAction.restore(
+              notification.getActionType(),
+              notification.getActionTargetId(),
+              notification.getActionPayload(),
+              notification.getActionVersion() != null
+                  ? notification.getActionVersion().intValue()
+                  : null);
+      return new NotificationListResponse.Action(
+          action.type(),
+          action.targetId(),
+          action.openReviewPayload(),
+          action.version(),
+          NotificationActionFallbackType.OPEN_NOTIFICATION_CENTER);
+    } catch (IllegalArgumentException exception) {
+      return null;
+    }
   }
 
   private OffsetDateTime toKstOffset(LocalDateTime dateTime) {

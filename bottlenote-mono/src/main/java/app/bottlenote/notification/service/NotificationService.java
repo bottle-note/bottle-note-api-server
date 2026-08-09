@@ -14,6 +14,11 @@ public interface NotificationService {
 
   long countUnread(Long userId);
 
+  /**
+   * 사용자 소유 알림을 멱등하게 읽음 처리한다.
+   *
+   * <p>최초 읽음 시각과 처리 후 미읽음 개수를 함께 반환한다.
+   */
   NotificationMarkReadResult markAsRead(Long userId, Long notificationId);
 
   int markAllAsRead(Long userId);

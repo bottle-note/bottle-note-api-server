@@ -1,6 +1,6 @@
 package app.bottlenote.notification.dto.response;
 
-import app.bottlenote.notification.action.OpenReviewActionPayload;
+import app.bottlenote.notification.action.NotificationAction.OpenReviewActionPayload;
 import app.bottlenote.notification.constant.NotificationActionFallbackType;
 import app.bottlenote.notification.constant.NotificationActionType;
 import app.bottlenote.notification.constant.NotificationCategory;
@@ -9,14 +9,22 @@ import app.bottlenote.notification.constant.NotificationType;
 import java.time.OffsetDateTime;
 import java.util.List;
 
-/** 서비스 계층 알림 목록 조회 결과. */
+/**
+ * 서비스 계층의 필터된 알림 목록 조회 결과다.
+ *
+ * <p>현재 페이지 항목과 cursor를 제외한 전체 건수를 함께 전달한다.
+ */
 public record NotificationListResponse(long totalCount, List<Item> items) {
 
   public static NotificationListResponse of(long totalCount, List<Item> items) {
     return new NotificationListResponse(totalCount, items);
   }
 
-  /** 알림함 목록 항목. */
+  /**
+   * 읽음 상태와 전달 상태를 분리한 알림함 목록 항목이다.
+   *
+   * <p>이동 계약이 유효할 때만 의미 기반 Action을 포함한다.
+   */
   public record Item(
       Long id,
       String title,
@@ -29,7 +37,11 @@ public record NotificationListResponse(long totalCount, List<Item> items) {
       OffsetDateTime readAt,
       Action action) {}
 
-  /** 클라이언트가 플랫폼 내부 이동으로 변환하는 의미 기반 Action. */
+  /**
+   * 클라이언트가 플랫폼 내부 이동으로 변환하는 의미 기반 Action이다.
+   *
+   * <p>지원하지 않는 타입이나 payload는 항목 전체가 아닌 Action만 {@code null}로 응답한다.
+   */
   public record Action(
       NotificationActionType type,
       Long targetId,

@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.notification.action.NotificationAction;
-import app.bottlenote.notification.action.NotificationActionResolver;
 import app.bottlenote.notification.constant.NotificationActionFallbackType;
 import app.bottlenote.notification.constant.NotificationActionType;
 import app.bottlenote.notification.constant.NotificationCategory;
@@ -24,7 +23,6 @@ import app.bottlenote.user.exception.UserException;
 import app.bottlenote.user.exception.UserExceptionCode;
 import app.bottlenote.user.facade.payload.UserProfileItem;
 import app.bottlenote.user.fixture.FakeUserFacade;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -53,10 +51,7 @@ class UserNotificationServiceTest {
     userFacade = new FakeUserFacade();
     notificationRepository = new InMemoryNotificationRepository();
     service =
-        new UserNotificationService(
-            userFacade,
-            notificationRepository,
-            new NotificationActionResolver(new ObjectMapper()));
+        new UserNotificationService(userFacade, notificationRepository);
   }
 
   @Nested

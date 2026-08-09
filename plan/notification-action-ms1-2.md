@@ -25,7 +25,7 @@
 11. DB/JVM 기본 시간대는 `Asia/Seoul`이고 저장 시각은 `LocalDateTime`으로 유지한다. API 입력은 `OffsetDateTime`을 동일 instant의 KST로 정규화하고, `createAt/readAt` 응답은 `+09:00` offset을 포함한다.
 12. 동일 `(source_type, source_id, user_id)`는 DB UNIQUE가 최종 중복 방지선이다. 애플리케이션은 순차 재전달을 멱등 처리하되 경쟁 상황의 무결성은 DB가 보장한다.
 13. 기존 nullable source/action 컬럼 행은 그대로 호환하며 `action=null`로 응답한다.
-14. 필터 후보 인덱스는 실제 운영 데이터 분포와 `EXPLAIN ANALYZE` 증거 없이 추가하지 않는다. 이번 마이그레이션은 필수 UNIQUE와 컬럼만 대상으로 한다.
+14. 사용자 후속 결정으로 `(user_id, is_read, id)`, `(user_id, create_at, id)` 인덱스를 V10에 포함한다. 실제 데이터 분포 기반 `EXPLAIN ANALYZE` 실효성 검증은 미검증 범위로 유지한다.
 15. 향후 Outbox/SSE/FCM은 같은 canonical notification/action 의미를 채널별 envelope로 매핑한다. API 목록 envelope를 SSE/FCM에 바이트 단위로 복제하는 것은 이번 범위가 아니다.
 
 ### Success Criteria
@@ -94,7 +94,7 @@
 - Acceptance:
   - `git.environment-variables`의 원격 기본 브랜치와 최신 마이그레이션 번호를 재확인한다.
   - 독립 Orca worktree `notification-action-schema`, 브랜치 `Whale0928/feat-issues-381-schema`에서 nullable 컬럼 7개와 UNIQUE `(source_type, source_id, user_id)`를 추가한다.
-  - 기존 행 backfill이나 후보 조회 인덱스를 근거 없이 추가하지 않고 schema commit을 먼저 push한다.
+  - 기존 행을 backfill하지 않고, 필수 UNIQUE와 사용자 후속 결정으로 승인된 읽음·시간 범위 인덱스를 schema에 반영한다.
 - Verification: 원격 schema branch/commit 확인, SQL 정적 검토, 이후 backend GitHub CI의 Flyway/Testcontainers 결과
 - Files (advisory): `storage/db/migration/V{latest+1}__add_notification_action.sql`
 - Depends: 없음
@@ -191,3 +191,6 @@
 - 2026-08-10: Task 7 정적 품질 게이트 완료 — invalid raw Action이 목록 HTTP 200에서 해당 item만 `action=null`로 강등되고 valid item은 유지되는 통합 시나리오, 전체 읽음 재호출의 `updatedCount=0`·최초 `readAt`·PENDING/SENT/FAILED·타 사용자 보존 시나리오, query array와 Action/readAt OpenAPI focused 계약을 보강했다. Product/Admin은 V10 원본 migration을 `db/migration`으로 복사하고 Batch는 migration 경로를 금지하는 가드를 유지함을 read-only 확인했다. 작성 기준 신규/보강 시나리오 3개이며 로컬 Gradle·테스트·빌드·Spotless는 실행하지 않았고 GitHub CI 실행 대기 상태다.
 - 2026-08-10: GitHub Actions run `31322100538`에서 compile·unit·Admin integration은 성공했고 rule 1건과 Product integration 2건이 실패했다. 사용자 재승인 후 Codex worker 3개가 Action enum 상수 패키지 이동, Springdoc model attribute 숨김, `create_at` 직접 갱신 픽스처로 각각 근본 원인을 수정했다. 자체 검토 Important 1건은 SQL 갱신 행 수 검증을 추가해 해소했으며 Critical 0건이다.
 - 2026-08-10: 재승인 후 첫 CI run `31323332868`은 compile·unit·rule·Admin integration 성공, Product integration 341개 중 OpenAPI focused 계약 1개 실패였다. 실제 생성 스펙은 정상이고 테스트가 전역 components의 첫 `totalCount/items` schema를 오인한 것이므로, 해당 operation의 200 응답 `data → items` 참조를 따라 검증하도록 Codex worker가 테스트만 수정했다.
+- 2026-08-10: GitHub Actions run `31323979472`에서 prepare, unit 658개, rule 64개, Product integration 351개, Admin integration 248개, 최종 build와 JUnit report가 모두 성공했다.
+- 2026-08-10: 사용자 후속 결정으로 V10에 읽음·시간 범위 복합 인덱스를 추가하고 environment PR #12를 `main`에 병합했다. Backend에는 최신 `main` `fcb469137`을 merge하고 environment `main` `7d29a9797`로 gitlink를 갱신해 PR #704에 push했다. 배포는 수행하지 않았다.
+- 2026-08-10: 별도 Orca Run `run_b470f4dee37d`의 Opus 코드 스멜 리뷰 1회에서 7건을 받았다. Action payload 검증 중복, stateless Resolver, 단일 필드 payload top-level 타입, Request/Criteria 정규화 중복을 해소 대상으로 채택했고, 레거시 `NotificationStatus.READ` 제거와 비원자 읽음 갱신은 호환성·동시성 때문에 제외했다.
