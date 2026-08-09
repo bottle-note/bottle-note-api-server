@@ -1,5 +1,7 @@
 package app.bottlenote.notification.action;
 
+import app.bottlenote.notification.constant.NotificationActionFallbackType;
+import app.bottlenote.notification.constant.NotificationActionType;
 import app.bottlenote.notification.domain.Notification;
 import app.bottlenote.notification.dto.response.NotificationListResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;

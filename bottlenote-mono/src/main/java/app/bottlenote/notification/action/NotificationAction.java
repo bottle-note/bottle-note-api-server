@@ -1,5 +1,6 @@
 package app.bottlenote.notification.action;
 
+import app.bottlenote.notification.constant.NotificationActionType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import java.nio.charset.StandardCharsets;
