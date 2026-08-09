@@ -17,6 +17,7 @@ import app.bottlenote.notification.dto.response.NotificationUnreadCountResponse;
 import app.bottlenote.notification.service.NotificationMarkReadResult;
 import app.bottlenote.notification.service.NotificationService;
 import app.bottlenote.user.exception.UserException;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -40,7 +41,7 @@ public class NotificationController {
   @GetMapping
   @NotificationApiDocs.GetNotifications
   public ResponseEntity<GlobalResponse> getNotifications(
-      @ModelAttribute @Valid NotificationPageableRequest request) {
+      @Parameter(hidden = true) @ModelAttribute @Valid NotificationPageableRequest request) {
     Long userId = currentUserId();
     PageResponse<NotificationListResponse> page =
         notificationService.getNotifications(userId, request);
