@@ -251,7 +251,7 @@ class RedisAccessControlStoreIntegrationTest {
 
     long started = System.nanoTime();
     assertThatThrownBy(() -> brokenStore.lookupBan("203.0.113.99"))
-        .isInstanceOf(AccessControlStoreUnavailableException.class)
+        .isInstanceOf(AccessControlStore.UnavailableException.class)
         .hasCauseInstanceOf(DataAccessException.class);
     long elapsedMs = Duration.ofNanos(System.nanoTime() - started).toMillis();
 

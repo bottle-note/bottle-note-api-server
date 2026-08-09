@@ -71,14 +71,8 @@ public class AccessControlConfiguration {
   @Bean
   @ConditionalOnMissingBean(BanSnapshotRefresher.class)
   public BanSnapshotRefresher banSnapshotRefresher(
-      AccessControlStore accessControlStore,
-      BanSnapshotHolder banSnapshotHolder,
-      AccessControlProperties properties) {
-    return new BanSnapshotRefresher(
-        accessControlStore,
-        banSnapshotHolder,
-        properties.getSnapshot().getMaxEntries(),
-        Clock.systemUTC());
+      AccessControlStore accessControlStore, BanSnapshotHolder banSnapshotHolder) {
+    return new BanSnapshotRefresher(accessControlStore, banSnapshotHolder, Clock.systemUTC());
   }
 
   @Bean

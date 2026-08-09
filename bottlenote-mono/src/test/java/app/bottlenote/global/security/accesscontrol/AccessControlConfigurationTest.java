@@ -36,7 +36,9 @@ class AccessControlConfigurationTest {
               "bottlenote.access-control.redis-command-timeout=200ms",
               "bottlenote.access-control.snapshot.refresh-interval-ms=45000",
               "bottlenote.access-control.snapshot.stale-threshold=4m",
-              "bottlenote.access-control.snapshot.max-entries=2");
+              "bottlenote.access-control.snapshot.max-entries=2",
+              "bottlenote.access-control.burst-admission.max-concurrent=7",
+              "bottlenote.access-control.burst-admission.cooldown=2s");
 
   @Test
   @DisplayName("access-control 활성 시 RedisConnectionFactory·StringRedisTemplate 타입 후보가 각각 하나다")
@@ -61,6 +63,10 @@ class AccessControlConfigurationTest {
           assertThat(snapshotProperties.getRefreshIntervalMs()).isEqualTo(45_000L);
           assertThat(snapshotProperties.getStaleThreshold()).isEqualTo(Duration.ofMinutes(4));
           assertThat(snapshotProperties.getMaxEntries()).isEqualTo(2);
+          AccessControlProperties.BurstAdmission admissionProperties =
+              context.getBean(AccessControlProperties.class).getBurstAdmission();
+          assertThat(admissionProperties.getMaxConcurrent()).isEqualTo(7);
+          assertThat(admissionProperties.getCooldown()).isEqualTo(Duration.ofSeconds(2));
 
           // 무수식 주입 — @Primary 없이도 성공해야 한다
           RedisConnectionFactoryFactoryProbe factoryProbe =

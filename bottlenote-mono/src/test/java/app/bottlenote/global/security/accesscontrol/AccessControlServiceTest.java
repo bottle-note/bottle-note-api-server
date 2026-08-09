@@ -9,6 +9,9 @@ import app.bottlenote.global.security.accesscontrol.AccessControlService.Decisio
 import app.bottlenote.global.security.accesscontrol.AccessControlStore.BanInfo;
 import app.bottlenote.global.security.accesscontrol.AccessControlStore.BanLookup;
 import app.bottlenote.global.security.accesscontrol.AccessControlStore.ConsumeResult;
+import app.bottlenote.global.security.accesscontrol.AccessControlStore.UnavailableException;
+import app.bottlenote.global.security.accesscontrol.BanSnapshotHolder.Entry;
+import app.bottlenote.global.security.accesscontrol.BanSnapshotHolder.Snapshot;
 import app.bottlenote.global.security.accesscontrol.fixture.InMemoryAccessControlStore;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Clock;
@@ -17,6 +20,8 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -238,8 +243,7 @@ class AccessControlServiceTest {
         new AccessControlStore() {
           @Override
           public BanLookup lookupBan(String ip) {
-            throw new AccessControlStoreUnavailableException(
-                new IllegalStateException("redis down"));
+            throw new UnavailableException(new IllegalStateException("redis down"));
           }
 
           @Override
@@ -322,9 +326,7 @@ class AccessControlServiceTest {
   void evaluate_whenBanLookupFailsAndFreshSnapshotHits_returnsBannedWithoutRateLimitCall() {
     String ip = "203.0.113.40";
     snapshotHolder.replace(
-        new BanSnapshot(
-            Map.of(ip, new BanSnapshot.BanEntry(clock.instant().plusSeconds(120), "abuse")),
-            clock.instant()));
+        new Snapshot(Map.of(ip, new Entry(clock.instant().plusSeconds(120))), clock.instant()));
     FailingBanStore failingStore = new FailingBanStore();
 
     Decision decision = newService(failingStore).evaluate(ip, "/api/v1/alcohols", "GET");
@@ -337,12 +339,89 @@ class AccessControlServiceTest {
   }
 
   @Test
+  @DisplayName("실제 ban 조회 장애 뒤 cooldown은 후속 Redis 조회를 건너뛴다")
+  void evaluate_whenBanLookupFails_cooldownSkipsLaterStoreCall() {
+    snapshotHolder.replace(new Snapshot(Map.of(), clock.instant()));
+    AtomicLong monotonicNanos = new AtomicLong();
+    FailingBanStore failingStore = new FailingBanStore();
+    AccessControlService failingService = newService(failingStore, monotonicNanos::get);
+
+    assertThat(failingService.evaluate("203.0.113.49", "/api/v1/alcohols", "GET").allowed())
+        .isTrue();
+    assertThat(failingService.evaluate("203.0.113.49", "/api/v1/alcohols", "GET").allowed())
+        .isTrue();
+
+    monotonicNanos.addAndGet(Duration.ofSeconds(1).toNanos());
+    assertThat(failingService.evaluate("203.0.113.49", "/api/v1/alcohols", "GET").allowed())
+        .isTrue();
+
+    assertThat(failingStore.lookupCalls()).isEqualTo(2);
+    assertThat(failingStore.rateLimitCalls()).isZero();
+    assertCounter("access_control_store_errors_total", null).isEqualTo(2.0);
+    assertCounter("access_control_ban_admission_total", "cooldown").isEqualTo(1.0);
+  }
+
+  @Test
+  @DisplayName("ban 조회 포화는 snapshot 차단을 적용하고 미차단 요청은 rate limit을 유지한다")
+  void evaluate_whenBanLookupSaturated_usesSnapshotAndRecoversAfterPermitRelease()
+      throws Exception {
+    properties.getBurstAdmission().setMaxConcurrent(1);
+    properties.setDefaultRateLimit(new RateLimitRule(1, 60));
+    BlockingLookupStore blockingStore = new BlockingLookupStore();
+    AccessControlService guardedService = newService(blockingStore, System::nanoTime);
+    Thread inFlight =
+        Thread.ofVirtual()
+            .start(() -> guardedService.evaluate("203.0.113.50", "/api/v1/alcohols", "GET"));
+    assertThat(blockingStore.awaitLookupStart()).isTrue();
+
+    try {
+      snapshotHolder.replace(
+          new Snapshot(
+              Map.of("203.0.113.51", new Entry(clock.instant().plusSeconds(120))),
+              clock.instant()));
+      assertThat(guardedService.evaluate("203.0.113.51", "/api/v1/alcohols", "GET").type())
+          .isEqualTo(Decision.Type.BANNED);
+
+      snapshotHolder.replace(new Snapshot(Map.of(), clock.instant()));
+      assertThat(guardedService.evaluate("203.0.113.52", "/api/v1/alcohols", "GET").allowed())
+          .isTrue();
+      assertThat(guardedService.evaluate("203.0.113.52", "/api/v1/alcohols", "GET").type())
+          .isEqualTo(Decision.Type.RATE_LIMITED);
+
+      snapshotHolder.replace(
+          new Snapshot(
+              Map.of("203.0.113.53", new Entry(clock.instant().plusSeconds(120))),
+              clock.instant().minus(Duration.ofMinutes(3)).minusNanos(1)));
+      assertThat(guardedService.evaluate("203.0.113.53", "/api/v1/alcohols", "GET").allowed())
+          .isTrue();
+
+      assertThat(guardedService.evaluate(null, "/api/v1/alcohols", "GET").allowed()).isTrue();
+      assertThat(blockingStore.rateLimitCalls()).isEqualTo(4);
+      assertCounter("access_control_ban_admission_total", "saturated").isEqualTo(4.0);
+      assertCounter("access_control_store_errors_total", null).isZero();
+
+      properties.setFailOpen(false);
+      assertThat(guardedService.evaluate("203.0.113.55", "/api/v1/alcohols", "GET").type())
+          .isEqualTo(Decision.Type.RATE_LIMITED);
+      assertThat(blockingStore.rateLimitCalls()).isEqualTo(4);
+      assertCounter("access_control_ban_admission_total", "saturated").isEqualTo(5.0);
+    } finally {
+      properties.setFailOpen(true);
+      blockingStore.releaseLookup();
+      inFlight.join();
+    }
+
+    blockingStore.ban("203.0.113.54", Duration.ofMinutes(5), "abuse");
+    assertThat(guardedService.evaluate("203.0.113.54", "/api/v1/alcohols", "GET").type())
+        .isEqualTo(Decision.Type.BANNED);
+    assertThat(blockingStore.lookupCalls()).isEqualTo(2);
+  }
+
+  @Test
   @DisplayName("무기한 snapshot ban은 60초 Retry-After를 반환한다")
   void evaluate_whenBanLookupFailsAndSnapshotIsIndefinite_returnsSixtySecondRetryAfter() {
     String ip = "203.0.113.41";
-    snapshotHolder.replace(
-        new BanSnapshot(
-            Map.of(ip, new BanSnapshot.BanEntry(Instant.MAX, "abuse")), clock.instant()));
+    snapshotHolder.replace(new Snapshot(Map.of(ip, new Entry(Instant.MAX)), clock.instant()));
 
     Decision decision = newService(new FailingBanStore()).evaluate(ip, "/api/v1/alcohols", "GET");
 
@@ -353,7 +432,7 @@ class AccessControlServiceTest {
   @Test
   @DisplayName("ban Redis 장애에서 fresh snapshot miss는 fail-open allow하고 rate-limit을 호출하지 않는다")
   void evaluate_whenBanLookupFailsAndSnapshotMiss_allowsWithoutRateLimitCall() {
-    snapshotHolder.replace(new BanSnapshot(Map.of(), clock.instant()));
+    snapshotHolder.replace(new Snapshot(Map.of(), clock.instant()));
     FailingBanStore failingStore = new FailingBanStore();
 
     Decision decision =
@@ -370,9 +449,7 @@ class AccessControlServiceTest {
   void evaluate_whenBanLookupFailsAndSnapshotEntryExpired_allows() {
     String ip = "203.0.113.43";
     snapshotHolder.replace(
-        new BanSnapshot(
-            Map.of(ip, new BanSnapshot.BanEntry(clock.instant().minusSeconds(1), "expired")),
-            clock.instant()));
+        new Snapshot(Map.of(ip, new Entry(clock.instant().minusSeconds(1))), clock.instant()));
 
     Decision decision = newService(new FailingBanStore()).evaluate(ip, "/api/v1/alcohols", "GET");
 
@@ -385,8 +462,8 @@ class AccessControlServiceTest {
   void evaluate_whenBanLookupFailsAndSnapshotIsStale_allows() {
     String ip = "203.0.113.44";
     snapshotHolder.replace(
-        new BanSnapshot(
-            Map.of(ip, new BanSnapshot.BanEntry(clock.instant().plusSeconds(120), "abuse")),
+        new Snapshot(
+            Map.of(ip, new Entry(clock.instant().plusSeconds(120))),
             clock.instant().minus(Duration.ofMinutes(3)).minusNanos(1)));
 
     Decision decision = newService(new FailingBanStore()).evaluate(ip, "/api/v1/alcohols", "GET");
@@ -446,6 +523,12 @@ class AccessControlServiceTest {
     return new AccessControlService(accessControlStore, properties, metrics, snapshotHolder, clock);
   }
 
+  private AccessControlService newService(
+      AccessControlStore accessControlStore, java.util.function.LongSupplier monotonicNanos) {
+    return new AccessControlService(
+        accessControlStore, properties, metrics, snapshotHolder, clock, monotonicNanos);
+  }
+
   private org.assertj.core.api.AbstractDoubleAssert<?> assertCounter(String name, String result) {
     io.micrometer.core.instrument.search.Search search = meterRegistry.find(name);
     if (result != null) {
@@ -457,10 +540,12 @@ class AccessControlServiceTest {
   private static final class FailingBanStore extends InMemoryAccessControlStore {
 
     private int rateLimitCalls;
+    private int lookupCalls;
 
     @Override
     public BanLookup lookupBan(String ip) {
-      throw new AccessControlStoreUnavailableException(new IllegalStateException("redis down"));
+      lookupCalls++;
+      throw new UnavailableException(new IllegalStateException("redis down"));
     }
 
     @Override
@@ -472,13 +557,59 @@ class AccessControlServiceTest {
     int rateLimitCalls() {
       return rateLimitCalls;
     }
+
+    int lookupCalls() {
+      return lookupCalls;
+    }
+  }
+
+  private static final class BlockingLookupStore extends InMemoryAccessControlStore {
+    private final CountDownLatch lookupStarted = new CountDownLatch(1);
+    private final CountDownLatch releaseLookup = new CountDownLatch(1);
+    private int lookupCalls;
+    private int rateLimitCalls;
+
+    @Override
+    public BanLookup lookupBan(String ip) {
+      lookupCalls++;
+      lookupStarted.countDown();
+      try {
+        releaseLookup.await();
+      } catch (InterruptedException exception) {
+        Thread.currentThread().interrupt();
+        throw new AssertionError(exception);
+      }
+      return super.lookupBan(ip);
+    }
+
+    @Override
+    public ConsumeResult tryConsume(String key, int limit, Duration window) {
+      rateLimitCalls++;
+      return super.tryConsume(key, limit, window);
+    }
+
+    boolean awaitLookupStart() throws InterruptedException {
+      return lookupStarted.await(1, java.util.concurrent.TimeUnit.SECONDS);
+    }
+
+    void releaseLookup() {
+      releaseLookup.countDown();
+    }
+
+    int lookupCalls() {
+      return lookupCalls;
+    }
+
+    int rateLimitCalls() {
+      return rateLimitCalls;
+    }
   }
 
   private static final class FailingRateLimitStore extends InMemoryAccessControlStore {
 
     @Override
     public ConsumeResult tryConsume(String key, int limit, Duration window) {
-      throw new AccessControlStoreUnavailableException(new IllegalStateException("redis down"));
+      throw new UnavailableException(new IllegalStateException("redis down"));
     }
   }
 

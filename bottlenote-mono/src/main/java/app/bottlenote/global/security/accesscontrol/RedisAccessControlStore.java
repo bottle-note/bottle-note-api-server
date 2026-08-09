@@ -403,8 +403,8 @@ public class RedisAccessControlStore implements AccessControlStore {
     return ttlMillis < 0 ? ttlMillis : TimeUnit.MILLISECONDS.toSeconds(ttlMillis);
   }
 
-  private static AccessControlStoreUnavailableException unavailablePttl() {
-    return new AccessControlStoreUnavailableException(
+  private static AccessControlStore.UnavailableException unavailablePttl() {
+    return new AccessControlStore.UnavailableException(
         new IllegalStateException("redis PTTL returned null"));
   }
 
@@ -412,7 +412,7 @@ public class RedisAccessControlStore implements AccessControlStore {
     try {
       return operation.execute();
     } catch (DataAccessException exception) {
-      throw new AccessControlStoreUnavailableException(exception);
+      throw new AccessControlStore.UnavailableException(exception);
     }
   }
 

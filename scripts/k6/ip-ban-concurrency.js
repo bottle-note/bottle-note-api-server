@@ -18,8 +18,6 @@ const DEFAULT_READ_PATHS = [
   '/api/v1/alcohols/categories?type=BRANDY',
   '/api/v1/banners?limit=5',
   '/api/v1/banners?limit=10',
-  '/api/v1/popular/week?top=5',
-  '/api/v1/popular/week?top=10',
 ];
 
 const statusNetwork = new Counter('status_network');
@@ -38,6 +36,7 @@ const thresholds = {
   http_req_duration: ['p(95)<1000', 'p(99)<2000'],
   network_failures: ['rate==0'],
   server_failures: ['rate==0'],
+  client_failures: ['rate==0'],
   scenario_response_duration: ['p(95)<1000', 'p(99)<2000'],
 };
 
@@ -114,7 +113,7 @@ export function setup() {
 }
 
 export default function () {
-  const path = MODE === 'fixed' ? '/actuator/health' : selectReadPath();
+  const path = MODE === 'fixed' ? '/api/v1/app-info' : selectReadPath();
   const response = group(MODE, () => http.get(`${BASE_URL}${path}`, requestParams()));
 
   recordStatus(response);

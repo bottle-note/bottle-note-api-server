@@ -7,7 +7,7 @@ import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
 import app.bottlenote.IntegrationTestSupport;
 import app.bottlenote.global.security.accesscontrol.AccessControlService;
 import app.bottlenote.global.security.accesscontrol.AccessControlStore;
-import app.bottlenote.global.security.accesscontrol.AccessControlStoreUnavailableException;
+import app.bottlenote.global.security.accesscontrol.AccessControlStore.UnavailableException;
 import app.bottlenote.global.security.accesscontrol.BanSnapshotRefresher;
 import app.bottlenote.global.security.accesscontrol.RedisAccessControlStore;
 import java.time.Duration;
@@ -27,6 +27,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 /**
  * access-control을 이 클래스에서만 활성화하고, 실제 Redis + Security filter chain을 검증한다. application-test.yml
@@ -35,6 +36,7 @@ import org.springframework.test.context.ActiveProfiles;
 @Tag("integration")
 @DisplayName("[integration] Product AccessControl Security chain")
 @ActiveProfiles({"test", "access-control-it"})
+@TestPropertySource(properties = "bottlenote.access-control.burst-admission.cooldown=0s")
 @Import(AccessControlSecurityIntegrationTest.AccessControlStoreTestConfiguration.class)
 class AccessControlSecurityIntegrationTest extends IntegrationTestSupport {
 
@@ -115,19 +117,6 @@ class AccessControlSecurityIntegrationTest extends IntegrationTestSupport {
         mockMvcTester.get().uri(PUBLIC_PATH).header("X-Forwarded-For", clientIp).exchange();
 
     result.assertThat().hasStatus(FORBIDDEN);
-    assertThat(accessControlStore.getTryConsumeCalls()).isZero();
-  }
-
-  @Test
-  @DisplayName("Redis 장애와 빈 fresh snapshot이면 rate limit 없이 200을 반환한다")
-  void Redis_장애_빈_snapshot_200_그리고_rate_limit_미호출() {
-    String clientIp = nextTestIp();
-    accessControlStore.failRequests();
-
-    var result =
-        mockMvcTester.get().uri(PUBLIC_PATH).header("X-Forwarded-For", clientIp).exchange();
-
-    result.assertThat().hasStatusOk();
     assertThat(accessControlStore.getTryConsumeCalls()).isZero();
   }
 
@@ -260,8 +249,7 @@ class AccessControlSecurityIntegrationTest extends IntegrationTestSupport {
 
     private void failWhenUnavailable() {
       if (unavailable.get()) {
-        throw new AccessControlStoreUnavailableException(
-            new IllegalStateException("test-controlled Redis outage"));
+        throw new UnavailableException(new IllegalStateException("test-controlled Redis outage"));
       }
     }
   }

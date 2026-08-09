@@ -1,11 +1,15 @@
 package app.bottlenote.global.security.accesscontrol;
 
+import app.bottlenote.global.security.accesscontrol.AccessControlMetrics.BanAdmissionResult;
 import app.bottlenote.global.security.accesscontrol.AccessControlMetrics.BanFallbackResult;
 import app.bottlenote.global.security.accesscontrol.AccessControlProperties.PathRateLimitRule;
 import app.bottlenote.global.security.accesscontrol.AccessControlProperties.RateLimitRule;
 import app.bottlenote.global.security.accesscontrol.AccessControlStore.BanInfo;
 import app.bottlenote.global.security.accesscontrol.AccessControlStore.BanLookup;
 import app.bottlenote.global.security.accesscontrol.AccessControlStore.ConsumeResult;
+import app.bottlenote.global.security.accesscontrol.AccessControlStore.UnavailableException;
+import app.bottlenote.global.security.accesscontrol.BanSnapshotHolder.Entry;
+import app.bottlenote.global.security.accesscontrol.BanSnapshotHolder.Snapshot;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -13,12 +17,13 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RequiredArgsConstructor
 public class AccessControlService {
 
   private static final String UNKNOWN_IP_TOKEN = "_unknown";
@@ -28,6 +33,32 @@ public class AccessControlService {
   private final AccessControlMetrics metrics;
   private final BanSnapshotHolder banSnapshotHolder;
   private final Clock clock;
+  private final BanLookupAdmission banLookupAdmission;
+
+  public AccessControlService(
+      AccessControlStore store,
+      AccessControlProperties properties,
+      AccessControlMetrics metrics,
+      BanSnapshotHolder banSnapshotHolder,
+      Clock clock) {
+    this(store, properties, metrics, banSnapshotHolder, clock, System::nanoTime);
+  }
+
+  AccessControlService(
+      AccessControlStore store,
+      AccessControlProperties properties,
+      AccessControlMetrics metrics,
+      BanSnapshotHolder banSnapshotHolder,
+      Clock clock,
+      LongSupplier monotonicNanos) {
+    this.store = store;
+    this.properties = properties;
+    this.metrics = metrics;
+    this.banSnapshotHolder = banSnapshotHolder;
+    this.clock = clock;
+    this.banLookupAdmission =
+        new BanLookupAdmission(properties.getBurstAdmission(), monotonicNanos);
+  }
 
   public Decision evaluate(String clientIp, String requestPath, String httpMethod) {
     // self-lockout 탈출: 관리 API는 ban/RL 모두 스킵
@@ -40,19 +71,33 @@ public class AccessControlService {
     String effectiveIp = (clientIp == null || clientIp.isBlank()) ? UNKNOWN_IP_TOKEN : clientIp;
     String method = normalizeMethod(httpMethod);
 
-    try {
-      BanLookup ban =
-          UNKNOWN_IP_TOKEN.equals(effectiveIp)
-              ? BanLookup.notBanned()
-              : store.lookupBan(effectiveIp);
-      if (ban.banned()) {
-        long retryAfter = ban.ttlSeconds() < 0 ? 60 : Math.max(ban.ttlSeconds(), 1);
-        Decision decision = Decision.banned(retryAfter);
-        metrics.record(decision);
-        return decision;
+    if (!UNKNOWN_IP_TOKEN.equals(effectiveIp)) {
+      BanAdmission admission = banLookupAdmission.tryAcquire();
+      if (admission != BanAdmission.ADMITTED) {
+        metrics.recordBanAdmissionFallback(toMetricResult(admission));
+        Optional<Decision> fallback = evaluateBanFallback(effectiveIp, false);
+        if (fallback.isPresent()) {
+          return fallback.get();
+        }
+        if (admission == BanAdmission.COOLDOWN || !properties.isFailOpen()) {
+          return decisionAfterBanFallbackFailure();
+        }
+      } else {
+        try {
+          BanLookup ban = store.lookupBan(effectiveIp);
+          if (ban.banned()) {
+            long retryAfter = ban.ttlSeconds() < 0 ? 60 : Math.max(ban.ttlSeconds(), 1);
+            Decision decision = Decision.banned(retryAfter);
+            metrics.record(decision);
+            return decision;
+          }
+        } catch (UnavailableException ex) {
+          banLookupAdmission.openCooldown();
+          return evaluateBanLookupFailure(effectiveIp, requestPath, method, ex);
+        } finally {
+          banLookupAdmission.release();
+        }
       }
-    } catch (AccessControlStoreUnavailableException ex) {
-      return evaluateBanLookupFailure(effectiveIp, requestPath, method, ex);
     }
 
     // exclude는 rate limit만 스킵 (ban은 위에서 이미 적용)
@@ -84,7 +129,7 @@ public class AccessControlService {
       Decision decision = Decision.allow(consumed.remaining(), rule.limit());
       metrics.record(decision);
       return decision;
-    } catch (AccessControlStoreUnavailableException ex) {
+    } catch (UnavailableException ex) {
       log.warn(
           "access-control rate-limit store failure ip={} path={} method={}: {}",
           effectiveIp,
@@ -105,10 +150,7 @@ public class AccessControlService {
   }
 
   private Decision evaluateBanLookupFailure(
-      String effectiveIp,
-      String requestPath,
-      String method,
-      AccessControlStoreUnavailableException exception) {
+      String effectiveIp, String requestPath, String method, UnavailableException exception) {
     log.warn(
         "access-control ban store failure ip={} path={} method={}: {}",
         effectiveIp,
@@ -116,27 +158,39 @@ public class AccessControlService {
         method,
         exception.toString());
 
+    return evaluateBanFallback(effectiveIp, true).orElseGet(this::decisionAfterBanFallbackFailure);
+  }
+
+  private Optional<Decision> evaluateBanFallback(String effectiveIp, boolean storeFailed) {
     Instant now = clock.instant();
-    BanSnapshot snapshot = banSnapshotHolder.get();
+    Snapshot snapshot = banSnapshotHolder.get();
     if (snapshot.isStale(now, properties.getSnapshot().getStaleThreshold())) {
       log.debug("access-control ban snapshot stale ip={}", effectiveIp);
-      metrics.recordBanFallback(BanFallbackResult.SNAPSHOT_STALE, properties.isFailOpen());
-      return decisionAfterBanFallbackFailure();
+      metrics.recordBanFallback(
+          BanFallbackResult.SNAPSHOT_STALE, properties.isFailOpen(), storeFailed);
+      return Optional.empty();
     }
 
-    Optional<BanSnapshot.BanEntry> entry = snapshot.lookup(effectiveIp, now);
+    Optional<Entry> entry = snapshot.lookup(effectiveIp, now);
     if (entry.isPresent()) {
       long retryAfter = entry.get().isIndefinite() ? 60 : entry.get().remainingSeconds(now);
       log.debug("access-control ban snapshot fallback hit ip={}", effectiveIp);
-      metrics.recordBanFallback(BanFallbackResult.SNAPSHOT_HIT, false);
+      metrics.recordBanFallback(BanFallbackResult.SNAPSHOT_HIT, false, storeFailed);
       Decision decision = Decision.banned(Math.max(retryAfter, 1));
       metrics.record(decision);
-      return decision;
+      return Optional.of(decision);
     }
 
     log.debug("access-control ban snapshot fallback miss ip={}", effectiveIp);
-    metrics.recordBanFallback(BanFallbackResult.SNAPSHOT_MISS, properties.isFailOpen());
-    return decisionAfterBanFallbackFailure();
+    metrics.recordBanFallback(
+        BanFallbackResult.SNAPSHOT_MISS, properties.isFailOpen(), storeFailed);
+    return Optional.empty();
+  }
+
+  private static BanAdmissionResult toMetricResult(BanAdmission admission) {
+    return admission == BanAdmission.SATURATED
+        ? BanAdmissionResult.SATURATED
+        : BanAdmissionResult.COOLDOWN;
   }
 
   private Decision decisionAfterBanFallbackFailure() {
@@ -255,6 +309,51 @@ public class AccessControlService {
       throw new AccessControlException(AccessControlExceptionCode.INVALID_IP);
     }
     return normalized;
+  }
+
+  private enum BanAdmission {
+    ADMITTED,
+    SATURATED,
+    COOLDOWN
+  }
+
+  private static final class BanLookupAdmission {
+    private final Semaphore permits;
+    private final long cooldownNanos;
+    private final LongSupplier monotonicNanos;
+    private final AtomicLong cooldownUntilNanos = new AtomicLong();
+
+    private BanLookupAdmission(
+        AccessControlProperties.BurstAdmission properties, LongSupplier monotonicNanos) {
+      int maxConcurrent = properties.getMaxConcurrent();
+      if (maxConcurrent <= 0) {
+        throw new IllegalArgumentException("burstAdmission.maxConcurrent must be positive");
+      }
+      Duration cooldown = properties.getCooldown();
+      if (cooldown == null || cooldown.isNegative()) {
+        throw new IllegalArgumentException("burstAdmission.cooldown must not be negative");
+      }
+      this.permits = new Semaphore(maxConcurrent);
+      this.cooldownNanos = cooldown.toNanos();
+      this.monotonicNanos = monotonicNanos;
+    }
+
+    private BanAdmission tryAcquire() {
+      long now = monotonicNanos.getAsLong();
+      if (now < cooldownUntilNanos.get()) {
+        return BanAdmission.COOLDOWN;
+      }
+      return permits.tryAcquire() ? BanAdmission.ADMITTED : BanAdmission.SATURATED;
+    }
+
+    private void openCooldown() {
+      long deadline = monotonicNanos.getAsLong() + cooldownNanos;
+      cooldownUntilNanos.accumulateAndGet(deadline, Math::max);
+    }
+
+    private void release() {
+      permits.release();
+    }
   }
 
   public record Decision(Type type, long retryAfterSeconds, long remaining, long limit) {
