@@ -68,7 +68,11 @@ public class DataInitializer {
   }
 
   private void init() {
-    final List<String> tableNames = em.createNativeQuery("SHOW TABLES ").getResultList();
+    final List<String> tableNames =
+        em.createNativeQuery(
+                "SELECT TABLE_NAME FROM information_schema.TABLES "
+                    + "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_TYPE = 'BASE TABLE'")
+            .getResultList();
     tableNames.stream()
         .filter(tableName -> !isSystemTable((String) tableName))
         .map(tableName -> String.format(TRUNCATE_SQL_FORMAT, tableName))
