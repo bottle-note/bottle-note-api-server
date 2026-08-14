@@ -1,6 +1,7 @@
 package app.bottlenote.notification.controller.docs;
 
 import app.bottlenote.notification.constant.NotificationCategory;
+import app.bottlenote.notification.constant.NotificationReadStatus;
 import app.bottlenote.notification.constant.NotificationType;
 import app.bottlenote.notification.dto.response.NotificationMarkAllReadResponse;
 import app.bottlenote.notification.dto.response.NotificationMarkReadResponse;
@@ -61,8 +62,13 @@ public final class NotificationApiDocs {
         @Parameter(
             name = "cursor",
             description = "직전 페이지 마지막 알림 id (keyset, 0이면 최초)",
-            example = "0"),
-        @Parameter(name = "pageSize", description = "페이지 크기", example = "10"),
+            example = "0",
+            schema = @Schema(type = "integer", format = "int64", minimum = "0")),
+        @Parameter(
+            name = "pageSize",
+            description = "페이지 크기",
+            example = "10",
+            schema = @Schema(type = "integer", format = "int64", minimum = "1", maximum = "100")),
         @Parameter(
             name = "types",
             description = "알림 타입 배열. 미지정 또는 빈 배열이면 전체",
@@ -82,15 +88,18 @@ public final class NotificationApiDocs {
         @Parameter(
             name = "readStatus",
             description = "읽음 필터 (ALL, UNREAD, READ)",
-            example = "ALL"),
+            example = "ALL",
+            schema = @Schema(implementation = NotificationReadStatus.class)),
         @Parameter(
             name = "createdFrom",
             description = "생성 시각 하한(포함), ISO-8601 OffsetDateTime",
-            example = "2026-08-10T00:00:00Z"),
+            example = "2026-08-10T00:00:00Z",
+            schema = @Schema(type = "string", format = "date-time")),
         @Parameter(
             name = "createdTo",
             description = "생성 시각 상한(제외), ISO-8601 OffsetDateTime",
-            example = "2026-08-11T00:00:00Z")
+            example = "2026-08-11T00:00:00Z",
+            schema = @Schema(type = "string", format = "date-time"))
       },
       responses =
           @ApiResponse(
