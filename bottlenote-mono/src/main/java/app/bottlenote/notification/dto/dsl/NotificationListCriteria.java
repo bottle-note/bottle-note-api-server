@@ -33,14 +33,7 @@ public record NotificationListCriteria(
 
   public static NotificationListCriteria of(Long userId, Long cursor, Long pageSize) {
     return new NotificationListCriteria(
-        userId,
-        cursor,
-        pageSize,
-        List.of(),
-        List.of(),
-        NotificationReadStatus.ALL,
-        null,
-        null);
+        userId, cursor, pageSize, List.of(), List.of(), NotificationReadStatus.ALL, null, null);
   }
 
   /** 다음 페이지 keyset 조건 사용 여부. 0 이하면 최초 페이지. */

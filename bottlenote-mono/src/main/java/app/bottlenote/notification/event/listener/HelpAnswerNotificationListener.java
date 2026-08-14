@@ -37,12 +37,8 @@ public class HelpAnswerNotificationListener {
     }
 
     notificationService.sendNotification(
-        NotificationMessage.helpAnswer(
-            event.helpUserId(), event.helpId(), TITLE, event.content()));
+        NotificationMessage.helpAnswer(event.helpUserId(), event.helpId(), TITLE, event.content()));
 
-    log.info(
-        "문의 답변 알림 저장 요청 처리 - helpId: {}, helpUserId: {}",
-        event.helpId(),
-        event.helpUserId());
+    log.info("문의 답변 알림 저장 요청 처리 - helpId: {}, helpUserId: {}", event.helpId(), event.helpUserId());
   }
 }

@@ -48,11 +48,7 @@ public class ReviewReplyNotificationListener {
 
     NotificationMessage message =
         NotificationMessage.reviewReply(
-            event.reviewAuthorId(),
-            event.reviewId(),
-            event.replyId(),
-            TITLE,
-            event.content());
+            event.reviewAuthorId(), event.reviewId(), event.replyId(), TITLE, event.content());
 
     notificationService.sendNotification(message);
 

@@ -68,31 +68,28 @@ class ControllerLayerRules {
 		rule.check(importedClasses)
 	}
 
-	private fun declareOpenApiParameterSchemas(): ArchCondition<JavaClass> =
-		object : ArchCondition<JavaClass>("@Operation의 모든 파라미터에 스키마를 선언한다") {
-			override fun check(javaClass: JavaClass, events: ConditionEvents) {
-				val operation = javaClass.getAnnotationOfType(Operation::class.java)
-				operation.parameters
-					.filter { parameter -> !declaresSchema(parameter) }
-					.forEach { parameter ->
-						events.add(
-							SimpleConditionEvent.violated(
-								javaClass,
-								"${javaClass.name}의 @Parameter(name = \"${parameter.name}\")에 스키마 선언이 없습니다"
-							)
+	private fun declareOpenApiParameterSchemas(): ArchCondition<JavaClass> = object : ArchCondition<JavaClass>("@Operation의 모든 파라미터에 스키마를 선언한다") {
+		override fun check(javaClass: JavaClass, events: ConditionEvents) {
+			val operation = javaClass.getAnnotationOfType(Operation::class.java)
+			operation.parameters
+				.filter { parameter -> !declaresSchema(parameter) }
+				.forEach { parameter ->
+					events.add(
+						SimpleConditionEvent.violated(
+							javaClass,
+							"${javaClass.name}의 @Parameter(name = \"${parameter.name}\")에 스키마 선언이 없습니다"
 						)
-					}
-			}
+					)
+				}
 		}
+	}
 
-	private fun declaresSchema(parameter: Parameter): Boolean =
-		parameter.ref.isNotBlank() ||
-			parameter.content.isNotEmpty() ||
-			declaresSchema(parameter.schema) ||
-			declaresSchema(parameter.array.schema)
+	private fun declaresSchema(parameter: Parameter): Boolean = parameter.ref.isNotBlank() ||
+		parameter.content.isNotEmpty() ||
+		declaresSchema(parameter.schema) ||
+		declaresSchema(parameter.array.schema)
 
-	private fun declaresSchema(schema: Schema): Boolean =
-		schema.implementation != Void::class.java || schema.type.isNotBlank() || schema.ref.isNotBlank()
+	private fun declaresSchema(schema: Schema): Boolean = schema.implementation != Void::class.java || schema.type.isNotBlank() || schema.ref.isNotBlank()
 
 	/** 클라이언트에게 응답 본문을 직접 내보내는 클래스. */
 	private fun respondToClients(): DescribedPredicate<JavaClass> = object : DescribedPredicate<JavaClass>("@RestController 또는 @RestControllerAdvice 로 선언된") {

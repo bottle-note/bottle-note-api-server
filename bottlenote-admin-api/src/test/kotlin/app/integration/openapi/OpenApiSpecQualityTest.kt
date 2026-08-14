@@ -80,15 +80,13 @@ class OpenApiSpecQualityTest : OpenApiSpecTestSupport() {
 			.isEmpty()
 	}
 
-	private fun parameterViolations(owner: String, parameters: JsonNode): List<String> =
-		parameters
-			.filter { parameter -> !hasParameterSchema(parameter) }
-			.map { parameter -> "$owner - ${parameter.path("name").asText("<unnamed>")}" }
+	private fun parameterViolations(owner: String, parameters: JsonNode): List<String> = parameters
+		.filter { parameter -> !hasParameterSchema(parameter) }
+		.map { parameter -> "$owner - ${parameter.path("name").asText("<unnamed>")}" }
 
-	private fun hasParameterSchema(parameter: JsonNode): Boolean =
-		parameter.path("\$ref").asText("").isNotBlank() ||
-			!parameter.path("schema").isEmpty ||
-			!parameter.path("content").isEmpty
+	private fun hasParameterSchema(parameter: JsonNode): Boolean = parameter.path("\$ref").asText("").isNotBlank() ||
+		!parameter.path("schema").isEmpty ||
+		!parameter.path("content").isEmpty
 
 	/** 조건을 위반하는 엔드포인트가 하나도 없어야 한다. */
 	private fun assertNoOperation(reason: String, violating: (SpecOperation) -> Boolean) {

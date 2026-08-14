@@ -11,10 +11,7 @@ import java.nio.charset.StandardCharsets;
  * <p>플랫폼별 경로 대신 허용된 Action 타입과 버전별 payload 계약을 보관한다.
  */
 public record NotificationAction(
-    NotificationActionType type,
-    Long targetId,
-    JsonNode payload,
-    Integer version) {
+    NotificationActionType type, Long targetId, JsonNode payload, Integer version) {
 
   public static final int CURRENT_VERSION = 1;
   public static final int MAX_PAYLOAD_BYTES = 1024;
@@ -110,8 +107,7 @@ public record NotificationAction(
    *
    * <p>구현 타입은 이 Action 내부에 두어 버전별 검증 책임을 한곳에 모은다.
    */
-  public sealed interface ActionPayload
-      permits OpenReviewActionPayload, OpenHelpActionPayload {}
+  public sealed interface ActionPayload permits OpenReviewActionPayload, OpenHelpActionPayload {}
 
   /**
    * {@code OPEN_REVIEW} Action이 사용하는 댓글 위치 정보다.
@@ -132,9 +128,7 @@ public record NotificationAction(
       }
 
       JsonNode replyId = payload.get("replyId");
-      if (replyId == null
-          || !replyId.isIntegralNumber()
-          || !replyId.canConvertToLong()) {
+      if (replyId == null || !replyId.isIntegralNumber() || !replyId.canConvertToLong()) {
         throw new IllegalArgumentException("OPEN_REVIEW payload 형식이 올바르지 않습니다.");
       }
       return new OpenReviewActionPayload(replyId.longValue());

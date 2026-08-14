@@ -11,8 +11,7 @@ package app.bottlenote.support.help.event.payload;
  */
 public record HelpAnswerNotificationEvent(Long helpId, Long helpUserId, String content) {
 
-  public static HelpAnswerNotificationEvent of(
-      Long helpId, Long helpUserId, String content) {
+  public static HelpAnswerNotificationEvent of(Long helpId, Long helpUserId, String content) {
     return new HelpAnswerNotificationEvent(helpId, helpUserId, content);
   }
 }

@@ -32,13 +32,7 @@ public record NotificationMarkReadResponse(
       @Nullable LocalDateTime firstReadAt,
       boolean changed,
       long unreadCount) {
-    OffsetDateTime readAt =
-        firstReadAt == null ? null : firstReadAt.atZone(KST).toOffsetDateTime();
-    return new NotificationMarkReadResponse(
-        notificationId,
-        isRead,
-        readAt,
-        changed,
-        unreadCount);
+    OffsetDateTime readAt = firstReadAt == null ? null : firstReadAt.atZone(KST).toOffsetDateTime();
+    return new NotificationMarkReadResponse(notificationId, isRead, readAt, changed, unreadCount);
   }
 }
