@@ -74,11 +74,6 @@ class RatingIntegrationTest extends IntegrationTestSupport {
     }
     TokenItem token = getToken(user);
 
-    for (int i = 0; i < alcohols.size(); i++) {
-      int ratingPoint = (i % 5) + 1;
-      ratingTestFactory.persistRating(user, alcohols.get(i), ratingPoint);
-    }
-
     // When
     MvcTestResult result =
         mockMvcTester

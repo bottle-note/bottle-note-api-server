@@ -14,10 +14,8 @@ import java.util.List;
  *
  * <p>실제 응답의 읽음 상태와 의미 기반 Action 구조를 API 문서에 고정한다.
  */
-@Schema(name = "NotificationListResponse", description = "필터 조건에 맞는 알림 목록과 전체 건수")
+@Schema(name = "NotificationListResponse", description = "필터 조건에 맞는 알림 목록")
 public record NotificationListOpenApiSchema(
-    @Schema(description = "cursor를 제외한 동일 필터 조건의 전체 알림 수", example = "2")
-        long totalCount,
     @Schema(description = "id 내림차순 알림 목록") List<Item> items) {
 
   /**
@@ -32,8 +30,7 @@ public record NotificationListOpenApiSchema(
       @Schema(description = "알림 내용") String content,
       @Schema(description = "알림 타입") NotificationType type,
       @Schema(description = "알림 카테고리") NotificationCategory category,
-      @Schema(description = "PENDING/SENT/FAILED 전달 상태이며 읽음 여부와 무관함")
-          NotificationStatus status,
+      @Schema(description = "PENDING/SENT/FAILED 전달 상태이며 읽음 여부와 무관함") NotificationStatus status,
       @Schema(description = "읽음 상태의 SSOT", example = "false") Boolean isRead,
       @Schema(
               description = "알림 생성 시각, Asia/Seoul +09:00 offset",
@@ -54,8 +51,7 @@ public record NotificationListOpenApiSchema(
    */
   @Schema(name = "NotificationAction", description = "앱과 웹이 내부 route로 변환하는 의미 기반 Action")
   public record Action(
-      @Schema(description = "허용된 Action 타입", example = "OPEN_REVIEW")
-          NotificationActionType type,
+      @Schema(description = "허용된 Action 타입", example = "OPEN_REVIEW") NotificationActionType type,
       @Schema(description = "Action 타입에 따른 이동 대상 식별자", example = "10") Long targetId,
       @Schema(
               description = "Action 타입별 payload",
@@ -75,8 +71,7 @@ public record NotificationListOpenApiSchema(
   @Schema(
       name = "NotificationActionPayload",
       oneOf = {OpenReviewActionPayload.class, OpenHelpActionPayload.class})
-  public sealed interface ActionPayload
-      permits OpenReviewActionPayload, OpenHelpActionPayload {}
+  public sealed interface ActionPayload permits OpenReviewActionPayload, OpenHelpActionPayload {}
 
   /**
    * 리뷰 상세 화면에서 강조할 댓글 정보를 표현한다.
@@ -85,8 +80,7 @@ public record NotificationListOpenApiSchema(
    */
   @Schema(name = "OpenReviewActionPayload", description = "리뷰 상세에서 강조할 댓글 정보")
   public record OpenReviewActionPayload(
-      @Schema(description = "강조 대상 댓글 식별자, 삭제된 댓글이면 강조를 생략함", example = "20")
-          Long replyId)
+      @Schema(description = "강조 대상 댓글 식별자, 삭제된 댓글이면 강조를 생략함", example = "20") Long replyId)
       implements ActionPayload {}
 
   /**

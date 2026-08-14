@@ -28,15 +28,13 @@ class NotificationOpenApiContractIntegrationTest extends OpenApiSpecTestSupport 
                 .map(parameter -> parameter.path("name").asText())
                 .toList())
         .containsExactlyInAnyOrder(
-            "cursor", "pageSize", "types", "categories", "readStatus", "createdFrom", "createdTo");
-    assertParameterSchema(operation, "cursor", "integer", "int64");
-    assertThat(parameter(operation, "cursor").at("/schema").has("minimum")).isTrue();
-    assertThat(parameter(operation, "cursor").at("/schema/minimum").asLong()).isZero();
-    assertParameterSchema(operation, "pageSize", "integer", "int64");
-    assertThat(parameter(operation, "pageSize").at("/schema").has("minimum")).isTrue();
-    assertThat(parameter(operation, "pageSize").at("/schema").has("maximum")).isTrue();
-    assertThat(parameter(operation, "pageSize").at("/schema/minimum").asLong()).isEqualTo(1L);
-    assertThat(parameter(operation, "pageSize").at("/schema/maximum").asLong()).isEqualTo(100L);
+            "cursor", "size", "types", "categories", "readStatus", "createdFrom", "createdTo");
+    assertParameterSchema(operation, "cursor", "string", null);
+    assertParameterSchema(operation, "size", "integer", "int32");
+    assertThat(parameter(operation, "size").at("/schema").has("minimum")).isTrue();
+    assertThat(parameter(operation, "size").at("/schema").has("maximum")).isTrue();
+    assertThat(parameter(operation, "size").at("/schema/minimum").asLong()).isEqualTo(1L);
+    assertThat(parameter(operation, "size").at("/schema/maximum").asLong()).isEqualTo(100L);
     assertThat(parameter(operation, "types").at("/schema/type").asText()).isEqualTo("array");
     assertThat(parameter(operation, "categories").at("/schema/type").asText()).isEqualTo("array");
     assertParameterSchema(operation, "readStatus", "string", null);
@@ -50,15 +48,11 @@ class NotificationOpenApiContractIntegrationTest extends OpenApiSpecTestSupport 
     assertParameterSchema(operation, "createdTo", "string", "date-time");
 
     JsonNode responseSchema =
-        resolve(
-            spec,
-            operation
-                .definition()
-                .at("/responses/200/content/application~1json/schema"));
+        resolve(spec, operation.definition().at("/responses/200/content/application~1json/schema"));
     JsonNode listSchema = resolve(spec, responseSchema.path("properties").path("data"));
-    JsonNode itemSchema =
-        resolve(spec, listSchema.path("properties").path("items").path("items"));
-    assertThat(propertyNamesOf(itemSchema)).contains("status", "isRead", "createAt", "readAt", "action");
+    JsonNode itemSchema = resolve(spec, listSchema.path("properties").path("items").path("items"));
+    assertThat(propertyNamesOf(itemSchema))
+        .contains("status", "isRead", "createAt", "readAt", "action");
     assertThat(itemSchema.path("properties").path("status").path("description").asText())
         .contains("전달 상태", "읽음 여부와 무관");
     assertThat(itemSchema.path("properties").path("createAt").path("description").asText())
@@ -71,15 +65,13 @@ class NotificationOpenApiContractIntegrationTest extends OpenApiSpecTestSupport 
         .containsExactlyInAnyOrder("type", "targetId", "payload", "version", "fallbackType");
     assertThat(actionSchema.path("properties").path("fallbackType").path("description").asText())
         .contains("fallback");
-    JsonNode actionTypeSchema =
-        resolve(spec, actionSchema.path("properties").path("type"));
+    JsonNode actionTypeSchema = resolve(spec, actionSchema.path("properties").path("type"));
     assertThat(
             StreamSupport.stream(actionTypeSchema.path("enum").spliterator(), false)
                 .map(JsonNode::asText)
                 .toList())
         .contains("OPEN_REVIEW", "OPEN_HELP");
-    JsonNode payloadSchema =
-        resolve(spec, actionSchema.path("properties").path("payload"));
+    JsonNode payloadSchema = resolve(spec, actionSchema.path("properties").path("payload"));
     assertThat(propertyNamesOf(payloadSchema)).containsExactly("replyId");
     assertThat(spec.at("/components/schemas/OpenHelpActionPayload/properties").isEmpty()).isTrue();
   }
