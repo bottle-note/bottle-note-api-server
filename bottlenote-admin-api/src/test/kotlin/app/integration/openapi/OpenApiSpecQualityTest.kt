@@ -43,11 +43,14 @@ class OpenApiSpecQualityTest : OpenApiSpecTestSupport() {
 	@Test
 	@DisplayName("모든 파라미터는 schema, content 또는 참조를 갖는다")
 	fun everyParameterHasSchemaSource() {
-		val violations = operationsOf(fetchSpec()).flatMap { operation ->
-			operation.definition.path("parameters")
-				.filter { parameter -> !hasParameterSchema(parameter) }
-				.map { parameter -> "${operation.endpoint()} - ${parameter.path("name").asText("<unnamed>")}" }
+		val spec = fetchSpec()
+		val pathViolations = spec.at("/paths").properties().flatMap { path ->
+			parameterViolations("${path.key} [path]", path.value.path("parameters"))
 		}
+		val operationViolations = operationsOf(spec).flatMap { operation ->
+			parameterViolations(operation.endpoint(), operation.definition.path("parameters"))
+		}
+		val violations = pathViolations + operationViolations
 
 		assertThat(violations)
 			.withFailMessage("파라미터에 schema, content 또는 \$ref가 없습니다:%n%s", joined(violations))
@@ -77,8 +80,13 @@ class OpenApiSpecQualityTest : OpenApiSpecTestSupport() {
 			.isEmpty()
 	}
 
+	private fun parameterViolations(owner: String, parameters: JsonNode): List<String> =
+		parameters
+			.filter { parameter -> !hasParameterSchema(parameter) }
+			.map { parameter -> "$owner - ${parameter.path("name").asText("<unnamed>")}" }
+
 	private fun hasParameterSchema(parameter: JsonNode): Boolean =
-		parameter.path("\$ref").isTextual ||
+		parameter.path("\$ref").asText("").isNotBlank() ||
 			!parameter.path("schema").isEmpty ||
 			!parameter.path("content").isEmpty
 

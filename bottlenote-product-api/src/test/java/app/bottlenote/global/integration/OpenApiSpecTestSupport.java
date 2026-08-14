@@ -9,11 +9,15 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Value;
 
 /** 생성된 OpenAPI 스펙을 읽어 검사하는 테스트들의 공통 기반. */
 abstract class OpenApiSpecTestSupport extends IntegrationTestSupport {
+
+  private static final Set<String> HTTP_METHODS =
+      Set.of("get", "put", "post", "delete", "options", "head", "patch", "trace");
 
   // 스펙 경로의 SSOT는 springdoc.api-docs.path 프로퍼티다
   @Value("${springdoc.api-docs.path}")
@@ -34,6 +38,7 @@ abstract class OpenApiSpecTestSupport extends IntegrationTestSupport {
         .flatMap(
             path ->
                 path.getValue().properties().stream()
+                    .filter(method -> HTTP_METHODS.contains(method.getKey()))
                     .map(
                         method ->
                             new SpecOperation(path.getKey(), method.getKey(), method.getValue())))
