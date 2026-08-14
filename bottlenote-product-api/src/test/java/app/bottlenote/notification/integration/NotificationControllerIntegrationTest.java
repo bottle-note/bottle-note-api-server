@@ -67,8 +67,7 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
 
       result.assertThat().hasStatusOk();
       JsonNode data = responseData(result);
-      assertThat(fieldNames(data)).containsExactlyInAnyOrder("totalCount", "items");
-      assertThat(data.path("totalCount").asLong()).isEqualTo(2);
+      assertThat(fieldNames(data)).containsExactly("items");
       assertThat(data.path("items")).hasSize(2);
       assertThat(data.path("items").get(0).path("id").asLong()).isEqualTo(newer.getId());
       assertThat(data.path("items").get(0).path("title").asText()).isEqualTo("new-title");
@@ -90,10 +89,9 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
       assertThat(data.path("items").get(0).path("createAt").asText()).endsWith("+09:00");
       assertThat(data.path("items").get(0).path("readAt").isNull()).isTrue();
 
-      JsonNode pageable = responseMeta(result).path("pageable");
-      assertThat(pageable.path("currentCursor").asLong()).isZero();
-      assertThat(pageable.path("pageSize").asLong()).isEqualTo(10L);
-      assertThat(pageable.path("hasNext").asBoolean()).isFalse();
+      JsonNode pagination = responseMeta(result).path("pagination");
+      assertThat(pagination.path("hasNext").asBoolean()).isFalse();
+      assertThat(pagination.path("nextCursor").isNull()).isTrue();
     }
 
     @Test
@@ -109,25 +107,24 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
       MvcTestResult first =
           mockMvcTester
               .get()
-              .uri(BASE + "?cursor=0&pageSize=2")
+              .uri(BASE + "?size=2")
               .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
               .exchange();
 
       first.assertThat().hasStatusOk();
       JsonNode firstData = responseData(first);
-      assertThat(firstData.path("totalCount").asLong()).isEqualTo(3);
       assertThat(firstData.path("items")).hasSize(2);
       assertThat(firstData.path("items").get(0).path("id").asLong()).isEqualTo(n3.getId());
       assertThat(firstData.path("items").get(1).path("id").asLong()).isEqualTo(n2.getId());
-      JsonNode firstPageable = responseMeta(first).path("pageable");
-      assertThat(firstPageable.path("hasNext").asBoolean()).isTrue();
-      // nextCursor = 마지막 반환 item id
-      assertThat(firstPageable.path("cursor").asLong()).isEqualTo(n2.getId());
+      JsonNode firstPagination = responseMeta(first).path("pagination");
+      assertThat(firstPagination.path("hasNext").asBoolean()).isTrue();
+      String nextCursor = firstPagination.path("nextCursor").asText();
+      assertThat(nextCursor).isNotBlank();
 
       MvcTestResult second =
           mockMvcTester
               .get()
-              .uri(BASE + "?cursor=" + n2.getId() + "&pageSize=2")
+              .uri(BASE + "?cursor=" + nextCursor + "&size=2")
               .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
               .exchange();
 
@@ -135,15 +132,12 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
       JsonNode secondData = responseData(second);
       assertThat(secondData.path("items")).hasSize(1);
       assertThat(secondData.path("items").get(0).path("id").asLong()).isEqualTo(n1.getId());
-      assertThat(responseMeta(second).path("pageable").path("hasNext").asBoolean()).isFalse();
-      assertThat(responseMeta(second).path("pageable").path("cursor").asLong())
-          .isEqualTo(n1.getId());
+      assertThat(responseMeta(second).path("pagination").path("hasNext").asBoolean()).isFalse();
     }
 
     @Test
     @DisplayName("타입 카테고리 읽음 상태를 결합해 본인 알림만 조회한다")
-    void getNotifications_whenFiltersCombined_returnsMatchingOwnNotifications()
-        throws Exception {
+    void getNotifications_whenFiltersCombined_returnsMatchingOwnNotifications() throws Exception {
       User user = userTestFactory.persistUser();
       User other = userTestFactory.persistUser();
       TokenItem token = getToken(user);
@@ -170,15 +164,13 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
 
       result.assertThat().hasStatusOk();
       JsonNode data = responseData(result);
-      assertThat(data.path("totalCount").asLong()).isOne();
       assertThat(data.path("items")).hasSize(1);
       assertThat(data.path("items").get(0).path("id").asLong()).isEqualTo(matching.getId());
     }
 
     @Test
     @DisplayName("빈 타입과 카테고리 query는 전체 알림을 조회한다")
-    void getNotifications_whenCollectionQueriesAreEmpty_returnsAllNotifications()
-        throws Exception {
+    void getNotifications_whenCollectionQueriesAreEmpty_returnsAllNotifications() throws Exception {
       User user = userTestFactory.persistUser();
       TokenItem token = getToken(user);
       seedNotification(user.getId(), "review");
@@ -199,7 +191,6 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
               .exchange();
 
       result.assertThat().hasStatusOk();
-      assertThat(responseData(result).path("totalCount").asLong()).isEqualTo(2);
       assertThat(responseData(result).path("items")).hasSize(2);
     }
 
@@ -216,24 +207,22 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
       MvcTestResult first =
           mockMvcTester
               .get()
-              .uri(BASE + "?types=USER&readStatus=ALL&pageSize=2")
+              .uri(BASE + "?types=USER&readStatus=ALL&size=2")
               .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
               .exchange();
       JsonNode firstData = responseData(first);
-      long cursor = responseMeta(first).path("pageable").path("cursor").asLong();
+      String cursor = responseMeta(first).path("pagination").path("nextCursor").asText();
 
       MvcTestResult second =
           mockMvcTester
               .get()
-              .uri(BASE + "?types=USER&readStatus=ALL&pageSize=2&cursor=" + cursor)
+              .uri(BASE + "?types=USER&readStatus=ALL&size=2&cursor=" + cursor)
               .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
               .exchange();
       JsonNode secondData = responseData(second);
 
       first.assertThat().hasStatusOk();
       second.assertThat().hasStatusOk();
-      assertThat(firstData.path("totalCount").asLong()).isEqualTo(3);
-      assertThat(secondData.path("totalCount").asLong()).isEqualTo(3);
       assertThat(firstData.path("items").get(0).path("id").asLong()).isEqualTo(n3.getId());
       assertThat(firstData.path("items").get(1).path("id").asLong()).isEqualTo(n2.getId());
       assertThat(secondData.path("items").get(0).path("id").asLong()).isEqualTo(n1.getId());
@@ -254,15 +243,13 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
       MvcTestResult result =
           mockMvcTester
               .get()
-              .uri(
-                  BASE
-                      + "?createdFrom=2026-08-10T00:00:00Z&createdTo=2026-08-10T01:00:00Z")
+              .uri(BASE + "?createdFrom=2026-08-10T00:00:00Z&createdTo=2026-08-10T01:00:00Z")
               .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
               .exchange();
 
       result.assertThat().hasStatusOk();
       JsonNode data = responseData(result);
-      assertThat(data.path("totalCount").asLong()).isEqualTo(2);
+      assertThat(data.path("items")).hasSize(2);
       assertThat(data.path("items").get(0).path("id").asLong()).isEqualTo(inside.getId());
       assertThat(data.path("items").get(1).path("id").asLong()).isEqualTo(from.getId());
     }
@@ -372,8 +359,7 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
       User user = userTestFactory.persistUser();
       TokenItem token = getToken(user);
       Notification valid =
-          seedActionNotification(
-              user.getId(), "valid", NotificationAction.openReview(10L, 20L));
+          seedActionNotification(user.getId(), "valid", NotificationAction.openReview(10L, 20L));
       Notification unknownType =
           seedRawActionNotification(
               user.getId(),
@@ -397,11 +383,7 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
               JsonNodeFactory.instance.textNode("invalid"));
       Notification incompletePayload =
           seedRawActionNotification(
-              user.getId(),
-              "incomplete",
-              "OPEN_REVIEW",
-              1,
-              JsonNodeFactory.instance.objectNode());
+              user.getId(), "incomplete", "OPEN_REVIEW", 1, JsonNodeFactory.instance.objectNode());
 
       MvcTestResult result =
           mockMvcTester
@@ -674,8 +656,7 @@ class NotificationControllerIntegrationTest extends IntegrationTestSupport {
     return seedNotification(userId, title, NotificationStatus.PENDING);
   }
 
-  private Notification seedNotification(
-      Long userId, String title, NotificationStatus status) {
+  private Notification seedNotification(Long userId, String title, NotificationStatus status) {
     return notificationRepository.save(
         Notification.builder()
             .userId(userId)

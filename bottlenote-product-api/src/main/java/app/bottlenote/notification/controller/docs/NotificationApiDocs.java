@@ -36,15 +36,15 @@ public final class NotificationApiDocs {
           """
           인증 사용자 본인의 알림을 최신순(id desc) keyset 커서 페이징으로 반환합니다. 타 사용자 알림은 포함되지 않습니다.
 
-          - `cursor`: 직전 페이지 마지막 알림 id. 미지정/0이면 최신부터 조회
-          - `pageSize`: 페이지 크기 (기본 10, 최대 100)
+          - `cursor`: HMAC 커서. 미지정하면 최신부터 조회
+          - `size`: 페이지 크기 (기본 10, 최대 100)
           - `types`: 알림 타입 목록. 미지정 또는 빈 목록이면 전체
           - `categories`: 알림 카테고리 목록. 미지정 또는 빈 목록이면 전체
           - `readStatus`: 읽음 필터 (`ALL`, `UNREAD`, `READ`, 기본 `ALL`). `isRead` 기준
           - `createdFrom`: 생성 시각 하한(포함), ISO-8601 OffsetDateTime
           - `createdTo`: 생성 시각 상한(제외), ISO-8601 OffsetDateTime
           - 시각 offset은 동일 instant의 Asia/Seoul 시각으로 정규화하며, from은 to보다 이전이어야 함
-          - 응답 `meta.pageable.cursor`는 이번 페이지 마지막 item id(다음 요청용 nextCursor)
+          - 다음 페이지는 `meta.pagination.nextCursor`를 그대로 보낸다
           - `isRead/readAt`은 읽음 상태, `status`는 PENDING/SENT/FAILED 전달 상태로 서로 독립
           - `createAt/readAt` 값은 Asia/Seoul `+09:00` offset으로 반환하고 `readAt`은 null일 수 있음
 
@@ -61,30 +61,21 @@ public final class NotificationApiDocs {
       parameters = {
         @Parameter(
             name = "cursor",
-            description = "직전 페이지 마지막 알림 id (keyset, 0이면 최초)",
-            example = "0",
-            schema = @Schema(type = "integer", format = "int64", minimum = "0")),
+            description = "HMAC 커서. 미지정 시 첫 페이지",
+            schema = @Schema(type = "string")),
         @Parameter(
-            name = "pageSize",
+            name = "size",
             description = "페이지 크기",
             example = "10",
-            schema = @Schema(type = "integer", format = "int64", minimum = "1", maximum = "100")),
+            schema = @Schema(type = "integer", format = "int32", minimum = "1", maximum = "100")),
         @Parameter(
             name = "types",
             description = "알림 타입 배열. 미지정 또는 빈 배열이면 전체",
-            array =
-                @ArraySchema(
-                    schema =
-                        @Schema(
-                            implementation = NotificationType.class))),
+            array = @ArraySchema(schema = @Schema(implementation = NotificationType.class))),
         @Parameter(
             name = "categories",
             description = "알림 카테고리 배열. 미지정 또는 빈 배열이면 전체",
-            array =
-                @ArraySchema(
-                    schema =
-                        @Schema(
-                            implementation = NotificationCategory.class))),
+            array = @ArraySchema(schema = @Schema(implementation = NotificationCategory.class))),
         @Parameter(
             name = "readStatus",
             description = "읽음 필터 (ALL, UNREAD, READ)",
@@ -106,8 +97,7 @@ public final class NotificationApiDocs {
               responseCode = "200",
               description = "알림 목록",
               content =
-                  @Content(
-                      schema = @Schema(implementation = NotificationListOpenApiSchema.class))))
+                  @Content(schema = @Schema(implementation = NotificationListOpenApiSchema.class))))
   public @interface GetNotifications {}
 
   @Target(ElementType.METHOD)

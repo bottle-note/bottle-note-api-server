@@ -124,8 +124,7 @@ class ReviewReplyIntegrationTest extends IntegrationTestSupport {
               .get()
               .uri("/api/v1/review/reply/{reviewId}", review.getId())
               .contentType(APPLICATION_JSON)
-              .param("cursor", "0")
-              .param("pageSize", "50")
+              .param("size", "50")
               .with(csrf())
               .exchange();
 
@@ -230,8 +229,12 @@ class ReviewReplyIntegrationTest extends IntegrationTestSupport {
           extractData(listResult, RootReviewReplyResponse.class);
 
       assertEquals(
-          rootReviewReplyResponse.reviewReplies().get(0).reviewReplyContent(),
-          DELETED.getMessage());
+          DELETED.getMessage(),
+          rootReviewReplyResponse.reviewReplies().stream()
+              .filter(item -> item.userId().equals(replyAuthor1.getId()))
+              .findFirst()
+              .orElseThrow()
+              .reviewReplyContent());
     }
   }
 }

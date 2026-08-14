@@ -196,7 +196,10 @@ public class AlcoholQuerySupporter {
   /** HMAC 커서 RANDOM용 CRC32 랭크. {@code CRC32(CONCAT(seed, '-', id))} */
   public NumberExpression<Long> crc32Rank(long seed) {
     return Expressions.numberTemplate(
-        Long.class, "function('crc32', concat({0}, '-', {1}))", String.valueOf(seed), alcohol.id);
+        Long.class,
+        "cast(function('crc32', concat({0}, '-', {1})) as long)",
+        String.valueOf(seed),
+        alcohol.id);
   }
 
   /** 탐색 keyset에 쓰는 정렬 점수. RANDOM은 {@link #crc32Rank(long)} 를 쓴다. */
