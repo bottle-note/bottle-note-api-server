@@ -1,6 +1,7 @@
 package app.bottlenote.user.dto.response;
 
 import app.bottlenote.user.dto.response.MyBottleResponse.BaseMyBottleInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDateTime;
 import lombok.Builder;
 
@@ -10,4 +11,5 @@ public record RatingMyBottleItem(
     Double myRatingPoint,
     Double averageRatingPoint,
     Long averageRatingCount,
-    LocalDateTime ratingModifyAt) {}
+    LocalDateTime ratingModifyAt,
+    @JsonIgnore LocalDateTime lastReviewAt) {}

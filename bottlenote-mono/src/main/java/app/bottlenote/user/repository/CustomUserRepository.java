@@ -1,6 +1,6 @@
 package app.bottlenote.user.repository;
 
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.user.constant.UserStatus;
 import app.bottlenote.user.constant.UserType;
 import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;

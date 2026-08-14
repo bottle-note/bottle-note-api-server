@@ -48,7 +48,7 @@ public final class UserMyPageApiDocs {
           대상 사용자가 리뷰를 쓴 위스키를 커서 방식으로 가져옵니다.
 
           다른 사용자의 목록을 볼 때는 비공개 리뷰가 제외됩니다.
-          다음 페이지 정보는 meta.pageable, 조회 조건은 meta.searchParameters에 담깁니다.
+          다음 페이지 정보는 meta.pagination, 조회 조건은 meta.searchParameters에 담깁니다.
           """,
       responses =
           @ApiResponse(

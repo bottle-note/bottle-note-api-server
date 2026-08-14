@@ -1,6 +1,6 @@
 package app.bottlenote.user.domain;
 
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.user.dto.dsl.MyBottlePageableCriteria;
 import app.bottlenote.user.dto.request.AdminUserSearchRequest;
 import app.bottlenote.user.dto.response.AdminUserListResponse;

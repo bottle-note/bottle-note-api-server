@@ -7,7 +7,9 @@ import static app.bottlenote.review.domain.QReview.review;
 import static app.bottlenote.user.domain.QFollow.follow;
 import static com.querydsl.jpa.JPAExpressions.select;
 
-import app.bottlenote.global.service.cursor.CursorPageable;
+import app.bottlenote.global.pagination.CursorClaims;
+import app.bottlenote.global.pagination.HmacCursorCodec;
+import app.bottlenote.global.pagination.TimeIdCursor;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.user.constant.FollowStatus;
@@ -19,10 +21,14 @@ import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.DateTimeExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.util.StringUtils;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -91,35 +97,85 @@ public class UserQuerySupporter {
     return Expressions.asBoolean(Objects.equals(userId, currentUserId));
   }
 
-  /**
-   * 마이 보틀 CursorPageable 생성
-   *
-   * @param request MyBottlePageableCriteria
-   * @param myBottleList List<MyBottleResponse.MyBottleInfo>
-   * @return CursorPageable
-   */
-  public CursorPageable myBottleCursorPageable(
-      MyBottlePageableCriteria request, List<?> myBottleList) {
-
-    boolean hasNext = isHasNext(request, myBottleList);
-
-    return CursorPageable.builder()
-        .cursor(request.cursor() + request.pageSize())
-        .pageSize(request.pageSize())
-        .hasNext(hasNext)
-        .currentCursor(request.cursor())
-        .build();
-  }
-
   public <T> List<T> myBottlePageItems(MyBottlePageableCriteria request, List<T> myBottleList) {
-    if (!isHasNext(request, myBottleList)) {
+    if (myBottleList.size() <= request.size()) {
       return myBottleList;
     }
-    return myBottleList.stream().limit(request.pageSize()).toList();
+    return myBottleList.stream().limit(request.size()).toList();
   }
 
-  private boolean isHasNext(MyBottlePageableCriteria request, List<?> myBottleList) {
-    return myBottleList.size() > request.pageSize();
+  public BooleanExpression myBottleSeek(
+      MyBottleType tab, MyBottlePageableCriteria request, HmacCursorCodec cursorCodec) {
+    if (request.cursor() == null) {
+      return null;
+    }
+    CursorClaims claims = cursorCodec.verify(request.cursor(), request.context(tab));
+    long lastId = TimeIdCursor.id(claims);
+    boolean desc = request.sortOrder() != SortOrder.ASC;
+    return switch (request.sortType()) {
+      case LATEST -> timeSeek(latestTimeExpression(tab), TimeIdCursor.time(claims), lastId, desc);
+      case REVIEW ->
+          timeSeek(
+              reviewSortExpression(tab, request.userId()), TimeIdCursor.time(claims), lastId, desc);
+      case RATING ->
+          scoreSeek(
+              ratingSortExpression(tab, request.userId()),
+              Double.parseDouble(claims.sortKeys().getOrDefault("score", "0")),
+              lastId,
+              desc);
+    };
+  }
+
+  public String encodeMyBottleCursor(
+      MyBottleType tab,
+      MyBottlePageableCriteria request,
+      Long alcoholId,
+      LocalDateTime latestAt,
+      LocalDateTime reviewAt,
+      Double ratingScore,
+      HmacCursorCodec cursorCodec) {
+    Map<String, String> keys =
+        switch (request.sortType()) {
+          case LATEST ->
+              TimeIdCursor.keys(latestAt == null ? LocalDateTime.MIN : latestAt, alcoholId);
+          case REVIEW ->
+              TimeIdCursor.keys(reviewAt == null ? LocalDateTime.MIN : reviewAt, alcoholId);
+          case RATING ->
+              Map.of(
+                  "id",
+                  String.valueOf(alcoholId),
+                  "score",
+                  String.valueOf(ratingScore == null ? 0.0 : ratingScore));
+        };
+    return cursorCodec.encode(request.context(tab), keys);
+  }
+
+  public Expression<LocalDateTime> latestTimeExpression(MyBottleType tab) {
+    return switch (tab) {
+      case PICK -> picks.lastModifyAt;
+      case REVIEW -> review.lastModifyAt;
+      case RATING -> rating.lastModifyAt;
+    };
+  }
+
+  private BooleanExpression timeSeek(
+      Expression<? extends Comparable<?>> expression,
+      LocalDateTime lastTime,
+      long lastId,
+      boolean desc) {
+    DateTimeExpression<LocalDateTime> time =
+        Expressions.dateTimeTemplate(LocalDateTime.class, "{0}", expression);
+    BooleanExpression moved = desc ? time.lt(lastTime) : time.gt(lastTime);
+    BooleanExpression idMoved = desc ? alcohol.id.lt(lastId) : alcohol.id.gt(lastId);
+    return moved.or(time.eq(lastTime).and(idMoved));
+  }
+
+  private BooleanExpression scoreSeek(
+      Expression<? extends Comparable<?>> expression, double lastScore, long lastId, boolean desc) {
+    NumberExpression<Double> score = Expressions.numberTemplate(Double.class, "{0}", expression);
+    BooleanExpression moved = desc ? score.lt(lastScore) : score.gt(lastScore);
+    BooleanExpression idMoved = desc ? alcohol.id.lt(lastId) : alcohol.id.gt(lastId);
+    return moved.or(score.eq(lastScore).and(idMoved));
   }
 
   /** 지역(리전) 검색조건 (부모 지역이면 하위 지역 포함) */
@@ -168,7 +224,7 @@ public class UserQuerySupporter {
     return new OrderSpecifier<>(order, expression).nullsLast();
   }
 
-  private Expression<? extends Comparable<?>> ratingSortExpression(
+  public Expression<? extends Comparable<?>> ratingSortExpression(
       MyBottleType tabType, Long userId) {
     if (tabType == MyBottleType.RATING) {
       return rating.ratingPoint.rating.max();
@@ -184,7 +240,7 @@ public class UserQuerySupporter {
                 .and(rating.ratingPoint.rating.gt(0.0)));
   }
 
-  private Expression<? extends Comparable<?>> reviewSortExpression(
+  public Expression<? extends Comparable<?>> reviewSortExpression(
       MyBottleType tabType, Long userId) {
     if (tabType == MyBottleType.REVIEW) {
       return review.createAt.max();
