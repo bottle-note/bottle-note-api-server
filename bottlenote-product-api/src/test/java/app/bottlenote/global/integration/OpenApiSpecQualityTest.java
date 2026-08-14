@@ -2,8 +2,10 @@ package app.bottlenote.global.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -45,6 +47,29 @@ class OpenApiSpecQualityTest extends OpenApiSpecTestSupport {
   }
 
   @Test
+  @DisplayName("모든 파라미터는 schema, content 또는 참조를 갖는다")
+  void 모든_파라미터가_스키마_근거를_갖는다() {
+    var violations =
+        operationsOf(fetchSpec()).stream()
+            .flatMap(
+                operation ->
+                    StreamSupport.stream(
+                            operation.definition().path("parameters").spliterator(), false)
+                        .filter(parameter -> !hasParameterSchema(parameter))
+                        .map(
+                            parameter ->
+                                "%s - %s"
+                                    .formatted(
+                                        operation.endpoint(), parameter.path("name").asText("<unnamed>"))))
+            .toList();
+
+    assertThat(violations)
+        .withFailMessage(
+            "파라미터에 schema, content 또는 $ref가 없습니다:%n%s", joined(violations))
+        .isEmpty();
+  }
+
+  @Test
   @DisplayName("components 하위 이름은 OpenAPI가 허용하는 식별자 형식이다")
   void components_이름이_식별자_형식이다() {
     var components = fetchSpec().at("/components");
@@ -65,6 +90,12 @@ class OpenApiSpecQualityTest extends OpenApiSpecTestSupport {
             description으로 옮기세요. 위반하면 Scalar 같은 문서 도구가 스펙을 거부합니다:%n%s""",
             COMPONENT_NAME_PATTERN.pattern(), joined(violations))
         .isEmpty();
+  }
+
+  private boolean hasParameterSchema(JsonNode parameter) {
+    return parameter.path("$ref").isTextual()
+        || !parameter.path("schema").isEmpty()
+        || !parameter.path("content").isEmpty();
   }
 
   /** 조건을 위반하는 엔드포인트가 하나도 없어야 한다. */
