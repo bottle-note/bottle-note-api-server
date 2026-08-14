@@ -40,7 +40,7 @@ import org.springframework.test.context.TestPropertySource;
 @Import(AccessControlSecurityIntegrationTest.AccessControlStoreTestConfiguration.class)
 class AccessControlSecurityIntegrationTest extends IntegrationTestSupport {
 
-  private static final String PUBLIC_PATH = "/api/v1/alcohols/search";
+  private static final String PUBLIC_PATH = "/api/v1/alcohols/explore/standard";
 
   @Autowired private AccessControlService accessControlService;
   @Autowired private StringRedisTemplate stringRedisTemplate;

@@ -1,6 +1,5 @@
 package app.bottlenote.support.help.presentation.docs
 
-import app.bottlenote.global.service.cursor.CursorPageable
 import app.bottlenote.support.help.dto.response.AdminHelpAnswerResponse
 import app.bottlenote.support.help.dto.response.AdminHelpDetailResponse
 import app.bottlenote.support.help.dto.response.AdminHelpListResponse
@@ -25,15 +24,14 @@ object AdminHelpApiDocs {
 		description = """
 			처리 상태, 문의 유형, 커서, 페이지 크기로 문의 목록을 커서 방식으로 조회합니다.
 
-			cursor를 지정하지 않으면 0(처음)부터, pageSize를 지정하지 않으면 20건씩 조회합니다.
-			응답의 data.content는 전체 건수(totalCount)와 문의 항목 목록(helpList)을 담고,
-			data.cursorPageable은 현재 커서·다음 커서·페이지 크기·다음 페이지 존재 여부를 담습니다.
+			cursor를 지정하지 않으면 처음부터, size를 지정하지 않으면 20건씩 조회합니다.
+			다음 페이지 정보는 meta.pagination에 담깁니다.
 			""",
 		responses = [
 			ApiResponse(
 				responseCode = "200",
-				description = "문의 목록과 커서 페이징 정보",
-				content = [Content(schema = Schema(implementation = AdminHelpPageResponseSchema::class))]
+				description = "문의 목록",
+				content = [Content(schema = Schema(implementation = AdminHelpListResponse::class))]
 			)
 		]
 	)
@@ -69,9 +67,3 @@ object AdminHelpApiDocs {
 	)
 	annotation class AnswerHelp
 }
-
-@Schema(name = "AdminHelpPageResponse", description = "문의 목록과 커서 페이징 정보")
-internal data class AdminHelpPageResponseSchema(
-	val content: AdminHelpListResponse,
-	val cursorPageable: CursorPageable
-)

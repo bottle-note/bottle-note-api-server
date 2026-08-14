@@ -2,7 +2,6 @@ package app.bottlenote.alcohols.controller.docs;
 
 import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
-import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -33,7 +32,7 @@ public final class AlcoholQueryApiDocs {
           입력 중인 글자로 시작하거나 그 글자를 포함하는 위스키 이름을 가볍게 가져옵니다.
 
           검색창 자동 완성을 위한 용도라 상세 정보 없이 식별자와 이름 위주로 응답합니다.
-          다음 페이지 정보는 meta.pageable, 조회 조건은 meta.searchParameters에 담깁니다.
+          다음 페이지 정보는 meta.pagination, 조회 조건은 meta.searchParameters에 담깁니다.
           """,
       responses =
           @ApiResponse(
@@ -45,29 +44,6 @@ public final class AlcoholQueryApiDocs {
                           @ArraySchema(
                               schema = @Schema(implementation = AlcoholLookupItem.class)))))
   public @interface GetLookups {}
-
-  @Target(ElementType.METHOD)
-  @Retention(RetentionPolicy.RUNTIME)
-  @Operation(
-      summary = "조건을 걸어 위스키를 검색한다",
-      description =
-          """
-          키워드, 종류, 지역, 도수 등의 조건을 조합해 위스키를 찾습니다.
-
-          로그인하지 않아도 검색할 수 있고, 로그인한 경우 각 위스키에 본인의 찜 여부가 함께 표시됩니다.
-          일부 키워드는 서버가 기획된 큐레이션 검색으로 바꿔 처리합니다.
-          다음 페이지 정보는 meta.pageable, 검색 조건은 meta.searchParameters에 담깁니다.
-          """,
-      responses =
-          @ApiResponse(
-              responseCode = "200",
-              description = "검색된 위스키 목록",
-              content =
-                  @Content(
-                      array =
-                          @ArraySchema(
-                              schema = @Schema(implementation = AlcoholSearchResponse.class)))))
-  public @interface SearchAlcohols {}
 
   @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.RUNTIME)

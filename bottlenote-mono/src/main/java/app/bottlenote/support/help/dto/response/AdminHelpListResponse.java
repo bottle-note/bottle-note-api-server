@@ -6,10 +6,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
 
-public record AdminHelpListResponse(Long totalCount, List<AdminHelpInfo> helpList) {
+public record AdminHelpListResponse(List<AdminHelpInfo> helpList) {
 
-  public static AdminHelpListResponse of(Long totalCount, List<AdminHelpInfo> helpList) {
-    return new AdminHelpListResponse(totalCount, helpList);
+  public static AdminHelpListResponse of(List<AdminHelpInfo> helpList) {
+    return new AdminHelpListResponse(helpList);
   }
 
   @Builder

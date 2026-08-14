@@ -6,16 +6,13 @@ import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
-import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.dsl.ExploreStandardCriteria;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest;
-import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.request.ExploreStandardRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholDetailResponse;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholDetailResponse.TastingTagInfo;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailResponse;
-import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.dto.response.CategoryPairItem;
 import app.bottlenote.alcohols.dto.response.ExploreStandardResponse;
@@ -26,7 +23,6 @@ import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.global.pagination.PaginationException;
 import app.bottlenote.global.pagination.PaginationExceptionCode;
-import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.history.service.AlcoholViewHistoryService;
 import app.bottlenote.review.facade.ReviewFacade;
 import app.bottlenote.user.facade.FollowFacade;
@@ -63,13 +59,6 @@ public class AlcoholQueryService {
    * @param userId 현재 사용자 id
    * @return the page response
    */
-  @Transactional(readOnly = true)
-  public PageResponse<AlcoholSearchResponse> searchAlcohols(
-      AlcoholSearchRequest request, Long userId) {
-    AlcoholSearchCriteria criteria = AlcoholSearchCriteria.of(request, userId);
-    return alcoholQueryRepository.searchAlcohols(criteria);
-  }
-
   /**
    * 술(위스키) 상세 조회 api
    *

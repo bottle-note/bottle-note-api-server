@@ -26,12 +26,12 @@ class AdminAlcoholsController(
 	fun getAlcoholLookups(
 		@ModelAttribute @Valid request: AlcoholLookupRequest
 	): ResponseEntity<GlobalResponse> {
-		val response = alcoholLookupService.lookup(request)
+		val page = alcoholLookupService.lookup(request)
 		return GlobalResponse.ok(
-			response.items(),
+			page.content(),
 			createMetaInfo()
 				.add("searchParameters", request)
-				.add("pageable", response.pageable())
+				.add("pagination", page.pagination())
 		)
 	}
 

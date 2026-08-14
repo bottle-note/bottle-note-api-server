@@ -3,18 +3,15 @@ package app.bottlenote.alcohols.fixture;
 import app.bottlenote.alcohols.constant.AlcoholType;
 import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
-import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.dsl.ExploreStandardCriteria;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
-import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.alcohols.repository.CustomAlcoholQueryRepository.AdminAlcoholDetailProjection;
 import app.bottlenote.global.pagination.Pagination;
-import app.bottlenote.global.service.cursor.PageResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,11 +41,6 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
   @Override
   public List<Alcohol> findAllByIdIn(List<Long> ids) {
     return alcohols.values().stream().filter(alcohol -> ids.contains(alcohol.getId())).toList();
-  }
-
-  @Override
-  public PageResponse<AlcoholSearchResponse> searchAlcohols(AlcoholSearchCriteria criteriaDto) {
-    return null;
   }
 
   @Override

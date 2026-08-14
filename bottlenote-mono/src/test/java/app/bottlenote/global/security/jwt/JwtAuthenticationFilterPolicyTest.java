@@ -26,7 +26,8 @@ class JwtAuthenticationFilterPolicyTest {
               SecurityPolicyRoute.explicit("POST", "/api/v2/auth/kakao", PUBLIC),
               SecurityPolicyRoute.explicit("GET", "/api/v1/regions", PUBLIC),
               SecurityPolicyRoute.explicit("GET", "/api/v1/alcohols/categories", PUBLIC),
-              SecurityPolicyRoute.explicit("GET", "/api/v1/alcohols/search", OPTIONAL_AUTH),
+              SecurityPolicyRoute.explicit(
+                  "GET", "/api/v1/alcohols/explore/standard", OPTIONAL_AUTH),
               SecurityPolicyRoute.explicit("GET", "/api/v1/reviews/{alcoholId}", OPTIONAL_AUTH),
               SecurityPolicyRoute.explicit("PUT", "/api/v1/likes", REQUIRED_AUTH),
               SecurityPolicyRoute.explicit("PUT", "/api/v1/picks", REQUIRED_AUTH)));
@@ -46,7 +47,7 @@ class JwtAuthenticationFilterPolicyTest {
 
   @ParameterizedTest
   @CsvSource({
-    "GET, /api/v1/alcohols/search",
+    "GET, /api/v1/alcohols/explore/standard",
     "GET, /api/v1/reviews/1",
     "PUT, /api/v1/likes",
     "PUT, /api/v1/picks"
@@ -77,7 +78,8 @@ class JwtAuthenticationFilterPolicyTest {
   @Test
   @DisplayName("무토큰 optional-auth 요청에는 기존 anonymous 인증 컨텍스트를 유지한다")
   void shouldUseAnonymousAuthentication_whenOptionalAuthWithoutToken_returnsTrue() {
-    assertThat(filter.usesAnonymousAuthentication("GET", "/api/v1/alcohols/search", null)).isTrue();
+    assertThat(filter.usesAnonymousAuthentication("GET", "/api/v1/alcohols/explore/standard", null))
+        .isTrue();
   }
 
   private static HttpServletRequest request(String method, String path) {

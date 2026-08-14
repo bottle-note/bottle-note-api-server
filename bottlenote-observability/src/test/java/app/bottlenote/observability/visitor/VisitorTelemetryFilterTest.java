@@ -43,7 +43,7 @@ class VisitorTelemetryFilterTest {
         new VisitorTelemetryFilter(
             publisher, () -> 42L, request -> "203.0.113.10", FIXED_CLOCK);
     MockHttpServletRequest request =
-        new MockHttpServletRequest("GET", "/api/v1/alcohols/search");
+        new MockHttpServletRequest("GET", "/api/v1/alcohols/explore/standard");
     MockHttpServletResponse response = new MockHttpServletResponse();
 
     filter.doFilter(request, response, successfulChain());
@@ -113,7 +113,7 @@ class VisitorTelemetryFilterTest {
     CapturingPublisher publisher = new CapturingPublisher();
     VisitorTelemetryFilter filter =
         new VisitorTelemetryFilter(publisher, () -> null, request -> null, FIXED_CLOCK);
-    MockHttpServletRequest request = request("GET", "/api/v1/alcohols/search");
+    MockHttpServletRequest request = request("GET", "/api/v1/alcohols/explore/standard");
     request.setCookies(
         new Cookie(VisitorTelemetryFilter.VISITOR_COOKIE_NAME, "client-created-value"));
     MockHttpServletResponse response = new MockHttpServletResponse();
@@ -132,7 +132,7 @@ class VisitorTelemetryFilterTest {
     CapturingPublisher publisher = new CapturingPublisher();
     VisitorTelemetryFilter filter =
         new VisitorTelemetryFilter(publisher, () -> null, request -> null, FIXED_CLOCK);
-    MockHttpServletRequest request = request("GET", "/api/v1/alcohols/search");
+    MockHttpServletRequest request = request("GET", "/api/v1/alcohols/explore/standard");
     MockHttpServletResponse response = new MockHttpServletResponse();
     FilterChain chain =
         (servletRequest, servletResponse) ->
@@ -146,8 +146,8 @@ class VisitorTelemetryFilterTest {
 
   @ParameterizedTest(name = "{0} {1}")
   @CsvSource({
-    "OPTIONS, /api/v1/alcohols/search",
-    "HEAD, /api/v1/alcohols/search",
+    "OPTIONS, /api/v1/alcohols/explore/standard",
+    "HEAD, /api/v1/alcohols/explore/standard",
     "GET, /actuator/health",
     "GET, /favicon.ico"
   })
@@ -170,12 +170,12 @@ class VisitorTelemetryFilterTest {
     CapturingPublisher publisher = new CapturingPublisher();
     VisitorTelemetryFilter filter =
         new VisitorTelemetryFilter(publisher, () -> null, request -> null, FIXED_CLOCK);
-    MockHttpServletRequest androidRequest = request("GET", "/api/v1/alcohols/search");
+    MockHttpServletRequest androidRequest = request("GET", "/api/v1/alcohols/explore/standard");
     androidRequest.addHeader(
         HttpHeaders.USER_AGENT,
         "Mozilla/5.0 (Linux; Android 10; K; wv) AppleWebKit/537.36 "
             + "(KHTML, like Gecko) Version/4.0 Chrome/143.0.0.0 Mobile Safari/537.36");
-    MockHttpServletRequest iosRequest = request("GET", "/api/v1/alcohols/search");
+    MockHttpServletRequest iosRequest = request("GET", "/api/v1/alcohols/explore/standard");
     iosRequest.addHeader(
         HttpHeaders.USER_AGENT,
         "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) "
@@ -207,7 +207,7 @@ class VisitorTelemetryFilterTest {
     CapturingPublisher publisher = new CapturingPublisher();
     VisitorTelemetryFilter filter =
         new VisitorTelemetryFilter(publisher, () -> null, request -> null, FIXED_CLOCK);
-    MockHttpServletRequest request = request("GET", "/api/v1/alcohols/search");
+    MockHttpServletRequest request = request("GET", "/api/v1/alcohols/explore/standard");
     request.addHeader(HttpHeaders.USER_AGENT, userAgent);
 
     filter.doFilter(request, new MockHttpServletResponse(), successfulChain());
@@ -228,7 +228,7 @@ class VisitorTelemetryFilterTest {
             },
             () -> null,
             request -> null);
-    MockHttpServletRequest request = request("GET", "/api/v1/alcohols/search");
+    MockHttpServletRequest request = request("GET", "/api/v1/alcohols/explore/standard");
     MockHttpServletResponse response = new MockHttpServletResponse();
     FilterChain chain =
         (servletRequest, servletResponse) -> {

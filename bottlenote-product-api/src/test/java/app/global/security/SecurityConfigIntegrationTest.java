@@ -95,7 +95,7 @@ class SecurityConfigIntegrationTest extends IntegrationTestSupport {
   @Test
   @DisplayName("비회원 조회 API는 토큰이 없어도 기존처럼 허용한다")
   void 비회원_조회_API_무토큰_허용() {
-    var result = mockMvcTester.get().uri("/api/v1/alcohols/search").exchange();
+    var result = mockMvcTester.get().uri("/api/v1/alcohols/explore/standard").exchange();
 
     result.assertThat().hasStatusOk();
   }
@@ -135,7 +135,7 @@ class SecurityConfigIntegrationTest extends IntegrationTestSupport {
     var result =
         mockMvcTester
             .get()
-            .uri("/api/v1/alcohols/search")
+            .uri("/api/v1/alcohols/explore/standard")
             .header("Authorization", "Bearer invalid.token")
             .exchange();
 
@@ -149,7 +149,7 @@ class SecurityConfigIntegrationTest extends IntegrationTestSupport {
     var result =
         mockMvcTester
             .get()
-            .uri("/api/v1/alcohols/search")
+            .uri("/api/v1/alcohols/explore/standard")
             .header("Authorization", "Bearer " + getToken())
             .exchange();
 
@@ -167,7 +167,7 @@ class SecurityConfigIntegrationTest extends IntegrationTestSupport {
       SecurityContextHolder.getContext()
           .setAuthentication(new TestingAuthenticationToken("42", null));
       MockHttpServletRequest ipv4Request =
-          new MockHttpServletRequest("GET", "/api/v1/alcohols/search");
+          new MockHttpServletRequest("GET", "/api/v1/alcohols/explore/standard");
       ipv4Request.addHeader("X-Forwarded-For", "203.0.113.10, 198.51.100.1");
       ipv4Request.setRemoteAddr("192.0.2.1");
       filter.doFilter(
@@ -177,7 +177,7 @@ class SecurityConfigIntegrationTest extends IntegrationTestSupport {
               ((HttpServletResponse) response).setStatus(HttpServletResponse.SC_OK));
 
       MockHttpServletRequest ipv6Request =
-          new MockHttpServletRequest("GET", "/api/v1/alcohols/search");
+          new MockHttpServletRequest("GET", "/api/v1/alcohols/explore/standard");
       ipv6Request.addHeader("X-Forwarded-For", "unknown, 2001:0db8:0:0:0:0:0:1");
       ipv6Request.setRemoteAddr("192.0.2.2");
       filter.doFilter(
@@ -188,7 +188,7 @@ class SecurityConfigIntegrationTest extends IntegrationTestSupport {
 
       SecurityContextHolder.clearContext();
       MockHttpServletRequest fallbackRequest =
-          new MockHttpServletRequest("GET", "/api/v1/alcohols/search");
+          new MockHttpServletRequest("GET", "/api/v1/alcohols/explore/standard");
       fallbackRequest.addHeader("X-Forwarded-For", "unknown, invalid");
       fallbackRequest.setRemoteAddr("198.51.100.7");
       filter.doFilter(
@@ -198,7 +198,7 @@ class SecurityConfigIntegrationTest extends IntegrationTestSupport {
               ((HttpServletResponse) response).setStatus(HttpServletResponse.SC_OK));
 
       MockHttpServletRequest invalidRequest =
-          new MockHttpServletRequest("GET", "/api/v1/alcohols/search");
+          new MockHttpServletRequest("GET", "/api/v1/alcohols/explore/standard");
       invalidRequest.addHeader("X-Forwarded-For", "unknown");
       invalidRequest.setRemoteAddr("invalid");
       filter.doFilter(
@@ -305,7 +305,7 @@ class SecurityConfigIntegrationTest extends IntegrationTestSupport {
   private org.springframework.test.web.servlet.assertj.MvcTestResult preflight(String origin) {
     return mockMvcTester
         .options()
-        .uri("/api/v1/alcohols/search")
+        .uri("/api/v1/alcohols/explore/standard")
         .header(HttpHeaders.ORIGIN, origin)
         .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "GET")
         .header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, "authorization,content-type")

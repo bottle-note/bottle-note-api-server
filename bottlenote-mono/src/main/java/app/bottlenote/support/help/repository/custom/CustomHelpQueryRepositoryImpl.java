@@ -7,8 +7,6 @@ import app.bottlenote.global.pagination.CursorClaims;
 import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.global.pagination.Pagination;
 import app.bottlenote.global.pagination.TimeIdCursor;
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.support.help.dto.request.AdminHelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
 import app.bottlenote.support.help.dto.response.AdminHelpListResponse;
@@ -68,8 +66,11 @@ public class CustomHelpQueryRepositoryImpl implements CustomHelpQueryRepository 
   }
 
   @Override
-  public PageResponse<AdminHelpListResponse> getAdminHelpList(AdminHelpPageableRequest request) {
+  public app.bottlenote.global.pagination.PageResponse<AdminHelpListResponse> getAdminHelpList(
+      AdminHelpPageableRequest request) {
     BooleanBuilder whereClause = new BooleanBuilder();
+    String context = "admin.help:" + request.status() + ":" + request.type();
+    int size = request.size();
 
     if (request.status() != null) {
       whereClause.and(help.status.eq(request.status()));
@@ -77,6 +78,7 @@ public class CustomHelpQueryRepositoryImpl implements CustomHelpQueryRepository 
     if (request.type() != null) {
       whereClause.and(help.type.eq(request.type()));
     }
+    whereClause.and(helpSeek(request.cursor(), context));
 
     List<AdminHelpListResponse.AdminHelpInfo> fetch =
         queryFactory
@@ -85,32 +87,16 @@ public class CustomHelpQueryRepositoryImpl implements CustomHelpQueryRepository 
             .leftJoin(user)
             .on(help.userId.eq(user.id))
             .where(whereClause)
-            .orderBy(help.createAt.desc())
-            .offset(request.cursor())
-            .limit(request.pageSize() + 1)
+            .orderBy(help.createAt.desc(), help.id.desc())
+            .limit(size + 1L)
             .fetch();
 
-    Long totalCount = queryFactory.select(help.id.count()).from(help).where(whereClause).fetchOne();
-
-    CursorPageable cursorPageable = getAdminCursorPageable(request, fetch);
-    log.info("Admin CURSOR Pageable info: {}", cursorPageable.toString());
-
-    return PageResponse.of(AdminHelpListResponse.of(totalCount, fetch), cursorPageable);
-  }
-
-  private CursorPageable getAdminCursorPageable(
-      AdminHelpPageableRequest request, List<AdminHelpListResponse.AdminHelpInfo> fetch) {
-
-    boolean hasNext = fetch.size() > request.pageSize();
-    if (hasNext) {
-      fetch.remove(fetch.size() - 1);
-    }
-
-    return CursorPageable.builder()
-        .cursor(request.cursor() + request.pageSize())
-        .pageSize(request.pageSize())
-        .hasNext(hasNext)
-        .currentCursor(request.cursor())
-        .build();
+    Pagination.PageSlice<AdminHelpListResponse.AdminHelpInfo> slice =
+        Pagination.fromOverflow(
+            fetch,
+            size,
+            item -> cursorCodec.encode(context, TimeIdCursor.keys(item.createAt(), item.helpId())));
+    return app.bottlenote.global.pagination.PageResponse.of(
+        AdminHelpListResponse.of(slice.items()), slice.pagination());
   }
 }
