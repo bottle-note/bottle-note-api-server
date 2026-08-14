@@ -64,6 +64,12 @@ bottlenote:
   observability:
     visitor-telemetry:
       enabled: false
+  pagination:
+    cursor:
+      current-key-id: v1
+      current-secret: ${PAGINATION_CURSOR_SECRET}
+      previous-key-id: ${PAGINATION_CURSOR_PREVIOUS_KEY_ID:}
+      previous-secret: ${PAGINATION_CURSOR_PREVIOUS_SECRET:}
   # 앱 레이어 IP ban + rate limit (Redis 공유, multi-pod)
   access-control:
     enabled: true
