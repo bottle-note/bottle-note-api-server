@@ -8,11 +8,15 @@ import app.bottlenote.alcohols.domain.Distillery;
 import app.bottlenote.alcohols.domain.Region;
 import app.bottlenote.alcohols.dto.request.AlcoholLookupRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
+import app.bottlenote.alcohols.dto.response.AlcoholLookupListResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupSnapshotItem;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholLookupSnapshotStore;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholQueryRepository;
 import app.bottlenote.alcohols.service.AlcoholLookupService.AlcoholLookupSyncResult;
-import app.bottlenote.global.service.cursor.CursorResponse;
+import app.bottlenote.global.pagination.CursorProperties;
+import app.bottlenote.global.pagination.HmacCursorCodec;
+import app.bottlenote.global.pagination.PageResponse;
+import java.time.Clock;
 import java.util.List;
 import java.util.stream.LongStream;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +36,14 @@ class AlcoholLookupServiceTest {
   void setUp() {
     alcoholQueryRepository = new InMemoryAlcoholQueryRepository();
     snapshotStore = new InMemoryAlcoholLookupSnapshotStore();
-    alcoholLookupService = new AlcoholLookupService(alcoholQueryRepository, snapshotStore);
+    CursorProperties properties = new CursorProperties();
+    properties.setCurrentKeyId("v1");
+    properties.setCurrentSecret("test-pagination-cursor-secret");
+    alcoholLookupService =
+        new AlcoholLookupService(
+            alcoholQueryRepository,
+            snapshotStore,
+            new HmacCursorCodec(properties, Clock.systemUTC()));
   }
 
   @Test
@@ -46,19 +57,28 @@ class AlcoholLookupServiceTest {
             .category("SINGLE_MALT")
             .regionId(1L)
             .distilleryId(10L)
-            .cursor(20L)
-            .pageSize(20L)
+            .size(20)
             .build();
 
     // when
-    CursorResponse<AlcoholLookupItem> response = alcoholLookupService.lookup(request);
+    PageResponse<AlcoholLookupListResponse> first = alcoholLookupService.lookup(request);
+    PageResponse<AlcoholLookupListResponse> second =
+        alcoholLookupService.lookup(
+            AlcoholLookupRequest.builder()
+                .keyword("macallan speyside")
+                .category("SINGLE_MALT")
+                .regionId(1L)
+                .distilleryId(10L)
+                .cursor(first.pagination().nextCursor())
+                .size(20)
+                .build());
 
     // then
-    assertThat(response.items()).hasSize(20);
-    assertThat(response.items().get(0).alcoholId()).isEqualTo(21L);
-    assertThat(response.pageable().getCurrentCursor()).isEqualTo(20L);
-    assertThat(response.pageable().getCursor()).isEqualTo(40L);
-    assertThat(response.pageable().getHasNext()).isTrue();
+    assertThat(first.content().items()).hasSize(20);
+    assertThat(first.content().items().get(0).alcoholId()).isEqualTo(1L);
+    assertThat(first.pagination().hasNext()).isTrue();
+    assertThat(second.content().items()).hasSize(20);
+    assertThat(second.content().items().get(0).alcoholId()).isEqualTo(21L);
   }
 
   @Test
@@ -72,13 +92,15 @@ class AlcoholLookupServiceTest {
             lookupSnapshotItem(
                 2L, "글렌피딕 12년", "Glenfiddich 12", "스페이사이드", "Speyside", "글렌피딕", "Glenfiddich")));
     AlcoholLookupRequest request =
-        AlcoholLookupRequest.builder().keyword("macallan speyside").pageSize(20L).build();
+        AlcoholLookupRequest.builder().keyword("macallan speyside").size(20).build();
 
     // when
-    CursorResponse<AlcoholLookupItem> response = alcoholLookupService.lookup(request);
+    PageResponse<AlcoholLookupListResponse> response = alcoholLookupService.lookup(request);
 
     // then
-    assertThat(response.items()).extracting(AlcoholLookupItem::alcoholId).containsExactly(1L);
+    assertThat(response.content().items())
+        .extracting(AlcoholLookupItem::alcoholId)
+        .containsExactly(1L);
   }
 
   @Test
@@ -87,13 +109,15 @@ class AlcoholLookupServiceTest {
     // given
     alcoholQueryRepository.save(createAlcohol(1L));
     AlcoholLookupRequest request =
-        AlcoholLookupRequest.builder().keyword("macallan").pageSize(20L).build();
+        AlcoholLookupRequest.builder().keyword("macallan").size(20).build();
 
     // when
-    CursorResponse<AlcoholLookupItem> response = alcoholLookupService.lookup(request);
+    PageResponse<AlcoholLookupListResponse> response = alcoholLookupService.lookup(request);
 
     // then
-    assertThat(response.items()).extracting(AlcoholLookupItem::alcoholId).containsExactly(1L);
+    assertThat(response.content().items())
+        .extracting(AlcoholLookupItem::alcoholId)
+        .containsExactly(1L);
   }
 
   @Test
@@ -104,14 +128,14 @@ class AlcoholLookupServiceTest {
     ReflectionTestUtils.setField(alcoholLookupService, "localCacheEnabled", true);
     ReflectionTestUtils.setField(alcoholLookupService, "localCacheVersionCheckIntervalMs", 60_000L);
     AlcoholLookupRequest request =
-        AlcoholLookupRequest.builder().keyword("macallan").pageSize(20L).build();
+        AlcoholLookupRequest.builder().keyword("macallan").size(20).build();
 
     // when
     alcoholLookupService.lookup(request);
-    CursorResponse<AlcoholLookupItem> response = alcoholLookupService.lookup(request);
+    PageResponse<AlcoholLookupListResponse> response = alcoholLookupService.lookup(request);
 
     // then
-    assertThat(response.items()).hasSize(20);
+    assertThat(response.content().items()).hasSize(20);
     assertThat(snapshotStore.findAllCount()).isEqualTo(1);
   }
 
@@ -124,17 +148,19 @@ class AlcoholLookupServiceTest {
     ReflectionTestUtils.setField(alcoholLookupService, "localCacheEnabled", true);
     ReflectionTestUtils.setField(alcoholLookupService, "localCacheVersionCheckIntervalMs", 0L);
     AlcoholLookupRequest request =
-        AlcoholLookupRequest.builder().keyword("macallan").pageSize(20L).build();
+        AlcoholLookupRequest.builder().keyword("macallan").size(20).build();
 
     alcoholLookupService.lookup(request);
     snapshotStore.failReads();
 
     // when
-    CursorResponse<AlcoholLookupItem> response = alcoholLookupService.lookup(request);
+    PageResponse<AlcoholLookupListResponse> response = alcoholLookupService.lookup(request);
 
     // then
-    assertThat(response.items()).hasSize(20);
-    assertThat(response.items()).extracting(AlcoholLookupItem::alcoholId).doesNotContain(999L);
+    assertThat(response.content().items()).hasSize(20);
+    assertThat(response.content().items())
+        .extracting(AlcoholLookupItem::alcoholId)
+        .doesNotContain(999L);
   }
 
   @Test

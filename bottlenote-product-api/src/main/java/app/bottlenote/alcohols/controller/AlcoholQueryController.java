@@ -38,10 +38,10 @@ public class AlcoholQueryController {
   @GetMapping("/lookup")
   public ResponseEntity<GlobalResponse> getAlcoholLookups(
       @ModelAttribute @Valid AlcoholLookupRequest request) {
-    var response = alcoholLookupService.lookup(request);
+    var page = alcoholLookupService.lookup(request);
     return GlobalResponse.ok(
-        response.items(),
-        createMetaInfo().add("searchParameters", request).add("pageable", response.pageable()));
+        page.content(),
+        createMetaInfo().add("searchParameters", request).add("pagination", page.pagination()));
   }
 
   @AlcoholQueryApiDocs.SearchAlcohols

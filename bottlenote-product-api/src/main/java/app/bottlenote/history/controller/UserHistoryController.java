@@ -5,7 +5,7 @@ import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByCont
 import app.bottlenote.alcohols.dto.response.ViewHistoryItem;
 import app.bottlenote.global.data.response.CollectionResponse;
 import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.history.controller.docs.UserHistoryApiDocs;
 import app.bottlenote.history.dto.request.UserHistorySearchRequest;
@@ -40,7 +40,7 @@ public class UserHistoryController {
         userHistoryQueryService.findUserHistoryList(targetUserId, userHistorySearchRequest);
     return GlobalResponse.ok(
         userHistoryList.content(),
-        MetaService.createMetaInfo().add("pageable", userHistoryList.cursorPageable()));
+        MetaService.createMetaInfo().add("pagination", userHistoryList.pagination()));
   }
 
   @UserHistoryApiDocs.GetViewHistory

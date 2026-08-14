@@ -1,8 +1,8 @@
 package app.bottlenote.history.fixture;
 
 import app.bottlenote.alcohols.dto.response.ViewHistoryItem;
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.Pagination;
 import app.bottlenote.history.constant.EventCategory;
 import app.bottlenote.history.constant.EventType;
 import app.bottlenote.history.dto.response.UserHistoryItem;
@@ -58,13 +58,8 @@ public class HistoryQueryFixture {
             .dynamicMessage(Map.of("currentValue", "4.0"))
             .build();
 
-    Long total = 5L;
-
     List<UserHistoryItem> details = List.of(detail1, detail2);
-    CursorPageable cursorPageable =
-        CursorPageable.builder().currentCursor(0L).cursor(4L).pageSize(3L).hasNext(true).build();
-    UserHistorySearchResponse response =
-        UserHistorySearchResponse.of(total, LocalDateTime.now(), details);
-    return PageResponse.of(response, cursorPageable);
+    UserHistorySearchResponse response = UserHistorySearchResponse.of(LocalDateTime.now(), details);
+    return PageResponse.of(response, new Pagination(true, "next"));
   }
 }

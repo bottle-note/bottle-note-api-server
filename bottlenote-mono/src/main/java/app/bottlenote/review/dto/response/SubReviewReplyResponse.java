@@ -5,10 +5,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
 
-public record SubReviewReplyResponse(Long totalCount, List<Item> reviewReplies) {
+public record SubReviewReplyResponse(List<Item> reviewReplies) {
 
-  public static SubReviewReplyResponse of(Long totalCount, List<Item> reviewReplays) {
-    return new SubReviewReplyResponse(totalCount, reviewReplays);
+  public static SubReviewReplyResponse of(List<Item> reviewReplays) {
+    return new SubReviewReplyResponse(reviewReplays);
   }
 
   public record Item(

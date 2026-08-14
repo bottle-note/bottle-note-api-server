@@ -12,7 +12,8 @@ public interface CustomReviewReplyRepository {
    * @param pageSize 페이지 사이즈
    * @return 최상위 댓글 목록
    */
-  RootReviewReplyResponse getReviewRootReplies(Long reviewId, Long cursor, Long pageSize);
+  app.bottlenote.global.pagination.PageResponse<RootReviewReplyResponse> getReviewRootReplies(
+      Long reviewId, String cursor, Integer size);
 
   /**
    * 특정 최사위 댓글의 대댓글 목록을 조회합니다.
@@ -23,6 +24,6 @@ public interface CustomReviewReplyRepository {
    * @param pageSize 페이지 사이즈
    * @return 댓글 목록
    */
-  SubReviewReplyResponse getSubReviewReplies(
-      Long reviewId, Long replyId, Long cursor, Long pageSize);
+  app.bottlenote.global.pagination.PageResponse<SubReviewReplyResponse> getSubReviewReplies(
+      Long reviewId, Long replyId, String cursor, Integer size);
 }

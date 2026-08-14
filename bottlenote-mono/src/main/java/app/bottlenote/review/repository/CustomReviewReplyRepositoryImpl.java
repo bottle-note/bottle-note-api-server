@@ -4,6 +4,11 @@ import static app.bottlenote.review.domain.QReviewReply.reviewReply;
 import static app.bottlenote.user.domain.QUser.user;
 import static com.querydsl.core.types.ExpressionUtils.count;
 
+import app.bottlenote.global.pagination.HmacCursorCodec;
+import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.PaginationRequest;
+import app.bottlenote.global.pagination.TimeIdCursor;
 import app.bottlenote.review.constant.ReviewReplyStatus;
 import app.bottlenote.review.domain.QReviewReply;
 import app.bottlenote.review.dto.response.RootReviewReplyResponse;
@@ -11,8 +16,10 @@ import app.bottlenote.review.dto.response.SubReviewReplyResponse;
 import app.bottlenote.review.dto.response.SubReviewReplyResponse.Item;
 import app.bottlenote.user.domain.QUser;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,16 +27,24 @@ import org.apache.logging.log4j.Logger;
 public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyRepository {
 
   private static final Logger log = LogManager.getLogger(CustomReviewReplyRepositoryImpl.class);
+  private static final int DEFAULT_SIZE = 50;
+  private static final int MAX_SIZE = 100;
   private final JPAQueryFactory queryFactory;
+  private final HmacCursorCodec cursorCodec;
 
-  public CustomReviewReplyRepositoryImpl(JPAQueryFactory queryFactory) {
+  public CustomReviewReplyRepositoryImpl(
+      JPAQueryFactory queryFactory, HmacCursorCodec cursorCodec) {
     this.queryFactory = queryFactory;
+    this.cursorCodec = cursorCodec;
   }
 
   @Override
-  public RootReviewReplyResponse getReviewRootReplies(Long reviewId, Long cursor, Long pageSize) {
+  public PageResponse<RootReviewReplyResponse> getReviewRootReplies(
+      Long reviewId, String cursor, Integer size) {
     long start = System.nanoTime();
     QReviewReply subReply = new QReviewReply("subReply");
+    PaginationRequest page = PaginationRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
+    String context = "review.reply.root:" + reviewId;
 
     List<RootReviewReplyResponse.Item> replyItemList =
         queryFactory
@@ -54,32 +69,32 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
             .join(user)
             .on(reviewReply.userId.eq(user.id))
             .where(
-                reviewReply.reviewId.eq(reviewId), // 리뷰 ID 일치
-                reviewReply.rootReviewReply.isNull() // 최상위 댓글만 조회
-                )
+                reviewReply.reviewId.eq(reviewId),
+                reviewReply.rootReviewReply.isNull(),
+                replySeek(page.cursor(), context, false))
             .groupBy(reviewReply.id)
-            .orderBy(reviewReply.createAt.desc())
-            .offset(cursor)
-            .limit(pageSize)
+            .orderBy(reviewReply.createAt.desc(), reviewReply.id.desc())
+            .limit(page.size() + 1L)
             .fetch();
-
-    Long totalCount =
-        queryFactory
-            .select(count(reviewReply.id))
-            .from(reviewReply)
-            .where(reviewReply.reviewId.eq(reviewId), reviewReply.rootReviewReply.isNull())
-            .fetchOne();
 
     long end = System.nanoTime();
     log.debug("최상위 댓글 목록 조회 시간 : {}", (end - start) / 1_000_000 + "ms");
-
-    return RootReviewReplyResponse.of(totalCount, replyItemList);
+    Pagination.PageSlice<RootReviewReplyResponse.Item> slice =
+        Pagination.fromOverflow(
+            replyItemList,
+            page.size(),
+            item ->
+                cursorCodec.encode(
+                    context, TimeIdCursor.keys(item.createAt(), item.reviewReplyId())));
+    return PageResponse.of(RootReviewReplyResponse.of(slice.items()), slice.pagination());
   }
 
   @Override
-  public SubReviewReplyResponse getSubReviewReplies(
-      Long reviewId, Long rootReplyId, Long cursor, Long pageSize) {
+  public PageResponse<SubReviewReplyResponse> getSubReviewReplies(
+      Long reviewId, Long rootReplyId, String cursor, Integer size) {
     long start = System.nanoTime();
+    PaginationRequest page = PaginationRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
+    String context = "review.reply.sub:" + reviewId + ":" + rootReplyId;
 
     var parentReviewReply = new QReviewReply("parentReviewReply");
     var parentUser = new QUser("parentUser");
@@ -110,24 +125,41 @@ public class CustomReviewReplyRepositoryImpl implements CustomReviewReplyReposit
             .join(parentUser)
             .on(reviewReply.parentReviewReply.userId.eq(parentUser.id))
             .where(
-                reviewReply.reviewId.eq(reviewId), // 리뷰 ID 일치
-                reviewReply.rootReviewReply.id.eq(rootReplyId) // 부모 댓글 ID 일치
-                )
-            .orderBy(reviewReply.createAt.asc()) // 과거 댓글부터 조회
-            .offset(cursor) // 페이지 번호
-            .limit(pageSize) // 페이지 사이즈
+                reviewReply.reviewId.eq(reviewId),
+                reviewReply.rootReviewReply.id.eq(rootReplyId),
+                replySeek(page.cursor(), context, true))
+            .orderBy(reviewReply.createAt.asc(), reviewReply.id.asc())
+            .limit(page.size() + 1L)
             .fetch();
-
-    Long totalCount =
-        queryFactory
-            .select(count(reviewReply.id))
-            .from(reviewReply)
-            .where(
-                reviewReply.reviewId.eq(reviewId), reviewReply.rootReviewReply.id.eq(rootReplyId))
-            .fetchOne();
 
     long end = System.nanoTime();
     log.info("대댓글 목록 조회 시간 : {}", (end - start) / 1_000_000 + "ms");
-    return SubReviewReplyResponse.of(totalCount, subReplyItemList);
+    Pagination.PageSlice<Item> slice =
+        Pagination.fromOverflow(
+            subReplyItemList,
+            page.size(),
+            item ->
+                cursorCodec.encode(
+                    context, TimeIdCursor.keys(item.createAt(), item.reviewReplyId())));
+    return PageResponse.of(SubReviewReplyResponse.of(slice.items()), slice.pagination());
+  }
+
+  private BooleanExpression replySeek(String cursor, String context, boolean ascending) {
+    if (cursor == null || cursor.isBlank()) {
+      return null;
+    }
+    var claims = cursorCodec.verify(cursor, context);
+    LocalDateTime lastCreateAt = TimeIdCursor.time(claims);
+    Long lastId = TimeIdCursor.id(claims);
+    if (ascending) {
+      return reviewReply
+          .createAt
+          .gt(lastCreateAt)
+          .or(reviewReply.createAt.eq(lastCreateAt).and(reviewReply.id.gt(lastId)));
+    }
+    return reviewReply
+        .createAt
+        .lt(lastCreateAt)
+        .or(reviewReply.createAt.eq(lastCreateAt).and(reviewReply.id.lt(lastId)));
   }
 }

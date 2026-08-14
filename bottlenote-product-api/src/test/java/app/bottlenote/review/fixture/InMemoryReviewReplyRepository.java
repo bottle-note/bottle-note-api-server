@@ -46,14 +46,19 @@ public class InMemoryReviewReplyRepository implements ReviewReplyRepository {
   }
 
   @Override
-  public RootReviewReplyResponse getReviewRootReplies(Long reviewId, Long cursor, Long pageSize) {
-    return RootReviewReplyResponse.of(0L, List.of());
+  public app.bottlenote.global.pagination.PageResponse<RootReviewReplyResponse>
+      getReviewRootReplies(Long reviewId, String cursor, Integer size) {
+    return app.bottlenote.global.pagination.PageResponse.of(
+        RootReviewReplyResponse.of(List.of()),
+        new app.bottlenote.global.pagination.Pagination(false, null));
   }
 
   @Override
-  public SubReviewReplyResponse getSubReviewReplies(
-      Long reviewId, Long replyId, Long cursor, Long pageSize) {
-    return SubReviewReplyResponse.of(0L, List.of());
+  public app.bottlenote.global.pagination.PageResponse<SubReviewReplyResponse> getSubReviewReplies(
+      Long reviewId, Long replyId, String cursor, Integer size) {
+    return app.bottlenote.global.pagination.PageResponse.of(
+        SubReviewReplyResponse.of(List.of()),
+        new app.bottlenote.global.pagination.Pagination(false, null));
   }
 
   @Override

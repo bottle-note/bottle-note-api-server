@@ -1,8 +1,7 @@
 package app.bottlenote.alcohols.dto.request;
 
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
+import app.bottlenote.global.pagination.PaginationRequest;
 import lombok.Builder;
 
 public record AlcoholLookupRequest(
@@ -10,12 +9,16 @@ public record AlcoholLookupRequest(
     String category,
     Long regionId,
     Long distilleryId,
-    @Min(0) Long cursor,
-    @Min(1) @Max(100) Long pageSize) {
+    String cursor,
+    Integer size) {
+  public static final int DEFAULT_SIZE = 20;
+  public static final int MAX_SIZE = 100;
+
   @Builder
   public AlcoholLookupRequest {
-    cursor = cursor != null ? cursor : 0L;
-    pageSize = pageSize != null ? pageSize : 20L;
+    PaginationRequest page = PaginationRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
+    cursor = page.cursor();
+    size = page.size();
   }
 
   public AlcoholCategoryGroup categoryGroup() {

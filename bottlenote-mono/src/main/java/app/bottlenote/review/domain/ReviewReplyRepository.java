@@ -15,10 +15,11 @@ public interface ReviewReplyRepository {
 
   Optional<ReviewReply> isEligibleParentReply(Long reviewId, Long parentReplyId);
 
-  RootReviewReplyResponse getReviewRootReplies(Long reviewId, Long cursor, Long pageSize);
+  app.bottlenote.global.pagination.PageResponse<RootReviewReplyResponse> getReviewRootReplies(
+      Long reviewId, String cursor, Integer size);
 
-  SubReviewReplyResponse getSubReviewReplies(
-      Long reviewId, Long replyId, Long cursor, Long pageSize);
+  app.bottlenote.global.pagination.PageResponse<SubReviewReplyResponse> getSubReviewReplies(
+      Long reviewId, Long replyId, String cursor, Integer size);
 
   Optional<ReviewReply> findReplyByReviewIdAndReplyId(Long reviewId, Long replyId);
 }

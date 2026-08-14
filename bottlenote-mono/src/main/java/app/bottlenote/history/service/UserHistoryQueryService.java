@@ -2,7 +2,7 @@ package app.bottlenote.history.service;
 
 import static java.lang.Boolean.FALSE;
 
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.history.domain.UserHistoryRepository;
 import app.bottlenote.history.dto.request.UserHistorySearchRequest;
 import app.bottlenote.history.dto.response.UserHistorySearchResponse;

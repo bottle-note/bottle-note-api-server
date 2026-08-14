@@ -5,9 +5,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
 
-public record RootReviewReplyResponse(Long totalCount, List<Item> reviewReplies) {
-  public static RootReviewReplyResponse of(Long totalCount, List<Item> reviewReplyList) {
-    return new RootReviewReplyResponse(totalCount, reviewReplyList);
+public record RootReviewReplyResponse(List<Item> reviewReplies) {
+  public static RootReviewReplyResponse of(List<Item> reviewReplyList) {
+    return new RootReviewReplyResponse(reviewReplyList);
   }
 
   @Builder

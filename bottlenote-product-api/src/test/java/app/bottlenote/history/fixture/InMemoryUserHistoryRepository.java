@@ -1,6 +1,6 @@
 package app.bottlenote.history.fixture;
 
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.history.domain.UserHistory;
 import app.bottlenote.history.domain.UserHistoryRepository;
 import app.bottlenote.history.dto.request.UserHistorySearchRequest;
