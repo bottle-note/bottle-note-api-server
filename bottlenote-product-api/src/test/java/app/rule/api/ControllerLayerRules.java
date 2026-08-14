@@ -16,7 +16,11 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
@@ -290,6 +294,54 @@ public class ControllerLayerRules extends AbstractRules {
             .because("필드 주입(@Autowired)은 금지되어 있으며, 생성자 주입을 사용해야 합니다");
 
     rule.check(importedClasses);
+  }
+
+  /** 수동으로 선언한 OpenAPI 파라미터가 유효한 스키마 근거를 갖는지 검증합니다. */
+  @Test
+  public void OpenAPI_파라미터_스키마_명시_검증() {
+    ArchRule rule =
+        classes()
+            .that()
+            .areAnnotations()
+            .and()
+            .areAnnotatedWith(Operation.class)
+            .should(declareOpenApiParameterSchemas())
+            .because("@Operation 파라미터는 schema, array, content 또는 ref를 선언해야 합니다");
+
+    rule.check(importedClasses);
+  }
+
+  private ArchCondition<JavaClass> declareOpenApiParameterSchemas() {
+    return new ArchCondition<>("@Operation의 모든 파라미터에 스키마를 선언한다") {
+      @Override
+      public void check(JavaClass javaClass, ConditionEvents events) {
+        Operation operation = javaClass.getAnnotationOfType(Operation.class);
+        Arrays.stream(operation.parameters())
+            .filter(parameter -> !declaresSchema(parameter))
+            .forEach(
+                parameter ->
+                    events.add(
+                        SimpleConditionEvent.violated(
+                            javaClass,
+                            javaClass.getName()
+                                + "의 @Parameter(name = \""
+                                + parameter.name()
+                                + "\")에 스키마 선언이 없습니다")));
+      }
+    };
+  }
+
+  private boolean declaresSchema(Parameter parameter) {
+    return !parameter.ref().isBlank()
+        || parameter.content().length > 0
+        || declaresSchema(parameter.schema())
+        || declaresSchema(parameter.array().schema());
+  }
+
+  private boolean declaresSchema(Schema schema) {
+    return schema.implementation() != Void.class
+        || !schema.type().isBlank()
+        || !schema.ref().isBlank();
   }
 
   /** 컨트롤러 메서드가 도메인 엔티티를 직접 반환하지 않는지 확인하는 커스텀 조건입니다. */
