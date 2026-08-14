@@ -8,7 +8,7 @@ import app.bottlenote.alcohols.domain.Alcohol;
 import app.bottlenote.alcohols.domain.Region;
 import app.bottlenote.alcohols.fixture.InMemoryAlcoholQueryRepository;
 import app.bottlenote.curation.service.GraphQLCurationAlcoholService;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.picks.constant.PicksStatus;
 import app.bottlenote.picks.domain.Picks;
 import app.bottlenote.picks.domain.PicksRepository;

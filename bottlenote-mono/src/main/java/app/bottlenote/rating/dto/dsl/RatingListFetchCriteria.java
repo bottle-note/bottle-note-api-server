@@ -11,8 +11,8 @@ public record RatingListFetchCriteria(
     Long regionId,
     SearchSortType sortType,
     SortOrder sortOrder,
-    Long cursor,
-    Long pageSize,
+    String cursor,
+    Integer size,
     Long userId) {
   public static RatingListFetchCriteria of(RatingListFetchRequest request, Long userId) {
     return new RatingListFetchCriteria(
@@ -22,7 +22,7 @@ public record RatingListFetchCriteria(
         request.sortType(),
         request.sortOrder(),
         request.cursor(),
-        request.pageSize(),
+        request.size(),
         userId);
   }
 }

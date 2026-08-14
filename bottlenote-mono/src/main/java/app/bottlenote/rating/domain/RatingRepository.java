@@ -1,6 +1,6 @@
 package app.bottlenote.rating.domain;
 
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.rating.domain.Rating.RatingId;
 import app.bottlenote.rating.dto.dsl.RatingListFetchCriteria;
 import app.bottlenote.rating.dto.response.AlcoholRatingStatsResponse;

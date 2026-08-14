@@ -2,9 +2,9 @@ package app.bottlenote.rating.dto.response;
 
 import java.util.List;
 
-public record RatingListFetchResponse(Long totalCount, List<Info> ratings) {
-  public static RatingListFetchResponse create(Long totalCount, List<Info> ratingList) {
-    return new RatingListFetchResponse(totalCount, ratingList);
+public record RatingListFetchResponse(List<Info> ratings) {
+  public static RatingListFetchResponse create(List<Info> ratingList) {
+    return new RatingListFetchResponse(ratingList);
   }
 
   public record Info(

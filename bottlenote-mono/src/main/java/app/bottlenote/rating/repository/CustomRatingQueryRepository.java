@@ -1,6 +1,6 @@
 package app.bottlenote.rating.repository;
 
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.rating.dto.dsl.RatingListFetchCriteria;
 import app.bottlenote.rating.dto.response.RatingListFetchResponse;
 
