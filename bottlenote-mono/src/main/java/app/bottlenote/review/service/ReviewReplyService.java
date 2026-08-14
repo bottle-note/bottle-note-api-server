@@ -164,8 +164,9 @@ public class ReviewReplyService {
 
   /** 최상위 리뷰 목록을 조회합니다 이때 대댓글 목록은 제외됩니다. */
   @Transactional(readOnly = true)
-  public RootReviewReplyResponse getReviewRootReplays(Long reviewId, Long cursor, Long pageSize) {
-    return reviewReplyRepository.getReviewRootReplies(reviewId, cursor, pageSize);
+  public app.bottlenote.global.pagination.PageResponse<RootReviewReplyResponse>
+      getReviewRootReplays(Long reviewId, String cursor, Integer size) {
+    return reviewReplyRepository.getReviewRootReplies(reviewId, cursor, size);
   }
 
   /**
@@ -178,8 +179,8 @@ public class ReviewReplyService {
    * @return the sub review replies
    */
   @Transactional(readOnly = true)
-  public SubReviewReplyResponse getSubReviewReplies(
-      Long reviewId, Long rootReplyId, Long cursor, Long pageSize) {
-    return reviewReplyRepository.getSubReviewReplies(reviewId, rootReplyId, cursor, pageSize);
+  public app.bottlenote.global.pagination.PageResponse<SubReviewReplyResponse> getSubReviewReplies(
+      Long reviewId, Long rootReplyId, String cursor, Integer size) {
+    return reviewReplyRepository.getSubReviewReplies(reviewId, rootReplyId, cursor, size);
   }
 }

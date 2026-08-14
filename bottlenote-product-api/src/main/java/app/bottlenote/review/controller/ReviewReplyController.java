@@ -5,6 +5,7 @@ import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.OPTIONAL_
 import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.review.controller.docs.ReviewReplyApiDocs;
 import app.bottlenote.review.dto.request.ReviewReplyRegisterRequest;
 import app.bottlenote.review.service.ReviewReplyService;
@@ -66,9 +67,11 @@ public class ReviewReplyController {
   @GetMapping("/{reviewId}")
   public ResponseEntity<GlobalResponse> getReviewReplyList(
       @PathVariable Long reviewId,
-      @RequestParam(required = false, defaultValue = "0") Long cursor,
-      @RequestParam(required = false, defaultValue = "50") Long pageSize) {
-    return GlobalResponse.ok(reviewReplyService.getReviewRootReplays(reviewId, cursor, pageSize));
+      @RequestParam(required = false) String cursor,
+      @RequestParam(required = false) Integer size) {
+    var page = reviewReplyService.getReviewRootReplays(reviewId, cursor, size);
+    return GlobalResponse.ok(
+        page.content(), MetaService.createMetaInfo().add("pagination", page.pagination()));
   }
 
   @SecurityPolicy(auth = OPTIONAL_AUTH)
@@ -77,9 +80,10 @@ public class ReviewReplyController {
   public ResponseEntity<GlobalResponse> getSubReviewReplies(
       @PathVariable Long reviewId,
       @PathVariable Long rootReplyId,
-      @RequestParam(required = false, defaultValue = "0") Long cursor,
-      @RequestParam(required = false, defaultValue = "50") Long pageSize) {
+      @RequestParam(required = false) String cursor,
+      @RequestParam(required = false) Integer size) {
+    var page = reviewReplyService.getSubReviewReplies(reviewId, rootReplyId, cursor, size);
     return GlobalResponse.ok(
-        reviewReplyService.getSubReviewReplies(reviewId, rootReplyId, cursor, pageSize));
+        page.content(), MetaService.createMetaInfo().add("pagination", page.pagination()));
   }
 }

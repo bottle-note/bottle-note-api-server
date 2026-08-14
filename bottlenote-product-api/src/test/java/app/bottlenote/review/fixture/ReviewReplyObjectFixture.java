@@ -105,7 +105,7 @@ public class ReviewReplyObjectFixture {
     for (long i = 0; i < index; i++) {
       list.add(getReviewReplyInfo(i, i));
     }
-    return RootReviewReplyResponse.of((long) list.size(), list);
+    return RootReviewReplyResponse.of(list);
   }
 
   public static ReviewReplyResponse getDeleteReviewReplyResponse(Long reviewId) {

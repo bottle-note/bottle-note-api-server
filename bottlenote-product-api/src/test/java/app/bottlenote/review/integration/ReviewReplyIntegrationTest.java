@@ -132,7 +132,7 @@ class ReviewReplyIntegrationTest extends IntegrationTestSupport {
       // then
       result.assertThat().hasStatusOk();
       RootReviewReplyResponse rootResponse = extractData(result, RootReviewReplyResponse.class);
-      assertEquals(2, rootResponse.totalCount());
+      assertEquals(2, rootResponse.reviewReplies().size());
     }
 
     @DisplayName("리뷰의 대댓글 목록을 조회할 수 있다.")
@@ -181,7 +181,7 @@ class ReviewReplyIntegrationTest extends IntegrationTestSupport {
       // then
       SubReviewReplyResponse subReviewReplyResponse =
           extractData(result, SubReviewReplyResponse.class);
-      assertEquals(count, subReviewReplyResponse.totalCount());
+      assertEquals(count, subReviewReplyResponse.reviewReplies().size());
     }
   }
 

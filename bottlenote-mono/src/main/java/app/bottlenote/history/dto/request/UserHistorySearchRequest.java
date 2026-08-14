@@ -1,5 +1,6 @@
 package app.bottlenote.history.dto.request;
 
+import app.bottlenote.global.pagination.PaginationRequest;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.history.constant.EventType;
 import app.bottlenote.history.constant.HistoryReviewFilterType;
@@ -20,13 +21,17 @@ public record UserHistorySearchRequest(
     LocalDateTime startDate,
     LocalDateTime endDate,
     SortOrder sortOrder,
-    Long cursor,
-    Long pageSize) {
+    String cursor,
+    Integer size) {
+
+  public static final int DEFAULT_SIZE = 10;
+  public static final int MAX_SIZE = 100;
 
   public UserHistorySearchRequest {
     sortOrder = sortOrder != null ? sortOrder : SortOrder.DESC;
-    cursor = cursor != null ? cursor : 0L;
-    pageSize = pageSize != null ? pageSize : 10L;
+    PaginationRequest page = PaginationRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
+    cursor = page.cursor();
+    size = page.size();
     endDate = endDate != null ? endDate.plusDays(1) : LocalDateTime.now().plusDays(1);
     startDate = startDate != null ? startDate : LocalDateTime.now().minusYears(2);
     if (endDate.isBefore(startDate)) {

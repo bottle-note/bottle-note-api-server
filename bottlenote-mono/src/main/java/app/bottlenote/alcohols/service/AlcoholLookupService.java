@@ -5,8 +5,11 @@ import app.bottlenote.alcohols.domain.AlcoholLookupSnapshotStore;
 import app.bottlenote.alcohols.domain.AlcoholQueryRepository;
 import app.bottlenote.alcohols.dto.request.AlcoholLookupRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
+import app.bottlenote.alcohols.dto.response.AlcoholLookupListResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupSnapshotItem;
-import app.bottlenote.global.service.cursor.CursorResponse;
+import app.bottlenote.global.pagination.HmacCursorCodec;
+import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.Pagination;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -24,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AlcoholLookupService {
   private final AlcoholQueryRepository alcoholQueryRepository;
   private final AlcoholLookupSnapshotStore snapshotStore;
+  private final HmacCursorCodec cursorCodec;
   private final AtomicReference<LocalLookupSnapshot> localSnapshot =
       new AtomicReference<>(LocalLookupSnapshot.empty());
 
@@ -34,7 +38,7 @@ public class AlcoholLookupService {
   private long localCacheVersionCheckIntervalMs;
 
   @Transactional(readOnly = true)
-  public CursorResponse<AlcoholLookupItem> lookup(AlcoholLookupRequest request) {
+  public PageResponse<AlcoholLookupListResponse> lookup(AlcoholLookupRequest request) {
     if (localCacheEnabled) {
       return filterAndSlice(findLocalCachedItemsWithFallback(), request);
     }
@@ -114,15 +118,17 @@ public class AlcoholLookupService {
         .toList();
   }
 
-  private CursorResponse<AlcoholLookupItem> filterAndSlice(
+  private PageResponse<AlcoholLookupListResponse> filterAndSlice(
       List<AlcoholLookupSnapshotItem> items, AlcoholLookupRequest request) {
     AlcoholCategoryGroup categoryGroup = request.categoryGroup();
     List<String> keywords = parseKeywords(request.keyword());
-    long cursor = Math.max(request.cursor(), 0L);
-    long pageSize = Math.max(request.pageSize(), 1L);
-
-    // 성능 검증용 구조: 정규화 필드는 snapshot에 저장하되, 후속 작업에서 DTO 패키지 경계를 정리한다.
-    List<AlcoholLookupItem> page =
+    String context = lookupContext(request);
+    Long lastId = null;
+    if (request.cursor() != null) {
+      lastId = Long.valueOf(cursorCodec.verify(request.cursor(), context).sortKeys().get("id"));
+    }
+    Long seekAfter = lastId;
+    List<AlcoholLookupItem> fetched =
         items.stream()
             .filter(item -> matchesKeywords(item, keywords))
             .filter(item -> categoryGroup == null || categoryGroup == item.categoryGroup())
@@ -132,12 +138,30 @@ public class AlcoholLookupService {
                 item ->
                     request.distilleryId() == null
                         || request.distilleryId().equals(item.distilleryId()))
-            .skip(cursor)
-            .limit(pageSize + 1)
+            .filter(item -> seekAfter == null || item.alcoholId() > seekAfter)
+            .sorted(java.util.Comparator.comparing(AlcoholLookupSnapshotItem::alcoholId))
+            .limit(request.size() + 1L)
             .map(AlcoholLookupSnapshotItem::toLookupItem)
             .toList();
+    Pagination.PageSlice<AlcoholLookupItem> slice =
+        Pagination.fromOverflow(
+            fetched,
+            request.size(),
+            item ->
+                cursorCodec.encode(
+                    context, java.util.Map.of("id", String.valueOf(item.alcoholId()))));
+    return PageResponse.of(new AlcoholLookupListResponse(slice.items()), slice.pagination());
+  }
 
-    return CursorResponse.of(page, cursor, Math.toIntExact(pageSize));
+  private static String lookupContext(AlcoholLookupRequest request) {
+    return "alcohol.lookup:"
+        + request.keyword()
+        + ":"
+        + request.category()
+        + ":"
+        + request.regionId()
+        + ":"
+        + request.distilleryId();
   }
 
   private List<String> parseKeywords(String keyword) {

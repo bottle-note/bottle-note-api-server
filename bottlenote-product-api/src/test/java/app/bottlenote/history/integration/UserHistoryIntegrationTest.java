@@ -87,7 +87,7 @@ class UserHistoryIntegrationTest extends IntegrationTestSupport {
       Assertions.assertTrue(current.isAfter(next) || current.isEqual(next));
     }
 
-    Assertions.assertEquals(userHistories.size(), userHistorySearchResponse.totalCount());
+    Assertions.assertEquals(userHistories.size(), userHistorySearchResponse.userHistories().size());
   }
 
   @DisplayName("날짜 검색조건으로 유저 히스토리를 조회할 수 있다.")

@@ -11,8 +11,11 @@ import static app.bottlenote.picks.domain.QPicks.picks;
 import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.user.domain.QUser.user;
 
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.pagination.HmacCursorCodec;
+import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.TimeIdCursor;
+import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.history.constant.EventType;
 import app.bottlenote.history.dto.request.UserHistorySearchRequest;
 import app.bottlenote.history.dto.response.UserHistoryItem;
@@ -32,9 +35,12 @@ import lombok.extern.slf4j.Slf4j;
 public class CustomUserHistoryRepositoryImpl implements CustomUserHistoryRepository {
 
   private final JPAQueryFactory queryFactory;
+  private final HmacCursorCodec cursorCodec;
 
-  public CustomUserHistoryRepositoryImpl(JPAQueryFactory queryFactory) {
+  public CustomUserHistoryRepositoryImpl(
+      JPAQueryFactory queryFactory, HmacCursorCodec cursorCodec) {
     this.queryFactory = queryFactory;
+    this.cursorCodec = cursorCodec;
   }
 
   @Override
@@ -126,49 +132,62 @@ public class CustomUserHistoryRepositoryImpl implements CustomUserHistoryReposit
                 request.startDate() == null ? null : userHistory.createAt.goe(request.startDate()),
                 request.endDate() == null ? null : userHistory.createAt.loe(request.endDate()),
                 eventTypeFilters.isEmpty() ? null : userHistory.eventType.in(eventTypeFilters))
-            .orderBy(request.sortOrder().resolve(userHistory.createAt))
-            .offset(request.cursor())
-            .limit(request.pageSize() + 1)
+            .orderBy(
+                request.sortOrder().resolve(userHistory.createAt),
+                request.sortOrder().resolve(userHistory.id))
+            .where(historySeek(userId, request))
+            .limit(request.size() + 1L)
             .fetch();
-
-    final Long totalCount =
-        queryFactory
-            .select(userHistory.id.count())
-            .from(userHistory)
-            .where(userHistory.userId.eq(userId))
-            .fetchOne();
 
     final LocalDateTime subscriptionDate =
         queryFactory.select(user.createAt).from(user).where(user.id.eq(userId)).fetchOne();
-
-    final UserHistorySearchResponse userHistorySearchResponse =
-        new UserHistorySearchResponse(totalCount, subscriptionDate, fetch);
-    final CursorPageable pageable = getCursorPageable(fetch, request.cursor(), request.pageSize());
-
-    return PageResponse.of(userHistorySearchResponse, pageable);
+    String context = historyContext(userId, request);
+    Pagination.PageSlice<UserHistoryItem> slice =
+        Pagination.fromOverflow(
+            fetch,
+            request.size(),
+            item ->
+                cursorCodec.encode(
+                    context, TimeIdCursor.keys(item.getCreatedAt(), item.getHistoryId())));
+    return PageResponse.of(
+        UserHistorySearchResponse.of(subscriptionDate, slice.items()), slice.pagination());
   }
 
   private boolean isValidKeyword(String keyword) {
     return keyword != null && !keyword.trim().isEmpty();
   }
 
-  private CursorPageable getCursorPageable(
-      List<UserHistoryItem> fetch, Long cursor, Long pageSize) {
-    boolean hasNext = isHasNext(pageSize, fetch);
-    return CursorPageable.builder()
-        .currentCursor(cursor)
-        .cursor(cursor + pageSize)
-        .pageSize(pageSize)
-        .hasNext(hasNext)
-        .build();
+  private BooleanExpression historySeek(Long userId, UserHistorySearchRequest request) {
+    if (request.cursor() == null || request.cursor().isBlank()) {
+      return null;
+    }
+    var claims = cursorCodec.verify(request.cursor(), historyContext(userId, request));
+    LocalDateTime lastCreateAt = TimeIdCursor.time(claims);
+    Long lastId = TimeIdCursor.id(claims);
+    if (request.sortOrder() == SortOrder.ASC) {
+      return userHistory
+          .createAt
+          .gt(lastCreateAt)
+          .or(userHistory.createAt.eq(lastCreateAt).and(userHistory.id.gt(lastId)));
+    }
+    return userHistory
+        .createAt
+        .lt(lastCreateAt)
+        .or(userHistory.createAt.eq(lastCreateAt).and(userHistory.id.lt(lastId)));
   }
 
-  private boolean isHasNext(Long pageSize, List<UserHistoryItem> fetch) {
-    boolean hasNext = fetch.size() > pageSize;
-
-    if (hasNext) {
-      fetch.remove(fetch.size() - 1);
-    }
-    return hasNext;
+  private static String historyContext(Long userId, UserHistorySearchRequest request) {
+    return "history.list:"
+        + userId
+        + ":"
+        + request.keyword()
+        + ":"
+        + request.sortOrder()
+        + ":"
+        + request.ratingPoint()
+        + ":"
+        + request.historyReviewFilterType()
+        + ":"
+        + request.picksStatus();
   }
 }
