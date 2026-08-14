@@ -9,63 +9,50 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 concurrency:
   group: "ci-${{ github.head_ref || github.ref }}"
   cancel-in-progress: true
 
 env:
-  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=2"
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=4"
 
 jobs:
-  prepare:
+  prepare_ci:
+    name: prepare-ci
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - name: publish execution plan
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          HEAD_REF: ${{ github.head_ref || github.ref_name }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          {
+            echo '## CI execution plan'
+            echo '| Item | Value |'
+            echo '| --- | --- |'
+            printf '%s\n' "| Event | \`$EVENT_NAME\` |"
+            printf '%s\n' "| Ref | \`$HEAD_REF\` |"
+            printf '%s\n' "| Commit | \`$COMMIT_SHA\` |"
+            echo '| Parallel jobs | Unit, Rule, Mono Integration, Admin Integration, Product Integration, Application Build |'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  unit_tests:
+    name: unit-tests
+    needs: prepare_ci
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
-      - name: echo
-        run: |
-          echo "Branch: ${{ github.event.pull_request.base.ref || github.ref_name }}"
-
       - name: checkout code
         uses: actions/checkout@v7
         with:
           submodules: true
           token: ${{ secrets.GIT_ACCESS_TOKEN }}
-      - name: setup jdk
-        uses: actions/setup-java@v5
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-      - name: setup gradle cache
-        uses: actions/cache@v6
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: install dependencies & compile
-        run: |
-          ./gradlew dependencies
-          ./gradlew compileJava compileTestJava
-
-      - name: cache workspace
-        uses: actions/cache@v6
-        with:
-          path: |
-            .gradle
-            build
-            */build
-          key: workspace-${{ github.sha }}
-  unit-tests:
-    needs: prepare
-    timeout-minutes: 15
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout code
-        uses: actions/checkout@v7
-        with:
-          submodules: true
-          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+          persist-credentials: false
 
       - name: setup jdk
         uses: actions/setup-java@v5
@@ -73,37 +60,31 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: setup gradle cache
-        uses: actions/cache@v6
+      - name: setup gradle
+        uses: gradle/actions/setup-gradle@v6
         with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: restore workspace cache
-        uses: actions/cache@v6
-        with:
-          path: |
-            .gradle
-            build
-            */build
-          key: workspace-${{ github.sha }}
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
       - name: run unit tests
         run: ./gradlew unit_test
 
-      - name: upload test results
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: unit-test-results-${{ github.run_number }}
-          path: |
-            */build/reports/tests/unit_test/
-            */build/test-results/unit_test/
+      - name: verify unit test results
+        run: test -n "$(find . -path '*/build/test-results/unit_test/TEST-*.xml' -print -quit)"
 
-  rule-tests:
-    needs: prepare
+      - name: publish unit test summary
+        if: ${{ !cancelled() && hashFiles('*/build/test-results/unit_test/TEST-*.xml') != '' }}
+        uses: mikepenz/action-junit-report@v6
+        with:
+          report_paths: '*/build/test-results/unit_test/TEST-*.xml'
+          annotate_only: true
+          detailed_summary: false
+          include_passed: false
+          require_tests: true
+          fail_on_failure: true
+
+  rule_tests:
+    name: rule-tests
+    needs: prepare_ci
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
@@ -112,6 +93,7 @@ jobs:
         with:
           submodules: true
           token: ${{ secrets.GIT_ACCESS_TOKEN }}
+          persist-credentials: false
 
       - name: setup jdk
         uses: actions/setup-java@v5
@@ -119,111 +101,40 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: setup gradle cache
-        uses: actions/cache@v6
+      - name: setup gradle
+        uses: gradle/actions/setup-gradle@v6
         with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
-      - name: restore workspace cache
-        uses: actions/cache@v6
-        with:
-          path: |
-            .gradle
-            build
-            */build
-          key: workspace-${{ github.sha }}
-
-      - name: run rules tests
+      - name: run architecture rule tests
         run: ./gradlew check_rule_test
 
-      - name: upload test results
-        if: always()
-        uses: actions/upload-artifact@v7
+      - name: verify architecture rule test results
+        run: test -n "$(find . -path '*/build/test-results/check_rule_test/TEST-*.xml' -print -quit)"
+
+      - name: publish architecture rule test summary
+        if: ${{ !cancelled() && hashFiles('*/build/test-results/check_rule_test/TEST-*.xml') != '' }}
+        uses: mikepenz/action-junit-report@v6
         with:
-          name: rule-test-results-${{ github.run_number }}
-          path: |
-            */build/reports/tests/check_rule_test/
-            */build/test-results/check_rule_test/
+          report_paths: '*/build/test-results/check_rule_test/TEST-*.xml'
+          annotate_only: true
+          detailed_summary: false
+          include_passed: false
+          require_tests: true
+          fail_on_failure: true
 
-  integration-tests:
-    needs: prepare
-    timeout-minutes: 20
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-      matrix:
-        include:
-          - name: product
-            task: integration_test
-          - name: admin
-            task: admin_integration_test
-    services:
-      docker:
-        image: docker:24.0
-        options: --privileged
-        ports:
-          - 1234:1234
-        env:
-          DOCKER_TLS_CERTDIR: ""
-    steps:
-      - name: checkout code
-        uses: actions/checkout@v7
-        with:
-          submodules: true
-          token: ${{ secrets.GIT_ACCESS_TOKEN }}
-
-      - name: setup jdk
-        uses: actions/setup-java@v5
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-
-      - name: setup gradle cache
-        uses: actions/cache@v6
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: restore workspace cache
-        uses: actions/cache@v6
-        with:
-          path: |
-            .gradle
-            build
-            */build
-          key: workspace-${{ github.sha }}
-
-      - name: run ${{ matrix.name }} integration tests
-        run: ./gradlew ${{ matrix.task }}
-
-      - name: upload test results
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: ${{ matrix.name }}-integration-test-results-${{ github.run_number }}
-          path: |
-            */build/reports/tests/${{ matrix.task }}/
-            */build/test-results/${{ matrix.task }}/
-
-  product-ci-final-build:
-    needs: [ unit-tests, rule-tests, integration-tests ]
+  mono_integration_tests:
+    name: mono-integration-tests
+    needs: prepare_ci
     timeout-minutes: 10
     runs-on: ubuntu-latest
-    permissions:
-      checks: write
-      contents: read
-      pull-requests: write
     steps:
       - name: checkout code
         uses: actions/checkout@v7
         with:
           submodules: true
           token: ${{ secrets.GIT_ACCESS_TOKEN }}
+          persist-credentials: false
 
       - name: setup jdk
         uses: actions/setup-java@v5
@@ -231,34 +142,172 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: setup gradle cache
-        uses: actions/cache@v6
+      - name: setup gradle
+        uses: gradle/actions/setup-gradle@v6
         with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
-      - name: restore workspace cache
-        uses: actions/cache@v6
-        with:
-          path: |
-            .gradle
-            build
-            */build
-          key: workspace-${{ github.sha }}
+      - name: run mono integration tests
+        run: ./gradlew :bottlenote-mono:integration_test
 
-      - name: build project
-        run: ./gradlew build -x test --build-cache --parallel
+      - name: verify mono integration test results
+        run: test -n "$(find bottlenote-mono/build/test-results/integration_test -name 'TEST-*.xml' -print -quit)"
 
-      - name: download all test results
-        uses: actions/download-artifact@v8
-        with:
-          pattern: '*-test-results'
-          merge-multiple: true
-
-      - name: publish test report
+      - name: publish mono integration test summary
+        if: ${{ !cancelled() && hashFiles('bottlenote-mono/build/test-results/integration_test/TEST-*.xml') != '' }}
         uses: mikepenz/action-junit-report@v6
-        if: always()
         with:
-          report_paths: '**/build/test-results/**/TEST-*.xml'
+          report_paths: 'bottlenote-mono/build/test-results/integration_test/TEST-*.xml'
+          annotate_only: true
+          detailed_summary: false
+          include_passed: false
+          require_tests: true
+          fail_on_failure: true
+
+  admin_integration_tests:
+    name: admin-integration-tests
+    needs: prepare_ci
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+          persist-credentials: false
+
+      - name: setup jdk
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: setup gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: run admin integration tests
+        run: ./gradlew :bottlenote-admin-api:admin_integration_test
+
+      - name: verify admin integration test results
+        run: test -n "$(find bottlenote-admin-api/build/test-results/admin_integration_test -name 'TEST-*.xml' -print -quit)"
+
+      - name: publish admin integration test summary
+        if: ${{ !cancelled() && hashFiles('bottlenote-admin-api/build/test-results/admin_integration_test/TEST-*.xml') != '' }}
+        uses: mikepenz/action-junit-report@v6
+        with:
+          report_paths: 'bottlenote-admin-api/build/test-results/admin_integration_test/TEST-*.xml'
+          annotate_only: true
+          detailed_summary: false
+          include_passed: false
+          require_tests: true
+          fail_on_failure: true
+
+  product_integration_tests:
+    name: product-integration-tests
+    needs: prepare_ci
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+          persist-credentials: false
+
+      - name: setup jdk
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: setup gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: run product integration tests
+        run: ./gradlew :bottlenote-product-api:integration_test
+
+      - name: verify product integration test results
+        run: test -n "$(find bottlenote-product-api/build/test-results/integration_test -name 'TEST-*.xml' -print -quit)"
+
+      - name: publish product integration test summary
+        if: ${{ !cancelled() && hashFiles('bottlenote-product-api/build/test-results/integration_test/TEST-*.xml') != '' }}
+        uses: mikepenz/action-junit-report@v6
+        with:
+          report_paths: 'bottlenote-product-api/build/test-results/integration_test/TEST-*.xml'
+          annotate_only: true
+          detailed_summary: false
+          include_passed: false
+          require_tests: true
+          fail_on_failure: true
+
+  application_build:
+    name: application-build
+    needs: prepare_ci
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+          persist-credentials: false
+
+      - name: setup jdk
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: setup gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: build applications
+        run: ./gradlew assemble --build-cache --parallel
+
+  final_gate:
+    name: product-ci-final-build
+    if: ${{ always() }}
+    timeout-minutes: 5
+    needs:
+      - unit_tests
+      - rule_tests
+      - mono_integration_tests
+      - admin_integration_tests
+      - product_integration_tests
+      - application_build
+    runs-on: ubuntu-latest
+    steps:
+      - name: publish ci result
+        run: |
+          {
+            echo '## CI result'
+            echo '| Job | Result |'
+            echo '| --- | --- |'
+            echo '| Unit tests | ${{ needs.unit_tests.result }} |'
+            echo '| Architecture rule tests | ${{ needs.rule_tests.result }} |'
+            echo '| Mono integration tests | ${{ needs.mono_integration_tests.result }} |'
+            echo '| Admin integration tests | ${{ needs.admin_integration_tests.result }} |'
+            echo '| Product integration tests | ${{ needs.product_integration_tests.result }} |'
+            echo '| Application build | ${{ needs.application_build.result }} |'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: enforce ci result
+        if: >-
+          ${{
+            needs.unit_tests.result != 'success' ||
+            needs.rule_tests.result != 'success' ||
+            needs.mono_integration_tests.result != 'success' ||
+            needs.admin_integration_tests.result != 'success' ||
+            needs.product_integration_tests.result != 'success' ||
+            needs.application_build.result != 'success'
+          }}
+        run: exit 1
