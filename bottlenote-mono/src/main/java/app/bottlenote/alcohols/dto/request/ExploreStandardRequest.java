@@ -2,10 +2,8 @@ package app.bottlenote.alcohols.dto.request;
 
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
+import app.bottlenote.global.pagination.PaginationRequest;
 import app.bottlenote.global.service.cursor.SortOrder;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.PositiveOrZero;
 import java.util.List;
 import lombok.Builder;
 
@@ -20,8 +18,7 @@ import lombok.Builder;
  *   <li>서로 다른 필터 간: <b>AND</b>
  * </ul>
  *
- * <p>{@code seed}: {@link SearchSortType#RANDOM} 정렬 시 페이지 간 순서 일관성을 위한 값. 미전송 시 서버가 생성하여 응답 meta 에
- * 실어 내려준다. 클라이언트는 첫 응답의 seed 를 이후 페이지 요청에 그대로 전달하여 동일한 순서를 재현한다. 비-RANDOM 정렬에서는 무시된다.
+ * <p>RANDOM 시드는 요청이 아니라 HMAC 커서 extra에 실어 다음 페이지로만 이어진다.
  */
 public record ExploreStandardRequest(
     List<String> keywords,
@@ -31,9 +28,11 @@ public record ExploreStandardRequest(
     Long curationId,
     SearchSortType sortType,
     SortOrder sortOrder,
-    Long seed,
-    @PositiveOrZero Long cursor,
-    @Min(1) @Max(100) Integer size) {
+    String cursor,
+    Integer size) {
+
+  public static final int DEFAULT_SIZE = 20;
+  public static final int MAX_SIZE = 100;
 
   @Builder
   public ExploreStandardRequest {
@@ -42,7 +41,8 @@ public record ExploreStandardRequest(
     distilleryIds = distilleryIds != null ? distilleryIds : List.of();
     sortType = sortType != null ? sortType : SearchSortType.RANDOM;
     sortOrder = sortOrder != null ? sortOrder : SortOrder.DESC;
-    cursor = cursor != null ? cursor : 0L;
-    size = size != null ? size : 20;
+    PaginationRequest page = PaginationRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
+    cursor = page.cursor();
+    size = page.size();
   }
 }

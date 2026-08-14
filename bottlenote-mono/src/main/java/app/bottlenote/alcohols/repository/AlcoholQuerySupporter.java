@@ -193,6 +193,26 @@ public class AlcoholQuerySupporter {
     return Expressions.numberTemplate(Double.class, "function('rand', {0})", seed).asc();
   }
 
+  /** HMAC 커서 RANDOM용 CRC32 랭크. {@code CRC32(CONCAT(seed, '-', id))} */
+  public NumberExpression<Long> crc32Rank(long seed) {
+    return Expressions.numberTemplate(
+        Long.class, "function('crc32', concat({0}, '-', {1}))", String.valueOf(seed), alcohol.id);
+  }
+
+  /** 탐색 keyset에 쓰는 정렬 점수. RANDOM은 {@link #crc32Rank(long)} 를 쓴다. */
+  public NumberExpression<? extends Number> sortScore(SearchSortType searchSortType) {
+    NumberExpression<Double> avgRating = rating.ratingPoint.rating.avg().coalesce(0.0);
+    NumberExpression<Long> reviewCount = review.id.countDistinct();
+    NumberExpression<Long> pickCount = picks.id.countDistinct();
+    return switch (searchSortType) {
+      case POPULAR -> avgRating.add(reviewCount);
+      case RATING -> avgRating;
+      case PICK -> pickCount;
+      case REVIEW -> reviewCount;
+      case RANDOM -> throw new IllegalArgumentException("RANDOM uses crc32Rank");
+    };
+  }
+
   /** 삭제되지 않은 데이터 필터 조건 */
   public BooleanExpression isNotDeleted() {
     return alcohol.deletedAt.isNull();

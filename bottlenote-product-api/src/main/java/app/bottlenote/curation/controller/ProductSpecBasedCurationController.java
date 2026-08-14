@@ -4,9 +4,12 @@ import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.PUBLIC;
 
 import app.bottlenote.curation.controller.docs.SpecBasedCurationApiDocs;
 import app.bottlenote.curation.dto.request.CurationFeedSearchRequest;
+import app.bottlenote.curation.dto.response.CurationFeedListResponse;
 import app.bottlenote.curation.service.ProductSpecBasedCurationService;
 import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.service.meta.MetaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -35,9 +38,11 @@ public class ProductSpecBasedCurationController {
   @GetMapping("/feed")
   public ResponseEntity<GlobalResponse> getCurationFeed(
       @ModelAttribute @Valid CurationFeedSearchRequest request) {
-    return GlobalResponse.ok(
+    PageResponse<CurationFeedListResponse> page =
         productSpecBasedCurationService.searchFeed(
-            request.keyword(), request.code(), request.cursor(), request.size()));
+            request.keyword(), request.code(), request.cursor(), request.size());
+    return GlobalResponse.ok(
+        page.content(), MetaService.createMetaInfo().add("pagination", page.pagination()));
   }
 
   @SpecBasedCurationApiDocs.GetCuration

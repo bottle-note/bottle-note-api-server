@@ -53,12 +53,21 @@ public class InMemoryCurationRepository implements CurationRepository {
             .filter(curation -> isVisibleOn(curation, criteria.today()))
             .filter(curation -> criteria.specIds().contains(curation.getSpecId()))
             .filter(curation -> matchesKeyword(curation, criteria))
+            .filter(curation -> afterCursor(curation, criteria))
             .sorted(Comparator.comparing(Curation::getDisplayOrder).thenComparing(Curation::getId))
             .map(Curation::getId)
+            .limit(criteria.fetchSize())
             .toList();
-    int start = (int) Math.min(criteria.offset(), candidateIds.size());
-    int end = Math.min(start + criteria.fetchSize(), candidateIds.size());
-    return candidateIds.subList(start, end);
+    return candidateIds;
+  }
+
+  private static boolean afterCursor(Curation curation, CurationFeedSearchCriteria criteria) {
+    if (criteria.lastId() == null) {
+      return true;
+    }
+    int lastOrder = criteria.lastDisplayOrder() == null ? 0 : criteria.lastDisplayOrder();
+    int order = curation.getDisplayOrder() == null ? 0 : curation.getDisplayOrder();
+    return order > lastOrder || (order == lastOrder && curation.getId() > criteria.lastId());
   }
 
   @Override

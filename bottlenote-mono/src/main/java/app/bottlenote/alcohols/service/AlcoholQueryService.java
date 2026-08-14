@@ -23,7 +23,9 @@ import app.bottlenote.alcohols.dto.response.FriendsDetailResponse;
 import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.repository.CustomAlcoholQueryRepository.AdminAlcoholDetailProjection;
 import app.bottlenote.global.data.response.GlobalResponse;
-import app.bottlenote.global.service.cursor.CursorResponse;
+import app.bottlenote.global.pagination.HmacCursorCodec;
+import app.bottlenote.global.pagination.PaginationException;
+import app.bottlenote.global.pagination.PaginationExceptionCode;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.history.service.AlcoholViewHistoryService;
 import app.bottlenote.review.facade.ReviewFacade;
@@ -52,6 +54,7 @@ public class AlcoholQueryService {
   private final ReviewFacade reviewFacade;
   private final FollowFacade followFacade;
   private final AlcoholReferenceService alcoholReferenceService;
+  private final HmacCursorCodec cursorCodec;
 
   /**
    * 술(위스키) 리스트 조회 api
@@ -107,19 +110,37 @@ public class AlcoholQueryService {
   }
 
   @Transactional(readOnly = true)
-  public ExploreStandardResponse getStandardExplore(ExploreStandardRequest request, Long userId) {
-    long resolvedSeed = resolveSeed(request);
+  public app.bottlenote.global.pagination.PageResponse<ExploreStandardResponse> getStandardExplore(
+      ExploreStandardRequest request, Long userId) {
+    long resolvedSeed = resolveSeed(request, userId);
     ExploreStandardCriteria criteria = ExploreStandardCriteria.of(request, userId, resolvedSeed);
-    CursorResponse<AlcoholDetailItem> page = alcoholQueryRepository.getStandardExplore(criteria);
-    return new ExploreStandardResponse(resolvedSeed, page);
+    app.bottlenote.global.pagination.PageResponse<List<AlcoholDetailItem>> page =
+        alcoholQueryRepository.getStandardExplore(criteria);
+    return app.bottlenote.global.pagination.PageResponse.of(
+        new ExploreStandardResponse(page.content()), page.pagination());
   }
 
-  /** RANDOM 정렬 시 요청 seed 를 그대로 쓰고, 없으면 서버에서 생성한다. 비-RANDOM 정렬은 seed 가 쿼리에 영향을 주지 않으므로 0 으로 고정한다. */
-  private long resolveSeed(ExploreStandardRequest request) {
+  /** RANDOM은 커서 extra의 seed를 재사용하고, 첫 페이지는 서버가 생성한다. */
+  private long resolveSeed(ExploreStandardRequest request, Long userId) {
     if (request.sortType() != SearchSortType.RANDOM) {
       return 0L;
     }
-    return request.seed() != null ? request.seed() : ThreadLocalRandom.current().nextLong();
+    if (request.cursor() != null) {
+      String seed =
+          cursorCodec
+              .verify(request.cursor(), ExploreStandardCriteria.of(request, userId, 0L).context())
+              .extra()
+              .get("seed");
+      if (seed == null || seed.isBlank()) {
+        throw new PaginationException(PaginationExceptionCode.INVALID_CURSOR);
+      }
+      try {
+        return Long.parseLong(seed);
+      } catch (NumberFormatException exception) {
+        throw new PaginationException(PaginationExceptionCode.INVALID_CURSOR);
+      }
+    }
+    return ThreadLocalRandom.current().nextLong();
   }
 
   @Transactional(readOnly = true)

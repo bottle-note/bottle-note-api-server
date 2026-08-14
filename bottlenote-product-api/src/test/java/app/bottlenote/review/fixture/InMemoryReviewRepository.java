@@ -1,7 +1,6 @@
 package app.bottlenote.review.fixture;
 
 import app.bottlenote.global.pagination.PageResponse;
-import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.domain.Review;
@@ -10,7 +9,6 @@ import app.bottlenote.review.dto.request.AdminReviewSearchRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.response.AdminReviewListResponse;
 import app.bottlenote.review.dto.response.AlcoholReviewCountResponse;
-import app.bottlenote.review.dto.response.ReviewExploreItem;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 import java.util.HashMap;
@@ -18,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Page;
@@ -118,9 +115,12 @@ public class InMemoryReviewRepository implements ReviewRepository {
   }
 
   @Override
-  public Pair<Long, CursorResponse<ReviewExploreItem>> getStandardExplore(
-      Long userId, List<String> keywords, Long cursor, Integer size) {
-    return null;
+  public app.bottlenote.global.pagination.PageResponse<
+          app.bottlenote.review.dto.response.ReviewExploreListResponse>
+      getStandardExplore(Long userId, List<String> keywords, String cursor, Integer size) {
+    return app.bottlenote.global.pagination.PageResponse.of(
+        new app.bottlenote.review.dto.response.ReviewExploreListResponse(List.of()),
+        new app.bottlenote.global.pagination.Pagination(false, null));
   }
 
   @Override

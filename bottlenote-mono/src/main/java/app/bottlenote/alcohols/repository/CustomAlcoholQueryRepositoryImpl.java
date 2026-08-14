@@ -20,11 +20,17 @@ import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
+import app.bottlenote.global.pagination.CursorClaims;
+import app.bottlenote.global.pagination.HmacCursorCodec;
+import app.bottlenote.global.pagination.Pagination;
 import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
+import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import java.util.Map;
@@ -32,15 +38,21 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
-@AllArgsConstructor
 public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepository {
   private final JPAQueryFactory queryFactory;
   private final AlcoholQuerySupporter supporter;
+  private final HmacCursorCodec cursorCodec;
+
+  public CustomAlcoholQueryRepositoryImpl(
+      JPAQueryFactory queryFactory, AlcoholQuerySupporter supporter, HmacCursorCodec cursorCodec) {
+    this.queryFactory = queryFactory;
+    this.supporter = supporter;
+    this.cursorCodec = cursorCodec;
+  }
 
   /** 모든 카테고리(한글, 영문, 그룹) 조회 — 카테고리 레퍼런스 응답용 */
   @Override
@@ -276,24 +288,24 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 
   /** queryDSL 알코올 둘러보기 */
   @Override
-  public CursorResponse<AlcoholDetailItem> getStandardExplore(ExploreStandardCriteria criteria) {
+  public app.bottlenote.global.pagination.PageResponse<List<AlcoholDetailItem>> getStandardExplore(
+      ExploreStandardCriteria criteria) {
     Long userId = criteria.userId();
-    Long cursor = criteria.cursor();
     int pageSize = criteria.size();
-    // 컨트롤러에서 size는 @Max(100)으로 제한되지만, 리포 레이어 직접 호출 대비 오버플로우 가드
     int fetchSize = Math.addExact(pageSize, 1);
+    String context = criteria.context();
 
-    // 1단계: 후보 alcohol.id 만 추출. 정렬 타입별로 조인/집계 수준을 분기하여 성능을 보존한다.
-    // heavy 상관 서브쿼리(myRating/averageReviewRating/isPickedSubquery/getTastingTags)는
-    // 반드시 2단계에서만 실행되어야 한다 (성능개선 이슈 참고).
-    List<Long> candidateIds = fetchCandidateIds(criteria, fetchSize);
-
-    // 빈 결과 early return (IN 절 빈 리스트 방지)
-    if (candidateIds.isEmpty()) {
-      return CursorResponse.of(List.of(), cursor, pageSize);
+    List<ExploreSeekKey> candidates = fetchCandidateIds(criteria, fetchSize);
+    if (candidates.isEmpty()) {
+      return app.bottlenote.global.pagination.PageResponse.of(
+          List.of(), new Pagination(false, null));
     }
 
-    // 2단계: 1단계 ID 들에 대해서만 본문 + 평점 + 태그 조회 (3,000건 처리 → fetchSize 건 처리)
+    List<Long> candidateIds = candidates.stream().map(ExploreSeekKey::id).toList();
+    Map<Long, String> sortById =
+        candidates.stream()
+            .collect(Collectors.toMap(ExploreSeekKey::id, ExploreSeekKey::sortValue));
+
     List<AlcoholDetailItem> items =
         queryFactory
             .select(
@@ -355,68 +367,149 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                 distillery.engName)
             .fetch();
 
-    // 1단계의 ORDER BY rand 순서를 앱 레벨에서 복원 (2단계 SQL 결과는 임의 순서)
     Map<Long, AlcoholDetailItem> byId =
         items.stream()
             .collect(Collectors.toMap(AlcoholDetailItem::getAlcoholId, Function.identity()));
     List<AlcoholDetailItem> ordered =
         candidateIds.stream().map(byId::get).filter(Objects::nonNull).toList();
 
-    return CursorResponse.of(ordered, cursor, pageSize);
+    var slice =
+        Pagination.fromOverflow(
+            ordered,
+            pageSize,
+            item -> {
+              Map<String, String> keys =
+                  Map.of(
+                      "id",
+                      String.valueOf(item.getAlcoholId()),
+                      "sort",
+                      sortById.getOrDefault(item.getAlcoholId(), "0"));
+              Map<String, String> extra =
+                  criteria.sortType() == SearchSortType.RANDOM
+                      ? Map.of("seed", String.valueOf(criteria.seed()))
+                      : Map.of();
+              return cursorCodec.encode(context, keys, extra);
+            });
+    return app.bottlenote.global.pagination.PageResponse.of(slice.items(), slice.pagination());
   }
 
   /**
-   * 1단계 후보 ID 추출. 정렬 타입에 따라 RANDOM은 경량 경로, 나머지는 필요한 집계 테이블만 LEFT JOIN + GROUP BY + id ASC 보조 정렬로
-   * 처리한다.
+   * 1단계 후보 ID 추출. 정렬 타입에 따라 RANDOM은 CRC32 keyset, 나머지는 필요한 집계 테이블만 LEFT JOIN + GROUP BY + id ASC 보조
+   * 정렬로 처리한다.
    */
-  private List<Long> fetchCandidateIds(ExploreStandardCriteria criteria, int fetchSize) {
+  private List<ExploreSeekKey> fetchCandidateIds(ExploreStandardCriteria criteria, int fetchSize) {
     SearchSortType sortType = criteria.sortType();
-    com.querydsl.jpa.impl.JPAQuery<Long> query =
+    CursorClaims claims =
+        criteria.cursor() == null
+            ? null
+            : cursorCodec.verify(criteria.cursor(), criteria.context());
+
+    if (sortType == SearchSortType.RANDOM) {
+      NumberExpression<Long> crc = supporter.crc32Rank(criteria.seed());
+      List<Tuple> rows =
+          queryFactory
+              .select(alcohol.id, crc)
+              .from(alcohol)
+              .join(region)
+              .on(alcohol.region.id.eq(region.id))
+              .join(distillery)
+              .on(alcohol.distillery.id.eq(distillery.id))
+              .where(
+                  supporter.keywordsMatch(criteria.keywords()),
+                  supporter.eqCategory(criteria.category()),
+                  supporter.inRegionIds(criteria.regionIds()),
+                  supporter.inDistilleryIds(criteria.distilleryIds()),
+                  supporter.eqCurationId(criteria.curationId()),
+                  supporter.isNotDeleted(),
+                  randomSeek(claims, crc))
+              .orderBy(crc.asc(), alcohol.id.asc())
+              .limit(fetchSize)
+              .fetch();
+      return toSeekKeys(rows, crc);
+    }
+
+    NumberExpression<? extends Number> sortScore = supporter.sortScore(sortType);
+    var query =
         queryFactory
-            .select(alcohol.id)
+            .select(alcohol.id, sortScore)
             .from(alcohol)
             .join(region)
             .on(alcohol.region.id.eq(region.id))
             .join(distillery)
             .on(alcohol.distillery.id.eq(distillery.id));
-
-    if (sortType != SearchSortType.RANDOM) {
-      if (needsRatingJoin(sortType)) {
-        query = query.leftJoin(rating).on(rating.id.alcoholId.eq(alcohol.id));
-      }
-      if (needsReviewJoin(sortType)) {
-        query = query.leftJoin(review).on(review.alcoholId.eq(alcohol.id));
-      }
-      if (needsPicksJoin(sortType)) {
-        query = query.leftJoin(picks).on(picks.alcoholId.eq(alcohol.id));
-      }
+    if (needsRatingJoin(sortType)) {
+      query = query.leftJoin(rating).on(rating.id.alcoholId.eq(alcohol.id));
     }
-
-    query =
-        query.where(
-            supporter.keywordsMatch(criteria.keywords()),
-            supporter.eqCategory(criteria.category()),
-            supporter.inRegionIds(criteria.regionIds()),
-            supporter.inDistilleryIds(criteria.distilleryIds()),
-            supporter.eqCurationId(criteria.curationId()),
-            supporter.isNotDeleted());
-
-    if (sortType == SearchSortType.RANDOM) {
-      // seed 는 Service 가 null 방어/생성 후 주입. id.asc() tiebreaker 로 동일 RAND 값 충돌 시에도 결정론적 순서 보장.
-      return query
-          .orderBy(supporter.sortByRandom(criteria.seed()), alcohol.id.asc())
-          .offset(criteria.cursor())
-          .limit(fetchSize)
-          .fetch();
+    if (needsReviewJoin(sortType)) {
+      query = query.leftJoin(review).on(review.alcoholId.eq(alcohol.id));
     }
-
-    return query
-        .groupBy(alcohol.id)
-        .orderBy(supporter.sortBy(sortType, criteria.sortOrder()), alcohol.id.asc())
-        .offset(criteria.cursor())
-        .limit(fetchSize)
-        .fetch();
+    if (needsPicksJoin(sortType)) {
+      query = query.leftJoin(picks).on(picks.alcoholId.eq(alcohol.id));
+    }
+    List<Tuple> rows =
+        query
+            .where(
+                supporter.keywordsMatch(criteria.keywords()),
+                supporter.eqCategory(criteria.category()),
+                supporter.inRegionIds(criteria.regionIds()),
+                supporter.inDistilleryIds(criteria.distilleryIds()),
+                supporter.eqCurationId(criteria.curationId()),
+                supporter.isNotDeleted())
+            .groupBy(alcohol.id)
+            .having(aggregateSeek(claims, sortType, criteria.sortOrder(), sortScore))
+            .orderBy(supporter.sortBy(sortType, criteria.sortOrder()), alcohol.id.asc())
+            .limit(fetchSize)
+            .fetch();
+    return toSeekKeys(rows, sortScore);
   }
+
+  private static List<ExploreSeekKey> toSeekKeys(
+      List<Tuple> rows, Expression<? extends Number> sortExpr) {
+    return rows.stream()
+        .map(
+            row -> {
+              Long id = row.get(alcohol.id);
+              Number sort = row.get(sortExpr);
+              return new ExploreSeekKey(id, sort == null ? "0" : String.valueOf(sort));
+            })
+        .toList();
+  }
+
+  private static BooleanExpression randomSeek(CursorClaims claims, NumberExpression<Long> crc) {
+    if (claims == null) {
+      return null;
+    }
+    long lastCrc = Long.parseLong(claims.sortKeys().get("sort"));
+    long lastId = Long.parseLong(claims.sortKeys().get("id"));
+    return crc.gt(lastCrc).or(crc.eq(lastCrc).and(alcohol.id.gt(lastId)));
+  }
+
+  private static BooleanExpression aggregateSeek(
+      CursorClaims claims,
+      SearchSortType sortType,
+      SortOrder sortOrder,
+      NumberExpression<? extends Number> sortScore) {
+    if (claims == null) {
+      return null;
+    }
+    long lastId = Long.parseLong(claims.sortKeys().get("id"));
+    String lastSort = claims.sortKeys().get("sort");
+    boolean desc = sortOrder == SortOrder.DESC;
+    if (sortType == SearchSortType.PICK || sortType == SearchSortType.REVIEW) {
+      long last = Long.parseLong(lastSort);
+      @SuppressWarnings("unchecked")
+      NumberExpression<Long> expr = (NumberExpression<Long>) sortScore;
+      BooleanExpression moved = desc ? expr.lt(last) : expr.gt(last);
+      return moved.or(expr.eq(last).and(alcohol.id.gt(lastId)));
+    }
+    double last = Double.parseDouble(lastSort);
+    @SuppressWarnings("unchecked")
+    NumberExpression<Double> expr = (NumberExpression<Double>) sortScore;
+    BooleanExpression moved = desc ? expr.lt(last) : expr.gt(last);
+    return moved.or(expr.eq(last).and(alcohol.id.gt(lastId)));
+  }
+
+  private record ExploreSeekKey(Long id, String sortValue) {}
 
   private static boolean needsRatingJoin(SearchSortType sortType) {
     return sortType == SearchSortType.RATING || sortType == SearchSortType.POPULAR;

@@ -1,6 +1,5 @@
 package app.bottlenote.review.fixture;
 
-import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.review.constant.ReviewDisplayStatus;
@@ -116,9 +115,12 @@ public class InMemoryReviewRepository implements ReviewRepository {
   }
 
   @Override
-  public Pair<Long, CursorResponse<ReviewExploreItem>> getStandardExplore(
-      Long userId, List<String> keywords, Long cursor, Integer size) {
-    return null;
+  public app.bottlenote.global.pagination.PageResponse<
+          app.bottlenote.review.dto.response.ReviewExploreListResponse>
+      getStandardExplore(Long userId, List<String> keywords, String cursor, Integer size) {
+    return app.bottlenote.global.pagination.PageResponse.of(
+        new app.bottlenote.review.dto.response.ReviewExploreListResponse(List.of()),
+        new app.bottlenote.global.pagination.Pagination(false, null));
   }
 
   @Override

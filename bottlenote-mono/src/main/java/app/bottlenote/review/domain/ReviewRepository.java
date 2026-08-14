@@ -1,19 +1,16 @@
 package app.bottlenote.review.domain;
 
 import app.bottlenote.global.pagination.PageResponse;
-import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.dto.request.AdminReviewSearchRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.response.AdminReviewListResponse;
 import app.bottlenote.review.dto.response.AlcoholReviewCountResponse;
-import app.bottlenote.review.dto.response.ReviewExploreItem;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 import java.util.List;
 import java.util.Optional;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.data.domain.Page;
 
 public interface ReviewRepository {
@@ -48,6 +45,7 @@ public interface ReviewRepository {
 
   boolean existsByAlcoholId(Long alcoholId);
 
-  Pair<Long, CursorResponse<ReviewExploreItem>> getStandardExplore(
-      Long userId, List<String> keywords, Long cursor, Integer size);
+  app.bottlenote.global.pagination.PageResponse<
+          app.bottlenote.review.dto.response.ReviewExploreListResponse>
+      getStandardExplore(Long userId, List<String> keywords, String cursor, Integer size);
 }

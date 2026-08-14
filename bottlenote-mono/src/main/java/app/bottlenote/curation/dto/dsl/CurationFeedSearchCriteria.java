@@ -8,7 +8,8 @@ public record CurationFeedSearchCriteria(
     Set<Long> specIds,
     Set<Long> keywordMatchedSpecIds,
     LocalDate today,
-    long offset,
+    Integer lastDisplayOrder,
+    Long lastId,
     int fetchSize) {
 
   public CurationFeedSearchCriteria {

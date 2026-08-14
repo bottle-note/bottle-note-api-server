@@ -12,10 +12,13 @@ import app.bottlenote.curation.fixture.CurationFixtureFactory;
 import app.bottlenote.curation.fixture.InMemoryCurationExtensionRepository;
 import app.bottlenote.curation.fixture.InMemoryCurationRepository;
 import app.bottlenote.curation.fixture.InMemoryCurationSpecRepository;
+import app.bottlenote.global.pagination.CursorProperties;
+import app.bottlenote.global.pagination.HmacCursorCodec;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -52,13 +55,17 @@ class ProductSpecBasedCurationServiceTest {
             new GraphQLCurationQueryBuilder(),
             new FixedGraphQLCurationExecutor(),
             new CurationPayloadValidator(OBJECT_MAPPER));
+    CursorProperties properties = new CursorProperties();
+    properties.setCurrentKeyId("v1");
+    properties.setCurrentSecret("test-pagination-cursor-secret");
     productService =
         new ProductSpecBasedCurationService(
             curationRepository,
             specRepository,
             extensionRepository,
             materializer,
-            new CurationFeedProjector(OBJECT_MAPPER));
+            new CurationFeedProjector(OBJECT_MAPPER),
+            new HmacCursorCodec(properties, Clock.systemUTC()));
   }
 
   @Test
@@ -116,13 +123,14 @@ class ProductSpecBasedCurationServiceTest {
     CurationSpec spec = createSpec();
     createCuration(spec.getId(), "피드", 1, true);
 
-    var result = productService.searchFeed(null, List.of(spec.getCode()), 0L, 20);
+    var result = productService.searchFeed(null, List.of(spec.getCode()), null, 20);
 
-    assertThat(result.items()).hasSize(1);
-    assertThat(result.pageable().getPageSize()).isEqualTo(10L);
-    assertThat(result.items().get(0).name()).isEqualTo("피드");
-    assertThat(result.items().get(0)).hasNoNullFieldsOrPropertiesExcept("description", "createAt");
-    JsonNode payload = OBJECT_MAPPER.valueToTree(result.items().get(0).payload());
+    assertThat(result.content().items()).hasSize(1);
+    assertThat(result.pagination().hasNext()).isFalse();
+    assertThat(result.content().items().get(0).name()).isEqualTo("피드");
+    assertThat(result.content().items().get(0))
+        .hasNoNullFieldsOrPropertiesExcept("description", "createAt");
+    JsonNode payload = OBJECT_MAPPER.valueToTree(result.content().items().get(0).payload());
     assertThat(payload).hasSize(2);
     assertThat(payload.get(0).has("source")).isFalse();
     assertThat(payload.get(0).has("stats")).isFalse();
@@ -138,11 +146,11 @@ class ProductSpecBasedCurationServiceTest {
     CurationSpec spec = createTastingEventSpec();
     Long curationId = createTastingEventCuration(spec.getId());
 
-    var result = productService.searchFeed(null, List.of(spec.getCode()), 0L, 20);
+    var result = productService.searchFeed(null, List.of(spec.getCode()), null, 20);
 
-    assertThat(result.items()).hasSize(1);
-    assertThat(result.items().get(0).id()).isEqualTo(curationId);
-    JsonNode payload = OBJECT_MAPPER.valueToTree(result.items().get(0).payload());
+    assertThat(result.content().items()).hasSize(1);
+    assertThat(result.content().items().get(0).id()).isEqualTo(curationId);
+    JsonNode payload = OBJECT_MAPPER.valueToTree(result.content().items().get(0).payload());
     assertThat(payload.has("alcohols")).isFalse();
     assertThat(payload.path("eventDate").asText()).isEqualTo("2026-06-21");
     assertThat(payload.path("eventTime").asText()).isEqualTo("19:00");
@@ -176,13 +184,11 @@ class ProductSpecBasedCurationServiceTest {
     createCuration(
         spec.getId(), "미노출", 1, true, LocalDate.now().plusDays(1), LocalDate.now().plusDays(5));
 
-    var result = productService.searchFeed(null, List.of(spec.getCode()), 0L, 30);
+    var result = productService.searchFeed(null, List.of(spec.getCode()), null, 30);
 
-    assertThat(result.items()).hasSize(10);
-    assertThat(result.pageable().getPageSize()).isEqualTo(10L);
-    assertThat(result.pageable().getCurrentCursor()).isZero();
-    assertThat(result.pageable().getCursor()).isEqualTo(10L);
-    assertThat(result.pageable().getHasNext()).isTrue();
+    assertThat(result.content().items()).hasSize(10);
+    assertThat(result.pagination().hasNext()).isTrue();
+    assertThat(result.pagination().nextCursor()).isNotBlank();
   }
 
   @Test
@@ -205,27 +211,31 @@ class ProductSpecBasedCurationServiceTest {
     createCuration(pairingSpec.getId(), "큐레이션 제목 매치 페어링", "일반 설명", 4, true);
 
     List<String> allCodes = List.of("RECOMMENDED_WHISKY", "WHISKY_PAIRING");
-    var keywordResult = productService.searchFeed("큐레이션", allCodes, 0L, 10);
-    var specKeywordResult = productService.searchFeed("안주", allCodes, 0L, 10);
-    var codeResult = productService.searchFeed(null, List.of("WHISKY_PAIRING"), 0L, 10);
-    var multiCodeResult = productService.searchFeed(null, allCodes, 0L, 10);
-    var combinedResult = productService.searchFeed("큐레이션", List.of("WHISKY_PAIRING"), 0L, 10);
-    var negativeResult = productService.searchFeed("큐레이션", List.of("UNKNOWN_CODE"), 0L, 10);
-    var emptyCodeResult = productService.searchFeed(null, List.of(), 0L, 10);
+    var keywordResult = productService.searchFeed("큐레이션", allCodes, null, 10);
+    var specKeywordResult = productService.searchFeed("안주", allCodes, null, 10);
+    var codeResult = productService.searchFeed(null, List.of("WHISKY_PAIRING"), null, 10);
+    var multiCodeResult = productService.searchFeed(null, allCodes, null, 10);
+    var combinedResult = productService.searchFeed("큐레이션", List.of("WHISKY_PAIRING"), null, 10);
+    var negativeResult = productService.searchFeed("큐레이션", List.of("UNKNOWN_CODE"), null, 10);
+    var emptyCodeResult = productService.searchFeed(null, List.of(), null, 10);
 
-    assertThat(keywordResult.items())
+    assertThat(keywordResult.content().items())
         .extracting("name")
         .containsExactly("큐레이션 제목 매치", "일반 제목", "큐레이션 제목 매치 페어링");
-    assertThat(specKeywordResult.items())
+    assertThat(specKeywordResult.content().items())
         .extracting("name")
         .containsExactly("일반 제목", "큐레이션 제목 매치 페어링");
-    assertThat(codeResult.items()).extracting("name").containsExactly("일반 제목", "큐레이션 제목 매치 페어링");
-    assertThat(multiCodeResult.items())
+    assertThat(codeResult.content().items())
+        .extracting("name")
+        .containsExactly("일반 제목", "큐레이션 제목 매치 페어링");
+    assertThat(multiCodeResult.content().items())
         .extracting("name")
         .containsExactly("큐레이션 제목 매치", "일반 제목", "일반 제목", "큐레이션 제목 매치 페어링");
-    assertThat(combinedResult.items()).extracting("name").containsExactly("큐레이션 제목 매치 페어링");
-    assertThat(negativeResult.items()).isEmpty();
-    assertThat(emptyCodeResult.items()).isEmpty();
+    assertThat(combinedResult.content().items())
+        .extracting("name")
+        .containsExactly("큐레이션 제목 매치 페어링");
+    assertThat(negativeResult.content().items()).isEmpty();
+    assertThat(emptyCodeResult.content().items()).isEmpty();
   }
 
   @Test

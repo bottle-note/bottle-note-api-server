@@ -311,7 +311,7 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
     }
 
     @Test
-    @DisplayName("Product feed는 노출 조건과 정렬을 적용한 뒤 offset cursor로 최대 10개를 반환한다")
+    @DisplayName("Product feed는 노출 조건과 정렬을 적용한 뒤 HMAC cursor로 최대 10개를 반환한다")
     void searchFeed_whenPageBoundaryReached_returnsStableOffsetPage() throws Exception {
       // given
       for (int i = 0; i < 12; i++) {
@@ -331,28 +331,46 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
       MvcTestResult firstPage =
           mockMvcTester
               .get()
-              .uri("/api/v2/curations/feed?code=RECOMMENDED_WHISKY&cursor=0&size=30")
+              .uri("/api/v2/curations/feed?code=RECOMMENDED_WHISKY&size=30")
               .contentType(APPLICATION_JSON)
               .exchange();
+      String nextCursor =
+          mapper
+              .readTree(firstPage.getResponse().getContentAsString())
+              .path("meta")
+              .path("pagination")
+              .path("nextCursor")
+              .asText();
       MvcTestResult secondPage =
           mockMvcTester
               .get()
-              .uri("/api/v2/curations/feed?code=RECOMMENDED_WHISKY&cursor=10&size=10")
+              .uri("/api/v2/curations/feed")
+              .param("code", "RECOMMENDED_WHISKY")
+              .param("cursor", nextCursor)
+              .param("size", "10")
               .contentType(APPLICATION_JSON)
               .exchange();
 
       // then
       JsonNode firstPageData = dataNode(firstPage);
+      JsonNode firstMeta =
+          mapper
+              .readTree(firstPage.getResponse().getContentAsString())
+              .path("meta")
+              .path("pagination");
       assertThat(firstPageData.path("items")).hasSize(10);
       assertThat(firstPageData.path("items").get(0).path("name").asText()).isEqualTo("노출 0");
-      assertThat(firstPageData.path("pageable").path("pageSize").asInt()).isEqualTo(10);
-      assertThat(firstPageData.path("pageable").path("cursor").asLong()).isEqualTo(10L);
-      assertThat(firstPageData.path("pageable").path("hasNext").asBoolean()).isTrue();
+      assertThat(firstMeta.path("hasNext").asBoolean()).isTrue();
 
       JsonNode secondPageData = dataNode(secondPage);
+      JsonNode secondMeta =
+          mapper
+              .readTree(secondPage.getResponse().getContentAsString())
+              .path("meta")
+              .path("pagination");
       assertThat(secondPageData.path("items")).hasSize(2);
       assertThat(secondPageData.path("items").get(0).path("name").asText()).isEqualTo("노출 10");
-      assertThat(secondPageData.path("pageable").path("hasNext").asBoolean()).isFalse();
+      assertThat(secondMeta.path("hasNext").asBoolean()).isFalse();
     }
   }
 

@@ -4,14 +4,12 @@ import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.OPTIONAL_
 
 import app.bottlenote.alcohols.controller.docs.AlcoholExploreApiDocs;
 import app.bottlenote.alcohols.dto.request.ExploreStandardRequest;
-import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.ExploreStandardResponse;
 import app.bottlenote.alcohols.service.AlcoholQueryService;
 import app.bottlenote.global.annotation.SecurityPolicy;
-import app.bottlenote.global.data.response.CollectionResponse;
 import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.global.service.meta.MetaInfos;
 import app.bottlenote.global.service.meta.MetaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,14 +36,12 @@ public class AlcoholExploreController {
   public ResponseEntity<GlobalResponse> getStandardExplore(
       @ModelAttribute @Valid ExploreStandardRequest request) {
     Long userId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
-
-    ExploreStandardResponse result = alcoholQueryService.getStandardExplore(request, userId);
-
-    CollectionResponse<AlcoholDetailItem> data = CollectionResponse.of(0L, result.page());
-    MetaInfos meta = MetaService.createMetaInfo();
-    meta.add("pageable", result.page().pageable());
-    meta.add("searchParameters", request);
-    meta.add("seed", result.seed());
-    return GlobalResponse.ok(data, meta);
+    PageResponse<ExploreStandardResponse> page =
+        alcoholQueryService.getStandardExplore(request, userId);
+    return GlobalResponse.ok(
+        page.content(),
+        MetaService.createMetaInfo()
+            .add("searchParameters", request)
+            .add("pagination", page.pagination()));
   }
 }

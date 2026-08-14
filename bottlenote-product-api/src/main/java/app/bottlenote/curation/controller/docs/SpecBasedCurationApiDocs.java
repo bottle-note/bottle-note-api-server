@@ -3,7 +3,6 @@ package app.bottlenote.curation.controller.docs;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationDetailResponse;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationFeedItemResponse;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationListResponse;
-import app.bottlenote.global.service.cursor.CursorPageable;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -55,6 +54,7 @@ public final class SpecBasedCurationApiDocs {
 
           키워드로 제목을 검색하거나 코드로 특정 유형만 걸러낼 수 있고, 코드는 여러 개를 함께 보낼 수 있습니다.
           각 항목의 내용은 큐레이션 명세에 따라 구성되므로 유형별로 담기는 항목이 다릅니다.
+          다음 페이지는 meta.pagination.nextCursor를 그대로 보내면 됩니다.
           """,
       responses =
           @ApiResponse(
@@ -78,14 +78,10 @@ public final class SpecBasedCurationApiDocs {
                           @Schema(implementation = ProductSpecBasedCurationDetailResponse.class))))
   public @interface GetCuration {}
 
-  /** 실제로는 {@code CursorResponse<ProductSpecBasedCurationFeedItemResponse>}다. */
-  @Schema(
-      name = "CurationFeedPage",
-      title = "큐레이션 피드 페이지",
-      description = "이번 페이지의 피드 항목과 다음 페이지 정보")
+  /** 실제로는 {@code CurationFeedListResponse}다. */
+  @Schema(name = "CurationFeedPage", title = "큐레이션 피드 페이지", description = "이번 페이지의 피드 항목")
   private record CurationFeedPage(
       @ArraySchema(
               schema = @Schema(implementation = ProductSpecBasedCurationFeedItemResponse.class))
-          List<ProductSpecBasedCurationFeedItemResponse> items,
-      CursorPageable pageable) {}
+          List<ProductSpecBasedCurationFeedItemResponse> items) {}
 }
