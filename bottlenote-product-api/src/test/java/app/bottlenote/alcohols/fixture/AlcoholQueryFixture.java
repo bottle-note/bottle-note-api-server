@@ -7,17 +7,10 @@ import static app.bottlenote.alcohols.constant.AlcoholCategoryGroup.RYE;
 import static app.bottlenote.alcohols.constant.AlcoholCategoryGroup.SINGLE_MALT;
 import static app.bottlenote.review.constant.SizeType.GLASS;
 
-import app.bottlenote.alcohols.constant.SearchSortType;
-import app.bottlenote.alcohols.dto.request.AlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
-import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
-import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.dto.response.FriendsDetailResponse;
 import app.bottlenote.alcohols.dto.response.ReviewsDetailResponse;
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.PageResponse;
-import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 import app.bottlenote.review.facade.payload.UserInfo;
 import app.bottlenote.user.facade.payload.FriendItem;
@@ -242,73 +235,6 @@ public class AlcoholQueryFixture {
         .bestReviewInfos(bestReview)
         .recentReviewInfos(recentReviewInfos)
         .build();
-  }
-
-  public static AlcoholSearchRequest getRequest() {
-    return AlcoholSearchRequest.builder()
-        .keyword("glen")
-        .category(SINGLE_MALT)
-        .regionId(1L)
-        .sortType(SearchSortType.REVIEW)
-        .sortOrder(SortOrder.DESC)
-        .cursor(0L)
-        .pageSize(3L)
-        .build();
-  }
-
-  public static PageResponse<AlcoholSearchResponse> getResponse() {
-
-    AlcoholsSearchItem detail_1 =
-        AlcoholsSearchItem.builder()
-            .alcoholId(5L)
-            .korName("아녹 24년")
-            .engName("anCnoc 24-year-old")
-            .korCategoryName("싱글 몰트")
-            .engCategoryName("Single Malt")
-            .imageUrl("https://static.whiskybase.com/storage/whiskies/6/6/989/270671-big.jpg")
-            .rating(4.5)
-            .ratingCount(1L)
-            .reviewCount(0L)
-            .pickCount(1L)
-            .isPicked(false)
-            .build();
-
-    AlcoholsSearchItem detail_2 =
-        AlcoholsSearchItem.builder()
-            .alcoholId(1L)
-            .korName("글래스고 1770 싱글몰트 스카치 위스키")
-            .engName("1770 Glasgow Single Malt")
-            .korCategoryName("싱글 몰트")
-            .engCategoryName("Single Malt")
-            .imageUrl("https://static.whiskybase.com/storage/whiskies/2/0/8916/404538-big.jpg")
-            .rating(3.5)
-            .ratingCount(3L)
-            .reviewCount(1L)
-            .pickCount(1L)
-            .isPicked(true)
-            .build();
-
-    AlcoholsSearchItem detail_3 =
-        AlcoholsSearchItem.builder()
-            .alcoholId(2L)
-            .korName("글래스고 1770 싱글몰트 스카치 위스키")
-            .engName("1770 Glasgow Single Malt")
-            .korCategoryName("싱글 몰트")
-            .engCategoryName("Single Malt")
-            .imageUrl("https://static.whiskybase.com/storage/whiskies/2/0/8888/404535-big.jpg")
-            .rating(3.5)
-            .ratingCount(1L)
-            .reviewCount(0L)
-            .pickCount(1L)
-            .isPicked(true)
-            .build();
-
-    Long totalCount = 5L;
-    List<AlcoholsSearchItem> details = List.of(detail_1, detail_2, detail_3);
-    CursorPageable cursorPageable =
-        CursorPageable.builder().currentCursor(0L).cursor(4L).pageSize(3L).hasNext(true).build();
-    AlcoholSearchResponse response = AlcoholSearchResponse.of(totalCount, details);
-    return PageResponse.of(response, cursorPageable);
   }
 
   public static List<CategoryItem> categoryResponses() {

@@ -2,14 +2,14 @@ package app.bottlenote.history.controller;
 
 import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByContext;
 
-import app.bottlenote.alcohols.dto.response.ViewHistoryItem;
-import app.bottlenote.global.data.response.CollectionResponse;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.history.controller.docs.UserHistoryApiDocs;
 import app.bottlenote.history.dto.request.UserHistorySearchRequest;
+import app.bottlenote.history.dto.request.ViewHistoryRequest;
 import app.bottlenote.history.dto.response.UserHistorySearchResponse;
+import app.bottlenote.history.dto.response.ViewHistoryListResponse;
 import app.bottlenote.history.service.AlcoholViewHistoryService;
 import app.bottlenote.history.service.UserHistoryQueryService;
 import jakarta.validation.Valid;
@@ -45,9 +45,12 @@ public class UserHistoryController {
 
   @UserHistoryApiDocs.GetViewHistory
   @GetMapping("/view/alcohols")
-  public ResponseEntity<GlobalResponse> getViewHistory() {
+  public ResponseEntity<GlobalResponse> getViewHistory(
+      @ModelAttribute @Valid ViewHistoryRequest request) {
     Long id = getUserIdByContext().orElse(-1L);
-    CollectionResponse<ViewHistoryItem> response = alcoholViewHistoryService.getViewHistory(id);
-    return GlobalResponse.ok(response);
+    PageResponse<ViewHistoryListResponse> page =
+        alcoholViewHistoryService.getViewHistory(id, request);
+    return GlobalResponse.ok(
+        page.content(), MetaService.createMetaInfo().add("pagination", page.pagination()));
   }
 }

@@ -1,8 +1,10 @@
 package app.bottlenote.review.repository;
 
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.review.dto.request.AdminReviewSearchRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.response.AdminReviewListResponse;
+import app.bottlenote.review.dto.response.ReviewExploreListResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 import java.util.List;
@@ -27,7 +29,7 @@ public interface CustomReviewRepository {
    * @param userId 조회하는 사용자 ID
    * @return 특정 술에 대한 전체 리뷰 목록
    */
-  app.bottlenote.global.pagination.PageResponse<ReviewListResponse> getReviews(
+  PageResponse<ReviewListResponse> getReviews(
       Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId);
 
   /**
@@ -38,12 +40,11 @@ public interface CustomReviewRepository {
    * @param userId 조회하는 사용자 ID
    * @return 특정 술에 대한 내가 작성한 리뷰 목록
    */
-  app.bottlenote.global.pagination.PageResponse<ReviewListResponse> getReviewsByMe(
+  PageResponse<ReviewListResponse> getReviewsByMe(
       Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId);
 
   Page<AdminReviewListResponse> searchAdminReviews(AdminReviewSearchRequest request);
 
-  app.bottlenote.global.pagination.PageResponse<
-          app.bottlenote.review.dto.response.ReviewExploreListResponse>
-      getStandardExplore(Long userId, List<String> keywords, String cursor, Integer size);
+  PageResponse<ReviewExploreListResponse> getStandardExplore(
+      Long userId, List<String> keywords, String cursor, Integer size);
 }

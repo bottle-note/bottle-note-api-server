@@ -50,7 +50,7 @@ public final class RatingApiDocs {
           아직 별점을 주지 않은 위스키를 커서 방식으로 가져옵니다.
 
           별점 매기기 화면에서 다음에 평가할 대상을 보여주기 위한 목록입니다.
-          다음 페이지 정보는 meta.pageable, 조회 조건은 meta.searchParameters에 담깁니다.
+          다음 페이지 정보는 meta.pagination, 조회 조건은 meta.searchParameters에 담깁니다.
           """,
       responses =
           @ApiResponse(

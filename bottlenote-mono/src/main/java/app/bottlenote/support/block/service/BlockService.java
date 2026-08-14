@@ -5,11 +5,18 @@ import static app.bottlenote.support.block.exception.BlockExceptionCode.REQUIRED
 import static app.bottlenote.support.block.exception.BlockExceptionCode.USER_ALREADY_BLOCKED;
 import static app.bottlenote.support.block.exception.BlockExceptionCode.USER_BLOCK_NOT_FOUND;
 
-import app.bottlenote.global.data.response.CollectionResponse;
+import app.bottlenote.global.pagination.HmacCursorCodec;
+import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.TimeIdCursor;
 import app.bottlenote.support.block.domain.UserBlock;
 import app.bottlenote.support.block.domain.UserBlockRepository;
+import app.bottlenote.support.block.dto.request.BlockPageableRequest;
 import app.bottlenote.support.block.dto.response.UserBlockItem;
+import app.bottlenote.support.block.dto.response.UserBlockListResponse;
 import app.bottlenote.support.block.exception.BlockException;
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class BlockService {
 
   private final UserBlockRepository userBlockRepository;
+  private final HmacCursorCodec cursorCodec;
 
   @Transactional
   public void blockUser(Long blockerId, Long blockedId, String reason) {
@@ -70,15 +78,37 @@ public class BlockService {
   }
 
   @Transactional(readOnly = true)
-  public CollectionResponse<UserBlockItem> getBlockedUserItems(Long userId) {
+  public PageResponse<UserBlockListResponse> getBlockedUserItems(
+      Long userId, BlockPageableRequest request) {
     if (userId == null) {
-      return CollectionResponse.of(0L, List.of());
+      return PageResponse.of(new UserBlockListResponse(List.of()), new Pagination(false, null));
     }
-
-    List<UserBlockItem> items = userBlockRepository.findBlockedUserItemsByBlockerId(userId);
-    long totalCount = items.size();
-
-    return CollectionResponse.of(totalCount, items);
+    List<UserBlockItem> items =
+        userBlockRepository.findBlockedUserItemsByBlockerId(userId).stream()
+            .sorted(
+                Comparator.comparing(UserBlockItem::blockedAt, Comparator.reverseOrder())
+                    .thenComparing(UserBlockItem::userId, Comparator.reverseOrder()))
+            .toList();
+    String context = "block.list:" + userId;
+    if (request.cursor() != null) {
+      var claims = cursorCodec.verify(request.cursor(), context);
+      LocalDateTime lastAt = TimeIdCursor.time(claims);
+      Long lastId = TimeIdCursor.id(claims);
+      items =
+          items.stream()
+              .filter(
+                  item ->
+                      item.blockedAt().isBefore(lastAt)
+                          || (item.blockedAt().equals(lastAt) && item.userId() < lastId))
+              .toList();
+    }
+    Pagination.PageSlice<UserBlockItem> slice =
+        Pagination.fromOverflow(
+            items,
+            request.size(),
+            item ->
+                cursorCodec.encode(context, TimeIdCursor.keys(item.blockedAt(), item.userId())));
+    return PageResponse.of(new UserBlockListResponse(slice.items()), slice.pagination());
   }
 
   @Transactional(readOnly = true)

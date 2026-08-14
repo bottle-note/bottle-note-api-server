@@ -1,5 +1,7 @@
 package app.bottlenote.review.fixture;
 
+import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.Pagination;
 import app.bottlenote.review.domain.ReviewReply;
 import app.bottlenote.review.domain.ReviewReplyRepository;
 import app.bottlenote.review.dto.response.RootReviewReplyResponse;
@@ -46,19 +48,15 @@ public class InMemoryReviewReplyRepository implements ReviewReplyRepository {
   }
 
   @Override
-  public app.bottlenote.global.pagination.PageResponse<RootReviewReplyResponse>
-      getReviewRootReplies(Long reviewId, String cursor, Integer size) {
-    return app.bottlenote.global.pagination.PageResponse.of(
-        RootReviewReplyResponse.of(List.of()),
-        new app.bottlenote.global.pagination.Pagination(false, null));
+  public PageResponse<RootReviewReplyResponse> getReviewRootReplies(
+      Long reviewId, String cursor, Integer size) {
+    return PageResponse.of(RootReviewReplyResponse.of(List.of()), new Pagination(false, null));
   }
 
   @Override
-  public app.bottlenote.global.pagination.PageResponse<SubReviewReplyResponse> getSubReviewReplies(
+  public PageResponse<SubReviewReplyResponse> getSubReviewReplies(
       Long reviewId, Long replyId, String cursor, Integer size) {
-    return app.bottlenote.global.pagination.PageResponse.of(
-        SubReviewReplyResponse.of(List.of()),
-        new app.bottlenote.global.pagination.Pagination(false, null));
+    return PageResponse.of(SubReviewReplyResponse.of(List.of()), new Pagination(false, null));
   }
 
   @Override

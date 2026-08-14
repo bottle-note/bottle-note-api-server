@@ -15,9 +15,6 @@ import static com.querydsl.jpa.JPAExpressions.select;
 import app.bottlenote.alcohols.constant.AdminAlcoholSortType;
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
 import app.bottlenote.alcohols.constant.SearchSortType;
-import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
-import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
-import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.SortOrder;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
@@ -122,31 +119,6 @@ public class AlcoholQuerySupporter {
                 .where(review.alcoholId.eq(alcoholId).and(review.userId.eq(userId))))
         .castToNum(Double.class)
         .as("myAvgRating");
-  }
-
-  /** 검색 기준과 결과 목록으로 커서 페이징 정보 생성 */
-  public CursorPageable getCursorPageable(
-      AlcoholSearchCriteria criteriaDto,
-      List<AlcoholsSearchItem> fetch,
-      Long cursor,
-      Long pageSize) {
-    boolean hasNext = isHasNext(criteriaDto, fetch);
-    return CursorPageable.builder()
-        .currentCursor(cursor)
-        .cursor(cursor + pageSize)
-        .pageSize(pageSize)
-        .hasNext(hasNext)
-        .build();
-  }
-
-  /** 다음 페이지 존재 여부 확인 및 초과 항목 제거 */
-  public boolean isHasNext(AlcoholSearchCriteria criteriaDto, List<AlcoholsSearchItem> fetch) {
-    boolean hasNext = fetch.size() > criteriaDto.pageSize();
-
-    if (hasNext) {
-      fetch.remove(fetch.size() - 1);
-    }
-    return hasNext;
   }
 
   /** 정렬 조건에 따른 OrderSpecifier 생성 */

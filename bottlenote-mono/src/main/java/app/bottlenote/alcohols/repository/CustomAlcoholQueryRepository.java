@@ -7,6 +7,7 @@ import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
+import app.bottlenote.global.pagination.PageResponse;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -22,8 +23,7 @@ public interface CustomAlcoholQueryRepository {
 
   Optional<AlcoholSummaryItem> findAlcoholInfoById(Long alcoholId, Long userId);
 
-  app.bottlenote.global.pagination.PageResponse<List<AlcoholDetailItem>> getStandardExplore(
-      ExploreStandardCriteria criteria);
+  PageResponse<List<AlcoholDetailItem>> getStandardExplore(ExploreStandardCriteria criteria);
 
   Page<AdminAlcoholItem> searchAdminAlcohols(AdminAlcoholSearchRequest request);
 

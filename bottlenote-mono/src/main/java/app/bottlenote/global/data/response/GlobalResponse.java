@@ -4,9 +4,7 @@ import static app.bottlenote.global.service.meta.MetaService.createMetaInfo;
 import static java.util.Collections.emptyList;
 
 import app.bottlenote.global.exception.custom.AbstractCustomException;
-import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.global.service.meta.MetaInfos;
-import app.bottlenote.global.service.meta.MetaService;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
@@ -15,7 +13,6 @@ import java.util.Set;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -60,17 +57,6 @@ public class GlobalResponse {
 
   public static ResponseEntity<GlobalResponse> ok(Object data) {
     return ResponseEntity.ok(success(data));
-  }
-
-  public static <T, P> ResponseEntity<GlobalResponse> ok(
-      Pair<Long, CursorResponse<T>> pair, P searchParameters) {
-    Long totalCount = pair.getLeft();
-    CursorResponse<T> items = pair.getRight();
-    CollectionResponse<T> response = CollectionResponse.of(totalCount, items);
-    MetaInfos metaInfos = MetaService.createMetaInfo();
-    metaInfos.add("pageable", items.pageable());
-    metaInfos.add("searchParameters", searchParameters);
-    return ResponseEntity.ok(success(response, metaInfos));
   }
 
   public static ResponseEntity<GlobalResponse> ok(Object data, MetaInfos meta) {

@@ -10,6 +10,7 @@ import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
+import app.bottlenote.global.pagination.PageResponse;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -39,8 +40,7 @@ public interface AlcoholQueryRepository {
 
   Boolean existsByDistilleryId(Long distilleryId);
 
-  app.bottlenote.global.pagination.PageResponse<List<AlcoholDetailItem>> getStandardExplore(
-      ExploreStandardCriteria criteria);
+  PageResponse<List<AlcoholDetailItem>> getStandardExplore(ExploreStandardCriteria criteria);
 
   Page<AdminAlcoholItem> searchAdminAlcohols(AdminAlcoholSearchRequest request);
 

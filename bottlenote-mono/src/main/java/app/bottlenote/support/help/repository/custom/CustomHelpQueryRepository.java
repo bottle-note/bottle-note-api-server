@@ -15,7 +15,7 @@ public interface CustomHelpQueryRepository {
    * @param currentUserId 현재 사용자 ID
    * @return 문의글 목록
    */
-  app.bottlenote.global.pagination.PageResponse<HelpListResponse> getHelpList(
+  PageResponse<HelpListResponse> getHelpList(
       HelpPageableRequest helpPageableRequest, Long currentUserId);
 
   /**

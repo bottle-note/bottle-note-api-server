@@ -24,6 +24,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.util.ReflectionTestUtils;
+import app.bottlenote.review.dto.response.ReviewExploreListResponse;
+import app.bottlenote.global.pagination.Pagination;
 
 public class InMemoryReviewRepository implements ReviewRepository {
 
@@ -115,12 +117,11 @@ public class InMemoryReviewRepository implements ReviewRepository {
   }
 
   @Override
-  public app.bottlenote.global.pagination.PageResponse<
-          app.bottlenote.review.dto.response.ReviewExploreListResponse>
+  public PageResponse<ReviewExploreListResponse>
       getStandardExplore(Long userId, List<String> keywords, String cursor, Integer size) {
-    return app.bottlenote.global.pagination.PageResponse.of(
-        new app.bottlenote.review.dto.response.ReviewExploreListResponse(List.of()),
-        new app.bottlenote.global.pagination.Pagination(false, null));
+    return PageResponse.of(
+        new ReviewExploreListResponse(List.of()),
+        new Pagination(false, null));
   }
 
   @Override

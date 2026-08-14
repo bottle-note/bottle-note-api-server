@@ -1,5 +1,6 @@
 package app.bottlenote.alcohols.dto.response;
 
+import java.time.LocalDateTime;
 import lombok.Builder;
 
 @Builder
@@ -13,4 +14,5 @@ public record ViewHistoryItem(
     String engCategory,
     String imageUrl,
     Boolean isPicked,
-    Double popularScore) {}
+    Double popularScore,
+    LocalDateTime viewAt) {}
