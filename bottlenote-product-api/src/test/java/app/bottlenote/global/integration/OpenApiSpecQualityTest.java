@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -49,19 +50,20 @@ class OpenApiSpecQualityTest extends OpenApiSpecTestSupport {
   @Test
   @DisplayName("모든 파라미터는 schema, content 또는 참조를 갖는다")
   void 모든_파라미터가_스키마_근거를_갖는다() {
-    var violations =
-        operationsOf(fetchSpec()).stream()
+    var spec = fetchSpec();
+    var pathViolations =
+        spec.at("/paths").properties().stream()
+            .flatMap(
+                path ->
+                    parameterViolations(
+                        path.getKey() + " [path]", path.getValue().path("parameters")));
+    var operationViolations =
+        operationsOf(spec).stream()
             .flatMap(
                 operation ->
-                    StreamSupport.stream(
-                            operation.definition().path("parameters").spliterator(), false)
-                        .filter(parameter -> !hasParameterSchema(parameter))
-                        .map(
-                            parameter ->
-                                "%s - %s"
-                                    .formatted(
-                                        operation.endpoint(), parameter.path("name").asText("<unnamed>"))))
-            .toList();
+                    parameterViolations(
+                        operation.endpoint(), operation.definition().path("parameters")));
+    var violations = Stream.concat(pathViolations, operationViolations).toList();
 
     assertThat(violations)
         .withFailMessage(
@@ -92,8 +94,16 @@ class OpenApiSpecQualityTest extends OpenApiSpecTestSupport {
         .isEmpty();
   }
 
+  private Stream<String> parameterViolations(String owner, JsonNode parameters) {
+    return StreamSupport.stream(parameters.spliterator(), false)
+        .filter(parameter -> !hasParameterSchema(parameter))
+        .map(
+            parameter ->
+                "%s - %s".formatted(owner, parameter.path("name").asText("<unnamed>")));
+  }
+
   private boolean hasParameterSchema(JsonNode parameter) {
-    return parameter.path("$ref").isTextual()
+    return !parameter.path("$ref").asText("").isBlank()
         || !parameter.path("schema").isEmpty()
         || !parameter.path("content").isEmpty();
   }

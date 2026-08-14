@@ -33,6 +33,8 @@ class NotificationOpenApiContractIntegrationTest extends OpenApiSpecTestSupport 
     assertThat(parameter(operation, "cursor").at("/schema").has("minimum")).isTrue();
     assertThat(parameter(operation, "cursor").at("/schema/minimum").asLong()).isZero();
     assertParameterSchema(operation, "pageSize", "integer", "int64");
+    assertThat(parameter(operation, "pageSize").at("/schema").has("minimum")).isTrue();
+    assertThat(parameter(operation, "pageSize").at("/schema").has("maximum")).isTrue();
     assertThat(parameter(operation, "pageSize").at("/schema/minimum").asLong()).isEqualTo(1L);
     assertThat(parameter(operation, "pageSize").at("/schema/maximum").asLong()).isEqualTo(100L);
     assertThat(parameter(operation, "types").at("/schema/type").asText()).isEqualTo("array");

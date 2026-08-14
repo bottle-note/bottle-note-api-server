@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.node.MissingNode
 import org.springframework.beans.factory.annotation.Value
 import java.nio.charset.StandardCharsets.UTF_8
 
+private val HTTP_METHODS = setOf("get", "put", "post", "delete", "options", "head", "patch", "trace")
+
 /** 생성된 Admin OpenAPI 스펙을 읽어 검사하는 테스트들의 공통 기반. */
 abstract class OpenApiSpecTestSupport : IntegrationTestSupport() {
 
@@ -20,7 +22,9 @@ abstract class OpenApiSpecTestSupport : IntegrationTestSupport() {
 
 	/** 스펙의 모든 엔드포인트를 평탄하게 펼친다. */
 	protected fun operationsOf(spec: JsonNode): List<SpecOperation> = spec.at("/paths").properties().flatMap { path ->
-		path.value.properties().map { method -> SpecOperation(path.key, method.key, method.value) }
+		path.value.properties()
+			.filter { method -> method.key in HTTP_METHODS }
+			.map { method -> SpecOperation(path.key, method.key, method.value) }
 	}
 
 	/** 위반 목록을 실패 메시지에 담을 형태로 잇는다. */
