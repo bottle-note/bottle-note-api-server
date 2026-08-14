@@ -93,7 +93,7 @@ class RatingIntegrationTest extends IntegrationTestSupport {
     RatingListFetchResponse ratingListFetchResponse =
         extractData(result, RatingListFetchResponse.class);
 
-    assertEquals(alcohols.size(), ratingListFetchResponse.totalCount());
+    assertEquals(alcohols.size(), ratingListFetchResponse.ratings().size());
   }
 
   @DisplayName("내가 매긴 특정 술의 별점을 조회할 수 있다.")

@@ -10,7 +10,7 @@ public class RatingObjectFixture {
 
   public static RatingListFetchRequest ratingListFetchRequest(
       String keyword, AlcoholCategoryGroup category, Long regionId) {
-    return new RatingListFetchRequest(keyword, category, regionId, null, null, 0L, 10L);
+    return new RatingListFetchRequest(keyword, category, regionId, null, null, null, 10);
   }
 
   public static RatingListFetchResponse.Info ratingListFetchResponseInfo(Long index) {
@@ -27,6 +27,6 @@ public class RatingObjectFixture {
       list.add(ratingListFetchResponseInfo(index));
     }
 
-    return RatingListFetchResponse.create(totalCount, list);
+    return RatingListFetchResponse.create(list);
   }
 }

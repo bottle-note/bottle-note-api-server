@@ -83,7 +83,7 @@ public class RatingController {
             response.content(),
             MetaService.createMetaInfo()
                 .add("searchParameters", request)
-                .add("pageable", response.cursorPageable())));
+                .add("pagination", response.pagination())));
   }
 
   /**
