@@ -85,9 +85,9 @@ class VisitorTelemetryMessageTest {
     fields.put("ip_address", "2001:db8::1");
     fields.put("trace_id", "trace-id");
     fields.put("http_method", "GET");
-    fields.put("request_path", "/api/v1/alcohols/search?keyword=test");
-    fields.put("request_uri", "/api/v1/alcohols/search");
-    fields.put("normalized_request_path", "/api/v1/alcohols/search");
+    fields.put("request_path", "/api/v1/alcohols/explore/standard?keyword=test");
+    fields.put("request_uri", "/api/v1/alcohols/explore/standard");
+    fields.put("normalized_request_path", "/api/v1/alcohols/explore/standard");
     fields.put("status_code", "200");
     fields.put("duration_ms", "42");
     fields.put("device_type", "데스크톱");

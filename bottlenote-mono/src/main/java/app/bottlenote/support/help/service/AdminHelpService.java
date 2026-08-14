@@ -2,7 +2,7 @@ package app.bottlenote.support.help.service;
 
 import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
 
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.support.help.domain.Help;
 import app.bottlenote.support.help.domain.HelpRepository;
 import app.bottlenote.support.help.dto.request.AdminHelpAnswerRequest;
@@ -74,8 +74,7 @@ public class AdminHelpService {
 
     help.answer(adminId, request.responseContent(), request.status());
     eventPublisher.publishEvent(
-        HelpAnswerNotificationEvent.of(
-            help.getId(), help.getUserId(), request.responseContent()));
+        HelpAnswerNotificationEvent.of(help.getId(), help.getUserId(), request.responseContent()));
 
     return AdminHelpAnswerResponse.of(help.getId(), help.getStatus());
   }

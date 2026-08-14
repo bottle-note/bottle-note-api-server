@@ -25,6 +25,6 @@ public interface HelpRepository {
   app.bottlenote.global.pagination.PageResponse<HelpListResponse> getHelpList(
       HelpPageableRequest helpPageableRequest, Long currentUserId);
 
-  app.bottlenote.global.service.cursor.PageResponse<AdminHelpListResponse> getAdminHelpList(
+  app.bottlenote.global.pagination.PageResponse<AdminHelpListResponse> getAdminHelpList(
       AdminHelpPageableRequest request);
 }

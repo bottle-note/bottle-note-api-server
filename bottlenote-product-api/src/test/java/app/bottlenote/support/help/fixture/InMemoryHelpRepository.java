@@ -68,9 +68,11 @@ public class InMemoryHelpRepository implements HelpRepository {
   }
 
   @Override
-  public app.bottlenote.global.service.cursor.PageResponse<AdminHelpListResponse> getAdminHelpList(
+  public app.bottlenote.global.pagination.PageResponse<AdminHelpListResponse> getAdminHelpList(
       AdminHelpPageableRequest request) {
-    return null;
+    return app.bottlenote.global.pagination.PageResponse.of(
+        AdminHelpListResponse.of(List.of()),
+        new app.bottlenote.global.pagination.Pagination(false, null));
   }
 
   public void clear() {

@@ -10,21 +10,16 @@ import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
 
 import app.bottlenote.alcohols.constant.SearchSortType;
-import app.bottlenote.alcohols.dto.dsl.AlcoholSearchCriteria;
 import app.bottlenote.alcohols.dto.dsl.ExploreStandardCriteria;
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest;
 import app.bottlenote.alcohols.dto.response.AdminAlcoholItem;
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
-import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
-import app.bottlenote.alcohols.dto.response.AlcoholsSearchItem;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.global.pagination.CursorClaims;
 import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.global.pagination.Pagination;
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.cursor.SortOrder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Expression;
@@ -98,86 +93,6 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
         .where(alcohol.type.eq(WHISKY), alcohol.deletedAt.isNull())
         .orderBy(alcohol.id.asc())
         .fetch();
-  }
-
-  /** queryDSL 알코올 검색 */
-  @Override
-  public PageResponse<AlcoholSearchResponse> searchAlcohols(AlcoholSearchCriteria criteriaDto) {
-    Long cursor = criteriaDto.cursor();
-    Long pageSize = criteriaDto.pageSize();
-    SearchSortType sortType = criteriaDto.sortType();
-    SortOrder sortOrder = criteriaDto.sortOrder();
-
-    Long userId = criteriaDto.userId();
-
-    List<AlcoholsSearchItem> fetch =
-        queryFactory
-            .select(
-                Projections.fields(
-                    AlcoholsSearchItem.class,
-                    alcohol.id.as("alcoholId"),
-                    alcohol.korName.as("korName"),
-                    alcohol.engName.as("engName"),
-                    alcohol.korCategory.as("korCategoryName"),
-                    alcohol.engCategory.as("engCategoryName"),
-                    alcohol.imageUrl.as("imageUrl"),
-                    rating
-                        .ratingPoint
-                        .rating
-                        .avg()
-                        .multiply(2)
-                        .castToNum(Double.class)
-                        .round()
-                        .divide(2)
-                        .coalesce(0.0)
-                        .as("rating"),
-                    rating.id.countDistinct().as("ratingCount"),
-                    review.id.countDistinct().as("reviewCount"),
-                    picks.id.countDistinct().as("pickCount"),
-                    supporter.pickedSubQuery(userId).as("isPicked")))
-            .from(alcohol)
-            .leftJoin(rating)
-            .on(alcohol.id.eq(rating.id.alcoholId))
-            .leftJoin(picks)
-            .on(alcohol.id.eq(picks.alcoholId))
-            .leftJoin(review)
-            .on(alcohol.id.eq(review.alcoholId))
-            .where(
-                supporter.isNotDeleted(),
-                supporter.keywordMatch(criteriaDto.keyword()),
-                supporter.eqCurationId(criteriaDto.curationId()),
-                supporter.eqCategory(criteriaDto.category()),
-                supporter.eqRegion(criteriaDto.regionId()))
-            .groupBy(
-                alcohol.id,
-                alcohol.korName,
-                alcohol.engName,
-                alcohol.korCategory,
-                alcohol.engCategory,
-                alcohol.imageUrl)
-            .orderBy(supporter.sortBy(sortType, sortOrder))
-            .orderBy(alcohol.id.asc())
-            .offset(cursor)
-            .limit(criteriaDto.pageSize() + 1) // 다음 페이지가 있는지 확인하기 위해 1개 더 가져옴
-            .fetch();
-
-    // where 조건으로 전체 결과값 카운트
-    Long totalCount =
-        queryFactory
-            .select(alcohol.id.count())
-            .from(alcohol)
-            .where(
-                supporter.isNotDeleted(),
-                supporter.keywordMatch(criteriaDto.keyword()),
-                supporter.eqCurationId(criteriaDto.curationId()),
-                supporter.eqCategory(criteriaDto.category()),
-                supporter.eqRegion(criteriaDto.regionId()))
-            .fetchOne();
-
-    CursorPageable pageable = CursorPageable.of(fetch, cursor, pageSize);
-    List<AlcoholsSearchItem> content =
-        fetch.size() > pageSize ? fetch.subList(0, pageSize.intValue()) : fetch;
-    return PageResponse.of(AlcoholSearchResponse.of(totalCount, content), pageable);
   }
 
   /** queryDSL 알코올 상세 조회 */

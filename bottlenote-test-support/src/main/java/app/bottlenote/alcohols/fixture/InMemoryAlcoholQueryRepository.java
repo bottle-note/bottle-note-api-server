@@ -56,11 +56,6 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
   }
 
   @Override
-  public PageResponse<AlcoholSearchResponse> searchAlcohols(AlcoholSearchCriteria criteriaDto) {
-    return null;
-  }
-
-  @Override
   public AlcoholDetailItem findAlcoholDetailById(Long alcoholId, Long AlcoholId) {
     return null;
   }
