@@ -6,8 +6,8 @@ import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
 import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.user.constant.MyBottleType;
 import app.bottlenote.user.controller.docs.UserMyPageApiDocs;
@@ -31,7 +31,7 @@ public class UserMyPageController {
 
   private final UserBasicService userBasicService;
   private static final String SEARCH_PARAMETERS = "searchParameters";
-  private static final String PAGEABLE = "pageable";
+  private static final String PAGINATION = "pagination";
 
   /** 마이 페이지 조회 API 모든 유저가 조회 가능 */
   @SecurityPolicy(auth = OPTIONAL_AUTH)
@@ -59,7 +59,7 @@ public class UserMyPageController {
         pageResponse.content(),
         MetaService.createMetaInfo()
             .add(SEARCH_PARAMETERS, myBottleRequest)
-            .add(PAGEABLE, pageResponse.cursorPageable()));
+            .add(PAGINATION, pageResponse.pagination()));
   }
 
   @SecurityPolicy(auth = REQUIRED_AUTH)
@@ -79,7 +79,7 @@ public class UserMyPageController {
         pageResponse.content(),
         MetaService.createMetaInfo()
             .add(SEARCH_PARAMETERS, myBottleRequest)
-            .add(PAGEABLE, pageResponse.cursorPageable()));
+            .add(PAGINATION, pageResponse.pagination()));
   }
 
   @SecurityPolicy(auth = REQUIRED_AUTH)
@@ -99,6 +99,6 @@ public class UserMyPageController {
         pageResponse.content(),
         MetaService.createMetaInfo()
             .add(SEARCH_PARAMETERS, myBottleRequest)
-            .add(PAGEABLE, pageResponse.cursorPageable()));
+            .add(PAGINATION, pageResponse.pagination()));
   }
 }

@@ -1,6 +1,7 @@
 package app.bottlenote.user.dto.response;
 
 import app.bottlenote.user.dto.response.MyBottleResponse.BaseMyBottleInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDateTime;
 import java.util.Set;
 import lombok.Builder;
@@ -13,4 +14,6 @@ public record ReviewMyBottleItem(
     LocalDateTime reviewModifyAt,
     String reviewContent,
     Set<String> reviewTastingTags,
-    boolean isBestReview) {}
+    boolean isBestReview,
+    @JsonIgnore LocalDateTime reviewCreateAt,
+    @JsonIgnore Double myRatingPoint) {}

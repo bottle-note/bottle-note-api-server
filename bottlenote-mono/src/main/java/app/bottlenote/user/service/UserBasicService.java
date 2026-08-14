@@ -9,7 +9,7 @@ import static app.bottlenote.user.exception.UserExceptionCode.USER_NOT_FOUND;
 import app.bottlenote.common.file.event.payload.ImageResourceActivatedEvent;
 import app.bottlenote.common.file.event.payload.ImageResourceInvalidatedEvent;
 import app.bottlenote.common.image.ImageUtil;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.user.constant.MyBottleType;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.domain.UserRepository;

@@ -20,7 +20,7 @@ Product 목록을 숫자 offset cursor에서 HMAC keyset cursor로 전환하고,
 - [x] Task 1: 공통 타입 + HMAC + 오류 계약. 기존 공개 API 미변경
 - [x] Task 2: 단순 목록 (help, business-support, follow, reply, lookup, history, notifications)
 - [x] Task 3: 복잡 정렬 (review, rating, explore RANDOM, curation)
-- [ ] Task 4: MyBottle
+- [x] Task 4: MyBottle
 - [ ] Task 5: admin help, search 삭제, legacy 타입 제거
 
 ## Progress Log
@@ -29,3 +29,4 @@ Product 목록을 숫자 offset cursor에서 HMAC keyset cursor로 전환하고,
 - 2026-08-15: Task 1 커밋 `23414a6ad`. Grok 구현, Opus 리뷰 Critical 0 / Important 7. Task 2 전에 size 팩토리·decode 가시성·fromOverflow 가드를 고치는 것을 권고.
 - 2026-08-15: Task 1 완료. `app.bottlenote.global.pagination`에 PaginationRequest/Pagination/PageResponse와 HMAC-SHA256 커서 코덱, INVALID_CURSOR(400)/CURSOR_CONTEXT_MISMATCH(400)/CURSOR_EXPIRED(410)를 추가했다. 기존 CursorPageable·구 PageResponse·목록 API는 변경하지 않았다. mono pagination 단위 테스트 14개 통과.
 - 2026-08-15: Task 3 완료. 알코올 탐색은 CRC32(seed,id) keyset, 시드는 커서 extra로만 이어진다. 리뷰 탐색은 createAt+id, 큐레이션 피드는 displayOrder+id. 응답은 items + meta.pagination. 관련 단위 테스트 통과.
+- 2026-08-15: Task 4 완료. MyBottle 3탭을 HMAC keyset으로 전환하고 totalCount를 제거했다. 요청 키는 cursor+size, 응답 페이지 정보는 meta.pagination. UserQuerySupporterTest 통과.

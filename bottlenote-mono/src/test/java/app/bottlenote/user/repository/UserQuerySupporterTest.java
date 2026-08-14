@@ -49,7 +49,7 @@ class UserQuerySupporterTest {
   @DisplayName("마이보틀 조회 결과가 pageSize보다 많으면 응답 목록에서는 lookahead 항목을 제거한다")
   @Test
   void myBottlePageItems_whenHasLookahead_removesLookaheadFromResponseItems() {
-    var request = new MyBottlePageableCriteria(1L, null, null, null, null, 0L, 2L, 1L);
+    var request = new MyBottlePageableCriteria(1L, null, null, null, null, null, 2, 1L);
     var items = List.of("first", "second", "lookahead");
 
     var pageItems = supporter.myBottlePageItems(request, items);
@@ -60,7 +60,7 @@ class UserQuerySupporterTest {
   @DisplayName("마이보틀 조회 결과가 pageSize 이하면 응답 목록을 그대로 유지한다")
   @Test
   void myBottlePageItems_whenNoLookahead_keepsResponseItems() {
-    var request = new MyBottlePageableCriteria(1L, null, null, null, null, 0L, 3L, 1L);
+    var request = new MyBottlePageableCriteria(1L, null, null, null, null, null, 3, 1L);
     var items = List.of("first", "second");
 
     var pageItems = supporter.myBottlePageItems(request, items);

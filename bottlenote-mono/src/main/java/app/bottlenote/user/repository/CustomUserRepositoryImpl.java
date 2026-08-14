@@ -8,8 +8,9 @@ import static app.bottlenote.user.domain.QUser.user;
 import static com.querydsl.jpa.JPAExpressions.select;
 
 import app.bottlenote.alcohols.repository.AlcoholQuerySupporter;
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.pagination.HmacCursorCodec;
+import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.Pagination;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.picks.constant.PicksStatus;
 import app.bottlenote.picks.repository.PicksQuerySupporter;
@@ -18,6 +19,7 @@ import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.review.domain.QReviewTastingTag;
 import app.bottlenote.review.repository.ReviewQuerySupporter;
 import app.bottlenote.user.constant.AdminUserSortType;
+import app.bottlenote.user.constant.MyBottleSortType;
 import app.bottlenote.user.constant.MyBottleType;
 import app.bottlenote.user.constant.SocialType;
 import app.bottlenote.user.constant.UserStatus;
@@ -58,6 +60,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
   private final UserQuerySupporter userQuerySupporter;
   private final RatingQuerySupporter ratingQuerySupporter;
   private final PicksQuerySupporter pickQuerySupporter;
+  private final HmacCursorCodec cursorCodec;
 
   /**
    * 마이페이지 조회
@@ -114,7 +117,12 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                     review.lastModifyAt.as("reviewModifyAt"),
                     review.content.as("reviewContent"),
                     Expressions.constant(Collections.emptySet()),
-                    review.isBest.as("isBestReview")))
+                    review.isBest.as("isBestReview"),
+                    review.createAt.as("reviewCreateAt"),
+                    Expressions.numberTemplate(
+                        Double.class,
+                        "{0}",
+                        userQuerySupporter.ratingSortExpression(MyBottleType.REVIEW, userId))))
             .from(alcohol)
             .join(review)
             .on(
@@ -125,7 +133,10 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                     .and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE)))
             .where(
                 userQuerySupporter.eqName(request.keyword()),
-                userQuerySupporter.eqRegion(request.regionId()))
+                userQuerySupporter.eqRegion(request.regionId()),
+                request.sortType() == MyBottleSortType.LATEST
+                    ? userQuerySupporter.myBottleSeek(MyBottleType.REVIEW, request, cursorCodec)
+                    : null)
             .groupBy(
                 alcohol.id,
                 alcohol.korName,
@@ -136,12 +147,15 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                 review.lastModifyAt,
                 review.content,
                 review.isBest)
+            .having(
+                request.sortType() == MyBottleSortType.LATEST
+                    ? null
+                    : userQuerySupporter.myBottleSeek(MyBottleType.REVIEW, request, cursorCodec))
             .orderBy(
                 userQuerySupporter.sortBy(
                     MyBottleType.REVIEW, request.sortType(), request.sortOrder(), userId),
                 userQuerySupporter.myBottleTieBreakerSortBy(request.sortOrder()))
-            .offset(request.cursor())
-            .limit(request.pageSize() + 1)
+            .limit(request.size() + 1L)
             .fetch();
 
     List<Long> reviewIds = reviewMyBottleList.stream().map(ReviewMyBottleItem::reviewId).toList();
@@ -177,35 +191,28 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                         r.reviewModifyAt(),
                         r.reviewContent(),
                         reviewIdToTagsMap.getOrDefault(r.reviewId(), Collections.emptySet()),
-                        r.isBestReview()))
+                        r.isBestReview(),
+                        r.reviewCreateAt(),
+                        r.myRatingPoint()))
             .toList();
 
     log.debug("mergedReviewMyBottleList : {}", mergedReviewMyBottleList);
 
-    CursorPageable cursorPageable =
-        userQuerySupporter.myBottleCursorPageable(request, mergedReviewMyBottleList);
-    List<ReviewMyBottleItem> pageReviewMyBottleList =
-        userQuerySupporter.myBottlePageItems(request, mergedReviewMyBottleList);
-
-    Long totalCount =
-        queryFactory
-            .select(alcohol.id.count())
-            .from(alcohol)
-            .join(review)
-            .on(
-                review
-                    .alcoholId
-                    .eq(alcohol.id)
-                    .and(review.userId.eq(userId))
-                    .and(review.activeStatus.eq(ReviewActiveStatus.ACTIVE)))
-            .where(
-                userQuerySupporter.eqName(request.keyword()),
-                userQuerySupporter.eqRegion(request.regionId()))
-            .fetchOne();
-
-    MyBottleResponse myBottleResponse =
-        MyBottleResponse.create(userId, isMyPage, totalCount, pageReviewMyBottleList);
-    return PageResponse.of(myBottleResponse, cursorPageable);
+    var slice =
+        Pagination.fromOverflow(
+            mergedReviewMyBottleList,
+            request.size(),
+            item ->
+                userQuerySupporter.encodeMyBottleCursor(
+                    MyBottleType.REVIEW,
+                    request,
+                    item.baseMyBottleInfo().alcoholId(),
+                    item.reviewModifyAt(),
+                    item.reviewCreateAt(),
+                    item.myRatingPoint(),
+                    cursorCodec));
+    return PageResponse.of(
+        MyBottleResponse.create(userId, isMyPage, slice.items()), slice.pagination());
   }
 
   @Override
@@ -230,7 +237,11 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                     rating.ratingPoint.rating.as("myRatingPoint"),
                     ratingQuerySupporter.averageRatingSubQuery(alcohol.id),
                     ratingQuerySupporter.averageRatingCountSubQuery(alcohol.id),
-                    rating.lastModifyAt.as("ratingModifyAt")))
+                    rating.lastModifyAt.as("ratingModifyAt"),
+                    Expressions.dateTimeTemplate(
+                        java.time.LocalDateTime.class,
+                        "{0}",
+                        userQuerySupporter.reviewSortExpression(MyBottleType.RATING, userId))))
             .from(alcohol)
             .join(rating)
             .on(
@@ -242,41 +253,37 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                     .and(rating.ratingPoint.rating.gt(0.0)))
             .where(
                 userQuerySupporter.eqName(request.keyword()),
-                userQuerySupporter.eqRegion(request.regionId()))
+                userQuerySupporter.eqRegion(request.regionId()),
+                request.sortType() == MyBottleSortType.LATEST
+                    ? userQuerySupporter.myBottleSeek(MyBottleType.RATING, request, cursorCodec)
+                    : null)
             .groupBy(
                 alcohol.id, alcohol.korName, alcohol.engName, alcohol.korCategory, alcohol.imageUrl)
+            .having(
+                request.sortType() == MyBottleSortType.LATEST
+                    ? null
+                    : userQuerySupporter.myBottleSeek(MyBottleType.RATING, request, cursorCodec))
             .orderBy(
                 userQuerySupporter.sortBy(
                     MyBottleType.RATING, request.sortType(), request.sortOrder(), userId),
                 userQuerySupporter.myBottleTieBreakerSortBy(request.sortOrder()))
-            .offset(request.cursor())
-            .limit(request.pageSize() + 1)
+            .limit(request.size() + 1L)
             .fetch();
-    CursorPageable cursorPageable =
-        userQuerySupporter.myBottleCursorPageable(request, ratingMyBottleList);
-    List<RatingMyBottleItem> pageRatingMyBottleList =
-        userQuerySupporter.myBottlePageItems(request, ratingMyBottleList);
-
-    Long totalCount =
-        queryFactory
-            .select(alcohol.id.count())
-            .from(alcohol)
-            .join(rating)
-            .on(
-                rating
-                    .id
-                    .alcoholId
-                    .eq(alcohol.id)
-                    .and(rating.id.userId.eq(userId))
-                    .and(rating.ratingPoint.rating.gt(0.0)))
-            .where(
-                userQuerySupporter.eqName(request.keyword()),
-                userQuerySupporter.eqRegion(request.regionId()))
-            .fetchOne();
-
-    MyBottleResponse myBottleResponse =
-        MyBottleResponse.create(userId, isMyPage, totalCount, pageRatingMyBottleList);
-    return PageResponse.of(myBottleResponse, cursorPageable);
+    var slice =
+        Pagination.fromOverflow(
+            ratingMyBottleList,
+            request.size(),
+            item ->
+                userQuerySupporter.encodeMyBottleCursor(
+                    MyBottleType.RATING,
+                    request,
+                    item.baseMyBottleInfo().alcoholId(),
+                    item.ratingModifyAt(),
+                    item.lastReviewAt(),
+                    item.myRatingPoint(),
+                    cursorCodec));
+    return PageResponse.of(
+        MyBottleResponse.create(userId, isMyPage, slice.items()), slice.pagination());
   }
 
   @Override
@@ -299,7 +306,16 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                         alcohol.imageUrl.as("imageUrl"),
                         alcoholQuerySupporter.isHot5(alcohol.id).as("isHot5")),
                     pickQuerySupporter.isPickedBothSubQuery(currentUserId, targetUserId),
-                    pickQuerySupporter.totalPicksCountSubQuery(alcohol.id)))
+                    pickQuerySupporter.totalPicksCountSubQuery(alcohol.id),
+                    picks.lastModifyAt.as("lastModifyAt"),
+                    Expressions.dateTimeTemplate(
+                        java.time.LocalDateTime.class,
+                        "{0}",
+                        userQuerySupporter.reviewSortExpression(MyBottleType.PICK, targetUserId)),
+                    Expressions.numberTemplate(
+                        Double.class,
+                        "{0}",
+                        userQuerySupporter.ratingSortExpression(MyBottleType.PICK, targetUserId))))
             .from(alcohol)
             .join(picks)
             .on(
@@ -310,7 +326,10 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                     .and(picks.status.eq(PicksStatus.PICK)))
             .where(
                 userQuerySupporter.eqName(request.keyword()),
-                userQuerySupporter.eqRegion(request.regionId()))
+                userQuerySupporter.eqRegion(request.regionId()),
+                request.sortType() == MyBottleSortType.LATEST
+                    ? userQuerySupporter.myBottleSeek(MyBottleType.PICK, request, cursorCodec)
+                    : null)
             .groupBy(
                 alcohol.id,
                 alcohol.korName,
@@ -318,38 +337,32 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                 alcohol.korCategory,
                 alcohol.imageUrl,
                 picks.lastModifyAt)
+            .having(
+                request.sortType() == MyBottleSortType.LATEST
+                    ? null
+                    : userQuerySupporter.myBottleSeek(MyBottleType.PICK, request, cursorCodec))
             .orderBy(
                 userQuerySupporter.sortBy(
                     MyBottleType.PICK, request.sortType(), request.sortOrder(), targetUserId),
                 userQuerySupporter.myBottleTieBreakerSortBy(request.sortOrder()))
-            .offset(request.cursor())
-            .limit(request.pageSize() + 1)
+            .limit(request.size() + 1L)
             .fetch();
 
-    CursorPageable cursorPageable =
-        userQuerySupporter.myBottleCursorPageable(request, picksMyBottleList);
-    List<PicksMyBottleItem> pagePicksMyBottleList =
-        userQuerySupporter.myBottlePageItems(request, picksMyBottleList);
-
-    Long totalCount =
-        queryFactory
-            .select(alcohol.id.count())
-            .from(alcohol)
-            .join(picks)
-            .on(
-                picks
-                    .alcoholId
-                    .eq(alcohol.id)
-                    .and(picks.userId.eq(targetUserId))
-                    .and(picks.status.eq(PicksStatus.PICK)))
-            .where(
-                userQuerySupporter.eqName(request.keyword()),
-                userQuerySupporter.eqRegion(request.regionId()))
-            .fetchOne();
-
-    MyBottleResponse myBottleResponse =
-        MyBottleResponse.create(targetUserId, isMyPage, totalCount, pagePicksMyBottleList);
-    return PageResponse.of(myBottleResponse, cursorPageable);
+    var slice =
+        Pagination.fromOverflow(
+            picksMyBottleList,
+            request.size(),
+            item ->
+                userQuerySupporter.encodeMyBottleCursor(
+                    MyBottleType.PICK,
+                    request,
+                    item.baseMyBottleInfo().alcoholId(),
+                    item.lastModifyAt(),
+                    item.lastReviewAt(),
+                    item.myRatingPoint(),
+                    cursorCodec));
+    return PageResponse.of(
+        MyBottleResponse.create(targetUserId, isMyPage, slice.items()), slice.pagination());
   }
 
   @Override
