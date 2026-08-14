@@ -1,8 +1,8 @@
 package app.bottlenote.review.fixture;
 
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.Pagination;
 import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.constant.SizeType;
 import app.bottlenote.review.domain.Review;
@@ -82,7 +82,7 @@ public class ReviewObjectFixture {
               SizeType.BOTTLE));
     }
 
-    return ReviewListResponse.of((long) reviewInfo.size(), reviewInfo);
+    return ReviewListResponse.of(reviewInfo);
   }
 
   public static PageResponse<ReviewListResponse> getReviewListResponse() {
@@ -91,11 +91,8 @@ public class ReviewObjectFixture {
     ReviewInfo reviewResponse2 =
         getReviewInfo(2L, "나름 먹을만 하네요", BigDecimal.valueOf(110000L), SizeType.BOTTLE);
     List<ReviewInfo> reviewResponse = List.of(reviewResponse1, reviewResponse2);
-    CursorPageable cursorPageable =
-        CursorPageable.builder().currentCursor(0L).cursor(1L).pageSize(2L).hasNext(false).build();
-    ReviewListResponse response =
-        ReviewListResponse.of((long) reviewResponse.size(), reviewResponse);
-    return PageResponse.of(response, cursorPageable);
+    ReviewListResponse response = ReviewListResponse.of(reviewResponse);
+    return PageResponse.of(response, new Pagination(false, null));
   }
 
   public static ReviewDetailResponse getReviewDetailResponse() {

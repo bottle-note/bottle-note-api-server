@@ -1,7 +1,6 @@
 package app.bottlenote.review.repository;
 
 import app.bottlenote.global.service.cursor.CursorResponse;
-import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.dto.request.AdminReviewSearchRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.response.AdminReviewListResponse;
@@ -31,7 +30,7 @@ public interface CustomReviewRepository {
    * @param userId 조회하는 사용자 ID
    * @return 특정 술에 대한 전체 리뷰 목록
    */
-  PageResponse<ReviewListResponse> getReviews(
+  app.bottlenote.global.pagination.PageResponse<ReviewListResponse> getReviews(
       Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId);
 
   /**
@@ -42,7 +41,7 @@ public interface CustomReviewRepository {
    * @param userId 조회하는 사용자 ID
    * @return 특정 술에 대한 내가 작성한 리뷰 목록
    */
-  PageResponse<ReviewListResponse> getReviewsByMe(
+  app.bottlenote.global.pagination.PageResponse<ReviewListResponse> getReviewsByMe(
       Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId);
 
   Page<AdminReviewListResponse> searchAdminReviews(AdminReviewSearchRequest request);

@@ -102,7 +102,7 @@ public class FakeReviewFacade implements ReviewFacade {
                         && (userId == null || review.userInfo().userId().equals(userId)))
             .toList();
 
-    return ReviewListResponse.of((long) filteredReviews.size(), filteredReviews);
+    return ReviewListResponse.of(filteredReviews);
   }
 
   @Override

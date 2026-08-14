@@ -12,7 +12,6 @@ import static app.bottlenote.review.domain.QReviewTastingTag.reviewTastingTag;
 import static app.bottlenote.user.domain.QUser.user;
 import static com.querydsl.jpa.JPAExpressions.select;
 
-import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.review.constant.AdminReviewSortType;
 import app.bottlenote.review.constant.ReviewActiveStatus;
@@ -107,22 +106,9 @@ public class ReviewQuerySupporter {
     return review.userId.eq(userId).as("isMyReview");
   }
 
-  public static CursorPageable getCursorPageable(
-      ReviewPageableRequest reviewPageableRequest, List<ReviewInfo> fetch) {
-
-    boolean hasNext = isHasNext(reviewPageableRequest, fetch);
-    return CursorPageable.builder()
-        .cursor(reviewPageableRequest.cursor() + reviewPageableRequest.pageSize())
-        .pageSize(reviewPageableRequest.pageSize())
-        .hasNext(hasNext)
-        .currentCursor(reviewPageableRequest.cursor())
-        .build();
-  }
-
-  /** 다음 페이지가 있는지 확인하는 메소드 */
   public static boolean isHasNext(
       ReviewPageableRequest reviewPageableRequest, List<ReviewInfo> fetch) {
-    boolean hasNext = fetch.size() > reviewPageableRequest.pageSize();
+    boolean hasNext = fetch.size() > reviewPageableRequest.size();
     if (hasNext) {
       fetch.remove(fetch.size() - 1); // Remove the extra record
     }
@@ -141,10 +127,14 @@ public class ReviewQuerySupporter {
                   .nullsLast(),
               new OrderSpecifier<>(sortOrder == DESC ? Order.DESC : Order.ASC, likesCount)
                   .nullsLast(),
-              createAtDesc);
+              createAtDesc,
+              review.id.desc());
       // 좋아요 순
       case LIKES ->
-          Arrays.asList(sortOrder == DESC ? likesCount.desc() : likesCount.asc(), createAtDesc);
+          Arrays.asList(
+              sortOrder == DESC ? likesCount.desc() : likesCount.asc(),
+              createAtDesc,
+              review.id.desc());
 
       // 별점 순
       case RATING ->
@@ -152,7 +142,8 @@ public class ReviewQuerySupporter {
               sortOrder == DESC
                   ? rating.ratingPoint.rating.desc()
                   : rating.ratingPoint.rating.asc(),
-              createAtDesc);
+              createAtDesc,
+              review.id.desc());
 
       // 병 기준 가격 순
       case BOTTLE_PRICE -> {
@@ -161,7 +152,8 @@ public class ReviewQuerySupporter {
 
         OrderSpecifier<?> priceOrderSpecifier =
             new OrderSpecifier<>(sortOrder == DESC ? Order.DESC : Order.ASC, review.price);
-        yield Arrays.asList(sizeOrderSpecifier, priceOrderSpecifier, createAtDesc);
+        yield Arrays.asList(
+            sizeOrderSpecifier, priceOrderSpecifier, createAtDesc, review.id.desc());
       }
 
       // 잔 기준 가격 순
@@ -171,7 +163,8 @@ public class ReviewQuerySupporter {
 
         OrderSpecifier<?> priceOrderSpecifier =
             new OrderSpecifier<>(sortOrder == DESC ? Order.DESC : Order.ASC, review.price);
-        yield Arrays.asList(sizeOrderSpecifier, priceOrderSpecifier, createAtDesc);
+        yield Arrays.asList(
+            sizeOrderSpecifier, priceOrderSpecifier, createAtDesc, review.id.desc());
       }
     };
   }

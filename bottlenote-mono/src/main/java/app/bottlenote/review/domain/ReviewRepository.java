@@ -1,7 +1,7 @@
 package app.bottlenote.review.domain;
 
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.global.service.cursor.CursorResponse;
-import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.dto.request.AdminReviewSearchRequest;

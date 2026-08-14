@@ -11,7 +11,6 @@ import static app.bottlenote.review.domain.QReviewTastingTag.reviewTastingTag;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.adminReviewFilters;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.adminReviewSortBy;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.containsKeywordInAll;
-import static app.bottlenote.review.repository.ReviewQuerySupporter.getCursorPageable;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.getTastingTag;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.getUserInfo;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.hasReplyByMeSubquery;
@@ -20,9 +19,7 @@ import static app.bottlenote.review.repository.ReviewQuerySupporter.isMyReview;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.sortBy;
 import static app.bottlenote.user.domain.QUser.user;
 
-import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.CursorResponse;
-import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.like.constant.LikeStatus;
 import app.bottlenote.review.dto.request.AdminReviewSearchRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
@@ -53,6 +50,7 @@ import org.springframework.data.domain.PageRequest;
 public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 
   private final JPAQueryFactory queryFactory;
+  private final app.bottlenote.global.pagination.HmacCursorCodec cursorCodec;
 
   private static ConstructorExpression<ReviewInfo> composeReviewInfoResult(Long userId) {
     return Projections.constructor(
@@ -115,7 +113,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
   }
 
   @Override
-  public PageResponse<ReviewListResponse> getReviews(
+  public app.bottlenote.global.pagination.PageResponse<ReviewListResponse> getReviews(
       Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId) {
     List<ReviewInfo> fetch =
         queryFactory
@@ -145,32 +143,18 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
             .orderBy(
                 sortBy(reviewPageableRequest.sortType(), reviewPageableRequest.sortOrder())
                     .toArray(new OrderSpecifier[0]))
-            .offset(reviewPageableRequest.cursor())
-            .limit(reviewPageableRequest.pageSize() + 1)
+            .having(
+                reviewTimeIdSeek(
+                    reviewPageableRequest, reviewContext(alcoholId, userId, reviewPageableRequest)))
+            .limit(reviewPageableRequest.size() + 1L)
             .fetch();
 
-    Long totalCount =
-        queryFactory
-            .select(review.id.count())
-            .from(review)
-            .where(
-                review
-                    .alcoholId
-                    .eq(alcoholId)
-                    .and(
-                        review
-                            .userId
-                            .eq(userId)
-                            .or(review.status.eq(PUBLIC))) // 내 리뷰는 모두 조회 아니면 공개된 리뷰만 조회
-                    .and(review.activeStatus.eq(ACTIVE)))
-            .fetchOne();
-
-    CursorPageable cursorPageable = getCursorPageable(reviewPageableRequest, fetch);
-    return PageResponse.of(ReviewListResponse.of(totalCount, fetch), cursorPageable);
+    return toReviewPage(
+        fetch, reviewPageableRequest, reviewContext(alcoholId, userId, reviewPageableRequest));
   }
 
   @Override
-  public PageResponse<ReviewListResponse> getReviewsByMe(
+  public app.bottlenote.global.pagination.PageResponse<ReviewListResponse> getReviewsByMe(
       Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId) {
     // 특정한 위스키의 내 리뷰만 조회
     List<ReviewInfo> fetch =
@@ -193,25 +177,67 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
             .orderBy(
                 sortBy(reviewPageableRequest.sortType(), reviewPageableRequest.sortOrder())
                     .toArray(new OrderSpecifier[0]))
-            .offset(reviewPageableRequest.cursor())
-            .limit(reviewPageableRequest.pageSize() + 1)
+            .having(
+                reviewTimeIdSeek(
+                    reviewPageableRequest, reviewContext(alcoholId, userId, reviewPageableRequest)))
+            .limit(reviewPageableRequest.size() + 1L)
             .fetch();
 
-    Long totalCount =
-        queryFactory
-            .select(review.id.count())
-            .from(review)
-            .where(
-                review
-                    .userId
-                    .eq(userId)
-                    .and(review.alcoholId.eq(alcoholId))
-                    .and(review.activeStatus.eq(ACTIVE))) //
-            // .and(review.status.eq(PUBLIC))) // 공개 여부와 상관 없이 모두 조회
-            .fetchOne();
+    return toReviewPage(
+        fetch, reviewPageableRequest, reviewContext(alcoholId, userId, reviewPageableRequest));
+  }
 
-    CursorPageable cursorPageable = getCursorPageable(reviewPageableRequest, fetch);
-    return PageResponse.of(ReviewListResponse.of(totalCount, fetch), cursorPageable);
+  private app.bottlenote.global.pagination.PageResponse<ReviewListResponse> toReviewPage(
+      List<ReviewInfo> fetch, ReviewPageableRequest request, String context) {
+    var slice =
+        app.bottlenote.global.pagination.Pagination.fromOverflow(
+            fetch,
+            request.size(),
+            item ->
+                cursorCodec.encode(
+                    context,
+                    java.util.Map.of(
+                        "best",
+                        String.valueOf(Boolean.TRUE.equals(item.isBestReview())),
+                        "likes",
+                        String.valueOf(item.likeCount() == null ? 0L : item.likeCount()),
+                        "t",
+                        item.createAt().toString(),
+                        "id",
+                        String.valueOf(item.reviewId()))));
+    return app.bottlenote.global.pagination.PageResponse.of(
+        ReviewListResponse.of(slice.items()), slice.pagination());
+  }
+
+  private com.querydsl.core.types.dsl.BooleanExpression reviewTimeIdSeek(
+      ReviewPageableRequest request, String context) {
+    if (request.cursor() == null) {
+      return null;
+    }
+    var claims = cursorCodec.verify(request.cursor(), context);
+    var lastCreateAt = app.bottlenote.global.pagination.TimeIdCursor.time(claims);
+    var lastId = app.bottlenote.global.pagination.TimeIdCursor.id(claims);
+    var lastLikes = Long.parseLong(claims.sortKeys().getOrDefault("likes", "0"));
+    var likesCount = likes.id.count();
+    return likesCount
+        .lt(lastLikes)
+        .or(likesCount.eq(lastLikes).and(review.createAt.lt(lastCreateAt)))
+        .or(
+            likesCount
+                .eq(lastLikes)
+                .and(review.createAt.eq(lastCreateAt))
+                .and(review.id.lt(lastId)));
+  }
+
+  private static String reviewContext(Long alcoholId, Long userId, ReviewPageableRequest request) {
+    return "review.list:"
+        + alcoholId
+        + ":"
+        + userId
+        + ":"
+        + request.sortType()
+        + ":"
+        + request.sortOrder();
   }
 
   @Override
