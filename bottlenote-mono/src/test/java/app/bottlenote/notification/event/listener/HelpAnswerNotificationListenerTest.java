@@ -2,6 +2,8 @@ package app.bottlenote.notification.event.listener;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.bottlenote.global.pagination.CursorProperties;
+import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.notification.constant.NotificationActionType;
 import app.bottlenote.notification.constant.NotificationCategory;
 import app.bottlenote.notification.constant.NotificationSourceType;
@@ -12,6 +14,7 @@ import app.bottlenote.notification.service.UserNotificationService;
 import app.bottlenote.support.help.event.payload.HelpAnswerNotificationEvent;
 import app.bottlenote.user.facade.payload.UserProfileItem;
 import app.bottlenote.user.fixture.FakeUserFacade;
+import java.time.Clock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -27,6 +30,13 @@ class HelpAnswerNotificationListenerTest {
   private InMemoryNotificationRepository notificationRepository;
   private HelpAnswerNotificationListener listener;
 
+  private static HmacCursorCodec testCursorCodec() {
+    CursorProperties properties = new CursorProperties();
+    properties.setCurrentKeyId("v1");
+    properties.setCurrentSecret("test-pagination-cursor-secret");
+    return new HmacCursorCodec(properties, Clock.systemUTC());
+  }
+
   @BeforeEach
   void setUp() {
     notificationRepository = new InMemoryNotificationRepository();
@@ -34,7 +44,8 @@ class HelpAnswerNotificationListenerTest {
         new HelpAnswerNotificationListener(
             new UserNotificationService(
                 new FakeUserFacade(UserProfileItem.create(HELP_USER_ID, "문의 작성자", null)),
-                notificationRepository));
+                notificationRepository,
+                testCursorCodec()));
   }
 
   @Test

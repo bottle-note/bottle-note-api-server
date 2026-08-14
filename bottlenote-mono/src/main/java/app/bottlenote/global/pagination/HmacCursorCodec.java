@@ -71,7 +71,7 @@ public final class HmacCursorCodec {
     return token;
   }
 
-  public CursorClaims decode(String token) {
+  CursorClaims decode(String token) {
     Payload payload = verifiedPayload(token);
     Instant now = Instant.now(clock);
     Instant issuedAt = Instant.ofEpochSecond(payload.iat());

@@ -11,12 +11,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import app.bottlenote.common.event.fixture.FakeApplicationEventPublisher;
 import app.bottlenote.common.profanity.FakeProfanityClient;
 import app.bottlenote.common.profanity.ProfanityClient;
-import app.bottlenote.global.data.response.CollectionResponse;
+import app.bottlenote.global.pagination.CursorProperties;
+import app.bottlenote.global.pagination.HmacCursorCodec;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.support.business.constant.BusinessSupportType;
 import app.bottlenote.support.business.dto.request.BusinessSupportPageableRequest;
 import app.bottlenote.support.business.dto.request.BusinessSupportUpsertRequest;
-import app.bottlenote.support.business.dto.response.BusinessInfoResponse;
 import app.bottlenote.support.business.dto.response.BusinessSupportDetailItem;
+import app.bottlenote.support.business.dto.response.BusinessSupportListResponse;
 import app.bottlenote.support.business.dto.response.BusinessSupportResultResponse;
 import app.bottlenote.support.business.exception.BusinessSupportException;
 import app.bottlenote.support.business.fixture.InMemoryBusinessSupportRepository;
@@ -24,6 +26,7 @@ import app.bottlenote.support.constant.StatusType;
 import app.bottlenote.user.facade.UserFacade;
 import app.bottlenote.user.facade.payload.UserProfileItem;
 import app.bottlenote.user.fixture.FakeUserFacade;
+import java.time.Clock;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -55,7 +58,16 @@ class BusinessSupportServiceTest {
     repository = new InMemoryBusinessSupportRepository();
     profanityClient = new FakeProfanityClient();
     eventPublisher = new FakeApplicationEventPublisher();
-    service = new BusinessSupportService(repository, userFacade, profanityClient, eventPublisher);
+    CursorProperties properties = new CursorProperties();
+    properties.setCurrentKeyId("v1");
+    properties.setCurrentSecret("test-pagination-cursor-secret");
+    service =
+        new BusinessSupportService(
+            repository,
+            userFacade,
+            profanityClient,
+            eventPublisher,
+            new HmacCursorCodec(properties, Clock.systemUTC()));
   }
 
   @Test
@@ -254,14 +266,15 @@ class BusinessSupportServiceTest {
 
     // when
     BusinessSupportPageableRequest req = new BusinessSupportPageableRequest(null, null);
-    CollectionResponse<BusinessInfoResponse> response = service.getList(req, userId);
+    PageResponse<BusinessSupportListResponse> response = service.getList(req, userId);
 
     // then
-    assertEquals(3, response.getTotalCount());
-    assertEquals(3, response.getItems().size());
+    assertEquals(3, response.content().items().size());
+    assertEquals(false, response.pagination().hasNext());
 
     response
-        .getItems()
+        .content()
+        .items()
         .forEach(
             item -> {
               assertNotNull(item.id());

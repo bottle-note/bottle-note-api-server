@@ -1,6 +1,5 @@
 package app.bottlenote.support.help.domain;
 
-import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.support.help.constant.HelpType;
 import app.bottlenote.support.help.dto.request.AdminHelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
@@ -23,8 +22,9 @@ public interface HelpRepository {
 
   Optional<Help> findByIdAndUserId(Long id, Long userId);
 
-  PageResponse<HelpListResponse> getHelpList(
+  app.bottlenote.global.pagination.PageResponse<HelpListResponse> getHelpList(
       HelpPageableRequest helpPageableRequest, Long currentUserId);
 
-  PageResponse<AdminHelpListResponse> getAdminHelpList(AdminHelpPageableRequest request);
+  app.bottlenote.global.service.cursor.PageResponse<AdminHelpListResponse> getAdminHelpList(
+      AdminHelpPageableRequest request);
 }

@@ -9,15 +9,11 @@ import app.bottlenote.notification.constant.NotificationType;
 import java.time.OffsetDateTime;
 import java.util.List;
 
-/**
- * 서비스 계층의 필터된 알림 목록 조회 결과다.
- *
- * <p>현재 페이지 항목과 cursor를 제외한 전체 건수를 함께 전달한다.
- */
-public record NotificationListResponse(long totalCount, List<Item> items) {
+/** 서비스 계층의 필터된 알림 목록 조회 결과다. */
+public record NotificationListResponse(List<Item> items) {
 
-  public static NotificationListResponse of(long totalCount, List<Item> items) {
-    return new NotificationListResponse(totalCount, items);
+  public static NotificationListResponse of(List<Item> items) {
+    return new NotificationListResponse(items);
   }
 
   /**

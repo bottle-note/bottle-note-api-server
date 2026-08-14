@@ -67,7 +67,7 @@ bottlenote:
   pagination:
     cursor:
       current-key-id: v1
-      current-secret: ${PAGINATION_CURSOR_SECRET}
+      current-secret: ${PAGINATION_CURSOR_SECRET:pagination-cursor-secret}
       previous-key-id: ${PAGINATION_CURSOR_PREVIOUS_KEY_ID:}
       previous-secret: ${PAGINATION_CURSOR_PREVIOUS_SECRET:}
   # 앱 레이어 IP ban + rate limit (Redis 공유, multi-pod)

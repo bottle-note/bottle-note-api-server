@@ -3,7 +3,9 @@ package app.bottlenote.notification.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.pagination.CursorProperties;
+import app.bottlenote.global.pagination.HmacCursorCodec;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.notification.action.NotificationAction;
 import app.bottlenote.notification.action.NotificationAction.OpenHelpActionPayload;
 import app.bottlenote.notification.action.NotificationAction.OpenReviewActionPayload;
@@ -11,8 +13,8 @@ import app.bottlenote.notification.constant.NotificationActionFallbackType;
 import app.bottlenote.notification.constant.NotificationActionType;
 import app.bottlenote.notification.constant.NotificationCategory;
 import app.bottlenote.notification.constant.NotificationReadStatus;
-import app.bottlenote.notification.constant.NotificationStatus;
 import app.bottlenote.notification.constant.NotificationSourceType;
+import app.bottlenote.notification.constant.NotificationStatus;
 import app.bottlenote.notification.constant.NotificationType;
 import app.bottlenote.notification.domain.Notification;
 import app.bottlenote.notification.dto.request.NotificationPageableRequest;
@@ -27,6 +29,7 @@ import app.bottlenote.user.facade.payload.UserProfileItem;
 import app.bottlenote.user.fixture.FakeUserFacade;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -53,8 +56,12 @@ class UserNotificationServiceTest {
   void setUp() {
     userFacade = new FakeUserFacade();
     notificationRepository = new InMemoryNotificationRepository();
+    CursorProperties properties = new CursorProperties();
+    properties.setCurrentKeyId("v1");
+    properties.setCurrentSecret("test-pagination-cursor-secret");
     service =
-        new UserNotificationService(userFacade, notificationRepository);
+        new UserNotificationService(
+            userFacade, notificationRepository, new HmacCursorCodec(properties, Clock.systemUTC()));
   }
 
   @Nested
@@ -155,17 +162,15 @@ class UserNotificationServiceTest {
       PageResponse<NotificationListResponse> result =
           service.getNotifications(USER_ID, NotificationPageableRequest.builder().build());
 
-      assertThat(result.content().totalCount()).isEqualTo(2);
+      assertThat(result.content().items()).hasSize(2);
       assertThat(result.content().items())
           .extracting(NotificationListResponse.Item::id)
           .containsExactly(newer.getId(), older.getId());
       assertThat(result.content().items())
           .extracting(NotificationListResponse.Item::title)
           .containsExactly("new", "old");
-      assertThat(result.cursorPageable().getHasNext()).isFalse();
-      assertThat(result.cursorPageable().getCurrentCursor()).isZero();
-      assertThat(result.cursorPageable().getCursor()).isEqualTo(older.getId());
-      assertThat(result.cursorPageable().getPageSize()).isEqualTo(10L);
+      assertThat(result.pagination().hasNext()).isFalse();
+      assertThat(result.pagination().nextCursor()).isNull();
     }
 
     @Test
@@ -176,29 +181,27 @@ class UserNotificationServiceTest {
       Notification n3 = seedNotification(USER_ID, "n3");
 
       PageResponse<NotificationListResponse> firstPage =
-          service.getNotifications(
-              USER_ID, NotificationPageableRequest.builder().cursor(0L).pageSize(2L).build());
+          service.getNotifications(USER_ID, NotificationPageableRequest.builder().size(2).build());
 
-      assertThat(firstPage.content().totalCount()).isEqualTo(3);
       assertThat(firstPage.content().items())
           .extracting(NotificationListResponse.Item::id)
           .containsExactly(n3.getId(), n2.getId());
-      assertThat(firstPage.cursorPageable().getHasNext()).isTrue();
-      assertThat(firstPage.cursorPageable().getCurrentCursor()).isZero();
-      // nextCursor = 마지막 반환 item id
-      assertThat(firstPage.cursorPageable().getCursor()).isEqualTo(n2.getId());
+      assertThat(firstPage.pagination().hasNext()).isTrue();
+      assertThat(firstPage.pagination().nextCursor()).isNotBlank();
 
       PageResponse<NotificationListResponse> secondPage =
           service.getNotifications(
               USER_ID,
-              NotificationPageableRequest.builder().cursor(n2.getId()).pageSize(2L).build());
+              NotificationPageableRequest.builder()
+                  .cursor(firstPage.pagination().nextCursor())
+                  .size(2)
+                  .build());
 
       assertThat(secondPage.content().items())
           .extracting(NotificationListResponse.Item::id)
           .containsExactly(n1.getId());
-      assertThat(secondPage.cursorPageable().getHasNext()).isFalse();
-      assertThat(secondPage.cursorPageable().getCurrentCursor()).isEqualTo(n2.getId());
-      assertThat(secondPage.cursorPageable().getCursor()).isEqualTo(n1.getId());
+      assertThat(secondPage.pagination().hasNext()).isFalse();
+      assertThat(secondPage.pagination().nextCursor()).isNull();
     }
 
     @Test
@@ -221,7 +224,7 @@ class UserNotificationServiceTest {
                   .types(List.of(NotificationType.SYSTEM))
                   .build());
 
-      assertThat(result.content().totalCount()).isOne();
+      assertThat(result.content().items().size()).isOne();
       assertThat(result.content().items())
           .extracting(NotificationListResponse.Item::type)
           .containsExactly(NotificationType.SYSTEM);
@@ -274,9 +277,7 @@ class UserNotificationServiceTest {
       PageResponse<NotificationListResponse> allResult =
           service.getNotifications(
               USER_ID,
-              NotificationPageableRequest.builder()
-                  .readStatus(NotificationReadStatus.ALL)
-                  .build());
+              NotificationPageableRequest.builder().readStatus(NotificationReadStatus.ALL).build());
 
       assertThat(readResult.content().items())
           .extracting(NotificationListResponse.Item::id)
@@ -284,7 +285,7 @@ class UserNotificationServiceTest {
       assertThat(unreadResult.content().items())
           .extracting(NotificationListResponse.Item::id)
           .containsExactly(unread.getId());
-      assertThat(allResult.content().totalCount()).isEqualTo(2);
+      assertThat(allResult.content().items().size()).isEqualTo(2);
     }
 
     @Test
@@ -310,7 +311,7 @@ class UserNotificationServiceTest {
       assertThat(result.content().items())
           .extracting(NotificationListResponse.Item::id)
           .containsExactly(inside.getId(), from.getId());
-      assertThat(result.content().totalCount()).isEqualTo(2);
+      assertThat(result.content().items().size()).isEqualTo(2);
     }
 
     @Test
@@ -326,7 +327,7 @@ class UserNotificationServiceTest {
               .types(List.of(NotificationType.USER))
               .categories(List.of(NotificationCategory.REVIEW))
               .readStatus(NotificationReadStatus.UNREAD)
-              .pageSize(2L)
+              .size(2)
               .build();
 
       PageResponse<NotificationListResponse> first =
@@ -335,15 +336,15 @@ class UserNotificationServiceTest {
           service.getNotifications(
               USER_ID,
               NotificationPageableRequest.builder()
-                  .cursor(first.cursorPageable().getCursor())
-                  .pageSize(2L)
+                  .cursor(first.pagination().nextCursor())
+                  .size(2)
                   .types(firstRequest.types())
                   .categories(firstRequest.categories())
                   .readStatus(firstRequest.readStatus())
                   .build());
 
-      assertThat(first.content().totalCount()).isEqualTo(3);
-      assertThat(second.content().totalCount()).isEqualTo(3);
+      assertThat(first.content().items()).hasSize(2);
+      assertThat(second.content().items()).hasSize(1);
       assertThat(
               java.util.stream.Stream.concat(
                       first.content().items().stream(), second.content().items().stream())
@@ -370,7 +371,7 @@ class UserNotificationServiceTest {
               USER_ID,
               NotificationPageableRequest.builder().types(List.of()).categories(List.of()).build());
 
-      assertThat(result.content().totalCount()).isEqualTo(2);
+      assertThat(result.content().items().size()).isEqualTo(2);
       assertThat(result.content().items()).hasSize(2);
     }
 
@@ -451,18 +452,14 @@ class UserNotificationServiceTest {
       Notification unsupportedVersion =
           seedRawAction("OPEN_REVIEW", 10L, Map.of("replyId", 20L), (short) 2);
       Notification extraKey =
-          seedRawAction(
-              "OPEN_REVIEW", 10L, Map.of("replyId", 20L, "url", "invalid"), (short) 1);
+          seedRawAction("OPEN_REVIEW", 10L, Map.of("replyId", 20L, "url", "invalid"), (short) 1);
       Notification wrongType =
           seedRawAction("OPEN_REVIEW", 10L, Map.of("replyId", "20"), (short) 1);
       Notification nonPositiveTarget =
           seedRawAction("OPEN_REVIEW", 0L, Map.of("replyId", 20L), (short) 1);
       Notification oversized =
           seedRawAction(
-              "OPEN_REVIEW",
-              10L,
-              Map.of("replyId", new BigInteger("9".repeat(1025))),
-              (short) 1);
+              "OPEN_REVIEW", 10L, Map.of("replyId", new BigInteger("9".repeat(1025))), (short) 1);
       Notification scalarPayload = seedRawAction("OPEN_REVIEW", 10L, "20", (short) 1);
       Notification listPayload = seedRawAction("OPEN_REVIEW", 10L, List.of(20L), (short) 1);
       Notification missingPayload = seedRawAction("OPEN_REVIEW", 10L, null, (short) 1);
@@ -472,8 +469,7 @@ class UserNotificationServiceTest {
           seedNotification(USER_ID, "valid", NotificationAction.openReview(10L, 20L));
 
       PageResponse<NotificationListResponse> result =
-          service.getNotifications(
-              USER_ID, NotificationPageableRequest.builder().pageSize(20L).build());
+          service.getNotifications(USER_ID, NotificationPageableRequest.builder().size(20).build());
 
       assertThat(result.content().items()).hasSize(12);
       assertThat(result.content().items())
@@ -625,10 +621,8 @@ class UserNotificationServiceTest {
     @Test
     @DisplayName("전체 읽음은 본인 미읽음에만 시각을 기록하고 전달 상태를 유지한다")
     void markAllAsRead_whenUnreadExist_recordsOwnReadAtAndPreservesStatus() {
-      Notification first =
-          seedNotification(USER_ID, "a", NotificationStatus.SENT, false, null);
-      Notification second =
-          seedNotification(USER_ID, "b", NotificationStatus.FAILED, false, null);
+      Notification first = seedNotification(USER_ID, "a", NotificationStatus.SENT, false, null);
+      Notification second = seedNotification(USER_ID, "b", NotificationStatus.FAILED, false, null);
       Notification other = seedNotification(OTHER_USER_ID, "other");
 
       int updated = service.markAllAsRead(USER_ID);
@@ -681,8 +675,7 @@ class UserNotificationServiceTest {
     return seedNotification(userId, title, null, false, null);
   }
 
-  private Notification seedNotification(
-      Long userId, String title, NotificationAction action) {
+  private Notification seedNotification(Long userId, String title, NotificationAction action) {
     return notificationRepository.save(
         Notification.builder()
             .userId(userId)
@@ -706,11 +699,7 @@ class UserNotificationServiceTest {
   }
 
   private Notification seedNotification(
-      Long userId,
-      String title,
-      NotificationStatus status,
-      boolean isRead,
-      LocalDateTime readAt) {
+      Long userId, String title, NotificationStatus status, boolean isRead, LocalDateTime readAt) {
     return notificationRepository.save(
         Notification.builder()
             .userId(userId)

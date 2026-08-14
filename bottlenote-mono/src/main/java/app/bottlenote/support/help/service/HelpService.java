@@ -9,7 +9,7 @@ import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_F
 import app.bottlenote.common.file.event.payload.ImageResourceActivatedEvent;
 import app.bottlenote.common.file.event.payload.ImageResourceInvalidatedEvent;
 import app.bottlenote.common.image.ImageUtil;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.support.help.domain.Help;
 import app.bottlenote.support.help.domain.HelpRepository;
 import app.bottlenote.support.help.dto.request.HelpImageItem;

@@ -1,7 +1,8 @@
 package app.bottlenote.notification.service;
 
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.pagination.HmacCursorCodec;
+import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.Pagination;
 import app.bottlenote.notification.action.NotificationAction;
 import app.bottlenote.notification.constant.NotificationActionFallbackType;
 import app.bottlenote.notification.domain.Notification;
@@ -32,6 +33,7 @@ public class UserNotificationService implements NotificationService {
 
   private final UserFacade userFacade;
   private final NotificationRepository notificationRepository;
+  private final HmacCursorCodec cursorCodec;
 
   @Transactional
   @Override
@@ -78,28 +80,36 @@ public class UserNotificationService implements NotificationService {
   @Override
   public PageResponse<NotificationListResponse> getNotifications(
       Long userId, NotificationPageableRequest request) {
-    NotificationListCriteria criteria =
-        request.toCriteria(userId);
-    long totalCount = notificationRepository.countByCriteria(criteria);
+    String context = notificationContext(userId, request);
+    Long lastId = null;
+    if (request.cursor() != null) {
+      lastId = Long.valueOf(cursorCodec.verify(request.cursor(), context).sortKeys().get("id"));
+    }
+    NotificationListCriteria criteria = request.toCriteria(userId, lastId);
     List<Notification> fetched = notificationRepository.findPageByUserId(criteria);
+    Pagination.PageSlice<Notification> slice =
+        Pagination.fromOverflow(
+            fetched,
+            request.size(),
+            item ->
+                cursorCodec.encode(context, java.util.Map.of("id", String.valueOf(item.getId()))));
+    List<NotificationListResponse.Item> items = slice.items().stream().map(this::toItem).toList();
+    return PageResponse.of(NotificationListResponse.of(items), slice.pagination());
+  }
 
-    boolean hasNext = fetched.size() > criteria.pageSize();
-    List<Notification> content =
-        hasNext ? List.copyOf(fetched.subList(0, criteria.pageSize().intValue())) : fetched;
-
-    List<NotificationListResponse.Item> items = content.stream().map(this::toItem).toList();
-
-    // nextCursor = 마지막 반환 item id (keyset)
-    Long nextCursor = items.isEmpty() ? criteria.cursor() : items.getLast().id();
-    CursorPageable pageable =
-        CursorPageable.builder()
-            .currentCursor(criteria.cursor())
-            .cursor(nextCursor)
-            .pageSize(criteria.pageSize())
-            .hasNext(hasNext)
-            .build();
-
-    return PageResponse.of(NotificationListResponse.of(totalCount, items), pageable);
+  private static String notificationContext(Long userId, NotificationPageableRequest request) {
+    return "notification.list:"
+        + userId
+        + ":"
+        + request.types()
+        + ":"
+        + request.categories()
+        + ":"
+        + request.readStatus()
+        + ":"
+        + request.createdFrom()
+        + ":"
+        + request.createdTo();
   }
 
   @Transactional(readOnly = true)
