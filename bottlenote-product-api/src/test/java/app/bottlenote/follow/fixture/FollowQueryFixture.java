@@ -1,7 +1,7 @@
 package app.bottlenote.follow.fixture;
 
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.Pagination;
 import app.bottlenote.user.constant.FollowStatus;
 import app.bottlenote.user.dto.response.FollowerSearchResponse;
 import app.bottlenote.user.dto.response.FollowingSearchResponse;
@@ -22,11 +22,8 @@ public class FollowQueryFixture {
                 .reviewCount(10L)
                 .ratingCount(5L)
                 .build());
-    FollowingSearchResponse followSearchResponse = FollowingSearchResponse.of(5L, followingDetails);
-
     return PageResponse.of(
-        followSearchResponse,
-        CursorPageable.builder().cursor(0L).pageSize(50L).hasNext(false).build());
+        FollowingSearchResponse.of(followingDetails), new Pagination(false, null));
   }
 
   public PageResponse<FollowerSearchResponse> getFollowerPageResponse() {
@@ -41,10 +38,6 @@ public class FollowQueryFixture {
                 .reviewCount(10L)
                 .ratingCount(5L)
                 .build());
-    FollowerSearchResponse followerSearchResponse = FollowerSearchResponse.of(5L, followerDetails);
-
-    return PageResponse.of(
-        followerSearchResponse,
-        CursorPageable.builder().cursor(0L).pageSize(50L).hasNext(false).build());
+    return PageResponse.of(FollowerSearchResponse.of(followerDetails), new Pagination(false, null));
   }
 }

@@ -76,7 +76,7 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
           extractData(result, FollowingSearchResponse.class);
 
       assertNotNull(followingSearchResponse);
-      assertEquals(followingSearchResponse.totalCount(), otherUsers.size());
+      assertEquals(followingSearchResponse.followingList().size(), otherUsers.size());
     }
 
     @DisplayName("유저는 자신을 팔로우하는 팔로워 목록을 조회할 수 있다.")
@@ -109,7 +109,7 @@ class UserQueryIntegrationTest extends IntegrationTestSupport {
           extractData(result, FollowerSearchResponse.class);
 
       assertNotNull(followerSearchResponse);
-      assertEquals(followerSearchResponse.totalCount(), followers.size());
+      assertEquals(followerSearchResponse.followerList().size(), followers.size());
     }
   }
 

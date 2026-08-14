@@ -1,6 +1,8 @@
 package app.bottlenote.user.dto.response;
 
 import app.bottlenote.user.constant.FollowStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.time.LocalDateTime;
 import lombok.Builder;
 
 @Builder
@@ -11,7 +13,9 @@ public record RelationUserItem(
     String userProfileImage,
     FollowStatus status,
     Long reviewCount,
-    Long ratingCount) {
+    Long ratingCount,
+    @JsonIgnore Long followId,
+    @JsonIgnore LocalDateTime lastModifyAt) {
   public RelationUserItem(
       Long userId,
       Long followUserId,
@@ -19,7 +23,9 @@ public record RelationUserItem(
       String userProfileImage,
       String status,
       Long reviewCount,
-      Long ratingCount) {
+      Long ratingCount,
+      Long followId,
+      LocalDateTime lastModifyAt) {
     this(
         userId,
         followUserId,
@@ -27,6 +33,8 @@ public record RelationUserItem(
         userProfileImage,
         FollowStatus.parsing(status),
         reviewCount,
-        ratingCount);
+        ratingCount,
+        followId,
+        lastModifyAt);
   }
 }

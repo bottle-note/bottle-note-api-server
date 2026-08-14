@@ -3,8 +3,10 @@ package app.bottlenote.user.repository;
 import static app.bottlenote.user.domain.QFollow.follow;
 import static app.bottlenote.user.domain.QUser.user;
 
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.pagination.HmacCursorCodec;
+import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.TimeIdCursor;
 import app.bottlenote.user.constant.FollowStatus;
 import app.bottlenote.user.domain.QFollow;
 import app.bottlenote.user.dto.dsl.FollowPageableCriteria;
@@ -26,79 +28,43 @@ public class CustomFollowRepositoryImpl implements CustomFollowRepository {
 
   private final JPAQueryFactory queryFactory;
   private final FollowQuerySupporter supporter;
+  private final HmacCursorCodec cursorCodec;
 
   @Override
   public PageResponse<FollowingSearchResponse> getFollowingList(
       Long userId, FollowPageableCriteria criteria) {
-
-    Long cursor = criteria.cursor();
-    Long pageSize = criteria.pageSize();
-
-    List<RelationUserItem> followingDetails = getFollowingDetails(userId, cursor, pageSize);
-
-    Long totalCount =
+    String context = "follow.following:" + userId;
+    List<RelationUserItem> details =
         queryFactory
-            .select(follow.id.count())
+            .select(
+                Projections.constructor(
+                    RelationUserItem.class,
+                    follow.userId.as("userId"),
+                    follow.targetUserId.as("followUserId"),
+                    user.nickName.as("nickName"),
+                    user.imageUrl.as("userProfileImage"),
+                    follow.status.as("status"),
+                    supporter.followReviewCountSubQuery(follow.targetUserId),
+                    supporter.followRatingCountSubQuery(follow.targetUserId),
+                    follow.id.as("followId"),
+                    follow.lastModifyAt.as("lastModifyAt")))
             .from(follow)
-            .where(follow.userId.eq(userId).and(follow.status.eq(FollowStatus.FOLLOWING)))
-            .fetchOne();
-
-    log.debug("FollowDetails: {}", followingDetails);
-
-    CursorPageable cursorPageable = supporter.followingCursorPageable(criteria, followingDetails);
-
-    return PageResponse.of(
-        FollowingSearchResponse.of(totalCount, followingDetails), cursorPageable);
+            .leftJoin(user)
+            .on(user.id.eq(follow.targetUserId))
+            .where(
+                follow.userId.eq(userId).and(follow.status.eq(FollowStatus.FOLLOWING)),
+                followSeek(criteria))
+            .orderBy(follow.lastModifyAt.desc(), follow.id.desc())
+            .limit(criteria.size() + 1L)
+            .fetch();
+    return toPage(details, criteria.size(), context, FollowingSearchResponse::of);
   }
 
   @Override
   public PageResponse<FollowerSearchResponse> getFollowerList(
       Long userId, FollowPageableCriteria criteria) {
-
-    Long cursor = criteria.cursor();
-    Long pageSize = criteria.pageSize();
-
-    List<RelationUserItem> followerDetails = getFollowerDetails(userId, cursor, pageSize);
-
-    Long totalCount =
-        queryFactory
-            .select(follow.id.count())
-            .from(follow)
-            .where(follow.targetUserId.eq(userId).and(follow.status.eq(FollowStatus.FOLLOWING)))
-            .fetchOne();
-
-    log.debug("FollowDetails: {}", followerDetails);
-
-    CursorPageable cursorPageable = supporter.followerCursorPageable(criteria, followerDetails);
-
-    return PageResponse.of(FollowerSearchResponse.of(totalCount, followerDetails), cursorPageable);
-  }
-
-  private List<RelationUserItem> getFollowingDetails(Long userId, Long cursor, Long pageSize) {
-    return queryFactory
-        .select(
-            Projections.constructor(
-                RelationUserItem.class,
-                follow.userId.as("userId"),
-                follow.targetUserId.as("followUserId"),
-                user.nickName.as("nickName"),
-                user.imageUrl.as("userProfileImage"),
-                follow.status.as("status"),
-                supporter.followReviewCountSubQuery(follow.targetUserId),
-                supporter.followRatingCountSubQuery(follow.targetUserId)))
-        .from(follow)
-        .leftJoin(user)
-        .on(user.id.eq(follow.targetUserId))
-        .where(follow.userId.eq(userId).and(follow.status.eq(FollowStatus.FOLLOWING)))
-        .orderBy(follow.lastModifyAt.desc())
-        .offset(cursor)
-        .limit(pageSize + 1)
-        .fetch();
-  }
-
-  private List<RelationUserItem> getFollowerDetails(Long userId, Long cursor, Long pageSize) {
+    String context = "follow.follower:" + userId;
     QFollow f2 = new QFollow("f2");
-
     BooleanExpression isFollowing =
         JPAExpressions.selectOne()
             .from(f2)
@@ -108,28 +74,59 @@ public class CustomFollowRepositoryImpl implements CustomFollowRepository {
                     .and(f2.targetUserId.eq(follow.userId))
                     .and(f2.status.eq(FollowStatus.FOLLOWING)))
             .exists();
+    List<RelationUserItem> details =
+        queryFactory
+            .select(
+                Projections.constructor(
+                    RelationUserItem.class,
+                    follow.userId.as("userId"),
+                    follow.targetUserId.as("followUserId"),
+                    user.nickName.as("followUserNickname"),
+                    user.imageUrl.as("userProfileImage"),
+                    Expressions.stringTemplate(
+                            "CASE WHEN {0} THEN {1} ELSE {2} END",
+                            isFollowing,
+                            FollowStatus.FOLLOWING.name(),
+                            FollowStatus.UNFOLLOW.name())
+                        .as("status"),
+                    supporter.followReviewCountSubQuery(follow.userId),
+                    supporter.followRatingCountSubQuery(follow.userId),
+                    follow.id.as("followId"),
+                    follow.lastModifyAt.as("lastModifyAt")))
+            .from(follow)
+            .leftJoin(user)
+            .on(user.id.eq(follow.userId))
+            .where(
+                follow.targetUserId.eq(userId).and(follow.status.eq(FollowStatus.FOLLOWING)),
+                followSeek(criteria))
+            .orderBy(follow.lastModifyAt.desc(), follow.id.desc())
+            .limit(criteria.size() + 1L)
+            .fetch();
+    return toPage(details, criteria.size(), context, FollowerSearchResponse::of);
+  }
 
-    return queryFactory
-        .select(
-            Projections.constructor(
-                RelationUserItem.class,
-                follow.userId.as("userId"),
-                follow.targetUserId.as("followUserId"),
-                user.nickName.as("followUserNickname"),
-                user.imageUrl.as("userProfileImage"),
-                Expressions.stringTemplate(
-                        "CASE WHEN {0} THEN {1} ELSE {2} END",
-                        isFollowing, FollowStatus.FOLLOWING.name(), FollowStatus.UNFOLLOW.name())
-                    .as("status"),
-                supporter.followReviewCountSubQuery(follow.userId),
-                supporter.followRatingCountSubQuery(follow.userId)))
-        .from(follow)
-        .leftJoin(user)
-        .on(user.id.eq(follow.userId))
-        .where(follow.targetUserId.eq(userId).and(follow.status.eq(FollowStatus.FOLLOWING)))
-        .orderBy(follow.lastModifyAt.desc())
-        .offset(cursor)
-        .limit(pageSize + 1)
-        .fetch();
+  private <T> PageResponse<T> toPage(
+      List<RelationUserItem> details,
+      int size,
+      String context,
+      java.util.function.Function<List<RelationUserItem>, T> mapper) {
+    Pagination.PageSlice<RelationUserItem> slice =
+        Pagination.fromOverflow(
+            details,
+            size,
+            item ->
+                cursorCodec.encode(
+                    context, TimeIdCursor.keys(item.lastModifyAt(), item.followId())));
+    return PageResponse.of(mapper.apply(slice.items()), slice.pagination());
+  }
+
+  private BooleanExpression followSeek(FollowPageableCriteria criteria) {
+    if (!criteria.hasCursor()) {
+      return null;
+    }
+    return follow
+        .lastModifyAt
+        .lt(criteria.lastModifyAt())
+        .or(follow.lastModifyAt.eq(criteria.lastModifyAt()).and(follow.id.lt(criteria.lastId())));
   }
 }
