@@ -1,7 +1,7 @@
 package app.bottlenote.support.help.fixture;
 
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.Pagination;
 import app.bottlenote.support.constant.StatusType;
 import app.bottlenote.support.help.constant.HelpResultMessage;
 import app.bottlenote.support.help.constant.HelpType;
@@ -59,18 +59,11 @@ public class HelpObjectFixture {
                 1L, "제목1", "test1", LocalDateTime.now(), StatusType.WAITING),
             HelpListResponse.HelpInfo.of(
                 2L, "제목2", "test2", LocalDateTime.now(), StatusType.WAITING));
-    return PageResponse.of(
-        HelpListResponse.of((long) helpInfos.size(), helpInfos),
-        CursorPageable.builder()
-            .currentCursor(0L)
-            .cursor(1L)
-            .pageSize((long) helpInfos.size())
-            .hasNext(false)
-            .build());
+    return PageResponse.of(HelpListResponse.of(helpInfos), new Pagination(false, null));
   }
 
   public static HelpListResponse getHelpListResponse(List<HelpListResponse.HelpInfo> helpInfoList) {
-    return HelpListResponse.of((long) helpInfoList.size(), helpInfoList);
+    return HelpListResponse.of(helpInfoList);
   }
 
   public static HelpDetailItem getDetailHelpInfo(String content, HelpType type) {

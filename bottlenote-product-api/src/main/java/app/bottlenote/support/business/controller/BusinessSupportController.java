@@ -4,13 +4,12 @@ import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.REQUIRED_
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
 import app.bottlenote.global.annotation.SecurityPolicy;
-import app.bottlenote.global.data.response.CollectionResponse;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
+import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.support.business.controller.docs.BusinessSupportApiDocs;
 import app.bottlenote.support.business.dto.request.BusinessSupportPageableRequest;
 import app.bottlenote.support.business.dto.request.BusinessSupportUpsertRequest;
-import app.bottlenote.support.business.dto.response.BusinessInfoResponse;
 import app.bottlenote.support.business.dto.response.BusinessSupportDetailItem;
 import app.bottlenote.support.business.service.BusinessSupportService;
 import app.bottlenote.user.exception.UserException;
@@ -53,8 +52,9 @@ public class BusinessSupportController {
     Long userId =
         SecurityContextUtil.getUserIdByContext()
             .orElseThrow(() -> new UserException(REQUIRED_USER_ID));
-    CollectionResponse<BusinessInfoResponse> collection = service.getList(req, userId);
-    return GlobalResponse.ok(collection);
+    var page = service.getList(req, userId);
+    return GlobalResponse.ok(
+        page.content(), MetaService.createMetaInfo().add("pagination", page.pagination()));
   }
 
   @BusinessSupportApiDocs.GetBusinessSupportDetail

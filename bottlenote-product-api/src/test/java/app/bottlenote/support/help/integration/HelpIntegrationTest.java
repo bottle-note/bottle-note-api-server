@@ -140,7 +140,7 @@ class HelpIntegrationTest extends IntegrationTestSupport {
 
       // then
       HelpListResponse helpListResponse = extractData(result, HelpListResponse.class);
-      assertEquals(1, helpListResponse.totalCount());
+      assertEquals(1, helpListResponse.helpList().size());
     }
 
     @DisplayName("문의글 상세 조회할 수 있다.")

@@ -1,6 +1,7 @@
 package app.bottlenote.global.pagination;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -40,5 +41,20 @@ class PaginationTest {
     assertThat(new PaginationRequest(null, null).size()).isEqualTo(10);
     assertThat(new PaginationRequest("abc", 0).size()).isEqualTo(10);
     assertThat(new PaginationRequest("abc", 20).hasCursor()).isTrue();
+  }
+
+  @Test
+  @DisplayName("API별 기본값과 상한을 적용한다")
+  void paginationRequest_of_uses_default_and_max() {
+    assertThat(PaginationRequest.of(null, null, 50, 100).size()).isEqualTo(50);
+    assertThat(PaginationRequest.of("c", 200, 20, 100).size()).isEqualTo(100);
+    assertThat(PaginationRequest.of("  ", 3, 20, 100).hasCursor()).isFalse();
+  }
+
+  @Test
+  @DisplayName("pageSize가 1 미만이면 예외를 던진다")
+  void fromOverflow_rejects_non_positive_size() {
+    assertThatThrownBy(() -> Pagination.fromOverflow(List.of(1), 0, last -> "c"))
+        .isInstanceOf(IllegalArgumentException.class);
   }
 }

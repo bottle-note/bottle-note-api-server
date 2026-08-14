@@ -3,8 +3,8 @@ package app.bottlenote.support.help.controller;
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
 import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.support.help.controller.docs.HelpApiDocs;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
@@ -60,7 +60,7 @@ public class HelpCommandController {
 
     return GlobalResponse.ok(
         pageResponse.content(),
-        MetaService.createMetaInfo().add("pageable", pageResponse.cursorPageable()));
+        MetaService.createMetaInfo().add("pagination", pageResponse.pagination()));
   }
 
   @HelpApiDocs.GetHelpDetail

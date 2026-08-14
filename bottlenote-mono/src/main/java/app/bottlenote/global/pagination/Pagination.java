@@ -7,6 +7,9 @@ public record Pagination(boolean hasNext, String nextCursor) {
 
   public static <T> PageSlice<T> fromOverflow(
       List<T> fetched, int pageSize, Function<T, String> lastItemEncoder) {
+    if (pageSize < 1) {
+      throw new IllegalArgumentException("pageSize must be >= 1");
+    }
     if (fetched == null || fetched.isEmpty()) {
       return new PageSlice<>(List.of(), new Pagination(false, null));
     }

@@ -11,7 +11,11 @@ import app.bottlenote.common.file.event.payload.ImageResourceActivatedEvent;
 import app.bottlenote.common.file.event.payload.ImageResourceInvalidatedEvent;
 import app.bottlenote.common.image.ImageUtil;
 import app.bottlenote.common.profanity.ProfanityClient;
-import app.bottlenote.global.data.response.CollectionResponse;
+import app.bottlenote.global.pagination.CursorClaims;
+import app.bottlenote.global.pagination.HmacCursorCodec;
+import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.TimeIdCursor;
 import app.bottlenote.support.business.domain.BusinessSupport;
 import app.bottlenote.support.business.domain.BusinessSupportRepository;
 import app.bottlenote.support.business.dto.request.BusinessImageItem;
@@ -19,10 +23,13 @@ import app.bottlenote.support.business.dto.request.BusinessSupportPageableReques
 import app.bottlenote.support.business.dto.request.BusinessSupportUpsertRequest;
 import app.bottlenote.support.business.dto.response.BusinessInfoResponse;
 import app.bottlenote.support.business.dto.response.BusinessSupportDetailItem;
+import app.bottlenote.support.business.dto.response.BusinessSupportListResponse;
 import app.bottlenote.support.business.dto.response.BusinessSupportResultResponse;
 import app.bottlenote.support.business.exception.BusinessSupportException;
 import app.bottlenote.user.facade.UserFacade;
+import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -42,6 +49,7 @@ public class BusinessSupportService {
   private final UserFacade userFacade;
   private final ProfanityClient profanityClient;
   private final ApplicationEventPublisher eventPublisher;
+  private final HmacCursorCodec cursorCodec;
 
   @Transactional
   public BusinessSupportResultResponse register(BusinessSupportUpsertRequest req, Long userId) {
@@ -130,17 +138,55 @@ public class BusinessSupportService {
   }
 
   @Transactional(readOnly = true)
-  public CollectionResponse<BusinessInfoResponse> getList(
+  public PageResponse<BusinessSupportListResponse> getList(
       BusinessSupportPageableRequest req, Long userId) {
-    List<BusinessSupport> list = repository.findAllByUserId(userId);
-    List<BusinessInfoResponse> infos =
-        list.stream()
-            .map(
-                b ->
-                    BusinessInfoResponse.of(
-                        b.getId(), b.getTitle(), b.getContent(), b.getCreateAt(), b.getStatus()))
+    String context = "business-support.list:" + userId;
+    List<BusinessSupport> fetched =
+        repository.findAllByUserId(userId).stream()
+            .sorted(
+                Comparator.comparing(
+                        BusinessSupport::getCreateAt,
+                        Comparator.nullsLast(Comparator.reverseOrder()))
+                    .thenComparing(
+                        BusinessSupport::getId, Comparator.nullsLast(Comparator.reverseOrder())))
+            .filter(item -> afterCursor(item, req.cursor(), context))
+            .limit(req.size() + 1L)
             .toList();
-    return CollectionResponse.of(infos.size(), infos);
+    Pagination.PageSlice<BusinessInfoResponse> slice =
+        Pagination.fromOverflow(
+            fetched.stream().map(this::toInfo).toList(),
+            req.size(),
+            item ->
+                cursorCodec.encode(
+                    context,
+                    TimeIdCursor.keys(
+                        item.createAt() == null ? LocalDateTime.MIN : item.createAt(), item.id())));
+    return PageResponse.of(new BusinessSupportListResponse(slice.items()), slice.pagination());
+  }
+
+  private boolean afterCursor(BusinessSupport item, String cursor, String context) {
+    if (cursor == null || cursor.isBlank()) {
+      return true;
+    }
+    CursorClaims claims = cursorCodec.verify(cursor, context);
+    LocalDateTime lastCreateAt = TimeIdCursor.time(claims);
+    Long lastId = TimeIdCursor.id(claims);
+    if (item.getCreateAt() == null) {
+      return true;
+    }
+    if (item.getCreateAt().isBefore(lastCreateAt)) {
+      return true;
+    }
+    return item.getCreateAt().isEqual(lastCreateAt) && item.getId() < lastId;
+  }
+
+  private BusinessInfoResponse toInfo(BusinessSupport support) {
+    return BusinessInfoResponse.of(
+        support.getId(),
+        support.getTitle(),
+        support.getContent(),
+        support.getCreateAt(),
+        support.getStatus());
   }
 
   @Transactional(readOnly = true)

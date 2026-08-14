@@ -5,10 +5,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
 
-public record HelpListResponse(Long totalCount, List<HelpInfo> helpList) {
+public record HelpListResponse(List<HelpInfo> helpList) {
 
-  public static HelpListResponse of(Long totalCount, List<HelpInfo> helpList) {
-    return new HelpListResponse(totalCount, helpList);
+  public static HelpListResponse of(List<HelpInfo> helpList) {
+    return new HelpListResponse(helpList);
   }
 
   @Builder

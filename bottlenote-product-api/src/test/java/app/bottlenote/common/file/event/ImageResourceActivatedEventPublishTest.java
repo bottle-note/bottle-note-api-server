@@ -260,12 +260,17 @@ class ImageResourceActivatedEventPublishTest {
       businessSupportRepository = new InMemoryBusinessSupportRepository();
       eventPublisher = new FakeApplicationEventPublisher();
 
+      var cursorProperties = new app.bottlenote.global.pagination.CursorProperties();
+      cursorProperties.setCurrentKeyId("v1");
+      cursorProperties.setCurrentSecret("test-pagination-cursor-secret");
       businessSupportService =
           new BusinessSupportService(
               businessSupportRepository,
               new FakeUserFacade(UserProfileItem.create(1L, "user1", "")),
               new FakeProfanityClient(),
-              eventPublisher);
+              eventPublisher,
+              new app.bottlenote.global.pagination.HmacCursorCodec(
+                  cursorProperties, java.time.Clock.systemUTC()));
     }
 
     @Test
