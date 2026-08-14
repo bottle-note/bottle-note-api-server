@@ -1,7 +1,7 @@
 package app.bottlenote.user.domain;
 
 import app.bottlenote.common.annotation.DomainRepository;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.user.dto.dsl.FollowPageableCriteria;
 import app.bottlenote.user.dto.response.FollowerSearchResponse;
 import app.bottlenote.user.dto.response.FollowingSearchResponse;

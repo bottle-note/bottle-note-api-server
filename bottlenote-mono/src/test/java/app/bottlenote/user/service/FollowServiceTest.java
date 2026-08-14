@@ -31,7 +31,15 @@ class FollowServiceTest {
   void setUp() {
     followRepository = new InMemoryFollowRepository();
     userRepository = new InMemoryUserQueryRepository();
-    followService = new FollowService(followRepository, userRepository);
+    var properties = new app.bottlenote.global.pagination.CursorProperties();
+    properties.setCurrentKeyId("v1");
+    properties.setCurrentSecret("test-pagination-cursor-secret");
+    followService =
+        new FollowService(
+            followRepository,
+            userRepository,
+            new app.bottlenote.global.pagination.HmacCursorCodec(
+                properties, java.time.Clock.systemUTC()));
   }
 
   // ========== updateFollowStatus ==========

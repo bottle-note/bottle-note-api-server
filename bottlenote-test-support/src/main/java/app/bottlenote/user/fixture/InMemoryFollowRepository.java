@@ -1,6 +1,6 @@
 package app.bottlenote.user.fixture;
 
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.user.domain.Follow;
 import app.bottlenote.user.domain.FollowRepository;
 import app.bottlenote.user.dto.dsl.FollowPageableCriteria;

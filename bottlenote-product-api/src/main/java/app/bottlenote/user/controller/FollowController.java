@@ -4,8 +4,8 @@ import static app.bottlenote.global.security.SecurityContextUtil.getUserIdByCont
 import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
 import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.user.controller.docs.FollowApiDocs;
 import app.bottlenote.user.dto.request.FollowPageableRequest;
@@ -47,7 +47,7 @@ public class FollowController {
         followService.getFollowingList(currentUserId, targetUserId, pageableRequest);
     return GlobalResponse.ok(
         followingPageResponse.content(),
-        MetaService.createMetaInfo().add("pageable", followingPageResponse.cursorPageable()));
+        MetaService.createMetaInfo().add("pagination", followingPageResponse.pagination()));
   }
 
   @FollowApiDocs.GetFollowerList
@@ -63,7 +63,7 @@ public class FollowController {
         followService.getFollowerList(currentUserId, targetUserId, pageableRequest);
     return GlobalResponse.ok(
         followerPageResponse.content(),
-        MetaService.createMetaInfo().add("pageable", followerPageResponse.cursorPageable()));
+        MetaService.createMetaInfo().add("pagination", followerPageResponse.pagination()));
   }
 
   @FollowApiDocs.UpdateFollowStatus

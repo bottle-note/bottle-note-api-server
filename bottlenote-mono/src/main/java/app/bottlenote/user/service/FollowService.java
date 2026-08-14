@@ -1,6 +1,8 @@
 package app.bottlenote.user.service;
 
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.pagination.HmacCursorCodec;
+import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.TimeIdCursor;
 import app.bottlenote.user.domain.Follow;
 import app.bottlenote.user.domain.FollowRepository;
 import app.bottlenote.user.domain.User;
@@ -31,6 +33,7 @@ public class FollowService implements FollowFacade {
 
   private final FollowRepository followRepository;
   private final UserRepository userRepository;
+  private final HmacCursorCodec cursorCodec;
 
   @Transactional
   public FollowUpdateResponse updateFollowStatus(FollowUpdateRequest request, Long currentUserId) {
@@ -79,10 +82,7 @@ public class FollowService implements FollowFacade {
       throw new UserException(UserExceptionCode.USER_NOT_FOUND);
     }
 
-    FollowPageableCriteria criteria =
-        FollowPageableCriteria.of(pageableRequest.cursor(), pageableRequest.pageSize());
-
-    return followRepository.getFollowingList(userId, criteria);
+    return followRepository.getFollowingList(userId, toCriteria(pageableRequest, userId, true));
   }
 
   @Transactional(readOnly = true)
@@ -93,10 +93,18 @@ public class FollowService implements FollowFacade {
       throw new UserException(UserExceptionCode.USER_NOT_FOUND);
     }
 
-    FollowPageableCriteria criteria =
-        FollowPageableCriteria.of(pageableRequest.cursor(), pageableRequest.pageSize());
+    return followRepository.getFollowerList(userId, toCriteria(pageableRequest, userId, false));
+  }
 
-    return followRepository.getFollowerList(userId, criteria);
+  private FollowPageableCriteria toCriteria(
+      FollowPageableRequest request, Long userId, boolean following) {
+    if (request.cursor() == null) {
+      return FollowPageableCriteria.first(request.size());
+    }
+    String context = (following ? "follow.following:" : "follow.follower:") + userId;
+    var claims = cursorCodec.verify(request.cursor(), context);
+    return new FollowPageableCriteria(
+        request.size(), TimeIdCursor.time(claims), TimeIdCursor.id(claims));
   }
 
   @Override
