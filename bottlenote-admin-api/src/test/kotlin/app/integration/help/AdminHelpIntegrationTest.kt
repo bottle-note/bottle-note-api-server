@@ -9,7 +9,6 @@ import app.bottlenote.support.constant.StatusType
 import app.bottlenote.support.help.constant.HelpType
 import app.bottlenote.support.help.fixture.HelpTestFactory
 import app.bottlenote.user.fixture.UserTestFactory
-import java.time.Duration
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.BeforeEach
@@ -19,6 +18,7 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import java.time.Duration
 
 @Tag("admin_integration")
 @DisplayName("[integration] Admin Help API 통합 테스트")

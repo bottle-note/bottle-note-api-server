@@ -66,8 +66,7 @@ class OpenApiSpecQualityTest extends OpenApiSpecTestSupport {
     var violations = Stream.concat(pathViolations, operationViolations).toList();
 
     assertThat(violations)
-        .withFailMessage(
-            "파라미터에 schema, content 또는 $ref가 없습니다:%n%s", joined(violations))
+        .withFailMessage("파라미터에 schema, content 또는 $ref가 없습니다:%n%s", joined(violations))
         .isEmpty();
   }
 
@@ -97,9 +96,7 @@ class OpenApiSpecQualityTest extends OpenApiSpecTestSupport {
   private Stream<String> parameterViolations(String owner, JsonNode parameters) {
     return StreamSupport.stream(parameters.spliterator(), false)
         .filter(parameter -> !hasParameterSchema(parameter))
-        .map(
-            parameter ->
-                "%s - %s".formatted(owner, parameter.path("name").asText("<unnamed>")));
+        .map(parameter -> "%s - %s".formatted(owner, parameter.path("name").asText("<unnamed>")));
   }
 
   private boolean hasParameterSchema(JsonNode parameter) {

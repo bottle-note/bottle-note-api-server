@@ -35,8 +35,7 @@ public interface NotificationRepository {
    *
    * <p>DB UNIQUE 제약과 함께 동일 이벤트 재전달을 멱등 처리한다.
    */
-  boolean existsBySourceTypeAndSourceIdAndUserId(
-      String sourceType, Long sourceId, Long userId);
+  boolean existsBySourceTypeAndSourceIdAndUserId(String sourceType, Long sourceId, Long userId);
 
   /** 본인 미읽음 알림을 읽음 처리하고 최초 읽음 시각을 기록한다. */
   int markAsReadByIdAndUserId(Long id, Long userId, LocalDateTime readAt);

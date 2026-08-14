@@ -33,8 +33,7 @@ public interface JpaNotificationRepository
   long countByUserIdAndIsReadFalse(@Param("userId") Long userId);
 
   @Override
-  boolean existsBySourceTypeAndSourceIdAndUserId(
-      String sourceType, Long sourceId, Long userId);
+  boolean existsBySourceTypeAndSourceIdAndUserId(String sourceType, Long sourceId, Long userId);
 
   @Override
   @Modifying(clearAutomatically = true, flushAutomatically = true)
@@ -46,9 +45,7 @@ public interface JpaNotificationRepository
 			where n.id = :id and n.userId = :userId and n.isRead = false
 			""")
   int markAsReadByIdAndUserId(
-      @Param("id") Long id,
-      @Param("userId") Long userId,
-      @Param("readAt") LocalDateTime readAt);
+      @Param("id") Long id, @Param("userId") Long userId, @Param("readAt") LocalDateTime readAt);
 
   @Override
   @Modifying(clearAutomatically = true, flushAutomatically = true)
@@ -59,6 +56,5 @@ public interface JpaNotificationRepository
 			    n.readAt = coalesce(n.readAt, :readAt)
 			where n.userId = :userId and n.isRead = false
 			""")
-  int markAllAsReadByUserId(
-      @Param("userId") Long userId, @Param("readAt") LocalDateTime readAt);
+  int markAllAsReadByUserId(@Param("userId") Long userId, @Param("readAt") LocalDateTime readAt);
 }
