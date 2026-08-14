@@ -29,8 +29,13 @@ class NotificationOpenApiContractIntegrationTest extends OpenApiSpecTestSupport 
                 .toList())
         .containsExactlyInAnyOrder(
             "cursor", "pageSize", "types", "categories", "readStatus", "createdFrom", "createdTo");
+    assertParameterSchema(operation, "cursor", "integer", "int64");
+    assertParameterSchema(operation, "pageSize", "integer", "int64");
     assertThat(parameter(operation, "types").at("/schema/type").asText()).isEqualTo("array");
     assertThat(parameter(operation, "categories").at("/schema/type").asText()).isEqualTo("array");
+    assertParameterSchema(operation, "readStatus", "string", null);
+    assertParameterSchema(operation, "createdFrom", "string", "date-time");
+    assertParameterSchema(operation, "createdTo", "string", "date-time");
 
     JsonNode responseSchema =
         resolve(
@@ -65,6 +70,15 @@ class NotificationOpenApiContractIntegrationTest extends OpenApiSpecTestSupport 
         resolve(spec, actionSchema.path("properties").path("payload"));
     assertThat(propertyNamesOf(payloadSchema)).containsExactly("replyId");
     assertThat(spec.at("/components/schemas/OpenHelpActionPayload/properties").isEmpty()).isTrue();
+  }
+
+  private void assertParameterSchema(
+      SpecOperation operation, String name, String type, String format) {
+    JsonNode schema = parameter(operation, name).path("schema");
+    assertThat(schema.path("type").asText()).isEqualTo(type);
+    if (format != null) {
+      assertThat(schema.path("format").asText()).isEqualTo(format);
+    }
   }
 
   private JsonNode parameter(SpecOperation operation, String name) {
