@@ -54,7 +54,16 @@ sourceSets {
 
 tasks.processResources {
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-	from("${rootProject.projectDir}/git.environment-variables/storage/db/migration") {
+	val migrationDir = file("${rootProject.projectDir}/git.environment-variables/storage/db/migration")
+	doFirst {
+		val sqls = fileTree(migrationDir) { include("*.sql") }.files
+		if (sqls.isEmpty()) {
+			throw GradleException(
+				"Flyway SQL missing under git.environment-variables/storage/db/migration. Run: git submodule update --init --recursive"
+			)
+		}
+	}
+	from(migrationDir) {
 		include("*.sql")
 		into("db/migration")
 	}

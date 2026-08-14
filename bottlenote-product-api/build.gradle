@@ -78,7 +78,15 @@ sourceSets {
 }
 
 tasks.named('processResources') {
-	from("${rootProject.projectDir}/git.environment-variables/storage/db/migration") {
+	def migrationDir = file("${rootProject.projectDir}/git.environment-variables/storage/db/migration")
+	doFirst {
+		def sqls = fileTree(migrationDir) { include '*.sql' }.files
+		if (sqls.isEmpty()) {
+			throw new GradleException(
+					"Flyway SQL missing under git.environment-variables/storage/db/migration. Run: git submodule update --init --recursive")
+		}
+	}
+	from(migrationDir) {
 		include '*.sql'
 		into 'db/migration'
 	}
