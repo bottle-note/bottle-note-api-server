@@ -1,5 +1,6 @@
 package app.integration.openapi
 
+import com.fasterxml.jackson.databind.JsonNode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Tag
@@ -40,6 +41,20 @@ class OpenApiSpecQualityTest : OpenApiSpecTestSupport() {
 	}
 
 	@Test
+	@DisplayName("모든 파라미터는 schema, content 또는 참조를 갖는다")
+	fun everyParameterHasSchemaSource() {
+		val violations = operationsOf(fetchSpec()).flatMap { operation ->
+			operation.definition.path("parameters")
+				.filter { parameter -> !hasParameterSchema(parameter) }
+				.map { parameter -> "${operation.endpoint()} - ${parameter.path("name").asText("<unnamed>")}" }
+		}
+
+		assertThat(violations)
+			.withFailMessage("파라미터에 schema, content 또는 \$ref가 없습니다:%n%s", joined(violations))
+			.isEmpty()
+	}
+
+	@Test
 	@DisplayName("components 하위 이름은 OpenAPI가 허용하는 식별자 형식이다")
 	fun componentNamesUseAllowedIdentifiers() {
 		val components = fetchSpec().at("/components")
@@ -61,6 +76,11 @@ class OpenApiSpecQualityTest : OpenApiSpecTestSupport() {
 			)
 			.isEmpty()
 	}
+
+	private fun hasParameterSchema(parameter: JsonNode): Boolean =
+		parameter.path("\$ref").isTextual ||
+			!parameter.path("schema").isEmpty ||
+			!parameter.path("content").isEmpty
 
 	/** 조건을 위반하는 엔드포인트가 하나도 없어야 한다. */
 	private fun assertNoOperation(reason: String, violating: (SpecOperation) -> Boolean) {

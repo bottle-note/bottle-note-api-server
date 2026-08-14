@@ -30,10 +30,20 @@ class NotificationOpenApiContractIntegrationTest extends OpenApiSpecTestSupport 
         .containsExactlyInAnyOrder(
             "cursor", "pageSize", "types", "categories", "readStatus", "createdFrom", "createdTo");
     assertParameterSchema(operation, "cursor", "integer", "int64");
+    assertThat(parameter(operation, "cursor").at("/schema").has("minimum")).isTrue();
+    assertThat(parameter(operation, "cursor").at("/schema/minimum").asLong()).isZero();
     assertParameterSchema(operation, "pageSize", "integer", "int64");
+    assertThat(parameter(operation, "pageSize").at("/schema/minimum").asLong()).isEqualTo(1L);
+    assertThat(parameter(operation, "pageSize").at("/schema/maximum").asLong()).isEqualTo(100L);
     assertThat(parameter(operation, "types").at("/schema/type").asText()).isEqualTo("array");
     assertThat(parameter(operation, "categories").at("/schema/type").asText()).isEqualTo("array");
     assertParameterSchema(operation, "readStatus", "string", null);
+    assertThat(
+            StreamSupport.stream(
+                    parameter(operation, "readStatus").at("/schema/enum").spliterator(), false)
+                .map(JsonNode::asText)
+                .toList())
+        .containsExactly("ALL", "UNREAD", "READ");
     assertParameterSchema(operation, "createdFrom", "string", "date-time");
     assertParameterSchema(operation, "createdTo", "string", "date-time");
 
