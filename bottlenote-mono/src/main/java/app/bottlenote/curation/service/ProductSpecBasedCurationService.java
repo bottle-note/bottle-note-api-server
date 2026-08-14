@@ -10,13 +10,15 @@ import app.bottlenote.curation.domain.CurationRepository;
 import app.bottlenote.curation.domain.CurationSpec;
 import app.bottlenote.curation.domain.CurationSpecRepository;
 import app.bottlenote.curation.dto.dsl.CurationFeedSearchCriteria;
+import app.bottlenote.curation.dto.response.CurationFeedListResponse;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationDetailResponse;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationFeedItemResponse;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationListResponse;
 import app.bottlenote.curation.exception.CurationException;
 import app.bottlenote.curation.exception.CurationExceptionCode;
-import app.bottlenote.global.service.cursor.CursorPageable;
-import app.bottlenote.global.service.cursor.CursorResponse;
+import app.bottlenote.global.pagination.HmacCursorCodec;
+import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.Pagination;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +42,7 @@ public class ProductSpecBasedCurationService {
   private final CurationExtensionRepository curationExtensionRepository;
   private final CurationResponseMaterializer responseMaterializer;
   private final CurationFeedProjector feedProjector;
+  private final HmacCursorCodec cursorCodec;
 
   @Transactional(readOnly = true)
   public List<ProductSpecBasedCurationListResponse> listActiveCurations() {
@@ -55,11 +58,18 @@ public class ProductSpecBasedCurationService {
   }
 
   @Transactional(readOnly = true)
-  public CursorResponse<ProductSpecBasedCurationFeedItemResponse> searchFeed(
-      String keyword, List<String> codes, Long cursor, Integer size) {
+  public PageResponse<CurationFeedListResponse> searchFeed(
+      String keyword, List<String> codes, String cursor, Integer size) {
     int pageSize = normalizeFeedSize(size);
-    long currentCursor = cursor != null && cursor > 0 ? cursor : 0L;
     List<String> normalizedCodes = normalizeCodes(codes);
+    String context = "curation.feed:" + normalizedCodes + ":" + keyword;
+    Integer lastDisplayOrder = null;
+    Long lastId = null;
+    if (cursor != null) {
+      var claims = cursorCodec.verify(cursor, context);
+      lastDisplayOrder = Integer.valueOf(claims.sortKeys().get("order"));
+      lastId = Long.valueOf(claims.sortKeys().get("id"));
+    }
     List<CurationSpec> specs =
         normalizedCodes.isEmpty()
             ? List.of()
@@ -77,23 +87,21 @@ public class ProductSpecBasedCurationService {
             specMap.keySet(),
             keywordMatchedSpecIds,
             LocalDate.now(),
-            currentCursor,
+            lastDisplayOrder,
+            lastId,
             pageSize + 1);
     List<Long> candidateIds = curationRepository.findFeedCandidateIds(criteria);
     if (candidateIds.isEmpty()) {
-      return CursorResponse.of(
-          List.of(), CursorPageable.of(candidateIds, currentCursor, Integer.valueOf(pageSize)));
+      return PageResponse.of(new CurationFeedListResponse(List.of()), new Pagination(false, null));
     }
-    List<Long> pageIds =
-        candidateIds.size() > pageSize ? candidateIds.subList(0, pageSize) : candidateIds;
     Map<Long, Curation> curationMap =
-        curationRepository.findAllByIdIn(pageIds).stream()
+        curationRepository.findAllByIdIn(candidateIds).stream()
             .collect(Collectors.toMap(Curation::getId, Function.identity()));
     Map<Long, CurationExtension> extensionMap =
-        curationExtensionRepository.findAllByCurationIdIn(pageIds).stream()
+        curationExtensionRepository.findAllByCurationIdIn(candidateIds).stream()
             .collect(Collectors.toMap(CurationExtension::getCurationId, Function.identity()));
     List<ProductSpecBasedCurationFeedItemResponse> items =
-        pageIds.stream()
+        candidateIds.stream()
             .map(
                 curationId -> {
                   Curation curation = requireValue(curationMap.get(curationId), CURATION_NOT_FOUND);
@@ -104,8 +112,19 @@ public class ProductSpecBasedCurationService {
                   return toFeedResponse(curation, spec, extension);
                 })
             .toList();
-    return CursorResponse.of(
-        items, CursorPageable.of(candidateIds, currentCursor, Integer.valueOf(pageSize)));
+    var slice =
+        Pagination.fromOverflow(
+            items,
+            pageSize,
+            item ->
+                cursorCodec.encode(
+                    context,
+                    Map.of(
+                        "order",
+                        String.valueOf(item.displayOrder() == null ? 0 : item.displayOrder()),
+                        "id",
+                        String.valueOf(item.id()))));
+    return PageResponse.of(new CurationFeedListResponse(slice.items()), slice.pagination());
   }
 
   @Transactional(readOnly = true)

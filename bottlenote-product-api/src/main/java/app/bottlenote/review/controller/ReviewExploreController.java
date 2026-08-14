@@ -4,21 +4,20 @@ import static app.bottlenote.global.annotation.SecurityPolicy.AuthType.OPTIONAL_
 
 import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.global.service.cursor.CursorResponse;
+import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.review.controller.docs.ReviewExploreApiDocs;
-import app.bottlenote.review.dto.response.ReviewExploreItem;
+import app.bottlenote.review.dto.request.ReviewExploreRequest;
+import app.bottlenote.review.dto.response.ReviewExploreListResponse;
 import app.bottlenote.review.service.ReviewExploreService;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
@@ -34,13 +33,14 @@ public class ReviewExploreController {
   @ReviewExploreApiDocs.GetStandardExplore
   @GetMapping("/standard")
   public ResponseEntity<GlobalResponse> getStandardExplore(
-      @RequestParam(required = false) List<String> keywords,
-      @RequestParam(required = false, defaultValue = "20") Integer size,
-      @RequestParam(required = false, defaultValue = "0") Long cursor) {
-    List<String> safeKeywords = keywords != null ? keywords : Collections.emptyList();
+      @ModelAttribute @Valid ReviewExploreRequest request) {
     Long userId = SecurityContextUtil.getUserIdByContext().orElse(-1L);
-    Pair<Long, CursorResponse<ReviewExploreItem>> pair =
-        reviewExploreService.getStandardExplore(userId, safeKeywords, cursor, size);
-    return GlobalResponse.ok(pair, Map.of("keywords", safeKeywords));
+    PageResponse<ReviewExploreListResponse> page =
+        reviewExploreService.getStandardExplore(request, userId);
+    return GlobalResponse.ok(
+        page.content(),
+        MetaService.createMetaInfo()
+            .add("searchParameters", request)
+            .add("pagination", page.pagination()));
   }
 }

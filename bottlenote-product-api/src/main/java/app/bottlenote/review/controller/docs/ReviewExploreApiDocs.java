@@ -32,28 +32,17 @@ public final class ReviewExploreApiDocs {
           입력한 키워드가 담긴 리뷰를 커서 방식으로 찾아옵니다.
 
           키워드를 여러 개 보내면 그중 하나라도 걸리는 리뷰를 가져오고, 키워드를 생략하면 전체 리뷰를 대상으로 합니다.
-          응답의 data.totalCount는 조건에 맞는 전체 건수이고, data.items가 이번 페이지의 리뷰입니다.
-          다음 페이지 정보는 meta.pageable, 검색에 사용한 키워드는 meta.searchParameters에 담깁니다.
+          다음 페이지 정보는 meta.pagination, 검색에 사용한 키워드는 meta.searchParameters에 담깁니다.
           """,
       responses =
           @ApiResponse(
               responseCode = "200",
-              description = "전체 건수와 이번 페이지의 리뷰 목록",
+              description = "이번 페이지의 리뷰 목록",
               content = @Content(schema = @Schema(implementation = ReviewExploreResult.class))))
   public @interface GetStandardExplore {}
 
-  /**
-   * 탐색 응답의 data 형태를 문서에 드러내기 위한 선언.
-   *
-   * <p>실제 응답은 {@code CollectionResponse<ReviewExploreItem>}이지만 제네릭 타입은 어노테이션으로 표현할 수 없어, 같은 모양을 갖는
-   * 타입을 문서용으로 따로 둔다.
-   */
-  @Schema(
-      name = "ReviewExploreResult",
-      title = "리뷰 탐색 결과",
-      description = "조건에 맞는 전체 건수와 이번 페이지의 리뷰 목록")
+  @Schema(name = "ReviewExploreResult", title = "리뷰 탐색 결과", description = "이번 페이지의 리뷰 목록")
   private record ReviewExploreResult(
-      @Schema(description = "조건에 맞는 리뷰의 전체 건수", example = "500") long totalCount,
       @ArraySchema(schema = @Schema(implementation = ReviewExploreItem.class))
           List<ReviewExploreItem> items) {}
 }

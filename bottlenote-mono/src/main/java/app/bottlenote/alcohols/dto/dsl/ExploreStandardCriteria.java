@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * 둘러보기 리포지토리 계층 전달용 criteria. 요청 DTO는 서비스가 {@link #of} 로 변환한다.
  *
- * <p>{@code seed}: RANDOM 정렬 시 사용할 난수 시드. Service 계층에서 null 이 아닌 값으로 확정되어 리포지토리까지 전달된다.
+ * <p>{@code seed}: RANDOM 정렬 시 HMAC 커서 extra 또는 서버 생성값. 비-RANDOM은 0.
  */
 public record ExploreStandardCriteria(
     Long userId,
@@ -21,7 +21,7 @@ public record ExploreStandardCriteria(
     SearchSortType sortType,
     SortOrder sortOrder,
     Long seed,
-    Long cursor,
+    String cursor,
     Integer size) {
 
   public static ExploreStandardCriteria of(ExploreStandardRequest request, Long userId, long seed) {
@@ -37,5 +37,24 @@ public record ExploreStandardCriteria(
         seed,
         request.cursor(),
         request.size());
+  }
+
+  public String context() {
+    return "alcohol.explore:"
+        + userId
+        + ":"
+        + keywords
+        + ":"
+        + category
+        + ":"
+        + regionIds
+        + ":"
+        + distilleryIds
+        + ":"
+        + curationId
+        + ":"
+        + sortType
+        + ":"
+        + sortOrder;
   }
 }

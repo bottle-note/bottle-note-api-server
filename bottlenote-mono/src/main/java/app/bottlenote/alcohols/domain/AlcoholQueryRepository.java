@@ -12,7 +12,6 @@ import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
 import app.bottlenote.alcohols.dto.response.AlcoholSearchResponse;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
-import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.global.service.cursor.PageResponse;
 import java.util.List;
 import java.util.Optional;
@@ -45,7 +44,8 @@ public interface AlcoholQueryRepository {
 
   Boolean existsByDistilleryId(Long distilleryId);
 
-  CursorResponse<AlcoholDetailItem> getStandardExplore(ExploreStandardCriteria criteria);
+  app.bottlenote.global.pagination.PageResponse<List<AlcoholDetailItem>> getStandardExplore(
+      ExploreStandardCriteria criteria);
 
   Page<AdminAlcoholItem> searchAdminAlcohols(AdminAlcoholSearchRequest request);
 

@@ -31,9 +31,8 @@ public final class AlcoholExploreApiDocs {
           """
           인기순, 별점순, 리뷰순, 찜순, 무작위 중 원하는 기준으로 위스키를 둘러봅니다.
 
-          무작위 정렬은 페이지를 넘길 때 중복이나 누락이 생기지 않도록 seed 값을 사용합니다. \
-          첫 요청에서는 seed를 생략하면 서버가 만들어 meta.seed로 내려주고, 다음 페이지부터 그 값을 그대로 보내면 됩니다.
-          다음 페이지 정보는 meta.pageable, 탐색 조건은 meta.searchParameters에 담깁니다.
+          무작위 정렬의 시드는 HMAC 커서 extra에 담기며, 다음 페이지는 meta.pagination.nextCursor를 그대로 보내면 됩니다.
+          탐색 조건은 meta.searchParameters에 담깁니다.
           """,
       responses =
           @ApiResponse(
@@ -42,10 +41,9 @@ public final class AlcoholExploreApiDocs {
               content = @Content(schema = @Schema(implementation = AlcoholExploreResult.class))))
   public @interface GetStandardExplore {}
 
-  /** 탐색 응답의 data 형태. 실제로는 {@code CollectionResponse<AlcoholDetailItem>}이다. */
-  @Schema(name = "AlcoholExploreResult", title = "위스키 탐색 결과", description = "전체 건수와 이번 페이지의 위스키 목록")
+  /** 탐색 응답의 data 형태. 실제로는 {@code ExploreStandardResponse}다. */
+  @Schema(name = "AlcoholExploreResult", title = "위스키 탐색 결과", description = "이번 페이지의 위스키 목록")
   private record AlcoholExploreResult(
-      @Schema(description = "전체 건수. 탐색에서는 집계하지 않아 0으로 내려간다", example = "0") long totalCount,
       @ArraySchema(schema = @Schema(implementation = AlcoholDetailItem.class))
           List<AlcoholDetailItem> items) {}
 }

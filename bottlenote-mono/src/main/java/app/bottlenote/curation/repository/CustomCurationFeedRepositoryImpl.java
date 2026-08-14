@@ -30,11 +30,22 @@ public class CustomCurationFeedRepositoryImpl implements CustomCurationFeedRepos
                 .or(curation.exposureStartDate.loe(criteria.today())),
             curation.exposureEndDate.isNull().or(curation.exposureEndDate.goe(criteria.today())),
             curation.specId.in(criteria.specIds()),
-            matchesKeyword(criteria))
+            matchesKeyword(criteria),
+            displayOrderSeek(criteria))
         .orderBy(curation.displayOrder.asc(), curation.id.asc())
-        .offset(criteria.offset())
         .limit(criteria.fetchSize())
         .fetch();
+  }
+
+  private static BooleanExpression displayOrderSeek(CurationFeedSearchCriteria criteria) {
+    if (criteria.lastId() == null) {
+      return null;
+    }
+    int lastOrder = criteria.lastDisplayOrder() == null ? 0 : criteria.lastDisplayOrder();
+    return curation
+        .displayOrder
+        .gt(lastOrder)
+        .or(curation.displayOrder.eq(lastOrder).and(curation.id.gt(criteria.lastId())));
   }
 
   private BooleanExpression matchesKeyword(CurationFeedSearchCriteria criteria) {

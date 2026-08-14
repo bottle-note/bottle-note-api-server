@@ -19,7 +19,6 @@ import static app.bottlenote.review.repository.ReviewQuerySupporter.isMyReview;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.sortBy;
 import static app.bottlenote.user.domain.QUser.user;
 
-import app.bottlenote.global.service.cursor.CursorResponse;
 import app.bottlenote.like.constant.LikeStatus;
 import app.bottlenote.review.dto.request.AdminReviewSearchRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
@@ -40,7 +39,6 @@ import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -302,9 +300,11 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
   }
 
   @Override
-  public Pair<Long, CursorResponse<ReviewExploreItem>> getStandardExplore(
-      Long userId, List<String> keywords, Long cursor, Integer size) {
+  public app.bottlenote.global.pagination.PageResponse<
+          app.bottlenote.review.dto.response.ReviewExploreListResponse>
+      getStandardExplore(Long userId, List<String> keywords, String cursor, Integer size) {
     int fetchSize = size + 1;
+    String context = "review.explore:" + userId + ":" + keywords;
 
     // GROUP_CONCAT 표현식
     StringExpression groupConcatImages =
@@ -360,7 +360,8 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
             .where(
                 review.activeStatus.eq(ACTIVE),
                 review.status.eq(PUBLIC),
-                containsKeywordInAll(keywords))
+                containsKeywordInAll(keywords),
+                reviewExploreSeek(cursor, context))
             .groupBy(
                 review.id,
                 review.content,
@@ -373,8 +374,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
                 user.imageUrl,
                 alcohol.id,
                 alcohol.korName)
-            .orderBy(review.createAt.desc())
-            .offset(cursor)
+            .orderBy(review.createAt.desc(), review.id.desc())
             .limit(fetchSize)
             .fetch();
 
@@ -420,31 +420,31 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
               tuple.get(hasReplyByMeSubquery(userId))));
     }
 
-    // 총 개수 조회
-    Long total =
-        queryFactory
-            .select(review.countDistinct())
-            .from(review)
-            .join(user)
-            .on(review.userId.eq(user.id))
-            .leftJoin(alcohol)
-            .on(alcohol.id.eq(review.alcoholId))
-            .leftJoin(likes)
-            .on(review.id.eq(likes.reviewId).and(likes.status.eq(LikeStatus.LIKE)))
-            .leftJoin(reviewImage)
-            .on(review.id.eq(reviewImage.review.id))
-            .leftJoin(reviewReply)
-            .on(review.id.eq(reviewReply.reviewId))
-            .leftJoin(reviewTastingTag)
-            .on(review.id.eq(reviewTastingTag.review.id))
-            .where(
-                review.activeStatus.eq(ACTIVE),
-                review.status.eq(PUBLIC),
-                containsKeywordInAll(keywords))
-            .fetchOne();
+    var slice =
+        app.bottlenote.global.pagination.Pagination.fromOverflow(
+            items,
+            size,
+            item ->
+                cursorCodec.encode(
+                    context,
+                    app.bottlenote.global.pagination.TimeIdCursor.keys(
+                        item.createAt(), item.reviewId())));
+    return app.bottlenote.global.pagination.PageResponse.of(
+        new app.bottlenote.review.dto.response.ReviewExploreListResponse(slice.items()),
+        slice.pagination());
+  }
 
-    // 직접 가변 리스트를 사용
-    CursorResponse<ReviewExploreItem> list = CursorResponse.of(items, cursor, size);
-    return Pair.of(total, list);
+  private com.querydsl.core.types.dsl.BooleanExpression reviewExploreSeek(
+      String cursor, String context) {
+    if (cursor == null) {
+      return null;
+    }
+    var claims = cursorCodec.verify(cursor, context);
+    var lastCreateAt = app.bottlenote.global.pagination.TimeIdCursor.time(claims);
+    var lastId = app.bottlenote.global.pagination.TimeIdCursor.id(claims);
+    return review
+        .createAt
+        .lt(lastCreateAt)
+        .or(review.createAt.eq(lastCreateAt).and(review.id.lt(lastId)));
   }
 }
