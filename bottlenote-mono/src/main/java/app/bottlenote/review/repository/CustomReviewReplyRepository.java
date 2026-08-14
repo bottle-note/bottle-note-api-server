@@ -1,5 +1,6 @@
 package app.bottlenote.review.repository;
 
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.review.dto.response.RootReviewReplyResponse;
 import app.bottlenote.review.dto.response.SubReviewReplyResponse;
 
@@ -12,7 +13,7 @@ public interface CustomReviewReplyRepository {
    * @param pageSize 페이지 사이즈
    * @return 최상위 댓글 목록
    */
-  app.bottlenote.global.pagination.PageResponse<RootReviewReplyResponse> getReviewRootReplies(
+  PageResponse<RootReviewReplyResponse> getReviewRootReplies(
       Long reviewId, String cursor, Integer size);
 
   /**
@@ -24,6 +25,6 @@ public interface CustomReviewReplyRepository {
    * @param pageSize 페이지 사이즈
    * @return 댓글 목록
    */
-  app.bottlenote.global.pagination.PageResponse<SubReviewReplyResponse> getSubReviewReplies(
+  PageResponse<SubReviewReplyResponse> getSubReviewReplies(
       Long reviewId, Long replyId, String cursor, Integer size);
 }

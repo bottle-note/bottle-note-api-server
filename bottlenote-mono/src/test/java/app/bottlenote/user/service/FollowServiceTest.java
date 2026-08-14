@@ -3,6 +3,8 @@ package app.bottlenote.user.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import app.bottlenote.global.pagination.CursorProperties;
+import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.user.constant.FollowStatus;
 import app.bottlenote.user.domain.Follow;
 import app.bottlenote.user.domain.User;
@@ -31,15 +33,14 @@ class FollowServiceTest {
   void setUp() {
     followRepository = new InMemoryFollowRepository();
     userRepository = new InMemoryUserQueryRepository();
-    var properties = new app.bottlenote.global.pagination.CursorProperties();
+    var properties = new CursorProperties();
     properties.setCurrentKeyId("v1");
     properties.setCurrentSecret("test-pagination-cursor-secret");
     followService =
         new FollowService(
             followRepository,
             userRepository,
-            new app.bottlenote.global.pagination.HmacCursorCodec(
-                properties, java.time.Clock.systemUTC()));
+            new HmacCursorCodec(properties, java.time.Clock.systemUTC()));
   }
 
   // ========== updateFollowStatus ==========

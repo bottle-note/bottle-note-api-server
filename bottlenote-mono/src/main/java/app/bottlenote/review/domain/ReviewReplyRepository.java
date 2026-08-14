@@ -1,5 +1,6 @@
 package app.bottlenote.review.domain;
 
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.review.dto.response.RootReviewReplyResponse;
 import app.bottlenote.review.dto.response.SubReviewReplyResponse;
 import java.util.List;
@@ -15,10 +16,10 @@ public interface ReviewReplyRepository {
 
   Optional<ReviewReply> isEligibleParentReply(Long reviewId, Long parentReplyId);
 
-  app.bottlenote.global.pagination.PageResponse<RootReviewReplyResponse> getReviewRootReplies(
+  PageResponse<RootReviewReplyResponse> getReviewRootReplies(
       Long reviewId, String cursor, Integer size);
 
-  app.bottlenote.global.pagination.PageResponse<SubReviewReplyResponse> getSubReviewReplies(
+  PageResponse<SubReviewReplyResponse> getSubReviewReplies(
       Long reviewId, Long replyId, String cursor, Integer size);
 
   Optional<ReviewReply> findReplyByReviewIdAndReplyId(Long reviewId, Long replyId);

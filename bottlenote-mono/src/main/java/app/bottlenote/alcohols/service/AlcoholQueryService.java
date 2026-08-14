@@ -21,6 +21,7 @@ import app.bottlenote.alcohols.exception.AlcoholException;
 import app.bottlenote.alcohols.repository.CustomAlcoholQueryRepository.AdminAlcoholDetailProjection;
 import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.global.pagination.HmacCursorCodec;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.global.pagination.PaginationException;
 import app.bottlenote.global.pagination.PaginationExceptionCode;
 import app.bottlenote.history.service.AlcoholViewHistoryService;
@@ -52,20 +53,6 @@ public class AlcoholQueryService {
   private final AlcoholReferenceService alcoholReferenceService;
   private final HmacCursorCodec cursorCodec;
 
-  /**
-   * 술(위스키) 리스트 조회 api
-   *
-   * @param request 검색 파라미터
-   * @param userId 현재 사용자 id
-   * @return the page response
-   */
-  /**
-   * 술(위스키) 상세 조회 api
-   *
-   * @param alcoholId the alcohol id
-   * @param userId the user id
-   * @return the list
-   */
   @Transactional(readOnly = true)
   public AlcoholDetailResponse findAlcoholDetailById(Long alcoholId, Long userId) {
     AlcoholDetailItem alcoholDetailItem =
@@ -99,14 +86,13 @@ public class AlcoholQueryService {
   }
 
   @Transactional(readOnly = true)
-  public app.bottlenote.global.pagination.PageResponse<ExploreStandardResponse> getStandardExplore(
+  public PageResponse<ExploreStandardResponse> getStandardExplore(
       ExploreStandardRequest request, Long userId) {
     long resolvedSeed = resolveSeed(request, userId);
     ExploreStandardCriteria criteria = ExploreStandardCriteria.of(request, userId, resolvedSeed);
-    app.bottlenote.global.pagination.PageResponse<List<AlcoholDetailItem>> page =
+    PageResponse<List<AlcoholDetailItem>> page =
         alcoholQueryRepository.getStandardExplore(criteria);
-    return app.bottlenote.global.pagination.PageResponse.of(
-        new ExploreStandardResponse(page.content()), page.pagination());
+    return PageResponse.of(new ExploreStandardResponse(page.content()), page.pagination());
   }
 
   /** RANDOM은 커서 extra의 seed를 재사용하고, 첫 페이지는 서버가 생성한다. */

@@ -1,6 +1,6 @@
 package app.bottlenote.support.block.controller.docs;
 
-import app.bottlenote.support.block.dto.response.UserBlockItem;
+import app.bottlenote.support.block.dto.response.UserBlockListResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -11,7 +11,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.List;
 
 /** 사용자 차단 엔드포인트의 문서 설명. */
 public final class BlockApiDocs {
@@ -29,27 +28,27 @@ public final class BlockApiDocs {
       summary = "사용자를 차단한다",
       description =
           """
-          지정한 사용자를 차단하고, 차단 후의 전체 차단 목록을 돌려줍니다.
+          지정한 사용자를 차단하고, 차단 후의 차단 목록 첫 페이지를 돌려줍니다.
 
           차단하면 상대의 리뷰와 댓글이 목록에서 보이지 않고 팔로우 관계도 정리됩니다. 차단 사유는 선택 사항입니다.
           """,
       responses =
           @ApiResponse(
               responseCode = "200",
-              description = "차단 후의 전체 차단 목록",
-              content = @Content(schema = @Schema(implementation = BlockedUserCollection.class))))
+              description = "차단 후의 차단 목록",
+              content = @Content(schema = @Schema(implementation = UserBlockListResponse.class))))
   public @interface CreateBlock {}
 
   @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.RUNTIME)
   @Operation(
       summary = "차단을 해제한다",
-      description = "지정한 사용자의 차단을 풀고, 해제 후의 전체 차단 목록을 돌려줍니다. 차단 해제가 팔로우를 복원하지는 않습니다.",
+      description = "지정한 사용자의 차단을 풀고, 해제 후의 차단 목록 첫 페이지를 돌려줍니다. 차단 해제가 팔로우를 복원하지는 않습니다.",
       responses =
           @ApiResponse(
               responseCode = "200",
-              description = "해제 후의 전체 차단 목록",
-              content = @Content(schema = @Schema(implementation = BlockedUserCollection.class))))
+              description = "해제 후의 차단 목록",
+              content = @Content(schema = @Schema(implementation = UserBlockListResponse.class))))
   public @interface DeleteBlock {}
 
   @Target(ElementType.METHOD)
@@ -58,7 +57,9 @@ public final class BlockApiDocs {
       summary = "내가 차단한 사용자 목록을 조회한다",
       description =
           """
-          내가 차단한 사용자들의 프로필과 차단 시점을 반환합니다. 설정 화면의 차단 목록에 쓰입니다.
+          내가 차단한 사용자들의 프로필과 차단 시점을 커서 방식으로 가져옵니다.
+
+          요청은 cursor와 size입니다. 다음 페이지 정보는 meta.pagination에 담깁니다.
 
           **오류 코드**
 
@@ -70,7 +71,7 @@ public final class BlockApiDocs {
           @ApiResponse(
               responseCode = "200",
               description = "차단한 사용자 목록",
-              content = @Content(schema = @Schema(implementation = BlockedUserCollection.class))))
+              content = @Content(schema = @Schema(implementation = UserBlockListResponse.class))))
   public @interface GetBlockedUsers {}
 
   @Target(ElementType.METHOD)
@@ -151,11 +152,4 @@ public final class BlockApiDocs {
               content =
                   @Content(schema = @Schema(type = "integer", format = "int64", example = "5"))))
   public @interface GetBlockingCount {}
-
-  /** 실제로는 {@code CollectionResponse<UserBlockItem>}다. */
-  @Schema(name = "BlockedUserCollection", title = "차단 목록", description = "차단한 사용자 수와 목록")
-  private record BlockedUserCollection(
-      @Schema(description = "차단한 사용자 수", example = "5") long totalCount,
-      @ArraySchema(schema = @Schema(implementation = UserBlockItem.class))
-          List<UserBlockItem> items) {}
 }

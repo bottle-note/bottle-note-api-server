@@ -18,8 +18,6 @@ import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.constant.ReviewSortType;
 import app.bottlenote.review.dto.request.AdminReviewSearchRequest;
-import app.bottlenote.review.dto.request.ReviewPageableRequest;
-import app.bottlenote.review.facade.payload.ReviewInfo;
 import app.bottlenote.review.facade.payload.UserInfo;
 import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.Expression;
@@ -104,15 +102,6 @@ public class ReviewQuerySupporter {
       return Expressions.asBoolean(false);
     }
     return review.userId.eq(userId).as("isMyReview");
-  }
-
-  public static boolean isHasNext(
-      ReviewPageableRequest reviewPageableRequest, List<ReviewInfo> fetch) {
-    boolean hasNext = fetch.size() > reviewPageableRequest.size();
-    if (hasNext) {
-      fetch.remove(fetch.size() - 1); // Remove the extra record
-    }
-    return hasNext;
   }
 
   public static List<OrderSpecifier<?>> sortBy(ReviewSortType reviewSortType, SortOrder sortOrder) {

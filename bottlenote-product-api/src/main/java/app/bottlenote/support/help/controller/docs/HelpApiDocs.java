@@ -49,7 +49,7 @@ public final class HelpApiDocs {
           """
           로그인한 사용자가 남긴 문의를 커서 방식으로 가져옵니다.
 
-          각 항목에 답변 완료 여부가 표시됩니다. 다음 페이지 정보는 meta.pageable에 담깁니다.
+          각 항목에 답변 완료 여부가 표시됩니다. 다음 페이지 정보는 meta.pagination에 담깁니다.
           """,
       responses =
           @ApiResponse(

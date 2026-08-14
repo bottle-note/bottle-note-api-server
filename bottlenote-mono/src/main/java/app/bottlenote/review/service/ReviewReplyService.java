@@ -5,6 +5,7 @@ import static app.bottlenote.review.constant.ReviewReplyResultMessage.SUCCESS_RE
 import static java.lang.Boolean.FALSE;
 
 import app.bottlenote.common.profanity.ProfanityClient;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.observability.service.TracingService;
 import app.bottlenote.review.constant.ReviewReplyStatus;
@@ -164,8 +165,8 @@ public class ReviewReplyService {
 
   /** 최상위 리뷰 목록을 조회합니다 이때 대댓글 목록은 제외됩니다. */
   @Transactional(readOnly = true)
-  public app.bottlenote.global.pagination.PageResponse<RootReviewReplyResponse>
-      getReviewRootReplays(Long reviewId, String cursor, Integer size) {
+  public PageResponse<RootReviewReplyResponse> getReviewRootReplays(
+      Long reviewId, String cursor, Integer size) {
     return reviewReplyRepository.getReviewRootReplies(reviewId, cursor, size);
   }
 
@@ -179,7 +180,7 @@ public class ReviewReplyService {
    * @return the sub review replies
    */
   @Transactional(readOnly = true)
-  public app.bottlenote.global.pagination.PageResponse<SubReviewReplyResponse> getSubReviewReplies(
+  public PageResponse<SubReviewReplyResponse> getSubReviewReplies(
       Long reviewId, Long rootReplyId, String cursor, Integer size) {
     return reviewReplyRepository.getSubReviewReplies(reviewId, rootReplyId, cursor, size);
   }

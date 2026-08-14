@@ -49,6 +49,7 @@ public interface JpaUserBlockRepository
 		SELECT new app.bottlenote.support.block.dto.response.UserBlockItem(u.id, u.nickName, ub.createAt)
 		FROM userBlock ub JOIN users u ON ub.blockedId = u.id
 		WHERE ub.blockerId = :blockerId
+		ORDER BY ub.createAt DESC, u.id DESC
 		""")
   List<UserBlockItem> findBlockedUserItemsByBlockerId(@Param("blockerId") Long blockerId);
 }

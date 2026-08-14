@@ -1,10 +1,9 @@
 package app.bottlenote.support.business.controller.docs;
 
-import app.bottlenote.support.business.dto.response.BusinessInfoResponse;
 import app.bottlenote.support.business.dto.response.BusinessSupportDetailItem;
+import app.bottlenote.support.business.dto.response.BusinessSupportListResponse;
 import app.bottlenote.support.business.dto.response.BusinessSupportResultResponse;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -13,7 +12,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.List;
 
 /** 비즈니스 제휴 문의 엔드포인트의 문서 설명. */
 public final class BusinessSupportApiDocs {
@@ -47,13 +45,18 @@ public final class BusinessSupportApiDocs {
   @Retention(RetentionPolicy.RUNTIME)
   @Operation(
       summary = "내가 등록한 비즈니스 문의 목록을 조회한다",
-      description = "로그인한 사용자가 남긴 문의를 전체 건수와 함께 가져옵니다. 다른 사용자의 문의는 보이지 않습니다.",
+      description =
+          """
+          로그인한 사용자가 남긴 문의를 커서 방식으로 가져옵니다. 다른 사용자의 문의는 보이지 않습니다.
+
+          다음 페이지 정보는 meta.pagination에 담깁니다.
+          """,
       responses =
           @ApiResponse(
               responseCode = "200",
-              description = "전체 건수와 문의 목록",
+              description = "비즈니스 문의 목록",
               content =
-                  @Content(schema = @Schema(implementation = BusinessSupportCollection.class))))
+                  @Content(schema = @Schema(implementation = BusinessSupportListResponse.class))))
   public @interface GetBusinessSupportList {}
 
   @Target(ElementType.METHOD)
@@ -94,11 +97,4 @@ public final class BusinessSupportApiDocs {
               content =
                   @Content(schema = @Schema(implementation = BusinessSupportResultResponse.class))))
   public @interface DeleteBusinessSupport {}
-
-  /** 실제로는 {@code CollectionResponse<BusinessInfoResponse>}다. */
-  @Schema(name = "BusinessSupportCollection", title = "비즈니스 문의 목록", description = "전체 건수와 문의 목록")
-  private record BusinessSupportCollection(
-      @Schema(description = "문의 전체 건수", example = "3") long totalCount,
-      @ArraySchema(schema = @Schema(implementation = BusinessInfoResponse.class))
-          List<BusinessInfoResponse> items) {}
 }

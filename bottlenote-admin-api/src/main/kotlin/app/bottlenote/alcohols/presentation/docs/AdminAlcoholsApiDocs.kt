@@ -28,7 +28,7 @@ object AdminAlcoholsApiDocs {
 			검색어, 카테고리, 지역, 증류소, 커서로 위스키 룩업 목록을 커서 방식으로 조회합니다.
 
 			다른 화면에서 위스키를 빠르게 선택할 때 쓰는 경량 목록이며, Redis 스냅샷을 우선 사용하고 비어 있으면 DB로 폴백합니다.
-			다음 페이지 정보는 meta.pageable에, 요청 파라미터는 meta.searchParameters에 담깁니다.
+			다음 페이지 정보는 meta.pagination에, 요청 파라미터는 meta.searchParameters에 담깁니다.
 			""",
 		responses = [
 			ApiResponse(

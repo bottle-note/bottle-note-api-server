@@ -5,6 +5,7 @@ import static app.bottlenote.user.domain.QUser.user;
 
 import app.bottlenote.global.pagination.CursorClaims;
 import app.bottlenote.global.pagination.HmacCursorCodec;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.global.pagination.Pagination;
 import app.bottlenote.global.pagination.TimeIdCursor;
 import app.bottlenote.support.help.dto.request.AdminHelpPageableRequest;
@@ -29,7 +30,7 @@ public class CustomHelpQueryRepositoryImpl implements CustomHelpQueryRepository 
   private final HmacCursorCodec cursorCodec;
 
   @Override
-  public app.bottlenote.global.pagination.PageResponse<HelpListResponse> getHelpList(
+  public PageResponse<HelpListResponse> getHelpList(
       HelpPageableRequest helpPageableRequest, Long currentUserId) {
     String context = "help.list:" + currentUserId;
     int size = helpPageableRequest.size();
@@ -49,8 +50,7 @@ public class CustomHelpQueryRepositoryImpl implements CustomHelpQueryRepository 
             fetch,
             size,
             item -> cursorCodec.encode(context, TimeIdCursor.keys(item.createAt(), item.helpId())));
-    return app.bottlenote.global.pagination.PageResponse.of(
-        HelpListResponse.of(slice.items()), slice.pagination());
+    return PageResponse.of(HelpListResponse.of(slice.items()), slice.pagination());
   }
 
   private BooleanExpression helpSeek(String cursor, String context) {
@@ -66,8 +66,7 @@ public class CustomHelpQueryRepositoryImpl implements CustomHelpQueryRepository 
   }
 
   @Override
-  public app.bottlenote.global.pagination.PageResponse<AdminHelpListResponse> getAdminHelpList(
-      AdminHelpPageableRequest request) {
+  public PageResponse<AdminHelpListResponse> getAdminHelpList(AdminHelpPageableRequest request) {
     BooleanBuilder whereClause = new BooleanBuilder();
     String context = "admin.help:" + request.status() + ":" + request.type();
     int size = request.size();
@@ -96,7 +95,6 @@ public class CustomHelpQueryRepositoryImpl implements CustomHelpQueryRepository 
             fetch,
             size,
             item -> cursorCodec.encode(context, TimeIdCursor.keys(item.createAt(), item.helpId())));
-    return app.bottlenote.global.pagination.PageResponse.of(
-        AdminHelpListResponse.of(slice.items()), slice.pagination());
+    return PageResponse.of(AdminHelpListResponse.of(slice.items()), slice.pagination());
   }
 }

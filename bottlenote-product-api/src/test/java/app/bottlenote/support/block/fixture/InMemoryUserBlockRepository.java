@@ -30,6 +30,9 @@ public class InMemoryUserBlockRepository implements UserBlockRepository {
   public UserBlock save(UserBlock userBlock) {
     Long id = idGenerator++;
     ReflectionTestUtils.setField(userBlock, "id", id);
+    if (userBlock.getCreateAt() == null) {
+      ReflectionTestUtils.setField(userBlock, "createAt", LocalDateTime.now());
+    }
     userBlocks.put(id, userBlock);
     return userBlock;
   }
@@ -89,12 +92,16 @@ public class InMemoryUserBlockRepository implements UserBlockRepository {
   public List<UserBlockItem> findBlockedUserItemsByBlockerId(Long blockerId) {
     return userBlocks.values().stream()
         .filter(block -> block.getBlockerId().equals(blockerId))
+        .sorted(
+            java.util.Comparator.comparing(UserBlock::getCreateAt)
+                .reversed()
+                .thenComparing(UserBlock::getBlockedId, java.util.Comparator.reverseOrder()))
         .map(
             block ->
                 new UserBlockItem(
                     block.getBlockedId(),
                     userNames.getOrDefault(block.getBlockedId().toString(), "알 수 없는 사용자"),
-                    LocalDateTime.now()))
+                    block.getCreateAt()))
         .collect(Collectors.toList());
   }
 

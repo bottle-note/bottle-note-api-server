@@ -19,6 +19,7 @@ import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.global.pagination.CursorClaims;
 import app.bottlenote.global.pagination.HmacCursorCodec;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.global.pagination.Pagination;
 import app.bottlenote.global.service.cursor.SortOrder;
 import com.querydsl.core.Tuple;
@@ -203,7 +204,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 
   /** queryDSL 알코올 둘러보기 */
   @Override
-  public app.bottlenote.global.pagination.PageResponse<List<AlcoholDetailItem>> getStandardExplore(
+  public PageResponse<List<AlcoholDetailItem>> getStandardExplore(
       ExploreStandardCriteria criteria) {
     Long userId = criteria.userId();
     int pageSize = criteria.size();
@@ -212,8 +213,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
 
     List<ExploreSeekKey> candidates = fetchCandidateIds(criteria, fetchSize);
     if (candidates.isEmpty()) {
-      return app.bottlenote.global.pagination.PageResponse.of(
-          List.of(), new Pagination(false, null));
+      return PageResponse.of(List.of(), new Pagination(false, null));
     }
 
     List<Long> candidateIds = candidates.stream().map(ExploreSeekKey::id).toList();
@@ -305,7 +305,7 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
                       : Map.of();
               return cursorCodec.encode(context, keys, extra);
             });
-    return app.bottlenote.global.pagination.PageResponse.of(slice.items(), slice.pagination());
+    return PageResponse.of(slice.items(), slice.pagination());
   }
 
   /**

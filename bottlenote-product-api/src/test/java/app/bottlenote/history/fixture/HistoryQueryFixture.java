@@ -28,6 +28,7 @@ public class HistoryQueryFixture {
         .imageUrl("https://i.imgur.com/TE2nmYV.png")
         .isPicked(alcoholId % 2 == 0)
         .popularScore(Math.round(new Random().nextDouble()) / 100.0)
+        .viewAt(LocalDateTime.now())
         .build();
   }
 

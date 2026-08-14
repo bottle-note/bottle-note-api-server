@@ -19,11 +19,16 @@ import static app.bottlenote.review.repository.ReviewQuerySupporter.isMyReview;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.sortBy;
 import static app.bottlenote.user.domain.QUser.user;
 
+import app.bottlenote.global.pagination.HmacCursorCodec;
+import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.TimeIdCursor;
 import app.bottlenote.like.constant.LikeStatus;
 import app.bottlenote.review.dto.request.AdminReviewSearchRequest;
 import app.bottlenote.review.dto.request.ReviewPageableRequest;
 import app.bottlenote.review.dto.response.AdminReviewListResponse;
 import app.bottlenote.review.dto.response.ReviewExploreItem;
+import app.bottlenote.review.dto.response.ReviewExploreListResponse;
 import app.bottlenote.review.dto.response.ReviewListResponse;
 import app.bottlenote.review.facade.payload.ReviewInfo;
 import app.bottlenote.review.facade.payload.UserInfo;
@@ -48,7 +53,7 @@ import org.springframework.data.domain.PageRequest;
 public class CustomReviewRepositoryImpl implements CustomReviewRepository {
 
   private final JPAQueryFactory queryFactory;
-  private final app.bottlenote.global.pagination.HmacCursorCodec cursorCodec;
+  private final HmacCursorCodec cursorCodec;
 
   private static ConstructorExpression<ReviewInfo> composeReviewInfoResult(Long userId) {
     return Projections.constructor(
@@ -111,7 +116,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
   }
 
   @Override
-  public app.bottlenote.global.pagination.PageResponse<ReviewListResponse> getReviews(
+  public PageResponse<ReviewListResponse> getReviews(
       Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId) {
     List<ReviewInfo> fetch =
         queryFactory
@@ -152,7 +157,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
   }
 
   @Override
-  public app.bottlenote.global.pagination.PageResponse<ReviewListResponse> getReviewsByMe(
+  public PageResponse<ReviewListResponse> getReviewsByMe(
       Long alcoholId, ReviewPageableRequest reviewPageableRequest, Long userId) {
     // 특정한 위스키의 내 리뷰만 조회
     List<ReviewInfo> fetch =
@@ -185,10 +190,10 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
         fetch, reviewPageableRequest, reviewContext(alcoholId, userId, reviewPageableRequest));
   }
 
-  private app.bottlenote.global.pagination.PageResponse<ReviewListResponse> toReviewPage(
+  private PageResponse<ReviewListResponse> toReviewPage(
       List<ReviewInfo> fetch, ReviewPageableRequest request, String context) {
     var slice =
-        app.bottlenote.global.pagination.Pagination.fromOverflow(
+        Pagination.fromOverflow(
             fetch,
             request.size(),
             item ->
@@ -203,8 +208,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
                         item.createAt().toString(),
                         "id",
                         String.valueOf(item.reviewId()))));
-    return app.bottlenote.global.pagination.PageResponse.of(
-        ReviewListResponse.of(slice.items()), slice.pagination());
+    return PageResponse.of(ReviewListResponse.of(slice.items()), slice.pagination());
   }
 
   private com.querydsl.core.types.dsl.BooleanExpression reviewTimeIdSeek(
@@ -213,8 +217,8 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
       return null;
     }
     var claims = cursorCodec.verify(request.cursor(), context);
-    var lastCreateAt = app.bottlenote.global.pagination.TimeIdCursor.time(claims);
-    var lastId = app.bottlenote.global.pagination.TimeIdCursor.id(claims);
+    var lastCreateAt = TimeIdCursor.time(claims);
+    var lastId = TimeIdCursor.id(claims);
     var lastLikes = Long.parseLong(claims.sortKeys().getOrDefault("likes", "0"));
     var likesCount = likes.id.count();
     return likesCount
@@ -300,9 +304,8 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
   }
 
   @Override
-  public app.bottlenote.global.pagination.PageResponse<
-          app.bottlenote.review.dto.response.ReviewExploreListResponse>
-      getStandardExplore(Long userId, List<String> keywords, String cursor, Integer size) {
+  public PageResponse<ReviewExploreListResponse> getStandardExplore(
+      Long userId, List<String> keywords, String cursor, Integer size) {
     int fetchSize = size + 1;
     String context = "review.explore:" + userId + ":" + keywords;
 
@@ -421,17 +424,12 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
     }
 
     var slice =
-        app.bottlenote.global.pagination.Pagination.fromOverflow(
+        Pagination.fromOverflow(
             items,
             size,
             item ->
-                cursorCodec.encode(
-                    context,
-                    app.bottlenote.global.pagination.TimeIdCursor.keys(
-                        item.createAt(), item.reviewId())));
-    return app.bottlenote.global.pagination.PageResponse.of(
-        new app.bottlenote.review.dto.response.ReviewExploreListResponse(slice.items()),
-        slice.pagination());
+                cursorCodec.encode(context, TimeIdCursor.keys(item.createAt(), item.reviewId())));
+    return PageResponse.of(new ReviewExploreListResponse(slice.items()), slice.pagination());
   }
 
   private com.querydsl.core.types.dsl.BooleanExpression reviewExploreSeek(
@@ -440,8 +438,8 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
       return null;
     }
     var claims = cursorCodec.verify(cursor, context);
-    var lastCreateAt = app.bottlenote.global.pagination.TimeIdCursor.time(claims);
-    var lastId = app.bottlenote.global.pagination.TimeIdCursor.id(claims);
+    var lastCreateAt = TimeIdCursor.time(claims);
+    var lastId = TimeIdCursor.id(claims);
     return review
         .createAt
         .lt(lastCreateAt)

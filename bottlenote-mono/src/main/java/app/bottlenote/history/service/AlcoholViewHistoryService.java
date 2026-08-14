@@ -2,12 +2,17 @@ package app.bottlenote.history.service;
 
 import app.bottlenote.alcohols.dto.response.AlcoholDetailItem;
 import app.bottlenote.alcohols.dto.response.ViewHistoryItem;
-import app.bottlenote.global.data.response.CollectionResponse;
+import app.bottlenote.global.pagination.HmacCursorCodec;
+import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.pagination.Pagination;
+import app.bottlenote.global.pagination.TimeIdCursor;
 import app.bottlenote.global.redis.entity.AlcoholViewHistory;
 import app.bottlenote.global.redis.repository.RedisAlcoholViewHistoryRepository;
 import app.bottlenote.history.domain.AlcoholsViewHistory;
 import app.bottlenote.history.domain.AlcoholsViewHistory.AlcoholsViewHistoryId;
 import app.bottlenote.history.domain.AlcoholsViewHistoryRepository;
+import app.bottlenote.history.dto.request.ViewHistoryRequest;
+import app.bottlenote.history.dto.response.ViewHistoryListResponse;
 import app.bottlenote.observability.annotation.SkipTrace;
 import jakarta.persistence.EntityManager;
 import java.time.Instant;
@@ -20,7 +25,6 @@ import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +41,7 @@ public class AlcoholViewHistoryService {
   private final AlcoholsViewHistoryRepository historyRepository;
   private final RedisTemplate<String, Object> redisTemplate;
   private final EntityManager entityManager;
+  private final HmacCursorCodec cursorCodec;
 
   /** 사용자의 주류 조회 기록 저장 */
   @Transactional
@@ -148,10 +153,28 @@ public class AlcoholViewHistoryService {
   private record RedisEntry(LocalDateTime viewTime, UUID redisId) {}
 
   @Transactional(readOnly = true)
-  public CollectionResponse<ViewHistoryItem> getViewHistory(Long id) {
-    Pageable pageable = Pageable.ofSize(6);
-    var totalCount = historyRepository.countByUserId(id);
-    var allByUserId = historyRepository.findAllByUserId(id, pageable);
-    return CollectionResponse.of(totalCount, allByUserId);
+  public PageResponse<ViewHistoryListResponse> getViewHistory(
+      Long userId, ViewHistoryRequest request) {
+    if (userId == null || userId <= 0) {
+      return PageResponse.of(new ViewHistoryListResponse(List.of()), new Pagination(false, null));
+    }
+    String context = "view-history:" + userId;
+    LocalDateTime cursorViewAt = null;
+    Long cursorAlcoholId = null;
+    if (request.cursor() != null) {
+      var claims = cursorCodec.verify(request.cursor(), context);
+      cursorViewAt = TimeIdCursor.time(claims);
+      cursorAlcoholId = TimeIdCursor.id(claims);
+    }
+    List<ViewHistoryItem> fetched =
+        historyRepository.findPageByUserId(
+            userId, cursorViewAt, cursorAlcoholId, request.size() + 1);
+    Pagination.PageSlice<ViewHistoryItem> slice =
+        Pagination.fromOverflow(
+            fetched,
+            request.size(),
+            item ->
+                cursorCodec.encode(context, TimeIdCursor.keys(item.viewAt(), item.alcoholId())));
+    return PageResponse.of(new ViewHistoryListResponse(slice.items()), slice.pagination());
   }
 }

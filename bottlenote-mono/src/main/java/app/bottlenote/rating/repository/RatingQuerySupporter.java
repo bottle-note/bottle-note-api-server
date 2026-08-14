@@ -7,7 +7,6 @@ import static app.bottlenote.review.domain.QReview.review;
 import static com.querydsl.jpa.JPAExpressions.select;
 
 import app.bottlenote.alcohols.constant.AlcoholCategoryGroup;
-import app.bottlenote.global.service.cursor.CursorPageable;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.rating.constant.SearchSortType;
 import com.querydsl.core.types.Expression;
@@ -28,33 +27,6 @@ import org.springframework.stereotype.Component;
 public class RatingQuerySupporter {
 
   private final app.bottlenote.alcohols.domain.RegionRepository regionRepository;
-
-  /**
-   * CursorPageable 생성
-   *
-   * @param resultList the resultList
-   * @param cursor the cursor
-   * @param pageSize the page size
-   * @return the cursor pageable
-   */
-  protected CursorPageable getCursorPageable(List<?> resultList, Long pageSize, Long cursor) {
-    Objects.requireNonNull(resultList, "조회 결과 목록은 필수입니다.");
-    Objects.requireNonNull(cursor, "커서는 필수입니다.");
-    Objects.requireNonNull(pageSize, "조회 할 페이지 크기는 필수입니다.");
-
-    int resultSize = resultList.size();
-    boolean hasNext = resultSize > pageSize; // 다음 페이지가 있는지 확인
-    if (hasNext) {
-      resultList.remove(resultSize - 1);
-    }
-
-    return CursorPageable.builder()
-        .currentCursor(cursor)
-        .cursor(cursor + pageSize) // 다음 페이지가 있는 경우 마지막으로 가져온 ID를 다음 커서로 사용
-        .pageSize(pageSize)
-        .hasNext(hasNext)
-        .build();
-  }
 
   /**
    * 마이 페이지 사용자의 평점 개수를 조회한다.

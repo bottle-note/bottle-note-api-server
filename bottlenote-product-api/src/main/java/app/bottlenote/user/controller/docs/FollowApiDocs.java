@@ -32,7 +32,7 @@ public final class FollowApiDocs {
           """
           대상 사용자가 팔로우하고 있는 사람들을 커서 방식으로 가져옵니다.
 
-          각 항목에는 내가 그 사람을 팔로우하고 있는지도 함께 표시됩니다. 다음 페이지 정보는 meta.pageable에 담깁니다.
+          각 항목에는 내가 그 사람을 팔로우하고 있는지도 함께 표시됩니다. 다음 페이지 정보는 meta.pagination에 담깁니다.
           """,
       responses =
           @ApiResponse(

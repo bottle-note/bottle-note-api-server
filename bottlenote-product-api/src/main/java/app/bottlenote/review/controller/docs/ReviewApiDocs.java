@@ -86,7 +86,7 @@ public final class ReviewApiDocs {
           해당 위스키에 달린 리뷰를 커서 방식으로 나눠 가져옵니다.
 
           로그인하지 않아도 조회할 수 있습니다. 로그인한 경우에는 각 리뷰에 본인이 좋아요를 눌렀는지가 함께 표시됩니다.
-          다음 페이지 정보는 응답의 meta.pageable에 담깁니다.
+          다음 페이지 정보는 응답의 meta.pagination에 담깁니다.
           """,
       responses =
           @ApiResponse(

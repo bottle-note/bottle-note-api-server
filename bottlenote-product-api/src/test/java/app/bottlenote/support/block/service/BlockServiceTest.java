@@ -10,10 +10,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import app.bottlenote.global.data.response.CollectionResponse;
+import app.bottlenote.global.pagination.CursorProperties;
+import app.bottlenote.global.pagination.HmacCursorCodec;
+import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.support.block.dto.request.BlockPageableRequest;
 import app.bottlenote.support.block.dto.response.UserBlockItem;
+import app.bottlenote.support.block.dto.response.UserBlockListResponse;
 import app.bottlenote.support.block.exception.BlockException;
 import app.bottlenote.support.block.fixture.InMemoryUserBlockRepository;
+import java.time.Clock;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -34,7 +39,11 @@ class BlockServiceTest {
   @BeforeEach
   void setUp() {
     userBlockRepository = new InMemoryUserBlockRepository();
-    blockService = new BlockService(userBlockRepository);
+    CursorProperties properties = new CursorProperties();
+    properties.setCurrentKeyId("v1");
+    properties.setCurrentSecret("test-pagination-cursor-secret");
+    blockService =
+        new BlockService(userBlockRepository, new HmacCursorCodec(properties, Clock.systemUTC()));
 
     userBlockRepository.addUser(1L, "차단자");
     userBlockRepository.addUser(2L, "피차단자1");
@@ -232,14 +241,15 @@ class BlockServiceTest {
       blockService.blockUser(blockerId, 3L);
 
       // when
-      CollectionResponse<UserBlockItem> response = blockService.getBlockedUserItems(blockerId);
+      PageResponse<UserBlockListResponse> response =
+          blockService.getBlockedUserItems(blockerId, new BlockPageableRequest(null, null));
 
       // then
-      assertEquals(2L, response.getTotalCount());
-      assertEquals(2, response.getItems().size());
+      assertEquals(2, response.content().items().size());
+      assertFalse(response.pagination().hasNext());
 
       UserBlockItem item1 =
-          response.getItems().stream()
+          response.content().items().stream()
               .filter(item -> item.userId().equals(2L))
               .findFirst()
               .orElseThrow();
@@ -254,22 +264,24 @@ class BlockServiceTest {
       Long blockerId = 1L;
 
       // when
-      CollectionResponse<UserBlockItem> response = blockService.getBlockedUserItems(blockerId);
+      PageResponse<UserBlockListResponse> response =
+          blockService.getBlockedUserItems(blockerId, new BlockPageableRequest(null, null));
 
       // then
-      assertEquals(0L, response.getTotalCount());
-      assertTrue(response.getItems().isEmpty());
+      assertTrue(response.content().items().isEmpty());
+      assertFalse(response.pagination().hasNext());
     }
 
     @Test
     @DisplayName("사용자 ID가 null이면 빈 목록을 반환한다")
     void 사용자_ID가_null이면_빈_목록을_반환한다() {
       // when
-      CollectionResponse<UserBlockItem> response = blockService.getBlockedUserItems(null);
+      PageResponse<UserBlockListResponse> response =
+          blockService.getBlockedUserItems(null, new BlockPageableRequest(null, null));
 
       // then
-      assertEquals(0L, response.getTotalCount());
-      assertTrue(response.getItems().isEmpty());
+      assertTrue(response.content().items().isEmpty());
+      assertFalse(response.pagination().hasNext());
     }
   }
 

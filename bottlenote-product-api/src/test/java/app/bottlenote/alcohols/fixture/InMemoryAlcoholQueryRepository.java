@@ -11,6 +11,7 @@ import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.alcohols.repository.CustomAlcoholQueryRepository.AdminAlcoholDetailProjection;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.global.pagination.Pagination;
 import java.util.HashMap;
 import java.util.List;
@@ -99,9 +100,9 @@ public class InMemoryAlcoholQueryRepository implements AlcoholQueryRepository {
   }
 
   @Override
-  public app.bottlenote.global.pagination.PageResponse<List<AlcoholDetailItem>> getStandardExplore(
+  public PageResponse<List<AlcoholDetailItem>> getStandardExplore(
       ExploreStandardCriteria criteria) {
-    return app.bottlenote.global.pagination.PageResponse.of(List.of(), new Pagination(false, null));
+    return PageResponse.of(List.of(), new Pagination(false, null));
   }
 
   @Override
