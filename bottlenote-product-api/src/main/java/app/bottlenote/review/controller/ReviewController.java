@@ -5,8 +5,8 @@ import static app.bottlenote.user.exception.UserExceptionCode.REQUIRED_USER_ID;
 
 import app.bottlenote.global.annotation.SecurityPolicy;
 import app.bottlenote.global.data.response.GlobalResponse;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.global.security.SecurityContextUtil;
-import app.bottlenote.global.service.cursor.PageResponse;
 import app.bottlenote.global.service.meta.MetaService;
 import app.bottlenote.review.controller.docs.ReviewApiDocs;
 import app.bottlenote.review.dto.request.ReviewCreateRequest;
@@ -60,7 +60,7 @@ public class ReviewController {
 
     return GlobalResponse.ok(
         pageResponse.content(),
-        MetaService.createMetaInfo().add("pageable", pageResponse.cursorPageable()));
+        MetaService.createMetaInfo().add("pagination", pageResponse.pagination()));
   }
 
   @SecurityPolicy(auth = OPTIONAL_AUTH)
@@ -87,7 +87,7 @@ public class ReviewController {
 
     return GlobalResponse.ok(
         myReviews.content(),
-        MetaService.createMetaInfo().add("pageable", myReviews.cursorPageable()));
+        MetaService.createMetaInfo().add("pagination", myReviews.pagination()));
   }
 
   @ReviewApiDocs.ModifyReview

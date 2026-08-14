@@ -13,7 +13,7 @@ import app.bottlenote.common.file.event.payload.ImageResourceActivatedEvent;
 import app.bottlenote.common.file.event.payload.ImageResourceInvalidatedEvent;
 import app.bottlenote.common.file.service.ResourceVerifierService;
 import app.bottlenote.common.image.ImageUtil;
-import app.bottlenote.global.service.cursor.PageResponse;
+import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.history.event.publisher.HistoryEventPublisher;
 import app.bottlenote.observability.service.TracingService;
 import app.bottlenote.rating.domain.RatingPoint;
