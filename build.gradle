@@ -39,6 +39,10 @@ subprojects {
 	tasks.withType(JavaCompile).configureEach {
 		options.compilerArgs << '-parameters'
 	}
+	tasks.withType(Test).configureEach {
+		outputs.upToDateWhen { false }
+		outputs.cacheIf { false }
+	}
 	plugins.withId('com.diffplug.spotless') {
 		tasks.named('compileJava').configure {
 			dependsOn 'spotlessApply'
@@ -186,6 +190,8 @@ tasks.register('check_rule_test') {
 	group = 'verification'
 	dependsOn subprojects.findAll { it.tasks.findByName('check_rule_test') }.collect { it.tasks.check_rule_test }
 }
+
+apply from: 'gradle/integration-sharding.gradle'
 
 tasks.register('batch_test') {
 	description = '배치 모듈 테스트 실행 (@Tag("batch"))'

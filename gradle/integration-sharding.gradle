@@ -1,0 +1,183 @@
+import java.net.URLClassLoader
+import java.security.MessageDigest
+import org.gradle.api.tasks.testing.Test
+
+def shardSpecs = [
+    product: [
+        project: project(':bottlenote-product-api'),
+        task: 'integration_test',
+        property: 'productIntegrationShard',
+        tag: 'integration',
+        count: 3
+    ],
+    admin: [
+        project: project(':bottlenote-admin-api'),
+        task: 'admin_integration_test',
+        property: 'adminIntegrationShard',
+        tag: 'admin_integration',
+        count: 2
+    ]
+]
+
+def normalizeClassName = { String className ->
+    int nestedClassSeparator = className.indexOf('$')
+    nestedClassSeparator >= 0 ? className.substring(0, nestedClassSeparator) : className
+}
+
+def sha256 = { String value ->
+    MessageDigest.getInstance('SHA-256')
+        .digest(value.getBytes('UTF-8'))
+        .encodeHex()
+        .toString()
+}
+
+def commitSha = {
+    String configuredSha = rootProject.providers.gradleProperty('ciCommitSha').orNull
+    if (configuredSha != null) {
+        return configuredSha
+    }
+    return rootProject.providers.exec {
+        commandLine 'git', 'rev-parse', 'HEAD'
+    }.standardOutput.asText.get().trim()
+}
+
+def discoverTestClasses = { Test task, String tag ->
+    Set<File> classpathFiles = new LinkedHashSet<>()
+    classpathFiles.addAll(task.testClassesDirs.files)
+    classpathFiles.addAll(task.classpath.files)
+    URL[] urls = classpathFiles.collect { it.toURI().toURL() } as URL[]
+    ClassLoader previousClassLoader = Thread.currentThread().contextClassLoader
+
+    try (URLClassLoader loader = new URLClassLoader(urls, ClassLoader.getPlatformClassLoader())) {
+        Thread.currentThread().contextClassLoader = loader
+        Class<?> selectorsClass = loader.loadClass('org.junit.platform.engine.discovery.DiscoverySelectors')
+        Class<?> tagFilterClass = loader.loadClass('org.junit.platform.launcher.TagFilter')
+        Class<?> requestBuilderClass =
+            loader.loadClass('org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder')
+        Class<?> launcherFactoryClass =
+            loader.loadClass('org.junit.platform.launcher.core.LauncherFactory')
+
+        Set<Object> roots = task.testClassesDirs.files.collect { it.toPath() } as Set<Object>
+        Object selector = selectorsClass.selectClasspathRoots(roots)
+        Object tagFilter = tagFilterClass.includeTags(tag)
+        Object request = requestBuilderClass.request()
+            .selectors(selector)
+            .filters(tagFilter)
+            .build()
+        Object testPlan = launcherFactoryClass.create().discover(request)
+        Set<String> classes = new TreeSet<>()
+
+        testPlan.roots.each { root ->
+            testPlan.getDescendants(root).each { identifier ->
+                Object source = identifier.source.orElse(null)
+                def classNameMethod = source?.class?.methods?.find { it.name == 'getClassName' }
+                if (classNameMethod != null) {
+                    classes.add(normalizeClassName(classNameMethod.invoke(source) as String))
+                }
+            }
+        }
+        return classes as List<String>
+    } finally {
+        Thread.currentThread().contextClassLoader = previousClassLoader
+    }
+}
+
+def partitionClasses = { List<String> classes, int count ->
+    Map<String, List<String>> shards = (1..count).collectEntries { [(it.toString()): []] }
+    classes.sort().eachWithIndex { String className, int index ->
+        shards[((index % count) + 1).toString()].add(className)
+    }
+    return shards
+}
+
+shardSpecs.each { String name, Map<String, Object> spec ->
+    Project targetProject = spec.project as Project
+    targetProject.tasks.named(spec.task as String, Test).configure { Test task ->
+        String shard = rootProject.providers.gradleProperty(spec.property as String).orNull
+        if (shard == null) {
+            return
+        }
+
+        Set<String> executedClasses = Collections.synchronizedSet(new TreeSet<>())
+        Map<String, Object> executionPlan = [:]
+
+        task.doFirst {
+            List<String> classes = discoverTestClasses(task, spec.tag as String)
+            if (classes.isEmpty()) {
+                throw new GradleException("No ${spec.tag} test classes discovered for ${name}")
+            }
+
+            Map<String, List<String>> shards = partitionClasses(classes, spec.count as int)
+            List<String> assignedClasses = shards[shard]
+            if (assignedClasses == null || assignedClasses.isEmpty()) {
+                throw new GradleException("Invalid ${spec.property}: ${shard}")
+            }
+
+            task.filter {
+                assignedClasses.each { String className ->
+                    includeTestsMatching(className)
+                    includeTestsMatching("${className}\$*")
+                }
+                failOnNoMatchingTests = true
+            }
+            executionPlan.putAll([
+                sha: commitSha(),
+                discoveryDigest: sha256("${spec.tag}\n${spec.count}\n${classes.join('\n')}"),
+                allClasses: classes,
+                assignedClasses: assignedClasses
+            ])
+        }
+
+        task.afterTest { descriptor, result ->
+            if (descriptor.className != null) {
+                executedClasses.add(normalizeClassName(descriptor.className))
+            }
+        }
+        task.doLast {
+            List<String> assignedClasses = executionPlan.assignedClasses as List<String>
+            Set<String> plannedClassSet = assignedClasses.toSet()
+            if (executedClasses != plannedClassSet) {
+                throw new GradleException(
+                    "${name} shard ${shard} execution mismatch: " +
+                        "missing=${plannedClassSet - executedClasses}, unexpected=${executedClasses - plannedClassSet}")
+            }
+
+            File manifestFile = targetProject.layout.buildDirectory
+                .file("ci/${name}-shard-${shard}.json").get().asFile
+            manifestFile.parentFile.mkdirs()
+            manifestFile.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson([
+                version: 1,
+                sha: executionPlan.sha,
+                discoveryDigest: executionPlan.discoveryDigest,
+                module: name,
+                shard: shard as int,
+                shardCount: spec.count,
+                allClasses: executionPlan.allClasses,
+                planned: assignedClasses,
+                executed: executedClasses as List
+            ]))
+        }
+    }
+}
+
+tasks.register('verifyIntegrationTestShardDiscovery') {
+    description = 'JUnit Platform discovery와 자동 shard partition 검증'
+    group = 'verification'
+    dependsOn shardSpecs.collect { name, spec ->
+        (spec.project as Project).tasks.named('testClasses')
+    }
+
+    doLast {
+        shardSpecs.each { String name, Map<String, Object> spec ->
+            Test task = (spec.project as Project).tasks.named(spec.task as String, Test).get()
+            List<String> classes = discoverTestClasses(task, spec.tag as String)
+            Map<String, List<String>> shards = partitionClasses(classes, spec.count as int)
+            if (classes.isEmpty() || shards.values().any { it.isEmpty() } ||
+                shards.values().flatten().toSet() != classes.toSet()) {
+                throw new GradleException("Invalid ${name} integration shard discovery")
+            }
+            logger.lifecycle("{} integration shard discovery: classes={}, shards={}",
+                name, classes.size(), shards.collectEntries { key, value -> [key, value.size()] })
+        }
+    }
+}

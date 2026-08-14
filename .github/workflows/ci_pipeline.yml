@@ -38,7 +38,7 @@ jobs:
             printf '%s\n' "| Event | \`$EVENT_NAME\` |"
             printf '%s\n' "| Ref | \`$HEAD_REF\` |"
             printf '%s\n' "| Commit | \`$COMMIT_SHA\` |"
-            echo '| Parallel jobs | Unit, Rule, Mono Integration, Admin Integration, Product Integration, Application Build |'
+            echo '| Parallel jobs | Unit, Rule, Mono Integration, Admin Integration (2 shards), Product Integration (3 shards), Application Build |'
           } >> "$GITHUB_STEP_SUMMARY"
 
   unit_tests:
@@ -165,10 +165,14 @@ jobs:
           fail_on_failure: true
 
   admin_integration_tests:
-    name: admin-integration-tests
+    name: admin-integration-tests (${{ matrix.shard }}/2)
     needs: prepare_ci
     timeout-minutes: 10
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
     steps:
       - name: checkout code
         uses: actions/checkout@v7
@@ -189,7 +193,20 @@ jobs:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
       - name: run admin integration tests
-        run: ./gradlew :bottlenote-admin-api:admin_integration_test
+        run: >-
+          ./gradlew
+          :bottlenote-admin-api:admin_integration_test
+          -PadminIntegrationShard=${{ matrix.shard }}
+          -PciCommitSha=${{ github.sha }}
+
+      - name: upload admin shard manifest
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: admin-integration-shard-${{ matrix.shard }}
+          path: bottlenote-admin-api/build/ci/admin-shard-${{ matrix.shard }}.json
+          if-no-files-found: error
+          retention-days: 1
 
       - name: verify admin integration test results
         run: test -n "$(find bottlenote-admin-api/build/test-results/admin_integration_test -name 'TEST-*.xml' -print -quit)"
@@ -206,10 +223,14 @@ jobs:
           fail_on_failure: true
 
   product_integration_tests:
-    name: product-integration-tests
+    name: product-integration-tests (${{ matrix.shard }}/3)
     needs: prepare_ci
     timeout-minutes: 10
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - name: checkout code
         uses: actions/checkout@v7
@@ -230,7 +251,20 @@ jobs:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
       - name: run product integration tests
-        run: ./gradlew :bottlenote-product-api:integration_test
+        run: >-
+          ./gradlew
+          :bottlenote-product-api:integration_test
+          -PproductIntegrationShard=${{ matrix.shard }}
+          -PciCommitSha=${{ github.sha }}
+
+      - name: upload product shard manifest
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: product-integration-shard-${{ matrix.shard }}
+          path: bottlenote-product-api/build/ci/product-shard-${{ matrix.shard }}.json
+          if-no-files-found: error
+          retention-days: 1
 
       - name: verify product integration test results
         run: test -n "$(find bottlenote-product-api/build/test-results/integration_test -name 'TEST-*.xml' -print -quit)"
@@ -311,3 +345,38 @@ jobs:
             needs.application_build.result != 'success'
           }}
         run: exit 1
+
+      - name: download integration shard manifests
+        uses: actions/download-artifact@v8
+        with:
+          pattern: '*-integration-shard-*'
+          path: build/ci/manifests
+          merge-multiple: true
+
+      - name: verify integration shard manifests
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest_dir='build/ci/manifests'
+          mapfile -t manifests < <(find "$manifest_dir" -type f -name '*-shard-*.json' | sort)
+          test "${#manifests[@]}" -eq 5
+
+          jq -s -e '
+            [.[] | "\(.module):\(.shard)"] | sort
+              == ["admin:1", "admin:2", "product:1", "product:2", "product:3"]
+          ' "${manifests[@]}" >/dev/null
+
+          jq -s -e --arg sha '${{ github.sha }}' '
+            def valid_module($module; $count):
+              map(select(.module == $module)) as $items
+              | ($items | length == $count)
+                and ([$items[].sha] | unique == [$sha])
+                and ([$items[].discoveryDigest] | unique | length == 1)
+                and ([$items[].allClasses] | unique | length == 1)
+                and ([$items[].shardCount] | unique == [$count])
+                and ([$items[].planned[]] | sort == ($items[0].allClasses | sort))
+                and ([$items[].planned[]] | length
+                  == ([$items[].planned[]] | unique | length))
+                and all($items[]; .planned == .executed);
+            valid_module("product"; 3) and valid_module("admin"; 2)
+          ' "${manifests[@]}" >/dev/null
