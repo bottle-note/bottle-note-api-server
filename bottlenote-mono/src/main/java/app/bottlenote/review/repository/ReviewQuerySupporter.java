@@ -12,12 +12,18 @@ import static app.bottlenote.review.domain.QReviewTastingTag.reviewTastingTag;
 import static app.bottlenote.user.domain.QUser.user;
 import static com.querydsl.jpa.JPAExpressions.select;
 
+import app.bottlenote.global.pagination.CursorClaims;
+import app.bottlenote.global.pagination.CursorKeys;
+import app.bottlenote.global.pagination.PaginationException;
+import app.bottlenote.global.pagination.PaginationExceptionCode;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.review.constant.AdminReviewSortType;
 import app.bottlenote.review.constant.ReviewActiveStatus;
 import app.bottlenote.review.constant.ReviewDisplayStatus;
 import app.bottlenote.review.constant.ReviewSortType;
+import app.bottlenote.review.constant.SizeType;
 import app.bottlenote.review.dto.request.AdminReviewSearchRequest;
+import app.bottlenote.review.facade.payload.ReviewInfo;
 import app.bottlenote.review.facade.payload.UserInfo;
 import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.Expression;
@@ -26,13 +32,18 @@ import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.util.StringUtils;
 import com.querydsl.jpa.JPAExpressions;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import org.springframework.stereotype.Component;
 
@@ -156,6 +167,178 @@ public class ReviewQuerySupporter {
             sizeOrderSpecifier, priceOrderSpecifier, createAtDesc, review.id.desc());
       }
     };
+  }
+
+  /**
+   * {@link #sortBy}가 만드는 ORDER BY와 정확히 대응하는 keyset seek 조건을 만든다. ORDER BY의 각 컬럼을 앞에서부터 재귀적으로 비교하는
+   * 튜플 비교이며, 항상 review.id DESC로 끝난다.
+   */
+  public static BooleanExpression keysetSeek(
+      ReviewSortType sortType, SortOrder sortOrder, CursorClaims claims) {
+    if (claims == null) {
+      return null;
+    }
+    boolean desc = sortOrder != SortOrder.ASC;
+    return switch (sortType) {
+      case POPULAR -> popularSeek(desc, claims);
+      case LIKES -> likesSeek(desc, claims);
+      case RATING -> ratingSeek(desc, claims);
+      case BOTTLE_PRICE -> sizePriceSeek(desc, SizeType.BOTTLE, claims);
+      case GLASS_PRICE -> sizePriceSeek(desc, SizeType.GLASS, claims);
+    };
+  }
+
+  /** 해당 정렬이 실제로 사용하는 모든 sort 값을 커서에 담는다. 값이 NULL이면 키 자체를 넣지 않는다. */
+  public static Map<String, String> cursorKeys(ReviewSortType sortType, ReviewInfo item) {
+    Map<String, String> keys = new LinkedHashMap<>();
+    switch (sortType) {
+      case POPULAR -> {
+        putIfNotNull(keys, "best", item.isBestReview());
+        // COUNT는 SQL에서 NULL이 아니라 0이므로 키를 생략하지 않는다
+        keys.put("likes", String.valueOf(likeCountOrZero(item)));
+      }
+      case LIKES -> keys.put("likes", String.valueOf(likeCountOrZero(item)));
+      case RATING -> putIfNotNull(keys, "rating", item.rating());
+      case BOTTLE_PRICE, GLASS_PRICE -> {
+        putIfNotNull(keys, "sizeType", item.sizeType() == null ? null : item.sizeType().name());
+        keys.put("price", item.price().toPlainString());
+      }
+    }
+    keys.put("t", item.createAt().toString());
+    keys.put("id", String.valueOf(item.reviewId()));
+    return keys;
+  }
+
+  private static long likeCountOrZero(ReviewInfo item) {
+    return item.likeCount() == null ? 0L : item.likeCount();
+  }
+
+  private static void putIfNotNull(Map<String, String> keys, String key, Object value) {
+    if (value != null) {
+      keys.put(key, String.valueOf(value));
+    }
+  }
+
+  // POPULAR: isBest(nullsLast) -> likes.id.count()(nullsLast) -> createAt DESC -> id DESC
+  private static BooleanExpression popularSeek(boolean desc, CursorClaims claims) {
+    BooleanExpression tail = timeIdSeek(claims);
+    NumberExpression<Long> likesCount = likes.id.count();
+    BooleanExpression likesStep =
+        nullsLastNumberStep(likesCount, desc, CursorKeys.optionalLong(claims, "likes"), tail);
+    return nullsLastBooleanStep(review.isBest, desc, optionalBoolean(claims, "best"), likesStep);
+  }
+
+  // LIKES: likes.id.count() -> createAt DESC -> id DESC
+  private static BooleanExpression likesSeek(boolean desc, CursorClaims claims) {
+    BooleanExpression tail = timeIdSeek(claims);
+    NumberExpression<Long> likesCount = likes.id.count();
+    return plainNumberStep(likesCount, desc, CursorKeys.requireLong(claims, "likes"), tail);
+  }
+
+  // RATING: rating.ratingPoint.rating -> createAt DESC -> id DESC. leftJoin이라 실제 NULL이 나온다.
+  private static BooleanExpression ratingSeek(boolean desc, CursorClaims claims) {
+    BooleanExpression tail = timeIdSeek(claims);
+    return nativeNullableNumberStep(
+        rating.ratingPoint.rating, desc, CursorKeys.optionalDouble(claims, "rating"), tail);
+  }
+
+  // BOTTLE_PRICE/GLASS_PRICE: sizeType(nullsLast, 고정 방향) -> price(dir) -> createAt DESC -> id DESC
+  private static BooleanExpression sizePriceSeek(
+      boolean desc, SizeType rankFirst, CursorClaims claims) {
+    BooleanExpression tail = timeIdSeek(claims);
+    BooleanExpression priceStep = plainNumberStep(review.price, desc, requirePrice(claims), tail);
+    return nullsLastSizeTypeStep(
+        review.sizeType, rankFirst, optionalSizeType(claims, "sizeType"), priceStep);
+  }
+
+  // 모든 정렬의 공통 타이브레이커. sortOrder와 무관하게 항상 DESC다.
+  private static BooleanExpression timeIdSeek(CursorClaims claims) {
+    LocalDateTime createAt = CursorKeys.requireTime(claims, "t");
+    Long id = CursorKeys.requireLong(claims, "id");
+    return review.createAt.lt(createAt).or(review.createAt.eq(createAt).and(review.id.lt(id)));
+  }
+
+  /** nullsLast()가 붙은 숫자 표현식에 대한 keyset seek 한 단계. */
+  private static <T extends Number & Comparable<?>> BooleanExpression nullsLastNumberStep(
+      NumberExpression<T> expr, boolean desc, T cursorValue, BooleanExpression next) {
+    if (cursorValue == null) {
+      return expr.isNull().and(next);
+    }
+    BooleanExpression advances =
+        (desc ? expr.lt(cursorValue) : expr.gt(cursorValue)).or(expr.isNull());
+    return advances.or(expr.eq(cursorValue).and(next));
+  }
+
+  /** NULL이 나오지 않는 숫자 표현식에 대한 keyset seek 한 단계. */
+  private static <T extends Number & Comparable<?>> BooleanExpression plainNumberStep(
+      NumberExpression<T> expr, boolean desc, T cursorValue, BooleanExpression next) {
+    BooleanExpression advances = desc ? expr.lt(cursorValue) : expr.gt(cursorValue);
+    return advances.or(expr.eq(cursorValue).and(next));
+  }
+
+  /** nullsLast()가 붙은 불리언 표현식(isBest)에 대한 keyset seek 한 단계. */
+  private static BooleanExpression nullsLastBooleanStep(
+      BooleanExpression expr, boolean desc, Boolean cursorValue, BooleanExpression next) {
+    if (cursorValue == null) {
+      return expr.isNull().and(next);
+    }
+    boolean strictBeyondExists = desc == cursorValue;
+    BooleanExpression advances =
+        strictBeyondExists ? expr.eq(!cursorValue).or(expr.isNull()) : expr.isNull();
+    return advances.or(expr.eq(cursorValue).and(next));
+  }
+
+  /** nullsLast()가 붙은 sizeType 표현식에 대한 keyset seek 한 단계. rankFirst가 정렬상 먼저 오는 값이다. */
+  private static BooleanExpression nullsLastSizeTypeStep(
+      EnumPath<SizeType> expr, SizeType rankFirst, SizeType cursorValue, BooleanExpression next) {
+    if (cursorValue == null) {
+      return expr.isNull().and(next);
+    }
+    SizeType rankSecond = rankFirst == SizeType.BOTTLE ? SizeType.GLASS : SizeType.BOTTLE;
+    BooleanExpression advances =
+        cursorValue == rankFirst ? expr.eq(rankSecond).or(expr.isNull()) : expr.isNull();
+    return advances.or(expr.eq(cursorValue).and(next));
+  }
+
+  /**
+   * nullsLast()가 없고 leftJoin으로 실제 NULL이 나오는 숫자 표현식(rating)에 대한 keyset seek. MySQL 기본 정렬은 DESC일 때
+   * NULL이 맨 뒤(nullsLast와 동일), ASC일 때 NULL이 맨 앞(nullsFirst)에 온다.
+   */
+  private static <T extends Number & Comparable<?>> BooleanExpression nativeNullableNumberStep(
+      NumberExpression<T> expr, boolean desc, T cursorValue, BooleanExpression next) {
+    if (desc) {
+      return nullsLastNumberStep(expr, true, cursorValue, next);
+    }
+    if (cursorValue == null) {
+      return expr.isNotNull().or(expr.isNull().and(next));
+    }
+    return expr.gt(cursorValue).or(expr.eq(cursorValue).and(next));
+  }
+
+  private static Boolean optionalBoolean(CursorClaims claims, String key) {
+    String raw = CursorKeys.optional(claims, key);
+    return raw == null ? null : Boolean.valueOf(raw);
+  }
+
+  private static SizeType optionalSizeType(CursorClaims claims, String key) {
+    String raw = CursorKeys.optional(claims, key);
+    if (raw == null) {
+      return null;
+    }
+    try {
+      return SizeType.valueOf(raw);
+    } catch (IllegalArgumentException exception) {
+      throw new PaginationException(PaginationExceptionCode.INVALID_CURSOR);
+    }
+  }
+
+  private static BigDecimal requirePrice(CursorClaims claims) {
+    String raw = CursorKeys.require(claims, "price");
+    try {
+      return new BigDecimal(raw);
+    } catch (NumberFormatException exception) {
+      throw new PaginationException(PaginationExceptionCode.INVALID_CURSOR);
+    }
   }
 
   public static BooleanExpression[] adminReviewFilters(AdminReviewSearchRequest request) {

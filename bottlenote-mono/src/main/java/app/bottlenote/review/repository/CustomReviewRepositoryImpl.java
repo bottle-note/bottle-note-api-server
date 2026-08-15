@@ -11,11 +11,13 @@ import static app.bottlenote.review.domain.QReviewTastingTag.reviewTastingTag;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.adminReviewFilters;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.adminReviewSortBy;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.containsKeywordInAll;
+import static app.bottlenote.review.repository.ReviewQuerySupporter.cursorKeys;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.getTastingTag;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.getUserInfo;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.hasReplyByMeSubquery;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.isLikeByMeSubquery;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.isMyReview;
+import static app.bottlenote.review.repository.ReviewQuerySupporter.keysetSeek;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.sortBy;
 import static app.bottlenote.user.domain.QUser.user;
 
@@ -147,7 +149,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
                 sortBy(reviewPageableRequest.sortType(), reviewPageableRequest.sortOrder())
                     .toArray(new OrderSpecifier[0]))
             .having(
-                reviewTimeIdSeek(
+                reviewSeek(
                     reviewPageableRequest, reviewContext(alcoholId, userId, reviewPageableRequest)))
             .limit(reviewPageableRequest.size() + 1L)
             .fetch();
@@ -181,7 +183,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
                 sortBy(reviewPageableRequest.sortType(), reviewPageableRequest.sortOrder())
                     .toArray(new OrderSpecifier[0]))
             .having(
-                reviewTimeIdSeek(
+                reviewSeek(
                     reviewPageableRequest, reviewContext(alcoholId, userId, reviewPageableRequest)))
             .limit(reviewPageableRequest.size() + 1L)
             .fetch();
@@ -196,39 +198,17 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
         Pagination.fromOverflow(
             fetch,
             request.size(),
-            item ->
-                cursorCodec.encode(
-                    context,
-                    java.util.Map.of(
-                        "best",
-                        String.valueOf(Boolean.TRUE.equals(item.isBestReview())),
-                        "likes",
-                        String.valueOf(item.likeCount() == null ? 0L : item.likeCount()),
-                        "t",
-                        item.createAt().toString(),
-                        "id",
-                        String.valueOf(item.reviewId()))));
+            item -> cursorCodec.encode(context, cursorKeys(request.sortType(), item)));
     return PageResponse.of(ReviewListResponse.of(slice.items()), slice.pagination());
   }
 
-  private com.querydsl.core.types.dsl.BooleanExpression reviewTimeIdSeek(
+  private com.querydsl.core.types.dsl.BooleanExpression reviewSeek(
       ReviewPageableRequest request, String context) {
     if (request.cursor() == null) {
       return null;
     }
     var claims = cursorCodec.verify(request.cursor(), context);
-    var lastCreateAt = TimeIdCursor.time(claims);
-    var lastId = TimeIdCursor.id(claims);
-    var lastLikes = Long.parseLong(claims.sortKeys().getOrDefault("likes", "0"));
-    var likesCount = likes.id.count();
-    return likesCount
-        .lt(lastLikes)
-        .or(likesCount.eq(lastLikes).and(review.createAt.lt(lastCreateAt)))
-        .or(
-            likesCount
-                .eq(lastLikes)
-                .and(review.createAt.eq(lastCreateAt))
-                .and(review.id.lt(lastId)));
+    return keysetSeek(request.sortType(), request.sortOrder(), claims);
   }
 
   private static String reviewContext(Long alcoholId, Long userId, ReviewPageableRequest request) {
