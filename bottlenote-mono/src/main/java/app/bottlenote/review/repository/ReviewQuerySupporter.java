@@ -4,7 +4,6 @@ import static app.bottlenote.alcohols.domain.QAlcohol.alcohol;
 import static app.bottlenote.global.service.cursor.SortOrder.DESC;
 import static app.bottlenote.like.constant.LikeStatus.LIKE;
 import static app.bottlenote.like.domain.QLikes.likes;
-import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.constant.ReviewReplyStatus.NORMAL;
 import static app.bottlenote.review.domain.QReview.review;
 import static app.bottlenote.review.domain.QReviewReply.reviewReply;
@@ -116,7 +115,7 @@ public class ReviewQuerySupporter {
   }
 
   public static List<OrderSpecifier<?>> sortBy(ReviewSortType reviewSortType, SortOrder sortOrder) {
-    NumberExpression<Long> likesCount = likes.id.count();
+    NumberExpression<Long> likesCount = distinctLikesCount();
     // 동일 순위 리뷰 간 최신순 정렬을 위한 타이브레이커
     OrderSpecifier<?> createAtDesc = review.createAt.desc();
     return switch (reviewSortType) {
@@ -136,12 +135,10 @@ public class ReviewQuerySupporter {
               createAtDesc,
               review.id.desc());
 
-      // 별점 순
+      // 별점 순 — 목록에 내려주는 review.reviewRating과 같은 컬럼으로 정렬한다
       case RATING ->
           Arrays.asList(
-              sortOrder == DESC
-                  ? rating.ratingPoint.rating.desc()
-                  : rating.ratingPoint.rating.asc(),
+              sortOrder == DESC ? review.reviewRating.desc() : review.reviewRating.asc(),
               createAtDesc,
               review.id.desc());
 
@@ -219,27 +216,32 @@ public class ReviewQuerySupporter {
     }
   }
 
-  // POPULAR: isBest(nullsLast) -> likes.id.count()(nullsLast) -> createAt DESC -> id DESC
+  // POPULAR: isBest(nullsLast) -> likes.id.countDistinct()(nullsLast) -> createAt DESC -> id DESC
   private static BooleanExpression popularSeek(boolean desc, CursorClaims claims) {
     BooleanExpression tail = timeIdSeek(claims);
-    NumberExpression<Long> likesCount = likes.id.count();
+    NumberExpression<Long> likesCount = distinctLikesCount();
     BooleanExpression likesStep =
         nullsLastNumberStep(likesCount, desc, CursorKeys.optionalLong(claims, "likes"), tail);
     return nullsLastBooleanStep(review.isBest, desc, optionalBoolean(claims, "best"), likesStep);
   }
 
-  // LIKES: likes.id.count() -> createAt DESC -> id DESC
+  // LIKES: likes.id.countDistinct() -> createAt DESC -> id DESC
   private static BooleanExpression likesSeek(boolean desc, CursorClaims claims) {
     BooleanExpression tail = timeIdSeek(claims);
-    NumberExpression<Long> likesCount = likes.id.count();
+    NumberExpression<Long> likesCount = distinctLikesCount();
     return plainNumberStep(likesCount, desc, CursorKeys.requireLong(claims, "likes"), tail);
   }
 
-  // RATING: rating.ratingPoint.rating -> createAt DESC -> id DESC. leftJoin이라 실제 NULL이 나온다.
+  // 조인 카테시안에서 좋아요가 부풀지 않게 PK 기준 DISTINCT로 센다
+  public static NumberExpression<Long> distinctLikesCount() {
+    return likes.id.countDistinct();
+  }
+
+  // RATING: review.reviewRating -> createAt DESC -> id DESC. 컬럼이 nullable이라 MySQL 기본 NULL 순서를 따른다.
   private static BooleanExpression ratingSeek(boolean desc, CursorClaims claims) {
     BooleanExpression tail = timeIdSeek(claims);
     return nativeNullableNumberStep(
-        rating.ratingPoint.rating, desc, CursorKeys.optionalDouble(claims, "rating"), tail);
+        review.reviewRating, desc, CursorKeys.optionalDouble(claims, "rating"), tail);
   }
 
   // BOTTLE_PRICE/GLASS_PRICE: sizeType(nullsLast, 고정 방향) -> price(dir) -> createAt DESC -> id DESC

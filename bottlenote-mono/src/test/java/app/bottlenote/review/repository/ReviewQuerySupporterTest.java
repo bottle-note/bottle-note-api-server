@@ -1,7 +1,6 @@
 package app.bottlenote.review.repository;
 
 import static app.bottlenote.like.domain.QLikes.likes;
-import static app.bottlenote.rating.domain.QRating.rating;
 import static app.bottlenote.review.domain.QReview.review;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.cursorKeys;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.keysetSeek;
@@ -154,7 +153,7 @@ class ReviewQuerySupporterTest {
       // 그대로 튜플 비교로 옮긴 것과 동일해야 한다.
       BooleanExpression tail =
           review.createAt.lt(CREATE_AT).or(review.createAt.eq(CREATE_AT).and(review.id.lt(2L)));
-      NumberExpression<Long> likesCount = likes.id.count();
+      NumberExpression<Long> likesCount = likes.id.countDistinct();
       BooleanExpression likesStep =
           likesCount.lt(2L).or(likesCount.isNull()).or(likesCount.eq(2L).and(tail));
       BooleanExpression expected =
@@ -183,7 +182,7 @@ class ReviewQuerySupporterTest {
       // then
       BooleanExpression tail =
           review.createAt.lt(CREATE_AT).or(review.createAt.eq(CREATE_AT).and(review.id.lt(9L)));
-      NumberExpression<Long> likesCount = likes.id.count();
+      NumberExpression<Long> likesCount = likes.id.countDistinct();
       BooleanExpression expected = likesCount.gt(5L).or(likesCount.eq(5L).and(tail));
       assertThat(actual.toString()).isEqualTo(expected.toString());
     }
@@ -191,7 +190,7 @@ class ReviewQuerySupporterTest {
     @Test
     @DisplayName("RATING ASC에서 커서 값이 NULL이면 MySQL의 nulls-first 규칙대로 NOT NULL 행이 모두 앞선 것으로 본다")
     void rating_asc에서_커서가_null이면_not_null_행을_모두_이후로_본다() {
-      // given: leftJoin이라 rating이 없는 행이 1페이지 마지막이었던 상황
+      // given: reviewRating이 없는 행이 1페이지 마지막이었던 상황
       ReviewInfo lastOfPage1 = reviewInfo(5L, null, null, null, null, null);
       CursorClaims claims = claimsOf(cursorKeys(ReviewSortType.RATING, lastOfPage1));
 
@@ -202,11 +201,32 @@ class ReviewQuerySupporterTest {
       BooleanExpression tail =
           review.createAt.lt(CREATE_AT).or(review.createAt.eq(CREATE_AT).and(review.id.lt(5L)));
       BooleanExpression expected =
-          rating.ratingPoint.rating.isNotNull().or(rating.ratingPoint.rating.isNull().and(tail));
+          review.reviewRating.isNotNull().or(review.reviewRating.isNull().and(tail));
       assertThat(actual.toString()).isEqualTo(expected.toString());
     }
 
     @Test
+    @DisplayName("RATING DESC는 리뷰 별점 컬럼으로 seek한다")
+    void rating_desc는_리뷰_별점_컬럼으로_seek한다() {
+      // given
+      ReviewInfo lastOfPage1 = reviewInfo(5L, null, null, 4.5, null, null);
+      CursorClaims claims = claimsOf(cursorKeys(ReviewSortType.RATING, lastOfPage1));
+
+      // when
+      BooleanExpression actual = keysetSeek(ReviewSortType.RATING, SortOrder.DESC, claims);
+
+      // then
+      BooleanExpression tail =
+          review.createAt.lt(CREATE_AT).or(review.createAt.eq(CREATE_AT).and(review.id.lt(5L)));
+      BooleanExpression expected =
+          review
+              .reviewRating
+              .lt(4.5)
+              .or(review.reviewRating.isNull())
+              .or(review.reviewRating.eq(4.5).and(tail));
+      assertThat(actual.toString()).isEqualTo(expected.toString());
+    }
+
     @DisplayName("RATING DESC에서 커서 값이 NULL이면 이미 NULL 꼬리 구간이므로 id로만 seek한다")
     void rating_desc에서_커서가_null이면_null_꼬리_구간을_id로만_seek한다() {
       // given
@@ -219,7 +239,7 @@ class ReviewQuerySupporterTest {
       // then: DESC는 MySQL 기본 정렬상 NULL이 맨 뒤이므로, 이후 행도 NULL이면서 id만 더 작아야 한다.
       BooleanExpression tail =
           review.createAt.lt(CREATE_AT).or(review.createAt.eq(CREATE_AT).and(review.id.lt(5L)));
-      BooleanExpression expected = rating.ratingPoint.rating.isNull().and(tail);
+      BooleanExpression expected = review.reviewRating.isNull().and(tail);
       assertThat(actual.toString()).isEqualTo(expected.toString());
     }
 
