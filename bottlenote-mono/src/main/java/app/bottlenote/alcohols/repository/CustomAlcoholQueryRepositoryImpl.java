@@ -18,6 +18,7 @@ import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
 import app.bottlenote.alcohols.dto.response.CategoryItem;
 import app.bottlenote.alcohols.facade.payload.AlcoholSummaryItem;
 import app.bottlenote.global.pagination.CursorClaims;
+import app.bottlenote.global.pagination.CursorKeys;
 import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.global.pagination.Pagination;
@@ -394,8 +395,8 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
     if (claims == null) {
       return null;
     }
-    long lastCrc = Long.parseLong(claims.sortKeys().get("sort"));
-    long lastId = Long.parseLong(claims.sortKeys().get("id"));
+    long lastCrc = CursorKeys.requireLong(claims, "sort");
+    long lastId = CursorKeys.requireLong(claims, "id");
     return crc.gt(lastCrc).or(crc.eq(lastCrc).and(alcohol.id.gt(lastId)));
   }
 
@@ -407,17 +408,16 @@ public class CustomAlcoholQueryRepositoryImpl implements CustomAlcoholQueryRepos
     if (claims == null) {
       return null;
     }
-    long lastId = Long.parseLong(claims.sortKeys().get("id"));
-    String lastSort = claims.sortKeys().get("sort");
+    long lastId = CursorKeys.requireLong(claims, "id");
     boolean desc = sortOrder == SortOrder.DESC;
     if (sortType == SearchSortType.PICK || sortType == SearchSortType.REVIEW) {
-      long last = Long.parseLong(lastSort);
+      long last = CursorKeys.requireLong(claims, "sort");
       @SuppressWarnings("unchecked")
       NumberExpression<Long> expr = (NumberExpression<Long>) sortScore;
       BooleanExpression moved = desc ? expr.lt(last) : expr.gt(last);
       return moved.or(expr.eq(last).and(alcohol.id.gt(lastId)));
     }
-    double last = Double.parseDouble(lastSort);
+    double last = CursorKeys.requireDouble(claims, "sort");
     @SuppressWarnings("unchecked")
     NumberExpression<Double> expr = (NumberExpression<Double>) sortScore;
     BooleanExpression moved = desc ? expr.lt(last) : expr.gt(last);

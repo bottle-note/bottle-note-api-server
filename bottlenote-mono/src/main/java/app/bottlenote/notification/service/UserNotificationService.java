@@ -1,5 +1,7 @@
 package app.bottlenote.notification.service;
 
+import app.bottlenote.global.pagination.CursorClaims;
+import app.bottlenote.global.pagination.CursorKeys;
 import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.global.pagination.Pagination;
@@ -83,7 +85,8 @@ public class UserNotificationService implements NotificationService {
     String context = notificationContext(userId, request);
     Long lastId = null;
     if (request.cursor() != null) {
-      lastId = Long.valueOf(cursorCodec.verify(request.cursor(), context).sortKeys().get("id"));
+      CursorClaims claims = cursorCodec.verify(request.cursor(), context);
+      lastId = CursorKeys.requireLong(claims, "id");
     }
     NotificationListCriteria criteria = request.toCriteria(userId, lastId);
     List<Notification> fetched = notificationRepository.findPageByUserId(criteria);

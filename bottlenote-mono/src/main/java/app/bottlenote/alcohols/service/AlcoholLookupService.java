@@ -7,6 +7,8 @@ import app.bottlenote.alcohols.dto.request.AlcoholLookupRequest;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupItem;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupListResponse;
 import app.bottlenote.alcohols.dto.response.AlcoholLookupSnapshotItem;
+import app.bottlenote.global.pagination.CursorClaims;
+import app.bottlenote.global.pagination.CursorKeys;
 import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.global.pagination.Pagination;
@@ -125,7 +127,8 @@ public class AlcoholLookupService {
     String context = lookupContext(request);
     Long lastId = null;
     if (request.cursor() != null) {
-      lastId = Long.valueOf(cursorCodec.verify(request.cursor(), context).sortKeys().get("id"));
+      CursorClaims claims = cursorCodec.verify(request.cursor(), context);
+      lastId = CursorKeys.requireLong(claims, "id");
     }
     Long seekAfter = lastId;
     List<AlcoholLookupItem> fetched =
