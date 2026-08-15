@@ -154,7 +154,8 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
             .orderBy(
                 userQuerySupporter.sortBy(
                     MyBottleType.REVIEW, request.sortType(), request.sortOrder(), userId),
-                userQuerySupporter.myBottleTieBreakerSortBy(request.sortOrder()))
+                userQuerySupporter.myBottleTieBreakerSortBy(
+                    request.sortOrder(), MyBottleType.REVIEW))
             .limit(request.size() + 1L)
             .fetch();
 
@@ -206,7 +207,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                 userQuerySupporter.encodeMyBottleCursor(
                     MyBottleType.REVIEW,
                     request,
-                    item.baseMyBottleInfo().alcoholId(),
+                    item.reviewId(),
                     item.reviewModifyAt(),
                     item.reviewCreateAt(),
                     item.myRatingPoint(),
@@ -266,7 +267,8 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
             .orderBy(
                 userQuerySupporter.sortBy(
                     MyBottleType.RATING, request.sortType(), request.sortOrder(), userId),
-                userQuerySupporter.myBottleTieBreakerSortBy(request.sortOrder()))
+                userQuerySupporter.myBottleTieBreakerSortBy(
+                    request.sortOrder(), MyBottleType.RATING))
             .limit(request.size() + 1L)
             .fetch();
     var slice =
@@ -344,7 +346,7 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
             .orderBy(
                 userQuerySupporter.sortBy(
                     MyBottleType.PICK, request.sortType(), request.sortOrder(), targetUserId),
-                userQuerySupporter.myBottleTieBreakerSortBy(request.sortOrder()))
+                userQuerySupporter.myBottleTieBreakerSortBy(request.sortOrder(), MyBottleType.PICK))
             .limit(request.size() + 1L)
             .fetch();
 
