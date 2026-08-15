@@ -1,6 +1,7 @@
 package app.bottlenote.support.block.domain;
 
 import app.bottlenote.support.block.dto.response.UserBlockItem;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -23,5 +24,6 @@ public interface UserBlockRepository {
 
   boolean existsMutualBlock(Long userId1, Long userId2);
 
-  List<UserBlockItem> findBlockedUserItemsByBlockerId(Long blockerId);
+  List<UserBlockItem> findBlockedUserItemsByBlockerId(
+      Long blockerId, LocalDateTime lastBlockedAt, Long lastUserId, int limit);
 }
