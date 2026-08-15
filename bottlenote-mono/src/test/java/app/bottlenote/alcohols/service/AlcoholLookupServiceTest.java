@@ -30,6 +30,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 class AlcoholLookupServiceTest {
   private InMemoryAlcoholQueryRepository alcoholQueryRepository;
   private InMemoryAlcoholLookupSnapshotStore snapshotStore;
+  private AlcoholLookupSnapshotService snapshotService;
   private AlcoholLookupService alcoholLookupService;
 
   @BeforeEach
@@ -39,11 +40,10 @@ class AlcoholLookupServiceTest {
     CursorProperties properties = new CursorProperties();
     properties.setCurrentKeyId("v1");
     properties.setCurrentSecret("test-pagination-cursor-secret");
+    snapshotService = new AlcoholLookupSnapshotService(alcoholQueryRepository, snapshotStore);
     alcoholLookupService =
         new AlcoholLookupService(
-            alcoholQueryRepository,
-            snapshotStore,
-            new HmacCursorCodec(properties, Clock.systemUTC()));
+            snapshotService, new HmacCursorCodec(properties, Clock.systemUTC()));
   }
 
   @Test
@@ -125,8 +125,8 @@ class AlcoholLookupServiceTest {
   void lookup_whenLocalCacheEnabled_reusesParsedSnapshotWithinCheckInterval() {
     // given
     snapshotStore.replaceAll(createLookupSnapshotItems(100));
-    ReflectionTestUtils.setField(alcoholLookupService, "localCacheEnabled", true);
-    ReflectionTestUtils.setField(alcoholLookupService, "localCacheVersionCheckIntervalMs", 60_000L);
+    ReflectionTestUtils.setField(snapshotService, "localCacheEnabled", true);
+    ReflectionTestUtils.setField(snapshotService, "localCacheVersionCheckIntervalMs", 60_000L);
     AlcoholLookupRequest request =
         AlcoholLookupRequest.builder().keyword("macallan").size(20).build();
 
@@ -145,8 +145,8 @@ class AlcoholLookupServiceTest {
     // given
     snapshotStore.replaceAll(createLookupSnapshotItems(100));
     alcoholQueryRepository.save(createAlcohol(999L));
-    ReflectionTestUtils.setField(alcoholLookupService, "localCacheEnabled", true);
-    ReflectionTestUtils.setField(alcoholLookupService, "localCacheVersionCheckIntervalMs", 0L);
+    ReflectionTestUtils.setField(snapshotService, "localCacheEnabled", true);
+    ReflectionTestUtils.setField(snapshotService, "localCacheVersionCheckIntervalMs", 0L);
     AlcoholLookupRequest request =
         AlcoholLookupRequest.builder().keyword("macallan").size(20).build();
 
