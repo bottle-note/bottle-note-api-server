@@ -8,6 +8,7 @@ import static app.bottlenote.user.domain.QFollow.follow;
 import static com.querydsl.jpa.JPAExpressions.select;
 
 import app.bottlenote.global.pagination.CursorClaims;
+import app.bottlenote.global.pagination.CursorKeys;
 import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.global.pagination.TimeIdCursor;
 import app.bottlenote.global.service.cursor.SortOrder;
@@ -27,6 +28,7 @@ import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.util.StringUtils;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -112,42 +114,71 @@ public class UserQuerySupporter {
     CursorClaims claims = cursorCodec.verify(request.cursor(), request.context(tab));
     long lastId = TimeIdCursor.id(claims);
     boolean desc = request.sortOrder() != SortOrder.ASC;
+    Expression<Long> tieBreakerId = tieBreakerIdExpression(tab);
     return switch (request.sortType()) {
-      case LATEST -> timeSeek(latestTimeExpression(tab), TimeIdCursor.time(claims), lastId, desc);
+      case LATEST ->
+          timeSeek(
+              latestTimeExpression(tab),
+              tieBreakerId,
+              CursorKeys.optionalTime(claims, "t"),
+              lastId,
+              desc);
       case REVIEW ->
           timeSeek(
-              reviewSortExpression(tab, request.userId()), TimeIdCursor.time(claims), lastId, desc);
+              reviewSortExpression(tab, request.userId()),
+              tieBreakerId,
+              CursorKeys.optionalTime(claims, "t"),
+              lastId,
+              desc);
       case RATING ->
           scoreSeek(
               ratingSortExpression(tab, request.userId()),
-              Double.parseDouble(claims.sortKeys().getOrDefault("score", "0")),
+              tieBreakerId,
+              CursorKeys.optionalDouble(claims, "score"),
               lastId,
               desc);
     };
   }
 
+  /** 탭별로 한 행을 유일하게 특정하는 타이브레이커 컬럼. REVIEW 탭은 리뷰 단위 행이라 review.id, 나머지는 술 단위 행이라 alcohol.id. */
+  private Expression<Long> tieBreakerIdExpression(MyBottleType tab) {
+    return tab == MyBottleType.REVIEW ? review.id : alcohol.id;
+  }
+
   public String encodeMyBottleCursor(
       MyBottleType tab,
       MyBottlePageableCriteria request,
-      Long alcoholId,
+      Long tieBreakerId,
       LocalDateTime latestAt,
       LocalDateTime reviewAt,
       Double ratingScore,
       HmacCursorCodec cursorCodec) {
     Map<String, String> keys =
         switch (request.sortType()) {
-          case LATEST ->
-              TimeIdCursor.keys(latestAt == null ? LocalDateTime.MIN : latestAt, alcoholId);
-          case REVIEW ->
-              TimeIdCursor.keys(reviewAt == null ? LocalDateTime.MIN : reviewAt, alcoholId);
-          case RATING ->
-              Map.of(
-                  "id",
-                  String.valueOf(alcoholId),
-                  "score",
-                  String.valueOf(ratingScore == null ? 0.0 : ratingScore));
+          case LATEST -> timeIdKeys(latestAt, tieBreakerId);
+          case REVIEW -> timeIdKeys(reviewAt, tieBreakerId);
+          case RATING -> scoreIdKeys(ratingScore, tieBreakerId);
         };
     return cursorCodec.encode(request.context(tab), keys);
+  }
+
+  /** 정렬 값이 null이면 커서에 해당 키를 넣지 않는다 (대체값 금지, NULL 꼬리 구간은 id만으로 이어간다). */
+  private Map<String, String> timeIdKeys(LocalDateTime time, Long id) {
+    Map<String, String> keys = new HashMap<>();
+    keys.put("id", String.valueOf(id));
+    if (time != null) {
+      keys.put("t", time.toString());
+    }
+    return keys;
+  }
+
+  private Map<String, String> scoreIdKeys(Double score, Long id) {
+    Map<String, String> keys = new HashMap<>();
+    keys.put("id", String.valueOf(id));
+    if (score != null) {
+      keys.put("score", String.valueOf(score));
+    }
+    return keys;
   }
 
   public Expression<LocalDateTime> latestTimeExpression(MyBottleType tab) {
@@ -158,24 +189,41 @@ public class UserQuerySupporter {
     };
   }
 
+  /**
+   * nullsLast 정렬에 대응하는 NULL 인식 seek. v(lastTime)가 non-null이면 "더 진행"에 NULL 행(아직 안 본 뒤쪽 구간)도 포함하고, v가
+   * null이면 이미 NULL 꼬리 구간에 진입한 것이므로 NULL 행 중 타이브레이커로만 이어간다.
+   */
   private BooleanExpression timeSeek(
       Expression<? extends Comparable<?>> expression,
+      Expression<Long> idExpression,
       LocalDateTime lastTime,
       long lastId,
       boolean desc) {
     DateTimeExpression<LocalDateTime> time =
         Expressions.dateTimeTemplate(LocalDateTime.class, "{0}", expression);
+    NumberExpression<Long> id = Expressions.numberTemplate(Long.class, "{0}", idExpression);
+    BooleanExpression idMoved = desc ? id.lt(lastId) : id.gt(lastId);
+    if (lastTime == null) {
+      return time.isNull().and(idMoved);
+    }
     BooleanExpression moved = desc ? time.lt(lastTime) : time.gt(lastTime);
-    BooleanExpression idMoved = desc ? alcohol.id.lt(lastId) : alcohol.id.gt(lastId);
-    return moved.or(time.eq(lastTime).and(idMoved));
+    return moved.or(time.isNull()).or(time.eq(lastTime).and(idMoved));
   }
 
   private BooleanExpression scoreSeek(
-      Expression<? extends Comparable<?>> expression, double lastScore, long lastId, boolean desc) {
+      Expression<? extends Comparable<?>> expression,
+      Expression<Long> idExpression,
+      Double lastScore,
+      long lastId,
+      boolean desc) {
     NumberExpression<Double> score = Expressions.numberTemplate(Double.class, "{0}", expression);
+    NumberExpression<Long> id = Expressions.numberTemplate(Long.class, "{0}", idExpression);
+    BooleanExpression idMoved = desc ? id.lt(lastId) : id.gt(lastId);
+    if (lastScore == null) {
+      return score.isNull().and(idMoved);
+    }
     BooleanExpression moved = desc ? score.lt(lastScore) : score.gt(lastScore);
-    BooleanExpression idMoved = desc ? alcohol.id.lt(lastId) : alcohol.id.gt(lastId);
-    return moved.or(score.eq(lastScore).and(idMoved));
+    return moved.or(score.isNull()).or(score.eq(lastScore).and(idMoved));
   }
 
   /** 지역(리전) 검색조건 (부모 지역이면 하위 지역 포함) */
@@ -213,9 +261,10 @@ public class UserQuerySupporter {
     };
   }
 
-  public OrderSpecifier<?> myBottleTieBreakerSortBy(SortOrder sortOrder) {
+  /** 탭별 타이브레이커 정렬. REVIEW 탭은 review.id, 나머지는 alcohol.id — myBottleSeek의 타이브레이커와 동일 컬럼이어야 한다. */
+  public OrderSpecifier<?> myBottleTieBreakerSortBy(SortOrder sortOrder, MyBottleType tab) {
     sortOrder = (sortOrder != null) ? sortOrder : SortOrder.DESC;
-    return orderSpecifier(sortOrder, alcohol.id);
+    return orderSpecifier(sortOrder, tieBreakerIdExpression(tab));
   }
 
   private OrderSpecifier<?> orderSpecifier(
