@@ -6,7 +6,10 @@ Product 목록을 숫자 offset cursor에서 HMAC keyset cursor로 전환하고,
 
 - Issue: bottle-note/workspace#402
 - 계약 논의: #385
-- 대상: Product 목록 + notifications + admin help
+- 후속 분리: bottle-note/workspace#404 (`[ms7-3] Admin/Product 페이지네이션 계약 분리`)
+- 대상: Product 목록 + notifications
+- 제외: Admin 목록 API는 page/size를 유지한다. Admin help는 Product help와 서비스·요청이 달라 원복해도 Product 커서는 유지된다.
+- 예외(#402 한정): Admin 위스키 룩업은 공유 `AlcoholLookupService` 때문에 지금은 커서를 유지한다. yml cursor secret도 기동에 필요하다. 이 결합 해소는 #404에서 한다.
 - `/api/v1/alcohols/search` 삭제
 
 ## Execution Mode
@@ -21,7 +24,7 @@ Product 목록을 숫자 offset cursor에서 HMAC keyset cursor로 전환하고,
 - [x] Task 2: 단순 목록 (help, business-support, follow, reply, lookup, history, notifications)
 - [x] Task 3: 복잡 정렬 (review, rating, explore RANDOM, curation)
 - [x] Task 4: MyBottle
-- [ ] Task 5: admin help, search 삭제, legacy 타입 제거
+- [ ] Task 5: admin help를 page/size로 원복. lookup·yml 시크릿은 유지. search 삭제·legacy 잔여 정리
 
 ## Progress Log
 
@@ -32,3 +35,6 @@ Product 목록을 숫자 offset cursor에서 HMAC keyset cursor로 전환하고,
 - 2026-08-15: Task 4 완료. MyBottle 3탭을 HMAC keyset으로 전환하고 totalCount를 제거했다. 요청 키는 cursor+size, 응답 페이지 정보는 meta.pagination. UserQuerySupporterTest 통과.
 - 2026-08-15: Task 5는 완료가 아니다. Admin help·search 삭제는 들어갔지만 FQCN PageResponse, CollectionResponse, 구 cursor 타입, 차단·조회 히스토리 표준 전환, 문서가 남아 있었다. 완료 표시는 최종 검증 전까지 유지하지 않는다.
 - 2026-08-15: Task 5 잔여 정리 진행. FQCN 제거, 죽은 검색 DTO·cursor 타입·CollectionResponse 삭제, 차단 목록과 조회 히스토리를 items + meta.pagination HMAC 계약으로 전환, API 문서를 meta.pagination으로 수정. 최종 검증 전이라 Task 5는 미완료.
+- 2026-08-15: 리뷰 좋아요 COUNT DISTINCT·별점순 `review.reviewRating`·히스토리 기간 HMAC context 수정. 커밋 `6d39eef11`.
+- 2026-08-15: Admin 범위 재확정. Admin 목록은 대상이 아니다. Admin help는 Product와 독립이라 page/size 원복이 가능하다. Admin lookup은 공유 `AlcoholLookupService`라 커서 유지가 맞고, yml cursor secret은 lookup + `CursorProperties` 기동 검증 때문에 빼면 어드민이 뜨지 않는다. Task 5를 admin help 원복 + lookup/yml 유지로 수정.
+- 2026-08-15: 후속 이슈 등록. bottle-note/workspace#404 (`[ms7-3] Admin/Product 페이지네이션 계약 분리`). 룩업 서비스 분리·admin help 원복·yml 시크릿 해제는 #402가 아니라 #404에서 한다.
