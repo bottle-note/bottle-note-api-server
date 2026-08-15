@@ -89,11 +89,11 @@
 - Files (advisory): Admin lookup request/service, `AdminAlcoholsController`, `AdminAlcoholsApiDocs`, lookup unit test
 - Depends: 없음
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
 
 ### Checkpoint: after Task 2
-- [ ] Admin lookup이 Product lookup 요청/서비스를 직접 쓰지 않는다
-- [ ] Product lookup 계약이 유지된다
+- [x] Admin lookup이 Product lookup 요청/서비스를 직접 쓰지 않는다
+- [x] Product lookup 계약이 유지된다
 
 ### Task 3: Admin을 Product 목록 서비스에서 분리하고 cursor secret을 제거한다
 - Acceptance: Admin 컨트롤러가 Product 목록 Service(`AlcoholQueryService`, `AlcoholLookupService`)를 주입하지 않는다. Admin yml/테스트 yml에서 `PAGINATION_CURSOR_SECRET`이 없고, Admin 기동이 cursor secret 없이 된다.
@@ -109,3 +109,4 @@
 - 2026-08-16: Execution Mode 확정. delegated, scope=plan/implement/test/commit/push/pr. local verify 생략, PR 후 GitHub Actions 트래킹.
 - 2026-08-16: /plan. Task 3개로 분해. help 원복 → lookup 분리 → Product 서비스 분리+secret 제거.
 - 2026-08-16: Task 1 완료. Admin help를 page/size + fromPage로 원복. Product help HMAC 커서는 유지. AdminHelpServiceTest 통과.
+- 2026-08-16: Task 2 완료. AdminAlcoholLookupService/Request로 분리. Product AlcoholLookupService는 HMAC cursor 유지. 스냅샷 조회는 AlcoholLookupSnapshotService로 공유.

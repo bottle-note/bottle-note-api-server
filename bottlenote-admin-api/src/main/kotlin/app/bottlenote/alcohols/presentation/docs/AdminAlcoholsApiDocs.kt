@@ -25,10 +25,11 @@ object AdminAlcoholsApiDocs {
 	@Operation(
 		summary = "위스키 룩업 목록을 조회한다",
 		description = """
-			검색어, 카테고리, 지역, 증류소, 커서로 위스키 룩업 목록을 커서 방식으로 조회합니다.
+			검색어, 카테고리, 지역, 증류소, 페이지 번호, 페이지 크기로 위스키 룩업 목록을 조회합니다.
 
 			다른 화면에서 위스키를 빠르게 선택할 때 쓰는 경량 목록이며, Redis 스냅샷을 우선 사용하고 비어 있으면 DB로 폴백합니다.
-			다음 페이지 정보는 meta.pagination에, 요청 파라미터는 meta.searchParameters에 담깁니다.
+			page를 지정하지 않으면 0부터, size를 지정하지 않으면 20건씩 조회합니다.
+			페이지 정보는 meta.page, meta.size, meta.totalElements, meta.totalPages에 담깁니다.
 			""",
 		responses = [
 			ApiResponse(

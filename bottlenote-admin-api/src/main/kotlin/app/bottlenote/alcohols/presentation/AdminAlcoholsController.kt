@@ -1,14 +1,13 @@
 package app.bottlenote.alcohols.presentation
 
+import app.bottlenote.alcohols.dto.request.AdminAlcoholLookupRequest
 import app.bottlenote.alcohols.dto.request.AdminAlcoholSearchRequest
 import app.bottlenote.alcohols.dto.request.AdminAlcoholUpsertRequest
-import app.bottlenote.alcohols.dto.request.AlcoholLookupRequest
 import app.bottlenote.alcohols.presentation.docs.AdminAlcoholsApiDocs
 import app.bottlenote.alcohols.service.AdminAlcoholCommandService
-import app.bottlenote.alcohols.service.AlcoholLookupService
+import app.bottlenote.alcohols.service.AdminAlcoholLookupService
 import app.bottlenote.alcohols.service.AlcoholQueryService
 import app.bottlenote.global.data.response.GlobalResponse
-import app.bottlenote.global.service.meta.MetaService.createMetaInfo
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -19,21 +18,13 @@ import org.springframework.web.bind.annotation.*
 class AdminAlcoholsController(
 	private val alcoholQueryService: AlcoholQueryService,
 	private val adminAlcoholCommandService: AdminAlcoholCommandService,
-	private val alcoholLookupService: AlcoholLookupService
+	private val adminAlcoholLookupService: AdminAlcoholLookupService
 ) {
 	@AdminAlcoholsApiDocs.GetAlcoholLookups
 	@GetMapping("/lookup")
 	fun getAlcoholLookups(
-		@ModelAttribute @Valid request: AlcoholLookupRequest
-	): ResponseEntity<GlobalResponse> {
-		val page = alcoholLookupService.lookup(request)
-		return GlobalResponse.ok(
-			page.content(),
-			createMetaInfo()
-				.add("searchParameters", request)
-				.add("pagination", page.pagination())
-		)
-	}
+		@ModelAttribute @Valid request: AdminAlcoholLookupRequest
+	): ResponseEntity<GlobalResponse> = ResponseEntity.ok(adminAlcoholLookupService.lookup(request))
 
 	@AdminAlcoholsApiDocs.SearchAlcohols
 	@GetMapping
