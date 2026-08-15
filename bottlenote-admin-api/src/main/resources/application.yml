@@ -38,12 +38,6 @@ spring:
     time-zone: Asia/Seoul
 
 bottlenote:
-  pagination:
-    cursor:
-      current-key-id: v1
-      current-secret: ${PAGINATION_CURSOR_SECRET:pagination-cursor-secret}
-      previous-key-id: ${PAGINATION_CURSOR_PREVIOUS_KEY_ID:}
-      previous-secret: ${PAGINATION_CURSOR_PREVIOUS_SECRET:}
   access-control:
     # 전역 spring.data.redis.timeout(15s)과 분리 — Redis 장애 시 요청 스레드 점유 상한
     redis-command-timeout: 200ms

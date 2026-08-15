@@ -15,9 +15,22 @@ class PaginationConfigurationTest {
       new ApplicationContextRunner().withUserConfiguration(PaginationConfiguration.class);
 
   @Test
-  @DisplayName("current-secret이 없으면 애플리케이션 컨텍스트 로드가 실패한다")
-  void missing_secret_fails_context_load() {
-    contextRunner.run(context -> assertThat(context).hasFailed());
+  @DisplayName("Admin처럼 app.type이 product가 아니면 secret 없이 코덱 빈을 만든다")
+  void missing_secret_allows_non_product_context() {
+    contextRunner.run(
+        context -> {
+          assertThat(context).hasNotFailed();
+          assertThat(context).hasSingleBean(HmacCursorCodec.class);
+        });
+  }
+
+  @Test
+  @DisplayName("Product는 current-secret이 없으면 애플리케이션 컨텍스트 로드가 실패한다")
+  void missing_secret_fails_product_context_load() {
+    contextRunner
+        .withUserConfiguration(CursorSecretValidator.class)
+        .withPropertyValues("app.type=product")
+        .run(context -> assertThat(context).hasFailed());
   }
 
   @Test
