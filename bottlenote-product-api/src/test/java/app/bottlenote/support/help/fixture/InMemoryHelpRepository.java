@@ -9,11 +9,15 @@ import app.bottlenote.support.help.dto.request.AdminHelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
 import app.bottlenote.support.help.dto.response.AdminHelpListResponse;
 import app.bottlenote.support.help.dto.response.HelpListResponse;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.util.ReflectionTestUtils;
 
 public class InMemoryHelpRepository implements HelpRepository {
@@ -68,8 +72,34 @@ public class InMemoryHelpRepository implements HelpRepository {
   }
 
   @Override
-  public PageResponse<AdminHelpListResponse> getAdminHelpList(AdminHelpPageableRequest request) {
-    return PageResponse.of(AdminHelpListResponse.of(List.of()), new Pagination(false, null));
+  public Page<AdminHelpListResponse.AdminHelpInfo> getAdminHelpList(
+      AdminHelpPageableRequest request) {
+    List<AdminHelpListResponse.AdminHelpInfo> filtered =
+        database.values().stream()
+            .filter(help -> request.status() == null || request.status() == help.getStatus())
+            .filter(help -> request.type() == null || request.type() == help.getType())
+            .sorted(
+                Comparator.comparing(
+                        Help::getCreateAt, Comparator.nullsLast(Comparator.reverseOrder()))
+                    .thenComparing(Help::getId, Comparator.reverseOrder()))
+            .map(
+                help ->
+                    AdminHelpListResponse.AdminHelpInfo.builder()
+                        .helpId(help.getId())
+                        .userId(help.getUserId())
+                        .userNickname(null)
+                        .title(help.getTitle())
+                        .type(help.getType())
+                        .status(help.getStatus())
+                        .createAt(help.getCreateAt())
+                        .build())
+            .toList();
+    int from = Math.min(request.page() * request.size(), filtered.size());
+    int to = Math.min(from + request.size(), filtered.size());
+    return new PageImpl<>(
+        filtered.subList(from, to),
+        PageRequest.of(request.page(), request.size()),
+        filtered.size());
   }
 
   public void clear() {

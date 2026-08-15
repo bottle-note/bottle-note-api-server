@@ -5,6 +5,7 @@ import app.bottlenote.support.help.dto.request.AdminHelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpPageableRequest;
 import app.bottlenote.support.help.dto.response.AdminHelpListResponse;
 import app.bottlenote.support.help.dto.response.HelpListResponse;
+import org.springframework.data.domain.Page;
 
 public interface CustomHelpQueryRepository {
 
@@ -24,5 +25,5 @@ public interface CustomHelpQueryRepository {
    * @param request 페이징 및 필터링 요청
    * @return 전체 문의글 목록
    */
-  PageResponse<AdminHelpListResponse> getAdminHelpList(AdminHelpPageableRequest request);
+  Page<AdminHelpListResponse.AdminHelpInfo> getAdminHelpList(AdminHelpPageableRequest request);
 }

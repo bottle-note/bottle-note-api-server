@@ -20,6 +20,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -66,10 +69,9 @@ public class CustomHelpQueryRepositoryImpl implements CustomHelpQueryRepository 
   }
 
   @Override
-  public PageResponse<AdminHelpListResponse> getAdminHelpList(AdminHelpPageableRequest request) {
+  public Page<AdminHelpListResponse.AdminHelpInfo> getAdminHelpList(
+      AdminHelpPageableRequest request) {
     BooleanBuilder whereClause = new BooleanBuilder();
-    String context = "admin.help:" + request.status() + ":" + request.type();
-    int size = request.size();
 
     if (request.status() != null) {
       whereClause.and(help.status.eq(request.status()));
@@ -77,9 +79,8 @@ public class CustomHelpQueryRepositoryImpl implements CustomHelpQueryRepository 
     if (request.type() != null) {
       whereClause.and(help.type.eq(request.type()));
     }
-    whereClause.and(helpSeek(request.cursor(), context));
 
-    List<AdminHelpListResponse.AdminHelpInfo> fetch =
+    List<AdminHelpListResponse.AdminHelpInfo> content =
         queryFactory
             .select(supporter.adminHelpResponseConstructor())
             .from(help)
@@ -87,14 +88,13 @@ public class CustomHelpQueryRepositoryImpl implements CustomHelpQueryRepository 
             .on(help.userId.eq(user.id))
             .where(whereClause)
             .orderBy(help.createAt.desc(), help.id.desc())
-            .limit(size + 1L)
+            .offset((long) request.page() * request.size())
+            .limit(request.size())
             .fetch();
 
-    Pagination.PageSlice<AdminHelpListResponse.AdminHelpInfo> slice =
-        Pagination.fromOverflow(
-            fetch,
-            size,
-            item -> cursorCodec.encode(context, TimeIdCursor.keys(item.createAt(), item.helpId())));
-    return PageResponse.of(AdminHelpListResponse.of(slice.items()), slice.pagination());
+    Long total = queryFactory.select(help.id.count()).from(help).where(whereClause).fetchOne();
+
+    return new PageImpl<>(
+        content, PageRequest.of(request.page(), request.size()), total != null ? total : 0L);
   }
 }

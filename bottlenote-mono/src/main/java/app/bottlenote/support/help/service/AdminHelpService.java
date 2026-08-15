@@ -2,7 +2,7 @@ package app.bottlenote.support.help.service;
 
 import static app.bottlenote.support.help.exception.HelpExceptionCode.HELP_NOT_FOUND;
 
-import app.bottlenote.global.pagination.PageResponse;
+import app.bottlenote.global.data.response.GlobalResponse;
 import app.bottlenote.support.help.domain.Help;
 import app.bottlenote.support.help.domain.HelpRepository;
 import app.bottlenote.support.help.dto.request.AdminHelpAnswerRequest;
@@ -10,7 +10,6 @@ import app.bottlenote.support.help.dto.request.AdminHelpPageableRequest;
 import app.bottlenote.support.help.dto.request.HelpImageItem;
 import app.bottlenote.support.help.dto.response.AdminHelpAnswerResponse;
 import app.bottlenote.support.help.dto.response.AdminHelpDetailResponse;
-import app.bottlenote.support.help.dto.response.AdminHelpListResponse;
 import app.bottlenote.support.help.event.payload.HelpAnswerNotificationEvent;
 import app.bottlenote.support.help.exception.HelpException;
 import app.bottlenote.user.domain.User;
@@ -31,8 +30,8 @@ public class AdminHelpService {
   private final ApplicationEventPublisher eventPublisher;
 
   @Transactional(readOnly = true)
-  public PageResponse<AdminHelpListResponse> getHelpList(AdminHelpPageableRequest request) {
-    return helpRepository.getAdminHelpList(request);
+  public GlobalResponse getHelpList(AdminHelpPageableRequest request) {
+    return GlobalResponse.fromPage(helpRepository.getAdminHelpList(request));
   }
 
   @Transactional(readOnly = true)
