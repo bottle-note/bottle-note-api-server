@@ -12,6 +12,7 @@ import app.bottlenote.common.file.event.payload.ImageResourceInvalidatedEvent;
 import app.bottlenote.common.image.ImageUtil;
 import app.bottlenote.common.profanity.ProfanityClient;
 import app.bottlenote.global.pagination.CursorClaims;
+import app.bottlenote.global.pagination.CursorKeys;
 import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.global.pagination.Pagination;
@@ -32,6 +33,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -141,6 +143,14 @@ public class BusinessSupportService {
   public PageResponse<BusinessSupportListResponse> getList(
       BusinessSupportPageableRequest req, Long userId) {
     String context = "business-support.list:" + userId;
+
+    // 커서 서명 검증은 요소마다가 아니라 여기서 한 번만 한다
+    boolean hasCursor = req.cursor() != null && !req.cursor().isBlank();
+    CursorClaims claims = hasCursor ? cursorCodec.verify(req.cursor(), context) : null;
+    // createAt이 NULL인 꼬리 구간에서 발급된 커서는 t 키가 없다
+    LocalDateTime lastCreateAt = hasCursor ? CursorKeys.optionalTime(claims, "t") : null;
+    Long lastId = hasCursor ? TimeIdCursor.id(claims) : null;
+
     List<BusinessSupport> fetched =
         repository.findAllByUserId(userId).stream()
             .sorted(
@@ -149,35 +159,52 @@ public class BusinessSupportService {
                         Comparator.nullsLast(Comparator.reverseOrder()))
                     .thenComparing(
                         BusinessSupport::getId, Comparator.nullsLast(Comparator.reverseOrder())))
-            .filter(item -> afterCursor(item, req.cursor(), context))
+            .filter(item -> afterCursor(item, hasCursor, lastCreateAt, lastId))
             .limit(req.size() + 1L)
             .toList();
     Pagination.PageSlice<BusinessInfoResponse> slice =
         Pagination.fromOverflow(
             fetched.stream().map(this::toInfo).toList(),
             req.size(),
-            item ->
-                cursorCodec.encode(
-                    context,
-                    TimeIdCursor.keys(
-                        item.createAt() == null ? LocalDateTime.MIN : item.createAt(), item.id())));
+            item -> cursorCodec.encode(context, cursorKeys(item.createAt(), item.id())));
     return PageResponse.of(new BusinessSupportListResponse(slice.items()), slice.pagination());
   }
 
-  private boolean afterCursor(BusinessSupport item, String cursor, String context) {
-    if (cursor == null || cursor.isBlank()) {
+  /** 정렬 값이 NULL이면 대체값을 넣지 않고 키 자체를 뺀다. */
+  private static Map<String, String> cursorKeys(LocalDateTime createAt, Long id) {
+    if (createAt == null) {
+      return Map.of("id", String.valueOf(id));
+    }
+    return TimeIdCursor.keys(createAt, id);
+  }
+
+  /**
+   * 정렬은 createAt DESC nullsLast, id DESC다. 커서보다 뒤에 오는 항목만 남긴다.
+   *
+   * @param lastCreateAt null이면 커서가 이미 createAt NULL 꼬리 구간에서 발급된 것이다
+   */
+  private boolean afterCursor(
+      BusinessSupport item, boolean hasCursor, LocalDateTime lastCreateAt, Long lastId) {
+    if (!hasCursor) {
       return true;
     }
-    CursorClaims claims = cursorCodec.verify(cursor, context);
-    LocalDateTime lastCreateAt = TimeIdCursor.time(claims);
-    Long lastId = TimeIdCursor.id(claims);
-    if (item.getCreateAt() == null) {
+    LocalDateTime itemCreateAt = item.getCreateAt();
+    if (lastCreateAt == null) {
+      // NULL 꼬리 구간 안이므로 같은 구간에서 id가 더 작은 항목만 남는다
+      return itemCreateAt == null && idBefore(item.getId(), lastId);
+    }
+    if (itemCreateAt == null) {
+      // nullsLast라 NULL 항목은 non-null 커서보다 항상 뒤에 있다
       return true;
     }
-    if (item.getCreateAt().isBefore(lastCreateAt)) {
+    if (itemCreateAt.isBefore(lastCreateAt)) {
       return true;
     }
-    return item.getCreateAt().isEqual(lastCreateAt) && item.getId() < lastId;
+    return itemCreateAt.isEqual(lastCreateAt) && idBefore(item.getId(), lastId);
+  }
+
+  private static boolean idBefore(Long id, Long lastId) {
+    return id != null && id < lastId;
   }
 
   private BusinessInfoResponse toInfo(BusinessSupport support) {

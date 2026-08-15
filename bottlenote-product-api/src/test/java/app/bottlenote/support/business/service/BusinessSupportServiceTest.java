@@ -27,6 +27,8 @@ import app.bottlenote.user.facade.UserFacade;
 import app.bottlenote.user.facade.payload.UserProfileItem;
 import app.bottlenote.user.fixture.FakeUserFacade;
 import java.time.Clock;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,6 +37,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @Tag("unit")
 @DisplayName("[unit] [service] BusinessSupport")
@@ -280,6 +283,75 @@ class BusinessSupportServiceTest {
               assertNotNull(item.id());
               assertTrue(item.content().startsWith("문의"));
             });
+  }
+
+  @Test
+  @DisplayName("createAt이 모두 NULL일 때도 커서로 페이지를 넘기면 항목이 중복되지 않는다.")
+  void getList_whenAllCreateAtNull_pagesWithoutDuplicates() {
+    // given
+    Long userId = 1L;
+    registerInquiries(userId, 3);
+
+    // when
+    List<Long> paged = collectAllPages(userId, 1);
+
+    // then
+    assertEquals(List.of(3L, 2L, 1L), paged);
+  }
+
+  @Test
+  @DisplayName("createAt이 있는 항목과 NULL인 항목이 섞여 있을 때 NULL 항목이 누락되지 않는다.")
+  void getList_whenCreateAtMixed_nullTailIsReachable() {
+    // given
+    Long userId = 1L;
+    registerInquiries(userId, 4);
+    LocalDateTime now = LocalDateTime.of(2026, 8, 15, 12, 0);
+    setCreateAt(userId, 1L, now);
+    setCreateAt(userId, 2L, now.minusHours(1));
+
+    // when
+    List<Long> paged = collectAllPages(userId, 1);
+
+    // then : createAt DESC 뒤에 NULL 꼬리가 id DESC로 이어진다
+    assertEquals(List.of(1L, 2L, 4L, 3L), paged);
+  }
+
+  private void registerInquiries(Long userId, int count) {
+    for (int i = 1; i <= count; i++) {
+      service.register(
+          new BusinessSupportUpsertRequest(
+              "제목 " + i,
+              "문의 " + i,
+              "test" + i + "@example.com",
+              BusinessSupportType.ETC,
+              List.of()),
+          userId);
+    }
+  }
+
+  private void setCreateAt(Long userId, Long supportId, LocalDateTime createAt) {
+    repository.findByIdAndUserId(supportId, userId).ifPresent(it -> setField(it, createAt));
+  }
+
+  private void setField(Object target, LocalDateTime createAt) {
+    ReflectionTestUtils.setField(target, "createAt", createAt);
+  }
+
+  /** size씩 커서로 끝까지 넘기며 조회된 id를 순서대로 모은다. */
+  private List<Long> collectAllPages(Long userId, int size) {
+    List<Long> collected = new ArrayList<>();
+    String cursor = null;
+    for (int guard = 0; guard < 20; guard++) {
+      PageResponse<BusinessSupportListResponse> page =
+          service.getList(new BusinessSupportPageableRequest(cursor, size), userId);
+      page.content().items().forEach(item -> collected.add(item.id()));
+      if (!page.pagination().hasNext()) {
+        return collected;
+      }
+      cursor = page.pagination().nextCursor();
+      assertNotNull(cursor);
+    }
+    throw new IllegalStateException("페이지가 끝나지 않았다. 수집된 id = " + collected);
   }
 
   @Test
