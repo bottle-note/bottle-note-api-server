@@ -6,7 +6,7 @@ import app.bottlenote.alcohols.dto.request.AdminAlcoholUpsertRequest
 import app.bottlenote.alcohols.presentation.docs.AdminAlcoholsApiDocs
 import app.bottlenote.alcohols.service.AdminAlcoholCommandService
 import app.bottlenote.alcohols.service.AdminAlcoholLookupService
-import app.bottlenote.alcohols.service.AlcoholQueryService
+import app.bottlenote.alcohols.service.AdminAlcoholQueryService
 import app.bottlenote.global.data.response.GlobalResponse
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/alcohols")
 @AdminAlcoholsApiDocs.ApiTag
 class AdminAlcoholsController(
-	private val alcoholQueryService: AlcoholQueryService,
+	private val adminAlcoholQueryService: AdminAlcoholQueryService,
 	private val adminAlcoholCommandService: AdminAlcoholCommandService,
 	private val adminAlcoholLookupService: AdminAlcoholLookupService
 ) {
@@ -30,17 +30,17 @@ class AdminAlcoholsController(
 	@GetMapping
 	fun searchAlcohols(
 		@ModelAttribute request: AdminAlcoholSearchRequest
-	): ResponseEntity<GlobalResponse> = ResponseEntity.ok(alcoholQueryService.searchAdminAlcohols(request))
+	): ResponseEntity<GlobalResponse> = ResponseEntity.ok(adminAlcoholQueryService.searchAdminAlcohols(request))
 
 	@AdminAlcoholsApiDocs.GetAlcoholDetail
 	@GetMapping("/{alcoholId}")
 	fun getAlcoholDetail(
 		@PathVariable alcoholId: Long
-	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(alcoholQueryService.findAdminAlcoholDetailById(alcoholId))
+	): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminAlcoholQueryService.findAdminAlcoholDetailById(alcoholId))
 
 	@AdminAlcoholsApiDocs.GetCategoryReference
 	@GetMapping("/categories/reference")
-	fun getCategoryReference(): ResponseEntity<GlobalResponse> = GlobalResponse.ok(alcoholQueryService.findAllCategoryReferenceMap())
+	fun getCategoryReference(): ResponseEntity<GlobalResponse> = GlobalResponse.ok(adminAlcoholQueryService.findAllCategoryReferenceMap())
 
 	@AdminAlcoholsApiDocs.CreateAlcohol
 	@PostMapping

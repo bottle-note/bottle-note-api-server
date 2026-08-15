@@ -2,21 +2,15 @@ package app.bottlenote.global.pagination;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "bottlenote.pagination.cursor")
-public class CursorProperties implements InitializingBean {
+public class CursorProperties {
 
   private String currentKeyId = "v1";
   private String currentSecret;
   private String previousKeyId;
   private String previousSecret;
-
-  @Override
-  public void afterPropertiesSet() {
-    validate();
-  }
 
   public void validate() {
     if (isBlank(currentKeyId) || isBlank(currentSecret)) {

@@ -39,7 +39,6 @@ public final class HmacCursorCodec {
 
   public HmacCursorCodec(CursorProperties properties, Clock clock) {
     Objects.requireNonNull(properties, "properties");
-    properties.validate();
     this.properties = properties;
     this.clock = Objects.requireNonNull(clock, "clock");
   }

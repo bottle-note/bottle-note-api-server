@@ -101,7 +101,11 @@
 - Files (advisory): `AdminAlcoholQueryService`, `AdminAlcoholsController`, `AlcoholQueryService`, `PaginationConfiguration`, Admin `application.yml`, Admin `application-test.yml`
 - Depends: Task 2
 - Size: M
-- Status: [ ] not done
+- Status: [x] done
+
+### HMAC 빈이 Admin에 남는 이유
+
+Admin 컨트롤러는 Product 목록 Service를 더 이상 주입하지 않고, `PAGINATION_CURSOR_SECRET`도 yml에서 제거했다. 다만 Help/Alcohol/Review/User QueryDSL 구현체가 Product 커서와 Admin page/size를 같은 클래스에서 구현하므로 `HmacCursorCodec` 생성자는 여전히 필요하다. Product만 `CursorSecretValidator`로 secret 미주입 시 기동 실패한다.
 
 ## Progress Log
 
@@ -110,3 +114,4 @@
 - 2026-08-16: /plan. Task 3개로 분해. help 원복 → lookup 분리 → Product 서비스 분리+secret 제거.
 - 2026-08-16: Task 1 완료. Admin help를 page/size + fromPage로 원복. Product help HMAC 커서는 유지. AdminHelpServiceTest 통과.
 - 2026-08-16: Task 2 완료. AdminAlcoholLookupService/Request로 분리. Product AlcoholLookupService는 HMAC cursor 유지. 스냅샷 조회는 AlcoholLookupSnapshotService로 공유.
+- 2026-08-16: Task 3 완료. AdminAlcoholQueryService 분리, Admin yml cursor secret 제거. Product만 CursorSecretValidator로 secret 필수.

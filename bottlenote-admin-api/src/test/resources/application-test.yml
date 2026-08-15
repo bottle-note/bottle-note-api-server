@@ -1,8 +1,4 @@
 bottlenote:
-  pagination:
-    cursor:
-      current-key-id: v1
-      current-secret: test-pagination-cursor-secret
   access-control:
     enabled: false
 
