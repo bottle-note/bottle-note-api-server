@@ -16,6 +16,7 @@ import app.bottlenote.curation.dto.response.ProductSpecBasedCurationFeedItemResp
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationListResponse;
 import app.bottlenote.curation.exception.CurationException;
 import app.bottlenote.curation.exception.CurationExceptionCode;
+import app.bottlenote.global.pagination.CursorKeys;
 import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.global.pagination.Pagination;
@@ -67,8 +68,8 @@ public class ProductSpecBasedCurationService {
     Long lastId = null;
     if (cursor != null) {
       var claims = cursorCodec.verify(cursor, context);
-      lastDisplayOrder = Integer.valueOf(claims.sortKeys().get("order"));
-      lastId = Long.valueOf(claims.sortKeys().get("id"));
+      lastDisplayOrder = CursorKeys.requireInt(claims, "order");
+      lastId = CursorKeys.requireLong(claims, "id");
     }
     List<CurationSpec> specs =
         normalizedCodes.isEmpty()
