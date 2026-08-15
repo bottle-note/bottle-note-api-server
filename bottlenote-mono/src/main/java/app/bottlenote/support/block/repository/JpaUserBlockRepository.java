@@ -4,9 +4,12 @@ import app.bottlenote.common.annotation.JpaRepositoryImpl;
 import app.bottlenote.support.block.domain.UserBlock;
 import app.bottlenote.support.block.domain.UserBlockRepository;
 import app.bottlenote.support.block.dto.response.UserBlockItem;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -44,12 +47,24 @@ public interface JpaUserBlockRepository
   boolean existsMutualBlock(@Param("userId1") Long userId1, @Param("userId2") Long userId2);
 
   @Override
+  default List<UserBlockItem> findBlockedUserItemsByBlockerId(
+      Long blockerId, LocalDateTime lastBlockedAt, Long lastUserId, int limit) {
+    return searchBlockedUserItems(blockerId, lastBlockedAt, lastUserId, PageRequest.of(0, limit));
+  }
+
   @Query(
       """
 		SELECT new app.bottlenote.support.block.dto.response.UserBlockItem(u.id, u.nickName, ub.createAt)
 		FROM userBlock ub JOIN users u ON ub.blockedId = u.id
 		WHERE ub.blockerId = :blockerId
+		AND (:lastBlockedAt IS NULL
+			OR ub.createAt < :lastBlockedAt
+			OR (ub.createAt = :lastBlockedAt AND u.id < :lastUserId))
 		ORDER BY ub.createAt DESC, u.id DESC
 		""")
-  List<UserBlockItem> findBlockedUserItemsByBlockerId(@Param("blockerId") Long blockerId);
+  List<UserBlockItem> searchBlockedUserItems(
+      @Param("blockerId") Long blockerId,
+      @Param("lastBlockedAt") LocalDateTime lastBlockedAt,
+      @Param("lastUserId") Long lastUserId,
+      Pageable pageable);
 }

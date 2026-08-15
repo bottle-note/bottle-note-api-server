@@ -273,6 +273,33 @@ class BlockServiceTest {
     }
 
     @Test
+    @DisplayName("size보다 많으면 다음 페이지 커서만으로 이어서 조회한다")
+    void size보다_많으면_다음_페이지를_커서로_조회한다() {
+      Long blockerId = 1L;
+      blockService.blockUser(blockerId, 2L);
+      blockService.blockUser(blockerId, 3L);
+      blockService.blockUser(blockerId, 4L);
+
+      PageResponse<UserBlockListResponse> first =
+          blockService.getBlockedUserItems(blockerId, new BlockPageableRequest(null, 2));
+
+      assertEquals(2, first.content().items().size());
+      assertTrue(first.pagination().hasNext());
+      assertNotNull(first.pagination().nextCursor());
+
+      PageResponse<UserBlockListResponse> second =
+          blockService.getBlockedUserItems(
+              blockerId, new BlockPageableRequest(first.pagination().nextCursor(), 2));
+
+      assertEquals(1, second.content().items().size());
+      assertFalse(second.pagination().hasNext());
+      assertTrue(
+          first.content().items().stream()
+              .noneMatch(
+                  item -> item.userId().equals(second.content().items().getFirst().userId())));
+    }
+
+    @Test
     @DisplayName("사용자 ID가 null이면 빈 목록을 반환한다")
     void 사용자_ID가_null이면_빈_목록을_반환한다() {
       // when

@@ -89,13 +89,16 @@ public class InMemoryUserBlockRepository implements UserBlockRepository {
   }
 
   @Override
-  public List<UserBlockItem> findBlockedUserItemsByBlockerId(Long blockerId) {
+  public List<UserBlockItem> findBlockedUserItemsByBlockerId(
+      Long blockerId, LocalDateTime lastBlockedAt, Long lastUserId, int limit) {
     return userBlocks.values().stream()
         .filter(block -> block.getBlockerId().equals(blockerId))
         .sorted(
             java.util.Comparator.comparing(UserBlock::getCreateAt)
                 .reversed()
                 .thenComparing(UserBlock::getBlockedId, java.util.Comparator.reverseOrder()))
+        .filter(block -> afterCursor(block, lastBlockedAt, lastUserId))
+        .limit(limit)
         .map(
             block ->
                 new UserBlockItem(
@@ -103,6 +106,17 @@ public class InMemoryUserBlockRepository implements UserBlockRepository {
                     userNames.getOrDefault(block.getBlockedId().toString(), "알 수 없는 사용자"),
                     block.getCreateAt()))
         .collect(Collectors.toList());
+  }
+
+  private static boolean afterCursor(
+      UserBlock block, LocalDateTime lastBlockedAt, Long lastUserId) {
+    if (lastBlockedAt == null) {
+      return true;
+    }
+    if (block.getCreateAt().isBefore(lastBlockedAt)) {
+      return true;
+    }
+    return block.getCreateAt().equals(lastBlockedAt) && block.getBlockedId() < lastUserId;
   }
 
   public void addUser(Long userId, String userName) {

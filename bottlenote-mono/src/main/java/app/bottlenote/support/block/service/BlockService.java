@@ -16,7 +16,6 @@ import app.bottlenote.support.block.dto.response.UserBlockItem;
 import app.bottlenote.support.block.dto.response.UserBlockListResponse;
 import app.bottlenote.support.block.exception.BlockException;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -83,25 +82,17 @@ public class BlockService {
     if (userId == null) {
       return PageResponse.of(new UserBlockListResponse(List.of()), new Pagination(false, null));
     }
-    List<UserBlockItem> items =
-        userBlockRepository.findBlockedUserItemsByBlockerId(userId).stream()
-            .sorted(
-                Comparator.comparing(UserBlockItem::blockedAt, Comparator.reverseOrder())
-                    .thenComparing(UserBlockItem::userId, Comparator.reverseOrder()))
-            .toList();
     String context = "block.list:" + userId;
+    LocalDateTime lastAt = null;
+    Long lastId = null;
     if (request.cursor() != null) {
       var claims = cursorCodec.verify(request.cursor(), context);
-      LocalDateTime lastAt = TimeIdCursor.time(claims);
-      Long lastId = TimeIdCursor.id(claims);
-      items =
-          items.stream()
-              .filter(
-                  item ->
-                      item.blockedAt().isBefore(lastAt)
-                          || (item.blockedAt().equals(lastAt) && item.userId() < lastId))
-              .toList();
+      lastAt = TimeIdCursor.time(claims);
+      lastId = TimeIdCursor.id(claims);
     }
+    List<UserBlockItem> items =
+        userBlockRepository.findBlockedUserItemsByBlockerId(
+            userId, lastAt, lastId, request.size() + 1);
     Pagination.PageSlice<UserBlockItem> slice =
         Pagination.fromOverflow(
             items,
