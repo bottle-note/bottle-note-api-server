@@ -107,7 +107,8 @@ public class RatingQuerySupporter {
 
   /** 1차 정렬 조건 - RANDOM - POPULAR - RATING - PICK - REVIEW */
   protected OrderSpecifier<?> orderBy(SearchSortType searchSortType, SortOrder sortOrder) {
-    NumberExpression<Double> avgRating = rating.ratingPoint.rating.avg(); // 평균 평점 계산
+    // 평점 없는 알코올의 AVG(rating) NULL → coalesce(0.0)로 sortScore와 표현식을 맞춰 keyset seek 정합성 보장
+    NumberExpression<Double> avgRating = rating.ratingPoint.rating.avg().coalesce(0.0);
     NumberExpression<Long> reviewCount = review.id.countDistinct(); // 고유 리뷰 수 계산
     NumberExpression<Long> pickCount = picks.id.countDistinct(); // 고유 좋아요 수 계산
 
@@ -121,6 +122,29 @@ public class RatingQuerySupporter {
       case REVIEW -> sortOrder == SortOrder.DESC ? reviewCount.desc() : reviewCount.asc();
       case RANDOM -> Expressions.numberTemplate(Double.class, "function('rand')").asc();
     };
+  }
+
+  /** keyset seek에 쓰는 정렬 점수. orderBy의 각 case와 동일한 표현식이어야 한다. RANDOM은 crc32Rank를 쓴다. */
+  protected NumberExpression<? extends Number> sortScore(SearchSortType searchSortType) {
+    NumberExpression<Double> avgRating = rating.ratingPoint.rating.avg().coalesce(0.0);
+    NumberExpression<Long> reviewCount = review.id.countDistinct();
+    NumberExpression<Long> pickCount = picks.id.countDistinct();
+    return switch (searchSortType) {
+      case POPULAR -> avgRating.add(reviewCount);
+      case RATING -> avgRating;
+      case PICK -> pickCount;
+      case REVIEW -> reviewCount;
+      case RANDOM -> throw new IllegalArgumentException("RANDOM uses crc32Rank");
+    };
+  }
+
+  /** HMAC 커서 RANDOM용 CRC32 랭크. CRC32(CONCAT(seed, '-', id)) */
+  protected NumberExpression<Long> crc32Rank(long seed) {
+    return Expressions.numberTemplate(
+        Long.class,
+        "cast(function('crc32', concat({0}, '-', {1})) as long)",
+        String.valueOf(seed),
+        alcohol.id);
   }
 
   /** 2차 정렬 조건 (랜덤) */
