@@ -12,6 +12,7 @@ import static app.bottlenote.review.repository.ReviewQuerySupporter.adminReviewF
 import static app.bottlenote.review.repository.ReviewQuerySupporter.adminReviewSortBy;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.containsKeywordInAll;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.cursorKeys;
+import static app.bottlenote.review.repository.ReviewQuerySupporter.distinctLikesCount;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.getTastingTag;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.getUserInfo;
 import static app.bottlenote.review.repository.ReviewQuerySupporter.hasReplyByMeSubquery;
@@ -82,7 +83,7 @@ public class CustomReviewRepositoryImpl implements CustomReviewRepository {
         review.reviewRating,
 
         // 좋아요 및 댓글 정보
-        likes.countDistinct(),
+        distinctLikesCount(),
         reviewReply.countDistinct(),
         isLikeByMeSubquery(userId),
         hasReplyByMeSubquery(userId),

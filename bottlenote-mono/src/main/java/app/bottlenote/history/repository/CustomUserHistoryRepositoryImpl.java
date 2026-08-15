@@ -129,8 +129,8 @@ public class CustomUserHistoryRepositoryImpl implements CustomUserHistoryReposit
                 isValidKeyword(request.keyword())
                     ? alcohol.korName.like("%" + request.keyword() + "%")
                     : null,
-                request.startDate() == null ? null : userHistory.createAt.goe(request.startDate()),
-                request.endDate() == null ? null : userHistory.createAt.loe(request.endDate()),
+                userHistory.createAt.goe(request.resolvedStartDate()),
+                userHistory.createAt.loe(request.resolvedEndDate()),
                 eventTypeFilters.isEmpty() ? null : userHistory.eventType.in(eventTypeFilters))
             .orderBy(
                 request.sortOrder().resolve(userHistory.createAt),
@@ -176,7 +176,7 @@ public class CustomUserHistoryRepositoryImpl implements CustomUserHistoryReposit
         .or(userHistory.createAt.eq(lastCreateAt).and(userHistory.id.lt(lastId)));
   }
 
-  private static String historyContext(Long userId, UserHistorySearchRequest request) {
+  static String historyContext(Long userId, UserHistorySearchRequest request) {
     return "history.list:"
         + userId
         + ":"
@@ -188,6 +188,10 @@ public class CustomUserHistoryRepositoryImpl implements CustomUserHistoryReposit
         + ":"
         + request.historyReviewFilterType()
         + ":"
-        + request.picksStatus();
+        + request.picksStatus()
+        + ":"
+        + request.startDate()
+        + ":"
+        + request.endDate();
   }
 }

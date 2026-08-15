@@ -32,14 +32,23 @@ public record UserHistorySearchRequest(
     PaginationRequest page = PaginationRequest.of(cursor, size, DEFAULT_SIZE, MAX_SIZE);
     cursor = page.cursor();
     size = page.size();
-    endDate = endDate != null ? endDate.plusDays(1) : LocalDateTime.now().plusDays(1);
-    startDate = startDate != null ? startDate : LocalDateTime.now().minusYears(2);
-    if (endDate.isBefore(startDate)) {
+    LocalDateTime resolvedEnd =
+        endDate != null ? endDate.plusDays(1) : LocalDateTime.now().plusDays(1);
+    LocalDateTime resolvedStart = startDate != null ? startDate : LocalDateTime.now().minusYears(2);
+    if (resolvedEnd.isBefore(resolvedStart)) {
       throw new UserHistoryException(UserHistoryExceptionCode.INVALID_HISTORY_DATE);
     }
-    if (startDate.plusYears(2).plusDays(1).isBefore(endDate)) {
+    if (resolvedStart.plusYears(2).plusDays(1).isBefore(resolvedEnd)) {
       throw new UserHistoryException(UserHistoryExceptionCode.INVALID_HISTORY_DATE_RANGE);
     }
+  }
+
+  public LocalDateTime resolvedStartDate() {
+    return startDate != null ? startDate : LocalDateTime.now().minusYears(2);
+  }
+
+  public LocalDateTime resolvedEndDate() {
+    return endDate != null ? endDate.plusDays(1) : LocalDateTime.now().plusDays(1);
   }
 
   public List<EventType> toEventTypeList() {
