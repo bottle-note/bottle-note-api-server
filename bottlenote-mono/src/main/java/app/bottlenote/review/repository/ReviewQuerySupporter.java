@@ -198,7 +198,7 @@ public class ReviewQuerySupporter {
       case RATING -> putIfNotNull(keys, "rating", item.rating());
       case BOTTLE_PRICE, GLASS_PRICE -> {
         putIfNotNull(keys, "sizeType", item.sizeType() == null ? null : item.sizeType().name());
-        keys.put("price", item.price().toPlainString());
+        putIfNotNull(keys, "price", item.price() == null ? null : item.price().toPlainString());
       }
     }
     keys.put("t", item.createAt().toString());
@@ -248,7 +248,8 @@ public class ReviewQuerySupporter {
   private static BooleanExpression sizePriceSeek(
       boolean desc, SizeType rankFirst, CursorClaims claims) {
     BooleanExpression tail = timeIdSeek(claims);
-    BooleanExpression priceStep = plainNumberStep(review.price, desc, requirePrice(claims), tail);
+    BooleanExpression priceStep =
+        nativeNullableNumberStep(review.price, desc, optionalPrice(claims), tail);
     return nullsLastSizeTypeStep(
         review.sizeType, rankFirst, optionalSizeType(claims, "sizeType"), priceStep);
   }
@@ -334,8 +335,11 @@ public class ReviewQuerySupporter {
     }
   }
 
-  private static BigDecimal requirePrice(CursorClaims claims) {
-    String raw = CursorKeys.require(claims, "price");
+  private static BigDecimal optionalPrice(CursorClaims claims) {
+    String raw = CursorKeys.optional(claims, "price");
+    if (raw == null) {
+      return null;
+    }
     try {
       return new BigDecimal(raw);
     } catch (NumberFormatException exception) {

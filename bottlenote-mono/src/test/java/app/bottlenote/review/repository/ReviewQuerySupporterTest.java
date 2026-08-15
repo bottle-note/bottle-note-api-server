@@ -121,6 +121,16 @@ class ReviewQuerySupporterTest {
       // then
       assertThat(keys).containsEntry("sizeType", "BOTTLE").containsEntry("price", "10000");
     }
+
+    @Test
+    @DisplayName("BOTTLE_PRICE 정렬에서 가격이 null이면 커서에 price 키를 넣지 않는다")
+    void bottle_price_정렬에서_가격이_null이면_키를_생략한다() {
+      ReviewInfo item = reviewInfo(9L, null, null, null, SizeType.BOTTLE, null);
+
+      Map<String, String> keys = cursorKeys(ReviewSortType.BOTTLE_PRICE, item);
+
+      assertThat(keys).doesNotContainKey("price").containsEntry("sizeType", "BOTTLE");
+    }
   }
 
   @Nested
@@ -290,6 +300,7 @@ class ReviewQuerySupporterTest {
           review
               .price
               .lt(new BigDecimal("5000"))
+              .or(review.price.isNull())
               .or(review.price.eq(new BigDecimal("5000")).and(tail));
       BooleanExpression expected =
           review
@@ -297,6 +308,26 @@ class ReviewQuerySupporterTest {
               .eq(SizeType.BOTTLE)
               .or(review.sizeType.isNull())
               .or(review.sizeType.eq(SizeType.GLASS).and(priceStep));
+      assertThat(actual.toString()).isEqualTo(expected.toString());
+    }
+
+    @Test
+    @DisplayName("BOTTLE_PRICE DESC에서 가격이 null인 커서는 같은 sizeType의 나머지 null 가격만 본다")
+    void bottle_price_desc에서_가격이_null인_커서는_나머지_null_가격만_본다() {
+      ReviewInfo lastOfPage1 = reviewInfo(9L, null, null, null, SizeType.BOTTLE, null);
+      CursorClaims claims = claimsOf(cursorKeys(ReviewSortType.BOTTLE_PRICE, lastOfPage1));
+
+      BooleanExpression actual = keysetSeek(ReviewSortType.BOTTLE_PRICE, SortOrder.DESC, claims);
+
+      BooleanExpression tail =
+          review.createAt.lt(CREATE_AT).or(review.createAt.eq(CREATE_AT).and(review.id.lt(9L)));
+      BooleanExpression priceStep = review.price.isNull().and(tail);
+      BooleanExpression expected =
+          review
+              .sizeType
+              .eq(SizeType.GLASS)
+              .or(review.sizeType.isNull())
+              .or(review.sizeType.eq(SizeType.BOTTLE).and(priceStep));
       assertThat(actual.toString()).isEqualTo(expected.toString());
     }
   }
