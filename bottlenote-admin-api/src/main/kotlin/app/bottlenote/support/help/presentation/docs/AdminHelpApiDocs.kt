@@ -4,6 +4,7 @@ import app.bottlenote.support.help.dto.response.AdminHelpAnswerResponse
 import app.bottlenote.support.help.dto.response.AdminHelpDetailResponse
 import app.bottlenote.support.help.dto.response.AdminHelpListResponse
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -22,16 +23,22 @@ object AdminHelpApiDocs {
 	@Operation(
 		summary = "문의 목록을 조회한다",
 		description = """
-			처리 상태, 문의 유형, 커서, 페이지 크기로 문의 목록을 커서 방식으로 조회합니다.
+			처리 상태, 문의 유형, 페이지 번호, 페이지 크기로 문의 목록을 조회합니다.
 
-			cursor를 지정하지 않으면 처음부터, size를 지정하지 않으면 20건씩 조회합니다.
-			다음 페이지 정보는 meta.pagination에 담깁니다.
+			page를 지정하지 않으면 0부터, size를 지정하지 않으면 20건씩 조회합니다.
+			페이지 정보는 meta.page, meta.size, meta.totalElements, meta.totalPages에 담깁니다.
 			""",
 		responses = [
 			ApiResponse(
 				responseCode = "200",
 				description = "문의 목록",
-				content = [Content(schema = Schema(implementation = AdminHelpListResponse::class))]
+				content = [
+					Content(
+						array = ArraySchema(
+							schema = Schema(implementation = AdminHelpListResponse.AdminHelpInfo::class)
+						)
+					)
+				]
 			)
 		]
 	)

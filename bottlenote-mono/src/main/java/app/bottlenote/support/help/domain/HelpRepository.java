@@ -8,6 +8,7 @@ import app.bottlenote.support.help.dto.response.AdminHelpListResponse;
 import app.bottlenote.support.help.dto.response.HelpListResponse;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
 
 public interface HelpRepository {
 
@@ -26,5 +27,5 @@ public interface HelpRepository {
   PageResponse<HelpListResponse> getHelpList(
       HelpPageableRequest helpPageableRequest, Long currentUserId);
 
-  PageResponse<AdminHelpListResponse> getAdminHelpList(AdminHelpPageableRequest request);
+  Page<AdminHelpListResponse.AdminHelpInfo> getAdminHelpList(AdminHelpPageableRequest request);
 }

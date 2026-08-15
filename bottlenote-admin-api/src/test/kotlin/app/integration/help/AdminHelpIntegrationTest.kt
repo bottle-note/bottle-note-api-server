@@ -55,11 +55,49 @@ class AdminHelpIntegrationTest : IntegrationTestSupport() {
 				mockMvcTester
 					.get()
 					.uri("/v1/helps")
+					.param("page", "0")
+					.param("size", "2")
 					.header("Authorization", "Bearer $accessToken")
 			).hasStatusOk()
 				.bodyJson()
 				.extractingPath("$.success")
 				.isEqualTo(true)
+
+			assertThat(
+				mockMvcTester
+					.get()
+					.uri("/v1/helps")
+					.param("page", "0")
+					.param("size", "2")
+					.header("Authorization", "Bearer $accessToken")
+			).hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.meta.page")
+				.isEqualTo(0)
+
+			assertThat(
+				mockMvcTester
+					.get()
+					.uri("/v1/helps")
+					.param("page", "0")
+					.param("size", "2")
+					.header("Authorization", "Bearer $accessToken")
+			).hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.meta.size")
+				.isEqualTo(2)
+
+			assertThat(
+				mockMvcTester
+					.get()
+					.uri("/v1/helps")
+					.param("page", "0")
+					.param("size", "2")
+					.header("Authorization", "Bearer $accessToken")
+			).hasStatusOk()
+				.bodyJson()
+				.extractingPath("$.data.length()")
+				.isEqualTo(2)
 		}
 
 		@Test

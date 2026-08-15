@@ -2,7 +2,6 @@ package app.bottlenote.support.help.presentation
 
 import app.bottlenote.global.data.response.GlobalResponse
 import app.bottlenote.global.security.SecurityContextUtil
-import app.bottlenote.global.service.meta.MetaService
 import app.bottlenote.support.help.dto.request.AdminHelpAnswerRequest
 import app.bottlenote.support.help.dto.request.AdminHelpPageableRequest
 import app.bottlenote.support.help.presentation.docs.AdminHelpApiDocs
@@ -23,13 +22,7 @@ class AdminHelpController(
 	@GetMapping
 	fun getHelpList(
 		@ModelAttribute request: AdminHelpPageableRequest
-	): ResponseEntity<GlobalResponse> {
-		val page = adminHelpService.getHelpList(request)
-		return GlobalResponse.ok(
-			page.content(),
-			MetaService.createMetaInfo().add("pagination", page.pagination())
-		)
-	}
+	): ResponseEntity<GlobalResponse> = ResponseEntity.ok(adminHelpService.getHelpList(request))
 
 	@AdminHelpApiDocs.GetHelpDetail
 	@GetMapping("/{helpId}")
