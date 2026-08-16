@@ -16,7 +16,6 @@ import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Schema
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -35,12 +34,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 @DisplayName("Admin API 컨트롤러 응답 타입 규칙")
 class ControllerLayerRules {
 
-	private lateinit var importedClasses: JavaClasses
-
-	@BeforeEach
-	fun setup() {
-		importedClasses = ClassFileImporter().importPackages("app.bottlenote")
+	companion object {
+		// 임포트는 JVM당 한 번이면 충분하다. 규칙 검사는 임포트 결과를 변경하지 않는다.
+		private val IMPORTED_CLASSES: JavaClasses = ClassFileImporter().importPackages("app.bottlenote")
 	}
+
+	private val importedClasses: JavaClasses = IMPORTED_CLASSES
 
 	@Test
 	fun openApiParametersDeclareSchemas() {
