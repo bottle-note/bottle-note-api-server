@@ -13,49 +13,41 @@ concurrency:
   group: "ci-${{ github.head_ref || github.ref }}"
   cancel-in-progress: true
 
+# 퍼블릭 레포의 표준 러너는 4 vCPU / 16GB다. 워커와 힙을 그 사양에 맞춘다.
 env:
-  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=2"
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=4"
 
 jobs:
+  # 이번 실행의 메타 정보를 정리하고 검증 잡들의 분기점 역할을 한다. 빌드는 각 잡이 직접 수행한다.
   prepare:
-    timeout-minutes: 10
+    timeout-minutes: 5
     runs-on: ubuntu-latest
+    outputs:
+      branch: ${{ steps.meta.outputs.branch }}
+      sha: ${{ steps.meta.outputs.sha }}
     steps:
-      - name: echo
+      - name: collect metadata
+        id: meta
+        env:
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          EVENT: ${{ github.event_name }}
+          ACTOR: ${{ github.actor }}
         run: |
-          echo "Branch: ${{ github.event.pull_request.base.ref || github.ref_name }}"
+          echo "branch=${BRANCH}" >> "$GITHUB_OUTPUT"
+          echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
 
-      - name: checkout code
-        uses: actions/checkout@v7
-        with:
-          submodules: true
-          token: ${{ secrets.GIT_ACCESS_TOKEN }}
-      - name: setup jdk
-        uses: actions/setup-java@v5
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-      - name: setup gradle cache
-        uses: actions/cache@v6
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+          {
+            echo "### CI 대상"
+            echo ""
+            echo "| 항목 | 값 |"
+            echo "| --- | --- |"
+            echo "| 브랜치 | \`${BRANCH}\` |"
+            echo "| 커밋 | \`${SHA}\` |"
+            echo "| 이벤트 | \`${EVENT}\` |"
+            echo "| 실행자 | \`${ACTOR}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: install dependencies & compile
-        run: |
-          ./gradlew dependencies
-          ./gradlew compileJava compileTestJava
-
-      - name: cache workspace
-        uses: actions/cache@v6
-        with:
-          path: |
-            .gradle
-            build
-            */build
-          key: workspace-${{ github.sha }}
   unit-tests:
     needs: prepare
     timeout-minutes: 15
@@ -73,22 +65,15 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: setup gradle cache
-        uses: actions/cache@v6
+      # 의존성과 Gradle 빌드 캐시를 함께 복원한다. 저장은 final-build 잡이 전담한다.
+      # 키에 hashFiles를 쓰지 않는다. 빌드 전후로 값이 달라져 restore 키와 save 키가 어긋난다.
+      - name: restore gradle cache
+        uses: actions/cache/restore@v6
         with:
           path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-gradle-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: restore workspace cache
-        uses: actions/cache@v6
-        with:
-          path: |
-            .gradle
-            build
-            */build
-          key: workspace-${{ github.sha }}
+            ${{ runner.os }}-${{ runner.arch }}-gradle-
 
       - name: run unit tests
         run: ./gradlew unit_test
@@ -119,22 +104,15 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: setup gradle cache
-        uses: actions/cache@v6
+      # 의존성과 Gradle 빌드 캐시를 함께 복원한다. 저장은 final-build 잡이 전담한다.
+      # 키에 hashFiles를 쓰지 않는다. 빌드 전후로 값이 달라져 restore 키와 save 키가 어긋난다.
+      - name: restore gradle cache
+        uses: actions/cache/restore@v6
         with:
           path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-gradle-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: restore workspace cache
-        uses: actions/cache@v6
-        with:
-          path: |
-            .gradle
-            build
-            */build
-          key: workspace-${{ github.sha }}
+            ${{ runner.os }}-${{ runner.arch }}-gradle-
 
       - name: run rules tests
         run: ./gradlew check_rule_test
@@ -153,7 +131,8 @@ jobs:
     timeout-minutes: 20
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
+      # 실행 분이 무료인 퍼블릭 레포다. 한쪽이 깨져도 나머지 결과를 끝까지 받는다.
+      fail-fast: false
       matrix:
         include:
           - name: product
@@ -181,22 +160,15 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: setup gradle cache
-        uses: actions/cache@v6
+      # 의존성과 Gradle 빌드 캐시를 함께 복원한다. 저장은 final-build 잡이 전담한다.
+      # 키에 hashFiles를 쓰지 않는다. 빌드 전후로 값이 달라져 restore 키와 save 키가 어긋난다.
+      - name: restore gradle cache
+        uses: actions/cache/restore@v6
         with:
           path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-gradle-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: restore workspace cache
-        uses: actions/cache@v6
-        with:
-          path: |
-            .gradle
-            build
-            */build
-          key: workspace-${{ github.sha }}
+            ${{ runner.os }}-${{ runner.arch }}-gradle-
 
       - name: run ${{ matrix.name }} integration tests
         run: ./gradlew ${{ matrix.task }}
@@ -215,9 +187,7 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-latest
     permissions:
-      checks: write
       contents: read
-      pull-requests: write
     steps:
       - name: checkout code
         uses: actions/checkout@v7
@@ -231,34 +201,48 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: setup gradle cache
-        uses: actions/cache@v6
+      # 의존성과 Gradle 빌드 캐시를 함께 복원한다. 저장은 final-build 잡이 전담한다.
+      # 키에 hashFiles를 쓰지 않는다. 빌드 전후로 값이 달라져 restore 키와 save 키가 어긋난다.
+      - name: restore gradle cache
+        uses: actions/cache/restore@v6
         with:
           path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-gradle-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: restore workspace cache
-        uses: actions/cache@v6
-        with:
-          path: |
-            .gradle
-            build
-            */build
-          key: workspace-${{ github.sha }}
+            ${{ runner.os }}-${{ runner.arch }}-gradle-
 
       - name: build project
         run: ./gradlew build -x test --build-cache --parallel
 
+      # 이 잡의 전체 빌드 산출물이 다음 실행의 테스트 잡들에 재사용된다.
+      - name: save gradle cache
+        uses: actions/cache/save@v6
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-${{ runner.arch }}-gradle-${{ github.sha }}
+
+  # 테스트 리포트 발행은 빌드와 별개 관심사다. 테스트가 실패했을 때야말로 리포트가 필요하므로
+  # 검증 잡의 성패와 무관하게(if: always) 실행한다.
+  test-report:
+    needs: [ unit-tests, rule-tests, integration-tests ]
+    if: always()
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
+      pull-requests: write
+    steps:
+      # 아티팩트 이름은 `{종류}-test-results-{run_number}` 형식이라 접미사까지 받는 패턴이 필요하다.
       - name: download all test results
         uses: actions/download-artifact@v8
         with:
-          pattern: '*-test-results'
+          pattern: '*-test-results-*'
           merge-multiple: true
+          path: test-results
 
       - name: publish test report
         uses: mikepenz/action-junit-report@v6
-        if: always()
         with:
-          report_paths: '**/build/test-results/**/TEST-*.xml'
+          report_paths: 'test-results/**/TEST-*.xml'
+          require_tests: true
