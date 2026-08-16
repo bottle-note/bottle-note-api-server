@@ -104,9 +104,15 @@ subprojects {
 	bootJar.enabled = false
 	jar.enabled = true
 
+	// CI의 검증 잡은 항상 테스트를 실제로 실행해야 한다. 빌드 캐시가 켜져 있어도
+	// 테스트 태스크는 up-to-date 판정과 캐시 복원을 모두 막는다.
+	tasks.withType(Test).configureEach {
+		outputs.upToDateWhen { false }
+		outputs.cacheIf { false }
+	}
+
 	// 테스트 설정
 	test {
-		outputs.upToDateWhen { false }
 		useJUnitPlatform {
 			excludeTags 'integration', 'admin_integration'
 		}
