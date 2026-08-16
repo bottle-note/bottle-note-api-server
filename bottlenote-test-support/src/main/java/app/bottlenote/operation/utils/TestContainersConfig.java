@@ -7,6 +7,7 @@ import app.bottlenote.common.profanity.dto.response.ProfanityResponse;
 import com.redis.testcontainers.RedisContainer;
 import java.net.URI;
 import java.util.Collections;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -36,13 +37,20 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 public class TestContainersConfig {
 
   private static final String DEFAULT_DB_NAME = "bottlenote";
+  private static final String MYSQL_DATA_DIR = "/var/lib/mysql";
 
-  /** MySQL 컨테이너를 Spring Bean으로 등록합니다. @ServiceConnection이 자동으로 DataSource 설정을 처리합니다. */
+  /**
+   * MySQL 컨테이너를 Spring Bean으로 등록합니다. @ServiceConnection이 자동으로 DataSource 설정을 처리합니다.
+   *
+   * <p>데이터 디렉터리를 tmpfs에 둔다. 테스트 간 정리와 Flyway 마이그레이션이 만드는 디스크 I/O가 통합 테스트 시간의 큰 몫을 차지하는데, 테스트 DB는 컨테이너
+   * 수명을 넘겨 보존할 필요가 없다.
+   */
   @Bean
   @ServiceConnection
   MySQLContainer<?> mysqlContainer() {
     String dbName = System.getProperty("testcontainers.db.name", DEFAULT_DB_NAME);
     return new MySQLContainer<>(DockerImageName.parse("mysql:8.0.32"))
+        .withTmpFs(Map.of(MYSQL_DATA_DIR, "rw,size=2g"))
         .withReuse(true)
         .withDatabaseName(dbName)
         .withUsername("root")
