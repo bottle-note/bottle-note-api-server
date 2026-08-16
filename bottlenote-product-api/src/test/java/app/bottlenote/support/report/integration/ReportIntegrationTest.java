@@ -27,6 +27,7 @@ import app.bottlenote.support.report.dto.response.ReviewReportResponse;
 import app.bottlenote.support.report.dto.response.UserReportResponse;
 import app.bottlenote.user.domain.User;
 import app.bottlenote.user.fixture.UserTestFactory;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -43,6 +44,13 @@ class ReportIntegrationTest extends IntegrationTestSupport {
   @Autowired private UserTestFactory userTestFactory;
   @Autowired private AlcoholTestFactory alcoholTestFactory;
   @Autowired private ReviewTestFactory reviewTestFactory;
+
+  // 신고 식별자와 리뷰 식별자는 별개다. 리뷰로 신고를 찾을 때는 reviewId로 걸러야 한다.
+  private List<ReviewReport> findReportsOf(Long reviewId) {
+    return reviewReportRepository.findAll().stream()
+        .filter(report -> reviewId.equals(report.getReviewId()))
+        .toList();
+  }
 
   @DisplayName("리뷰를 신고할 수 있다.")
   @Test
@@ -95,8 +103,7 @@ class ReportIntegrationTest extends IntegrationTestSupport {
             .with(csrf())
             .exchange();
 
-    ReviewReport saved =
-        reviewReportRepository.findById(reviewReportRequest.reportReviewId()).orElse(null);
+    ReviewReport saved = findReportsOf(review.getId()).stream().findFirst().orElse(null);
     assertNotNull(saved);
 
     ReviewReportResponse reviewReportResponse =
@@ -165,9 +172,7 @@ class ReportIntegrationTest extends IntegrationTestSupport {
             .exchange();
 
     // then
-    ReviewReport savedReport =
-        reviewReportRepository.findById(reviewReportRequest.reportReviewId()).orElse(null);
-    assertNotNull(savedReport);
+    assertEquals(5, findReportsOf(review.getId()).size());
 
     ReviewReportResponse reviewReportResponse = extractData(result, ReviewReportResponse.class);
 
