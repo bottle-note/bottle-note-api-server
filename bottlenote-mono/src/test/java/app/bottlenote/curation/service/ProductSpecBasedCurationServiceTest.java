@@ -4,8 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.bottlenote.curation.domain.CurationSpec;
+import app.bottlenote.curation.constant.CurationSortType;
 import app.bottlenote.curation.dto.request.CurationCreateRequest;
-import app.bottlenote.curation.dto.request.CurationSortType;
+import app.bottlenote.curation.dto.request.CurationFeedSearchRequest;
 import app.bottlenote.global.pagination.PaginationException;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationDetailResponse;
@@ -236,14 +237,29 @@ class ProductSpecBasedCurationServiceTest {
     List<Long> dateDesc = collectAllFeedIds(spec.getCode(), CurationSortType.EXPOSURE_START_DATE, SortOrder.DESC, 4);
     List<Long> displayAsc = collectAllFeedIds(spec.getCode(), CurationSortType.DISPLAY_ORDER, SortOrder.ASC, 4);
     List<Long> displayDesc = collectAllFeedIds(spec.getCode(), CurationSortType.DISPLAY_ORDER, SortOrder.DESC, 4);
-    var dateDescFirst = productService.searchFeed(null, List.of(spec.getCode()), null, 2, CurationSortType.EXPOSURE_START_DATE, SortOrder.DESC);
+    var dateDescFirst =
+        productService.searchFeed(
+            feedRequest(spec.getCode(), null, 2, CurationSortType.EXPOSURE_START_DATE, SortOrder.DESC));
 
     assertThat(dateAsc).containsExactly(sameDateLowerId, sameDateHigherId, newer, nullDate);
     assertThat(dateDesc).containsExactly(newer, sameDateHigherId, sameDateLowerId, nullDate);
     assertThat(displayAsc).containsExactly(newer, sameDateLowerId, sameDateHigherId, nullDate);
     assertThat(displayDesc).containsExactly(nullDate, sameDateHigherId, sameDateLowerId, newer);
-    assertThatThrownBy(() -> productService.searchFeed(null, List.of(spec.getCode()), dateDescFirst.pagination().nextCursor(), 2, CurationSortType.DISPLAY_ORDER, SortOrder.DESC))
+    assertThatThrownBy(
+            () ->
+                productService.searchFeed(
+                    feedRequest(
+                        spec.getCode(),
+                        dateDescFirst.pagination().nextCursor(),
+                        2,
+                        CurationSortType.DISPLAY_ORDER,
+                        SortOrder.DESC)))
         .isInstanceOf(PaginationException.class);
+  }
+
+  private CurationFeedSearchRequest feedRequest(
+      String code, String cursor, int size, CurationSortType sortType, SortOrder sortOrder) {
+    return new CurationFeedSearchRequest(List.of(code), null, cursor, size, sortType, sortOrder);
   }
 
   private List<Long> collectAllFeedIds(
@@ -251,7 +267,7 @@ class ProductSpecBasedCurationServiceTest {
     List<Long> ids = new ArrayList<>();
     String cursor = null;
     do {
-      var page = productService.searchFeed(null, List.of(code), cursor, 2, sortType, sortOrder);
+      var page = productService.searchFeed(feedRequest(code, cursor, 2, sortType, sortOrder));
       ids.addAll(page.content().items().stream().map(item -> item.id()).toList());
       assertThat(page.pagination().hasNext()).isEqualTo(ids.size() < expectedSize);
       if (page.pagination().hasNext()) {

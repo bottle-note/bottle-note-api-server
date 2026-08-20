@@ -3,7 +3,7 @@ package app.bottlenote.curation.fixture;
 import app.bottlenote.curation.domain.Curation;
 import app.bottlenote.curation.domain.CurationRepository;
 import app.bottlenote.curation.dto.dsl.CurationFeedSearchCriteria;
-import app.bottlenote.curation.dto.request.CurationSortType;
+import app.bottlenote.curation.constant.CurationSortType;
 import app.bottlenote.global.service.cursor.SortOrder;
 import java.time.LocalDate;
 import java.util.Collection;

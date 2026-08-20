@@ -3,7 +3,7 @@ package app.bottlenote.curation.presentation.docs
 import app.bottlenote.curation.dto.response.AdminSpecBasedCurationDetailResponse
 import app.bottlenote.curation.dto.response.AdminSpecBasedCurationListResponse
 import app.bottlenote.curation.dto.response.CurationFeedItemResponse
-import app.bottlenote.curation.dto.request.CurationSortType
+import app.bottlenote.curation.constant.CurationSortType
 import app.bottlenote.global.dto.response.AdminResultResponse
 import app.bottlenote.global.service.cursor.SortOrder
 import io.swagger.v3.oas.annotations.Operation

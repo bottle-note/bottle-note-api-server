@@ -174,3 +174,4 @@ Mockito를 사용하지 않고 실제 repository/fixture 또는 Fake/InMemory �
 - 2026-08-21: test-source-first로 request 기본값/enum, Admin·Product ordering matrix, Product cursor 연속성·context 불일치, Product HTTP enum binding/400, OpenAPI 설명을 추가했다. 기존 고정 DESC 구현에는 enum/overload/context/matrix가 없어 정적 RED를 확인했다.
 - 2026-08-21: QueryDSL/JPA/InMemory seek·order·cursor keys를 선택 정렬로 전환하고 정적 GREEN source/model/diff 검증을 수행했다. OOM 정책에 따라 Gradle/JVM/Testcontainers/Docker는 실행하지 않았으며 compile/unit/integration/OpenAPI 생성/CI는 delivery-stage 검증 gap으로 남긴다.
 - 2026-08-21: 선택 정렬 PR 갱신 후 첫 CI가 `ComparableExpressionBase<T>`에 존재하지 않는 `gt/lt` 호출로 compile 단계에서 실패했다. 날짜·숫자 QueryDSL path별 typed seek helper로 분리하는 최소 수정 후 2차 CI를 수행한다.
+- 2026-08-21: 2차 CI는 compile을 통과하고 7개 규칙/계약 실패를 노출했다. enum constant 패키지, service 최대 5개 인자, OpenAPI enum 순서 비의존 assertion, 기본 날짜 DESC 페이지 기대값, 기존 invalid-enum 400 의미를 수정한 뒤 fresh 리뷰를 거쳐 세 번째 최종 CI를 수행한다.

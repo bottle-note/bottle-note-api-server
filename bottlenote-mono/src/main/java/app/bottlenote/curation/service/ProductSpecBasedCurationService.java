@@ -10,7 +10,8 @@ import app.bottlenote.curation.domain.CurationRepository;
 import app.bottlenote.curation.domain.CurationSpec;
 import app.bottlenote.curation.domain.CurationSpecRepository;
 import app.bottlenote.curation.dto.dsl.CurationFeedSearchCriteria;
-import app.bottlenote.curation.dto.request.CurationSortType;
+import app.bottlenote.curation.constant.CurationSortType;
+import app.bottlenote.curation.dto.request.CurationFeedSearchRequest;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.curation.dto.response.CurationFeedListResponse;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationDetailResponse;
@@ -64,32 +65,22 @@ public class ProductSpecBasedCurationService {
   @Transactional(readOnly = true)
   public PageResponse<CurationFeedListResponse> searchFeed(
       String keyword, List<String> codes, String cursor, Integer size) {
-    return searchFeed(
-        keyword,
-        codes,
-        cursor,
-        size,
-        CurationSortType.EXPOSURE_START_DATE,
-        SortOrder.DESC);
+    return searchFeed(new CurationFeedSearchRequest(codes, keyword, cursor, size));
   }
 
   @Transactional(readOnly = true)
-  public PageResponse<CurationFeedListResponse> searchFeed(
-      String keyword,
-      List<String> codes,
-      String cursor,
-      Integer size,
-      CurationSortType sortType,
-      SortOrder sortOrder) {
-    int pageSize = normalizeFeedSize(size);
-    List<String> normalizedCodes = normalizeCodes(codes);
+  public PageResponse<CurationFeedListResponse> searchFeed(CurationFeedSearchRequest request) {
+    int pageSize = normalizeFeedSize(request.size());
+    List<String> normalizedCodes = normalizeCodes(request.code());
+    CurationSortType sortType = request.sortType();
+    SortOrder sortOrder = request.sortOrder();
     String context =
-        "curation.feed:" + normalizedCodes + ":" + keyword + ":" + sortType + ":" + sortOrder;
+        "curation.feed:" + normalizedCodes + ":" + request.keyword() + ":" + sortType + ":" + sortOrder;
     LocalDate lastExposureStartDate = null;
     Integer lastDisplayOrder = null;
     Long lastId = null;
-    if (cursor != null) {
-      var claims = cursorCodec.verify(cursor, context);
+    if (request.cursor() != null) {
+      var claims = cursorCodec.verify(request.cursor(), context);
       lastExposureStartDate = parseCursorDate(CursorKeys.optional(claims, "date"));
       lastDisplayOrder = parseCursorInteger(CursorKeys.optional(claims, "displayOrder"));
       lastId = CursorKeys.requireLong(claims, "id");
@@ -107,7 +98,7 @@ public class ProductSpecBasedCurationService {
             .collect(Collectors.toSet());
     CurationFeedSearchCriteria criteria =
         new CurationFeedSearchCriteria(
-            keyword,
+            request.keyword(),
             specMap.keySet(),
             keywordMatchedSpecIds,
             LocalDate.now(),

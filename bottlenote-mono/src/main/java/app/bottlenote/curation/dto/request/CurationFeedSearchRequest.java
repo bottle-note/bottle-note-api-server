@@ -1,5 +1,6 @@
 package app.bottlenote.curation.dto.request;
 
+import app.bottlenote.curation.constant.CurationSortType;
 import app.bottlenote.global.pagination.PaginationRequest;
 import app.bottlenote.global.service.cursor.SortOrder;
 import jakarta.validation.constraints.NotBlank;

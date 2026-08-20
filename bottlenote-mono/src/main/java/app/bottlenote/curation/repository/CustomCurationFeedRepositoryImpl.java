@@ -3,7 +3,7 @@ package app.bottlenote.curation.repository;
 import static app.bottlenote.curation.domain.QCuration.curation;
 
 import app.bottlenote.curation.dto.dsl.CurationFeedSearchCriteria;
-import app.bottlenote.curation.dto.request.CurationSortType;
+import app.bottlenote.curation.constant.CurationSortType;
 import app.bottlenote.global.service.cursor.SortOrder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;

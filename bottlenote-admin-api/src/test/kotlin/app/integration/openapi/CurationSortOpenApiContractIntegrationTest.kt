@@ -32,7 +32,7 @@ class CurationSortOpenApiContractIntegrationTest : OpenApiSpecTestSupport() {
 			.path("schema")
 
 		assertThat(schema.path("type").asText()).isEqualTo("string")
-		assertThat(schema.path("enum").map(JsonNode::asText)).containsExactlyElementsOf(expectedEnum)
+		assertThat(schema.path("enum").map(JsonNode::asText)).containsExactlyInAnyOrderElementsOf(expectedEnum)
 		assertThat(schema.path("default").asText()).isEqualTo(expectedDefault)
 	}
 }

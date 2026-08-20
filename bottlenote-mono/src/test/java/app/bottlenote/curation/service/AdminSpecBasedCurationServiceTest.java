@@ -7,7 +7,7 @@ import app.bottlenote.curation.domain.CurationExtension;
 import app.bottlenote.curation.domain.CurationSpec;
 import app.bottlenote.curation.dto.request.CurationCreateRequest;
 import app.bottlenote.curation.dto.request.CurationSearchRequest;
-import app.bottlenote.curation.dto.request.CurationSortType;
+import app.bottlenote.curation.constant.CurationSortType;
 import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.curation.dto.request.CurationUpdateRequest;
 import app.bottlenote.curation.dto.response.AdminSpecBasedCurationDetailResponse;
