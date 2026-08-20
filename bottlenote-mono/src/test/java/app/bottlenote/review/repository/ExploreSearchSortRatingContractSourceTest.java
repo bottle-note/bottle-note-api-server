@@ -44,6 +44,21 @@ class ExploreSearchSortRatingContractSourceTest {
     assertThat(repository)
         .contains("displayedRating()", "ratingMatches(BigDecimal rating)")
         .contains(".having(", "ratingMatches(criteria.rating())");
+
+    String randomBranch = extractRandomBranch(repository);
+    assertThat(randomBranch)
+        .contains("if (criteria.rating() != null)")
+        .contains("leftJoin(rating)", "ratingMatches(criteria.rating())")
+        .contains("groupBy(alcohol.id)", "randomSeek(claims, crc)")
+        .doesNotContain("criteria.rating() == null");
+  }
+
+  private static String extractRandomBranch(String source) {
+    int start = source.indexOf("if (sortType == SearchSortType.RANDOM)");
+    int end = source.indexOf("NumberExpression<? extends Number> sortScore", start);
+    assertThat(start).isGreaterThanOrEqualTo(0);
+    assertThat(end).isGreaterThan(start);
+    return source.substring(start, end);
   }
 
   private static String read(String relativePath) throws IOException {
