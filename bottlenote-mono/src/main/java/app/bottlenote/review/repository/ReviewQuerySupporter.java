@@ -169,7 +169,7 @@ public class ReviewQuerySupporter {
 
   /**
    * {@link #sortBy}가 만드는 ORDER BY와 정확히 대응하는 keyset seek 조건을 만든다. ORDER BY의 각 컬럼을 앞에서부터 재귀적으로 비교하는
-   * 튜플 비교이며, 항상 review.id DESC로 끝난다.
+   * 튜플 비교이며, createAt과 review.id tie-breaker는 요청 정렬 방향을 따른다.
    */
   public static BooleanExpression keysetSeek(
       ReviewSortType sortType, SortOrder sortOrder, CursorClaims claims) {
@@ -217,7 +217,7 @@ public class ReviewQuerySupporter {
     }
   }
 
-  // POPULAR: isBest(nullsLast) -> likes.id.countDistinct()(nullsLast) -> createAt DESC -> id DESC
+  // POPULAR: isBest(nullsLast) -> likes.id.countDistinct()(nullsLast) -> createAt(dir) -> id(dir)
   private static BooleanExpression popularSeek(boolean desc, CursorClaims claims) {
     BooleanExpression tail = timeIdSeek(desc, claims);
     NumberExpression<Long> likesCount = distinctLikesCount();
@@ -226,7 +226,7 @@ public class ReviewQuerySupporter {
     return nullsLastBooleanStep(review.isBest, desc, optionalBoolean(claims, "best"), likesStep);
   }
 
-  // LIKES: likes.id.countDistinct() -> createAt DESC -> id DESC
+  // LIKES: likes.id.countDistinct() -> createAt(dir) -> id(dir)
   private static BooleanExpression likesSeek(boolean desc, CursorClaims claims) {
     BooleanExpression tail = timeIdSeek(desc, claims);
     NumberExpression<Long> likesCount = distinctLikesCount();
@@ -238,14 +238,14 @@ public class ReviewQuerySupporter {
     return likes.id.countDistinct();
   }
 
-  // RATING: review.reviewRating -> createAt DESC -> id DESC. 컬럼이 nullable이라 MySQL 기본 NULL 순서를 따른다.
+  // RATING: review.reviewRating -> createAt(dir) -> id(dir). 컬럼이 nullable이라 MySQL 기본 NULL 순서를 따른다.
   private static BooleanExpression ratingSeek(boolean desc, CursorClaims claims) {
     BooleanExpression tail = timeIdSeek(desc, claims);
     return nativeNullableNumberStep(
         review.reviewRating, desc, CursorKeys.optionalDouble(claims, "rating"), tail);
   }
 
-  // BOTTLE_PRICE/GLASS_PRICE: sizeType(nullsLast, 고정 방향) -> price(dir) -> createAt DESC -> id DESC
+  // BOTTLE_PRICE/GLASS_PRICE: sizeType(nullsLast, 고정 방향) -> price(dir) -> createAt(dir) -> id(dir)
   private static BooleanExpression sizePriceSeek(
       boolean desc, SizeType rankFirst, CursorClaims claims) {
     BooleanExpression tail = timeIdSeek(desc, claims);
