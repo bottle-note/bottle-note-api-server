@@ -4,8 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import app.bottlenote.review.domain.ReviewLocation;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+@Tag("unit")
 @DisplayName("LocationInfo")
 class LocationInfoTest {
 
