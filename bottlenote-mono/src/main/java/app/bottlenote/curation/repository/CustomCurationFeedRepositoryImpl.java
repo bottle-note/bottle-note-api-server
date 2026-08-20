@@ -8,7 +8,10 @@ import app.bottlenote.global.service.cursor.SortOrder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.DatePath;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
@@ -68,9 +71,19 @@ public class CustomCurationFeedRepositoryImpl implements CustomCurationFeedRepos
         .or(curation.exposureStartDate.isNull());
   }
 
-  private static <T extends Comparable<?>> BooleanExpression orderedAfter(
-      com.querydsl.core.types.dsl.ComparableExpressionBase<T> field,
-      T lastValue,
+  private static BooleanExpression orderedAfter(
+      NumberPath<Integer> field,
+      Integer lastValue,
+      Long lastId,
+      SortOrder sortOrder) {
+    BooleanExpression primaryAfter =
+        sortOrder == SortOrder.ASC ? field.gt(lastValue) : field.lt(lastValue);
+    return primaryAfter.or(field.eq(lastValue).and(idAfter(lastId, sortOrder)));
+  }
+
+  private static BooleanExpression orderedAfter(
+      DatePath<LocalDate> field,
+      LocalDate lastValue,
       Long lastId,
       SortOrder sortOrder) {
     BooleanExpression primaryAfter =

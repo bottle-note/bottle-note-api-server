@@ -173,3 +173,4 @@ Mockito를 사용하지 않고 실제 repository/fixture 또는 Fake/InMemory �
 - 2026-08-21: worker commit `10871a13` 후 fresh-context 독립 리뷰에서 Product 일반 목록 `/api/v2/curations`의 범위 밖 정렬 변경과 OpenAPI query enum/default schema 누락을 blocker로 확인했다. 원격 push를 중단하고 일반 목록 displayOrder 계약 복원, OpenAPI artifact 계약, 네 조합 cursor 연속성 및 invalid sortOrder 400만 보완한다.
 - 2026-08-21: test-source-first로 request 기본값/enum, Admin·Product ordering matrix, Product cursor 연속성·context 불일치, Product HTTP enum binding/400, OpenAPI 설명을 추가했다. 기존 고정 DESC 구현에는 enum/overload/context/matrix가 없어 정적 RED를 확인했다.
 - 2026-08-21: QueryDSL/JPA/InMemory seek·order·cursor keys를 선택 정렬로 전환하고 정적 GREEN source/model/diff 검증을 수행했다. OOM 정책에 따라 Gradle/JVM/Testcontainers/Docker는 실행하지 않았으며 compile/unit/integration/OpenAPI 생성/CI는 delivery-stage 검증 gap으로 남긴다.
+- 2026-08-21: 선택 정렬 PR 갱신 후 첫 CI가 `ComparableExpressionBase<T>`에 존재하지 않는 `gt/lt` 호출로 compile 단계에서 실패했다. 날짜·숫자 QueryDSL path별 typed seek helper로 분리하는 최소 수정 후 2차 CI를 수행한다.
