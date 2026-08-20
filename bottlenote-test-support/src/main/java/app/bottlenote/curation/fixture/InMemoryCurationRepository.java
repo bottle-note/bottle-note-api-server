@@ -27,13 +27,13 @@ public class InMemoryCurationRepository implements CurationRepository {
   @Override
   public List<Curation> findAllByIsActiveTrueOrderByDisplayOrderAscIdAsc() {
     return database.values().stream().filter(c -> Boolean.TRUE.equals(c.getIsActive()))
-        .sorted(comparator(CurationSortType.EXPOSURE_START_DATE, SortOrder.DESC)).toList();
+        .sorted(Comparator.comparing(Curation::getDisplayOrder).thenComparing(Curation::getId)).toList();
   }
 
   @Override
   public List<Curation> findAllVisibleOn(LocalDate today) {
     return database.values().stream().filter(c -> Boolean.TRUE.equals(c.getIsActive())).filter(c -> isVisibleOn(c, today))
-        .sorted(comparator(CurationSortType.EXPOSURE_START_DATE, SortOrder.DESC)).toList();
+        .sorted(Comparator.comparing(Curation::getDisplayOrder).thenComparing(Curation::getId)).toList();
   }
 
   @Override

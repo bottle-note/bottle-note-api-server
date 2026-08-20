@@ -3,8 +3,11 @@ package app.bottlenote.curation.presentation.docs
 import app.bottlenote.curation.dto.response.AdminSpecBasedCurationDetailResponse
 import app.bottlenote.curation.dto.response.AdminSpecBasedCurationListResponse
 import app.bottlenote.curation.dto.response.CurationFeedItemResponse
+import app.bottlenote.curation.dto.request.CurationSortType
 import app.bottlenote.global.dto.response.AdminResultResponse
+import app.bottlenote.global.service.cursor.SortOrder
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
@@ -30,6 +33,10 @@ object AdminSpecBasedCurationApiDocs {
 
 			code에 해당하는 스펙이 없으면 오류가 아니라 빈 목록을 200으로 반환합니다.
 			""",
+		parameters = [
+			Parameter(name = "sortType", description = "정렬 기준 (기본 EXPOSURE_START_DATE)", schema = Schema(implementation = CurationSortType::class, defaultValue = "EXPOSURE_START_DATE")),
+			Parameter(name = "sortOrder", description = "정렬 방향 (기본 DESC)", schema = Schema(implementation = SortOrder::class, defaultValue = "DESC"))
+		],
 		responses = [
 			ApiResponse(
 				responseCode = "200",
@@ -56,6 +63,10 @@ object AdminSpecBasedCurationApiDocs {
 
 			size는 최대 10개로 제한되며, code에 해당하는 스펙이 없으면 오류가 아니라 빈 목록을 200으로 반환합니다.
 			""",
+		parameters = [
+			Parameter(name = "sortType", description = "정렬 기준 (기본 EXPOSURE_START_DATE)", schema = Schema(implementation = CurationSortType::class, defaultValue = "EXPOSURE_START_DATE")),
+			Parameter(name = "sortOrder", description = "정렬 방향 (기본 DESC)", schema = Schema(implementation = SortOrder::class, defaultValue = "DESC"))
+		],
 		responses = [
 			ApiResponse(
 				responseCode = "200",

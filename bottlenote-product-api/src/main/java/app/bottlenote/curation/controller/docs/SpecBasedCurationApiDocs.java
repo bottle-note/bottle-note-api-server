@@ -3,7 +3,10 @@ package app.bottlenote.curation.controller.docs;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationDetailResponse;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationFeedItemResponse;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationListResponse;
+import app.bottlenote.curation.dto.request.CurationSortType;
+import app.bottlenote.global.service.cursor.SortOrder;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -58,6 +61,19 @@ public final class SpecBasedCurationApiDocs {
           EXPOSURE_START_DATE는 방향과 무관하게 null 날짜를 마지막에 두고, 같은 날짜/null bucket은 요청 방향의 id로 정렬합니다.
           DISPLAY_ORDER는 같은 방향의 displayOrder, id로 정렬합니다. 다음 페이지는 같은 sortType/sortOrder와 meta.pagination.nextCursor를 그대로 보내야 합니다.
           """,
+      parameters = {
+        @Parameter(
+            name = "sortType",
+            description = "정렬 기준 (기본 EXPOSURE_START_DATE)",
+            schema =
+                @Schema(
+                    implementation = CurationSortType.class,
+                    defaultValue = "EXPOSURE_START_DATE")),
+        @Parameter(
+            name = "sortOrder",
+            description = "정렬 방향 (기본 DESC)",
+            schema = @Schema(implementation = SortOrder.class, defaultValue = "DESC"))
+      },
       responses =
           @ApiResponse(
               responseCode = "200",

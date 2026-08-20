@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -231,19 +232,35 @@ class ProductSpecBasedCurationServiceTest {
     Long sameDateHigherId = createCuration(spec.getId(), "date-high", 10, true, LocalDate.now().minusDays(2), LocalDate.now().plusDays(1));
     Long newer = createCuration(spec.getId(), "newer", 5, true, LocalDate.now().minusDays(1), LocalDate.now().plusDays(1));
 
-    var dateAsc = productService.searchFeed(null, List.of(spec.getCode()), null, 10, CurationSortType.EXPOSURE_START_DATE, SortOrder.ASC);
-    var dateDesc = productService.searchFeed(null, List.of(spec.getCode()), null, 2, CurationSortType.EXPOSURE_START_DATE, SortOrder.DESC);
-    var displayAsc = productService.searchFeed(null, List.of(spec.getCode()), null, 10, CurationSortType.DISPLAY_ORDER, SortOrder.ASC);
-    var displayDesc = productService.searchFeed(null, List.of(spec.getCode()), null, 10, CurationSortType.DISPLAY_ORDER, SortOrder.DESC);
-    var dateDescSecond = productService.searchFeed(null, List.of(spec.getCode()), dateDesc.pagination().nextCursor(), 2, CurationSortType.EXPOSURE_START_DATE, SortOrder.DESC);
+    List<Long> dateAsc = collectAllFeedIds(spec.getCode(), CurationSortType.EXPOSURE_START_DATE, SortOrder.ASC, 4);
+    List<Long> dateDesc = collectAllFeedIds(spec.getCode(), CurationSortType.EXPOSURE_START_DATE, SortOrder.DESC, 4);
+    List<Long> displayAsc = collectAllFeedIds(spec.getCode(), CurationSortType.DISPLAY_ORDER, SortOrder.ASC, 4);
+    List<Long> displayDesc = collectAllFeedIds(spec.getCode(), CurationSortType.DISPLAY_ORDER, SortOrder.DESC, 4);
+    var dateDescFirst = productService.searchFeed(null, List.of(spec.getCode()), null, 2, CurationSortType.EXPOSURE_START_DATE, SortOrder.DESC);
 
-    assertThat(dateAsc.content().items()).extracting("id").containsExactly(sameDateLowerId, sameDateHigherId, newer, nullDate);
-    assertThat(dateDesc.content().items()).extracting("id").containsExactly(newer, sameDateHigherId);
-    assertThat(dateDescSecond.content().items()).extracting("id").containsExactly(sameDateLowerId, nullDate);
-    assertThat(displayAsc.content().items()).extracting("id").containsExactly(newer, sameDateLowerId, sameDateHigherId, nullDate);
-    assertThat(displayDesc.content().items()).extracting("id").containsExactly(nullDate, sameDateHigherId, sameDateLowerId, newer);
-    assertThatThrownBy(() -> productService.searchFeed(null, List.of(spec.getCode()), dateDesc.pagination().nextCursor(), 2, CurationSortType.DISPLAY_ORDER, SortOrder.DESC))
+    assertThat(dateAsc).containsExactly(sameDateLowerId, sameDateHigherId, newer, nullDate);
+    assertThat(dateDesc).containsExactly(newer, sameDateHigherId, sameDateLowerId, nullDate);
+    assertThat(displayAsc).containsExactly(newer, sameDateLowerId, sameDateHigherId, nullDate);
+    assertThat(displayDesc).containsExactly(nullDate, sameDateHigherId, sameDateLowerId, newer);
+    assertThatThrownBy(() -> productService.searchFeed(null, List.of(spec.getCode()), dateDescFirst.pagination().nextCursor(), 2, CurationSortType.DISPLAY_ORDER, SortOrder.DESC))
         .isInstanceOf(PaginationException.class);
+  }
+
+  private List<Long> collectAllFeedIds(
+      String code, CurationSortType sortType, SortOrder sortOrder, int expectedSize) throws IOException {
+    List<Long> ids = new ArrayList<>();
+    String cursor = null;
+    do {
+      var page = productService.searchFeed(null, List.of(code), cursor, 2, sortType, sortOrder);
+      ids.addAll(page.content().items().stream().map(item -> item.id()).toList());
+      assertThat(page.pagination().hasNext()).isEqualTo(ids.size() < expectedSize);
+      if (page.pagination().hasNext()) {
+        assertThat(page.pagination().nextCursor()).isNotBlank();
+      }
+      cursor = page.pagination().nextCursor();
+    } while (cursor != null);
+    assertThat(ids).hasSize(expectedSize).doesNotHaveDuplicates();
+    return ids;
   }
 
   @Test
