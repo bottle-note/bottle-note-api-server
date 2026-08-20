@@ -21,6 +21,7 @@ import app.bottlenote.global.pagination.HmacCursorCodec;
 import app.bottlenote.global.pagination.PageResponse;
 import app.bottlenote.global.pagination.Pagination;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -64,11 +65,11 @@ public class ProductSpecBasedCurationService {
     int pageSize = normalizeFeedSize(size);
     List<String> normalizedCodes = normalizeCodes(codes);
     String context = "curation.feed:" + normalizedCodes + ":" + keyword;
-    Integer lastDisplayOrder = null;
+    LocalDate lastExposureStartDate = null;
     Long lastId = null;
     if (cursor != null) {
       var claims = cursorCodec.verify(cursor, context);
-      lastDisplayOrder = CursorKeys.requireInt(claims, "order");
+      lastExposureStartDate = parseCursorDate(CursorKeys.optional(claims, "date"));
       lastId = CursorKeys.requireLong(claims, "id");
     }
     List<CurationSpec> specs =
@@ -88,7 +89,7 @@ public class ProductSpecBasedCurationService {
             specMap.keySet(),
             keywordMatchedSpecIds,
             LocalDate.now(),
-            lastDisplayOrder,
+            lastExposureStartDate,
             lastId,
             pageSize + 1);
     List<Long> candidateIds = curationRepository.findFeedCandidateIds(criteria);
@@ -120,11 +121,7 @@ public class ProductSpecBasedCurationService {
             item ->
                 cursorCodec.encode(
                     context,
-                    Map.of(
-                        "order",
-                        String.valueOf(item.displayOrder() == null ? 0 : item.displayOrder()),
-                        "id",
-                        String.valueOf(item.id()))));
+                    cursorKeys(item.exposureStartDate(), item.id())));
     return PageResponse.of(new CurationFeedListResponse(slice.items()), slice.pagination());
   }
 
@@ -249,6 +246,25 @@ public class ProductSpecBasedCurationService {
       return MAX_FEED_SIZE;
     }
     return Math.min(size, MAX_FEED_SIZE);
+  }
+
+  private LocalDate parseCursorDate(String value) {
+    if (value == null) {
+      return null;
+    }
+    try {
+      return LocalDate.parse(value);
+    } catch (DateTimeParseException exception) {
+      throw new app.bottlenote.global.pagination.PaginationException(
+          app.bottlenote.global.pagination.PaginationExceptionCode.INVALID_CURSOR);
+    }
+  }
+
+  private Map<String, String> cursorKeys(LocalDate exposureStartDate, Long id) {
+    if (exposureStartDate == null) {
+      return Map.of("id", String.valueOf(id));
+    }
+    return Map.of("date", exposureStartDate.toString(), "id", String.valueOf(id));
   }
 
   private String container(CurationSpec spec) {

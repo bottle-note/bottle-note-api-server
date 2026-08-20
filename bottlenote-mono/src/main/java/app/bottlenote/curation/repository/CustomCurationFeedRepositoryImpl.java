@@ -4,6 +4,7 @@ import static app.bottlenote.curation.domain.QCuration.curation;
 
 import app.bottlenote.curation.dto.dsl.CurationFeedSearchCriteria;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -31,21 +32,31 @@ public class CustomCurationFeedRepositoryImpl implements CustomCurationFeedRepos
             curation.exposureEndDate.isNull().or(curation.exposureEndDate.goe(criteria.today())),
             curation.specId.in(criteria.specIds()),
             matchesKeyword(criteria),
-            displayOrderSeek(criteria))
-        .orderBy(curation.displayOrder.asc(), curation.id.asc())
+            exposureStartDateSeek(criteria))
+        .orderBy(
+            new CaseBuilder().when(curation.exposureStartDate.isNull()).then(1).otherwise(0).asc(),
+            curation.exposureStartDate.desc(),
+            curation.id.desc())
         .limit(criteria.fetchSize())
         .fetch();
   }
 
-  private static BooleanExpression displayOrderSeek(CurationFeedSearchCriteria criteria) {
+  private static BooleanExpression exposureStartDateSeek(CurationFeedSearchCriteria criteria) {
     if (criteria.lastId() == null) {
       return null;
     }
-    int lastOrder = criteria.lastDisplayOrder() == null ? 0 : criteria.lastDisplayOrder();
+    if (criteria.lastExposureStartDate() == null) {
+      return curation.exposureStartDate.isNull().and(curation.id.lt(criteria.lastId()));
+    }
     return curation
-        .displayOrder
-        .gt(lastOrder)
-        .or(curation.displayOrder.eq(lastOrder).and(curation.id.gt(criteria.lastId())));
+        .exposureStartDate
+        .lt(criteria.lastExposureStartDate())
+        .or(
+            curation
+                .exposureStartDate
+                .eq(criteria.lastExposureStartDate())
+                .and(curation.id.lt(criteria.lastId())))
+        .or(curation.exposureStartDate.isNull());
   }
 
   private BooleanExpression matchesKeyword(CurationFeedSearchCriteria criteria) {

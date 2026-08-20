@@ -356,6 +356,60 @@ class AdminSpecBasedCurationServiceTest {
   }
 
   @Test
+  @DisplayName("Admin 목록은 노출 시작일 최신순, null-last, id 내림차순으로 페이지를 나눈다")
+  void search_ordersByExposureStartDateWithNullLastAndIdDescending() {
+    CurationSpec spec = createSpec();
+    Long nullDateId =
+        adminSpecBasedCurationService
+            .create(createRequest(spec.getId(), "null 날짜", 1, true, null, null))
+            .targetId();
+    Long olderId =
+        adminSpecBasedCurationService
+            .create(
+                createRequest(
+                    spec.getId(),
+                    "오래된 날짜",
+                    2,
+                    true,
+                    LocalDate.now().minusDays(5),
+                    LocalDate.now().plusDays(1)))
+            .targetId();
+    Long sameDateLowerId =
+        adminSpecBasedCurationService
+            .create(
+                createRequest(
+                    spec.getId(),
+                    "같은 날짜 낮은 ID",
+                    3,
+                    true,
+                    LocalDate.now().minusDays(1),
+                    LocalDate.now().plusDays(1)))
+            .targetId();
+    Long sameDateHigherId =
+        adminSpecBasedCurationService
+            .create(
+                createRequest(
+                    spec.getId(),
+                    "같은 날짜 높은 ID",
+                    4,
+                    true,
+                    LocalDate.now().minusDays(1),
+                    LocalDate.now().plusDays(1)))
+            .targetId();
+
+    GlobalResponse firstPage =
+        adminSpecBasedCurationService.search(new CurationSearchRequest(null, null, null, 0, 2));
+    GlobalResponse secondPage =
+        adminSpecBasedCurationService.search(new CurationSearchRequest(null, null, null, 1, 2));
+
+    assertThat(firstPage.getData())
+        .asList()
+        .extracting("id")
+        .containsExactly(sameDateHigherId, sameDateLowerId);
+    assertThat(secondPage.getData()).asList().extracting("id").containsExactly(olderId, nullDateId);
+  }
+
+  @Test
   @DisplayName("Admin feed 검색도 code 필터를 적용한다")
   void searchFeed_whenCodeProvided_filtersBySpecCode() {
     CurationSpec recommendedSpec = createSpec();

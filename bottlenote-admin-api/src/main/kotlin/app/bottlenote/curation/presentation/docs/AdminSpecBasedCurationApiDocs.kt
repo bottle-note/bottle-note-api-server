@@ -25,6 +25,7 @@ object AdminSpecBasedCurationApiDocs {
 		summary = "스펙 기반 큐레이션 목록을 조회한다",
 		description = """
 			검색어, 스펙 코드, 활성화 상태, 페이지 번호·크기로 큐레이션 목록을 페이지 단위로 조회합니다.
+			결과는 exposureStartDate 내림차순, 날짜 없는 항목은 마지막, 같은 날짜는 id 내림차순으로 고정 정렬됩니다.
 
 			code에 해당하는 스펙이 없으면 오류가 아니라 빈 목록을 200으로 반환합니다.
 			""",
@@ -49,6 +50,7 @@ object AdminSpecBasedCurationApiDocs {
 		summary = "스펙 기반 큐레이션 피드를 조회한다",
 		description = """
 			각 큐레이션을 스펙의 응답 정의(responseSpec)에 맞춰 완성된 피드 항목으로 구체화해 반환합니다.
+			결과는 exposureStartDate 내림차순, 날짜 없는 항목은 마지막, 같은 날짜는 id 내림차순으로 고정 정렬됩니다.
 
 			size는 최대 10개로 제한되며, code에 해당하는 스펙이 없으면 오류가 아니라 빈 목록을 200으로 반환합니다.
 			""",

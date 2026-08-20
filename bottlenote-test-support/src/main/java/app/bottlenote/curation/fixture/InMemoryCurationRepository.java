@@ -17,6 +17,11 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 public class InMemoryCurationRepository implements CurationRepository {
 
+  private static final Comparator<Curation> EXPOSURE_START_DATE_ORDER =
+      Comparator.comparing(
+              Curation::getExposureStartDate, Comparator.nullsLast(Comparator.reverseOrder()))
+          .thenComparing(Curation::getId, Comparator.reverseOrder());
+
   private final Map<Long, Curation> database = new HashMap<>();
 
   @Override
@@ -28,7 +33,7 @@ public class InMemoryCurationRepository implements CurationRepository {
   public List<Curation> findAllByIsActiveTrueOrderByDisplayOrderAscIdAsc() {
     return database.values().stream()
         .filter(curation -> Boolean.TRUE.equals(curation.getIsActive()))
-        .sorted(Comparator.comparing(Curation::getDisplayOrder).thenComparing(Curation::getId))
+        .sorted(EXPOSURE_START_DATE_ORDER)
         .toList();
   }
 
@@ -37,7 +42,7 @@ public class InMemoryCurationRepository implements CurationRepository {
     return database.values().stream()
         .filter(curation -> Boolean.TRUE.equals(curation.getIsActive()))
         .filter(curation -> isVisibleOn(curation, today))
-        .sorted(Comparator.comparing(Curation::getDisplayOrder).thenComparing(Curation::getId))
+        .sorted(EXPOSURE_START_DATE_ORDER)
         .toList();
   }
 
@@ -47,27 +52,30 @@ public class InMemoryCurationRepository implements CurationRepository {
       return List.of();
     }
 
-    List<Long> candidateIds =
-        database.values().stream()
-            .filter(curation -> Boolean.TRUE.equals(curation.getIsActive()))
-            .filter(curation -> isVisibleOn(curation, criteria.today()))
-            .filter(curation -> criteria.specIds().contains(curation.getSpecId()))
-            .filter(curation -> matchesKeyword(curation, criteria))
-            .filter(curation -> afterCursor(curation, criteria))
-            .sorted(Comparator.comparing(Curation::getDisplayOrder).thenComparing(Curation::getId))
-            .map(Curation::getId)
-            .limit(criteria.fetchSize())
-            .toList();
-    return candidateIds;
+    return database.values().stream()
+        .filter(curation -> Boolean.TRUE.equals(curation.getIsActive()))
+        .filter(curation -> isVisibleOn(curation, criteria.today()))
+        .filter(curation -> criteria.specIds().contains(curation.getSpecId()))
+        .filter(curation -> matchesKeyword(curation, criteria))
+        .filter(curation -> afterCursor(curation, criteria))
+        .sorted(EXPOSURE_START_DATE_ORDER)
+        .map(Curation::getId)
+        .limit(criteria.fetchSize())
+        .toList();
   }
 
   private static boolean afterCursor(Curation curation, CurationFeedSearchCriteria criteria) {
     if (criteria.lastId() == null) {
       return true;
     }
-    int lastOrder = criteria.lastDisplayOrder() == null ? 0 : criteria.lastDisplayOrder();
-    int order = curation.getDisplayOrder() == null ? 0 : curation.getDisplayOrder();
-    return order > lastOrder || (order == lastOrder && curation.getId() > criteria.lastId());
+    LocalDate lastExposureStartDate = criteria.lastExposureStartDate();
+    LocalDate exposureStartDate = curation.getExposureStartDate();
+    if (lastExposureStartDate == null) {
+      return exposureStartDate == null && curation.getId() < criteria.lastId();
+    }
+    return exposureStartDate == null
+        || exposureStartDate.isBefore(lastExposureStartDate)
+        || (exposureStartDate.equals(lastExposureStartDate) && curation.getId() < criteria.lastId());
   }
 
   @Override
@@ -91,7 +99,7 @@ public class InMemoryCurationRepository implements CurationRepository {
                     keyword == null || keyword.isBlank() || curation.getName().contains(keyword))
             .filter(curation -> specId == null || curation.getSpecId().equals(specId))
             .filter(curation -> isActive == null || curation.getIsActive().equals(isActive))
-            .sorted(Comparator.comparing(Curation::getDisplayOrder).thenComparing(Curation::getId))
+            .sorted(EXPOSURE_START_DATE_ORDER)
             .toList();
     int start = (int) pageable.getOffset();
     int end = Math.min(start + pageable.getPageSize(), all.size());
