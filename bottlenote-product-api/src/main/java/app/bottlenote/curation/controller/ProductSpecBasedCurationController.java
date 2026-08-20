@@ -40,7 +40,12 @@ public class ProductSpecBasedCurationController {
       @ModelAttribute @Valid CurationFeedSearchRequest request) {
     PageResponse<CurationFeedListResponse> page =
         productSpecBasedCurationService.searchFeed(
-            request.keyword(), request.code(), request.cursor(), request.size());
+            request.keyword(),
+            request.code(),
+            request.cursor(),
+            request.size(),
+            request.sortType(),
+            request.sortOrder());
     return GlobalResponse.ok(
         page.content(), MetaService.createMetaInfo().add("pagination", page.pagination()));
   }

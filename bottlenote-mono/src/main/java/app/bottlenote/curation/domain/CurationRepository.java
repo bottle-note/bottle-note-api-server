@@ -2,6 +2,8 @@ package app.bottlenote.curation.domain;
 
 import app.bottlenote.common.annotation.DomainRepository;
 import app.bottlenote.curation.dto.dsl.CurationFeedSearchCriteria;
+import app.bottlenote.curation.dto.request.CurationSortType;
+import app.bottlenote.global.service.cursor.SortOrder;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
@@ -24,7 +26,13 @@ public interface CurationRepository {
 
   Optional<Curation> findVisibleById(Long id, LocalDate today);
 
-  Page<Curation> searchForAdmin(String keyword, Long specId, Boolean isActive, Pageable pageable);
+  Page<Curation> searchForAdmin(
+      String keyword,
+      Long specId,
+      Boolean isActive,
+      Pageable pageable,
+      CurationSortType sortType,
+      SortOrder sortOrder);
 
   Curation save(Curation curation);
 

@@ -5,6 +5,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.bottlenote.curation.domain.CurationSpec;
 import app.bottlenote.curation.dto.request.CurationCreateRequest;
+import app.bottlenote.curation.dto.request.CurationSortType;
+import app.bottlenote.global.pagination.PaginationException;
+import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationDetailResponse;
 import app.bottlenote.curation.exception.CurationException;
 import app.bottlenote.curation.exception.CurationExceptionCode;
@@ -217,6 +220,30 @@ class ProductSpecBasedCurationServiceTest {
     assertThat(secondPage.content().items()).extracting("id").containsExactly(olderId, nullDateId);
     assertThat(firstPage.pagination().hasNext()).isTrue();
     assertThat(secondPage.pagination().hasNext()).isFalse();
+  }
+
+  @Test
+  @DisplayName("Product feed는 선택한 2x2 정렬 matrix로 날짜 null-last, displayOrder 동률과 cursor 연속성을 유지한다")
+  void searchFeed_appliesSelectableSortMatrixAndRejectsMismatchedCursorContext() throws IOException {
+    CurationSpec spec = createSpec();
+    Long nullDate = createCuration(spec.getId(), "null", 20, true, null, null);
+    Long sameDateLowerId = createCuration(spec.getId(), "date-low", 10, true, LocalDate.now().minusDays(2), LocalDate.now().plusDays(1));
+    Long sameDateHigherId = createCuration(spec.getId(), "date-high", 10, true, LocalDate.now().minusDays(2), LocalDate.now().plusDays(1));
+    Long newer = createCuration(spec.getId(), "newer", 5, true, LocalDate.now().minusDays(1), LocalDate.now().plusDays(1));
+
+    var dateAsc = productService.searchFeed(null, List.of(spec.getCode()), null, 10, CurationSortType.EXPOSURE_START_DATE, SortOrder.ASC);
+    var dateDesc = productService.searchFeed(null, List.of(spec.getCode()), null, 2, CurationSortType.EXPOSURE_START_DATE, SortOrder.DESC);
+    var displayAsc = productService.searchFeed(null, List.of(spec.getCode()), null, 10, CurationSortType.DISPLAY_ORDER, SortOrder.ASC);
+    var displayDesc = productService.searchFeed(null, List.of(spec.getCode()), null, 10, CurationSortType.DISPLAY_ORDER, SortOrder.DESC);
+    var dateDescSecond = productService.searchFeed(null, List.of(spec.getCode()), dateDesc.pagination().nextCursor(), 2, CurationSortType.EXPOSURE_START_DATE, SortOrder.DESC);
+
+    assertThat(dateAsc.content().items()).extracting("id").containsExactly(sameDateLowerId, sameDateHigherId, newer, nullDate);
+    assertThat(dateDesc.content().items()).extracting("id").containsExactly(newer, sameDateHigherId);
+    assertThat(dateDescSecond.content().items()).extracting("id").containsExactly(sameDateLowerId, nullDate);
+    assertThat(displayAsc.content().items()).extracting("id").containsExactly(newer, sameDateLowerId, sameDateHigherId, nullDate);
+    assertThat(displayDesc.content().items()).extracting("id").containsExactly(nullDate, sameDateHigherId, sameDateLowerId, newer);
+    assertThatThrownBy(() -> productService.searchFeed(null, List.of(spec.getCode()), dateDesc.pagination().nextCursor(), 2, CurationSortType.DISPLAY_ORDER, SortOrder.DESC))
+        .isInstanceOf(PaginationException.class);
   }
 
   @Test

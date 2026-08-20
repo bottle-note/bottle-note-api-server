@@ -1,5 +1,7 @@
 package app.bottlenote.curation.dto.dsl;
 
+import app.bottlenote.curation.dto.request.CurationSortType;
+import app.bottlenote.global.service.cursor.SortOrder;
 import java.time.LocalDate;
 import java.util.Set;
 
@@ -8,7 +10,10 @@ public record CurationFeedSearchCriteria(
     Set<Long> specIds,
     Set<Long> keywordMatchedSpecIds,
     LocalDate today,
+    CurationSortType sortType,
+    SortOrder sortOrder,
     LocalDate lastExposureStartDate,
+    Integer lastDisplayOrder,
     Long lastId,
     int fetchSize) {
 

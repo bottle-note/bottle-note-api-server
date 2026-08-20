@@ -1,117 +1,125 @@
-# Plan: Admin·Product 큐레이션 날짜 최신순 정렬 계약
+# Plan: Admin·Product 큐레이션 선택 정렬 계약
 
-> **For Hermes:** Use subagent-driven-development skill to implement this plan task-by-task.
+> **For Hermes:** Use delegated workers for implementation; the parent manages this ADR and final delivery review.
 
-**Goal:** Admin 큐레이션 목록과 Product 큐레이션 feed를 노출 시작일 최신순으로 일관되게 반환한다.
+**Goal:** Admin 큐레이션 목록과 Product 큐레이션 feed가 노출 시작일 또는 수동 노출 순서를 요청 방향으로 정렬하도록 공통 계약을 제공한다.
 
-**Architecture:** `Curation.exposureStartDate`를 공통 정렬 SSoT로 사용하고 null-last 및 ID tie-breaker를 쿼리와 cursor seek에 동일하게 적용한다. Admin page/size와 Product opaque keyset cursor의 공개 구조는 유지하되 내부 정렬 key를 날짜 기준으로 전환한다.
+**Architecture:** 공통 `CurationSortType(EXPOSURE_START_DATE, DISPLAY_ORDER)`과 기존 `SortOrder(ASC, DESC)`를 Admin/Product request에서 받고 repository ordering과 Product cursor context/seek에 수직 전달한다. 기본값은 `EXPOSURE_START_DATE + DESC`이며, nullable 날짜는 방향과 무관하게 null-last, tie-breaker는 요청 방향의 ID다.
 
-**Tech Stack:** Java 21, Spring Boot, JPA/JPQL, QueryDSL, keyset cursor codec, MockMvcTester/통합 테스트, REST Docs/OpenAPI, GitHub Actions
+**Tech Stack:** Java 21, Spring Boot, JPA/JPQL, QueryDSL, keyset cursor codec, MockMvcTester/통합 테스트, OpenAPI, GitHub Actions
 
 ---
 
 ## Overview
 
-workspace #410을 단독 PR로 처리한다.
+workspace #410과 Draft PR #715를 재개봉한다.
 
-live main 확인 결과 현재 동작은 이슈 본문의 `createdAt` 정렬이 아니라 다음과 같다.
+live main의 기존 동작은 Admin/Product 모두 `displayOrder ASC, id ASC`였다. #715 첫 구현은 이를 고정 `exposureStartDate DESC, null-last, id DESC`로 바꿨으나, 사용자가 정렬 선택 request를 요구해 해당 가정은 폐기됐다.
 
-- Admin: `displayOrder ASC, id ASC`
-- Product feed: `displayOrder ASC, id ASC` keyset seek
-
-승인된 목표는 두 경로 모두 `exposureStartDate DESC`, null-last, `id DESC`로 교체하는 것이다. 요청자가 선택하는 sort 파라미터는 추가하지 않고 해당 목록의 고정 계약으로 노출한다.
+재승인된 목표는 Admin/Product 모두 `sortType`과 `sortOrder`를 받아 동일한 정렬 matrix를 제공하는 것이다. 기본 동작은 `EXPOSURE_START_DATE + DESC`이고, 기존 수동 노출 순서는 `DISPLAY_ORDER`로 명시적으로 선택할 수 있다.
 
 관련 이슈:
 - bottle-note/workspace#410
+- bottle-note/bottle-note-api-server#715
 
 ## Approved Assumptions
 
-1. “큐레이션 날짜”는 공통 엔티티 컬럼 `Curation.exposureStartDate`다.
-2. PROGRAM payload의 `eventStartDate` 등 spec별 payload 날짜는 정렬 SSoT가 아니다.
-3. 최신 날짜가 먼저다: `exposureStartDate DESC`.
-4. exposureStartDate가 null인 항목은 날짜가 있는 모든 항목 뒤에 위치한다.
-5. 동일 날짜 또는 둘 다 null이면 `id DESC`가 tie-breaker다.
-6. 기존 displayOrder는 저장·수정 필드로 남지만 Admin 목록/Product feed의 이 조회 순서에는 사용하지 않는다.
-7. Admin은 기존 page/size 구조를 유지한다.
-8. Product feed는 현재 opaque keyset cursor 구조를 유지하되 cursor가 새 정렬 key와 null bucket을 안전하게 표현해야 한다.
-9. 이전 displayOrder cursor를 새 구현이 해석해야 하는 호환 의무는 없다. 배포 시점에 진행 중이던 페이지 cursor는 재조회할 수 있다.
-10. sort 선택 query parameter는 추가하지 않는다. OpenAPI 설명으로 고정 정렬 계약을 노출한다.
-11. DB migration과 데이터 보정은 없다.
-12. visibility 필터와 keyword/spec code 필터는 정렬 전에 그대로 적용한다.
+1. 공통 정렬 enum은 `EXPOSURE_START_DATE`, `DISPLAY_ORDER` 두 값만 지원한다.
+2. 방향은 기존 공통 `SortOrder.ASC`, `SortOrder.DESC`를 사용한다.
+3. Admin/Product request의 누락 기본값은 `EXPOSURE_START_DATE + DESC`다.
+4. “큐레이션 날짜”는 `Curation.exposureStartDate`이며 spec payload 날짜는 정렬 SSoT가 아니다.
+5. `EXPOSURE_START_DATE`는 ASC/DESC 모두 null-last이고, 동일 날짜/null bucket은 요청 방향의 `id`로 결정한다.
+6. `DISPLAY_ORDER`는 요청 방향으로 정렬하고 동일 값은 같은 방향의 `id`로 결정한다.
+7. Admin page/size와 Product opaque cursor envelope는 유지한다.
+8. Product cursor context에 sortType/sortOrder를 포함해 다른 정렬 cursor의 재사용을 거부한다.
+9. 기존 배포 cursor 호환 의무는 없으며 진행 중 페이지는 재조회할 수 있다.
+10. DB migration·데이터 보정은 없다.
+11. visibility와 keyword/spec code 필터는 정렬 전에 그대로 적용한다.
 
 ## Success Criteria
 
-- Admin 목록이 날짜 DESC → null-last → id DESC 순으로 반환된다.
-- Product feed가 같은 순서로 반환된다.
-- 날짜와 createdAt/displayOrder가 충돌하는 fixture에서도 날짜 기준 결과가 우선한다.
-- 동일 날짜와 null 날짜의 순서가 결정적이다.
-- Product 다음 cursor가 날짜가 있는 구간, 날짜→null 경계, null 구간에서 중복·누락 없이 이어진다.
+- Admin/Product가 sortType·sortOrder를 동일 enum과 기본값으로 받는다.
+- `EXPOSURE_START_DATE` ASC/DESC가 null-last와 같은 방향 ID tie-breaker로 동작한다.
+- `DISPLAY_ORDER` ASC/DESC가 같은 방향 ID tie-breaker로 동작한다.
+- Product cursor가 네 정렬 조합에서 중복·누락 없이 이어진다.
+- 다른 sortType/order로 생성한 cursor는 기존 invalid-cursor contract로 거부된다.
 - keyword/code/visibility 필터 적용 후 정렬·pagination한다.
-- Admin 응답 page metadata와 Product feed 공개 cursor JSON 구조는 회귀하지 않는다.
-- OpenAPI/REST Docs에 고정 정렬 key, 방향, null, tie-breaker가 명시된다.
+- Admin page metadata와 Product cursor JSON envelope는 회귀하지 않는다.
+- OpenAPI에 query enum/default/null/tie-breaker가 명시된다.
 
 ## Impact Scope
 
-- `bottlenote-mono`: JpaCurationRepository Admin JPQL, Product feed criteria/repository, cursor payload/codec 또는 관련 cursor context, service
-- `bottlenote-admin-api`: Admin curation HTTP/통합/문서 테스트
-- `bottlenote-product-api`: Product feed HTTP/통합/문서 테스트
-- DB schema, curation payload/spec JSON, batch, FE는 영향 없음
+- `bottlenote-mono`: 공통 sort enum, Admin/Product request·criteria, repository, cursor context/service, Fake/InMemory, tests
+- `bottlenote-admin-api`: Admin curation HTTP/OpenAPI/tests
+- `bottlenote-product-api`: Product feed HTTP/OpenAPI/tests
+- Draft PR #715 ADR·제목·본문
+
+비영향:
+- DB schema/migration/backfill
+- curation payload/spec JSON
+- visibility/만료 정책
+- response item/envelope
+- FE UI
 
 ## Ordering Contract
 
-논리 순서:
+기본 request:
 
 ```txt
-1. exposureStartDate IS NOT NULL
-2. exposureStartDate DESC
-3. id DESC
-4. exposureStartDate IS NULL
-5. id DESC
+sortType=EXPOSURE_START_DATE
+sortOrder=DESC
 ```
 
-SQL/QueryDSL은 DB별 기본 null ordering에 의존하지 않고 명시적 null rank/case를 사용한다.
+### EXPOSURE_START_DATE
 
-### Admin
+- null rank는 ASC/DESC 모두 마지막이다.
+- ASC: `exposureStartDate ASC, id ASC`
+- DESC: `exposureStartDate DESC, id DESC`
+- null bucket: `id ASC` 또는 `id DESC`로 이어진다.
+- DB 기본 null ordering에 의존하지 않고 명시적 CASE/QueryDSL null rank를 사용한다.
 
-- JPQL 또는 QueryDSL에서 명시적 null-last를 표현한다.
-- Pageable의 외부 Sort가 고정 계약을 덮어쓰지 않도록 현재 controller/service 생성 방식을 확인한다.
-- page 경계에서 동일 날짜 ID tie-breaker가 결정적이어야 한다.
+### DISPLAY_ORDER
+
+- ASC: `displayOrder ASC, id ASC`
+- DESC: `displayOrder DESC, id DESC`
+- `displayOrder`는 non-null 기존 컬럼이다.
 
 ### Product keyset cursor
 
-- seek predicate와 orderBy는 반드시 같은 tuple 순서를 사용한다.
-- cursor context 최소 정보: null bucket 여부, last exposureStartDate(nullable), last id.
-- 날짜가 있는 bucket에서는 `(date < lastDate) OR (date = lastDate AND id < lastId)`.
-- 마지막 날짜 row 다음에는 더 과거 날짜와 null bucket을 포함한다.
-- null bucket에서는 `date IS NULL AND id < lastId`.
-- cursor signature/HMAC와 외부 opaque string은 유지한다.
-- 잘못된 cursor는 기존 semantic error contract로 거부한다.
+- seek predicate와 orderBy는 같은 tuple 방향을 사용한다.
+- cursor context에 최소 `sortType`, `sortOrder`, 기존 filter context가 포함된다.
+- keys에는 sortType별 primary value와 `id`를 담는다.
+- 날짜 정렬은 null bucket 전환과 null-tail을 처리한다.
+- displayOrder는 방향별 값 비교 후 동률 ID를 같은 방향으로 비교한다.
+- HMAC/opaque string과 invalid cursor error contract는 유지한다.
 
 ## Test Strategy
 
-Strict RED → GREEN → REFACTOR.
+Strict RED → GREEN → REFACTOR. 이 Hermes 머신에서는 OOM 정책상 JVM을 실행하지 않으므로 worker는 test-source-first와 정적 RED 근거를 만들고, 실제 RED/GREEN은 Draft PR GitHub Actions에서 확인한다.
 
-1. Admin RED: 서로 다른 date/displayOrder/createdAt, 동일 날짜, null, page 경계.
-2. Product repository RED: date order, filter-before-pagination, size+1, 날짜→null 경계, null 내부 다음 cursor.
-3. Cursor codec/context RED: round-trip, tamper/invalid, null date.
-4. Product/Admin HTTP·문서 RED: 공개 JSON 유지, 고정 정렬 설명.
-5. focused GREEN 후 `git diff --check` 및 accidental payload/spec/migration 변경 없음 확인.
+1. Request: Admin/Product enum binding, 기본값, invalid value 400.
+2. Admin: 두 sortType × 두 방향, 동일 값, null 날짜, page 경계.
+3. Product: 같은 4개 matrix, filter-before-pagination, size+1, 날짜→null/null-tail.
+4. Cursor: context에 sortType/order 포함, 조합 불일치 거부, null date.
+5. HTTP/OpenAPI: query schema/default와 공개 response envelope 유지.
+6. 기존 고정 정렬 기대 테스트는 삭제하지 않고 선택 정렬 matrix의 해당 case로 전환한다.
 
-Mockito 대신 실제 repository/fixture 상태와 결과 순서를 검증한다.
+Mockito를 사용하지 않고 실제 repository/fixture 또는 Fake/InMemory 상태·결과를 검증한다.
 
 ## Compatibility and Data
 
-- API 응답 item shape는 변하지 않지만 목록 순서는 의도적으로 바뀐다.
-- Product cursor는 opaque이므로 내부 payload 변경은 공개 JSON 구조 변경이 아니다.
-- 배포 이전 cursor 재사용은 보장하지 않는다. PR 본문에 명시한다.
-- 기존 displayOrder 값은 삭제·수정하지 않는다.
-- exposureStartDate null 데이터는 그대로 보존한다.
+- query parameter는 additive 변경이다.
+- 파라미터 미지정 기본 순서는 #410 목표인 날짜 최신순으로 바뀐다.
+- 기존 수동 순서는 `DISPLAY_ORDER + ASC`로 명시적 요청 가능하다.
+- Product cursor 내부 key/context 변경은 공개 JSON envelope 변경이 아니다.
+- 배포 이전 cursor 재사용은 보장하지 않는다.
+- 기존 displayOrder와 exposureStartDate 값은 수정하지 않는다.
 
 ## Non-goals
 
-- 정렬 선택 파라미터
+- `CREATED_AT` 등 추가 sortType
 - displayOrder 컬럼 삭제
-- curation payload의 eventStartDate 정렬
+- payload의 eventStartDate 정렬
 - DB migration/backfill
 - visibility/만료 정책 변경
 - FE 정렬 UI
@@ -121,60 +129,46 @@ Mockito 대신 실제 repository/fixture 상태와 결과 순서를 검증한다
 
 - mode: delegated
 - scope: plan, implement, test, verify, commit, push, pr
-- worker-stage: 구현 에이전트는 test source 우선 작성, 정적 RED 근거, 구현, 정적 검증, commit까지만 수행한다.
-- delivery-stage: 별도 delivery 에이전트가 다른 PR CI와 겹치지 않게 push → Draft PR open → GitHub Actions CI watch를 직렬 수행한다.
-- verification-order: test source/정적 RED → 구현 → static diff checks → commit → 직렬 push/PR → GitHub Actions CI watch
-- ci-watch: `gh-app pr checks <PR> --watch --interval 30`, 최대 10분
+- worker-stage: test source 우선 → 정적 RED 근거 → 최소 구현 → 정적 검증 → App commit
+- delivery-stage: 기존 Draft PR #715 push → GitHub Actions watch
+- ci-watch: `gh-app pr checks 715 --watch --interval 30`, 최대 10분
 - stop-conditions:
   1. 승인 가정 붕괴
   2. verify/CI 실패를 3회 안에 해결하지 못함
   3. scope 밖 행동 필요
-  4. 현재 Product cursor가 nullable date tuple을 안전하게 표현할 수 없고 공개 계약 변경이 필요함
-  5. exposureStartDate가 실제 소비자 의미의 날짜가 아니라는 근거 발견
+  4. 네 정렬 조합을 opaque cursor로 안전하게 표현할 수 없어 공개 envelope 변경이 필요함
 - prohibited: merge, deploy/release, workspace issue mutation, Kubernetes/infra/secrets
 
 ## OOM Safety Policy
 
-- 이 Hermes 머신에는 swap이 없으므로 로컬 `./gradlew`, Java compile/test, Testcontainers, Docker, IDE indexer를 실행하지 않는다.
-- 병렬 에이전트는 파일 조사·편집·가벼운 JSON/텍스트 정적 검사만 수행한다.
-- `git diff --check`, JSON parser, 소스 검색처럼 JVM을 띄우지 않는 검증만 로컬에서 허용한다.
-- 실제 unit/integration/rule/compile 검증은 Draft PR GitHub Actions를 유일한 실행 근거로 사용한다.
-- 세 구현 worker는 병렬 가능하지만 push/PR/CI watch는 한 번에 하나만 수행한다.
-- 메모리 압박, 예상 밖 JVM/Docker 프로세스, CI 무한 대기가 보이면 즉시 정지하고 Progress Log에 기록한다.
+- 로컬 `./gradlew`, Java/JVM, Testcontainers, Docker를 실행하지 않는다.
+- `git diff --check`, 소스 assertion, JSON/text parser만 허용한다.
+- 실제 compile/unit/integration/rule 검증은 Draft PR GitHub Actions를 실행 근거로 사용한다.
 
 ## Tasks
 
-### Task 1: Admin 날짜 고정 정렬 수직 경로
-- Acceptance: Admin 결과가 date DESC/null-last/id DESC이며 page 경계가 안정적이다.
-- Verification: Admin repository/HTTP 통합 테스트 RED 후 GREEN.
-- Files (advisory): JpaCurationRepository 또는 query impl, Admin service/docs/tests
-- Depends: 없음
-- Size: M
-- Status: [x] done
+### Task 1: 공통 request·enum 계약
+- Acceptance: Admin/Product가 두 sortType과 두 방향을 받고 기본값과 invalid contract를 공유한다.
+- Status: [x] worker static complete (JVM 미실행)
 
-### Task 2: Product 날짜 keyset cursor 수직 경로
-- Acceptance: feed가 같은 순서를 사용하고 날짜→null 및 null bucket cursor가 중복·누락 없이 이어진다.
-- Verification: cursor/repository/service focused tests RED 후 GREEN.
-- Files (advisory): CurationFeedSearchCriteria, cursor context/codec, CustomCurationFeedRepositoryImpl, tests
-- Depends: 없음
-- Size: M
-- Status: [x] done
+### Task 2: Admin/Product 정렬 matrix와 Product keyset
+- Acceptance: 네 조합의 실제 순서·tie-breaker·cursor가 공통 계약과 일치한다.
+- Status: [x] worker static complete (JVM 미실행)
 
-### Checkpoint: after Tasks 1-2
-- [x] Admin/Product ordering matrix 일치
-- [x] nullable date seek 경계 통과
+### Checkpoint
+- [x] source-level Admin/Product 2×2 ordering matrix 반영
+- [x] source-level nullable date seek 및 cursor context 경계 반영
 
 ### Task 3: 문서·호환성·Draft PR CI verify
-- Acceptance: 공개 item/cursor envelope는 유지되고 정렬 계약이 문서화되며 Draft PR CI가 통과한다.
-- Verification: Product/Admin HTTP/docs tests, `git diff --check`, Draft PR 후 Actions watch.
-- Files (advisory): API docs/tests, PR body
-- Depends: Tasks 1, 2
-- Size: M
-- Status: [x] worker complete (Draft PR/CI delivery 진행)
+- Acceptance: OpenAPI와 PR 설명이 선택 정렬 계약을 노출하고 #715 CI가 통과한다.
+- Status: [x] 문서 static complete; [ ] CI/delivery pending
 
 ## Progress Log
 
-- 2026-08-20: live main에서 기존 displayOrder keyset 확인.
-- 2026-08-20: 사용자 승인. exposureStartDate DESC/null-last/id DESC, #410 단독 PR, PR-first GitHub Actions verify 확정.
-- 2026-08-20: worker-stage 완료. Admin/Product test source를 먼저 추가해 기존 displayOrder ASC 구현과의 정적 RED 불일치를 확인했고, nullable date tuple seek·명시적 null rank·문서를 반영했다. OOM 정책에 따라 JVM/Gradle/컨테이너 검증과 delivery-stage push/PR은 수행하지 않았다.
-- 2026-08-20: 마지막 serial delivery lane에서 전체 diff 정적 재검토 후 Draft PR 생성·GitHub Actions 검증을 진행한다.
+- 2026-08-20: live main에서 기존 `displayOrder ASC, id ASC` keyset을 확인했다.
+- 2026-08-20: 최초 승인에 따라 고정 `exposureStartDate DESC/null-last/id DESC` 구현과 Draft PR #715를 만들었다.
+- 2026-08-20: 첫 #715 CI는 기존 displayOrder 기대 통합 테스트에서 실패했다.
+- 2026-08-20: 사용자가 고정 정렬이 아니라 정렬 방향+속성 request를 요구해 가정이 붕괴했다. 실패 테스트의 단순 기대값 수정은 중단했다.
+- 2026-08-20: `sortType={EXPOSURE_START_DATE, DISPLAY_ORDER}`, `sortOrder={ASC,DESC}`, 기본 날짜 DESC 계약으로 재개봉·재승인했다.
+- 2026-08-21: test-source-first로 request 기본값/enum, Admin·Product ordering matrix, Product cursor 연속성·context 불일치, Product HTTP enum binding/400, OpenAPI 설명을 추가했다. 기존 고정 DESC 구현에는 enum/overload/context/matrix가 없어 정적 RED를 확인했다.
+- 2026-08-21: QueryDSL/JPA/InMemory seek·order·cursor keys를 선택 정렬로 전환하고 정적 GREEN source/model/diff 검증을 수행했다. OOM 정책에 따라 Gradle/JVM/Testcontainers/Docker는 실행하지 않았으며 compile/unit/integration/OpenAPI 생성/CI는 delivery-stage 검증 gap으로 남긴다.

@@ -10,6 +10,8 @@ import app.bottlenote.curation.domain.CurationRepository;
 import app.bottlenote.curation.domain.CurationSpec;
 import app.bottlenote.curation.domain.CurationSpecRepository;
 import app.bottlenote.curation.dto.dsl.CurationFeedSearchCriteria;
+import app.bottlenote.curation.dto.request.CurationSortType;
+import app.bottlenote.global.service.cursor.SortOrder;
 import app.bottlenote.curation.dto.response.CurationFeedListResponse;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationDetailResponse;
 import app.bottlenote.curation.dto.response.ProductSpecBasedCurationFeedItemResponse;
@@ -62,14 +64,34 @@ public class ProductSpecBasedCurationService {
   @Transactional(readOnly = true)
   public PageResponse<CurationFeedListResponse> searchFeed(
       String keyword, List<String> codes, String cursor, Integer size) {
+    return searchFeed(
+        keyword,
+        codes,
+        cursor,
+        size,
+        CurationSortType.EXPOSURE_START_DATE,
+        SortOrder.DESC);
+  }
+
+  @Transactional(readOnly = true)
+  public PageResponse<CurationFeedListResponse> searchFeed(
+      String keyword,
+      List<String> codes,
+      String cursor,
+      Integer size,
+      CurationSortType sortType,
+      SortOrder sortOrder) {
     int pageSize = normalizeFeedSize(size);
     List<String> normalizedCodes = normalizeCodes(codes);
-    String context = "curation.feed:" + normalizedCodes + ":" + keyword;
+    String context =
+        "curation.feed:" + normalizedCodes + ":" + keyword + ":" + sortType + ":" + sortOrder;
     LocalDate lastExposureStartDate = null;
+    Integer lastDisplayOrder = null;
     Long lastId = null;
     if (cursor != null) {
       var claims = cursorCodec.verify(cursor, context);
       lastExposureStartDate = parseCursorDate(CursorKeys.optional(claims, "date"));
+      lastDisplayOrder = parseCursorInteger(CursorKeys.optional(claims, "displayOrder"));
       lastId = CursorKeys.requireLong(claims, "id");
     }
     List<CurationSpec> specs =
@@ -89,7 +111,10 @@ public class ProductSpecBasedCurationService {
             specMap.keySet(),
             keywordMatchedSpecIds,
             LocalDate.now(),
+            sortType,
+            sortOrder,
             lastExposureStartDate,
+            lastDisplayOrder,
             lastId,
             pageSize + 1);
     List<Long> candidateIds = curationRepository.findFeedCandidateIds(criteria);
@@ -121,7 +146,7 @@ public class ProductSpecBasedCurationService {
             item ->
                 cursorCodec.encode(
                     context,
-                    cursorKeys(item.exposureStartDate(), item.id())));
+                    cursorKeys(item, sortType)));
     return PageResponse.of(new CurationFeedListResponse(slice.items()), slice.pagination());
   }
 
@@ -260,11 +285,27 @@ public class ProductSpecBasedCurationService {
     }
   }
 
-  private Map<String, String> cursorKeys(LocalDate exposureStartDate, Long id) {
-    if (exposureStartDate == null) {
-      return Map.of("id", String.valueOf(id));
+  private Integer parseCursorInteger(String value) {
+    if (value == null) {
+      return null;
     }
-    return Map.of("date", exposureStartDate.toString(), "id", String.valueOf(id));
+    try {
+      return Integer.valueOf(value);
+    } catch (NumberFormatException exception) {
+      throw new app.bottlenote.global.pagination.PaginationException(
+          app.bottlenote.global.pagination.PaginationExceptionCode.INVALID_CURSOR);
+    }
+  }
+
+  private Map<String, String> cursorKeys(
+      ProductSpecBasedCurationFeedItemResponse item, CurationSortType sortType) {
+    if (sortType == CurationSortType.DISPLAY_ORDER) {
+      return Map.of("displayOrder", String.valueOf(item.displayOrder()), "id", String.valueOf(item.id()));
+    }
+    if (item.exposureStartDate() == null) {
+      return Map.of("id", String.valueOf(item.id()));
+    }
+    return Map.of("date", item.exposureStartDate().toString(), "id", String.valueOf(item.id()));
   }
 
   private String container(CurationSpec spec) {
