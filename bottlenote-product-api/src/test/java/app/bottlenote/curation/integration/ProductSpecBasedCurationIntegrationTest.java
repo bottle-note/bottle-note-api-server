@@ -384,8 +384,8 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
 
       assertThat(dataNode(sorted).path("items").get(0).path("id").asLong()).isEqualTo(higherOrder);
       assertThat(dataNode(sorted).path("items").get(1).path("id").asLong()).isEqualTo(lowerOrder);
-      assertThat(mockMvcTester.get().uri("/api/v2/curations/feed?code=RECOMMENDED_WHISKY&sortType=UNKNOWN").exchange())
-          .hasStatus(BAD_REQUEST);
+      assertInvalidSortQuery("sortType", "UNKNOWN");
+      assertInvalidSortQuery("sortOrder", "UNKNOWN");
     }
 
   }
@@ -650,6 +650,18 @@ class ProductSpecBasedCurationIntegrationTest extends IntegrationTestSupport {
     GlobalResponse response =
         mapper.readValue(result.getResponse().getContentAsString(), GlobalResponse.class);
     return mapper.valueToTree(response.getData());
+  }
+
+  private void assertInvalidSortQuery(String name, String value) {
+    MvcTestResult result =
+        mockMvcTester
+            .get()
+            .uri("/api/v2/curations/feed?code=RECOMMENDED_WHISKY&" + name + "=" + value)
+            .exchange();
+
+    assertThat(result).hasStatus(BAD_REQUEST);
+    result.assertThat().bodyJson().extractingPath("$.code").isEqualTo(400);
+    result.assertThat().bodyJson().extractingPath("$.errors[0].code").isEqualTo("TYPE_MISMATCH");
   }
 
   private Map<String, Object> bottleNoteItem(Alcohol alcohol) {

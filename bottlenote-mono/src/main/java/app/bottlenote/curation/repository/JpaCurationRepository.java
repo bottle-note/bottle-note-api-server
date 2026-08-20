@@ -23,8 +23,7 @@ public interface JpaCurationRepository
       """
       SELECT c FROM curation c
       WHERE c.isActive = true
-      ORDER BY CASE WHEN c.exposureStartDate IS NULL THEN 1 ELSE 0 END ASC,
-               c.exposureStartDate DESC, c.id DESC
+      ORDER BY c.displayOrder ASC, c.id ASC
       """)
   List<Curation> findAllByIsActiveTrueOrderByDisplayOrderAscIdAsc();
 
@@ -37,8 +36,7 @@ public interface JpaCurationRepository
       WHERE c.isActive = true
         AND (c.exposureStartDate IS NULL OR c.exposureStartDate <= :today)
         AND (c.exposureEndDate IS NULL OR c.exposureEndDate >= :today)
-      ORDER BY CASE WHEN c.exposureStartDate IS NULL THEN 1 ELSE 0 END ASC,
-               c.exposureStartDate DESC, c.id DESC
+      ORDER BY c.displayOrder ASC, c.id ASC
       """)
   List<Curation> findAllVisibleOn(@Param("today") LocalDate today);
 
