@@ -36,7 +36,7 @@ workspace #414, #415, #417을 하나의 Product 둘러보기 계약 PR로 처리
 7. rating은 `0.5` 이상 `5.0` 이하, `0.5` 단위만 유효하다. NaN, Infinity, 범위 밖 값, 0.5 단위가 아닌 값은 400이다.
 8. 위스키 필터는 응답에 표시되는 집계 평점과 동일한 반올림 기준을 사용한다.
 9. 리뷰 필터는 `review.reviewRating`의 정확한 값 기준이다.
-10. 리뷰 기본 정렬과 지원 enum은 현재 `ReviewSortType`·`SortOrder`를 SSoT로 삼되 알 수 없는 값은 임의 기본값으로 폴백하지 않고 400으로 거부한다.
+10. 리뷰 둘러보기의 기본 정렬은 기존 무파라미터 계약인 `LATEST + DESC`(`createAt DESC, id DESC`)를 유지한다. `ReviewPageableRequest`를 사용하는 술별/내 리뷰 목록의 기존 `POPULAR` 기본값은 변경하지 않는다. 지원 enum은 `ReviewSortType`·`SortOrder`를 SSoT로 삼되 알 수 없는 값은 임의 기본값으로 폴백하지 않고 400으로 거부한다.
 11. 각 정렬은 결정적 tie-breaker로 review/alcohol ID를 포함한다.
 12. 공개 pagination 구조 전면 교체는 별도 pagination 작업이며 이 PR의 범위가 아니다. 다만 추가된 필터·정렬 조건에서 페이지 연속성과 중복·누락 방지는 검증한다.
 13. DB migration, 기존 데이터 보정, FE 구현은 없다.
@@ -81,6 +81,7 @@ workspace #414, #415, #417을 하나의 Product 둘러보기 계약 PR로 처리
 
 ### Sort and pagination
 
+- ReviewSortType의 `LATEST`는 `createAt`, `review.id`만 요청 방향으로 정렬하고 cursor keys는 `t`, `id`만 사용한다. 리뷰 둘러보기 무파라미터 요청은 `LATEST + DESC`다.
 - ReviewSortType의 각 값이 실제 QueryDSL order expression으로 연결되어야 한다.
 - 방향이 바뀌면 tie-breaker ID 방향도 같은 정렬 방향으로 맞춘다.
 - likes/replies 집계 정렬은 group-by cardinality와 중복 row를 검증한다.
@@ -185,3 +186,4 @@ Mockito interaction verify를 추가하지 않는다. QueryDSL·serialization �
 - 2026-08-20: delivery 전 정적 리뷰에서 alcohol `RANDOM` 후보 조회만 `criteria.rating()` join/HAVING을 적용하지 않아 rating을 무시하는 조합 결함을 발견했다. RANDOM+rating 회귀 test source를 먼저 추가했고, rating이 있을 때만 기존 `ratingMatches(criteria.rating())` HAVING을 쓰는 `rating` LEFT JOIN/GROUP BY 분기를 추가했다. rating 미지정 RANDOM의 기존 CRC32 order/keyset 경로는 보존했으며, 전체 정적 재검토·CI는 delivery-stage에서 수행한다.
 - 2026-08-20: Draft PR #714 첫 CI는 신규 review query parameter 5개의 OpenAPI schema 누락과, ASC tie-breaker를 과거 DESC로 기대하는 기존 단위 테스트 3건 때문에 실패했다. 운영 `ORDER BY createAt ASC, id ASC`와 seek `>`는 일치하므로 query는 유지하고 OpenAPI schema·기존 테스트·상충 주석만 ADR 방향에 맞게 보정한다.
 - 2026-08-20: 두 번째 CI는 `@Schema.multipleOf`에 문자열 `"0.5"`를 지정해 현재 OpenAPI annotation의 `double` 타입과 맞지 않는 컴파일 오류로 중단됐다. 세 번째 최종 시도는 이를 숫자 literal `0.5`로 고치는 한 줄 외에 코드 계약을 변경하지 않는다.
+- 2026-08-21: 별도 리뷰에서 리뷰 둘러보기 무파라미터 기본 정렬이 기존 최신순에서 POPULAR로 회귀한 blocker를 확인했다. `ReviewSortType.LATEST`와 둘러보기 전용 기본값, sort/keyset/cursor/OpenAPI, 실행 회귀 테스트를 추가하되 `ReviewPageableRequest`의 POPULAR 기본값은 유지한다.
